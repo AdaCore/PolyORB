@@ -1,0 +1,28 @@
+interface Vehicle {
+  attribute string mark;
+  void drive (string vehicle_mark);
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
