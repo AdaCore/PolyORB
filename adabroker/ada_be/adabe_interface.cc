@@ -201,6 +201,11 @@ adabe_interface::produce_ads(dep_list &with,
   body += "   function To_Ref\n";
   body += "     (Self : in AdaBroker.OmniORB.ImplObject'Class)\n";
   body += "      return Ref ;\n\n";
+
+  // Extraction of a refenrece to this object from an Any
+  body += "   function From_Any\n";
+  body += "     (From : in CORBA.Any)\n";
+  body += "      return Ref;\n\n";
   
   // Add all multiple inheritance declarations to the body
   body += tmp;
@@ -342,6 +347,13 @@ adabe_interface::produce_adb(dep_list& with,
   body += "         CORBA.Object.OmniORB.To_Ref (Self, Repository_Id);\n";
   body += "      return Result;\n";
   body += "   end To_Ref;\n\n";
+
+  body += "   function From_Any (From : in CORBA.Any)\n";
+  body += "                     return Ref is";
+  body += "   begin\n";
+  body += "      return To_Ref (CORBA.Object.From_Any (From));\n";
+  body += "   end From_Any;\n\n";
+
 
   // Direct parent of this package
   adabe_interface *parent;
