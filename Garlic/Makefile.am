@@ -26,6 +26,9 @@ TCPOBJECTS = \
 s-gtplsp.o\
 s-gartcp.o
 
+ZIPOBJECTS = \
+s-gafizi.o
+
 NOBLTCPOBJECTS = \
 s-ganobl.o
 
@@ -52,7 +55,11 @@ s-parint.o\
 s-rpc.o\
 s-stratt.o
 
-OBJECTS = $(COMMONOBJECTS) @PROTOCOLSOBJECTS@ @LAUNCHINGOBJECTS@
+OBJECTS = \
+$(COMMONOBJECTS) \
+@PROTOCOLSOBJECTS@ \
+@FILTERSOBJECTS@ \
+@LAUNCHINGOBJECTS@
 
 LAUNCHINGSOURCES = \
 ${srcdir}/s-garnam.ads ${srcdir}/s-garnam.adb \
@@ -61,6 +68,9 @@ ${srcdir}/s-garrem.ads ${srcdir}/s-garrem.adb
 TCPSOURCES = \
         ./s-gtplsp.ads                        \
 ${srcdir}/s-gartcp.ads ${srcdir}/s-gartcp.adb
+
+ZIPSOURCES = \
+${srcdir}/s-gafizi.ads ${srcdir}/s-gafizi.adb
 
 NOBLTCPSOURCES = \
 ${srcdir}/s-ganobl.ads ${srcdir}/s-ganobl.adb
@@ -92,7 +102,15 @@ ${srcdir}/s-parint.ads ${srcdir}/s-parint.adb \
 ${srcdir}/s-rpc.ads    ${srcdir}/s-rpc.adb    \
 ${srcdir}/s-stratt.adb
 
-SOURCES = $(COMMONSOURCES) @PROTOCOLSSOURCES@ @LAUNCHINGSOURCES@
+SOURCES = \
+$(COMMONSOURCES) \
+@PROTOCOLSSOURCES@ \
+@FILTERSSOURCES@ \
+@LAUNCHINGSOURCES@
+
+ZIP_LIBRARY = ${GARLIC}/libz.a
+
+LIBRARIES = @ZIP_LIBRARY@
 
 CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads s-gaosli.ads s-gaprco.adb \
 	s-garser.adb
@@ -123,7 +141,7 @@ s-garcon.ads: ${CONSTANTS_SH}
 s-gtplsp.ads: ${srcdir}/${TCP_PLATFORM}
 	cp ${srcdir}/${TCP_PLATFORM} s-gtplsp.ads
 
-all-local: ${OBJECTS} ${SOURCES}
+all-local: ${OBJECTS} ${SOURCES} ${LIBRARIES}
 
 install-data-local: all-local
 	-rm -rf ${GARLIC}
@@ -131,6 +149,11 @@ install-data-local: all-local
 	${CP} -p ${SOURCES} ${OBJECTS} \
 		`echo ${OBJECTS} | sed -e 's/\.o/.ali/g'` ${GARLIC}
 
+${ZIP_LIBRARY}:
+	(cd zlib; make libz.a)
+	${CP} zlib/libz.a ${GARLIC}
+	ranlib ${GARLIC}/libz.a
+ 
 # Cross references
 
 X.ref: ${SOURCES}
@@ -168,3 +191,5 @@ s-gtplsp.o: s-garlic.ads s-garpoi.ads s-garpro.ads s-gartcp.ads s-gtplsp.ads s-g
 s-parint.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-gaphlo.ads s-garpro.ads s-garsta.ads s-garter.ads s-garuti.ads s-parint.ads s-parint.adb s-rpc.ads
 s-rpc.o: s-garlic.ads s-garcac.ads s-garcac.adb s-gardeb.ads s-garhea.ads s-gaphlo.ads s-garpro.ads s-garter.ads s-rpc.ads s-rpc.adb
 s-stratt.o: s-stratt.adb
+
+

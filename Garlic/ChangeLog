@@ -1,3 +1,11 @@
+Fri Feb 21 19:53:29 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
+
+	* Makefile.am: Add zip filtering. Z library is now included in the
+        release. By default, it is not installed but with
+	--with-filters="zip", the Z library is included in garlic
+	library and Z binding and filter are also included.
+	
+
 Fri Feb 21 17:35:34 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
 	* s-gafizi.adb, s-gafizi.ads: Add zip filtering.
