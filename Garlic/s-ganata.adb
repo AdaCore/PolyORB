@@ -86,14 +86,14 @@ package body System.Garlic.Name_Table is
       --  Int Value associated with this name
 
       Next   : Name_Id;
-      --  Next entry in names table for same hash Code
+      --  Next entry in names table for same hash code
 
    end record;
 
    Null_Node : constant Node_Type :=
      (First  => Null_Name,
       Length => 0,
-      Info   => 0,
+      Info   => Empty_Info,
       Next   => Null_Name);
 
    package Nodes is new System.Garlic.Table.Simple
@@ -134,7 +134,7 @@ package body System.Garlic.Name_Table is
    begin
       pragma Debug (D (D_Debug, "Looking for entry for name `" & S & "'"));
 
-      --  Set to the first entry whose hash value matches S hash code.
+      --  Set to the first entry whose hash value matches S hash code
 
       I := Hash_Nodes (H);
 
@@ -163,17 +163,13 @@ package body System.Garlic.Name_Table is
          begin
             Max := Max + Size;
             Table := new String (Min .. Max);
-            for Index in Min .. Last loop
-               Table (Index) := Old (Index);
-            end loop;
-            for Index in Last + 1 .. Max loop
-               Table (Index) := Ascii.Nul;
-            end loop;
+            Table (Min .. Last) := Old (Min .. Last);
+            Table (Last + 1 .. Max) := (others => Ascii.Nul);
             Free (Old);
          end;
       end if;
 
-      --  Enter the name in the first entry whose hash code matches S.
+      --  Enter the name in the first entry whose hash code matches S
       pragma Debug (D (D_Debug, "Use new entry for name `" & S & "'"));
 
       I := Nodes.Allocate;
