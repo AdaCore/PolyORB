@@ -327,6 +327,7 @@ procedure Test_Naming is
    end Bind_Self;
 
 begin
+   CORBA.ORB.Initialize ("ORB");
    PolyORB.ORB.Thread_Pool.Initialize (4, 10);
    PolyORB.CORBA_P.Server_Tools.Initiate_Server
      (Start_New_Task => True);
