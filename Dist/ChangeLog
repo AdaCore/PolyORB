@@ -1,3 +1,22 @@
+1998-02-17  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_check.adb: Add units already configured on partition type
+	(default_partition) to every partition.
+
+	* xe_back.adb: New procedure Show_Partition (extracted from
+ 	Show_Configuration).
+	
+
+1998-02-16  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_back.adb: Declare Default_Partition as a normal
+ 	partition. This way it is properly initialized.
+
+	* xe_parse.adb: A declared subprogram ('Main) can be the main
+ 	procedure of the distributed application. Declare it twice
+	caused gnatdist to yell.
+
+	
 1998-02-16  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* xe_build.adb: Remove useless with clauses.

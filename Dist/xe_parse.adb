@@ -175,6 +175,10 @@ package body XE_Parse is
       Unit : Variable_Id;
    begin
 
+      --  A pragma is handled like a subprogram execution. When parameter
+      --  Pragma_Kind is different from Pragma_Unkown, we have a pragma
+      --  declaration.
+
       if Pragma_Kind = Pragma_Unknown then
 
          --  An ada unit node should be defined and its value holds the
@@ -1015,14 +1019,21 @@ package body XE_Parse is
       Procedure_Name := Token_Name;
       Procedure_Sloc := Get_Token_Location;
 
-      Declare_Subprogram
-        (Procedure_Name,
-         Pragma_Unknown,
-         True,
-         Procedure_Sloc,
-         Procedure_Node);
-
       Take_Token ((Tok_Is, Tok_Semicolon));
+
+      Search_Variable (Procedure_Name, Ada_Unit_Type_Node, Ada_Unit_Node);
+
+      --  This procedure has to be declared when this statement is
+      --  a declaration or when it has not been already declared.
+
+      if Token = Tok_Semicolon or else Ada_Unit_Node = Null_Variable then
+         Declare_Subprogram
+           (Procedure_Name,
+            Pragma_Unknown,
+            True,
+            Procedure_Sloc,
+            Procedure_Node);
+      end if;
 
       if Token = Tok_Is then
 

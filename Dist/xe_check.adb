@@ -117,6 +117,18 @@ package body XE_Check is
 
    begin
 
+      --  Configure units configured on partition type on every partition.
+      declare
+         U : CUID_Type := Partitions.Table (Default_Partition).First_Unit;
+      begin
+         while U /= Null_CUID loop
+            for P in Partitions.First + 1 .. Partitions.Last loop
+               Add_Conf_Unit (CUnit.Table (U).CUname, P);
+            end loop;
+            U := CUnit.Table (U).Next;
+         end loop;
+      end;
+
       if Debug_Mode then
          Message ("unmark configured units");
       end if;

@@ -65,6 +65,8 @@ package body XE_Back is
    procedure Set_Type_Attribute
      (Pre_Type : in Type_Id);
 
+   procedure Show_Partition (PID : in PID_Type);
+
    ---------------------------
    -- Add_Channel_Partition --
    ---------------------------
@@ -808,20 +810,10 @@ package body XE_Back is
    procedure Initialize is
       P : PID_Type;
       C : CID_Type;
+      N : Partition_Name_Type;
    begin
-      Partitions.Increment_Last;
-      P := Partitions.Last;
-      Partitions.Table (P).Name
-        := Get_Node_Name (Node_Id (Partition_Type_Node));
-
-      Partitions.Table (P).Main_Subprogram  := No_Main_Subprogram;
-      Partitions.Table (P).Host             := Null_HID;
-      Partitions.Table (P).Storage_Dir      := No_Storage_Dir;
-      Partitions.Table (P).Command_Line     := No_Command_Line;
-      Partitions.Table (P).Termination      := Unknown_Termination;
-      Partitions.Table (P).Filter           := No_Filter_Name;
-      Partitions.Table (P).Most_Recent      := No_Name;
-
+      N := Get_Node_Name (Node_Id (Partition_Type_Node));
+      Create_Partition (N, Null_Node, P);
       Name_Len := 1;
 
       Name_Buffer (1 .. 1) := "3";
@@ -1403,12 +1395,6 @@ package body XE_Back is
 
    procedure Show_Configuration is
 
-      Main         : Main_Subprogram_Type;
-      Host         : HID_Type;
-      Storage_Dir  : Storage_Dir_Name_Type;
-      Command_Line : Command_Line_Type;
-      Task_Pool    : Task_Pool_Type;
-
    begin
       Write_Str (" ------------------------------");
       Write_Eol;
@@ -1447,103 +1433,9 @@ package body XE_Back is
       Write_Eol;
 
       for P in Partitions.First + 1 .. Partitions.Last loop
-         declare
-            I : Partition_Type renames Partitions.Table (P);
-            U : CUID_Type;
-         begin
-            Write_Str ("Partition ");
-            Write_Name (I.Name);
-            Write_Eol;
-
-            Main := Get_Main_Subprogram (P);
-            if Main /= No_Main_Subprogram then
-               Write_Str ("   Main        : ");
-               Write_Name (Main);
-               Write_Eol;
-            end if;
-
-            Host := I.Host;
-            if Host = Null_HID then
-               Host := Partitions.Table (Default_Partition).Host;
-            end if;
-
-            if Host /= Null_HID then
-               Write_Str ("   Host        : ");
-               if Hosts.Table (Host).Static then
-                  Write_Name (Hosts.Table (Host).Name);
-               else
-                  Write_Str ("function call :: ");
-                  Write_Name (Hosts.Table (Host).External);
-                  case Hosts.Table (Host).Import is
-                     when None_Import =>
-                        null;
-                     when Ada_Import =>
-                        Write_Str (" (ada)");
-                     when Shell_Import =>
-                        Write_Str (" (shell)");
-                  end case;
-               end if;
-               Write_Eol;
-            end if;
-
-            Storage_Dir := Get_Storage_Dir (P);
-            if Storage_Dir /= No_Storage_Dir then
-               Write_Str ("   Storage     : ");
-               Write_Name (Storage_Dir);
-               Write_Eol;
-            end if;
-
-            Command_Line := Get_Command_Line (P);
-            if Command_Line /= No_Command_Line then
-               Write_Str ("   Command     : ");
-               Write_Name (Command_Line);
-               Write_Eol;
-            end if;
-
-            Task_Pool := Get_Task_Pool (P);
-            if Task_Pool /= No_Task_Pool then
-               Write_Str ("   Task Pool   : ");
-               for B in Task_Pool'Range loop
-                  Write_Name (Task_Pool (B));
-                  Write_Str (" ");
-               end loop;
-               Write_Eol;
-            end if;
-
-            if Get_Termination (P) /= Unknown_Termination then
-               Write_Str ("   Termination : ");
-               case Get_Termination (P) is
-                  when Local_Termination =>
-                     Write_Str ("local");
-                  when Global_Termination =>
-                     Write_Str ("global");
-                  when Deferred_Termination =>
-                     Write_Str ("deferred");
-                  when Unknown_Termination =>
-                     null;
-               end case;
-               Write_Eol;
-            end if;
-
-            if I.First_Unit /= Null_CUID then
-               Write_Str ("   Units       : ");
-               Write_Eol;
-               U := I.First_Unit;
-               while U /= Null_CUID loop
-                  Write_Str ("             - ");
-                  Write_Name (CUnit.Table (U).CUname);
-                  if Unit.Table (CUnit.Table (U).My_Unit).RCI then
-                     Write_Str (" (rci) ");
-                  else
-                     Write_Str (" (normal)");
-                  end if;
-                  Write_Eol;
-                  U := CUnit.Table (U).Next;
-               end loop;
-               Write_Eol;
-            end if;
-         end;
+         Show_Partition (P);
       end loop;
+
       Write_Str (" -------------------------------");
       Write_Eol;
       if Channels.First + 1 <= Channels.Last then
@@ -1593,5 +1485,117 @@ package body XE_Back is
       end if;
 
    end Show_Configuration;
+
+   --------------------
+   -- Show_Partition --
+   --------------------
+
+   procedure Show_Partition (PID : PID_Type) is
+
+      M : Main_Subprogram_Type;
+      H : HID_Type;
+      S : Storage_Dir_Name_Type;
+      C : Command_Line_Type;
+      T : Task_Pool_Type;
+      U : CUID_Type;
+
+   begin
+      Write_Str ("Partition ");
+      Write_Name (Partitions.Table (PID).Name);
+      Write_Eol;
+
+      M := Get_Main_Subprogram (PID);
+      if M /= No_Main_Subprogram then
+         Write_Str ("   Main        : ");
+         Write_Name (M);
+         Write_Eol;
+      end if;
+
+      H := Partitions.Table (PID).Host;
+      if H = Null_HID then
+         H := Partitions.Table (Default_Partition).Host;
+      end if;
+
+      if H /= Null_HID then
+         Write_Str ("   Host        : ");
+         if Hosts.Table (H).Static then
+            Write_Name (Hosts.Table (H).Name);
+         else
+            Write_Str ("function call :: ");
+            Write_Name (Hosts.Table (H).External);
+            case Hosts.Table (H).Import is
+               when None_Import =>
+                  null;
+               when Ada_Import =>
+                  Write_Str (" (ada)");
+               when Shell_Import =>
+                  Write_Str (" (shell)");
+            end case;
+         end if;
+         Write_Eol;
+      end if;
+
+      S := Get_Storage_Dir (PID);
+      if S /= No_Storage_Dir then
+         Write_Str ("   Storage     : ");
+         Write_Name (S);
+         Write_Eol;
+      end if;
+
+      C := Get_Command_Line (PID);
+      if C /= No_Command_Line then
+         Write_Str ("   Command     : ");
+         Write_Name (C);
+         Write_Eol;
+      end if;
+
+      T := Get_Task_Pool (PID);
+      if T /= No_Task_Pool then
+         Write_Str ("   Task Pool   : ");
+         for B in T'Range loop
+            Write_Name (T (B));
+            Write_Str (" ");
+         end loop;
+         Write_Eol;
+      end if;
+
+      if Get_Termination (PID) /= Unknown_Termination then
+         Write_Str ("   Termination : ");
+         case Get_Termination (PID) is
+            when Local_Termination =>
+               Write_Str ("local");
+            when Global_Termination =>
+               Write_Str ("global");
+            when Deferred_Termination =>
+               Write_Str ("deferred");
+            when Unknown_Termination =>
+               null;
+         end case;
+         Write_Eol;
+      end if;
+
+      if Partitions.Table (PID).First_Unit /= Null_CUID then
+         Write_Str ("   Units       : ");
+         Write_Eol;
+
+         U := Partitions.Table (PID).First_Unit;
+         while U /= Null_CUID loop
+            Write_Str ("             - ");
+            Write_Name (CUnit.Table (U).CUname);
+            if Unit.Table (CUnit.Table (U).My_Unit).RCI then
+               Write_Str (" (rci)");
+            elsif Unit.Table (CUnit.Table (U).My_Unit).Remote_Types then
+               Write_Str (" (rt)");
+            elsif Unit.Table (CUnit.Table (U).My_Unit).Shared_Passive then
+               Write_Str (" (sp)");
+            else
+               Write_Str (" (normal)");
+            end if;
+            Write_Eol;
+            U := CUnit.Table (U).Next;
+         end loop;
+         Write_Eol;
+      end if;
+   end Show_Partition;
 
 end XE_Back;
