@@ -10,7 +10,11 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
-with Omniobject, Omniobjectmanager, Omniropeandkey ;
+-- with Omniobject, ;
+-- removed to compile without dependind on omniobject
+
+with Omniobjectmanager, Omniropeandkey ;
+
 with NetBufferedStream, MemBufferedStream ;
 with Ada.Finalization ;
 
@@ -146,7 +150,8 @@ private
 
    type Ref is new Ada.Finalization.Controlled with record
       Dynamic_Object : Dynamic_Type := null ;
-      Wrapped_Omniobject : Omniobject.Object ;
+      -- Wrapped_Omniobject : Omniobject.Object ;
+      -- removed to compile it without depending on omniobject
    end record ;
 
    procedure Initialize (Self: in out Ref'Class);
