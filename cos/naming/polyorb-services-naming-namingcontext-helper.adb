@@ -478,9 +478,8 @@ begin
         (Module_Info'
          (Name      => +"Naming.NamingContext.Helper",
           Conflicts => Empty,
-          Depends   =>
-            +"soft_links"
-          ,
+          Depends   => +"soft_links"
+          & "exceptions",
           Provides  => Empty,
           Init      => Initialize'Access));
    end;
