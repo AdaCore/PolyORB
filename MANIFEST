@@ -60,6 +60,7 @@ Examples/Bank/notify.ads
 Examples/Bank/server.adb
 Examples/Bank/server.ads
 Examples/Bank/simcity.cfg
+Examples/Bank/terminal.ads
 Examples/Bank/types.ads
 Examples/Eratho/Makefile.am
 Examples/Eratho/Makefile.in
