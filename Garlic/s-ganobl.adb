@@ -216,13 +216,18 @@ package body System.Garlic.Non_Blocking is
                pragma Debug (D (D_Debug, "errno  = " & Errno'Img));
                null;
             end if;
-            if Dummy > 0 then
-               Empty := False;
-            elsif Dummy < 0 then
+            if Dummy < 0 then
                Empty := Errno = Ewouldblock or else Errno = Eintr;
             else
-               Empty := True;
+               Empty := False;
             end if;
+--             if Dummy > 0 then
+--                Empty := False;
+--             elsif Dummy < 0 then
+--                Empty := Errno = Ewouldblock or else Errno = Eintr;
+--             else
+--                Empty := True;
+--             end if;
          end if;
          if Empty then
             Recv_Mask (RRFD) := True;
@@ -266,13 +271,18 @@ package body System.Garlic.Non_Blocking is
                pragma Debug (D (D_Debug, "errno  = " & Errno'Img));
                null;
             end if;
-            if Dummy > 0 then
-               Empty := False;
-            elsif Dummy < 0 then
+            if Dummy < 0 then
                Empty := Errno = Ewouldblock or else Errno = Eintr;
             else
-               Empty := True;
+               Empty := False;
             end if;
+--             if Dummy > 0 then
+--                Empty := False;
+--             elsif Dummy < 0 then
+--                Empty := Errno = Ewouldblock or else Errno = Eintr;
+--             else
+--                Empty := True;
+--             end if;
          end if;
          Ready_Recv_Mask (RRFD) := False;
          if Empty then

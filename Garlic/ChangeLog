@@ -1,3 +1,8 @@
+1998-07-29  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-ganobl.adb: Remove special rule when we receive 0 bytes out of 
+	N (with N /= 0).
+
 1998-07-26  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* isthrbio.adb: New source file used to detect whether we have a
