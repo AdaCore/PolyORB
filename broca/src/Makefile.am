@@ -66,6 +66,7 @@ ADASOCKET_OBJECTS = \
 	sockets-utils.o \
 	sockets.o
 
+bin_SCRIPTS = adabroker-config
 lib_LTLIBRARIES = libbroca.la
 libbroca_la_SOURCES = $(ADA_SPECS) $(ADA_BODIES)
 libbroca_la_LIBADD = $(ADA_LIBADD)
