@@ -10,8 +10,6 @@ with Types;     use Types;
 
 package body Analyzer is
 
-   Verbose : Boolean renames Flags.V_Analyzer;
-
    procedure Analyze_Abstract_Value_Declaration (E : Entity_Id);
    procedure Analyze_Attribute_Declaration (E : Entity_Id);
    procedure Analyze_Complex_Declarator (E : Entity_Id);
@@ -611,7 +609,7 @@ package body Analyzer is
                end if;
 
             else
-               if Verbose then
+               if D_Analyzer then
                   W_Full_Tree;
                end if;
                N := Identifier (P);

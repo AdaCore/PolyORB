@@ -24,7 +24,7 @@ package body Flags is
       Initialize_Option_Scan ('-', False, "cppargs");
 
       loop
-         case Getopt ("E I: c d i v? t nodyn noir") is
+         case Getopt ("E I: c g! t d?") is
             when ASCII.NUL =>
                exit;
 
@@ -35,35 +35,44 @@ package body Flags is
                Add_CPP_Flag ("-I");
                Add_CPP_Flag (Parameter);
 
-            when 'c' =>
-               Compile_Only := True;
+            when 'g' =>
+               declare
+                  P : constant String := Parameter;
+               begin
+                  if P'Length /= 1 then
+                     raise Program_Error;
+                  end if;
+                  case P (1) is
+                     when 'd' =>
+                        Gen_Delegate := True;
 
-            when 'd' =>
-               Gen_Delegate := True;
+                     when 'i' =>
+                        Gen_Impl_Tmpl := True;
 
-            when 'i' =>
-               Gen_Impl_Tmpl := True;
+                     when 'D' =>
+                        Gen_Dyn_Inv  := False;
 
-            when 'n' =>
-               if Full_Switch = "nodyn" then
-                  Gen_Dyn_Inv  := False;
-               elsif Full_Switch = "noir" then
-                  Gen_Intf_Rep := False;
-               end if;
+                     when 'I' =>
+                        Gen_Intf_Rep := False;
+
+                     when others =>
+                        raise Program_Error;
+                  end case;
+               end;
 
             when 't' =>
                Print_Full_Tree := True;
 
-            when 'v' =>
+            when 'd' =>
                declare
                   P : constant String := Parameter;
                begin
                   for I in P'Range loop
                      case P (I) is
                         when 'a' =>
-                           V_Analyzer := True;
+                           D_Analyzer := True;
                         when 's' =>
-                           V_Scopes   := True;
+                           D_Scopes   := True;
                         when others =>
                            raise Program_Error;
                      end case;

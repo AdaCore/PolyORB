@@ -13,8 +13,6 @@ with Types;     use Types;
 
 package body Scopes is
 
-   Verbose : Boolean renames Flags.V_Scopes;
-
    use Scope_Stack;
 
    procedure Remove_From_Homonyms (N : Node_Id);
@@ -193,7 +191,7 @@ package body Scopes is
       Set_Scope          (N, S);
       Set_Scope_Depth    (N, D);
 
-      if Verbose then
+      if D_Scopes then
          W_Str      ("enter  """);
          Write_Name (Name (N));
          W_Str      (""" in scope ");
@@ -284,7 +282,7 @@ package body Scopes is
          Remove_From_Homonyms (Identifier (C));
          C := Next_Entity (C);
       end loop;
-      if Verbose then
+      if D_Scopes then
          W_Str      ("pop  """);
          Write_Name (Name (Identifier (Table (Last).Entity)));
          W_Str      (""" ");
@@ -303,7 +301,7 @@ package body Scopes is
       Increment_Last;
       Table (Last).Entity       := E;
       Table (Last).Scoped_Names := No_Entity;
-      if Verbose then
+      if D_Scopes then
          W_Str      ("push """);
          Write_Name (Name (Identifier (E)));
          W_Str      (""" ");

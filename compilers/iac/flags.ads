@@ -28,8 +28,8 @@ package Flags is
    Compile_Only    : Boolean       := False;
    --  True when we only compile the IDL source file and exit
 
-   V_Analyzer      : Boolean       := False;
-   V_Scopes        : Boolean       := False;
+   D_Analyzer      : Boolean       := False;
+   D_Scopes        : Boolean       := False;
 
    CPP_Arg_Values : GNAT.OS_Lib.Argument_List (1 .. 64);
    CPP_Arg_Count  : Natural := 0;
