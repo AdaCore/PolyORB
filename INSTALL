@@ -43,6 +43,8 @@ in Doc/install_guide.txt.
    - verify that you will be able to run distributed applications
       (on Unix, your .rhosts file must contain the machine from which
        you will start the distributed application).
+   - if you are building GLADE for a Linux platform, make sure that you use
+     the native threads library, not the FSU one.
 
 2. Configure GLADE
    GLADE use standard the GNU configuration method. Run 

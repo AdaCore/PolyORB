@@ -1,3 +1,7 @@
+1998-04-05  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* INSTALL: Add a note on LinuxThreads/FSU threads issue.
+
 1998-03-24  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* configure.in: Change 2<letter>* into 5<letter>*.
