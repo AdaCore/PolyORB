@@ -34,7 +34,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;                      use Ada.Exceptions;
-with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 with Interfaces.C.Strings;
 pragma Warnings (Off, Interfaces.C.Strings);
@@ -130,18 +129,55 @@ package body System.Garlic.TCP is
    --  Kludge to raise Program_Error at deallocation time. Should be removed
    --  in the future ???
 
-   subtype Operation_Code is String (1 .. 4);
-   --  Operation code which identifies what should be done (low-level
-   --  operation).
+   type Operation_Code is (Open_Code, Data_Code, Quit_Code);
+   --  Various operations that can be performed on a communication link
 
-   Open_Code : constant Operation_Code := "OOOO";
-   --  Code corresponding to the opening of a new connection
+   Operation_Code_Length : constant := 4;
+   --  Size of an operation code when it is encoded as a stream
 
-   Data_Code : constant Operation_Code := "DDDD";
-   --  Code corresponding to transfer of data
+   subtype Operation_Code_Array is
+     Stream_Element_Array (1 .. Operation_Code_Length);
+   --  Constrained subtype for operation codes
 
-   Quit_Code : constant Operation_Code := "QQQQ";
-   --  Code corresponding to a shutdown operation
+   function Read_Code (FD : C.int) return Operation_Code;
+   pragma Inline (Read_Code);
+   --  Read an operation code from a file descriptor or raise
+   --  Communication_Error if the code is not understood.
+
+   function To_Stream_Element_Array (Code : Operation_Code)
+     return Operation_Code_Array;
+   pragma Inline (To_Stream_Element_Array);
+   --  Return the stream element array corresponding to the code
+
+   Stream_Element_Count_Length : constant := 4;
+   --  Size of a Stream_Element_Count when it is encoded as a stream
+
+   subtype Stream_Element_Count_Array is
+     Stream_Element_Array (1 .. Stream_Element_Count_Length);
+   --  Constrained subtype for stream element counts
+
+   function Read_Stream_Element_Count (FD : C.int) return Stream_Element_Count;
+   --  Read a stream element count from a file descriptor and check that
+   --  it is valid. Raise Communication_Error otherwise.
+
+   function To_Stream_Element_Array (Count : Stream_Element_Count)
+     return Stream_Element_Count_Array;
+   --  Return the stream element array corresponding to this count
+
+   Partition_ID_Length : constant := 2;
+   --  Length of a partition ID when it is encoded as a stream
+
+   subtype Partition_ID_Array is
+     Stream_Element_Array (1 .. Partition_ID_Length);
+   --  Constrained subtype for partition ID
+
+   function Read_Partition_ID (FD : C.int) return Partition_ID;
+   --  Read a Partition_ID from a file descriptor or raise Constraint_Error
+   --  if it is not valid.
+
+   procedure Write_Partition_ID (FD        : in C.int;
+                                 Partition : in Partition_ID);
+   --  Write a Partition_ID on a file descriptor
 
    function Establish_Connection (Location  : Host_Location;
                                   Operation : Operation_Code)
@@ -173,21 +209,11 @@ package body System.Garlic.TCP is
    procedure Send_My_Partition_ID (FD : in C.int);
    --  Transmit my partition ID to the remote end
 
-   Partition_ID_Length_Cache : Stream_Element_Count := 0;
-   function Partition_ID_Length return Stream_Element_Count;
-   pragma Inline (Partition_ID_Length);
-   --  Return the length in stream elements needed to store a Partition_ID
-
    procedure Receive_And_Send_To_Heart
      (Length    : in Stream_Element_Count;
       FD        : in C.int;
       Partition : in Partition_ID);
    --  Receive some data from FD and send it to Garlic heart
-
-   Stream_Element_Count_Length_Cache : Stream_Element_Count := 0;
-   function Stream_Element_Count_Length return Stream_Element_Count;
-   pragma Inline (Stream_Element_Count_Length);
-   --  Idem for a stream element count
 
    task type Accept_Handler is
       pragma Priority (Priorities.RPC_Priority);
@@ -204,16 +230,6 @@ package body System.Garlic.TCP is
    type Incoming_Connection_Handler_Access is
       access Incoming_Connection_Handler;
    --  Handler for an incoming connection
-
-   function Read_Code (FD : C.int) return Operation_Code;
-   pragma Inline (Read_Code);
-   --  Read an operation code from a file descriptor or raise
-   --  Communication_Error if the code is not understood.
-
-   function To_Stream_Element_Array (Code : Operation_Code)
-     return Stream_Element_Array;
-   pragma Inline (To_Stream_Element_Array);
-   --  Return the stream element array corresponding to the code
 
    --------------------
    -- Accept_Handler --
@@ -242,21 +258,35 @@ package body System.Garlic.TCP is
             if FD = Failure then
                Raise_Communication_Error;
             end if;
+
+
+            --  Read a code from the file descriptor to know what to do
+            --  next.
+
             pragma Debug (D (D_Debug, "Reading code"));
             Code := Read_Code (FD);
-            if Code = Open_Code then
-               pragma Debug (D (D_Debug, "Open code received"));
-               null;
-            elsif Code = Quit_Code then
-               pragma Debug (D (D_Debug, "Quitting accept handler"));
-               Result := Net.C_Close (FD);
-               Raise_Communication_Error ("Quit code received");
-            else
-               pragma Debug (D (D_Debug,
-                                "Unknown code received: " & Code));
-               Result := Net.C_Close (FD);
-               Raise_Communication_Error ("Unkown code received: " & Code);
-            end if;
+            case Code is
+
+               when Open_Code =>
+                  pragma Debug (D (D_Debug, "Open code received"));
+                  null;
+
+               when Quit_Code =>
+                  pragma Debug (D (D_Debug, "Quitting accept handler"));
+                  Result := Net.C_Close (FD);
+                  Raise_Communication_Error ("Quit code received");
+
+               when Data_Code =>
+                  pragma Debug (D (D_Debug, "Unexpected code received " &
+                                   Operation_Code'Image (Code)));
+                  Raise_Communication_Error ("Unexpected code received " &
+                                             Operation_Code'Image (Code));
+                  Result := Net.C_Close (FD);
+
+            end case;
+
+            --  Create a new task to handle this new connection
+
             NT :=
              new Incoming_Connection_Handler (FD,
                                               Receiving => True,
@@ -270,17 +300,11 @@ package body System.Garlic.TCP is
    --------------------------
 
    function Ask_For_Partition_ID (FD : C.int) return Partition_ID is
-      Params    : aliased Params_Stream_Type (Partition_ID_Length);
-      Result    : aliased Params_Stream_Type (Partition_ID_Length);
-      Result_P  : Stream_Element_Array (1 .. Partition_ID_Length);
       Partition : Partition_ID;
    begin
       pragma Debug (D (D_Garlic, "Asking for a Partition_ID"));
-      Partition_ID'Write (Params'Access, Null_Partition_ID);
-      Physical_Send (FD, To_Stream_Element_Array (Params'Access));
-      Physical_Receive (FD, Result_P);
-      To_Params_Stream_Type (Result_P, Result'Access);
-      Partition_ID'Read (Result'Access, Partition);
+      Write_Partition_ID (FD, Null_Partition_ID);
+      Partition := Read_Partition_ID (FD);
       if not Partition'Valid then
          pragma Debug (D (D_Garlic, "Invalid partition ID"));
          Raise_Exception (Constraint_Error'Identity, "Invalid partition ID");
@@ -417,6 +441,53 @@ package body System.Garlic.TCP is
    task body Incoming_Connection_Handler is
       Data      : Host_Data;
       Partition : Partition_ID := Null_Partition_ID;
+
+      procedure Handle_Transaction;
+      --  Handle one transaction
+
+      ------------------------
+      -- Handle_Transaction --
+      ------------------------
+
+      procedure Handle_Transaction is
+         Length : Stream_Element_Count;
+      begin
+         begin
+            Add_Non_Terminating_Task;
+            pragma Debug
+              (D (D_Debug, "Reading operation code"));
+
+            case Read_Code (FD) is
+
+               when Data_Code =>
+                  pragma Debug (D (D_Debug, "Received a data code"));
+                  null;
+
+               when Quit_Code =>
+                  pragma Debug (D (D_Debug, "Quitting one incoming handler"));
+                  Raise_Communication_Error ("Received a quit code");
+
+               when Open_Code =>
+                  pragma Debug (D (D_Debug, "Open code received, error"));
+                  Raise_Communication_Error ("Bogus open code received");
+
+            end case;
+
+            Length := Read_Stream_Element_Count (FD);
+
+            Sub_Non_Terminating_Task;
+
+         exception
+            when Communication_Error =>
+               Sub_Non_Terminating_Task;
+               raise;
+         end;
+
+         pragma Debug (D (D_Debug,
+                          "Will receive a packet of length" & Length'Img));
+         Receive_And_Send_To_Heart (Length, FD, Partition);
+      end Handle_Transaction;
+
    begin
 
       if Receiving then
@@ -425,54 +496,28 @@ package body System.Garlic.TCP is
          --  exception, Null_Partition_ID means that the remote side hasn't
          --  got a Partition_ID.
 
-         declare
-            Stream_P  : Stream_Element_Array (1 .. Partition_ID_Length);
-            Stream    : aliased Params_Stream_Type (Partition_ID_Length);
-         begin
-            pragma Debug
-              (D (D_Communication, "New communication task started"));
+         pragma Debug
+           (D (D_Communication, "New communication task started"));
 
-            --  We do not call Add_Non_Terminating_Task since we want to
-            --  receive the whole partition ID. Moreover, we will signal
-            --  that data has arrived.
+         --  We do not call Add_Non_Terminating_Task since we want to
+         --  receive the whole partition ID. Moreover, we will signal
+         --  that data has arrived.
 
-            Activity_Detected;
-            Physical_Receive (FD, Stream_P);
-            To_Params_Stream_Type (Stream_P, Stream'Access);
-            Partition_ID'Read (Stream'Access, Partition);
-            if not Partition'Valid then
-               pragma Debug (D (D_Debug, "Invalid partition ID"));
-               Raise_Exception (Constraint_Error'Identity,
-                                "Invalid partition ID");
-            end if;
-            if Partition = Null_Partition_ID then
-               declare
-                  Result : aliased Params_Stream_Type (Partition_ID_Length);
-               begin
-                  Partition := Allocate_Partition_ID;
-                  Partition_ID'Write (Result'Access, Partition);
-                  Add_Non_Terminating_Task;
-                  begin
-                     Physical_Send
-                       (FD, To_Stream_Element_Array (Result'Access));
-                  exception
-                     when Communication_Error =>
-                        Sub_Non_Terminating_Task;
-                        raise;
-                  end;
-                  Sub_Non_Terminating_Task;
-               end;
-            end if;
-            pragma Debug
-              (D (D_Communication,
+         Activity_Detected;
+         Partition := Read_Partition_ID (FD);
+         if Partition = Null_Partition_ID then
+            Partition := Allocate_Partition_ID;
+            Write_Partition_ID (FD, Partition);
+         end if;
+         pragma Debug
+           (D (D_Communication,
                   "This task is in charge of partition" & Partition'Img));
-            Partition_Map.Lock (Partition);
-            Data           := Partition_Map.Get_Immediate (Partition);
-            Data.FD        := FD;
-            Data.Connected := True;
-            Partition_Map.Set_Locked (Partition, Data);
-            Partition_Map.Unlock (Partition);
-         end;
+         Partition_Map.Lock (Partition);
+         Data           := Partition_Map.Get_Immediate (Partition);
+         Data.FD        := FD;
+         Data.Connected := True;
+         Partition_Map.Set_Locked (Partition, Data);
+         Partition_Map.Unlock (Partition);
 
       else
 
@@ -487,59 +532,7 @@ package body System.Garlic.TCP is
       --  answers.
 
       loop
-         declare
-            Header_P : Stream_Element_Array
-              (1 .. Stream_Element_Count_Length);
-            Header   : aliased Params_Stream_Type
-              (Stream_Element_Count_Length);
-            Length   : Stream_Element_Count;
-         begin
-            Add_Non_Terminating_Task;
-            declare
-               Code : Operation_Code;
-            begin
-               pragma Debug
-                 (D (D_Debug, "Reading operation code"));
-               Code := Read_Code (FD);
-               if Code = Data_Code then
-                  pragma Debug (D (D_Debug, "Received a data code"));
-                  null;
-               elsif Code = Quit_Code then
-                  pragma Debug (D (D_Debug, "Quitting one incoming handler"));
-                  Raise_Communication_Error ("Received a quit code");
-               else
-                  pragma Debug (D (D_Debug, "Received unknown code: " &
-                                   Code));
-                  Raise_Communication_Error ("Received unknown code: " &
-                                             Code);
-               end if;
-               pragma Debug
-                 (D (D_Debug, "Physical receive will be called"));
-               Physical_Receive (FD, Header_P);
-               pragma Debug
-                 (D (D_Debug, "Physical receive has been called"));
-            exception
-               when Communication_Error =>
-                  Sub_Non_Terminating_Task;
-                  raise;
-            end;
-            Sub_Non_Terminating_Task;
-            To_Params_Stream_Type (Header_P, Header'Access);
-            Stream_Element_Count'Read (Header'Access, Length);
-            if not Length'Valid then
-               pragma Debug (D (D_Debug, "Invalid length"));
-               Raise_Exception (Constraint_Error'Identity, "Invalid length");
-            end if;
-
-            pragma Debug
-              (D (D_Debug,
-                  "Will receive a packet of length" & Length'Img));
-
-            --  No Add_Non_Terminating_Task either (see above)
-
-            Receive_And_Send_To_Heart (Length, FD, Partition);
-
-         end;
+         Handle_Transaction;
       end loop;
 
    exception
@@ -599,24 +592,6 @@ package body System.Garlic.TCP is
             Dummy := Net.C_Close (FD);
          end;
    end Incoming_Connection_Handler;
-
-   -------------------------
-   -- Partition_ID_Length --
-   -------------------------
-
-   function Partition_ID_Length return Stream_Element_Count is
-   begin
-      if Partition_ID_Length_Cache = 0 then
-         declare
-            Stream : aliased Params_Stream_Type (0);
-         begin
-            Partition_ID'Write (Stream'Access, Null_Partition_ID);
-            Partition_ID_Length_Cache :=
-              To_Stream_Element_Array (Stream'Access) 'Length;
-         end;
-      end if;
-      return Partition_ID_Length_Cache;
-   end Partition_ID_Length;
 
    ------------------------
    -- Partition_Map_Type --
@@ -732,15 +707,60 @@ package body System.Garlic.TCP is
    ---------------
 
    function Read_Code (FD : in C.int) return Operation_Code is
-      subtype Stream_Code is
-        Stream_Element_Array (1 .. Operation_Code'Size / 8);
-      function Convert is
-         new Ada.Unchecked_Conversion (Stream_Code, Operation_Code);
-      Code : Stream_Code;
+      Code   : Operation_Code_Array;
+      Result : Operation_Code;
    begin
       Physical_Receive (FD, Code);
-      return Convert (Code);
+      Result := Operation_Code'Val (Code (1));
+      if not Result'Valid then
+         pragma Debug (D (D_Exception, "Unknown Operation_Code received"));
+         Raise_Communication_Error ("Unknown Operation_Code received");
+      end if;
+      for I in 2 .. Code'Last loop
+         if Code (I) /= Code (1) then
+            pragma Debug (D (D_Exception, "Invalid Operation_Code received"));
+            Raise_Communication_Error ("Invalid Operation_Code received");
+         end if;
+      end loop;
+      return Result;
    end Read_Code;
+
+   -----------------------
+   -- Read_Partition_ID --
+   -----------------------
+
+   function Read_Partition_ID (FD : C.int) return Partition_ID is
+      Stream : Partition_ID_Array;
+      Result : Natural;
+   begin
+      Physical_Receive (FD, Stream);
+      Result := Natural (Stream (1)) * 256 + Natural (Stream (2));
+      if Result < Natural (Partition_ID'First)
+        or else Result > Natural (Partition_ID'Last)
+      then
+         raise Constraint_Error;
+      end if;
+      return Partition_ID (Result);
+   end Read_Partition_ID;
+
+   -------------------------------
+   -- Read_Stream_Element_Count --
+   -------------------------------
+
+   function Read_Stream_Element_Count (FD : C.int) return Stream_Element_Count
+   is
+      Stream : Stream_Element_Count_Array;
+   begin
+      Physical_Receive (FD, Stream);
+      return
+        Stream_Element_Count (Stream (1)) * 256 ** 3 +
+        Stream_Element_Count (Stream (2)) * 256 ** 2 +
+        Stream_Element_Count (Stream (3)) * 256 +
+        Stream_Element_Count (Stream (4));
+   exception
+      when Constraint_Error =>
+         Raise_Communication_Error ("Bad Stream_Element_Count received");
+   end Read_Stream_Element_Count;
 
    -------------------------------
    -- Receive_And_Send_To_Heart --
@@ -769,9 +789,6 @@ package body System.Garlic.TCP is
       Data      : access Stream_Element_Array)
    is
       Remote_Data : Host_Data;
-      Header_Length : constant Stream_Element_Count :=
-        Stream_Element_Count_Length;
-      Header        : aliased Params_Stream_Type (Header_Length);
    begin
       Partition_Map.Lock (Partition);
       Partition_Map.Get (Partition) (Remote_Data);
@@ -854,14 +871,15 @@ package body System.Garlic.TCP is
          end if;
          declare
             Offset : constant Stream_Element_Offset :=
-              Data'First + Unused_Space - Header_Length;
+              Data'First + Unused_Space - Stream_Element_Count_Length;
             Code   : constant Stream_Element_Offset :=
-              Offset - Operation_Code'Size / 8;
+              Offset - Operation_Code_Length;
          begin
-            Stream_Element_Count'Write (Header'Access,
-                                        Data'Length - Unused_Space);
-            Data (Offset .. Offset + Header_Length - 1) :=
-              To_Stream_Element_Array (Header'Access);
+            --  Write length at the beginning of the data, then the operation
+            --  code.
+
+            Data (Offset .. Offset + Stream_Element_Count_Length - 1) :=
+              To_Stream_Element_Array (Data'Length - Unused_Space);
             Data (Code .. Offset - 1) :=
               To_Stream_Element_Array (Data_Code);
             pragma Debug
@@ -887,10 +905,8 @@ package body System.Garlic.TCP is
    --------------------------
 
    procedure Send_My_Partition_ID (FD : in C.int) is
-      Stream : aliased Params_Stream_Type (Partition_ID_Length);
    begin
-      Partition_ID'Write (Stream'Access, Get_My_Partition_ID);
-      Physical_Send (FD, To_Stream_Element_Array (Stream'Access));
+      Write_Partition_ID (FD, Get_My_Partition_ID);
    end Send_My_Partition_ID;
 
    -------------------
@@ -992,38 +1008,43 @@ package body System.Garlic.TCP is
       return Result;
    end Split_Data;
 
-   ---------------------------------
-   -- Stream_Element_Count_Length --
-   ---------------------------------
-
-   function Stream_Element_Count_Length return Stream_Element_Count is
-   begin
-      if Stream_Element_Count_Length_Cache = 0 then
-         declare
-            Stream : aliased Params_Stream_Type (0);
-         begin
-            Stream_Element_Count'Write (Stream'Access, 0);
-            Stream_Element_Count_Length_Cache :=
-              To_Stream_Element_Array (Stream'Access) 'Length;
-            pragma Assert (Stream_Element_Count_Length_Cache <= Unused_Space);
-         end;
-      end if;
-      return Stream_Element_Count_Length_Cache;
-   end Stream_Element_Count_Length;
-
    -----------------------------
    -- To_Stream_Element_Array --
    -----------------------------
 
    function To_Stream_Element_Array (Code : Operation_Code)
-     return Stream_Element_Array
+     return Operation_Code_Array
    is
-      subtype Stream_Code is
-        Stream_Element_Array (1 .. Operation_Code'Size / 8);
-      function Convert is
-         new Ada.Unchecked_Conversion (Operation_Code, Stream_Code);
    begin
-      return Convert (Code);
+      return (others => Operation_Code'Pos (Code));
    end To_Stream_Element_Array;
+
+   -----------------------------
+   -- To_Stream_Element_Array --
+   -----------------------------
+
+   function To_Stream_Element_Array (Count : Stream_Element_Count)
+     return Stream_Element_Count_Array
+   is
+   begin
+      return (1 => Stream_Element (Count / 256 ** 3),
+              2 => Stream_Element ((Count / 256 ** 2) mod 256),
+              3 => Stream_Element ((Count / 256) mod 256),
+              4 => Stream_Element (Count mod 256));
+   end To_Stream_Element_Array;
+
+   ------------------------
+   -- Write_Partition_ID --
+   ------------------------
+
+   procedure Write_Partition_ID (FD        : in C.int;
+                                 Partition : in Partition_ID)
+   is
+      Stream : constant Partition_ID_Array :=
+        (1 => Stream_Element (Natural (Partition) / 256),
+         2 => Stream_Element (Natural (Partition) mod 256));
+   begin
+      Physical_Send (FD, Stream);
+   end Write_Partition_ID;
 
 end System.Garlic.TCP;
