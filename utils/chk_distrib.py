@@ -6,24 +6,21 @@ import string, sys, re, os, glob
 # All dirs: check MANIFEST vs. files
 
 def get_subdirs (dir):
-  res = []
-  m = re.match \
-      ("^SUBDIRS\s*=\s*(.*)$",
-       open (dir + "/Makefile.am", "r").readlines ()[0])
-  if not m:
-    return [dir]
+  res = [dir]
+  for l in open (dir + "/Makefile.am", "r").readlines ():
+    m = re.match ("^SUBDIRS\s*=\s*(.*)$", l)
   
-  dirs = map (lambda s, d=dir: d + "/" + s,
-    string.split (m.group (1), ' '))
-
-  for d in dirs:
-    if re.match (dir + "/\.?$", d):
-      continue
-    sub = get_subdirs (d)
-    if len (sub) > 0:
-      res = res + sub
-    else:
-      res = res + [d]
+    if m:
+      dirs = map (lambda s, d=dir: d + "/" + s,
+        string.split (m.group (1), ' '))
+  
+      for d in dirs:
+        if re.match (dir + "/\.?$", d):
+          continue
+        sub = get_subdirs (d)
+        for dd in sub:
+          if not (dd in res):
+            res = res + [dd]
   return res
 
 def read_MANIFEST (dir):
