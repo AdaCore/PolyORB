@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -60,6 +60,8 @@ with PolyORB.Setup.Thread_Pool_Server;
 pragma Elaborate_All (PolyORB.Setup.Thread_Pool_Server);
 pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
 
+with PolyORB.Utils.Report;
+
 package body Test_Time is
 
    use Ada.Text_IO;
@@ -69,6 +71,8 @@ package body Test_Time is
    use CosTime.TIO;
    use CosTime.UTO;
    use TimeBase;
+
+   use PolyORB.Utils.Report;
 
    type TimeService_Ptr is access CosTime.TimeService.Impl.Object;
 
@@ -104,6 +108,8 @@ package body Test_Time is
    end Display;
 
 begin
+   New_Test ("CORBA COS Time");
+
    CORBA.ORB.Initialize ("ORB");
 
    PolyORB.CORBA_P.Server_Tools.Initiate_Server (True);
@@ -115,16 +121,19 @@ begin
 
    UTO1 := universal_time (Ref);
    Display (UTO1);
+   Output ("Fetch UTO", True);
 
    Put_Line ("Waiting for 3 seconds");
    delay 3.0;
 
    UTO2 := universal_time (Ref);
    Display (UTO2);
+   Output ("Fetch UTO", True);
+
    Put_Line ("Interval is");
 
    TIO1 := TIO.Convert_Forward.To_Ref (time_to_interval (UTO1, UTO2));
    Display (TIO1);
 
-   Put_Line ("End test");
+   End_Report;
 end Test_Time;
