@@ -1516,10 +1516,14 @@ package body PolyORB.Representations.CDR is
       pragma Debug (O ("Unmarshall (String): enter"));
       pragma Debug (O ("Unmarshall (String): length is " &
                     PolyORB.Types.Unsigned_Long'Image (Length)));
-      for I in Equiv'Range loop
-         Equiv (I) := Character'Val
-           (PolyORB.Types.Char'Pos
-            (Unmarshall (Buffer)));
+
+      if Length = 0 then
+         return "";
+      end if;
+
+      for J in Equiv'Range loop
+         Equiv (J) := Character'Val
+           (PolyORB.Types.Char'Pos (Unmarshall (Buffer)));
       end loop;
 
       if Character'Val (PolyORB.Types.Char'Pos (Unmarshall (Buffer)))
