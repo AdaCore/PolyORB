@@ -508,7 +508,6 @@ AC_OUTPUT([
 	examples/corba/echo/Makefile
 	examples/corba/random/Makefile
 	examples/corba/rtcorba/Makefile
-	examples/corba/rtcorba/rtcurrent/Makefile
 	examples/corba/send/Makefile
 	examples/dsa/Makefile
 	examples/bbs/Makefile
