@@ -54,7 +54,6 @@ with Ada.Unchecked_Conversion ;
 with Ada.Characters.Latin_1 ;
 
 with System ;
-with System.Address_To_Access_Conversions ;
 use type System.Address ;
 
 with Corba ;
@@ -92,10 +91,11 @@ package body OmniObject is
 
    -- Init_Local_Object
    --------------------
-   procedure Init_Local_Object (Self : in out Implemented_Object ;
+   procedure Init_Local_Object (Self : in out Implemented_Object'Class ;
                                 Repo_Id : in Corba.String) is
       C_Repoid : Interfaces.C.Strings.Chars_Ptr ;
    begin
+      Initialize(Implemented_Object(Self)) ;
       if not Is_Nil(Self) then
          C_Repoid := Interfaces.C.Strings.New_String(Corba.To_Standard_String(Repo_Id)) ;
          C_Init_Local_Object (Self.Omniobj.all, C_repoid) ;
@@ -517,17 +517,14 @@ package body OmniObject is
    procedure Get_Rope_And_Key (Self : in Object'Class ;
                                L : out Omniropeandkey.Object ;
                                Success : out Corba.Boolean ) is
-      C_L : System.Address;
       C_Success : Sys_Dep.C_Boolean ;
    begin
       if Is_Proxy(Self) then
          Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,
                                         "Omniobject.Get_Rope_And_Key cannot be called on a local object") ;
       end if ;
-      -- transforms the arguments in a C type ...
-      C_L := L'Address ;
       -- ... calls the C function ...
-      C_Get_Rope_And_Key(Self, C_L, C_Success) ;
+      C_Get_Rope_And_Key(Self, L, C_Success) ;
       -- ... and transforms the result into an Ada type
       Success := Sys_Dep.Boolean_C_To_Ada (C_Success) ;
    end ;
@@ -760,7 +757,7 @@ package body OmniObject is
    -- C_Object_Ptr_Constructor
    ----------------------------
    function C_Object_Ptr_Constructor return System.Address ;
-   pragma Import (CPP,C_Object_Ptr_Constructor,"__14Ada_OmniObject") ;
+   pragma Import (CPP,C_Object_Ptr_Constructor,"Constructor__14Ada_OmniObject") ;
    -- This is a workaround for gnat 3.11p
    -- we cannot write
    -- toto : Object_Ptr := new Object

@@ -66,7 +66,12 @@ with OmniRopeAndKey ;
 with Netbufferedstream ;
 with Membufferedstream ;
 
+with Adabroker_Debug ;
+pragma Elaborate(Adabroker_Debug) ;
+
 package OmniObject is
+
+
 
    -----------------------------------------------
    --         Implemented_Object                --
@@ -122,7 +127,7 @@ package OmniObject is
    ---            miscellaneous                ---
    -----------------------------------------------
 
-   procedure Init_Local_Object (Self : in out Implemented_Object ;
+   procedure Init_Local_Object (Self : in out Implemented_Object'Class ;
                                 Repo_Id : in Corba.String) ;
    -- calls the C++ Init to set the init_ok boolean to true
    -- and sets the repoID of this object

@@ -80,6 +80,14 @@ Ada_OmniObject::~Ada_OmniObject()
 } ;
 
 
+// Constructor
+//------------
+Ada_OmniObject*
+Ada_OmniObject::Constructor() {
+  return new Ada_OmniObject() ;
+}
+
+
 // Destructor
 //------------
 void

@@ -66,6 +66,11 @@ public:
   // default constructor
   
   virtual ~Ada_OmniObject() ;
+
+  static Ada_OmniObject *Constructor() ;
+  // static constructor.
+  // this is a workaround for gnat 3.11p where we cannot
+  // write "new Object"
   
   static void Destructor(Ada_OmniObject* o) ;
   // static destructor that will be called from the Ada code
