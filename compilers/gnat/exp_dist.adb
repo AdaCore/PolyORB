@@ -144,20 +144,22 @@ package body Exp_Dist is
    function Get_Subprogram_Id (Def : Entity_Id) return String_Id;
    function Get_Subprogram_Id (Def : Entity_Id) return Int;
    --  Given a subprogram defined in a RCI package, get its distribution
-   --  subprogram identifier in the name buffer (the distribution id
-   --  is the non-qualified subprogram name, in the casing used for
-   --  the subprogram declaration; if the name is overloaded, a double
-   --  underscore and a serial number are appended. This identifier is
-   --  used to perform remote calls on the subprogram.
+   --  subprogram identifiers (the distribution identifiers are a unique
+   --  subprogram number, and the non-qualified subprogram name, in the
+   --  casing used for the subprogram declaration; if the name is overloaded,
+   --  a double underscore and a serial number are appended.
+
+   --  The integer identifier is used to perform remote calls with GARLIC;
+   --  the string identifier is used in the case of PolyORB.
    --
-   --  Although the DSA receiving stubs will make a caseless
+   --  Although the PolyORB DSA receiving stubs will make a caseless
    --  comparison when receiving a call, the calling stubs
    --  will create requests with the exact casing of the
    --  defining unit name of the called subprogram, so
    --  as to allow calls to subprograms on distributed
    --  nodes that do distinguish between casings.
    --
-   --  Another design would be to allow a representation
+   --  NOTE: Another design would be to allow a representation
    --  clause on subprogram specs:
    --  for Subp'Distribution_Identifier use "fooBar";
 
@@ -603,7 +605,10 @@ package body Exp_Dist is
             Subp_Stubs :=
               Build_Subprogram_Calling_Stubs (
                 Vis_Decl     => Current_Declaration,
-                Subp_Id      => Make_String_Literal (Loc, Subp_Str),
+                Subp_Id      =>
+                  Build_Subprogram_Id (Loc,
+                    Defining_Unit_Name (Specification (Current_Declaration))),
+
                 Asynchronous =>
                   Nkind (Specification (Current_Declaration)) =
                     N_Procedure_Specification
@@ -1172,7 +1177,8 @@ package body Exp_Dist is
                  Build_Subprogram_Calling_Stubs
                    (Vis_Decl                 => Current_Primitive_Decl,
                     Subp_Id                  =>
-                      Make_String_Literal (Loc, Subp_Str),
+                      Build_Subprogram_Id (Loc,
+                        Defining_Unit_Name (Current_Primitive_Spec)),
                     Asynchronous             => Possibly_Asynchronous,
                     Dynamically_Asynchronous => Possibly_Asynchronous,
                     Stub_Type                => Stub_Elements.Stub_Type,
@@ -2929,16 +2935,15 @@ package body Exp_Dist is
                --  use its Sloc as the location of all generated
                --  nodes.
 
-               Subp_Def       : constant Entity_Id
-                 := Defining_Unit_Name (
-                      Specification (Current_Declaration));
+               Subp_Def       : constant Entity_Id :=
+                 Defining_Unit_Name (Specification (Current_Declaration));
 
-               Subp_Dist_Name : constant Entity_Id
-                 := Make_Defining_Identifier (Loc,
-                      New_External_Name (
-                        Related_Id   => Chars (Subp_Def),
-                        Suffix       => 'D',
-                        Suffix_Index => -1));
+               Subp_Dist_Name : constant Entity_Id :=
+                 Make_Defining_Identifier (Loc,
+                   New_External_Name (
+                     Related_Id   => Chars (Subp_Def),
+                     Suffix       => 'D',
+                     Suffix_Index => -1));
 
                Subp_Val          : String_Id;
                Case_Stmts        : List_Id;
@@ -2954,9 +2959,7 @@ package body Exp_Dist is
                     Asynchronous =>
                       Nkind (Specification (Current_Declaration)) =
                           N_Procedure_Specification
-                        and then Is_Asynchronous
-                          (Defining_Unit_Name (Specification
-                             (Current_Declaration))));
+                        and then Is_Asynchronous (Subp_Def));
 
                Append_To (Decls, Current_Stubs);
                Analyze (Current_Stubs);
@@ -2971,10 +2974,7 @@ package body Exp_Dist is
                  Proxy_Object_Addr  =>
                    Proxy_Object_Addr);
 
-               --  Add subprogram descriptor (RCI_Subp_Info) to the
-               --  subprograms table for this receiver. The aggregate
-               --  below must be kept consistent with the declaration
-               --  of type RCI_Subp_Info in System.Partition_Interface.
+               --  Compute distribution identifier
 
                Assign_Subprogram_Identifier (
                  Subp_Def,
@@ -2990,6 +2990,11 @@ package body Exp_Dist is
                    Expression          =>
                      Make_String_Literal (Loc, Subp_Val)));
                Analyze (Last (Decls));
+
+               --  Add subprogram descriptor (RCI_Subp_Info) to the
+               --  subprograms table for this receiver. The aggregate
+               --  below must be kept consistent with the declaration
+               --  of type RCI_Subp_Info in System.Partition_Interface.
 
                Append_To (Subp_Info_List,
                  Make_Component_Association (Loc,
@@ -3021,9 +3026,7 @@ package body Exp_Dist is
 
                if Nkind (Specification (Current_Declaration))
                    = N_Function_Specification
-                 or else
-                   not Is_Asynchronous (
-                     Defining_Entity (Specification (Current_Declaration)))
+                 or else not Is_Asynchronous (Subp_Def)
                then
                   Append_To (Case_Stmts, Make_Return_Statement (Loc));
                end if;
@@ -3067,8 +3070,7 @@ package body Exp_Dist is
                      Case_Stmts));
             end;
 
-            Current_Subprogram_Number
-              := Current_Subprogram_Number + 1;
+            Current_Subprogram_Number := Current_Subprogram_Number + 1;
 
          end if;
 
@@ -5211,9 +5213,9 @@ package body Exp_Dist is
                if Current_Subp = Def then
                   Result := (Current_Subp_Str, Current_Subp_Number);
                end if;
+               Current_Subp_Number := Current_Subp_Number + 1;
             end if;
             Next (Current_Declaration);
-            Current_Subp_Number := Current_Subp_Number + 1;
          end loop;
       end if;
       pragma Assert (Result.Str_Identifier /= No_String);
