@@ -1,5 +1,5 @@
 ;;;
-;;; $Id: //droopi/main/utils/update-headers.el#14 $
+;;; $Id: //droopi/main/utils/update-headers.el#15 $
 ;;;
 ;;; Emacs macros to update Ada source files headers.
 ;;;
@@ -199,8 +199,8 @@ YYYYY
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 ")
