@@ -16,13 +16,13 @@ adabe_argument::produce_ads(dep_list& with, string &body, string &previous)
   switch (direction())
     {
     case dir_IN :
-      body += " in ";
+      body += "in ";
       break;
     case dir_OUT :
-      body += " out ";
+      body += "out ";
       break;
     case dir_INOUT :
-      body += " in out ";
+      body += "in out ";
       break;
     }
   AST_Decl *d = field_type();

@@ -181,13 +181,13 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
   body += "\") ;\n";
   body += "   function Get_Repository_Id(Self : in Ref)\n";
   body += "                              return Corba.String ;\n\n";
-  body += "   function Is_A(The_Ref : in Ref;\n";
+  body += "   function Is_A(The_Ref : in Ref ;\n";
   body += "                 Repo_Id : in Corba.String)\n";
   body += "                 return Corba.Boolean ;\n";
   body += "   function Is_A(Repo_Id : in Corba.String)\n";
   body += "                 return Corba.Boolean ;\n\n";
-  body += "   Get_Nil_Ref(Self : in Ref)\n";
-  body += "               return Ref ;\n"; 
+  body += "   function Get_Nil_Ref(Self : in Ref)\n";
+  body += "                        return Ref ;\n"; 
   body += "\nprivate\n";
   body += "   Nil_Ref : aliased constant Ref := (" + corps;
   body += ".Nil_Ref with null record) ;\n";
@@ -212,7 +212,7 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
   body += "   -----------------------------\n\n";
   body += "   function To_Ref(The_Ref : in Corba.Object.ref'Class)\n";
   body += "                   return Ref is\n";
-  body += "      Dynamic_Type : Corba.Oject.Ref'Class := Get_Dynamic_Type(The_Ref) ;\n";
+  body += "      Dynamic_Type : Corba.Object.Ref'Class := Get_Dynamic_Type(The_Ref) ;\n";
   body += "      Result : Ref ;\n";
   body += "      Repo_Id : Corba.String := Get_Repository_Id(Result) ;\n";
   body += "   begin\n";
@@ -221,10 +221,10 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
   body += "         return Result ;\n"; 
   body += "      end if ;\n\n";
   body += "      Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,\n";
-  body += "                                    \"Cannot cast \"\n";
-  body += "                                    & Corba.To_Standard_String(Get_Repository_Id(The_Ref))\n"; 
-  body += "                                    & Corba.CRLF\n";
-  body += "                                    & Corba.To_Standard_String(Repo_Id)) ;\n";
+  body += "                                     \"Cannot cast \"\n";
+  body += "                                     & Corba.To_Standard_String(Get_Repository_Id(The_Ref))\n"; 
+  body += "                                     & Corba.CRLF\n";
+  body += "                                     & Corba.To_Standard_String(Repo_Id)) ;\n";
   body += "   end ;\n"; 
 
   //multiple inheritance definition
@@ -299,7 +299,7 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
   body += "   end ;\n\n\n";    
   body += "   -- Is_A\n" ;
   body += "   -------\n" ;
-  body += "   function Is_A(The_Ref : in Ref\n"; 
+  body += "   function Is_A(The_Ref : in Ref ;\n"; 
   body += "                 Repo_Id : in Corba.String)\n";
   body += "                 return Corba.Boolean is\n";
   body += "   begin\n";
@@ -323,7 +323,7 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
   body += "   -- Get_Nil_Ref\n" ;
   body += "   --------------\n" ;
   body += "   function Get_Nil_Ref(Self : in Ref)\n";
-  body += "                        return Ref ;\n"; 
+  body += "                        return Ref is\n"; 
   body += "   begin\n";
   body += "      return Nil_Ref ;\n";
   body += "   end ;\n\n\n";

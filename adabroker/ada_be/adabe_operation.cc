@@ -65,13 +65,12 @@ adabe_operation::produce_ads(dep_list& with,string &body, string &previous)
 	}
       body += " ) ;\n";
     }
+  set_already_defined ();
 }
 
 void
 adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
 {
-  body += "   -- " + get_ada_local_name() + "\n" ;
-  body += "   ----------------------------\n" ;
   switch (flags())
     {
     case OP_noflags :
@@ -224,8 +223,6 @@ adabe_operation::produce_impl_ads(dep_list& with,string &body, string &previous)
 void
 adabe_operation::produce_impl_adb(dep_list& with,string &body, string &previous)
 {
-  body += "   -- " + get_ada_local_name() + "\n" ;
-  body += "   -----------------------------\n" ;
   switch (flags()) {
   case OP_noflags :
   case OP_idempotent :

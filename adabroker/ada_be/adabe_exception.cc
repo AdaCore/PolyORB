@@ -8,6 +8,8 @@ IMPL_NARROW_FROM_SCOPE(adabe_exception);
 void
 adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
 {
+  with.add ("Corba.Exceptions");
+  with.add ("Ada.Exceptions");
   bool first = true;
   compute_ada_name ();
   
@@ -51,10 +53,10 @@ adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
     }
   else
     {
-      body += "   end record\n";
+      body += "   end record ;\n";
     }
   
-  body += "   procedure Get_Members(From : in Ada.Exceptions.Exception_Occurence ;\n";
+  body += "   procedure Get_Members(From : in Ada.Exceptions.Exception_Occurrence ;\n";
   body += "                         To : out " + get_ada_local_name() + "_Members ) ;\n";
 }
 

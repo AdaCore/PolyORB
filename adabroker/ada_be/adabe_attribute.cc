@@ -19,7 +19,7 @@ adabe_attribute::produce_ads(dep_list& with, string &body, string &previous)
   body += "                  " + space + "return "; 
   AST_Decl *d = field_type();
   string name = dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
-  body += name + " ;\n";
+  body += name + " ;\n\n";
   if (!readonly())
     {
       body += "   procedure Set_" + get_ada_local_name();
@@ -33,15 +33,14 @@ adabe_attribute::produce_ads(dep_list& with, string &body, string &previous)
 void
 adabe_attribute::produce_adb(dep_list& with, string &body, string &previous)
 {
-  body += "   -- Get_" + get_ada_local_name() + "\n" ;
-  body += "   ------------------------------\n" ;
+  with.add ("OmniProxyCallWrapper");
   string space = "";
   for (unsigned int i=0;i<get_ada_local_name().length();i++) space += " ";
   body += "   function Get_" + get_ada_local_name() +"(Self : in Ref)\n";
   body += "                 " + space + "return "; 
   AST_Decl *d = field_type();  
   string name = dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
-  body += name + " ;\n";  
+  body += name + " is\n";  
   string name_of_the_package = dynamic_cast<adabe_name *>(ScopeAsDecl(defined_in()))->get_ada_full_name();
   body += "      Opcd : " + name_of_the_package + ".Proxies.Get_" + get_ada_local_name() + "_Proxy ;\n";
   body += "      Result : " + name +" ;\n";
@@ -54,11 +53,9 @@ adabe_attribute::produce_adb(dep_list& with, string &body, string &previous)
   body += "   end ;\n\n\n";
   if (!readonly())
     {
-      body += "   -- Set_" + get_ada_local_name() + "\n" ;
-      body += "   ------------------------------\n" ;
       body += "   procedure Set_";
       body += get_ada_local_name();
-      body += "(Self : in Ref,\n";
+      body += "(Self : in Ref ;\n";
       body += "                  " + space + "To : in ";
       body += name;
       body += ") is \n";

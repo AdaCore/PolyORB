@@ -10,6 +10,7 @@ adabe_structure::adabe_structure(UTL_ScopedName *n, UTL_StrList *p)
 void
 adabe_structure::produce_ads(dep_list& with, string &body, string &previous)
 {
+  with.add ("Ada.Unchecked_Deallocation");
   compute_ada_name();
   body += "   type " + get_ada_local_name() + " is record\n";
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
@@ -23,7 +24,7 @@ adabe_structure::produce_ads(dep_list& with, string &body, string &previous)
     }
   body += "   end record;\n";
   body += "   type " + get_ada_local_name() + "_Ptr is access " + get_ada_local_name() + ";\n";
-  body += "   procedure Free is new Unchecked_Deallocation(";
+  body += "   procedure Free is new Ada.Unchecked_Deallocation(";
   body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr);\n";  
   set_already_defined();
 }

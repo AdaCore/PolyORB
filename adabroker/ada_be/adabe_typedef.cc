@@ -32,11 +32,10 @@ adabe_typedef::produce_ads(dep_list& with, string &body, string &previous)
 	  body += "   type " + get_ada_local_name() + " is new ";
 	  string name =  dynamic_cast<adabe_name *>(b)->dump_name(with, previous); //virtual method
 	  body += name;
-	  body += ";\n";
+	  body += " ;\n";
 	  body += "   type" + get_ada_local_name() + "_Ptr is access all " + get_ada_local_name() + ";\n";
 	  body += "   procedure free is new Unchecked_Deallocation(";
 	  body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr);\n";
-	  set_already_defined();
 	  break;
 	}
     }
@@ -49,8 +48,8 @@ adabe_typedef::produce_ads(dep_list& with, string &body, string &previous)
       body += "   type" + get_ada_local_name() + "_Ptr is access all " + get_ada_local_name() + ";\n";
       body += "   procedure free is new Unchecked_Deallocation(";
       body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr);\n";
-      set_already_defined();
     }
+  set_already_defined ();
 }
 /*
   void

@@ -1,6 +1,48 @@
 // File adabe_sequence.cc
 #include <adabe.h>
 
+static string to_string(AST_Expression::AST_ExprValue *exp)
+{
+  char temp[10]; 
+  switch( exp->et ) {
+  case AST_Expression::EV_short:
+    sprintf(temp, "%d",exp->u.sval);
+    break;
+  case AST_Expression::EV_ushort:
+    sprintf(temp, "%d",exp->u.usval);
+    break;
+  case AST_Expression::EV_long:
+    sprintf(temp, "%ld",exp->u.lval);
+    break;
+  case AST_Expression::EV_ulong:
+    sprintf(temp, "%ld",exp->u.ulval);
+    break;
+  default:
+    throw adabe_internal_error (__FILE__,__LINE__,"Unexpected string dimension type");
+  }
+  //  temp.freeze(temp.pcount());
+  return temp;
+}
+
+static int evaluate (AST_Expression::AST_ExprValue *exp)
+{
+  switch( exp->et ) {
+  case AST_Expression::EV_short:
+    return exp->u.sval;
+    break;
+  case AST_Expression::EV_ushort:
+    return exp->u.usval;
+    break;
+  case AST_Expression::EV_long:
+    return exp->u.lval;
+    break;
+  case AST_Expression::EV_ulong:
+    return exp->u.ulval;
+    break;
+  default:
+    throw adabe_internal_error (__FILE__,__LINE__,"Unexpected string dimension type");
+  }
+}
 
 void
 adabe_sequence::produce_ads(dep_list& with, string &body,
@@ -12,13 +54,16 @@ adabe_sequence::produce_ads(dep_list& with, string &body,
   
   string is_bounded;
   adabe_name *adabe_base_type;
-  
-  if (max_size() != 0)
+
+  string seq_size_st = to_string(max_size()->ev());
+  int seq_size = evaluate(max_size()->ev());
+  bool bounded = (seq_size != 0);
+  if (bounded)
     is_bounded = "Bounded";
   else
     is_bounded = "Unbounded";
 
-  with.add("Corba.Object.Sequences." + is_bounded);
+  with.add("Corba.Sequences." + is_bounded);
 
   // Writing the header :
 
@@ -35,11 +80,18 @@ adabe_sequence::produce_ads(dep_list& with, string &body,
     set_ada_local_name("IDL_SEQUENCE_" + short_type_name);
   
   body += "   type " + get_ada_local_name () +"_Array is ";
-  body += "array (Integer range <>) of " + type_name +" ;\n";
+  if (bounded)
+    body += "array (1.." + seq_size_st + ") of " + type_name +" ;\n";
+  else 
+    body += "array (Integer range <>) of " + type_name +" ;\n";
   body += "\n";
   body += "   package " + get_ada_local_name () +" is new\n";
   body += "      Corba.Sequences." + is_bounded;
-  body += "(" +type_name + ", " + get_ada_local_name () +"_Array);\n";
+  if (bounded) {
+    body += "(" + type_name + ", ";
+    body += seq_size_st + ");\n";
+  } else
+    body += "(" + type_name +");\n";
   
   set_already_defined();
 }
@@ -162,16 +214,3 @@ adabe_sequence::adabe_sequence(AST_Expression *v, AST_Type *t)
     adabe_name(AST_Decl::NT_sequence,new UTL_ScopedName(new Identifier("sequence",1,0,I_FALSE),NULL),NULL)
 {
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

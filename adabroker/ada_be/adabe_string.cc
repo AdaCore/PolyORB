@@ -5,7 +5,7 @@
 IMPL_NARROW_METHODS1(adabe_string, AST_String);
 IMPL_NARROW_FROM_DECL(adabe_string);
 
-string to_string(AST_Expression::AST_ExprValue *exp)
+static string to_string(AST_Expression::AST_ExprValue *exp)
 {
   char temp[10]; 
   switch( exp->et ) {
@@ -28,7 +28,7 @@ string to_string(AST_Expression::AST_ExprValue *exp)
   return temp;
 }
 
-int evaluate (AST_Expression::AST_ExprValue *exp)
+static int evaluate (AST_Expression::AST_ExprValue *exp)
 {
   switch( exp->et ) {
   case AST_Expression::EV_short:
@@ -107,7 +107,7 @@ void adabe_string::produce_ads (dep_list &with,string &body, string &previous)
   
   if (evaluate(max_size()->ev())==0)
     {
-      body+= "   type " + get_ada_local_name() + " is new CORBA.String\n";
+      body+= "   type " + get_ada_local_name() + " is new CORBA.String ;\n";
     }
   else
     {
@@ -115,10 +115,10 @@ void adabe_string::produce_ads (dep_list &with,string &body, string &previous)
       body += "   package CORBA.Bounded_String_" + to_string(max_size()->ev());
       body += " is\n\t\t new CORBA.Bounded_String(";
       body +=  to_string(max_size()->ev());
-      body += ")\n\n";
+      body += ") ;\n\n";
       body += "   type "+ get_ada_local_name() + " is\n\t\t new CORBA.Bounded_String_";
       body += to_string(max_size()->ev());
-      body += ".Bounded_String\n\n";
+      body += ".Bounded_String ;\n\n";
     }
 
   set_already_defined();
