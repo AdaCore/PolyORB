@@ -37,6 +37,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 with System.Address_Image;
 with Ada.Real_Time; use Ada.Real_Time;
 
+
 package body RCI is
 
    type String_Ptr is access all String;
@@ -134,6 +135,11 @@ package body RCI is
       Put_Line (Func.all ("Checking local (bypass) RAS call"));
       return Func;
    end getRAS;
+
+   procedure Check_Back_RAS (Func : echo_RAS; S : String) is
+   begin
+      Put_Line (Func.all ("Cheking RAS sent back by client: " & S));
+   end Check_Back_RAS;
 
    function echoString_Delayed (S : String; Seconds : Integer) return String is
       use Ada.Real_Time;
