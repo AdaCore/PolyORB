@@ -1,3 +1,12 @@
+Wed Sep 17 19:17:43 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-parint.ads: Changed the formal name of RCI_Info from Name to
+	  RCI_Name to match the non-distributed version.
+
+Wed Sep 17 19:17:36 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-parint.adb: Ditto
+
 Wed Sep 17 18:33:27 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* Makefile.am: Added a new target s-garcac.o

@@ -576,7 +576,7 @@ package body System.Partition_Interface is
 
    package body RCI_Info is
 
-      Cache : Cache_Access := Allocate (Name);
+      Cache : Cache_Access := Allocate (RCI_Name);
 
       -----------------------------
       -- Get_Active_Partition_ID --

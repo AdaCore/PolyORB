@@ -82,7 +82,7 @@ package System.Partition_Interface is
    --  Declare this receiving stub as corrupted to the RCI Name Server.
 
    generic
-      Name : String;
+      RCI_Name : String;
    package RCI_Info is
       function Get_RCI_Package_Receiver return System.RPC.RPC_Receiver;
       function Get_Active_Partition_ID  return System.RPC.Partition_ID;
