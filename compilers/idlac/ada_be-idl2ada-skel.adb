@@ -683,15 +683,19 @@ package body Ada_Be.Idl2Ada.Skel is
                                  end if;
 
                                  Add_With (CU, Helper_Name);
-                                 PL
-                                   (CU, Justify
-                                    (T_Argument & Arg_Name, Max_Len)
-                                    & " := " & Helper_Name & ".To_Any"
-                                    & " (");
+                                 Add_With (CU, "PolyORB.Any");
+                                 PL (CU, "PolyORB.Any.Copy_Any_Value");
+                                 PL (CU, "  (" & T_Argument & Arg_Name & ",");
+                                 II (CU);
+                                 PL (CU, Helper_Name & ".To_Any");
+                                 Put (CU, "  (");
+                                 II (CU);
                                  Gen_Forward_Conversion
                                    (CU, Param_Type (P_Node),
                                     "From_Forward", Arg_Name);
-                                 PL (CU, ");");
+                                 DI (CU);
+                                 PL (CU, "));");
+                                 DI (CU);
                                  NL (CU);
                               end;
                            end if;
