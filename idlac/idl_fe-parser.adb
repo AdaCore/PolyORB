@@ -892,17 +892,16 @@ package body Idl_Fe.Parser is
                   Errors.Display_Location (Loc),
                   Errors.Warning,
                   Get_Token_Location);
-               --  Why bother to do the following
-               --  since we have produced a parser error anyway?
-               --  Thomas 2000-04-12
-               --  Because it is not an error but a warning. The idl
-               --  allows such multiple forward declarations.
-               --  Sebastien 2000-04-20
+               --  This is only a warning: the OMG IDL grammar
+               --  allows multiple forward declarations of an
+               --  interface.
+
                Fd_Res := Make_Forward_Interface;
                Set_Location (Fd_Res, Get_Location (Res));
                Set_Forward (Fd_Res, No_Node);
                Set_Abst (Fd_Res, Abst (Res));
                Set_Repository_Id (Fd_Res, Repository_Id (Res));
+
                --  FIXME : we must deallocate this node : Free (Res);
                Success := True;
                Result := Fd_Res;
@@ -915,7 +914,8 @@ package body Idl_Fe.Parser is
             Set_Abst (Fd_Res, Abst (Res));
             Redefine_Identifier (Definition, Fd_Res);
             Set_Repository_Id (Fd_Res, Repository_Id (Res));
-            --  A forward declaration should be added
+
+            --  Add a forward declaration
             Add_Int_Val_Forward (Fd_Res);
             --  FIXME : we must deallocate this node : Free (Res);
             Result := Fd_Res;
@@ -2608,8 +2608,8 @@ package body Idl_Fe.Parser is
          Type_Node : Node_Id;
       begin
          Type_Node := Param_Type (Result);
-         Parse_Param_Type_Spec (Type_Node,
-                                Success);
+         Parse_Param_Type_Spec
+           (Type_Node, Success);
          Set_Param_Type (Result, Type_Node);
          if not Success then
             return;
@@ -4200,16 +4200,20 @@ package body Idl_Fe.Parser is
       Free (C_Type);
    end Parse_Positive_Int_Const;
 
-   ----------------------
-   --  Parse_Type_Dcl  --
-   ----------------------
-   procedure Parse_Type_Dcl (Result : out Node_Id;
-                             Success : out Boolean) is
+   --------------------
+   -- Parse_Type_Dcl --
+   --------------------
+
+   procedure Parse_Type_Dcl
+     (Result : out Node_Id;
+      Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Parse_Type_Dcl : enter"));
+      pragma Debug (O2 ("Parse_Type_Dcl: enter"));
       Result := No_Node;
       Success := False;
+
       case Get_Token is
+
          when T_Typedef =>
             Next_Token;
             declare
@@ -4218,6 +4222,7 @@ package body Idl_Fe.Parser is
                Parse_Type_Declarator (Res, Success);
                Result := Res;
             end;
+
          when T_Struct =>
             declare
                Res : Node_Id;
@@ -4225,6 +4230,7 @@ package body Idl_Fe.Parser is
                Parse_Struct_Type (Res, Success);
                Result := Res;
             end;
+
          when T_Union =>
             declare
                Res : Node_Id;
@@ -4232,6 +4238,7 @@ package body Idl_Fe.Parser is
                Parse_Union_Type (Res, Success);
                Result := Res;
             end;
+
          when T_Enum =>
             declare
                Res : Node_Id;
@@ -4239,6 +4246,7 @@ package body Idl_Fe.Parser is
                Parse_Enum_Type (Res, Success);
                Result := Res;
             end;
+
          when T_Native =>
             declare
                Res : Node_Id;
@@ -4250,11 +4258,11 @@ package body Idl_Fe.Parser is
                   Node : Node_Id;
                begin
                   Node := Declarator (Res);
-                  Parse_Simple_Declarator (Node,
-                                           Res,
-                                           Success);
+                  Parse_Simple_Declarator
+                    (Node, Res, Success);
                   Set_Declarator (Res, Node);
                end;
+
                if not Success then
                   Result := No_Node;
                   return;
@@ -4264,54 +4272,61 @@ package body Idl_Fe.Parser is
          when others =>
             raise Errors.Internal_Error;
       end case;
-      pragma Debug (O2 ("Parse_Type_Dcl : end"));
+
+      pragma Debug (O2 ("Parse_Type_Dcl: end"));
       return;
    end Parse_Type_Dcl;
 
-   -----------------------------
-   --  Parse_Type_Declarator  --
-   -----------------------------
-   procedure Parse_Type_Declarator (Result : out Node_Id;
-                                    Success : out Boolean) is
+   ---------------------------
+   -- Parse_Type_Declarator --
+   ---------------------------
+
+   procedure Parse_Type_Declarator
+     (Result : out Node_Id;
+      Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Parse_Type_declarator : enter"));
+      pragma Debug (O2 ("Parse_Type_declarator: enter"));
+
       Result := Make_Type_Declarator;
       Set_Location (Result, Get_Token_Location);
+
       declare
          Node : Node_Id;
       begin
          Node := T_Type (Result);
-         Parse_Type_Spec (Node,
-                            Success);
+         Parse_Type_Spec (Node, Success);
          Set_T_Type (Result, Node);
       end;
+
       if not Success then
-         pragma Debug (O ("Parse_Type_Declarator : type_spec return false"));
-         pragma Debug (O2 ("Parse_Type_declarator : end"));
+         pragma Debug (O ("Parse_Type_Declarator: type_spec return false"));
+         pragma Debug (O2 ("Parse_Type_declarator: end"));
          return;
       end if;
+
       declare
          Node : Node_List;
       begin
          Node := Declarators (Result);
-         Parse_Declarators (Node,
-                            Result,
-                            Success);
+         Parse_Declarators
+           (Node, Result, Success);
          Set_Declarators (Result, Node);
       end;
-      pragma Debug (O2 ("Parse_Type_declarator : end"));
+
+      pragma Debug (O2 ("Parse_Type_declarator: end"));
       return;
    end Parse_Type_Declarator;
 
+   ---------------------
+   -- Parse_Type_Spec --
+   ---------------------
 
-   -----------------------
-   --  Parse_Type_Spec  --
-   -----------------------
-
-   procedure Parse_Type_Spec (Result : out Node_Id;
-                              Success : out Boolean) is
+   procedure Parse_Type_Spec
+     (Result : out Node_Id;
+      Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Parse_Type_Spec : enter"));
+      pragma Debug (O2 ("Parse_Type_Spec: enter"));
+
       case Get_Token is
          when T_Float
            | T_Double
@@ -4332,32 +4347,36 @@ package body Idl_Fe.Parser is
            | T_Colon_Colon
            | T_Identifier =>
             Parse_Simple_Type_Spec (Result, Success);
+
          when T_Enum
            | T_Struct
            | T_Union =>
             Parse_Constr_Type_Spec (Result, Success);
+
          when others =>
             Errors.Error ("type specification expected.",
-                                 Errors.Error,
-                                 Get_Token_Location);
+                          Errors.Error,
+                          Get_Token_Location);
             Success := False;
             Result := No_Node;
       end case;
-      pragma Debug (O2 ("Parse_Type_Spec : end"));
+
+      pragma Debug (O2 ("Parse_Type_Spec: end"));
       return;
-   end  Parse_Type_Spec;
+   end Parse_Type_Spec;
 
+   ----------------------------
+   -- Parse_Simple_Type_Spec --
+   ----------------------------
 
-   ------------------------------
-   --  Parse_Simple_Type_Spec  --
-   ------------------------------
-
-   procedure Parse_Simple_Type_Spec (Result : out Node_Id;
-                                     Success : out Boolean) is
+   procedure Parse_Simple_Type_Spec
+     (Result : out Node_Id;
+      Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Parse_Simple_Type_Spec : enter"));
-      pragma Debug (O ("Parse_Simple_Type_Spec : token is " &
+      pragma Debug (O2 ("Parse_Simple_Type_Spec: enter"));
+      pragma Debug (O ("Parse_Simple_Type_Spec: token is " &
                        Idl_Token'Image (Get_Token)));
+
       case Get_Token is
          when T_Float
            | T_Double
@@ -4372,28 +4391,35 @@ package body Idl_Fe.Parser is
            | T_Object
            | T_ValueBase =>
             Parse_Base_Type_Spec (Result, Success);
+
          when T_Sequence
            | T_String
            | T_Wstring
            | T_Fixed =>
             Parse_Template_Type_Spec (Result, Success);
+
          when T_Colon_Colon
            | T_Identifier =>
+
             Parse_Scoped_Name (Result, Success);
-            --  checks that the scoped name denotes a type and
-            --  not an interface for example
+
             if not Success then
                Result := No_Node;
             end if;
+
             if Result /= No_Node then
                declare
                   Not_A_Type : Boolean := False;
                begin
-                  pragma Debug (O ("Parse_Simple_Type_Spec : " &
+
+                  --  Check that the scoped name denotes a type
+
+                  pragma Debug (O ("Parse_Simple_Type_Spec: " &
                                    "kind of result is " &
                                    Img (Kind (Result))));
                   if S_Type (Result) /= No_Node then
-                     pragma Debug (O ("Parse_Simple_Type_Spec : " &
+
+                     pragma Debug (O ("Parse_Simple_Type_Spec: " &
                                       "scoped name without an S_Type"));
                      case Kind (S_Type (Result)) is
                         when K_Float
@@ -4428,9 +4454,11 @@ package body Idl_Fe.Parser is
                         when others =>
                            Not_A_Type := True;
                      end case;
+
                   else
                      Not_A_Type := True;
                   end if;
+
                   if Not_A_Type then
                      Errors.Error
                        ("This scoped name does not denote an "
@@ -4438,183 +4466,228 @@ package body Idl_Fe.Parser is
                         Errors.Error,
                         Get_Token_Location);
                   end if;
+
                end;
             end if;
          when T_Enum
            | T_Struct
            | T_Union =>
             Errors.Error ("simple type specification " &
-                                        "expected. No constructed " &
-                                        "type allowed here.",
-                                        Errors.Error,
-                                        Get_Token_Location);
+                          "expected. No constructed " &
+                          "type allowed here.",
+                          Errors.Error,
+                          Get_Token_Location);
             Parse_Constr_Type_Spec (Result, Success);
          when others =>
             Errors.Error ("simple type specification expected.",
-                                        Errors.Error,
-                                        Get_Token_Location);
+                          Errors.Error,
+                          Get_Token_Location);
             Result := No_Node;
             Success := False;
       end case;
-      pragma Debug (O2 ("Parse_Simple_Type_Spec : end"));
+      pragma Debug (O2 ("Parse_Simple_Type_Spec: end"));
       return;
    end Parse_Simple_Type_Spec;
 
-   ----------------------------
-   --  Parse_Base_Type_Spec  --
-   ----------------------------
-   procedure Parse_Base_Type_Spec (Result : out Node_Id;
-                                   Success : out Boolean) is
+   --------------------------
+   -- Parse_Base_Type_Spec --
+   --------------------------
+
+   procedure Parse_Base_Type_Spec
+     (Result : out Node_Id;
+      Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Parse_Base_Type_Spec : enter"));
+      pragma Debug (O2 ("Parse_Base_Type_Spec: enter"));
+
       case Get_Token is
          when T_Float
            | T_Double =>
             Parse_Floating_Pt_Type (Result, Success);
+
          when T_Long =>
             if View_Next_Token = T_Double then
                Parse_Floating_Pt_Type (Result, Success);
             else
                Parse_Integer_Type (Result, Success);
             end if;
+
          when T_Short
            | T_Unsigned =>
             Parse_Integer_Type (Result, Success);
+
          when T_Char =>
+
             declare
                Res : Node_Id;
             begin
                Parse_Char_Type (Res, Success);
                Result := Res;
             end;
+
          when T_Wchar =>
+
             declare
                Res : Node_Id;
             begin
                Parse_Wide_Char_Type (Res, Success);
                Result := Res;
             end;
+
          when T_Boolean =>
+
             declare
                Res : Node_Id;
             begin
                Parse_Boolean_Type (Res, Success);
                Result := Res;
             end;
+
          when T_Octet =>
+
             declare
                Res : Node_Id;
             begin
                Parse_Octet_Type (Res, Success);
                Result := Res;
             end;
+
          when T_Any =>
+
             declare
                Res : Node_Id;
             begin
                Parse_Any_Type (Res, Success);
                Result := Res;
             end;
+
          when T_Object =>
+
             declare
                Res : Node_Id;
             begin
                Parse_Object_Type (Res, Success);
                Result := Res;
             end;
+
          when T_ValueBase =>
+
             declare
                Res : Node_Id;
             begin
                Parse_Value_Base_Type (Res, Success);
                Result := Res;
             end;
+
          when others =>
             raise Errors.Internal_Error;
+
       end case;
-      pragma Debug (O2 ("Parse_Base_Type_Spec : end"));
+      pragma Debug (O2 ("Parse_Base_Type_Spec: end"));
       return;
    end Parse_Base_Type_Spec;
 
-   --------------------------------
-   --  Parse_Template_Type_Spec  --
-   --------------------------------
-   procedure Parse_Template_Type_Spec (Result : out Node_Id;
-                                       Success : out Boolean) is
+   ------------------------------
+   -- Parse_Template_Type_Spec --
+   ------------------------------
+
+   procedure Parse_Template_Type_Spec
+     (Result : out Node_Id;
+      Success : out Boolean) is
    begin
+
       case Get_Token is
          when T_Sequence =>
+
             declare
                Res : Node_Id;
             begin
                Parse_Sequence_Type (Res, Success);
                Result := Res;
             end;
+
          when T_String =>
+
             declare
                Res : Node_Id;
             begin
                Parse_String_Type (Res, Success);
                Result := Res;
             end;
+
          when T_Wstring =>
+
             declare
                Res : Node_Id;
             begin
                Parse_Wide_String_Type (Res, Success);
                Result := Res;
             end;
+
          when T_Fixed =>
+
             declare
                Res : Node_Id;
             begin
                Parse_Fixed_Pt_Type (Res, Success);
                Result := Res;
             end;
+
          when others =>
             raise Errors.Internal_Error;
       end case;
+
    end Parse_Template_Type_Spec;
 
-   ------------------------------
-   --  Parse_Constr_Type_Spec  --
-   ------------------------------
-   procedure Parse_Constr_Type_Spec (Result : out Node_Id;
-                                     Success : out Boolean) is
+   ----------------------------
+   -- Parse_Constr_Type_Spec --
+   ----------------------------
+
+   procedure Parse_Constr_Type_Spec
+     (Result : out Node_Id;
+      Success : out Boolean) is
    begin
       case Get_Token is
+
          when T_Struct =>
+
             declare
                Res : Node_Id;
             begin
                Parse_Struct_Type (Res, Success);
                Result := Res;
             end;
+
          when T_Union =>
+
             declare
                Res : Node_Id;
             begin
                Parse_Union_Type (Res, Success);
                Result := Res;
             end;
+
          when T_Enum =>
+
             declare
                Res : Node_Id;
             begin
                Parse_Enum_Type (Res, Success);
                Result := Res;
             end;
+
          when others =>
             raise Errors.Internal_Error;
       end case;
    end Parse_Constr_Type_Spec;
 
-   -------------------------
-   --  Parse_Declarators  --
-   -------------------------
-   procedure Parse_Declarators (Result : out Node_List;
-                                Parent : in Node_Id;
-                                Success : out Boolean) is
+   -----------------------
+   -- Parse_Declarators --
+   -----------------------
+
+   procedure Parse_Declarators
+     (Result : out Node_List;
+      Parent : in Node_Id;
+      Success : out Boolean) is
    begin
       Result := Nil_List;
       declare
@@ -6719,13 +6792,17 @@ package body Idl_Fe.Parser is
       return;
    end Parse_Context_Expr;
 
-   -----------------------------
-   --  Parse_Param_Type_Spec  --
-   -----------------------------
-   procedure Parse_Param_Type_Spec (Result : out Node_Id;
-                                    Success : out Boolean) is
+   ---------------------------
+   -- Parse_Param_Type_Spec --
+   ---------------------------
+
+   procedure Parse_Param_Type_Spec
+     (Result : out Node_Id;
+      Success : out Boolean) is
    begin
+
       case Get_Token is
+
          when T_Float
            | T_Double
            | T_Long
@@ -6739,34 +6816,43 @@ package body Idl_Fe.Parser is
            | T_Object
            | T_ValueBase =>
             Parse_Base_Type_Spec (Result, Success);
+
          when T_String =>
+
             declare
                Res : Node_Id;
             begin
                Parse_String_Type (Res, Success);
                Result := Res;
             end;
+
          when T_Wstring =>
+
             declare
                Res : Node_Id;
             begin
                Parse_Wide_String_Type (Res, Success);
                Result := Res;
             end;
+
          when T_Colon_Colon | T_Identifier =>
+
             Parse_Scoped_Name (Result, Success);
-            --  checks that the scoped name denotes a type and
-            --  not an interface for example
+
             if Result /= No_Node then
                declare
                   Not_A_Type : Boolean := False;
                begin
+
+                  --  Check that the scoped name denotes a type
+
                   pragma Debug (O ("Parse_Simple_Type_Spec : " &
                                    "kind of result is " &
                                    Img (Kind (Result))));
                   if S_Type (Result) /= No_Node then
                      pragma Debug (O ("Parse_Simple_Type_Spec : " &
                                       "scoped name without an S_Type"));
+
                      case Kind (S_Type (Result)) is
                         when K_Float
                           | K_Double
