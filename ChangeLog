@@ -1,3 +1,8 @@
+1998-04-19  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Add flag -gnatx2 when using the maintainer mode to 
+	help cross-referencing.
+
 1998-04-12  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* INSTALL: Fix typo.
