@@ -41,8 +41,6 @@ libpolyorb_soap_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
 CLEANFILES = *.ali $(GPERF_BODY)
 
-LINK = $(LIBTOOL) $(ADA) -o libpolyorb-soap.la
-
 ADAFLAGS = -I. -I$(srcdir) -I.. -I$(srcdir)/.. \
 	$(XMLADA_INCS) -I$(srcdir)/../web_common $(GNATFLAGS)
 

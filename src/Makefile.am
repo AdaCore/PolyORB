@@ -226,8 +226,6 @@ libpolyorb_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
 CLEANFILES = *.ali
 
-LINK = $(LIBTOOL) $(ADA) -o libpolyorb.la
-
 ADAFLAGS = $(GNATFLAGS) \
 	-I. -I$(srcdir)
 

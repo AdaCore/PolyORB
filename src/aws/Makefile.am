@@ -42,8 +42,6 @@ libpolyorb_aws_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
 CLEANFILES = *.ali
 
-LINK = $(LIBTOOL) $(ADA) -o libpolyorb-aws.la
-
 ADAFLAGS = -i -I. -I$(srcdir) -I.. -I$(srcdir)/.. -I$(srcdir)/../web_common -I$(srcdir)/../aws_orig $(GNATFLAGS)
 
 install-data-local:

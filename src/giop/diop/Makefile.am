@@ -23,8 +23,6 @@ libpolyorb_giop_diop_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
 CLEANFILES = *.ali
 
-LINK = $(LIBTOOL) --mode=link $(ADA) -o libpolyorb-giop-diop.la
-
 ADAFLAGS = -I. -I$(srcdir) -I.. -I$(srcdir)/.. -I../.. -I$(srcdir)/../.. $(GNATFLAGS)
 
 install-data-local:

@@ -46,8 +46,6 @@ libpolyorb_moma_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
 CLEANFILES = *.ali
 
-LINK = $(LIBTOOL) $(ADA) -o libpolyorb-moma.la
-
 ADAFLAGS = -I. -I$(srcdir) -I.. -I$(srcdir)/.. \
 	$(XMLADA_INCS) $(GNATFLAGS)
 

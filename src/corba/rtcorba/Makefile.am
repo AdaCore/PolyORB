@@ -35,8 +35,6 @@ libpolyorb_corba_rtcorba_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONIN
 
 CLEANFILES = *.ali
 
-LINK = $(LIBTOOL) --mode=link $(ADA) -o libpolyorb-corba-rtcorba.la
-
 ADAFLAGS = -I. -I$(srcdir) -I.. -I$(srcdir)/.. -I../.. -I$(srcdir)/../.. $(GNATFLAGS)
 
 install-data-local:

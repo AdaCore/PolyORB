@@ -28,8 +28,6 @@ libpolyorb_web_common_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
 CLEANFILES = *.ali
 
-LINK = $(LIBTOOL) --mode=link $(ADA) -o libpolyorb-web_common.la
-
 ADAFLAGS = -i -I. -I$(srcdir) -I.. -I$(srcdir)/.. $(GNATFLAGS)
 
 install-data-local:
