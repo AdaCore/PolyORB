@@ -488,7 +488,7 @@ package body Backend.BE_Ada.Helpers is
               (Make_Defining_Identifier (SN (S_To_Ref)),
                Make_List_Id
                (Make_Subprogram_Call
-                (RE (RE_From_Any),
+                (RE (RE_From_Any_1),
                  Make_List_Id (Make_Defining_Identifier (PN (P_Item))))));
             N := Make_Return_Statement (N);
             Append_Node_To_List (N, S);

@@ -11,6 +11,7 @@ with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Nodes;      use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;     use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime;    use Backend.BE_Ada.Runtime;
+--  with Backend.BE_Ada.Debug;    use Backend.BE_Ada.Debug;
 
 package body Backend.BE_Ada.Stubs is
 
@@ -687,8 +688,42 @@ package body Backend.BE_Ada.Stubs is
       Append_Node_To_List (C, Statements);
       Count := Length (Parameter_Profile (Subp_Spec));
 
+      --  Add arguments  to argument  list
+
       if Count > 1 then
-         null; --  Add variables to the parameter list
+         P :=  BEN.Parameter_Profile (Subp_Spec);
+         I := First_Node (P);
+         I := Next_Node (I);
+         loop
+            P := Make_List_Id (Make_Designator (VN (V_Argument_List)));
+            Set_Str_To_Name_Buffer ("Arg_Name_U_");
+            Get_Name_String_And_Append (BEN.Name (Defining_Identifier (I)));
+            N := Make_Designator (Name_Find);
+            Append_Node_To_List (N, P);
+            Set_Str_To_Name_Buffer ("Argument_U_");
+            Get_Name_String_And_Append (BEN.Name (Defining_Identifier (I)));
+            N := Make_Designator (Name_Find);
+            N := Make_Subprogram_Call
+              (RE (RE_To_PolyORB_Any),
+               Make_List_Id (N));
+            Append_Node_To_List (N, P);
+
+            if BEN.Parameter_Mode (I) = Mode_Out then
+               N := RE (RE_ARG_IN);
+            elsif BEN.Parameter_Mode (I) = Mode_In then
+               N := RE (RE_ARG_OUT);
+            else
+               N := RE (RE_ARG_INOUT);
+            end if;
+
+            Append_Node_To_List (N, P);
+            N := Make_Subprogram_Call
+              (RE (RE_Add_Item),
+               P);
+            Append_Node_To_List (N, Statements);
+            I := Next_Node (I);
+            exit when No (I);
+         end loop;
       end if;
 
       --  Set result type (maybe void)
@@ -774,7 +809,7 @@ package body Backend.BE_Ada.Stubs is
          P);
       Append_Node_To_List (N, Statements);
 
-      --  ???
+      --  Set result type
 
       N := Make_Subprogram_Call
         (RE (RE_Flags),
@@ -818,6 +853,27 @@ package body Backend.BE_Ada.Stubs is
         (RE (RE_Destroy_Request),
          Make_List_Id (Make_Designator (VN (V_Request))));
       Append_Node_To_List (N, Statements);
+
+      --  Retrieve return value
+
+      if Present (Return_T) then
+
+         if Is_Base_Type (BEN.FE_Node (Return_T)) then
+            N := RE (RE_From_Any_0);
+         else
+            N := Identifier (FE_Node (Return_T));
+            N := Helper_Node
+              (BE_Node (Identifier (Reference (Corresponding_Entity (N)))));
+            N := Expand_Designator (Next_Node (N));
+         end if;
+         C := Make_Subprogram_Call
+           (RE (RE_To_CORBA_Any),
+            Make_List_Id (Copy_Node (C)));
+         N := Make_Return_Statement
+           (Make_Subprogram_Call (N, Make_List_Id (C)));
+         Append_Node_To_List (N, Statements);
+      end if;
+
       return Statements;
    end Marshaller_Body;
 

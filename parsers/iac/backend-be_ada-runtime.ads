@@ -14,6 +14,7 @@ package Backend.BE_Ada.Runtime is
       RU_CORBA_Object_Helper,
       RU_CORBA_TypeCode,
       RU_CORBA_TypeCode_Internals,
+      RU_CORBA_Internals,
       RU_PolyORB,
       RU_PolyORB_Any,
       RU_PolyORB_Any_NVList,
@@ -37,6 +38,7 @@ package Backend.BE_Ada.Runtime is
       RE_TC_Void,                   --  CORBA.TC_Void
       RE_Any,                       --  CORBA.Any
       RE_To_Any_0,                  --  CORBA.To_Any
+      RE_From_Any_0,                --  CORBA.From_Any
       RE_Get_Empty_Any_0,           --  CORBA.Get_Empty_Any
       RE_Float,                     --  CORBA.Float
       RE_Double,                    --  CORBA.Double
@@ -83,14 +85,20 @@ package Backend.BE_Ada.Runtime is
       RE_Object_Of,                 --  CORBA.Object.Object_Of
       RE_Is_A,                      --  CORBA.Object.Is_A
       RE_To_Any_3,                  --  CORBA.Object.Helper.To_Any
-      RE_From_Any,                  --  CORBA.Object.Helper.From_Any
+      RE_From_Any_1,                --  CORBA.Object.Helper.From_Any
       RE_Object,                    --  CORBA.TypeCode.Object
       RE_To_CORBA_Object,           --  CORBA.TypeCode.
                                     --     Internals.To_CORBA_Object
+      RE_To_CORBA_Any,              --  CORBA.Internals.To_CORBA_Any
+      RE_To_PolyORB_Any,            --  CORBA.Internals.To_PolyORB_Any
       RE_NamedValue,                --  PolyORB.Any.NamedValue
       RE_Is_Empty,                  --  PolyORB.Any.Is_Empty
+      RE_ARG_IN,                    --  PolyORB.Any.ARG_IN
+      RE_ARG_OUT,                   --  PolyORB.Any.ARG_OUT
+      RE_ARG_INOUT,                 --  PolyORB.Any.ARG_INOUT
       RE_Ref_3,                     --  PolyORB.Any.NVList.Ref
       RE_Create,                    --  PolyORB.Any.NVList.Create
+      RE_Add_Item,                  --  PolyORB.Any.NVList.Add_Item
       RE_TC_Object,                 --  PolyORB.Any.TypeCode.TC_Object
       RE_TC_Alias,                  --  PolyORB.Any.TypeCode.TC_Alias
       RE_TC_Enum,                   --  PolyORB.Any.TypeCode.TC_Enum
@@ -117,6 +125,7 @@ package Backend.BE_Ada.Runtime is
          RE_TC_Void                 => RU_CORBA,
          RE_Any                     => RU_CORBA,
          RE_To_Any_0                => RU_CORBA,
+         RE_From_Any_0              => RU_CORBA,
          RE_Get_Empty_Any_0         => RU_CORBA,
          RE_Float                   => RU_CORBA,
          RE_Double                  => RU_CORBA,
@@ -163,13 +172,19 @@ package Backend.BE_Ada.Runtime is
          RE_Is_A                    => RU_CORBA_Object,
          RE_Is_Nil                  => RU_CORBA_Object,
          RE_To_Any_3                => RU_CORBA_Object_Helper,
-         RE_From_Any                => RU_CORBA_Object_Helper,
+         RE_From_Any_1              => RU_CORBA_Object_Helper,
          RE_Object                  => RU_CORBA_TypeCode,
          RE_To_CORBA_Object         => RU_CORBA_TypeCode_Internals,
+         RE_To_CORBA_Any            => RU_CORBA_Internals,
+         RE_To_PolyORB_Any          => RU_CORBA_Internals,
          RE_Is_Empty                => RU_PolyORB_Any,
          RE_NamedValue              => RU_PolyORB_Any,
+         RE_ARG_IN                  => RU_PolyORB_Any,
+         RE_ARG_OUT                 => RU_PolyORB_Any,
+         RE_ARG_INOUT               => RU_PolyORB_Any,
          RE_Ref_3                   => RU_PolyORB_Any_NVList,
          RE_Create                  => RU_PolyORB_Any_NVList,
+         RE_Add_Item                => RU_PolyORB_Any_NVList,
          RE_TC_Alias                => RU_PolyORB_Any_TypeCode,
          RE_TC_Array                => RU_PolyORB_Any_TypeCode,
          RE_TC_Enum                 => RU_PolyORB_Any_TypeCode,

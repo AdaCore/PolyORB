@@ -1,3 +1,15 @@
+2004-08-04  souli  <souli@neraka.enst.fr>
+
+	* backend-be_ada-helpers.adb: Consider the modification in
+	backend-be_ada-runtime.ads. 
+
+	* backend-be_ada-runtime.ads: Add new runtime-entities used in
+	stub marshaller body. Modify RE_From_Any
+	(CORBA.Object.Helper.From_Any) to RE_From_Any_1, to
+	allow adding RE_From_Any_0 (CORBA.From_Any).  
+
+	* backend-be_ada-stubs.adb: Complete the marshaller body.  
+
 2004-08-03  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* backend-be_ada-nutils.adb, backend-be_ada-nutils.ads:
@@ -38,7 +50,7 @@
 	tree warnings (Output_Tree_Warnings), -dw to output unit withing
 	(Output_Unit_Withing). Use these new flags. 
 	
-2004-08-03  souli  <souli@neraka.enst.fr>
+2004-08-03  Saber Souli  <souli@neraka.enst.fr>
 
 	* backend-be_ada-nutils.ads: Minor reformatting. 
 
