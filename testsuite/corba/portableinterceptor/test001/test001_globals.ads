@@ -31,6 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with IOP.Codec;
 with PortableInterceptor;
 with PortableServer;
 
@@ -60,6 +61,11 @@ package Test001_Globals is
    Test_ObjectId : PortableInterceptor.ObjectId;
 
    Test_Forward_Object : Test001_Interface.Ref;
+
+   Test_Codec : IOP.Codec.Local_Ref;
+
+   Test_Request_Context : IOP.ServiceContext;
+   Test_Reply_Context   : IOP.ServiceContext;
 
    --  Test behavior switches
 

@@ -88,14 +88,15 @@ package body Test001_Server_Request_Info_Tests is
      (Point  : in     Server_Interception_Point;
       Info   : in     PortableInterceptor.ServerRequestInfo.Local_Ref)
    is
-      pragma Unreferenced (Info);
-
       Operation : constant String := "add_reply_service_context";
 
    begin
-      --  XXX Not yet implemented in ServerRequestInfo
+      Add_Reply_Service_Context (Info, Test_Reply_Context, True);
+      Output (Point, Operation, True);
 
-      Output (Point, Operation, False, " (NO TEST)");
+   exception
+      when others =>
+         Output (Point, Operation, False);
    end Test_Add_Reply_Service_Context;
 
    ----------------------------

@@ -35,6 +35,7 @@ with CORBA.Object;
 with CORBA.Repository_Root;
 
 with Dynamic;
+with IOP;
 
 with Test001_Globals;
 with Test001_Interface.Helper;
@@ -45,6 +46,7 @@ package body Test001_Request_Info_Tests is
    use CORBA.Repository_Root;
    use CORBA.TypeCode;
    use Dynamic;
+   use IOP;
    use PortableInterceptor;
    use PortableInterceptor.RequestInfo;
    use Test001_Globals;
@@ -269,14 +271,69 @@ package body Test001_Request_Info_Tests is
      (Point : in Interception_Point;
       Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class)
    is
-      pragma Unreferenced (Info);
-
       Operation : constant String := "get_reply_service_context";
+      Valid     : constant Boolean
+        := Point /= Send_Request
+             and then Point /= Send_Poll
+             and then Point /= Receive_Request_Service_Contexts
+             and then Point /= Receive_Request;
+      Context   : IOP.ServiceContext;
 
    begin
-      --  XXX Not yet implemented in RequestInfo
+      begin
+         Context := Get_Reply_Service_Context (Info, 123456);
+         Output (Point, Operation, False);
+         return;
 
-      Output (Point, Operation, False, " (NO TEST)");
+      exception
+         when E : Bad_Inv_Order =>
+            declare
+               Members : System_Exception_Members;
+            begin
+               Get_Members (E, Members);
+               if Valid or else Members.Minor /= 14 then
+                  Output (Point, Operation, False);
+                  return;
+               end if;
+            end;
+
+         when E : Bad_Param =>
+            declare
+               Members : System_Exception_Members;
+            begin
+               Get_Members (E, Members);
+               if not Valid or else Members.Minor /= 26 then
+                  Output (Point, Operation, False);
+                  return;
+               end if;
+            end;
+
+         when others =>
+            Output (Point, Operation, False);
+            return;
+      end;
+
+      if Point = Receive_Reply
+        or else Point = Receive_Exception
+        or else Point = Receive_Other
+      then
+         begin
+            Context :=
+              Get_Reply_Service_Context (Info, Test_Reply_Context.Context_Id);
+
+            if Context /= Test_Reply_Context then
+               Output (Point, Operation, False);
+               return;
+            end if;
+
+         exception
+            when others =>
+               Output (Point, Operation, False);
+               return;
+         end;
+      end if;
+
+      Output (Point, Operation, True);
    end Test_Get_Reply_Service_Context;
 
    --------------------------------------
@@ -287,14 +344,65 @@ package body Test001_Request_Info_Tests is
      (Point : in Interception_Point;
       Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class)
    is
-      pragma Unreferenced (Info);
-
-      Operation : constant String := "get_request_service_context";
+      Operation : constant String  := "get_request_service_context";
+      Valid     : constant Boolean := Point /= Send_Poll;
+      Context   : IOP.ServiceContext;
 
    begin
-      --  XXX Not yet implemented in RequestInfo
+      begin
+         Context := Get_Request_Service_Context (Info, 123456);
+         Output (Point, Operation, False);
+         return;
 
-      Output (Point, Operation, False, " (NO TEST)");
+      exception
+         when E : Bad_Inv_Order =>
+            declare
+               Members : System_Exception_Members;
+            begin
+               Get_Members (E, Members);
+               if Valid or else Members.Minor /= 14 then
+                  Output (Point, Operation, False);
+                  return;
+               end if;
+            end;
+
+         when E : Bad_Param =>
+            declare
+               Members : System_Exception_Members;
+            begin
+               Get_Members (E, Members);
+               if not Valid or else Members.Minor /= 26 then
+                  Output (Point, Operation, False);
+                  return;
+               end if;
+            end;
+
+         when others =>
+            Output (Point, Operation, False);
+            return;
+      end;
+
+      if Point = Receive_Request_Service_Contexts
+        or else Point = Receive_Request
+      then
+         begin
+            Context :=
+              Get_Request_Service_Context
+                (Info, Test_Request_Context.Context_Id);
+
+            if Context /= Test_Request_Context then
+               Output (Point, Operation, False);
+               return;
+            end if;
+
+         exception
+            when others =>
+               Output (Point, Operation, False);
+               return;
+         end;
+      end if;
+
+      Output (Point, Operation, True);
    end Test_Get_Request_Service_Context;
 
    -------------------

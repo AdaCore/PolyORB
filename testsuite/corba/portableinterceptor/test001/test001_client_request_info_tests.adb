@@ -42,9 +42,7 @@ package body Test001_Client_Request_Info_Tests is
    use CORBA;
    use CORBA.Object;
    use CORBA.TypeCode;
-
    use PortableInterceptor.ClientRequestInfo;
-
    use Test001_Globals;
    use Test001_Interface;
    use Test001_Interface.Helper;
@@ -57,14 +55,32 @@ package body Test001_Client_Request_Info_Tests is
      (Point : in     Client_Interception_Point;
       Info  : in     PortableInterceptor.ClientRequestInfo.Local_Ref)
    is
-      pragma Unreferenced (Info);
-
-      Operation : constant String := "add_request_service_context";
+      Operation : constant String  := "add_request_service_context";
+      Valid     : constant Boolean := Point = Send_Request;
 
    begin
-      --  XXX Not yet implemented in ClientRequestInfo
+      Add_Request_Service_Context (Info, Test_Request_Context, False);
+      if Valid then
+         Output (Point, Operation, True);
+      else
+         Output (Point, Operation, False);
+      end if;
 
-      Output (Point, Operation, False, " (NO TEST)");
+   exception
+      when E : Bad_Inv_Order =>
+         declare
+            Members : System_Exception_Members;
+         begin
+            Get_Members (E, Members);
+            if not Valid and then Members.Minor = 14 then
+               Output (Point, Operation, True);
+            else
+               Output (Point, Operation, False);
+            end if;
+         end;
+
+      when others =>
+         Output (Point, Operation, False);
    end Test_Add_Request_Service_Context;
 
    ----------------------------

@@ -31,15 +31,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA;
+with CORBA.Impl;
+with PolyORB.Utils.Report;
 
+with IOP.Codec;
+with IOP.CodecFactory;
 with PortableInterceptor.ClientRequestInterceptor;
 with PortableInterceptor.ORBInitializer;
 with PortableInterceptor.ServerRequestInterceptor;
 
-with PolyORB.Smart_Pointers;
-
 with Test001_Client_Interceptor.Impl;
+with Test001_Globals;
 with Test001_Server_Interceptor.Impl;
 
 package body Test001_ORB_Initializer.Impl is
@@ -83,18 +85,44 @@ package body Test001_ORB_Initializer.Impl is
       Server_Ref : PortableInterceptor.ServerRequestInterceptor.Local_Ref;
       Server_Ptr : Test001_Server_Interceptor.Impl.Object_Ptr;
 
+      Factory    : IOP.CodecFactory.Local_Ref;
+
    begin
+      PolyORB.Utils.Report.New_Test ("ORBInitInfo Interface");
+
       Client_Ptr := new Test001_Client_Interceptor.Impl.Object;
       PortableInterceptor.ClientRequestInterceptor.Set
-        (Client_Ref, PolyORB.Smart_Pointers.Entity_Ptr (Client_Ptr));
+        (Client_Ref, CORBA.Impl.Object_Ptr (Client_Ptr));
       PortableInterceptor.ORBInitInfo.Add_Client_Request_Interceptor
         (Info, Client_Ref);
 
       Server_Ptr := new Test001_Server_Interceptor.Impl.Object;
       PortableInterceptor.ServerRequestInterceptor.Set
-        (Server_Ref, PolyORB.Smart_Pointers.Entity_Ptr (Server_Ptr));
+        (Server_Ref, CORBA.Impl.Object_Ptr (Server_Ptr));
       PortableInterceptor.ORBInitInfo.Add_Server_Request_Interceptor
         (Info, Server_Ref);
+
+      begin
+         Factory := PortableInterceptor.ORBInitInfo.Get_Codec_Factory (Info);
+         Test001_Globals.Test_Codec :=
+           IOP.CodecFactory.Create_Codec
+           (Factory, (IOP.Encoding_CDR_Encaps, 1, 2));
+         PolyORB.Utils.Report.Output
+           ("[post_init] ORBInitInfo::codec_factory", True);
+      exception
+         when others =>
+            PolyORB.Utils.Report.Output
+              ("[post_init] ORBInitInfo::codec_factory", False);
+      end;
+
+      Test001_Globals.Test_Request_Context :=
+        (654321,
+         IOP.Codec.Encode_Value
+         (Test001_Globals.Test_Codec, CORBA.To_Any (CORBA.Unsigned_Long'(1))));
+      Test001_Globals.Test_Reply_Context :=
+        (765432,
+         IOP.Codec.Encode_Value
+         (Test001_Globals.Test_Codec, CORBA.To_Any (CORBA.Unsigned_Long'(2))));
    end Post_Init;
 
 end Test001_ORB_Initializer.Impl;
