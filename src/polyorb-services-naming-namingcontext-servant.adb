@@ -495,57 +495,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
          return;
 
---       elsif Operation = "list" then
-
---          declare
---             How_Many          : PolyORB.Types.Unsigned_Long;
---             Argument_How_Many : PolyORB.Any.Any
---               := Get_Empty_Any (TC_Unsigned_Long);
-
---             Bl                : BindingList;
---             Argument_Bl       : PolyORB.Any.Any
---               := Get_Empty_Any (TC_BindingList);
-
---             Bi                : CosNaming.BindingIterator_Forward.Ref;
---             Argument_Bi       : PolyORB.Any.Any
---               := To_Any (Convert_Forward.From_Forward (Bi));
-
---          begin
---             --  Create argument list
-
---             Add_Item (Arg_List,
---                       To_PolyORB_String ("how_many"),
---                       Argument_How_Many,
---                       PolyORB.Any.ARG_IN);
---             Add_Item (Arg_List,
---                       To_PolyORB_String ("bl"),
---                       Argument_Bl,
---                       PolyORB.Any.ARG_OUT);
---             Add_Item (Arg_List,
---                       To_PolyORB_String ("bi"),
---                       Argument_Bi,
---                       PolyORB.Any.ARG_OUT);
-
---             Arguments (Request, Arg_List);
-
---             --  Convert arguments from their Any
---             How_Many := From_Any (Argument_How_Many);
-
---             --  Call implementation
---             List (Self, How_Many, Bl, Bi);
-
---             --  Set out arguments.
---             PolyORB.Any.Copy_Any_Value
---               (Argument_Bl, To_Any (Bl));
-
---             PolyORB.Any.Copy_Any_Value
---               (Argument_Bi,
---                CosNaming.BindingIterator.Helper.To_Any
---                  (CosNaming.BindingIterator.Convert_Forward.From_Forward
---                     (Bi)));
-
---             return;
---          end;
+--       elsif Operation = "list" then ...
 
       else
          --         PolyORB.Exceptions.Raise_Bad_Operation;

@@ -1776,11 +1776,13 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Union =>
             declare
-               Arg : PolyORB.Any.Any := Get_Empty_Any_Aggregate
-                 (Get_Type (Data));
                Label, Val : PolyORB.Any.Any;
+
             begin
-               pragma Debug (O ("Unmarshall_To_Any : dealing with an union"));
+               pragma Debug (O ("Unmarshall_To_Any : dealing with a union"));
+
+               Move_Any_Value (Data,
+                  Get_Empty_Any_Aggregate (Get_Type (Data)));
                Label := Get_Empty_Any (TypeCode.Discriminator_Type (Tc));
                Unmarshall_To_Any
                  (CDR_Representation'Class (R),
@@ -1792,34 +1794,48 @@ package body PolyORB.Representations.CDR is
                   return;
                end if;
 
-               Add_Aggregate_Element (Arg, Label);
-
-               Val := Get_Empty_Any
-                 (TypeCode.Member_Type_With_Label
-                  (Tc, Label));
-               Unmarshall_To_Any
-                 (CDR_Representation'Class (R),
-                  Buffer,
-                  Val,
-                  Error);
+               declare
+                  Member_TC : constant TypeCode.Object :=
+                                TypeCode.Member_Type_With_Label (Tc, Label);
+               begin
+                  Val := Get_Empty_Any (Member_TC);
+                  Unmarshall_To_Any
+                    (CDR_Representation'Class (R),
+                     Buffer,
+                     Val,
+                     Error);
+               end;
 
                if Found (Error) then
                   return;
                end if;
 
-               Add_Aggregate_Element (Arg, Val);
-
-               Copy_Any_Value (Data, Arg);
-               --  XXX Inefficient, see comment for Tk_Struct above.
+               Add_Aggregate_Element (Data, Label);
+               Add_Aggregate_Element (Data, Val);
             end;
 
          when Tk_Enum =>
             declare
-               Arg : PolyORB.Any.Any
-                 := Get_Empty_Any_Aggregate (Get_Type (Data));
                Val : PolyORB.Any.Any
                  := Get_Empty_Any (TC_Unsigned_Long);
+               Initial_Count : Unsigned_Long;
             begin
+               if Is_Empty (Data) then
+                  Move_Any_Value (Data,
+                    Get_Empty_Any_Aggregate (Get_Type (Data)));
+                  Initial_Count := 0;
+               else
+                  Initial_Count := Get_Aggregate_Count (Data);
+               end if;
+
+               if Initial_Count = 0 then
+                  Val := Get_Empty_Any (TC_Unsigned_Long);
+                  Add_Aggregate_Element (Data, Val);
+               else
+                  pragma Assert (Initial_Count = 1);
+                  Val := Get_Aggregate_Element (Data, TC_Unsigned_Long, 0);
+               end if;
+
                Unmarshall_To_Any
                  (CDR_Representation'Class (R),
                   Buffer,
@@ -1830,10 +1846,6 @@ package body PolyORB.Representations.CDR is
                   return;
                end if;
 
-               Add_Aggregate_Element (Arg, Val);
-
-               Copy_Any_Value (Data, Arg);
-               --  XXX Inefficient, see comment for Tk_Struct above.
                pragma Debug
                  (O ("enum -> ["
                      & Utils.Trimmed_Image
@@ -1911,27 +1923,40 @@ package body PolyORB.Representations.CDR is
          when Tk_Array =>
             declare
                Nb : Unsigned_Long := TypeCode.Length (Tc);
-               Content_True_Type : PolyORB.Any.TypeCode.Object
+               Element_Type : PolyORB.Any.TypeCode.Object
                  := TypeCode.Content_Type (Tc);
-               Arg : PolyORB.Any.Any := Get_Empty_Any_Aggregate
-                 (Get_Type (Data));
+               Add_Elements : Boolean := True;
                Val : PolyORB.Any.Any;
             begin
                pragma Debug
                  (O ("Unmarshall_To_Any : dealing with an array"));
-               while PolyORB.Any.TypeCode.Kind (Content_True_Type) = Tk_Array
-               loop
-                  Nb := Nb * TypeCode.Length (Content_True_Type);
-                  Content_True_Type
-                    := TypeCode.Content_Type (Content_True_Type);
+               while TypeCode.Kind (Element_Type) = Tk_Array loop
+                  Nb := Nb * TypeCode.Length (Element_Type);
+                  Element_Type := TypeCode.Content_Type (Element_Type);
                end loop;
 
                pragma Debug
                  (O ("Unmarshall_To_Any: unmarshalling"
                      & Unsigned_Long'Image (Nb) & " elements"));
+               if Is_Empty (Data) then
+                  Move_Any_Value (Data,
+                    Get_Empty_Any_Aggregate (Get_Type (Data)));
+               else
+                  if Get_Aggregate_Count (Data) = 0 then
+                     null;
+                  else
+                     pragma Assert (Get_Aggregate_Count (Data) = Nb);
+                     Add_Elements := False;
+                  end if;
+               end if;
 
                for J in 1 .. Nb loop
-                  Val := Get_Empty_Any (Content_True_Type);
+                  if Add_Elements then
+                     Val := Get_Empty_Any (Element_Type);
+                     Add_Aggregate_Element (Data, Val);
+                  else
+                     Val := Get_Aggregate_Element (Data, Element_Type, J - 1);
+                  end if;
                   Unmarshall_To_Any
                     (CDR_Representation'Class (R),
                      Buffer,
@@ -1941,12 +1966,8 @@ package body PolyORB.Representations.CDR is
                   if Found (Error) then
                      return;
                   end if;
-
-                  Add_Aggregate_Element (Arg, Val);
                end loop;
-               pragma Debug (O ("Unmarshall_To_Any: array elements done."));
-               Copy_Any_Value (Data, Arg);
-               pragma Debug (O ("Unmarshall_To_Any: Copy_Value done."));
+               pragma Debug (O ("Unmarshall_To_Any: array done."));
             end;
 
          when Tk_Alias =>
@@ -2000,17 +2021,15 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Fixed =>
             declare
-               Arg : PolyORB.Any.Any
-                 := Get_Empty_Any_Aggregate (Get_Type (Data));
                B : PolyORB.Types.Octet;
             begin
+               Move_Any_Value (Data,
+                 Get_Empty_Any_Aggregate (Get_Type (Data)));
                loop
                   B := Unmarshall (Buffer);
-                  Add_Aggregate_Element (Arg, To_Any (B));
+                  Add_Aggregate_Element (Data, To_Any (B));
                   exit when B mod 16 > 9;
                end loop;
-               Copy_Any_Value (Dest => Data, Src => Arg);
-               --  XXX Inefficient, see Tk_Struct above
             end;
 
          when Tk_Value =>

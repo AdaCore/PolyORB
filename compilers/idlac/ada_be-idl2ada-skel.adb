@@ -749,8 +749,6 @@ package body Ada_Be.Idl2Ada.Skel is
                         Get_Next_Node (It, P_Node);
 
                         if not Is_Returns (P_Node) then
-
-
                            if Mode (P_Node) =  Mode_Inout
                              or else Mode (P_Node) = Mode_Out
                            then
@@ -770,7 +768,7 @@ package body Ada_Be.Idl2Ada.Skel is
 
                                  Add_With (CU, Helper_Name);
                                  Add_With (CU, "CORBA");
-                                 PL (CU, "CORBA.Internals.Copy_Any_Value");
+                                 PL (CU, "CORBA.Internals.Move_Any_Value");
                                  PL (CU, "  (" & T_Argument & Arg_Name & ",");
                                  II (CU);
                                  PL (CU, Helper_Name & ".To_Any");

@@ -1688,13 +1688,13 @@ package body CORBA is
       end To_CORBA_Any;
 
       --------------------
-      -- Copy_Any_Value --
+      -- Move_Any_Value --
       --------------------
 
-      procedure Copy_Any_Value (Dest : in Any; Src : in Any) is
+      procedure Move_Any_Value (Dest : in Any; Src : in Any) is
       begin
-         PolyORB.Any.Copy_Any_Value (Dest.The_Any, Src.The_Any);
-      end Copy_Any_Value;
+         PolyORB.Any.Move_Any_Value (Dest.The_Any, Src.The_Any);
+      end Move_Any_Value;
 
    end Internals;
 

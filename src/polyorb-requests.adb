@@ -258,7 +258,7 @@ package body PolyORB.Requests is
                        or else Src_Arg.Arg_Modes = ARG_INOUT
                        or else Src_Arg.Arg_Modes = Direction
                      then
-                        Copy_Any_Value (Dst_Arg.Argument, Src_Arg.Argument);
+                        Move_Any_Value (Dst_Arg.Argument, Src_Arg.Argument);
                         Next (Src_It);
                         --  These MUST be type-compatible!
                         exit;
@@ -364,7 +364,7 @@ package body PolyORB.Requests is
                      then
                         pragma Debug (O ("Found the argument: copying"));
                         Src_Arg_Found := True;
-                        Copy_Any_Value (Value (Dst_It).Argument,
+                        Move_Any_Value (Value (Dst_It).Argument,
                                         Value (Src_It).Argument);
                         Copied_Src_Args (Src_Idx) := True;
                         exit;
@@ -635,7 +635,7 @@ package body PolyORB.Requests is
                   if Copy_Argument then
                      pragma Debug (O ("Found the argument: copying"));
                      Src_Arg_Found := True;
-                     Copy_Any_Value (Value (Dst_It).Argument,
+                     Move_Any_Value (Value (Dst_It).Argument,
                                      Value (Src_It).Argument);
                      Copied_Src_Args (Src_Idx) := True;
                      exit;
@@ -842,7 +842,7 @@ package body PolyORB.Requests is
             Argument  => Val,
             Arg_Modes => ARG_OUT);
       else
-         Copy_Any_Value (Self.Result.Argument, Val);
+         Move_Any_Value (Self.Result.Argument, Val);
       end if;
    end Set_Result;
 

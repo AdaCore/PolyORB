@@ -908,7 +908,7 @@ package CORBA is
       function To_CORBA_Any (Self : in PolyORB.Any.Any) return CORBA.Any;
       pragma Inline (To_CORBA_Any);
 
-      procedure Copy_Any_Value (Dest : in Any; Src : in Any);
+      procedure Move_Any_Value (Dest : in Any; Src : in Any);
 
    end Internals;
 
