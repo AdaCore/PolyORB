@@ -50,6 +50,9 @@ pragma Elaborate_All (System.Garlic.Units);
 with System.RPC; use System.RPC;
 pragma Elaborate_All (System.RPC);
 
+with Ada.Unchecked_Deallocation;
+with GNAT.HTable; use GNAT.HTable;
+
 package body System.Partition_Interface is
 
    Private_Debug_Key : constant Debug_Key :=
@@ -86,6 +89,34 @@ package body System.Partition_Interface is
    Local_Partition  : constant Partition_ID := Get_My_Partition_ID;
    Get_Unit_Request : constant Request_Type :=
      (Get_Unit, Local_Partition, null, null, null);
+
+   type Hash_Index is range 0 .. 100;
+   function Hash (K : RACW_Stub_Type_Access) return Hash_Index;
+
+   function Compare_Content (Left, Right : RACW_Stub_Type_Access)
+     return Boolean;
+
+   package Objects_HTable is
+      new Simple_HTable (Header_Num => Hash_Index,
+                         Element    => RACW_Stub_Type_Access,
+                         No_Element => null,
+                         Key        => RACW_Stub_Type_Access,
+                         Hash       => Hash,
+                         Equal      => Compare_Content);
+
+   procedure Free is
+      new Ada.Unchecked_Deallocation (RACW_Stub_Type, RACW_Stub_Type_Access);
+
+   ---------------------
+   -- Compare_Content --
+   ---------------------
+
+   function Compare_Content (Left, Right : RACW_Stub_Type_Access)
+     return Boolean
+   is
+   begin
+      return Left /= null and then Right /= null and then Left.all = Right.all;
+   end Compare_Content;
 
    -----------------------------
    -- Get_Active_Partition_ID --
@@ -164,6 +195,32 @@ package body System.Partition_Interface is
       Units.Apply (U, Get_Unit_Request, Process'Access);
       return Units.Get_Component (U).Receiver;
    end Get_RCI_Package_Receiver;
+
+   -------------------------------
+   -- Get_Unique_Remote_Pointer --
+   -------------------------------
+
+   procedure Get_Unique_Remote_Pointer
+     (Handler : in out RACW_Stub_Type_Access)
+   is
+      Answer : constant RACW_Stub_Type_Access := Objects_HTable.Get (Handler);
+   begin
+      if Answer = null then
+         Objects_HTable.Set (Handler, Handler);
+      else
+         Free (Handler);
+         Handler := Answer;
+      end if;
+   end Get_Unique_Remote_Pointer;
+
+   ----------
+   -- Hash --
+   ----------
+
+   function Hash (K : RACW_Stub_Type_Access) return Hash_Index is
+   begin
+      return Hash_Index (Natural (K.Addr) mod Positive (Hash_Index'Last + 1));
+   end Hash;
 
    -------------------------------
    -- Invalidate_Receiving_Stub --

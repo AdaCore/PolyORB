@@ -87,13 +87,16 @@ package System.Partition_Interface is
    end RCI_Info;
    --  RCI package information caching
 
-   type RACW_Stub_Type is record
+   type RACW_Stub_Type is tagged record
       Origin   : System.RPC.Partition_ID;
       Receiver : System.RPC.RPC_Receiver;
       Addr     : System.Address;
    end record;
    type RACW_Stub_Type_Access is access RACW_Stub_Type;
-   --  This type is used in the stub when expanding a remote access to
-   --  class-wide type.
+   --  This type is used by the expansion to implement distributed objects
+
+   procedure Get_Unique_Remote_Pointer
+     (Handler : in out RACW_Stub_Type_Access);
+   --  Get a unique pointer on a remote object
 
 end System.Partition_Interface;
