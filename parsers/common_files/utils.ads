@@ -11,6 +11,5 @@ package Utils is
    --  Embrace string S or name N with character D
 
    function To_Lower (N : Name_Id) return Name_Id;
-
 end Utils;
 
