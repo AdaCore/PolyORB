@@ -19,9 +19,9 @@ adabe_array::produce_ads(dep_list& with,string &body, string &previous) {
   int i;
 
   compute_ada_name();
-  body += "type " + get_ada_local_name() + "is array ";
+  body += "   type " + get_ada_local_name() + " is array";
   for (i=0; i < n_dims(); i++) {
-    body += "( 0 ...";  
+    body += "( 0..";  
     AST_Expression::AST_ExprValue* v = dims()[i]->ev();
     switch (v->et) 
     {
@@ -41,9 +41,10 @@ adabe_array::produce_ads(dep_list& with,string &body, string &previous) {
       throw adabe_internal_error(__FILE__,__LINE__,"unexpected type in array expression");
     }
     body +=number;
-    body +=")";
+    body +=" )";
   }
-  body+="of\n"+ (dynamic_cast<adabe_name *>(base_type())->dump_name(with, previous));
+  body+=" of "+ (dynamic_cast<adabe_name *>(base_type())->dump_name(with, previous));
+  body += " ;\n" ;
   set_already_defined();
 }
 

@@ -11,7 +11,7 @@ void
 adabe_structure::produce_ads(dep_list& with, string &body, string &previous)
 {
   compute_ada_name();
-  body += "   type " + get_ada_local_name() + "is record\n";
+  body += "   type " + get_ada_local_name() + " is record\n";
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
@@ -22,8 +22,8 @@ adabe_structure::produce_ads(dep_list& with, string &body, string &previous)
       i.next();
     }
   body += "   end record;\n";
-  body += "   type " + get_ada_local_name() + "_Ptr is access all " + get_ada_local_name() + ";\n";
-  body += "   procedure free is new Unchecked_Deallocation(";
+  body += "   type " + get_ada_local_name() + "_Ptr is access " + get_ada_local_name() + ";\n";
+  body += "   procedure Free is new Unchecked_Deallocation(";
   body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr);\n";  
   set_already_defined();
 }

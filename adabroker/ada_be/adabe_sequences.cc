@@ -10,29 +10,25 @@ adabe_sequence::produce_ads(dep_list& with, string &body,
   // Adding the corba file for sequences
   
   if (max_size() == 0)
-    is_bounded = "CORBA.Object.Sequences.Unbounded";
+    is_bounded = "Bounded";
   else
-    is_bounded = "CORBA.Object.Sequences.Bounded";
-  with.add("CORBA.Object.Sequences." + is_bounded);
+    is_bounded = "Unbounded";
 
-  if (max_size() == 0)
-    is_bounded = "bounded";
-  else
-    is_bounded = "unbounded";
+  with.add("CORBA.Object.Sequences." + is_bounded);
 
   // Writing the header :
 
   adabe_base_type =  dynamic_cast<adabe_name *> (base_type());
   type_name =  adabe_base_type->dump_name(with, previous);
     
-  body += "type IDL_SEQUENCE_" + type_name +"_Array is\n";
+  body += "   type IDL_SEQUENCE_" + type_name +"_Array is\n";
   body += "      array (Integer range <>) of CORBA." + type_name +";\n";
   body += "\n";
   body += "package  IDL_SEQUENCE_" + type_name +" is\n";
-  body += "     CORBA.Sequences." + is_bounded + "\n";
-  body += "       (CORBA." + type_name + ", IDL_SEQUENCE_" + type_name +"_Array);\n";
+  body += "     Corba.Sequences." + is_bounded + "\n";
+  body += "       (Corba." + type_name + ", IDL_SEQUENCE_" + type_name +"_Array);\n";
   body += "\n";
-  body += "type " + get_ada_local_name() + " is new IDL_SEQUENCE_" + type_name + ".Sequence;";
+  body += "  type " + get_ada_local_name() + " is new IDL_SEQUENCE_" + type_name + ".Sequence;";
 
 }
 void

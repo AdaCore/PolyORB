@@ -28,8 +28,8 @@ adabe_union::produce_ads(dep_list& with, string &body, string &previous)
     {
       AST_Decl *d = i.item();
       if (d->node_type() == AST_Decl::NT_union_branch)
-	adabe_union_branch::narrow_from_decl(d)->produce_ads(with, body, previous, disc_type());
-      //dynamic_cast<adabe_union_branch *>(d)->produce_ads(with, body, previous, disc_type()); 
+	//adabe_union_branch::narrow_from_decl(d)->produce_ads(with, body, previous, disc_type());
+	dynamic_cast<adabe_union_branch *>(d)->produce_ads(with, body, previous, disc_type()); 
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in union");
       i.next ();
     }

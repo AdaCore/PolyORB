@@ -23,6 +23,7 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
   adabe_interface *inher;
   with.add("Corba.Object");
   with.add("Corba");
+  with.add("AdaBroker") ;
 #ifdef DEBUG_INTERFACE
   cout << "befor compute_ada_name of the interface" << endl;
 #endif
@@ -137,14 +138,16 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
 	    }
 	}
     }
-  body += "   type Ref_Ptr is access all Ref'Class ;\n\n";
+  body += "   type Ref_Ptr is access all Ref ;\n\n";
   body += "   Nil_Ref : aliased constant Ref ;\n";
-  body += "   function To_Ref(The_Ref : in Corba.Object.Ref'CLASS) return Ref ;\n";
+  body += "   function To_Ref(The_Ref : in Corba.Object.Ref'Class) return Ref ;\n";
   body += tmp;
 
   // instructions
-  body += "\n   --   Instructions          --\n";
-  body += "--------------------------------\n";
+  body += "\n\n" ;
+  body += "  --------------------------------\n";
+  body += "  --   IDL declarations         --\n";
+  body += "  --------------------------------\n";
   {
     UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
     while (!i.is_done())
@@ -164,7 +167,7 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
 #endif
 	if (e->node_type() != AST_Decl::NT_enum_val) {
 	  e->produce_ads(with, tmp1, tmp2);
-	  body += tmp2 + tmp1;
+	  body += "\n" + tmp2 + tmp1;
 	}
 	i.next();
       }
@@ -173,14 +176,14 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
   body += "   --       Not in Spec       --\n";
   body += "   -----------------------------\n\n";
   
-  body += "   Repository_Id : Corba.String := Corba.To_Corba_String(";//... repositoryID()
-  body += "   function Get_Repository_Id(Self : in Ref) return Corba.String ;\n";
+  body += "   Repository_Id : Corba.String := Corba.To_Corba_String(\"RepositoryID\")\n";
+  body += "   function Get_Repository_Id(Self : in Ref) return Corba.String ;\n\n";
   body += "   function Is_A(The_Ref : in Ref; Repo_Id : in Corba.String) return Corba.Boolean ;\n";
-  body += "   function Is_A(Repo_Id : in Corba.String) return Corba.Boolean ;\n";
+  body += "   function Is_A(Repo_Id : in Corba.String) return Corba.Boolean ;\n\n";
   body += "   Get_Nil_Ref(Self : in Ref) return Ref ;\n"; 
   body += "\nprivate\n";
-  body += "   Nil_Ref : aliased constant Ref := " + corps;
-  body += "   .Nil_Ref with null record) ;\n";
+  body += "   Nil_Ref : aliased constant Ref := (" + corps;
+  body += ".Nil_Ref with null record) ;\n";
   body += "end " + get_ada_full_name() + " ;\n";    
   set_already_defined();
 }
@@ -196,7 +199,7 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
   with.add("Corba.Object");
   body += "use Corba.Object ;\n";
   body += "use type Corba.String ;\n";
-  body += "pakage body" + get_ada_full_name() + " is \n";
+  body += "package body " + get_ada_full_name() + " is \n";
   body += "\n   -----------------------------\n";
   body += "   --         The Spec        --\n";
   body += "   -----------------------------\n\n";
@@ -249,8 +252,10 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
     }
 
   // the instructions
-  body += "\n --          IDL SPEC                            --\n";
-  body += "\n --------------------------------------------------";
+  body += "\n\n" ;
+  body += "   --------------------------------------------------\n";
+  body += "   --          IDL definitions                     --\n";
+  body += "   --------------------------------------------------";
   {
     UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
     while (!i.is_done())
@@ -273,41 +278,49 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
 	i.next();
       }
   }
-  body += "\n   -----------------------------\n";
+  body += "\n\n" ;
+  body += "   -----------------------------\n";
   body += "   --       Not in Spec       --\n";
   body += "   -----------------------------\n\n";
+  body += "   -- Get_Repository_Id\n" ;
+  body += "   --------------------\n" ;
   body += "   function Get_Repository_Id(Self : in Ref) return Corba.String is\n";
   body += "   begin\n";
   body += "      return Repository_Id ;\n";
-  body += "   end ;\n";    
+  body += "   end ;\n\n\n";    
+  body += "   -- Is_A\n" ;
+  body += "   -------\n" ;
   body += "   function Is_A(The_Ref : in Ref\n"; 
   body += "                 Repo_Id : in Corba.String)\n";
   body += "                 return Corba.Boolean is\n";
   body += "   begin\n";
   body += "      return Is_A(Repo_Id) ;\n";
-  body += "   end ;\n";    
+  body += "   end ;\n\n\n";    
+  body += "   -- Is_A\n" ;
+  body += "   -------\n" ;
   body += "   function Is_A(Repo_Id : in Corba.String)\n";
   body += "                 return Corba.Boolean is\n";
   body += "   begin\n";
-  body += "      return (Repository_Id = Repo_Id\n";
+  body += "      return (Repository_Id = Repo_Id";
   for(int i = 0; i < n_inherits(); i++)
     {
       inher = adabe_interface::narrow_from_decl(inherits()[i]);
-      body += "              or ";
+      body += "\n              or ";
       body += inher->get_ada_full_name();
-      body += ".IS_A(Repo_Id)";
-      if (i != n_inherits()-1) body += "\n";
+      body += ".Is_A(Repo_Id)";
     }
   body += ");\n";
-  body += "   end ;\n";    
-  body += "   Get_Nil_Ref(Self : in Ref) return Ref ;\n"; 
+  body += "   end ;\n\n\n";    
+  body += "   -- Get_Nil_Ref\n" ;
+  body += "   --------------\n" ;
+  body += "   function Get_Nil_Ref(Self : in Ref) return Ref ;\n"; 
   body += "   begin\n";
-  body += "      Nil_Ref ;\n";
-  body += "   end ;\n\n";
+  body += "      return Nil_Ref ;\n";
+  body += "   end ;\n\n\n";
   body += "begin\n";
   body += "   Corba.Object.Register(Repository_Id, Nil_Ref'Access) ;\n";
   body += "   Corba.Object.Create_Proxy_Object_Factory(Repository_Id) ;\n";   
-  body += "end ; " + get_ada_full_name() + "\n";  
+  body += "end " + get_ada_full_name() + " ;\n";  
 }
 
 void

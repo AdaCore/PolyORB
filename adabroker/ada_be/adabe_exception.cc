@@ -13,9 +13,9 @@ adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
   
   // beginning of the exception declaration ...
     
-  body+=  get_ada_local_name() + " : exception\n";
+  body+=  "   " + get_ada_local_name() + " : exception ;\n";
   
-  body +=  "type " +get_ada_local_name() +"_Members is new CORBA.IDL_Exception_Members with \n";
+  body +=  "   type " +get_ada_local_name() +"_Members is new CORBA.IDL_Exception_Members with ";
   
   // ...
   
@@ -32,10 +32,10 @@ adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
 	    //	    adabe_name *adabe_type  =  dynamic_cast<adabe_name *> (adabe_field->base_type);
 	    if (first)
 	      {
+		body += "record\n" ;
 		first = false;
-		body += "       records\n";
-		  }
-	    body += "\t\t";
+	      }
+	    body += "      ";
 	    adabe_field->produce_ads (with, body, previous);
 	    break;
 	  }
@@ -45,20 +45,19 @@ adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
 #endif
 	  throw adabe_internal_error (__FILE__,__LINE__,"unexpected decl in exception scope");
 	}
-      if (first)
-	{
-	  body += "       null records;\n";
-	}
-      else
-	{
-	  body += "       end record\n";
-	}
     }
+  if (first)
+    {
+      body += "null record ;\n";
+    }
+  else
+    {
+      body += "    end record\n";
+    }
+  
   // Problem in the mapping  ????
-  body += "\tprocedure Get_Members(From: in Ada.Exceptions.\n";
-  body += "\t\tException_Occurence ;\n";
-  body += "\t\t\tTo:\t out  " + get_ada_local_name() + "_Members) ;\n";
-  set_already_defined();
+  body += "   procedure Get_Members(From : in Ada.Exceptions.Exception_Occurence ;\n";
+  body += "                         To : out " + get_ada_local_name() + "_Members ) ;\n";
 }
 
 void
