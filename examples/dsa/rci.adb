@@ -1,5 +1,6 @@
 with Ada.Text_IO; use Ada.Text_IO;
 with System.Address_Image;
+with Ada.Real_Time;
 
 package body RCI is
 
@@ -64,6 +65,13 @@ package body RCI is
       Put_Line ("Thus spake my client unto me: «" & S & "».");
       return S;
    end echoString;
+
+   function echoString_Delayed (S : String; Seconds : Integer) return String is
+      use Ada.Real_Time;
+   begin
+      delay until Clock + To_Time_Span (Duration (Seconds));
+      return echoString (S);
+   end echoString_Delayed;
 
    function Modulus2 (Z : Complex) return Float is
    begin
