@@ -3642,11 +3642,7 @@ package body Exp_Dist is
                         Expression =>
                           Build_From_Any_Call (
                             Etype (Parameter_Type (Current_Parameter)),
-                            Make_Selected_Component (Loc,
-                              Prefix =>
-                                New_Occurrence_Of (Result, Loc),
-                              Selector_Name =>
-                                Make_Identifier (Loc, Name_Argument)),
+                            New_Occurrence_Of (Any, Loc),
                             Decls)));
 
                end if;
