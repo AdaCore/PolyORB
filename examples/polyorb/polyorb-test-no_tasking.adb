@@ -38,9 +38,13 @@
 with PolyORB.Initialization;
 with PolyORB.Setup.Test_SOA;
 
-with PolyORB.Setup.No_Tasking_Server;
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
-pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
+with PolyORB.ORB.No_Tasking;
+pragma Warnings (Off, PolyORB.ORB.No_Tasking);
+pragma Elaborate_All (PolyORB.ORB.No_Tasking);
+
+with PolyORB.Setup.Tasking.No_Tasking;
+pragma Warnings (Off, PolyORB.Setup.Tasking.No_Tasking);
+pragma Elaborate_All (PolyORB.Setup.Tasking.No_Tasking);
 
 procedure PolyORB.Test.No_Tasking is
    use PolyORB.Setup.Test_SOA;

@@ -34,11 +34,11 @@
 --  $Id$
 
 with Ada.Exceptions;
+with Ada.Text_IO;
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
-with PolyORB.Log;
 with PolyORB.Requests;
 with PolyORB.Servants.Interface;
 with PolyORB.Types;
@@ -46,14 +46,11 @@ with PolyORB.Exceptions;
 
 package body PolyORB.Test_Object_POA is
 
+   use Ada.Text_IO;
+
    use PolyORB.Any;
-   use PolyORB.Log;
    use PolyORB.Requests;
    use PolyORB.Servants.Interface;
-
-   package L is new PolyORB.Log.Facility_Log ("corba.test_object");
-   procedure Output (Message : in Standard.String; Level : Log_Level := Debug)
-     renames L.Output;
 
    --------------------------------------
    -- Application part of the servant. --
@@ -68,8 +65,8 @@ package body PolyORB.Test_Object_POA is
       pragma Unreferenced (O);
       pragma Warnings (On);
    begin
-      pragma Debug (Output ("echoString is being executed with argument: "
-                            & PolyORB.Types.To_Standard_String (S)));
+      Put_Line ("echoString is being executed with argument: "
+                & PolyORB.Types.To_Standard_String (S));
       return S;
    end echoString;
 
@@ -82,8 +79,8 @@ package body PolyORB.Test_Object_POA is
       pragma Unreferenced (O);
       pragma Warnings (On);
    begin
-      pragma Debug
-        (Output ("Echo_Integer is being executed with argument" & I'Img));
+      Put_Line ("Echo_Integer is being executed with argument" & I'Img);
+
       return I;
    end echoInteger;
 
@@ -99,7 +96,7 @@ package body PolyORB.Test_Object_POA is
       use PolyORB.Any.NVList;
       use PolyORB.Types;
    begin
-      pragma Debug (Output ("Handle Message : enter"));
+      Put_Line ("Handle Message : enter");
 
       if Msg in Execute_Request then
          declare
@@ -112,8 +109,9 @@ package body PolyORB.Test_Object_POA is
             Args  : PolyORB.Any.NVList.Ref;
             Error : Error_Container;
          begin
-            pragma Debug (Output ("The server is executing the request:"
-                                    & PolyORB.Requests.Image (Req.all)));
+            Put_Line ("The server is executing the request:"
+                      & PolyORB.Requests.Image (Req.all));
+
             Create (Args);
             if Req.all.Operation = To_PolyORB_String ("echoString") then
                Add_Item (Args,
@@ -133,7 +131,7 @@ package body PolyORB.Test_Object_POA is
                   (Obj.all,
                    From_Any
                    (Value (First (List_Of (Args).all)).Argument)));
-               pragma Debug (Output ("Result: " & Image (Req.Result)));
+               Put_Line ("Result: " & Image (Req.Result));
 
             elsif Req.all.Operation = "echoInteger" then
                Add_Item (Args, (Name => To_PolyORB_String ("I"),
@@ -151,7 +149,7 @@ package body PolyORB.Test_Object_POA is
                  (echoInteger
                   (Obj.all,
                    From_Any (Value (First (List_Of (Args).all)).Argument)));
-                  pragma Debug (Output ("Result: " & Image (Req.Result)));
+                  Put_Line ("Result: " & Image (Req.Result));
             else
                raise PolyORB.Components.Unhandled_Message;
             end if;
@@ -163,8 +161,8 @@ package body PolyORB.Test_Object_POA is
 
    exception
       when E : others =>
-         pragma Debug (Output ("Handle_Message: Got exception "
-                          & Ada.Exceptions.Exception_Information (E)));
+         Put_Line ("Handle_Message: Got exception "
+                   & Ada.Exceptions.Exception_Information (E));
          raise;
    end Execute_Servant;
 

@@ -55,6 +55,8 @@ with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Types;
 
+with PolyORB.Setup.Test_SOA;
+
 package body PolyORB.Setup.Test_POA is
 
    use Ada.Text_IO;
@@ -64,21 +66,25 @@ package body PolyORB.Setup.Test_POA is
    use PolyORB.POA.Basic_POA;
 
    use PolyORB.Test_Object_POA;
+   use PolyORB.Setup.Test_SOA;
 
    My_Servant : PolyORB.Servants.Servant_Access;
    Obj_Adapter : PolyORB.POA_Types.Obj_Adapter_Access;
 
+   ----------------------------
+   -- Initialize_Test_Object --
+   ----------------------------
+
    procedure Initialize_Test_Object
    is
       My_Id  : Objects.Object_Id_Access;
-      My_Ref : PolyORB.References.Ref;
       Error  : Error_Container;
    begin
-      Put ("Initializing OA confiuration... ");
+      Put_Line ("Initializing OA configuration... ");
       PolyORB.POA_Config.Set_Configuration
         (new PolyORB.POA_Config.Root_POA.Root_POA_Configuration);
 
-      Put ("Creating object adapter... ");
+      Put_Line ("Creating object adapter... ");
       Obj_Adapter := new POA.Basic_POA.Basic_Obj_Adapter;
       POA.Basic_POA.Create (Basic_Obj_Adapter (Obj_Adapter.all)'Access);
       --  Create object adapter
@@ -102,7 +108,7 @@ package body PolyORB.Setup.Test_POA is
          null,
          My_Id,
          Error);
-      --  Register it with the SOA.
+      --  Register it with the POA.
 
       if Found (Error) then
          raise Program_Error;
