@@ -2720,9 +2720,13 @@ package body Ada_Be.Idl2Ada.Helper is
       end if;
 
       if Bound (Sequence (Node)) = No_Node then
-         Add_With (CU, "PolyORB.Sequences.Unbounded.Helper");
+         Add_With (CU, "PolyORB.Sequences.Unbounded.Helper",
+                   Elab_Control => Elaborate_All);
+         --  WAG:3.15
       else
-         Add_With (CU, "PolyORB.Sequences.Bounded.Helper");
+         Add_With (CU, "PolyORB.Sequences.Bounded.Helper",
+                   Elab_Control => Elaborate_All);
+         --  WAG:3.15
       end if;
 
       Add_With (CU, Ada_Helper_Name (Sequence_Type (Sequence (Node))));
