@@ -38,11 +38,30 @@ adabe_sequence::produce_ads(dep_list& with, string &body,
 void
 adabe_sequence::produce_marshal_ads(dep_list& with, string &body,string &previous)
 {
+  string tmp="";
+
+  tmp +="procedure Marshall (A : in ";
+  tmp += get_ada_local_name();
+  tmp +="; S : in out Object'Class); \n";
+  body += tmp;
+
 }
 
 void
 adabe_sequence::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
+  string tmp="";
+
+  tmp +="procedure Marshall (A : in ";
+  tmp += get_ada_local_name();
+  tmp +="; S : in out Object'Class) is \n";
+  tmp +="begin \n";
+  tmp +="   Marshall ("+get_ada_local_name()+"; S);";
+  tmp +="   
+  tmp += "end Marshall;";
+
+  body+=tmp;
+
 }
 string
 adabe_sequence::dump_name(dep_list& with,string &body, string &previous) 

@@ -58,11 +58,12 @@ adabe_enum::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
   string tmp="";
 
-  tmp +="procedure Marshall (A : out ";
+  tmp +="procedure Marshall (A : in ";
   tmp += get_ada_local_name();
   tmp +="; S : in out Object'Class) is \n";
   tmp +="begin \n";
-  tmp +=" Marshall ("+get_ada_local_name()+"'Pos(A); S);
+  tmp +=" Marshall ("+get_ada_local_name()+"'Pos(A); S);";
+  tmp += "end Marshall;";
   body+=tmp;
 
 }
