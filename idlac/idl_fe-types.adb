@@ -713,22 +713,25 @@ package body Idl_Fe.Types is
       Old_Scope := Current_Scope;
       Current_Scope := Old_Scope.Parent;
       --  Test if all forward definitions were implemented
-      if Kind (Old_Scope.Scope) = K_Repository or
-        Kind (Old_Scope.Scope) = K_Module then
+      if False
+        or else Kind (Old_Scope.Scope) = K_Repository
+        or else Kind (Old_Scope.Scope) = K_Module
+      then
          Init (Forward_Defs,
                Unimplemented_Forwards (Old_Scope.Scope));
-      end if;
-      while not Is_End (Forward_Defs) loop
-         Get_Next_Node (Forward_Defs, Forward_Def);
 
-         Idl_Fe.Errors.Parser_Error
-           ("The forward declaration " &
-            Idl_Fe.Errors.Display_Location
-            (Get_Location (Forward_Def)) &
-            " is not implemented.",
-            Idl_Fe.Errors.Error,
-            Get_Location (Old_Scope.Scope));
-      end loop;
+         while not Is_End (Forward_Defs) loop
+            Get_Next_Node (Forward_Defs, Forward_Def);
+
+            Idl_Fe.Errors.Parser_Error
+              ("The forward declaration " &
+               Idl_Fe.Errors.Display_Location
+               (Get_Location (Forward_Def)) &
+               " is not implemented.",
+               Idl_Fe.Errors.Error,
+               Get_Location (Old_Scope.Scope));
+         end loop;
+      end if;
 
       --  Free the forward definition list
 

@@ -52,10 +52,12 @@ package body Ada_Be.Expansion is
 
    procedure Expand_Operation
      (Node : Node_Id);
-   --  Expand each formal parameter.
-   --  FIXME: Should expand non-void function with inout or out
-   --    formals into void function with a supplementary
-   --    Returns out formal.
+   --  Expand each formal parameter, then replace
+   --  the operation if it has a non-void return
+   --  type and out formal parameters with a void
+   --  operation having a supplementary "Returns"
+   --  out formal parameter.
+
    procedure Expand_Param
      (Node : Node_Id);
    --  Expand Param_Type.
@@ -151,6 +153,12 @@ package body Ada_Be.Expansion is
      (Node : Node_Id);
    --  Insert node in Current_Gen_Scope immediately before
    --  Current_Position_In_List.
+
+   function Has_Out_Formals
+     (Node : Node_Id)
+     return Boolean;
+   --  True if Node (K_Operation) has "out" or "in out"
+   --  formal parameters.
 
    -----------------
    -- Expand_Node --
@@ -548,6 +556,39 @@ package body Ada_Be.Expansion is
      (Node : in Node_Id) is
    begin
       Expand_Node_List (Parameters (Node), False);
+      Expand_Node (Operation_Type (Node));
+      --  First expand all formals and return type.
+
+      if Kind (Operation_Type (Node)) /= K_Void
+        and then Has_Out_Formals (Node) then
+         declare
+            Void_Node : constant Node_Id
+              := Make_Void;
+            Param_Node : constant Node_Id
+              := Make_Param;
+            Decl_Node : constant Node_Id
+              := Make_Declarator;
+            Success : Boolean;
+         begin
+            Push_Scope (Node);
+            Success := Add_Identifier (Decl_Node, "Returns");
+            pragma Assert (Success);
+            Pop_Scope;
+            --  Create an identifier in the operation's scope.
+
+            Set_Mode (Param_Node, Mode_Out);
+            Set_Param_Type (Param_Node, Operation_Type (Node));
+            Set_Declarator (Param_Node, Decl_Node);
+            --  Create a new parameter node.
+
+            Set_Parameters (Node, Append_Node
+                            (Parameters (Node), Param_Node));
+            Set_Operation_Type (Node, Void_Node);
+            --  Insert it in the operation parameter list
+            --  and make the operation void.
+         end;
+      end if;
+
    end Expand_Operation;
 
    procedure Expand_Param
@@ -1069,5 +1110,24 @@ package body Ada_Be.Expansion is
          Before => Current_Position_In_List);
       Set_Contents (Current_Gen_Scope, Current_Scope_Contents);
    end Insert_Before_Current;
+
+   function Has_Out_Formals
+     (Node : Node_Id)
+     return Boolean
+   is
+      It : Node_Iterator;
+      N : Node_Id;
+   begin
+      Init (It, Parameters (Node));
+      while not Is_End (It) loop
+         Get_Next_Node (It, N);
+
+         if Mode (N) = Mode_Out
+           or else Mode (N) = Mode_Inout then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Has_Out_Formals;
 
 end Ada_Be.Expansion;
