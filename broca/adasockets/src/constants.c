@@ -86,6 +86,27 @@
 #define Win32_Winsock
 #include <windows.h>
 /* This directive is checked only for mingw32 2.8.1 */
+
+/* Absent declarations */
+#define POLLIN 1
+#define POLLPRI 2
+#define POLLOUT 4
+
+/* Undefine cygwin specific declarations to replace them */
+#undef EINTR
+#undef EWOULDBLOCK
+#undef EINPROGRESS
+#undef EALREADY
+#undef EISCONN
+#undef ECONNREFUSED
+
+/* Replace with Windows sockets declaration */
+#define EINTR		WSAEINTR
+#define EWOULDBLOCK	WSAEWOULDBLOCK
+#define EINPROGRESS	WSAEINPROGRESS
+#define EALREADY	WSAEALREADY
+#define EISCONN		WSAEISCONN
+#define ECONNREFUSED	WSAECONNREFUSED
 #endif
 
 static char *

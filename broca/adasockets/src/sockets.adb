@@ -506,6 +506,7 @@ package body Sockets is
          Socket.Shutdown := (others => True);
       end if;
       if Socket.Shutdown (Receive) and then Socket.Shutdown (Send) then
+         Unset_Buffer (Socket);
          C_Close (Socket.FD);
       end if;
    end Shutdown;

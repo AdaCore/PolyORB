@@ -1,5 +1,19 @@
 -*- outline -*-
 
+* New in AdaSockets 0.1.19
+
+** New features for Windows
+
+Maxim Reznik <max1@mbank.com.ua> did adapt AdaSockets so that it offers
+all the functions needed for AdaBroker on Windows. This way, he could use
+AdaBroker on this new platform.
+
+** Minor enhancement
+
+When a socket is closed, its buffer space is reclaimed if the socket was
+still in buffered mode. Suggestion and patch sent by Dmitriy
+Anisimkov <anisimkov@yahoo.com>.
+
 * New in AdaSockets 0.1.18
 
 ** New subprograms Set_Buffer and Unset_Buffer

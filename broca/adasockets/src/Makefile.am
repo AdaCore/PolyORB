@@ -48,7 +48,8 @@ ADAFLAGS = -I. -I$(srcdir)
 LINK = $(LIBTOOL) $(ADA) -o libadasockets.la
 
 CLEANFILES = *.o *.ali
-DISTCLEANFILES = b_split.c split constants_nodef sockets-thin.ads
+DISTCLEANFILES = b_split.c split constants_nodef \
+		sockets-thin.ads sockets-thin.adb
 
 constants_nodef: constants.c config.h
 	$(CC) -I. -o constants_nodef $(srcdir)/constants.c
@@ -60,12 +61,14 @@ split: $(srcdir)/split.adb
 	$(GNATMAKE) -g -O2 $(srcdir)/split.adb
 
 if WIN32
-ADA_SOURCES_WIN=	sockets-windows_link.ads sockets-windows_link.adb
+ADA_SOURCES_WIN=	sockets-windows_link.ads sockets-windows_link.adb \
+			sockets-thin.adb
 ADA_OBJECTS_WIN=	sockets-windows_link.o
 ADA_OBJECTS_WIN_LO=	$(ADA_OBJECTS_WIN:.o=.lo)
 
 sockets-thin.ads: $(srcdir)/sockets-thin.ads.win32
 	cp $(srcdir)/sockets-thin.ads.win32 sockets-thin.ads
+	cp $(srcdir)/sockets-thin.adb.win32 sockets-thin.adb
 else
 sockets-thin.ads: $(srcdir)/sockets-thin.ads.unix
 	cp $(srcdir)/sockets-thin.ads.unix sockets-thin.ads

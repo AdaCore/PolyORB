@@ -429,10 +429,6 @@ private
    pragma Import (Stdcall, C_Msgrcv, "msgrcv");
    pragma Import (Stdcall, C_Msgsnd, "msgsnd");
    pragma Import (Stdcall, C_Open, "open");
-   pragma Import (C,       C_Socketpair, "socketpair");
-   pragma Import (Stdcall, C_Poll, "poll");
-   pragma Import (Stdcall, C_Read, "read");
-   pragma Import (Stdcall, C_Readv, "readv");
    pragma Import (Stdcall, C_Recv, "recv");
    pragma Import (Stdcall, C_Recvfrom, "recvfrom");
    pragma Import (Stdcall, C_Recvmsg, "recvmsg");
@@ -444,7 +440,5 @@ private
    pragma Import (Stdcall, C_Shutdown, "shutdown");
    pragma Import (Stdcall, C_Socket, "socket");
    pragma Import (Stdcall, C_Strerror, "strerror");
-   pragma Import (Stdcall, C_Write, "write");
-   pragma Import (Stdcall, C_Writev, "writev");
 
 end Sockets.Thin;

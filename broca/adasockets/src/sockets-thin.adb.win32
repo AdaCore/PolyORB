@@ -1,0 +1,422 @@
+-----------------------------------------------------------------------------
+--                                                                         --
+--                         ADASOCKETS COMPONENTS                           --
+--                                                                         --
+--                        S O C K E T S . T H I N                          --
+--                                                                         --
+--                                B o d y                                  --
+--                                                                         --
+--                        $ReleaseVersion: 0.1.6 $                         --
+--                                                                         --
+--                           Copyright (C) 2001                            --
+--                    Maxim Reznik <reznikmm@hotmail.com>                  --
+--                                                                         --
+--   AdaSockets is free software; you can  redistribute it and/or modify   --
+--   it  under terms of the GNU  General  Public License as published by   --
+--   the Free Software Foundation; either version 2, or (at your option)   --
+--   any later version.   AdaSockets is distributed  in the hope that it   --
+--   will be useful, but WITHOUT ANY  WARRANTY; without even the implied   --
+--   warranty of MERCHANTABILITY   or FITNESS FOR  A PARTICULAR PURPOSE.   --
+--   See the GNU General Public  License  for more details.  You  should   --
+--   have received a copy of the  GNU General Public License distributed   --
+--   with AdaSockets; see   file COPYING.  If  not,  write  to  the Free   --
+--   Software  Foundation, 59   Temple Place -   Suite  330,  Boston, MA   --
+--   02111-1307, USA.                                                      --
+--                                                                         --
+--   As a special exception, if  other  files instantiate generics  from   --
+--   this unit, or  you link this  unit with other  files to produce  an   --
+--   executable,  this  unit does  not  by  itself cause  the  resulting   --
+--   executable to be  covered by the  GNU General Public License.  This   --
+--   exception does  not  however invalidate any  other reasons  why the   --
+--   executable file might be covered by the GNU Public License.           --
+--                                                                         --
+--   The main repository for this software is located at:                  --
+--       http://www.infres.enst.fr/ANC/                                    --
+--                                                                         --
+--   If you have any question, please send a mail to                       --
+--       Samuel Tardieu <sam@inf.enst.fr>                                  --
+--                                                                         --
+-----------------------------------------------------------------------------
+--  Platform specific file for MS Windows                                  --
+--  Unix Net/IO functions absent in Win32 platform                         --
+--                                                                         --
+--  Written by Maxim Reznik <reznikmm@hotmail.com>                         --
+-----------------------------------------------------------------------------
+
+with Sockets.Constants;
+with System.Address_To_Access_Conversions;
+
+package body Sockets.Thin is
+
+   use type System.Address;
+
+   package Int_Conversion is
+      new System.Address_To_Access_Conversions (C.int);
+
+   package Conversion is
+      new System.Address_To_Access_Conversions (Iovec);
+
+   FD_SETSIZE : constant := 64;
+
+   type fds is array (C.int range 1 .. FD_SETSIZE) of C.int;
+   pragma Convention (C, fds);
+
+   type fd_set_type is record
+      fd_count : C.int;
+      fd_array : fds;
+   end record;
+   pragma Convention (C, fd_set_type);
+
+   type Timeval is record
+      tv_sec  : C.long;     --  Seconds
+      tv_usec : C.long;     --  Microseconds
+   end record;
+   pragma Convention (C, Timeval);
+
+   procedure FD_ZERO (set : in out fd_set_type);
+
+   procedure FD_SET (fd : C.int; set : in out fd_set_type);
+
+   function FD_ISSET (fd : C.int; set : System.Address)
+     return C.int;
+   pragma Import (Stdcall, FD_ISSET, "__WSAFDIsSet");
+
+   function C_Select
+     (Nfds      : C.int;
+      readfds   : System.Address;
+      writefds  : System.Address;
+      exceptfds : System.Address;
+      timeout   : System.Address)
+     return C.int;
+   pragma Import (Stdcall, C_Select, "select");
+
+   ------------
+   -- C_Poll --
+   ------------
+
+   function C_Poll
+     (Fds     : System.Address;
+      Nfds    : C.unsigned_long;
+      Timeout : C.int)
+     return C.int is
+
+      use System.Storage_Elements;
+      use type C.short;
+      use type C.long;
+
+      package Conversion is
+         new System.Address_To_Access_Conversions (Pollfd);
+
+      type Poll_Event is mod 2**16;
+      for Poll_Event'Size use 16;
+
+      fd_addr   :         System.Address := Fds;
+      fd_ptr    :         Conversion.Object_Pointer;
+      fd_events :         Poll_Event;
+      timeout_v : aliased Timeval;
+
+      rfds : aliased fd_set_type;
+      wfds : aliased fd_set_type;
+      efds : aliased fd_set_type;
+      rs   :         C.int;
+      Good :         Boolean;
+
+   begin
+
+      if Fds = System.Null_Address then
+         return Failure;
+      end if;
+
+      timeout_v.tv_sec  := C.long (Timeout) / 1000;
+      timeout_v.tv_usec := C.long (Timeout) mod 1000;
+
+      FD_ZERO (rfds);
+      FD_ZERO (wfds);
+      FD_ZERO (efds);
+
+      for i in 1 .. Nfds loop
+         fd_ptr := Conversion.To_Pointer (fd_addr);
+         fd_events := Poll_Event (fd_ptr.Events);
+         if    (fd_events and Constants.Pollin)  /= 0 then
+            FD_SET (fd_ptr.Fd, rfds);
+         elsif (fd_events and Constants.Pollout) /= 0 then
+            FD_SET (fd_ptr.Fd, wfds);
+         elsif (fd_events and Constants.Pollpri) /= 0 then
+            FD_SET (fd_ptr.Fd, efds);
+         end if;
+         fd_addr := fd_addr + Pollfd'Size / 8;
+      end loop;
+
+      if Timeout < 0 then
+         rs := C_Select (0, rfds'Address, wfds'Address, efds'Address,
+                  System.Null_Address);
+      else
+         rs := C_Select (0, rfds'Address, wfds'Address, efds'Address,
+                  timeout_v'Address);
+      end if;
+
+      if rs > 0 then
+         rs      := 0;
+         fd_addr := Fds;
+
+         for i in 1 .. Nfds loop
+            fd_ptr := Conversion.To_Pointer (fd_addr);
+            Good   := False;
+            fd_ptr.Revents := 0;
+
+            if FD_ISSET (fd_ptr.Fd, rfds'Address) /= 0 then
+               Good := True;
+               fd_ptr.Revents := fd_ptr.Revents + Constants.Pollin;
+            end if;
+            if FD_ISSET (fd_ptr.Fd, wfds'Address) /= 0 then
+               Good := True;
+               fd_ptr.Revents := fd_ptr.Revents + Constants.Pollout;
+            end if;
+            if FD_ISSET (fd_ptr.Fd, efds'Address) /= 0 then
+               Good := True;
+               fd_ptr.Revents := fd_ptr.Revents + Constants.Pollpri;
+            end if;
+            if Good then
+               rs := rs + 1;
+            end if;
+
+            fd_addr := fd_addr + Pollfd'Size / 8;
+         end loop;
+
+      end if;
+
+      return rs;
+   end C_Poll;
+
+   ------------
+   -- C_Read --
+   ------------
+
+   function C_Read
+     (Fildes : C.int;
+      Buf    : System.Address;
+      Nbyte  : C.int)
+     return C.int is
+   begin
+      return C_Recv (Fildes, Buf, Nbyte, 0);
+   end C_Read;
+
+   -------------
+   -- C_Readv --
+   -------------
+
+   function C_Readv
+     (Fildes : C.int;
+      Iov    : System.Address;
+      Iovcnt : C.int)
+     return C.int is
+
+      use System.Storage_Elements;
+
+      Total     : C.int := 0;
+      Processed : Storage_Offset;
+      Result    : C.int;
+      Ptr       : System.Address := Iov;
+      Iovec_Ptr : Conversion.Object_Pointer;
+   begin
+
+      if Iov = System.Null_Address then
+         return Failure;
+      end if;
+
+      for i in 1 .. Iovcnt loop
+         Iovec_Ptr := Conversion.To_Pointer (Ptr);
+         Processed := 0;
+
+         while Processed < Iovec_Ptr.Iov_Len loop
+
+            Result := C_Recv (Fildes,
+               Buf => Iovec_Ptr.Iov_Base + Processed,
+               Len => C.int (Iovec_Ptr.Iov_Len - Processed),
+               Flags => 0);
+
+            if Result < 0 then
+               if Total = 0 then
+                  return -1;      --  Return error code
+               else
+                  return Total;   --  Return total bytes processed
+               end if;
+            end if;
+            Processed := Processed + Storage_Offset (Result);
+            Total   := Total   + Result;
+         end loop;
+
+         Ptr := Ptr + Iovec'Size / 8;
+      end loop;
+
+      return Total;
+   end C_Readv;
+
+   ------------------
+   -- C_Socketpair --
+   ------------------
+
+   function C_Socketpair (Domain   : C.int;
+                          Typ      : C.int;
+                          Protocol : C.int;
+                          Filedes  : System.Address)
+     return C.int is
+
+      use System.Storage_Elements;
+      use type C.char_array;
+
+      INVALID_SOCKET : constant := Failure;
+
+      Listen_Socket :         C.int;
+      Sin           : aliased Sockaddr_In;
+      Sin_Len       : aliased C.int := Sin'Size / 8;
+      fd            :         Two_Int;
+      fd_ptr        :         Int_Conversion.Object_Pointer;
+
+   begin
+      if Domain /= Constants.Af_Inet or
+         Typ /= Constants.Sock_Stream or
+         Filedes = System.Null_Address
+      then
+         return Failure;
+      end if;
+
+      Listen_Socket := C_Socket (Domain, Typ, Protocol);
+      if Listen_Socket = INVALID_SOCKET then
+         return Failure;
+      end if;
+
+      Sin.Sin_Family := Constants.Af_Inet;
+      Sin.Sin_Addr   := Inaddr_Any;
+      Sin.Sin_Port   := 0;
+      if C_Bind (Listen_Socket, Sin'Address, Sin'Size / 8) = Failure then
+         C_Close (Listen_Socket);
+         return Failure;
+      end if;
+
+      if C_Listen (Listen_Socket, 1) = Failure then
+         C_Close (Listen_Socket);
+         return Failure;
+      end if;
+
+      if C_Getsockname (Listen_Socket,
+            Sin'Address, Sin_Len'Access) = Failure then
+         C_Close (Listen_Socket);
+         return Failure;
+      end if;
+      Sin.Sin_Addr := (127, 0, 0, 1);
+
+      fd (1) := C_Socket (Domain, Typ, Protocol);
+      if fd (1) = INVALID_SOCKET then
+         C_Close (Listen_Socket);
+         return Failure;
+      end if;
+
+      if C_Connect (fd (1), Sin'Address, Sin'Size / 8) = Failure then
+         C_Close (fd (1));
+         C_Close (Listen_Socket);
+         return Failure;
+      end if;
+
+      fd (0) := C_Accept (Listen_Socket, Sin'Address, Sin_Len'Access);
+      if fd (0) = INVALID_SOCKET then
+         C_Close (fd (1));
+         C_Close (Listen_Socket);
+         return Failure;
+      end if;
+
+      fd_ptr     := Int_Conversion.To_Pointer (Filedes);
+      fd_ptr.all := fd (0);
+      fd_ptr     := Int_Conversion.To_Pointer (Filedes + (C.int'Size / 8));
+      fd_ptr.all := fd (1);
+
+      return Success;
+
+   end C_Socketpair;
+
+   -------------
+   -- C_Write --
+   -------------
+
+   function C_Write
+     (Fildes : C.int;
+      Buf    : System.Address;
+      Nbyte  : C.int)
+     return C.int is
+   begin
+      return C_Send (Fildes, Buf, Nbyte, 0);
+   end C_Write;
+
+   --------------
+   -- C_Writev --
+   --------------
+
+   function C_Writev
+     (Fildes : C.int;
+      Iov    : System.Address;
+      Iovcnt : C.int)
+     return C.int is
+
+      use System.Storage_Elements;
+
+      Total     : C.int := 0;
+      Processed : Storage_Offset;
+      Result    : C.int;
+      Ptr       : System.Address := Iov;
+      Iovec_Ptr : Conversion.Object_Pointer;
+   begin
+
+      if Iov = System.Null_Address then
+         return Failure;
+      end if;
+
+      for i in 1 .. Iovcnt loop
+         Iovec_Ptr := Conversion.To_Pointer (Ptr);
+         Processed := 0;
+
+         while Processed < Iovec_Ptr.Iov_Len loop
+
+            Result := C_Send (Fildes,
+               Msg => Iovec_Ptr.Iov_Base + Processed,
+               Len => C.int (Iovec_Ptr.Iov_Len - Processed),
+               Flags => 0);
+
+            if Result < 0 then
+               if Total = 0 then
+                  return -1;      --  Return error code
+               else
+                  return Total;   --  Return total bytes processed
+               end if;
+            end if;
+            Processed := Processed + Storage_Offset (Result);
+            Total     := Total     + Result;
+         end loop;
+
+         Ptr := Ptr + Iovec'Size / 8;
+      end loop;
+
+      return Total;
+   end C_Writev;
+
+   ------------
+   -- FD_SET --
+   ------------
+
+   procedure FD_SET (fd : C.int; set : in out fd_set_type) is
+   begin
+      if set.fd_count < FD_SETSIZE then
+         set.fd_count := set.fd_count + 1;
+         set.fd_array (set.fd_count) := fd;
+      end if;
+   end FD_SET;
+
+   -------------
+   -- FD_ZERO --
+   -------------
+
+   procedure FD_ZERO (set : in out fd_set_type) is
+   begin
+      set.fd_count := 0;
+   end FD_ZERO;
+
+end Sockets.Thin;
