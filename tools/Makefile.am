@@ -6,7 +6,9 @@ giop_dir  =
 soap_dir  = 
 srp_dir   =
 
-SUBDIRS=  po_catref po_names po_dumpir
+ir_dir= po_dumpir
+
+SUBDIRS=  po_catref po_names @SERVICE_DIRS@
 
 all: orb 
 
