@@ -55,7 +55,7 @@
 
 // DEBUG is defined at the beginning of each file
 // and undefined at the end of each file
-//#define DEBUG
+#define DEBUG
 
 
 // Constructor
@@ -99,8 +99,23 @@ void
 Ada_OmniObject::Destructor(Ada_OmniObject* o) {
 ADABROKER_TRY
   if (o->Init_Ok) {
-    delete o ;
+
+#ifdef DEBUG
+    cerr << "Ada_OmniObject::Destructor Init_Ok = true -> DESTROYING OBJECT !!" << endl ;
+#endif
+    try {
+      delete o ;
+    } catch (...) {
+      cerr << "JE T'AI EUE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl ;
+    }
+#ifdef DEBUG
+    cerr << "Ada_OmniObject::Destructor OBJECT DESTROYED !!!" << endl ;
+#endif
+
   } else {
+#ifdef DEBUG
+    cerr << "Ada_OmniObject::Destructor Init_Ok = false -> I am raising a fatalError !!!" << endl ;
+#endif
     throw omniORB::fatalException(__FILE__,
 				  __LINE__,
 				  "Call of Ada_OmniObject::Destructor without initialising object.") ;

@@ -57,6 +57,7 @@ package Corba.Object is
 
 
    Debug : constant Boolean := Adabroker_Debug.Is_Active("corba.object") ;
+   Debug_Fin : constant Boolean := Adabroker_Debug.Is_Active("corba.object:finalization") ;
 
    --------------------------------------------------
    ---        CORBA 2.2 specifications            ---

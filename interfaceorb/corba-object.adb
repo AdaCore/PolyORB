@@ -181,6 +181,9 @@ package body Corba.Object is
                           Dyn_Type : in Corba.Object.Constant_Ref_Ptr) is
          Temp : Cell_Ptr ;
       begin
+         pragma Debug(Output(Debug,"Registering "
+                             & To_Standard_String(RepoId)
+                             & " in the dynamic type list")) ;
          -- makes a new cell ...
          Temp := new Cell'(ID => RepoID,
                            Value => Dyn_Type,
@@ -370,7 +373,7 @@ package body Corba.Object is
    begin
       -- check if the omniobject we got can be put into
       -- To (type implied the repoId)
-         Most_Derived_Type := --Pd_List.
+         Most_Derived_Type :=
            Get_Dynamic_Type_From_Repository_Id(Most_Derived_Repoid) ;
          -- most_derived_type is now an object of the most derived type
          -- of the new created object
@@ -463,18 +466,26 @@ package body Corba.Object is
       Iop_List : Iop.Tagged_Profile_List ;
       Tmp : Ref'Class := Corba.Object.Nil_Ref ;
    begin
+      pragma Debug(Output(Debug,"Corba.Object.Unmarshall : unmarshalling "
+                          & To_Standard_String(Get_Repository_Id(Obj)))) ;
       -- first unmarshall the Repo_Id
       NetBufferedStream.UnMarshall (Repo_ID,S) ;
+      pragma Debug(Output(Debug,"Corba.Object.Unmarshall : found "
+                          & To_Standard_String(Repo_ID))) ;
       -- then the profile list
       Iop.UnMarshall (Iop_List,S) ;
+      pragma Debug(Output(Debug,"Corba.Object.Unmarshall : Iop_List unmarshalled")) ;
       -- and at last create the object reference to be returned
       if (Iop.Length(Iop_List) = Corba.Unsigned_Long (0))
         and (Corba.Length (Repo_ID) = Corba.Unsigned_Long (0)) then
          -- either a nil object reference
          Obj := Tmp ;
+         pragma Debug(Output(Debug,"Corba.Object.Unmarshall : Nil Ref created")) ;
       else
          -- or a real object reference
+         pragma Debug(Output(Debug,"Corba.Object.Unmarshall : Creating Ref")) ;
          Corba.Object.Create_Ref (Repo_ID,Iop_List,True,Obj) ;
+         pragma Debug(Output(Debug,"Corba.Object.Unmarshall : Ref created")) ;
       end if ;
    end ;
 
@@ -512,6 +523,7 @@ package body Corba.Object is
    ---------
    procedure Adjust (Self: in out Ref) is
    begin
+      pragma Debug(Output(Debug_Fin,"Corba.Object.Adjust")) ;
       if not Is_Nil(Self) then
          Self.Omniobj := Omniobject.Omniobject_Duplicate(Self.Omniobj) ;
       end if ;
@@ -522,11 +534,17 @@ package body Corba.Object is
    -----------
    procedure Finalize (Self: in out Ref) is
    begin
+      pragma Debug(Output(Debug_Fin,"Corba.Object.Finalize : start")) ;
       if not Is_Nil(Self) then
+         pragma Debug(Output(Debug_Fin,"Corba.Object.Finalize : finalizing non nil Ref")) ;
          Omniobject.Omniobject_Destructor(Self.Omniobj) ;
          Self.Omniobj := null ;
          Self.Dynamic_Type := null ;
+      else
+         pragma Debug(Output(Debug_Fin,"Corba.Object.Finalize : You tried to finalize nil ref !")) ;
+         null ;
       end if ;
+      pragma Debug(Output(Debug_Fin,"Corba.Object.Finalize : done")) ;
    end ;
 
 

@@ -122,10 +122,11 @@ public:
   // declared in rope.h
   
   
-protected :
-
   NetBufferedStream *C_Object;
   // Pointer on the underlying netBufferedStream object
+  // nedded in Ada_Iop.cc
+  
+protected :
 
   bool Init_Ok;
   // This flag tells whether an init function was called or not

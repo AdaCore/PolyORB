@@ -173,10 +173,16 @@ package body omniProxyCallWrapper is
                              "Corba.omniproxycallwrapper.invoke : marshal_arguments completed"));
 
          -- wait for the reply
-          Giop_C.Receive_Reply(Giop_Client.Real, result);
+          Giop_C.Receive_Reply(Giop_Client.Real, Result);
+
+          pragma Debug(Output(Debug,
+                              "Corba.omniproxycallwrapper.invoke : Reply received "
+                              & Integer'Image(Giop.Reply_Status_Type'Pos(Result))));
+
 
           case Result is
             when Giop.NO_EXCEPTION =>
+               pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : Reply is NO_EXCEPTION")) ;
                -- unmarshal the results and out/inout arguments
                Omniproxycalldesc.Unmarshal_Returned_Values(Call_Desc,
                                                            Giop_Client.Real) ;
@@ -186,6 +192,7 @@ package body omniProxyCallWrapper is
                return ;
 
             when Giop.USER_EXCEPTION =>
+               pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : Reply is USER_EXCEPTION")) ;
                -- check if the exception is due to the proxycalldesc
                if not Omniproxycalldesc.Has_User_Exceptions(Call_Desc) then
                   declare
@@ -241,6 +248,7 @@ package body omniProxyCallWrapper is
                                               & "procedure invoke, when giop.SYSTEM_EXCEPTION") ;
 
             when Giop.LOCATION_FORWARD =>
+               pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : Reply is LOCATION_FORWARD")) ;
                declare
                   Obj_Ref : Corba.Object.Ref ;
                   Omniobj_Ptr2 : Omniobject.Object_Ptr ;
@@ -284,6 +292,7 @@ package body omniProxyCallWrapper is
    exception
 
       when E : Corba.Comm_Failure =>
+         pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : Caught Corba.Comm_Failure")) ;
          declare
             Member : Corba.Comm_Failure_Members ;
          begin
@@ -312,6 +321,7 @@ package body omniProxyCallWrapper is
          end ;
 
       when E : Corba.Transient =>
+         pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : Caught Corba.Transient")) ;
          declare
             Member : Corba.Transient_Members ;
          begin
@@ -323,6 +333,7 @@ package body omniProxyCallWrapper is
          end ;
 
       when E : Corba.Object_Not_Exist =>
+         pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : Caught Corba.Object_Not_Exist")) ;
          declare
             Member : Corba.Object_Not_Exist_Members ;
          begin
@@ -372,10 +383,13 @@ package body omniProxyCallWrapper is
         Corba.Bad_Context |
         Corba.Obj_Adapter |
         Corba.Data_Conversion =>
+         pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : Caught "
+                             & Ada.Exceptions.Exception_Name(E)
+                             & ", trying Omni_System_Exception_Handler !!")) ;
          declare
             Member : Corba.Inv_Objref_Members ;
          begin
-            if Omni_System_Exception_Handler
+           if Omni_System_Exception_Handler
               (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
                Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
                                             Member) ;

@@ -52,7 +52,7 @@
 
 // DEBUG is defined at the beginning of each file
 // and undefined at the end
-//#define DEBUG
+#define DEBUG
 
 
 // Default Constructor
@@ -136,7 +136,7 @@ ADABROKER_CATCH
 void
 Ada_Giop_c::ReceiveReply(GIOP::ReplyStatusType &result)
 {
-ADABROKER_TRY
+  //ADABROKER_TRY
     if (Init_Ok) {
       // if Initialisation was made then call the corresponding
       // function on C_Object
@@ -147,7 +147,7 @@ ADABROKER_TRY
 				  __LINE__,
 				  "Call of Ada_Giop_c::ReceiveReply without initialising object.") ;
     }
-ADABROKER_CATCH
+//ADABROKER_CATCH
 };
 
 

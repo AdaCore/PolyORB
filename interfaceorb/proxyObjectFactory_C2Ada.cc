@@ -51,7 +51,7 @@
 
 // DEBUG is defined at the beginning of each file
 // and undefined at the end of each file
-//#define DEBUG
+#define DEBUG
 
 
 
@@ -115,6 +115,11 @@ proxyObjectFactory_C2Ada::is_a(const char *base_repoId) const {
 //-------------------------
 void createProxyObjectFactory(const char* repoID) {
 ADABROKER_TRY
+
+#ifdef DEBUG
+  cerr << "createProxyObjectFactory for object : " << repoID << endl ;
+#endif 
+
   proxyObjectFactory_C2Ada *p = new proxyObjectFactory_C2Ada(repoID) ;
   // no memory leak
   // a pointer to this object is kept by the ORB

@@ -78,10 +78,11 @@ public:
   static void unmarshall (_CORBA_Double& a, Ada_memBufferedStream& s);
   // wrapper around friend inliney void operator<<=
 
-private:
-
   MemBufferedStream *C_Object;
   // Pointer on the underlying memBufferedStream object
+  // needed in Ada_Iop.cc
+  
+private:
 
   bool Init_Ok;
   // This flag tells whether an init function was called or not

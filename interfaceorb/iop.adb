@@ -51,7 +51,7 @@ package body Iop is
    ------------
    procedure Marshall2 (A : in Iop.Tagged_Profile_List ;
                         S : in out Membufferedstream.Object'Class) ;
-   pragma Import (CPP,Marshall2,"marshall__FPt25_CORBA_Unbounded_Sequence1ZQ23IOP13TaggedProfileR17MemBufferedStream") ;
+   pragma Import (CPP,Marshall2,"marshall__FPt25_CORBA_Unbounded_Sequence1ZQ23IOP13TaggedProfileR21Ada_memBufferedStream") ;
    -- wrapper around Ada_Iop method marshall
    -- (see Ada_Iop.h)
    -- name was changed to avoid conflict
@@ -67,9 +67,9 @@ package body Iop is
 
    -- UnMarshall2
    --------------
-   procedure UnMarshall2 (A : out Iop.Tagged_Profile_List ;
+   procedure UnMarshall2 (A : in out Iop.Tagged_Profile_List ;
                           S : in out Membufferedstream.Object'Class) ;
-   pragma Import (CPP,UnMarshall2,"unmarshall__FPt25_CORBA_Unbounded_Sequence1ZQ23IOP13TaggedProfileR17MemBufferedStream") ;
+   pragma Import (CPP,UnMarshall2,"unmarshall__FRPt25_CORBA_Unbounded_Sequence1ZQ23IOP13TaggedProfileR21Ada_memBufferedStream") ;
    -- wrapper around Ada_Iop method unmarshall
    -- (see Ada_Iop.h)
    -- name was changed to avoid conflict
@@ -77,7 +77,7 @@ package body Iop is
 
    -- UnMarshall
    -------------
-   procedure UnMarshall (A : out IOP.Tagged_Profile_List ;
+   procedure UnMarshall (A : in out IOP.Tagged_Profile_List ;
                          S : in out Membufferedstream.Object'Class) is
    begin
       UnMarshall2 (A,S) ;

@@ -84,7 +84,8 @@ Ada_exceptions.hh
 Ada_Giop_s.o : Ada_Giop_s.hh Ada_Giop_s.cc Ada_netBufferedStream.hh \
 Ada_exceptions.hh
 
-Ada_Iop.o : Ada_Iop.hh Ada_Iop.cc Ada_exceptions.hh
+Ada_Iop.o : Ada_Iop.hh Ada_Iop.cc Ada_exceptions.hh Ada_netBufferedStream.hh \
+Ada_memBufferedStream.hh
 
 Ada_memBufferedStream.o : Ada_memBufferedStream.hh Ada_memBufferedStream.cc \
 Ada_exceptions.hh

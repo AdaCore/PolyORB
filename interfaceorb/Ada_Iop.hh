@@ -43,24 +43,25 @@
 ///////////////////////////////////////////////////////////////////////
 
 
-#include <omniORB2/IOP.h>
+#include "Ada_netBufferedStream.hh"
+#include "Ada_memBufferedStream.hh"
 
-void marshall (IOP::TaggedProfileList* t, NetBufferedStream &s);
+void marshall (IOP::TaggedProfileList* t, Ada_netBufferedStream &s);
 // wrapper around IOP::TaggedProfile operator >>=
 // (see IOP.h)
 
 
-void unmarshall (IOP::TaggedProfileList* t, NetBufferedStream &s);
+void unmarshall (IOP::TaggedProfileList* &t, Ada_netBufferedStream &s);
 // wrapper around IOP::TaggedProfile operator <<=
 // (see IOP.h)
 
 
-void marshall (IOP::TaggedProfileList* t, MemBufferedStream &s);
+void marshall (IOP::TaggedProfileList* t, Ada_memBufferedStream &s);
 // wrapper around IOP::TaggedProfile operator >>=
 // (see IOP.h)
 
 
-void unmarshall (IOP::TaggedProfileList* t, MemBufferedStream &s);
+void unmarshall (IOP::TaggedProfileList* &t, Ada_memBufferedStream &s);
 // wrapper around IOP::TaggedProfile operator <<=
 // (see IOP.h)
 

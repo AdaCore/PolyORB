@@ -81,11 +81,8 @@ package body Corba.Forward is
       ---------------
       function From_Forward(The_Forward : in Ref)
                             return Ref_Type is
-         Result : Ref_Type ;
       begin
-         Intermediate_Result :=  Corba.Object.Ref(The_Forward) ;
-         Result := (Intermediate_Result with null record) ;
-         return Result ;
+         return To_Ref(The_Forward) ;
       end ;
 
       -- To_Forward

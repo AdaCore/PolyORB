@@ -408,7 +408,9 @@ package body OmniObject is
    ------------------------
    procedure Omniobject_Destructor(Self : in Object_Ptr) is
    begin
+      pragma Debug(Output(Omniobject,"Omniobject.Omniobject_Destructor : start")) ;
       C_Omniobject_Destructor(Address_To_Object.To_Address(From_Object_Ptr(Self))) ;
+      pragma Debug(Output(Omniobject,"Omniobject.Omniobject_Destructor : done")) ;
    end ;
 
 

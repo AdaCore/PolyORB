@@ -44,35 +44,53 @@
 
 
 #include "Ada_exceptions.hh"
+#include "Ada_Iop.hh"
 
-void marshall (IOP::TaggedProfileList* t, NetBufferedStream &s)
+// DEBUG is defined at the beginning of each file
+// and undefined at the end
+//#define DEBUG
+
+
+void marshall (IOP::TaggedProfileList* t, Ada_netBufferedStream &s)
 {
 ADABROKER_TRY
-  *t >>= s;
+  *t >>= *(s.C_Object) ;
 ADABROKER_CATCH
 }
 
 
-void unmarshall (IOP::TaggedProfileList* t, NetBufferedStream &s)
+void unmarshall (IOP::TaggedProfileList* &t, Ada_netBufferedStream &s)
 {
 ADABROKER_TRY
-  *t <<= s;
+  // We create here the TaggedProfileList associated with the object
+  // it will be released by the ORB when the last reference to the
+  // omniObject using this TaggedProfileList will be released
+  // see CORBA::UnMarshalObjRef in objectRef.cc
+  // it is done like that
+  t = new IOP::TaggedProfileList() ;
+  *t <<= *(s.C_Object) ;
 ADABROKER_CATCH
 }
 
 
-void marshall (IOP::TaggedProfileList* t, MemBufferedStream &s)
+void marshall (IOP::TaggedProfileList* t, Ada_memBufferedStream &s)
 {
 ADABROKER_TRY
-  *t >>= s;
+  *t >>= *(s.C_Object) ;
 ADABROKER_CATCH
 }
 
 
-void unmarshall (IOP::TaggedProfileList* t, MemBufferedStream &s)
+void unmarshall (IOP::TaggedProfileList* &t, Ada_memBufferedStream &s)
 {
 ADABROKER_TRY
-  *t <<= s;
+  // We create here the TaggedProfileList associated with the object
+  // it will be released by the ORB when the last reference to the
+  // omniObject using this TaggedProfileList will be released
+  // see CORBA::UnMarshalObjRef in objectRef.cc
+  // it is done like that
+  t = new IOP::TaggedProfileList() ;
+  *t <<= *(s.C_Object) ;
 ADABROKER_CATCH
 }
 
@@ -91,4 +109,6 @@ ADABROKER_TRY
   return t->length ();
 ADABROKER_CATCH
 }
+
+#undef DEBUG
 

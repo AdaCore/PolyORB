@@ -54,7 +54,7 @@ with Corba ;
 package Iop is
 
    type Tagged_Profile_List is new System.Address ;
-   -- corresponds to IOP::TaggedProfileList (see IOP.h)
+   -- corresponds to IOP::TaggedProfileList* (see IOP.h)
    -- This object is never used in Ada (just taken from a C function
    -- and given to another one) so it is not right implemented.
    -- We just keep the system Address of the object.
@@ -62,15 +62,15 @@ package Iop is
 
    procedure Marshall (A : in Iop.Tagged_Profile_List ;
                        S : in out Netbufferedstream.Object'Class);
-   pragma Import (CPP,Marshall,"marshall__FPt25_CORBA_Unbounded_Sequence1ZQ23IOP13TaggedProfileR17NetBufferedStream") ;
+   pragma Import (CPP,Marshall,"marshall__FPt25_CORBA_Unbounded_Sequence1ZQ23IOP13TaggedProfileR21Ada_netBufferedStream") ;
    -- wrapper around Ada_Iop method marshall
    -- (see Ada_Iop.h)
    -- Marshalls a Tagged_Profile_List into a Netbufferedstream
 
 
-   procedure UnMarshall (A : out IOP.Tagged_Profile_List ;
+   procedure UnMarshall (A : in out IOP.Tagged_Profile_List ;
                          S : in out Netbufferedstream.Object'Class);
-   pragma Import (CPP,UnMarshall,"unmarshall__FPt25_CORBA_Unbounded_Sequence1ZQ23IOP13TaggedProfileR17NetBufferedStream") ;
+   pragma Import (CPP,UnMarshall,"unmarshall__FRPt25_CORBA_Unbounded_Sequence1ZQ23IOP13TaggedProfileR21Ada_netBufferedStream") ;
    -- wrapper around Ada_Iop method marshall
    -- (see Ada_Iop.h)
    -- UnMarshalls a Tagged_Profile_List from a Netbufferedstream
@@ -81,7 +81,7 @@ package Iop is
    -- Marshalls a Tagged_Profile_List into a Membufferedstream
 
 
-   procedure UnMarshall (A : out IOP.Tagged_Profile_List ;
+   procedure UnMarshall (A : in out IOP.Tagged_Profile_List ;
                          S : in out Membufferedstream.Object'Class);
    -- UnMarshalls a Tagged_Profile_List from a Membufferedstream
 
