@@ -25,6 +25,15 @@
 #include <stdio.h>
 #include <nr_extern.hh>
 
+// used in this file to add _i at the end of
+// forbidden names
+#ifdef INT_MAX
+#define MAX_NUMBER_OF_EXTENSIONS INT_MAX
+#else
+#define MAX_NUMBER_OF_EXTENSIONS 100
+#endif
+
+
 static char* internal_produce_repositoryID(AST_Decl* decl,adabe_name* n);
 static UTL_String* internal_search_pragma(AST_Decl* decl,char* p);
 
@@ -291,7 +300,7 @@ adabe_name::compute_ada_name()
 	    {
 	      // no name can be found:
 	      // bailling out
-	      if (loop > INT_MAX)
+	      if (loop >  MAX_NUMBER_OF_EXTENSIONS)
 		throw adabe_internal_error(__FILE__,__LINE__,"too many name conflicts");
 	      char extension[10];
 
@@ -924,7 +933,7 @@ IMPL_NARROW_FROM_SCOPE(adabe_name)
 
 
 
-
+#undef MAX_NUMBER_OF_EXTENSIONS
 
 
 
