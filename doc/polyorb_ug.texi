@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#35 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#36 $
 
 @include version.texi
 
@@ -115,6 +115,7 @@ entitled ``GNU Free Documentation License''.
 * Installation::
 * Overview of PolyORB personalities::
 * Building an application with PolyORB::
+* Tasking model in PolyORB::
 * CORBA::
 * RT-CORBA::
 * DSA::
@@ -171,6 +172,12 @@ Configuration
 * Activating debug information::
 * Tracing exceptions::
 * polyorb-config::
+
+Tasking model in PolyORB
+
+* PolyORB Tasking runtimes::
+* PolyORB Tasking configuration::
+* PolyORB ORB Tasking policies::
 
 CORBA
 
@@ -265,6 +272,9 @@ personalities, or distribution mechanisms, PolyORB provides.
 
 @item @ref{Building an application with PolyORB} presents the
 different steps to build a distributed application using PolyORB.
+
+@item @ref{Tasking model in PolyORB} details the use of tasking
+constructs within PolyORB.
 
 @item @ref{CORBA} describes PolyORB's implementation of OMG's CORBA.
 
@@ -866,6 +876,9 @@ tasking constructs, with the limitations of the Ravenscar profile
 @cindex Ravenscar
 @end itemize
 
+@noindent
+See @ref{Tasking model in PolyORB} for more information on this point.
+
 @c -------------------------------------------------------------------
 @node Middleware tasking policies
 @subsection Middleware tasking policies
@@ -890,6 +903,9 @@ entities. One task is spawned for each incoming requests.
 incoming requests.
 
 @end itemize
+
+@noindent
+See @ref{Tasking model in PolyORB} for more information on this point.
 
 @c -------------------------------------------------------------------
 @node Object Adapter
@@ -1192,6 +1208,110 @@ OPTIONS
 
 
 @end smallexample 
+
+@c -------------------------------------------------------------------
+@node Tasking model in PolyORB
+@chapter Tasking model in PolyORB
+@cindex Tasking model
+@c -------------------------------------------------------------------
+
+@menu
+* PolyORB Tasking runtimes::
+* PolyORB Tasking configuration::
+* PolyORB ORB Tasking policies::
+@end menu
+
+@c -------------------------------------------------------------------
+@node PolyORB Tasking runtimes
+@section PolyORB Tasking runtimes
+@cindex Tasking runtime
+@c -------------------------------------------------------------------
+
+@noindent
+PolyORB may use three different tasking runtimes to manage and
+synchronize tasks, if any. Tasking runtimes capabilities are defined
+in the Ada reference manual @cite{[ISO95]} and the next revision of
+this standard (@emph{Ada0Y}).
+
+The choice of a specific tasking runtime is a compile-time parameter,
+@ref{Tasking run-times} for more details on their configuration.
+
+@c -------------------------------------------------------------------
+@subsection Full tasking runtime
+@c -------------------------------------------------------------------
+
+@noindent 
+Full tasking runtime refers to configuration in which there are some
+dependences on the tasking constructs defined in chapter 9 of
+@cite{[ISO95]}. It makes use of all capabilities defined in this
+section to manage and synchronize tasks.
+
+In this configuration, a PolyORB application must be compiled and
+
+linked with a tasking-capable Ada runtime.
+
+@c -------------------------------------------------------------------
+@subsection No tasking runtime
+@c -------------------------------------------------------------------
+
+@noindent 
+No tasking runtime refers to configuration in which there is no
+semantic dependency on tasking constructs. Thus, no tasking is
+required.
+
+In this configuration, a PolyORB application may be compiled and
+linked with a tasking-capable Ada runtime or a no-tasking Ada runtime.
+
+@c -------------------------------------------------------------------
+@subsection Ravenscar tasking runtime
+@cindex Ravenscar
+@c -------------------------------------------------------------------
+
+@noindent 
+Ravenscar tasking runtime refers to configuration in which tasking
+constructs are compliant with the @emph{Ravenscar tasking restricted
+profile}.
+
+In this configuration, a PolyORB application may be compiled and
+linked with a tasking-capable Ada runtime or a Ravenscar Ada runtime.
+
+@c -------------------------------------------------------------------
+@subsection Compatibility with Ada runtimes
+@c -------------------------------------------------------------------
+@cindex FSU Threads
+
+Note on FSU threads and GNAT.Sockets !
+
+@c -------------------------------------------------------------------
+@node PolyORB Tasking configuration
+@section PolyORB Tasking configuration
+@c -------------------------------------------------------------------
+
+
+@noindent
+The following parameters allow the user to set up some of the tasking
+parameters.
+
+@c check consistency with polyorb.conf
+
+@smallexample
+
+###############################################################################
+# Parameters for tasking 
+#
+
+[tasking]
+#polyorb.tasking.threads.storage_size=262144
+#polyorb.orb.thread_pool.threads=4
+@end smallexample
+
+@c -------------------------------------------------------------------
+@node PolyORB ORB Tasking policies
+@section PolyORB ORB Tasking policies
+@c -------------------------------------------------------------------
+
+@noindent
+@b{XXX insist on link between policies and runtimes}
 
 @c -------------------------------------------------------------------
 @node CORBA
