@@ -42,17 +42,8 @@ with System.RPC;
 
 with GNAT.HTable;
 
-with CORBA.Object;
-with PolyORB.CORBA_P.Naming_Tools;
-with CosNaming.Helper;
-with CosNaming.NamingContext;
---  XXX THESE DEPS UPON CORBA MUST BE REMOVED!!!!!
---  RCI package references are managed through the CORBA
---  naming service. RCIs also act as naming contexts themselves
---  for the purpose of providing access to each of their subprograms
---  as objects.
-
 with PolyORB.Binding_Data;
+with PolyORB.Configuration;
 with PolyORB.DSA_P.Exceptions;
 with PolyORB.DSA_P.Partitions;
 with PolyORB.Dynamic_Dict;
@@ -66,7 +57,11 @@ with PolyORB.ORB;
 with PolyORB.POA;
 with PolyORB.POA_Config;
 with PolyORB.References;
+with PolyORB.References.IOR;
 with PolyORB.Servants;
+with PolyORB.Services.Naming;
+with PolyORB.Services.Naming.Helper;
+with PolyORB.Services.Naming.NamingContext.Client;
 with PolyORB.Tasking.Soft_Links;
 with PolyORB.Utils.Strings.Lists;
 
@@ -91,6 +86,8 @@ package body System.PolyORB_Interface is
    package L is new PolyORB.Log.Facility_Log ("system.polyorb_interface");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+
+   package PSNNC renames PolyORB.Services.Naming.NamingContext;
 
    --------------------------------------------------------------
    -- Special operation names for remote call interface objets --
@@ -176,6 +173,47 @@ package body System.PolyORB_Interface is
      (E : Ada.Exceptions.Exception_Occurrence)
       return Any;
    --  Construct an Any from an Ada exception raised by a servant.
+
+   function To_Name (Id, Kind : String) return PolyORB.Services.Naming.Name;
+   --  Construct a name consisting of a single name component with the
+   --  given id and kind.
+
+   function Naming_Context return PSNNC.Ref;
+   --  The naming context used to register all library units in a
+   --  DSA application.
+
+   Naming_Context_Cache : PSNNC.Ref;
+
+   --------------------
+   -- Naming_Context --
+   --------------------
+
+   function Naming_Context return PSNNC.Ref is
+   begin
+      if PSNNC.Is_Nil (Naming_Context_Cache) then
+         PSNNC.Set
+           (Naming_Context_Cache,
+            PolyORB.References.Entity_Of
+            (PolyORB.References.IOR.String_To_Object
+             (PolyORB.Types.To_PolyORB_String
+              (PolyORB.Configuration.Get_Conf ("dsa", "naming_ior")))));
+      end if;
+
+      return Naming_Context_Cache;
+   end Naming_Context;
+
+   -------------
+   -- To_Name --
+   -------------
+
+   function To_Name (Id, Kind : String) return PolyORB.Services.Naming.Name is
+      use PolyORB.Services.Naming.SEQUENCE_NameComponent;
+   begin
+      return PolyORB.Services.Naming.Name
+        (To_Sequence
+         ((1 => (id   => PolyORB.Services.Naming.To_PolyORB_String (Id),
+                 kind => PolyORB.Services.Naming.To_PolyORB_String (Kind)))));
+   end To_Name;
 
    -------------------------
    -- Any_Aggregate_Build --
@@ -420,6 +458,10 @@ package body System.PolyORB_Interface is
       end;
    end Get_Active_Partition_ID;
 
+   ---------------------------
+   -- Get_Aggregate_Element --
+   ---------------------------
+
    function Get_Aggregate_Element
      (Value : Any;
       Tc    : PolyORB.Any.TypeCode.Object;
@@ -508,17 +550,14 @@ package body System.PolyORB_Interface is
                   --  IDL skel.
 
                   declare
-                     use CosNaming;
-                     --  For exception and types.
-
-                     n             : CosNaming.Name;
+                     n             : PolyORB.Services.Naming.Name;
                      pragma Warnings (Off, n);
                      --  Accessed before it has a value (by To_Any).
 
                      Arg_Name_n  : constant PolyORB.Types.Identifier :=
                        To_PolyORB_String ("n");
                      Argument_n  : constant Any :=
-                       CosNaming.Helper.To_Any (n);
+                       PolyORB.Services.Naming.Helper.To_Any (n);
 
                      Result      : Object_Ref;
                      Arg_List    : NVList_Ref;
@@ -536,16 +575,17 @@ package body System.PolyORB_Interface is
 
                      declare
                         package ISNC renames
-                          IDL_SEQUENCE_CosNaming_NameComponent;
+                          PolyORB.Services.Naming.SEQUENCE_NameComponent;
                      begin
                         --  Convert arguments from their Any
 
-                        n := CosNaming.Helper.From_Any (Argument_n);
+                        n := PolyORB.Services.Naming.Helper.From_Any
+                          (Argument_n);
 
                         --  Call implementation
                         Get_RAS_Ref
                           (Receiving_Stub (Self.Impl_Info.all).Name.all,
-                           CosNaming.To_Standard_String
+                           PolyORB.Services.Naming.To_Standard_String
                              (ISNC.Element_Of (ISNC.Sequence (n), 1).id),
                               Result);
 
@@ -651,6 +691,7 @@ package body System.PolyORB_Interface is
    ----------------
 
    Root_POA_Object : PolyORB.POA.Obj_Adapter_Access;
+   --  XXX Should not depend explicitly on the POA.
 
    procedure Initialize
    is
@@ -758,20 +799,19 @@ package body System.PolyORB_Interface is
                            Is_All_Calls_Remote =>
                              Stub.Is_All_Calls_Remote));
 
-                     declare
-                        CRef : CORBA.Object.Ref;
-                        --  XXX SHOULD NOT DEPEND ON CORBA!!!!!
                      begin
-                        CORBA.Object.Convert_To_CORBA_Ref (Ref, CRef);
-                        PolyORB.CORBA_P.Naming_Tools.Register
-                          (Name => To_Lower (Stub.Name.all) & ".RCI",
-                           Ref => CRef, Rebind => True);
-                        --  XXX Using the CORBA naming service is not
-                        --  necessarily a good idea. Alternative design:
-                        --  use a Boot_Server distributed object dedicated
-                        --  to DSA applications (may be required for
-                        --  validation, because we need to somehow assign
-                        --  Partition_IDs).
+                        PSNNC.Client.Bind
+                          (Self => Naming_Context,
+                           N    => To_Name (To_Lower (Stub.Name.all), "RCI"),
+                           Obj  => Ref);
+                     exception
+                        when PSNNC.AlreadyBound =>
+                           PSNNC.Client.Rebind
+                             (Self => Naming_Context,
+                              N    => To_Name
+                              (To_Lower (Stub.Name.all), "RCI"),
+                              Obj  => Ref);
+
                      end;
 
                   end;
@@ -943,13 +983,12 @@ package body System.PolyORB_Interface is
          end;
       else
          declare
-            Ctx : CosNaming.NamingContext.Ref;
+            Ctx_Ref : PSNNC.Ref;
          begin
-            CORBA.Object.Convert_To_CORBA_Ref (Info.Base_Ref, Ctx);
+            PSNNC.Set (Ctx_Ref, Entity_Of (Info.Base_Ref));
 
-            Subp_Ref := CORBA.Object.To_PolyORB_Ref
-              (PolyORB.CORBA_P.Naming_Tools.Locate
-                 (Ctx, Subprogram_Name & ".SUBP"));
+            Subp_Ref := PSNNC.Client.Resolve
+              (Ctx_Ref, To_Name (Subprogram_Name, "SUBP"));
          end;
       end if;
    end Get_RAS_Ref;
@@ -1160,9 +1199,8 @@ package body System.PolyORB_Interface is
          --  Not known yet: we therefore know that it is remote,
          --  and that we need to look it up with the naming service.
          Info := RCI_Info'
-           (Base_Ref => CORBA.Object.To_PolyORB_Ref
-              (PolyORB.CORBA_P.Naming_Tools.Locate
-                 (LName & ".RCI")),
+           (Base_Ref => PSNNC.Client.Resolve
+              (Naming_Context, To_Name (LName, "RCI")),
             Is_Local => False,
             Is_All_Calls_Remote => True);
          Known_RCIs.Register (LName, Info);
@@ -1361,14 +1399,13 @@ begin
       (Name => +"dsa",
        Conflicts => Empty,
        Depends => +"orb"
-         & "corba.initial_references"
-         & "poa_config.racws?"
-         & "CosNaming.BindingIterator.Helper"
-         & "CosNaming.Helper"
-         & "CosNaming.NamingContext.Helper"
-         & "tcp_access_points.soap?"
-         & "tcp_access_points.corba?"
-         & "tcp_access_points.srp?",
+       & "corba.initial_references"
+       & "poa_config.racws?"
+       & "Naming.Helper"
+       & "Naming.NamingContext.Helper"
+       & "tcp_access_points.soap?"
+       & "tcp_access_points.corba?"
+       & "tcp_access_points.srp?",
        Provides => Empty,
        Init => Initialize'Access));
 

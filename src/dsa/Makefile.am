@@ -26,7 +26,7 @@ CLEANFILES = *.ali
 
 LINK = $(LIBTOOL) $(ADA) -o libpolyorb-dsa.la
 
-ADAFLAGS = -I. -I$(srcdir) -I.. -I$(srcdir)/.. $(GNATFLAGS)
+ADAFLAGS = -I. -I$(srcdir) -I$(srcdir)/../../cos/naming -I.. -I$(srcdir)/.. $(GNATFLAGS)
 
 ADACOMPILER = ../../support/adacompiler
 

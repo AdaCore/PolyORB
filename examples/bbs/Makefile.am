@@ -16,11 +16,6 @@ evolutedp_FLAGS=	-Aclient.stubs
 serverp_FLAGS=		-Aserver.stubs
 ir_serverp_FLAGS=	-Aserver.stubs
 
-s-polint.ali: $(DSA_SRC)/s-polint.ads $(DSA_SRC)/s-polint.adb
-	$(GNATMAKE_FOR_TARGET) -a -c $(DSA_SRC)/s-polint.adb $(GNATMAKE_FLAGS)
-# -gnatg cannot be used as the moment, because s-polint has a dep
-# on generated CosNaming code, which does not support it.
-
 common.o common.ali: $(srcdir)/common.ads $(srcdir)/common.adb
 	$(GNATMAKE_FOR_TARGET) -c $(srcdir)/common.adb
 

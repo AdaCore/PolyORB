@@ -13,10 +13,6 @@ client_FLAGS=	-Aclient.stubs
 
 s-polint.ali: $(DSA_SRC)/s-polint.ads $(DSA_SRC)/s-polint.adb
 	$(GNATMAKE_FOR_TARGET) -a -u $(DSA_SRC)/s-polint.adb $(GNATMAKE_FLAGS)
-polyorb-dsa_p.ali: $(DSA_SRC)/polyorb-dsa_p.ads
-	$(GNATMAKE_FOR_TARGET) -u $(DSA_SRC)/polyorb-dsa_p.ads $(GNATMAKE_FLAGS)
-# -gnatg cannot be used as the moment, because s-polint has a dep
-# on generated CosNaming code, which does not support it.
 
 rt.ali rt.o: rt.ads s-polint.ali
 	$(GNATMAKE_FOR_TARGET) -u $(srcdir)/rt.ads $(GNATMAKE_FLAGS)

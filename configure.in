@@ -322,6 +322,7 @@ AC_OUTPUT([
 	compilers/idlac/platform.ads
 	src/Makefile
 	src/corba/Makefile
+	src/dsa/Makefile
 	src/giop/Makefile
 	src/moma/Makefile
 	src/soap/Makefile

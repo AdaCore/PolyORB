@@ -1,5 +1,5 @@
 corba_dir=	corba 
-#dsa_dir=	dsa
+dsa_dir=	dsa
 giop_dir=	giop
 moma_dir=	moma
 soap_dir=	soap
