@@ -140,6 +140,17 @@ begin
          Output ("test multi-dimensional array",
                  echoMatrix (Myall_types, M) = M);
       end;
+      declare
+         B : bigmatrix;
+      begin
+         for I in B'Range (1) loop
+            for J in B'Range (2) loop
+               B (I, J) := Long ((I + 1) * (J + 2));
+            end loop;
+         end loop;
+         Output ("test big multi-dimensional array",
+                 echoBigMatrix (Myall_types, B) = B);
+      end;
 
       --  Attributes
       set_myColor (Myall_types, Green);

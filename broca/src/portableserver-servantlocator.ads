@@ -46,19 +46,19 @@ package PortableServer.ServantLocator is
    type Cookie is access all Cookie_Base'Class;
 
    procedure Preinvoke
-     (Self : in Ref;
-      Oid : in ObjectId;
-      Adapter : in PortableServer.POA.Ref;
-      Operation : in CORBA.Identifier;
+     (Self       : in Ref;
+      Oid        : in ObjectId;
+      Adapter    : in PortableServer.POA.Ref;
+      Operation  : in CORBA.Identifier;
       The_Cookie : out Cookie;
-      Returns : out Servant);
+      Returns    : out Servant);
 
    procedure Postinvoke
-     (Self : in Ref;
-      Oid : in ObjectId;
-      Adapter : in PortableServer.POA.Ref;
-      Operation : in CORBA.Identifier;
-      The_Cookie : in Cookie;
+     (Self        : in Ref;
+      Oid         : in ObjectId;
+      Adapter     : in PortableServer.POA.Ref;
+      Operation   : in CORBA.Identifier;
+      The_Cookie  : in Cookie;
       The_Servant : in Servant);
 
 end PortableServer.ServantLocator;

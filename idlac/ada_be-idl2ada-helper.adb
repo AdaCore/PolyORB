@@ -84,15 +84,17 @@ package body Ada_Be.Idl2Ada.Helper is
       Node      : in     Node_Id);
    --  Generate the body of the helper package for an enum declaration
 
-   procedure Gen_Struct_Spec
+   procedure Gen_Struct_Exception_Spec
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id);
-   --  Generate the spec of the helper package for a struct declaration
+   --  Generate the spec of the helper package for a struct or an
+   --  exception declaration
 
-   procedure Gen_Struct_Body
+   procedure Gen_Struct_Exception_Body
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id);
-   --  Generate the body of the helper package for a struct declaration
+   --  Generate the body of the helper package for a struct or an
+   --  exception declaration
 
    procedure Gen_Union_Spec
      (CU        : in out Compilation_Unit;
@@ -186,53 +188,18 @@ package body Ada_Be.Idl2Ada.Helper is
             end if;
 
          when K_Struct =>
-            Gen_Struct_Spec (CU, Node);
+            if not Is_Exception_Members (Node) then
+               Gen_Struct_Exception_Spec (CU, Node);
+            end if;
+
+         when K_Exception =>
+            Gen_Struct_Exception_Spec (CU, Node);
 
          when K_Union =>
             Gen_Union_Spec (CU, Node);
 
          when K_Sequence_Instance =>
             Gen_Sequence_Spec (CU, Node);
-
---       when K_Exception =>
---          --  TypeCode generation
---          NL (CU);
---          Add_With (CU, "CORBA");
---          PL (CU, Ada_TC_Name (Node)
---              & " : CORBA.TypeCode.Object renames "
---              & Ada_TC_Name (CU,Members_Type (Node))
---              & ";");
-
---          --  From_Any
---          NL (CU);
---          Add_With (CU, "CORBA", Use_It => False);
---          PL (CU, "function From_Any (Item : in CORBA.Any)");
---          II (CU);
---          PL (CU, "return "
---              & Ada_Type_Name (Node)
---              & ";");
---          DI (CU);
---          PL (CU, "pragma No_Return (From_Any);");
-
---          --  To_Any
---          NL (CU);
---          --  here is a slightly modified copy of the code of
---          --  gen_to_any_profile
---          Add_With (CU, "CORBA", Use_It => False);
---          Add_With (CU, "Ada.Exceptions", Use_It => False);
---          PL (CU, "function To_Any (Item : in "
---                & Ada_Type_Name (Node)
---              & ")");
---          II (CU);
---          Add_With (CU, "CORBA");
---          Put (CU, "return CORBA.Any");
---          PL (CU, ";");
---          DI (CU);
-
-            --  Fill in typecode TC_<name of the type>
-
-            Add_Elaborate_Body (CU);
-            Add_With (CU, "CORBA");
 
          when K_ValueType =>
             Gen_ValueType_Spec (CU, Node);
@@ -278,72 +245,18 @@ package body Ada_Be.Idl2Ada.Helper is
             end if;
 
          when K_Struct =>
-            Gen_Struct_Body (CU, Node);
+            if not Is_Exception_Members (Node) then
+               Gen_Struct_Exception_Body (CU, Node);
+            end if;
+
+         when K_Exception =>
+            Gen_Struct_Exception_Body (CU, Node);
 
          when K_Union =>
             Gen_Union_Body (CU, Node);
 
          when K_Sequence_Instance =>
             Gen_Sequence_Body (CU, Node);
-
---          when K_Exception =>
---             --  From_Any
---             NL (CU);
---             Add_With (CU, "CORBA", Use_It => False);
---             PL (CU, "function From_Any (Item : in CORBA.Any)");
---             II (CU);
---             PL (CU, "return "
---                 & Ada_Type_Name (Node)
---                 & ";");
---             DI (CU);
---             PL (CU, " is");
---             II (CU);
---             Add_With (CU, Ada_Helper_Name (Members_Type (Node)));
---             PL (CU, "Member : constant "
---                 & Ada_Type_Name (Members_Type (Node))
---                 & " := "
---                 & Ada_Helper_Name (Members_Type (Node))
---                 & ".From_Any (Item);");
---             DI (CU);
---             PL (CU, "begin");
---             II (CU);
---             PL (CU, "Broca.Exceptions.User_Raise_Exception");
---             II (CU);
---             PL (CU, "("
---                 & Ada_Type_Name (Node)
---                 & "'Identity,");
---             PL (CU, "Member);");
---             DI (CU);
---             DI (CU);
---             PL (CU, "end From_Any;");
-
---             --  To_Any
---             NL (CU);
---             --  here is a slightly modified copy of the code of
---             --  gen_to_any_profile
---             Add_With (CU, "CORBA", Use_It => False);
---             PL (CU, "function To_Any (Item : in "
---                   & Ada_Type_Name (Node)
---                   & ")");
---             II (CU);
---             Add_With (CU, "CORBA");
---             Put (CU, "return CORBA.Any");
---             DI (CU);
---             PL (CU, " is");
---             II (CU);
---             PL (CU, "Member : "
---                 & Ada_Type_Name (Members_Type (Node))
---                 & ";");
---             DI (CU);
---             PL (CU, "begin");
---             II (CU);
---             PL (CU, "Get_Members (Item, Member);");
---             Add_With (CU, Ada_Helper_Name (Members_Type (Node)));
---             PL (CU, "return "
---                 & Ada_Helper_Name (Members_Type (Node))
---                 & "To_Any (Member);");
---             DI (CU);
---             PL (CU, "end To_Any;");
 
          when K_ValueType =>
             Gen_ValueType_Body (CU, Node);
@@ -432,6 +345,53 @@ package body Ada_Be.Idl2Ada.Helper is
       Add_Elaborate_Body (CU);
    end Gen_Interface_Spec;
 
+   ----------------------------------
+   --  Gen_Forward_Interface_Spec  --
+   ----------------------------------
+   procedure Gen_Forward_Interface_Spec
+     (CU        : in out Compilation_Unit;
+      Node      : in     Node_Id) is
+   begin
+      --  Unchecked_To_<reference>
+      declare
+         Short_Type_Name : constant String
+           := Ada_Type_Defining_Name (Node);
+         Type_Name : constant String
+           := Ada_Type_Name (Node);
+      begin
+         Add_With (CU, "CORBA.Object");
+         NL (CU);
+         PL (CU, "function Unchecked_To_" & Short_Type_Name);
+         PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
+         PL (CU, "  return " & Type_Name & ";");
+         PL (CU, "function To_" & Short_Type_Name);
+         PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
+         PL (CU, "  return " & Type_Name & ";");
+      end;
+
+      --  TypeCode
+      NL (CU);
+      Add_With (CU, "CORBA");
+      PL (CU, Ada_TC_Name (Node)
+          & " : CORBA.TypeCode.Object := ");
+      II (CU);
+      PL (CU, "CORBA.TypeCode.TC_ObjRef;");
+      DI (CU);
+
+      --  From_Any
+      NL (CU);
+      Gen_From_Any_Profile (CU, Node);
+      PL (CU, ";");
+
+      --  To_Any
+      NL (CU);
+      Gen_To_Any_Profile (CU,  Node);
+      PL (CU, ";");
+
+      --  Fill in typecode TC_<name of the type>
+      Add_Elaborate_Body (CU);
+   end Gen_Forward_Interface_Spec;
+
    ------------------------
    -- Gen_ValueType_Spec --
    ------------------------
@@ -445,13 +405,40 @@ package body Ada_Be.Idl2Ada.Helper is
 
       Type_Full_Name : constant String
         := Ada_Type_Name (Node);
+      V_Impl_Name : constant String
+        := Ada_Name (Node) & ".Value_Impl.Object'Class";
    begin
       pragma Assert (Kind (Node) = K_ValueType);
-
+      Add_With (CU, "CORBA.Value");
       NL (CU);
       PL (CU, "function To_" & Type_Name);
       PL (CU, "  (The_Ref : in CORBA.Value.Base'Class)");
       PL (CU, "  return " & Type_Full_Name & ";");
+
+      --  generate code for supported interfaces
+      --  generate this portion of code iff there is a non abstract
+      --  supported interface.
+      if Supports_Non_Abstract_Interface (Node) then
+         Add_With (CU, Ada_Full_Name (Node) & ".Value_Impl");
+         NL (CU);
+         PL (CU, "type Servant");
+         II (CU);
+         PL (CU,
+             "(Value : access "
+             & V_Impl_Name
+             & ")");
+         Add_With (CU, "PortableServer");
+         PL (CU, "is new PortableServer.Servant_Base with null record;");
+         DI (CU);
+         PL (CU,
+             "type Servant_Ref is access all Servant'Class;");
+         NL (CU);
+         PL (CU, "function To_Servant");
+         PL (CU, "  (Self : access "
+             & V_Impl_Name
+             & ")");
+         PL (CU, "  return Servant_Ref;");
+      end if;
 
    end Gen_ValueType_Spec;
 
@@ -468,6 +455,9 @@ package body Ada_Be.Idl2Ada.Helper is
 
       Type_Full_Name : constant String
         := Ada_Type_Name (Node);
+
+      V_Impl_Name : constant String
+        := Ada_Name (Node) & ".Value_Impl.Object'Class";
    begin
       pragma Assert (Kind (Node) = K_ValueType);
 
@@ -495,6 +485,23 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "end if;");
       DI (CU);
       PL (CU, "end To_" & Type_Name & ";");
+
+      --  generate code for supported interfaces
+      --  generate this portion of code iff there is a non abstract
+      --  supported interface.
+      if Supports_Non_Abstract_Interface (Node) then
+         NL (CU);
+         PL (CU, "function To_Servant");
+         PL (CU, "  (Self : access "
+             & V_Impl_Name
+             & ")");
+         PL (CU, "  return Servant_Ref is");
+         PL (CU, "begin");
+         II (CU);
+         PL (CU, "return new Servant (Self);");
+         DI (CU);
+         PL (CU, "end To_Servant;");
+      end if;
 
    end Gen_ValueType_Body;
 
@@ -638,6 +645,127 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "end;");
       Divert (CU, Visible_Declarations);
    end Gen_Interface_Body;
+
+   --------------------------------
+   -- Gen_Forward_Interface_Body --
+   --------------------------------
+
+   procedure Gen_Forward_Interface_Body
+     (CU        : in out Compilation_Unit;
+      Node      : in     Node_Id) is
+   begin
+
+      --  Unchecked_To_<reference>
+
+      declare
+         Short_Type_Name : constant String
+           := Ada_Type_Defining_Name (Node);
+         Type_Name : constant String
+           := Ada_Type_Name (Node);
+      begin
+         Add_With (CU, "Broca.Refs");
+         Add_With (CU, "Broca.Exceptions");
+
+         NL (CU);
+         PL (CU, "function Unchecked_To_" & Short_Type_Name);
+         Add_With (CU, "CORBA.Object");
+         PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
+         PL (CU, "  return " & Type_Name);
+         PL (CU, "is");
+         II (CU);
+         PL (CU, "Result : " & Type_Name & ";");
+         DI (CU);
+         PL (CU, "begin");
+         II (CU);
+         PL (CU, Ada_Name (Node) & ".Set (Result,");
+         PL (CU,
+             "     CORBA.Object.Object_Of (The_Ref));");
+         PL (CU, "return Result;");
+         DI (CU);
+         PL (CU, "end Unchecked_To_" & Short_Type_Name & ";");
+
+         --  To_<reference>
+         --  see the corresponding comment in gen_interface_body
+         --  if you want more information.
+
+         NL (CU);
+         PL (CU, "function To_" & Short_Type_Name);
+         PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
+         PL (CU, "  return " & Type_Name);
+         PL (CU, "is");
+         II (CU);
+         PL (CU, "use CORBA;");
+         DI (CU);
+         PL (CU, "begin");
+         II (CU);
+         PL (CU, "if CORBA.Object.Is_A (The_Ref, """
+             & Idl_Repository_Id (Forward (Node)) & """) then");
+         II (CU);
+         PL (CU, "return Unchecked_To_"
+             & Short_Type_Name
+             & " (The_Ref);");
+         DI (CU);
+         PL (CU, "end if;");
+
+         PL (CU, "Broca.Exceptions.Raise_Bad_Param;");
+         DI (CU);
+         PL (CU, "end To_" & Short_Type_Name & ";");
+      end;
+
+      --  From_Any
+
+      Add_With (CU, "CORBA.Object.Helper");
+      NL (CU);
+      Gen_From_Any_Profile (CU, Node);
+      PL (CU, " is");
+      PL (CU, "begin");
+      II (CU);
+      PL (CU, "return To_"
+          & Ada_Type_Defining_Name (Node)
+          & " (CORBA.Object.Helper."
+          & "From_Any (Item));");
+      DI (CU);
+      PL (CU, "end From_Any;");
+
+      --  To_Any
+
+      Add_With (CU, "CORBA.Object.Helper");
+      NL (CU);
+      Gen_To_Any_Profile (CU, Node);
+      PL (CU, " is");
+      PL (CU, "begin");
+      II (CU);
+      PL (CU, "return CORBA.Object.Helper.To_Any "
+          & "(CORBA.Object.Ref (Item));");
+      DI (CU);
+      PL (CU, "end To_Any;");
+
+      --  Fill in the typecode TC_<name of the type>
+
+      Divert (CU, Elaboration);
+      NL (CU);
+      PL (CU, "declare");
+      II (CU);
+      Add_With (CU, "CORBA");
+      PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
+          & Ada_Name (Forward (Node))
+          & """);");
+      PL (CU, "Id : CORBA.String := CORBA.To_CORBA_String ("""
+          & Idl_Repository_Id (Node)
+          & """);");
+      DI (CU);
+      PL (CU, "begin");
+      II (CU);
+      PL (CU, "CORBA.TypeCode.Add_Parameter ("
+          & Ada_TC_Name (Node)
+          & ", CORBA.To_Any (Name));");
+      PL (CU, "CORBA.TypeCode.Add_Parameter ("
+          & Ada_TC_Name (Node)
+          & ", CORBA.To_Any (Id));");
+      DI (CU);
+      PL (CU, "end;");
+      Divert (CU, Visible_Declarations);
+   end Gen_Forward_Interface_Body;
 
    -------------------
    -- Gen_Enum_Spec --
@@ -787,60 +915,73 @@ package body Ada_Be.Idl2Ada.Helper is
 
    end Gen_Enum_Body;
 
-   ---------------------
-   -- Gen_Struct_Spec --
-   ---------------------
+   -------------------------------
+   -- Gen_Struct_Exception_Spec --
+   -------------------------------
 
-   procedure Gen_Struct_Spec
+   procedure Gen_Struct_Exception_Spec
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id) is
+      Struct_Node : Node_Id;
    begin
       --  Typecode generation
-
       Add_With (CU, "CORBA");
 
       NL (CU);
       PL (CU, Ada_TC_Name (Node)
           & " : CORBA.TypeCode.Object := ");
       II (CU);
-      PL (CU, "CORBA.TypeCode.TC_Struct;");
+      if Kind (Node) = K_Struct then
+         PL (CU, "CORBA.TypeCode.TC_Struct;");
+      else
+         PL (CU, "CORBA.TypeCode.TC_Except;");
+      end if;
       DI (CU);
 
-      --  From_Any
+      if Kind (Node) = K_Struct then
+         Struct_Node := Node;
+      else
+         Struct_Node := Members_Type (Node);
+      end if;
 
+      --  From_Any
       NL (CU);
-      Gen_From_Any_Profile (CU, Node);
+      Gen_From_Any_Profile (CU, Struct_Node);
       PL (CU, ";");
 
       --  To_Any
-
       NL (CU);
-      Gen_To_Any_Profile (CU, Node);
+      Gen_To_Any_Profile (CU, Struct_Node);
       PL (CU, ";");
 
       --  Fill in typecode TC_<name of the type>
-
       Add_Elaborate_Body (CU);
-   end Gen_Struct_Spec;
+   end Gen_Struct_Exception_Spec;
 
-   ---------------------
-   -- Gen_Struct_Body --
-   ---------------------
+   -------------------------------
+   -- Gen_Struct_Exception_Body --
+   -------------------------------
 
-   procedure Gen_Struct_Body
+   procedure Gen_Struct_Exception_Body
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id) is
+      Struct_Node : Node_Id;
    begin
+      if Kind (Node) = K_Struct then
+         Struct_Node := Node;
+      else
+         Struct_Node := Members_Type (Node);
+      end if;
+
       declare
          Is_Empty : Boolean;
       begin
          Is_Empty := Length (Members (Node)) = 0;
 
          --  From_Any
-
          Add_With (CU, "CORBA", Use_It => True);
          NL (CU);
-         Gen_From_Any_Profile (CU, Node);
+         Gen_From_Any_Profile (CU, Struct_Node);
          PL (CU, " is");
          II (CU);
          if not Is_Empty then
@@ -849,7 +990,7 @@ package body Ada_Be.Idl2Ada.Helper is
                It   : Node_Iterator;
                Member_Node : Node_Id;
             begin
-               Init (It, Members (Node));
+               Init (It, Members (Struct_Node));
                while not Is_End (It) loop
                   Get_Next_Node (It, Member_Node);
                   declare
@@ -870,7 +1011,7 @@ package body Ada_Be.Idl2Ada.Helper is
             end;
          else
             PL (CU, "Result : "
-                & Ada_Name (Node)
+                & Ada_Name (Struct_Node)
                 & ";");
          end if;
          DI (CU);
@@ -884,7 +1025,7 @@ package body Ada_Be.Idl2Ada.Helper is
                Member_Node : Node_Id;
                I : Integer := 0;
             begin
-               Init (It, Members (Node));
+               Init (It, Members (Struct_Node));
                while not Is_End (It) loop
                   Get_Next_Node (It, Member_Node);
                   declare
@@ -927,7 +1068,7 @@ package body Ada_Be.Idl2Ada.Helper is
                It   : Node_Iterator;
                Member_Node : Node_Id;
             begin
-               Init (It, Members (Node));
+               Init (It, Members (Struct_Node));
                while not Is_End (It) loop
                   Get_Next_Node (It, Member_Node);
                   declare
@@ -962,7 +1103,7 @@ package body Ada_Be.Idl2Ada.Helper is
       --  To_Any
 
       NL (CU);
-      Gen_To_Any_Profile (CU, Node);
+      Gen_To_Any_Profile (CU, Struct_Node);
       PL (CU, " is");
       II (CU);
       Add_With (CU, "CORBA");
@@ -979,7 +1120,7 @@ package body Ada_Be.Idl2Ada.Helper is
          It   : Node_Iterator;
          Member_Node : Node_Id;
       begin
-         Init (It, Members (Node));
+         Init (It, Members (Struct_Node));
          while not Is_End (It) loop
             Get_Next_Node (It, Member_Node);
             declare
@@ -1023,7 +1164,7 @@ package body Ada_Be.Idl2Ada.Helper is
          It   : Node_Iterator;
          Member_Node : Node_Id;
       begin
-         Init (It, Members (Node));
+         Init (It, Members (Struct_Node));
          while not Is_End (It) loop
             Get_Next_Node (It, Member_Node);
             declare
@@ -1055,7 +1196,7 @@ package body Ada_Be.Idl2Ada.Helper is
          It   : Node_Iterator;
          Member_Node : Node_Id;
       begin
-         Init (It, Members (Node));
+         Init (It, Members (Struct_Node));
          while not Is_End (It) loop
             Get_Next_Node (It, Member_Node);
             declare
@@ -1083,7 +1224,106 @@ package body Ada_Be.Idl2Ada.Helper is
       DI (CU);
       PL (CU, "end;");
       Divert (CU, Visible_Declarations);
-   end Gen_Struct_Body;
+   end Gen_Struct_Exception_Body;
+
+--          when K_Exception =>
+--             --  From_Any
+--             NL (CU);
+--             Add_With (CU, "CORBA", Use_It => False);
+--             PL (CU, "function From_Any (Item : in CORBA.Any)");
+--             II (CU);
+--             PL (CU, "return "
+--                 & Ada_Type_Name (Node)
+--                 & ";");
+--             DI (CU);
+--             PL (CU, " is");
+--             II (CU);
+--             Add_With (CU, Ada_Helper_Name (Members_Type (Node)));
+--             PL (CU, "Member : constant "
+--                 & Ada_Type_Name (Members_Type (Node))
+--                 & " := "
+--                 & Ada_Helper_Name (Members_Type (Node))
+--                 & ".From_Any (Item);");
+--             DI (CU);
+--             PL (CU, "begin");
+--             II (CU);
+--             PL (CU, "Broca.Exceptions.User_Raise_Exception");
+--             II (CU);
+--             PL (CU, "("
+--                 & Ada_Type_Name (Node)
+--                 & "'Identity,");
+--             PL (CU, "Member);");
+--             DI (CU);
+--             DI (CU);
+--             PL (CU, "end From_Any;");
+
+--             --  To_Any
+--             NL (CU);
+--             --  here is a slightly modified copy of the code of
+--             --  gen_to_any_profile
+--             Add_With (CU, "CORBA", Use_It => False);
+--             PL (CU, "function To_Any (Item : in "
+--                   & Ada_Type_Name (Node)
+--                   & ")");
+--             II (CU);
+--             Add_With (CU, "CORBA");
+--             Put (CU, "return CORBA.Any");
+--             DI (CU);
+--             PL (CU, " is");
+--             II (CU);
+--             PL (CU, "Member : "
+--                 & Ada_Type_Name (Members_Type (Node))
+--                 & ";");
+--             DI (CU);
+--             PL (CU, "begin");
+--             II (CU);
+--             PL (CU, "Get_Members (Item, Member);");
+--             Add_With (CU, Ada_Helper_Name (Members_Type (Node)));
+--             PL (CU, "return "
+--                 & Ada_Helper_Name (Members_Type (Node))
+--                 & "To_Any (Member);");
+--             DI (CU);
+--             PL (CU, "end To_Any;");
+
+
+
+
+
+--          --  TypeCode generation
+--          NL (CU);
+--          Add_With (CU, "CORBA");
+--          PL (CU, Ada_TC_Name (Node)
+--              & " : CORBA.TypeCode.Object renames "
+--              & Ada_TC_Name (CU,Members_Type (Node))
+--              & ";");
+
+--          --  From_Any
+--          NL (CU);
+--          Add_With (CU, "CORBA", Use_It => False);
+--          PL (CU, "function From_Any (Item : in CORBA.Any)");
+--          II (CU);
+--          PL (CU, "return "
+--              & Ada_Type_Name (Node)
+--              & ";");
+--          DI (CU);
+--          PL (CU, "pragma No_Return (From_Any);");
+
+--          --  To_Any
+--          NL (CU);
+--          --  here is a slightly modified copy of the code of
+--          --  gen_to_any_profile
+--          Add_With (CU, "CORBA", Use_It => False);
+--          Add_With (CU, "Ada.Exceptions", Use_It => False);
+--          PL (CU, "function To_Any (Item : in "
+--                & Ada_Type_Name (Node)
+--              & ")");
+--          II (CU);
+--          Add_With (CU, "CORBA");
+--          Put (CU, "return CORBA.Any");
+--          PL (CU, ";");
+--          DI (CU);
+
+            --  Fill in typecode TC_<name of the type>
 
    --------------------
    -- Gen_Union_Spec --
@@ -2050,9 +2290,12 @@ package body Ada_Be.Idl2Ada.Helper is
    begin
       case NK is
          when
-           K_Interface         |
-           K_Forward_Interface =>
+           K_Interface         =>
             return Ada_Full_Name (Node) & ".Helper";
+
+         when
+           K_Forward_Interface =>
+            return Parent_Scope_Name (Node) & ".Helper";
 
             --          K_ValueType         |
             --          K_Forward_ValueType |

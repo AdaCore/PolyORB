@@ -32,7 +32,14 @@
 ------------------------------------------------------------------------------
 
 package Broca.Inet_Server is
-   --  This package registers an Internet server, using IIOP.
-   pragma Elaborate_Body (Broca.Inet_Server);
-   pragma Warnings (Off, Broca.Inet_Server);
+
+   procedure Start (Port : in Natural := 0);
+   --  Start a new internet server, on port Port. If no port is specified,
+   --  the port is chosen according to the documentation in
+   --  broca-environment.ads.
+
+   procedure Ensure_Started;
+   pragma Inline (Ensure_Started);
+   --  This procedure will make sure that at least one server is started.
+
 end Broca.Inet_Server;

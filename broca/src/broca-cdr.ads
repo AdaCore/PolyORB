@@ -35,12 +35,11 @@ with CORBA;
 with CORBA.AbstractBase;
 with CORBA.Object;
 
-with Broca.Opaque; use Broca.Opaque;
 with Broca.Buffers; use Broca.Buffers;
 
 package Broca.CDR is
 
-   pragma Elaborate_Body;
+   --  pragma Elaborate_Body;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -174,6 +173,16 @@ package Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
+      Data   : access Standard.String);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in Standard.String);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return Standard.String;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
       Data   : access CORBA.String);
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -201,6 +210,16 @@ package Broca.CDR is
 
    function Unmarshall (Buffer : access Buffer_Type)
      return CORBA.Identifier;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.ScopedName);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in CORBA.ScopedName);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.ScopedName;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -254,7 +273,7 @@ package Broca.CDR is
 
    --  This procedure unmarshalls an Any in Result.
    --  If Result already has a value, then its memory location
-   --  will be reused. Otherwise, a nex location will be created
+   --  will be reused. Otherwise, a new location will be created
    procedure Unmarshall_To_Any (Buffer : access Buffer_Type;
                                 Result : in out CORBA.Any);
 
@@ -294,9 +313,8 @@ package Broca.CDR is
    --  that will be turned into an Encapsulation.
 
    --  Marshalling and unmashalling of object references
-   --  The two procedures are used for all object references
-   --  The function is only used for CORBA.Object.Ref and none of its
-   --  descendants.
+   --  (but not valuetypes)
+
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : in CORBA.AbstractBase.Ref'Class);
@@ -308,6 +326,16 @@ package Broca.CDR is
    function Unmarshall
      (Buffer : access Buffer_Type)
       return CORBA.Object.Ref;
+
+   --  Marshalling and unmarshalling of system exceptions
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Excpt  : in CORBA.Exception_Occurrence);
+
+   procedure Unmarshall_And_Raise
+     (Buffer : access Buffer_Type);
+   pragma No_Return (Unmarshall_And_Raise);
 
    generic
       type F is delta <> digits <>;
@@ -323,22 +351,5 @@ package Broca.CDR is
       function Unmarshall (Buffer : access Buffer_Type)
                            return F;
    end Fixed_Point;
-
-private
-
-   procedure Align_Marshall_Copy
-     (Buffer    : access Buffer_Type;
-      Octets    : in Octet_Array;
-      Alignment : Alignment_Type := 1);
-   --  Align Buffer on Alignment, then marshall a copy
-   --  of Octets into Buffer, as is.
-
-   function Align_Unmarshall_Copy
-     (Buffer    : access Buffer_Type;
-      Size      : Index_Type;
-      Alignment : Alignment_Type := 1)
-     return Octet_Array;
-   --  Align Buffer on Alignment, then unmarshall a copy
-   --  of Size octets from Buffer's data, as is.
 
 end Broca.CDR;

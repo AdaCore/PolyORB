@@ -34,7 +34,6 @@
 with Ada.Strings.Unbounded;
 with Ada.Exceptions; use Ada.Exceptions;
 with CORBA; use CORBA;
-with Broca.CDR;
 with Broca.Exceptions.Stack;
 with Broca.Names; use Broca.Names;
 
@@ -53,77 +52,63 @@ package body Broca.Exceptions is
 
    Mapping : constant array (Positive range <>) of Exception_Mapping :=
      ((Exc  => CORBA.Unknown'Identity,
-       Name => new String'("UNKNOWN")),
+       Name => new String'("CORBA/UNKNOWN")),
       (Exc  => CORBA.Bad_Param'Identity,
-       Name => new String'("BAD_PARAM")),
+       Name => new String'("CORBA/BAD_PARAM")),
       (Exc  => CORBA.No_Memory'Identity,
-       Name => new String'("NO_MEMORY")),
+       Name => new String'("CORBA/NO_MEMORY")),
       (Exc  => CORBA.Imp_Limit'Identity,
-       Name => new String'("IMP_LIMIT")),
+       Name => new String'("CORBA/IMP_LIMIT")),
       (Exc  => CORBA.Comm_Failure'Identity,
-       Name => new String'("COMM_FAILURE")),
+       Name => new String'("CORBA/COMM_FAILURE")),
       (Exc  => CORBA.Inv_Objref'Identity,
-       Name => new String'("INV_OBJREF")),
+       Name => new String'("CORBA/INV_OBJREF")),
       (Exc  => CORBA.No_Permission'Identity,
-       Name => new String'("NO_PERMISSION")),
+       Name => new String'("CORBA/NO_PERMISSION")),
       (Exc  => CORBA.Internal'Identity,
-       Name => new String'("INTERNAL")),
+       Name => new String'("CORBA/INTERNAL")),
       (Exc  => CORBA.Marshal'Identity,
-       Name => new String'("MARSHAL")),
+       Name => new String'("CORBA/MARSHAL")),
       (Exc  => CORBA.Initialization_Failure'Identity,
-       Name => new String'("INITIALIZATION_FAILURE")),
+       Name => new String'("CORBA/INITIALIZATION_FAILURE")),
       (Exc  => CORBA.No_Implement'Identity,
-       Name => new String'("NO_IMPLEMENT")),
+       Name => new String'("CORBA/NO_IMPLEMENT")),
       (Exc  => CORBA.Bad_TypeCode'Identity,
-       Name => new String'("BAD_TYPECODE")),
+       Name => new String'("CORBA/BAD_TYPECODE")),
       (Exc  => CORBA.Bad_Operation'Identity,
-       Name => new String'("BAD_OPERATION")),
+       Name => new String'("CORBA/BAD_OPERATION")),
       (Exc  => CORBA.No_Resources'Identity,
-       Name => new String'("NO_RESOURCES")),
+       Name => new String'("CORBA/NO_RESOURCES")),
       (Exc  => CORBA.No_Response'Identity,
-       Name => new String'("NO_RESPONSE")),
+       Name => new String'("CORBA/NO_RESPONSE")),
       (Exc  => CORBA.Persist_Store'Identity,
-       Name => new String'("PERSIST_STORE")),
+       Name => new String'("CORBA/PERSIST_STORE")),
       (Exc  => CORBA.Bad_Inv_Order'Identity,
-       Name => new String'("BAD_INV_ORDER")),
+       Name => new String'("CORBA/BAD_INV_ORDER")),
       (Exc  => CORBA.Transient'Identity,
-       Name => new String'("TRANSIENT")),
+       Name => new String'("CORBA/TRANSIENT")),
       (Exc  => CORBA.Free_Mem'Identity,
-       Name => new String'("FREE_MEM")),
+       Name => new String'("CORBA/FREE_MEM")),
       (Exc  => CORBA.Inv_Ident'Identity,
-       Name => new String'("INV_IDENT")),
+       Name => new String'("CORBA/INV_IDENT")),
       (Exc  => CORBA.Inv_Flag'Identity,
-       Name => new String'("INV_FLAG")),
+       Name => new String'("CORBA/INV_FLAG")),
       (Exc  => CORBA.Intf_Repos'Identity,
-       Name => new String'("INTF_REPOS")),
+       Name => new String'("CORBA/INTF_REPOS")),
       (Exc  => CORBA.Bad_Context'Identity,
-       Name => new String'("BAD_CONTEXT")),
+       Name => new String'("CORBA/BAD_CONTEXT")),
       (Exc  => CORBA.Obj_Adapter'Identity,
-       Name => new String'("OBJ_ADAPTER")),
+       Name => new String'("CORBA/OBJ_ADAPTER")),
       (Exc  => CORBA.Data_Conversion'Identity,
-       Name => new String'("DATA_CONVERSION")),
+       Name => new String'("CORBA/DATA_CONVERSION")),
       (Exc  => CORBA.Object_Not_Exist'Identity,
-       Name => new String'("OBJECT_NOT_EXIST")),
+       Name => new String'("CORBA/OBJECT_NOT_EXIST")),
       (Exc  => CORBA.Transaction_Required'Identity,
-       Name => new String'("TRANSACTION_REQUIRED")),
+       Name => new String'("CORBA/TRANSACTION_REQUIRED")),
       (Exc  => CORBA.Transaction_Rolledback'Identity,
-       Name => new String'("TRANSACTION_ROLLEDBACK")),
+       Name => new String'("CORBA/TRANSACTION_ROLLEDBACK")),
       (Exc  => CORBA.Invalid_Transaction'Identity,
-       Name => new String'("INVALID_TRANSACTION")));
-
-
-   ------------------------------------------------------------
-   -- conversion between Unsigned_Long and Completion_Status --
-   ------------------------------------------------------------
-
-   To_Unsigned_Long :
-     constant array (Completion_Status) of CORBA.Unsigned_Long
-     := (Completed_Yes => 0, Completed_No => 1, Completed_Maybe => 2);
-
-   To_Completion_Status :
-     constant array (CORBA.Unsigned_Long range 0 .. 2) of Completion_Status
-     := (0 => Completed_Yes, 1 => Completed_No, 2 => Completed_Maybe);
-
+       Name => new String'("CORBA/INVALID_TRANSACTION")));
 
    -----------------------
    --  User_Get_Members --
@@ -147,6 +132,20 @@ package body Broca.Exceptions is
    --------------------------------
    -- System exception handling  --
    --------------------------------
+
+   function Get_ExcepId_By_RepositoryId
+     (RepoId : in Standard.String)
+     return Ada.Exceptions.Exception_Id is
+      Result : Ada.Exceptions.Exception_Id := Ada.Exceptions.Null_Id;
+   begin
+      for I in Mapping'Range loop
+         if RepoId = OMG_RepositoryId (Mapping (I) .Name.all) then
+            Result := Mapping (I) .Exc;
+            exit;
+         end if;
+      end loop;
+      return Result;
+   end Get_ExcepId_By_RepositoryId;
 
    ----------------------
    --  Raise_Exception --
@@ -342,9 +341,6 @@ package body Broca.Exceptions is
 
    -----------------------------------------------------------------------
 
-   function Occurrence_To_Name (Occurrence : CORBA.Exception_Occurrence)
-                                return CORBA.RepositoryId;
-
    --  System exceptions.
    --  Same as CORBA.To_CORBA_String, but redefined to avoid circular
    --  elaboration.
@@ -371,60 +367,6 @@ package body Broca.Exceptions is
       end loop;
       raise Program_Error;
    end Occurrence_To_Name;
-
-   --------------
-   -- Marshall --
-   --------------
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Excpt  : in CORBA.Exception_Occurrence)
-   is
-      use Broca.CDR;
-      Members : System_Exception_Members;
-   begin
-      Get_Members (Excpt, Members);
-      Marshall (Buffer, CORBA.String (Occurrence_To_Name (Excpt)));
-      Marshall (Buffer, Members.Minor);
-      Marshall (Buffer, To_Unsigned_Long (Members.Completed));
-   end Marshall;
-
-   procedure Unmarshall_And_Raise (Buffer : access Buffer_Type) is
-      use Broca.CDR;
-      use Ada.Exceptions;
-      Minor      : CORBA.Unsigned_Long;
-      Status     : CORBA.Unsigned_Long;
-      Identity   : Exception_Id;
-      Repository : CORBA.String;
-   begin
-      Repository := Unmarshall (Buffer);
-      declare
-         R : constant String  := To_Standard_String (Repository);
-      begin
-         Identity := Null_Id;
-         for I in Mapping'Range loop
-            if R = OMG_RepositoryId (Mapping (I) .Name.all) then
-               Identity := Mapping (I) .Exc;
-               exit;
-            end if;
-         end loop;
-      end;
-
-      if Identity = Null_Id then
-         --  If not found, this is a marshal error.
-         Identity := CORBA.Marshal'Identity;
-         Minor := 0;
-         Status := Completion_Status'Pos (Completed_Maybe);
-      end if;
-
-      Minor := Unmarshall (Buffer);
-      Status := Unmarshall (Buffer);
-
-      --  Raise the exception.
-      Raise_Exception
-        (Identity,
-         System_Exception_Members'(Minor, To_Completion_Status (Status)));
-   end Unmarshall_And_Raise;
 
 
 end Broca.Exceptions;

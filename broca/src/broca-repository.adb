@@ -48,14 +48,20 @@ package body Broca.Repository is
      return Boolean
    is
       use CORBA;
-      use Ada.Characters.Handling;
-
-      S1 : constant String
-        := To_Lower (To_Standard_String (RI1));
-      S2 : constant String
-        := To_Lower (To_Standard_String (RI2));
    begin
-      return S1 = S2;
+      return Is_Equivalent
+        (To_Standard_String (RI1),
+         To_Standard_String (RI2));
+   end Is_Equivalent;
+
+   function Is_Equivalent
+     (RI1 : Standard.String;
+      RI2 : Standard.String)
+     return Boolean
+   is
+      use Ada.Characters.Handling;
+   begin
+      return To_Lower (RI1) = To_Lower (RI2);
    end Is_Equivalent;
 
    --  Single linked list of all the factories.

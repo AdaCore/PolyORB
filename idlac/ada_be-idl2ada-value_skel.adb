@@ -47,6 +47,16 @@ package body Ada_Be.Idl2Ada.Value_Skel is
       Node : Node_Id) is
    begin
       case Kind (Node) is
+
+         when K_ValueType =>
+            --  we have to generate code for the is_a operation
+            NL (CU);
+            PL (CU, "function Is_A");
+            Add_With (CU, "CORBA");
+            PL (CU, "  (Logical_Type_Id : Standard.String)");
+            PL (CU, "  return CORBA.Boolean;");
+            NL (CU);
+
          when K_Operation =>
 
             if not Abst (Parent_Scope (Node)) then
@@ -54,9 +64,8 @@ package body Ada_Be.Idl2Ada.Value_Skel is
             end if;
 
             --  Write the store only if the operation
-            --  is not inherited from somewhere else
-
-            if Original_Node (Node) = No_Node then
+            --  is not inherited from another valuetype.
+            if Oldest_ValueType_That_Has_It (Node) = Parent_Scope (Node) then
                declare
                   Opname : constant String
                     := Ada_Operation_Name (Node);
@@ -107,7 +116,29 @@ package body Ada_Be.Idl2Ada.Value_Skel is
                        & Node_Kind'Image (Kind (Node))
                        & ")"));
       case Kind (Node) is
+
+         when K_ValueType =>
+
+            Ada_Be.Idl2Ada.Gen_Local_Is_A (CU, Node);
+
+            Divert (CU, Elaboration);
+            Add_With (CU, "Broca.Value.Value_Skel");
+            PL (CU,
+                "Broca.Value.Value_Skel.Is_A_Store.Register_Operation");
+            PL (CU,
+                "  ("
+                & Ada_Full_Name (Node)
+                & ".Value_Impl.Object'Tag,");
+            PL (CU,
+                "   "
+                & Ada_Full_Name (Node)
+                & ".Value_Skel.Is_A'Access);");
+            NL (CU);
+            Divert (CU, Visible_Declarations);
+
+
          when K_Operation =>
+
             declare
                Opname : constant String := Ada_Operation_Name (Node);
                V_Impl_Name : constant String
@@ -115,8 +146,10 @@ package body Ada_Be.Idl2Ada.Value_Skel is
             begin
                Add_With (CU, V_Impl_Name);
                Gen_Operation_Profile
-                 (CU, "CORBA.Impl.Object_Ptr", Node);
-               PL (CU, "is");
+                 (CU,
+                  "CORBA.Impl.Object_Ptr",
+                  Node);
+               PL (CU, " is");
                PL (CU, "begin");
                II (CU);
 
@@ -132,7 +165,8 @@ package body Ada_Be.Idl2Ada.Value_Skel is
                     & ".Object_Ptr (Self)");
                II (CU);
 
-               --  other parameters
+               --  Other formal parameters
+
                declare
                   It : Node_Iterator;
                   P_Node : Node_Id;
@@ -150,28 +184,19 @@ package body Ada_Be.Idl2Ada.Value_Skel is
                PL (CU, "end " & Opname & ";");
                NL (CU);
 
-
                --  Register this operation in the proper Operation_Store.
+
                Divert (CU, Elaboration);
                declare
-                  Original_Operation : Node_Id
-                    := Original_Node (Node);
+                  Original_VT_Name : constant String
+                    := Ada_Full_Name
+                    (Oldest_ValueType_That_Has_It (Node));
                begin
-
-                  if Original_Operation /= No_Node then
-                     Put (CU,
-                          Parent_Scope_Name (Original_Operation));
-                     Add_With (CU,
-                               Parent_Scope_Name (Original_Operation)
-                               & ".Value_Skel");
-                  else
-                     Put (CU,
-                          Parent_Scope_Name (Node));
-                     Add_With (CU,
-                               Parent_Scope_Name (Node)
-                               & ".Value_Skel");
-                  end if;
-
+                  Put (CU,
+                       Original_VT_Name);
+                  Add_With (CU,
+                            Original_VT_Name
+                            & ".Value_Skel");
                   PL (CU,
                       ".Value_Skel."
                       & Opname

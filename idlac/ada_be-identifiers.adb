@@ -78,6 +78,9 @@ package body Ada_Be.Identifiers is
       end case;
    end Ada_Full_Name;
 
+   ----------------
+   --  Ada_Name  --
+   ----------------
    function Ada_Name
      (Node : Node_Id)
      return String
@@ -85,7 +88,8 @@ package body Ada_Be.Identifiers is
       Result : String
         := Name (Node);
       First : Integer := Result'First;
-
+      NK : constant Node_Kind
+        := Kind (Node);
    begin
       while First <= Result'Last
         and then Result (First) = '_' loop
@@ -101,8 +105,8 @@ package body Ada_Be.Identifiers is
       end loop;
 
       if False
-        or else Kind (Node) = K_Forward_Interface
-        or else Kind (Node) = K_Forward_ValueType
+        or else NK = K_Forward_Interface
+        or else NK = K_Forward_ValueType
       then
          return Result (First .. Result'Last) & "_Forward";
       else

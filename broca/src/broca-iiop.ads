@@ -66,8 +66,8 @@ package Broca.IIOP is
    --  Most of the fields come from the IOR itself. Socket_Addr is
    --  built from Host and Port.
 
-   --  FIXME: Rename to Profile_IIOP_Ptr. Make classwide.
    type Profile_IIOP_Access is access all Profile_IIOP_Type;
+   --  FIXME: Rename to Profile_IIOP_Ptr. Make classwide.
 
    function Find_Connection
      (Profile : access Profile_IIOP_Type)
@@ -79,9 +79,9 @@ package Broca.IIOP is
      (Profile : Profile_IIOP_Type)
      return IOP.Profile_Tag;
 
-   procedure Create_Profile
-     (Buffer : access Broca.Buffers.Buffer_Type;
-      Profile : out IOP.Profile_Ptr);
+   procedure Marshall_Profile_Body
+     (Buffer  : access Buffers.Buffer_Type;
+      Profile : Profile_IIOP_Type);
 
 private
 

@@ -1,0 +1,15 @@
+ROOT=../../..
+IDLAC = $(ROOT)/idlac/idlac
+
+CLEANFILES = *.ads *.adb
+
+DISTCLEANFILES =
+
+SUFFIXES = .idl .ads .adb
+
+all-local:: $(DEPS)
+
+$(IDLAC): force
+	cd $(ROOT)/idlac && $(MAKE) idlac
+
+force::

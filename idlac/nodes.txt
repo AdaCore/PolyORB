@@ -113,6 +113,13 @@ Operation <-- Scope
   Is_Implicit_Inherited : Boolean := False
   --  Expansion attribute: this operation
   --  is inherited from the first parent.
+  Is_Directly_Supported : Boolean := False
+  --  Expansion attribute: this operation is copied
+  --  from one of this valuetype's supported interfaces
+  Oldest_ValueType_That_Has_It : Node_Id := No_Node
+  --  Expansion attribute: when an operation is copied down
+  --  to a valuetype from a supported interface, then this attribute
+  --  is set to this valuetype.
 
 Attribute
   Is_Readonly : Boolean
@@ -155,6 +162,10 @@ Param
   Mode : Param_Mode
   Param_Type : Node_Id
   Declarator : Node_Id
+  Is_Returns : Boolean := False
+  --  Expansion attribute: is this a mode out
+  --  formal that represents the return value
+  --  of a function with out or inout formals?
 
 Exception <-- Scope
   Members : Node_List

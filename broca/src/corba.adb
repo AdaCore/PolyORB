@@ -50,6 +50,10 @@ package body CORBA is
      := Broca.Debug.Is_Active ("corba");
    procedure O is new Broca.Debug.Output (Flag);
 
+   Flag2 : constant Natural
+     := Broca.Debug.Is_Active ("corba_reference_count");
+   procedure O2 is new Broca.Debug.Output (Flag2);
+
    ---------------------------------
    -- String conversion functions --
    ---------------------------------
@@ -539,12 +543,15 @@ package body CORBA is
          Param_Nb : Unsigned_Long := Parameter_Count (Self);
          Member : Bounds_Members;
       begin
+         pragma Debug (O ("member_type : enter"));
          --  See the big explanation after the declaration of
          --  typecode.object in the private part of corba.typecode
          --  to understand the magic numbers used here.
          case Kind (Self) is
             when Tk_Struct
               | Tk_Except =>
+               pragma Debug (O ("member_type : dealing with a struct "
+                                & "or an exception"));
                if Param_Nb < 2 * Index + 4 then
                   Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
                                                          Member);
@@ -939,7 +946,9 @@ package body CORBA is
          pragma Debug (O ("Get_Parameter : Index = " &
                           CORBA.Unsigned_Long'Image (Index)));
          pragma Assert (Ptr /= null);
+         pragma Debug (O ("Get_Parameter : assert OK"));
          if Index /= 0 then
+            pragma Debug (O ("Get_Parameter : index /= 0"));
             for I in 0 .. Index - 1 loop
                Ptr := Ptr.Next;
                pragma Assert (Ptr /= null);
@@ -1116,8 +1125,10 @@ package body CORBA is
       --  TC_String  --
       -----------------
       function TC_String return TypeCode.Object is
+         Result : TypeCode.Object := PTC_String;
       begin
-         return PTC_String;
+         Add_Parameter (Result, To_Any (CORBA.Unsigned_Long (0)));
+         return Result;
       end TC_String;
 
       ----------------------
@@ -1263,6 +1274,16 @@ package body CORBA is
    --  Any  --
    -----------
 
+   -------------------
+   --  Get_Members  --
+   -------------------
+   procedure Get_Members
+     (From : Ada.Exceptions.Exception_Occurrence;
+      To   : out UnknownUserException_Members) is
+   begin
+      Broca.Exceptions.User_Get_Members (From, To);
+   end Get_Members;
+
    -----------
    --  "="  --
    -----------
@@ -1280,50 +1301,50 @@ package body CORBA is
             return True;
          when Tk_Short =>
             pragma Debug (O ("Equal (Any) : end"));
-            return Content_Short_Ptr (Left.The_Value).Value =
-              Content_Short_Ptr (Right.The_Value).Value;
+            return Content_Short_Ptr (Get_Value (Left)).Value =
+              Content_Short_Ptr (Get_Value (Right)).Value;
          when Tk_Long =>
             pragma Debug (O ("Equal (Any) : end"));
-            return Content_Long_Ptr (Left.The_Value).Value =
-              Content_Long_Ptr (Right.The_Value).Value;
+            return Content_Long_Ptr (Get_Value (Left)).Value =
+              Content_Long_Ptr (Get_Value (Right)).Value;
          when Tk_Ushort =>
             pragma Debug (O ("Equal (Any) : end"));
-            return Content_UShort_Ptr (Left.The_Value).Value =
-              Content_UShort_Ptr (Right.The_Value).Value;
+            return Content_UShort_Ptr (Get_Value (Left)).Value =
+              Content_UShort_Ptr (Get_Value (Right)).Value;
          when Tk_Ulong =>
             pragma Debug (O ("Equal (Any) : end"));
-            return Content_ULong_Ptr (Left.The_Value).Value =
-              Content_ULong_Ptr (Right.The_Value).Value;
+            return Content_ULong_Ptr (Get_Value (Left)).Value =
+              Content_ULong_Ptr (Get_Value (Right)).Value;
          when Tk_Float =>
             pragma Debug (O ("Equal (Any) : end"));
-            return Content_Float_Ptr (Left.The_Value).Value =
-              Content_Float_Ptr (Right.The_Value).Value;
+            return Content_Float_Ptr (Get_Value (Left)).Value =
+              Content_Float_Ptr (Get_Value (Right)).Value;
          when Tk_Double =>
             pragma Debug (O ("Equal (Any) : end"));
-            return Content_Double_Ptr (Left.The_Value).Value =
-              Content_Double_Ptr (Right.The_Value).Value;
+            return Content_Double_Ptr (Get_Value (Left)).Value =
+              Content_Double_Ptr (Get_Value (Right)).Value;
          when Tk_Boolean =>
             pragma Debug (O ("Equal (Any) : end"));
-            return Content_Boolean_Ptr (Left.The_Value).Value =
-              Content_Boolean_Ptr (Right.The_Value).Value;
+            return Content_Boolean_Ptr (Get_Value (Left)).Value =
+              Content_Boolean_Ptr (Get_Value (Right)).Value;
          when Tk_Char =>
             pragma Debug (O ("Equal (Any) : end"));
-            return Content_Char_Ptr (Left.The_Value).Value =
-              Content_Char_Ptr (Right.The_Value).Value;
+            return Content_Char_Ptr (Get_Value (Left)).Value =
+              Content_Char_Ptr (Get_Value (Right)).Value;
          when Tk_Octet =>
             pragma Debug (O ("Equal (Any) : comparing with a tk_octet"));
             pragma Debug (O ("Equal (Any) : end"));
-            return Content_Octet_Ptr (Left.The_Value).Value =
-              Content_Octet_Ptr (Right.The_Value).Value;
+            return Content_Octet_Ptr (Get_Value (Left)).Value =
+              Content_Octet_Ptr (Get_Value (Right)).Value;
          when Tk_Any =>
             pragma Debug (O ("Equal (Any) : end"));
-            return Equal (Content_Any_Ptr (Left.The_Value).Value,
-                          Content_Any_Ptr (Right.The_Value).Value);
+            return Equal (Content_Any_Ptr (Get_Value (Left)).Value,
+                          Content_Any_Ptr (Get_Value (Right)).Value);
          when Tk_TypeCode =>
             pragma Debug (O ("Equal (Any) : end"));
             return TypeCode.Equal
-              (Content_TypeCode_Ptr (Left.The_Value).Value,
-               Content_TypeCode_Ptr (Right.The_Value).Value);
+              (Content_TypeCode_Ptr (Get_Value (Left)).Value,
+               Content_TypeCode_Ptr (Get_Value (Right)).Value);
 
          when Tk_Principal =>
             pragma Debug (O ("Equal (Any) : end"));
@@ -1342,8 +1363,8 @@ package body CORBA is
 --             N : CORBA.Long;
 --             Cl1, Cl2 : Content_List;
 --          begin
---             Cl1 := Content_Agregat_Ptr (Left.The_Value).Value;
---             Cl2 := Content_Agregat_Ptr (Right.The_Value).Value;
+--             Cl1 := Content_Agregat_Ptr (Get_Value (Left)).Value;
+--             Cl2 := Content_Agregat_Ptr (Get_Value (Right)).Value;
 --             N := Agregate_Count (Cl1);
 --             if (N /= Agregate_Count (Cl2)) then
 --                return False;
@@ -1384,111 +1405,168 @@ package body CORBA is
    -----------------------------------
 
    function To_Any (Item : in Short) return Any is
+      Result : Any;
    begin
-      return (new Content_Short' (Value => Item),
-              TypeCode.TC_Short);
+      Set_Value (Result, new Content_Short' (Value => Item));
+      Set_Type (Result, TypeCode.TC_Short);
+      Inc_Usage (Result);
+      return Result;
    end To_Any;
 
    function To_Any (Item : in Long) return Any is
+      Result : Any;
    begin
-      return (new Content_Long' (Value => Item),
-              TypeCode.TC_Long);
+      Set_Value (Result, new Content_Long' (Value => Item));
+      Set_Type (Result, TypeCode.TC_Long);
+      Inc_Usage (Result);
+      return Result;
    end To_Any;
 
    function To_Any (Item : in Long_Long) return Any is
+      Result : Any;
    begin
-      return (new Content_Long_Long' (Value => Item),
-              TypeCode.TC_Long_Long);
+      Set_Value (Result, new Content_Long_Long' (Value => Item));
+      Set_Type (Result, TypeCode.TC_Long_Long);
+      Inc_Usage (Result);
+      return Result;
    end To_Any;
 
    function To_Any (Item : in Unsigned_Short) return Any is
+      Result : Any;
    begin
-      return (new Content_UShort' (Value => Item),
-              TypeCode.TC_Unsigned_Short);
+      Set_Value (Result, new Content_UShort' (Value => Item));
+      Set_Type (Result, TypeCode.TC_Unsigned_Short);
+      Inc_Usage (Result);
+      return Result;
    end To_Any;
 
    function To_Any (Item : in Unsigned_Long) return Any is
+      Result : Any;
    begin
-      return (new Content_ULong' (Value => Item),
-              TypeCode.TC_Unsigned_Long);
+      pragma Debug (O ("To_Any (ULong) : enter"));
+      Set_Value (Result, new Content_ULong' (Value => Item));
+      Set_Type (Result, TypeCode.TC_Unsigned_Long);
+      pragma Debug (O ("To_Any (ULong) : end"));
+      Inc_Usage (Result);
+      return Result;
    end To_Any;
 
    function To_Any (Item : in Unsigned_Long_Long) return Any is
+      Result : Any;
    begin
-      return (new Content_ULong_Long' (Value => Item),
-              TypeCode.TC_Unsigned_Long_Long);
+      Set_Value (Result, new Content_ULong_Long' (Value => Item));
+      Set_Type (Result, TypeCode.TC_Unsigned_Long_Long);
+      Inc_Usage (Result);
+      return Result;
    end To_Any;
 
    function To_Any (Item : in Float) return Any is
+      Result : Any;
    begin
-      return (new Content_Float' (Value => Item),
-              TypeCode.TC_Float);
+      Set_Value (Result, new Content_Float' (Value => Item));
+      Set_Type (Result, TypeCode.TC_Float);
+      Inc_Usage (Result);
+      return Result;
    end To_Any;
 
    function To_Any (Item : in Double) return Any is
+      Result : Any;
    begin
-      return (new Content_Double' (Value => Item),
-              TypeCode.TC_Double);
+      Set_Value (Result, new Content_Double' (Value => Item));
+      Set_Type (Result, TypeCode.TC_Double);
+      Inc_Usage (Result);
+      return Result;
    end To_Any;
 
    function To_Any (Item : in Long_Double) return Any is
+      Result : Any;
    begin
-      return (new Content_Long_Double' (Value => Item),
-              TypeCode.TC_Long_Double);
+      Set_Value (Result, new Content_Long_Double' (Value => Item));
+      Set_Type (Result, TypeCode.TC_Long_Double);
+      Inc_Usage (Result);
+      return Result;
    end To_Any;
 
    function To_Any (Item : in Boolean) return Any is
+      Result : Any;
    begin
-      return (new Content_Boolean' (Value => Item),
-              TypeCode.TC_Boolean);
+      Set_Value (Result, new Content_Boolean' (Value => Item));
+      Set_Type (Result, TypeCode.TC_Boolean);
+      Inc_Usage (Result);
+      return Result;
    end To_Any;
 
    function To_Any (Item : in Char) return Any is
+      Result : Any;
    begin
-      return (new Content_Char' (Value => Item),
-              TypeCode.TC_Char);
+      Set_Value (Result, new Content_Char' (Value => Item));
+      Set_Type (Result, TypeCode.TC_Char);
+      Inc_Usage (Result);
+      return Result;
    end To_Any;
 
    function To_Any (Item : in Wchar) return Any is
+      Result : Any;
    begin
-      return (new Content_Wchar' (Value => Item),
-              TypeCode.TC_Wchar);
+      Set_Value (Result, new Content_Wchar' (Value => Item));
+      Set_Type (Result, TypeCode.TC_Wchar);
+      Inc_Usage (Result);
+      return Result;
    end To_Any;
 
    function To_Any (Item : in Octet) return Any is
+      Result : Any;
    begin
-      return (new Content_Octet' (Value => Item),
-              TypeCode.TC_Octet);
+      Set_Value (Result, new Content_Octet' (Value => Item));
+      Set_Type (Result, TypeCode.TC_Octet);
+      Inc_Usage (Result);
+      return Result;
    end To_Any;
 
    function To_Any (Item : in Any) return Any is
+      Result : Any;
    begin
-      return (new Content_Any' (Value => Item),
-              TypeCode.TC_Any);
+      Set_Value (Result, new Content_Any' (Value => Item));
+      Set_Type (Result, TypeCode.TC_Any);
+      Inc_Usage (Result);
+      return Result;
    end To_Any;
 
    function To_Any (Item : in TypeCode.Object) return Any is
+      Result : Any;
    begin
-      return (new Content_TypeCode' (Value => Item),
-              TypeCode.TC_TypeCode);
+      Set_Value (Result, new Content_TypeCode' (Value => Item));
+      Set_Type (Result, TypeCode.TC_TypeCode);
+      Inc_Usage (Result);
+      return Result;
    end To_Any;
 
    function To_Any (Item : in CORBA.String) return Any is
+      Result : Any;
       Tco : CORBA.TypeCode.Object;
    begin
+      pragma Debug (O ("To_Any (String) : enter"));
       CORBA.TypeCode.Set_Kind (Tco, Tk_String);
       CORBA.TypeCode.Add_Parameter (Tco, To_Any (CORBA.Unsigned_Long (0)));
       --  the string is supposed to be unbounded
-      return (new Content_String' (Value => Item), Tco);
+      Set_Value (Result, new Content_String' (Value => Item));
+      Set_Type (Result, Tco);
+      pragma Debug (O ("To_Any (String) : end"));
+      Inc_Usage (Result);
+      return Result;
    end To_Any;
 
    function To_Any (Item : in CORBA.Wide_String) return Any is
+      Result : Any;
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set_Kind (Tco, Tk_Wstring);
       CORBA.TypeCode.Add_Parameter (Tco, To_Any (CORBA.Unsigned_Long (0)));
       --  the string is supposed to be unbounded
-      return (new Content_Wide_String' (Value => Item), Tco);
+      Set_Value (Result, new Content_Wide_String' (Value => Item));
+      Set_Type (Result, Tco);
+      Inc_Usage (Result);
+      return Result;
    end To_Any;
 
    -------------------------------------
@@ -1497,146 +1575,159 @@ package body CORBA is
 
    function From_Any (Item : in Any) return Short is
    begin
-      if (TypeCode.Kind (Item.The_Type) /= Tk_Short) then
+      pragma Debug (O ("From_Any (Short) : enter & end"));
+      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Short) then
          raise Bad_TypeCode;
       end if;
       pragma Debug (O ("From_Any (Short) : is_empty = "
                        & Boolean'Image (CORBA.Is_Empty (Item))));
-      return Content_Short_Ptr (Item.The_Value).Value;
+      pragma Debug (O ("From_Any (Short) : Item type is "
+                       & Ada.Tags.External_Tag (Get_Value (Item).all'Tag)));
+      pragma Debug (O ("From_Any (Short) : value is "
+                       & CORBA.Short'Image
+                       (Content_Short_Ptr (Get_Value (Item)).Value)));
+      return Content_Short_Ptr (Get_Value (Item)).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Long is
    begin
-      if (TypeCode.Kind (Item.The_Type) /= Tk_Long) then
+      pragma Debug (O ("From_Any (Long) : enter & end"));
+      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Long) then
          raise Bad_TypeCode;
       end if;
-      return Content_Long_Ptr (Item.The_Value).Value;
+      return Content_Long_Ptr (Get_Value (Item)).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Long_Long is
    begin
-      if (TypeCode.Kind (Item.The_Type) /= Tk_Longlong) then
+      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Longlong) then
          raise Bad_TypeCode;
       end if;
-      return Content_Long_Long_Ptr (Item.The_Value).Value;
+      return Content_Long_Long_Ptr (Get_Value (Item)).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Unsigned_Short is
    begin
-      if (TypeCode.Kind (Item.The_Type) /= Tk_Ushort) then
+      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Ushort) then
          raise Bad_TypeCode;
       end if;
-      return Content_UShort_Ptr (Item.The_Value).Value;
+      return Content_UShort_Ptr (Get_Value (Item)).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Unsigned_Long is
    begin
-      if TypeCode.Kind (Item.The_Type) /= Tk_Ulong then
+      if TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Ulong then
          raise Bad_TypeCode;
       end if;
-      pragma Assert (Item.The_Value /= null);
+      pragma Assert (Get_Value (Item) /= null);
       pragma Debug (O ("any content type is "
-                       & Ada.Tags.External_Tag (Item.The_Value'Tag)));
-      return Content_ULong_Ptr (Item.The_Value).Value;
+                       & Ada.Tags.External_Tag (Get_Value (Item).all'Tag)));
+      return Content_ULong_Ptr (Get_Value (Item)).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Unsigned_Long_Long is
    begin
-      if TypeCode.Kind (Item.The_Type) /= Tk_Ulonglong then
+      if TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Ulonglong then
          raise Bad_TypeCode;
       end if;
-      return Content_ULong_Long_Ptr (Item.The_Value).Value;
+      return Content_ULong_Long_Ptr (Get_Value (Item)).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Float is
    begin
-      if (TypeCode.Kind (Item.The_Type) /= Tk_Float) then
+      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Float) then
          raise Bad_TypeCode;
       end if;
-      return Content_Float_Ptr (Item.The_Value).Value;
+      return Content_Float_Ptr (Get_Value (Item)).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Double is
    begin
-      if (TypeCode.Kind (Item.The_Type) /= Tk_Double) then
+      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Double) then
          raise Bad_TypeCode;
       end if;
-      return Content_Double_Ptr (Item.The_Value).Value;
+      return Content_Double_Ptr (Get_Value (Item)).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Long_Double is
    begin
-      if (TypeCode.Kind (Item.The_Type) /= Tk_Longdouble) then
+      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Longdouble) then
          raise Bad_TypeCode;
       end if;
-      return Content_Long_Double_Ptr (Item.The_Value).Value;
+      return Content_Long_Double_Ptr (Get_Value (Item)).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Boolean is
    begin
-      if (TypeCode.Kind (Item.The_Type) /= Tk_Boolean) then
+      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Boolean) then
          raise Bad_TypeCode;
       end if;
-      return Content_Boolean_Ptr (Item.The_Value).Value;
+      return Content_Boolean_Ptr (Get_Value (Item)).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Char is
    begin
-      if (TypeCode.Kind (Item.The_Type) /= Tk_Char) then
+      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Char) then
          raise Bad_TypeCode;
       end if;
-      return Content_Char_Ptr (Item.The_Value).Value;
+      return Content_Char_Ptr (Get_Value (Item)).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Wchar is
    begin
-      if (TypeCode.Kind (Item.The_Type) /= Tk_Widechar) then
+      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Widechar) then
          raise Bad_TypeCode;
       end if;
-      return Content_Wchar_Ptr (Item.The_Value).Value;
+      return Content_Wchar_Ptr (Get_Value (Item)).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Octet is
    begin
-      if (TypeCode.Kind (Item.The_Type) /= Tk_Octet) then
+      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Octet) then
          raise Bad_TypeCode;
       end if;
-      return Content_Octet_Ptr (Item.The_Value).Value;
+      return Content_Octet_Ptr (Get_Value (Item)).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Any is
    begin
-      if (TypeCode.Kind (Item.The_Type) /= Tk_Any) then
+      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Any) then
          raise Bad_TypeCode;
       end if;
-      return Content_Any_Ptr (Item.The_Value).Value;
+      return Content_Any_Ptr (Get_Value (Item)).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return TypeCode.Object is
    begin
       pragma Debug (O ("From_Any (typeCode) : enter & end"));
-      pragma Debug (O ("From_Any (typeCode) : Kind (Item) is "
-                       & CORBA.TCKind'Image (TypeCode.Kind (Item.The_Type))));
-      if (TypeCode.Kind (Item.The_Type) /= Tk_TypeCode) then
+      pragma Debug
+        (O ("From_Any (typeCode) : Kind (Item) is "
+            & CORBA.TCKind'Image (TypeCode.Kind (Get_Precise_Type (Item)))));
+      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_TypeCode) then
          raise Bad_TypeCode;
       end if;
-      return Content_TypeCode_Ptr (Item.The_Value).Value;
+      return Content_TypeCode_Ptr (Get_Value (Item)).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return CORBA.String is
    begin
-      if (TypeCode.Kind (Item.The_Type) /= Tk_String) then
+      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_String) then
+         pragma Debug (O ("From_Any (String) : type is supposed to be "
+                          & TCKind'Image (TypeCode.Kind
+                                          (Get_Precise_Type (Item)))));
+         pragma Debug (O ("From_Any (String) : actual type is "
+                          & Ada.Tags.External_Tag (Get_Value (Item).all'Tag)));
          raise Bad_TypeCode;
       end if;
-      return Content_String_Ptr (Item.The_Value).Value;
+      return Content_String_Ptr (Get_Value (Item)).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return CORBA.Wide_String is
    begin
-      if (TypeCode.Kind (Item.The_Type) /= Tk_Wstring) then
+      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Wstring) then
          raise Bad_TypeCode;
       end if;
-      return Content_Wide_String_Ptr (Item.The_Value).Value;
+      return Content_Wide_String_Ptr (Get_Value (Item)).Value;
    end From_Any;
 
    ----------------
@@ -1644,8 +1735,21 @@ package body CORBA is
    ----------------
    function Get_Type (The_Any : in Any) return  TypeCode.Object is
    begin
+      pragma Debug (O ("Get_Type : enter & end"));
       return The_Any.The_Type;
    end Get_Type;
+
+   ------------------------
+   --  Get_Precise_Type  --
+   ------------------------
+   function Get_Precise_Type (The_Any : in Any) return  TypeCode.Object is
+      Result : TypeCode.Object := Get_Type (The_Any);
+   begin
+      while CORBA.TypeCode.Kind (Result) = Tk_Alias loop
+         Result := CORBA.TypeCode.Content_Type (Result);
+      end loop;
+      return Result;
+   end Get_Precise_Type;
 
    ----------------
    --  Set_Type  --
@@ -1668,8 +1772,14 @@ package body CORBA is
    --  Get_Empty_Any  --
    ---------------------
    function Get_Empty_Any (Tc : TypeCode.Object) return Any is
+      Result : Any;
    begin
-      return (The_Type => Tc, The_Value => Null_Content_Ptr);
+      pragma Debug (O ("Get_Empty_Any : enter"));
+      Set_Type (Result, Tc);
+      pragma Debug (O ("Get_Empty_Any : type set"));
+      Inc_Usage (Result);
+      pragma Debug (O ("Get_Empty_Any : usage incremented"));
+      return Result;
    end Get_Empty_Any;
 
    -----------
@@ -1681,7 +1791,8 @@ package body CORBA is
    ----------------
    function Is_Empty (Any_Value : in CORBA.Any) return Boolean is
    begin
-      return Any_Value.The_Value = null;
+      pragma Debug (O ("Is_empty : enter & end"));
+      return Get_Value (Any_Value) = null;
    end Is_Empty;
 
    ---------------------
@@ -1691,10 +1802,16 @@ package body CORBA is
                             Value : CORBA.Octet) is
       use TypeCode;
    begin
-      if Get_Type (Any_Value) /= CORBA.TC_Octet then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Octet then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      Content_Octet_Ptr (Any_Value.The_Value).Value := Value;
+      Any_Value.Any_Lock.Lock_W;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Octet_Ptr (Any_Value.The_Value.all).Value := Value;
+      else
+         Any_Value.The_Value.all := new Content_Octet'(Value => Value);
+      end if;
+      Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1704,10 +1821,20 @@ package body CORBA is
                             Value : in CORBA.Short) is
       use TypeCode;
    begin
-      if Get_Type (Any_Value) /= CORBA.TC_Short then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Short then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      Content_Short_Ptr (Any_Value.The_Value).Value := Value;
+      Any_Value.Any_Lock.Lock_W;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Short_Ptr (Any_Value.The_Value.all).Value := Value;
+      else
+         Any_Value.The_Value.all := new Content_Short'(Value => Value);
+      end if;
+      Any_Value.Any_Lock.Unlock_W;
+      pragma Debug (O ("Set_Any_Value : the any value is "
+                       & CORBA.Short'Image
+                       (Content_Short_Ptr
+                        (Get_Value (Any_Value)).Value)));
    end Set_Any_Value;
 
    ---------------------
@@ -1717,10 +1844,16 @@ package body CORBA is
                             Value : in CORBA.Long) is
       use TypeCode;
    begin
-      if Get_Type (Any_Value) /= CORBA.TC_Long then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Long then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      Content_Long_Ptr (Any_Value.The_Value).Value := Value;
+      Any_Value.Any_Lock.Lock_W;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Long_Ptr (Any_Value.The_Value.all).Value := Value;
+      else
+         Any_Value.The_Value.all := new Content_Long'(Value => Value);
+      end if;
+      Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1730,10 +1863,16 @@ package body CORBA is
                             Value : in CORBA.Long_Long) is
       use TypeCode;
    begin
-      if Get_Type (Any_Value) /= CORBA.TC_Long_Long then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Longlong then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      Content_Long_Long_Ptr (Any_Value.The_Value).Value := Value;
+      Any_Value.Any_Lock.Lock_W;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Long_Long_Ptr (Any_Value.The_Value.all).Value := Value;
+      else
+         Any_Value.The_Value.all := new Content_Long_Long'(Value => Value);
+      end if;
+      Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1743,10 +1882,16 @@ package body CORBA is
                             Value : in CORBA.Unsigned_Short) is
       use TypeCode;
    begin
-      if Get_Type (Any_Value) /= CORBA.TC_Unsigned_Short then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Ushort then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      Content_UShort_Ptr (Any_Value.The_Value).Value := Value;
+      Any_Value.Any_Lock.Lock_W;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_UShort_Ptr (Any_Value.The_Value.all).Value := Value;
+      else
+         Any_Value.The_Value.all := new Content_UShort'(Value => Value);
+      end if;
+      Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1756,10 +1901,16 @@ package body CORBA is
                             Value : in CORBA.Unsigned_Long) is
       use TypeCode;
    begin
-      if Get_Type (Any_Value) /= CORBA.TC_Unsigned_Long then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Ulong then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      Content_ULong_Ptr (Any_Value.The_Value).Value := Value;
+      Any_Value.Any_Lock.Lock_W;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_ULong_Ptr (Any_Value.The_Value.all).Value := Value;
+      else
+         Any_Value.The_Value.all := new Content_ULong'(Value => Value);
+      end if;
+      Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1769,10 +1920,18 @@ package body CORBA is
                             Value : in CORBA.Unsigned_Long_Long) is
       use TypeCode;
    begin
-      if Get_Type (Any_Value) /= CORBA.TC_Unsigned_Long_Long then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /=
+        Tk_Ulonglong then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      Content_ULong_Long_Ptr (Any_Value.The_Value).Value := Value;
+      Any_Value.Any_Lock.Lock_W;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_ULong_Long_Ptr (Any_Value.The_Value.all).Value := Value;
+      else
+         Any_Value.The_Value.all :=
+          new Content_ULong_Long'(Value => Value);
+      end if;
+      Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1782,10 +1941,16 @@ package body CORBA is
                             Value : in CORBA.Boolean) is
       use TypeCode;
    begin
-      if Get_Type (Any_Value) /= CORBA.TC_Boolean then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Boolean then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      Content_Boolean_Ptr (Any_Value.The_Value).Value := Value;
+      Any_Value.Any_Lock.Lock_W;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Boolean_Ptr (Any_Value.The_Value.all).Value := Value;
+      else
+         Any_Value.The_Value.all := new Content_Boolean'(Value => Value);
+      end if;
+      Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1795,10 +1960,16 @@ package body CORBA is
                             Value : in CORBA.Char) is
       use TypeCode;
    begin
-      if Get_Type (Any_Value) /= CORBA.TC_Char then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Char then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      Content_Char_Ptr (Any_Value.The_Value).Value := Value;
+      Any_Value.Any_Lock.Lock_W;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Char_Ptr (Any_Value.The_Value.all).Value := Value;
+      else
+         Any_Value.The_Value.all := new Content_Char'(Value => Value);
+      end if;
+      Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1808,10 +1979,16 @@ package body CORBA is
                             Value : in CORBA.Wchar) is
       use TypeCode;
    begin
-      if Get_Type (Any_Value) /= CORBA.TC_Wchar then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Widechar then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      Content_Wchar_Ptr (Any_Value.The_Value).Value := Value;
+      Any_Value.Any_Lock.Lock_W;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Wchar_Ptr (Any_Value.The_Value.all).Value := Value;
+      else
+         Any_Value.The_Value.all := new Content_Wchar'(Value => Value);
+      end if;
+      Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1821,10 +1998,16 @@ package body CORBA is
                             Value : in CORBA.String) is
       use TypeCode;
    begin
-      if Get_Type (Any_Value) /= CORBA.TC_String then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_String then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      Content_String_Ptr (Any_Value.The_Value).Value := Value;
+      Any_Value.Any_Lock.Lock_W;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_String_Ptr (Any_Value.The_Value.all).Value := Value;
+      else
+         Any_Value.The_Value.all := new Content_String'(Value => Value);
+      end if;
+      Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1834,10 +2017,16 @@ package body CORBA is
                             Value : in CORBA.Wide_String) is
       use TypeCode;
    begin
-      if Get_Type (Any_Value) /= CORBA.TC_Wide_String then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Wstring then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      Content_Wide_String_Ptr (Any_Value.The_Value).Value := Value;
+      Any_Value.Any_Lock.Lock_W;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Wide_String_Ptr (Any_Value.The_Value.all).Value := Value;
+      else
+         Any_Value.The_Value.all := new Content_Wide_String'(Value => Value);
+      end if;
+      Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1847,10 +2036,16 @@ package body CORBA is
                             Value : in CORBA.Float) is
       use TypeCode;
    begin
-      if Get_Type (Any_Value) /= CORBA.TC_Float then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Float then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      Content_Float_Ptr (Any_Value.The_Value).Value := Value;
+      Any_Value.Any_Lock.Lock_W;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Float_Ptr (Any_Value.The_Value.all).Value := Value;
+      else
+         Any_Value.The_Value.all := new Content_Float'(Value => Value);
+      end if;
+      Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1860,10 +2055,16 @@ package body CORBA is
                             Value : in CORBA.Double) is
       use TypeCode;
    begin
-      if Get_Type (Any_Value) /= CORBA.TC_Double then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Double then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      Content_Double_Ptr (Any_Value.The_Value).Value := Value;
+      Any_Value.Any_Lock.Lock_W;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Double_Ptr (Any_Value.The_Value.all).Value := Value;
+      else
+         Any_Value.The_Value.all := new Content_Double'(Value => Value);
+      end if;
+      Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1873,10 +2074,17 @@ package body CORBA is
                             Value : in CORBA.Long_Double) is
       use TypeCode;
    begin
-      if Get_Type (Any_Value) /= CORBA.TC_Long_Double then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /=
+        Tk_Longdouble then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      Content_Long_Double_Ptr (Any_Value.The_Value).Value := Value;
+      Any_Value.Any_Lock.Lock_W;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Long_Double_Ptr (Any_Value.The_Value.all).Value := Value;
+      else
+         Any_Value.The_Value.all := new Content_Long_Double'(Value => Value);
+      end if;
+      Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1886,10 +2094,16 @@ package body CORBA is
                             Value : in CORBA.TypeCode.Object) is
       use TypeCode;
    begin
-      if Get_Type (Any_Value) /= CORBA.TC_TypeCode then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_TypeCode then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      Content_TypeCode_Ptr (Any_Value.The_Value).Value := Value;
+      Any_Value.Any_Lock.Lock_W;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_TypeCode_Ptr (Any_Value.The_Value.all).Value := Value;
+      else
+         Any_Value.The_Value.all := new Content_TypeCode'(Value => Value);
+      end if;
+      Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -1899,19 +2113,49 @@ package body CORBA is
                             Value : in CORBA.Any) is
       use TypeCode;
    begin
-      if Get_Type (Any_Value) /= CORBA.TC_Any then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Any then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      --  FIXME : memory leak;
-      Content_Any_Ptr (Any_Value.The_Value).Value := Value;
+      Any_Value.Any_Lock.Lock_W;
+      if Any_Value.The_Value.all /= Null_Content_Ptr then
+         Content_Any_Ptr (Any_Value.The_Value.all).Value := Value;
+      else
+         Any_Value.The_Value.all := new Content_Any'(Value => Value);
+      end if;
+      Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
+
+   -------------------------------
+   --  Set_Any_Aggregate_Value  --
+   -------------------------------
+   procedure Set_Any_Aggregate_Value (Any_Value : in out CORBA.Any) is
+      use TypeCode;
+   begin
+      pragma Debug (O ("Set_Any_Aggregate_Value : enter"));
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Struct
+        and CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Union
+        and CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Enum
+        and CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Sequence
+        and CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Array
+        and CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Except
+      then
+         Broca.Exceptions.Raise_Bad_TypeCode;
+      end if;
+      pragma Debug (O ("Set_Any_Aggregate_Value : no exception raised"));
+      Any_Value.Any_Lock.Lock_W;
+      if Any_Value.The_Value.all = Null_Content_Ptr then
+         Any_Value.The_Value.all :=
+          new Content_Aggregate'(Value => Null_Content_List);
+      end if;
+      Any_Value.Any_Lock.Unlock_W;
+   end Set_Any_Aggregate_Value;
 
    ---------------------------
    --  Get_Aggregate_Count  --
    ---------------------------
    function Get_Aggregate_Count (Value : Any) return CORBA.Unsigned_Long is
       N : CORBA.Unsigned_Long := 0;
-      Ptr : Content_List := Content_Aggregate_Ptr (Value.The_Value).Value;
+      Ptr : Content_List := Content_Aggregate_Ptr (Get_Value (Value)).Value;
    begin
       while Ptr /= null loop
          N := N + 1;
@@ -1925,24 +2169,27 @@ package body CORBA is
    -----------------------------
    procedure Add_Aggregate_Element (Value : in out Any;
                                     Element : in Any) is
-      Cl : Content_List := Content_Aggregate_Ptr (Value.The_Value).Value;
+      Cl : Content_List;
    begin
       pragma Debug (O ("Add_Aggregate_Element : enter"));
+      Value.Any_Lock.Lock_W;
+      Cl := Content_Aggregate_Ptr (Value.The_Value.all).Value;
       pragma Debug (O ("Add_Aggregate_Element : element kind is "
                        & CORBA.TCKind'Image
                        (CORBA.TypeCode.Kind
                         (CORBA.Get_Type (Element)))));
       if Cl = Null_Content_List then
-         Content_Aggregate_Ptr (Value.The_Value).Value
-           := new Content_Cell' (Element.The_Value,
+         Content_Aggregate_Ptr (Value.The_Value.all).Value
+           := new Content_Cell' (Duplicate (Element.The_Value.all),
                                  Null_Content_List);
       else
          while Cl.Next /= Null_Content_List loop
             Cl := Cl.Next;
          end loop;
-         Cl.Next := new Content_Cell' (Element.The_Value,
+         Cl.Next := new Content_Cell' (Duplicate (Element.The_Value.all),
                                        Null_Content_List);
       end if;
+      Value.Any_Lock.Unlock_W;
       pragma Debug (O ("Add_Aggregate_Element : end"));
    end Add_Aggregate_Element;
 
@@ -1953,9 +2200,12 @@ package body CORBA is
                                    Tc : CORBA.TypeCode.Object;
                                    Index : CORBA.Unsigned_Long)
                                    return Any is
-      Ptr : Content_List := Content_Aggregate_Ptr (Value.The_Value).Value;
+      Result : Any;
+      Ptr : Content_List;
    begin
       pragma Debug (O ("Get_Aggregate_Element : enter"));
+      Value.Any_Lock.Lock_R;
+      Ptr := Content_Aggregate_Ptr (Value.The_Value.all).Value;
       pragma Debug (O ("Get_Aggregate_Element : Index = "
                        & CORBA.Unsigned_Long'Image (Index)
                        & ", aggregate_count = "
@@ -1967,8 +2217,14 @@ package body CORBA is
             Ptr := Ptr.Next;
          end loop;
       end if;
+      pragma Assert (Ptr /= null);
+      pragma Assert (Ptr.The_Value /= null);
+      Result.The_Value.all := Duplicate (Ptr.The_Value);
+      Value.Any_Lock.Unlock_R;
+      Inc_Usage (Result);
+      Set_Type (Result, Tc);
       pragma Debug (O ("Get_Aggregate_Element : end"));
-      return (The_Value => Ptr.The_Value, The_Type => Tc);
+      return Result;
    end Get_Aggregate_Element;
 
    -------------------------------
@@ -1978,11 +2234,397 @@ package body CORBA is
                                      return Any is
       Result : Any;
    begin
-      Result.The_Value :=
-       new Content_Aggregate'(Value => Null_Content_List);
-      Result.The_Type := Tc;
+      Set_Value (Result,
+                 new Content_Aggregate'(Value => Null_Content_List));
+      Set_Type (Result, Tc);
+      Inc_Usage (Result);
       return Result;
    end Get_Empty_Any_Aggregate;
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (List : in Content_List) return Content_List is
+   begin
+      pragma Debug (O ("Duplicate (Content_List) : enter & end"));
+      if List /= null then
+         return new Content_Cell'(The_Value => List.The_Value,
+                                  Next => Duplicate (List.Next));
+      else
+         return null;
+      end if;
+   end Duplicate;
+
+   -----------------------
+   --  Deep_Deallocate  --
+   -----------------------
+   procedure Deep_Deallocate (List : in out Content_List) is
+   begin
+      if List /= null then
+         Deep_Deallocate (List.Next);
+         Deallocate (List.The_Value);
+         Deallocate (List);
+      end if;
+   end Deep_Deallocate;
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (Object : access Content)
+                       return Any_Content_Ptr is
+   begin
+      --  we should never be here since Any_Content_Ptr should
+      --  never be the real type of a variable
+      pragma Debug (O ("Duplicate (Any_Content_Ptr) : enter & end"));
+      Broca.Exceptions.Raise_Internal;
+      return null;
+   end Duplicate;
+
+   ------------------
+   --  Deallocate  --
+   ------------------
+   procedure Deallocate (Object : access Content) is
+      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
+   begin
+      Deallocate_Any_Content (Obj);
+   end Deallocate;
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (Object : access Content_Octet)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_Octet'
+        (Value => Content_Octet_Ptr (Object).Value);
+   end Duplicate;
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (Object : access Content_Short)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_Short'
+        (Value => Content_Short_Ptr (Object).Value);
+   end Duplicate;
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (Object : access Content_Long)
+                       return Any_Content_Ptr is
+   begin
+      pragma Debug (O ("Duplicate (Long) : enter & end"));
+      return new Content_Long'
+        (Value => Content_Long_Ptr (Object).Value);
+   end Duplicate;
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (Object : access Content_Long_Long)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_Long_Long'
+        (Value => Content_Long_Long_Ptr (Object).Value);
+   end Duplicate;
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (Object : access Content_UShort)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_UShort'
+        (Value => Content_UShort_Ptr (Object).Value);
+   end Duplicate;
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (Object : access Content_ULong)
+                       return Any_Content_Ptr is
+   begin
+      pragma Debug (O ("Duplicate (ULong) : enter & end"));
+      return new Content_ULong'
+        (Value => Content_ULong_Ptr (Object).Value);
+   end Duplicate;
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (Object : access Content_ULong_Long)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_ULong_Long'
+        (Value => Content_ULong_Long_Ptr (Object).Value);
+   end Duplicate;
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (Object : access Content_Boolean)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_Boolean'
+        (Value => Content_Boolean_Ptr (Object).Value);
+   end Duplicate;
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (Object : access Content_Char)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_Char'
+        (Value => Content_Char_Ptr (Object).Value);
+   end Duplicate;
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (Object : access Content_Wchar)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_Wchar'
+        (Value => Content_Wchar_Ptr (Object).Value);
+   end Duplicate;
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (Object : access Content_String)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_String'
+        (Value => Content_String_Ptr (Object).Value);
+   end Duplicate;
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (Object : access Content_Wide_String)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_Wide_String'
+        (Value => Content_Wide_String_Ptr (Object).Value);
+   end Duplicate;
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (Object : access Content_Float)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_Float'
+        (Value => Content_Float_Ptr (Object).Value);
+   end Duplicate;
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (Object : access Content_Double)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_Double'
+        (Value => Content_Double_Ptr (Object).Value);
+   end Duplicate;
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (Object : access Content_Long_Double)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_Long_Double'
+        (Value => Content_Long_Double_Ptr (Object).Value);
+   end Duplicate;
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (Object : access Content_TypeCode)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_TypeCode'
+        (Value => Content_TypeCode_Ptr (Object).Value);
+   end Duplicate;
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (Object : access Content_Any)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_Any'
+        (Value => Content_Any_Ptr (Object).Value);
+   end Duplicate;
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (Object : access Content_Aggregate)
+                       return Any_Content_Ptr is
+   begin
+      pragma Debug (O ("Duplicate (Content_Aggregate) : enter & end"));
+      return new Content_Aggregate'
+        (Value => Duplicate
+         (Content_Aggregate_Ptr (Object).Value));
+   end Duplicate;
+
+   ------------------
+   --  Deallocate  --
+   ------------------
+   procedure Deallocate (Object : in out Content_Aggregate_Ptr) is
+   begin
+      --  first deallocate every alement of the list of values
+      Deep_Deallocate (Object.Value);
+      --  then deallocate the object itself
+      Deallocate (Any_Content_Ptr (Object));
+   end Deallocate;
+
+   ------------------
+   --  Initialize  --
+   ------------------
+   procedure Initialize (Object : in out Any) is
+   begin
+      pragma Debug (O2 ("Initialize"));
+      Object.Ref_Counter := new Natural'(0);
+      Object.Any_Lock := new Broca.Locks.Rw_Lock_Type;
+      Object.The_Value := new Any_Content_Ptr'(Null_Content_Ptr);
+   end Initialize;
+
+   --------------
+   --  Adjust  --
+   --------------
+   procedure Adjust (Object : in out Any) is
+   begin
+      pragma Debug (O2 ("Adjust : enter"));
+      if Object.As_Reference then
+         Inc_Usage (Object);
+      else
+         pragma Assert (Object.Any_Lock /= null);
+         if Get_Value (Object) /= Null_Content_Ptr then
+            pragma Debug (O2 ("object type is "
+                              & Ada.Tags.External_Tag
+                              (Get_Value (Object).all'Tag)));
+            Object.The_Value :=
+             new Any_Content_Ptr'(Duplicate (Get_Value (Object)));
+         else
+            Object.The_Value := new Any_Content_Ptr'(Null_Content_Ptr);
+         end if;
+         Object.Ref_Counter := new Natural'(1);
+         Object.Any_Lock := new Broca.Locks.Rw_Lock_Type;
+      end if;
+      pragma Debug (O2 ("Adjust : end"));
+   end Adjust;
+
+   ----------------
+   --  Finalize  --
+   ----------------
+   procedure Finalize (Object : in out Any) is
+   begin
+      pragma Debug (O2 ("Finalize : enter"));
+      Dec_Usage (Object);
+      pragma Debug (O2 ("Finalize : end"));
+   end Finalize;
+
+   -----------------
+   --  Set_Value  --
+   -----------------
+   procedure Set_Value (Obj : in out Any; The_Value : in Any_Content_Ptr) is
+   begin
+      Obj.Any_Lock.Lock_W;
+      Obj.The_Value.all := The_Value;
+      Obj.Any_Lock.Unlock_W;
+   end Set_Value;
+
+   -------------------
+   --  Set_Counter  --
+   -------------------
+   procedure Set_Counter (Obj : in out Any; The_Counter : in Natural_Ptr) is
+   begin
+      Obj.Any_Lock.Lock_W;
+      Obj.Ref_Counter := The_Counter;
+      Obj.Any_Lock.Unlock_W;
+   end Set_Counter;
+
+   ---------------------
+   --  Get_Value_Ptr  --
+   ---------------------
+   function Get_Value_Ptr (Obj : Any) return Any_Content_Ptr_Ptr is
+      Content : Any_Content_Ptr_Ptr;
+   begin
+      Obj.Any_Lock.Lock_R;
+      Content := Obj.The_Value;
+      Obj.Any_Lock.Unlock_R;
+      return Content;
+   end Get_Value_Ptr;
+
+   -----------------
+   --  Get_Value  --
+   -----------------
+   function Get_Value (Obj : Any) return Any_Content_Ptr is
+      Content : Any_Content_Ptr_Ptr;
+   begin
+      Content := Get_Value_Ptr (Obj);
+      return Content.all;
+   end Get_Value;
+
+   -------------------
+   --  Get_Counter  --
+   -------------------
+   function Get_Counter (Obj : Any) return Natural_Ptr is
+      Counter : Natural_Ptr;
+   begin
+      Obj.Any_Lock.Lock_R;
+      Counter := Obj.Ref_Counter;
+      Obj.Any_Lock.Unlock_R;
+      return Counter;
+   end Get_Counter;
+
+   -----------------
+   --  Inc_Usage  --
+   -----------------
+   procedure Inc_Usage (Obj : in Any) is
+   begin
+      pragma Debug (O2 ("Inc_Usage : enter"));
+      Obj.Any_Lock.Lock_W;
+      Obj.Ref_Counter.all := Obj.Ref_Counter.all + 1;
+      Obj.Any_Lock.Unlock_W;
+      pragma Debug (O2 ("Inc_Usage : end"));
+   end Inc_Usage;
+
+   -----------------
+   --  Dec_Usage  --
+   -----------------
+   procedure Dec_Usage (Obj : in out Any) is
+   begin
+      pragma Debug (O2 ("Dec_Usage : enter"));
+      Obj.Any_Lock.Lock_W;
+      pragma Debug (O2 ("Dec_Usage : lock placed"));
+      if Obj.Ref_Counter.all > 1 then
+         Obj.Ref_Counter.all := Obj.Ref_Counter.all - 1;
+         pragma Debug (O2 ("Dec_Usage : counter decremented"));
+         Obj.Any_Lock.Unlock_W;
+         pragma Debug (O2 ("Dec_Usage : lock released"));
+      else
+         pragma Debug (O2 ("Dec_Usage : about to release the any"));
+         if Obj.The_Value.all /= Null_Content_Ptr then
+            Deallocate (Obj.The_Value.all);
+         end if;
+         pragma Debug (O2 ("Dec_Usage : content released"));
+         Deallocate_Any_Content_Ptr (Obj.The_Value);
+         pragma Debug (O2 ("Dec_Usage : content_Ptr released"));
+         Deallocate (Obj.Ref_Counter);
+         pragma Debug (O2 ("Dec_Usage : counter deallocated"));
+         Obj.Any_Lock.Unlock_W;
+         pragma Debug (O2 ("Dec_Usage : lock released"));
+         Deallocate (Obj.Any_Lock);
+      end if;
+      pragma Debug (O2 ("Dec_Usage : end"));
+   end Dec_Usage;
 
 end CORBA;
 

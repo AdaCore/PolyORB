@@ -37,6 +37,8 @@ with CORBA.Object.Helper;
 with CORBA.Context;
 with CORBA.Request;
 with CORBA.NVList;
+with CORBA.ContextList;
+with CORBA.ExceptionList;
 with CORBA.ORB;
 
 with Report;    use Report;
@@ -57,13 +59,14 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoBoolean");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
       Result : CORBA.NamedValue;
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
@@ -83,10 +86,8 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoBoolean;
 
    function EchoShort
@@ -96,13 +97,14 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoShort");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
@@ -122,10 +124,8 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoShort;
 
    function EchoLong
@@ -135,13 +135,14 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoLong");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
@@ -161,10 +162,8 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoLong;
 
    function EchoUShort
@@ -174,13 +173,14 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoUShort");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
@@ -200,10 +200,8 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoUShort;
 
    function EchoULong
@@ -213,13 +211,14 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoULong");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
@@ -239,10 +238,8 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoULong;
 
    function EchoFloat
@@ -252,13 +249,14 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoFloat");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
@@ -278,10 +276,8 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoFloat;
 
    function EchoDouble
@@ -291,13 +287,14 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoDouble");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
@@ -317,10 +314,8 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoDouble;
 
    function EchoChar
@@ -330,13 +325,14 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoChar");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
@@ -356,10 +352,8 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoChar;
 
    function EchoOctet
@@ -369,13 +363,14 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoOctet");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
@@ -395,10 +390,8 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoOctet;
 
    function EchoString
@@ -408,13 +401,14 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoString");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Arg);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
@@ -434,10 +428,8 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoString;
 
    function EchoRef
@@ -447,13 +439,14 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoRef");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.Object.Helper.To_Any (Arg);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
@@ -473,11 +466,9 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return CORBA.Object.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoRef;
 
    function EchoColor
@@ -487,13 +478,14 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoColor");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
@@ -513,11 +505,9 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoColor;
 
    function EchoArray
@@ -527,13 +517,14 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoArray");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
@@ -553,11 +544,9 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoArray;
 
    function EchoMatrix
@@ -567,13 +556,14 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoMatrix");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
@@ -593,12 +583,49 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoMatrix;
+
+   function EchoBigMatrix
+     (Self : in CORBA.Object.Ref;
+      Arg : in All_Types.BigMatrix)
+     return All_Types.BigMatrix is
+      Operation_Name : CORBA.Identifier := To_CORBA_String ("echoBigMatrix");
+      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
+      Request : CORBA.Request.Object;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument : CORBA.Any;
+      Arg_List : CORBA.NVList.Ref;
+      Result : CORBA.NamedValue;
+      Result_Name : CORBA.String := To_CORBA_String ("Result");
+   begin
+      --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
+      Argument := All_Types.Helper.To_Any (Arg);
+      CORBA.NVList.Add_Item (Arg_List,
+                             Arg_Name,
+                             Argument,
+                             CORBA.ARG_IN);
+      --  setting the result type
+      Result := (Name => Identifier (Result_Name),
+                 Argument => Get_Empty_Any (All_Types.Helper.TC_BigMatrix),
+                 Arg_Modes => 0);
+      --  creating a request
+      CORBA.Object.Create_Request (Myall_Types,
+                                   Ctx,
+                                   Operation_Name,
+                                   Arg_List,
+                                   Result,
+                                   Request,
+                                   0);
+      --  sending message
+      CORBA.Request.Invoke (Request, 0);
+      --  getting the answer
+      return All_Types.Helper.From_Any
+        (Result.Argument);
+   end EchoBigMatrix;
 
    function EchoStruct
      (Self : in CORBA.Object.Ref;
@@ -607,13 +634,14 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoStruct");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
@@ -633,11 +661,9 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoStruct;
 
    function EchoArrayStruct
@@ -647,13 +673,14 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoArrayStruct");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
@@ -673,11 +700,9 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoArrayStruct;
 
    function EchoUnion
@@ -687,13 +712,14 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoUnion");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
@@ -713,11 +739,9 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoUnion;
 
    function EchoUsequence
@@ -727,13 +751,14 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoUsequence");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
@@ -753,11 +778,9 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoUsequence;
 
    function EchoBsequence
@@ -767,13 +790,14 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoBsequence");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
@@ -793,11 +817,9 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end EchoBsequence;
 
    procedure Set_MyColor
@@ -806,13 +828,14 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("_set_myColor");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
       --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       Argument := All_Types.Helper.To_Any (Arg);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
@@ -832,19 +855,19 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
    end Set_MyColor;
 
    function Get_MyColor (Self : in CORBA.Object.Ref)
       return All_Types.Color is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("_get_myColor");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
+      --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
                  Argument => Get_Empty_Any (All_Types.Helper.TC_Color),
@@ -859,22 +882,22 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+        (Result.Argument);
    end Get_MyColor;
 
    function Get_Counter (Self : in CORBA.Object.Ref)
       return CORBA.Long is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("_get_Counter");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
+      --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
                  Argument => Get_Empty_Any (CORBA.TC_Long),
@@ -889,12 +912,51 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
-      CORBA.NVList.Free (Arg_List);
       --  getting the answer
-      return CORBA.From_Any
-        (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end Get_Counter;
+
+   procedure TestException
+     (Self : in CORBA.Object.Ref;
+      Arg : in CORBA.Long) is
+      Operation_Name : CORBA.Identifier := To_CORBA_String ("testException");
+      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
+      Request : CORBA.Request.Object;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument : CORBA.Any;
+      Arg_List : CORBA.NVList.Ref;
+      Excp_List : CORBA.ExceptionList.Ref;
+      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result : CORBA.NamedValue;
+   begin
+      --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
+      Argument := CORBA.To_Any (Arg);
+      CORBA.NVList.Add_Item (Arg_List,
+                             Arg_Name,
+                             Argument,
+                             CORBA.ARG_IN);
+      --  creating the exception list
+      CORBA.ORB.Create_List (Excp_List);
+      CORBA.ExceptionList.Add (Excp_List,
+                               All_Types.Helper.TC_My_Exception);
+      --  setting the result type
+      Result := (Name => Identifier (Result_Name),
+                 Argument => Get_Empty_Any (CORBA.TC_Void),
+                 Arg_Modes => 0);
+      --  creating a request
+      CORBA.Object.Create_Request (Myall_Types,
+                                   Ctx,
+                                   Operation_Name,
+                                   Arg_List,
+                                   Result,
+                                   Excp_List,
+                                   CORBA.ContextList.Nil_Ref,
+                                   Request,
+                                   0);
+      --  sending message
+      CORBA.Request.Invoke (Request, 0);
+   end TestException;
 
 begin
    if Ada.Command_Line.Argument_Count < 1 then
@@ -1028,6 +1090,26 @@ begin
       begin
          Output ("test read-only attribute",
                  Counter_Second_Value = Counter_First_Value + 1);
+      end;
+
+      --  Exceptions
+      declare
+         Ok : Boolean;
+      begin
+         Ok := False;
+         declare
+            Member : UnknownUserException_Members;
+            Actual_Member : My_Exception_Members;
+         begin
+            testException (Myall_types, 2485);
+         exception
+            when E : UnknownUserException =>
+               Get_Members (E, Member);
+               Actual_Member :=
+                 All_Types.Helper.From_Any (Member.IDL_Exception);
+               Ok := (Actual_Member.Info = 2485);
+         end;
+         Output ("test exception", Ok);
       end;
 
       exit when One_Shot;

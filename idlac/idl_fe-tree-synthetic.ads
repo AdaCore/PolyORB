@@ -59,6 +59,14 @@ package Idl_Fe.Tree.Synthetic is
      return String;
    --  The name of a K_Named node.
 
+   function Original_Operation_Type
+     (Node : in Node_Id)
+     return Node_Id;
+   --  The type that was initially declared for an operation.
+   --  The type of a non-void operation that has inout or
+   --  out arguments is changed to void by the expander;
+   --  this returns the original, non-void type.
+
    function Original_Parent_Scope
      (Node : in Node_Id)
      return Node_Id;
@@ -106,6 +114,11 @@ package Idl_Fe.Tree.Synthetic is
    --  return the first non abstract parent interface for an interface node,
    --  and the first non abstract parent valuetype for a valuetype node.
    --  returns No_Node if such a parent does not exist
+
+   function Supports_Non_Abstract_Interface (Node : in Node_Id)
+     return Boolean;
+   --  For a valuetype, returns true if it supports at least one
+   --  non abstract interface
 
    function Integer_Value
      (Node : Node_Id)

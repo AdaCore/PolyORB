@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
-with Ada.Unchecked_Conversion;
 
 with CORBA; use CORBA;
 
@@ -44,10 +43,20 @@ with Broca.Soft_Links; use Broca.Soft_Links;
 with Broca.Configuration;
 pragma Warnings (Off, Broca.Configuration);
 pragma Elaborate (Broca.Configuration);
+with Broca.Debug;
 
 with PortableServer.POA;
 
 package body PortableServer is
+
+   -----------
+   -- Debug --
+   -----------
+
+   Flag : constant Natural
+     := Broca.Debug.Is_Active ("portableserver");
+   procedure O is new Broca.Debug.Output (Flag);
+
 
    ---------------------------------------
    -- Information about a skeleton unit --
@@ -125,6 +134,7 @@ package body PortableServer is
       Current : Skeleton_List;
 
    begin
+      pragma Debug (O ("Register_Skeleton enter"));
       Enter_Critical_Section;
       Current := All_Skeletons;
       while Current /= null loop
@@ -140,12 +150,14 @@ package body PortableServer is
                      Is_A       => Is_A,
                      Dispatcher => Dispatcher),
             Next => All_Skeletons);
+      pragma Debug (O ("Registered : type_id = " &
+                       CORBA.To_Standard_String (Type_Id)));
       Leave_Critical_Section;
    end Register_Skeleton;
 
-   -----------------------
-   -- Register_Skeleton --
-   -----------------------
+   -------------------------
+   -- Unregister_Skeleton --
+   -------------------------
 
    procedure Unregister_Skeleton
      (Type_Id : in CORBA.RepositoryId)
@@ -190,7 +202,7 @@ package body PortableServer is
       return Find_Info (For_Servant).Type_Id;
    exception
       when Skeleton_Unknown =>
-         return CORBA.To_CORBA_String (OMG_RepositoryId ("OBJECT"));
+         return CORBA.To_CORBA_String (OMG_RepositoryId ("CORBA/OBJECT"));
       when others =>
          raise;
    end Get_Type_Id;
@@ -210,6 +222,7 @@ package body PortableServer is
       Info : Skeleton_Info;
 
    begin
+      pragma Debug (O ("GIOP_Dispatch"));
       Info := Find_Info (For_Servant);
       Info.Dispatcher
         (For_Servant,
@@ -220,6 +233,7 @@ package body PortableServer is
          Reply_Buffer);
    exception
       when Skeleton_Unknown =>
+         pragma Debug (O ("Skeleton is unknown"));
          Broca.Exceptions.Raise_Bad_Operation;
       when others =>
          raise;
@@ -264,14 +278,6 @@ package body PortableServer is
       Broca.Exceptions.User_Get_Members (From, To);
    end Get_Members;
 
-   function ObjectId_To_Octet_Sequence is
-      new Ada.Unchecked_Conversion
-       (ObjectId, Broca.Sequences.Octet_Sequence);
-
-   function Octet_Sequence_To_ObjectId is
-      new Ada.Unchecked_Conversion
-       (Broca.Sequences.Octet_Sequence, ObjectId);
-
    --------------
    -- Marshall --
    --------------
@@ -281,7 +287,7 @@ package body PortableServer is
       Data   : in ObjectId) is
    begin
       Broca.Sequences.Marshall
-        (Buffer, ObjectId_To_Octet_Sequence (Data));
+        (Buffer, Broca.Sequences.Octet_Sequence (Data));
    end Marshall;
 
    ----------------
@@ -292,8 +298,7 @@ package body PortableServer is
      (Buffer : access Broca.Buffers.Buffer_Type)
      return ObjectId is
    begin
-      return Octet_Sequence_To_ObjectId
-        (Broca.Sequences.Unmarshall (Buffer));
+      return ObjectId (Broca.Sequences.Unmarshall (Buffer));
    end Unmarshall;
 
 end PortableServer;

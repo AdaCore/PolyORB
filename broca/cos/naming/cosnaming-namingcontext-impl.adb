@@ -1,8 +1,41 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           ADABROKER SERVICES                             --
+--                                                                          --
+--         C O S N A M I N G . N A M I N G C O N T E X T . I M P L          --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--                                                                          --
+-- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--             AdaBroker is maintained by ENST Paris University.            --
+--                     (email: broker@inf.enst.fr)                          --
+--                                                                          --
+------------------------------------------------------------------------------
+
 with CORBA;
 with CORBA.Impl;
 with CORBA.ORB;
 
-with Broca.Basic_Startup;
+with Broca.Server_Tools;
 with Broca.Exceptions;
 with Broca.Debug;
 
@@ -113,12 +146,6 @@ package body CosNaming.NamingContext.Impl is
       Locked : Boolean := False);
    --  Check whether NC is null. If null, raise an exception and
    --  unlock global lock if locked.
-
-   function Servant_To_Reference
-     (S : Object_Ptr)
-     return CosNaming.NamingContext.Ref;
-   --  Create an external object reference for NamingContext servant S.
-   --  The servant is activated if necessary.
 
    procedure Free is
       new Ada.Unchecked_Deallocation (Bound_Object, Bound_Object_Ptr);
@@ -292,6 +319,22 @@ package body CosNaming.NamingContext.Impl is
          return Ctx;
       end if;
    end Bind_New_Context;
+
+   ------------
+   -- Create --
+   ------------
+
+   function Create
+     return Object_Ptr
+   is
+      Obj : Object_Ptr;
+
+   begin
+      Obj      := new Object;
+      Obj.Self := Obj;
+      Obj.Key  := Allocate;
+      return Obj;
+   end Create;
 
    -------------
    -- Destroy --
@@ -519,7 +562,7 @@ package body CosNaming.NamingContext.Impl is
          end;
       end if;
 
-      Iter       := new BindingIterator.Impl.Object;
+      Iter       := BindingIterator.Impl.Create;
       Iter.Index := Size + 1;
       Iter.Table := new Bindings.Element_Array (1 .. Len);
 
@@ -534,10 +577,7 @@ package body CosNaming.NamingContext.Impl is
 
       --  Activate object Iterator.
 
-      Broca.Basic_Startup.Initiate_Servant
-        (PortableServer.Servant (Iter), Ref);
-      BI := BindingIterator.Convert_Forward.To_Forward
-        (BindingIterator.Helper.To_Ref (Ref));
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Iter), BI);
    end List;
 
    -----------------------
@@ -559,43 +599,15 @@ package body CosNaming.NamingContext.Impl is
 
    function New_Context
      (Self : access Object)
-     return NamingContext.Ref is
-   begin
-      return New_Context;
-   end New_Context;
-
-   -----------------
-   -- New_Context --
-   -----------------
-
-   function New_Context
      return NamingContext.Ref
    is
-      Obj : Object_Ptr;
+      My_Ref : NamingContext.Ref;
 
    begin
-      Obj      := new Object;
-      Obj.Self := Obj;
-      Obj.Key  := Allocate;
-      return Servant_To_Reference (Obj);
+      Broca.Server_Tools.Initiate_Servant
+        (PortableServer.Servant (Create), My_Ref);
+      return My_Ref;
    end New_Context;
-
-   --------------------------
-   -- Servant_To_Reference --
-   --------------------------
-
-   function Servant_To_Reference
-     (S : Object_Ptr)
-     return CosNaming.NamingContext.Ref
-   is
-      The_Ref : CORBA.Object.Ref;
-   begin
-      Broca.Basic_Startup.Initiate_Servant
-        (PortableServer.Servant (S),
-         The_Ref);
-
-      return CosNaming.NamingContext.Helper.To_Ref (The_Ref);
-   end Servant_To_Reference;
 
    ------------
    -- Rebind --

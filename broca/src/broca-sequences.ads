@@ -35,7 +35,6 @@ with CORBA;
 with CORBA.Sequences.Unbounded;
 with Broca.Opaque; use Broca.Opaque;
 with Broca.Buffers; use Broca.Buffers;
---  pragma Elaborate_All (CORBA.Sequences.Unbounded);
 
 package Broca.Sequences is
 
@@ -52,6 +51,10 @@ package Broca.Sequences is
 
    function To_Octet_Array
      (Data : CORBA_Octet_Array)
+     return Octet_Array;
+
+   function To_Octet_Array
+     (Data : Octet_Sequence)
      return Octet_Array;
 
    procedure Marshall

@@ -1,0 +1,16 @@
+module cycle {
+
+  valuetype Node {
+public long number;
+public Node next;
+ factory createElement (in long l);
+ factory createList (in long l, in Node list);
+ long getPrevious ();
+ Node cmdLineManipulate();
+ void print();
+  };
+
+  interface NodeManipulator {
+    void remoteManipulate (inout Node n);
+  };
+};

@@ -198,10 +198,10 @@ package body Broca.Buffers is
       end if;
 
       Initialize_Buffer
-        (Buffer     => Buffer,
-         Size       => Octets.all'Length - 1,
-         Data       => Octets (Octets'First + 1)'Address,
-         Endianness => Endianness,
+        (Buffer               => Buffer,
+         Size                 => Octets'Length - 1,
+         Data                 => Octets (Octets'First + 1)'Address,
+         Endianness           => Endianness,
          Initial_CDR_Position => 1);
 
    end Decapsulate;
@@ -339,6 +339,13 @@ package body Broca.Buffers is
          Size);
       Buffer.CDR_Position := Buffer.CDR_Position + Size;
    end Extract_Data;
+
+
+   function CDR_Position (Buffer : access Buffer_Type) return Index_Type is
+   begin
+      return Buffer.CDR_Position;
+   end CDR_Position;
+
 
    -------------------------
    -- Utility subprograms --

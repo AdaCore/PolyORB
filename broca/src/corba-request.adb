@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                       C O R B A . R E Q U E S T                          --
+--                        C O R B A . R E Q U E S T                         --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -32,8 +32,8 @@
 ------------------------------------------------------------------------------
 
 with Broca.GIOP;
-with Broca.Object;
 with Broca.CDR;
+with Broca.Exceptions;
 with Broca.Debug;
 
 package body CORBA.Request is
@@ -61,53 +61,95 @@ package body CORBA.Request is
 
    procedure Invoke
      (Self         : in out Object;
-      Invoke_Flags : in     Flags  := 0) is
+      Invoke_Flags : in     Flags  := 0)
+   is
+      Target_Ref : CORBA.AbstractBase.Ref := Self.Target;
       Handler : Broca.GIOP.Request_Handler;
       Send_Request_Result : Broca.GIOP.Send_Request_Result_Type;
    begin
-      pragma Debug (O ("Invoke : enter"));
+      pragma Debug (O ("Invoke: enter"));
       loop
-         --  create the request handler
+         --  Create request handler
          Broca.GIOP.Send_Request_Marshall
            (Handler,
-            Broca.Object.Object_Ptr (CORBA.AbstractBase.Get (Self.Target)),
+            Target_Ref,
             True,
             Self.Operation);
 
-         pragma Debug (O ("Invoke : ready to marshall arguments"));
+         pragma Debug (O ("Invoke: ready to marshall arguments"));
          --  Marshall in and inout arguments.
          CORBA.NVList.Marshall (Handler.Buffer'Access,
                                 Self.Args_List);
 
-         pragma Debug (O ("Invoke : arguments marshalled"));
-         --  send the request
+         pragma Debug (O ("Invoke: arguments marshalled"));
+
          Broca.GIOP.Send_Request_Send
            (Handler,
-            Broca.Object.Object_Ptr (CORBA.AbstractBase.Get (Self.Target)),
+            Target_Ref,
             True,
             Send_Request_Result);
 
-         pragma Debug (O ("Invoke : request sent"));
+         pragma Debug (O ("Invoke: request sent"));
          case Send_Request_Result is
             when Broca.GIOP.Sr_Reply =>
-               pragma Debug (O ("Invoke : unmarshalling out args"));
-               --  Unmarshall out args
+
+               pragma Debug (O ("Invoke: unmarshalling return value"));
+               Broca.CDR.Unmarshall (Handler.Buffer'Access, Self.Result);
+
+               pragma Debug
+                 (O ("Invoke: unmarshalling inout and out arguments"));
                CORBA.NVList.Unmarshall (Handler.Buffer'Access,
                                         Self.Args_List);
-               pragma Debug (O ("Invoke : unmarshalling return value"));
-               --  Unmarshall return value
-               Broca.CDR.Unmarshall (Handler.Buffer'Access, Self.Result);
+
                Broca.GIOP.Release (Handler);
-               pragma Debug (O ("Invoke : end"));
+               pragma Debug (O ("Invoke: end"));
                return;
+
             when Broca.GIOP.Sr_No_Reply =>
                Broca.GIOP.Release (Handler);
-               pragma Debug (O ("Invoke : end"));
+               pragma Debug (O ("Invoke: end"));
                raise Program_Error;
+
             when Broca.GIOP.Sr_User_Exception =>
-               Broca.GIOP.Release (Handler);
-               pragma Debug (O ("Invoke : end"));
-               raise Program_Error;
+               --  Try to find the returned exception in the exception
+               --  list of the request.
+
+               pragma Debug (O ("Invoke: Exc_List length is " &
+                                CORBA.Unsigned_Long'Image
+                                (CORBA.ExceptionList.Get_Count
+                                 (Self.Exc_List))));
+
+               declare
+                  Exception_Repo_Id : CORBA.RepositoryId
+                    := Broca.CDR.Unmarshall (Handler.Buffer'Access);
+                  Index : CORBA.Unsigned_Long
+                    := CORBA.ExceptionList.Search_Exception_Id
+                    (Self.Exc_List, Exception_Repo_Id);
+               begin
+                  pragma Debug (O ("Invoke: Index = " &
+                                   CORBA.Unsigned_Long'Image (Index)));
+                  if Index > 0 then
+                     declare
+                        Member : UnknownUserException_Members;
+                     begin
+                        Member.IDL_Exception := CORBA.Get_Empty_Any
+                          (CORBA.ExceptionList.Item (Self.Exc_List,
+                                                     Index));
+                        Broca.CDR.Unmarshall_To_Any
+                          (Handler.Buffer'Access,
+                           Member.IDL_Exception);
+                        pragma Debug (O ("Invoke: end"));
+                        Broca.GIOP.Release (Handler);
+                        Broca.Exceptions.User_Raise_Exception
+                          (UnknownUserException'Identity,
+                           Member);
+                     end;
+                  else
+                     Broca.GIOP.Release (Handler);
+                     pragma Debug (O ("Invoke: end"));
+                     raise Program_Error;
+                  end if;
+               end;
             when Broca.GIOP.Sr_Forward =>
                null;
          end case;
@@ -148,17 +190,53 @@ package body CORBA.Request is
       Request   :    out CORBA.Request.Object;
       Req_Flags : in     Flags) is
    begin
+      Create_Request (Self,
+                      Ctx,
+                      Operation,
+                      Arg_List,
+                      Result,
+                      CORBA.ExceptionList.Nil_Ref,
+                      CORBA.ContextList.Nil_Ref,
+                      Request,
+                      Req_Flags);
+   end Create_Request;
+
+   procedure Create_Request
+     (Self      : in     CORBA.AbstractBase.Ref;
+      Ctx       : in     CORBA.Context.Ref;
+      Operation : in     Identifier;
+      Arg_List  : in     CORBA.NVList.Ref;
+      Result    : in out NamedValue;
+      Exc_List  : in     ExceptionList.Ref;
+      Ctxt_List : in     ContextList.Ref;
+      Request   :    out CORBA.Request.Object;
+      Req_Flags : in     Flags)
+   is
+      Argument : CORBA.Any;
+      The_Value : Any_Content_Ptr_Ptr;
+      The_Counter : Natural_Ptr;
+   begin
+      Result.Argument.Any_Lock.Lock_W;
+      The_Value := Result.Argument.The_Value;
+      The_Counter := Result.Argument.Ref_Counter;
+      Result.Argument.Ref_Counter.all := Result.Argument.Ref_Counter.all + 1;
+      Result.Argument.Any_Lock.Unlock_W;
+      Argument := (Ada.Finalization.Controlled with
+                   The_Value => The_Value,
+                   The_Type => Result.Argument.The_Type,
+                   As_Reference => True,
+                   Ref_Counter => The_Counter,
+                   Any_Lock => Result.Argument.Any_Lock);
       Request := (Ctx => Ctx,
                   Target => Self,
                   Operation => Operation,
                   Args_List => Arg_List,
-                  Result => Result,
+                  Result => (Name => Result.Name,
+                             Argument => Argument,
+                             Arg_Modes => Result.Arg_Modes),
+                  Exc_List  => Exc_List,
+                  Ctxt_List => Ctxt_List,
                   Req_Flags => Req_Flags);
    end Create_Request;
-
-   function Return_Value (Self : Object) return NamedValue is
-   begin
-      return Self.Result;
-   end Return_Value;
 
 end CORBA.Request;

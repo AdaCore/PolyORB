@@ -28,6 +28,13 @@ AM_CONDITIONAL(HAS_ADASOCKETS, test x$has_adasockets = xyes)
 AC_SUBST(ADASOCKETS_INCLUDE)
 AC_SUBST(ADASOCKETS_LIBS)
 AC_MSG_RESULT($has_adasockets)
+AC_MSG_CHECKING([whether to build the Interface Repository])
+ir_enabled=no
+AC_ARG_ENABLE(ir,
+[  --enable-ir             Build the Interface Repository (no)],
+[ir_enabled=${enableval}])
+AM_CONDITIONAL(ENABLE_IR, test x$ir_enabled = xyes)
+AC_MSG_RESULT($enable_ir)
 #
 # Configure AdaSockets if needed (well, in fact it will be checked anyway)
 #
@@ -69,6 +76,8 @@ AM_ADA_PREREQ(19990629, 3.12p)
 #
 AC_OUTPUT([Makefile idlac/Makefile idlac/platform.ads src/Makefile
            support/adacompiler idlac/testsuite/Makefile src/adabroker-config
+           idls/Makefile idls/cos/Makefile idls/cos/naming/Makefile
+           idls/cos/event/Makefile idls/cos/time/Makefile src/ir/Makefile
            examples/Makefile examples/all_functions/Makefile
            examples/all_types/Makefile examples/echo/Makefile
            examples/module/Makefile examples/random/Makefile

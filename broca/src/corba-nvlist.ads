@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                        C O R B A . N V L I S T                           --
+--                         C O R B A . N V L I S T                          --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -31,14 +31,24 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.AbstractBase;
 with System;
-with Ada.Unchecked_Deallocation;
+
+with CORBA.AbstractBase;
+with CORBA.Impl;
+
 with Broca.Buffers;
+
+with Sequences.Unbounded;
+pragma Elaborate_All (Sequences.Unbounded);
 
 package CORBA.NVList is
 
    type Ref is new CORBA.AbstractBase.Ref with null record;
+
+   type Object is new CORBA.Impl.Object with private;
+   type Object_Ptr is access all Object;
+
+   procedure Finalize (Obj : in out Object);
 
    procedure Add_Item
      (Self       :    Ref;
@@ -56,75 +66,43 @@ package CORBA.NVList is
 
    procedure Add_Item
      (Self : Ref;
-      Item : CORBA.NamedValue);
+      Item : in CORBA.NamedValue);
 
-   --  free and free_memory not needed in Ada
+   --  Free and Free_Memory are no-ops in Ada.
    procedure Free (Self : Ref);
-   procedure Free_Memory (Self : Ref);
+   procedure Free_Memory (Self : Ref)
+     renames Free;
 
    function Get_Count (Self : Ref) return CORBA.Long;
 
-   --  Not in spec
-   ---------------
+   -----------------------------------------
+   -- The following is AdaBroker-specific --
+   -----------------------------------------
 
-   --  to marshall all the NamedValues of an NVList
    procedure Marshall
      (Buffer : access Broca.Buffers.Buffer_Type;
       Data   : Ref);
+   --   Marshall all the NamedValues of an NVList
 
-   --  to unmarshall all the NamedValues of an NVList
    procedure Unmarshall
      (Buffer : access Broca.Buffers.Buffer_Type;
       Data : in out Ref);
+   --  Unmarshall all the NamedValues of an NVList
+
+   function Create_Object return Object_Ptr;
+   --  Create a new and empty Object
 
 private
-   --  the actual implementation of an NVList, just a list of NamedValue
-   type NV_Cell;
-   type NV_List is access all NV_Cell;
-   type NV_Cell is record
-      NV : NamedValue;
-      Next : NV_List;
+
+   --  The actual implementation of an NVList:
+   --  a list of NamedValues.
+   package NV_Sequence is new Sequences.Unbounded (CORBA.NamedValue);
+
+   type Object is new CORBA.Impl.Object with record
+      List : NV_Sequence.Sequence := NV_Sequence.Null_Sequence;
    end record;
-   Null_NVList : constant NV_List := null;
 
-   --  some usefull fonctions - no further comment are needed
-   procedure Add_Cell (List : in out NV_List;
-                       NV : in NamedValue);
-
-   procedure Free is new Ada.Unchecked_Deallocation (NV_Cell, NV_List);
-   procedure Free_All_List (List : in out NV_List);
-
-   function Length (List : in NV_List) return CORBA.Long;
-
-
-   --  in order to be able to deal with several NVLists at the
-   --  same time, each NVList is associated to a Ref.
-   --  The set of NVLists is stored in an NVList_List
-   type NVList_Cell;
-   type NVList_List is access all NVList_Cell;
-   type NVList_Cell is record
-      Obj : Ref;
-      List : NV_List;
-      Next : NVList_List;
-   end record;
-   Null_NVList_List : constant NVList_List := null;
-
-   --  Adds a cell to the list of current NVLists
-   --  The new Cell will be associated to List
-   procedure Add_NVList (Obj : in Ref;
-                         List : in NV_List);
-
-   --  removes an NV_List from the list and frees it
-   --  does nothing if the given Ref does not correspond to any list
-   procedure Remove_NVList (Obj : Ref);
-
-   --  returns the list associated to a given Ref
-   --  returns Null_NVList_List if the given Ref does not correspond
-   --  to any list
-   function Get_NVList (Obj : Ref) return NV_List;
-
-   --  to free a NV_List_Cell
-   procedure Free is new Ada.Unchecked_Deallocation
-     (NVList_Cell, NVList_List);
+   Nil_Ref : constant Ref
+     := (CORBA.AbstractBase.Ref with null record);
 
 end CORBA.NVList;

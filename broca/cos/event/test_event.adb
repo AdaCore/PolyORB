@@ -1,3 +1,36 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           ADABROKER SERVICES                             --
+--                                                                          --
+--                           T E S T _ E V E N T                            --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--                                                                          --
+-- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--             AdaBroker is maintained by ENST Paris University.            --
+--                     (email: broker@inf.enst.fr)                          --
+--                                                                          --
+------------------------------------------------------------------------------
+
 with CosNaming; use CosNaming;
 
 with CosNaming.NamingContext;
@@ -41,7 +74,9 @@ with CORBA.Object;
 with CORBA.Impl;
 with CORBA.ORB;
 
-with Broca.Basic_Startup;
+with Broca.Server_Tools; use Broca.Server_Tools;
+
+with PortableServer; use PortableServer;
 
 with Menu; use Menu;
 
@@ -53,6 +88,8 @@ procedure Test_Event is
    type Command is
      (Help,
       Quit,
+      Run,
+      Sleep,
       Connect,
       Consume,
       Produce,
@@ -69,6 +106,8 @@ procedure Test_Event is
    Help_Messages : constant array (Command) of String_Access
      := (Help    => M ("print this message"),
          Quit    => M ("quit this shell"),
+         Run     => M ("run <file of commands from this language"),
+         Sleep   => M ("sleep <seconds>"),
          Create  => M ("create <kind> <entity>"),
          Connect => M ("connect <entity> to <channel>"),
          Consume => M ("consume in <entity>"),
@@ -113,7 +152,7 @@ procedure Test_Event is
                A := EventChannel.For_Consumers (Channel);
                P := ConsumerAdmin.Obtain_Pull_Supplier (A);
                E := PullConsumer.Helper.To_Ref (Entity);
-               O := PullConsumer.Object_Of (E);
+               Reference_To_Servant (E, Servant (O));
                PullConsumer.Impl.Connect_Proxy_Pull_Supplier
                  (PullConsumer.Impl.Object_Ptr (O), P);
             end;
@@ -128,7 +167,7 @@ procedure Test_Event is
                A := EventChannel.For_Suppliers (Channel);
                P := SupplierAdmin.Obtain_Pull_Consumer (A);
                E := PullSupplier.Helper.To_Ref (Entity);
-               O := PullSupplier.Object_Of (E);
+               Reference_To_Servant (E, Servant (O));
                PullSupplier.Impl.Connect_Proxy_Pull_Consumer
                  (PullSupplier.Impl.Object_Ptr (O), P);
             end;
@@ -143,7 +182,7 @@ procedure Test_Event is
                A := EventChannel.For_Consumers (Channel);
                P := ConsumerAdmin.Obtain_Push_Supplier (A);
                E := PushConsumer.Helper.To_Ref (Entity);
-               O := PushConsumer.Object_Of (E);
+               Reference_To_Servant (E, Servant (O));
                PushConsumer.Impl.Connect_Proxy_Push_Supplier
                  (PushConsumer.Impl.Object_Ptr (O), P);
             end;
@@ -158,7 +197,7 @@ procedure Test_Event is
                A := EventChannel.For_Suppliers (Channel);
                P := SupplierAdmin.Obtain_Push_Consumer (A);
                E := PushSupplier.Helper.To_Ref (Entity);
-               O := PushSupplier.Object_Of (E);
+               Reference_To_Servant (E, Servant (O));
                PushSupplier.Impl.Connect_Proxy_Push_Consumer
                  (PushSupplier.Impl.Object_Ptr (O), P);
             end;
@@ -188,7 +227,7 @@ procedure Test_Event is
 
             begin
                C := PullConsumer.Helper.To_Ref (Entity);
-               O := PullConsumer.Object_Of (C);
+               Reference_To_Servant (C, Servant (O));
                A := PullConsumer.Impl.Pull (PullConsumer.Impl.Object_Ptr (O));
                return To_Standard_String (From_Any (A));
             end;
@@ -199,7 +238,7 @@ procedure Test_Event is
 
             begin
                C := PushConsumer.Helper.To_Ref (Entity);
-               O := PushConsumer.Object_Of (C);
+               Reference_To_Servant (C, Servant (O));
                A := PushConsumer.Impl.Pull (PushConsumer.Impl.Object_Ptr (O));
                return To_Standard_String (From_Any (A));
             end;
@@ -221,56 +260,46 @@ procedure Test_Event is
       case Kind is
          when K_Channel =>
             declare
-               C : EventChannel.Impl.Object_Ptr;
                R : EventChannel.Ref;
 
             begin
-               C := EventChannel.Impl.Create;
-               EventChannel.Set (R, CORBA.Impl.Object_Ptr (C));
+               Servant_To_Reference (Servant (EventChannel.Impl.Create), R);
                Entity := CORBA.Object.Ref (R);
             end;
 
          when K_PullConsumer =>
             declare
-               C : PullConsumer.Impl.Object_Ptr;
                R : PullConsumer.Ref;
 
             begin
-               C := PullConsumer.Impl.Create;
-               PullConsumer.Set (R, CORBA.Impl.Object_Ptr (C));
+               Servant_To_Reference (Servant (PullConsumer.Impl.Create), R);
                Entity := CORBA.Object.Ref (R);
             end;
 
          when K_PullSupplier =>
             declare
-               S : PullSupplier.Impl.Object_Ptr;
                R : PullSupplier.Ref;
 
             begin
-               S := PullSupplier.Impl.Create;
-               PullSupplier.Set (R, CORBA.Impl.Object_Ptr (S));
+               Servant_To_Reference (Servant (PullSupplier.Impl.Create), R);
                Entity := CORBA.Object.Ref (R);
             end;
 
          when K_PushConsumer =>
             declare
-               C : PushConsumer.Impl.Object_Ptr;
                R : PushConsumer.Ref;
 
             begin
-               C := PushConsumer.Impl.Create;
-               PushConsumer.Set (R, CORBA.Impl.Object_Ptr (C));
+               Servant_To_Reference (Servant (PushConsumer.Impl.Create), R);
                Entity := CORBA.Object.Ref (R);
             end;
 
          when K_PushSupplier =>
             declare
-               S : PushSupplier.Impl.Object_Ptr;
                R : PushSupplier.Ref;
 
             begin
-               S := PushSupplier.Impl.Create;
-               PushSupplier.Set (R, CORBA.Impl.Object_Ptr (S));
+               Servant_To_Reference (Servant (PushSupplier.Impl.Create), R);
                Entity := CORBA.Object.Ref (R);
             end;
       end case;
@@ -334,7 +363,7 @@ procedure Test_Event is
 
             begin
                S := PullSupplier.Helper.To_Ref (Entity);
-               O := PullSupplier.Object_Of (S);
+               Reference_To_Servant (S, Servant (O));
                PullSupplier.Impl.Push (PullSupplier.Impl.Object_Ptr (O), A);
             end;
 
@@ -344,7 +373,7 @@ procedure Test_Event is
 
             begin
                S := PushSupplier.Helper.To_Ref (Entity);
-               O := PushSupplier.Object_Of (S);
+               Reference_To_Servant (S, Servant (O));
                PushSupplier.Impl.Push (PushSupplier.Impl.Object_Ptr (O), A);
             end;
 
@@ -382,7 +411,7 @@ procedure Test_Event is
          Ada.Text_IO.Put_Line
            (C'Img & Ascii.HT & Help_Messages (C).all);
          if C = Create then
-            Ada.Text_IO.Put (Ascii.HT & "with <kind> in");
+            Ada.Text_IO.Put (Ascii.HT & "<kind> in");
             for E in Entity_Kind'Range loop
                declare
                   I : String := E'Img;
@@ -402,10 +431,10 @@ procedure Test_Event is
    Kind    : Entity_Kind;
 
 begin
-   Broca.Basic_Startup.Initiate_Server;
+   Initiate_Server;
 
    if Count ("enter naming IOR [otherwise create one]: ") = 0 then
-      Ctx := NamingContext.Impl.New_Context;
+      Servant_To_Reference (Servant (NamingContext.Impl.Create), Ctx);
       Ada.Text_IO.Put_Line
         (CORBA.To_Standard_String
          (CORBA.Object.Object_To_String
@@ -424,7 +453,9 @@ begin
 
    loop
       Argc := Count;
-      if Argc > 0 then
+      if Argc > 0
+        and then Argument (1)(Argument (1)'First) /= '#'
+      then
          begin
             case Command'Value (Argument (1).all) is
                when Help =>
@@ -478,7 +509,7 @@ begin
                   Connect_Entity (Entity, Kind, Channel);
 
                when Consume =>
-                  if Argc /= 4 then
+                  if Argc /= 3 then
                      raise Syntax_Error;
                   end if;
 
@@ -490,7 +521,7 @@ begin
                   Ada.Text_IO.Put_Line (Consume_Event (Entity, Kind));
 
                when Produce =>
-                  if Argc /= 5 then
+                  if Argc /= 4 then
                      raise Syntax_Error;
                   end if;
 
@@ -500,6 +531,23 @@ begin
                   Find_Entity (Argument (4), Entity, Kind);
                   Produce_Event (Entity, Kind, Argument (2));
 
+               when Run =>
+                  if Argc /= 2 then
+                     raise Syntax_Error;
+                  end if;
+
+                  Menu.Set_Input (Argument (2));
+
+               when Sleep =>
+                  if Argc /= 2 then
+                     raise Syntax_Error;
+                  end if;
+
+                  declare
+                     N : Natural := Natural'Value (Argument (2).all);
+                  begin
+                     delay Duration (N);
+                  end;
             end case;
 
          exception

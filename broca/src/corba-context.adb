@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                       C O R B A . C O N T E X T                          --
+--                        C O R B A . C O N T E X T                         --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --

@@ -1,7 +1,35 @@
-----------------------------------------------
---  This file has been generated automatically
---  by AdaBroker (http://adabroker.eu.org/)
-----------------------------------------------
+------------------------------------------------------------------------------
+--                                                                          --
+--                           ADABROKER SERVICES                             --
+--                                                                          --
+-- C O S E V E N T C H A N N E L A D M I N . S U P P L I E R A D M I N . I M P L  --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--                                                                          --
+-- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--             AdaBroker is maintained by ENST Paris University.            --
+--                     (email: broker@inf.enst.fr)                          --
+--                                                                          --
+------------------------------------------------------------------------------
 
 with CosEventChannelAdmin; use CosEventChannelAdmin;
 
@@ -13,16 +41,25 @@ with CosEventChannelAdmin.ProxyPullConsumer.Impl;
 with CosEventChannelAdmin.ProxyPushConsumer;
 with CosEventChannelAdmin.ProxyPushConsumer.Impl;
 
+with CosEventChannelAdmin.SupplierAdmin.Helper;
 with CosEventChannelAdmin.SupplierAdmin.Skel;
 
-with Broca.Basic_Startup; use Broca.Basic_Startup;
+with Broca.Server_Tools; use Broca.Server_Tools;
 with Broca.Soft_Links;    use  Broca.Soft_Links;
 
 with CORBA.Impl;
 
 with CORBA.Sequences.Unbounded;
 
+with PortableServer; use PortableServer;
+
+with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
+
 package body CosEventChannelAdmin.SupplierAdmin.Impl is
+
+   Flag : constant Natural := Broca.Debug.Is_Active ("consumeradmin");
+   procedure O is new Broca.Debug.Output (Flag);
 
    package PullConsumers is
       new CORBA.Sequences.Unbounded (ProxyPullConsumer.Impl.Object_Ptr);
@@ -36,7 +73,6 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
          Channel : EventChannel.Impl.Object_Ptr;
          Pushs   : PushConsumers.Sequence;
          Pulls   : PullConsumers.Sequence;
-         Mutex   : Mutex_Access;
       end record;
 
    ------------
@@ -47,37 +83,18 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
      return Object_Ptr
    is
       Supplier : Object_Ptr;
-      My_Ref   : CORBA.Object.Ref;
+      My_Ref   : SupplierAdmin.Ref;
 
    begin
+      pragma Debug (O ("create supplier admin"));
+
       Supplier        := new Object;
       Supplier.X      := new Supplier_Admin_Record;
       Supplier.X.This    := Supplier;
       Supplier.X.Channel := Channel;
-      Create (Supplier.X.Mutex);
-      Initiate_Servant (PortableServer.Servant (Supplier), My_Ref);
+      Initiate_Servant (Servant (Supplier), My_Ref);
       return Supplier;
    end Create;
-
-   --------------------------
-   -- Obtain_Push_Consumer --
-   --------------------------
-
-   function Obtain_Push_Consumer
-     (Self : access Object)
-     return ProxyPushConsumer.Ref
-   is
-      Consumer : ProxyPushConsumer.Impl.Object_Ptr;
-      Its_Ref  : ProxyPushConsumer.Ref;
-
-   begin
-      Enter  (Self.X.Mutex);
-      Consumer := ProxyPushConsumer.Impl.Create (Self.X.This);
-      PushConsumers.Append (Self.X.Pushs, Consumer);
-      ProxyPushConsumer.Set (Its_Ref, CORBA.Impl.Object_Ptr (Consumer));
-      Leave  (Self.X.Mutex);
-      return Its_Ref;
-   end Obtain_Push_Consumer;
 
    --------------------------
    -- Obtain_Pull_Consumer --
@@ -91,13 +108,37 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
       Its_Ref  : ProxyPullConsumer.Ref;
 
    begin
-      Enter  (Self.X.Mutex);
+      pragma Debug (O ("obtain proxy pull consumer from supplier admin"));
+
+      Enter_Critical_Section;
       Consumer := ProxyPullConsumer.Impl.Create (Self.X.This);
       PullConsumers.Append (Self.X.Pulls, Consumer);
-      ProxyPullConsumer.Set (Its_Ref, CORBA.Impl.Object_Ptr (Consumer));
-      Leave  (Self.X.Mutex);
+      Leave_Critical_Section;
+      Servant_To_Reference (Servant (Consumer), Its_Ref);
       return Its_Ref;
    end Obtain_Pull_Consumer;
+
+   --------------------------
+   -- Obtain_Push_Consumer --
+   --------------------------
+
+   function Obtain_Push_Consumer
+     (Self : access Object)
+     return ProxyPushConsumer.Ref
+   is
+      Consumer : ProxyPushConsumer.Impl.Object_Ptr;
+      Its_Ref  : ProxyPushConsumer.Ref;
+
+   begin
+      pragma Debug (O ("obtain proxy push consumer from supplier admin"));
+
+      Enter_Critical_Section;
+      Consumer := ProxyPushConsumer.Impl.Create (Self.X.This);
+      PushConsumers.Append (Self.X.Pushs, Consumer);
+      Leave_Critical_Section;
+      Servant_To_Reference (Servant (Consumer), Its_Ref);
+      return Its_Ref;
+   end Obtain_Push_Consumer;
 
    ----------
    -- Post --
@@ -107,9 +148,9 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
      (Self : access Object;
       Data : in CORBA.Any) is
    begin
-      Enter (Self.X.Mutex);
+      pragma Debug (O ("post new data from supplier admin to channel"));
+
       EventChannel.Impl.Post (Self.X.Channel, Data);
-      Leave (Self.X.Mutex);
    end Post;
 
 end CosEventChannelAdmin.SupplierAdmin.Impl;

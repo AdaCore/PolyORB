@@ -36,6 +36,8 @@ with Broca.IOR;
 with Broca.ORB;
 
 with CORBA.Object;
+with CORBA.NVList;
+with CORBA.Impl;
 
 with Broca.Debug;
 pragma Elaborate (Broca.Debug);
@@ -80,19 +82,43 @@ package body CORBA.ORB is
 
    procedure Run renames Broca.ORB.Run;
 
---    ----------------------------------
---    --  Dynamic Invocation Related  --
---    ----------------------------------
+   ----------------------------------
+   --  Dynamic Invocation Related  --
+   ----------------------------------
 
---    -----------------
---    -- Create_List --
---    -----------------
---    procedure Create_List
---      (Count    : in     CORBA.Long;
---       New_List :    out CORBA.NVList.Ref) is
---    begin
---       New_List := new (Ptr => new CORBA.Impl.Object);
---    end Create_List;
+   -----------------
+   -- Create_List --
+   -----------------
+   procedure Create_List
+     (Count    : in     CORBA.Long;
+      New_List :    out CORBA.NVList.Ref) is
+   begin
+      CORBA.NVList.Set
+        (New_List,
+         CORBA.Impl.Object_Ptr (CORBA.NVList.Create_Object));
+   end Create_List;
+
+   -----------------
+   -- Create_List --
+   -----------------
+   procedure Create_List
+      (New_List :    out CORBA.ExceptionList.Ref) is
+   begin
+      CORBA.ExceptionList.Set
+        (New_List,
+         CORBA.Impl.Object_Ptr (CORBA.ExceptionList.Create_Object));
+   end Create_List;
+
+   -----------------
+   -- Create_List --
+   -----------------
+   procedure Create_List
+      (New_List :    out CORBA.ContextList.Ref) is
+   begin
+      CORBA.ContextList.Set
+        (New_List,
+         CORBA.Impl.Object_Ptr (CORBA.ContextList.Create_Object));
+   end Create_List;
 
 end CORBA.ORB;
 

@@ -1396,6 +1396,7 @@ package body Idl_Fe.Parser is
            or else Kind (A_Name) = K_Interface
            or else Kind (A_Name) = K_ValueType
            or else Kind (A_Name) = K_Forward_Interface
+           or else Kind (A_Name) = K_Boxed_ValueType
            or else Kind (A_Name) = K_Forward_ValueType then
             Set_S_Type (Res, A_Name);
          else
@@ -3917,6 +3918,7 @@ package body Idl_Fe.Parser is
                                  Success : out Boolean;
                                  Expr_Type : in Constant_Value_Ptr) is
    begin
+      pragma Debug (O2 ("Parse_Primary_Expr : enter"));
       case Get_Token is
          when  T_Colon_Colon
            | T_Identifier =>
@@ -4009,6 +4011,7 @@ package body Idl_Fe.Parser is
             Next_Token;
             Parse_Or_Expr (Result, Success, Expr_Type);
             if not Success then
+               pragma Debug (O2 ("Parse_Primary_Expr : end"));
                return;
             end if;
             if Get_Token /= T_Right_Paren then
@@ -4017,6 +4020,7 @@ package body Idl_Fe.Parser is
                                            Errors.Error,
                                            Get_Token_Location);
                Success := False;
+               pragma Debug (O2 ("Parse_Primary_Expr : end"));
                return;
             end if;
             Next_Token;
@@ -4026,8 +4030,10 @@ package body Idl_Fe.Parser is
                                  Get_Token_Location);
             Result := No_Node;
             Success := False;
+            pragma Debug (O2 ("Parse_Primary_Expr : end"));
             return;
       end case;
+      pragma Debug (O2 ("Parse_Primary_Expr : end"));
       return;
    end Parse_Primary_Expr;
 
@@ -4150,15 +4156,25 @@ package body Idl_Fe.Parser is
    procedure Parse_Positive_Int_Const (Result : out Node_Id;
                                        Success : out Boolean) is
       C_Type : Constant_Value_Ptr
-        := new Constant_Value (Kind => C_ULongLong);
+        := new Constant_Value (Kind => C_General_Integer);
    begin
       --  here we can not call parse_const_exp directly since we
       --  don't have a node specifying the type of the constant
-      --  So, we call parse_or_exp and check the result as in
-      --  parse_const_exp
+      --  So, we call parse_or_exp and check the result
       Parse_Or_Expr (Result, Success, C_Type);
-      if Result /= No_Node then
-         Check_Value_Range (Result, True);
+      if Expr_Value (Result).Integer_Value < Idl_ULongLong_Min then
+         Errors.Error
+           ("The specified type for this integer constant " &
+            "does not allow a negative value",
+            Errors.Error,
+            Get_Token_Location);
+      end if;
+      if Expr_Value (Result).Integer_Value > Idl_ULongLong_Max then
+         Errors.Error
+           ("The specified type for this integer constant " &
+            "does not allow this value",
+            Errors.Error,
+            Get_Token_Location);
       end if;
       Free (C_Type);
    end Parse_Positive_Int_Const;
@@ -4385,6 +4401,7 @@ package body Idl_Fe.Parser is
                           | K_Interface
                           | K_Forward_Interface
                           | K_ValueType
+                          | K_Boxed_ValueType
                           | K_Forward_ValueType =>
                            null;
                         when others =>
@@ -6759,6 +6776,7 @@ package body Idl_Fe.Parser is
                           | K_Interface
                           | K_Forward_Interface
                           | K_ValueType
+                          | K_Boxed_ValueType
                           | K_Forward_ValueType
                           | K_Native =>
                            null;
@@ -8127,8 +8145,11 @@ package body Idl_Fe.Parser is
       Value_Type : in Constant_Value_Ptr) is
       Types_Ok : Boolean := True;
    begin
+      pragma Debug (O2 ("Check_Expr_Value : enter"));
       case Value.Kind is
          when C_General_Integer =>
+            pragma Debug (O ("Check_Expr_Value : "
+                             & "dealing with a General_Integer"));
             case Value_Type.Kind is
                when C_Octet
                  | C_Short
@@ -8142,6 +8163,8 @@ package body Idl_Fe.Parser is
                   Types_Ok := False;
             end case;
          when C_General_Float =>
+            pragma Debug (O ("Check_Expr_Value : "
+                             & "dealing with a General_Float"));
             case Value_Type.Kind is
                when C_Float
                  | C_Double
@@ -8151,13 +8174,46 @@ package body Idl_Fe.Parser is
                   Types_Ok := False;
             end case;
          when C_General_Fixed =>
+            pragma Debug (O ("Check_Expr_Value : "
+                             & "dealing with a General_Fixed"));
             if Value_Type.Kind /= C_Fixed then
                Types_Ok := False;
             end if;
          when others =>
-            if Value.Kind /= Value_Type.Kind then
-               Types_Ok := False;
-            end if;
+            pragma Debug (O ("Check_Expr_Value : "
+                             & "dealing with something else"));
+            case Value_Type.Kind is
+               when C_General_Integer =>
+                  case Value.Kind is
+                     when C_Octet
+                       | C_Short
+                       | C_Long
+                       | C_LongLong
+                       | C_UShort
+                       | C_ULong
+                       | C_ULongLong =>
+                        null;
+                     when others =>
+                        Types_Ok := False;
+                  end case;
+               when C_General_Float =>
+                  case Value.Kind is
+                     when C_Float
+                       | C_Double
+                       | C_LongDouble =>
+                        null;
+                     when others =>
+                        Types_Ok := False;
+                  end case;
+               when C_General_Fixed =>
+                  if Value.Kind /= C_Fixed then
+                     Types_Ok := False;
+                  end if;
+               when others =>
+                  if Value.Kind /= Value_Type.Kind then
+                     Types_Ok := False;
+                  end if;
+            end case;
       end case;
       if Types_Ok then
          case Value.Kind is
@@ -8191,6 +8247,7 @@ package body Idl_Fe.Parser is
             Get_Token_Location);
       end if;
       null;
+      pragma Debug (O2 ("Check_Expr_Value : end"));
    end Check_Expr_Value;
 
    ----------------------------

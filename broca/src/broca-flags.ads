@@ -40,14 +40,6 @@ package Broca.Flags is
    --  Not highly used.
    Verbose : Boolean := True;
 
-   --  If TRUE, server logs incoming requests, processing...
-   --  Can be enable by -ORBlog
-   Log : Boolean := False;
-
-   --  TCP/IP port used.
-   --  -ORBport N
-   Port : Natural := 0;
-
    --  Number of tasks used by the server.
    --  If 1, it use the main task (ie, the task that has called run) to do all
    --  the work.  If greather than 1, it creates tasks. Default is 4.

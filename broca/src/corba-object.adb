@@ -35,6 +35,7 @@ with Broca.IOR;
 with Broca.Buffers; use Broca.Buffers;
 with Broca.CDR;     use Broca.CDR;
 
+with Broca.Names;
 with Broca.Repository;
 with Broca.GIOP;
 with Broca.Exceptions;
@@ -47,32 +48,32 @@ package body CORBA.Object is
    ----------
 
    function Is_A
-     (Self : Ref;
-      Type_Id : CORBA.RepositoryId)
+     (Self            : in Ref;
+      Logical_Type_Id : in Standard.String)
       return CORBA.Boolean
    is
       use CORBA;
       use Broca.Repository;
 
+      Self_Ref : Ref := Self;
+
    begin
+
+      if
+        Is_Equivalent
+        (Logical_Type_Id,
+         Broca.Names.OMG_RepositoryId ("CORBA/Object"))
       --  Any object Is_A CORBA::Object.
 
-      if Is_Equivalent
-        (Type_Id,
-         CORBA.To_CORBA_String
-         ("IDL:omg.org/CORBA/Object:1.0"))
-      then
-         return True;
-      end if;
+        or else
 
+        Is_Equivalent
+        (CORBA.To_CORBA_String (Logical_Type_Id),
+         CORBA.RepositoryId (Broca.Object.Object_Ptr
+                             (Object_Of (Self)).Type_Id))
       --  Any object is of the class of its
-      --  actual type.
+      --  actual (i. e. most derived) type.
 
-      if Is_Equivalent
-        (CORBA.RepositoryId
-         (Broca.Object.Object_Ptr
-          (Object_Of (Self)).Type_Id),
-         Type_Id)
       then
          return True;
       end if;
@@ -96,15 +97,15 @@ package body CORBA.Object is
 
          loop
             Broca.GIOP.Send_Request_Marshall
-              (Handler, Broca.Object.Object_Ptr
-               (Object_Of (Self)), True, is_a_Operation);
+              (Handler, Self_Ref, True, is_a_Operation);
+
             Marshall
               (Handler.Buffer'Access,
-               Type_Id);
+               Logical_Type_Id);
 
             Broca.GIOP.Send_Request_Send
-              (Handler, Broca.Object.Object_Ptr
-               (Object_Of (Self)), True, Send_Request_Result);
+              (Handler, Self_Ref, True, Send_Request_Result);
+
             case Send_Request_Result is
                when Broca.GIOP.Sr_No_Reply =>
                   Broca.GIOP.Release (Handler);
@@ -174,5 +175,41 @@ package body CORBA.Object is
                                     Request,
                                     Req_Flags);
    end Create_Request;
+
+   --------------------
+   -- Create_Request --
+   --------------------
+
+   procedure Create_Request
+     (Self      : in     Ref;
+      Ctx       : in     CORBA.Context.Ref;
+      Operation : in     Identifier;
+      Arg_List  : in     CORBA.NVList.Ref;
+      Result    : in out NamedValue;
+      Exc_List  : in     ExceptionList.Ref;
+      Ctxt_List : in     ContextList.Ref;
+      Request   :    out CORBA.Request.Object;
+      Req_Flags : in     Flags) is
+   begin
+      CORBA.Request.Create_Request (CORBA.AbstractBase.Ref (Self),
+                                    Ctx,
+                                    Operation,
+                                    Arg_List,
+                                    Result,
+                                    Exc_List,
+                                    Ctxt_List,
+                                    Request,
+                                    Req_Flags);
+   end Create_Request;
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (Object : access Content_ObjRef)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_ObjRef'
+        (Value => Content_ObjRef_Ptr (Object).Value);
+   end Duplicate;
 
 end CORBA.Object;

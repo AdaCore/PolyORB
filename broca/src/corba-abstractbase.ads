@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                         C O R B A . A B S T R A C T B A S E              --
+--                   C O R B A . A B S T R A C T B A S E                    --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -48,6 +48,25 @@ package CORBA.AbstractBase is
 
    function Get (The_Ref : Ref) return CORBA.Impl.Object_Ptr
      renames Object_Of;
+
+   --  The following primitive operations are inherited
+   --  from Broca.Refs.Ref.
+
+   --    procedure Set
+   --      (The_Ref : in out Ref;
+   --       The_Entity : Ref_Ptr);
+
+   --    procedure Unref (The_Ref : in out Ref)
+   --      renames Finalize;
+
+   --    function Is_Nil (The_Ref : Ref) return Boolean;
+   --    function Is_Null (The_Ref : Ref) return Boolean
+   --      renames Is_Nil;
+
+   --    procedure Duplicate (The_Ref : in out Ref)
+   --      renames Adjust;
+
+   --    procedure Release (The_Ref : in out Ref);
 
    Nil_Ref : constant Ref;
 

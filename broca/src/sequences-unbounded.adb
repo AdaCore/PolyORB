@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---            C O R B A . S E Q U E N C E S . U N B O U N D E D             --
+--                  S E Q U E N C E S . U N B O U N D E D                   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -599,7 +599,8 @@ package body Sequences.Unbounded is
          To    := 1;
       end if;
 
-      while From /= To loop
+      --  There is always at least one pass because Length <= Source.Length
+      loop
          Offset := 0;
          while Offset < Length loop
             exit when Source.Content (From + Offset)
@@ -611,6 +612,7 @@ package body Sequences.Unbounded is
             return From;
          end if;
 
+         exit when From = To;
          From := From + Shift;
       end loop;
 

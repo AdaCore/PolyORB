@@ -40,6 +40,10 @@ package Broca.Repository is
      (RI1 : CORBA.RepositoryId;
       RI2 : CORBA.RepositoryId)
      return Boolean;
+   function Is_Equivalent
+     (RI1 : Standard.String;
+      RI2 : Standard.String)
+     return Boolean;
    --  Return True if, and only if, RI1 and RI2 denote the same
    --  repository entity (a case-insensitive string match).
 

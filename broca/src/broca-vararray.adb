@@ -34,7 +34,7 @@
 with Ada.Unchecked_Deallocation;
 
 package body Broca.Vararray is
-   procedure Unchecked_Deallocation is new Ada.Unchecked_Deallocation
+   procedure Free is new Ada.Unchecked_Deallocation
      (Object => Element_Array, Name => Var_Array_Type);
 
    procedure Insert (Varray : in out Var_Array_Type; El : Element) is
@@ -57,7 +57,7 @@ package body Broca.Vararray is
            (First .. First - 1 + Varray.all'Length * 2);
          N_Var (Varray.all'Range) := Varray.all;
          N_Var (Varray.all'Last + 1) := El;
-         Unchecked_Deallocation (Varray);
+         Free (Varray);
          Varray := N_Var;
          return;
       end if;

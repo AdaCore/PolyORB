@@ -74,14 +74,9 @@ package body Broca.Flags is
    begin
       Index := 1;
       while Index <= Argument_Count loop
-         if Argument (Index) = "-ORBport" then
-            Index := Index + 1;
-            Port := Natural'Value (Argument (Index));
-         elsif Argument (Index) = "-ORBserver-tasks" then
+         if Argument (Index) = "-ORBserver-tasks" then
             Index := Index + 1;
             Nbr_Server_Tasks := Natural'Value (Argument (Index));
-         elsif Argument (Index) = "-ORBlog" then
-            Broca.Flags.Log := True;
          elsif Argument (Index)'Length >= 4
            and then Argument (Index)(1 .. 4) = "-ORB"
          then

@@ -490,8 +490,8 @@ package body Portableserver.POA is
      (Self : Ref; P_Servant : Servant)
      return CORBA.Object.Ref
    is
-      POA : constant Broca.POA.POA_Object_Ptr
-        := To_POA (Self);
+      POA  : constant Broca.POA.POA_Object_Ptr := To_POA (Self);
+      Skel : Broca.POA.Skeleton_Ptr;
    begin
       --  FIXME: If Servant_To_Reference is called in the context
       --    of executing a request on the given servant, there are
@@ -503,8 +503,10 @@ package body Portableserver.POA is
          raise WrongPolicy;
       end if;
 
-      return Broca.POA.Skeleton_To_Ref
-        (Broca.POA.Servant_To_Skeleton (POA, P_Servant).all);
+      Skel := Servant_To_Skeleton
+        (POA, P_Servant, Called_From_Servant_To_Reference => True);
+
+      return Broca.POA.Skeleton_To_Ref (Skel.all);
    end Servant_To_Reference;
 
    ---------------------
@@ -516,12 +518,11 @@ package body Portableserver.POA is
       Reference : CORBA.Object.Ref'Class) return ObjectId
    is
 
-      POA : constant Broca.POA.POA_Object_Ptr
-        := To_POA (Self);
+      POA : constant Broca.POA.POA_Object_Ptr := To_POA (Self);
       Skel : Broca.POA.Skeleton_Ptr;
 
    begin
-      Skel := Broca.POA.To_Skeleton (Reference);
+      Skel := Broca.POA.Ref_To_Skeleton (Reference);
       if POA_Object_Of (Skel.POA) /= POA_Object_Ptr (POA) then
          raise WrongAdapter;
       end if;
@@ -539,12 +540,11 @@ package body Portableserver.POA is
      return Servant
    is
 
-      POA  : constant Broca.POA.POA_Object_Ptr
-        := To_POA (Self);
+      POA  : constant Broca.POA.POA_Object_Ptr := To_POA (Self);
       Skel : Broca.POA.Skeleton_Ptr;
 
    begin
-      Skel := Broca.POA.To_Skeleton (Reference);
+      Skel := Broca.POA.Ref_To_Skeleton (Reference);
       if POA_Object_Of (Skel.POA) /= POA_Object_Ptr (POA) then
          raise WrongAdapter;
       end if;

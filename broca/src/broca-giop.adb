@@ -35,13 +35,14 @@ with Ada.Unchecked_Deallocation;
 with Ada.Strings.Unbounded;
 
 with CORBA;
-with CORBA.Impl;
 
-with Broca.CDR; use Broca.CDR;
+with Broca.CDR;         use Broca.CDR;
+with Broca.Environment; use Broca.Environment;
 with Broca.Exceptions;
 with Broca.Sequences;
-with Broca.Opaque; use Broca.Opaque;
-with Broca.Buffers;      use Broca.Buffers;
+with Broca.Opaque;      use Broca.Opaque;
+with Broca.Buffers;     use Broca.Buffers;
+with Broca.Object;
 
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
@@ -66,8 +67,8 @@ package body Broca.GIOP is
    --  The offset of the byte_order boolean field in
    --  a GIOP message header.
 
-   Nobody_Principal : constant Ada.Strings.Unbounded.Unbounded_String
-      := Ada.Strings.Unbounded.To_Unbounded_String ("nobody");
+   Default_Principal : Ada.Strings.Unbounded.Unbounded_String
+     := Nobody_Principal;
 
    MsgType_To_Octet :
      constant array (MsgType'Range) of CORBA.Octet
@@ -242,7 +243,7 @@ package body Broca.GIOP is
       Marshall (Buffer, Broca.GIOP.System_Exception);
 
       --  Exception
-      Broca.Exceptions.Marshall (Buffer, Occurence);
+      Broca.CDR.Marshall (Buffer, Occurence);
    end Marshall;
 
    --------------
@@ -277,11 +278,22 @@ package body Broca.GIOP is
    procedure Free is new
      Ada.Unchecked_Deallocation (Broca.Opaque.Octet_Array, Octet_Array_Ptr);
 
+   -------------
+   -- Release --
+   -------------
+
    procedure Release (H : in out Request_Handler) is
    begin
       Release (H.Buffer);
       Free (H.Data.Message_Body);
    end Release;
+
+   procedure Set_Default_Principal
+     (Principal : Ada.Strings.Unbounded.Unbounded_String
+        := Nobody_Principal) is
+   begin
+      Default_Principal := Principal;
+   end Set_Default_Principal;
 
    ---------------------------
    -- Send_Request_Marshall --
@@ -289,11 +301,15 @@ package body Broca.GIOP is
 
    procedure Send_Request_Marshall
      (Handler           : in out Request_Handler;
-      Target            : in Object.Object_Ptr;
+      Target_Ref        : in CORBA.AbstractBase.Ref'Class;
       Response_Expected : in Boolean;
       Operation         : in CORBA.Identifier)
    is
       use Broca.CDR;
+
+      Target : constant Broca.Object.Object_Ptr
+        := Broca.Object.Object_Ptr
+        (CORBA.AbstractBase.Object_Of (Target_Ref));
    begin
       Handler.Profile := Object.Find_Profile (Target);
       Handler.Connection := IOP.Find_Connection (Handler.Profile);
@@ -321,7 +337,7 @@ package body Broca.GIOP is
       Marshall (Handler.Buffer'Access, CORBA.String (Operation));
 
       --  Principal
-      Marshall (Handler.Buffer'Access, CORBA.String (Nobody_Principal));
+      Marshall (Handler.Buffer'Access, CORBA.String (Default_Principal));
    end Send_Request_Marshall;
 
    -----------------------
@@ -330,12 +346,13 @@ package body Broca.GIOP is
 
    procedure Send_Request_Send
      (Handler          : in out Request_Handler;
-      Target           : in Object.Object_Ptr;
+      Target_Ref       : in out CORBA.AbstractBase.Ref'Class;
       Reponse_Expected : in Boolean;
       Result           : out Send_Request_Result_Type)
    is
       use Broca.CDR;
       use CORBA;
+
       Header_Buffer      : aliased Buffer_Type;
       Message_Type       : MsgType;
       Message_Size       : CORBA.Unsigned_Long;
@@ -345,6 +362,7 @@ package body Broca.GIOP is
       Request_Id         : CORBA.Unsigned_Long;
       Header_Correct     : Boolean;
    begin
+      pragma Debug (O ("Send_Request_Send : Enter"));
       --  Add GIOP header.
       Marshall_GIOP_Header
         (Header_Buffer'Access,
@@ -352,10 +370,12 @@ package body Broca.GIOP is
          Length (Handler.Buffer'Access));
       Prepend (Header_Buffer, Handler.Buffer'Access);
 
+      pragma Debug (O ("Send_Request_Send : about to send request"));
       --  1.3 Send request.
       IOP.Send (Handler.Connection, Handler.Buffer'Access);
       Release (Handler.Buffer);
 
+      pragma Debug (O ("Send_Request_Send : request sent"));
       if not Reponse_Expected then
          IOP.Release (Handler.Connection);
          Result := Sr_No_Reply;
@@ -365,15 +385,15 @@ package body Broca.GIOP is
       --  1.4 Receive reply
       --  1.4.1 the message header
 
-      pragma Debug (O ("Receive answer ..."));
+      pragma Debug (O ("Send_Request_Send : Receive answer ..."));
       declare
-         Message_Header : aliased Broca.Opaque.Octet_Array
+         Message_Header : Broca.Opaque.Octet_Array_Ptr
            := IOP.Receive (Handler.Connection,
                            Message_Header_Size);
          Message_Header_Buffer : aliased Buffer_Type;
          Endianness : Endianness_Type;
       begin
-         pragma Debug (O ("Receive answer done"));
+         pragma Debug (O ("Send_Request_Send : Receive answer done"));
 
          if CORBA.Boolean'Val
            (CORBA.Octet (Message_Header
@@ -387,7 +407,7 @@ package body Broca.GIOP is
          Broca.Buffers.Initialize_Buffer
            (Message_Header_Buffer'Access,
             Message_Header_Size,
-            Message_Header'Address,
+            Message_Header.all'Address,
             Endianness,
             0);
 
@@ -399,16 +419,18 @@ package body Broca.GIOP is
          pragma Assert (Message_Endianness = Endianness);
 
          Release (Message_Header_Buffer);
+         Free (Message_Header);
       end;
 
       if not (Header_Correct and then Message_Type = Reply) then
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
 
+      pragma Debug (O ("Send_Request_Send : about to receive reply"));
       --  1.4.5 Receive the reply header and body.
-      Handler.Data.Message_Body := new Broca.Opaque.Octet_Array'
-        (IOP.Receive (Handler.Connection,
-                      Broca.Opaque.Index_Type (Message_Size)));
+      Handler.Data.Message_Body :=
+        IOP.Receive (Handler.Connection,
+                     Broca.Opaque.Index_Type (Message_Size));
       declare
          Message_Body : Octet_Array_Ptr := Handler.Data.Message_Body;
          Message_Body_Buffer : Buffer_Type
@@ -441,34 +463,34 @@ package body Broca.GIOP is
             Broca.Exceptions.Raise_Comm_Failure;
          end if;
 
+         pragma Debug (O ("Send_Request_Send : checking reply status"));
          --  Reply status
          Reply_Status := Unmarshall (Message_Body_Buffer'Access);
          case Reply_Status is
             when Broca.GIOP.No_Exception =>
+               pragma Debug (O ("Send_Request_Send : reply "
+                                & "status is No_Exception"));
                Result := Sr_Reply;
                return;
 
             when Broca.GIOP.System_Exception =>
-               Broca.Exceptions.Unmarshall_And_Raise
+               pragma Debug (O ("Send_Request_Send : reply "
+                                & "status is System_Exception"));
+               Broca.CDR.Unmarshall_And_Raise
                  (Message_Body_Buffer'Access);
 
             when Broca.GIOP.Location_Forward =>
+               pragma Debug
+                 (O ("Send_Request_Send : Received Location_Forward"));
+
                declare
-                  New_Ref : CORBA.Object.Ref;
+                  New_Ref : CORBA.AbstractBase.Ref;
                begin
-                  pragma Debug
-                    (O ("Send_Request_Send : Received Location_Forward"));
                   Broca.CDR.Unmarshall
                     (Message_Body_Buffer'Access,
                      New_Ref);
-                  --  FIXME: What guarantees that
-                  --    Object_Of (New_Ref)
-                  --    is in Broca.Object.Object_Type'Class ?
-                  --  FIXME: Use proper locking (??)
-                  Target.Profiles
-                    := Broca.Object.Object_Ptr
-                    (CORBA.Impl.Object_Ptr'
-                     (CORBA.Object.Object_Of (New_Ref))).Profiles;
+                  CORBA.AbstractBase.Set
+                    (Target_Ref, CORBA.AbstractBase.Object_Of (New_Ref));
                end;
                Result := Sr_Forward;
                Release (Handler);
@@ -478,6 +500,8 @@ package body Broca.GIOP is
                return;
 
             when Broca.GIOP.User_Exception =>
+               pragma Debug (O ("Send_Request_Send : reply "
+                                & "status is User_Exception"));
                Result := Sr_User_Exception;
                return;
 
@@ -487,8 +511,11 @@ package body Broca.GIOP is
 
          Release (Handler);
       end;
-
    end Send_Request_Send;
+
+   --------------
+   -- Marshall --
+   --------------
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -497,12 +524,20 @@ package body Broca.GIOP is
       Marshall (Buffer, MsgType_To_Octet (Value));
    end Marshall;
 
+   --------------
+   -- Marshall --
+   --------------
+
    procedure Marshall
      (Buffer : access Buffer_Type;
       Value  : in ReplyStatusType) is
    begin
       Marshall (Buffer, ReplyStatusType_To_Unsigned_Long (Value));
    end Marshall;
+
+   --------------
+   -- Marshall --
+   --------------
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -511,12 +546,20 @@ package body Broca.GIOP is
       Marshall (Buffer, LocateStatusType_To_Unsigned_Long (Value));
    end Marshall;
 
+   ----------------
+   -- Unmarshall --
+   ----------------
+
    function Unmarshall
      (Buffer : access Buffer_Type)
      return MsgType is
    begin
       return Octet_To_MsgType (Unmarshall (Buffer));
    end Unmarshall;
+
+   ----------------
+   -- Unmarshall --
+   ----------------
 
    function Unmarshall
      (Buffer : access Buffer_Type)
@@ -525,6 +568,10 @@ package body Broca.GIOP is
       return Unsigned_Long_To_ReplyStatusType (Unmarshall (Buffer));
    end Unmarshall;
 
+   ----------------
+   -- Unmarshall --
+   ----------------
+
    function Unmarshall
      (Buffer : access Buffer_Type)
      return LocateStatusType is
@@ -532,4 +579,10 @@ package body Broca.GIOP is
       return Unsigned_Long_To_LocateStatusType (Unmarshall (Buffer));
    end Unmarshall;
 
+   User_Principal : constant String := Get_Conf (Principal, Principal_Default);
+begin
+   if User_Principal /= "" then
+      Set_Default_Principal
+        (Ada.Strings.Unbounded.To_Unbounded_String (User_Principal));
+   end if;
 end Broca.GIOP;

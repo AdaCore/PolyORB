@@ -33,10 +33,17 @@ with Ada_Be.Temporaries;    use Ada_Be.Temporaries;
 
 with Utils;                 use Utils;
 
+with Ada_Be.Idl2Ada.Value_Impl;
+
+with Ada_Be.Debug;
+
 package body Ada_Be.Idl2Ada.Stream is
-   
+
    use Ada_Be.Source_Streams;
-   
+
+   Flag : constant Natural := Ada_Be.Debug.Is_Active ("ada_be.idl2ada.stream");
+   procedure O is new Ada_Be.Debug.Output (Flag);
+
    procedure Gen_Marshall_Profile
      (CU        : in out Compilation_Unit;
       Type_Node : in Node_Id);
@@ -66,6 +73,14 @@ package body Ada_Be.Idl2Ada.Stream is
    --  occurence of the '%' character in Stmt_Template is
    --  replaced by the proper indices, with parentheses.
 
+
+   --------------------------------------
+   --  End of subprogram declarations  --
+   --------------------------------------
+
+   ----------------------------
+   --  Gen_Marshall_Profile  --
+   ----------------------------
    procedure Gen_Marshall_Profile
      (CU        : in out Compilation_Unit;
       Type_Node : in Node_Id) is
@@ -77,6 +92,9 @@ package body Ada_Be.Idl2Ada.Stream is
            & Ada_Type_Name (Type_Node) & ")");
    end Gen_Marshall_Profile;
 
+   ------------------------------
+   --  Gen_Unmarshall_Profile  --
+   ------------------------------
    procedure Gen_Unmarshall_Profile
      (CU        : in out Compilation_Unit;
       Type_Node : in Node_Id) is
@@ -88,6 +106,9 @@ package body Ada_Be.Idl2Ada.Stream is
            & Ada_Type_Name (Type_Node));
    end Gen_Unmarshall_Profile;
 
+   --------------------------
+   --  Gen_Array_Iterator  --
+   --------------------------
    procedure Gen_Array_Iterator
      (CU               : in out Compilation_Unit;
       Array_Name       : String;
@@ -180,7 +201,9 @@ package body Ada_Be.Idl2Ada.Stream is
             null;
 
          when K_ValueType =>
-            null;
+            NL (CU);
+            Gen_Unmarshall_Profile (CU, Node);
+            PL (CU, ";");
 
          when
            K_Forward_Interface |
@@ -252,7 +275,240 @@ package body Ada_Be.Idl2Ada.Stream is
             null;
 
          when K_ValueType =>
-            null;
+
+            if not Abst (Node) then
+               NL (CU);
+               Add_With (CU, "Broca.CDR", Use_It => True);
+               Add_With (CU, "CORBA.Impl");
+               Add_With (CU, "Broca.Buffers", Use_It => True);
+               PL (CU, "procedure Marshall");
+               PL (CU, "  (Buffer : access Buffer_Type;");
+               PL (CU, "   Val    : in CORBA.Impl.Object_Ptr;");
+               Add_With (CU, "Broca.Value.Stream");
+               PL (CU, "   Already_Marshalled : in out "
+                   & "Broca.Value.Stream.ISeq.Sequence;");
+               PL (CU, "   Formal : in CORBA.RepositoryId;");
+               PL (CU, "   Only_Members : in Boolean;");
+               PL (CU, "   Nesting_Depth : in CORBA.Long) is");
+               II (CU);
+               Add_With (CU,
+                         Ada_Full_Name (Node)
+                         & Ada_Be.Idl2Ada.Value_Impl.Suffix);
+               PL (CU,
+                   "Obj : "
+                   & Ada_Full_Name (Node)
+                   & Ada_Be.Idl2Ada.Value_Impl.Suffix
+                   & ".Object_Ptr");
+               PL (CU,
+                   "   := "
+                   & Ada_Full_Name (Node)
+                   & Ada_Be.Idl2Ada.Value_Impl.Suffix
+                   & ".Object_Ptr (Val);");
+               PL (CU, "With_Chunking : Boolean;");
+               PL (CU, "use CORBA;");
+               DI (CU);
+               PL (CU, "begin");
+               II (CU);
+
+               --  FIXME chunking should be used to when the buffer
+               --  is full or the valuetype contains custom marshalled code
+               PL (CU, "With_Chunking := not Only_Members;");
+
+               --  FIXME : we suppose there is no chunking and
+               --  no type information (no truncation therefore)
+               PL (CU, "Marshall (Buffer, "
+                   & "Broca.Value.Stream.Default_Value_Tag);");
+
+               --  marshall all the state members
+               declare
+                  It : Node_Iterator;
+                  Current : Node_Id;
+               begin
+                  Init (It, Contents (Node));
+                  while not Is_End (It) loop
+                     Get_Next_Node (It, Current);
+                     if Kind (Current) = K_State_Member then
+                        pragma Debug (O ("Kind(State_Type (Current)) = "
+                                         & Node_Kind'Image
+                                         (Kind (State_Type (Current)))));
+                        if Kind (State_Type (Current)) = K_Scoped_Name
+                        and then Kind (Value (State_Type (Current)))
+                          = K_ValueType then
+                           --  marshall a valuetype state member
+                           PL (CU, "Broca.Value.Stream.Marshall");
+                           PL (CU, "  (Buffer,");
+                           PL (CU, "   Obj."
+                               & Ada_Name (Head (State_Declarators (Current)))
+                               & ",");
+                           PL (CU, "   CORBA.To_CORBA_String");
+                           PL (CU, "     ("
+                               & Parent_Scope_Name
+                               (Head (State_Declarators (Current)))
+                               & "." & T_Repository_Id & "),");
+                           PL (CU, "   Already_Marshalled,");
+                           PL (CU, "   Nesting_Depth + 1);");
+
+                        else
+                           --  unmarshall a *non-valuetype* state member
+                           Add_With_Stream (CU, State_Type (Current));
+                           PL (CU,
+                               "Marshall (Buffer, Obj."
+                               & Ada_Name (Head (State_Declarators (Current)))
+                               & ");");
+                           --  State Members are expanded so that
+                           --  their State_Declarators list contains
+                           --  a single node
+                        end if;
+                     end if;
+                  end loop;
+               end;
+               DI (CU);
+               PL (CU, "end Marshall;");
+            end if;
+
+            --  Unmarshall
+            NL (CU);
+            Gen_Unmarshall_Profile (CU, Node);
+            PL (CU, " is");
+            II (CU);
+            Add_With (CU, "CORBA.AbstractBase");
+            PL (CU, "New_Ref : " & Ada_Type_Name (Node) & ";");
+            DI (CU);
+            PL (CU, "begin");
+            II (CU);
+            Add_With (CU, "Broca.Value.Stream");
+            PL (CU, "Broca.Value.Stream.Unmarshall");
+            PL (CU, "  (Buffer,");
+            PL (CU, "   CORBA.To_CORBA_String");
+            PL (CU, "  ("
+                & Ada_Full_Name (Node)
+                & "." & T_Repository_Id
+                & "),");
+            PL (CU, "New_Ref);");
+            PL (CU, "return New_Ref;");
+            DI (CU);
+            PL (CU, "end Unmarshall;");
+
+            --  Unmarshall_Fields
+            if not Abst (Node) then
+               NL (CU);
+               Add_With (CU, "Broca.Buffers", Use_It => True);
+               PL (CU, "procedure Unmarshall_Fields");
+               PL (CU, "  (Buffer : access Buffer_Type;");
+               PL (CU, "   Val    : in out CORBA.Value.Base'Class;");
+               PL (CU, "   Already_Unmarshalled : in out "
+                   & "Broca.Value.Stream.ISeq.Sequence;");
+               PL (CU, "   With_Chunking : in Boolean;");
+               PL (CU, "   Nesting_Depth : in CORBA.Long;");
+               PL (CU, "   Closing_Tag_Read : out CORBA.Long) is");
+               II (CU);
+               PL (CU,
+                   "Obj : "
+                   & Ada_Full_Name (Node)
+                   & Ada_Be.Idl2Ada.Value_Impl.Suffix
+                   & ".Object_Ptr := null;");
+               PL (CU, "use CORBA;");
+               DI (CU);
+               PL (CU, "begin");
+               II (CU);
+               Add_With (CU, "CORBA.Value");
+               PL (CU, "if CORBA.Value.Is_Nil (Val) then");
+               II (CU);
+               PL (CU, "Obj := new "
+                   & Ada_Full_Name (Node)
+                   & Ada_Be.Idl2Ada.Value_Impl.Suffix
+                   & ".Object;");
+               PL (CU, "CORBA.Value.Set (Val, CORBA.Impl.Object_Ptr (Obj));");
+               DI (CU);
+               PL (CU, "else");
+               II (CU);
+               PL (CU, "Obj := "
+                   & Ada_Full_Name (Node)
+                   & Ada_Be.Idl2Ada.Value_Impl.Suffix
+                   & ".Object_Ptr");
+               PL (CU, "  (CORBA.Value.Object_Of (Val));");
+               PL (CU, "raise Program_Error;");
+               PL (CU, "--  code should never come here for the moment");
+               --  since truncatoin not supported
+
+               DI (CU);
+               PL (CU, "end if;");
+
+               --  suppose there is no chunking
+
+               --  unmarshall all the state members
+               declare
+                  It : Node_Iterator;
+                  Current : Node_Id;
+               begin
+                  Init (It, Contents (Node));
+                  while not Is_End (It) loop
+                     Get_Next_Node (It, Current);
+                     if Kind (Current) = K_State_Member then
+                        pragma Debug (O ("Kind(State_Type (Current)) = "
+                                         & Node_Kind'Image
+                                         (Kind (State_Type (Current)))));
+                        if Kind (State_Type (Current)) = K_Scoped_Name
+                          and then Kind (Value (State_Type (Current)))
+                          = K_ValueType then
+                           --  unmarshall a valuetype state member
+                           PL (CU, "Broca.Value.Stream.Unmarshall");
+                           PL (CU, "  (Buffer,");
+                           PL (CU,
+                               "   CORBA.To_CORBA_String");
+                           PL (CU, "     ("
+                               & Parent_Scope_Name
+                               (Head (State_Declarators (Current)))
+                               & "."
+                               & T_Repository_Id
+                               & "),");
+                           PL (CU,
+                               "   Obj."
+                               & Ada_Name (Head (State_Declarators (Current)))
+                               & ",");
+                           PL (CU, "Already_Unmarshalled,");
+                           PL (CU, "With_Chunking,");
+                           PL (CU, "Nesting_Depth + 1,");
+                           PL (CU, "Closing_Tag_Read);");
+
+                        else
+                           --  unmarshall a standard state member
+                           Add_With_Stream (CU, State_Type (Current));
+                           PL (CU,
+                               "Obj."
+                               & Ada_Name (Head (State_Declarators (Current)))
+                               & ":= Unmarshall (Buffer);");
+                           --  State Members are expanded so that
+                           --  their State_Declarators list contains
+                           --  a single node
+                        end if;
+                     end if;
+                  end loop;
+               end;
+               DI (CU);
+               PL (CU, "end Unmarshall_Fields;");
+            end if;
+
+            --  register operations
+            if not Abst (Node) then
+               Divert (CU, Elaboration);
+               NL (CU);
+               PL (CU, "Broca.Value.Stream.Marshall_Store.Register_Operation");
+               PL (CU, "  ("
+                   & Ada_Full_Name (Node)
+                   & Ada_Be.Idl2Ada.Value_Impl.Suffix
+                   & ".Object'Tag,");
+               PL (CU, "   Marshall'Access);");
+               NL (CU);
+               PL (CU, "Broca.Value.Stream.Unmarshall_Fields_Store"
+                   & ".Register_Operation");
+               PL (CU, "  ("
+                   & Ada_Full_Name (Node)
+                   & "." & T_Repository_Id
+                   & ",");
+               PL (CU, "Unmarshall_Fields'Access);");
+               Divert (CU, Visible_Declarations);
+            end if;
 
          when K_Struct =>
 

@@ -12,6 +12,7 @@ EXAMPLES_GNATMAKE_FLAGS = -I$(srcdir) \
 CLEANFILES = b~*.* \
 	*.o *.ali \
 	$(EXAMPLE)_idl_file.ads $(EXAMPLE)_idl_file.adb \
+	$(EXAMPLE)_idl_file-helper.ads $(EXAMPLE)_idl_file-helper.adb \
 	$(EXAMPLE).ads $(EXAMPLE).adb \
 	$(EXAMPLE)-skel.ads $(EXAMPLE)-skel.adb \
 	$(EXAMPLE)-stream.ads $(EXAMPLE)-stream.adb \

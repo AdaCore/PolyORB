@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                          B R O C A . D E B U G                           --
+--                            B R O C A . F O O                             --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -36,7 +36,6 @@
 --  Usage is as follows:
 --
 --  with Broca.Debug;
---  pragma Elaborate(Broca.Debug);
 --
 --  package Broca.Foo is
 --     Flag : constant Natural := Broca.Debug.Is_Active ("specific_name");

@@ -70,9 +70,11 @@ package body Ada_Be.Idl2Ada.Impl is
 
          when K_Operation =>
 
+            --  implicitly inherited operation are not overriden by default
             if Is_Implicit_Inherited (Node) then
                return;
             end if;
+
 
             declare
                Is_Function : constant Boolean

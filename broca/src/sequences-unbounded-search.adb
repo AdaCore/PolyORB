@@ -69,6 +69,10 @@ package body Sequences.Unbounded.Search is
       To     : Natural;
 
    begin
+      if Haystack.Length = 0 then
+         return 0;
+      end if;
+
       if Going = Forward then
          Shift := 1;
          From  := 1;
@@ -79,10 +83,12 @@ package body Sequences.Unbounded.Search is
          To    := 1;
       end if;
 
-      while From /= To loop
+      --  There is at least one pass because Haystack.Length /= 0.
+      loop
          if Match (Haystack.Content (From), Needle) then
             return From;
          end if;
+         exit when From = To;
          From := From + Shift;
       end loop;
 
@@ -90,4 +96,22 @@ package body Sequences.Unbounded.Search is
       return 0;
    end Index;
 
+   ------------------
+   -- Sub_Sequence --
+   ------------------
+   function Sub_Sequence
+     (Haystack : Sequence;
+      Needle   : Needle_Type)
+      return Sequence
+   is
+      Result : Sequence := Null_Sequence;
+   begin
+      for Index in 1 .. Haystack.Length loop
+         if Match (Haystack.Content (Index), Needle) then
+            Append (Result, Haystack.Content (Index));
+         end if;
+      end loop;
+
+      return Result;
+   end Sub_Sequence;
 end Sequences.Unbounded.Search;
