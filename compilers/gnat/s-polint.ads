@@ -170,6 +170,9 @@ package System.PolyORB_Interface is
       Parameters : Any_Array)
       return PolyORB.Any.TypeCode.Object;
 
+   procedure Copy_Any_Value (Dest, Src : PolyORB.Any.Any)
+     renames PolyORB.Any.Copy_Any_Value;
+
    --  RPC receiver objets are PolyORB components
 
    subtype Component is PolyORB.Components.Component;

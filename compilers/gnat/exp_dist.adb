@@ -231,6 +231,34 @@ package body Exp_Dist is
    --  Return True if the current parameter is a controlling formal argument
    --  of type Stub_Type or access to Stub_Type.
 
+   procedure Declare_Create_NVList
+     (Loc    : Source_Ptr;
+      NVList : Entity_Id;
+      Decls  : List_Id;
+      Stmts  : List_Id);
+   --  Append the declaration of NVList to Decls, and its
+   --  initialization to Stmts.
+
+   function Parameter_Passing_Mode
+     (Loc         : Source_Ptr;
+      Parameter   : Entity_Id;
+      Constrained : Boolean)
+      return Node_Id;
+   --  Return an expression that denotes the parameter passing
+   --  mode to be used for Parameter in distribution stubs,
+   --  where Constrained is Parameter's constrained status.
+
+   function Add_Parameter_To_NVList
+     (Loc         : Source_Ptr;
+      NVList      : Entity_Id;
+      Parameter   : Entity_Id;
+      Constrained : Boolean;
+      Any         : Entity_Id)
+      return Node_Id;
+   --  Return a call to Add_Item to add the Any corresponding
+   --  to the designated formal Parameter (with the indicated
+   --  Constrained status) to NVList.
+
    type Stub_Structure is record
       Stub_Type           : Entity_Id;
       Stub_Type_Access    : Entity_Id;
@@ -446,6 +474,47 @@ package body Exp_Dist is
 
    end Add_Calling_Stubs_To_Declarations;
 
+   -----------------------------
+   -- Add_Parameter_To_NVList --
+   -----------------------------
+
+   function Add_Parameter_To_NVList
+     (Loc         : Source_Ptr;
+      NVList      : Entity_Id;
+      Parameter   : Entity_Id;
+      Constrained : Boolean;
+      Any         : Entity_Id)
+      return Node_Id
+   is
+      Parameter_Name_String : String_Id;
+   begin
+      if Nkind (Parameter) = N_Defining_Identifier then
+         Get_Name_String (Chars (Parameter));
+      else
+         Get_Name_String (Chars (Defining_Identifier
+                                  (Parameter)));
+      end if;
+      Parameter_Name_String := String_From_Name_Buffer;
+
+      return
+        Make_Procedure_Call_Statement (Loc,
+          Name =>
+            New_Occurrence_Of
+              (RTE (RE_NVList_Add_Item), Loc),
+          Parameter_Associations => New_List (
+            New_Occurrence_Of (NVList, Loc),
+            Make_Function_Call (Loc,
+              Name =>
+                New_Occurrence_Of
+                  (RTE (RE_To_PolyORB_String), Loc),
+              Parameter_Associations => New_List (
+                Make_String_Literal (Loc,
+                  Strval => Parameter_Name_String))),
+            New_Occurrence_Of (Any, Loc),
+            Parameter_Passing_Mode (Loc,
+              Parameter, Constrained)));
+   end Add_Parameter_To_NVList;
+
    -----------------------
    -- Add_RACW_Features --
    -----------------------
@@ -528,9 +597,9 @@ package body Exp_Dist is
       end if;
    end Add_RACW_Features;
 
-   -------------------------------------------------
-   --  Add_RACW_Primitive_Declarations_And_Bodies --
-   -------------------------------------------------
+   ------------------------------------------------
+   -- Add_RACW_Primitive_Declarations_And_Bodies --
+   ------------------------------------------------
 
    procedure Add_RACW_Primitive_Declarations_And_Bodies
      (Designated_Type : in Entity_Id;
@@ -2217,22 +2286,22 @@ package body Exp_Dist is
       Target_Parameter : Node_Id;
       --  The reference that designates the target of a remote call.
 
-      Args_Parameter : Node_Id;
+      Arguments : Node_Id;
       --  Name of the named values list used to transmit parameters
       --  to the remote package
 
-      Request_Parameter : Node_Id;
+      Request : Node_Id;
       --  The request object constructed by these stubs.
 
-      Result_NV_Parameter : Node_Id;
+      Result : Node_Id;
       --  The named value that receives the result of the invocation
       --  (non-APC case).
 
       Result_Parameter : Node_Id;
-      --  Name of the result parameter (in non-APC cases) which get the
+      --  Name of the result named value (in non-APC cases) which get the
       --  result of the remote subprogram.
 
-      Exception_Return_Parameter : Node_Id;
+      Exception_Return : Node_Id;
       --  Name of the parameter which will hold the exception sent by the
       --  remote subprogram.
 
@@ -2271,12 +2340,12 @@ package body Exp_Dist is
       --  as well as the declaration of Result. For a function call,
       --  'Input is always used to read the result even if it is constrained.
 
-      Request_Parameter :=
+      Request :=
         Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
 
       Append_To (Decls,
         Make_Object_Declaration (Loc,
-          Defining_Identifier => Request_Parameter,
+          Defining_Identifier => Request,
           Aliased_Present     => False,
           Object_Definition   =>
               New_Occurrence_Of (RTE (RE_Request_Access), Loc)));
@@ -2290,16 +2359,6 @@ package body Exp_Dist is
           Aliased_Present     => False,
           Object_Definition   =>
               New_Occurrence_Of (RTE (RE_Object_Ref), Loc)));
-
-      Args_Parameter :=
-        Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
-
-      Append_To (Decls,
-        Make_Object_Declaration (Loc,
-          Defining_Identifier => Args_Parameter,
-          Aliased_Present     => False,
-          Object_Definition   =>
-              New_Occurrence_Of (RTE (RE_NVList_Ref), Loc)));
 
       if not Is_Known_Asynchronous then
          Result_Parameter :=
@@ -2318,39 +2377,35 @@ package body Exp_Dist is
                      Constraints =>
                        New_List (Make_Integer_Literal (Loc, 0))))));
 
-
-         Result_NV_Parameter :=
+         Result :=
            Make_Defining_Identifier (Loc, New_Internal_Name ('N'));
 
          Append_To (Decls,
            Make_Object_Declaration (Loc,
-             Defining_Identifier => Result_NV_Parameter,
+             Defining_Identifier => Result,
              Aliased_Present     => False,
              Object_Definition   =>
                New_Occurrence_Of (RTE (RE_NamedValue), Loc)));
 
-         Exception_Return_Parameter :=
+         Exception_Return :=
            Make_Defining_Identifier (Loc, New_Internal_Name ('E'));
 
          Append_To (Decls,
            Make_Object_Declaration (Loc,
-             Defining_Identifier => Exception_Return_Parameter,
+             Defining_Identifier => Exception_Return,
              Object_Definition   =>
                New_Occurrence_Of (RTE (RE_Exception_Occurrence), Loc)));
 
       else
          Result_Parameter := Empty;
-         Exception_Return_Parameter := Empty;
+         Exception_Return := Empty;
       end if;
 
       --  Initialize and fill in arguments list
 
-      Append_To (Statements,
-        Make_Procedure_Call_Statement (Loc,
-          Name =>
-            New_Occurrence_Of (RTE (RE_NVList_Create), Loc),
-          Parameter_Associations => New_List (
-            New_Occurrence_Of (Args_Parameter, Loc))));
+      Arguments :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
+      Declare_Create_NVList (Loc, Arguments, Decls, Statements);
 
       Current_Parameter := First (Ordered_Parameters_List);
 
@@ -2383,11 +2438,7 @@ package body Exp_Dist is
                                Is_Constrained (Etyp)
                                  or else Is_Elementary_Type (Etyp);
 
-               TC_Parameter : constant Entity_Id :=
-                                 Make_Defining_Identifier (Loc,
-                                   New_Internal_Name ('T'));
-
-               Any_Parameter : constant Entity_Id :=
+               Any : constant Entity_Id :=
                                  Make_Defining_Identifier (Loc,
                                    New_Internal_Name ('A'));
 
@@ -2396,12 +2447,6 @@ package body Exp_Dist is
                                       Defining_Identifier (
                                         Current_Parameter), Loc);
 
-               --  Just for testing: pull in helpers (actually
-               --  the TypeCode is needed only for Out parameters;
-               --  for in and onout, only To_Any is required
-               --  at this point.
-
-               Mode_Expr : Node_Id;
             begin
 --                if In_Present (Current_Parameter)
 --                  or else not Out_Present (Current_Parameter)
@@ -2425,67 +2470,20 @@ package body Exp_Dist is
                Append_To (Decls,
                  Make_Object_Declaration (Loc,
                    Defining_Identifier =>
-                     TC_Parameter,
-                   Constant_Present =>
-                     True,
-                   Aliased_Present =>
-                     False,
-                   Object_Definition =>
-                     New_Occurrence_Of (RTE (RE_TypeCode), Loc),
-                   Expression =>
-                     Build_TypeCode_Call
-                       (Loc, Entity (Parameter_Type (Current_Parameter)))));
-
-               Append_To (Decls,
-                 Make_Object_Declaration (Loc,
-                   Defining_Identifier =>
-                     Any_Parameter,
+                     Any,
                    Aliased_Present     => False,
                    Object_Definition   =>
                      New_Occurrence_Of (RTE (RE_Any), Loc),
                    Expression          =>
                      Build_To_Any_Call (Actual_Parameter)));
 
-               Get_Name_String (Chars (Defining_Identifier
-                                         (Current_Parameter)));
-
                Append_To (Statements,
-                 Make_Procedure_Call_Statement (Loc,
-                   Name =>
-                     New_Occurrence_Of
-                       (RTE (RE_NVList_Add_Item), Loc),
-                   Parameter_Associations => New_List (
-                     New_Occurrence_Of (Args_Parameter, Loc),
-                     Make_Function_Call (Loc,
-                       Name =>
-                         New_Occurrence_Of
-                           (RTE (RE_To_PolyORB_String), Loc),
-                       Parameter_Associations => New_List (
-                         Make_String_Literal (Loc,
-                           Strval => String_From_Name_Buffer))),
-                     New_Occurrence_Of (Any_Parameter, Loc))));
+                 Add_Parameter_To_NVList (Loc,
+                   Parameter   => Current_Parameter,
+                   NVList      => Arguments,
+                   Constrained => Constrained,
+                   Any         => Any));
 
-               if Out_Present (Current_Parameter) then
-                  if In_Present (Current_Parameter)
-                    or else not Constrained
-                  then
-                     --  Unconstrained formals must be translated
-                     --  to 'in' or 'inout', not 'out', because
-                     --  they need to be constrained by the actual.
-
-                     Mode_Expr := New_Occurrence_Of
-                       (RTE (RE_Mode_Inout), Loc);
-                  else
-                     Mode_Expr := New_Occurrence_Of
-                       (RTE (RE_Mode_Out), Loc);
-                  end if;
-               else
-                  Mode_Expr := New_Occurrence_Of
-                    (RTE (RE_Mode_In), Loc);
-               end if;
-
-               Append_To (Parameter_Associations (Last (Statements)),
-                 Mode_Expr);
             end;
          end if;
 
@@ -2530,44 +2528,19 @@ package body Exp_Dist is
                    Object_Definition   =>
                      New_Occurrence_Of (RTE (RE_Any), Loc),
                    Expression          =>
-                     --  Make_To_Any_Function_Call (Loc,
-                     --  Parameter_Association =>
---                      Make_Attribute_Reference (Loc,
---                        Prefix         =>
---                          New_Occurrence_Of (
---                            Defining_Identifier (Current_Parameter), Loc),
---                        Attribute_Name => Name_Constrained)));
-                     Empty));
+                     Build_To_Any_Call (
+                       Make_Attribute_Reference (Loc,
+                         Prefix         =>
+                           New_Occurrence_Of (
+                             Defining_Identifier (Current_Parameter), Loc),
+                         Attribute_Name => Name_Constrained))));
 
-               Get_Name_String (Chars (Extra_Any_Parameter));
                Append_To (Extra_Formal_Statements,
-                 Make_Procedure_Call_Statement (Loc,
-                   Name =>
-                     New_Occurrence_Of
-                       (RTE (RE_NVList_Add_Item), Loc),
-                   Parameter_Associations => New_List (
-                     New_Occurrence_Of (Args_Parameter, Loc),
-                     Make_Function_Call (Loc,
-                       Name =>
-                         New_Occurrence_Of
-                           (RTE (RE_To_PolyORB_String), Loc),
-                       Parameter_Associations => New_List (
-                         Make_String_Literal (Loc,
-                           Strval => String_From_Name_Buffer))),
-                     New_Occurrence_Of (Extra_Any_Parameter, Loc))));
---             Append_To (Extra_Formal_Statements,
---                  Make_Attribute_Reference (Loc,
---                    Prefix         =>
---                      New_Occurrence_Of (Standard_Boolean, Loc),
---                    Attribute_Name =>
---                      Name_Write,
---                    Expressions    => New_List (
---                      Make_Attribute_Reference (Loc,
---                        Prefix         =>
---                          New_Occurrence_Of (Stream_Parameter, Loc),
---                        Attribute_Name =>
---                          Name_Access),
---                      New_Occurrence_Of (Extra_Parameter, Loc))));
+                 Add_Parameter_To_NVList (Loc,
+                   Parameter   => Extra_Any_Parameter,
+                   NVList      => Arguments,
+                   Constrained => True,
+                   Any         => Extra_Any_Parameter));
             end;
          end if;
 
@@ -2589,12 +2562,12 @@ package body Exp_Dist is
             Make_String_Literal (Loc,
               Strval => Get_String_Id
                 (Get_Name_String (Chars (Defining_Unit_Name (Spec))))),
-            New_Occurrence_Of (Args_Parameter, Loc),
-            New_Occurrence_Of (Result_NV_Parameter, Loc),
+            New_Occurrence_Of (Arguments, Loc),
+            New_Occurrence_Of (Result, Loc),
             New_Occurrence_Of (RTE (RE_Nil_Exc_List), Loc))));
 
       Append_To (Parameter_Associations (Last (Statements)),
-            New_Occurrence_Of (Request_Parameter, Loc));
+            New_Occurrence_Of (Request, Loc));
 
       if not Is_Known_Non_Asynchronous then
 
@@ -2624,7 +2597,7 @@ package body Exp_Dist is
               Name                   =>
                 New_Occurrence_Of (RTE (RE_Request_Invoke), Loc),
               Parameter_Associations => New_List (
-                New_Occurrence_Of (Request_Parameter, Loc))));
+                New_Occurrence_Of (Request, Loc))));
 
 --          --  Read the exception occurrence from the result stream and
 --          --  reraise it. It does no harm if this is a Null_Occurrence since
@@ -2644,14 +2617,14 @@ package body Exp_Dist is
 --                    New_Occurrence_Of (Result_Parameter, Loc),
 --                  Attribute_Name =>
 --                    Name_Access),
---                New_Occurrence_Of (Exception_Return_Parameter, Loc))));
+--                New_Occurrence_Of (Exception_Return, Loc))));
 
 --          Append_To (Non_Asynchronous_Statements,
 --            Make_Procedure_Call_Statement (Loc,
 --              Name                   =>
 --                New_Occurrence_Of (RTE (RE_Reraise_Occurrence), Loc),
 --              Parameter_Associations => New_List (
---                New_Occurrence_Of (Exception_Return_Parameter, Loc))));
+--                New_Occurrence_Of (Exception_Return, Loc))));
 
          if Is_Function then
 
@@ -2678,7 +2651,7 @@ package body Exp_Dist is
                       Etype (Subtype_Mark (Spec)),
                       Make_Selected_Component (Loc,
                         Prefix =>
-                          New_Occurrence_Of (Result_NV_Parameter, Loc),
+                          New_Occurrence_Of (Result, Loc),
                         Selector_Name =>
                           Make_Identifier (Loc, Name_Argument))))));
 
@@ -2722,7 +2695,7 @@ package body Exp_Dist is
                             Etype (Parameter_Type (Current_Parameter)),
                             Make_Selected_Component (Loc,
                               Prefix =>
-                                New_Occurrence_Of (Result_NV_Parameter, Loc),
+                                New_Occurrence_Of (Result, Loc),
                               Selector_Name =>
                                 Make_Identifier (Loc, Name_Argument)))));
                end if;
@@ -3099,12 +3072,18 @@ package body Exp_Dist is
       Request_Parameter : Node_Id;
       --  See explanations of those in Build_Subprogram_Calling_Stubs
 
-      The_Any : Entity_Id;
-      --  XXX dummy placeholder
+      Outer_Decls : constant List_Id := New_List;
+      --  At the outermost level, an NVList and Any's are
+      --  declared for all parameters.
+
+      Outer_Statements : constant List_Id := New_List;
+      --  Statements that occur priori to the declaration
+      --  of the actual parameter variables.
 
       Decls : constant List_Id := New_List;
       --  All the parameters will get declared before calling the real
       --  subprograms. Also the out parameters will be declared.
+      --  At this level, parameters may be unconstrained.
 
       Statements : constant List_Id := New_List;
 
@@ -3131,6 +3110,9 @@ package body Exp_Dist is
                                   Build_Ordered_Parameters_List
                                     (Specification (Vis_Decl));
 
+      Arguments : Node_Id;
+      --  Name of the named values list used to retrieve parameters
+
       Subp_Spec : Node_Id;
       --  Subprogram specification
 
@@ -3155,8 +3137,6 @@ package body Exp_Dist is
 --          Make_Defining_Identifier (Loc, New_Internal_Name ('S'));
       Request_Parameter :=
         Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
-      The_Any :=
-        Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
 
       if Dynamically_Asynchronous then
          Dynamic_Async :=
@@ -3164,6 +3144,10 @@ package body Exp_Dist is
       else
          Dynamic_Async := Empty;
       end if;
+
+      Arguments :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
+      Declare_Create_NVList (Loc, Arguments, Outer_Decls, Outer_Statements);
 
 --        if not Asynchronous or else Dynamically_Asynchronous then
 --           Result_Parameter :=
@@ -3195,16 +3179,8 @@ package body Exp_Dist is
 --           Result_Parameter := Empty;
 --        end if;
 
-      Append_To (After_Statements, Make_Null_Statement (Loc));
-      --  XXX TBD!
-
-      Append_To (Decls,
-        Make_Object_Declaration (Loc,
-          Defining_Identifier =>
-            The_Any,
-          Object_Definition =>
-            New_Occurrence_Of (RTE (RE_Any), Loc)));
-      --  XXX dummy placeholder to construct From_Any calls.
+      --  XXX REMOVE (useless for PolyORB since by default we have
+      --  an empty any in the exception information.)
 
       --  Loop through every parameter and get its value from the stream. If
       --  the parameter is unconstrained, then the parameter is read using
@@ -3217,10 +3193,19 @@ package body Exp_Dist is
          declare
             Etyp        : Entity_Id;
             Constrained : Boolean;
+            Any         : Entity_Id;
             Object      : Entity_Id;
             Expr        : Node_Id := Empty;
 
          begin
+            Any := Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
+            Append_To (Outer_Decls,
+              Make_Object_Declaration (Loc,
+                Defining_Identifier =>
+                  Any,
+                Object_Definition   =>
+                  New_Occurrence_Of (RTE (RE_Any), Loc)));
+
             Object := Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
             Set_Ekind (Object, E_Variable);
 
@@ -3235,9 +3220,17 @@ package body Exp_Dist is
             else
                Etyp := Etype (Parameter_Type (Current_Parameter));
             end if;
+            --  XXX To be fixed for PolyORB
 
             Constrained :=
               Is_Constrained (Etyp) or else Is_Elementary_Type (Etyp);
+
+            Append_To (Outer_Statements,
+              Add_Parameter_To_NVList (Loc,
+                Parameter   => Current_Parameter,
+                NVList      => Arguments,
+                Constrained => Constrained,
+                Any         => Any));
 
             if In_Present (Current_Parameter)
                or else not Out_Present (Current_Parameter)
@@ -3250,8 +3243,7 @@ package body Exp_Dist is
                --  'Input instead of 'Read.
 
                Expr := Build_From_Any_Call (
-                         Etyp, New_Occurrence_Of (The_Any, Loc));
-               --  XXX The_Any is a dummy placeholder!
+                         Etyp, New_Occurrence_Of (Any, Loc));
 
                if Constrained then
 --                    Append_To (Statements,
@@ -3277,7 +3269,8 @@ package body Exp_Dist is
 --                      New_Occurrence_Of (Defining_Unit_Name
 --                        (Specification (Expr)), Loc));
                   null;
-
+                  --  Expr will be used to initialize (and constrain)
+                  --  the parameter when it is declared.
                end if;
 
             end if;
@@ -3294,6 +3287,7 @@ package body Exp_Dist is
                 Object_Definition   =>
                   New_Occurrence_Of (Etyp, Loc),
                 Expression          => Expr));
+            Set_Etype (Object, Etyp);
 
             --  An out parameter may be written back using a 'Write
             --  attribute instead of a 'Output because it has been
@@ -3312,14 +3306,21 @@ package body Exp_Dist is
 --                     Attribute_Name => Name_Write,
 --                     Expressions    => New_List (
 --                         New_Occurrence_Of (Result_Parameter, Loc),
---                       New_Occurrence_Of (Object, Loc))));
-               --  XXX TBD!
-               null;
+--                         New_Occurrence_Of (Object, Loc))));
+
+               Append_To (After_Statements,
+                 Make_Procedure_Call_Statement (Loc,
+                   Name =>
+                     New_Occurrence_Of (RTE (RE_Copy_Any_Value), Loc),
+                   Parameter_Associations => New_List (
+                     New_Occurrence_Of (Any, Loc),
+                     Build_To_Any_Call (New_Occurrence_Of (Object, Loc)))));
             end if;
 
             if
               Is_RACW_Controlling_Formal (Current_Parameter, Stub_Type)
             then
+               --  XXX For PolyORB: TO BE REIMPLEMENTED! TBD!
 
                if Nkind (Parameter_Type (Current_Parameter)) /=
                  N_Access_Definition
@@ -3376,31 +3377,53 @@ package body Exp_Dist is
                                       Extra_Constrained
                                         (Defining_Identifier
                                           (Current_Parameter));
-
+                  Extra_Any : constant Entity_Id :=
+                    Make_Defining_Identifier
+                      (Loc, New_Internal_Name ('A'));
                   Formal_Entity : constant Entity_Id :=
                                     Make_Defining_Identifier
                                         (Loc, Chars (Extra_Parameter));
 
                   Formal_Type : constant Entity_Id :=
                                   Etype (Extra_Parameter);
-                  pragma Unreferenced (Formal_Entity, Formal_Type);
                begin
---                    Append_To (Decls,
---                      Make_Object_Declaration (Loc,
---                        Defining_Identifier => Formal_Entity,
---                        Object_Definition   =>
---                          New_Occurrence_Of (Formal_Type, Loc)));
+                  Append_To (Outer_Decls,
+                    Make_Object_Declaration (Loc,
+                      Defining_Identifier =>
+                        Extra_Any,
+                      Object_Definition   =>
+                        New_Occurrence_Of (RTE (RE_Any), Loc)));
+
+                  Append_To (Outer_Statements,
+                    Add_Parameter_To_NVList (Loc,
+                      Parameter   => Extra_Parameter,
+                      NVList      => Arguments,
+                      Constrained => True,
+                      Any         => Extra_Any));
+
+                  Append_To (Decls,
+                    Make_Object_Declaration (Loc,
+                      Defining_Identifier => Formal_Entity,
+                      Object_Definition   =>
+                        New_Occurrence_Of (Formal_Type, Loc)));
 
 --                    Append_To (Extra_Formal_Statements,
 --                      Make_Attribute_Reference (Loc,
---                    Prefix         => New_Occurrence_Of (Formal_Type, Loc),
+--                   Prefix         => New_Occurrence_Of (Formal_Type, Loc),
 --                        Attribute_Name => Name_Read,
 --                        Expressions    => New_List (
 --                          New_Occurrence_Of (Stream_Parameter, Loc),
 --                          New_Occurrence_Of (Formal_Entity, Loc))));
---                    Set_Extra_Constrained (Object, Formal_Entity);
---  XXX TBD!
-                  null;
+                  Append_To (Extra_Formal_Statements,
+                    Make_Assignment_Statement (Loc,
+                      Name =>
+                        New_Occurrence_Of (Extra_Parameter, Loc),
+                      Expression =>
+                        Build_From_Any_Call (
+                          Etype (Extra_Parameter),
+                          New_Occurrence_Of (Extra_Any, Loc))));
+                  Set_Extra_Constrained (Object, Formal_Entity);
+
                end;
             end if;
          end;
@@ -3540,13 +3563,21 @@ package body Exp_Dist is
 
       end if;
 
+      Append_To (Outer_Statements,
+        Make_Block_Statement (Loc,
+          Declarations =>
+            Decls,
+          Handled_Statement_Sequence =>
+            Make_Handled_Sequence_Of_Statements (Loc,
+              Statements => Statements)));
+
       return
         Make_Subprogram_Body (Loc,
           Specification              => Subp_Spec,
-          Declarations               => Decls,
+          Declarations               => Outer_Decls,
           Handled_Statement_Sequence =>
             Make_Handled_Sequence_Of_Statements (Loc,
-              Statements         => Statements,
+              Statements         => Outer_Statements,
               Exception_Handlers => New_List (Excep_Handler)));
 
    end Build_Subprogram_Receiving_Stubs;
@@ -3671,6 +3702,32 @@ package body Exp_Dist is
 
       return True;
    end Could_Be_Asynchronous;
+
+   ---------------------------
+   -- Declare_Create_NVList --
+   ---------------------------
+
+   procedure Declare_Create_NVList
+     (Loc    : Source_Ptr;
+      NVList : Entity_Id;
+      Decls  : List_Id;
+      Stmts  : List_Id)
+   is
+   begin
+      Append_To (Decls,
+        Make_Object_Declaration (Loc,
+          Defining_Identifier => NVList,
+          Aliased_Present     => False,
+          Object_Definition   =>
+              New_Occurrence_Of (RTE (RE_NVList_Ref), Loc)));
+
+      Append_To (Stmts,
+        Make_Procedure_Call_Statement (Loc,
+          Name =>
+            New_Occurrence_Of (RTE (RE_NVList_Create), Loc),
+          Parameter_Associations => New_List (
+            New_Occurrence_Of (NVList, Loc))));
+   end Declare_Create_NVList;
 
    ---------------------------------------------
    -- Expand_All_Calls_Remote_Subprogram_Call --
@@ -4009,6 +4066,36 @@ package body Exp_Dist is
             New_Occurrence_Of (Stream, Loc),
             Object));
    end Pack_Node_Into_Stream_Access;
+
+   ----------------------------
+   -- Parameter_Passing_Mode --
+   ----------------------------
+
+   function Parameter_Passing_Mode
+     (Loc         : Source_Ptr;
+      Parameter   : Entity_Id;
+      Constrained : Boolean)
+      return Node_Id
+   is
+      Lib_RE : RE_Id;
+   begin
+      if Out_Present (Parameter) then
+         if In_Present (Parameter)
+           or else not Constrained
+         then
+            --  Unconstrained formals must be translated
+            --  to 'in' or 'inout', not 'out', because
+            --  they need to be constrained by the actual.
+
+            Lib_RE := RE_Mode_Inout;
+         else
+            Lib_RE := RE_Mode_Out;
+         end if;
+      else
+         Lib_RE := RE_Mode_In;
+      end if;
+      return New_Occurrence_Of (RTE (Lib_RE), Loc);
+   end Parameter_Passing_Mode;
 
    -------------------------------
    -- RACW_Type_Is_Asynchronous --
