@@ -1150,7 +1150,7 @@ package body Exp_Dist is
 
             if Chars (Current_Primitive) /= Name_uSize
               and then Chars (Current_Primitive) /= Name_uAlignment
-              and then Is_TSS (Current_Primitive, TSS_Deep_Finalize)
+              and then not Is_TSS (Current_Primitive, TSS_Deep_Finalize)
             then
                --  The first thing to do is build an up-to-date copy of
                --  the spec with all the formals referencing Designated_Type
