@@ -877,6 +877,23 @@ package body Ada_Be.Idl2Ada is
             DI (CU);
             PL (CU, "end record;");
 
+         when K_String_Instance =>
+            NL (CU);
+            PL (CU, "package " & Name (Node) & " is");
+            if Is_Wide (Node) then
+               Add_With (CU, "CORBA.Bounded_Wide_Strings",
+                         Use_It => False,
+                         Elab_Control => Elaborate_All);
+               Put (CU, "  new CORBA.Bounded_Wide_Strings");
+            else
+               Add_With (CU, "CORBA.Bounded_Strings",
+                         Use_It => False,
+                         Elab_Control => Elaborate_All);
+               Put (CU, "  new CORBA.Bounded_Strings");
+            end if;
+            PL (CU, " (" & Img (Integer_Value (Bound (Node)))
+                & ");");
+
          when K_Sequence_Instance =>
             NL (CU);
             PL (CU, "package " & Name (Node) & " is");
@@ -1641,7 +1658,8 @@ package body Ada_Be.Idl2Ada is
            K_Enum              |
            K_Union             |
            K_Struct            |
-           K_Sequence_Instance =>
+           K_Sequence_Instance |
+           K_String_Instance   =>
             NL (CU);
             Gen_Marshall_Profile (CU, Node);
             PL (CU, ";");
@@ -2228,6 +2246,45 @@ package body Ada_Be.Idl2Ada is
             DI (CU);
             PL (CU, "end Unmarshall;");
 
+         when K_String_Instance =>
+
+            NL (CU);
+            Gen_Marshall_Profile (CU, Node);
+            PL (CU, " is");
+            II (CU);
+            PL (CU, "use " & Ada_Name (Node) & ";");
+            NL (CU);
+            if Is_Wide (Node) then
+               PL (CU, "Data : constant CORBA.Wide_String");
+            else
+               PL (CU, "Data : constant CORBA.String");
+            end if;
+            PL (CU, "  := To_String (Val);");
+            DI (CU);
+            PL (CU, "begin");
+            II (CU);
+            Add_With (CU, "Broca.CDR");
+            PL (CU, "Marshall");
+            PL (CU, "  (Buffer, Data);");
+            DI (CU);
+            PL (CU, "end Marshall;");
+
+            NL (CU);
+            Gen_Unmarshall_Profile (CU, Node);
+            NL (CU);
+            PL (CU, "is");
+            II (CU);
+            PL (CU, "use " & Ada_Name (Node) & ";");
+            NL (CU);
+            PL (CU, "Data : constant Bounded_String");
+            PL (CU, "  := To_Bounded_String (Unmarshall (Buffer));");
+            DI (CU);
+            PL (CU, "begin");
+            II (CU);
+            PL (CU, "return Data;");
+            DI (CU);
+            PL (CU, "end Unmarshall;");
+
          when others =>
             null;
       end case;
@@ -2366,6 +2423,9 @@ package body Ada_Be.Idl2Ada is
          when K_Sequence_Instance =>
             return Ada_Full_Name (Node) & ".Sequence";
 
+         when K_String_Instance =>
+            return Ada_Full_Name (Node) & ".Bounded_String";
+
          when
            K_Enum       |
            K_Union      |
@@ -2451,8 +2511,9 @@ package body Ada_Be.Idl2Ada is
            K_Union             |
            K_Struct            |
            K_Declarator        |
+           K_Forward_Interface |
            K_Sequence_Instance |
-           K_Forward_Interface =>
+           K_String_Instance   =>
             Add_With_Entity (CU, Parent_Scope (Node));
 
          when K_Scoped_Name =>
@@ -2501,7 +2562,8 @@ package body Ada_Be.Idl2Ada is
            K_Union             |
            K_Struct            |
            K_Declarator        |
-           K_Sequence_Instance =>
+           K_Sequence_Instance |
+           K_String_Instance   =>
             Add_With (CU, Ada_Full_Name (Parent_Scope (Node))
                       & Stream_Suffix,
                       Use_It => True);

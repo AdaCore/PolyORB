@@ -84,10 +84,15 @@ package body Ada_Be.Expansion is
 
    procedure Expand_Sequence
      (Node : Node_Id);
-   --  Replace a Sequence node by a reference to
+   --  Replace a Sequence node with a reference to
    --  a Sequence_Instance node. The Sequence Instance
    --  node is also inserted as a declaration in the current
    --  scope.
+
+   procedure Expand_String
+     (Node : Node_Id);
+   --  Replace a bounded string or bounded wide string node
+   --  with a reference to a Bounded_String_Instance node.
 
    procedure Expand_Constructed_Type
      (Node : Node_Id;
@@ -142,6 +147,11 @@ package body Ada_Be.Expansion is
    --  possibly appending a numeric prefix if a conflict
    --  would otherwise be introduced.
 
+   procedure Insert_Before_Current
+     (Node : Node_Id);
+   --  Insert node in Current_Gen_Scope immediately before
+   --  Current_Position_In_List.
+
    -----------------
    -- Expand_Node --
    -----------------
@@ -179,6 +189,11 @@ package body Ada_Be.Expansion is
 
          when K_Sequence =>
             Expand_Sequence (Node);
+
+         when
+           K_String      |
+           K_Wide_String =>
+            Expand_String (Node);
 
          when others =>
             null;
@@ -658,26 +673,57 @@ package body Ada_Be.Expansion is
 
       Expand_Node (Sequence_Type (Node));
 
-      declare
-         Current_Gen_Scope : constant Node_Id
-           := Get_Current_Gen_Scope;
-         Current_Scope_Contents : Node_List;
-      begin
-         pragma Assert (Is_Gen_Scope (Current_Gen_Scope));
-         Current_Scope_Contents
-           := Contents (Current_Gen_Scope);
-         Insert_Before
-           (Current_Scope_Contents,
-            Seq_Inst_Node,
-            Before => Current_Position_In_List);
-         Set_Contents (Current_Gen_Scope, Current_Scope_Contents);
-      end;
+      Insert_Before_Current (Seq_Inst_Node);
 
       Set_Value (Seq_Ref_Node, Seq_Inst_Node);
       Set_S_Type (Seq_Ref_Node, Seq_Inst_Node);
+
       Replace_Node (Sequence_Node, Seq_Ref_Node);
       Set_Sequence (Seq_Inst_Node, Sequence_Node);
    end Expand_Sequence;
+
+   Prefix : constant array (Boolean) of String_Cacc
+     := (False => new String'("Bounded_String"),
+         True  => new String'("Bounded_Wide_String"));
+
+   procedure Expand_String
+     (Node : Node_Id) is
+   begin
+      if Bound (Node) = No_Node then
+         --  This string is not bounded.
+         return;
+      end if;
+
+      declare
+         Is_Wide_String : constant Boolean
+           := Kind (Node) = K_Wide_String;
+
+         String_Node : Node_Id
+           := Node;
+         String_Inst_Node : constant Node_Id
+           := Make_String_Instance;
+         String_Ref_Node : Node_Id
+           := Make_Scoped_Name;
+
+      begin
+         Add_Identifier_With_Renaming
+           (String_Inst_Node,
+            Prefix (Is_Wide_String).all
+            & "_" & Img (Integer_Value (Bound (Node))));
+
+         Set_Is_Wide
+           (String_Inst_Node,
+            Is_Wide_String);
+         Set_Bound (String_Inst_Node, Bound (Node));
+
+         Insert_Before_Current (String_Inst_Node);
+
+         Set_Value (String_Ref_Node, String_Inst_Node);
+         Set_S_Type (String_Ref_Node, String_Inst_Node);
+
+         Replace_Node (String_Node, String_Ref_Node);
+      end;
+   end Expand_String;
 
    procedure Expand_Constructed_Type
      (Node : Node_Id;
@@ -703,21 +749,13 @@ package body Ada_Be.Expansion is
       declare
          Current_Gen_Scope : constant Node_Id
            := Get_Current_Gen_Scope;
-         Current_Scope_Contents : Node_List;
 
          Constr_Type_Node : Node_Id := Node;
          Constr_Type_Ref_Node : Node_Id
            := Make_Scoped_Name;
 
       begin
-         pragma Assert (Is_Gen_Scope (Current_Gen_Scope));
-         Current_Scope_Contents
-           := Contents (Current_Gen_Scope);
-
-         Insert_Before
-           (Current_Scope_Contents,
-            Constr_Type_Node,
-            Before => Current_Position_In_List);
+         Insert_Before_Current (Constr_Type_Node);
 
          if Parent_Scope (Constr_Type_Node) /= Current_Gen_Scope then
             Add_Identifier_With_Renaming
@@ -744,8 +782,6 @@ package body Ada_Be.Expansion is
                end loop;
             end;
          end if;
-
-         Set_Contents (Current_Gen_Scope, Current_Scope_Contents);
 
          Set_Value (Constr_Type_Ref_Node, Constr_Type_Node);
          Set_S_Type (Constr_Type_Ref_Node, Constr_Type_Node);
@@ -812,10 +848,6 @@ package body Ada_Be.Expansion is
       end if;
 
       declare
-         Current_Gen_Scope : constant Node_Id
-           := Get_Current_Gen_Scope;
-         Current_Scope_Contents : Node_List;
-
          Parent_Node : constant Node_Id
            := Parent (Node);
 
@@ -830,10 +862,6 @@ package body Ada_Be.Expansion is
          Success : Boolean;
       begin
          pragma Debug (O ("Expand_Array_Declarator: enter"));
-         pragma Assert (Is_Gen_Scope (Current_Gen_Scope));
-
-         Current_Scope_Contents
-           := Contents (Current_Gen_Scope);
 
          case Kind (Parent_Node) is
             when K_Member =>
@@ -844,6 +872,7 @@ package body Ada_Be.Expansion is
                pragma Assert (False);
                null;
          end case;
+
          Set_Value (Array_Ref_Node, Array_Node);
          Set_S_Type (Array_Ref_Node, Array_Node);
 
@@ -866,12 +895,7 @@ package body Ada_Be.Expansion is
          pragma Assert (Success);
          --  FIXME: In current /gen/scope (see comment in Expand_Sequence).
 
-         Insert_Before
-           (Current_Scope_Contents,
-            Array_Type_Node,
-            Before => Current_Position_In_List);
-         Set_Contents (Current_Gen_Scope, Current_Scope_Contents);
-
+         Insert_Before_Current (Array_Type_Node);
          Set_Array_Bounds (Array_Node, Array_Bounds (Node));
          Set_Array_Bounds (Node, Nil_List);
       end;
@@ -940,7 +964,7 @@ package body Ada_Be.Expansion is
             else
                return "SEQUENCE_"
                  & Sequence_Type_Name (Sequence_Type (Node))
-                 & Img (Integer_Value (Bound (Node)));
+                 & "_" & Img (Integer_Value (Bound (Node)));
             end if;
 
          when K_Scoped_Name =>
@@ -1028,5 +1052,22 @@ package body Ada_Be.Expansion is
          end loop;
       end if;
    end Add_Identifier_With_Renaming;
+
+   procedure Insert_Before_Current
+     (Node : Node_Id)
+   is
+      Current_Gen_Scope : constant Node_Id
+        := Get_Current_Gen_Scope;
+      Current_Scope_Contents : Node_List;
+   begin
+      pragma Assert (Is_Gen_Scope (Current_Gen_Scope));
+      Current_Scope_Contents
+        := Contents (Current_Gen_Scope);
+      Insert_Before
+        (Current_Scope_Contents,
+         Node,
+         Before => Current_Position_In_List);
+      Set_Contents (Current_Gen_Scope, Current_Scope_Contents);
+   end Insert_Before_Current;
 
 end Ada_Be.Expansion;

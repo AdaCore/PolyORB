@@ -532,6 +532,15 @@ package body Idl_Fe.Display_Tree is
             Put_Line ("sequence_instance " & Name (N));
             Disp_Tree (Sequence (N), N_Indent, Full);
 
+         when K_String_Instance =>
+            Put ("string_instance " & Name (N));
+            if Is_Wide (N) then
+               Put_Line (" (wide)");
+            else
+               New_Line;
+            end if;
+            Disp_Tree (Bound (N), N_Indent, Full);
+
             --  ************************** --
          when others =>
             Put_Line ("not implemented yet");

@@ -257,5 +257,11 @@ Sequence_Instance <-- Named
   --  The Sequence node for which this instance was
   --  created.
 
+String_Instance <-- Named
+  --  An instance of CORBA.Bounded_Strings
+  --  or CORBA.Bounded_Wide_Strings
+  Bound : Node_Id
+  Is_Wide : Boolean
+
 END
 
