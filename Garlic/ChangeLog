@@ -1,3 +1,8 @@
+Sun Sep 14 15:55:58 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garhea.adb: Set System.Standard_Library.Local_Partition_ID as
+	  soon as the local PID is known. Used for exceptions.
+
 Sat Sep 13 14:31:14 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* Makefile.am (install-data-local): Compute path to libgnat.a

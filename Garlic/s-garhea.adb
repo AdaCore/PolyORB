@@ -38,10 +38,12 @@ with System.Garlic.Protocols;
 with System.Garlic.Termination;
 with System.Garlic.Utils;
 
-with System.Garlic.Trace;    use System.Garlic.Trace;
+with System.Garlic.Trace;     use System.Garlic.Trace;
 with System.Garlic.Replay;
-with System.Garlic.Debug;    use System.Garlic.Debug;
-with System.Garlic.Filters;  use System.Garlic.Filters;
+with System.Garlic.Debug;     use System.Garlic.Debug;
+with System.Garlic.Filters;   use System.Garlic.Filters;
+
+with System.Standard_Library;
 
 package body System.Garlic.Heart is
 
@@ -1135,6 +1137,9 @@ package body System.Garlic.Heart is
    procedure Set_My_Partition_ID (Partition : in Partition_ID) is
       use System.Garlic.Trace;
    begin
+
+      System.Standard_Library.Local_Partition_ID := Natural (Partition);
+
       Local_Partition_ID.Set (Partition);
 
       if Get_Current_Execution_Mode = Trace_Mode then
