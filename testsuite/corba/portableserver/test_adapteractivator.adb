@@ -117,6 +117,7 @@ package body Test_AdapterActivator is
       New_Test ("Adapter Activator");
 
       --  Register a Child POA
+
       Child_POA := PortableServer.POA.Ref
         (PortableServer.POA.Create_POA
          (Root_POA,
@@ -140,6 +141,7 @@ package body Test_AdapterActivator is
       end;
 
       --  Set 'Null' Adapter Activator
+
       PortableServer.POA.Set_The_Activator
         (Child_POA,
          NullAdapter);
@@ -160,6 +162,7 @@ package body Test_AdapterActivator is
       Output ("Null Unknown_Adapter invoked", Null_Activator_Called);
 
       --  Set 'Simple' Adapter Activator
+
       PortableServer.POA.Set_The_Activator
         (Child_POA,
          SimpleAdapter);
