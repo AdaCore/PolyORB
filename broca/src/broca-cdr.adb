@@ -379,23 +379,30 @@ package body Broca.CDR is
             Marshall (Buffer, CORBA.Unsigned_Long'(14));
             Marshall (Buffer, CORBA.TypeCode.Id (Data));
             Marshall (Buffer, CORBA.TypeCode.Name (Data));
---  FIXME : not done under this point
          when Tk_Struct =>
             Marshall (Buffer, CORBA.Unsigned_Long'(15));
+            --  FIXME : not terminated
          when Tk_Union =>
             Marshall (Buffer, CORBA.Unsigned_Long'(16));
+            --  FIXME : not terminated
          when Tk_Enum =>
             Marshall (Buffer, CORBA.Unsigned_Long'(17));
+            --  FIXME : not terminated
          when Tk_String =>
             Marshall (Buffer, CORBA.Unsigned_Long'(18));
+            Marshall (Buffer, CORBA.TypeCode.Length (Data));
          when Tk_Sequence =>
             Marshall (Buffer, CORBA.Unsigned_Long'(19));
+            --  FIXME : not terminated
          when Tk_Array =>
             Marshall (Buffer, CORBA.Unsigned_Long'(20));
+            --  FIXME : not terminated
          when Tk_Alias =>
             Marshall (Buffer, CORBA.Unsigned_Long'(21));
+            --  FIXME : not terminated
          when Tk_Except =>
             Marshall (Buffer, CORBA.Unsigned_Long'(22));
+            --  FIXME : not terminated
          when Tk_Longlong =>
             Marshall (Buffer, CORBA.Unsigned_Long'(23));
          when Tk_Ulonglong =>
@@ -406,16 +413,23 @@ package body Broca.CDR is
             Marshall (Buffer, CORBA.Unsigned_Long'(26));
          when Tk_Wstring =>
             Marshall (Buffer, CORBA.Unsigned_Long'(27));
+            Marshall (Buffer, CORBA.TypeCode.Length (Data));
          when Tk_Fixed =>
             Marshall (Buffer, CORBA.Unsigned_Long'(28));
+            Marshall (Buffer, CORBA.TypeCode.Fixed_Digits (Data));
+            Marshall (Buffer, CORBA.TypeCode.Fixed_Scale (Data));
          when Tk_Value =>
             Marshall (Buffer, CORBA.Unsigned_Long'(29));
+            --  FIXME : not terminated
          when Tk_Valuebox =>
             Marshall (Buffer, CORBA.Unsigned_Long'(30));
+            --  FIXME : not terminated
          when Tk_Native =>
             Marshall (Buffer, CORBA.Unsigned_Long'(31));
+            --  FIXME : not terminated
          when Tk_Abstract_Interface =>
             Marshall (Buffer, CORBA.Unsigned_Long'(32));
+            --  FIXME : not terminated
       end case;
    end Marshall;
 

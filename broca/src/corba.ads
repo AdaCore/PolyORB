@@ -446,7 +446,7 @@ package CORBA is
                               return CORBA.Long;
 
       --  returns the length associated with a typecode
-      --  in case its kind is string, sequence or aray.
+      --  in case its kind is string, wide_string, sequence or array.
       --  Raises badKind else.
       function Length (Self : in Object)
                        return CORBA.Unsigned_Long;
