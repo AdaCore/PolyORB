@@ -142,6 +142,10 @@ package body PolyORB.Transport is
             TE.Max    := DE.Max;
          end;
 
+         return Emit
+           (TE.Server, ORB.Interface.Monitor_Endpoint'
+              (TE => Transport_Endpoint_Access (TE)));
+
       elsif Msg in Data_Indication then
          pragma Debug (O ("Data received"));
 

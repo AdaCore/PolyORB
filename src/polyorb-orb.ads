@@ -392,20 +392,4 @@ private
       --  with this ORB.
    end record;
 
-   -------------------------------------
-   -- Internal primitives of ORB_Type --
-   -------------------------------------
-
-   procedure Insert_Source
-     (ORB : access ORB_Type;
-      AES : Asynch_Ev_Source_Access);
-   --  Insert AES in the set of asynchronous event sources
-   --  monitored by ORB.
-
-   procedure Delete_Source
-     (ORB : access ORB_Type;
-      AES : in out Asynch_Ev_Source_Access);
-   --  Delete AES from the set of asynchronous event sources
-   --  monitored by ORB. AES is destroyed.
-
 end PolyORB.ORB;

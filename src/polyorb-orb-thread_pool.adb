@@ -111,16 +111,18 @@ package body PolyORB.ORB.Thread_Pool is
    is
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (P);
+      pragma Unreferenced (P, ORB);
       pragma Warnings (On);
       pragma Debug (O ("Thread_Pool: new server connection"));
-      Insert_Source (ORB, C.AES);
+
       Components.Emit_No_Reply
         (Component_Access (C.TE),
          Connect_Indication'(null record));
 
-   --  The newly-created channel will be monitored
-   --  by general-purpose ORB tasks.
+      --  The newly-created channel will be monitored by
+      --  general-purpose ORB tasks when the binding object
+      --  sends a Data_Expected message to the endpoint
+      --  (which will in turn send Monitor_Endpoint to the ORB).
    end Handle_New_Server_Connection;
 
    ----------------------------------
@@ -134,16 +136,13 @@ package body PolyORB.ORB.Thread_Pool is
    is
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (P);
+      pragma Unreferenced (P, ORB);
       pragma Warnings (On);
       pragma Debug (O ("Thread_Pool: new client connection"));
-      Insert_Source (ORB, C.AES);
       Components.Emit_No_Reply
         (Component_Access (C.TE),
          Connect_Confirmation'(null record));
-
-   --  The newly-created channel will be monitored
-   --  by general-purpose ORB tasks.
+      --  Same comment as Handle_New_Server_Connection.
    end Handle_New_Client_Connection;
 
    ------------------------------

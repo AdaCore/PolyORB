@@ -78,10 +78,9 @@ package body PolyORB.ORB.No_Tasking is
       C   : Active_Connection) is
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (P);
+      pragma Unreferenced (P, ORB);
       pragma Warnings (On);
       pragma Debug (O ("No_Tasking: new client connection"));
-      Insert_Source (ORB, C.AES);
       Components.Emit_No_Reply
         (Component_Access (C.TE),
          Connect_Confirmation'(null record));
@@ -100,10 +99,9 @@ package body PolyORB.ORB.No_Tasking is
       C   : Active_Connection) is
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (P);
+      pragma Unreferenced (P, ORB);
       pragma Warnings (On);
       pragma Debug (O ("No_Tasking: new server connection"));
-      Insert_Source (ORB, C.AES);
       Components.Emit_No_Reply
         (Component_Access (C.TE),
          Connect_Indication'(null record));
@@ -121,8 +119,7 @@ package body PolyORB.ORB.No_Tasking is
       RJ  : access Request_Job'Class) is
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (P);
-      pragma Unreferenced (ORB);
+      pragma Unreferenced (P, ORB);
       pragma Warnings (On);
       pragma Debug (O ("No_Tasking: request execution"));
 

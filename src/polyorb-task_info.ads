@@ -38,6 +38,7 @@
 
 with PolyORB.Asynch_Ev;
 with PolyORB.Tasking.Watchers;
+with PolyORB.Utils.Strings;
 
 package PolyORB.Task_Info is
 
@@ -89,6 +90,12 @@ package PolyORB.Task_Info is
      return PolyORB.Tasking.Watchers.Watcher_Access;
    pragma Inline (Watcher);
 
+   procedure Set_Id (TI : in out Task_Info; Id : Utils.Strings.String_Ptr);
+   pragma Inline (Set_Id);
+
+   function Id (TI : Task_Info) return Utils.Strings.String_Ptr;
+   pragma Inline (Id);
+
 private
 
    type Task_Info (Kind : Task_Kind) is record
@@ -100,6 +107,9 @@ private
 
       Watcher  : PolyORB.Tasking.Watchers.Watcher_Access;
       --  Meaningful only when Status = Idle
+
+      Id : Utils.Strings.String_Ptr;
+      --  An identifier for this task, for debugging purposes.
    end record;
 
 end PolyORB.Task_Info;

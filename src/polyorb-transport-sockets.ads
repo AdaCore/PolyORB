@@ -36,6 +36,7 @@
 --  $Id$
 
 with PolyORB.Sockets; use PolyORB.Sockets;
+with PolyORB.Tasking.Mutexes;
 
 package PolyORB.Transport.Sockets is
 
@@ -103,6 +104,7 @@ private
      with record
         Socket : Socket_Type := No_Socket;
         Addr   : Sock_Addr_Type;
+        Mutex  : Tasking.Mutexes.Mutex_Access;
      end record;
 
 end PolyORB.Transport.Sockets;

@@ -106,10 +106,9 @@ package body PolyORB.ORB.Thread_Per_Request is
    is
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (P);
+      pragma Unreferenced (P, ORB);
       pragma Warnings (On);
       pragma Debug (O (" new client connection"));
-      Insert_Source (ORB, C.AES);
       Components.Emit_No_Reply
         (Component_Access (C.TE),
          Connect_Confirmation'(null record));
@@ -126,10 +125,9 @@ package body PolyORB.ORB.Thread_Per_Request is
    is
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (P);
+      pragma Unreferenced (P, ORB);
       pragma Warnings (On);
       pragma Debug (O (" new server connection. "));
-      Insert_Source (ORB, C.AES);
       Components.Emit_No_Reply
         (Component_Access (C.TE),
          Connect_Indication'(null record));

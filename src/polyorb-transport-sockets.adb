@@ -35,15 +35,19 @@
 
 --  $Id$
 
+with Ada.Exceptions;
+
 with PolyORB.Asynch_Ev.Sockets;
 with PolyORB.Log;
 
 package body PolyORB.Transport.Sockets is
 
    use Ada.Streams;
+
    use PolyORB.Asynch_Ev;
    use PolyORB.Asynch_Ev.Sockets;
    use PolyORB.Log;
+   use PolyORB.Tasking.Mutexes;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.transport.sockets");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -96,6 +100,7 @@ package body PolyORB.Transport.Sockets is
         (Server  => TAP.Socket,
          Socket  => Socket_Endpoint (New_TE.all).Socket,
          Address => Socket_Endpoint (New_TE.all).Addr);
+      Create (Socket_Endpoint (New_TE.all).Mutex);
       TE := New_TE;
    end Accept_Connection;
 
@@ -118,6 +123,7 @@ package body PolyORB.Transport.Sockets is
       S  : Socket_Type) is
    begin
       TE.Socket := S;
+      Create (TE.Mutex);
    end Create;
 
    -------------------------
@@ -164,7 +170,19 @@ package body PolyORB.Transport.Sockets is
       Buffer : Buffers.Buffer_Access)
    is
    begin
+      pragma Debug (O ("Write: enter"));
+      begin
+         Enter (TE.Mutex);
+         --  XXX Send_Buffer is not atomicn, needs to be protected.
+      exception
+         when E : others =>
+            pragma Debug (O ("Enter (TE.Mutex) raised "
+              & Ada.Exceptions.Exception_Information (E)));
+            raise;
+      end;
+      pragma Debug (O ("TE mutex acquired"));
       PolyORB.Buffers.Send_Buffer (Buffer, TE.Socket);
+      Leave (TE.Mutex);
    end Write;
 
    -----------
@@ -177,6 +195,7 @@ package body PolyORB.Transport.Sockets is
          Close_Socket (TE.Socket);
       end if;
       TE.Socket := No_Socket;
+      Destroy (TE.Mutex);
    end Close;
 
 end PolyORB.Transport.Sockets;

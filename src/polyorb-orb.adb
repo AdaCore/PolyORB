@@ -119,10 +119,21 @@ package body PolyORB.ORB is
       return NJ;
    end Duplicate_Request_Job;
 
-   --------------------------------------------------
-   -- Event handlers used for the various kinds of --
-   -- asynchronous event sources.                  --
-   --------------------------------------------------
+   ----------------------------------------------
+   -- Management of asynchronous event sources --
+   ----------------------------------------------
+
+   procedure Insert_Source
+     (ORB : access ORB_Type;
+      AES : Asynch_Ev_Source_Access);
+   --  Insert AES in the set of asynchronous event sources
+   --  monitored by ORB.
+
+   procedure Delete_Source
+     (ORB : access ORB_Type;
+      AES : in out Asynch_Ev_Source_Access);
+   --  Delete AES from the set of asynchronous event sources
+   --  monitored by ORB. AES is destroyed.
 
    procedure Free is new Ada.Unchecked_Deallocation
      (AES_Event_Handler'Class, AES_Event_Handler_Access);
@@ -312,9 +323,6 @@ package body PolyORB.ORB is
                  (Data_Amount => 0));
             --  The size of the data received is not known yet.
 
-            Insert_Source (ORB, AES);
-            --  Continue monitoring this source.
-
          exception
             when Connection_Closed =>
                O ("Connection closed.");
@@ -370,10 +378,35 @@ package body PolyORB.ORB is
         (Task_Kind_For_Exit_Condition
          (Exit_Condition.Condition = null));
 
+      procedure Set_Task_Id;
+      pragma Inline (Set_Task_Id);
+      --  Set this task's debugging identifier.
+
+      procedure Cleanup;
+      pragma Inline (Cleanup);
+      --  Remove all references to This_Task. Must be called
+      --  before returning from Run (even when not debugging).
+
+      procedure Set_Task_Id is
+         use Tasking.Threads;
+      begin
+         Set_Id (This_Task, new String'(Image (Current_Task)));
+      end Set_Task_Id;
+
+      procedure Cleanup is
+         Id : Utils.Strings.String_Ptr := Task_Info.Id (This_Task);
+      begin
+         if Exit_Condition.Task_Info /= null then
+            Exit_Condition.Task_Info.all := null;
+         end if;
+         pragma Debug (Utils.Strings.Free (Id));
+      end Cleanup;
+
       Do_Idle : Boolean;
 
    begin
       Enter (ORB.ORB_Lock);
+      pragma Debug (Set_Task_Id);
       if Exit_Condition.Task_Info /= null then
          Exit_Condition.Task_Info.all
            := This_Task'Unchecked_Access;
@@ -522,10 +555,8 @@ package body PolyORB.ORB is
 
       end loop Main_Loop;
       pragma Debug (O ("Run: leave."));
+      Cleanup;
 
-      if Exit_Condition.Task_Info /= null then
-         Exit_Condition.Task_Info.all := null;
-      end if;
       Leave (ORB.ORB_Lock);
 
    exception
@@ -536,9 +567,7 @@ package body PolyORB.ORB is
          O ("ORB main loop got exception:", Error);
          O (Ada.Exceptions.Exception_Information (E), Error);
 
-         if Exit_Condition.Task_Info /= null then
-            Exit_Condition.Task_Info.all := null;
-         end if;
+         Cleanup;
          raise;
    end Run;
 
@@ -880,12 +909,19 @@ package body PolyORB.ORB is
       pragma Assert (J.Request /= null);
 
       declare
+         use type Task_Info.Task_Info_Access;
          Surrogate : Components.Component_Access;
          Pro : PolyORB.Binding_Data.Profile_Access;
       begin
          pragma Debug (O ("Task " & Image (Current_Task)
-                          & " executing: "
-                          & Requests.Image (J.Request.all)));
+                            & " executing: "
+                            & Requests.Image (J.Request.all)));
+         if J.Request.Requesting_Task /= null then
+            pragma Debug
+              (O ("... requested by "
+                  & Task_Info.Id (J.Request.Requesting_Task.all).all));
+            null;
+         end if;
 
          References.Binding.Bind
            (J.Request.Target, J.ORB, Surrogate, Pro);
@@ -1143,6 +1179,16 @@ package body PolyORB.ORB is
                   (ORB.Obj_Adapter, Interface.URI_Translate (Msg).Path));
          begin
             return Result;
+         end;
+
+      elsif Msg in Interface.Monitor_Endpoint then
+         declare
+            TE : constant Transport_Endpoint_Access
+              := Interface.Monitor_Endpoint (Msg).TE;
+            Note : TE_Note;
+         begin
+            Get_Note (Notepad_Of (TE).all, Note);
+            Insert_Source (ORB, Note.AES);
          end;
 
       elsif Msg in Interface.Unregister_Endpoint then

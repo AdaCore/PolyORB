@@ -38,6 +38,26 @@
 
 package body PolyORB.Task_Info is
 
+   --------
+   -- Id --
+   --------
+
+   function Id (TI : Task_Info) return Utils.Strings.String_Ptr is
+   begin
+      return TI.Id;
+   end Id;
+
+   --------------
+   -- Selector --
+   --------------
+
+   function Selector (TI : Task_Info)
+     return Asynch_Ev.Asynch_Ev_Monitor_Access is
+   begin
+      pragma Assert (TI.Status = Blocked);
+      return TI.Selector;
+   end Selector;
+
    ------------------------
    -- Set_Status_Blocked --
    ------------------------
@@ -79,6 +99,15 @@ package body PolyORB.Task_Info is
    end Set_Status_Running;
 
    ------------
+   -- Set_Id --
+   ------------
+
+   procedure Set_Id (TI : in out Task_Info; Id : Utils.Strings.String_Ptr) is
+   begin
+      TI.Id := Id;
+   end Set_Id;
+
+   ------------
    -- Status --
    ------------
 
@@ -87,17 +116,6 @@ package body PolyORB.Task_Info is
    begin
       return TI.Status;
    end Status;
-
-   --------------
-   -- Selector --
-   --------------
-
-   function Selector (TI : Task_Info)
-     return Asynch_Ev.Asynch_Ev_Monitor_Access is
-   begin
-      pragma Assert (TI.Status = Blocked);
-      return TI.Selector;
-   end Selector;
 
    -------------
    -- Watcher --
