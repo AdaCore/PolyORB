@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#57 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#58 $
 
 with Ada.Exceptions;
 
@@ -40,6 +40,7 @@ with CORBA.ORB;
 with PortableServer.ServantActivator;
 with PortableServer.ServantLocator;
 
+with PolyORB.Annotations;
 with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Initialization;
@@ -60,11 +61,12 @@ with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
 with PolyORB.CORBA_P.AdapterActivator;
+with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Interceptors_Hooks;
+with PolyORB.CORBA_P.POA_Config;
+with PolyORB.CORBA_P.Policy_Management;
 with PolyORB.CORBA_P.ServantActivator;
 with PolyORB.CORBA_P.ServantLocator;
-with PolyORB.CORBA_P.Exceptions;
-with PolyORB.CORBA_P.POA_Config;
 
 package body PortableServer.POA is
 
@@ -161,6 +163,7 @@ package body PortableServer.POA is
      return Ref'Class
    is
       use type PolyORB.CORBA_P.Interceptors_Hooks.POA_Create_Handler;
+      use type CORBA.Short;
 
       Res : PolyORB.POA.Obj_Adapter_Access;
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
@@ -168,11 +171,53 @@ package body PortableServer.POA is
       POA_Policies : PolyORB.POA_Policies.PolicyList
         := PolyORB.CORBA_P.POA_Config.Convert_PolicyList (Policies);
 
-      Error : PolyORB.Exceptions.Error_Container;
+      Note    : PolyORB.CORBA_P.Policy_Management.Policy_Manager_Note;
+      Error   : PolyORB.Exceptions.Error_Container;
+      Indexes : CORBA.Short;
 
    begin
       pragma Debug (O ("Creating POA "
                        & CORBA.To_Standard_String (Adapter_Name)));
+
+      --  Convert list of policies into policy override Note
+
+      declare
+         use PolyORB.CORBA_P.Policy_Management;
+
+         The_Type : CORBA.PolicyType;
+      begin
+         for J in 1 .. CORBA.Policy.IDL_Sequence_Policy.Length (Policies) loop
+            The_Type :=
+              CORBA.Policy.Get_Policy_Type
+               (CORBA.Policy.IDL_Sequence_Policy.Element_Of (Policies, J));
+
+            if not Is_POA_Policy (The_Type) then
+               PolyORB.Exceptions.Throw
+                (Error,
+                 PolyORB.Exceptions.InvalidPolicy_E,
+                 PolyORB.Exceptions.InvalidPolicy_Members'
+                  (Index => PolyORB.Types.Short (J)));
+               exit;
+            end if;
+
+            Note.Overrides (The_Type) :=
+              CORBA.Policy.IDL_Sequence_Policy.Element_Of (Policies, J);
+         end loop;
+      end;
+
+      if Found (Error) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+
+      --  Check policy compatibility.
+
+      PolyORB.CORBA_P.Policy_Management.Check_Compatibility
+        (Note.Overrides,
+         Indexes);
+
+      if Indexes /= 0 then
+         Raise_InvalidPolicy ((Index => Indexes));
+      end if;
 
       --  Note : Policy compability is tested by PolyORB.POA.Create_POA.
 
@@ -185,14 +230,16 @@ package body PortableServer.POA is
          Res,
          Error);
 
+      PolyORB.Annotations.Set_Note (PolyORB.POA.Notepad_Of (POA).all, Note);
+
+      PolyORB.POA_Policies.Policy_Lists.Deallocate (POA_Policies);
+
       if not Found (Error) then
          if PolyORB.CORBA_P.Interceptors_Hooks.POA_Create /= null then
             PolyORB.CORBA_P.Interceptors_Hooks.POA_Create (Res, Error);
             --  XXX  if Error found, destroy POA
          end if;
       end if;
-
-      PolyORB.POA_Policies.Policy_Lists.Deallocate (POA_Policies);
 
       if Found (Error) then
          PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
