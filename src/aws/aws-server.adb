@@ -79,11 +79,9 @@ package body AWS.Server is
    use Ada;
 
    use PolyORB.Log;
-   package L is
-     new PolyORB.Log.Facility_Log ("aws.server");
+   package L is new PolyORB.Log.Facility_Log ("aws.server");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
-   --  the polyorb logging facility
 
    Security_Initialized : Boolean := False;
 
@@ -126,13 +124,11 @@ package body AWS.Server is
 
    end Initialization;
 
-
    ---------
    -- Run --
    ---------
 
    procedure Run is
-      use Text_IO;
    begin
       pragma Debug (O ("AWS.Server.Run"));
       PolyORB.ORB.Run (PolyORB.Setup.The_ORB, May_Poll => True);
@@ -144,41 +140,41 @@ package body AWS.Server is
 
    procedure Init_AWS is
       use PolyORB.POA;
+      use PolyORB.POA_Config.Root_POA;
       use PolyORB.POA.Basic_POA;
       use PolyORB.POA_Policies;
-      use PolyORB.POA_Policies.Request_Processing_Policy.
-        Use_Default_Servant;
+      use PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
       use PolyORB.Setup;
       use PolyORB.Obj_Adapters;
 
-      Root_Poa : PolyORB.POA.Obj_Adapter_Access
+      Root_POA : PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access
         (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));
    begin
-      if Root_Poa = null then
+      if Root_POA = null then
          pragma Debug (O ("AWS_Init: no root POA found: "
                           & "attempting to create one"));
          declare
-            Basic_Root_Poa : constant PolyORB.POA.Basic_POA.
-              Basic_Obj_Adapter_Access :=
-              new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
-            Root_Config : constant PolyORB.POA_Config.Configuration_Access :=
-              new PolyORB.POA_Config.Root_POA.Root_POA_Configuration;
+            Basic_Root_POA : constant Basic_Obj_Adapter_Access
+              := new Basic_Obj_Adapter;
+
+            Root_Config : constant PolyORB.POA_Config.Configuration_Access
+              := new PolyORB.POA_Config.Root_POA.Root_POA_Configuration;
+
          begin
-            PolyORB.POA_Config.Root_POA.Initialize
-              (PolyORB.POA_Config.Root_POA.Root_POA_Configuration
-               (Root_Config.all));
+            Initialize (Root_POA_Configuration (Root_Config.all));
+
             PolyORB.POA_Config.Set_Configuration (Root_Config);
             pragma Debug (O ("AWS_Init: root POA configuration set"));
 
-            PolyORB.POA.Basic_POA.Create (Basic_Root_Poa);
+            Create (Basic_Root_POA);
             pragma Debug (O ("AWS_Init: root POA created"));
 
-            Root_Poa := PolyORB.POA.Obj_Adapter
-              (Basic_Root_Poa.all)'Access;
+            Root_POA := PolyORB.POA.Obj_Adapter (Basic_Root_POA.all)'Access;
+
             PolyORB.ORB.Set_Object_Adapter
               (PolyORB.Setup.The_ORB,
-               PolyORB.Obj_Adapters.Obj_Adapter_Access (Root_Poa));
+               PolyORB.Obj_Adapters.Obj_Adapter_Access (Root_POA));
             pragma Debug (O ("AWS_Init: root POA attached to the ORB"));
 
          end;
@@ -327,11 +323,12 @@ package body AWS.Server is
       Dispatcher : in     Dispatchers.Handler'Class)
    is
       Old : Dispatchers.Handler_Class_Access := The_Server.Dispatcher;
+
    begin
       The_Server.Dispatcher_Sem.Write;
 
-      The_Server.Dispatcher :=
-       new Dispatchers.Handler'Class'(Dispatcher);
+      The_Server.Dispatcher
+        := new Dispatchers.Handler'Class'(Dispatcher);
 
       The_Server.Dispatcher_Sem.Release_Write;
 
@@ -509,15 +506,15 @@ package body AWS.Server is
          use PolyORB.POA_Manager.Basic_Manager;
          use PolyORB.Setup;
          use PolyORB.Obj_Adapters;
-         The_Poa : PolyORB.POA.Obj_Adapter_Access;
-         Root_Poa : constant PolyORB.Obj_Adapters.Obj_Adapter_Access :=
+         The_POA : PolyORB.POA.Obj_Adapter_Access;
+         Root_POA : constant PolyORB.Obj_Adapters.Obj_Adapter_Access :=
            PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB);
          Error : PolyORB.Exceptions.Error_Container;
          Policies : PolicyList;
-         The_Poa_Manager : constant Basic_POA_Manager_Access :=
+         The_POA_Manager : constant Basic_POA_Manager_Access :=
            new Basic_POA_Manager;
       begin
-         pragma Assert (Root_Poa /= null);
+         pragma Assert (Root_POA /= null);
 
          PolyORB.POA_Policies.Policy_Sequences.Append
            (Policies, PolyORB.POA_Policies.Request_Processing_Policy.
@@ -547,21 +544,21 @@ package body AWS.Server is
 
          pragma Debug (O ("Start: set POA policies"));
 
-         Create (The_Poa_Manager);
+         Create (The_POA_Manager);
          pragma Debug (O ("Start: Created a new POA Manager"));
 
          PolyORB.POA.Basic_POA.Create_POA
            (PolyORB.POA.Basic_POA.Basic_Obj_Adapter
-            (Root_Poa.all)'Access,
+            (Root_POA.all)'Access,
             PolyORB.Types.To_PolyORB_String
             (CNF.Server_Name
              (The_Server.Properties)),
-            POAManager_Access (The_Poa_Manager),
+            POAManager_Access (The_POA_Manager),
             Policies,
-            The_Poa,
+            The_POA,
             Error);
 
-         The_Poa.Adapter_Activator := new Object_Adapter.AWS_AdapterActivator;
+         The_POA.Adapter_Activator := new Object_Adapter.AWS_AdapterActivator;
          --  We set an Adapter Activator which will allow to bypass
          --  subpath errors when searching the right POA
 
@@ -573,7 +570,7 @@ package body AWS.Server is
 
 
             PolyORB.POA_Manager.Basic_Manager.Activate
-              (The_Poa_Manager,
+              (The_POA_Manager,
                Error);
 
             if PolyORB.Exceptions.Found (Error) then
@@ -584,11 +581,11 @@ package body AWS.Server is
             end if;
 
             PolyORB.POA.Basic_POA.Set_Servant
-              (PolyORB.POA.Basic_POA.Basic_Obj_Adapter (The_Poa.all)'Access,
+              (PolyORB.POA.Basic_POA.Basic_Obj_Adapter (The_POA.all)'Access,
                The_Server'Unchecked_Access,
                Error);
 
-            The_Poa.Default_Servant := The_Server'Unchecked_Access;
+            The_POA.Default_Servant := The_Server'Unchecked_Access;
 
             if PolyORB.Exceptions.Found (Error) then
                pragma Debug (O ("Start: unable to register the servant"));
@@ -605,7 +602,7 @@ package body AWS.Server is
                begin
                   Servant_To_Id
                     (PolyORB.POA.Basic_POA.Basic_Obj_Adapter
-                     (The_Poa.all)'Access,
+                     (The_POA.all)'Access,
                      The_Server'Unchecked_Access,
                      Servant_Id,
                      Error);
