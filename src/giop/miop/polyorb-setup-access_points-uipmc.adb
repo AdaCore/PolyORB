@@ -33,8 +33,6 @@
 
 --  Setup socket for UIPMC
 
---  $Id$
-
 with PolyORB.Binding_Data.UIPMC;
 with PolyORB.Filters;
 with PolyORB.Filters.Fragmenter;

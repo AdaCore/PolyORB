@@ -33,8 +33,6 @@
 
 --  Setup socket for UIPMC
 
---  $Id$
-
 package PolyORB.Setup.Access_Points.UIPMC is
 
    pragma Elaborate_Body;

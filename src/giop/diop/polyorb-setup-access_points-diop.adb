@@ -33,8 +33,6 @@
 
 --  Setup socket for DIOP
 
---  $Id$
-
 with PolyORB.Binding_Data.DIOP;
 with PolyORB.Protocols.GIOP.DIOP;
 

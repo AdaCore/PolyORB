@@ -33,8 +33,6 @@
 
 --  Setup socket for DIOP
 
---  $Id$
-
 package PolyORB.Setup.Access_Points.DIOP is
 
    pragma Elaborate_Body;

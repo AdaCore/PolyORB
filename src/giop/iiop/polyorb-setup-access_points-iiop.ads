@@ -33,8 +33,6 @@
 
 --  Set up CORBA TCP Access points.
 
---  $Id$
-
 package PolyORB.Setup.Access_Points.IIOP is
 
    pragma Elaborate_Body;
