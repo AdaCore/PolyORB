@@ -68,7 +68,7 @@ package CORBA.Object is
    --    function Get_Implementation (Self : in Ref)
    --      return CORBA.ImplementationDef.Ref;
    --
-   --    function Get_InterfaceDef (Self : in Ref)
+   --    function Get_Interface (Self : in Ref)
    --      return CORBA.InterfaceDef.Ref;
    --
    --    procedure Create_Request
