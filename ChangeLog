@@ -1,3 +1,16 @@
+2000-09-08  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* MANIFEST: Move storage supports like DFS into the Storages
+ 	hierarchy in order to have a model similar to the Protocoles one.
+
+2000-09-07  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* MANIFEST: Replace s-shamem with s-shasto.
+
+2000-09-06  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* MANIFEST: Add fname-uf.ads and fname-uf.adb.
+	
 2000-05-26  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* MANIFEST: Add types.adb.
