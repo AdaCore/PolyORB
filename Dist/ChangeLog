@@ -1,3 +1,9 @@
+2002-01-13  Pascal Obry  <p.obry@wanadoo.fr>
+
+	* Makefile.in, Makefile.am:
+	(gnatdist): Handle -largs with LIBS make variable.
+	Needed to build GLADE on Windows with GNAT 5 (8603-003).
+
 2002-01-04  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* xe_parse.adb, xe_parse.ads: Remove unused subprograms
