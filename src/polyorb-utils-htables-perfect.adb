@@ -47,14 +47,14 @@ package body PolyORB.Utils.HTables.Perfect is
    procedure Free_Table is
       new Ada.Unchecked_Deallocation (Table, Table_Access);
 
-   ------------------
-   --  Initialize  --
-   ------------------
+   ----------------
+   -- Initialize --
+   ----------------
 
    procedure Initialize
      (T      : out Table_Instance;
-      Prime  : Natural;
-      Max    : Natural)
+      Prime  : Natural := Default_Prime;
+      Max    : Natural := Default_Max)
    is
    begin
       T.T := new Table;
@@ -63,9 +63,9 @@ package body PolyORB.Utils.HTables.Perfect is
       Set_Last (T.T.Items, 15 * T.T.HTable.Info.High);
    end Initialize;
 
-   --------------
-   --  Delete  --
-   --------------
+   ------------
+   -- Delete --
+   ------------
 
    procedure Delete
      (T   : Table_Instance;
@@ -75,9 +75,9 @@ package body PolyORB.Utils.HTables.Perfect is
       Delete (T.T.HTable, Key);
    end Delete;
 
-   --------------
-   --  Insert  --
-   --------------
+   ------------
+   -- Insert --
+   ------------
 
    procedure Insert
      (T     : Table_Instance;

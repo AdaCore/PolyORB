@@ -56,11 +56,13 @@ package PolyORB.Utils.HTables.Perfect is
       T : Table_Access;
    end record;
 
+   Default_Prime : constant := 1777771;
+   Default_Max   : constant := 10;
 
    procedure Initialize
      (T      : out Table_Instance;
-      Prime  : Natural;
-      Max    : Natural);
+      Prime  : Natural := Default_Prime;
+      Max    : Natural := Default_Max);
    --  Initialize the hash table and allocate some internal
    --  Prime is a prime number used by hash functions. Max is the max
    --  number of elements to store.
@@ -123,6 +125,5 @@ private
    --  with the Keys. We can note that HTable.Elements.all and Items.all
    --  have the same size. Indeed if a Key is stored in HTable.Elements(i)
    --  then his value is stored in Items(HTable.Elements(i).Item_Index)
-
 
 end PolyORB.Utils.HTables.Perfect;

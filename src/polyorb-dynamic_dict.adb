@@ -50,10 +50,24 @@ package body PolyORB.Dynamic_Dict is
 
    T : Table_Instance;
 
-   T_Initialize : Boolean := False;
+   T_Initialized : Boolean := False;
 
-   Prime : constant Natural := 1777771;
-   Max   : constant Natural := 10;
+   procedure Ensure_Initialization;
+   pragma Inline (Ensure_Initialization);
+   --  Ensure that T was initialized
+
+   ---------------------------
+   -- Ensure_Initialization --
+   ---------------------------
+
+   procedure Ensure_Initialization is
+   begin
+      if T_Initialized then
+         return;
+      end if;
+      Initialize (T);
+      T_Initialized := True;
+   end Ensure_Initialization;
 
    ------------
    -- Lookup --
@@ -64,10 +78,7 @@ package body PolyORB.Dynamic_Dict is
       return Value
    is
    begin
-      if T_Initialize = False then
-         Initialize (T, Prime, Max);
-         T_Initialize := True;
-      end if;
+      Ensure_Initialization;
       return Lookup (T, K);
       exception
          when No_Key => raise Key_Not_Found;
@@ -80,35 +91,34 @@ package body PolyORB.Dynamic_Dict is
    is
       V : Value;
    begin
-      if T_Initialize = False then
-         Initialize (T, Prime, Max);
-         T_Initialize := True;
-      end if;
+      Ensure_Initialization;
       V := Lookup (T, K, Default);
       return V;
    end Lookup;
+
+   --------------
+   -- Register --
+   --------------
 
    procedure Register
      (K : String;
       V : Value)
    is
    begin
-      if T_Initialize = False then
-         Initialize (T, Prime, Max);
-         T_Initialize := True;
-      end if;
+      Ensure_Initialization;
       Insert (T, K, V);
    end Register;
+
+   ----------------
+   -- Unregister --
+   ----------------
 
    procedure Unregister
      (K : String)
    is
       V : Value;
    begin
-      if T_Initialize = False then
-         Initialize (T, Prime, Max);
-         T_Initialize := True;
-      end if;
+      Ensure_Initialization;
       V := Lookup (T, K);
       Delete (T, K);
    exception
