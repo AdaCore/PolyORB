@@ -1,3 +1,8 @@
+2003-09-02  Samuel Tardieu  <sam@gnat.com>
+
+	* Makefile.am: Fix bug preventing build out of source directory
+	as b_gaprco source was looked for in the current directory only.
+
 2003-08-19  Pascal Obry  <obry@gnat.com>
 
 	* 5wgarrem.adb:

@@ -147,7 +147,7 @@ SUFFIXES = .adb .ads .ali .o .xrb
 	@$(ADA_FOR_TARGET) $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
 
 b_gaprco$(EXEEXT): $(srcdir)/b_gaprco.adb
-	@${GNATMAKE} b_gaprco -o b_gaprco$(EXEEXT)
+	@${GNATMAKE} $(srcdir)/b_gaprco -o b_gaprco$(EXEEXT)
 
 s-gaprco.adb: b_gaprco$(EXEEXT)
 	@./b_gaprco$(EXEEXT) $(DEFPROTOCOLNAME) >s-gaprco.adb
