@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-1999 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -177,7 +177,7 @@ package body System.RPC is
       Error  : aliased Error_Type;
    begin
       Insert_RPC_Header (Params.X'Access, Header);
-      Partition_ID'Write (Params, Partition);
+      Types.Partition_ID'Write (Params, Types.Partition_ID (Partition));
       Any_Priority'Write (Params, Ada.Dynamic_Priorities.Get_Priority);
       Send (Types.Partition_ID (Partition),
             Remote_Call,
@@ -211,7 +211,7 @@ package body System.RPC is
          Allocate (RPC, Types.Partition_ID (Partition));
          Header.RPC := RPC;
          Insert_RPC_Header (Params.X'Access, Header);
-         Partition_ID'Write (Params, Partition);
+         Types.Partition_ID'Write (Params, Types.Partition_ID (Partition));
          Any_Priority'Write (Params, Ada.Dynamic_Priorities.Get_Priority);
          Send (Types.Partition_ID (Partition),
                Remote_Call,

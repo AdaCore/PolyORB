@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-1999 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -119,12 +119,6 @@ package body System.Garlic.Heart is
       Result : access Streams.Params_Stream_Type);
    --  Global RPC receiver
 
-   function PID_Read (Partition : Stream_Element) return Partition_ID;
-   pragma Inline (PID_Read);
-   function PID_Write (Partition : Partition_ID) return Stream_Element;
-   pragma Inline (PID_Write);
-   --  Read and write partition id on one byte
-
    Shutdown_Activation : Status_Type := None;
 
    function Convert is
@@ -227,6 +221,7 @@ package body System.Garlic.Heart is
       PID   : Partition_ID;
       Code  : Any_Opcode;
       First : constant Stream_Element_Offset := Filtered'First + Offset;
+
    begin
       --  Dump the stream for debugging purpose
 
@@ -235,7 +230,7 @@ package body System.Garlic.Heart is
 
       --  Read the partition id from the stream and check that it is valid
 
-      PID := PID_Read (Filtered (First));
+      PID := Read (Filtered (First .. First + Partition_ID_Byte - 1));
       if not PID'Valid then
          Ada.Exceptions.Raise_Exception
            (Constraint_Error'Identity,
@@ -254,7 +249,7 @@ package body System.Garlic.Heart is
 
       --  Read the opcode from the stream and check that it is valid
 
-      Code := Opcode_Read (Filtered (First + 1));
+      Code := Opcode_Read (Filtered (First + Partition_ID_Byte));
       if not Code'Valid then
          Ada.Exceptions.Raise_Exception
            (Constraint_Error'Identity,
@@ -293,7 +288,10 @@ package body System.Garlic.Heart is
 
          --  Unfilter the data and put it in a stream
 
-         Filter_Incoming (PID, Code, Filtered, Offset + 2, Unfiltered, Error);
+         Filter_Incoming
+           (PID, Code, Filtered,
+            Offset + Partition_ID_Byte + 1,
+            Unfiltered, Error);
       end if;
 
       Partition  := PID;
@@ -544,24 +542,6 @@ package body System.Garlic.Heart is
       Receiver (Params, Result);
    end Partition_RPC_Receiver;
 
-   --------------
-   -- PID_Read --
-   --------------
-
-   function PID_Read (Partition : Stream_Element) return Partition_ID is
-   begin
-      return Partition_ID (Partition);
-   end PID_Read;
-
-   ---------------
-   -- PID_Write --
-   ---------------
-
-   function PID_Write (Partition : Partition_ID) return Stream_Element is
-   begin
-      return Stream_Element (Partition);
-   end PID_Write;
-
    --------------------
    -- Process_Stream --
    --------------------
@@ -634,6 +614,8 @@ package body System.Garlic.Heart is
       Length   : Stream_Element_Offset;
       Stream   : Stream_Element_Access;
       Protocol : Protocol_Access;
+      Index    : Stream_Element_Offset;
+
    begin
       pragma Debug
         (D ("Send " & Opcode'Img & " request to partition" & Partition'Img));
@@ -658,16 +640,19 @@ package body System.Garlic.Heart is
       --  the length of the filtered data. Allocate a packet of the right
       --  length.
 
-      Length := Unused_Space + 2 + Filtered'Length;
+      Length := Unused_Space + Partition_ID_Byte + 1 + Filtered'Length;
       Stream := new Stream_Element_Array (1 .. Length);
 
       --  Put the opcode and the partition id at the beginning of
       --  the reserved section, then the filtered data, which can then
       --  be deallocated.
 
-      Stream (Unused_Space + 1) := PID_Write (Self_PID);
-      Stream (Unused_Space + 2) := Opcode_Write (Opcode);
-      Stream (Unused_Space + 3 .. Stream'Last) := Filtered.all;
+      Index := Unused_Space + 1;
+      Stream (Index .. Index + Partition_ID_Byte - 1) := Write (Self_PID);
+      Index := Index + Partition_ID_Byte;
+      Stream (Index) := Opcode_Write (Opcode);
+      Index := Index + 1;
+      Stream (Index .. Length) := Filtered.all;
       Free (Filtered);
 
       --  If the data is for a remote partition, send it using the right
@@ -773,7 +758,7 @@ package body System.Garlic.Heart is
 
       Soft_Links.Signal_All (Self_PID_Barrier);
 
-      pragma Debug (Dump_Partition_Table);
+      pragma Debug (Dump_Partition_Table (Private_Debug_Key));
    end Set_My_Partition_ID;
 
    ----------------
@@ -812,7 +797,7 @@ package body System.Garlic.Heart is
    procedure Wait_For_My_Partition_ID is
    begin
       Soft_Links.Wait (Self_PID_Barrier);
-      pragma Debug (Dump_Partition_Table);
+      pragma Debug (Dump_Partition_Table (Private_Debug_Key));
       if Self_PID = Null_PID then
          Activate_Shutdown;
       end if;
