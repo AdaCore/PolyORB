@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idlac.adb#6 $
+--  $Id: //droopi/main/compilers/idlac/idlac.adb#7 $
 
 with Ada.Text_IO;       use Ada.Text_IO;
 with Ada.Command_Line;  use Ada.Command_Line;
@@ -61,7 +61,8 @@ procedure Idlac is
    procedure Usage is
    begin
       Put_Line (Current_Error, "Usage: " & Command_Name
-                & " [-i] [-k] idl_file [-cppargs ...]");
+                & " [-E] [-d] [-i] [-k] [-p] [-q] [-noir]"
+                & " idl_file [-cppargs ...]");
       Put_Line (Current_Error, "  -E     Preprocess only.");
       Put_Line (Current_Error, "  -d     Generate delegation package.");
       Put_Line (Current_Error, "  -i     Generate implementation template.");
