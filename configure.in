@@ -116,13 +116,10 @@ AC_MSG_CHECKING(which remote shell to use)
 AC_ARG_WITH(remsh,
  [  --with-remsh=command   Select a remote shell command],
  [RSH="${withval}"],
-[if test -z "$SSH"; then
   case "${target}" in
    hppa*-hp-hpux*)      RSH=remsh;;
    *)                   RSH=rsh;;
- esac; else
-  RSH=$SSH
- fi])
+  esac])
 AC_SUBST(RSH)
 AC_MSG_RESULT($RSH)
 #
