@@ -1,3 +1,11 @@
+2001-01-26  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* configure.in, configure: Fix the rsh command and options for
+	AIX.
+
+	* README: Add SGI and AIX to the successful ports (but not
+	supported).
+
 2001-01-25  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* configure.in, configure: Add flag to force simulating thread
