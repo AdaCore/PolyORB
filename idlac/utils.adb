@@ -32,10 +32,32 @@ package body Utils is
    -- Img --
    ---------
 
-   function Img (N : Natural) return String is
-      S : constant String := Natural'Image (N);
+   function Img (N : Long_Long_Integer) return String is
+      S : constant String := Long_Long_Integer'Image (N);
    begin
-      return S (S'First + 1 .. S'Last);
+      if S (S'First) = ' ' then
+         return S (S'First + 1 .. S'Last);
+      else
+         return S;
+      end if;
+   end Img;
+
+   ---------
+   -- Img --
+   ---------
+
+   function Img (N : Integer) return String is
+   begin
+      return Img (Long_Long_Integer (N));
+   end Img;
+
+   ---------
+   -- Img --
+   ---------
+
+   function Img (N : Long_Long_Float) return String is
+   begin
+      return Long_Long_Float'Image (N);
    end Img;
 
    ---------

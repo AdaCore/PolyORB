@@ -30,9 +30,12 @@ with System;
 
 package Utils is
 
-   function Img (N : Natural) return String;
-   --  Return the image of a non-negative integer
-   --  without the leading space
+   function Img (N : Integer) return String;
+   function Img (N : Long_Long_Integer) return String;
+   --  Return the image of an integer without the leading space
+
+   function Img (N : Long_Long_Float) return String;
+   --  Return the image of a Long_Long_Float.
 
    function Img (N : Node_Id) return String;
    --  Return the image of a Node_Id.

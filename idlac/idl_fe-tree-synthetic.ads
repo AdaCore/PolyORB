@@ -105,6 +105,9 @@ package Idl_Fe.Tree.Synthetic is
    function Integer_Value
      (Node : Node_Id)
      return Integer;
+   function Float_Value
+     (Node : Node_Id)
+     return Long_Long_Float;
    function String_Value
      (Node : Node_Id)
      return String;

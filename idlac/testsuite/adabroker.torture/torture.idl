@@ -1,11 +1,15 @@
 // AdaBroker torture test.
 // This IDL file tests a lot of parser, expander and
 // code generator features.
-// $Id$
+// $Id: //depot/adabroker/main/idlac/testsuite/adabroker.torture/torture.idl#5 $
 
 exception rootScopeException {};
 
 module MyModule {
+
+  // Constants
+  const string aConstantString = "$Id: //depot/adabroker/main/idlac/testsuite/adabroker.torture/torture.idl#5 $" ;
+  const long aConstantLong = 0;
 
   // typedef string B_ARRAY[123];
 

@@ -24,6 +24,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Handling;
+
 with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
@@ -251,6 +253,11 @@ package body Ada_Be.Idl2Ada is
    --  The GIOP operation identifier (to use in
    --  a GIOP Request message) corresponding
    --  to K_Operation node.
+
+   procedure Gen_Constant_Value
+     (CU : in out Compilation_Unit;
+      Node : Node_Id);
+   --  Generate the representation of a constant expression.
 
    ---------------
    -- Shortcuts --
@@ -1045,9 +1052,10 @@ package body Ada_Be.Idl2Ada is
       DI (CU);
    end Gen_When_Others_Clause;
 
-   --------------------------
-   --  Gen_Node_Stubs_Spec --
-   --------------------------
+   -------------------------
+   -- Gen_Node_Stubs_Spec --
+   -------------------------
+
    procedure Gen_Node_Stubs_Spec
      (CU   : in out Compilation_Unit;
       Node : Node_Id) is
@@ -1352,6 +1360,15 @@ package body Ada_Be.Idl2Ada is
                DI (CU);
                PL (CU, "end record;");
             end if;
+
+         when K_Const_Dcl =>
+            NL (CU);
+            Put (CU, Name (Node) & " : constant ");
+            Gen_Node_Stubs_Spec (CU, Constant_Type (Node));
+            NL (CU);
+            Put (CU, "  := ");
+            Gen_Constant_Value (CU, Expression (Node));
+            PL (CU, ";");
 
          when K_ValueBase =>
             null;
@@ -3278,9 +3295,10 @@ package body Ada_Be.Idl2Ada is
       PL (Stubs_Body, "end To_Ref;");
    end Gen_To_Ref;
 
-   -----------------
-   --  Gen_Helper --
-   -----------------
+   ----------------
+   -- Gen_Helper --
+   ----------------
+
    procedure Gen_Helper
      (Node : in Node_Id;
       Helper_Spec : in out Compilation_Unit;
@@ -3347,9 +3365,10 @@ package body Ada_Be.Idl2Ada is
    end Gen_Helper;
 
 
-   -------------------
-   --  Gen_Delegate --
-   -------------------
+   ------------------
+   -- Gen_Delegate --
+   ------------------
+
    procedure Gen_Delegate
      (Node : in Node_Id;
       Delegate_Spec : in out Compilation_Unit;
@@ -3371,5 +3390,87 @@ package body Ada_Be.Idl2Ada is
             null;
       end case;
    end Gen_Delegate;
+
+   procedure Gen_Constant_Value
+     (CU : in out Compilation_Unit;
+      Node : Node_Id)
+   is
+      Value : constant Constant_Value_Ptr
+        := Expr_Value (Node);
+   begin
+      case Value.Kind is
+         when
+           C_Short           |
+           C_Long            |
+           C_LongLong        |
+           C_UShort          |
+           C_ULong           |
+           C_ULongLong       |
+           C_Octet           |
+           C_General_Integer =>
+            Put (CU, Img (Integer_Value (Node)));
+
+         when C_Char =>
+            Put (CU, "'" & Value.Char_Value & "'");
+
+         when C_WChar =>
+            Put (CU, Ada.Characters.Handling.To_String
+                 ("'" & Value.WChar_Value & "'"));
+
+         when C_Boolean =>
+            Put (CU, Img (Boolean_Value (Node)));
+
+         when
+           C_Float         |
+           C_Double        |
+           C_LongDouble    |
+           C_General_Float =>
+            Put (CU, Img (Float_Value (Node)));
+
+         when
+           C_Fixed         |
+           C_General_Fixed =>
+            declare
+               Value_Digits : constant String
+                 := Img (Value.Fixed_Value);
+
+               Zeroes : constant String
+                 (1 .. Integer (Value.Scale) - Value_Digits'Length + 1)
+                 := (others => '0');
+
+               All_Digits : constant String
+                 := Zeroes & Value_Digits;
+            begin
+               if Value.Scale = 0 then
+                  Put (CU, Value_Digits);
+               else
+                  Put (CU,
+                       All_Digits
+                       (All_Digits'First
+                        .. All_Digits'Last - Integer (Value.Scale))
+                       & "."
+                       & All_Digits
+                       (All_Digits'Last - Integer (Value.Scale) + 1
+                        .. All_Digits'Last));
+               end if;
+            end;
+
+         when
+           C_String  |
+           C_WString =>
+            Add_With (CU, "CORBA", Elab_Control => Elaborate);
+            Put (CU, "CORBA.To_CORBA_String ("""
+                 & String_Value (Node) & """)");
+
+         when C_Enum =>
+            Put (CU, Ada_Full_Name (Enum_Value (Node)));
+
+         when C_No_Kind =>
+            Error
+              ("Constant without a kind.",
+               Fatal, Get_Location (Node));
+      end case;
+
+   end Gen_Constant_Value;
 
 end Ada_Be.Idl2Ada;
