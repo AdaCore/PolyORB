@@ -11,7 +11,7 @@
 # PARTICULAR PURPOSE.
 
 #
-# $Id: Makefile.am,v 1.6 1998/10/20 11:50:20 tardieu Exp $
+# $Id$
 #
 
 
@@ -106,6 +106,8 @@ VERSION = @VERSION@
 AUTOMAKE_OPTIONS = foreign no-dependencies
 SUBDIRS = Dist Garlic
 ACLOCAL_AMFLAGS = -I support
+
+CLEANFILES = make-check-stamp
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/support/mkinstalldirs
 CONFIG_HEADER = ./[Garlic/config.h]
@@ -319,6 +321,17 @@ installcheck all-am install-exec install-data install uninstall all \
 installdirs mostlyclean-generic distclean-generic clean-generic \
 maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
+
+make-check-stamp:
+	@$(MAKE) -v -f /dev/null 2>&1 | grep GNU > /dev/null 2>&1 || \
+	(echo; echo; \
+	 echo WARNING: you are not using GNU make. If you encounter problems; \
+	 echo while building GLADE, please install and use GNU make,; \
+	 echo available freely from any GNU mirror.; \
+	 echo; echo) >&2
+	@touch make-check-stamp
+
+Makefile: make-check-stamp
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

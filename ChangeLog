@@ -1,3 +1,8 @@
+1999-01-11  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Makefile.am: print a warning if the user is not using GNU make
+	(consequence of bug 6108-G02).
+
 1998-12-01  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* configure.in: Add support for i?86-*-mingw32* targets.
