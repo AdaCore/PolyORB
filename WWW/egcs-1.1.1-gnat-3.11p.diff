@@ -1,0 +1,628 @@
+From thomas@cuivre.fr.eu.org  Wed May 26 17:00:45 1999
+Return-Path: <thomas@cuivre.fr.eu.org>
+Received: from melusine.cuivre.fr.eu.org (postfix@melusine.cuivre.rezel.enst.fr [137.194.8.128])
+	by ulysse.enst.fr (8.8.8/8.8.8) with ESMTP id RAA15109
+	for <pautet@inf.enst.fr>; Wed, 26 May 1999 17:00:36 +0200 (MET DST)
+Received: by melusine.cuivre.fr.eu.org (Postfix, from userid 1000)
+	id 0886047CF8; Wed, 26 May 1999 17:00:34 +0200 (CEST)
+To: pautet@inf.enst.fr
+Subject: patch egcs/gnat
+Message-Id: <19990526150034.0886047CF8@melusine.cuivre.fr.eu.org>
+Date: Wed, 26 May 1999 17:00:34 +0200 (CEST)
+From: thomas@cuivre.fr.eu.org (Thomas Quinot)
+X-Sorted: Default
+Status: RO
+Content-Length: 21651
+Lines: 610
+
+diff -ur gnat-3.11p-src.dist/src/ada/5iosinte.ads gnat-3.11p-src/src/ada/5iosinte.ads
+--- gnat-3.11p-src.dist/src/ada/5iosinte.ads	Thu Jul 30 03:00:40 1998
++++ gnat-3.11p-src/src/ada/5iosinte.ads	Wed Jan 27 08:52:14 1999
+@@ -609,11 +609,15 @@
+    pragma Convention (C, struct_timeval);
+ 
+    type pthread_attr_t is record
+-      detachstate  : int;
+-      schedpolicy  : int;
+-      schedparam   : struct_sched_param;
+-      inheritsched : int;
+-      scope        : int;
++      detachstate   : int;
++      schedpolicy   : int;
++      schedparam    : struct_sched_param;
++      inheritsched  : int;
++      scope         : int;
++      guardsize     : size_t;
++      stackaddr_set : int;
++      stackaddr     : System.Address;
++      stacksize     : size_t;
+    end record;
+ 
+    pragma Convention (C_Pass_By_Copy, pthread_attr_t);
+diff -ur gnat-3.11p-src.dist/src/ada/Makefile.in gnat-3.11p-src/src/ada/Makefile.in
+--- gnat-3.11p-src.dist/src/ada/Makefile.in	Mon Sep 14 03:29:12 1998
++++ gnat-3.11p-src/src/ada/Makefile.in	Wed Jan 27 20:55:45 1999
+@@ -297,7 +297,7 @@
+ GNAT1_ADA_OBJS = $(GNAT_ADA_OBJS) back_end.o gnat1drv.o
+ GNAT1_OBJS = $(GNAT1_C_OBJS) $(GNAT1_ADA_OBJS) $(EXTRA_GNAT1_OBJS)
+ GNATBIND_OBJS = \
+- a-adaint.o a-cstrea.o ali.o alloc.o bcheck.o binde.o \
++ ada.o a-adaint.o a-cstrea.o ali.o alloc.o bcheck.o binde.o \
+  binderr.o bindgen.o bindusg.o \
+  butil.o casing.o csets.o \
+  debug.o fname.o gnat.o g-hesora.o g-htable.o \
+diff -ur gnat-3.11p-src.dist/src/ada/a-ada.h gnat-3.11p-src/src/ada/a-ada.h
+--- gnat-3.11p-src.dist/src/ada/a-ada.h	Thu Jul 30 03:00:07 1998
++++ gnat-3.11p-src/src/ada/a-ada.h	Wed Jan 27 08:58:40 1999
+@@ -93,5 +93,8 @@
+ #endif
+ #endif
+ 
++#ifndef NULL
++#define NULL	((void *) 0)
++#endif
+ 
+ /* End of a-ada.h (tree transformer C header file) */
+diff -ur gnat-3.11p-src.dist/src/ada/a-gtran3.c gnat-3.11p-src/src/ada/a-gtran3.c
+--- gnat-3.11p-src.dist/src/ada/a-gtran3.c	Wed Nov 18 16:47:26 1998
++++ gnat-3.11p-src/src/ada/a-gtran3.c	Wed Jan 27 08:40:00 1999
+@@ -129,7 +129,7 @@
+      int definition;
+ {
+   tree gnu_entity_id;
+-  tree gnu_type;
++  tree gnu_type = 0;
+   /* Contains the gnu XXXX_DECL tree node which is equivalent to the input
+      GNAT tree. This node will be associated with the GNAT node by calling
+      the save_gnu_tree routine at the end of the `switch' statement.  */
+@@ -460,7 +460,6 @@
+       /* Simple variables, loop variables, OUT parameters, and exceptions.  */
+     object:
+       {
+-	tree gnu_type;
+ 	int used_by_ref = 0;
+ 	int const_flag
+ 	  = (kind == E_Constant
+@@ -1496,8 +1495,11 @@
+ 	/* If the maximum size doesn't overflow, use it.  */
+ 	if (TREE_CODE (gnu_max_size) == INTEGER_CST
+ 	    && ! TREE_OVERFLOW (gnu_max_size))
++        {
+ 	  TYPE_SIZE (tem) = size_binop (MIN_EXPR,
+ 					gnu_max_size, TYPE_SIZE (tem));
++          TYPE_SIZE_UNIT (tem) = gnu_size_unit (TYPE_SIZE (tem));
++        }
+ 
+ 	create_type_decl (create_concat_name (gnat_entity, "XUA"),
+ 			  tem, NULL_PTR, ! Comes_From_Source (gnat_entity),
+@@ -1781,8 +1783,11 @@
+ 	      && ! (TREE_CODE (gnu_max_size) == INTEGER_CST
+ 		    && TREE_OVERFLOW (gnu_max_size))
+ 	      && ! max_overflow)
++	  {
+ 	    TYPE_SIZE (gnu_type) = size_binop (MIN_EXPR, gnu_max_size,
+ 					       TYPE_SIZE (gnu_type));
++	    TYPE_SIZE_UNIT (gnu_type) = gnu_size_unit (TYPE_SIZE (gnu_type));
++	  }
+ 	}
+ 
+       /* If this is a packed type, make this type the same as the packed
+@@ -1932,7 +1937,10 @@
+ 	/* ??? We compute the size incorrectly (it overflow) if the
+ 	   length is zero, so correct it here.  */
+ 	if (length == 0)
+-	  TYPE_SIZE (gnu_type) = size_zero_node;
++	{
++	  TYPE_SIZE (gnu_type) = TYPE_SIZE_UNIT (gnu_type) = size_zero_node;
++	  TYPE_SIZE_UNIT (gnu_type) = gnu_size_unit (TYPE_SIZE (gnu_type));
++	}
+       }
+       break;
+ 
+@@ -2070,7 +2078,10 @@
+ 	/* If both a size and rep clause was specified, put the size in
+ 	   the record type now so that it can get the proper mode.  */
+ 	if (has_rep && esize != 0)
++        {
+ 	  TYPE_SIZE (gnu_type) = UI_To_gnu (Esize (gnat_entity), sizetype);
++          TYPE_SIZE_UNIT (gnu_type) = gnu_size_unit (TYPE_SIZE (gnu_type));
++        }
+ 
+ 	/* Always set the alignment here so that it can be used to
+ 	   set the mode, if it is making the alignment stricter.  If
+@@ -2355,16 +2366,20 @@
+ 	       that of the old one, doing any substitutions, as above.  */
+ 	    TYPE_ALIGN (gnu_type) = TYPE_ALIGN (gnu_orig_type);
+ 	    TYPE_SIZE (gnu_type) = TYPE_SIZE (gnu_orig_type);
++	    TYPE_SIZE_UNIT (gnu_type) = gnu_size_unit (TYPE_SIZE (gnu_type));
+ 	    TYPE_ADA_SIZE (gnu_type) = TYPE_ADA_SIZE (gnu_orig_type);
+ 
+ 	    if (TREE_CODE (TYPE_SIZE (gnu_type)) != INTEGER_CST
+ 		&& contains_placeholder_p (TYPE_SIZE (gnu_type)))
+ 	      for (gnu_temp = gnu_subst_list;
+ 		   gnu_temp; gnu_temp = TREE_CHAIN (gnu_temp))
++	      {
+ 		TYPE_SIZE (gnu_type)
+ 		  = substitute_in_expr (TYPE_SIZE (gnu_type),
+ 					TREE_PURPOSE (gnu_temp),
+ 					TREE_VALUE (gnu_temp));
++		TYPE_SIZE_UNIT (gnu_type) = gnu_size_unit (TYPE_SIZE (gnu_type));
++	      }
+ 
+ 	    if (TYPE_ADA_SIZE (gnu_type) != 0
+ 		&& TREE_CODE (TYPE_ADA_SIZE (gnu_type)) != INTEGER_CST
+@@ -3926,6 +3941,7 @@
+   finish_record_type (record_type, field, 1, 0);
+   TYPE_ALIGN (record_type) = BIGGEST_ALIGNMENT;
+   TYPE_SIZE (record_type) = size_binop (PLUS_EXPR, size, size_int (align));
++  TYPE_SIZE_UNIT (record_type) = gnu_size_unit (TYPE_SIZE (record_type));
+ 
+   return record_type;
+ }
+@@ -4025,6 +4041,13 @@
+      is not done here (and is only valid for bitfields anyway), show the size
+      isn't changing.  Likewise, clear the alignment if it isn't being
+      changed.  Then return if we aren't doing anything.  */
++  
++  if (size != 0
++      && TYPE_MODE (TREE_TYPE (size)) != TYPE_MODE (TREE_TYPE (orig_size)))
++    {
++      size = convert (sizetype, size);
++      orig_size = convert (sizetype, orig_size);
++    }
+ 
+   if (size != 0
+       && (operand_equal_p (size, orig_size, 0)
+@@ -4068,6 +4091,7 @@
+ 	  TYPE_SIZE (type)
+ 	    = round_up (TYPE_ADA_SIZE (type), TYPE_ALIGN (type));
+ #endif
++          TYPE_SIZE_UNIT (type) = gnu_size_unit (TYPE_SIZE (type));
+ 	}
+     }
+   else
+@@ -4113,6 +4137,7 @@
+ 
+       DECL_INTERNAL_P (field) = 1;
+       TYPE_SIZE (record) = size != 0 ? size : orig_size;
++      TYPE_SIZE_UNIT (record) = gnu_size_unit (TYPE_SIZE (record));
+       TYPE_ALIGN (record) = align;
+       TYPE_IS_PADDING_P (record) = 1;
+       TYPE_VOLATILE (record)
+@@ -4542,6 +4567,7 @@
+      tree gnu_record_type;
+      Node_Id component_list;
+      tree gnu_field_list;
++     int packed;
+      int definition;
+      tree *p_gnu_rep_list;
+      int cancel_alignment;
+@@ -4765,7 +4791,9 @@
+ 	  /* Clear out any alignment and size pre-set into GNU_RECORD_TYPE
+ 	     in the case of partial rep clauses.  In that case, we choose the
+ 	     alignment and size by normal mechanisms.  */
+-	  TYPE_SIZE (gnu_record_type) = TYPE_ADA_SIZE (gnu_record_type) = 0;
++	  TYPE_SIZE (gnu_record_type) = 
++          TYPE_ADA_SIZE (gnu_record_type) = 
++          TYPE_SIZE_UNIT (gnu_record_type) = 0;
+ 	  TYPE_ALIGN (gnu_record_type) = 0;
+ 	}
+       else
+@@ -5305,6 +5333,7 @@
+ 
+ 	new = build_array_type (component, domain);
+ 	TYPE_SIZE (new) = 0;
++        TYPE_SIZE_UNIT (new) = 0;
+ 	TYPE_MULTI_ARRAY_P (new) = TYPE_MULTI_ARRAY_P (t);
+ 	TYPE_CONVENTION_FORTRAN_P (new) = TYPE_CONVENTION_FORTRAN_P (t);
+ 	layout_type (new);
+@@ -5330,6 +5359,7 @@
+ 
+ 	TYPE_FIELDS (new) = 0;
+ 	TYPE_SIZE (new) = 0;
++	TYPE_SIZE_UNIT (new) = 0;
+ 
+ 	for (field = TYPE_FIELDS (t); field;
+ 	     field = TREE_CHAIN (field))
+@@ -5430,6 +5460,7 @@
+ 	    && TREE_CODE (TYPE_SIZE (new)) != INTEGER_CST)
+ 	  {
+ 	    TYPE_SIZE (new) = TYPE_SIZE (t);
++	    TYPE_SIZE_UNIT (new) = TYPE_SIZE_UNIT (t);
+ 	    TYPE_ADA_SIZE (new) = TYPE_ADA_SIZE (t);
+ 	  }
+ 
+@@ -5440,6 +5471,15 @@
+   return t;
+ }
+ 
++/* Return the gnu "TYPE_SIZE_UNIT" corresponding to the gnu "TYPE_SIZE" */
++
++tree
++gnu_size_unit (gnu_size)
++     tree gnu_size;
++{
++   return size_binop (FLOOR_DIV_EXPR, gnu_size, size_int (BITS_PER_UNIT));
++}
++
+ /* Return the "RM size" of GNU_TYPE.  This is the actual number of bits
+    needed to represent the object.  */
+ 
+diff -ur gnat-3.11p-src.dist/src/ada/a-gtran3.h gnat-3.11p-src/src/ada/a-gtran3.h
+--- gnat-3.11p-src.dist/src/ada/a-gtran3.h	Thu Jul 30 03:00:08 1998
++++ gnat-3.11p-src/src/ada/a-gtran3.h	Wed Jan 27 08:29:54 1999
+@@ -87,6 +87,9 @@
+    substitute_in_type except that it knows about TYPE_INDEX_TYPE.  */
+ extern tree gnat_substitute_in_type PROTO((tree, tree, tree));
+ 
++/* Return the gnu "TYPE_SIZE_UNIT" correspoding to a gnu "TYPE_SIZE" */
++extern tree gnu_size_unit	PROTO((tree));
++
+ /* Return the "RM size" of GNU_TYPE.  This is the actual number of bits
+    needed to represent the object.  */
+ extern tree rm_size		PROTO((tree));
+diff -ur gnat-3.11p-src.dist/src/ada/a-misc.c gnat-3.11p-src/src/ada/a-misc.c
+--- gnat-3.11p-src.dist/src/ada/a-misc.c	Thu Jul 30 03:00:08 1998
++++ gnat-3.11p-src/src/ada/a-misc.c	Wed Jan 27 09:01:11 1999
+@@ -59,7 +59,8 @@
+ #include "a-rtree.h"
+ #include "flags.h"
+ 
+-extern char *xmalloc ();
++extern char *xmalloc PROTO((size_t));
++extern char *xrealloc PROTO((char *, size_t));
+ extern char *main_input_filename;
+ 
+ /* Tables describing GCC tree codes used only by GNAT.  
+@@ -70,8 +71,8 @@
+ 
+ #define DEFTREECODE(SYM, NAME, TYPE, LENGTH) TYPE,
+ 
+-char *gnat_tree_code_type[] = {
+-  "x",
++char gnat_tree_code_type[] = {
++  'x',
+ #include "a-tree.def"
+ };
+ #undef DEFTREECODE
+@@ -169,9 +170,11 @@
+    it returns 0. */
+ 
+ int
+-lang_decode_option (p)
+-     char *p;
++lang_decode_option (argc, argv)
++     int argc;
++     char **argv;
+ {
++  char *p = argv[0];
+   extern int  save_argc;
+   extern char **save_argv;
+ 
+@@ -216,6 +219,15 @@
+ 
+ /* Perform all the initialization steps that are language-specific.  */
+ 
++/* toplev.c needs to call these.  */
++
++void
++lang_init_options ()
++{
++  /* Default exceptions on.  */
++  flag_exceptions = 1;
++}
++
+ void
+ lang_init ()
+ {
+@@ -261,6 +273,15 @@
+ print_lang_statistics ()
+ {}
+ 
++void
++lang_print_xnode (file, node, indent)
++     FILE *file;
++     tree node;
++     int indent;
++{
++}
++
++
+ /* integrate_decl_tree calls this function, but since we don't use the
+    DECL_LANG_SPECIFIC field, this is a no-op.  */
+ 
+@@ -453,9 +474,13 @@
+ 	     the output type in case the size of the input type is variable.
+ 	     If the output size is a variable, use the input size.  */
+ 	  TYPE_SIZE (union_type) = TYPE_SIZE (type);
++	  TYPE_SIZE_UNIT (union_type) = gnu_size_unit (TYPE_SIZE (type));
+ 	  if (TREE_CODE (TYPE_SIZE (type)) != INTEGER_CST
+ 	      && TREE_CODE (TYPE_SIZE (inner_type)) == INTEGER_CST)
++	  {
+ 	    TYPE_SIZE (union_type) = TYPE_SIZE (inner_type);
++	    TYPE_SIZE_UNIT (union_type) = gnu_size_unit (TYPE_SIZE (inner_type));
++	  }
+ 
+ 	  new = build (COMPONENT_REF, type,
+ 		       build1 (CONVERT_EXPR, union_type,
+@@ -618,35 +643,36 @@
+    Define the additional tree codes here.  This isn't the best place to put
+    it, but it's where g++ does it.  */
+ 
+-void
+-init_lex ()
++char *
++init_parse (filename)
++     char *filename;
+ {
+   lang_expand_expr = gnat_expand_expr;
+ 
+-  tree_code_type
+-    = (char **) realloc (tree_code_type,
+-			 sizeof (char *) * LAST_GNAT_TREE_CODE);
+-  tree_code_length
+-    = (int *) realloc (tree_code_length,
+-		       sizeof (int) * LAST_GNAT_TREE_CODE);
+-  tree_code_name
+-    = (char **) realloc (tree_code_name,
+-			 sizeof (char *) * LAST_GNAT_TREE_CODE);
+-
++  /* Append the extra gnat entries to the standard tree_code_type table */
+   bcopy ((char *) gnat_tree_code_type,
+ 	 (char *) (tree_code_type + (int) LAST_AND_UNUSED_TREE_CODE),
+-	 ((LAST_GNAT_TREE_CODE - (int) LAST_AND_UNUSED_TREE_CODE)
+-	  * sizeof (char *)));
++	 (((int)LAST_GNAT_TREE_CODE - (int) LAST_AND_UNUSED_TREE_CODE)
++	  * sizeof (tree_code_type[0])));
+ 
++  /* Append the extra gnat entries to the standard tree_code_length table */
+   bcopy ((char *)gnat_tree_code_length,
+ 	 (char *) (tree_code_length + (int) LAST_AND_UNUSED_TREE_CODE),
+-	 ((LAST_GNAT_TREE_CODE - (int) LAST_AND_UNUSED_TREE_CODE)
+-	  * sizeof (int)));
++	 (((int)LAST_GNAT_TREE_CODE - (int) LAST_AND_UNUSED_TREE_CODE)
++	  * sizeof (tree_code_length[0])));
+ 
++  /* Append the extra gnat entries to the standard tree_code_name table */
+   bcopy ((char *) gnat_tree_code_name,
+ 	 (char *) (tree_code_name + (int) LAST_AND_UNUSED_TREE_CODE),
+-	 ((LAST_GNAT_TREE_CODE - (int) LAST_AND_UNUSED_TREE_CODE)
+-	  * sizeof (char *)));
++	 (((int)LAST_GNAT_TREE_CODE - (int) LAST_AND_UNUSED_TREE_CODE)
++         * sizeof(tree_code_name[0])));
++
++  return filename;
++}
++
++void
++finish_parse ()
++{
+ }
+ 
+ /* Sets some debug flags for the parsed. It does nothing here.  */
+diff -ur gnat-3.11p-src.dist/src/ada/a-misc.h gnat-3.11p-src/src/ada/a-misc.h
+--- gnat-3.11p-src.dist/src/ada/a-misc.h	Thu Jul 30 03:00:08 1998
++++ gnat-3.11p-src/src/ada/a-misc.h	Wed Jan 27 08:29:54 1999
+@@ -63,7 +63,7 @@
+    option decoding phase of GCC calls this routine on the flags that it cannot
+    decode. This routine returns 1 if it is successful, otherwise it
+    returns 0. */
+-extern int lang_decode_option	PROTO((char *));
++extern int lang_decode_option	PROTO((int, char **));
+ 
+ /* Perform all the initialization steps that are language-specific.  */
+ extern void lang_init		PROTO((void));
+diff -ur gnat-3.11p-src.dist/src/ada/a-raise.c gnat-3.11p-src/src/ada/a-raise.c
+--- gnat-3.11p-src.dist/src/ada/a-raise.c	Thu Jul 30 03:00:09 1998
++++ gnat-3.11p-src/src/ada/a-raise.c	Wed Jan 27 08:49:36 1999
+@@ -70,7 +70,7 @@
+      void *ptr;
+      int flag;
+ {
+-   __builtin_longjmp (ptr, flag);
++   __builtin_longjmp (ptr, 1);
+ }
+ 
+ /* When an exception is raised for which no handler exists, the procedure
+diff -ur gnat-3.11p-src.dist/src/ada/a-trans.c gnat-3.11p-src/src/ada/a-trans.c
+--- gnat-3.11p-src.dist/src/ada/a-trans.c	Thu Jul 30 03:00:09 1998
++++ gnat-3.11p-src/src/ada/a-trans.c	Wed Jan 27 08:29:55 1999
+@@ -232,6 +232,33 @@
+   return gnu_root;
+ }
+ 
++/* Return nonzero if two operands are equal and INTEGER_CST.
++   Replace "operand_equal_p()" in case "N_Validate_Unchecked_Conversion" */
++
++static int
++const_size_equal_p (arg0, arg1)
++     tree arg0, arg1;
++{
++  if (TREE_UNSIGNED (TREE_TYPE (arg0)) != TREE_UNSIGNED (TREE_TYPE (arg1)))
++    return 0;
++
++  STRIP_NOPS (arg0);
++  STRIP_NOPS (arg1);
++
++	if (TREE_CONSTANT (arg0) && TREE_CONSTANT (arg1)
++			&& TREE_CODE (arg0) == TREE_CODE (arg1) 			
++	    && TREE_CODE (arg0) == INTEGER_CST)
++		{
++			return (! TREE_CONSTANT_OVERFLOW (arg0)
++							&& ! TREE_CONSTANT_OVERFLOW (arg1)
++							&& TREE_INT_CST_LOW (arg0) == TREE_INT_CST_LOW (arg1)
++							&& TREE_INT_CST_HIGH (arg0) == TREE_INT_CST_HIGH (arg1));
++		}
++	else
++		/* better => return 0 ? */
++		return operand_equal_p (arg0, arg1, 0);
++}
++
+ /* This function is the driver of the GNAT to GCC tree transformation process.
+    It is the entry point of the tree transformer.  GNAT_NODE is the root of
+    some GNAT tree.  Return the root of the corresponding GCC tree or
+@@ -3486,7 +3513,7 @@
+ 	    && TREE_CODE (TYPE_SIZE (gnu_in_type)) == INTEGER_CST
+ 	    && TREE_CODE (gnu_out_type) != UNCONSTRAINED_ARRAY_TYPE
+ 	    && TREE_CODE (TYPE_SIZE (gnu_out_type)) == INTEGER_CST
+-	    && ! operand_equal_p (rm_size (gnu_in_type),
++	    && ! const_size_equal_p (rm_size (gnu_in_type),
+ 				  rm_size (gnu_out_type), 0))
+ 	  post_error ("types for unchecked conversion have different sizes?",
+ 		      gnat_node);
+diff -ur gnat-3.11p-src.dist/src/ada/a-trans3.c gnat-3.11p-src/src/ada/a-trans3.c
+--- gnat-3.11p-src.dist/src/ada/a-trans3.c	Thu Jul 30 03:00:08 1998
++++ gnat-3.11p-src/src/ada/a-trans3.c	Wed Jan 27 08:46:38 1999
+@@ -789,7 +789,10 @@
+       TYPE_ALIGN (record_type) = MAX (BITS_PER_UNIT, TYPE_ALIGN (record_type));
+       TYPE_MODE (record_type) = BLKmode;
+       if (TYPE_SIZE (record_type) == 0)
+-	TYPE_SIZE (record_type) = size_zero_node;
++        {
++	  TYPE_SIZE (record_type) = size_zero_node;
++          TYPE_SIZE_UNIT (record_type) = size_zero_node;
++        }
+     }
+   else
+     {
+@@ -797,6 +800,7 @@
+ 	 case where there is a rep clause but all fields have errors and
+ 	 no longer have a position.  */
+       TYPE_SIZE (record_type) = 0;
++      TYPE_SIZE_UNIT (record_type) = 0;
+       layout_type (record_type);
+     }
+ 
+@@ -888,7 +892,10 @@
+ #endif
+ 
+   if (has_rep && ! TYPE_IS_PADDING_P (record_type))
++  {
+     TYPE_SIZE (record_type) = size;
++    TYPE_SIZE_UNIT (record_type) = gnu_size_unit (TYPE_SIZE (record_type));
++  }
+ 
+   if (has_rep && ! must_be_blkmode)
+     TYPE_MODE (record_type)
+@@ -937,6 +944,7 @@
+ 	  DECL_IGNORED_P (TYPE_STUB_DECL (new_record_type))
+ 	    = DECL_IGNORED_P (TYPE_STUB_DECL (record_type));
+ 	  TYPE_SIZE (new_record_type) = size_int (TYPE_ALIGN (record_type));
++	  TYPE_SIZE_UNIT (new_record_type) = gnu_size_unit (TYPE_SIZE (new_record_type));
+ 
+ 	  /* Now scan all the fields, replacing each field with a new
+ 	     field corresponding to the new encoding.  */
+@@ -1802,6 +1810,30 @@
+ #define MAX_BITS_PER_WORD  BITS_PER_WORD
+ #endif
+ 
++/* 
++ * MAX_BITS_PER_WORD is typically 32 (most hosts/targets
++ * are 32-Bits).
++ *
++ * Gnat often makes calls to the type_for_size() routine
++ * with precision values exceeding 32. This causes the
++ * bounds of the signed_and_unsigned_types[] array
++ * to be exceeded and thus causes memory to be trampled.
++ * This didn't cause any apparent problems bootstraping
++ * with gcc-2.7.2.x, but when bootstraped with egcs caused
++ * the stage1 compiler abort when compiling osint.adb.
++ * 
++ * There are two possible solutions to this  
++ *	1. Increase the size of array
++ *	2. Don't store types which exceed the maximum precision. 
++ *
++ * I have taken option 1 and increased the maximum precision
++ * to 4 * MAX_BITS_PER_WORD, typically 128, which should be
++ * more than enough. A sanity check has also been added
++ * to the type_for_size() routine which calls gigi_abort(666)
++ * if the precision parameter exceeds MAX_TYPE_PRECISION.
++ */
++#define MAX_TYPE_PRECISION	(4 * MAX_BITS_PER_WORD)
++
+ /* This variable keeps a table for types for each precision so that we only 
+    allocate each of them once. Signed and unsigned types are kept separate.
+ 
+@@ -2561,6 +2593,8 @@
+ 		      TYPE_SIZE (TYPE_OBJECT_RECORD_TYPE (new_type)),
+ 		      DECL_FIELD_BITPOS
+ 		      (TYPE_FIELDS (TYPE_OBJECT_RECORD_TYPE (new_type))));
++      TYPE_SIZE_UNIT (TYPE_OBJECT_RECORD_TYPE (new_type)) 
++	= gnu_size_unit (TYPE_SIZE (TYPE_OBJECT_RECORD_TYPE (new_type)));
+     }
+ }
+ 
+diff -ur gnat-3.11p-src.dist/src/ada/a-trans4.c gnat-3.11p-src/src/ada/a-trans4.c
+--- gnat-3.11p-src.dist/src/ada/a-trans4.c	Thu Jul 30 03:00:08 1998
++++ gnat-3.11p-src/src/ada/a-trans4.c	Wed Jan 27 08:58:29 1999
+@@ -676,6 +676,7 @@
+ 	  tree new_type = copy_node (left_type);
+ 
+ 	  TYPE_SIZE (new_type) = TYPE_SIZE (right_type);
++          TYPE_SIZE_UNIT (new_type) = TYPE_SIZE_UNIT (right_type);
+ 	  TYPE_MAIN_VARIANT (new_type) = new_type;
+ 	  right_operand = convert (new_type, right_operand);
+ 	}
+diff -ur gnat-3.11p-src.dist/src/ada/a-tree.def gnat-3.11p-src/src/ada/a-tree.def
+--- gnat-3.11p-src.dist/src/ada/a-tree.def	Thu Jul 30 03:00:09 1998
++++ gnat-3.11p-src/src/ada/a-tree.def	Wed Jan 27 10:52:42 1999
+@@ -33,44 +33,49 @@
+    The only field used if TREE_COMPLEXITY, which contains the GNAT node
+    number.  */
+ 
+-DEFTREECODE (TRANSFORM_EXPR, "transform_expr", "e", 0)
++DEFTREECODE (TRANSFORM_EXPR, "transform_expr", 'e', 0)
+ 
+-/* Perform an unchecked conversion between the input and the output. 
++/* Perform an unchecked conversion between the input and the output.
+    if TREE_ADDRESSABLE is set, it means this is in an LHS; in that case,
+    we can only use techniques, such as pointer punning, that leave the
+    expression a "name".  */
+ 
+-DEFTREECODE (UNCHECKED_CONVERT_EXPR, "unchecked_convert_expr", "1", 1)
++DEFTREECODE (UNCHECKED_CONVERT_EXPR, "unchecked_convert_expr", '1', 1)
+ 
+ /* A type that is an unconstrained array itself.  This node is never passed
+    to GCC. TREE_TYPE is the type of the fat pointer and TYPE_OBJECT_RECORD_TYPE
+    is the type of a record containing the template and data.  */
+ 
+-DEFTREECODE (UNCONSTRAINED_ARRAY_TYPE, "unconstrained_array_type", "t", 0)
++DEFTREECODE (UNCONSTRAINED_ARRAY_TYPE, "unconstrained_array_type", 't', 0)
+ 
+ /* A reference to an unconstrained array.  This node only exists as an
+    intermediate node during the translation of a GNAT tree to a GCC tree;
+    it is never passed to GCC.  The only field used is operand 0, which
+    is the fat pointer object.  */
+ 
+-DEFTREECODE (UNCONSTRAINED_ARRAY_REF, "unconstrained_array_ref", "r", 1)
++DEFTREECODE (UNCONSTRAINED_ARRAY_REF, "unconstrained_array_ref", 'r', 1)
+ 
+ /* An expression that returns an RTL suitable for its type.  Operand 0
+    is an expression to be evaluated for side effects only.  */
+ 
+-DEFTREECODE (NULL_EXPR, "null_expr", "e", 1)
++DEFTREECODE (NULL_EXPR, "null_expr", 'e', 1)
+ 
+ /* An expression that emits a USE for its single operand.  */
+ 
+-DEFTREECODE (USE_EXPR, "use_expr", "e", 1)
++DEFTREECODE (USE_EXPR, "use_expr", 'e', 1)
+ 
+ /* Same as ADDR_EXPR, except that if the operand represents a bit field,
+    return the address of the byte containing the bit.  This is used
+    for the 'Address attribute and never shows up in the tree.  */
+-DEFTREECODE (ATTR_ADDR_EXPR, "attr_addr_expr", "r", 1)
++DEFTREECODE (ATTR_ADDR_EXPR, "attr_addr_expr", 'r', 1)
+ 
+ /* An expression that is treated as a conversion while generating code, but is
+    used to prevent infinite recursion when conversions of biased types are
+    involved.  */
+ 
+-DEFTREECODE (GNAT_NOP_EXPR, "gnat_nop_expr", "1", 1)
++DEFTREECODE (GNAT_NOP_EXPR, "gnat_nop_expr", '1', 1)
++/*
++Local variables:
++mode:c
++End:
++*/
+
