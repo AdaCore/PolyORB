@@ -1,3 +1,28 @@
+2000-07-03  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* xe_defs.ads, Makefile.am, Makefile.in: Create two functions to
+ 	return default protocol data and name.
+
+	* xe_back.adb, xe_back.ads: Add fields RCI_Or_RACW and Use_Tasking
+ 	to partition info with their accessors. Export Add_Location.
+
+	* xe_check.adb: Compute whether a unit needs tasking and store the
+ 	result in ali info.
+
+	* xe_stubs.adb: Factorize code and define new subprograms
+ 	Build_Location_String, Add_Protocol, Create_File and
+ 	Close_File. Compute whether partition is a pure client partition -
+ 	that is a partition which partition id can be recycled - and then
+ 	whether partition may have a light pcs - that is a pure client
+ 	partition without tasking. Generate partition elaboration code
+ 	according Use_Tasking and RCI_Or_RACW flags. With Tasking or
+ 	No_Tasking unit depending on Light_PCS flag. With Server child of
+ 	some units like protocol units or rpc unit when partition has not
+ 	a light PCS.
+
+	* xe_utils.adb, xe_utils.ads: Add a function to detect a child of
+ 	system.tasking.
+	
 2000-05-26  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* header.txt: Update copyright.

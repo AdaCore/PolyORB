@@ -1,3 +1,119 @@
+2000-07-04  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* Makefile.am, Makefile.in: Add all the server children and rename
+ 	the protocol units in order to be in the Garlic.Protocols
+ 	hierarchy. Add an Ada program b_gaprco to build s-gaprco.adb.
+
+	* s-gaphlo.adb, s-gaphlo.ads: Location_Type is no longer a
+ 	controlled type - no dynamically allocated data
+ 	anymore. Therefore, Get_Data returns now a string instead of a
+ 	string access.
+
+	* s-gasoli.adb, s-gasoli.ads: Add soft_links concerning gnat
+ 	tasking especially termination, priority and abortion. Remove
+ 	barriers and replace them with watchers.
+	
+	* s-gaprob.adb, s-gaprob.ads: Replace with s-gartas.adb and
+ 	s-gartas.ads - System.Garlic.Tasking. Define new soft_links needed 
+	in System.Garlic.Soft_Links (see above).
+
+	* s-ganota.adb, s-ganota.ads: Add unit System.Garlic.No_Tasking
+ 	which provides soft links for the light PCS - no tasking loaded in
+ 	partition.
+
+	* s-gardeb.adb: Do not define a protected object to serialize
+ 	outputs and use soft links instead. Therefore, adapt elaboration
+ 	order in GLADE. Remove termination file obsolete procedures.
+
+	* s-garela.adb, s-garela.ads: As a default, load PCS with
+	tasking. Change elaboration order (see above).
+
+	* s-garexc.adb, s-garexc.ads: Move Error_Type from Utils to
+	Exceptions for elaboration purposes.
+
+	* s-garfil.adb, s-garfil.ads: Replace Barriers with Watchers and
+	reorganize code accordingly.
+
+	* s-gargro.adb: Changes due to unit declaration changes in other
+ 	units.
+
+	* s-garhea.adb: Replace Barrier with Watcher. use new definition
+	of a pure client partition and a partition with light PCS. A
+	partition with a light PCS is a pure client partition with no
+	tasking. A pure client partition is a partition with a local
+	termination and which does not include RCI units or distributed
+	object creations.
+
+	* s-garnam.adb, s-garnam.ads: Remove some controlled types and
+	reduce specification - remove useless procedures.
+
+	* s-garopt.adb, s-garopt.ads: Define flag Has_A_Light_PCS and
+ 	Is_Pure_Client. Add assertions in accessors to check consistency
+ 	of configuration. Has_A_Ligh_PCS cannot be set to False once it is
+ 	set to True. Has_A_Light_PCS set to True implies that
+ 	Is_Pure_Client is set to True. Same kind of rules with local
+ 	termiation.
+
+	* s-garpar.adb, s-garpar.adb: Change partition info. Remove
+ 	redundant info given by flag Allocated. Replace Barrier with
+ 	Watcher. Reorganize code accordingly. Factorize protected code in
+ 	Matching_Partitions. Use Has_A_Light_PCS and Is_Pure_Client.
+
+	* s-garpro.adb, s-garpro.ads: Add procedure Receive with Timeout
+ 	to Protocol_Type. This method is called in No_Tasking environment
+ 	when the env. task is waiting for an event to
+ 	occur. Receive_From_All_Protocols is a loop on all the registered
+ 	protocols calling method Receive on them. There is no timeout when 
+	there is only one protocol registered.
+
+	* s-garrem.adb, s-garsta.adb, s-gartab.adb, s-gartab.ads,
+ 	s-garuni.ads, s-garuni.adb: Minor changes.
+
+	* s-garter.adb: Remove use of gnat tasking procedures and use soft 
+	links instead.
+
+	* s-gartra.adb, s-gartra.ads: Do not use real time clock anymore.
+
+	* s-gartyp.adb, s-gartyp.ads: Move Version_ID from Utils to Types
+	for elaboration purposes.
+
+	* s-garuti.adb, s-garuti.ads: Move some stuff for elaboration
+ 	purposes.
+
+	* s-parint.adb, s-parint.ads: Remove some useless stuff.
+
+	* s-rpc.adb, s-rpc.ads: Move procedures needing tasking into
+ 	RPC.Server. Use soft links for priority management and RPC
+ 	abortion.
+
+	* s-rpcpoo.adb, s-rpcpoo.ads, s-rpcser.adb, s-rpcser.ads: Rename
+ 	RPC.Pool by RPC.Server.  Move RPC features like priority and
+ 	abortion from RPC to here.
+
+	* s-stratt.adb: Define Data_Error exception to avoid dragging
+ 	other units.
+
+	* s-gartcp.adb, s-gartcp.ads, s-gaprtc.ab, s-gaprtc.ads,
+ 	s-gptcse.adb, s-gptcse.ads: Move Garlic.TCP unit into the
+ 	Garlic.Protocols hierarchy. Split unit in two units in which
+ 	TCP.Server includes all the code needed to handle incoming
+ 	request. This unit needs tasking. This split allows to define a
+ 	light PCS because TPC.Server is not imported for a pure client
+ 	partition.
+
+	* s-garrep.adb, s-garrep.adb, s-gaprre.adb, s-gaprre.ads,
+	s-gprese.adb, s-gprese.ads: Same as above for Replay.
+
+	* b_gaprco.adb: procedure to build s-gaprco.adb.
+
+	* s-garhea.ads: Remove useless visibility on tasking units.
+
+	* s-garser.adb.in: Move dependency on Garlic.Tasking somewhere
+ 	else.
+
+	* s-rpstio.adb: Replace Barriers with Watchers and reorganize code
+ 	accordingly.
+
 2000-06-09  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* s-gastha.adb: Protect increment operation on a shared variable
