@@ -85,16 +85,11 @@ package body PolyORB.Tasking.Soft_Links is
 
    procedure Create_Task
      (Main : PS.Parameterless_Procedure) is
-      RA : aliased Generic_Run;
+      T  : Thread_Access;
    begin
-      RA.P := Main;
-      declare
-         T  : constant Thread_Access := Create_Thread
-           (TF => My_Thread_Factory,
-            R  => RA'Access);
-      begin
-         Create_Task (My_Thread_Factory.all, T);
-      end;
+      T := Run_In_Task
+        (TF => My_Thread_Factory,
+         P  => Tasking.Threads.Parameterless_Procedure (Main));
    end Create_Task;
 
    -------------

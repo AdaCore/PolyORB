@@ -33,14 +33,13 @@
 
 --  //droopi/main/design/tasking/polyorb-tasking-no_tasking_profile.ads
 
-pragma Warnings (Off);
-with PolyORB.No_Tasking_Profile.Threads;
-pragma Warnings (On);
-pragma Elaborate_All (PolyORB.No_Tasking_Profile.Threads);
-pragma Warnings (Off);
-with PolyORB.No_Tasking_Profile.Monitors;
-pragma Warnings (On);
-pragma Elaborate_All (PolyORB.No_Tasking_Profile.Monitors);
+with PolyORB.No_Tasking.Threads;
+pragma Warnings (Off, PolyORB.No_Tasking.Threads);
+pragma Elaborate_All (PolyORB.No_Tasking.Threads);
+
+with PolyORB.No_Tasking.Monitors;
+pragma Warnings (Off, PolyORB.No_Tasking.Monitors);
+pragma Elaborate_All (PolyORB.No_Tasking.Monitors);
 
 package body PolyORB.Tasking.No_Tasking_Profile is
 begin

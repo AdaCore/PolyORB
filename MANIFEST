@@ -589,13 +589,11 @@ src/polyorb-locks.adb
 src/polyorb-locks.ads
 src/polyorb-log.adb
 src/polyorb-log.ads
-src/polyorb-no_tasking.adb
 src/polyorb-no_tasking.ads
-src/polyorb-no_tasking_profile-threads.ads
-src/polyorb-no_tasking_profile-threads.adb
-src/polyorb-no_tasking_profile-monitors.ads
-src/polyorb-no_tasking_profile-monitors.adb
-src/polyorb-no_tasking_profile.ads
+src/polyorb-no_tasking-threads.ads
+src/polyorb-no_tasking-threads.adb
+src/polyorb-no_tasking-monitors.ads
+src/polyorb-no_tasking-monitors.adb
 src/polyorb-obj_adapters-simple.adb
 src/polyorb-obj_adapters-simple.ads
 src/polyorb-obj_adapters.adb

@@ -73,8 +73,6 @@ package PolyORB.Ravenscar.Threads is
 
    type Ravenscar_Thread_Access is access all Ravenscar_Thread_Type'Class;
 
-   procedure Run (T : access Ravenscar_Thread_Type);
-
    function Get_Thread_Id (T : access Ravenscar_Thread_Type)
      return Thread_Id_Access;
 
@@ -87,16 +85,19 @@ package PolyORB.Ravenscar.Threads is
    The_Thread_Factory : constant Ravenscar_Thread_Factory_Access;
    --  The thread factory for this profile.
 
-   function Create_Thread
-     (TF   : access Ravenscar_Thread_Factory_Type;
-      Name : String := "";
+   function Run_In_Task
+     (TF               : access Ravenscar_Thread_Factory_Type;
+      Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
-      R    : access Runnable'Class)
+      R                : Runnable'Class)
      return Thread_Access;
 
-   procedure Create_Task
-     (TF : in out  Ravenscar_Thread_Factory_Type;
-      T  : access Thread_Type'Class);
+   function Run_In_Task
+     (TF               : access Ravenscar_Thread_Factory_Type;
+      Name             : String := "";
+      Default_Priority : System.Any_Priority := System.Default_Priority;
+      P                : Parameterless_Procedure)
+     return Thread_Access;
 
    function Get_Current_Thread_Id
      (TF : access Ravenscar_Thread_Factory_Type)
@@ -148,10 +149,6 @@ private
    type Ravenscar_Thread_Type is new Thread_Type with record
       Id   : aliased Ravenscar_Thread_Id;
       --  Id of the Thread.
-
-      Run  : Runnable_Access;
-      --  Runnable that contains the code that will be executed
-      --  by the task associated to the Thread object.
 
    end record;
 

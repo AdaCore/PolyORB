@@ -100,11 +100,6 @@ package PolyORB.Tasking.Threads is
 
    type Thread_Access is access all Thread_Type'Class;
 
-   procedure Run (T : access Thread_Type)
-     is abstract;
-   --  Main procedure of the thread. It should mainly be a call to Run
-   --  of an internal Runnable.
-
    function Get_Thread_Id
      (T : access Thread_Type)
      return Thread_Id_Access
@@ -135,11 +130,11 @@ package PolyORB.Tasking.Threads is
    --  Indeed, their types depend on the profile under which they are created,
    --  and in a logic node every object is created under the same profile.
 
-   function Create_Thread
+   function Run_In_Task
      (TF               : access Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
-      R                : access Runnable'Class)
+      R                : Runnable'Class)
      return Thread_Access
      is abstract;
    --  Create a Thread according to the tasking profile.  R is the
@@ -148,29 +143,31 @@ package PolyORB.Tasking.Threads is
    --  This name will be used to get the configuration of this thread
    --  from the configuration module. Default_Priority will be the priority
    --  of the task if no priority is given in the configuration file.
+   --  Then :
+   --  * if a preallocated task with these paramaters is available, it
+   --  runs the runnable in it;
+   --  * otherwise, if it is allowed by the tasking profile, it create
+   --  a new task with this parameters;
+   --  * if it can do neither of this two possibilities, it failed
+   --  returning an exception. The type of the exception is profile
+   --  dependant.
    --  Note that the main context is associated to a preallocated Thread
    --  at initialisation time, in order to be able to use PolyORB.Tasking
    --  API in this context.
-   --  R is copied. It is the responsability of the caller to deallocate it.
+   --  For every tasking profile, this function uses dynamic allocation to
+   --  copy R.
 
-   procedure Create_Task
-     (TF : in out  Thread_Factory_Type;
-      T  : access Thread_Type'Class)
+   function Run_In_Task
+     (TF               : access Thread_Factory_Type;
+      Name             : String := "";
+      Default_Priority : System.Any_Priority := System.Default_Priority;
+      P                : Parameterless_Procedure)
+     return Thread_Access
      is abstract;
-   --  Use the Thread given in paramater to create a new task, or to
-   --  get a preallocated task; then it runs its code in this task.
-   --  This procedure should not be called two times with the same T
-   --  given in paramater, because in this case we would have the same
-   --  Thread_Id for different tasks, which may be misleading.  So
-   --  don't keep a access on a Thread_Type if you don't need it.
-   --  A typical use would be :
-   --     declare
-   --        T : Thread_Access := Create_Thread (My_Thread_Factory,
-   --                                            "My_Label",
-   --                                            My_Runnable);
-   --     begin
-   --        Create_Task (My_Thread_Factory.all, T);
-   --     end;
+   --  This function plays the same role that the first one; the
+   --  difference is that the code of the Thread is P.
+   --  In some profiles, this function ensure that no dynamic allocation
+   --  is done.
 
    function Get_Current_Thread_Id
      (TF : access Thread_Factory_Type)
@@ -186,6 +183,9 @@ package PolyORB.Tasking.Threads is
      return Thread_Factory_Access;
    pragma Inline (Get_Thread_Factory);
    --  Get the Thread_Factory object registered in this package.
+   --  WARNING : if you make a call to this function at elaboration
+   --  time, it will return null, as no Thread_Factory will be
+   --  registered. So DO NOT call this function at elaboration time!
 
    procedure Register_Thread_Factory
      (TF : Thread_Factory_Access);

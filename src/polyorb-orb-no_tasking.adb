@@ -40,8 +40,13 @@ with PolyORB.Filters.Interface;
 with PolyORB.Log;
 with PolyORB.Setup;
 with PolyORB.Utils.Strings;
-with PolyORB.No_Tasking;
-pragma Warnings (Off, PolyORB.No_Tasking);
+
+with PolyORB.Tasking.No_Tasking_Profile;
+with PolyORB.Tasking.Soft_Links;
+pragma Warnings (Off, PolyORB.Tasking.No_Tasking_Profile);
+pragma Warnings (Off, PolyORB.Tasking.Soft_Links);
+pragma Elaborate_All (PolyORB.Tasking.No_Tasking_Profile);
+pragma Elaborate_All (PolyORB.Tasking.Soft_Links);
 
 package body PolyORB.ORB.No_Tasking is
 
@@ -149,7 +154,8 @@ begin
      (Module_Info'
       (Name => +"orb.no_tasking",
        Conflicts => Empty,
-       Depends => +"no_tasking",
+       Depends => +"tasking-threads"
+         & "tasking-monitors",
        Provides => +"orb.tasking_policy",
        Init => Initialize'Access));
 end PolyORB.ORB.No_Tasking;

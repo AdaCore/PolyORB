@@ -128,8 +128,14 @@ package body PolyORB.Ravenscar.Threads is
 
       procedure Create_Thread
         (Id  : Thread_Index_Type;
-         Run : access Runnable'Class;
+         Run : Runnable'Class;
          T   : out Thread_Access);
+      --  This is the protected section of the Create_Thread procedure.
+
+      procedure Create_Thread
+        (Id : Thread_Index_Type;
+         P  : Parameterless_Procedure;
+         T  : out Thread_Access);
       --  This is the protected section of the Create_Thread procedure.
 
       function Lookup (Tid : Ada.Task_Identification.Task_Id)
@@ -149,6 +155,28 @@ package body PolyORB.Ravenscar.Threads is
 
    My_Thread_Arr  : Thread_Arr;
    --  Pool of Threads.
+
+   type Runnable_Arr is array (Thread_Index_Type)
+     of Runnable_Access;
+
+   type Job_Passing is (Use_Runnable, Use_PP);
+   --  There is two way to pass a job to the tasks:
+   --  by a Runnable or by a Parameterless_Procedure.
+   --  This type is used to discriminate.
+
+   type Job_Passing_Arr is array (Thread_Index_Type)
+     of Job_Passing;
+
+   My_Job_Passing_Arr : Job_Passing_Arr;
+
+   My_Runnable_Arr : Runnable_Arr;
+   --  Pool of Runnable.
+
+   type PP_Arr is array (Thread_Index_Type)
+     of Parameterless_Procedure;
+
+   My_PP_Arr : PP_Arr;
+   --  Pool of Parameterless_Procedure.
 
    Task_Pool : array (Task_Index_Type) of Simple_Task;
    pragma Warnings (Off);
@@ -233,37 +261,50 @@ package body PolyORB.Ravenscar.Threads is
    end Copy_Thread_Id;
 
    -----------------
-   -- Create_Task --
+   -- Run_In_Task --
    -----------------
 
-   procedure Create_Task
-     (TF : in out  Ravenscar_Thread_Factory_Type;
-      T  : access Thread_Type'Class) is
-      pragma Warnings (Off);
-      pragma Unreferenced (TF);
-      pragma Warnings (On);
-      RT : constant Ravenscar_Thread_Access := Ravenscar_Thread_Access (T);
-   begin
-      pragma Assert (RT.Id.Id /= Main_Task_Id);
-      Sync_Pool (RT.Id.Id).Signal;
-   end Create_Task;
-
-   -------------------
-   -- Create_Thread --
-   -------------------
-
-   function Create_Thread
-     (TF   : access Ravenscar_Thread_Factory_Type;
-      Name : String := "";
+   function Run_In_Task
+     (TF               : access Ravenscar_Thread_Factory_Type;
+      Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
-      R    : access Runnable'Class)
+      P                : Parameterless_Procedure)
      return Thread_Access is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
       pragma Unreferenced (Name);
       pragma Unreferenced (Default_Priority);
       pragma Warnings (On);
-      --  XXX The use of names and prioritiesis not implemented yet.
+      --  XXX The use of names and priorities is not implemented yet.
+      Id : Thread_Index_Type;
+      T  : Thread_Access;
+   begin
+      --  The following call should not be executed in a protected
+      --  object, because it can be blocking.
+      My_Index_Manager.Get (Id);
+      Pool_Manager.Create_Thread (Id, P, T);
+      declare
+         RT : constant Ravenscar_Thread_Access
+           := Ravenscar_Thread_Access (T);
+      begin
+         pragma Assert (RT.Id.Id /= Main_Task_Id);
+         Sync_Pool (RT.Id.Id).Signal;
+         return T;
+      end;
+   end Run_In_Task;
+
+   function Run_In_Task
+     (TF               : access Ravenscar_Thread_Factory_Type;
+      Name             : String := "";
+      Default_Priority : System.Any_Priority := System.Default_Priority;
+      R                : Runnable'Class)
+     return Thread_Access is
+      pragma Warnings (Off);
+      pragma Unreferenced (TF);
+      pragma Unreferenced (Name);
+      pragma Unreferenced (Default_Priority);
+      pragma Warnings (On);
+      --  XXX The use of names and priorities is not implemented yet.
       Id : Thread_Index_Type;
       T  : Thread_Access;
    begin
@@ -271,8 +312,15 @@ package body PolyORB.Ravenscar.Threads is
       --  object, because it can be blocking.
       My_Index_Manager.Get (Id);
       Pool_Manager.Create_Thread (Id, R, T);
-      return T;
-   end Create_Thread;
+      declare
+         RT : constant Ravenscar_Thread_Access
+           := Ravenscar_Thread_Access (T);
+      begin
+         pragma Assert (RT.Id.Id /= Main_Task_Id);
+         Sync_Pool (RT.Id.Id).Signal;
+         return T;
+      end;
+   end Run_In_Task;
 
    ---------------------------
    -- Get_Current_Thread_Id --
@@ -344,11 +392,24 @@ package body PolyORB.Ravenscar.Threads is
 
       procedure Create_Thread
         (Id  : Thread_Index_Type;
-         Run : access Runnable'Class;
+         Run : Runnable'Class;
          T   : out Thread_Access) is
          Result : Ravenscar_Thread_Access;
       begin
-         My_Thread_Arr (Id).Run := new Runnable'Class'(Run.all);
+         My_Job_Passing_Arr (Id) := Use_Runnable;
+         My_Runnable_Arr (Id) := new Runnable'Class'(Run);
+         Result := My_Thread_Arr (Id)'Access;
+         T := Thread_Access (Result);
+      end Create_Thread;
+
+      procedure Create_Thread
+        (Id : Thread_Index_Type;
+         P  : Parameterless_Procedure;
+         T  : out Thread_Access) is
+         Result : Ravenscar_Thread_Access;
+      begin
+         My_Job_Passing_Arr (Id) := Use_PP;
+         My_PP_Arr (Id) := P;
          Result := My_Thread_Arr (Id)'Access;
          T := Thread_Access (Result);
       end Create_Thread;
@@ -401,15 +462,6 @@ package body PolyORB.Ravenscar.Threads is
 
    end Pool_Manager;
 
-   ---------
-   -- Run --
-   ---------
-
-   procedure Run (T : access Ravenscar_Thread_Type) is
-   begin
-      PTT.Run (T.Run);
-   end Run;
-
    -----------------
    -- Simple_Task --
    -----------------
@@ -424,8 +476,12 @@ package body PolyORB.Ravenscar.Threads is
       Th_Id.Id := Id;
       loop
          Suspend (Th_Id);
-         Run (My_Thread_Arr (Id)'Access);
-         Free (My_Thread_Arr (Id).Run);
+         if My_Job_Passing_Arr (Id) = Use_Runnable then
+            Run (My_Runnable_Arr (Id));
+         else
+            My_PP_Arr (Id).all;
+         end if;
+         Free (My_Runnable_Arr (Id));
          My_Index_Manager.Release (Id);
       end loop;
    end Simple_Task;

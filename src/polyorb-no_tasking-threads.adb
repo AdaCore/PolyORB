@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         P O L Y O R B . F U L L . T A S K I N G . T H R E A D S          --
+--           P O L Y O R B - N O _ T A S K I N G - T H R E A D S            --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -32,13 +32,12 @@
 
 --  Implementation of Threads under the No_Tasking profile.
 
+--  $Id$
 
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
-package body PolyORB.No_Tasking_Profile.Threads is
-
-   procedure Initialize;
+package body PolyORB.No_Tasking.Threads is
 
    ---------
    -- "=" --
@@ -73,41 +72,6 @@ package body PolyORB.No_Tasking_Profile.Threads is
       null;
    end Copy_Thread_Id;
 
-   -------------------
-   -- Create_Thread --
-   -------------------
-
-   function Create_Thread
-     (TF               : access No_Tasking_Thread_Factory_Type;
-      Name             : String := "";
-      Default_Priority : System.Any_Priority := System.Default_Priority;
-      R                : access PTT.Runnable'Class)
-     return PTT.Thread_Access is
-      pragma Warnings (Off);
-      pragma Unreferenced (TF);
-      pragma Unreferenced (Name);
-      pragma Unreferenced (Default_Priority);
-      pragma Unreferenced (R);
-      pragma Warnings (On);
-   begin
-      return null;
-   end Create_Thread;
-
-   -----------------
-   -- Create_Task --
-   -----------------
-
-   procedure Create_Task
-     (TF : in out  No_Tasking_Thread_Factory_Type;
-      T  : access PTT.Thread_Type'Class) is
-      pragma Warnings (Off);
-      pragma Unreferenced (TF);
-      pragma Unreferenced (T);
-      pragma Warnings (On);
-   begin
-      raise Not_Implemented;
-   end Create_Task;
-
    ---------------------------
    -- Get_Current_Thread_Id --
    ---------------------------
@@ -134,7 +98,8 @@ package body PolyORB.No_Tasking_Profile.Threads is
       pragma Unreferenced (T);
       pragma Warnings (On);
    begin
-      return new No_Tasking_Thread_Id;
+      raise Tasking.Tasking_Profile_Error;
+      return null;
    end Get_Thread_Id;
 
    ----------------
@@ -159,17 +124,43 @@ package body PolyORB.No_Tasking_Profile.Threads is
       return "task_id";
    end Image;
 
-   ---------
-   -- Run --
-   ---------
+   -----------------
+   -- Run_In_Task --
+   -----------------
 
-   procedure Run (T : access No_Tasking_Thread_Type) is
+   function Run_In_Task
+     (TF               : access No_Tasking_Thread_Factory_Type;
+      Name             : String := "";
+      Default_Priority : System.Any_Priority := System.Default_Priority;
+      R                : Runnable'Class)
+     return Thread_Access is
       pragma Warnings (Off);
-      pragma Unreferenced (T);
+      pragma Unreferenced (TF);
+      pragma Unreferenced (Name);
+      pragma Unreferenced (Default_Priority);
+      pragma Unreferenced (R);
       pragma Warnings (On);
    begin
-      raise Not_Implemented;
-   end Run;
+      raise Tasking.Tasking_Profile_Error;
+      return null;
+   end Run_In_Task;
+
+   function Run_In_Task
+     (TF               : access No_Tasking_Thread_Factory_Type;
+      Name             : String := "";
+      Default_Priority : System.Any_Priority := System.Default_Priority;
+      P                : Parameterless_Procedure)
+     return Thread_Access is
+      pragma Warnings (Off);
+      pragma Unreferenced (TF);
+      pragma Unreferenced (Name);
+      pragma Unreferenced (Default_Priority);
+      pragma Unreferenced (P);
+      pragma Warnings (On);
+   begin
+      raise Tasking.Tasking_Profile_Error;
+      return null;
+   end Run_In_Task;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
@@ -178,9 +169,9 @@ package body PolyORB.No_Tasking_Profile.Threads is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"no_tasking_profile-threads",
+      (Name => +"no_tasking-threads",
        Conflicts => Empty,
        Depends => Empty,
        Provides => +"tasking-threads",
        Init => Initialize'Access));
-end PolyORB.No_Tasking_Profile.Threads;
+end PolyORB.No_Tasking.Threads;

@@ -66,12 +66,9 @@ package PolyORB.Full_Tasking.Threads is
    type Full_Tasking_Thread_Type is
      new PTT.Thread_Type with private;
 
-   procedure Run (T : access Full_Tasking_Thread_Type);
-
    function Get_Thread_Id
      (T : access Full_Tasking_Thread_Type)
      return PTT.Thread_Id_Access;
-
 
    type Full_Tasking_Thread_Access
       is access all Full_Tasking_Thread_Type'Class;
@@ -93,16 +90,19 @@ package PolyORB.Full_Tasking.Threads is
       Source : PTT.Thread_Id'Class;
       Target : PTT.Thread_Id_Access);
 
-   function Create_Thread
+   function Run_In_Task
      (TF               : access Full_Tasking_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
-      R                : access PTT.Runnable'Class)
+      R                : PTT.Runnable'Class)
      return PTT.Thread_Access;
 
-   procedure Create_Task
-     (TF : in out  Full_Tasking_Thread_Factory_Type;
-      T  : access PTT.Thread_Type'Class);
+   function Run_In_Task
+     (TF               : access Full_Tasking_Thread_Factory_Type;
+      Name             : String := "";
+      Default_Priority : System.Any_Priority := System.Default_Priority;
+      P                : PTT.Parameterless_Procedure)
+     return PTT.Thread_Access;
 
    function Get_Current_Thread_Id
      (TF : access Full_Tasking_Thread_Factory_Type)
@@ -116,7 +116,6 @@ private
 
    type Full_Tasking_Thread_Type is new PTT.Thread_Type with record
       Id        : PTT.Thread_Id_Access;
-      Run       : PTT.Runnable_Access;
       Priority  : System.Any_Priority;
    end record;
 

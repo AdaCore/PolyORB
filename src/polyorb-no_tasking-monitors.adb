@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---  P O L Y O R B - N O _ T A S K I N G _ P R O F I L E - M O N I T O R S   --
+--          P O L Y O R B - N O _ T A S K I N G - M O N I T O R S           --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -32,14 +32,14 @@
 
 --  Implementation of monitors under the No_Tasking profile.
 
+--  $Id$
+
 with Unchecked_Deallocation;
 
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
-package body PolyORB.No_Tasking_Profile.Monitors is
-
-   procedure Initialize;
+package body PolyORB.No_Tasking.Monitors is
 
    procedure Free is
       new Unchecked_Deallocation
@@ -152,4 +152,4 @@ begin
        Depends => Empty,
        Provides => +"tasking-monitors",
        Init => Initialize'Access));
-end PolyORB.No_Tasking_Profile.Monitors;
+end PolyORB.No_Tasking.Monitors;

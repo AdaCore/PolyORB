@@ -2,9 +2,10 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---   P O L Y O R B - N O _ T A S K I N G _ P R O F I L E . T H R E A D S    --
+--           P O L Y O R B - N O _ T A S K I N G - T H R E A D S            --
 --                                                                          --
 --                                 S p e c                                  --
+
 --                                                                          --
 --             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
@@ -32,14 +33,19 @@
 
 --  Implementation of PolyORB.Tasking.Threads for the No_Tasking profile
 
+--  $Id$
+
 with System;
 
 with PolyORB.Tasking.Threads;
 use PolyORB.Tasking.Threads;
 
-package PolyORB.No_Tasking_Profile.Threads is
+package PolyORB.No_Tasking.Threads is
 
    package PTT renames PolyORB.Tasking.Threads;
+
+   procedure  Initialize;
+   --  Initialize this package.
 
    --------------------------
    -- No_Tasking_Thread_Id --
@@ -63,8 +69,6 @@ package PolyORB.No_Tasking_Profile.Threads is
 
    type No_Tasking_Thread_Type is
      new PTT.Thread_Type with private;
-
-   procedure Run (T : access No_Tasking_Thread_Type);
 
    function Get_Thread_Id
      (T : access No_Tasking_Thread_Type)
@@ -91,16 +95,19 @@ package PolyORB.No_Tasking_Profile.Threads is
       Source : PTT.Thread_Id'Class;
       Target : PTT.Thread_Id_Access);
 
-   function Create_Thread
+   function Run_In_Task
      (TF               : access No_Tasking_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
-      R                : access PTT.Runnable'Class)
-     return PTT.Thread_Access;
+      R                : Runnable'Class)
+     return Thread_Access;
 
-   procedure Create_Task
-     (TF : in out  No_Tasking_Thread_Factory_Type;
-      T  : access PTT.Thread_Type'Class);
+   function Run_In_Task
+     (TF               : access No_Tasking_Thread_Factory_Type;
+      Name             : String := "";
+      Default_Priority : System.Any_Priority := System.Default_Priority;
+      P                : Parameterless_Procedure)
+     return Thread_Access;
 
    function Get_Current_Thread_Id
      (TF : access No_Tasking_Thread_Factory_Type)
@@ -120,4 +127,4 @@ private
    The_Thread_Factory : constant No_Tasking_Thread_Factory_Access
      := new No_Tasking_Thread_Factory_Type;
 
-end PolyORB.No_Tasking_Profile.Threads;
+end PolyORB.No_Tasking.Threads;

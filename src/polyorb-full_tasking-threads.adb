@@ -57,8 +57,9 @@ package body PolyORB.Full_Tasking.Threads is
    procedure Free is new Unchecked_Deallocation
      (PTT.Runnable'Class, PTT.Runnable_Access);
 
-   task type Generic_Task (P : System.Priority) is
-      --  type of the tasks created by this package.
+   task type Generic_Task_With_Runnable (P : System.Priority) is
+      --  type of the tasks created by this package;
+      --  this one use a Runnable for its code.
 
       pragma Priority (P);
 
@@ -69,9 +70,26 @@ package body PolyORB.Full_Tasking.Threads is
       --  Start the task.
 
       pragma Storage_Size (131072);
-   end Generic_Task;
+   end Generic_Task_With_Runnable;
 
-   type Generic_Task_Access is access Generic_Task;
+   type Generic_Task_With_Runnable_Access is access Generic_Task_With_Runnable;
+
+   task type Generic_Task_With_PP (P : System.Priority) is
+      --  type of the tasks created by this package;
+      --  this one use a Parameterless_Procedure for its code.
+
+      pragma Priority (P);
+
+      entry Initialize (T : PTT.Thread_Access);
+      --  Give the task its parameters.
+
+      entry Start (Run : PTT.Parameterless_Procedure);
+      --  Start the task.
+
+      pragma Storage_Size (131072);
+   end Generic_Task_With_PP;
+
+   type Generic_Task_With_PP_Access is access Generic_Task_With_PP;
 
    ---------
    -- "=" --
@@ -105,53 +123,66 @@ package body PolyORB.Full_Tasking.Threads is
       Result.Tid := Content.Tid;
    end Copy_Thread_Id;
 
-   -------------------
-   -- Create_Thread --
-   -------------------
 
-   function Create_Thread
+   -----------------
+   -- Run_In_Task --
+   -----------------
+
+   function Run_In_Task
      (TF               : access Full_Tasking_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
-      R                : access PTT.Runnable'Class)
+      R                : PTT.Runnable'Class)
      return PTT.Thread_Access is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
       pragma Warnings (On);
-      T : Full_Tasking_Thread_Access
+      T            : Full_Tasking_Thread_Access
         := new Full_Tasking_Thread_Type;
+      The_Runnable : PTT.Runnable_Access;
+      GT           : Generic_Task_With_Runnable_Access;
    begin
-      T.Run := new PTT.Runnable'Class'(R.all);
+      The_Runnable := new PTT.Runnable'Class'(R);
       T.Priority := System.Priority
         (PolyORB.Configuration.Get_Conf
            ("tasking", "polyorb.tasking.threads." & Name & ".priority",
             Default_Priority));
+      GT := new Generic_Task_With_Runnable (T.Priority);
+      GT.Initialize (PTT.Thread_Access (T));
+      GT.Start (The_Runnable);
       return PTT.Thread_Access (T);
-   end Create_Thread;
+   end Run_In_Task;
 
-   -----------------
-   -- Create_Task --
-   -----------------
-
-   procedure Create_Task
-     (TF : in out  Full_Tasking_Thread_Factory_Type;
-      T  : access PTT.Thread_Type'Class) is
-      GT : Generic_Task_Access;
+   function Run_In_Task
+     (TF               : access Full_Tasking_Thread_Factory_Type;
+      Name             : String := "";
+      Default_Priority : System.Any_Priority := System.Default_Priority;
+      P                : PTT.Parameterless_Procedure)
+     return PTT.Thread_Access is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
       pragma Warnings (On);
+      T  : Full_Tasking_Thread_Access
+        := new Full_Tasking_Thread_Type;
+      GT : Generic_Task_With_PP_Access;
    begin
-      GT := new Generic_Task (System.Default_Priority);
+      T.Priority := System.Priority
+        (PolyORB.Configuration.Get_Conf
+         ("tasking", "polyorb.tasking.threads." & Name & ".priority",
+          Default_Priority));
+      GT := new Generic_Task_With_PP (T.Priority);
       GT.Initialize (PTT.Thread_Access (T));
-      GT.Start (Full_Tasking_Thread_Access (T).Run);
-   end Create_Task;
+      GT.Start (P);
+      return PTT.Thread_Access (T);
+   end Run_In_Task;
 
-   ------------------
-   -- Generic_Task --
-   ------------------
+   --------------------------------
+   -- Generic_Task_With_Runnable --
+   --------------------------------
 
-   task body Generic_Task is
+   task body Generic_Task_With_Runnable is
       The_Thread   : Full_Tasking_Thread_Access;
+      The_Runnable : PTT.Runnable_Access;
    begin
       accept Initialize (T : PTT.Thread_Access) do
          The_Thread := Full_Tasking_Thread_Access (T);
@@ -160,13 +191,35 @@ package body PolyORB.Full_Tasking.Threads is
            (Tid => Ada.Task_Identification.Current_Task);
       end Initialize;
       accept Start (Run : PTT.Runnable_Access) do
-         The_Thread.Run := Run;
+         The_Runnable := Run;
       end Start;
-      PTT.Run (The_Thread.Run);
+      PTT.Run (The_Runnable);
       Free (Full_Tasking_Thread_Id_Access (The_Thread.Id));
-      Free (The_Thread.Run);
+      Free (The_Runnable);
       Free (The_Thread);
-   end Generic_Task;
+   end Generic_Task_With_Runnable;
+
+   --------------------------
+   -- Generic_Task_With_PP --
+   --------------------------
+
+   task body Generic_Task_With_PP is
+      The_Thread    : Full_Tasking_Thread_Access;
+      The_Procedure : PTT.Parameterless_Procedure;
+   begin
+      accept Initialize (T : PTT.Thread_Access) do
+         The_Thread := Full_Tasking_Thread_Access (T);
+         The_Thread.Id
+           := new Full_Tasking_Thread_Id'
+           (Tid => Ada.Task_Identification.Current_Task);
+      end Initialize;
+      accept Start (Run : PTT.Parameterless_Procedure) do
+         The_Procedure := Run;
+      end Start;
+      The_Procedure.all;
+      Free (Full_Tasking_Thread_Id_Access (The_Thread.Id));
+      Free (The_Thread);
+   end Generic_Task_With_PP;
 
    ---------------------------
    -- Get_Current_Thread_Id --
@@ -214,15 +267,6 @@ package body PolyORB.Full_Tasking.Threads is
    begin
       return Image (T.Tid);
    end Image;
-
-   ---------
-   -- Run --
-   ---------
-
-   procedure Run (T : access Full_Tasking_Thread_Type) is
-   begin
-      PTT.Run (T.Run);
-   end Run;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
