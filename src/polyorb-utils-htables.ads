@@ -48,15 +48,20 @@ private
    --  what to do after
 
    type Element is record
-      Key       : String_Access;
-      Used      : Boolean;
-      ST_Index  : Natural;
-      ST_Offset : Natural;
+      Key        : String_Access;
+      Used       : Boolean;
+      ST_Index   : Natural;
+      ST_Offset  : Natural;
+      Item_Index : Natural;
    end record;
    --  Key is the element key in the hash algorithm terminology. When
    --  an element in an array has a Used attribute set to true, this
    --  denotes a non-empty slot. ST_Index corresponds to the subtable
-   --  index and ST_Offset to the offset in this subtable.
+   --  index, ST_Offset to the offset in this subtable and Item_Index
+   --  to the position of the value associated with the key (it is
+   --  useful for the children package)
+
+   Empty : constant Element := Element'(null, False, 0, 0, 0);
 
    type Subtable is record
       First  : Natural;
@@ -70,25 +75,21 @@ private
    --  Some slots between First and Last may be unused. Count
    --  represents the actual number of used elements in the
    --  subtable. Max is the maximum size of the subtable. When Count
-   --  is greater than High, the algorithm reorganizes the subtable
+   --  is greater than High, the algorithm reorganizes the table
    --  for algorithm purposes. K is a subtable attribute that ensures
    --  h (Key) = ((K * Key) mod Prime) mod (Last - First + 1).
 
    type Table_Info is record
       Prime        : Natural;
-      N_Operations : Natural;
+      Count        : Natural;
       High         : Natural;
       N_Subtables  : Natural;
       K            : Natural;
    end record;
    --  Prime is a prime number used by the algorithm. It can be
-   --  specified by the user. N_Operations is the approximative number
-   --  of operations done on the table. Once a table reorganization is
-   --  performed, it is initialized to the number of elements
-   --  (corresponding to the number of insertions that would have been
-   --  done) and increments each time a deletion/insertion is
-   --  executed. When N_Operations > High, the algorithm reorganizes
-   --  the table and all the subtables. K is a table attribute that
+   --  specified by the user. Count is the  number of Key stored
+   --  in the table. When Count = High, the algorithm can't add
+   --  more elements. K is a table attribute that
    --  ensures : h (Key) = ((K * Key) mod Prime) mod N_Subtables.
 
    type Element_Array is array (Natural range <>) of Element;
@@ -138,7 +139,7 @@ private
    --  If Key exists Found is set to True
 
    procedure Insert
-     (T         : Hash_Table;
+     (T         : in out Hash_Table;
       Key       : String;
       ST_Index  : out Natural;
       ST_Offset : out Natural;
@@ -156,11 +157,13 @@ private
    --     -  the key already exists (Nothing_To_Do)
 
    procedure Delete
-     (T   : Hash_Table;
+     (T   : in out Hash_Table;
       Key : String);
    --  Delete key in hash table. In case of a non-existing Key, Delete
    --  ignores deletion. Key is the string to hash.
    --  When a Key is deleted, it's not physically. Indeed it puts just
    --  the tag Used to False
+
+
 
 end PolyORB.Utils.HTables;

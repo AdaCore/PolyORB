@@ -4,7 +4,7 @@
 --                                                                          --
 --        P O L Y O R B . U T I L S . H T A B L E S . P E R F E C T         --
 --                                                                          --
---                                 S p e c                                  --
+--                         I m p l e m e n t a t i o n                      --
 --                                                                          --
 --             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
@@ -34,68 +34,85 @@
 --  PolyORB.Utils.HTables with a generic type. Each Item is associated with
 --  an element. When hashing a key, Lookup returns this Item.
 
-generic
-   type Item is private;
-package PolyORB.Utils.HTables.Perfect is
+with Ada.Unchecked_Deallocation;
 
-   type Item_Access is access all Item;
+package body PolyORB.Utils.HTables.Perfect is
 
-   type Table is private;
+   procedure Free_Item is
+     new Ada.Unchecked_Deallocation (Item, Item_Access);
+   procedure Free_Item_Array is
+     new Ada.Unchecked_Deallocation (Item_Array, Item_Array_Ptr);
 
    procedure Initialize
      (T      : out Table;
       Prime  : Natural;
-      Max    : Natural);
-   --  Initialize the hash table and allocate some internal
-   --  Prime is a prime number used by hash functions. Max is the max
-   --  number of elements to store.
+      Max    : Natural)
+   is
+   begin
+      Initialize (T.HTable, Prime, Max);
+      T.Items := new Item_Array (0 .. (15 * T.HTable.Info.High));
+   end Initialize;
 
-   procedure Finalize
-     (T : in out Table);
-   --  Deallocate all the internal structures.
-
-   function Lookup
-     (T     : Table;
-      Key   : String;
-      Error_Value : Item)
-      return Item;
-   --  Find key in hash table and return the associated Item.
-   --  Key is the string to hash.
-   --  When Key does not exist, The function returns Error_Value
+   procedure Delete
+     (T   : in out Table;
+      Key : String)
+   is
+   begin
+      Delete (T.Htable, Key);
+   end Delete;
 
    procedure Insert
      (T     : in out Table;
       Key   : String;
-      Value : Item);
-   --  Insert (Key, Value) in hash table.
-   --  Key is the string to hash and Value its corresponding value.
-   --  If Key already exists, nothing is done
-   --  This procedure uses the procedure Insert of polyorb.utils.htables.ads
-   --  and it rorganizes if necessary the table or the sub_tables. In
-   --  addition,it inserts Value in the table Items (see below)
+      Value : Item)
+   is
+      ST_Index  : Natural;
+      ST_Offset : Natural;
+      To_Do     : What_To_Do;
+      Temp_Index : Natural;
+   begin
+      Insert (T.HTable, Key, ST_Index, ST_Offset, To_Do);
+      if To_Do = Insert_Item then
+         Temp_Index := T.HTable.Elements.all
+           (T.HTable.Subtables.all (ST_Index).First +
+            ST_Offset).Item_Index;
+         if T.Items.all (Temp_Index) = null then
+            T.Items.all (Temp_Index) := new Item'(Value);
+         else
+            Free_Item (T.Items.all (Temp_Index));
+            T.Items.all (Temp_Index) := new Item'(Value);
+         end if;
+      end if;
+   end Insert;
 
-   procedure Delete
-     (T   : in out Table;
-      Key : String);
-   --  Delete key in hash table. In case of a non-existing Key, Delete
-   --  ignores deletion. Key is the string to hash. This procedure only put
-   --  the flag Used to False. Deallocations appears only after reorganisation
-   --  of the table or a sub-table (procedure Insert)
+   function Lookup
+     (T           : Table;
+      Key         : String;
+      Error_Value : Item)
+      return Item
+   is
+      ST_Index   : Natural;
+      ST_Offset  : Natural;
+      Found       : Boolean;
+      Temp_Index : Natural;
+   begin
+      Lookup (T.HTable, Key, ST_Index, ST_Offset, Found);
+      if Found = True then
+         Temp_Index := T.HTable.Elements.all
+           (T.HTable.Subtables.all (ST_Index).First +
+            ST_Offset).Item_Index;
+         return T.Items.all (Temp_Index).all;
+      else
+         return Error_Value;
+      end if;
+   end Lookup;
 
-private
-
-
-   type Item_Array is array (Natural range <>) of Item_Access;
-   type Item_Array_Ptr is access all Item_Array;
-
-   type Table is record
-      HTable : Hash_Table;
-      Items  : Item_Array_Ptr;
-   end record;
-   --  Table is the agregation of an Hash_Table (non-generic) and
-   --  and an array (generic) which contains the Values associated
-   --  with the Keys. We can note that HTable.Elements.all and Items.all
-   --  have the same size. Indeed if a Key is stored in HTable.Elements(i)
-   --  then his value is stored in Items(HTable.Elements(i).Item_Index)
+   procedure Finalize
+     (T : in out Table)
+   is
+   begin
+      Finalize (T.HTable);
+      Free_Item_Array (T.Items);
+   end Finalize;
 
 end PolyORB.Utils.HTables.Perfect;
