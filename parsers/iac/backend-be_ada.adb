@@ -5,6 +5,7 @@ with Types;     use Types;
 with Values;    use Values;
 
 with Frontend.Nodes;            use Frontend.Nodes;
+with Frontend.Debug;
 
 with Backend.BE_Ada.Debug;      use Backend.BE_Ada.Debug;
 with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
@@ -20,6 +21,7 @@ with Backend.BE_Ada.Stubs;
 package body Backend.BE_Ada is
 
    Print_Ada_Tree : Boolean := False;
+   Print_IDL_Tree : Boolean := False;
    Build_Impls    : constant Boolean := False;
 
 
@@ -35,7 +37,7 @@ package body Backend.BE_Ada is
    procedure Configure is
    begin
       loop
-         case Getopt ("t l:") is
+         case Getopt ("t i l:") is
             when ASCII.NUL =>
                exit;
 
@@ -44,6 +46,9 @@ package body Backend.BE_Ada is
 
             when 'l' =>
                Var_Name_Len := Natural'Value (Parameter);
+
+            when 'i' =>
+               Print_IDL_Tree := True;
 
             when others =>
                raise Program_Error;
@@ -59,10 +64,14 @@ package body Backend.BE_Ada is
    begin
       Initialize;
       Visit_Specification (E);
+      if Print_IDL_Tree then
+         Frontend.Debug.W_Node_Id (E);
+      end if;
+
       if Print_Ada_Tree then
-         W_Node_Id (BE_Node (E));
+         W_Node_Id (BE_Node (Identifier (E)));
       else
-         Generator.Generate (BE_Node (E));
+         Generator.Generate (BE_Node (Identifier (E)));
       end if;
    end Generate;
 
@@ -118,7 +127,6 @@ package body Backend.BE_Ada is
 
    procedure Visit_Specification (E : Node_Id) is
       Definition : Node_Id;
-
    begin
       Push_Entity (Map_IDL_Unit (E));
       Definition := First_Entity (Definitions (E));

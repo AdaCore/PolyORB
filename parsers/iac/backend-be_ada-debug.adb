@@ -185,6 +185,7 @@ package body Backend.BE_Ada.Debug is
         and then A /= "FE_Node"
         and then A /= "Parent"
         and then A /= "Parent_Unit_Name"
+        and then A /= "IDL_Unit"
       then
          if K = "Node_Id" then
             W_Node_Id (Node_Id (N));

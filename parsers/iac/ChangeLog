@@ -1,3 +1,18 @@
+2004-07-18  Saber Souli  <souli@neraka.enst.fr>
+	
+	* backend-be_ada.adb: Add -i switch that  dump the idl tree with
+	the field BE_Node updated with Ada nodes.  
+	
+	* backend-be_ada-helpers.adb: Generate the widening reference
+	function. 
+
+	* backend-be_ada-expand.adb: Expand_Designator  modified to take
+	in consideration the new structure.   
+
+	* backend-be_ada-nodes.idl: Add Parent node to Definition and
+	IDL_Unit to Package_Declaration to allow navigations  from child
+	nodes to parents.   
+
 2004-07-16  Saber Souli  <souli@neraka.enst.fr>
 
 	* backend-be_ada-debug.adb: Do not dump the referenced nodes. 

@@ -19,6 +19,19 @@ package body Backend.BE_Ada.IDL_To_Ada is
      (K : FEN.Node_Kind)
      return RE_Id;
 
+   -------------------
+   -- Bind_FE_To_BE --
+   -------------------
+
+   procedure Bind_FE_To_BE
+     (F : Node_Id;
+      B : Node_Id)
+   is
+   begin
+      FEN.Set_BE_Node (F, B);
+      BEN.Set_FE_Node (B, F);
+   end Bind_FE_To_BE;
+
    -------------
    -- Convert --
    -------------
@@ -85,7 +98,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
    is
    begin
       if Present (B) then
-         BEN.Set_FE_Node (B, F);
+         FEN.Set_BE_Node (B, F);
       end if;
    end Link_FE_To_BE;
 
@@ -279,7 +292,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
       I : Node_Id;
 
    begin
-      P := New_Node (K_IDL_Unit, Entity);
+      P := New_Node (K_IDL_Unit, Identifier (Entity));
 
       L := New_List (K_Packages);
       Set_Packages (P, L);
@@ -289,6 +302,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
       --  Main package
 
       M := Make_Package_Declaration (I);
+      Set_IDL_Unit (M, P);
       Set_Main_Package (P, M);
       Set_Corresponding_Node (I, M);
       Append_Node_To_List (M, L);
@@ -299,6 +313,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
       N := Make_Defining_Identifier (Name_Find);
       Set_Parent_Unit_Name (N, I);
       D := Make_Package_Declaration (N);
+      Set_IDL_Unit (D, P);
       Set_Corresponding_Node (N, D);
       Set_Parent (D, M);
       Set_Helper_Package (P, D);
@@ -312,6 +327,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
          N := Make_Defining_Identifier (Name_Find);
          Set_Parent_Unit_Name (N, I);
          D := Make_Package_Declaration (N);
+         Set_IDL_Unit (D, P);
          Set_Corresponding_Node (N, D);
          Set_Parent (D, M);
          Set_Skeleton_Package (P, D);
@@ -323,6 +339,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
          N := Make_Defining_Identifier (Name_Find);
          Set_Parent_Unit_Name (N, I);
          D := Make_Package_Declaration (N);
+         Set_IDL_Unit (D, P);
          Set_Corresponding_Node (N, D);
          Set_Parent (D, M);
          Set_Implementation_Package (P, D);

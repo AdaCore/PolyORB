@@ -235,6 +235,7 @@ package body Backend.BE_Ada.Stubs is
          P : Node_Id;
          N : Node_Id;
          L : List_Id;
+         I : Node_Id;
 
       begin
          P := Map_IDL_Unit (E);
@@ -247,20 +248,20 @@ package body Backend.BE_Ada.Stubs is
          else
             N := Map_Designator (First_Entity (L));
          end if;
+         I := Make_Defining_Identifier (TN (T_Ref));
          N :=
            Make_Full_Type_Declaration
-           (Make_Defining_Identifier (TN (T_Ref)),
-            Make_Derived_Type_Definition
+           (I, Make_Derived_Type_Definition
             (Subtype_Indication    => N,
              Record_Extension_Part =>
                Make_Record_Type_Definition
              (Record_Definition => Make_Record_Definition (No_List))));
+         Set_Corresponding_Node (I, N);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          Append_Node_To_List
            (Map_Repository_Declaration (E), Visible_Part (Current_Package));
-         Link_FE_To_BE (Identifier (E), N);
-         Link_BE_To_FE (N, Identifier (E));
+         Bind_FE_To_BE (Identifier (E), N);
          N := First_Entity (Interface_Body (E));
 
          while Present (N) loop

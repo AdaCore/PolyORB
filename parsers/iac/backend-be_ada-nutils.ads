@@ -239,7 +239,7 @@ package Backend.BE_Ada.Nutils is
      return Node_Id;
 
    function Make_Defining_Identifier
-     (Name : Name_Id)
+     (Name  : Name_Id)
      return  Node_Id;
 
    function Make_Derived_Type_Definition
@@ -259,7 +259,8 @@ package Backend.BE_Ada.Nutils is
    function Make_Full_Type_Declaration
      (Defining_Identifier : Node_Id;
       Type_Definition     : Node_Id;
-      Discriminant_Spec   : Node_Id := No_Node)
+      Discriminant_Spec   : Node_Id := No_Node;
+      Parent              : Node_Id := No_Node)
      return Node_Id;
 
    function Make_If_Statement

@@ -22,8 +22,7 @@ module Frontend::Nodes {
   interface Definition : Node_Id {
     Node_Id    Identifier;
     // Identifier associated to definition
-    Node_Id    BE_Node;
-    // Link nodes together
+   
   };
 
   interface Forward_Declaration : Definition {
@@ -51,6 +50,8 @@ module Frontend::Nodes {
     boolean    Visible;
     boolean    Implicitely_Visible;
     Node_Id    Next_Identifier;
+    Node_Id    BE_Node;
+    // Link nodes together
   };
 
 

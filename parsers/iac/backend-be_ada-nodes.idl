@@ -20,6 +20,7 @@ module Backend::BE_Ada::Nodes {
 
   interface Definition : Node_Id {
     Node_Id    Defining_Identifier;
+    Node_Id    Parent; 
   };
 
   interface List_Id {
@@ -72,7 +73,7 @@ module Backend::BE_Ada::Nodes {
   };
 
   interface Package_Declaration : Definition {
-    Node_Id    Parent;
+    Node_Id    IDL_Unit;
     Node_Id    Package_Specification;
     Node_Id    Package_Implementation;
   };

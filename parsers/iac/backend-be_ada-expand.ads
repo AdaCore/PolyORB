@@ -7,4 +7,8 @@ package Backend.BE_Ada.Expand is
       Unit_Name : Node_Id)
      return Node_Id;
 
+   function Expand_Designator
+     (N : Node_Id)
+     return Node_Id;
+
 end Backend.BE_Ada.Expand;

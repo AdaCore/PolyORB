@@ -389,7 +389,10 @@ package body Backend.BE_Ada.Nutils is
    -- Make_Defining_Identifier --
    ------------------------------
 
-   function Make_Defining_Identifier (Name : Name_Id) return Node_Id is
+   function Make_Defining_Identifier
+     (Name   : Name_Id)
+     return Node_Id
+   is
       N : Node_Id;
 
    begin
@@ -457,7 +460,8 @@ package body Backend.BE_Ada.Nutils is
    function Make_Full_Type_Declaration
      (Defining_Identifier : Node_Id;
       Type_Definition     : Node_Id;
-      Discriminant_Spec   : Node_Id := No_Node)
+      Discriminant_Spec   : Node_Id := No_Node;
+      Parent              : Node_Id := No_Node)
      return Node_Id
    is
       N : Node_Id;
@@ -467,6 +471,11 @@ package body Backend.BE_Ada.Nutils is
       Set_Defining_Identifier (N, Defining_Identifier);
       Set_Type_Definition (N, Type_Definition);
       Set_Discriminant_Spec (N, Discriminant_Spec);
+      if Present (Parent) then
+         Set_Parent (N, Parent);
+      else
+         Set_Parent (N, Current_Package);
+      end if;
       return N;
    end Make_Full_Type_Declaration;
 

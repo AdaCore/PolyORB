@@ -2,6 +2,10 @@ with Types; use Types;
 
 package Backend.BE_Ada.IDL_To_Ada is
 
+   procedure Bind_FE_To_BE
+     (F : Node_Id;
+      B : Node_Id);
+
    procedure Link_FE_To_BE
      (F : Node_Id;
       B : Node_Id);
