@@ -945,6 +945,7 @@ src/polyorb-representations-cdr.adb
 src/polyorb-representations-cdr.ads
 src/polyorb-representations-test.adb
 src/polyorb-representations-test.ads
+src/polyorb-representations.adb
 src/polyorb-representations.ads
 src/polyorb-request_qos-priority.adb
 src/polyorb-request_qos-priority.ads

@@ -4,9 +4,9 @@
 --                                                                          --
 --              P O L Y O R B . R E P R E S E N T A T I O N S               --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,43 +31,19 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Data representation methods.
-
---  A Representation is a method for transforming an arbitrary piece
---  of data (in the form of an 'Any' object) into a sequence of
---  Stream_Elements, and back.
-
 --  $Id$
 
-with PolyORB.Any;
-with PolyORB.Buffers;
-with PolyORB.Exceptions;
+package body PolyORB.Representations is
 
-package PolyORB.Representations is
+   -------------
+   -- Release --
+   -------------
 
-   type Representation is abstract tagged limited private;
+   procedure Release (R : in out Representation) is
+      pragma Unreferenced (R);
 
-   type Representation_Access is access all Representation;
-
-   procedure Marshall_From_Any
-     (R      : in     Representation;
-      Buffer : access Buffers.Buffer_Type;
-      Data   : in     Any.Any;
-      Error  : in out Exceptions.Error_Container)
-     is abstract;
-
-   procedure Unmarshall_To_Any
-     (R      : in     Representation;
-      Buffer : access Buffers.Buffer_Type;
-      Data   : in out Any.Any;
-      Error  : in out Exceptions.Error_Container)
-     is abstract;
-
-   procedure Release (R : in out Representation);
-   --  Deallocate the content of R
-
-private
-
-   type Representation is abstract tagged limited null record;
+   begin
+      null;
+   end Release;
 
 end PolyORB.Representations;

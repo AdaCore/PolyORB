@@ -93,6 +93,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-references-ior.ads \
 		polyorb-references-corbaloc.ads \
 		polyorb-references-uri.ads \
+		polyorb-representations.ads \
 		polyorb-representations-cdr.ads \
 		polyorb-representations-cdr-common.ads \
 		polyorb-representations-test.ads \
@@ -192,7 +193,6 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb-poa_policies-servant_retention_policy.ads \
 		polyorb-poa_policies-thread_policy.ads \
 		polyorb-protocols-interface.ads \
-		polyorb-representations.ads \
 		polyorb-rt_poa.ads \
 		polyorb-rt_poa_policies.ads \
 		polyorb-sequences.ads \
