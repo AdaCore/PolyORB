@@ -364,6 +364,13 @@ package System.PolyORB_Interface is
       Contents : Any_Array)
       return Any;
 
+   function Get_Aggregate_Element
+     (Value : Any;
+      Tc    : PolyORB.Any.TypeCode.Object;
+      Index : PolyORB.Types.Unsigned_Long)
+      return Any
+     renames PolyORB.Any.Get_Aggregate_Element;
+
    --------------
    -- Requests --
    --------------

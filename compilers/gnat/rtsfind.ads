@@ -1097,6 +1097,7 @@ package Rtsfind is
      RE_Object_Ref,                      -- System.PolyORB_Interface
      RE_Get_Empty_Any,                   -- System.PolyORB_Interface
      RE_Any_Aggregate_Build,             -- System.PolyORB_Interface
+     RE_Get_Aggregate_Element,           -- System.PolyORB_Interface
      RE_NVList_Ref,                      -- System.PolyORB_Interface
      RE_NVList_Create,                   -- System.PolyORB_Interface
      RE_NVList_Add_Item,                 -- System.PolyORB_Interface
@@ -2145,6 +2146,7 @@ package Rtsfind is
      RE_Object_Ref                       => System_PolyORB_Interface,
      RE_Get_Empty_Any                    => System_PolyORB_Interface,
      RE_Any_Aggregate_Build              => System_PolyORB_Interface,
+     RE_Get_Aggregate_Element            => System_PolyORB_Interface,
      RE_NVList_Ref                       => System_PolyORB_Interface,
      RE_NVList_Create                    => System_PolyORB_Interface,
      RE_NVList_Add_Item                  => System_PolyORB_Interface,

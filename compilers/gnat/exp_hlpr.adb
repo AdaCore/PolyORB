@@ -239,7 +239,7 @@ package body Exp_Hlpr is
       Decls : constant List_Id := New_List;
       Stms : constant List_Id := New_List;
       Any_Parameter : constant Entity_Id
-        := Make_Defining_Identifier (Loc, Name_A);
+        := Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
    begin
       Fnam := Make_Stream_Procedure_Function_Name (Loc, Typ, Name_uFrom_Any);
 
@@ -275,23 +275,204 @@ package body Exp_Hlpr is
                       New_Occurrence_Of (Any_Parameter, Loc),
                       Decls))));
          end;
+      elsif Is_Record_Type (Typ)
+        and then not Is_Derived_Type (Typ)
+      then
+         declare
+            Disc : Entity_Id := Empty;
+            Discriminant_Associations : List_Id;
+            Rdef : constant Node_Id :=
+              Type_Definition (Declaration_Node (Typ));
+            Element_Count : Int := 0;
+
+            --  The returned object
+
+            Res : constant Entity_Id :=
+              Make_Defining_Identifier (Loc,
+                New_Internal_Name ('R'));
+
+            Res_Definition : Node_Id :=
+              New_Occurrence_Of (Typ, Loc);
+
+            --  XXX The organisation of the subprograms below is
+            --  very similar between Build_TypeCode_Function,
+            --  Build_To_Any_Function, and (probably)
+            --  Build_From_Any_Function. It should be factored of
+            --  these three places somehow.
+
+            procedure Add_Component_List
+              (Stms  : List_Id;
+               Clist : Node_Id);
+            --  Append aggegate elements to Elements, corresponding
+            --  to component list Clist, to statements list Stms.
+
+            procedure Add_Field
+              (Stms : List_Id;
+               F    : Entity_Id);
+            --  Add processing for field F to statement list Stms.
+
+            procedure Add_Fields
+              (Stms : List_Id;
+               CL   : List_Id);
+            --  Add processing for the fields listed in CL to statements
+            --  list Stms.
+
+            function Get_Current_Aggregate_Element
+              (Typ : Entity_Id)
+               return Node_Id;
+            --  Return the Element_Count'th element, of type Typ,
+            --  in the aggregate being processed.
+
+            procedure Add_Component_List
+              (Stms  : List_Id;
+               Clist : Node_Id)
+            is
+               CI : constant List_Id := Component_Items (Clist);
+               VP : constant Node_Id := Variant_Part (Clist);
+            begin
+               Add_Fields (Stms, CI);
+
+               if Present (VP) then
+                  raise Program_Error;
+                  --  XXX Variant Part not implemented yet.
+               end if;
+            end Add_Component_List;
+
+            procedure Add_Field
+              (Stms : List_Id;
+               F    : Entity_Id)
+            is
+            begin
+               Append_To (Stms,
+                 Make_Assignment_Statement (Loc,
+                   Name =>
+                     Make_Selected_Component (Loc,
+                       Prefix =>
+                         New_Occurrence_Of (Res, Loc),
+                       Selector_Name =>
+                         New_Occurrence_Of (F, Loc)),
+                   Expression =>
+                     Get_Current_Aggregate_Element (Etype (F))));
+            end Add_Field;
+
+            procedure Add_Fields
+              (Stms : List_Id;
+               CL   : List_Id)
+            is
+               Item : Node_Id;
+               Def  : Entity_Id;
+            begin
+               Item := First (CL);
+               while Present (Item) loop
+                  Def := Defining_Identifier (Item);
+                  if not Is_Internal_Name (Chars (Def)) then
+                     Add_Field (Stms, Def);
+                  end if;
+                  Next (Item);
+               end loop;
+            end Add_Fields;
+
+            function Get_Current_Aggregate_Element
+              (Typ : Entity_Id)
+               return Node_Id
+            is
+               Res : constant Node_Id :=
+                 Build_From_Any_Call (Typ,
+                   Make_Function_Call (Loc,
+                     Name =>
+                       New_Occurrence_Of (
+                         RTE (RE_Get_Aggregate_Element), Loc),
+                     Parameter_Associations => New_List (
+                       New_Occurrence_Of (Any_Parameter, Loc),
+                       Build_TypeCode_Call (Loc, Typ, Decls),
+                       Make_Integer_Literal (Loc,
+                         Element_Count))), Decls);
+            begin
+               Element_Count := Element_Count + 1;
+               return Res;
+            end Get_Current_Aggregate_Element;
+
+         begin
+
+            --  First all discriminants
+
+            if Has_Discriminants (Typ) then
+               Disc := First_Discriminant (Typ);
+               Discriminant_Associations := New_List;
+
+               while Present (Disc) loop
+                  declare
+                     Disc_Var_Name : constant Entity_Id :=
+                       Make_Defining_Identifier (Loc, Chars (Disc));
+                     Disc_Type : constant Entity_Id :=
+                       Etype (Disc);
+                  begin
+                     Append_To (Decls,
+                       Make_Object_Declaration (Loc,
+                         Defining_Identifier =>
+                           Disc_Var_Name,
+                         Constant_Present => True,
+                         Object_Definition =>
+                           New_Occurrence_Of (Disc_Type, Loc),
+                         Expression =>
+                           Get_Current_Aggregate_Element (Disc_Type)));
+                     Append_To (Discriminant_Associations,
+                       Make_Discriminant_Association (Loc,
+                         Selector_Names => New_List (
+                           New_Occurrence_Of (Disc, Loc)),
+                         Expression =>
+                           New_Occurrence_Of (Disc_Var_Name, Loc)));
+                  end;
+                  Next_Discriminant (Disc);
+               end loop;
+
+               Res_Definition := Make_Subtype_Indication (Loc,
+                 Subtype_Mark => Res_Definition,
+                 Constraint   =>
+                   Make_Index_Or_Discriminant_Constraint (Loc,
+                     Discriminant_Associations));
+            end if;
+
+            --  Now we have all the discriminants in variables,
+            --  we can declared a constrained object. Note that
+            --  we are not initializing (non-discriminant) components
+            --  directly in the object declarations, because which
+            --  fields to initialize depends (at run time) on the
+            --  discriminant values.
+
+            Append_To (Decls,
+              Make_Object_Declaration (Loc,
+                Defining_Identifier =>
+                  Res,
+                Object_Definition =>
+                  Res_Definition));
+
+            --  ... then all components
+
+            Add_Component_List (Stms, Component_List (Rdef));
+
+            Append_To (Stms,
+              Make_Return_Statement (Loc,
+                Expression => New_Occurrence_Of (Res, Loc)));
+         end;
+
       else
          declare
-            Res_Parameter : constant Entity_Id
+            Res : constant Entity_Id
               := Make_Defining_Identifier (Loc,
                    New_Internal_Name ('R'));
          begin
-            --  XXX dummy placeholder (the any is not initialised).
+            --  XXX dummy placeholder (not initialized).
             Append_To (Decls,
              Make_Object_Declaration (Loc,
                Defining_Identifier =>
-                 Res_Parameter,
+                 Res,
                Aliased_Present     => False,
                Object_Definition   =>
                  New_Occurrence_Of (Typ, Loc)));
             Append_To (Stms,
               Make_Return_Statement (Loc,
-                Expression => New_Occurrence_Of (Res_Parameter, Loc)));
+                Expression => New_Occurrence_Of (Res, Loc)));
          end;
       end if;
 
@@ -466,8 +647,9 @@ package body Exp_Hlpr is
       Decls : constant List_Id := New_List;
       Stms : constant List_Id := New_List;
       Expr_Parameter : constant Entity_Id
-        := Make_Defining_Identifier (Loc, Name_E);
-      Any : constant Entity_Id := Make_Defining_Identifier (Loc, Name_A);
+        := Make_Defining_Identifier (Loc, New_Internal_Name ('E'));
+      Any : constant Entity_Id :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
       Any_Decl : Node_Id;
    begin
       Fnam := Make_Stream_Procedure_Function_Name (Loc, Typ, Name_uTo_Any);
