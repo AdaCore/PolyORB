@@ -55,19 +55,19 @@ package body Scopes is
             return Reference (E);
          end if;
 
-         if Immediately_Visible (H) then
+         if Explicitely_Visible (H) then
             return Node (H);
 
-         elsif Potentially_Visible (H) then
+         elsif Implicitely_Visible (H) then
             H := Homonym (H);
 
-            if Present (H) and then Potentially_Visible (H) then
+            if Present (H) and then Implicitely_Visible (H) then
                Error_Loc  (1)  := Loc      (N);
                Error_Name (1)  := IDL_Name (N);
                DE ("multiple#declarations");
 
                H := First_Homonym (N);
-               while Present (H) and then Potentially_Visible (H) loop
+               while Present (H) and then Implicitely_Visible (H) loop
                   Error_Loc  (1)  := Loc (N);
                   Error_Loc  (2)  := Loc (H);
                   DE ("found declaration!", K_None);
@@ -139,7 +139,7 @@ package body Scopes is
       X : constant Name_Id := Name (N);
    begin
       while Present (C) loop
-         if Scope (N) = S
+         if Scope (C) = S
            and then Name (C) = X
          then
             return Node (C);
@@ -184,7 +184,7 @@ package body Scopes is
          elsif Is_A_Forward_Of (C, E) then
             if Kind (C) = K_Forward_Interface_Declaration then
                Set_Forward             (C, E);
-               Set_Immediately_Visible (H, False);
+               Set_Explicitely_Visible (H, False);
                Set_Scope               (H, No_Node);
             end if;
 
@@ -202,7 +202,7 @@ package body Scopes is
       end if;
 
       if Kind (E) /= K_Scoped_Name then
-         Set_Immediately_Visible (N, True);
+         Set_Explicitely_Visible (N, True);
       end if;
 
       Set_Next_Node          (N, Scoped_Identifiers (S));
@@ -221,8 +221,7 @@ package body Scopes is
    begin
       Init;
       Increment_Last;
-      Set_Str_To_Name_Buffer (" ");
-      Root_Name := Name_Find;
+      Root_Name := No_Name;
    end Initialize;
 
    --------------------------
@@ -245,12 +244,12 @@ package body Scopes is
       Set_First_Homonym (N, N);
    end Insert_Into_Homonyms;
 
-   ------------------------------------
+   ---------------------------------
    -- Make_Enclosed_Nodes_Visible --
-   ------------------------------------
+   ---------------------------------
 
    procedure Make_Enclosed_Nodes_Visible
-     (E : Node_Id; Visible : Boolean; Immediately : Boolean := True)
+     (E : Node_Id; Visible : Boolean; Explicitely : Boolean)
    is
       I : Node_Id := Scoped_Identifiers (E);
       C : Node_Id;
@@ -258,18 +257,18 @@ package body Scopes is
       while Present (I) loop
          C := Node (I);
          if Kind (C) /= K_Scoped_Name then
-            Make_Node_Visible (C, Visible, Immediately);
+            Make_Node_Visible (C, Visible, Explicitely);
          end if;
          I := Next_Node (I);
       end loop;
    end Make_Enclosed_Nodes_Visible;
 
-   -------------------------
+   -----------------------
    -- Make_Node_Visible --
-   -------------------------
+   -----------------------
 
    procedure Make_Node_Visible
-     (E : Node_Id; Visible : Boolean; Immediately : Boolean := True)
+     (E : Node_Id; Visible : Boolean; Explicitely : Boolean)
    is
       N : constant Node_Id := Identifier (E);
    begin
@@ -279,12 +278,12 @@ package body Scopes is
          Remove_From_Homonyms (N);
       end if;
 
-      if Immediately then
-         Set_Immediately_Visible (N, Visible);
-         Set_Potentially_Visible (N, False);
+      if Explicitely then
+         Set_Explicitely_Visible (N, Visible);
+         Set_Implicitely_Visible (N, False);
       else
-         Set_Immediately_Visible (N, False);
-         Set_Potentially_Visible (N, Visible);
+         Set_Explicitely_Visible (N, False);
+         Set_Implicitely_Visible (N, Visible);
       end if;
 
       if D_Scopes then
@@ -420,9 +419,9 @@ package body Scopes is
       W_Str ("(");
       if Kind (Node (N)) = K_Scoped_Name then
          W_Str ("S");
-      elsif Immediately_Visible (N) then
+      elsif Explicitely_Visible (N) then
          W_Str ("V");
-      elsif Potentially_Visible (N) then
+      elsif Implicitely_Visible (N) then
          W_Str ("v");
       else
          W_Str ("?");

@@ -41,8 +41,8 @@ package Nutils is
 
    function Make_Identifier
      (Loc        : Location;
-      Name       : Name_Id;
-      IDL_Name   : Name_Id)
+      IDL_Name   : Name_Id;
+      Scope      : Node_Id)
      return Node_Id;
    --  return identifier
 

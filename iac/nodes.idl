@@ -44,8 +44,8 @@ module Nodes {
     Node_Id    Homonym;
     Node_Id    Node;
     Node_Id    Scope;
-    boolean    Immediately_Visible;
-    boolean    Potentially_Visible;
+    boolean    Explicitely_Visible;
+    boolean    Implicitely_Visible;
     Node_Id    Next_Identifier;
   };
 
@@ -134,7 +134,7 @@ module Nodes {
     List_Id     Definitions;
   }; 
 
-  interface Specification : Node_Id {
+  interface Specification : Definition {
     List_Id     Definitions;
     Node_Id     Scoped_Identifiers;
   };

@@ -8,7 +8,7 @@ with Values;    use Values;
 
 package body Backend.BE_IDL is
 
-   Space_Increment : constant := 3;
+   Space_Increment : constant := 2;
    N_Space         : Natural  := 0;
 
    procedure Decrement_Indentation;
@@ -443,6 +443,7 @@ package body Backend.BE_IDL is
       B : List_Id;
 
    begin
+      Write_Indentation;
       Write (T_Interface);
       Write_Space;
       Generate (Identifier (E));
@@ -453,7 +454,7 @@ package body Backend.BE_IDL is
       S := Interface_Spec (E);
       if not Is_Empty (S) then
          Write_Space;
-         Write (T_Colon_Colon);
+         Write (T_Colon);
          Write_Space;
          I := First_Node (S);
          loop
@@ -581,19 +582,15 @@ package body Backend.BE_IDL is
 
       L := Parameters (E);
       if not Is_Empty (L) then
-         Write_Space;
-         Write_Line (T_Left_Paren);
-         Increment_Indentation;
+         Write (T_Left_Paren);
          C := First_Node (L);
          loop
             Generate (C);
             C := Next_Node (C);
             exit when No (C);
-            Write_Line (T_Semi_Colon);
+            Write (T_Comma);
+            Write_Space;
          end loop;
-         Write_Eol;
-         Decrement_Indentation;
-         Write_Indentation;
          Write (T_Right_Paren);
       end if;
 
@@ -636,7 +633,8 @@ package body Backend.BE_IDL is
 
    procedure Generate_Parameter_Declaration (E : Node_Id) is
    begin
-      Write_Indentation;
+      Write (Token_Type'Val (Parameter_Mode (E)));
+      Write_Space;
       Generate (Type_Spec (E));
       Write_Space;
       Generate (Declarator (E));
@@ -651,21 +649,40 @@ package body Backend.BE_IDL is
       Write_Name (Image (Base_Type (E)));
    end Generate_Base_Type;
 
-   -------------------------
+   --------------------------
    -- Generate_Scoped_Name --
-   -------------------------
+   --------------------------
 
    procedure Generate_Scoped_Name (E : Node_Id)
    is
+      procedure Generate_Reference_Name (E : Node_Id);
+
+      -----------------------------
+      -- Generate_Reference_Name --
+      -----------------------------
+
+      procedure Generate_Reference_Name (E : Node_Id)
+      is
+         S : constant Node_Id := Scope (E);
+      begin
+         if Kind (S) /= K_Specification then
+            Generate_Reference_Name (Identifier (S));
+            Write (T_Colon_Colon);
+         end if;
+         Write_Name (IDL_Name (E));
+      end Generate_Reference_Name;
+
       P : constant Node_Id := Parent (E);
-      N : constant Node_Id := Identifier (E);
+
    begin
-      if No (P) then
-         Generate (N);
+      if Present (P) then
+         if Kind (Reference (P)) /= K_Specification then
+            Generate (P);
+            Write (T_Colon_Colon);
+         end if;
+         Generate (Identifier (E));
       else
-         Generate (P);
-         Write (T_Colon_Colon);
-         Generate (N);
+         Generate_Reference_Name (Identifier (Reference (E)));
       end if;
    end Generate_Scoped_Name;
 

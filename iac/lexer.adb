@@ -472,15 +472,15 @@ package body Lexer is
       New_Token (T_Right_Brace, "}");
       New_Token (T_Colon, ":");
       New_Token (T_Comma, ",");
-      New_Token (T_Colon_Colon, "'::'");
+      New_Token (T_Colon_Colon, "::");
       New_Token (T_Left_Paren, "(");
       New_Token (T_Right_Paren, ")");
       New_Token (T_Equal, "=");
       New_Token (T_Bar, "|");
       New_Token (T_Circumflex, "^");
       New_Token (T_Ampersand, "&");
-      New_Token (T_Greater_Greater, "'>>'");
-      New_Token (T_Less_Less, "'<<'");
+      New_Token (T_Greater_Greater, ">>");
+      New_Token (T_Less_Less, "<<");
       New_Token (T_Plus, "+");
       New_Token (T_Minus, "-");
       New_Token (T_Star, "*");

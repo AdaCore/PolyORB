@@ -290,8 +290,8 @@ package body Analyzer is
                No_Node),
             Make_Identifier
               (Loc (C),
-               Name (Identifier (C)),
-               IDL_Name (Identifier (C))),
+               IDL_Name (Identifier (C)),
+               Scope (C)),
             C);
          Bind_Identifier_To_Entity (Identifier (N), N);
          Insert_After_Node (N, L);
@@ -693,11 +693,16 @@ package body Analyzer is
       --  correct.
 
       if No (P) then
-         C := Visible_Node (N);
-         if Present (C) then
-            Set_Reference (E, C);
-            Enter_Name_In_Scope (N);
-            Check_Identifier (N, Identifier (C));
+         if Name (N) = Root_Name then
+            Set_Reference (E, Root);
+
+         else
+            C := Visible_Node (N);
+            if Present (C) then
+               Set_Reference (E, C);
+               Enter_Name_In_Scope (N);
+               Check_Identifier (N, Identifier (C));
+            end if;
          end if;
 
       --  Analyze multiple scoped names. Analyze parent P first and

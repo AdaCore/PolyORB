@@ -1,3 +1,5 @@
+with Utils; use Utils;
+
 package body Nutils is
 
    -------------------------
@@ -118,6 +120,7 @@ package body Nutils is
       case Kind (E) is
          when K_Module
            | K_Enumeration_Type
+           | K_Specification
            | K_Structure_Type
            | K_Union_Type
            | K_Exception_Declaration
@@ -242,14 +245,15 @@ package body Nutils is
 
    function Make_Identifier
      (Loc        : Location;
-      Name       : Name_Id;
-      IDL_Name   : Name_Id)
+      IDL_Name   : Name_Id;
+      Scope      : Node_Id)
      return Node_Id
    is
       N : constant Node_Id := New_Node (K_Identifier, Loc);
    begin
-      Set_Name     (N, Name);
+      Set_Name     (N, To_Lower (IDL_Name));
       Set_IDL_Name (N, IDL_Name);
+      Set_Scope    (N, Scope);
 
       return N;
    end Make_Identifier;

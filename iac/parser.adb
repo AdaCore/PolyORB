@@ -6,11 +6,13 @@ with Locations; use Locations;
 with Namet;     use Namet;
 with Nodes;     use Nodes;
 with Nutils;    use Nutils;
+with Scopes;    use Scopes;
 with Types;     use Types;
-with Utils;     use Utils;
 with Values;    use Values;
 
 package body Parser is
+
+   Specification : Node_Id;
 
    procedure Declare_Base_Type (L : Token_List_Type; K : Node_Kind);
    --  L denotes a token list used to name an IDL base type. Allocate
@@ -1160,16 +1162,16 @@ package body Parser is
    ------------------
 
    function P_Identifier return Node_Id is
-      Identifier : Node_Id;
    begin
       Scan_Token (T_Identifier);
       if Token = T_Error then
          return No_Node;
       end if;
-      Identifier := New_Node (K_Identifier, Token_Location);
-      Set_IDL_Name (Identifier, Token_Name);
-      Set_Name     (Identifier, To_Lower (Token_Name));
-      return Identifier;
+      return
+        Make_Identifier
+          (Token_Location,
+           Token_Name,
+           No_Node);
    end P_Identifier;
 
    -------------------------------
@@ -1792,7 +1794,13 @@ package body Parser is
 
       if Next_Token = T_Colon_Colon then
          Scan_Token;  --  past '::'
-         Scoped_Name := No_Node;
+         Identifier :=
+           Make_Identifier
+             (Token_Location,
+              Root_Name,
+              No_Node);
+         Scoped_Name := New_Node (K_Scoped_Name, Token_Location);
+         Bind_Identifier_To_Entity  (Identifier, Scoped_Name);
       end if;
 
       --  start loop with an identifier
@@ -2046,14 +2054,13 @@ package body Parser is
    --  (1) <specification> ::= <definition> +
 
    function P_Specification return Node_Id is
-      Node        : Node_Id;
       Definitions : List_Id;
       Definition  : Node_Id;
 
    begin
-      Node        := New_Node (K_Specification, Token_Location);
-      Definitions := New_List (K_Definition_List, Token_Location);
-      Set_Definitions (Node, Definitions);
+      Specification := New_Node (K_Specification, Token_Location);
+      Definitions   := New_List (K_Definition_List, Token_Location);
+      Set_Definitions (Specification, Definitions);
 
       loop
          Definition := P_Definition;
@@ -2063,7 +2070,7 @@ package body Parser is
          exit when Next_Token = T_EOF;
       end loop;
 
-      return Node;
+      return Specification;
    end P_Specification;
 
    --------------------

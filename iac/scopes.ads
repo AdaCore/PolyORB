@@ -40,10 +40,10 @@ package Scopes is
    --  (implemented using the homonyms chain).
 
    procedure Make_Node_Visible
-     (E : Node_Id; Visible : Boolean; Immediately : Boolean := True);
+     (E : Node_Id; Visible : Boolean; Explicitely : Boolean);
 
    procedure Make_Enclosed_Nodes_Visible
-     (E : Node_Id; Visible : Boolean; Immediately : Boolean := True);
+     (E : Node_Id; Visible : Boolean; Explicitely : Boolean);
 
    procedure Enter_Name_In_Scope (N : Node_Id);
 
