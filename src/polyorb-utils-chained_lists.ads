@@ -50,12 +50,17 @@ package PolyORB.Utils.Chained_Lists is
    function Last (I : Iterator) return Boolean;
    procedure Next (I : in out Iterator);
 
-   procedure Prepend
-     (L : in out List;
-      I : T);
-   procedure Append
-     (L : in out List;
-      I : T);
+   procedure Prepend (L : in out List; I : T);
+   procedure Append (L : in out List; I : T);
+
+   function "&" (I : T; L : List) return List;
+   --  Prepend I to L.
+
+   function "&" (L : List; I : T) return List;
+   --  Append I to L.
+
+   function "&" (L1, L2 : List) return List;
+   --  Concatenate L1 and L2;
 
    procedure Deallocate (L : in out List);
 
@@ -69,12 +74,17 @@ package PolyORB.Utils.Chained_Lists is
 private
 
    type Node;
-   type List is access all Node;
+   type Node_Access is access all Node;
    type Node is record
       Value : Element_Access;
-      Next  : List;
+      Next  : Node_Access;
    end record;
 
-   type Iterator is new List;
+   type Iterator is new Node_Access;
+
+   type List is record
+      First : Node_Access;
+      Last : Node_Access;
+   end record;
 
 end PolyORB.Utils.Chained_Lists;

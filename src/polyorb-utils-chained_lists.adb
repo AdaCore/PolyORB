@@ -39,7 +39,7 @@ with Ada.Unchecked_Deallocation;
 package body PolyORB.Utils.Chained_Lists is
 
    function Length (L : List) return Natural is
-      N : List := L;
+      N : Node_Access := L.First;
       C : Natural := 0;
    begin
       while N /= null loop
@@ -51,7 +51,7 @@ package body PolyORB.Utils.Chained_Lists is
 
    function First (L : List) return Iterator is
    begin
-      return Iterator (L);
+      return Iterator (L.First);
    end First;
 
    function Value (I : Iterator) return Element_Access is
@@ -73,39 +73,76 @@ package body PolyORB.Utils.Chained_Lists is
      (L : in out List;
       I : T) is
    begin
-      L := new Node'(Next => L, Value => new T'(I));
+      L.First := new Node'(Next => L.First, Value => new T'(I));
+      if L.Last = null then
+         L.Last := L.First;
+      end if;
    end Prepend;
 
    procedure Append
      (L : in out List;
       I : T)
    is
-      N : constant List
+      N : constant Node_Access
         := new Node'(Next => null, Value => new T'(I));
-      Prev : List := L;
    begin
-      if L = null then
-         L := N;
+      if L.Last = null then
+         L.First := N;
+         L.Last := N;
       else
-         while Prev.Next /= null loop
-            Prev := Prev.Next;
-         end loop;
-         Prev.Next := N;
+         L.Last.Next := N;
+         L.Last := N;
       end if;
    end Append;
+
+   function "&" (I : T; L : List) return List is
+      LL : List := L;
+   begin
+      Prepend (LL, I);
+      return LL;
+   end "&";
+
+   function "&" (L : List; I : T) return List is
+      LL : List := L;
+   begin
+      Append (LL, I);
+      return LL;
+   end "&";
+
+   function "&" (L1, L2 : List) return List is
+      LL : List := L1;
+   begin
+      if L1.First = null then
+         return L2;
+      elsif L2.First = null then
+         return L1;
+      end if;
+
+      LL.Last.Next := L2.First;
+      LL.Last := L2.Last;
+      return LL;
+   end "&";
 
    procedure Free is new Ada.Unchecked_Deallocation
      (T, Element_Access);
    procedure Free is new Ada.Unchecked_Deallocation
-     (Node, List);
+     (Node, Node_Access);
 
-   procedure Deallocate (L : in out List) is
+   procedure Deallocate (L : in out Node_Access);
+
+   procedure Deallocate (L : in out Node_Access) is
    begin
       if L /= null then
          Deallocate (L.Next);
          Free (L.Value);
          Free (L);
       end if;
+   end Deallocate;
+
+   procedure Deallocate (L : in out List) is
+   begin
+      Deallocate (L.First);
+      L.Last := null;
    end Deallocate;
 
 end PolyORB.Utils.Chained_Lists;
