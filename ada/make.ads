@@ -68,6 +68,12 @@ package Make is
    procedure Scan_Make_Arg (Argv : String);
    --  Scan make arguments. Argv is a single argument to be processed.
 
+   procedure Extract_Failure
+     (File  : out File_Name_Type;
+      Unit  : out Unit_Name_Type;
+      Found : out Boolean);
+   --  Extracts the first failure report from Bad_Compilation table.
+
    procedure Compile_Sources
      (Main_Source           : File_Name_Type;
       Args                  : Argument_List;
@@ -75,7 +81,7 @@ package Make is
       Most_Recent_Obj_File  : out Name_Id;
       Most_Recent_Obj_Stamp : out Time_Stamp_Type;
       Main_Unit             : out Boolean;
-      Missing_ALIs          : out Boolean;
+      Compilation_Failures  : out Natural;
       Check_Readonly_Files  : Boolean  := False;
       Dont_Execute          : Boolean  := False;
       Force_Compilations    : Boolean  := False;
@@ -109,11 +115,8 @@ package Make is
    --    the value of Main_Unit is always False.
    --    Is this used any more??? It is certainly not used by gnatmake???
    --
-   --    Missing_ALIs is set True if any of the constituent compilations
-   --    fails to generate an ali file.
-   --    Note from RBKD: This is probably obsolete junk ??? dating to the
-   --    time when compiling generics generated junk object files and no
-   --    ali file???
+   --    Compilation_Failures is a count of compilation failures. This count
+   --    is used to extract compilation failure reports with Extract_Failure.
    --
    --    Check_Readonly_Files set it to True to compile source files
    --    which library files are read-only. When compiling GNAT predefined

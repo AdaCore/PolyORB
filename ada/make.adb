@@ -78,13 +78,18 @@ package body Make is
    procedure Init_Q;
    --  Must be called to (re)initialize the Q.
 
-   procedure Insert_Q (Source_File : File_Name_Type);
-   --  Inserts Source_File at the end of Q.
+   procedure Insert_Q
+     (Source_File : File_Name_Type;
+      Source_Unit : Unit_Name_Type := No_Name);
+   --  Inserts Source_File at the end of Q. Provide Source_Unit when
+   --  possible for external use (gnatdist).
 
    function Empty_Q return Boolean;
    --  Returns True if Q is empty.
 
-   function Extract_From_Q return File_Name_Type;
+   procedure Extract_From_Q
+     (Source_File : out File_Name_Type;
+      Source_Unit : out Unit_Name_Type);
    --  Extracts the first element from the Q.
 
    First_Q_Initialization : Boolean := True;
@@ -93,14 +98,43 @@ package body Make is
    Q_Front : Natural;
    --  Points to the first valid element in the Q.
 
+   type Q_Record is
+      record
+         File : File_Name_Type;
+         Unit : Unit_Name_Type;
+      end record;
+   --  File is the name of the file to compile. Unit is for gnatdist
+   --  use in order to easily get the unit name of a file to compile
+   --  when its name is krunched or declared in gnat.adc.
+
    package Q is new Table.Table (
-     Table_Component_Type => File_Name_Type,
+     Table_Component_Type => Q_Record,
      Table_Index_Type     => Natural,
      Table_Low_Bound      => 0,
      Table_Initial        => 4000,
      Table_Increment      => 100,
      Table_Name           => "Make.Q");
    --  This is the actual Q.
+
+   type Bad_Compilation_Info is record
+      File  : File_Name_Type;
+      Unit  : Unit_Name_Type;
+      Found : Boolean;
+   end record;
+   --  File is the name of the file for which a compilation failed.
+   --  Unit is for gnatdist use in order to easily get the unit name
+   --  of a file when its name is krunched or declared in gnat.adc.
+   --  Found is False if the compilation failed because the file could
+   --  not be found.
+
+   package Bad_Compilation is new Table.Table (
+     Table_Component_Type => Bad_Compilation_Info,
+     Table_Index_Type     => Natural,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 20,
+     Table_Increment      => 100,
+     Table_Name           => "Make.Bad_Compilation");
+   --  Full name of all the source files for which compilation fails.
 
    ----------------------
    -- Marking Routines --
@@ -131,6 +165,9 @@ package body Make is
    procedure Inform (N : Name_Id := No_Name; Msg : String);
    --  Prints out the program name followed by a colon, N and S.
    --  What is S??? What is Msg???
+
+   procedure List_Bad_Compilations;
+   --  Prints out the list of all files for which the compilation failed.
 
    No_Indent : constant Boolean := False;
    procedure Verbose_Msg
@@ -778,7 +815,7 @@ package body Make is
       Most_Recent_Obj_File  : out Name_Id;
       Most_Recent_Obj_Stamp : out Time_Stamp_Type;
       Main_Unit             : out Boolean;
-      Missing_ALIs          : out Boolean;
+      Compilation_Failures  : out Natural;
       Check_Readonly_Files  : Boolean  := False;
       Dont_Execute          : Boolean  := False;
       Force_Compilations    : Boolean  := False;
@@ -797,6 +834,7 @@ package body Make is
          Pid              : Process_Id;
          Full_Source_File : File_Name_Type;
          Lib_File         : File_Name_Type;
+         Source_Unit      : Unit_Name_Type;
       end record;
 
       Running_Compile : array (1 .. Max_Process) of Compilation_Data;
@@ -805,18 +843,29 @@ package body Make is
       Outstanding_Compiles : Natural := 0;
       --  Current number of outstanding compiles
 
-      procedure Add_Process (Pid : Process_Id; S, L : File_Name_Type);
+      procedure Add_Process
+        (Pid   : Process_Id;
+         Sfile : File_Name_Type;
+         Afile : File_Name_Type;
+         Uname : Unit_Name_Type);
       --  Adds process Pid to the current list of outstanding compilation
-      --  processes and record the full name of the source file S that we
-      --  are compiling and the name of its library file L.
+      --  processes and record the full name of the source file Sfile that
+      --  we are compiling, the name of its library file Afile and the
+      --  name of its unit Uname.
 
-      procedure Await_Compile (S, L : out File_Name_Type; OK : out Boolean);
+      procedure Await_Compile
+        (Sfile : out File_Name_Type;
+         Afile : out File_Name_Type;
+         Uname : out Unit_Name_Type;
+         OK    : out Boolean);
       --  Awaits that an outstanding compilation process terminates. When
-      --  it does set S to the name of the Source file that was compiled and
-      --  L the name of its library file. Note that this time stamp can be
-      --  used to check whether the compilation did generate an object
-      --  file. OK is set to True if the compilation succeeded. Note that S
-      --  and L could be No_File if there were no compilations to wait for.
+      --  it does set Sfile to the name of the source file that was compiled
+      --  Afile to the name of its library file and Uname to the name of its
+      --  unit. Note that this time stamp can be used to check whether the
+      --  compilation did generate an object file. OK is set to True if the
+      --  compilation succeeded. Note that Sfile, Afile and Uname could be
+      --  resp. No_File, No_File and No_Name  if there were no compilations
+      --  to wait for.
 
       package Good_ALI is new Table.Table (
         Table_Component_Type => ALI_Id,
@@ -836,33 +885,16 @@ package body Make is
       function Get_Next_Good_ALI return ALI_Id;
       --  Returns the next good ALI_Id record;
 
-      type Bad_Compilation_Info is record
-         File  : File_Name_Type;
-         Found : Boolean;
-      end record;
-      --  File is the name of the file for which a compilation failed
-      --  Found is False if the compilation failed because the file
-      --  could not be found.
+      procedure Record_Failure
+        (File  : File_Name_Type;
+         Unit  : Unit_Name_Type;
+         Found : Boolean := True);
+      --  Records in the previous table that the compilation for File failed.
+      --  If Found is False then the compilation of File failed because we
+      --  could not find it. Records also Unit when possible.
 
-      package Bad_Compilation is new Table.Table (
-        Table_Component_Type => Bad_Compilation_Info,
-        Table_Index_Type     => Natural,
-        Table_Low_Bound      => 1,
-        Table_Initial        => 20,
-        Table_Increment      => 100,
-        Table_Name           => "Make.Bad_Compilation");
-      --  Full name of all the source files for which compilation fails.
-
-      procedure Record_Failure (F : File_Name_Type; Found : Boolean := True);
-      --  Records in the previous table that the compilation for F failed.
-      --  If Found is False then the compilation of F failed because we could
-      --  not find it.
-
-      function Compilations_Failed return Boolean;
-      --  Returns True if a previous compilation failed.
-
-      procedure List_Bad_Compilations;
-      --  Prints out the list of all files for which the compilation failed.
+      function Bad_Compilation_Count return Natural;
+      --  Returns the number of compilation failures.
 
       procedure Debug_Msg (S : String; N : Name_Id);
       --  If Debug.Debug_Flag_W is set outputs string S followed by name N.
@@ -871,7 +903,11 @@ package body Make is
       -- Add_Process --
       -----------------
 
-      procedure Add_Process (Pid : Process_Id; S, L : File_Name_Type) is
+      procedure Add_Process
+        (Pid   : Process_Id;
+         Sfile : File_Name_Type;
+         Afile : File_Name_Type;
+         Uname : Unit_Name_Type) is
          OC1 : constant Positive := Outstanding_Compiles + 1;
 
       begin
@@ -879,8 +915,9 @@ package body Make is
          pragma Assert (Pid /= Invalid_Pid);
 
          Running_Compile (OC1).Pid              := Pid;
-         Running_Compile (OC1).Full_Source_File := S;
-         Running_Compile (OC1).Lib_File         := L;
+         Running_Compile (OC1).Full_Source_File := Sfile;
+         Running_Compile (OC1).Lib_File         := Afile;
+         Running_Compile (OC1).Source_Unit      := Uname;
 
          Outstanding_Compiles := OC1;
       end Add_Process;
@@ -889,15 +926,20 @@ package body Make is
       -- Await_Compile --
       -------------------
 
-      procedure Await_Compile (S, L : out File_Name_Type; OK : out Boolean) is
+      procedure Await_Compile
+        (Sfile  : out File_Name_Type;
+         Afile  : out File_Name_Type;
+         Uname  : out File_Name_Type;
+         OK     : out Boolean) is
          Pid : Process_Id;
 
       begin
          pragma Assert (Outstanding_Compiles > 0);
 
-         S  := No_File;
-         L  := No_File;
-         OK := False;
+         Sfile := No_File;
+         Afile := No_File;
+         Uname := No_Name;
+         OK    := False;
 
          Wait_Process (Pid, OK);
 
@@ -907,8 +949,9 @@ package body Make is
 
          for J in Running_Compile'First .. Outstanding_Compiles loop
             if Pid = Running_Compile (J).Pid then
-               S := Running_Compile (J).Full_Source_File;
-               L := Running_Compile (J).Lib_File;
+               Sfile := Running_Compile (J).Full_Source_File;
+               Afile := Running_Compile (J).Lib_File;
+               Uname := Running_Compile (J).Source_Unit;
 
                --  To actually remove this Pid and related info from
                --  Running_Compile replace its entry with the last valid
@@ -931,14 +974,14 @@ package body Make is
          raise Program_Error;
       end Await_Compile;
 
-      -------------------------
-      -- Compilations_Failed --
-      -------------------------
+      ---------------------------
+      -- Bad_Compilation_Count --
+      ---------------------------
 
-      function Compilations_Failed return Boolean is
+      function Bad_Compilation_Count return Natural is
       begin
-         return Bad_Compilation.First <= Bad_Compilation.Last;
-      end Compilations_Failed;
+         return Bad_Compilation.Last - Bad_Compilation.First + 1;
+      end Bad_Compilation_Count;
 
       -------------
       -- Compile --
@@ -1081,31 +1124,17 @@ package body Make is
          return Good_ALI.First <= Good_ALI.Last;
       end Good_ALI_Present;
 
-      ---------------------------
-      -- List_Bad_Compilations --
-      ---------------------------
-
-      procedure List_Bad_Compilations is
-      begin
-         for J in Bad_Compilation.First .. Bad_Compilation.Last loop
-            if Bad_Compilation.Table (J).File = No_File then
-               null;
-            elsif not Bad_Compilation.Table (J).Found then
-               Inform (Bad_Compilation.Table (J).File, "not found");
-            else
-               Inform (Bad_Compilation.Table (J).File, "compilation error");
-            end if;
-         end loop;
-      end List_Bad_Compilations;
-
       --------------------
       -- Record_Failure --
       --------------------
 
-      procedure Record_Failure (F : File_Name_Type; Found : Boolean := True) is
+      procedure Record_Failure
+        (File  : File_Name_Type;
+         Unit  : Unit_Name_Type;
+         Found : Boolean := True) is
       begin
          Bad_Compilation.Increment_Last;
-         Bad_Compilation.Table (Bad_Compilation.Last) := (F, Found);
+         Bad_Compilation.Table (Bad_Compilation.Last) := (File, Unit, Found);
       end Record_Failure;
 
       ---------------------
@@ -1121,6 +1150,9 @@ package body Make is
       --------------------------
       -- Compile_Sources Data --
       --------------------------
+
+      Source_Unit : Unit_Name_Type;
+      --  Current source unit
 
       Source_File : File_Name_Type;
       --  Current source file
@@ -1181,25 +1213,25 @@ package body Make is
       Insert_Q (Main_Source);
       Mark (Main_Source);
 
-      First_Compiled_File   := No_File;
-      Most_Recent_Obj_File  := No_File;
-      Main_Unit             := False;
-      Missing_ALIs          := False;
+      First_Compiled_File       := No_File;
+      Most_Recent_Obj_File      := No_File;
+      Main_Unit                 := False;
 
       --  Keep looping until there is no more work to do (the Q is empty)
       --  and all the outstanding compilations have terminated
 
       Make_Loop : while not Empty_Q or else Outstanding_Compiles > 0 loop
 
-         --  If the user does not want to keep going in case of erros then
+         --  If the user does not want to keep going in case of errors then
          --  wait for the remaining outstanding compiles and then exit.
 
-         if Compilations_Failed and then not Keep_Going then
+         if Bad_Compilation_Count > 0 and then not Keep_Going then
             while Outstanding_Compiles > 0 loop
-               Await_Compile (Full_Source_File, Lib_File, Compilation_OK);
+               Await_Compile
+                 (Full_Source_File, Lib_File, Source_Unit, Compilation_OK);
 
                if not Compilation_OK then
-                  Record_Failure (Full_Source_File);
+                  Record_Failure (Full_Source_File, Source_Unit);
                end if;
             end loop;
 
@@ -1211,7 +1243,7 @@ package body Make is
          --  up all the available processes.
 
          if not Empty_Q and then Outstanding_Compiles < Max_Process then
-            Source_File      := Extract_From_Q;
+            Extract_From_Q (Source_File, Source_Unit);
             Full_Source_File := Osint.Full_Source_Name (Source_File);
             Lib_File         := Osint.Lib_File_Name (Source_File);
             Full_Lib_File    := Osint.Full_Lib_File_Name (Lib_File);
@@ -1236,7 +1268,7 @@ package body Make is
             --  The source file that we are checking cannot be located
 
             elsif Full_Source_File = No_File then
-               Record_Failure (Source_File, Found => False);
+               Record_Failure (Source_File, Source_Unit, False);
 
             --  Source and library files can be located but are internal
             --  files
@@ -1324,9 +1356,10 @@ package body Make is
                   --  Make sure we could successfully start the compilation
 
                   if Pid = Invalid_Pid then
-                     Record_Failure (Full_Source_File);
+                     Record_Failure (Full_Source_File, Source_Unit);
                   else
-                     Add_Process (Pid, Full_Source_File, Lib_File);
+                     Add_Process
+                       (Pid, Full_Source_File, Lib_File, Source_Unit);
                   end if;
                end if;
             end if;
@@ -1342,10 +1375,11 @@ package body Make is
                      and then not Good_ALI_Present
                      and then Outstanding_Compiles > 0)
          then
-            Await_Compile (Full_Source_File, Lib_File, Compilation_OK);
+            Await_Compile
+              (Full_Source_File, Lib_File, Source_Unit, Compilation_OK);
 
             if not Compilation_OK then
-               Record_Failure (Full_Source_File);
+               Record_Failure (Full_Source_File, Source_Unit);
 
             else
                --  Re-read the updated library file.
@@ -1366,7 +1400,7 @@ package body Make is
 
                else
                   Inform (Lib_File, "WARNING file not found after compile");
-                  Missing_ALIs := True;
+                  Record_Failure (Full_Source_File, Source_Unit);
                end if;
             end if;
          end if;
@@ -1412,7 +1446,7 @@ package body Make is
                      Debug_Msg ("Skipping internal file:", Sfile);
 
                   else
-                     Insert_Q (Sfile);
+                     Insert_Q (Sfile, Withs.Table (K).Uname);
                      Mark (Sfile);
                   end if;
                end loop;
@@ -1421,12 +1455,7 @@ package body Make is
 
       end loop Make_Loop;
 
-      --  If any compilation failed, report it
-
-      if Compilations_Failed then
-         List_Bad_Compilations;
-         raise Compilation_Failed;
-      end if;
+      Compilation_Failures := Bad_Compilation_Count;
 
    end Compile_Sources;
 
@@ -1470,7 +1499,7 @@ package body Make is
 
          for J in Q_Front .. Q.Last - 1 loop
             Write_Str (" ");
-            Write_Name (Q.Table (J));
+            Write_Name (Q.Table (J).File);
             Write_Eol;
             Write_Str ("         ");
          end loop;
@@ -1486,20 +1515,39 @@ package body Make is
    -- Extract_From_Q --
    --------------------
 
-   function Extract_From_Q return File_Name_Type is
-      Elmt : constant File_Name_Type := Q.Table (Q_Front);
+   procedure Extract_From_Q
+     (Source_File : out File_Name_Type;
+      Source_Unit : out Unit_Name_Type) is
+      File : constant File_Name_Type := Q.Table (Q_Front).File;
+      Unit : constant Unit_Name_Type := Q.Table (Q_Front).Unit;
 
    begin
       if Debug.Debug_Flag_Q then
          Write_Str ("   Q := Q - [ ");
-         Write_Name (Elmt);
+         Write_Name (File);
          Write_Str (" ]");
          Write_Eol;
       end if;
 
       Q_Front := Q_Front + 1;
-      return Elmt;
+      Source_File := File;
+      Source_Unit := Unit;
    end Extract_From_Q;
+
+   ---------------------
+   -- Extract_Failure --
+   ---------------------
+
+   procedure Extract_Failure
+     (File  : out File_Name_Type;
+      Unit  : out Unit_Name_Type;
+      Found : out Boolean) is
+   begin
+      File  := Bad_Compilation.Table (Bad_Compilation.Last).File;
+      Unit  := Bad_Compilation.Table (Bad_Compilation.Last).Unit;
+      Found := Bad_Compilation.Table (Bad_Compilation.Last).Found;
+      Bad_Compilation.Decrement_Last;
+   end Extract_Failure;
 
    --------------------
    -- In_Ada_Lib_Dir --
@@ -1595,8 +1643,7 @@ package body Make is
       Main_Source_File : File_Name_Type;
       --  The source file containing the main compilation unit
 
-      Has_Missing_ALIs : Boolean;
-      --  Set True if there was a missing ali file (can this ever happen???)
+      Compilation_Failures : Natural;
 
       Is_Main_Unit     : Boolean;
       --  If True the Main_Source_File can be a main unit (is this used???
@@ -1712,7 +1759,7 @@ package body Make is
             Most_Recent_Obj_File  => Youngest_Obj_File,
             Most_Recent_Obj_Stamp => Youngest_Obj_Stamp,
             Main_Unit             => Is_Main_Unit,
-            Missing_ALIs          => Has_Missing_ALIs,
+            Compilation_Failures  => Compilation_Failures,
             Check_Readonly_Files  => Opt.Check_Readonly_Files,
             Dont_Execute          => Opt.Dont_Execute,
             Force_Compilations    => Opt.Force_Compilations,
@@ -1720,6 +1767,11 @@ package body Make is
             Keep_Going            => Opt.Keep_Going,
             Initialize_ALI_Data   => True,
             Max_Process           => Opt.Maximum_Processes);
+
+         if Compilation_Failures /= 0 then
+            List_Bad_Compilations;
+            raise Compilation_Failed;
+         end if;
 
          if Opt.List_Dependencies then
             if First_Compiled_File /= No_File then
@@ -1878,7 +1930,7 @@ package body Make is
          --  Unmark source files which were previously marked & enqueued.
 
          for J in Q.First .. Q.Last - 1 loop
-            Unmark (Source_File => Q.Table (J));
+            Unmark (Source_File => Q.Table (J).File);
          end loop;
       end if;
 
@@ -1890,7 +1942,9 @@ package body Make is
    -- Insert_Q --
    --------------
 
-   procedure Insert_Q (Source_File : File_Name_Type) is
+   procedure Insert_Q
+     (Source_File : File_Name_Type;
+      Source_Unit : Unit_Name_Type := No_Name) is
    begin
       if Debug.Debug_Flag_Q then
          Write_Str ("   Q := Q + [ ");
@@ -1899,7 +1953,8 @@ package body Make is
          Write_Eol;
       end if;
 
-      Q.Table (Q.Last) := Source_File;
+      Q.Table (Q.Last).File := Source_File;
+      Q.Table (Q.Last).Unit := Source_Unit;
       Q.Increment_Last;
    end Insert_Q;
 
@@ -1938,6 +1993,23 @@ package body Make is
          raise Link_Failed;
       end if;
    end Link;
+
+   ---------------------------
+   -- List_Bad_Compilations --
+   ---------------------------
+
+   procedure List_Bad_Compilations is
+   begin
+      for J in Bad_Compilation.First .. Bad_Compilation.Last loop
+         if Bad_Compilation.Table (J).File = No_File then
+            null;
+         elsif not Bad_Compilation.Table (J).Found then
+            Inform (Bad_Compilation.Table (J).File, "not found");
+         else
+            Inform (Bad_Compilation.Table (J).File, "compilation error");
+         end if;
+      end loop;
+   end List_Bad_Compilations;
 
    -----------------
    -- List_Depend --
