@@ -34,11 +34,9 @@
 
 --  $Id$
 
-with PolyORB.Tasking.Rw_Locks;
-
 package body PolyORB.Any.ObjRef is
 
-   use PolyORB.Tasking.Rw_Locks;
+   use PolyORB.Tasking.Mutexes;
 
    type Content_ObjRef is new Content with record
       Value : PolyORB.References.Ref_Ptr;
@@ -119,14 +117,14 @@ package body PolyORB.Any.ObjRef is
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      Lock_W (Any_Value.Any_Lock);
+      Enter (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= null then
          Content_ObjRef_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all := new Content_ObjRef'
            (Value => new PolyORB.References.Ref'(Value));
       end if;
-      Unlock_W (Any_Value.Any_Lock);
+      Leave (Any_Value.Any_Lock);
    end Set_Any_Value;
 
 end PolyORB.Any.ObjRef;

@@ -30,12 +30,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.ads#27 $
+--  $Id: //droopi/main/src/polyorb-any.ads#28 $
 
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
 
-with PolyORB.Tasking.Rw_Locks;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Types;
 
 package PolyORB.Any is
@@ -793,7 +793,7 @@ private
       --  Reference counter associated with the
       --  designated container.
 
-      Any_Lock     : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
+      Any_Lock     : Tasking.Mutexes.Mutex_Access;
       --  Lock to guarantee consistent concurrent access
       --  to Ref_Counter.
 

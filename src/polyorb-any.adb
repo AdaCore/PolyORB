@@ -30,13 +30,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#48 $
+--  $Id: //droopi/main/src/polyorb-any.adb#49 $
 
 with Ada.Exceptions;
 with Ada.Tags;
 
 with PolyORB.Log;
-with PolyORB.Tasking.Rw_Locks;
 with PolyORB.Utils.Chained_Lists;
 
 with System.Address_Image;
@@ -44,7 +43,7 @@ with System.Address_Image;
 package body PolyORB.Any is
 
    use PolyORB.Log;
-   use PolyORB.Tasking.Rw_Locks;
+   use PolyORB.Tasking.Mutexes;
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.any");
@@ -2272,14 +2271,14 @@ package body PolyORB.Any is
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Octet then
          raise TypeCode.Bad_TypeCode;
       end if;
-      Lock_W (Any_Value.Any_Lock);
+      Enter (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= null then
          Content_Octet_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
            new Content_Octet'(Value => new Octet'(Value));
       end if;
-      Unlock_W (Any_Value.Any_Lock);
+      Leave (Any_Value.Any_Lock);
    end Set_Any_Value;
 
    procedure Set_Any_Value (Any_Value : in out Any;
@@ -2289,14 +2288,14 @@ package body PolyORB.Any is
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Short then
          raise TypeCode.Bad_TypeCode;
       end if;
-      Lock_W (Any_Value.Any_Lock);
+      Enter (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= null then
          Content_Short_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
            new Content_Short'(Value => new Short'(Value));
       end if;
-      Unlock_W (Any_Value.Any_Lock);
+      Leave (Any_Value.Any_Lock);
       pragma Debug (O ("Set_Any_Value : the any value is "
                        & Short'Image
                        (Content_Short_Ptr
@@ -2314,14 +2313,14 @@ package body PolyORB.Any is
                           & TCKind'Image (Kind)));
          raise TypeCode.Bad_TypeCode;
       end if;
-      Lock_W (Any_Value.Any_Lock);
+      Enter (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= null then
          Content_Long_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
            new Content_Long'(Value => new Types.Long'(Value));
       end if;
-      Unlock_W (Any_Value.Any_Lock);
+      Leave (Any_Value.Any_Lock);
    end Set_Any_Value;
 
    procedure Set_Any_Value (Any_Value : in out Any;
@@ -2331,14 +2330,14 @@ package body PolyORB.Any is
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Longlong then
          raise TypeCode.Bad_TypeCode;
       end if;
-      Lock_W (Any_Value.Any_Lock);
+      Enter (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= null then
          Content_Long_Long_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
            new Content_Long_Long'(Value => new Types.Long_Long'(Value));
       end if;
-      Unlock_W (Any_Value.Any_Lock);
+      Leave (Any_Value.Any_Lock);
    end Set_Any_Value;
 
    procedure Set_Any_Value (Any_Value : in out Any;
@@ -2348,14 +2347,14 @@ package body PolyORB.Any is
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Ushort then
          raise TypeCode.Bad_TypeCode;
       end if;
-      Lock_W (Any_Value.Any_Lock);
+      Enter (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= null then
          Content_UShort_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
            new Content_UShort'(Value => new Unsigned_Short'(Value));
       end if;
-      Unlock_W (Any_Value.Any_Lock);
+      Leave (Any_Value.Any_Lock);
    end Set_Any_Value;
 
    procedure Set_Any_Value (Any_Value : in out Any;
@@ -2365,14 +2364,14 @@ package body PolyORB.Any is
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Ulong then
          raise TypeCode.Bad_TypeCode;
       end if;
-      Lock_W (Any_Value.Any_Lock);
+      Enter (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= null then
          Content_ULong_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
            new Content_ULong'(Value => new Unsigned_Long'(Value));
       end if;
-      Unlock_W (Any_Value.Any_Lock);
+      Leave (Any_Value.Any_Lock);
    end Set_Any_Value;
 
    procedure Set_Any_Value (Any_Value : in out Any;
@@ -2383,7 +2382,7 @@ package body PolyORB.Any is
         Tk_Ulonglong then
          raise TypeCode.Bad_TypeCode;
       end if;
-      Lock_W (Any_Value.Any_Lock);
+      Enter (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= null then
          Content_ULong_Long_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
@@ -2391,7 +2390,7 @@ package body PolyORB.Any is
            new Content_ULong_Long'(Value =>
                                      new Unsigned_Long_Long'(Value));
       end if;
-      Unlock_W (Any_Value.Any_Lock);
+      Leave (Any_Value.Any_Lock);
    end Set_Any_Value;
 
    procedure Set_Any_Value (Any_Value : in out Any;
@@ -2401,14 +2400,14 @@ package body PolyORB.Any is
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Boolean then
          raise TypeCode.Bad_TypeCode;
       end if;
-      Lock_W (Any_Value.Any_Lock);
+      Enter (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= null then
          Content_Boolean_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
            new Content_Boolean'(Value => new Boolean'(Value));
       end if;
-      Unlock_W (Any_Value.Any_Lock);
+      Leave (Any_Value.Any_Lock);
    end Set_Any_Value;
 
    procedure Set_Any_Value (Any_Value : in out Any;
@@ -2418,14 +2417,14 @@ package body PolyORB.Any is
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Char then
          raise TypeCode.Bad_TypeCode;
       end if;
-      Lock_W (Any_Value.Any_Lock);
+      Enter (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= null then
          Content_Char_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
            new Content_Char'(Value => new Char'(Value));
       end if;
-      Unlock_W (Any_Value.Any_Lock);
+      Leave (Any_Value.Any_Lock);
    end Set_Any_Value;
 
    procedure Set_Any_Value (Any_Value : in out Any;
@@ -2435,14 +2434,14 @@ package body PolyORB.Any is
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Widechar then
          raise TypeCode.Bad_TypeCode;
       end if;
-      Lock_W (Any_Value.Any_Lock);
+      Enter (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= null then
          Content_Wchar_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
            new Content_Wchar'(Value => new Wchar'(Value));
       end if;
-      Unlock_W (Any_Value.Any_Lock);
+      Leave (Any_Value.Any_Lock);
    end Set_Any_Value;
 
    procedure Set_Any_Value (Any_Value : in out Any;
@@ -2452,14 +2451,14 @@ package body PolyORB.Any is
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_String then
          raise TypeCode.Bad_TypeCode;
       end if;
-      Lock_W (Any_Value.Any_Lock);
+      Enter (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= null then
          Content_String_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
            new Content_String'(Value => new PolyORB.Types.String'(Value));
       end if;
-      Unlock_W (Any_Value.Any_Lock);
+      Leave (Any_Value.Any_Lock);
    end Set_Any_Value;
 
    procedure Set_Any_Value (Any_Value : in out Any;
@@ -2469,14 +2468,14 @@ package body PolyORB.Any is
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Wstring then
          raise TypeCode.Bad_TypeCode;
       end if;
-      Lock_W (Any_Value.Any_Lock);
+      Enter (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= null then
          Content_Wide_String_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
            new Content_Wide_String'(Value => new Types.Wide_String'(Value));
       end if;
-      Unlock_W (Any_Value.Any_Lock);
+      Leave (Any_Value.Any_Lock);
    end Set_Any_Value;
 
    procedure Set_Any_Value (Any_Value : in out Any;
@@ -2486,14 +2485,14 @@ package body PolyORB.Any is
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Float then
          raise TypeCode.Bad_TypeCode;
       end if;
-      Lock_W (Any_Value.Any_Lock);
+      Enter (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= null then
          Content_Float_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
            new Content_Float'(Value => new Types.Float'(Value));
       end if;
-      Unlock_W (Any_Value.Any_Lock);
+      Leave (Any_Value.Any_Lock);
    end Set_Any_Value;
 
    procedure Set_Any_Value (Any_Value : in out Any;
@@ -2503,14 +2502,14 @@ package body PolyORB.Any is
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Double then
          raise TypeCode.Bad_TypeCode;
       end if;
-      Lock_W (Any_Value.Any_Lock);
+      Enter (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= null then
          Content_Double_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
            new Content_Double'(Value => new Double'(Value));
       end if;
-      Unlock_W (Any_Value.Any_Lock);
+      Leave (Any_Value.Any_Lock);
    end Set_Any_Value;
 
    procedure Set_Any_Value (Any_Value : in out Any;
@@ -2521,14 +2520,14 @@ package body PolyORB.Any is
         Tk_Longdouble then
          raise TypeCode.Bad_TypeCode;
       end if;
-      Lock_W (Any_Value.Any_Lock);
+      Enter (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= null then
          Content_Long_Double_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
            new Content_Long_Double'(Value => new Types.Long_Double'(Value));
       end if;
-      Unlock_W (Any_Value.Any_Lock);
+      Leave (Any_Value.Any_Lock);
    end Set_Any_Value;
 
    procedure Set_Any_Value (Any_Value : in out Any;
@@ -2538,14 +2537,14 @@ package body PolyORB.Any is
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_TypeCode then
          raise TypeCode.Bad_TypeCode;
       end if;
-      Lock_W (Any_Value.Any_Lock);
+      Enter (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= null then
          Content_TypeCode_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
            new Content_TypeCode'(Value => new TypeCode.Object'(Value));
       end if;
-      Unlock_W (Any_Value.Any_Lock);
+      Leave (Any_Value.Any_Lock);
    end Set_Any_Value;
 
    procedure Set_Any_Value (Any_Value : in out Any;
@@ -2555,14 +2554,14 @@ package body PolyORB.Any is
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Any then
          raise TypeCode.Bad_TypeCode;
       end if;
-      Lock_W (Any_Value.Any_Lock);
+      Enter (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= null then
          Content_Any_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
            new Content_Any'(Value => new Any'(Value));
       end if;
-      Unlock_W (Any_Value.Any_Lock);
+      Leave (Any_Value.Any_Lock);
    end Set_Any_Value;
 
    -----------------------------
@@ -2583,12 +2582,12 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
       pragma Debug (O ("Set_Any_Aggregate_Value: typecode is correct"));
-      Lock_W (Any_Value.Any_Lock);
+      Enter (Any_Value.Any_Lock);
       if Any_Value.The_Value.all = null then
          Any_Value.The_Value.all :=
           new Content_Aggregate;
       end if;
-      Unlock_W (Any_Value.Any_Lock);
+      Leave (Any_Value.Any_Lock);
    end Set_Any_Aggregate_Value;
 
    -------------------------
@@ -2614,7 +2613,7 @@ package body PolyORB.Any is
       Cl : Content_List;
    begin
       pragma Debug (O ("Add_Aggregate_Element : enter"));
-      Lock_W (Value.Any_Lock);
+      Enter (Value.Any_Lock);
       Cl := Content_Aggregate_Ptr (Value.The_Value.all).Value;
       pragma Debug (O ("Add_Aggregate_Element : element kind is "
                        & TCKind'Image
@@ -2623,7 +2622,7 @@ package body PolyORB.Any is
       Content_Lists.Append
         (Content_Aggregate_Ptr (Value.The_Value.all).Value,
          Duplicate (Element.The_Value.all));
-      Unlock_W (Value.Any_Lock);
+      Leave (Value.Any_Lock);
       pragma Debug (O ("Add_Aggregate_Element : end"));
    end Add_Aggregate_Element;
 
@@ -2641,7 +2640,7 @@ package body PolyORB.Any is
       Ptr : Content_List;
    begin
       pragma Debug (O ("Get_Aggregate_Element : enter"));
-      Lock_R (Value.Any_Lock);
+      Enter (Value.Any_Lock);
       pragma Assert (Value.The_Value /= null);
       Ptr := Content_Aggregate_Ptr (Value.The_Value.all).Value;
       pragma Debug (O ("Get_Aggregate_Element : Index = "
@@ -2653,7 +2652,7 @@ package body PolyORB.Any is
       Result.The_Value.all
         := Duplicate
         (Content_Lists.Element (Ptr, Integer (Index)).all);
-      Unlock_R (Value.Any_Lock);
+      Leave (Value.Any_Lock);
       Set_Type (Result, Tc);
       pragma Debug (O ("Get_Aggregate_Element : end"));
       return Result;
@@ -2691,7 +2690,7 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      Lock_W (Dest.Any_Lock);
+      Enter (Dest.Any_Lock);
 
       if TypeCode.Kind (Get_Unwound_Type (Src)) /= Tk_Void
         and then Dest.The_Value /= Src.The_Value
@@ -2710,7 +2709,7 @@ package body PolyORB.Any is
          end if;
          Dest.The_Value.all := Duplicate (Get_Value (Src));
       end if;
-      Unlock_W (Dest.Any_Lock);
+      Leave (Dest.Any_Lock);
    end Copy_Any_Value;
 
    ---------------------
@@ -3149,12 +3148,12 @@ package body PolyORB.Any is
 
    procedure Set_Value (Obj : in out Any; The_Value : in Any_Content_Ptr) is
    begin
-      Lock_W (Obj.Any_Lock);
+      Enter (Obj.Any_Lock);
       if Obj.The_Value.all /= null then
          Deallocate (Obj.The_Value.all);
       end if;
       Obj.The_Value.all := The_Value;
-      Unlock_W (Obj.Any_Lock);
+      Leave (Obj.Any_Lock);
    end Set_Value;
 
    ------------------
@@ -3163,9 +3162,9 @@ package body PolyORB.Any is
 
    procedure Set_Volatile (Obj : in out Any; Is_Volatile : in Boolean) is
    begin
-      Lock_W (Obj.Any_Lock);
+      Enter (Obj.Any_Lock);
       TypeCode.Set_Volatile (Obj.The_Type, Is_Volatile);
-      Unlock_W (Obj.Any_Lock);
+      Leave (Obj.Any_Lock);
    end Set_Volatile;
 
    -------------------
@@ -3175,9 +3174,9 @@ package body PolyORB.Any is
    function Get_Value_Ptr (Obj : Any) return Any_Content_Ptr_Ptr is
       Content_Ptr : Any_Content_Ptr_Ptr;
    begin
-      Lock_R (Obj.Any_Lock);
+      Enter (Obj.Any_Lock);
       Content_Ptr := Obj.The_Value;
-      Unlock_R (Obj.Any_Lock);
+      Leave (Obj.Any_Lock);
       return Content_Ptr;
    end Get_Value_Ptr;
 
@@ -3196,11 +3195,11 @@ package body PolyORB.Any is
 
    function Get_Counter (Obj : Any) return Natural is
    begin
-      Lock_R (Obj.Any_Lock);
+      Enter (Obj.Any_Lock);
       declare
          Counter : constant Natural := Obj.Ref_Counter.all;
       begin
-         Unlock_R (Obj.Any_Lock);
+         Leave (Obj.Any_Lock);
          return Counter;
       end;
    end Get_Counter;
@@ -3212,9 +3211,9 @@ package body PolyORB.Any is
    procedure Inc_Usage (Obj : in Any) is
    begin
       pragma Debug (O2 ("Inc_Usage : enter"));
-      Lock_W (Obj.Any_Lock);
+      Enter (Obj.Any_Lock);
       Obj.Ref_Counter.all := Obj.Ref_Counter.all + 1;
-      Unlock_W (Obj.Any_Lock);
+      Leave (Obj.Any_Lock);
       pragma Debug (O2 ("Inc_Usage : end"));
    end Inc_Usage;
 
@@ -3229,14 +3228,14 @@ package body PolyORB.Any is
       pragma Debug
         (O2 ("  Lck = "
              & System.Address_Image (Obj.Any_Lock.all'Address)));
-      Lock_W (Obj.Any_Lock);
+      Enter (Obj.Any_Lock);
       pragma Debug (O2 ("Dec_Usage: lock placed, Cnt = "
                         & Integer'Image (Obj.Ref_Counter.all)));
       if Obj.Ref_Counter.all > 1 then
          Obj.Ref_Counter.all := Obj.Ref_Counter.all - 1;
          pragma Debug (O2 ("Dec_Usage: counter decremented"));
 
-         Unlock_W (Obj.Any_Lock);
+         Leave (Obj.Any_Lock);
          pragma Debug (O2 ("Dec_Usage: lock released"));
       else
          pragma Debug (O2 ("Dec_Usage: about to release the any"));
@@ -3258,7 +3257,7 @@ package body PolyORB.Any is
          Deallocate (Obj.Ref_Counter);
          pragma Debug (O2 ("Dec_Usage: counter deallocated"));
 
-         Unlock_W (Obj.Any_Lock);
+         Leave (Obj.Any_Lock);
          pragma Debug (O2 ("Dec_Usage: lock released, DESTROYING Lck = "
                            & System.Address_Image (Obj.Any_Lock.all'Address)));
          Destroy (Obj.Any_Lock);
