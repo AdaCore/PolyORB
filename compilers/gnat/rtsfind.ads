@@ -260,6 +260,7 @@ package Rtsfind is
       System_Pack_63,
       System_Parameters,
       System_Partition_Interface,
+      System_PolyORB_Interface,
       System_Pool_Global,
       System_Pool_Empty,
       System_Pool_Local,
@@ -1022,6 +1023,15 @@ package Rtsfind is
      RE_Params_Stream_Type,              -- System.RPC
      RE_Partition_ID,                    -- System.RPC
      RE_RPC_Receiver,                    -- System.RPC
+
+     RE_NamedValue,                      -- System.PolyORB_Interface
+     RE_Object_Ref,                      -- System.PolyORB_Interface
+     RE_NVList_Ref,                      -- System.PolyORB_Interface
+     RE_NVList_Create,                   -- System.PolyORB_Interface
+     RE_Request_Create,                  -- System.PolyORB_Interface
+     RE_Request_Access,                  -- System.PolyORB_Interface
+     RE_Nil_Exc_List,                    -- System.PolyORB_Interface
+     RE_To_PolyORB_String,               -- System.PolyORB_Interface
 
      RE_IS_Is1,                          -- System.Scalar_Values
      RE_IS_Is2,                          -- System.Scalar_Values
@@ -1931,6 +1941,15 @@ package Rtsfind is
      RE_Register_Receiving_Stub          => System_Partition_Interface,
      RE_RCI_Info                         => System_Partition_Interface,
      RE_Subprogram_Id                    => System_Partition_Interface,
+
+     RE_NamedValue                       => System_PolyORB_Interface,
+     RE_Object_Ref                       => System_PolyORB_Interface,
+     RE_NVList_Ref                       => System_PolyORB_Interface,
+     RE_NVList_Create                    => System_PolyORB_Interface,
+     RE_Request_Create                   => System_PolyORB_Interface,
+     RE_Request_Access                   => System_PolyORB_Interface,
+     RE_Nil_Exc_List                     => System_PolyORB_Interface,
+     RE_To_PolyORB_String                => System_PolyORB_Interface,
 
      RE_Global_Pool_Object               => System_Pool_Global,
 

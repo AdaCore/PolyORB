@@ -2070,6 +2070,20 @@ package body Exp_Dist is
       Stream_Parameter : Node_Id;
       --  Name of the stream used to transmit parameters to the remote package
 
+      Target_Parameter : Node_Id;
+      --  The reference that designates the target of a remote call.
+
+      Args_Parameter : Node_Id;
+      --  Name of the named values list used to transmit parameters
+      --  to the remote package
+
+      Request_Parameter : Node_Id;
+      --  The request object constructed by these stubs.
+
+      Result_NV_Parameter : Node_Id;
+      --  The named value that receives the result of the invocation
+      --  (non-APC case).
+
       Result_Parameter : Node_Id;
       --  Name of the result parameter (in non-APC cases) which get the
       --  result of the remote subprogram.
@@ -2129,6 +2143,37 @@ package body Exp_Dist is
                   Constraints =>
                     New_List (Make_Integer_Literal (Loc, 0))))));
 
+
+      Request_Parameter :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
+
+      Append_To (Decls,
+        Make_Object_Declaration (Loc,
+          Defining_Identifier => Request_Parameter,
+          Aliased_Present     => False,
+          Object_Definition   =>
+              New_Occurrence_Of (RTE (RE_Request_Access), Loc)));
+
+      Target_Parameter :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('T'));
+
+      Append_To (Decls,
+        Make_Object_Declaration (Loc,
+          Defining_Identifier => Target_Parameter,
+          Aliased_Present     => False,
+          Object_Definition   =>
+              New_Occurrence_Of (RTE (RE_Object_Ref), Loc)));
+
+      Args_Parameter :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
+
+      Append_To (Decls,
+        Make_Object_Declaration (Loc,
+          Defining_Identifier => Args_Parameter,
+          Aliased_Present     => False,
+          Object_Definition   =>
+              New_Occurrence_Of (RTE (RE_NVList_Ref), Loc)));
+
       if not Is_Known_Asynchronous then
          Result_Parameter :=
            Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
@@ -2146,6 +2191,16 @@ package body Exp_Dist is
                      Constraints =>
                        New_List (Make_Integer_Literal (Loc, 0))))));
 
+         Result_NV_Parameter :=
+           Make_Defining_Identifier (Loc, New_Internal_Name ('N'));
+
+         Append_To (Decls,
+           Make_Object_Declaration (Loc,
+             Defining_Identifier => Result_NV_Parameter,
+             Aliased_Present     => False,
+             Object_Definition   =>
+               New_Occurrence_Of (RTE (RE_NamedValue), Loc)));
+
          Exception_Return_Parameter :=
            Make_Defining_Identifier (Loc, New_Internal_Name ('E'));
 
@@ -2159,6 +2214,15 @@ package body Exp_Dist is
          Result_Parameter := Empty;
          Exception_Return_Parameter := Empty;
       end if;
+
+      --  Initialize and fill in arguments list
+
+      Append_To (Statements,
+        Make_Procedure_Call_Statement (Loc,
+          Name =>
+            New_Occurrence_Of (RTE (RE_NVList_Create), Loc),
+          Parameter_Associations => New_List (
+            New_Occurrence_Of (Args_Parameter, Loc))));
 
       --  Put first the RPC receiver corresponding to the remote package
 
@@ -2296,6 +2360,24 @@ package body Exp_Dist is
       --  Append the formal statements list to the statements
 
       Append_List_To (Statements, Extra_Formal_Statements);
+      Start_String;
+      Get_Name_String (Chars (Defining_Unit_Name (Spec)));
+
+      Append_To (Statements,
+        Make_Procedure_Call_Statement (Loc,
+          Name =>
+            New_Occurrence_Of (RTE (RE_Request_Create), Loc),
+          Parameter_Associations => New_List (
+            New_Occurrence_Of (Target_Parameter, Loc),
+            Make_String_Literal (Loc,
+              Strval => Get_String_Id
+                (Get_Name_String (Chars (Defining_Unit_Name (Spec))))),
+            New_Occurrence_Of (Args_Parameter, Loc),
+            New_Occurrence_Of (Result_NV_Parameter, Loc),
+            New_Occurrence_Of (RTE (RE_Nil_Exc_List), Loc))));
+
+      Append_To (Parameter_Associations (Last (Statements)),
+            New_Occurrence_Of (Request_Parameter, Loc));
 
       if not Is_Known_Non_Asynchronous then
 
