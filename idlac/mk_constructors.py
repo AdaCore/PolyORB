@@ -27,15 +27,18 @@ while 1:
 
   line = line[:-1]
 
-  m = match (".*type N_(.*) is new .*N_.* with record", line)
+  m = match (".*type (N_.*) is new .*N_.* with record", line)
   if m:
     name = m.group(1)
-    outs.writelines (["   function new", name , " (Node : N_Root_Acc) return N_", name, "_Acc;\n"])
-    outb.writelines (["   function new", name , " (Node : N_Root_Acc) return N_", name, "_Acc is\n"])
-    outb.write      ( "     Result : N_", name, "_Acc := new N_", name, ";\n") 
+    outs.write ("   function New_%s\n     (Node : N_Root_Acc) return %s_Acc;\n" %
+                (name, name))
+    outb.write ("   function New_%s\n     (Node : N_Root_Acc) return %s_Acc is\n" %
+                (name, name))
+    outb.write      ( "      Result : %s_Acc := new %s;\n" % (name, name)) 
     outb.write      ( "   begin\n")
-    outb.write      ( "     Set_Old (Result, Node);\n")
-    outb.write      ( "   end new", name, ";\n\n")
+    outb.write      ( "      Set_Old (Result.all, Node);\n")
+    outb.write      ( "      return Result;\n")
+    outb.write      ( "   end New_%s;\n\n" % name)
     continue
 
 outs.write ("end Idl_Fe.Tree.Constructors;\n")

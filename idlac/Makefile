@@ -1,13 +1,19 @@
 GNAT_STYLE=-gnaty3bcefhikmt
 GNATMAKE_FLAGS= $(GNAT_STYLE) -g -gnatf -gnatwu -gnatwe -gnatgao
-all: testlexer testparser testgen idlac # gidlac # idlac
+all: testlexer testparser testgen idlac ada_be-expansion # gidlac # idlac
 
 ACCESSOR_FILES=idl_fe-tree-accessors.ads idl_fe-tree-accessors.adb
 
 $(ACCESSORS_FILES): idl_fe-tree.ads
 	./mk_accessors.py
 
-testparser testlexer testgen gidlac idlac: force $(ACCESSORS_FILES)
+CONSTRUCTOR_FILES=idl_fe-tree-constructors.ads idl_fe-tree-constructors.adb
+
+$(CONSTRUCTOR_FILES): idl_fe-tree.ads
+	./mk_constructors.py
+
+
+testparser testlexer testgen gidlac idlac ada_be-expansion : force $(ACCESSOR_FILES) $(CONSTRUCTOR_FILES)
 	gnatmake $(GNATMAKE_FLAGS) $@
 
 TEST_FILES=\

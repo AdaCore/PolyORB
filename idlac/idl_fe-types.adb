@@ -213,8 +213,6 @@ package body Idl_Fe.Types is
       end if;
    end Get_Name;
 
-
-
    -----------------------------
    --  Identifier definition  --
    -----------------------------
@@ -1130,6 +1128,7 @@ package body Idl_Fe.Types is
          return null;
       end if;
    end Find_Inherited_Identifier_Definition;
+
 
 
 --  INUTILE ???

@@ -79,11 +79,14 @@ package Idl_Fe.Types is
 --        K_Lit_Fixed_Point,
 --        K_Lit_Char,
 --        K_Lit_Wchar,
+       K_Lit_String,
        K_Lit_Boolean,
-       K_Lit_String  --  ,
 --        K_Lit_Wstring,
 --        K_Lit_True,
 --        K_Lit_False
+
+--  used for BE nodes, to extend the tree
+       K_Unknown
        );
 
    --  all the possible kind of constants
@@ -558,6 +561,7 @@ package Idl_Fe.Types is
       Hash_Table : Hash_Table_Type := (others => Nil_Uniq_Id);
       Content_Table : Table;
    end record;
+
 
 private
 

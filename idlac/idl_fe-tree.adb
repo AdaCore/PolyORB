@@ -661,5 +661,14 @@ package body Idl_Fe.Tree is
       return Types.K_ValueBase;
    end Get_Kind;
 
+   ---------------------------------------------------------
+   --  The Unknown node so that the tree can be extended  --
+   --  with new nodes                                     --
+   ---------------------------------------------------------
+   function Get_Kind (Node : N_Unknown) return Types.Node_Kind is
+   begin
+      return Types.K_Unknown;
+   end Get_Kind;
+
 end Idl_Fe.Tree;
 

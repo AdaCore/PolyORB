@@ -459,6 +459,9 @@ package body Idl_Fe.Display_Tree is
             Put_Line ("native:");
             Disp_Tree (N_Native (N).Declarator.all, N_Indent + Offset, Full);
 
+         when K_Unknown =>
+            --  Display (N_Unknown'Class (N, Indent, Full);
+            null;
       end case;
    end Disp_Tree;
 
