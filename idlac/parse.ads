@@ -110,7 +110,7 @@ private
    --               |   <interface> ";"
    --               |   <module> ";"
    --               |   <value> ";"
-   procedure Parse_Definition (Result : out N_Root_Acc;
+   procedure Parse_Definition (Result : out N_Named_Acc;
                                Success : out Boolean);
 
    --  Rule 3:
@@ -651,7 +651,7 @@ private
    --  <interface_dcl_end> ::= [<interface_inheritance_spec>] "{"
    --                          <interface_body> "}"
    --  this last will be used in Parse_Interface_Dcl_End
-   procedure Parse_Interface (Result : out N_Root_Acc;
+   procedure Parse_Interface (Result : out N_Named_Acc;
                               Success : out Boolean);
 
 --    --  Rule 13:

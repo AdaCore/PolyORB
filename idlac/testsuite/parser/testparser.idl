@@ -1,26 +1,32 @@
+/***  Test of rule 2 ***/
+
+Error
+abstract Error
+module mymodule {}
+
 /***  Test of rule 3 ***/
 
 module
 module toto
-module toto {}
 module toto {};
-module titi {};
+module toto {};
+
 
 /***  Test of rule 13 through 26 ***/
 
-/* rule Value2 */
+/* Test of rule Value2 */
 custom
 custom valuetype
 
-/* rule Value3 */
+/* Test of rule Value3 */
 abstract
 abstract valuetype
 abstract valuetype toto
 
-/* rule 4 */
+/* Test of rule 4 */
 valuetype
 valuetype toto
 
-/* rule 5 & 6 */
+/* Test of rule 5 & 6 */
 valuetype toto {};
 valuetype toto supports toto

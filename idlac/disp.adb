@@ -113,12 +113,12 @@ package body Disp is
                Put_Line ("forward interface "
                          & Get_Name (N_Forward_Interface (N).Forward.all));
             else
-               Put_Line ("forward interface (not declared!!) "
+               Put_Line ("forward interface (never declared!!) "
                          & Get_Name (N_Forward_Interface (N)));
             end if;
 
          when K_ValueType =>
---             Put_Line ("interface " & Get_Name (N_Interface (N)));
+            Put_Line ("valuetype " & Get_Name (N_ValueType (N)));
 --             if Full then
 --                if N_Interface (N).Parents /= Nil_List then
 --                   Disp_Indent (N_Indent);

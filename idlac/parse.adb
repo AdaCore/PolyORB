@@ -208,6 +208,84 @@ package body Parse is
    --  Parsing of the idl  --
    --------------------------
 
+   ------------------------
+   --  Parse_Definition  --
+   ------------------------
+   procedure Parse_Definition (Result : out N_Named_Acc;
+                               Success : out Boolean) is
+   begin
+      case Get_Token is
+--          when T_Typedef | T_Struct | T_Union | T_Enum | T_Native =>
+--             Res := N_Root_Acc (Parse_Type_Dcl);
+--          when T_Const =>
+--             Res := N_Root_Acc (Parse_Const_Dcl);
+--          when T_Exception =>
+--             Res := N_Root_Acc (Parse_Except_Dcl);
+         when T_Abstract =>
+            case View_Next_Token is
+               when T_Interface =>
+                  Parse_Interface (Result, Success);
+               when T_ValueType  =>
+                  Parse_Value (Result, Success);
+               when others =>
+                  declare
+                     Loc : Errors.Location;
+                  begin
+                     Loc := Get_Token_Location;
+                     Loc.Col := Loc.Col + 9;
+                     Errors.Parser_Error (Ada.Characters.Latin_1.Quotation &
+                                          "interface" &
+                                          Ada.Characters.Latin_1.Quotation &
+                                          " or " &
+                                          Ada.Characters.Latin_1.Quotation &
+                                          "valuetype" &
+                                          Ada.Characters.Latin_1.Quotation &
+                                          " expected after the " &
+                                          "abstract keyword.",
+                                          Errors.Error,
+                                          Get_Token_Location);
+                     Success := False;
+                     Result := null;
+                     return;
+                  end;
+            end case;
+         when T_Interface =>
+            Parse_Interface (Result, Success);
+         when T_Module =>
+            declare
+               Res : N_Module_Acc;
+            begin
+               Parse_Module (Res, Success);
+               Result := N_Named_Acc (Res);
+               if not Success then
+                  return;
+               end if;
+            end;
+         when T_ValueType
+           | T_Custom =>
+            Parse_Value (Result, Success);
+            if not Success then
+               return;
+            end if;
+         when others =>
+            Errors.Parser_Error ("definition expected.",
+                                 Errors.Error,
+                                 Get_Token_Location);
+            Result := null;
+            Success := False;
+            return;
+      end case;
+      if Get_Token /= T_Semi_Colon then
+         Errors.Parser_Error ("';' expected at the end of a definition.",
+                              Errors.Error,
+                              Get_Token_Location);
+         Success := False;
+      else
+         Next_Token;
+      end if;
+      return;
+   end Parse_Definition;
+
    --------------------
    --  Parse_Module  --
    --------------------
@@ -246,7 +324,7 @@ package body Parse is
                   --  parse the module body
                   Next_Token;
                   declare
-                     Definition : N_Root_Acc;
+                     Definition : N_Named_Acc;
                      Definition_Result : Boolean;
                   begin
                      while Get_Token /= T_Right_Cbracket loop
@@ -254,7 +332,8 @@ package body Parse is
                         Parse_Definition (Definition, Definition_Result);
                         if Definition_Result then
                            --  successfull
-                           Append_Node (Result.Contents, Definition);
+                           Append_Node (Result.Contents,
+                                        N_Root_Acc (Definition));
                         else
                            --  failed
                            Go_To_Next_Definition;
@@ -292,6 +371,7 @@ package body Parse is
             Result := null;
             Success := False;
       end case;
+      return;
    end Parse_Module;
 
    --------------------
@@ -1847,7 +1927,7 @@ package body Parse is
    --  <interface_dcl_end> ::= [<interface_inheritance_spec>] "{"
    --                          <interface_body> "}"
    --  this last will be used in Parse_Interface_Dcl_End
-   procedure Parse_Interface (Result : out  N_Root_Acc;
+   procedure Parse_Interface (Result : out  N_Named_Acc;
                               Success : out Boolean) is
       Res : N_Interface_Acc;
       Fd_Res : N_Forward_Interface_Acc;
@@ -1936,13 +2016,13 @@ package body Parse is
             Fd_Res.Forward := null;
             Redefine_Identifier (Definition, Fd_Res);
             --  Free (Res); ???????????????????
-            Result := N_Root_Acc (Fd_Res);
+            Result := N_Named_Acc (Fd_Res);
             Success := True;
             return;
          end if;
       else
          Parse_Interface_Dcl_End (Res, Success);
-         Result := N_Root_Acc (Res);
+         Result := N_Named_Acc (Res);
          return;
       end if;
       return;
@@ -2000,67 +2080,6 @@ package body Parse is
 
 
 
-   --  Rule 2:
-   --  <definition> ::= <type_dcl> ";"
-   --               |   <const_dcl> ";"
-   --               |   <except_dcl> ";"
-   --               |   <interface> ";"
-   --               |   <module> ";"
-   --               |   <value> ";"
-   procedure Parse_Definition (Result : out N_Root_Acc;
-                               Success : out Boolean) is
-   begin
-      case Get_Token is
---          when T_Typedef | T_Struct | T_Union | T_Enum | T_Native =>
---             Res := N_Root_Acc (Parse_Type_Dcl);
---          when T_Const =>
---             Res := N_Root_Acc (Parse_Const_Dcl);
---          when T_Exception =>
---             Res := N_Root_Acc (Parse_Except_Dcl);
-         when T_Interface =>
-            declare
-               Interface_Result : Boolean;
-            begin
-               Parse_Interface (Result, Interface_Result);
-               if Interface_Result then
-                  Success := True;
-               else
-                  Result := null;
-                  Success := False;
-                  return;
-               end if;
-            end;
-         when T_Module =>
-            declare
-               Module : N_Module_Acc;
-               Module_Result : Boolean;
-            begin
-               Parse_Module (Module, Module_Result);
-               if Module_Result then
-                  Result := N_Root_Acc (Module);
-                  Success := True;
-               else
-                  Result := null;
-                  Success := False;
-                  return;
-               end if;
-            end;
-         when others =>
-            Errors.Parser_Error ("definition expected",
-                                 Errors.Fatal,
-                                 Get_Token_Location);
-            Success := False;
-      end case;
-      if Get_Token /= T_Semi_Colon then
-         Errors.Parser_Error ("';' expected",
-                              Errors.Error,
-                              Get_Token_Location);
-         Success := False;
-      else
-         Next_Token;
-      end if;
-   end Parse_Definition;
-
 
    --  Rule 1 :
    --  <specification> ::= <definition>+
@@ -2074,7 +2093,7 @@ package body Parse is
       Next_Token;
       while Get_Token /= T_Eof loop
          declare
-            Definition : N_Root_Acc;
+            Definition : N_Named_Acc;
             Definition_Result : Boolean;
          begin
             Parse_Definition (Definition, Definition_Result);
@@ -2082,7 +2101,8 @@ package body Parse is
                Go_To_Next_Definition;
             end if;
             if Definition /= null then
-               Append_Node (Result.Contents, Definition);
+               Append_Node (Result.Contents,
+                            N_Root_Acc (Definition));
             end if;
          end;
       end loop;
