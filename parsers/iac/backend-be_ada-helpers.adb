@@ -243,8 +243,10 @@ package body Backend.BE_Ada.Helpers is
            (Widening_Ref_Spec (E), Visible_Part (Current_Package));
          Append_Node_To_List
            (Narrowing_Ref_Spec (E), Visible_Part (Current_Package));
+         N := TypeCode_Spec (E);
          Append_Node_To_List
-           (TypeCode_Spec (E), Visible_Part (Current_Package));
+           (N, Visible_Part (Current_Package));
+         Bind_FE_To_Helper (Identifier (E), N);
          Append_Node_To_List
            (From_Any_Spec (E), Visible_Part (Current_Package));
          Append_Node_To_List
@@ -295,10 +297,12 @@ package body Backend.BE_Ada.Helpers is
       --------------------------
 
       procedure Visit_Structure_Type (E : Node_Id) is
-
+         N : Node_Id;
       begin
+         N := TypeCode_Spec (E);
          Append_Node_To_List
-           (TypeCode_Spec (E), Visible_Part (Current_Package));
+           (N, Visible_Part (Current_Package));
+         Bind_FE_To_Helper (Identifier (E), N);
          Append_Node_To_List
            (From_Any_Spec (E), Visible_Part (Current_Package));
          Append_Node_To_List
@@ -312,12 +316,15 @@ package body Backend.BE_Ada.Helpers is
       procedure Visit_Type_Declaration (E : Node_Id) is
          L : List_Id;
          D : Node_Id;
+         N : Node_Id;
       begin
          L := Declarators (E);
          D := First_Entity (L);
          while Present (D) loop
+            N := TypeCode_Spec (D);
             Append_Node_To_List
-              (TypeCode_Spec (D), Visible_Part (Current_Package));
+              (N, Visible_Part (Current_Package));
+            Bind_FE_To_Helper (Identifier (E), N);
             Append_Node_To_List
               (From_Any_Spec (D), Visible_Part (Current_Package));
             Append_Node_To_List
@@ -331,9 +338,12 @@ package body Backend.BE_Ada.Helpers is
       ----------------------
 
       procedure Visit_Union_Type (E : Node_Id) is
+         N : Node_Id;
       begin
+         N := TypeCode_Spec (E);
          Append_Node_To_List
-           (TypeCode_Spec (E), Visible_Part (Current_Package));
+           (N, Visible_Part (Current_Package));
+         Bind_FE_To_Helper (Identifier (E), N);
          Append_Node_To_List
            (From_Any_Spec (E), Visible_Part (Current_Package));
          Append_Node_To_List

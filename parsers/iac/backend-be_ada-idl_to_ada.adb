@@ -23,6 +23,63 @@ package body Backend.BE_Ada.IDL_To_Ada is
      return RE_Id;
 
    ---------------------
+   -- Bind_FE_To_Impl --
+   ---------------------
+
+   procedure Bind_FE_To_Impl
+     (F : Node_Id;
+      B : Node_Id)
+   is
+      N : Node_Id;
+   begin
+      N := BE_Node (F);
+      if No (N) then
+         N := FEU.New_Node (FEN.K_BE_CORBA, No_Location);
+      end if;
+      FEN.Set_Impl_Node (N, B);
+      FEN.Set_BE_Node (F, N);
+      BEN.Set_FE_Node (B, F);
+   end Bind_FE_To_Impl;
+
+   -----------------------
+   -- Bind_FE_To_Helper --
+   -----------------------
+
+   procedure Bind_FE_To_Helper
+     (F : Node_Id;
+      B : Node_Id)
+   is
+      N : Node_Id;
+   begin
+      N := BE_Node (F);
+      if No (N) then
+         N := FEU.New_Node (FEN.K_BE_CORBA, No_Location);
+      end if;
+      FEN.Set_Helper_Node (N, B);
+      FEN.Set_BE_Node (F, N);
+      BEN.Set_FE_Node (B, F);
+   end Bind_FE_To_Helper;
+
+   ---------------------
+   -- Bind_FE_To_Skel --
+   ---------------------
+
+   procedure Bind_FE_To_Skel
+     (F : Node_Id;
+      B : Node_Id)
+   is
+      N : Node_Id;
+   begin
+      N := BE_Node (F);
+      if No (N) then
+         N := FEU.New_Node (FEN.K_BE_CORBA, No_Location);
+      end if;
+      FEN.Set_Skel_Node (N, B);
+      FEN.Set_BE_Node (F, N);
+      BEN.Set_FE_Node (B, F);
+   end Bind_FE_To_Skel;
+
+   ---------------------
    -- Bind_FE_To_Stub --
    ---------------------
 

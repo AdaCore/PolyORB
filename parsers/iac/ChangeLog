@@ -1,5 +1,15 @@
 2004-07-20  Saber Souli  <souli@neraka.enst.fr>
 
+	* backend-be_ada-helpers.adb: Linked Frontend nodes with Helper
+	nodes. 
+
+	* backend-be_ada-idl_to_ada.adb: Add Bind_FE_To_Skel,
+	Bind_FE_To_Impl and Bind_FE_To_Helper to allow linking
+	a frontend node with respective Skeleton, Implementation and
+	helper node. 
+
+2004-07-20  Saber Souli  <souli@neraka.enst.fr>
+
 	* frontend-nodes.idl: Add BE_CORBA node, which contain four nodes
 	: Stub_Node point to the stub, Helper_Node point to the helper,
 	Skel_Node to the Skeleton and finally Impl_node point to the

@@ -2,6 +2,18 @@ with Types; use Types;
 
 package Backend.BE_Ada.IDL_To_Ada is
 
+   procedure Bind_FE_To_Impl
+     (F : Node_Id;
+      B : Node_Id);
+
+   procedure Bind_FE_To_Helper
+     (F : Node_Id;
+      B : Node_Id);
+
+   procedure Bind_FE_To_Skel
+     (F : Node_Id;
+      B : Node_Id);
+
    procedure Bind_FE_To_Stub
      (F : Node_Id;
       B : Node_Id);
