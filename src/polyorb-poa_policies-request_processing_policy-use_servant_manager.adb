@@ -39,7 +39,8 @@ is
    -- Create --
    ------------
 
-   function Create return Use_Servant_Manager_Policy_Access is
+   function Create
+     return Use_Servant_Manager_Policy_Access is
    begin
       return new Use_Servant_Manager_Policy;
    end Create;
@@ -49,8 +50,8 @@ is
    -------------------------
 
    procedure Check_Compatibility
-     (Self           : Use_Servant_Manager_Policy;
-      Other_Policies : AllPolicies;
+     (Self           :        Use_Servant_Manager_Policy;
+      Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);

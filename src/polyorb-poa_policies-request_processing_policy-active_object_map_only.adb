@@ -55,8 +55,8 @@ is
    -------------------------
 
    procedure Check_Compatibility
-     (Self           : Active_Map_Only_Policy;
-      Other_Policies : AllPolicies;
+     (Self           :        Active_Map_Only_Policy;
+      Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);

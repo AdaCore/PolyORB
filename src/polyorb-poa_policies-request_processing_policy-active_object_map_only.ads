@@ -35,13 +35,15 @@ package PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only
 is
 
    type Active_Map_Only_Policy is new RequestProcessingPolicy with null record;
+
    type Active_Map_Only_Policy_Access is access all Active_Map_Only_Policy;
 
-   function Create return Active_Map_Only_Policy_Access;
+   function Create
+     return Active_Map_Only_Policy_Access;
 
    procedure Check_Compatibility
-     (Self           : Active_Map_Only_Policy;
-      Other_Policies : AllPolicies;
+     (Self           :        Active_Map_Only_Policy;
+      Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Exceptions.Error_Container);
 
    function Policy_Id

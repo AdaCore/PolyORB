@@ -39,11 +39,12 @@ package PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant is
    type Use_Default_Servant_Policy_Access is
      access all Use_Default_Servant_Policy;
 
-   function Create return Use_Default_Servant_Policy_Access;
+   function Create
+     return Use_Default_Servant_Policy_Access;
 
    procedure Check_Compatibility
-     (Self           : Use_Default_Servant_Policy;
-      Other_Policies : AllPolicies;
+     (Self           :        Use_Default_Servant_Policy;
+      Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Exceptions.Error_Container);
 
    function Policy_Id

@@ -40,11 +40,9 @@ package PolyORB.POA_Policies.Request_Processing_Policy is
    use PolyORB.POA_Types;
 
    type RequestProcessingPolicy is abstract new Policy with null record;
-   subtype Request_Processing_Policy is RequestProcessingPolicy;
 
    type RequestProcessingPolicy_Access is
      access all RequestProcessingPolicy'Class;
-   subtype Request_Processing_Policy_Access is RequestProcessingPolicy_Access;
 
    procedure Etherealize_All
      (Self  : RequestProcessingPolicy;

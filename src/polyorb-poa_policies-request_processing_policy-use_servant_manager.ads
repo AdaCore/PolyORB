@@ -39,11 +39,12 @@ package PolyORB.POA_Policies.Request_Processing_Policy.Use_Servant_Manager is
    type Use_Servant_Manager_Policy_Access is
      access all Use_Servant_Manager_Policy;
 
-   function Create return Use_Servant_Manager_Policy_Access;
+   function Create
+     return Use_Servant_Manager_Policy_Access;
 
    procedure Check_Compatibility
-     (Self           : Use_Servant_Manager_Policy;
-      Other_Policies : AllPolicies;
+     (Self           :        Use_Servant_Manager_Policy;
+      Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Exceptions.Error_Container);
 
    function Policy_Id
