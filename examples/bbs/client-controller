@@ -7,27 +7,49 @@
 ab_names=/infres/shalmaneser/quinot/projects/droopi/cos/naming/ab_names
 serverp=/infres/shalmaneser/quinot/projects/droopi/examples/bbs/serverp
 evolutedp=/infres/ir10/astre/quinot/polyorb-sparc/build/examples/bbs/evolutedp
-output=/infres/ir10/astre/quinot/polyorb-sparc/output
+evolutedp_conf=/infres/ir10/astre/quinot/polyorb-sparc/build/examples/bbs/evolutedp.conf
+output=/infres/shalmaneser/quinot/polyorb-output
 
 export POLYORB_CONF=
 
 Revolutedp_pids=""
 clinumber=0
 
-hosts=fadette:valjean:cyrano:esmeralda2:lantier:donjuan:blizzard:candide:gavroche:aurelien:elvire:cosette:folcoche:roland:quasimodo:chimene:arsene:isengrin:
+hosts=valjean:cyrano:esmeralda2:lantier:donjuan:blizzard:candide:gavroche:aurelien:elvire:cosette:folcoche:roland:quasimodo:chimene:arsene:isengrin:
 #nadja:goriot:esmeralda:javert:fracasse:
 
 nmax=`echo $hosts | tr -cd : | wc -c`
 size=100
 count=100
+kill=false
 
-while getopts s:c: opt; do
+while getopts ks:c:n: opt; do
   case "$opt" in
+    k) kill=true ;;
     s) size=$OPTARG ;;
     c) count=$OPTARG ;;
+    n) if [ $OPTARG -gt $nmax ]; then
+         echo "No more than $nmax clients supported."
+         exit 1
+       else
+         nmax=$OPTARG
+       fi
+       ;;
     *) echo "invalid parameter"; exit 1;;
   esac
 done
+
+if $kill; then
+  IFS=:
+  for h in $hosts; do
+    if [ "$h" != "" ]; then
+      echo $h
+      ssh $h "/usr/ucb/ps axw|grep 'quinot.*evolutedp' | grep -v grep \
+         | awk '{print \$1}' | xargs kill -9"
+    fi
+  done
+  exit 0
+fi
 
 now=`date +"%F_%T" | tr -d :`
 output=$output/$now
@@ -37,7 +59,7 @@ echo "size=$size" > $output/00PARAMETERS
 echo "count=$count" >> $output/00PARAMETERS
 echo "nmax=$nmax" >> $output/00PARAMETERS
 
-trap 'kill $ab_names_pid $serverp_pid $Revoleted_pids' 0 2 15
+trap 'kill $ab_names_pid $serverp_pid $Revoluted_pids' 0 2 15
 
 $ab_names > $output/ab_names.out &
 ab_names_pid=$!
@@ -48,26 +70,40 @@ export POLYORB_CORBA_NAMING_IOR
 $serverp > $output/serverp.out 2>&1 &
 serverp_pid=$!
 
-while [ "$hosts" != "" ]; do
+while [ "$clinumber" -lt "$nmax" ]; do
+  eval `echo $hosts | sed 's/^\([^:]*\):\(.*\)$/host=\1;hosts=\2/'`
+  ping -c 2 $host > /dev/null || continue
+
   ctl=/tmp/cli${clinumber}_ctl
   rm -f $ctl
   mkfifo $ctl
-  eval `echo $hosts | sed 's/^\([^:]*\):\(.*\)$/host=\1;hosts=\2/'`
-  ssh $host "POLYORB_CORBA_NAMING_IOR=$POLYORB_CORBA_NAMING_IOR \
-    POLYORB_CONF= \
+  cliout=$output/cli$clinumber-$host 
+  touch $cliout
+  cliouts="$cliouts $cliout"
+  tail -f $ctl | ssh $host "TERM=dumb \
+    POLYORB_CORBA_NAMING_IOR=$POLYORB_CORBA_NAMING_IOR \
+    POLYORB_CONF=$evolutedp_conf \
     LD_LIBRARY_PATH=/usr/local/lib \
-    $evolutedp -n $nmax -c $count -s $size TEST_$clinumber \
-      > $output/cli$clinumber-$host 2>&1" < $ctl &
+    $evolutedp -n $nmax -c $count -s $size TEST_$clinumber" \
+      >> $cliout 2>&1 &
   Revolutedp_pids="$Revolutedp_pids $!"
-  echo "" > $ctl
   eval "cli_host_$clinumber=$h"
   clinumber=`expr $clinumber + 1`
 done
 
-while [ "`grep -L Ready $output/cli*`" != "" ]; do
+while [ "`grep -L Ready $cliouts`" != "" ]; do
   echo "Waiting for clients to become ready."
   sleep 5
 done
+
+sleep 10
+
+if grep "New message" $cliouts; then
+  echo "Clients started too early, bailing out."
+  exec $0 -k
+fi
+
+sleep 10
 
 date
 i=0
