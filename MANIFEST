@@ -170,8 +170,6 @@ cos/time/test_time.adb
 cos/time/test_time.ads
 cos/time/time_utils.adb
 cos/time/time_utils.ads
-design/droopi-objects
-design/droopi-uml.eps
 design/droopi-uml.ps
 doc/CODING_GUIDELINES
 doc/NOTES
@@ -212,10 +210,8 @@ examples/polyorb-setup-test.ads
 examples/polyorb-setup-test_corba.adb
 examples/polyorb-setup-test_corba.ads
 examples/polyorb-test-no_tasking.adb
-examples/polyorb-test-no_tasking_poa
 examples/polyorb-test-no_tasking_poa.adb
 examples/polyorb-test-thread_pool.adb
-examples/polyorb-test-thread_pool_poa
 examples/polyorb-test-thread_pool_poa.adb
 examples/polyorb-test_object.adb
 examples/polyorb-test_object.ads
@@ -307,7 +303,6 @@ idls/interop/iop_dce.idl
 idls/interop/sendingcontext.idl
 idls/misc/dynamicany.idl
 idls/misc/portableserver.idl
-libtool
 src/Makefile.am
 src/Makefile.common
 src/Makefile.in
