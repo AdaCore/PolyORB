@@ -78,6 +78,9 @@ package PolyORB.Parameters is
 
    type Parameters_Initializer is access procedure;
 
+   procedure Reset;
+   --  Clear all variables previously positioned using Set_Conf.
+
 private
 
    function Get_Env

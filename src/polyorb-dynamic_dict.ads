@@ -69,4 +69,7 @@ package PolyORB.Dynamic_Dict is
    --  As above, but Default is returned for non-registered keys,
    --  insted of raising an exception.
 
+   procedure Reset;
+   --  Remove all key associations.
+
 end PolyORB.Dynamic_Dict;

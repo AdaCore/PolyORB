@@ -311,4 +311,10 @@ package body PolyORB.Parameters is
       PolyORB.Log.Get_Conf_Hook := Get_Conf'Access;
    end Set_Hooks;
 
+   -----------
+   -- Reset --
+   -----------
+
+   procedure Reset renames Variables.Reset;
+
 end PolyORB.Parameters;

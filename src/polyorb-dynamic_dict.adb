@@ -111,6 +111,16 @@ package body PolyORB.Dynamic_Dict is
       Insert (T, K, V);
    end Register;
 
+   -----------
+   -- Reset --
+   -----------
+
+   procedure Reset is
+   begin
+      Finalize (T);
+      Initialize (T);
+   end Reset;
+
    ----------------
    -- Unregister --
    ----------------
