@@ -27,109 +27,6 @@ package body Debug is
       return S (3 .. S'Last);
    end Image;
 
-   procedure W_Indentation (N : Natural) is
-   begin
-      for I in 1 .. N loop
-         Write_Str ("   ");
-      end loop;
-   end W_Indentation;
-
-   procedure W_Boolean (N : Boolean) is
-   begin
-      Write_Str (N'Img);
-   end W_Boolean;
-
-   procedure W_Byte (N : Byte) is
-   begin
-      Write_Int (Int (N));
-   end W_Byte;
-
-   procedure W_List_Id (I : Natural; L : List_Id) is
-      E : Node_Id;
-   begin
-      if L = No_List then
-         return;
-      end if;
-
-      E := First_Node (L);
-      while E /= No_Node loop
-         W_Node_Id (I, E);
-         E := Next_Node (E);
-      end loop;
-   end W_List_Id;
-
-   procedure W_Node_Attribute
-     (I : Natural;
-      A : String;
-      T : String;
-      V : String;
-      N : Int := 0)
-   is
-      C : Node_Id;
-   begin
-      if A = "Next_Node"
-        or else A = "Homonym"
-        or else A = "Name"
-        or else A = "Scoped_Identifiers"
-        or else A = "Immediately_Visible"
-        or else A = "Potentially_Visible"
-        or else A = "Next_Identifier"
-      then
-         return;
-      end if;
-      W_Indentation (I + 1);
-      Write_Str  (A);
-      Write_Char (' ');
-      Write_Str  (T);
-      Write_Char (' ');
-      C := Node_Id (N);
-      if T = "Name_Id" then
-         Write_Line (Quoted (V));
-      elsif T = "Node_Id"
-        and then Present (C)
-      then
-         case Kind (C) is
-            when K_Float .. K_Value_Base =>
-               Write_Line ('(' & Image (Kind (Node_Id (N))) & ')');
-            when others =>
-               Write_Line (V);
-         end case;
-      else
-         Write_Line (V);
-      end if;
-      if A = "Node"
-        or else A = "Scope"
-        or else A = "Reference"
-        or else A = "Base_Interface"
-        or else A = "Declaration"
-      then
-         return;
-      end if;
-      if T = "Node_Id" then
-         W_Node_Id (I + 1, Node_Id (N));
-      elsif T = "List_Id" then
-         W_List_Id (I + 1, List_Id (N));
-      end if;
-   end W_Node_Attribute;
-
-   procedure W_Node_Id (I : Natural; N : Node_Id) is
-   begin
-      if N = No_Node then
-         return;
-      end if;
-      W_Node (I, N);
-   end W_Node_Id;
-
-   procedure W_Node_Header (I : Natural; N : Node_Id) is
-   begin
-      W_Indentation (I);
-      Write_Int   (Int (N));
-      Write_Char  (' ');
-      Write_Str   (Image (Kind (N)));
-      Write_Char  (' ');
-      Write_Line  (Image (Loc (N)));
-   end W_Node_Header;
-
    function Image (N : Name_Id) return String is
    begin
       if N = No_Name then
@@ -180,18 +77,165 @@ package body Debug is
       return S (S'First + 1 .. S'Last);
    end Image;
 
-   procedure wni (N : Node_Id) is
+   ---------------
+   -- W_Boolean --
+   ---------------
+
+   procedure W_Boolean (N : Boolean) is
    begin
-      W_Node_Id (1, N);
-   end wni;
+      Write_Str (N'Img);
+   end W_Boolean;
+
+   ------------
+   -- W_Byte --
+   ------------
+
+   procedure W_Byte (N : Byte) is
+   begin
+      Write_Int (Int (N));
+   end W_Byte;
+
+   -----------------
+   -- W_Full_Tree --
+   -----------------
 
    procedure W_Full_Tree is
       D : Node_Id := First_Node (Definitions (Root));
    begin
+      N_Indents := 0;
       while Present (D) loop
-         W_Node_Id (0, D);
+         W_Node_Id (D);
          D := Next_Node (D);
       end loop;
    end W_Full_Tree;
+
+   ---------------
+   -- W_Indents --
+   ---------------
+
+   procedure W_Indents is
+   begin
+      for I in 1 .. N_Indents loop
+         Write_Str ("   ");
+      end loop;
+   end W_Indents;
+
+   ---------------
+   -- W_List_Id --
+   ---------------
+
+   procedure W_List_Id (L : List_Id) is
+      E : Node_Id;
+   begin
+      if L = No_List then
+         return;
+      end if;
+
+      E := First_Node (L);
+      while E /= No_Node loop
+         W_Node_Id (E);
+         E := Next_Node (E);
+      end loop;
+   end W_List_Id;
+
+   ----------------------
+   -- W_Node_Attribute --
+   ----------------------
+
+   procedure W_Node_Attribute
+     (A : String;
+      K : String;
+      V : String;
+      N : Int := 0)
+   is
+      C : Node_Id;
+   begin
+      if A = "Next_Node"
+        or else A = "Homonym"
+        or else A = "Name"
+        or else A = "Scoped_Identifiers"
+        or else A = "Immediately_Visible"
+        or else A = "Potentially_Visible"
+        or else A = "Next_Identifier"
+      then
+         return;
+      end if;
+      N_Indents := N_Indents + 1;
+      W_Indents;
+      Write_Str  (A);
+      Write_Char (' ');
+      Write_Str  (K);
+      Write_Char (' ');
+      C := Node_Id (N);
+      if K = "Name_Id" then
+         Write_Line (Quoted (V));
+
+      elsif K = "Node_Id"
+        and then Present (C)
+      then
+         case Kind (C) is
+            when K_Float .. K_Value_Base =>
+               Write_Line ('(' & Image (Kind (Node_Id (N))) & ')');
+            when others =>
+               Write_Line (V);
+         end case;
+
+      else
+         Write_Line (V);
+      end if;
+
+      if A /= "Node"
+        and then A /= "Scope"
+        and then A /= "Reference"
+        and then A /= "Base_Interface"
+        and then A /= "Declaration"
+      then
+         if K = "Node_Id" then
+            W_Node_Id (Node_Id (N));
+         elsif K = "List_Id" then
+            W_List_Id (List_Id (N));
+         end if;
+      end if;
+
+      N_Indents := N_Indents - 1;
+   end W_Node_Attribute;
+
+   -------------------
+   -- W_Node_Header --
+   -------------------
+
+   procedure W_Node_Header (N : Node_Id) is
+   begin
+      W_Indents;
+      Write_Int  (Int (N));
+      Write_Char (' ');
+      Write_Str  (Image (Kind (N)));
+      Write_Char (' ');
+      Write_Line (Image (Loc (N)));
+   end W_Node_Header;
+
+   ---------------
+   -- W_Node_Id --
+   ---------------
+
+   procedure W_Node_Id (N : Node_Id) is
+   begin
+      if N = No_Node then
+         return;
+      end if;
+      W_Node (N);
+   end W_Node_Id;
+
+   ---------
+   -- wni --
+   ---------
+
+   procedure wni (N : Node_Id) is
+      I : constant Natural := N_Indents;
+   begin
+      N_Indents := 1;
+      W_Node_Id (N);
+      N_Indents := I;
+   end wni;
 
 end Debug;

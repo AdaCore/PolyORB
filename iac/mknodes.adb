@@ -1,4 +1,4 @@
-with Ada.Command_Line;  use Ada.Command_Line;
+with GNAT.Command_Line; use GNAT.Command_Line;
 
 with GNAT.Table;
 with GNAT.OS_Lib;       use GNAT.OS_Lib;
@@ -11,6 +11,8 @@ with Output;    use Output;
 with Types;     use Types;
 
 procedure Mknodes is
+
+   Debug : Boolean := False;
 
    function GNS (N : Name_Id) return String renames Get_Name_String;
 
@@ -389,18 +391,22 @@ procedure Mknodes is
       Intf : Node_Id;
 
    begin
-      Write_Str  ("--  assign color to ");
-      Write_Name (Identifier (Attribute));
-      Write_Eol;
+      if Debug then
+         Write_Str  ("--  assign color to ");
+         Write_Name (Identifier (Attribute));
+         Write_Eol;
+      end if;
       Used := (others => False);
 
       Attr := First_Attribute;
       while Attr /= No_Node loop
          if Identifier (Attr) = Name then
             Intf := Scope (Attr);
-            Write_Str ("--  find attribute in ");
-            Write_Name (Identifier (Intf));
-            Write_Eol;
+            if Debug then
+               Write_Str ("--  find attribute in ");
+               Write_Name (Identifier (Intf));
+               Write_Eol;
+            end if;
             while Intf /= No_Node loop
                --  Mark colors of adjacent attributes in
                --  use. Attribute A2 is adjacent to attribute A1
@@ -409,13 +415,15 @@ procedure Mknodes is
                if Has_Attribute (Intf) then
                   for Neighbor in First_Entity (Intf) .. Last_Entity (Intf)
                   loop
-                     Write_Str ("--  conflict with ");
-                     Write_Name (Identifier (Neighbor));
-                     Write_Str (" from ");
-                     Write_Name (Identifier (Intf));
-                     Write_Str (" ");
-                     Write_Int (Int (Color (Neighbor)));
-                     Write_Eol;
+                     if Debug then
+                        Write_Str ("--  conflict with ");
+                        Write_Name (Identifier (Neighbor));
+                        Write_Str (" from ");
+                        Write_Name (Identifier (Intf));
+                        Write_Str (" ");
+                        Write_Int (Int (Color (Neighbor)));
+                        Write_Eol;
+                     end if;
                      Used (Color (Neighbor)) := True;
                   end loop;
                end if;
@@ -433,9 +441,11 @@ procedure Mknodes is
             if Color (Base_Types (Kind)) < C then
                Set_Color (Base_Types (Kind), C);
             end if;
-            Write_Str ("--  decide to assign ");
-            Write_Int (Int (C));
-            Write_Eol;
+            if Debug then
+               Write_Str ("--  decide to assign ");
+               Write_Int (Int (C));
+               Write_Eol;
+            end if;
             exit;
          end if;
       end loop;
@@ -543,6 +553,15 @@ procedure Mknodes is
       N_Attributes := N_Attributes + 1;
    end Declare_Attribute;
 
+   -------------------
+   -- Has_Attribute --
+   -------------------
+
+   function Has_Attribute (I : Node_Id) return Boolean is
+   begin
+      return First_Entity (I) /= No_Node;
+   end Has_Attribute;
+
    ----------------------
    -- Inheritance_Tree --
    ----------------------
@@ -597,15 +616,6 @@ procedure Mknodes is
 
       return False;
    end Is_Attribute_In_Interface;
-
-   -------------------
-   -- Has_Attribute --
-   -------------------
-
-   function Has_Attribute (I : Node_Id) return Boolean is
-   begin
-      return First_Entity (I) /= No_Node;
-   end Has_Attribute;
 
    -----------------
    -- P_Attribute --
@@ -1061,7 +1071,7 @@ procedure Mknodes is
       end loop;
 
       W_Subprogram_Definition
-        (1, W ("Node"), 'I', "Natural", 'N', "Node_Id");
+        (1, W ("Node"), 'N', "Node_Id");
       W_Indentation (2);
       Write_Line ("case Kind (N) is");
       Interface := First_Interface;
@@ -1077,7 +1087,7 @@ procedure Mknodes is
             end loop;
             W_Subprogram_Call
               (4, W (GNS (Identifier (Interface))),
-               "I", GNS (Identifier (Base_Type)) & " (N)");
+               GNS (Identifier (Base_Type)) & " (N)");
          end if;
          Interface := Next_Entity (Interface);
       end loop;
@@ -1100,11 +1110,10 @@ procedure Mknodes is
 
             W_Subprogram_Definition
               (1, W (GNS (Identifier (Interface))),
-               'I', "Natural",
                'N', GNS (Identifier (Base_Type)));
 
             W_Subprogram_Call
-              (2, W ("Node_Header"), "I", "Node_Id (N)");
+              (2, W ("Node_Header"), "Node_Id (N)");
 
 
             Attribute := First_Attribute;
@@ -1123,7 +1132,6 @@ procedure Mknodes is
                   then
                      W_Subprogram_Call
                        (2, W ("Node_Attribute"),
-                        "I",
                         Quote (GNS (Identifier (Attribute))),
                         Quote (GNS (Identifier (Type_Spec (Attribute)))),
                         "Image (" & GNS (Identifier (Attribute)) & " (N))",
@@ -1131,7 +1139,6 @@ procedure Mknodes is
                   else
                      W_Subprogram_Call
                        (2, W ("Node_Attribute"),
-                        "I",
                         Quote (GNS (Identifier (Attribute))),
                         Quote (GNS (Identifier (Type_Spec (Attribute)))),
                         "Image (" & GNS (Identifier (Attribute)) & " (N))");
@@ -1231,7 +1238,6 @@ procedure Mknodes is
             if Tree'Length > 1 then
                W_Subprogram_Declaration
                  (1, W (GNS (Identifier (Interface))),
-                  'I', "Natural",
                   'N', GNS (Identifier (Tree (Tree'First))));
                Write_Eol;
             end if;
@@ -1264,7 +1270,7 @@ procedure Mknodes is
       end loop;
 
       W_Subprogram_Declaration
-        (1, W ("Node"), 'I', "Natural", 'N', "Node_Id");
+        (1, W ("Node"), 'N', "Node_Id");
       Write_Eol;
 
       --  Describe slot table types
@@ -1515,19 +1521,28 @@ procedure Mknodes is
    Attribute         : Node_Id;
 
 begin
-   if Argument_Count = 0 then
-      return;
-   end if;
 
    --  Initialization step
    Namet.Initialize;
 
-   Set_Str_To_Name_Buffer (Argument (1));
+   loop
+      case Getopt ("d") is
+         when 'd' =>
+            Debug := True;
+
+         when ASCII.NUL =>
+            exit;
+
+         when others =>
+            raise Program_Error;
+      end case;
+   end loop;
+
+   Set_Str_To_Name_Buffer (Get_Argument);
    if Name_Len = 0 then
       DE ("no file name");
       return;
    end if;
-
    Source_File_Name := Name_Find;
 
    if not Is_Regular_File (Name_Buffer (1 .. Name_Len)) then

@@ -343,7 +343,7 @@ mostlyclean distclean maintainer-clean
 
 all-local: $(PROG)
 
-%.ada:%.idl
+%.ada:%.idl mknodes
 	@-./mknodes $< >$@
 	gnatchop -w $@
 
