@@ -28,6 +28,7 @@ with Ada.Strings.Fixed; use Ada.Strings, Ada.Strings.Fixed;
 with Ada.Text_IO;       use Ada.Text_IO;
 with GNAT.OS_Lib;
 with Idlac_Flags;       use Idlac_Flags;
+with Utils;             use Utils;
 
 package body Errors is
 
@@ -35,32 +36,20 @@ package body Errors is
    --  Location handling  --
    -------------------------
 
-   --  nice display of a natural
-   function Nat_To_String (Val : Natural) return String;
-
-   --  display an error
-   procedure Display_Error (Message : in String;
-                            Level : in Error_Kind;
-                            Loc : Location);
+   procedure Display_Error
+     (Message : in String;
+      Level : in Error_Kind;
+      Loc : Location);
+   --  Display an error
 
    procedure Pinpoint_Error
      (Message : in String;
       Loc     : in Location);
-   --  Print a full description of the error message with pointers on the
-   --  error location.
+   --  Print a full description of the error message with pointers
+   --  on the error location.
 
    function Full_Name (Loc : Location) return String;
    --  Return the full file name (i.e., a usable one)
-
-   ---------------------
-   --  Nat_To_String  --
-   ---------------------
-
-   function Nat_To_String (Val : Natural) return String is
-      Res : String := Natural'Image (Val);
-   begin
-      return Res (2 .. Res'Last);
-   end Nat_To_String;
 
    ------------------------
    --  Display_Location  --
@@ -71,30 +60,28 @@ package body Errors is
       if Loc.Filename /= null then
          if Loc.Dirname /= null then
             return "line " &
-              Nat_To_String (Loc.Line) &
+              Img (Loc.Line) &
               ", column " &
-              Nat_To_String (Loc.Col) &
+              Img (Loc.Col) &
               " of file " &
               Loc.Dirname.all &
               GNAT.OS_Lib.Directory_Separator &
               Loc.Filename.all;
          else
             return "line " &
-              Nat_To_String (Loc.Line) &
+              Img (Loc.Line) &
               ", column " &
-              Nat_To_String (Loc.Col) &
+              Img (Loc.Col) &
               " of file " &
               Loc.Filename.all;
          end if;
       else
          return "line " &
-           Nat_To_String (Loc.Line) &
+           Img (Loc.Line) &
            ", column " &
-           Nat_To_String (Loc.Col);
+           Img (Loc.Col);
       end if;
    end Display_Location;
-
-
 
    ----------------------
    --  Error handling  --
@@ -251,7 +238,7 @@ package body Errors is
             File      : File_Type;
             Line      : String (1 .. 1024);
             Last      : Natural;
-            LN        : constant String := Nat_To_String (Loc.Line);
+            LN        : constant String := Img (Loc.Line);
             LNN       : constant Positive := LN'Length;
          begin
             Open (File, In_File, File_Name);
@@ -271,9 +258,10 @@ package body Errors is
          end;
          New_Line (Current_Error);
       else
-         Put_Line (Current_Error,
-                   Full_Name (Loc) & ":" & Nat_To_String (Loc.Line) &
-                   ":" & Nat_To_String (Loc.Col) & " " & Message);
+         Put_Line
+           (Current_Error,
+            Full_Name (Loc) & ":" & Img (Loc.Line) &
+            ":" & Img (Loc.Col) & " " & Message);
       end if;
    end Pinpoint_Error;
 

@@ -351,13 +351,13 @@ package body Ada_Be.Expansion is
 
       type Header_Num is range 0 .. 1024;
       function Hash is new GNAT.HTable.Hash (Header_Num);
-      function Hash (A : Errors.File_Name_Ptr) return Header_Num;
-      function Hash (A : Errors.File_Name_Ptr) return Header_Num is
+      function Hash (A : Errors.String_Ptr) return Header_Num;
+      function Hash (A : Errors.String_Ptr) return Header_Num is
       begin
          return Hash (A.all);
       end Hash;
-      function Equals (A, B : Errors.File_Name_Ptr) return Boolean;
-      function Equals (A, B : Errors.File_Name_Ptr) return Boolean is
+      function Equals (A, B : Errors.String_Ptr) return Boolean;
+      function Equals (A, B : Errors.String_Ptr) return Boolean is
       begin
          return A.all = B.all;
       end Equals;
@@ -365,7 +365,7 @@ package body Ada_Be.Expansion is
         (Header_Num,
          Node_Id,
          No_Node,
-         Errors.File_Name_Ptr,
+         Errors.String_Ptr,
          Hash,
          Equals);
 
@@ -381,7 +381,7 @@ package body Ada_Be.Expansion is
          declare
             Current : Node_Id;
             Loc : Errors.Location;
-            Filename : Errors.File_Name_Ptr;
+            Filename : Errors.String_Ptr;
 
             Idl_File_Node : Node_Id;
             Success : Boolean;

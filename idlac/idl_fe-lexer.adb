@@ -1057,26 +1057,23 @@ package body Idl_Fe.Lexer is
                               Errors.Error,
                               Get_Real_Location);
                         end if;
-                        --  distinguish the file and the directory
-                        Errors.Free (Current_Location.Filename);
-                        if Current_Location.Dirname /= null then
-                           Errors.Free (Current_Location.Dirname);
-                        end if;
-                        Separator := Index (Text,
-                                            To_Set (Directory_Separator),
-                                            Inside,
-                                            Backward);
+
+                        Separator := Index
+                          (Text, To_Set (Directory_Separator),
+                           Inside, Backward);
+
                         if Separator /= 0 then
-                           Current_Location.Dirname :=
-                            new String'(Text (Text'First .. Separator - 1));
-                           Current_Location.Filename :=
-                            new String'(Text (Separator + 1 .. Text'Last));
+                           Current_Location.Dirname := new String'
+                             (Text (Text'First .. Separator - 1));
+                           Current_Location.Filename := new String'
+                             (Text (Separator + 1 .. Text'Last));
                         else
                            Current_Location.Dirname := null;
-                           Current_Location.Filename :=
-                            new String'(Text (Text'First .. Text'Last));
+                           Current_Location.Filename := new String'
+                             (Text (Text'First .. Text'Last));
                         end if;
                      end;
+
                      Skip_Spaces;
                      while View_Next_Char /= LF loop
                         --  there is a flag
@@ -1294,6 +1291,7 @@ package body Idl_Fe.Lexer is
                   Skip_Char;
                   Skip_Comment;
                else
+                  Set_Token_Location;
                   return T_Slash;
                end if;
             when '%' =>
