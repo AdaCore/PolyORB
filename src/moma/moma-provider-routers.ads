@@ -73,9 +73,8 @@ private
    end record;
 
    procedure Publish (Self       : access Router;
-                      Message    : PolyORB.Any.Any;
-                      Topic_Id   : MOMA.Types.String);
-   --  Publish a Message on the topic designed by Topic_Id.
+                      Message    : PolyORB.Any.Any);
+   --  Publish a Message on the topic given by the Message destination.
 
    procedure Store (Pool      : Ref;
                     Message   : PolyORB.Any.Any);

@@ -39,6 +39,7 @@
 
 --  $Id$
 
+with MOMA.Destinations;
 with MOMA.Types;
 
 package MOMA.Sessions is
@@ -59,6 +60,10 @@ package MOMA.Sessions is
    procedure Recover;
 
    procedure Rollback;
+
+   procedure Subscribe (Topic : MOMA.Destinations.Destination;
+                        Pool  : MOMA.Destinations.Destination);
+   --  Subscribe a Pool to a Topic. See MOMA.Destinations for more details.
 
 private
 

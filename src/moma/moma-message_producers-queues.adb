@@ -86,11 +86,13 @@ package body MOMA.Message_Producers.Queues is
    ----------
 
    procedure Send (Self    : Queue;
-                   Message : MOMA.Messages.Message'Class)
+                   Message : in out MOMA.Messages.Message'Class)
    is
       use MOMA.Destinations;
       Type_Id_S     : constant MOMA.Types.String := Get_Type_Id_Of (Self);
    begin
+      MOMA.Messages.Set_Destination (Message,
+                                     Get_Destination (Self));
       if Type_Id_S = MOMA.Types.MOMA_Type_Id then
          Send_To_MOM (Get_Ref (Self),
                       Message,
@@ -112,8 +114,6 @@ package body MOMA.Message_Producers.Queues is
       Request       : PolyORB.Requests.Request_Access;
       Arg_List      : PolyORB.Any.NVList.Ref;
       Result        : PolyORB.Any.NamedValue;
---      Argument_Mesg2 : PolyORB.Any.Any := PolyORB.Any.To_Any
---        (To_PolyORB_String (""));
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Kind);
@@ -127,15 +127,6 @@ package body MOMA.Message_Producers.Queues is
                                    To_PolyORB_String ("Message"),
                                    Argument_Mesg,
                                    PolyORB.Any.ARG_IN);
-
---      if Kind = Topic then
---         PolyORB.Any.NVList.Add_Item (Arg_List,
---                                      To_PolyORB_String ("Topic_Id"),
---                                      Argument_Mesg2,
---                                      PolyORB.Any.ARG_IN);
-      --  XXX The destination should not be always Test ! ;)
---      end if;
---  XXX To uncomment.
 
       Result := (Name      => To_PolyORB_String ("Result"),
                  Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),

@@ -64,7 +64,7 @@ package body MOMA.Sessions.Queues is
                                 return MOMA.Destinations.Destination
    is
    begin
-      return MOMA.Destinations.Create (Name, Remote);
+      return MOMA.Destinations.Create (Name, Remote, MOMA.Types.Pool);
    end Create_Destination;
 
    --------------------

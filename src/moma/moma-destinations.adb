@@ -35,7 +35,9 @@
 with MOMA.Types;
 
 with PolyORB.Any.ObjRef;
+with PolyORB.Any.NVList;
 with PolyORB.Initialization;
+with PolyORB.Requests;
 with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
@@ -45,6 +47,7 @@ package body MOMA.Destinations is
 
    use PolyORB.Any;
    use PolyORB.Any.ObjRef;
+   use PolyORB.Types;
 
    ------------
    -- Create --
@@ -90,6 +93,7 @@ package body MOMA.Destinations is
    function From_Any (Self : PolyORB.Any.Any)
                       return MOMA.Destinations.Destination
    is
+      Kind : MOMA.Types.Destination_Type := MOMA.Types.Unknown;
       Name : MOMA.Types.String;
       Ref  : PolyORB.References.Ref;
    begin
@@ -102,8 +106,13 @@ package body MOMA.Destinations is
         (Get_Aggregate_Element (Self,
                                 TypeCode.TC_Object,
                                 PolyORB.Types.Unsigned_Long (1)));
+--      Kind := From_Any
+--         (Get_Aggregate_Element (Self,
+--                                 TypeCode.TC_Enum,
+--                                 PolyORB.Types.Unsigned_Long (2)));
+--  XXX To uncomment when it works.
 
-      return Create (Name, Ref);
+      return Create (Name, Ref, Kind);
    end From_Any;
 
    --------------
@@ -143,7 +152,7 @@ package body MOMA.Destinations is
    function Image (Self : Destination)
                    return String is
    begin
-      return "<name: " & To_Standard_String (Self.Name)
+      return "<name: " & MOMA.Types.To_Standard_String (Self.Name)
              & ",ref: " & PolyORB.References.Image (Self.Ref)
              & ">";
    end Image;
@@ -179,6 +188,43 @@ package body MOMA.Destinations is
       Self.Kind := Kind;
    end Set_Kind;
 
+   ---------------
+   -- Subscribe --
+   ---------------
+
+   procedure Subscribe (Topic : Destination;
+                        Pool  : Destination)
+   is
+      Arg_List : PolyORB.Any.NVList.Ref;
+      Request  : PolyORB.Requests.Request_Access;
+      Result   : PolyORB.Any.NamedValue;
+   begin
+      if Get_Kind (Topic) /= MOMA.Types.Topic
+      or else Get_Kind (Pool) /= MOMA.Types.Pool then
+         raise Program_Error;
+      end if;
+      PolyORB.Any.NVList.Create (Arg_List);
+      PolyORB.Any.NVList.Add_Item (Arg_List,
+                                   To_PolyORB_String ("Topic_Id"),
+                                   To_Any (Get_Name (Topic)),
+                                   PolyORB.Any.ARG_IN);
+      PolyORB.Any.NVList.Add_Item (Arg_List,
+                                   To_PolyORB_String ("Pool_Ref"),
+                                   To_Any (Get_Ref (Pool)),
+                                   PolyORB.Any.ARG_IN);
+      Result := (Name      => To_PolyORB_String ("Result"),
+                 Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
+                 Arg_Modes => 0);
+      PolyORB.Requests.Create_Request
+        (Target    => Get_Ref (Topic),
+         Operation => "Subscribe",
+         Arg_List  => Arg_List,
+         Result    => Result,
+         Req       => Request);
+      PolyORB.Requests.Invoke (Request);
+      PolyORB.Requests.Destroy_Request (Request);
+   end Subscribe;
+
    ------------
    -- To_Any --
    ------------
@@ -187,11 +233,11 @@ package body MOMA.Destinations is
                     return PolyORB.Any.Any
    is
       Result : Any := Get_Empty_Any_Aggregate (TC_MOMA_Destination);
-
    begin
       Add_Aggregate_Element (Result, To_Any (Self.Name));
       Add_Aggregate_Element (Result, To_Any (Self.Ref));
-
+--      Add_Aggregate_Element (Result, To_Any (Self.Kind));
+--  To uncomment when it works.
       return Result;
    end To_Any;
 

@@ -93,7 +93,8 @@ procedure Client is
    MOMA_Factory       : Connection_Factory_Queue;
    MOMA_Connection    : MOMA.Connections.Queues.Queue;
    MOMA_Session       : MOMA.Sessions.Queues.Session_Queue;
-   MOMA_Destination   : MOMA.Destinations.Destination;
+   MOMA_Dest_Router   : MOMA.Destinations.Destination;
+   MOMA_Dest_Pool     : MOMA.Destinations.Destination;
    MOMA_Producer      : MOMA.Message_Producers.Queues.Queue;
    MOMA_Consumer      : MOMA.Message_Consumers.Queues.Queue;
 
@@ -412,24 +413,33 @@ begin
    --  (should be usually done by the administrator).
    --  NB : in this example the destination and the provider are references
    --       to the same thing (Pool_Ref). This will probably change later.
-   if Kind = Pool then
-      MOMA_Destination := MOMA.Sessions.Queues.Create_Destination
-         (To_MOMA_String ("queue1"), Pool_Ref);
-   elsif Kind = Topic then
-      MOMA_Destination := MOMA.Destinations.Create
-         (To_MOMA_String ("router1"),
+   MOMA_Dest_Pool := MOMA.Sessions.Queues.Create_Destination
+      (To_MOMA_String ("queue1"),
+       Pool_Ref);
+   if Kind = Topic then
+      MOMA_Dest_Router := MOMA.Destinations.Create
+         (To_MOMA_String ("Test"),
           Router_Ref,
           MOMA.Types.Topic);
+
    end if;
 
    --  Create Session.
    MOMA_Session := Create_Session (MOMA_Connection, False, 1);
 
    --  Create Message Producer associated to the Session.
-   MOMA_Producer := Create_Sender (MOMA_Session, MOMA_Destination);
+   if Kind = Pool then
+      MOMA_Producer := Create_Sender (MOMA_Session, MOMA_Dest_Pool);
+   elsif Kind = Topic then
+      MOMA_Producer := Create_Sender (MOMA_Session, MOMA_Dest_Router);
+   end if;
 
    --  Create Message Consumer associated to the Session.
-   MOMA_Consumer := Create_Receiver (MOMA_Session, MOMA_Destination);
+   MOMA_Consumer := Create_Receiver (MOMA_Session, MOMA_Dest_Pool);
+
+   --  Subscribe to the "Test" topic.
+--   MOMA.Sessions.Subscribe (MOMA_Dest_Router, MOMA_Dest_Pool);
+--  To uncomment when it works.
 
    --  Initialization is completed.
    Output ("Initialization", True);

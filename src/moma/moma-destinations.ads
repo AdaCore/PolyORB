@@ -45,9 +45,13 @@ with PolyORB.References;
 package MOMA.Destinations is
 
    type Destination is private;
-   --  Name : Logical name of the destination.
+   --  Name : Logical name of the destination. When Kind is set to Topic, Name
+   --         must be set to the Topic_Id.
    --  Ref  : Reference to the actual destination object.
    --  Kind : The kind of object it is really (message pool, router, ...).
+
+   type Queue is private;
+   --  XXX necessary ??
 
    function Create (Name : MOMA.Types.String;
                     Ref  : PolyORB.References.Ref;
@@ -59,6 +63,12 @@ package MOMA.Destinations is
 
    function Image (Self : Destination) return String;
    --  Image function for destination type.
+
+   procedure Subscribe (Topic : Destination;
+                        Pool  : Destination);
+   --  Subscribe a Pool to a Topic.
+   --  Topic's reference must be a router.
+   --  Pool's reference must be a message pool.
 
    --  Accessors to Destination internal data.
 
@@ -94,9 +104,6 @@ package MOMA.Destinations is
 
    procedure Delete;
    --  XXX really useful in this context ?
-
-   type Queue is private;
-   --  XXX necessary ??
 
 private
 

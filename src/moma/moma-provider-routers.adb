@@ -32,6 +32,7 @@
 
 --  $Id$
 
+with MOMA.Destinations;
 with MOMA.Messages;
 with MOMA.Provider.Topic_Datas;
 
@@ -42,6 +43,10 @@ with PolyORB.Requests;
 with PolyORB.Types;
 
 package body MOMA.Provider.Routers is
+
+   use MOMA.Destinations;
+   use MOMA.Messages;
+   use MOMA.Types;
 
    use PolyORB.Log;
    use PolyORB.Types;
@@ -69,13 +74,6 @@ package body MOMA.Provider.Routers is
               Argument  => PolyORB.Any.Get_Empty_Any
                               (MOMA.Messages.TC_MOMA_Message),
               Arg_Modes => PolyORB.Any.ARG_IN));
---         PolyORB.Any.NVList.Add_Item
---            (Result,
---             (Name      => To_PolyORB_String ("Topic_Id"),
---              Argument  => PolyORB.Any.Get_Empty_Any
---                              (PolyORB.Any.TypeCode.TC_String),
---              Arg_Modes => PolyORB.Any.ARG_IN));
---  XXX To uncomment.
 
       elsif Method = "Subscribe" then
          PolyORB.Any.NVList.Add_Item
@@ -86,7 +84,7 @@ package body MOMA.Provider.Routers is
               Arg_Modes => PolyORB.Any.ARG_IN));
          PolyORB.Any.NVList.Add_Item
             (Result,
-             (Name      => To_PolyORB_String ("Pool"),
+             (Name      => To_PolyORB_String ("Pool_Ref"),
               Argument  => PolyORB.Any.Get_Empty_Any
                               (PolyORB.Any.TypeCode.TC_Object),
               Arg_Modes => PolyORB.Any.ARG_IN));
@@ -166,13 +164,8 @@ package body MOMA.Provider.Routers is
             Args_Sequence  : constant NV_Sequence_Access := List_Of (Args);
             Message        : PolyORB.Any.Any :=
               NV_Sequence.Element_Of (Args_Sequence.all, 1).Argument;
-            Topic_Id       : MOMA.Types.String :=
-               MOMA.Types.To_MOMA_String ("Test");
---              PolyORB.Any.From_Any (NV_Sequence.Element_Of
---                                    (Args_Sequence.all, 2).Argument);
---  XXX To uncomment.
          begin
-            Publish (Self, Message, Topic_Id);
+            Publish (Self, Message);
          end;
 
       elsif Req.all.Operation = To_PolyORB_String ("Subscribe") then
@@ -188,7 +181,7 @@ package body MOMA.Provider.Routers is
             Pool           : PolyORB.References.Ref :=
                PolyORB.Any.ObjRef.From_Any
                   (PolyORB.Any.Get_Aggregate_Element
-                     (NV_Sequence.Element_Of (Args_Sequence.all, 1).Argument,
+                     (NV_Sequence.Element_Of (Args_Sequence.all, 2).Argument,
                       PolyORB.Any.TypeCode.TC_Object,
                       PolyORB.Types.Unsigned_Long (1)));
          begin
@@ -203,13 +196,21 @@ package body MOMA.Provider.Routers is
    -------------
 
    procedure Publish (Self       : access Router;
-                      Message    : PolyORB.Any.Any;
-                      Topic_Id   : MOMA.Types.String)
+                      Message    : PolyORB.Any.Any)
    is
       use MOMA.Provider.Topic_Datas.Ref_List;
       Subscribers : MOMA.Provider.Topic_Datas.Ref_List.List;
       I           : MOMA.Provider.Topic_Datas.Ref_List.Iterator;
+      Topic_Id    : MOMA.Types.String;
+      Destination : MOMA.Destinations.Destination;
    begin
+      --  Check the destination is really a topic.
+
+      Destination := Get_Destination (MOMA.Messages.From_Any (Message));
+      if Get_Kind (Destination) /= MOMA.Types.Topic then
+         raise Program_Error;
+      end if;
+      Topic_Id := Get_Name (Destination);
 
       --  Relay Message to other routers.
       --  XXX  Not implemented yet.

@@ -88,5 +88,16 @@ package body MOMA.Sessions is
       --  XXX Not Implemented
    end Rollback;
 
+   ---------------
+   -- Subscribe --
+   ---------------
+
+   procedure Subscribe (Topic : MOMA.Destinations.Destination;
+                        Pool  : MOMA.Destinations.Destination)
+   is
+   begin
+      MOMA.Destinations.Subscribe (Topic, Pool);
+   end Subscribe;
+
 end MOMA.Sessions;
 

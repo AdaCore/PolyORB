@@ -53,7 +53,7 @@ package MOMA.Message_Producers.Queues is
    --  function Get_Queue return MOMA.Destinations.Queues.Queue;
 
    procedure Send (Self    : Queue;
-                   Message : MOMA.Messages.Message'Class);
+                   Message : in out MOMA.Messages.Message'Class);
    --  Send message to Self.
    --  XXX should send asynchronous message !!!
 
