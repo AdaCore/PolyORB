@@ -45,7 +45,8 @@ package PolyORB.RT_POA_Policies.Priority_Model_Policy is
      (CLIENT_PROPAGATED,
       SERVER_DECLARED);
 
-   type PriorityModelPolicy is new PolyORB.POA_Policies.Policy with private;
+   type PriorityModelPolicy (Model : Priority_Model) is
+     new PolyORB.POA_Policies.Policy with private;
 
    type PriorityModelPolicy_Access is access all PriorityModelPolicy'Class;
 
@@ -86,10 +87,11 @@ package PolyORB.RT_POA_Policies.Priority_Model_Policy is
 
 private
 
-   type PriorityModelPolicy is new PolyORB.POA_Policies.Policy with record
-      Model                    : Priority_Model;
-      Server_ORB_Priority      : ORB_Priority;
-      Server_External_Priority : External_Priority := Invalid_Priority;
-   end record;
+   type PriorityModelPolicy (Model : Priority_Model) is
+     new PolyORB.POA_Policies.Policy
+     with record
+        Server_ORB_Priority      : ORB_Priority;
+        Server_External_Priority : External_Priority := Invalid_Priority;
+     end record;
 
 end PolyORB.RT_POA_Policies.Priority_Model_Policy;

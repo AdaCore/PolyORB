@@ -57,12 +57,12 @@ package body PolyORB.RT_POA_Policies.Priority_Model_Policy is
       Server_External_Priority : External_Priority)
      return Policy_Access
    is
-      Result : constant Policy_Access := new PriorityModelPolicy;
+      Result : constant Policy_Access
+        := new PriorityModelPolicy (Model => Model);
 
       TResult : PriorityModelPolicy renames PriorityModelPolicy (Result.all);
 
    begin
-      TResult.Model := Model;
       TResult.Server_ORB_Priority := Server_ORB_Priority;
       TResult.Server_External_Priority := Server_External_Priority;
 

@@ -37,6 +37,7 @@ with PolyORB.Log;
 with PolyORB.POA.Basic_POA;
 with PolyORB.POA_Policies.Implicit_Activation_Policy;
 with PolyORB.Smart_Pointers;
+with PolyORB.Utils.Chained_Lists;
 
 package body PolyORB.RT_POA.Basic_RT_POA is
 
@@ -47,9 +48,25 @@ package body PolyORB.RT_POA.Basic_RT_POA is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
+   type Oid_Information is record
+      U_Oid                 : PolyORB.POA_Types.Unmarshalled_Oid;
+      Model                 : Priority_Model;
+      Oid_ORB_Priority      : ORB_Priority;
+      Oid_External_Priority : External_Priority;
+   end record;
+
+   package Oid_Lists is
+     new PolyORB.Utils.Chained_Lists (Oid_Information);
+   use Oid_Lists;
+   subtype Oid_List is Oid_Lists.List;
+
+   Shadow_Oids : Oid_List;
+   --  This list keeps track of information that have to be stored
+   --  along with the Oid.
+
    procedure Set_Policies
      (OA       : access Basic_RT_Obj_Adapter;
-      Policies : POA_Policies.PolicyList);
+      Policies :        POA_Policies.PolicyList);
    --  Set OA policies from the values in Policies.
 
    function To_Non_RT_POA
@@ -245,6 +262,8 @@ package body PolyORB.RT_POA.Basic_RT_POA is
       POA         :    out PolyORB.POA.Obj_Adapter_Access;
       Error       : in out PolyORB.Exceptions.Error_Container)
    is
+      use PolyORB.Exceptions;
+
    begin
       Find_POA (To_Non_RT_POA (Self), Name, Activate_It, POA, Error);
    end Find_POA;
@@ -421,7 +440,27 @@ package body PolyORB.RT_POA.Basic_RT_POA is
       Find_Servant (Self, Id, Servant, Error);
 
       if Found (Error) then
-         return;
+         declare
+            U_Oid : Unmarshalled_Oid := Oid_To_U_Oid (Id.all);
+            It : Iterator := First (Shadow_Oids);
+
+         begin
+            while not Last (It) loop
+               if U_Oid = Value (It).all.U_Oid then
+                  Model := Value (It).all.Model;
+                  Server_ORB_Priority := Value (It).all.Oid_ORB_Priority;
+                  Server_External_Priority
+                    := Value (It).all.Oid_External_Priority;
+
+                  Catch (Error);
+                  return;
+               end if;
+               Next (It);
+            end loop;
+
+            return;
+         end;
+
       end if;
 
       Get_Servant_Priority_Information
@@ -570,14 +609,35 @@ package body PolyORB.RT_POA.Basic_RT_POA is
       U_Oid                    :    out Unmarshalled_Oid;
       Error                    : in out PolyORB.Exceptions.Error_Container)
    is
-      pragma Warnings (Off); --  WAG:3.15
-      pragma Unreferenced (Self, Hint, Server_ORB_Priority);
-      pragma Unreferenced (Server_External_Priority, U_Oid, Error);
-      pragma Warnings (On); --  WAG:3.15
+      use PolyORB.Exceptions;
+      use PolyORB.POA_Policies.Implicit_Activation_Policy;
 
    begin
-      raise Not_Implemented;
+      --  Check Self's policies are correct
 
+      Ensure_No_Implicit_Activation
+        (To_Non_RT_POA (Self).Implicit_Activation_Policy.all,
+         Error);
+
+      if Found (Error) then
+         return;
+      end if;
+
+      if Self.Priority_Model_Policy = null
+        or else Self.Priority_Model_Policy.Model /= SERVER_DECLARED
+      then
+         Throw (Error, WrongPolicy_E, Null_Members'(Null_Member));
+         return;
+      end if;
+
+      Create_Object_Identification (To_Non_RT_POA (Self), Hint, U_Oid, Error);
+
+      Append
+        (Shadow_Oids,
+         Oid_Information'(U_Oid,
+                          SERVER_DECLARED,
+                          Server_ORB_Priority,
+                          Server_External_Priority));
    end Create_Object_Identification_With_Priority;
 
    ------------------------------------------
@@ -596,6 +656,8 @@ package body PolyORB.RT_POA.Basic_RT_POA is
       use PolyORB.Exceptions;
       use PolyORB.POA_Policies.Implicit_Activation_Policy;
 
+      It : Iterator := First (Shadow_Oids);
+
    begin
       --  Check Self's policies are correct
 
@@ -607,10 +669,37 @@ package body PolyORB.RT_POA.Basic_RT_POA is
          return;
       end if;
 
-      if Self.Priority_Model_Policy = null then
+      if Self.Priority_Model_Policy = null
+        or else Self.Priority_Model_Policy.Model /= SERVER_DECLARED
+      then
          Throw (Error, WrongPolicy_E, Null_Members'(Null_Member));
          return;
       end if;
+
+      --  Activate object
+
+      Activate_Object (Self, P_Servant, Hint, U_Oid, Error);
+
+      if Found (Error) then
+         return;
+      end if;
+
+      --  Check the object has not been previously set up with a
+      --  different priority.
+
+      while not Last (It) loop
+         if U_Oid = Value (It).all.U_Oid
+           and then Value (It).all.Oid_External_Priority
+           /= Server_External_Priority
+         then
+            Throw (Error,
+                   Bad_Inv_Order_E,
+                   System_Exception_Members'(Minor     => 18,
+                                             Completed => Completed_No));
+            return;
+         end if;
+         Next (It);
+      end loop;
 
       --  Cache information on Priority_Model_Policy
 
@@ -620,14 +709,6 @@ package body PolyORB.RT_POA.Basic_RT_POA is
          Server_ORB_Priority,
          Server_External_Priority,
          Error);
-
-      if Found (Error) then
-         return;
-      end if;
-
-      --  Activate object
-
-      Activate_Object (Self, P_Servant, Hint, U_Oid, Error);
    end Activate_Object_With_Id_And_Priority;
 
 end PolyORB.RT_POA.Basic_RT_POA;
