@@ -93,13 +93,13 @@ package body PolyORB.Tasking.Advanced_Mutexes is
    begin
       PTM.Enter (M.MMutex);
 
-      pragma Debug (O (PTT.Image (M.Current)
+      pragma Debug (O (PTT.Image (Self)
                        & " tries to Enter Adv_Mutex"));
 
       while not M.Empty and then M.Current /= Self loop
 
          pragma Debug (O (PTT.Image (Self)
-                          & "Will wait for Adv_Mutex, current owner is "
+                          & " will wait for Adv_Mutex, current owner is "
                           & PTT.Image (M.Current)));
 
          if not M.Passing then
@@ -115,7 +115,7 @@ package body PolyORB.Tasking.Advanced_Mutexes is
       M.Current := Self;
 
       pragma Debug (O ("Enter: " & PTT.Image (M.Current)));
-
+      pragma Debug (O (" new level:" & Integer'Image (M.Level)));
       PTM.Leave (M.MMutex);
    end Enter;
 
@@ -131,6 +131,7 @@ package body PolyORB.Tasking.Advanced_Mutexes is
 
       pragma Debug (O ("Leave, owner was "
                        & PTT.Image (Self)));
+
       pragma Assert (M.Current = Self);
       pragma Assert (M.Level > 0);
 
@@ -142,6 +143,7 @@ package body PolyORB.Tasking.Advanced_Mutexes is
          PTCV.Signal (M.MCondition);
       end if;
 
+      pragma Debug (O (" new level:" & Integer'Image (M.Level)));
       PTM.Leave (M.MMutex);
    end Leave;
 

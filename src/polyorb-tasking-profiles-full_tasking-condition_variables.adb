@@ -49,8 +49,6 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   procedure Initialize;
-
    -----------------------------------------------------------------
    -- Underlying protected object for Full_Tasking_Condition_Type --
    -----------------------------------------------------------------
@@ -76,26 +74,6 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
 
    end Condition_PO;
 
-   ----------
-   -- Free --
-   ----------
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (PTCV.Condition_Type'Class, PTCV.Condition_Access);
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Condition_PO, Condition_PO_Access);
-
-   ---------------
-   -- Broadcast --
-   ---------------
-
-   procedure Broadcast
-     (C : access Full_Tasking_Condition_Type) is
-   begin
-      C.The_PO.Broadcast;
-   end Broadcast;
-
    ------------------
    -- Condition_PO --
    ------------------
@@ -109,6 +87,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
       entry Broadcast when To_Free = 0 is
       begin
          To_Free := Condition_PO.Wait'Count;
+         pragma Debug (O ("Broadcast: will release:"
+                          & Natural'Image (To_Free)
+                          & " tasks."));
       end Broadcast;
 
       -------------------------
@@ -120,6 +101,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
          if Condition_PO.Wait'Count /= 0 then
             To_Free := 1;
          end if;
+         pragma Debug (O ("Signal."));
       end Signal;
 
       ------------------------------------
@@ -143,6 +125,16 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
 
    end Condition_PO;
 
+   ---------------
+   -- Broadcast --
+   ---------------
+
+   procedure Broadcast
+     (C : access Full_Tasking_Condition_Type) is
+   begin
+      C.The_PO.Broadcast;
+   end Broadcast;
+
    ------------
    -- Create --
    ------------
@@ -161,7 +153,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
       C : Full_Tasking_Condition_Access := new Full_Tasking_Condition_Type;
 
    begin
-      pragma Debug (O ("create condition variable"));
+      pragma Debug (O ("Create"));
       C.The_PO := new Condition_PO;
       return PTCV.Condition_Access (C);
    end Create;
@@ -178,24 +170,17 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
       pragma Unreferenced (MF);
       pragma Warnings (On);
 
+      procedure Free is new Ada.Unchecked_Deallocation
+        (PTCV.Condition_Type'Class, PTCV.Condition_Access);
+
+      procedure Free is new Ada.Unchecked_Deallocation
+        (Condition_PO, Condition_PO_Access);
+
    begin
-      pragma Debug (O ("destroy condition variable"));
+      pragma Debug (O ("Destroy"));
       Free (Full_Tasking_Condition_Access (C).The_PO);
       Free (C);
    end Destroy;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize is
-   begin
-      pragma Debug
-        (O ("initialize package"
-            & " tasking.profiles.full_tasking.condition_variables"));
-      PTCV.Register_Condition_Factory
-        (PTCV.Condition_Factory_Access (The_Condition_Factory));
-   end Initialize;
 
    ------------
    -- Signal --
@@ -205,7 +190,6 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
      (C : access Full_Tasking_Condition_Type)
    is
    begin
-      pragma Debug (O ("stabilisation done, signal condition variable"));
       C.The_PO.Signal;
    end Signal;
 
@@ -218,10 +202,23 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
       M : access PTM.Mutex_Type'Class)
    is
    begin
+      pragma Debug (O ("Wait: enter"));
       C.The_PO.Release_Then_Wait (PTM.Mutex_Access (M));
-      pragma Debug (O ("wait ended"));
+      pragma Debug (O ("Wait: Leave"));
       PTM.Enter (M);
    end Wait;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      PTCV.Register_Condition_Factory
+        (PTCV.Condition_Factory_Access (The_Condition_Factory));
+   end Initialize;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
