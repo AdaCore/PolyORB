@@ -21,14 +21,13 @@ package body Echo.Proxies is
    ----        function EchoString               ----
    --------------------------------------------------
 
-   -- Create
-   ---------
-   function Create(Arg : Corba.String) return EchoString_Proxy is
-      Result : EchoString_Proxy ;
+   -- Init
+   -------
+   procedure Init(Self : in out EchoString_Proxy ;
+                  Arg : Corba.String) is
    begin
-      Init(Result) ;
-      Result.Arg_Msg := new Corba.String'(Arg) ;
-      return Result ;
+      Set_User_Exceptions(Self, False) ;
+      Self.Arg_Msg := new Corba.String'(Arg) ;
    end ;
 
 
@@ -41,20 +40,12 @@ package body Echo.Proxies is
    end ;
 
 
-   -- Free
-   ----------
-   procedure Free(Self : in out EchoString_Proxy) is
-   begin
-      Corba.Free(Self.Arg_Msg) ;
-      Corba.Free(Self.Private_Result) ;
-   end ;
-
 
    -- Aligned_Size
    --------------
-   function Aligned_Size(Self: in EchoString_Proxy;
-                         Size_In: in Corba.Unsigned_Long)
-                         return Corba.Unsigned_Long is
+   function Align_Size(Self: in EchoString_Proxy;
+                       Size_In: in Corba.Unsigned_Long)
+                       return Corba.Unsigned_Long is
    begin
       return Netbufferedstream.Align_size(Self.Arg_Msg.all, Size_In);
    end;
@@ -84,6 +75,17 @@ package body Echo.Proxies is
    begin
       return Self.Private_Result.all ;
    end ;
+
+
+   -- Finalize
+   -----------
+   procedure Finalize(Self : in out EchoString_Proxy) is
+   begin
+      Corba.Free(Self.Arg_Msg) ;
+      Corba.Free(Self.Private_Result) ;
+   end ;
+
+
 
 end Echo.Proxies ;
 

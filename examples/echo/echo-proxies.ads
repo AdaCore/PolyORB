@@ -22,14 +22,13 @@ package Echo.Proxies is
 
    type EchoString_Proxy is new OmniProxyCallDesc.Object with private ;
 
-   function Create(Arg : Corba.String ) return EchoString_Proxy ;
+   procedure Init(Self : in out EchoString_Proxy ;
+                  Arg : in Corba.String ) ;
 
    function Operation (Self : in EchoString_Proxy)
                        return CORBA.String ;
 
-   procedure Free(Self : in out EchoString_Proxy) ;
-
-   function Aligned_Size(Self: in EchoString_Proxy ;
+   function Align_Size(Self: in EchoString_Proxy ;
                          Size_In: in Corba.Unsigned_Long)
                          return Corba.Unsigned_Long ;
 
@@ -49,6 +48,8 @@ private
       Arg_Msg : Corba.String_Ptr := null ;
       Private_Result : Corba.String_Ptr := null ;
    end record ;
+
+   procedure Finalize(Self : in out EchoString_Proxy) ;
 
 end Echo.Proxies ;
 

@@ -28,8 +28,7 @@ package body Echo is
    -- To_Ref
    ---------
    function To_Ref(The_Ref: in Corba.Object.Ref'Class) return Ref is
-      Dynamic_Type : Corba.Object.Ref'Class
-        := Get_Dynamic_Type(The_Ref) ;
+      Dynamic_Type : Corba.Object.Ref'Class := Get_Dynamic_Type(The_Ref) ;
       Result : Ref ;
       Repo_id : Corba.String := Get_Repository_Id(Result) ;
    begin
@@ -37,12 +36,12 @@ package body Echo is
          return  (Corba.Object.Ref(The_Ref) with null record)  ;
       end if ;
 
-   Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,
-                                  "  Cannot cast "
-                        & Corba.To_Standard_String(Get_Repository_Id(The_Ref))
-                                  & Corba.CRLF
-                                  & "  into "
-                                  & Corba.To_Standard_String(Repo_Id)) ;
+      Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,
+                                     "  Cannot cast "
+                                     & Corba.To_Standard_String(Get_Repository_Id(The_Ref))
+                                     & Corba.CRLF
+                                     & "  into "
+                                     & Corba.To_Standard_String(Repo_Id)) ;
    end ;
 
 
@@ -53,24 +52,13 @@ package body Echo is
                        return Corba.String is
 
       Opcd : Echo.Proxies.EchoString_Proxy ;
-      Result : Corba.String ;
    begin
-      if Is_Nil(Self) then
-         declare
-            Ex_Bd : Corba.Ex_Body := (0, Corba.Completed_No) ;
-            begin
-               null ;
-               Corba.Raise_Corba_Exception(Corba.Inv_Objref'Identity,Ex_Bd);
-            end ;
-      end if ;
       Output(Debug, "Echo.echoString : creating call desc") ;
-      Opcd := Echo.Proxies.Create(Message) ;
+      Echo.Proxies.Init(Opcd, Message) ;
       Output(Debug, "Echo.echoString : call desc created, invoking method") ;
       OmniProxyCallWrapper.Invoke(Self, Opcd) ;
       Output(Debug, "Echo.echoString : method echoString invoked") ;
-      Result := Echo.Proxies.Get_Result(Opcd) ;
-      Echo.Proxies.Free(Opcd) ;
-      return Result ;
+      return Echo.Proxies.Get_Result(Opcd) ;
    end ;
 
 
@@ -101,8 +89,7 @@ package body Echo is
                  Repo_Id: in Corba.String )
                  return Corba.Boolean is
    begin
-      return (Repository_Id = Repo_Id
-              or Corba.Object.Is_A(Repo_Id) ) ;
+      return Is_A(Repo_Id) ;
    end ;
 
    -- Is_A
