@@ -429,6 +429,7 @@ idls/interop/iop_dce.idl
 idls/interop/sendingcontext.idl
 idls/misc/dynamicany.idl
 idls/misc/portableserver.idl
+polyorb-config.in
 src/Makefile.am
 src/Makefile.common
 src/Makefile.in
