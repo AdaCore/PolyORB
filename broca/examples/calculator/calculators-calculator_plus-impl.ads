@@ -37,6 +37,26 @@ package calculators.calculator_plus.Impl is
       right_op2 : in CORBA.Long)
      return CORBA.Long;
 
+   function add3
+     (Self : access Object;
+      op1 : in CORBA.Long;
+      op2 : in CORBA.Long;
+      op3 : in CORBA.Long)
+     return CORBA.Long;
+
+   function add4
+     (Self : access Object;
+      op1 : in CORBA.Long;
+      op2 : in CORBA.Long;
+      op3 : in CORBA.Long;
+      op4 : in CORBA.Long)
+     return CORBA.Long;
+
+   function square
+     (Self : access Object;
+      op : in CORBA.Long)
+     return CORBA.Long;
+
 private
 
    type Object is

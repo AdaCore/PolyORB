@@ -32,6 +32,9 @@ with Ada.Command_Line;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Io_Exceptions;
 
+with Broca.Server_Tools; use Broca.Server_Tools;
+pragma Elaborate (Broca.Server_Tools);
+
 with CORBA; use CORBA;
 with CORBA.Object;
 with CORBA.Object.Helper;
@@ -47,6 +50,7 @@ with LongSeq;
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.Repository;
+with CORBA.Repository_Root.Repository.Helper;
 with CORBA.Repository_Root.InterfaceDef;
 with CORBA.Repository_Root.ModuleDef;
 with CORBA.Repository_Root.ModuleDef.Helper;
@@ -54,12 +58,11 @@ with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.InterfaceDef.Helper;
 with CORBA.Repository_Root.Helper;
 
+with Naming_Tools;
 
 procedure Client is
    IOR_RepId : CORBA.String;
-   IOR_Server : CORBA.String;
    RepId : Repository.Ref;
-   Server : CORBA.Object.Ref;
    package Long_IO is new Integer_IO (CORBA.Long);
    End_Of_Game : exception;
    Prefix : CORBA.String := To_Corba_String ("IDL:");
@@ -190,7 +193,8 @@ procedure Client is
       Result : StringSeq.Sequence := StringSeq.Null_Sequence;
       --  select all the available operations
       Cont_Desc : Contained.Description := Contained.Describe (Op);
-      D : OperationDescription := Helper.From_Any (Cont_Desc.Value);
+      D : OperationDescription :=
+        CORBA.Repository_Root.Helper.From_Any (Cont_Desc.Value);
       DescSeq : ParDescriptionSeq := D.Parameters;
       package PDS renames
         IDL_SEQUENCE_CORBA_Repository_Root_ParameterDescription;
@@ -250,7 +254,9 @@ procedure Client is
          end loop;
          Put_Line ("The result of this operation is : " &
                    CORBA.Long'Image (Generic_Function
-                                     (Server,
+                                     (Naming_Tools.Locate
+                                      (To_Standard_String
+                                       (Module_Name & Separator & Server_Name)),
                                       Identifier (Operation_Name),
                                       Parameters,
                                       Parameter_Names)));
@@ -278,18 +284,8 @@ procedure Client is
    end Main_Loop;
 
 begin
-   if Ada.Command_Line.Argument_Count /= 2 then
-      Ada.Text_IO.Put_Line ("Bad Usage");
-      return;
-   end if;
-
-   --  transforms the Ada string into CORBA.String
-   IOR_RepId := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
-   IOR_Server := CORBA.To_CORBA_String (Ada.Command_Line.Argument (2));
-
-   --  getting the CORBA.Object
-   CORBA.ORB.String_To_Object (IOR_RepId, RepId);
-   CORBA.ORB.String_To_Object (IOR_Server, Server);
+   RepId := Repository.Helper.To_Ref
+     (Naming_Tools.Locate ("Interface_Repository"));
 
    --  Enter the main loop
    Put_Line ("This is The Calculator Example");

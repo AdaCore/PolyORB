@@ -21,6 +21,9 @@ calculators-simple_calculator.ads\
 calculators.ads\
 demo_idl_file.ads
 
+SIMPLE_SERVER_FILES=simple_server.adb \
+                    stringseq.ads \
+                    longseq.ads
 
 
 CC = gnatmake
@@ -29,14 +32,15 @@ LIB = -I. \
       -I${ADABROKER_BASE}/example/generic \
       -I${ADABROKER_BASE}/src \
       -I${ADABROKER_BASE}/adasockets/src \
-      -I${ADABROKER_BASE}/src/ir
+      -I${ADABROKER_BASE}/src/ir \
+      -I${ADABROKER_BASE}/cos/naming
 
 first: simple_server server_plus client 
 
 ${GENERATED_FILES}: demo.idl
 	idlac demo.idl
 
-simple_server: simple_server.adb ${GENERATED_FILES}
+simple_server: ${SIMPLE_SERVER_FILES} ${GENERATED_FILES}
 	${CC}  ${FLAGS} ${LIB} simple_server.adb
 
 server_plus: server_plus.adb  ${GENERATED_FILES}

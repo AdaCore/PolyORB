@@ -16,7 +16,7 @@ package body calculators.simple_calculator.Impl is
      return CORBA.Long
    is
    begin
-      return (Left_Op1 + Right_Op2);
+      return Left_Op1 + Right_Op2;
    end add;
 
 
@@ -27,7 +27,7 @@ package body calculators.simple_calculator.Impl is
      return CORBA.Long
    is
    begin
-      return (Left_Op1 - Right_Op2);
+      return Left_Op1 - Right_Op2;
    end subtract;
 
 end calculators.simple_calculator.Impl;

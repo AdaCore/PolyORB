@@ -42,6 +42,7 @@ with Calculators.Simple_Calculator.Impl;
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.Repository;
+with CORBA.Repository_Root.Repository.Helper;
 with CORBA.Repository_Root.Container;
 with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.InterfaceDef;
@@ -50,6 +51,8 @@ with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.ModuleDef;
 with CORBA.Repository_Root.ModuleDef.Helper;
 
+with Naming_Tools;
+with CosNaming.NamingContext;
 with Ada.Text_IO; use Ada.Text_IO;
 
 procedure Simple_Server is
@@ -122,22 +125,13 @@ procedure Simple_Server is
    package IDS renames IDL_SEQUENCE_CORBA_Repository_Root_InterfaceDef_Forward;
 
    Myrep : Repository.Ref;
-   IOR : CORBA.String;
+   Look_Is_Nil : Boolean;
 begin
    --------------------------
    --  Register to the IR  --
    --------------------------
-
-   if Ada.Command_Line.Argument_Count < 1 then
-      Put_Line ("usage : client <IOR_string_from_server>");
-      return;
-   end if;
-
-   --  transforms the Ada string into CORBA.String
-   IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
-
-   --  getting the CORBA.Object
-   CORBA.ORB.String_To_Object (IOR, Myrep);
+   Myrep := Repository.Helper.To_Ref
+     (Naming_Tools.Locate ("Interface_Repository"));
 
    --  checking if it worked
    if Repository.Is_Nil (Myrep) then
@@ -148,11 +142,19 @@ begin
    --  get/creating the module calculators
    declare
       Mod1 : ModuleDef_Forward.Ref;
---      Look : Contained.Ref
---        := Repository.Lookup_Id (Myrep,
---                                 To_CORBA_String ("IDL:calculators:1.0"));
+      Look : Contained.Ref;
    begin
---      if Contained.Is_Nil (Look) then
+      begin
+         Look := Repository.Lookup_Id (Myrep,
+                                       To_CORBA_String ("IDL:calculators:1.0"));
+         Look_Is_Nil := Contained.Is_Nil (Look);
+         --  This is a work-around to supply a bug of the ORB
+      exception
+         when others =>
+            Look_Is_Nil := True;
+      end;
+      --  End of the work-around
+      if Look_Is_Nil then
          declare
             Id : RepositoryId;
             Name : Identifier;
@@ -166,53 +168,64 @@ begin
                                               Name,
                                               Version);
          end;
---      else
---         Mod1 := ModuleDef.Convert_Forward.To_Forward
---           (ModuleDef.Helper.To_Ref (Look));
---      end if;
+      else
+         Mod1 := ModuleDef.Convert_Forward.To_Forward
+         (ModuleDef.Helper.To_Ref (Look));
+      end if;
 
       --  create the interface simple_calculator
-      declare
-         Int : InterfaceDef_Forward.Ref;
-         Id : RepositoryId;
-         Name : Identifier;
-         Version : VersionSpec;
       begin
-         Id := To_CORBA_String (Calculators.Simple_Calculator.Repository_Id_Ü);
-         Name := To_CORBA_String ("simple_calculator");
-         Version := To_CORBA_String ("1.0");
-         Int := ModuleDef.Create_Interface (ModuleDef.Convert_Forward.To_Ref (Mod1),
-                                             Id,
-                                             Name,
-                                             Version,
-                                             InterfaceDefSeq (IDS.Null_Sequence),
-                                             False);
-
-         --  create the first operation of simple_calculator
-         declare
-            Id : RepositoryId;
-            Name : Identifier;
-            Version : VersionSpec;
-         begin
-            Id := To_CORBA_String ("IDL:calculators/simple_calculator/add:1.0");
-            Name := To_CORBA_String ("add");
-            Version := To_CORBA_String ("1.0");
-            Create_Operation (Myrep, Int, Id, Name, Version);
-         end;
-
-         --  create the second operation of simple_calculator
-         declare
-            Id : RepositoryId;
-            Name : Identifier;
-            Version : VersionSpec;
-         begin
-            Id := To_CORBA_String ("IDL:calculators/simple_calculator/subtract:1.0");
-            Name := To_CORBA_String ("subtract");
-            Version := To_CORBA_String ("1.0");
-            Create_Operation (Myrep, Int, Id, Name, Version);
-         end;
-
+         Look := Repository.Lookup_Id (Myrep,
+                                       To_CORBA_String ("IDL:calculators/simple_calculator:1.0"));
+         Look_Is_Nil := Contained.Is_Nil (Look);
+         --  This is a work-around to supply a bug of the ORB
+      exception
+         when others =>
+            Look_Is_Nil := True;
       end;
+      if Look_Is_Nil then
+         declare
+            Int : InterfaceDef_Forward.Ref;
+            Id : RepositoryId;
+            Name : Identifier;
+            Version : VersionSpec;
+         begin
+            Id := To_CORBA_String (Calculators.Simple_Calculator.Repository_Id_Ü);
+            Name := To_CORBA_String ("simple_calculator");
+            Version := To_CORBA_String ("1.0");
+            Int := ModuleDef.Create_Interface (ModuleDef.Convert_Forward.To_Ref (Mod1),
+                                               Id,
+                                               Name,
+                                               Version,
+                                               InterfaceDefSeq (IDS.Null_Sequence),
+                                               False);
+
+            --  create the first operation of simple_calculator
+            declare
+               Id : RepositoryId;
+               Name : Identifier;
+               Version : VersionSpec;
+            begin
+               Id := To_CORBA_String ("IDL:calculators/simple_calculator/add:1.0");
+               Name := To_CORBA_String ("add");
+               Version := To_CORBA_String ("1.0");
+               Create_Operation (Myrep, Int, Id, Name, Version);
+            end;
+
+            --  create the second operation of simple_calculator
+            declare
+               Id : RepositoryId;
+               Name : Identifier;
+               Version : VersionSpec;
+            begin
+               Id := To_CORBA_String ("IDL:calculators/simple_calculator/subtract:1.0");
+               Name := To_CORBA_String ("subtract");
+               Version := To_CORBA_String ("1.0");
+               Create_Operation (Myrep, Int, Id, Name, Version);
+            end;
+
+         end;
+      end if;
    end;
 
 
@@ -220,20 +233,35 @@ begin
    --  Inititate  the server  --
    -----------------------------
    Initiate_Servant (PortableServer.Servant (Calc), Ref);
-   Ada.Text_IO.Put_Line
-     ("'" & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)) &
-      "'");
+   --   Ada.Text_IO.Put_Line
+   --     ("'" & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)) &
+   --      "'");
+
+   ------------------------------
+   --  Register to the Naming  --
+   ------------------------------
+   declare
+   begin
+      Naming_Tools.Register ("calculators/simple_calculator", Ref);
+   exception
+      when CosNaming.NamingContext.AlreadyBound =>
+         Naming_Tools.Register ("calculators/simple_calculator", Ref, Rebind => True);
+   end;
+
+   ----------------------
+   --  Run the server  --
+   ----------------------
    Initiate_Server;
 
 exception
    when E : CORBA.Bad_Param =>
-         declare
-            Memb : System_Exception_Members;
-         begin
-            Get_Members (E, Memb);
-            Put ("received Bad_Param exception, minor");
-            Put_Line (Unsigned_Long'Image (Memb.Minor));
-         end;
+      declare
+         Memb : System_Exception_Members;
+      begin
+         Get_Members (E, Memb);
+         Put ("received Bad_Param exception, minor");
+         Put_Line (Unsigned_Long'Image (Memb.Minor));
+      end;
 
 end Simple_Server;
 
