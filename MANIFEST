@@ -161,8 +161,7 @@
 ./InterfaceORB/omniObject_C2Ada.hh
 ./InterfaceORB/proxyObjectFactory_C2Ada.cc
 ./InterfaceORB/proxyObjectFactory_C2Ada.hh
-./InterfaceORB/sysdep.tpl
-./bin/REAME
+./InterfaceORB/adabroker-sysdep.ads.in
 ./config/config.mk
 ./omniidl2/GNUmakefile
 ./omniidl2/dir.mk
@@ -371,6 +370,6 @@
 ./omniidl2/util/utl_tmpl/utl_list.cc
 ./omniidl2/util/utl_tmpl/utl_namelist.cc
 ./omniidl2/util/utl_tmpl/utl_strlist.cc
-./platform/adabooltype/i586_linux_2.0_glibc
-./platform/adabooltype/sun4_sosV_5.5
+./mk/platform/i586_linux_2.0_glibc
+./mk/platform/sun4_sosV_5.5
 ./MANIFEST
