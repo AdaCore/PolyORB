@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -26,15 +26,26 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with XE;             use XE;
+with Gnatvsn;        use Gnatvsn;
 with Osint;          use Osint;
 with Output;         use Output;
+with XE;             use XE;
 
 procedure XE_Usage is
+   Version : constant String := Gnat_Static_Version_String;
+   Length  : Natural := 1;
+
 begin
    if Verbose_Mode then
-      Write_Str ("GNATDIST __glade_version__ / GNAT __gnat_version__");
-      Write_Str (" Copyright 1996-2003 Free Software Foundation, Inc.");
+      while Version (Length) /= ' ' loop
+         Length := Length + 1;
+      end loop;
+      Write_Str ("GNATDIST ");
+      Write_Str (Version (1 .. Length - 1));
+      Write_Str (" / ");
+      Write_Str (Version (1 .. Length - 1));
+      Write_Eol;
+      Write_Str (" Copyright 1996-2004 Free Software Foundation, Inc.");
       Write_Eol;
    end if;
 
