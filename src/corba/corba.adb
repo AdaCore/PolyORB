@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.adb#22 $
+--  $Id: //droopi/main/src/corba/corba.adb#23 $
 
 with Ada.Characters.Handling;
 
@@ -1117,11 +1117,17 @@ package body CORBA is
       use PolyORB.Exceptions;
 
    begin
-      pragma Assert (Is_Error (Error));
+      pragma Assert (Error.Kind in ORB_System_Error);
 
       declare
-         Member : constant CORBA.System_Exception_Members
-           := CORBA.System_Exception_Members (Error.Member.all);
+         Member : constant PolyORB.Exceptions.System_Exception_Members
+           := PolyORB.Exceptions.System_Exception_Members (Error.Member.all);
+
+         CORBA_Member : constant CORBA.System_Exception_Members
+           := System_Exception_Members'
+           (Minor =>  CORBA.Unsigned_Long (Member.Minor),
+            Completed => CORBA.Completion_Status (Member.Completed));
+
       begin
 
          Free (Error.Member);
@@ -1130,112 +1136,112 @@ package body CORBA is
 
          case Error.Kind is
             when Unknown_E =>
-               Raise_Unknown (Member);
+               Raise_Unknown (CORBA_Member);
 
             when Bad_Param_E =>
-               Raise_Bad_Param (Member);
+               Raise_Bad_Param (CORBA_Member);
 
             when No_Memory_E =>
-               Raise_No_Memory (Member);
+               Raise_No_Memory (CORBA_Member);
 
             when Imp_Limit_E =>
-               Raise_Imp_Limit (Member);
+               Raise_Imp_Limit (CORBA_Member);
 
             when Comm_Failure_E =>
-               Raise_Comm_Failure (Member);
+               Raise_Comm_Failure (CORBA_Member);
 
             when Inv_Objref_E =>
-               Raise_Inv_Objref (Member);
+               Raise_Inv_Objref (CORBA_Member);
 
             when No_Permission_E =>
-               Raise_No_Permission (Member);
+               Raise_No_Permission (CORBA_Member);
 
             when Internal_E =>
-               Raise_Internal (Member);
+               Raise_Internal (CORBA_Member);
 
             when Marshal_E =>
-               Raise_Marshal (Member);
+               Raise_Marshal (CORBA_Member);
 
             when Initialization_Failure_E =>
-               Raise_Internal (Member);
+               Raise_Internal (CORBA_Member);
 
             when No_Implement_E =>
-            Raise_No_Implement (Member);
+            Raise_No_Implement (CORBA_Member);
 
             when Bad_TypeCode_E =>
-               Raise_Bad_TypeCode (Member);
+               Raise_Bad_TypeCode (CORBA_Member);
 
             when Bad_Operation_E =>
-               Raise_Bad_Operation (Member);
+               Raise_Bad_Operation (CORBA_Member);
 
             when No_Resources_E =>
-               Raise_No_Resources (Member);
+               Raise_No_Resources (CORBA_Member);
 
             when No_Response_E =>
-            Raise_No_Response (Member);
+            Raise_No_Response (CORBA_Member);
 
             when Persist_Store_E =>
-               Raise_Persist_Store (Member);
+               Raise_Persist_Store (CORBA_Member);
 
             when Bad_Inv_Order_E =>
-               Raise_Bad_Inv_Order (Member);
+               Raise_Bad_Inv_Order (CORBA_Member);
 
             when Transient_E =>
-               Raise_Transient (Member);
+               Raise_Transient (CORBA_Member);
 
             when Free_Mem_E =>
-               Raise_Free_Mem (Member);
+               Raise_Free_Mem (CORBA_Member);
 
             when Inv_Ident_E =>
-               Raise_Inv_Ident (Member);
+               Raise_Inv_Ident (CORBA_Member);
 
             when Inv_Flag_E =>
-               Raise_Inv_Flag (Member);
+               Raise_Inv_Flag (CORBA_Member);
 
             when Intf_Repos_E =>
-               Raise_Intf_Repos (Member);
+               Raise_Intf_Repos (CORBA_Member);
 
             when Bad_Context_E =>
-               Raise_Bad_Context (Member);
+               Raise_Bad_Context (CORBA_Member);
 
             when Obj_Adapter_E =>
-               Raise_Obj_Adapter (Member);
+               Raise_Obj_Adapter (CORBA_Member);
 
             when Data_Conversion_E =>
-               Raise_Data_Conversion (Member);
+               Raise_Data_Conversion (CORBA_Member);
 
             when Object_Not_Exist_E =>
-               Raise_Object_Not_Exist (Member);
+               Raise_Object_Not_Exist (CORBA_Member);
 
             when Transaction_Required_E =>
-               Raise_Transaction_Required (Member);
+               Raise_Transaction_Required (CORBA_Member);
 
             when Transaction_Rolledback_E =>
-               Raise_Transaction_Rolledback (Member);
+               Raise_Transaction_Rolledback (CORBA_Member);
 
             when Invalid_Transaction_E =>
-               Raise_Invalid_Transaction (Member);
+               Raise_Invalid_Transaction (CORBA_Member);
 
             when Inv_Policy_E =>
-               Raise_Inv_Policy (Member);
+               Raise_Inv_Policy (CORBA_Member);
 
             when Codeset_Incompatible_E =>
-               Raise_Codeset_Incompatible (Member);
+               Raise_Codeset_Incompatible (CORBA_Member);
 
             when Rebind_E =>
-               Raise_Rebind (Member);
+               Raise_Rebind (CORBA_Member);
 
             when Timeout_E =>
-               Raise_Timeout (Member);
+               Raise_Timeout (CORBA_Member);
 
             when Transaction_Unavailable_E =>
-               Raise_Transaction_Unavailable (Member);
+               Raise_Transaction_Unavailable (CORBA_Member);
 
             when Transaction_Mode_E =>
-               Raise_Transaction_Mode (Member);
+               Raise_Transaction_Mode (CORBA_Member);
 
             when Bad_Qos_E =>
-               Raise_Bad_Qos (Member);
+               Raise_Bad_Qos (CORBA_Member);
 
             when others =>
                raise Program_Error;

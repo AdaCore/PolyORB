@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.ads#27 $
+--  $Id: //droopi/main/src/corba/corba.ads#28 $
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
@@ -215,18 +215,18 @@ package CORBA is
    --  occurence This method must be redefined for each new member
    --  type. That's why it is declared abstract.
 
-   type Completion_Status is
-     (Completed_Yes,
-      Completed_No,
-      Completed_Maybe);
+   type Completion_Status is new PolyORB.Exceptions.Completion_Status;
+   --     (Completed_Yes,
+   --      Completed_No,
+   --      Completed_Maybe);
    --  Type used for characterize the state of an exception.
 
    function From_Any
      (Item : PolyORB.Any.Any)
-     return Completion_Status;
+     return CORBA.Completion_Status;
 
    function To_Any
-     (Item : Completion_Status)
+     (Item : CORBA.Completion_Status)
      return PolyORB.Any.Any;
 
    type Exception_Type is (No_Exception, System_Exception, User_Exception);
@@ -275,8 +275,8 @@ package CORBA is
 
    type System_Exception_Members is new PolyORB.Exceptions.Exception_Members
      with record
-        Minor     : Unsigned_Long;
-        Completed : Completion_Status;
+        Minor     : CORBA.Unsigned_Long;
+        Completed : CORBA.Completion_Status;
      end record;
 
    procedure Get_Members
@@ -438,7 +438,7 @@ package CORBA is
 
    Default_Sys_Member : constant System_Exception_Members
      := System_Exception_Members'(Minor => 0,
-                                  Completed => Completed_No);
+                                  Completed => CORBA.Completed_No);
 
    type Unknown_Members                 is new System_Exception_Members
      with null record;
