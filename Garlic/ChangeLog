@@ -1,5 +1,13 @@
 2001-01-26  Laurent Pautet  <pautet@arlequin.enst.fr>
 
+	* 5egarrem.adb: Do not embrace executable name with quotes. It
+	does not help on NT and it fails on SGI.
+
+	* s-gaprre.adb, s-garhea.adb, s-gartra.ads, s-gartra.adb: Fix time
+	drift problem in replay facilities that cause replayed program to
+	execute slower than original execution. Remove useless procedure
+	Trace_Partition_ID.
+
 	* s-garrem.ads, 5wgarrem.adb, 5egarrem.adb: Use the remote shell
 	command and options from Platform_Specific and remove command and
 	options parameters in the launching subprograms.
