@@ -89,6 +89,8 @@ package System.Partition_Interface is
    subtype RCI_Subp_Info_Array is
      System.PolyORB_Interface.RCI_Subp_Info_Array;
 
+   subtype Request_Access is System.PolyORB_Interface.Request_Access;
+
 --    procedure Check
 --      (Name    : in Unit_Name;
 --       Version : in String;
