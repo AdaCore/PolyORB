@@ -281,8 +281,8 @@ Garlic/s-rpcser.adb
 Garlic/s-rpcser.ads
 Garlic/s-rpstio.adb
 Garlic/s-rpstio.ads
-Garlic/s-shamem.adb
-Garlic/s-shamem.ads
+Garlic/s-shasto.adb
+Garlic/s-shasto.ads
 Garlic/s-stratt.adb
 Garlic/split.adb
 Garlic/stamp-h.in
