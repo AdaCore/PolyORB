@@ -64,8 +64,10 @@ package PolyORB.CORBA_P.AdapterActivator is
 
 private
 
+   type AA_Ptr is access all PortableServer.AdapterActivator.Ref'Class;
+
    type CORBA_AdapterActivator is new PPT.AdapterActivator with record
-      AA : PortableServer.AdapterActivator.AA_Ptr;
+      AA : AA_Ptr;
    end record;
 
 end PolyORB.CORBA_P.AdapterActivator;

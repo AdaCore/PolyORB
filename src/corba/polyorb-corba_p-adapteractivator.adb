@@ -49,8 +49,7 @@ package body PolyORB.CORBA_P.AdapterActivator is
    begin
       Self := new CORBA_AdapterActivator;
 
-      CORBA_AdapterActivator (Self.all).AA
-        := PortableServer.AdapterActivator.AA_Ptr (AA);
+      CORBA_AdapterActivator (Self.all).AA := AA_Ptr (AA);
    end Create;
 
    ---------------------------
