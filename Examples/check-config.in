@@ -41,11 +41,29 @@ fi
 # Check that gnatdist is in the user's path
 #
 
-where=`type gnatdist 2>&1`
+OIFS="$IFS"
+IFS=":"
+set $PATH
+IFS="$OIFS"
+where="NOTFOUND"
+for i in "$@"; do
+  if [ -x $i/gnatdist ]; then
+    where="$i/gnatdist"
+    break
+  fi
+done
+
 case $where in
-  *gnatdist) ;;
+  *gnatdist)
+     if [ "$where" != "$exec_prefix/bin/gnatdist" ]; then
+       echo 'Warning: the first gnatdist in your PATH' >&2
+       echo "         ($where)" >&2
+       echo '         is not the expected one' >&2
+       echo "         ($exec_prefix/bin/gnatdist)" >&2
+       echo "         Fix this if you run into trouble." >&2
+     fi;;
   *)
-     echo 'Warning: the program gnatdist seems not to be in your path' >&2
+     echo 'Error: the program gnatdist seems not to be in your path' >&2
      echo 'Maybe you should type:' >&2
      case $IN_MAKE in
        yes) echo '   *csh users: set path=('$exec_prefix'/bin $path)' >&2
