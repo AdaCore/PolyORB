@@ -3,7 +3,7 @@ with Locations; use Locations;
 --   with Debug; use Debug;
 with Backend.BE_Ada.Nodes; use Backend.BE_Ada.Nodes;
 with Namet; use Namet;
-with Backend.BE_Ada.Namet;
+--   with Backend.BE_Ada.Namet;
 
 
 
@@ -11,7 +11,7 @@ package body Backend.BE_Ada.Nutils is
 
 
 
-   package BE_Namet renames Backend.BE_Ada.Namet;
+   package BE_Namet renames Namet;
 
 
    procedure Append_Node_To_List (E : Node_Id; L : List_Id) is

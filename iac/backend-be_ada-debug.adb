@@ -1,6 +1,6 @@
 with Charset;     use Charset;
 with Locations;   use Locations;
-with Backend.BE_Ada.Namet;       use Backend.BE_Ada.Namet;
+with Namet;       use Namet;
 with Backend.BE_Ada.Nodes;       use Backend.BE_Ada.Nodes;
 with Output;      use Output;
 --   with Scopes;      use Scopes;

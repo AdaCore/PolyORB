@@ -14,13 +14,13 @@ with Namet; use Namet;
 with Backend.BE_Ada.Nutils; use Backend.BE_Ada.Nutils;
 with Ada.Strings.Unbounded;
 with Backend.BE_Ada.Debug; use Backend.BE_Ada.Debug;
-with Backend.BE_Ada.Namet;
+--   with Backend.BE_Ada.Namet;
 package body Backend.BE_Ada is
 
    Ada_Packages : List_Id;
 
    package BE renames Backend.BE_Ada.Nodes;
-   package BE_Namet renames Backend.BE_Ada.Namet;
+   package BE_Namet renames Namet;
 
    procedure Generate_Type_Declaration (E : Node_Id);
    procedure Generate_Specification (E : Node_Id);
@@ -51,7 +51,7 @@ package body Backend.BE_Ada is
    procedure Generate (E : Node_Id) is
 
    begin
-      BE_Namet.Initialize;
+      --    BE_Namet.Initialize;
       Insert_Base_Type;
       Set_Standard_Output;
       Ada_Packages := New_List (BE.K_Ada_Package_List, No_Location);
