@@ -553,6 +553,17 @@ src/giop/polyorb-protocols-giop-giop_1_2.adb
 src/giop/polyorb-protocols-giop-giop_1_2.ads
 src/giop/polyorb-protocols-giop.adb
 src/giop/polyorb-protocols-giop.ads
+src/giop/diop/Makefile.am
+src/giop/diop/Makefile.in
+src/giop/diop/gnat.adc
+src/giop/diop/polyorb-binding_data-diop.adb
+src/giop/diop/polyorb-binding_data-diop.ads
+src/giop/diop/polyorb-protocols-giop-diop.adb
+src/giop/diop/polyorb-protocols-giop-diop.ads
+src/giop/diop/polyorb-setup-diop.adb
+src/giop/diop/polyorb-setup-diop.ads
+src/giop/diop/polyorb-setup-udp_access_points-sockets-diop.adb
+src/giop/diop/polyorb-setup-udp_access_points-sockets-diop.ads
 src/gnat.adc
 src/gnat.adc.exclude
 src/moma/Makefile.am

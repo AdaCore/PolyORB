@@ -34,7 +34,7 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/polyorb-binding_data.ads#16 $
+--  $Id: //droopi/main/src/polyorb-binding_data.ads#17 $
 
 with Ada.Finalization;
 
@@ -77,6 +77,7 @@ package PolyORB.Binding_Data is
    Tag_Local               : constant Profile_Tag;
    Tag_SRP                 : constant Profile_Tag;
    Tag_SOAP                : constant Profile_Tag;
+   Tag_DIOP                : constant Profile_Tag;
    Tag_Test                : constant Profile_Tag;
 
    type Profile_Preference is new Integer range 0 .. Integer'Last;
@@ -178,17 +179,17 @@ private
    --  Standard tags defined by CORBA
 
    Tag_Internet_IOP        : constant Profile_Tag := 0;
-   --  UIPMC Jacorb Value
-   --  Tag_UIPMC               : constant Profile_Tag := 4050;
-   --  UIPMC TAO Value
-   Tag_UIPMC               : constant Profile_Tag := 1413566220;
    Tag_Multiple_Components : constant Profile_Tag := 1;
+   Tag_UIPMC               : constant Profile_Tag := 3;
+   --  TAO value :
+   --  Tag_UIPMC               : constant Profile_Tag := 1413566220;
 
    --  Tags defined by PolyORB
 
    Tag_Local               : constant Profile_Tag := 16#7fffff00#;
    Tag_SRP                 : constant Profile_Tag := 16#7fffff02#;
    Tag_SOAP                : constant Profile_Tag := 16#7fffff03#;
+   Tag_DIOP                : constant Profile_Tag := 16#7fffff04#;
    Tag_Test                : constant Profile_Tag := 16#7fffff0f#;
 
    Preference_Default : constant Profile_Preference
