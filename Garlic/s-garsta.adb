@@ -69,6 +69,9 @@ with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
 with System.Garlic.Protocols;         use System.Garlic.Protocols;
 pragma Elaborate_All (System.Garlic.Protocols);
 
+with System.Garlic.Storages.Config;   use System.Garlic.Storages.Config;
+pragma Elaborate_All (System.Garlic.Storages.Config);
+
 with System.Garlic.Protocols.Config;
 pragma Elaborate_All (System.Garlic.Protocols.Config);
 
@@ -170,6 +173,11 @@ begin
    --      and registers all the protocols the user wants to use.
 
    System.Garlic.Protocols.Config.Initialize;
+
+   --  (5) The elaboration code of System.Garlic.Startup executes
+   --      and registers all the storages the user wants to use.
+
+   System.Garlic.Storages.Config.Initialize;
 
    --  (6) The elaboration code of System.Garlic.Startup initializes
    --      the boot locations. It declares all the boot locations on
