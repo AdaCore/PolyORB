@@ -192,6 +192,8 @@ Garlic/s-ganeut.adb
 Garlic/s-ganeut.ads
 Garlic/s-gaphlo.adb
 Garlic/s-gaphlo.ads
+Garlic/s-gaprob.adb
+Garlic/s-gaprob.ads
 Garlic/s-gaplsp.ads.in
 Garlic/s-gaprco.adb.in
 Garlic/s-gaprco.ads
@@ -206,8 +208,6 @@ Garlic/s-gargro.ads
 Garlic/s-garhea.adb
 Garlic/s-garhea.ads
 Garlic/s-garlic.ads
-Garlic/s-garloc.adb
-Garlic/s-garloc.ads
 Garlic/s-garfil.adb
 Garlic/s-garfil.ads
 Garlic/s-garnam.adb
@@ -238,7 +238,6 @@ Garlic/s-garter.ads
 Garlic/s-garthi.ads
 Garlic/s-gartra.adb
 Garlic/s-gartra.ads
-Garlic/s-gartyp.adb
 Garlic/s-gartyp.ads
 Garlic/s-garuni.adb
 Garlic/s-garuni.ads

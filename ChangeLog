@@ -1,3 +1,12 @@
+1999-09-07  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* MANIFEST: Remove s-garloc.adb, s-garloc.ads, s-gartyp.adb and
+	add s-gaprob.adb, s-gaprob.ads.
+
+1999-08-22  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* MANIFEST: Add usage.ad[bs] needed for makeusg.adb.
+
 1999-06-30  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* NEWS: Update with the new features and the bug fixes since
