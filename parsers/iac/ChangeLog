@@ -1,3 +1,33 @@
+2004-06-10  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* backend-be_idl.adb: Generate idl code for union type. Fix bug in
+	sequence type generation (most keywords missing). Add Generate
+	procedure for values (used both for constant declaration and case
+	label).
+
+	* values.adb, values.ads: Add a comparison function between two
+	values. This is used to sort labels in a union type and to detect
+	duplications. Add an enumerator as a value for union type as well.
+ 
+	* analyzer.adb: Provide two subprograms Resolve_Type and
+	Resolve_Expr. Resolve_Type returns the root type. A case which is
+	not well handled concerns array type as this info is in the
+	declarator and not in the type spec itself (C
+	syntax). Resolve_Expr is a renaming of the previous Resolve
+	procedure. Analyze union type that is : analyze all the enclosed
+	entities, check labels are in the switch type, check they are not
+	duplicated, heck elements are not duplicated.
+
+	* parser.adb: Do not represent enumerator with only their position
+	and add their image instead. Handle union type and in particular
+	set the Declaration attributes of all the nodes implied in the
+	union type definition. Improve error handling for union type.
+
+	* nodes.idl: Add node Case_Label to handle union type. Add also an
+	attribute Declaration for Switch_Alternative and Case_Label in
+	order to retrieve respectively the Union_Type and the
+	Switch_Alternative of these entities.
+
 2004-06-01  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* mknodes.adb: Debug is now a sibling from Nodes.
