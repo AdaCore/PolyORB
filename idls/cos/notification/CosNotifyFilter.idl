@@ -6,7 +6,7 @@
 #pragma prefix "omg.org"
 
 #include <CosNotifyComm.idl>
-
+#include <CORBA_TypeCode.idl>
 module CosNotifyFilter {
 
 	typedef long ConstraintID;
@@ -102,7 +102,7 @@ module CosNotifyFilter {
 
 		readonly attribute string constraint_grammar;
 
-		readonly attribute CORBA::TypeCode value_type;
+	        readonly attribute CORBA::TypeCode value_type;
 
 		readonly attribute any default_value;
 

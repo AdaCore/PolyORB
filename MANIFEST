@@ -376,6 +376,7 @@ idls/cos/naming/CosNaming.idl
 idls/cos/naming/Lname-library.idl
 idls/cos/naming/Makefile.am
 idls/cos/naming/Makefile.in
+idls/cos/notification/CORBA_TypeCode.idl
 idls/cos/notification/CosNotification.idl
 idls/cos/notification/CosNotifyChannelAdmin.idl
 idls/cos/notification/CosNotifyComm.idl

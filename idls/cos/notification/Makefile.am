@@ -2113,5 +2113,6 @@ stamp-gen-CosTypedNotifyComm: $(CosTypedNotifyComm) $(IDLAC)
 $(CosNotifyFilter_GEN): stamp-gen-CosNotifyFilter
 stamp-gen-CosNotifyFilter: $(CosNotifyFilter) $(IDLAC)
 	$(IDLAC) $(CosNotifyFilter_IDL) -I$(srcdir) -I$(srcdir)/../event/
+	$(RM) -f corba.* corba-helper* corba-typecode* corba-ir_info.* corba_typecode_idl_file*
 	touch $@
 
