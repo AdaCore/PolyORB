@@ -106,7 +106,6 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
       body += "      Opcd : " + name_of_the_package + ".Proxies." + get_ada_local_name() + "_Proxy ;\n";
       body += "      Result : " + name +";\n";
       body += "   begin \n";
-      body += "      Assert_Ref_Not_Nil(Self) ;\n";
       body += "      Opcd := " + name_of_the_package + ".Proxies.Create(";
       UTL_ScopeActiveIterator j(this,UTL_Scope::IK_decls);
       while (!j.is_done())
@@ -526,7 +525,7 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
   body += full_name;
   body += "(Self";
   body += call_args;
-  body += ") :\n";
+  body += ") ;\n";
 
   if ((!no_out) || (is_function())) {
     body += "            -- compute the size of the replied message\n";

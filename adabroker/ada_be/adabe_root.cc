@@ -468,7 +468,7 @@ adabe_root::produce() {
 		    skel_header_interface_with_string = *skel_header_interface_with.produce("with ");
 		    
 		    string skel_header_interface_file_name =
-		      remove_dot(interface->get_ada_full_name())+"-skel.ads";
+		      remove_dot(interface->get_ada_full_name())+"-skeleton.ads";
 		    ofstream skel_header_interface_file(skel_header_interface_file_name.c_str());	
 		    skel_header_interface_file << skel_header_interface_with_string;
 		    skel_header_interface_file << skel_header_interface_previous;    
@@ -521,7 +521,7 @@ adabe_root::produce() {
 		    skel_body_interface_with_string = *skel_body_interface_with.produce("with ");
 		    
 		    string skel_body_interface_file_name =
-		      remove_dot(interface->get_ada_full_name())+"-skel.adb";
+		      remove_dot(interface->get_ada_full_name())+"-skeleton.adb";
 		    ofstream skel_body_interface_file(skel_body_interface_file_name.c_str());	
 		    skel_body_interface_file << skel_body_interface_with_string;
 		    skel_body_interface_file << skel_body_interface_previous;    

@@ -453,7 +453,7 @@ adabe_module::produce_skel_ads(dep_list& with,string &body, string &previousdefi
 	    interface_with_string = *interface_with.produce("with ");
 	    
 	    string interface_file_name =
-	      remove_dot(interface->get_ada_full_name()) + "-skel.ads";
+	      remove_dot(interface->get_ada_full_name()) + "-skeleton.ads";
 	    ofstream interface_file(interface_file_name.c_str());
 	    interface_file << interface_with_string;
 	    interface_file << interface_previous;       
@@ -516,7 +516,7 @@ adabe_module::produce_skel_adb(dep_list& with,string &body, string &previousdefi
 	    interface_with_string = *interface_with.produce("with ");
 	    
 	    string interface_file_name =
-	      remove_dot(interface->get_ada_full_name()) + "-skel.adb";
+	      remove_dot(interface->get_ada_full_name()) + "-skeleton.adb";
 	    ofstream interface_file(interface_file_name.c_str());
 	    interface_file << interface_with_string;
 	    interface_file << interface_previous;       

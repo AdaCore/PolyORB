@@ -198,6 +198,7 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
 void
 adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
 {
+  with.add (get_ada_local_name () + ".Proxies");
   adabe_global::set_adabe_current_file(this);
   string tmp = "";
   adabe_interface *inher;

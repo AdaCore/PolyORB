@@ -63,7 +63,7 @@ adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
 void
 adabe_exception::produce_adb (dep_list& with,string &body, string &previous)
 {
-  body += "   procedure Get_Members(From: in Ada.Exceptions.Exception_Occurence ;\n";
+  body += "   procedure Get_Members(From: in Ada.Exceptions.Exception_Occurrence ;\n";
   body += "                         To: out " + get_ada_local_name() + "_Members) is\n";
   body += "   begin\n";
   body += "      Corba.Exceptions.Get_Members (From,To) ;\n";
