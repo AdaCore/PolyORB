@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -581,6 +581,8 @@ package body PolyORB.Buffers is
             From   => Addr);
       end;
       Received := Last + 1;
+
+      pragma Debug (O ("Receive_buffer: received" & Received'Img));
       Unuse_Allocation (Buffer, Max - Received);
       Buffer.CDR_Position := Saved_CDR_Position;
    end Receive_Buffer;
