@@ -368,7 +368,7 @@ package body System.Garlic.Termination is
             delay Time_Between_Checks;
          end select;
 
-         --  If there is only one active task (me !), we can initiate
+         --  If there is only one active task (me!), we can initiate
          --  the algorithm.
 
          pragma Debug (D (D_Debug,
