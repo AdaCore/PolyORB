@@ -603,14 +603,14 @@ package XE is
    Default_Command_Line  : Command_Line_Type     := No_Command_Line;
 
    type Partition_Type is record
-      Name            : Partition_Name_Type   := No_Partition_Name;
-      Host            : Host_Id               := Null_Host;
-      Storage_Dir     : Storage_Dir_Name_Type := No_Storage_Dir;
-      Command_Line    : Command_Line_Type     := No_Command_Line;
-      Main_Subprogram : Unit_Name_Type        := No_Name;
-      First_Unit      : CUID_Type             := Null_CUID;
-      Last_Unit       : CUID_Type             := Null_CUID;
-      To_Build        : Boolean               := True;
+      Name            : Partition_Name_Type;
+      Host            : Host_Id;
+      Storage_Dir     : Storage_Dir_Name_Type;
+      Command_Line    : Command_Line_Type;
+      Main_Subprogram : Unit_Name_Type;
+      First_Unit      : CUID_Type;
+      Last_Unit       : CUID_Type;
+      To_Build        : Boolean;
    end record;
 
    package Partitions  is new Table
@@ -622,11 +622,11 @@ package XE is
       Table_Name           => "Partition");
 
    type Conf_Unit_Type is record
-      CUname    : CUnit_Name_Type := No_CUnit_Name;
-      My_ALI    : ALI_Id          := No_ALI_Id;
-      My_Unit   : Unit_Id         := No_Unit_Id;
-      Partition : PID_Type        := Null_PID;
-      Next      : CUID_Type       := Null_CUID;
+      CUname    : CUnit_Name_Type;
+      My_ALI    : ALI_Id;
+      My_Unit   : Unit_Id;
+      Partition : PID_Type;
+      Next      : CUID_Type;
    end record;
 
    package CUnit is new Table

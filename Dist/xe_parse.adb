@@ -1551,7 +1551,7 @@ package body XE_Parse is
       Sub_Prog_Param := Str_To_Id ("_sub_prog_param");
       Procedure_Call := Str_To_Id ("_procedure_call");
 
-      --  As a naming convention, we use the rserved keyword "private"
+      --  As a naming convention, we use the reserved keyword "private"
       --  for the standard configuration name.
 
       Create_Configuration
@@ -1588,6 +1588,8 @@ package body XE_Parse is
          Component_Name   => Returned_Param,
          Comp_Type_Node   => String_Type_Node,
          Component_Node   => Component_Node);
+
+      Print_Configuration;
 
       --  type type__main_procedure (standard)
       --     procedure P
@@ -2695,7 +2697,11 @@ package body XE_Parse is
          Write_Name (Get_Node_Name (Node_Id (Node)));
          Write_Str  (" : ");
          Item := Get_Component_Value (Node);
-         Write_Name (Get_Node_Name (Item));
+         if Item /= Null_Node then
+            Write_Name (Get_Node_Name (Item));
+         else
+            Write_Str  ("<non>");
+         end if;
          Write_Eol;
       end if;
    end Print;

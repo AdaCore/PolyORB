@@ -60,13 +60,13 @@ package body XE is
 
    type Node_Type is
       record
-         Kind    : Node_Kind := K_Null;
-         Name    : Name_Id   := No_Name;
-         Node_1  : Node_Id   := Null_Node;
-         Node_2  : Node_Id   := Null_Node;
-         Node_3  : Node_Id   := Null_Node;
-         Flag_1  : Boolean   := True;
-         Value   : Int       := 0;
+         Kind    : Node_Kind;
+         Name    : Name_Id;
+         Node_1  : Node_Id;
+         Node_2  : Node_Id;
+         Node_3  : Node_Id;
+         Flag_1  : Boolean;
+         Value   : Int;
       end record;
 
    --  list
@@ -236,7 +236,14 @@ package body XE is
       Partitions.Increment_Last;
       Partition := Partitions.Last;
       Set_PID (Name, Partition);
-      Partitions.Table (Partition).Name := Name;
+      Partitions.Table (Partition).Name            := Name;
+      Partitions.Table (Partition).Host            := Null_Host;
+      Partitions.Table (Partition).Storage_Dir     := No_Storage_Dir;
+      Partitions.Table (Partition).Command_Line    := No_Command_Line;
+      Partitions.Table (Partition).Main_Subprogram := No_Name;
+      Partitions.Table (Partition).First_Unit      := Null_CUID;
+      Partitions.Table (Partition).Last_Unit       := Null_CUID;
+      Partitions.Table (Partition).To_Build        := True;
       PID := Partition;
    end Create_Partition;
 
@@ -322,6 +329,9 @@ package body XE is
       CUnit.Increment_Last;
       CUnit.Table (CUnit.Last).Partition := To;
       CUnit.Table (CUnit.Last).CUname    := CU;
+      CUnit.Table (CUnit.Last).My_ALI    := No_ALI_Id;
+      CUnit.Table (CUnit.Last).My_Unit   := No_Unit_Id;
+      CUnit.Table (CUnit.Last).Next      := Null_CUID;
 
       --  Update partition single linked list of configured units.
       if Partitions.Table (To).First_Unit = Null_CUID then
@@ -1449,8 +1459,13 @@ package body XE is
       Kind : in  Node_Kind) is
    begin
       Nodes.Increment_Last;
-      Nodes.Table (Nodes.Last).Kind := Kind;
-      Nodes.Table (Nodes.Last).Name := Name;
+      Nodes.Table (Nodes.Last).Kind     := Kind;
+      Nodes.Table (Nodes.Last).Name     := Name;
+      Nodes.Table (Nodes.Last).Node_1   := Null_Node;
+      Nodes.Table (Nodes.Last).Node_2   := Null_Node;
+      Nodes.Table (Nodes.Last).Node_3   := Null_Node;
+      Nodes.Table (Nodes.Last).Flag_1   := True;
+      Nodes.Table (Nodes.Last).Value    := 0;
       Node := Nodes.Last;
    end Create_Node;
 
