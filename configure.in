@@ -8,7 +8,7 @@ AC_CONFIG_AUX_DIR(support)
 # Package description
 #
 AC_CANONICAL_SYSTEM
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE(GLADE,dev)
 #
 # Various programs
 #
