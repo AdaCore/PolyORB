@@ -62,6 +62,9 @@ package body Broca.IIOP is
 
       Unmarshall (Buffer, IIOP_Profile.Host);
       Unmarshall (Buffer, IIOP_Profile.Port);
+      IIOP_Profile.Network_Port := Port_To_Network_Port (IIOP_Profile.Port);
+      Put_Line ("Decaps: port = " & CORBA.Unsigned_Short'Image
+                (IIOP_Profile.Port));
       Align_Size (Buffer, UL_Size);
       Unmarshall (Buffer, IIOP_Profile.Object_Key);
       Set_Endianess (Buffer, Old_Endian);
@@ -81,6 +84,8 @@ package body Broca.IIOP is
       IIOP_Profile : Profile_IIOP_Type renames Profile_IIOP_Type (Profile.all);
    begin
       Put_Line ("From = " & Buffer_Index_Type'Image (From));
+
+      Rewind (Buffer);
 
       Skip_Bytes (Buffer, From);
 
@@ -112,6 +117,8 @@ package body Broca.IIOP is
       Marshall (Buffer, CORBA.Octet'(0));
       Marshall (Buffer, IIOP_Profile.Host);
       Marshall (Buffer, IIOP_Profile.Port);
+      Put_Line ("Encaps: port = " & CORBA.Unsigned_Short'Image
+                (IIOP_Profile.Port));
       Align_Size (Buffer, UL_Size);
       Marshall (Buffer, IIOP_Profile.Object_Key);
    end Encapsulate_Profile;

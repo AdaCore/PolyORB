@@ -178,8 +178,12 @@ package body Broca.Buffers is
       Size   : in Buffer_Index_Type) is
    begin
       if Buffer.Buffer /= null then
+         if Size = Buffer_Index_Type (Buffer.Buffer'Length) then
+            return;
+         end if;
          Free (Buffer.Buffer);
       end if;
+
       if Size > 0 then
          Buffer.Buffer := new Buffer_Type (0 .. Size - 1);
       end if;

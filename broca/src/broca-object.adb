@@ -33,7 +33,7 @@ package body Broca.Object is
       --  Value of "From" parameter (0);
       --  Potential exception (if Get (Value) cannot be
       --  narrowed to Object_Type)
-      Encapsulate_IOR (Buffer, 0, Value);
+      Encapsulate_IOR (Buffer, Size_Used (Buffer), Value);
    end Marshall;
 
    ----------------

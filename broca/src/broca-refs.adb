@@ -2,6 +2,7 @@ with Ada.Unchecked_Deallocation;
 with Ada.Tags;
 with Broca.Locks;
 with Broca.Exceptions;
+with Broca.Object;
 
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
@@ -160,9 +161,15 @@ package body Broca.Refs is
 
    procedure Unmarshall
      (Buffer : in out Buffer_Descriptor;
-      Value  : out Ref) is
+      Value  : out Ref)
+   is
+      New_Ref : Ref;
+      Obj : constant Ref_Ptr
+        := new Broca.Object.Object_Type;
    begin
-      raise Program_Error;
+      Unmarshall (Buffer, Obj.all);
+      Set (New_Ref, Obj);
+      Value := New_Ref;
    end Unmarshall;
 
    ---------

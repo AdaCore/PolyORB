@@ -59,6 +59,7 @@ package body Broca.IOP is
       Buffers  : array (Profiles'Range) of Buffer_Descriptor;
       Offsets  : array (Profiles'Range) of Buffer_Index_Type;
    begin
+      Rewind              (Buffer);
       Skip_Bytes          (Buffer, From);
       Compute_New_Size    (Buffer, O_Size, O_Size);
       Compute_New_Size    (Buffer, Type_Id);
@@ -71,7 +72,7 @@ package body Broca.IOP is
          Compute_New_Size    (Buffer, UL_Size, UL_Size);
 
          --  Length of profile
-         Compute_New_Size    (Buffer, UL_Size, UL_Size);
+         --  NOT XXXX Compute_New_Size    (Buffer, UL_Size, UL_Size);
 
          Offsets (N) := Size_Used (Buffer);
          Callbacks (Get_Profile_Id (Profiles (N).all)).Encapsulate
@@ -83,6 +84,8 @@ package body Broca.IOP is
 
       Allocate_Buffer_And_Clear_Pos (Buffer, Full_Size (Buffer));
 
+      Skip_Bytes          (Buffer, From);
+
       Marshall (Buffer, Is_Little_Endian);
       Marshall (Buffer, Type_Id);
       Marshall (Buffer, CORBA.Unsigned_Long (Profiles'Length));
@@ -93,7 +96,9 @@ package body Broca.IOP is
          pragma Debug (O ("Dump Buffers (N)"));
          pragma Debug (Show (Buffers (N)));
          Marshall      (Buffer, Get_Profile_Id (Profiles (N).all));
-         Marshall      (Buffer, CORBA.Unsigned_Long (Size_Left (Buffers (N))));
+         --  XXX NOT
+         --  Marshall  (Buffer, CORBA.Unsigned_Long (Size_Left (Buffers (N))));
+         Skip_Bytes    (Buffer, Offsets (N) - Size_Used (Buffer));
          Append_Buffer (Buffer, Buffers (N));
          Destroy       (Buffers (N));
       end loop;
