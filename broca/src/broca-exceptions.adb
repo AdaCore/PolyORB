@@ -36,6 +36,7 @@ with Ada.Exceptions; use Ada.Exceptions;
 with CORBA; use CORBA;
 with Broca.CDR;
 with Broca.Exceptions.Stack;
+with Broca.Names; use Broca.Names;
 
 package body Broca.Exceptions is
 
@@ -356,8 +357,7 @@ package body Broca.Exceptions is
    begin
       for I in Mapping'Range loop
          if Id = Mapping (I) .Exc then
-            return To_RepositoryId
-              ("IDL:omg.org/CORBA/" & Mapping (I) .Name.all & ":1.0");
+            return To_RepositoryId (OMG_RepositoryId (Mapping (I) .Name.all));
          end if;
       end loop;
       raise Program_Error;
@@ -380,10 +380,6 @@ package body Broca.Exceptions is
       Marshall (Buffer, To_Unsigned_Long (Members.Completed));
    end Marshall;
 
-   Prefix : constant String := "IDL:omg.org/CORBA/";
-   Suffix : constant String := ":1.0";
-   --  System Exception Prefix
-
    procedure Unmarshall_And_Raise (Buffer : access Buffer_Type) is
       use Broca.CDR;
       use Ada.Exceptions;
@@ -394,23 +390,11 @@ package body Broca.Exceptions is
    begin
       Repository := Unmarshall (Buffer);
       declare
-         R : String  := To_Standard_String (Repository);
-         F : Natural := R'First;
-         L : Natural := R'Last;
+         R : constant String  := To_Standard_String (Repository);
       begin
-         if R'Length < Prefix'Length + Suffix'Length
-           or else R (F .. F + Prefix'Length - 1) /= Prefix
-           or else R (L - Suffix'Length + 1 .. L) /= Suffix
-         then
-            Raise_Marshal (Status => Completed_Maybe);
-         end if;
-
          Identity := Null_Id;
-         F := F + Prefix'Length;
-         L := L - Suffix'Length;
-
          for I in Mapping'Range loop
-            if R (F .. L) = Mapping (I) .Name.all then
+            if R = OMG_RepositoryId (Mapping (I) .Name.all) then
                Identity := Mapping (I) .Exc;
                exit;
             end if;

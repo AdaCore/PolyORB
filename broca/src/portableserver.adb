@@ -37,6 +37,7 @@ with Ada.Unchecked_Conversion;
 with CORBA; use CORBA;
 
 with Broca.Exceptions;
+with Broca.Names; use Broca.Names;
 with Broca.Sequences;
 with Broca.ORB;
 with Broca.Soft_Links; use Broca.Soft_Links;
@@ -189,7 +190,7 @@ package body PortableServer is
       return Find_Info (For_Servant).Type_Id;
    exception
       when Skeleton_Unknown =>
-         return CORBA.To_CORBA_String ("IDL:omg.org/CORBA/OBJECT:1.0");
+         return CORBA.To_CORBA_String (OMG_RepositoryId ("OBJECT"));
       when others =>
          raise;
    end Get_Type_Id;
