@@ -61,9 +61,9 @@ package body PortableServer is
 
    type Skeleton_Info is record
       Type_Id     : CORBA.RepositoryId;
-      Is_A        : Servant_Class_Predicate;
-      Target_Is_A : Servant_Class_Is_A_Operation;
-      Dispatcher  : Request_Dispatcher;
+      Is_A        : Internals.Servant_Class_Predicate;
+      Target_Is_A : Internals.Servant_Class_Is_A_Operation;
+      Dispatcher  : Internals.Request_Dispatcher;
    end record;
 
    function Find_Info
@@ -78,7 +78,7 @@ package body PortableServer is
    Skeleton_Unknown : exception;
 
    type Dispatcher_Note is new PolyORB.Annotations.Note with record
-      Skeleton : Request_Dispatcher;
+      Skeleton : Internals.Request_Dispatcher;
    end record;
 
    Null_Dispatcher_Note : constant Dispatcher_Note
@@ -173,6 +173,8 @@ package body PortableServer is
      (Self    : access Servant_Base;
       Request : in     CORBA.ServerRequest.Object_Ptr)
    is
+      use type Internals.Request_Dispatcher;
+
       P_Servant : constant PolyORB.Servants.Servant_Access :=
         CORBA.Impl.To_PolyORB_Servant
         (CORBA.Impl.Object (Servant (Self).all)'Access);
@@ -203,6 +205,49 @@ package body PortableServer is
    end Invoke;
 
    package body Internals is
+
+      -----------------
+      -- Get_Type_Id --
+      -----------------
+
+      function Get_Type_Id
+        (For_Servant : in Servant)
+        return CORBA.RepositoryId
+      is
+      begin
+         return Find_Info (For_Servant).Type_Id;
+
+      exception
+         when Skeleton_Unknown =>
+            return CORBA.To_CORBA_String
+              (PolyORB.CORBA_P.Names.OMG_RepositoryId ("CORBA/OBJECT"));
+      end Get_Type_Id;
+
+      -----------------------
+      -- Register_Skeleton --
+      -----------------------
+
+      procedure Register_Skeleton
+        (Type_Id     : in CORBA.RepositoryId;
+         Is_A        : in Servant_Class_Predicate;
+         Target_Is_A : in Servant_Class_Is_A_Operation;
+         Dispatcher  : in Request_Dispatcher := null)
+      is
+         use Skeleton_Lists;
+
+      begin
+         pragma Debug (O ("Register_Skeleton: Enter."));
+
+         Prepend (All_Skeletons,
+                  (Type_Id     => Type_Id,
+                   Is_A        => Is_A,
+                   Target_Is_A => Target_Is_A,
+                   Dispatcher  => Dispatcher));
+
+         pragma Debug (O ("Registered : type_id = " &
+                          CORBA.To_Standard_String (Type_Id)));
+
+      end Register_Skeleton;
 
       -----------------
       -- Target_Is_A --
@@ -263,48 +308,6 @@ package body PortableServer is
 
       return Value (It).all;
    end Find_Info;
-
-   -----------------------
-   -- Register_Skeleton --
-   -----------------------
-
-   procedure Register_Skeleton
-     (Type_Id     : in CORBA.RepositoryId;
-      Is_A        : in Servant_Class_Predicate;
-      Target_Is_A : in Servant_Class_Is_A_Operation;
-      Dispatcher  : in Request_Dispatcher := null)
-   is
-      use Skeleton_Lists;
-
-   begin
-      pragma Debug (O ("Register_Skeleton: Enter."));
-
-      Prepend (All_Skeletons,
-               (Type_Id     => Type_Id,
-                Is_A        => Is_A,
-                Target_Is_A => Target_Is_A,
-                Dispatcher  => Dispatcher));
-
-      pragma Debug (O ("Registered : type_id = " &
-                       CORBA.To_Standard_String (Type_Id)));
-
-   end Register_Skeleton;
-
-   -----------------
-   -- Get_Type_Id --
-   -----------------
-
-   function Get_Type_Id
-     (For_Servant : Servant)
-     return CORBA.RepositoryId is
-   begin
-      return Find_Info (For_Servant).Type_Id;
-
-   exception
-      when Skeleton_Unknown =>
-         return CORBA.To_CORBA_String
-           (PolyORB.CORBA_P.Names.OMG_RepositoryId ("CORBA/OBJECT"));
-   end Get_Type_Id;
 
    ------------------------
    -- String_To_ObjectId --

@@ -349,7 +349,7 @@ package body Ada_Be.Idl2Ada.Skel is
 
       Divert (CU, Deferred_Initialization);
 
-      PL (CU, "PortableServer.Register_Skeleton");
+      PL (CU, "PortableServer.Internals.Register_Skeleton");
       Put (CU, "  (CORBA.To_CORBA_String (");
       Put (CU, Ada_Full_Name (Node));
       PL (CU, "." & Repository_Id_Name (Node) &"),");

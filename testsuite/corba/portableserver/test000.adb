@@ -69,6 +69,7 @@ procedure Test000 is
 
    use CORBA;
    use PortableServer;
+   use PortableServer.Internals;
    use PortableServer.POA;
    use PortableServer.POAManager;
 

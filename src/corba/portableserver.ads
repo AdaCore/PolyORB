@@ -317,60 +317,54 @@ package PortableServer is
      (Item : in RequestProcessingPolicyValue)
      return CORBA.Any;
 
-   -------------------------
-   -- Specific to PolyORB --
-   -------------------------
-
-   --  XXX Old AdaBroker-specific spec, kept here for
-   --  now for easy reference. Please do not remove yet.
-   --  XXX is the above comment still pertinent ?
-
-   function Get_Type_Id (For_Servant : Servant)
-     return CORBA.RepositoryId;
-
-   type Request_Dispatcher is access procedure
-     (For_Servant : in Servant;
-      Request     : in CORBA.ServerRequest.Object_Ptr);
-   --  Same signature as primitive Invoke of type
-   --  DynamicImplementation.
-
-   type Servant_Class_Predicate is access function
-     (For_Servant : Servant)
-     return Boolean;
-
-   type Servant_Class_Is_A_Operation is access function
-     (Logical_Type_Id : in Standard.String)
-     return CORBA.Boolean;
-
-   procedure Register_Skeleton
-     (Type_Id     : in CORBA.RepositoryId;
-      Is_A        : in Servant_Class_Predicate;
-      Target_Is_A : in Servant_Class_Is_A_Operation;
-      Dispatcher  : in Request_Dispatcher := null);
-   --  Associate a type id with a class predicate.
-   --  A Dispatcher function can also be specified if the
-   --  class predicate corresponds to a class derived from
-   --  PortableServer.Servant_Base. For other classes derived
-   --  from PortableServer.DynamicImplementation, the user
-   --  must override the Invoke operation himself, and the
-   --  Dispatcher will be ignored and can be null.
-   --  NOTE: This procedure is not thread safe.
-
    package Internals is
 
       --  Implementation Note: This package defines internal subprograms
       --  specific to PolyORB. You must not use them.
 
+      type Request_Dispatcher is access procedure
+        (For_Servant : in Servant;
+         Request     : in CORBA.ServerRequest.Object_Ptr);
+      --  Same signature as primitive Invoke of type
+      --  DynamicImplementation.
+
+      type Servant_Class_Predicate is access function
+        (For_Servant : Servant)
+        return Boolean;
+
+      type Servant_Class_Is_A_Operation is access function
+        (Logical_Type_Id : in Standard.String)
+        return CORBA.Boolean;
+
+      procedure Register_Skeleton
+        (Type_Id     : in CORBA.RepositoryId;
+         Is_A        : in Servant_Class_Predicate;
+         Target_Is_A : in Servant_Class_Is_A_Operation;
+         Dispatcher  : in Request_Dispatcher := null);
+      --  Associate a type id with a class predicate.
+      --  A Dispatcher function can also be specified if the
+      --  class predicate corresponds to a class derived from
+      --  PortableServer.Servant_Base. For other classes derived
+      --  from PortableServer.DynamicImplementation, the user
+      --  must override the Invoke operation himself, and the
+      --  Dispatcher will be ignored and can be null.
+      --  NOTE: This procedure is not thread safe.
+
+      function Get_Type_Id (For_Servant : Servant)
+        return CORBA.RepositoryId;
+
+      --  Subprograms for PortableInterceptor impelmentation
+
       function Target_Most_Derived_Interface
         (For_Servant : in Servant)
         return CORBA.RepositoryId;
-      --  Return RepositoryId of most derived servant interface.
-      --  Used in PortableInterceptor implementation.
+      --  Return RepositoryId of most derived servant interface
 
       function Target_Is_A
         (For_Servant     : in Servant;
          Logical_Type_Id : in CORBA.RepositoryId)
         return CORBA.Boolean;
+      --  Check is servant support specified interface
 
    end Internals;
 
