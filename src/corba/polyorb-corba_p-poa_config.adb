@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -66,6 +66,8 @@ with PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
 with PolyORB.POA_Policies.Thread_Policy.Single_Thread;
 with PolyORB.POA_Policies.Thread_Policy.Main_Thread;
 
+with PolyORB.Utils.Chained_Lists;
+
 package body PolyORB.CORBA_P.POA_Config is
 
    use CORBA;
@@ -104,6 +106,17 @@ package body PolyORB.CORBA_P.POA_Config is
    use PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
    use PolyORB.POA_Policies.Thread_Policy.Single_Thread;
    use PolyORB.POA_Policies.Thread_Policy.Main_Thread;
+
+   type Allocator_Record is record
+      Policy : CORBA.PolicyType;
+      Allocator : Policy_Type_Allocator;
+   end record;
+
+   package Allocator_List is
+      new PolyORB.Utils.Chained_Lists (Allocator_Record);
+   use Allocator_List;
+
+   Callbacks : Allocator_List.List;
 
    ------------------------
    -- Convert_PolicyList --
@@ -287,12 +300,45 @@ package body PolyORB.CORBA_P.POA_Config is
                end;
 
             when others =>
-               raise Program_Error;
+               null;
          end case;
 
+         --  Iterate through allocators' list
+
+         declare
+            Iter : Iterator := First (Callbacks);
+         begin
+            while not Last (Iter) loop
+               declare
+                  Info : constant Allocator_Record := Value (Iter).all;
+
+               begin
+                  if Policy = Info.Policy then
+                     PS.Append (Result,
+                                Info.Allocator.all (CORBA_Policy_Array (J)));
+                     exit;
+                  end if;
+               end;
+               Next (Iter);
+            end loop;
+         end;
       end loop;
 
       return Result;
    end Convert_PolicyList;
+
+   --------------
+   -- Register --
+   --------------
+
+   procedure Register
+     (Policy    : CORBA.PolicyType;
+      Allocator : Policy_Type_Allocator)
+   is
+      Elt : constant Allocator_Record := (Policy, Allocator);
+
+   begin
+      Append (Callbacks, Elt);
+   end Register;
 
 end PolyORB.CORBA_P.POA_Config;
