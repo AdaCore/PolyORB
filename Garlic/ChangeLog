@@ -1,3 +1,13 @@
+1998-03-09  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garhea.adb: Surround with of System.Garlic.Linker_Options with 
+	pragma Warnings (Off) and (On) since we do not reference anything
+	from this package.
+
+	* s-garela.ads: Likewise.
+
+	* s-garela.adb: Remove useless with clause.
+
 1998-03-08  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* Makefile.am: Fix problem with binary release. We build a first 
@@ -24,6 +34,21 @@
  	terminate.
 
 	* s-gartcp.ads: Add a flag TCP_Shutdown_Completed.
+
+1998-02-27  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-parint.ads: Documentation update.
+	Add the Asynchronous field to RACW_Stub_Type to support multiple
+	RACW pointing on the same designated type with different
+	asynchronous status.
+
+1998-02-26  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-parint.ads: Adapt declaration of RACW_Stub_Type and add
+	Get_Unique_Remote_Pointer to match the new expansion.
+
+	* s-parint.adb: Implement Get_Unique_Remote_Pointer using a hash
+	table to prevent memory leaks.
 
 1998-02-23  Samuel Tardieu  <sam@inf.enst.fr>
 
