@@ -443,7 +443,10 @@ package body PolyORB.ORB is
 
          --  ORB_Lock is held.
 
-         if May_Poll and then not ORB.Polling then
+         if May_Poll
+           and then not ORB.Polling
+           and then Monitor_Seqs.Length (ORB.Monitors) > 0
+         then
             declare
                Monitors : constant Monitor_Seqs.Element_Array
                  := Monitor_Seqs.To_Element_Array (ORB.Monitors);
@@ -819,6 +822,8 @@ package body PolyORB.ORB is
       if ORB.Polling then
          pragma Assert (ORB.Selector /= null);
          Abort_Check_Sources (ORB.Selector.all);
+      else
+         Update (ORB.Idle_Tasks);
       end if;
       Leave (ORB.ORB_Lock);
 
