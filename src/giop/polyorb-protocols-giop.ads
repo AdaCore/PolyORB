@@ -32,6 +32,9 @@
 
 --  $Id$
 
+--  Warning : the management of the context list and of the locate
+--  message aren't implemented yet
+
 with Ada.Streams;   use Ada.Streams;
 with Ada.Unchecked_Deallocation;
 

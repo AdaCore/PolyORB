@@ -5,6 +5,12 @@ $Id$
 
 Items still requiring attention
 -------------------------------
+* Close connection with server properly (ie : generate a 'close
+  connection' message)
+
+* Implement the management of the context list
+
+* Implement the management of locate messages
 
 * Portableserver: Instead of using a flat list All_Skeletons, add
   a primitive operation to PortableServer.Servant_Base that returns
