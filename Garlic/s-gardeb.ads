@@ -87,6 +87,6 @@ package System.Garlic.Debug is
 
 private
 
-   type Debug_Key is range 0 .. 25;
+   type Debug_Key is range 0 .. 50;
 
 end System.Garlic.Debug;
