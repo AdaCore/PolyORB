@@ -81,8 +81,10 @@ What does it run on.
 
 This release is fully supported on:
   - Sparc/Solaris (2.4 and above)
-  - PC/Linux.
-  - Alpha/Decunix (no compression filter, -O0 required)
+  - PC/Linux
+  - Alpha/Decunix
+  - SGI
+  - Windows NT
 
 This release has also been reported to work on:
   - HP/HP-UX

@@ -50,7 +50,7 @@ in Doc/install_guide.txt.
    GLADE uses standard the GNU configuration method. Run 
            ./configure  [configuration parameters]
 
-   configuration parameters can be used to define the
+   Configuration parameters can be used to define the
    build/host/target machines, installation locations and other
    customizations (see Doc/install_guide.txt for details). By default,
    when no parameters are specified, the build machine is used as host
@@ -59,6 +59,9 @@ in Doc/install_guide.txt.
    This can be done by using the --prefix parameter, for instance:
 
       ./configure --prefix=$HOME/glade
+
+   See the section "Building GLADE under Windows NT" for NT specific
+   information.
 
 3. Build & install GLADE
       this can be achieved simply by doing 
@@ -85,3 +88,37 @@ in Doc/install_guide.txt.
 % make                           <--- build all the examples
 % cd Eratho/absolute             <--- go in the first example directory
 % ./mainloop                     <--- run the distributed application
+
+Building GLADE under Windows NT
+-------------------------------
+
+To build GLADE under NT you must have some NT replacement for the followings 
+UNIX tools :
+
+	bash.exe
+	cat.exe
+	chmod.exe
+	cmp.exe
+	cp.exe
+	echo.exe
+	expr.exe
+	false
+	grep.exe
+	install.exe
+	ls.exe
+	mkdir.exe
+	mv.exe
+	rm.exe
+	sed.exe
+	sleep.exe
+	uname.exe
+
+All these tools can be found in the User's Tools Kit (usertools.exe) from
+CYGNUS.
+
+Some others tools are needed but they are provided with the GNAT for NT
+distribution :
+
+	ar.exe
+	make.exe
+	ranlib.exe

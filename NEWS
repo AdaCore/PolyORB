@@ -4,7 +4,7 @@ Changes since GLADE 1.03
 New Ports
 ---------
 
-*   GLADE has been ported on SGI, NT and OpenNT. It is now working
+*   GLADE has been ported on SGI and Windows NT. It is now also working
     when the GNAT run-time is using FSU threads.
 
 New Functionnalities
@@ -109,6 +109,8 @@ Misc
   * Less tasks are created by the partition communication subsystem
 
   * Adapted for use with the GNU libc under Linux
+
+  * The version has been bumped to 3.11 to match the GNAT release
 
 Changes since GLADE 1.02
 ========================
