@@ -207,6 +207,7 @@ package body System.Garlic.TCP is
                FD     : C.int;
                NT     : Incoming_Connection_Handler_Access;
             begin
+               Sin.Sin_Family := Constants.Af_Inet;
                Add_Non_Terminating_Task;
                pragma Debug (D (D_Debug, "Before Net.C_Accept"));
                FD := Net.C_Accept (Self_Host.FD, To_Sockaddr_Access (Sin),
@@ -275,6 +276,7 @@ package body System.Garlic.TCP is
          Free (Sin);
          raise Communication_Error;
       end if;
+      Sin.Sin_Family := Constants.Af_Inet;
       Sin.Sin_Addr := To_In_Addr (Location.Addr);
       Sin.Sin_Port := Location.Port;
       Code := Net.C_Connect (FD,
@@ -316,6 +318,7 @@ package body System.Garlic.TCP is
                                 One'Address,
                                 One'Size / 8);
       end;
+      Sin.Sin_Family := Constants.Af_Inet;
       Sin.Sin_Port := Port;
       if C_Bind (FD,
                  To_Sockaddr_Access (Sin),
