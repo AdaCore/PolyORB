@@ -80,7 +80,6 @@ Ada_Giop_c::InitialiseRequest(const void          *objkey,
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    cerr << opname << endl;
     ((GIOP_C *) C_Object)->InitialiseRequest(objkey,
 					     objkeysize,
 					     opname,
@@ -95,13 +94,15 @@ Ada_Giop_c::InitialiseRequest(const void          *objkey,
 
 // ReceiveReply
 //-------------
-GIOP::ReplyStatusType
-Ada_Giop_c::ReceiveReply()
+void
+Ada_Giop_c::ReceiveReply(GIOP::ReplyStatusType &result)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    return ((GIOP_C *) C_Object)->ReceiveReply();
+    GIOP::ReplyStatusType tmp = ((GIOP_C *) C_Object)->ReceiveReply();
+    cerr << "tmp = " << tmp << endl;
+    result = tmp;
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_Giop_c::ReceiveReply without initialising object.");

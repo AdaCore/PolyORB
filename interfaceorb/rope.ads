@@ -32,11 +32,9 @@
 ----   Description                                                 ----
 ----   -----------                                                 ----
 ----                                                               ----
-----     This package is wrapped around the C class Ada_Rope       ----
-----   declared in Ada_Rope.hh.                                    ----
-----     It does not provide any function or type since AdaBroker  ----
-----   do not use Rope Object itself. It just manipulates C rope   ----
-----   objects coming from C and passing to C functions.           ----
+----     This package only defines a Rope type. It is not wrapped  ----
+----   around the C type since it is never used in AdaBroker but   ----
+----   just taken from a C function and given to another one.      ----
 ----                                                               ----
 ----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----

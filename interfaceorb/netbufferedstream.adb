@@ -577,8 +577,10 @@ package body NetBufferedStream is
       -- 1 is the size of the null character we must marshall
       -- at the end of the string (C style)
       Size := Corba.Length (A) + Corba.Unsigned_Long (1) ;
+
       Marshall (Size , S) ;
       -- Then marshall the string itself and a null character at the end
+
       for I in 1..Integer(Size)-1 loop
          C := Ada.Strings.Unbounded.Element (Ada.Strings.Unbounded.Unbounded_String (A),I) ;
          Marshall (C,S) ;

@@ -121,37 +121,6 @@ package body OmniRopeAndKey is
    end;
 
 
-   -- Address_To_Octet
-   -------------------
-   package Address_To_Octet is
-     new System.Address_To_Access_Conversions (Corba.Octet) ;
-   -- needed to interface System.Address and Corba.Octet
-
-
-   -- C_Get_Key
-   ------------
-   function C_Get_Key (Self : in Object'Class) return System.Address;
-   pragma Import (C,C_Get_Key,"key__18Ada_OmniRopeAndKey") ;
-   -- wrapper around  Ada_OmniRopeAndKey function key
-   -- (see Ada_OmniRopeAndKey.hh)
-   -- called by the Ada equivalent : Get_Key
-
-
-   -- Get_Key
-   ----------
-   function Get_Key (Self : in Object'Class)
-                     return CORBA.Octet is
-      C_Result : System.Address ;
-      Ada_Result_Ptr : Address_To_Octet.Object_Pointer ;
-   begin
-      -- calls the C function ...
-      C_Result := C_Get_Key (Self) ;
-      -- ... and transforms the result in Ada type
-      Ada_Result_Ptr := Address_To_Octet.To_Pointer (C_Result) ;
-      return Ada_Result_Ptr.all ;
-   end;
-
-
    -- C_Key_Size
    -------------
    function C_Key_Size (Self : in Object'Class) return Interfaces.C.Unsigned_Long ;

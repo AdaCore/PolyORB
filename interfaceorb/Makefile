@@ -105,7 +105,7 @@ corba-exceptions.ali corba-object.ali corba-orb.ali  \
 corba-sequences-bounded.ali corba-sequences-unbounded.ali exceptions.ali \
 giop.ali giop_c.ali giop_s.ali iop.ali membufferedstream.ali \
 netbufferedstream.ali omni.ali omniobject.ali omniproxycalldesc.ali \
-omniproxycallwrapper.ali omniropeandkey.ali rope.ali sys_dep.ali
+omniproxycallwrapper.ali omniropeandkey.ali sys_dep.ali
 
 .SUFFIXES: .adb .ali
 
@@ -146,20 +146,20 @@ exceptions.ali : exceptions.ads exceptions.adb
 
 giop.ali : giop.ads giop.adb
 
-giop_c.ali : giop_c.ads giop_c.adb Ada_Giop_c.o corba.ads giop.ads \
-sys_dep.ads rope.ads netbufferedstream.ads
+giop_c.ali : giop_c.ads giop_c.adb Ada_Giop_c.hh corba.ads giop.ads \
+sys_dep.ads rope.ads netbufferedstream.ads key.ads
 
-giop_s.ali : giop_s.ads giop_s.adb Ada_Giop_s.o corba.ads giop.ads \
+giop_s.ali : giop_s.ads giop_s.adb Ada_Giop_s.hh corba.ads giop.ads \
 sys_dep.ads netbufferedstream.ads
 
 iop.ali : iop.ads iop.adb netbufferedstream.ads membufferedstream.ads \
 corba.ads
 
 membufferedstream.ali : membufferedstream.ads membufferedstream.adb \
-corba.ads sys_dep.ads Ada_memBufferedStream.o omni.ads
+corba.ads sys_dep.ads Ada_memBufferedStream.hh omni.ads
 
 netbufferedstream.ali : netbufferedstream.ads netbufferedstream.adb \
-corba.ads sys_dep.ads rope.ads Ada_netBufferedStream.o omni.ads
+corba.ads sys_dep.ads rope.ads Ada_netBufferedStream.hh omni.ads
 
 omni.ali: omni.ads omni.adb corba.ads
 
@@ -176,9 +176,7 @@ omniropeandkey.ads giop_c.ads netbufferedstream.ads giop.ads \
 corba-exceptions.ads rope.ads
 
 omniropeandkey.ali : omniropeandkey.ads omniropeandkey.adb corba.ads \
-rope.ads Ada_OmniRopeAndKey.o sys_dep.ads
-
-rope.ali : rope.ads
+rope.ads Ada_OmniRopeAndKey.hh sys_dep.ads key.ads
 
 sys_dep.ali : sys_dep.ads sys_dep.adb
 
@@ -186,7 +184,7 @@ sys_dep.ali : sys_dep.ads sys_dep.adb
 # from ads files
 ################
 Ada_ads_files: \
-corba-sequences.ali omniowproxycalldesc.ali
+corba-sequences.ali key.ali omniowproxycalldesc.ali rope.ali
 
 .SUFFIXES: .ads .ali
 
@@ -197,8 +195,11 @@ corba-sequences.ali omniowproxycalldesc.ali
 corba-sequences.ali : corba-sequences.ads
 	$(ADA_COMP) $(DO_NOT_LINK) corba-sequences.ads
 
+key.ali : key.ads
+
 omniowproxycalldesc.ali: omniowproxycalldesc.ads corba.ads giop_c.ads
 
+rope.ali : rope.ads
 
 
 #######################################

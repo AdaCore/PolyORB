@@ -46,7 +46,6 @@
 -----------------------------------------------------------------------
 
 
-with System.Address_To_Access_Conversions ;
 with Sys_Dep ;
 
 package body Corba.Boa is

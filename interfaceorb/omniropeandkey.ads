@@ -55,6 +55,7 @@ with Interfaces.C.Strings ;
 with System ;
 with Sys_Dep ;
 
+with Key ;
 with Rope ;
 with Corba ;
 with Sys_Dep ;
@@ -102,9 +103,12 @@ package OmniRopeAndKey is
    -- (see omniInternal.h L248 for more information)
 
 
-   function Get_Key (Self : in Object'Class) return Corba.Octet;
+   function Get_Key (Self : in Object'Class) return Key.Object;
+   pragma Import (C,Get_Key,"key__18Ada_OmniRopeAndKey") ;
    -- returns the key attribute of the OmniRopeAndKey object
    -- (see omniInternal.h L250 for more information)
+   -- wrapper around  Ada_OmniRopeAndKey function key
+   -- (see Ada_OmniRopeAndKey.hh)
 
 
    function Key_Size (Self : in Object'Class) return Corba.Unsigned_Long ;

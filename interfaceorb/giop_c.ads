@@ -56,6 +56,7 @@ with System ;
 
 with Corba ;
 with Giop ;
+with Key ;
 with Sys_Dep ;
 with Rope ;
 with Netbufferedstream ;
@@ -91,7 +92,7 @@ package Giop_C is
 
 
    procedure Initialize_Request (Self : in Object'Class ;
-                                 Objkey : in Corba.Octet ;
+                                 Objkey : in Key.Object ;
                                  Objkeysize : in Corba.Unsigned_Long ;
                                  Opname : in CORBA.STRING ;
                                  MsgSize : in Corba.Unsigned_Long ;
@@ -100,8 +101,8 @@ package Giop_C is
    -- (see giopDriver.h L150 for more details)
 
 
-   function Receive_Reply (Self : in Object'Class)
-                           return Giop.Reply_Status_Type ;
+   procedure Receive_Reply (Self : in out Object'Class ;
+                           Result : out Giop.Reply_Status_Type) ;
    -- called to inform the ORD that the reply was received
    -- (see giopDriver.h L150 for more details)
 

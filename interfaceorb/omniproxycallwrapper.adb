@@ -104,6 +104,8 @@ package body omniProxyCallWrapper is
       Message_Size : Corba.Unsigned_Long ;
       -- size of the message to pass to the giop_c object
 
+      Result : Giop.Reply_Status_Type ;
+      -- result of call to reply_completed
    begin
       loop
          -- verify that the underlying omniobject is not null
@@ -134,10 +136,15 @@ package body omniProxyCallWrapper is
          The_Rope := Omniropeandkey.Get_Rope(Rope_And_Key) ;
 
          pragma Debug(Output(Debug, "Corba.omniproxycallwrapper.invoke : Got The rope"));
+
          Giop_C.Init (Giop_Client, The_Rope) ;
 
          -- do the giop_client reuse an existing connection ?
          Reuse := Netbufferedstream.Is_Reusing_Existing_Connection(Giop_Client) ;
+
+         pragma Debug(Output(Debug, "Corba.omniproxycallwrapper.invoke : key_size = "
+                             & Corba.Unsigned_Long'Image
+                             (Omniropeandkey.Key_Size(Rope_And_Key))));
 
          -- Calculates the size of the message
          -- first the size of the header
@@ -174,14 +181,16 @@ package body omniProxyCallWrapper is
                              "Corba.omniproxycallwrapper.invoke : marshal_arguments completed"));
 
          -- wait for the reply
-         case Giop_C.Receive_Reply(Giop_Client) is
+          Giop_C.Receive_Reply(Giop_Client, result);
 
+          case Result is
             when Giop.NO_EXCEPTION =>
                -- unmarshal the results and out/inout arguments
                Omniproxycalldesc.Unmarshal_Returned_Values(Call_Desc,
                                                            Giop_Client) ;
                -- inform the ORB that the request was completed
                Giop_C.Request_Completed(Giop_Client) ;
+               return ;
 
             when Giop.USER_EXCEPTION =>
                -- check if the exception is due to the proxycalldesc
@@ -409,6 +418,9 @@ package body omniProxyCallWrapper is
 
       Message_Size : Corba.Unsigned_Long ;
       -- size of the message to pass to the giop_c object
+
+      Result : Giop.Reply_Status_Type ;
+      -- result of call to reply_completed
    begin
       loop
          -- verify that the underlying omniobject is not null
@@ -451,11 +463,14 @@ package body omniProxyCallWrapper is
          Omniproxycalldesc.Marshal_Arguments (Call_Desc, Giop_Client) ;
 
          -- wait for the reply
-         case Giop_C.Receive_Reply(Giop_Client) is
+         Giop_C.Receive_Reply(Giop_Client,result) ;
+
+         case Result is
 
             when Giop.NO_EXCEPTION =>
                -- inform the ORB that the request was completed
                Giop_C.Request_Completed(Giop_Client) ;
+               return ;
 
             when Giop.USER_EXCEPTION |
               Giop.SYSTEM_EXCEPTION |

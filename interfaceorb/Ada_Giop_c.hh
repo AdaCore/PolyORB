@@ -74,7 +74,7 @@ public:
   //			                   const size_t         msgsize,
   //			                   const _CORBA_Boolean oneway);
 
-  GIOP::ReplyStatusType ReceiveReply();
+  void ReceiveReply(GIOP::ReplyStatusType &result);
   // wrapper around GIOP::ReplyStatusType ReceiveReply();
 
   void RequestCompleted(_CORBA_Boolean skip);

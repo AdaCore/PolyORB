@@ -64,7 +64,7 @@ package body Giop_C is
    ---------
    procedure C_Init (Self : in out Object'Class ;
                      R : in System.Address) ;
-   pragma Import (C,C_Init,"Init__10Ada_Giop_cP4Rope") ;
+   pragma Import (CPP,C_Init,"Init__10Ada_Giop_cP4Rope") ;
    -- wrapper around  Ada_Giop_c procedure Init
    -- (see Ada_Giop_c.hh)
    -- called by the Ada equivalent : Init
@@ -85,13 +85,13 @@ package body Giop_C is
    -- C_Initialize_Request
    -----------------------
    procedure C_Initialize_Request (Self : in Object'Class ;
-                                   Objkey : in System.Address ;
+                                   Objkey : in Key.Object ;
                                    Objkeysize : in Interfaces.C.Unsigned_Long ;
                                    Opname : in Interfaces.C.Strings.Chars_Ptr ;
                                    Opnamesize : in Interfaces.C.Unsigned_Long ;
                                    MsgSize : in Interfaces.C.Unsigned_Long ;
                                    Oneway : in Sys_Dep.C_Boolean) ;
-   pragma Import (C,C_Initialize_Request,"InitialiseRequest__10Ada_Giop_cPCvUiPCcUiUib") ;
+   pragma Import (CPP,C_Initialize_Request,"InitialiseRequest__10Ada_Giop_cPCvUiPCcUiUib") ;
    -- wrapper around  Ada_Giop_c procedure Initialize_Request
    -- (see Ada_Giop_c.hh)
    -- called by the Ada equivalent : Initialize_Request
@@ -100,12 +100,11 @@ package body Giop_C is
    -- Initialize_Request
    ---------------------
    procedure Initialize_Request (Self : in Object'Class ;
-                                 Objkey : in Corba.Octet ;
+                                 Objkey : in Key.Object ;
                                  Objkeysize : in Corba.Unsigned_Long ;
                                  Opname : in Corba.String ;
                                  MsgSize : in Corba.Unsigned_Long ;
                                  Oneway : in Corba.Boolean) is
-      C_Objkey : System.Address ;
       C_Objkeysize : Interfaces.C.Unsigned_Long ;
       Ada_Opname : String := Ada.Strings.Unbounded.To_String (Ada.Strings.Unbounded.Unbounded_String (Opname)) ;
       C_Opname : Interfaces.C.Strings.Chars_Ptr ;
@@ -114,7 +113,6 @@ package body Giop_C is
       C_Oneway : Sys_Dep.C_Boolean ;
    begin
       -- transforms the arguments into a C type ...
-      C_Objkey := Objkey'Address ;
       C_Objkeysize := Interfaces.C.Unsigned_Long (Objkeysize) ;
       C_Opname := Interfaces.C.Strings.New_String (Ada_Opname) ;
       -- desallocation in a few lines
@@ -124,7 +122,7 @@ package body Giop_C is
       C_Oneway := Sys_Dep.Boolean_Ada_To_C (Oneway) ;
       -- ... and calls the C procedure
       C_Initialize_Request (Self,
-                            C_Objkey,
+                            Objkey,
                             C_Objkeysize,
                             C_Opname,
                             C_Opnamesize,
@@ -137,9 +135,9 @@ package body Giop_C is
 
    -- C_Receive_Reply
    ------------------
-   function C_Receive_Reply (Self : in Object'Class)
-                             return Interfaces.C.Int ;
-   pragma Import (C,C_Receive_Reply,"ReceiveReply__10Ada_Giop_c") ;
+   procedure C_Receive_Reply (Self : in out Object'Class ;
+                             Result : out Interfaces.C.Int) ;
+   pragma Import (CPP,C_Receive_Reply,"ReceiveReply__10Ada_Giop_cRQ24GIOP15ReplyStatusType") ;
    -- wrapper around  Ada_Giop_c procedure Receive_Reply
    -- (see Ada_Giop_c.hh)
    -- called by the Ada equivalent : Receive_Reply
@@ -147,14 +145,14 @@ package body Giop_C is
 
    -- Receive_Reply
    ----------------
-   function Receive_Reply (Self : in Object'Class)
-                           return Giop.Reply_Status_Type is
+   procedure Receive_Reply (Self : in out Object'Class ;
+                            Result : out Giop.Reply_Status_Type) is
       C_Result : Interfaces.C.Int ;
    begin
       -- calls the C function ...
-      C_Result := C_Receive_Reply (Self) ;
+      C_Receive_Reply (Self,C_Result) ;
       -- ... and transforms the result into an Ada type
-      return Giop.C_Int_To_Reply_Status_Type (C_Result) ;
+      Result := Giop.C_Int_To_Reply_Status_Type (C_Result) ;
    end;
 
 
@@ -162,7 +160,7 @@ package body Giop_C is
    ----------------------
    procedure C_Request_Completed (Self : in Object'Class ;
                                   Skip_Msg : in Sys_Dep.C_Boolean) ;
-   pragma Import (C,C_Request_Completed,"RequestCompleted__10Ada_Giop_cb") ;
+   pragma Import (CPP,C_Request_Completed,"RequestCompleted__10Ada_Giop_cb") ;
    -- wrapper around  Ada_Giop_c procedure Request_Completed
    -- (see Ada_Giop_c.hh)
    -- called by the Ada equivalent : Request_Completed
@@ -186,7 +184,7 @@ package body Giop_C is
    function C_Request_Header_Size (Objkeysize : in Interfaces.C.Unsigned_long ;
                                    Opnamesize : in Interfaces.C.Unsigned_long)
                                    return Interfaces.C.Unsigned_long ;
-   pragma Import (C,C_Request_Header_Size,"RequestHeaderSize__6GIOP_CUiUi") ;
+   pragma Import (CPP,C_Request_Header_Size,"RequestHeaderSize__6GIOP_CUiUi") ;
    -- wrapper around GIOP_C procedure Request_Header_Size
    -- (see giopDriver.h)
    -- called by the Ada equivalent : Request_Header_Size
