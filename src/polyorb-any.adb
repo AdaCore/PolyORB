@@ -2589,6 +2589,19 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Deallocate (Any) : end"));
    end Deallocate;
 
+   ------------------
+   --  Deallocate  --
+   ------------------
+
+   procedure Deallocate (Object : access Content_ObjRef) is
+      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
+   begin
+      pragma Debug (O2 ("Deallocate (ObjRef) : enter"));
+      PolyORB.References.Deallocate (Object.Value);
+      Deallocate_Any_Content (Obj);
+      pragma Debug (O2 ("Deallocate (ObjRef) : end"));
+   end Deallocate;
+
    -----------------
    --  Duplicate  --
    -----------------
@@ -2773,6 +2786,17 @@ package body PolyORB.Any is
       return new Content_Any'
         (Value => new Any'
          (Content_Any_Ptr (Object).Value.all));
+   end Duplicate;
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (Object : access Content_ObjRef)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_ObjRef'
+        (Value => new PolyORB.References.Ref'
+         (Content_ObjRef_Ptr (Object).Value.all));
    end Duplicate;
 
    -----------------
@@ -2983,6 +3007,9 @@ package body PolyORB.Any is
       procedure Inc_Usage
         (Obj : in Any)
         renames PolyORB.Any.Inc_Usage;
+
+      function Get_Value (Obj : Any) return Any_Content_Ptr
+        renames PolyORB.Any.Get_Value;
 
    end Internals;
 

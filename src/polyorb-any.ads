@@ -35,6 +35,7 @@ with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Locks;
+with PolyORB.References;
 with PolyORB.Types; use PolyORB.Types;
 
 package PolyORB.Any is
@@ -49,8 +50,18 @@ package PolyORB.Any is
    type Any_Ptr is access all Any;
    --  The end of this part is after the typecode part;
 
-   type Content is abstract tagged private;
+   type Content is abstract tagged null record;
    type Any_Content_Ptr is access all Content'Class;
+
+   function Duplicate
+     (Object : access Content)
+     return Any_Content_Ptr is abstract;
+   --  Duplicate the data pointed by Object, making a deep copy.
+
+   procedure Deallocate (Object : access Content);
+   --  Deallocate an Any_Content_Ptr.
+   --  Overridden for aggregates, since those have to
+   --  deallocate all the list of their elements.
 
    function Image (A : Any) return Standard.String;
    --  For debugging purposes.
@@ -628,17 +639,6 @@ package PolyORB.Any is
    function Image (NV : NamedValue) return Standard.String;
    --  For debugging purposes.
 
-   package Internals is
-
-      --  The following need to be exposed for CORBA.Object.Helper.
-
-      procedure Set_Value
-        (Obj : in out Any; The_Value : in Any_Content_Ptr);
-      procedure Inc_Usage
-        (Obj : in Any);
-
-   end Internals;
-
 private
 
    --  Null_String : constant CORBA.String :=
@@ -671,21 +671,9 @@ private
    --  to manipulate this list.
 
 
-   type Content is abstract tagged null record;
    Null_Content_Ptr : constant Any_Content_Ptr := null;
    type Any_Content_Ptr_Ptr is access all Any_Content_Ptr;
    Null_Content_Ptr_Ptr : constant Any_Content_Ptr_Ptr := null;
-
-   --  This function duplicates its argument and give back
-   --  a deep copy of it.
-   --  It is actually overridden for every subtype of Content
-   function Duplicate (Object : access Content)
-                       return Any_Content_Ptr;
-
-   --  Frees a Content_Ptr
-   --  It is overridden for aggregates since those have to
-   --  deallocate all the list of their elements
-   procedure Deallocate (Object : access Content);
 
    --  Frees an Any_Content_Ptr
    procedure Deallocate_Any_Content is new Ada.Unchecked_Deallocation
@@ -700,8 +688,9 @@ private
       end record;
    type Content_Octet_Ptr is access all Content_Octet;
    procedure Deallocate (Object : access Content_Octet);
-   function Duplicate (Object : access Content_Octet)
-                       return Any_Content_Ptr;
+   function Duplicate
+     (Object : access Content_Octet)
+     return Any_Content_Ptr;
 
    type Content_Short is new Content with
       record
@@ -709,8 +698,9 @@ private
       end record;
    type Content_Short_Ptr is access all Content_Short;
    procedure Deallocate (Object : access Content_Short);
-   function Duplicate (Object : access Content_Short)
-                       return Any_Content_Ptr;
+   function Duplicate
+     (Object : access Content_Short)
+     return Any_Content_Ptr;
 
    type Content_Long is new Content with
       record
@@ -718,8 +708,9 @@ private
       end record;
    type Content_Long_Ptr is access all Content_Long;
    procedure Deallocate (Object : access Content_Long);
-   function Duplicate (Object : access Content_Long)
-                       return Any_Content_Ptr;
+   function Duplicate
+     (Object : access Content_Long)
+     return Any_Content_Ptr;
 
    type Content_Long_Long is new Content with
       record
@@ -727,8 +718,9 @@ private
       end record;
    type Content_Long_Long_Ptr is access all Content_Long_Long;
    procedure Deallocate (Object : access Content_Long_Long);
-   function Duplicate (Object : access Content_Long_Long)
-                       return Any_Content_Ptr;
+   function Duplicate
+     (Object : access Content_Long_Long)
+     return Any_Content_Ptr;
 
    type Content_UShort is new Content with
       record
@@ -736,8 +728,9 @@ private
       end record;
    type Content_UShort_Ptr is access all Content_UShort;
    procedure Deallocate (Object : access Content_UShort);
-   function Duplicate (Object : access Content_UShort)
-                       return Any_Content_Ptr;
+   function Duplicate
+     (Object : access Content_UShort)
+     return Any_Content_Ptr;
 
    type Content_ULong is new Content with
       record
@@ -745,8 +738,9 @@ private
       end record;
    type Content_ULong_Ptr is access all Content_ULong;
    procedure Deallocate (Object : access Content_ULong);
-   function Duplicate (Object : access Content_ULong)
-                       return Any_Content_Ptr;
+   function Duplicate
+     (Object : access Content_ULong)
+     return Any_Content_Ptr;
 
    type Content_ULong_Long is new Content with
       record
@@ -754,8 +748,9 @@ private
       end record;
    type Content_ULong_Long_Ptr is access all Content_ULong_Long;
    procedure Deallocate (Object : access Content_ULong_Long);
-   function Duplicate (Object : access Content_ULong_Long)
-                       return Any_Content_Ptr;
+   function Duplicate
+     (Object : access Content_ULong_Long)
+     return Any_Content_Ptr;
 
    type Content_Boolean is new Content with
       record
@@ -763,8 +758,9 @@ private
       end record;
    type Content_Boolean_Ptr is access all Content_Boolean;
    procedure Deallocate (Object : access Content_Boolean);
-   function Duplicate (Object : access Content_Boolean)
-                       return Any_Content_Ptr;
+   function Duplicate
+     (Object : access Content_Boolean)
+     return Any_Content_Ptr;
 
    type Content_Char is new Content with
       record
@@ -772,8 +768,9 @@ private
       end record;
    type Content_Char_Ptr is access all Content_Char;
    procedure Deallocate (Object : access Content_Char);
-   function Duplicate (Object : access Content_Char)
-                       return Any_Content_Ptr;
+   function Duplicate
+     (Object : access Content_Char)
+     return Any_Content_Ptr;
 
    type Content_Wchar is new Content with
       record
@@ -781,8 +778,9 @@ private
       end record;
    type Content_Wchar_Ptr is access all Content_Wchar;
    procedure Deallocate (Object : access Content_Wchar);
-   function Duplicate (Object : access Content_Wchar)
-                       return Any_Content_Ptr;
+   function Duplicate
+     (Object : access Content_Wchar)
+     return Any_Content_Ptr;
 
    type Content_String is new Content with
       record
@@ -790,8 +788,9 @@ private
       end record;
    type Content_String_Ptr is access all Content_String;
    procedure Deallocate (Object : access Content_String);
-   function Duplicate (Object : access Content_String)
-                       return Any_Content_Ptr;
+   function Duplicate
+     (Object : access Content_String)
+     return Any_Content_Ptr;
 
    type Content_Wide_String is new Content with
       record
@@ -799,8 +798,9 @@ private
       end record;
    type Content_Wide_String_Ptr is access all Content_Wide_String;
    procedure Deallocate (Object : access Content_Wide_String);
-   function Duplicate (Object : access Content_Wide_String)
-                       return Any_Content_Ptr;
+   function Duplicate
+     (Object : access Content_Wide_String)
+     return Any_Content_Ptr;
 
    type Content_Float is new Content with
       record
@@ -808,8 +808,9 @@ private
       end record;
    type Content_Float_Ptr is access all Content_Float;
    procedure Deallocate (Object : access Content_Float);
-   function Duplicate (Object : access Content_Float)
-                       return Any_Content_Ptr;
+   function Duplicate
+     (Object : access Content_Float)
+     return Any_Content_Ptr;
 
    type Content_Double is new Content with
       record
@@ -817,8 +818,9 @@ private
       end record;
    type Content_Double_Ptr is access all Content_Double;
    procedure Deallocate (Object : access Content_Double);
-   function Duplicate (Object : access Content_Double)
-                       return Any_Content_Ptr;
+   function Duplicate
+     (Object : access Content_Double)
+     return Any_Content_Ptr;
 
    type Content_Long_Double is new Content with
       record
@@ -826,8 +828,9 @@ private
       end record;
    type Content_Long_Double_Ptr is access all Content_Long_Double;
    procedure Deallocate (Object : access Content_Long_Double);
-   function Duplicate (Object : access Content_Long_Double)
-                       return Any_Content_Ptr;
+   function Duplicate
+     (Object : access Content_Long_Double)
+     return Any_Content_Ptr;
 
    type Content_TypeCode is new Content with
       record
@@ -835,8 +838,9 @@ private
       end record;
    type Content_TypeCode_Ptr is access all Content_TypeCode;
    procedure Deallocate (Object : access Content_TypeCode);
-   function Duplicate (Object : access Content_TypeCode)
-                       return Any_Content_Ptr;
+   function Duplicate
+     (Object : access Content_TypeCode)
+     return Any_Content_Ptr;
 
    type Content_Any is new Content with
       record
@@ -844,8 +848,19 @@ private
       end record;
    type Content_Any_Ptr is access all Content_Any;
    procedure Deallocate (Object : access Content_Any);
-   function Duplicate (Object : access Content_Any)
-                       return Any_Content_Ptr;
+   function Duplicate
+     (Object : access Content_Any)
+     return Any_Content_Ptr;
+
+   type Content_ObjRef is new Content with record
+      Value : PolyORB.References.Ref_Ptr;
+   end record;
+   type Content_ObjRef_Ptr is access all Content_ObjRef;
+   procedure Deallocate (Object : access Content_ObjRef);
+   function Duplicate
+     (Object : access Content_ObjRef)
+     return Any_Content_Ptr;
+
 
    --  the content_TypeCode type is defined inside the TypeCode package
    --  However, the corresponding deallocate function is here

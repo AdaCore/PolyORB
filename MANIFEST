@@ -106,6 +106,8 @@ src/polyorb-any-nvlist.adb
 src/polyorb-any-nvlist.ads
 src/polyorb-any.adb
 src/polyorb-any.ads
+src/polyorb-any-objref.adb
+src/polyorb-any-objref.ads
 src/polyorb-asynch_ev-sockets.adb
 src/polyorb-asynch_ev-sockets.ads
 src/polyorb-asynch_ev.adb

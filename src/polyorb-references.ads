@@ -2,6 +2,7 @@
 
 --  $Id$
 
+with Ada.Unchecked_Deallocation;
 with Sequences.Unbounded;
 
 with PolyORB.Binding_Data; use PolyORB.Binding_Data;
@@ -15,7 +16,7 @@ package PolyORB.References is
       new Sequences.Unbounded (Binding_Data.Profile_Access);
    subtype Profile_Array is Profile_Seqs.Element_Array;
 
-   type Ref is private;
+   type Ref is new PolyORB.Smart_Pointers.Ref with null record;
    --  An object reference of any kind.
 
    procedure Create_Reference
@@ -34,11 +35,13 @@ package PolyORB.References is
    function Image (R : Ref) return String;
    --  For debugging purposes.
 
+   type Ref_Ptr is access all Ref;
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Ref, Ref_Ptr);
+
 private
 
    subtype Profile_Seq is Profile_Seqs.Sequence;
-
-   type Ref is new PolyORB.Smart_Pointers.Ref with null record;
 
    type Reference_Info is new PolyORB.Smart_Pointers.Entity with
       record
