@@ -214,15 +214,15 @@ begin
       exit when One_Shot;
    end loop;
 
---     declare
---        X : all_types.Ref;
---     begin
---        --  X := all_types.Convert_Forward.From_Forward
---        --   (echoRef (Myall_types, all_types.Convert_Forward.To_Forward
---        --    (Myall_types)));
---        X := echoRef (Myall_types, Myall_types);
---        Output ("test self reference", echoLong (X, 31337) = 31337);
---     end;
+   declare
+      X : all_types.Ref;
+   begin
+      --  X := all_types.Convert_Forward.From_Forward
+      --   (echoRef (Myall_types, all_types.Convert_Forward.To_Forward
+      --    (Myall_types)));
+      X := echoRef (Myall_types, Myall_types);
+      Output ("test self reference", echoLong (X, 31337) = 31337);
+   end;
 
 
 end Client;
