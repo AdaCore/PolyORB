@@ -225,10 +225,10 @@ LIBS_LIBS=""
 
 for P in ${LIBS_LIST}
 do
-   LIBS_DIRS="${APPLI_DIRS} "'$'"(${P}_dir)"
-   LIBS_LIBS="${APPLI_LIBS} "'$'"(${P}_lib)"
-   LIBS_INCS="${APPLI_INCS} "'$'"(${P}_inc)"
-   LIBS_EXES="${APPLI_EXES} "'$'"(${P}_exe)"
+   LIBS_DIRS="${LIBS_DIRS} "'$'"(${P}_dir)"
+   LIBS_LIBS="${LIBS_LIBS} "'$'"(${P}_lib)"
+   LIBS_INCS="${LIBS_INCS} "'$'"(${P}_inc)"
+   LIBS_EXES="${LIBS_EXES} "'$'"(${P}_exe)"
 done
 
 AC_SUBST(LIBS_DIRS)

@@ -2,14 +2,11 @@ SUBDIRS = .
 
 include $(srcdir)/../Makefile.common
 
-alidir = $(libdir)/polyorb-aws_common
+alidir = $(libdir)/polyorb-web_common
 
 ADA_SPECS_WITH_BODY = \
 	aws-url.ads \
-	aws-mime.ads \
-	aws-url-raise_url_error.ads \
-	aws-utils.ads \
-	md5.ads
+	aws-mime.ads 
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 	aws.ads \
@@ -20,14 +17,14 @@ ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
 
 ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
 
-lib_LTLIBRARIES = libpolyorb-aws_common.la
-libpolyorb_aws_common_la_SOURCES =
-libpolyorb_aws_common_la_LIBADD = $(ADA_LIBADD)
-libpolyorb_aws_common_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
+lib_LTLIBRARIES = libpolyorb-web_common.la
+libpolyorb_web_common_la_SOURCES =
+libpolyorb_web_common_la_LIBADD = $(ADA_LIBADD)
+libpolyorb_web_common_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
 CLEANFILES = *.ali
 
-LINK = $(LIBTOOL) --mode=link $(ADA) -o libpolyorb-aws_common.la
+LINK = $(LIBTOOL) --mode=link $(ADA) -o libpolyorb-web_common.la
 
 ADAFLAGS = -i -I. -I$(srcdir) -I.. -I$(srcdir)/.. $(GNATFLAGS)
 

@@ -4,8 +4,7 @@ ACLOCAL_AMFLAGS = -I support
 corba_dir      =
 dsa_dir        =
 moma_dir       =
-devaws_dir     =
-aws_common_dir =
+web_common_dir =
 
 giop_dir       =
 soap_dir       =

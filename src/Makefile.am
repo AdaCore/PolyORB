@@ -4,8 +4,9 @@ giop_dir=	giop
 moma_dir=	moma
 soap_dir=	soap
 srp_dir=	srp
+web_common_dir= web_common
 
-SUBDIRS = . @PROTO_DIRS@ @APPLI_DIRS@
+SUBDIRS = . @PROTO_DIRS@ @APPLI_DIRS@ @LIBS_DIRS@
 
 include $(srcdir)/Makefile.common
 
