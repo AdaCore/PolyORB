@@ -6,8 +6,7 @@ procedure Test000 is
 
    type String_Access is access all String;
 
-   package My_Dict is new PolyORB.Dynamic_Dict
-     (Value => String_Access, No_Value => null);
+   package My_Dict is new PolyORB.Dynamic_Dict (Value => String_Access);
 
    ---------------------
    -- Test_Regression --
