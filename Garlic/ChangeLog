@@ -1,3 +1,9 @@
+Fri Aug 29 20:17:26 1997  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* s-garopt.ads: Add a new flag Has_RCI_Pkg_Or_RACW_Var (default is
+	true). This flag is set to false when no RCI is configured on this
+	partition and when no RACW can possibly be declared.
+
 Thu Aug 28 19:16:46 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* Makefile.am (GNATFLAGS): Removed -gnatdj.

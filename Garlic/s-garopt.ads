@@ -42,6 +42,8 @@ package System.Garlic.Options is
    Task_Pool_Max_Bound  : Positive range 1 .. 512 := 512;
    --  This one must match the definition of Max_Tasks from s-rpcpoo.adb.
 
+   Has_RCI_Pkg_Or_RACW_Var : Boolean := True;
+
    function Get_Boot_Server return String;
    --  Return value specified by --boot_server command line arg or else
    --         value specified by "BOOT_SERVER" environment var or else
