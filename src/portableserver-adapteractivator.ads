@@ -33,7 +33,6 @@
 
 with CORBA;
 with CORBA.Object;
-with PortableServer;
 
 package PortableServer.AdapterActivator is
    type Ref is new CORBA.Object.Ref with private;

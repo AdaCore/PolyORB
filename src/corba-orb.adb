@@ -36,9 +36,11 @@ with Broca.IOR;
 with Broca.ORB;
 
 with CORBA.Object;
+with CORBA.NVList;
+with CORBA.Impl;
 
 with Broca.Debug;
-pragma Elaborate_All (Broca.Debug);
+pragma Elaborate (Broca.Debug);
 
 package body CORBA.ORB is
 
@@ -75,10 +77,26 @@ package body CORBA.ORB is
 
    function Resolve_Initial_References
      (Identifier : ObjectId)
-     return CORBA.Object.Ref
+     return CORBA.Object.Ref'Class
      renames Broca.ORB.Resolve_Initial_References;
 
    procedure Run renames Broca.ORB.Run;
+
+   ----------------------------------
+   --  Dynamic Invocation Related  --
+   ----------------------------------
+
+   -----------------
+   -- Create_List --
+   -----------------
+   procedure Create_List
+     (Count    : in     CORBA.Long;
+      New_List :    out CORBA.NVList.Ref) is
+   begin
+      CORBA.NVList.Set
+        (New_List,
+         CORBA.Impl.Object_Ptr (CORBA.NVList.Create_Object));
+   end Create_List;
 
 end CORBA.ORB;
 

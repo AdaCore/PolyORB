@@ -33,7 +33,6 @@
 
 with CORBA;
 with CORBA.Current;
-with PortableServer; use PortableServer;
 
 package PortableServer.Current is
    type Ref is new CORBA.Current.Ref with private;

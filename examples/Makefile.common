@@ -5,13 +5,14 @@ EXAMPLES_GNATMAKE_FLAGS = -I$(srcdir) \
                           -I$(srcdir)/../generic \
                           -I../../src \
                           -I$(srcdir)/../../src \
-                          -I../../adasockets/src \
-                          -I$(srcdir)/../../adasockets/src \
-                          -g -O2 -m -gnata
+                          $(ADASOCKETS_INCLUDE) \
+                          -g -O2 -m -gnata \
+                          -largs $(ADASOCKETS_LIBS)
 
 CLEANFILES = b~*.* \
 	*.o *.ali \
 	$(EXAMPLE)_idl_file.ads $(EXAMPLE)_idl_file.adb \
+	$(EXAMPLE)_idl_file-helper.ads $(EXAMPLE)_idl_file-helper.adb \
 	$(EXAMPLE).ads $(EXAMPLE).adb \
 	$(EXAMPLE)-skel.ads $(EXAMPLE)-skel.adb \
 	$(EXAMPLE)-stream.ads $(EXAMPLE)-stream.adb \
@@ -23,10 +24,12 @@ all-local: client server $(EXTRA)
 
 SUFFIXES = .idl .ads .adb
 
-.idl.ads: $(IDLAC)
+$(EXAMPLE).ads: $(EXAMPLE).idl $(IDLAC)
+
+.idl.ads:
 	$(IDLAC) $<
 
-.idl.adb: $(IDLAC)
+.idl.adb:
 	$(IDLAC) $<
 
 $(IDLAC): force

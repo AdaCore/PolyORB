@@ -352,12 +352,15 @@ private
    --  the result can be Is_Keyword if it is,
    --  Is_Identifier if it is not and Bad_Case if
    --  it is one but with bad case
+   --  Is_escaped says if the identifier was preceeded
+   --  by an underscore or not
    --
    --  IDL Syntax and semantics, CORBA V2.3 § 3.2.4
    --
    --  keywords must be written exactly as in the above list. Identifiers
    --  that collide with keywords (...) are illegal.
    procedure Is_Idl_Keyword (S : in String;
+                             Is_Escaped : in Boolean;
                              Is_A_Keyword : out Idl_Keyword_State;
                              Tok : out Idl_Token);
 
@@ -425,6 +428,8 @@ private
    --  This procedure sets TOKEN and returns.
    --  The get_marked_text function returns then the
    --  name of the identifier
+   --  The is_escaped parameter says if this identifier was
+   --  preceeded by an underscore or not
    --
    --  IDL Syntax and semantics, CORBA V2.3, 3.2.5
    --
@@ -447,7 +452,7 @@ private
    --  that collide with keywords (...) are illegal. For example,
    --  "boolean" is a valid keyword, "Boolean" and "BOOLEAN" are
    --  illegal identifiers.
-   function Scan_Identifier return Idl_Token;
+   function Scan_Identifier (Is_Escaped : Boolean) return Idl_Token;
 
 
    --  Called when the current character is a digit.

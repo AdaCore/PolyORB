@@ -18,7 +18,7 @@ for k in *.ali; do
     fi
   done
   if [ "x$withlist" != x ]; then
-    echo "${i}.lo:$withlist"
+    echo "${i}.lo:`echo $withlist | tr ' ' '\n' | sort | tr '\n' ' '`"
   fi
 done
 ) > $FNAME

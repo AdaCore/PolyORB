@@ -1617,4 +1617,49 @@ package body Idl_Fe.Types is
       end if;
    end Find_Inherited_Identifier_Definition;
 
+   -----------------------------------
+   --  dealing with Repository_Ids  --
+   -----------------------------------
+
+   ---------------------------------
+   --  Set_Default_Repository_Id  --
+   ---------------------------------
+
+   procedure Set_Default_Repository_Id
+     (Node : Node_Id)
+   is
+      Prefix_Node : constant Node_Id
+        := Current_Prefix (Get_Current_Scope);
+      Name_Node : constant Node_Id
+        := Make_Lit_String;
+   begin
+      pragma Debug (O2 ("Set_Default_Repository_Id : enter"));
+      pragma Assert (not Is_Explicit_Repository_Id (Node));
+      if Prefix_Node /= No_Node then
+         Set_String_Value
+           (Name_Node,
+            "IDL:" & String_Value (Prefix_Node) & "/"
+             & Default_Repository_Id (Node) & ":1.0");
+      else
+         Set_String_Value
+           (Name_Node,
+            "IDL:" & Default_Repository_Id (Node) & ":1.0");
+      end if;
+      Set_Repository_Id (Node, Name_Node);
+      pragma Debug (O2 ("Set_Default_Repository_Id : end"));
+   end Set_Default_Repository_Id;
+
+   ----------------------------------
+   --  Set_Initial_Current_Prefix  --
+   ----------------------------------
+
+   procedure Set_Initial_Current_Prefix
+     (Node : Node_Id) is
+   begin
+      pragma Assert (Is_Scope (Node));
+
+      Set_Current_Prefix
+        (Node, Current_Prefix (Get_Current_Scope));
+   end Set_Initial_Current_Prefix;
+
 end Idl_Fe.Types;

@@ -32,14 +32,37 @@
 ------------------------------------------------------------------------------
 
 with CORBA; use CORBA;
+with Ada.Characters.Handling;
 
 with Broca.Debug;
-pragma Elaborate_All (Broca.Debug);
+pragma Elaborate (Broca.Debug);
 
 package body Broca.Repository is
 
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.repository");
    procedure O is new Broca.Debug.Output (Flag);
+
+   function Is_Equivalent
+     (RI1 : CORBA.RepositoryId;
+      RI2 : CORBA.RepositoryId)
+     return Boolean
+   is
+      use CORBA;
+   begin
+      return Is_Equivalent
+        (To_Standard_String (RI1),
+         To_Standard_String (RI2));
+   end Is_Equivalent;
+
+   function Is_Equivalent
+     (RI1 : Standard.String;
+      RI2 : Standard.String)
+     return Boolean
+   is
+      use Ada.Characters.Handling;
+   begin
+      return To_Lower (RI1) = To_Lower (RI2);
+   end Is_Equivalent;
 
    --  Single linked list of all the factories.
    Factories : Factory_Ptr;
@@ -64,11 +87,11 @@ package body Broca.Repository is
      return CORBA.Object.Ref'Class
    is
       Factory   : Factory_Ptr;
-      Reference : CORBA.Object.Ref;
+      The_Ref : CORBA.Object.Ref;
    begin
       pragma Debug (O ("Create new object of type " &
                        CORBA.To_Standard_String (CORBA.String (Type_Id))));
-
+      pragma Assert (CORBA.Object.Is_Nil (The_Ref));
       Factory := Factories;
       while Factory /= null loop
          if Factory.Type_Id = Type_Id then
@@ -79,8 +102,8 @@ package body Broca.Repository is
 
       --  Return a null object.
       pragma Debug (O ("No factory for this type."));
-      CORBA.Object.Set (Reference, null);
-      return Reference;
+
+      return The_Ref;
 
    end Create;
 

@@ -35,13 +35,7 @@ with CORBA; use CORBA;
 with CORBA.Object;
 with CORBA.Sequences.Unbounded;
 pragma Elaborate_All (CORBA.Sequences.Unbounded);
-
---  with CORBA.BOA;
-
---  with CORBA.NVList;
---  with CORBA.OperationDef;
---  with CORBA.Context;
---  with CORBA.Sequences;
+with CORBA.NVList;
 
 package CORBA.ORB is
 
@@ -73,7 +67,7 @@ package CORBA.ORB is
 
    function Resolve_Initial_References
      (Identifier : ObjectId)
-     return CORBA.Object.Ref;
+     return CORBA.Object.Ref'Class;
 
    procedure Run;
 
@@ -93,5 +87,15 @@ package CORBA.ORB is
 --       return CORBA.BOA.Object;
 --    --  Initializes the BOA with parameters of the command line and returns
 --    --  the BOA
+
+   ----------------------------------
+   --  Dynamic Invocation Related  --
+   ----------------------------------
+
+   --  creation of an empty NVList
+   --  Note that the count parameter is useless
+   procedure Create_List
+     (Count    : in     CORBA.Long;
+      New_List :    out CORBA.NVList.Ref);
 
 end CORBA.ORB;

@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Finalization;
+
 with CORBA;
 
 with Broca.Opaque;
@@ -63,7 +65,7 @@ package Broca.IOP is
    function Receive
      (Connection : access Connection_Type;
       Length     : Opaque.Index_Type)
-     return Opaque.Octet_Array is abstract;
+     return Opaque.Octet_Array_Ptr is abstract;
    --  Receive data from a connection. Raise Comm_Failure on error.
 
    --------------------------------
@@ -72,10 +74,12 @@ package Broca.IOP is
 
    subtype Profile_Tag is CORBA.Unsigned_Long;
 
-   Tag_Internet_IOP        : constant Profile_Tag := 0;
-   Tag_Multiple_Components : constant Profile_Tag := 1;
+   Tag_Internet_IOP        : constant Profile_Tag;
+   Tag_Multiple_Components : constant Profile_Tag;
 
-   type Profile_Type is abstract tagged limited private;
+   type Profile_Type is abstract
+     new Ada.Finalization.Limited_Controlled
+     with private;
 
    function Get_Object_Key
      (Profile : Profile_Type)
@@ -94,7 +98,33 @@ package Broca.IOP is
       return Profile_Tag is abstract;
    --  Return standard protocol profile tag.
 
+   procedure Marshall_Profile_Body
+     (Buffer  : access Buffers.Buffer_Type;
+      Profile : Profile_Type) is abstract;
+   --  Marshall the ProfileBody for Profile into Buffer.
+
+   --  function Unmarshall_Profile_Body
+   --    (Buffer : access Buffers.Buffer_Type)
+   --    return Profile_Ptr
+   --  Unmarshall a ProfileBody from Buffer.
+   --  For each derived type of Profile_Type, one such function
+   --  must be defined and registered using Broca.IOP.Register.
+
    type Profile_Ptr is access all Profile_Type'Class;
+
+   procedure Marshall_Tagged_Profile
+     (Buffer : access Buffers.Buffer_Type;
+      Profile : Profile_Type'Class);
+   --  Marshall a TaggedProfile into Buffer.
+
+   function Unmarshall_Tagged_Profile
+     (Buffer : access Buffers.Buffer_Type)
+     return Profile_Ptr;
+   --  Unmarshall a TaggedProfile from Buffer.
+   --  The Profile_Type designated by the returned
+   --  Profile_Ptr is dynamically allocated; it is up
+   --  to the caller to release the associated storage
+   --  when the profile is not needed anymore.
 
    type Profile_Ptr_Array is
      array (CORBA.Unsigned_Long range <>) of Profile_Ptr;
@@ -115,36 +145,33 @@ package Broca.IOP is
       Type_Id  : out CORBA.String;
       Profiles : out Profile_Ptr_Array_Ptr);
 
-   type Marshall_Profile_Body_Type is
-     access procedure
-     (Buffer  : access Buffers.Buffer_Type;
-      Profile : access Profile_Type'Class);
-
    type Unmarshall_Profile_Body_Type is
-     access procedure
-     (Buffer  : access Buffers.Buffer_Type;
-      Profile : out Profile_Ptr);
+     access function
+     (Buffer  : access Buffers.Buffer_Type)
+     return Profile_Ptr;
 
    procedure Register
-     (Profile                 : in Profile_Tag;
-      Marshall_Profile_Body   : in Marshall_Profile_Body_Type;
+     (Tag                     : in Profile_Tag;
       Unmarshall_Profile_Body : in Unmarshall_Profile_Body_Type);
+   --  Register Unmarshall_Profile_Body as the function used
+   --  to unmarshall a Tagged Profile Body corresponding to Tag.
 
-   type Profile_Record is
-      record
-         Marshall_Profile_Body   : Marshall_Profile_Body_Type;
-         Unmarshall_Profile_Body : Unmarshall_Profile_Body_Type;
-      end record;
-
-   Callbacks : array (Tag_Internet_IOP .. Tag_Multiple_Components)
-     of Profile_Record;
+   --  procedure Unegister
+   --    (Tag : in Profile_Tag);
+   --  Remove any registered unmarshalling function associated
+   --  with Tag.
 
 private
+
+   Tag_Internet_IOP        : constant Profile_Tag := 0;
+   Tag_Multiple_Components : constant Profile_Tag := 1;
 
    type Connection_Type is abstract tagged record
       Request : CORBA.Unsigned_Long := 1;
    end record;
 
-   type Profile_Type is abstract tagged limited null record;
+   type Profile_Type is abstract
+     new Ada.Finalization.Limited_Controlled
+     with null record;
 
 end Broca.IOP;

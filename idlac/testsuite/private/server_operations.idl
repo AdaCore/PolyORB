@@ -1,0 +1,2108 @@
+// Test-case submitted by Philippe Lerch, 2000-05-03.
+// $Id: //depot/adabroker/release-1/idlac/testsuite/private/server_operations.idl#1 $
+
+//------------------------------------------------------------------------------
+//
+// File    : server_operations.idl
+//
+// Project : EZF
+//
+// ELCA Matrix SA
+// Avenue de la Harpe 22-24
+// CH-1000 Lausanne 13
+// Tel (41 21) 613 22 41
+// Fax (41 21) 613 22 40
+//
+// Description:
+//
+//   This file contains the interface definitions to access EasyFile server
+//   with a CORBA client over a CORBA EasyNet bridge.
+//
+// History:
+//
+//    02-JUL-1998  HBU  Creation
+//    13-JUL-1998  HBU  Modifications suggested by BRY and minor corrections
+//                      in the connection interface.
+//    16-JUL-1998  HBU  Removed the interfaces EZFObj and ServiceConnection; 
+//                      Locks are handFiled at the level of connection
+//    19-AUG-1998  HBU  Minor modifications suggested by MWE.
+//     6-OCT-1998  RRO  integration of BridgeMgr.idl into this file.
+//    26-OCT-1998  RRO  LockItem & WaitToLockItem are void procedures 
+//     1-NOV-1999  JPN  From Problem to InternalException and specific Exception.
+//	  21-DEC-1999  JPN	Adding NonuniqueIndex Exception in CreateEDoc,Doc,Folder.
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+module easyfile
+{
+module server_operations
+//------------------------------------------------------------------------------
+{
+
+  // Consts :
+  //----------
+
+  //----------------------------------------------------------------------------
+  const string ident = "@(#) EZF Skelettons/Stubs 1.8" ;
+  //----------------------------------------------------------------------------
+ 
+  // General Types :
+  //----------------
+  typedef sequence <octet>   RawDataT ;    
+  typedef sequence <string>  StringListT ;
+  typedef sequence <boolean> BooleanListT ;
+
+
+  // Object ID's :
+  //--------------
+  //
+  // Reference: package EZF_Ids
+
+  enum ItemKindT { NoneIK,     EDocIK, DocIK,   FolderIK, 
+                   SearcherIK, UserIK, GroupIK } ;
+
+  struct ObjectIdT {  
+    long lowerPart ;
+    long higherPart ;
+    long DBPartitionPart ; 
+  } ;
+  typedef sequence <ObjectIdT> ObjectIdListT ;
+
+
+  // Permission :
+  //-------------
+  //
+  // Reference: package EZF_Protection, type Protection
+
+  struct PermissionT {
+    boolean read ;
+    boolean write ;
+    boolean delete ;
+    boolean control ;
+  } ;
+
+  struct ProtectionT {
+    PermissionT owner ;
+    PermissionT group ;
+    PermissionT world ;
+  } ;
+
+
+
+  // Values :
+  //---------
+  //
+  // Reference: package EZF_Data_Types
+
+  typedef sequence<char, 256> TextT ;      // depend of the use of client.....
+  typedef long                TimeStampT ; // in seconds since 1.1.1970 (timestamp)
+
+  enum ValueKindT { NoneV,    IntegerV,   SmallIntegerV, RealV, LongRealV,
+                    TimeStampV,    TextV,      IdentifierV } ;
+
+  union ValueT switch ( ValueKindT ) {
+    case NoneV:         char      notUsed ;
+    case IntegerV:      long      intValue ;
+    case SmallIntegerV: short     smallIntValue ;
+    case RealV:         float     realValue ;
+    case LongRealV:     double    longRealValue ;
+    case TimeStampV:    TimeStampT timeStampValue ;
+    case TextV:         TextT     textValue ;
+    case IdentifierV:   ObjectIdT identifierValue ;
+  } ;
+
+
+  // Descriptor :
+  //-------------
+  //
+  // Reference: package EZF_Descriptors
+
+  struct GroupDescriptorT {
+    long              groupId ;    // this is the group Id
+    long              fatherId ;   // father group id
+    long              depth ;      // depth in the group tree
+  } ;
+  typedef sequence <GroupDescriptorT> GroupT ;
+
+  typedef sequence <long, 5> PositionT ;
+
+  struct ValueAndPositionT {
+    PositionT position ;
+    ValueT    value ;
+  } ;
+  typedef sequence <ValueAndPositionT> ValuesAndPositionsT ;
+
+  struct FieldWithValuesT {
+    string fieldName ;
+    long   groupId ;
+    ValuesAndPositionsT values ;
+  } ;
+  typedef sequence <FieldWithValuesT> FieldValueListT ;
+
+  struct DescriptorT {
+    GroupT          groups ;
+    FieldValueListT fieldsAndValues ;
+  } ;
+
+
+  // Criterion :
+  //------------
+  //
+  // Reference: package EZF_Search_Criteria
+  // Remark:    Represented as a sequence of tokens in the "prefix" notation.
+
+  enum UnaryOperatorT {
+    NotOp,        UnaryPlusOp,    UnaryMinusOp,   AbsOp,         FloorOp,
+    CeilingOp,    TruncateOp,     SignOP,         UpperCaseOp,   LowerCaseOp,
+    IsNullOp,     IsNotNullOp
+  } ;
+
+  enum BinaryOperatorT {
+    AndOp,        OrOp,           EqualOp,         NotEqualOp,   LikeOp,
+    NotLikeOp,    LessThanOp,     LessThanOrEqualOp,             GreaterThanOp,
+    GreaterThanOrEqualOp,         PlusOp,          MinusOp,      TimesOp,
+    DivideOp,     ModuloOp,       PowerOp
+  } ;
+
+  enum TokenKindT { UnaryOpTok, BinaryOpTok, FieldNameTok, ValueTok } ;
+
+  union TokenT switch ( TokenKindT ) {
+    case UnaryOpTok:   UnaryOperatorT  unaryOperator ;
+    case BinaryOpTok:  BinaryOperatorT binaryOperator ;
+    case FieldNameTok: string          fieldName ;
+    case ValueTok:     ValueT          value ;
+  } ;
+
+  typedef sequence <TokenT> CriterionT ;
+
+  
+  // Structered Parameter :
+  //-----------------------
+  //
+  // Reference: package EZF_Structured_Paramters
+
+  enum ParameterKindT { NoneP,      IntegerP,   SmallIntegerP, RealP, LongRealP,
+                        TimeStampP, StringP,    IdentifierP,   RawDataP ,
+                        CriterionP, DescriptorP } ;
+
+  union ParameterValueT switch ( ParameterKindT ) {
+    case NoneP:         char        notUsed ;
+    case IntegerP:      long        intValue ;
+    case SmallIntegerP: short       smallIntValue ;
+    case RealP:         float       realValue ;
+    case LongRealP:     double      longRealValue ;
+    case TimeStampP:    TimeStampT  timeStampValue ;
+    case StringP:       string      textValue ;
+    case IdentifierP:   ObjectIdT   identifierValue ;
+    case RawDataP:      RawDataT    data ;
+    case CriterionP:    CriterionT  criterion ;
+    case DescriptorP:   DescriptorT descriptor ;
+  } ;
+  typedef sequence <ParameterValueT> ParameterT ;
+
+  
+  // Types used for services :
+  //--------------------------
+  //
+  // Reference: package EZF_Services, EZF_Server_Operations
+
+  enum CompletionStatusT { NoneCS, OkCS, ErrorCS } ;
+
+  enum ServiceKindT { NoneSrv, PrintSrv, FaxSrv, OtherSrv } ;
+
+  struct ServiceInfoT {
+    ServiceKindT kind ;
+    string       name ;
+  } ;
+  typedef sequence <ServiceInfoT> ServiceInfoListT ;
+
+  struct JobResultHeaderT {
+    ServiceKindT kind ;
+    string       name ;
+    long         jobNumber ;
+    string       userName ;
+    TimeStampT   submitted ;
+    TimeStampT   done ;
+  } ;
+  typedef sequence <JobResultHeaderT> JobResultHeaderListT ;
+
+  struct LoginInfoT{
+    boolean     PasswordExpiringSoon;
+  } ;
+
+  struct ItemImageVarT {
+    ObjectIdT   eDocId ;
+    long        tag ;
+    RawDataT    image ;
+  } ;
+  enum JobItemKindT { NoneJIK, DescriptorJIK, ImageJIK, SuppliedImageJIK } ;
+  union ItemVarT switch ( JobItemKindT ) {
+    case NoneJIK:          char          notUsed ;
+    case DescriptorJIK:    DescriptorT   descriptor ;
+    case ImageJIK:         ItemImageVarT imageId ;
+    case SuppliedImageJIK: RawDataT      image ;
+  } ;
+  struct ItemT {
+    long       number ;
+    ParameterT parameter ;
+    ItemVarT   variablePart ;
+  } ;
+  typedef sequence <ItemT> ItemListT ;
+
+  struct JobT {
+    long       number ;
+    ParameterT parameter ;
+    long       lastItemServed ;
+  } ;
+
+  enum HeaderOrItemT { JobHeader, JobItem } ;
+  union JobHeaderOrItemT switch (HeaderOrItemT) {
+    case JobHeader: JobT  job ;
+    case JobItem:   ItemT item ;
+  } ;
+
+  struct ItemResultT {
+    CompletionStatusT status ;
+    ParameterT        contents ;
+  } ;
+  typedef sequence <ItemResultT> ItemResultListT ;
+
+  struct JobResultT {
+    CompletionStatusT status ;
+    ParameterT        contents ;
+    ItemResultListT   itemResults ;
+  } ;
+
+
+  // Notifications :
+  //----------------
+  //
+  // Reference: package EZF_Notifier_Types
+
+  enum NotificationKindT {
+    ItemDescriptorChangedNK,  ItemContentsChangedNK,   ItemContainerChangedNK,
+    ItemPermissionChangedNK,  ItemDeletedNK,           MessageNK,
+    StructuredMessageNK,      CloseImmediatelyNK,      CloseASAPNK,
+    ShutdownNK,               ShutdownCancelledNK,     ServiceJobDoneNK,
+    NewServiceAvailableNK,    ServiceDeadNK,           UserArrivedNK,
+    UserGoneNK
+  } ;
+
+  struct NotifItemVarPartT {
+    string    fromUser ;
+    ObjectIdT itemId ;
+  } ;
+
+  struct NotifShutdownVarPartT {
+    string fromUser ;
+    string message ;
+    long   secondsToLive ;
+  } ;
+
+  struct NotifMsgVarPartT {
+    string fromUser ;
+    string message ;
+  } ;
+
+  struct NotifStructMsgVarPartT {
+    string     fromUser ;
+    ParameterT message ;
+  } ;
+
+  struct NotifJobDoneVarPartT {
+    string            serviceName ;
+    long              jobNumber ;
+    CompletionStatusT jobStatus ;
+    long              lastItemDone ;
+  } ;
+
+  struct NotifServiceVarPartT {
+    string       serviceName ;
+    ServiceKindT serviceKind ;
+  } ;
+
+  union NotificationT switch ( NotificationKindT ) {
+    case ItemDescriptorChangedNK: NotifItemVarPartT      descChangedInfo ;
+    case ItemContentsChangedNK:   NotifItemVarPartT      contentsChangedInfo ;
+    case ItemContainerChangedNK:  NotifItemVarPartT      containerChangedInfo ;
+    case ItemPermissionChangedNK: NotifItemVarPartT      permChangeditemInfo ;
+    case ItemDeletedNK:           NotifItemVarPartT      deletedItemInfo ;
+    case MessageNK:               NotifMsgVarPartT       message ;
+    case CloseImmediatelyNK:      NotifMsgVarPartT       closeImmMsg ;
+    case CloseASAPNK:             NotifMsgVarPartT       closeASAPMsg ;
+    case ShutdownCancelledNK:     NotifMsgVarPartT       shutdownCancelledMsg ;
+    case StructuredMessageNK:     NotifStructMsgVarPartT structuredMsg ;
+    case ShutdownNK:              NotifShutdownVarPartT  shutdownInfo ;
+    case ServiceJobDoneNK:        NotifJobDoneVarPartT   jobInfo ;
+    case NewServiceAvailableNK:   NotifServiceVarPartT   newServiceInfo ;
+    case ServiceDeadNK:           NotifServiceVarPartT   deadServiceInfo ;
+    case UserArrivedNK:           string                 arrivedUserName ;
+    case UserGoneNK:              string                 goneUserName ;
+  } ;
+
+  // Groupmembers :
+  //---------------
+
+  enum GroupMemberKindT { userGM, groupGM } ;
+
+  struct GroupMemberT {
+    GroupMemberKindT  kind ;
+    string            name ;
+  } ;
+
+  typedef sequence<GroupMemberT> GroupMemberListT ;
+  
+  // Exceptions :
+  //-------------
+
+	// specific exeption :
+
+  exception InternalException {
+    string	errorMessage; // As returned from the EZF server
+  } ;
+
+  exception WrongVersion{};
+
+  exception DuplicateUserName{};
+
+  exception NonexistentUser{};
+
+  exception WrongPassword{};
+
+  exception PasswordExpired{};
+
+  exception PasswordNotAllowed{};
+
+  exception NonuniqueIndex{};
+
+  exception DuplicateGroupName{};
+
+  exception NonexistentGroup{};
+
+  exception CircularGroupInclusion{};
+
+  exception ItemAlreadyLocked{};
+ 
+  //----------------------------------------------------------------------------
+  const long NoTransaction = 0 ; // Transaction id, when trans. not required.
+  //----------------------------------------------------------------------------
+
+  // Bridge Manager:
+  
+  //------------------------------------------------------------------------------
+
+
+  // Type declarations:
+  //-------------------
+
+  enum TagT {connectTag, opTag, serviceTag, exceptionTag, transactionTag, 
+             anyTag};
+  // category of the event
+
+  enum ValueTagT {IntegerValue, StringValue, BinDataValue};
+  // keep the same order of enum elements as in ValueTagT (Manager.hpp)!
+  // With this assumption, casting is possible and correct! (as it is 
+  // implemented).
+
+  union ValueTMgr switch (ValueTagT) {
+    case IntegerValue:  long i;
+    case StringValue:   string str;
+    case BinDataValue:  sequence<octet> bin;
+  };
+
+  struct NameValuePairT {
+    string    name;
+    ValueTMgr value;
+  };
+
+  typedef sequence<NameValuePairT> NameValuePairListT; // argument list
+
+  struct FilterT {  // AND relation
+     TagT   type;
+     TimeStampT since;
+     string sender;
+  };
+  
+  struct EventT {
+    TagT   type;        // kind of event
+    string whichEvent;  // detailed description, e.g. operation performed,
+
+  // transaction id, exception description
+    TimeStampT timeStamp;   // timestamp
+    string sender; // username of the related connection
+  };
+  
+  typedef sequence<EventT> EventListT ;
+
+
+  // Exception declarations:
+  //------------------------
+
+  exception MgrInternalException {
+    string     errorMessage;
+    string     reason;
+  };
+
+  // Interfaces:
+  //------------
+
+  // Forward declaration
+  interface EventListIterator ;
+
+  interface Manager 
+  //--------------------------------------------------------------------------
+  // Purpose: Manager is used to manage the EasyNet bridge:
+  //          shutdown bridge, tracing and listing of the events occured.
+  //          Several Managers can be connected to the bridge.
+  //--------------------------------------------------------------------------
+  {
+    void Logout()
+      raises (MgrInternalException);
+    //------------------------------------------------------------------------
+    // Effect   : Closes the connection to the bridge and distroys all related
+    //            Iterators. If already closed, no action is performed.
+    // Error    : the bridge is shuting down
+    //------------------------------------------------------------------------
+
+    void Shutdown(in long delay)
+      raises (MgrInternalException);
+    //------------------------------------------------------------------------
+    // Effect   : Shuts down the EasyNet bridge after a delay given in seconds.
+    //            Delay<=0 implies immediate shutdown.
+    // Error    : Exception MgrInternalException containing the errorcode returned by 
+    //            the bridge is raised.
+    //------------------------------------------------------------------------
+
+    StringListT GetOpenConnections()
+      raises (MgrInternalException);
+    //------------------------------------------------------------------------
+    // Effect   : Lists all usernames of open connections to the EZF-Server.
+    // Error    : Exception MgrInternalException containing the errorcode returned by 
+    //            the bridge is raised.
+    //------------------------------------------------------------------------
+
+    void SetTraceOn()
+      raises (MgrInternalException);
+    //------------------------------------------------------------------------
+    // Effect   : Turns tracing on. The traced events can be retrieved with
+    //            method GetEvents.
+    // Error    : Exception MgrInternalException containing the errorcode returned by 
+    //            the bridge is raised.
+    //------------------------------------------------------------------------
+
+    void SetTraceOff()
+      raises (MgrInternalException);
+    //------------------------------------------------------------------------
+    // Effect   : Turns tracing off.
+    // Error    : Exception MgrInternalException containing the errorcode returned by 
+    //            the bridge is raised.
+    //------------------------------------------------------------------------
+
+    void ClearTrace()
+      raises (MgrInternalException);
+    //------------------------------------------------------------------------
+    // Effect   : Erases all traced events.
+    // Error    : Exception MgrInternalException containing the errorcode returned by 
+    //            the bridge is raised.
+    //------------------------------------------------------------------------
+
+    StringListT GetAvailableInfos()
+      raises (MgrInternalException);
+    //------------------------------------------------------------------------
+    // Effect   : returns a list of available infos to be passed to GetInfo.
+    // Error    : Exception MgrInternalException containing the errorcode returned by 
+    //            the bridge is raised.
+    //------------------------------------------------------------------------
+
+    StringListT GetAvailableCmds()
+      raises (MgrInternalException);
+    //------------------------------------------------------------------------
+    // Effect   : returns a list of available commands to be passed to Execute.
+    // Error    : Exception MgrInternalException containing the errorcode returned by 
+    //            the bridge is raised.
+    //------------------------------------------------------------------------
+
+    void GetInfo(in string what, out NameValuePairListT infos)
+      raises (MgrInternalException);
+    //------------------------------------------------------------------------
+    // Effect   : Returns requested information. If what is set to 
+    //            - availableInfos, infos contains a list of requestable
+    //               information.
+    //            - availableCmds, infos contains a list of executable 
+    //               commands which can be executed with Execute method.
+    // Error    : Exception MgrInternalException containing the errorcode returned by 
+    //            the bridge is raised.
+    //------------------------------------------------------------------------
+
+    long Execute(in string command, in NameValuePairListT args)
+      raises(MgrInternalException);
+    //------------------------------------------------------------------------
+    // Effect   : Executes a command with the given arguments.
+    // Error    : Exception MgrInternalException containing the errorcode returned by 
+    //            the bridge is raised.
+    //------------------------------------------------------------------------
+
+    void GetEvents( in  FilterT           filter ,
+                    in  long              howMany ,
+                    out EventListT        events ,
+                    out EventListIterator iter)
+      raises (MgrInternalException) ;
+    //------------------------------------------------------------------------
+    // Effect   : Returns a list of up to howMany traced events. The 
+    //            EventListIterator is only used if there are more than 
+    //            howMany in the list.
+    //            Set TraceOn before calling GetEvents. Otherwise the list 
+    //            events may be empty.
+    // Error    : Exception MgrInternalException containing the errorcode returned by 
+    //            the bridge is raised.
+    //------------------------------------------------------------------------
+
+  }; // end interface Manager
+  //--------------------------------------------------------------------------
+
+  interface EventListIterator
+  //--------------------------------------------------------------------------
+  // Iterator to read an EventListT.
+  //--------------------------------------------------------------------------
+  {
+    void Rewind();
+    //------------------------------------------------------------------------
+    // Effect   : Sets the Iterator to the beginning of the file.
+    // Error    : - 
+    //------------------------------------------------------------------------
+
+    long Next(inout EventT event);
+    //------------------------------------------------------------------------
+    // Effect   : Returns next Event of the list fulfilling the filter's
+    //            criteria or NULL if the end is reached. Set TraceOn before  
+    //            calling Iterator. Otherwise there are no events.
+    // Error    : end of file
+    //------------------------------------------------------------------------
+
+    void NextN(out EventListT events, in long howMany);
+    //------------------------------------------------------------------------
+    // Effect   : Returns next 'howMany' Events of the list fulfilling the 
+    //            filter's criteria or NULL if the end is reached. Set TraceOn   
+    //            before calling Iterator. Otherwise there are no events.
+    //            howMany returns the number of read Events.
+    // Error    : - 
+    //------------------------------------------------------------------------
+
+    void Destroy();
+    //------------------------------------------------------------------------
+    // Effect   : Destroys the Iterator. The reference to the iterator must
+    //            not be used any more.
+    // Error    : - 
+    //------------------------------------------------------------------------
+
+  };  // end interface EventListIterator
+  //--------------------------------------------------------------------------
+
+
+
+  // Forward declarations :
+  //-----------------------
+  interface EDoc ;
+  interface Doc ;
+  interface Folder ;
+  interface Searcher ;
+  interface User ;
+  interface Group ;
+  interface Connection ;
+  interface Notifier ;
+
+
+  // Interfaces :  
+  //-------------
+
+  //----------------------------------------------------------------------------
+  interface ConnectionFactory
+  //----------------------------------------------------------------------------
+  // Purpose:  The ConnectionFactory is used to create connections
+  //           between a CORBA client and the EZF server (CreateConnection)
+  //           or between a CORBA EZF service and the EZF server
+  //           (CreateServiceConnection).
+  //----------------------------------------------------------------------------
+  {
+    //--------------------------------------------------------------------------
+    Connection CreateConnection( in string      version ,
+                               in string      userName ,
+                               in string      password ,
+                               in string      groupName ,
+                               in string      securityInfo ,
+                               in ProtectionT defaultProtection ,
+                               in boolean     isReadonly ,
+                               in Notifier    notifHandler ,
+                               out LoginInfoT logininformation )
+      raises (InternalException,WrongVersion,NonexistentUser,WrongPassword,PasswordExpired) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Opens a new connection between the bridge and the EZF server
+    //            for ordinary clients.
+    //            If "notifHandler" is nil, then all notifications for
+    //            "userName" will be discarded.
+    //            logininformation contains information about non fatal events
+    //            during the login. (As PasswordExpiringSoon...)
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised. (When fatal Error Occured).
+    //--------------------------------------------------------------------------
+
+    //-------------------------------------------------------------------------
+    Connection ConnectService( in string       version ,
+                               in ServiceKindT kind ,
+                               in string       name ,
+                               in string       password ,
+                               in string       securityInfo ,
+                               in Notifier     notifHandler ,
+                               out LoginInfoT logininformation )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Opens a new connection between the bridge and the EZF server
+    //            for services.
+    //            If "notifHandler" is nil, then all notifications for
+    //            the service "name" will be discarded.
+    //            logininformation contains information about non fatal events
+    //            during the login. (As PasswordExpiringSoon...)
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised. (When fatal Error Occured).
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    Manager ConnectBridge(in string groupname,
+                          in string username,
+                          in string passWord)
+       raises(MgrInternalException);
+    //------------------------------------------------------------------------
+    // Effect   : IF (groupname is Supergroup) and (username is superuser)
+    //            and password_correct THEN grant access to bridge and open
+    //            connection for administration.
+    // Error    : Exception MgrInternalException containing the errorcode returned by
+    //            the bridge is raised (EZFServerDown or notAuhorised).
+    //------------------------------------------------------------------------
+
+  } ; // end interface ConnectionFactory
+  //----------------------------------------------------------------------------
+
+
+  //----------------------------------------------------------------------------
+  interface Connection
+  //----------------------------------------------------------------------------
+  // Purpose: A Connection alows a CORBA client to invoke the complete
+  //          functionality of the EZF Server.
+  //----------------------------------------------------------------------------
+  {
+    // Type definitions :
+    //-------------------
+    enum ConnectionTypeT { clientConnection, serviceConnection } ;
+    enum OperationKindT  { readOp, modifyOp } ; // Used for the locks
+    enum TraceLevelT     { Debug,   Trace,   Information, 
+                           Warning, Error,   Fatal } ;
+
+
+    // Attributes :
+    //-------------
+    readonly attribute ConnectionTypeT connectionType ;
+
+    // Methods :
+    //----------
+
+    // Server management :
+    //--------------------
+
+    //--------------------------------------------------------------------------
+    void ShutdownEZFServer( in string securityInfo ,
+                            in long   delay ,
+                            in string message )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : 
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+    
+    //--------------------------------------------------------------------------
+    void ReloadSecurity ( in string securityInfo )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : 
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void ReloadDBPartition ( in string securityInfo )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : 
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+    
+    //--------------------------------------------------------------------------
+    void ReloadAll ( in string securityInfo )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : 
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void RestartAAM ( in string securityInfo )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : 
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void SetTraceLevel ( in string       securityInfo ,
+                         in TraceLevelT  level )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : 
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+    
+
+    // Transactions :
+    //---------------
+
+    //--------------------------------------------------------------------------
+    long StartTransactionOnPartition( in string securityInfo ,
+                                      in long   DBPartitionPart )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Starts a new transaction and returns its id.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+    
+    //--------------------------------------------------------------------------
+    long StartTransactionWithDescrAndCrit( in string      securityInfo ,
+                                           in DescriptorT descriptor ,
+                                           in CriterionT  criterion )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Starts a new transaction and returns its id.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void CommitTransaction( in long   transactionId ,
+                            in string securityInfo )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Requires : valid transactionId ( different from NoTransaction).
+    // Effect   : Commits the transaction "transactionId".
+    //--------------------------------------------------------------------------
+    
+    //--------------------------------------------------------------------------
+    void RollbackTransaction( in long   transactionId ,
+                              in string securityInfo )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Requires : valid transactionId ( different from NoTransaction).
+    // Effect   : Rolls the transaction "transactionId" back.
+    //--------------------------------------------------------------------------
+    
+
+    // EDocs:
+    //-------
+
+    //--------------------------------------------------------------------------
+    EDoc GetEDoc( in ObjectIdT   eDocId )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Retruns an objectreference on the EDoc "eDocId".
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+	//--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    EDoc CreateEDoc( in long        transactionId ,
+                     in string      securityInfo ,
+                     in DescriptorT descriptor )
+      raises (InternalException,NonuniqueIndex) ;
+    //--------------------------------------------------------------------------
+    // Requires : Must be transacted ( "transactionId" different from 
+    //            NoTransaction).
+    // Effect   : Creates a new EDoc on the EZF server.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+	//            NonuniqueIndex is raised in the case the UniqueIndex rule is violated.
+    //--------------------------------------------------------------------------
+
+
+    // Docs:
+    //------
+
+    //--------------------------------------------------------------------------
+    Doc GetDoc( in ObjectIdT   docId )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Retruns an objectreference on the Doc "docId".
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    Doc CreateDoc( in long        transactionId ,
+                   in string      securityInfo ,
+                   in DescriptorT descriptor )
+      raises (InternalException,NonuniqueIndex) ;
+    //--------------------------------------------------------------------------
+    // Requires : Must be transacted ( "transactionId" different from 
+    //            NoTransaction).
+    // Effect   : Creates a new Doc on the EZF server.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+	//            NonuniqueIndex is raised in the case the UniqueIndex rule is violated.
+    //--------------------------------------------------------------------------
+
+
+    // Folders:
+    //---------
+
+    //--------------------------------------------------------------------------
+    Folder GetFolder( in ObjectIdT   folderId )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns an objectreference on the Folder "folderId".
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    Folder CreateFolder( in long        transactionId ,
+                         in string      securityInfo ,
+                         in DescriptorT descriptor )
+      raises (InternalException,NonuniqueIndex) ;
+    //--------------------------------------------------------------------------
+    // Requires : Must be transacted ( "transactionId" different from
+    //            NoTransaction).
+    // Effect   : Creates a new Folder on the EZF server.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+	//            NonuniqueIndex is raised in the case the UniqueIndex rule is violated.
+    //--------------------------------------------------------------------------
+
+
+    // Searchers:
+    //-----------
+
+    //--------------------------------------------------------------------------
+    Searcher GetSearcher( in ObjectIdT   searcherId )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns an objectreference on the Searcher "searcherId".
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    Searcher CreateSearcher( in long        transactionId ,
+                             in string      securityInfo ,
+                             in ItemKindT   kind ,
+                             in CriterionT  criterion )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Requires : Must be transacted ( "transactionId" different from 
+    //            NoTransaction).
+    // Effect   : Creates a new Searcher on the EZF Server.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void SearchItems( in  long           transactionId ,
+                      in  string         securityInfo ,
+                      in  ItemKindT      kind ,
+                      in  CriterionT     criterion ,
+                      out ObjectIdListT  imtemIds )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Searches the items "kind" (EDoc, Doc or Folder) corresponding
+    //            to "criterion" and returns the id's of the found items.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void SearchItemsWithDescriptor( in    long          transactionId ,
+                                    in    string        securityInfo ,
+                                    in    ItemKindT     kind ,
+                                    in    CriterionT    criterion ,
+                                    inout DescriptorT   descriptor)
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Searches the items "kind" (EDoc, Doc or Folder) corresponding
+    //            to "criterion" and returns the descriptor containing the
+    //            found values.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+
+    // Users:
+    //-------
+
+    //--------------------------------------------------------------------------
+    User GetUser( in string   userName )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns an objectreference on the User "userName".
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    User CreateUser( in string      securityInfo ,
+                     in string      userName ,
+                     in string      password ,
+                     in string      defaultGroup ,
+                     in DescriptorT descriptor )
+      raises (InternalException,DuplicateUserName,PasswordNotAllowed,NonexistentGroup) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Creates a new User on the EZF Server.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void ListAllUsers( in  string       securityInfo ,
+                       out StringListT  userNames )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns the list of all EZF users.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+
+    // Groups:
+    //--------
+
+    //--------------------------------------------------------------------------
+    Group GetGroup( in string   groupName )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns an objectreference on the group "groupName".
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    Group CreateGroup( in string      securityInfo ,
+                       in string      groupName ,
+                       in DescriptorT descriptor )
+      raises (InternalException,DuplicateGroupName) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Creates a new Group on the EZF Server.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void ListAllGroups( in  string       securityInfo ,
+                        out StringListT  groupNames )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns the list of all EZF groups.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+
+    // Locking :
+    //----------
+
+    //--------------------------------------------------------------------------
+    void LockItem(    in long           transactionId ,
+                      in string         securityInfo ,
+                      in ObjectIdT      itemId ,
+                      in OperationKindT operationKind )
+      raises (InternalException,ItemAlreadyLocked) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Locks *this for read or write purpose.
+    // Retval   : Returns TRUE, if *this could be locked, FALSE otherwise.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void WaitToLockItem(    in long           transactionId ,
+                            in string         securityInfo ,
+                            in ObjectIdT      itemId ,
+                            in OperationKindT operationKind ,
+                            in long           timeout )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Waits until the lock for "operationKind" could be obtained
+    //            or that "timeout" seconds ellapsed (0 means infinite).
+    // Retval   : Returns TRUE, if *this could be locked, FALSE if timeout
+    //            reached.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+    
+    //--------------------------------------------------------------------------
+    void UnlockItem( in long           transactionId ,
+                     in string         securityInfo ,
+                     in ObjectIdT      itemId ,
+                     in OperationKindT operationKind )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Unlocks *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+
+    // External Tables :
+    //------------------
+
+    //--------------------------------------------------------------------------
+    void ModifyExternalTables( in long        transactionId ,
+                               in string      securityInfo ,
+                               in DescriptorT removeDescriptor ,
+                               in DescriptorT addDescriptor )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Requires : Must be transacted ( "transactionId" different from
+    //            NoTransaction).
+    // Effect   : Modifies values in an external table.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void SearchExternalTables( in    long         transactionId ,
+                               in    string       securityInfo ,
+                               in    CriterionT   criterion ,
+                               inout DescriptorT  descriptor )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Searches values from an external table.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+
+    // Connection :
+    //-------------
+
+    //--------------------------------------------------------------------------
+    void Close( in string securityInfo ) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Closes the connection between a CORBA client and the EZF 
+    //            server (ordinary client or service client).
+    //            All objects created during this connection, and the connection
+    //            itself are released (all objectreferences returned to the
+    //            client become invalid).
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void ListConnectedUsers( in  string       securityInfo ,
+                             out StringListT  userNames )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns the list of the connected EZF users.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+
+    // Services :
+    //-----------
+
+    //--------------------------------------------------------------------------
+    JobHeaderOrItemT GetNextItemToServe( in string securityInfo ) 
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns the next item or job waiting in the queue to the 
+    //            service.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void ReturnServiceResult( in string            securityInfo ,
+                              in long              jobNumber ,
+                              in long              itemNumber ,
+                              in CompletionStatusT status ,
+                              in ParameterT        result )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Requires : if "itemNumber" == 0 then "status" and "result" refers to
+    //            the job "jobNumber" (job finished) otherwise to the item
+    //            "itemNumber".
+    // Effect   : Used by a service to return its status.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void GetAvailableServices( in  string           securityInfo ,
+                               out ServiceInfoListT serviceInfos )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns the list of available services.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+    
+    //--------------------------------------------------------------------------
+    long ForwardServiceItems( in string      securityInfo ,
+                              in string      serviceName ,
+                              in ParameterT  jobParams ,
+                              in ItemListT   items )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Submits a new job for the service "serviceName".
+    // Retval   : jobNumber.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void ListServiceResults( in  string               securityInfo ,
+                             in  string               userName ,
+                             out JobResultHeaderListT availableResults )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns the available service results for "userName".
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+    
+    //--------------------------------------------------------------------------
+    void GetServiceResult( in  string      securityInfo ,
+                           in  string      serviceName ,
+                           in  long        jobNumber ,
+                           out JobResultT  jobResult)
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns the result of the job "jobNumber" handled by the
+    //            service "serviceName".
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void DestroyServiceResult( in string securityInfo ,
+                               in string serviceName ,
+                               in long   jobNumber )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Destroys the result of the job "serviceJobNumber" of the
+    //            service "serviceName".
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+    
+    //--------------------------------------------------------------------------
+    void StopService( in string securityInfo ,
+                      in string serviceName )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Asks the service "serviceName" to stop.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+
+    // Notifications :
+    //----------------
+
+    //--------------------------------------------------------------------------
+    void SendMessage( in string securityInfo ,
+                      in string userName ,
+                      in string message )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Sends the message "message" to the user "userName".
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+    
+    //--------------------------------------------------------------------------
+    void SendStructuredMessage( in string      securityInfo ,
+                                in string      userName ,
+                                in ParameterT  message )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Sends the structured message "message" to the user "userName".
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+    
+    //--------------------------------------------------------------------------
+    void SendCloseImmediately( in string securityInfo ,
+                               in string userName ,
+                               in string message )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Sends the message "message" to the user "userName". "userName"
+    //            has to close the connection  immediately after receiving this
+    //            message.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+    
+    //--------------------------------------------------------------------------
+    void SendCloseASAP( in string securityInfo ,
+                        in string userName ,
+                        in string message )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Sends the message "message" to the user "userName". "userName"
+    //            has to close the connection shortly after receiving this
+    //            message.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+  } ; // end interface Connection
+  //----------------------------------------------------------------------------
+
+
+  //----------------------------------------------------------------------------
+  interface EDoc
+  //----------------------------------------------------------------------------
+  // Purpose: This interface provides all necessary methods to manipulate
+  //          EDoc's on the EZF server.
+  //----------------------------------------------------------------------------
+  {
+    // Type definitions :
+    //-------------------
+    typedef long DocumentTagT ;
+
+    typedef sequence <DocumentTagT> DocumentTagListT ;
+
+
+    // Attributes :
+    //-------------
+    readonly attribute ObjectIdT objectId ;
+
+
+    // Methods :
+    //----------
+
+    //--------------------------------------------------------------------------
+    void Release() ;
+    //--------------------------------------------------------------------------
+    // Effect   : Frees all resources occupied by *this. After a successful
+    //            invocation this CORBA Objectreference shouldn't be used
+    //            anymore.
+    // Error    : -
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void Delete( in long   transactionId ,
+                 in string securityInfo )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Requires : Must be transacted ( "transactionId" different from
+    //            NoTransaction).
+    // Effect   : Deletes *this EDoc on the EZF server. After a successful
+    //            invocation this CORBA Objectreference shouldn't be used
+    //            anymore.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void PutDescriptor( in long        transactionId ,
+                        in string      securityInfo ,
+                        in DescriptorT removeDescriptor ,
+                        in DescriptorT addDescriptor )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Requires : Must be transacted ( "transactionId" different from
+    //            NoTransaction).
+    // Effect   : Stores the descriptor part for *this on the EZF server.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void GetDescriptor( in    long        transactionId ,
+                        in    string      securityInfo ,
+                        inout DescriptorT descriptor)
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Searches the descriptor part for *this on the EZF server.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void PutContents( in long         transactionId ,
+                      in string       securityInfo ,
+                      in DocumentTagT tag ,
+                      in RawDataT     data)
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Requires : Must be transacted ( "transactionId" different from 
+    //            NoTransaction).
+    // Effect   : Stores the contents part of *this on the EZF server.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void GetContents( in  long         transactionId ,
+                      in  string       securityInfo ,
+                      in  DocumentTagT tag ,
+                      out RawDataT     data )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Searches the contents part of an EDoc.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void GetContentsTags( in  long             transactionId ,
+                          in  string           securityInfo ,
+                          out DocumentTagListT contentTags )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns the list with the content tags of *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void DeleteContents( in long         transactionId ,
+                         in string       securityInfo ,
+                         in DocumentTagT tag )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Requires : Must be transacted ( "transactionId" different from 
+    //            NoTransaction).
+    // Effect   : Deletes the contents part of *this on the EZF server.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void MoveContents( in long         transactionId ,
+                       in string       securityInfo ,
+                       in DocumentTagT tag ,
+                       in ObjectIdT    toEDocId ,
+                       in DocumentTagT toTag )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Requires : Must be transacted ( "transactionId" different from 
+    //            NoTransaction).
+    // Effect   : Moves the contents part of *this to an other EDoc "toEDocId".
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    ObjectIdT GetContainer( in long        transactionId ,
+                            in string      securityInfo )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Searches the container Doc of *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+  } ; // end interface EDoc
+  //----------------------------------------------------------------------------
+
+
+  //----------------------------------------------------------------------------
+  interface Doc
+  //----------------------------------------------------------------------------
+  // Purpose: This interface provides all necessary methods to manipulate
+  //          Doc's on the EZF server.
+  //----------------------------------------------------------------------------
+  {
+
+    // Type definitions :
+    //-------------------
+    typedef long EDocPositionT ; // Position of an EDoc in a Doc
+
+    struct EDocIdAndPositionT { // represents the id and the position of an EDoc
+      ObjectIdT     objectId ;
+      EDocPositionT position ;
+    } ;
+    typedef sequence <EDocIdAndPositionT> EDocIdAndPositionListT ;
+
+    // Attributes :
+    //-------------
+    readonly attribute ObjectIdT objectId ;
+
+    // Methods :
+    //----------
+
+    //--------------------------------------------------------------------------
+    void Release() ;
+    //--------------------------------------------------------------------------
+    // Effect   : Frees all resources occupied by *this. After a successful
+    //            invocation this CORBA Objectreference shouldn't be used
+    //            anymore.
+    // Error    : -
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void Delete( in long   transactionId ,
+                 in string securityInfo )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Requires : Must be transacted ( "transactionId" different from 
+    //            NoTransaction).
+    // Effect   : Deletes *this Doc on the EZF server. After a successful
+    //            invocation this CORBA Objectreference shouldn't be used
+    //            anymore.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void PutDescriptor( in long        transactionId ,
+                        in string      securityInfo ,
+                        in DescriptorT removeDescriptor ,
+                        in DescriptorT addDescriptor )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Requires : Must be transacted ( "transactionId" different from 
+    //            NoTransaction).
+    // Effect   : Stores the descriptor part for *this on the EZF server.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void GetDescriptor( in    long        transactionId ,
+                        in    string      securityInfo ,
+                        inout DescriptorT descriptor )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Searches the descriptor part for *this on the EZF server.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void InsertEDoc( in long          transactionId ,
+                     in string        securityInfo ,
+                     in ObjectIdT     whichEDoc ,
+                     in EDocPositionT position )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Requires : Must be transacted ( "transactionId" different from 
+    //            NoTransaction).
+    // Effect   : Inserts an EDoc at "position" into *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void RemoveEDoc( in long      transactionId ,
+                     in string    securityInfo ,
+                     in ObjectIdT whichEDoc )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Requires : Must be transacted ( "transactionId" different from 
+    //            NoTransaction).
+    // Effect   : Removes the EDoc "whichEDoc" from *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void MoveEDoc( in long          transactionId ,
+                   in string        securityInfo ,
+                   in ObjectIdT     whichEDoc ,
+                   in ObjectIdT     targetDoc,
+                   in EDocPositionT targetPosition )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Requires : Must be transacted ( "transactionId" different from 
+    //            NoTransaction).
+    // Effect   : Removes the EDoc "whichEDoc" from *this and adds it at
+    //            "targetPosition" to the Doc "targetDoc".
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    long GetNumberOfEDocs( in long        transactionId ,
+                           in string      securityInfo )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns the number of EDocs of *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void GetEDocs( in  long                   transactionId ,
+                   in  string                 securityInfo ,
+                   in  boolean                loadThem ,
+                   out EDocIdAndPositionListT theEDocs )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns the list with all EDocs of *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void GetEDocsWithDescriptor( in    long         transactionId ,
+                                 in    string       securityInfo ,
+                                 in    boolean      loadThem ,
+                                 inout DescriptorT  descriptor )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Searches the EDocs and their descriptor in *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void GetContainers( in  long          transactionId ,
+                        in  string        securityInfo ,
+                        out ObjectIdListT folderIdList )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns the list of folders containing *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void GetContainersWithDescriptor( in    long         transactionId ,
+                                      in    string       securityInfo ,
+                                      inout DescriptorT  descriptor )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns the descriptor values of folders containing *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+  } ; // end interface Doc
+  //----------------------------------------------------------------------------
+
+
+  //----------------------------------------------------------------------------
+  interface Folder
+  {
+    // Attributes :
+    //-------------
+    readonly attribute ObjectIdT objectId ;
+
+    
+    // Methods :
+    //----------
+
+    //--------------------------------------------------------------------------
+    void Release() ;
+    //--------------------------------------------------------------------------
+    // Effect   : Frees all resources occupied by *this. After a successful
+    //            invocation this CORBA Objectreference shouldn't be used 
+    //            anymore.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void Delete( in long   transactionId ,
+                 in string securityInfo )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Requires : Must be transacted ( "transactionId" different from 
+    //            NoTransaction).
+    // Effect   : Deletes *this EDoc on the EZF server. After a successful
+    //            invocation this CORBA Objectreference shouldn't be used
+    //            anymore.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void PutDescriptor( in long        transactionId ,
+                        in string      securityInfo ,
+                        in DescriptorT removeDescriptor ,
+                        in DescriptorT addDescriptor )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Requires : Must be transacted ( "transactionId" different from 
+    //            NoTransaction).
+    // Effect   : Stores the descriptor part for *this on the EZF server.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void GetDescriptor( in    long        transactionId ,
+                        in    string      securityInfo ,
+                        inout DescriptorT descriptor )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Searches the descriptor part for *this on the EZF server.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void InsertItem( in long      transactionId ,
+                     in string    securityInfo ,
+                     in ObjectIdT item )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Requires : Must be transacted ( "transactionId" different from 
+    //            NoTransaction).
+    // Effect   : Inserts a Doc or a Folder ("item") into *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void RemoveItem( in long      transactionId ,
+                     in string    securityInfo ,
+                     in ObjectIdT whichItem )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Requires : Must be transacted ( "transactionId" different from 
+    //            NoTransaction).
+    // Effect   : Removes the item "whichItem" (Doc or Folder) from *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    short GetNumberOfItems( in long   transactionId ,
+                            in string securityInfo )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns the number of items (Folders and Docs) of *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void GetItems( in  long          transactionId ,
+                   in  string        securityInfo ,
+                   out ObjectIdListT theItems )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns the list with all items (Docs and Folders) of *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void GetItemsWithDescriptor( in    long            transactionId ,
+                                 in    string          securityInfo ,
+                                 in    ItemKindT       itemKind ,
+                                 inout DescriptorT     descriptor ) 
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Searches the items and their descriptor in *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void GetContainers( in  long          transactionId ,
+                        in  string        securityInfo ,
+                        out ObjectIdListT folderIdList )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns the list of folders containing *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void GetContainersWithDescriptor( in    long        transactionId ,
+                                      in    string      securityInfo ,
+                                      inout DescriptorT descriptor )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns the descriptor values of folders containing *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+  } ; // end interface Folder
+  //----------------------------------------------------------------------------
+
+
+  //----------------------------------------------------------------------------
+  interface Searcher
+  //----------------------------------------------------------------------------
+  // Purpose: This interface provides all necessary methods to manipulate
+  //          searcher's on the EZF server.
+  //----------------------------------------------------------------------------
+  {
+    // Attributes :
+    //-------------
+    readonly attribute ObjectIdT objectId ;
+
+    // Methods :
+    //----------
+
+    //--------------------------------------------------------------------------
+    void Release() ;
+    //--------------------------------------------------------------------------
+    // Effect   : Frees all resources occupied by *this. After a successful
+    //            invocation this CORBA Objectreference shouldn't be used 
+    //            anymore.
+    // Error    : -
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void Delete( in long   transactionId ,
+                 in string securityInfo )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Requires : Must be transacted ( "transactionId" different from 
+    //            NoTransaction).
+    // Effect   : Deletes *this Searcher on the EZF server. After a successful
+    //            invocation this CORBA Objectreference shouldn't be used
+    //            anymore.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void PutSearchCriterion( in long        transactionId ,
+                             in string      securityInfo ,
+                             in ItemKindT   kind ,
+                             in CriterionT  newCriterion )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Requires : Must be transacted ( "transactionId" different from 
+    //            NoTransaction).
+    // Effect   : Changes the criterion of *this to "newCriterion".
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void GetSearchCriterion( in  long        transactionId ,
+                             in  string      securityInfo ,
+                             out ItemKindT   kind ,
+                             out CriterionT  criterion )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns the criterion of *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void GetItems( in  long          transactionId ,
+                   in  string        securityInfo ,
+                   out ObjectIdListT objectList )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Searches the items corresponding to this->criterion.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void GetItemsWithDescriptor( in    long        transactionId ,
+                                 in    string      securityInfo ,
+                                 inout DescriptorT descriptor )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Searches the items corresponding to this->criterion.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+    
+  } ; // end interface Searcher
+  //----------------------------------------------------------------------------
+  
+
+  //----------------------------------------------------------------------------
+  interface User
+  //----------------------------------------------------------------------------
+  // Purpose: This interface provides all necessary methods to manipulate
+  //          EZF users.
+  //----------------------------------------------------------------------------
+  {
+    // Attributes :
+    //-------------
+    readonly attribute string    name ;
+
+    // Methods :
+    //----------
+
+    //--------------------------------------------------------------------------
+    void Release() ;
+    //--------------------------------------------------------------------------
+    // Effect   : Frees all resources occupied by *this. After a successful
+    //            invocation this CORBA Objectreference shouldn't be used 
+    //            anymore.
+    // Error    : -
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void Delete( in string securityInfo )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Deletes *this user on the EZF server. After a successful
+    //            invocation this CORBA Objectreference shouldn't be used
+    //            anymore.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void Rename( in string securityInfo ,
+                 in string newName )
+      raises (InternalException,DuplicateUserName) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Changes the name of *this to "newName".
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void ChangePassword( in string  securityInfo ,
+                         in string  oldPassword ,
+                         in string  newPassword )
+      raises (InternalException,PasswordNotAllowed) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Changes the password of *this to "newPassword".
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void SetDefaultGroup( in string securityInfo ,
+                          in string groupName )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Sets the default group of *this to "groupName".
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+    
+    //--------------------------------------------------------------------------
+    void GetDefaultGroup( in  string securityInfo ,
+                          out string groupName )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns in "groupName" the default group of *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+    
+    //--------------------------------------------------------------------------
+    void PutDescriptor( in string      securityInfo ,
+                        in DescriptorT removeDescriptor ,
+                        in DescriptorT addDescriptor )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Stores the descriptor part for *this on the EZF server.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void GetDescriptor( in    string      securityInfo ,
+                        inout DescriptorT fieldsToSearch )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Searches the descriptor part for *this on the EZF server.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    boolean IsSuperuser( in string securityInfo )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns TRUE, if *this is a superuser, FALSE otherwise.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+    
+    //--------------------------------------------------------------------------
+    void GetContainers( in  string      securityInfo ,
+                        out StringListT groupNames )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns the list with all groups having *this as member.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+  } ; // end interface User
+  //----------------------------------------------------------------------------
+
+
+  //----------------------------------------------------------------------------
+  interface Group
+  //----------------------------------------------------------------------------
+  // Purpose: This interface provides all necessary methods to manipulate
+  //          EZF groups.
+  //----------------------------------------------------------------------------
+  {
+    // Attributes :
+    //-------------
+    readonly attribute string    name ;
+
+    // Methods :
+    //----------
+
+    //--------------------------------------------------------------------------
+    void Release() ;
+    //--------------------------------------------------------------------------
+    // Effect   : Frees all resources used by *this. After a successful
+    //            invocation this CORBA Objectreference shouldn't be used 
+    //            anymore.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void Delete( in string securityInfo )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Deletes *this group on the EZF server. After a successful
+    //            invocation this CORBA Objectreference shouldn't be used
+    //            anymore.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void Rename( in string securityInfo ,
+                 in string newName )
+      raises (InternalException,DuplicateGroupName) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Changes the name of *this to "newName".
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void PutDescriptor( in string      securityInfo ,
+                        in DescriptorT removeDescriptor ,
+                        in DescriptorT addDescriptor )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Stores the descriptor part for *this on the EZF server.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void GetDescriptor( in    string      securityInfo ,
+                        inout DescriptorT descriptor)
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Searches the descriptor part for *this on the EZF server.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void InsertUser( in string securityInfo ,
+                     in string userName )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Inserts the user "userName" to *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+    
+    //--------------------------------------------------------------------------
+    void InsertGroup( in string securityInfo ,
+                      in string groupName )
+      raises (InternalException,CircularGroupInclusion) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Inserts the group "groupName" to *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+    
+    //--------------------------------------------------------------------------
+    void RemoveUser( in string securityInfo ,
+                     in string userName )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Removes the user "userName" from *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    void RemoveGroup( in string securityInfo ,
+                      in string groupName )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Removes the group "groupName" from *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+    
+    //--------------------------------------------------------------------------
+    void GetMembers( in  string           securityInfo ,
+                     out GroupMemberListT members )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns the list with the user and group members of *this.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+    
+    //--------------------------------------------------------------------------
+    void GetContainers( in  string      securityInfo ,
+                        out StringListT groupNames )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns the list with all groups having *this as member.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    boolean IsSupergroup( in string securityInfo )
+      raises (InternalException) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Returns TRUE, if *this is a supergroup, FALSE otherwise.
+    // Error    : Exception InternalException containing the errorcode returned by the
+    //            EZF server is raised.
+    //--------------------------------------------------------------------------
+    
+  } ; // end interface Group
+  //----------------------------------------------------------------------------
+
+
+  //----------------------------------------------------------------------------
+  interface Notifier
+  //----------------------------------------------------------------------------
+  // Purpose:  This ineterface is used by an CORBA EZF service to communicate
+  //           with the EZF server.
+  //----------------------------------------------------------------------------
+  {
+
+    //--------------------------------------------------------------------------
+    oneway void Notify( in NotificationT message ) ;
+    //--------------------------------------------------------------------------
+    // Effect   : Sends the notification "message".
+    //--------------------------------------------------------------------------
+
+  } ; // end interface Notifier
+  //----------------------------------------------------------------------------
+  
+} ; // end module server_operations;
+}; // end module easyfile;
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+// end file server_operations.idl
+//------------------------------------------------------------------------------

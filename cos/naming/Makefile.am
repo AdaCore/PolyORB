@@ -7,7 +7,9 @@ GNATMAKE_FLAGS = -I$(srcdir) \
 	-I$(srcdir)/../../adasockets/src \
 	-g -O2 -m -gnata
 
-PROGRAM=test_naming
+PROGS= ab_names test_naming
+
+bin_PROGS = ab_names
 
 IDL_1=$(srcdir)/File.idl
 IDL_2=$(srcdir)/CosNaming.idl
@@ -65,5 +67,8 @@ $(GEN_1): $(IDL_1) $(IDLAC)
 $(GEN_2): $(IDL_2) $(IDLAC)
 	$(IDLAC) $(IDL_2)
 
-$(PROGRAM): force $(GEN_1) $(GEN_2) $(IMP_1) $(IMP_2)
+test_naming: force $(GEN_1) $(GEN_2) $(IMP_1) $(IMP_2)
+	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
+
+ab_names: force $(GEN_1) $(GEN_2) $(IMP_1) $(IMP_2) ab_names.adb
 	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)

@@ -31,29 +31,49 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Broca.Refs;
+with CORBA.Impl;
+
 package CORBA.AbstractBase is
 
-   type Ref is new Ada.Finalization.Controlled with
-      record
-         Ptr: CORBA.Impl.Object_Ptr := null;
-      end record;
+   pragma Elaborate_Body;
 
-   procedure Initialize (The_Ref: in out Ref);
-   procedure Adjust (The_Ref: in out Ref);
-   procedure Finalize (The_Ref: in out Ref);
+   type Ref is new Broca.Refs.Ref with private;
 
-   procedure Unref (The_Ref: in out Ref)
-     renames Finalize;
+   procedure Set
+     (The_Ref : in out Ref;
+      The_Object : CORBA.Impl.Object_Ptr);
 
-   function Is_Nil  (Self : in Ref) return CORBA.Boolean;
-   function Is_Null (Self : in Ref) return CORBA.Boolean
-     renames Is_Nil;
+   function Object_Of (The_Ref : Ref) return CORBA.Impl.Object_Ptr;
 
-   procedure Duplicate (Self : in out Ref)
-     renames Adjust;
+   function Get (The_Ref : Ref) return CORBA.Impl.Object_Ptr
+     renames Object_Of;
 
-   procedure Release (Self : in out Ref);
+   --  The following primitive operations are inherited
+   --  from Broca.Refs.Ref.
 
-   function Object_Of (Self : Ref) return CORBA.Impl.Object_Ptr;
+   --    procedure Set
+   --      (The_Ref : in out Ref;
+   --       The_Entity : Ref_Ptr);
+
+   --    procedure Unref (The_Ref : in out Ref)
+   --      renames Finalize;
+
+   --    function Is_Nil (The_Ref : Ref) return Boolean;
+   --    function Is_Null (The_Ref : Ref) return Boolean
+   --      renames Is_Nil;
+
+   --    procedure Duplicate (The_Ref : in out Ref)
+   --      renames Adjust;
+
+   --    procedure Release (The_Ref : in out Ref);
+
+   Nil_Ref : constant Ref;
+
+private
+
+   type Ref is new Broca.Refs.Ref with null record;
+   Nil_Ref : constant Ref
+     := (Broca.Refs.Nil_Ref with null record);
 
 end CORBA.AbstractBase;

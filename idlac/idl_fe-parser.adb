@@ -27,6 +27,7 @@
 with Ada.Characters.Latin_1;
 with Ada.Characters.Wide_Latin_1;
 with Ada.Unchecked_Deallocation;
+with Ada.Strings.Unbounded;
 
 with GNAT.Case_Util;
 
@@ -36,6 +37,8 @@ with Idl_Fe.Types; use Idl_Fe.Types;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree, Idl_Fe.Tree.Synthetic;
 with Errors;
 with Idl_Fe.Debug;
+
+with Interfaces;
 
 package body Idl_Fe.Parser is
 
@@ -268,6 +271,15 @@ package body Idl_Fe.Parser is
       return String_Buffer (Current_Index - 1).all;
    end Get_Previous_Token_String;
 
+   ------------------------------------------
+   --  Get_Previous_Previous_Token_String  --
+   ------------------------------------------
+
+   function Get_Previous_Previous_Token_String return String is
+   begin
+      return String_Buffer (Current_Index - 2).all;
+   end Get_Previous_Previous_Token_String;
+
    -----------------------------
    --  Get_Next_Token_String  --
    -----------------------------
@@ -402,48 +414,6 @@ package body Idl_Fe.Parser is
 --       end loop;
 --    end Release_All_Used_Values;
 
-   procedure Set_Default_Repository_Id
-     (Node : Node_Id);
-   --  Set Node's default repository id.
-
-   procedure Set_Initial_Current_Prefix
-     (Node : Node_Id);
-   --  Set the current prefix for scope Node
-   --  from its parent's.
-
-   procedure Set_Default_Repository_Id
-     (Node : Node_Id)
-   is
-      Prefix_Node : constant Node_Id
-        := Current_Prefix (Get_Current_Scope);
-      Name_Node : constant Node_Id
-        := Make_Lit_String;
-   begin
-      pragma Debug (O2 ("Set_Default_Repository_Id : enter"));
-      pragma Assert (not Is_Explicit_Repository_Id (Node));
-      if Prefix_Node /= No_Node then
-         Set_String_Value
-           (Name_Node,
-            "IDL:" & String_Value (Prefix_Node) & "/"
-             & Default_Repository_Id (Node) & ":1.0");
-      else
-         Set_String_Value
-           (Name_Node,
-            "IDL:" & Default_Repository_Id (Node) & ":1.0");
-      end if;
-      Set_Repository_Id (Node, Name_Node);
-      pragma Debug (O2 ("Set_Default_Repository_Id : end"));
-   end Set_Default_Repository_Id;
-
-   procedure Set_Initial_Current_Prefix
-     (Node : Node_Id) is
-   begin
-      pragma Assert (Is_Scope (Node));
-
-      Set_Current_Prefix
-        (Node, Current_Prefix (Get_Current_Scope));
-   end Set_Initial_Current_Prefix;
-
    --------------------------
    --  Parsing of the idl  --
    --------------------------
@@ -550,11 +520,16 @@ package body Idl_Fe.Parser is
                   end if;
 
                when T_ValueType  =>
-                  Parse_Value (Result, Success);
-                  if not Success then
-                     pragma Debug (O2 ("Parse_Definition : end"));
-                     return;
-                  end if;
+                  --  As of release 1.0, valuetypes support is disabled.
+                  Errors.Error
+                    ("ValueTypes not currently supported.",
+                     Errors.Fatal,
+                     Get_Token_Location);
+                  --  Parse_Value (Result, Success);
+                  --  if not Success then
+                  --     pragma Debug (O2 ("Parse_Definition : end"));
+                  --     return;
+                  --  end if;
 
                when others =>
                   declare
@@ -1426,6 +1401,7 @@ package body Idl_Fe.Parser is
            or else Kind (A_Name) = K_Interface
            or else Kind (A_Name) = K_ValueType
            or else Kind (A_Name) = K_Forward_Interface
+           or else Kind (A_Name) = K_Boxed_ValueType
            or else Kind (A_Name) = K_Forward_ValueType then
             Set_S_Type (Res, A_Name);
          else
@@ -1437,8 +1413,9 @@ package body Idl_Fe.Parser is
          if (Kind (Get_Current_Scope) = K_Struct
              or Kind (Get_Current_Scope) = K_Union)
            and Get_Current_Scope = A_Name then
-            --  recursivity is allowed through sequences
-            if View_Previous_Previous_Token /= T_Sequence then
+            --  recursivity is allowed through sequences or Pragma
+            if View_Previous_Previous_Token /= T_Sequence and
+              View_Previous_Previous_Token /= T_Pragma then
                Errors.Error
                  ("Recursive definitions not allowed",
                   Errors.Error,
@@ -4429,6 +4406,7 @@ package body Idl_Fe.Parser is
                           | K_Interface
                           | K_Forward_Interface
                           | K_ValueType
+                          | K_Boxed_ValueType
                           | K_Forward_ValueType =>
                            null;
                         when others =>
@@ -5300,12 +5278,15 @@ package body Idl_Fe.Parser is
       Next_Token;
       declare
          Node : Node_List;
+         Default_Index : Long_Integer;
       begin
          Node := Cases (Result);
          Parse_Switch_Body (Node,
                             Switch_Type (Result),
+                            Default_Index,
                             Success);
          Set_Cases (Result, Node);
+         Set_Default_Index (Result, Default_Index);
       end;
       Pop_Scope;
       if not Success then
@@ -5403,12 +5384,14 @@ package body Idl_Fe.Parser is
    -------------------------
    procedure Parse_Switch_Body (Result : out Node_List;
                                 Switch_Type : in Node_Id;
+                                Default_Index : out Long_Integer;
                                 Success : out Boolean) is
-      Default_Clause : Boolean := False;
       Empty : Boolean := True;
+      I : Long_Integer := -1;
    begin
       pragma Debug (O2 ("Parse_Switch_Body : enter"));
       Result := Nil_List;
+      Default_Index := -1;
       loop
          declare
             Case_Clause : Node_Id;
@@ -5423,10 +5406,11 @@ package body Idl_Fe.Parser is
             if not Case_Success then
                Go_To_End_Of_Case;
             else
+               I := I + 1;
                Append_Node (Result, Case_Clause);
                if Kind (Case_Clause) /= K_Pragma then
                   Empty := False;
-                  if Default_Clause then
+                  if Default_Index /= -1 then
                      if Is_In_List (Labels (Case_Clause), No_Node) then
                         Errors.Error
                           ("default clause already appeared.",
@@ -5435,7 +5419,7 @@ package body Idl_Fe.Parser is
                      end if;
                   else
                      if Is_In_List (Labels (Case_Clause), No_Node) then
-                        Default_Clause := True;
+                        Default_Index := I;
                      end if;
                   end if;
                end if;
@@ -6797,6 +6781,7 @@ package body Idl_Fe.Parser is
                           | K_Interface
                           | K_Forward_Interface
                           | K_ValueType
+                          | K_Boxed_ValueType
                           | K_Forward_ValueType
                           | K_Native =>
                            null;
@@ -7076,6 +7061,7 @@ package body Idl_Fe.Parser is
                      Go_To_End_Of_Pragma;
                      return;
                   end if;
+                  Set_Is_Explicit_Repository_Id (Value (Name_Node), True);
                   Set_Repository_Id (Value (Name_Node), String_Lit_Node);
                end if;
 
@@ -7117,6 +7103,73 @@ package body Idl_Fe.Parser is
                  (Get_Current_Scope, String_Lit_Node);
 
                --  pragma prefix does not generate any node:
+               --  return with Success = False.
+
+            end;
+
+         elsif Pragma_Id = "version" then
+
+            ----------------------------------------------
+            -- #pragma version <scoped_name> <string>   --
+            --                                          --
+            -- Set the current version of the           --
+            -- Repository Id for a given name           --
+            ----------------------------------------------
+
+            declare
+               Name_Node : Node_Id;
+               Rep_Id : Node_Id;
+               Res_Success : Boolean;
+               Version : Version_Type;
+            begin
+               Next_Token;
+               Parse_Scoped_Name (Name_Node, Res_Success);
+               if not Res_Success then
+                  Go_To_End_Of_Pragma;
+                  return;
+               end if;
+               Parse_Version (Version, Res_Success);
+               if not (Res_Success) then
+                  Go_To_End_Of_Pragma;
+                  return;
+               end if;
+
+               if Name_Node /= No_Node then
+                  if Is_Explicit_Version_Id (Value (Name_Node)) or
+                    Is_Explicit_Repository_Id (Value (Name_Node))
+                  then
+                     Errors.Error
+                       ("Entity already has an explicit version ID.",
+                        Errors.Error,
+                        Get_Token_Location);
+                     Go_To_End_Of_Pragma;
+                     return;
+                  end if;
+                  Set_Is_Explicit_Version_Id (Value (Name_Node), True);
+                  Rep_Id := Repository_Id (Value (Name_Node));
+                  --  replace the former version, (should be 1.0)
+                  declare
+                     use Ada.Strings.Unbounded;
+                     New_Rep : Unbounded_String :=
+                       To_Unbounded_String (String_Value (Rep_Id));
+                     Smajor : String :=
+                       Interfaces.Unsigned_16'Image (Version.Major);
+                     Sminor : String :=
+                       Interfaces.Unsigned_16'Image (Version.Minor);
+                  begin
+                     Replace_Slice
+                       (New_Rep,
+                        Index (To_Unbounded_String
+                               (String_Value (Rep_Id)), ":1.0") + 1,
+                        String_Value (Rep_Id)'Length,
+                        Smajor ((Smajor'First + 1) .. Smajor'Last) &
+                        "." &
+                        Sminor ((Sminor'First + 1) .. Sminor'Last));
+                     Set_String_Value (Rep_Id, To_String (New_Rep));
+                  end;
+               end if;
+
+               --  pragma version does not generate any node:
                --  return with Success = False.
 
             end;
@@ -7358,49 +7411,90 @@ package body Idl_Fe.Parser is
       end if;
    end Get_Wide_Char_Literal;
 
+   ---------------------------
+   --  Get_Integer_Literal  --
+   ---------------------------
+   function Get_Integer_Literal return Idl_Integer is
+      S : String := Get_Token_String;
+      Result : Idl_Integer := 0;
+      I : Natural := 0;
+   begin
+      pragma Debug (O2 ("Get_Integer_Literal : enter"));
+      case Get_Token is
+         when T_Lit_Decimal_Integer =>
+            while I < S'Length loop
+               Result := Result * 10 +
+                 (Character'Pos (S (S'First + I)) - Character'Pos ('0'));
+               I := I + 1;
+            end loop;
+         when T_Lit_Octal_Integer =>
+            I := 1;
+            while I < S'Length loop
+               Result := Result * 8 +
+                 (Character'Pos (S (S'First + I)) - Character'Pos ('0'));
+               I := I + 1;
+            end loop;
+         when T_Lit_Hexa_Integer =>
+            I := 2;
+            while I < S'Length loop
+               Result := Result * 16 +
+                 Idl_Integer (Hexa_Char_To_Digit (S (S'First + I)));
+               I := I + 1;
+            end loop;
+         when others =>
+            return Result;
+      end case;
+      pragma Debug (O2 ("Get_Integer_Literal : end"));
+         return Result;
+   end Get_Integer_Literal;
+
+   ---------------------
+   --  Parse_Version  --
+   ---------------------
+   procedure Parse_Version (Result : out Version_Type;
+                            Success : out Boolean) is
+   begin
+      if Get_Token /= T_Lit_Simple_Floating_Point then
+         Errors.Error
+           ("Invalid version number.",
+            Errors.Error,
+            Get_Token_Location);
+         Success := False;
+         Result.Minor := 0;
+         Result.Major := 1;
+         return;
+      end if;
+      declare
+         S : String := Get_Token_String;
+         Minor : Interfaces.Unsigned_16 := 0;
+         Major : Interfaces.Unsigned_16 := 0;
+         I : Natural := 0;
+         use Interfaces;
+      begin
+         while S (S'First + I) /= '.' loop
+            Major := Major * 10 +
+              (Character'Pos (S (S'First + I)) - Character'Pos ('0'));
+            I := I + 1;
+         end loop;
+         I := I + 1;
+         while I < S'Length loop
+            Minor := Minor * 10 +
+              (Character'Pos (S (S'First + I)) - Character'Pos ('0'));
+            I := I + 1;
+         end loop;
+         Result.Minor := Minor;
+         Result.Major := Major;
+         Success := True;
+         Next_Token;
+      end;
+   end Parse_Version;
+
    -----------------------------
    --  Parse_Integer_Literal  --
    -----------------------------
    procedure Parse_Integer_Literal (Result : out Node_Id;
                                     Success : out Boolean;
                                     Expr_Type : in Constant_Value_Ptr) is
-
-      function Get_Integer_Literal return Idl_Integer;
-
-      function Get_Integer_Literal return Idl_Integer is
-         S : String := Get_Token_String;
-         Result : Idl_Integer := 0;
-         I : Natural := 0;
-      begin
-         pragma Debug (O2 ("Get_Integer_Literal : enter"));
-         case Get_Token is
-            when T_Lit_Decimal_Integer =>
-               while I < S'Length loop
-                  Result := Result * 10 +
-                    (Character'Pos (S (S'First + I)) - Character'Pos ('0'));
-                  I := I + 1;
-               end loop;
-            when T_Lit_Octal_Integer =>
-               I := 1;
-               while I < S'Length loop
-                  Result := Result * 8 +
-                    (Character'Pos (S (S'First + I)) - Character'Pos ('0'));
-                  I := I + 1;
-               end loop;
-            when T_Lit_Hexa_Integer =>
-               I := 2;
-               while I < S'Length loop
-                  Result := Result * 16 +
-                    Idl_Integer (Hexa_Char_To_Digit (S (S'First + I)));
-                  I := I + 1;
-               end loop;
-            when others =>
-               raise Errors.Internal_Error;
-         end case;
-         pragma Debug (O2 ("Get_Integer_Literal : end"));
-         return Result;
-      end Get_Integer_Literal;
-
    begin
       pragma Debug (O2 ("Parse_Integer_Literal : enter"));
       Result := Make_Lit_Integer;
@@ -7650,62 +7744,62 @@ package body Idl_Fe.Parser is
       return;
    end Parse_Wide_Char_Literal;
 
+   ----------------------------
+   --  Get_Floating_Literal  --
+   ----------------------------
+   function Get_Float_Literal return Idl_Float is
+      S : String := Get_Token_String;
+      Result : Idl_Float := 0.0;
+      I : Natural := 0;
+   begin
+      while S (S'First + I) /= '.' and
+        S (S'First + I) /= 'e' and
+        S (S'First + I) /= 'E' loop
+         Result := Result * 10.0 +
+           Idl_Float (Character'Pos (S (S'First + I)) -
+                      Character'Pos ('0'));
+         I := I + 1;
+      end loop;
+      if Get_Token = T_Lit_Simple_Floating_Point or
+        Get_Token = T_Lit_Exponent_Floating_Point then
+         I := I + 1;
+         declare
+            Offset : Idl_Float := 0.1;
+         begin
+            while I < S'Length and then
+              (S (S'First + I) /= 'e' and
+               S (S'First + I) /= 'E') loop
+               Result := Result + Offset *
+                    Idl_Float (Character'Pos (S (S'First + I)) -
+                               Character'Pos ('0'));
+               I := I + 1;
+               Offset := Offset / 10.0;
+            end loop;
+         end;
+      end if;
+      if Get_Token = T_Lit_Exponent_Floating_Point or
+        Get_Token = T_Lit_Pure_Exponent_Floating_Point then
+         declare
+            Exponent : Integer := 0;
+         begin
+            I := I + 1;
+            while I < S'Length loop
+               Exponent := Exponent * 10 +
+                 (Character'Pos (S (S'First + I)) - Character'Pos ('0'));
+               I := I + 1;
+            end loop;
+            Result := Result * (10.0 ** Exponent);
+         end;
+      end if;
+      return Result;
+   end Get_Float_Literal;
+
    ---------------------------------
    --  Parse_Floating_Pt_Literal  --
    ---------------------------------
    procedure Parse_Floating_Pt_Literal (Result : out Node_Id;
                                         Success : out Boolean;
                                         Expr_Type : in Constant_Value_Ptr) is
-
-      function Get_Float_Literal return Idl_Float;
-
-      function Get_Float_Literal return Idl_Float is
-         S : String := Get_Token_String;
-         Result : Idl_Float := 0.0;
-         I : Natural := 0;
-      begin
-         while S (S'First + I) /= '.' and
-           S (S'First + I) /= 'e' and
-           S (S'First + I) /= 'E' loop
-            Result := Result * 10.0 +
-              Idl_Float (Character'Pos (S (S'First + I)) -
-                         Character'Pos ('0'));
-            I := I + 1;
-         end loop;
-         if Get_Token = T_Lit_Simple_Floating_Point or
-           Get_Token = T_Lit_Exponent_Floating_Point then
-            I := I + 1;
-            declare
-               Offset : Idl_Float := 0.1;
-            begin
-               while I < S'Length and then
-                 (S (S'First + I) /= 'e' and
-                 S (S'First + I) /= 'E') loop
-                  Result := Result + Offset *
-                    Idl_Float (Character'Pos (S (S'First + I)) -
-                               Character'Pos ('0'));
-                  I := I + 1;
-                  Offset := Offset / 10.0;
-               end loop;
-            end;
-         end if;
-         if Get_Token = T_Lit_Exponent_Floating_Point or
-           Get_Token = T_Lit_Pure_Exponent_Floating_Point then
-            declare
-               Exponent : Integer := 0;
-            begin
-               I := I + 1;
-               while I < S'Length loop
-                  Exponent := Exponent * 10 +
-                    (Character'Pos (S (S'First + I)) - Character'Pos ('0'));
-                  I := I + 1;
-               end loop;
-               Result := Result * (10.0 ** Exponent);
-            end;
-         end if;
-         return Result;
-      end Get_Float_Literal;
-
    begin
       Result := Make_Lit_Floating_Point;
       Set_Location (Result, Get_Token_Location);

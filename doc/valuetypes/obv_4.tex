@@ -1,0 +1,576 @@
+\chapter{Implementation choices to support valuetypes in AdaBroker}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Mapping of valuetype references
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Mapping of valuetype references}
+
+%%%%%%%%%%%%%%%%%%
+\subsection{Standard valuetype mapping}
+\paragraph{}For each IDL definition of a valuetype ``TestValueType'', 3 standardised ada
+packages are generated. Package ``TestValueType'' contains the definition
+of an ada reference, with associated functions. Package
+``TestValueType.Helper'' contains widening and narrowing
+functions. Package ``TestValueType.Value\_Impl'' contains the
+definition of an ada type corresponding to the valuetype
+implementation.
+
+\paragraph{}Here is an example:
+
+\begin{verbatim}
+// IDL
+valuetype WeightedBinaryTree {
+	public long weight;
+	private WeightedBinaryTree left;
+	private WeightedBinaryTree right;
+	factory create(in long w);
+	string dump();
+}
+
+--  Ada  --
+package WeightedBinaryTree is
+
+	type Value_Ref is new CORBA.Value.Base with null record;
+	Null_Value : constant Value_Ref;
+
+	function Get_Weight (Self : in Value_Ref) return CORBA.Long;
+	procedure Set_Weight (Self : in Value_Ref; To : CORBA.Long);
+
+	function create (w : in CORBA.Long) return Value_Ref;
+
+	function dump (Self : in Value_Ref) return CORBA.String;
+end WeightedBinaryTree;
+
+--  Ada  --
+package WeightedBinaryTree.Value_Impl is
+
+	type Object is new CORBA.Value.Impl_Base with record
+		weight : CORBA.Long;
+		left : Value_Ref;
+		right : Value_Ref;
+	end record;
+	type Object_Ptr is access all Object'Class;
+
+	function create (w : in CORBA.Long) return Object_Ptr;
+
+	function dump (Self : access Object) return CORBA.String;
+end package WeightedBinaryTree.Value_Impl;
+
+--  Ada  --
+package WeightedBinaryTree.Helper is
+
+	function To_Any (From : in Value_Ref) return CORBA.Any;
+	function From_Any (From : in CORBA.Any) return Value_Ref;
+	TC_WeightedBinaryTree : constant CORBA.TypeCode.Object;
+
+end WeightedBinaryTree.Helper;
+\end{verbatim}
+
+\paragraph{} The mapping is rather straightfoward. In practice, the
+Value\_Ref type points to a Value\_Impl.Object object. Subprograms
+defined in the main package are only pass-through to their actual
+implementation which is in the .Value\_Impl package.
+
+\paragraph{}Similarly to attributes, public state members are mapped
+to 2 accessor subprograms, and private state members are not.
+
+%%%%%%%%%%%%%%%%%%
+\subsection{Abstract valuetypes}
+
+\paragraph{}Valuetypes may be abstract. The difference in the mapping
+is that no .Value\_Impl package is generated. This package is not
+needed since abstract valuetypes cannot be instanciated. Their
+reference type is not called ``Value\_Ref'', but ``Abstract\_Value\_Ref''.
+
+%%%%%%%%%%%%%%%%%%
+\subsection{Inheritance}
+\paragraph{}A concrete valuetype can inherit from at most one concrete
+valuetype. In such a case, ada tagged type inheritance is used in both
+main package and ``Value\_Impl'' package.
+
+\paragraph{} Inheritance from abstract interfaces is different. All
+the operations from abstract ancestors are copied down to the
+generated ada package. Their body must implemented again.
+
+%%%%%%%%%%%%%%%%%%
+\subsection{Forward valuetypes}
+\paragraph{} Two IDL valuetypes can refer to each other. The
+previously defined mapping would not work, since two ada packages
+cannot ``with'' each other. For a forward declaration of valuetype
+TheValue,
+The specification reads that an
+instanciation of CORBA.Value.Forward must be instanciated, with name
+``.Forward''. The example given in the specification for
+interfaces seems to admit that this package instanciation must be a
+child package of the ada main package.
+
+\paragraph{}In adabroker, we chose to instanciate the ``.Forward''
+package as a subpackage rather than as a child package. As a matter of
+fact, except in the example, the mapping is not very clear on this
+point, and instanciating it as a subpackage resolves the following
+problem.
+
+\begin{verbatim}
+// IDL
+mudoule M {
+	valuetype TheValue;
+	typedef TheValue TheSameValue;
+	valuetype TheValue {};
+}
+\end{verbatim}
+
+\paragraph{}If we instanciate TheValue\_Forward as a child package of
+package TheValue, then the mapping of the typedef statement will lead
+to package TheValue ``withing'' package ``TheValue.Forward'', which is forbidden.
+
+\paragraph{}An issue has been sent to the OMG to precise the mapping.
+
+%%%%%%%%%%%%%%%%%%
+\subsection{Value Boxes}
+
+\paragraph{} ValueBoxes are a degenerated case of valuetypes, with
+only one public statemember, and no method. The advantage of such a
+definition compared to a ``typedef'' is the support for recursivity
+and null value semantics.
+
+\paragraph{}Standard mapping for valueboxes (paragraph 4.10.3) is rather strange and
+erroneous. Here it is:
+
+\begin{verbatim}
+// IDL
+module Example {
+	valuetype LongSeq sequence<long>;
+}
+
+--  Ada  --
+package Example is
+	package IDL_Sequence_Long is ....
+
+	package IDL_Sequence_Long_Access is access
+		all IDL_Sequence_Long.Sequence;
+
+	package LongSeq_Value_Box is new CORBA.Value.Box
+		(IDL_Sequence_Long.Sequence,
+		 IDL_Sequence_Long_Access);
+
+	type LongSeq is new LongSeq_Value_Box.Box_Ref;
+end Example;
+\end{verbatim}
+
+\paragraph{}The first strang thing is the specified mapping for the
+sequence. I did not include it here, but it does not correspond at
+all the the standard sequence mapping. An issue was sent to the OMG to
+mention that.
+
+\paragraph{}Then, the last line of this ada code does not compile. As
+a matter of fact, LongSeq\_Value\_Box.Box\_Ref is a tagged
+type. Therefore, LongSeq must be either a subtype, or explicitely
+define a ``null record'' extension.
+
+\paragraph{}Here are the advantages of the ``subtype option'':
+\begin{itemize}
+\item It is shorter to write.
+\item It does not imply the creation of two different type
+(LongSeq\_Value\_Box.Box\_Ref and LongSeq), and therefore is lighter.
+\end{itemize}
+
+\paragraph{}Here are the advantages of the ``type extension option'':
+\begin{itemize}
+\item It imports all the functions defined in CORBA.Value.Box in the
+current scope since they are inherited by LongSeq.
+\end{itemize}
+
+\paragraph{} I chose the latter option since it is simpler for the
+CORBA programmer, and raised an issue to the OMG.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Widening and narrowing valuetypes
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Widening and narrowing valuetypes}
+
+\subsection{An imcomplete mapping}
+\paragraph{}Paragraph 5.2.6 of the CORBA specification reads:
+\begin{it}As has been described above, valuetype instances may be
+widened/narrowed to other value types. Each language mapping is
+responsible for specifying how these operations are made available to
+the programmer.\end{it}
+
+\paragraph{}Here is what the ada mapping version 1.2 reads (paragraph 1.10.2.4):
+\begin{it}Instances of abstract or stateful valuetypes may be widened
+to inherited abstract valuetypes through the
+``To\_Abstract\_Value\_Ref'' function defined in the value helper
+package of the abstract parent value type.''\end{it}. For concrete
+value types, paragraph 1.10.2.3 reads that \begin{it}The derived
+valuetype may be widened to the parent value through Ada's view
+conversion suntax.\end{it}.
+
+\subsection{Proposed solution}
+\paragraph{}The proposed ada mapping contains functions to widen a
+concrete value type to an abstract one, but the other way round is not
+possible. Therefore, I included a ``To\_Value\_Ref'' function in the
+value helper package of each concrete value type to make this
+operation available to the CORBA programmer. The semantic of this
+operation is similar to that of ``To\_Abstract\_Value\_Ref'', but
+extended to concrete value types.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Mapping of valuetype operations
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Mapping of valuetype operations}
+
+%%%%%%%%%%%%%%%%%%
+\subsection{Standard mapping and unspecified issues}
+\paragraph{} The Ada mapping specifies operations of abtract parents
+must be copied down to the actual value type, and that operations
+defined on the Value\_Ref type are only ``pass-throughs'' to their
+acutal implementations defined on the ``Value\_Impl.Object'' type.
+
+\paragraph{}This mapping seems rather simple, but there is comlex
+hidden issue. Consider the following IDL:
+
+\begin{verbatim}
+// IDL
+module comlex_issue {
+
+	abstract valuetype Drink {
+		void killThirst();
+	};
+
+	valuetype SoftDrink : Drink {
+		public string fruit;
+	};
+\end{verbatim}
+
+\paragraph{} If you have an instance of a SoftDrink, which is in Ada a
+``SoftDrink.Value\_Ref'', and you widen it to Drink, using
+``Drink.Helper.To\_Abstract\_Value\_Ref''. Then you have a Drink
+reference, which is an Ada ``Drink.Abstract\_Value\_Ref''. The
+question is : what happens if you call ``killThirst'' on this object ?
+The call must be dispatching and call the actual implementation of
+``killThirst'' on the ``SoftDrink'' object. However, wa cannot use ada
+dispatching calls since the SoftDrink ada type does not inherit from
+the ada mapping for Drink. Moreover, it would be impossible to make
+SoftDrink inherit from Drink in ada, because IDL supports multiple
+inheritance for abstract valuetypes.
+
+\paragraph{}This is a big issue that has to be addressed. We must
+implement our own dispatching mechanism to handle this situation.
+
+%%%%%%%%%%%%%%%%%%
+\subsection{First possible solution : that of interface servants}
+\paragraph{} Actually, this is not the only place in adabroker where
+this problem appears. When the broca server receives an operation call
+on an object reference (an IDL interface), it has to dispatch this
+call to its actual implementation.
+
+\paragraph{} Ada dispatching cannot be used there for the same reason
+as here : IDL interfaces support multiple inheritance. The solution
+used for objects servants is to register in a global hashtable a
+GIOP\_Dispatch function for every ada tagged type mapped from an IDL
+interface. This function is called by the broca server, and is in
+charge of calling the actual implementation of the subprogram.
+
+\paragraph{} The reason why this solution was used is because
+parameters are always marshalled into a GIOP stream when making a call
+on an interface. Therefore, the GIOP\_Dispatch function takes an input
+GIOP buffer and an output GIOP buffer, and that's nearly it. This
+function unmarshalls the function name, and then the arguments before
+calling the actual implementation.
+
+\paragraph{}We could use a similar model for valuetypes, but there are
+drawbacks.
+\begin{itemize}
+\item First of all, a valuetype can be very big since it can
+represent a whole graph. Therefore, we do not want to marshall it into
+a stream if we do not have to.
+\item The CORBA specification reads that valuetypes passed as
+parameters of subprograms defined on other valuetypes must be passed
+by reference and not by value. A marshalling operation would make it
+really difficult to maintain references.
+\end{itemize}
+
+For those reasons, I implemented a different mechanism to dispatch
+operations on valuetypes.
+
+%%%%%%%%%%%%%%%%%%
+\subsection{Proposed solution for valuetypes}
+
+\subsubsection{The idea}
+\paragraph{}The idea is to store, for each ada tagged type mapped from
+a valuetype, an association between its Ada tag and all the operation
+implementations. A different ``operation store'' is used for each
+different IDL operation. Here is the generic package used to store
+these associations:
+
+\begin{verbatim}
+with Ada.Tags;
+
+generic
+
+   type Operation_Type is private;
+   --  Typically an access to subprogram type
+
+package Broca.Value.Operation_Store is
+
+   procedure Register_Operation
+     (T : in Ada.Tags.Tag;
+      Op : in Operation_Type);
+   --  Register an operation for a tagged type
+   --  derived from CORBA.Value.Impl_Base
+
+   function Get_Operation
+     (T : in Ada.Tags.Tag)
+     return Operation_Type;
+   --  Retrieves the stored operation for this type.
+   --  Raises CORBA.Internal if not found
+
+end Broca.Value.Operation_Store;
+\end{verbatim}
+
+
+\subsubsection{A store per IDL subprogram}
+\paragraph{}For each IDL subprogram, the following code is generated,
+in a special package called ``.Value\_Skel''. Here is an example for
+IDL function ``long foo()'', defined in IDL valuetype ``Bar''.
+
+\begin{verbatim}
+package Bar.Value_Skel is
+
+   pragma Elaborate_Body;
+
+   type Foo_Type is access 
+   function 
+     (Self : CORBA.Impl.Object_Ptr)
+     return CORBA.Long;
+
+   package Foo_Store is new Broca.Value.Operation_Store
+      (Foo_Type);
+
+end Bar.Value_Skel;
+\end{verbatim}
+
+\paragraph{}Then, all ada tagged types mapped from valuetypes that
+inherit from valuetype Bar, their actual implementation of Foo will be
+registered in Bar.Value\_Skel.Foo\_Store.
+
+\paragraph{}To ensure that there is only one operation store per IDL
+subprogram, the store is defined in the ``.Value\_Skel'' package of
+the first valuetype that defines this function.
+
+\paragraph{} It is easy when this
+is a standard valuetype function. However, valuetypes can ``support''
+interfaces. In which case, all the interface's operations are copied
+down to the valutype that supports it. In this case, this is the first
+valuetype that supports an interface that contains the operation
+stores for the interafce's subprogram.
+
+\subsubsection{Registering subprogram implementations}
+\paragraph{}For each inherited IDL subprogram, a body of code is
+defined in the ``.Value\_Skel'' child package of a valuetype, to
+register the implementation of the subprogram in the proper operation
+store.
+Here is how the Foo function inherited in valuetype Bar2 is
+registered, in ``bar2.Value\_Skel''.
+
+\begin{verbatim}
+package body Bar2.Value_Skel is
+
+   function Foo
+     (Self : CORBA.Impl.Object_Ptr)
+     return CORBA.Long is
+   begin
+      return Bar2.Value_Impl.Foo
+        (Bar2.Value_Impl.Object_Ptr (Self));
+   end Foo;
+
+begin
+	
+   Bar.Value_Skel.Foo_Store.Register_Operation
+     (Bar2.Value_Impl.Object'Tag,
+      Bar2.Value_Skel.Foo'Access);
+
+end Bar2.Value_Skel;
+\end{verbatim}
+
+\paragraph{} Note that we cannot register directly the actual
+implementation (Bar2.Value\_Impl.Foo), because its parameter type is
+``access Bar2.Value\_Impl.Object'', which is not
+``CORBA.Impl.Object\_Ptr''. Moreover, the signature of Foo\_Type could
+not take an ``access Bar2.Value\_Impl.Object'' as parameter, since
+this type is not known when ``Bar.Value\_Skel'' is compiled.
+
+\subsubsection{Actual call of a valuetype operation}
+\paragraph{}Now, here is the body of code generated for a subprogram
+call on a Value\_Ref instance.
+
+\begin{verbatim}
+package body Bar2 is
+
+   function Foo (Self : Value_Ref) return CORBA.Long is
+
+      Operation : Bar.Value_Skel.Foo_Type;
+      Object : constant CORBA.Impl.Object_Ptr
+	 := CORBA.Impl.Object_Ptr (Object_Of (Self));
+
+   begin
+
+      --  Sanity check
+      if Is_Nil (Self) then
+         Broca.Exceptions.Raise_Inv_Objref;
+      end if;
+
+      --  Find the operation
+      Operation := Bar.Value_Skel.Foo_Store.Get_Operation (Object.all'Tag);
+
+      --  Call the operation
+      return Operation (Object;
+
+   end Foo;
+
+end Bar2;
+\end{verbatim}
+
+\paragraph{}We first check that the reference is not nil, then get the
+actual object implementation, and call it.
+
+%%%%%%%%%%%%%%%%%%
+\subsection{Implementation in the compiler}
+
+\paragraph{}To implement code generation for these mechanisms, two
+special attributes were added to node ValueType in the parse tree. To
+understand that, we must remember how expansion of interfaces and
+valuetypes works. When expanding an interface or a valuetype, all the
+operations
+\begin{itemize}
+\item inherited from abstract parents,
+\item inherited from secondary concrete parents in the case of
+interfaces,
+\item or supported from interfaces in the case of valuetypes
+\end{itemize}
+are copied down to the current valuetype's scope. During this
+expansion, there is no memory of the scope where the operation was
+originally defined. Hence the addition of two attributes to operation
+nodes of the parse tree.
+
+\begin{description}
+\item[Is\_Directly\_Supported] This boolean attribute is set to true
+whenever this operation node is that of a valuetype, and when it has
+been copied directly from a supported interface. This attribute is
+set to false if the operation was inherited from a parent valuetype
+that supported this operation from an interface. It is used during the
+code generation phase. As a matter of fact, when valueypes support a concrete
+interface, they must define a Servant in their Helper package.
+\item[Oldest\_ValueType\_That\_Has\_It] This is a Node attribute. Its
+default is No\_Node. When it refers to the operation of a valuetype,
+this node points to the oldest valuetype that defines this
+operation. It is the valuetype scope where the operation was defined
+if this operation was defined in a valuetype. When the operation is
+supported from an interface, this node points to the valuetype that
+actually supports the interface. This attribute is used to remember
+in which Ada package the operation store for an operation node is defined.
+\end{description}
+
+%%%%%%%%%%%%%%%%%%
+\subsection{Mapping of initialisers}
+\paragraph{}The standard Ada mapping for initialisers is an ada function that is a
+primitive of the Value\_Ref type.
+
+\begin{verbatim}
+//IDL
+valuetype WeightedBinaryTree {
+	factory createWBT (in long);
+}
+
+--  Ada  --
+package WeightedBinaryTree is
+
+	type Value_Ref is ...
+
+	function CreateWBT (W : in CORBA.Long) return Value_Ref;
+
+end WeightedBinaryTree;
+\end{verbatim}
+
+\paragraph{}However, the fact that this function is a primitive of type
+Value\_Ref implies that it has to be redefined for all inheriting
+valuetypes. There are three options:
+
+\begin{itemize}
+\item Either we respect the standards, but the drawback is that the
+overloading function for inheriting value types does not have precise
+semantics. Does it have to initialize only the parent's fields, or all
+the child's fields ?
+\item A solution is to define factories in the ``.Helper'' package.
+\item Another solution is to make factories return class wide objects.
+\end{itemize}
+
+\paragraph{}We chose to implement the last solution, because it is
+more precise and does not break the rule too much.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Marshalling valuetypes
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Marshalling valuetypes}
+
+\paragraph{}Since valuetypes are transmitted by value over the wire, a
+precise marshalling into a GIOP stream is defined in chapter 15 of the
+CORBA specification v 2.3. Here are the several steps to implement to
+fully support marshalling of valuetypes.
+
+\subsection{Marshalling basis valuetypes}
+Marshalling basic valuetypes is easy. It is assumed that the type of
+the formal
+parameter of the subprogram is the same as that of the actual
+parameter. No type information has to be encoded, and only state
+members have to be encoded. We suppose there is no recursivity in the
+type. This is fully supported and interoperation with java orbacus has
+been succesfully tested\footnote{Java orbacus version 4.0.1 was
+used for the tests. It uses IIOP 1.2 protocol, whereas adabroker uses version 1.0,
+but they still can interoperate if the version check is deactivated in
+adabroker.}.
+
+\subsection{Type information optimization}
+\paragraph{}When the type of the actual parameter is not the same as
+that of the formal one, type information has to be encoded. This can
+be made only when valuetypes are defined ``truncatable''.
+
+\paragraph{}This is not supported yet.
+
+\subsection{Handling recursivity}
+\paragraph{} Objects by value can define arbitrarily complex
+structures, that may be recursive. A standard sequential encoding
+would not work to encode them on the GIOP stream. Therefore, the CORBA
+specification introduces the notion of indirection. Once an object has
+been encoded in the stream, its next occurrence is not encoding, but
+an indirection flagk, pointing to the location in the stream where the
+first occurrence was encoded, is marshalled.
+
+\paragraph{}This is not supported yet.
+
+\subsection{}Since valuetypes can be very big, a mechanism is provided
+to split them into several chunks that are sequentially sent over the
+wire.
+
+\paragraph{}This is not supported yet.
+
+\subsection{Custom Marshalling}A CORBA programmer can define his own
+marshalling functions for the valuetypes he defines. This is possible
+when the valuetype is defined as ``custom''. It requires some
+special processing from the ORB, including the support for chunking.
+
+\paragraph{}This is not supported yet.
+
+\subsection{Supporting interfaces}
+\paragraph{}Valuetypes supporting interfaces can be marshalled as
+interfaces. Moreover Abstract interfaces can be marshalled either as
+valuetypes or as interfaces, depending on the actual parameter. These
+two cases require special processing from the ORB.
+
+\paragraph{}This is not supported yet.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Valuetypes supporting interfaces
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Valuetypes supporting interfaces}
+

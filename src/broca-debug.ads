@@ -33,15 +33,17 @@
 
 --  This is a debugging package for AdaBroker.
 --
---  with Adabroker.Debug;
---  pragma Elaborate(Adabroker.Debug);
+--  Usage is as follows:
 --
---  Flag : constant Natural := Adabroker.Debug.Is_Active ("specific_name");
---  procedure O is new AdaBroker.Debug.Output (Flag);
+--  with Broca.Debug;
 --
---  and then :
+--  package Broca.Foo is
+--     Flag : constant Natural := Broca.Debug.Is_Active ("specific_name");
+--     procedure O is new Broca.Debug.Output (Flag);
 --
---  pragma Debug (O ("debugging info"));
+--     [...]
+--
+--     pragma Debug (O ("debugging info"));
 --
 --  The output will be done if "adabroker.deb" file contains
 --  a line with "specific_name"

@@ -14,7 +14,7 @@ module CosEventComm {
 		void disconnect_push_consumer(); 
 	};
 
-    interface PushSupplier {
+	interface PushSupplier {
 		void disconnect_push_supplier();
 	};
 

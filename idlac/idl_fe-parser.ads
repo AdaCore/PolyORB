@@ -108,6 +108,9 @@ private
    --  Returns the string of the previous token
    function Get_Previous_Token_String return String;
 
+   --  Returns the string of the previous token
+   function Get_Previous_Previous_Token_String return String;
+
    --  Returns the string of the current_token
    function Get_Next_Token_String return String;
 
@@ -720,6 +723,7 @@ private
    --  <switch_body> ::= <case>+
    procedure Parse_Switch_Body (Result : out Node_List;
                                 Switch_Type : in Node_Id;
+                                Default_Index : out Long_Integer;
                                 Success : out Boolean);
 
    --  Rule 75
@@ -906,6 +910,13 @@ private
                                     Result : out Idl_Wide_Character;
                                     Offset : out Integer);
 
+   --  parsing an integer literal
+   function Get_Integer_Literal return Idl_Integer;
+
+   --  parse the repository_ids version
+   procedure Parse_Version (Result : out Version_Type;
+                            Success : out Boolean);
+
    --  parsing of an integer
    procedure Parse_Integer_Literal (Result : out Node_Id;
                                     Success : out Boolean;
@@ -930,6 +941,9 @@ private
    procedure Parse_Wide_Char_Literal (Result : out Node_Id;
                                       Success : out Boolean;
                                       Expr_Type : in Constant_Value_Ptr);
+
+   --  parsing of float
+   function Get_Float_Literal return Idl_Float;
 
    --  parsing of a float
    procedure Parse_Floating_Pt_Literal (Result : out Node_Id;

@@ -45,6 +45,8 @@ interface all_types {
   // ------------------------
   typedef long matrix[3][3];
   matrix echoMatrix (in matrix arg);
+  typedef long bigmatrix[30][15];
+  bigmatrix echoBigMatrix (in bigmatrix arg);
 
   // Structs
   // -------
@@ -55,8 +57,8 @@ interface all_types {
   simple_struct echoStruct (in simple_struct arg);
 
   struct array_struct {
-      long A[10];
-      unsigned short B;
+      long a[10];
+      unsigned short b;
   };
   array_struct echoArrayStruct (in array_struct arg);
 
@@ -64,6 +66,9 @@ interface all_types {
   // ---------
   typedef sequence<short> U_sequence;
   U_sequence echoUsequence (in U_sequence arg);
+
+  typedef sequence<short,10> B_sequence;
+  B_sequence echoBsequence (in B_sequence arg);
 
   // Fixed point
   // -----------

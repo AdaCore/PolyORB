@@ -31,6 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with CORBA;
 with CORBA.Object;
 
 package PortableServer.ServantManager is

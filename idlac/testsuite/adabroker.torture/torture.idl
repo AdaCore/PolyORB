@@ -3,11 +3,11 @@
 // code generator features.
 // $Id$
 
+#define HAVE_BOUNDED_STRINGS
+
 exception rootScopeException {};
 
 module MyModule {
-
-  // typedef string B_ARRAY[123];
 
   struct MyStruct {
     unsigned long MyInt;
@@ -55,6 +55,7 @@ module MyModule {
     double Im;
   } complexNumber;
 
+#ifdef HAVE_BOUNDED_STRINGS
   typedef string<2> saltString;
 
   typedef unsigned long uid_t;
@@ -69,6 +70,7 @@ module MyModule {
     string	pw_dir;		/* home directory */
     string	pw_shell;	/* shell program */
   };
+#endif
 
   union U3 switch (boolean) {
     case TRUE: long foo;
@@ -159,21 +161,32 @@ module MyModule {
     };
   };
 
-#if 0
-  //  This occurs after a module {}:
-  //  Expansion won't work if it does not
-  //  Pop_Scope correctly.
-
   typedef struct coords {
     double x;
     double y;
   } point;
 
   union U2 switch (long) {
-    case 0: wstring<99> name;
+    case 0: wstring name;
     case 1: Complex c;
   };
-#endif
+
+  abstract interface Person {
+    void greet (in string hello);
+  };
+
+  abstract interface Employee {
+    long summon (in string order);
+  };
+
+  valuetype EmployeeRecord supports Person, Employee {
+    private string Name;
+    private string Email;
+    private string SSN;
+    factory init (in string name, in string SSN);
+    double salary (in long age);
+  };
+
 };
 
 typedef MyModule::complexNumber2 rootCplx;

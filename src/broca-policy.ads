@@ -36,7 +36,7 @@ with Broca.Refs;
 
 package Broca.Policy is
 
-   type Policy_Object_Type is abstract new Broca.Refs.Ref_Type with
+   type Policy_Object_Type is abstract new Broca.Refs.Entity with
      record
         Policy : CORBA.PolicyType;
      end record;

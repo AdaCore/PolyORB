@@ -32,25 +32,30 @@
 ------------------------------------------------------------------------------
 
 with CORBA.Sequences.Unbounded;
-with CORBA.ORB; use CORBA.ORB;
+with CORBA.Impl;
+
 with Broca.IOP;
-with CORBA.Object;
 with Broca.Exceptions;
-with Broca.CDR;
-with Broca.Buffers;
-with Broca.Refs;
 with Broca.Object;
 with Broca.Repository;
-with Broca.IIOP;
-with Broca.IOP;
 
 with Broca.Debug;
-pragma Elaborate_All (Broca.Debug);
+pragma Elaborate (Broca.Debug);
+
+with Broca.IIOP;
+pragma Warnings (Off, Broca.IIOP);
+
+with Broca.POA;
+with PortableServer.POA;
+with PortableServer.ServantLocator.Impl;
+with PortableServer.ServantManager;
 
 package body Broca.ORB is
 
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.orb");
    procedure O is new Broca.Debug.Output (Flag);
+
+   use CORBA.ORB;
 
    The_ORB : ORB_Ptr := null;
 
@@ -60,6 +65,79 @@ package body Broca.ORB is
    Identifiers : ObjectIdList;
    References  : IDL_SEQUENCE_Ref.Sequence;
 
+   References_POA         : Broca.POA.POA_Object_Ptr;
+
+   type References_Locator is
+     new PortableServer.ServantLocator.Impl.Object with null record;
+
+   procedure Preinvoke
+     (Self       : in out References_Locator;
+      Oid        : in PortableServer.ObjectId;
+      Adapter    : in PortableServer.POA.Ref;
+      Operation  : in CORBA.Identifier;
+      The_Cookie : out PortableServer.ServantLocator.Cookie;
+      Returns    : out PortableServer.Servant);
+
+   procedure Postinvoke
+     (Self        : in out References_Locator;
+      Oid         : in PortableServer.ObjectId;
+      Adapter     : in PortableServer.POA.Ref;
+      Operation   : in CORBA.Identifier;
+      The_Cookie  : in PortableServer.ServantLocator.Cookie;
+      The_Servant : in PortableServer.Servant);
+
+   Locator : aliased References_Locator;
+
+   procedure Ensure_References_POA_Is_Started;
+
+   function To_String (Oid : PortableServer.ObjectId)
+     return String;
+
+   --------------------------------------
+   -- Ensure_References_POA_Is_Started --
+   --------------------------------------
+
+   procedure Ensure_References_POA_Is_Started is
+      use Broca.POA, PortableServer;
+   begin
+      pragma Debug (O ("Ensuring that references POA is started"));
+      if References_POA = null then
+
+         pragma Debug (O ("It has not been started"));
+
+         declare
+            RootPOA_Obj : constant CORBA.Object.Ref'Class :=
+              Resolve_Initial_References (Root_POA_ObjectId);
+            RootPOA     : constant PortableServer.POA.Ref'Class :=
+              PortableServer.POA.Ref'Class (RootPOA_Obj);
+            RootPOA_Ptr : constant Broca.POA.POA_Object_Ptr :=
+              Broca.POA.POA_Object_Ptr
+              (CORBA.Object.Object_Of (RootPOA_Obj));
+         begin
+            pragma Debug (O ("Starting references POA"));
+            References_POA :=
+              Broca.POA.Create_POA
+              (Self         => RootPOA_Ptr,
+               Adapter_Name => CORBA.To_CORBA_String ("InitialReferences"),
+               A_POAManager => null,
+               Tp           => ORB_CTRL_MODEL,
+               Lp           => PERSISTENT,
+               Up           => UNIQUE_ID,
+               Ip           => USER_ID,
+               Ap           => NO_IMPLICIT_ACTIVATION,
+               Sp           => NON_RETAIN,
+               Rp           => USE_SERVANT_MANAGER);
+            PortableServer.ServantManager.Set
+              (References_POA.Servant_Manager,
+               CORBA.Object.Object_Of
+               (PortableServer.POA.Servant_To_Reference
+                (RootPOA, Locator'Access)));
+            Activate (Get_The_POAManager (References_POA) .all);
+            pragma Debug (O ("Activating the references POA"));
+         end;
+      end if;
+   end Ensure_References_POA_Is_Started;
+
    -------------------
    -- IOR_To_Object --
    -------------------
@@ -68,17 +146,17 @@ package body Broca.ORB is
      (IOR : access Broca.Buffers.Buffer_Type;
       Ref : out CORBA.Object.Ref'Class)
    is
-      use Broca.CDR;
-
-      Nbr_Profiles : CORBA.Unsigned_Long;
-      Tag : Broca.IOP.Profile_Tag;
       Type_Id : CORBA.String;
-      Obj : Broca.Object.Object_Ptr;
+      Profiles : Broca.IOP.Profile_Ptr_Array_Ptr;
+
    begin
       pragma Debug (O ("IOR_To_Object : enter"));
 
-      --  Unmarshall type id.
-      Type_Id := Unmarshall (IOR);
+      Broca.IOP.Decapsulate_IOR (IOR, Type_Id, Profiles);
+
+      pragma Debug (O ("IOR_To_Object : Type_Id unmarshalled : "
+                       & CORBA.To_Standard_String (Type_Id)));
+
       declare
          A_Ref : CORBA.Object.Ref'Class :=
            Broca.Repository.Create (CORBA.RepositoryId (Type_Id));
@@ -87,37 +165,45 @@ package body Broca.ORB is
             --  No classes for the string was found.
             --  Create a CORBA.Object.Ref.
             pragma Debug (O ("IOR_To_Object : A_Ref is nil."));
-            Broca.Refs.Set (Broca.Refs.Ref (A_Ref),
-                            new Broca.Object.Object_Type);
+            --  Broca.Refs.Set (Broca.Refs.Ref (A_Ref),
+            --                new Broca.Object.Object_Type);
+            CORBA.Object.Set
+              (A_Ref,
+               CORBA.Impl.Object_Ptr'(new Broca.Object.Object_Type));
          end if;
 
-         --  Get the access to the internal object.
-         Obj := Broca.Object.Object_Ptr
-           (Broca.Refs.Get (Broca.Refs.Ref (A_Ref)));
+         pragma Assert (not CORBA.Object.Is_Nil (A_Ref));
 
-         Nbr_Profiles := Unmarshall (IOR);
+         declare
+            --  Get the access to the internal object.
+            Obj : constant Broca.Object.Object_Ptr
+              := Broca.Object.Object_Ptr
+              (CORBA.Object.Object_Of (A_Ref));
+         begin
+            Obj.Type_Id  := Type_Id;
+            Obj.Profiles := Profiles;
+         end;
 
-         Obj.Type_Id  := Type_Id;
-         Obj.Profiles := new IOP.Profile_Ptr_Array (1 .. Nbr_Profiles);
-         for I in 1 .. Nbr_Profiles loop
-            Tag := Unmarshall (IOR);
-            case Tag is
-               when Broca.IOP.Tag_Internet_IOP =>
-                  Broca.IIOP.Create_Profile (IOR, Obj.Profiles (I));
-               when others =>
-                  Broca.Exceptions.Raise_Bad_Param;
-            end case;
-         end loop;
+         CORBA.Object.Set (Ref, CORBA.Object.Object_Of (A_Ref));
 
-         --  FIXME: type must be checked ?
-         if True then
-            --  No.
-            Broca.Refs.Set (Broca.Refs.Ref (Ref),
-                            Broca.Refs.Get (Broca.Refs.Ref (A_Ref)));
-         else
-            Ref := A_Ref;
-         end if;
+         --  We want to write
+         --    Ref := A_Ref;
+         --  but, since Ref is an out classwide parameter,
+         --  its tag is constrained by the value passed
+         --  to us by the caller. If that value is of a
+         --  specialised reference type, i. e. any particular
+         --  reference type generated in an interface stub
+         --  package, we cannot assign A_Ref into it because
+         --  A_Ref may be created as a CORBA.Object.Ref if
+         --  no factory is registered for the unmarshalled
+         --  repository ID.
+         --
+         --  We thus have to trust the user to pass us a proper
+         --  reference type, and bypass any dynamic tag check
+         --  on the reference type.
+
       end;
+
    end IOR_To_Object;
 
    ---------------------------
@@ -129,13 +215,52 @@ package body Broca.ORB is
       return Identifiers;
    end List_Initial_Services;
 
+   ---------------
+   -- Preinvoke --
+   ---------------
+
+   procedure Preinvoke
+     (Self       : in out References_Locator;
+      Oid        : in PortableServer.ObjectId;
+      Adapter    : in PortableServer.POA.Ref;
+      Operation  : in CORBA.Identifier;
+      The_Cookie : out PortableServer.ServantLocator.Cookie;
+      Returns    : out PortableServer.Servant)
+   is
+      Name : constant String := To_String (Oid);
+      Obj  : constant CORBA.Object.Ref'Class :=
+        Resolve_Initial_References (CORBA.ORB.To_CORBA_String (Name));
+   begin
+      pragma Debug (O ("Calling Preinvoke for service " & Name));
+      The_Cookie := null;
+      Returns    := PortableServer.POA.Reference_To_Servant (Adapter, Obj);
+   end Preinvoke;
+
+   ----------------
+   -- Postinvoke --
+   ----------------
+
+   procedure Postinvoke
+     (Self        : in out References_Locator;
+      Oid         : in PortableServer.ObjectId;
+      Adapter     : in PortableServer.POA.Ref;
+      Operation   : in CORBA.Identifier;
+      The_Cookie  : in PortableServer.ServantLocator.Cookie;
+      The_Servant : in PortableServer.Servant)
+   is
+   begin
+      pragma Debug (O ("Calling Postinvoke for service " & To_String (Oid)));
+      null;
+   end Postinvoke;
+
    --------------------------------
    -- Resolve_Initial_References --
    --------------------------------
 
    function Resolve_Initial_References
      (Identifier : ObjectId)
-     return CORBA.Object.Ref is
+     return CORBA.Object.Ref'Class
+   is
       use CORBA.ORB.IDL_SEQUENCE_ObjectId;
       use IDL_SEQUENCE_Ref;
    begin
@@ -153,13 +278,20 @@ package body Broca.ORB is
 
    procedure Register_Initial_Reference
      (Identifier : in CORBA.ORB.ObjectId;
-      Reference  : in CORBA.Object.Ref)
+      Reference  : in CORBA.Object.Ref'Class)
    is
       use CORBA.ORB.IDL_SEQUENCE_ObjectId;
       use IDL_SEQUENCE_Ref;
    begin
+      --  If we register initial references other than the RootPOA,
+      --  then it is likely that we are willing to export those services.
+
+      if Identifier /= Root_POA_ObjectId then
+         Ensure_References_POA_Is_Started;
+      end if;
+
       Append (Identifiers, Identifier);
-      Append (References, Reference);
+      Append (References, CORBA.Object.Ref (Reference));
    end Register_Initial_Reference;
 
    ------------------
@@ -193,11 +325,27 @@ package body Broca.ORB is
    -----------------------
 
    procedure POA_State_Changed
-     (POA : in Broca.POA.POA_Object_Ptr) is
+     (POA : in Broca.POA.Ref) is
    begin
       POA_State_Changed (The_ORB.all, POA);
    end POA_State_Changed;
 
+   ---------------
+   -- To_String --
+   ---------------
+
+   function To_String (Oid : PortableServer.ObjectId) return String
+   is
+      Result : String (1 .. PortableServer.Length (Oid));
+      Chars  : constant PortableServer.IDL_SEQUENCE_Octet.Element_Array :=
+        PortableServer.To_Element_Array (Oid);
+      Index  : Positive := 1;
+   begin
+      for I in Chars'Range loop
+         Result (Index) := Character'Val (Chars (I));
+         Index := Index + 1;
+      end loop;
+      return Result;
+   end To_String;
+
 end Broca.ORB;
-
-

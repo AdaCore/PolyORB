@@ -1,6 +1,31 @@
 AdaBroker news
 --------------
 
+New features in version 1.0pre3
+===============================
+
+A package Broca.Parameters allows the person installing AdaBroker to
+change the default stack size in server tasks.
+
+A stand-alone COS Naming server is now provided.
+
+Bugs fixed include:
+  Usage of a constant as the length of an array is now
+  correctly supported.
+  An expansion problem with some instances of sequences in interface
+  declarations has been corrected.
+  (Problems reported by Xavier Montet of CENA).
+
+  The handling of escaped keywords as identifiers was fixed.
+  (Problem reported by Mehtap Kologlu of Eurocontrol).
+
+Incompatible changes in version 1.0pre3
+=======================================
+
+The declaration of the Is_A operation on CORBA.Object was put in
+conformity with the standard Ada mapping: the Logical_Type_Id argument
+is a Standard.String.
+
 New features in version 1.0pre2
 ===============================
 

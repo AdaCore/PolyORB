@@ -31,15 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  with Ada.Unchecked_Deallocation;
+with CORBA.Context;
+with CORBA.NVList;
+with CORBA.Request;
 
-with Broca.Refs;
-
---  with CORBA.ImplementationDef;
---  with CORBA.InterfaceDef;
---  with CORBA.Context;
---  with CORBA.NVList;
---  with CORBA.Request;
+with CORBA.AbstractBase;
 
 package CORBA.Object is
 
@@ -52,50 +48,25 @@ package CORBA.Object is
    --  type REF must be able to reference an internal object (see
    --  resolve_initial_references).
    --
-   --  To allow such a behavior, a reference is in fact an access to a tagged
-   --  type, ref_type, defined in broca.object.
-   type Ref is new Broca.Refs.Ref with private;
+   --  To allow such a behavior, a reference is in fact an access to tagged
+   --  type Entity, defined in broca.object.
+
+   --  CORBA 2.3
+   type Ref is new CORBA.AbstractBase.Ref with private;
 
    function Object_To_String (Obj : Ref) return CORBA.String;
    --  Returns the IOR corresponding to this object it is called by
    --  CORBA.ORB.Object_To_String see CORBA specification for details
 
-   function Is_Nil  (Self : in Ref) return CORBA.Boolean;
-   function Is_Null (Self : in Ref) return CORBA.Boolean renames Is_Nil;
-
---    procedure Release (Self : in out Ref);
-
---    function Is_A
---      (Self            : in Ref;
---       Logical_Type_Id : in CORBA.String)
---       return CORBA.Boolean;
---    --  Returns True if this object is of this Logical_Type_Id (here
---    --  Logical_Type_Id is a Repository_Id) or one of its descendants
-
---    function Non_Existent
---      (Self : in Ref)
---       return CORBA.Boolean;
---    --  Returns True if the ORB knows that the implementation referenced by
---    --  this proxy object does not exist
-
---    function Is_Equivalent
---      (Self  : in Ref;
---       Other : in Ref)
---       return CORBA.Boolean;
---    --  Returns True if both objects point to the same distant
---    --  implementation
-
---    function Hash
---      (Self    : in Ref;
---       Maximum : in CORBA.Unsigned_Long)
---       return CORBA.Unsigned_Long;
---    --  Return a hash value for object not implemented yet, it returns 0
-
-
+   function Is_A
+     (Self            : in Ref;
+      Logical_Type_Id : in Standard.String)
+      return CORBA.Boolean;
+   --  Returns True if this object is of this Logical_Type_Id
+   --  or one of its descendants.
 
    --    not yet implemented
    --
-   --    function To_Any (From : in Ref) return Any;
    --    function To_Ref (From : in Any) return Ref;
    --
    --    function Get_Implementation (Self : in Ref)
@@ -103,19 +74,33 @@ package CORBA.Object is
    --
    --    function Get_Interface (Self : in Ref)
    --      return CORBA.InterfaceDef.Ref;
-   --
-   --    procedure Create_Request
-   --      (Self      : in     Ref;
-   --       Ctx       : in     CORBA.Context.Object;
-   --       Operation : in     Identifier;
-   --       Arg_List  : in     CORBA.NVList.Object;
-   --       Result    : in out NamedValue;
-   --       Request   :    out CORBA.Request.Object;
-   --       Req_Flags : in     Flags;
-   --       Returns   : out    Status);
+
+   procedure Create_Request
+     (Self      : in     Ref;
+      Ctx       : in     CORBA.Context.Ref;
+      Operation : in     Identifier;
+      Arg_List  : in     CORBA.NVList.Ref;
+      Result    : in out NamedValue;
+      Request   :    out CORBA.Request.Object;
+      Req_Flags : in     Flags);
 
 private
 
-   type Ref is new Broca.Refs.Ref with null record;
+   type Ref is new CORBA.AbstractBase.Ref with null record;
+
+   -----------
+   --  Any  --
+   -----------
+
+   type Content_ObjRef is new Content with
+      record
+         Value : Ref;
+      end record;
+
+   type Content_ObjRef_Ptr is access all Content_ObjRef;
+
+   function Duplicate
+     (Object : access Content_ObjRef)
+     return Any_Content_Ptr;
 
 end CORBA.Object;

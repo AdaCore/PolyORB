@@ -32,9 +32,12 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
+with Ada.Finalization;
 with Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Unbounded;
+with Ada.Unchecked_Deallocation;
 with Interfaces;
+with Broca.Locks;
 
 package CORBA is
 
@@ -159,7 +162,7 @@ package CORBA is
    Marshal       : exception;          --  error marshalling param/result
    Initialization_Failure : exception; --  ORB initialization failure
    No_Implement  : exception;          --  operation implementation unavailable
-   Bad_Typecode  : exception;          --  bad typecode
+   Bad_TypeCode  : exception;          --  bad typecode
    Bad_Operation : exception;          --  invalid operation
    No_Resources  : exception;          --  insufficient resources for req.
    No_Response   : exception;          --  response to request not available
@@ -337,14 +340,14 @@ package CORBA is
        Tk_Abstract_Interface);
 
    type ValueModifier is new Short;
-   VTM_NONE : constant ValueModifier := 0;
-   VTM_CUSTOM : constant ValueModifier := 1;
-   VTM_ABSTRACT : constant ValueModifier := 2;
-   VTM_TRUNCATABLE : constant ValueModifier := 3;
+   VTM_NONE : constant ValueModifier;
+   VTM_CUSTOM : constant ValueModifier;
+   VTM_ABSTRACT : constant ValueModifier;
+   VTM_TRUNCATABLE : constant ValueModifier;
 
    type Visibility is new Short;
-   PRIVATE_MEMBER : constant Visibility := 0;
-   PUBLIC_MEMBER : constant Visibility := 1;
+   PRIVATE_MEMBER : constant Visibility;
+   PUBLIC_MEMBER : constant Visibility;
 
 
    package TypeCode is
@@ -376,7 +379,8 @@ package CORBA is
         renames "=";
 
       --  equivalence between two typecodes
-      --  FIXME : to be defined
+      --  the equivalence is defined in section 10.7.1 of the
+      --  CORBA V2.3 spec : the Typecode interface
       function Equivalent (Left, Right : in Object)
                            return Boolean;
 
@@ -403,7 +407,7 @@ package CORBA is
       --  case its kind is struct, union, enum, value or except.
       --  Raises badKind else.
       function Member_Count (Self : in Object)
-                             return Unsigned_Long;
+                             return CORBA.Unsigned_Long;
 
       --  returns the name of a given member associated with a typecode
       --  in case its kind is struct, union, enum, value or except.
@@ -429,21 +433,21 @@ package CORBA is
           (Self  : in Object;
            Index : in CORBA.Unsigned_Long) return CORBA.Any;
 
-      --  returns the position of the default index in the parameters
-      --  of a typecode in case its kind is union.
-      --  Raises badKind else.
-      --  If there is no default index, return 0
-      function Discriminator_Type (Self : in Object)
-                                   return Object;
-
       --  returns the discriminator type associated with a typecode
       --  in case its kind is union.
       --  Raises badKind else.
+      function Discriminator_Type (Self : in Object)
+                                   return Object;
+
+      --  returns the position of the default index in the parameters
+      --  of a typecode in case its kind is union.
+      --  Raises badKind else.
+      --  If there is no default index, return -1
       function Default_Index (Self : in Object)
                               return CORBA.Long;
 
       --  returns the length associated with a typecode
-      --  in case its kind is string, sequence or aray.
+      --  in case its kind is string, wide_string, sequence or array.
       --  Raises badKind else.
       function Length (Self : in Object)
                        return CORBA.Unsigned_Long;
@@ -487,6 +491,25 @@ package CORBA is
 
       --  Not in spec  --
       -------------------
+      --  returns the type of a given member associated with an
+      --  union typecode for a given label. The index is the index
+      --  of the member among the members associated with Label. The
+      --  other members are not taken into account
+      --  Raises badKind if Self is not an union typecode.
+      --  If there is not enough members, raises bounds.
+      function Member_Type_With_Label
+        (Self  : in Object;
+         Label : in Any;
+         Index : in CORBA.Unsigned_Long) return Object;
+
+      --  returns the number of members associated with a typecode of
+      --  kind union for a given label.
+      --  Raises badKind if Self is not an union typecode.
+      function Member_Count_With_Label
+        (Self : in Object;
+         Label : in Any)
+         return CORBA.Unsigned_Long;
+
       --  returns the parameter nb index in the list of Self's
       --  parameters. Raises Out_Of_Bounds_Index exception if
       --  this parameter does not exist
@@ -522,11 +545,25 @@ package CORBA is
       function TC_Octet              return TypeCode.Object;
       function TC_Any                return TypeCode.Object;
       function TC_TypeCode           return TypeCode.Object;
-
       function TC_String             return TypeCode.Object;
       function TC_Wide_String        return TypeCode.Object;
 
-      --  not in spec
+      --  more complex ones. Creates "empty" typecodes
+      function TC_Principal          return TypeCode.Object;
+      function TC_Struct             return TypeCode.Object;
+      function TC_Union              return TypeCode.Object;
+      function TC_Enum               return TypeCode.Object;
+      function TC_Alias              return TypeCode.Object;
+      function TC_Except             return TypeCode.Object;
+      function TC_ObjRef             return TypeCode.Object;
+      function TC_Fixed              return TypeCode.Object;
+      function TC_Sequence           return TypeCode.Object;
+      function TC_Array              return TypeCode.Object;
+      function TC_Value              return TypeCode.Object;
+      function TC_Valuebox           return TypeCode.Object;
+      function TC_Native             return TypeCode.Object;
+      function TC_Abstract_Interface return TypeCode.Object;
+
       --  returns the number of parameters of Self
       function Parameter_Count (Self : in Object)
                                 return Unsigned_Long;
@@ -563,11 +600,13 @@ package CORBA is
       --  be alternatively a type and a name. So the number of
       --  parameters will be 2 * number_of_members + 2
       --    for the union, the third parameter will be the
-      --  discriminator type. Then we'll have alternatively a
+      --  discriminator type. The fourth will be the index of the
+      --  default case as a long. If there's no default case, then
+      --  you'll find -1. Then we'll have alternatively a
       --  member label, a member type and a member name. At least,
-      --  we could have a default label. In this case, the member
-      --  label would be an any containing null. So the number of
-      --  parameters will be 3 * number_of_members + 3
+      --  for the default label, the member label will contain a
+      --  valid label but without any semantic significance.
+      --  So the number of parameters will be 3 * number_of_members + 4
       --    for the enum, the next parameters will be names of the
       --  different members. So the number of parameters will be
       --  number_of_members + 2
@@ -579,10 +618,12 @@ package CORBA is
       --  3 * number_of_members + 4.
       --    for the valueBox, the third parameter is the content type
       --    for the string and wide_string, the only parameter will
-      --  be the length of the string.
+      --  be the length of the string. Its value will be 0 in case of
+      --  unbounded strings or wide strings.
       --    for the sequence and the array, the first parameter will
       --  be the length of the sequence or the array and the second
-      --  the content type
+      --  the content type. As for strings, an unbounded sequence will
+      --  have a length of 0.
       --    for the fixed, the first parameter will be the digits
       --  number and the second the scale.
 
@@ -608,7 +649,65 @@ package CORBA is
       PTC_String             : constant Object := (Tk_String, null);
       PTC_Wide_String        : constant Object := (Tk_Wstring, null);
 
+      PTC_Principal          : constant Object := (Tk_Principal, null);
+      PTC_Struct             : constant Object := (Tk_Struct, null);
+      PTC_Union              : constant Object := (Tk_Union, null);
+      PTC_Enum               : constant Object := (Tk_Enum, null);
+      PTC_Alias              : constant Object := (Tk_Alias, null);
+      PTC_Except             : constant Object := (Tk_Except, null);
+      PTC_Objref             : constant Object := (Tk_Objref, null);
+      PTC_Fixed              : constant Object := (Tk_Fixed, null);
+      PTC_Sequence           : constant Object := (Tk_Sequence, null);
+      PTC_Array              : constant Object := (Tk_Array, null);
+      PTC_Value              : constant Object := (Tk_Value, null);
+      PTC_Valuebox           : constant Object := (Tk_Valuebox, null);
+      PTC_Native             : constant Object := (Tk_Native, null);
+      PTC_Abstract_Interface : constant Object
+        := (Tk_Abstract_Interface, null);
+
    end TypeCode;
+
+   --  pre-defined TypeCode "constants"
+   function TC_Null               return TypeCode.Object
+     renames TypeCode.TC_Null;
+   function TC_Void               return TypeCode.Object
+     renames TypeCode.TC_Void;
+   function TC_Short              return TypeCode.Object
+     renames TypeCode.TC_Short;
+   function TC_Long               return TypeCode.Object
+     renames TypeCode.TC_Long;
+   function TC_Long_Long          return TypeCode.Object
+     renames TypeCode.TC_Long_Long;
+   function TC_Unsigned_Short     return TypeCode.Object
+     renames TypeCode.TC_Unsigned_Short;
+   function TC_Unsigned_Long      return TypeCode.Object
+     renames TypeCode.TC_Unsigned_Long;
+   function TC_Unsigned_Long_Long return TypeCode.Object
+     renames TypeCode.TC_Unsigned_Long_Long;
+   function TC_Float              return TypeCode.Object
+     renames TypeCode.TC_Float;
+   function TC_Double             return TypeCode.Object
+     renames TypeCode.TC_Double;
+   function TC_Long_Double        return TypeCode.Object
+     renames TypeCode.TC_Long_Double;
+   function TC_Boolean            return TypeCode.Object
+     renames TypeCode.TC_Boolean;
+   function TC_Char               return TypeCode.Object
+     renames TypeCode.TC_Char;
+   function TC_Wchar              return TypeCode.Object
+     renames TypeCode.TC_Wchar;
+   function TC_Octet              return TypeCode.Object
+     renames TypeCode.TC_Octet;
+   function TC_Any                return TypeCode.Object
+     renames TypeCode.TC_Any;
+   function TC_TypeCode           return TypeCode.Object
+     renames TypeCode.TC_TypeCode;
+   function TC_ObjRef             return TypeCode.Object
+     renames TypeCode.TC_ObjRef;
+   function TC_String             return TypeCode.Object
+     renames TypeCode.TC_String;
+   function TC_Wide_String        return TypeCode.Object
+     renames TypeCode.TC_Wide_String;
 
 
    -----------
@@ -656,20 +755,120 @@ package CORBA is
    function From_Any (Item : in Any) return CORBA.String;
    function From_Any (Item : in Any) return CORBA.Wide_String;
 
-
    function Get_Type (The_Any : in Any) return TypeCode.Object;
+
+   --  not in spec : change the type of an any without changing its
+   --  value : to be used carefully
+   procedure Set_Type (The_Any : in out Any;
+                       The_Type : in TypeCode.Object);
 
    generic
       with procedure Process (The_Any : in Any;
                               Continue : out Boolean);
    procedure Iterate_Over_Any_Elements (In_Any : in Any);
 
+   --  returns  an empty Any (with no value but a type)
+   function Get_Empty_Any (Tc : TypeCode.Object) return Any;
+
+   --  Not in spec : return true if the Any has a value, false
+   --  if it is an empty one
+   function Is_Empty (Any_Value : in CORBA.Any) return Boolean;
+
+   --  These functions allows the user to set the value of an any
+   --  directly if he knows its kind. It a function is called on a
+   --  bad kind of any, a BAD_TYPECODE exception will be raised
+   --  Should never be called outside the broca.cdr package
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Octet);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Short);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Long);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Long_Long);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Unsigned_Short);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Unsigned_Long);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Unsigned_Long_Long);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Boolean);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Char);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Wchar);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.String);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Wide_String);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Float);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Double);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Long_Double);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.TypeCode.Object);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Any);
+
+   --  Not in spec : some methods to deal with any aggregates.
+   --  What is called any aggregate is an any, made of an aggregate
+   --  of values, instead of one unique. It is used for structs,
+   --  unions, enums, arrays, sequences, objref, values...
+
+   --  returns the number of elements in an any aggregate
+   function Get_Aggregate_Count (Value : Any) return CORBA.Unsigned_Long;
+
+   --  Adds an element to an any aggregate
+   --  This element is given as a typecode but only its value is
+   --  added to the aggregate
+   procedure Add_Aggregate_Element (Value : in out Any;
+                                    Element : in Any);
+
+   --  Gets an element in an any agregate
+   --  returns an any made of the typecode Tc and the value read in
+   --  the aggregate
+   function Get_Aggregate_Element (Value : Any;
+                                   Tc : CORBA.TypeCode.Object;
+                                   Index : CORBA.Unsigned_Long)
+                                   return Any;
+
+   --  returns an empty any aggregate
+   --  puts its type to Tc
+   function Get_Empty_Any_Aggregate (Tc : CORBA.TypeCode.Object)
+                                     return Any;
+
+   -----------------
+   --  NamedValue --
+   -----------------
+
+   type Flags is new CORBA.Unsigned_Long;
+
+   ARG_IN :        constant Flags;
+   ARG_OUT :       constant Flags;
+   ARG_INOUT :     constant Flags;
+   IN_COPY_VALUE : constant Flags;
+
+   type NamedValue is record
+      Name :      CORBA.Identifier;
+      Argument :  CORBA.Any;
+      Arg_Modes : CORBA.Flags;
+   end record;
 
 private
 
    --  Null_String : constant CORBA.String :=
    --  CORBA.String (Ada.Strings.Unbounded.Null_Unbounded_String);
 
+   VTM_NONE : constant ValueModifier := 0;
+   VTM_CUSTOM : constant ValueModifier := 1;
+   VTM_ABSTRACT : constant ValueModifier := 2;
+   VTM_TRUNCATABLE : constant ValueModifier := 3;
+
+   PRIVATE_MEMBER : constant Visibility := 0;
+   PUBLIC_MEMBER : constant Visibility := 1;
 
    -----------
    --  Any  --
@@ -681,143 +880,257 @@ private
    --
    --  To be able to carry values of different types, the second
    --  field is an Any_Content_Ptr which is an access to any type
-   --  deriving from Content. Every basic types XXX that can be carried
-   --  into an Any should be associated to a child of Content (Content_XXX)
-   --  which contains a field of the XXX type.
+   --  deriving from Content. Every basic types Foo that can be carried
+   --  into an Any should be associated to a child of Content (Content_Foo)
+   --  which contains a field of the Foo type.
    --  For complex types (with several values, like structures, arrays...),
-   --  we use a special child of Content, Content_Agregat, which has a field
+   --  we use a special child of Content, Content_Aggregate, which has a field
    --  pointing on a list of childs of Content; various methods are provided
    --  to manipulate this list.
 
 
    type Content is abstract tagged null record;
-   type Any_Content_Ptr is access Content'Class;
+   type Any_Content_Ptr is access all Content'Class;
+   Null_Content_Ptr : constant Any_Content_Ptr := null;
+
+   --  This function duplicates its argument and give back
+   --  a deep copy of it.
+   --  It is actually overridden fro every subtype of Content
+   function Duplicate (Object : access Content)
+                       return Any_Content_Ptr;
+
+   --  Frees a Content_Ptr
+   --  It is overridden for aggregates since those have to
+   --  deallocate all the list of their elements
+   procedure Deallocate (Object : access Content);
+
+   --  Frees an Any_Content_Ptr
+   procedure Deallocate_Any_Content is new Ada.Unchecked_Deallocation
+     (Content'Class, Any_Content_Ptr);
 
    type Content_Octet is new Content with
       record
          Value : CORBA.Octet;
       end record;
    type Content_Octet_Ptr is access all Content_Octet;
+   function Duplicate (Object : access Content_Octet)
+                       return Any_Content_Ptr;
 
    type Content_Short is new Content with
       record
          Value : CORBA.Short;
       end record;
    type Content_Short_Ptr is access all Content_Short;
+   function Duplicate (Object : access Content_Short)
+                       return Any_Content_Ptr;
 
    type Content_Long is new Content with
       record
          Value : CORBA.Long;
       end record;
    type Content_Long_Ptr is access all Content_Long;
+   function Duplicate (Object : access Content_Long)
+                       return Any_Content_Ptr;
 
    type Content_Long_Long is new Content with
       record
          Value : CORBA.Long_Long;
       end record;
    type Content_Long_Long_Ptr is access all Content_Long_Long;
+   function Duplicate (Object : access Content_Long_Long)
+                       return Any_Content_Ptr;
 
    type Content_UShort is new Content with
       record
          Value : CORBA.Unsigned_Short;
       end record;
    type Content_UShort_Ptr is access all Content_UShort;
+   function Duplicate (Object : access Content_UShort)
+                       return Any_Content_Ptr;
 
    type Content_ULong is new Content with
       record
          Value : CORBA.Unsigned_Long;
       end record;
    type Content_ULong_Ptr is access all Content_ULong;
+   function Duplicate (Object : access Content_ULong)
+                       return Any_Content_Ptr;
 
    type Content_ULong_Long is new Content with
       record
          Value : CORBA.Unsigned_Long_Long;
       end record;
    type Content_ULong_Long_Ptr is access all Content_ULong_Long;
+   function Duplicate (Object : access Content_ULong_Long)
+                       return Any_Content_Ptr;
 
    type Content_Boolean is new Content with
       record
          Value : CORBA.Boolean;
       end record;
    type Content_Boolean_Ptr is access all Content_Boolean;
+   function Duplicate (Object : access Content_Boolean)
+                       return Any_Content_Ptr;
 
    type Content_Char is new Content with
       record
          Value : CORBA.Char;
       end record;
    type Content_Char_Ptr is access all Content_Char;
+   function Duplicate (Object : access Content_Char)
+                       return Any_Content_Ptr;
 
    type Content_Wchar is new Content with
       record
          Value : CORBA.Wchar;
       end record;
    type Content_Wchar_Ptr is access all Content_Wchar;
+   function Duplicate (Object : access Content_Wchar)
+                       return Any_Content_Ptr;
 
    type Content_String is new Content with
       record
          Value : CORBA.String;
       end record;
    type Content_String_Ptr is access all Content_String;
+   function Duplicate (Object : access Content_String)
+                       return Any_Content_Ptr;
 
    type Content_Wide_String is new Content with
       record
          Value : CORBA.Wide_String;
       end record;
    type Content_Wide_String_Ptr is access all Content_Wide_String;
+   function Duplicate (Object : access Content_Wide_String)
+                       return Any_Content_Ptr;
 
    type Content_Float is new Content with
       record
          Value : CORBA.Float;
       end record;
    type Content_Float_Ptr is access all Content_Float;
+   function Duplicate (Object : access Content_Float)
+                       return Any_Content_Ptr;
 
    type Content_Double is new Content with
       record
          Value : CORBA.Double;
       end record;
    type Content_Double_Ptr is access all Content_Double;
+   function Duplicate (Object : access Content_Double)
+                       return Any_Content_Ptr;
 
    type Content_Long_Double is new Content with
       record
          Value : CORBA.Long_Double;
       end record;
    type Content_Long_Double_Ptr is access all Content_Long_Double;
+   function Duplicate (Object : access Content_Long_Double)
+                       return Any_Content_Ptr;
 
    type Content_TypeCode is new Content with
       record
          Value : CORBA.TypeCode.Object;
       end record;
    type Content_TypeCode_Ptr is access all Content_TypeCode;
+   function Duplicate (Object : access Content_TypeCode)
+                       return Any_Content_Ptr;
 
    type Content_Any is new Content with
       record
          Value : CORBA.Any;
       end record;
    type Content_Any_Ptr is access all Content_Any;
+   function Duplicate (Object : access Content_Any)
+                       return Any_Content_Ptr;
 
-   --  for complex types that could be defined in Idl
+   --  a list of any
    type Content_Cell;
    type Content_List is access all Content_Cell;
    type Content_Cell is record
       The_Value : Any_Content_Ptr := null;
       Next : Content_List := null;
    end record;
+   Null_Content_List : constant Content_List := null;
+   function Duplicate (List : in Content_List) return Content_List;
+   procedure Deep_Deallocate (List : in out Content_List);
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Content_Cell, Content_List);
 
-   type Content_Agregat is new Content with
-      record
-         Value : Content_List := null;
-      end record;
-   type Content_Agregat_Ptr is access all Content_Agregat;
+   --  for complex types that could be defined in Idl
+   --  content_aggregate will be used.
+   --  complex types include Struct, Union, Enum, Sequence,
+   --  Array, Except, Fixed, Value, Valuebox, Abstract_Interface.
+   --  Here is the way the content_list is used in each case
+   --  (See CORBA V2.3 - 15.3) :
+   --     - for Struct, Except : the elements are the values of each
+   --  field in the order of the declaration
+   --     - for Union : the value of the switch element comes
+   --  first. Then come all the values of the corresponding fields
+   --     - for Enum : an unsigned_long corresponding to the position
+   --  of the value in the declaration is the only element
+   --     - for Array : all the elements of the array, one by one.
+   --     - for Sequence : the length first and then all the elements
+   --  of the sequence, one by one.
+   --     - for Fixed : FIXME
+   --     - for Value : FIXME
+   --     - for Valuebox : FIXME
+   --     - for Abstract_Interface : FIXME
+   type Content_Aggregate is new Content with record
+      Value : Content_List := null;
+   end record;
+   type Content_Aggregate_Ptr is access all Content_Aggregate;
+   function Duplicate (Object : access Content_Aggregate)
+                       return Any_Content_Ptr;
+   procedure Deallocate (Object : in out Content_Aggregate_Ptr);
 
-   function Agregate_Count
-     (Cl : in Content_List)
-      return CORBA.Long;
-   --  returns the number of elements of the Content_List list
+   type Natural_Ptr is access Natural;
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Natural, Natural_Ptr);
 
-   type Any is
-     record
-        The_Value : Any_Content_Ptr;
-        The_Type  : CORBA.TypeCode.Object;
-     end record;
+   --  a lock for the Any
+   type Rw_Lock_Type_Ptr is access all Broca.Locks.Rw_Lock_Type;
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Broca.Locks.Rw_Lock_Type, Rw_Lock_Type_Ptr);
+
+   --  The actual Any type
+   --  The first two fields are clear, the third one tells whether
+   --  the Any has a semantic of reference or of value and the last
+   --  one counts the number of references on the field The_Value.
+   type Any is new Ada.Finalization.Controlled with record
+      The_Value : Any_Content_Ptr;
+      The_Type  : CORBA.TypeCode.Object;
+      As_Reference : Boolean := False;
+      Ref_Counter : Natural_Ptr;
+      Any_Lock : Rw_Lock_Type_Ptr;
+   end record;
+
+   --  Some methods to deal with the Any fields.
+   --  These are the only way to deal with the fields if you want to
+   --  stay thread safe
+   --  Apart from the management of locks, these methods do not
+   --  make any test. So use them carefully
+   procedure Set_Value (Obj : in out Any; The_Value : in Any_Content_Ptr);
+   procedure Set_Counter (Obj : in out Any; The_Counter : in Natural_Ptr);
+   function Get_Value (Obj : Any) return Any_Content_Ptr;
+   function Get_Counter (Obj : Any) return Natural_Ptr;
+
+   --  The control procedures to the Any type
+   procedure Initialize (Object : in out Any);
+   procedure Adjust (Object : in out Any);
+   procedure Finalize (Object : in out Any);
+
+   --  And the management of the counter
+   procedure Inc_Usage (Obj : in Any);
+   procedure Dec_Usage (Obj : in out Any);
+
+   ------------------
+   --  Named_Value --
+   ------------------
+
+   ARG_IN :        constant Flags := 0;
+   ARG_OUT :       constant Flags := 1;
+   ARG_INOUT :     constant Flags := 2;
+   IN_COPY_VALUE : constant Flags := 3;
 
 end CORBA;

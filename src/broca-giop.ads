@@ -32,9 +32,8 @@
 ------------------------------------------------------------------------------
 
 with CORBA;
-pragma Elaborate_All (CORBA);
 with CORBA.Object;
-with Broca.Object;
+
 with Broca.Opaque;
 with Broca.Buffers;
 with Broca.IOP;
@@ -139,7 +138,7 @@ package Broca.GIOP is
 
    procedure Send_Request_Marshall
      (Handler           : in out Request_Handler;
-      Target            : in Object.Object_Ptr;
+      Target_Ref        : in CORBA.Object.Ref'Class;
       Response_Expected : in Boolean;
       Operation         : in CORBA.Identifier);
    --  Send a request.
@@ -152,7 +151,7 @@ package Broca.GIOP is
 
    procedure Send_Request_Send
      (Handler          : in out Request_Handler;
-      Target           : in Object.Object_Ptr;
+      Target_Ref       : in out CORBA.Object.Ref'Class;
       Reponse_Expected : in Boolean;
       Result           : out Send_Request_Result_Type);
 

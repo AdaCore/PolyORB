@@ -9,11 +9,11 @@ GNATMAKE_FLAGS = -I$(srcdir) \
 
 CLEANFILES = b~*.* *.o *.ali
 
-DISTCLEANFILES = $(PROGRAM)
+DISTCLEANFILES = $(PROGS)
 
 SUFFIXES = .idl .ads .adb
 
-all-local:: $(PROGRAM)
+all-local:: $(PROGS)
 
 .idl.ads .idl.adb:
 	$(IDLAC) -I$(srcdir) $<

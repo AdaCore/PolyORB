@@ -31,68 +31,143 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Broca.Sequences;
 with Broca.Exceptions;
+with Broca.Object;
+with Broca.Refs;
+with Broca.IOP;
+with Broca.CDR;     use Broca.CDR;
 with Broca.Buffers; use Broca.Buffers;
+with Broca.Server;
 
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
 
 package body Broca.POA is
+
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.poa");
    procedure O is new Broca.Debug.Output (Flag);
 
-   function Get_The_POAManager (Self : access POA_Object)
-                                return POAManager_Object_Ptr is
+   ------------------------
+   -- Get_The_POAManager --
+   ------------------------
+
+   function Get_The_POAManager
+     (Self : access POA_Object)
+     return POAManager_Object_Ptr is
    begin
       return Self.POA_Manager;
    end Get_The_POAManager;
 
+   --------------
+   -- Marshall --
+   --------------
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Value  : in Skeleton) is
+      Value  : Skeleton) is
    begin
-      Broca.Sequences.Marshall (Buffer, Value.IOR);
+      Broca.CDR.Marshall (Buffer, Skeleton_To_Ref (Value));
    end Marshall;
 
-   function To_Skeleton (Ref : CORBA.Object.Ref'Class)
-                         return Skeleton_Ptr
-   is
-      use Broca.Refs;
-      Res : Broca.Refs.Ref_Ptr;
-   begin
-      Res := CORBA.Object.Get (Ref);
-      if Res = null or else Res.all not in Skeleton'Class then
-         Broca.Exceptions.Raise_Bad_Param;
-      else
-         return Skeleton_Ptr (Res);
-      end if;
-   end To_Skeleton;
+   -------------------
+   -- POA_Object_Of --
+   -------------------
 
-   --  Can raise Bad_Param.
-   function To_Internal_Skeleton
+   function POA_Object_Of (The_Ref : Ref) return POA_Object_Ptr is
+   begin
+      return POA_Object_Ptr (Object_Of (The_Ref));
+   end POA_Object_Of;
+
+   ---------------------
+   -- Ref_To_Skeleton --
+   ---------------------
+
+   function Ref_To_Skeleton
      (Ref : CORBA.Object.Ref'Class)
-     return Internal_Skeleton_Ptr
+     return Skeleton_Ptr
    is
-      use Broca.Refs;
-      Res : Broca.Refs.Ref_Ptr;
-   begin
-      Res := CORBA.Object.Get (Ref);
-      if Res = null or else Res.all not in Internal_Skeleton'Class then
-         Broca.Exceptions.Raise_Bad_Param;
-      else
-         return Internal_Skeleton_Ptr (Res);
-      end if;
-   end To_Internal_Skeleton;
+      use CORBA.Impl;
 
-   function Create_Internal_Skeleton (P_Servant : PortableServer.Servant)
-                                      return Internal_Skeleton_Ptr
-   is
-      Res : Internal_Skeleton_Ptr;
+      Obj : constant Object_Ptr := CORBA.Object.Object_Of (Ref);
+
    begin
-      Res := new Internal_Skeleton;
-      Res.P_Servant := P_Servant;
-      Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Res));
-      return Res;
-   end Create_Internal_Skeleton;
+      --  FIXME: Creating uncontrolled reference to
+      --    a reference-counted object.
+      if Obj = null then
+         Broca.Exceptions.Raise_Bad_Param;
+      end if;
+
+      if Obj.all in Skeleton'Class then
+         return Skeleton_Ptr (Obj);
+      end if;
+
+      if Obj.all not in Object.Object_Type'Class then
+         Broca.Exceptions.Raise_Bad_Param;
+      end if;
+
+      declare
+         use Broca.IOP;
+         use Broca.Sequences;
+         use Broca.Server;
+         use Broca.Sequences.Octet_Sequences;
+
+         X : Object.Object_Ptr := Object.Object_Ptr (Obj);
+         P : Profile_Ptr := X.Profiles (X.Profiles'First);
+         E : aliased Encapsulation := To_Octet_Array (Get_Object_Key (P.all));
+
+         Key       : aliased Buffer_Type;
+         POA       : POA_Object_Ptr;
+         POA_Ref   : Broca.POA.Ref;
+         POA_State : Processing_State_Type;
+
+      begin
+         Decapsulate (E'Access, Key'Access);
+         Server.Unmarshall (Key'Access, POA_Ref, POA_State);
+         POA := POA_Object_Of (POA_Ref);
+
+         declare
+            E : aliased Encapsulation := Unmarshall (Key'Access);
+
+         begin
+            return Key_To_Skeleton (POA, E'Unchecked_Access);
+         end;
+      end;
+   end Ref_To_Skeleton;
+
+   ---------
+   -- Set --
+   ---------
+
+   procedure Set
+     (The_Ref : in out Ref;
+      The_Object : POA_Object_Ptr) is
+   begin
+      Broca.Refs.Set
+        (Broca.Refs.Ref (The_Ref), Broca.Refs.Ref_Ptr (The_Object));
+   end Set;
+
+   ---------------------
+   -- Skeleton_To_Ref --
+   ---------------------
+
+   function Skeleton_To_Ref
+     (Skel : Skeleton)
+     return CORBA.Object.Ref is
+   begin
+      return Server.Build_IOR (Skel.Type_Id, Skel.POA, Skel.Object_Key.all);
+   end Skeleton_To_Ref;
+
+   ----------------
+   -- To_POA_Ref --
+   ----------------
+
+   function To_POA_Ref (The_POA : POA_Object_Ptr) return Ref
+   is
+      The_Ref : Ref;
+   begin
+      Set (The_Ref, The_POA);
+      return The_Ref;
+   end To_POA_Ref;
+
 end Broca.POA;

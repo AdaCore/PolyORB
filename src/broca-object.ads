@@ -32,17 +32,23 @@
 ------------------------------------------------------------------------------
 
 with CORBA;
+with CORBA.Impl;
+
 with Broca.Buffers;
-with Broca.Refs;
 with Broca.IOP;
 
 package Broca.Object is
 
-   type Object_Type is new Broca.Refs.Ref_Type with
+   type Object_Type is new CORBA.Impl.Object with
       record
          Type_Id  : CORBA.String;
          Profiles : IOP.Profile_Ptr_Array_Ptr;
       end record;
+
+   type Object_Ptr is access all Object_Type'Class;
+
+   procedure Finalize
+     (X : in out Object_Type);
 
    procedure Marshall
      (Buffer : access Broca.Buffers.Buffer_Type;
@@ -52,19 +58,9 @@ package Broca.Object is
      (Buffer : access Broca.Buffers.Buffer_Type;
       Result : out Broca.Object.Object_Type);
 
-   type Object_Ptr is access all Object_Type'Class;
-
    function Find_Profile
      (Object : Object_Ptr)
      return IOP.Profile_Ptr;
    --  Find a profile for a message
-
-   procedure Encapsulate_IOR
-     (Buffer : access Broca.Buffers.Buffer_Type;
-      Object : in Object_Type'Class);
-
-   procedure Decapsulate_IOR
-     (Buffer : access Broca.Buffers.Buffer_Type;
-      Object : out Object_Type'Class);
 
 end Broca.Object;

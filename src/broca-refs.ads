@@ -36,65 +36,74 @@ with Broca.Buffers;
 
 package Broca.Refs is
 
-   type Ref_Type is tagged limited private;
-   --  Ref_Type is the base type of all objects that can be
+   pragma Elaborate_Body;
+
+   ------------
+   -- Entity --
+   ------------
+
+   type Entity is abstract
+     new Ada.Finalization.Limited_Controlled
+     with private;
+   --  Entity is the base type of all objects that can be
    --  referenced. It contains a Counter, which is the number of
    --  references to this object, and is automatically destroyed when
-   --  the counter reachs 0.  It is not abstract, because used for
-   --  instanciate System.Address_To_Access_Conversions.
+   --  the counter reaches 0.
 
    procedure Marshall
      (Buffer : access Broca.Buffers.Buffer_Type;
-      Value  : in Ref_Type);
+      Value  : in Entity);
 
    procedure Unmarshall
      (Buffer : access Broca.Buffers.Buffer_Type;
-      Value  : out Ref_Type);
+      Value  : out Entity);
 
-   procedure Disable_Usage (Obj : in out Ref_Type);
-   --  Disable Counter of references. This is used for object derived
-   --  from Ref_type by the user (eg: servant, AdapterActivator...).
-   --  Must be called just after creation, when Counter is -1
-   --  (otherwise, CORBA.internal is raised).
+   type Ref_Ptr is access all Entity'Class;
+   subtype Entity_Ptr is Ref_Ptr;
+   --  FIXME: Rename Ref_Ptr to Entity_Ptr, remove subtype decl.
 
-   type Ref_Ptr is access all Ref_Type'Class;
-
-   --  Handle the usage counter, unless Obj is null or the counter is
-   --  disabled.
-   procedure Inc_Usage (Obj : in Ref_Ptr);
+   procedure Inc_Usage (Obj : Ref_Ptr);
    procedure Dec_Usage (Obj : in out Ref_Ptr);
+   --  FIXME: Do not expose.
+
+   ---------
+   -- Ref --
+   ---------
 
    type Ref is new Ada.Finalization.Controlled with private;
    --  The base type of all references. Inside CORBA (and Broca), this
    --  type is often derived but never extended. It contains one
    --  field, which designate the referenced object.
 
-   function Get (Self : Ref) return Ref_Ptr;
-   --  Get inner Ref_Type object
+   procedure Initialize (The_Ref : in out Ref);
+   procedure Adjust     (The_Ref : in out Ref);
+   procedure Finalize   (The_Ref : in out Ref);
 
-   procedure Set (Self : in out Ref; Referenced : Ref_Ptr);
-   --  Set the object (can destroyed the previous one, if it was the only
-   --  reference).
+   procedure Set
+     (The_Ref : in out Ref;
+      The_Entity : Ref_Ptr);
 
-   procedure Marshall_Reference
-     (Buffer : access Broca.Buffers.Buffer_Type;
-      Value  : in Ref);
+   procedure Unref (The_Ref : in out Ref)
+     renames Finalize;
 
-   procedure Unmarshall_Reference
-     (Buffer : access Broca.Buffers.Buffer_Type;
-      Value  : out Ref);
+   function Is_Nil (The_Ref : Ref) return Boolean;
+   function Is_Null (The_Ref : Ref) return Boolean
+     renames Is_Nil;
 
-   --  function Unmarshall
-   --    (Buffer : access Broca.Buffers.Buffer_Type)
-   --    return Ref'Class;
+   procedure Duplicate (The_Ref : in out Ref)
+     renames Adjust;
+
+   procedure Release (The_Ref : in out Ref);
+
+   function Entity_Of (The_Ref : Ref) return Ref_Ptr;
+
+   Nil_Ref : constant Ref;
 
 private
 
-   --   type Ref_Type is new Ada.Finalization.Limited_Controlled with
-   type Ref_Type is tagged limited
+   type Entity is abstract
+     new Ada.Finalization.Limited_Controlled with
       record
-         --  COUNTER is used to count the number of references, unless
-         --  COUNTER is -1 (caused by disable_usage).
          Counter : Integer := 0;
       end record;
 
@@ -103,8 +112,7 @@ private
          A_Ref : Ref_Ptr := null;
       end record;
 
-   procedure Initialize (Object : in out Ref);
-   procedure Adjust (Object : in out Ref);
-   procedure Finalize (Object : in out Ref);
+   Nil_Ref : constant Ref := (Ada.Finalization.Controlled
+                              with A_Ref => null);
 
 end Broca.Refs;

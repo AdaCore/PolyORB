@@ -31,23 +31,34 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  CORBA.Sequences is the parent of the bounded and unbounded sequence
---  packages.  Some exceptions and types common to both are declared here
---  (following the structure of Ada.Strings).
---
---  Length_Error is raised when sequence lengths are exceeded.
---  Pattern_Error is raised when a null pattern string is
---  passed. Index_Error is raised when indexes are out of range.
+with Sequences;
 
 package CORBA.Sequences is
 
-   Length_Error, Pattern_Error, Index_Error : exception;
+   Length_Error : exception renames Standard.Sequences.Length_Error;
+   Pattern_Error : exception renames Standard.Sequences.Pattern_Error;
+   Index_Error : exception renames Standard.Sequences.Index_Error;
 
-   type Alignment is (Left, Right, Center);
-   type Truncation is (Left, Right, Error);
-   type Membership is (Inside, Outside);
-   type Direction is (Forward, Backward);
+   subtype Alignment is Standard.Sequences.Alignment;
+   function Left return Alignment renames Standard.Sequences.Left;
+   function Right return Alignment renames Standard.Sequences.Right;
+   function Center return Alignment renames Standard.Sequences.Center;
 
-   type Trim_End is (Left, Right, Both);
+   subtype Truncation is Standard.Sequences.Truncation;
+   function Left return Truncation renames Standard.Sequences.Left;
+   function Right return Truncation renames Standard.Sequences.Right;
+   function Error return Truncation renames Standard.Sequences.Error;
+
+   subtype Membership is Standard.Sequences.Membership;
+   function Inside return Membership renames Standard.Sequences.Inside;
+   function Outside return Membership renames Standard.Sequences.Outside;
+
+   subtype Direction is Standard.Sequences.Direction;
+   function Forward return Direction renames Standard.Sequences.Forward;
+   function Backward return Direction renames Standard.Sequences.Backward;
+
+   subtype Trim_End is Standard.Sequences.Trim_End;
+   function Left return Trim_End renames Standard.Sequences.Left;
+   function Right return Trim_End renames Standard.Sequences.Right;
 
 end CORBA.Sequences;

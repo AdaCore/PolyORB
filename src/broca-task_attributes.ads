@@ -37,6 +37,9 @@ pragma Elaborate_All (PortableServer);
 
 package Broca.Task_Attributes is
 
+   function Has_Context return Boolean;
+   pragma Inline (Has_Context);
+
    function Current_Object return PortableServer.ObjectId;
    pragma Inline (Current_Object);
 
@@ -48,5 +51,11 @@ package Broca.Task_Attributes is
 
    procedure Set_Current_POA (Val : PortableServer.POA_Forward.Ref);
    pragma Inline (Set_Current_POA);
+
+   procedure Set_Has_Context (Context : in Boolean := True);
+   pragma Inline (Set_Has_Context);
+
+   procedure Set_Has_No_Context (Context : in Boolean := False)
+     renames Set_Has_Context;
 
 end Broca.Task_Attributes;

@@ -33,23 +33,11 @@
 
 with Broca.CDR; use Broca.CDR;
 
+with Ada.Unchecked_Conversion;
+
 package body Broca.Sequences is
 
    package OS renames Octet_Sequences;
-
-   function To_CORBA_Octet_Array
-     (Data : Octet_Array)
-     return CORBA_Octet_Array
-   is
-      Result : CORBA_Octet_Array (1 .. Data'Length);
-   begin
-      for I in Data'Range loop
-         Result (Integer (I - Data'First + 1))
-           := CORBA.Octet (Data (I));
-      end loop;
-
-      return Result;
-   end To_CORBA_Octet_Array;
 
    --------------
    -- Marshall --
@@ -79,6 +67,50 @@ package body Broca.Sequences is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
+
+   --------------------
+   -- To_Octet_Array --
+   --------------------
+
+   function To_Octet_Array
+     (Data : CORBA_Octet_Array)
+     return Octet_Array
+   is
+      subtype T1 is CORBA_Octet_Array (Data'First .. Data'Last);
+      subtype T2 is Octet_Array (1 .. Data'Length);
+      function T1_To_T2 is new Ada.Unchecked_Conversion (T1, T2);
+
+   begin
+      return T1_To_T2 (Data);
+   end To_Octet_Array;
+
+   --------------------------
+   -- To_CORBA_Octet_Array --
+   --------------------------
+
+   function To_CORBA_Octet_Array
+     (Data : Octet_Array)
+     return CORBA_Octet_Array
+   is
+      subtype T1 is Octet_Array (Index_Type (Data'First) ..
+                                 Index_Type (Data'Last));
+      subtype T2 is CORBA_Octet_Array (1 .. Data'Length);
+      function T1_To_T2 is new Ada.Unchecked_Conversion (T1, T2);
+
+   begin
+      return T1_To_T2 (Data);
+   end To_CORBA_Octet_Array;
+
+   --------------------
+   -- To_Octet_Array --
+   --------------------
+
+   function To_Octet_Array
+     (Data : Octet_Sequence)
+     return Octet_Array is
+   begin
+      return To_Octet_Array (Octet_Sequences.To_Element_Array (Data));
+   end To_Octet_Array;
 
    ----------------
    -- Unmarshall --

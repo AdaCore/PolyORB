@@ -36,8 +36,9 @@ with Ada.Task_Attributes;
 package body Broca.Task_Attributes is
 
    type Task_Attribute is record
-      Current_Object    : PortableServer.ObjectId;
-      Current_POA       : PortableServer.POA_Forward.Ref;
+      Has_Context    : Boolean := False;
+      Current_Object : PortableServer.ObjectId;
+      Current_POA    : PortableServer.POA_Forward.Ref;
    end record;
 
    Nil_Attribute : Task_Attribute;
@@ -46,13 +47,20 @@ package body Broca.Task_Attributes is
      (Attribute => Task_Attribute,
       Initial_Value => Nil_Attribute);
 
+   function Has_Context return Boolean is
+   begin
+      return Attributes.Value.Has_Context;
+   end Has_Context;
+
    function Current_Object return PortableServer.ObjectId is
    begin
+      pragma Assert (Has_Context);
       return Attributes.Value.Current_Object;
    end Current_Object;
 
    function Current_POA return PortableServer.POA_Forward.Ref is
    begin
+      pragma Assert (Has_Context);
       return Attributes.Value.Current_POA;
    end Current_POA;
 
@@ -69,5 +77,12 @@ package body Broca.Task_Attributes is
       Current_Attributes.Current_POA := Val;
       Attributes.Set_Value (Current_Attributes);
    end Set_Current_POA;
+
+   procedure Set_Has_Context (Context : Boolean := True) is
+      Current_Attributes : Task_Attribute := Attributes.Value;
+   begin
+      Current_Attributes.Has_Context := True;
+      Attributes.Set_Value (Current_Attributes);
+   end Set_Has_Context;
 
 end Broca.Task_Attributes;

@@ -36,50 +36,14 @@ package body Ada_Be.Source_Streams is
    Flag : constant Natural := Ada_Be.Debug.Is_Active ("ada_be.source_streams");
    procedure O is new Ada_Be.Debug.Output (Flag);
 
-   procedure Set_Empty (Unit : in out Compilation_Unit) is
-   begin
-      Unit.Empty := True;
-   end Set_Empty;
+   --  Semantic dependencies
 
-   procedure Put
-     (Unit : in out Compilation_Unit;
-      Text : String)
-   is
-      Indent_String : constant String
-        (1 .. Unit.Indent_Level * Indent_Size)
-        := (others => ' ');
-   begin
-      Unit.Empty := False;
-      if Unit.At_BOL then
-         Append (Unit.Library_Item, Indent_String);
-         Unit.At_BOL := False;
-      end if;
-      Append (Unit.Library_Item, Text);
-   end Put;
-
-   procedure Put_Line
-     (Unit : in out Compilation_Unit;
-      Line : String) is
-   begin
-      Put (Unit, Line);
-      New_Line (Unit);
-   end Put_Line;
-
-   procedure New_Line (Unit : in out Compilation_Unit) is
-   begin
-      Append (Unit.Library_Item, LF);
-      Unit.At_BOL := True;
-   end New_Line;
-
-   procedure Inc_Indent (Unit : in out Compilation_Unit) is
-   begin
-      Unit.Indent_Level := Unit.Indent_Level + 1;
-   end Inc_Indent;
-
-   procedure Dec_Indent (Unit : in out Compilation_Unit) is
-   begin
-      Unit.Indent_Level := Unit.Indent_Level - 1;
-   end Dec_Indent;
+   type Dependency_Node is record
+      Library_Unit : String_Ptr;
+      Use_It : Boolean := False;
+      Elab_Control : Elab_Control_Pragma := None;
+      Next : Dependency;
+   end record;
 
    function Is_Ancestor
      (U1 : String;
@@ -104,18 +68,6 @@ package body Ada_Be.Source_Streams is
         and then LU1 = LU2
         (LU2'First .. LU2'First + LU1'Length - 1);
    end Is_Ancestor;
-
-   procedure Add_Elaborate_Body (Unit : in out Compilation_Unit) is
-   begin
-      pragma Assert (Unit.Kind = Unit_Spec);
-      Unit.Empty := False;
-      Unit.Elaborate_Body := True;
-   end Add_Elaborate_Body;
-
-   procedure Suppress_Warning_Message (Unit : in out Compilation_Unit) is
-   begin
-      Unit.No_Warning := True;
-   end Suppress_Warning_Message;
 
    procedure Add_With
      (Unit   : in out Compilation_Unit;
@@ -177,6 +129,34 @@ package body Ada_Be.Source_Streams is
 
    end Add_With;
 
+   procedure Add_Elaborate_Body (Unit : in out Compilation_Unit) is
+   begin
+      pragma Assert (Unit.Kind = Unit_Spec);
+      Unit.Diversions (Visible_Declarations).Empty := False;
+      Unit.Elaborate_Body := True;
+   end Add_Elaborate_Body;
+
+   procedure Suppress_Warning_Message (Unit : in out Compilation_Unit) is
+   begin
+      Unit.No_Warning := True;
+   end Suppress_Warning_Message;
+
+   --  Source streams (global)
+
+   procedure Divert
+     (CU     : in out Compilation_Unit;
+      Whence : Diversion) is
+   begin
+      if not (False
+        or else Whence = Visible_Declarations
+        or else (Whence = Private_Declarations and then CU.Kind = Unit_Spec)
+        or else (Whence = Elaboration and then CU.Kind = Unit_Body)) then
+         raise Program_Error;
+      end if;
+
+      CU.Current_Diversion := Whence;
+   end Divert;
+
    function New_Package
      (Name : String;
       Kind : Unit_Kind)
@@ -190,15 +170,24 @@ package body Ada_Be.Source_Streams is
       return The_Package;
    end New_Package;
 
+
    procedure Generate
-     (Unit : Compilation_Unit;
+     (Unit : in Compilation_Unit;
       Is_Generic_Instanciation : Boolean := False;
       To_Stdout : Boolean := False)
    is
+
+      --  Helper subprograms for Generate
+
       function Ada_File_Name
         (Full_Name : String;
          Part      : Unit_Kind := Unit_Spec)
         return String;
+      --  The name of the file that contains Unit.
+
+      function Is_Empty return Boolean;
+      --  True if, and only if, any of Unit's diversions
+      --  is not empty.
 
       function Ada_File_Name
         (Full_Name : String;
@@ -221,6 +210,17 @@ package body Ada_Be.Source_Streams is
          Result (Result'Last) := Extension (Part);
          return Result;
       end Ada_File_Name;
+
+      function Is_Empty return Boolean is
+      begin
+         for I in Unit.Diversions'Range loop
+            if not Unit.Diversions (I).Empty then
+               return False;
+            end if;
+         end loop;
+
+         return True;
+      end Is_Empty;
 
       use Ada.Text_IO;
 
@@ -289,15 +289,32 @@ package body Ada_Be.Source_Streams is
             Put_Line (File, "   pragma Elaborate_Body;");
          end if;
 
-         Put (File, To_String (Unit.Library_Item));
+         if not Unit.Diversions (Visible_Declarations).Empty then
+            Put (File, To_String
+                 (Unit.Diversions (Visible_Declarations).Library_Item));
+         end if;
+
+         if not Unit.Diversions (Private_Declarations).Empty then
+            New_Line (File);
+            Put_Line (File, "private");
+            Put (File, To_String
+                 (Unit.Diversions (Private_Declarations).Library_Item));
+         end if;
+
+         if not Unit.Diversions (Elaboration).Empty then
+            New_Line (File);
+            Put_Line (File, "begin");
+            Put (File, To_String (Unit.Diversions (Elaboration).Library_Item));
+         end if;
 
          if not Is_Generic_Instanciation then
+            New_Line (File);
             Put_Line (File, "end " & Unit.Library_Unit_Name.all & ";");
          end if;
       end Emit_Source_Code;
 
    begin
-      if Unit.Empty then
+      if Is_Empty then
          return;
       end if;
 
@@ -318,6 +335,62 @@ package body Ada_Be.Source_Streams is
       end if;
    end Generate;
 
+   --  Source code streams (diversion specific)
+
+   procedure Set_Empty (Unit : in out Compilation_Unit) is
+   begin
+      Unit.Diversions (Unit.Current_Diversion).Empty := True;
+   end Set_Empty;
+
+   procedure Put
+     (Unit : in out Compilation_Unit;
+      Text : String)
+   is
+      Indent_String : constant String
+        (1 .. Indent_Size
+           * Unit.Diversions (Unit.Current_Diversion).Indent_Level)
+          := (others => ' ');
+   begin
+      Unit.Diversions (Unit.Current_Diversion).Empty := False;
+      if Unit.Diversions (Unit.Current_Diversion).At_BOL then
+         Append
+           (Unit.Diversions (Unit.Current_Diversion).Library_Item,
+            Indent_String);
+         Unit.Diversions (Unit.Current_Diversion).At_BOL := False;
+      end if;
+      Append (Unit.Diversions (Unit.Current_Diversion).Library_Item, Text);
+   end Put;
+
+   procedure Put_Line
+     (Unit : in out Compilation_Unit;
+      Line : String) is
+   begin
+      Put (Unit, Line);
+      New_Line (Unit);
+   end Put_Line;
+
+   procedure New_Line (Unit : in out Compilation_Unit) is
+   begin
+      Append (Unit.Diversions (Unit.Current_Diversion).Library_Item, LF);
+      Unit.Diversions (Unit.Current_Diversion).At_BOL := True;
+   end New_Line;
+
+   procedure Inc_Indent (Unit : in out Compilation_Unit) is
+   begin
+      Unit.Diversions (Unit.Current_Diversion).Indent_Level
+      := Unit.Diversions (Unit.Current_Diversion).Indent_Level + 1;
+   end Inc_Indent;
+
+   procedure Dec_Indent (Unit : in out Compilation_Unit) is
+   begin
+      Unit.Diversions (Unit.Current_Diversion).Indent_Level
+      := Unit.Diversions (Unit.Current_Diversion).Indent_Level - 1;
+   end Dec_Indent;
+
+   --  Finalization
+
+   procedure Free is
+      new Ada.Unchecked_Deallocation (String, String_Ptr);
    procedure Free is
       new Ada.Unchecked_Deallocation (Dependency_Node, Dependency);
 

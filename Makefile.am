@@ -1,10 +1,10 @@
 AUTOMAKE_OPTIONS = foreign no-dependencies
 ACLOCAL_AMFLAGS = -I support
-SUBDIRS = idlac adasockets src examples cos
-
-autoconf::
-	aclocal -I support && autoconf && automake
-	cd adasockets && aclocal -I ../support && autoconf && automake && autoheader
-	cd idlac && $(MAKE) -f Makefile.am autoconf
-
+SUBDIRS = idlac $(ADASOCKETSDIR) src examples cos
 CLEANFILES = config-stamp
+
+if HAS_ADASOCKETS
+ADASOCKETSDIR =
+else
+ADASOCKETSDIR = adasockets
+endif

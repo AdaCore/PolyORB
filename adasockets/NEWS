@@ -2,6 +2,10 @@
 
 * New in AdaSockets 0.1.8
 
+** Change the building process
+
+AdaSockets now comes as a shared and a non-shared library.
+
 ** Fix bugs on 64 bit platforms
 
 The iovec_len field in sockets-thin.ads was incorrectly marked as being

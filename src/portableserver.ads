@@ -31,76 +31,61 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Finalization;
 with CORBA;
-with CORBA.Forward;
 with CORBA.Object;
-with Broca.Sequences;
-with Broca.Buffers;
-
+with CORBA.Impl;
+with CORBA.Sequences.Unbounded;
+with CORBA.Forward;
 pragma Elaborate_All (CORBA.Forward);
+
+with Broca.Buffers;
 
 package PortableServer is
 
    package POA_Forward is new CORBA.Forward;
 
+   type Servant_Base is new CORBA.Impl.Object with private;
+
    --  21.41.1
    --  Conforming implementations must provide a controlled (tagged)
    --  Servant_Base type and default implementations of the primitve
    --  operations on Servant_Base that meet the required semantics.
-   type Servant_Base is new Ada.Finalization.Controlled with private;
 
    type Servant is access all Servant_Base'Class;
-
-   --  Get the type_id.
-   function Get_Type_Id (Obj : Servant) return CORBA.RepositoryId;
-
-   --  Call an operation.
-   --  Only standard exceptions (defined in module CORBA) can be caught
-   --  outside of GIOP_DISPATCH, ie user defined exception must be marshalled.
-   procedure GIOP_Dispatch
-     (Obj : Servant;
-      Operation : String;
-      Request_Id : CORBA.Unsigned_Long;
-      Response_Expected : CORBA.Boolean;
-      Request_Buffer : access Broca.Buffers.Buffer_Type;
-      Reply_Buffer   : access Broca.Buffers.Buffer_Type);
-
-   --  The data to be provided by the skeleton of an interface.
-
-   type GIOP_Dispatcher is access procedure
-     (Obj : Servant;
-      Operation : String;
-      Request_Id : CORBA.Unsigned_Long;
-      Reponse_Expected : CORBA.Boolean;
-      Request_Buffer : access Broca.Buffers.Buffer_Type;
-      Reply_Buffer   : access Broca.Buffers.Buffer_Type);
-   type Servant_Class_Predicate is access function
-     (Obj : Servant)
-     return Boolean;
-
-   procedure Register_Skeleton
-     (Id : CORBA.RepositoryId;
-      Is_A : Servant_Class_Predicate;
-      Dispatcher : GIOP_Dispatcher);
-   procedure Unregister_Skeleton
-     (Id : CORBA.RepositoryId);
 
    --  FIXME: how to implement this ?
    --  function "=" (Left, Right : Servant) return Boolean;
    --  pragma Convention (Intrinsic, "=");
 
-   function Get_Default_POA (For_Servant : Servant_Base)
+   function Get_Default_POA
+     (For_Servant : Servant_Base)
      return POA_Forward.Ref;
 
-   type ObjectId is new Broca.Sequences.Octet_Sequence;
+   --     function Get_Interface
+   --       (For_Servant : Servant_Base)
+   --       return CORBA.InterfaceDef.Ref;
+
+   --     function Is_A
+   --       (For_Servant : Servant_Base;
+   --        Logical_Type_ID : Standard.String)
+   --       return Boolean;
+
+   --     function Non_Existent
+   --       (For_Servant : Servant_Base)
+   --       return Boolean;
+
+   package IDL_SEQUENCE_Octet is
+      new CORBA.Sequences.Unbounded (CORBA.Octet);
+   type ObjectId is new IDL_SEQUENCE_Octet.Sequence;
 
    -------------------------------
    --  exception forwardRequest --
    -------------------------------
+
    ForwardRequest : exception;
 
-   type ForwardRequest_Members is new CORBA.IDL_Exception_Members with
+   type ForwardRequest_Members is
+     new CORBA.IDL_Exception_Members with
       record
          Forward_Reference : CORBA.Object.Ref;
       end record;
@@ -109,21 +94,9 @@ package PortableServer is
      (From : in CORBA.Exception_Occurrence;
       To   : out ForwardRequest_Members);
 
-   --  Calling ForwardRequest does not increase the usage counter of
-   --  REFERENCE.  As a result, the user must ensure not to release
-   --  REFERENCE while the exception is processed.
-   --  There is a dilemna here:
-   --  - if we increase the counter, the usage counter will never
-   --    be decreased if get_members is not called
-   --  - if we do not increase it, the object may be deleted
-   --   before the exception is caught.
-   procedure Raise_Forward_Request (Reference : CORBA.Object.Ref);
-   pragma No_Return (Raise_Forward_Request);
-
-
-   -----------------------
-   --  constants        --
-   -----------------------
+   ---------------
+   -- constants --
+   ---------------
 
    THREAD_POLICY_ID              : constant CORBA.PolicyType := 16;
    LIFESPAN_POLICY_ID            : constant CORBA.PolicyType := 17;
@@ -133,18 +106,100 @@ package PortableServer is
    SERVANT_RETENTION_POLICY_ID   : constant CORBA.PolicyType := 21;
    REQUEST_PROCESSING_POLICY_ID  : constant CORBA.PolicyType := 22;
 
-   type ThreadPolicyValue is (ORB_CTRL_MODEL, SINGLE_THREAD_MODEL);
-   type LifespanPolicyValue is (TRANSIENT, PERSISTENT);
-   type IdUniquenessPolicyValue is (UNIQUE_ID, MULTIPLE_ID);
-   type IdAssignmentPolicyValue is (USER_ID, SYSTEM_ID);
+   type ThreadPolicyValue is
+     (ORB_CTRL_MODEL,
+      SINGLE_THREAD_MODEL);
+
+   type LifespanPolicyValue is
+     (TRANSIENT,
+      PERSISTENT);
+
+   type IdUniquenessPolicyValue is
+     (UNIQUE_ID,
+      MULTIPLE_ID);
+
+   type IdAssignmentPolicyValue is
+     (USER_ID,
+      SYSTEM_ID);
+
    type ImplicitActivationPolicyValue is
-      (IMPLICIT_ACTIVATION, NO_IMPLICIT_ACTIVATION);
-   type ServantRetentionPolicyValue is (RETAIN, NON_RETAIN);
+     (IMPLICIT_ACTIVATION,
+      NO_IMPLICIT_ACTIVATION);
+
+   type ServantRetentionPolicyValue is
+     (RETAIN,
+      NON_RETAIN);
+
    type RequestProcessingPolicyValue is
-     (USE_ACTIVE_OBJECT_MAP_ONLY, USE_DEFAULT_SERVANT, USE_SERVANT_MANAGER);
+     (USE_ACTIVE_OBJECT_MAP_ONLY,
+      USE_DEFAULT_SERVANT,
+      USE_SERVANT_MANAGER);
+
+
+   -----------------------
+   -- Specific to Broca --
+   -----------------------
+
+   procedure Marshall
+     (Buffer : access Broca.Buffers.Buffer_Type;
+      Data   : in ObjectId);
+
+   function Unmarshall
+     (Buffer : access Broca.Buffers.Buffer_Type)
+     return ObjectId;
+
+   function Get_Type_Id
+     (For_Servant : Servant) return CORBA.RepositoryId;
+
+   procedure GIOP_Dispatch
+     (For_Servant       : in Servant;
+      Operation         : in String;
+      Request_Id        : in CORBA.Unsigned_Long;
+      Response_Expected : in CORBA.Boolean;
+      Request_Buffer    : access Broca.Buffers.Buffer_Type;
+      Reply_Buffer      : access Broca.Buffers.Buffer_Type);
+   --  Call an operation.
+   --  Only standard exceptions (defined in module CORBA) can be
+   --  caught outside of GIOP_DISPATCH, ie user defined exception must
+   --  be marshalled.
+
+
+   --  The data to be provided by the skeleton of an interface.
+
+   type GIOP_Dispatcher is access procedure
+     (For_Servant      : in Servant;
+      Operation        : in String;
+      Request_Id       : in CORBA.Unsigned_Long;
+      Reponse_Expected : in CORBA.Boolean;
+      Request_Buffer   : access Broca.Buffers.Buffer_Type;
+      Reply_Buffer     : access Broca.Buffers.Buffer_Type);
+
+   type Servant_Class_Predicate is access function
+     (For_Servant : Servant)
+     return Boolean;
+
+   procedure Register_Skeleton
+     (Type_Id    : in CORBA.RepositoryId;
+      Is_A       : in Servant_Class_Predicate;
+      Dispatcher : in GIOP_Dispatcher);
+
+   procedure Unregister_Skeleton
+     (Type_Id    : in CORBA.RepositoryId);
+
+
+   --  Calling ForwardRequest does not increase the usage counter of
+   --  REFERENCE.  As a result, the user must ensure not to release
+   --  REFERENCE while the exception is processed.
+   --  There is a dilemna here:
+   --  - if we increase the counter, the usage counter will never
+   --    be decreased if get_members is not called
+   --  - if we do not increase it, the object may be deleted
+   --    before the exception is caught.
+   procedure Raise_Forward_Request (Reference : in CORBA.Object.Ref);
+   pragma No_Return (Raise_Forward_Request);
 
 private
-   type Servant_Base is new Ada.Finalization.Controlled with
-     null record;
+
+   type Servant_Base is new CORBA.Impl.Object with null record;
 
 end PortableServer;
