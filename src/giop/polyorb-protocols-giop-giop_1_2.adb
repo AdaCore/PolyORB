@@ -483,8 +483,16 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          when Profile_Addr =>
             Create_Reference ((1 => Target_Addr.Profile), "", Target);
 
+            Def_Args := Component_Access (S);
+            --  XXX By default, we do deffered unmarshalling, we
+            --  have no way to get servant signature.
+
          when Reference_Addr =>
             Target := References.Ref (Target_Addr.Ref.IOR);
+
+            Def_Args := Component_Access (S);
+            --  XXX By default, we do deffered unmarshalling, we
+            --  have no way to get servant signature.
       end case;
 
       Create_Request
