@@ -180,10 +180,7 @@ package body Backend.BE_Ada.Helpers is
             when others =>
                raise Program_Error;
          end case;
-         Set_Str_To_Name_Buffer ("TC_");
-         Get_Name_String_And_Append
-           (BEN.Name (Defining_Identifier (N)));
-         TC := Name_Find;
+         TC := Add_Prefix_To_Name ("TC_", BEN.Name (Defining_Identifier (N)));
          C := Make_Subprogram_Call
            (Defining_Identifier   => RE (RE_To_CORBA_Object),
             Actual_Parameter_Part => Make_List_Id (P));
@@ -403,11 +400,19 @@ package body Backend.BE_Ada.Helpers is
 
    package body Package_Body is
 
+      Deferred_Initialization_Body : List_Id;
+      Package_Initializarion       : List_Id;
+
+      function Deferred_Initialization_Block
+        (E : Node_Id)
+         return Node_Id;
       function Img (N : Integer) return String;
 
       function From_Any_Body
         (E : Node_Id)
         return Node_Id;
+
+      procedure Helper_Initialization (L : List_Id);
 
       function To_Any_Body
         (E : Node_Id)
@@ -432,6 +437,139 @@ package body Backend.BE_Ada.Helpers is
       procedure Visit_Structure_Type (E : Node_Id);
       procedure Visit_Type_Declaration (E : Node_Id);
       procedure Visit_Union_Type (E : Node_Id);
+
+      -----------------------------------
+      -- Deferred_Initialization_Block --
+      -----------------------------------
+
+      function Deferred_Initialization_Block
+        (E : Node_Id)
+         return Node_Id
+      is
+         function Add_Parameter
+           (TC_Name  : Name_Id;
+            Var_Name : Name_Id)
+            return Node_Id;
+
+         function Declare_Name
+           (Var_Name  : Name_Id;
+            Value : Value_Id)
+            return Node_Id;
+
+         -------------------
+         -- Add_Parameter --
+         -------------------
+
+         function Add_Parameter
+           (TC_Name  : Name_Id;
+            Var_Name : Name_Id)
+            return Node_Id
+         is
+            N : Node_Id;
+         begin
+            N := Make_Subprogram_Call
+              (RE (RE_To_Any_0),
+               Make_List_Id (Make_Designator (Var_Name)));
+            N := Make_Subprogram_Call
+              (RE (RE_Add_Parameter),
+               Make_List_Id
+               (Make_Designator (TC_Name),
+                N));
+            return N;
+         end Add_Parameter;
+
+         ------------------
+         -- Declare_Name --
+         ------------------
+
+         function Declare_Name
+           (Var_Name  : Name_Id;
+            Value : Value_Id)
+            return Node_Id
+         is
+            N : Node_Id;
+         begin
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (Var_Name),
+               Object_Definition   => RE (RE_String_0),
+               Expression          =>
+                 Make_Subprogram_Call
+               (RE (RE_To_CORBA_String),
+                Make_List_Id (Make_Literal (Value))));
+            return N;
+         end Declare_Name;
+
+         Stub             : Node_Id;
+         Helper           : Node_Id;
+         N                : Node_Id;
+         Entity_TC_Name   : Name_Id;
+         Entity_Name_V    : Value_Id;
+         Entity_Rep_Id_V  : Value_Id;
+         Declarative_Part : List_Id := New_List (K_List_Id);
+         Statements       : List_Id := New_List (K_List_Id);
+      begin
+         Stub :=  Stub_Node (BE_Node (Identifier (E)));
+         Entity_Rep_Id_V := BEN.Value (BEN.Expression (Next_Node (Stub)));
+         Helper := Helper_Node (BE_Node (Identifier (E)));
+
+         case FEN.Kind (E) is
+            when K_Interface_Declaration =>
+             Stub := Package_Declaration
+                 (BEN.Parent (Stub));
+             Helper := Next_Node (Next_Node (Helper));
+            when others =>
+               raise Program_Error;
+         end case;
+
+         --  Name_U declaration
+
+
+         Entity_Name_V := New_String_Value
+           (BEN.Name (Defining_Identifier (Stub)), False);
+         Entity_TC_Name := BEN.Name (Defining_Identifier (Helper));
+
+         N := Declare_Name (VN (V_Name), Entity_Name_V);
+         Append_Node_To_List (N, Declarative_Part);
+
+         --  Id_U declaration
+         N := Declare_Name (VN (V_Id), Entity_Rep_Id_V);
+         Append_Node_To_List (N, Declarative_Part);
+
+         N := Add_Parameter (Entity_TC_Name, VN (V_Name));
+         Append_Node_To_List (N, Statements);
+         N := Add_Parameter (Entity_TC_Name, VN (V_Id));
+         Append_Node_To_List (N, Statements);
+
+         case FEN.Kind (E) is
+            when K_Enumeration_Type =>
+               declare
+                  Enumerators : List_Id :=
+                    Enumeration_Literals (Stub);
+                  Enum_Item   : Node_Id := First_Node (Enumerators);
+                  Var_Name    : Name_Id;
+               begin
+                  loop
+                     Var_Name := Add_Prefix_To_Name
+                        (Image (BEN.Value (Enum_Item)), VN (V_Name));
+                     N := Declare_Name (Var_Name, BEN.Value (Enum_Item));
+                     Append_Node_To_List (N, Declarative_Part);
+                     N := Add_Parameter (Entity_Tc_Name, Var_Name);
+                     Append_Node_To_List (N, Statements);
+                     Enum_Item := Next_Node (Enum_Item);
+                     exit when No (Enum_Item);
+                  end loop;
+               end;
+
+            when others =>
+               null;
+         end case;
+
+         N := Make_Block_Statement
+           (Declarative_Part => Declarative_Part,
+            Statements       => Statements);
+         return N;
+      end Deferred_Initialization_Block;
 
       ---------
       -- Img --
@@ -552,6 +690,20 @@ package body Backend.BE_Ada.Helpers is
          return N;
 
       end From_Any_Body;
+
+      ---------------------------
+      -- Helper_Initialization --
+      ---------------------------
+
+      procedure Helper_Initialization (L : List_Id) is
+      begin
+         N := Make_Component_Association
+           (Defining_Identifier =>
+              Make_Defining_Identifier (PN (P_Name)),
+            Expression          =>
+              Make_Literal (New_String_Value ("Helper", False)));
+
+      end Helper_Initialization;
 
       -----------------
       -- To_Any_Body --
@@ -1015,6 +1167,8 @@ package body Backend.BE_Ada.Helpers is
          N := BEN.Parent (Stub_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Helper_Body;
+         Deferred_Initialization_Body := New_List (K_List_Id);
+         Package_Initializarion       := New_List (K_List_Id);
          Append_Node_To_List
            (Widening_Ref_Body (E), Statements (Current_Package));
          Append_Node_To_List
@@ -1028,6 +1182,14 @@ package body Backend.BE_Ada.Helpers is
             Visit (N);
             N := Next_Entity (N);
          end loop;
+         N := Make_Subprogram_Implementation
+           (Make_Subprogram_Specification
+            (Make_Defining_Identifier (SN (S_Deferred_Initialization)),
+             No_List),
+            No_List,
+            Deferred_Initialization_Body);
+         Helper_Initialization (Package_Initializarion);
+         Set_Package_Initialization (Current_Package, Package_Initializarion);
          Pop_Entity;
       end Visit_Interface_Declaration;
 

@@ -153,26 +153,26 @@ package Backend.BE_Ada.Nutils is
      range Operator_Type'First .. Op_Or_Else;
 
    type Parameter_Id is
-     (P_Arg_Modes,
+     (P_A,
+      P_Arg_List,
+      P_Arg_Modes,
       P_Argument,
+      P_Default_Sys_Member,
+      P_Exception_Info,
       P_From,
+      P_Item,
+      P_Logical_Type_Id,
       P_Name,
+      P_Operation,
+      P_Repository_Id,
+      P_Req,
+      P_Request,
       P_Result,
       P_Returns,
       P_Self,
-      P_To,
-      P_The_Ref,
-      P_Item,
-      P_Repository_Id,
-      P_Default_Sys_Member,
-      P_A,
-      P_Logical_Type_Id,
       P_Target,
-      P_Operation,
-      P_Arg_List,
-      P_Req,
-      P_Exception_Info,
-      P_Request);
+      P_The_Ref,
+      P_To);
 
    PN : array (Parameter_Id) of Name_Id;
 
@@ -184,6 +184,7 @@ package Backend.BE_Ada.Nutils is
       V_Def_Sys_Member,
       V_Exception_List,
       V_Handler,
+      V_Id,
       V_Impl_Object_Ptr,
       V_Members,
       V_Name,
@@ -200,14 +201,15 @@ package Backend.BE_Ada.Nutils is
    VN : array (Variable_Id) of Name_Id;
 
    type Subprogram_Id is
-     (S_Get_Members,
-      S_Unchecked_To_Ref,
-      S_To_Ref,
+     (S_Deferred_Initialization,
+      S_Get_Members,
       S_From_Any,
-      S_To_Any,
-      S_Set,
+      S_Invoke,
       S_Is_A,
-      S_Invoke);
+      S_Set,
+      S_To_Any,
+      S_To_Ref,
+      S_Unchecked_To_Ref);
 
    SN : array (Subprogram_Id) of Name_Id;
 
@@ -235,6 +237,16 @@ package Backend.BE_Ada.Nutils is
      (Pragma_Elaborate_Body);
 
    GN : array (Pragma_Id) of Name_Id;
+
+   function Add_Prefix_To_Name
+     (Prefix : String;
+      Name   : Name_Id)
+      return Name_Id;
+
+   function Add_Suffix_To_Name
+     (Suffix : String;
+      Name   : Name_Id)
+     return Name_Id;
 
    procedure Add_With_Package (E : Node_Id);
 

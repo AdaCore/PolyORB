@@ -11,7 +11,7 @@ package body Backend.BE_Ada.Expand is
 
    function Expand_Designator
      (N   : Node_Id)
-     return Node_Id
+      return Node_Id
    is
       P  : Node_Id;
       D  : Node_Id := No_Node;

@@ -73,6 +73,7 @@ module Backend::BE_Ada::Nodes {
     List_Id    Withed_Packages;
     List_Id    Declarations;
     List_Id    Statements;
+    List_Id    Package_Initialization;  
   };
 
   interface Package_Declaration : Definition {

@@ -31,6 +31,36 @@ package body Backend.BE_Ada.Nutils is
      (O : Operator_Type;
       I : String := "");
 
+   ------------------------
+   -- Add_Prefix_To_Name --
+   ------------------------
+
+   function Add_Prefix_To_Name
+     (Prefix : String;
+      Name   : Name_Id)
+      return Name_Id
+   is
+   begin
+      Set_Str_To_Name_Buffer (Prefix);
+      Get_Name_String_And_Append (Name);
+      return Name_Find;
+   end Add_Prefix_To_Name;
+
+   ------------------------
+   -- Add_Suffix_To_Name --
+   ------------------------
+
+   function Add_Suffix_To_Name
+     (Suffix : String;
+      Name   : Name_Id)
+      return Name_Id
+   is
+   begin
+      Get_Name_String (Name);
+      Add_Str_To_Name_Buffer (Suffix);
+      return Name_Find;
+   end Add_Suffix_To_Name;
+
    ----------------------
    -- Add_With_Package --
    ----------------------
@@ -184,7 +214,7 @@ package body Backend.BE_Ada.Nutils is
          when FEN.K_Unsigned_Long_Long  => return RE_Unsigned_Long_Long;
          when FEN.K_Char                => return RE_Char;
          when FEN.K_Wide_Char           => return RE_WChar;
-         when FEN.K_String              => return RE_String_1;
+         when FEN.K_String              => return RE_String_0;
          when FEN.K_Wide_String         => return RE_Wide_String;
          when FEN.K_Boolean             => return RE_Boolean;
          when others                    =>

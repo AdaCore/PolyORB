@@ -781,6 +781,22 @@ package body Backend.BE_Ada.Generator is
       end loop;
       Decrement_Indentation;
       Write_Indentation;
+
+      if not Is_Empty (Package_Initialization (N)) then
+         Write_Line (Tok_Begin);
+         Increment_Indentation;
+         P := First_Node (Package_Initialization (N));
+         loop
+            Write_Indentation;
+            Generate (P);
+            Write_Line (Tok_Semicolon);
+            P := Next_Node (P);
+            exit when No (P);
+         end loop;
+         Decrement_Indentation;
+         Write_Indentation;
+      end if;
+
       Write  (Tok_End);
       Write_Space;
       Generate (Defining_Identifier (Package_Declaration (N)));

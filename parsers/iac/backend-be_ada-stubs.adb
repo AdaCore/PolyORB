@@ -1033,7 +1033,7 @@ package body Backend.BE_Ada.Stubs is
         (Defining_Identifier =>
            Make_Defining_Identifier (VN (V_Result_Name)),
          Constant_Present    => False,
-         Object_Definition   => RE (RE_String_1),
+         Object_Definition   => RE (RE_String_0),
          Expression          => C);
       Append_Node_To_List (N, L);
 

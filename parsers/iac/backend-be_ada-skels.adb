@@ -307,7 +307,7 @@ package body Backend.BE_Ada.Skels is
            (Defining_Identifier =>
               Make_Defining_Identifier (VN (V_Operation)),
             Constant_Present    => True,
-            Object_Definition   => RE (RE_String_1),
+            Object_Definition   => RE (RE_String_0),
             Expression          => N);
          Append_Node_To_List (N, L);
          N := Make_Object_Declaration
