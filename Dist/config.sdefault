@@ -3,21 +3,32 @@ S3=`gcc -c -dumpmachine | sed 's/\015//'`
 S4="/usr/local/lib/gcc-lib/${S3}/"`gcc -dumpversion`"/"
 S1="${S4}adainclude/"
 S2="${S4}adalib/"
-for i in `gnatls -v | sed -e '1,/Source Search Path/ d' | \
-                      sed -e '/Object Search Path/,$ d' | \
-                      grep -v 'Current_Directory'`; do
+
+# we use temporary file to workaround a bug under Windows-NT. MKS toolkit as a
+# problem with \a (found in \adalib) which is transformed by ^G.
+
+gnatls -v | sed -e '1,/Source Search Path/ d' | \
+  sed -e '/Object Search Path/,$ d' | grep -v 'Current_Directory' > tmp1
+sed -e 's,\\,/,g' tmp1 > tmp2
+for i in `cat tmp2`; do
   if [ -f ${i}i-c.ads ]; then
     S1=${i}
     break
   fi
 done
-for i in `gnatls -v | sed -e '1,/Object Search Path/ d' | \
-                      grep -v 'Current_Directory'`; do
+rm tmp1 tmp2
+
+gnatls -v | \
+   sed -e '1,/Object Search Path/ d' | grep -v 'Current_Directory' > tmp1
+sed -e 's,\\,/,g' tmp1 > tmp2
+for i in `cat tmp2`; do
   if [ -f ${i}libgnat.a ]; then
     S2=${i}
     break
   fi
 done
+rm tmp1 tmp2
+
 if test "x$1" = "xpathtolib"; then
   echo "${S2}" | sed 's,^[a-zA-Z]:,,;s,\\,/,g'
   exit 0
