@@ -1,12 +1,12 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                        ADABROKER COMPONENTS                              --
+--                          ADABROKER COMPONENTS                            --
 --                                                                          --
 --                        C O R B A . F O R W A R D                         --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.20 $
+--                            $Revision: 1.21 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --

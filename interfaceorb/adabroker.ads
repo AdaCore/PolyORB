@@ -1,12 +1,12 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                        ADABROKER COMPONENTS                              --
+--                          ADABROKER COMPONENTS                            --
 --                                                                          --
 --                            A D A B R O K E R                             --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.8 $
+--                            $Revision: 1.9 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --

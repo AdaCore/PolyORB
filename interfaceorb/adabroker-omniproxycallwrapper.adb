@@ -1,12 +1,12 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                        ADABROKER COMPONENTS                              --
+--                          ADABROKER COMPONENTS                            --
 --                                                                          --
 --       A D A B R O K E R . O M N I P R O X Y C A L L W R A P P E R        --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.5 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --

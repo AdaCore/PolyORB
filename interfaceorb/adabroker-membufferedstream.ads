@@ -1,12 +1,12 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                        ADABROKER COMPONENTS                              --
+--                          ADABROKER COMPONENTS                            --
 --                                                                          --
--- I S   W R A P P E D   A R O U N D   A   C + +   C L A S S   W H O S E   N A M E   - -  --
+--          A D A B R O K E R . M E M B U F F E R E D S T R E A M           --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.2 $
+--                            $Revision: 1.3 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -33,7 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package is wrapped around a C++ class whose name -- is
+--  This unit is wrapped around a C++ class whose name is
 --  Ada_memBufferedStream. (see Ada_memBufferedStream.hh) It provides two
 --  types of methods : the C functions of the Ada_memBufferedStream class
 --  and their equivalent in Ada. (he first ones have a C_ prefix.)  In

@@ -1,12 +1,12 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                        ADABROKER COMPONENTS                              --
+--                          ADABROKER COMPONENTS                            --
 --                                                                          --
 --                        A L L _ A D A B R O K E R                         --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.5 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -56,7 +56,6 @@ with AdaBroker.MemBufferedStream;
 with AdaBroker.NetBufferedStream;
 with AdaBroker.Omni;
 with AdaBroker.OmniORB;
-with AdaBroker.OmniOWProxyCallDesc;
 with AdaBroker.OmniProxyCallDesc;
 with AdaBroker.OmniProxyCallWrapper;
 with AdaBroker.OmniRopeAndKey;
@@ -86,7 +85,6 @@ pragma Warnings (Off, AdaBroker.MemBufferedStream);
 pragma Warnings (Off, AdaBroker.NetBufferedStream);
 pragma Warnings (Off, AdaBroker.Omni);
 pragma Warnings (Off, AdaBroker.OmniORB);
-pragma Warnings (Off, AdaBroker.OmniOWProxyCallDesc);
 pragma Warnings (Off, AdaBroker.OmniProxyCallDesc);
 pragma Warnings (Off, AdaBroker.OmniProxyCallWrapper);
 pragma Warnings (Off, AdaBroker.OmniRopeAndKey);

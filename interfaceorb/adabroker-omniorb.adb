@@ -1,12 +1,12 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                        ADABROKER COMPONENTS                              --
+--                          ADABROKER COMPONENTS                            --
 --                                                                          --
 --                    A D A B R O K E R . O M N I O R B                     --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.2 $
+--                            $Revision: 1.3 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -405,10 +405,6 @@ package body AdaBroker.OmniORB is
       return Result;
    end Create_OmniObject;
 
-   ----------------------------
-   -- C_Duplicate_OmniObject --
-   ----------------------------
-
    function C_Duplicate_OmniObject
      (Self : in System.Address)
       return System.Address;
@@ -455,10 +451,6 @@ package body AdaBroker.OmniORB is
       return Result;
    end Duplicate_OmniObject;
 
-   ---------------------------
-   -- C_Destruct_OmniObject --
-   ---------------------------
-
    procedure C_Destruct_OmniObject (Self : in System.Address);
    pragma Import
      (CPP, C_Destruct_OmniObject,
@@ -479,10 +471,6 @@ package body AdaBroker.OmniORB is
       pragma Debug (O ("Destruct_OmniObject : leave"));
    end Destruct_OmniObject;
 
-   ---------------------------
-   -- C_OmniObject_Is_Ready --
-   ---------------------------
-
    procedure C_OmniObject_Is_Ready (Self : in System.Address);
    pragma Import
      (CPP, C_OmniObject_Is_Ready, "objectIsReady__14Ada_OmniObject");
@@ -500,10 +488,6 @@ package body AdaBroker.OmniORB is
         (Address_To_OmniObject.To_Address (From_OmniObject_Ptr (Self)));
    end OmniObject_Is_Ready;
 
-   --------------------------
-   -- C_Dispose_OmniObject --
-   --------------------------
-
    procedure C_Dispose_OmniObject (Self : in System.Address);
    pragma Import
      (CPP, C_Dispose_OmniObject, "disposeObject__14Ada_OmniObject");
@@ -518,10 +502,6 @@ package body AdaBroker.OmniORB is
       C_Dispose_OmniObject
         (Address_To_OmniObject.To_Address (From_OmniObject_Ptr (Self)));
    end Dispose_OmniObject;
-
-   ------------------------
-   -- C_String_To_Object --
-   ------------------------
 
    function C_String_To_Object
      (From : in Strings.chars_ptr)
@@ -596,15 +576,6 @@ package body AdaBroker.OmniORB is
       return To_CORBA_String (Strings.Value (C_Result));
    end Object_To_String;
 
-
-   -------------------
-   -- miscellaneous --
-   -------------------
-
-   ------------
-   -- C_Hash --
-   ------------
-
    function C_Hash
      (Self    : in OmniObject'Class;
       Maximum : in Interfaces.C.unsigned_long)
@@ -625,6 +596,33 @@ package body AdaBroker.OmniORB is
       return CORBA.Unsigned_Long
         (C_Hash (Self, Interfaces.C.unsigned_long (Maximum)));
    end Hash;
+
+   function C_Is_Equivalent
+     (Self  : in OmniObject'Class;
+      Other : in System.Address)
+      return Sysdep.Bool;
+
+   pragma Import
+     (CPP, C_Is_Equivalent,
+      "is_equivalent__14Ada_OmniObjectP14Ada_OmniObject");
+   --  Call Ada_OmniObject::is_equivalent.
+
+   -------------------
+   -- Is_Equivalent --
+   -------------------
+
+   function Is_Equivalent
+     (Self  : in OmniObject'Class;
+      Other : in OmniObject_Ptr)
+     return CORBA.Boolean
+   is
+      C_Result : Sysdep.Bool;
+      C_Other  : System.Address
+        := Address_To_OmniObject.To_Address (From_OmniObject_Ptr (Other));
+   begin
+      C_Result := C_Is_Equivalent (Self, C_Other);
+      return Sysdep.To_Boolean (C_Result);
+   end Is_Equivalent;
 
    --------------------
    -- C_Non_Existent --

@@ -1,12 +1,12 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                        ADABROKER COMPONENTS                              --
+--                          ADABROKER COMPONENTS                            --
 --                                                                          --
 --                         C O R B A . O B J E C T                          --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.59 $
+--                            $Revision: 1.60 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -41,7 +41,7 @@ with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 
 with AdaBroker.OmniORB;        use AdaBroker.OmniORB;
-with AdaBroker.OmniRopeAndKey; use AdaBroker.OmniRopeAndKey;
+--  with AdaBroker.OmniRopeAndKey; use AdaBroker.OmniRopeAndKey;
 
 with AdaBroker.Debug;
 pragma Elaborate_All (AdaBroker.Debug);
@@ -105,17 +105,14 @@ package body CORBA.Object is
       Other : in Ref)
       return CORBA.Boolean
    is
-      R1, R2 : Controlled_Wrapper;
-      S1, S2 : CORBA.Boolean;
    begin
-      --  This code comes from corbaObject.cc L160. Refs are proxy objects
+      if Is_Nil (Self) then
+         return Is_Nil (Other);
+      elsif Is_Nil (Other) then
+         return False;
+      end if;
 
-      Get_Rope_And_Key (Self.OmniObj.all,  R1.Real, S1);
-      Get_Rope_And_Key (Other.OmniObj.all, R2.Real, S2);
-
-      return S1
-        and then S2
-        and then R1.Real = R2.Real;
+      return AdaBroker.OmniORB.Is_Equivalent (Self.OmniObj.all, Other.OmniObj);
    end Is_Equivalent;
 
    ----------

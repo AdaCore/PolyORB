@@ -1,12 +1,12 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                        ADABROKER COMPONENTS                              --
+--                          ADABROKER COMPONENTS                            --
 --                                                                          --
--- I S   W R A P P E D   A R O U N D   A   C + +   C L A S S   W H O S E   N A M E  --
+--                    A D A B R O K E R . O M N I O R B                     --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.2 $
+--                            $Revision: 1.3 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -33,7 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package is wrapped around a C++ class whose name is
+--  This unit is wrapped around a C++ class whose name is
 --  Ada_OmniObject.  It provides two types of methods : the C functions of
 --  the Ada_OmniObject class and their equivalent in Ada. (he first ones
 --  have a C_ prefix.)  In addition, there is a raise_ada_exception
@@ -91,13 +91,13 @@ package AdaBroker.OmniORB is
    function Is_Nil  (Self : in ImplObject) return CORBA.Boolean;
    function Is_Null (Self : in ImplObject) return CORBA.Boolean
      renames Is_Nil;
-   --  Returns True if this is a nil object
+   --  Return True if this is a nil object
 
    function Hash
      (Self    : in ImplObject;
       Maximum : in CORBA.Unsigned_Long)
       return CORBA.Unsigned_Long;
-   --  Returns a hash value for this object
+   --  Return a hash value for this object
 
    procedure Object_Is_Ready (Self : in ImplObject'Class);
    --  Tell ORB that this object is ready to accept connections. It
@@ -251,24 +251,30 @@ package AdaBroker.OmniORB is
    function Object_To_String
      (Obj : in OmniObject_Ptr)
      return CORBA.String;
-   --  Returns the IOR for this object Obj can be null
+   --  Return the IOR for this object Obj can be null
 
    function Is_Proxy
      (Self : in OmniObject'Class)
       return Boolean;
-   --  Returns true if this is a proxy object by calling the C++ function
+   --  Return true if this is a proxy object by calling the C++ function
    --  on the omniobject
 
    function Non_Existent
      (Self : in OmniObject'Class)
       return CORBA.Boolean;
-   --  Returns true if the ORB is sure that this object does not exist
+   --  Return true if the ORB is sure that this object does not exist
 
    function Hash
      (Self    : in OmniObject'Class;
       Maximum : in CORBA.Unsigned_Long)
       return CORBA.Unsigned_Long;
-   --  Returns a hash value for this object
+   --  Return a hash value for this object
+
+   function Is_Equivalent
+     (Self  : in OmniObject'Class;
+      Other : in OmniObject_Ptr)
+      return CORBA.Boolean;
+   --  Return true when objects are equivalent.
 
    procedure Assert_Object_Existent (Self : in OmniObject'Class);
    pragma Import
@@ -279,7 +285,7 @@ package AdaBroker.OmniORB is
      (Self    : in OmniObject'Class;
       L       : in out OmniRopeAndKey.Object;
       Success : out Boolean);
-   --  Returns the rope and key for this omniobject if it is a proxy object
+   --  Return the rope and key for this omniobject if it is a proxy object
 
    procedure Set_Rope_And_Key
      (Self    : in out OmniObject'Class;
@@ -300,7 +306,7 @@ package AdaBroker.OmniORB is
    function Get_Profile_List
      (Self : in OmniObject'Class)
       return IOP.Tagged_Profile_List;
-   --  Returns the Profile list of an object
+   --  Return the Profile list of an object
 
    procedure Set_Interface_Rep
      (Self : in out OmniObject'Class;
@@ -358,7 +364,7 @@ private
       return  Sysdep.Bool;
 
    pragma Export (CPP, C_Is_A, "Ada_Is_A__14Ada_OmniObjectPCc");
-   --  Returns true if self is in repoID, or one of its descendant
+   --  Return true if self is in repoID, or one of its descendant
 
    ---------------------
    -- memory handling --

@@ -277,6 +277,32 @@ ADABROKER_CATCH
   return default_result; 
 }
 
+// hash
+//-----
+_CORBA_Boolean
+Ada_OmniObject::is_equivalent(Ada_OmniObject * other) {
+  ADABROKER_TRY
+    if (Init_Ok && other->Init_Ok) {
+      CORBA::Object_ptr tmp_self  = new CORBA::Object;
+      CORBA::Object_ptr tmp_other = new CORBA::Object;
+      tmp_self->PR_setobj (CPP_Object);
+      tmp_other->PR_setobj (other->CPP_Object);
+      _CORBA_Boolean result = tmp_self->_is_equivalent(tmp_other);
+      delete tmp_self;
+      delete tmp_other;
+      return result;
+    } else {
+      throw omniORB::fatalException
+	(__FILE__,
+	 __LINE__,
+	 "Ada_OmniObject::is_equivalent without initializing object.");
+    }
+  ADABROKER_CATCH
+    // never reach here just a default return for dummy compilers.
+    _CORBA_Boolean default_result = false;
+  return default_result; 
+}
+
 
 // non_existent
 //-------------

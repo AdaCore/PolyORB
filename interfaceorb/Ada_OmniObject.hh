@@ -1,54 +1,3 @@
-///////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////
-////                                                               ////
-////                         AdaBroker                             ////
-////                                                               ////
-////                 class Ada_OmniObject                          ////
-////                                                               ////
-////                                                               ////
-////   Copyright (C) 1999 ENST                                     ////
-////                                                               ////
-////   This file is part of the AdaBroker library                  ////
-////                                                               ////
-////   The AdaBroker library is free software; you can             ////
-////   redistribute it and/or modify it under the terms of the     ////
-////   GNU Library General Public License as published by the      ////
-////   Free Software Foundation; either version 2 of the License,  ////
-////   or (at your option) any later version.                      ////
-////                                                               ////
-////   This library is distributed in the hope that it will be     ////
-////   useful, but WITHOUT ANY WARRANTY; without even the implied  ////
-////   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ////
-////   PURPOSE.  See the GNU Library General Public License for    ////
-////   more details.                                               ////
-////                                                               ////
-////   You should have received a copy of the GNU Library General  ////
-////   Public License along with this library; if not, write to    ////
-////   the Free Software Foundation, Inc., 59 Temple Place -       ////
-////   Suite 330, Boston, MA 02111-1307, USA                       ////
-////                                                               ////
-////                                                               ////
-////                                                               ////
-////   Description                                                 ////
-////   -----------                                                 ////
-////     This class is is both a C class and an Ada Class (see     ////
-////     omniObject.ads). It is wrapped around omniObject_C2Ada    ////
-////     in order to avoid the presence of non default construc-   ////
-////     tors.                                                     ////
-////     So, it provides the same functions as omniObject_C2Ada    ////
-////     except that constructors are replaced by Init functions.  ////
-////     It has also a pointer on the underlying omniObject_C2Ada  ////
-////     object                                                    ////
-////                                                               ////
-////                                                               ////
-////                                                               ////
-////   authors : Sebastien Ponce, Fabien Azavant                   ////
-////   date    : 02/28/99                                          ////
-////                                                               ////
-///////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////
-
-
 #ifndef __omniObject_C2Ada__
 #define __Ada_OmniObject__
 #include "omniObject_C2Ada.hh"
@@ -119,6 +68,9 @@ public:
   // implementation referenced by this proxy object
   // does not exist
   
+  _CORBA_Boolean is_equivalent(Ada_OmniObject * other);
+  // return true when CPP objects are equivalent
+
   _CORBA_ULong hash(_CORBA_ULong maximum);
   // returns a hash value for this object
 
