@@ -30,6 +30,8 @@ DSA implementation (CA22-003)
 Items still requiring attention
 -------------------------------
 
+* Add an IDL output to po_dumpir.
+
 * Document flexible configuration pragmas framework introduced in
   change 8053.
 
