@@ -66,9 +66,10 @@ target_triplet = @target@
 ADA = @ADA@
 ADA_FOR_TARGET = @ADA_FOR_TARGET@
 AWK = @AWK@
-BOOT_SERVER = @BOOT_SERVER@
 CC = @CC@
 CP_PRESERVE = @CP_PRESERVE@
+DEFPROTOCOLDATA = @DEFPROTOCOLDATA@
+DEFPROTOCOLNAME = @DEFPROTOCOLNAME@
 EXEEXT = @EXEEXT@
 EXTRA_LIBS = @EXTRA_LIBS@
 GNATFLAGS = @GNATFLAGS@
@@ -105,7 +106,7 @@ SED = @SED@
 
 GNATDIST = $(exec_prefix)/bin/gnatdist
 
-EXTRA_PROGS = main
+EXTRA_PROGS = part0 part1 part2 part3
 CFGFILE = reconnection.cfg
 
 CLEANFILES = -r dsa *.o *.ali bin $(EXTRA_PROGS)
@@ -140,7 +141,7 @@ distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$/$$file $(distdir)/$$file; \
+	    cp -pr $$d/$$file $(distdir)/$$file; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \

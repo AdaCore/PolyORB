@@ -8,7 +8,7 @@ SED = @SED@
 
 GNATDIST = $(exec_prefix)/bin/gnatdist
 
-EXTRA_PROGS = main
+EXTRA_PROGS = part0 part1 part2 part3
 CFGFILE = reconnection.cfg
 
 CLEANFILES = -r dsa *.o *.ali bin $(EXTRA_PROGS)
