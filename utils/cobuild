@@ -2,7 +2,7 @@
 
 # cobuild: Build something from a checked-out wavefront.
 
-# $Id: //droopi/main/utils/cobuild#1 $
+# $Id: //droopi/main/utils/cobuild#2 $
 
 PROJECT=DROOPI
 
@@ -65,6 +65,8 @@ trap 'rm -f $PIDFILE.lock' 0
 
 # Determine change level to be built.
 
+cd $CLIENT_TOP
+
 if [ "x$CHANGELIST" = x ]
 then
   CHANGELIST=`p4 changes -m 1 ... | awk '{print \$2}'`
@@ -98,7 +100,6 @@ exec > $LOGFILE 2>&1
 echo "---------- Starting build of ${PROJECT} ch. ${CHANGELIST}: `date`"
 echo "---------- Syncing"
 
-cd $CLIENT_TOP
 #p4 sync "#none"
 #rm -fr $CLIENT_TOP/*
 p4 sync @$CHANGELIST
