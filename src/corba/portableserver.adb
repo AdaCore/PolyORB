@@ -555,6 +555,7 @@ package body PortableServer is
          (CORBA.Unsigned_Long (RequestProcessingPolicyValue'Pos (Item))));
       return Result;
    end To_Any;
+
    ----------------
    -- Initialize --
    ----------------
