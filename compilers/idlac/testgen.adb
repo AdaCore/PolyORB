@@ -31,10 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/testgen.adb#4 $
+--  $Id: //droopi/main/compilers/idlac/testgen.adb#5 $
 
 with GNAT.Command_Line;
 
+with Idl_Fe.Lexer;
 with Idl_Fe.Types;
 with Idl_Fe.Parser;
 
