@@ -1,5 +1,4 @@
 with Namet;  use Namet;
---  with Output; use Output;
 with Types;  use Types;
 
 with GNAT.Table;
@@ -265,22 +264,33 @@ package body Values is
    is
       Quotient : Unsigned_Long_Long;
    begin
-      while Value.Scale > 0 and then Value.IVal mod 10 = 0 loop
-         Value.IVal  := Value.IVal / 10;
-         Value.Scale := Value.Scale - 1;
-         Value.Total := Value.Total - 1;
-      end loop;
+      --  Reduce the precision when it exceeds what is required
+
       while Value.Scale > Scale loop
          Value.IVal  := Value.IVal / 10;
          Value.Scale := Value.Scale - 1;
          Value.Total := Value.Total - 1;
       end loop;
+
+      --  Remove any trailing zero
+
+      while Value.Scale > 0 and then Value.IVal mod 10 = 0 loop
+         Value.IVal  := Value.IVal / 10;
+         Value.Scale := Value.Scale - 1;
+         Value.Total := Value.Total - 1;
+      end loop;
+
+      --  Remove any leading zero and recompute total digits
+
       Quotient    := Value.IVal / 10;
       Value.Total := 1;
       while Quotient /= 0 loop
          Quotient := Quotient / 10;
          Value.Total := Value.Total + 1;
       end loop;
+
+      --  Value overflows maximum value supported by fixed point type
+
       if Value.Total > Total then
          Value := Bad_Value;
       end if;
