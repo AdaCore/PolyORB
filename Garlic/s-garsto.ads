@@ -75,7 +75,7 @@ package System.Garlic.Storages is
    --  performed.
 
    procedure Initiate_Request
-     (Var_Data : in out Shared_Data_Type;
+     (Var_Data : access Shared_Data_Type;
       Request  : in     Request_Type;
       Success  : out    Boolean) is abstract;
    --  Initiate an operation on a variable. This routine can be thread
@@ -88,7 +88,7 @@ package System.Garlic.Storages is
    --  all the potential exceptions.
 
    procedure Complete_Request
-     (Var_Data : in out Shared_Data_Type) is abstract;
+     (Var_Data : access Shared_Data_Type) is abstract;
    --  Complete the request previously initiated by the routine above.
 
    --  Any storage implementation must provide an Initialize routine.
@@ -98,6 +98,10 @@ package System.Garlic.Storages is
    --  registration of a master factory dedicated to the storage
    --  support. This must be done using register_storage.
 
+   procedure Shutdown (Storage : Shared_Data_Type) is abstract;
+   --  Some storage support are active in the sense that they are running
+   --  algorithm and need running tasks. This routine is used to shutdown
+   --  these tasks.
 
    --  General services
 
@@ -135,5 +139,7 @@ package System.Garlic.Storages is
    --  data). If the partition has already been registered, ignored
    --  this request. If not, create the factory to produce shared
    --  variables. Call it at elaboration time.
+
+   procedure Shutdown;
 
 end System.Garlic.Storages;

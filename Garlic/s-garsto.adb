@@ -38,6 +38,7 @@ with Ada.Streams;    use Ada.Streams;
 
 with GNAT.HTable;
 with GNAT.OS_Lib;
+with GNAT.Strings; use GNAT.Strings;
 
 with System.Garlic.Debug;      use System.Garlic.Debug;
 with System.Garlic.Exceptions; use System.Garlic.Exceptions;
@@ -45,7 +46,6 @@ with System.Garlic.Partitions; use System.Garlic.Partitions;
 with System.Garlic.Soft_Links; use System.Garlic.Soft_Links;
 with System.Garlic.Types;      use System.Garlic.Types;
 with System.Garlic.Units;      use System.Garlic.Units;
-with System.Garlic.Utils;      use System.Garlic.Utils;
 
 with System.Garlic.Physical_Location;
 with System.Garlic.Platform_Specific;
@@ -84,6 +84,11 @@ package body System.Garlic.Storages is
 
    function Minor (Location : String) return String;
    --  Return right string (separated by ://).
+
+   First_Storage : constant := 1;
+   Last_Storage  : Natural := 0;
+   Max_Storages  : constant := 10;
+   Storage_Table : array (First_Storage .. Max_Storages) of Shared_Data_Access;
 
    package SST is new GNAT.HTable.Simple_HTable
      (Header_Num => Hash_Header,
@@ -175,7 +180,7 @@ package body System.Garlic.Storages is
    is
       Par_Name : String := Partition'Img;
       Par_Data : Shared_Data_Access;
-      Location : Utils.String_Access;
+      Location : String_Access;
       Error    : aliased Error_Type;
 
    begin
@@ -335,8 +340,21 @@ package body System.Garlic.Storages is
       if Old_Storage = null then
          pragma Debug (D ("register storage major " & Major_Name));
          SST.Set (new String'(Major_Name), Storage_Data);
+         Last_Storage := Last_Storage + 1;
+         Storage_Table (Last_Storage) := Storage_Data;
       end if;
       Leave_Critical_Section;
    end Register_Storage;
+
+   --------------
+   -- Shutdown --
+   --------------
+
+   procedure Shutdown is
+   begin
+      for S in First_Storage .. Last_Storage loop
+         Shutdown (Storage_Table (S).all);
+      end loop;
+   end Shutdown;
 
 end System.Garlic.Storages;
