@@ -1,6 +1,0 @@
-<Files ~ "(README|getbugs)">
-
-order deny,allow
-deny from all
-
-</Files>
