@@ -1,0 +1,260 @@
+\documentclass[french,a4paper,12pt]{report}
+
+\usepackage{babel}
+\usepackage[latin1]{inputenc}
+\usepackage{graphicx}
+
+\setlength {\textheight}{247mm}
+\setlength {\textwidth}{168mm}
+\setlength {\oddsidemargin}{0cm}
+\setlength {\evensidemargin}{0cm}
+\setlength {\headsep}{0cm}
+\setlength {\headheight}{0cm}
+\setlength {\topmargin}{0cm}
+\setlength {\leftmargin}{0cm}
+\setlength {\unitlength}{1cm}
+\setlength {\parindent}{0cm}
+
+\hyphenation{do-cu-ment}
+
+\title{Implémentation de l'interface d'invocation dynamique pour AdaBroker}
+\author{Option IDL \\ Encadrants : Laurent Pautet, Samuel Tardieu \\ \\ S\'ebastien Ponce}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin {abstract}
+\paragraph{}Ce rapport vient en complément du travail effectué dans le cadre de mon mémoire d'option IDL. L'objectif de ce mémoire
+était d'implémenter li'interface d'invocation dynamique dans AdaBroker, un ORB CORBA écrit en ADA.
+\paragraph{}Ce mémoire s'inscrit dans le contexte plus large du développement d'AdaBroker. Ce produit a pour vocation de fournir
+un ORB sous license GPL pour le langage Ada, ainsi que le compilateur Idl vers Ada correspondant. Un certain nombre de services de base
+seront également bientôt disponibles.
+Le développement d'AdaBroker a commencé lors d'un projet de dominante en 1999. Au commencement de ce mémoire, l'ORB et le compilateur
+étaient déjà fonctionnels mais ne supportaient pas l'invocation dynamique. C'est chose faite désormais et j'en présente ici l'implémentation.
+\paragraph{}AdaBroker étant distribué, l'écriture du rapport que voici est passée au second plan et c'est l'écriture d'une documentation
+fournie de l'implémentation actuelle de l'invocation dynamique qui a été choyée. En conséquence, ce rapport ne présente que très
+rapidement la problématique, fait le point de ce qui reste à faire et tire quelques conclusions de l'expérience menée mais ne fournit
+en aucun cas de détails techniques. Pour ce type de détail, la documentation (en anglais) est jointe en fin de ce rapport.
+\end{abstract}
+
+\tableofcontents
+
+\chapter{Problématique}
+\paragraph{}Je ne rappelerai pas ici le contexte technique de ce mémoire puisque celui-ci est très bien décrit dans la documentation
+en anglais. Vous y trouverz notamment une présentation de CORBA, une présentation d'AdaBroker et une explication des fonctionnement
+de l'invocation tant statique que dynamique.
+J'insisterai donc plus ici sur le contexte dans lequel le dé\-ve\-lop\-pe\-ment s'est effectué et sur les problèmes rencontrés.  
+
+\section{Historique d'AdaBroker - Etat des lieux}
+\paragraph{}Je tiens tout d'abord à souligner le rôle important que Laurent Pautet, Samuel Tardieu et Thomas Quinot ont eu tout
+au long du développement du projet AdaBroker. Même si chaque étape a donné lieu à un projet d'élève, ils ont assuré le suivi
+global et la mise au point de nombreux algorithmes. En outre, ils ont développés certains services non présentés ici.
+\paragraph{Les débuts}La première version d'AdaBroker fut développée lors d'un projet de dominante 99 par Fabien Azavant,
+Laurent Kubler, Vincent
+Niebel et moi-même. Cette version proposait un ORB et un compilateur IDL vers Ada fournissant les fonctionnalités de base de la
+spécification de l'époque. Bien qu'étant un ORB pour Ada, l'AdaBroker d'alors contenait une bonne dose de C$^{++}$ puisqu'il utilisait
+l'ORB de omniOrb (l'ORB founi n'étant qu'un front-end de ce dernier) et le parser IDL fournit par SUN. Les inconvénients étaient
+nombreux, tant du point de vue de la complexité (du fait de l'interfaçage Ada-C$^{++}$) que du point de vue pratique (compilation nécessitant
+deux compilateurs distincts). De ce fait, la première préoccupation de l'équipe de développement fut d'implémenter la totalité de l'ORB
+et du compilateur en Ada.
+\paragraph{Première version Ada}Le développement de l'ORB en Ada, remplaçant de omniOrb fut l'objet d'un mémoire de fin d'étude en 99
+réalisé par Tristan Gingold. Le développement du parser d'IDL fut assuré par Vincent Niebel et moi-même entre Janvier et Avril 2000
+tandis que Fabien Azavant et Thomas Quinot développaient la partie génération de code du compilateur.
+La première version entièrement Ada d'Adabroker a donc pu voir le jour fin Avril 2000. Les fonctionnalités étaient sensiblement
+identiques à celles de la version précédente même si le compilateur notamment permettait déjà de parser les values. L'essentiel était
+d'avoir bâti une structure solide et entièrement maîtrisée pour les développements futurs.
+\paragraph{Planning}Une fois tout le code écrit en Ada, l'objectif fut d'ajouter une à une toutes les fonctionnalités manquantes
+à AdaBroker. Au rang de ces dernières : la prise en compte des valuetype, nouveauté de la dernière spécification et sujet de mémoire
+de Fabien Azavant, l'implémentation d'un service d'interface repository : sujet de mémoire de Vincent Niebel et enfin la mise en place
+de l'invocation dynamique : mon sujet de mémoire. Parallellement à ces trois axes de développement, le code précédemment écrit a été
+largement amélioré et testé (notamment par Thomas Quinot et Samuel Tardieu en ce qui concerne l'ORB).
+
+\section{Problèmes pratiques rencontrés}
+\paragraph{Connaissances prérequises}La première difficulté de ce mémoire fut la quantité d'in\-for\-ma\-tion
+à maîtriser pour pouvoir le mener à bien.
+L'invocation dynamique suppose en effet non seulement un bonne connaissance du fonctionnement de CORBA (et des invocations en particulier)
+mais également une bonne connaissance de l'ORB (pour savoir comment le modifier), une maitrise du protocol GIOP (pour les marshall et
+unmarshall des types dynamiques) et enfin un connaissance exhaustive du générateur de code afin de le modifier et de lui faire générer
+la partie dynamique du code.
+\paragraph{}Heureusement, tout n'était pas nouveau, loin s'en faut, mais tout le fonctionnement de l'ORB et le protocole GIOP furent
+une pure découverte.
+\paragraph{Dépendances amont}J'entends par là que l'invocation dynamique dépend de nombreux autres composants (dont l'invocation statique).
+Ceux-ci n'étaient pas forcément tout à fait finalisés au début du mémoire et nécessitaient un travail préalable pour être utilisés. Je
+pense notamment à l'expansion de l'arbre issu du parser et à la génération de code qui ont été petit à petit modifiées pour permettre
+le génération du code dynamique. L'ORB a également subit des modifications mais celles-ci furent minimes.
+\paragraph{Dépendances aval}Ce point fut tout à fait spécifique à ce mémoire. Il s'agit en fait de la dépendance du travail de Vincent
+Niebel sur le mien. Vincent, qui développait l'interface repository avait en effet besoin d'une grande partie de l'implémentation de
+l'invocation dynamique. Cette dépendance
+aurait du conduire à un développement plus tardif de l'interface repository mais son importance n'ayant pas été détectée, il a fallu
+composer. C'est bien sur principalement Vincent qui en a souffert mais il a quand même fallu gérer le développement du code de façon à
+lui proposer des solutions rapides, fussent-elles non essentielles pour ce mémoire.
+\paragraph{}La contre-partie de ce dernier point est que l'invocation dynamique a été relativement bien testée, tout comme l'a été le
+compilateur IDL vers Ada.
+\paragraph{Le support technique}Enfin, une bonne partie du temps consacré à ce mémoire le fut en correction de bugs et amméliorations
+de composants externes à l'invocation dynamique. Le compilateur et le parser ont notamment demandé un travail important
+avant de permettre la compilation de l'interface repository.
+\paragraph{Reprise de code}L'invocation dynamique dans AdaBroker n'était en fait pas complètement inexistante puiqu'elle avait déjà été
+développée dans le cadre d'un mémoire par Emmanuel Chavane en 1999. Il s'agissait donc de l'adapter au nouvel ORB en Ada et
+de l'étendre, les fonctionnalités de cette première version étant limitées (pas de génération automatique de code et une mauvaise
+gestion des requètes notamment). La reprise d'un code existant n'est cependant pas aisée
+et mène souvent à répéter les erreurs de conception déjà produites. De nombreuses lignes de code ont ainsi été écrites deux fois pour
+n'avoir pas su se détacher suffisament tôt de la structure proposée par Emmanuel Chavane.
+
+\section{Enjeux techniques}
+\paragraph{}Il s'agit ici de récapituler les problèmes plus techniques qu'il a fallu résoudre lors de l'im\-plé\-men\-ta\-tion
+de l'invocation dynamique. Chaque problème n'est que mentionné et sa résolution est détaillée dans la documentation en anglais jointe.
+
+\subsection{La définition du type Any}
+\paragraph{}Le type Any est la base de toute l'invocation dynamique. Il s'agit en fait d'un type autodescriptif permettant de stocker
+une valeur quelconque. Ce type contient donc une description de son contenu, lequel peut être quelconque.
+
+\subsection{La gestion de mémoire}
+\paragraph{}La gestion de la mémoire d'un type autodescriptif n'est naturellement pas triviale. Mais cela était encore aggravé
+par la spécification CORBA qui procure au type Any deux comportements différents selon les circonstances :
+dans un cas, il adopte une sémantique de valeur et dans l'autre une sémantique de référence.
+Le type implémenté est donc capable de suivre les deux sémantiques et de gèrer sa mémoire en conséquence.
+
+\subsection{Les encapsulations}
+\paragraph{}L'une des propriétés de tout objet CORBA est de pouvoir être encapsulé dans un buffer d'octets pour être envoyé ainsi sur le
+réseau. Le type Any ne coupe pas à cette règle mais son encapsulation résume les encapsulations de tous les autres types puisqu'il peut
+les contenir. La gestion de cette encapsulation (nommée marshalling) a donc constitué une part non négligeable du travail.
+
+
+\chapter{Etat de l'implémentation}
+\paragraph{}Le service d'invocation dynamique proposé dans ce mémoire et documenté dans le document joint n'est pas complet
+vis à vis de la norme.
+Un certain nombre de fonctionnalités sont fournies mais d'autres manquent à l'appel. Détaillons ici l'état de l'implémentation.
+
+\section{Fonctionnalités présentes}
+\paragraph{}Encore une fois, je ne donne ici que peu (ou pas) d'explications sur les termes mais tout est détaillé dans la documentation.
+Voici donc la liste, que j'espère exhaustive, des fonctionnalités fournies :
+\begin{itemize}
+\item {\bf requètes dynamiques synchrones} : le terme synchrone signifie que l'invocation est bloquante.
+Tous les types d'invocation fonctionnent : fonctions ou procédures, paramètre in, out ou inout,
+tous les types de donnée y compris Any et TypeCode mais exceptés value et fixed. En outre, les opérations oneway ne peuvent être invoquées.
+\item {\bf rattrapage d'exceptions} : les exceptions renvoyées par le serveur sont relancées dans le client (à ceci près que c'est toujours
+une exception UnknownuserException qui est lancée dans un contexte dynamique). Ce point sera d'ailleurs à suivre avec attention puisque
+la spécification CORBA était incomplète et que l'implémentation correspond donc à une proposition de spécification de ma part.
+\item {\bf To\_Any, From\_Any} Ces fonctions sont fournies pour tous les types standard et générées pour les autres (voir ci-dessous).
+\item {\bf création de TypeCodes} pour les types utilisateurs. Le compilateur génère en effet automatiquement du code pour chaque type
+défini par l'utilisateur. Ce code comprend la définition du TypeCode correspondant au type et les fonctions To\_Any et From\_Any permettant
+de passer du type au Any correspondant et réciproquement.
+\item {\bf exemples} Enfin trois exemples sont fournis qui montrent comment utiliser l'invocation dynamique. Il s'agit de echo, all\_types
+et all\_functions qui possèdent chacun un client dynamique nommé {\it dynclient}.
+\end{itemize}
+
+\section{TODO List}
+\paragraph{}Voici maintenant la ``TODO list'' de l'invocation dynamique. Elle est volontairement très détaillée et comprend
+de nombreuses pistes pour la résolution de certains manques.
+J'espère qu'elle sera utile à celui qui reprendra mon code. J'ai pris soin de séparer les manques en terme de fonctionnalités
+des ``bugs'' ou petits manques, plus rapides à corriger.
+
+\subsection{Les fonctionalités manquantes} 
+\begin{itemize}
+\item {\bf invocation différée} L'une des grandes plus-value de l'invocation dynamique. Pour l'heure complètement absente. Les fonctions
+{\it Send}, {\it Get\_Response}, {\it Poll\_Response} sont à implémenter.
+\item {\bf contextes} Les contextes ne sont pas pris en compte pour l'instant même si les deux packages {\it Context} et {\it ContextList}
+existent. Ils sont vides et leurs méthodes ne font rien.
+Il est à noter que {\it ContextList} n'existe pas dans la norme et fait partie d'une proposition de révision de la norme de ma part.
+\item{\bf Values} : elles sont gérées en ce qui concerne les TypeCode mais pas dans les Anys. En outre, leur (un)marshalling depuis un Any
+n'est pas implémenté. Il en est de même pour les {\bf ValueBox}, les {\bf AbstractInterface} et les {\bf fixed}.
+\item{\bf OneWay} : les méthodes oneway ne peuvent être invoquées. Ceci est essentiellement du à un manque de spécification de la part
+de l'OMG.
+Il suffirait en effet de passer un flag à la requète (à la création par exemple) pour dire si une méthode est oneway ou non puis s'en
+servir dans la procédure invoke lors de l'appel à send\_request\_send en passant le boolean response\_expected à false.
+Moyennant ce changement
+et le non demarshalling du résultat dans la suite de invoke, l'invocation des oneway devrait être disponible. Reste à fixer la norme et
+à proposer une issue.
+\item {\bf Environment} Ce package a disparu de la norme mais semble toujours utile. En tout état de cause, il n'est pas implémenté.
+\item {\bf DynAny} Même si le package DynAny ne faisait pas partie à priori du cadre de ce mémoire, on peut regretter son absence. Elle
+empèche en effet l'utilisateur de manipuler les Any à sa guise et il en est donc réduit, soit à utiliser les fonctions internes à AdaBroker,
+soit à toujours utiliser le compilateur idlac pour générer automatiquement les fonctions To\_Any et From\_Any.
+C'est cette deuxième solution qui est utilisée dans les exemples.
+\item {\bf DSI} DSI signifie Dynamic Server Interface. C'est le pendant côté serveur du travail réalisé ici côté client. Cette interface
+n'est absolument pas nécessaire pour écrire des clients dynamiques mais constitue une suite naturelle du développement des interfaces
+dynamiques dans AdaBroker.
+\end{itemize}
+
+\subsection{Les oublis et autres bugs}
+\begin{itemize}
+\item Les fonctions {\it Marshall\_From\_Any} et {\it Unmarshall\_To\_Any} ne sont pas complètes. Elles ne traitent pas le cas des value,
+valueBox, fixed, abstract\_interface ni celui des principal et des natives.
+\item La génération des TypeCode est incomplète : les TypeCode de type fixed ne sont pas générés.
+\item La fonction equal concernant les Any n'est pas complète : les cas suivant ne sont pas ou sont mal traités : Tk\_Principal,
+       Tk\_Objref,
+       Tk\_Struct,
+       Tk\_Union,
+       Tk\_Enum,
+       Tk\_String,
+       Tk\_Sequence,
+       Tk\_Array,
+       Tk\_Alias,
+       Tk\_Except,
+       Tk\_Longlong,
+       Tk\_Ulonglong,
+       Tk\_Long\-dou\-ble,
+       Tk\_Widechar,
+       Tk\_Wstring,
+       Tk\_Fixed,
+       Tk\_Value,
+       Tk\_Valuebox,
+       Tk\_Native,
+       Tk\_\-Abs\-tract\_In\-ter\-fa\-ce.
+\item La fonction equivalent des TypeCode fait quelques suppositions en ce qui concerne les values, celles-ci n'étant pas mentionnées dans
+la spécification. Ces suppositions paraissent sensées mais n'ont pas été proposées à l'OMG. Elles sont explicitées dans la documentation
+jointe lors de la description de la fonction equivalent. A surveiller voire à proposer à l'OMG.
+\item La fonction Get\_Compact\_TypeCode du package TypeCode n'est pas implémentée faute de savoir ce qu'elle doit faire.
+\item La fonction Iterate\_Over\_Any\_Element concernant le type Any n'est pas implémentée pour la même raison.
+\item Dans la package CORBA.ORB.TypeCode, la méthode Create\_Recursive\_Tc n'est pas im\-plé\-men\-tée bien que déclarée.
+\item L'une des fontions Add\_Item du package CORBA.NVList n'est pas implémentée. Attention lors de son implémentation car elle doit créer
+un object de type Any. Bien penser alors à la gestion de la mémoire et à la gestion des locks...
+\item Toujours concernant cette fonction Add\_Item, elle prend en paramètre un Sys\-tem.\-Address qui est un pointeur sur une valeur autour
+de laquelle on va construire un Any. Cet Any aura une sémantique par référence et on veut faire en sorte que la case mémoire contenant
+la valeur ne soit pas dupliquée pour que l'utilisateur puisse récupérer son résultat. Cela demande un aménagement du type Any qui consiste
+à remplacer les valeurs des Content\_* par des pointeurs. Ce changement doit être répercuté dans chaque méthode qui utilise directement
+les champs des Anys.
+\item L'une des fontions Add\_Arg du package CORBA.Request n'est pas implémentée.
+\item L'alignement des Wchar lors du marshalling est à revoir. Il est possible qu'il ne soit pas compatible avec la norme. Voir le
+chapitre 15 de la norme concernant GIOP à ce sujet.
+\item La fonction TC\_Objref du package CORBA devrait s'appeler TC\_Object et être déclarée dans CORBA.Object. A vérifier tout de même et à
+corriger si nécessaire.
+\item Les procédures Create\_Request du package CORBA.Object ne prennent pas en compte leur argument Flags et n'adaptent donc pas leur
+gestion de la mémoire. J'en profite pour ajouter que la deuxième procédure Create\_Request n'existe pas dans la spécification mais
+a fait l'object d'une proposition de révision.
+\item La norme précise (chapitre 15, concernant GIOP) qu'il est possible d'utiliser des indirections au sein des TypeCode,
+notamment pour éviter les redondances dans le cas d'une union dont plusieurs case définissent les mêmes variables. Ceci n'est pas fait.
+\item La procédure From\_Any des sequences ne fait pas de vérification concernant la longueur maximale de la séquence.
+\item Les procédures From\_Any ne font aucune vérification de type bien qu'elles puissent être appelées par l'utilisateur.
+\item Les TypeCode récursifs ne sont pas pris en compte. Cela doit poser problème lors de définitions récursives. A tester et à implémenter.
+\item Certains packages utilisent encore des listes implémentées à la main. C'est notamment le cas dans CORBA pour le type Content\_List
+et dans CORBA.TypeCode pour le type Cell\_Ptr. Ces
+listes doivent être supprimées au profit du package Sequences.Unbounded.
+\item Les fonctions Item des packages CORBA.ContextList et CORBA.ExceptionList ne font pas de test sur la longueur de la liste
+avant d'appeler Element\_Of. Ce test devrait lever l'exception Bounds définie dans le package CORBA.TypeCode en cas d'erreur.
+\end{itemize}
+\paragraph{}Voilà tout. Bien sur, ce ne sont que les problèmes connus et il doit y en avoir beaucoup d'autres...
+
+\chapter{Bilan}
+
+\section{Enseignements tirés}
+\paragraph{}Les enseignements tirés du développement d'AdaBroker sont multiples. J'ai bien sur acquis de très nombreuses 
+connaissances techniques : développement d'un parser (hors mémoire mais tout de même intéressant),
+utilisation appronfondie d'Ada et de CORBA, utilisation de perforce, ... Cependant, l'expérience la plus nouvelle fut l'utilisation
+intensive d'outils de développement tels perforce, automake, configure... Le projet de dominante nous avait déjà permis de travailler
+en groupe sur un projet mais le nombre de développeurs étant plus réduit, les interactions étaient moindres.
+
+\section{Avenir}
+\paragraph{Release it or not ?}La question qui se pose naturellement est celle de l'avenir de l'invocation dynamique d'AdaBroker.
+Dans la situation actuelle, 
+il me semble qu'il est possible de la proposer aux utilisateurs dans une version dite beta. Les tests réalisés, notamment par l'Interface
+Repository sont en effet très encourageants et les fonctionnalités proposées suffisent pour en faire quelque chose d'utilisable. Il
+faudra bien sûr continuer le développement et compléter ces fonctionnalités à l'avenir.
+\paragraph{Complete it}Il me semble délicat de proposer à un élève de reprendre l'implémentation actuelle pour la terminer dans le cadre d'un
+projet, le travail restant à accomplir étant relativement faible devant la masse de données à collecter pour pouvoir le mener à bien.
+Par contre, cela pourrait être proposé comme complément d'un projet visant par exemple à implémenter le type DynAny et/ou la DSI
+(Dynamic Server Interface). Dans tous les cas, si quelqu'un reprend ce travail, il ne doit surtout pas hésiter à me contacter et à me poser
+toutes les questions qu'il désire.
+
+\end{document}
