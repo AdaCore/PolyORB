@@ -1,11 +1,8 @@
 --  This package contains one function per node of the parse tree
-with Ada_Be.Types;
---  with Types;
+with Idl_Fe.Types; use Idl_Fe.Types;
 
-package Ada_Be.Idl2ada is
+package Ada_Be.Idl2Ada is
 
-   function Generate_Ada (Node : in N_Root_Acc)
-                          return Ada_Be.Types.IDL_Scope;
+   procedure Generate (Node : in N_Root_Acc);
 
-
-end Ada_Be.Idl2ada;
+end Ada_Be.Idl2Ada;

@@ -1,17 +1,17 @@
 package body Ada_Be.Identifiers is
 
 
-   function Get_Full_Ada_Name (Node : in Types.N_Named'Class)
+   function Get_Ada_Full_Name (Node : in N_Named'Class)
                                return String is
    begin
-      return Types.Get_Name (Node);
-   end Get_Full_Ada_Name;
+      return Get_Name (Node);
+   end Get_Ada_Full_Name;
 
 
-   function Get_Ada_Name (Node : in Types.N_Named'Class)
+   function Get_Ada_Name (Node : in N_Named'Class)
                           return String is
    begin
-      return Types.Get_Name (Node);
+      return Get_Name (Node);
    end Get_Ada_Name;
 
 end Ada_Be.Identifiers;
