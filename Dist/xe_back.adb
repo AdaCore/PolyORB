@@ -91,9 +91,6 @@ package body XE_Back is
    function Location_List_Image (Location : Location_Id) return Name_Id;
    --  Explore linked list of locations to build its image
 
-   procedure Copy_Skel_Files (A : File_Name_Type; D : Directory_Name_Type);
-   --  Copy skel files (ali, object) to directory.
-
    procedure Generate_Elaboration_File (P : Partition_Id);
    --  Create the elaboration unit for the given partition. This unit
    --  overloads the default PCS settings.
@@ -105,6 +102,10 @@ package body XE_Back is
    procedure Generate_Partition_Main_File (P : Partition_Id);
    --  Create a procedure which "withes" all the RCI or SP receivers
    --  of the partition and insert the main procedure if needed.
+
+   procedure Generate_Partition_Project_File
+     (D : Directory_Name_Type;
+      P : Partition_Id := No_Partition_Id);
 
    procedure Generate_Protocol_Config_File (P : Partition_Id);
    --  Create protocol configuration file that includes the protocols
@@ -123,8 +124,12 @@ package body XE_Back is
    --  Create a stamp file in which the executable file stamp and the
    --  configuration file stamp are stored.
 
-   procedure Generate_Stub_And_Skel (A : ALI_Id; And_Skel : Boolean);
+   procedure Generate_Stub (A : ALI_Id);
    --  Create stub and skel for a RCI or SP unit.
+
+   procedure Generate_Skel (A : ALI_Id; P : Partition_Id);
+   --  Create skel for a RCI or SP unit and store them in the
+   --  directory of the partition on which the unit is assigned.
 
    function Name (U : Unit_Id) return Name_Id;
    --  Take a unit id and return its name removing unit suffix.
@@ -194,64 +199,101 @@ package body XE_Back is
       PID     : Partition_Id;
       Unit    : Unit_Id;
       Uname   : Unit_Name_Type;
-      Both    : Boolean;
       Current : Partition_Type;
 
    begin
+      if Project_File_Name /= null then
+         Generate_Partition_Project_File (Stub_Dir_Name);
+      end if;
+
+      for J in Partitions.First + 1 .. Partitions.Last loop
+         Current := Partitions.Table (J);
+         if Current.To_Build and then Current.Passive /= BTrue then
+
+            --  Create directories in which resp skels, main partition
+            --  unit, elaboration unit and executables are stored
+
+            Create_Dir (Current.Partition_Dir);
+            Create_Dir (Current.Executable_Dir);
+
+            if Present (Current.Executable_Dir) then
+               Get_Name_String (Current.Executable_Dir);
+               Set_Str_To_Name_Buffer
+                 (Normalize_Pathname (Name_Buffer (1 .. Name_Len)));
+               Partitions.Table (J).Executable_Dir := Name_Find;
+            end if;
+
+            Get_Name_String (Current.Executable_File);
+            Set_Str_To_Name_Buffer
+              (Normalize_Pathname (Name_Buffer (1 .. Name_Len)));
+            Current.Executable_File := Name_Find;
+
+            if Project_File_Name /= null then
+               Generate_Partition_Project_File (Current.Partition_Dir, J);
+            end if;
+
+            for K in ALIs.First .. ALIs.Last loop
+               Afile := ALIs.Table (K).Afile;
+               Unit  := ALIs.Table (K).Last_Unit;
+               Uname := Units.Table (Unit).Uname;
+
+               --  Remove possible copies of unit object
+
+               if (not Units.Table (Unit).RCI
+                   and then not Units.Table (Unit).Shared_Passive)
+                 or else Get_Partition_Id (Uname) /= J
+               then
+                  Afile := Strip_Directory (Afile);
+                  Afile := Dir (Current.Partition_Dir, Afile);
+                  Delete_File (Afile);
+                  Delete_File (To_Ofile (Afile));
+               end if;
+            end loop;
+         end if;
+      end loop;
+
       --  Create stub files. Create skel files as well when we have to
       --  build the partition on which this unit is mapped.
 
-      for J in reverse ALIs.First .. ALIs.Last loop
+      for J in ALIs.First .. ALIs.Last loop
          Unit := ALIs.Table (J).Last_Unit;
+
          if not Units.Table (Unit).Is_Generic
            and then (Units.Table (Unit).RCI
                      or else Units.Table (Unit).Shared_Passive)
          then
-            PID := Get_Partition_Id (Units.Table (Unit).Uname);
-            Both := PID /= No_Partition_Id
-              and then Partitions.Table (PID).To_Build;
-            Generate_Stub_And_Skel (J, And_Skel => Both);
+            Uname := Name (Units.Table (Unit).Uname);
+            PID   := Get_Partition_Id (Uname);
+
+            if PID /= No_Partition_Id
+              and then Partitions.Table (PID).To_Build
+              and then Partitions.Table (PID).Passive /= BTrue
+            then
+               if Debug_Mode then
+                  Message ("create caller and receiver stubs for", Uname);
+               end if;
+
+               Generate_Stub (J);
+               Generate_Skel (J, PID);
+
+            else
+               if Debug_Mode then
+                  Message ("create caller stubs for", Uname);
+               end if;
+
+               Generate_Stub (J);
+            end if;
+
          end if;
       end loop;
 
-      --  Create and fill partition directories
+      --  Create partition files and fill partition directories
 
       for J in Partitions.First + 1 .. Partitions.Last loop
          if Partitions.Table (J).To_Build then
             Current := Partitions.Table (J);
 
             if Current.To_Build and then Current.Passive /= BTrue then
-
-               --  Create directory in which receiver stubs, main
-               --  partition unit and elaboration unit are stored
-
-               Create_Dir (Current.Partition_Dir);
-
-               for K in ALIs.First .. ALIs.Last loop
-                  Afile := ALIs.Table (K).Afile;
-                  Unit  := ALIs.Table (K).Last_Unit;
-                  Uname := Units.Table (Unit).Uname;
-
-                  --  Copy RCI or SP skels when this unit has been
-                  --  assigned to the partition. RCI or SP stubs are
-                  --  not needed since they are in the include path.
-
-                  if (Units.Table (Unit).RCI
-                      or else Units.Table (Unit).Shared_Passive)
-                    and then Get_Partition_Id (Uname) = J
-                  then
-                     Copy_Skel_Files (Afile, Current.Partition_Dir);
-
-                  --  Remove possible copies of unit object
-
-                  else
-                     Afile := Strip_Directory (Afile);
-                     Afile := Dir (Current.Partition_Dir, Afile);
-                     Delete_File (Afile);
-                     Delete_File (To_Ofile (Afile));
-                  end if;
-               end loop;
-
                if Rebuild_Partition (J) then
                   if not Quiet_Mode then
                      Message ("building partition", Current.Name);
@@ -273,37 +315,6 @@ package body XE_Back is
 
       Generate_Starter_File;
    end Backend;
-
-   ---------------------
-   -- Copy_Skel_Files --
-   ---------------------
-
-   procedure Copy_Skel_Files (A : File_Name_Type; D : Directory_Name_Type)
-   is
-      ALI_Src, ALI_Tgt, Obj_Src, Obj_Tgt : File_Name_Type;
-
-   begin
-      ALI_Src := Dir (Skel_Dir_Name, A);
-      ALI_Tgt := Dir (D, A);
-      Obj_Src := To_Ofile (ALI_Src);
-      Obj_Tgt := To_Ofile (ALI_Tgt);
-
-      if not Is_Regular_File (ALI_Src) then
-         Write_Missing_File (ALI_Src);
-         raise Fatal_Error;
-
-      else
-         Copy_File (ALI_Src, ALI_Tgt);
-      end if;
-
-      if not Is_Regular_File (Obj_Src) then
-         Write_Missing_File (Obj_Src);
-         raise Fatal_Error;
-
-      else
-         Copy_File (Obj_Src, Obj_Tgt);
-      end if;
-   end Copy_Skel_Files;
 
    -------------------------------
    -- Generate_Elaboration_File --
@@ -603,18 +614,15 @@ package body XE_Back is
       Current    : Partition_Type renames Partitions.Table (P);
       Executable : File_Name_Type;
       Directory  : Directory_Name_Type;
-      D_Part_Dir : String_Access;
       I_Part_Dir : String_Access;
       Comp_Args  : String_List (1 .. 6);
-      Make_Args  : String_List (1 .. 6);
+      Make_Args  : String_List (1 .. 8);
       Sfile      : File_Name_Type;
+      Prj_Fname  : File_Name_Type;
 
    begin
       Executable := Current.Executable_File;
       Directory  := Current.Partition_Dir;
-
-      Get_Name_String (Directory);
-      D_Part_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
       Name_Len := 2;
       Name_Buffer (1) := '-';
@@ -622,44 +630,75 @@ package body XE_Back is
       Get_Name_String_And_Append (Directory);
       I_Part_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
-      Comp_Args :=
-        (E_Current_Dir,
-         I_Part_Dir,
-         I_Stub_Dir,
-         I_Current_Dir,
-         Object_Dir_Flag,
-         D_Part_Dir);
+      Comp_Args (1) := E_Current_Dir;
+      Comp_Args (2) := I_Part_Dir;
+      Comp_Args (3) := I_Stub_Dir;
+      Comp_Args (4) := I_Current_Dir;
 
-      Sfile := Dir (Directory, Elaboration_File & ADB_Suffix_Id);
+      if Project_File_Name = null then
+         Comp_Args (5) := Object_Dir_Flag;
+         Comp_Args (6) := new String'(Get_Name_String (Directory));
+
+      else
+         Comp_Args (5) := Project_File_Flag;
+         Prj_Fname := Dir (Directory, Part_Prj_File_Name);
+         Get_Name_String (Prj_Fname);
+         Comp_Args (6) := new String'(Name_Buffer (1 .. Name_Len));
+      end if;
+
+      Sfile := Elaboration_File & ADB_Suffix_Id;
+      if Project_File_Name = null then
+         Sfile := Dir (Directory, Sfile);
+      end if;
       Compile (Sfile, Comp_Args);
 
-      Sfile := Dir (Directory, Protocol_Config_File & ADB_Suffix_Id);
-      if Is_Regular_File (Sfile) then
+      Sfile := Protocol_Config_File & ADB_Suffix_Id;
+      if Is_Regular_File (Dir (Directory, Sfile)) then
+         if Project_File_Name = null then
+            Sfile := Dir (Directory, Sfile);
+         end if;
          Compile (Sfile, Comp_Args);
       end if;
 
-      Sfile := Dir (Directory, Storage_Config_File & ADB_Suffix_Id);
-      if Is_Regular_File (Sfile) then
+      Sfile := Storage_Config_File & ADB_Suffix_Id;
+      if Is_Regular_File (Dir (Directory, Sfile)) then
+         if Project_File_Name = null then
+            Sfile := Dir (Directory, Sfile);
+         end if;
          Compile (Sfile, Comp_Args);
       end if;
 
-      Sfile := Dir (Directory, Partition_Main_File & ADB_Suffix_Id);
+      Sfile := Partition_Main_File & ADB_Suffix_Id;
+      if Project_File_Name = null then
+         Sfile := Dir (Directory, Sfile);
+      end if;
       Compile (Sfile, Comp_Args);
 
-      Create_Dir (Current.Executable_Dir);
+      Free (Comp_Args (6));
 
-      Make_Args :=
-        (E_Current_Dir,
-         I_Part_Dir,
-         I_Stub_Dir,
-         I_Current_Dir,
-         Bind_Only_Flag,
-         Link_Only_Flag);
+      Make_Args (1) := E_Current_Dir;
+      Make_Args (2) := I_Part_Dir;
+      Make_Args (3) := I_Stub_Dir;
+      Make_Args (4) := I_Current_Dir;
+      Make_Args (5) := Bind_Only_Flag;
+      Make_Args (6) := Link_Only_Flag;
 
-      Build (Sfile, Executable, Make_Args);
+      if Project_File_Name = null then
+         Make_Args (7) := Output_Flag;
+         Get_Name_String (Executable);
+         Make_Args (8) := new String'(Name_Buffer (1 .. Name_Len));
 
-      Free (D_Part_Dir);
-      Free (I_Part_Dir);
+      else
+         Make_Args (7) := Project_File_Flag;
+         Prj_Fname := Dir (Directory, Part_Prj_File_Name);
+         Get_Name_String (Prj_Fname);
+         Make_Args (8) := new String'(Name_Buffer (1 .. Name_Len));
+      end if;
+
+      Build (Sfile, Make_Args);
+
+      Free (Make_Args (2));
+      Free (Make_Args (8));
    end Generate_Executable_File;
 
    ----------------------------------
@@ -820,6 +859,40 @@ package body XE_Back is
       Set_Standard_Output;
    end Generate_Partition_Main_File;
 
+   -------------------------------------
+   -- Generate_Partition_Project_File --
+   -------------------------------------
+
+   procedure Generate_Partition_Project_File
+     (D : Directory_Name_Type;
+      P : Partition_Id := No_Partition_Id)
+   is
+      Prj_Fname  : File_Name_Type;
+      Prj_File   : File_Descriptor;
+
+   begin
+      Prj_Fname := Dir (D, Part_Prj_File_Name);
+      Create_File (Prj_File, Prj_Fname);
+      Set_Output (Prj_File);
+      Write_Str  ("project Partition extends """);
+      Write_Str  (Project_File_Name.all);
+      Write_Line (""" is");
+      Write_Line ("   for Object_Dir use ""."";");
+      if P /= No_Partition_Id then
+         Write_Str  ("   for Exec_Dir use """);
+         Write_Name (Partitions.Table (P).Executable_Dir);
+         Write_Line (""";");
+         Write_Line ("   package Builder is");
+         Write_Str  ("      for Executable (""partition.adb"") use """);
+         Write_Name (Partitions.Table (P).Name);
+         Write_Line (""";");
+         Write_Line ("   end Builder;");
+      end if;
+      Write_Line ("end Partition;");
+      Close (Prj_File);
+      Set_Standard_Output;
+   end Generate_Partition_Project_File;
+
    -----------------------------------
    -- Generate_Protocol_Config_File --
    -----------------------------------
@@ -926,6 +999,84 @@ package body XE_Back is
       Close (File);
       Set_Standard_Output;
    end Generate_Protocol_Config_File;
+
+   -------------------
+   -- Generate_Skel --
+   -------------------
+
+   procedure Generate_Skel (A : ALI_Id; P : Partition_Id) is
+      Obsolete       : Boolean;
+      Full_Unit_File : File_Name_Type;
+      Full_ALI_File  : File_Name_Type;
+      Skel_Object    : File_Name_Type;
+      Skel_ALI       : File_Name_Type;
+      Arguments      : Argument_List (1 .. 3);
+      Part_Prj_Fname : File_Name_Type;
+      Directory      : Directory_Name_Type
+        renames Partitions.Table (P).Partition_Dir;
+
+   begin
+      Full_Unit_File := Units.Table (ALIs.Table (A).First_Unit).Sfile;
+      Full_ALI_File  := ALIs.Table (A).Afile;
+      Skel_ALI       := To_Afile (Strip_Directory (Full_Unit_File));
+      Skel_ALI       := Dir (Directory, Skel_ALI);
+      Skel_Object    := To_Ofile (Skel_ALI);
+
+      --  Do we need to generate the skel files
+
+      Obsolete := False;
+      if not Is_Regular_File (Skel_Object) then
+         if Verbose_Mode then
+            Write_Missing_File (Skel_Object);
+         end if;
+         Obsolete := True;
+      end if;
+
+      if not Obsolete
+        and then not Is_Regular_File (Skel_ALI)
+      then
+         if Verbose_Mode then
+            Write_Missing_File (Skel_ALI);
+         end if;
+         Obsolete := True;
+      end if;
+
+      if not Obsolete
+        and then File_Time_Stamp (Full_ALI_File) > File_Time_Stamp (Skel_ALI)
+      then
+         if Verbose_Mode then
+            Write_Stamp_Comparison (Full_ALI_File, Skel_ALI);
+         end if;
+         Obsolete := True;
+      end if;
+
+      if Obsolete then
+         if not Quiet_Mode then
+            Message
+              ("building", ALIs.Table (A).Uname,
+               "receiver stubs from", Normalize_CWD (Full_Unit_File));
+         end if;
+
+         Arguments (1) := Skel_Flag;
+
+         if Project_File_Name = null then
+            Arguments (2) := Object_Dir_Flag;
+            Arguments (3) := new String'(Get_Name_String (Directory));
+
+         else
+            Arguments (2) := Project_File_Flag;
+            Part_Prj_Fname := Dir (Directory, Part_Prj_File_Name);
+            Get_Name_String (Part_Prj_Fname);
+            Arguments (3) := new String'(Name_Buffer (1 .. Name_Len));
+         end if;
+
+         Compile (Full_Unit_File, Arguments);
+
+         Free (Arguments (3));
+      elsif not Quiet_Mode then
+         Message ("  ", ALIs.Table (A).Uname, "receiver stubs is up to date");
+      end if;
+   end Generate_Skel;
 
    -------------------------
    -- Generate_Stamp_File --
@@ -1265,50 +1416,30 @@ package body XE_Back is
       Set_Standard_Output;
    end Generate_Storage_Config_File;
 
-   ----------------------------
-   -- Generate_Stub_And_Skel --
-   ----------------------------
+   -------------------
+   -- Generate_Stub --
+   -------------------
 
-   procedure Generate_Stub_And_Skel (A : ALI_Id; And_Skel : Boolean) is
+   procedure Generate_Stub (A : ALI_Id) is
       Obsolete       : Boolean;
-      Full_Unit_Spec : File_Name_Type;
-      Full_Unit_Body : File_Name_Type;
       Full_Unit_File : File_Name_Type;
       Full_ALI_File  : File_Name_Type;
-      ALI_File       : File_Name_Type;
       Stub_Object    : File_Name_Type;
       Stub_ALI       : File_Name_Type;
-      Skel_Object    : File_Name_Type;
-      Skel_ALI       : File_Name_Type;
-      Unit_Name      : Unit_Name_Type;
-      Unit           : Unit_Id;
+      Unit           : Unit_Id := ALIs.Table (A).Last_Unit;
+      Arguments      : Argument_List (1 .. 3);
+      Part_Prj_Fname : File_Name_Type := No_File_Name;
 
    begin
-      Unit      := ALIs.Table (A).Last_Unit;
-      Unit_Name := Name (Unit);
-
-      if Debug_Mode then
-         if And_Skel then
-            Message ("create caller and receiver stubs for", Unit_Name);
-         else
-            Message ("create caller stubs for", Unit_Name);
-         end if;
+      if Units.Table (Unit).Shared_Passive then
+         Unit := ALIs.Table (A).First_Unit;
       end if;
 
-      Full_Unit_Spec := Units.Table (Unit).Sfile;
-      if Units.Table (Unit).Utype = Is_Spec_Only then
-         Full_Unit_Body := Full_Unit_Spec;
-
-      else
-         Full_Unit_Body := Units.Table (ALIs.Table (A).First_Unit).Sfile;
-      end if;
-
-      Full_ALI_File := ALIs.Table (A).Afile;
-      ALI_File      := Strip_Directory (ALIs.Table (A).Afile);
-      Skel_ALI      := Dir (Skel_Dir_Name, ALI_File);
-      Skel_Object   := To_Ofile (Skel_ALI);
-      Stub_ALI      := Dir (Stub_Dir_Name, ALI_File);
-      Stub_Object   := To_Ofile (Stub_ALI);
+      Full_Unit_File := Units.Table (Unit).Sfile;
+      Full_ALI_File  := ALIs.Table (A).Afile;
+      Stub_ALI       := To_Afile (Strip_Directory (Full_Unit_File));
+      Stub_ALI       := Dir (Stub_Dir_Name, Stub_ALI);
+      Stub_Object    := To_Ofile (Stub_ALI);
 
       --  Do we need to regenerate the caller stub and its ali
 
@@ -1339,70 +1470,35 @@ package body XE_Back is
       end if;
 
       if Obsolete then
-         if Units.Table (Unit).RCI then
-            Full_Unit_File := Full_Unit_Spec;
-         else
-            Full_Unit_File := Full_Unit_Body;
-         end if;
-
          if not Quiet_Mode then
             Message
-              ("building", Unit_Name,
+              ("building", ALIs.Table (A).Uname,
                "caller stubs from", Normalize_CWD (Full_Unit_File));
          end if;
 
-         Compile
-           (Full_Unit_File, (Stub_Flag, Object_Dir_Flag, Stub_Dir), False);
+         Arguments (1) := Stub_Flag;
+
+         if Project_File_Name = null then
+            Arguments (2) := Object_Dir_Flag;
+            Arguments (3) := Stub_Dir;
+
+         else
+            Arguments (2)  := Project_File_Flag;
+            Part_Prj_Fname := Dir (Stub_Dir, Part_Prj_File_Name);
+            Get_Name_String (Part_Prj_Fname);
+            Arguments (3)  := new String'(Name_Buffer (1 .. Name_Len));
+         end if;
+
+         Compile (Full_Unit_File, Arguments, False);
+
+         if Present (Part_Prj_Fname) then
+            Free (Arguments (3));
+         end if;
 
       elsif not Quiet_Mode then
-         Message ("  ", Unit_Name, "caller stubs is up to date");
+         Message ("  ", ALIs.Table (A).Uname, "caller stubs is up to date");
       end if;
-
-      if not And_Skel then
-         return;
-      end if;
-
-      --  Do we need to generate the skel files
-
-      Obsolete := False;
-      if not Is_Regular_File (Skel_Object) then
-         if Verbose_Mode then
-            Write_Missing_File (Skel_Object);
-         end if;
-         Obsolete := True;
-      end if;
-
-      if not Obsolete
-        and then not Is_Regular_File (Skel_ALI)
-      then
-         if Verbose_Mode then
-            Write_Missing_File (Skel_ALI);
-         end if;
-         Obsolete := True;
-      end if;
-
-      if not Obsolete
-        and then File_Time_Stamp (Full_ALI_File) > File_Time_Stamp (Skel_ALI)
-      then
-         if Verbose_Mode then
-            Write_Stamp_Comparison (Full_ALI_File, Skel_ALI);
-         end if;
-         Obsolete := True;
-      end if;
-
-      if Obsolete then
-         if not Quiet_Mode then
-            Message
-              ("building", Unit_Name,
-               "receiver stubs from", Normalize_CWD (Full_Unit_Body));
-         end if;
-
-         Compile (Full_Unit_Body, (Skel_Flag, Object_Dir_Flag, Skel_Dir));
-
-      elsif not Quiet_Mode then
-         Message ("  ", Unit_Name, "receiver stubs is up to date");
-      end if;
-   end Generate_Stub_And_Skel;
+   end Generate_Stub;
 
    ----------------
    -- Initialize --
