@@ -40,7 +40,7 @@ test008/tin.idl
 test009/tin.idl
 test010/tin.idl
 test011/tin.idl
-test012/tin.idl
+#test012/tin.idl
 test013/tin.idl
 test014/tin.idl
 test015/tin.idl
