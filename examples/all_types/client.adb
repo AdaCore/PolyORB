@@ -558,7 +558,7 @@ begin
    begin
       Put_Line ("####### Test of CORBA.Object.Ref #######") ;
       Put_Line ("I send the CORBA.Object ") ;
-      O1 := To_Ref(Myall_Types);
+      O1 := CORBA.Object.Ref (To_Ref(Myall_Types));
       O := Echo12 (MyAll_Types, O1) ;
       Put_Line ("I received the CORBA.Object ") ;
    end ;

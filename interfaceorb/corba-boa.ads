@@ -1,4 +1,6 @@
 with System;
+
+with AdaBroker; use AdaBroker;
 with AdaBroker.OmniObject;
 
 package CORBA.BOA is

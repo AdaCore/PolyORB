@@ -466,7 +466,7 @@ adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &privat
       out_args += "; Returns : out " + tmp;
       fields += "      Returns : ";
       fields += tmp;
-      fields += "_Ptr := null ;\n";
+      fields += ";\n";
     }
    in_decls += ") ;\n\n";
 
@@ -546,7 +546,7 @@ adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &privat
   if (is_function())
     {
       private_definition += "      Private_Result : ";
-      private_definition += result_name + "_Ptr := null;\n";
+      private_definition += result_name + ";\n";
     }
   private_definition += "   end record; \n";
 
@@ -608,12 +608,10 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
       unmarshall_decls += tmp;
       unmarshall_decls += " ;\n";
       unmarshall += "      Unmarshall(Returns ,GIOP_Client) ;\n";
-      unmarshall += "      Self.Returns := new ";
-      unmarshall += tmp;
-      unmarshall += "'(Returns) ;\n";
+      unmarshall += "      Self.Returns := Returns;\n";
       out_args += "; Returns : out " + tmp;
-      result_decls += "      Returns := Self.Returns.all ;\n";
-      finalize += "      Free(Self.Returns) ;\n";
+      result_decls += "      Returns := Self.Returns;\n";
+      finalize += "      null;\n";
    }
   in_decls += ") is\n";
 
@@ -698,7 +696,7 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
       if (is_function())
 	{
 	  body += "      Unmarshall(Returns, GIOP_client) ;\n";
-	  body += "      Self.Private_Result := new " + result_name + "'(Returns) ;\n";
+	  body += "      Self.Private_Result := Returns;\n";
 	}
       body += "   end ;\n\n\n";      
     }
@@ -710,7 +708,7 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
       body += "   function Get_Result (Self : in " + get_ada_local_name() + "_Proxy )\n";
       body += "                        return " +  result_name + " is\n";
       body += "   begin\n";
-      body += "      return Self.Private_Result.all ;\n";
+      body += "      return Self.Private_Result;\n";
       body += "   end ;\n\n\n";
     }
   else
@@ -765,7 +763,7 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
     body += "   begin\n";
     body += finalize;
     if (is_function()) {
-      body += "      Free(Self.Private_Result) ;\n";
+      body += "      null;\n";
     } 
     body += "   end ;\n\n\n";
   }

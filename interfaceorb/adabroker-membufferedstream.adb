@@ -589,26 +589,20 @@ package body AdaBroker.MemBufferedStream is
    --------------
    -- Marshall --
    --------------
+
    procedure Marshall
      (A : in CORBA.String;
       S : in out Object'Class)
    is
-      Size : CORBA.Unsigned_Long;
-      C    : Standard.Character;
+      Str  : String := CORBA.To_Standard_String (A);
    begin
-      --  First marshall the size of the string + 1 1 is the size of the
-      --  null character we must marshall at the end of the string (C
-      --  style)
+      --  First marshall the size of the string + 1 (We must marshall
+      --  character NUL at the end of the string (C style))
 
-      Size := CORBA.Length (A) + CORBA.Unsigned_Long (1);
-      Marshall (Size, S);
+      Marshall (CORBA.Unsigned_Long (Str'Length + 1), S);
 
-      --  Then marshall the string itself and a null character at the end
-
-      for I in 1 .. Integer (Size) - 1 loop
-         C := Ada.Strings.Unbounded.Element
-           (Ada.Strings.Unbounded.Unbounded_String (A), I);
-         Marshall (C, S);
+      for I in Str'Range loop
+         Marshall (Str (I), S);
       end loop;
 
       Marshall (CORBA.Char (Ada.Characters.Latin_1.NUL), S);

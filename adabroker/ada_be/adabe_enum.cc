@@ -66,10 +66,10 @@ adabe_enum::produce_ads(dep_list& with,string &body, string &previous) {
   set_number_value(numb);
   // set the number of enum values
   body +=" ) ;\n";
-  body += "   type " + get_ada_local_name() + "_Ptr is access ";
-  body += get_ada_local_name() + " ;\n\n";
-  body += "   procedure Free is new Ada.Unchecked_Deallocation(";
-  body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr) ;\n\n\n";  
+  // body += "   type " + get_ada_local_name() + "_Ptr is access ";
+  // body += get_ada_local_name() + " ;\n\n";
+  // body += "   procedure Free is new Ada.Unchecked_Deallocation(";
+  // body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr) ;\n\n\n";  
   set_already_defined();
 }
 

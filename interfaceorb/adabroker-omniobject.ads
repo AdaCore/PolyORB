@@ -100,7 +100,7 @@ package AdaBroker.OmniObject is
    --  Return the repository_id of the C++ object
 
 
-   Repository_Id : CORBA.String
+   OMG_Repository : CORBA.String
      := CORBA.To_CORBA_String
      (Standard.String'("IDL:omg.org/CORBA/Object:1.0"));
 

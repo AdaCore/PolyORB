@@ -15,6 +15,7 @@ with System;
 
 with CORBA;
 
+with Ada.Strings.Unbounded;
 with AdaBroker; use AdaBroker;
 with AdaBroker.Constants;
 with AdaBroker.Omni;
@@ -286,13 +287,16 @@ package body AdaBroker.OmniObject is
          return Offset + 12;
 
       else
-         --  If not null, add size of unsigned_long (size of Repo_Id), size
+         --  If not null, add size of unsigned_long, size
          --  of Repoid itself and size of profiles
          declare
-            Repoid : CORBA.String := Get_Repository_Id (Obj.all);
+            use Ada.Strings.Unbounded;
+
+            Repository : Unbounded_String
+              := Unbounded_String (Get_Repository_Id (Obj.all));
          begin
             Offset := Offset + 4;
-            Offset := Offset + CORBA.Length (Repoid) + 1;
+            Offset := Offset + CORBA.Unsigned_Long (Length (Repository)) + 1;
             Offset := IOP.Align_Size (Get_Profile_List (Obj.all), Offset);
             return Offset;
          end;
@@ -912,7 +916,7 @@ package body AdaBroker.OmniObject is
                           " msgsize = " & Msgsize'Img));
 
          Msgsize := NetBufferedStream.Align_Size
-           (CORBA.To_CORBA_String (Repoid), Msgsize);
+           (CORBA.To_CORBA_String (Standard.String (Repoid)), Msgsize);
 
          pragma Debug (O ("Dispatch : Marshalling System Exception : " &
                           " msgsize = " & Msgsize'Img));
@@ -927,7 +931,8 @@ package body AdaBroker.OmniObject is
          pragma Debug (O ("Dispatch : Marshalling System Exception : " &
                           " Initialize reply OK"));
 
-         NetBufferedStream.Marshall (CORBA.To_CORBA_String (Repoid), Orls);
+         NetBufferedStream.Marshall
+           (CORBA.To_CORBA_String (Standard.String (Repoid)), Orls);
 
          pragma Debug (O ("Dispatch : Marshalling System Exception : " &
                           " repoid marhshalled OK"));

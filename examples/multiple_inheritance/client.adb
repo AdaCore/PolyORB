@@ -81,7 +81,7 @@ begin
    Put_Line("Cast works");
    Put_Line("");
    Put_Line("Cast the former to Corba.Object.Ref  :");
-   O := To_Ref(V);
+   O := CORBA.Object.Ref(V);
    Put_Line("Final Cast from Corba.Object.Ref to Tank:");
    T := Tank.To_Ref(O);
    Put_Line("  Mark is :" & Corba.To_standard_String(Tank.Get_Mark(T)));

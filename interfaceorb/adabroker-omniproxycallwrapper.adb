@@ -5,7 +5,10 @@
 --  the remote object, and unmarshall the result.
 
 with Ada.Exceptions;
+with Ada.Strings.Unbounded;
+
 with Interfaces.C;
+
 with System;
 
 with CORBA;
@@ -134,11 +137,17 @@ package body AdaBroker.OmniProxyCallWrapper is
 
             --  Calculates the size of the message first the size of the
             --  header
-            Message_Size :=
-              GIOP_C.Request_Header_Size
-              (GIOP_Client.Real,
-               OmniRopeAndKey.Key_Size (Rope_And_Key.Real),
-               CORBA.Length (OmniProxyCallDesc.Operation (Call_Desc)));
+            declare
+               use Ada.Strings.Unbounded;
+
+               Desc : CORBA.String := OmniProxyCallDesc.Operation (Call_Desc);
+            begin
+               Message_Size :=
+                 GIOP_C.Request_Header_Size
+                 (GIOP_Client.Real,
+                  OmniRopeAndKey.Key_Size (Rope_And_Key.Real),
+                  CORBA.Unsigned_Long (Length (Unbounded_String (Desc))));
+            end;
 
             pragma Debug (O ("invoke : Message_Size :=" & Message_Size'Img));
 
@@ -859,11 +868,17 @@ package body AdaBroker.OmniProxyCallWrapper is
 
             --  Calculates the size of the message first the size of the
             --  header
-            Message_Size :=
-              GIOP_C.Request_Header_Size
-              (GIOP_Client.Real,
-               OmniRopeAndKey.Key_Size (Rope_And_Key.Real),
-               CORBA.Length (OmniProxyCallDesc.Operation (Call_Desc)));
+            declare
+               use Ada.Strings.Unbounded;
+
+               Desc : CORBA.String := OmniProxyCallDesc.Operation (Call_Desc);
+            begin
+               Message_Size :=
+                 GIOP_C.Request_Header_Size
+                 (GIOP_Client.Real,
+                  OmniRopeAndKey.Key_Size (Rope_And_Key.Real),
+                  CORBA.Unsigned_Long (Length (Unbounded_String (Desc))));
+            end;
 
             --  And then the size of the message itself
             Message_Size := OmniProxyCallDesc.Align_Size

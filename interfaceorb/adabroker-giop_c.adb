@@ -79,10 +79,11 @@ package body AdaBroker.GIOP_C is
       MsgSize    : in CORBA.Unsigned_Long;
       Oneway     : in CORBA.Boolean)
    is
+
+      use Ada.Strings.Unbounded;
+
       C_Objkeysize : Interfaces.C.unsigned_long;
-      Ada_Opname   : String
-        := Ada.Strings.Unbounded.To_String
-        (Ada.Strings.Unbounded.Unbounded_String (Opname));
+      Ada_Opname   : String := To_String (Unbounded_String (Opname));
       C_Opname     : Interfaces.C.Strings.chars_ptr;
       C_OpnameSize : Interfaces.C.unsigned_long;
       C_MsgSize    : Interfaces.C.unsigned_long;
@@ -94,7 +95,7 @@ package body AdaBroker.GIOP_C is
 
       --  Desallocation in a few lines
       C_OpnameSize := Interfaces.C.unsigned_long
-        (CORBA.Length (Opname) + CORBA.Unsigned_Long (1));
+        (Ada_Opname'Length + CORBA.Unsigned_Long (1));
       C_MsgSize    := Interfaces.C.unsigned_long (MsgSize);
       C_Oneway     := Sysdep.To_Bool (Oneway);
 

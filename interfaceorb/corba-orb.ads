@@ -3,11 +3,7 @@ with System;
 with CORBA.Object;
 with CORBA.BOA;
 
---  with CORBA.NVList;
---  with CORBA.OperationDef;
---  with CORBA.Context;
---  with CORBA.Sequences;
-
+with AdaBroker; use AdaBroker;
 with AdaBroker.OmniObject;
 
 package CORBA.ORB is

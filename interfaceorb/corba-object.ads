@@ -1,21 +1,12 @@
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
 
+with AdaBroker; use AdaBroker;
 with AdaBroker.OmniObject;
 with AdaBroker.NetBufferedStream;
 with AdaBroker.MemBufferedStream;
 
---  with CORBA.ImplementationDef;
---  with CORBA.InterfaceDef;
---  with CORBA.Context;
---  with CORBA.NVList;
---  with CORBA.Request;
-
 package CORBA.Object is
-
-   ------------------------------
-   -- CORBA 2.2 28 February 99 --
-   ------------------------------
 
    type Ref is tagged private;
 
@@ -29,7 +20,7 @@ package CORBA.Object is
       Logical_Type_Id : in CORBA.String)
       return CORBA.Boolean;
    --  Returns True if this object is of this Logical_Type_Id (here
-   --  Logical_Type_Id is a Repository_Id) or one of its descendants
+   --  Logical_Type_Id is a OMG_Repository) or one of its descendants
 
    function Non_Existent
      (Self : in Ref)
@@ -50,29 +41,6 @@ package CORBA.Object is
       return CORBA.Unsigned_Long;
    --  Return a hash value for object not implemented yet, it returns 0
 
-
-
-   --    not yet implemented
-   --
-   --    function To_Any (From : in Ref) return Any;
-   --    function To_Ref (From : in Any) return Ref;
-   --
-   --    function Get_Implementation (Self : in Ref)
-   --      return CORBA.ImplementationDef.Ref;
-   --
-   --    function Get_InterfaceDef (Self : in Ref)
-   --      return CORBA.InterfaceDef.Ref;
-   --
-   --    procedure Create_Request
-   --      (Self      : in     Ref;
-   --       Ctx       : in     CORBA.Context.Object;
-   --       Operation : in     Identifier;
-   --       Arg_List  : in     CORBA.NVList.Object;
-   --       Result    : in out NamedValue;
-   --       Request   :    out CORBA.Request.Object;
-   --       Req_Flags : in     Flags;
-   --       Returns   : out    Status);
-
    ---------------
    -- AdaBroker --
    ---------------
@@ -82,24 +50,17 @@ package CORBA.Object is
       return CORBA.Boolean;
    --  Same, but non dispatching, must be called CORBA.Object.Is_A (...)
 
-   function To_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
-      return Ref;
-   --  Used to cast any CORBA.Object.Ref'Class into a CORBA.Object.Ref it
-   --  has to be overloaded for all descendants of CORBA.Object.Ref
-
-   Repository_Id : CORBA.String
-     := CORBA.To_CORBA_String
-     (Standard.String'("IDL:omg.org/CORBA/Object:1.0"));
+   OMG_Repository : CORBA.String
+     := CORBA.To_CORBA_String ("IDL:omg.org/CORBA/Object:1.0");
    --  Repository Id for CORBA.Object.Ref
 
    function Get_Repository_Id (Self : in Ref) return CORBA.String;
    --  Returns the Repository Id of the ADA type of Self it must be
-   --  overloaded for all the descendants of Ref BEWARE : the repository ID
-   --  of the ADA type of Self may not be the same as its dynamic
-   --  repository ID For example : if a descendant Myref has been cast into
-   --  Ref using To_Ref, Get_Repository_Id will return the repository ID of
-   --  CORBA.Object.Ref
+   --  overloaded for all the descendants of Ref. BEWARE : the repository
+   --  ID of the ADA type of Self may not be the same as its dynamic
+   --  repository ID. For example : if a descendant Myref has been cast
+   --  into Ref using To_Ref, Get_Repository_Id will return the repository
+   --  ID of CORBA.Object.Ref
 
    function Get_OmniObject_Ptr
      (Self : in Ref'Class)
@@ -129,7 +90,7 @@ package CORBA.Object is
    -- registering new interfaces into the ORB --
    ---------------------------------------------
 
-   procedure Create_Proxy_Object_Factory (Repoid : in CORBA.String);
+   procedure Create_Proxy_Object_Factory (Repository : in CORBA.String);
    --  The ORB has to know how to create new proxy objects when we ask him
    --  to (out of an IOR for example.  To do that, it keeps a global
    --  variable which is a list of proxyObjectFactories.  They all have a
@@ -165,8 +126,8 @@ package CORBA.Object is
 
 
    procedure Register
-     (Repoid   : in CORBA.String;
-      Dyn_Type : in CORBA.Object.Constant_Ref_Ptr);
+     (Repository : in CORBA.String;
+      Dyn_Type   : in CORBA.Object.Constant_Ref_Ptr);
    --  This procedure registers a new static object in the list
 
 
@@ -233,7 +194,7 @@ private
 
 
    function Get_Dynamic_Type_From_Repository_Id
-     (Repoid : in CORBA.String)
+     (Repository : in CORBA.String)
       return CORBA.Object.Constant_Ref_Ptr;
 
    Nil_Ref : aliased constant Ref

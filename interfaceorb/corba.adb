@@ -52,44 +52,30 @@ package body CORBA is
         (Ada.Strings.Unbounded.Unbounded_String (S));
    end To_Standard_String;
 
-   ---------------------
-   -- To_CORBA_String --
-   ---------------------
+--    ---------------------
+--    -- To_CORBA_String --
+--    ---------------------
 
-   function To_CORBA_String
-     (S : in Constants.Exception_Id)
-      return CORBA.String
-   is
-   begin
-      return CORBA.String
-        (Ada.Strings.Unbounded.To_Unbounded_String
-         (Standard.String (S)));
-   end To_CORBA_String;
+--    function To_CORBA_String
+--      (S : in Constants.Exception_Id)
+--       return CORBA.String
+--    is
+--    begin
+--       return CORBA.String
+--         (Ada.Strings.Unbounded.To_Unbounded_String
+--          (Standard.String (S)));
+--    end To_CORBA_String;
 
-   ---------------------
-   -- To_Exception_Id --
-   ---------------------
+--    ---------------------
+--    -- To_Exception_Id --
+--    ---------------------
 
-   function To_Exception_Id
-     (S : in CORBA.String)
-      return Constants.Exception_Id
-   is
-   begin
-      return Constants.Exception_Id (To_Standard_String (S));
-   end To_Exception_Id;
-
-   ------------
-   -- Length --
-   ------------
-
-   function Length
-     (S : in CORBA.String)
-      return CORBA.Unsigned_Long
-   is
-   begin
-      return CORBA.Unsigned_Long
-        (Ada.Strings.Unbounded.Length
-         (Ada.Strings.Unbounded.Unbounded_String (S)));
-   end Length;
+--    function To_Exception_Id
+--      (S : in CORBA.String)
+--       return Constants.Exception_Id
+--    is
+--    begin
+--       return Constants.Exception_Id (To_Standard_String (S));
+--    end To_Exception_Id;
 
 end CORBA;

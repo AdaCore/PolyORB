@@ -185,8 +185,8 @@ adabe_array::produce_ads(dep_list& with,string &body, string &previous) {
   body += get_ada_local_name() + " ;\n\n";
 
   // definition of the free function
-  body += "   procedure Free is new Ada.Unchecked_Deallocation(";
-  body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr) ;\n\n\n";
+  // body += "   procedure Free is new Ada.Unchecked_Deallocation(";
+  // body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr) ;\n\n\n";
 
   // if the structure in the array does not have
   // a fixed size a fag is put (the marshall is not

@@ -1,12 +1,8 @@
 with Ada.Exceptions;
 with Ada.Characters.Latin_1;
 with Ada.Strings.Unbounded;
-with Ada.Unchecked_Deallocation;
 
 with Interfaces;
-
-with AdaBroker; use AdaBroker;
-with AdaBroker.Constants;
 
 package CORBA is
 
@@ -98,6 +94,22 @@ package CORBA is
    Obj_Adapter   : exception;          --  failure detected by object adapter
    Data_Conversion : exception;        --  data conversion error
 
+   function To_CORBA_String
+     (S : in Standard.String)
+      return CORBA.String;
+   --  Transforms a standard string into the correponding corba string
+
+   function To_Standard_String
+     (S : in CORBA.String)
+      return Standard.String;
+   --  Transforms a CORBA string into the correponding standard string
+
+   ---------------
+   -- AdaBroker --
+   ---------------
+
+   --  This should be moved elsewhere.
+
    type Unknown_Members         is new Ex_Body with null record;
    type Bad_Param_Members       is new Ex_Body with null record;
    type No_Memory_Members       is new Ex_Body with null record;
@@ -124,42 +136,6 @@ package CORBA is
    type Obj_Adapter_Members     is new Ex_Body with null record;
    type Data_Conversion_Members is new Ex_Body with null record;
 
-
-   ---------------
-   -- AdaBroker --
-   ---------------
-
-   type Boolean_Ptr        is access all Boolean;
-   type Short_Ptr          is access all Short;
-   type Long_Ptr           is access all Long;
-   type Unsigned_Short_Ptr is access all Unsigned_Short;
-   type Unsigned_Long_Ptr  is access all Unsigned_Long;
-   type Float_Ptr          is access all Float;
-   type Double_Ptr         is access all Double;
-   type Char_Ptr           is access all Char;
-   type Octet_Ptr          is access all Octet;
-   type String_Ptr         is access all String;
-
-   procedure Free is
-     new Ada.Unchecked_Deallocation (Boolean, Boolean_Ptr);
-   procedure Free is
-     new Ada.Unchecked_Deallocation (Short, Short_Ptr);
-   procedure Free is
-     new Ada.Unchecked_Deallocation (Long, Long_Ptr);
-   procedure Free is
-     new Ada.Unchecked_Deallocation (Unsigned_Short, Unsigned_Short_Ptr);
-   procedure Free is
-     new Ada.Unchecked_Deallocation (Unsigned_Long, Unsigned_Long_Ptr);
-   procedure Free is
-     new Ada.Unchecked_Deallocation (Float, Float_Ptr);
-   procedure Free is
-     new Ada.Unchecked_Deallocation (Double, Double_Ptr);
-   procedure Free is
-     new Ada.Unchecked_Deallocation (Char, Char_Ptr);
-   procedure Free is
-     new Ada.Unchecked_Deallocation (Octet, Octet_Ptr);
-   procedure Free is
-     new Ada.Unchecked_Deallocation (String, String_Ptr);
 
    procedure Raise_CORBA_Exception
      (Excp      : in Ada.Exceptions.Exception_Id;
@@ -188,32 +164,6 @@ package CORBA is
 
    Dummy_User                    : exception;
    --  The user tried to call an unchecked case in an union
-
-   function To_CORBA_String
-     (S : in Standard.String)
-      return CORBA.String;
-   --  Transforms a standard string into the correponding corba string
-
-   function To_Standard_String
-     (S : in CORBA.String)
-      return Standard.String;
-   --  Transforms a corba string into the correponding standard string
-
-   function To_CORBA_String
-     (S : in Constants.Exception_Id)
-      return CORBA.String;
-   --  Transforms a standard string into the correponding corba string
-
-   function To_Exception_Id
-     (S : in CORBA.String)
-      return Constants.Exception_Id;
-   --  Transforms a corba string into the correponding standard string
-
-   function Length
-     (S : in CORBA.String)
-      return CORBA.Unsigned_Long;
-   --  Returns the length of a corba string
-
 
    -----------------------
    -- omniORB2 specific --

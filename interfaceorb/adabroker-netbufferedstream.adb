@@ -743,22 +743,17 @@ package body AdaBroker.NetBufferedStream is
      (A : in CORBA.String;
       S : in out Object'Class)
    is
-      Size : CORBA.Unsigned_Long;
-      C    : Standard.Character;
+      Str : String := CORBA.To_Standard_String (A);
    begin
-      --  First marshall the size of the string + 1 1 is the size of the
-      --  null character we must marshall at the end of the string (C
-      --  style)
-      Size := CORBA.Length (A) + CORBA.Unsigned_Long (1);
+      --  First marshall the size of the string + 1 (we must marshall NUL
+      --  character at the end of the string (C style)).
 
-      Marshall (Size, S);
-      --  Then marshall the string itself and a null character at the end
+      Marshall (CORBA.Unsigned_Long (Str'Length + 1), S);
 
-      for I in 1 .. Integer (Size) - 1 loop
-         C := Ada.Strings.Unbounded.Element
-           (Ada.Strings.Unbounded.Unbounded_String (A), I);
-         Marshall (C, S);
+      for I in Str'Range loop
+         Marshall (Str (I), S);
       end loop;
+
       Marshall (CORBA.Char (Ada.Characters.Latin_1.NUL), S);
    end Marshall;
 
@@ -823,18 +818,20 @@ package body AdaBroker.NetBufferedStream is
       N              : in CORBA.Unsigned_Long := 1)
       return CORBA.Unsigned_Long
    is
+      use Ada.Strings.Unbounded;
+
       Tmp : CORBA.Unsigned_Long;
    begin
       Tmp := Omni.Align_To (Initial_Offset, Omni.ALIGN_4);
 
-      --  Size of the size of the string
+      --  Size of the size of the string.
       Tmp := Tmp + 4;
 
-      --  Size of the string itself
-      return Tmp + (N * (CORBA.Length (A) + 1));
+      --  Size of the string itself (add 1 for NUL character).
+      Tmp := Tmp +
+        N * (CORBA.Unsigned_Long (Length (Unbounded_String (A))) + 1);
 
-      --  + 1 is for the null character (the strings are marshalled in C
-      --  style)
+      return Tmp;
    end Align_Size;
 
    --------------
@@ -846,7 +843,8 @@ package body AdaBroker.NetBufferedStream is
       S : in out Object'Class) is
    begin
       --  Maps the possible values on the firste shorts and marshall the
-      --  right one
+      --  right one.
+
       case A is
          when CORBA.Completed_Yes =>
             Marshall (CORBA.Unsigned_Long (1), S);

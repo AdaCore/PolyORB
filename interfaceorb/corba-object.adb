@@ -3,13 +3,13 @@
 --  proxy objects
 
 with Ada.Exceptions;
+with Ada.Strings.Unbounded;
 
 with Interfaces.C.Strings;
 
 with AdaBroker.IOP;
 with AdaBroker.OmniObject;
 with AdaBroker.OmniRopeAndKey;
-
 with AdaBroker.Debug;
 pragma Elaborate (AdaBroker.Debug);
 
@@ -23,10 +23,10 @@ package body CORBA.Object is
    use type OmniObject.Object_Ptr;
 
    procedure Create_Ref
-     (Most_Derived_Repoid : in CORBA.String;
-      Profiles            : in IOP.Tagged_Profile_List;
-      Release             : in CORBA.Boolean;
-      To                  : in out Ref'Class);
+     (Most_Derived_Repository : in CORBA.String;
+      Profiles                : in IOP.Tagged_Profile_List;
+      Release                 : in CORBA.Boolean;
+      To                      : in out Ref'Class);
 
    function Get_Profile_List
      (Obj : in Ref'Class)
@@ -59,7 +59,7 @@ package body CORBA.Object is
       Logical_Type_Id : in CORBA.String)
       return CORBA.Boolean is
    begin
-      return (Repository_Id = Logical_Type_Id);
+      return (OMG_Repository = Logical_Type_Id);
    end Is_A;
 
    ----------
@@ -70,7 +70,7 @@ package body CORBA.Object is
      (Logical_Type_Id : in CORBA.String)
       return CORBA.Boolean is
    begin
-      return (Repository_Id = Logical_Type_Id);
+      return (OMG_Repository = Logical_Type_Id);
    end Is_A;
 
    ------------------
@@ -128,10 +128,10 @@ package body CORBA.Object is
    -- To_Ref --
    ------------
 
-   function To_Ref (The_Ref : in Ref'Class) return Ref is
-   begin
-      return Ref (The_Ref);
-   end To_Ref;
+--    function To_Ref (The_Ref : in Ref'Class) return Ref is
+--    begin
+--       return Ref (The_Ref);
+--    end To_Ref;
 
 
    -------------------------------
@@ -156,15 +156,15 @@ package body CORBA.Object is
    --------------
 
    procedure Register
-     (Repoid   : in CORBA.String;
-      Dyn_Type : in CORBA.Object.Constant_Ref_Ptr)
+     (Repository : in CORBA.String;
+      Dyn_Type   : in CORBA.Object.Constant_Ref_Ptr)
    is
       Tmp : Cell_Ptr;
    begin
-      pragma Debug (O ("Registering " & To_Standard_String (Repoid) &
+      pragma Debug (O ("Registering " & To_Standard_String (Repository) &
                        " in the dynamic type list"));
 
-      Tmp  := new Cell'(Repoid, Dyn_Type, List);
+      Tmp  := new Cell'(Repository, Dyn_Type, List);
       List := Tmp;
    end Register;
 
@@ -173,7 +173,7 @@ package body CORBA.Object is
    -----------------------------------------
 
    function Get_Dynamic_Type_From_Repository_Id
-     (Repoid : in CORBA.String)
+     (Repository : in CORBA.String)
       return CORBA.Object.Constant_Ref_Ptr
    is
       Tmp : Cell_Ptr := List;
@@ -182,12 +182,11 @@ package body CORBA.Object is
          if Tmp = null then
             Ada.Exceptions.Raise_Exception
               (AdaBroker_Fatal_Error'Identity,
-               "CORBA.Get_Dynamic_Type_From_Repository_Id" &
-               CORBA.CRLF &
+               "CORBA.Get_Dynamic_Type_From_Repository_Id" & CORBA.CRLF &
                "No match found for " &
-               CORBA.To_Standard_String (Repoid));
+               CORBA.To_Standard_String (Repository));
 
-         elsif Tmp.all.ID = Repoid then
+         elsif Tmp.all.ID = Repository then
             return Tmp.all.Value;
          else
             Tmp := Tmp.all.Next;
@@ -215,7 +214,7 @@ package body CORBA.Object is
    function Get_Repository_Id
      (Self : in Ref) return CORBA.String is
    begin
-      return Repository_Id;
+      return OMG_Repository;
    end Get_Repository_Id;
 
    ------------------------
@@ -302,7 +301,7 @@ package body CORBA.Object is
    -----------------------------------
 
    procedure C_Create_Proxy_Object_Factory
-     (Repoid : in Interfaces.C.Strings.chars_ptr);
+     (Repository : in Interfaces.C.Strings.chars_ptr);
    pragma Import
      (CPP, C_Create_Proxy_Object_Factory, "createProxyObjectFactory__FPCc");
    --  Corresponds to void createProxyObjectFactory(const char* repoID) see
@@ -313,16 +312,16 @@ package body CORBA.Object is
    ---------------------------------
 
    procedure Create_Proxy_Object_Factory
-     (Repoid : in CORBA.String)
+     (Repository : in CORBA.String)
    is
-      C_Repoid : Interfaces.C.Strings.chars_ptr;
-      Tmp      : Standard.String := CORBA.To_Standard_String (Repoid);
+      C_Repository : Interfaces.C.Strings.chars_ptr;
+      Tmp          : Standard.String := CORBA.To_Standard_String (Repository);
    begin
-      C_Repoid := Interfaces.C.Strings.New_String (Tmp);
+      C_Repository := Interfaces.C.Strings.New_String (Tmp);
 
       --  Never deallocated because it is stored in a global variable in
       --  omniORB (proxyStubs)
-      C_Create_Proxy_Object_Factory (C_Repoid);
+      C_Create_Proxy_Object_Factory (C_Repository);
    end Create_Proxy_Object_Factory;
 
    ---------------------------
@@ -334,7 +333,7 @@ package body CORBA.Object is
    ----------------
 
    procedure Create_Ref
-     (Most_Derived_Repoid : in CORBA.String;
+     (Most_Derived_Repository : in CORBA.String;
       Profiles            : in IOP.Tagged_Profile_List;
       Release             : in CORBA.Boolean;
       To                  : in out Ref'Class)
@@ -342,10 +341,10 @@ package body CORBA.Object is
       Most_Derived_Type : Constant_Ref_Ptr;
    begin
       --  Check if the omniobject we got can be put into To (type implied
-      --  the Repoid)
+      --  the Repository)
 
       Most_Derived_Type :=
-        Get_Dynamic_Type_From_Repository_Id (Most_Derived_Repoid);
+        Get_Dynamic_Type_From_Repository_Id (Most_Derived_Repository);
 
       --  Most_Derived_Type is now an object of the most derived type of
       --  the new created object
@@ -354,21 +353,21 @@ package body CORBA.Object is
 
          --  Get the OmniObject
          To.OmniObj := OmniObject.Create_OmniObject
-           (Most_Derived_Repoid,
+           (Most_Derived_Repository,
             Profiles,
             Release);
 
          --  If the result is correct
          if To.OmniObj /= null then
             To.Dynamic_Type :=
-              Get_Dynamic_Type_From_Repository_Id (Most_Derived_Repoid);
+              Get_Dynamic_Type_From_Repository_Id (Most_Derived_Repository);
             return;
          end if;
       end if;
 
       --  The operation is illegal return Nil_Ref in the right class
       pragma Debug (O ("Create_Ref : cannot put a " &
-                       CORBA.To_Standard_String (Most_Derived_Repoid) &
+                       CORBA.To_Standard_String (Most_Derived_Repository) &
                        " in a " &
                        CORBA.To_Standard_String (Get_Repository_Id (To))));
       To.OmniObj      := null;
@@ -435,25 +434,28 @@ package body CORBA.Object is
      (Obj : out Ref'Class;
       S   : in out NetBufferedStream.Object'Class)
    is
-      Repoid : CORBA.String;
-      List   : IOP.Tagged_Profile_List;
-      Tmp    : Ref'Class := CORBA.Object.Nil_Ref;
+      use Ada.Strings.Unbounded;
+
+      Repository : CORBA.String;
+      List       : IOP.Tagged_Profile_List;
+      Tmp        : Ref'Class := CORBA.Object.Nil_Ref;
    begin
       pragma Debug (O ("Unmarshall : unmarshalling " &
                        To_Standard_String (Get_Repository_Id (Obj))));
 
-      --  First unmarshall the Repoid
-      NetBufferedStream.Unmarshall (Repoid, S);
+      --  First unmarshall the Repository
+      NetBufferedStream.Unmarshall (Repository, S);
 
-      pragma Debug (O ("Unmarshall : found " & To_Standard_String (Repoid)));
+      pragma Debug (O ("Unmarshall : found " &
+                       To_Standard_String (Repository)));
 
       --  Then the profile list
       IOP.Unmarshall (List, S);
       pragma Debug (O ("Unmarshall : IOP_List unmarshalled"));
 
       --  And at last create the object reference to be returned
-      if IOP.Length (List) = CORBA.Unsigned_Long (0)
-        and then CORBA.Length (Repoid) = CORBA.Unsigned_Long (0)
+      if IOP.Length (List) = 0
+        and then Length (Unbounded_String (Repository)) = 0
       then
          pragma Debug (O ("Unmarshall : Nil Ref created"));
 
@@ -463,7 +465,7 @@ package body CORBA.Object is
          pragma Debug (O ("Unmarshall : create Ref enter"));
 
          --  Or a real object reference
-         CORBA.Object.Create_Ref (Repoid, List, True, Obj);
+         CORBA.Object.Create_Ref (Repository, List, True, Obj);
 
          pragma Debug (O ("Unmarshall : create Ref leave"));
 
@@ -481,25 +483,27 @@ package body CORBA.Object is
    procedure Unmarshall
      (Obj : out Ref'Class;
       S   : in out MemBufferedStream.Object'Class) is
-      Repoid : CORBA.String;
-      List   : IOP.Tagged_Profile_List;
-      Tmp    : Ref'Class := CORBA.Object.Nil_Ref;
+      use Ada.Strings.Unbounded;
+
+      Repository : CORBA.String;
+      List       : IOP.Tagged_Profile_List;
+      Tmp        : Ref'Class := CORBA.Object.Nil_Ref;
    begin
       --  First unmarshall the Repo_Id
-      MemBufferedStream.Unmarshall (Repoid, S);
+      MemBufferedStream.Unmarshall (Repository, S);
 
       --  Then the profile list
       IOP.Unmarshall (List, S);
 
       --  at last create the object reference to be returned
-      if IOP.Length (List) = CORBA.Unsigned_Long (0)
-        and then CORBA.Length (Repoid) = CORBA.Unsigned_Long (0)
+      if IOP.Length (List) = 0
+        and then Length (Unbounded_String (Repository)) = 0
       then
          --  a nil object reference
          Obj := Tmp;
       else
          --  a real object reference
-         CORBA.Object.Create_Ref (Repoid, List, True, Obj);
+         CORBA.Object.Create_Ref (Repository, List, True, Obj);
       end if;
    end Unmarshall;
 
@@ -553,7 +557,7 @@ package body CORBA.Object is
 
 begin
 
-   Register (Repository_Id, Nil_Ref'Access);
+   Register (OMG_Repository, Nil_Ref'Access);
    --  Registers the fact that a new IDL interface : the root of all the
    --  others can be used in the program
 

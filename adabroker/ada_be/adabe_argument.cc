@@ -187,7 +187,7 @@ adabe_argument::produce_proxies_ads(dep_list &with, string &in_decls,bool &no_in
   fields += get_ada_local_name ();
   fields += " : ";
   fields += type_name;
-  fields += "_Ptr := null ;\n";
+  fields += ";\n";
 }
 
 
@@ -217,6 +217,7 @@ adabe_argument::produce_proxies_adb(dep_list &with, string &in_decls, bool &no_i
   // of the Get_Result function corresponding to the operation
   //    - result_decls contains the code to put in the get_result function
 {
+  finalize += "      null;\n";
   string body, previous = "";
   AST_Decl *d = field_type();
   string type_name =  dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
@@ -235,19 +236,17 @@ adabe_argument::produce_proxies_adb(dep_list &with, string &in_decls, bool &no_i
 
     init += "      Self.";
     init += get_ada_local_name ();
-    init += " := new ";
-    init += type_name;
-    init += "'(";
+    init += " := ";
     init += get_ada_local_name ();
-    init += ") ;\n";
+    init += ";\n";
 
     align_size += "      Tmp := Align_size(Self.";
     align_size += get_ada_local_name ();
-    align_size += ".all, Tmp) ;\n";
+    align_size += ", Tmp) ;\n";
 
     marshall += "      Marshall(Self.";
     marshall += get_ada_local_name ();
-    marshall += ".all,GIOP_Client) ;\n";
+    marshall += ", GIOP_Client) ;\n";
   }
   if ((direction() == AST_Argument::dir_OUT) || (direction() == AST_Argument::dir_INOUT)) {
     dynamic_cast<adabe_name *>(d)->is_marshal_imported(with);
@@ -259,30 +258,28 @@ adabe_argument::produce_proxies_adb(dep_list &with, string &in_decls, bool &no_i
     unmarshall_decls += " ;\n";
 
     if (direction() == dir_INOUT) {
-      unmarshall += "      Free (Self.";
-      unmarshall += get_ada_local_name ();
-      unmarshall += ") ;\n";
+      // unmarshall += "      Free (Self.";
+      // unmarshall += get_ada_local_name ();
+      // unmarshall += ") ;\n";
 }
     unmarshall += "      Unmarshall(";
     unmarshall += get_ada_local_name ();
     unmarshall += ",GIOP_Client) ;\n";
     unmarshall += "      Self.";
     unmarshall += get_ada_local_name ();
-    unmarshall += " := new ";
-    unmarshall += type_name;
-    unmarshall += "'(";
+    unmarshall += " := ";
     unmarshall += get_ada_local_name ();
-    unmarshall += ") ;\n";
+    unmarshall += ";\n";
     
     out_args += "; " + get_ada_local_name () + " : out " + type_name;
     
     result_decls += "      " + get_ada_local_name ();
-    result_decls += " := Self." + get_ada_local_name () + ".all ;\n";
+    result_decls += " := Self." + get_ada_local_name () + ";\n";
   }
   
-  finalize += "      Free(Self.";
-  finalize += get_ada_local_name ();
-  finalize += ") ;\n";
+  // finalize += "      Free(Self.";
+  // finalize += get_ada_local_name ();
+  // finalize += ") ;\n";
 }
 
 ////////////////////////////////////////////////////////////////////////
