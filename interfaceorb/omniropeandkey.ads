@@ -15,16 +15,7 @@ with Interfaces.CPP ;
 
 package OmniRopeAndKey is
 
---   type Object is tagged private ;
-
-   type Object is tagged record
-      Pd_R : Rope.Object_Access ;
-      Pd_KeySize : Corba.Unsigned_Long ;
-      Table : Interfaces.CPP.Vtable_Ptr ;
-   end record;
-
-   pragma CPP_Class (Object) ;
-   pragma CPP_Vtable (Object,Table,1) ;
+   type Object is tagged private ;
 
    procedure Init (This : in out Object ;
                      R : in Rope.Object ;
@@ -49,5 +40,6 @@ package OmniRopeAndKey is
 
 private
 
+   type Object is tagged null record ;
 
 end OmniRopeAndKey ;

@@ -57,9 +57,7 @@ package Giop_C is
 
 private
 
-   type Object is new NetBufferedStream.Object with record
-      CPP_Object : System.Address ;
-   end record ;
+   type Object is new NetBufferedStream.Object with null record ;
 
 
 end Giop_C ;

@@ -14,7 +14,7 @@ with Corba, Giop_C ;
 
 package omniProxyCallDesc is
 
-   type Object is abstract tagged limited private;
+   type Object(Op_Size : Natural) is abstract tagged limited private;
 
    -- all the following funcitions correspond
    -- to omniORB's OmniProxyCallDesc
@@ -51,7 +51,7 @@ package omniProxyCallDesc is
 
 private
 
-   type Object(Op_Size : Natural :=0 ) is abstract tagged limited record
+   type Object(Op_Size : Natural) is abstract tagged limited record
       Pd_Has_User_Exception : Corba.Boolean ;
       Operation_Name :  Standard.String(1..Op_Size) ;
    end record ;

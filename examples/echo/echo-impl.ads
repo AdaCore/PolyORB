@@ -9,8 +9,7 @@
 ----                                                                    ----
 ----------------------------------------------------------------------------
 
-with Giop_S, Corba.Object, OmniORB ;
-with Corba.Implementation_Defined ;
+with Corba ;
 
 package Echo.Impl is
 
@@ -18,32 +17,16 @@ package Echo.Impl is
    ----                spec                      ----
    --------------------------------------------------
 
-   type Object is new Corba.Implementation_Defined.Object with private;
+   type Object is new Echo.Ref with private;
 
    function EchoString(Self : access Object;
-                         Message : in Corba.String) return Corba.String ;
+                       Message : in Corba.String) return Corba.String ;
 
-
-   --------------------------------------------------
-   ----              not in  spec                ----
-   --------------------------------------------------
-
-   procedure Init (Self : in out Object; K : in OmniORB.ObjectKey);
-   -- initializer
-
-   function Dispatch (Self : in Object ;
-                      Orls : in Giop_S.Object ;
-                      Orl_Op : in Corba.String;
-                      Orl_Response_Expected : Corba.Boolean)
-                      return Corba.Boolean;
-   -- called by the ORB's dispatch function in omniObject.ads
-   -- calls the function whose name is Orl_OP
-   -- returns true on success, false on failure
 
 
 private
 
-   type Object is new Corba.Implementation_Defined.Object with null record;
+   type Object is new Echo.Ref with null record;
 
 
 End Echo.Impl ;

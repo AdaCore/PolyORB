@@ -37,7 +37,7 @@ package body Echo is
                        Message: in Corba.String)
                        return Corba.String is
 
-      Opcd : OmniProxyCallDesc_Echo ;
+      Opcd : OmniProxyCallDesc_EchoString ;
    begin
       OmniProxyCallDesc.Init(Opcd, "echoString", Message) ;
       OmniProxyCallWrapper.Invoke(Self, Opcd) ;
@@ -51,19 +51,19 @@ package body Echo is
 
    -- AlignedSize
    --------------
-   function AlignedSize(Self: in OmniProxyCallDesc_Echo;
+   function AlignedSize(Self: in OmniProxyCallDesc_EchoString;
                         Size_In: in Corba.Unsigned_Long)
                         return Corba.Unsigned_Long is
       Msg_Size : Corba.Unsigned_Long ;
    begin
       Msg_Size := Omni.Align_To(Size_In,Omni.ALIGN_4)
-        + 5 + Corab.Length(Self.Arg);
+        + 5 + Corba.Length(Self.Arg);
       return Msg_Size ;
    end;
 
    -- MarshalArguments
    -------------------
-   procedure MarshalArguments(Self: in OmniProxyCallDesc_Echo ;
+   procedure MarshalArguments(Self: in OmniProxyCallDesc_EchoString ;
                               Giop_Client: in out Giop_C.Object ) is
       Len : CORBA.Unsigned_Long;
    begin
@@ -81,7 +81,7 @@ package body Echo is
    procedure UnmarshalReturnedValues(Self: in OmniProxyCallDesc_Echo ;
                                      Giop_Client: in out Giop_C.Object) is
    begin
-      Result :=  BufferedStream.UnMarshall(Giop_Client);
+      Self.Private_Result :=  BufferedStream.UnMarshall(Giop_Client);
    end ;
 
 
@@ -89,7 +89,7 @@ package body Echo is
    ---------
    function Result (Self : in Ref) return CORBA.String is
    begin
-      return Private_Result ;
+      return Self.Private_Result ;
    end ;
 
    --------------------------------------------------
@@ -100,14 +100,70 @@ package body Echo is
    ---------------------------
    procedure AdaBroker_Cast_To_Parent(Real_Object: in Ref;
                                       Result: out Corba.Object'Class) is
-      Impossible_Cast : Corba.Constraint_Error ;
    begin
       if Real_Object'Tag = Result'Tag then
          Result := Real_Object ;
       else
-         raise Impossible_Cast;
+         raise Constraint_Error ;
       end if ;
    end ;
+
+
+   --------------------------------------------------
+   ----        server-side subprograms           ----
+   --------------------------------------------------
+   -- These subprograms are only used on the server side
+   -- the are here because they must not be in echo-impl.adb
+   -- otherwise the user would be bothered with code he does
+   -- not need to see.
+   -- All these subprograms will be inherited by the Echo.Impl.object
+   -- which inherits Echo.Ref
+
+   -- Init
+   -------
+   procedure Init (Self : in out Ref ;
+                   K : in OmniORB.ObjectKey) is
+      L : OmniRopeAndKey.Object;
+   begin
+      -- Init(L,Rope.Null_Rope,K,...);
+      -- PROBLEME sur K : le type n'est pas le bon. En C, on trouve ici
+      -- un cast plus que sauvage...
+      -- To Be continued
+   end;
+
+   -- Dipatch
+   ----------
+   function Dispatch (Self : in Ref ;
+                      Orls : in out Giop_S ;
+                      Orl_Op : in Corba.String ;
+                      Orl_Response_Expected : Corba.Boolean)
+                      return Corba.Boolean is
+   begin
+      case To_Lower(Orl_Op) is
+         when "echostring" =>
+            declare
+               Mesg : Corba.String ;
+               Result : Corba.String ;
+            begin
+               -- unmarshaling the arguments
+               Mesg := Unmarshal(Orls) ;
+
+               -- change state
+               Request_Received(Orls) ;
+
+               -- call the implementation
+               Result := EchoString(Ref, Mesg) ;
+
+               -- marshaling the result
+               -- to be completed
+
+               -- exiting, all is ok
+               return True ;
+
+            end;
+         when others => return False ;
+      end case;
+   end
 
 
 End Echo ;

@@ -10,8 +10,8 @@
 ----------------------------------------------------------------------------
 
 with Corba, Corba.Object ;
-with Omniproxycalldesc;
-with Giop_C;
+with Omniproxycalldesc ;
+with Giop_C ;
 
 
 package Echo is
@@ -31,23 +31,23 @@ package Echo is
    ----    not in  spec omniORB specific         ----
    --------------------------------------------------
 
-   type OmniProxyCallDesc_Echo is new OmniProxyCallDesc.Object with private ;
+   type OmniProxyCallDesc_EchoString is new OmniProxyCallDesc.Object with private ;
 
-   procedure Init(Self: in out OmniProxyCallDesc_Echo ;
+   procedure Init(Self: in out OmniProxyCallDesc_EchoString ;
                   Operation : Standard.String ;
                   Arg : Standard.String ) ;
 
-   function AlignedSize(Self: in OmniProxyCallDesc_Echo;
+   function AlignedSize(Self: in OmniProxyCallDesc_EchoString;
                           Size_In: in Corba.Unsigned_Long)
                         return Corba.Unsigned_Long ;
 
-   procedure MarshalArguments(Self: in OmniProxyCallDesc_Echo;
+   procedure MarshalArguments(Self: in OmniProxyCallDesc_EchoString;
                                 Giop_Client: in out Giop_C.Object) ;
 
-   procedure UnmarshalReturnedValues(Self: in OmniProxyCallDesc_Echo;
+   procedure UnmarshalReturnedValues(Self: in OmniProxyCallDesc_EchoString;
                                        Giop_Client: in out Giop_C.Object) ;
 
-   function Result (Self : in OmniProxyCallDesc_Echo) return CORBA.String;
+   function Result (Self : in OmniProxyCallDesc_EchoString) return CORBA.String;
 
    --------------------------------------------------
    ----    not in  spec AdaBroker specific       ----
@@ -60,7 +60,7 @@ package Echo is
 
 private
 
-   type OmniProxyCallDesc_Echo is new OmniProxyCallDesc.Object with record
+   type OmniProxyCallDesc_EchoString is new OmniProxyCallDesc.Object with record
       Arg_Msg : Corba.String ;
       Private_Result : Corba.String ;
    end record ;

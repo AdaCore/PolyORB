@@ -13,10 +13,12 @@
 with Ada.Exceptions ;
 
 with Corba, Corba.Object ;
-with Giop, Giop_C ;
-with Omniropeandkey, Omniproxycalldesc ;
-with BufferedStream, Netbufferedstream ;
-use Omniproxycalldesc ;
+with Giop ;
+with Omniropeandkey ;
+with Giop_C ; use Giop_C ;
+with BufferedStream ; use BufferedStream ;
+with Netbufferedstream ; use Netbufferedstream ;
+with Omniproxycalldesc ; use Omniproxycalldesc ;
 
 
 
@@ -54,8 +56,8 @@ package body omniProxyCallWrapper is
       Corba.Object.Get_Rope_And_Key(The_Parameter_Obj, Rope_And_Key, Is_Fwd) ;
 
       -- Get a GIOP driven strand
-      Giop_C.Init(Giop_Client, Omniropeandkey.Rope(Rope_And_Key)) ;
-      Reuse := NetBufferedStream.Is_Reusing_Existing_Connection(Giop_Client) ;
+      Giop_C.Init(Giop_Client, Omniropeandkey.Get_Rope(Rope_And_Key)) ;
+      Reuse := Is_Reusing_Existing_Connection(Giop_Client) ;
 
       -- Calculate the size of the message
       Message_Size :=
@@ -65,7 +67,7 @@ package body omniProxyCallWrapper is
       Aligned_Size(Call_Desc,Message_Size) ;
 
       Giop_C.Initialize_Request(Giop_Client,
-                                Omniropeandkey.Key(Rope_And_Key),
+                                Omniropeandkey.Get_Key(Rope_And_Key),
                                 Omniropeandkey.Key_Size(Rope_And_Key),
                                 OmniProxycalldesc.Operation(Call_Desc),
                                 Message_Size,
@@ -100,8 +102,8 @@ package body omniProxyCallWrapper is
                RepoID_Len : Corba.Unsigned_Long ;
                RepoID : Corba.String ;
             begin
-               RepoID_Len := BufferedStream.UnMarshal(Giop_Client) ;
-               BufferedStream.Get_Char_Array(Giop_Client, RepoID, RepoID_Len) ;
+               RepoID_Len := UnMarshal(Giop_Client) ;
+               Get_Char_Array(Giop_Client, RepoID, RepoID_Len) ;
                -- may be simplified,
                -- it was done like this in C++ for memory allocation
                Omniproxycalldesc.User_Exception(Call_Desc, Giop_Client, RepoID) ;
