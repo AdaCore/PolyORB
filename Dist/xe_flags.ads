@@ -46,14 +46,19 @@ package XE_Flags is
    Keep_Going_Flag    : constant String_Access := new String'("-k");
    Link_Only_Flag     : constant String_Access := new String'("-l");
    Output_Flag        : constant String_Access := new String'("-o");
+   Project_File_Flag  : constant String_Access := new String'("-P");
    Quiet_Flag         : constant String_Access := new String'("-q");
    Verbose_Flag       : constant String_Access := new String'("-v");
+   GLADE_List_Flag    : constant String_Access := new String'("-V");
    Semantic_Only_Flag : constant String_Access := new String'("-gnatc");
    Skel_Flag          : constant String_Access := new String'("-gnatzr");
    Stub_Flag          : constant String_Access := new String'("-gnatzc");
    Comp_Arg_Flag      : constant String_Access := new String'("-cargs");
    Bind_Arg_Flag      : constant String_Access := new String'("-bargs");
    Link_Arg_Flag      : constant String_Access := new String'("-largs");
+
+   Project_File_Name_Present : Boolean := False;
+   Project_File_Name         : String_Access;
 
    package Make_Switches is new GNAT.Table (
      Table_Component_Type => String_Access,
