@@ -48,7 +48,6 @@ compilers/idlac/ada_be.ads
 compilers/idlac/ada_be.opt
 compilers/idlac/errors.adb
 compilers/idlac/errors.ads
-compilers/idlac/header.txt
 compilers/idlac/idl_fe-debug.adb
 compilers/idlac/idl_fe-debug.ads
 compilers/idlac/idl_fe-display_tree.adb
@@ -215,7 +214,6 @@ cos/naming/cosnaming-namingcontext-impl.adb
 cos/naming/cosnaming-namingcontext-impl.ads
 cos/naming/file-impl.adb
 cos/naming/file-impl.ads
-cos/naming/header.txt
 cos/naming/ir_ab_names.adb
 cos/naming/menu.adb
 cos/naming/menu.ads
@@ -254,7 +252,6 @@ cos/time/costime-tio-impl.adb
 cos/time/costime-tio-impl.ads
 cos/time/costime-uto-impl.adb
 cos/time/costime-uto-impl.ads
-cos/time/header.txt
 cos/time/test_time.adb
 cos/time/test_time.ads
 cos/time/time_utils.adb
