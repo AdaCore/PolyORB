@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -525,18 +525,41 @@ package body Test001_Request_Info_Tests is
    ---------------------
 
    procedure Test_Request_Id
-     (Point : in Interception_Point;
-      Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class)
+     (Point    : in Interception_Point;
+      Info     : in PortableInterceptor.RequestInfo.Local_Ref'Class;
+      Suppress : in Boolean := False)
    is
       Operation : constant String := "request_id";
-      Aux : CORBA.Unsigned_Long;
-      pragma Warnings (Off, Aux);
+      Aux       : CORBA.Unsigned_Long;
 
    begin
-      --  XXX Functionality test not implemented
-
       Aux := Get_Request_Id (Info);
-      Output (Point, Operation, True);
+
+      if Point in Client_Interception_Point then
+         if Point = Send_Request then
+            Test_Client_Request_Id := Aux;
+
+            if not Suppress then
+               Output (Point, Operation, True);
+            end if;
+
+         else
+            Output (Point, Operation, Test_Client_Request_Id = Aux);
+         end if;
+
+      else  --  Point in Server_Interception_Point
+         if Point = Receive_Request_Service_Contexts then
+            Test_Server_Request_Id := Aux;
+
+            if not Suppress then
+               Output (Point, Operation, True);
+            end if;
+
+         else
+            Output (Point, Operation, Test_Server_Request_Id = Aux);
+         end if;
+      end if;
+
    exception
       when others =>
          Output (Point, Operation, False);
