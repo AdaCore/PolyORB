@@ -102,10 +102,6 @@ package body PolyORB.ORB_Controller.Basic is
    procedure Disable_Polling (O : access ORB_Controller_Basic) is
    begin
 
-      --  Prevent all tasks to poll
-
-      O.Polling_Abort_Counter := O.Polling_Abort_Counter + 1;
-
       --  Force all tasks currently waiting on event sources to abort
 
       if O.Blocked_Tasks > 0 then
@@ -119,7 +115,9 @@ package body PolyORB.ORB_Controller.Basic is
            (Selector (O.Blocked_Task_Info.all).all);
 
          pragma Debug (O1 ("Disable_Polling: waiting abort is complete"));
+         O.Polling_Abort_Counter := O.Polling_Abort_Counter + 1;
          Wait (O.Polling_Completed, O.ORB_Lock);
+         O.Polling_Abort_Counter := O.Polling_Abort_Counter - 1;
 
          pragma Debug (O1 ("Disable_Polling: aborting done"));
       end if;
@@ -132,8 +130,6 @@ package body PolyORB.ORB_Controller.Basic is
    procedure Enable_Polling (O : access ORB_Controller_Basic) is
    begin
       pragma Debug (O1 ("Enable_Polling"));
-
-      O.Polling_Abort_Counter := O.Polling_Abort_Counter - 1;
 
       if O.Polling_Abort_Counter = 0 then
 
