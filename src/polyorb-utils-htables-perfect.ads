@@ -18,27 +18,24 @@ package PolyORB.Utils.HTables.Perfect is
      (T   : Table;
       Key : String)
      return Item;
-   --  Key is ...
+   --  Key is the string to be hashed
 
    procedure Insert
      (T     : Table;
       Key   : String;
       Value : Item);
-   --  Key is ... and Value ...
+   --  Key is the string to be hashed
+   --  Value is the Item associated with Key
 
    procedure Delete
      (T   : Table;
       Key : String);
-   --  Key is ...
+   --  Key is the string to be hashed
 
 private
 
-   --  type Item_Access is access Item;
-   --  type Item_Array is array (Natural range <>) of Item_Access;
-   --  Ne faut-il pas utiliser des pointeurs pour eviter les copies
-   --  d'objets trop larges ou avoir des tableaux trop larges.
-
-   type Item_Array is array (Natural range <>) of Subtable;
+   type Item_Access is access all Item;
+   type Item_Array is array (Natural range <>) of Item_Access;
    type Item_Array_Ptr is access all Item_Array;
 
    type Table is record

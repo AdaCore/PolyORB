@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . U T I L S . H A S H T A B L E                 --
+--            P O L Y O R B . U T I L S . H T A B L E                       --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -48,35 +48,39 @@ private
       Table_Id    : Natural;
       Subtable_Id : Natural;
    end record;
-   --  Key         Param for the hash function
-   --  XXXXX Commentaire peu clair (param ?)
+   --  Key         is hashed data (hashcode = h(Key))
 
    --  Deleted     True when Element is unused
-   --  XXXXX Donc Deleted => Unused
 
-   --  Table_Id    Used by Insert
-   --  Subtable_Id Idem
-   --  XXXXX Expliquer leur role
+   --  Table_Id    Used by the algorithm when it tries
+   --              to find a hash function that satisfies
+   --              a condition
+   --  Subtable_Id Used by the algorithm when it tries
+   --              to find an injective hash function for
+   --              the sub_tables
 
    type Subtable is record
       Size  : Natural;
       K : Natural;
       Max_Elements : Natural;
-      Number_Of_Elements : Natural;
+      N_Elements : Natural;
       First : Natural;
-      Last  : Natural;
    end record;
-   --  Size                Size of Subtable
-   --  Max_Elements        Maximal number of Element without resizing
-   --  Number_Of_Elements  Actual number of Element
-   --  XXXXX Expliquer les differences entre ces tailles
-   --  Donc donner des noms courts mais explicites
+   --  Size                is the size of the Subtable in the memory
+   --                      and define range of the hash function
+   --  Max_Elements        is an upper bound fixed by the algorithm.
+   --                      when N_Elements is superior to
+   --                      Max_Elements the algorithm needs to reorganize
+   --                      the sub_table
+   --  N_Elements          Actual number of Element stored in the sub_table
+   --
+   --  Number_Of_Elements < Max_Elements < Size
 
    --  First               First subtable index
-   --  Last                Last subtable index
 
-   --  K                   Param for hash function
-   --  XXXXX Expliquer K = key ?
+   --  K                   is used to choose the hash function for
+   --                      the sub_table
+   --                      h(Key) = ((K * Key) mod Prime) mod Size
 
    type Table_Info is record
       Size : Natural;
@@ -85,17 +89,19 @@ private
       Max_Elements : Natural;
       Count : Natural;
    end record;
-   --  P     Prime number for hash function
-   --  XXXXX Prime
+   --  P             Prime number for all the hash functions
+   --                h(Key) = ((K * Key) mod Prime) mod Size
 
-   --  K     Param for hash function
-   --  XXXXX ?????
+   --  K             is used to choose the hash function for
+   --                the table
+   --                h(Key) = ((K * Key) mod Prime) mod Size
 
-   --  Count Number of modification since Re_hash_All
-   --  Size  Number of Subtable
-   --  M     Max number of element in the table
-   --  XXXXX Max ? Expliquer les differences entre ces differentes
-   --  notions. Size = N_Subtables ?
+   --  Count         is a variable that count the number of
+   --                modification (insertion) in the table
+   --  N_Sub_Tables  Number of Subtables
+   --  M             when Count > M the algorithm needs to
+   --                reorganize all the sub_tables (worst
+   --                case)
 
    type Element_Array is array (Natural range <>) of Element;
    type Element_Array_Ptr is access all Element_Array;
@@ -109,4 +115,31 @@ private
       Subtables : Subtable_Array_Ptr;
    end record;
 
+   procedure Initialize
+     (T      : out Hash_Table;
+      Prime  : Natural;
+      Length : Natural);
+   --  Prime is a prime number used by hash functions. Length is the
+   --  max number of elements that can be stored.
+
+   procedure Destroy
+     (T : in out Hash_Table);
+
+   procedure Lookup
+     (T   : Hash_Table;
+      Key : String;
+      Index1 : out Natural;
+      Index2 : out Natural);
+   --  Key is the string to be hashed
+
+   procedure Insert
+     (T     : Hash_Table;
+      Key   : String);
+   --  Key is the string to be hashed
+   --  Value is the Item associated with Key
+
+   procedure Delete
+     (T   : Hash_Table;
+      Key : String);
+   --  Key is the string to be hashed
 end PolyORB.Utils.HTables;
