@@ -13,6 +13,8 @@
 # If there is an argument on the command line, use it for the version number
 #
 
+echo "VERSION.INFO: s=$s, 1=$1"
+
 if $s; then
   adabroker_version=`echo $1 | sed -e 's/^[^-]*-//'`
 else
