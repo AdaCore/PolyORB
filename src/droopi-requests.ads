@@ -3,6 +3,7 @@
 --  $Id$
 
 with Ada.Unchecked_Deallocation;
+with CORBA.NVList;
 
 package Droopi.Requests is
 
@@ -27,7 +28,7 @@ package Droopi.Requests is
      (Req       : out Request_Access;
       Target    : Object;
       Operation : String;
-      Args      : String);
+      Args      : CORBA.NVList.Ref);
 
    procedure Destroy_Request
      (Req : in out Request_Access);
@@ -48,7 +49,7 @@ private
    type Request is tagged limited record
       Target    : Object;
       Operation : String_Ptr;
-      Args      : String_Ptr;
+      Args      : CORBA.NVList.Ref;
    end record;
 
 end Droopi.Requests;

@@ -7,6 +7,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 with Droopi.Log;
 with Droopi.ORB.Task_Policies;
 with Droopi.No_Tasking;
+with Droopi.Refs;
 with Droopi.Protocols;
 with Droopi.Protocols.Echo;
 with Droopi.Sockets;
@@ -21,14 +22,18 @@ is
 
 begin
    -------------------------------
-   -- Initialize sll aubsystems --
+   -- Initialize all subsystems --
    -------------------------------
 
    Droopi.Log.Initialize;
-   --  Logging subsystem.
+   --  Logging subsystem. Start this one first so we can debug
+   --  problems in others.
 
    Droopi.No_Tasking.Initialize;
    --  Setup soft links.
+
+   Droopi.Refs.Initialize;
+   --  Depends on Soft_Links.
 
    The_ORB := Droopi.ORB.Create_ORB
      (Tasking_Policy_Access'(new Task_Policies.No_Tasking));

@@ -10,54 +10,48 @@ package CORBA.NVList is
 
    type Ref is new CORBA.AbstractBase.Ref with null record;
 
-   type Object is new CORBA.Impl.Object with private;
-   type Object_Ptr is access all Object;
-
-   procedure Finalize (Obj : in out Object);
-
    procedure Add_Item
      (Self       :    Ref;
       Item_Name  : in Identifier;
       Item       : in CORBA.Any;
       Item_Flags : in Flags);
+   --  Create a NamedValue and add it to this NVList.
 
    procedure Add_Item
      (Self : Ref;
       Item : in CORBA.NamedValue);
-
-   --  Free and Free_Memory are no-ops in Ada.
-   procedure Free (Self : Ref);
-   procedure Free_Memory (Self : Ref)
-     renames Free;
+   --  Add a NamedValue to this NVList.
 
    function Get_Count (Self : Ref) return CORBA.Long;
+   --  Return the number of items in this NVList.
+
+   procedure Free (Self : Ref);
+   procedure Free_Memory (Self : Ref) renames Free;
+   --  Free and Free_Memory are no-ops in Ada.
 
    -----------------------------------------
-   -- The following is AdaBroker-specific --
+   -- The following is specific to DROOPI --
    -----------------------------------------
 
---     procedure Marshall
---       (Buffer : access Broca.Buffers.Buffer_Type;
---        Data   : Ref);
---     --   Marshall all the NamedValues of an NVList
---  
---     procedure Unmarshall
---       (Buffer : access Broca.Buffers.Buffer_Type;
---        Data : in out Ref);
---     --  Unmarshall all the NamedValues of an NVList
-
-   function Create_Object return Object_Ptr;
-   --  Create a new and empty Object
+   procedure Create (NVList : out Ref);
+   --  Create a new NVList object and return a reference to it.
 
 private
 
    --  The actual implementation of an NVList:
-   --  a list of NamedValues.
+   --  a sequence of NamedValues.
+
    package NV_Sequence is new Sequences.Unbounded (CORBA.NamedValue);
 
    type Object is new CORBA.Impl.Object with record
       List : NV_Sequence.Sequence := NV_Sequence.Null_Sequence;
    end record;
+   type Object_Ptr is access all Object;
+
+   procedure Finalize (Obj : in out Object);
+
+   function Create_Object return Object_Ptr;
+   --  Create a new and empty Object
 
    Nil_Ref : constant Ref
      := (CORBA.AbstractBase.Ref with null record);

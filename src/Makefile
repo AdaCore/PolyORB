@@ -6,7 +6,7 @@
 
 GNATMAKE=gnatmake
 
-CFLAGS=-O2 -gnatfy -gnatwa 
+CFLAGS=-O2 -gnatfy -gnatwa -Icorba
 
 # Development
 CFLAGS+=-g -gnatao

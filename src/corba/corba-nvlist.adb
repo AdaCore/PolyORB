@@ -4,6 +4,7 @@ with Ada.Tags;
 
 with Droopi.Log;
 with Droopi.Locks; use Droopi.Locks;
+with Droopi.Refs;
 
 package body CORBA.NVList is
 
@@ -20,9 +21,7 @@ package body CORBA.NVList is
    procedure Finalize (Obj : in out Object) is
    begin
       pragma Debug (O ("Finalize: enter"));
-      NV_Sequence.Delete (Obj.List,
-                          1,
-                          NV_Sequence.Length (Obj.List));
+      NV_Sequence.Delete (Obj.List, 1, NV_Sequence.Length (Obj.List));
       pragma Debug (O ("Finalize: end"));
    end Finalize;
 
@@ -102,10 +101,21 @@ package body CORBA.NVList is
       return CORBA.Long (NV_Sequence.Length (Obj.List));
    end Get_Count;
 
+   ------------
+   -- Create --
+   ------------
+
+   procedure Create (NVList : out Ref)
+   is
+      Object : constant Object_Ptr := Create_Object;
+   begin
+      Set (NVList, Droopi.Refs.Entity_Ptr (Object));
+   end Create;
+
 --     --------------
 --     -- Marshall --
 --     --------------
---  
+--
 --     procedure Marshall
 --       (Buffer : access Droopi.Buffers.Buffer_Type;
 --        Data   : Ref) is
@@ -129,11 +139,11 @@ package body CORBA.NVList is
 --        end loop;
 --        pragma Debug (O ("Marshall : end"));
 --     end Marshall;
---  
+--
 --     ----------------
 --     -- Unmarshall --
 --     ----------------
---  
+--
 --     procedure Unmarshall
 --       (Buffer : access Droopi.Buffers.Buffer_Type;
 --        Data : in out Ref)
@@ -147,10 +157,11 @@ package body CORBA.NVList is
 --        for Index in List'Range loop
 --           if List (Index).Arg_Modes = CORBA.ARG_OUT or
 --             List (Index).Arg_Modes = CORBA.ARG_INOUT then
---              pragma Debug (O ("Unmarshall : about to unmarshall a NamedValue"));
+--              pragma Debug (O
+--                ("Unmarshall : about to unmarshall a NamedValue"));
 --              pragma Debug (O ("Unmarshall : is_empty := "
 --                               & Boolean'Image (CORBA.Is_Empty
---                                                (List (Index).Argument))));
+--                                   (List (Index).Argument))));
 --              Droopi.CDR.Unmarshall (Buffer, List (Index));
 --              pragma Debug (O ("Unmarshall : is_empty := "
 --                               & Boolean'Image (CORBA.Is_Empty
@@ -161,7 +172,8 @@ package body CORBA.NVList is
 --                                (CORBA.Get_Type (List (Index).Argument)))));
 --              pragma Debug (O ("Unmarshall : value kind is "
 --                               & Ada.Tags.External_Tag
---                                (Get_Value (List (Index).Argument).all'Tag)));
+--                                (Get_Value (List
+--                                  (Index).Argument).all'Tag)));
 --           end if;
 --        end loop;
 --        pragma Debug (O ("Unmarshall : end"));

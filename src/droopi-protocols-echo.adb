@@ -113,12 +113,12 @@ package body Droopi.Protocols.Echo is
             pragma Debug (O ("Received request " & Argv (1).all
                              & " on object " & Argv (2).all
                              & " with args " & Argv (3).all));
-            Create_Request
-              (Req,
-               Target    => Argv (2),
-               Operation => Argv (1).all,
-               Args      => Argv (3).all);
-
+--              Create_Request
+--                (Req,
+--                 Target    => Argv (2),
+--                 Operation => Argv (1).all,
+--                 Args      => Argv (3).all);
+--
             Servers.Queue_Request (S.Server, Req);
          exception
             when E : others =>

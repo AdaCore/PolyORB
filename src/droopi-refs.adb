@@ -35,6 +35,7 @@ with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 with Ada.Tags;
 
+with Droopi.Log;
 with Droopi.Soft_Links;
 
 package body Droopi.Refs is
@@ -43,11 +44,20 @@ package body Droopi.Refs is
    use Droopi.Soft_Links;
 
    Counter_Lock : Mutex_Access;
-   --  XXX Initialize!
 
    package L is new Droopi.Log.Facility_Log ("droopi.refs");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+
+   procedure Initialize is
+   begin
+      Create (Counter_Lock);
+   end Initialize;
+
+   procedure Finalize is
+   begin
+      Destroy (Counter_Lock);
+   end Finalize;
 
    procedure Free is new Ada.Unchecked_Deallocation (Entity'Class, Entity_Ptr);
 

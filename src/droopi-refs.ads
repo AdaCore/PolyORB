@@ -37,6 +37,12 @@ package Droopi.Refs is
 
    pragma Elaborate_Body;
 
+   procedure Initialize;
+   --  Initialize subsystem.
+
+   procedure Finalize;
+   --  Finalize subsystem.
+
    ------------
    -- Entity --
    ------------
