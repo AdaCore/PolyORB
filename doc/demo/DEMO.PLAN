@@ -42,7 +42,7 @@ Build PolyORB, manually build examples/dsa.
 0.2 Cross platform
 ------------------
 
-Cancelled?
+Cancelled.
 
 1. Naming service
 -----------------
@@ -132,4 +132,4 @@ MOMA Client         'MOMA Personnality'      DSA Server         Message Pool
 
 DEMO-4: SOAP/GIOP interoperability with inline dynamic proxy.
 
-XXX TBD (TQ)
+Cancelled.
