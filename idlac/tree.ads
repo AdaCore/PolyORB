@@ -61,6 +61,8 @@ package Tree is
    --  Appends a node at the end of a list.
    procedure Append_Node (List : in out Node_List; Node : N_Root_Acc);
 
+   --  Look whether node is in list or not
+   function Is_In_List (List : Node_List; Node : N_Root_Acc) return Boolean;
 
 
    -------------------
@@ -117,6 +119,7 @@ package Tree is
       Forward : N_Forward_ValueType_Acc := null;
       Abst : Boolean;
       Custom : Boolean;
+      Truncatable : Boolean := False;
    end record;
    type N_ValueType_Acc is access all N_ValueType;
    function Get_Kind (N : N_ValueType) return Node_Kind;
@@ -130,8 +133,7 @@ package Tree is
 
    --  A boxed ValueType
    type N_Boxed_ValueType is new N_Named with record
---      Content : N_Type;  FIXME
-      null;
+      Boxed_Type : N_Root_Acc;
    end record;
    type N_Boxed_ValueType_Acc is access all N_Boxed_ValueType;
    function Get_Kind (N : N_Boxed_ValueType) return Node_Kind;

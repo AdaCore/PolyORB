@@ -138,7 +138,10 @@ package body Disp is
             end if;
 
          when K_Boxed_ValueType =>
-            Put_Line ("Boxed_ValueType");
+            Put_Line ("boxed valuetype " & Get_Name (N_Boxed_ValueType (N)));
+--            Disp_Tree (N_Boxed_ValueType (N).Boxed_Type.all,
+--                       N_Indent + Offset,
+--                       Full);
 
 --          when K_Operation =>
 --             declare

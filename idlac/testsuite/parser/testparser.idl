@@ -35,3 +35,59 @@ valuetype toto {};
 valuetype toto;
 valuetype forward_value;
 valuetype forward_value;
+
+/* Test of rule Value8 */
+valuetype forward_value long;
+valuetype toto long;
+valuetype rightboxedvalue long;
+
+/* Test of rule 19 */
+/* test errors */
+abstract valuetype value1 {};
+abstract valuetype value2 : truncatable value1 {};
+custom valuetype value3 : truncatable value1 {};
+valuetype value4 {};
+abstract valuetype value5 : value4 {};
+valuetype value6 : truncatable value1 {};
+valuetype value7;
+valuetype value8 : value7 {};
+valuetype value9 long;
+valuetype value10 : value9 {};
+interface valueinterface1 {};
+valuetype value11 : valueinterface1 {};
+valuetype value12 : {};
+valuetype value13 : value1, value1 {};
+valuetype value14 : value4, value4 {};
+valuetype value15 : value4, value7 {};
+valuetype value16 : value4, value9 {};
+valuetype value17 : value4, valueinterface1 {};
+valuetype value18 : value4, {};
+interface valueinterface2;
+valuetype value19 supports valueinterface2 {};
+valuetype value20 supports value4 {};
+valuetype value21 supports {};
+interface valueinterface3 {};
+valuetype value22 supports valueinterface1, valueinterface3 {};
+valuetype value23 supports valueinterface1, valueinterface2 {};
+valuetype value24 supports valueinterface1, value4 {};
+valuetype value25 supports valueinterface1, {};
+valuetype value26 : value1, value1 Error {};
+/* test ok */
+valuetype value30 : value4 {};
+abstract valuetype value31 {};
+valuetype value32 : value4, value1 {};
+valuetype value33 : value4, value1, value 31 {};
+valuetype value34 : truncatable value4 {};
+valuetype value35 : truncatable value4, value1 {};
+valuetype value36 : truncatable value4, value1, value 31 {};
+abstract valuetype value37 : value1 {};
+abstract valuetype value38 : value1, value 31 {};
+abstract interface valueinterface4 {};
+abstract interface valueinterface5 {};
+valuetype value39 supports valueinterface1 {};
+valuetype value40 supports valueinterface1, valueinterface4 {};
+valuetype value41 supports valueinterface1, valueinterface4, valueinterface5 {};
+abstract valuetype value42 supports valueinterface1, valueinterface3 {};
+abstract valuetype value43 supports valueinterface1, valueinterface3, valueinterface4 {};
+abstract valuetype value44 supports valueinterface1, valueinterface3, valueinterface4, valueinterface5 {};
+

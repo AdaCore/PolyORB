@@ -292,6 +292,12 @@ private
    procedure Parse_Type_Dcl (Result : out N_Root_Acc;
                              Success : out Boolean);
 
+   --  Rule 44
+   --  <type_spec> ::= <simple_type_spec>
+   --              |   <constr_type_spec>
+   procedure Parse_Type_Spec (Result : out N_Root_Acc;
+                              Success : out Boolean);
+
    --  Rule 86
    --  <except_dcl> ::= "exception" <identifier> "{" <member>* "}"
    procedure Parse_Except_Dcl (Result : out N_Exception_Acc;
@@ -317,7 +323,6 @@ private
 
    --  Goes to the next value_element (see rule 21)
    procedure Go_To_Next_Value_Element;
-
 
 
 
@@ -540,11 +545,6 @@ private
 --    --                      "," <positive_int_const> ">"
 --    --                  |   "sequence" "<" <simple_type_spec> ">"
 --    function Parse_Sequence_Type return N_Sequence_Acc is
-
---    --  Rule 29:
---    --  <type_spec> ::= <simple_type_spec>
---    --              |   <constr_type_spec>
---    function Parse_Type_Spec return N_Root_Acc is
 
 --    --  Rule 35:
 --    --  <declarator> ::= <simple_declarator>

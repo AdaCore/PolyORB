@@ -16,7 +16,7 @@
 --  MA 02111-1307, USA.
 --
 
---  with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Characters.Latin_1;
 with Ada.Unchecked_Deallocation;
 with Tokens; use Tokens;
@@ -788,10 +788,10 @@ package body Parse is
                                 Get_Token_String) then
             raise Errors.Internal_Error;
          end if;
-         Definition := Find_Identifier_Definition (Get_Token_String);
       end if;
       Next_Token;
-      if Get_Token = T_Colon then
+      if Get_Token = T_Colon
+        or Get_Token = T_Supports then
          --  there is some inheritance specification here
          declare
             Inherit_Success : Boolean;
@@ -899,9 +899,41 @@ package body Parse is
    -------------------------------
    procedure Parse_End_Value_Box_Dcl (Result : out N_Boxed_ValueType_Acc;
                                       Success : out Boolean) is
+      Definition : Identifier_Definition_Acc;
    begin
-      Result := null;
-      Success := False;
+      Result := new N_Boxed_ValueType;
+      Set_Location (Result.all, Get_Previous_Token_Location);
+      --  try to find a previous definition
+      Definition := Find_Identifier_Definition (Get_Token_String);
+      --  Is there a previous definition and in the same scope ?
+      if Definition /= null
+        and then Definition.Parent_Scope = Get_Current_Scope then
+         --  There was probably a previous forward declaration
+         if Get_Kind (Definition.Node.all) = K_Forward_ValueType then
+            Errors.Parser_Error
+              ("This valuetype was forward declared : " &
+               Errors.Display_Location (Get_Location (Definition.Node.all)) &
+               ". It can not be a boxed one.",
+               Errors.Error,
+               Get_Previous_Token_Location);
+         else
+            Errors.Parser_Error
+              ("The identifier used for this valuetype is already "
+               & "defined in the same scope : " &
+               Errors.Display_Location (Get_Location (Definition.Node.all)),
+               Errors.Error,
+               Get_Previous_Token_Location);
+         end if;
+      else
+         --  no previous forward
+         if not Add_Identifier (Result,
+                                Get_Token_String) then
+            raise Errors.Internal_Error;
+         end if;
+      end if;
+      --  consumes the identifier
+      Next_Token;
+      Parse_Type_Spec (Result.Boxed_Type, Success);
       return;
    end Parse_End_Value_Box_Dcl;
 
@@ -911,8 +943,293 @@ package body Parse is
    procedure Parse_Value_Inheritance_Spec (Result : in out N_ValueType_Acc;
                                            Success : out Boolean) is
    begin
-      Success := False;
-      return;
+      if Get_Token = T_Colon then
+         Next_Token;
+         if Get_Token = T_Truncatable then
+            if Result.Abst then
+               Errors.Parser_Error
+                 ("The truncatable modifier may not " &
+                  "be used in an abstract value.",
+                  Errors.Error,
+                  Get_Token_Location);
+            elsif Result.Custom then
+               Errors.Parser_Error
+                 ("The truncatable modifier may not " &
+                  "be used in a custom value.",
+                  Errors.Error,
+                  Get_Token_Location);
+            else
+               Result.Truncatable := True;
+            end if;
+            Next_Token;
+         end if;
+         --  parse value inheritance
+         declare
+            Name : N_Scoped_Name_Acc;
+            Name_Success : Boolean;
+         begin
+            Parse_Value_Name (Name, Name_Success);
+            if Name_Success then
+               case Get_Kind (Name.Value.all) is
+                  when K_ValueType =>
+                     if Result.Abst then
+                        if not N_ValueType_Acc (Name.Value).Abst then
+                           Errors.Parser_Error
+                             ("An abstract value may not inherit from a " &
+                              "stateful one.",
+                              Errors.Error,
+                              Get_Token_Location);
+                        end if;
+                     else
+                        if N_ValueType_Acc (Name.Value).Abst then
+                           Errors.Parser_Error
+                             ("The truncatable modifier may not be used " &
+                              "for an abstract value inheritance.",
+                              Errors.Error,
+                              Get_Token_Location);
+                        end if;
+                     end if;
+                     Append_Node (Result.Parents, N_Root_Acc (Name));
+                     Next_Token;
+                  when K_Forward_ValueType =>
+                     Errors.Parser_Error
+                       ("A value may not inherit from a forward declared" &
+                        " value whose definition has not yet been seen.",
+                        Errors.Error,
+                        Get_Token_Location);
+                  when K_Boxed_ValueType =>
+                     Errors.Parser_Error
+                       ("A value may not inherit from a boxed value.",
+                        Errors.Error,
+                        Get_Token_Location);
+                  when K_Interface
+                    | K_Forward_Interface =>
+                     Errors.Parser_Error
+                       ("A value may not inherit from an interface. "&
+                        "It can only support it.",
+                        Errors.Error,
+                        Get_Token_Location);
+                  when others =>
+                     declare
+                        Loc : Errors.Location;
+                     begin
+                        Loc := Get_Previous_Token_Location;
+                        Loc.Col := Loc.Col + 2;
+                        Errors.Parser_Error
+                          ("Value name expected.",
+                           Errors.Error,
+                           Loc);
+                     end;
+               end case;
+            else
+               Go_To_Next_Left_Cbracket;
+               Success := False;
+               return;
+            end if;
+         end;
+         while Get_Token = T_Comma loop
+            Next_Token;
+            declare
+               Name : N_Scoped_Name_Acc;
+               Name_Success : Boolean;
+            begin
+               Parse_Value_Name (Name, Name_Success);
+               if Name_Success then
+                  case Get_Kind (Name.Value.all) is
+                     when K_ValueType =>
+                        if Is_In_List (Result.Parents, N_Root_Acc (Name)) then
+                           --  already inherited
+                           Errors.Parser_Error
+                             ("Already inherited of this value.",
+                              Errors.Error,
+                              Get_Token_Location);
+                        else
+                           if not N_ValueType_Acc (Name.Value).Abst then
+                              Errors.Parser_Error
+                                ("A stateful value may only derive from a " &
+                                 "single stateful value and this one must " &
+                                 "be the first element in the inheritance.",
+                                 Errors.Error,
+                                 Get_Token_Location);
+                           end if;
+                           Append_Node (Result.Parents, N_Root_Acc (Name));
+                        end if;
+                        Next_Token;
+                     when K_Forward_ValueType =>
+                        Errors.Parser_Error
+                          ("A value may not inherit from a forward declared" &
+                           " value whose definition has not yet been seen.",
+                           Errors.Error,
+                           Get_Token_Location);
+                     when K_Boxed_ValueType =>
+                        Errors.Parser_Error
+                          ("A value may not inherit from a boxed value.",
+                           Errors.Error,
+                           Get_Token_Location);
+                     when K_Interface
+                        | K_Forward_Interface =>
+                        Errors.Parser_Error
+                          ("A value may not inherit from an interface. "&
+                           "It can only support it.",
+                        Errors.Error,
+                           Get_Token_Location);
+                     when others =>
+                        declare
+                           Loc : Errors.Location;
+                        begin
+                           Loc := Get_Previous_Token_Location;
+                           Loc.Col := Loc.Col + 2;
+                           Errors.Parser_Error
+                             ("Value name expected.",
+                              Errors.Error,
+                              Loc);
+                        end;
+                  end case;
+               else
+                  Go_To_Next_Left_Cbracket;
+                  Success := False;
+                  return;
+               end if;
+            end;
+         end loop;
+      end if;
+      --  since we entered this method after reading T_colon or
+      --  T_Supports, we should have T_Supports now
+      case Get_Token is
+         when T_Supports =>
+            Next_Token;
+            declare
+               Non_Abstract_Interface : Boolean := False;
+            begin
+               --  parse interface inheritance
+               declare
+                  Name : N_Scoped_Name_Acc;
+                  Name_Success : Boolean;
+               begin
+                  Parse_Value_Name (Name, Name_Success);
+                  if Name_Success then
+                     case Get_Kind (Name.Value.all) is
+                        when K_Interface =>
+                           if not N_Interface_Acc (Name.Value).Abst then
+                              Non_Abstract_Interface := True;
+                           end if;
+                           Append_Node (Result.Supports, N_Root_Acc (Name));
+                           Next_Token;
+                        when K_Forward_Interface =>
+                           Errors.Parser_Error
+                             ("A value may not support a forward declared" &
+                              " interface whose declaration has not yet " &
+                              "been seen.",
+                              Errors.Error,
+                              Get_Token_Location);
+                        when K_Boxed_ValueType
+                          | K_ValueType
+                          | K_Forward_ValueType =>
+                           Errors.Parser_Error
+                             ("A value may not support another value. " &
+                              " However, it can inherit from it.",
+                              Errors.Error,
+                              Get_Token_Location);
+                        when others =>
+                           declare
+                              Loc : Errors.Location;
+                           begin
+                              Loc := Get_Previous_Token_Location;
+                              Loc.Col := Loc.Col + 9;
+                              Errors.Parser_Error
+                                ("Value name expected.",
+                                 Errors.Error,
+                                 Loc);
+                           end;
+                     end case;
+                  else
+                     Go_To_Next_Left_Cbracket;
+                     Success := False;
+                     return;
+                  end if;
+               end;
+               while Get_Token = T_Comma loop
+                  Next_Token;
+                  declare
+                     Name : N_Scoped_Name_Acc;
+                     Name_Success : Boolean;
+                  begin
+                     Parse_Value_Name (Name, Name_Success);
+                     if Name_Success then
+                        case Get_Kind (Name.Value.all) is
+                           when K_Interface =>
+                              if not Result.Abst
+                                and then not N_Interface_Acc
+                                (Name.Value).Abst then
+                                 if Non_Abstract_Interface then
+                                    Errors.Parser_Error
+                                      ("A stateful value may support only " &
+                                       "one non abstract interface. This " &
+                                       "is the second one.",
+                                       Errors.Error,
+                                       Get_Token_Location);
+                                 else
+                                    Non_Abstract_Interface := True;
+                                 end if;
+                              end if;
+                              Append_Node (Result.Supports, N_Root_Acc (Name));
+                              Next_Token;
+                           when K_Forward_Interface =>
+                              Errors.Parser_Error
+                                ("A value may not support a forward declared" &
+                                 " interface whose declaration has not yet " &
+                                 "been seen.",
+                                 Errors.Error,
+                                 Get_Token_Location);
+                           when K_Boxed_ValueType
+                             | K_ValueType
+                             | K_Forward_ValueType =>
+                              Errors.Parser_Error
+                                ("A value may not support another value. " &
+                                 " However, it can inherit from it.",
+                                 Errors.Error,
+                                 Get_Token_Location);
+                           when others =>
+                              declare
+                                 Loc : Errors.Location;
+                              begin
+                                 Loc := Get_Previous_Token_Location;
+                                 Loc.Col := Loc.Col + 9;
+                                 Errors.Parser_Error
+                                   ("Value name expected.",
+                                    Errors.Error,
+                                    Loc);
+                              end;
+                        end case;
+                     else
+                        Go_To_Next_Left_Cbracket;
+                        Success := False;
+                        return;
+                     end if;
+                  end;
+               end loop;
+            end;
+         when T_Left_Cbracket =>
+            Success := True;
+            return;
+         when others =>
+            declare
+               Loc : Errors.Location;
+            begin
+               Loc := Get_Previous_Token_Location;
+               Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
+               Errors.Parser_Error
+                 ("',', " &
+                  Ada.Characters.Latin_1.Quotation &
+                  "supports" &
+                  Ada.Characters.Latin_1.Quotation &
+                  " or '{' expected.",
+                  Errors.Error,
+                  Loc);
+               Success := False;
+               return;
+            end;
+      end case;
    end Parse_Value_Inheritance_Spec;
 
    ---------------------------
@@ -991,6 +1308,29 @@ package body Parse is
 --       end case;
 --    end Parse_Type_Dcl;
    end Parse_Type_Dcl;
+
+   -----------------------
+   --  Parse_Type_Spec  --
+   -----------------------
+   procedure Parse_Type_Spec (Result : out N_Root_Acc;
+                              Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+--       case Token is
+--          when T_Float | T_Double | T_Long | T_Short | T_Unsigned |
+--            T_Char | T_Wchar | T_Boolean | T_Octet | T_Any | T_Object |
+--            T_Sequence | T_String | T_Wstring | T_Fixed |
+--            T_Colon_Colon | T_Identifier =>
+--             return Parse_Simple_Type_Spec;
+--          when T_Enum | T_Struct | T_Union =>
+--             return Parse_Constr_Type_Spec;
+--          when others =>
+--             Errors.Parser_Error ("type specifier expected",
+--                                   Errors.Error);
+--             raise Parse_Error;
+--       end case;
+   end  Parse_Type_Spec;
 
    ------------------------
    --  Parse_Except_Dcl  --
@@ -1690,26 +2030,6 @@ package body Parse is
 --       Next_Token;
 --       return Res;
 --    end Parse_Sequence_Type;
-
---    --  Rule 29:
---    --  <type_spec> ::= <simple_type_spec>
---    --              |   <constr_type_spec>
---    function Parse_Type_Spec return N_Root_Acc is
---    begin
---       case Token is
---          when T_Float | T_Double | T_Long | T_Short | T_Unsigned |
---            T_Char | T_Wchar | T_Boolean | T_Octet | T_Any | T_Object |
---            T_Sequence | T_String | T_Wstring | T_Fixed |
---            T_Colon_Colon | T_Identifier =>
---             return Parse_Simple_Type_Spec;
---          when T_Enum | T_Struct | T_Union =>
---             return Parse_Constr_Type_Spec;
---          when others =>
---             Errors.Parser_Error ("type specifier expected",
---                                   Errors.Error);
---             raise Parse_Error;
---       end case;
---    end  Parse_Type_Spec;
 
 --    --  Rule 35:
 --    --  <declarator> ::= <simple_declarator>

@@ -57,6 +57,17 @@ package body Tree is
       end if;
    end Append_Node;
 
+   function Is_In_List (List : Node_List; Node : N_Root_Acc) return Boolean is
+   begin
+      if List = Nil_List then
+         return False;
+      end if;
+      if List.Car = Node then
+         return True;
+      else
+         return Is_In_List (List.Cdr, Node);
+      end if;
+   end Is_In_List;
 
 
    -------------------
