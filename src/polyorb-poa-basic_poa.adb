@@ -645,7 +645,8 @@ package body PolyORB.POA.Basic_POA is
 
       pragma Debug (O ("Insert POA into Global_POATable"));
       Insert (Global_POATable,
-              To_Standard_String (New_Obj_Adapter.Absolute_Address),
+              POA_Path_Separator
+              & To_Standard_String (New_Obj_Adapter.Absolute_Address),
               POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
 
       --  Return the created POA.
@@ -1117,6 +1118,7 @@ package body PolyORB.POA.Basic_POA is
          POA,
          Error);
 
+      pragma Debug (O ("Find_POA: leave"));
    end Find_POA;
 
    -----------------
