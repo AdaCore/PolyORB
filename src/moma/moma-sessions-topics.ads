@@ -1,4 +1,4 @@
---  Derivation of the Session type for Queues. See MOMA.Sessions for more
+--  Derivation of the Session type for Topics. See MOMA.Sessions for more
 --  details.
 
 with MOMA.Destinations;

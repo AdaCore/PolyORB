@@ -30,9 +30,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  MTexy message type.
+--  MText message type.
 --
---  A MByte message's payload is a string.
+--  A MText message's payload is a string.
 
 --  $Id$
 

@@ -277,16 +277,16 @@ Definition of MOMA Connection_Factory, Connection and Destination types.
 
 ./moma/moma-message_consumer*
 
-MOMA client objects and API to receive message from a pool. It
+MOMA client objects and API to receive messages from a pool. It
 contains stub routines to interact with a Message_Consumer servant.
-It is the facade shown to the client to the message receiving part of
+It is the façade shown to the client to the message receiving part of
 MOMA specification.
 
 ./moma/moma-message_producer*
 
-MOMA client objects and API to send message to a pool. It contains
+MOMA client objects and API to send messages to a pool. It contains
 stub routines to interact with a Message_Producer servant.  It is the
-facade shown to the client to the message sending part of MOMA
+façade shown to the client to the message sending part of MOMA
 specification.
 
 ./moma/moma-messages*
@@ -296,7 +296,7 @@ API to construct the different types of MOMA messages.
 ./moma/moma-provider.ads
 
 Base package for MOMA provider, collection of servants providing MOM
-functionnalities on top of PolyORB neutral core layer.
+functionalities on top of PolyORB neutral core layer.
 
 ./moma/moma-provider-message_consumer.ads
 
@@ -323,7 +323,7 @@ Implementation of a placeholder for received messages.
 
 ./moma/moma-sessions*
 
-Definition of the session type (see JMS definition for more details)
+Definition of the session type (see JMS definition for more details).
 
 ./moma/moma-types.ads
 

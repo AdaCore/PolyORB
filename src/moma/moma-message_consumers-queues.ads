@@ -54,7 +54,7 @@ package MOMA.Message_Consumers.Queues is
 
    function Receive (Timeout : Time) return MOMA.Messages.Message;
    --  Get next message from the pool if it is non empty; otherwise will
-   --  wait 'Timeout' until a new message arrive.
+   --  wait 'Timeout' until a new message arrives.
    --  XXX not implemented.
 
    function Receive_No_Wait return MOMA.Messages.Message;

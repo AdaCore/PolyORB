@@ -31,13 +31,13 @@
 ------------------------------------------------------------------------------
 
 --  A Message_Producer object is the client view of the message sending
---  process. It is the facade to all communication carried out with
+--  process. It is the façade to all communication carried out with
 --  a message pool to send messages; it contains the stub to access
 --  'Message_Producer' servants (see MOMA.Provider and child packages
 --  for more details).
 
 --  NOTE: A MOMA client must use only this package, and its child packages to
---  send message to a message pool.
+--  send messages to a message pool.
 
 --  $Id$
 
@@ -54,16 +54,16 @@ package MOMA.Message_Producers is
    use Ada.Real_Time;
 
    type Message_Producer is abstract tagged private;
-   --  Priority_Level : priority of the message producer
-   --  Persistent     : default persistent status for sent messages
+   --  Priority_Level : priority of the message producer.
+   --  Persistent     : default persistent status for sent messages.
    --  TTL            : default time to live for sent messages.
    --  Destination    : destination of sent messages.
-   --  Type_Id_Of     : XXX to be defined
+   --  Type_Id_Of     : XXX to be defined.
    --  Ref            : reference (XXX to be defined).
    --  CBH            : call back handler associated to the producer.
 
    procedure Close;
-   --  XXX not implemented. rename it to Destroy ?
+   --  XXX not implemented. Rename it to Destroy ?
 
    --  Accessors to Message_Producer internal data.
 

@@ -33,7 +33,7 @@
 --  Actual implementation of the Message_Producer object. It is
 --  derived from PolyORB's Minimal_Servant. This package contains
 --  Message_Producer skeleton and implementation subroutines. By
---  construction, its implementation subroutines contains partls of a
+--  construction, its implementation subroutines contain parts of a
 --  stub for the Message_Pool object.
 
 --  $Id$
@@ -47,7 +47,7 @@ package MOMA.Provider.Message_Producer is
 
    type Object is new PolyORB.Minimal_Servant.Servant with record
       Remote_Ref : PolyORB.References.Ref;
-      --  Reference to the remote object to which send messages
+      --  Reference to the remote object to which send messages.
 
    end record;
    --  XXX should be private.

@@ -30,12 +30,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A Connection provides access to the provider to the client.
+--  A Connection provides access to the provider for the client.
 
 --  $Id$
 
 --  XXX need to check the use of Create_Consumer, seems unnecessary as
---  Create_Sender & Create_Producer exists !
+--  Create_Sender & Create_Receiver exist !
 --  XXX should connection be abstract and tagged ?
 --  XXX is a derivation for queues and topics required ?
 
@@ -48,7 +48,7 @@ package MOMA.Connections is
 
    type Connection is abstract tagged private;
    --  Client_Id : Id of the MOMA client.
-   --  Ref       : Reference
+   --  Ref       : Reference.
 
    procedure Close;
    --  Close the connection.
