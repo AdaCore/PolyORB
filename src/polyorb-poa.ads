@@ -154,9 +154,9 @@ package PolyORB.POA is
       Policies     :        POA_Policies.PolicyList;
       POA          : in out Obj_Adapter_Access;
       Error        : in out PolyORB.Exceptions.Error_Container);
-   --  Create a POA given its name and a list of policies
-   --  Policies are optionnal : defaults values are provided.
-   --  Compability of Policies is checked.
+   --  Create a POA given its name and a list of policies Policies are
+   --  optionnal : defaults values are provided. Compability of Policies is
+   --  checked.
 
    procedure Find_POA
      (Self        : access Obj_Adapter;
@@ -178,9 +178,9 @@ package PolyORB.POA is
       Hint  :        Object_Id_Access;
       U_Oid :    out Unmarshalled_Oid;
       Error : in out PolyORB.Exceptions.Error_Container);
-   --  Reserve a complete object identifier, possibly using
-   --  the given Hint (if not null) for the construction of
-   --  the object identifier included in the Object_Id.
+   --  Reserve a complete object identifier, possibly using the given Hint (if
+   --  not null) for the construction of the object identifier included in the
+   --  Object_Id.
 
    procedure Activate_Object
      (Self      : access Obj_Adapter;
@@ -188,10 +188,9 @@ package PolyORB.POA is
       Hint      :        Object_Id_Access;
       U_Oid     :    out Unmarshalled_Oid;
       Error     : in out PolyORB.Exceptions.Error_Container);
-   --  Activates an object, i.e. associate it with a local
-   --  identification, possibly using the given Hint (if not null)
-   --  for the construction of the object identifier included
-   --  in the Object_Id.
+   --  Activates an object, i.e. associate it with a local identification,
+   --  possibly using the given Hint (if not null) for the construction of the
+   --  object identifier included in the Object_Id.
 
    procedure Deactivate_Object
      (Self  : access Obj_Adapter;
@@ -208,18 +207,6 @@ package PolyORB.POA is
       P_Servant : in     Servants.Servant_Access;
       Oid       :    out Object_Id_Access;
       Error     : in out PolyORB.Exceptions.Error_Container);
-   --  Requires USE_DEFAULT_SERVANT or RETAIN and either UNIQUE_ID
-   --  or IMPLICIT_ACTIVATION
-   --  Case RETAIN and UNIQUE_ID:
-   --    Looks in the object map for the Id of the given servant
-   --  Case RETAIN and IMPLICIT_ACTIVATION:
-   --    The servant is activated and its Id is returned
-   --  Case USE_DEFAULT_SERVANT:
-   --    If the servant is not found in the Active Object Map,
-   --    the Id of the current invocation is returned.
-   --    ???
-   --  Otherwise:
-   --    Raises a ServantNotActive exception
 
    procedure Id_To_Servant
      (Self    : access Obj_Adapter;
@@ -231,8 +218,8 @@ package PolyORB.POA is
    --    Look for the given Object_Id in the Active Object Map.
    --    If found, returns the associated servant.
    --  Case USE_DEFAULT_SERVANT:
-   --    If the Object_Id is not in the map, or the NON_RETAIN policy
-   --    is used, returns the default servant (if one has been registered).
+   --    If the Object_Id is not in the map, or the NON_RETAIN policy is used,
+   --    returns the default servant (if one has been registered).
    --  Otherwise:
    --    Raises ObjectNotActive
 
@@ -318,26 +305,26 @@ package PolyORB.POA is
    procedure Copy_Obj_Adapter
      (From : in     Obj_Adapter;
       To   : access Obj_Adapter);
-   --  Copy values from one Obj_Adapter to another
-   --  (Obj_Adapter is limited...)
+   --  Copy values from one Obj_Adapter to another (Obj_Adapter is limited)
 
    procedure Remove_POA_By_Name
      (Self       : access Obj_Adapter;
       Child_Name :        Types.String);
    --  Remove a child POA from Self's list of children
-   --  Doesn't lock the list of children
+   --  Does not lock the list of children
 
-   function Oid_To_Rel_URI
-     (OA : access Obj_Adapter;
-      Id : access Object_Id)
-     return Types.String;
-   --  Convert an object id to its representation as a relative URI.
+   procedure Oid_To_Rel_URI
+     (OA    : access Obj_Adapter;
+      Id    : access Object_Id;
+      URI   : out Types.String;
+      Error : in out PolyORB.Exceptions.Error_Container);
+   --  Convert an object id to its representation as a relative URI
 
    function Rel_URI_To_Oid
      (OA  : access Obj_Adapter;
       URI :        Types.String)
      return Object_Id_Access;
-   --  Convert an object id from its representation as a relative URI.
+   --  Convert an object id from its representation as a relative URI
 
 private
 
@@ -348,8 +335,8 @@ private
 
    procedure Init_With_Default_Policies
      (OA : access Obj_Adapter);
-   --  Initialize OA with a default set of policies provided by
-   --  the currently active POA configuration.
+   --  Initialize OA with a default set of policies provided by the currently
+   --  active POA configuration.
 
    procedure Check_Policies_Compatibility
      (OA    :        Obj_Adapter_Access;

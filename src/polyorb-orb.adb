@@ -1142,12 +1142,20 @@ package body PolyORB.ORB is
 
       elsif Msg in Interface.Oid_Translate then
          declare
-            Result : constant Interface.URI_Translate
-              := (Path => Obj_Adapters.Oid_To_Rel_URI
-                  (ORB.Obj_Adapter, Interface.Oid_Translate (Msg).Oid));
-
+            use PolyORB.Exceptions;
+            URI   : Types.String;
+            Error : Error_Container;
+            Empty : Components.Null_Message;
          begin
-            return Result;
+            Obj_Adapters.Oid_To_Rel_URI
+              (ORB.Obj_Adapter, Interface.Oid_Translate (Msg).Oid,
+               URI, Error);
+            if Found (Error) then
+               Catch (Error);
+               return Empty;
+            end if;
+
+            return Interface.URI_Translate'(Path => URI);
          end;
 
       elsif Msg in Interface.URI_Translate then

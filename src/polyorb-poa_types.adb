@@ -385,24 +385,6 @@ package body PolyORB.POA_Types is
          Persistency_Flag => Lifespan_Cookie (Persistency_Flag));
    end Oid_To_U_Oid;
 
-   function Oid_To_U_Oid
-     (Oid : access Object_Id)
-     return Unmarshalled_Oid
-   is
-      U_Oid : Unmarshalled_Oid;
-      Error : PolyORB.Exceptions.Error_Container;
-   begin
-
-      Oid_To_U_Oid (Oid.all, U_Oid, Error);
-
-      if PolyORB.Exceptions.Found (Error) then
-         PolyORB.Exceptions.Catch (Error);
-         raise Constraint_Error;
-      end if;
-
-      return U_Oid;
-   end Oid_To_U_Oid;
-
    ------------------
    -- U_Oid_To_Oid --
    ------------------

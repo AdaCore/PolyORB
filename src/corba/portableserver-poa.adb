@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#59 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#60 $
 
 with Ada.Exceptions;
 
@@ -980,10 +980,14 @@ package body PortableServer.POA is
       declare
          use type PolyORB.Types.String;
 
-         U_Oid : PolyORB.POA_Types.Unmarshalled_Oid
-           := PolyORB.POA_Types.Oid_To_U_Oid
-           (PolyORB.Binding_Data.Get_Object_Key (The_Profile.all));
+         U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
       begin
+         PolyORB.POA_Types.Oid_To_U_Oid
+           (PolyORB.Binding_Data.Get_Object_Key (The_Profile.all).all,
+           U_Oid, Error);
+         if Found (Error) then
+            PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+         end if;
          if U_Oid.Creator /= To_POA (Self).Absolute_Address then
             pragma Debug
               (O (PolyORB.Types.To_Standard_String (U_Oid.Creator)));

@@ -74,8 +74,8 @@ package PolyORB.Obj_Adapters is
       Oid   :    out Objects.Object_Id_Access;
       Error : in out PolyORB.Exceptions.Error_Container)
       is abstract;
-   --  Create an identifier for Obj within OA. If Key is not null, use it as an
-   --  application-level identifier for the object (which will be used to
+   --  Create an identifier for Obj within OA. If Key is not null, use it as
+   --  an application-level identifier for the object (which will be used to
    --  construct the local identifier).
 
    procedure Unexport
@@ -138,15 +138,16 @@ package PolyORB.Obj_Adapters is
    -- Export of object identifiers --
    ----------------------------------
 
-   function Oid_To_Rel_URI
-     (OA : access Obj_Adapter;
-      Id : access Objects.Object_Id)
-     return Types.String;
+   procedure Oid_To_Rel_URI
+     (OA    : access Obj_Adapter;
+      Id    : access Objects.Object_Id;
+      URI   : out Types.String;
+      Error : in out PolyORB.Exceptions.Error_Container);
+
 
    function Rel_URI_To_Oid
      (OA  : access Obj_Adapter;
-      URI : Types.String)
-     return Objects.Object_Id_Access;
+      URI : Types.String) return Objects.Object_Id_Access;
 
    --  Convert an object id from/to its representation as a relative URI. A
    --  default implementation of these functions is provided; actual object
@@ -182,7 +183,7 @@ package PolyORB.Obj_Adapters is
       Ref   : out References.Ref;
       Error : in out PolyORB.Exceptions.Error_Container);
    --  Retrieve the reference for which Oid is a proxy oid into Ref.
-   --   No_Implement_E is thrown if OA does not support proxy objects.
+   --  No_Implement_E is thrown if OA does not support proxy objects.
 
    ----------------------------
    -- Annotations management --

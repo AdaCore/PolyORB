@@ -39,35 +39,30 @@ package PolyORB.POA_Policies.Id_Assignment_Policy is
    use PolyORB.POA_Types;
 
    type IdAssignmentPolicy is abstract new Policy with null record;
-
    type IdAssignmentPolicy_Access is access all IdAssignmentPolicy'Class;
 
-   function Create_Object_Map
-     (Self : IdAssignmentPolicy)
-     return PolyORB.Object_Maps.Object_Map_Access
-      is abstract;
+   function Create_Object_Map (Self : IdAssignmentPolicy)
+     return PolyORB.Object_Maps.Object_Map_Access is abstract;
 
    procedure Assign_Object_Identifier
-     (Self   :        IdAssignmentPolicy;
-      OA     :        Obj_Adapter_Access;
-      Hint   :        Object_Id_Access;
-      U_Oid  :    out Unmarshalled_Oid;
-      Error  : in out PolyORB.Exceptions.Error_Container)
-      is abstract;
+     (Self   : IdAssignmentPolicy;
+      OA     : Obj_Adapter_Access;
+      Hint   : Object_Id_Access;
+      U_Oid  : out Unmarshalled_Oid;
+      Error  : in out PolyORB.Exceptions.Error_Container) is abstract;
 
    procedure Reconstruct_Object_Identifier
-     (Self  :        IdAssignmentPolicy;
-      OA    :        Obj_Adapter_Access;
-      Oid   :        Object_Id;
-      U_Oid :    out Unmarshalled_Oid;
-      Error : in out PolyORB.Exceptions.Error_Container)
-      is abstract;
+     (Self  : IdAssignmentPolicy;
+      OA    : Obj_Adapter_Access;
+      Oid   : Object_Id;
+      U_Oid : out Unmarshalled_Oid;
+      Error : in out PolyORB.Exceptions.Error_Container) is abstract;
 
    procedure Object_Identifier
-     (Self   :     IdAssignmentPolicy;
-      Oid    :     Object_Id_Access;
-      Result : out Object_Id_Access)
-      is abstract;
+     (Self   : IdAssignmentPolicy;
+      Oid    : Object_Id_Access;
+      Result : out Object_Id_Access;
+      error  : in out PolyORB.Exceptions.Error_Container) is abstract;
    --  Return the Object_Id stored in Oid. Note that Result is a newly
    --  allocated variable that must be deallocated.
 

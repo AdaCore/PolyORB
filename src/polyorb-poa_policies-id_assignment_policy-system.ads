@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,42 +34,38 @@
 package PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    type System_Id_Policy is new IdAssignmentPolicy with null record;
-
    type System_Id_Policy_Access is access all System_Id_Policy;
 
-   function Create
-     return System_Id_Policy_Access;
+   function Create return System_Id_Policy_Access;
 
    procedure Check_Compatibility
-     (Self           :        System_Id_Policy;
-      Other_Policies :        AllPolicies;
+     (Self           : System_Id_Policy;
+      Other_Policies : AllPolicies;
       Error          : in out PolyORB.Exceptions.Error_Container);
 
-   function Policy_Id
-     (Self : System_Id_Policy)
-     return String;
+   function Policy_Id (Self : System_Id_Policy) return String;
 
-   function Create_Object_Map
-     (Self : System_Id_Policy)
+   function Create_Object_Map (Self : System_Id_Policy)
      return PolyORB.Object_Maps.Object_Map_Access;
 
    procedure Assign_Object_Identifier
-     (Self  :        System_Id_Policy;
-      OA    :        PolyORB.POA_Types.Obj_Adapter_Access;
-      Hint  :        Object_Id_Access;
-      U_Oid :    out Unmarshalled_Oid;
+     (Self  : System_Id_Policy;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
+      Hint  : Object_Id_Access;
+      U_Oid : out Unmarshalled_Oid;
       Error : in out PolyORB.Exceptions.Error_Container);
 
    procedure Reconstruct_Object_Identifier
-     (Self  :        System_Id_Policy;
-      OA    :        Obj_Adapter_Access;
-      Oid   :        Object_Id;
-      U_Oid :    out Unmarshalled_Oid;
+     (Self  : System_Id_Policy;
+      OA    : Obj_Adapter_Access;
+      Oid   : Object_Id;
+      U_Oid : out Unmarshalled_Oid;
       Error : in out PolyORB.Exceptions.Error_Container);
 
    procedure Object_Identifier
-     (Self   :     System_Id_Policy;
-      Oid    :     Object_Id_Access;
-      Result : out Object_Id_Access);
+     (Self   : System_Id_Policy;
+      Oid    : Object_Id_Access;
+      Result : out Object_Id_Access;
+      Error  : in out PolyORB.Exceptions.Error_Container);
 
 end PolyORB.POA_Policies.Id_Assignment_Policy.System;

@@ -188,11 +188,6 @@ package PolyORB.POA_Types is
    pragma Inline (Create_Id);
    --  Create an Unmarshalled_Oid, and then marshall it into an Object_Id
 
-   function Oid_To_U_Oid
-     (Oid : access Object_Id)
-     return Unmarshalled_Oid;
-   --  Unmarshall an Object_Id into a Unmarshalled_Oid
-
    procedure Oid_To_U_Oid
      (Oid   :        Object_Id;
       U_Oid :    out Unmarshalled_Oid;

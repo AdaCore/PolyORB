@@ -67,18 +67,23 @@ package body PolyORB.POA is
    -- Oid_To_Rel_URI --
    --------------------
 
-   function Oid_To_Rel_URI
-     (OA : access Obj_Adapter;
-      Id : access Object_Id)
-     return Types.String
+   procedure Oid_To_Rel_URI
+     (OA    : access Obj_Adapter;
+      Id    : access Object_Id;
+      URI   : out Types.String;
+      Error : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (OA);
       pragma Warnings (On);
 
-      U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Id);
-      URI : Types.String := To_PolyORB_String ("/");
+      U_Oid : Unmarshalled_Oid;
    begin
+      Oid_To_U_Oid (Id.all, U_Oid, Error);
+      if Found (Error) then
+         return;
+      end if;
+      URI := To_PolyORB_String ("/");
       pragma Debug (O ("Oid: Creator: "
                          & To_Standard_String (U_Oid.Creator)
                          & ", Id: " & To_Standard_String (U_Oid.Id)
@@ -92,10 +97,9 @@ package body PolyORB.POA is
       end if;
 
       URI := URI & URI_Encode (To_Standard_String (U_Oid.Id));
-      --  XXX Here we make the assumption that Id needs to be
-      --  URI-escaped, and Creator needs not, but there is
-      --  no reason to. What should actually be done is that
-      --  Creator should be a list, and each of its components
+      --  XXX Here we make the assumption that Id needs to be URI-escaped, and
+      --  Creator needs not, but there is no reason to. What should actually be
+      --  done is that Creator should be a list, and each of its components
       --  should be separately URLencoded.
 
       if U_Oid.System_Generated then
@@ -109,7 +113,6 @@ package body PolyORB.POA is
 
       pragma Debug (O ("-> URI: " & To_Standard_String (URI)));
 
-      return URI;
    end Oid_To_Rel_URI;
 
    --------------------
@@ -969,17 +972,15 @@ package body PolyORB.POA is
                 ServantNotActive_E,
                 Null_Members'(Null_Member));
 
-         --  XXX here should also check whether we are in the
-         --  context of executing a dispatched operation on
-         --  Servant, and if it is the case return the 'current'
-         --  oid (for USE_DEFAULT_SERVANT policy).
+         --  XXX here should also check whether we are in the context of
+         --  executing a dispatched operation on Servant, and if it is the case
+         --  return the 'current' oid (for USE_DEFAULT_SERVANT policy).
       end if;
 
       Object_Identifier
         (Self.Id_Assignment_Policy.all,
          Temp_Oid2,
-         Oid);
-
+         Oid, Error);
    end Servant_To_Id;
 
    -------------------
@@ -1645,7 +1646,11 @@ package body PolyORB.POA is
             Object_Identifier
               (Obj_OA.Id_Assignment_Policy.all,
                Objects.Object_Id_Access (Id),
-               Oid);
+               Oid,
+               Error);
+            if Found (Error) then
+               return;
+            end if;
 
             Incarnate
               (Activator'Access,
@@ -1657,7 +1662,6 @@ package body PolyORB.POA is
 
             if Found (Error) then
                pragma Assert (Error.Kind = ForwardRequest_E);
-
                return;
             end if;
 

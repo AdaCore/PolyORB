@@ -62,16 +62,17 @@ package body PolyORB.Obj_Adapters is
    -- Oid_To_Rel_URI --
    --------------------
 
-   function Oid_To_Rel_URI
-     (OA : access Obj_Adapter;
-      Id : access Objects.Object_Id)
-     return Types.String
+   procedure Oid_To_Rel_URI
+     (OA    : access Obj_Adapter;
+      Id    : access Objects.Object_Id;
+      URI   : out Types.String;
+      Error : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
-      pragma Unreferenced (OA);
+      pragma Unreferenced (OA, Error);
       pragma Warnings (On);
    begin
-      return Types.To_PolyORB_String
+      URI := Types.To_PolyORB_String
         ("/" & Objects.To_String (Id.all));
    end Oid_To_Rel_URI;
 
