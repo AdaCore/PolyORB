@@ -119,12 +119,15 @@ public:
   _CORBA_Boolean is_proxy();
   // calls the is_proxy function of C_Object
   
-  virtual _CORBA_Boolean dispatch(GIOP_S &,
-				  const char *operation,
-				  _CORBA_Boolean response_expected);
+  virtual void dispatch(GIOP_S &,
+			const char *operation,
+			_CORBA_Boolean response_expected,
+			_CORBA_Boolean& success);
   // default dispatch function for all the hierarchie of
   // Ada Objects. The implementation is made in Ada.
   // (see omniobject.adb)
+  // this function is made a procedure because it takes
+  // arguments passed by reference
 
   virtual _CORBA_Boolean Ada_Is_A(const char* repoId) ;
   // calls is_a on this omniobject

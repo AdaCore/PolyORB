@@ -41,7 +41,7 @@
 ----   that allows C functions to raise the ada No_Initialisation  ----
 ----   exception.                                                  ----
 ----                                                               ----
------                                                               ----
+----                                                               ----
 ----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
 ----   date    : 02/28/99                                          ----
@@ -132,18 +132,17 @@ package body OmniObject is
 
    -- Dispatch
    -----------
-   function Dispatch (Self : in Implemented_Object ;
-                      Orls : in Giop_S.Object ;
-                      Orl_Op : in Standard.String ;
-                      Orl_Response_Expected : in Corba.Boolean)
-                      return Corba.Boolean is
+   procedure Dispatch (Self : in out Implemented_Object ;
+                       Orls : in out Giop_S.Object ;
+                       Orl_Op : in Standard.String ;
+                       Orl_Response_Expected : in Corba.Boolean ;
+                       Success : out Corba.Boolean) is
    begin
       Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
                                      "Omniobject.Dispatch(Implemented_Object)"
                                      & Corba.CRLF
                                      & "should never be called on an Implemented_Object") ;
-      return False ;
-      -- to please the compiler !!
+      Success := False ;
    end ;
 
 
@@ -697,49 +696,47 @@ package body OmniObject is
 
    -- Dispatch
    -----------
-   function Dispatch(Self: in Object'Class ;
-                     Orls: in Giop_S.Object ;
-                     Orl_Op : in Standard.String ;
-                     Orl_Response_Expected : in Corba.Boolean)
-                     return Corba.Boolean is
+   procedure Dispatch(Self: in Object'Class ;
+                      Orls: in out Giop_S.Object ;
+                      Orl_Op : in Standard.String ;
+                      Orl_Response_Expected : in Corba.Boolean ;
+                      Success : out Corba.Boolean) is
    begin
       -- check there is no error
       if Self.Implobj = null then
          Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
                                         "Omniobject.Dispatch should not be called on a proxy object") ;
       else
-         return Dispatch(Self.Implobj.all,
-                         Orls,
-                         Orl_Op,
-                         Orl_Response_Expected) ;
+         Dispatch(Self.Implobj.all,
+                  Orls,
+                  Orl_Op,
+                  Orl_Response_Expected,
+                  success) ;
       end if ;
    end ;
 
 
    -- C_Dispatch
    -------------
-   function C_Dispatch (Self : in Object'Class ;
-                        Orls : in System.Address ;
-                        Orl_Op : in Interfaces.C.Strings.Chars_Ptr ;
-                        Orl_Response_Expected : in Sys_Dep.C_Boolean)
-                        return Sys_Dep.C_Boolean is
-      package Address_To_Giop_S is
-        new System.Address_To_Access_Conversions (Giop_S.Object) ;
-      Ada_Orls_Ptr : Address_To_Giop_S.Object_Pointer ;
+   procedure C_Dispatch (Self : in Object'Class ;
+                         Orls : in out Giop_S.Object ;
+                         Orl_Op : in Interfaces.C.Strings.Chars_Ptr ;
+                         Orl_Response_Expected : in Sys_Dep.C_Boolean ;
+                         Success : out Sys_Dep.C_Boolean) is
       Ada_Orl_Op : Standard.String := Interfaces.C.Strings.Value(Orl_OP) ;
       Ada_Orl_Response_Expected : Corba.Boolean ;
-      Ada_Result : Corba.Boolean ;
+      Ada_Success : Corba.Boolean ;
    begin
       -- transforms the arguments in a Ada type, ...
-      Ada_Orls_Ptr := Address_To_Giop_S.To_Pointer(Orls) ;
       Ada_Orl_Response_Expected := Sys_Dep.Boolean_C_To_Ada (Orl_Response_Expected) ;
       -- ... calls the ada function ...
-      Ada_Result := Dispatch (Self,
-                              Ada_Orls_Ptr.All,
-                              Ada_Orl_Op,
-                              Ada_Orl_Response_Expected) ;
+      Dispatch (Self,
+                Orls,
+                Ada_Orl_Op,
+                Ada_Orl_Response_Expected,
+                Ada_Success) ;
       -- ... and transforms the result into a C type
-      return Sys_Dep.Boolean_Ada_To_C (Ada_Result) ;
+      Success := Sys_Dep.Boolean_Ada_To_C (Ada_Success) ;
    end ;
 
 

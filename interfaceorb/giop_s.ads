@@ -82,7 +82,7 @@ package Giop_S is
 
 
    procedure Request_Received (Self : in Object'Class ;
-                               Skip : in Boolean) ;
+                               Skip : in Boolean := False) ;
    -- informs the ORB that the request was received
    -- (see giopDriver.h L150 for more details)
 

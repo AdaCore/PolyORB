@@ -95,7 +95,7 @@ package body Giop_S is
    -- Request_Received
    -------------------
    procedure Request_Received (Self : in Object'Class ;
-                               Skip : in Boolean) is
+                               Skip : in Boolean := False) is
       C_Skip : Sys_Dep.C_Boolean ;
    begin
       -- transforms the arguments into a C type ...

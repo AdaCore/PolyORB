@@ -145,11 +145,11 @@ package OmniObject is
    --        dispatching operators              --
    -----------------------------------------------
 
-   function Dispatch (Self : in Implemented_Object ;
-                      Orls : in Giop_S.Object ;
-                      Orl_Op : in Standard.String ;
-                      Orl_Response_Expected : in Corba.Boolean)
-                      return Corba.Boolean ;
+   procedure Dispatch (Self : in out Implemented_Object ;
+                       Orls : in out Giop_S.Object ;
+                       Orl_Op : in Standard.String ;
+                       Orl_Response_Expected : in Corba.Boolean ;
+                       Success : out Corba.Boolean) ;
    -- this function is called by the C one
    -- It is implemented in the sub-classes of omniObject
    -- this function on this object should never be called
@@ -397,13 +397,13 @@ private
    -- it is called by Init(Omniobject.Implemented_Object)
 
 
-   function C_Dispatch (Self : in Object'Class ;
-                        Orls : in System.Address ;
+   procedure C_Dispatch (Self : in Object'Class ;
+                        Orls : in out Giop_S.Object ;
                         Orl_Op : in Interfaces.C.Strings.Chars_Ptr ;
-                        Orl_Response_Expected : in Sys_Dep.C_Boolean)
-                        return Sys_Dep.C_Boolean ;
+                        Orl_Response_Expected : in Sys_Dep.C_Boolean ;
+                        Success : out Sys_Dep.C_Boolean) ;
    pragma Export (CPP,C_Dispatch,
-                  "dispatch__14Ada_OmniObjectR6GIOP_SPCcb");
+                  "dispatch__14Ada_OmniObjectR6GIOP_SPCcbRb");
    -- wrapper around Ada_OmniObject function dispatch
    -- (see Ada_OmniObject.hh)
    -- This function is implemented in Ada and exported to C
