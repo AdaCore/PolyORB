@@ -9,6 +9,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-rtcorba_p-setup.ads \
 		rtcorba.ads \
 		rtcorba-current.ads \
+		rtcorba-mutex.ads \
 		rtcorba-rtorb.ads \
 		rtcorba-prioritymapping.ads \
 		rtcorba-prioritymodelpolicy.ads \
@@ -18,7 +19,6 @@ ADA_SPECS_WITH_BODY = \
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb-rtcorba_p.ads \
-		rtcorba-mutex.ads \
 		rtportableserver.ads
 
 ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
