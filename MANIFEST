@@ -861,6 +861,11 @@ src/polyorb-setup-client.adb.in
 src/polyorb-setup-client.ads
 src/polyorb-setup-no_tasking_server.adb
 src/polyorb-setup-no_tasking_server.ads
+src/polyorb-setup-oa-basic_poa.adb
+src/polyorb-setup-oa-basic_poa.ads
+src/polyorb-setup-oa-simple_oa.adb
+src/polyorb-setup-oa-simple_oa.ads
+src/polyorb-setup-oa.ads
 src/polyorb-setup-proxies_poa.adb
 src/polyorb-setup-proxies_poa.ads
 src/polyorb-setup-ravenscar_tp_server.adb

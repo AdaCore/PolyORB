@@ -57,9 +57,6 @@ with PolyORB.Utils.Strings;
 with PolyORB.Exceptions;
 with PolyORB.References;
 with PolyORB.Obj_Adapters;
-with PolyORB.POA_Config;
-with PolyORB.POA_Config.Root_POA;
-with PolyORB.POA_Types;
 
 with PolyORB.Types;
 with PolyORB.Log;
@@ -73,6 +70,7 @@ with PolyORB.POA_Policies.Lifespan_Policy.Persistent;
 with PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation;
 with PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;
 with PolyORB.POA_Manager.Basic_Manager;
+with PolyORB.POA_Types;
 
 package body AWS.Server is
 
@@ -139,51 +137,8 @@ package body AWS.Server is
    --------------
 
    procedure Init_AWS is
-      use PolyORB.POA;
-      use PolyORB.POA_Config.Root_POA;
-      use PolyORB.POA.Basic_POA;
-      use PolyORB.POA_Policies;
-      use PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
-      use PolyORB.Setup;
-      use PolyORB.Obj_Adapters;
-
-      Root_POA : PolyORB.POA.Obj_Adapter_Access
-        := PolyORB.POA.Obj_Adapter_Access
-        (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));
    begin
-      if Root_POA = null then
-         pragma Debug (O ("AWS_Init: no root POA found: "
-                          & "attempting to create one"));
-         declare
-            Basic_Root_POA : constant Basic_Obj_Adapter_Access
-              := new Basic_Obj_Adapter;
-
-            Root_Config : constant PolyORB.POA_Config.Configuration_Access
-              := new PolyORB.POA_Config.Root_POA.Root_POA_Configuration;
-
-         begin
-            Initialize (Root_POA_Configuration (Root_Config.all));
-
-            PolyORB.POA_Config.Set_Configuration (Root_Config);
-            pragma Debug (O ("AWS_Init: root POA configuration set"));
-
-            Create (Basic_Root_POA);
-            pragma Debug (O ("AWS_Init: root POA created"));
-
-            Root_POA := PolyORB.POA.Obj_Adapter (Basic_Root_POA.all)'Access;
-
-            PolyORB.ORB.Set_Object_Adapter
-              (PolyORB.Setup.The_ORB,
-               PolyORB.Obj_Adapters.Obj_Adapter_Access (Root_POA));
-            pragma Debug (O ("AWS_Init: root POA attached to the ORB"));
-
-         end;
-      else
-         pragma Debug (O ("AWS_Init: the root POA already exists: "
-                          & "assuming that everything is correct"));
-         null;
-      end if;
-
+      null;
    end Init_AWS;
 
 
@@ -734,7 +689,7 @@ begin
      (Module_Info'
      (Name      => +"aws",
       Conflicts => Empty,
-      Depends   => Empty,
+      Depends   => +"poa",
       Provides  => Empty,
       Implicit  => False,
       Init      => Init_AWS'Access));

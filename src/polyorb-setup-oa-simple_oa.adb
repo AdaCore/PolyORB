@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---        P O L Y O R B . M I N I M A L _ S E R V A N T . T O O L S         --
+--           P O L Y O R B . S E T U P . O A . S I M P L E _ O A            --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,71 +33,45 @@
 
 --  $Id$
 
-with PolyORB.Exceptions;
-with PolyORB.Obj_Adapters;
-with PolyORB.Objects;
-with PolyORB.ORB;
-with PolyORB.Servants;
-with PolyORB.Setup;
-with PolyORB.Types;
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
-package body PolyORB.Minimal_Servant.Tools is
+with PolyORB.Obj_Adapters.Simple;
+with PolyORB.Utils.Strings;
 
-   use PolyORB.Minimal_Servant;
-   use PolyORB.Objects;
-   use PolyORB.Servants;
-   use PolyORB.Setup;
-
-   ----------------------
-   -- Initiate_Servant --
-   ----------------------
-
-   procedure Initiate_Servant
-     (Obj     : access PolyORB.Minimal_Servant.Servant'Class;
-      Type_Id : in     PolyORB.Types.String;
-      Ref     :    out PolyORB.References.Ref;
-      Error   : in out PolyORB.Exceptions.Error_Container)
-   is
-      use PolyORB.Exceptions;
-
-      Servant : constant PolyORB.Servants.Servant_Access
-        := To_PolyORB_Servant (Obj);
-
-      Obj_Adapter : constant PolyORB.Obj_Adapters.Obj_Adapter_Access
-        := PolyORB.ORB.Object_Adapter (The_ORB);
-
-      Servant_Id : Object_Id_Access;
-
-   begin
-      PolyORB.Obj_Adapters.Export
-        (Obj_Adapter,
-         Servant,
-         null,
-         Servant_Id,
-         Error);
-
-      if Found (Error) then
-         return;
-      end if;
-
-      --  Register object
-
-      PolyORB.ORB.Create_Reference
-        (The_ORB,
-         Servant_Id,
-         PolyORB.Types.To_Standard_String (Type_Id),
-         Ref);
-
-      Free (Servant_Id);
-   end Initiate_Servant;
+package body PolyORB.Setup.OA.Simple_OA is
 
    ----------------
-   -- Run_Server --
+   -- Initialize --
    ----------------
 
-   procedure Run_Server is
-   begin
-      PolyORB.ORB.Run (PolyORB.Setup.The_ORB, May_Poll => True);
-   end Run_Server;
+   procedure Initialize;
 
-end PolyORB.Minimal_Servant.Tools;
+   procedure Initialize is
+      Obj_Adapter : PolyORB.Obj_Adapters.Obj_Adapter_Access;
+
+   begin
+      --  Create SOA object adapter
+
+      Obj_Adapter := new PolyORB.Obj_Adapters.Simple.Simple_Obj_Adapter;
+      PolyORB.Obj_Adapters.Create (Obj_Adapter);
+
+      --  Link object adapter with ORB.
+
+      PolyORB.ORB.Set_Object_Adapter (The_ORB, Obj_Adapter);
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"simple_oa",
+       Conflicts => Empty,
+       Depends   => Empty,
+       Provides  => +"object_adapter",
+       Implicit  => False,
+       Init      => Initialize'Access));
+end PolyORB.Setup.OA.Simple_OA;

@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#47 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#48 $
 
 with Ada.Exceptions;
 
@@ -1401,9 +1401,33 @@ package body PortableServer.POA is
    procedure Initialize;
 
    procedure Initialize is
+      Root_POA : PortableServer.POA.Ref;
+
+      Error : PolyORB.Exceptions.Error_Container;
+
    begin
-      PolyORB.CORBA_P.Exceptions.POA_Raise_From_Error :=
-        Raise_From_Error'Access;
+      PolyORB.CORBA_P.Exceptions.POA_Raise_From_Error
+        := Raise_From_Error'Access;
+
+      PortableServer.POA.Set
+        (Root_POA,
+         PolyORB.Smart_Pointers.Entity_Ptr
+         (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB)));
+
+      --  By construction, Root POA must be in Hold state
+
+      PolyORB.POA_Manager.Hold_Requests
+        (PolyORB.POA_Manager.POAManager_Access
+         (PolyORB.POA_Manager.Entity_Of
+          (PolyORB.POA.Obj_Adapter
+           (PolyORB.ORB.Object_Adapter
+            (PolyORB.Setup.The_ORB).all).POA_Manager)),
+         False,
+         Error);
+
+      CORBA.ORB.Register_Initial_Reference
+        (CORBA.ORB.To_CORBA_String ("RootPOA"),
+         CORBA.Object.Ref (Root_POA));
    end Initialize;
 
    use PolyORB.Initialization;
@@ -1415,7 +1439,7 @@ begin
      (Module_Info'
       (Name      => +"portableserver.poa",
        Conflicts => Empty,
-       Depends   => Empty,
+       Depends   => +"poa",
        Provides  => Empty,
        Implicit  => False,
        Init      => Initialize'Access));

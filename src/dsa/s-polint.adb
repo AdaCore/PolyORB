@@ -62,6 +62,7 @@ pragma Warnings (On);
 with PolyORB.ORB;
 with PolyORB.POA;
 with PolyORB.POA_Config;
+with PolyORB.POA_Manager;
 with PolyORB.POA_Types;
 with PolyORB.References;
 with PolyORB.Sequences.Unbounded;
@@ -73,16 +74,6 @@ with PolyORB.Services.Naming.Helper;
 with PolyORB.Services.Naming.NamingContext.Client;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Strings.Lists;
-
---  XXX the following are dependant on configuration options
---  and should be moved to a generated unit (à la s-garela).
---  (an OA is required only on server units; any OA is OK
---  for RCIs without RACWs, but RACWs require a POA).
-
-with PolyORB.POA.Basic_POA;
-with PolyORB.POA_Config.Minimum;
-with PolyORB.POA_Manager;
-with PolyORB.Setup.Proxies_POA;
 
 package body System.PolyORB_Interface is
 
@@ -212,9 +203,6 @@ package body System.PolyORB_Interface is
    --  DSA application.
 
    Naming_Context_Cache : PSNNC.Ref;
-
-   Root_POA_Object : PolyORB.POA.Obj_Adapter_Access;
-   --  XXX Should not depend explicitly on the POA.
 
    ---------------------
    -- Allocate_Buffer --
@@ -752,8 +740,8 @@ package body System.PolyORB_Interface is
 
             begin
                PolyORB.Obj_Adapters.Object_Key
-                 (OA      =>  PolyORB.Obj_Adapters.Obj_Adapter_Access
-                  (Root_POA_Object),
+                 (OA      =>  PolyORB.ORB.Object_Adapter
+                  (PolyORB.Setup.The_ORB),
                   Id      => PolyORB.Binding_Data.Get_Object_Key
                   (Profiles (J).all),
                   User_Id => Key,
@@ -1090,35 +1078,6 @@ package body System.PolyORB_Interface is
       PTM.Create (Critical_Section);
 
       Octet_Sequences_Helper.Initialize (PolyORB.Any.TC_Octet);
-
-      pragma Assert (Root_POA_Object = null);
-      pragma Debug (O ("Initializing default POA configuration..."));
-      POA_Config.Set_Configuration
-        (new POA_Config.Minimum.Minimum_Configuration);
-
-      pragma Debug (O ("Initializing root POA..."));
-      Root_POA_Object := new POA.Basic_POA.Basic_Obj_Adapter;
-      POA.Basic_POA.Create
-        (POA.Basic_POA.Basic_Obj_Adapter (Root_POA_Object.all)'Access);
-
-      ORB.Set_Object_Adapter
-        (Setup.The_ORB, Obj_Adapters.Obj_Adapter_Access (Root_POA_Object));
-      --  Link object adapter with ORB.
-
-      POA_Manager.Activate
-        (POA_Manager.POAManager_Access
-         (POA_Manager.Entity_Of (Root_POA_Object.POA_Manager)),
-         Error);
-
-      if Found (Error) then
-         PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
-      end if;
-
-      PolyORB.Setup.Proxies_POA (Root_POA_Object, Error);
-
-      if Found (Error) then
-         PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
-      end if;
 
       pragma Debug (O ("Initializing DSA library units"));
       It := First (All_Receiving_Stubs);
@@ -1460,7 +1419,8 @@ package body System.PolyORB_Interface is
       end if;
 
       Create_POA
-        (Self         => Root_POA_Object,
+        (Self         => PolyORB.POA.Obj_Adapter_Access
+         (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB)),
          Adapter_Name => PName,
          A_POAManager => null,
          Policies     => Default_Policies (RACW_POA_Config.all),
@@ -1662,6 +1622,7 @@ begin
       (Name      => +"dsa",
        Conflicts => Empty,
        Depends   => +"orb"
+       & "poa"
        & "poa_config.racws?"
        & "naming.Helper"
        & "naming.NamingContext.Helper"

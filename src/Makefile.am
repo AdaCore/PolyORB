@@ -104,6 +104,8 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-services-naming-namingcontext-helper.ads \
 		polyorb-services-naming-namingcontext-servant.ads \
 		polyorb-services-naming-tools.ads \
+		polyorb-setup-oa-basic_poa.ads \
+		polyorb-setup-oa-simple_oa.ads \
 		polyorb-setup-proxies_poa.ads \
 		polyorb-setup-tasking-full_tasking.ads \
 		polyorb-setup-tasking-no_tasking.ads \
@@ -177,6 +179,7 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb-services-naming.ads \
 		polyorb-setup.ads \
 		polyorb-setup-access_points.ads \
+		polyorb-setup-oa.ads \
 		polyorb-setup-tasking.ads \
 		polyorb-setup-tasking-ravenscar.ads \
 		polyorb-sockets.ads \
