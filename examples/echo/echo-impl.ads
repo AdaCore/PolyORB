@@ -17,7 +17,7 @@ package Echo.Impl is
    ----                spec                      ----
    --------------------------------------------------
 
-   type Object is new Echo.Ref with private;
+   type Object is new Echo.Abstract_Echo with private;
 
    function EchoString(Self : access Object;
                        Message : in Corba.String) return Corba.String ;
@@ -26,7 +26,7 @@ package Echo.Impl is
 
 private
 
-   type Object is new Echo.Ref with null record;
+   type Object is new Echo.Abstract_Echo with null record;
 
 
 End Echo.Impl ;

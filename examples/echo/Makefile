@@ -1,12 +1,13 @@
-server:
-	gnatmake -I../../InterfaceORB server.adb
+GNATGCC = gnatgcc
+DO_NOT_LINK = -c
 
-client:
-	gnatmake -I../../InterfaceORB client.adb
+ADABROKER_INCLUDES = -I../../InterfaceORB
 
-echo:
-	gnatmake -I../../InterfaceORB echo.adb
+main: echo.o echo-proxies.o echo-impl.o server.o client.o 
 
-echoimpl:
-	gnatmake -I../../InterfaceORB echo-impl.adb
+
+.SUFFIXES: .adb .o
+
+.adb.o:
+	$(GNATGCC)  $(DO_NOT_LINK) $(ADABROKER_INCLUDES) $<
 
