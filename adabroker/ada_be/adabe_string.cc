@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.29 $
+//                            $Revision: 1.30 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -160,11 +160,7 @@ void adabe_string::produce_ads (dep_list & with,
       body += ".Bounded_String;\n\n";
     }
 
-  // body += "   type " + get_ada_local_name () + "_Ptr is access ";
-  // body += get_ada_local_name () + ";\n\n";
-  // body += "   procedure Free is new Ada.Unchecked_Deallocation (";
-  // body += get_ada_local_name () + ", " + get_ada_local_name ()+ "_Ptr);\n\n\n";
-  set_already_defined ();
+  // set_already_defined ();
   
   set_already_defined ();
 }

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.29 $
+//                            $Revision: 1.30 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -199,10 +199,6 @@ adabe_array::produce_ads (dep_list & with,
   // definition of a pointer on the array
   body += "   type " + get_ada_local_name () + "_Ptr is access ";
   body += get_ada_local_name () + ";\n\n";
-
-  // definition of the free function
-  // body += "   procedure Free is new Ada.Unchecked_Deallocation (";
-  // body += get_ada_local_name () + ", " + get_ada_local_name ()+ "_Ptr);\n\n\n";
 
   // if the structure in the array does not have
   // a fixed size a fag is put (the marshall is not

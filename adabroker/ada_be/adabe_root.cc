@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.29 $
+//                            $Revision: 1.30 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -82,13 +82,12 @@ adabe_root::produce () {
       string header_body          = ""; // string containing the body of node declared
       dep_list header_with;             // list of dependencies
       
-      // addition of some usefull file 
-      header_with.add ("Ada.Unchecked_Deallocation");
+      // pull in some useful declarations
       header_with.add ("CORBA");
       header_with.add ("AdaBroker");
       
       UTL_ScopeActiveIterator header_activator (this, UTL_Scope::IK_decls);
-      header_body = "Package " + get_ada_full_name ()+" is\n";
+      header_body = "package " + get_ada_full_name ()+" is\n";
       
       // loop over the scope to find the node to output
       while (!header_activator.is_done ())
@@ -846,7 +845,7 @@ adabe_root::produce () {
       marshal_header_with.add ("AdaBroker.NetBufferedStream");
       marshal_header_with.add ("AdaBroker.MemBufferedStream");
 
-      marshal_header_previous += "Package " + get_ada_full_name () + ".Stream is\n";
+      marshal_header_previous += "package " + get_ada_full_name () + ".Stream is\n";
 		  
       UTL_ScopeActiveIterator marshal_header_activator (this, UTL_Scope::IK_decls);
       while (!marshal_header_activator.is_done ())
@@ -987,7 +986,7 @@ adabe_root::produce () {
     
       marshal_body_with.add ("AdaBroker.NetBufferedStream");
       marshal_body_with.add ("AdaBroker.MemBufferedStream");
-      marshal_body_previous = "Package body " + get_ada_full_name () + ".Stream is \n";
+      marshal_body_previous = "package body " + get_ada_full_name () + ".Stream is \n";
 
       while (!marshal_body_activator.is_done ())
 	{

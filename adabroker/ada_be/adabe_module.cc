@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.26 $
+//                            $Revision: 1.27 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -57,7 +57,6 @@ adabe_module::produce_ads (dep_list & with,
   // before doing anything compute the ada name
   
   compute_ada_name (); 
-  with.add ("Ada.Unchecked_Deallocation");
   with.add ("CORBA");
   with.add ("AdaBroker");
   body = "package " + get_ada_full_name ()+ " is\n";

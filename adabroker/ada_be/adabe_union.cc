@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.43 $
+//                            $Revision: 1.44 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -135,12 +135,6 @@ adabe_union::produce_ads (dep_list & with,
   // ending the declaration
   body += "      end case;\n";
   body += "   end record;\n\n";
-  // body += "   type " + get_ada_local_name () + "_Ptr is access ";
-  // body += get_ada_local_name () + ";\n\n";
-
-  // defining the free function
-  // body += "   procedure Free is new Ada.Unchecked_Deallocation (";
-  // body += get_ada_local_name () + ", " + get_ada_local_name ()+ "_Ptr);\n";
 
   // this type has been defined
   set_already_defined ();

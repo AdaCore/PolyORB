@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.40 $
+//                            $Revision: 1.41 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -49,9 +49,6 @@ adabe_structure::produce_ads (dep_list & with,
 			      string   & body,
 			      string   & previous)
 {
-  // This library will be needed for the Free function
-  with.add ("Ada.Unchecked_Deallocation");
-  
   // beginning of the declaration
   body += "   type " + get_ada_local_name () + " is record\n";
 
@@ -75,13 +72,6 @@ adabe_structure::produce_ads (dep_list & with,
   // the end of the Structure
   body += "   end record;\n\n";
   
-  // the pointer  which will access the structure
-  // body += "   type " + get_ada_local_name () + "_Ptr is access ";
-  // body += get_ada_local_name () + ";\n\n";
-
-  // the free function
-  // body += "   procedure Free is new Ada.Unchecked_Deallocation (";
-  // body += get_ada_local_name () + ", " + get_ada_local_name ()+ "_Ptr);\n";
   set_already_defined ();
 }
 

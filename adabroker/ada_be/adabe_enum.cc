@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.28 $
+//                            $Revision: 1.29 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -78,10 +78,6 @@ adabe_enum::produce_ads (dep_list & with,
   set_number_value (numb);
   // set the number of enum values
   body +=");\n\n";
-  // body += "   type " + get_ada_local_name () + "_Ptr is access ";
-  // body += get_ada_local_name () + ";\n\n";
-  // body += "   procedure Free is new Ada.Unchecked_Deallocation (";
-  // body += get_ada_local_name () + ", " + get_ada_local_name ()+ "_Ptr);\n\n\n";  
   set_already_defined ();
 }
 

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.80 $
+//                            $Revision: 1.81 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -82,7 +82,6 @@ adabe_interface::produce_ads (dep_list &with,
   with.add ("CORBA");
   with.add ("AdaBroker");
   with.add ("AdaBroker.OmniORB");
-  with.add ("Ada.Unchecked_Deallocation");
   
 #ifdef DEBUG_INTERFACE
   cout << "before compute_ada_name of the interface" << endl;
