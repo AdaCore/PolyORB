@@ -36,15 +36,4 @@
 
 with PolyORB.POA_Config.Proxies;
 
-package PolyORB.POA_Config.RACWs is
-
-   pragma Elaborate_Body;
-
-   type RACWs_Configuration is new Configuration_Type with private;
-
-private
-
-   type RACWs_Configuration is new Proxies.Proxies_Configuration
-     with null record;
-
-end PolyORB.POA_Config.RACWs;
+package PolyORB.POA_Config.RACWs renames PolyORB.POA_Config.Proxies;

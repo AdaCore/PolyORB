@@ -1,7 +1,7 @@
 EXAMPLES_ROOT=..
 EXAMPLE = dsa-dummy
 
-EXAMPLE_GNATMAKE_FLAGS=-I$(srcdir)
+EXAMPLE_GNATMAKE_FLAGS=-I$(srcdir) -gnatD
 server_FLAGS=	-Aserver.stubs
 client_FLAGS=	-Aclient.stubs
 

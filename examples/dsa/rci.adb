@@ -48,6 +48,7 @@ package body RCI is
 
    function echoString (S : String) return String is
    begin
+      Put_Line ("Thus spake my client unto me: «" & S & "».");
       return S;
    end echoString;
 

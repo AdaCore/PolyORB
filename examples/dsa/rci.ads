@@ -3,7 +3,7 @@ with RT;
 package RCI is
 
    pragma Remote_Call_Interface;
-   pragma All_Calls_Remote;
+   --  pragma All_Calls_Remote;
 
    type Color is (Red, Green, Blue);
 
