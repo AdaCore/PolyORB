@@ -125,7 +125,7 @@ package body PolyORB.POA is
       pragma Unreferenced (OA);
       pragma Warnings (On);
 
-      U_Oid : aliased Unmarshalled_Oid;
+      U_Oid : Unmarshalled_Oid;
 
       Colon : Integer := Find (URI, URI'First, ';');
       Last_Slash : Integer := Colon - 1;
