@@ -90,8 +90,11 @@ package System.Garlic.Protocols is
    --  needed to contact other partitions. Incomplete data have to be
    --  completed once initialized.
 
-   Forever : constant Duration := Duration'Last;
    Polling : constant Duration := 0.2;
+   Forever : constant Duration := Duration (Integer'Last) * 1.0;
+   --  WARNING : Forever must match GNAT.Sockets.Forever. We do not
+   --  use GNAT.Sockets.Forever in order not to depend on GNAT.Sockets
+   --  since the protocols used may not depend on it.
 
    function Receive
      (Protocol  : access Protocol_Type;

@@ -296,7 +296,7 @@ package body System.Garlic.Heart is
 
    procedure Complete_Elaboration is
    begin
-      pragma Debug (D ("Complete termination"));
+      pragma Debug (D ("Complete elaboration"));
 
       Soft_Links.Update (Elaboration_Watcher);
    end Complete_Elaboration;
