@@ -276,7 +276,14 @@ package body CORBA.Object is
       Set (CORBA_Ref, E);
    end Convert_To_CORBA_Ref;
 
-   function TC_Object return CORBA.TypeCode.Object
-     renames CORBA.TypeCode.TC_Object;
+   function TC_Object return CORBA.TypeCode.Object is
+      use PolyORB.Any.TypeCode;
+
+      T : CORBA.TypeCode.Object := PolyORB.Any.TypeCode.TC_Object;
+   begin
+      Add_Parameter (T, To_Any (To_CORBA_String ("Object")));
+      Add_Parameter (T, To_Any (To_CORBA_String ("IDL:CORBA/Object:1.0")));
+      return T;
+   end TC_Object;
 
 end CORBA.Object;

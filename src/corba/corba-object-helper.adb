@@ -43,8 +43,10 @@ package body CORBA.Object.Helper is
    ------------
 
    function To_Any (Item : in CORBA.Object.Ref) return Any is
+      A : Any := PolyORB.Any.ObjRef.To_Any (To_PolyORB_Ref (Item));
    begin
-      return PolyORB.Any.ObjRef.To_Any (To_PolyORB_Ref (Item));
+      Set_Type (A, CORBA.Object.TC_Object);
+      return A;
    end To_Any;
 
    --------------

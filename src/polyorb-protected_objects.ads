@@ -118,6 +118,13 @@ package PolyORB.Protected_Objects is
 
    procedure Leave (M : in Protected_Adv_Mutex_Type);
 
+   ---------------------
+   -- Task allocation --
+   ---------------------
+
+   procedure Create_Task
+     (Main : PolyORB.Soft_Links.Parameterless_Procedure);
+
    -------------------------
    -- Task identification --
    -------------------------

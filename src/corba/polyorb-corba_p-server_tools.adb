@@ -41,6 +41,7 @@ with PolyORB.POA.Basic_POA; use PolyORB.POA.Basic_POA;
 with PolyORB.POA_Config;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
+with PolyORB.Soft_Links;
 
 with PolyORB.POA_Config.Minimum;
 --  XXX hardcoded POA configuration!!!!!!
@@ -110,9 +111,8 @@ package body PolyORB.CORBA_P.Server_Tools is
    -- Initiate_Server --
    ---------------------
 
-   procedure Initiate_Server (Start_New_Task : Boolean := True)
+   procedure Initiate_Server (Start_New_Task : Boolean := False)
    is
-      --  ORBMainLoop : ORBTaskPtr;
    begin
       if CORBA.Object.Is_Nil (CORBA.Object.Ref (Root_POA)) then
          Initiate_RootPOA;
@@ -121,11 +121,11 @@ package body PolyORB.CORBA_P.Server_Tools is
       PortableServer.POAManager.Activate
         (PortableServer.POA.Get_The_POAManager (Root_POA));
 
-      --  if Start_New_Task then
-      --     ORBMainLoop := new ORBTask;
-      --  else
-      CORBA.ORB.Run;
-      --  end if;
+      if Start_New_Task then
+         PolyORB.Soft_Links.Create_Task (CORBA.ORB.Run'Access);
+      else
+         CORBA.ORB.Run;
+      end if;
    end Initiate_Server;
 
    ----------------------

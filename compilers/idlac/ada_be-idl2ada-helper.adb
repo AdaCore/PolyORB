@@ -43,7 +43,9 @@ package body Ada_Be.Idl2Ada.Helper is
 
    --  Helpers need a special diversion for the initialization procedure.
 
-   Deferred_Initialization : constant Source_Streams.Diversion
+   Deferred_Initialization     : constant Source_Streams.Diversion
+     := Source_Streams.Allocate_User_Diversion;
+   Initialization_Dependencies : constant Source_Streams.Diversion
      := Source_Streams.Allocate_User_Diversion;
 
    ----------------------------------------
@@ -124,14 +126,12 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Type_Declarator_Spec
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id;
-      Type_Node : in     Node_Id);
+      Node      : in     Node_Id);
    --  Generate the spec of the helper package for an array declaration
 
    procedure Gen_Type_Declarator_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id;
-      Type_Node : in     Node_Id);
+      Node      : in     Node_Id);
    --  Generate the body of the helper package for an array declaration
 
    procedure Gen_Sequence_Spec
@@ -204,7 +204,7 @@ package body Ada_Be.Idl2Ada.Helper is
                   Init (It, Declarators (Node));
                   while not Is_End (It) loop
                      Get_Next_Node (It, Decl_Node);
-                     Gen_Type_Declarator_Spec (CU, Decl_Node, T_Type (Node));
+                     Gen_Type_Declarator_Spec (CU, Decl_Node);
                   end loop;
                end;
             end if;
@@ -264,7 +264,7 @@ package body Ada_Be.Idl2Ada.Helper is
                   Init (It, Declarators (Node));
                   while not Is_End (It) loop
                      Get_Next_Node (It, Decl_Node);
-                     Gen_Type_Declarator_Body (CU, Decl_Node, T_Type (Node));
+                     Gen_Type_Declarator_Body (CU, Decl_Node);
                   end loop;
                end;
             end if;
@@ -360,7 +360,7 @@ package body Ada_Be.Idl2Ada.Helper is
          Add_With (CU, "CORBA");
          PL (CU, Ada_TC_Name (Node)
              & " : CORBA.TypeCode.Object");
-         PL (CU, "  := CORBA.TypeCode.TC_Object;");
+         PL (CU, "  := PolyORB.Any.TypeCode.TC_Object;");
 
          --  From_Any
          NL (CU);
@@ -408,7 +408,7 @@ package body Ada_Be.Idl2Ada.Helper is
          Add_With (CU, "CORBA");
          PL (CU, Ada_TC_Name (Node)
              & " : CORBA.TypeCode.Object");
-         PL (CU, "  := CORBA.TypeCode.TC_Object;");
+         PL (CU, "  := PolyORB.Any.TypeCode.TC_Object;");
 
          --  From_Any
          NL (CU);
@@ -449,6 +449,11 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "null;");
       --  This 'if' block might be empty, so put a statement
       --  in there to keep the compiler happy.
+
+      Divert (CU, Initialization_Dependencies);
+      II (CU); II (CU); II (CU);
+      PL (CU, "+""soft_links""");
+
       Divert (CU, Visible_Declarations);
    end Gen_Body_Prelude;
 
@@ -468,6 +473,37 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "Deferred_Initialization_Done : Boolean := False;");
       NL (CU);
       Undivert (CU, Deferred_Initialization);
+
+      Divert (CU, Visible_Declarations);
+      Add_With
+        (CU, "PolyORB.Configurator", Elab_Control => Elaborate_All);
+      Add_With (CU, "PolyORB.Utils.Strings");
+
+      Divert (CU, Elaboration);
+      PL (CU, "declare");
+      II (CU);
+      PL (CU, "use PolyORB.Configurator;");
+      PL (CU, "use PolyORB.Configurator.String_Lists;");
+      PL (CU, "use PolyORB.Utils.Strings;");
+      DI (CU);
+      PL (CU, "begin");
+      II (CU);
+      PL (CU, "Register_Module");
+      PL (CU, "  (Module_Info'");
+      II (CU);
+      PL (CU, "(Name      => +""" & Name (CU) & """,");
+      PL (CU, " Conflicts => Empty,");
+      PL (CU, " Depends   =>");
+      Undivert (CU, Initialization_Dependencies);
+      --  The creation of type codes requires the handling of
+      --  'Any' types, which are controlled and use soft links
+      --  to guard concurrent access to their internal structures.
+      PL (CU, " ,");
+      PL (CU, " Provides  => Empty,");
+      PL (CU, " Init      => Deferred_Initialization'Access));");
+      DI (CU);
+      DI (CU);
+      PL (CU, "end;");
    end Gen_Body_Postlude;
 
    ------------------------
@@ -690,10 +726,14 @@ package body Ada_Be.Idl2Ada.Helper is
          NL (CU);
          Gen_To_Any_Profile (CU, Node);
          PL (CU, " is");
+         II (CU);
+         PL (CU, "A : CORBA.Any := CORBA.Object.Helper.To_Any");
+         PL (CU, "  (CORBA.Object.Ref (Item));");
+         DI (CU);
          PL (CU, "begin");
          II (CU);
-         PL (CU, "return CORBA.Object.Helper.To_Any "
-             & "(CORBA.Object.Ref (Item));");
+         PL (CU, "CORBA.Set_Type (A, " & Ada_TC_Name (Node) & ");");
+         PL (CU, "return A;");
          DI (CU);
          PL (CU, "end To_Any;");
 
@@ -1760,8 +1800,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Type_Declarator_Spec
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id;
-      Type_Node : in     Node_Id)
+      Node      : in     Node_Id)
    is
       Is_Array : Boolean
         := Length (Array_Bounds (Node)) > 0;
@@ -1806,11 +1845,12 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Type_Declarator_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id;
-      Type_Node : in     Node_Id)
+      Node      : in     Node_Id)
    is
       Is_Array : Boolean
         := Length (Array_Bounds (Node)) > 0;
+      Type_Node : constant Node_Id := T_Type (Parent (Node));
+      Helper_Name : constant String := Ada_Helper_Name (Type_Node);
    begin
       if Generate_Dyn then
          --  From_Any
@@ -1820,8 +1860,18 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, " is");
          II (CU);
 
-         if Is_Array then
+         Add_With (CU, Ada_Helper_Name (Type_Node));
 
+         if Helper_Name /= "CORBA"
+           and then Helper_Name /= "CORBA.Object.Helper"
+           and then Helper_Name /= Name (CU)
+         then
+            Divert (CU, Initialization_Dependencies);
+            PL (CU, "& (+""" & Ada_Helper_Name (Type_Node) & """)");
+            Divert (CU, Visible_Declarations);
+         end if;
+
+         if Is_Array then
             PL (CU, "Result : "
                 & Ada_Type_Name (Node)
                 & ";");
@@ -1861,7 +1911,6 @@ package body Ada_Be.Idl2Ada.Helper is
                   end if;
                end loop;
 
-               Add_With (CU, Ada_Helper_Name (Type_Node));
                PL (CU, " := "
                    & Ada_Helper_Name (Type_Node)
                    & ".From_Any");
@@ -1908,8 +1957,6 @@ package body Ada_Be.Idl2Ada.Helper is
             PL (CU, "return Result;");
 
          else
-
-            Add_With (CU, Ada_Helper_Name (Type_Node));
             PL (CU, "Result : "
                 & Ada_Type_Name (Type_Node)
                 & " := "

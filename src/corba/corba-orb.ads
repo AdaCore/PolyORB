@@ -134,7 +134,7 @@ package CORBA.ORB is
    --       Members : in CORBA.EnumMemberSeq)
    --      return CORBA.TypeCode.Object;
 
-   function  create_alias_tc
+   function  Create_Alias_Tc
      (Id            : in CORBA.RepositoryId;
       Name          : in CORBA.Identifier;
       Original_Type : in CORBA.TypeCode.Object)
@@ -148,40 +148,40 @@ package CORBA.ORB is
    --       Members : in CORBA.StructMemberSeq)
    --      return CORBA.TypeCode.Object;
 
-   function  create_interface_tc
+   function  Create_Interface_Tc
      (Id   : in CORBA.RepositoryId;
       Name : in CORBA.Identifier)
      return CORBA.TypeCode.Object;
 
-   function  create_string_tc
+   function  Create_String_Tc
      (Bound : in CORBA.Unsigned_Long)
      return CORBA.TypeCode.Object;
 
-   function  create_wstring_tc
+   function  Create_Wstring_Tc
      (Bound : in CORBA.Unsigned_Long)
      return CORBA.TypeCode.Object;
 
-   function  create_fixed_tc
+   function  Create_Fixed_Tc
      (IDL_Digits : in CORBA.Unsigned_Short;
       scale      : in CORBA.Short)
      return CORBA.TypeCode.Object;
 
-   function  create_sequence_tc
+   function  Create_Sequence_Tc
      (Bound        : in CORBA.Unsigned_Long;
       Element_Type : in CORBA.TypeCode.Object)
      return CORBA.TypeCode.Object;
 
-   function  create_recursive_sequence_tc
+   function  Create_Recursive_Sequence_Tc
      (Bound  : in CORBA.Unsigned_Long;
       Offset : in CORBA.Unsigned_Long)
      return CORBA.TypeCode.Object;
 
-   function create_array_tc
+   function Create_Array_Tc
      (Length       : in CORBA.Unsigned_Long;
       Element_Type : in CORBA.TypeCode.Object)
      return CORBA.TypeCode.Object;
 
-   function create_native_tc
+   function Create_Native_Tc
      (Id   : in RepositoryId;
       Name : in Identifier)
      return CORBA.TypeCode.Object;

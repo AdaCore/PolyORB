@@ -38,7 +38,7 @@ generic
    type T (<>) is private;
 package PolyORB.Utils.Chained_Lists is
 
-   pragma Elaborate_Body;
+   pragma Preelaborate;
 
    type List is private;
    type Iterator is private;

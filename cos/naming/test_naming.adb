@@ -54,6 +54,11 @@ with File.Helper;
 with PolyORB.CORBA_P.Naming_Tools; use PolyORB.CORBA_P.Naming_Tools;
 with PolyORB.CORBA_P.Server_Tools;
 
+with PolyORB.ORB.Thread_Pool;
+with PolyORB.Setup.Thread_Pool_Server;
+pragma Elaborate_All (PolyORB.Setup.Thread_Pool_Server);
+pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
+
 procedure Test_Naming is
 
    package Names renames CosNaming.IDL_SEQUENCE_CosNaming_NameComponent;
@@ -319,7 +324,9 @@ procedure Test_Naming is
    end Bind_Self;
 
 begin
-   PolyORB.CORBA_P.Server_Tools.Initiate_Server;
+   PolyORB.ORB.Thread_Pool.Initialize (4, 10);
+   PolyORB.CORBA_P.Server_Tools.Initiate_Server
+     (Start_New_Task => True);
    begin
       Initialize_Option_Scan ('-', False, "");
 

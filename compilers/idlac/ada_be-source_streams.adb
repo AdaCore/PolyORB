@@ -156,6 +156,11 @@ package body Ada_Be.Source_Streams is
 
    --  Source streams (global)
 
+   function Name (CU : Compilation_Unit) return String is
+   begin
+      return CU.Library_Unit_Name.all;
+   end Name;
+
    function Allocate_User_Diversion
      return Diversion is
    begin
@@ -201,10 +206,17 @@ package body Ada_Be.Source_Streams is
       end if;
 
       if not (Div.Empty) then
+         if not CU.Diversions (CU.Current_Diversion).At_BOL then
+            New_Line (CU);
+         end if;
+         --  Here we are actually at BOL.
+
          CU.Diversions (CU.Current_Diversion).At_BOL := False;
-         --  The indentation must be made in diversion D.
+         --  Indentation has actually been produced in D so
+         --  we do not want to generate it again in Current_Div.
 
          Put (CU, To_String (Div.Library_Item));
+         CU.Diversions (CU.Current_Diversion).At_BOL := Div.At_BOL;
       end if;
 
       CU.Diversions (D) := Empty_Diversion;

@@ -403,9 +403,9 @@ package body PolyORB.ORB is
                      Poll_Expire : constant Time
                        := Clock + To_Time_Span (Poll_Interval);
                   begin
-                     Leave (ORB.ORB_Lock);
+                     Leave (ORB.ORB_Lock.all);
                      delay until Poll_Expire;
-                     Enter (ORB.ORB_Lock);
+                     Enter (ORB.ORB_Lock.all);
                   end;
                end if;
             end;

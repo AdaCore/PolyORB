@@ -306,6 +306,7 @@ package body PolyORB.Protected_Objects is
       Register_Watcher_Creation_Function (Create'Access);
       Register_Mutex_Creation_Function (Create'Access);
       Register_Adv_Mutex_Creation_Function (Create'Access);
+      Register_Create_Task (Create_Task'Access);
       Register_Task_Identification
         (Task_Id_Function'(Get_Current_Task'Access),
          Task_Id_Function'(Get_Null_Task'Access));
@@ -334,7 +335,7 @@ package body PolyORB.Protected_Objects is
       if M.X.Level = 0 then
          pragma Debug (O ("orb : level = 0"));
          M.X.Current := Null_Task_Id;
-         pragma Debug (O ("orb : setting current to nukl"));
+         pragma Debug (O ("orb : setting current to null"));
          M.X.Mutex.Leave;
          pragma Debug (O ("orb : mutex left"));
       end if;
@@ -495,6 +496,27 @@ package body PolyORB.Protected_Objects is
       end Update;
 
    end Watcher_PO;
+
+   task type Generic_Task is
+      entry Start (Main : Parameterless_Procedure);
+   end Generic_Task;
+
+   task body Generic_Task is
+      My_Main : Parameterless_Procedure;
+   begin
+      accept Start (Main : Parameterless_Procedure) do
+         My_Main := Main;
+      end Start;
+      My_Main.all;
+   end Generic_Task;
+
+   type Generic_Task_Access is access Generic_Task;
+
+   procedure Create_Task (Main : Parameterless_Procedure) is
+      T : Generic_Task_Access := new Generic_Task;
+   begin
+      T.Start (Main);
+   end Create_Task;
 
    ------------------
    -- Current_Task --

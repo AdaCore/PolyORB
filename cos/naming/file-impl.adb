@@ -50,10 +50,19 @@ package body File.Impl is
    Root_POA_String : constant CORBA.String
      := CORBA.To_CORBA_String ("RootPOA");
 
-   Root_POA : constant PortableServer.POA.Ref
-     := PortableServer.POA.To_Ref
+   Root_POA : PortableServer.POA.Ref;
+
+   function Get_Root_POA return PortableServer.POA.Ref;
+
+   function Get_Root_POA return PortableServer.POA.Ref is
+   begin
+      if PortableServer.POA.Is_Nil (Root_POA) then
+         Root_POA := PortableServer.POA.To_Ref
           (CORBA.ORB.Resolve_Initial_References
            (CORBA.ORB.ObjectId (Root_POA_String)));
+      end if;
+      return Root_POA;
+   end Get_Root_POA;
 
    function New_File
      return File.Ref
@@ -63,14 +72,14 @@ package body File.Impl is
 
       Oid : constant PortableServer.ObjectId
         := PortableServer.POA.Activate_Object
-        (Root_POA, PortableServer.Servant (Obj));
+        (Get_Root_POA, PortableServer.Servant (Obj));
       pragma Warnings (Off, Oid);
       --  Not referenced (created in order to
       --  evaluate the effects of Activate_Object).
    begin
       return File.Helper.To_Ref
         (PortableServer.POA.Servant_To_Reference
-         (Root_POA, PortableServer.Servant (Obj)));
+         (Get_Root_POA, PortableServer.Servant (Obj)));
    end New_File;
 
    function get_Image

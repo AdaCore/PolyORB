@@ -69,6 +69,9 @@ package Ada_Be.Source_Streams is
    -- a compilation unit.                           --
    ---------------------------------------------------
 
+   function Name (CU : Compilation_Unit) return String;
+   --  Return the name of CU.
+
    function Allocate_User_Diversion return Diversion;
    --  Creates a system-wide user-defined diversion identifier
    --  and returns it.

@@ -61,13 +61,14 @@ with PolyORB.Configurator;
 
 with PolyORB.Dynamic_Dict;
 pragma Elaborate_All (PolyORB.Dynamic_Dict);
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
 with PolyORB.ORB;
 with PolyORB.Objects;
 with PolyORB.References.IOR;
 with PolyORB.Setup;
-with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
+with PolyORB.Smart_Pointers;
 
 package body CORBA.ORB is
 
@@ -87,7 +88,7 @@ package body CORBA.ORB is
    -- create_alias_tc --
    ---------------------
 
-   function create_alias_tc
+   function Create_Alias_Tc
      (Id            : in CORBA.RepositoryId;
       Name          : in CORBA.Identifier;
       Original_Type : in CORBA.TypeCode.Object)
@@ -95,50 +96,50 @@ package body CORBA.ORB is
    is
    begin
       raise PolyORB.Not_Implemented;
-      return create_alias_tc (Id, Name, Original_Type);
-   end create_alias_tc;
+      return Create_Alias_Tc (Id, Name, Original_Type);
+   end Create_Alias_Tc;
 
    ---------------------
    -- create_array_tc --
    ---------------------
 
-   function create_array_tc
+   function Create_Array_Tc
      (Length       : in CORBA.Unsigned_Long;
       Element_Type : in CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object
    is
    begin
       raise PolyORB.Not_Implemented;
-      return create_array_tc (Length, Element_Type);
-   end create_array_tc;
+      return Create_Array_Tc (Length, Element_Type);
+   end Create_Array_Tc;
 
    ---------------------
    -- create_fixed_tc --
    ---------------------
 
-   function create_fixed_tc
+   function Create_Fixed_Tc
      (IDL_Digits : in CORBA.Unsigned_Short;
       scale      : in CORBA.Short)
       return CORBA.TypeCode.Object
    is
    begin
       raise PolyORB.Not_Implemented;
-      return create_fixed_tc (IDL_Digits, scale);
-   end create_fixed_tc;
+      return Create_Fixed_Tc (IDL_Digits, scale);
+   end Create_Fixed_Tc;
 
    -------------------------
    -- create_interface_tc --
    -------------------------
 
-   function create_interface_tc
+   function Create_Interface_Tc
      (Id   : in CORBA.RepositoryId;
       Name : in CORBA.Identifier)
       return CORBA.TypeCode.Object
    is
    begin
       raise PolyORB.Not_Implemented;
-      return create_interface_tc (Id, Name);
-   end create_interface_tc;
+      return Create_Interface_Tc (Id, Name);
+   end Create_Interface_Tc;
 
    -----------------
    -- Create_List --
@@ -154,6 +155,7 @@ package body CORBA.ORB is
    begin
       CORBA.NVList.Create (New_List);
    end Create_List;
+   pragma Warnings (On);
 
    procedure Create_List (New_List : out CORBA.ExceptionList.Ref)
      renames CORBA.ExceptionList.Create_List;
@@ -162,15 +164,15 @@ package body CORBA.ORB is
    -- create_native_tc --
    ----------------------
 
-   function create_native_tc
+   function Create_Native_Tc
      (Id   : in RepositoryId;
       Name : in Identifier)
       return CORBA.TypeCode.Object
    is
    begin
       raise PolyORB.Not_Implemented;
-      return create_native_tc (Id, Name);
-   end create_native_tc;
+      return Create_Native_Tc (Id, Name);
+   end Create_Native_Tc;
 
    -------------------
    -- Create_Policy --
@@ -181,62 +183,62 @@ package body CORBA.ORB is
       Val      : Any)
    is
    begin
-      null;
+      raise PolyORB.Not_Implemented;
    end Create_Policy;
 
    ----------------------------------
    -- create_recursive_sequence_tc --
    ----------------------------------
 
-   function create_recursive_sequence_tc
+   function Create_Recursive_Sequence_Tc
      (Bound  : in CORBA.Unsigned_Long;
       Offset : in CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object
    is
    begin
       raise PolyORB.Not_Implemented;
-      return create_recursive_sequence_tc (Bound, Offset);
-   end create_recursive_sequence_tc;
+      return Create_Recursive_Sequence_Tc (Bound, Offset);
+   end Create_Recursive_Sequence_Tc;
 
    ------------------------
    -- create_sequence_tc --
    ------------------------
 
-   function create_sequence_tc
+   function Create_Sequence_Tc
      (Bound        : in CORBA.Unsigned_Long;
       Element_Type : in CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object
    is
    begin
       raise PolyORB.Not_Implemented;
-      return create_sequence_tc (Bound, Element_Type);
-   end create_sequence_tc;
+      return Create_Sequence_Tc (Bound, Element_Type);
+   end Create_Sequence_Tc;
 
    ----------------------
    -- create_string_tc --
    ----------------------
 
-   function create_string_tc
+   function Create_String_Tc
      (Bound : in CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object
    is
    begin
       raise PolyORB.Not_Implemented;
-      return create_string_tc (Bound);
-   end create_string_tc;
+      return Create_String_Tc (Bound);
+   end Create_String_Tc;
 
    -----------------------
    -- create_wstring_tc --
    -----------------------
 
-   function create_wstring_tc
+   function Create_Wstring_Tc
      (Bound : in CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object
    is
    begin
       raise PolyORB.Not_Implemented;
-      return create_wstring_tc (Bound);
-   end create_wstring_tc;
+      return Create_Wstring_Tc (Bound);
+   end Create_Wstring_Tc;
 
    -------------------------
    -- Get_Default_Context --
@@ -376,8 +378,13 @@ package body CORBA.ORB is
    ----------------
 
    procedure Initialize (ORB_Name : in Standard.String) is
+      RootPOA : CORBA.Object.Ref;
    begin
       PolyORB.Configurator.Initialize_World;
+      CORBA.Object.Set
+        (RootPOA, PolyORB.Smart_Pointers.Entity_Ptr
+         (Object_Adapter (The_ORB)));
+      Referenced_Objects.Register ("RootPOA", RootPOA);
    exception
       when PolyORB.Configurator.Already_Initialized =>
          raise Initialization_Failure;
@@ -411,4 +418,3 @@ package body CORBA.ORB is
    end Create_Reference;
 
 end CORBA.ORB;
-

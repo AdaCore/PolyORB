@@ -231,6 +231,17 @@ package PolyORB.Soft_Links is
    procedure Leave (M : in Adv_Mutex_Access);
    pragma Inline (Leave);
 
+   ---------------------
+   -- Task allocation --
+   ---------------------
+
+   type Task_Allocation_Procedure is access procedure
+     (Main : Parameterless_Procedure);
+
+   procedure Register_Create_Task
+     (P : Task_Allocation_Procedure);
+   procedure Create_Task (Main : Parameterless_Procedure);
+
    -------------------------
    -- Task identification --
    -------------------------

@@ -277,6 +277,23 @@ package body PolyORB.Soft_Links is
       Leave (M.all);
    end Leave;
 
+   ---------------------
+   -- Task allocation --
+   ---------------------
+
+   Do_Create_Task : Task_Allocation_Procedure;
+
+   procedure Register_Create_Task
+     (P : Task_Allocation_Procedure) is
+   begin
+      Do_Create_Task := P;
+   end Register_Create_Task;
+
+   procedure Create_Task (Main : Parameterless_Procedure) is
+   begin
+      Do_Create_Task.all (Main);
+   end Create_Task;
+
    -------------------------
    -- Task identification --
    -------------------------
