@@ -1,6 +1,9 @@
 with Ada.Characters.Latin_1;
 with Ada.Unchecked_Deallocation;
+
 with GNAT.Case_Util;
+
+with Utils; use Utils;
 with Idl_Fe.Lexer; use Idl_Fe.Lexer;
 with Idl_Fe.Types; use Idl_Fe.Types;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree, Idl_Fe.Tree.Synthetic;
@@ -2601,10 +2604,10 @@ package body Idl_Fe.Parser is
                   Invalid_Type : Boolean := False;
                begin
                   if S_Type (Result) /= No_Node then
-                     pragma Debug (O ("Parse_Const_Type : scoped name " &
-                                      "found. Its type is " &
-                                      Node_Kind'Image
-                                      (Kind (S_Type (Result)))));
+                     pragma Debug
+                       (O ("Parse_Const_Type : scoped name " &
+                           "found. Its type is " &
+                           Img (Kind (S_Type (Result)))));
                      case Kind (S_Type (Result)) is
                         when K_Short
                           | K_Long
@@ -3668,6 +3671,7 @@ package body Idl_Fe.Parser is
    -----------------------
    --  Parse_Type_Spec  --
    -----------------------
+
    procedure Parse_Type_Spec (Result : out Node_Id;
                               Success : out Boolean) is
    begin
@@ -3711,6 +3715,7 @@ package body Idl_Fe.Parser is
    ------------------------------
    --  Parse_Simple_Type_Spec  --
    ------------------------------
+
    procedure Parse_Simple_Type_Spec (Result : out Node_Id;
                                      Success : out Boolean) is
    begin
@@ -3750,7 +3755,7 @@ package body Idl_Fe.Parser is
                begin
                   pragma Debug (O ("Parse_Simple_Type_Spec : " &
                                    "kind of result is " &
-                                   Node_Kind'Image (Kind (Result))));
+                                   Img (Kind (Result))));
                   if S_Type (Result) /= No_Node then
                      pragma Debug (O ("Parse_Simple_Type_Spec : " &
                                       "scoped name without an S_Type"));
@@ -3790,10 +3795,12 @@ package body Idl_Fe.Parser is
                      Not_A_Type := True;
                   end if;
                   if Not_A_Type then
-                     Idl_Fe.Errors.Parser_Error ("The scope name must " &
-                                                 "denote a type.",
-                                                 Idl_Fe.Errors.Error,
-                                                 Get_Token_Location);
+                     Idl_Fe.Errors.Parser_Error
+                       ("A scoped name that denotes a "
+                        & Img (Kind (S_Type (Result)))
+                        & " is not acceptable as a Simple_Type_Spec.",
+                        Idl_Fe.Errors.Error,
+                        Get_Token_Location);
                   end if;
                end;
             end if;
@@ -4035,7 +4042,7 @@ package body Idl_Fe.Parser is
          return;
       else
          pragma Debug (O ("Parse_Simple_Declarator : the scope is " &
-                          Node_Kind'Image (Kind (Get_Current_Scope))));
+                          Img (Kind (Get_Current_Scope))));
          --  Is there a previous definition
          if not Is_Redefinable (Get_Token_String) then
             declare
@@ -5916,7 +5923,7 @@ package body Idl_Fe.Parser is
                begin
                   pragma Debug (O ("Parse_Simple_Type_Spec : " &
                                    "kind of result is " &
-                                   Node_Kind'Image (Kind (Result))));
+                                   Img (Kind (Result))));
                   if S_Type (Result) /= No_Node then
                      pragma Debug (O ("Parse_Simple_Type_Spec : " &
                                       "scoped name without an S_Type"));
@@ -5942,6 +5949,7 @@ package body Idl_Fe.Parser is
                           | K_Enum
                           | K_Struct
                           | K_Union
+                          | K_Sequence
                           | K_Interface
                           | K_Forward_Interface
                           | K_ValueType
@@ -5954,11 +5962,12 @@ package body Idl_Fe.Parser is
                      Not_A_Type := True;
                   end if;
                   if Not_A_Type then
-                     Idl_Fe.Errors.Parser_Error ("The scope name must denote" &
-                                                 " a type compatible with a " &
-                                                 "param type.",
-                                                 Idl_Fe.Errors.Error,
-                                                 Get_Token_Location);
+                     Idl_Fe.Errors.Parser_Error
+                       ("A Scoped_Named with a S_Type of "
+                        & Img (Kind (S_Type (Result)))
+                        & " is not acceptable as a Param_Type.",
+                        Idl_Fe.Errors.Error,
+                        Get_Token_Location);
                   end if;
                end;
             end if;
@@ -6270,14 +6279,70 @@ package body Idl_Fe.Parser is
    --------------------
    --  Parse_Pragma  --
    --------------------
+
    procedure Parse_Pragma (Result : out Node_Id;
                            Success : out Boolean) is
    begin
-      Next_Token;
+      pragma Debug (O2 ("Parse_Pragma: enter"));
       Result := No_Node;
       Success := False;
-   end Parse_Pragma;
+      Next_Token;
+      if Get_Token /= T_Identifier then
+         Idl_Fe.Errors.Parser_Error
+           ("pragma identifier expected",
+            Idl_Fe.Errors.Error,
+            Get_Token_Location);
+         return;
+      end if;
 
+      declare
+         Pragma_Id : constant String
+           := Get_Token_String;
+      begin
+         if Pragma_Id = "ID" then
+            declare
+               Name_Node : Node_Id;
+               String_Lit_Node : Node_Id;
+               Res_Success : Boolean;
+            begin
+               Next_Token;
+               Parse_Scoped_Name (Name_Node, Res_Success);
+               if not Res_Success then
+                  return;
+               end if;
+
+               Parse_String_Literal (String_Lit_Node, Res_Success);
+               if not Res_Success then
+                  Idl_Fe.Errors.Parser_Error
+                    ("Repository ID expected.",
+                     Idl_Fe.Errors.Error,
+                     Get_Token_Location);
+                  return;
+               end if;
+
+               if Repository_Id (Value (Name_Node)) /= No_Node then
+                  Idl_Fe.Errors.Parser_Error
+                    ("Entity already has an explicit repository ID.",
+                     Idl_Fe.Errors.Error,
+                     Get_Token_Location);
+                  return;
+               end if;
+
+               Set_Repository_Id (Value (Name_Node), String_Lit_Node);
+               Result := No_Node;
+               Success := True;
+               return;
+            end;
+         else
+            Idl_Fe.Errors.Parser_Error
+                 ("Unknown pragma " & Pragma_Id,
+                  Idl_Fe.Errors.Warning,
+                  Get_Token_Location);
+         end if;
+      end;
+
+      pragma Debug (O2 ("Parse_Pragma: leave"));
+   end Parse_Pragma;
 
    ---------------------------
    --  Parsing of literals  --

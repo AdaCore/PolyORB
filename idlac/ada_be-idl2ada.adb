@@ -2513,6 +2513,9 @@ package body Ada_Be.Idl2Ada is
          when K_Octet =>
             return "CORBA.Octet";
 
+         when K_Object =>
+            return "CORBA.Object.Ref";
+
          when others =>
             --  Improper use: node N is not
             --  mapped to an Ada type.
@@ -2566,7 +2569,8 @@ package body Ada_Be.Idl2Ada is
            K_Long_Double        |
            K_String             |
            K_Wide_String        |
-           K_Octet              =>
+           K_Octet              |
+           K_Object             =>
             Add_With (CU, "CORBA");
 
          when others =>
@@ -2639,7 +2643,9 @@ package body Ada_Be.Idl2Ada is
            K_Long_Double        |
            K_String             |
            K_Wide_String        |
-           K_Octet              =>
+           K_Octet              |
+           K_Object             =>
+
             Add_With (CU, "Broca.CDR",
                       Use_It => True);
 
@@ -2647,9 +2653,10 @@ package body Ada_Be.Idl2Ada is
             --  Improper use: node N is not
             --  mapped to an Ada type.
 
-            Ada.Text_IO.Put_Line ("Error: A "
-                                  & NK'Img
-                                  & " does not denote a type.");
+            Ada.Text_IO.Put_Line
+              ("Error: A "
+               & NK'Img
+               & " does not denote a streamable type.");
             raise Program_Error;
       end case;
    end Add_With_Stream;

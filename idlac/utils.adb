@@ -29,6 +29,15 @@ package body Utils is
    -- Img --
    ---------
 
+   function Img (N : Node_Kind) return String is
+   begin
+      return Node_Kind'Image (N);
+   end Img;
+
+   ---------
+   -- Img --
+   ---------
+
    function Img (B : Boolean) return String is
    begin
       if B then

@@ -22,6 +22,9 @@ Root
 
 Named
   Definition : Identifier_Definition_Acc
+  Repository_Id : Node_Id
+  --  A repository ID explicitly set for this entity
+  --  using #pragma ID.
   Parent_Scope_Override : Node_Id
   --  Expansion attribute: override that
   --  value of Definition.Parent_Scope for this
