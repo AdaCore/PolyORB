@@ -9,7 +9,7 @@ Installation :
 
 - create a symbolic link in AdaBroker, pointing to omniORB_2.7.1 (if
   you use another version of omniORB, update the config.mk file in
-  AdaBroker/config)
+  AdaBroker/config). In any case, the link must be called `omniORB_2.7.1'.
 
 - run 'make export'. It will produce AdaBroker libraries and
   adabroker executable. The installation procedure is similar to
@@ -20,8 +20,8 @@ Installation :
 
 - go to AdaBroker/Examples directory and run 'make' to build examples.
 
-- note that AdaBroker works with EGCS only because it deals with C++
-  exceptions in a MT environment.
+- AdaBroker has been tested only with EGCS, but should work OK with most
+  recent C++ compilers. However, we have had failure reports with GCC 2.8.1.
 
 Usage :
 -------
@@ -54,7 +54,7 @@ Features :
 - This release has been successfully tested on Linux (RedHat and Debian) and
   Solaris.
 
-- Ada Tasking works on Solaris but not on Linux.
+- Ada Tasking has been tested only on Solaris.
 
 - If you need to debug AdaBroker, you can create a file adabroker.opt in
   your current directory. This file should contain lines with package
@@ -82,6 +82,24 @@ option, please use the GNU diffutils package which may be found on any
 GNU archive (e.g. ftp://ftp.lip6.fr/pub/gnu/).
 
 Note that unified diff files (-u option of GNU diff) are also welcomed.
+
+
+Mailing-lists:
+--------------
+
+Several mailing-lists have been created for discussions around AdaBroker:
+
+  - adabroker@adabroker.eu.org: general discussions about AdaBroker
+      To subscribe, send a mail to "adabroker-request@adabroker.eu.org"
+      with the single line "subscribe" in the body (subject will be ignored)
+
+  - adabroker-announce@adabroker.eu.org: low trafic mailing-list that will
+      only carry important information about AdaBroker, such as new releases,
+      beta test announces, etc.
+      To subscribe, send a mail to
+      "adabroker-announce-request@adabroker.eu.org" with the single line
+      "subscribe" in the body (subject will be ignored)
+
 
 Contributors:
 -------------
