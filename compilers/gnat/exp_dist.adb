@@ -1928,6 +1928,8 @@ package body Exp_Dist is
       Stub_Type_Access_Declaration    : Node_Id;
       Object_RPC_Receiver_Declaration : Node_Id;
 
+      Is_RAS : constant Boolean := not Comes_From_Source (RACW_Type);
+
    begin
       if Stub_Elements /= Empty_Stub_Structure then
          Stub_Type           := Stub_Elements.Stub_Type;
@@ -2011,6 +2013,10 @@ package body Exp_Dist is
 
       Append_To (Decls, Stub_Type_Access_Declaration);
       Analyze (Stub_Type_Access_Declaration);
+
+      if not Is_RAS then
+         return;
+      end if;
 
       Object_RPC_Receiver_Declaration :=
         Make_Object_Declaration (Loc,
