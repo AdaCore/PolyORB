@@ -229,8 +229,8 @@ private
 
    type Sequence is new Ada.Finalization.Controlled with
       record
-         Length  : Natural := 0;
-         Content : Element_Array_Access := null;
+         Length  : Natural;
+         Content : Element_Array_Access;
       end record;
 
    procedure Initialize (Object : in out Sequence);
@@ -240,7 +240,7 @@ private
    procedure Finalize (Object : in out Sequence);
 
    Null_Sequence : constant Sequence :=
-     (Ada.Finalization.Controlled with 0, null);
+     (Ada.Finalization.Controlled with 0, new Element_Array (1 .. 0));
 
 end Sequences.Unbounded;
 

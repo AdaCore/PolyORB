@@ -59,59 +59,258 @@ with Ada.Unchecked_Deallocation;
 
 package body Sequences.Unbounded is
 
-   ------------
-   -- Length --
-   ------------
+   Initial_Size   : constant Natural := 3;
+   Increment_Size : constant Natural := 2;
+   Null_Element   : Element;
+   pragma Warnings (Off, Null_Element);
 
-   function Length (Source : in Sequence) return Natural is
+   procedure Allocate
+     (Source : in out Sequence;
+      Length : in Natural);
+   --  Allocate Source.Content and set Source.Length to Length. Do not
+   --  release previous Source.Content.
+
+   procedure Reallocate
+     (Source : in out Sequence;
+      Length : in Natural);
+   --  See whether Source.Content should be extended. If so, then copy
+   --  old Source.Content (1 .. Source.Length) in new Source.Content and
+   --  deallocate previous Content.
+
+   function  Round (Length : Natural) return Natural;
+   --  Compute appropriate Length. If Length = 0, return 0. If not,
+   --  return Initial_Size + N * Increment_Size where N is the
+   --  smallest integer such that Length < Initial_Size + N * Increment_Size.
+
+   ---------
+   -- "=" --
+   ---------
+
+   function "=" (Left, Right : in Sequence)
+     return Boolean is
    begin
-      return Source.Length;
-   end Length;
+      return Left.Length = Right.Length
+        and then
+        Left.Content (1 .. Left.Length) = Right.Content (1 .. Right.Length);
+   end "=";
 
-   ----------
-   -- Free --
-   ----------
+   ---------
+   -- "=" --
+   ---------
 
-   procedure Free (X : in out Element_Array_Access) is
-      procedure Deallocate is new Ada.Unchecked_Deallocation
-        (Element_Array, Element_Array_Access);
+   function "=" (Left : in Element_Array; Right : in Sequence)
+     return Boolean is
    begin
-      Deallocate (X);
-   end Free;
+      return Left'Length = Right.Length
+        and then
+        Left = Right.Content (1 .. Right.Length);
+   end "=";
 
-   -----------------
-   -- To_Sequence --
-   -----------------
+   ---------
+   -- "=" --
+   ---------
 
-   function To_Sequence (Source : in Element_Array) return Sequence is
-      Source_Length : constant Natural := Source'Length;
-      Result        : Sequence;
+   function "=" (Left : in Sequence; Right : in Element_Array)
+     return Boolean is
    begin
-      Result.Content := new Element_Array (1 .. Source_Length);
-      Result.Content.all := Source;
-      Result.Length := Source_Length;
+      return Left.Length = Right'Length
+        and then
+        Left.Content (1 .. Left.Length) = Right;
+   end "=";
+
+   ---------
+   -- "&" --
+   ---------
+
+   function "&" (Left, Right : in Sequence)
+     return Sequence
+   is
+      Result : Sequence;
+
+   begin
+      Allocate (Result, Left.Length + Right.Length);
+      Result.Content (1 .. Left.Length)
+        := Left.Content (1 .. Left.Length);
+      Result.Content (Left.Length + 1 .. Result.Length)
+        := Right.Content (1 .. Right.Length);
       return Result;
-   end To_Sequence;
+   end "&";
 
-   -----------------
-   -- To_Sequence --
-   -----------------
+   ---------
+   -- "&" --
+   ---------
 
-   function To_Sequence (Length : in Natural) return Sequence is
+   function "&" (Left : in Sequence; Right : in Element_Array)
+     return Sequence
+   is
+      Result : Sequence;
+
    begin
-      return (Ada.Finalization.Controlled with
-              Content => new Element_Array (1 .. Length),
-              Length => Length);
-   end To_Sequence;
+      Allocate (Result, Left.Length + Right'Length);
+      Result.Content (1 .. Left.Length)
+        := Left.Content (1 .. Left.Length);
+      Result.Content (Left.Length + 1 .. Result.Length)
+        := Right;
+      return Result;
+   end "&";
 
-   ----------------------
-   -- To_Element_Array --
-   ----------------------
+   ---------
+   -- "&" --
+   ---------
 
-   function To_Element_Array (Source : in Sequence) return Element_Array is
+   function "&" (Left : in Element_Array; Right : in Sequence)
+     return Sequence
+   is
+      Result : Sequence;
+
    begin
-      return Source.Content (1 .. Source.Length);
-   end To_Element_Array;
+      Allocate (Result, Left'Length + Right.Length);
+      Result.Content (1 .. Left'Length)
+        := Left;
+      Result.Content (Left'Length + 1 .. Result.Length) :=
+        Right.Content (1 .. Right.Length);
+      return Result;
+   end "&";
+
+   ---------
+   -- "&" --
+   ---------
+
+   function "&" (Left : in Sequence; Right : in Element)
+     return Sequence
+   is
+      Result : Sequence;
+
+   begin
+      Allocate (Result, Left.Length + 1);
+      Result.Content (1 .. Left.Length)
+        := Left.Content (1 .. Left.Length);
+      Result.Content (Result.Length) := Right;
+      return Result;
+   end "&";
+
+   ---------
+   -- "&" --
+   ---------
+
+   function "&" (Left : in Element; Right : in Sequence)
+     return Sequence
+   is
+      Result : Sequence;
+
+   begin
+      Allocate (Result, Right.Length + 1);
+      Result.Content (1) := Left;
+      Result.Content (2 .. Result.Length)
+        := Right.Content (1 .. Right.Length);
+      return Result;
+   end "&";
+
+   ---------
+   -- "*" --
+   ---------
+
+   function "*" (Left : in Natural; Right : in Element)
+     return Sequence
+   is
+      Result : Sequence;
+
+   begin
+      if Left = 0 then
+         return Result;
+      end if;
+
+      Allocate (Result, Left);
+      for I in 1 .. Result.Length loop
+         Result.Content (I) := Right;
+      end loop;
+
+      return Result;
+   end "*";
+
+   ---------
+   -- "*" --
+   ---------
+
+   function "*" (Left : in Natural; Right : in Element_Array)
+     return Sequence
+   is
+      Length : constant Natural := Right'Length;
+      Index  : Natural := 1;
+      Result : Sequence;
+
+   begin
+      if Left = 0 then
+         return Result;
+      end if;
+
+      Allocate (Result, Left * Length);
+      for I in 1 .. Left loop
+         Result.Content (Index .. Index + Length - 1) := Right;
+         Index := Index + Length;
+      end loop;
+
+      return Result;
+   end "*";
+
+   ---------
+   -- "*" --
+   ---------
+
+   function "*" (Left : in Natural; Right : in Sequence)
+     return Sequence
+   is
+      Index  : Natural := 1;
+      Result : Sequence;
+
+   begin
+      if Left = 0
+        or else Right.Length = 0
+      then
+         return Result;
+      end if;
+
+      Allocate (Result, Left * Right.Length);
+      for I in 1 .. Left loop
+         Result.Content (Index .. Index + Right.Length - 1)
+           := Right.Content (1 .. Right.Length);
+         Index := Index + Right.Length;
+      end loop;
+
+      return Result;
+   end "*";
+
+   ------------
+   -- Adjust --
+   ------------
+
+   procedure Adjust (Object : in out Sequence)
+   is
+      Content : Element_Array_Access;
+
+   begin
+      if Object.Content /= Null_Sequence.Content then
+         Content := Object.Content;
+         Object.Content := new Element_Array (1 .. Content'Length);
+         Object.Content (1 .. Object.Length) := Content (1 .. Object.Length);
+      end if;
+   end Adjust;
+
+   --------------
+   -- Allocate --
+   --------------
+
+   procedure Allocate
+     (Source : in out Sequence;
+      Length : in Natural) is
+   begin
+      if Length > 0 then
+         Source.Content := new Element_Array (1 .. Round (Length));
+      else
+         Source.Content := Null_Sequence.Content;
+      end if;
+      Source.Length := Length;
+   end Allocate;
 
    ------------
    -- Append --
@@ -121,68 +320,12 @@ package body Sequences.Unbounded is
      (Source   : in out Sequence;
       New_Item : in Sequence)
    is
-      Total_Length : constant Natural := Source.Length + New_Item.Length;
-      Temp : Element_Array_Access;
+      Old_Length  : constant Natural := Source.Length;
+
    begin
-
-      if New_Item.Length = 0 then
-
-         --  No need to add an empty sequence
-         null;
-
-      elsif Source.Length = 0 then
-
-         if Source.Content = null then
-
-            --  There is no source
-
-            Source.Content := new Element_Array (1 .. Total_Length);
-
-            Source.Content (1 .. Total_Length) :=
-              New_Item.Content (1 .. Total_Length);
-
-         elsif Source.Content'Length < New_Item.Length then
-
-            --  Source is too small
-
-            Temp := new Element_Array (1 .. Total_Length);
-
-            Temp (1 .. Total_Length) :=
-              New_Item.Content (1 .. Total_Length);
-
-            Free (Source.Content);
-
-            Source.Content := Temp;
-
-         else
-
-            Source.Content (1 .. Total_Length) :=
-              New_Item.Content (1 .. Total_Length);
-
-         end if;
-         Source.Length := Total_Length;
-
-      elsif Total_Length <= Source.Content'Length then
-
-         Source.Content (Source.Length + 1 .. Total_Length) :=
-           New_Item.Content (1 .. New_Item.Length);
-         Source.Length := Total_Length;
-
-      else
-
-         --  Source is too small
-
-         Temp := new Element_Array (1 .. Total_Length);
-
-         Temp (1 .. Source.Length) := Source.Content (1 .. Source.Length);
-         Temp (Source.Length + 1 .. Total_Length) :=
-           New_Item.Content (1 .. New_Item.Length);
-         Free (Source.Content);
-         Source.Content := Temp;
-         Source.Length := Total_Length;
-
-      end if;
-
+      Reallocate (Source, Old_Length + New_Item.Length);
+      Source.Content (Old_Length + 1 .. Source.Length)
+        := New_Item.Content (1 .. New_Item.Length);
    end Append;
 
    ------------
@@ -193,61 +336,12 @@ package body Sequences.Unbounded is
      (Source   : in out Sequence;
       New_Item : in Element_Array)
    is
-      Total_Length : constant Natural := Source.Length + New_Item'Length;
-      Temp         : Element_Array_Access;
+      Old_Length  : constant Natural := Source.Length;
+
    begin
-
-      if New_Item'Length = 0 then
-
-         --  No need to add an empty sequence
-         null;
-
-      elsif Source.Length = 0 then
-
-         if Source.Content = null then
-
-            --  There is no source
-
-            Source.Content := new Element_Array (1 .. Total_Length);
-
-            Source.Content (1 .. Total_Length) := New_Item;
-
-         elsif Source.Content'Length < New_Item'Length then
-
-            --  Source is too small
-
-            Temp := new Element_Array (1 .. Total_Length);
-
-            Temp (1 .. Total_Length) := New_Item;
-            Free (Source.Content);
-            Source.Content := Temp;
-
-         else
-
-            Source.Content (1 .. Total_Length) := New_Item;
-
-         end if;
-         Source.Length := Total_Length;
-
-      elsif Total_Length <= Source.Content'Length then
-
-         Source.Content (Source.Length + 1 .. Total_Length) := New_Item;
-         Source.Length := Total_Length;
-
-      else
-
-         --  Source is too small
-
-         Temp := new Element_Array (1 .. Total_Length);
-
-         Temp (1 .. Source.Length) := Source.Content (1 .. Source.Length);
-         Temp (Source.Length + 1 .. Total_Length) := New_Item;
-         Free (Source.Content);
-         Source.Content := Temp;
-         Source.Length := Total_Length;
-
-      end if;
-
+      Reallocate (Source, Old_Length + New_Item'Length);
+      Source.Content (Old_Length + 1 .. Source.Length)
+        := New_Item;
    end Append;
 
    ------------
@@ -258,262 +352,216 @@ package body Sequences.Unbounded is
      (Source   : in out Sequence;
       New_Item : in Element)
    is
-      Total_Length : constant Natural := Source.Length + 1;
-      Temp         : Element_Array_Access;
+      Old_Length  : constant Natural := Source.Length;
+
    begin
-
-      if Source.Length = 0 then
-
-         if Source.Content = null then
-
-            --  There is no source
-
-            Source.Content := new Element_Array (1 .. Total_Length);
-
-         end if;
-         Source.Content (1) := New_Item;
-         Source.Length := Total_Length;
-
-      elsif Total_Length <= Source.Content'Length then
-
-         Source.Content (Total_Length) := New_Item;
-         Source.Length := Total_Length;
-
-      else
-
-         --  Source is too small
-
-         Temp := new Element_Array (1 .. Total_Length);
-
-         Temp (1 .. Source.Length) := Source.Content (1 .. Source.Length);
-         Temp (Total_Length) := New_Item;
-         Free (Source.Content);
-         Source.Content := Temp;
-         Source.Length := Total_Length;
-
-      end if;
-
+      Reallocate (Source, Old_Length + 1);
+      Source.Content (Source.Length) := New_Item;
    end Append;
 
-   ---------
-   -- "&" --
-   ---------
+   -----------
+   -- Count --
+   -----------
 
-   function "&" (Left, Right : in Sequence) return Sequence is
-      Left_Length  : constant Natural := Left.Length;
-      Right_Length : constant Natural := Right.Length;
-      Total_Length : constant Natural := Left_Length + Right_Length;
-      Result       : Sequence;
+   function Count
+      (Source  : in Sequence;
+       Pattern : in Element_Array)
+       return Natural
+   is
+      Match  : Natural := 0;
+      Offset : Natural;
+      Length : constant Natural := Pattern'Length;
+      First  : constant Integer := Pattern'First;
+
    begin
+      if Pattern = Null_Element_Array then
+         raise Pattern_Error;
+      end if;
 
-      Result.Content := new Element_Array (1 .. Total_Length);
+      for Index in 1 .. Source.Length - (Length - 1) loop
+         Offset := 0;
+         while Offset < Length loop
+            exit when Source.Content (Index + Offset)
+              /= Pattern (First + Offset);
+            Offset := Offset + 1;
+         end loop;
 
-      Result.Content (1 .. Left_Length) := Left.Content (1 .. Left_Length);
-      Result.Content (Left_Length + 1 .. Total_Length) :=
-        Right.Content (1 .. Right_Length);
-      Result.Length := Total_Length;
+         if Offset = Length then
+            Match := Match + 1;
+         end if;
+      end loop;
 
-      return Result;
+      return Match;
+   end Count;
 
-   end "&";
+   ------------
+   -- Delete --
+   ------------
 
-   ---------
-   -- "&" --
-   ---------
-
-   function "&" (Left : in Sequence; Right : in Element_Array)
-                 return Sequence is
-
-      Left_Length : constant Natural := Left.Length;
-      Total_Length : constant Natural := Left_Length + Right'Length;
+   function Delete
+     (Source  : in Sequence;
+      From    : in Positive;
+      Through : in Natural)
+      return Sequence
+   is
       Result : Sequence;
+      Length : Natural;
 
    begin
+      if From > Source.Length + 1
+        or else Through > Source.Length
+      then
+         raise Index_Error;
+      end if;
 
-      Result.Content := new Element_Array (1 .. Total_Length);
+      if Through < From then
+         Length := 0;
+      else
+         Length := Through - From + 1;
+      end if;
 
-      Result.Content (1 .. Left_Length) := Left.Content (1 .. Left_Length);
-      Result.Content (Left_Length + 1 .. Total_Length) := Right;
-      Result.Length := Total_Length;
+      Allocate (Result, Source.Length - Length);
+      Result.Content (1 .. From - 1)
+        := Source.Content (1 .. From - 1);
+      Result.Content (From .. Result.Length) :=
+        Source.Content (Through + 1 .. Source.Length);
 
       return Result;
+   end Delete;
 
-   end "&";
+   ------------
+   -- Delete --
+   ------------
 
-   ---------
-   -- "&" --
-   ---------
-
-   function "&" (Left : in Element_Array; Right : in Sequence)
-                 return Sequence is
-
-      Left_Length : constant Natural := Left'Length;
-      Right_Length : constant Natural := Right.Length;
-      Total_Length : constant Natural := Left_Length + Right_Length;
-      Result : Sequence;
+   procedure Delete
+     (Source  : in out Sequence;
+      From    : in Positive;
+      Through : in Natural)
+   is
+      Old_Length  : constant Natural := Source.Length;
+      Old_Content : Element_Array_Access;
+      Reallocated : Boolean;
 
    begin
+      if From > Old_Length + 1
+        or else Through > Old_Length
+      then
+         raise Index_Error;
+      end if;
 
-      Result.Content := new Element_Array (1 .. Total_Length);
+      if Through < From then
+         return;
+      end if;
 
-      Result.Content (1 .. Left_Length) := Left;
-      Result.Content (Left_Length + 1 .. Total_Length) :=
-        Right.Content (1 .. Right_Length);
-      Result.Length := Total_Length;
+      Source.Length := Old_Length - Through + From - 1;
+      Old_Content   := Source.Content;
+      Reallocated   := (Source.Content'Length /= Round (Source.Length));
 
-      return Result;
+      if Reallocated then
+         Allocate (Source, Source.Length);
+         Source.Content (1 .. From - 1) := Old_Content (1 .. From - 1);
+      end if;
 
-   end "&";
+      Source.Content (From .. Source.Length)
+        := Old_Content (Through + 1 .. Old_Length);
 
-   ---------
-   -- "&" --
-   ---------
+      if Reallocated then
+         Free (Old_Content);
 
-   function "&" (Left : in Sequence; Right : in Element) return Sequence is
+      else
+         --  Force finalization.
 
-      Left_Length : constant Natural := Left.Length;
-      Total_Length : constant Natural := Left_Length + 1;
-      Result : Sequence;
+         for I in Source.Length + 1 .. Old_Length loop
+            Source.Content (I) := Null_Element;
+         end loop;
+      end if;
+   end Delete;
 
-   begin
-
-      Result.Content := new Element_Array (1 .. Total_Length);
-
-      Result.Content (1 .. Left_Length) := Left.Content (1 .. Left_Length);
-      Result.Content (Total_Length) := Right;
-      Result.Length := Total_Length;
-
-      return Result;
-
-   end "&";
-
-   ---------
-   -- "&" --
-   ---------
-
-   function "&" (Left : in Element; Right : in Sequence) return Sequence is
-
-      Right_Length : constant Natural := Right.Length;
-      Total_Length : constant Natural := Right_Length + 1;
-      Result : Sequence;
-
-   begin
-
-      Result.Content := new Element_Array (1 .. Total_Length);
-
-      Result.Content (1) := Left;
-      Result.Content (2 .. Result.Length) :=
-        Right.Content (1 .. Right_Length);
-      Result.Length := Total_Length;
-
-      return Result;
-
-   end "&";
-
-   ---------
-   -- "&" --
-   ---------
+   ----------------
+   -- Element_Of --
+   ----------------
 
    function Element_Of
      (Source : in Sequence;
       Index  : in Positive)
-      return Element
-   is
+      return Element is
    begin
-
-      if Index <= Source.Length then
-
-         return Source.Content (Index);
-
-      else
-
+      if Index > Source.Length then
          raise Index_Error;
-
       end if;
 
+      return Source.Content (Index);
    end Element_Of;
 
-   ---------------------
-   -- Replace_Element --
-   ---------------------
+   --------------
+   -- Finalize --
+   --------------
 
-   procedure Replace_Element
-     (Source : in out Sequence;
-      Index  : in Positive;
-      By     : in Element)
-   is
+   procedure Finalize (Object : in out Sequence) is
    begin
+      Free (Object.Content);
+   end Finalize;
 
-      if Index <= Source.Length then
-         Source.Content (Index) := By;
-      else
-         raise Index_Error;
+   ----------
+   -- Free --
+   ----------
+
+   procedure Free (X : in out Element_Array_Access) is
+      procedure Deallocate is new Ada.Unchecked_Deallocation
+        (Element_Array, Element_Array_Access);
+   begin
+      if X /= Null_Sequence.Content then
+         Deallocate (X);
       end if;
+   end Free;
 
-   end Replace_Element;
+   ----------
+   -- Head --
+   ----------
 
-   -----------
-   -- Slice --
-   -----------
-
-   function Slice
+   function Head
      (Source : in Sequence;
-      Low    : in Positive;
-      High   : in Natural)
-      return Element_Array
+      Count  : in Natural;
+      Pad    : in Element)
+      return Sequence
    is
+      Length : Natural;
+      Result : Sequence;
+
    begin
+      Allocate (Result, Count);
 
-      if Low <= Source.Length and then High <= Source.Length then
-
-         return Source.Content (Low .. High);
-
+      if Source.Length < Count then
+         Length := Source.Length;
       else
-
-         raise Index_Error;
-
+         Length := Count;
       end if;
 
-   end Slice;
+      Result.Content (1 .. Length) := Source.Content (1 .. Length);
+      for I in Length + 1 .. Count loop
+         Result.Content (I) := Pad;
+      end loop;
 
-   ---------
-   -- "=" --
-   ---------
+      return Result;
+   end Head;
 
-   function "=" (Left, Right : in Sequence) return Boolean is
+   ----------
+   -- Head --
+   ----------
+
+   procedure Head
+     (Source : in out Sequence;
+      Count  : in Natural;
+      Pad    : in Element)
+   is
+      Old_Length : constant Natural := Source.Length;
+
    begin
-
-      return Left.Length = Right.Length and then
-        Left.Content (1 .. Left.Length) =
-        Right.Content (1 .. Right.Length);
-
-   end "=";
-
-   ---------
-   -- "=" --
-   ---------
-
-   function "=" (Left : in Element_Array; Right : in Sequence)
-                 return Boolean is
-   begin
-
-      return Left'Length = Right.Length and then
-        Left = Right.Content (1 .. Right.Length);
-
-   end "=";
-
-   ---------
-   -- "=" --
-   ---------
-
-   function "=" (Left : in Sequence; Right : in Element_Array)
-                 return Boolean is
-   begin
-
-      return Left.Length = Right'Length and then
-        Left.Content (1 .. Left.Length) = Right;
-
-   end "=";
+      Reallocate (Source, Count);
+      for I in Old_Length .. Count loop
+         Source.Content (I) := Pad;
+      end loop;
+   end Head;
 
    -----------
    -- Index --
@@ -525,86 +573,261 @@ package body Sequences.Unbounded is
       Going   : in Direction := Forward)
       return Natural
    is
+      Shift  : Integer;
+      From   : Natural;
+      To     : Natural;
+
+      Offset : Natural;
+      Length : constant Natural := Pattern'Length;
+      First  : constant Integer := Pattern'First;
+
    begin
-
-      if Pattern /= Null_Element_Array then
-
-         case Going is
-
-            when Forward =>
-               for J in 1 .. Source.Length - Pattern'Length + 1 loop
-
-                  if Source.Content (J) = Pattern (Pattern'First) and then
-                    Source.Content (J .. J + Pattern'Length - 1) =
-                    Pattern then
-
-                     return J;
-
-                  end if;
-
-               end loop;
-
-            when Backward =>
-               for J in reverse 1 .. Source.Length -
-                 Pattern'Length + 1 loop
-
-                  if Source.Content (J) = Pattern (Pattern'First) and then
-                    Source.Content (J .. J + Pattern'Length - 1) =
-                    Pattern then
-
-                     return J;
-
-                  end if;
-
-               end loop;
-
-         end case;
-
-         --  No match found yet
-         return 0;
-
-      else
-
+      if Pattern = Null_Element_Array then
          raise Pattern_Error;
-
       end if;
 
+      if Source.Length < Length then
+         return 0;
+      end if;
+
+      if Going = Forward then
+         Shift := 1;
+         From  := 1;
+         To    := Source.Length - (Length - 1);
+      else
+         Shift := -1;
+         From  := Source.Length - (Length - 1);
+         To    := 1;
+      end if;
+
+      while From /= To loop
+         Offset := 0;
+         while Offset < Length loop
+            exit when Source.Content (From + Offset)
+              /= Pattern (First + Offset);
+            Offset := Offset + 1;
+         end loop;
+
+         if Offset = Length then
+            return From;
+         end if;
+
+         From := From + Shift;
+      end loop;
+
+      --  No match
+      return 0;
    end Index;
 
-   -----------
-   -- Count --
-   -----------
+   ----------------
+   -- Initialize --
+   ----------------
 
-   function Count
-      (Source  : in Sequence;
-       Pattern : in Element_Array)
-       return Natural
-   is
-      N : Natural;
+   procedure Initialize (Object : in out Sequence) is
    begin
+      Object.Length  := 0;
+      Object.Content := Null_Sequence.Content;
+   end Initialize;
 
-      if Pattern /= Null_Element_Array then
+   ------------
+   -- Insert --
+   ------------
 
-         N := 0;
-         for J in 1 .. Source.Length - (Pattern'Length - 1) loop
+   function Insert
+     (Source   : in Sequence;
+      Before   : in Positive;
+      New_Item : in Element_Array)
+     return Sequence
+   is
+      Length : constant Natural := New_Item'Length;
+      Result : Sequence;
 
-            if Source.Content (J) = Pattern (Pattern'First) and then
-              Source.Content (J .. J + Pattern'Length - 1) = Pattern then
-
-               N := N + 1;
-
-            end if;
-
-         end loop;
-         return N;
-
-      else
-
-         raise Pattern_Error;
-
+   begin
+      if Source.Length < Before then
+         raise Index_Error;
       end if;
 
-   end Count;
+      Allocate (Result, Source.Length + Length);
+      Result.Content (1 .. Before - 1)
+        := Source.Content (1 .. Before - 1);
+      Result.Content (Before .. Before + Length - 1)
+        := New_Item;
+      Result.Content (Before + Length .. Result.Length)
+        := Source.Content (Before .. Source.Length);
+
+      return Result;
+   end Insert;
+
+   ------------
+   -- Insert --
+   ------------
+
+   procedure Insert
+     (Source   : in out Sequence;
+      Before   : in Positive;
+      New_Item : in Element_Array)
+   is
+      Item_Length : constant Natural := New_Item'Length;
+      Old_Length  : constant Natural := Source.Length;
+      Old_Content : Element_Array_Access;
+      Reallocated : Boolean;
+
+   begin
+      if Source.Length < Before then
+         raise Index_Error;
+      end if;
+
+      Source.Length := Old_Length + Item_Length;
+      Old_Content   := Source.Content;
+      Reallocated   := (Source.Content'Length /= Round (Source.Length));
+
+      if Reallocated then
+         Allocate (Source, Source.Length);
+         Source.Content (1 .. Before - 1) := Old_Content (1 .. Before - 1);
+      end if;
+
+      Source.Content (Before + Item_Length .. Source.Length)
+        := Old_Content (Before .. Old_Length);
+      Source.Content (Before .. Before + Item_Length - 1)
+        := New_Item;
+
+      if Reallocated then
+         Free (Old_Content);
+      end if;
+   end Insert;
+
+   ------------
+   -- Length --
+   ------------
+
+   function Length (Source : in Sequence) return Natural is
+   begin
+      return Source.Length;
+   end Length;
+
+   ---------------
+   -- Overwrite --
+   ---------------
+
+   function Overwrite
+     (Source   : in Sequence;
+      Position : in Positive;
+      New_Item : in Element_Array)
+      return Sequence
+   is
+      Length : constant Natural := New_Item'Length;
+      Result : Sequence;
+
+   begin
+      if Position > Source.Length + 1 then
+         raise Index_Error;
+      end if;
+
+      if Position + Length > Source.Length then
+         Result.Length := Position + Length - 1;
+      else
+         Result.Length := Source.Length;
+      end if;
+
+      Allocate (Result, Result.Length);
+      Result.Content (1 .. Position - 1) := Source.Content (1 .. Position - 1);
+      Result.Content (Position .. Result.Length) := New_Item;
+
+      return Result;
+   end Overwrite;
+
+   ---------------
+   -- Overwrite --
+   ---------------
+
+   procedure Overwrite
+     (Source   : in out Sequence;
+      Position : in Positive;
+      New_Item : in Element_Array)
+   is
+      Item_Length : constant Natural := New_Item'Length;
+      Old_Length  : constant Natural := Source.Length;
+      Old_Content : Element_Array_Access;
+      Reallocated : Boolean;
+
+   begin
+      if Position > Source.Length + 1 then
+         raise Index_Error;
+      end if;
+
+      if Position + Item_Length > Old_Length then
+         Source.Length := Position + Item_Length;
+      end if;
+
+      Old_Content := Source.Content;
+      Reallocated := (Source.Content'Length /= Round (Source.Length));
+
+      if Reallocated then
+         Allocate (Source, Source.Length);
+         Source.Content (1 .. Position - 1) := Old_Content (1 .. Position - 1);
+         Free (Old_Content);
+      end if;
+
+      Source.Content (Position .. Position + Item_Length - 1) := New_Item;
+   end Overwrite;
+
+   ----------------
+   -- Reallocate --
+   ----------------
+
+   procedure Reallocate
+     (Source : in out Sequence;
+      Length : in Natural)
+   is
+      Real_Length : Natural := Round (Length);
+      Old_Content : Element_Array_Access := Source.Content;
+      Old_Length  : constant Natural := Source.Length;
+      Min_Length  : Natural;
+
+   begin
+      if Length = 0 then
+         Source := Null_Sequence;
+         Free (Old_Content);
+
+      else
+         if Source.Length > Length then
+            Min_Length := Length;
+         else
+            Min_Length := Source.Length;
+         end if;
+
+         if Real_Length /= Source.Content'Length then
+            Source.Content := new Element_Array (1 .. Real_Length);
+            Source.Content (1 .. Min_Length)
+              := Old_Content (1 .. Min_Length);
+            Free (Old_Content);
+
+         else
+            --  Force finalization.
+
+            for I in Min_Length + 1 .. Old_Length loop
+               Source.Content (I) := Null_Element;
+            end loop;
+         end if;
+      end if;
+      Source.Length := Length;
+   end Reallocate;
+
+   ---------------------
+   -- Replace_Element --
+   ---------------------
+
+   procedure Replace_Element
+     (Source : in out Sequence;
+      Index  : in Positive;
+      By     : in Element) is
+   begin
+      if Index > Source.Length then
+         raise Index_Error;
+      end if;
+
+      Source.Content (Index) := By;
+   end Replace_Element;
 
    -------------------
    -- Replace_Slice --
@@ -617,35 +840,29 @@ package body Sequences.Unbounded is
       By     : in Element_Array)
       return Sequence
    is
-      Source_Length : constant Natural := Source.Length;
-      By_Length     : constant Integer := By'Length;
-      Total_Length  : constant Integer :=
-        Source_Length + By_Length + Low - High - 1;
-      Result        : Sequence;
+      By_Length : constant Natural := By'Length;
+      Result    : Sequence;
+
    begin
-
-      if Low > Source_Length + 1 or else High > Source_Length then
-
+      if Low > Source.Length + 1
+        or else High > Source.Length
+      then
          raise Index_Error;
-
-      elsif High < Low then
-
-         return Insert (Source => Source, Before => Low, New_Item => By);
-
-      else
-
-         Result.Content := new Element_Array (1 .. Total_Length);
-
-         Result.Content (1 .. Low - 1) := Source.Content (1 .. Low - 1);
-         Result.Content (Low .. Low + By_Length - 1) := By;
-         Result.Content (Low + By_Length .. Total_Length) :=
-           Source.Content (High + 1 .. Source_Length);
-         Result.Length := Total_Length;
-
-         return Result;
-
       end if;
 
+      if High < Low then
+         return Insert (Source => Source, Before => Low, New_Item => By);
+      end if;
+
+      Allocate (Result, Low - 1 + By_Length + Source.Length - High);
+      Result.Content (1 .. Low - 1)
+        := Source.Content (1 .. Low - 1);
+      Result.Content (Low .. Low + By_Length - 1)
+        := By;
+      Result.Content (Low + By_Length .. Result.Length)
+        := Source.Content (High + 1 .. Source.Length);
+
+      return Result;
    end Replace_Slice;
 
    -------------------
@@ -658,435 +875,126 @@ package body Sequences.Unbounded is
       High   : in Natural;
       By     : in Element_Array)
    is
-      Source_Length : constant Natural := Source.Length;
-      By_Length     : constant Integer := By'Length;
-      Total_Length  : constant Integer :=
-        Source_Length + By_Length + Low - High - 1;
-      Temp          : Element_Array_Access;
+      By_Length   : constant Natural := By'Length;
+      Old_Length  : constant Natural := Source.Length;
+      Old_Content : Element_Array_Access;
+      Reallocated : Boolean;
+
    begin
-
-      if Low > Source_Length + 1 or else High > Source_Length then
-
+      if Low > Old_Length + 1
+        or else High > Old_Length
+      then
          raise Index_Error;
-
-      elsif High < Low then
-
-         Insert (Source => Source, Before => Low, New_Item => By);
-
-      elsif Total_Length > Source.Content'Length then
-
-         Temp := new Element_Array (1 .. Total_Length);
-
-         Temp (1 .. Low - 1) := Source.Content (1 .. Low - 1);
-         Temp (Low .. Low + By_Length - 1) := By;
-         Temp (Low + By_Length .. Total_Length) :=
-           Source.Content (High + 1 .. Source_Length);
-         Free (Source.Content);
-         Source.Content := Temp;
-         Source.Length := Total_Length;
-
-      else
-
-         Source.Content (Low + By_Length .. Total_Length) :=
-           Source.Content (High + 1 .. Source_Length);
-         Source.Content (Low .. Low + By_Length - 1) := By;
-         Source.Length := Total_Length;
-
       end if;
 
+      if High < Low then
+         Insert (Source => Source, Before => Low, New_Item => By);
+         return;
+      end if;
+
+      Source.Length := Low - 1 + By_Length + Source.Length - High;
+      Old_Content   := Source.Content;
+      Reallocated   := (Source.Content'Length /= Round (Source.Length));
+
+      if Reallocated then
+         Allocate (Source, Source.Length);
+         Source.Content (1 .. Low - 1) := Old_Content (1 .. Low - 1);
+      end if;
+
+      Source.Content (Low + By_Length .. Source.Length)
+        := Old_Content (High + 1 .. Old_Length);
+      Source.Content (Low .. Low + By_Length - 1)
+        := By;
+
+      if Reallocated then
+         Free (Old_Content);
+
+      else
+         --  Force finalization
+
+         for I in Old_Length + 1 .. Source.Length loop
+            Source.Content (I) := Null_Element;
+         end loop;
+      end if;
    end Replace_Slice;
 
-   ------------
-   -- Insert --
-   ------------
+   -----------
+   -- Round --
+   -----------
 
-   function Insert
-     (Source   : in Sequence;
-      Before   : in Positive;
-      New_Item : in Element_Array)
-      return Sequence
+   function Round (Length : Natural) return Natural
    is
-      Source_Length : constant Natural := Source.Length;
-      New_Length    : constant Natural := New_Item'Length;
-      Total_Length  : constant Natural := Source_Length + New_Length;
-      Result        : Sequence;
+      Times : Natural;
+
    begin
-
-      if Source.Length + 1 < Before then
-
-         raise Index_Error;
-
-      else
-
-         Result.Content := new Element_Array (1 .. Total_Length);
-
-         if Source.Length = 0 then
-
-            Result.Content (1 .. Total_Length) := New_Item;
-
-         else
-
-            Result.Content (1 .. Before - 1) :=
-              Source.Content (1 .. Before - 1);
-            Result.Content (Before .. Before + New_Length - 1) := New_Item;
-            Result.Content (Before + New_Length .. Total_Length) :=
-              Source.Content (Before .. Source_Length);
-
-         end if;
-         Result.Length := Total_Length;
-
-         return Result;
-
-      end if;
-   end Insert;
-
-   ------------
-   -- Insert --
-   ------------
-
-   procedure Insert
-     (Source   : in out Sequence;
-      Before   : in Positive;
-      New_Item : in Element_Array)
-   is
-      Source_Length : constant Natural := Source.Length;
-      New_Length    : constant Natural := New_Item'Length;
-      Total_Length  : constant Natural := Source_Length + New_Length;
-      Temp          : Element_Array_Access;
-   begin
-
-      if Source.Length + 1 < Before then
-
-         raise Index_Error;
-
-      elsif New_Length > 0 then
-
-         if Source.Length = 0 then
-
-            if Source.Content = null then
-
-               Source.Content := new Element_Array (1 .. Total_Length);
-
-            elsif Source.Content'Length < Total_Length then
-
-               Free (Source.Content);
-               Source.Content := new Element_Array (1 .. Total_Length);
-
-            end if;
-            Source.Content (1 .. Total_Length) := New_Item;
-            Source.Length := Total_Length;
-
-         elsif Source.Content'Length < Total_Length then
-
-            Temp := new Element_Array (1 .. Total_Length);
-
-            Temp (1 .. Before - 1) := Source.Content (1 .. Before - 1);
-            Temp (Before .. Before + New_Length - 1) := New_Item;
-            Temp (Before + New_Length .. Total_Length) :=
-              Source.Content (Before .. Source.Length);
-            Free (Source.Content);
-            Source.Content := Temp;
-            Source.Length := Total_Length;
-
-         else
-
-            Source.Content (Before + New_Length .. Total_Length) :=
-              Source.Content (Before .. Source_Length);
-            Source.Content (Before .. Before + New_Length - 1) := New_Item;
-            Source.Length := Total_Length;
-
-         end if;
-
-      end if;
-   end Insert;
-
-   ---------------
-   -- Overwrite --
-   ---------------
-
-   function Overwrite
-     (Source   : in Sequence;
-      Position : in Positive;
-      New_Item : in Element_Array)
-      return Sequence
-   is
-      Source_Length : constant Natural := Source.Length;
-      Endpos        : constant Natural := Position + New_Item'Length - 1;
-      Result        : Sequence;
-   begin
-
-      if Position > Source_Length + 1 then
-
-         raise Index_Error;
-
-      else
-
-         if Endpos >= Source_Length then
-
-            Result.Content := new Element_Array (1 .. Endpos);
-
-            Result.Content (1 .. Position - 1) :=
-              Source.Content (1 .. Position - 1);
-            Result.Content (Position .. Endpos) := New_Item;
-            Result.Length := Endpos;
-
-         else
-
-            Result.Content := new Element_Array (1 .. Source_Length);
-
-            Result.Content (1 .. Position - 1) :=
-              Source.Content (1 .. Position - 1);
-            Result.Content (Position .. Endpos) := New_Item;
-            Result.Content (Endpos + 1 .. Source.Length) :=
-              Source.Content (Endpos + 1 .. Source_Length);
-            Result.Length := Source_Length;
-
-         end if;
-
-         return Result;
-
+      if Length = 0 then
+         return 0;
       end if;
 
-   end Overwrite;
-
-   ---------------
-   -- Overwrite --
-   ---------------
-
-   procedure Overwrite
-     (Source   : in out Sequence;
-      Position : in Positive;
-      New_Item : in Element_Array)
-   is
-      Source_Length : constant Natural := Source.Length;
-      Endpos        : constant Natural := Position + New_Item'Length - 1;
-      Temp          : Element_Array_Access;
-   begin
-
-      if Position > Source_Length + 1 then
-
-         raise Index_Error;
-
-      else
-
-         if Source.Length = 0 then
-
-            if Source.Content = null then
-
-               Source.Content := new Element_Array (1 .. Endpos);
-
-            elsif Endpos > Source.Content'Length then
-
-               Free (Source.Content);
-               Source.Content := new Element_Array (1 .. Endpos);
-
-            else
-
-               null;
-
-            end if;
-            Source.Content (1 .. Endpos) := New_Item;
-            Source.Length := Endpos;
-
-         elsif Endpos > Source.Content'Length then
-
-            Temp := new Element_Array (1 .. Endpos);
-
-            Temp (1 .. Position - 1) := Source.Content (1 .. Position - 1);
-            Temp (Position .. Endpos) := New_Item;
-            Free (Source.Content);
-            Source.Content := Temp;
-            Source.Length := Endpos;
-
-         else
-
-            Source.Content (Position .. Endpos) := New_Item;
-            if Endpos > Source.Length then
-
-               Source.Length := Endpos;
-
-            end if;
-
-         end if;
-
+      if Length <= Initial_Size then
+         return Initial_Size;
       end if;
 
-   end Overwrite;
+      Times := (Length - Initial_Size) / Increment_Size;
+      return Initial_Size + (Times + 1) * Increment_Size;
+   end Round;
 
-   ------------
-   -- Delete --
-   ------------
+   -----------
+   -- Slice --
+   -----------
 
-   function Delete
-     (Source  : in Sequence;
-      From    : in Positive;
-      Through : in Natural)
-      return Sequence
-   is
-      Source_Length : constant Natural := Source.Length;
-      Num_Delete    : constant Integer := Through - From + 1;
-      Total_Length  : constant Integer := Source_Length - Num_Delete;
-      Result        : Sequence;
-   begin
-
-      if Through < From then
-
-         Result.Content := new Element_Array (1 .. Source_Length);
-
-         Result.Content := Source.Content;
-         Result.Length := Source_Length;
-
-         return Result;
-
-      elsif From > Source_Length + 1 then
-
-         raise Index_Error;
-
-      elsif Through > Source_Length then
-
-         raise Index_Error;
-
-      else
-
-         Result.Content := new Element_Array (1 .. Total_Length);
-
-         Result.Content (1 .. From - 1) := Source.Content (1 .. From - 1);
-         Result.Content (From .. Total_Length) :=
-           Source.Content (Through + 1 .. Source_Length);
-         Result.Length := Total_Length;
-
-         return Result;
-
-      end if;
-
-   end Delete;
-
-   ------------
-   -- Delete --
-   ------------
-
-   procedure Delete
-     (Source : in out Sequence;
-      From : in Positive;
-      Through : in Natural)
-   is
-      Source_Length : constant Natural := Source.Length;
-      Num_Delete    : constant Integer := Through - From + 1;
-      Total_Length  : constant Integer := Source_Length - Num_Delete;
-   begin
-
-      if Through < From then
-
-         return;
-
-      elsif From > Source_Length + 1 then
-
-         raise Index_Error;
-
-      elsif Through > Source_Length then
-
-         raise Index_Error;
-
-      else
-
-         Source.Length := Total_Length;
-         Source.Content (From .. Total_Length) :=
-           Source.Content (Through + 1 .. Source_Length);
-
-      end if;
-
-   end Delete;
-
-   ----------
-   -- Head --
-   ----------
-
-   function Head
+   function Slice
      (Source : in Sequence;
-      Count  : in Natural;
-      Pad    : in Element)
-      return Sequence
-   is
-      Source_Length : constant Natural := Source.Length;
-      Result        : Sequence;
+      Low    : in Positive;
+      High   : in Natural)
+      return Element_Array is
    begin
-
-      Result.Content := new Element_Array (1 .. Count);
-
-      if Source_Length < Count then
-
-         Result.Content (1 .. Source_Length) :=
-           Source.Content (1 .. Source_Length);
-         Result.Content (Source_Length + 1 .. Count) := (others => Pad);
-
-      else
-
-         Result.Content (1 .. Count) := Source.Content (1 .. Count);
-
+      if Source.Length < Low
+        or else Source.Length < High
+      then
+         raise Index_Error;
       end if;
-      Result.Length := Count;
 
+      return Source.Content (Low .. High);
+   end Slice;
+
+   ----------------------
+   -- To_Element_Array --
+   ----------------------
+
+   function To_Element_Array (Source : in Sequence) return Element_Array is
+   begin
+      return Source.Content (1 .. Source.Length);
+   end To_Element_Array;
+
+   -----------------
+   -- To_Sequence --
+   -----------------
+
+   function To_Sequence (Source : in Element_Array)
+     return Sequence
+   is
+      Result : Sequence;
+
+   begin
+      Allocate (Result, Source'Length);
+      Result.Content (1 .. Result.Length) := Source;
       return Result;
+   end To_Sequence;
 
-   end Head;
+   -----------------
+   -- To_Sequence --
+   -----------------
 
-   ----------
-   -- Head --
-   ----------
-
-   procedure Head
-     (Source : in out Sequence;
-      Count  : in Natural;
-      Pad    : in Element)
+   function To_Sequence (Length : in Natural)
+     return Sequence
    is
-      Source_Length : constant Natural := Source.Length;
-      Temp          : Element_Array_Access;
+      Result : Sequence;
+
    begin
-
-      if Source_Length = 0 then
-
-         if Count = 0 then
-
-            null;
-
-         elsif Source.Content = null then
-
-            Source.Content := new Element_Array (1 .. Count);
-
-         elsif Count > Source.Content'Length then
-
-            Free (Source.Content);
-            Source.Content := new Element_Array (1 .. Count);
-
-         else
-
-            null;
-
-         end if;
-         Source.Content (1 .. Count) := (others => Pad);
-         Source.Length := Count;
-
-      elsif Count > Source.Content'Length then
-
-         Temp := new Element_Array (1 .. Count);
-         Temp (1 .. Source_Length) := Source.Content (1 .. Source_Length);
-         Temp (Source_Length + 1 .. Count) := (others => Pad);
-         Free (Source.Content);
-         Source.Content := Temp;
-         Source.Length := Count;
-
-      elsif Count > Source.Length then
-
-         Source.Content (Source_Length + 1 .. Count) := (others => Pad);
-         Source.Length := Count;
-
-      else
-
-         Source.Length := Count;
-
-      end if;
-
-   end Head;
+      Allocate (Result, Length);
+      return Result;
+   end To_Sequence;
 
    ----------
    -- Tail --
@@ -1098,28 +1006,19 @@ package body Sequences.Unbounded is
       Pad    : in Element)
       return Sequence
    is
-      Source_Length : constant Natural := Source.Length;
-      Result        : Sequence;
+      Result : Sequence;
+
    begin
+      Allocate (Result, Count);
 
-      Result.Content := new Element_Array (1 .. Count);
+      Result.Content (Result.Length - Count + 1 .. Result.Length)
+        := Source.Content (Source.Length - Count + 1 .. Source.Length);
 
-      if Source_Length < Count then
-
-         Result.Content (1 .. Count - Source_Length) := (others => Pad);
-         Result.Content (Count - Source_Length + 1 .. Count) :=
-           Source.Content (1 .. Source_Length);
-
-      else
-
-         Result.Content (1 .. Count) :=
-           Source.Content (Source_Length - Count + 1 .. Source_Length);
-
-      end if;
-      Result.Length := Count;
+      for I in 1 .. Result.Length - Count loop
+         Result.Content (I) := Pad;
+      end loop;
 
       return Result;
-
    end Tail;
 
    ----------
@@ -1129,180 +1028,10 @@ package body Sequences.Unbounded is
    procedure Tail
      (Source : in out Sequence;
       Count  : in Natural;
-      Pad    : in Element)
-   is
-      Source_Length : constant Natural := Source.Length;
-      Temp          : Element_Array_Access;
+      Pad    : in Element) is
    begin
-
-      if Source_Length = 0 then
-
-         if Count = 0 then
-
-            null;
-
-         elsif Source.Content = null then
-
-            Source.Content := new Element_Array (1 .. Count);
-
-         elsif Count > Source.Content'Length then
-
-            Free (Source.Content);
-            Source.Content := new Element_Array (1 .. Count);
-
-         else
-
-            null;
-
-         end if;
-         Source.Content (1 .. Count) := (others => Pad);
-         Source.Length := Count;
-
-      elsif Count > Source.Content'Length then
-
-         Temp := new Element_Array (1 .. Count);
-
-         Temp (Count - Source_Length + 1 .. Count) :=
-           Source.Content (1 .. Source_Length);
-         Temp (1 .. Count - Source_Length) := (others => Pad);
-         Free (Source.Content);
-         Source.Content := Temp;
-         Source.Length := Count;
-
-      elsif Count > Source_Length then
-
-         Source.Content (Count - Source_Length + 1 .. Count) :=
-           Source.Content (1 .. Source_Length);
-         Source.Content (1 .. Count - Source_Length) := (others => Pad);
-         Source.Length := Count;
-
-      else
-
-         Source.Content (1 .. Count) :=
-           Source.Content (Source_Length - Count + 1 .. Source_Length);
-         Source.Length := Count;
-
-      end if;
-
+      Source := Tail (Source, Count, Pad);
    end Tail;
-
-   ---------
-   -- "*" --
-   ---------
-
-   function "*" (Left : in Natural; Right : in Element) return Sequence is
-
-      Result : Sequence;
-
-   begin
-
-      Result.Content := new Element_Array (1 .. Left);
-
-      for J in 1 .. Left loop
-         Result.Content (J) := Right;
-      end loop;
-      Result.Length := Left;
-
-      return Result;
-
-   end "*";
-
-   ---------
-   -- "*" --
-   ---------
-
-   function "*" (Left : in Natural; Right : in Element_Array)
-                 return Sequence is
-
-      Right_Length : constant Natural := Right'Length;
-      Total_Length : constant Natural := Left * Right_Length;
-      Pos : Positive := 1;
-      Result : Sequence;
-
-   begin
-
-      if Total_Length > 0 then
-
-         Result.Content := new Element_Array (1 .. Total_Length);
-
-         for J in 1 .. Left loop
-
-            Result.Content (Pos .. Pos + Right_Length - 1) := Right;
-            Pos := Pos + Right_Length;
-
-         end loop;
-
-      end if;
-      Result.Length := Total_Length;
-
-      return Result;
-
-   end "*";
-
-   ---------
-   -- "*" --
-   ---------
-
-   function "*" (Left : in Natural; Right : in Sequence) return Sequence is
-
-      Right_Length : constant Natural := Right.Length;
-      Total_Length : constant Natural := Left * Right_Length;
-      Pos : Positive := 1;
-      Result : Sequence;
-
-   begin
-
-      if Total_Length > 0 then
-
-         Result.Content := new Element_Array (1 .. Total_Length);
-
-         for J in 1 .. Left loop
-
-            Result.Content (Pos .. Pos + Right_Length - 1) :=
-              Right.Content (1 .. Right_Length);
-            Pos := Pos + Right_Length;
-
-         end loop;
-
-      end if;
-      Result.Length := Total_Length;
-
-      return Result;
-
-   end "*";
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize (Object : in out Sequence) is
-   begin
-      null;
-   end Initialize;
-
-   ------------
-   -- Adjust --
-   ------------
-
-   procedure Adjust (Object : in out Sequence) is
-      Temp : Element_Array_Access;
-   begin
-      Temp := new Element_Array (1 .. Object.Length);
-      if Object.Length /= 0 then
-         pragma Assert (Object.Content /= null);
-         Temp (1 .. Object.Length) := Object.Content (1 .. Object.Length);
-      end if;
-      Object.Content := Temp;
-   end Adjust;
-
-   --------------
-   -- Finalize --
-   --------------
-
-   procedure Finalize (Object : in out Sequence) is
-   begin
-      Free (Object.Content);
-   end Finalize;
 
 end Sequences.Unbounded;
 
