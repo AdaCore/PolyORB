@@ -83,7 +83,7 @@ begin
    Opt.Check_Source_Files := False;
    Opt.All_Sources        := False;
 
-   if Number_Of_Files = 0 then
+   if Osint.Number_Of_Files = 0 then
       XE_Usage;
 
    else

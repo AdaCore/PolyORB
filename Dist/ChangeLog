@@ -1,7 +1,14 @@
+Mon Oct  7 13:30:30 1996  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* xe_stubs.adb, xe.adb, xe.ads: Fix some problems with child units
+	and file naming (a.b was translated in to a.b.adb rather than
+	a-b.adb). There are still problems due to a.b'version.
+
 Mon Sep 30 11:43:01 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
-	* xe_stubs.adb: Use configuration name as partition main
-	subprogram. File stamp checking has been a little bit improved.
+	* xe_stubs.adb, xe_utils.adb: Use configuration name as partition
+ 	main subprogram. File stamp checking has been a little bit
+ 	improved.
 
 Sun Sep 29 18:33:58 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
 

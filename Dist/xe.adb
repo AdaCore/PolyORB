@@ -1747,6 +1747,13 @@ package body XE is
 
    end Get_Main_Subprogram;
 
+   function Get_Unit_Sfile (U : in Unit_Id) return File_Name_Type is
+   begin
+      Get_Name_String (Unit.Table (U).Sfile);
+      Name_Len := Name_Len - 4;
+      return Name_Find;
+   end Get_Unit_Sfile;
+
 end XE;
 
 

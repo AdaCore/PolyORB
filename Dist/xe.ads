@@ -682,6 +682,7 @@ package XE is
    function Get_Host            (P : in PID_Type) return Name_Id;
    function Get_Command_Line    (P : in PID_Type) return Name_Id;
    function Get_Main_Subprogram (P : in PID_Type) return Name_Id;
+   function Get_Unit_Sfile      (U : in Unit_Id)  return File_Name_Type;
 
    Configuration_File : Name_Id := No_Name;
    Configuration      : Name_Id := No_Name;

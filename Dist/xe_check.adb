@@ -67,6 +67,8 @@ package body XE_Check is
             Write_Eol;
          end if;
 
+         Maybe_Most_Recent_Stamp (Source_File_Stamp (Configuration_File));
+
          declare
             Compiled : Name_Id;
             Obj      : Name_Id;

@@ -64,7 +64,8 @@ procedure XE_Stubs is
    --  Delete all the stub files (base_name.*) from a source directory. The
    --  suffixes used are .adb .o .ali.
 
-   procedure Build_Stub (UID : in CUID_Type);
+   procedure Build_Stub (Base_Name : in File_Name_Type;
+                         Spec_Only : in Boolean);
    --  Create the caller stub and the receiver stub for a RCI unit.
 
    procedure Update_Switch (S : in out String_Access);
@@ -506,10 +507,10 @@ procedure XE_Stubs is
    -- Build_Stub --
    ----------------
 
-   procedure Build_Stub (UID : in CUID_Type) is
+   procedure Build_Stub (Base_Name : in Name_Id;
+                         Spec_Only : in Boolean) is
 
       Obsolete        : Boolean := False;
-      Name            : Name_Id := CUnit.Table (UID).CUname;
       Full_RCI_Spec   : Name_Id;
       Full_RCI_Body   : Name_Id;
       Full_ALI_File   : Name_Id;
@@ -524,17 +525,17 @@ procedure XE_Stubs is
 
    begin
 
-      RCI_Spec        := Name & ADS_Suffix;
-      RCI_Body        := Name & ADB_Suffix;
+      RCI_Spec        := Base_Name & ADS_Suffix;
+      RCI_Body        := Base_Name & ADB_Suffix;
       Full_RCI_Spec   := Full_Source_Name (RCI_Spec);
       Full_RCI_Body   := Full_Source_Name (RCI_Body);
-      Caller_Body     := Caller_Dir & Dir_Sep_Id & Name & ADB_Suffix;
-      Receiver_Body   := Receiver_Dir & Dir_Sep_Id & Name & ADB_Suffix;
-      Caller_Object   := Caller_Dir & Dir_Sep_Id & Name & Obj_Suffix;
-      Receiver_Object := Receiver_Dir & Dir_Sep_Id & Name & Obj_Suffix;
-      Caller_ALI      := Caller_Dir & Dir_Sep_Id & Name & ALI_Suffix;
-      Receiver_ALI    := Receiver_Dir & Dir_Sep_Id & Name & ALI_Suffix;
-      Full_ALI_File   := ALIs.Table (CUnit.Table (UID).My_ALI).Afile;
+      Caller_Body     := Caller_Dir & Dir_Sep_Id & Base_Name & ADB_Suffix;
+      Receiver_Body   := Receiver_Dir & Dir_Sep_Id & Base_Name & ADB_Suffix;
+      Caller_Object   := Caller_Dir & Dir_Sep_Id & Base_Name & Obj_Suffix;
+      Receiver_Object := Receiver_Dir & Dir_Sep_Id & Base_Name & Obj_Suffix;
+      Caller_ALI      := Caller_Dir & Dir_Sep_Id & Base_Name & ALI_Suffix;
+      Receiver_ALI    := Receiver_Dir & Dir_Sep_Id & Base_Name & ALI_Suffix;
+      Full_ALI_File   := Base_Name & ALI_Suffix;
 
       --  Do we need to regenerate the caller stub and its ali.
       if not Obsolete and then not Is_Regular_File (Caller_Body) then
@@ -640,13 +641,13 @@ procedure XE_Stubs is
       elsif not Quiet_Output then
          Write_Program_Name;
          Write_Str  (":    ");
-         Write_Name (Name);
+         Write_Name (Caller_Body);
          Write_Str  (" caller stub is up to date");
          Write_Eol;
       end if;
 
       --  If no RCI body is available, use RCI spec.
-      if Unit.Table (CUnit.Table (UID).My_Unit).Utype = Is_Spec_Only then
+      if Spec_Only then
          Full_RCI_Body := Full_RCI_Spec;
       end if;
 
@@ -757,7 +758,7 @@ procedure XE_Stubs is
       elsif not Quiet_Output then
          Write_Program_Name;
          Write_Str  (":    ");
-         Write_Name (Name);
+         Write_Name (Receiver_Body);
          Write_Str  (" receiver stub is up to date");
          Write_Eol;
       end if;
@@ -842,7 +843,9 @@ begin
             Write_Str (" stubs");
             Write_Eol;
          end if;
-         Build_Stub (CUID);
+         Build_Stub
+           (Get_Unit_Sfile (CUnit.Table (CUID).My_Unit),
+            Unit.Table (CUnit.Table (CUID).My_Unit).Utype = Is_Spec_Only);
       end if;
    end loop;
 
@@ -867,11 +870,11 @@ begin
                   Copy_Stub
                     (Receiver_Dir,
                      DSA_Dir & Dir_Sep_Id & Partitions.Table (PID).Name,
-                     CUnit.Table (UID).CUname);
+                     Get_Unit_Sfile (CUnit.Table (UID).My_Unit));
                else
                   Delete_Stub
                     (DSA_Dir & Dir_Sep_Id & Partitions.Table (PID).Name,
-                     CUnit.Table (UID).CUname);
+                     Get_Unit_Sfile (CUnit.Table (UID).My_Unit));
                end if;
             end if;
          end loop;

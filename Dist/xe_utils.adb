@@ -675,32 +675,45 @@ package body XE_Utils is
    begin
       Change_Dir (DSA_Dir & Dir_Sep_Id & Partition);
 
-      Execute_Gcc
+      if More_Recent
         (Configuration & ADB_Suffix,
-         (I_Current_Dir,
-          I_Caller_Dir,
-          I_G_Parent_Dir)
-         );
+         Configuration & ALI_Suffix) then
 
-      --  I_Garlic_Dir is not included here because it was added by the
-      --  gnatdist shell script.
+         Execute_Gcc
+           (Configuration & ADB_Suffix,
+            (I_Current_Dir,
+             I_Caller_Dir,
+             I_G_Parent_Dir)
+            );
 
-      Execute_Bind
-        (Configuration & ALI_Suffix,
-         (I_Current_Dir,
-          I_Caller_Dir,
-          I_G_Parent_Dir)
-         );
-      Execute_Link
-        (Configuration & ALI_Suffix,
-         Exec,
-         (L_Current_Dir,
-          L_Caller_Dir,
-          L_G_Parent_Dir,
-          L_GARLIC_Dir)
-         );
+      end if;
+
+      if Most_Recent_Stamp > Source_File_Stamp (Exec) then
+
+         --  I_Garlic_Dir is not included here because it was added by the
+         --  gnatdist shell script.
+
+
+         Execute_Bind
+           (Configuration & ALI_Suffix,
+            (I_Current_Dir,
+             I_Caller_Dir,
+             I_G_Parent_Dir)
+            );
+
+         Execute_Link
+           (Configuration & ALI_Suffix,
+            Exec,
+            (L_Current_Dir,
+             L_Caller_Dir,
+             L_G_Parent_Dir,
+             L_GARLIC_Dir)
+            );
+
+      end if;
 
       Change_Dir (G_Parent_Dir);
+
    end Build_Partition;
 
    ------------------------
