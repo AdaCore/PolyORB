@@ -98,6 +98,12 @@ package Backend.BE_Ada.Nutils is
       Is_Limited_Type   : Boolean := False)
      return Node_Id;
 
+   function Make_Subprogram_Implementation
+     (Subprogram_Specification : Node_Id;
+      Declarations             : List_Id;
+      Statements               : List_Id)
+     return Node_Id;
+
    function Make_Subprogram_Specification
      (Defining_Identifier : Node_Id;
       Parameter_Profile   : List_Id;
