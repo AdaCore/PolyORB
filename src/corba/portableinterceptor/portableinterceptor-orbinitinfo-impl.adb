@@ -34,18 +34,11 @@
 with PolyORB.CORBA_P.Interceptors;
 with PolyORB.CORBA_P.Interceptors_Slots;
 with PolyORB.CORBA_P.Initial_References;
-with PolyORB.Exceptions;
 
 with IOP.CodecFactory.Helper;
+with PortableInterceptor.ORBInitInfo.Helper;
 
 package body PortableInterceptor.ORBInitInfo.Impl is
-
-   procedure Raise_DuplicateName (Excp_Memb : in DuplicateName_Members);
-   pragma No_Return (Raise_DuplicateName);
-
---   procedure Raise_InvalidName (Excp_Memb : in InvalidName_Members);
---   pragma No_Return (Raise_InvalidName);
---
 
    ------------------------------------
    -- Add_Client_Request_Interceptor --
@@ -73,7 +66,7 @@ package body PortableInterceptor.ORBInitInfo.Impl is
                 Is_Client_Request_Interceptor_Exists
                  (Name)
             then
-               Raise_DuplicateName
+               Helper.Raise_DuplicateName
                 (DuplicateName_Members'(Name => CORBA.To_CORBA_String (Name)));
             end if;
          end if;
@@ -121,7 +114,7 @@ package body PortableInterceptor.ORBInitInfo.Impl is
                 Is_Server_Request_Interceptor_Exists
                  (Name)
             then
-               Raise_DuplicateName
+               Helper.Raise_DuplicateName
                 (DuplicateName_Members'(Name =>
                                           CORBA.To_CORBA_String (Name)));
             end if;
@@ -217,26 +210,6 @@ package body PortableInterceptor.ORBInitInfo.Impl is
       Self.Post_Init_Done := True;
       PolyORB.CORBA_P.Interceptors_Slots.ORB_Initializer_Done := True;
    end Post_Init_Done;
-
-   -------------------------
-   -- Raise_DuplicateName --
-   -------------------------
-
-   procedure Raise_DuplicateName (Excp_Memb : in DuplicateName_Members) is
-   begin
-      PolyORB.Exceptions.User_Raise_Exception
-        (DuplicateName'Identity,
-         Excp_Memb);
-   end Raise_DuplicateName;
-
---   -----------------------
---   -- Raise_InvalidName --
---   -----------------------
---
---   procedure Raise_InvalidName (Excp_Memb : in InvalidName_Members) is
---   begin
---      raise InvalidName;
---   end Raise_InvalidName;
 
    --------------------------------
    -- Register_Initial_Reference --

@@ -555,6 +555,8 @@ src/corba/portableinterceptor/portableinterceptor-orbinitializer-register.adb
 src/corba/portableinterceptor/portableinterceptor-orbinitializer-register.ads
 src/corba/portableinterceptor/portableinterceptor-orbinitializer.adb
 src/corba/portableinterceptor/portableinterceptor-orbinitializer.ads
+src/corba/portableinterceptor/portableinterceptor-orbinitinfo-helper.adb
+src/corba/portableinterceptor/portableinterceptor-orbinitinfo-helper.ads
 src/corba/portableinterceptor/portableinterceptor-orbinitinfo-impl.adb
 src/corba/portableinterceptor/portableinterceptor-orbinitinfo-impl.ads
 src/corba/portableinterceptor/portableinterceptor-orbinitinfo.adb

@@ -28,13 +28,14 @@ ADA_SPECS_WITH_BODY = \
 	portableinterceptor-orbinitializer-initialize_all.ads \
 	portableinterceptor-orbinitializer-register.ads \
 	portableinterceptor-orbinitinfo.ads \
+	portableinterceptor-orbinitinfo-helper.ads \
 	portableinterceptor-orbinitinfo-impl.ads \
 	portableinterceptor-requestinfo.ads \
-        portableinterceptor-requestinfo-impl.ads \
-        portableinterceptor-serverrequestinfo.ads \
-        portableinterceptor-serverrequestinfo-impl.ads \
-        portableinterceptor-serverrequestinterceptor.ads \
-        portableinterceptor-serverrequestinterceptor-impl.ads
+	portableinterceptor-requestinfo-impl.ads \
+	portableinterceptor-serverrequestinfo.ads \
+	portableinterceptor-serverrequestinfo-impl.ads \
+	portableinterceptor-serverrequestinterceptor.ads \
+	portableinterceptor-serverrequestinterceptor-impl.ads
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 	dynamic.ads \
