@@ -89,9 +89,9 @@ package body System.Garlic.Storage_Handling is
       for I in 1 .. Max_Objects loop
          if not Pool.Used (I) then
             Pool.Used (I)   := True;
-            Storage_Address := Pool.Addresses (I);
             Pool.N_Objects := Pool.N_Objects + 1;
             Soft_Links.Leave (Pool.Mutex);
+            Storage_Address := Pool.Addresses (I);
             return;
          end if;
       end loop;
@@ -138,7 +138,9 @@ package body System.Garlic.Storage_Handling is
       for I in 1 .. Max_Objects loop
          if Pool.Used (I) and then Pool.Addresses (I) = Storage_Address then
             Pool.Used (I) := False;
+            Soft_Links.Enter (Pool.Mutex);
             Pool.N_Objects := Pool.N_Objects - 1;
+            Soft_Links.Leave (Pool.Mutex);
             return;
          end if;
       end loop;
