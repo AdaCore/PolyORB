@@ -126,9 +126,6 @@ package PolyORB.Transport is
    --  Accept a pending new connection on TAP and create
    --  a new associated TE.
 
-   --  function Address (TAP : Transport_Access_Point)
-   --    return Binding_Data is abstract;
-
    Connection_Closed : exception;
 
    function Create_Event_Source
