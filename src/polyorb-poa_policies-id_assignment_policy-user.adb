@@ -33,6 +33,7 @@
 with PolyORB.Objects;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Lifespan_Policy;
+with PolyORB.POA_Types;
 with PolyORB.Types;
 
 package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
@@ -101,12 +102,13 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
          raise PolyORB.POA.Bad_Param;
       end if;
 
-      return Unmarshalled_Oid'
-        (Id => Types.To_PolyORB_String (Objects.To_String (Hint.all)),
+      return PolyORB.POA_Types.Create_Id
+        (Name => PolyORB.Types.To_PolyORB_String
+         (PolyORB.Objects.To_String (Hint.all)),
          System_Generated => False,
          Persistency_Flag =>
            PolyORB.POA_Policies.Lifespan_Policy.Get_Lifespan_Cookie
-            (POA.Lifespan_Policy.all, OA),
+         (POA.Lifespan_Policy.all, OA),
          Creator => POA.Absolute_Address);
    end Assign_Object_Identifier;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,20 +30,24 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  $Id$
+
 with Ada.Unchecked_Conversion;
 
 with PolyORB.Object_Maps;
 with PolyORB.POA;
+with PolyORB.POA_Types;
 with PolyORB.POA_Policies.Lifespan_Policy;
 with PolyORB.Tasking.Rw_Locks;
-with PolyORB.Types; use PolyORB.Types;
+with PolyORB.Types;
 with PolyORB.Utils;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
-   use PolyORB.Tasking.Rw_Locks;
    use PolyORB.Object_Maps;
+   use PolyORB.Tasking.Rw_Locks;
+   use PolyORB.Types;
 
    ------------
    -- Create --
@@ -114,6 +118,8 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
+      use PolyORB.POA_Policies.Lifespan_Policy;
+
       POA : constant PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
       --  Object_Id_Info : Unmarshalled_Oid;
@@ -127,6 +133,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    begin
       Lock_W (POA.Map_Lock);
+
       if POA.Active_Object_Map = null then
          POA.Active_Object_Map := new Object_Map;
       end if;
@@ -164,14 +171,13 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
          Index := Add (POA.Active_Object_Map, The_Entry);
          Unlock_W (POA.Map_Lock);
 
-         The_Entry.Oid := new Unmarshalled_Oid;
-         The_Entry.Oid.Id := To_PolyORB_String
-           (PolyORB.Utils.Trimmed_Image (Index));
-         The_Entry.Oid.System_Generated := True;
-         The_Entry.Oid.Persistency_Flag
-           := PolyORB.POA_Policies.Lifespan_Policy.Get_Lifespan_Cookie
-           (POA.Lifespan_Policy.all, OA);
-         The_Entry.Oid.Creator := POA.Absolute_Address;
+         The_Entry.Oid
+           := PolyORB.POA_Types.Create_Id
+           (Name => To_PolyORB_String (PolyORB.Utils.Trimmed_Image (Index)),
+            System_Generated => True,
+            Persistency_Flag =>
+              Get_Lifespan_Cookie (POA.Lifespan_Policy.all, OA),
+            Creator => POA.Absolute_Address);
       end if;
 
       return The_Entry.Oid.all;
