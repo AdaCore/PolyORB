@@ -35,8 +35,6 @@ with Nmake;    use Nmake;
 with Rtsfind;  use Rtsfind;
 with Sinfo;    use Sinfo;
 with Einfo;    use Einfo;
-with Sem_Ch7;  use Sem_Ch7;
-with Sem_Ch8;  use Sem_Ch8;
 with Sem_Eval; use Sem_Eval;
 with Sem_Util; use Sem_Util;
 with Snames;   use Snames;
