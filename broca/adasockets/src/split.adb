@@ -46,6 +46,17 @@ procedure Split is
    Column          : Natural  := 0;
    Max_Column      : constant := 65;
    Hard_Max_Column : constant := 78;
+   Was_Space       : Boolean  := False;
+
+   procedure Print_Space_Maybe;
+
+   procedure Print_Space_Maybe is
+   begin
+      if Was_Space and then Column /= 0 then
+         Put (' ');
+         Was_Space := False;
+      end if;
+   end Print_Space_Maybe;
 
 begin
    if Argument_Count /= 1 then
@@ -62,10 +73,14 @@ begin
             New_Line;
             Put ("--  " & Argument (1) (I));
             Column := 5;
+         elsif Argument (1) (I) = ' ' then
+            Was_Space := True;
          else
             if Column = 0 then
                Put ("--  ");
                Column := 4;
+            else
+               Print_Space_Maybe;
             end if;
             Put (Argument (1) (I));
             Column := Column + 1;
