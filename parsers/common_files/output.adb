@@ -70,6 +70,24 @@ package body Output is
    procedure Flush_Buffer;
    --  Flush buffer if non-empty and reset column counter
 
+   ------------
+   -- Column --
+   ------------
+
+   function Column return Nat is
+   begin
+      return Next_Column;
+   end Column;
+
+   ---------------------------
+   -- Decrement_Indentation --
+   ---------------------------
+
+   procedure Decrement_Indentation is
+   begin
+      N_Space := N_Space - Space_Increment;
+   end Decrement_Indentation;
+
    ------------------
    -- Flush_Buffer --
    ------------------
@@ -103,24 +121,6 @@ package body Output is
          Next_Column := 1;
       end if;
    end Flush_Buffer;
-
-   ------------
-   -- Column --
-   ------------
-
-   function Column return Nat is
-   begin
-      return Next_Column;
-   end Column;
-
-   ---------------------------
-   -- Decrement_Indentation --
-   ---------------------------
-
-   procedure Decrement_Indentation is
-   begin
-      N_Space := N_Space - Space_Increment;
-   end Decrement_Indentation;
 
    ---------------------------
    -- Increment_Indentation --
