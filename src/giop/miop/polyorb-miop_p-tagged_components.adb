@@ -33,8 +33,6 @@
 
 --  MIOP specific tagged components
 
-with Ada.Unchecked_Deallocation;
-
 with PolyORB.Buffers;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
@@ -48,9 +46,6 @@ package body PolyORB.MIOP_P.Tagged_Components is
    use PolyORB.Buffers;
    use PolyORB.Log;
    use PolyORB.Representations.CDR.Common;
-
-   procedure Free
-   is new Ada.Unchecked_Deallocation (TC_Group_Info, TC_Group_Info_Access);
 
    package L is
       new PolyORB.Log.Facility_Log ("polyorb.miop_p.tagged_components");
@@ -121,12 +116,11 @@ package body PolyORB.MIOP_P.Tagged_Components is
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents
-     (C : access TC_Group_Info)
-   is
-      CC : TC_Group_Info_Access := TC_Group_Info_Access (C);
+   procedure Release_Contents (C : access TC_Group_Info) is
+      pragma Unreferenced (C);
+
    begin
-      Free (CC);
+      null;
    end Release_Contents;
 
    ---------------
