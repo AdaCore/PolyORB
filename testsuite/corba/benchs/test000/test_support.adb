@@ -125,7 +125,9 @@ package body Test_Support is
                 PortableServer.Servant (Srv));
       begin
          Ada.Text_IO.Put_Line
-          (CORBA.To_Standard_String (CORBA.ORB.Object_To_String (Ref)));
+           ("'"
+            & CORBA.To_Standard_String (CORBA.ORB.Object_To_String (Ref))
+            & "'");
       end;
    end Initialize;
 
