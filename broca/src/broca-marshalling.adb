@@ -1,14 +1,55 @@
 with Ada.Unchecked_Conversion;
 with Ada.Strings.Unbounded;
 with Broca.Exceptions;
+with CORBA;
 
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
 
 package body Broca.Marshalling is
+
+   use type CORBA.Octet;
+
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.marshalling");
    procedure O is new Broca.Debug.Output (Flag);
-   
+
+   subtype Output_Line is String (1 .. 48);
+
+   Hex : constant String      := "0123456789ABCDEF";
+   Nil : constant Output_Line := (others => ' ');
+
+   ----------
+   -- Dump --
+   ----------
+
+   procedure Dump
+     (Buffer : Buffer_Type)
+   is
+      Index   : Natural := 1;
+      Output  : Output_Line;
+   begin
+      for I in Buffer'Range loop
+         Output (Index)     := ' ';
+         Output (Index + 1) := Hex (Natural (Buffer (I) / 16) + 1);
+         Output (Index + 2) := Hex (Natural (Buffer (I) mod 16) + 1);
+         Index := Index + 3;
+
+         if Index > Output'Length then
+            pragma Debug (O (Output));
+            Index := 1;
+            Output := Nil;
+         end if;
+      end loop;
+
+      if Index /= 1 then
+         pragma Debug (O (Output (1 .. Index - 1)));
+         null;
+      end if;
+   exception when others =>
+      pragma Debug (O ("problem in dump"));
+      raise;
+   end Dump;
+
    subtype Short_Buffer_Type is Buffer_Type (0 .. 1);
    function Buffer_Type_To_Unsigned_Short is new Ada.Unchecked_Conversion
      (Source => Short_Buffer_Type, Target => CORBA.Unsigned_Short);
@@ -236,7 +277,6 @@ package body Broca.Marshalling is
       Tmp_Res : Unbounded_String;
       Length : CORBA.Unsigned_Long;
    begin
-      pragma Debug (O ("Unmarshall(stream,corba.string) : enter"));
       Unmarshall (Stream, Length);
       Tmp_Res := To_Unbounded_String (Natural (Length) - 1);
       for I in 1 .. Length - 1 loop
@@ -272,12 +312,8 @@ package body Broca.Marshalling is
    procedure Unmarshall
      (Stream : in out Buffer_Descriptor; Res : out CORBA.Double) is
    begin
-      pragma Debug (O ("Unmarshall(double) : enter"));
-      pragma Debug (O ("Unmarshall(double) : Stream.Pos = " & Stream.Pos'Img));
       Marshall_Align_8 (Stream);
-      pragma Debug (O ("Unmarshall(double) : after align, Stream.Pos = " & Stream.Pos'Img));
       if Stream.Little_Endian /= Is_Little_Endian then
-	 pragma Debug (O ("Unmarshall(double) : Bid Endian"));
          Res := Buffer_Type_To_Double
            ((Stream.Buffer (Stream.Pos + 7),
              Stream.Buffer (Stream.Pos + 6),
@@ -288,24 +324,10 @@ package body Broca.Marshalling is
              Stream.Buffer (Stream.Pos + 1),
              Stream.Buffer (Stream.Pos)));
       else
-	 pragma Debug (O ("Unmarshall(double) : Little Endian"));
-	 pragma Debug (O ("Unmarshall(double) : Stream.Pos = " & Stream.Pos'Img &
-			  ", Stream.Buffer.all'Last = " & Stream.Buffer.all'Last'Img));
-	 pragma Debug (O ("Unmarshall(double) : Buffer = " &
-			  Stream.Buffer(Stream.Pos)'Img & " " &
-			  Stream.Buffer(Stream.Pos+1)'Img & " " &
-			  Stream.Buffer(Stream.Pos+2)'Img & " " &
-			  Stream.Buffer(Stream.Pos+3)'Img & " " &
-			  Stream.Buffer(Stream.Pos+4)'Img & " " &
-			  Stream.Buffer(Stream.Pos+5)'Img & " " &
-			  Stream.Buffer(Stream.Pos+6)'Img & " " &
-			  Stream.Buffer(Stream.Pos+7)'Img & " "));
          Res := Buffer_Type_To_Double
            (Stream.Buffer (Stream.Pos .. Stream.Pos + 7));
       end if;
-      pragma Debug (O ("Unmarshall(double) : Res = " & Res'Img));
       Stream.Pos := Stream.Pos + 8;
-      pragma Debug (O ("Unmarshall(double) : leave"));
    end Unmarshall;
 
    --  Size procedure
@@ -535,24 +557,10 @@ package body Broca.Marshalling is
    procedure Marshall
      (Stream : in out Buffer_Descriptor; Val : CORBA.Double) is
    begin
-      pragma Debug (O ("Marshall(Double) : enter"));
-      pragma Debug (O ("Marshall(Double) : Stream.Pos = " & Stream.Pos'Img));
       Marshall_Align_8 (Stream);
-      pragma Debug (O ("Marshall(Double) : after align, Stream.Pos = " & Stream.Pos'Img));
-      pragma Debug (O ("Marshall(double) : Val = " & Val'Img));
       Stream.Buffer (Stream.Pos .. Stream.Pos + 7) :=
         Double_To_Buffer_Type (Val);
-      pragma Debug (O ("Marshall(double) : Buffer = " &
-		       Stream.Buffer(Stream.Pos)'Img & " " &
-		       Stream.Buffer(Stream.Pos+1)'Img & " " &
-		       Stream.Buffer(Stream.Pos+2)'Img & " " &
-		       Stream.Buffer(Stream.Pos+3)'Img & " " &
-		       Stream.Buffer(Stream.Pos+4)'Img & " " &
-		       Stream.Buffer(Stream.Pos+5)'Img & " " &
-		       Stream.Buffer(Stream.Pos+6)'Img & " " &
-		       Stream.Buffer(Stream.Pos+7)'Img & " "));
       Stream.Pos := Stream.Pos + 8;
-      pragma Debug (O ("Marshall(Double) : after marshall, Stream.Pos = " & Stream.Pos'Img));
    end Marshall;
 
    procedure Marshall

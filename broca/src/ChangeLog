@@ -1,0 +1,14 @@
+1999-08-21  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* broca-giop.ads: Change header size to 12. Define No_Context to
+	exotic value in order to check context alignment.
+
+	* broca-giop.adb, broca-server.adb: Receive body message at index
+ 	Message_Header_Size in a buffer to preserve interoperability.
+	Do not always align body size to 16.
+
+	* broca-marshalling.adb, broca-marshalling.ads: Define Dump
+ 	procedure to dump buffers.
+
+	* broca-stream.adb: Dump incoming and outgoing stream.
+	

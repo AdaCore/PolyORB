@@ -1,7 +1,14 @@
 with Sockets.Thin;
---  with Broca.Locks; use Broca.Locks;
+
+with Broca.Marshalling;
+with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
 
 package body Broca.Stream is
+
+   Flag : constant Natural := Broca.Debug.Is_Active ("broca.stream");
+   procedure O is new Broca.Debug.Output (Flag);
+
    procedure Lock_Send (Stream : access Stream_Type) is
    begin
       Stream.Lock_S.Lock;
@@ -34,6 +41,8 @@ package body Broca.Stream is
       if C_Send (Stream.Fd, Buffer.Buffer.all'Address, Len, 0) /= Len then
          raise Connection_Closed;
       end if;
+      pragma Debug (O ("Dump outgoing buffer if size" & Len'Img));
+      Broca.Marshalling.Dump (Buffer.Buffer (0 .. Buffer.Pos - 1));
    end Send;
 
    procedure Receive
@@ -51,6 +60,8 @@ package body Broca.Stream is
       else
          Buffer.Pos := Buffer_Index_Type (Len);
       end if;
+      pragma Debug (O ("Dump incoming buffer of length" & Len'Img));
+      Broca.Marshalling.Dump (Buffer.Buffer (0 .. Buffer.Pos - 1));
    end Receive;
 
    function Create_Fd_Stream (Fd : Interfaces.C.int) return Stream_Acc is

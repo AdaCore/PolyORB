@@ -42,9 +42,6 @@ package body Broca.Giop is
       --  message size
       Marshall (Stream, Message_Size);
 
-      --  align header
-      Marshall_Align_16 (Stream);
-
       --  Internal check.
       if Stream.Pos /= Message_Header_Size then
          Broca.Exceptions.Raise_Internal (2000, CORBA.Completed_No);
@@ -74,7 +71,7 @@ package body Broca.Giop is
         (Stream, Broca.Giop.Reply,
          CORBA.Unsigned_Long (Stream.Pos));
       --  service context.
-      Marshall (Stream, CORBA.Unsigned_Long'(0));
+      Marshall (Stream, CORBA.Unsigned_Long (No_Context));
       --  Request_id
       Marshall (Stream, Request_Id);
       --  reply_status
@@ -109,7 +106,7 @@ package body Broca.Giop is
         (Stream, Broca.Giop.Reply,
          CORBA.Unsigned_Long (Stream.Pos));
       --  service context.
-      Marshall (Stream, CORBA.Unsigned_Long'(0));
+      Marshall (Stream, CORBA.Unsigned_Long (No_Context));
       --  Request_id
       Marshall (Stream, Request_Id);
       --  reply_status
@@ -179,7 +176,7 @@ package body Broca.Giop is
 
       --  1.2.2 The request message header.
       --  service context.
-      Marshall (Handler.Buffer, CORBA.Unsigned_Long (0));
+      Marshall (Handler.Buffer, CORBA.Unsigned_Long (No_Context));
 
       --  request_id
       Handler.Request_Id := Broca.Object.Get_Request_Id (Handler.Connection);
@@ -206,9 +203,12 @@ package body Broca.Giop is
    is
       use Broca.Marshalling;
       use CORBA;
-      Message_Type : CORBA.Octet;
-      Message_Size : CORBA.Unsigned_Long;
-      Recv_Long : CORBA.Unsigned_Long;
+      Message_Type    : CORBA.Octet;
+      Message_Size    : CORBA.Unsigned_Long;
+      Service_Context : CORBA.Unsigned_Long;
+      Reply_Status    : CORBA.Unsigned_Long;
+      Request_Id      : CORBA.Unsigned_Long;
+      Tmp : Buffer_Descriptor;
    begin
       --  1.3 Send request.
       Broca.Object.Send (Handler.Connection, Handler.Buffer);
@@ -221,7 +221,8 @@ package body Broca.Giop is
 
       --  1.4 Receive reply
       --  1.4.1 the message header
-      Handler.Buffer.Pos := Broca.Giop.Message_Header_Size;
+      Increase_Buffer_And_Set_Pos
+         (Handler.Buffer, Broca.Giop.Message_Header_Size);
       Broca.Object.Receive (Handler.Connection, Handler.Buffer);
       if Handler.Buffer.Pos /= Broca.Giop.Message_Header_Size then
          Broca.Exceptions.Raise_Comm_Failure;
@@ -246,28 +247,37 @@ package body Broca.Giop is
 
       --  Allocate enough bytes for the message.
       Increase_Buffer_And_Set_Pos
-        (Handler.Buffer, Buffer_Index_Type (Message_Size));
+        (Tmp, Buffer_Index_Type (Message_Size));
 
       --  1.4.5 Receive the reply header and body.
-      Broca.Object.Receive (Handler.Connection, Handler.Buffer);
+      Broca.Object.Receive (Handler.Connection, Tmp);
       Broca.Object.Release_Connection (Handler.Connection);
-      Handler.Buffer.Pos := 0;
+
+      Increase_Buffer_And_Set_Pos
+        (Handler.Buffer,
+         Buffer_Index_Type (Message_Size + Message_Header_Size));
+      Handler.Buffer.Buffer (Message_Header_Size .. Handler.Buffer.Pos - 1)
+        := Tmp.Buffer.all;
+      Handler.Buffer.Pos := Message_Header_Size;
+      Unchecked_Deallocation (Tmp.Buffer);
+
       --  service_context.
-      Unmarshall (Handler.Buffer, Recv_Long);
-      if Recv_Long /= 0 then
-         --  FIXME.
+      Unmarshall (Handler.Buffer, Service_Context);
+      if Service_Context /= No_Context then
+         pragma Debug (O ("Send_Request_Send : incorrect context" & Service_Context'Img));
          raise Program_Error;
       end if;
 
       --  Request id
-      Unmarshall (Handler.Buffer, Recv_Long);
-      if Recv_Long /= Handler.Request_Id then
+      Unmarshall (Handler.Buffer, CORBA.Unsigned_Long (Request_Id));
+      if Request_Id /= Handler.Request_Id then
+         pragma Debug (O ("Send_Request_Send : incorrect request id" & Request_Id'Img));
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
 
       --  reply status.
-      Unmarshall (Handler.Buffer, Recv_Long);
-      case Recv_Long is
+      Unmarshall (Handler.Buffer, Reply_Status);
+      case Reply_Status is
          when Broca.Giop.No_Exception =>
             Res := Sr_Reply;
             return;

@@ -5,6 +5,8 @@ package Broca.Marshalling is
    --  True if this machine use little endian byte order.
    Is_Little_Endian : Boolean;
 
+   procedure Dump (Buffer : Buffer_Type);
+
    --  Alignment
    procedure Marshall_Align_2 (Buffer : in out Buffer_Descriptor);
    procedure Marshall_Align_4 (Buffer : in out Buffer_Descriptor);

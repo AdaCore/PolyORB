@@ -28,13 +28,15 @@ package Broca.Giop is
    Object_Forward : constant CORBA.Unsigned_Long := 2;
 
    --  Size (in bytes) of struct MessageHeader, major version 1.
-   Message_Header_Size : constant := 16;
+   Message_Header_Size : constant := 12;
 
    Magic : constant Buffer_Type (0 .. 3) :=
      (Character'Pos ('G'),
       Character'Pos ('I'),
       Character'Pos ('O'),
       Character'Pos ('P'));
+
+   No_Context : constant CORBA.Unsigned_Long := 12345;
 
    --  Reset Stream (set STREAM.POS to 0) and fill it with a message header,
    --  version 1.0

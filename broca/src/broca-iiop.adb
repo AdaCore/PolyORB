@@ -162,6 +162,8 @@ package body Broca.Iiop is
       Len : Interfaces.C.int;
    begin
       Len := Interfaces.C.int (Stream.Pos);
+      pragma Debug (O ("Dump outgoing buffer of length" & Len'Img));
+      Broca.Marshalling.Dump (Stream.Buffer (0 .. Stream.Pos - 1));
       if C_Send (Connection.Strand.Fd,
                  Stream.Buffer.all'Address,
                  Len,
@@ -187,6 +189,8 @@ package body Broca.Iiop is
       else
          Stream.Pos := Buffer_Index_Type (Len);
       end if;
+      pragma Debug (O ("Dump incoming buffer of length" & Len'Img));
+      Broca.Marshalling.Dump (Stream.Buffer (0 .. Stream.Pos - 1));
    end Receive;
 
    function Get_Request_Id (Connection : access Strand_Connection_Type)

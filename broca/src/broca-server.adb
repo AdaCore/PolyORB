@@ -738,7 +738,7 @@ package body Broca.Server is
       use Broca.Poa;
       use Broca.Marshalling;
       use Broca.Stream;
-      A_Long : CORBA.Unsigned_Long;
+      Service_Context : CORBA.Unsigned_Long;
       Request_Id : CORBA.Unsigned_Long;
       Reponse_Expected : CORBA.Boolean;
       Operation : CORBA.String;
@@ -751,15 +751,17 @@ package body Broca.Server is
       pragma Debug (O ("Handle_Request : enter"));
 
       Pos := Buffer.Pos;
+
       --  service_context
-      Unmarshall (Buffer, A_Long);
-      if A_Long /= 0 then
+      Unmarshall (Buffer, Service_Context);
+      if Service_Context /= Broca.Giop.No_Context then
+         pragma Debug (O ("Handle_Request : incorrect context" & Service_Context'Img));
          Broca.Exceptions.Raise_Bad_Param;
       end if;
 
       --  request id
-      pragma Debug (O ("Handle_Request : unmarshalling request_id"));
       Unmarshall (Buffer, Request_Id);
+      pragma Debug (O ("Handle_Request : request_id" & Request_Id'Img));
 
       --  reponse expected
       pragma Debug (O ("Handle_Request : unmarshalling reponse_expected"));
@@ -863,6 +865,7 @@ package body Broca.Server is
                              Buffer : in out Buffer_Descriptor) is
       use Broca.Poa;
       use Broca.Marshalling;
+      use Broca.Giop;
       use Broca.Stream;
       Message_Type : CORBA.Octet;
       Message_Size : CORBA.Unsigned_Long;
@@ -872,6 +875,7 @@ package body Broca.Server is
       Poa : Broca.Poa.POA_Object_Access;
       Poa_State : Broca.Poa.Processing_State_Type;
       Key : Buffer_Descriptor;
+      Tmp : Buffer_Descriptor;
    begin
       --  Magic must be GIOP.
       if Buffer.Buffer (0 .. 3) /= Broca.Giop.Magic then
@@ -894,10 +898,14 @@ package body Broca.Server is
 
       --  Receive body of the message.
       Increase_Buffer_And_Set_Pos
-        (Buffer, Buffer_Index_Type (Message_Size));
-      Receive (Stream, Buffer);
+        (Tmp, Buffer_Index_Type (Message_Size));
+      Receive (Stream, Tmp);
       Unlock_Receive (Stream);
-      Buffer.Pos := 0;
+      Increase_Buffer_And_Set_Pos
+        (Buffer, Buffer_Index_Type (Message_Size + Message_Header_Size));
+      Buffer.Buffer (Message_Header_Size .. Buffer.Pos - 1) := Tmp.Buffer.all;
+      Buffer.Pos := Message_Header_Size;
+      Unchecked_Deallocation (Tmp.Buffer);
 
       case CORBA.Unsigned_Long (Message_Type) is
          when Broca.Giop.Request =>
