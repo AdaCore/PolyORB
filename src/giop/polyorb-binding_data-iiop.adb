@@ -284,6 +284,8 @@ package body PolyORB.Binding_Data.IIOP is
       Profile_Body : Buffer_Access := new Buffer_Type;
 
    begin
+      pragma Debug (O ("Marshall_IIOP_Profile_body: enter"));
+
       --  A TAG_INTERNET_IOP Profile Body is an encapsulation.
       Start_Encapsulation (Profile_Body);
 
@@ -291,8 +293,13 @@ package body PolyORB.Binding_Data.IIOP is
       Marshall (Profile_Body, IIOP_Profile.Major_Version);
       Marshall (Profile_Body, IIOP_Profile.Minor_Version);
 
+      pragma Debug
+        (O ("  Version = " & IIOP_Profile.Major_Version'Img & "."
+            & IIOP_Profile.Minor_Version'Img));
       --  Marshalling of a Socket
       Marshall_Socket (Profile_Body, IIOP_Profile.Address);
+
+      pragma Debug (O ("  Address = " & Sockets.Image (IIOP_Profile.Address)));
 
       --  Marshalling of the Object Id
       Marshall
@@ -305,6 +312,8 @@ package body PolyORB.Binding_Data.IIOP is
       --  Marshall the Profile_Body into IOR.
       Marshall (Buf, Encapsulate (Profile_Body));
       Release (Profile_Body);
+
+      pragma Debug (O ("Marshall_IIOP_Profile_body: leave"));
 
    end Marshall_IIOP_Profile_Body;
 
@@ -328,11 +337,13 @@ package body PolyORB.Binding_Data.IIOP is
 
       TResult.Major_Version := Unmarshall (Profile_Buffer);
       TResult.Minor_Version := Unmarshall (Profile_Buffer);
+
       pragma Debug
         (O ("  Version = " & TResult.Major_Version'Img & "."
             & TResult.Minor_Version'Img));
 
       Unmarshall_Socket (Profile_Buffer, TResult.Address);
+
       pragma Debug (O ("  Address = " & Sockets.Image (TResult.Address)));
 
       declare
@@ -463,8 +474,10 @@ package body PolyORB.Binding_Data.IIOP is
       use PolyORB.Sockets;
 
    begin
-      return "Address : " & Image (Prof.Address) &
-        ", Object_Id : " & PolyORB.Objects.Image (Prof.Object_Id.all);
+      return "Address : "
+        & Image (Prof.Address)
+        & ", Object_Id : "
+        & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
 
    ----------------
@@ -473,7 +486,8 @@ package body PolyORB.Binding_Data.IIOP is
 
    procedure Initialize;
 
-   procedure Initialize is
+   procedure Initialize
+   is
       Preference_Offset : constant String
         := PolyORB.Configuration.Get_Conf
         (Section => "corba",
