@@ -134,7 +134,7 @@ Items still requiring attention
    
   -> A mechanism for optional implementation of reliable
      message delivery over a non-reliable message delivery
-     protocol (eg UDP with ack/retransmission)
+     protocol (eg UDP with ack/retransmission, Group_IO)
      
   -> A mechanism for message exchange not based on sockets
      (eg SysV IPC, serial lines).
