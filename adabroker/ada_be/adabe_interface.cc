@@ -119,6 +119,7 @@ adabe_interface::produce_ads(dep_list with,string &String, string &previousdefin
   DEC_INDENT();
   INDENT(String);
   String += "end " + get_ada_full_name() + "\n";    
+  set_already_defined();
 }
   
 void
@@ -182,12 +183,12 @@ adabe_interface::produce_impl_ads(dep_list with,string &String, string &previous
     {
       with.add(get_ada_full_name()+"_Forward");
       INDENT(temp);
-      tmp += "package Convert is new " + get_ada_full_name() + "_Forward.Convert(Object);\n";
+      tmp += "package Convert is access " + get_ada_full_name() + "_Forward.Convert(Object);\n";
     }
   if (pd_n_inherits > 0)
     {
       inher = pd_inherits[0];      
-      String += "type Object is new " + inher->get_ada_full_name() + ".Object ";
+      String += "type Object is access " + inher->get_ada_full_name() + ".Object ";
       UTL_ScopeActiveIterator j(inher,UTL_Scope::IK_decls);
       while (!j.is_done())
 	{

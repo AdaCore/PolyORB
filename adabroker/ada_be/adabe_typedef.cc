@@ -1,4 +1,3 @@
-#include <idl.hh>
 #include <idl_extern.hh>
 #include <adabe.h>
 
@@ -18,8 +17,14 @@ adabe_typedef::produce_ads(dep_list with,string &String, string &previousdefinit
   INDENTATION(String);
   String += "type" + get_ada_name() + "is new ";
   AST_Decl *b  base_type();
-  String +=  adabe_name::narrow_from_decl(b)->dump_name(with, &String, &previousdefinition); //virtual method
-  String += "\n";
+  string name =  adabe_name::narrow_from_decl(b)->dump_name(with, &String, &previousdefinition); //virtual method
+  String += name;
+  String += ";\n";
+  INDENTATION(String);
+  String += "type" + get_ada_name() + "_Ptr is access all " + get_ada_name() + ";\n";
+  INDENTATION(String);
+  String += "procedure free is new Unchecked_Deallocation(";
+  String += get_ada_name() + ", " + get_ada_name ()+ "_Ptr);\n";  
 }
 
 void
@@ -32,7 +37,12 @@ adabe_typedef::produce_adb(dep_list with,string &String, string &previousdefinit
 void
 adabe_typedef::produce_impl_ads(dep_list with,string &String, string &previousdefinition)
 {
-  produce_ads(with, String, previousdefinition);
+  INDENTATION(String);
+  String += "type" + get_ada_name() + "is new ";
+  AST_Decl *b  base_type();
+  string name =  adabe_name::narrow_from_decl(b)->dump_name(with, &String, &previousdefinition); //virtual method
+  String += name;
+  String += ";\n";
 }
 
 void
