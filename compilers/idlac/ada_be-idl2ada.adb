@@ -451,8 +451,8 @@ package body Ada_Be.Idl2Ada is
                   PL (CU, "--  Sanity check");
                   PL (CU, "if Is_Nil (Self) then");
                   II (CU);
-                  Add_With (CU, "Droopi.CORBA_P.Exceptions");
-                  PL (CU, "Droopi.CORBA_P.Exceptions.Raise_Inv_Objref;");
+                  Add_With (CU, "PolyORB.CORBA_P.Exceptions");
+                  PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_Inv_Objref;");
                   DI (CU);
                   PL (CU, "end if;");
                   NL (CU);
@@ -748,7 +748,7 @@ package body Ada_Be.Idl2Ada is
                   Suppress_Warning_Message (Impl_Spec);
                   Suppress_Warning_Message (Impl_Body);
 
-                  --  XXX For now, with DROOPI, no more skels.
+                  --  XXX For now, with PolyORB, no more skels.
 --                   Add_With (Impl_Body, Skel_Name,
 --                             Use_It => False,
 --                             Elab_Control => None);
@@ -862,7 +862,7 @@ package body Ada_Be.Idl2Ada is
                             Use_It    => True,
                             Elab_Control => Elaborate_All);
 
-                  Add_With (Impl_Body, "Droopi.CORBA_P.Exceptions");
+                  Add_With (Impl_Body, "PolyORB.CORBA_P.Exceptions");
 
                   Add_With (Impl_Body, "CORBA.Object");
                   Add_With (Impl_Body, "CORBA.Context");
@@ -902,7 +902,7 @@ package body Ada_Be.Idl2Ada is
                      end loop;
                   end;
 
-                  PL (Impl_Body, "Droopi.CORBA_P.Exceptions.Raise_Bad_Operation;");
+                  PL (Impl_Body, "PolyORB.CORBA_P.Exceptions.Raise_Bad_Operation;");
                   PL (Impl_Body, "end Invoke;");
                   NL (Impl_Body);
                   PL (Impl_Body, "function Primary_Interface (Self : access Object; -- ....");
@@ -1800,7 +1800,7 @@ package body Ada_Be.Idl2Ada is
                          Use_It    => False,
                          Elab_Control => Elaborate_All);
                Add_With (CU, "Broca.Object");
-               Add_With (CU, "Droopi.CORBA_P.Exceptions");
+               Add_With (CU, "PolyORB.CORBA_P.Exceptions");
 
                NL (CU);
                PL (CU, O_Name
@@ -1947,7 +1947,7 @@ package body Ada_Be.Idl2Ada is
 
                      if First then
                         Add_With (CU, "Broca.CDR", Use_It => True);
-                        Add_With (CU, "Droopi.CORBA_P.Exceptions");
+                        Add_With (CU, "PolyORB.CORBA_P.Exceptions");
 
                         PL (CU, "declare");
                         II (CU);
@@ -1982,7 +1982,7 @@ package body Ada_Be.Idl2Ada is
                      PL (CU, "begin");
                      II (CU);
                      PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
-                     PL (CU, "Droopi.CORBA_P.Exceptions.User_Raise_Exception");
+                     PL (CU, "PolyORB.CORBA_P.Exceptions.User_Raise_Exception");
                      PL (CU, "  (" & Ada_Full_Name (E_Node)
                          & "'Identity,");
                      PL (CU, "   " & T_Members & ");");
@@ -1998,7 +1998,7 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "--  A user exception was raise, but it is not");
                PL (CU, "--  listed in this operation's ""raises"" clause.");
                NL (CU);
-               PL (CU, "Droopi.CORBA_P.Exceptions.Raise_Unknown");
+               PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_Unknown");
                PL (CU, "  (Status => CORBA.Completed_Maybe);");
 
                if not Is_Empty (Raises (Node)) then
@@ -2016,7 +2016,7 @@ package body Ada_Be.Idl2Ada is
             end;
 
          when K_Exception =>
-            Add_With (CU, "Droopi.CORBA_P.Exceptions");
+            Add_With (CU, "PolyORB.CORBA_P.Exceptions");
             NL (CU);
             PL (CU, "procedure Get_Members");
             PL (CU, "  (From : Ada.Exceptions.Exception_Occurrence;");
@@ -2025,7 +2025,7 @@ package body Ada_Be.Idl2Ada is
                 & ") is");
             PL (CU, "begin");
             II (CU);
-            PL (CU, "Droopi.CORBA_P.Exceptions.User_Get_Members (From, To);");
+            PL (CU, "PolyORB.CORBA_P.Exceptions.User_Get_Members (From, To);");
             DI (CU);
             PL (CU, "end Get_Members;");
 
@@ -2137,7 +2137,7 @@ package body Ada_Be.Idl2Ada is
                          Use_It    => True,
                          Elab_Control => Elaborate_All);
 
-               Add_With (CU, "Droopi.CORBA_P.Exceptions");
+               Add_With (CU, "PolyORB.CORBA_P.Exceptions");
 
                Add_With (CU, "CORBA.Object");
                Add_With (CU, "CORBA.Context");
@@ -2248,7 +2248,7 @@ package body Ada_Be.Idl2Ada is
                NL (CU);
                PL (CU, "if CORBA.Object.Is_Nil (" & T_Self_Ref & ") then");
                II (CU);
-               PL (CU, "Droopi.CORBA_P.Exceptions.Raise_Inv_Objref;");
+               PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_Inv_Objref;");
                DI (CU);
                PL (CU, "end if;");
                NL (CU);
@@ -2437,7 +2437,7 @@ package body Ada_Be.Idl2Ada is
             end;
 
          when K_Exception =>
-            Add_With (CU, "Droopi.CORBA_P.Exceptions");
+            Add_With (CU, "PolyORB.CORBA_P.Exceptions");
             NL (CU);
             PL (CU, "procedure Get_Members");
             PL (CU, "  (From : Ada.Exceptions.Exception_Occurrence;");
@@ -2446,7 +2446,7 @@ package body Ada_Be.Idl2Ada is
                 & ") is");
             PL (CU, "begin");
             II (CU);
-            PL (CU, "Droopi.CORBA_P.Exceptions.User_Get_Members (From, To);");
+            PL (CU, "PolyORB.CORBA_P.Exceptions.User_Get_Members (From, To);");
             DI (CU);
             PL (CU, "end Get_Members;");
 
@@ -3369,7 +3369,7 @@ package body Ada_Be.Idl2Ada is
       NL (CU);
       PL (CU, "if CORBA.Object.Is_Nil (" & T_Self_Ref & ") then");
       II (CU);
-      PL (CU, "Droopi.CORBA_P.Exceptions.Raise_Inv_Objref;");
+      PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_Inv_Objref;");
       DI (CU);
       PL (CU, "end if;");
       NL (CU);
