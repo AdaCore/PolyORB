@@ -74,6 +74,9 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
       --  Provide thread safe primitives for a  Mutex,
       --  and manage its Thread_Queue.
 
+      function Check_Queue_Consistency return Boolean;
+      --  Make some tests on the consistency of the queue.
+
       procedure Test_And_Set_Entry
         (Result : out Boolean;
          Place  : Thread_Index;
@@ -152,12 +155,15 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
         := Ravenscar_Thread_Id (PTT.Get_Current_Thread_Id (My_TF));
    begin
       Place := Get_Thread_Index (Current_Thread_Id);
+      Prepare_Deterministic_Suspend (Current_Thread_Id);
       The_Mutex_PO_Arr (M.Id).Test_And_Set_Entry
         (Exit_Condition,
          Place,
          Current_Thread_Id);
       if not Exit_Condition then
-         Determinist_Suspend (Current_Thread_Id);
+         Deterministic_Suspend (Current_Thread_Id);
+      else
+         Prepare_Deterministic_Suspend (Current_Thread_Id, False);
       end if;
    end Enter;
 
@@ -186,7 +192,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
       The_Mutex_PO_Arr (M.Id).Leave (Someone_Is_Waiting, To_Free);
 
       if Someone_Is_Waiting then
-         Determinist_Resume (To_Free);
+         Deterministic_Resume (To_Free);
       end if;
    end Leave;
 
@@ -195,6 +201,42 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
    --------------
 
    protected body Mutex_PO is
+
+      function Check_Queue_Consistency return Boolean is
+         type Bool_Arr is array (Waiters'Range) of Boolean;
+         Marked  : Bool_Arr;
+         Current : Extended_Thread_Index := Owner;
+      begin
+         if Owner /= Null_Thread_Index then
+            if Waiters (Owner).Is_Waiting then
+               --  The Owner should not be waiting for this mutex!
+               return False;
+            end if;
+
+            Current := Waiters (Owner).Next;
+         end if;
+
+         for J in Marked'Range loop
+            Marked (J) := False;
+         end loop;
+         while Current /= Null_Thread_Index loop
+
+            if Marked (Current) then
+               --  Loop in the queue
+               return False;
+            end if;
+
+            if not Waiters (Current).Is_Waiting then
+               --  Someone is in the queue, but does not wait.
+               return False;
+            end if;
+
+            Marked (Current) := True;
+            Current := Waiters (Current).Next;
+         end loop;
+
+         return True;
+      end Check_Queue_Consistency;
 
       -------------------------
       -- Mutex_PO.Initialize --
@@ -208,6 +250,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
             Waiters (J).Next := Null_Thread_Index;
             Waiters (J).Is_Waiting  := False;
          end loop;
+         pragma Assert (Check_Queue_Consistency);
       end Initialize;
 
       --------------------
@@ -219,6 +262,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
          To_Free            : out Ravenscar_Thread_Id) is
          Former_Owner : constant Extended_Thread_Index := Owner;
       begin
+         pragma Assert (Check_Queue_Consistency);
          pragma Assert (Owner /= Null_Thread_Index);
 
          if Waiters (Former_Owner).Next /= Null_Thread_Index then
@@ -226,6 +270,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
             pragma Assert (Waiters (Owner).Is_Waiting = True);
             Someone_Is_Waiting := True;
             To_Free := Waiters (Owner).This;
+            Waiters (Owner).Is_Waiting := False;
          else
             Someone_Is_Waiting := False;
             Owner := Null_Thread_Index;
@@ -234,6 +279,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
          Waiters (Former_Owner).Is_Waiting := False;
          Waiters (Former_Owner).Next := Null_Thread_Index;
 
+         pragma Assert (Check_Queue_Consistency);
       end Leave;
 
       ---------------------------------
@@ -247,6 +293,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
          Current   : Extended_Thread_Index;
          Precedent : Extended_Thread_Index;
       begin
+         pragma Assert (Check_Queue_Consistency);
          Result :=  Owner = Null_Thread_Index;
          pragma Assert (Owner = Null_Thread_Index
                         or else Waiters (Owner).This /= T);
@@ -256,6 +303,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
          Waiters (Place).This := T;
 
          if not Result then
+
             --  This loop search the rank of T in the queue:
             Current := Waiters (Owner).Next;
             Precedent := Null_Thread_Index;
@@ -281,6 +329,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
             Waiters (Place).Next := Current;
          end if;
 
+         pragma Assert (Check_Queue_Consistency);
       end Test_And_Set_Entry;
 
    end Mutex_PO;

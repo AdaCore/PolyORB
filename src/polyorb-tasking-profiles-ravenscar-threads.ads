@@ -115,21 +115,95 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
       Target : Thread_Id_Access);
 
    --  The following procedures make access to the
-   --  internal synchronisation object, so it should
+   --  internal synchronisation objects, so it should
    --  only be used by other packages that thread pool ones,
    --  and synchronisations.
+   --  We have two different types of operation : the deterministic
+   --  and non-deterministic ones. They play the same role, but
+   --  the deterministic one are to use in tagged types/packages that assure
+   --  a deterministic delay for the execution of its procedures.
+   --  A mutex with a bounded queue is a good example.
+   --
+   --  Semantics:
+
+   --  (the following rules applies also for deterministic
+   --  procedures)
+   --
+   --  A thread has three states : Prepared, Waiting, Free.  It is
+   --  initialy Free.
+   --  If it is Free, it can become Prepared after a call to Prepare_Suspend.
+   --  If it is Prepared, it can become Waiting after a call to Suspend,
+   --  or it can become Free by a call to Prepare_Suspend (False).
+   --  If it is Waiting, it can become Free by a call (by another thread)
+   --  to Resume.
+   --  Any other transition makes no sense, and will raise an Assertion
+   --  failure, which will (most likely) be a bug in the Ravenscar profile.
+   --
+   --  To illustrate it, those typical sequences are authorized
+   --  (from the state Free):
+   --
+   --  1:
+   --  prepare_suspend
+   --  suspend
+   --
+   --
+   --  2:
+   --  prepare_suspend
+   --  prepare_suspend (False)
+   --
+   --  3:
+   --  prepare_suspend
+   --  prepare_suspend (False)
+   --  prepare_suspend
+   --  suspend
+
+   --  These one will raise an assertion failure :
+   --  (From Free)
+   --
+   --  1:
+   --  suspend
+   --
+   --  2:
+   --  prepare_suspend (False)
+   --
+   --  3:
+   --  prepare_suspend
+   --  prepare_suspend (False)
+   --  prepare_suspend (False)
+
+   --  XXX Note that the use of two-phases suspends (Prepare_Suspend - Suspend)
+   --  is more a way to check the integrity of the Ravenscar profile that
+   --  a real need of the synchronisations objects.
+   --  It may disappear in the future.
+
+   procedure Prepare_Suspend
+     (T     : Ravenscar_Thread_Id;
+      State : Boolean := True);
+   --  This procedure registers thread-safely the task given in
+   --  parameter as a suspending task. It MUST be called before a
+   --  corresponding Suspend.
+   --  If State = False, it abort the previous call to Prepare_Suspend.
+
+   procedure Prepare_Deterministic_Suspend
+     (T    : Ravenscar_Thread_Id;
+     State : Boolean := True);
+   --  This procedure is only used for deterministic suspension:
+   --  for example, the wait in a bounded FIFO for
+   --  a mutex.
+   --  The same conditions that Prepare_Suspend applies.
 
    procedure Suspend (T : Ravenscar_Thread_Id);
-   --  Calling this procedure, the current task await on the internal
-   --  synchronisation.
+   --  Calling this procedure, the current task awaits on the internal
+   --  synchronisation. The task that calls Suspend MUST have called
+   --  Prepare_Suspend before; Otherwise, it will raise an assertion.
    --  The calling task MUST be the one which abstraction
-   --  is "T". Else, it would wait on a synchronisation
+   --  is "T". Otherwise, it would wait on a synchronisation
    --  object that doesn't belong to her, which would
    --  raise a Program_Error if another task call
    --  "Suspend" on the same synchronisation object.
 
-   procedure Determinist_Suspend (T : Ravenscar_Thread_Id);
-   --  This procedure is only used for determinist suspension:
+   procedure Deterministic_Suspend (T : Ravenscar_Thread_Id);
+   --  This procedure is only used for deterministic suspension:
    --  for example, the wait in a bounded FIFO for
    --  a mutex.
    --  The same conditions that Suspend applies.
@@ -137,11 +211,14 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
    procedure Resume (T : Ravenscar_Thread_Id);
    --  The call to this procedure free the task waiting
    --  on the internal synchronisation object of "T".
+   --  If no task is about to Wait (that is, if no call to
+   --  Prepare_Wait were done before the call to Resume),
+   --  the signal is lost.
 
-   procedure Determinist_Resume (T : Ravenscar_Thread_Id);
+   procedure Deterministic_Resume (T : Ravenscar_Thread_Id);
    --  The call to this procedure free the task waiting
    --  on the internal synchronisation object of "T" dedicated
-   --  to the determinist suspension.
+   --  to the deterministic suspension.
 
    function Get_Thread_Index (T : Ravenscar_Thread_Id)
                              return Integer;

@@ -37,8 +37,17 @@ with Unchecked_Deallocation;
 
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
+with PolyORB.Log;
 
 package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
+
+   use PolyORB.Log;
+
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.tasking.profiles.full_tasking.mutexes");
+
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    procedure Initialize;
 
@@ -80,6 +89,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
       --  XXX The use of Name is not yet implemented
       M : Full_Tasking_Mutex_Access := new Full_Tasking_Mutex_Type;
    begin
+      pragma Debug (O ("Create Mutex"));
       M.The_PO := new Mutex_PO;
       return PTM.Mutex_Access (M);
    end Create;
@@ -95,6 +105,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
       pragma Unreferenced (MF);
       pragma Warnings (On);
    begin
+      pragma Debug (O ("Detroy Mutex"));
       Free (Full_Tasking_Mutex_Access (M));
    end Destroy;
 
@@ -113,6 +124,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
 
    procedure Initialize is
    begin
+      pragma Debug (O ("Initialize package Profiles.Full_Tasking.Mutexes"));
       PTM.Register_Mutex_Factory (PTM.Mutex_Factory_Access
                                     (The_Mutex_Factory));
    end Initialize;
@@ -132,21 +144,24 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
 
    protected body Mutex_PO is
 
-      ----------------------
+      --------------------
       -- Mutex_PO.Enter --
-      ----------------------
+      --------------------
 
       entry Enter when not Locked is
       begin
+         pragma Debug (O ("Enter mutex"));
          Locked := True;
       end Enter;
 
-      ----------------------
+      --------------------
       -- Mutex_PO.Leave --
-      ----------------------
+      --------------------
 
       procedure Leave is
       begin
+         pragma Assert (Locked = True);
+         pragma Debug (O ("Leave mutex"));
          Locked := False;
       end Leave;
 

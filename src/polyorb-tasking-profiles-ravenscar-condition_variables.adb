@@ -76,6 +76,11 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
       --  Provide thread safe primitives for a  Mutex,
       --  and manage its Thread_Queue.
 
+      function Check_Queue_Consistency return Boolean;
+      --  Function supposed to be used in an assert statement.
+      --  It check some simple properties of the Thread_Queue :
+      --  No loop, no error in the Is_Waiting flags...
+
       procedure Prepare_Wait
         (Tid : Ravenscar_Thread_Id;
          Id  : Thread_Index);
@@ -163,17 +168,50 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
    protected body Condition_PO is
       --  XXX gestion of the queue not implemented yet.
 
+      ------------------------------------------
+      -- Condition_PO.Check_Queue_Consistency --
+      ------------------------------------------
+
+      function Check_Queue_Consistency return Boolean is
+         type Bool_Arr is array (Waiters'Range) of Boolean;
+         Marked  : Bool_Arr;
+         Current : Extended_Thread_Index := First;
+      begin
+         for J in Marked'Range loop
+            Marked (J) := False;
+         end loop;
+         while Current /= Null_Thread_Index loop
+
+            if Marked (Current) then
+               --  Loop in the queue
+               return False;
+            end if;
+
+            if not Waiters (Current).Is_Waiting then
+               --  Someone is in the queue, but does not wait.
+               return False;
+            end if;
+
+            Marked (Current) := True;
+            Current := Waiters (Current).Next;
+         end loop;
+
+         return True;
+      end Check_Queue_Consistency;
+
       ----------------------------
       -- Condition_PO.Broadcast --
       ----------------------------
 
       procedure Broadcast (To_Free : out Thread_Queue) is
       begin
+         pragma Assert (Check_Queue_Consistency);
          To_Free := Waiters;
          First := Null_Thread_Index;
          for J in Waiters'Range loop
             Waiters (J).Is_Waiting := False;
          end loop;
+         pragma Assert (Check_Queue_Consistency);
       end Broadcast;
 
       -----------------------------
@@ -188,6 +226,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
             Waiters (J).Next := Null_Thread_Index;
             Waiters (J).Is_Waiting := False;
          end loop;
+         pragma Assert (Check_Queue_Consistency);
       end Initialize;
 
       -------------------------------
@@ -200,6 +239,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
          Current   : Extended_Thread_Index;
          Precedent : Extended_Thread_Index;
       begin
+         pragma Assert (Check_Queue_Consistency);
          Waiters (Id).Is_Waiting := True;
          Waiters (Id).This := Tid;
          pragma Assert (Id /= Null_Thread_Index);
@@ -221,6 +261,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
             First := Id;
             Waiters (Id).Next := Null_Thread_Index;
          end if;
+         pragma Assert (Check_Queue_Consistency);
       end Prepare_Wait;
 
       -------------------------
@@ -232,6 +273,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
          To_Free            : out Ravenscar_Thread_Id) is
          Former_First : constant Extended_Thread_Index := First;
       begin
+         pragma Assert (Check_Queue_Consistency);
          Someone_Is_Waiting := First /= Null_Thread_Index;
 
          if Someone_Is_Waiting then
@@ -241,6 +283,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
             To_Free := Waiters (Former_First).This;
          end if;
 
+         pragma Assert (Check_Queue_Consistency);
       end Signal;
 
    end Condition_PO;
@@ -293,6 +336,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
       T_Id           : constant Extended_Thread_Index
         := Get_Thread_Index (Current_Thread_Id);
    begin
+      Prepare_Suspend (Current_Thread_Id);
       The_Condition_PO_Arr (C.Id).Prepare_Wait (Current_Thread_Id, T_Id);
       PTM.Leave (M.all);
       Suspend (Current_Thread_Id);

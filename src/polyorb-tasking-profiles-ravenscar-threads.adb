@@ -41,10 +41,19 @@ with Ada.Task_Identification;
 
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
+with PolyORB.Log;
 
 package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
+   use PolyORB.Log;
+
    package PTT renames PolyORB.Tasking.Threads;
+
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.tasking.profiles.ravenscar.threads");
+
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    ---------
    -- Ids --
@@ -94,14 +103,20 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       --  A call to Suspend will result in a call to Wait;
       --  a call to Resume will result in a call to Signal.
 
+      procedure Prepare_Wait (State : Boolean);
+      --  If State:= True, initialize the barrier for a call to
+      --  Wait. If State is set to False, it abort the previous
+      --  call to Prepare_Wait.
+
       entry Wait;
       --  Wait until it is signaled.
 
       procedure Signal;
-      --  Signal the Suspension_Object
+      --  Signal the Suspension_Object.
 
    private
       Signaled : Boolean := False;
+      Waiting  : Boolean := False;
    end Barrier;
 
    -----------
@@ -223,13 +238,47 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    protected body Barrier is
 
+      ------------------
+      -- Prepare_Wait --
+      ------------------
+
+      procedure Prepare_Wait (State : Boolean) is
+      begin
+         pragma Assert (State xor Waiting);
+         --  If it is already prepared to wait, it is supposed to be
+         --  recall this procedure, unless it is to reset Waiting
+         --  (that is, set Waiting to False)
+
+         Waiting := State;
+      end Prepare_Wait;
+
       ------------
       -- Signal --
       ------------
 
       procedure Signal is
       begin
-         Signaled := True;
+         pragma Assert (not Signaled);
+         --  XXX This assertion is a temporary one; it is just to see
+         --  if some signal are lost.  If it is raised in one of your
+         --  tests, comment this line and tell me (JG) how you this
+         --  assertion was raised.
+         --  Received two signals before being released. One will be lost.
+         --  Is it a normal behaviour? It should be the reponsibility of
+         --  the synchro objects (Mutexes, CV) to take care of this loss,
+         --  not the thread's.
+
+         pragma Assert (Waiting);
+         --  XXX This assertion is a temporary one; it is just to see
+         --  if some signal are lost.  If it is raised in one of your
+         --  tests, comment this line and tell me (JG) how you this
+         --  assertion was raised.
+         --  If this assertion is never raised, then we might be able to
+         --  simplify the two-phases suspend into a simple one-phase one.
+
+         if Waiting then
+            Signaled := True;
+         end if;
       end Signal;
 
       ----------
@@ -238,7 +287,11 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
       entry Wait when Signaled is
       begin
+         pragma Assert (Waiting);
+         --  Error : Prepare_Wait have not been called before.
+
          Signaled := False;
+         Waiting := False;
       end Wait;
 
    end Barrier;
@@ -262,23 +315,26 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       Result.Id := Content.Id;
    end Copy_Thread_Id;
 
-   ------------------------
-   -- Determinist_Resume --
-   ------------------------
+   --------------------------
+   -- Deterministic_Resume --
+   --------------------------
 
-   procedure Determinist_Resume (T : Ravenscar_Thread_Id) is
+   procedure Deterministic_Resume (T : Ravenscar_Thread_Id) is
    begin
+      pragma Debug (O (Integer'Image (T.Id) & "deterministic Resume"));
       Determinist_Sync_Pool (T.Id).Signal;
-   end Determinist_Resume;
+   end Deterministic_Resume;
 
-   -------------------------
-   -- Determinist_Suspend --
-   -------------------------
+   ---------------------------
+   -- Deterministic_Suspend --
+   ---------------------------
 
-   procedure Determinist_Suspend (T : Ravenscar_Thread_Id) is
+   procedure Deterministic_Suspend (T : Ravenscar_Thread_Id) is
    begin
+      pragma Debug (O (Integer'Image (T.Id) & "deterministic Suspend"));
       Determinist_Sync_Pool (T.Id).Wait;
-   end Determinist_Suspend;
+      pragma Debug (O (Integer'Image (T.Id) & "End deterministic Suspend"));
+   end Deterministic_Suspend;
 
 
    ---------------------------
@@ -339,6 +395,31 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
                                    (The_Thread_Factory));
       Pool_Manager.Wait_For_Package_Initialization;
    end Initialize;
+
+   ---------------------
+   -- Prepare_Suspend --
+   ---------------------
+
+   procedure Prepare_Suspend
+     (T     : Ravenscar_Thread_Id;
+      State : Boolean := True) is
+   begin
+      pragma Debug (O (Integer'Image (T.Id) & " prepare a suspend"));
+      Sync_Pool (T.Id).Prepare_Wait (State);
+   end Prepare_Suspend;
+
+   -----------------------------------
+   -- Prepare_Deterministic_Suspend --
+   -----------------------------------
+
+   procedure Prepare_Deterministic_Suspend
+     (T    : Ravenscar_Thread_Id;
+     State : Boolean := True) is
+   begin
+      pragma Debug (O (Integer'Image (T.Id)
+                       & " prepare a deterministic suspend"));
+      Determinist_Sync_Pool (T.Id).Prepare_Wait (State);
+   end Prepare_Deterministic_Suspend;
 
    ------------------
    -- Pool_Manager --
@@ -521,6 +602,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    begin
       Pool_Manager.Initialize_Id (Tid, Id);
       Th_Id.Id := Id;
+      Prepare_Suspend (Th_Id);
       loop
          Suspend (Th_Id);
          if My_Job_Passing_Arr (Id) = Use_Runnable then
@@ -529,6 +611,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
             My_PP_Arr (Id).all;
          end if;
          Free (My_Runnable_Arr (Id));
+         Prepare_Suspend (Th_Id);
          Thread_Index_Manager.Release (Id);
       end loop;
    end Simple_Task;
@@ -539,6 +622,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    procedure Resume (T : Ravenscar_Thread_Id) is
    begin
+      pragma Debug (O (Integer'Image (T.Id) & " resumed"));
       Sync_Pool (T.Id).Signal;
    end Resume;
 
@@ -548,7 +632,9 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    procedure Suspend (T : Ravenscar_Thread_Id) is
    begin
+      pragma Debug (O (Integer'Image (T.Id) & " will suspend"));
       Sync_Pool (T.Id).Wait;
+      pragma Debug (O (Integer'Image (T.Id) & " ends suspend"));
    end Suspend;
 
    use PolyORB.Initialization;
