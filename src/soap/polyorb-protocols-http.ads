@@ -73,13 +73,13 @@ package PolyORB.Protocols.HTTP is
 
    Retry_Default : constant Positive;
 
-   No_Data  : constant String := " ";
+   No_Data  : constant String := "";
 
    Null_Str : constant Types.String := To_PolyORB_String ("");
 
-   HTTP_Version   : constant String := "HTTP/1.1";
+   HTTP_Version : constant String := "HTTP/1.1";
 
-   Text_XML         :  constant String := "text/html";
+   Text_XML :  constant String := "text/html";
 
    type Request_Method is (GET, HEAD, POST, PUT);
    type Request_Range is (POST, NON_POST, EMPTY);

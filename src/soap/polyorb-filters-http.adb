@@ -130,7 +130,7 @@ package body PolyORB.Filters.HTTP is
                      Octets_List  :
                         Stream_Element_Array :=
                            To_Stream_Element_Array (F.In_Buf);
-                     Str : Types.String := To_PolyORB_String (" ");
+                     Str : Types.String;
                   begin
                      for I in Octets_List'Last - 3 .. Octets_List'Last loop
                            Append (Str, Character'Val
