@@ -74,19 +74,21 @@ for srcdir in `echo $include_path`; do
        continue
     fi
 
-    if ${GREP} -q INCLUDE: ${cfg_pragma_file} 2> /dev/null; then
+    if ${GREP} "INCLUDE:" ${cfg_pragma_file} > /dev/null 2>&1; then
       default_include=false
     else
       default_include=true
     fi
 
-    if ${GREP} -q "EXCLUDE: `basename $src`" ${cfg_pragma_file} 2> /dev/null; then
+    pat="EXCLUDE: `basename $src`"
+    if ${GREP} "${pat}" ${cfg_pragma_file} > /dev/null 2>&1; then
       no_specific_exclude=false
     else
       no_specific_exclude=true
     fi
 
-    if ${GREP} -q "INCLUDE: `basename $src`" $cfg_pragma_file ||
+    pat="INCLUDE: `basename $src`"
+    if ${GREP} "${pat}" $cfg_pragma_file > /dev/null 2>&1 ||
        (${default_include} && ${no_specific_exclude})
     then
       # If unit included explicitly, or (unit not excluded explicitly,
