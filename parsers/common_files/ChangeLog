@@ -1,0 +1,5 @@
+2004-06-10  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* locations.adb, locations.ads: Add a location comparison function
+	in order to know which location occurs first in the source file.
+
