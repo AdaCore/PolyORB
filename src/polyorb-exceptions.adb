@@ -68,6 +68,173 @@ package body PolyORB.Exceptions is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
+   --------------
+   -- From_Any --
+   --------------
+
+   function From_Any
+     (Item : PolyORB.Any.Any)
+     return Completion_Status is
+   begin
+      return Completion_Status'Val
+        (Unsigned_Long'
+         (From_Any (PolyORB.Any.Get_Aggregate_Element
+                    (Item, TC_Unsigned_Long, 0))));
+   end From_Any;
+
+   ------------
+   -- To_Any --
+   ------------
+
+   function To_Any
+     (Item : Completion_Status)
+     return Any.Any
+   is
+      Result : Any.Any := Get_Empty_Any_Aggregate (TC_Completion_Status);
+   begin
+      Add_Aggregate_Element
+        (Result, To_Any (Unsigned_Long (Completion_Status'Pos (Item))));
+      return Result;
+   end To_Any;
+
+   --------------------------
+   -- TC_Completion_Status --
+   --------------------------
+
+   TC_Completion_Status_Cache : TypeCode.Object;
+
+   function TC_Completion_Status
+     return PolyORB.Any.TypeCode.Object
+   is
+      use type PolyORB.Types.Unsigned_Long;
+
+      TC : TypeCode.Object renames TC_Completion_Status_Cache;
+
+   begin
+      if TypeCode.Parameter_Count (TC) /= 0 then
+         return TC_Completion_Status_Cache;
+      end if;
+
+      TC := TypeCode.TC_Enum;
+      TypeCode.Add_Parameter
+        (TC, To_Any (To_PolyORB_String ("completion_status")));
+      TypeCode.Add_Parameter
+        (TC, To_Any (To_PolyORB_String
+                     ("IDL:omg.org/CORBA/completion_status:1.0")));
+
+      for C in Completion_Status'Range loop
+         TypeCode.Add_Parameter
+           (TC, To_Any (To_PolyORB_String (Completion_Status'Image (C))));
+      end loop;
+
+      return TC;
+   end TC_Completion_Status;
+
+   ------------
+   -- To_Any --
+   ------------
+
+   function To_Any
+     (Name   : Standard.String;
+      Member : Null_Members)
+     return PolyORB.Any.Any
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Member);
+      pragma Warnings (On); --  WAG:3.15
+
+      TC : TypeCode.Object := TypeCode.TC_Except;
+      Shift : Natural := 0;
+
+      Repository_Id : PolyORB.Types.String;
+   begin
+      --  Name
+      TypeCode.Add_Parameter (TC, To_Any (To_PolyORB_String (Name)));
+
+      if Name (Name'First .. Name'First + PolyORB_Exc_Root'Length - 1)
+        = PolyORB_Exc_Root then
+         Shift := PolyORB_Exc_Root'Length + 1;
+      end if;
+
+      --  RepositoryId : 'INTERNAL:<Name>:1.0'
+      Repository_Id := To_PolyORB_String (PolyORB_Exc_Prefix)
+        & To_PolyORB_String (Name (Name'First + Shift .. Name'Last))
+        & PolyORB_Exc_Version;
+
+      TypeCode.Add_Parameter (TC, To_Any (Repository_Id));
+
+      return Get_Empty_Any_Aggregate (TC);
+   end To_Any;
+
+   -------------------------------
+   -- System_Exception_TypeCode --
+   -------------------------------
+
+   function System_Exception_TypeCode
+     (Name : Standard.String)
+     return Any.TypeCode.Object
+   is
+      TC    : TypeCode.Object := TypeCode.TC_Except;
+      Shift : Natural := 0;
+
+      Repository_Id : PolyORB.Types.String;
+   begin
+      --  Name
+      TypeCode.Add_Parameter (TC, To_Any (To_PolyORB_String (Name)));
+
+      if Name (Name'First .. Name'First + PolyORB_Exc_Root'Length - 1)
+        = PolyORB_Exc_Root then
+         Shift := PolyORB_Exc_Root'Length + 1;
+      end if;
+
+      --  RepositoryId : 'INTERNAL:<Name>:1.0'
+      Repository_Id := To_PolyORB_String (PolyORB_Exc_Prefix)
+        & To_PolyORB_String (Name (Name'First + Shift .. Name'Last))
+        & PolyORB_Exc_Version;
+
+      TypeCode.Add_Parameter (TC, To_Any (Repository_Id));
+
+      --  Component 'minor'
+      TypeCode.Add_Parameter
+        (TC, To_Any (TC_Unsigned_Long));
+      TypeCode.Add_Parameter
+        (TC, To_Any (To_PolyORB_String ("minor")));
+
+      --  Component 'completed'
+      TypeCode.Add_Parameter
+        (TC, To_Any (TC_Completion_Status));
+      TypeCode.Add_Parameter
+        (TC, To_Any (To_PolyORB_String ("completed")));
+
+      pragma Debug (O ("Built Exception TypeCode for: "
+                       & To_Standard_String (Repository_Id)));
+      pragma Debug (O (" " & PolyORB.Any.Image (TC)));
+
+      return TC;
+   end System_Exception_TypeCode;
+
+   ------------
+   -- To_Any --
+   ------------
+
+   function To_Any
+     (Name   : Standard.String;
+      Member : System_Exception_Members)
+     return PolyORB.Any.Any
+   is
+      TC : PolyORB.Any.TypeCode.Object;
+      Result : PolyORB.Any.Any;
+   begin
+      --  Construct exception typecode
+      TC := System_Exception_TypeCode (Name);
+
+      Result := Get_Empty_Any_Aggregate (TC);
+      Add_Aggregate_Element (Result, To_Any (Member.Minor));
+      Add_Aggregate_Element (Result, To_Any (Member.Completed));
+
+      return Result;
+   end To_Any;
+
    -----------------------------
    -- User exception handling --
    -----------------------------
@@ -93,51 +260,6 @@ package body PolyORB.Exceptions is
 
    All_Exceptions_Lock : Mutex_Access;
    --  Mutex used to safely access All_Exceptions list.
-
-   ----------------------------
-   -- Default_Raise_From_Any --
-   ----------------------------
-
-   procedure Default_Raise_From_Any
-     (Occurrence : Any.Any)
-   is
-      use PolyORB.Any;
-   begin
-      if not Is_Empty (Occurrence) then
-         Ada.Exceptions.Raise_Exception
-           (Get_ExcepId_By_RepositoryId
-              (To_Standard_String
-                 (TypeCode.Id (Get_Type (Occurrence)))));
-      end if;
-   end Default_Raise_From_Any;
-
-   -----------------------------------
-   -- Raise_User_Exception_From_Any --
-   -----------------------------------
-
-   procedure Raise_User_Exception_From_Any
-     (Repository_Id : PolyORB.Types.RepositoryId;
-      Occurence     : PolyORB.Any.Any) is
-   begin
-      Find_Exception_Info (Repository_Id).Raiser.all (Occurence);
-   end Raise_User_Exception_From_Any;
-
-   ------------------------
-   -- Register_Exception --
-   ------------------------
-
-   procedure Register_Exception
-     (TC     : in PolyORB.Any.TypeCode.Object;
-      Raiser : in Raise_From_Any_Procedure) is
-   begin
-      pragma Debug
-        (O ("Registering exception: "
-            & Types.To_Standard_String (TypeCode.Id (TC))));
-
-      Enter (All_Exceptions_Lock);
-      Exception_Lists.Append (All_Exceptions, (TC => TC, Raiser => Raiser));
-      Leave (All_Exceptions_Lock);
-   end Register_Exception;
 
    ----------------------
    -- User_Get_Members --
@@ -165,6 +287,51 @@ package body PolyORB.Exceptions is
      (Id      : Ada.Exceptions.Exception_Id;
       Members : Exception_Members'Class)
      renames PolyORB.Exceptions.Stack.Raise_Exception;
+
+   -----------------------------------
+   -- Raise_User_Exception_From_Any --
+   -----------------------------------
+
+   procedure Raise_User_Exception_From_Any
+     (Repository_Id : PolyORB.Types.RepositoryId;
+      Occurence     : PolyORB.Any.Any) is
+   begin
+      Find_Exception_Info (Repository_Id).Raiser.all (Occurence);
+   end Raise_User_Exception_From_Any;
+
+   ----------------------------
+   -- Default_Raise_From_Any --
+   ----------------------------
+
+   procedure Default_Raise_From_Any
+     (Occurrence : Any.Any)
+   is
+      use PolyORB.Any;
+   begin
+      if not Is_Empty (Occurrence) then
+         Ada.Exceptions.Raise_Exception
+           (Get_ExcepId_By_RepositoryId
+              (To_Standard_String
+                 (TypeCode.Id (Get_Type (Occurrence)))));
+      end if;
+   end Default_Raise_From_Any;
+
+   ------------------------
+   -- Register_Exception --
+   ------------------------
+
+   procedure Register_Exception
+     (TC     : in PolyORB.Any.TypeCode.Object;
+      Raiser : in Raise_From_Any_Procedure) is
+   begin
+      pragma Debug
+        (O ("Registering exception: "
+            & Types.To_Standard_String (TypeCode.Id (TC))));
+
+      Enter (All_Exceptions_Lock);
+      Exception_Lists.Append (All_Exceptions, (TC => TC, Raiser => Raiser));
+      Leave (All_Exceptions_Lock);
+   end Register_Exception;
 
    -------------------------
    -- Find_Exception_Info --
@@ -206,9 +373,47 @@ package body PolyORB.Exceptions is
       return Info;
    end Find_Exception_Info;
 
-   -------------------------------
-   -- System exception handling --
-   -------------------------------
+   ---------------------------------
+   -- Exception utility functions --
+   ---------------------------------
+
+   --------------------------------
+   -- Exception_Name_To_Error_Id --
+   --------------------------------
+
+   procedure Exception_Name_To_Error_Id
+     (Name     :     String;
+      Is_Error : out Boolean;
+      Id       : out Error_Id)
+   is
+      Prefix_Length : constant Natural := PolyORB_Exc_Prefix'Length;
+      Version_Length : constant Natural
+        := To_Standard_String (PolyORB_Exc_Version)'Length;
+
+   begin
+      if Name'Length > Prefix_Length + Version_Length
+        and then Name (Name'First .. Name'First + Prefix_Length - 1)
+        = PolyORB_Exc_Prefix
+      then
+         declare
+            Error_Id_Name : constant String
+              := Name (Name'First + Prefix_Length ..
+                       Name'Last - Version_Length) & "_E";
+
+         begin
+            pragma Debug (O ("Error_Id_Name : " & Error_Id_Name));
+
+            Is_Error := True;
+            Id := Error_Id'Value (Error_Id_Name);
+         end;
+      else
+         Is_Error := False;
+         Id := No_Error;
+      end if;
+
+      pragma Debug (O (Name & " is a PolyORB error ? "
+                       & Boolean'Image (Is_Error)));
+   end Exception_Name_To_Error_Id;
 
    --------------------
    -- Exception_Name --
@@ -285,169 +490,6 @@ package body PolyORB.Exceptions is
 
       return PolyORB.Types.To_PolyORB_String (Name);
    end Occurrence_To_Name;
-
-   --------------------------
-   -- TC_Completion_Status --
-   --------------------------
-
-   TC_Completion_Status_Cache : TypeCode.Object;
-
-   function TC_Completion_Status
-     return PolyORB.Any.TypeCode.Object
-   is
-      use type PolyORB.Types.Unsigned_Long;
-
-      TC : TypeCode.Object renames TC_Completion_Status_Cache;
-
-   begin
-      if TypeCode.Parameter_Count (TC) /= 0 then
-         return TC_Completion_Status_Cache;
-      end if;
-
-      TC := TypeCode.TC_Enum;
-      TypeCode.Add_Parameter
-        (TC, To_Any (To_PolyORB_String ("completion_status")));
-      TypeCode.Add_Parameter
-        (TC, To_Any (To_PolyORB_String
-                     ("IDL:omg.org/CORBA/completion_status:1.0")));
-
-      for C in Completion_Status'Range loop
-         TypeCode.Add_Parameter
-           (TC, To_Any (To_PolyORB_String (Completion_Status'Image (C))));
-      end loop;
-
-      return TC;
-   end TC_Completion_Status;
-
-   ------------
-   -- To_Any --
-   ------------
-
-   function To_Any
-     (Item : Completion_Status)
-     return Any.Any
-   is
-      Result : Any.Any := Get_Empty_Any_Aggregate (TC_Completion_Status);
-   begin
-      Add_Aggregate_Element
-        (Result, To_Any (Unsigned_Long (Completion_Status'Pos (Item))));
-      return Result;
-   end To_Any;
-
-   --------------
-   -- From_Any --
-   --------------
-
-   function From_Any
-     (Item : PolyORB.Any.Any)
-     return Completion_Status is
-   begin
-      return Completion_Status'Val
-        (Unsigned_Long'
-         (From_Any (PolyORB.Any.Get_Aggregate_Element
-                    (Item, TC_Unsigned_Long, 0))));
-   end From_Any;
-
-   -------------------------------
-   -- System_Exception_TypeCode --
-   -------------------------------
-
-   function System_Exception_TypeCode
-     (Name : Standard.String)
-     return Any.TypeCode.Object
-   is
-      TC    : TypeCode.Object := TypeCode.TC_Except;
-      Shift : Natural := 0;
-
-      Repository_Id : PolyORB.Types.String;
-   begin
-      --  Name
-      TypeCode.Add_Parameter (TC, To_Any (To_PolyORB_String (Name)));
-
-      if Name (Name'First .. Name'First + PolyORB_Exc_Root'Length - 1)
-        = PolyORB_Exc_Root then
-         Shift := PolyORB_Exc_Root'Length + 1;
-      end if;
-
-      --  RepositoryId : 'INTERNAL:<Name>:1.0'
-      Repository_Id := To_PolyORB_String (PolyORB_Exc_Prefix)
-        & To_PolyORB_String (Name (Name'First + Shift .. Name'Last))
-        & PolyORB_Exc_Version;
-
-      TypeCode.Add_Parameter (TC, To_Any (Repository_Id));
-
-      --  Component 'minor'
-      TypeCode.Add_Parameter
-        (TC, To_Any (TC_Unsigned_Long));
-      TypeCode.Add_Parameter
-        (TC, To_Any (To_PolyORB_String ("minor")));
-
-      --  Component 'completed'
-      TypeCode.Add_Parameter
-        (TC, To_Any (TC_Completion_Status));
-      TypeCode.Add_Parameter
-        (TC, To_Any (To_PolyORB_String ("completed")));
-
-      pragma Debug (O ("Built Exception TypeCode for: "
-                       & To_Standard_String (Repository_Id)));
-      pragma Debug (O (" " & PolyORB.Any.Image (TC)));
-
-      return TC;
-   end System_Exception_TypeCode;
-
-   ------------
-   -- To_Any --
-   ------------
-
-   function To_Any
-     (Name   : Standard.String;
-      Member : System_Exception_Members)
-     return PolyORB.Any.Any
-   is
-      TC : PolyORB.Any.TypeCode.Object;
-      Result : PolyORB.Any.Any;
-   begin
-      --  Construct exception typecode
-      TC := System_Exception_TypeCode (Name);
-
-      Result := Get_Empty_Any_Aggregate (TC);
-      Add_Aggregate_Element (Result, To_Any (Member.Minor));
-      Add_Aggregate_Element (Result, To_Any (Member.Completed));
-
-      return Result;
-   end To_Any;
-
-   function To_Any
-     (Name   : Standard.String;
-      Member : Null_Members)
-     return PolyORB.Any.Any
-   is
-      pragma Warnings (Off); --  WAG:3.15
-      pragma Unreferenced (Member);
-      pragma Warnings (On); --  WAG:3.15
-
-      TC : TypeCode.Object := TypeCode.TC_Except;
-      Shift : Natural := 0;
-
-      Repository_Id : PolyORB.Types.String;
-   begin
-      --  Name
-      TypeCode.Add_Parameter (TC, To_Any (To_PolyORB_String (Name)));
-
-      if Name (Name'First .. Name'First + PolyORB_Exc_Root'Length - 1)
-        = PolyORB_Exc_Root then
-         Shift := PolyORB_Exc_Root'Length + 1;
-      end if;
-
-      --  RepositoryId : 'INTERNAL:<Name>:1.0'
-      Repository_Id := To_PolyORB_String (PolyORB_Exc_Prefix)
-        & To_PolyORB_String (Name (Name'First + Shift .. Name'Last))
-        & PolyORB_Exc_Version;
-
-      TypeCode.Add_Parameter (TC, To_Any (Repository_Id));
-
-      return Get_Empty_Any_Aggregate (TC);
-   end To_Any;
 
    -----------------------------------------------
    -- PolyORB Internal Error handling functions --
@@ -591,6 +633,5 @@ begin
        Depends => +"tasking.soft_links",
        Provides => Empty,
        Init => Initialize'Access));
-
 
 end PolyORB.Exceptions;

@@ -41,15 +41,14 @@
 --  An 'exception' is one possible result of the execution of a
 --  personality-specific function or procedure. It is either raised
 --  within application personality context, or returned in the request
---  response message. User and System exceptions follow CORBA definition
---  of exceptions kinds.
+--  response message.
 --
 --  When raised, 'exception' is built from 'error' information,
 --  translated to personality specific context.
 
 --  PolyORB's core middleware should not raise exceptions, except Ada
 --  standard exceptions ad defined in the Ada Reference Manual. It
---  should use instead 'error' as defined in the Error_Container type.
+--  should return a non null Error_Container.
 
 --  $Id$
 
@@ -299,6 +298,12 @@ package PolyORB.Exceptions is
    ---------------------------------
    -- Exception utility functions --
    ---------------------------------
+
+   procedure Exception_Name_To_Error_Id
+     (Name     :     String;
+      Is_Error : out Boolean;
+      Id       : out Error_Id);
+   --  Convert an exception name into a PolyORB's Error Id.
 
    function Occurrence_To_Name
      (Occurrence : Ada.Exceptions.Exception_Occurrence)
