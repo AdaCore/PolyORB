@@ -464,9 +464,7 @@ package body Idl_Fe.Parser is
                Go_To_Next_Definition;
             elsif Definition /= No_Node then
                Def_Nb := Def_Nb + 1;
-               Set_Contents (Result,
-                             Append_Node (Contents (Result),
-                                          Definition));
+               Append_Node_To_Contents (Result, Definition);
             end if;
          end loop;
          if Def_Nb = 0 then
@@ -740,10 +738,7 @@ package body Idl_Fe.Parser is
                         --  try to parse a definition
                         Parse_Definition (Definition, Definition_Result);
                         if Definition_Result then
-                           --  successfull
-                           Set_Contents (Result,
-                                         Append_Node (Contents (Result),
-                                                      Definition));
+                           Append_Node_To_Contents (Result, Definition);
                         else
                            --  failed
                            Go_To_Next_Definition;
@@ -1099,10 +1094,7 @@ package body Idl_Fe.Parser is
                      --  define an attribute or an operation already
                      --  defined in a previouly imported one.
                      if Interface_Is_Importable (Name, Result) then
-                        --  add it to the parent list
-                        Set_Parents (Result,
-                                     Append_Node (Parents (Result),
-                                                  Name));
+                        Append_Node_To_Parents (Result, Name);
                      else
                         --  one of the attribute or operation of the
                         --  new interface to be imported was already
@@ -1859,7 +1851,7 @@ package body Idl_Fe.Parser is
                   return;
                end if;
             else
-               Set_Contents (Result, Append_Node (Contents (Result), Element));
+               Append_Node_To_Contents (Result, Element);
             end if;
          end;
       end loop;
@@ -2061,9 +2053,8 @@ package body Idl_Fe.Parser is
                               Get_Token_Location);
                         end if;
                      end if;
-                     Set_Parents (Result,
-                                  Append_Node (Parents (Result),
-                                               Name));
+                     Append_Node_To_Parents (Result, Name);
+
                   when K_Forward_ValueType =>
                      Errors.Error
                        ("A value may not inherit from a forward declared" &
@@ -2131,9 +2122,7 @@ package body Idl_Fe.Parser is
                                  Errors.Error,
                                  Get_Token_Location);
                            end if;
-                           Set_Parents (Result,
-                                        Append_Node (Parents (Result),
-                                                     Name));
+                           Append_Node_To_Parents (Result, Name);
                         end if;
                      when K_Forward_ValueType =>
                         Errors.Error
@@ -2195,9 +2184,7 @@ package body Idl_Fe.Parser is
                            if not Abst (Value (Name)) then
                               Non_Abstract_Interface := True;
                            end if;
-                           Set_Supports (Result,
-                                         Append_Node (Supports (Result),
-                                                      Name));
+                           Append_Node_To_Supports (Result, Name);
                         when K_Forward_Interface =>
                            Errors.Error
                              ("A value may not support a forward declared" &
@@ -2264,10 +2251,7 @@ package body Idl_Fe.Parser is
                                        Non_Abstract_Interface := True;
                                     end if;
                                  end if;
-                                 Set_Supports
-                                   (Result,
-                                    Append_Node (Supports (Result),
-                                                 Name));
+                                 Append_Node_To_Supports (Result, Name);
                               end if;
                            when K_Forward_Interface =>
                               Errors.Error
@@ -5633,7 +5617,7 @@ package body Idl_Fe.Parser is
             if not Case_Success then
                Go_To_End_Of_Case_Label;
             else
-               Set_Labels (Result, Append_Node (Labels (Result), Case_Label));
+               Append_Node_To_Labels (Result, Case_Label);
                if Case_Label = No_Node then
                   Default_Label := True;
                end if;
@@ -5830,10 +5814,7 @@ package body Idl_Fe.Parser is
                if Get_Token = T_Pragma then
                   Parse_Pragma (Enum, Success);
                   if Success then
-                     Set_Enumerators
-                       (Result, Append_Node
-                        (Enumerators (Result),
-                         Enum));
+                     Append_Node_To_Enumerators (Result, Enum);
                   end if;
                else
                   Parse_Enumerator (Enum, Success);
@@ -5850,9 +5831,7 @@ package body Idl_Fe.Parser is
                         Errors.Error,
                         Get_Token_Location);
                   end if;
-                  Set_Enumerators
-                    (Result,
-                     Append_Node (Enumerators (Result), Enum));
+                  Append_Node_To_Enumerators (Result, Enum);
 
                   if Get_Token = T_Comma then
                      Next_Token;
@@ -6156,9 +6135,7 @@ package body Idl_Fe.Parser is
                pragma Debug (O2 ("Parse_Array_Declarator: end"));
                return;
             end if;
-            Set_Array_Bounds (Result,
-                              Append_Node (Array_Bounds (Result),
-                                           Expr));
+            Append_Node_To_Array_Bounds (Result, Expr);
          end;
       end loop;
       pragma Debug (O2 ("Parse_Array_Declarator: end"));
@@ -6253,7 +6230,7 @@ package body Idl_Fe.Parser is
             Success := False;
             return;
          else
-            Set_Declarators (El, Append_Node (Declarators (El), Res));
+            Append_Node_To_Declarators (El, Res);
          end if;
       end;
       while Get_Token = T_Comma loop
@@ -6267,7 +6244,7 @@ package body Idl_Fe.Parser is
                Success := False;
                return;
             else
-               Set_Declarators (El, Append_Node (Declarators (El), Res));
+               Append_Node_To_Declarators (El, Res);
             end if;
          end;
       end loop;
@@ -6351,7 +6328,7 @@ package body Idl_Fe.Parser is
                   return;
                end if;
             else
-               Set_Members (Result, Append_Node (Members (Result), Mem));
+               Append_Node_To_Members (Result, Mem);
             end if;
          end;
       end loop;

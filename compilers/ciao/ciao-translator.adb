@@ -19,7 +19,7 @@
 --  This unit generates a decorated IDL tree
 --  by traversing the ASIS tree of a DSA package
 --  specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#8 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#9 $
 
 with Ada.Exceptions;
 with Ada.Wide_Text_IO;  use Ada.Wide_Text_IO;
@@ -43,7 +43,6 @@ with CIAO.ASIS_Queries; use CIAO.ASIS_Queries;
 --  with CIAO.Nlists;       use CIAO.Nlists;
 with Idl_Fe.Types; use Idl_Fe.Types;
 with Idl_Fe.Tree;  use Idl_Fe.Tree;
-with Idl_Fe.Utils; use Idl_Fe.Utils;
 with Errors;       use Errors;
 
 with CIAO.Translator.Maps;  use CIAO.Translator.Maps;
@@ -273,25 +272,17 @@ package body CIAO.Translator is
             Control := Abandon_Children;
 
          when A_Defining_Name =>
---             declare
---                Success : Boolean;
---                Name : constant String := Map_Defining_Name (Element);
---             begin
---                Success := Add_Identifier (State.Current_Node, Name);
---                if not Success then
---                   Raise_Translation_Error
---                     (Element, "Could not add identifier " & Name);
---                end if;
---             end;
-
-            Control := Abandon_Children;
+            Raise_Translation_Error
+              (Element, "Unexpected element (A_Defining_Name).");
             --  Must have been translated explicitly when processing
             --  the enclosing declaration.
 
          when A_Declaration =>
             Process_Declaration (Element, Control, State);
+
          when A_Definition =>
             Process_Definition (Element, Control, State);
+
          when An_Expression =>
             --  In this version of CIAO, whenever an expression
             --  can be encountered, it is a usage occurrence of
@@ -302,10 +293,19 @@ package body CIAO.Translator is
             Raise_Translation_Error
               (Element, "Unexpected element (An_Expression).");
 
-            --  Process_Expression (Element, Control, State);
          when An_Association =>
-            --  XXX
-            null;
+            --  In a DSA unit declaration, An_Association can occur
+            --  in a discriminant_constraint in a member or subtype
+            --  definition. Such a constraint is not translated,
+            --  therefore this point should never be reached (but
+            --  the generated helper code might later consult
+            --  explicitly the constraints of a declaration to ensure
+            --  validity of an object when converting it from an external
+            --  representation (Any or marshalled data stream) to its
+            --  native representation
+            Raise_Translation_Error
+              (Element, "Unexpected element (An_Association).");
+
          when A_Clause =>
             --  XXX
             Control := Abandon_Children;
@@ -313,7 +313,6 @@ package body CIAO.Translator is
    exception
       when Ex : others =>
          Put_Line ("Unexpected exception in Pre_Translate_Element:");
-         Put_Line (To_Wide_String (Ada.Exceptions.Exception_Name (Ex)) & ":");
          Put_Line (To_Wide_String (Ada.Exceptions.Exception_Information (Ex)));
 
          raise;
@@ -603,9 +602,7 @@ package body CIAO.Translator is
                           := Make_Declarator (No_Location);
                      begin
                         Set_Parent (Declarator_Node, Node);
-                        Set_Declarators
-                          (Node, Append_Node (Declarators (Node),
-                                              Declarator_Node));
+                        Append_Node_To_Declarators (Node, Declarator_Node);
                         Set_Translation (Element, Declarator_Node);
                         --  The translation of a type declaration is
                         --  a <declarator> in a <type_dcl>.
@@ -832,14 +829,13 @@ package body CIAO.Translator is
                end if;
 
                Node := Make_Member (No_Location);
-               Set_Members
-                 (State.Current_Node,
-                  Append_Node (Members (State.Current_Node), Node));
+               Append_Node_To_Members (State.Current_Node, Node);
 
                for I in Defining_Names'Range loop
                   Declarator_Node := Make_Declarator (No_Location);
                   Set_Parent (Declarator_Node, Node);
-                  Set_Decl (Node, Append_Node (Decl (Node), Declarator_Node));
+                  Append_Node_To_Decl (Node, Declarator_Node);
+
                   Success := Add_Identifier
                     (Declarator_Node, Map_Defining_Name (Defining_Name));
                   pragma Assert (Success);
@@ -927,7 +923,7 @@ package body CIAO.Translator is
                         --  Obtain the corresponding <interface_dcl> node.
 
                         --  XXX For now, we do not check whether this operation
-                        --  overrides another with a different signature. In
+                        --  overloads another with a different signature. In
                         --  that case, a non-conformant IDL tree is produced
                         --  (it contains overloaded operation declarations).
                         Interface_Dcl_Node
@@ -1196,8 +1192,28 @@ package body CIAO.Translator is
             null;
 
          when A_Variant_Part =>                --  3.8.1(2)
-            --  XXX TODO
-            null;
+            declare
+               Member_Node : constant Node_Id := Make_Member (No_Location);
+               Union_Node : constant Node_Id := Make_Union (No_Location);
+            begin
+               Append_Node_To_Members (State.Current_Node, Member_Node);
+               --  Add_Identifier_With_Renaming (Member_Node, "variant");
+               raise Program_Error;
+
+--                Set_M_Type (Member_Node, Union_Node);
+
+--                Set_Switch_Type
+--                  (Union_Node,
+--                   Translate_Subtype_Mark
+--                   (Discriminant_Subtype_Mark
+--                    (Corresponding_Entity_Name_Declaration
+--                     (Discriminant_Direct_Name (Element)))));
+--                Set_Translation (Element, Union_Node);
+--                Set_Previous_Current_Node (Element, State.Current_Node);
+--                State.Current_Node := Union_Node;
+
+               --  Process children recursively.
+            end;
 
          when A_Variant =>                     --  3.8.1(3)
             --  XXX TODO
@@ -1516,20 +1532,12 @@ package body CIAO.Translator is
                      ----------------------------------------------------------
 
                      Member_Node := Make_Member (No_Location);
-                     Set_Members
-                       (Struct_Type_Node,
-                        Append_Node
-                        (Members (Struct_Type_Node),
-                         Member_Node));
+                     Append_Node_To_Members (Struct_Type_Node, Member_Node);
                      Set_M_Type (Member_Node, Base_Type (Root_Integer));
 
                      Declarator_Node := Make_Declarator (No_Location);
                      Set_Parent (Declarator_Node, Member_Node);
-                     Set_Decl
-                       (Member_Node,
-                        Append_Node
-                        (Decl (Member_Node),
-                         Declarator_Node));
+                     Append_Node_To_Decl (Member_Node, Declarator_Node);
 
                      if Dimensions = 1 then
                         Success := Add_Identifier
@@ -1567,20 +1575,12 @@ package body CIAO.Translator is
                      --------------------------------------------------
 
                      Member_Node := Make_Member (No_Location);
-                     Set_Members
-                       (Struct_Type_Node,
-                        Append_Node
-                        (Members (Struct_Type_Node),
-                         Member_Node));
+                     Append_Node_To_Members (Struct_Type_Node, Member_Node);
                      Set_M_Type (Member_Node, Base_Type (Root_Integer));
 
                      Declarator_Node := Make_Declarator (No_Location);
                      Set_Parent (Declarator_Node, Member_Node);
-                     Set_Decl
-                       (Member_Node,
-                        Append_Node
-                        (Decl (Member_Node),
-                         Declarator_Node));
+                     Append_Node_To_Decl (Member_Node, Declarator_Node);
 
                      Success := Add_Identifier
                        (Declarator_Node, "Array_Values");

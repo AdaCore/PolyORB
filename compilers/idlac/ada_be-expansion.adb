@@ -28,7 +28,6 @@ with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 with Idl_Fe.Tree.Low_Level; use Idl_Fe.Tree.Low_Level;
-with Idl_Fe.Utils;          use Idl_Fe.Utils;
 
 with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
 with Ada_Be.Debug;

@@ -126,7 +126,7 @@ for name in f:
     kinds = fields [name]
     spec.append ("   function %s (N : Node_Id) return %s;" % (name, type))
     spec.append ("   procedure Set_%s (N : Node_Id; V : %s);" % (name, type))
-    spec.append ("")
+
     body.append ("   function %s (N : Node_Id) return %s is" % (name, type))
     body.append ("      Node : constant Node_Access := Nodes_Table.Table (N);")
     body.append ("   begin")
@@ -154,7 +154,20 @@ for name in f:
     body.append ("      Node.%s := V;" % name)
     body.append ("   end Set_%s;" % name)
     body.append ("")
-
+    if type == "Node_List":
+        spec.append ("   procedure Append_Node_To_%s" % (name))
+        spec.append ("     (N : Node_Id; V : Node_Id);")
+        
+        body.append ("   procedure Append_Node_To_%s" % (name))
+        body.append ("     (N : Node_Id; V : Node_Id)")
+        body.append ("   is")
+        body.append ("   begin")
+        body.append ("      Set_%s" % (name))
+        body.append ("        (N, Append_Node (%s (N), V));" % (name))
+        body.append ("   end Append_Node_To_%s;" % (name))
+        body.append ("")
+        
+    spec.append ("")        
 # with Nodes;      use Nodes;
 print """with GNAT.Table;
 with Idl_Fe.Types; use Idl_Fe.Types;
