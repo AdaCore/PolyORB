@@ -34,8 +34,8 @@ package Droopi.Protocols.GIOP.GIOP_1_2 is
      (Buffer       : access Buffers.Buffer_Type;
       Message_Type : in Msg_Type;
       Message_Size : in Stream_Element_Offset;
+      --  Total message size (including GIOP header).
       Fragment_Next : in Boolean);
-
 
    procedure Marshall_Request_Message
      (Buffer             : access Buffers.Buffer_Type;

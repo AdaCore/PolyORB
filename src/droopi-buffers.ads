@@ -1,6 +1,6 @@
 --  Buffer management
 
---  $Id: //droopi/main/src/droopi-buffers.ads#11 $
+--  $Id: //droopi/main/src/droopi-buffers.ads#12 $
 
 with System;
 --  For bit-order information.
@@ -68,16 +68,22 @@ package Droopi.Buffers is
    --  must be no less than the lifespan of the
    --  resulting buffer.
 
-   procedure Prepend
-     (Prefix : in Buffer_Type;
-      Buffer : access Buffer_Type);
-   --  Prepend the contents of Prefix at the beginning of
-   --  Buffer. The CDR position of the last element in Prefix
-   --  must be just before the CDR position of the first
-   --  element in Buffer. The endiannesses of both buffers
-   --  must match.
-   --  The lifespan of Prefix must be no less than the
-   --  lifespan of Buffer.
+   type Reservation is private;
+   function Reserve
+     (Buffer : access Buffer_Type;
+      Amount : Stream_Element_Count)
+     return Reservation;
+   --  Reserve Amount contiguous bytes in Buffer at the current
+   --  position, to be filled later through a call to Copy_Data.
+   --  The position of the reservation is the current position
+   --  in Buffer before the call. The length of the reservation
+   --  is Amount.
+
+   procedure Copy_Data
+     (From : in Buffer_Type;
+      Into : Reservation);
+   --  Fill reservation Into using the data from From.
+   --  The position and length of From and Into must match.
 
    function Copy
      (Buffer : access Buffer_Type)
@@ -278,6 +284,15 @@ private
       Last_Used : Stream_Element_Offset := 0;
       --  The index within the chunk of the last
       --  used element.
+   end record;
+
+   --  A space pre-reservation within a buffer.
+
+   type Reservation is record
+      Location     : Opaque_Pointer;
+      Endianness   : Endianness_Type;
+      CDR_Position : Stream_Element_Offset;
+      Length       : Stream_Element_Count;
    end record;
 
    Null_Buffer_Chunk_Metadata : constant Buffer_Chunk_Metadata

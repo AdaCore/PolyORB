@@ -33,6 +33,7 @@ package Droopi.Protocols.GIOP.GIOP_1_1  is
      (Buffer        : access Buffers.Buffer_Type;
       Message_Type  : in Msg_Type;
       Message_Size  : in Stream_Element_Offset;
+      --  Total message size (including GIOP header).
       Fragment_Next : in Boolean);
 
 
@@ -71,7 +72,7 @@ package Droopi.Protocols.GIOP.GIOP_1_1  is
      (Buffer            : access Buffers.Buffer_Type;
       Request_Id        : out Types.Unsigned_Long;
       Response_Expected : out Boolean;
-      Object_Key        : out Objects.Object_Id;
+      Object_Key        : out Objects.Object_Id_Access;
       Operation         : out Types.String);
 
    procedure Unmarshall_Reply_Message

@@ -71,8 +71,9 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       Marshall (Buffer, Message_Type);
 
       --  Message size
-      Marshall (Buffer, Types.Unsigned_Long (Message_Size));
-
+      Marshall
+        (Buffer,
+         Types.Unsigned_Long (Message_Size - Message_Header_Size));
    end Marshall_GIOP_Header;
 
 

@@ -41,19 +41,25 @@ package body Droopi.Filters.Slicers is
          declare
             DEM : Data_Expected renames Data_Expected (S);
          begin
+            pragma Debug (O ("Expecting" & DEM.Max'Img
+                             & " bytes."));
 
-            pragma Assert (F.Data_Expected = 0
-                           and then F.In_Buf = null);
+            pragma Assert (True
+              and then F.Data_Expected = 0
+              and then F.In_Buf = null
+              and then DEM.Max /= 0
+              and then DEM.In_Buf /= null);
+
             F.Data_Expected := DEM.Max;
             F.In_Buf := DEM.In_Buf;
             F.Buffer_Length := Length (F.In_Buf);
-            pragma Debug (O ("Expecting" & F.Data_Expected'Img
-                             & " bytes."));
+
             return Emit
               (F.Lower,
                Data_Expected'
                (Max => F.Data_Expected, In_Buf => F.In_Buf));
          end;
+
       elsif S in Data_Indication then
          declare
             Data_Received : constant Stream_Element_Count

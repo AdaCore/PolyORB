@@ -115,20 +115,36 @@ package body Droopi.Buffers is
       Buffer.Length := Size;
    end Initialize_Buffer;
 
-   procedure Prepend
-     (Prefix : in Buffer_Type;
-      Buffer : access Buffer_Type) is
+   function Reserve
+     (Buffer : access Buffer_Type;
+      Amount : Stream_Element_Count)
+     return Reservation
+   is
+      Copy_Address : Opaque_Pointer;
+      Initial_Position : constant Stream_Element_Offset
+        := Buffer.CDR_Position;
+   begin
+      Allocate_And_Insert_Cooked_Data
+        (Buffer, Amount, Copy_Address);
+
+      return Reservation'
+        (Location     => Copy_Address,
+         Endianness   => Buffer.Endianness,
+         CDR_Position => Initial_Position,
+         Length       => Amount);
+   end Reserve;
+
+   procedure Copy_Data
+     (From : in Buffer_Type;
+      Into : Reservation) is
    begin
       pragma Assert (True
-        and then Prefix.Endianness = Buffer.Endianness
-        and then Prefix.CDR_Position = Buffer.Initial_CDR_Position);
+        and then From.Endianness   = Into.Endianness
+        and then From.Initial_CDR_Position = Into.CDR_Position
+        and then From.Length       = Into.Length);
 
-      Iovec_Pools.Prepend_Pool (Prefix.Contents, Buffer.Contents);
-
-      Buffer.Initial_CDR_Position := Prefix.Initial_CDR_Position;
-
-      Buffer.Length := Buffer.Length + Prefix.Length;
-   end Prepend;
+      Iovec_Pools.Dump (From.Contents, Into.Location);
+   end Copy_Data;
 
    function Copy
      (Buffer : access Buffer_Type)

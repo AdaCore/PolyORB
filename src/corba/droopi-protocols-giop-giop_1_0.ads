@@ -27,7 +27,7 @@ package Droopi.Protocols.GIOP.GIOP_1_0 is
      (Buffer       : access Buffers.Buffer_Type;
       Message_Type : in Msg_Type;
       Message_Size : in Stream_Element_Offset);
-
+      --  Total message size (including GIOP header).
 
    procedure Marshall_Request_Message
      (Buffer            : access Buffers.Buffer_Type;
@@ -35,7 +35,6 @@ package Droopi.Protocols.GIOP.GIOP_1_0 is
       Target_Profile    : in Binding_Data.Profile_Access;
       Response_Expected : in Boolean;
       Operation         : in Requests.Operation_Id);
-
 
    procedure Marshall_No_Exception
     (Buffer      : access Buffers.Buffer_Type;
@@ -63,7 +62,7 @@ package Droopi.Protocols.GIOP.GIOP_1_0 is
      (Buffer            : access Buffers.Buffer_Type;
       Request_Id        : out Types.Unsigned_Long;
       Response_Expected : out Boolean;
-      Object_Key        : out Objects.Object_Id;
+      Object_Key        : out Objects.Object_Id_Access;
       Operation         : out Types.String);
 
 

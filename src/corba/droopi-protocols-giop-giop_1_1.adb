@@ -44,7 +44,8 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
    --------------------------
    -- Marshall_GIOP_Header --
    --------------------------
-   --  we must redefine this procedure of Marshalling different from GIOP 1.0
+
+   --  This is different from GIOP 1.0 and must be redefined.
 
    procedure Marshall_GIOP_Header
      (Buffer        : access Buffer_Type;
@@ -79,8 +80,9 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
       Marshall (Buffer, Message_Type);
 
       --  Message size
-      Marshall (Buffer, Types.Unsigned_Long (Message_Size));
-
+      Marshall
+        (Buffer,
+         Types.Unsigned_Long (Message_Size - Message_Header_Size));
    end  Marshall_GIOP_Header;
 
 
@@ -256,7 +258,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
      (Buffer            : access Buffer_Type;
       Request_Id        : out Types.Unsigned_Long;
       Response_Expected : out Boolean;
-      Object_Key        : out Objects.Object_Id;
+      Object_Key        : out Objects.Object_Id_Access;
       Operation         : out Types.String)
    is
       use Droopi.Objects;
@@ -290,7 +292,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
       declare
          Obj : Stream_Element_Array := Unmarshall (Buffer);
       begin
-         Object_Key := Object_Id (Obj);
+         Object_Key := new Object_Id'(Object_Id (Obj));
       end;
 
       --  Operation

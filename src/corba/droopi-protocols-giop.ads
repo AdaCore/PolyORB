@@ -366,10 +366,6 @@ package Droopi.Protocols.GIOP is
      (Proto   : access GIOP_Protocol;
       Session : out Filter_Access);
 
-   procedure Initialise_Session
-      (S       : access GIOP_Session;
-       Role    : ORB.Endpoint_Role);
-
    procedure Invoke_Request (S : access GIOP_Session;
                  R : Requests.Request_Access);
 

@@ -87,7 +87,9 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
       Marshall (Buffer, Message_Type);
 
       --  Message size
-      Marshall (Buffer, Types.Unsigned_Long (Message_Size));
+      Marshall
+        (Buffer,
+         Types.Unsigned_Long (Message_Size - Message_Header_Size));
 
    end Marshall_GIOP_Header;
 
@@ -210,7 +212,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
      (Buffer            : access Buffer_Type;
       Request_Id        : out Types.Unsigned_Long;
       Response_Expected : out Boolean;
-      Object_Key        : out Objects.Object_Id;
+      Object_Key        : out Objects.Object_Id_Access;
       Operation         : out Types.String)
    is
       Service_Context : Types.Unsigned_Long := Unmarshall (Buffer);
@@ -233,7 +235,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
       declare
          Obj : Stream_Element_Array := Unmarshall (Buffer);
       begin
-         Object_Key := Object_Id (Obj);
+         Object_Key := new Object_Id'(Object_Id (Obj));
       end;
       --  Operation
       Operation :=  Unmarshall (Buffer);
@@ -241,8 +243,6 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
       --  Principal
       Principal :=  Unmarshall (Buffer);
    end Unmarshall_Request_Message;
-
-
 
    ---------------------------------------
    --- Reply Message Unmarshall ----------
