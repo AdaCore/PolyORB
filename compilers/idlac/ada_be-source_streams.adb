@@ -291,7 +291,7 @@ package body Ada_Be.Source_Streams is
       begin
          Put_Line (File, "----------------------------------------------");
          Put_Line (File, "--  This file has been generated automatically");
-         Put_Line (File, "--  by AdaBroker (http://adabroker.eu.org/)");
+         Put_Line (File, "--  by IDLAC (http://www.polyorb.eu.org/)");
          if not User_Edited then
             Put_Line (File, "--");
             Put_Line (File, "--  Do NOT hand-modify this file, as your");
