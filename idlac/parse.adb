@@ -16,6 +16,7 @@
 --  MA 02111-1307, USA.
 --
 
+--  with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Characters.Latin_1;
 with Ada.Unchecked_Deallocation;
 with Tokens; use Tokens;
@@ -1878,15 +1879,21 @@ package body Parse is
                Res.Forward := Fd_Res;
                Redefine_Identifier (Definition, Res);
             else
-               Errors.Parser_Error
-                 ("The identifier used for the interface is already "
-                  & "defined in the same scope",
-                  Errors.Error,
-                  Get_Token_Location);
-               Success := False;
-               Result := null;
-               Fd_Res := null;
-               return;
+               declare
+                  Loc : Errors.Location;
+               begin
+                  Loc := Types.Get_Location (Find_Identifier_Node.all);
+                  Errors.Parser_Error
+                    ("This interface name is already declared in" &
+                     " this scope : " &
+                     Errors.Display_Location (Loc),
+                     Errors.Error,
+                     Get_Token_Location);
+                  Success := False;
+                  Result := null;
+                  Fd_Res := null;
+                  return;
+               end;
             end if;
          else
             Fd_Res := null;
@@ -1909,13 +1916,20 @@ package body Parse is
       --  Hups, this was just a forward declaration.
       if Get_Token = T_Semi_Colon then
          if Fd_Res /= null then
-            Errors.Parser_Error
-              ("forward declaration after another one",
-               Errors.Error,
-               Get_Token_Location);
-            Success := True;
-            Result := null;
-            return;
+            declare
+               Loc : Errors.Location;
+            begin
+               Loc := Types.Get_Location (Fd_Res.all);
+               Errors.Parser_Error
+                 ("forward declaration already defined in" &
+                  " this scope : " &
+                  Errors.Display_Location (Loc),
+                  Errors.Error,
+                  Get_Token_Location);
+               Success := True;
+               Result := null;
+               return;
+            end;
          else
             Fd_Res := new N_Forward_Interface;
             Set_Location (Fd_Res.all, Get_Location (Res.all));
@@ -2084,16 +2098,23 @@ package body Parse is
    -----------------------------
    --  Go_To_Next_Definition  --
    -----------------------------
+   --  Tries to reach the beginning of the next definition.
+   --  Called when the parser encounters an error during the
+   --  parsing of a definition in order to try to continue the
+   --  parsing after the bad definition.
    procedure Go_To_Next_Definition is
    begin
-      case Get_Token is
-         when T_Module |
-           T_Interface =>
-            return;
-         when others =>
-            Next_Token;
-      end case;
+      while Get_Token /= T_Eof loop
+         case Get_Token is
+            when T_Module |
+              T_Interface =>
+               return;
+            when others =>
+               Next_Token;
+         end case;
+      end loop;
    end Go_To_Next_Definition;
+
 
    -----------------------------
    --  Go_To_Next_L_Cbracket  --
