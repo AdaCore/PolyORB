@@ -55,7 +55,6 @@ package body Locked_Queue is
       E : in     Queue_Element)
    is
    begin
-      pragma Debug (O ("adding"));
       Q.Full_Lock.Enter;
 
       Q.State_Lock.Enter;
@@ -74,7 +73,6 @@ package body Locked_Queue is
       Q.State_Lock.Leave;
 
       if Q.Count = 1 then
-         pragma Debug (O ("unlocked empty lock"));
          Q.Empty_Lock.Leave;
       end if;
 
@@ -92,9 +90,7 @@ package body Locked_Queue is
       E :    out Queue_Element)
    is
    begin
-      pragma Debug (O ("trying to get empty lock"));
       Q.Empty_Lock.Enter;
-      pragma Debug (O ("got empty lock"));
 
       --  When execution reaches this, necessarily Q.First /= null.
 
