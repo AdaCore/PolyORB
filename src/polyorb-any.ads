@@ -33,7 +33,7 @@
 
 --  Definition of the container type 'Any'
 
---  $Id: //droopi/main/src/polyorb-any.ads#37 $
+--  $Id: //droopi/main/src/polyorb-any.ads#38 $
 
 with Ada.Unchecked_Deallocation;
 
@@ -288,8 +288,7 @@ package PolyORB.Any is
 
       function Member_Type_With_Label
         (Self  : in Object;
-         Label : in Any;
-         Index : in Types.Unsigned_Long)
+         Label : in Any)
         return Object;
       --  Return the type of a given member associated with an
       --  union typecode for a given label. The index is the index
@@ -302,6 +301,7 @@ package PolyORB.Any is
         (Self  : in Object;
          Label : in Any)
          return Types.Unsigned_Long;
+      pragma Unreferenced (Member_Count_With_Label);
       --  Return the number of members associated with a typecode of
       --  kind union for a given label.
       --  Raise BadKind if Self is not an union typecode.

@@ -312,35 +312,31 @@ package body PolyORB.Representations.CDR is
             end;
 
          when Tk_Union =>
+
             declare
-               Nb : PolyORB.Types.Unsigned_Long;
-               Value, Label_Value : PolyORB.Any.Any;
-            begin
-               pragma Debug (O ("Marshall_From_Any : dealing with an union"));
-               Label_Value := Get_Aggregate_Element
+               Label_Value : constant Any.Any
+                 := Get_Aggregate_Element
                  (Data,
                   PolyORB.Any.TypeCode.Discriminator_Type (Data_Type),
-                  PolyORB.Types.Unsigned_Long (0));
-               pragma Debug (O ("Marshall_From_Any : got the label"));
+                  0);
+               Member_Value : Any.Any;
+            begin
+               pragma Debug (O ("Marshall_From_Any: dealing with a union"));
+               pragma Assert (PolyORB.Any.Get_Aggregate_Count (Data) = 2);
+
                Marshall_From_Any (Buffer, Label_Value);
-               pragma Debug (O ("Marshall_From_Any : label marshalled"));
-               Nb := PolyORB.Any.Get_Aggregate_Count (Data);
-               pragma Debug (O ("Marshall_From_Any : aggregate count = "
-                                & PolyORB.Types.Unsigned_Long'Image (Nb)));
-               if Nb > 1 then
-                  for J in 1 .. Nb - 1 loop
-                     pragma Debug (O ("Marshall_From_Any : inside loop, J = "
-                                      & Unsigned_Long'Image (J)));
-                     Value := PolyORB.Any.Get_Aggregate_Element
-                       (Data,
-                        PolyORB.Any.TypeCode.Member_Type_With_Label
-                        (Data_Type, Label_Value, J - 1),
-                        J);
-                     pragma Debug (O ("Marshall_From_Any : about "
-                                      & "to marshall from any"));
-                     Marshall_From_Any (Buffer, Value);
-                  end loop;
-               end if;
+               pragma Debug (O ("Marshall_From_Any: union label "
+                                & Any.Image (Label_Value) & " marshalled"));
+
+               Member_Value := Get_Aggregate_Element
+                  (Data,
+                   PolyORB.Any.TypeCode.Member_Type_With_Label
+                   (Data_Type, Label_Value),
+                   1);
+
+               Marshall_From_Any (Buffer, Member_Value);
+               pragma Debug (O ("Marshall_From_Any: union member value "
+                                & Any.Image (Member_Value) & " marshalled"));
             end;
 
          when Tk_Enum =>
@@ -711,7 +707,6 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Union =>
             declare
-               Nb : Unsigned_Long;
                Arg : PolyORB.Any.Any := Get_Empty_Any_Aggregate
                  (Get_Type (Result));
                Label, Val : PolyORB.Any.Any;
@@ -721,20 +716,12 @@ package body PolyORB.Representations.CDR is
                Unmarshall_To_Any (Buffer, Label);
                Add_Aggregate_Element (Arg, Label);
 
-               pragma Debug (O ("Unmarshall_To_Any : about to call "
-                                & "member_count_with_label"));
-               Nb := PolyORB.Any.TypeCode.Member_Count_With_Label (Tc, Label);
-               pragma Debug (O ("Now unmarshalling"
-                                & Unsigned_Long'Image (Nb) & " elements"));
-               if Nb /= 0 then
-                  for J in 0 .. Nb - 1 loop
-                     Val := Get_Empty_Any
-                       (TypeCode.Member_Type_With_Label
-                        (Tc, Label, J));
-                     Unmarshall_To_Any (Buffer, Val);
-                     Add_Aggregate_Element (Arg, Val);
-                  end loop;
-               end if;
+               Val := Get_Empty_Any
+                 (TypeCode.Member_Type_With_Label
+                  (Tc, Label));
+               Unmarshall_To_Any (Buffer, Val);
+               Add_Aggregate_Element (Arg, Val);
+
                Copy_Any_Value (Result, Arg);
                --  XXX Inefficient, see comment for Tk_Struct above.
             end;

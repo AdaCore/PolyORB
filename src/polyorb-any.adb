@@ -1052,78 +1052,64 @@ package body PolyORB.Any is
 
       function Member_Type_With_Label
         (Self  : in Object;
-         Label : in Any;
-         Index : in Unsigned_Long)
+         Label : in Any)
         return Object
       is
-         Param_Nb : constant Unsigned_Long
-           := Parameter_Count (Self);
-         Current_Member : Unsigned_Long := 0;
-         Default_Member : Unsigned_Long := -1;
-         Member_Nb : Long := -1;
-         Default_Nb : Long := -1;
+         Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
+
+         Label_Found : Boolean := False;
+         Member_Index : Long;
+
       begin
          pragma Debug (O ("Member_Type_With_Label: enter"));
          pragma Debug (O ("Member_Type_With_Label: Param_Nb = "
-                          & Unsigned_Long'Image (Param_Nb)
-                          & ", Index = "
-                          & Unsigned_Long'Image (Index)));
-         pragma Assert (Index = 1);
-         --  Only one component may be associated with any given label!
+                          & Unsigned_Long'Image (Param_Nb)));
 
          --  See the big explanation after the declaration of
          --  TypeCode.Object in the private part of CORBA.TypeCode
          --  to understand the magic numbers used here.
 
-         if Kind (Self) = Tk_Union then
-            --  Look at the members until we got enough with the
-            --  right label or we reach the end.
-
-            while Member_Nb < Long (Index)
-              and then Param_Nb > 3 * Current_Member + 6 loop
-               pragma Debug (O ("Member_Type_With_Label : enter loop"));
-               --  if it is a default label, add one to the count
-               if Default_Index (Self) = Long (Current_Member) then
-                  pragma Debug (O ("Member_Type_With_Label : default label"));
-                  Default_Nb := Default_Nb + 1;
-                  --  else if it has the right label, add one to the count
-               elsif Member_Label (Self, Current_Member) = Label then
-                  pragma Debug (O ("Member_Type_With_Label : matching label"));
-                  Member_Nb := Member_Nb + 1;
-               end if;
-               --  if we have enough default labels, keep the right
-               --  parameter number in case we don't find any matching
-               --  label
-               if Default_Nb = Long (Index) then
-                  pragma Debug (O ("Member_Type_With_Label : "
-                                   & "default_member = "
-                                   & Unsigned_Long'Image (Current_Member)));
-                  Default_Member := Current_Member;
-               end if;
-               --  next member please
-               Current_Member := Current_Member + 1;
-            end loop;
-
-            --  if we got enough member with the right label
-            if Member_Nb = Long (Index) then
-               pragma Debug (O ("Member_Type_With_Label : end"));
-               return From_Any (Get_Parameter (Self, 3 * Current_Member + 2));
-               --  else if we didn't got any matching label but
-               --  we have enough default ones
-            elsif Member_Nb = -1 and then Default_Nb >= Long (Index) then
-               pragma Debug (O ("Member_Type_With_Label : default end"));
-               return From_Any (Get_Parameter (Self, 3 * Default_Member + 5));
-               --  else raise error
-            else
-               pragma Debug (O ("Member_Type_With_Label : "
-                                & "end with exception"));
-               raise Bounds;
-            end if;
-         else
-            pragma Debug (O ("Member_Type_With_Label : "
-                             & "end with exception"));
+         if Kind (Self) /= Tk_Union then
             raise BadKind;
          end if;
+
+         --  Look at the members until we got enough with the
+         --  right label or we reach the end.
+
+         pragma Debug (O ("Member_Type_With_Label : enter loop"));
+
+         Parameters :
+         for Current_Member in 0 .. (Param_Nb - 4) / 3 - 1 loop
+
+            if Member_Label (Self, Current_Member) = Label then
+               pragma Debug (O ("Member_Type_With_Label: matching label"));
+               Label_Found := True;
+               Member_Index := Long (Current_Member);
+               exit Parameters;
+            end if;
+         end loop Parameters;
+
+         if not Label_Found then
+            Member_Index := Default_Index (Self);
+            pragma Debug
+              (O ("Member_Type_With_Label: using default member at index"
+                  & Member_Index'Img));
+         end if;
+
+         if Member_Index = -1 then
+            raise Bounds;
+         end if;
+
+         declare
+            Typ : constant TypeCode.Object
+              := From_Any
+              (Get_Parameter (Self, 3 * Unsigned_Long (Member_Index) + 5));
+         begin
+            pragma Debug (O ("--> label = " & Image (Label)));
+            pragma Debug (O ("--> type  = " & Image (Typ)));
+            return Typ;
+         end;
+
       end Member_Type_With_Label;
 
       -----------------------------
@@ -1982,11 +1968,12 @@ package body PolyORB.Any is
                  TypeCode.Discriminator_Type (List_Type);
                Member_Type : TypeCode.Object;
             begin
+               pragma Assert (Get_Aggregate_Count (Left) = 2);
+               pragma Assert (Get_Aggregate_Count (Right) = 2);
+
                --  first compares the switch value
-               if not Equal (Get_Aggregate_Element (Left, Switch_Type,
-                                                    Unsigned_Long (0)),
-                             Get_Aggregate_Element (Right, Switch_Type,
-                                                    Unsigned_Long (0)))
+               if not Equal (Get_Aggregate_Element (Left, Switch_Type, 0),
+                             Get_Aggregate_Element (Right, Switch_Type, 0))
                then
                   pragma Debug (O ("Equal (Any, Union) : end"));
                   return False;
@@ -1997,20 +1984,15 @@ package body PolyORB.Any is
                     := Get_Aggregate_Element
                     (Left, Switch_Type, Unsigned_Long (0));
                begin
-                  --  then, for each member in the aggregate,
-                  --  compares both values
-                  for J in 1 .. TypeCode.Member_Count_With_Label
-                    (List_Type, Switch_Label) loop
-                     Member_Type := TypeCode.Member_Type_With_Label
-                       (List_Type, Switch_Label, J - 1);
-                     if not Equal
-                       (Get_Aggregate_Element (Left, Member_Type, J),
-                        Get_Aggregate_Element (Right, Member_Type, J))
-                     then
-                        pragma Debug (O ("Equal (Any, Union) : end"));
-                        return False;
-                     end if;
-                  end loop;
+                  Member_Type := TypeCode.Member_Type_With_Label
+                    (List_Type, Switch_Label);
+                  if not Equal
+                    (Get_Aggregate_Element (Left, Member_Type, 1),
+                     Get_Aggregate_Element (Right, Member_Type, 1))
+                  then
+                     pragma Debug (O ("Equal (Any, Union) : end"));
+                     return False;
+                  end if;
                   pragma Debug (O ("Equal (Any,Union) : end"));
                   return True;
                end;
@@ -2020,10 +2002,8 @@ package body PolyORB.Any is
             pragma Debug (O ("Equal (Any, Enum) : end"));
             --  compares the only element of both aggregate : an unsigned long
             return Equal
-              (Get_Aggregate_Element (Left, TC_Unsigned_Long,
-                                      Unsigned_Long (0)),
-               Get_Aggregate_Element (Right, TC_Unsigned_Long,
-                                      Unsigned_Long (0)));
+              (Get_Aggregate_Element (Left, TC_Unsigned_Long, 0),
+               Get_Aggregate_Element (Right, TC_Unsigned_Long, 0));
 
          when Tk_Sequence
            | Tk_Array =>

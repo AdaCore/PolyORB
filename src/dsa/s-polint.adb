@@ -578,8 +578,7 @@ package body System.PolyORB_Interface is
         := PolyORB.Any.Get_Aggregate_Element
         (U, PATC.Discriminator_Type (U_Type), 0);
       Value_Type : constant PATC.Object
-        := PATC.Member_Type_With_Label (U_Type, Label_Any, 1);
-      --  XXX Index ???
+        := PATC.Member_Type_With_Label (U_Type, Label_Any);
    begin
       return PolyORB.Any.Get_Aggregate_Element (U, Value_Type, 1);
    end Extract_Union_Value;
