@@ -1,15 +1,12 @@
 pragma Style_Checks (Off);
 
-with Ada.Tags;
 with Ada.Strings.Unbounded;
-with CORBA.AbstractBase;
-with CORBA.Impl;
-with CORBA.Object;
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.Container.Helper;
 with CORBA.Repository_Root.Container.Skel;
+pragma Warnings (Off, CORBA.Repository_Root.Container.Skel);
 with CORBA.Repository_Root.StructDef.Impl;
 with CORBA.Repository_Root.UnionDef.Impl;
 with CORBA.Repository_Root.EnumDef.Impl;
@@ -61,8 +58,8 @@ package body CORBA.Repository_Root.Container.Impl is
    ----------------------
    procedure Init (Self : access Object;
                    Real_Object : IRObject.Impl.Object_Ptr;
-                   Def_kind : CORBA.Repository_Root.DefinitionKind;
-                   contents :
+                   Def_Kind : CORBA.Repository_Root.DefinitionKind;
+                   Contents :
                      CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence) is
    begin
       pragma Debug (O2 ("init (container)"));
@@ -193,19 +190,19 @@ package body CORBA.Repository_Root.Container.Impl is
    ------------------------------------------
    --  manipulation of the contents field  --
    ------------------------------------------
-   function Get_contents
+   function Get_Contents
      (Self : access Object)
       return CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence is
    begin
       return Self.Contents;
-   end Get_contents;
+   end Get_Contents;
 
-   procedure Set_contents
+   procedure Set_Contents
      (Self : access Object;
       New_List : in CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence) is
    begin
       Self.Contents := New_List;
-   end Set_contents;
+   end Set_Contents;
 
    procedure Append_To_Contents (Self : access Object;
                                  Element : Contained.Impl.Object_Ptr)
@@ -216,7 +213,7 @@ package body CORBA.Repository_Root.Container.Impl is
                                            Element);
    end Append_To_Contents;
 
-   procedure Delete_From_contents (Self : access Object;
+   procedure Delete_From_Contents (Self : access Object;
                                    Element : Contained.Impl.Object_Ptr)
    is
       Index : Positive;
@@ -229,11 +226,12 @@ package body CORBA.Repository_Root.Container.Impl is
       Contained.Impl.Contained_Seq.Delete (Self.Contents,
                                            Index,
                                            Natural (Index));
-   end Delete_From_contents;
+   end Delete_From_Contents;
 
-   --------------------
-   --  To_Container  --
-   --------------------
+   ------------------
+   -- To_Container --
+   ------------------
+
    procedure To_Container
      (Self : IRObject.Impl.Object_Ptr;
       Success : out Boolean;
@@ -402,7 +400,7 @@ package body CORBA.Repository_Root.Container.Impl is
    --  Check_structure  --
    -----------------------
    function Check_Structure (Self : access Object;
-                             kind : DefinitionKind) return Boolean
+                             Kind : DefinitionKind) return Boolean
    is
       Not_Allowed : Boolean := False;
    begin
@@ -483,7 +481,7 @@ package body CORBA.Repository_Root.Container.Impl is
                                                 New_Search);
             else
                Result_Obj := Lookup_ScopedName
-                 (Repository.Impl.Get_contents
+                 (Repository.Impl.Get_Contents
                   (Repository.Impl.To_Object
                    (get_containing_repository
                     (To_Contained (Get_Real_Object (Self))))),

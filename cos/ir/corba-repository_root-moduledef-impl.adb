@@ -1,14 +1,11 @@
-pragma Warnings (Off);
-----------------------------------------------
---  This file has been generated automatically
---  by AdaBroker (http://adabroker.eu.org/)
-----------------------------------------------
+pragma Style_Checks (Off);
 
 with Ada.Tags;
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.ModuleDef.Skel;
+pragma Warnings (Off, CORBA.Repository_Root.ModuleDef.Skel);
 with CORBA.Repository_Root.Helper;
 
 with PolyORB.Log;

@@ -1,4 +1,4 @@
-pragma Warnings (Off);
+pragma Style_Checks (Off);
 ------------------------------------------------------------------------------
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
@@ -103,7 +103,7 @@ procedure Print is
             Put ("ObjRef");
          when Tk_Struct =>
             declare
-               L : PolyORB.Types.Unsigned_Long
+               L : constant PolyORB.Types.Unsigned_Long
                  := TypeCode.Member_Count (TC);
             begin
                Put ("Struct  :");
@@ -120,7 +120,7 @@ procedure Print is
             end;
          when Tk_Union =>
             declare
-               L : Unsigned_Long
+               L : constant Unsigned_Long
                  := TypeCode.Member_Count (TC);
             begin
                Put ("Union  :");
@@ -159,7 +159,7 @@ procedure Print is
             Put (")");
          when Tk_Except =>
             declare
-               L : Unsigned_Long
+               L : constant Unsigned_Long
                  := TypeCode.Member_Count (TC);
             begin
                Put ("Exception  :");
@@ -241,7 +241,7 @@ procedure Print is
          when
            dk_Attribute  =>
             declare
-               D : AttributeDescription :=
+               D : constant AttributeDescription :=
                  Helper.From_Any (Des.value);
             begin
                Put (Inc & "Type     :");
@@ -258,7 +258,7 @@ procedure Print is
          when
            dk_Operation =>
             declare
-               D : OperationDescription :=
+               D : constant OperationDescription :=
                  Helper.From_Any (Des.value);
             begin
                Put (Inc & "Result_type : ");
@@ -274,45 +274,47 @@ procedure Print is
            dk_valueBox   |
            dk_Native =>
             declare
-               D : TypeDescription :=
+               D : constant TypeDescription :=
                  Helper.From_Any (Des.value);
             begin
                Put_Line (Inc & "TC_Type : " &
                          TCKind'Image
                          (TypeCode.Kind (D.IDL_Type)));
             end;
-         when
-           dk_Exception  =>
-            declare
-               D : ExceptionDescription :=
-                 Helper.From_Any (Des.value);
-            begin
-               null;
-            end;
-         when
-           dk_Module     =>
-            declare
-               D : ModuleDescription :=
-                 Helper.From_Any (Des.value);
-            begin
-               null;
-            end;
-         when
-           dk_value      =>
-            declare
-               D : valueDescription :=
-                 Helper.From_Any (Des.value);
-            begin
-               null;
-            end;
-         when
-           dk_Interface  =>
-            declare
-               D : InterfaceDescription :=
-                 Helper.From_Any (Des.value);
-            begin
-               null;
-            end;
+--          when
+--            dk_Exception  =>
+--             declare
+--                D : constant ExceptionDescription :=
+--                  Helper.From_Any (Des.value);
+--             begin
+--                null;
+--             end;
+--          when
+--            dk_Module     =>
+--             declare
+--                D : constant ModuleDescription :=
+--                  Helper.From_Any (Des.value);
+--             begin
+--                null;
+--             end;
+--          when
+--            dk_value      =>
+--             declare
+--                D : constant valueDescription :=
+--                  Helper.From_Any (Des.value);
+--             begin
+--                null;
+--             end;
+--          when
+--            dk_Interface  =>
+--             declare
+--                D : constant InterfaceDescription :=
+--                  Helper.From_Any (Des.value);
+--             begin
+--                null;
+--             end;
+         when others =>
+            null;
       end case;
    end Print_Description;
 

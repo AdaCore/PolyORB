@@ -1,50 +1,22 @@
-pragma Warnings (Off);
-----------------------------------------------
---  This file has been generated automatically
---  by AdaBroker (http://adabroker.eu.org/)
-----------------------------------------------
+pragma Style_Checks (Off);
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.IDLType.Skel;
+pragma Warnings (Off, CORBA.Repository_Root.IDLType.Skel);
 with CORBA.Repository_Root.IRObject.Impl;
 with CORBA.Repository_Root.Interfacedef.Impl;
 with CORBA.Repository_Root.Valuedef.Impl;
 with CORBA.Repository_Root.UnionDef.Impl;
 with CORBA.Repository_Root.StructDef.Impl;
-with CORBA.Repository_Root.PrimitiveDef.Impl;
-with CORBA.Repository_Root.StringDef.Impl;
-with CORBA.Repository_Root.WstringDef.Impl;
-with CORBA.Repository_Root.FixedDef.Impl;
-with CORBA.Repository_Root.ArrayDef.Impl;
-with CORBA.Repository_Root.SequenceDef.Impl;
 with CORBA.Repository_Root.EnumDef.Impl;
 with CORBA.Repository_Root.AliasDef.Impl;
 with CORBA.Repository_Root.NativeDef.Impl;
 with CORBA.Repository_Root.ValueBoxDef.Impl;
 with CORBA.Repository_Root.TypedefDef.Impl;
 
-with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Exceptions;
-with PolyORB.CORBA_P.Server_Tools;
-with PortableServer;
 
 package body CORBA.Repository_Root.IDLType.Impl is
-
-
-   -----------
-   -- Debug --
-   -----------
-
-   use PolyORB.Log;
-
-   package L is new PolyORB.Log.Facility_Log ("idltype.impl");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
-     renames L.Output;
-
-   package L2 is new PolyORB.Log.Facility_Log ("idltype.impl_method_trace");
-   procedure O2 (Message : in Standard.String; Level : Log_Level := Debug)
-     renames L2.Output;
 
    ------------------
    --  To_IDLType  --
@@ -87,7 +59,7 @@ package body CORBA.Repository_Root.IDLType.Impl is
            Dk_ValueBox   |
            dk_Native =>
             declare
-               Interm : TypedefDef.Impl.Object_Ptr :=
+               Interm : constant TypedefDef.Impl.Object_Ptr :=
                  TypedefDef.Impl.Object_Ptr (Self);
             begin
                return TypedefDef.Impl.Get_IDLType_View (Interm);
@@ -95,7 +67,7 @@ package body CORBA.Repository_Root.IDLType.Impl is
          when
            Dk_Value      =>
             declare
-               Interm : Valuedef.Impl.Object_Ptr :=
+               Interm : constant Valuedef.Impl.Object_Ptr :=
                  Valuedef.Impl.Object_Ptr (Self);
             begin
                return Valuedef.Impl.Get_IDLType_View (Interm);
@@ -103,7 +75,7 @@ package body CORBA.Repository_Root.IDLType.Impl is
          when
            Dk_Interface  =>
             declare
-               Interm : Interfacedef.Impl.Object_Ptr :=
+               Interm : constant Interfacedef.Impl.Object_Ptr :=
                  Interfacedef.Impl.Object_Ptr (Self);
             begin
                return Interfacedef.Impl.Get_IDLType_View (Interm);
@@ -146,7 +118,7 @@ package body CORBA.Repository_Root.IDLType.Impl is
          when
            Dk_Interface  =>
             declare
-               Interm : Interfacedef.Impl.Object_Ptr :=
+               Interm : constant Interfacedef.Impl.Object_Ptr :=
                  Interfacedef.Impl.Object_Ptr (Get_Real_Object (Self));
             begin
                return Interfacedef.Impl.Get_Type (Interm);
@@ -154,49 +126,49 @@ package body CORBA.Repository_Root.IDLType.Impl is
          when
            Dk_Value      =>
             declare
-               Interm : Valuedef.Impl.Object_Ptr :=
+               Interm : constant Valuedef.Impl.Object_Ptr :=
                  Valuedef.Impl.Object_Ptr (Get_Real_Object (Self));
             begin
                return Valuedef.Impl.Get_Type (Interm);
             end;
          when  Dk_Struct     =>
             declare
-               Interm : Structdef.Impl.Object_Ptr :=
+               Interm : constant Structdef.Impl.Object_Ptr :=
                  Structdef.Impl.Object_Ptr (Get_Real_Object (Self));
             begin
                return Structdef.Impl.Get_Type (Interm);
             end;
          when  Dk_Union      =>
             declare
-               Interm : Uniondef.Impl.Object_Ptr :=
+               Interm : constant Uniondef.Impl.Object_Ptr :=
                  Uniondef.Impl.Object_Ptr (Get_Real_Object (Self));
             begin
                return Uniondef.Impl.Get_Type (Interm);
             end;
          when  Dk_Enum      =>
             declare
-               Interm : Enumdef.Impl.Object_Ptr :=
+               Interm : constant Enumdef.Impl.Object_Ptr :=
                  Enumdef.Impl.Object_Ptr (Get_Real_Object (Self));
             begin
                return Enumdef.Impl.Get_Type (Interm);
             end;
          when  Dk_Alias      =>
             declare
-               Interm : Aliasdef.Impl.Object_Ptr :=
+               Interm : constant Aliasdef.Impl.Object_Ptr :=
                  Aliasdef.Impl.Object_Ptr (Get_Real_Object (Self));
             begin
                return Aliasdef.Impl.Get_Type (Interm);
             end;
          when  Dk_Native      =>
             declare
-               Interm : Nativedef.Impl.Object_Ptr :=
+               Interm : constant Nativedef.Impl.Object_Ptr :=
                  Nativedef.Impl.Object_Ptr (Get_Real_Object (Self));
             begin
                return Nativedef.Impl.Get_Type (Interm);
             end;
          when  Dk_ValueBox      =>
             declare
-               Interm : ValueBoxdef.Impl.Object_Ptr :=
+               Interm : constant ValueBoxdef.Impl.Object_Ptr :=
                  ValueBoxdef.Impl.Object_Ptr (Get_Real_Object (Self));
             begin
                return ValueBoxdef.Impl.Get_Type (Interm);
@@ -206,7 +178,6 @@ package body CORBA.Repository_Root.IDLType.Impl is
             return CORBA.TC_Void;
       end case;
 
-   end Get_Type;
-
+   end get_type;
 
 end CORBA.Repository_Root.IDLType.Impl;

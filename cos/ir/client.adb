@@ -1,4 +1,3 @@
-pragma Warnings (Off);
 ------------------------------------------------------------------------------
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
@@ -30,13 +29,9 @@ with Ada.Command_Line;
 with Ada.Text_IO; use Ada.Text_IO;
 with CORBA; use CORBA;
 with CORBA.ORB;
-with CORBA.Object;
 with CORBA.Repository_Root; use CORBA.Repository_Root;
-with CORBA.Repository_Root.Helper;
 with CORBA.Repository_Root.Repository;
 with CORBA.Repository_Root.Repository.Helper;
-with CORBA.Repository_Root.Container;
-with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.InterfaceDef;
 with CORBA.Repository_Root.OperationDef;
 with CORBA.Repository_Root.IDLType;
@@ -49,7 +44,7 @@ pragma Warnings (Off, PolyORB.Setup.Client);
 
 procedure Client is
 
-   Sent_Msg, Rcvd_Msg, IOR : CORBA.String;
+   IOR : CORBA.String;
    Myrep : Repository.Ref;
 
 begin
@@ -58,7 +53,7 @@ begin
       IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
       CORBA.ORB.String_To_Object (IOR, Myrep);
    else
-      MyRep := CORBA.Repository_Root.Repository.Helper.To_Ref
+      Myrep := CORBA.Repository_Root.Repository.Helper.To_Ref
          (PolyORB.CORBA_P.Naming_Tools.Locate ("Interface_Repository"));
    end if;
 
@@ -76,24 +71,28 @@ begin
       Id : RepositoryId;
       Name : Identifier;
       Version : VersionSpec;
-      package IDS renames IDL_SEQUENCE_CORBA_Repository_Root_InterfaceDef_Forward;
+
+      package IDS renames
+        IDL_SEQUENCE_CORBA_Repository_Root_InterfaceDef_Forward;
+
    begin
       Id := To_CORBA_String ("idl:toto:1.1");
       Name := To_CORBA_String ("toto");
       Version := To_CORBA_String ("1.1");
-      Mod1 := Repository.Create_Module (Myrep,
+      Mod1 := Repository.create_module (Myrep,
                                         Id,
                                         Name,
                                         Version);
       Id := To_CORBA_String ("idl:toto/titi:1.0");
       Name := To_CORBA_String ("titi");
       Version := To_CORBA_String ("1.0");
-      Int1 := ModuleDef.Create_Interface (ModuleDef.Convert_Forward.To_Ref (Mod1),
-                                          Id,
-                                          Name,
-                                          Version,
-                                          InterfaceDefSeq (IDS.Null_Sequence),
-                                          False);
+      Int1 := ModuleDef.create_interface
+        (ModuleDef.Convert_Forward.To_Ref (Mod1),
+         Id,
+         Name,
+         Version,
+         InterfaceDefSeq (IDS.Null_Sequence),
+         False);
       declare
          package PDS renames
            IDL_SEQUENCE_CORBA_Repository_Root_ParameterDescription;
@@ -116,9 +115,9 @@ begin
                    IDL_Type => TC_Long,
                    Type_Def => IDLType.Convert_Forward.To_Forward
                    (IDLType.Ref
-                    (Repository.Get_Primitive
+                    (Repository.get_primitive
                      (Myrep,
-                      Pk_Long))),
+                      pk_long))),
                    Mode => PARAM_IN);
          PDS.Append (PDS.Sequence (Mem), Memb);
 
@@ -127,9 +126,9 @@ begin
                    IDL_Type => TC_Long,
                    Type_Def => IDLType.Convert_Forward.To_Forward
                    (IDLType.Ref
-                    (Repository.Get_Primitive
+                    (Repository.get_primitive
                      (Myrep,
-                      Pk_Long))),
+                      pk_long))),
                    Mode => PARAM_IN);
          PDS.Append (PDS.Sequence (Mem), Memb);
 
@@ -137,27 +136,23 @@ begin
          Id := To_CORBA_String ("idl:toto/titi/myop:1.1");
          Name := To_CORBA_String ("myop");
          Version := To_CORBA_String ("1.1");
-         Op1 := InterfaceDef.Create_Operation (InterfaceDef.Convert_Forward.
-                                               To_Ref (Int1),
-                                               Id,
-                                               Name,
-                                               Version,
-                                               IDLType.Ref
-                                               (Repository.Get_Primitive
-                                                (Myrep,
-                                                 Pk_Long)),
-                                               OP_NORMAL,
-                                               Mem,
-                                               Exc,
-                                               Con);
+         Op1 := InterfaceDef.create_operation
+           (InterfaceDef.Convert_Forward.
+            To_Ref (Int1),
+            Id,
+            Name,
+            Version,
+            IDLType.Ref
+            (Repository.get_primitive
+             (Myrep,
+              pk_long)),
+            OP_NORMAL,
+            Mem,
+            Exc,
+            Con);
 
       end;
    end;
-
---   Print_Content (Repository.Contents (Myrep,
---                                       Dk_All,
---                                       True),
---                  " ");
 
 exception
       when E : CORBA.Bad_Param =>

@@ -1,14 +1,11 @@
-pragma Warnings (Off);
-----------------------------------------------
---  This file has been generated automatically
---  by AdaBroker (http://adabroker.eu.org/)
-----------------------------------------------
+pragma Style_Checks (Off);
 
 with CORBA.ORB.TypeCode;
 with PolyORB.CORBA_P.Server_Tools;
 with PortableServer;
 
 with CORBA.Repository_Root.EnumDef.Skel;
+pragma Warnings (Off, CORBA.Repository_Root.EnumDef.Skel);
 
 package body CORBA.Repository_Root.EnumDef.Impl is
 

@@ -1,20 +1,13 @@
-pragma Warnings (Off);
-----------------------------------------------
---  This file has been generated automatically
---  by AdaBroker (http://adabroker.eu.org/)
-----------------------------------------------
+pragma Style_Checks (Off);
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.IDLType;
-with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.Helper;
 with CORBA.Repository_Root.ExceptionDef.Impl;
 with CORBA.Repository_Root.IRObject.Impl;
 
-with PolyORB.CORBA_P.Server_Tools;
-with PortableServer;
-
 with CORBA.Repository_Root.OperationDef.Skel;
+pragma Warnings (Off, CORBA.Repository_Root.OperationDef.Skel);
 
 package body CORBA.Repository_Root.OperationDef.Impl is
 
@@ -167,7 +160,7 @@ package body CORBA.Repository_Root.OperationDef.Impl is
       Result := (Kind => Get_Def_Kind (Self),
                  Value => CORBA.Repository_Root.Helper.To_Any (Desc));
       return Result;
-   end Describe;
+   end describe;
 
 end CORBA.Repository_Root.OperationDef.Impl;
 

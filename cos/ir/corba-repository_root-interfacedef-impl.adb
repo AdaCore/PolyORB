@@ -1,11 +1,11 @@
-pragma Warnings (Off);
+pragma Style_Checks (Off);
+
 ----------------------------------------------
 --  This file has been generated automatically
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
 with CORBA.ORB;
-with CORBA.Object;
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.IRObject.Impl;
@@ -16,6 +16,7 @@ with CORBA.Repository_Root.AttributeDef;
 with CORBA.Repository_Root.AttributeDef.Impl;
 with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.InterfaceDef.Skel;
+pragma Warnings (Off, CORBA.Repository_Root.InterfaceDef.Skel);
 with CORBA.Repository_Root.Helper;
 
 with PolyORB.Log;
@@ -182,6 +183,12 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
      return CORBA.Repository_Root.InterfaceDef.FullInterfaceDescription
    is
       Result : CORBA.Repository_Root.InterfaceDef.FullInterfaceDescription;
+      pragma Warnings (Off, Result);
+      --  XXX Never assigned a value (need to implement describe_interface).
+
+      pragma Warnings (Off); -- WAG:3.14
+      pragma Unreferenced (Self);
+      pragma Warnings (On);  -- WAG:3.14
    begin
 
       --  Insert implementation of describe_interface
@@ -208,7 +215,7 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       end if;
       declare
          Result : CORBA.Repository_Root.AttributeDef.Ref;
-         Obj : AttributeDef.Impl.Object_Ptr := new AttributeDef.Impl.Object;
+         Obj : constant AttributeDef.Impl.Object_Ptr := new AttributeDef.Impl.Object;
       begin
          --  initialization of the object
          AttributeDef.Impl.Init (Obj,
@@ -258,7 +265,8 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
 
       declare
          Result : CORBA.Repository_Root.OperationDef.Ref;
-         Obj : OperationDef.Impl.Object_Ptr := new OperationDef.Impl.Object;
+         Obj : constant OperationDef.Impl.Object_Ptr
+           := new OperationDef.Impl.Object;
       begin
          --  initialization of the object
          OperationDef.Impl.Init (Obj,
@@ -425,7 +433,7 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
    begin
       for I in Int_Array'Range loop
          declare
-            Int : Object_Ptr
+            Int : constant Object_Ptr
               := To_Object (Int_Array (I));
          begin
             IdSeq.Append (IdSeq.Sequence (Result), Get_Id (Int));
