@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -59,13 +59,13 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Index_Manager is
       --  pointing at the next ID available.
 
       procedure Get (Id : out Index_Type);
-      --  Get a free Index_Type.
+      --  Get a free Index_Type
 
       procedure Release (Id : in Index_Type);
-      --  Release Id.
+      --  Release Id
 
       procedure Init (Error_On_Initialize : Boolean := True);
-      --  Initialize the Index_Manager.
+      --  Initialize the Index_Manager
 
    private
       Initialized    : Boolean := False;
@@ -74,6 +74,11 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Index_Manager is
       Number_Of_Used : Integer;
       Used           : Flag_Array;
    end Index_Manager;
+
+   function Modular (I : Integer) return Index_Type;
+   pragma Inline (Modular);
+   --  Convert an Integer to an Index_Type, returning
+   --  I mod Number_Of_Indices
 
    ---------
    -- Get --
@@ -97,9 +102,11 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Index_Manager is
       procedure Get (Id : out Index_Type) is
       begin
          pragma Assert (Initialized);
+
          if Number_Of_Used > Index_Type'Last then
-            raise No_More_Identifier;
+            raise Tasking_Error;
          end if;
+
          Id := Free_Stack (Offset);
          Offset := Modular (Integer (Offset) - 1);
          Number_Of_Used := Number_Of_Used + 1;
@@ -134,7 +141,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Index_Manager is
          pragma Debug (O ("Release" & Integer'Image (Id)));
          pragma Assert (Initialized);
          if not Used (Id) then
-            raise Identifier_Already_Released;
+            raise Program_Error;
          end if;
          Offset := Modular (Integer (Offset) + 1);
          Free_Stack (Offset) := Id;
