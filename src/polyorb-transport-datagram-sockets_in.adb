@@ -195,7 +195,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
 
    procedure Close (TE : access Socket_In_Endpoint) is
    begin
-      pragma Debug (O ("Closing udp socket"));
+      pragma Debug (O ("Closing UDP socket"));
       if TE.Closed then
          return;
       end if;
@@ -215,8 +215,10 @@ package body PolyORB.Transport.Datagram.Sockets_In is
    is
       TE : constant Datagram_Transport_Endpoint_Access
         := new Socket_In_Endpoint;
+
    begin
-      pragma Debug (O ("Create Endpoint for udp socket"));
+      pragma Debug (O ("Create Endpoint for UDP socket"));
+
       Socket_In_Endpoint (TE.all).Addr := TAP.Addr;
       Socket_In_Endpoint (TE.all).Socket := TAP.Socket;
       return TE;
