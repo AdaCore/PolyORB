@@ -43,12 +43,10 @@ adabe_attribute::produce_adb(dep_list& with, string &body, string &previous)
   body += name + " is\n";  
   string name_of_the_package = dynamic_cast<adabe_name *>(ScopeAsDecl(defined_in()))->get_ada_full_name();
   body += "      Opcd : " + name_of_the_package + ".Proxies.Get_" + get_ada_local_name() + "_Proxy ;\n";
-  body += "      Result : " + name +" ;\n";
   body += "   begin \n";
   body += "      " + name_of_the_package + ".Proxies.Init(Opcd) ;\n";
   body += "      OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
-  body += "      Result := " + name_of_the_package + ".Proxies.Get_Result(Opcd) ;\n";
-  body += "      return Result ;\n";
+  body += "      return " + name_of_the_package + ".Proxies.Get_Result(Opcd) ;\n";
   body += "   end ;\n\n\n";
   if (!readonly())
     {

@@ -591,10 +591,12 @@ adabe_root::produce() {
 		case AST_Decl::NT_typedef:
 		  {
 		    if (first) {
-		      marshal_header_previous = "with NetbufferedStream ; use NetbufferedStream ;\n";
+		      marshal_header_previous += "use type Corba.Unsigned_Long; \n";
+		      marshal_header_previous += "with NetbufferedStream ; use NetbufferedStream ;\n";
 		      marshal_header_previous += "with MembufferedStream ; use MembufferedStream ;\n";
-		      marshal_header_previous += "with Giop_C ;\n";
-		      marshal_header_previous += "Package " + get_ada_full_name() + "-marshal is\n";
+		      marshal_header_with.add ("Giop_C");
+		      marshal_header_with.add ("Corba");
+		      marshal_header_previous += "Package " + get_ada_full_name() + ".marshal is\n";
 		      first = false;    
 		    }
 		    marshal_header_previous += marshal_header_body ="";
@@ -665,7 +667,7 @@ adabe_root::produce() {
 	  marshal_header << marshal_header_includes;
 	  marshal_header << marshal_header_previous;
 	  marshal_header << marshal_header_body;
-	  marshal_header << "end " << get_ada_full_name() << "-marshal ;" << endl;
+	  marshal_header << "end " << get_ada_full_name() << ".marshal ;" << endl;
 	  marshal_header.close();
 	}
     }
@@ -701,7 +703,7 @@ adabe_root::produce() {
 		case AST_Decl::NT_typedef:
 		  {
 		    if (first) {
-		      marshal_body_previous = "Package body " + get_ada_full_name() + "-marshal is \n";
+		      marshal_body_previous = "Package body " + get_ada_full_name() + ".marshal is \n";
 		      first = false;    
 		    }
 		    marshal_body_previous += marshal_body_body ="";
@@ -771,7 +773,7 @@ adabe_root::produce() {
 	  marshal_body << marshal_body_includes;
 	  marshal_body << marshal_body_previous;
 	  marshal_body << marshal_body_body;
-	  marshal_body << "end " << get_ada_full_name() << "-marshal ;" << endl;
+	  marshal_body << "end " << get_ada_full_name() << ".marshal ;" << endl;
 	  marshal_body.close();
 	}
     }

@@ -547,17 +547,20 @@ adabe_module::produce_skel_adb(dep_list& with,string &body, string &previousdefi
 	  break;
 	}
       if (!true) {
-	body += "end " + get_ada_full_name();
+	body += "end " + get_ada_full_name() + " ;";
       }
     }
 }
 
 void
 adabe_module::produce_marshal_ads(dep_list& with,string &body, string &previousdefinition)
-{
+{ 
+  body += "use type Corba.Unsigned_Long; \n";
   body += "with NetbufferedStream ; use NetbufferedStream ;\n";
   body += "with MembufferedStream ; use MembufferedStream ;\n";
   with.add ("Giop_C");
+  with.add ("Corba");
+
   bool first = true;
   
   // For each declaration in the node produce the code
@@ -578,7 +581,7 @@ adabe_module::produce_marshal_ads(dep_list& with,string &body, string &previousd
 	case AST_Decl::NT_typedef:
 	case AST_Decl::NT_string:
 	  if (first) {
-	    body = "Package " + get_ada_full_name() + "-marshal is\n";
+	    body += "Package " + get_ada_full_name() + ".marshal is\n";
 	    first = false;
 	  }
 	  dynamic_cast<adabe_name *>(d)->produce_marshal_ads(with, body, previousdefinition);
@@ -634,7 +637,7 @@ adabe_module::produce_marshal_ads(dep_list& with,string &body, string &previousd
 	}
     }
   if (!first) {
-    body += "end " + get_ada_full_name() + " ;";
+    body += "end " + get_ada_full_name() + ".marshal ;";
   }
 
 }
@@ -663,7 +666,7 @@ adabe_module::produce_marshal_adb(dep_list& with,string &body, string &previousd
 	case AST_Decl::NT_string:
 	  if (first == true)
 	    {
-	      body = "Package body " + get_ada_full_name() + "-marshal is \n";
+	      body += "Package body " + get_ada_full_name() + ".marshal is \n";
 	      first = false;
 	    }
 	  previousdefinition += body;
@@ -722,7 +725,7 @@ adabe_module::produce_marshal_adb(dep_list& with,string &body, string &previousd
 	}
     }
   if (!first) {
-    body += "end " + get_ada_full_name() + " ;";
+    body += "end " + get_ada_full_name() + ".marshal ;";
   }
 }
 

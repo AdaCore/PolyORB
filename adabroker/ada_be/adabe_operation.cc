@@ -104,24 +104,33 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
       adabe_name  *c = dynamic_cast<adabe_name *>(ScopeAsDecl(defined_in()));      
       string name_of_the_package = c->get_ada_local_name();
       body += "      Opcd : " + name_of_the_package + ".Proxies." + get_ada_local_name() + "_Proxy ;\n";
-      body += "      Result : " + name +";\n";
       body += "   begin \n";
       body += "      " + name_of_the_package + ".Proxies.Init(Opcd";
       UTL_ScopeActiveIterator j(this,UTL_Scope::IK_decls);
-      if (!j.is_done())  body += ", " ;
       while (!j.is_done())
 	{
-	  adabe_name *e = dynamic_cast<adabe_name *>(j.item());
-	  if (e->node_type() == AST_Decl::NT_argument) body += e->get_ada_local_name();
+	  AST_Decl *nod = j.item();
+	  if (nod->node_type() == AST_Decl::NT_argument) 
+	    {
+	      adabe_argument *e = dynamic_cast<adabe_argument *>(nod);
+	      switch(e->direction())
+		{
+		case AST_Argument::dir_IN:
+		case AST_Argument::dir_INOUT:
+		  body += ", " + e->get_ada_local_name();
+		  break;
+		default:
+		  break;
+		}
+	    }
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  j.next();
-	  if (!j.is_done()) body += ", ";
 	}
 	  
       body += ") ;\n";
+      with.add("OmniProxyCallWrapper");
       body += "      OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
-      body += "      Result := " + name_of_the_package + ".Proxies.Get_Result(Opcd) ;\n";
-      body += "      return Result ;\n";
+      body += "      return " + name_of_the_package + ".Proxies.Get_Result(Opcd) ;\n";
       body += "   end ;\n\n";
     }
   else
@@ -146,25 +155,31 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
       adabe_name  *b =  dynamic_cast<adabe_name *>(ScopeAsDecl(defined_in()));
       string name_of_the_package = b->get_ada_local_name();
       body += "      Opcd : " + name_of_the_package + ".Proxies." + get_ada_local_name() + "_Proxy ;\n";
-      if (!return_is_void())
-	{	
-	  body += "   Result : " + name + ";\n";
-	}
       body += "   begin \n";
-      body += "      Opcd := " + name_of_the_package + ".Proxies.Init(Opcd, ";
+      body += "      " + name_of_the_package + ".Proxies.Init(Opcd ";
       UTL_ScopeActiveIterator j(this,UTL_Scope::IK_decls);
       while (!j.is_done())
 	{
-	  adabe_name *e =  dynamic_cast<adabe_name *>(j.item());
-	  if (e->node_type() == AST_Decl::NT_argument) body += e->get_ada_local_name();
+	  AST_Decl *nod = j.item();
+	  if (nod->node_type() == AST_Decl::NT_argument) 
+	    {
+	      adabe_argument *e = dynamic_cast<adabe_argument *>(nod);
+	      switch(e->direction())
+		{
+		case AST_Argument::dir_IN:
+		case AST_Argument::dir_INOUT:
+		  body += ", " + e->get_ada_local_name();
+		  break;
+		default:
+		  break;
+		}
+	    }
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  j.next();
-	  if (!j.is_done()) body += ", ";
 	}
-      if (!return_is_void()) body += ", Result";
       body += ") ;\n";
+      with.add("OmniProxyCallWrapper");
       body += "      OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
-      body += "      " + name_of_the_package + ".Proxies.Free(Opcd) ;\n";
       body += "   end;\n\n\n";
     }
 }
