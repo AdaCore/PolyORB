@@ -5,6 +5,9 @@ EXAMPLES_GNATMAKE_FLAGS = -I$(srcdir) \
                           -I$(srcdir)/../generic \
                           -I../../src \
                           -I$(srcdir)/../../src \
+                          -I$(srcdir)/../../cos/naming \
+                          -I../../cos/naming \
+                          -I../../idls/cos/naming \
                           $(ADASOCKETS_INCLUDE) \
                           -g -O2 -m -gnata \
                           -largs $(ADASOCKETS_LIBS)
@@ -43,3 +46,4 @@ client server $(EXTRA): force $(EXAMPLE).ads
 
 force::
 	cd ../../src && $(MAKE)
+	cd ../../cos/naming && $(MAKE)

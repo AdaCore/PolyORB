@@ -46,8 +46,9 @@ with Report;    use Report;
 with All_Types; use All_Types;
 with All_Types.Helper;
 
+with Naming_Tools;
+
 procedure DynClient is
-   IOR : CORBA.String;
    Myall_Types : CORBA.Object.Ref;
    One_Shot : Boolean := Ada.Command_Line.Argument_Count /= 2
                  or else Boolean'Value (Ada.Command_Line.Argument (2));
@@ -961,15 +962,16 @@ procedure DynClient is
 begin
    if Ada.Command_Line.Argument_Count < 1 then
       Ada.Text_IO.Put_Line
-         ("usage : client <IOR_string_from_server> [oneshot]");
+         ("usage : client <IOR_string_from_server|name|-i> [oneshot]");
       return;
    end if;
 
    --  transforms the Ada string into CORBA.String
-   IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
-
-   --  getting the CORBA.Object
-   CORBA.ORB.String_To_Object (IOR, Myall_types);
+   if Ada.Command_Line.Argument (1) = "-i" then
+      Myall_types := Naming_Tools.Locate ("all_types");
+   else
+      Myall_types := Naming_Tools.Locate (Ada.Command_Line.Argument (1));
+   end if;
 
    loop
       --  boolean

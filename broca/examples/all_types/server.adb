@@ -32,8 +32,10 @@ with CORBA;
 with CORBA.Object;
 
 with Broca.Server_Tools; use Broca.Server_Tools;
-pragma Elaborate (Broca.Server_Tools);
 
+with Naming_Tools;
+
+with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Text_IO;
 
 procedure Server is
@@ -41,6 +43,13 @@ procedure Server is
 begin
    Ada.Text_IO.Put_Line ("Server begins here");
    Initiate_Servant (new all_types.Impl.Object, Ref);
+   if Argument_Count = 1 then
+      if Argument (1) = "-s" then
+         Naming_Tools.Register ("all_types", Ref, True);
+      else
+         Naming_Tools.Register (Argument (1), Ref, True);
+      end if;
+   end if;
    Ada.Text_IO.Put_Line
      ("'" & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)) &
       "'");

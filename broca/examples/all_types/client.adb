@@ -26,17 +26,18 @@
 
 --  All_Types client.
 
-with Ada.Command_Line;
+with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Text_IO;
 
 with CORBA; use CORBA;
 with CORBA.ORB;
 
-with all_types; use all_types;
+with all_types.Helper; use all_types, all_types.Helper;
 with Report;    use Report;
 
+with Naming_Tools; use Naming_Tools;
+
 procedure Client is
-   IOR : CORBA.String;
    Myall_types : all_types.Ref;
    Ok : Boolean;
    One_Shot : Boolean := Ada.Command_Line.Argument_Count /= 2
@@ -44,15 +45,15 @@ procedure Client is
 begin
    if Ada.Command_Line.Argument_Count < 1 then
       Ada.Text_IO.Put_Line
-         ("usage : client <IOR_string_from_server> [oneshot]");
+         ("usage : client <IOR_string_from_server|name|-i> [oneshot]");
       return;
    end if;
 
-   --  transforms the Ada string into CORBA.String
-   IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
-
-   --  getting the CORBA.Object
-   CORBA.ORB.String_To_Object (IOR, Myall_types);
+   if Argument (1) = "-i" then
+      Myall_types := To_Ref (Locate ("all_types"));
+   else
+      Myall_types := To_Ref (Locate (Argument (1)));
+   end if;
 
    --  checking if it worked
    if all_types.Is_Nil (Myall_types) then
