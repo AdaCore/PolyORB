@@ -1,3 +1,8 @@
+Fri Aug 29 20:58:30 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-rpcpoo.adb: Use new flag to avoid starting the whole runtime
+	  when a partition has no RCI receiver and no RACW.
+
 Fri Aug 29 20:17:26 1997  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* s-garopt.ads: Add a new flag Has_RCI_Pkg_Or_RACW_Var (default is

@@ -470,7 +470,9 @@ package body System.RPC.Pool is
 
    procedure Initialize is
    begin
-      Background_Task := new Background_Creation;
+      if System.Garlic.Options.Has_RCI_Pkg_Or_RACW_Var then
+         Background_Task := new Background_Creation;
+      end if;
    end Initialize;
 
    --------------
