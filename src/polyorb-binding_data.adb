@@ -49,27 +49,6 @@ package body PolyORB.Binding_Data is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   -------------
-   -- Release --
-   -------------
-
-   procedure Release (P : in out Profile_Type)
-   is
-      use PolyORB.Objects;
-   begin
-      Free (P.Object_Id);
-   end Release;
-
-   --------------
-   -- Finalize --
-   --------------
-
-   procedure Finalize (P : in out Profile_Type)
-   is
-   begin
-      Release (P);
-   end Finalize;
-
    ---------------------
    -- Destroy_Profile --
    ---------------------

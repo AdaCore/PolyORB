@@ -34,7 +34,7 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/polyorb-binding_data.ads#24 $
+--  $Id: //droopi/main/src/polyorb-binding_data.ads#25 $
 
 with PolyORB.Components;
 with PolyORB.Asynch_Ev;
@@ -69,9 +69,7 @@ package PolyORB.Binding_Data is
    --      expressed by the user for the choice of a profile type
    --      among a set of profiles.
 
-   procedure Finalize (P : in out Profile_Type);
-
-   procedure Release (P : in out Profile_Type);
+   procedure Release (P : in out Profile_Type) is abstract;
    --  Free profile data
 
    procedure Duplicate
