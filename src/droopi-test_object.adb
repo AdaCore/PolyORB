@@ -3,6 +3,7 @@
 --  $Id$
 
 with Ada.Exceptions;
+-- with Ada.Calendar;
 
 with Droopi.Any;
 with Droopi.Any.NVList;
@@ -33,6 +34,20 @@ package body Droopi.Test_Object is
    --------------------------------------
    -- Application part of the servant. --
    --------------------------------------
+
+   function waitAndEchoString
+     (O : My_Object;
+      S : Types.String;
+      T : Types.Long)
+     return Types.String is
+   begin
+      pragma Debug (L.Output ("waitAndEchoString is being executed with arguments "
+                              & To_Standard_String (S)
+                              & Integer'Image (Integer (T))));
+
+      delay (Duration (T));
+      return S;
+   end waitAndEchoString;
 
    function echoString
      (O : My_Object;
@@ -82,6 +97,21 @@ package body Droopi.Test_Object is
                begin
                   Req.Result.Argument := To_Any
                     (echoString (Obj.all, echoString_Arg));
+                  pragma Debug (O ("Result: " & Image (Req.Result)));
+               end;
+            elsif Req.all.Operation = To_Droopi_String ("waitAndEchoString") then
+               declare
+                  waitAndEchoString_Arg1 : Types.String :=
+                    From_Any (NV_Sequence.Element_Of
+                              (Args_Sequence.all, 1).Argument);
+                  waitAndEchoString_Arg2 : Types.Long :=
+                    From_Any (NV_Sequence.Element_Of
+                              (Args_Sequence.all, 2).Argument);
+               begin
+                  Req.Result.Argument := To_Any
+                    (waitAndEchoString (Obj.all,
+                                        waitAndEchoString_Arg1,
+                                        waitAndEchoString_Arg2));
                   pragma Debug (O ("Result: " & Image (Req.Result)));
                end;
             elsif Req.all.Operation = "echoInteger" then

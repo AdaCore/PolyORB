@@ -12,6 +12,12 @@ package Droopi.Test_Object is
 
    type My_Object is new Droopi.Objects.Servant with null record;
 
+   function waitAndEchoString
+     (O : My_Object;
+      S : Types.String;
+      T : Types.Long)
+     return Types.String;
+
    function echoString
      (O : My_Object;
       S : Types.String)
