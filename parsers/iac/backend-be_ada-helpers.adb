@@ -409,9 +409,27 @@ package body Backend.BE_Ada.Helpers is
         (E : Node_Id)
         return Node_Id
       is
-         pragma Unreferenced (E);
+         N     : Node_Id;
+         Spec  : Node_Id;
+         D     : constant List_Id := New_List (K_List_Id);
+         S     : constant List_Id := New_List (K_List_Id);
       begin
-         return No_Node;
+         Spec := Helper_Node (BE_Node (Identifier (E)));
+         Spec := Next_Node (Spec);  --  Second in the list of helpers
+         if Kind (E) = K_Interface_Declaration then
+            Spec := Next_Node (Next_Node (Spec));
+            N := Make_Subprogram_Call
+              (Make_Defining_Identifier (SN (S_To_Ref)),
+               Make_List_Id
+               (Make_Subprogram_Call
+                (RE (RE_From_Any),
+                 Make_List_Id (Make_Defining_Identifier (PN (P_Item))))));
+            N := Make_Return_Statement (N);
+            Append_Node_To_List (N, S);
+         end if;
+         N := Make_Subprogram_Implementation
+           (Spec, D, S);
+         return N;
       end From_Any_Body;
 
       -----------------
@@ -422,9 +440,39 @@ package body Backend.BE_Ada.Helpers is
         (E : Node_Id)
         return Node_Id
       is
-         pragma Unreferenced (E);
+         N           : Node_Id;
+         Spec        : Node_Id;
+         D           : constant List_Id := New_List (K_List_Id);
+         S           : constant List_Id := New_List (K_List_Id);
+         Helper_Name : Name_Id;
       begin
-         return No_Node;
+         Spec := Helper_Node (BE_Node (Identifier (E)));
+         Spec := Next_Node (Next_Node (Spec));
+         if Kind (E) = K_Interface_Declaration then
+            Helper_Name := BEN.Name (Defining_Identifier (Spec));
+            Spec := (Next_Node (Next_Node (Spec)));
+            N := Make_Subprogram_Call
+              (RE (RE_Ref_2),
+               Make_List_Id (Make_Defining_Identifier (PN (P_Item))));
+            N := Make_Object_Declaration
+              (Defining_Identifier => Make_Defining_Identifier (PN (P_A)),
+               Object_Definition => RE (RE_Any),
+               Expression => Make_Subprogram_Call
+               (RE (RE_To_Any_3), Make_List_Id (N)));
+            Append_Node_To_List (N, D);
+            N := Make_Subprogram_Call
+              (RE (RE_Set_Type),
+               Make_List_Id (Make_Defining_Identifier (PN (P_A)),
+                             Make_Defining_Identifier (Helper_Name)));
+            Append_Node_To_List (N, S);
+            N := Make_Return_Statement
+              (Make_Defining_Identifier (PN (P_A)));
+            Append_Node_To_List (N, S);
+         end if;
+         N := Make_Subprogram_Implementation
+           (Spec, D, S);
+
+         return N;
       end To_Any_Body;
 
       ------------------------

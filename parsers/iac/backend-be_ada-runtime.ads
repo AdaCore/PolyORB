@@ -11,6 +11,7 @@ package Backend.BE_Ada.Runtime is
       RU_CORBA,
       RU_CORBA_AbstractBase,
       RU_CORBA_Object,
+      RU_CORBA_Object_Helper,
       RU_CORBA_TypeCode,
       RU_CORBA_TypeCode_Internals,
       RU_PolyORB,
@@ -53,10 +54,13 @@ package Backend.BE_Ada.Runtime is
       RE_Raise_Bad_Param,           --  CORBA.Raise_Bad_Param
       RE_To_CORBA_String,           --  CORBA.To_CORBA_String
       RE_Ref_1,                     --  CORBA.AbstractBase.Ref
+      RE_Set_Type,                  --  CORBA.Set_Type
       RE_Is_Nil,                    --  CORBA.Object.Is_Nil
       RE_Ref_2,                     --  CORBA.Object.Ref
       RE_Object_Of,                 --  CORBA.Object.Object_Of
       RE_Is_A,                      --  CORBA.Object.Is_A
+      RE_To_Any_3,                  --  CORBA.Object.Helper.To_Any
+      RE_From_Any,                  --  CORBA.Object.Helper.From_Any
       RE_Object,                    --  CORBA.TypeCode.Object
       RE_To_CORBA_Object,        -- CORBA.TypeCode.Internals.To_CORBA_Object
       RE_NamedValue,                --  PolyORB.Any.NamedValue
@@ -102,9 +106,12 @@ package Backend.BE_Ada.Runtime is
          RE_Raise_Inv_Objref      => RU_CORBA,
          RE_Raise_Bad_Param       => RU_CORBA,
          RE_Ref_1                 => RU_CORBA_AbstractBase,
+         RE_Set_Type              => RU_CORBA,
          RE_Ref_2                 => RU_CORBA_Object,
          RE_Object_Of             => RU_CORBA_Object,
          RE_Is_A                  => RU_CORBA_Object,
+         RE_To_Any_3              => RU_CORBA_Object_Helper,
+         RE_From_Any              => RU_CORBA_Object_Helper,
          RE_Is_Nil                => RU_CORBA_Object,
          RE_Object                => RU_CORBA_TypeCode,
          RE_To_CORBA_Object       => RU_CORBA_TypeCode_Internals,

@@ -1,4 +1,9 @@
-2004-07-22  souli  <souli@neraka.enst.fr>
+2004-07-22  Saber Souli  <souli@neraka.enst.fr>
+
+	* backend-be_ada-helpers.adb: Completed any convesion body for
+	interfaces.
+
+2004-07-22  Saber Souli  <souli@neraka.enst.fr>
 
 	* backend-be_ada-nodes.idl: Add expression node. 
 
@@ -7,7 +12,7 @@
 	* backend-be_ada-helpers.adb: Completed narrowing and widening
 	reference body.  
 
-2004-07-21  souli  <souli@neraka.enst.fr>
+2004-07-21 Saber Souli  <souli@neraka.enst.fr>
 
 	* frontend-nodes.idl: Moved BE_CORBA to backend-be_ada-nodes.idl. 
 
