@@ -1,6 +1,0 @@
-// IDL-Spec for testgroup: valuetype
-// Purpose: Operation in valuetype
-
-valuetype Val {
-  short op();
-};
