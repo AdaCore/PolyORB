@@ -299,14 +299,11 @@ package Broca.CDR is
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Object.Ref'Class);
 
-   procedure Unmarshall (Buffer : access Buffer_Type;
-                         Data : in out CORBA.Object.Ref'Class);
+   procedure Unmarshall
+     (Buffer : access Buffer_Type;
+      Data : in out CORBA.Object.Ref'Class);
 
 private
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data : in CORBA.Impl.Object);
 
    procedure Align_Marshall_Copy
      (Buffer    : access Buffer_Type;

@@ -1719,19 +1719,9 @@ package body Broca.CDR is
       if CORBA.Object.Is_Nil (Data) then
          Broca.Exceptions.Raise_Marshal;
       end if;
-      Broca.Refs.Marshall (Buffer,
-                           Broca.Refs.Ref_Type'Class (Data.Ptr.all));
-   end Marshall;
-
-   ----------------
-   --  Marshall  --
-   ----------------
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data : in CORBA.Impl.Object) is
-   begin
-      Broca.Refs.Marshall (Buffer,
-                           Broca.Refs.Ref_Type'Class (Data));
+      Broca.Refs.Marshall
+        (Buffer,
+         Broca.Refs.Ref_Type'Class (Data.Ptr.all));
    end Marshall;
 
    -----------------
@@ -1742,7 +1732,8 @@ package body Broca.CDR is
       Obj : constant CORBA.Impl.Object_Ptr
         := new Broca.Object.Object_Type;
    begin
-      Broca.Object.Unmarshall (Buffer, Broca.Object.Object_Type (Obj.all));
+      Broca.Object.Unmarshall
+        (Buffer, Broca.Object.Object_Type (Obj.all));
       CORBA.Object.Set (Data, Obj);
    end Unmarshall;
 
