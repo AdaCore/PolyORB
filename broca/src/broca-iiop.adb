@@ -36,6 +36,7 @@ with CORBA; use CORBA;
 with Broca.Exceptions;
 with Broca.CDR; use Broca.CDR;
 with Broca.Buffers;     use Broca.Buffers;
+with Broca.Opaque;
 with Broca.Buffers.IO_Operations;
 with Broca.IOP;         use Broca.IOP;
 with Broca.Sequences;   use Broca.Sequences;
