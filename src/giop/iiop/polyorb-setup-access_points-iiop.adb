@@ -82,18 +82,26 @@ package body PolyORB.Setup.Access_Points.IIOP is
    begin
       if Get_Conf ("access_points", "iiop", True) then
 
-         Initialize_Socket (GIOP_Access_Point, Any_Port);
+         declare
+            Port : constant Port_Type
+              := Port_Type
+              (Get_Conf
+               ("iiop",
+                "polyorb.protocols.iiop.default_port",
+                Integer (Any_Port)));
+         begin
+            Initialize_Socket (GIOP_Access_Point, Port);
 
-         Chain_Factories ((0 => Sli'Unchecked_Access,
-                           1 => IIOP_Pro'Unchecked_Access));
+            Chain_Factories ((0 => Sli'Unchecked_Access,
+                              1 => IIOP_Pro'Unchecked_Access));
 
-         Register_Access_Point
-           (ORB    => The_ORB,
-            TAP    => GIOP_Access_Point.SAP,
-            Chain  => Sli'Unchecked_Access,
-            PF     => GIOP_Access_Point.PF);
+            Register_Access_Point
+              (ORB    => The_ORB,
+               TAP    => GIOP_Access_Point.SAP,
+               Chain  => Sli'Unchecked_Access,
+               PF     => GIOP_Access_Point.PF);
+         end;
       end if;
-
    end Initialize_Access_Points;
 
    use PolyORB.Initialization;

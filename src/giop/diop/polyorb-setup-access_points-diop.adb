@@ -79,16 +79,25 @@ package body PolyORB.Setup.Access_Points.DIOP is
 
    begin
       if Get_Conf ("access_points", "diop", True) then
-         Initialize_Unicast_Socket (DIOP_Access_Point, Any_Port);
+         declare
+            Port : constant Port_Type
+              := Port_Type
+              (Get_Conf
+               ("diop",
+                "polyorb.protocols.diop.default_port",
+                Integer (Any_Port)));
+         begin
+            Initialize_Unicast_Socket (DIOP_Access_Point, Port);
 
-         Chain_Factories ((0 => Frag'Unchecked_Access,
-                           1 => Pro'Unchecked_Access));
+            Chain_Factories ((0 => Frag'Unchecked_Access,
+                              1 => Pro'Unchecked_Access));
 
-         Register_Access_Point
-           (ORB    => The_ORB,
-            TAP    => DIOP_Access_Point.SAP,
-            Chain  => Frag'Unchecked_Access,
-            PF     => DIOP_Access_Point.PF);
+            Register_Access_Point
+              (ORB    => The_ORB,
+               TAP    => DIOP_Access_Point.SAP,
+               Chain  => Frag'Unchecked_Access,
+               PF     => DIOP_Access_Point.PF);
+         end;
       end if;
    end Initialize_Access_Points;
 

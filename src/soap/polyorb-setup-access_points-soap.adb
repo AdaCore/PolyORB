@@ -89,17 +89,26 @@ package body PolyORB.Setup.Access_Points.SOAP is
    begin
       if Get_Conf ("access_points", "soap", True) then
 
-         Initialize_Socket (SOAP_Access_Point, 8080);
-         Chain_Factories
-           ((0 => HTTP_Filter'Unchecked_Access,
-             1 => SOAP_Protocol'Unchecked_Access));
-         Register_Access_Point
-           (ORB    => The_ORB,
-            TAP    => SOAP_Access_Point.SAP,
-            Chain  => HTTP_Filter'Unchecked_Access,
-            PF     => SOAP_Access_Point.PF);
-         --  Register socket with ORB object, associating a protocol
-         --  to the transport service access point.
+         declare
+            Port : constant Port_Type
+              := Port_Type
+              (Get_Conf
+               ("soap",
+                "polyorb.protocols.soap.default_port",
+                8080));
+         begin
+            Initialize_Socket (SOAP_Access_Point, Port);
+            Chain_Factories
+              ((0 => HTTP_Filter'Unchecked_Access,
+                1 => SOAP_Protocol'Unchecked_Access));
+            Register_Access_Point
+              (ORB    => The_ORB,
+               TAP    => SOAP_Access_Point.SAP,
+               Chain  => HTTP_Filter'Unchecked_Access,
+               PF     => SOAP_Access_Point.PF);
+            --  Register socket with ORB object, associating a protocol
+            --  to the transport service access point.
+         end;
       end if;
    end Initialize_Access_Points;
 
