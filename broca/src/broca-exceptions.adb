@@ -228,8 +228,9 @@ package body Broca.Exceptions is
    -- Raise standard CORBA exceptions --
    -------------------------------------
 
-   procedure Raise_Unknown (Minor : Unsigned_Long := 0;
-                            Status : Completion_Status := Completed_No) is
+   procedure Raise_Unknown
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No) is
    begin
       Raise_Exception
         (Unknown'Identity,
