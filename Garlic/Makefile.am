@@ -14,6 +14,8 @@ GARLIC       = ${prefix}/lib/garlic
 GNATFLAGS    = -gnatg @GNATFLAGS@
 INCFLAGS           = -I. -I${srcdir}
 
+GNATMAKE     = gnatmake
+
 PLATFORM           = @PLATFORM_SPECIFIC@
 
 TCP_PLATFORM       = 2${PLATFORM}gtplsp.ads
@@ -55,6 +57,7 @@ s-gaosli.o\
 s-garcon.o\
 s-gardeb.o\
 s-garfil.o\
+s-gafino.o\
 s-garhea.o\
 s-garlic.o\
 s-garopt.o\
@@ -88,6 +91,7 @@ ${srcdir}/s-gaphlo.ads ${srcdir}/s-gaphlo.adb \
         ./s-garcon.ads                        \
 ${srcdir}/s-gardeb.ads ${srcdir}/s-gardeb.adb \
 ${srcdir}/s-garfil.ads ${srcdir}/s-garfil.adb \
+${srcdir}/s-gafino.ads ${srcdir}/s-gafino.adb \
 ${srcdir}/s-garhea.ads ${srcdir}/s-garhea.adb \
 ${srcdir}/s-garlic.ads                        \
 ${srcdir}/s-garloo.ads ${srcdir}/s-garloo.adb \
@@ -105,7 +109,7 @@ ${srcdir}/s-gaprco.ads           s-gaprco.adb \
 ${srcdir}/s-garela.ads ${srcdir}/s-garela.adb \
 ${srcdir}/s-garter.ads ${srcdir}/s-garter.adb \
 ${srcdir}/s-gartab.ads ${srcdir}/s-gartab.adb \
-${srcdir}/s-gartyp.ads                        \
+${srcdir}/s-gartyp.ads ${srcdir}/s-gartyp.adb \
 ${srcdir}/s-garuni.ads ${srcdir}/s-garuni.adb \
 ${srcdir}/s-garuti.ads ${srcdir}/s-garuti.adb \
 ${srcdir}/s-gastha.ads ${srcdir}/s-gastha.adb \
@@ -130,7 +134,7 @@ $(FILTERSSOURCES) \
 $(COMMONSOURCES)
 
 CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads s-gaosli.ads s-gaprco.adb \
-	s-garser.adb s-gaplsp.ads $(FILTERSOBJECTS) split
+	s-garser.adb s-gaplsp.ads $(FILTERSOBJECTS) split s-rpcdum.ads
 
 SUFFIXES = .adb .ads .ali .o .xrb
 
@@ -159,18 +163,19 @@ s-gtplsp.ads: ${srcdir}/${TCP_PLATFORM}
 	cp ${srcdir}/${TCP_PLATFORM} s-gtplsp.ads
 
 split: ${srcdir}/split.adb
-	gnatmake -m -o split ${srcdir}/split.adb
+	$(GNATMAKE) -m -o split ${srcdir}/split.adb
 
 all-local: ${SOURCES} ${OBJECTS}
 
-fast: ${SOURCES}
+fast: ${SOURCES} s-rpcdum.ads
+	@gnatmake -m -c -a ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} s-rpcdum
+
+s-rpcdum.ads: ${SOURCES} Makefile
 	@grep "^package " ${SOURCES} | \
 	${AWK} '{if ($$2 != "body") {print "with " $$2 ";" } else {print "with " $$3 ";" }}' | \
 	sort -u > s-rpcdum.ads
 	@echo "private package System.RPC.Dummy is" >> s-rpcdum.ads
 	@echo "end System.RPC.Dummy;" >> s-rpcdum.ads
-	@gnatmake -m -c -a ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} s-rpcdum
-	@rm s-rpcdum.ads
 
 install-dirs-local:
 	-rm -rf ${GARLIC}
@@ -193,6 +198,13 @@ install-data-local: all-local install-dirs-local install-extra-libs
 	chmod a+r ${GARLIC}/*
 	chmod a-w ${GARLIC}/*
 
+# Dependencies
+
+depend: $(SOURCES)
+	$(MAKE) fast
+	$(srcdir)/mkdep
+	$(MAKE) Makefile
+
 # Cross references
 
 X.ref: ${SOURCES}
@@ -204,7 +216,14 @@ X.ref: ${SOURCES}
 %.xrb: %.ads
 	gnatf -x5 $<
 
+###
+### The following section is valid only for developpers that use the
+### --enable-debug flag on configure. If you want to make modifications
+### outside the development mode, you need to either update the following
+### dependencies or to use the "fast" target.
+###
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
+s-gafino.o: s-garlic.ads s-gardeb.ads s-garfil.ads s-gafino.ads s-gafino.adb s-garhea.ads s-ganata.ads s-gaphlo.ads s-garpro.ads s-gastha.ads s-garstr.ads s-gartyp.ads s-garuti.ads s-rpc.ads
 s-gafizi.o: s-garlic.ads s-gardeb.ads s-garfil.ads s-gafizi.ads s-gafizi.adb s-garhea.ads s-ganata.ads s-gaphlo.ads s-garpro.ads s-gastha.ads s-garstr.ads s-gartyp.ads s-garuti.ads s-rpc.ads
 s-ganata.o: s-garlic.ads s-gardeb.ads s-ganata.ads s-ganata.adb s-gartab.ads s-gartab.adb s-gartyp.ads s-garuti.ads
 s-gaosli.o: s-garlic.ads s-gaosli.ads s-gaosli.adb s-garthi.ads
@@ -214,6 +233,7 @@ s-gaprco.o: s-garlic.ads s-garloo.ads s-garpro.ads s-gaprco.ads s-gaprco.adb s-g
 s-garcon.o: s-garlic.ads s-garcon.ads
 s-gardeb.o: s-garlic.ads s-gardeb.ads s-gardeb.adb s-gaosli.ads
 s-garela.o: s-garlic.ads s-garela.ads s-garela.adb s-garhea.ads s-ganata.ads s-garopt.ads s-gaphlo.ads s-garpro.ads s-gartyp.ads s-rpc.ads
+s-garfil.o: s-garlic.ads s-gardeb.ads s-garfil.ads s-garfil.adb s-garhea.ads s-ganata.ads s-gaphlo.ads s-garpro.ads s-gastha.ads s-garstr.ads s-gartab.ads s-gartab.adb s-gartyp.ads s-garuti.ads s-rpc.ads
 s-garhea.o: s-garlic.ads s-gardeb.ads s-garfil.ads s-garhea.ads s-garhea.adb s-ganata.ads s-garopt.ads s-gaphlo.ads s-garpro.ads s-gastha.ads s-garstr.ads s-garter.ads s-gartra.ads s-gartyp.ads s-garuti.ads s-rpc.ads s-rpcini.ads
 s-garlic.o: s-garlic.ads
 s-garloo.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-garloo.ads s-garloo.adb s-ganata.ads s-gaphlo.ads s-garpro.ads s-gartyp.ads s-rpc.ads
@@ -224,8 +244,9 @@ s-garpro.o: s-garlic.ads s-garpro.ads s-garpro.adb s-rpc.ads
 s-garrem.o: s-garlic.ads s-garcon.ads s-garnam.ads s-gaplsp.ads s-garrem.ads s-garrem.adb s-garthi.ads s-gartyp.ads s-rpc.ads
 s-garrep.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-garopt.ads s-gaphlo.ads s-garpro.ads s-garrep.ads s-garrep.adb s-gartyp.ads s-rpc.ads
 s-garser.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-garopt.ads s-gaphlo.ads s-garpro.ads s-garrem.ads s-garser.ads s-garser.adb s-gartyp.ads s-rpc.ads
+s-garsta.o: s-garlic.ads s-gardeb.ads s-garela.ads s-garfil.ads s-garhea.ads s-ganata.ads s-garopt.ads s-gaphlo.ads s-garpro.ads s-gaprco.ads s-garser.ads s-garsta.ads s-garsta.adb s-gastha.ads s-garstr.ads s-garter.ads s-gartra.ads s-gartyp.ads s-garuti.ads s-rpc.ads s-rpcini.ads
 s-garstr.o: s-garlic.ads s-gardeb.ads s-gastha.ads s-gastha.adb s-garstr.ads s-garstr.adb s-garuti.ads s-rpc.ads
-s-gartab.o: s-garlic.ads s-ganata.ads s-gartab.ads s-gartab.adb s-garuti.ads
+s-gartab.o: s-garlic.ads s-gardeb.ads s-ganata.ads s-gartab.ads s-gartab.adb s-garuti.ads
 s-gartcp.o: s-garlic.ads s-garcon.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-garnam.ads s-garopt.ads s-gaphlo.ads s-garpri.ads s-garpro.ads s-gastha.ads s-garstr.ads s-gartcp.ads s-gartcp.adb s-gtplsp.ads s-garter.ads s-garthi.ads s-gartyp.ads s-garuti.ads s-rpc.ads
 s-garter.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-garopt.ads s-gaphlo.ads s-garpri.ads s-garpro.ads s-garter.ads s-garter.adb s-gartyp.ads s-garuti.ads s-rpc.ads
 s-garthi.o: s-garlic.ads s-garthi.ads
