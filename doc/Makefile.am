@@ -1,7 +1,7 @@
 info_TEXINFOS = polyorb_ug.texi polyorb_dg.texi
 man_MANS = ab_names.1 idlac.1 polyorb-config.1 polyorb.7
 
-SUFFIXES = .idl .ads .adb .texi .sed
+SUFFIXES = .idl .ads .adb .texi .sed .pdf .txt .html
 
 polyorb_ug_TEXINFOS = polyorb_ug_ref.texi \
 	polyorb-corba_p-server_tools.texi \
@@ -12,20 +12,15 @@ polyorb_ug_TEXINFOS = polyorb_ug_ref.texi \
 	server.texi \
 	client.texi
 
+#
+# Rules to build specific files for PolyORB User's Guide
+# 
+
 polyorb-corba_p-server_tools.ads: ../src/corba/polyorb-corba_p-server_tools.ads
 	cp ../src/corba/polyorb-corba_p-server_tools.ads .
 
 polyorb-corba_p-naming_tools.ads: ../cos/naming/polyorb-corba_p-naming_tools.ads
 	cp ../cos/naming/polyorb-corba_p-naming_tools.ads .
-
-polyorb_ug.html: ${srcdir}/polyorb_ug.texi
-	-${TEXI2HTML} -menu -split section -number $<
-
-polyorb_ug.pdf: ${srcdir}/polyorb_ug.texi
-	-${TEXI2DVI} --pdf $<
-
-polyorb_ug.txt: ${srcdir}/polyorb_ug.texi
-	-${MAKEINFO} -o $@ --number-sections $<
 
 polyorb_ug_ref.texi: polyorb_ug_ref.bbl
 	@${SED} -e 's/~/ /g' \
@@ -53,14 +48,18 @@ polyorb_ug_ref.aux: polyorb_ug.bib
 	rm -f polyorb_ug_ref.bbl
 	tex '\nonstopmode \input polyorb_ug_ref'
 
-polyorb_dg.html: ${srcdir}/polyorb_dg.texi
-	-${TEXI2HTML} -menu -split_chapter -number $<
+#
+# Generic rules to build the documentation in specific formats
+#
 
-polyorb_dg.pdf: ${srcdir}/polyorb_dg.texi
-	-${TEXI2DVI} --pdf $<
+%.html: ${srcdir}/%.texi
+	-${MAKEINFO} -o $@ --ifinfo --html --number-sections $<
 
-polyorb_dg.txt: ${srcdir}/polyorb_dg.texi
+%.txt: ${srcdir}/%.texi
 	-${MAKEINFO} -o $@ --number-sections $<
+
+%.pdf: ${srcdir}/%.texi
+	-${TEXI2DVI} $@ --pdf $<
 
 #
 # Texi generation from .ads files
@@ -90,9 +89,6 @@ ada.sed:
 		echo "s/^$$kw$$/@b{$$kw}/g" >> ada.sed; \
 	done
 
-all-local: polyorb_ug.html polyorb_ug.pdf polyorb_ug.ps polyorb_ug.txt \
-	polyorb_dg.html polyorb_dg.pdf polyorb_dg.txt polyorb_dg.ps
-
 #
 # Texi generation from .idl files
 #
@@ -112,23 +108,30 @@ idl.sed:
 		echo "s/^$$kw$$/@b{$$kw}/g" >> idl.sed; \
 	done
 
-all-local: polyorb_ug.html polyorb_ug.pdf polyorb_ug.ps polyorb_ug.txt
+#
+# Local rules
+# 
+
+all-local: polyorb_ug.html polyorb_ug.pdf polyorb_ug.ps polyorb_ug.txt \
+	polyorb_dg.html polyorb_dg.pdf polyorb_dg.txt polyorb_dg.ps
 
 clean-local:
-	-@${RM} polyorb_ug.pdf polyorb_ug.txt polyorb_ug.info polyorb_ug*.html 
+	-@${RM} polyorb_ug.pdf polyorb_ug.txt polyorb_ug.info 
 	-@${RM} polyorb_ug_ref.aux polyorb_ug_ref.bbl polyorb_ug_ref.blg 
 	-@${RM} polyorb_ug_ref.dvi polyorb_ug_ref.log
 	-@${RM} ${polyorb_ug_TEXINFOS}
-	-@${RM} polyorb_dg.pdf polyorb_dg.txt polyorb_dg.info polyorb_dg*.html
+	-@${RM} polyorb_dg.pdf polyorb_dg.txt polyorb_dg.info
 	-@${RM} idl.sed ada.sed
+	-@${RM} -r polyorb_ug.html polyorb_dg.html
 
 install-data-local:
 	$(INSTALL) -d $(prefix)/doc/polyorb
 	$(INSTALL) -d $(prefix)/doc/polyorb/html
+	$(INSTALL) -d $(prefix)/doc/polyorb/html/polyorb_ug
 	$(INSTALL) -d $(prefix)/doc/polyorb/ps
 	$(INSTALL) -d $(prefix)/doc/polyorb/pdf
 	$(INSTALL) -d $(prefix)/doc/polyorb/txt
-	for f in `ls polyorb_ug*.html`; do  $(INSTALL_DATA) $$f $(prefix)/doc/polyorb/html; done
+	for f in `ls polyorb_ug.html/*.html`; do  $(INSTALL_DATA) $$f $(prefix)/doc/polyorb/html/polyorb_ug; done
 	for f in `ls polyorb_ug.ps`; do  $(INSTALL_DATA) $$f $(prefix)/doc/polyorb/ps; done
 	for f in `ls polyorb_ug.pdf`; do  $(INSTALL_DATA) $$f $(prefix)/doc/polyorb/pdf; done
 	for f in `ls polyorb_ug.txt`; do  $(INSTALL_DATA) $$f $(prefix)/doc/polyorb/txt; done
