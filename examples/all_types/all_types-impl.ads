@@ -140,6 +140,11 @@ package all_types.Impl is
      (Self : access Object)
       return Ref;
 
+   function EchoArray
+     (Self : access Object;
+      Arg : in Simple_Array)
+      return Simple_Array;
+
 private
 
    type Object is new AdaBroker.OmniORB.ImplObject with record

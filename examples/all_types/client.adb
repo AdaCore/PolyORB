@@ -66,6 +66,13 @@ begin
       Output ("test union", Echo1 (MyAll_Types, X) = X);
    end;
 
+
+   declare
+      X : Simple_Array := (0,1,2,3,4,5,6,7,8,9);
+   begin
+      Output ("test simple array", EchoArray (MyAll_Types, X) = X);
+   end;
+
    declare
       X : Simple_Struct := (A => (0,1,2,3,4,5,6,7,8,9), B => 10);
    begin

@@ -258,6 +258,16 @@ package body all_types.Impl is
       return Result;
    end get_myself;
 
+   function EchoArray
+     (Self : access Object;
+      Arg : in Simple_Array)
+      return Simple_Array
+   is
+   begin
+      return Arg;
+   end EchoArray;
+
+
    -----------------------------------------------------------
    --  Implementations objects are controlled, you can add  --
    --  instructions in the following functions as specified --

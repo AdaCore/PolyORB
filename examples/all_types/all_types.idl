@@ -96,6 +96,12 @@ interface all_types {
   all_types echo11(in all_types arg);
   Object echo12(in Object arg);
   all_types get_myself() ;
+
+
+  // array
+  typedef long simple_array[10];
+  simple_array echoArray(in simple_array arg);
+
 };
 
 
