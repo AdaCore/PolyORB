@@ -14,8 +14,11 @@ if [ $# = 0 ]; then
     usage
 else
     WINDOW=`xprop -root GNOME_NAME_SERVER | awk '{print $5}'`
-    ADABROKER_NAMING_IOR=`xprop -id $WINDOW GNOME_NAME_SERVER_IOR | awk '{print $3}' | sed -e 's/^.//' -e 's/.$//'`
-    ADABROKER_PRINCIPAL=file:/tmp/orbit-`whoami`/cookie
+    ADABROKER_NAMING_IOR=`xprop -id $WINDOW GNOME_NAME_SERVER_IOR | \
+      awk '{ gsub ("\"", ""); print $3 }'`
+    ADABROKER_PRINCIPAL=`xprop -root GNOME_SESSION_CORBA_COOKIE | \
+      awk '{ gsub ("\"", ""); print $3 }'`
+
     export ADABROKER_NAMING_IOR ADABROKER_PRINCIPAL
     exec "$@"
 fi
