@@ -66,6 +66,8 @@ s-garter.o\
 s-garuti.o\
 s-parint.o\
 s-rpc.o\
+s-rpcpoo.o\
+s-rpcuti.o\
 s-stratt.o
 
 COMMONSOURCES = \
@@ -95,6 +97,8 @@ ${srcdir}/s-garter.ads ${srcdir}/s-garter.adb \
 ${srcdir}/s-garuti.ads ${srcdir}/s-garuti.adb \
 ${srcdir}/s-parint.ads ${srcdir}/s-parint.adb \
 ${srcdir}/s-rpc.ads    ${srcdir}/s-rpc.adb    \
+${srcdir}/s-rpcpoo.ads ${srcdir}/s-rpcpoo.adb \
+${srcdir}/s-rpcuti.ads ${srcdir}/s-rpcuti.adb \
 ${srcdir}/s-stratt.adb
 
 OBJECTS = \

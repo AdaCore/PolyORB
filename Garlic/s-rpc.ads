@@ -102,5 +102,32 @@ private
         Count         : Ada.Streams.Stream_Element_Count := 0;
      end record;
 
+   type Params_Stream_Access is access Params_Stream_Type;
+
+   type Request_Id is mod 2 ** 8;
+   --  The Request_Id identifies the request being sent.
+
+   type RPC_Opcode is (RPC_Request,
+                       RPC_Answer,
+                       RPC_Request_Cancellation,
+                       RPC_Cancellation_Accepted,
+                       APC_Request);
+   --  Type of operation.
+
+   type Request_Header (Kind : RPC_Opcode) is record
+      case Kind is
+         when RPC_Request | RPC_Answer |
+           RPC_Request_Cancellation | RPC_Cancellation_Accepted =>
+            Id : Request_Id;
+         when APC_Request =>
+            null;
+      end case;
+   end record;
+
+   procedure Insert_Request
+     (Params : access Params_Stream_Type;
+      Header : in Request_Header);
+   --  This procedure adds a Request_Header in front of Params.
+
 end System.RPC;
 
