@@ -54,6 +54,7 @@ package System.Garlic.Options is
    Detach          : Boolean;
    Is_Slave        : Boolean;
    Nolaunch        : Boolean;
+   Reconnection    : Types.Reconnection_Type;
    Termination     : Types.Termination_Type;
    Partition_Name  : Utils.String_Access;
    Execution_Mode  : Types.Execution_Mode_Type;
@@ -75,6 +76,8 @@ package System.Garlic.Options is
    procedure Set_Nolaunch (Default : in Boolean);
 
    procedure Set_Partition_Name (Name : in String);
+
+   procedure Set_Reconnection (Default : in Types.Reconnection_Type);
 
    procedure Set_Task_Pool_Bounds (Low, High, Max : in Positive);
 

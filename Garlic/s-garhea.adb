@@ -83,7 +83,6 @@ package body System.Garlic.Heart is
      Valid_Partition_ID'First;
    --  The partition ID server does have this partition ID
 
-   Reconnection_Policy : Reconnection_Type := Immediately;
    Shutdown_Policy     : Shutdown_Type     := Shutdown_On_Boot_Partition_Error;
    --  These parameters control how Garlic will act in face of errors.
    --  They don't need extra protection because they should not be modified
@@ -98,21 +97,21 @@ package body System.Garlic.Heart is
    pragma Atomic (Shutdown_In_Progress);
 
    type Public_Data is record
-      Location           : Location_Type;
-      Name               : Name_Id;
-      Termination_Policy : Termination_Type;
-      Alive              : Boolean := False;
+      Location     : Location_Type;
+      Name         : Name_Id;
+      Termination  : Termination_Type;
+      Reconnection : Reconnection_Type;
+      Alive        : Boolean := False;
    end record;
    --  This structure represents the public data that can be shared
    --  concerning a partition. The fields are:
-   --    Location           : physical location of the partition
-   --    Name               : name of the partition (may be duplicated)
-   --    Termination_Policy : the way the partition wants the termination to
-   --                         be handled
-   --    Alive              : false if the partition is known to be dead;
-   --                         this field is preset to False so that we can
-   --                         detect that the local data has not been
-   --                         initialized
+   --    Location     : physical location of the partition
+   --    Name         : name of the partition (may be duplicated)
+   --    Termination  : the way the partition wants termination to be handled
+   --    Reconnection : reconnection policy to adopt for this partition
+   --    Alive        : false if the partition is known to be dead;
+   --                   this field is preset to False so that we can
+   --                   detect that the local data has not been initialized
 
    type Partition_Data is record
       Public   : Public_Data;
@@ -289,13 +288,10 @@ package body System.Garlic.Heart is
    procedure Add_New_Partition_ID (Partition : in Partition_ID) is
       Empty : aliased Params_Stream_Type (0);
    begin
-      if Reconnection_Policy = Immediately then
+      --  Send a NOP to establish the connection
 
-         --  Send a NOP to establish the connection
-
-         pragma Debug (D (D_Debug, "Sending a No_Operation"));
-         Send (Partition, No_Operation, Empty'Access);
-      end if;
+      pragma Debug (D (D_Debug, "Sending a No_Operation"));
+      Send (Partition, No_Operation, Empty'Access);
    end Add_New_Partition_ID;
 
    ---------------------------
@@ -317,7 +313,7 @@ package body System.Garlic.Heart is
    function Blocking_Partition (Partition : Partition_ID) return Boolean is
       Public : constant Public_Data := Get_Public_Data (Partition);
    begin
-      return Public.Termination_Policy = Local_Termination
+      return Public.Termination = Local_Termination
         and then Public.Alive;
    end Blocking_Partition;
 
@@ -354,15 +350,16 @@ package body System.Garlic.Heart is
    -- Dump_Partition_Information --
    --------------------------------
 
-   procedure Dump_Partition_Information (Partition : in Partition_ID;
-                                         Public    : in Public_Data)
+   procedure Dump_Partition_Information
+     (Partition : in Partition_ID;
+      Public    : in Public_Data)
    is
    begin
       D (D_Debug, "Information on partition" & Partition_ID'Image (Partition));
       D (D_Debug, "  Name:        " & Get (Public.Name));
       D (D_Debug, "  Location:    " & To_String (Public.Location));
-      D (D_Debug, "  Termination: " &
-                  Termination_Type'Image (Public.Termination_Policy));
+      D (D_Debug, "  Termination: " & Public.Termination'Img);
+      D (D_Debug, "  Reconnection: " & Public.Reconnection'Img);
       D (D_Debug, "  Alive:       " & Boolean'Image (Public.Alive));
    end Dump_Partition_Information;
 
@@ -737,16 +734,20 @@ package body System.Garlic.Heart is
       Stream : aliased Params_Stream_Type (32);
       --  Some size that certainly is enough
    begin
-      My_Public_Data.Name               := Get (Options.Partition_Name.all);
-      My_Public_Data.Termination_Policy := Options.Termination;
-      My_Public_Data.Alive              := True;
+      My_Public_Data.Name         := Get (Options.Partition_Name.all);
+      My_Public_Data.Termination  := Options.Termination;
+      My_Public_Data.Reconnection := Options.Reconnection;
+      My_Public_Data.Alive        := True;
 
       pragma Debug
         (D (D_Debug, "My partition name is " & Get (My_Public_Data.Name)));
       pragma Debug
         (D (D_Debug,
-            "My termination policy is " &
-            Termination_Type'Image (Options.Termination)));
+            "My termination policy is " & Options.Termination'Img));
+      pragma Debug
+        (D (D_Debug,
+            "My reconnection policy is " & Options.Reconnection'Img));
+
    end Initialize;
 
    -----------------------
@@ -1080,6 +1081,17 @@ package body System.Garlic.Heart is
       end if;
    end Remote_Partition_Error;
 
+   -------------------------
+   -- Reconnection_Policy --
+   -------------------------
+
+   function Reconnection_Policy
+     (Partition : Partition_ID)
+      return Reconnection_Type is
+   begin
+      return Get_Public_Data (Partition) .Reconnection;
+   end Reconnection_Policy;
+
    ----------
    -- Send --
    ----------
@@ -1142,10 +1154,11 @@ package body System.Garlic.Heart is
    procedure Set_Boot_Location (Location : in Location_Type)
    is
       Public : constant Public_Data :=
-        (Location           => Location,
-         Name               => Null_Name,
-         Termination_Policy => Global_Termination,
-         Alive              => False);
+        (Location     => Location,
+         Name         => Null_Name,
+         Reconnection => Rejected_On_Restart,
+         Termination  => Global_Termination,
+         Alive        => False);
       Data : Partition_Data :=
         (Public  => Public,
          Queried => False,
@@ -1204,11 +1217,9 @@ package body System.Garlic.Heart is
    ----------------
 
    procedure Set_Policy
-     (Reconnection : Reconnection_Type := Immediately;
-      Shutdown     : Shutdown_Type     := Shutdown_On_Boot_Partition_Error)
+     (Shutdown     : Shutdown_Type     := Shutdown_On_Boot_Partition_Error)
    is
    begin
-      Reconnection_Policy := Reconnection;
       Shutdown_Policy     := Shutdown;
    end Set_Policy;
 
@@ -1262,7 +1273,7 @@ package body System.Garlic.Heart is
      return Termination_Type
    is
    begin
-      return Get_Public_Data (Partition) .Termination_Policy;
+      return Get_Public_Data (Partition) .Termination;
    end Termination_Policy;
 
    ------------------------------------------

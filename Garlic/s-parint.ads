@@ -97,10 +97,6 @@ package System.Partition_Interface is
      (Handler : in out RACW_Stub_Type_Access);
    --  Get a unique pointer on a remote object
 
-   procedure Invalidate_Receiving_Stub
-     (Name     : in Unit_Name);
-   --  Declare this receiving stub as corrupted to the RCI Name Server
-
    procedure Launch
      (Rsh_Command  : in String;
       Name_Is_Host : in Boolean;

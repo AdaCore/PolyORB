@@ -1,3 +1,42 @@
+1998-08-17  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garhea.adb: Remove previous use of reconnection in this
+ 	package (it was not implemented at all for several years). Add
+ 	reconnection policy as a partition field in public_data.
+
+	* s-garopt.adb: Add reconnection option and initialized it as
+ 	Reject_On_Restart. Provide new procedures.
+
+	* s-garopt.ads: Add new procedure Set_Reconnection.
+
+	* s-gartyp.ads: Remove old Reconnection_Type and reset a new one.
+
+	* s-garuni.adb: Handle the three reconnection policies. Also,
+ 	handle the case where a RCI unit is registered several times in
+ 	order to raise a program_error exception except for the first
+ 	one. Handle a list of RCI units per partition. Update the way
+ 	caches were handled and add a new status Invalid. Add a dependency
+ 	on Garlic.Elaboration and Garlic.Options to get the reconnection
+ 	policy. A registration is done now in two steps. A RCI sends its
+ 	data and then ask for them to check that the registration went
+ 	well.
+
+	* s-garuni.ads: Add new field reconnection to Unit_Type and modify 
+	cache procedures.
+
+	* s-parint.adb: Move procedures Process and Send into s-garuni.adb
+ 	to be able to call Process from System.RPC [Note: Garlic has no
+ 	vibility on System.RPC and System.Partition_Interface and
+ 	System.RPC has no visibility on System.Partition_Interface].
+  	Improve the way Version checks are done.
+
+	* s-parint.ads: Remove Invalidate_Receiving_Stub (no longer
+	needed).
+
+	* s-rpc.adb: Add new procedure Invalidate_RCI_Units and execute it 
+	in Partition_Error_Notification.
+	
+	
 1998-08-14  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garexc.ads: Add pragma No_Return to Raise_Communication_Error.

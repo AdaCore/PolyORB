@@ -85,8 +85,7 @@ package System.Garlic.Heart is
    --------------
 
    procedure Set_Policy
-     (Reconnection : Types.Reconnection_Type := Types.Immediately;
-      Shutdown     : Types.Shutdown_Type     :=
+     (Shutdown     : Types.Shutdown_Type     :=
         Types.Shutdown_On_Boot_Partition_Error);
    --  Sets Garlic policy about Shutdowns and reconnections
 
@@ -113,6 +112,10 @@ package System.Garlic.Heart is
    --  Return True if a partition has a local termination but is still
    --  alive. This means that the whole distributed program cannot terminate
    --  because a client is still working.
+
+   function Reconnection_Policy (Partition : Types.Partition_ID)
+     return Types.Reconnection_Type;
+   --  Return policy to use when reconnecting to Partition
 
    function Termination_Policy (Partition : Types.Partition_ID)
      return Types.Termination_Type;

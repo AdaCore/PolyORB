@@ -48,7 +48,9 @@ package System.Garlic.Units is
    First_Unit_Id : constant Unit_Id := 2_000_000;
 
    type Request_List is array (Types.Partition_ID) of Boolean;
-   type Request_Id is (Get_Unit, Set_Unit);
+   type Request_Id is (Get_Unit, Set_Unit, Invalidate);
+
+   type Unit_Status is (Unknown, Queried, Known, Invalid);
 
    type Cache_Type is limited private;
 
@@ -56,47 +58,85 @@ package System.Garlic.Units is
      (Cache     : in Cache_Type;
       Receiver  : out Interfaces.Unsigned_64;
       Partition : out Types.Partition_ID;
-      Done      : out Boolean);
+      Status    : out Unit_Status);
+   --  Get Receiver and Partition in a unit cache. Status can be either
+   --  Invalid (partition is down) or Known.
+
+   function Partition_RCI_List
+     (Partition : in Types.Partition_ID)
+      return Unit_Id;
+   --  Build an unique unit name from a partition id. This name
+   --  corresponds to a fake unit. This unit is the root of a rci unit
+   --  list. Each unit of this list is configured on this partition.
 
    procedure Set_RCI_Data
      (Cache     : out Cache_Type;
       Receiver  : in Interfaces.Unsigned_64;
       Partition : in Types.Partition_ID);
+   --  Set Receiver and Partition in a unit cache. Status becomes Known.
+
+   procedure Update
+     (Cache     : out Cache_Type;
+      Partition : in  Types.Partition_ID;
+      Status    : in  Unit_Status);
+   --  Update cache status
 
    type Cache_Access is access Cache_Type;
 
-   type Unit_Status is (Unknown, Queried, Known);
+   type Unit_Type is
+      record
+         Next_Unit : Unit_Id;
+         Partition : Types.Partition_ID;
+         Receiver  : Interfaces.Unsigned_64;
+         Version   : Utils.String_Access;
+         Cache     : Cache_Access;
+         Status    : Unit_Status;
+         Pending   : Boolean;
+         Requests  : Request_List;
+      end record;
 
-   type Unit_Type is record
-      Partition : Types.Partition_ID;
-      Receiver  : Interfaces.Unsigned_64;
-      Version   : Utils.String_Access;
-      Cache     : Cache_Access;
-      Status    : Unit_Status;
-      Pending   : Boolean;
-      Requests  : Request_List;
-   end record;
+   Null_Unit : constant Unit_Type
+     := (Next_Unit => Null_Unit_Id,
+         Partition => System.Garlic.Heart.Null_Partition_ID,
+         Receiver  => 0,
+         Version   => null,
+         Cache     => null,
+         Status    => Unknown,
+         Pending   => False,
+         Requests  => (others => False));
 
-   Null_Unit : constant Unit_Type :=
-     (Partition => System.Garlic.Heart.Null_Partition_ID,
+   --  Next_Unit   : units on the same partition are linked together
+   --  Partition   : unit partition id
+   --  Receiver    : unit rpc receiver
+   --  Version     : unit version id
+   --  Cache       : reference ot the caller cache
+   --  Status      : unit info status
+   --  Pending     : true when requests are pending
+   --  Requests    : request(p) true for a pending request from partition p
+
+   type Request_Type is
+      record
+         Command   : Request_Id;
+         Partition : Types.Partition_ID;
+         Receiver  : Interfaces.Unsigned_64;
+         Version   : Utils.String_Access;
+         Cache     : Cache_Access;
+      end record;
+
+   Null_Request : constant Request_Type :=
+     (Command   => Get_Unit,
+      Partition => System.Garlic.Heart.Null_Partition_ID,
       Receiver  => 0,
       Version   => null,
-      Cache     => null,
-      Status    => Unknown,
-      Pending   => False,
-      Requests  => (others => False));
+      Cache     => null);
 
-   type Request_Type is record
-      Command   : Request_Id;
-      Partition : Types.Partition_ID;
-      Receiver  : Interfaces.Unsigned_64;
-      Version   : Utils.String_Access;
-      Cache     : Cache_Access;
-   end record;
+   --  Command     : operation to perform
+   --  Partition   : unit partition id
+   --  Receiver    : unit rpc receiver
+   --  Version     : unit version id
+   --  Cache       : reference ot the caller cache
 
-   Null_Request : constant Request_Type;
-
-   package Units is new System.Garlic.Table.Complex
+   package Table is new System.Garlic.Table.Complex
      (Index_Type     => Unit_Id,
       Null_Index     => Null_Unit_Id,
       First_Index    => First_Unit_Id,
@@ -106,19 +146,30 @@ package System.Garlic.Units is
       Null_Component => Null_Unit,
       Parameter_Type => Request_Type);
 
+   procedure Process
+     (N       : in Unit_Id;
+      Request : in Request_Type;
+      Unit    : in out Unit_Type;
+      Status  : out Utils.Status_Type);
+   --  Execute request Request on unit Unit (N) in a critical section.
+   --  When Status is Unmodified, Unit is kept unmodified. When Modified,
+   --  Unit is saved in Table. When Postponed, Unit is saved in Table
+   --  and the task is suspended until another task returns with a Modified
+   --  Status. This behaviour comes from the implementation of Table
+   --  Mutex (see Garlic.Utils.Mutex_Type).
+
+   procedure Send
+     (Partition : in Types.Partition_ID;
+      Request   : in Request_Type;
+      Unit      : in Unit_Id);
+   --  Send a request on a unit to a partition
+
 private
 
    type Cache_Type is record
-      Cache_Consistent : Boolean := False;
+      RCI_Unit_Status  : Unit_Status := Unknown;
       Active_Partition : Types.Partition_ID;
       Package_Receiver : Interfaces.Unsigned_64;
    end record;
-
-   Null_Request : constant Request_Type :=
-     (Command   => Get_Unit,
-      Partition => System.Garlic.Heart.Null_Partition_ID,
-      Receiver  => 0,
-      Version   => null,
-      Cache     => null);
 
 end System.Garlic.Units;

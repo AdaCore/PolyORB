@@ -118,6 +118,8 @@ package body System.Garlic.Options is
       end if;
       Free (EV);
 
+      Set_Reconnection (Rejected_On_Restart);
+
       while Index <= Argument_Count loop
 
          if Argument (Index) = "--boot_server" then
@@ -263,6 +265,15 @@ package body System.Garlic.Options is
       Partition_Name := new String'(Name);
       Set_Trace_File_Name (Name & ".ptf");
    end Set_Partition_Name;
+
+   ----------------------
+   -- Set_Reconnection --
+   ----------------------
+
+   procedure Set_Reconnection (Default : in Reconnection_Type) is
+   begin
+      Reconnection := Default;
+   end Set_Reconnection;
 
    --------------------------
    -- Set_Task_Pool_Bounds --

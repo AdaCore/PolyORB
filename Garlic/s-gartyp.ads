@@ -58,11 +58,6 @@ package System.Garlic.Types is
    function To_Portable_Address (Addr : Address) return Portable_Address;
    --  Conversion routines
 
-   type Reconnection_Type is (Immediately,
-                              When_Needed);
-   --  Immediately reconnects as soon as a connection is broken (default).
-   --  When_Needed waits for this connection to be necessary.
-
    type Shutdown_Type is (Shutdown_On_Any_Partition_Error,
                           Shutdown_On_Boot_Partition_Error,
                           Never_Shutdown_On_Partition_Error);
@@ -72,6 +67,11 @@ package System.Garlic.Types is
                              Global_Termination,
                              Deferred_Termination);
    --  Three ways of terminating a partition
+
+   type Reconnection_Type is (Rejected_On_Restart,
+                              Blocked_Until_Restart,
+                              Failed_Until_Restart);
+   --  Three ways of reconnecting to a partition
 
    type Execution_Mode_Type is (Trace_Mode,
                                 Replay_Mode,

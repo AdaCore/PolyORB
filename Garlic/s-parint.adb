@@ -43,6 +43,9 @@ with GNAT.Table;
 with System.Garlic.Debug;      use System.Garlic.Debug;
 pragma Elaborate_All (System.Garlic.Debug);
 
+with System.Garlic.Exceptions; use System.Garlic.Exceptions;
+pragma Elaborate (System.Garlic.Exceptions);
+
 with System.Garlic.Heart;      use System.Garlic.Heart;
 pragma Elaborate (System.Garlic.Heart);
 
@@ -81,6 +84,8 @@ package body System.Partition_Interface is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
+   use System.Garlic.Units.Table;
+
    function Convert is
      new Ada.Unchecked_Conversion
      (RPC_Receiver, RPC.RPC_Receiver);
@@ -100,22 +105,11 @@ package body System.Partition_Interface is
    --  Compare two version ids. If one of these version ids is a string
    --  of blank characters then they will be considered as identical.
 
-   procedure Process
-     (N       : in Unit_Id;
-      Request : in Request_Type;
-      Unit    : in out Unit_Type;
-      Status  : out Status_Type);
-
    procedure Public_Message_Receiver
      (Partition : in Partition_ID;
       Operation : in Public_Opcode;
       Params    : access Params_Stream_Type);
    --  Global message receiver
-
-   procedure Send
-     (Partition : in Partition_ID;
-      Request   : in Request_Type;
-      Unit      : in Unit_Id);
 
    Local_Partition  : constant Partition_ID := Get_My_Partition_ID;
    Get_Unit_Request : constant Request_Type :=
@@ -154,6 +148,8 @@ package body System.Partition_Interface is
                       Table_Low_Bound      => 1,
                       Table_Initial        => 16,
                       Table_Increment      => 100);
+
+   --  This is a list of caller units whose Version_ID needs to check.
 
    type Caller_Node;
    type Caller_List is access Caller_Node;
@@ -241,12 +237,13 @@ package body System.Partition_Interface is
    is
       N : String := Name;
       U : Unit_Id;
+
    begin
       To_Lower (N);
-      U := Units.Get_Index (N);
+      U := Get_Index (N);
       pragma Debug (D (D_Debug, "Request Get_Active_Partition_ID"));
-      Units.Apply (U, Get_Unit_Request, Process'Access);
-      return RPC.Partition_ID (Units.Get_Component (U).Partition);
+      Apply (U, Get_Unit_Request, Process'Access);
+      return RPC.Partition_ID (Get_Component (U).Partition);
    end Get_Active_Partition_ID;
 
    ------------------------
@@ -261,10 +258,10 @@ package body System.Partition_Interface is
       U : Unit_Id;
    begin
       To_Lower (N);
-      U := Units.Get_Index (N);
+      U := Get_Index (N);
       pragma Debug (D (D_Debug, "Request Get_Active_Version"));
-      Units.Apply (U, Get_Unit_Request, Process'Access);
-      return Units.Get_Component (U).Version.all;
+      Apply (U, Get_Unit_Request, Process'Access);
+      return Get_Component (U).Version.all;
    end Get_Active_Version;
 
    ----------------------------
@@ -300,11 +297,11 @@ package body System.Partition_Interface is
       U : Unit_Id;
    begin
       To_Lower (N);
-      U := Units.Get_Index (N);
+      U := Get_Index (N);
       pragma Debug (D (D_Debug, "Request Get_Package_Receiver"));
 
-      Units.Apply (U, Get_Unit_Request, Process'Access);
-      return Units.Get_Component (U).Receiver;
+      Apply (U, Get_Unit_Request, Process'Access);
+      return Get_Component (U).Receiver;
    end Get_RCI_Package_Receiver;
 
    -------------------------------
@@ -342,15 +339,6 @@ package body System.Partition_Interface is
       return Hash_Index (Integer (K) mod Integer (Hash_Index'Last));
    end Hash;
 
-   -------------------------------
-   -- Invalidate_Receiving_Stub --
-   -------------------------------
-
-   procedure Invalidate_Receiving_Stub (Name : in Unit_Name) is
-   begin
-      null;
-   end Invalidate_Receiving_Stub;
-
    ------------
    -- Launch --
    ------------
@@ -371,122 +359,6 @@ package body System.Partition_Interface is
       end if;
    end Launch;
 
-   -------------
-   -- Process --
-   -------------
-
-   procedure Process
-     (N       : in Unit_Id;
-      Request : in Request_Type;
-      Unit    : in out Unit_Type;
-      Status  : out Status_Type)
-   is
-      Server : Partition_ID := Get_Boot_Server;
-   begin
-      case Request.Command is
-         when Get_Unit =>
-
-            --  The client cache is different from null when the request
-            --  comes from the RCI_Info package. This cache reference
-            --  has to be saved for later use.
-
-            if Request.Cache /= null then
-               Unit.Cache := Request.Cache;
-            end if;
-
-            if Unit.Status = Known then
-               pragma Debug (D (D_Debug, Units.Get_Name (N) & " is known"));
-
-               Status := Unmodified;
-
-               --  When the request does not come from a local partition
-               --  then send a "set" request to this partition. Note that
-               --  the cache reference is useless.
-
-               if Request.Partition /= Local_Partition then
-                  declare
-                     R : constant Request_Type :=
-                       (Set_Unit,
-                        Unit.Partition,
-                        Unit.Receiver,
-                        Unit.Version,
-                        null);
-                  begin
-                     Send (Request.Partition, R, N);
-                  end;
-               end if;
-
-            elsif Unit.Status = Unknown then
-               pragma Debug (D (D_Debug, Units.Get_Name (N) & " is unknown"));
-
-               Status := Postponed;
-
-               if not Is_Boot_Partition then
-
-                  --  Ask the boot server for this info
-
-                  Send (Server, Request, N);
-
-               elsif Request.Partition /= Server then
-                  pragma Debug
-                    (D (D_Debug,
-                        "Queuing request from" & Request.Partition'Img &
-                        " on " & Units.Get_Name (N)));
-
-                  --  Queue this request in order to answer it when info is
-                  --  available. Note that this is a remote request which
-                  --  should not be postponed.
-
-                  Unit.Pending := True;
-                  Unit.Requests (Request.Partition) := True;
-
-                  Status := Modified;
-               end if;
-
-            else
-               Status := Postponed;
-            end if;
-
-         when Set_Unit =>
-            Status         := Modified;
-
-            Unit.Status    := Known;
-            Unit.Receiver  := Request.Receiver;
-            Unit.Version   := Request.Version;
-            Unit.Partition := Request.Partition;
-
-            if not Is_Boot_Partition then
-
-               if Unit.Partition = Local_Partition then
-                  pragma Debug
-                    (D (D_Debug, Units.Get_Name (N) &
-                        " registered on boot server"));
-
-                  Send (Server, Request, N);
-                  --  Send this info to boot server once it is saved locally.
-
-               end if;
-
-            elsif Unit.Pending then
-               pragma Debug
-                 (D (D_Debug,
-                     "Answer pending requests on " &
-                     Units.Get_Name (N)));
-
-               --  Dequeue pending requests in the boot server
-
-               for P in Unit.Requests'Range loop
-                  if Unit.Requests (P) then
-                     Send (P, Request, N);
-                     Unit.Requests (P) := False;
-                  end if;
-               end loop;
-               Unit.Pending := False;
-            end if;
-
-      end case;
-   end Process;
-
    -----------------------------
    -- Public_Message_Receiver --
    -----------------------------
@@ -498,26 +370,45 @@ package body System.Partition_Interface is
    is
       R : Request_Type;
       U : Unit_Id;
-      N : Unit_Name := Unit_Name'(Unit_Name'Input (Params));
+
    begin
-      U := Units.Get_Index (N);
-
       Request_Id'Read (Params, R.Command);
-      if R.Command = Set_Unit then
-         Partition_ID'Read (Params, R.Partition);
-         Interfaces.Unsigned_64'Read (Params, R.Receiver);
-         R.Version := new String'(String'Input (Params));
-      else
-         R.Partition := Partition;
-      end if;
 
-      pragma Debug
-        (D (D_RNS,
-            "Recv "   & R.Command'Img &
-            " on "    & N &
-            " from "  & Partition'Img));
+      case R.Command is
+         when Set_Unit =>
+            U := Get_Index (Unit_Name'Input (Params));
+            Partition_ID'Read (Params, R.Partition);
+            Interfaces.Unsigned_64'Read (Params, R.Receiver);
+            R.Version := new String'(String'Input (Params));
 
-      Units.Apply (U, R, Process'Access);
+            pragma Debug
+              (D (D_RNS,
+                  "Recv "   & R.Command'Img &
+                  " on "    & Get_Name (U) &
+                  " from "  & Partition'Img));
+
+         when Get_Unit =>
+            U := Get_Index (Unit_Name'Input (Params));
+            R.Partition := Partition;
+
+            pragma Debug
+              (D (D_RNS,
+                  "Recv "   & R.Command'Img &
+                  " on "    & Get_Name (U) &
+                  " from "  & Partition'Img));
+
+         when Invalidate =>
+            Partition_ID'Read (Params, R.Partition);
+
+            pragma Debug
+              (D (D_RNS,
+                  "Recv "   & R.Command'Img &
+                  " on "    & R.Partition'Img &
+                  " from "  & Partition'Img));
+
+      end case;
+
+      Apply (U, R, Process'Access);
    end Public_Message_Receiver;
 
    ------------------------------------
@@ -540,14 +431,31 @@ package body System.Partition_Interface is
       Version  : in String := "")
    is
       Uname   : String := Name;
+      Uindex  : Unit_Id;
       Request : Request_Type
-        := (Set_Unit, Local_Partition,
+        := (Set_Unit,
+            Local_Partition,
             Interfaces.Unsigned_64 (System.Address'(Convert (Receiver))),
-            new String'(Version), null);
+            new String'(Version),
+            null);
    begin
       pragma Debug (D (D_Debug, "Request Register_Receiving_Stub"));
       To_Lower (Uname);
-      Units.Apply (Units.Get_Index (Uname), Request, Process'Access);
+      Uindex := Get_Index (Uname);
+
+      pragma Debug (D (D_Debug, "Request Set_Unit"));
+      Apply (Uindex, Request, Process'Access);
+
+      pragma Debug (D (D_Debug, "Request Get_Unit"));
+      Apply (Uindex, Get_Unit_Request, Process'Access);
+
+      pragma Debug (D (D_Debug, "Verify Set_Unit"));
+      if Get_Component (Uindex).Partition /= Local_Partition then
+         Soft_Shutdown;
+         Ada.Exceptions.Raise_Exception
+           (Program_Error'Identity,
+            "RCI unit " & Name & " is already registered");
+      end if;
    end Register_Receiving_Stub;
 
    --------------
@@ -560,7 +468,8 @@ package body System.Partition_Interface is
       Name    : String                := RCI_Name;
       Uname   : Unit_Id;
 
-      Request : Request_Type := (Get_Unit, Local_Partition, 0, null, Cache);
+      Request : constant Request_Type
+        := (Get_Unit, Local_Partition, 0, null, Cache);
 
       -----------------------------
       -- Get_Active_Partition_ID --
@@ -568,16 +477,27 @@ package body System.Partition_Interface is
 
       function Get_Active_Partition_ID return RPC.Partition_ID
       is
-         Unit : Unit_Type;
-         Done : Boolean;
+         Unit   : Unit_Type;
+         Status : Unit_Status;
+
       begin
-         Get_RCI_Data (Cache.all, Unit.Receiver, Unit.Partition, Done);
-         if not Done then
+         Get_RCI_Data (Cache.all, Unit.Receiver, Unit.Partition, Status);
+
+         if Status /= Known then
             pragma Debug (D (D_Debug, "RCI_Info Get_Active_Partition_ID"));
-            Units.Apply (Uname, Request, Process'Access);
-            Unit := Units.Get_Component (Uname);
-            Set_RCI_Data (Cache.all, Unit.Receiver, Unit.Partition);
+
+            Apply (Uname, Request, Process'Access);
+            Unit := Get_Component (Uname);
+
+            if Unit.Status = Invalid then
+               Raise_Communication_Error
+                 ("Partition" & Unit.Partition'Img & " is unreachable");
+
+            else
+               Set_RCI_Data (Cache.all, Unit.Receiver, Unit.Partition);
+            end if;
          end if;
+
          return RPC.Partition_ID (Unit.Partition);
       end Get_Active_Partition_ID;
 
@@ -587,22 +507,33 @@ package body System.Partition_Interface is
 
       function Get_RCI_Package_Receiver return Interfaces.Unsigned_64
       is
-         Unit : Unit_Type;
-         Done : Boolean;
+         Unit   : Unit_Type;
+         Status : Unit_Status;
+
       begin
-         Get_RCI_Data (Cache.all, Unit.Receiver, Unit.Partition, Done);
-         if not Done then
+         Get_RCI_Data (Cache.all, Unit.Receiver, Unit.Partition, Status);
+
+         if Status /= Known then
             pragma Debug (D (D_Debug, "RCI_Info Get_Active_Partition_ID"));
 
-            Units.Apply (Uname, Request, Process'Access);
-            Set_RCI_Data (Cache.all, Unit.Receiver, Unit.Partition);
+            Apply (Uname, Request, Process'Access);
+            Unit := Get_Component (Uname);
+
+            if Unit.Status = Invalid then
+               Raise_Communication_Error
+                 ("Partition" & Unit.Partition'Img & " is unreachable");
+
+            else
+               Set_RCI_Data (Cache.all, Unit.Receiver, Unit.Partition);
+            end if;
          end if;
+
          return Unit.Receiver;
       end Get_RCI_Package_Receiver;
 
    begin
       To_Lower (Name);
-      Uname := Units.Get_Index (Name);
+      Uname := Get_Index (Name);
    end RCI_Info;
 
    ---------
@@ -626,11 +557,22 @@ package body System.Partition_Interface is
                           " version consistency"));
          if Different (Caller.Version.all,
                        Get_Active_Version (Caller.Name.all)) then
-            Soft_Shutdown;
+
+            pragma Debug (D (D_Debug, "Versions differ for RCI unit """ &
+                             Caller.Name.all & """"));
+
+            --  If not boot partition, then terminate without waiting for
+            --  boot partition request.
+
+            if not Is_Boot_Partition then
+               Set_Termination (Local_Termination);
+            end if;
+
             Ada.Exceptions.Raise_Exception
               (Program_Error'Identity,
                "Versions differ for RCI unit """ &
                Caller.Name.all & """");
+
          end if;
          Free (Caller.Version);
          Free (Caller.Name);
@@ -645,44 +587,15 @@ package body System.Partition_Interface is
       end if;
 
       pragma Debug (D (D_Debug, "Complete termination"));
-      Complete_Termination (Garlic.Options.Termination);
+      Complete_Termination (System.Garlic.Options.Termination);
 
    exception
       when others =>
          pragma Debug (D (D_Debug,
                           "Complete termination after handling exception"));
-         Complete_Termination (Garlic.Options.Termination);
+         Complete_Termination (System.Garlic.Options.Termination);
          raise;
    end Run;
-
-   ----------
-   -- Send --
-   ----------
-
-   procedure Send
-     (Partition : in Partition_ID;
-      Request   : in Request_Type;
-      Unit      : in Unit_Id)
-   is
-      Params : aliased Params_Stream_Type (0);
-      Name   : constant String := Units.Get_Name (Unit);
-   begin
-      pragma Debug
-        (D (D_RNS,
-            "Send " & Request.Command'Img &
-            " on "  & Name &
-            " to "  & Partition'Img));
-
-      String'Output (Params'Access, Name);
-      Request_Id'Write (Params'Access, Request.Command);
-      if Request.Command = Set_Unit then
-         Partition_ID'Write (Params'Access, Request.Partition);
-         Interfaces.Unsigned_64'Write (Params'Access, Request.Receiver);
-         String'Output (Params'Access, Request.Version.all);
-      end if;
-
-      Send (Partition, Name_Service, Params'Access);
-   end Send;
 
 begin
    Receive (Name_Service, Public_Message_Receiver'Access);

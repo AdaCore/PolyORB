@@ -38,21 +38,33 @@ with Ada.Exceptions;             use Ada.Exceptions;
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
 with System.Garlic;              use System.Garlic;
+
 with System.Garlic.Debug;        use System.Garlic.Debug;
 pragma Elaborate_All (System.Garlic.Debug);
+
 with System.Garlic.Heart;        use System.Garlic.Heart;
 pragma Elaborate_All (System.Garlic.Heart);
+
 with System.Garlic.Soft_Links;    use System.Garlic.Soft_Links;
 pragma Elaborate_All (System.Garlic.Soft_Links);
+
 with System.Garlic.Startup;
 pragma Elaborate_All (System.Garlic.Startup);
+
 pragma Warnings (Off, System.Garlic.Startup);
+
 with System.Garlic.Streams;
 with System.Garlic.Types;
+
+with System.Garlic.Units;        use System.Garlic.Units;
+pragma Elaborate_All (System.Garlic.Units);
+
 with System.Garlic.Utils;        use System.Garlic.Utils;
 pragma Elaborate_All (System.Garlic.Utils);
+
 with System.RPC.Pool;            use System.RPC.Pool;
 pragma Elaborate (System.RPC.Pool);
+
 with System.RPC.Stream_IO;
 pragma Elaborate (System.RPC.Stream_IO);
 
@@ -61,6 +73,8 @@ package body System.RPC is
    use type System.Garlic.Streams.Params_Stream_Access;
    use type System.Garlic.Streams.Params_Stream_Type;
    use type System.Garlic.Types.Partition_ID;
+
+   use System.Garlic.Units.Table;
 
    --  This package needs extra comments ???
 
@@ -134,6 +148,12 @@ package body System.RPC is
       Partition : Types.Partition_ID;
       Id        : Request_Id;
    end record;
+
+   procedure Invalidate_RCI_Units (Partition : in Types.Partition_ID);
+   pragma Inline (Invalidate_RCI_Units);
+   --  For a given partition, send an invalidation message to the boot
+   --  server and unregister its RCI units locally.
+
    procedure Finalize (Keeper : in out Abort_Keeper);
    --  Handle abortion from Do_RPC
 
@@ -283,6 +303,20 @@ package body System.RPC is
       Request_Header'Output (Params, Header);
    end Insert_Request;
 
+   --------------------------
+   -- Invalidate_RCI_Units --
+   --------------------------
+
+   procedure Invalidate_RCI_Units (Partition : in Types.Partition_ID) is
+      Invalidation : Request_Type := (Invalidate, Partition, 0, null, null);
+
+   begin
+      pragma Debug
+        (D (D_Debug, "Invalidate partition" & Partition'Img & "'s RCI units"));
+
+      Apply (Partition_RCI_List (Partition), Invalidation, Process'Access);
+   end Invalidate_RCI_Units;
+
    ----------------------------------
    -- Partition_Error_Notification --
    ----------------------------------
@@ -290,6 +324,7 @@ package body System.RPC is
    procedure Partition_Error_Notification
      (Partition : in Types.Partition_ID) is
    begin
+      Invalidate_RCI_Units (Partition);
       Request_Id_Server.Raise_Partition_Error (Partition);
    end Partition_Error_Notification;
 
