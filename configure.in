@@ -95,6 +95,7 @@ AC_SUBST(EXTRA_LIBS)
 AC_OUTPUT([Makefile
            Dist/Makefile Dist/xe-gcc Dist/xe-gcc-filter
            Garlic/Makefile
+           Examples/check-config
            Examples/Makefile
            Examples/Prime/Makefile
            Examples/RACW/Makefile])
