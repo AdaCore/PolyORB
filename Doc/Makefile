@@ -1,6 +1,7 @@
 CP = /bin/cp
 SED = /bin/sed
 SHELL=/bin/sh
+FIG2DEV=/usr/X11R6/bin/fig2dev
 
 CFGFILES=\
 myconfig.cfg
@@ -118,10 +119,10 @@ $(ADAFILES): all-srcs.ada
 	./gentexifile $<
 
 %.fig.eps: %.fig
-	fig2dev -L ps $< $@
+	$(FIG2DEV) -L ps $< $@
 
 %.fig.jpg:	%.fig
-	fig2dev -L jpeg $< $@
+	$(FIG2DEV) -L jpeg $< $@
 
 %.sed: %.kw
 	./gensedfile $< $@
