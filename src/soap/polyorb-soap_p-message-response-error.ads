@@ -30,49 +30,48 @@
 
 --  $Id$
 
-with AWS.MIME;
+with PolyORB.SOAP_P.Message.Payload;
+with PolyORB.SOAP_P.Message.Response;
 
-with SOAP.Message.XML;
+package PolyORB.SOAP_P.Message.Response.Error is
 
-package body SOAP.Message.Response is
+   type Object is new Message.Response.Object with private;
 
-   -----------
-   -- Build --
-   -----------
+   type Faultcode is new String;
 
-   function Build (R : in Object'Class) return AWS.Response.Data is
-   begin
-      return AWS.Response.Build
-        (AWS.MIME.Text_XML, String'(SOAP.Message.XML.Image (R)));
-   end Build;
+   function From (P : in Message.Payload.Object) return Object;
+   --  Build an Error response from a Payload object.
 
-   ----------
-   -- From --
-   ----------
+   function XML_Image (E : in Object) return Unbounded_String;
+   --  Returns the Fault env and associated data (faultcode, faultstring...).
 
-   function From (P : in Message.Payload.Object) return Object is
-      NP : Object;
-   begin
-      Set_Wrapper_Name (NP, Payload.Procedure_Name (P) & "Response");
+   function Build
+     (Faultcode   : in Error.Faultcode;
+      Faultstring : in String)
+     return Object;
+   --  Returns an Error object built using Faultcode and Faultstring.
 
-      Set_Parameters   (NP, Parameters (P));
+   function Is_Error (E : in Object) return Boolean;
+   --  Always returns True. This overrides  Response.Object's method.
 
-      Set_Name_Space (NP, Name_Space (P));
+   -----------------
+   -- Fault Codes --
+   -----------------
 
-      return NP;
-   end From;
+   function Version_Mismatch (Subname : in String := "") return Faultcode;
+   --  Returns the Version_Mismatch faultcode.
 
-   --------------
-   -- Is_Error --
-   --------------
+   function Must_Understand (Subname : in String := "") return Faultcode;
+   --  Returns the Must_Understand faultcode.
 
-   function Is_Error (R : in Object) return Boolean
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (R);
-      pragma Warnings (On);
-   begin
-      return False;
-   end Is_Error;
+   function Client (Subname : in String := "") return Faultcode;
+   --  Returns the Client faultcode.
 
-end SOAP.Message.Response;
+   function Server (Subname : in String := "") return Faultcode;
+   --  Returns the Server faultcode.
+
+private
+
+   type Object is new Message.Response.Object with null record;
+
+end PolyORB.SOAP_P.Message.Response.Error;

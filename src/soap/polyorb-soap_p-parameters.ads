@@ -33,7 +33,7 @@
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 
-package SOAP.Parameters is
+package PolyORB.SOAP_P.Parameters is
 
    type List is new PolyORB.Any.NVList.Ref with null record;
 
@@ -123,4 +123,4 @@ package SOAP.Parameters is
    procedure Check_Array (P : in List; Name : in String);
    --  Checks that parameter named Name exist and is an Array value.
 
-end SOAP.Parameters;
+end PolyORB.SOAP_P.Parameters;

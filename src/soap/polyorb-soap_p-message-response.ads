@@ -30,51 +30,23 @@
 
 --  $Id$
 
---  This package is based on Tree_Reader from the XMLada package. It is used
---  to create a DOM object using the SAX parser.
+with Ada.Unchecked_Deallocation;
 
-with Sax.Readers;          use Sax.Readers;
-with Sax.Attributes;
-with Unicode.CES;
-with DOM.Core;             use DOM.Core;
+with PolyORB.SOAP_P.Response;
+with PolyORB.SOAP_P.Message.Payload;
 
-private package SOAP.Message.Reader is
+package PolyORB.SOAP_P.Message.Response is
 
-   type Tree_Reader is new Sax.Readers.Reader with private;
-   --  Tree_Reader create a DOM tree using the SAX parser.
+   type Object is new Message.Object with null record;
+   type Object_Access is access Object'Class;
+   function Build (R : in Object'Class) return PolyORB.SOAP_P.Response.Data;
 
-   function Get_Tree (Read : in Tree_Reader) return Document;
+   function From (P : in Message.Payload.Object) return Object;
+   --  Returns a Response object, initialized from a payload object.
 
-private
+   function Is_Error (R : in Object) return Boolean;
 
-   type Tree_Reader is new Sax.Readers.Reader with record
-      Tree              : Document;
-      Current_Node      : Node;
-      Internal_Encoding : Unicode.CES.Encoding_Scheme;
-   end record;
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Object'Class, Object_Access);
 
-   procedure Start_Document
-     (Handler : in out Tree_Reader);
-
-   procedure Start_Element
-     (Handler       : in out Tree_Reader;
-      Namespace_URI : in     Unicode.CES.Byte_Sequence       := "";
-      Local_Name    : in     Unicode.CES.Byte_Sequence       := "";
-      Qname         : in     Unicode.CES.Byte_Sequence       := "";
-      Atts          : in     Sax.Attributes.Attributes'Class);
-
-   procedure End_Element
-     (Handler       : in out Tree_Reader;
-      Namespace_URI : in     Unicode.CES.Byte_Sequence := "";
-      Local_Name    : in     Unicode.CES.Byte_Sequence := "";
-      Qname         : in     Unicode.CES.Byte_Sequence := "");
-
-   procedure Characters
-     (Handler : in out Tree_Reader;
-      Ch      : in     Unicode.CES.Byte_Sequence);
-
-   procedure Ignorable_Whitespace
-     (Handler : in out Tree_Reader;
-      Ch      : in     Unicode.CES.Byte_Sequence);
-
-end SOAP.Message.Reader;
+end PolyORB.SOAP_P.Message.Response;

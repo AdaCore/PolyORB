@@ -42,7 +42,7 @@ with PolyORB.Filters.HTTP;
 --  with AWS.Messages;
 with AWS.MIME;
 
-package AWS.Response is
+package PolyORB.SOAP_P.Response is
 
    use Ada;
    use PolyORB.Filters.HTTP;
@@ -98,7 +98,7 @@ package AWS.Response is
    function Acknowledge
      (Status_Code  : in HTTP_Status_Code;
       Message_Body : in String := "";
-      Content_Type : in String := MIME.Text_HTML)
+      Content_Type : in String := AWS.MIME.Text_HTML)
      return Data;
    --  Returns a message to the Web browser. This routine must be used to
    --  send back an error message to the Web browser. For example if a
@@ -175,4 +175,4 @@ private
       Elements       : Stream_Element_Array_Access;
    end record;
 
-end AWS.Response;
+end PolyORB.SOAP_P.Response;

@@ -44,15 +44,15 @@ with PolyORB.Log;
 with PolyORB.References;
 with PolyORB.Types;
 
-with SOAP.Message.Reader;
-with SOAP.Message.Response.Error;
-with SOAP.Types;
+with PolyORB.SOAP_P.Message.Reader;
+with PolyORB.SOAP_P.Message.Response.Error;
+with PolyORB.SOAP_P.Types;
 
-package body SOAP.Message.XML is
+package body PolyORB.SOAP_P.Message.XML is
 
    use Ada.Strings.Unbounded;
    use DOM.Core.Nodes;
-   use SOAP.Message.Reader;
+   use SOAP_P.Message.Reader;
 
    use PolyORB.Any;
    use PolyORB.Log;
@@ -106,7 +106,7 @@ package body SOAP.Message.XML is
 
    type State is record
       Wrapper_Name  : Unbounded_String;
-      Parameters    : SOAP.Parameters.List;
+      Parameters    : SOAP_P.Parameters.List;
       Kind          : Message_Kind;
       A_State       : Array_State := Void;
    end record;
@@ -272,7 +272,7 @@ package body SOAP.Message.XML is
 
       Doc := Get_Tree (Reader);
 
-      S.Parameters := SOAP.Parameters.List'(Args with null record);
+      S.Parameters := SOAP_P.Parameters.List'(Args with null record);
       S.Kind := Payload;
       Parse_Document (Doc, S);
       Args := PolyORB.Any.NVList.Ref (S.Parameters);
@@ -307,20 +307,20 @@ package body SOAP.Message.XML is
 
       Doc := Get_Tree (Reader);
 
-      SOAP.Parameters.Create (S.Parameters);
-      S.Parameters := SOAP.Parameters.List'(Args with null record);
+      SOAP_P.Parameters.Create (S.Parameters);
+      S.Parameters := SOAP_P.Parameters.List'(Args with null record);
       S.Kind := Response;
       Parse_Document (Doc, S);
 
       Free (Doc);
 
-      if SOAP.Parameters.Exist (S.Parameters, "faultcode") then
+      if SOAP_P.Parameters.Exist (S.Parameters, "faultcode") then
          return new Message.Response.Error.Object'
            (Message.Response.Error.Build
             (Faultcode   =>
                Message.Response.Error.Faultcode
-             (String'(SOAP.Parameters.Get (S.Parameters, "faultcode"))),
-             Faultstring => SOAP.Parameters.Get
+             (String'(SOAP_P.Parameters.Get (S.Parameters, "faultcode"))),
+             Faultstring => SOAP_P.Parameters.Get
              (S.Parameters, "faultstring")));
       else
          return new Message.Response.Object'
@@ -336,6 +336,35 @@ package body SOAP.Message.XML is
             (Faultcode   => Message.Response.Error.Client,
              Faultstring => Ada.Exceptions.Exception_Message (E)));
    end Load_Response;
+
+
+   procedure Load_Response
+     (Source : access Input_Sources.Input_Source'Class;
+      Args   : in out PolyORB.Any.NVList.Ref)
+   is
+      Reader  : Tree_Reader;
+      S       : State;
+      Doc     : DOM.Core.Document;
+   begin
+      --  If True, xmlns:* attributes will be reported in Start_Element
+      Set_Feature (Reader, Sax.Readers.Namespace_Prefixes_Feature, True);
+      Set_Feature (Reader, Sax.Readers.Validation_Feature, False);
+
+      Parse (Reader, Source.all);
+
+      Doc := Get_Tree (Reader);
+
+      SOAP_P.Parameters.Create (S.Parameters);
+      S.Parameters := SOAP_P.Parameters.List'(Args with null record);
+      S.Kind := Response;
+      Parse_Document (Doc, S);
+      Args := PolyORB.Any.NVList.Ref (S.Parameters);
+      --  May have been modified by Parse_Document (if it was
+      --  initially empty).
+
+      Free (Doc);
+   end Load_Response;
+
 
    -----------------
    -- Parse_Array --
@@ -965,7 +994,7 @@ package body SOAP.Message.XML is
      return PolyORB.Any.NamedValue
    is
       use type DOM.Core.Node;
-      use SOAP.Types;
+      use SOAP_P.Types;
       use PolyORB.Any.TypeCode;
 
       Unwound_Expected_Type : constant TypeCode.Object
@@ -974,7 +1003,7 @@ package body SOAP.Message.XML is
       Name  : constant PolyORB.Types.Identifier
         := To_PolyORB_String (Local_Name (N));
 
-      Any_Record : Any := Get_Empty_Any_Aggregate (Expected_Type);
+      Any_Record : PolyORB.Any.Any := Get_Empty_Any_Aggregate (Expected_Type);
 
       Field : DOM.Core.Node;
       I : Unsigned_Long := 0;
@@ -1008,7 +1037,7 @@ package body SOAP.Message.XML is
    -------------------
 
    procedure Parse_Wrapper (N : in DOM.Core.Node; S : in out State) is
-      use type SOAP.Parameters.List;
+      use type SOAP_P.Parameters.List;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
 
@@ -1027,10 +1056,10 @@ package body SOAP.Message.XML is
    begin
       S.Wrapper_Name := To_Unbounded_String (Name);
 
-      Constructing_Args_List := SOAP.Parameters.Is_Nil (S.Parameters);
+      Constructing_Args_List := SOAP_P.Parameters.Is_Nil (S.Parameters);
 
       if Constructing_Args_List then
-         SOAP.Parameters.Create (S.Parameters);
+         SOAP_P.Parameters.Create (S.Parameters);
       end if;
 
       It := First (List_Of (PolyORB.Any.NVList.Ref (S.Parameters)).all);
@@ -1044,18 +1073,22 @@ package body SOAP.Message.XML is
                --  request, IN elements when parsing a response;
                --  INOUT elements are never skipped.)
 
+               exit when Last (It);
+
                NV := Value (It);
                exit when NV.Arg_Modes = ARG_INOUT
                  or else (S.Kind = Payload xor NV.Arg_Modes = ARG_OUT);
                Next (It);
             end loop;
 
+            exit when Last (It);
+
             Copy_Any_Value
               (NV.Argument,
                Parse_Param
                (Item (NL, J), S, Get_Type (NV.Argument)).Argument);
          else
-            SOAP.Parameters.Add_Item
+            SOAP_P.Parameters.Add_Item
               (S.Parameters, Parse_Param
                (Item (NL, J), S, No_TypeCode));
          end if;
@@ -1073,4 +1106,4 @@ package body SOAP.Message.XML is
         (SOAP_Error'Identity, Name & " - " & Message);
    end Error;
 
-end SOAP.Message.XML;
+end PolyORB.SOAP_P.Message.XML;

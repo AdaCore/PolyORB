@@ -30,11 +30,13 @@
 
 --  $Id$
 
+--  taken from aws.response
+
 with Ada.Strings.Fixed;
 
 --  with AWS.OS_Lib;
 
-package body AWS.Response is
+package body PolyORB.SOAP_P.Response is
 
    -----------------
    -- Acknowledge --
@@ -43,7 +45,7 @@ package body AWS.Response is
    function Acknowledge
      (Status_Code  : in HTTP_Status_Code;
       Message_Body : in String := "";
-      Content_Type : in String := MIME.Text_HTML)
+      Content_Type : in String := AWS.MIME.Text_HTML)
      return Data is
    begin
       if Message_Body = "" then
@@ -321,4 +323,4 @@ package body AWS.Response is
                    null);
    end URL;
 
-end AWS.Response;
+end PolyORB.SOAP_P.Response;

@@ -30,36 +30,12 @@
 
 --  $Id$
 
-with Ada.Unchecked_Deallocation;
-with SOAP.Parameters;
+package PolyORB.SOAP_P is
 
-package SOAP.Message.Payload is
+   SOAP_Error : exception;
+   --  Will be raised when an error occurs in the SOAP implementation. The
+   --  exception message will described the problem.
 
-   type Object is new Message.Object with private;
-   type Object_Access is access Object'Class;
+   Version : constant String := "0.8";
 
-   function Procedure_Name (P : in Object'Class) return String;
-   --  Retruns the Payload procedure name.
-
-   procedure Set_Procedure_Name (P : in out Object'Class; Name : in String);
-   --  Set the payload procedure name.
-
-   function Build
-     (Procedure_Name : in String;
-      P_Set          : in SOAP.Parameters.List;
-      Name_Space     : in String               := "")
-     return Object;
-   --  Retruns a Payload object initialized with the procedure name,
-   --  parameters and name space.
-
-   procedure Free (X : in out Object_Access);
-private
-
-   type Object is new Message.Object with null record;
-
-   procedure Do_Free is new Ada.Unchecked_Deallocation
-     (Object'Class, Object_Access);
-   procedure Free (X : in out Object_Access) renames Do_Free;
-
-
-end SOAP.Message.Payload;
+end PolyORB.SOAP_P;

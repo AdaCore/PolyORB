@@ -30,50 +30,46 @@
 
 --  $Id$
 
-with Ada.Strings.Unbounded;
+with PolyORB.SOAP_P.Message.Payload;
+with PolyORB.SOAP_P.Message.Response;
+with Input_Sources;
 
-with SOAP.Parameters;
+with PolyORB.Any.NVList;
 
-package SOAP.Message is
+package PolyORB.SOAP_P.Message.XML is
 
-   use Ada.Strings.Unbounded;
+   procedure Load_Payload
+     (Source    : access Input_Sources.Input_Source'Class;
+      Args      : in out PolyORB.Any.NVList.Ref;
+      R_Payload :    out Message.Payload.Object_Access);
+   --  Build a Payload object by parsing an XML payload from source.
+   --  Args is expected to designate a list of empty Any's,
+   --  whose typecodes are used to determine how to decode the
+   --  XML elements into typed data. On return, the values
+   --  of these Any's are set according to the decoded XML
+   --  elements.
 
-   type Object is tagged private;
+   function Load_Response
+     (Source : access Input_Sources.Input_Source'Class;
+      Args   : in     PolyORB.Any.NVList.Ref)
+     return Message.Response.Object_Access;
+   --  Build a Response object (either a standard response or an error
+   --  response) by parsing an XML response from Source.
+   --  Args are used as above (for returned arguments).
+   --  XXX warning, return value vs. out args? Does the return
+   --  value need to be the first OUT element of the Args list?
 
-   function XML_Image (M : in Object) return Unbounded_String;
-   --  Returns the XML image for the wrapper and parameters. This is designed
-   --  to be used by Payload and Response object.
+   procedure Load_Response
+     (Source : access Input_Sources.Input_Source'Class;
+      Args   : in out PolyORB.Any.NVList.Ref);
+   --  Same as the function, except that we do not build any
+   --  Object_Access, and we edit the Args list with the arguments
+   --  found in the xml tree
 
-   function Name_Space   (M : in Object'Class) return String;
-   --  Returns message Namespace.
+   function Image (Obj : in Object'Class) return String;
+   --  Returns XML representation of object O.
 
-   function Wrapper_Name (M : in Object'class) return String;
-   --  Returns wrapper name.
+   function Image (Obj : in Object'Class) return Unbounded_String;
+   --  Idem as above but returns an Unbounded_String instead of a String.
 
-   function Parameters   (M : in Object'class) return SOAP.Parameters.List;
-   --  Returns the parameter.
-
-   procedure Set_Name_Space
-     (M    : in out Object'Class;
-      Name : in     String);
-   --  Set message's Namespace.
-
-   procedure Set_Wrapper_Name
-     (M     : in out Object'Class;
-      Name  : in     String);
-   --  Set message's wrapper name.
-
-   procedure Set_Parameters
-     (M     : in out Object'Class;
-      P_Set : in     SOAP.Parameters.List);
-   --  Set message's parameters.
-
-private
-
-   type Object is tagged record
-      Name_Space   : Unbounded_String;
-      Wrapper_Name : Unbounded_String;
-      P            : SOAP.Parameters.List;
-   end record;
-
-end SOAP.Message;
+end PolyORB.SOAP_P.Message.XML;

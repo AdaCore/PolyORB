@@ -36,13 +36,12 @@
 with Ada.Strings.Unbounded;
 with Ada.Exceptions;
 
-with AWS.Response;
-
-with SOAP.Message;
-with SOAP.Message.XML;
-with SOAP.Message.Payload;
-with SOAP.Message.Response;
-with SOAP.Parameters;
+with PolyORB.SOAP_P.Response;
+with PolyORB.SOAP_P.Message;
+with PolyORB.SOAP_P.Message.XML;
+with PolyORB.SOAP_P.Message.Payload;
+with PolyORB.SOAP_P.Message.Response;
+with PolyORB.SOAP_P.Parameters;
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
@@ -68,7 +67,7 @@ package body PolyORB.Protocols.SOAP_Pr is
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
    use PolyORB.ORB;
-   use Standard.SOAP;
+--   use Standard.SOAP;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.soap_pr");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -106,7 +105,7 @@ package body PolyORB.Protocols.SOAP_Pr is
       R   : Requests.Request_Access;
       Pro : access Binding_Data.Profile_Type'Class)
    is
-      P : SOAP.Message.Payload.Object;
+      P : PolyORB.SOAP_P.Message.Payload.Object;
       SPro : Binding_Data.SOAP.SOAP_Profile_Type'Class
         renames Binding_Data.SOAP.SOAP_Profile_Type'Class (Pro.all);
    begin
@@ -118,12 +117,10 @@ package body PolyORB.Protocols.SOAP_Pr is
       --  received.
 
       begin
-         P := SOAP.Message.Payload.Build
+         P := PolyORB.SOAP_P.Message.Payload.Build
            (Types.To_Standard_String (R.Operation),
-            SOAP.Parameters.List'(R.Args with null record));
+            PolyORB.SOAP_P.Parameters.List'(R.Args with null record));
 
-         pragma Debug (O ("SOAP message constructed: "));
-         pragma Debug (O (SOAP.Message.XML.Image (P)));
       exception
          when E : others =>
             pragma Debug (O ("SOAP message: exception in Image:"));
@@ -141,7 +138,7 @@ package body PolyORB.Protocols.SOAP_Pr is
           Relative_URI => Binding_Data.SOAP.Get_URI_Path (SPro),
           Data => Types.String
           (Ada.Strings.Unbounded.Unbounded_String'
-           (SOAP.Message.XML.Image (P))),
+           (PolyORB.SOAP_P.Message.XML.Image (P))),
           SOAP_Action => Types.String (R.Operation)));
    end Invoke_Request;
 
@@ -164,17 +161,17 @@ package body PolyORB.Protocols.SOAP_Pr is
          use PolyORB.Any.NVList.Internals;
          use PolyORB.Any.NVList.Internals.NV_Lists;
 
-         use SOAP.Parameters;
+         use PolyORB.SOAP_P.Parameters;
 
-         RO : SOAP.Message.Response.Object
-           := SOAP.Message.Response.From
-           (SOAP.Message.Payload.Object (S.Current_SOAP_Req.all));
-         RP : SOAP.Parameters.List;
+         RO : PolyORB.SOAP_P.Message.Response.Object
+           := PolyORB.SOAP_P.Message.Response.From
+           (PolyORB.SOAP_P.Message.Payload.Object (S.Current_SOAP_Req.all));
+         RP : PolyORB.SOAP_P.Parameters.List;
 
          It  : Iterator := First (List_Of (R.Args).all);
          Arg : Element_Access;
       begin
-         SOAP.Message.Payload.Free (S.Current_SOAP_Req);
+         PolyORB.SOAP_P.Message.Payload.Free (S.Current_SOAP_Req);
          RP := +R.Result;
          while not Last (It) loop
             Arg := Value (It);
@@ -187,10 +184,10 @@ package body PolyORB.Protocols.SOAP_Pr is
             Next (It);
          end loop;
 
-         SOAP.Message.Set_Parameters (RO, RP);
+         PolyORB.SOAP_P.Message.Set_Parameters (RO, RP);
          declare
-            RD : AWS.Response.Data
-              := SOAP.Message.Response.Build (RO);
+            RD : PolyORB.SOAP_P.Response.Data
+              := PolyORB.SOAP_P.Message.Response.Build (RO);
 
             --  Here we depend on a violation of abstraction:
             --  we construct an /AWS/ response object, and
@@ -218,6 +215,11 @@ package body PolyORB.Protocols.SOAP_Pr is
       R : constant Requests.Request_Access := S.Pending_Rq;
 
       Return_Args : PolyORB.Any.NVList.Ref := R.Args;
+      --  Return_Args : PolyORB.Any.NVList.Ref;
+
+      --  This is an empty NVList, since SOAP is a self-described
+      --  protocol. Thus it can fill the returned arguments by itself
+
       Src : aliased Buffer_Sources.Input_Source;
 
    begin
@@ -230,13 +232,20 @@ package body PolyORB.Protocols.SOAP_Pr is
       List_Of (Return_Args).all := R.Result & List_Of (Return_Args).all;
 
       Buffer_Sources.Set_Buffer (Src, S.In_Buf);
-      declare
-         M : SOAP.Message.Response.Object_Access
-           := Standard.SOAP.Message.XML.Load_Response
-           (Src'Access, Return_Args);
-      begin
-         SOAP.Message.Response.Free (M);
-      end;
+--        declare
+--           M : PolyORB.SOAP_P.Message.Response.Object_Access
+--             := PolyORB.SOAP_P.Message.XML.Load_Response
+--             (Src'Access, Return_Args);
+--        begin
+      PolyORB.SOAP_P.Message.XML.Load_Response (Src'Access, Return_Args);
+      pragma Debug (O ("Process_Reply: processed "
+                       & PolyORB.Types.Long'Image
+                       (PolyORB.Any.NVList.Get_Count
+                        (Return_Args))
+                       & " arguments"));
+
+--           PolyORB.SOAP_P.Message.Response.Free (M);
+--        end;
       --  Only evaluate the side effects of Load_Response.
       --  The values designated by the any's in Return_Args
       --  will be modified in-place: no copy is necessary.
@@ -249,9 +258,15 @@ package body PolyORB.Protocols.SOAP_Pr is
 
       Buffers.Release_Contents (S.In_Buf.all);
 
-      Components.Emit_No_Reply
-        (R.Requesting_Component,
-         Servants.Interface.Executed_Request'(Req => R));
+      declare
+         Return_Args_It : Iterator;
+      begin
+         Return_Args_It := First (List_Of (Return_Args).all);
+         R.Result := Value (Return_Args_It).all;
+         Components.Emit_No_Reply
+           (R.Requesting_Component,
+            Servants.Interface.Executed_Request'(Req => R));
+      end;
    end Process_Reply;
 
    procedure Handle_Unmarshall_Arguments
@@ -261,7 +276,7 @@ package body PolyORB.Protocols.SOAP_Pr is
       Src : aliased Buffer_Sources.Input_Source;
    begin
       Buffer_Sources.Set_Buffer (Src, S.In_Buf);
-      Message.XML.Load_Payload
+      PolyORB.SOAP_P.Message.XML.Load_Payload
         (Src'Access, Args, S.Current_SOAP_Req);
       Buffers.Release_Contents (S.In_Buf.all);
    end Handle_Unmarshall_Arguments;
@@ -329,15 +344,32 @@ package body PolyORB.Protocols.SOAP_Pr is
             --  Create a temporary, typeless reference for this object.
 
             Result.Name := To_PolyORB_String ("Result");
+
+            Handle_Unmarshall_Arguments (S, Args);
+
+            --  As SOAP is a self-described protocol, we can set the
+            --  argument list without waiting for the someone to tell
+            --  us how to do it
+
+--              Create_Request
+--                (Target    => Target,
+--                 Operation => To_Standard_String
+--                 (SOAP_Action_Msg.SOAP_Action),
+--                 Arg_List  => Args,
+--                 Result    => Result,
+--                 Deferred_Arguments_Session =>
+--                   Components.Component_Access (S),
+--                 Req       => Req);
+
             Create_Request
               (Target    => Target,
                Operation => To_Standard_String
                (SOAP_Action_Msg.SOAP_Action),
                Arg_List  => Args,
                Result    => Result,
-               Deferred_Arguments_Session =>
-                 Components.Component_Access (S),
+               Deferred_Arguments_Session => null,
                Req       => Req);
+
             S.Target := Types.To_PolyORB_String ("");
             S.Entity_Length := Data_Amount;
 

@@ -35,7 +35,7 @@
 
 with PolyORB.Any; use PolyORB.Any;
 
-package SOAP.Types is
+package PolyORB.SOAP_P.Types is
 
    Data_Error : exception;
    --  Raised when a variable has not the expected type.
@@ -303,4 +303,4 @@ package SOAP.Types is
 --       Items : NamedValue_Set_Controlled;
 --    end record;
 
-end SOAP.Types;
+end PolyORB.SOAP_P.Types;

@@ -35,7 +35,7 @@
 
 --  $Id$
 
-with AWS.Response;
+with PolyORB.SOAP_P.Response;
 
 with PolyORB.Filters.Interface;
 with PolyORB.HTTP_Methods;
@@ -65,7 +65,7 @@ package PolyORB.Filters.AWS_Interface is
    type AWS_Response_Out is new Root_Data_Unit with record
       --  Direction: from upper to lower.
       --  Semantics: send AWS response out.
-      Data : AWS.Response.Data;
+      Data : PolyORB.SOAP_P.Response.Data;
    end record;
 
 end PolyORB.Filters.AWS_Interface;

@@ -46,7 +46,7 @@ with PolyORB.Utils;
 
 with SOAP.Utils;
 
-package body SOAP.Types is
+package body PolyORB.SOAP_P.Types is
 
    use Ada;
    use PolyORB.Any;
@@ -160,21 +160,21 @@ package body SOAP.Types is
 --       end if;
 --    end Finalize;
 
-   function TCK (A : Any) return TCKind;
+   function TCK (A : PolyORB.Any.Any) return TCKind;
    pragma Warnings (Off);
    pragma Unreferenced (TCK);
    pragma Warnings (On);
 
-   function UTCK (A : Any) return TCKind;
+   function UTCK (A : PolyORB.Any.Any) return TCKind;
    --  Return the typecode kind of A. UTCK returns the
    --  kind after unwinding all levels of typedef.
 
-   function TCK (A : Any) return TCKind is
+   function TCK (A : PolyORB.Any.Any) return TCKind is
    begin
       return TypeCode.Kind (Get_Type (A));
    end TCK;
 
-   function UTCK (A : Any) return TCKind is
+   function UTCK (A : PolyORB.Any.Any) return TCKind is
    begin
       return TypeCode.Kind (Get_Unwound_Type (A));
    end UTCK;
@@ -200,7 +200,7 @@ package body SOAP.Types is
             return Integer (Octet'(From_Any (O.Argument)));
 
          when others =>
-            Exceptions.Raise_Exception
+            Ada.Exceptions.Raise_Exception
               (Data_Error'Identity,
                "Integer expected, found " & TCKind'Image (Kind));
       end case;
@@ -215,7 +215,7 @@ package body SOAP.Types is
          when Tk_Double =>
             return Long_Float (PolyORB.Types.Double'(From_Any (O.Argument)));
          when others =>
-            Exceptions.Raise_Exception
+            Ada.Exceptions.Raise_Exception
               (Data_Error'Identity,
                "Float expected, found " & TCKind'Image (Kind));
       end case;
@@ -230,7 +230,7 @@ package body SOAP.Types is
          when Tk_Char =>
             return (1 => PolyORB.Types.Char'(From_Any (O.Argument)));
          when others =>
-            Exceptions.Raise_Exception
+            Ada.Exceptions.Raise_Exception
               (Data_Error'Identity,
                "String/character expected, found " & TCKind'Image (Kind));
       end case;
@@ -243,7 +243,7 @@ package body SOAP.Types is
          when Tk_Boolean =>
             return From_Any (O.Argument);
          when others =>
-            Exceptions.Raise_Exception
+            Ada.Exceptions.Raise_Exception
               (Data_Error'Identity,
                "Boolean expected, found " & TCKind'Image (Kind));
       end case;
@@ -297,7 +297,7 @@ package body SOAP.Types is
       Kind : constant TCKind := TypeCode.Kind (TC);
    begin
       pragma Debug
-        (SOAP.Types.O ("Image: enter, Kind is "
+        (SOAP_P.Types.O ("Image: enter, Kind is "
                        & TCKind'Image (Kind)));
       case Kind is
          when
@@ -349,8 +349,8 @@ package body SOAP.Types is
          when others =>
             --  XXX ???
             pragma Debug
-              (SOAP.Types.O ("Image: Unsupported typecode kind:"
-                             & TCKind'Image (Kind)));
+              (SOAP_P.Types.O ("Image: Unsupported typecode kind:"
+                               & TCKind'Image (Kind)));
             raise Data_Error;
       end case;
    end Image;
@@ -563,8 +563,8 @@ package body SOAP.Types is
         (Get_Unwound_Type (O.Argument));
    begin
       pragma Debug
-        (SOAP.Types.O ("XML_Image: arg """ & To_Standard_String (O.Name)
-            & """ is a " & TCKind'Image (Kind)));
+        (SOAP_P.Types.O ("XML_Image: arg """ & To_Standard_String (O.Name)
+                         & """ is a " & TCKind'Image (Kind)));
 
       case Kind is
 
@@ -585,7 +585,7 @@ package body SOAP.Types is
               & " xsi:null=""1""/>";
 
          when others =>
-            pragma Debug (SOAP.Types.O ("Defaulting."));
+            pragma Debug (SOAP_P.Types.O ("Defaulting."));
             return "<" & To_Standard_String (O.Name)
               & xsi_type (XML_Type (O)) & '>'
               & Image (O)
@@ -716,7 +716,7 @@ package body SOAP.Types is
               := To_URI (SOAP_Profile_Type (SOAP_Profile.all));
          begin
             pragma Debug
-              (SOAP.Types.O ("Exporting object with URI: " & URI));
+              (SOAP_P.Types.O ("Exporting object with URI: " & URI));
             Append (Result, URI);
          end;
       else
@@ -778,7 +778,7 @@ package body SOAP.Types is
         := Get_Unwound_Type (O.Argument);
       New_Line : constant String := ASCII.CR & ASCII.LF;
    begin
-      pragma Debug (SOAP.Types.O ("XML_Record_Image: enter"));
+      pragma Debug (SOAP_P.Types.O ("XML_Record_Image: enter"));
       Append (Result, SOAP.Utils.Tag
               (To_Standard_String (O.Name), Start => True));
       Append (Result, New_Line);
@@ -807,7 +807,7 @@ package body SOAP.Types is
       Append (Result, SOAP.Utils.Tag
               (To_Standard_String (O.Name), Start => False));
 
-      pragma Debug (SOAP.Types.O ("XML_Record_Image: leave"));
+      pragma Debug (SOAP_P.Types.O ("XML_Record_Image: leave"));
       return To_String (Result);
    end XML_Record_Image;
 
@@ -883,4 +883,4 @@ package body SOAP.Types is
       return " xsi:type=""" & Name & '"';
    end xsi_type;
 
-end SOAP.Types;
+end PolyORB.SOAP_P.Types;

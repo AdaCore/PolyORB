@@ -39,6 +39,13 @@ AM_ENABLE_SHARED(no)
 AM_ENABLE_STATIC(yes)
 
 ##########################################
+# Tools list: contains libraries that are
+# needed by some personnalities.
+##########################################
+
+LIBS_LIST=""
+
+##########################################
 # Protocol personalities list.
 ##########################################
 
@@ -144,6 +151,22 @@ AC_MSG_RESULT(${SERVICE_LIST})
 AC_SUBST(SERVICE_LIST)
 
 ##########################################
+# If the SOAP or the AWS personnality is 
+# selected, then we have to add the 
+# WEB_COMMON library
+##########################################
+
+soap_enabled=`echo ${PROTO_LIST} | ${AWK} '/soap/{print "yes"}'`
+
+if test x$soap_enabled = xyes
+then
+   AC_MSG_CHECKING([tools libraries])
+   LIBS_LIST="${LIBS_LIST} web_common"
+   AC_MSG_RESULT(${LIBS_LIST})
+   AC_SUBST(LIBS_LIST)
+fi
+
+##########################################
 # Update Makefiles' subdirectory lists
 ##########################################
 
@@ -194,6 +217,25 @@ done
 AC_SUBST(SERVICE_DIRS)
 AC_SUBST(SERVICE_INCS)
 AC_SUBST(SERVICE_EXES)
+
+LIBS_DIRS=""
+LIBS_EXES=""
+LIBS_INCS=""
+LIBS_LIBS=""
+
+for P in ${LIBS_LIST}
+do
+   LIBS_DIRS="${APPLI_DIRS} "'$'"(${P}_dir)"
+   LIBS_LIBS="${APPLI_LIBS} "'$'"(${P}_lib)"
+   LIBS_INCS="${APPLI_INCS} "'$'"(${P}_inc)"
+   LIBS_EXES="${APPLI_EXES} "'$'"(${P}_exe)"
+done
+
+AC_SUBST(LIBS_DIRS)
+AC_SUBST(LIBS_EXES)
+AC_SUBST(LIBS_INCS)
+AC_SUBST(LIBS_LIBS)
+
 
 ##########################################
 # Xml/Ada
@@ -419,6 +461,7 @@ AC_OUTPUT([
 	src/giop/diop/Makefile
 	src/giop/miop/Makefile
 	src/moma/Makefile
+	src/web_common/Makefile
 	src/soap/Makefile
 	src/srp/Makefile
 	src/polyorb-setup-client.adb
@@ -487,7 +530,7 @@ ${RM} ${PROTO_SERVER_WITHS}
 # build directory (only necessary when source dir != build dir).
 #
 
-for a in src/gnat.adc src/corba/gnat.adc src/moma/gnat.adc src/giop/gnat.adc src/giop/iiop/gnat.adc src/giop/diop/gnat.adc src/giop/miop/gnat.adc src/soap/gnat.adc src/srp/gnat.adc 
+for a in src/gnat.adc src/corba/gnat.adc src/moma/gnat.adc src/giop/gnat.adc src/giop/iiop/gnat.adc src/giop/diop/gnat.adc src/giop/miop/gnat.adc src/soap/gnat.adc src/srp/gnat.adc src/web_common/gnat.adc
 do
   if test ! -f "$a"
   then

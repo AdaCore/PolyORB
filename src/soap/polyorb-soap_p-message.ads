@@ -30,23 +30,50 @@
 
 --  $Id$
 
-with Ada.Unchecked_Deallocation;
+with Ada.Strings.Unbounded;
 
-with AWS.Response;
-with SOAP.Message.Payload;
+with PolyORB.SOAP_P.Parameters;
 
-package SOAP.Message.Response is
+package PolyORB.SOAP_P.Message is
 
-   type Object is new Message.Object with null record;
-   type Object_Access is access Object'Class;
-   function Build (R : in Object'Class) return AWS.Response.Data;
+   use Ada.Strings.Unbounded;
 
-   function From (P : in Message.Payload.Object) return Object;
-   --  Returns a Response object, initialized from a payload object.
+   type Object is tagged private;
 
-   function Is_Error (R : in Object) return Boolean;
+   function XML_Image (M : in Object) return Unbounded_String;
+   --  Returns the XML image for the wrapper and parameters. This is designed
+   --  to be used by Payload and Response object.
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Object'Class, Object_Access);
+   function Name_Space   (M : in Object'Class) return String;
+   --  Returns message Namespace.
 
-end SOAP.Message.Response;
+   function Wrapper_Name (M : in Object'class) return String;
+   --  Returns wrapper name.
+
+   function Parameters   (M : in Object'class) return SOAP_P.Parameters.List;
+   --  Returns the parameter.
+
+   procedure Set_Name_Space
+     (M    : in out Object'Class;
+      Name : in     String);
+   --  Set message's Namespace.
+
+   procedure Set_Wrapper_Name
+     (M     : in out Object'Class;
+      Name  : in     String);
+   --  Set message's wrapper name.
+
+   procedure Set_Parameters
+     (M     : in out Object'Class;
+      P_Set : in     SOAP_P.Parameters.List);
+   --  Set message's parameters.
+
+private
+
+   type Object is tagged record
+      Name_Space   : Unbounded_String;
+      Wrapper_Name : Unbounded_String;
+      P            : SOAP_P.Parameters.List;
+   end record;
+
+end PolyORB.SOAP_P.Message;

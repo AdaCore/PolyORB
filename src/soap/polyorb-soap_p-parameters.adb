@@ -34,9 +34,9 @@
 --  $Id$
 
 with PolyORB.Types;
-with SOAP.Types;
+with PolyORB.SOAP_P.Types;
 
-package body SOAP.Parameters is
+package body PolyORB.SOAP_P.Parameters is
 
    use PolyORB.Any;
    use PolyORB.Any.NVList;
@@ -63,7 +63,7 @@ package body SOAP.Parameters is
          Next (It);
       end loop;
 
-      raise SOAP.Types.Data_Error;
+      raise SOAP_P.Types.Data_Error;
    end Argument;
 
    function Argument (P : in List; N : in Positive)
@@ -72,7 +72,7 @@ package body SOAP.Parameters is
       return Element (List_Of (Ref (P)).all, N - 1).all;
    exception
       when others =>
-         raise SOAP.Types.Data_Error;
+         raise SOAP_P.Types.Data_Error;
    end Argument;
 
    function Exist (P : in List; Name : in String)
@@ -87,7 +87,7 @@ package body SOAP.Parameters is
          return True;
       end;
    exception
-      when SOAP.Types.Data_Error =>
+      when SOAP_P.Types.Data_Error =>
          return False;
       when others =>
          raise;
@@ -153,7 +153,7 @@ package body SOAP.Parameters is
    procedure Check (P : in List; N : in Natural) is
    begin
       if Argument_Count (P) /= N then
-         raise SOAP.Types.Data_Error;
+         raise SOAP_P.Types.Data_Error;
       end if;
    end Check;
 
@@ -170,7 +170,7 @@ package body SOAP.Parameters is
    begin
       if PolyORB.Any.TypeCode.Kind
         (Get_Type (Argument (P, Name).Argument)) /= Tk then
-         raise SOAP.Types.Data_Error;
+         raise SOAP_P.Types.Data_Error;
       end if;
    end Check_Typecode_Kind;
 
@@ -192,19 +192,19 @@ package body SOAP.Parameters is
    procedure Check_Time_Instant (P : in List; Name : in String) is
    begin
       --  XXX ???
-      raise SOAP.Types.Data_Error;
+      raise SOAP_P.Types.Data_Error;
    end Check_Time_Instant;
 
    procedure Check_Base64 (P : in List; Name : in String) is
    begin
       --  XXX ???
-      raise SOAP.Types.Data_Error;
+      raise SOAP_P.Types.Data_Error;
    end Check_Base64;
 
    procedure Check_Null (P : in List; Name : in String) is
    begin
       --  XXX ???
-      raise SOAP.Types.Data_Error;
+      raise SOAP_P.Types.Data_Error;
    end Check_Null;
 
    procedure Check_Record (P : in List; Name : in String) is
@@ -217,4 +217,4 @@ package body SOAP.Parameters is
       Check_Typecode_Kind (P, Name, Tk_Array);
    end Check_Array;
 
-end SOAP.Parameters;
+end PolyORB.SOAP_P.Parameters;

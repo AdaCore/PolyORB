@@ -32,11 +32,11 @@
 
 with PolyORB.Any;
 
-with SOAP.Types;
+with PolyORB.SOAP_P.Types;
 with SOAP.Utils;
-with SOAP.Message.Response;
+with PolyORB.SOAP_P.Message.Response;
 
-package body SOAP.Message is
+package body PolyORB.SOAP_P.Message is
 
    ----------------
    -- Name_Space --
@@ -51,7 +51,7 @@ package body SOAP.Message is
    -- Parameters --
    ----------------
 
-   function Parameters (M : in Object'Class) return SOAP.Parameters.List is
+   function Parameters (M : in Object'Class) return SOAP_P.Parameters.List is
    begin
       return M.P;
    end Parameters;
@@ -71,7 +71,7 @@ package body SOAP.Message is
 
    procedure Set_Parameters
      (M     : in out Object'Class;
-      P_Set : in     SOAP.Parameters.List) is
+      P_Set : in     SOAP_P.Parameters.List) is
    begin
       M.P := P_Set;
    end Set_Parameters;
@@ -114,20 +114,20 @@ package body SOAP.Message is
       --  Procedure's parameters
 
       declare
-         P : constant SOAP.Parameters.List := Parameters (M);
+         P : constant SOAP_P.Parameters.List := Parameters (M);
       begin
-         for K in 1 .. SOAP.Parameters.Argument_Count (P) loop
+         for K in 1 .. SOAP_P.Parameters.Argument_Count (P) loop
             declare
                Param : constant PolyORB.Any.NamedValue
-                 := SOAP.Parameters.Argument (P, K);
+                 := SOAP_P.Parameters.Argument (P, K);
                use PolyORB.Any;
             begin
                if Param.Arg_Modes = ARG_INOUT
                  or else
                  (Param.Arg_Modes = ARG_IN
                   xor
-                  (SOAP.Message.Object'Class (M)
-                   in SOAP.Message.Response.Object'Class))
+                  (SOAP_P.Message.Object'Class (M)
+                   in SOAP_P.Message.Response.Object'Class))
                then
                   Append
                     (Message_Body,
@@ -142,10 +142,10 @@ package body SOAP.Message is
       --  Close payload objects.
 
       Append (Message_Body,
-              Utils.Tag ("awsns:" & Wrapper_Name (M), False) & NL);
+              SOAP.Utils.Tag ("awsns:" & Wrapper_Name (M), False) & NL);
 
       return Message_Body;
    end XML_Image;
 
-end SOAP.Message;
+end PolyORB.SOAP_P.Message;
 
