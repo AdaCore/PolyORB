@@ -5,8 +5,6 @@ prefix="@prefix@"
 appli="@APPLI_LIST@"
 proto="@PROTO_LIST@"
 services="@SERVICE_LIST@"
-MAJOR=@POLYORB_MAJOR_VERSION@
-MINOR=@POLYORB_MINOR_VERSION@
 
 usage()
 {
@@ -64,7 +62,7 @@ while test $# -gt 0; do
       echo_exec_prefix=true
       ;;
     --version|-v)
-      echo PolyORB ${MAJOR}.${MINOR}
+      echo "PolyORB @VERSION@"
       exit 0
       ;;
     --config)

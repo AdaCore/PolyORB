@@ -17,7 +17,6 @@ compilers/idlac/Makefile.am
 compilers/idlac/Makefile.in
 compilers/idlac/README.Expansion
 compilers/idlac/TODO
-compilers/idlac/ada_be-constants.ads
 compilers/idlac/ada_be-debug.adb
 compilers/idlac/ada_be-debug.ads
 compilers/idlac/ada_be-expansion.adb

@@ -8,14 +8,9 @@ AC_CONFIG_AUX_DIR(support)
 ##########################################
 
 AC_CANONICAL_SYSTEM
-AM_INIT_AUTOMAKE(polyorb,0.1)
-LIBVERSIONINFO=0:0:0
+AM_INIT_AUTOMAKE(polyorb,1.2w)
+LIBVERSIONINFO=1:2:0
 AC_SUBST(LIBVERSIONINFO)
-
-POLYORB_MAJOR_VERSION=0
-POLYORB_MINOR_VERSION=1
-AC_SUBST(POLYORB_MAJOR_VERSION)
-AC_SUBST(POLYORB_MINOR_VERSION)
 
 ##########################################
 # Check fo various programs.
