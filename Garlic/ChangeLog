@@ -1,3 +1,7 @@
+Tue Sep 30 15:57:24 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
+
+	* 2agtplsp.ads: Add alpha specific unit.
+
 Mon Sep 22 16:05:48 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garter.ads: Revert previous bogus checkin.
