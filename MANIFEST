@@ -370,6 +370,8 @@ ada/debug.adb
 ada/debug.ads
 ada/fname.adb
 ada/fname.ads
+ada/fname-sf.adb
+ada/fname-sf.ads
 ada/fname-uf.adb
 ada/fname-uf.ads
 ada/gnatvsn.ads
@@ -390,6 +392,8 @@ ada/output.adb
 ada/output.ads
 ada/rident.ads
 ada/sdefault.ads
+ada/sfn_scan.adb
+ada/sfn_scan.ads
 ada/stylesw.adb
 ada/stylesw.ads
 ada/switch.adb
