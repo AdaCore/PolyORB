@@ -33,17 +33,28 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  This package implements a distributed shared memory storage
+--  support for shared passive packages. The algorithm used for this
+--  implementation is based on the variant of the dynamic distributed
+--  manager algorithm with dynamic distributed copy set (i.e K .Li and
+--  P. Hudak, Memory Coherence in Shared Virtual Memory Systems, ACM
+--  Transactions on Computer Systems, nov 1989, vol. 7, num. 4,
+--  p. 321-359). Note that the algorithm as described is incomplete,
+--  especially concerning all the invalidation phase.
+
 with Ada.Unchecked_Deallocation;
 with Ada.Streams;              use Ada.Streams;
 
+with GNAT.Strings;             use GNAT.Strings;
+
 with System.Garlic.Exceptions; use System.Garlic.Exceptions;
 with System.Garlic.Heart;      use System.Garlic.Heart;
+with System.Garlic.Options;    use System.Garlic.Options;
 with System.Garlic.Partitions; use System.Garlic.Partitions;
 with System.Garlic.Soft_Links; use System.Garlic.Soft_Links;
 with System.Garlic.Streams;    use System.Garlic.Streams;
 with System.Garlic.Types;      use System.Garlic.Types;
 with System.Garlic.Units;      use System.Garlic.Units;
-with System.Garlic.Utils;      use System.Garlic.Utils;
 
 with System.Garlic.Debug;      use System.Garlic.Debug;
 pragma Elaborate (System.Garlic.Debug);
@@ -73,41 +84,104 @@ package body System.Garlic.Storages.Dsm is
    --  Routine to handle message with opcode DSM_Service. Registered
    --  in Garlic.Heart.
 
-   function Image (R : Request_Record) return String;
+   function Image (R : Request_Message) return String;
+   function Image (D : DSM_Data_Access) return String;
    function Image (S : Stream_Element_Access) return String;
    function Image (S : Copy_Set_Access) return String;
    function Image (S : Copy_Set_Type) return String;
-
-   procedure Invalidate
-     (Var_Name : in     String_Access;
-      Copy_Set : in out Copy_Set_Access;
-      Owner    : in     Partition_ID);
-   --  Send a cancel request to all the partitions present in Copy_Set
-   --  and then deallocate Copy_Set.
+   --  Routines to get output when debugging.
 
    procedure Merge
      (List : in     Copy_Set_Type;
       Into : in out Copy_Set_Access);
    --  Add in Into all the missing partition ids from List.
 
-   procedure Send_Request
-     (Partition : in  Partition_ID;
-      Var_Name  : in  String_Access;
-      Request   : in  Request_Record;
-      Error     : in out Error_Type);
-   --  Format a request to be processed by Handle_Request on the
-   --  remote side. Send it to Partition.
+   --  Some requests cannot be immediatly processed especially when a
+   --  variable is locked. Pending requests are stored in a fixed size
+   --  table. The size of this table is set arbitrary and may need to
+   --  be precisely computed.
+
+   type Pending_Request_Record is record
+      Name      : String_Access;
+      Request   : Request_Message;
+      Partition : Partition_ID;
+   end record;
+
+   First_Request : constant Natural := 1;
+   Last_Request  : Natural := 0;
+   Max_Requests  : constant Natural := 256;
+   Requests : array (First_Request .. Max_Requests) of Pending_Request_Record;
+
+   Requests_Watcher : Watcher_Access;
+
+   procedure Append
+     (Name      : String_Access;
+      Request   : Request_Message;
+      Partition : Partition_ID);
+   --  Append request to the request table. Suspend in case there is no
+   --  space left in Requests.
+
+   procedure Write
+     (Stream    : access Params_Stream_Type;
+      Name      : String;
+      Request   : Request_Message;
+      Partition : Partition_ID);
+   --  Write the request message in Stream.
+
+   task type Request_Processor_Type;
+   type Request_Processor_Access is access Request_Processor_Type;
+   Request_Processor : Request_Processor_Access;
+
+   ------------
+   -- Append --
+   ------------
+
+   procedure Append
+     (Name      : String_Access;
+      Request   : Request_Message;
+      Partition : Partition_ID)
+   is
+      Version  : Version_Id;
+   begin
+      pragma Assert (Partition /= Self_PID);
+      loop
+         Enter_Critical_Section;
+         if Last_Request < Max_Requests then
+            Last_Request := Last_Request + 1;
+            Requests (Last_Request) := (Name, Request, Partition);
+            Update (Requests_Watcher);
+            Leave_Critical_Section;
+            exit;
+         end if;
+
+         --  There is no space left in Requests. Wait for an update.
+
+         Lookup (Requests_Watcher, Version);
+         Leave_Critical_Section;
+         Differ (Requests_Watcher, Version);
+      end loop;
+   end Append;
 
    ----------------------
    -- Complete_Request --
    ----------------------
 
    procedure Complete_Request
-     (Var_Data : in out DSM_Data_Type) is
+     (Var_Data : access DSM_Data_Type) is
    begin
-      pragma Debug (D ("leave variable mutex for " & Var_Data.Name.all));
-      Leave (Var_Data.Mutex);
-      pragma Debug (D ("complete request"));
+      pragma Debug (D ("complete request on " & Var_Data.Name.all));
+      Enter_Critical_Section;
+
+      --  Resume local tasks waiting for the variable lock.
+
+      Var_Data.Locked := False;
+      Update (Var_Data.Watcher);
+
+      --  Resume the request processor as requests concerning this
+      --  variable can now be processed.
+
+      Update (Requests_Watcher);
+      Leave_Critical_Section;
    end Complete_Request;
 
    --------------------
@@ -140,13 +214,16 @@ package body System.Garlic.Storages.Dsm is
       if Found (Error) then
          Raise_Communication_Error (Content (Error'Access));
 
+      --  As this support runs a DSM algorithm, a variable can be
+      --  configured on a passive partition.
+
       elsif not Active then
-         pragma Debug (D (DSM_Storage_Name & " cannot create storage for " &
-                          Pkg_Name & " on passive partition"));
          Raise_Communication_Error
-           (DSM_Storage_Name & " cannot create storage for " &
-            Pkg_Name & " on passive partition");
+           ("no dsm storage support allowed on a passive partition");
       end if;
+
+      --  If the variable is configured on this partition, it owns the
+      --  the variable in write mode.
 
       if Pkg.Owner = Self_PID then
          Pkg.Status := Write;
@@ -197,14 +274,15 @@ package body System.Garlic.Storages.Dsm is
       Var : DSM_Data_Access;
 
    begin
-      Var        := new DSM_Data_Type;
-      Var.Name   := new String'(Var_Name);
-      Var.Owner  := Pkg_Data.Owner;
-      Var.Status := Pkg_Data.Status;
+      Var         := new DSM_Data_Type;
+      Var.Name    := new String'(Var_Name);
+      Var.Owner   := Pkg_Data.Owner;
+      Var.Status  := Pkg_Data.Status;
+      Var.Locked  := False;
+      Var.Version := No_Version;
+      Var.Stream  := null;
+      Var.Offset  := 0;
       Create (Var.Watcher);
-      Create (Var.Mutex);
-      Var.Stream := null;
-      Var.Offset := 0;
 
       pragma Debug
         (D ("create variable """ & Var.Name.all & """"));
@@ -225,97 +303,40 @@ package body System.Garlic.Storages.Dsm is
    is
       pragma Unreferenced (Opcode);
       pragma Unreferenced (Reply);
+      pragma Unreferenced (Error);
 
-      Var_Data  : DSM_Data_Access;
-      Var_Name  : constant String := String'Input (Query);
-      Request   : Request_Record  := Request_Record'Input (Query);
-
+      Name     : String_Access   := new String'(String'Input (Query));
+      Request  : Request_Message := Request_Message'Input (Query);
    begin
-      pragma Debug
-        (D ("Handle request " & Image (Request) &
-            " for variable " & Var_Name));
 
-      Var_Data := DSM_Data_Access (Lookup_Variable (Var_Name));
-      if Request.Kind in Write_Data .. Read_Data then
-         if Var_Data.Stream /= null then
-            Free (Var_Data.Stream);
-         end if;
-         Var_Data.Stream := Request.Stream;
-         Var_Data.Offset := 0;
+      --  Always delegate to the request processor. The task handling
+      --  a request (executing this procedure) cannot send messages
+      --  because Send may block when the receiving partition
+      --  transport protocol is still unknown. In this case, Send
+      --  sends an information requests and waits for the transport
+      --  protocol to be defined. Moreover, these information may come
+      --  from the partition sending the current request. In this
+      --  case, Send blocks forever waiting for information that
+      --  cannot be received by this same task.
 
-         if Request.Kind = Write_Data then
-            if Request.Copies /= null then
-               Merge (Request.Copies.all, Var_Data.Copies);
-               Free  (Request.Copies);
-            end if;
-            Var_Data.Owner := Self_PID;
-
-         else
-            Var_Data.Owner := Partition;
-         end if;
-         Update (Var_Data.Watcher);
-
-      else
-         pragma Debug (D ("enter variable mutex for " & Var_Data.Name.all));
-         Enter (Var_Data.Mutex);
-         if Request.Kind = Cancel_Rqst then
-            if Var_Data.Status /= None then
-               Invalidate
-                 (Var_Name'Unrestricted_Access,
-                  Var_Data.Copies,
-                  Request.Owner);
-               Var_Data.Status := None;
-               Var_Data.Owner  := Request.Owner;
-               if Var_Data.Stream /= null then
-                  Free (Var_Data.Stream);
-               end if;
-            end if;
-
-         elsif Request.Kind = Read_Rqst then
-            if Var_Data.Status /= None then
-               Merge ((1 => Request.Reply_To), Var_Data.Copies);
-               Var_Data.Status := Read;
-               Send_Request
-                 (Request.Reply_To,
-                  Var_Data.Name,
-                  (Read_Data, Var_Data.Stream, null),
-                  Error);
-
-            else
-               Send_Request
-                 (Var_Data.Owner,
-                  Var_Data.Name,
-                  Request,
-                  Error);
-               Var_Data.Owner := Request.Reply_To;
-            end if;
-
-         else
-            if Var_Data.Owner = Self_PID then
-               Var_Data.Status := None;
-               Send_Request
-                 (Request.Reply_To,
-                  Var_Data.Name,
-                  (Write_Data, Var_Data.Stream, Var_Data.Copies),
-                  Error);
-               Free (Var_Data.Copies);
-               if Var_Data.Stream /= null then
-                  Free (Var_Data.Stream);
-               end if;
-
-            else
-               Send_Request
-                 (Var_Data.Owner,
-                  Var_Data.Name,
-                  Request,
-                  Error);
-               Var_Data.Owner := Request.Reply_To;
-            end if;
-         end if;
-         pragma Debug (D ("leave variable mutex for " & Var_Data.Name.all));
-         Leave (Var_Data.Mutex);
-      end if;
+      Append (Name, Request, Partition);
    end Handle_Request;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image (D : DSM_Data_Access) return String is
+   begin
+      return "(" &
+        D.Name.all & ", " &
+        D.Version'Img & ", " &
+        D.Status'Img & ", " &
+        D.Locked'Img & "," &
+        D.Owner'Img & ", " &
+        Image (D.Copies) & ", " &
+        Image (D.Stream) & ")";
+   end Image;
 
    -----------
    -- Image --
@@ -361,18 +382,27 @@ package body System.Garlic.Storages.Dsm is
    -- Image --
    -----------
 
-   function Image (R : Request_Record) return String is
+   function Image (R : Request_Message) return String is
    begin
       case R.Kind is
          when Write_Rqst | Read_Rqst =>
             return "(" & R.Kind'Img & "," & R.Reply_To'Img & ")";
 
-         when Write_Data | Read_Data =>
+         when Write_Data =>
             return "(" & R.Kind'Img &
-              ", " & Image (R.Stream) &
-              ", " & Image (R.Copies) & ")";
-         when Cancel_Rqst =>
-            return "(" & R.Kind'Img & "," & R.Owner'Img & ")";
+              ","  & R.Version'Img &
+              ", " & Image (R.Copies) &
+              ", " & Image (R.Stream) & ")";
+
+         when Read_Data =>
+            return "(" & R.Kind'Img &
+              ","  & R.Version'Img &
+              ", " & Image (R.Stream) & ")";
+
+         when Invalidate_Rqst =>
+            return "(" & R.Kind'Img &
+              "," & R.Version'Img &
+              "," & R.Owner'Img & ")";
       end case;
    end Image;
 
@@ -385,10 +415,24 @@ package body System.Garlic.Storages.Dsm is
       Root : DSM_Data_Access := new DSM_Data_Type;
 
    begin
+      if Is_Pure_Client then
+         Raise_Communication_Error
+           ("a pure client cannot run dsm algorithm");
+      elsif Termination = Local_Termination then
+         Raise_Communication_Error
+           ("a partition cannot locally terminate " &
+            "while running dsm algorithm");
+      end if;
+
       pragma Debug (D ("register request handler"));
       Register_Handler (DSM_Service, Handle_Request'Access);
       pragma Debug (D ("register storage support"));
       Register_Storage (DSM_Storage_Name, Shared_Data_Access (Root));
+
+      if Request_Processor = null then
+         Create (Requests_Watcher);
+         Request_Processor := new Request_Processor_Type;
+      end if;
    end Initialize;
 
    ----------------------
@@ -396,61 +440,108 @@ package body System.Garlic.Storages.Dsm is
    ----------------------
 
    procedure Initiate_Request
-     (Var_Data : in out DSM_Data_Type;
+     (Var_Data : access DSM_Data_Type;
       Request  : in Request_Type;
       Success  : out Boolean)
    is
       Version : Version_Id;
+      Owner   : Partition_ID;
+      Stream  : aliased Params_Stream_Type (0);
       Error   : aliased Error_Type;
 
    begin
-      pragma Debug (D ("enter variable mutex for " & Var_Data.Name.all));
-      Enter (Var_Data.Mutex);
-      pragma Debug (D ("initiate request with mode " & Request'Img));
-      case Request is
-         when Write =>
-            if Var_Data.Status /= Write then
-               Lookup (Var_Data.Watcher, Version);
-               pragma Debug
-                 (D ("ask partition" & Var_Data.Owner'Img &
-                     " for write copy of variable " & Var_Data.Name.all));
-               Send_Request
-                 (Var_Data.Owner,
-                  Var_Data.Name,
-                  (Write_Rqst, Self_PID),
-                  Error);
-               Differ (Var_Data.Watcher, Version);
-               pragma Debug
-                 (D ("invalidate copies of variable " & Var_Data.Name.all &
-                     " in partitions " & Image (Var_Data.Copies)));
-               Invalidate (Var_Data.Name, Var_Data.Copies, Self_PID);
-               Var_Data.Status := Write;
-            end if;
+      pragma Assert (Request in Read .. Write);
 
-         when Read =>
-            if Var_Data.Status = None then
-               Lookup (Var_Data.Watcher, Version);
-               pragma Debug
-                 (D ("ask partition" & Var_Data.Owner'Img &
-                     " for read copy of variable " & Var_Data.Name.all));
-               Send_Request
-                 (Var_Data.Owner,
-                  Var_Data.Name,
-                  (Read_Rqst, Self_PID),
-                  Error);
-               Differ (Var_Data.Watcher, Version);
-               Var_Data.Status := Read;
-            end if;
+      Success := True;
 
-         when others =>
-            null;
-      end case;
-      Var_Data.Offset := 0;
-      Success := (Var_Data.Stream /= null);
-      if Var_Data.Stream = null and then Request = Read then
-         pragma Debug (D ("leave variable mutex for " & Var_Data.Name.all));
-         Leave (Var_Data.Mutex);
+      --  Wait to get the lock.
+
+      loop
+         Enter_Critical_Section;
+         exit when not Var_Data.Locked;
+         Lookup (Var_Data.Watcher, Version);
+         Leave_Critical_Section;
+         Differ (Var_Data.Watcher, Version);
+      end loop;
+      Var_Data.Locked := True;
+
+      pragma Debug
+        (D ("initiate " & Request'Img &
+            " on " & Image (DSM_Data_Access (Var_Data))));
+
+      if Request = Write then
+
+         --  When the variable status is not Write, send a request to
+         --  the probable owner in order to get it in Write mode.
+
+         if Var_Data.Status /= Write then
+            Lookup (Var_Data.Watcher, Version);
+            Owner := Var_Data.Owner;
+            Write
+              (Stream'Access,
+               Var_Data.Name.all,
+               (Write_Rqst, Self_PID),
+               Owner);
+            Leave_Critical_Section;
+
+            --  Release critical section with a copy of Owner.
+
+            Send (Owner, DSM_Service, Stream'Access, Error);
+
+            --  Wait for variable status to be set to Write.
+
+            Differ (Var_Data.Watcher, Version);
+            pragma Assert (Var_Data.Status = Write);
+
+         else
+            Leave_Critical_Section;
+         end if;
+
+      elsif Request = Read then
+
+         --  When the variable status is None, send a request to the
+         --  probable owner in order to get variable in Read mode.
+
+         if Var_Data.Status = None then
+
+            --  Loop until we definitively get the variable in read
+            --  mode. Several passes may be needed because of
+            --  successive invalidations.
+
+            loop
+               Owner := Var_Data.Owner;
+               Lookup (Var_Data.Watcher, Version);
+               Write (Stream'Access,
+                      Var_Data.Name.all,
+                      (Read_Rqst, Self_PID),
+                      Owner);
+               Leave_Critical_Section;
+
+               --  Release critical section with a copy of Owner.
+
+               Send (Owner, DSM_Service, Stream'Access, Error);
+
+               --  Wait for variable status to be set to Read
+
+               Differ (Var_Data.Watcher, Version);
+
+               Enter_Critical_Section;
+               exit when Var_Data.Status = Read;
+            end loop;
+         end if;
+
+         --  If we have no copy of this variable although its status
+         --  is Read or Write, use the value in memory and release the
+         --  variable mutex.
+
+         if Var_Data.Stream = null then
+            Success         := False;
+            Var_Data.Locked := False;
+         end if;
+         Leave_Critical_Section;
       end if;
+
+      Var_Data.Offset := 0;
    end Initiate_Request;
 
    -----------
@@ -459,50 +550,38 @@ package body System.Garlic.Storages.Dsm is
 
    function Input
      (S : access Ada.Streams.Root_Stream_Type'Class)
-     return Request_Record
+     return Request_Message
    is
-      Request : Request_Record (Request_Kind'Input (S));
+      Request : Request_Message (Request_Kind'Input (S));
 
    begin
       case Request.Kind is
-         when Write_Data .. Read_Data =>
-            Stream_Element_Access'Read (S, Request.Stream);
-            if Request.Kind = Write_Data then
-               Copy_Set_Access'Read (S, Request.Copies);
-            end if;
-
-         when Write_Rqst .. Read_Rqst =>
+         when Write_Rqst | Read_Rqst =>
             Partition_ID'Read (S, Request.Reply_To);
 
-         when Cancel_Rqst =>
-            Partition_ID'Read (S, Request.Owner);
+         when others =>
+            Version_Id'Read (S, Request.Version);
+
+            case Request.Kind is
+               when Invalidate_Rqst =>
+                  Partition_ID'Read (S, Request.Owner);
+
+               when Write_Data | Read_Data =>
+                  Stream_Element_Access'Read (S, Request.Stream);
+
+                  case Request.Kind is
+                     when Write_Data =>
+                        Copy_Set_Access'Read (S, Request.Copies);
+
+                     when others =>
+                        null;
+                  end case;
+               when others =>
+                  null;
+            end case;
       end case;
       return Request;
    end Input;
-
-   ----------------
-   -- Invalidate --
-   ----------------
-
-   procedure Invalidate
-     (Var_Name : in     String_Access;
-      Copy_Set : in out Copy_Set_Access;
-      Owner    : in     Partition_ID)
-   is
-      Error : aliased Error_Type;
-
-   begin
-      if Copy_Set /= null then
-         for I in Copy_Set'Range loop
-            Send_Request
-              (Copy_Set (I),
-               Var_Name,
-               (Cancel_Rqst, Owner),
-               Error);
-         end loop;
-         Free (Copy_Set);
-      end if;
-   end Invalidate;
 
    -----------
    -- Merge --
@@ -521,6 +600,9 @@ package body System.Garlic.Storages.Dsm is
          Into := new Copy_Set_Type'(List);
 
       else
+         --  Find the partition from List missing in Into and store
+         --  them in Set.
+
          for I in List'Range loop
             Elt := False;
             for J in Into'Range loop
@@ -534,6 +616,10 @@ package body System.Garlic.Storages.Dsm is
                Set (Len) := List (I);
             end if;
          end loop;
+
+         --  If there are really missing partitions, then rebuild Into
+         --  to include these partitions.
+
          if Len /= 0 then
             declare
                Union : Copy_Set_Type := Into.all & Set (1 .. Len);
@@ -551,21 +637,33 @@ package body System.Garlic.Storages.Dsm is
 
    procedure Output
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      X : in Request_Record) is
+      X : in Request_Message) is
    begin
       Request_Kind'Write (S, X.Kind);
       case X.Kind is
-         when Write_Data .. Read_Data =>
-            Stream_Element_Access'Write (S, X.Stream);
-            if X.Kind = Write_Data then
-               Copy_Set_Access'Write (S, X.Copies);
-            end if;
-
-         when Write_Rqst .. Read_Rqst =>
+         when Write_Rqst | Read_Rqst =>
             Partition_ID'Write (S, X.Reply_To);
 
-         when Cancel_Rqst =>
-            Partition_ID'Write (S, X.Owner);
+         when others =>
+            Version_Id'Write (S, X.Version);
+
+            case X.Kind is
+               when Invalidate_Rqst =>
+                  Partition_ID'Write (S, X.Owner);
+
+               when Write_Data | Read_Data =>
+                  Stream_Element_Access'Write (S, X.Stream);
+
+                  case X.Kind is
+                     when Write_Data =>
+                        Copy_Set_Access'Write (S, X.Copies);
+
+                     when others =>
+                        null;
+                  end case;
+               when others =>
+                  null;
+            end case;
       end case;
    end Output;
 
@@ -607,27 +705,346 @@ package body System.Garlic.Storages.Dsm is
       X := Set;
    end Read;
 
-   ------------------
-   -- Send_Request --
-   ------------------
+   ----------------------------
+   -- Request_Processor_Type --
+   ----------------------------
 
-   procedure Send_Request
-     (Partition : in  Partition_ID;
-      Var_Name  : in  String_Access;
-      Request   : in  Request_Record;
-      Error     : in out Error_Type)
-   is
-      Stream : aliased Params_Stream_Type (0);
+   task body Request_Processor_Type is
+      Error     : Error_Type;
+      Var_Data  : DSM_Data_Access;
+      Name      : String_Access;
+      Request   : Request_Message;
+      Partition : Partition_ID;
+      Copies    : Copy_Set_Access;
+      Owner     : Partition_ID;
+      Shutdown  : Boolean := False;
+      Version   : Version_Id;
 
    begin
-      if Partition = Self_PID then
-         return;
-      end if;
-      String'Output         (Stream'Access, Var_Name.all);
-      Request_Record'Output (Stream'Access, Request);
-      pragma Debug (D ("send request " & Image (Request)));
-      Send (Partition, DSM_Service, Stream'Access, Error);
-   end Send_Request;
+      loop
+         loop
+            Enter_Critical_Section;
+
+            --  Set Partition to Null_Partition_ID to detect that no
+            --  request has been selected. This can occur when there
+            --  are only read and write requests with locked variables.
+
+            Partition := Null_Partition_ID;
+            for R in First_Request .. Last_Request loop
+               Name    := Requests (R).Name;
+               Request := Requests (R).Request;
+
+               --  Name = null is a convention to shutdown
+
+               if Name = null then
+                  Leave_Critical_Section;
+                  Shutdown := True;
+                  exit;
+               end if;
+
+               Var_Data := DSM_Data_Access (Lookup_Variable (Name.all));
+
+               --  Can we handle this request ?
+
+               if not Var_Data.Locked
+                 or else Request.Kind in Write_Data .. Read_Data
+                 or else (Request.Kind = Invalidate_Rqst
+                          and then Var_Data.Status = Read)
+               then
+                  Partition := Requests (R).Partition;
+                  Requests (R .. Last_Request - 1)
+                    := Requests (R + 1 .. Last_Request);
+                  Last_Request := Last_Request - 1;
+                  exit;
+               end if;
+            end loop;
+
+            exit when Shutdown or else Partition /= Null_Partition_ID;
+
+            Lookup (Requests_Watcher, Version);
+            Leave_Critical_Section;
+
+            --  Wait for an update in the request table. Note that
+            --  when a variable changes its status, the request table
+            --  version is also updated. It is not very efficient.
+
+            Add_Non_Terminating_Task;
+            Differ (Requests_Watcher, Version);
+            Sub_Non_Terminating_Task;
+         end loop;
+
+         exit when Shutdown;
+
+         pragma Debug
+           (D ("process " & Image (Request) &
+               " on "   & Image (Var_Data) &
+               " from" & Partition'Img));
+
+         if Request.Kind = Write_Data then
+
+            --  We want to process the whole request. A subtle
+            --  situation arises when we already have a read copy of
+            --  the variable. If we store the request stream in the
+            --  variable stream, we must not deallocate it when we
+            --  invalidate the read copy. To detect this situation, we
+            --  declare our ownership on the variable right now.
+
+            if Var_Data.Stream /= null then
+               Free (Var_Data.Stream);
+            end if;
+            Var_Data.Stream := Request.Stream;
+            Var_Data.Owner  := Self_PID;
+
+            --  Check whether we have to invalidate our own copy and
+            --  whether it has to be done during the current
+            --  invalidation phase or once we receive an invalidation
+            --  request from the partition which provided us with the
+            --  read copy. When we got the current read copy from the
+            --  partition which provided us with the write copy, we do
+            --  the invalidation immediatly (we are in its copy
+            --  set). Otherwise, we send the invalidation request to
+            --  the partitions form the copy set sent by the previous
+            --  owner of the variable and wait for the invalidation
+            --  request from the partition which provided us with the
+            --  read copy.
+
+            Copies := Request.Copies;
+            if Copies /= null then
+               for P in Copies'Range loop
+                  if Copies (P) = Self_PID then
+
+                     --  We are already in the copy set of the
+                     --  previous variable owner. We can safely merge
+                     --  the two copy sets (the one from previous
+                     --  owner and the local one).
+
+                     Var_Data.Status := None;
+                     if Var_Data.Copies /= null then
+                        Merge (Var_Data.Copies.all, Copies);
+                        Free (Var_Data.Copies);
+                     end if;
+                     exit;
+                  end if;
+               end loop;
+            end if;
+
+            --  We are not waiting for an invalidation request when
+            --  the status is different from Read. Set status to Write
+            --  and resume tasks waiting for variable.
+
+            if Var_Data.Status = None then
+               Var_Data.Status  := Write;
+               Var_Data.Version := Request.Version + 1;
+               Update (Var_Data.Watcher);
+            end if;
+            Leave_Critical_Section;
+
+            --  Invalidate read copies outside the critical section in
+            --  order to avoid deadlocks as Send is potentially blocking.
+
+            if Copies /= null then
+               for P in Copies'Range loop
+                  if Copies (P) /= Self_PID then
+                     declare
+                        S : aliased Params_Stream_Type (0);
+                     begin
+                        Write (S'Access,
+                               Name.all,
+                               (Invalidate_Rqst, Request.Version, Self_PID),
+                               Copies (P));
+                        Send (Copies (P), DSM_Service, S'Access, Error);
+                     end;
+                  end if;
+               end loop;
+               Free (Copies);
+            end if;
+
+         elsif Request.Kind = Read_Data then
+            pragma Assert (Var_Data.Status = None);
+
+            if Var_Data.Stream /= null then
+               Free (Var_Data.Stream);
+            end if;
+            Var_Data.Stream  := Request.Stream;
+            Var_Data.Version := Request.Version;
+            Var_Data.Owner   := Partition;
+            Var_Data.Status  := Read;
+            Leave_Critical_Section;
+
+            Update (Var_Data.Watcher);
+
+         elsif Request.Kind = Invalidate_Rqst then
+            pragma Assert (Var_Data.Status = Read);
+            pragma Assert (Var_Data.Version = Request.Version);
+
+            --  If status is read and owner is ourself, then we have
+            --  acquired the variable in write mode but we were
+            --  waiting for an invalidation request to definitively
+            --  set its status to Write as the invalidation phase is
+            --  now completed.
+
+            if Var_Data.Owner = Self_PID then
+               Var_Data.Status  := Write;
+               Var_Data.Version := Request.Version + 1;
+               Update (Var_Data.Watcher);
+
+            else
+               --  Free our variable value as it is now obsolete. This
+               --  is a regular situation of copy invalidation.
+
+               if Var_Data.Stream /= null then
+                  Free (Var_Data.Stream);
+               end if;
+               Var_Data.Status := None;
+            end if;
+            Copies := Var_Data.Copies;
+
+            Var_Data.Copies := null;
+            Var_Data.Owner  := Request.Owner;
+
+            Leave_Critical_Section;
+
+            --  Invalidate read copies outside the critical section in
+            --  order to avoid deadlocks as Send is potentially blocking.
+
+            if Copies /= null then
+               for P in Copies'Range loop
+                  declare
+                     S : aliased Params_Stream_Type (0);
+                  begin
+                     Write (S'Access,
+                            Name.all,
+                            (Invalidate_Rqst, Request.Version, Request.Owner),
+                            Copies (P));
+                     Send (Copies (P), DSM_Service, S'Access, Error);
+                  end;
+               end loop;
+               Free (Copies);
+            end if;
+
+         elsif Request.Kind = Read_Rqst then
+            pragma Assert (not Var_Data.Locked);
+
+            --  When we have a variable copy, send it to the
+            --  requesting partition and add it to the copy set.
+
+            if Var_Data.Status in Write .. Read then
+               Merge ((1 => Request.Reply_To), Var_Data.Copies);
+               declare
+                  S : aliased Params_Stream_Type (0);
+               begin
+                  Write (S'Access,
+                         Name.all,
+                         (Read_Data, Var_Data.Version, Var_Data.Stream),
+                         Request.Reply_To);
+                  Leave_Critical_Section;
+                  Send (Request.Reply_To, DSM_Service, S'Access, Error);
+               end;
+
+            --  When we do not have a copy, forward the request to the
+            --  probable owner.
+
+            else
+               Owner          := Var_Data.Owner;
+               Var_Data.Owner := Request.Reply_To;
+               declare
+                  S : aliased Params_Stream_Type (0);
+               begin
+                  Write (S'Access, Name.all, Request, Owner);
+                  Leave_Critical_Section;
+                  Send (Owner, DSM_Service, S'Access, Error);
+               end;
+            end if;
+
+         --  The request is a write request and we own the
+         --  variable. Send it to the requesting partition with our
+         --  copy set. Free variable value and copy set. Keep track of
+         --  the new owner (requesting partition).
+
+         elsif Var_Data.Owner = Self_PID then
+            pragma Assert (not Var_Data.Locked);
+            Var_Data.Owner  := Request.Reply_To;
+            Var_Data.Status := None;
+            declare
+               S : aliased Params_Stream_Type (0);
+            begin
+               Write (S'Access, Name.all,
+                      (Write_Data, Var_Data.Version,
+                       Var_Data.Stream, Var_Data.Copies),
+                      Request.Reply_To);
+               if Var_Data.Copies /= null then
+                  Free (Var_Data.Copies);
+               end if;
+               if Var_Data.Stream /= null then
+                  Free (Var_Data.Stream);
+               end if;
+               Leave_Critical_Section;
+               Send (Request.Reply_To, DSM_Service, S'Access, Error);
+            end;
+
+         --  The request is a write request and we do not own the
+         --  variable. Send the request to the probable owner and keep
+         --  track of the new owner (requesting partition).
+
+         else
+            pragma Assert (not Var_Data.Locked);
+            Owner          := Var_Data.Owner;
+            Var_Data.Owner := Request.Reply_To;
+            declare
+               S : aliased Params_Stream_Type (0);
+            begin
+               Write (S'Access, Name.all, Request, Owner);
+               Leave_Critical_Section;
+               Send (Owner, DSM_Service, S'Access, Error);
+            end;
+         end if;
+
+         Free (Name);
+      end loop;
+
+   exception when others =>
+      pragma Debug (D ("request processor failed"));
+      null;
+   end Request_Processor_Type;
+
+   --------------
+   -- Shutdown --
+   --------------
+
+   procedure Shutdown (Storage : DSM_Data_Type) is
+      pragma Unreferenced (Storage);
+   begin
+      pragma Debug
+        (D ("shutdown with" & Last_Request'Img & " pending requests"));
+
+      --  A shutdown is signaled with a variable with a null name.
+
+      Append (null,
+              Request_Message'(Kind => Invalidate_Rqst,
+                               Version => No_Version,
+                               Owner => Null_Partition_ID),
+              Null_Partition_ID);
+   end Shutdown;
+
+   -----------
+   -- Write --
+   -----------
+
+   procedure Write
+     (Stream    : access Params_Stream_Type;
+      Name      : String;
+      Request   : Request_Message;
+      Partition : Partition_ID)
+   is
+   begin
+      pragma Debug
+        (D ("send " & Image (Request) &
+            " on "  & Name &
+            " to"   & Partition'Img));
+
+      String'Output (Stream, Name);
+      Request_Message'Output (Stream, Request);
+   end Write;
 
    -----------
    -- Write --
@@ -649,7 +1066,7 @@ package body System.Garlic.Storages.Dsm is
          Str := new Stream_Element_Array'(Data.Stream.all & Item);
          Free (Data.Stream);
          Data.Stream := Str;
-         Data.Offset  := Data.Stream'Last;
+         Data.Offset := Data.Stream'Last;
 
       else
          Data.Stream (Data.Offset + 1 .. Data.Offset + Len) := Item;
