@@ -4,6 +4,8 @@ with Ada.Streams;
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 
+with System.RPC;
+
 with GNAT.HTable;
 
 with CORBA.Object;
@@ -12,6 +14,7 @@ with PolyORB.CORBA_P.Naming_Tools;
 --  naming service.
 
 with PolyORB.Binding_Data;
+with PolyORB.Dynamic_Dict;
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Setup;
@@ -91,7 +94,7 @@ package body System.PolyORB_Interface is
    --  A map of all known RCIs is maintained.
 
    type RCI_Info is record
-      Base_Ref            : Obj_Reference;
+      Base_Ref            : Object_Ref;
       --  The main reference for this package.
 
       Is_Local            : Boolean := False;
@@ -102,9 +105,11 @@ package body System.PolyORB_Interface is
       --  pragma All_Call_Remotes applies.
    end record;
 
-   package Known_RCIs is new PolyORB.Dynamic_Dict (RCI_Info);
+   No_RCI_Info : RCI_Info;
 
-   function Lookup_RCI_Info (Name : String) return RCI_Info;
+   package Known_RCIs is new PolyORB.Dynamic_Dict (RCI_Info, No_RCI_Info);
+
+   function Retrieve_RCI_Info (Name : String) return RCI_Info;
    --  Retrieve RCI information for a local or remote RCI package.
 
    --  To limit the amount of memory leaked by the use of
@@ -363,7 +368,7 @@ package body System.PolyORB_Interface is
                        (The_ORB, Oid'Access,
                         "DSA:" & Stub.Name.all & ":" & Stub.Version.all,
                         Ref);
-                     Known_RCIs.Set
+                     Known_RCIs.Register
                        (Stub.Name.all, RCI_Info'
                           (Base_Ref            => Ref,
                            Is_Local            => True,
@@ -459,6 +464,8 @@ package body System.PolyORB_Interface is
          --  Subp_Ref := ...;
          --  XXX TBD
       end if;
+      pragma Warnings (Off, Subp_Ref);
+      --  Never assigned a value (XXX)
    end Get_RAS_Ref;
 
    -------------------
@@ -537,11 +544,11 @@ package body System.PolyORB_Interface is
         return Object_Ref is
       begin
          if PolyORB.References.Is_Nil (Info.Base_Ref) then
-            Info := Retrieve_RCI_Info (Name);
+            Info := Retrieve_RCI_Info (RCI_Name);
          end if;
 
          if PolyORB.References.Is_Nil (Info.Base_Ref) then
-            raise Communication_Error;
+            raise System.RPC.Communication_Error;
             --  XXX add an informative exception message.
             --  NOTE: Here, we are in calling stubs, so it is
             --  OK to raise an exception that is specific to
@@ -582,11 +589,11 @@ package body System.PolyORB_Interface is
    ---------------------------------
 
    procedure Register_Pkg_Receiving_Stub
-     (Name                : in String;
-      Version             : in String;
-      Handler             : in Request_Handler_Access;
-      Receiver            : in Servant_Access;
-      Is_All_Calls_Remote : in Boolean)
+     (Name                : String;
+      Version             : String;
+      Handler             : Request_Handler_Access;
+      Receiver            : Servant_Access;
+      Is_All_Calls_Remote : Boolean)
    is
       use Receiving_Stub_Lists;
    begin
@@ -607,18 +614,19 @@ package body System.PolyORB_Interface is
 
    function Retrieve_RCI_Info (Name : String) return RCI_Info
    is
-      Info : RCI_Info := Know_RCIs.Lookup (RCI_Name, Info);
+      Info : RCI_Info;
    begin
+      Info := Known_RCIs.Lookup (Name, Info);
       if PolyORB.References.Is_Nil (Info.Base_Ref) then
          --  Not known yet: we therefore know that it is remote,
          --  and that we need to look it up with the naming service.
          Info := RCI_Info'
            (Base_Ref => CORBA.Object.To_PolyORB_Ref
               (PolyORB.CORBA_P.Naming_Tools.Locate
-                 (To_Lower (RCI_Name) & ".RCI")),
+                 (To_Lower (Name) & ".RCI")),
             Is_Local => False,
             Is_All_Calls_Remote => True);
-         Known_RCIs.Register (RCI_Name, Info);
+         Known_RCIs.Register (Name, Info);
       end if;
       return Info;
    end Retrieve_RCI_Info;

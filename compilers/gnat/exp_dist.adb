@@ -2433,6 +2433,8 @@ package body Exp_Dist is
       Dummy_Register_Decl : Node_Id;
       Dummy_Register_Body : Node_Id;
 
+      All_Calls_Remote_E : Entity_Id;
+
    begin
       --  Building receiving stubs consist in several operations:
 
@@ -2684,6 +2686,12 @@ package body Exp_Dist is
       Append_To (Decls, Dummy_Register_Decl);
       Analyze (Dummy_Register_Decl);
 
+      if Has_All_Calls_Remote (Defining_Unit_Name (Pkg_Spec)) then
+         All_Calls_Remote_E := Standard_True;
+      else
+         All_Calls_Remote_E := Standard_False;
+      end if;
+
       Dummy_Register_Body :=
         Make_Package_Body (Loc,
           Defining_Unit_Name         =>
@@ -2724,7 +2732,10 @@ package body Exp_Dist is
                           Defining_Identifier (
                             Pkg_RPC_Receiver_Object), Loc),
                       Attribute_Name =>
-                        Name_Unrestricted_Access))))));
+                        Name_Unrestricted_Access),
+
+                     --  Is_All_Calls_Remote
+                    New_Occurrence_Of (All_Calls_Remote_E, Loc))))));
 
       Append_To (Decls, Dummy_Register_Body);
       Analyze (Dummy_Register_Body);

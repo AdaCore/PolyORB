@@ -94,11 +94,12 @@ package System.PolyORB_Interface is
    --  of type Name, at elaboration time.
 
    procedure Register_Pkg_Receiving_Stub
-     (Name     : in String;
-      Version  : in String;
-      Handler  : in Request_Handler_Access;
-      Receiver : in Servant_Access);
-   --  Register the fact that the Name receiving stub is now elaborated.
+     (Name                : String;
+      Version             : String;
+      Handler             : Request_Handler_Access;
+      Receiver            : Servant_Access;
+      Is_All_Calls_Remote : Boolean);
+      --  Register the fact that the Name receiving stub is now elaborated.
    --  Register the access value to the package RPC_Receiver procedure.
 
    --------------------------------------------
