@@ -33,11 +33,9 @@
 
 with CORBA;
 with CORBA.Impl;
-with Broca.Buffers;
---  with Broca.Refs;
-with Broca.IOP;
 
-with CORBA.Impl;
+with Broca.Buffers;
+with Broca.IOP;
 
 package Broca.Object is
 
@@ -50,7 +48,7 @@ package Broca.Object is
    type Object_Ptr is access all Object_Type'Class;
 
    procedure Finalize
-     (O : in out Object_Type);
+     (X : in out Object_Type);
 
    procedure Marshall
      (Buffer : access Broca.Buffers.Buffer_Type;

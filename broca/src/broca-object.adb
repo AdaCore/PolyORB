@@ -33,20 +33,22 @@
 
 with Ada.Unchecked_Deallocation;
 
-with CORBA;
-
 with Broca.IOP;
 with Broca.Buffers; use Broca.Buffers;
 with Broca.Exceptions;
+with Broca.Debug;
 
 package body Broca.Object is
+
+   Flag : constant Natural := Broca.Debug.Is_Active ("broca.refs");
+   procedure O is new Broca.Debug.Output (Flag);
 
    --------------
    -- Finalize --
    --------------
 
    procedure Finalize
-     (O : in out Object_Type)
+     (X : in out Object_Type)
    is
       use Broca.IOP;
 
@@ -58,15 +60,13 @@ package body Broca.Object is
         (Profile_Ptr_Array, Profile_Ptr_Array_Ptr);
 
    begin
-      for I in O.Profiles'Range loop
-         --  FIXME: Should finalize the profile
-         --    (eg close any associated connection
-         --    that won't be reused.)
-         --    This job should be perform by the profile's
-         --    Finalize operation (profiles are controlled).
-         Free (O.Profiles (I));
+      pragma Debug (O ("In Finalize (Object_Type):"));
+      for I in X.Profiles'Range loop
+         pragma Debug (O ("Freeing Profiles (" & I'Img & ")"));
+         Free (X.Profiles (I));
       end loop;
-      Free (O.Profiles);
+      pragma Debug (O ("Freeing Profiles"));
+      Free (X.Profiles);
    end Finalize;
 
    --------------

@@ -101,27 +101,8 @@ package body Broca.IIOP is
 
    function Hash_String is new GNAT.HTable.Hash (Hash_Type);
 
-   type Profile_Key is
-      record
-         Host   : CORBA.String;
-         Port   : CORBA.Unsigned_Short;
-         ObjKey : Broca.Sequences.Octet_Sequence;
-      end record;
-
-   function Hash_Profile  (K : Profile_Key) return Hash_Type;
-   function Equal_Profile (K1, K2 : Profile_Key) return Boolean;
-
    function Hash_Strand  (K : Strand_Key) return Hash_Type;
    function Equal_Strand (K1, K2 : Strand_Key) return Boolean;
-
-   package PHT is
-      new GNAT.HTable.Simple_HTable
-        (Hash_Type,
-         Profile_IIOP_Access,
-         null,
-         Profile_Key,
-         Hash_Profile,
-         Equal_Profile);
 
    package SHT is
       new GNAT.HTable.Simple_HTable
@@ -141,6 +122,8 @@ package body Broca.IIOP is
    procedure Finalize
      (The_List : in out Strand_List) is
    begin
+      pragma Debug (O ("Finalize (Strand_List)"));
+
       Enter_Critical_Section;
       SHT.Remove (The_List.Key);
 
@@ -155,33 +138,6 @@ package body Broca.IIOP is
          end loop;
       end;
    end Finalize;
-
-   --------------------
-   -- Create_Profile --
-   --------------------
-
-   procedure Create_Profile
-     (Buffer  : access Buffer_Type;
-      Profile : out Profile_Ptr) is
-   begin
-      Profile := Unmarshall_IIOP_Profile_Body (Buffer);
-   end Create_Profile;
-
-   -------------------
-   -- Equal_Profile --
-   -------------------
-
-   function Equal_Profile
-     (K1, K2 : Profile_Key)
-     return Boolean
-   is
-      use Broca.Sequences.Octet_Sequences;
-
-   begin
-      return K1.Port = K2.Port
-        and then K1.Host = K2.Host
-        and then K1.ObjKey = K2.ObjKey;
-   end Equal_Profile;
 
    ------------------
    -- Equal_Strand --
@@ -237,8 +193,10 @@ package body Broca.IIOP is
       end if;
 
       if Is_Nil (Profile.Strands) then
+         pragma Debug (O ("Creating ref to strand list"));
          Set (Profile.Strands, Broca.Refs.Entity_Ptr (The_Strand_List));
       else
+         pragma Debug (O ("Checking ref to strand list"));
          pragma Assert (Entity_Of (Profile.Strands)
                         = Broca.Refs.Entity_Ptr (The_Strand_List));
          --  If a profile has a non-nil reference to a strands list,
@@ -323,17 +281,6 @@ package body Broca.IIOP is
       return Tag_Internet_IOP;
    end Get_Profile_Tag;
 
-   ------------------
-   -- Hash_Profile --
-   ------------------
-
-   function Hash_Profile
-     (K : Profile_Key)
-     return Hash_Type is
-   begin
-      return Hash_String (To_Standard_String (K.Host) & ' ' & K.Port'Img);
-   end Hash_Profile;
-
    -----------------
    -- Hash_Strand --
    -----------------
@@ -393,12 +340,14 @@ package body Broca.IIOP is
      return Profile_Ptr
    is
       Version : Version_Type;
-      Key     : Profile_Key;
       Length  : CORBA.Long;
 
       Profile_Body   : aliased Encapsulation := Unmarshall (Buffer);
       Profile_Buffer : aliased Buffer_Type;
 
+      Host   : CORBA.String;
+      Port   : CORBA.Unsigned_Short;
+      ObjKey : Broca.Sequences.Octet_Sequence;
       Result : Profile_IIOP_Access;
 
    begin
@@ -416,9 +365,9 @@ package body Broca.IIOP is
          Broca.Exceptions.Raise_Bad_Param;
       end if;
 
-      Key.Host   := Unmarshall (Profile_Buffer'Access);
-      Key.Port   := Unmarshall (Profile_Buffer'Access);
-      Key.ObjKey := Unmarshall (Profile_Buffer'Access);
+      Host   := Unmarshall (Profile_Buffer'Access);
+      Port   := Unmarshall (Profile_Buffer'Access);
+      ObjKey := Unmarshall (Profile_Buffer'Access);
 
       if Version.Minor = 1 then
          Length := Unmarshall (Profile_Buffer'Access);
@@ -428,21 +377,14 @@ package body Broca.IIOP is
          end if;
       end if;
 
-      --  Try to find an existing profile in the hash table.
+      Result := new Profile_IIOP_Type;
+      
+      Result.Version := Version;
+      Result.Host    := Host;
+      Result.Port    := Port;
+      Result.ObjKey  := ObjKey;
 
-      Enter_Critical_Section;
-
-      Result := PHT.Get (Key);
-      if Result = null then
-         Result := new Profile_IIOP_Type;
-         Result.Version := Version;
-         Result.Host    := Key.Host;
-         Result.Port    := Key.Port;
-         Result.ObjKey  := Key.ObjKey;
-         PHT.Set (Key, Result);
-      end if;
-
-      Leave_Critical_Section;
+      pragma Debug (O ("Created profile: " & Image (Result)));
 
       return Profile_Ptr (Result);
    end Unmarshall_IIOP_Profile_Body;

@@ -53,6 +53,7 @@ package body Broca.Debug is
    begin
       for I in 1 .. Last_Flag loop
          if Flag_Table (I).all = Flag then
+            Put_Line (Flag & ": Debugging on.");
             return I;
          end if;
       end loop;
@@ -68,7 +69,7 @@ package body Broca.Debug is
    is
    begin
       if Flag /= 0 then
-         Put_Line (Flag_Table (Flag).all & " : " & Message);
+         Put_Line (Flag_Table (Flag).all & ": " & Message);
       end if;
    end Output;
 
@@ -98,8 +99,5 @@ begin
       when others =>
       null;
    end;
+
 end Broca.Debug;
-
-
-
-

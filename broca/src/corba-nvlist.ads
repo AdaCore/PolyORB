@@ -31,11 +31,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.AbstractBase;
 with System;
-with Ada.Unchecked_Deallocation;
-with Broca.Buffers;
+
+with CORBA.AbstractBase;
 with CORBA.Impl;
+
+with Broca.Buffers;
 
 package CORBA.NVList is
 
@@ -44,9 +45,7 @@ package CORBA.NVList is
    type Object is new CORBA.Impl.Object with private;
    type Object_Ptr is access all Object;
 
-   --  we overload Deallocate to free the List associated to each
-   --  Object
-   procedure Deallocate (Obj : access Object);
+   procedure Finalize (Obj : in out Object);
 
    procedure Add_Item
      (Self       :    Ref;
@@ -66,30 +65,35 @@ package CORBA.NVList is
      (Self : Ref;
       Item : in CORBA.NamedValue);
 
-   --  free and free_memory not needed in Ada
+   --  Free and Free_Memory are no-ops in Ada.
    procedure Free (Self : Ref);
-   procedure Free_Memory (Self : Ref);
+   procedure Free_Memory (Self : Ref)
+     renames Free;
 
    function Get_Count (Self : Ref) return CORBA.Long;
 
-   --  Not in spec
-   ---------------
+   -----------------------------------------
+   -- The following is AdaBroker-specific --
+   -----------------------------------------
 
-   --  to marshall all the NamedValues of an NVList
    procedure Marshall
      (Buffer : access Broca.Buffers.Buffer_Type;
       Data   : Ref);
+   --   Marshall all the NamedValues of an NVList
 
-   --  to unmarshall all the NamedValues of an NVList
    procedure Unmarshall
      (Buffer : access Broca.Buffers.Buffer_Type;
       Data : in out Ref);
+   --  Unmarshall all the NamedValues of an NVList
 
-   --  to create a new and empty Object
    function Create_Object return Object_Ptr;
+   --  Create a new and empty Object
 
 private
-   --  the actual implementation of an NVList, just a list of NamedValue
+
+   --  The actual implementation of an NVList:
+   --  a list of NamedValues.
+
    type NV_Cell;
    type NV_List is access all NV_Cell;
    type NV_Cell is record
@@ -98,18 +102,11 @@ private
    end record;
    Null_NVList : constant NV_List := null;
 
-   procedure Free is new Ada.Unchecked_Deallocation (NV_Cell, NV_List);
-   procedure Free_All_List (List : in out NV_List);
-   function Length (List : in NV_List) return CORBA.Long;
-
-   --  adds a NamedValue an NV_List
-   procedure Add_Cell (List : in out NV_List;
-                       NV : in NamedValue);
-
    type Object is new CORBA.Impl.Object with record
       List : NV_List;
    end record;
 
-   Nil_Ref : constant Ref := (CORBA.AbstractBase.Ref
-                              with null record);
+   Nil_Ref : constant Ref
+     := (CORBA.AbstractBase.Ref with null record);
+
 end CORBA.NVList;

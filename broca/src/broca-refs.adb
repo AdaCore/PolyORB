@@ -58,14 +58,6 @@ package body Broca.Refs is
       return S (S'First + 1 .. S'Last);
    end Img;
 
-   ------------------
-   --  Deallocate  --
-   ------------------
-   procedure Deallocate (Obj : access Entity) is
-   begin
-      null;
-   end Deallocate;
-
    ---------------
    -- Inc_Usage --
    ---------------
@@ -107,7 +99,6 @@ package body Broca.Refs is
       if Obj.Counter = 0 then
          pragma Debug
            (O ("Dec_Usage: deallocating."));
-         Deallocate (Obj);
          Free (Obj);
       end if;
 
