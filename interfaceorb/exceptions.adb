@@ -48,6 +48,8 @@
 -----------------------------------------------------------------------
 -----------------------------------------------------------------------
 
+with Text_Io ; use Text_Io ;
+
 package body Exceptions is
 
 
@@ -87,6 +89,7 @@ package body Exceptions is
                                           Line : in Interfaces.C.Int ;
                                           Err_msg : in Interfaces.C.Strings.Chars_Ptr) is
    begin
+      Put_Line ("tototototototototototototototo") ;
       Ada.Exceptions.Raise_Exception (Corba.OmniORB_Fatal_Error'Identity,
                                       "In " &
                                       Interfaces.C.Strings.Value (File) &

@@ -137,9 +137,9 @@ begin
 
    exception
       when others =>
-         Put_Line(" ** Could not find file with debug options : "
-                  & Debug_Filename & " ** ") ;
-         -- raise Program_Error ;
+         pragma Debug (Put_Line(" ** Could not find file with debug options : "
+                  & Debug_Filename & " ** ") );
+         null ;
    end ;
 
 end Adabroker_Debug ;

@@ -151,7 +151,7 @@ package body omniProxyCallWrapper is
 
             Giop_C.Init (Giop_Client.Real, The_Rope) ;
 
-            -- do the giop_client reuse an existing connection ?
+            -- does the giop_client reuse an existing connection ?
             Reuse := Netbufferedstream.Is_Reusing_Existing_Connection(Giop_Client.Real) ;
 
             pragma Debug(Output(Debug,"Corba.omniproxycallwrapper.invoke : reuse = "
