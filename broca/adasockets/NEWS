@@ -1,11 +1,29 @@
 -*- outline -*-
 
+* New in AdaSockets 0.1.18
+
+** New subprograms Set_Buffer and Unset_Buffer
+
+Two new subprograms, Set_Buffer and Unset_Buffer, allow to read sockets
+in buffered mode. This is particularily important for UDP sockets. Feature
+suggested by Juanma Barranquero <lektu@terra.es>.
+
+The listener example has been modified to use buffered mode.
+
+* New in AdaSockets 0.1.17
+
+** Bug fix
+
+A bug prevented UDP sockets to be able to receive data, at least on Windows.
+Reported and fixed by Juanma Barranquero <lektu@terra.es>.
+
 * New in AdaSockets 0.1.16
 
 ** New port
 
 Thanks to Dmitriy Anisimkov <anisimkov@yahoo.com>, AdaSockets now builds
-correctly on a Windows cygwin system.
+correctly on a Windows MINGW system. You need a set of Unix tools to
+build it; it has been tested with the Cygwin toolset.
 
 * New in AdaSockets 0.1.15
 

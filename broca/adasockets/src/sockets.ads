@@ -169,17 +169,49 @@ package Sockets is
    function Get (Socket : Socket_FD'Class) return String;
    --  Get a string from the socket
 
+   function Get_Char (Socket : Socket_FD'Class) return Character;
+   --  Get one character from the socket
+
    function Get_Line (Socket : Socket_FD'Class) return String;
    --  Get a full line from the socket. CR is ignored and LF is considered
    --  as an end-of-line marker.
 
+   procedure Set_Buffer (Socket : in out Socket_FD'Class;
+                         Length : in Positive := 1500);
+   --  Put socket in buffered mode. If the socket is already buffered,
+   --  the content of the previous buffer will be lost. The buffered mode
+   --  only affects read operation, through Get, Get_Char and Get_Line. Other
+   --  reception subprograms will not function properly if buffered mode
+   --  is used at the same time. The size of the buffer has to be greater
+   --  than the biggest possible packet, otherwise data loss may occur.
+
+   procedure Unset_Buffer (Socket : in out Socket_FD'Class);
+   --  Put socket in unbuffered mode. If the socket was unbuffered already,
+   --  no error will be raised. If it was buffered and the buffer was not
+   --  empty, its content will be lost.
+
 private
+
+   use type Ada.Streams.Stream_Element_Count;
+
+   type Buffer_Type
+     (Length : Ada.Streams.Stream_Element_Count := 1500)
+   is record
+      Content : Ada.Streams.Stream_Element_Array (0 .. Length);
+      --  One byte will stay unused, but this does not have any consequence
+      First   : Ada.Streams.Stream_Element_Offset :=
+        Ada.Streams.Stream_Element_Offset'Last;
+      Last    : Ada.Streams.Stream_Element_Offset := 0;
+   end record;
+
+   type Buffer_Access is access Buffer_Type;
 
    type Shutdown_Array is array (Receive .. Send) of Boolean;
 
    type Socket_FD is tagged record
       FD       : Interfaces.C.int;
       Shutdown : Shutdown_Array;
+      Buffer   : Buffer_Access;
    end record;
 
 end Sockets;

@@ -97,12 +97,11 @@ depend:
 	$(MAKE) Makefile
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
-b~split.lo:b~split.adb b~split.ads 
 sockets-constants.lo:sockets-constants.ads sockets.ads 
 sockets-link.lo:sockets-link.ads sockets.ads 
-sockets-multicast.lo:sockets-constants.ads sockets-link.ads sockets-multicast.adb sockets-multicast.ads sockets-naming.ads sockets-thin.ads sockets-utils.adb sockets-utils.ads sockets.adb sockets.ads 
-sockets-naming.lo:sockets-constants.ads sockets-naming.adb sockets-naming.ads sockets-thin.ads sockets.ads 
+sockets-multicast.lo:sockets-constants.ads sockets-link.ads sockets-multicast.adb sockets-multicast.ads sockets-naming.ads sockets-thin.ads sockets-utils.ads sockets.adb sockets.ads 
+sockets-naming.lo:sockets-constants.ads sockets-naming.adb sockets-naming.ads sockets-thin.ads sockets-utils.ads sockets.ads 
+sockets-stream_io.lo:sockets-stream_io.adb sockets-stream_io.ads sockets.ads 
 sockets-thin.lo:sockets-thin.ads sockets.ads 
 sockets-utils.lo:sockets-utils.adb sockets-utils.ads sockets.ads 
-sockets.lo:sockets-constants.ads sockets-link.ads sockets-naming.ads sockets-thin.ads sockets-utils.adb sockets-utils.ads sockets.adb sockets.ads 
-split.lo:split.adb 
+sockets.lo:sockets-constants.ads sockets-link.ads sockets-naming.ads sockets-thin.ads sockets-utils.ads sockets.adb sockets.ads 

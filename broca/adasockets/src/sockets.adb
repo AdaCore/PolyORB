@@ -38,13 +38,14 @@
 --                                                                         --
 -----------------------------------------------------------------------------
 
-with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
-with Sockets.Constants;      use Sockets.Constants;
+with Ada.Characters.Latin_1;     use Ada.Characters.Latin_1;
+with Ada.Unchecked_Deallocation;
+with Sockets.Constants;          use Sockets.Constants;
 with Sockets.Link;
 pragma Warnings (Off, Sockets.Link);
-with Sockets.Naming;         use Sockets.Naming;
-with Sockets.Thin;           use Sockets.Thin;
-with Sockets.Utils;          use Sockets.Utils;
+with Sockets.Naming;             use Sockets.Naming;
+with Sockets.Thin;               use Sockets.Thin;
+with Sockets.Utils;              use Sockets.Utils;
 
 package body Sockets is
 
@@ -85,6 +86,15 @@ package body Sockets is
 
    CRLF : constant String := CR & LF;
 
+   procedure Refill (Socket : in Socket_FD'Class);
+   --  Refill the socket when in buffered mode by receiving one packet
+   --  and putting it in the buffer.
+
+   function To_String (S : Stream_Element_Array) return String;
+
+   function Empty_Buffer (Socket : Socket_FD'Class) return Boolean;
+   --  Return True if buffered socket has an empty buffer
+
    ---------
    -- "*" --
    ---------
@@ -117,7 +127,10 @@ package body Sockets is
       if Code = Failure then
          Raise_With_Message ("Accept system call failed");
       else
-         New_Socket := (FD => Code, Shutdown => (others => False));
+         New_Socket :=
+           (FD       => Code,
+            Shutdown => (others => False),
+            Buffer   => null);
       end if;
    end Accept_Socket;
 
@@ -178,21 +191,61 @@ package body Sockets is
       end if;
    end Customized_Setsockopt;
 
+   ------------------
+   -- Empty_Buffer --
+   ------------------
+
+   function Empty_Buffer (Socket : Socket_FD'Class) return Boolean is
+   begin
+      return Socket.Buffer.First > Socket.Buffer.Last;
+   end Empty_Buffer;
+
    ---------
    -- Get --
    ---------
 
    function Get (Socket : Socket_FD'Class) return String
    is
-      Stream : constant Stream_Element_Array := Receive (Socket);
-      Result : String (Positive (Stream'First) .. Positive (Stream'Last));
    begin
-      for I in Stream'Range loop
-         Result (Positive (I)) :=
-           Character'Val (Stream_Element'Pos (Stream (I)));
-      end loop;
-      return Result;
+      if Socket.Buffer /= null and then not Empty_Buffer (Socket) then
+         declare
+            S : constant String :=
+              To_String (Socket.Buffer.Content
+                         (Socket.Buffer.First .. Socket.Buffer.Last));
+         begin
+            Socket.Buffer.First := Socket.Buffer.Last + 1;
+            return S;
+         end;
+      else
+         return To_String (Receive (Socket));
+      end if;
    end Get;
+
+   --------------
+   -- Get_Char --
+   --------------
+
+   function Get_Char (Socket : Socket_FD'Class) return Character is
+      C : Stream_Element_Array (0 .. 0);
+   begin
+      if Socket.Buffer = null then
+         --  Unbuffered mode
+
+         Receive (Socket, C);
+      else
+         --  Buffered mode
+
+         if Empty_Buffer (Socket) then
+            Refill (Socket);
+         end if;
+
+         C (0) := Socket.Buffer.Content (Socket.Buffer.First);
+         Socket.Buffer.First := Socket.Buffer.First + 1;
+
+      end if;
+
+      return Character'Val (C (0));
+   end Get_Char;
 
    ------------
    -- Get FD --
@@ -212,12 +265,10 @@ package body Sockets is
    function Get_Line (Socket : Socket_FD'Class) return String is
       Result : String (1 .. 1024);
       Index  : Positive := Result'First;
-      Byte   : Stream_Element_Array (1 .. 1);
       Char   : Character;
    begin
       loop
-         Receive (Socket, Byte);
-         Char := Character'Val (Stream_Element'Pos (Byte (Byte'First)));
+         Char := Get_Char (Socket);
          if Char = LF then
             return Result (1 .. Index - 1);
          elsif Char /= CR then
@@ -290,7 +341,7 @@ package body Sockets is
      return Stream_Element_Array
    is
       Buffer  : Stream_Element_Array (1 .. Max);
-      Addr    : aliased In_Addr;
+      Addr    : aliased Sockaddr_In;
       Addrlen : aliased int := Addr'Size / 8;
       Count   : constant int :=
         C_Recvfrom (Socket.FD, Buffer'Address, Buffer'Length, 0,
@@ -343,6 +394,19 @@ package body Sockets is
       Data (Data'First .. Last) := Sub_Buffer;
    end Receive_Some;
 
+   ------------
+   -- Refill --
+   ------------
+
+   procedure Refill
+     (Socket : in Socket_FD'Class)
+   is
+   begin
+      pragma Assert (Socket.Buffer /= null);
+      Receive_Some (Socket, Socket.Buffer.Content, Socket.Buffer.Last);
+      Socket.Buffer.First := 0;
+   end Refill;
+
    ----------
    -- Send --
    ----------
@@ -367,6 +431,19 @@ package body Sockets is
          Rest  := Rest - Stream_Element_Count (Count);
       end loop;
    end Send;
+
+   ----------------
+   -- Set_Buffer --
+   ----------------
+
+   procedure Set_Buffer
+     (Socket : in out Socket_FD'Class;
+      Length : in Positive := 1500)
+   is
+   begin
+      Unset_Buffer (Socket);
+      Socket.Buffer := new Buffer_Type (Stream_Element_Count (Length));
+   end Set_Buffer;
 
    ----------------
    -- Setsockopt --
@@ -448,7 +525,7 @@ package body Sockets is
       if Result = Failure then
          Raise_With_Message ("Unable to create socket");
       end if;
-      Sock := (FD => Result, Shutdown => (others => False));
+      Sock := (FD => Result, Shutdown => (others => False), Buffer => null);
    end Socket;
 
    ----------------
@@ -470,8 +547,36 @@ package body Sockets is
       if Result = Failure then
          Raise_With_Message ("Unable to create socket");
       end if;
-      Read_End  := (FD => Filedes (0), Shutdown => (others => False));
-      Write_End := (FD => Filedes (1), Shutdown => (others => False));
+      Read_End  := (FD     => Filedes (0), Shutdown => (others => False),
+                    Buffer => null);
+      Write_End := (FD     => Filedes (1), Shutdown => (others => False),
+                    Buffer => null);
    end Socketpair;
+
+   ---------------
+   -- To_String --
+   ---------------
+
+   function To_String (S : Stream_Element_Array) return String is
+      Result : String (1 .. S'Length);
+   begin
+      for I in Result'Range loop
+         Result (I) :=
+           Character'Val (Stream_Element'Pos
+                          (S (Stream_Element_Offset (I) + S'First - 1)));
+      end loop;
+      return Result;
+   end To_String;
+
+   ------------------
+   -- Unset_Buffer --
+   ------------------
+
+   procedure Unset_Buffer (Socket : in out Socket_FD'Class) is
+      procedure Free is
+         new Ada.Unchecked_Deallocation (Buffer_Type, Buffer_Access);
+   begin
+      Free (Socket.Buffer);
+   end Unset_Buffer;
 
 end Sockets;
