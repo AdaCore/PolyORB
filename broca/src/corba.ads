@@ -754,8 +754,8 @@ package CORBA is
    function From_Any (Item : in Any) return CORBA.String;
    function From_Any (Item : in Any) return CORBA.Wide_String;
 
-
    function Get_Type (The_Any : in Any) return TypeCode.Object;
+
    --  not in spec : change the type of an any without changing its
    --  value : to be used carefully
    procedure Set_Type (The_Any : in out Any;

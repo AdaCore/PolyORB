@@ -2158,6 +2158,7 @@ package body Ada_Be.Idl2Ada is
            K_Enum       |
            K_Union      |
            K_Struct     |
+           K_Exception  |
            K_Declarator =>
             return Ada_Full_Name (Node);
 
