@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.34 $
+//                            $Revision: 1.35 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -615,7 +615,7 @@ adabe_name::set_undefined ()
 bool
 adabe_name::is_imported (dep_list& with)
 {
-  if ((!in_main_file ()) && (node_type () != AST_Decl::NT_interface)) return 0;
+  if (node_type () == AST_Decl::NT_pre_defined) return 0;
     // the predefined type are not in main file
     // but they are declared in th root and not imported
     // so the root must not be included in those cases
@@ -665,11 +665,7 @@ adabe_name::is_imported (dep_list& with)
       return 1;
     }
   
-  if (defined_in () == NULL)
-    // this node is a predefined type and does not
-    // need to be included
-    return 0;
-
+  
   // else go to the containing scope
   return (dynamic_cast<adabe_name *>(defined_in ()))->is_imported (with); 
 
@@ -684,7 +680,7 @@ adabe_name::is_marshal_imported (dep_list& with)
   // this function is the same as the previous one
   // except, that the added file is the same
   // with a ".marshal" at the end
-  if ((!in_main_file ()) && (node_type () != AST_Decl::NT_interface))
+  if (node_type () == AST_Decl::NT_pre_defined)
     {
       return 0;
     }
@@ -708,7 +704,6 @@ adabe_name::is_marshal_imported (dep_list& with)
       with.add (get_ada_full_name ()+".Stream");
       return 1;
     }
-   if (defined_in () == NULL) return 0;
    return (dynamic_cast<adabe_name *>(defined_in ()))->is_marshal_imported (with); 
 }
 
