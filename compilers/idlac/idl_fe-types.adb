@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-types.adb#9 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-types.adb#10 $
 
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
@@ -95,7 +95,8 @@ package body Idl_Fe.Types is
 
    procedure Set_Location
      (N : Node_Id;
-      Loc : Errors.Location) is
+      Loc : Errors.Location)
+   is
       Loc2 : Errors.Location;
       use Errors;
    begin
@@ -103,7 +104,7 @@ package body Idl_Fe.Types is
       Loc2.Line := Loc.Line;
       pragma Assert (Loc.Filename /= null);
       Loc2.Filename := new String'(Loc.Filename.all);
-      if (Loc.Dirname = null) then
+      if Loc.Dirname = null then
          Loc2.Dirname := null;
       else
          Loc2.Dirname := new String'(Loc.Dirname.all);

@@ -38,7 +38,7 @@ with PolyORB.ORB;
 with PolyORB.Requests;
 with PolyORB.Types;
 
-with SOAP.Message.Payload;
+with PolyORB.SOAP_P.Message.Payload;
 
 package PolyORB.Protocols.SOAP_Pr is
 
@@ -89,7 +89,7 @@ private
       Entity_Length : Ada.Streams.Stream_Element_Count;
       Role   : PolyORB.ORB.Endpoint_Role;
       Target : PolyORB.Types.String;
-      Current_SOAP_Req : SOAP.Message.Payload.Object_Access;
+      Current_SOAP_Req : PolyORB.SOAP_P.Message.Payload.Object_Access;
       Pending_Rq : PolyORB.Requests.Request_Access;
    end record;
 

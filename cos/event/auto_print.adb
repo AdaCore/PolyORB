@@ -80,7 +80,7 @@ package body Auto_Print is
 
       Put_Line ("AutoDisplay setup");
       loop
-         exit when EndDisplay = True;
+         exit when EndDisplay;
 
          delay 0.1;
 
@@ -99,4 +99,5 @@ package body Auto_Print is
          Ada.Text_IO.Put_Line (Exception_Message (E));
          Ada.Text_IO.Put_Line (Exception_Information (E));
    end Auto_Display;
+
 end Auto_Print;

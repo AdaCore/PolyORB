@@ -99,6 +99,10 @@ package PolyORB.References is
    function Image (R : Ref) return String;
    --  For debugging purposes.
 
+   procedure String_To_Object (Str : String; The_Ref : out Ref);
+   --  Note: String_To_Object must be a procedure so it need not
+   --  be overridden when Ref is derived.
+
    type Ref_Ptr is access all Ref;
    procedure Deallocate is new Ada.Unchecked_Deallocation
      (Ref, Ref_Ptr);
@@ -144,5 +148,14 @@ private
    --  Finalize operation would then be called *after* (not *before*)
    --  the controlled components of Reference_Info (including
    --  Profiles and Binding_Object_Ref) have been finalized.
+
+   --  XXX the following declarations must be documented.
+
+   type String_To_Object_Func is
+     access function (Str : String) return Ref;
+
+   procedure Register_String_To_Object
+     (Prefix : String;
+      Func   : String_To_Object_Func);
 
 end PolyORB.References;

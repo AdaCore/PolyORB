@@ -45,6 +45,7 @@ with PolyORB.Log;
 with PolyORB.ORB.Interface;
 with PolyORB.Protocols;
 with PolyORB.Setup;
+with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Threads;
 with PolyORB.Utils.Strings;
 
@@ -73,8 +74,8 @@ package body PolyORB.ORB.Thread_Per_Session is
    --  This variable is used to initialize the threads local variable.
    --  it is used to replace the 'accept' statement.
 
-   Session_Mutex : Tasking.Mutexes.Mutex_Access;
-   Session_Taken : Tasking.Condition_Variables.Condition_Access;
+   Session_Mutex : Mutex_Access;
+   Session_Taken : Condition_Access;
    --  Synchornisation of task initialization.
 
    procedure Session_Thread;

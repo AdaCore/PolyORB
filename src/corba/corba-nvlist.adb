@@ -35,12 +35,15 @@
 
 package body CORBA.NVList is
 
+   --------------
+   -- Add_Item --
+   --------------
+
    procedure Add_Item
      (Self       :    Ref;
       Item_Name  : in Identifier;
       Item       : in CORBA.Any;
-      Item_Flags : in Flags)
-   is
+      Item_Flags : in Flags) is
    begin
       PolyORB.Any.NVList.Add_Item
         (To_PolyORB_Ref (Self),
@@ -49,17 +52,24 @@ package body CORBA.NVList is
    end Add_Item;
 
    procedure Add_Item
-     (Self : Ref;
-      Item : in CORBA.NamedValue)
-   is
+     (Self :    Ref;
+      Item : in CORBA.NamedValue) is
    begin
       Add_Item (Self, Item.Name, Item.Argument, Item.Arg_Modes);
    end Add_Item;
+
+   ---------------
+   -- Get_Count --
+   ---------------
 
    function Get_Count (Self : Ref) return CORBA.Long is
    begin
       return CORBA.Long (PolyORB.Any.NVList.Get_Count (To_PolyORB_Ref (Self)));
    end Get_Count;
+
+   ----------
+   -- Free --
+   ----------
 
    procedure Free (Self : Ref)
    is
@@ -70,6 +80,10 @@ package body CORBA.NVList is
       null;
    end Free;
 
+   --------------------
+   -- To_PolyORB_Ref --
+   --------------------
+
    function To_PolyORB_Ref (Self : Ref) return PolyORB.Any.NVList.Ref
    is
       Res : PolyORB.Any.NVList.Ref;
@@ -77,6 +91,10 @@ package body CORBA.NVList is
       PolyORB.Any.NVList.Set (Res, Entity_Of (Self));
       return Res;
    end To_PolyORB_Ref;
+
+   ------------------
+   -- To_CORBA_Ref --
+   ------------------
 
    function To_CORBA_Ref (Self : PolyORB.Any.NVList.Ref) return Ref
    is
@@ -86,6 +104,10 @@ package body CORBA.NVList is
       return Res;
    end To_CORBA_Ref;
 
+   ------------
+   -- Create --
+   ------------
+
    procedure Create (Self : out Ref)
    is
       Res : PolyORB.Any.NVList.Ref;
@@ -93,6 +115,10 @@ package body CORBA.NVList is
       PolyORB.Any.NVList.Create (Res);
       Self := To_CORBA_Ref (Res);
    end Create;
+
+   ----------
+   -- Item --
+   ----------
 
    function Item (Self : Ref; Index : CORBA.Long)
      return CORBA.NamedValue

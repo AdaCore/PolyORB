@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/ada_be-expansion.adb#17 $
+--  $Id: //droopi/main/compilers/idlac/ada_be-expansion.adb#20 $
 
 with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
@@ -187,6 +187,12 @@ package body Ada_Be.Expansion is
    --  Precondition: The declarator must be the only one
    --  in the parent member or case declarator list.
    --  (This precondition is guaranteed by Expand_Array_Declarators).
+
+   procedure Expand_Scoped_Name (Node : Node_Id);
+   --  If Node is a reference to an interface or valuetype
+   --  within the current scope for which a forward declaration
+   --  exists, then reference the forward declaration instead
+   --  of the interface or valuetype itself.
 
    ----------------------
    -- Utility routines --
@@ -365,6 +371,9 @@ package body Ada_Be.Expansion is
          when K_Boxed_ValueType =>
             Expand_Boxed_ValueType (Node);
 
+         when K_Scoped_Name =>
+            Expand_Scoped_Name (Node);
+
          when others =>
             null;
       end case;
@@ -445,7 +454,7 @@ package body Ada_Be.Expansion is
             Idl_File_Node := Idlnodes.Get (Filename);
 
             --  if this is the first node of this file
-            if (Idl_File_Node = No_Node) then
+            if Idl_File_Node = No_Node then
 
                --  create a new node Ben_Idl_File
                Idl_File_Node := Make_Ben_Idl_File (Loc);
@@ -595,7 +604,7 @@ package body Ada_Be.Expansion is
               (New_O_Node, Implicit_Inherited);
             Set_Is_Directly_Supported
               (New_O_Node, Directly_Supported);
-            if (Oldest_Supporting_ValueType /= No_Node) then
+            if Oldest_Supporting_ValueType /= No_Node then
                Set_Oldest_Supporting_ValueType
                  (New_O_Node, Oldest_Supporting_ValueType);
             end if;
@@ -935,7 +944,7 @@ package body Ada_Be.Expansion is
                   Set_Mode (Param, Mode_In);
                   Set_Param_Type (Param, The_Type);
                   Success := Add_Identifier (Decl, "To");
-                  pragma Assert (Success = True);
+                  pragma Assert (Success);
                   Set_Array_Bounds (Decl, Nil_List);
                   Set_Parent (Decl, Param);
                   Set_Declarator (Param, Decl);
@@ -1180,6 +1189,8 @@ package body Ada_Be.Expansion is
       Seq_Inst_Node : constant Node_Id
         := Make_Sequence_Instance (Loc);
    begin
+      Expand_Node (Sequence_Type (Node));
+
       Add_Identifier_With_Renaming
         (Seq_Inst_Node,
          "IDL_" & Sequence_Type_Name (Node),
@@ -1188,8 +1199,6 @@ package body Ada_Be.Expansion is
       --     in the current gen scope, that may mean that the
       --     correct sequence type has already been created.
       --     If it is the case, maybe we should reuse it.
-
-      Expand_Node (Sequence_Type (Node));
 
       Insert_Before_Current (Seq_Inst_Node);
 
@@ -1491,6 +1500,41 @@ package body Ada_Be.Expansion is
          Set_Array_Bounds (Node, Nil_List);
       end;
    end Expand_Array_Declarator;
+
+   -----------------------
+   -- Expand_Scope_Name --
+   -----------------------
+
+   procedure Expand_Scoped_Name (Node : Node_Id) is
+      V : constant Node_Id := Value (Node);
+      Forward_Declaration :  Node_Id;
+   begin
+      if Kind (V) /= K_Interface
+        and then Kind (V) /= K_ValueType
+      then
+         return;
+      end if;
+
+      Forward_Declaration := Forward (V);
+      if Forward_Declaration = No_Node then
+         return;
+      end if;
+
+      --  Check whether V is within the current scope.
+
+      declare
+         Current_Scope : constant Node_Id := Get_Current_Scope;
+         P : Node_Id := Parent_Scope (V);
+      begin
+         while not (P = Current_Scope or else P = No_Node) loop
+            P := Parent_Scope (P);
+         end loop;
+
+         if P = Current_Scope then
+            Set_Value (Node, Forward_Declaration);
+         end if;
+      end;
+   end Expand_Scoped_Name;
 
    -----------------------------------------
    --          Private utilities          --

@@ -75,4 +75,26 @@ package body PolyORB.Asynch_Ev is
       Free (AES);
    end Destroy;
 
+   ---------
+   -- Run --
+   ---------
+
+   procedure Run
+     (AEH : access AES_Event_Handler)
+   is
+      use PolyORB.Jobs;
+   begin
+      Handle_Event
+        (AES_Event_Handler'Class (AEH.all)'Access);
+      --  Redispatch.
+
+      if AEH.AES = null then
+         declare
+            V_AEH : Job_Access := Job_Access (AEH);
+         begin
+            Free (V_AEH);
+         end;
+      end if;
+   end Run;
+
 end PolyORB.Asynch_Ev;

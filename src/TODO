@@ -6,6 +6,15 @@ $Id$
 Items still requiring attention
 -------------------------------
 
+* Review initialization of the object adapter attached to ORB, to
+  enable setup of POA proxies during modules' initialization.
+
+* Add a flag to Register_Module to enable selective initialization of
+  a module.
+
+* Suppress Set_CDR_Position from buffer interface, which is needed
+  by the MIOP personality to fragment buffers from UDP sockets.
+
 * Establish a configurable connection cache so requests to
   the same object made though different references can share
   the same binding object.

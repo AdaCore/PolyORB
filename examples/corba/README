@@ -9,3 +9,4 @@ This directory contains CORBA examples.
  echo/          : simple echo program,
  random/        : random test, see http://www.random.org/corba.html for more
                   details.
+ send/          : test MIOP implementeation

@@ -108,7 +108,7 @@ package PolyORB.Utils.Dynamic_Tables is
       P : Table_Private;
    end record;
 
-   procedure Init (T : in out Instance);
+   procedure Initialize (T : in out Instance);
    --  This procedure allocates a new table of size Initial (freeing any
    --  previously allocated larger table). Init must be called before using
    --  the table. Init is convenient in reestablishing a table for new use.
@@ -119,7 +119,8 @@ package PolyORB.Utils.Dynamic_Tables is
    function First (T : in Instance) return Table_Index_Type;
    pragma Inline (First);
    --  Returns the 'First value of the table, basically this function
-   --  returns First. This function is a facility to access this value.
+   --  returns First_Index. This function is a facility to access this
+   --  value.
 
    function Last (T : in Instance) return Table_Index_Type;
    pragma Inline (Last);
@@ -151,8 +152,7 @@ package PolyORB.Utils.Dynamic_Tables is
    --  storage that is allocated, but is not logically part of the current
    --  array value. Current array values are not affected by this call.
 
-   procedure Allocate (T   : in out Instance;
-                       Num : Integer := 1);
+   procedure Allocate (T : in out Instance; Num : Integer := 1);
    pragma Inline (Allocate);
    --  Allocate room for Num Table_Component_Type in table T,
    --  eventually reallocate T.

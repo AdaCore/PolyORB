@@ -105,7 +105,7 @@ package body PolyORB.Any.ObjRef is
      (Item : in Any)
      return PolyORB.References.Ref is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Objref) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Objref then
          raise TypeCode.Bad_TypeCode;
       end if;
 
@@ -131,10 +131,10 @@ package body PolyORB.Any.ObjRef is
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      if Container.The_Value.all /= null then
-         Content_ObjRef_Ptr (Container.The_Value.all).Value.all := Value;
+      if Container.The_Value /= null then
+         Content_ObjRef_Ptr (Container.The_Value).Value.all := Value;
       else
-         Container.The_Value.all := new Content_ObjRef'
+         Container.The_Value := new Content_ObjRef'
            (Value => new PolyORB.References.Ref'(Value));
       end if;
    end Set_Any_Value;

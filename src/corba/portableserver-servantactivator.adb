@@ -41,7 +41,7 @@ package body PortableServer.ServantActivator is
 
    function Incarnate
      (Self    : in Ref;
-      Oid     : in ObjectId;
+      Oid     : in PortableServer.ObjectId;
       Adapter : in PortableServer.POA_Forward.Ref)
      return PortableServer.Servant
    is

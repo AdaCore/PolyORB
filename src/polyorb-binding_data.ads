@@ -34,16 +34,18 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/polyorb-binding_data.ads#14 $
+--  $Id: //droopi/main/src/polyorb-binding_data.ads#19 $
 
 with Ada.Finalization;
 
 with PolyORB.Components;
+with PolyORB.Asynch_Ev;
 with PolyORB.Objects;
 with PolyORB.Smart_Pointers;
 pragma Elaborate_All (PolyORB.Smart_Pointers);
 with PolyORB.Transport;
 with PolyORB.Types;
+with PolyORB.Filters;
 
 package PolyORB.Binding_Data is
 
@@ -70,10 +72,12 @@ package PolyORB.Binding_Data is
    subtype Profile_Tag is Types.Unsigned_Long;
 
    Tag_Internet_IOP        : constant Profile_Tag;
+   Tag_UIPMC               : constant Profile_Tag;
    Tag_Multiple_Components : constant Profile_Tag;
    Tag_Local               : constant Profile_Tag;
    Tag_SRP                 : constant Profile_Tag;
    Tag_SOAP                : constant Profile_Tag;
+   Tag_DIOP                : constant Profile_Tag;
    Tag_Test                : constant Profile_Tag;
 
    type Profile_Preference is new Integer range 0 .. Integer'Last;
@@ -81,6 +85,14 @@ package PolyORB.Binding_Data is
 
    Preference_Default : constant Profile_Preference;
    --  Default value for profile preference.
+
+   function Get_OA
+     (Profile : Profile_Type)
+     return PolyORB.Smart_Pointers.Entity_Ptr
+     is abstract;
+   --  Get the object adapter in which Profile's OID are stored.
+   --  Note that the returned Entity_Ptr cannot be modified nor
+   --  destroyed.
 
    function Get_Object_Key
      (Profile : Profile_Type)
@@ -151,18 +163,41 @@ package PolyORB.Binding_Data is
    --  Continuation. Used for proxy profiles (which are actually
    --  indirect pointers to remote objects).
 
+   --------------------------------
+   -- Access Point Event Handler --
+   --------------------------------
+
+   type TAP_AES_Event_Handler
+      is abstract new PolyORB.Asynch_Ev.AES_Event_Handler with record
+      TAP : PolyORB.Transport.Transport_Access_Point_Access;
+      --  Factory of Transport_Endpoint components.
+
+      Filter_Factory_Chain : Filters.Factory_Access;
+      --  Factory of Filter (protocol stack) components.
+
+      Profile_Factory : Binding_Data.Profile_Factory_Access;
+      --  Factory of profiles capable of associating the
+      --  address of TAP and the specification of the
+      --  protocol implemented by Filter_Factory_Chain
+      --  with an object id.
+      end record;
+
 private
 
    --  Standard tags defined by CORBA
 
    Tag_Internet_IOP        : constant Profile_Tag := 0;
    Tag_Multiple_Components : constant Profile_Tag := 1;
+   Tag_UIPMC               : constant Profile_Tag := 3;
+   --  TAO value :
+   --  Tag_UIPMC               : constant Profile_Tag := 1413566220;
 
    --  Tags defined by PolyORB
 
    Tag_Local               : constant Profile_Tag := 16#7fffff00#;
    Tag_SRP                 : constant Profile_Tag := 16#7fffff02#;
    Tag_SOAP                : constant Profile_Tag := 16#7fffff03#;
+   Tag_DIOP                : constant Profile_Tag := 16#7fffff04#;
    Tag_Test                : constant Profile_Tag := 16#7fffff0f#;
 
    Preference_Default : constant Profile_Preference

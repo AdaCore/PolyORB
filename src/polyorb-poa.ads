@@ -59,7 +59,7 @@ with PolyORB.POA_Policies.Lifespan_Policy;
 with PolyORB.POA_Policies.Implicit_Activation_Policy;
 with PolyORB.POA_Types;
 with PolyORB.Servants;
-with PolyORB.Tasking.Rw_Locks;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Types;
 
 package PolyORB.POA is
@@ -118,9 +118,9 @@ package PolyORB.POA is
       Children                   : POATable_Access;
       --  All child-POAs of this POA.
 
-      POA_Lock                   : Tasking.Rw_Locks.Rw_Lock_Access;
-      Children_Lock              : Tasking.Rw_Locks.Rw_Lock_Access;
-      Map_Lock                   : Tasking.Rw_Locks.Rw_Lock_Access;
+      POA_Lock                   : Tasking.Mutexes.Mutex_Access;
+      Children_Lock              : Tasking.Mutexes.Mutex_Access;
+      Map_Lock                   : Tasking.Mutexes.Mutex_Access;
       --  Locks
 
    end record;

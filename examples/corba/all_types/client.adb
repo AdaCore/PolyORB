@@ -33,7 +33,7 @@
 
 --  All_Types client.
 
---  $Id: //droopi/main/examples/corba/all_types/client.adb#10 $
+--  $Id: //droopi/main/examples/corba/all_types/client.adb#11 $
 
 with Ada.Characters.Handling;
 with Ada.Command_Line; use Ada.Command_Line;
@@ -150,7 +150,10 @@ begin
               (echoString
                (Myall_types, To_CORBA_String ("hello distributed world")))
               = "hello distributed world");
+      pragma Warnings (Off);
+      --  Comparison with True
       Output ("test boolean", echoBoolean (Myall_types, True) = True);
+      pragma Warnings (On);
       Output ("test short", echoShort (Myall_types, 123) = 123);
       Output ("test long",  echoLong (Myall_types, 456) = 456);
       Output ("test unsigned_short", echoUShort (Myall_types, 456) = 456);

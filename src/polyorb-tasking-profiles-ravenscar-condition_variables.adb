@@ -129,11 +129,9 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
       pragma Debug (O ("Broadcast"));
       The_Condition_PO_Arr (C.Id).Broadcast (To_Free);
       for J in To_Free'Range loop
-
-         if To_Free (J).Is_Waiting = True then
+         if To_Free (J).Is_Waiting then
             Resume (To_Free (J).Sync);
          end if;
-
       end loop;
    end Broadcast;
 

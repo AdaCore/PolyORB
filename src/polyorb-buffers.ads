@@ -40,7 +40,7 @@
 
 --  Note: Buffers should only be read/written sequentially.
 
---  $Id: //droopi/main/src/polyorb-buffers.ads#21 $
+--  $Id: //droopi/main/src/polyorb-buffers.ads#23 $
 
 with Ada.Streams;
 
@@ -258,6 +258,12 @@ package PolyORB.Buffers is
    --  Return the current CDR position of the buffer
    --  in the marshalling stream.
 
+   procedure Set_CDR_Position
+     (Buffer   : access Buffer_Type;
+      Position :        Ada.Streams.Stream_Element_Offset);
+   --  XXX DO NOT USE
+   --  function used ONLY in MIOP for buffer fragmentation
+
    function Remaining
      (Buffer : access Buffer_Type)
      return Ada.Streams.Stream_Element_Count;
@@ -295,8 +301,7 @@ package PolyORB.Buffers is
    -------------------------
 
    procedure Show (Buffer : in Buffer_Type);
-   --  Display the contents of Buffer for debugging
-   --  purpose.
+   --  Display the contents of Buffer for debugging purposes.
 
 private
 
@@ -408,7 +413,6 @@ private
       --  The associated Iovec array storage is returned to
       --  the system.
 
-
       procedure Write_To_Socket
         (S          :        PolyORB.Sockets.Socket_Type;
          Iovec_Pool : access Iovec_Pool_Type;
@@ -422,7 +426,8 @@ private
       ---------------------------------------
 
       procedure Dump
-        (Iovec_Pool : Iovec_Pool_Type; Into : Opaque.Opaque_Pointer);
+        (Iovec_Pool : Iovec_Pool_Type;
+         Into       : Opaque.Opaque_Pointer);
       --  Dump the content of an Iovec_Pool into Into.
 
       function Dump (Iovec_Pool : Iovec_Pool_Type) return Opaque.Zone_Access;

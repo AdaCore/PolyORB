@@ -72,21 +72,26 @@ package MOMA.Destinations is
 
    --  Accessors to Destination internal data.
 
-   function Get_Name (Self : Destination)
+   function Get_Name
+     (Self : Destination)
       return MOMA.Types.String;
 
-   procedure Set_Name (Self : in out Destination;
-                       Name : MOMA.Types.String);
+   procedure Set_Name
+     (Self : in out Destination;
+      Name :        MOMA.Types.String);
 
-   function Get_Kind (Self : Destination)
-      return MOMA.Types.Destination_Type;
+   function Get_Kind
+     (Self : Destination)
+     return MOMA.Types.Destination_Type;
 
-   function Get_Ref (Self : Destination)
-      return PolyORB.References.Ref;
+   function Get_Ref
+     (Self : Destination)
+     return PolyORB.References.Ref;
    --  XXX should be restricted to internal use only ...
 
-   procedure Set_Ref (Self : in out Destination;
-                      Ref  : PolyORB.References.Ref);
+   procedure Set_Ref
+     (Self : in out Destination;
+      Ref  :        PolyORB.References.Ref);
    --  XXX should be restricted to internal use only ...
 
    --  Marshalling support for Destination type.
@@ -94,11 +99,9 @@ package MOMA.Destinations is
    TC_MOMA_Destination : PolyORB.Any.TypeCode.Object
          := PolyORB.Any.TypeCode.TC_Struct;
 
-   function To_Any (Self : Destination)
-      return PolyORB.Any.Any;
+   function To_Any (Self : Destination) return PolyORB.Any.Any;
 
-   function From_Any (Self : PolyORB.Any.Any)
-      return Destination;
+   function From_Any (Self : PolyORB.Any.Any) return Destination;
 
    procedure Delete;
    --  XXX really useful in this context ?
@@ -111,14 +114,10 @@ private
       Kind : MOMA.Types.Destination_Type;
    end record;
 
-   procedure Set_Kind (Self : in out Destination;
-                       Kind : MOMA.Types.Destination_Type);
-
    pragma Inline (Get_Name);
    pragma Inline (Set_Name);
    pragma Inline (Get_Ref);
    pragma Inline (Set_Ref);
-   pragma Inline (Set_Kind);
    pragma Inline (Get_Kind);
 
 end MOMA.Destinations;

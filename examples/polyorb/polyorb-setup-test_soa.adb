@@ -118,8 +118,7 @@ package body PolyORB.Setup.Test_SOA is
       Put_Line ("Reference is     : " & References.Image (My_Ref));
       begin
          Put_Line ("IOR is           : "
-                   & PolyORB.Types.To_Standard_String
-                   (PolyORB.References.IOR.Object_To_String (My_Ref)));
+                   & PolyORB.References.IOR.Object_To_String (My_Ref));
       exception
          when E : others =>
             Put_Line ("Warning: Object_To_String raised:");

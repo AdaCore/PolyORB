@@ -245,8 +245,10 @@ package body PolyORB.POA_Types is
       case SEA (SEI) is
          when 0 =>
             Boo := False;
+
          when 1 =>
             Boo := True;
+
          when others =>
             Boo := False;
 
@@ -292,9 +294,10 @@ package body PolyORB.POA_Types is
    begin
       Get_ULong (SEA, SEI, Len, Error);
 
-      if SEI + Stream_Element_Offset (Len)
-        > SEA'Last + Stream_Element_Offset (1)
-        or else PolyORB.Exceptions.Found (Error) then
+      if SEI + Stream_Element_Offset (Len) >
+        SEA'Last + Stream_Element_Offset (1)
+        or else PolyORB.Exceptions.Found (Error)
+      then
          Str := Types.To_PolyORB_String ("");
 
          PolyORB.Exceptions.Throw
@@ -309,8 +312,8 @@ package body PolyORB.POA_Types is
       begin
          for J in S'Range loop
             S (J) := Standard.Character'Val
-              (SEA (SEI + Stream_Element_Offset
-                    (J - S'First)));
+              (SEA (SEI + Stream_Element_Offset (J - S'First)));
+
          end loop;
 
          Str := To_PolyORB_String (S);
@@ -333,8 +336,8 @@ package body PolyORB.POA_Types is
 
    begin
       for J in S'Range loop
-         R (Stream_Element_Offset (J))
-           := Stream_Element (Standard.Character'Pos (S (J)));
+         R (Stream_Element_Offset (J)) :=
+           Stream_Element (Standard.Character'Pos (S (J)));
       end loop;
 
       return Put_ULong (S'Length) & R;
@@ -418,7 +421,6 @@ package body PolyORB.POA_Types is
    begin
       return Oid_To_U_Oid (Oid.all);
    end Oid_To_U_Oid;
-
 
    ------------------
    -- U_Oid_To_Oid --

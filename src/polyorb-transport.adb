@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,25 +38,16 @@
 
 with Ada.Unchecked_Deallocation;
 
-with PolyORB.Filters.Interface;
-with PolyORB.Log;
-with PolyORB.ORB.Interface;
-
 package body PolyORB.Transport is
 
    use PolyORB.Components;
-   use PolyORB.Filters.Interface;
-   use PolyORB.Log;
-
-   package L is new PolyORB.Log.Facility_Log ("polyorb.transport");
-   procedure O (Message : in String; Level : Log_Level := Debug)
-     renames L.Output;
 
    ----------------
    -- Notepad_Of --
    ----------------
 
-   function Notepad_Of (TAP : Transport_Access_Point_Access)
+   function Notepad_Of
+     (TAP : Transport_Access_Point_Access)
      return Annotations.Notepad_Access is
    begin
       return TAP.Notepad'Access;
@@ -68,7 +59,7 @@ package body PolyORB.Transport is
 
    function Handle_Message
      (TAP : access Transport_Access_Point;
-      Msg : Components.Message'Class)
+      Msg :        Components.Message'Class)
      return Components.Message'Class is
    begin
       raise Unhandled_Message;
@@ -90,7 +81,7 @@ package body PolyORB.Transport is
 
    procedure Connect_Upper
      (TE    : access Transport_Endpoint;
-      Upper : Components.Component_Access) is
+      Upper :        Components.Component_Access) is
    begin
       Components.Connect (TE.Upper, Upper);
    end Connect_Upper;
@@ -99,7 +90,8 @@ package body PolyORB.Transport is
    -- Notepad_Of --
    ----------------
 
-   function Notepad_Of (TE : Transport_Endpoint_Access)
+   function Notepad_Of
+     (TE : Transport_Endpoint_Access)
      return Annotations.Notepad_Access is
    begin
       return TE.Notepad'Access;
@@ -109,7 +101,8 @@ package body PolyORB.Transport is
    -- Destroy --
    -------------
 
-   procedure Destroy (TE : in out Transport_Endpoint_Access)
+   procedure Destroy
+     (TE : in out Transport_Endpoint_Access)
    is
       procedure Free is new Ada.Unchecked_Deallocation
         (Transport_Endpoint'Class, Transport_Endpoint_Access);
@@ -118,99 +111,13 @@ package body PolyORB.Transport is
       Free (TE);
    end Destroy;
 
-   --------------------
-   -- Handle_Message --
-   --------------------
-
-   function Handle_Message
-     (TE  : access Transport_Endpoint;
-      Msg : Components.Message'Class)
-     return Components.Message'Class
-   is
-      use PolyORB.Buffers;
-
-      Nothing : Components.Null_Message;
-   begin
-      if Msg in Connect_Indication then
-         return Emit (TE.Upper, Msg);
-
-      elsif Msg in Data_Expected then
-         declare
-            DE : Data_Expected renames Data_Expected (Msg);
-         begin
-            pragma Assert (DE.In_Buf /= null);
-            TE.In_Buf := DE.In_Buf;
-            TE.Max    := DE.Max;
-         end;
-
-         return Emit
-           (TE.Server, ORB.Interface.Monitor_Endpoint'
-              (TE => Transport_Endpoint_Access (TE)));
-
-      elsif Msg in Data_Indication then
-         pragma Debug (O ("Data received"));
-
-         if TE.In_Buf = null then
-            O ("Unexpected data (no buffer)");
-
-            Close (Transport_Endpoint'Class (TE.all));
-            raise Connection_Closed;
-            --  Notify the ORB that the socket was disconnected.
-         end if;
-
-         declare
-            use type Ada.Streams.Stream_Element_Count;
-            Size : Ada.Streams.Stream_Element_Count := TE.Max;
-         begin
-            Read (Transport_Endpoint'Class (TE.all), TE.In_Buf, Size);
-
-            if Size = 0 then
-               O ("Connection closed.");
-
-               Close (Transport_Endpoint'Class (TE.all));
-               raise Connection_Closed;
-               --  Notify the ORB that the socket was disconnected.
-               --  The sender of the Data_Indication message is
-               --  reponsible for handling this exception and closing
-               --  the transport endpoint, if necessary.
-            end if;
-
-            return Emit (TE.Upper, Data_Indication'(Data_Amount => Size));
-            --  Note: this component guarantees that the upper layers will
-            --  only receive Data_Indications with a non-zero Data_Amount.
-
-         end;
-
-      elsif Msg in Data_Out then
-         Write (Transport_Endpoint'Class (TE.all), Data_Out (Msg).Out_Buf);
-
-      elsif Msg in Set_Server then
-         TE.Server := Set_Server (Msg).Server;
-         return Emit (TE.Upper, Msg);
-
-      elsif Msg in Connect_Confirmation then
-         return Emit (TE.Upper, Msg);
-
-      elsif Msg in Disconnect_Request then
-         Close (Transport_Endpoint'Class (TE.all));
-         return Emit
-           (TE.Server, ORB.Interface.Unregister_Endpoint'
-            (TE => Transport_Endpoint_Access (TE)));
-
-      else
-         --  Must not happen.
-         raise Components.Unhandled_Message;
-      end if;
-      return Nothing;
-   end Handle_Message;
-
    -----------
    -- Upper --
    -----------
 
-   function Upper (TE : Transport_Endpoint_Access)
-                   return Components.Component_Access
-   is
+   function Upper
+     (TE : Transport_Endpoint_Access)
+     return Components.Component_Access is
    begin
       return TE.Upper;
    end Upper;

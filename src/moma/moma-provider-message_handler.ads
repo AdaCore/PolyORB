@@ -53,8 +53,9 @@ package MOMA.Provider.Message_Handler is
 
    type Object_Acc is access Object;
 
-   procedure Invoke (Self : access Object;
-                     Req  : in     PolyORB.Requests.Request_Access);
+   procedure Invoke
+     (Self : access Object;
+      Req  : in     PolyORB.Requests.Request_Access);
    --  Message_Handler servant skeleton.
 
    function If_Desc
@@ -64,7 +65,7 @@ package MOMA.Provider.Message_Handler is
 
    procedure Initialize
      (Self                 : access Object;
-      MOMA_Message_Handler : MOMA.Message_Handlers.Message_Handler_Acc);
+      MOMA_Message_Handler :        MOMA.Message_Handlers.Message_Handler_Acc);
    --  Initialize with MOMA_Message_Handler.
    --  Should be called after Initiate_Servant.
    --  Should be called only once.

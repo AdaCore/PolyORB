@@ -57,8 +57,8 @@ package body PolyORB.Components is
    -------------
 
    procedure Connect
-     (Port : out Component_Access;
-      Target : Component_Access) is
+     (Port   : out Component_Access;
+      Target :     Component_Access) is
    begin
       Port := Target;
    end Connect;
@@ -69,7 +69,7 @@ package body PolyORB.Components is
 
    function Emit
      (Port : Component_Access;
-      Msg    : Message'Class)
+      Msg  : Message'Class)
      return Message'Class
    is
       Res : constant Null_Message := (null record);
@@ -93,10 +93,9 @@ package body PolyORB.Components is
 
    procedure Emit_No_Reply
      (Port : Component_Access;
-      Msg    : Message'Class)
+      Msg  : Message'Class)
    is
-      Reply : constant Message'Class
-        := Emit (Port, Msg);
+      Reply : constant Message'Class := Emit (Port, Msg);
       pragma Warnings (Off, Reply);
       --  Reply must be a Null_Message, and is ignored.
    begin
@@ -133,7 +132,7 @@ package body PolyORB.Components is
 
    procedure Set_Allocation_Class
      (C   : in out Component'Class;
-      CAC : Component_Allocation_Class) is
+      CAC :        Component_Allocation_Class) is
    begin
       pragma Assert (C.Allocation_Class = Auto);
       C.Allocation_Class := CAC;
@@ -145,7 +144,7 @@ package body PolyORB.Components is
 
    procedure Subscribe
      (G      : in out Group;
-      Target : Component_Access) is
+      Target :        Component_Access) is
    begin
       pragma Assert (Target /= null);
       Append (G.Members, Target);
@@ -159,14 +158,14 @@ package body PolyORB.Components is
      (G      : in out Group;
       Target : Component_Access)
    is
-      Members : constant Element_Array
-        := To_Element_Array (G.Members);
+      Members : constant Element_Array := To_Element_Array (G.Members);
+
    begin
-      for I in Members'Range loop
-         if Members (I) = Target then
+      for J in Members'Range loop
+         if Members (J) = Target then
             Delete (Source  => G.Members,
-                    From    => 1 + I - Members'First,
-                    Through => I + I - Members'First);
+                    From    => 1 + J - Members'First,
+                    Through => J + J - Members'First);
             return;
          end if;
       end loop;
@@ -181,20 +180,18 @@ package body PolyORB.Components is
       Msg : Message'Class)
      return Message'Class
    is
-      Members : constant Element_Array
-        := To_Element_Array (Grp.Members);
+      Members : constant Element_Array := To_Element_Array (Grp.Members);
       Handled : Boolean := False;
       Nothing : Null_Message;
+
    begin
-      for I in Members'Range loop
+      for J in Members'Range loop
          begin
-            Emit_No_Reply (Members (I), Msg);
+            Emit_No_Reply (Members (J), Msg);
             Handled := True;
          exception
             when Unhandled_Message =>
                null;
-            when others =>
-               raise;
          end;
       end loop;
 
@@ -214,22 +211,20 @@ package body PolyORB.Components is
       Msg : Message'Class)
      return Message'Class
    is
-      Members : constant Element_Array
-        := To_Element_Array (Grp.Members);
+      Members : constant Element_Array := To_Element_Array (Grp.Members);
+
    begin
-      for I in Members'Range loop
+      for J in Members'Range loop
          begin
             declare
                Reply : constant Message'Class
-                 := Handle_Message (Members (I), Msg);
+                 := Handle_Message (Members (J), Msg);
             begin
                return Reply;
             end;
          exception
             when Unhandled_Message =>
                null;
-            when others =>
-               raise;
          end;
       end loop;
       raise Unhandled_Message;

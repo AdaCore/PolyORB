@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#42 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#46 $
 
 with Ada.Exceptions;
 
@@ -55,7 +55,7 @@ with PolyORB.References.Binding;
 with PolyORB.Servants;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
-with PolyORB.Tasking.Rw_Locks;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
@@ -109,8 +109,8 @@ package body PortableServer.POA is
    is
       use PolyORB.Smart_Pointers;
 
-      Res : constant PolyORB.Smart_Pointers.Entity_Ptr
-        := Entity_Of (Self);
+      Res : constant PolyORB.Smart_Pointers.Entity_Ptr :=
+        Entity_Of (Self);
 
    begin
       if Res = null
@@ -121,8 +121,8 @@ package body PortableServer.POA is
       declare
          use PolyORB.POA_Manager;
 
-         The_POA : constant PolyORB.POA.Obj_Adapter_Access
-           := PolyORB.POA.Obj_Adapter_Access (Res);
+         The_POA : constant PolyORB.POA.Obj_Adapter_Access :=
+           PolyORB.POA.Obj_Adapter_Access (Res);
       begin
          if Is_Nil (The_POA.POA_Manager) then
             CORBA.Raise_Object_Not_Exist (CORBA.Default_Sys_Member);
@@ -390,7 +390,7 @@ package body PortableServer.POA is
 
       if POA.Children /= null
         and then not Is_Empty (POA.Children.all) then
-         PolyORB.Tasking.Rw_Locks.Lock_R (POA.Children_Lock);
+         PolyORB.Tasking.Mutexes.Enter (POA.Children_Lock);
 
          pragma Debug (O ("Iterate over existing children"));
          declare
@@ -405,7 +405,7 @@ package body PortableServer.POA is
             end loop;
          end;
 
-         PolyORB.Tasking.Rw_Locks.Unlock_R (POA.Children_Lock);
+         PolyORB.Tasking.Mutexes.Leave (POA.Children_Lock);
       end if;
 
       pragma Debug (O ("Get_The_Children: end"));
@@ -502,39 +502,32 @@ package body PortableServer.POA is
       Result : PortableServer.ServantManager.Ref;
    begin
 
-      --  XXX Use of servant managers require some works in PolyORB's
-      --  internals. The following code is left for latter use.
+      PolyORB.POA.Get_Servant_Manager
+        (POA,
+         Manager,
+         Error);
 
-      if False then
+      if Found (Error) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+      end if;
 
-         PolyORB.POA.Get_Servant_Manager
-           (POA,
-            Manager,
-            Error);
+      if Manager = null then
+         return Result;
 
-         if Found (Error) then
-            PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
-         end if;
+      else
+         if Manager.all in CORBA_ServantActivator'Class then
+            return Get_Servant_Manager
+              (CORBA_ServantActivator (Manager.all));
 
-         if Manager = null then
-            return Result;
+         elsif Manager.all in CORBA_ServantLocator'Class then
+            return Get_Servant_Manager
+              (CORBA_ServantLocator (Manager.all));
 
          else
-            if Manager.all in CORBA_ServantActivator'Class then
-               return Get_Servant_Manager
-                 (CORBA_ServantActivator (Manager.all));
-
-            elsif Manager.all in CORBA_ServantLocator'Class then
-               return Get_Servant_Manager
-                 (CORBA_ServantLocator (Manager.all));
-
-            else
-               raise Program_Error;
-            end if;
+            raise Program_Error;
          end if;
       end if;
 
-      raise PolyORB.Not_Implemented;
    end Get_Servant_Manager;
 
    -------------------------
@@ -553,63 +546,56 @@ package body PortableServer.POA is
 
       Error : Error_Container;
    begin
-      --  XXX Use of servant managers require some works in PolyORB's
-      --  internals. The following code is left for latter use.
-
-      if False then
-
-         if POA.Servant_Manager /= null then
-            CORBA.Raise_Bad_Inv_Order
-              (CORBA.System_Exception_Members'
-               (Minor     => 6,
-                Completed => CORBA.Completed_No));
-         end if;
-
-         if Imgr.all in PortableServer.ServantActivator.Ref'Class then
-            declare
-               CORBA_Servant_Manager : ServantActivator_Access;
-            begin
-               PolyORB.CORBA_P.ServantActivator.Create
-                 (CORBA_Servant_Manager,
-                  PortableServer.ServantActivator.Ref (Imgr.all)'Access);
-
-               PolyORB.POA.Set_Servant_Manager
-                 (POA,
-                  ServantManager_Access (CORBA_Servant_Manager),
-                  Error);
-
-               if Found (Error) then
-                  PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
-               end if;
-            end;
-
-         elsif Imgr.all in PortableServer.ServantLocator.Ref'Class then
-            declare
-               CORBA_Servant_Manager : ServantLocator_Access;
-            begin
-               Create
-                 (CORBA_Servant_Manager,
-                  PortableServer.ServantLocator.Ref'Class (Imgr.all)'Access);
-
-               PolyORB.POA.Set_Servant_Manager
-                 (POA,
-                  ServantManager_Access (CORBA_Servant_Manager),
-                  Error);
-
-               if Found (Error) then
-                  PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
-               end if;
-            end;
-
-         else
-            CORBA.Raise_Obj_Adapter
-              (CORBA.System_Exception_Members'
-               (Minor     => 4,
-                Completed => CORBA.Completed_No));
-         end if;
+      if POA.Servant_Manager /= null then
+         CORBA.Raise_Bad_Inv_Order
+           (CORBA.System_Exception_Members'
+            (Minor     => 6,
+             Completed => CORBA.Completed_No));
       end if;
 
-      raise PolyORB.Not_Implemented;
+      if Imgr.all in PortableServer.ServantActivator.Ref'Class then
+         declare
+            CORBA_Servant_Manager : ServantActivator_Access;
+         begin
+            PolyORB.CORBA_P.ServantActivator.Create
+              (CORBA_Servant_Manager,
+               PortableServer.ServantActivator.Ref (Imgr.all)'Access);
+
+            PolyORB.POA.Set_Servant_Manager
+              (POA,
+               ServantManager_Access (CORBA_Servant_Manager),
+               Error);
+
+            if Found (Error) then
+               PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+            end if;
+         end;
+
+      elsif Imgr.all in PortableServer.ServantLocator.Ref'Class then
+         declare
+            CORBA_Servant_Manager : ServantLocator_Access;
+         begin
+            Create
+              (CORBA_Servant_Manager,
+               PortableServer.ServantLocator.Ref'Class (Imgr.all)'Access);
+
+            PolyORB.POA.Set_Servant_Manager
+              (POA,
+               ServantManager_Access (CORBA_Servant_Manager),
+               Error);
+
+            if Found (Error) then
+               PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+            end if;
+         end;
+
+      else
+         CORBA.Raise_Obj_Adapter
+           (CORBA.System_Exception_Members'
+            (Minor     => 4,
+             Completed => CORBA.Completed_No));
+      end if;
+
    end Set_Servant_Manager;
 
    -----------------
@@ -686,8 +672,8 @@ package body PortableServer.POA is
       end if;
 
       declare
-         Oid : constant PolyORB.POA_Types.Object_Id
-           := PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
+         Oid : constant PolyORB.POA_Types.Object_Id :=
+           PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
       begin
          return ObjectId (Oid);
       end;
@@ -708,8 +694,8 @@ package body PortableServer.POA is
 
       U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
 
-      A_Oid : aliased PolyORB.POA_Types.Object_Id
-        := PolyORB.POA_Types.Object_Id (Oid);
+      A_Oid : aliased PolyORB.POA_Types.Object_Id :=
+        PolyORB.POA_Types.Object_Id (Oid);
 
    begin
       PolyORB.POA.Activate_Object
@@ -736,8 +722,8 @@ package body PortableServer.POA is
 
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 
-      A_Oid : aliased constant PolyORB.POA_Types.Object_Id
-        := PolyORB.POA_Types.Object_Id (Oid);
+      A_Oid : aliased constant PolyORB.POA_Types.Object_Id :=
+        PolyORB.POA_Types.Object_Id (Oid);
 
    begin
       PolyORB.POA.Deactivate_Object (POA, A_Oid, Error);
@@ -771,8 +757,8 @@ package body PortableServer.POA is
       end if;
 
       declare
-         Oid : aliased PolyORB.POA_Types.Object_Id
-           := PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
+         Oid : aliased PolyORB.POA_Types.Object_Id :=
+           PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
 
          P_Result : PolyORB.References.Ref;
          C_Result : CORBA.Object.Ref;
@@ -877,8 +863,8 @@ package body PortableServer.POA is
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
       Oid : PolyORB.Objects.Object_Id_Access;
 
-      TID : constant Standard.String
-        := CORBA.To_Standard_String (Get_Type_Id (P_Servant));
+      TID : constant Standard.String :=
+        CORBA.To_Standard_String (Get_Type_Id (P_Servant));
 
       P_Result : PolyORB.References.Ref;
       C_Result : CORBA.Object.Ref;
@@ -1016,8 +1002,8 @@ package body PortableServer.POA is
       case Error.Kind is
          when AdapterAlreadyExists_E =>
             declare
-               Member : constant AdapterAlreadyExists_Members
-                 := AdapterAlreadyExists_Members'
+               Member : constant AdapterAlreadyExists_Members :=
+                 AdapterAlreadyExists_Members'
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
@@ -1026,8 +1012,8 @@ package body PortableServer.POA is
 
          when AdapterNonExistent_E =>
             declare
-               Member : constant AdapterNonExistent_Members
-                 := AdapterNonExistent_Members'
+               Member : constant AdapterNonExistent_Members :=
+                 AdapterNonExistent_Members'
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
@@ -1036,10 +1022,8 @@ package body PortableServer.POA is
 
          when InvalidPolicy_E =>
             declare
-               Member : constant InvalidPolicy_Members
-                 := InvalidPolicy_Members'
-                 (CORBA.IDL_Exception_Members with Index => 0);
-               --  XXX Should handle this case.
+               Member : constant InvalidPolicy_Members :=
+                 InvalidPolicy_Members (Error.Member.all);
             begin
                Free (Error.Member);
                Raise_InvalidPolicy (Member);
@@ -1047,8 +1031,8 @@ package body PortableServer.POA is
 
          when NoServant_E =>
             declare
-               Member : constant NoServant_Members
-                 := NoServant_Members'
+               Member : constant NoServant_Members :=
+                 NoServant_Members'
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
@@ -1057,8 +1041,8 @@ package body PortableServer.POA is
 
          when ObjectAlreadyActive_E =>
             declare
-               Member : constant ObjectAlreadyActive_Members
-                 := ObjectAlreadyActive_Members'
+               Member : constant ObjectAlreadyActive_Members :=
+                 ObjectAlreadyActive_Members'
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
@@ -1067,8 +1051,8 @@ package body PortableServer.POA is
 
          when ObjectNotActive_E =>
             declare
-               Member : constant ObjectNotActive_Members
-                 := ObjectNotActive_Members'
+               Member : constant ObjectNotActive_Members :=
+                 ObjectNotActive_Members'
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
@@ -1077,8 +1061,8 @@ package body PortableServer.POA is
 
          when ServantAlreadyActive_E =>
             declare
-               Member : constant ServantAlreadyActive_Members
-                 := ServantAlreadyActive_Members'
+               Member : constant ServantAlreadyActive_Members :=
+                 ServantAlreadyActive_Members'
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
@@ -1087,8 +1071,8 @@ package body PortableServer.POA is
 
          when ServantNotActive_E =>
             declare
-               Member : constant ServantNotActive_Members
-                 := ServantNotActive_Members'
+               Member : constant ServantNotActive_Members :=
+                 ServantNotActive_Members'
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
@@ -1097,8 +1081,8 @@ package body PortableServer.POA is
 
          when WrongAdapter_E =>
             declare
-               Member : constant WrongAdapter_Members
-                 := WrongAdapter_Members'
+               Member : constant WrongAdapter_Members :=
+                 WrongAdapter_Members'
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
@@ -1107,8 +1091,8 @@ package body PortableServer.POA is
 
          when WrongPolicy_E =>
             declare
-               Member : constant WrongPolicy_Members
-                 := WrongPolicy_Members'
+               Member : constant WrongPolicy_Members :=
+                 WrongPolicy_Members'
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
@@ -1306,14 +1290,10 @@ package body PortableServer.POA is
    -------------------------
 
    procedure Raise_InvalidPolicy
-     (Excp_Memb : in InvalidPolicy_Members)
-   is
-      pragma Warnings (Off); --  WAG:3.15
-      pragma Unreferenced (Excp_Memb);
-      pragma Warnings (On); --  WAG:3.15
+     (Excp_Memb : in InvalidPolicy_Members) is
    begin
-      raise InvalidPolicy;
-      --  XXX FIXME: need to marshall some data
+      PolyORB.Exceptions.User_Raise_Exception
+        (InvalidPolicy'Identity, Excp_Memb);
    end Raise_InvalidPolicy;
 
    ---------------------
@@ -1422,8 +1402,8 @@ package body PortableServer.POA is
 
    procedure Initialize is
    begin
-      PolyORB.CORBA_P.Exceptions.POA_Raise_From_Error
-        := Raise_From_Error'Access;
+      PolyORB.CORBA_P.Exceptions.POA_Raise_From_Error :=
+        Raise_From_Error'Access;
    end Initialize;
 
    use PolyORB.Initialization;
@@ -1433,10 +1413,10 @@ package body PortableServer.POA is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"portableserver.poa",
+      (Name      => +"portableserver.poa",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => Empty,
-       Init => Initialize'Access));
+       Depends   => Empty,
+       Provides  => Empty,
+       Init      => Initialize'Access));
 
 end PortableServer.POA;

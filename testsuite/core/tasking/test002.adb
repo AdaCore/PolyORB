@@ -37,6 +37,10 @@
 
 with PolyORB.Initialization;
 
+with PolyORB.Setup.Tasking.Full_Tasking;
+pragma Elaborate_All (PolyORB.Setup.Tasking.Full_Tasking);
+pragma Warnings (Off, PolyORB.Setup.Tasking.Full_Tasking);
+
 with Test002_Common;
 
 procedure Test002 is

@@ -572,7 +572,7 @@ package body PolyORB.Utils.HTables.Perfect is
 
       --  Allocation of T.Elements
 
-      Init (T.Elements);
+      Initialize (T.Elements);
       Dynamic_Element_Array.Set_Last (T.Elements, 15 * T.Info.High);
       for J in First (T.Elements) .. Last (T.Elements) loop
          Elements (J) := Empty;
@@ -581,7 +581,7 @@ package body PolyORB.Utils.HTables.Perfect is
 
       --  Allocation of T.Subtables
 
-      Init (T.Subtables);
+      Initialize (T.Subtables);
       Set_Last (T.Subtables, T.Info.N_Subtables - 1);
 
       for J in First (T.Subtables) .. Last (T.Subtables) loop
@@ -846,7 +846,7 @@ package body PolyORB.Utils.HTables.Perfect is
    begin
       T.T := new Table;
       Initialize (T.T.HTable, HParam, Max);
-      Init (T.T.Items);
+      Initialize (T.T.Items);
       Set_Last (T.T.Items, 15 * T.T.HTable.Info.High);
    end Initialize;
 
@@ -1013,6 +1013,21 @@ package body PolyORB.Utils.HTables.Perfect is
    begin
       return Items (Elements (I.Position).Item_Index).all;
    end Value;
+
+   ---------
+   -- Key --
+   ---------
+
+   function Key
+     (I : Iterator)
+     return String
+   is
+      Elements : Dynamic_Element_Array.Table_Ptr
+        renames I.On_Table.T.HTable.Elements.Table;
+
+   begin
+      return Elements (I.Position).Key.all;
+   end Key;
 
    ----------
    -- Last --

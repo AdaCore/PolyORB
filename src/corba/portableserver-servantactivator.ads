@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-servantactivator.ads#5 $
+--  $Id: //droopi/main/src/corba/portableserver-servantactivator.ads#6 $
 
 with CORBA;
 with PortableServer.ServantManager;
@@ -47,7 +47,7 @@ package PortableServer.ServantActivator is
 
    function Incarnate
      (Self    : in Ref;
-      Oid     : in ObjectId;
+      Oid     : in PortableServer.ObjectId;
       Adapter : in PortableServer.POA_Forward.Ref)
      return PortableServer.Servant;
 

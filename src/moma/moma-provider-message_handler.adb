@@ -42,6 +42,7 @@ with PolyORB.Any.NVList;
 with PolyORB.Log;
 with PolyORB.Types;
 with PolyORB.Requests;
+with PolyORB.Exceptions;
 
 package body MOMA.Provider.Message_Handler is
 
@@ -60,8 +61,9 @@ package body MOMA.Provider.Message_Handler is
 
    --  Actual function implemented by the servant.
 
-   procedure Handle (Self    : access Object;
-                     Message : PolyORB.Any.Any);
+   procedure Handle
+     (Self    : access Object;
+      Message : PolyORB.Any.Any);
    --  Execute the Handler procedure.
    --  Called when receiving a Handle request.
 
@@ -71,11 +73,13 @@ package body MOMA.Provider.Message_Handler is
 
    --  Accessors to servant interface.
 
-   function Get_Parameter_Profile (Method : String)
+   function Get_Parameter_Profile
+     (Method : String)
      return PolyORB.Any.NVList.Ref;
    --  Parameters part of the interface description.
 
-   function Get_Result_Profile (Method : String)
+   function Get_Result_Profile
+     (Method : String)
      return PolyORB.Any.Any;
    --  Result part of the interface description.
 
@@ -85,7 +89,8 @@ package body MOMA.Provider.Message_Handler is
 
    procedure Initialize
      (Self                 : access Object;
-      MOMA_Message_Handler : MOMA.Message_Handlers.Message_Handler_Acc) is
+      MOMA_Message_Handler :        MOMA.Message_Handlers.Message_Handler_Acc)
+   is
    begin
       Self.MOMA_Message_Handler := MOMA_Message_Handler;
    end Initialize;
@@ -97,8 +102,11 @@ package body MOMA.Provider.Message_Handler is
    procedure Invoke (Self : access Object;
                      Req  : in     PolyORB.Requests.Request_Access)
    is
+      use PolyORB.Exceptions;
+
       Args        : PolyORB.Any.NVList.Ref;
       Operation   : constant String := To_Standard_String (Req.Operation);
+      Error       : Error_Container;
    begin
       pragma Debug (O ("The message handler is executing the request:"
                     & PolyORB.Requests.Image (Req.all)));
@@ -106,7 +114,12 @@ package body MOMA.Provider.Message_Handler is
       PolyORB.Any.NVList.Create (Args);
 
       Args := Get_Parameter_Profile (Operation);
-      PolyORB.Requests.Arguments (Req, Args);
+      PolyORB.Requests.Arguments (Req, Args, Error);
+
+      if Found (Error) then
+         raise PolyORB.Unknown;
+         --  XXX We should do something more contructive
+      end if;
 
       if Req.Operation = To_PolyORB_String ("Notify") then
          Notify (Self);
@@ -187,8 +200,9 @@ package body MOMA.Provider.Message_Handler is
    -- Handle --
    ------------
 
-   procedure Handle (Self    : access Object;
-                     Message : PolyORB.Any.Any)
+   procedure Handle
+     (Self    : access Object;
+      Message :        PolyORB.Any.Any)
    is
       Rcvd_Message : constant MOMA.Messages.Message'Class
          := MOMA.Messages.From_Any (Message);

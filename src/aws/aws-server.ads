@@ -30,12 +30,8 @@
 
 --  $Id$
 
---  @@@ uses ada.calendar
---  @@@ relies on aws.net.*
-
 with Ada.Calendar;
 with Ada.Exceptions;
-with Ada.Finalization;
 
 with AWS.Config;
 with AWS.Default;
@@ -43,24 +39,29 @@ with AWS.Dispatchers;
 with AWS.Exceptions;
 with AWS.Hotplug;
 with AWS.Log;
-with AWS.Net.Std;
 with AWS.Response;
 with AWS.Utils;
 
+with PolyORB.Servants;
+with PolyORB.References;
+
 package AWS.Server is
 
-   type HTTP is limited private;
-   --  A Web server.
+   type HTTP is abstract new PolyORB.Servants.Servant with private;
+   --  A Web server is an abstract servant
+
+   procedure Run;
+   --  Runs PolyORB
+
+   procedure Initialization;
+   --  Initializes PolyORB
 
    ---------------------------
    -- Server initialization --
    ---------------------------
 
-   --  Note that starting a sercure server if AWS has not been configured to
-   --  support HTTPS will raise Program_Error.
-
    procedure Start
-     (Web_Server : in out HTTP;
+     (The_Server : in out HTTP'Class;
       Callback   : in     Response.Callback;
       Config     : in     AWS.Config.Object);
    --  Start server using a full configuration object. With this routine it is
@@ -70,7 +71,7 @@ package AWS.Server is
    --  after 'aws.ini', 'prognam.ini', '<servername>.ini' files.
 
    procedure Start
-     (Web_Server : in out HTTP;
+     (The_Server : in out HTTP'Class;
       Dispatcher : in     Dispatchers.Handler'Class;
       Config     : in     AWS.Config.Object);
    --  Idem, but using the dispatcher tagged type instead of callback. See
@@ -81,7 +82,7 @@ package AWS.Server is
    --  server dispatcher.
 
    procedure Start
-     (Web_Server                : in out HTTP;
+     (The_Server                : in out HTTP'Class;
       Name                      : in     String;
       Callback                  : in     Response.Callback;
       Max_Connection            : in     Positive  := Default.Max_Connection;
@@ -109,7 +110,7 @@ package AWS.Server is
    -- Server termination --
    ------------------------
 
-   procedure Shutdown (Web_Server : in out HTTP);
+   procedure Shutdown (The_Server : in out HTTP'Class);
    --  Stop the server and release all associated memory. This routine can
    --  take some time to terminate because it waits for all tasks to terminate
    --  properly before releasing the memory. The log facilities will be
@@ -127,11 +128,11 @@ package AWS.Server is
    -- Server configuration --
    --------------------------
 
-   function Config (Web_Server : in HTTP) return AWS.Config.Object;
-   --  Returns configuration object for Web_Server.
+   function Config (The_Server : in HTTP'Class) return AWS.Config.Object;
+   --  Returns configuration object for The_Server.
 
    procedure Set_Unexpected_Exception_Handler
-     (Web_Server : in out HTTP;
+     (The_Server : in out HTTP'Class;
       Handler    : in     Exceptions.Unexpected_Exception_Handler);
    --  Set the unexpected exception handler. It is called whenever an
    --  unrecoverable error has been detected. The default handler just display
@@ -140,7 +141,7 @@ package AWS.Server is
    --  symbolic stack backtrace if needed.
 
    procedure Set
-     (Web_Server : in out HTTP;
+     (The_Server : in out HTTP'Class;
       Dispatcher : in     Dispatchers.Handler'Class);
    --  Dynamically associate a new dispatcher object to the server. With the
    --  feature it is possible to change server behavior at runtime. The
@@ -153,29 +154,39 @@ package AWS.Server is
    --  before starting the first secure server. After that the call will have
    --  no effect.
 
+   function Get_Server_Reference
+     (The_Server : HTTP'Class)
+     return PolyORB.References.Ref;
+   --  returns the reference to the server. So the application can
+   --  then convert it into an IOR, URI or whatever. This should be
+   --  called for a running server (i.e. after the Start procedure)
+
    -----------------
    -- Server Logs --
    -----------------
 
    procedure Start_Log
-     (Web_Server      : in out HTTP;
+     (The_Server      : in out HTTP'Class;
       Split_Mode      : in     Log.Split_Mode := Log.None;
       Filename_Prefix : in     String         := "");
    --  Activate server's logging activity. See AWS.Log.
 
-   procedure Stop_Log (Web_Server : in out HTTP);
+   procedure Stop_Log (The_Server : in out HTTP'Class);
    --  Stop server's logging activity. See AWS.Log.
 
    procedure Start_Error_Log
-     (Web_Server      : in out HTTP;
+     (The_Server      : in out HTTP'Class;
       Split_Mode      : in     Log.Split_Mode := Log.None;
       Filename_Prefix : in     String         := "");
    --  Activate server's logging activity. See AWS.Log.
 
-   procedure Stop_Error_Log (Web_Server : in out HTTP);
+   procedure Stop_Error_Log (The_Server : in out HTTP'Class);
    --  Stop server's logging activity. See AWS.Log.
 
    type HTTP_Access is access all HTTP;
+
+
+
 
 private
 
@@ -186,203 +197,18 @@ private
       Answer : in out Response.Data);
    --  Default unexpected exception handler.
 
-   ------------
-   -- Phases --
-   ------------
-
-   type Slot_Phase is
-     (Closed,
-      --  Socket has been closed by one of the peer
-
-      Aborted,
-      --  After socket shutdown
-
-      Wait_For_Client,
-      --  We can abort keep-alive connection in this stage
-
-      Client_Header,
-      --  We can abort keep-alive connection when client header
-      --  takes too much time
-
-      Client_Data,
-      --  We should think about it. Maybe we should not trust the clients
-      --  who are spending too much server time in sending data
-
-      Server_Response,
-      --  We are trusting ourselves but client may be too slow purposely in
-      --  receiving data and we should disconnect him.
-
-      Server_Processing
-      --  While in the User's Callback procedure.
-     );
-
-   subtype Abortable_Phase is Slot_Phase
-     range Wait_For_Client .. Server_Response;
-
-   subtype Data_Phase is Abortable_Phase
-     range Client_Data .. Server_Response;
-
-   --------------
-   -- Timeouts --
-   --------------
-
-   type Timeout_Mode is (Cleaner, Force);
-   --  This is Force timeouts and timeouts for Line_Cleaner task.
-
-   type Timeouts_Array is array (Timeout_Mode, Abortable_Phase) of Duration;
-
-   type Data_Timeouts_Array is array (Data_Phase) of Duration;
-
-   subtype Socket_Access is Net.Socket_Access;
-
-   ----------
-   -- Slot --
-   ----------
-
-   type Slot is record
-      Sock                  : Socket_Access := null;
-      Socket_Taken          : Boolean := False;
-      Phase                 : Slot_Phase := Closed;
-      Phase_Time_Stamp      : Ada.Calendar.Time := Ada.Calendar.Clock;
-      Data_Time_Stamp       : Ada.Calendar.Time;
-      Alive_Time_Stamp      : Ada.Calendar.Time;
-      Slot_Activity_Counter : Natural := 0;
-      Activity_Counter      : Natural := 0;
-      Alive_Counter         : Natural;
-   end record;
-
-   --  Abortable is set to true when the line can be aborted by closing the
-   --  associated socket. Phase_Time_Stamp is the last time when Phase of line
-   --  has been changed. The line in Abortable state and with oldest
-   --  Phase_Time_Stamp could be closed.
-   --  Also a line is closed after Keep_Open_Duration seconds of inactivity.
-
-   type Slot_Set is array (Positive range <>) of Slot;
-
    package CNF renames AWS.Config;
-
-   --  Socket Data used to retrieve safely socket information
-
-   type Socket_Data (Peername_Length : Natural) is record
-      Peername : String (1 .. Peername_Length);
-      FD       : Integer;
-   end record;
-
-   -----------
-   -- Slots --
-   -----------
-
-   protected type Slots (N : Positive) is
-
-      procedure Mark_Phase (Index : in Positive; Phase : Slot_Phase);
-      --  Set Activity_Time_Stamp which is the last time where the line number
-      --  Index as been used.
-
-      procedure Socket_Taken (Index : in Positive);
-      --  Used to mark slot associated socket has "taken" by some foreign code.
-      --  The server must not close this socket on releasing the slot. It is
-      --  used when passing socket to the server push part for example. In the
-      --  future it could be used for other functionality over the same
-      --  socket, changing HTTP to other protocol for example.
-
-      procedure Mark_Data_Time_Stamp (Index : in Positive);
-      --  Mark timestamp for receive or send chunk of data.
-
-      function Is_Abortable
-        (Index : in Positive;
-         Mode  : in Timeout_Mode)
-         return Boolean;
-      --  Return True when slot can be aborted.
-
-      procedure Abort_On_Timeout (Mode : in Timeout_Mode; Done : out Boolean);
-      --  Abort slots if timeout exceeded.
-      --  Set Done to True in case of abortion.
-
-      function Free_Slots return Natural;
-      --  Returns number of free slots.
-
-      procedure Set
-        (Socket     : in     Socket_Access;
-         Index      : in     Positive;
-         Free_Slots :    out Natural);
-      --  Mark slot at position Index to be used. This slot will be associated
-      --  with Socket. Phase set to Wait_For_Client.
-      --  Returns number of Free slots in the Free_Slot out parameter, it is
-      --  necessary information for Server line task, for determine is it
-      --  necessary to call Line_Cleaner in Force mode.
-
-      procedure Shutdown (Index : in Positive);
-      --  Break all communications over the slot.
-      --  Slot phase is set to Aborted.
-
-      procedure Release  (Index : in Positive);
-      --  Release slot number Index. Slot phase is set to Closed.
-
-      function Get (Index : in Positive) return Slot;
-      --  Returns Slot data.
-
-      function Get_Socket_Info (Index : in Positive) return Socket_Data;
-      --  Returns information about socket (FD and Peername) associated with
-      --  slot Index. If the socket is not opened returns
-      --  (FD => 0, Peername => "-")
-
-      function Get_Peername (Index : in Positive) return String;
-      --  Returns the peername for socket at position Index.
-
-      procedure Increment_Slot_Activity_Counter (Index : in Positive);
-      --  Add 1 to the slot activity. This is the total number of request
-      --  handled by the slot.
-
-      procedure Set_Timeouts
-        (Phase_Timeouts : in Timeouts_Array;
-         Data_Timeouts  : in Data_Timeouts_Array);
-      --  Setup timeouts for slots before starting
-
-   private
-
-      Timeouts      : Timeouts_Array;
-      Data_Timeouts : Data_Timeouts_Array;
-
-      Table : Slot_Set (1 .. N);
-      Count : Natural := N;
-
-   end Slots;
-
-   type Slots_Access is access Slots;
-
-   ----------
-   -- Line --
-   ----------
-
-   task type Line (Stack_Size : Integer) is
-      pragma Storage_Size (Stack_Size);
-      entry Start (Server : in HTTP; Index : in Positive);
-   end Line;
-
-   type Line_Access is access Line;
-
-   type Line_Set is array (Positive range <>) of Line_Access;
-
-   type Line_Set_Access is access Line_Set;
-
-   ------------------
-   -- Line_Cleaner --
-   ------------------
-
-   task type Line_Cleaner (Server : HTTP_Access) is
-     entry Force;
-   end Line_Cleaner;
-
-   type Line_Cleaner_Access is access Line_Cleaner;
-   --  run through the slots and see if some of them could be closed.
 
    ----------
    -- HTTP --
    ----------
 
-   type HTTP is new Ada.Finalization.Limited_Controlled with record
+   type HTTP is abstract new PolyORB.Servants.Servant with record
       Self              : HTTP_Access := HTTP'Unchecked_Access;
       --  Point to the record.
+
+      Reference         : PolyORB.References.Ref;
+      --  the reference to the servant
 
       Start_Time        : Ada.Calendar.Time;
       --  Date and Time when server was started.
@@ -390,16 +216,6 @@ private
       Shutdown          : Boolean := True;
       --  True when server is shutdown. This will be set to False when server
       --  will be started.
-
-      Sock              : Net.Std.Socket_Type;
-      --  This is the server socket for incoming connection.
-
-      Sock_Sem          : Utils.Semaphore;
-      --  Semaphore used to serialize the accepts call on the server socket.
-
-      Cleaner           : Line_Cleaner_Access;
-      --  Task in charge of cleaning slots status. It checks from time to time
-      --  if the slots is still in used and closed it if possible.
 
       Properties        : CNF.Object := CNF.Get_Current;
       --  All server properties controled by the configuration file.
@@ -419,10 +235,10 @@ private
       Filters           : Hotplug.Filter_Set;
       --  Hotplug filters are recorded here.
 
-      Lines             : Line_Set_Access;
+      --  Lines             : Line_Set_Access;
       --  The tasks doing the job.
 
-      Slots             : Slots_Access;
+      --  Slots             : Slots_Access;
       --  Information about each tasks above. This is a protected object to
       --  support concurrency.
 
@@ -432,7 +248,6 @@ private
       --  implementation.
    end record;
 
-   procedure Initialize (Web_Server : in out HTTP);
-   procedure Finalize   (Web_Server : in out HTTP);
+
 
 end AWS.Server;

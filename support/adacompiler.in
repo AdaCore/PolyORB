@@ -23,9 +23,17 @@ while [ $# -gt 1 ]; do
 	then
 	  srcdir=.
 	fi
+        cline="$cline$1 "
+        ;;
+      -aI*)
+        cline="$cline"`echo "$1" | sed s/^-aI/-I/`" "
+        ;;
+      -aO*)
+        ;;
+      *)
+        cline="$cline$1 "
         ;;
     esac
-    cline="$cline$1 "
     shift
 done
 

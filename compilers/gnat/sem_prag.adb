@@ -159,15 +159,6 @@ package body Sem_Prag is
    --  Elaborate_All pragma. Entity name for unit and its parents is
    --  taken from item in previous with_clause that mentions the unit.
 
-   Locking_Policy_Sloc          : Source_Ptr := No_Location;
-   Queuing_Policy_Sloc          : Source_Ptr := No_Location;
-   Task_Dispatching_Policy_Sloc : Source_Ptr := No_Location;
-   --  These global variables remember the location of a previous locking,
-   --  queuing or task dispatching policy pragma, so that appropriate error
-   --  messages can be generated for inconsistent pragmas. Note that it is
-   --  fine that these are global locations, because the check for consistency
-   --  is over the entire program.
-
    -------------------------------
    -- Adjust_External_Name_Case --
    -------------------------------
@@ -774,10 +765,11 @@ package body Sem_Prag is
          --  Finally, we have a real error
 
          else
-            Error_Pragma_Arg
-              ("argument for pragma% must be a static expression", Argx);
+            Error_Msg_Name_1 := Chars (N);
+            Flag_Non_Static_Expr
+              ("argument for pragma% must be a static expression!", Argx);
+            raise Pragma_Exit;
          end if;
-
       end Check_Arg_Is_Static_Expression;
 
       ---------------------------------
@@ -1103,8 +1095,8 @@ package body Sem_Prag is
          procedure Require_Static (E : Node_Id) is
          begin
             if not Is_OK_Static_Expression (E) then
-               Error_Msg_N
-                 ("non-static constraint not allowed in Unchecked_Union", E);
+               Flag_Non_Static_Expr
+                 ("non-static constraint not allowed in Unchecked_Union!", E);
                raise Pragma_Exit;
             end if;
          end Require_Static;
@@ -1628,8 +1620,15 @@ package body Sem_Prag is
                Set_Is_Atomic (Underlying_Type (E));
             end if;
 
-            Set_Is_Volatile (E);
+            --  Attribute belongs on the base type. If the
+            --  view of the type is currently private, it also
+            --  belongs on the underlying type.
+
+            Set_Is_Volatile (Base_Type (E));
             Set_Is_Volatile (Underlying_Type (E));
+
+            Set_Treat_As_Volatile (E);
+            Set_Treat_As_Volatile (Underlying_Type (E));
 
          elsif K = N_Object_Declaration
            or else (K = N_Component_Declaration
@@ -1674,6 +1673,7 @@ package body Sem_Prag is
             end if;
 
             Set_Is_Volatile (E);
+            Set_Treat_As_Volatile (E);
 
          else
             Error_Pragma_Arg
@@ -2183,25 +2183,62 @@ package body Sem_Prag is
          Match     : Boolean;
          Dval      : Node_Id;
 
-         function Same_Base_Type (Ptype, Formal : Entity_Id) return Boolean;
+         function Same_Base_Type
+          (Ptype  : Node_Id;
+           Formal : Entity_Id)
+           return Boolean;
          --  Determines if Ptype references the type of Formal. Note that
-         --  only the base types need to match according to the spec.
+         --  only the base types need to match according to the spec. Ptype
+         --  here is the argument from the pragma, which is either a type
+         --  name, or an access attribute.
 
          --------------------
          -- Same_Base_Type --
          --------------------
 
          function Same_Base_Type (Ptype, Formal : Entity_Id) return Boolean is
+            Ftyp : constant Entity_Id := Base_Type (Etype (Formal));
+            Pref : Node_Id;
+
          begin
-            Find_Type (Ptype);
+            --  Case where pragma argument is typ'Access
 
-            if not Is_Entity_Name (Ptype)
-              or else Entity (Ptype) = Any_Type
+            if Nkind (Ptype) = N_Attribute_Reference
+              and then Attribute_Name (Ptype) = Name_Access
             then
-               raise Pragma_Exit;
-            end if;
+               Pref := Prefix (Ptype);
+               Find_Type (Pref);
 
-            return Base_Type (Entity (Ptype)) = Base_Type (Etype (Formal));
+               if not Is_Entity_Name (Pref)
+                 or else Entity (Pref) = Any_Type
+               then
+                  raise Pragma_Exit;
+               end if;
+
+               --  We have a match if the corresponding argument is of an
+               --  anonymous access type, and its designicated type matches
+               --  the type of the prefix of the access attribute
+
+               return Ekind (Ftyp) = E_Anonymous_Access_Type
+                 and then Base_Type (Entity (Pref)) =
+                            Base_Type (Etype (Designated_Type (Ftyp)));
+
+            --  Case where pragma argument is a type name
+
+            else
+               Find_Type (Ptype);
+
+               if not Is_Entity_Name (Ptype)
+                 or else Entity (Ptype) = Any_Type
+               then
+                  raise Pragma_Exit;
+               end if;
+
+               --  We have a match if the corresponding argument is of
+               --  the type given in the pragma (comparing base types)
+
+               return Base_Type (Entity (Ptype)) = Ftyp;
+            end if;
          end Same_Base_Type;
 
       --  Start of processing for
@@ -2367,11 +2404,11 @@ package body Sem_Prag is
 
          --  Import pragmas must be be for imported entities
 
-         if (Prag_Id = Pragma_Import_Function
-               or else
-             Prag_Id = Pragma_Import_Procedure
-               or else
-             Prag_Id = Pragma_Import_Valued_Procedure)
+         if Prag_Id = Pragma_Import_Function
+              or else
+            Prag_Id = Pragma_Import_Procedure
+              or else
+            Prag_Id = Pragma_Import_Valued_Procedure
          then
             if not Is_Imported (Ent) then
                Error_Pragma
@@ -2430,7 +2467,6 @@ package body Sem_Prag is
          --  nonsense, so we get it in exactly as the parser left it.
 
          if Present (Arg_Mechanism) then
-
             declare
                Formal : Entity_Id;
                Massoc : Node_Id;
@@ -2573,7 +2609,7 @@ package body Sem_Prag is
                      null;
 
                   else
-                     Error_Msg_NE
+                     Error_Msg_FE
                        ("default value for optional formal& is non-static!",
                         Arg_First_Optional_Parameter, Formal);
                   end if;
@@ -2721,6 +2757,30 @@ package body Sem_Prag is
                   --  always referenced from another object file.
 
                   Set_Is_Public (Def_Id);
+
+                  --  Verify that the subprogram does not have a completion
+                  --  through a renaming declaration. For other completions
+                  --  the pragma appears as a too late representation.
+
+                  declare
+                     Decl : constant Node_Id := Unit_Declaration_Node (Def_Id);
+                  begin
+                     if Present (Decl)
+                       and then Nkind (Decl) = N_Subprogram_Declaration
+                       and then Present (Corresponding_Body (Decl))
+                       and then
+                         Nkind
+                           (Unit_Declaration_Node
+                             (Corresponding_Body (Decl))) =
+                                             N_Subprogram_Renaming_Declaration
+                     then
+                        Error_Msg_Sloc := Sloc (Def_Id);
+                        Error_Msg_NE ("cannot import&#," &
+                           " already completed by a renaming",
+                           N, Def_Id);
+                     end if;
+                  end;
+
                   Set_Has_Completion (Def_Id);
                   Process_Interface_Name (Def_Id, Arg3, Arg4);
                end if;
@@ -3775,7 +3835,7 @@ package body Sem_Prag is
                      Error_Pragma_Arg ("ambiguous argument for pragma%", Exp);
 
                   else
-                     Resolve (Exp, Etype (Exp));
+                     Resolve (Exp);
                   end if;
 
                   Next (Arg);
@@ -4123,16 +4183,21 @@ package body Sem_Prag is
 
                --  The expression that designates the attribute may
                --  depend on a discriminant, and is therefore a per-
-               --  object expression, to be expanded in the init_proc.
-               --  Perform semantic checks on a copy only.
+               --  object expression, to be expanded in the init proc.
+               --  If expansion is enabled, perform semantic checks
+               --  on a copy only.
 
-               declare
-                  Temp : Node_Id := New_Copy_Tree (Expression (Arg2));
+               if Expander_Active then
+                  declare
+                     Temp : Node_Id := New_Copy_Tree (Expression (Arg2));
+                  begin
+                     Set_Parent (Temp, N);
+                     Pre_Analyze_And_Resolve (Temp, RTE (RE_Interrupt_ID));
+                  end;
 
-               begin
-                  Set_Parent (Temp, N);
-                  Pre_Analyze_And_Resolve (Temp, RTE (RE_Interrupt_ID));
-               end;
+               else
+                  Analyze (Expression (Arg2));
+               end if;
 
                Process_Interrupt_Or_Attach_Handler;
             end if;
@@ -4226,8 +4291,6 @@ package body Sem_Prag is
                      B : Natural;
 
                   begin
-                     Warn_On_Instance := True;
-
                      --  This loop looks for multiple lines separated by
                      --  ASCII.LF and breaks them into continuation error
                      --  messages marked with the usual back slash.
@@ -4243,7 +4306,6 @@ package body Sem_Prag is
                      end loop;
 
                      Error_Msg_N (Msg (B .. Msg'Length), Arg1);
-                     Warn_On_Instance := False;
                   end;
                end if;
             end if;
@@ -4718,9 +4780,10 @@ package body Sem_Prag is
             Analyze_And_Resolve (Arg, Any_Integer);
 
             if not Is_Static_Expression (Arg) then
-               Error_Pragma_Arg
-                 ("third argument of pragma% must be a static expression",
+               Flag_Non_Static_Expr
+                 ("third argument of pragma CPP_Virtual must be static!",
                   Arg3);
+               raise Pragma_Exit;
 
             else
                V := Expr_Value (Expression (Arg3));
@@ -4830,8 +4893,10 @@ package body Sem_Prag is
             Analyze_And_Resolve (Arg, Any_Integer);
 
             if not Is_Static_Expression (Arg) then
-               Error_Pragma_Arg
-                 ("entry count for pragma% must be a static expression", Arg3);
+               Flag_Non_Static_Expr
+                 ("entry count for pragma CPP_Vtable must be a static " &
+                  "expression!", Arg3);
+               raise Pragma_Exit;
 
             else
                V := Expr_Value (Expression (Arg3));
@@ -5323,7 +5388,7 @@ package body Sem_Prag is
          --        [Internal         =>] LOCAL_NAME,
          --     [, [External         =>] EXTERNAL_SYMBOL,]
          --     [, [Parameter_Types  =>] (PARAMETER_TYPES)]
-         --     [, [Result_Type      =>] SUBTYPE_MARK]
+         --     [, [Result_Type      =>] TYPE_DESIGNATOR]
          --     [, [Mechanism        =>] MECHANISM]
          --     [, [Result_Mechanism =>] MECHANISM_NAME]);
 
@@ -5333,7 +5398,11 @@ package body Sem_Prag is
 
          --  PARAMETER_TYPES ::=
          --    null
-         --  | SUBTYPE_MARK @{, SUBTYPE_MARK@}
+         --  | TYPE_DESIGNATOR @{, TYPE_DESIGNATOR@}
+
+         --  TYPE_DESIGNATOR ::=
+         --    subtype_NAME
+         --  | subtype_Name ' Access
 
          --  MECHANISM ::=
          --    MECHANISM_NAME
@@ -5393,7 +5462,11 @@ package body Sem_Prag is
 
          --  PARAMETER_TYPES ::=
          --    null
-         --  | SUBTYPE_MARK @{, SUBTYPE_MARK@}
+         --  | TYPE_DESIGNATOR @{, TYPE_DESIGNATOR@}
+
+         --  TYPE_DESIGNATOR ::=
+         --    subtype_NAME
+         --  | subtype_Name ' Access
 
          --  MECHANISM ::=
          --    MECHANISM_NAME
@@ -5445,7 +5518,11 @@ package body Sem_Prag is
 
          --  PARAMETER_TYPES ::=
          --    null
-         --  | SUBTYPE_MARK @{, SUBTYPE_MARK@}
+         --  | TYPE_DESIGNATOR @{, TYPE_DESIGNATOR@}
+
+         --  TYPE_DESIGNATOR ::=
+         --    subtype_NAME
+         --  | subtype_Name ' Access
 
          --  MECHANISM ::=
          --    MECHANISM_NAME
@@ -5518,7 +5595,11 @@ package body Sem_Prag is
 
          --  PARAMETER_TYPES ::=
          --    null
-         --  | SUBTYPE_MARK @{, SUBTYPE_MARK@}
+         --  | TYPE_DESIGNATOR @{, TYPE_DESIGNATOR@}
+
+         --  TYPE_DESIGNATOR ::=
+         --    subtype_NAME
+         --  | subtype_Name ' Access
 
          --  MECHANISM ::=
          --    MECHANISM_NAME
@@ -5589,6 +5670,10 @@ package body Sem_Prag is
 
                else
                   System_Extend_Pragma_Arg := Arg1;
+
+                  if not GNAT_Mode then
+                     System_Extend_Unit := Arg1;
+                  end if;
                end if;
             else
                Error_Pragma ("incorrect name for pragma%, must be Aux_xxx");
@@ -6010,7 +6095,11 @@ package body Sem_Prag is
 
          --  PARAMETER_TYPES ::=
          --    null
-         --  | SUBTYPE_MARK @{, SUBTYPE_MARK@}
+         --  | TYPE_DESIGNATOR @{, TYPE_DESIGNATOR@}
+
+         --  TYPE_DESIGNATOR ::=
+         --    subtype_NAME
+         --  | subtype_Name ' Access
 
          --  MECHANISM ::=
          --    MECHANISM_NAME
@@ -6108,7 +6197,11 @@ package body Sem_Prag is
 
          --  PARAMETER_TYPES ::=
          --    null
-         --  | SUBTYPE_MARK @{, SUBTYPE_MARK@}
+         --  | TYPE_DESIGNATOR @{, TYPE_DESIGNATOR@}
+
+         --  TYPE_DESIGNATOR ::=
+         --    subtype_NAME
+         --  | subtype_Name ' Access
 
          --  MECHANISM ::=
          --    MECHANISM_NAME
@@ -6167,7 +6260,11 @@ package body Sem_Prag is
 
          --  PARAMETER_TYPES ::=
          --    null
-         --  | SUBTYPE_MARK @{, SUBTYPE_MARK@}
+         --  | TYPE_DESIGNATOR @{, TYPE_DESIGNATOR@}
+
+         --  TYPE_DESIGNATOR ::=
+         --    subtype_NAME
+         --  | subtype_Name ' Access
 
          --  MECHANISM ::=
          --    MECHANISM_NAME
@@ -6220,8 +6317,12 @@ package body Sem_Prag is
             GNAT_Pragma;
             Check_Arg_Count (0);
             Check_Valid_Configuration_Pragma;
-            Init_Or_Norm_Scalars := True;
-            Initialize_Scalars := True;
+            Check_Restriction (No_Initialize_Scalars, N);
+
+            if not Restrictions (No_Initialize_Scalars) then
+               Init_Or_Norm_Scalars := True;
+               Initialize_Scalars := True;
+            end if;
 
          ------------
          -- Inline --
@@ -6983,9 +7084,16 @@ package body Sem_Prag is
             then
                Error_Msg_Sloc := Locking_Policy_Sloc;
                Error_Pragma ("locking policy incompatible with policy#");
+
+            --  Set new policy, but always preserve System_Location since
+            --  we like the error message with the run time name.
+
             else
                Locking_Policy := LP;
-               Locking_Policy_Sloc := Loc;
+
+               if Locking_Policy_Sloc /= System_Location then
+                  Locking_Policy_Sloc := Loc;
+               end if;
             end if;
          end;
 
@@ -7279,7 +7387,7 @@ package body Sem_Prag is
 
             Restrictions (No_Finalization)       := True;
             Restrictions (No_Exception_Handlers) := True;
-            Restrictions (No_Tasking)            := True;
+            Restrictions (No_Tasks)              := True;
 
          -----------------------
          -- Normalize_Scalars --
@@ -7374,7 +7482,6 @@ package body Sem_Prag is
             --  till that point (i.e. right now it may be unfrozen).
 
             elsif Is_Array_Type (Typ) then
-
                if Has_Aliased_Components (Base_Type (Typ)) then
                   Error_Pragma
                     ("pragma% ignored, cannot pack aliased components?");
@@ -7513,9 +7620,9 @@ package body Sem_Prag is
 
             else
                if not Is_OK_Static_Expression (Expression (Decl)) then
-                  Error_Msg_N
+                  Flag_Non_Static_Expr
                     ("initialization for persistent object"
-                      &  "must be static expression", Decl);
+                      &  "must be static expression!", Expression (Decl));
                   return;
                end if;
 
@@ -7606,8 +7713,9 @@ package body Sem_Prag is
                --  Must be static
 
                if not Is_Static_Expression (Arg) then
-                  Error_Pragma_Arg
-                    ("main subprogram priority is not static", Arg1);
+                  Flag_Non_Static_Expr
+                    ("main subprogram priority is not static!", Arg);
+                  raise Pragma_Exit;
 
                --  If constraint error, then we already signalled an error
 
@@ -8031,9 +8139,16 @@ package body Sem_Prag is
             then
                Error_Msg_Sloc := Queuing_Policy_Sloc;
                Error_Pragma ("queuing policy incompatible with policy#");
+
+            --  Set new policy, but always preserve System_Location since
+            --  we like the error message with the run time name.
+
             else
                Queuing_Policy := QP;
-               Queuing_Policy_Sloc := Loc;
+
+               if Queuing_Policy_Sloc /= System_Location then
+                  Queuing_Policy_Sloc := Loc;
+               end if;
             end if;
          end;
 
@@ -8183,7 +8298,13 @@ package body Sem_Prag is
                         end if;
 
                         Restrictions (R_Id) := True;
-                        Restrictions_Loc (R_Id) := Sloc (N);
+
+                        --  Set location, but preserve location of system
+                        --  restriction for nice error msg with run time name
+
+                        if Restrictions_Loc (R_Id) /= System_Location then
+                           Restrictions_Loc (R_Id) := Sloc (N);
+                        end if;
 
                         --  Record the restriction if we are in the main unit,
                         --  or in the extended main unit. The reason that we
@@ -8220,12 +8341,16 @@ package body Sem_Prag is
                      Error_Pragma_Arg
                        ("invalid restriction parameter identifier", Arg);
 
-                  elsif not Is_OK_Static_Expression (Expr)
-                    or else not Is_Integer_Type (Etype (Expr))
+                  elsif not Is_OK_Static_Expression (Expr) then
+                     Flag_Non_Static_Expr
+                       ("value must be static expression!", Expr);
+                     raise Pragma_Exit;
+
+                  elsif not Is_Integer_Type (Etype (Expr))
                     or else Expr_Value (Expr) < 0
                   then
                      Error_Pragma_Arg
-                       ("value must be non-negative static integer", Arg);
+                       ("value must be non-negative integer", Arg);
 
                   --  Restriction pragma is active
 
@@ -8376,16 +8501,40 @@ package body Sem_Prag is
          --  The only processing we defer to this point is the check
          --  for correct placement.
 
-         when Pragma_Source_File_Name | Pragma_Source_File_Name_Project =>
+         when Pragma_Source_File_Name =>
+            GNAT_Pragma;
+            Check_Valid_Configuration_Pragma;
+
+         ------------------------------
+         -- Source_File_Name_Project --
+         ------------------------------
+
+         --  pragma Source_File_Name_Project (
+         --    [UNIT_NAME =>] unit_NAME,
+         --    [BODY_FILE_NAME | SPEC_FILE_NAME] => STRING_LITERAL);
+
+         --  No processing here. Processing was completed during parsing,
+         --  since we need to have file names set as early as possible.
+         --  Units are loaded well before semantic processing starts.
+
+         --  The only processing we defer to this point is the check
+         --  for correct placement.
+
+         when Pragma_Source_File_Name_Project =>
             GNAT_Pragma;
             Check_Valid_Configuration_Pragma;
 
             --  Check that a pragma Source_File_Name_Project is used only
             --  in a configuration pragmas file.
+            --  Pragmas Source_File_Name_Project should only be generated
+            --  by the Project Manager in configuration pragmas files.
 
-            if Prag_Id = Pragma_Source_File_Name_Project
-               and then Present (Parent (N))
-            then
+            --  This is really an ugly test. It seems to depend on some
+            --  accidental and undocumented property. At the very least
+            --  it needs to be documented, but it would be better to have
+            --  a clean way of testing if we are in a configuration file???
+
+            if Present (Parent (N)) then
                Error_Pragma
                  ("pragma% can only appear in a configuration pragmas file");
             end if;
@@ -8720,6 +8869,18 @@ package body Sem_Prag is
             Check_Optional_Identifier (Arg1, Name_Entity);
             Set_Debug_Info_Off (Entity (Get_Pragma_Arg (Arg1)));
 
+         ----------------------------------
+         -- Suppress_Exception_Locations --
+         ----------------------------------
+
+         --  pragma Suppress_Exception_Locations;
+
+         when Pragma_Suppress_Exception_Locations =>
+            GNAT_Pragma;
+            Check_Arg_Count (0);
+            Check_Valid_Configuration_Pragma;
+            Exception_Locations_Suppressed := True;
+
          -----------------------------
          -- Suppress_Initialization --
          -----------------------------
@@ -8801,9 +8962,16 @@ package body Sem_Prag is
                Error_Msg_Sloc := Task_Dispatching_Policy_Sloc;
                Error_Pragma
                  ("task dispatching policy incompatible with policy#");
+
+            --  Set new policy, but always preserve System_Location since
+            --  we like the error message with the run time name.
+
             else
                Task_Dispatching_Policy := DP;
-               Task_Dispatching_Policy_Sloc := Loc;
+
+               if Task_Dispatching_Policy_Sloc /= System_Location then
+                  Task_Dispatching_Policy_Sloc := Loc;
+               end if;
             end if;
          end;
 
@@ -9526,145 +9694,146 @@ package body Sem_Prag is
    --  indicates that appearence in that parameter position is significant.
 
    Sig_Flags : array (Pragma_Id) of Int :=
-     (Pragma_AST_Entry                   => -1,
-      Pragma_Abort_Defer                 => -1,
-      Pragma_Ada_83                      => -1,
-      Pragma_Ada_95                      => -1,
-      Pragma_All_Calls_Remote            => -1,
-      Pragma_Annotate                    => -1,
-      Pragma_Assert                      => -1,
-      Pragma_Asynchronous                => -1,
-      Pragma_Atomic                      =>  0,
-      Pragma_Atomic_Components           =>  0,
-      Pragma_Attach_Handler              => -1,
-      Pragma_CPP_Class                   =>  0,
-      Pragma_CPP_Constructor             =>  0,
-      Pragma_CPP_Virtual                 =>  0,
-      Pragma_CPP_Vtable                  =>  0,
-      Pragma_C_Pass_By_Copy              =>  0,
-      Pragma_Comment                     =>  0,
-      Pragma_Common_Object               => -1,
-      Pragma_Compile_Time_Warning        => -1,
-      Pragma_Complex_Representation      =>  0,
-      Pragma_Component_Alignment         => -1,
-      Pragma_Controlled                  =>  0,
-      Pragma_Convention                  =>  0,
-      Pragma_Convention_Identifier       =>  0,
-      Pragma_Debug                       => -1,
-      Pragma_Discard_Names               =>  0,
-      Pragma_Elaborate                   => -1,
-      Pragma_Elaborate_All               => -1,
-      Pragma_Elaborate_Body              => -1,
-      Pragma_Elaboration_Checks          => -1,
-      Pragma_Eliminate                   => -1,
-      Pragma_Explicit_Overriding         => -1,
-      Pragma_Export                      => -1,
-      Pragma_Export_Exception            => -1,
-      Pragma_Export_Function             => -1,
-      Pragma_Export_Object               => -1,
-      Pragma_Export_Procedure            => -1,
-      Pragma_Export_Value                => -1,
-      Pragma_Export_Valued_Procedure     => -1,
-      Pragma_Extend_System               => -1,
-      Pragma_Extensions_Allowed          => -1,
-      Pragma_External                    => -1,
-      Pragma_External_Name_Casing        => -1,
-      Pragma_Finalize_Storage_Only       =>  0,
-      Pragma_Float_Representation        =>  0,
-      Pragma_Ident                       => -1,
-      Pragma_Import                      => +2,
-      Pragma_Import_Exception            =>  0,
-      Pragma_Import_Function             =>  0,
-      Pragma_Import_Object               =>  0,
-      Pragma_Import_Procedure            =>  0,
-      Pragma_Import_Valued_Procedure     =>  0,
-      Pragma_Initialize_Scalars          => -1,
-      Pragma_Inline                      =>  0,
-      Pragma_Inline_Always               =>  0,
-      Pragma_Inline_Generic              =>  0,
-      Pragma_Inspection_Point            => -1,
-      Pragma_Interface                   => +2,
-      Pragma_Interface_Name              => +2,
-      Pragma_Interrupt_Handler           => -1,
-      Pragma_Interrupt_Priority          => -1,
-      Pragma_Interrupt_State             => -1,
-      Pragma_Java_Constructor            => -1,
-      Pragma_Java_Interface              => -1,
-      Pragma_Keep_Names                  =>  0,
-      Pragma_License                     => -1,
-      Pragma_Link_With                   => -1,
-      Pragma_Linker_Alias                => -1,
-      Pragma_Linker_Options              => -1,
-      Pragma_Linker_Section              => -1,
-      Pragma_List                        => -1,
-      Pragma_Locking_Policy              => -1,
-      Pragma_Long_Float                  => -1,
-      Pragma_Machine_Attribute           => -1,
-      Pragma_Main                        => -1,
-      Pragma_Main_Storage                => -1,
-      Pragma_Memory_Size                 => -1,
-      Pragma_No_Return                   =>  0,
-      Pragma_No_Run_Time                 => -1,
-      Pragma_Normalize_Scalars           => -1,
-      Pragma_Obsolescent                 =>  0,
-      Pragma_Optimize                    => -1,
-      Pragma_Optional_Overriding         => -1,
-      Pragma_Overriding                  => -1,
-      Pragma_Pack                        =>  0,
-      Pragma_Page                        => -1,
-      Pragma_Passive                     => -1,
-      Pragma_Polling                     => -1,
-      Pragma_Persistent_Data             => -1,
-      Pragma_Persistent_Object           => -1,
-      Pragma_Preelaborate                => -1,
-      Pragma_Priority                    => -1,
-      Pragma_Propagate_Exceptions        => -1,
-      Pragma_Psect_Object                => -1,
-      Pragma_Pure                        =>  0,
-      Pragma_Pure_Function               =>  0,
-      Pragma_Queuing_Policy              => -1,
-      Pragma_Ravenscar                   => -1,
-      Pragma_Remote_Call_Interface       => -1,
-      Pragma_Remote_Types                => -1,
-      Pragma_Restricted_Run_Time         => -1,
-      Pragma_Restriction_Warnings        => -1,
-      Pragma_Restrictions                => -1,
-      Pragma_Reviewable                  => -1,
-      Pragma_Share_Generic               => -1,
-      Pragma_Shared                      => -1,
-      Pragma_Shared_Passive              => -1,
-      Pragma_Source_File_Name            => -1,
-      Pragma_Source_File_Name_Project    => -1,
-      Pragma_Source_Reference            => -1,
-      Pragma_Storage_Size                => -1,
-      Pragma_Storage_Unit                => -1,
-      Pragma_Stream_Convert              => -1,
-      Pragma_Style_Checks                => -1,
-      Pragma_Subtitle                    => -1,
-      Pragma_Suppress                    =>  0,
-      Pragma_Suppress_All                => -1,
-      Pragma_Suppress_Debug_Info         =>  0,
-      Pragma_Suppress_Initialization     =>  0,
-      Pragma_System_Name                 => -1,
-      Pragma_Task_Dispatching_Policy     => -1,
-      Pragma_Task_Info                   => -1,
-      Pragma_Task_Name                   => -1,
-      Pragma_Task_Storage                =>  0,
-      Pragma_Time_Slice                  => -1,
-      Pragma_Title                       => -1,
-      Pragma_Unchecked_Union             => -1,
-      Pragma_Unimplemented_Unit          => -1,
-      Pragma_Universal_Data              => -1,
-      Pragma_Unreferenced                => -1,
-      Pragma_Unreserve_All_Interrupts    => -1,
-      Pragma_Unsuppress                  =>  0,
-      Pragma_Use_VADS_Size               => -1,
-      Pragma_Validity_Checks             => -1,
-      Pragma_Volatile                    =>  0,
-      Pragma_Volatile_Components         =>  0,
-      Pragma_Warnings                    => -1,
-      Pragma_Weak_External               =>  0,
-      Unknown_Pragma                     =>  0);
+     (Pragma_AST_Entry                    => -1,
+      Pragma_Abort_Defer                  => -1,
+      Pragma_Ada_83                       => -1,
+      Pragma_Ada_95                       => -1,
+      Pragma_All_Calls_Remote             => -1,
+      Pragma_Annotate                     => -1,
+      Pragma_Assert                       => -1,
+      Pragma_Asynchronous                 => -1,
+      Pragma_Atomic                       =>  0,
+      Pragma_Atomic_Components            =>  0,
+      Pragma_Attach_Handler               => -1,
+      Pragma_CPP_Class                    =>  0,
+      Pragma_CPP_Constructor              =>  0,
+      Pragma_CPP_Virtual                  =>  0,
+      Pragma_CPP_Vtable                   =>  0,
+      Pragma_C_Pass_By_Copy               =>  0,
+      Pragma_Comment                      =>  0,
+      Pragma_Common_Object                => -1,
+      Pragma_Compile_Time_Warning         => -1,
+      Pragma_Complex_Representation       =>  0,
+      Pragma_Component_Alignment          => -1,
+      Pragma_Controlled                   =>  0,
+      Pragma_Convention                   =>  0,
+      Pragma_Convention_Identifier        =>  0,
+      Pragma_Debug                        => -1,
+      Pragma_Discard_Names                =>  0,
+      Pragma_Elaborate                    => -1,
+      Pragma_Elaborate_All                => -1,
+      Pragma_Elaborate_Body               => -1,
+      Pragma_Elaboration_Checks           => -1,
+      Pragma_Eliminate                    => -1,
+      Pragma_Explicit_Overriding          => -1,
+      Pragma_Export                       => -1,
+      Pragma_Export_Exception             => -1,
+      Pragma_Export_Function              => -1,
+      Pragma_Export_Object                => -1,
+      Pragma_Export_Procedure             => -1,
+      Pragma_Export_Value                 => -1,
+      Pragma_Export_Valued_Procedure      => -1,
+      Pragma_Extend_System                => -1,
+      Pragma_Extensions_Allowed           => -1,
+      Pragma_External                     => -1,
+      Pragma_External_Name_Casing         => -1,
+      Pragma_Finalize_Storage_Only        =>  0,
+      Pragma_Float_Representation         =>  0,
+      Pragma_Ident                        => -1,
+      Pragma_Import                       => +2,
+      Pragma_Import_Exception             =>  0,
+      Pragma_Import_Function              =>  0,
+      Pragma_Import_Object                =>  0,
+      Pragma_Import_Procedure             =>  0,
+      Pragma_Import_Valued_Procedure      =>  0,
+      Pragma_Initialize_Scalars           => -1,
+      Pragma_Inline                       =>  0,
+      Pragma_Inline_Always                =>  0,
+      Pragma_Inline_Generic               =>  0,
+      Pragma_Inspection_Point             => -1,
+      Pragma_Interface                    => +2,
+      Pragma_Interface_Name               => +2,
+      Pragma_Interrupt_Handler            => -1,
+      Pragma_Interrupt_Priority           => -1,
+      Pragma_Interrupt_State              => -1,
+      Pragma_Java_Constructor             => -1,
+      Pragma_Java_Interface               => -1,
+      Pragma_Keep_Names                   =>  0,
+      Pragma_License                      => -1,
+      Pragma_Link_With                    => -1,
+      Pragma_Linker_Alias                 => -1,
+      Pragma_Linker_Options               => -1,
+      Pragma_Linker_Section               => -1,
+      Pragma_List                         => -1,
+      Pragma_Locking_Policy               => -1,
+      Pragma_Long_Float                   => -1,
+      Pragma_Machine_Attribute            => -1,
+      Pragma_Main                         => -1,
+      Pragma_Main_Storage                 => -1,
+      Pragma_Memory_Size                  => -1,
+      Pragma_No_Return                    =>  0,
+      Pragma_No_Run_Time                  => -1,
+      Pragma_Normalize_Scalars            => -1,
+      Pragma_Obsolescent                  =>  0,
+      Pragma_Optimize                     => -1,
+      Pragma_Optional_Overriding          => -1,
+      Pragma_Overriding                   => -1,
+      Pragma_Pack                         =>  0,
+      Pragma_Page                         => -1,
+      Pragma_Passive                      => -1,
+      Pragma_Polling                      => -1,
+      Pragma_Persistent_Data              => -1,
+      Pragma_Persistent_Object            => -1,
+      Pragma_Preelaborate                 => -1,
+      Pragma_Priority                     => -1,
+      Pragma_Propagate_Exceptions         => -1,
+      Pragma_Psect_Object                 => -1,
+      Pragma_Pure                         =>  0,
+      Pragma_Pure_Function                =>  0,
+      Pragma_Queuing_Policy               => -1,
+      Pragma_Ravenscar                    => -1,
+      Pragma_Remote_Call_Interface        => -1,
+      Pragma_Remote_Types                 => -1,
+      Pragma_Restricted_Run_Time          => -1,
+      Pragma_Restriction_Warnings         => -1,
+      Pragma_Restrictions                 => -1,
+      Pragma_Reviewable                   => -1,
+      Pragma_Share_Generic                => -1,
+      Pragma_Shared                       => -1,
+      Pragma_Shared_Passive               => -1,
+      Pragma_Source_File_Name             => -1,
+      Pragma_Source_File_Name_Project     => -1,
+      Pragma_Source_Reference             => -1,
+      Pragma_Storage_Size                 => -1,
+      Pragma_Storage_Unit                 => -1,
+      Pragma_Stream_Convert               => -1,
+      Pragma_Style_Checks                 => -1,
+      Pragma_Subtitle                     => -1,
+      Pragma_Suppress                     =>  0,
+      Pragma_Suppress_Exception_Locations =>  0,
+      Pragma_Suppress_All                 => -1,
+      Pragma_Suppress_Debug_Info          =>  0,
+      Pragma_Suppress_Initialization      =>  0,
+      Pragma_System_Name                  => -1,
+      Pragma_Task_Dispatching_Policy      => -1,
+      Pragma_Task_Info                    => -1,
+      Pragma_Task_Name                    => -1,
+      Pragma_Task_Storage                 =>  0,
+      Pragma_Time_Slice                   => -1,
+      Pragma_Title                        => -1,
+      Pragma_Unchecked_Union              => -1,
+      Pragma_Unimplemented_Unit           => -1,
+      Pragma_Universal_Data               => -1,
+      Pragma_Unreferenced                 => -1,
+      Pragma_Unreserve_All_Interrupts     => -1,
+      Pragma_Unsuppress                   =>  0,
+      Pragma_Use_VADS_Size                => -1,
+      Pragma_Validity_Checks              => -1,
+      Pragma_Volatile                     =>  0,
+      Pragma_Volatile_Components          =>  0,
+      Pragma_Warnings                     => -1,
+      Pragma_Weak_External                =>  0,
+      Unknown_Pragma                      =>  0);
 
    function Is_Non_Significant_Pragma_Reference (N : Node_Id) return Boolean is
       P : Node_Id;

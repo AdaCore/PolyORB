@@ -41,6 +41,8 @@ with Ada.Tags;
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
 with PolyORB.Objects;
+with PolyORB.Utils.Chained_Lists;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.References is
 
@@ -54,6 +56,34 @@ package body PolyORB.References is
      renames L.Output;
 
    type Reference_Info_Access is access all Reference_Info'Class;
+
+   --------------------------------
+   -- System location management --
+   --------------------------------
+
+   type Prefix_Info is record
+      Prefix : Utils.Strings.String_Ptr;
+      Func   : String_To_Object_Func;
+   end record;
+
+   package Prefix_Info_Lists is
+     new PolyORB.Utils.Chained_Lists (Prefix_Info);
+
+   Prefixes : Prefix_Info_Lists.List;
+
+   --------------
+   -- Register --
+   --------------
+
+   procedure Register_String_To_Object
+     (Prefix : String;
+      Func   : String_To_Object_Func) is
+   begin
+      Prefix_Info_Lists.Append (Prefixes,
+                                Prefix_Info'(Prefix => new String'(Prefix),
+                                             Func   => Func));
+      pragma Debug (O ("register prefix: " & Prefix));
+   end Register_String_To_Object;
 
    ------------------------
    -- Local declarations --
@@ -350,5 +380,29 @@ package body PolyORB.References is
       --  XXX Perhaps some cases of R not designating
       --  a ref_info should be supported here?
    end Type_Id_Of;
+
+   ----------------------
+   -- String_To_Object --
+   ----------------------
+
+   procedure String_To_Object (Str : String; The_Ref : out Ref)
+   is
+      use Prefix_Info_Lists;
+
+      It : Iterator := First (Prefixes);
+   begin
+      while not Last (It) loop
+         declare
+            Prefix : String renames Value (It).Prefix.all;
+         begin
+            if Utils.Has_Prefix (Str, Prefix) then
+               Set (The_Ref, Entity_Of (Value (It).Func (Str)));
+               return;
+            end if;
+         end;
+         Next (It);
+      end loop;
+      raise Constraint_Error;
+   end String_To_Object;
 
 end PolyORB.References;

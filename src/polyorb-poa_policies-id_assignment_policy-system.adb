@@ -36,7 +36,7 @@ with PolyORB.Object_Maps.System;
 with PolyORB.POA;
 with PolyORB.POA_Types;
 with PolyORB.POA_Policies.Lifespan_Policy;
-with PolyORB.Tasking.Rw_Locks;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Types;
 with PolyORB.Utils;
 
@@ -44,7 +44,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    use PolyORB.Log;
    use PolyORB.Object_Maps;
-   use PolyORB.Tasking.Rw_Locks;
+   use PolyORB.Tasking.Mutexes;
    use PolyORB.Types;
 
    package L is new Log.Facility_Log
@@ -108,8 +108,11 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
+      Result : constant PolyORB.Object_Maps.Object_Map_Access
+        := new PolyORB.Object_Maps.System.System_Object_Map;
    begin
-      return new PolyORB.Object_Maps.System.System_Object_Map;
+      PolyORB.Object_Maps.Initialize (Result.all);
+      return Result;
    end Create_Object_Map;
 
    ------------------------------
@@ -140,7 +143,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
    begin
       pragma Debug (O ("Assign_Object_Identifier: enter"));
 
-      Lock_W (POA.Map_Lock);
+      Enter (POA.Map_Lock);
 
       if POA.Active_Object_Map = null then
          POA.Active_Object_Map := Create_Object_Map
@@ -152,7 +155,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
                 Internal_E,
                 System_Exception_Members'(Minor => 0,
                                           Completed => Completed_No));
-         Unlock_W (POA.Map_Lock);
+         Leave (POA.Map_Lock);
          return;
       end if;
 
@@ -172,9 +175,14 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
                       Bad_Param_E,
                       System_Exception_Members'(Minor => 0,
                                                 Completed => Completed_No));
-               Unlock_W (POA.Map_Lock);
+               Leave (POA.Map_Lock);
                return;
             end if;
+
+            --  Hint is a valid system generated oid. We reserve a
+            --  slot for this oid in POA's active object map. Servant
+            --  information is still null at this point. It will be
+            --  added later.
 
             Index := Integer'Value (To_Standard_String (U_Hint.Id));
             The_Entry := new Object_Map_Entry;
@@ -191,7 +199,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
                  The_Entry,
                  Index);
 
-            Unlock_W (POA.Map_Lock);
+            Leave (POA.Map_Lock);
          end;
 
       else
@@ -217,7 +225,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
               Get_Lifespan_Cookie (POA.Lifespan_Policy.all, OA),
             Creator          => POA.Absolute_Address);
 
-         Unlock_W (POA.Map_Lock);
+         Leave (POA.Map_Lock);
       end if;
 
       pragma Debug (O ("Object Name is '"

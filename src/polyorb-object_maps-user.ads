@@ -47,6 +47,10 @@ package PolyORB.Object_Maps.User is
 
    type User_Object_Map is new Object_Map with private;
 
+   procedure Initialize (O_Map : in out User_Object_Map);
+
+   procedure Finalize (O_Map : in out User_Object_Map);
+
    procedure Add
      (O_Map : access User_Object_Map;
       Obj   : in     Object_Map_Entry_Access);
@@ -88,7 +92,6 @@ private
 
    type User_Object_Map is new Object_Map with record
       User_Map    : Map_EntryTable;
-      Initialized : Boolean := False;
    end record;
 
 end PolyORB.Object_Maps.User;

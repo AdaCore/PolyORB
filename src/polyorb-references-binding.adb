@@ -156,10 +156,15 @@ package body PolyORB.References.Binding is
       end if;
 
       declare
+         use PolyORB.Objects;
+
          Selected_Profile : Profile_Access
            renames Profiles (Best_Profile_Index);
-         OA : constant Obj_Adapter_Access
-           := Object_Adapter (Local_ORB);
+
+         OA_Entity : constant PolyORB.Smart_Pointers.Entity_Ptr
+           := Get_OA (Selected_Profile.all);
+
+         OA : constant Obj_Adapter_Access := Obj_Adapter_Access (OA_Entity);
 
          S : PolyORB.Servants.Servant_Access;
       begin
@@ -175,11 +180,15 @@ package body PolyORB.References.Binding is
 
             Object_Id := Get_Object_Key (Selected_Profile.all);
 
+            if Object_Id = null then
+               pragma Debug (O ("Unable to locate object"));
+               return;
+            end if;
+
             if not Is_Proxy_Oid (OA, Object_Id) then
                --  Real local object
 
-               Find_Servant
-                 (Object_Adapter (Local_ORB), Object_Id, S, Error);
+               Find_Servant (OA, Object_Id, S, Error);
 
                if Found (Error) then
                   return;

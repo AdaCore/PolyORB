@@ -51,13 +51,13 @@ package MOMA.Provider.Warehouse is
 
    procedure Register
      (W : in out Warehouse;
-      K : String;
-      V : PolyORB.Any.Any);
+      K :        String;
+      V :        PolyORB.Any.Any);
    --  Associate key K with value V.
 
    procedure Unregister
      (W : in out Warehouse;
-      K : String);
+      K :        String);
    --  Remove any association for K. Key_Not_Found is raised
    --  if no value was registered for this key.
 
@@ -70,15 +70,16 @@ package MOMA.Provider.Warehouse is
    --  key.
 
    function Lookup
-     (W : Warehouse;
-      K : String;
+     (W       : Warehouse;
+      K       : String;
       Default : PolyORB.Any.Any)
      return PolyORB.Any.Any;
    --  As above, but Default is returned for non-registered keys,
    --  instead of raising an exception.
 
-   procedure Set_Persistence (W : in out Warehouse;
-                              Persistence : MOMA.Types.Persistence_Mode);
+   procedure Set_Persistence
+     (W           : in out Warehouse;
+      Persistence :        MOMA.Types.Persistence_Mode);
    --  Set persistency flag for this warehouse,
    --  Note : this overrides any flag set for a message if set to a mode
    --  allowing persistence.

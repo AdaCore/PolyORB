@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.ads#29 $
+--  $Id: //droopi/main/src/corba/corba.ads#32 $
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
@@ -155,9 +155,9 @@ package CORBA is
    Null_Wide_String : constant CORBA.Wide_String := CORBA.Wide_String
      (Ada.Strings.Wide_Unbounded.To_Unbounded_Wide_String (""));
 
-   -------------
-   --  Types  --
-   -------------
+   -----------
+   -- Types --
+   -----------
 
    --  type Identifier is new CORBA.String;
    type Identifier is new PolyORB.Types.Identifier;
@@ -246,7 +246,7 @@ package CORBA is
    No_Permission           : exception; --  no permission for attempted op.
    Internal                : exception; --  ORB internal error
    Marshal                 : exception; --  error marshalling param/result
-   Initialization_Failure  : exception; --  ORB initialization failure
+   Initialize              : exception; --  ORB initialization failure
    No_Implement            : exception; --  operation impleme. unavailable
    Bad_TypeCode            : exception; --  bad typecode
    Bad_Operation           : exception; --  invalid operation
@@ -273,6 +273,10 @@ package CORBA is
    Transaction_Unavailable : exception; --  no transaction
    Transaction_Mode        : exception; --  invalid transaction mode
    Bad_Qos                 : exception; --  bad quality of service
+
+   Initialization_Failure  : exception renames Initialize;
+   --  Note: this exception is defined in Ada mapping specification,
+   --  not in CORBA specification.
 
    type System_Exception_Members is new PolyORB.Exceptions.Exception_Members
      with record
@@ -329,9 +333,9 @@ package CORBA is
      (Excp_Memb : in System_Exception_Members);
    pragma No_Return (Raise_Marshal);
 
-   procedure Raise_Initialization_Failure
+   procedure Raise_Initialize
      (Excp_Memb : in System_Exception_Members);
-   pragma No_Return (Raise_Initialization_Failure);
+   pragma No_Return (Raise_Initialize);
 
    procedure Raise_No_Implement
      (Excp_Memb : in System_Exception_Members);
@@ -437,6 +441,10 @@ package CORBA is
         (Excp_Memb : in System_Exception_Members);
    pragma No_Return (Raise_Bad_Qos);
 
+   procedure Raise_Initialization_Failure
+     (Excp_Memb : in System_Exception_Members)
+     renames Raise_Initialize;
+
    Default_Sys_Member : constant System_Exception_Members
      := System_Exception_Members'(Minor => 0,
                                   Completed => CORBA.Completed_No);
@@ -459,7 +467,7 @@ package CORBA is
      with null record;
    type Marshal_Members                 is new System_Exception_Members
      with null record;
-   type Initialization_Failure_Members  is new System_Exception_Members
+   type Initialize_Members              is new System_Exception_Members
      with null record;
    type No_Implement_Members            is new System_Exception_Members
      with null record;
@@ -513,6 +521,8 @@ package CORBA is
      with null record;
    type Bad_Qos_Members                 is new System_Exception_Members
      with null record;
+
+   subtype Initialization_Failure_Members is Initialize_Members;
 
    ------------
    -- Policy --
@@ -591,6 +601,43 @@ package CORBA is
    --  See spec CORBA V2.3, Ada Langage Mapping 1.33
 
    subtype TCKind is PolyORB.Any.TCKind;
+
+   --  Accessors functions on TCKind values
+
+   function Tk_Null return TCKind renames PolyORB.Any.Tk_Null;
+   function Tk_Void return TCKind renames PolyORB.Any.Tk_Void;
+   function Tk_Short return TCKind renames PolyORB.Any.Tk_Short;
+   function Tk_Long return TCKind renames PolyORB.Any.Tk_Long;
+   function Tk_Ushort return TCKind renames PolyORB.Any.Tk_Ushort;
+   function Tk_Ulong return TCKind renames PolyORB.Any.Tk_Ulong;
+   function Tk_Float return TCKind renames PolyORB.Any.Tk_Float;
+   function Tk_Double return TCKind renames PolyORB.Any.Tk_Double;
+   function Tk_Boolean return TCKind renames PolyORB.Any.Tk_Boolean;
+   function Tk_Char return TCKind renames PolyORB.Any.Tk_Char;
+   function Tk_Octet return TCKind renames PolyORB.Any.Tk_Octet;
+   function Tk_Any return TCKind renames PolyORB.Any.Tk_Any;
+   function Tk_TypeCode return TCKind renames PolyORB.Any.Tk_TypeCode;
+   function Tk_Principal return TCKind renames PolyORB.Any.Tk_Principal;
+   function Tk_Objref return TCKind renames PolyORB.Any.Tk_Objref;
+   function Tk_Struct return TCKind renames PolyORB.Any.Tk_Struct;
+   function Tk_Union return TCKind renames PolyORB.Any.Tk_Union;
+   function Tk_Enum return TCKind renames PolyORB.Any.Tk_Enum;
+   function Tk_String return TCKind renames PolyORB.Any.Tk_String;
+   function Tk_Sequence return TCKind renames PolyORB.Any.Tk_Sequence;
+   function Tk_Array return TCKind renames PolyORB.Any.Tk_Array;
+   function Tk_Alias return TCKind renames PolyORB.Any.Tk_Alias;
+   function Tk_Except return TCKind renames PolyORB.Any.Tk_Except;
+   function Tk_Longlong return TCKind renames PolyORB.Any.Tk_Longlong;
+   function Tk_Ulonglong return TCKind renames PolyORB.Any.Tk_Ulonglong;
+   function Tk_Longdouble return TCKind renames PolyORB.Any.Tk_Longdouble;
+   function Tk_Widechar return TCKind renames PolyORB.Any.Tk_Widechar;
+   function Tk_Wstring return TCKind renames PolyORB.Any.Tk_Wstring;
+   function Tk_Fixed return TCKind renames PolyORB.Any.Tk_Fixed;
+   function Tk_Value return TCKind renames PolyORB.Any.Tk_Value;
+   function Tk_Valuebox return TCKind renames PolyORB.Any.Tk_Valuebox;
+   function Tk_Native return TCKind renames PolyORB.Any.Tk_Native;
+   function Tk_Abstract_Interface return TCKind
+     renames PolyORB.Any.Tk_Abstract_Interface;
 
    subtype ValueModifier is PolyORB.Any.ValueModifier;
    VTM_NONE        : constant ValueModifier;
@@ -709,15 +756,17 @@ package CORBA is
 
    --  not in spec : change the type of an any without changing its
    --  value : to be used carefully
-   procedure Set_Type (The_Any : in out Any;
-                       The_Type : in TypeCode.Object);
+   procedure Set_Type
+     (The_Any  : in out Any;
+      The_Type : in     TypeCode.Object);
 
    generic
-      with procedure Process (The_Any : in Any;
-                              Continue : out Boolean);
+      with procedure Process
+        (The_Any  : in  Any;
+         Continue : out Boolean);
    procedure Iterate_Over_Any_Elements (In_Any : in Any);
 
-   --  returns  an empty Any (with no value but a type)
+   --  returns an empty Any (with no value but a type)
    function Get_Empty_Any (Tc : TypeCode.Object) return Any;
 
    --  Not in spec : return true if the Any has a value, false

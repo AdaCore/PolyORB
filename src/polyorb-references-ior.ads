@@ -45,48 +45,46 @@
 with Ada.Streams;
 
 with PolyORB.Buffers;
-with PolyORB.Types;
+with PolyORB.Binding_Data;
 
 package PolyORB.References.IOR is
 
    use PolyORB.Buffers;
 
-   --  An object reference (whose supported interface is not
-   --  reflected by its Ada type) and the associated type information
-   --  (within the PolyORB typing model).
+   procedure Marshall_Profile
+     (Buffer  : access Buffer_Type;
+      P       :        Binding_Data.Profile_Access;
+      Success :    out Boolean);
 
-   subtype IOR_Type is PolyORB.References.Ref;
+   function Unmarshall_Profile
+     (Buffer : access Buffer_Type)
+     return Binding_Data.Profile_Access;
+   --  return null if failed
 
    procedure Marshall_IOR
      (Buffer : access Buffer_Type;
-      Value  : in     IOR_Type);
+      Value  : in     PolyORB.References.Ref);
 
    function  Unmarshall_IOR
      (Buffer : access Buffer_Type)
-     return  IOR_Type;
+     return  PolyORB.References.Ref;
 
    --------------------------------------
    -- Object reference <-> opaque data --
    --------------------------------------
 
-   function Object_To_Opaque (IOR : IOR_Type)
+   function Object_To_Opaque (IOR : PolyORB.References.Ref)
      return Ada.Streams.Stream_Element_Array;
 
    function Opaque_To_Object
      (Opaque : access Ada.Streams.Stream_Element_Array)
-     return IOR_Type;
+     return PolyORB.References.Ref;
 
    ------------------------------------------
    -- Object reference <-> stringified IOR --
    ------------------------------------------
 
-   function Object_To_String
-     (IOR : IOR_Type)
-     return Types.String;
-
-   function String_To_Object
-     (Str : Types.String)
-     return IOR_Type;
+   function Object_To_String (IOR : PolyORB.References.Ref) return String;
 
    ---------------------
    -- Profile Factory --
@@ -104,5 +102,9 @@ package PolyORB.References.IOR is
      (Profile                 : in Binding_Data.Profile_Tag;
       Marshall_Profile_Body   : in Marshall_Profile_Body_Type;
       Unmarshall_Profile_Body : in Unmarshall_Profile_Body_Type);
+
+private
+
+   function String_To_Object (Str : String) return PolyORB.References.Ref;
 
 end PolyORB.References.IOR;

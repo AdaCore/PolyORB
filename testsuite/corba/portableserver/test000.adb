@@ -58,6 +58,8 @@ with Echo.Helper;
 with Echo.Impl;
 
 with Test_AdapterActivator;
+with Test_ServantActivator;
+with Test_MyPOA;
 with Test_Job;
 
 procedure Test000 is
@@ -107,9 +109,11 @@ procedure Test000 is
    procedure Init_Test is
    begin
       --  ORB Initialization.
+
       CORBA.ORB.Initialize ("ORB");
 
       --  Run the ORB instance in a separated task.
+
       Initiate_Server (True);
 
       Output ("ORB initialized", True);
@@ -282,9 +286,9 @@ procedure Test000 is
 
       Policies : CORBA.Policy.PolicyList;
 
-      Thread_Policy : CORBA.Policy.Ref
-        := CORBA.Policy.Ref (Create_Thread_Policy
-                             (PortableServer.ORB_CTRL_MODEL));
+      Thread_Policy : CORBA.Policy.Ref :=
+        CORBA.Policy.Ref (Create_Thread_Policy
+                          (PortableServer.ORB_CTRL_MODEL));
 
       Root_POA : constant PortableServer.POA.Ref :=
         PortableServer.POA.To_Ref
@@ -335,8 +339,8 @@ procedure Test000 is
       --  POAManager state sanity check
 
       Output ("POA State Correct ",
-              Get_State (PortableServer.POA.Get_The_POAManager (Child_POA))
-              = PortableServer.POAManager.ACTIVE);
+              Get_State (PortableServer.POA.Get_The_POAManager (Child_POA)) =
+              PortableServer.POAManager.ACTIVE);
 
       --  Now the POAManager will hold requests, we also invoke a request
       --  to test POAManager queue.
@@ -354,6 +358,7 @@ procedure Test000 is
 
       Test_Job.Global_Obj_Ref := Obj_Ref;
       PolyORB.Tasking.Threads.Create_Task (Test_Job.Run_Job'Access);
+
       delay 0.1;
       --  Delay to provoke a context switch so that invocation
       --  actually begins before executing the next statement.
@@ -366,10 +371,11 @@ procedure Test000 is
       --  POAManager state sanity check
 
       Output ("POA State Correct ",
-              Get_State (PortableServer.POA.Get_The_POAManager (Child_POA))
-              = PortableServer.POAManager.ACTIVE);
+              Get_State (PortableServer.POA.Get_The_POAManager (Child_POA)) =
+              PortableServer.POAManager.ACTIVE);
 
       --  (dirty) Synchronization point.
+
       delay 5.0;
       Output ("Waiting for end of POAManager 'HOLDING' tests", True);
 
@@ -381,8 +387,8 @@ procedure Test000 is
       --  POAManager state sanity check
 
       Output ("POA State Correct ",
-              Get_State (PortableServer.POA.Get_The_POAManager (Child_POA))
-              = PortableServer.POAManager.DISCARDING);
+              Get_State (PortableServer.POA.Get_The_POAManager (Child_POA)) =
+              PortableServer.POAManager.DISCARDING);
 
       Output ("POA will discard requests", True);
 
@@ -408,8 +414,8 @@ procedure Test000 is
       --  POAManager state sanity check
 
       Output ("POA State Correct ",
-              Get_State (PortableServer.POA.Get_The_POAManager (Child_POA))
-              = PortableServer.POAManager.ACTIVE);
+              Get_State (PortableServer.POA.Get_The_POAManager (Child_POA)) =
+              PortableServer.POAManager.ACTIVE);
 
       Invoke_On_Servant (Obj_Ref);
 
@@ -422,12 +428,13 @@ procedure Test000 is
       --  POAManager state sanity check
 
       Output ("POA State Correct ",
-              Get_State (PortableServer.POA.Get_The_POAManager (Child_POA))
-              = PortableServer.POAManager.INACTIVE);
+              Get_State (PortableServer.POA.Get_The_POAManager (Child_POA)) =
+              PortableServer.POAManager.INACTIVE);
 
       begin
          Activate (PortableServer.POA.Get_The_POAManager (Child_POA));
          Output ("Activate raised exception", False);
+
       exception
          when PortableServer.POAManager.AdapterInactive =>
             Output ("Activate raised exception", True);
@@ -455,9 +462,9 @@ procedure Test000 is
 
       Policies : CORBA.Policy.PolicyList;
 
-      Thread_Policy : CORBA.Policy.Ref
-        := CORBA.Policy.Ref (Create_Thread_Policy
-                             (PortableServer.SINGLE_THREAD_MODEL));
+      Thread_Policy : CORBA.Policy.Ref :=
+        CORBA.Policy.Ref (Create_Thread_Policy
+                          (PortableServer.SINGLE_THREAD_MODEL));
 
       Root_POA : constant PortableServer.POA.Ref :=
         PortableServer.POA.To_Ref
@@ -470,9 +477,11 @@ procedure Test000 is
       New_Test ("Single Thread Policy");
 
       --  Construct POA Policy List.
+
       Append (Policies, Thread_Policy);
 
       --  Register a Child POA.
+
       Child_POA := PortableServer.POA.Ref
         (PortableServer.POA.Create_POA
          (Root_POA,
@@ -493,16 +502,19 @@ procedure Test000 is
       --  Invoke_On_Servant (Obj_Ref, True);
 
       --  Test multiple calls on the same servant.
+
       Test_Job.Global_Obj_Ref := Obj_Ref;
       PolyORB.Tasking.Threads.Create_Task (Test_Job.Run_Job_Wait'Access);
       delay 0.01;
 
       PolyORB.Tasking.Threads.Create_Task (Test_Job.Run_Job_Wait'Access);
+
       delay 0.01;
       --  Delay to provoke a context switch so that invocation
       --  actually begins before executing the next statement.
 
       --  (dirty) Synchronization point.
+
       delay 10.0;
       Output ("Waiting for the end of multiple calls", True);
 
@@ -510,6 +522,7 @@ procedure Test000 is
       Invoke_On_Servant (Obj_Ref2);
 
       --  (dirty) Synchronization point.
+
       delay 10.0;
       Output ("Waiting for end of Single Thread tests", True);
 
@@ -528,9 +541,9 @@ procedure Test000 is
 
       Policies : CORBA.Policy.PolicyList;
 
-      Thread_Policy : CORBA.Policy.Ref
-        := CORBA.Policy.Ref (Create_Thread_Policy
-                             (PortableServer.MAIN_THREAD_MODEL));
+      Thread_Policy : CORBA.Policy.Ref :=
+        CORBA.Policy.Ref (Create_Thread_Policy
+                          (PortableServer.MAIN_THREAD_MODEL));
 
       Root_POA : constant PortableServer.POA.Ref :=
         PortableServer.POA.To_Ref
@@ -543,9 +556,11 @@ procedure Test000 is
       New_Test ("Main Thread Policy");
 
       --  Construct POA Policy List.
+
       Append (Policies, Thread_Policy);
 
       --  Register a Child POA.
+
       Child_POA := PortableServer.POA.Ref
         (PortableServer.POA.Create_POA
          (Root_POA,
@@ -560,6 +575,7 @@ procedure Test000 is
       Invoke_On_Servant (Obj_Ref);
 
       --  Test multiple calls on the same servant.
+
       Test_Job.Global_Obj_Ref := Obj_Ref;
       PolyORB.Tasking.Threads.Create_Task (Test_Job.Run_Job_Wait'Access);
       delay 0.01;
@@ -573,6 +589,7 @@ procedure Test000 is
       Invoke_On_Servant (Obj_Ref2);
 
       --  (dirty) Synchronization point.
+
       delay 10.0;
       Output ("Waiting for end of Main Thread tests", True);
 
@@ -596,8 +613,8 @@ procedure Test000 is
       --  entities !!
 
       declare
-         Obj_Ref : constant CORBA.Object.Ref
-           := PortableServer.POA.Servant_To_Reference (POA, Servant);
+         Obj_Ref : constant CORBA.Object.Ref :=
+           PortableServer.POA.Servant_To_Reference (POA, Servant);
       begin
          Output ("Servant_To_Reference", True);
 
@@ -609,8 +626,8 @@ procedure Test000 is
          end;
 
          declare
-            Servant : constant PortableServer.Servant
-              := Reference_To_Servant (POA, Obj_Ref);
+            Servant : constant PortableServer.Servant :=
+              Reference_To_Servant (POA, Obj_Ref);
             pragma Unreferenced (Servant);
          begin
             Output ("Reference_To_Servant", True);
@@ -623,16 +640,16 @@ procedure Test000 is
          Output ("Servant_To_Id", True);
 
          declare
-            Servant : constant PortableServer.Servant
-              := Id_To_Servant (POA, Oid);
+            Servant : constant PortableServer.Servant :=
+              Id_To_Servant (POA, Oid);
             pragma Unreferenced (Servant);
          begin
             Output ("Id_To_Servant", True);
          end;
 
          declare
-            Obj_Ref : constant CORBA.Object.Ref
-              := Id_To_Reference (POA, Oid);
+            Obj_Ref : constant CORBA.Object.Ref :=
+              Id_To_Reference (POA, Oid);
             pragma Unreferenced (Obj_Ref);
          begin
             Output ("Id_To_Reference", True);
@@ -658,32 +675,32 @@ procedure Test000 is
 
       Policies : CORBA.Policy.PolicyList;
 
-      Thread_Policy : CORBA.Policy.Ref
-        := CORBA.Policy.Ref
+      Thread_Policy : CORBA.Policy.Ref :=
+        CORBA.Policy.Ref
         (Create_Thread_Policy (Tp));
 
-      Lifespan_Policy : CORBA.Policy.Ref
-        := CORBA.Policy.Ref
+      Lifespan_Policy : CORBA.Policy.Ref :=
+        CORBA.Policy.Ref
         (Create_Lifespan_Policy (Lp));
 
-      Id_Uniqueness_Policy : CORBA.Policy.Ref
-        := CORBA.Policy.Ref
+      Id_Uniqueness_Policy : CORBA.Policy.Ref :=
+        CORBA.Policy.Ref
         (Create_Id_Uniqueness_Policy (Up));
 
-      Id_Assignment_Policy : CORBA.Policy.Ref
-        := CORBA.Policy.Ref
+      Id_Assignment_Policy : CORBA.Policy.Ref :=
+        CORBA.Policy.Ref
         (Create_Id_Assignment_Policy (Ap));
 
-      Implicit_Activation_Policy : CORBA.Policy.Ref
-        := CORBA.Policy.Ref
+      Implicit_Activation_Policy : CORBA.Policy.Ref :=
+        CORBA.Policy.Ref
         (Create_Implicit_Activation_Policy (Ip));
 
-      Servant_Retention_Policy : CORBA.Policy.Ref
-        := CORBA.Policy.Ref
+      Servant_Retention_Policy : CORBA.Policy.Ref :=
+        CORBA.Policy.Ref
         (Create_Servant_Retention_Policy (Sp));
 
-      Request_Processing_Policy : CORBA.Policy.Ref
-        := CORBA.Policy.Ref
+      Request_Processing_Policy : CORBA.Policy.Ref :=
+        CORBA.Policy.Ref
         (Create_Request_Processing_Policy (Rp));
 
       Root_POA : constant PortableServer.POA.Ref :=
@@ -750,9 +767,9 @@ procedure Test000 is
       if (Up = UNIQUE_ID and then Sp = NON_RETAIN)
         or else (Sp = NON_RETAIN
                  and then not (Rp = USE_DEFAULT_SERVANT
-                               or Rp = USE_SERVANT_MANAGER))
+                               or else Rp = USE_SERVANT_MANAGER))
         or else (Ip = IMPLICIT_ACTIVATION
-                 and then not (Ap = SYSTEM_ID and Sp = RETAIN))
+                 and then not (Ap = SYSTEM_ID and then Sp = RETAIN))
         or else (Rp = USE_ACTIVE_OBJECT_MAP_ONLY and then Sp /= RETAIN)
         or else (Rp = USE_DEFAULT_SERVANT and then Up /= MULTIPLE_ID)
       then
@@ -780,6 +797,7 @@ procedure Test000 is
    begin
       Test_POA := Create_POA_With_Policies
         (Tp, Lp, Up, Ap, Ip, Sp, Rp);
+
       PortableServer.POA.Destroy
         (Test_POA, False, False);
 
@@ -958,8 +976,8 @@ procedure Test000 is
 
             --  Explicit Object Activation with no supplied Id
 
-            Oid : constant ObjectId
-              := PortableServer.POA.Activate_Object (POA, Servant);
+            Oid : constant ObjectId :=
+              PortableServer.POA.Activate_Object (POA, Servant);
 
          begin
 
@@ -991,16 +1009,16 @@ procedure Test000 is
 
             begin
                declare
-                  Oid2 : constant ObjectId
-                    := PortableServer.POA.Activate_Object (POA, Servant);
+                  Oid2 : constant ObjectId :=
+                    PortableServer.POA.Activate_Object (POA, Servant);
                begin
                   Result.Unique_Activation_No_Id := False;
 
                   --  Try to invoke on the Servant with new Oid
 
                   declare
-                     Obj_Ref2 : constant Echo.Ref
-                       := Echo.Helper.To_Ref (Id_To_Reference (POA, Oid2));
+                     Obj_Ref2 : constant Echo.Ref :=
+                       Echo.Helper.To_Ref (Id_To_Reference (POA, Oid2));
                   begin
                      Temp := Invoke_On_Servant (Obj_Ref2);
 
@@ -1120,8 +1138,8 @@ procedure Test000 is
          Servant : constant PortableServer.Servant := new Echo.Impl.Object;
          Obj_Ref : Echo.Ref;
 
-         Oid : constant ObjectId
-           := PortableServer.String_To_ObjectId ("dead");
+         Oid : constant ObjectId :=
+           PortableServer.String_To_ObjectId ("dead");
 
       begin
          --  Explicit Object Activation with User supplied Object_Id.
@@ -1140,9 +1158,10 @@ procedure Test000 is
          end if;
 
          --  Test Servant to Id integrity.
+
          declare
-            Oid2 : constant ObjectId
-              := PortableServer.POA.Servant_To_Id (POA, Servant);
+            Oid2 : constant ObjectId :=
+              PortableServer.POA.Servant_To_Id (POA, Servant);
          begin
             if Oid /= Oid2 then
                Result.Fatal := True;
@@ -1169,8 +1188,8 @@ procedure Test000 is
          --  Deactivate Object
 
          begin
-            PortableServer.POA.Deactivate_Object
-              (POA, Oid);
+            PortableServer.POA.Deactivate_Object (POA, Oid);
+
          exception
             when E : others =>
                pragma Debug (O ("Got exception "
@@ -1194,15 +1213,15 @@ procedure Test000 is
          --  Try to invoke on a Ref created from the User's Oid
 
          declare
-            Obj_Ref2 : constant Echo.Ref
-              := Echo.Helper.To_Ref
+            Obj_Ref2 : constant Echo.Ref :=
+              Echo.Helper.To_Ref
               (Create_Reference_With_Id
                (POA,
                 Oid,
                 To_CORBA_String (Echo.Repository_Id)));
 
-            Temp_Oid : constant PortableServer.ObjectId
-              := PortableServer.POA.Activate_Object
+            Temp_Oid : constant PortableServer.ObjectId :=
+              PortableServer.POA.Activate_Object
               (POA, Reference_To_Servant (POA, Obj_Ref2));
             pragma Unreferenced (Temp_Oid);
 
@@ -1282,8 +1301,6 @@ procedure Test000 is
             when PortableServer.POA.NoServant =>
                null;
 
-            when others =>
-               raise;
          end;
 
          --  Test Set_Sevant
@@ -1315,8 +1332,8 @@ procedure Test000 is
 
          begin
             declare
-               Obj_Ref2 : constant Echo.Ref
-                 := Echo.Helper.To_Ref
+               Obj_Ref2 : constant Echo.Ref :=
+                 Echo.Helper.To_Ref
                  (Create_Reference
                   (POA,
                    To_CORBA_String (Echo.Repository_Id)));
@@ -1339,8 +1356,8 @@ procedure Test000 is
 
          begin
             declare
-               Obj_Ref2 : constant Echo.Ref
-                 := Echo.Helper.To_Ref
+               Obj_Ref2 : constant Echo.Ref :=
+                 Echo.Helper.To_Ref
                  (Create_Reference_With_Id
                   (POA,
                    PortableServer.String_To_ObjectId ("dead"),
@@ -1425,75 +1442,75 @@ procedure Test000 is
          return False;
       end if;
 
-      if (Result.Implicit_Activation
-          and then (Sp /= RETAIN
-                    or Ip /= IMPLICIT_ACTIVATION))
+      if Result.Implicit_Activation
+        and then (Sp /= RETAIN
+                  or Ip /= IMPLICIT_ACTIVATION)
       then
          Output ("Result.Implicit_Activation", True);
          return False;
       end if;
 
-      if (not Result.Get_Type_Id) then
+      if not Result.Get_Type_Id then
          Output ("Result.Get_Type_Id", True);
          return False;
       end if;
 
-      if (Result.Activation_No_Id
-          and then Ap /= SYSTEM_ID
-          and then Sp /= RETAIN)
+      if Result.Activation_No_Id
+        and then Ap /= SYSTEM_ID
+        and then Sp /= RETAIN
       then
          Output ("Resuilt.Activation_No_Id", True);
          return False;
       end if;
 
-      if (Result.Unique_Activation_No_Id
-          and then Up /= UNIQUE_ID)
+      if Result.Unique_Activation_No_Id
+        and then Up /= UNIQUE_ID
       then
          Output ("Result.Unique_Activation_No_Id", True);
          return False;
       end if;
 
-      if (Result.Deactivation_No_Id
-          and then not Result.Activation_No_Id
-          and then Sp /= RETAIN)
+      if Result.Deactivation_No_Id
+        and then not Result.Activation_No_Id
+        and then Sp /= RETAIN
       then
          Output ("Result.Deactivation_No_Id", True);
          return False;
       end if;
 
-      if (Result.Activation_Id
-          and then Sp /= RETAIN)
+      if Result.Activation_Id
+        and then Sp /= RETAIN
       then
          Output ("Result.Activation_Id", True);
          return False;
       end if;
 
-      if (Result.Unique_Activation_Id
-          and then Up /= UNIQUE_ID)
+      if Result.Unique_Activation_Id
+        and then Up /= UNIQUE_ID
       then
          Output ("Result.Unique_Activation_Id", True);
          return False;
       end if;
 
-      if (Result.Deactivation_Id
-          and then not Result.Activation_Id
-          and then Sp /= RETAIN)
+      if Result.Deactivation_Id
+        and then not Result.Activation_Id
+        and then Sp /= RETAIN
       then
          Output ("Result.Deactivation_Id", True);
          return False;
       end if;
 
-      if (Result.Default_Servant_No_Id
-          and then Rp /= USE_DEFAULT_SERVANT
-          and then Ap /= SYSTEM_ID)
+      if Result.Default_Servant_No_Id
+        and then Rp /= USE_DEFAULT_SERVANT
+        and then Ap /= SYSTEM_ID
       then
          Output ("Result.Use_Default_Servant_No_Id", True);
          return False;
       end if;
 
-      if (Result.Default_Servant_Id
-          and then Rp /= USE_DEFAULT_SERVANT
-          and then Ap /= USER_ID)
+      if Result.Default_Servant_Id
+        and then Rp /= USE_DEFAULT_SERVANT
+        and then Ap /= USER_ID
       then
          Output ("Result.Use_Default_Servant_Id", True);
          return False;
@@ -1670,6 +1687,8 @@ procedure Test000 is
    end Test_POA_Hierarchy;
 
    use Test_AdapterActivator;
+   use Test_ServantActivator;
+   use Test_MyPOA;
 
 begin
    Init_Test;
@@ -1680,8 +1699,11 @@ begin
    Test_Conversion (Get_Root_POA);
    Test_POA_Creation;
    Test_POA_API;
-   Run_Test_AdapterActivator;
    Test_POA_Hierarchy;
+   Run_Test_AdapterActivator;
+   Run_Test_ServantActivator;
+   Run_Test_MyPOA;
+
    End_Report;
 
    CORBA.ORB.Shutdown (False);

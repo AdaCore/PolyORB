@@ -30,9 +30,7 @@
 
 --  $Id$
 
---  to changed, as we use aws.net
-
-with AWS.Net;
+--  with AWS.Net;
 
 package AWS.Response.Set is
 
@@ -55,7 +53,7 @@ package AWS.Response.Set is
    --  Should be used inside of server's callback when the user want
    --  to add/modify its own header lines to the response.
 
-   procedure Read_Header (Socket : in Net.Socket_Type'Class; D : in out Data);
+--  procedure Read_Header (Socket : in Net.Socket_Type'Class; D : in out Data);
    --  Read all header data from the socket and fill appropriate
    --  data's fields.
 
@@ -146,6 +144,13 @@ package AWS.Response.Set is
       Value : in     String);
    pragma Inline (Message_Body);
    --  Set the message body content as a string. Set the Mode field to Message.
+
+   procedure Message_Body
+     (D     : in out Data;
+      Value : in     SOAP.Message.Response.Object);
+   pragma Inline (Message_Body);
+   --  Set the SOAP message body content as a soap response object. Set the
+   --  Mode field to SOAP_Message
 
    function Is_Valid (D : in Data) return Boolean;
    --  Checking validity of the HTTP response

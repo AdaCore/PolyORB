@@ -38,13 +38,15 @@
 with PolyORB.Filters;
 with PolyORB.ORB;
 with PolyORB.Protocols.SRP;
-with PolyORB.Transport.Sockets;
+with PolyORB.Setup;
+with PolyORB.Transport.Connected.Sockets;
 
 package body PolyORB.Binding_Data.SRP is
 
    use PolyORB.Objects;
    use PolyORB.Sockets;
-   use PolyORB.Transport.Sockets;
+   use PolyORB.Transport;
+   use PolyORB.Transport.Connected.Sockets;
 
    procedure Initialize (P : in out SRP_Profile_Type) is
    begin
@@ -68,16 +70,16 @@ package body PolyORB.Binding_Data.SRP is
       The_ORB : Components.Component_Access)
      return Components.Component_Access
    is
+      use PolyORB.ORB;
       use PolyORB.Protocols.SRP;
       use PolyORB.Sockets;
-      use PolyORB.Transport.Sockets;
 
       S : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
       P : aliased SRP_Protocol;
       Session : Components.Component_Access;
-      TE : constant Transport.Transport_Endpoint_Access
-        := new Transport.Sockets.Socket_Endpoint;
+      TE : constant Transport_Endpoint_Access
+        := new Socket_Endpoint;
    begin
       Create_Socket (S);
       Connect_Socket (S, Remote_Addr);
@@ -85,8 +87,10 @@ package body PolyORB.Binding_Data.SRP is
       Create (P'Access, Filters.Filter_Access (Session));
 
       ORB.Register_Endpoint
-        (ORB.ORB_Access (The_ORB), TE,
-         Filters.Filter_Access (Session), ORB.Client);
+        (ORB_Access (The_ORB),
+         TE,
+         Filters.Filter_Access (Session),
+         ORB.Client);
       return Session;
    end Bind_Profile;
 
@@ -152,5 +156,17 @@ package body PolyORB.Binding_Data.SRP is
       return "Address : " & Image (Prof.Address) &
         ", Object_Id : " & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
+
+   function Get_OA
+     (Profile : SRP_Profile_Type)
+     return PolyORB.Smart_Pointers.Entity_Ptr
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Profile);
+      pragma Warnings (On); --  WAG:3.15
+   begin
+      return PolyORB.Smart_Pointers.Entity_Ptr
+        (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));
+   end Get_OA;
 
 end PolyORB.Binding_Data.SRP;

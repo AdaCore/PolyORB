@@ -35,6 +35,9 @@
 
 --  $Id$
 
+with PolyORB.ORB;
+with PolyORB.Setup;
+
 package body PolyORB.Binding_Data.Local is
 
    use PolyORB.Objects;
@@ -154,5 +157,21 @@ package body PolyORB.Binding_Data.Local is
    begin
       return "Object_Id: " & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
+
+   ------------
+   -- Get_OA --
+   ------------
+
+   function Get_OA
+     (Profile : Local_Profile_Type)
+     return PolyORB.Smart_Pointers.Entity_Ptr
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Profile);
+      pragma Warnings (On); --  WAG:3.15
+   begin
+      return PolyORB.Smart_Pointers.Entity_Ptr
+        (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));
+   end Get_OA;
 
 end PolyORB.Binding_Data.Local;

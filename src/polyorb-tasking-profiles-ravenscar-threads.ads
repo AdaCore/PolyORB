@@ -44,8 +44,15 @@ with PolyORB.Tasking.Threads;
 with PolyORB.Tasking.Profiles.Ravenscar.Index_Manager;
 
 generic
-   Number_Of_Threads : Integer;
-   Task_Priority     : System.Priority;
+   Number_Of_Application_Tasks : Integer;
+   --  Number of tasks created by the user.
+
+   Number_Of_System_Tasks      : Integer;
+   --  Number of tasks created by the PolyORB run-time library.
+
+   Task_Priority               : System.Priority;
+   --  Priority of the system tasks.
+
 package PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    pragma Elaborate_Body;
@@ -168,8 +175,12 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    package Synchro_Index_Manager is
       new PolyORB.Tasking.Profiles.Ravenscar.Index_Manager
-     (Number_Of_Threads + 3);
-   --  XXX + 3 is a temporary workaround for thet leak of Sync objects.
+     (Number_Of_System_Tasks + Number_Of_Application_Tasks);
+   --  The number of synchronization objects is the maximum number of
+   --  tasks. Note that if a task have a synchronization object handle
+   --  and it may NOT be blocked; this mean that if all the tasks have
+   --  an handle, it is not an error per se.
+
 
    type Synchro_Index_Type is new Synchro_Index_Manager.Index_Type;
    --  A Synchro_Index_Type represents an index in a pool of synchro objects.
@@ -194,7 +205,7 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
    --  The call to this procedure free the task waiting
    --  on S.
    --  If no task is about to Wait (that is, if no call to
-   --  Prepare_Wait were done before the call to Resume),
+   --  Prepare_Suspend were done before the call to Resume),
    --  the signal is lost.
 
    function Get_Thread_Index (T : Thread_Id) return Integer;

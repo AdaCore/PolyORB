@@ -34,22 +34,23 @@
 --  $Id$
 
 with PolyORB.Components;
-with PolyORB.Configuration;
 with PolyORB.Filters.Interface;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
+with PolyORB.Parameters;
 with PolyORB.Setup;
+with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Threads;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.ORB.Thread_Pool is
 
    use PolyORB.Components;
-   use PolyORB.Configuration;
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
+   use PolyORB.Parameters;
    use PolyORB.Tasking.Threads;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.orb.thread_pool");
@@ -57,7 +58,7 @@ package body PolyORB.ORB.Thread_Pool is
      renames L.Output;
 
    Default_Threads : constant := 4;
-   --  default number of threads in thread pool
+   --  Default number of threads in thread pool
    --  XXX should check compatibility with ravenscar, which also defines
    --  a number of threads ...
 
@@ -141,6 +142,7 @@ package body PolyORB.ORB.Thread_Pool is
       Components.Emit_No_Reply
         (Component_Access (C.TE),
          Connect_Confirmation'(null record));
+
       --  Same comment as Handle_New_Server_Connection.
    end Handle_New_Client_Connection;
 
@@ -179,8 +181,8 @@ package body PolyORB.ORB.Thread_Pool is
       pragma Unreferenced (P);
       pragma Warnings (On);
 
-      package PTI renames PolyORB.Task_Info;
-
+      package PTI  renames PolyORB.Task_Info;
+      package PTCV renames PolyORB.Tasking.Condition_Variables;
    begin
       pragma Debug (O ("Thread "
                        & Image (Current_Task)
@@ -188,9 +190,7 @@ package body PolyORB.ORB.Thread_Pool is
 
       --  Precondition: ORB_Lock is held.
 
-      ORB.Idle_Counter := ORB.Idle_Counter + 1;
       PTCV.Wait (PTI.Condition (This_Task), ORB.ORB_Lock);
-      ORB.Idle_Counter := ORB.Idle_Counter - 1;
 
       --  Post condition: ORB_Lock is held.
 
@@ -235,9 +235,8 @@ package body PolyORB.ORB.Thread_Pool is
 
    procedure Initialize_Threads
    is
-      use PolyORB.Configuration;
-
       Number_Of_Threads : Positive;
+
    begin
       pragma Debug (O ("Initialize_threads : enter"));
 

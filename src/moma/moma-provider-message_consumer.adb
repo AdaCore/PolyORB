@@ -44,6 +44,7 @@ with PolyORB.Any.NVList;
 with PolyORB.Log;
 with PolyORB.Types;
 with PolyORB.Requests;
+with PolyORB.Exceptions;
 
 package body MOMA.Provider.Message_Consumer is
 
@@ -63,20 +64,22 @@ package body MOMA.Provider.Message_Consumer is
 
    --  Actual function implemented by the servant.
 
-   function Get (Self       : in PolyORB.References.Ref;
-                 Message_Id : in MOMA.Types.String)
-                return PolyORB.Any.Any;
+   function Get
+     (Self       : in PolyORB.References.Ref;
+      Message_Id : in MOMA.Types.String)
+     return PolyORB.Any.Any;
    --  Return Message_Id message.
 
-   procedure Register_Handler (Self : access Object;
-                               Handler_Ref : PolyORB.References.Ref;
-                               Behavior : MOMA.Types.Call_Back_Behavior);
+   procedure Register_Handler
+     (Self        : access Object;
+      Handler_Ref :        PolyORB.References.Ref;
+      Behavior    :        MOMA.Types.Call_Back_Behavior);
    --  Register a message handler.
-
 
    --  Accessors to servant interface.
 
-   function Get_Parameter_Profile (Method : String)
+   function Get_Parameter_Profile
+     (Method : String)
      return PolyORB.Any.NVList.Ref;
    --  Parameters part of the interface description.
 
@@ -89,12 +92,13 @@ package body MOMA.Provider.Message_Consumer is
    -- Get --
    ---------
 
-   function Get (Self       : in PolyORB.References.Ref;
-                 Message_Id : in PolyORB.Types.String)
-                return PolyORB.Any.Any
+   function Get
+     (Self       : in PolyORB.References.Ref;
+      Message_Id : in PolyORB.Types.String)
+     return PolyORB.Any.Any
    is
-      Arg_Name_Mesg : PolyORB.Types.Identifier
-        := PolyORB.Types.To_PolyORB_String ("Message");
+      Arg_Name_Mesg : PolyORB.Types.Identifier :=
+        PolyORB.Types.To_PolyORB_String ("Message");
 
       Argument_Mesg : PolyORB.Any.Any := PolyORB.Any.To_Any (Message_Id);
 
@@ -137,8 +141,9 @@ package body MOMA.Provider.Message_Consumer is
    -- Get_Parameter_Profile --
    ---------------------------
 
-   function Get_Parameter_Profile (Method : String)
-                                  return PolyORB.Any.NVList.Ref
+   function Get_Parameter_Profile
+     (Method : String)
+     return PolyORB.Any.NVList.Ref
    is
       use PolyORB.Any;
       use PolyORB.Any.NVList;
@@ -179,8 +184,9 @@ package body MOMA.Provider.Message_Consumer is
    -- Get_Remote_Ref --
    --------------------
 
-   function Get_Remote_Ref (Self : Object)
-                           return PolyORB.References.Ref is
+   function Get_Remote_Ref
+     (Self : Object)
+     return PolyORB.References.Ref is
    begin
       return Self.Remote_Ref;
    end Get_Remote_Ref;
@@ -232,9 +238,11 @@ package body MOMA.Provider.Message_Consumer is
    is
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
+      use PolyORB.Exceptions;
 
-      Args : PolyORB.Any.NVList.Ref;
-      It   : Iterator := First (List_Of (Args).all);
+      Args  : PolyORB.Any.NVList.Ref;
+      It    : Iterator;
+      Error : Error_Container;
    begin
       pragma Debug (O ("The server is executing the request:"
                        & PolyORB.Requests.Image (Req.all)));
@@ -248,8 +256,15 @@ package body MOMA.Provider.Message_Consumer is
             (Name => To_PolyORB_String ("Message_Id"),
              Argument => Get_Empty_Any (TypeCode.TC_String),
              Arg_Modes => PolyORB.Any.ARG_IN));
-         Arguments (Req, Args);
+         Arguments (Req, Args, Error);
 
+         if Found (Error) then
+            raise Program_Error;
+            --  XXX We should do something more contructive
+
+         end if;
+
+         It := First (List_Of (Args).all);
          Set_Result
            (Req, Get (Self.Remote_Ref, From_Any (Value (It).Argument)));
          pragma Debug (O ("Result: " & Image (Req.Result)));
@@ -261,11 +276,19 @@ package body MOMA.Provider.Message_Consumer is
          pragma Debug (O ("Register_Handler request"));
          Args := Get_Parameter_Profile (To_Standard_String (Req.Operation));
 
-         PolyORB.Requests.Arguments (Req, Args);
+         PolyORB.Requests.Arguments (Req, Args, Error);
+
+         if Found (Error) then
+            raise Program_Error;
+            --  XXX We should do something more contructive
+
+         end if;
 
          declare
             Handler_Dest, Behavior : Element_Access;
          begin
+
+            It := First (List_Of (Args).all);
             Handler_Dest := Value (It);
             Next (It);
             Behavior := Value (It);
@@ -290,9 +313,10 @@ package body MOMA.Provider.Message_Consumer is
    -- Register_Handler --
    ----------------------
 
-   procedure Register_Handler (Self : access Object;
-                               Handler_Ref : PolyORB.References.Ref;
-                               Behavior : MOMA.Types.Call_Back_Behavior)
+   procedure Register_Handler
+     (Self        : access Object;
+      Handler_Ref : PolyORB.References.Ref;
+      Behavior    : MOMA.Types.Call_Back_Behavior)
    is
       Request      : PolyORB.Requests.Request_Access;
       Arg_List     : PolyORB.Any.NVList.Ref;
@@ -341,8 +365,9 @@ package body MOMA.Provider.Message_Consumer is
    -- Set_Remote_Ref --
    --------------------
 
-   procedure Set_Remote_Ref (Self : in out Object;
-                             Ref  : PolyORB.References.Ref) is
+   procedure Set_Remote_Ref
+     (Self : in out Object;
+      Ref  :        PolyORB.References.Ref) is
    begin
       Self.Remote_Ref := Ref;
    end Set_Remote_Ref;

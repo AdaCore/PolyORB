@@ -34,7 +34,7 @@
 
 with Ada.Strings.Unbounded;
 
-with AWS.Net.Buffered;
+--  with AWS.Net.Buffered;
 
 package body AWS.Headers is
 
@@ -98,13 +98,13 @@ package body AWS.Headers is
    -- Send_Header --
    -----------------
 
-   procedure Send_Header
-     (Socket  : in Net.Socket_Type'Class;
-      Headers : in List) is
-   begin
-      for J in 1 .. Count (Headers) loop
-         Net.Buffered.Put_Line (Socket, Get_Line (Headers, J));
-      end loop;
-   end Send_Header;
+--     procedure Send_Header
+--       (Socket  : in Net.Socket_Type'Class;
+--        Headers : in List) is
+--     begin
+--        for J in 1 .. Count (Headers) loop
+--           Net.Buffered.Put_Line (Socket, Get_Line (Headers, J));
+--        end loop;
+--     end Send_Header;
 
 end AWS.Headers;

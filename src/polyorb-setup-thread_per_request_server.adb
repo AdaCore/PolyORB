@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,23 +32,21 @@
 ------------------------------------------------------------------------------
 
 --  Elaborate a complete server with the ``thread-per-request''
---  tasking policy.
+--  tasking policy and a full tasking runtime.
 
 --  $Id$
 
-with PolyORB.Initialization;
 with PolyORB.ORB.Thread_Per_Request;
-with PolyORB.Profiles.Full_Tasking;
-with PolyORB.Setup.Server;
-
 pragma Elaborate_All (PolyORB.ORB.Thread_Per_Request);
-pragma Elaborate_All (PolyORB.Profiles.Full_Tasking);
-pragma Elaborate_All (PolyORB.Setup.Server);
-
-pragma Warnings (Off, PolyORB.Initialization);
 pragma Warnings (Off, PolyORB.ORB.Thread_Per_Request);
-pragma Warnings (Off, PolyORB.Profiles.Full_Tasking);
+
+with PolyORB.Setup.Server;
+pragma Elaborate_All (PolyORB.Setup.Server);
 pragma Warnings (Off, PolyORB.Setup.Server);
+
+with PolyORB.Setup.Tasking.Full_Tasking;
+pragma Elaborate_All (PolyORB.Setup.Tasking.Full_Tasking);
+pragma Warnings (Off, PolyORB.Setup.Tasking.Full_Tasking);
 
 package body PolyORB.Setup.Thread_Per_Request_Server is
 

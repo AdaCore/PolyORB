@@ -32,12 +32,11 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Any.ExceptionList;
-with PolyORB.Binding_Data.IIOP;
 with PolyORB.Buffers;
 with PolyORB.Exceptions;
 with PolyORB.GIOP_P.Exceptions;
 with PolyORB.Log;
-with PolyORB.Objects.Interface;
+with PolyORB.Servants.Interface;
 with PolyORB.Representations.CDR;
 
 package body PolyORB.Protocols.GIOP.Common is
@@ -46,8 +45,7 @@ package body PolyORB.Protocols.GIOP.Common is
    use PolyORB.Log;
    use PolyORB.Representations.CDR;
 
-   package L is new PolyORB.Log.Facility_Log
-     ("polyorb.protocols.giop.common");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.giop.common");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -65,7 +63,7 @@ package body PolyORB.Protocols.GIOP.Common is
    end Generic_Marshall;
 
    ------------------------
-   -- Generic Unmarshall --
+   -- Generic_Unmarshall --
    ------------------------
 
    function Generic_Unmarshall
@@ -86,8 +84,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
    procedure Marshall
      (Buffer : access PolyORB.Buffers.Buffer_Type;
-      Val    :        Reply_Status_Type)
-   is
+      Val    :        Reply_Status_Type) is
    begin
       --  XXX not necessary, instantiate it in spec
 
@@ -99,8 +96,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
    procedure Marshall
      (Buffer : access PolyORB.Buffers.Buffer_Type;
-      Val    :        Locate_Reply_Type)
-   is
+      Val    :        Locate_Reply_Type) is
    begin
       --  XXX not necessary, instantiate it in spec
 
@@ -112,8 +108,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
    function Unmarshall
      (Buffer : access PolyORB.Buffers.Buffer_Type)
-     return Reply_Status_Type
-   is
+     return Reply_Status_Type is
    begin
       --  XXX not necessary, instantiate it in spec
 
@@ -125,8 +120,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
    function Unmarshall
      (Buffer : access PolyORB.Buffers.Buffer_Type)
-     return Locate_Reply_Type
-   is
+     return Locate_Reply_Type is
    begin
       --  XXX not necessary, instantiate it in spec
 
@@ -134,7 +128,7 @@ package body PolyORB.Protocols.GIOP.Common is
    end Unmarshall;
 
    --------------------------
-   -- Common Process Reply --
+   -- Common_Process_Reply --
    --------------------------
 
    procedure Common_Process_Reply
@@ -143,28 +137,28 @@ package body PolyORB.Protocols.GIOP.Common is
       Request_Id_Ptr : access Types.Unsigned_Long;
       Reply_Stat_Ptr : access Reply_Status_Type)
    is
-      use PolyORB.Buffers;
-      use PolyORB.Representations.CDR;
-      use PolyORB.Any;
       use PolyORB.Annotations;
-      use PolyORB.Types;
+      use PolyORB.Any;
+      use PolyORB.Buffers;
       use PolyORB.Components;
+      use PolyORB.Representations.CDR;
+      use PolyORB.Types;
 
       Buffer_Out      : Buffer_Access := new Buffer_Type;
       Header_Buffer   : Buffer_Access := new Buffer_Type;
-      Header_Space : constant Reservation := Reserve
-        (Buffer_Out, GIOP_Header_Size);
+      Header_Space    : constant Reservation :=
+        Reserve (Buffer_Out, GIOP_Header_Size);
       Reply_Status    : Reply_Status_Type;
       Except_Id       : Types.String;
       N               : Request_Note;
       Request_Id      : Types.Unsigned_Long renames N.Id;
       CORBA_Occurence : PolyORB.Any.Any;
-      Data_Alignment  : Stream_Element_Offset
-        := Sess.Implem.Data_Alignment;
+      Data_Alignment  : Stream_Element_Offset :=
+        Sess.Implem.Data_Alignment;
    begin
-      pragma Assert ((Sess.Implem.Version = GIOP_V_1_0) or
-                     (Sess.Implem.Version = GIOP_V_1_1) or
-                     (Sess.Implem.Version = GIOP_V_1_2));
+      pragma Assert ((Sess.Implem.Version = GIOP_Version'(1, 0)) or
+                     (Sess.Implem.Version = GIOP_Version'(1, 1)) or
+                     (Sess.Implem.Version = GIOP_Version'(1, 2)));
 
       Get_Note (Request.Notepad, N);
 
@@ -173,10 +167,11 @@ package body PolyORB.Protocols.GIOP.Common is
       if PolyORB.Any.Is_Empty (Request.Exception_Info) then
          Reply_Status := No_Exception;
          pragma Debug (O ("Sending reply, Status : " & Reply_Status'Img));
+
       else
          declare
-            Except_Id_2 : constant String
-              := To_Standard_String
+            Except_Id_2 : constant String :=
+              To_Standard_String
               (TypeCode.Id (Get_Type (Request.Exception_Info)));
          begin
             if PolyORB.GIOP_P.Exceptions.Is_System_Exception
@@ -185,19 +180,22 @@ package body PolyORB.Protocols.GIOP.Common is
             else
                Reply_Status := User_Exception;
             end if;
+
             Except_Id := To_PolyORB_String (Except_Id_2);
+
             pragma Debug (O ("Sending reply, Status : " & Reply_Status'Img));
             pragma Debug (O ("Exception ID : " & Except_Id_2));
          end;
       end if;
 
       --  Set parameter for header request marsahlling
+
       Request_Id_Ptr.all := Request_Id;
       Reply_Stat_Ptr.all := Reply_Status;
 
       --  Marshall reply header
-      Marshall_GIOP_Header_Reply
-        (Sess.Implem, Sess, Buffer_Out);
+
+      Marshall_GIOP_Header_Reply (Sess.Implem, Sess, Buffer_Out);
 
       case Reply_Status is
          when User_Exception | System_Exception =>
@@ -205,11 +203,13 @@ package body PolyORB.Protocols.GIOP.Common is
                CORBA_Occurence :=
                  PolyORB.GIOP_P.Exceptions.To_CORBA_Exception
                  (Request.Exception_Info);
-               --  If it is a system exception we need to translate it to
-               --  a GIOP specific exception occurence
+               --  It is a system exception: we translate it to a GIOP
+               --  specific exception occurence
+
             else
                CORBA_Occurence := Request.Exception_Info;
                --  It is a user exception, nothing is done.
+
             end if;
 
             Pad_Align (Buffer_Out, Sess.Implem.Data_Alignment);
@@ -219,9 +219,8 @@ package body PolyORB.Protocols.GIOP.Common is
             Marshall_From_Any (Buffer_Out, CORBA_Occurence);
 
          when No_Exception =>
-            if TypeCode.Kind (Get_Type (Request.Result.Argument))
-              /= Tk_Void
-            then
+            if TypeCode.Kind (Get_Type (Request.Result.Argument)) /=
+              Tk_Void then
                Pad_Align (Buffer_Out, Data_Alignment);
                Data_Alignment := 1;
             end if;
@@ -240,6 +239,7 @@ package body PolyORB.Protocols.GIOP.Common is
       end case;
 
       --  Marshall Header
+
       Sess.Ctx.Message_Size := Types.Unsigned_Long
         (Length (Buffer_Out) - GIOP_Header_Size);
 
@@ -247,18 +247,20 @@ package body PolyORB.Protocols.GIOP.Common is
       Marshall_GIOP_Header (Sess.Implem, Sess, Header_Buffer);
 
       --  Copy Header
+
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
 
       --  Emit reply
-      Emit_Message
-        (Sess.Implem, Sess, Buffer_Out);
+
+      Emit_Message (Sess.Implem, Sess, Buffer_Out);
+
       Release (Buffer_Out);
       pragma Debug (O ("Reply sent"));
    end Common_Process_Reply;
 
    -------------------------
-   -- Common Locate Reply --
+   -- Common_Locate_Reply --
    -------------------------
 
    procedure Common_Locate_Reply
@@ -271,9 +273,9 @@ package body PolyORB.Protocols.GIOP.Common is
 
       Buffer  : Buffer_Access := new Buffer_Type;
    begin
-      pragma Assert ((Sess.Implem.Version = GIOP_V_1_0) or
-                     (Sess.Implem.Version = GIOP_V_1_1) or
-                     (Sess.Implem.Version = GIOP_V_1_2));
+      pragma Assert ((Sess.Implem.Version = GIOP_Version'(1, 0)) or
+                     (Sess.Implem.Version = GIOP_Version'(1, 1)) or
+                     (Sess.Implem.Version = GIOP_Version'(1, 2)));
 
       pragma Debug (O ("Sending Locate Reply, Request Id :"
                        & Request_Id'Img
@@ -302,6 +304,7 @@ package body PolyORB.Protocols.GIOP.Common is
                        & Request_Id'Img
                        & " , type : "
                        & Loc_Type'Img));
+
       case Loc_Type is
          when Object_Here =>
             declare
@@ -340,9 +343,9 @@ package body PolyORB.Protocols.GIOP.Common is
       Buffer        : Buffer_Access;
       Success       : Boolean;
    begin
-      pragma Assert ((Sess.Implem.Version = GIOP_V_1_0) or
-                     (Sess.Implem.Version = GIOP_V_1_1) or
-                     (Sess.Implem.Version = GIOP_V_1_2));
+      pragma Assert ((Sess.Implem.Version = GIOP_Version'(1, 0)) or
+                     (Sess.Implem.Version = GIOP_Version'(1, 1)) or
+                     (Sess.Implem.Version = GIOP_Version'(1, 2)));
 
       Get_Note (R.Notepad, Current_Note);
       Get_Pending_Request (Sess, Current_Note.Id, Current_Req, Success);
@@ -359,7 +362,9 @@ package body PolyORB.Protocols.GIOP.Common is
       Marshall (Buffer, Current_Req.Request_Id);
 
       --  Sending the message
+
       Emit_Message (Sess.Implem, Sess, Buffer);
+
       Free_Pending_Request (Sess, Current_Req.Request_Id);
       Release (Buffer);
    end Common_Process_Abort_Request;
@@ -377,8 +382,6 @@ package body PolyORB.Protocols.GIOP.Common is
       use PolyORB.Any;
       use PolyORB.ORB;
       use PolyORB.Components;
-      use PolyORB.Objects;
-      use PolyORB.Binding_Data.IIOP;
       use Pend_Req_Seq;
 
       Req          : Pending_Request_Access;
@@ -388,9 +391,9 @@ package body PolyORB.Protocols.GIOP.Common is
       Arguments_Alignment : Opaque.Alignment_Type
         := Sess.Implem.Data_Alignment;
    begin
-      pragma Assert ((Sess.Implem.Version = GIOP_V_1_0) or
-                     (Sess.Implem.Version = GIOP_V_1_1) or
-                     (Sess.Implem.Version = GIOP_V_1_2));
+      pragma Assert ((Sess.Implem.Version = GIOP_Version'(1, 0)) or
+                     (Sess.Implem.Version = GIOP_Version'(1, 1)) or
+                     (Sess.Implem.Version = GIOP_Version'(1, 2)));
 
       pragma Debug (O ("Reply received: status = "
                        & Reply_Status_Type'Image (Reply_Status)
@@ -404,7 +407,9 @@ package body PolyORB.Protocols.GIOP.Common is
 
       case Reply_Status is
          when No_Exception =>
+
             --  Unmarshall reply body.
+
             if TypeCode.Kind
               (Get_Type (Req.Req.Result.Argument))
               /= Tk_Void
@@ -422,7 +427,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
             Emit_No_Reply
               (Req.Req.Requesting_Component,
-               Objects.Interface.Executed_Request'
+               Servants.Interface.Executed_Request'
                (Req => Req.Req));
 
          when System_Exception =>
@@ -432,7 +437,7 @@ package body PolyORB.Protocols.GIOP.Common is
               (Sess.Buffer_In, Req.Req.Exception_Info);
             Emit_No_Reply
               (Component_Access (ORB),
-               Objects.Interface.Executed_Request'
+               Servants.Interface.Executed_Request'
                (Req => Req.Req));
 
          when User_Exception =>
@@ -510,7 +515,7 @@ package body PolyORB.Protocols.GIOP.Common is
                end if;
                Emit_No_Reply
                  (Component_Access (ORB),
-                  Objects.Interface.Executed_Request'
+                  Servants.Interface.Executed_Request'
                   (Req => Req.Req));
             end;
 
@@ -523,9 +528,8 @@ package body PolyORB.Protocols.GIOP.Common is
             begin
                Prof := Select_Profile (Sess.Buffer_In);
                New_Sess := Session_Access
-                 (Binding_Data.IIOP.Bind_Profile
-                    (IIOP_Profile_Type (Prof.all),
-                     Component_Access (ORB)));
+                 (Binding_Data.Bind_Profile
+                    (Prof.all, Component_Access (ORB)));
 
                Release (Sess.Buffer_In);
 
@@ -533,9 +537,11 @@ package body PolyORB.Protocols.GIOP.Common is
                Invoke_Request
                  (GIOP_Session (New_Sess.all)'Access, Req.Req, Prof);
             end;
+
          when others =>
             raise Not_Implemented;
       end case;
+
       Free_Pending_Request (Sess, Request_Id);
       Expect_GIOP_Header (Sess);
    end Common_Reply_Received;

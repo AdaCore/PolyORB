@@ -38,14 +38,14 @@ with PolyORB.Components;
 
 with PolyORB.Obj_Adapters;
 with PolyORB.Obj_Adapters.Simple;
-with PolyORB.Objects.Interface;
 with PolyORB.Requests;
+with PolyORB.Servants.Interface;
 
 package body Test_Servant is
 
    use PolyORB.Any;
-   use PolyORB.Objects.Interface;
    use PolyORB.Requests;
+   use PolyORB.Servants.Interface;
    use PolyORB.Types;
 
    function echoInteger
@@ -115,10 +115,6 @@ package body Test_Servant is
       else
          raise PolyORB.Components.Unhandled_Message;
       end if;
-
-   exception
-      when others =>
-         raise;
 
    end Execute_Servant;
 

@@ -81,6 +81,11 @@ package PolyORB.Binding_Data.SRP is
 
    function Image (Prof : SRP_Profile_Type) return String;
 
+   function Get_OA
+     (Profile : SRP_Profile_Type)
+     return PolyORB.Smart_Pointers.Entity_Ptr;
+   pragma Inline (Get_OA);
+
 private
 
    type SRP_Profile_Type is new Profile_Type with record

@@ -31,6 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with PolyORB.POA;
+with PolyORB.POA_Policies.Servant_Retention_Policy;
+
 package body
   PolyORB.POA_Policies.Request_Processing_Policy.Use_Servant_Manager
 is
@@ -93,6 +96,7 @@ is
       pragma Unreferenced (OA);
       pragma Unreferenced (U_Oid);
       pragma Warnings (On);
+
    begin
       null;
    end Etherealize_All;
@@ -109,17 +113,31 @@ is
       Error   : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
-      pragma Unreferenced (Self, OA, U_Oid);
+      pragma Unreferenced (Self);
       pragma Warnings (On);
 
       use PolyORB.Exceptions;
+      use PolyORB.POA_Policies.Servant_Retention_Policy;
 
    begin
-      Servant := null;
 
-      Throw (Error,
-             WrongPolicy_E,
-             Null_Member);
+      --  Lookup object in Active Object Map
+
+      Retained_Id_To_Servant
+        (POA.Obj_Adapter_Access (OA).Servant_Retention_Policy.all,
+         OA,
+         U_Oid,
+         Servant,
+         Error);
+
+      if Found (Error) then
+         return;
+      end if;
+
+      --  Under USE_SERVANT_MANAGER policy, if no servant is found and
+      --  if we are processing a request, we may try to activate
+      --  one. This is done by the POA.
+
    end Id_To_Servant;
 
    -----------------

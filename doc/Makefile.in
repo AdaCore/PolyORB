@@ -68,4 +68,6 @@ clean: force
 	@${RM} *.vr
 	@${RM} ${FORMATS} *.html
 
+distclean: clean
+
 force:

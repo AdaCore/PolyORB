@@ -95,6 +95,33 @@ package body RCI is
       end if;
    end Get_Obj;
 
+   function echoVector (V : Vector) return Vector is
+   begin
+      Put_Line ("Got vector" & Integer'Image (V'First)
+                & " .." & Integer'Image (V'Last) & ":");
+      for J in V'Range loop
+         Put (Integer'Image (V (J)));
+      end loop;
+      New_Line;
+      return V;
+   end echoVector;
+
+   function echoTranspose (M : Matrix) return Matrix is
+   begin
+      Put_Line ("Got matrix:");
+      Put_Line ("Ranges of M : (" & Integer'Image (M'First (1))
+                           & ".." & Integer'Image (M'Last (1))
+                           & ", " & Integer'Image (M'First (2))
+                           & ".." & Integer'Image (M'Last (2)) & ")");
+      for J in M'Range (1) loop
+         for K in M'Range (2) loop
+            Put (" " & Float'Image (M (J, K)));
+         end loop;
+         New_Line;
+      end loop;
+      return Matrices.Transpose (M);
+   end echoTranspose;
+
    function echoString (S : String) return String is
    begin
       Put_Line ("Thus spake my client unto me: «" & S & "».");
@@ -114,6 +141,11 @@ package body RCI is
    end Modulus2;
 
    Cookie : Integer := 0;
+
+   function echoC_4_5 (X : C_4_5) return C_4_5 is
+   begin
+      return X;
+   end echoC_4_5;
 
    function Get_Cookie return Integer is
    begin

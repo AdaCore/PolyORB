@@ -39,16 +39,17 @@ with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
 with PolyORB.Log;
-with PolyORB.Objects.Interface;
 with PolyORB.Requests;
+with PolyORB.Servants.Interface;
 with PolyORB.Types;
+with PolyORB.Exceptions;
 
 package body PolyORB.Test_Object_POA is
 
    use PolyORB.Any;
    use PolyORB.Log;
-   use PolyORB.Objects.Interface;
    use PolyORB.Requests;
+   use PolyORB.Servants.Interface;
 
    package L is new PolyORB.Log.Facility_Log ("corba.test_object");
    procedure Output (Message : in Standard.String; Level : Log_Level := Debug)
@@ -104,10 +105,12 @@ package body PolyORB.Test_Object_POA is
          declare
             use PolyORB.Any.NVList.Internals;
             use PolyORB.Any.NVList.Internals.NV_Lists;
+            use PolyORB.Exceptions;
 
-            Req : Request_Access
+            Req   : Request_Access
               := Execute_Request (Msg).Req;
-            Args : PolyORB.Any.NVList.Ref;
+            Args  : PolyORB.Any.NVList.Ref;
+            Error : Error_Container;
          begin
             pragma Debug (Output ("The server is executing the request:"
                                     & PolyORB.Requests.Image (Req.all)));
@@ -117,7 +120,13 @@ package body PolyORB.Test_Object_POA is
                          (Name => To_PolyORB_String ("S"),
                           Argument => Get_Empty_Any (TypeCode.TC_String),
                           Arg_Modes => PolyORB.Any.ARG_IN));
-               Arguments (Req, Args);
+               Arguments (Req, Args, Error);
+
+               if Found (Error) then
+                  raise PolyORB.Unknown;
+                  --  XXX We should do something more constructive
+
+               end if;
 
                Req.Result.Argument := To_Any
                  (echoString
@@ -130,7 +139,13 @@ package body PolyORB.Test_Object_POA is
                Add_Item (Args, (Name => To_PolyORB_String ("I"),
                                 Argument => Get_Empty_Any (TypeCode.TC_Long),
                                 Arg_Modes => PolyORB.Any.ARG_IN));
-               Arguments (Req, Args);
+               Arguments (Req, Args, Error);
+
+               if Found (Error) then
+                  raise PolyORB.Unknown;
+                  --  XXX We should do something more constructive
+
+               end if;
 
                Req.Result.Argument := To_Any
                  (echoInteger

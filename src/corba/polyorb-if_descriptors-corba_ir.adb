@@ -133,8 +133,6 @@ package body PolyORB.If_Descriptors.CORBA_IR is
          exception
             when CORBA.Bad_Operation =>
                null;
-            when others =>
-               raise;
          end;
       end loop Base_Intfs_Loop;
       CORBA.Raise_Bad_Operation (CORBA.Default_Sys_Member);

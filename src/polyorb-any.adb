@@ -1643,7 +1643,7 @@ package body PolyORB.Any is
          N : Unsigned_Long := 0;
          Ptr : Cell_Ptr := Self.Parameters;
       begin
-         while (Ptr /= null) loop
+         while Ptr /= null loop
             N := N + 1;
             Ptr := Ptr.Next;
          end loop;
@@ -2132,15 +2132,10 @@ package body PolyORB.Any is
       Right : in Any)
      return Boolean
    is
-      C_Left, C_Right : Any_Content_Ptr_Ptr;
+      C_Left, C_Right : Any_Content_Ptr;
    begin
-      C_Left := Get_Value_Ptr (Left);
-      C_Right := Get_Value_Ptr (Right);
-
-      pragma Debug (O ("Compare: "
-                       & System.Address_Image (C_Left.all'Address)
-                       & " = "
-                       & System.Address_Image (C_Right.all'Address)));
+      C_Left := Get_Value (Left);
+      C_Right := Get_Value (Right);
 
       return C_Left = C_Right;
    end Compare_Any_Contents;
@@ -2390,7 +2385,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Short is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Short) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Short then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Short_Ptr (Get_Value (Item)).Value.all;
@@ -2400,7 +2395,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Long is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Long) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Long then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Long_Ptr (Get_Value (Item)).Value.all;
@@ -2410,7 +2405,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Long_Long is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Longlong) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Longlong then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Long_Long_Ptr (Get_Value (Item)).Value.all;
@@ -2420,7 +2415,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Unsigned_Short is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Ushort) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Ushort then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_UShort_Ptr (Get_Value (Item)).Value.all;
@@ -2450,7 +2445,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Types.Float is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Float) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Float then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Float_Ptr (Get_Value (Item)).Value.all;
@@ -2460,7 +2455,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Double is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Double) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Double then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Double_Ptr (Get_Value (Item)).Value.all;
@@ -2470,7 +2465,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Long_Double is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Longdouble) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Longdouble then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Long_Double_Ptr (Get_Value (Item)).Value.all;
@@ -2480,7 +2475,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Boolean is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Boolean) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Boolean then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Boolean_Ptr (Get_Value (Item)).Value.all;
@@ -2490,7 +2485,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Char is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Char) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Char then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Char_Ptr (Get_Value (Item)).Value.all;
@@ -2500,7 +2495,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Wchar is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Widechar) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Widechar then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Wchar_Ptr (Get_Value (Item)).Value.all;
@@ -2510,7 +2505,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Octet is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Octet) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Octet then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Octet_Ptr (Get_Value (Item)).Value.all;
@@ -2520,7 +2515,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Any is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Any) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Any then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Any_Ptr (Get_Value (Item)).Value.all;
@@ -2530,7 +2525,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return TypeCode.Object is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_TypeCode) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_TypeCode then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_TypeCode_Ptr (Get_Value (Item)).Value.all;
@@ -2540,7 +2535,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Types.String is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_String) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_String then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_String_Ptr (Get_Value (Item)).Value.all;
@@ -2550,7 +2545,7 @@ package body PolyORB.Any is
      (Item : in Any)
      return Types.Wide_String is
    begin
-      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Wstring) then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Wstring then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Wide_String_Ptr (Get_Value (Item)).Value.all;
@@ -2672,10 +2667,10 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      if Container.The_Value.all /= null then
-         Content_Octet_Ptr (Container.The_Value.all).Value.all := Value;
+      if Container.The_Value /= null then
+         Content_Octet_Ptr (Container.The_Value).Value.all := Value;
       else
-         Container.The_Value.all :=
+         Container.The_Value :=
            new Content_Octet'(Value => new Octet'(Value));
       end if;
 
@@ -2694,10 +2689,10 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      if Container.The_Value.all /= null then
-         Content_Short_Ptr (Container.The_Value.all).Value.all := Value;
+      if Container.The_Value /= null then
+         Content_Short_Ptr (Container.The_Value).Value.all := Value;
       else
-         Container.The_Value.all :=
+         Container.The_Value :=
            new Content_Short'(Value => new Short'(Value));
       end if;
 
@@ -2716,10 +2711,10 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      if Container.The_Value.all /= null then
-         Content_Long_Ptr (Container.The_Value.all).Value.all := Value;
+      if Container.The_Value /= null then
+         Content_Long_Ptr (Container.The_Value).Value.all := Value;
       else
-         Container.The_Value.all :=
+         Container.The_Value :=
            new Content_Long'(Value => new Types.Long'(Value));
       end if;
 
@@ -2738,10 +2733,10 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      if Container.The_Value.all /= null then
-         Content_Long_Long_Ptr (Container.The_Value.all).Value.all := Value;
+      if Container.The_Value /= null then
+         Content_Long_Long_Ptr (Container.The_Value).Value.all := Value;
       else
-         Container.The_Value.all :=
+         Container.The_Value :=
            new Content_Long_Long'(Value => new Types.Long_Long'(Value));
       end if;
 
@@ -2760,10 +2755,10 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      if Container.The_Value.all /= null then
-         Content_UShort_Ptr (Container.The_Value.all).Value.all := Value;
+      if Container.The_Value /= null then
+         Content_UShort_Ptr (Container.The_Value).Value.all := Value;
       else
-         Container.The_Value.all :=
+         Container.The_Value :=
            new Content_UShort'(Value => new Unsigned_Short'(Value));
       end if;
 
@@ -2782,10 +2777,10 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      if Container.The_Value.all /= null then
-         Content_ULong_Ptr (Container.The_Value.all).Value.all := Value;
+      if Container.The_Value /= null then
+         Content_ULong_Ptr (Container.The_Value).Value.all := Value;
       else
-         Container.The_Value.all :=
+         Container.The_Value :=
            new Content_ULong'(Value => new Unsigned_Long'(Value));
       end if;
 
@@ -2805,10 +2800,10 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      if Container.The_Value.all /= null then
-         Content_ULong_Long_Ptr (Container.The_Value.all).Value.all := Value;
+      if Container.The_Value /= null then
+         Content_ULong_Long_Ptr (Container.The_Value).Value.all := Value;
       else
-         Container.The_Value.all :=
+         Container.The_Value :=
            new Content_ULong_Long'(Value =>
                                      new Unsigned_Long_Long'(Value));
       end if;
@@ -2828,10 +2823,10 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      if Container.The_Value.all /= null then
-         Content_Boolean_Ptr (Container.The_Value.all).Value.all := Value;
+      if Container.The_Value /= null then
+         Content_Boolean_Ptr (Container.The_Value).Value.all := Value;
       else
-         Container.The_Value.all :=
+         Container.The_Value :=
            new Content_Boolean'(Value => new Boolean'(Value));
       end if;
 
@@ -2850,10 +2845,10 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      if Container.The_Value.all /= null then
-         Content_Char_Ptr (Container.The_Value.all).Value.all := Value;
+      if Container.The_Value /= null then
+         Content_Char_Ptr (Container.The_Value).Value.all := Value;
       else
-         Container.The_Value.all :=
+         Container.The_Value :=
            new Content_Char'(Value => new Char'(Value));
       end if;
 
@@ -2872,10 +2867,10 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      if Container.The_Value.all /= null then
-         Content_Wchar_Ptr (Container.The_Value.all).Value.all := Value;
+      if Container.The_Value /= null then
+         Content_Wchar_Ptr (Container.The_Value).Value.all := Value;
       else
-         Container.The_Value.all :=
+         Container.The_Value :=
            new Content_Wchar'(Value => new Wchar'(Value));
       end if;
 
@@ -2894,10 +2889,10 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      if Container.The_Value.all /= null then
-         Content_String_Ptr (Container.The_Value.all).Value.all := Value;
+      if Container.The_Value /= null then
+         Content_String_Ptr (Container.The_Value).Value.all := Value;
       else
-         Container.The_Value.all :=
+         Container.The_Value :=
            new Content_String'(Value => new PolyORB.Types.String'(Value));
       end if;
 
@@ -2916,10 +2911,10 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      if Container.The_Value.all /= null then
-         Content_Wide_String_Ptr (Container.The_Value.all).Value.all := Value;
+      if Container.The_Value /= null then
+         Content_Wide_String_Ptr (Container.The_Value).Value.all := Value;
       else
-         Container.The_Value.all :=
+         Container.The_Value :=
            new Content_Wide_String'(Value => new Types.Wide_String'(Value));
       end if;
 
@@ -2938,10 +2933,10 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      if Container.The_Value.all /= null then
-         Content_Float_Ptr (Container.The_Value.all).Value.all := Value;
+      if Container.The_Value /= null then
+         Content_Float_Ptr (Container.The_Value).Value.all := Value;
       else
-         Container.The_Value.all :=
+         Container.The_Value :=
            new Content_Float'(Value => new Types.Float'(Value));
       end if;
 
@@ -2960,10 +2955,10 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      if Container.The_Value.all /= null then
-         Content_Double_Ptr (Container.The_Value.all).Value.all := Value;
+      if Container.The_Value /= null then
+         Content_Double_Ptr (Container.The_Value).Value.all := Value;
       else
-         Container.The_Value.all :=
+         Container.The_Value :=
            new Content_Double'(Value => new Double'(Value));
       end if;
 
@@ -2983,10 +2978,10 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      if Container.The_Value.all /= null then
-         Content_Long_Double_Ptr (Container.The_Value.all).Value.all := Value;
+      if Container.The_Value /= null then
+         Content_Long_Double_Ptr (Container.The_Value).Value.all := Value;
       else
-         Container.The_Value.all :=
+         Container.The_Value :=
            new Content_Long_Double'(Value => new Types.Long_Double'(Value));
       end if;
 
@@ -3005,10 +3000,10 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      if Container.The_Value.all /= null then
-         Content_TypeCode_Ptr (Container.The_Value.all).Value.all := Value;
+      if Container.The_Value /= null then
+         Content_TypeCode_Ptr (Container.The_Value).Value.all := Value;
       else
-         Container.The_Value.all :=
+         Container.The_Value :=
            new Content_TypeCode'(Value => new TypeCode.Object'(Value));
       end if;
 
@@ -3027,10 +3022,10 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      if Container.The_Value.all /= null then
-         Content_Any_Ptr (Container.The_Value.all).Value.all := Value;
+      if Container.The_Value /= null then
+         Content_Any_Ptr (Container.The_Value).Value.all := Value;
       else
-         Container.The_Value.all :=
+         Container.The_Value :=
            new Content_Any'(Value => new Any'(Value));
       end if;
 
@@ -3061,8 +3056,8 @@ package body PolyORB.Any is
 
       pragma Debug (O ("Set_Any_Aggregate_Value: typecode is correct"));
 
-      if Container.The_Value.all = null then
-         Container.The_Value.all := new Content_Aggregate;
+      if Container.The_Value = null then
+         Container.The_Value := new Content_Aggregate;
       end if;
 
    end Set_Any_Aggregate_Value;
@@ -3099,7 +3094,7 @@ package body PolyORB.Any is
         := Any_Container_Ptr (Entity_Of (Element));
 
       CA_Ptr : constant Content_Aggregate_Ptr
-        := Content_Aggregate_Ptr (Value_Container.The_Value.all);
+        := Content_Aggregate_Ptr (Value_Container.The_Value);
    begin
       pragma Debug (O ("Add_Aggregate_Element : enter"));
       pragma Debug (O ("Add_Aggregate_Element : element kind is "
@@ -3113,7 +3108,7 @@ package body PolyORB.Any is
 
       Content_Lists.Append
         (CA_Ptr.V.Mutable_Value,
-         Duplicate (Element_Container.The_Value.all));
+         Duplicate (Element_Container.The_Value));
 
       pragma Debug (O ("Add_Aggregate_Element : end"));
    end Add_Aggregate_Element;
@@ -3131,7 +3126,7 @@ package body PolyORB.Any is
       Value_Container : constant Any_Container_Ptr
         := Any_Container_Ptr (Entity_Of (Value));
       CA_Ptr : constant Content_Aggregate_Ptr
-        := Content_Aggregate_Ptr (Value_Container.The_Value.all);
+        := Content_Aggregate_Ptr (Value_Container.The_Value);
       Result : Any;
    begin
       pragma Debug (O ("Get_Aggregate_Element : enter"));
@@ -3149,6 +3144,8 @@ package body PolyORB.Any is
                        (Get_Aggregate_Count (Value))));
 
       Set_Value (Result, Duplicate (CA_Ptr.V.Value (Integer (Index))));
+      --  XXX VASTLY INEFFICIENT!!! Should not duplicate the value, but
+      --  instead return it by-reference!!!
       Set_Type (Result, Tc);
 
       pragma Debug (O ("Get_Aggregate_Element : end"));
@@ -3678,12 +3675,11 @@ package body PolyORB.Any is
    is
       use type PolyORB.Smart_Pointers.Entity_Ptr;
 
-      Container : Any_Container_Ptr := new Any_Container;
+      Container : constant Any_Container_Ptr := new Any_Container;
    begin
       pragma Debug (O ("Initializing Any: enter"));
       pragma Assert (Entity_Of (Self) = null);
 
-      Container.The_Value := new Any_Content_Ptr'(null);
       Set (Self, PolyORB.Smart_Pointers.Entity_Ptr (Container));
       pragma Debug (O ("Initializing Any: leave"));
    end Initialize;
@@ -3699,11 +3695,11 @@ package body PolyORB.Any is
       Container : constant Any_Container_Ptr
         := Any_Container_Ptr (Entity_Of (Obj));
    begin
-      if Container.The_Value.all /= null then
-         Deallocate (Container.The_Value.all);
+      if Container.The_Value /= null then
+         Deallocate (Container.The_Value);
       end if;
 
-      Container.The_Value.all := The_Value;
+      Container.The_Value := The_Value;
    end Set_Value;
 
    ------------
@@ -3729,20 +3725,6 @@ package body PolyORB.Any is
       Object := (Frozen => True, Value => Elements);
    end Freeze;
 
-   -------------------
-   -- Get_Value_Ptr --
-   -------------------
-
-   function Get_Value_Ptr
-     (Obj : Any)
-     return Any_Content_Ptr_Ptr
-   is
-      Container : constant Any_Container_Ptr
-        := Any_Container_Ptr (Entity_Of (Obj));
-   begin
-      return Container.The_Value;
-   end Get_Value_Ptr;
-
    ---------------
    -- Get_Value --
    ---------------
@@ -3754,7 +3736,7 @@ package body PolyORB.Any is
       Container : constant Any_Container_Ptr
         := Any_Container_Ptr (Entity_Of (Obj));
    begin
-      return Container.The_Value.all;
+      return Container.The_Value;
    end Get_Value;
 
    --------------
@@ -3775,16 +3757,13 @@ package body PolyORB.Any is
       TypeCode.Destroy_TypeCode (Self.The_Type);
       pragma Debug (O2 (" * typecode deallocated"));
 
-      if Self.The_Value.all /= null then
+      if Self.The_Value /= null then
          pragma Debug (O2 (" * deallocation of a "
                            & Ada.Tags.External_Tag
-                           (Self.The_Value.all'Tag)));
-         Deallocate (Self.The_Value.all);
+                           (Self.The_Value'Tag)));
+         Deallocate (Self.The_Value);
       end if;
       pragma Debug (O2 (" * content released"));
-
-      Deallocate_Any_Content_Ptr (Self.The_Value);
-      pragma Debug (O2 (" * content_ptr released"));
 
       pragma Debug (O ("Finalizing Any_Container: leave"));
    end Finalize;

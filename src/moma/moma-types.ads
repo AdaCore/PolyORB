@@ -67,13 +67,14 @@ package MOMA.Types is
    --  String conversion fonctions.
    --
 
-   function To_Standard_String (V : PolyORB.Types.String)
-                                return Standard.String
-     renames PolyORB.Types.To_Standard_String;
+   function To_Standard_String
+     (V : PolyORB.Types.String)
+     return Standard.String renames PolyORB.Types.To_Standard_String;
 
-   function To_MOMA_String (V : Standard.String)
-                            return PolyORB.Types.String
-     renames PolyORB.Types.To_PolyORB_String;
+
+   function To_MOMA_String
+     (V : Standard.String)
+     return PolyORB.Types.String renames PolyORB.Types.To_PolyORB_String;
 
    --
    --  MOMA specific types.
@@ -94,87 +95,108 @@ package MOMA.Types is
 
    TC_Map_Element : TypeCode.Object := TypeCode.TC_Struct;
 
-   function To_Any (Item : in Map_Element)
-     return PolyORB.Any.Any;
+   function To_Any (Item : in Map_Element) return PolyORB.Any.Any;
 
-   function From_Any (Item : in PolyORB.Any.Any)
-     return Map_Element;
+   function From_Any (Item : in PolyORB.Any.Any) return Map_Element;
 
-   function Get_Boolean (Self : Map_Element)
-                         return MOMA.Types.Boolean;
+   function Get_Boolean
+     (Self : Map_Element)
+     return MOMA.Types.Boolean;
 
-   procedure Set_Boolean (Self : in out Map_Element;
-                          Value : MOMA.Types.Boolean);
+   procedure Set_Boolean
+     (Self  : in out Map_Element;
+      Value :        MOMA.Types.Boolean);
 
-   function Get_Byte (Self : Map_Element)
-                      return MOMA.Types.Byte;
+   function Get_Byte
+     (Self : Map_Element)
+     return MOMA.Types.Byte;
 
-   procedure Set_Byte (Self : in out Map_Element;
-                       Value : MOMA.Types.Byte);
+   procedure Set_Byte
+     (Self  : in out Map_Element;
+      Value :        MOMA.Types.Byte);
 
-   function Get_Char (Self : Map_Element)
-                      return MOMA.Types.Char;
+   function Get_Char
+     (Self : Map_Element)
+     return MOMA.Types.Char;
 
-   procedure Set_Char (Self : in out Map_Element;
-                       Value : MOMA.Types.Char);
+   procedure Set_Char
+     (Self  : in out Map_Element;
+      Value :        MOMA.Types.Char);
 
-   function Get_Double (Self : Map_Element)
-                        return MOMA.Types.Double;
+   function Get_Double
+     (Self : Map_Element)
+     return MOMA.Types.Double;
 
-   procedure Set_Double (Self : in out Map_Element;
-                         Value : MOMA.Types.Double);
+   procedure Set_Double
+     (Self  : in out Map_Element;
+      Value :        MOMA.Types.Double);
 
-   function Get_Float (Self : Map_Element)
-                       return MOMA.Types.Float;
+   function Get_Float
+     (Self : Map_Element)
+     return MOMA.Types.Float;
 
-   procedure Set_Float (Self : in out Map_Element;
-                        Value : MOMA.Types.Float);
+   procedure Set_Float
+     (Self  : in out Map_Element;
+      Value : MOMA.Types.Float);
 
-   function Get_Long (Self : Map_Element)
-                      return MOMA.Types.Long;
+   function Get_Long
+     (Self : Map_Element)
+     return MOMA.Types.Long;
 
-   procedure Set_Long (Self : in out Map_Element;
-                       Value : MOMA.Types.Long);
+   procedure Set_Long
+     (Self  : in out Map_Element;
+      Value :        MOMA.Types.Long);
 
-   function Get_Name (Self : Map_Element)
-                      return MOMA.Types.String;
+   function Get_Name
+     (Self : Map_Element)
+     return MOMA.Types.String;
 
-   procedure Set_Name (Self : in out Map_Element;
-                       Value : MOMA.Types.String);
+   procedure Set_Name
+     (Self  : in out Map_Element;
+      Value :        MOMA.Types.String);
 
-   function Get_Short (Self : Map_Element)
-                       return MOMA.Types.Short;
+   function Get_Short
+     (Self : Map_Element)
+     return MOMA.Types.Short;
 
-   procedure Set_Short (Self : in out Map_Element;
-                        Value : MOMA.Types.Short);
+   procedure Set_Short
+     (Self  : in out Map_Element;
+      Value :        MOMA.Types.Short);
 
-   function Get_String (Self : Map_Element)
-                        return MOMA.Types.String;
+   function Get_String
+     (Self : Map_Element)
+     return MOMA.Types.String;
 
-   procedure Set_String (Self : in out Map_Element;
-                         Value : MOMA.Types.String);
+   procedure Set_String
+     (Self  : in out Map_Element;
+      Value :        MOMA.Types.String);
 
-   function Get_Unsigned_Short (Self : Map_Element)
-                                return MOMA.Types.Unsigned_Short;
+   function Get_Unsigned_Short
+     (Self : Map_Element)
+     return MOMA.Types.Unsigned_Short;
 
-   procedure Set_Unsigned_Short (Self : in out Map_Element;
-                                 Value : MOMA.Types.Unsigned_Short);
+   procedure Set_Unsigned_Short
+     (Self  : in out Map_Element;
+      Value :        MOMA.Types.Unsigned_Short);
 
-   function Get_Unsigned_Long (Self : Map_Element)
-                               return MOMA.Types.Unsigned_Long;
+   function Get_Unsigned_Long
+     (Self : Map_Element)
+     return MOMA.Types.Unsigned_Long;
 
-   procedure Set_Unsigned_Long (Self : in out Map_Element;
-                                Value : MOMA.Types.Unsigned_Long);
+   procedure Set_Unsigned_Long
+     (Self  : in out Map_Element;
+      Value :        MOMA.Types.Unsigned_Long);
 
    --  Map type.
 
    package IDL_SEQUENCE_Map_Element is
      new PolyORB.Sequences.Unbounded (Map_Element);
 
-   TC_IDL_SEQUENCE_Map_Element : TypeCode.Object
-     := TypeCode.TC_Sequence;
+   TC_IDL_SEQUENCE_Map_Element : TypeCode.Object :=
+     TypeCode.TC_Sequence;
 
-   function From_Any (Item : in PolyORB.Any.Any)
+   function From_Any
+     (Item : in PolyORB.Any.Any)
       return IDL_SEQUENCE_Map_Element.Sequence;
 
    function To_Any
@@ -185,11 +207,9 @@ package MOMA.Types is
 
    type Map is new MOMA.Types.IDL_SEQUENCE_Map_Element.Sequence;
 
-   function To_Any (Item : in Map)
-     return PolyORB.Any.Any;
+   function To_Any (Item : in Map) return PolyORB.Any.Any;
 
-   function From_Any (Item : in PolyORB.Any.Any)
-     return Map;
+   function From_Any (Item : in PolyORB.Any.Any) return Map;
 
    --
    --  MOMA administrative types.
@@ -234,23 +254,29 @@ package MOMA.Types is
    --  Name        : name of the pool.
    --  Persistence : persistence mode of the pool.
 
-   function Get_Name (Pool : MOMA.Types.Message_Pool)
-                      return MOMA.Types.String;
+   function Get_Name
+     (Pool : MOMA.Types.Message_Pool)
+     return MOMA.Types.String;
 
-   procedure Set_Name (Pool : in out MOMA.Types.Message_Pool;
-                       Name : MOMA.Types.String);
+   procedure Set_Name
+     (Pool : in out MOMA.Types.Message_Pool;
+      Name :        MOMA.Types.String);
 
-   function Get_Type (Pool : MOMA.Types.Message_Pool)
-                      return MOMA.Types.Pool_Type;
+   function Get_Type
+     (Pool : MOMA.Types.Message_Pool)
+     return MOMA.Types.Pool_Type;
 
-   procedure Set_Type (Pool  : in out MOMA.Types.Message_Pool;
-                       PType : Pool_Type);
+   procedure Set_Type
+     (Pool  : in out MOMA.Types.Message_Pool;
+      PType :        Pool_Type);
 
-   function Get_Persistence (Pool : MOMA.Types.Message_Pool)
-                            return MOMA.Types.Persistence_Mode;
+   function Get_Persistence
+     (Pool : MOMA.Types.Message_Pool)
+     return MOMA.Types.Persistence_Mode;
 
-   procedure Set_Persistence  (Pool  : in out MOMA.Types.Message_Pool;
-                               PMode : Persistence_Mode);
+   procedure Set_Persistence
+     (Pool  : in out MOMA.Types.Message_Pool;
+      PMode :        Persistence_Mode);
 
    type Meta_Data        is new    Integer;
    type Acknowledge_Type is new    Integer;

@@ -33,7 +33,6 @@
 
 with PolyORB.Objects;
 with PolyORB.References;
-with PolyORB.References.IOR;
 with PolyORB.Protocols.GIOP.Common;
 pragma Elaborate_All (PolyORB.Protocols.GIOP.Common); --  WAG:3.15
 
@@ -41,9 +40,11 @@ package PolyORB.Protocols.GIOP.GIOP_1_2 is
    use PolyORB.Protocols.GIOP.Common;
 
    type GIOP_Implem_1_2 is tagged private;
+
    type GIOP_Implem_1_2_Access is access all GIOP_Implem_1_2'Class;
 
    type GIOP_Ctx_1_2 is tagged private;
+
    type GIOP_Ctx_1_2_Access is access all GIOP_Ctx_1_2;
 
 private
@@ -54,6 +55,7 @@ private
    end record;
 
    --  GIOP Message Type
+
    type Msg_Type is
      (Request,
       Reply,
@@ -65,9 +67,11 @@ private
       Fragment);
 
    --  minimal size for fragmented messages
+
    Default_Max_GIOP_Message_Size_1_2 : constant Integer := 1000;
 
    --  fragmenting state
+
    type Fragment_State is
      (None,       --  no current defragmenting
       First,      --  wait for the first body fragment
@@ -75,6 +79,7 @@ private
       Fragment);  --  wait for the body fragment
 
    --  GIOP 1.2 context
+
    type GIOP_Ctx_1_2 is new GIOP_Ctx with record
       Message_Type : Msg_Type;
       Fragmented   : Types.Boolean;
@@ -146,12 +151,14 @@ private
    Bidirectionnal_GIOP_Not_Implemented : exception;
 
    --  Synchornisation scope for 1.2
+
    type Sync_Scope is (NONE, WITH_TRANSPORT, WITH_SERVER, WITH_TARGET);
 
    --  Different kind of addressing in GIOP 1.2
+
    type IOR_Addressing_Info is record
       Selected_Profile_Index : Types.Unsigned_Long;
-      IOR                    : PolyORB.References.IOR.IOR_Type;
+      IOR                    : PolyORB.References.Ref;
    end record;
    type IOR_Addressing_Info_Access is access all IOR_Addressing_Info;
 
@@ -168,16 +175,20 @@ private
             Ref : IOR_Addressing_Info_Access;
       end case;
    end record;
+
    type Target_Address_Access is access all Target_Address;
 
    --  bits inf flags field
+
    Bit_Fragment   : constant Octet_Flags.Bit_Count := 1;
 
    --  Data alignment
+
    Data_Alignment_1_2 : constant Opaque.Alignment_Type := 8;
 
    --  Fragment header size
-   Frag_Header_Size : constant Stream_Element_Offset
-     := Types.Unsigned_Long'Size / Types.Octet'Size;
+
+   Frag_Header_Size : constant Stream_Element_Offset :=
+     Types.Unsigned_Long'Size / Types.Octet'Size;
 
 end PolyORB.Protocols.GIOP.GIOP_1_2;

@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.adb#23 $
+--  $Id: //droopi/main/src/corba/corba.adb#25 $
 
 with Ada.Characters.Handling;
 
@@ -339,16 +339,16 @@ package body CORBA is
         (Marshal'Identity, Excp_Memb);
    end Raise_Marshal;
 
-   ----------------------------------
-   -- Raise_Initialization_Failure --
-   ----------------------------------
+   ----------------------
+   -- Raise_Initialize --
+   ----------------------
 
-   procedure Raise_Initialization_Failure
+   procedure Raise_Initialize
      (Excp_Memb : in System_Exception_Members) is
    begin
       Raise_System_Exception
-        (Initialization_Failure'Identity, Excp_Memb);
-   end Raise_Initialization_Failure;
+        (Initialize'Identity, Excp_Memb);
+   end Raise_Initialize;
 
    ------------------------
    -- Raise_No_Implement --
@@ -850,55 +850,55 @@ package body CORBA is
                     (Item, TC_Unsigned_Long, 0))));
    end From_Any;
 
-   ----------------
-   --  Get_Type  --
-   ----------------
+   --------------
+   -- Get_Type --
+   --------------
 
-   function Get_Type (The_Any : in Any) return  TypeCode.Object
+   function Get_Type (The_Any : in Any) return TypeCode.Object
      renames PolyORB.Any.Get_Type;
 
-   ------------------------
-   --  Get_Unwound_Type  --
-   ------------------------
+   ----------------------
+   -- Get_Unwound_Type --
+   ----------------------
 
-   function Get_Unwound_Type (The_Any : in Any) return  TypeCode.Object
+   function Get_Unwound_Type (The_Any : in Any) return TypeCode.Object
      renames PolyORB.Any.Get_Unwound_Type;
 
-   ----------------
-   --  Set_Type  --
-   ----------------
+   --------------
+   -- Set_Type --
+   --------------
 
    procedure Set_Type
      (The_Any  : in out Any;
       The_Type : in     TypeCode.Object)
      renames PolyORB.Any.Set_Type;
 
-   ---------------------------------
-   --  Iterate_Over_Any_Elements  --
-   ---------------------------------
+   -------------------------------
+   -- Iterate_Over_Any_Elements --
+   -------------------------------
    procedure Iterate_Over_Any_Elements (In_Any : in Any) is
    begin
       --  null;
       raise PolyORB.Not_Implemented;
    end Iterate_Over_Any_Elements;
 
-   ---------------------
-   --  Get_Empty_Any  --
-   ---------------------
+   -------------------
+   -- Get_Empty_Any --
+   -------------------
 
    function Get_Empty_Any (Tc : TypeCode.Object) return Any
      renames PolyORB.Any.Get_Empty_Any;
 
-   ----------------
-   --  Is_Empty  --
-   ----------------
+   --------------
+   -- Is_Empty --
+   --------------
 
    function Is_Empty (Any_Value : in Any) return Boolean
      renames PolyORB.Any.Is_Empty;
 
-   ---------------------
-   --  Set_Any_Value  --
-   ---------------------
+   -------------------
+   -- Set_Any_Value --
+   -------------------
 
    procedure Set_Any_Value
      (Any_Value : in out CORBA.Any;
@@ -1030,35 +1030,35 @@ package body CORBA is
         (Any_Value, PolyORB.Types.Wide_String (Value));
    end Set_Any_Value;
 
-   -------------------------------
-   --  Set_Any_Aggregate_Value  --
-   -------------------------------
+   -----------------------------
+   -- Set_Any_Aggregate_Value --
+   -----------------------------
 
    procedure Set_Any_Aggregate_Value
      (Any_Value : in out CORBA.Any)
      renames PolyORB.Any.Set_Any_Aggregate_Value;
 
-   ---------------------------
-   --  Get_Aggregate_Count  --
-   ---------------------------
+   -------------------------
+   -- Get_Aggregate_Count --
+   -------------------------
 
    function Get_Aggregate_Count (Value : Any) return Unsigned_Long is
    begin
       return Unsigned_Long (PolyORB.Any.Get_Aggregate_Count (Value));
    end Get_Aggregate_Count;
 
-   -----------------------------
-   --  Add_Aggregate_Element  --
-   -----------------------------
+   ---------------------------
+   -- Add_Aggregate_Element --
+   ---------------------------
 
    procedure Add_Aggregate_Element
      (Value   : in out Any;
       Element : in     Any)
      renames PolyORB.Any.Add_Aggregate_Element;
 
-   -----------------------------
-   --  Get_Aggregate_Element  --
-   -----------------------------
+   ---------------------------
+   -- Get_Aggregate_Element --
+   ---------------------------
 
    function Get_Aggregate_Element
      (Value : Any;
@@ -1070,9 +1070,9 @@ package body CORBA is
         (Value, Tc, PolyORB.Types.Unsigned_Long (Index));
    end Get_Aggregate_Element;
 
-   -------------------------------
-   --  Get_Empty_Any_Aggregate  --
-   -------------------------------
+   -----------------------------
+   -- Get_Empty_Any_Aggregate --
+   -----------------------------
 
    function Get_Empty_Any_Aggregate
      (Tc : CORBA.TypeCode.Object)
@@ -1092,16 +1092,15 @@ package body CORBA is
    -- Is_Equivalent --
    -------------------
 
-   function Is_Equivalent (RI1, RI2 : RepositoryId)
-     return Boolean is
+   function Is_Equivalent (RI1, RI2 : RepositoryId) return Boolean is
    begin
       return Is_Equivalent
         (To_Standard_String (RI1),
          To_Standard_String (RI2));
    end Is_Equivalent;
 
-   function Is_Equivalent (RI1, RI2 : Standard.String)
-     return Boolean is
+   function Is_Equivalent (RI1, RI2 : Standard.String) return Boolean
+   is
       use Ada.Characters.Handling;
    begin
       return To_Lower (RI1) = To_Lower (RI2);
@@ -1162,8 +1161,8 @@ package body CORBA is
             when Marshal_E =>
                Raise_Marshal (CORBA_Member);
 
-            when Initialization_Failure_E =>
-               Raise_Internal (CORBA_Member);
+            when Initialize_E =>
+               Raise_Initialize (CORBA_Member);
 
             when No_Implement_E =>
             Raise_No_Implement (CORBA_Member);
@@ -1250,17 +1249,17 @@ package body CORBA is
       end;
    end Raise_From_Error;
 
-   ----------------
-   -- Initialize --
-   ----------------
+   ------------------------
+   -- Initialize_Package --
+   ------------------------
 
-   procedure Initialize;
+   procedure Initialize_Package;
 
-   procedure Initialize is
+   procedure Initialize_Package is
    begin
       PolyORB.CORBA_P.Exceptions.CORBA_Raise_From_Error
         := Raise_From_Error'Access;
-   end Initialize;
+   end Initialize_Package;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
@@ -1273,6 +1272,6 @@ begin
        Conflicts => Empty,
        Depends => Empty,
        Provides => Empty,
-       Init => Initialize'Access));
+       Init => Initialize_Package'Access));
 
 end CORBA;

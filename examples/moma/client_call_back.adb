@@ -58,7 +58,6 @@ with MOMA.Types;
 
 with PolyORB.Initialization;
 with PolyORB.References;
-with PolyORB.References.IOR;
 with PolyORB.Types;
 with PolyORB.Utils.Report;
 
@@ -142,8 +141,8 @@ begin
    PolyORB.Initialization.Initialize_World;
 
    --  Get a reference on the message pool to use.
-   Pool_Ref := PolyORB.References.IOR.String_To_Object (
-      MOMA.Types.To_MOMA_String (Ada.Command_Line.Argument (1)));
+   PolyORB.References.String_To_Object
+     (Ada.Command_Line.Argument (1), Pool_Ref);
 
    --  Initialize the connection factory
    --  (should be done by the administrator).

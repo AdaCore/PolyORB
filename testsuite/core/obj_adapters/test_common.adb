@@ -103,8 +103,7 @@ package body Test_Common is
 
       declare
          IOR : constant String :=
-           PolyORB.Types.To_Standard_String
-           (PolyORB.References.IOR.Object_To_String (My_Ref));
+           PolyORB.References.IOR.Object_To_String (My_Ref);
          pragma Warnings (Off);
          pragma Unreferenced (IOR);
          pragma Warnings (On);

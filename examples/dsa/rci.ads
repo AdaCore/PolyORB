@@ -30,8 +30,10 @@
 --                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 --  $Id$
 
+with Matrices; use Matrices;
 with RT;
 
 package RCI is
@@ -60,6 +62,11 @@ package RCI is
 
    function Get_Obj (Name : String) return RT.RACW;
 
+   type Vector is array (Integer range <>) of Integer;
+   function echoVector (V : Vector) return Vector;
+
+   function echoTranspose (M : Matrix) return Matrix;
+
    function echoString (S : String) return String;
    type echo_RAS is access function (S : String) return String;
 
@@ -70,6 +77,10 @@ package RCI is
    end record;
 
    function Modulus2 (Z : Complex) return Float;
+
+   type C_4_5 is array (0 .. 3, 0 .. 4) of Complex;
+
+   function echoC_4_5 (X : C_4_5) return C_4_5;
 
    --  type Parameterless_RAS is access procedure;
 

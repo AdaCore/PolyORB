@@ -65,22 +65,25 @@ package MOMA.Provider.Topic_Datas is
 
    type Topic_Data is private;
 
-   procedure Add_Subscriber (Data      : Topic_Data;
-                             Topic_Id  : MOMA.Types.String;
-                             Pool      : MOMA.Destinations.Destination);
+   procedure Add_Subscriber
+     (Data      : Topic_Data;
+      Topic_Id  : MOMA.Types.String;
+      Pool      : MOMA.Destinations.Destination);
    --  Add a new pool in the subscribers list of a topic.
 
    procedure Ensure_Initialization (W : in out Topic_Data);
    --  Ensure that T was initialized.
 
-   procedure Remove_Subscriber (Data      : Topic_Data;
-                                Topic_Id  : MOMA.Types.String;
-                                Pool      : MOMA.Destinations.Destination);
+   procedure Remove_Subscriber
+     (Data      : Topic_Data;
+      Topic_Id  : MOMA.Types.String;
+      Pool      : MOMA.Destinations.Destination);
    --  Remove a pool from the subscribers list of a topic.
 
-   function Get_Subscribers (Data      : Topic_Data;
-                             Topic_Id  : MOMA.Types.String)
-      return Destination_List.List;
+   function Get_Subscribers
+     (Data      : Topic_Data;
+      Topic_Id  : MOMA.Types.String)
+     return Destination_List.List;
    --  Return the list of current subscribers to a given topic.
 
 private

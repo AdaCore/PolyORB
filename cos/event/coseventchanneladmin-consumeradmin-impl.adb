@@ -82,6 +82,7 @@ package body CosEventChannelAdmin.ConsumerAdmin.Impl is
 
    type Consumer_Admin_Record is record
       This    : Object_Ptr;
+      ThisRef : ConsumerAdmin.Ref;
       Channel : EventChannel.Impl.Object_Ptr;
       Pushs   : PushSuppliers.Sequence;
       Pulls   : PullSuppliers.Sequence;
@@ -124,7 +125,7 @@ package body CosEventChannelAdmin.ConsumerAdmin.Impl is
       Consumer.X.This    := Consumer;
       Consumer.X.Channel := Channel;
       Initiate_Servant (Servant (Consumer), My_Ref);
-
+      Consumer.X.ThisRef := My_Ref;
       return Consumer;
    end Create;
 
@@ -171,7 +172,7 @@ package body CosEventChannelAdmin.ConsumerAdmin.Impl is
       Ensure_Initialization;
 
       Enter (Self_Mutex);
-      Supplier := ProxyPushSupplier.Impl.Create (Self.X.This);
+      Supplier := ProxyPushSupplier.Impl.Create (Self.X.ThisRef);
       PushSuppliers.Append (Self.X.Pushs, Supplier);
       Leave (Self_Mutex);
 

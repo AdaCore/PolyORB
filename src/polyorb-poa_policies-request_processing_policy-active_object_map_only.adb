@@ -141,6 +141,9 @@ is
       use type PolyORB.Servants.Servant_Access;
 
    begin
+
+      --  Lookup object in Active Object Map
+
       Retained_Id_To_Servant
         (POA.Obj_Adapter_Access (OA).Servant_Retention_Policy.all,
          OA,
@@ -152,9 +155,8 @@ is
          return;
       end if;
 
-      --  USE_ACTIVE_OBJECT_MAP_ONLY: only look up the oid in
-      --  the object map, do not try to create or locate a servant
-      --  on-the-fly or use a default servant.
+      --  Under USE_ACTIVE_OBJECT_MAP_ONLY policy, we only look up the
+      --  oid in the object map. A null servant is an error.
 
       if Servant = null then
          Throw (Error,

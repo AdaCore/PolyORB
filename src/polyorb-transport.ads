@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -58,9 +58,10 @@ package PolyORB.Transport is
       is abstract new Components.Component with private;
    type Transport_Access_Point_Access is
      access all Transport_Access_Point'Class;
-   --  A listening transport service access point.
+   --  A listening transport service access point
 
-   function Notepad_Of (TAP : Transport_Access_Point_Access)
+   function Notepad_Of
+     (TAP : Transport_Access_Point_Access)
      return Annotations.Notepad_Access;
    pragma Inline (Notepad_Of);
    --  A TAP is an annotable object (cf. PolyORB.Annotations),
@@ -72,10 +73,12 @@ package PolyORB.Transport is
      return Asynch_Ev.Asynch_Ev_Source_Access
       is abstract;
    --  Create a view of TAP as an asyncrhonous event source.
+   --  This function MUST create an Event Handler for this acces point.
+   --  The Event Handler will be referenced by the AES.Handler Note.
 
    function Handle_Message
      (TAP : access Transport_Access_Point;
-      Msg : Components.Message'Class)
+      Msg :        Components.Message'Class)
      return Components.Message'Class;
 
    -----------------------------------------------------------------
@@ -89,13 +92,14 @@ package PolyORB.Transport is
 
    procedure Connect_Upper
      (TE    : access Transport_Endpoint;
-      Upper : Components.Component_Access);
+      Upper :        Components.Component_Access);
    --  Connect the "upper layer" signal of TE to Upper.
 
    type Transport_Endpoint_Access is access all Transport_Endpoint'Class;
    --  An opened transport endpoint.
 
-   function Notepad_Of (TE : Transport_Endpoint_Access)
+   function Notepad_Of
+     (TE : Transport_Endpoint_Access)
      return Annotations.Notepad_Access;
    pragma Inline (Notepad_Of);
 
@@ -104,11 +108,13 @@ package PolyORB.Transport is
 
    function Handle_Message
      (TE  : access Transport_Endpoint;
-      Msg : Components.Message'Class)
-     return Components.Message'Class;
+      Msg :        Components.Message'Class)
+     return Components.Message'Class
+     is abstract;
 
-   function Upper (TE : Transport_Endpoint_Access)
-                   return Components.Component_Access;
+   function Upper
+     (TE : Transport_Endpoint_Access)
+     return Components.Component_Access;
    --  Return a component access to the upper layer of TE
 
    ----------------------------------------------------
@@ -120,24 +126,17 @@ package PolyORB.Transport is
    --  These primitives are invoked from event-driven ORB
    --  threads, and /must not/ be blocking.
 
-   procedure Accept_Connection
-     (TAP : Transport_Access_Point;
-      TE  : out Transport_Endpoint_Access)
-      is abstract;
-   --  Accept a pending new connection on TAP and create
-   --  a new associated TE.
-
-   Connection_Closed : exception;
-
    function Create_Event_Source
      (TE : Transport_Endpoint)
      return Asynch_Ev.Asynch_Ev_Source_Access
       is abstract;
    --  Create a view of TE as an asyncrhonous event source.
+   --  This function MUST create an Event Handler for this acces point.
+   --  The Event Handler will be referenced by the AES.Handler Note.
 
    procedure Read
      (TE     : in out Transport_Endpoint;
-      Buffer : Buffers.Buffer_Access;
+      Buffer :        Buffers.Buffer_Access;
       Size   : in out Ada.Streams.Stream_Element_Count)
       is abstract;
    --  Receive data from TE into Buffer. When Read is Called,
@@ -146,11 +145,20 @@ package PolyORB.Transport is
 
    procedure Write
      (TE     : in out Transport_Endpoint;
-      Buffer : Buffers.Buffer_Access)
+      Buffer :        Buffers.Buffer_Access)
       is abstract;
    --  Write out the contents of Buffer onto TE.
 
    procedure Close (TE : in out Transport_Endpoint) is abstract;
+
+   --  Handler for AES associated with a Transport Access Point
+   --  is defined in polyorb-binding_data.ads
+
+   type TE_AES_Event_Handler
+      is abstract new PolyORB.Asynch_Ev.AES_Event_Handler with record
+         TE : PolyORB.Transport.Transport_Endpoint_Access;
+      end record;
+   --  Handler for AES associated with a Transport End Point
 
 private
 

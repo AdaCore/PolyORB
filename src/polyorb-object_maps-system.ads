@@ -34,17 +34,23 @@
 --  Implementation of an Active Object Map optimized for System defined
 --  Object Identifier.
 
---  Note: this package depends on Unmarshalled_Oid constrution for
+--  Note: this package depends on Unmarshalled_Oid construction for
 --  SYSTEM_ID POA policy as defined in the package
 --  PolyORB.POA_Policies.Id_Assignment_Policy.System
 
 --  $Id$
 
-with PolyORB.Sequences.Unbounded;
+with PolyORB.Utils.Dynamic_Tables;
 
 package PolyORB.Object_Maps.System is
 
    type System_Object_Map is new Object_Map with private;
+
+   procedure Initialize (O_Map : in out System_Object_Map);
+   --  Initialize object map O_Map private structures
+
+   procedure Finalize (O_Map : in out System_Object_Map);
+   --  Finalize object map O_Map private structures
 
    function Add
      (O_Map : access System_Object_Map;
@@ -83,11 +89,11 @@ package PolyORB.Object_Maps.System is
 
 private
 
-   package Map_Entry_Seqs is new PolyORB.Sequences.Unbounded
-     (Object_Map_Entry_Access);
+   package Map_Entry_Tables is new PolyORB.Utils.Dynamic_Tables
+     (Object_Map_Entry_Access, Natural, 1, 10, 1);
 
    type System_Object_Map is new Object_Map with record
-      System_Map       : Map_Entry_Seqs.Sequence;
+      System_Map  : Map_Entry_Tables.Instance;
    end record;
 
 end PolyORB.Object_Maps.System;

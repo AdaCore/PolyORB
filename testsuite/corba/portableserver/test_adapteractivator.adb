@@ -117,6 +117,7 @@ package body Test_AdapterActivator is
       New_Test ("Adapter Activator");
 
       --  Register a Child POA
+
       Child_POA := PortableServer.POA.Ref
         (PortableServer.POA.Create_POA
          (Root_POA,
@@ -134,12 +135,15 @@ package body Test_AdapterActivator is
             (Child_POA,
              CORBA.To_CORBA_String ("Foo"),
              True));
+
+         Output ("Non existent POA found !", False);
       exception
          when PortableServer.POA.AdapterNonExistent =>
-            null;
+            Output ("Non existent POA not found", True);
       end;
 
-      --  Set 'Null' Adapter Activator
+      --  Set Null Adapter Activator
+
       PortableServer.POA.Set_The_Activator
         (Child_POA,
          NullAdapter);
@@ -154,12 +158,13 @@ package body Test_AdapterActivator is
              True));
       exception
          when PortableServer.POA.AdapterNonExistent =>
-            null;
+            Output ("Null_Adapter did nothing ", True);
       end;
 
       Output ("Null Unknown_Adapter invoked", Null_Activator_Called);
 
-      --  Set 'Simple' Adapter Activator
+      --  Set Simple Adapter Activator
+
       PortableServer.POA.Set_The_Activator
         (Child_POA,
          SimpleAdapter);

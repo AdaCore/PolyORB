@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,7 +37,8 @@ with Ada.Tags;
 
 with PolyORB.Log;
 with PolyORB.Requests;
-with PolyORB.Objects.Interface;
+with PolyORB.Servants.Interface;
+with PolyORB.Exceptions;
 
 package body PolyORB.Minimal_Servant is
 
@@ -56,7 +57,7 @@ package body PolyORB.Minimal_Servant is
       Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class
    is
-      use PolyORB.Objects.Interface;
+      use PolyORB.Servants.Interface;
 
    begin
       pragma Debug (O ("Handling message of type "
@@ -65,12 +66,15 @@ package body PolyORB.Minimal_Servant is
       if Msg in Execute_Request then
          declare
             use PolyORB.Requests;
+            use PolyORB.Exceptions;
 
             R : constant Request_Access := Execute_Request (Msg).Req;
+            Error : Error_Container;
          begin
             Invoke (Servant'Class (Self.all)'Access, R);
 
-            Set_Out_Args (R);
+            Set_Out_Args (R, Error);
+            --  XXX We should do something if we find an exception
 
             return Executed_Request'(Req => R);
          end;

@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  General-purpose string pointer.
+--  General-purpose string pointer and related functions
 
 --  $Id$
 
@@ -40,6 +40,10 @@ with Ada.Unchecked_Deallocation;
 package PolyORB.Utils.Strings is
 
    pragma Preelaborate;
+
+   --------------------
+   -- String Pointer --
+   --------------------
 
    type String_Ptr is access all Standard.String;
 

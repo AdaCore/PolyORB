@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams;   use Ada.Streams;
+with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Buffers;
@@ -40,17 +40,20 @@ with PolyORB.Opaque;
 with PolyORB.Sequences.Unbounded;
 with PolyORB.Types;
 with PolyORB.Utils.Simple_Flags;
+with PolyORB.Filters.Interface;
 
 package PolyORB.Protocols.GIOP is
 
+   use Ada.Streams;
+
    --  GIOP exceptions
+
    GIOP_Error : exception;
    GIOP_Bad_Function_Call : exception;
    GIOP_Unknown_Version : exception;
 
-
    type GIOP_Session is new Session with private;
-   type GIOP_Protocol is new Protocol with private;
+   type GIOP_Protocol is abstract new Protocol with private;
 
    ------------------------
    -- Session primitives --
@@ -58,20 +61,20 @@ package PolyORB.Protocols.GIOP is
 
    procedure Create
      (Proto   : access GIOP_Protocol;
-      Session : out Filter_Access);
+      Session :    out Filter_Access);
 
    procedure Invoke_Request
      (Sess : access GIOP_Session;
-      R    : Requests.Request_Access;
+      R    :        Requests.Request_Access;
       Pro  : access Binding_Data.Profile_Type'Class);
 
    procedure Abort_Request
      (Sess : access GIOP_Session;
-      R    : Requests.Request_Access);
+      R    :        Requests.Request_Access);
 
    procedure Send_Reply
      (Sess : access GIOP_Session;
-      R    : Requests.Request_Access);
+      R    :        Requests.Request_Access);
 
    procedure Handle_Connect_Indication
      (Sess : access GIOP_Session);
@@ -81,7 +84,7 @@ package PolyORB.Protocols.GIOP is
 
    procedure Handle_Data_Indication
      (Sess        : access GIOP_Session;
-      Data_Amount : Stream_Element_Count);
+      Data_Amount :        Stream_Element_Count);
 
    procedure Handle_Disconnect
      (Sess : access GIOP_Session);
@@ -90,9 +93,25 @@ package PolyORB.Protocols.GIOP is
      (Sess : access GIOP_Session;
       Args : in out Any.NVList.Ref);
 
+   ----------------
+   -- GIOP State --
+   ----------------
+
+   type GIOP_State is
+     (Not_Initialized,        --  Session initialized
+      Expect_Header,          --  Waiting for a new message header
+      Expect_Body,            --  Waiting for body message
+      Waiting_Unmarshalling   --  Waiting argument unsmarshalling
+      );
+
+   type GIOP_Data_Expected is
+     new PolyORB.Filters.Interface.Data_Expected with record
+        State : GIOP_State;
+     end record;
+
 private
 
-   type GIOP_Protocol is new Protocol with null record;
+   type GIOP_Protocol is abstract new Protocol with null record;
 
    package Octet_Flags is
       new PolyORB.Utils.Simple_Flags (Types.Octet, Types.Shift_Left);
@@ -107,24 +126,13 @@ private
       --  used instead when it is necessary to access the target
       --  profile.
    end record;
+
    type Pending_Request_Access is access Pending_Request;
+
    procedure Free is new Ada.Unchecked_Deallocation
      (Pending_Request, Pending_Request_Access);
+
    package Pend_Req_Seq is new Sequences.Unbounded (Pending_Request_Access);
-
-   ----------------
-   -- GIOP State --
-   ----------------
-
-   --  XXX to be detailed. introduce GIOP State Machine if there is one,
-   --  or this specific one  ..
-
-   type GIOP_State is
-     (Not_Initialized,        --  Session initialized
-      Expect_Header,          --  Waiting for a new message header
-      Expect_Body,            --  Waiting for body message
-      Waiting_Unmarshalling   --  Waiting argument unsmarshalling
-      );
 
    --------------------
    -- GIOP Send Mode --
@@ -132,28 +140,55 @@ private
 
    Default_Locate_Then_Request : constant Boolean := True;
 
+   ------------------
+   -- GIOP Version --
+   ------------------
+
+   type GIOP_Version is record
+      Major : Types.Octet;
+      Minor : Types.Octet;
+   end record;
+
+   --  Default GIOP_Version
+
+   GIOP_Default_Version : constant GIOP_Version :=
+     (Major => 1,
+      Minor => 2);
+
+   procedure Get_GIOP_Implem
+     (Sess    : access GIOP_Session;
+      Version :        GIOP_Version);
+   --  Get a GIOP_Implem from GIOP Version
+
+   Max_GIOP_Implem : constant Natural := 3;
+   --  number of GIOP Implem that system can handle
+
    -----------------
    -- GIOP_Implem --
    -----------------
 
-   --  List of supported GIOP_Version
-   type GIOP_Version_List is (GIOP_V_1_0, GIOP_V_1_1, GIOP_V_1_2);
-
    type GIOP_Implem is abstract tagged record
-      Version : GIOP_Version_List;
+      Version               : GIOP_Version;
       --  This values must be set at Implem initialization !
-      Data_Alignment      : Opaque.Alignment_Type;
-      Locate_Then_Request : Boolean;
+      Data_Alignment        : Opaque.Alignment_Type;
+      Locate_Then_Request   : Boolean;
+      --  Configuration values
+      Section               : Types.String;
+      Prefix                : Types.String;
+      --  Allowed Req Flags
+      Permitted_Sync_Scopes : PolyORB.Requests.Flags;
    end record;
+
    type GIOP_Implem_Access is access all GIOP_Implem'Class;
 
    --  Function which are version specific
    --  Must be implemented by each implem
+
    procedure Initialize_Implem
      (Implem : access GIOP_Implem)
       is abstract;
    --  Initialize global parameters for implem
-   --  Called at PolyORB intitailization
+   --  Called at PolyORB initialization
 
    procedure Initialize_Session
      (Implem : access GIOP_Implem;
@@ -251,36 +286,19 @@ private
       Buffer  : access PolyORB.Buffers.Buffer_Type)
       is abstract;
 
+   --  GIOP Implem management
+   type GIOP_Create_Implem_Func is access
+     function return GIOP_Implem_Access;
+
+   type GIOP_Implem_Array is array (1 .. Max_GIOP_Implem)
+     of GIOP_Implem_Access;
+
+   --  Register a GIOP Implem
+   procedure Global_Register_GIOP_Version
+     (Version : GIOP_Version;
+      Implem  : GIOP_Create_Implem_Func);
+
    ------------------------------------------------
-
-   ------------------
-   -- GIOP Version --
-   ------------------
-
-   --  GIOP_Send_Mode : constant GIOP_Send_Mode_Type := Direct;
-   type GIOP_Version is record
-      Major : Types.Octet;
-      Minor : Types.Octet;
-   end record;
-
-   --  Default GIOP_Version
-   GIOP_Default_Version : constant GIOP_Version
-     := (Major => 1,
-         Minor => 2);
-   Current_GIOP_Default_Version : GIOP_Version;
-
-   --  Bind between GIOP_Version_List and GIOP_Version
-   GIOP_Version_Bind :
-     constant array (GIOP_Version_List) of GIOP_Version
-     := (GIOP_V_1_0 => GIOP_Version'(Major => 1, Minor => 0),
-         GIOP_V_1_1 => GIOP_Version'(Major => 1, Minor => 1),
-         GIOP_V_1_2 => GIOP_Version'(Major => 1, Minor => 2)
-         );
-
-   --  Bind between GIOP_Version_List and GIOP_Implem
-   GIOP_Version_Access :
-     array (GIOP_Version_List) of GIOP_Implem_Access
-     := (others => null);
 
    --  Giop Context
    --  will be extended by each implem
@@ -289,17 +307,31 @@ private
         := PolyORB.Buffers.Host_Order;
       Message_Size       : Types.Unsigned_Long;
    end record;
+
    type GIOP_Ctx_Access is access all GIOP_Ctx'Class;
 
-   --  Register a GIOP Implem into GIOP_Version_Access
-   procedure Register_GIOP_Version
-     (Version : GIOP_Version_List;
-      Implem  : GIOP_Implem_Access);
+   ---------------------------------------------------
 
-   --  Get a GIOP_Implem from GIOP Version
-   procedure Get_GIOP_Implem
-     (Sess    : access GIOP_Session;
-      Version :        GIOP_Version);
+   type GIOP_Conf is record
+      --  Default GIOP Version
+      GIOP_Def_Ver          : GIOP_Version;
+      --  List of activated GIOP Implem
+      GIOP_Implem_List      : GIOP_Implem_Array := (others => null);
+      --  Nb of activated GIOP Implem
+      Nb_Implem             : Natural range  0 .. Max_GIOP_Implem := 0;
+      --  Allowed Req Flags
+      Permitted_Sync_Scopes : PolyORB.Requests.Flags;
+   end record;
+   type GIOP_Conf_Access is access all GIOP_Conf;
+
+   --  Initialize a GIOP Configuration, reading PolyORB configuration
+   procedure Initialize
+     (Conf                  : access GIOP_Conf;
+      Version               : in     GIOP_Version;
+      Permitted_Sync_Scopes : in     PolyORB.Requests.Flags;
+      Locate_Then_Request   : in     Boolean;
+      Section               : in     String;
+      Prefix                : in     String);
 
    ---------------------------------------------------
 
@@ -308,14 +340,24 @@ private
    ------------------
 
    type GIOP_Session is new Session with record
+      --  Access to current implem
       Implem       : GIOP_Implem_Access;
+      --  GIOP state
       State        : GIOP_State := Not_Initialized;
+      --  Current GIOP context, implem dependant
       Ctx          : GIOP_Ctx_Access;
+      --  GIOP Buffer in
       Buffer_In    : Buffers.Buffer_Access;
+      --  Role of session for ORB
       Role         : ORB.Endpoint_Role;
+      --  List of pendings request
       Pending_Reqs : Pend_Req_Seq.Sequence;
+      --  Counter to have new Request Index
       Req_Index    : Types.Unsigned_Long := 1;
+      --  Access to GIOP_Protocol, which contain GIOP_Implems
+      Conf         : GIOP_Conf_Access;
    end record;
+
    type GIOP_Session_Access is access all GIOP_Session;
 
    procedure Initialize (S : in out GIOP_Session);
@@ -332,9 +374,9 @@ private
    --  Header size of GIOP_packet (non version specific header)
    GIOP_Header_Size : constant Stream_Element_Offset := 12;
 
-   --  Place of endianess in a giop packet
-   Flags_Index    : constant Stream_Element_Offset := 7;
-   Bit_Endianness : constant Octet_Flags.Bit_Count := 0;
+   --  Location of flags in GIOP packet
+   Flags_Index       : constant Stream_Element_Offset := 7;
+   Bit_Little_Endian : constant Octet_Flags.Bit_Count := 0;
 
    ---------------------------------------------------
 
@@ -433,7 +475,6 @@ private
    procedure Unmarshall_System_Exception_To_Any
      (Buffer : PolyORB.Buffers.Buffer_Access;
       Info   : out Any.Any);
-   --  umarshall exception info
 
    function Get_Conf_Chain
      (Implem : access GIOP_Implem'Class)
