@@ -76,11 +76,11 @@ package body XE is
    --     node_1 : next declaration head
    --     node_2 : declaration head
    --     node_3 : declaration tail
-   --     flag_1 : unused
+   --     flag_1 : list or array
    --     value  : declaration list | parameter list | component list
    --  subprogram
    --     node_1 : next declaration
-   --     node_2 :
+   --     node_2 : unused
    --     node_3 : parameter list
    --     flag_1 : is a procedure
    --     value  : unused
@@ -88,14 +88,14 @@ package body XE is
    --     node_1 : next declaration
    --     node_2 : array element type when type is a list
    --     node_3 : component list | unused
-   --     flag_1 : is structured
+   --     flag_1 : self declared
    --     value  : predefined_type'pos
    --  variable
    --     node_1 : next declaration
    --     node_2 : variable type
    --     node_3 : component list | unused
    --     flag_1 : is structured
-   --     value  : used when enumeration type
+   --     value  : enumeration type value
    --  component
    --     node_1 : next component
    --     node_2 : component type
@@ -143,142 +143,21 @@ package body XE is
    Function_Type_Node  : Node_Id := Null_Node;
    Procedure_Type_Node : Node_Id := Null_Node;
 
-   --------------------
-   -- Load_All_Units --
-   --------------------
+   ---------------------------
+   -- Add_Channel_Partition --
+   ---------------------------
 
-   procedure Load_All_Units (From : Unit_Name_Type) is
-      File : File_Name_Type;
-      Lib  : File_Name_Type;
-      Text : Text_Buffer_Ptr;
+   procedure Add_Channel_Partition
+     (Partition : in Partition_Name_Type; To : in CID_Type) is
+      PID : PID_Type := Get_PID (Partition);
    begin
-      if Verbose_Mode then
-         Write_Program_Name;
-         Write_Str  (": loading all units from ");
-         Write_Name (From);
-         Write_Eol;
+      if PID > Channels.Table (To).Lower then
+         Channels.Table (To).Upper := PID;
+      else
+         Channels.Table (To).Upper := Channels.Table (To).Lower;
+         Channels.Table (To).Lower := PID;
       end if;
-      if Already_Loaded (From) then
-         return;
-      end if;
-      File := From & ADB_Suffix;
-      if Full_Source_Name (File) = No_Name then
-         File := From & ADS_Suffix;
-         if Full_Source_Name (File) = No_Name then
-            Write_Program_Name;
-            Write_Str (": no spec or body found for unit ");
-            Write_Name (From);
-            Write_Eol;
-            raise Fatal_Error;
-         end if;
-      end if;
-      Lib  := Lib_File_Name (File);
-      Text := Read_Library_Info (Lib);
-      if Text = null then
-         Write_Missing_File (Lib);
-         raise Fatal_Error;
-      end if;
-      Read_ALI (Scan_ALI (Lib, Text));
-   end Load_All_Units;
-
-   --------------------
-   -- Already_Loaded --
-   --------------------
-
-   function Already_Loaded (Unit : Name_Id) return Boolean is
-   begin
-      Get_Name_String (Unit);
-      Name_Len := Name_Len + 1;
-      Name_Buffer (Name_Len) := '%';
-      Name_Len := Name_Len + 1;
-      Name_Buffer (Name_Len) := 'b';
-      if Get_Name_Table_Info (Name_Find) /= 0 then
-         return True;
-      end if;
-      Name_Buffer (Name_Len) := 's';
-      if Get_Name_Table_Info (Name_Find) /= 0 then
-         return True;
-      end if;
-      return False;
-   end Already_Loaded;
-
-   ----------------------
-   -- Create_Partition --
-   ----------------------
-
-   procedure Create_Partition
-     (Name : in Partition_Name_Type;
-      PID  : out PID_Type) is
-      Partition : PID_Type;
-   begin
-      if Verbose_Mode then
-         Write_Program_Name;
-         Write_Str  (": create ");
-         Write_Name (Name);
-         Write_Eol;
-      end if;
-
-      Partitions.Increment_Last;
-      Partition := Partitions.Last;
-      Set_PID (Name, Partition);
-      Partitions.Table (Partition).Name            := Name;
-      Partitions.Table (Partition).Host            := Null_Host;
-      Partitions.Table (Partition).Storage_Dir     := No_Storage_Dir;
-      Partitions.Table (Partition).Command_Line    := No_Command_Line;
-      Partitions.Table (Partition).Main_Subprogram := No_Name;
-      Partitions.Table (Partition).Termination     := Unknown_Termination;
-      Partitions.Table (Partition).First_Unit      := Null_CUID;
-      Partitions.Table (Partition).Last_Unit       := Null_CUID;
-      Partitions.Table (Partition).To_Build        := True;
-      Partitions.Table (Partition).Most_Recent     := Configuration_File;
-      PID := Partition;
-   end Create_Partition;
-
-   --------------------
-   -- Copy_Partition --
-   --------------------
-
-   procedure Copy_Partition
-     (Name : in Partition_Name_Type;
-      Many : in Int) is
-      PID  : PID_Type;
-      CPID : PID_Type;
-      CUID : CUID_Type;
-   begin
-      if Verbose_Mode then
-         Write_Program_Name;
-         Write_Str  (": create ");
-         Write_Name (Name);
-         Write_Str  (" (");
-         Write_Int  (Many);
-         if Many > 1 then
-            Write_Str (" copies)");
-         else
-            Write_Str (" copy)");
-         end if;
-         Write_Eol;
-      end if;
-
-      CPID := Get_PID (Name);
-      if CPID = Null_PID or else
-        CPID = Wrong_PID then
-         Write_Program_Name;
-         Write_Str (": gnatdist is going crazy");
-         Write_Eol;
-         raise Fatal_Error;
-      end if;
-      for I in 1 .. Many loop
-         Partitions.Increment_Last;
-         PID := Partitions.Last;
-         Set_PID (Name, PID);
-         Partitions.Table (PID).Name := Name;
-         CUID := Partitions.Table (CPID).First_Unit;
-         while CUID /= Null_CUID loop
-            Add_Conf_Unit (CUnit.Table (CUID).CUname, PID);
-            CUID := CUnit.Table (CUID).Next;
-         end loop;
-      end loop;
-   end Copy_Partition;
+   end Add_Channel_Partition;
 
    -------------------
    -- Add_Conf_Unit --
@@ -330,156 +209,140 @@ package body XE is
 
    end Add_Conf_Unit;
 
-   ------------
-   -- Is_Set --
-   ------------
+   ------------------------------
+   -- Add_Subprogram_Parameter --
+   ------------------------------
 
-   function Is_Set (Partition : PID_Type) return Boolean is
+   procedure Add_Subprogram_Parameter
+     (Subprogram_Node : in Subprogram_Id;
+      Parameter_Node  : in Parameter_Id) is
+      Node  : Node_Id := Node_Id (Subprogram_Node);
+      List  : Node_Id;
+      Value : Node_Id := Node_Id (Parameter_Node);
    begin
-      return Partitions.Table (Partition).Last_Unit /= Null_CUID;
-   end Is_Set;
+      pragma Assert (Is_Subprogram (Node));
+      List := Nodes.Table (Node).Node_3;
+      pragma Assert (Is_Parameter_List (List));
+      if Nodes.Table (List).Node_2 = Null_Node then
+         Nodes.Table (List).Node_1 := Value;
+         Nodes.Table (List).Node_2 := Value;
+      else
+         Nodes.Table (Nodes.Table (List).Node_2).Node_1 := Value;
+         Nodes.Table (List).Node_2 := Value;
+      end if;
+   end Add_Subprogram_Parameter;
 
-   -------------
-   -- Get_PID --
-   -------------
+   ------------------------
+   -- Add_Type_Component --
+   ------------------------
 
-   function Get_PID (N : Name_Id) return PID_Type is
-      Info : Int;
+   procedure Add_Type_Component
+     (Type_Node       : in Type_Id;
+      Component_Node  : in Component_Id) is
+      Node  : Node_Id := Node_Id (Type_Node);
+      List  : Node_Id;
+      Value : Node_Id := Node_Id (Component_Node);
    begin
-      Info := Get_Name_Table_Info (N);
-      case Info is
-         when 0 | PID_Null =>
-            return Null_PID;
-         when PID_First .. PID_Last =>
-            return PID_Type (Info);
-         when others =>
-            return Wrong_PID;
-      end case;
-   end Get_PID;
+      pragma Assert (Is_Type (Node));
+      List := Nodes.Table (Node).Node_3;
+      pragma Assert (Is_Component_List (List));
+      if Nodes.Table (List).Node_2 = Null_Node then
+         Nodes.Table (List).Node_1 := Value;
+         Nodes.Table (List).Node_2 := Value;
+      else
+         Nodes.Table (Nodes.Table (List).Node_2).Node_1 := Value;
+         Nodes.Table (List).Node_2 := Value;
+      end if;
+   end Add_Type_Component;
 
-   -------------
-   -- Set_PID --
-   -------------
+   ----------------------------
+   -- Add_Variable_Component --
+   ----------------------------
 
-   procedure Set_PID (N : Name_Id; P : PID_Type) is
+   procedure Add_Variable_Component
+     (Variable_Node   : in Variable_Id;
+      Component_Node  : in Component_Id) is
+      Node  : Node_Id := Node_Id (Variable_Node);
+      List  : Node_Id;
+      Value : Node_Id := Node_Id (Component_Node);
    begin
-      Set_Name_Table_Info (N, Int (P));
-   end Set_PID;
+      pragma Assert (Is_Variable (Node));
+      List := Nodes.Table (Node).Node_3;
+      pragma Assert (Is_Component_List (List));
+      if Nodes.Table (List).Node_2 = Null_Node then
+         Nodes.Table (List).Node_1 := Value;
+         Nodes.Table (List).Node_2 := Value;
+      else
+         Nodes.Table (Nodes.Table (List).Node_2).Node_1 := Value;
+         Nodes.Table (List).Node_2 := Value;
+      end if;
+   end Add_Variable_Component;
 
-   -----------------
-   -- Get_Unit_Id --
-   -----------------
+   --------------------
+   -- Already_Loaded --
+   --------------------
 
-   function Get_Unit_Id (N : Name_Id) return Unit_Id is
-      Info : Int;
+   function Already_Loaded (Unit : Name_Id) return Boolean is
    begin
-      Info := Get_Name_Table_Info (N);
-      case Info is
-         when Int (Unit_Id'First) .. Int (Unit_Id'Last) =>
-            null;
-         when others =>
-            Info := Int (No_Unit_Id);
-      end case;
-      return Unit_Id (Info);
-   end Get_Unit_Id;
+      Get_Name_String (Unit);
+      Name_Len := Name_Len + 1;
+      Name_Buffer (Name_Len) := '%';
+      Name_Len := Name_Len + 1;
+      Name_Buffer (Name_Len) := 'b';
+      if Get_Name_Table_Info (Name_Find) /= 0 then
+         return True;
+      end if;
+      Name_Buffer (Name_Len) := 's';
+      if Get_Name_Table_Info (Name_Find) /= 0 then
+         return True;
+      end if;
+      return False;
+   end Already_Loaded;
 
-   -----------------
-   -- Set_Unit_Id --
-   -----------------
+   --------------------------------------
+   -- Append_Configuration_Declaration --
+   --------------------------------------
 
-   procedure Set_Unit_Id (N : Name_Id; U : Unit_Id) is
+   procedure Append_Configuration_Declaration
+     (Configuration_Node : in Configuration_Id;
+      Declaration_Node   : in Node_Id) is
+      Conf : Node_Id := Node_Id (Configuration_Node);
+      Back : Node_Id;
    begin
-      Set_Name_Table_Info (N, Int (U));
-   end Set_Unit_Id;
+      pragma Assert (Is_Configuration (Conf));
+      if Nodes.Table (Conf).Node_3 = Null_Node then
+         Nodes.Table (Conf).Node_1 := Null_Node;
+         Nodes.Table (Conf).Node_2 := Declaration_Node;
+         Nodes.Table (Conf).Node_3 := Declaration_Node;
+      else
+         Nodes.Table (Nodes.Table (Conf).Node_3).Node_1 := Declaration_Node;
+         Nodes.Table (Conf).Node_3 := Declaration_Node;
+      end if;
+      if Is_Configuration (Declaration_Node) then
+         Nodes.Table (Conf).Node_3 := Conf;
+         Back := Nodes.Table (Declaration_Node).Node_3;
+         if Back = Null_Node then
+            Nodes.Table (Declaration_Node).Node_1 := Conf;
+         else
+            Nodes.Table (Declaration_Node).Node_1 :=
+              Nodes.Table (Declaration_Node).Node_2;
+            Nodes.Table (Back).Node_1 := Conf;
+         end if;
+      end if;
+   end Append_Configuration_Declaration;
 
-   ----------------
-   -- Get_ALI_Id --
-   ----------------
+   -----------------------------
+   -- Component_Is_An_Attribute --
+   -----------------------------
 
-   function Get_ALI_Id (N : Name_Id) return ALI_Id is
-      Info : Int;
+   procedure Component_Is_An_Attribute
+     (Component_Node : in Component_Id;
+      Attribute_Node : in Boolean) is
+      Node : Node_Id := Node_Id (Component_Node);
    begin
-      Info := Get_Name_Table_Info (N);
-      case Info is
-         when Int (ALI_Id'First) .. Int (ALI_Id'Last) =>
-            null;
-         when others =>
-            Info := Int (No_ALI_Id);
-      end case;
-      return ALI_Id (Info);
-   end Get_ALI_Id;
-
-   ----------------
-   -- Set_ALI_Id --
-   ----------------
-
-   procedure Set_ALI_Id (N : Name_Id; A : ALI_Id) is
-   begin
-      Set_Name_Table_Info (N, Int (A));
-   end Set_ALI_Id;
-
-   -------------
-   -- Get_CUID --
-   -------------
-
-   function Get_CUID (N : Name_Id) return CUID_Type is
-      Info : Int;
-   begin
-      Info := Get_Name_Table_Info (N);
-      case Info is
-         when 0 | CUID_Null =>
-            return Null_CUID;
-         when CUID_First .. CUID_Last =>
-            return CUID_Type (Info);
-         when others =>
-            return Wrong_CUID;
-      end case;
-   end Get_CUID;
-
-   -------------
-   -- Set_CUID --
-   -------------
-
-   procedure Set_CUID (N : Name_Id; U : CUID_Type) is
-   begin
-      Set_Name_Table_Info (N, Int (U));
-   end Set_CUID;
-
-   ---------------
-   -- Get_Token --
-   ---------------
-
-   function Get_Token (N : Name_Id) return Token_Type is
-      Info : Int;
-   begin
-      Info := Get_Name_Table_Info (N);
-      case Info is
-         when Tkn_First .. Tkn_Last =>
-            return Token_Type'Val
-              (Info - Int (Wrong_Token) +
-               Int (Token_Type'Pos (Token_Type'First)));
-         when others =>
-            return Tok_Unknown;
-      end case;
-   end Get_Token;
-
-   ---------------
-   -- Set_Token --
-   ---------------
-
-   procedure Set_Token (N : String; T : Token_Type) is
-      Name  : Name_Id;
-      Index : Int;
-   begin
-      Index := Int (Wrong_Token) +
-               Int (Token_Type'Pos (T) -
-                    Token_Type'Pos (Token_Type'First));
-      Name_Len := N'Length;
-      Name_Buffer (1 .. Name_Len) := N;
-      Name := Name_Find;
-      Set_Name_Table_Info (Name, Index);
-      Reserved (T) := True;
-   end Set_Token;
+      pragma Assert (Is_Component (Node));
+      Nodes.Table (Node).Flag_1 := Attribute_Node;
+   end Component_Is_An_Attribute;
 
    -------------
    -- Convert --
@@ -634,132 +497,225 @@ package body XE is
       end if;
    end Convert;
 
-   ---------------
-   -- Str_To_Id --
-   ---------------
-
-   function Str_To_Id (S : String) return Name_Id is
-   begin
-      Name_Buffer (1 .. S'Length) := S;
-      Name_Len := S'Length;
-      return Name_Find;
-   end Str_To_Id;
-
-   -------------------
-   -- Get_Node_Name --
-   -------------------
-
-   function  Get_Node_Name
-     (Node : in Node_Id)
-     return Name_Id is
-   begin
-      return Nodes.Table (Node).Name;
-   end Get_Node_Name;
-
-   ----------------
-   -- Is_Of_Kind --
-   ----------------
-
-   function Is_Of_Kind
-     (Node : in Node_Id;
-      Kind : in Node_Kind)
-      return Boolean is
-   begin
-      pragma Assert (Node /= Null_Node);
-      return Nodes.Table (Node).Kind = Kind;
-   end Is_Of_Kind;
-
-   -----------------------
-   -- Is_Component_List --
-   -----------------------
-
-   function Is_Component_List
-     (Node : in Node_Id)
-      return Boolean is
-   begin
-      return Nodes.Table (Node).Kind = K_List and then
-             Convert (Nodes.Table (Node).Value) = K_Component_List;
-   end Is_Component_List;
-
-   -----------------------
-   -- Is_Parameter_List --
-   -----------------------
-
-   function Is_Parameter_List
-     (Node : in Node_Id)
-      return Boolean is
-   begin
-      return Nodes.Table (Node).Kind = K_List and then
-             Convert (Nodes.Table (Node).Value) = K_Parameter_List;
-   end Is_Parameter_List;
-
-   -------------------------
-   -- Is_Declaration_List --
-   -------------------------
-
-   function Is_Declaration_List
-     (Node : in Node_Id)
-      return Boolean is
-   begin
-      return Nodes.Table (Node).Kind = K_List and then
-             Convert (Nodes.Table (Node).Value) = K_Declaration_List;
-   end Is_Declaration_List;
-
-   -------------
-   -- Is_Type --
-   -------------
-
-   function Is_Type (Node : Node_Id) return Boolean is
-   begin
-      return Is_Of_Kind (Node, K_Type);
-   end Is_Type;
-
-   -----------------
-   -- Is_Variable --
-   -----------------
-
-   function Is_Variable (Node : Node_Id)  return Boolean is
-   begin
-      pragma Assert (Node /= Null_Node);
-      return Is_Of_Kind (Node, K_Variable);
-   end Is_Variable;
-
    ------------------
-   -- Is_Statement --
+   -- Copy_Channel --
    ------------------
 
-   function Is_Statement (Node : Node_Id)  return Boolean is
+   procedure Copy_Channel
+     (Name : in Channel_Name_Type;
+      Many : in Int) is
+      CID  : CID_Type;
+      CCID : CID_Type;
    begin
-      return Is_Of_Kind (Node, K_Statement);
-   end Is_Statement;
+      if Verbose_Mode then
+         Write_Program_Name;
+         Write_Str  (": create Channel ");
+         Write_Name (Name);
+         Write_Str  (" (");
+         Write_Int  (Many);
+         if Many > 1 then
+            Write_Str (" copies)");
+         else
+            Write_Str (" copy)");
+         end if;
+         Write_Eol;
+      end if;
 
-   ------------------
-   -- Is_Component --
-   ------------------
+      CCID := Get_CID (Name);
+      for I in 1 .. Many loop
+         Channels.Increment_Last;
+         CID := Channels.Last;
+         Set_CID (Name, CID);
+         Channels.Table (CID).Name  := Channels.Table (CID).Name;
 
-   function Is_Component (Node : Node_Id)  return Boolean is
+         --  This is stupid, but let's do it.
+         Channels.Table (CID).Lower := Channels.Table (CID).Lower;
+         Channels.Table (CID).Upper := Channels.Table (CID).Upper;
+      end loop;
+   end Copy_Channel;
+
+   --------------------
+   -- Copy_Partition --
+   --------------------
+
+   procedure Copy_Partition
+     (Name : in Partition_Name_Type;
+      Many : in Int) is
+      PID  : PID_Type;
+      CPID : PID_Type;
+      CUID : CUID_Type;
    begin
-      return Is_Of_Kind (Node, K_Component);
-   end Is_Component;
+      if Verbose_Mode then
+         Write_Program_Name;
+         Write_Str  (": create partition ");
+         Write_Name (Name);
+         Write_Str  (" (");
+         Write_Int  (Many);
+         if Many > 1 then
+            Write_Str (" copies)");
+         else
+            Write_Str (" copy)");
+         end if;
+         Write_Eol;
+      end if;
 
-   -------------------
-   -- Is_Subprogram --
-   -------------------
+      CPID := Get_PID (Name);
+      for I in 1 .. Many loop
+         Partitions.Increment_Last;
+         PID := Partitions.Last;
+         Set_PID (Name, PID);
+         Partitions.Table (PID).Name := Name;
+         CUID := Partitions.Table (CPID).First_Unit;
+         while CUID /= Null_CUID loop
+            Add_Conf_Unit (CUnit.Table (CUID).CUname, PID);
+            CUID := CUnit.Table (CUID).Next;
+         end loop;
+      end loop;
+   end Copy_Partition;
 
-   function Is_Subprogram (Node : Node_Id) return Boolean is
+   --------------------
+   -- Create_Channel --
+   --------------------
+
+   procedure Create_Channel
+     (Name : in Channel_Name_Type;
+      CID  : out CID_Type) is
+      Channel : CID_Type;
    begin
-      return Is_Of_Kind (Node, K_Subprogram);
-   end Is_Subprogram;
+      if Verbose_Mode then
+         Write_Program_Name;
+         Write_Str  (": create channel ");
+         Write_Name (Name);
+         Write_Eol;
+      end if;
+
+      Channels.Increment_Last;
+      Channel := Channels.Last;
+      Set_CID (Name, Channel);
+      Channels.Table (Channel).Name            := Name;
+      Channels.Table (Channel).Lower           := Null_PID;
+      Channels.Table (Channel).Upper           := Null_PID;
+      Channels.Table (Channel).Filter          := No_Filter_Name;
+      CID := Channel;
+   end Create_Channel;
 
    ----------------------
-   -- Is_Configuration --
+   -- Create_Component --
    ----------------------
 
-   function Is_Configuration (Node : Node_Id) return Boolean is
+   procedure Create_Component
+     (Component_Node : out Component_Id;
+      Component_Name : in  Name_Id) is
    begin
-      return Is_Of_Kind (Node, K_List) and then
-             Convert (Nodes.Table (Node).Value) = K_Declaration_List;
-   end Is_Configuration;
+      Create_Node (Node_Id (Component_Node), Component_Name, K_Component);
+   end Create_Component;
+
+   --------------------------
+   -- Create_Configuration --
+   --------------------------
+
+   procedure Create_Configuration
+     (Configuration_Node : out Configuration_Id;
+      Configuration_Name : in  Name_Id) is
+      Node : Node_Id;
+   begin
+      Create_Node (Node, Configuration_Name, K_List);
+      Nodes.Table (Node).Value := Convert (K_Declaration_List);
+      Configuration_Node := Configuration_Id (Node);
+   end Create_Configuration;
+
+   -----------------
+   -- Create_Node --
+   -----------------
+
+   procedure Create_Node
+     (Node : out Node_Id;
+      Name : in  Name_Id;
+      Kind : in  Node_Kind) is
+   begin
+      Nodes.Increment_Last;
+      Nodes.Table (Nodes.Last).Kind     := Kind;
+      Nodes.Table (Nodes.Last).Name     := Name;
+      Nodes.Table (Nodes.Last).Node_1   := Null_Node;
+      Nodes.Table (Nodes.Last).Node_2   := Null_Node;
+      Nodes.Table (Nodes.Last).Node_3   := Null_Node;
+      Nodes.Table (Nodes.Last).Flag_1   := True;
+      Nodes.Table (Nodes.Last).Value    := 0;
+      Node := Nodes.Last;
+   end Create_Node;
+
+   ----------------------
+   -- Create_Parameter --
+   ----------------------
+
+   procedure Create_Parameter
+     (Parameter_Node : out Parameter_Id;
+      Parameter_Name : in  Name_Id) is
+   begin
+      Create_Node (Node_Id (Parameter_Node), Parameter_Name, K_Variable);
+   end Create_Parameter;
+
+   ----------------------
+   -- Create_Partition --
+   ----------------------
+
+   procedure Create_Partition
+     (Name : in Partition_Name_Type;
+      PID  : out PID_Type) is
+      Partition : PID_Type;
+   begin
+      if Verbose_Mode then
+         Write_Program_Name;
+         Write_Str  (": create partition ");
+         Write_Name (Name);
+         Write_Eol;
+      end if;
+
+      Partitions.Increment_Last;
+      Partition := Partitions.Last;
+      Set_PID (Name, Partition);
+      Partitions.Table (Partition).Name            := Name;
+      Partitions.Table (Partition).Host            := Null_Host;
+      Partitions.Table (Partition).Storage_Dir     := No_Storage_Dir;
+      Partitions.Table (Partition).Command_Line    := No_Command_Line;
+      Partitions.Table (Partition).Main_Subprogram := No_Name;
+      Partitions.Table (Partition).Termination     := Unknown_Termination;
+      Partitions.Table (Partition).First_Unit      := Null_CUID;
+      Partitions.Table (Partition).Last_Unit       := Null_CUID;
+      Partitions.Table (Partition).To_Build        := True;
+      Partitions.Table (Partition).Most_Recent     := Configuration_File;
+      PID := Partition;
+   end Create_Partition;
+
+   ----------------------
+   -- Create_Statement --
+   ----------------------
+
+   procedure Create_Statement
+     (Statement_Node : out Statement_Id;
+      Statement_Name : in  Name_Id) is
+      Node : Node_Id;
+   begin
+      Create_Node (Node, Statement_Name, K_Statement);
+      Statement_Node := Statement_Id (Node);
+   end Create_Statement;
+
+   -----------------------
+   -- Create_Subprogram --
+   -----------------------
+
+   procedure Create_Subprogram
+     (Subprogram_Node : out Subprogram_Id;
+      Subprogram_Name : in  Name_Id) is
+      Node : Node_Id;
+      List : Node_Id;
+   begin
+      Create_Node (Node, Subprogram_Name, K_Subprogram);
+      Create_Node (List, Str_To_Id ("parameter__list"), K_List);
+      Nodes.Table (List).Value := Convert (K_Parameter_List);
+      Nodes.Table (Node).Node_3 := List;
+      Subprogram_Node := Subprogram_Id (Node);
+   end Create_Subprogram;
 
    -----------------
    -- Create_Type --
@@ -783,100 +739,6 @@ package body XE is
       Create_Node (Node_Id (Variable_Node), Variable_Name, K_Variable);
    end Create_Variable;
 
-   ----------------------
-   -- Create_Parameter --
-   ----------------------
-
-   procedure Create_Parameter
-     (Parameter_Node : out Parameter_Id;
-      Parameter_Name : in  Name_Id) is
-   begin
-      Create_Node (Node_Id (Parameter_Node), Parameter_Name, K_Variable);
-   end Create_Parameter;
-
-   ----------------------
-   -- Create_Component --
-   ----------------------
-
-   procedure Create_Component
-     (Component_Node : out Component_Id;
-      Component_Name : in  Name_Id) is
-   begin
-      Create_Node (Node_Id (Component_Node), Component_Name, K_Component);
-   end Create_Component;
-
-   -----------------------
-   -- Create_Subprogram --
-   -----------------------
-
-   procedure Create_Subprogram
-     (Subprogram_Node : out Subprogram_Id;
-      Subprogram_Name : in  Name_Id) is
-      Node : Node_Id;
-      List : Node_Id;
-   begin
-      Create_Node (Node, Subprogram_Name, K_Subprogram);
-      Create_Node (List, Str_To_Id ("parameter__list"), K_List);
-      Nodes.Table (List).Value := Convert (K_Parameter_List);
-      Nodes.Table (Node).Node_3 := List;
-      Subprogram_Node := Subprogram_Id (Node);
-   end Create_Subprogram;
-
-   ----------------------
-   -- Create_Statement --
-   ----------------------
-
-   procedure Create_Statement
-     (Statement_Node : out Statement_Id;
-      Statement_Name : in  Name_Id) is
-      Node : Node_Id;
-   begin
-      Create_Node (Node, Statement_Name, K_Statement);
-      Statement_Node := Statement_Id (Node);
-   end Create_Statement;
-
-   ------------------------
-   -- Set_Subprogram_Call --
-   ------------------------
-
-   procedure Set_Subprogram_Call
-     (Statement_Node  : in Statement_Id;
-      Subprogram_Node : in Subprogram_Id) is
-      Statement  : Node_Id := Node_Id (Statement_Node);
-      Subprogram : Node_Id := Node_Id (Subprogram_Node);
-   begin
-      pragma Assert (Is_Statement  (Statement) and then
-                     Is_Subprogram (Subprogram));
-      Nodes.Table (Statement).Node_2 := Subprogram;
-   end Set_Subprogram_Call;
-
-   ------------------------
-   -- Get_Subprogram_Call --
-   ------------------------
-
-   function  Get_Subprogram_Call
-     (Statement_Node  : in Statement_Id)
-      return Subprogram_Id is
-      Node : Node_Id := Node_Id (Statement_Node);
-   begin
-      pragma Assert (Is_Statement (Node));
-      return Subprogram_Id (Nodes.Table (Node).Node_2);
-   end Get_Subprogram_Call;
-
-   --------------------------
-   -- Create_Configuration --
-   --------------------------
-
-   procedure Create_Configuration
-     (Configuration_Node : out Configuration_Id;
-      Configuration_Name : in  Name_Id) is
-      Node : Node_Id;
-   begin
-      Create_Node (Node, Configuration_Name, K_List);
-      Nodes.Table (Node).Value := Convert (K_Declaration_List);
-      Configuration_Node := Configuration_Id (Node);
-   end Create_Configuration;
-
    -------------------------------------
    -- First_Configuration_Declaration --
    -------------------------------------
@@ -889,126 +751,6 @@ package body XE is
       pragma Assert (Is_Configuration (Node));
       Declaration_Node := Nodes.Table (Node).Node_2;
    end First_Configuration_Declaration;
-
-   ------------------------------------
-   -- Next_Configuration_Declaration --
-   ------------------------------------
-
-   procedure Next_Configuration_Declaration
-     (Declaration_Node   : in out Node_Id) is
-   begin
-      Declaration_Node := Nodes.Table (Declaration_Node).Node_1;
-   end Next_Configuration_Declaration;
-
-   --------------------------------------
-   -- Append_Configuration_Declaration --
-   --------------------------------------
-
-   procedure Append_Configuration_Declaration
-     (Configuration_Node : in Configuration_Id;
-      Declaration_Node   : in Node_Id) is
-      Conf : Node_Id := Node_Id (Configuration_Node);
-      Back : Node_Id;
-   begin
-      pragma Assert (Is_Configuration (Conf));
-      if Nodes.Table (Conf).Node_3 = Null_Node then
-         Nodes.Table (Conf).Node_1 := Null_Node;
-         Nodes.Table (Conf).Node_2 := Declaration_Node;
-         Nodes.Table (Conf).Node_3 := Declaration_Node;
-      else
-         Nodes.Table (Nodes.Table (Conf).Node_3).Node_1 := Declaration_Node;
-         Nodes.Table (Conf).Node_3 := Declaration_Node;
-      end if;
-      if Is_Configuration (Declaration_Node) then
-         Nodes.Table (Conf).Node_3 := Conf;
-         Back := Nodes.Table (Declaration_Node).Node_3;
-         if Back = Null_Node then
-            Nodes.Table (Declaration_Node).Node_1 := Conf;
-         else
-            Nodes.Table (Declaration_Node).Node_1 :=
-              Nodes.Table (Declaration_Node).Node_2;
-            Nodes.Table (Back).Node_1 := Conf;
-         end if;
-      end if;
-   end Append_Configuration_Declaration;
-
-   -------------------------------
-   -- Subprogram_Is_A_Procedure --
-   -------------------------------
-
-   procedure Subprogram_Is_A_Procedure
-     (Subprogram_Node : in Subprogram_Id;
-      Procedure_Node  : in Boolean) is
-      Node : Node_Id := Node_Id (Subprogram_Node);
-   begin
-      pragma Assert (Is_Subprogram (Node));
-      Nodes.Table (Node).Flag_1 := Procedure_Node;
-   end Subprogram_Is_A_Procedure;
-
-   -------------------------------
-   -- Is_Subprogram_A_Procedure --
-   -------------------------------
-
-   function Is_Subprogram_A_Procedure
-     (Subprogram_Node : in Subprogram_Id)
-      return Boolean is
-      Node : Node_Id := Node_Id (Subprogram_Node);
-   begin
-      pragma Assert (Is_Subprogram (Node));
-      return Nodes.Table (Node).Flag_1;
-   end Is_Subprogram_A_Procedure;
-
-   -------------------------
-   -- Set_Subprogram_Mark --
-   -------------------------
-
-   procedure Set_Subprogram_Mark
-     (Subprogram_Node : in Subprogram_Id;
-      Subprogram_Mark : in Int) is
-      Node : Node_Id := Node_Id (Subprogram_Node);
-   begin
-      pragma Assert (Is_Subprogram (Node));
-      Nodes.Table (Node).Value := Subprogram_Mark;
-   end Set_Subprogram_Mark;
-
-   -------------------------
-   -- Get_Subprogram_Mark --
-   -------------------------
-
-   function  Get_Subprogram_Mark
-     (Subprogram_Node : in Subprogram_Id)
-     return Int is
-      Node : Node_Id := Node_Id (Subprogram_Node);
-   begin
-      pragma Assert (Is_Subprogram (Node));
-      return Nodes.Table (Node).Value;
-   end Get_Subprogram_Mark;
-
-   ------------------------
-   -- Set_Parameter_Mark --
-   ------------------------
-
-   procedure Set_Parameter_Mark
-     (Parameter_Node : in Parameter_Id;
-      Parameter_Mark : in Int) is
-      Node : Node_Id := Node_Id (Parameter_Node);
-   begin
-      pragma Assert (Is_Variable (Node));
-      Nodes.Table (Node).Value := Parameter_Mark;
-   end Set_Parameter_Mark;
-
-   -------------------------
-   -- Get_Parameter_Mark --
-   -------------------------
-
-   function  Get_Parameter_Mark
-     (Parameter_Node : in Parameter_Id)
-     return Int is
-      Node : Node_Id := Node_Id (Parameter_Node);
-   begin
-      pragma Assert (Is_Variable (Node));
-      return Nodes.Table (Node).Value;
-   end Get_Parameter_Mark;
 
    --------------------------------
    -- First_Subprogram_Parameter --
@@ -1026,97 +768,6 @@ package body XE is
       Parameter_Node := Parameter_Id (Nodes.Table (List).Node_1);
    end First_Subprogram_Parameter;
 
-   -------------------------------
-   -- Next_Subprogram_Parameter --
-   -------------------------------
-
-   procedure Next_Subprogram_Parameter
-     (Parameter_Node  : in out Parameter_Id) is
-      Node : Node_Id := Node_Id (Parameter_Node);
-   begin
-      pragma Assert (Is_Variable (Node));
-      Parameter_Node := Parameter_Id (Nodes.Table (Node).Node_1);
-   end Next_Subprogram_Parameter;
-
-   ------------------------------
-   -- Add_Subprogram_Parameter --
-   ------------------------------
-
-   procedure Add_Subprogram_Parameter
-     (Subprogram_Node : in Subprogram_Id;
-      Parameter_Node  : in Parameter_Id) is
-      Node  : Node_Id := Node_Id (Subprogram_Node);
-      List  : Node_Id;
-      Value : Node_Id := Node_Id (Parameter_Node);
-   begin
-      pragma Assert (Is_Subprogram (Node));
-      List := Nodes.Table (Node).Node_3;
-      pragma Assert (Is_Parameter_List (List));
-      if Nodes.Table (List).Node_2 = Null_Node then
-         Nodes.Table (List).Node_1 := Value;
-         Nodes.Table (List).Node_2 := Value;
-      else
-         Nodes.Table (Nodes.Table (List).Node_2).Node_1 := Value;
-         Nodes.Table (List).Node_2 := Value;
-      end if;
-   end Add_Subprogram_Parameter;
-
-   ----------------------------
-   -- Get_Array_Element_Type --
-   ----------------------------
-
-   function Get_Array_Element_Type
-     (Array_Type_Node   : in Type_Id)
-      return Type_Id is
-      Node : Node_Id := Node_Id (Array_Type_Node);
-   begin
-      pragma Assert (Is_Type (Node));
-      return Type_Id (Nodes.Table (Node).Node_2);
-   end Get_Array_Element_Type;
-
-   ----------------------------
-   -- Set_Array_Element_Type --
-   ----------------------------
-
-   procedure Set_Array_Element_Type
-     (Array_Type_Node   : in Type_Id;
-      Element_Type_Node : in Type_Id) is
-      Node : Node_Id := Node_Id (Array_Type_Node);
-      List : Node_Id;
-   begin
-      pragma Assert (Is_Type (Node));
-      Nodes.Table (Node).Node_2 := Node_Id (Element_Type_Node);
-      Create_Node (List, Str_To_Id ("pragma__n__array"), K_List);
-      Nodes.Table (List).Value := Convert (K_Component_List);
-      Nodes.Table (Node).Node_3 := List;
-   end Set_Array_Element_Type;
-
-   -------------------
-   -- Set_Type_Mark --
-   -------------------
-
-   procedure Set_Type_Mark
-     (Type_Node : in Type_Id;
-      Type_Mark : in Int) is
-      Node : Node_Id := Node_Id (Type_Node);
-   begin
-      pragma Assert (Is_Type (Node));
-      Nodes.Table (Node).Value := Type_Mark;
-   end Set_Type_Mark;
-
-   -------------------
-   -- Get_Type_Mark --
-   -------------------
-
-   function  Get_Type_Mark
-     (Type_Node : in Type_Id)
-     return Int is
-      Node : Node_Id := Node_Id (Type_Node);
-   begin
-      pragma Assert (Is_Type (Node));
-      return Nodes.Table (Node).Value;
-   end Get_Type_Mark;
-
    --------------------------
    -- First_Type_Component --
    --------------------------
@@ -1132,99 +783,6 @@ package body XE is
       pragma Assert (Is_Component_List (List));
       Component_Node := Component_Id (Nodes.Table (List).Node_1);
    end First_Type_Component;
-
-   -------------------------
-   -- Next_Type_Component --
-   -------------------------
-
-   procedure Next_Type_Component
-     (Component_Node  : in out Component_Id) is
-      Node : Node_Id := Node_Id (Component_Node);
-   begin
-      Component_Node := Component_Id (Nodes.Table (Node).Node_1);
-   end Next_Type_Component;
-
-   ------------------------
-   -- Add_Type_Component --
-   ------------------------
-
-   procedure Add_Type_Component
-     (Type_Node       : in Type_Id;
-      Component_Node  : in Component_Id) is
-      Node  : Node_Id := Node_Id (Type_Node);
-      List  : Node_Id;
-      Value : Node_Id := Node_Id (Component_Node);
-   begin
-      pragma Assert (Is_Type (Node));
-      List := Nodes.Table (Node).Node_3;
-      pragma Assert (Is_Component_List (List));
-      if Nodes.Table (List).Node_2 = Null_Node then
-         Nodes.Table (List).Node_1 := Value;
-         Nodes.Table (List).Node_2 := Value;
-      else
-         Nodes.Table (Nodes.Table (List).Node_2).Node_1 := Value;
-         Nodes.Table (List).Node_2 := Value;
-      end if;
-   end Add_Type_Component;
-
-   -----------------------
-   -- Set_Variable_Mark --
-   -----------------------
-
-   procedure Set_Variable_Mark
-     (Variable_Node : in Variable_Id;
-      Variable_Mark : in Int) is
-      Node : Node_Id := Node_Id (Variable_Node);
-   begin
-      pragma Assert (Is_Variable (Node));
-      Nodes.Table (Node).Value := Variable_Mark;
-   end Set_Variable_Mark;
-
-   -----------------------
-   -- Get_Variable_Mark --
-   -----------------------
-
-   function  Get_Variable_Mark
-     (Variable_Node : Variable_Id)
-      return Int is
-      Node : Node_Id := Node_Id (Variable_Node);
-   begin
-      pragma Assert (Is_Variable (Node));
-      return Nodes.Table (Node).Value;
-   end Get_Variable_Mark;
-
-   -----------------------
-   -- Set_Variable_Type --
-   -----------------------
-
-   procedure Set_Variable_Type
-     (Variable_Node : in Variable_Id;
-      Variable_Type : in Type_Id) is
-      Node : Node_Id := Node_Id (Variable_Node);
-      List : Node_Id;
-   begin
-      pragma Assert (Is_Variable (Node));
-      pragma Assert (Is_Type (Node_Id (Variable_Type)));
-      Nodes.Table (Node).Node_2 := Node_Id (Variable_Type);
-      if Get_Array_Element_Type (Variable_Type) /= Null_Type then
-         Create_Node (List, Str_To_Id ("record"), K_List);
-         Nodes.Table (List).Value := Convert (K_Component_List);
-         Nodes.Table (Node).Node_3 := List;
-      end if;
-   end Set_Variable_Type;
-
-   -----------------------
-   -- Get_Variable_Type --
-   -----------------------
-
-   function Get_Variable_Type
-     (Variable_Node : in Variable_Id)
-      return Type_Id is
-      Node : Node_Id := Node_Id (Variable_Node);
-   begin
-      pragma Assert (Is_Variable (Node));
-      return Type_Id (Nodes.Table (Node).Node_2);
-   end Get_Variable_Type;
 
    ------------------------------
    -- First_Variable_Component --
@@ -1242,104 +800,120 @@ package body XE is
       Component_Node := Component_Id (Nodes.Table (List).Node_1);
    end First_Variable_Component;
 
-   -----------------------------
-   -- Next_Variable_Component --
-   -----------------------------
+   -----------------------
+   -- Get_Absolute_Exec --
+   -----------------------
 
-   procedure Next_Variable_Component
-     (Component_Node  : in out Component_Id) is
+   function Get_Absolute_Exec (P : in PID_Type) return Name_Id is
+      Dir  : Name_Id := Partitions.Table (P).Storage_Dir;
+      Name : Name_Id renames Partitions.Table (P).Name;
+   begin
+
+      if Dir = No_Storage_Dir then
+         Dir := Default_Storage_Dir;
+      end if;
+
+      if Dir = No_Storage_Dir then
+
+         --  No storage dir means current directory
+
+         return PWD_Id & Name;
+
+      else
+         Get_Name_String (Dir);
+         if Name_Buffer (1) /= Separator and then
+           Name_Buffer (1) /= '/' then
+
+            --  The storage dir is relative
+
+            return PWD_Id & Dir & Dir_Sep_Id & Name;
+
+         end if;
+
+         --  Write the dir as it has been written
+
+         return Dir & Dir_Sep_Id & Name;
+
+      end if;
+
+   end Get_Absolute_Exec;
+
+   ----------------
+   -- Get_ALI_Id --
+   ----------------
+
+   function Get_ALI_Id (N : Name_Id) return ALI_Id is
+      Info : Int;
+   begin
+      Info := Get_Name_Table_Info (N);
+      case Info is
+         when Int (ALI_Id'First) .. Int (ALI_Id'Last) =>
+            null;
+         when others =>
+            Info := Int (No_ALI_Id);
+      end case;
+      return ALI_Id (Info);
+   end Get_ALI_Id;
+
+   ----------------------------
+   -- Get_Array_Element_Type --
+   ----------------------------
+
+   function Get_Array_Element_Type
+     (Array_Type_Node   : in Type_Id)
+      return Type_Id is
+      Node : Node_Id := Node_Id (Array_Type_Node);
+   begin
+      pragma Assert (Is_Type (Node));
+      return Type_Id (Nodes.Table (Node).Node_2);
+   end Get_Array_Element_Type;
+
+   -------------
+   -- Get_CID --
+   -------------
+
+   function Get_CID (N : Name_Id) return CID_Type is
+      Info : Int;
+   begin
+      Info := Get_Name_Table_Info (N);
+      case Info is
+         when 0 | CID_Null =>
+            return Null_CID;
+         when CID_First .. CID_Last =>
+            return CID_Type (Info);
+         when others =>
+            return Wrong_CID;
+      end case;
+   end Get_CID;
+
+   ----------------------
+   -- Get_Command_Line --
+   ----------------------
+
+   function Get_Command_Line    (P : in PID_Type) return Command_Line_Type is
+      Cmd : Command_Line_Type := Partitions.Table (P).Command_Line;
+   begin
+
+      if Cmd = No_Command_Line then
+         Cmd := Default_Command_Line;
+      end if;
+
+      return Cmd;
+
+   end Get_Command_Line;
+
+   ------------------------
+   -- Get_Component_Mark --
+   ------------------------
+
+   function Get_Component_Mark
+     (Component_Node : Component_Id)
+      return Int is
       Node : Node_Id := Node_Id (Component_Node);
    begin
-      Component_Node := Component_Id (Nodes.Table (Node).Node_1);
-   end Next_Variable_Component;
-
-   ----------------------------
-   -- Add_Variable_Component --
-   ----------------------------
-
-   procedure Add_Variable_Component
-     (Variable_Node   : in Variable_Id;
-      Component_Node  : in Component_Id) is
-      Node  : Node_Id := Node_Id (Variable_Node);
-      List  : Node_Id;
-      Value : Node_Id := Node_Id (Component_Node);
-   begin
-      pragma Assert (Is_Variable (Node));
-      List := Nodes.Table (Node).Node_3;
-      pragma Assert (Is_Component_List (List));
-      if Nodes.Table (List).Node_2 = Null_Node then
-         Nodes.Table (List).Node_1 := Value;
-         Nodes.Table (List).Node_2 := Value;
-      else
-         Nodes.Table (Nodes.Table (List).Node_2).Node_1 := Value;
-         Nodes.Table (List).Node_2 := Value;
-      end if;
-   end Add_Variable_Component;
-
-   ------------------------
-   -- Set_Variable_Value --
-   ------------------------
-
-   procedure Set_Variable_Value
-     (Variable_Node : in Variable_Id;
-      Value_Node    : in Variable_Id) is
-      Node  : Node_Id := Node_Id (Variable_Node);
-   begin
-      pragma Assert (Is_Variable (Node));
-      Nodes.Table (Node).Node_3 := Node_Id (Value_Node);
-   end Set_Variable_Value;
-
-   ------------------------
-   -- Get_Variable_Value --
-   ------------------------
-
-   function Get_Variable_Value
-     (Variable_Node : in Variable_Id)
-     return Variable_Id is
-      Node  : Node_Id := Node_Id (Variable_Node);
-   begin
-      return Variable_Id (Nodes.Table (Node).Node_3);
-   end Get_Variable_Value;
-
-   -------------------------
-   -- Set_Component_Value --
-   -------------------------
-
-   procedure Set_Component_Value
-     (Component_Node : in Component_Id;
-      Value_Node     : in Node_Id) is
-      Node  : Node_Id := Node_Id (Component_Node);
-   begin
-      Nodes.Table (Node).Node_3 := Value_Node;
-   end Set_Component_Value;
-
-   ------------------------
-   -- Get_Component_Value --
-   ------------------------
-
-   function Get_Component_Value
-     (Component_Node : in Component_Id)
-      return Node_Id is
-      Node  : Node_Id := Node_Id (Component_Node);
-   begin
       pragma Assert (Is_Component (Node));
-      return Nodes.Table (Node).Node_3;
-   end Get_Component_Value;
-
-   ------------------------
-   -- Set_Component_Type --
-   ------------------------
-
-   procedure Set_Component_Type
-     (Component_Node : in Component_Id;
-      Type_Node      : in Type_Id) is
-      Node  : Node_Id := Node_Id (Component_Node);
-      Ntype : Node_Id := Node_Id (Type_Node);
-   begin
-      pragma Assert (Is_Component (Node));
-      pragma Assert (Is_Type (Ntype));
-      Nodes.Table (Node).Node_2 := Ntype;
-   end Set_Component_Type;
+      return Nodes.Table (Node).Value;
+   end Get_Component_Mark;
 
    ------------------------
    -- Get_Component_Type --
@@ -1354,57 +928,105 @@ package body XE is
       return Type_Id (Nodes.Table (Node).Node_2);
    end Get_Component_Type;
 
-   -----------------------------
-   -- Component_Is_An_Attribute --
-   -----------------------------
+   ------------------------
+   -- Get_Component_Value --
+   ------------------------
 
-   procedure Component_Is_An_Attribute
-     (Component_Node : in Component_Id;
-      Attribute_Node : in Boolean) is
-      Node : Node_Id := Node_Id (Component_Node);
-   begin
-      pragma Assert (Is_Component (Node));
-      Nodes.Table (Node).Flag_1 := Attribute_Node;
-   end Component_Is_An_Attribute;
-
-   -----------------------------
-   -- Is_Component_An_Attribute --
-   -----------------------------
-
-   function Is_Component_An_Attribute
+   function Get_Component_Value
      (Component_Node : in Component_Id)
-      return Boolean is
-      Node : Node_Id := Node_Id (Component_Node);
+      return Node_Id is
+      Node  : Node_Id := Node_Id (Component_Node);
    begin
-      pragma Assert (Is_Component (Node));
-      return Nodes.Table (Node).Flag_1;
-   end Is_Component_An_Attribute;
+      pragma Assert (Has_Component_A_Value (Component_Node));
+      return Nodes.Table (Node).Node_3;
+   end Get_Component_Value;
 
-   ------------------------
-   -- Set_Component_Mark --
-   ------------------------
+   -------------
+   -- Get_CUID --
+   -------------
 
-   procedure Set_Component_Mark
-     (Component_Node : Component_Id;
-      Component_Mark : Int) is
-      Node : Node_Id := Node_Id (Component_Node);
+   function Get_CUID (N : Name_Id) return CUID_Type is
+      Info : Int;
    begin
-      pragma Assert (Is_Component (Node));
-      Nodes.Table (Node).Value := Component_Mark;
-   end Set_Component_Mark;
+      Info := Get_Name_Table_Info (N);
+      case Info is
+         when 0 | CUID_Null =>
+            return Null_CUID;
+         when CUID_First .. CUID_Last =>
+            return CUID_Type (Info);
+         when others =>
+            return Wrong_CUID;
+      end case;
+   end Get_CUID;
 
-   ------------------------
-   -- Get_Component_Mark --
-   ------------------------
+   --------------
+   -- Get_Host --
+   --------------
 
-   function Get_Component_Mark
-     (Component_Node : Component_Id)
-      return Int is
-      Node : Node_Id := Node_Id (Component_Node);
+   function Get_Host            (P : in PID_Type) return Name_Id is
+      H : Host_Id := Partitions.Table (P).Host;
    begin
-      pragma Assert (Is_Component (Node));
-      return Nodes.Table (Node).Value;
-   end Get_Component_Mark;
+
+      if H = Null_Host then
+         H := Default_Host;
+      end if;
+
+      if H /= Null_Host then
+         if not Hosts.Table (H).Static then
+            if Hosts.Table (H).Import = Shell_Import then
+               return  Str_To_Id ("""`") &
+                       Hosts.Table (H).External &
+                       Str_To_Id (" ") &
+                       Partitions.Table (P).Name &
+                       Str_To_Id ("`""");
+            elsif Hosts.Table (H).Import = Ada_Import then
+               return  Hosts.Table (H).External &
+                       Str_To_Id ("(") &
+                       Partitions.Table (P).Name &
+                       Str_To_Id (")");
+            end if;
+            raise Parsing_Error;
+         else
+            return Str_To_Id ("""") &
+                   Hosts.Table (H).Name &
+                   Str_To_Id ("""");
+         end if;
+
+      else
+         return No_Name;
+
+      end if;
+
+   end Get_Host;
+
+   -------------------------
+   -- Get_Main_Subprogram --
+   -------------------------
+
+   function Get_Main_Subprogram
+     (P : in PID_Type)
+      return Main_Subprogram_Type is
+      Main : Main_Subprogram_Type := Partitions.Table (P).Main_Subprogram;
+   begin
+
+      if Main = No_Main_Subprogram then
+         Main := Default_Main;
+      end if;
+
+      return Main;
+
+   end Get_Main_Subprogram;
+
+   -------------------
+   -- Get_Node_Name --
+   -------------------
+
+   function  Get_Node_Name
+     (Node : in Node_Id)
+     return Name_Id is
+   begin
+      return Nodes.Table (Node).Name;
+   end Get_Node_Name;
 
    -------------------
    -- Get_Node_SLOC --
@@ -1432,25 +1054,599 @@ package body XE is
       Loc_Y := Nodes.Table (Node).Loc_Y;
    end Get_Node_SLOC;
 
+   -------------------------
+   -- Get_Parameter_Mark --
+   -------------------------
+
+   function  Get_Parameter_Mark
+     (Parameter_Node : in Parameter_Id)
+     return Int is
+      Node : Node_Id := Node_Id (Parameter_Node);
+   begin
+      pragma Assert (Is_Variable (Node));
+      return Nodes.Table (Node).Value;
+   end Get_Parameter_Mark;
+
+   ------------------------
+   -- Get_Parameter_Type --
+   ------------------------
+
+   function Get_Parameter_Type
+     (Parameter_Node : in Parameter_Id)
+     return Type_Id is
+   begin
+      return Get_Variable_Type (Variable_Id (Parameter_Node));
+   end Get_Parameter_Type;
+
+   -----------------------
+   -- Get_Partition_Dir --
+   -----------------------
+
+   function Get_Partition_Dir (P : in PID_Type) return File_Name_Type is
+   begin
+      return DSA_Dir &
+        Dir_Sep_Id & Configuration &
+        Dir_Sep_Id & Partitions.Table (P).Name;
+   end Get_Partition_Dir;
+
+   -------------
+   -- Get_PID --
+   -------------
+
+   function Get_PID (N : Name_Id) return PID_Type is
+      Info : Int;
+   begin
+      Info := Get_Name_Table_Info (N);
+      case Info is
+         when 0 | PID_Null =>
+            return Null_PID;
+         when PID_First .. PID_Last =>
+            return PID_Type (Info);
+         when others =>
+            return Wrong_PID;
+      end case;
+   end Get_PID;
+
+   -----------------------
+   -- Get_Relative_Exec --
+   -----------------------
+
+   function Get_Relative_Exec (P : in PID_Type) return Name_Id is
+      Dir  : Name_Id := Partitions.Table (P).Storage_Dir;
+      Name : Name_Id renames Partitions.Table (P).Name;
+   begin
+
+      if Dir = No_Storage_Dir then
+         Dir := Default_Storage_Dir;
+      end if;
+
+      if Dir = No_Storage_Dir then
+
+         --  No storage dir means current directory
+
+         return Name;
+
+      else
+
+         --  The storage dir is relative
+
+         return Dir & Dir_Sep_Id & Name;
+
+      end if;
+
+   end Get_Relative_Exec;
+
+   ---------------------
+   -- Get_Storage_Dir --
+   ---------------------
+
+   function Get_Storage_Dir (P : in PID_Type) return Storage_Dir_Name_Type is
+      Storage_Dir : Storage_Dir_Name_Type := Partitions.Table (P).Storage_Dir;
+   begin
+
+      if Storage_Dir = No_Storage_Dir then
+         Storage_Dir := Default_Storage_Dir;
+      end if;
+
+      return Storage_Dir;
+
+   end Get_Storage_Dir;
+
+   ------------------------
+   -- Get_Subprogram_Call --
+   ------------------------
+
+   function  Get_Subprogram_Call
+     (Statement_Node  : in Statement_Id)
+      return Subprogram_Id is
+      Node : Node_Id := Node_Id (Statement_Node);
+   begin
+      pragma Assert (Is_Statement (Node));
+      return Subprogram_Id (Nodes.Table (Node).Node_2);
+   end Get_Subprogram_Call;
+
+   -------------------------
+   -- Get_Subprogram_Mark --
+   -------------------------
+
+   function  Get_Subprogram_Mark
+     (Subprogram_Node : in Subprogram_Id)
+     return Int is
+      Node : Node_Id := Node_Id (Subprogram_Node);
+   begin
+      pragma Assert (Is_Subprogram (Node));
+      return Nodes.Table (Node).Value;
+   end Get_Subprogram_Mark;
+
+   ---------------------
+   -- Get_Termination --
+   ---------------------
+
+   function Get_Termination
+     (P : in PID_Type)
+      return Termination_Type is
+   begin
+      return Partitions.Table (P).Termination;
+   end Get_Termination;
+
+   ---------------
+   -- Get_Token --
+   ---------------
+
+   function Get_Token (N : Name_Id) return Token_Type is
+      Info : Int;
+   begin
+      Info := Get_Name_Table_Info (N);
+      case Info is
+         when Tkn_First .. Tkn_Last =>
+            return Token_Type'Val
+              (Info - Int (Wrong_Token) +
+               Int (Token_Type'Pos (Token_Type'First)));
+         when others =>
+            return Tok_Unknown;
+      end case;
+   end Get_Token;
+
+   -------------------
+   -- Get_Type_Mark --
+   -------------------
+
+   function  Get_Type_Mark
+     (Type_Node : in Type_Id)
+     return Int is
+      Node : Node_Id := Node_Id (Type_Node);
+   begin
+      pragma Assert (Is_Type (Node));
+      return Nodes.Table (Node).Value;
+   end Get_Type_Mark;
+
    -----------------
-   -- Create_Node --
+   -- Get_Unit_Id --
    -----------------
 
-   procedure Create_Node
-     (Node : out Node_Id;
-      Name : in  Name_Id;
-      Kind : in  Node_Kind) is
+   function Get_Unit_Id (N : Name_Id) return Unit_Id is
+      Info : Int;
    begin
-      Nodes.Increment_Last;
-      Nodes.Table (Nodes.Last).Kind     := Kind;
-      Nodes.Table (Nodes.Last).Name     := Name;
-      Nodes.Table (Nodes.Last).Node_1   := Null_Node;
-      Nodes.Table (Nodes.Last).Node_2   := Null_Node;
-      Nodes.Table (Nodes.Last).Node_3   := Null_Node;
-      Nodes.Table (Nodes.Last).Flag_1   := True;
-      Nodes.Table (Nodes.Last).Value    := 0;
-      Node := Nodes.Last;
-   end Create_Node;
+      Info := Get_Name_Table_Info (N);
+      case Info is
+         when Int (Unit_Id'First) .. Int (Unit_Id'Last) =>
+            null;
+         when others =>
+            Info := Int (No_Unit_Id);
+      end case;
+      return Unit_Id (Info);
+   end Get_Unit_Id;
+
+   --------------------
+   -- Get_Unit_Sfile --
+   --------------------
+
+   function Get_Unit_Sfile (U : in Unit_Id) return File_Name_Type is
+   begin
+      Get_Name_String (Unit.Table (U).Sfile);
+      Name_Len := Name_Len - 4;
+      return Name_Find;
+   end Get_Unit_Sfile;
+
+   -----------------------
+   -- Get_Variable_Mark --
+   -----------------------
+
+   function  Get_Variable_Mark
+     (Variable_Node : Variable_Id)
+      return Int is
+      Node : Node_Id := Node_Id (Variable_Node);
+   begin
+      pragma Assert (Is_Variable (Node));
+      return Nodes.Table (Node).Value;
+   end Get_Variable_Mark;
+
+   -----------------------
+   -- Get_Variable_Type --
+   -----------------------
+
+   function Get_Variable_Type
+     (Variable_Node : in Variable_Id)
+      return Type_Id is
+      Node : Node_Id := Node_Id (Variable_Node);
+   begin
+      pragma Assert (Is_Variable (Node));
+      return Type_Id (Nodes.Table (Node).Node_2);
+   end Get_Variable_Type;
+
+   ------------------------
+   -- Get_Variable_Value --
+   ------------------------
+
+   function Get_Variable_Value
+     (Variable_Node : in Variable_Id)
+     return Variable_Id is
+      Node  : Node_Id := Node_Id (Variable_Node);
+   begin
+      return Variable_Id (Nodes.Table (Node).Node_3);
+   end Get_Variable_Value;
+
+   ---------------------------
+   -- Has_Component_A_Value --
+   ---------------------------
+
+   function Has_Component_A_Value
+     (Component_Node : Component_Id)
+     return Boolean is
+      Node  : Node_Id := Node_Id (Component_Node);
+   begin
+      pragma Assert (Is_Component (Node));
+      return Nodes.Table (Node).Node_3 /= Null_Node;
+   end Has_Component_A_Value;
+
+   ---------------------
+   -- Is_Array_A_List --
+   ---------------------
+
+   function Is_Array_A_List
+     (Array_Type_Node   : in Type_Id)
+      return Boolean is
+      Node : Node_Id := Node_Id (Array_Type_Node);
+   begin
+      pragma Assert (Is_Type (Node));
+      pragma Assert (Get_Array_Element_Type (Array_Type_Node) /= Null_Type);
+      return Nodes.Table (Node).Flag_1;
+   end Is_Array_A_List;
+
+   ------------------
+   -- Is_Component --
+   ------------------
+
+   function Is_Component (Node : Node_Id)  return Boolean is
+   begin
+      return Is_Of_Kind (Node, K_Component);
+   end Is_Component;
+
+   -----------------------------
+   -- Is_Component_An_Attribute --
+   -----------------------------
+
+   function Is_Component_An_Attribute
+     (Component_Node : in Component_Id)
+      return Boolean is
+      Node : Node_Id := Node_Id (Component_Node);
+   begin
+      pragma Assert (Is_Component (Node));
+      return Nodes.Table (Node).Flag_1;
+   end Is_Component_An_Attribute;
+
+   -----------------------
+   -- Is_Component_List --
+   -----------------------
+
+   function Is_Component_List
+     (Node : in Node_Id)
+      return Boolean is
+   begin
+      return Nodes.Table (Node).Kind = K_List and then
+             Convert (Nodes.Table (Node).Value) = K_Component_List;
+   end Is_Component_List;
+
+   ----------------------
+   -- Is_Configuration --
+   ----------------------
+
+   function Is_Configuration (Node : Node_Id) return Boolean is
+   begin
+      return Is_Of_Kind (Node, K_List) and then
+             Convert (Nodes.Table (Node).Value) = K_Declaration_List;
+   end Is_Configuration;
+
+   -------------------------
+   -- Is_Declaration_List --
+   -------------------------
+
+   function Is_Declaration_List
+     (Node : in Node_Id)
+      return Boolean is
+   begin
+      return Nodes.Table (Node).Kind = K_List and then
+             Convert (Nodes.Table (Node).Value) = K_Declaration_List;
+   end Is_Declaration_List;
+
+   ----------------
+   -- Is_Of_Kind --
+   ----------------
+
+   function Is_Of_Kind
+     (Node : in Node_Id;
+      Kind : in Node_Kind)
+      return Boolean is
+   begin
+      pragma Assert (Node /= Null_Node);
+      return Nodes.Table (Node).Kind = Kind;
+   end Is_Of_Kind;
+
+   -----------------------
+   -- Is_Parameter_List --
+   -----------------------
+
+   function Is_Parameter_List
+     (Node : in Node_Id)
+      return Boolean is
+   begin
+      return Nodes.Table (Node).Kind = K_List and then
+             Convert (Nodes.Table (Node).Value) = K_Parameter_List;
+   end Is_Parameter_List;
+
+   ------------
+   -- Is_Set --
+   ------------
+
+   function Is_Set (Partition : PID_Type) return Boolean is
+   begin
+      return Partitions.Table (Partition).Last_Unit /= Null_CUID;
+   end Is_Set;
+
+   ------------------
+   -- Is_Statement --
+   ------------------
+
+   function Is_Statement (Node : Node_Id)  return Boolean is
+   begin
+      return Is_Of_Kind (Node, K_Statement);
+   end Is_Statement;
+
+   -------------------
+   -- Is_Subprogram --
+   -------------------
+
+   function Is_Subprogram (Node : Node_Id) return Boolean is
+   begin
+      return Is_Of_Kind (Node, K_Subprogram);
+   end Is_Subprogram;
+
+   -------------------------------
+   -- Is_Subprogram_A_Procedure --
+   -------------------------------
+
+   function Is_Subprogram_A_Procedure
+     (Subprogram_Node : in Subprogram_Id)
+      return Boolean is
+      Node : Node_Id := Node_Id (Subprogram_Node);
+   begin
+      pragma Assert (Is_Subprogram (Node));
+      return Nodes.Table (Node).Flag_1;
+   end Is_Subprogram_A_Procedure;
+
+   -------------
+   -- Is_Type --
+   -------------
+
+   function Is_Type (Node : Node_Id) return Boolean is
+   begin
+      return Is_Of_Kind (Node, K_Type);
+   end Is_Type;
+
+   --------------------
+   -- Is_Type_Frozen --
+   --------------------
+
+   function Is_Type_Frozen
+     (Type_Node : Type_Id)
+      return Boolean is
+      Node : Node_Id := Node_Id (Type_Node);
+   begin
+      pragma Assert (Is_Type (Node));
+      return Nodes.Table (Node).Flag_1;
+   end Is_Type_Frozen;
+
+   -----------------
+   -- Is_Variable --
+   -----------------
+
+   function Is_Variable (Node : Node_Id)  return Boolean is
+   begin
+      pragma Assert (Node /= Null_Node);
+      return Is_Of_Kind (Node, K_Variable);
+   end Is_Variable;
+
+   --------------------
+   -- Load_All_Units --
+   --------------------
+
+   procedure Load_All_Units (From : Unit_Name_Type) is
+      File : File_Name_Type;
+      Lib  : File_Name_Type;
+      Text : Text_Buffer_Ptr;
+   begin
+      if Verbose_Mode then
+         Write_Program_Name;
+         Write_Str  (": loading all units from ");
+         Write_Name (From);
+         Write_Eol;
+      end if;
+      if Already_Loaded (From) then
+         return;
+      end if;
+      File := From & ADB_Suffix;
+      if Full_Source_Name (File) = No_Name then
+         File := From & ADS_Suffix;
+         if Full_Source_Name (File) = No_Name then
+            Write_Program_Name;
+            Write_Str (": no spec or body found for unit ");
+            Write_Name (From);
+            Write_Eol;
+            raise Fatal_Error;
+         end if;
+      end if;
+      Lib  := Lib_File_Name (File);
+      Text := Read_Library_Info (Lib);
+      if Text = null then
+         Write_Missing_File (Lib);
+         raise Fatal_Error;
+      end if;
+      Read_ALI (Scan_ALI (Lib, Text));
+   end Load_All_Units;
+
+   ------------------------------------
+   -- Next_Configuration_Declaration --
+   ------------------------------------
+
+   procedure Next_Configuration_Declaration
+     (Declaration_Node   : in out Node_Id) is
+   begin
+      Declaration_Node := Nodes.Table (Declaration_Node).Node_1;
+   end Next_Configuration_Declaration;
+
+   -------------------------------
+   -- Next_Subprogram_Parameter --
+   -------------------------------
+
+   procedure Next_Subprogram_Parameter
+     (Parameter_Node  : in out Parameter_Id) is
+      Node : Node_Id := Node_Id (Parameter_Node);
+   begin
+      pragma Assert (Is_Variable (Node));
+      Parameter_Node := Parameter_Id (Nodes.Table (Node).Node_1);
+   end Next_Subprogram_Parameter;
+
+   -------------------------
+   -- Next_Type_Component --
+   -------------------------
+
+   procedure Next_Type_Component
+     (Component_Node  : in out Component_Id) is
+      Node : Node_Id := Node_Id (Component_Node);
+   begin
+      Component_Node := Component_Id (Nodes.Table (Node).Node_1);
+   end Next_Type_Component;
+
+   -----------------------------
+   -- Next_Variable_Component --
+   -----------------------------
+
+   procedure Next_Variable_Component
+     (Component_Node  : in out Component_Id) is
+      Node : Node_Id := Node_Id (Component_Node);
+   begin
+      Component_Node := Component_Id (Nodes.Table (Node).Node_1);
+   end Next_Variable_Component;
+
+   ----------------
+   -- Set_ALI_Id --
+   ----------------
+
+   procedure Set_ALI_Id (N : Name_Id; A : ALI_Id) is
+   begin
+      Set_Name_Table_Info (N, Int (A));
+   end Set_ALI_Id;
+
+   --------------------
+   -- Set_Array_Type --
+   --------------------
+
+   procedure Set_Array_Type
+     (Array_Type_Node   : in Type_Id;
+      Element_Type_Node : in Type_Id;
+      Array_Is_A_List   : in Boolean) is
+      Node : Node_Id := Node_Id (Array_Type_Node);
+      List : Node_Id;
+   begin
+      pragma Assert (Is_Type (Node));
+      Nodes.Table (Node).Node_2 := Node_Id (Element_Type_Node);
+      Create_Node (List, Str_To_Id ("pragma__n__array"), K_List);
+      Nodes.Table (List).Value := Convert (K_Component_List);
+      Nodes.Table (List).Flag_1 := Array_Is_A_List;
+      Nodes.Table (Node).Node_3 := List;
+   end Set_Array_Type;
+
+   -------------
+   -- Set_CID --
+   -------------
+
+   procedure Set_CID (N : Name_Id; C : CID_Type) is
+   begin
+      Set_Name_Table_Info (N, Int (C));
+   end Set_CID;
+
+   ------------------------
+   -- Set_Component_Mark --
+   ------------------------
+
+   procedure Set_Component_Mark
+     (Component_Node : Component_Id;
+      Component_Mark : Int) is
+      Node : Node_Id := Node_Id (Component_Node);
+   begin
+      pragma Assert (Is_Component (Node));
+      Nodes.Table (Node).Value := Component_Mark;
+   end Set_Component_Mark;
+
+   ------------------------
+   -- Set_Component_Type --
+   ------------------------
+
+   procedure Set_Component_Type
+     (Component_Node : in Component_Id;
+      Type_Node      : in Type_Id) is
+      Node  : Node_Id := Node_Id (Component_Node);
+      Ntype : Node_Id := Node_Id (Type_Node);
+   begin
+      pragma Assert (Is_Component (Node));
+      pragma Assert (Is_Type (Ntype));
+      Nodes.Table (Node).Node_2 := Ntype;
+   end Set_Component_Type;
+
+   -------------------------
+   -- Set_Component_Value --
+   -------------------------
+
+   procedure Set_Component_Value
+     (Component_Node : in Component_Id;
+      Value_Node     : in Node_Id) is
+      Node  : Node_Id := Node_Id (Component_Node);
+   begin
+      pragma Assert (Is_Component (Node));
+      Nodes.Table (Node).Node_3 := Value_Node;
+   end Set_Component_Value;
+
+   -------------
+   -- Set_CUID --
+   -------------
+
+   procedure Set_CUID (N : Name_Id; U : CUID_Type) is
+   begin
+      Set_Name_Table_Info (N, Int (U));
+   end Set_CUID;
+
+   ------------------------
+   -- Set_Parameter_Mark --
+   ------------------------
+
+   procedure Set_Parameter_Mark
+     (Parameter_Node : in Parameter_Id;
+      Parameter_Mark : in Int) is
+      Node : Node_Id := Node_Id (Parameter_Node);
+   begin
+      pragma Assert (Is_Variable (Node));
+      Nodes.Table (Node).Value := Parameter_Mark;
+   end Set_Parameter_Mark;
 
    ------------------------
    -- Set_Parameter_Type --
@@ -1463,16 +1659,128 @@ package body XE is
       Set_Variable_Type (Variable_Id (Parameter_Node), Parameter_Type);
    end Set_Parameter_Type;
 
+   -------------
+   -- Set_PID --
+   -------------
+
+   procedure Set_PID (N : Name_Id; P : PID_Type) is
+   begin
+      Set_Name_Table_Info (N, Int (P));
+   end Set_PID;
+
    ------------------------
-   -- Get_Parameter_Type --
+   -- Set_Subprogram_Call --
    ------------------------
 
-   function Get_Parameter_Type
-     (Parameter_Node : in Parameter_Id)
-     return Type_Id is
+   procedure Set_Subprogram_Call
+     (Statement_Node  : in Statement_Id;
+      Subprogram_Node : in Subprogram_Id) is
+      Statement  : Node_Id := Node_Id (Statement_Node);
+      Subprogram : Node_Id := Node_Id (Subprogram_Node);
    begin
-      return Get_Variable_Type (Variable_Id (Parameter_Node));
-   end Get_Parameter_Type;
+      pragma Assert (Is_Statement  (Statement) and then
+                     Is_Subprogram (Subprogram));
+      Nodes.Table (Statement).Node_2 := Subprogram;
+   end Set_Subprogram_Call;
+
+   -------------------------
+   -- Set_Subprogram_Mark --
+   -------------------------
+
+   procedure Set_Subprogram_Mark
+     (Subprogram_Node : in Subprogram_Id;
+      Subprogram_Mark : in Int) is
+      Node : Node_Id := Node_Id (Subprogram_Node);
+   begin
+      pragma Assert (Is_Subprogram (Node));
+      Nodes.Table (Node).Value := Subprogram_Mark;
+   end Set_Subprogram_Mark;
+
+   ---------------
+   -- Set_Token --
+   ---------------
+
+   procedure Set_Token (N : String; T : Token_Type) is
+      Name  : Name_Id;
+      Index : Int;
+   begin
+      Index := Int (Wrong_Token) +
+               Int (Token_Type'Pos (T) -
+                    Token_Type'Pos (Token_Type'First));
+      Name_Len := N'Length;
+      Name_Buffer (1 .. Name_Len) := N;
+      Name := Name_Find;
+      Set_Name_Table_Info (Name, Index);
+      Reserved (T) := True;
+   end Set_Token;
+
+   -------------------
+   -- Set_Type_Mark --
+   -------------------
+
+   procedure Set_Type_Mark
+     (Type_Node : in Type_Id;
+      Type_Mark : in Int) is
+      Node : Node_Id := Node_Id (Type_Node);
+   begin
+      pragma Assert (Is_Type (Node));
+      Nodes.Table (Node).Value := Type_Mark;
+   end Set_Type_Mark;
+
+   -----------------
+   -- Set_Unit_Id --
+   -----------------
+
+   procedure Set_Unit_Id (N : Name_Id; U : Unit_Id) is
+   begin
+      Set_Name_Table_Info (N, Int (U));
+   end Set_Unit_Id;
+
+   -----------------------
+   -- Set_Variable_Mark --
+   -----------------------
+
+   procedure Set_Variable_Mark
+     (Variable_Node : in Variable_Id;
+      Variable_Mark : in Int) is
+      Node : Node_Id := Node_Id (Variable_Node);
+   begin
+      pragma Assert (Is_Variable (Node));
+      Nodes.Table (Node).Value := Variable_Mark;
+   end Set_Variable_Mark;
+
+   -----------------------
+   -- Set_Variable_Type --
+   -----------------------
+
+   procedure Set_Variable_Type
+     (Variable_Node : in Variable_Id;
+      Variable_Type : in Type_Id) is
+      Node : Node_Id := Node_Id (Variable_Node);
+      List : Node_Id;
+   begin
+      pragma Assert (Is_Variable (Node));
+      pragma Assert (Is_Type (Node_Id (Variable_Type)));
+      Nodes.Table (Node).Node_2 := Node_Id (Variable_Type);
+      if Get_Array_Element_Type (Variable_Type) /= Null_Type then
+         Create_Node (List, Str_To_Id ("record"), K_List);
+         Nodes.Table (List).Value := Convert (K_Component_List);
+         Nodes.Table (Node).Node_3 := List;
+      end if;
+   end Set_Variable_Type;
+
+   ------------------------
+   -- Set_Variable_Value --
+   ------------------------
+
+   procedure Set_Variable_Value
+     (Variable_Node : in Variable_Id;
+      Value_Node    : in Variable_Id) is
+      Node  : Node_Id := Node_Id (Variable_Node);
+   begin
+      pragma Assert (Is_Variable (Node));
+      Nodes.Table (Node).Node_3 := Node_Id (Value_Node);
+   end Set_Variable_Value;
 
    -------------------------
    --  Show_Configuration --
@@ -1615,195 +1923,42 @@ package body XE is
 
    end Show_Configuration;
 
-   -----------------------
-   -- Get_Absolute_Exec --
-   -----------------------
+   ---------------
+   -- Str_To_Id --
+   ---------------
 
-   function Get_Absolute_Exec (P : in PID_Type) return Name_Id is
-      Dir  : Name_Id := Partitions.Table (P).Storage_Dir;
-      Name : Name_Id renames Partitions.Table (P).Name;
+   function Str_To_Id (S : String) return Name_Id is
    begin
-
-      if Dir = No_Storage_Dir then
-         Dir := Default_Storage_Dir;
-      end if;
-
-      if Dir = No_Storage_Dir then
-
-         --  No storage dir means current directory
-
-         return PWD_Id & Name;
-
-      else
-         Get_Name_String (Dir);
-         if Name_Buffer (1) /= Separator and then
-           Name_Buffer (1) /= '/' then
-
-            --  The storage dir is relative
-
-            return PWD_Id & Dir & Dir_Sep_Id & Name;
-
-         end if;
-
-         --  Write the dir as it has been written
-
-         return Dir & Dir_Sep_Id & Name;
-
-      end if;
-
-   end Get_Absolute_Exec;
-
-   -----------------------
-   -- Get_Partition_Dir --
-   -----------------------
-
-   function Get_Partition_Dir (P : in PID_Type) return File_Name_Type is
-   begin
-      return DSA_Dir &
-        Dir_Sep_Id & Configuration &
-        Dir_Sep_Id & Partitions.Table (P).Name;
-   end Get_Partition_Dir;
-
-   -----------------------
-   -- Get_Relative_Exec --
-   -----------------------
-
-   function Get_Relative_Exec (P : in PID_Type) return Name_Id is
-      Dir  : Name_Id := Partitions.Table (P).Storage_Dir;
-      Name : Name_Id renames Partitions.Table (P).Name;
-   begin
-
-      if Dir = No_Storage_Dir then
-         Dir := Default_Storage_Dir;
-      end if;
-
-      if Dir = No_Storage_Dir then
-
-         --  No storage dir means current directory
-
-         return Name;
-
-      else
-
-         --  The storage dir is relative
-
-         return Dir & Dir_Sep_Id & Name;
-
-      end if;
-
-   end Get_Relative_Exec;
-
-   --------------
-   -- Get_Host --
-   --------------
-
-   function Get_Host            (P : in PID_Type) return Name_Id is
-      H : Host_Id := Partitions.Table (P).Host;
-   begin
-
-      if H = Null_Host then
-         H := Default_Host;
-      end if;
-
-      if H /= Null_Host then
-         if not Hosts.Table (H).Static then
-            if Hosts.Table (H).Import = Shell_Import then
-               return  Str_To_Id ("""`") &
-                       Hosts.Table (H).External &
-                       Str_To_Id (" ") &
-                       Partitions.Table (P).Name &
-                       Str_To_Id ("`""");
-            elsif Hosts.Table (H).Import = Ada_Import then
-               return  Hosts.Table (H).External &
-                       Str_To_Id ("(") &
-                       Partitions.Table (P).Name &
-                       Str_To_Id (")");
-            end if;
-            raise Parsing_Error;
-         else
-            return Str_To_Id ("""") &
-                   Hosts.Table (H).Name &
-                   Str_To_Id ("""");
-         end if;
-
-      else
-         return No_Name;
-
-      end if;
-
-   end Get_Host;
-
-   ---------------------
-   -- Get_Storage_Dir --
-   ---------------------
-
-   function Get_Storage_Dir (P : in PID_Type) return Storage_Dir_Name_Type is
-      Storage_Dir : Storage_Dir_Name_Type := Partitions.Table (P).Storage_Dir;
-   begin
-
-      if Storage_Dir = No_Storage_Dir then
-         Storage_Dir := Default_Storage_Dir;
-      end if;
-
-      return Storage_Dir;
-
-   end Get_Storage_Dir;
-
-   ----------------------
-   -- Get_Command_Line --
-   ----------------------
-
-   function Get_Command_Line    (P : in PID_Type) return Command_Line_Type is
-      Cmd : Command_Line_Type := Partitions.Table (P).Command_Line;
-   begin
-
-      if Cmd = No_Command_Line then
-         Cmd := Default_Command_Line;
-      end if;
-
-      return Cmd;
-
-   end Get_Command_Line;
-
-   -------------------------
-   -- Get_Main_Subprogram --
-   -------------------------
-
-   function Get_Main_Subprogram
-     (P : in PID_Type)
-      return Main_Subprogram_Type is
-      Main : Main_Subprogram_Type := Partitions.Table (P).Main_Subprogram;
-   begin
-
-      if Main = No_Main_Subprogram then
-         Main := Default_Main;
-      end if;
-
-      return Main;
-
-   end Get_Main_Subprogram;
-
-   ---------------------
-   -- Get_Termination --
-   ---------------------
-
-   function Get_Termination
-     (P : in PID_Type)
-      return Termination_Type is
-   begin
-      return Partitions.Table (P).Termination;
-   end Get_Termination;
-
-   --------------------
-   -- Get_Unit_Sfile --
-   --------------------
-
-   function Get_Unit_Sfile (U : in Unit_Id) return File_Name_Type is
-   begin
-      Get_Name_String (Unit.Table (U).Sfile);
-      Name_Len := Name_Len - 4;
+      Name_Buffer (1 .. S'Length) := S;
+      Name_Len := S'Length;
       return Name_Find;
-   end Get_Unit_Sfile;
+   end Str_To_Id;
+
+   -------------------------------
+   -- Subprogram_Is_A_Procedure --
+   -------------------------------
+
+   procedure Subprogram_Is_A_Procedure
+     (Subprogram_Node : in Subprogram_Id;
+      Procedure_Node  : in Boolean) is
+      Node : Node_Id := Node_Id (Subprogram_Node);
+   begin
+      pragma Assert (Is_Subprogram (Node));
+      Nodes.Table (Node).Flag_1 := Procedure_Node;
+   end Subprogram_Is_A_Procedure;
+
+   --------------------
+   -- Type_Is_Frozen --
+   --------------------
+
+   procedure Type_Is_Frozen
+     (Type_Node  : in Type_Id;
+      Extensible : in Boolean) is
+      Node : Node_Id := Node_Id (Type_Node);
+   begin
+      pragma Assert (Is_Type (Node));
+      Nodes.Table (Node).Flag_1 := Extensible;
+   end Type_Is_Frozen;
 
    ----------------------------
    -- Update_Partition_Stamp --
@@ -1845,10 +2000,3 @@ package body XE is
    end Write_SLOC;
 
 end XE;
-
-
-
-
-
-
-

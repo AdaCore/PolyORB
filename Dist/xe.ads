@@ -32,11 +32,11 @@ with ALI;    use ALI;
 with Types;  use Types;
 package XE is
 
-   --  Several names are already predefined. For each of these names, a key
+   --  Several names are reserved keywords. For each of these names, a key
    --  is associated in the hash table. This allows to retrieve the nature
-   --  of the name and especially its type. The key (an integer) is in
-   --  one of the following ranges and therefore, the name corresponds to
-   --  the image of an element in the enumeration type.
+   --  of the name and especially its type. The key (an integer) is in one
+   --  of the following ranges and therefore, the name corresponds to the
+   --  image of an element in the enumeration type.
 
    --------------
    --  Keyword --
@@ -99,12 +99,13 @@ package XE is
        Attribute_Storage_Dir,    --  (2) Storage directory
        Attribute_Main,           --  (3) Main procedure
        Attribute_Command_Line,   --  (4) Command line
-       Attribute_Termination     --  (5) Termination
+       Attribute_Termination,    --  (5) Termination
+       Attribute_Filter          --  (6) Filter
        );
 
    Attr_Wrong : constant Int := 200;
    Attr_First : constant Int := Attr_Wrong + 1;
-   Attr_Last  : constant Int := Attr_Wrong + 5;
+   Attr_Last  : constant Int := Attr_Wrong + 6;
    --  Should match Attribute_Type length
 
    type Attr_Type is new Int range Attr_Wrong .. Attr_Last;
@@ -388,12 +389,17 @@ package XE is
    ----------
 
    function Get_Array_Element_Type
-     (Array_Type_Node   : in Type_Id)
+     (Array_Type_Node : Type_Id)
      return Type_Id;
 
-   procedure Set_Array_Element_Type
+   function Is_Array_A_List
+     (Array_Type_Node : Type_Id)
+      return Boolean;
+
+   procedure Set_Array_Type
      (Array_Type_Node   : in Type_Id;
-      Element_Type_Node : in Type_Id);
+      Element_Type_Node : in Type_Id;
+      Array_Is_A_List   : in Boolean);
 
    function  Get_Type_Mark
      (Type_Node : Type_Id)
@@ -402,6 +408,18 @@ package XE is
    procedure Set_Type_Mark
      (Type_Node : in Type_Id;
       Type_Mark : in Int);
+
+   function Is_Type_Frozen
+     (Type_Node : Type_Id)
+     return Boolean;
+
+   procedure Type_Is_Frozen
+     (Type_Node  : in Type_Id;
+      Extensible : in Boolean);
+   --  For instance, Ada Unit Type is an extensible enumeration type.
+   --  During parsing, we can decide to create a constant that occur
+   --  earlier to any other declaration of the same constant or variable
+   --  name.
 
    procedure First_Type_Component
      (Type_Node       : in Type_Id;
@@ -462,15 +480,19 @@ package XE is
       Value_Node     : in Node_Id);
 
    function  Get_Component_Value
-     (Component_Node : in Component_Id)
+     (Component_Node : Component_Id)
      return Node_Id;
+
+   function Has_Component_A_Value
+     (Component_Node : Component_Id)
+     return Boolean;
 
    procedure Set_Component_Type
      (Component_Node : in Component_Id;
       Type_Node      : in Type_Id);
 
    function Get_Component_Type
-     (Component_Node : in Component_Id)
+     (Component_Node : Component_Id)
      return Type_Id;
 
    procedure Component_Is_An_Attribute
@@ -478,12 +500,12 @@ package XE is
       Attribute_Node : in Boolean);
 
    function Is_Component_An_Attribute
-     (Component_Node : in Component_Id)
+     (Component_Node : Component_Id)
      return Boolean;
 
    procedure Set_Component_Mark
-     (Component_Node : Component_Id;
-      Component_Mark : Int);
+     (Component_Node : in Component_Id;
+      Component_Mark : in Int);
 
    function Get_Component_Mark
      (Component_Node : Component_Id)
@@ -517,7 +539,7 @@ package XE is
    -- Parser Convention Naming --
    ------------------------------
 
-   Conf_Ada_Unit  : Name_Id;
+   Component_Unit : Name_Id;
    Part_Main_Unit : Name_Id;
    Returned_Param : Name_Id;
    Procedure_Unit : Name_Id;
@@ -542,6 +564,25 @@ package XE is
 
    function  Get_PID  (N : Name_Id) return PID_Type;
    procedure Set_PID  (N : Name_Id; P : PID_Type);
+
+   --------------
+   -- CID_Type --
+   --------------
+
+   CID_Wrong : constant Int := 1_500_000;
+   CID_Null  : constant Int := CID_Wrong + 1;
+   CID_First : constant Int := CID_Null  + 1;
+   CID_Last  : constant Int := 1_999_999;
+
+   type CID_Type is new Int range CID_Wrong .. CID_Last;
+
+   Wrong_CID : constant CID_Type := CID_Type'First;
+   Null_CID  : constant CID_Type := CID_Type'Succ (Wrong_CID);
+   First_CID : constant CID_Type := CID_Type'Succ (Null_CID);
+   Last_CID  : constant CID_Type := CID_Type'Last;
+
+   function  Get_CID  (N : Name_Id) return CID_Type;
+   procedure Set_CID  (N : Name_Id; C : CID_Type);
 
    ---------------
    -- CUID_Type --
@@ -571,6 +612,12 @@ package XE is
 
    subtype Partition_Name_Type is Name_Id;
    No_Partition_Name : constant Partition_Name_Type := No_Name;
+
+   subtype Channel_Name_Type is Name_Id;
+   No_Channel_Name : constant Channel_Name_Type := No_Name;
+
+   subtype Filter_Name_Type is Name_Id;
+   No_Filter_Name : constant Filter_Name_Type := No_Name;
 
    subtype CUnit_Name_Type is Name_Id;
    No_CUnit_Name     : constant CUnit_Name_Type := No_Name;
@@ -625,6 +672,7 @@ package XE is
    Default_Storage_Dir   : Storage_Dir_Name_Type := No_Storage_Dir;
    Default_Command_Line  : Command_Line_Type     := No_Command_Line;
    Default_Termination   : Termination_Type      := Unknown_Termination;
+   Default_Filter        : Filter_Name_Type;
 
    type Partition_Type is record
       Name            : Partition_Name_Type;
@@ -646,6 +694,21 @@ package XE is
       Table_Initial        => 20,
       Table_Increment      => 100,
       Table_Name           => "Partition");
+
+   type Channel_Type is record
+      Name   : Channel_Name_Type;
+      Lower  : PID_Type;
+      Upper  : PID_Type;
+      Filter : Filter_Name_Type;
+   end record;
+
+   package Channels  is new Table
+     (Table_Component_Type => Channel_Type,
+      Table_Index_Type     => CID_Type,
+      Table_Low_Bound      => First_CID,
+      Table_Initial        => 20,
+      Table_Increment      => 100,
+      Table_Name           => "Channel");
 
    type Conf_Unit_Type is record
       CUname    : CUnit_Name_Type;
@@ -685,10 +748,24 @@ package XE is
    --  Assign a Conf Unit to a partition. This unit is declared in the
    --  configuration file (it is not yet mapped to an ada unit).
 
+   procedure Add_Channel_Partition
+     (Partition : in Partition_Name_Type; To : in CID_Type);
+   --  Assign a paritition to a channel. Sort the partition pair.
+
+   procedure Create_Channel
+     (Name : in  Channel_Name_Type;
+      CID  : out CID_Type);
+   --  Create a new channel and store its CID in its name key.
+
    procedure Create_Partition
      (Name : in  Partition_Name_Type;
       PID  : out PID_Type);
    --  Create a new partition and store its PID in its name key.
+
+   procedure Copy_Channel
+     (Name : in Channel_Name_Type;
+      Many : in Int);
+   --  Create Many successive copies of channel Name.
 
    procedure Copy_Partition
      (Name : in Partition_Name_Type;

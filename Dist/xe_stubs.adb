@@ -38,7 +38,7 @@ with XE;               use XE;
 with GNAT.Os_Lib;      use GNAT.Os_Lib;
 with Unchecked_Deallocation;
 
-procedure XE_Stubs is
+package body XE_Stubs is
 
    Root_Dir     : String_Access;
    Root_Dir_Len : Natural;
@@ -719,6 +719,185 @@ procedure XE_Stubs is
 
    end Delete_Stub;
 
+   -------------------
+   -- Update_Switch --
+   -------------------
+
+   procedure Update_Switch (S : in out String_Access) is
+
+      procedure Update (S : in out String_Access; I : Natural);
+
+      procedure Update (S : in out String_Access; I : Natural) is
+
+         T : String (S'First .. S'Last + Root_Dir_Len);
+         N : Natural := I - 1;
+
+      begin
+         T (S'First .. N) := S (S'First .. N);
+         N := N + 1;
+         T (N .. N + Root_Dir_Len) := Root_Dir.all;
+         N := N + Root_Dir_Len;
+         T (N .. T'Last) := S (I .. S'Last);
+         Deallocate (S);
+         S := new String'(T);
+      end Update;
+
+      N : Natural := S'First + 1;
+
+   begin
+      case S (N) is
+         when 'a' =>
+            case S (N + 1) is
+               when 'L' | 'O' | 'I' =>
+                  if S (N + 2) /= Separator then
+                     Update (S, N + 2);
+                  end if;
+               when others =>
+                  null;
+            end case;
+         when 'I' | 'L' | 'A' =>
+            if S (N + 1) /= Separator and then
+               S (N + 1) /= '-' then
+               Update (S, N + 1);
+            end if;
+         when others =>
+            null;
+      end case;
+   end Update_Switch;
+
+   procedure Build is
+   begin
+
+      Get_Name_String (Original_Dir & Dir_Sep_Id);
+      Root_Dir_Len := Name_Len;
+      Root_Dir := new String'(Name_Buffer (1 .. Root_Dir_Len));
+
+      if not Is_Directory (Caller_Dir) then
+         Create_Dir (Caller_Dir);
+      end if;
+
+      if not Is_Directory (Receiver_Dir) then
+         Create_Dir (Receiver_Dir);
+      end if;
+
+      --  At this point, everything is performed in dsa/<dir>. We update
+      --  all the relative paths (-I and -L).
+
+      for S in Gcc_Switches.First .. Gcc_Switches.Last loop
+         Update_Switch (Gcc_Switches.Table (S));
+      end loop;
+
+      for S in Linker_Switches.First .. Linker_Switches.Last loop
+         Update_Switch (Linker_Switches.Table (S));
+      end loop;
+
+      for S in Binder_Switches.First .. Binder_Switches.Last loop
+         Update_Switch (Binder_Switches.Table (S));
+      end loop;
+
+      --  Generate all the stubs (bodies, objects and alis). At this level,
+      --  we ensure that all conf. units are ada units.
+      for CUID in CUnit.First .. CUnit.Last loop
+         if Unit.Table (CUnit.Table (CUID).My_Unit).RCI then
+            if Verbose_Mode then
+               Write_Program_Name;
+               Write_Str (": building ");
+               Write_Name (CUnit.Table (CUID).CUname);
+               Write_Str (" stubs");
+               Write_Eol;
+            end if;
+            Build_Stub
+              (Get_Unit_Sfile (CUnit.Table (CUID).My_Unit),
+               Unit.Table (CUnit.Table (CUID).My_Unit).Utype = Is_Spec_Only);
+         end if;
+      end loop;
+
+      --  Create and fill partition directories.
+      for PID in Partitions.First .. Partitions.Last loop
+
+         if Partitions.Table (PID).To_Build then
+
+            Directory := Get_Partition_Dir (PID);
+
+            if not Is_Directory (Directory) then
+               Create_Dir (Directory);
+            end if;
+
+            declare
+               UID : CUID_Type;
+            begin
+               --  Mark all the RCI callers.
+               UID := Partitions.Table (PID).First_Unit;
+               while UID /= Null_CUID loop
+                  Mark_RCI_Callers (PID, CUnit.Table (UID).My_ALI);
+                  UID := CUnit.Table (UID).Next;
+               end loop;
+            end;
+
+            Create_Main_Unit (PID);
+            Create_Elaboration_File (PID);
+
+            --  Copy RCI receiver stubs when this unit has been assigned on
+            --  PID partition. RCI caller stubs are not needed because GNATDIST
+            --  add the caller directory in its include path.
+
+            for UID in CUnit.First .. CUnit.Last loop
+               if Unit.Table (CUnit.Table (UID).My_Unit).RCI then
+                  if CUnit.Table (UID).Partition = PID then
+                     Copy_Stub
+                       (Receiver_Dir,
+                        Directory,
+                        Get_Unit_Sfile (CUnit.Table (UID).My_Unit));
+                  else
+                     Delete_Stub
+                       (Directory,
+                        Get_Unit_Sfile (CUnit.Table (UID).My_Unit));
+                  end if;
+               end if;
+            end loop;
+
+            --  Bind and link each partition.
+
+            Executable := Partitions.Table (PID).Name;
+
+            if Partitions.Table (PID).Storage_Dir = No_Storage_Dir then
+               Directory := Default_Storage_Dir;
+            else
+               Directory := Partitions.Table (PID).Storage_Dir;
+            end if;
+
+            if Directory  /= No_Storage_Dir then
+               if not Is_Directory (Directory) then
+                  Create_Dir (Directory);
+               end if;
+               Executable := Directory & Dir_Sep_Id & Executable;
+            end if;
+
+            if not Is_Regular_File (Executable) or else
+              More_Recent (Partitions.Table (PID).Most_Recent, Executable) then
+
+               if not Quiet_Output then
+                  Write_Program_Name;
+                  Write_Str  (": building partition ");
+                  Write_Name (Partitions.Table (PID).Name);
+                  Write_Eol;
+               end if;
+
+               --  Is it a relative storage directory ?
+               if Is_Relative_Dir (Executable) then
+                  Executable := Original_Dir & Dir_Sep_Id & Executable;
+               end if;
+
+               Build_Partition (Partitions.Table (PID).Name, Executable);
+
+            end if;
+
+         end if;
+
+      end loop;
+
+   end Build;
+
    ------------------------
    -- Write_Caller_Withs --
    ------------------------
@@ -813,184 +992,4 @@ procedure XE_Stubs is
 
    end Mark_RCI_Callers;
 
-   -------------------
-   -- Update_Switch --
-   -------------------
-
-   procedure Update_Switch (S : in out String_Access) is
-
-      procedure Update (S : in out String_Access; I : Natural);
-
-      procedure Update (S : in out String_Access; I : Natural) is
-
-         T : String (S'First .. S'Last + Root_Dir_Len);
-         N : Natural := I - 1;
-
-      begin
-         T (S'First .. N) := S (S'First .. N);
-         N := N + 1;
-         T (N .. N + Root_Dir_Len) := Root_Dir.all;
-         N := N + Root_Dir_Len;
-         T (N .. T'Last) := S (I .. S'Last);
-         Deallocate (S);
-         S := new String'(T);
-      end Update;
-
-      N : Natural := S'First + 1;
-
-   begin
-      case S (N) is
-         when 'a' =>
-            case S (N + 1) is
-               when 'L' | 'O' | 'I' =>
-                  if S (N + 2) /= Separator then
-                     Update (S, N + 2);
-                  end if;
-               when others =>
-                  null;
-            end case;
-         when 'I' | 'L' | 'A' =>
-            if S (N + 1) /= Separator and then
-               S (N + 1) /= '-' then
-               Update (S, N + 1);
-            end if;
-         when others =>
-            null;
-      end case;
-   end Update_Switch;
-
-begin
-
-   Get_Name_String (Original_Dir & Dir_Sep_Id);
-   Root_Dir_Len := Name_Len;
-   Root_Dir := new String'(Name_Buffer (1 .. Root_Dir_Len));
-
-   if not Is_Directory (Caller_Dir) then
-      Create_Dir (Caller_Dir);
-   end if;
-
-   if not Is_Directory (Receiver_Dir) then
-      Create_Dir (Receiver_Dir);
-   end if;
-
-   --  At this point, everything is performed in dsa/<dir>. We update
-   --  all the relative paths (-I and -L).
-
-   for S in Gcc_Switches.First .. Gcc_Switches.Last loop
-      Update_Switch (Gcc_Switches.Table (S));
-   end loop;
-
-   for S in Linker_Switches.First .. Linker_Switches.Last loop
-      Update_Switch (Linker_Switches.Table (S));
-   end loop;
-
-   for S in Binder_Switches.First .. Binder_Switches.Last loop
-      Update_Switch (Binder_Switches.Table (S));
-   end loop;
-
-   --  Generate all the stubs (bodies, objects and alis). At this level,
-   --  we ensure that all conf. units are ada units.
-   for CUID in CUnit.First .. CUnit.Last loop
-      if Unit.Table (CUnit.Table (CUID).My_Unit).RCI then
-         if Verbose_Mode then
-            Write_Program_Name;
-            Write_Str (": building ");
-            Write_Name (CUnit.Table (CUID).CUname);
-            Write_Str (" stubs");
-            Write_Eol;
-         end if;
-         Build_Stub
-           (Get_Unit_Sfile (CUnit.Table (CUID).My_Unit),
-            Unit.Table (CUnit.Table (CUID).My_Unit).Utype = Is_Spec_Only);
-      end if;
-   end loop;
-
-   --  Create and fill partition directories.
-   for PID in Partitions.First .. Partitions.Last loop
-
-      if Partitions.Table (PID).To_Build then
-
-         Directory := Get_Partition_Dir (PID);
-
-         if not Is_Directory (Directory) then
-            Create_Dir (Directory);
-         end if;
-
-         declare
-            UID : CUID_Type;
-         begin
-            --  Mark all the RCI callers.
-            UID := Partitions.Table (PID).First_Unit;
-            while UID /= Null_CUID loop
-               Mark_RCI_Callers (PID, CUnit.Table (UID).My_ALI);
-               UID := CUnit.Table (UID).Next;
-            end loop;
-         end;
-
-         Create_Main_Unit (PID);
-         Create_Elaboration_File (PID);
-
-         --  Copy RCI receiver stubs when this unit has been assigned on
-         --  PID partition. RCI caller stubs are not needed because GNATDIST
-         --  add the caller directory in its include path.
-
-         for UID in CUnit.First .. CUnit.Last loop
-            if Unit.Table (CUnit.Table (UID).My_Unit).RCI then
-               if CUnit.Table (UID).Partition = PID then
-                  Copy_Stub
-                    (Receiver_Dir,
-                     Directory,
-                     Get_Unit_Sfile (CUnit.Table (UID).My_Unit));
-               else
-                  Delete_Stub
-                    (Directory,
-                     Get_Unit_Sfile (CUnit.Table (UID).My_Unit));
-               end if;
-            end if;
-         end loop;
-
-         --  Bind and link each partition.
-
-         Executable := Partitions.Table (PID).Name;
-
-         if Partitions.Table (PID).Storage_Dir = No_Storage_Dir then
-            Directory := Default_Storage_Dir;
-         else
-            Directory := Partitions.Table (PID).Storage_Dir;
-         end if;
-
-         if Directory  /= No_Storage_Dir then
-            if not Is_Directory (Directory) then
-               Create_Dir (Directory);
-            end if;
-            Executable := Directory & Dir_Sep_Id & Executable;
-         end if;
-
-         if not Is_Regular_File (Executable) or else
-            More_Recent (Partitions.Table (PID).Most_Recent, Executable) then
-
-            if not Quiet_Output then
-               Write_Program_Name;
-               Write_Str  (": building partition ");
-               Write_Name (Partitions.Table (PID).Name);
-               Write_Eol;
-            end if;
-
-            --  Is it a relative storage directory ?
-            if Is_Relative_Dir (Executable) then
-               Executable := Original_Dir & Dir_Sep_Id & Executable;
-            end if;
-
-            Build_Partition (Partitions.Table (PID).Name, Executable);
-
-         end if;
-
-      end if;
-
-   end loop;
-
 end XE_Stubs;
-
-
-
-

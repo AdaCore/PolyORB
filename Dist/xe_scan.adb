@@ -101,39 +101,14 @@ package body XE_Scan is
       end case;
    end Write_Token;
 
-   --------------
-   -- New_Line --
-   --------------
+   ------------------------
+   -- Get_Token_Location --
+   ------------------------
 
-   procedure New_Line is
+   function Get_Token_Location return Location_Type is
    begin
-      Scan_Ptr       := Scan_Ptr + 1;
-      Location.Line  := Location.Line + 1;
-      Location.First := Scan_Ptr;
-      Location.Last  := Scan_Ptr;
-   end New_Line;
-
-   ---------------
-   -- Load_File --
-   ---------------
-
-   procedure Load_File (File : in File_Name_Type) is
-      Dummy : Source_Ptr;
-   begin
-      Read_Source_File (File, First_Source_Ptr, Dummy, Buffer);
-      if Buffer = null then
-         Write_Program_Name;
-         Write_Str (": Cannot open file ");
-         Write_Name (File);
-         Write_Eol;
-         raise Fatal_Error;
-      else
-         Scan_Ptr := Buffer.all'First;
-      end if;
-      Location.Line  := 1;
-      Location.First := Scan_Ptr;
-      Location.Last  := Scan_Ptr;
-   end Load_File;
+      return Location;
+   end Get_Token_Location;
 
    ----------------
    -- Initialize --
@@ -212,6 +187,53 @@ package body XE_Scan is
       Set_Token ("separate",      Tok_Reserved);
 
    end Initialize;
+
+   ---------------
+   -- Load_File --
+   ---------------
+
+   procedure Load_File (File : in File_Name_Type) is
+      Dummy : Source_Ptr;
+   begin
+      Read_Source_File (File, First_Source_Ptr, Dummy, Buffer);
+      if Buffer = null then
+         Write_Program_Name;
+         Write_Str (": Cannot open file ");
+         Write_Name (File);
+         Write_Eol;
+         raise Fatal_Error;
+      else
+         Scan_Ptr := Buffer.all'First;
+      end if;
+      Location.Line  := 1;
+      Location.First := Scan_Ptr;
+      Location.Last  := Scan_Ptr;
+   end Load_File;
+
+   --------------------
+   -- Location_To_XY --
+   --------------------
+
+   procedure Location_To_XY
+     (Where : in  Location_Type;
+      Loc_X : out Int;
+      Loc_Y : out Int) is
+   begin
+      Loc_X := Where.Line;
+      Loc_Y := Int (Where.Last - Where.First) + 1;
+   end Location_To_XY;
+
+   --------------
+   -- New_Line --
+   --------------
+
+   procedure New_Line is
+   begin
+      Scan_Ptr       := Scan_Ptr + 1;
+      Location.Line  := Location.Line + 1;
+      Location.First := Scan_Ptr;
+      Location.Last  := Scan_Ptr;
+   end New_Line;
 
    ----------------
    -- Next_Token --
@@ -436,15 +458,6 @@ package body XE_Scan is
    end Next_Token;
 
    ------------------------
-   -- Get_Token_Location --
-   ------------------------
-
-   function Get_Token_Location return Location_Type is
-   begin
-      return Location;
-   end Get_Token_Location;
-
-   ------------------------
    -- Set_Token_Location --
    ------------------------
 
@@ -472,18 +485,5 @@ package body XE_Scan is
       Write_Int (Int (Where.Last - Where.First) + 1);
       Write_Str (": ");
    end Write_Location;
-
-   --------------------
-   -- Location_To_XY --
-   --------------------
-
-   procedure Location_To_XY
-     (Where : in  Location_Type;
-      Loc_X : out Int;
-      Loc_Y : out Int) is
-   begin
-      Loc_X := Where.Line;
-      Loc_Y := Int (Where.Last - Where.First) + 1;
-   end Location_To_XY;
 
 end XE_Scan;

@@ -26,4 +26,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-procedure XE_Stubs;
+package XE_Stubs is
+
+   procedure Build;
+
+end XE_Stubs;

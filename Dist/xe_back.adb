@@ -57,6 +57,11 @@ package body XE_Back is
    --  Retrieve ada units and attributes previously parsed in order to
    --  build the partition.
 
+   procedure Build_New_Channel
+     (Channel   : in Variable_Id);
+   --  Retrieve the two partitions and attributes previously parsed in
+   --  order to build the channel.
+
    function Get_Host
      (Node : Node_Id)
      return Host_Id;
@@ -66,6 +71,10 @@ package body XE_Back is
      (Node : in Node_Id;
       Host : in Host_Id);
    --  Set Node Mark component to Host.
+
+   procedure Set_Channel_Attribute
+     (Attribute : in Attribute_Id;
+      Channel   : in CID_Type);
 
    procedure Set_Partition_Attribute
      (Attribute : in Attribute_Id;
@@ -115,6 +124,49 @@ package body XE_Back is
       end if;
    end Back;
 
+   -----------------------
+   -- Build_New_Channel --
+   -----------------------
+
+   procedure Build_New_Channel
+     (Channel   : in Variable_Id) is
+      Channel_Name   : Name_Id := Get_Node_Name (Node_Id (Channel));
+      Channel_Type   : Type_Id := Get_Variable_Type (Channel);
+      Partition_Name : Name_Id;
+      Partition_Node : Node_Id;
+      Component_Node : Component_Id;
+      Channel_ID     : CID_Type;
+   begin
+
+      --  Create a new entry in Channels.Table.
+
+      Create_Channel (Channel_Name, Channel_ID);
+
+      --  Scan Channel_Name partition pair and Channel_Name attributes.
+
+      First_Variable_Component (Variable_Id (Channel), Component_Node);
+      while Component_Node /= Null_Component loop
+
+         --  This is a partition (upper or lower).
+
+         if not Is_Component_An_Attribute (Component_Node) then
+
+            --  Append this partition to the pair.
+            Partition_Node := Get_Component_Value (Component_Node);
+            Partition_Name := Get_Node_Name (Partition_Node);
+            Add_Channel_Partition (Partition_Name, Channel_ID);
+
+         else
+            Set_Channel_Attribute
+              (Attribute_Id (Component_Node), Channel_ID);
+         end if;
+
+         Next_Variable_Component (Component_Node);
+
+      end loop;
+
+   end Build_New_Channel;
+
    --------------------
    -- Build_New_Host --
    --------------------
@@ -154,13 +206,13 @@ package body XE_Back is
       Ada_Unit_Name  : Name_Id;
       Ada_Unit_Node  : Node_Id;
       Component_Node : Component_Id;
-      Partition_PID  : PID_Type;
+      Partition_ID   : PID_Type;
       Parser_Naming  : Name_Id;
    begin
 
       --  Create a new entry into Partitions.Table.
 
-      Create_Partition (Partition_Name, Partition_PID);
+      Create_Partition (Partition_Name, Partition_ID);
 
       --  Scan Partition_Name ada unit list and Partition_Name attributes.
 
@@ -174,14 +226,14 @@ package body XE_Back is
             --  Append this unit to the partition list.
             Ada_Unit_Node := Get_Component_Value (Component_Node);
             Ada_Unit_Name := Get_Node_Name (Ada_Unit_Node);
-            Add_Conf_Unit (Ada_Unit_Name, Partition_PID);
+            Add_Conf_Unit (Ada_Unit_Name, Partition_ID);
 
             --  Is this ada unit a main procedure or THE main program ?
             Parser_Naming := Get_Node_Name (Node_Id (Component_Node));
-            if Parser_Naming /= Conf_Ada_Unit then
+            if Parser_Naming /= Component_Unit then
 
                --  Is it at least a main procedure ?
-               Partitions.Table (Partition_PID).Main_Subprogram
+               Partitions.Table (Partition_ID).Main_Subprogram
                  := Ada_Unit_Name;
 
                --  Is it also a main program ?
@@ -198,7 +250,7 @@ package body XE_Back is
                      raise Parsing_Error;
                   end if;
 
-                  Main_Partition := Partition_PID;
+                  Main_Partition := Partition_ID;
                   Main_Subprogram := Ada_Unit_Name;
 
                end if;
@@ -209,7 +261,7 @@ package body XE_Back is
 
          else
             Set_Partition_Attribute
-              (Attribute_Id (Component_Node), Partition_PID);
+              (Attribute_Id (Component_Node), Partition_ID);
          end if;
 
          Next_Variable_Component (Component_Node);
@@ -230,10 +282,16 @@ package body XE_Back is
       Var_Type := Get_Variable_Type (Variable);
       Pre_Type := Convert (Get_Type_Mark (Var_Type));
       case Pre_Type is
+
          when Pre_Type_Partition =>
             Build_New_Partition (Variable);
+
+         when Pre_Type_Channel   =>
+            Build_New_Channel (Variable);
+
          when others =>
             null;
+
       end case;
    end Build_New_Variable;
 
@@ -258,6 +316,86 @@ package body XE_Back is
             return Wrong_Host;
       end case;
    end Get_Host;
+
+   ---------------------------
+   -- Set_Channel_Attribute --
+   ---------------------------
+
+   procedure Set_Channel_Attribute
+     (Attribute : in Attribute_Id;
+      Channel   : in CID_Type) is
+
+      --  Could be a variable or a subprogram.
+      Attribute_Item : Node_Id;
+
+      Attribute_Kind : Attribute_Type;
+
+   begin
+
+      --  Apply attribute to a channel.
+
+      Attribute_Kind :=
+        Convert (Get_Component_Mark (Component_Id (Attribute)));
+      Attribute_Item :=
+        Get_Component_Value (Component_Id (Attribute));
+
+      --  No attribute was really assigned.
+
+      if Attribute_Item = Null_Node then
+         return;
+      end if;
+
+      case Attribute_Kind is
+         when Attribute_Filter =>
+
+            --  Only strings are allowed here.
+
+            if not Is_Variable (Attribute_Item) or else
+              Get_Variable_Type (Variable_Id (Attribute_Item)) /=
+              String_Type_Node then
+               Write_SLOC (Node_Id (Attribute));
+               Write_Name (Channels.Table (Channel).Name);
+               Write_Str ("'s filter attribute must be ");
+               Write_Str ("a string litteral");
+               Write_Eol;
+               raise Parsing_Error;
+            end if;
+
+            --  Does it apply to all channels ? Therefore, check
+            --  that this has not already been done.
+
+            if Channel = Null_CID and then
+               Default_Filter = No_Filter_Name then
+               Default_Filter := Get_Node_Name (Attribute_Item);
+
+            --  Apply to one channel. Check that it has not already
+            --  been done.
+
+            elsif Channel /= Null_CID and then
+              Channels.Table (Channel).Filter = No_Filter_Name then
+               Channels.Table (Channel).Filter
+                 := Get_Node_Name (Attribute_Item);
+
+            --  This operation has already been done !
+
+            else
+               Write_SLOC (Attribute_Item);
+               if Channel = Null_CID then
+                  Write_Str ("type channel");
+               else
+                  Write_Name (Channels.Table (Channel).Name);
+               end if;
+               Write_Str ("'s filter attribute has been assigned twice");
+               Write_Eol;
+               raise Parsing_Error;
+            end if;
+
+         when others =>
+            raise Fatal_Error;
+
+      end case;
+
+   end Set_Channel_Attribute;
 
    --------------
    -- Set_Host --
@@ -291,6 +429,14 @@ package body XE_Back is
       Ada_Unit_Name  : Name_Id;
 
    begin
+
+      --  If this attribute applies to partition type itself, it may not
+      --  have a value. No big deal, we use defaults.
+
+      if Partition = Null_PID and then
+        not Has_Component_A_Value (Component_Id (Attribute)) then
+         return;
+      end if;
 
       --  Apply attribute to a partition.
 
@@ -345,7 +491,7 @@ package body XE_Back is
                else
                   Write_Name (Partitions.Table (Partition).Name);
                end if;
-               Write_Str ("'s command_line attribute has been assigned twice");
+               Write_Str ("'s storage_dir attribute has been assigned twice");
                Write_Eol;
                raise Parsing_Error;
             end if;
@@ -403,6 +549,7 @@ package body XE_Back is
                end if;
 
             end;
+
          when Attribute_Main =>
 
             --  Does it apply to all partitions ? Therefore, check
@@ -527,8 +674,8 @@ package body XE_Back is
                raise Parsing_Error;
             end if;
 
-         when Attribute_Unknown =>
-            null;
+         when others =>
+            raise Fatal_Error;
 
       end case;
 
@@ -624,9 +771,3 @@ package body XE_Back is
    end Set_Type_Attribute;
 
 end XE_Back;
-
-
-
-
-
-

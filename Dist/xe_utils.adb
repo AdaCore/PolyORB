@@ -48,43 +48,21 @@ package body XE_Utils is
       Show_Error : Boolean := True)
      return String_Access;
 
-   ------------
-   -- Locate --
-   ------------
-
-   function Locate
-     (Exec_Name  : String;
-      Show_Error : Boolean := True)
-     return String_Access is
-      Prog : String_Access;
-   begin
-      Prog := Locate_Regular_File (Exec_Name, Path.all);
-      if Prog = null and then Show_Error then
-         Write_Program_Name;
-         Write_Str (": ");
-         Write_Str (Exec_Name);
-         Write_Str (" is not in your path");
-         Write_Eol;
-         raise Fatal_Error;
-      end if;
-      return Prog;
-   end Locate;
-
    GNAT_Verbose   : String_Access;
-   Output_Option  : constant String_Access := new String'("-o");
-   XE_Gcc         : constant String_Access := Locate ("xe-gcc");
-   Gcc            : constant String_Access := Locate ("gcc");
-   Mkdir          : constant String_Access := Locate ("mkdir");
-   Copy           : constant String_Access := Locate ("cp");
-   Link           : constant String_Access := Locate ("ln", False);
-   Chmod          : constant String_Access := Locate ("chmod");
-   Rm             : constant String_Access := Locate ("rm");
-   Gnatbind       : constant String_Access := Locate ("gnatbind");
-   Gnatlink       : constant String_Access := Locate ("gnatlink");
-   Gnatmake       : constant String_Access := Locate ("gnatmake");
+   XE_Gcc         : String_Access;
+   Gcc            : String_Access;
+   Mkdir          : String_Access;
+   Copy           : String_Access;
+   Link           : String_Access;
+   Chmod          : String_Access;
+   Rm             : String_Access;
+   Gnatbind       : String_Access;
+   Gnatlink       : String_Access;
+   Gnatmake       : String_Access;
 
    EOL : constant String (1 .. 1) := (others => Ascii.LF);
 
+   Output_Option         : constant String_Access := new String'("-o");
    Preserve              : constant String_Access := new String' ("-p");
    Symbolic              : constant String_Access := new String' ("-s");
    Force                 : constant String_Access := new String' ("-f");
@@ -694,6 +672,19 @@ package body XE_Utils is
       Dir_Sep    : String (1 .. 1) := (others => Directory_Separator);
       Name       : Name_Id;
    begin
+
+      XE_Gcc          := Locate ("xe-gcc");
+      Gcc             := Locate ("gcc");
+      Mkdir           := Locate ("mkdir");
+      Copy            := Locate ("cp");
+      Link            := Locate ("ln", False);
+      Chmod           := Locate ("chmod");
+      Rm              := Locate ("rm");
+      Gnatbind        := Locate ("gnatbind");
+      Gnatlink        := Locate ("gnatlink");
+      Gnatmake        := Locate ("gnatmake");
+
+
       if Verbose_Mode then
          GNAT_Verbose := new String' ("-v");
       else
@@ -815,6 +806,28 @@ package body XE_Utils is
       return Name_Len = 0 or else
         (Name_Buffer (1) /= Separator and then Name_Buffer (1) /= '/');
    end Is_Relative_Dir;
+
+   ------------
+   -- Locate --
+   ------------
+
+   function Locate
+     (Exec_Name  : String;
+      Show_Error : Boolean := True)
+     return String_Access is
+      Prog : String_Access;
+   begin
+      Prog := Locate_Regular_File (Exec_Name, Path.all);
+      if Prog = null and then Show_Error then
+         Write_Program_Name;
+         Write_Str (": ");
+         Write_Str (Exec_Name);
+         Write_Str (" is not in your path");
+         Write_Eol;
+         raise Fatal_Error;
+      end if;
+      return Prog;
+   end Locate;
 
    -----------------
    -- More_Recent --
@@ -1006,4 +1019,3 @@ package body XE_Utils is
    end Write_Unit_Name;
 
 end XE_Utils;
-

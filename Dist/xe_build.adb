@@ -37,7 +37,7 @@ with XE_Usage;
 with XE_Parse;         use XE_Parse;
 with XE_Back;          use XE_Back;
 with XE_Scan;          use XE_Scan;
-with XE_Stubs;
+with XE_Stubs;         use XE_Stubs;
 with XE_Lead;
 with XE_Check;         use XE_Check;
 with XE_Utils;         use XE_Utils;
@@ -201,7 +201,7 @@ begin
          end loop;
       end if;
 
-      XE_Stubs;
+      XE_Stubs.Build;
       XE_Lead;
 
       Exit_Program (E_Success);

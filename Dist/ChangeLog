@@ -1,15 +1,21 @@
-Fri Feb 14 18:37:18 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
+Sat Feb 15 15:18:03 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
-	* xe_build.adb: Add a new error message when file cannot be found.
+	* xe.adb, xe.ads, xe_parse.adb: Definition of Arrays and Lists (ie
+ 	Channel and Partition). Definition of extensible enumeration type
+ 	(sets) (Ada units).
 
-	* xe_parse.adb: Apply changes from xe into xe_parse.  Change
- 	termination variable from X to X_Termination to avoid conflicts.
-	Change some error messages.
+	* xe_back.adb: Definition of all channel stuff.
 
-	* xe.ads, xe.adb: Get rid of two unused and useless procedures.
-  	Move Type_Is_A_Structure and is_Type_A_Strcture into
- 	Set_Array_Element_Type and Get_Array_Element_Type. Imporve the way
- 	list or array are handled.
+	* xe_build.adb: Add a new error message when file cannot be
+ 	found. Use package xe_stubs (was a procedure).
+
+	* xe_parse.adb: Change termination variable from X to
+ 	X_Termination to avoid conflicts. Change some error messages.
+
+	* xe_build.adb, xe_lead.adb, xe_stubs.adb, xe.adb, xe_check.adb,
+ 	xe_parse.adb, xe_usage.adb, xe_back.adb, xe_defs.adb, xe_scan.adb,
+ 	xe_utils.adb: Reorganize all code (alphabetical order).
+
 
 Thu Feb 13 15:21:57 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 

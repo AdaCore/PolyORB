@@ -370,5 +370,3 @@ package body XE_Check is
    end Initialize;
 
 end XE_Check;
-
-
