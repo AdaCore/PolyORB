@@ -17,9 +17,6 @@ ZIPLIBOBJS = zlib/adler32.o zlib/compress.o zlib/crc32.o zlib/gzio.o \
 
 ZIPLIB = zlib/libz.a
 
-
-$(ZIPLIBOBJS): make-zipdir
-
 $(ZIPLIB): $(ZIPLIBOBJS)
 	$(AR) rc $(ZIPLIB) $(ZIPLIBOBJS)
 
@@ -29,9 +26,6 @@ zlib/%.o: $(srcdir)/zlib/%.c
 install-zip-libs: $(ZIPLIB)
 	${INSTALL} zlib/libz.a ${GARLIC}
 	${RANLIB} ${GARLIC}/libz.a
-
-make-zipdir:
-	-mkdir zlib 2> /dev/null
 
 ZIPINSTALL=install-zip-libs
 
