@@ -36,19 +36,19 @@ Different configuration options allow for a complete control of the
 middleware.
 
 - PolyORB allows for the dynamic configuration of some of its internals
-  through a detailled configuration file.
+  through a detailed configuration file.
 
 - 3 tasking runtimes:
   - No tasking
-  - Full tasking, using constructions as proposed by tha Ada 95
+  - Full tasking, using constructions as proposed by the Ada 95
     Reference Manual
-  - Ravanscar, using a subset of Ada 95 constructions, ensuring
+  - Ravenscar, using a subset of Ada 95 constructions, ensuring
     determinism.
 
 - ORB's request dispatching policies to control thread allocation:
   - Thread Pool
   - Thread Per Session (i.e. active connection)
-  - Threas Per Request
+  - Thread Per Request
 
 IDL Compiler
 ------------
@@ -57,7 +57,7 @@ PolyORB provides idlac, a 'CORBA IDL to Ada' compiler written entirely
 in Ada 95. It generates full stub and skeleton from a IDL contract.
 
 It supports all common IDL constructs; yet it does not support the
-following advanced constructs: valuetype, abstract interfaces.
+following advanced constructs: value-type, abstract interfaces.
 
 CORBA
 -----
@@ -76,19 +76,19 @@ GIOP
 PolyORB proposes an implementation of the IIOP 1.0, 1.1 and 1.2
 protocols.
 
-Request marshalling operations are complete. Some requests messages
+Request marshaling operations are complete. Some requests messages
 are not implemented, including: Cancel, Locate messages, and request
 fragmentation.
 
 CORBA Services
 --------------
 
-PolyORB implementats the CORBA COS Services:
+PolyORB implements the following CORBA COS Services:
 - Event, 
 - Interface Repository, 
 - Naming,
 - Time.
 
-Note that the COS Naming current implementation does not support
+Note that the current COS Naming implementation does not support
 corbaloc references.
 
