@@ -6,3 +6,21 @@ module toto {}
 module toto {};
 module titi {};
 
+/***  Test of rule 13 through 26 ***/
+
+/* rule Value2 */
+custom
+custom valuetype
+
+/* rule Value3 */
+abstract
+abstract valuetype
+abstract valuetype toto
+
+/* rule 4 */
+valuetype
+valuetype toto
+
+/* rule 5 & 6 */
+valuetype toto {};
+valuetype toto supports toto

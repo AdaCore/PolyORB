@@ -80,6 +80,7 @@ package Tree is
    function Get_Kind (N : N_Repository) return Node_Kind;
    type N_Repository_Acc is access all N_Repository;
 
+   --  A module
    type N_Module is new N_Scope with record
       Contents : Node_List;
    end record;
@@ -104,6 +105,35 @@ package Tree is
       Forward : N_Interface_Acc;
    end record;
    function Get_Kind (N : N_Forward_Interface) return Node_Kind;
+
+   --  A ValueType.
+   type N_Forward_ValueType;
+   type N_Forward_ValueType_Acc is access all N_Forward_ValueType;
+
+   type N_ValueType is new N_Scope with record
+      Parents : Node_List := Nil_List;
+      Supports : Node_List := Nil_List;
+      Contents : Node_List := Nil_List;
+      Forward : N_Forward_ValueType_Acc := null;
+      Abst : Boolean;
+      Custom : Boolean;
+   end record;
+   type N_ValueType_Acc is access all N_ValueType;
+   function Get_Kind (N : N_ValueType) return Node_Kind;
+
+   --  Forward declaration of an interface.
+   type N_Forward_ValueType is new N_Named with record
+      Forward : N_ValueType_Acc;
+   end record;
+   function Get_Kind (N : N_Forward_ValueType) return Node_Kind;
+
+   --  A boxed ValueType
+   type N_Boxed_ValueType is new N_Named with record
+--      Content : N_Type;  FIXME
+      null;
+   end record;
+   type N_Boxed_ValueType_Acc is access all N_Boxed_ValueType;
+   function Get_Kind (N : N_Boxed_ValueType) return Node_Kind;
 
    --  A scoped name.
    type N_Scoped_Name is new N_Root with record

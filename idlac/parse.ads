@@ -73,6 +73,9 @@ private
    --  Returns the location of the previous token
    function Get_Previous_Token_Location return Errors.Location;
 
+   --  Returns the location of the previous token
+   function Get_Previous_Previous_Token_Location return Errors.Location;
+
    --  Returns the location of the current_token
    function Get_Next_Token_Location return Errors.Location;
 
@@ -115,18 +118,186 @@ private
    procedure Parse_Module (Result : out N_Module_Acc;
                            Success : out Boolean);
 
+   --    --  Rule 9:
+   --    --  <export> ::= <type_dcl> ";"
+   --    --           |   <const_dcl> ";"
+   --    --           |   <except_dcl> ";"
+   --    --           |   <attr_dcl> ";"
+   --    --           |   <op_dcl> ";"
+   procedure Parse_Export (List : in out Node_List;
+                           Success : out Boolean);
+
+   --    --  Rule 11:
+   --    --  <scoped_name> ::= <identifier>
+   --    --                    | "::" <identifier>
+   --    --                    | <scoped_name> "::" <identifier>
+   procedure Parse_Scoped_Name (Result : out N_Scoped_Name_Acc;
+                                Success : out Boolean);
+
+   --  Rule 13:
+   --  <value> ::= ( <value_dcl>
+   --              | <value_abs_dcl>
+   --              | <value_box_dcl>
+   --              | <value_forward_dcl>) ";"
+
+   --  Rule 14
+   --  <value_forward_dcl> ::= [ "abstract" ] "valuetype" <identifier>
+
+   --  Rule 15
+   --  <value_box_dcl> ::= "valuetype"  <identifier> <type_spec>
+
+   --  Rule 16
+   --  <value_abs_dcl> ::= "abstract" "valuetype" <identifier>
+   --                      [ <value_inheritance_spec> ] "{" <export>* "}"
+
+   --  Rule 17
+   --  <value_dcl> ::= <value_header> "{"  < value_element>* "}"
+
+   --  Rule 18
+   --  <value_header> ::= ["custom" ] "valuetype" <identifier>
+   --                     [ <value_inheritance_spec> ]
+
+   --  These Rules (13 to 18) are equivalent to the following :
+
+   --  Rule Value1
+   --  <value> ::= ( "custom" <custom_value>
+   --              | "abstract" <abstract_value>
+   --              | <direct_value> ) ";"
+
+   --  Rule Value2
+   --  <custom_value> ::= "valuetype" <end_value_dcl>
+
+   --  Rule Value3
+   --  <abstract_value> ::= "valuetype" ( <end_value_abs_dcl>
+   --                                              | <end_value_forward_dcl> )
+
+   --  Rule Value4
+   --  <direct_value> ::= "valuetype" ( <end_value_box_dcl>
+   --                                 | <end_value_forward_dcl>
+   --                                 | <end_value_dcl> )
+
+   --  Rule Value5
+   --  <end_value_dcl> ::= <identifier> [ <value_inheritance_spec> ]
+   --                      "{"  < value_element>* "}"
+
+   --  Rule Value6
+   --  <end_value_abs_dcl> ::= <identifier> [ <value_inheritance_spec> ]
+   --                          "{" <export>* "}"
+
+   --  Rule Value7
+   --  <end_value_forward_dcl> ::= <identifier>
+
+   --  Rule Value8
+   --  <end_value_box_dcl> ::= <identifier> <type_spec>
+
+   --  Rule Value1
+   --  <value> ::= ( "custom" <custom_value>
+   --              | "abstract" <abstract_value>
+   --              | <direct_value> ) ";"
+   procedure Parse_Value (Result : out N_Named_Acc;
+                          Success : out Boolean);
+
+   --  Rule Value2
+   --  <custom_value> ::= "valuetype" <end_value_dcl>
+   procedure Parse_Custom_Value (Result : out N_ValueType_Acc;
+                                 Success : out Boolean);
+
+   --  Rule Value3
+   --  <abstract_value> ::= "valuetype" ( <end_value_abs_dcl>
+   --                                   | <end_value_forward_dcl> )
+   procedure Parse_Abstract_Value (Result : out N_Named_Acc;
+                                   Success : out Boolean);
+
+   --  Rule Value4
+   --  <direct_value> ::= "valuetype" ( <end_value_box_dcl>
+   --                                 | <end_value_forward_dcl>
+   --                                 | <end_value_dcl> )
+   procedure Parse_Direct_Value (Result : out N_Named_Acc;
+                                 Success : out Boolean);
+
+   --  Since rule 5 and 6 are very close, there is only one method
+   --  Rule Value5
+   --  <end_value_dcl> ::= <identifier> [ <value_inheritance_spec> ]
+   --                      "{"  < value_element>* "}"
+
+   --  Rule Value6
+   --  <end_value_abs_dcl> ::= <identifier> [ <value_inheritance_spec> ]
+   --                          "{" <export>* "}"
+   procedure Parse_End_Value_Dcl (Result : out N_ValueType_Acc;
+                                  Success : out Boolean;
+                                  Custom : in Boolean;
+                                  Abst : in boolean);
+
+   --  Rule Value7
+   --  <end_value_forward_dcl> ::= <identifier>
+   procedure Parse_End_Value_Forward_Dcl (Result : out N_Forward_ValueType_Acc;
+                                          Success : out Boolean;
+                                          Abst : in Boolean);
+
+   --  Rule Value8
+   --  <end_value_box_dcl> ::= <identifier> <type_spec>
+   procedure Parse_End_Value_Box_Dcl (Result : out N_Boxed_ValueType_Acc;
+                                      Success : out Boolean);
+
+   --  Rule 19
+   --  <value_inheritance_spec> ::= [ ":" [ "truncatable" ]
+   --                               <value_name> { "," <value_name> }* ]
+   --                               [ "supports" <interface_name>
+   --                               { "," <interface_name> }* ]
+   procedure Parse_Value_Inheritance_Spec (Result : in out N_ValueType_Acc;
+                                           Success : out Boolean);
+
+   --  Rule 20
+   --  <value_name> ::= <scoped_name>
+   procedure Parse_Value_Name (Result : out N_Scoped_Name_Acc;
+                               Success : out Boolean)
+     renames Parse_Scoped_Name;
+
+   --  Rule 21
+   --  <value_element> ::= <export> | < state_member> | <init_dcl>
+   procedure Parse_Value_Element  (List : in out Node_List;
+                                   Success : out Boolean);
+
+
+
+   --  Rule 22
+   --  <state_member> ::= ( "public" | "private" )
+   --                     <type_spec> <declarators> ";"
+
+   --  Rule 23
+   --  <init_dcl> ::= "factory" <identifier> "("
+   --                 [ <init_param_decls> ] ")" ";"
+
+   --  Rule 24
+   --  <init_param_decls> ::= <init_param_decl> { "," <init_param_decl> }
+
+   --  Rule 25
+   --  <init_param_decl> ::= <init_param_attribute> <param_type_spec>
+   --                        <simple_declarator>
+
+   --  Rule 26
+   --  <init_param_attribute> ::= "in"
+
+
 
    ------------------------------
    --  To resume after errors  --
    ------------------------------
 
-   --  Tries to reach the beginning of the next definition.
-   --  Called when the parser encounters an error during the
-   --  parsing of a definition in order to try to continue the
-   --  parsing after the bad definition.
+   --  This methods are called when the parser encounters an error
+   --  in order to try to continue the parsing
+
+   --  Goes to the beginning of the next definition.
    procedure Go_To_Next_Definition;
 
+   --  Goes to the next Cbracket opening.
+   procedure Go_To_Next_Left_Cbracket;
 
+   --  Goes to the next export (see rule 9)
+   procedure Go_To_Next_Export;
+
+   --  Goes to the next value_element (see rule 21)
+   procedure Go_To_Next_Value_Element;
 
 
 
@@ -143,12 +314,6 @@ private
 --    function Parse_Constr_Type_Spec return N_Root_Acc;
 --    function Parse_Module return N_Module_Acc;
 
-
---    --  Rule 11:
---    --  <scoped_name> ::= <identifier>
---    --                    | "::" <identifier>
---    --                    | <scoped_name> "::" <identifier>
-   function Parse_Scoped_Name return N_Scoped_Name_Acc;
 
 --    --  Rule 24:
 --    --  <literal> ::= <integer_literal>
@@ -446,14 +611,6 @@ private
 --    --             |   <enum_type>
 --    --             |   "native" <simple_declarator>
 --    function Parse_Type_Dcl return N_Root_Acc is
-
---    --  Rule 9:
---    --  <export> ::= <type_dcl> ";"
---    --           |   <const_dcl> ";"
---    --           |   <except_dcl> ";"
---    --           |   <attr_dcl> ";"
---    --           |   <op_dcl> ";"
---    procedure Parse_Export (List : in out Node_List) is
 
    --  Rule 8:
    --  <interface_body> ::= <export>*

@@ -119,6 +119,31 @@ package body Disp is
 --             end if;
             Put_Line ("Interface_Forward");
 
+         when K_ValueType =>
+--             Put_Line ("interface " & Get_Name (N_Interface (N)));
+--             if Full then
+--                if N_Interface (N).Parents /= Nil_List then
+--                   Disp_Indent (N_Indent);
+--                   Put_Line ("base:");
+--                   Disp_List (N_Interface (N).Parents, N_Indent, False);
+--                end if;
+--                Disp_List (N_Interface (N).Contents, N_Indent, Full);
+--             end if;
+            Put_Line ("ValueType");
+
+         when K_Forward_ValueType =>
+--             if N_Forward_Interface (N).Forward /= null then
+--                Put_Line ("forward interface "
+--                          & Get_Name (N_Forward_Interface (N).Forward.all));
+--             else
+--                Put_Line ("forward interface (not declared!!) "
+--                          & Get_Name (N_Forward_Interface (N)));
+--             end if;
+            Put_Line ("ValueType_Forward");
+
+         when K_Boxed_ValueType =>
+            Put_Line ("Boxed_ValueType");
+
 --          when K_Operation =>
 --             declare
 --                Op : N_Operation renames N_Operation (N);

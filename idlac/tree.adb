@@ -83,6 +83,21 @@ package body Tree is
       return K_Forward_Interface;
    end Get_Kind;
 
+   function Get_Kind (N : N_ValueType) return Node_Kind is
+   begin
+      return K_ValueType;
+   end Get_Kind;
+
+   function Get_Kind (N : N_Forward_ValueType) return Node_Kind is
+   begin
+      return K_Forward_ValueType;
+   end Get_Kind;
+
+   function Get_Kind (N : N_Boxed_ValueType) return Node_Kind is
+   begin
+      return K_Boxed_ValueType;
+   end Get_Kind;
+
    function Get_Kind (N : N_Scoped_Name) return Node_Kind is
    begin
       return K_Scoped_Name;

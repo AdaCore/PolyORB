@@ -128,7 +128,7 @@ package Tokens is
        T_Unsigned,
        T_Union,
        T_ValueBase,
-       T_Valuetype,
+       T_ValueType,
        T_Void,
        T_Wchar,
        T_Wstring,

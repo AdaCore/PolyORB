@@ -16,6 +16,7 @@
 --  MA 02111-1307, USA.
 --
 
+with Ada.Characters.Latin_1;
 with Ada.Unchecked_Deallocation;
 with Tokens; use Tokens;
 with Types; use Types;
@@ -46,7 +47,7 @@ package body Parse is
    --  an identifier ou a literal)
 
    --  buffer length
-   Buffer_Length : constant Natural := 3;
+   Buffer_Length : constant Natural := 4;
 
    --  a type for indexes on the buffer
    type Buffer_Index is mod Buffer_Length;
@@ -160,6 +161,14 @@ package body Parse is
       return Location_Buffer (Current_Index - 1);
    end Get_Previous_Token_Location;
 
+   -----------------------------------
+   --  Get_Previous_Token_Location  --
+   -----------------------------------
+   function Get_Previous_Previous_Token_Location return Errors.Location is
+   begin
+      return Location_Buffer (Current_Index - 2);
+   end Get_Previous_Previous_Token_Location;
+
    -------------------------------
    --  Get_Next_Token_Location  --
    -------------------------------
@@ -198,25 +207,112 @@ package body Parse is
    --  Parsing of the idl  --
    --------------------------
 
---    --  FIXME: to add: rules 25, 26, 81, 82.
+   --------------------
+   --  Parse_Module  --
+   --------------------
+   procedure Parse_Module (Result : out N_Module_Acc;
+                           Success : out Boolean) is
+   begin
+      --  Is there an identifier ?
+      Next_Token;
+      case Get_Token is
+         when  T_Identifier =>
+            case View_Next_Token is
+               when T_Left_Cbracket =>
+                  --  Creation of the node
+                  Result := new N_Module;
+                  Types.Set_Location (Result.all,
+                                      Get_Previous_Token_Location);
+                  --  try to add the identifier to the scope
+                  if not Types.Add_Identifier (Result) then
+                     --  there is a name collision with the module name
+                     declare
+                        Loc : Errors.Location;
+                     begin
+                        Loc := Types.Get_Location (Find_Identifier_Node.all);
+                        Errors.Parser_Error
+                          ("This module name is already defined in" &
+                           " this scope : " &
+                           Errors.Display_Location (Loc),
+                           Errors.Error,
+                           Get_Token_Location);
+                     end;
+                  end if;
+                  --  create a new scope
+                  Push_Scope (Result);
+                  --  consume the T_Left_Cbracket token
+                  Next_Token;
+                  --  parse the module body
+                  Next_Token;
+                  declare
+                     Definition : N_Root_Acc;
+                     Definition_Result : Boolean;
+                  begin
+                     while Get_Token /= T_Right_Cbracket loop
+                        --  try to parse a definition
+                        Parse_Definition (Definition, Definition_Result);
+                        if Definition_Result then
+                           --  successfull
+                           Append_Node (Result.Contents, Definition);
+                        else
+                           --  failed
+                           Go_To_Next_Definition;
+                        end if;
+                     end loop;
+                     --  consume the T_Right_Cbracket token
+                     Next_Token;
+                  end;
+                  --  end of the module body parsing
+                  Pop_Scope;
+                  Success := True;
+               when others =>
+                  declare
+                     Loc : Errors.Location;
+                  begin
+                     Loc := Get_Token_Location;
+                     Loc.Col := Loc.Col + Get_Token_String'Length + 1;
+                     Errors.Parser_Error ("'{' expected. ",
+                                          Errors.Error,
+                                          Loc);
+                  end;
+                  Result := null;
+                  Success := False;
+            end case;
+         when others =>
+            declare
+               Loc : Errors.Location;
+            begin
+               Loc := Get_Previous_Token_Location;
+               Loc.Col := Loc.Col + 7;
+               Errors.Parser_Error ("Identifier expected. ",
+                                    Errors.Error,
+                                    Loc);
+            end;
+            Result := null;
+            Success := False;
+      end case;
+   end Parse_Module;
 
---    function Parse_Param_Type_Spec return N_Root_Acc;
---    function Parse_Const_Exp return N_Root_Acc;
---    function Parse_Sequence_Type return N_Sequence_Acc;
---    function Parse_Constr_Type_Spec return N_Root_Acc;
---    function Parse_Module return N_Module_Acc;
+   --------------------
+   --  Parse_Export  --
+   --------------------
+   procedure Parse_Export (List : in out Node_List;
+                           Success : out Boolean) is
+   begin
+      Success := False;
+   end Parse_Export;
 
-
---    --  Rule 11:
---    --  <scoped_name> ::= <identifier>
---    --                    | "::" <identifier>
---    --                    | <scoped_name> "::" <identifier>
-   function Parse_Scoped_Name return N_Scoped_Name_Acc is
+   -------------------------
+   --  Parse_Scoped_Name  --
+   -------------------------
+   procedure Parse_Scoped_Name (Result : out N_Scoped_Name_Acc;
+                                Success : out Boolean) is
 --       Res, Prev : N_Scoped_Name_Acc;
 --       Scope : N_Scope_Acc;
 --       Name : N_Named_Acc;
    begin
-      return null;
+      Result := null;
+      Success := False;
 --       Prev := null;
 --       Res := new N_Scoped_Name;
 --       Set_Location (Res.all, Get_Location);
@@ -252,6 +348,387 @@ package body Parse is
 --       Res.Value := Name;
 --       return Res;
    end Parse_Scoped_Name;
+
+   -------------------
+   --  Parse_Value  --
+   -------------------
+   procedure Parse_Value (Result : out N_Named_Acc;
+                          Success : out Boolean) is
+   begin
+      case Get_Token is
+         when T_Custom =>
+            Next_Token;
+            declare
+               Res : N_ValueType_Acc;
+            begin
+               Parse_Custom_Value (Res, Success);
+               Result := N_Named_Acc (Res);
+            end;
+         when T_Abstract =>
+            Next_Token;
+            Parse_Abstract_Value (Result, Success);
+         when T_ValueType =>
+            Parse_Direct_Value (Result, Success);
+         when others =>
+            raise Errors.Internal_Error;
+      end case;
+      return;
+   end Parse_Value;
+
+   --------------------------
+   --  Parse_Custom_Value  --
+   --------------------------
+   procedure Parse_Custom_Value (Result : out N_ValueType_Acc;
+                                 Success : out Boolean) is
+   begin
+      if Get_Token /= T_ValueType then
+         declare
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Previous_Token_Location;
+            Loc.Col := Loc.Col + 7;
+            Errors.Parser_Error (Ada.Characters.Latin_1.Quotation &
+                                 "valuetype" &
+                                 Ada.Characters.Latin_1.Quotation &
+                                 "expected after custom keyword.",
+                                 Errors.Error,
+                                 Loc);
+         end;
+         Result := null;
+         Success := False;
+      else
+         Next_Token;
+         if Get_Token /= T_Identifier then
+            declare
+               Loc : Errors.Location;
+            begin
+               Loc := Get_Previous_Token_Location;
+               Loc.Col := Loc.Col + 7;
+               Errors.Parser_Error ("identifier expected.",
+                                    Errors.Error,
+                                    Loc);
+            end;
+            Result := null;
+            Success := False;
+         else
+            Parse_End_Value_Dcl (Result, Success, True, False);
+         end if;
+      end if;
+      return;
+   end Parse_Custom_Value;
+
+   ----------------------------
+   --  Parse_Abstract_Value  --
+   ----------------------------
+   procedure Parse_Abstract_Value (Result : out N_Named_Acc;
+                                   Success : out Boolean) is
+   begin
+      if Get_Token /= T_ValueType then
+         declare
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Previous_Token_Location;
+            Loc.Col := Loc.Col + 9;
+            Errors.Parser_Error (Ada.Characters.Latin_1.Quotation &
+                                 "valuetype" &
+                                 Ada.Characters.Latin_1.Quotation &
+                                 "expected after abstract keyword.",
+                                 Errors.Error,
+                                 Loc);
+         end;
+         Result := null;
+         Success := False;
+      else
+         Next_Token;
+         if Get_Token /= T_Identifier then
+            declare
+               Loc : Errors.Location;
+            begin
+               Loc := Get_Previous_Token_Location;
+               Loc.Col := Loc.Col + 10;
+               Errors.Parser_Error ("identifier expected.",
+                                    Errors.Error,
+                                    Loc);
+            end;
+            Result := null;
+            Success := False;
+         else
+            case View_Next_Token is
+               when T_Colon
+                 | T_Supports
+                 | T_Left_Cbracket =>
+                  declare
+                     Res : N_ValueType_Acc;
+                  begin
+                     Parse_End_Value_Dcl (Res, Success, False, true);
+                     Result := N_Named_Acc (Res);
+                  end;
+               when T_Semi_Colon =>
+                  declare
+                     Res : N_Forward_ValueType_Acc;
+                  begin
+                     Parse_End_Value_Forward_Dcl (Res, Success, True);
+                     Result := N_Named_Acc (Res);
+                  end;
+               when others =>
+                  declare
+                     Loc : Errors.Location;
+                  begin
+                     Loc := Get_Token_Location;
+                     Loc.Col := Loc.Col + Get_Token_String'Length;
+                     Errors.Parser_Error ("Bad value definition. " &
+                                          "inheritance specification, '{'" &
+                                          " or ';' expected.",
+                                          Errors.Error,
+                                          Loc);
+                  end;
+                  Result := null;
+                  Success := False;
+            end case;
+         end if;
+      end if;
+      return;
+   end Parse_Abstract_Value;
+
+   --------------------------
+   --  Parse_Direct_Value  --
+   --------------------------
+   procedure Parse_Direct_Value (Result : out N_Named_Acc;
+                                 Success : out Boolean) is
+   begin
+      Next_Token;
+      if Get_Token /= T_Identifier then
+         declare
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Previous_Token_Location;
+            Loc.Col := Loc.Col + 10;
+            Errors.Parser_Error ("identifier expected.",
+                                 Errors.Error,
+                                 Loc);
+         end;
+         Result := null;
+         Success := False;
+      else
+         case View_Next_Token is
+            when T_Float
+              | T_Double
+              | T_Long
+              | T_Short
+              | T_Unsigned
+              | T_Char
+              | T_Wchar
+              | T_Boolean
+              | T_Octet
+              | T_Any
+              | T_Object
+              | T_ValueBase
+              | T_Sequence
+              | T_String
+              | T_Wstring
+              | T_Fixed
+              | T_Identifier
+              | T_Colon_Colon
+              | T_Struct
+              | T_Union
+              | T_Enum =>
+               declare
+                  Res : N_Boxed_ValueType_Acc;
+               begin
+                  Parse_End_Value_Box_Dcl (Res, Success);
+                  Result := N_Named_Acc (Res);
+               end;
+            when T_Semi_Colon =>
+               declare
+                  Res : N_Forward_ValueType_Acc;
+               begin
+                  Parse_End_Value_Forward_Dcl (Res, Success, False);
+                  Result := N_Named_Acc (Res);
+               end;
+            when T_Colon
+              | T_Supports
+              | T_Left_Cbracket =>
+               declare
+                  Res : N_ValueType_Acc;
+               begin
+                  Parse_End_Value_Dcl (Res, Success, False, False);
+                  Result := N_Named_Acc (Res);
+               end;
+            when others =>
+               declare
+                  Loc : Errors.Location;
+               begin
+                  Loc := Get_Token_Location;
+                  Loc.Col := Loc.Col + Get_Token_String'Length;
+                  Errors.Parser_Error ("Bad value definition. " &
+                                       "type, inheritance specification, " &
+                                       "'{' or ';' expected.",
+                                       Errors.Error,
+                                       Loc);
+               end;
+               Result := null;
+               Success := False;
+         end case;
+      end if;
+      return;
+   end Parse_Direct_Value;
+
+   ---------------------------
+   --  Parse_End_Value_Dcl  --
+   ---------------------------
+   procedure Parse_End_Value_Dcl (Result : out N_ValueType_Acc;
+                                  Success : out Boolean;
+                                  Custom : in Boolean;
+                                  Abst : in Boolean) is
+      Definition : Identifier_Definition_Acc;
+   begin
+      Result := new N_ValueType;
+      Result.Abst := Abst;
+      Result.Custom := Custom;
+      if (Abst or Custom) then
+         Set_Location (Result.all, Get_Previous_Previous_Token_Location);
+      else
+         Set_Location (Result.all, Get_Previous_Token_Location);
+      end if;
+      --  try to find a previous definition
+      Definition := Find_Identifier_Definition;
+      --  Is there a previous definition and in the same scope !
+      if Definition /= null
+        and then Definition.Parent_Scope = Get_Current_Scope then
+         --  There was probably a forward declaration
+         if Get_Kind (Definition.Node.all) = K_Forward_ValueType then
+            declare
+               Fd_Decl : N_Forward_ValueType_Acc;
+            begin
+               Fd_Decl := N_Forward_ValueType_Acc (Get_Node (Definition));
+               Fd_Decl.Forward := Result;
+               Result.Forward := Fd_Decl;
+               Redefine_Identifier (Definition, Result);
+            end;
+         else
+            Errors.Parser_Error
+            ("The identifier used for this valuetype is already "
+             & "defined in the same scope, " &
+             Errors.Display_Location (Get_Location (Definition.Node.all)),
+             Errors.Error,
+             Get_Token_Location);
+            Result.Forward := null;
+         end if;
+      else
+         --  no previous definition
+         Result.Forward := null;
+         if not Add_Identifier (Result) then
+            raise Errors.Internal_Error;
+         end if;
+         Definition := Find_Identifier_Definition;
+      end if;
+      Next_Token;
+      if Get_Token = T_Colon then
+         --  there is some inheritance specification here
+         declare
+            Inherit_Success : Boolean;
+         begin
+            Parse_Value_Inheritance_Spec (Result, Inherit_Success);
+            if not Inherit_Success then
+               Go_To_Next_Left_Cbracket;
+            end if;
+         end;
+      end if;
+      if Get_Token /= T_Left_Cbracket then
+         --  only possible after some inheritance specification
+         --  else, it was already tested before
+         --  Then, the previous token is an identifier
+         declare
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Token_Location;
+            Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
+                  Errors.Parser_Error ("Bad value definition. " &
+                                       "'{' expected.",
+                                       Errors.Error,
+                                       Loc);
+         end;
+         Success := False;
+         return;
+      end if;
+      Next_Token;
+      while Get_Token /= T_Right_Cbracket loop
+         declare
+            Element_Success : Boolean;
+         begin
+            if Abst then
+               --  rule Value5
+               Parse_Export (Result.Contents, Element_Success);
+               if not Element_Success then
+                  Go_To_Next_Export;
+               end if;
+            else
+               --  rule Value6
+               Parse_Value_Element (Result.Contents, Element_Success);
+               if not Element_Success then
+                  Go_To_Next_Value_Element;
+               end if;
+            end if;
+         end;
+      end loop;
+      --  consumes the right Cbracket
+      Next_Token;
+      return;
+   end Parse_End_Value_Dcl;
+
+   -----------------------------------
+   --  Parse_End_Value_Forward_Dcl  --
+   -----------------------------------
+   procedure Parse_End_Value_Forward_Dcl (Result : out N_Forward_ValueType_Acc;
+                                          Success : out Boolean;
+                                          Abst : in Boolean) is
+   begin
+      Result := null;
+      Success := False;
+      return;
+   end Parse_End_Value_Forward_Dcl;
+
+   -------------------------------
+   --  Parse_End_Value_Box_Dcl  --
+   -------------------------------
+   procedure Parse_End_Value_Box_Dcl (Result : out N_Boxed_ValueType_Acc;
+                                      Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+      return;
+   end Parse_End_Value_Box_Dcl;
+
+   -------------------------------
+   --  Parse_End_Value_Box_Dcl  --
+   -------------------------------
+   procedure Parse_Value_Inheritance_Spec (Result : in out N_ValueType_Acc;
+                                           Success : out Boolean) is
+   begin
+      Success := False;
+      return;
+   end Parse_Value_Inheritance_Spec;
+
+   ---------------------------
+   --  Parse_Value_Element  --
+   ---------------------------
+   procedure Parse_Value_Element  (List : in out Node_List;
+                                   Success : out Boolean) is
+   begin
+      Success := False;
+   end Parse_Value_Element;
+
+
+
+--    --  FIXME: to add: rules 25, 26, 81, 82.
+
+--    function Parse_Param_Type_Spec return N_Root_Acc;
+--    function Parse_Const_Exp return N_Root_Acc;
+--    function Parse_Sequence_Type return N_Sequence_Acc;
+--    function Parse_Constr_Type_Spec return N_Root_Acc;
+--    function Parse_Module return N_Module_Acc;
+
+
 
 --    --  Rule 24:
 --    --  <literal> ::= <integer_literal>
@@ -1303,7 +1780,14 @@ package body Parse is
          --  inheritance_spec
          loop
             Next_Token;
-            Append_Node (Result.Parents, N_Root_Acc (Parse_Scoped_Name));
+            declare
+               Scoped_Success : Boolean;
+               Name : N_Scoped_Name_Acc;
+            begin
+               --  FIXME : no test on scoped_success
+               Parse_Scoped_Name (Name, Scoped_Success);
+               Append_Node (Result.Parents, N_Root_Acc (Name));
+            end;
             exit when Get_Token /= T_Comma;
          end loop;
       end if;
@@ -1501,111 +1985,6 @@ package body Parse is
 --    end Parse_Const_Dcl;
 
 
-   --  Tries to reach the beginning of the next definition.
-   --  Called when the parser encounters an error during the
-   --  parsing of a definition in order to try to continue the
-   --  parsing after the bad definition.
-   procedure Go_To_Next_Definition is
-   begin
-      case Get_Token is
-         when T_Module |
-           T_Interface =>
-            return;
-         when others =>
-            Next_Token;
-      end case;
-   end Go_To_Next_Definition;
-
-
-   --  Rule 3:
-   --  <module> ::= "module" <identifier> "{" <definition>+ "}"
-   procedure Parse_Module (Result : out N_Module_Acc;
-                           Success : out Boolean) is
-   begin
-      --  Is there an identifier ?
-      Next_Token;
-      case Get_Token is
-         when  T_Identifier =>
-            case View_Next_Token is
-               when T_Left_Cbracket =>
-                  --  Creation of the node
-                  Result := new N_Module;
-                  Types.Set_Location (Result.all,
-                                      Get_Previous_Token_Location);
-                  --  try to add the identifier to the scope
-                  if not Types.Add_Identifier (Result) then
-                     --  there is a name collision with the module name
-                     declare
-                        Loc : Errors.Location;
-                     begin
-                        Loc := Types.Get_Location (Find_Identifier_Node.all);
-                        Errors.Parser_Error
-                          ("This module name is already defined in" &
-                           " this scope : " &
-                           Errors.Display_Location (Loc),
-                           Errors.Error,
-                           Get_Token_Location);
-                     end;
-                  end if;
-                  --  create a new scope
-                  Push_Scope (Result);
-                  --  consume the T_Left_Cbracket token
-                  Next_Token;
-                  --  parse the module body
-                  Next_Token;
-                  declare
-                     Definition : N_Root_Acc;
-                     Definition_Result : Boolean;
-                  begin
-                     while Get_Token /= T_Right_Cbracket loop
-                        --  try to parse a definition
-                        Parse_Definition (Definition, Definition_Result);
-                        if Definition_Result then
-                           --  successfull
-                           Append_Node (Result.Contents, Definition);
-                        else
-                           --  failed
-                           Go_To_Next_Definition;
-                        end if;
-                     end loop;
-                     --  consume the T_Right_Cbracket token
-                     Next_Token;
-                  end;
-                  --  end of the module body parsing
-                  Pop_Scope;
-                  Success := True;
-               when others =>
-                  declare
-                     Loc : Errors.Location;
-                  begin
-                     Loc := Get_Token_Location;
-                     Loc.Col := Loc.Col + Get_Token_String'Length + 1;
-                     Errors.Parser_Error ("'{' expected. " &
-                                          "This module definition " &
-                                          "will be skipped",
-                                          Errors.Error,
-                                          Loc);
-                  end;
-                  Result := null;
-                  Success := False;
-            end case;
-         when others =>
-            declare
-               Loc : Errors.Location;
-            begin
-               Loc := Get_Previous_Token_Location;
-               Loc.Col := Loc.Col + 7;
-               Errors.Parser_Error ("Identifier expected. " &
-                                    "This module definition " &
-                                    "will be skipped",
-                                    Errors.Error,
-                                    Loc);
-            end;
-            Result := null;
-            Success := False;
-      end case;
-   end Parse_Module;
-
 
    --  Rule 2:
    --  <definition> ::= <type_dcl> ";"
@@ -1696,6 +2075,52 @@ package body Parse is
       Pop_Scope;
       return Result;
    end Parse_Specification;
+
+
+   ------------------------------
+   --  To resume after errors  --
+   ------------------------------
+
+   -----------------------------
+   --  Go_To_Next_Definition  --
+   -----------------------------
+   procedure Go_To_Next_Definition is
+   begin
+      case Get_Token is
+         when T_Module |
+           T_Interface =>
+            return;
+         when others =>
+            Next_Token;
+      end case;
+   end Go_To_Next_Definition;
+
+   -----------------------------
+   --  Go_To_Next_L_Cbracket  --
+   -----------------------------
+   procedure Go_To_Next_Left_Cbracket is
+   begin
+      while Get_Token /= T_Left_Cbracket loop
+         Next_Token;
+      end loop;
+   end Go_To_Next_Left_Cbracket;
+
+   -------------------------
+   --  Go_To_Next_Export  --
+   -------------------------
+   procedure Go_To_Next_Export is
+   begin
+      null;
+   end Go_To_Next_Export;
+
+   --------------------------------
+   --  Go_To_Next_Value_Element  --
+   --------------------------------
+   procedure Go_To_Next_Value_Element is
+   begin
+      null;
+   end Go_To_Next_Value_Element;
+
 
 
    --
