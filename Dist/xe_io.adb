@@ -758,7 +758,9 @@ package body XE_IO is
 
    procedure Write_Program_Name is
    begin
-      Write_Str (Ada.Command_Line.Command_Name);
+      Write_Str
+        (GNAT.Directory_Operations.Base_Name
+         (Ada.Command_Line.Command_Name));
    end Write_Program_Name;
 
    -----------------
