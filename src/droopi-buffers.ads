@@ -1,6 +1,6 @@
 --  Buffer management
 
---  $Id: //droopi/main/src/droopi-buffers.ads#3 $
+--  $Id: //droopi/main/src/droopi-buffers.ads#4 $
 
 with System;
 --  For bit-order information.
@@ -12,6 +12,9 @@ with Droopi.Opaque; use Droopi.Opaque;
 
 with Droopi.Opaque.Chunk_Pools;
 --  Chunked memory storage.
+
+with Droopi.Sockets;
+--  Low-level IO operations.
 
 package Droopi.Buffers is
 
@@ -344,6 +347,12 @@ private
       --  Signals that Iovec_Pool will not be used anymore.
       --  The associated Iovec array storage is returned to
       --  the system.
+
+      procedure Write_To_Socket
+        (S          : Droopi.Sockets.Socket_Type;
+         Iovec_Pool : access Iovec_Pool_Type);
+      --  Write the contents of Iovec_Pool onto S.
+
 
       ---------------------------------------
       -- Low-level interfaces to the octet --

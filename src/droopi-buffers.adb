@@ -344,7 +344,6 @@ package body Droopi.Buffers is
       return Buffer.CDR_Position;
    end CDR_Position;
 
-
    -------------------------
    -- Utility subprograms --
    -------------------------
@@ -668,6 +667,61 @@ package body Droopi.Buffers is
          Iovec_Pool.Length := Iovec_Pool.Prealloc_Array'Length;
       end Release;
 
+      procedure Write_To_Socket
+        (S          : Droopi.Sockets.Socket_Type;
+         Iovec_Pool : access Iovec_Pool_Type)
+      is
+         use Droopi.Sockets;
+
+         Vecs : Iovec_Array := Iovecs (Iovec_Pool.all);
+
+         Index : Natural := Vecs'First;
+
+         Last  : Stream_Element_Offset;
+
+         Count : Stream_Element_Count;
+         --  Number of Stream_Elements written in one
+         --  Send_Socket operation.
+
+         Rest  : Stream_Element_Count := 0;
+         --  Number of Stream_Elements yet to be written.
+
+      begin
+         for I in Vecs'Range loop
+         Rest := Rest + Vecs (I).Iov_Len;
+         end loop;
+
+         while Rest > 0 loop
+            declare
+               P : constant Opaque_Pointer := Vecs (Index).Iov_Base;
+               L : constant Stream_Element_Count := Vecs (Index).Iov_Len;
+            begin
+
+               --  FIXME:
+               --  For now we do scatter-gather ourselves for lack of a writev
+               --  operation in GNAT.Sockets.
+
+               Send_Socket (S, P.Zone (P.Offset .. P.Offset + L - 1), Last);
+               --  May raise Socket_Error.
+               Count := Last - P.Offset + 1;
+
+               while Index <= Vecs'Last
+                 and then Count >= Vecs (Index).Iov_Len loop
+                  Rest  := Rest  - Vecs (Index).Iov_Len;
+                  Count := Count - Vecs (Index).Iov_Len;
+                  Index := Index + 1;
+               end loop;
+
+               if Count > 0 then
+                  Vecs (Index).Iov_Base :=
+                    Vecs (Index).Iov_Base + Count;
+                  Vecs (Index).Iov_Len
+                    := Vecs (Index).Iov_Len - Count;
+               end if;
+            end;
+         end loop;
+      end Write_To_Socket;
+
       procedure Dump
         (Iovec_Pool : Iovec_Pool_Type;
          Into       : Opaque_Pointer)
@@ -688,59 +742,6 @@ package body Droopi.Buffers is
                          (1 .. Iovec_Pool.Last));
          end if;
       end Dump;
-
---        procedure Write_To_FD
---          (FD : in Interfaces.C.int;
---           Iovec_Pool : access Iovec_Pool_Type)
---        is
---           use Sockets.Thin;
---           use Interfaces.C;
---
---           Vecs : Iovec_Array
---             := Iovecs (Iovec_Pool.all);
---
---           Index : Index_Type := Vecs'First;
---
---           Count : Storage_Offset;
---           Rest  : Storage_Offset := 0;
---
---        begin
---           for I in Vecs'Range loop
---              Rest := Rest + Vecs (I).Iov_Len;
---           end loop;
---
---           while Rest > 0 loop
---              Count :=
---                Storage_Offset (C_Writev
---                                (FD,
---                                 Vecs (Index)'Address,
---                                 C_int (Vecs'Last - Index + 1)));
---
---              --  FIXME: Should improve error reporting.
---              --  This is initially from sockets.adb.
---              --  Thomas.
---              if Count < 0 then
---                 --  Raise_With_Message ("Send failed");
---                 raise Write_Error;
---              elsif Count = 0 then
---                 raise Write_Error;
---              end if;
---
---              while Index <= Vecs'Last
---                and then Count >= Vecs (Index).Iov_Len loop
---                 Rest  := Rest  - Vecs (Index).Iov_Len;
---                 Count := Count - Vecs (Index).Iov_Len;
---                 Index := Index + 1;
---              end loop;
---
---              if Count > 0 then
---                 Vecs (Index).Iov_Base :=
---                   Vecs (Index).Iov_Base + Count;
---                 Vecs (Index).Iov_Len
---                   := Vecs (Index).Iov_Len - Count;
---              end if;
---           end loop;
---        end Write_To_FD;
 
    end Iovec_Pools;
 
