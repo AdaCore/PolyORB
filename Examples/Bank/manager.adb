@@ -152,6 +152,7 @@ begin
                         Integer'Value (S3 (1 .. L3)));
                      Get_Line (File, S1, L1); -- Comments
                   end loop;
+                  Close (File);
                end;
 
             when others =>
