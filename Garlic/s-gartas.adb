@@ -126,9 +126,15 @@ package body System.Garlic.Tasking is
 
    procedure Destroy (W : in out Protected_Watcher_Type) is
    begin
-      Free (W.X.Mutex);
-      Free (W.X.Queue);
-      Free (W.X);
+      if W.X /= null then
+         if W.X.Mutex /= null then
+            Free (W.X.Mutex);
+         end if;
+         if W.X.Queue /= null then
+            Free (W.X.Queue);
+         end if;
+         Free (W.X);
+      end if;
    end Destroy;
 
    -------------
@@ -137,8 +143,12 @@ package body System.Garlic.Tasking is
 
    procedure Destroy (M : in out Protected_Adv_Mutex_Type) is
    begin
-      Free (M.X.Mutex);
-      Free (M.X);
+      if M.X /= null then
+         if M.X.Mutex /= null then
+            Free (M.X.Mutex);
+         end if;
+         Free (M.X);
+      end if;
    end Destroy;
 
    -------------
@@ -147,7 +157,9 @@ package body System.Garlic.Tasking is
 
    procedure Destroy (M : in out Protected_Mutex_Type) is
    begin
-      Free (M.X);
+      if M.X /= null then
+         Free (M.X);
+      end if;
    end Destroy;
 
    ------------
