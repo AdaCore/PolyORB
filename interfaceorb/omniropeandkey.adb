@@ -2,10 +2,19 @@
 ----                                                               ----
 ----                  AdaBroker                                    ----
 ----                                                               ----
+----     This package is the equivalent in Ada of the C            ----
+----   package Ada_omniRopeAndKey.                                 ----
+----     It provides the same functions as this package plus       ----
+----   the Ada version of each one if the arguments types are      ----
+----   different.                                                  ----
+----     It includes a Init function since a Ada class has no      ----
+----   constructor.                                                ----
+----                                                               ----
+----                                                               ----
 ----                  package body omniRopeAndKey                  ----
 ----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
-----   date    :                                                   ----
+----   date    : 02/17/99                                          ----
 ----                                                               ----
 ----                                                               ----
 -----------------------------------------------------------------------

@@ -15,7 +15,7 @@ with Omni ;
 
 package BufferedStream is
 
-   type Object is abstract tagged limited private ;
+   type Object is abstract tagged private ;
 
 
    --------------------------------------------------------
@@ -81,7 +81,7 @@ package BufferedStream is
 
 private
 
-   type Object is abstract tagged limited null record ;
+   type Object is abstract tagged null record ;
 
 end BufferedStream ;
 

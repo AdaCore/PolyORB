@@ -10,10 +10,17 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
+with System ;
 
 package OmniObjectManager is
 
-   type Object is limited private ;
+--   package OmniObjectManager.Address_To_Access is
+--     new System.Address_To_Access_Conversions (OmniObjectManager.Object) ;
+   -- needed to interface System.Address and Omniropeandkey.Object
+
+   type Object is private ;
+
+   type Object_Ptr is access Object ;
 
    function nilObjectManager return OmniObjectManager.Object ;
    -- wrapper around    static omniObjectManager*  nilObjectManager();
@@ -23,4 +30,5 @@ private
 
    type Object is null record ;
 
-end OmniObjectManager ;
+   end OmniObjectManager ;
+

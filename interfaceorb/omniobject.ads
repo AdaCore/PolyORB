@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------
 ----                                                               ----
-----                  package omniObject                           ----
+----                       AdaBroker                               ----
 ----                                                               ----
 ----     This package is wrapped around a C++ class whose name     ----
 ----   is Ada_OmniObject.                                          ----
@@ -20,18 +20,26 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
-with Interfaces.CPP, Interfaces.C.Strings ;
-with Corba, OmniObjectManager, Omniropeandkey ;
+with OmniRopeAndKey ;
+with Interfaces.CPP ;
+with Interfaces.C.Strings ;
+with Corba ;
+with System ;
 with System.Address_To_Access_Conversions ;
+with Sys_Dep ;
+with OmniObjectManager ;
+with Iop ;
+with Rope ;
 
 package OmniObject is
 
    type Object is tagged record
-      Corba_Object_Ptr : System_Address;
-      Table : Interfaces.CPP.Vtable_Ptr;
-   end record;
-   pragma CPP_Class (Object);
-   pragma CPP_Vtable (Object,Table,1);
+      Corba_Object_Ptr : System.Address ;
+      Table : Interfaces.CPP.Vtable_Ptr ;
+   end record ;
+
+--   pragma CPP_Class (Object);
+--   pragma CPP_Vtable (Object,Table,1);
    -- This object is wrapped around Ada_OmniObject (see Ada_OmniObject.hh)
 
    type Object_Access is access Object ;
@@ -39,7 +47,7 @@ package OmniObject is
 
 
    function C_Is_Proxy (Self : in Object'Class)
-                        return Interfaces.C.Unsigned_Char ;
+                        return Sys_Dep.C_Boolean ;
    pragma Import (C,C_Is_Proxy,"is_proxy__14Ada_OmniObject") ;
    -- wrapper around Ada_OmniObject function is_proxy
    -- (see Ada_OmniObject.hh)
@@ -73,14 +81,14 @@ package OmniObject is
    -- Ada equivalent of C procedure C_Init
 
 
-   procedure C_Init2 (Self : in out Object'Class ;
+   procedure C_Init (Self : in out Object'Class ;
                      RepoId : in Interfaces.C.Strings.Chars_Ptr ;
                      R : in System.Address ;
                      Key : in System.Address ;
-                     Keysize : in Interfaces.C.int ;
+                     Keysize : in Interfaces.C.Unsigned_Long ;
                      Profiles : in System.Address ;
-                     Release :  ) ;
-   pragma Import (C,C_Init2,"Init__14Ada_OmniObjectPCcP4RopePUcUiPt25_CORBA_Unbounded_Sequence1ZQ23IOP13TaggedProfileb") ;
+                     Release : Sys_Dep.C_Boolean) ;
+   pragma Import (C,C_Init,"Init__14Ada_OmniObjectPCcP4RopePUcUiPt25_CORBA_Unbounded_Sequence1ZQ23IOP13TaggedProfileb") ;
    -- wrapper around Ada_OmniObject function Init
    -- (see Ada_OmniObject.hh)
 
@@ -88,15 +96,15 @@ package OmniObject is
                    RepoId : in String ;
                    R : in Rope.Object ;
                    Key : in Corba.Octet ;
-                   Keysize : in Corba.Long ;
-                   Profiles : in Iop.TaggedProfileList ;
+                   Keysize : in Corba.Unsigned_Long ;
+                   Profiles : in Iop.Tagged_Profile_List ;
                    Release : Corba.Boolean ) ;
    -- Ada equivalent of C procedure C_init
 
 
    procedure C_Set_Rope_And_Key (Self : in out Object'Class ;
                                L : in out System.Address ;
-                               KeepIOP : in Interfaces.C.Unsigned_Char) ;
+                               KeepIOP : in Sys_Dep.C_Boolean) ;
    pragma Import (C,C_Set_Rope_And_Key,
                   "setRopeAndKey__10omniObjectRC14omniRopeAndKeyb") ;
    -- wrapper around void setRopeAndKey(const omniRopeAndKey& l,
@@ -104,7 +112,7 @@ package OmniObject is
    -- in omniInternal.h L 328
 
    procedure Set_Rope_And_Key (Self : in out Object'Class ;
-                               L : in out Omniropeandkey.Object ;
+                               L : in Omniropeandkey.Object ;
                                KeepIOP : in Corba.Boolean := True) ;
    -- Ada equivalent of C procedure C_Set_Rope_And_Key
 
@@ -112,7 +120,7 @@ package OmniObject is
 
    function C_Get_Rope_And_Key (Self : in Object'Class ;
                                 L : in System.Address)
-                                return Interfaces.C.Unsigned_Char ;
+                                return Sys_Dep.C_Boolean ;
    pragma Import (CPP,C_Get_Rope_And_Key,
                   "getRopeAndKey__C10omniObjectR14omniRopeAndKey") ;
    -- wrapper around _CORBA_Boolean getRopeAndKey(omniRopeAndKey& l) const;
@@ -120,7 +128,7 @@ package OmniObject is
 
    function Get_Rope_And_Key (Self : in Object'Class ;
                               L : in Omniropeandkey.Object)
-                              return COrba.Boolean ;
+                              return Corba.Boolean ;
    -- Ada equivalent of C function C_Get_Rope_And_Key
 
 
@@ -146,14 +154,13 @@ package OmniObject is
    function C_Dispatch (Self : in Object'Class ;
                         Orls : in System.Address ;
                         Orl_Op : in Interfaces.C.Strings.Chars_Ptr ;
-                        Orl_Response_Expected : in Interfaces.C.Unsigned_Char)
+                        Orl_Response_Expected : in Sys_Dep.C_Boolean)
                         return Interfaces.C.Unsigned_Char ;
    -- implements virtual dispatch (GIOP_S &_ORL_s, const char *_ORL_op,
    --                              CORBA::Boolean _ORL_response_expected)
    -- in omniInternal.h L377
    pragma Export (CPP,C_Dispatch,
                   "dispatch__10omniObjectR6GIOP_SPCcb");
-
 
 end OmniObject ;
 

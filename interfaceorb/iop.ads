@@ -14,7 +14,8 @@
 
 package Iop is
 
-   type TaggedProfileList is new ...type C ... ;
+   type Tagged_Profile_List is null record ;
+   -- To be implemented
    -- corresponds to IOP::TaggedProfileList
 
 

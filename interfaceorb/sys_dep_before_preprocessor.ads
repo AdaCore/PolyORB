@@ -19,10 +19,16 @@ with Ada.Text_IO ;
 
 package Sys_Dep is
 
+#if HAS_Cplusplus_Bool
+  subtype C_Boolean is Interfaces.CPP.Bool ;
+  C_True : C_Boolean := Interfaces.CPP.True ;
+  C_False : C_Boolean := Interfaces.CPP.False ;
+#else
   subtype C_Boolean is Interfaces.C.Unsigned_Char ;
   C_False : C_Boolean := 0 ;
   -- C_True is private because of its changing definition :
   -- True is <> 0
+#end if;
 -- Definition of C_Boolean, the Ada equivalent of the C++
 -- bool type. Needed to interface C functions in Ada
 
@@ -32,10 +38,14 @@ function Boolean_Ada_To_C (Bool : Boolean) return C_Boolean;
 
 private
 
+#if HAS_Cplusplus_Bool
+#else
   C_True : C_Boolean := 1 ;
+#end if;
 
 
 
 end Sys_Dep ;
+
 
 

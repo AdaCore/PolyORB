@@ -6,7 +6,8 @@
 ////     tors.                                                          ////
 ////     So, it provides the same functions as omniObject_C2Ada         ////
 ////     except that constructors are replaced by Init functions.       ////
-////     It has also a pointer on the omniObject_C2Ada                  ////
+////     It has also a pointer on the underlining omniObject_C2Ada      ////
+////     object                                                         ////
 ////                                                                    ////
 ////                                                                    ////
 ////                Date : 02/16/99                                     ////
@@ -66,7 +67,7 @@ public:
 
 private:
   omniObject_C2Ada *C_OmniObject;
-  // Pointer on a underlining omniObject_C2Ada object
+  // Pointer on the underlining omniObject_C2Ada object
   
   bool Init_Ok;
   // This flag tells if an init function was called or not
