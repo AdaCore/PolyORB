@@ -136,12 +136,6 @@ package body Ada_Be.Idl2Ada is
    --  Generate the declaration of an object
    --  reference type.
 
-   procedure Gen_Object_Reference_Implementation
-     (CU   : in out Compilation_Unit;
-      Node : Node_Id);
-   --  Generate the primitive methods of an object
-   --  reference type.
-
    procedure Gen_Object_Servant_Declaration
      (CU   : in out Compilation_Unit;
       Node : Node_Id);
@@ -373,7 +367,6 @@ package body Ada_Be.Idl2Ada is
    begin
       --  the valuetype type
       Gen_Object_Reference_Declaration (Stubs_Spec, Node);
-      Gen_Object_Reference_Implementation (Stubs_Body, Node);
       PL (Stubs_Spec, "Null_Value : constant Value_Ref;");
 
       --  Marshalling subprograms for the object
@@ -683,7 +676,6 @@ package body Ada_Be.Idl2Ada is
          when K_Interface =>
 
             Gen_Object_Reference_Declaration (Stubs_Spec, Node);
-            Gen_Object_Reference_Implementation (Stubs_Body, Node);
             --  The object reference type.
 
             Add_Elaborate_Body (Skel_Spec);
@@ -948,30 +940,7 @@ package body Ada_Be.Idl2Ada is
       end if;
       PL (CU, " with null record;");
       NL (CU);
-      Gen_From_Any_Profile (CU, Node);
-      PL (CU, ";");
    end Gen_Object_Reference_Declaration;
-
-   procedure Gen_Object_Reference_Implementation
-     (CU   : in out Compilation_Unit;
-      Node : Node_Id) is
-   begin
-      pragma Assert (False
-         or else Kind (Node) = K_Interface
-         or else Kind (Node) = K_ValueType);
-      NL (CU);
-      Gen_From_Any_Profile (CU, Node);
-      PL (CU, " is");
-      II (CU);
-      PL (CU, "Result : Ref;");
-      DI (CU);
-      PL (CU, "begin");
-      II (CU);
-      PL (CU, "From_Any (Item, Result);");
-      PL (CU, "return Result;");
-      DI (CU);
-      PL (CU, "end From_Any;");
-   end Gen_Object_Reference_Implementation;
 
    procedure Gen_Object_Servant_Declaration
      (CU   : in out Compilation_Unit;
@@ -3491,7 +3460,6 @@ package body Ada_Be.Idl2Ada is
                PL (Helper_Body, "end Unchecked_To_" & Short_Type_Name & ";");
 
                --  To_<reference>
-
                NL (Helper_Body);
                PL (Helper_Body, "function To_" & Short_Type_Name);
                PL (Helper_Body, "  (The_Ref : in CORBA.Object.Ref'Class)");
@@ -3521,20 +3489,39 @@ package body Ada_Be.Idl2Ada is
             end;
 
             --  From_Any
-
             NL (Helper_Spec);
             Gen_From_Any_Profile (Helper_Spec, Node);
+            PL (Helper_Spec, ";");
+
+            Add_With (Helper_Body, "CORBA.Object.Helper");
+            NL (Helper_Body);
+            Gen_From_Any_Profile (Helper_Body, Node);
+            PL (Helper_Body, " is");
+            PL (Helper_Body, "begin");
+            II (Helper_Body);
+            PL (Helper_Body, "return To_Ref (CORBA.Object.Helper."
+                & "From_Any (Item));");
+            DI (Helper_Body);
+            PL (Helper_Body, "end From_Any;");
+
+            --  To_Any
             NL (Helper_Spec);
-            II (Helper_Spec);
-            PL (Helper_Spec, "renames "
-                & Ada_Full_Name (Node)
-                & ".From_Any;");
-            DI (Helper_Spec);
+            Gen_To_Any_Profile (Helper_Spec, Node);
+            PL (Helper_Spec, ";");
+
+            Add_With (Helper_Body, "CORBA.Object.Helper");
+            NL (Helper_Body);
+            Gen_To_Any_Profile (Helper_Body, Node);
+            PL (Helper_Body, " is");
+            PL (Helper_Body, "begin");
+            II (Helper_Body);
+            PL (Helper_Body, "return CORBA.Object.Helper.To_Any "
+                & "(CORBA.Object.Ref (Item));");
+            DI (Helper_Body);
+            PL (Helper_Body, "end To_Any;");
 
          when K_Enum =>
-
             --  TypeCode
-
             NL (Helper_Spec);
             PL (Helper_Spec, Ada_TC_Name (Node)
                 & " : constant CORBA.TypeCode.Object := ");
@@ -3542,14 +3529,9 @@ package body Ada_Be.Idl2Ada is
             PL (Helper_Spec, "CORBA.TypeCode.TC_Enum;");
             DI (Helper_Spec);
 
-            --  From_Any and To_Any
-
+            --  From_Any
             NL (Helper_Spec);
             Gen_From_Any_Profile (Helper_Spec, Node);
-            PL (Helper_Spec, ";");
-
-            NL (Helper_Spec);
-            Gen_To_Any_Profile (Helper_Spec, Node);
             PL (Helper_Spec, ";");
 
             NL (Helper_Body);
@@ -3574,6 +3556,11 @@ package body Ada_Be.Idl2Ada is
                 & "'Val (Position);");
             DI (Helper_Body);
             PL (Helper_Body, "end From_Any;");
+
+            --  To_Any
+            NL (Helper_Spec);
+            Gen_To_Any_Profile (Helper_Spec, Node);
+            PL (Helper_Spec, ";");
 
             NL (Helper_Body);
             Gen_To_Any_Profile (Helper_Body, Node);

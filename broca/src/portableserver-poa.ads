@@ -42,8 +42,6 @@ package PortableServer.POA is
 
    type Ref is new CORBA.Object.Ref with null record;
 
-   function From_Any (Item : CORBA.Any) return Ref;
-
    AdapterAlreadyExists : exception;
 
    type AdapterAlreadyExists_Members is new CORBA.IDL_Exception_Members

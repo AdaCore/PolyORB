@@ -38,8 +38,6 @@ with PortableServer;
 package PortableServer.AdapterActivator is
    type Ref is new CORBA.Object.Ref with private;
 
-   function From_Any (Item : in CORBA.Any) return Ref;
-
    function Unknown_Adapter
      (Self   : Ref;
       Parent : PortableServer.POA_Forward.Ref;

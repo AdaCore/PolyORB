@@ -39,16 +39,6 @@ with PortableServer.ServantActivator.Impl;
 
 package body PortableServer.ServantActivator is
 
-   ----------------
-   --  From_Any  --
-   ----------------
-   function From_Any (Item : in CORBA.Any) return Ref is
-      Result : Ref;
-   begin
-      From_Any (Item, Result);
-      return Result;
-   end From_Any;
-
    function Incarnate
      (Self    : in Ref;
       Oid     : in ObjectId;

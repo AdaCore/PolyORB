@@ -35,15 +35,6 @@ with PortableServer.AdapterActivator.Impl;
 with Broca.POA;
 
 package body PortableServer.AdapterActivator is
-   ----------------
-   --  From_Any  --
-   ----------------
-   function From_Any (Item : in CORBA.Any) return Ref is
-      Result : Ref;
-   begin
-      From_Any (Item, Result);
-      return Result;
-   end From_Any;
 
    function Unknown_Adapter
      (Self   : Ref;

@@ -33,6 +33,7 @@ with Ada.Text_IO;
 
 with CORBA; use CORBA;
 with CORBA.Object;
+with CORBA.Object.Helper;
 with CORBA.Context;
 with CORBA.Request;
 with CORBA.NVList;
@@ -464,14 +465,14 @@ procedure DynClient is
       Result_Value : CORBA.Object.Ref;
    begin
       --  creating the argument list
-      Argument := CORBA.Object.To_Any (Arg);
+      Argument := CORBA.Object.Helper.To_Any (Arg);
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => CORBA.Object.To_Any (Result_Value),
+                 Argument => CORBA.Object.Helper.To_Any (Result_Value),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -486,7 +487,8 @@ procedure DynClient is
       --  FIXME : not logical
       CORBA.NVList.Free (Arg_List);
       --  getting the answer
-      Result_Value := CORBA.Object.From_Any (CORBA.Request.Return_Value (Request).Argument);
+      Result_Value := CORBA.Object.Helper.From_Any
+        (CORBA.Request.Return_Value (Request).Argument);
       return Result_Value;
    end EchoRef;
 

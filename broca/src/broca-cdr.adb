@@ -40,6 +40,7 @@ with Broca.Refs;
 with Broca.Object;
 
 with CORBA.Impl;
+with CORBA.Object.Helper;
 
 package body Broca.CDR is
 
@@ -464,7 +465,7 @@ package body Broca.CDR is
             --  FIXME : to be done
             null;
          when Tk_Objref =>
-            Marshall (Buffer, CORBA.Object.From_Any (Data));
+            Marshall (Buffer, CORBA.Object.Helper.From_Any (Data));
          when Tk_Struct =>
             declare
                Nb : CORBA.Unsigned_Long :=
@@ -1366,7 +1367,7 @@ package body Broca.CDR is
             declare
                O : CORBA.Object.Ref := Unmarshall (Buffer);
             begin
-               Result := CORBA.Object.To_Any (O);
+               Result := CORBA.Object.Helper.To_Any (O);
                --  set the true type of the any, in case there is some alias
                Set_Type (Result, Any_Type);
             end;

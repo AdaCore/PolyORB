@@ -32,6 +32,7 @@ ADA_SPECS_WITH_BODY = \
 	   broca-vararray.ads \
 	   corba-forward.ads \
 	   corba-object.ads \
+	   corba-object-helper.ads \
 	   corba-orb.ads \
 	   corba-nvlist.ads \
 	   corba-request.ads \

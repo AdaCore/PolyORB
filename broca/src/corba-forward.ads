@@ -38,8 +38,6 @@ package CORBA.Forward is
 
    type Ref is new CORBA.Object.Ref with null record;
 
-   function From_Any (Item : Any) return Ref;
-
    generic
       type Ref_Type is new CORBA.Object.Ref with private;
    package Convert is

@@ -117,15 +117,6 @@ package CORBA.Object is
       Request   :    out CORBA.Request.Object;
       Req_Flags : in     Flags);
 
-   -----------
-   --  Any  --
-   -----------
-
-   function To_Any (Item : in Ref) return Any;
-   procedure From_Any (Item : in Any; Result : out Ref);
-   function From_Any (Item : in Any) return Ref;
-
-
 private
 
    type Ref is new CORBA.AbstractBase.Ref with null record;

@@ -2,9 +2,9 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                        C O R B A . C U R R E N T                         --
+--                  C O R B A . O B J E C T . H E L P E R                   --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --          Copyright (C) 1999-2000 ENST Paris University, France.          --
 --                                                                          --
@@ -31,16 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA;
-with CORBA.Object;
+package CORBA.Object.Helper is
 
-package body CORBA.Current is
+   function To_Any (Item : in CORBA.Object.Ref) return Any;
+   function From_Any (Item : in Any) return CORBA.Object.Ref;
 
-   function From_Any (Item : in CORBA.Any) return Ref is
-      Result : Ref;
-   begin
-      From_Any (Item, Result);
-      return Result;
-   end From_Any;
-
-end CORBA.Current;
+end CORBA.Object.Helper;

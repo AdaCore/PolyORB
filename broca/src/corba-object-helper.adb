@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---        P O R T A B L E S E R V E R . S E R V A N T M A N A G E R         --
+--                  C O R B A . O B J E C T . H E L P E R                   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -31,20 +31,26 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package body PortableServer.ServantManager is
+package body CORBA.Object.Helper is
+
+   --------------
+   --  To_Any  --
+   --------------
+   function To_Any (Item : in CORBA.Object.Ref) return Any is
+   begin
+      return (new Content_ObjRef' (Value => Item),
+              CORBA.TypeCode.TC_ObjRef);
+   end To_Any;
 
    ----------------
    --  From_Any  --
    ----------------
-
-   function From_Any
-     (Item : in CORBA.Any)
-     return Ref
-   is
-      Result : Ref;
+   function From_Any (Item : in Any) return CORBA.Object.Ref is
    begin
-      From_Any (Item, Result);
-      return Result;
+      if (TypeCode.Kind (Item.The_Type) /= Tk_Objref) then
+         raise Bad_Typecode;
+      end if;
+      return Content_ObjRef_Ptr (Item.The_Value).Value;
    end From_Any;
 
-end PortableServer.ServantManager;
+end CORBA.Object.Helper;

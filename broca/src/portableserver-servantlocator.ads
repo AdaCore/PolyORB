@@ -40,8 +40,6 @@ package PortableServer.ServantLocator is
    type Ref is new PortableServer.ServantManager.Ref
      with null record;
 
-   function From_Any (Item : in CORBA.Any) return Ref;
-
    type Cookie_Base is tagged null record;
    --  ... implementation defined, tagged type Cookie is access all
    --  Cookie_Base'CLASS;

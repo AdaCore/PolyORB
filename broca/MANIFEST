@@ -220,6 +220,8 @@ src/corba-forward.adb
 src/corba-forward.ads
 src/corba-object.adb
 src/corba-object.ads
+src/corba-object-helper.adb
+src/corba-object-helper.ads
 src/corba-orb.adb
 src/corba-orb.ads
 src/corba-policy.adb

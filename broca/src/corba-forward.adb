@@ -33,16 +33,6 @@
 
 package body CORBA.Forward is
 
-   ----------------
-   --  From_Any  --
-   ----------------
-   function From_Any (Item : in Any) return Ref is
-      Result : Ref;
-   begin
-      From_Any (Item, Result);
-      return Result;
-   end From_Any;
-
    package body Convert is
       --  FIXME: minimal implementation.
       function From_Forward (The_Forward : in Ref)  return Ref_Type is
