@@ -39,6 +39,8 @@ with PolyORB.Log;
 
 package body MOMA.Provider.Topic_Datas is
 
+   use Perfect_Htable;
+
    use MOMA.Types;
 
    use PolyORB.Log;
@@ -98,7 +100,6 @@ package body MOMA.Provider.Topic_Datas is
       Subscribers : Destination_List.List;
       K           : constant String := To_Standard_String (Topic_Id);
    begin
-      --  XXX Should we call Ensure_Initialization ?
       Lock_R (Data.T_Lock);
       V := Lookup (Data.T, K);
       Subscribers := Destination_List.Duplicate (V.Subscribers);
@@ -110,41 +111,6 @@ package body MOMA.Provider.Topic_Datas is
          return Subscribers;
    end Get_Subscribers;
 
-   ------------
-   -- Lookup --
-   ------------
-
-   function Lookup
-      (W : Topic_Data;
-       K : String)
-     return Topic
-   is
-      Result : Topic;
-   begin
-      --  XXX Should we call Ensure_Initialization ?
-      Lock_R (W.T_Lock);
-      Result := Lookup (W.T, K);
-      Unlock_R (W.T_Lock);
-      return Result;
-   exception
-         when No_Key => raise Key_Not_Found;
-   end Lookup;
-
-   function Lookup
-     (W : Topic_Data;
-      K : String;
-      Default : Topic)
-     return Topic
-   is
-      V : Topic;
-   begin
-      --  XXX  Should we call Ensure_Initialization ?
-      Lock_R (W.T_Lock);
-      V := Lookup (W.T, K, Default);
-      Unlock_R (W.T_Lock);
-      return V;
-   end Lookup;
-
    ---------------
    -- New_Topic --
    ---------------
@@ -154,22 +120,6 @@ package body MOMA.Provider.Topic_Datas is
    begin
       return Topic'(To_MOMA_String ("Unknown"), S);
    end New_Topic;
-
-   --------------
-   -- Register --
-   --------------
-
-   procedure Register
-     (W : in out Topic_Data;
-      K : String;
-      T : Topic)
-   is
-   begin
-      Ensure_Initialization (W);
-      Lock_W (W.T_Lock);
-      Insert (W.T, K, T);
-      Unlock_W (W.T_Lock);
-   end Register;
 
    -----------------------
    -- Remove_Subscriber --
@@ -196,22 +146,5 @@ package body MOMA.Provider.Topic_Datas is
       when No_Key =>
          raise Key_Not_Found;
    end Remove_Subscriber;
-
-   ----------------
-   -- Unregister --
-   ----------------
-
-   procedure Unregister
-     (W : in out Topic_Data;
-      K : String)
-   is
-   begin
-      Ensure_Initialization (W);
-      Lock_W (W.T_Lock);
-      Delete (W.T, K);
-      Unlock_W (W.T_Lock);
-   exception
-      when No_Key => raise Key_Not_Found;
-   end Unregister;
 
 end MOMA.Provider.Topic_Datas;

@@ -34,7 +34,7 @@
 
 --  $Id$
 
-with MOMA.Sessions;
+with MOMA.Connection_Factories;
 with MOMA.Types;
 
 with PolyORB.References;
@@ -48,11 +48,19 @@ package MOMA.Connections is
    procedure Close;
    --  Close the connection.
 
-   function Create_Session (Self             : Connection;
-                            Transacted       : Boolean;
-                            Acknowledge_Mode : MOMA.Types.Acknowledge_Type)
-                            return MOMA.Sessions.Session;
-   --  Create a session from a Connection.
+   function Create_Connection
+     (Factory : MOMA.Connection_Factories.Connection_Factory)
+      return Connection;
+   --  Create a new connection using this connection factory.
+
+   function Create_Connection
+     (Factory   : MOMA.Connection_Factories.Connection_Factory;
+      Username  : String;
+      Password  : String)
+      return Connection;
+   --  Create a new connection using this connection factory
+   --  and providing a username/password.
+   --  XXX Not implemented.
 
    --  Accessors to Connection internal data.
 

@@ -35,9 +35,7 @@
 with MOMA.Types;
 
 with PolyORB.Any.ObjRef;
-with PolyORB.Any.NVList;
 with PolyORB.Initialization;
-with PolyORB.Requests;
 with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
@@ -59,13 +57,14 @@ package body MOMA.Destinations is
       return Get_Name (Dest1) = Get_Name (Dest2);
    end "=";
 
-   ------------
-   -- Create --
-   ------------
+   ------------------------
+   -- Create_Destination --
+   ------------------------
 
-   function Create (Name : MOMA.Types.String;
-                    Ref  : PolyORB.References.Ref;
-                    Kind : MOMA.Types.Destination_Type := MOMA.Types.Unknown)
+   function Create_Destination
+     (Name    : MOMA.Types.String;
+      Ref     : PolyORB.References.Ref;
+      Kind    : MOMA.Types.Destination_Type := MOMA.Types.Unknown)
       return Destination
    is
       Dest : MOMA.Destinations.Destination;
@@ -74,9 +73,9 @@ package body MOMA.Destinations is
       Set_Ref  (Dest, Ref);
       Set_Kind (Dest, Kind);
       return Dest;
-   end Create;
+   end Create_Destination;
 
-   function Create
+   function Create_Destination
       return Destination
    is
       Dest : MOMA.Destinations.Destination;
@@ -85,7 +84,20 @@ package body MOMA.Destinations is
       Set_Ref  (Dest, PolyORB.References.Nil_Ref);
       Set_Kind (Dest, MOMA.Types.Unknown);
       return Dest;
-   end Create;
+   end Create_Destination;
+
+   ----------------------
+   -- Create_Temporary --
+   ----------------------
+
+   function Create_Temporary
+     return Destination is
+   begin
+      raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
+      return Create_Temporary;
+      pragma Warnings (On);
+   end Create_Temporary;
 
    ------------
    -- Delete --
@@ -122,7 +134,7 @@ package body MOMA.Destinations is
                                  MOMA.Types.TC_Destination_Type,
                                  PolyORB.Types.Unsigned_Long (2)));
 
-      return Create (Name, Ref, Kind);
+      return Create_Destination (Name, Ref, Kind);
    end From_Any;
 
    --------------
@@ -198,48 +210,6 @@ package body MOMA.Destinations is
    begin
       Self.Kind := Kind;
    end Set_Kind;
-
-   ---------------
-   -- Subscribe --
-   ---------------
-
-   procedure Subscribe (Topic : Destination;
-                        Pool  : Destination;
-                        Sub   : Boolean := True)
-   is
-      Arg_List  : PolyORB.Any.NVList.Ref;
-      Request   : PolyORB.Requests.Request_Access;
-      Result    : PolyORB.Any.NamedValue;
-      Operation : MOMA.Types.String := To_MOMA_String ("Subscribe");
-   begin
-      if Get_Kind (Topic) /= MOMA.Types.Topic
-      or else Get_Kind (Pool) /= MOMA.Types.Pool then
-         raise Program_Error;
-      end if;
-      if not (Sub) then
-         Operation := To_MOMA_String ("Unsubscribe");
-      end if;
-      PolyORB.Any.NVList.Create (Arg_List);
-      PolyORB.Any.NVList.Add_Item (Arg_List,
-                                   To_PolyORB_String ("Topic"),
-                                   To_Any (Topic),
-                                   PolyORB.Any.ARG_IN);
-      PolyORB.Any.NVList.Add_Item (Arg_List,
-                                   To_PolyORB_String ("Pool"),
-                                   To_Any (Pool),
-                                   PolyORB.Any.ARG_IN);
-      Result := (Name      => To_PolyORB_String ("Result"),
-                 Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
-                 Arg_Modes => 0);
-      PolyORB.Requests.Create_Request
-        (Target    => Get_Ref (Topic),
-         Operation => MOMA.Types.To_Standard_String (Operation),
-         Arg_List  => Arg_List,
-         Result    => Result,
-         Req       => Request);
-      PolyORB.Requests.Invoke (Request);
-      PolyORB.Requests.Destroy_Request (Request);
-   end Subscribe;
 
    ------------
    -- To_Any --

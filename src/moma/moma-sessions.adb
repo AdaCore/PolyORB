@@ -32,24 +32,17 @@
 
 --  $Id$
 
-with MOMA.Provider.Message_Consumer;
-with MOMA.Provider.Message_Producer;
-with MOMA.Provider.Message_Handler;
-
 with PolyORB;
-with PolyORB.Annotations;
-with PolyORB.Call_Back;
-with PolyORB.Minimal_Servant.Tools;
-with PolyORB.References.IOR;
+with PolyORB.Any;
+with PolyORB.Any.NVList;
+with PolyORB.Requests;
 with PolyORB.Types;
 
 package body MOMA.Sessions is
 
-   use MOMA.Message_Producers;
-   use MOMA.Message_Consumers;
-   use MOMA.Destinations;
+   use MOMA.Types;
 
-   use PolyORB.Minimal_Servant.Tools;
+   use PolyORB.Types;
 
    ------------
    --  Close --
@@ -71,195 +64,25 @@ package body MOMA.Sessions is
       --  XXX Not Implemented
    end Commit;
 
-   ------------------------
-   -- Create_Destination --
-   ------------------------
+   --------------------
+   -- Create_Session --
+   --------------------
 
-   function Create_Destination (Name   : MOMA.Types.String;
-                                Remote : PolyORB.References.Ref)
-                                return MOMA.Destinations.Destination
+   function Create_Session (Connection       : MOMA.Connections.Connection;
+                            Transacted       : Boolean;
+                            Acknowledge_Mode : MOMA.Types.Acknowledge_Type)
+                            return Session
    is
-   begin
-      return MOMA.Destinations.Create (Name, Remote, MOMA.Types.Pool);
-   end Create_Destination;
-
-   ---------------------
-   -- Create_Handler --
-   ---------------------
-
-   function Create_Handler
-     (Self           : Session;
-      Message_Cons   : MOMA.Message_Consumers.Message_Consumer_Acc)
-      return MOMA.Message_Handlers.Message_Handler_Acc
-   is
-      Handler : MOMA.Message_Handlers.Message_Handler_Acc :=
-         new MOMA.Message_Handlers.Message_Handler;
-      Servant : constant MOMA.Provider.Message_Handler.Object_Acc :=
-         new MOMA.Provider.Message_Handler.Object;
-      Servant_Ref : PolyORB.References.Ref;
+      New_Session : Session;
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (Self);
+      pragma Unreferenced (Connection);
       pragma Warnings (On);
-      --  XXX Self is to be used to 'place' the receiver
-      --  using session position in the POA.
-      --  XXX XXX (same as in Create_Receiver)
-      Initiate_Servant (Servant,
-                        MOMA.Provider.Message_Handler.If_Desc,
-                        MOMA.Types.MOMA_Type_Id,
-                        Servant_Ref);
-      MOMA.Message_Handlers.Initialize (
-         Handler, Message_Cons, Servant_Ref, null, null);
-      MOMA.Provider.Message_Handler.Initialize (Servant, Handler);
-      return Handler;
-   end Create_Handler;
-
-   ---------------------
-   -- Create_Receiver --
-   ---------------------
-
-   function Create_Receiver (Self : Session;
-                             Dest : MOMA.Destinations.Destination)
-      return MOMA.Message_Consumers.Message_Consumer_Acc
-   is
-      MOMA_Obj : constant MOMA.Provider.Message_Consumer.Object_Acc
-        := new MOMA.Provider.Message_Consumer.Object;
-
-      MOMA_Ref : PolyORB.References.Ref;
-
-      Consumer : constant MOMA.Message_Consumers.Message_Consumer_Acc :=
-         new MOMA.Message_Consumers.Message_Consumer;
-
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      --  XXX self is to be used to 'place' the receiver
-      --  using session position in the POA
-
-      MOMA_Obj.Remote_Ref := Get_Ref (Dest);
-      Initiate_Servant (MOMA_Obj,
-                        MOMA.Provider.Message_Consumer.If_Desc,
-                        MOMA.Types.MOMA_Type_Id,
-                        MOMA_Ref);
-
-      Set_Destination (Consumer.all, Dest);
-      Set_Ref (Consumer.all, MOMA_Ref);
-      --  XXX Is it really useful to have the Ref to the remote destination in
-      --  the Message_Consumer itself ? By construction, this ref is
-      --  encapsulated in the MOMA.Provider.Message_Consumer.Object ....
-      return Consumer;
-   end Create_Receiver;
-
-   ---------------------
-   -- Create_Receiver --
-   ---------------------
-
-   function Create_Receiver (Dest             : MOMA.Destinations.Destination;
-                             Message_Selector : MOMA.Types.String)
-      return MOMA.Message_Consumers.Message_Consumer
-   is
-   begin
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Create_Receiver (Dest, Message_Selector);
-      pragma Warnings (On);
-   end Create_Receiver;
-
-   -------------------
-   -- Create_Sender --
-   -------------------
-
-   function Create_Sender (Self : Session;
-                           Dest : MOMA.Destinations.Destination)
-                           return MOMA.Message_Producers.Message_Producer
-   is
-      use PolyORB.References;
-      use MOMA.Types;
-
-      MOMA_Obj : constant MOMA.Provider.Message_Producer.Object_Acc
-        := new MOMA.Provider.Message_Producer.Object;
-
-      MOMA_Ref : PolyORB.References.Ref;
-      Producer : MOMA.Message_Producers.Message_Producer;
-      Type_Id_S : MOMA.Types.String
-        := To_MOMA_String (Type_Id_Of (Get_Ref (Dest)));
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      --  XXX self is to be used to 'place' the receiver
-      --  using session position in the POA
-
-      MOMA_Obj.Remote_Ref := Get_Ref (Dest);
-      Initiate_Servant (MOMA_Obj,
-                        MOMA.Provider.Message_Producer.If_Desc,
-                        MOMA.Types.MOMA_Type_Id,
-                        MOMA_Ref);
-
-      Set_Destination (Producer, Dest);
-      Set_Ref (Producer, MOMA_Ref);
-      Set_Type_Id_Of (Producer, Type_Id_S);
-      --  XXX Is it really useful to have the Ref to the remote destination in
-      --  the Message_Producer itself ? By construction, this ref is
-      --  encapsulated in the MOMA.Provider.Message_Producer.Object ....
-      return Producer;
-   end Create_Sender;
-
-   function Create_Sender (ORB_Object : MOMA.Types.String;
-                           Mesg_Pool  : MOMA.Types.String)
-                           return MOMA.Message_Producers.Message_Producer
-   is
-
-      use MOMA.Types;
-
-      use PolyORB.Annotations;
-      use PolyORB.Call_Back;
-      use PolyORB.References;
-      use PolyORB.References.IOR;
-      use PolyORB.Types;
-
-      Producer : MOMA.Message_Producers.Message_Producer;
-
-      ORB_Object_IOR      : constant IOR_Type := String_To_Object (ORB_Object);
-      Dest_Ref_Object_IOR : constant IOR_Type := String_To_Object (Mesg_Pool);
-
-      Type_Id_S : MOMA.Types.String
-        := To_MOMA_String (Type_Id_Of (ORB_Object_IOR));
-
-   begin
-      if Type_Id_S = MOMA_Type_Id then
-         raise  Program_Error;
-      end if;
-
-      Set_Ref (Producer, ORB_Object_IOR);
-      Set_Type_Id_Of (Producer, Type_Id_S);
-      Set_CBH (Producer, new PolyORB.Call_Back.Call_Back_Handler);
-      --  XXX should free this memory sometime, somewhere ...
-
-      Attach_Handler_To_CB
-        (Call_Back_Handler (Get_CBH (Producer).all),
-         MOMA.Message_Producers.Response_Handler'Access);
-
-      Set_Note
-         (Notepad_Of (Get_CBH (Producer)).all,
-          CBH_Note'(Note with Dest => Dest_Ref_Object_IOR));
-
-      return Producer;
-   end Create_Sender;
-
-   ----------------------
-   -- Create_Temporary --
-   ----------------------
-
-   function Create_Temporary
-     return MOMA.Destinations.Destination is
-   begin
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Create_Temporary;
-      pragma Warnings (On);
-   end Create_Temporary;
+      --  XXX ??? Why
+      New_Session.Transacted := Transacted;
+      New_Session.Acknowledge_Mode := Acknowledge_Mode;
+      return New_Session;
+   end Create_Session;
 
    ---------------------
    --  Get_Transacted --
@@ -298,10 +121,42 @@ package body MOMA.Sessions is
    ---------------
 
    procedure Subscribe (Topic : MOMA.Destinations.Destination;
-                        Pool  : MOMA.Destinations.Destination)
+                        Pool  : MOMA.Destinations.Destination;
+                        Sub   : Boolean := True)
    is
+      use MOMA.Destinations;
+      Arg_List  : PolyORB.Any.NVList.Ref;
+      Request   : PolyORB.Requests.Request_Access;
+      Result    : PolyORB.Any.NamedValue;
+      Operation : MOMA.Types.String := To_MOMA_String ("Subscribe");
    begin
-      MOMA.Destinations.Subscribe (Topic, Pool, True);
+      if Get_Kind (Topic) /= MOMA.Types.Topic
+      or else Get_Kind (Pool) /= MOMA.Types.Pool then
+         raise Program_Error;
+      end if;
+      if not (Sub) then
+         Operation := To_MOMA_String ("Unsubscribe");
+      end if;
+      PolyORB.Any.NVList.Create (Arg_List);
+      PolyORB.Any.NVList.Add_Item (Arg_List,
+                                   To_PolyORB_String ("Topic"),
+                                   To_Any (Topic),
+                                   PolyORB.Any.ARG_IN);
+      PolyORB.Any.NVList.Add_Item (Arg_List,
+                                   To_PolyORB_String ("Pool"),
+                                   To_Any (Pool),
+                                   PolyORB.Any.ARG_IN);
+      Result := (Name      => To_PolyORB_String ("Result"),
+                 Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
+                 Arg_Modes => 0);
+      PolyORB.Requests.Create_Request
+        (Target    => Get_Ref (Topic),
+         Operation => MOMA.Types.To_Standard_String (Operation),
+         Arg_List  => Arg_List,
+         Result    => Result,
+         Req       => Request);
+      PolyORB.Requests.Invoke (Request);
+      PolyORB.Requests.Destroy_Request (Request);
    end Subscribe;
 
    -----------------
@@ -312,7 +167,7 @@ package body MOMA.Sessions is
                           Pool  : MOMA.Destinations.Destination)
    is
    begin
-      MOMA.Destinations.Subscribe (Topic, Pool, False);
+      Subscribe (Topic, Pool, False);
    end Unsubscribe;
 
 end MOMA.Sessions;

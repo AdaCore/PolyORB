@@ -37,8 +37,6 @@
 
 --  XXX need to clarify the notion of provider.
 
-with MOMA.Connections;
-
 with PolyORB.References;
 
 package MOMA.Connection_Factories is
@@ -49,17 +47,13 @@ package MOMA.Connection_Factories is
                      Remote   : PolyORB.References.Ref);
    --  Create a new connection factory, with the provider Remote.
 
-   function Create_Connection (Self   : Connection_Factory)
-                               return MOMA.Connections.Connection;
-   --  Create a new connection using this connection factory.
+   --  Accessors to the Connection_Factory internals.
 
-   function Create_Connection (Self      : Connection_Factory;
-                               Username  : String;
-                               Password  : String)
-                               return MOMA.Connections.Connection;
-   --  Create a new connection using this connection factory
-   --  and providing a username/password.
-   --  XXX Not implemented.
+   procedure Set_Ref (Self    : in out Connection_Factory;
+                      Remote  : PolyORB.References.Ref);
+
+   function Get_Ref (Self    : Connection_Factory)
+                     return PolyORB.References.Ref;
 
 private
 
@@ -68,13 +62,5 @@ private
       --  The access point to the MOMA domain.
       --  XXX : this is a concept to clarify.
    end record;
-
-   --  Accessors to the Connection_Factory internals.
-
-   procedure Set_Ref (Self    : in out Connection_Factory;
-                      Remote  : PolyORB.References.Ref);
-
-   function Get_Ref (Self    : Connection_Factory)
-                     return PolyORB.References.Ref;
 
 end MOMA.Connection_Factories;

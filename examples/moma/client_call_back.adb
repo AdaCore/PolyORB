@@ -217,13 +217,13 @@ begin
 
    --  Create connection using Connection Factory.
    MOMA_Connection :=
-      MOMA.Connection_Factories.Create_Connection (MOMA_Factory);
+      MOMA.Connections.Create_Connection (MOMA_Factory);
 
    --  Initialize the destination
    --  (should be usually done by the administrator).
    --  NB : in this example the destination and the provider are references
    --       to the same thing (Pool_Ref). This will probably change later.
-   MOMA_Dest_Pool := MOMA.Sessions.Create_Destination
+   MOMA_Dest_Pool := MOMA.Destinations.Create_Destination
          (To_MOMA_String ("queue1"),
           Pool_Ref);
 
@@ -231,10 +231,10 @@ begin
    MOMA_Session := Create_Session (MOMA_Connection, False, 1);
 
    --  Create Message Producer associated to the Session.
-   MOMA_Producer := Create_Sender (MOMA_Session, MOMA_Dest_Pool);
+   MOMA_Producer := Create_Producer (MOMA_Session, MOMA_Dest_Pool);
 
    --  Create Message Consumer associated to the Session.
-   MOMA_Consumer_Acc := Create_Receiver (MOMA_Session, MOMA_Dest_Pool);
+   MOMA_Consumer_Acc := Create_Consumer (MOMA_Session, MOMA_Dest_Pool);
    MOMA_Consumer := MOMA_Consumer_Acc.all;
 
    MOMA_Handler_Acc := Create_Handler (

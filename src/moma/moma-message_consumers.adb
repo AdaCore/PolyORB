@@ -32,16 +32,21 @@
 
 --  $Id$
 
+with MOMA.Provider.Message_Consumer;
+
 with PolyORB.Any;
 with PolyORB.Any.NVList;
+with PolyORB.Minimal_Servant.Tools;
 with PolyORB.Requests;
 with PolyORB.Types;
 
 package body MOMA.Message_Consumers is
 
    use MOMA.Messages;
+   use MOMA.Provider.Message_Consumer;
 
    use PolyORB.Any;
+   use PolyORB.Minimal_Servant.Tools;
    use PolyORB.Types;
 
    -----------
@@ -52,6 +57,55 @@ package body MOMA.Message_Consumers is
    begin
       null;
    end Close;
+
+   ---------------------
+   -- Create_Consumer --
+   ---------------------
+
+   function Create_Consumer (Session : MOMA.Sessions.Session;
+                             Dest    : MOMA.Destinations.Destination)
+      return Message_Consumer_Acc
+   is
+      MOMA_Obj : constant MOMA.Provider.Message_Consumer.Object_Acc
+        := new MOMA.Provider.Message_Consumer.Object;
+
+      MOMA_Ref : PolyORB.References.Ref;
+
+      Consumer : constant MOMA.Message_Consumers.Message_Consumer_Acc :=
+         new MOMA.Message_Consumers.Message_Consumer;
+
+   begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Session);
+      pragma Warnings (On);
+      --  XXX Session is to be used to 'place' the receiver
+      --  using session position in the POA
+
+      Set_Remote_Ref (MOMA_Obj.all, MOMA.Destinations.Get_Ref (Dest));
+      Initiate_Servant (MOMA_Obj,
+                        MOMA.Provider.Message_Consumer.If_Desc,
+                        MOMA.Types.MOMA_Type_Id,
+                        MOMA_Ref);
+
+      Set_Destination (Consumer.all, Dest);
+      Set_Ref (Consumer.all, MOMA_Ref);
+      --  XXX Is it really useful to have the Ref to the remote destination in
+      --  the Message_Consumer itself ? By construction, this ref is
+      --  encapsulated in the MOMA.Provider.Message_Consumer.Object ....
+      return Consumer;
+   end Create_Consumer;
+
+   function Create_Consumer (Session          : MOMA.Sessions.Session;
+                             Dest             : MOMA.Destinations.Destination;
+                             Message_Selector : MOMA.Types.String)
+      return Message_Consumer_Acc
+   is
+   begin
+      raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
+      return Create_Consumer (Session, Dest, Message_Selector);
+      pragma Warnings (On);
+   end Create_Consumer;
 
    --------------------------
    -- Get_Message_Selector --

@@ -61,6 +61,86 @@ package body MOMA.Provider.Message_Producer is
                       Message : in PolyORB.Any.Any);
    --  Actual function implemented by the servant.
 
+   ---------------------------
+   -- Get_Parameter_Profile --
+   ---------------------------
+
+   function Get_Parameter_Profile
+     (Method : String)
+     return PolyORB.Any.NVList.Ref;
+
+   function Get_Parameter_Profile
+     (Method : String)
+     return PolyORB.Any.NVList.Ref
+   is
+      use PolyORB.Any;
+      use PolyORB.Any.NVList;
+      use PolyORB.Types;
+
+      Result : PolyORB.Any.NVList.Ref;
+   begin
+      pragma Debug (O ("Parameter profile for " & Method & " requested."));
+
+      PolyORB.Any.NVList.Create (Result);
+
+      if Method = "Publish" then
+         Add_Item (Result,
+                   (Name      => To_PolyORB_String ("Message"),
+                    Argument  => Get_Empty_Any (TC_MOMA_Message),
+                    Arg_Modes => ARG_IN));
+      else
+         raise Program_Error;
+      end if;
+
+      return Result;
+   end Get_Parameter_Profile;
+
+   --------------------
+   -- Get_Remote_Ref --
+   --------------------
+
+   function Get_Remote_Ref (Self : Object)
+      return PolyORB.References.Ref
+   is
+   begin
+      return Self.Remote_Ref;
+   end Get_Remote_Ref;
+
+   ------------------------
+   -- Get_Result_Profile --
+   ------------------------
+
+   function Get_Result_Profile
+     (Method : String)
+     return PolyORB.Any.Any;
+
+   function Get_Result_Profile
+     (Method : String)
+     return PolyORB.Any.Any
+   is
+      use PolyORB.Any;
+
+   begin
+      pragma Debug (O ("Result profile for " & Method & " requested."));
+      if Method = "Publish" then
+         return Get_Empty_Any (TypeCode.TC_Void);
+      else
+         raise Program_Error;
+      end if;
+   end Get_Result_Profile;
+
+   -------------
+   -- If_Desc --
+   -------------
+
+   function If_Desc
+     return PolyORB.Obj_Adapters.Simple.Interface_Description is
+   begin
+      return
+        (PP_Desc => Get_Parameter_Profile'Access,
+         RP_Desc => Get_Result_Profile'Access);
+   end If_Desc;
+
    ------------
    -- Invoke --
    ------------
@@ -99,75 +179,6 @@ package body MOMA.Provider.Message_Producer is
       end if;
    end Invoke;
 
-   ---------------------------
-   -- Get_Parameter_Profile --
-   ---------------------------
-
-   function Get_Parameter_Profile
-     (Method : String)
-     return PolyORB.Any.NVList.Ref;
-
-   function Get_Parameter_Profile
-     (Method : String)
-     return PolyORB.Any.NVList.Ref
-   is
-      use PolyORB.Any;
-      use PolyORB.Any.NVList;
-      use PolyORB.Types;
-
-      Result : PolyORB.Any.NVList.Ref;
-   begin
-      pragma Debug (O ("Parameter profile for " & Method & " requested."));
-
-      PolyORB.Any.NVList.Create (Result);
-
-      if Method = "Publish" then
-         Add_Item (Result,
-                   (Name      => To_PolyORB_String ("Message"),
-                    Argument  => Get_Empty_Any (TC_MOMA_Message),
-                    Arg_Modes => ARG_IN));
-      else
-         raise Program_Error;
-      end if;
-
-      return Result;
-   end Get_Parameter_Profile;
-
-   ------------------------
-   -- Get_Result_Profile --
-   ------------------------
-
-   function Get_Result_Profile
-     (Method : String)
-     return PolyORB.Any.Any;
-
-   function Get_Result_Profile
-     (Method : String)
-     return PolyORB.Any.Any
-   is
-      use PolyORB.Any;
-
-   begin
-      pragma Debug (O ("Result profile for " & Method & " requested."));
-      if Method = "Publish" then
-         return Get_Empty_Any (TypeCode.TC_Void);
-      else
-         raise Program_Error;
-      end if;
-   end Get_Result_Profile;
-
-   -------------
-   -- If_Desc --
-   -------------
-
-   function If_Desc
-     return PolyORB.Obj_Adapters.Simple.Interface_Description is
-   begin
-      return
-        (PP_Desc => Get_Parameter_Profile'Access,
-         RP_Desc => Get_Result_Profile'Access);
-   end If_Desc;
-
    -------------
    -- Publish --
    -------------
@@ -204,4 +215,16 @@ package body MOMA.Provider.Message_Producer is
 
       PolyORB.Requests.Destroy_Request (Request);
    end Publish;
+
+   --------------------
+   -- Set_Remote_Ref --
+   --------------------
+
+   procedure Set_Remote_Ref (Self : in out Object;
+                             Ref  : PolyORB.References.Ref)
+   is
+   begin
+      Self.Remote_Ref := Ref;
+   end Set_Remote_Ref;
+
 end MOMA.Provider.Message_Producer;

@@ -461,19 +461,20 @@ begin
 
    --  Create connection using Connection Factory.
    MOMA_Connection :=
-      MOMA.Connection_Factories.Create_Connection (MOMA_Factory);
+      MOMA.Connections.Create_Connection (MOMA_Factory);
 
    --  Initialize the destination
    --  (should be usually done by the administrator).
    --  NB : in this example the destination and the provider are references
    --       to the same thing (Pool_Ref). This will probably change later.
    if Pool_Ref /= PolyORB.References.Nil_Ref then
-      MOMA_Dest_Pool := MOMA.Sessions.Create_Destination
+      MOMA_Dest_Pool := MOMA.Destinations.Create_Destination
          (To_MOMA_String ("queue1"),
-          Pool_Ref);
+          Pool_Ref,
+          MOMA.Types.Pool);
    end if;
    if Router_Ref /= PolyORB.References.Nil_Ref then
-      MOMA_Dest_Router := MOMA.Destinations.Create
+      MOMA_Dest_Router := MOMA.Destinations.Create_Destination
          (To_MOMA_String ("Test"),
           Router_Ref,
           MOMA.Types.Topic);
@@ -484,13 +485,13 @@ begin
 
    --  Create Message Producer associated to the Session.
    if Kind = Pool then
-      MOMA_Producer := Create_Sender (MOMA_Session, MOMA_Dest_Pool);
+      MOMA_Producer := Create_Producer (MOMA_Session, MOMA_Dest_Pool);
    elsif Kind = Topic then
-      MOMA_Producer := Create_Sender (MOMA_Session, MOMA_Dest_Router);
+      MOMA_Producer := Create_Producer (MOMA_Session, MOMA_Dest_Router);
    end if;
 
    --  Create Message Consumer associated to the Session.
-   MOMA_Consumer_Acc := Create_Receiver (MOMA_Session, MOMA_Dest_Pool);
+   MOMA_Consumer_Acc := Create_Consumer (MOMA_Session, MOMA_Dest_Pool);
    MOMA_Consumer := MOMA_Consumer_Acc.all;
 
    --  Subscribe / Unsubscribe to the "Test" topic.

@@ -31,7 +31,7 @@
 ------------------------------------------------------------------------------
 
 --  A Destination contains data to reference an object to which messages
---  can be sent.
+--  can be sent, or from which messages can be retrieved.
 
 --  $Id$
 
@@ -48,24 +48,22 @@ package MOMA.Destinations is
    --  Ref  : Reference to the actual destination object.
    --  Kind : The kind of object it is really (message pool, router, ...).
 
-   function Create (Name : MOMA.Types.String;
-                    Ref  : PolyORB.References.Ref;
-                    Kind : MOMA.Types.Destination_Type := MOMA.Types.Unknown)
+   function Create_Destination
+     (Name    : MOMA.Types.String;
+      Ref     : PolyORB.References.Ref;
+      Kind    : MOMA.Types.Destination_Type := MOMA.Types.Unknown)
       return Destination;
-
-   function Create return Destination;
    --  Create a destination structure.
+
+   function Create_Destination return Destination;
+   --  Create an empty destination structure.
+
+   function Create_Temporary return Destination;
+   --  Create a temporary destination
+   --  XXX Not implemented.
 
    function Image (Self : Destination) return String;
    --  Image function for destination type.
-
-   procedure Subscribe (Topic : Destination;
-                        Pool  : Destination;
-                        Sub   : Boolean := True);
-   --  Subscribe / Unsubscribe a Pool to a Topic.
-   --  Topic's reference must be a router.
-   --  Pool's reference must be a message pool.
-   --  If Sub is true then it is a subscription, if false an unsubscription.
 
    --  Accessors to Destination internal data.
 
@@ -117,10 +115,11 @@ private
    procedure Set_Kind (Self : in out Destination;
                        Kind : MOMA.Types.Destination_Type);
 
-
    pragma Inline (Get_Name);
    pragma Inline (Set_Name);
    pragma Inline (Get_Ref);
    pragma Inline (Set_Ref);
+   pragma Inline (Set_Kind);
+   pragma Inline (Get_Kind);
 
 end MOMA.Destinations;

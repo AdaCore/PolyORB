@@ -45,31 +45,6 @@ package body MOMA.Connection_Factories is
       Set_Ref (Self, Remote);
    end Create;
 
-   -----------------------
-   -- Create_Connection --
-   -----------------------
-
-   function Create_Connection (Self   : Connection_Factory)
-                               return MOMA.Connections.Connection
-   is
-      Connection : MOMA.Connections.Connection;
-   begin
-      MOMA.Connections.Set_Ref (Connection, Get_Ref (Self));
-      return Connection;
-   end Create_Connection;
-
-   function Create_Connection (Self      : Connection_Factory;
-                               Username  : String;
-                               Password  : String)
-                               return MOMA.Connections.Connection
-   is
-   begin
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Create_Connection (Self, Username, Password);
-      pragma Warnings (On);
-   end Create_Connection;
-
    -------------
    -- Get_Ref --
    -------------

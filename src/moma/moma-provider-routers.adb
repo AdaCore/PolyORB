@@ -32,6 +32,7 @@
 
 --  $Id$
 
+with MOMA.Destinations;
 with MOMA.Messages;
 with MOMA.Provider.Topic_Datas;
 
@@ -79,9 +80,10 @@ package body MOMA.Provider.Routers is
       return MOMA.Destinations.Destination
    is
    begin
-      return MOMA.Destinations.Create (Get_Id (Self),
-                                       Get_Self_Ref (Self),
-                                       MOMA.Types.Router);
+      return MOMA.Destinations.Create_Destination
+        (Get_Id (Self),
+         Get_Self_Ref (Self),
+         MOMA.Types.Router);
    end Create_Destination;
 
    ------------

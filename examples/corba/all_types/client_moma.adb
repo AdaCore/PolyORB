@@ -43,8 +43,6 @@ with PolyORB.Setup.Thread_Pool_Server;
 pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
 --  XXX this package should be renamed to PolyORB.Setup.Thread_Pool_Node ...
 
-with MOMA.Sessions;
-
 with MOMA.Message_Producers;
 
 with MOMA.Messages;
@@ -61,7 +59,6 @@ procedure Client_MOMA is
    use MOMA.Message_Producers;
    use MOMA.Messages;
    use MOMA.Messages.MExecutes;
-   use MOMA.Sessions;
    use MOMA.Types;
 
    MOMA2ORB_Producer : MOMA.Message_Producers.Message_Producer;
@@ -124,8 +121,8 @@ begin
    end if;
 
    --  Create Message Producer associated to the ORB object.
-   MOMA2ORB_Producer := Create_Sender (To_MOMA_String (Argument (1)),
-                                       To_MOMA_String (Argument (2)));
+   MOMA2ORB_Producer := Create_Producer (To_MOMA_String (Argument (1)),
+                                         To_MOMA_String (Argument (2)));
 
    --  Testing MExecute.
    Test_MExecute;

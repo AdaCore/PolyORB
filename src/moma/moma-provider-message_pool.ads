@@ -51,7 +51,7 @@ package MOMA.Provider.Message_Pool is
    type Object_Acc is access Object;
 
    procedure Initialize (Self : access Object;
-                        Info : MOMA.Types.Message_Pool);
+                         Info : MOMA.Types.Message_Pool);
    --  Initialize the object.
 
    procedure Invoke
@@ -86,7 +86,7 @@ private
 
      Message_Handler : PolyORB.References.Ref := Nil_Ref;
          --  Reference of the Message_Handler to which Notify or Handle
-         --  Requests must be sent;
+         --  Requests must be sent.
 
      Behavior : MOMA.Types.Call_Back_Behavior := None;
          --  Specifies if a Notify or Handle request must be sent on reception

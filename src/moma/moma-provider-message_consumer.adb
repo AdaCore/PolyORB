@@ -63,112 +63,6 @@ package body MOMA.Provider.Message_Consumer is
                  return PolyORB.Any.Any;
    --  Actual function implemented by the servant.
 
-   ------------
-   -- Invoke --
-   ------------
-
-   procedure Invoke
-     (Self : access Object;
-      Req  : in     PolyORB.Requests.Request_Access)
-   is
-      Args : PolyORB.Any.NVList.Ref;
-   begin
-      pragma Debug (O ("The server is executing the request:"
-                    & PolyORB.Requests.Image (Req.all)));
-
-      Create (Args);
-
-      if Req.all.Operation = To_PolyORB_String ("Get") then
-
-         Add_Item (Args,
-                   (Name => To_PolyORB_String ("Message_Id"),
-                    Argument => Get_Empty_Any (TypeCode.TC_String),
-                    Arg_Modes => PolyORB.Any.ARG_IN));
-         Arguments (Req, Args);
-
-         declare
-            use PolyORB.Any.NVList.Internals;
-            Args_Sequence : constant NV_Sequence_Access
-              := List_Of (Args);
-            Get_Arg : PolyORB.Types.String :=
-              From_Any (NV_Sequence.Element_Of
-                        (Args_Sequence.all, 1).Argument);
-         begin
-            Set_Result (Req, Get (Self.Remote_Ref, Get_Arg));
-
-            pragma Debug (O ("Result: " & Image (Req.Result)));
-         end;
-
-      end if;
-   end Invoke;
-
-   ---------------------------
-   -- Get_Parameter_Profile --
-   ---------------------------
-
-   function Get_Parameter_Profile
-     (Method : String)
-     return PolyORB.Any.NVList.Ref;
-
-   function Get_Parameter_Profile
-     (Method : String)
-     return PolyORB.Any.NVList.Ref
-   is
-      use PolyORB.Any;
-      use PolyORB.Any.NVList;
-      use PolyORB.Types;
-
-      Result : PolyORB.Any.NVList.Ref;
-   begin
-      PolyORB.Any.NVList.Create (Result);
-      pragma Debug (O ("Parameter profile for " & Method & " requested."));
-      if Method = "Get" then
-         Add_Item (Result,
-                   (Name => To_PolyORB_String ("Message_Id"),
-                    Argument => Get_Empty_Any (TypeCode.TC_String),
-                    Arg_Modes => ARG_IN));
-      else
-         raise Program_Error;
-      end if;
-      return Result;
-   end Get_Parameter_Profile;
-
-   ------------------------
-   -- Get_Result_Profile --
-   ------------------------
-
-   function Get_Result_Profile
-     (Method : String)
-     return PolyORB.Any.Any;
-
-   function Get_Result_Profile
-     (Method : String)
-     return PolyORB.Any.Any
-   is
-      use PolyORB.Any;
-
-   begin
-      pragma Debug (O ("Result profile for " & Method & " requested."));
-      if Method = "Get" then
-         --  return Get_Empty_Any (TypeCode.TC_Any);
-         return Get_Empty_Any (TC_MOMA_Message);
-      else
-         raise Program_Error;
-      end if;
-   end Get_Result_Profile;
-
-   -------------
-   -- If_Desc --
-   -------------
-
-   function If_Desc
-     return PolyORB.Obj_Adapters.Simple.Interface_Description is
-   begin
-      return
-        (PP_Desc => Get_Parameter_Profile'Access,
-         RP_Desc => Get_Result_Profile'Access);
-   end If_Desc;
-
    ---------
    -- Get --
    ---------
@@ -216,5 +110,133 @@ package body MOMA.Provider.Message_Consumer is
       return Result.Argument;
 
    end Get;
+
+   ---------------------------
+   -- Get_Parameter_Profile --
+   ---------------------------
+
+   function Get_Parameter_Profile
+     (Method : String)
+     return PolyORB.Any.NVList.Ref;
+
+   function Get_Parameter_Profile
+     (Method : String)
+     return PolyORB.Any.NVList.Ref
+   is
+      use PolyORB.Any;
+      use PolyORB.Any.NVList;
+      use PolyORB.Types;
+
+      Result : PolyORB.Any.NVList.Ref;
+   begin
+      PolyORB.Any.NVList.Create (Result);
+      pragma Debug (O ("Parameter profile for " & Method & " requested."));
+      if Method = "Get" then
+         Add_Item (Result,
+                   (Name => To_PolyORB_String ("Message_Id"),
+                    Argument => Get_Empty_Any (TypeCode.TC_String),
+                    Arg_Modes => ARG_IN));
+      else
+         raise Program_Error;
+      end if;
+      return Result;
+   end Get_Parameter_Profile;
+
+   --------------------
+   -- Get_Remote_Ref --
+   --------------------
+
+   function Get_Remote_Ref (Self : Object)
+      return PolyORB.References.Ref
+   is
+   begin
+      return Self.Remote_Ref;
+   end Get_Remote_Ref;
+
+   ------------------------
+   -- Get_Result_Profile --
+   ------------------------
+
+   function Get_Result_Profile
+     (Method : String)
+     return PolyORB.Any.Any;
+
+   function Get_Result_Profile
+     (Method : String)
+     return PolyORB.Any.Any
+   is
+      use PolyORB.Any;
+
+   begin
+      pragma Debug (O ("Result profile for " & Method & " requested."));
+      if Method = "Get" then
+         --  return Get_Empty_Any (TypeCode.TC_Any);
+         return Get_Empty_Any (TC_MOMA_Message);
+      else
+         raise Program_Error;
+      end if;
+   end Get_Result_Profile;
+
+   -------------
+   -- If_Desc --
+   -------------
+
+   function If_Desc
+     return PolyORB.Obj_Adapters.Simple.Interface_Description is
+   begin
+      return
+        (PP_Desc => Get_Parameter_Profile'Access,
+         RP_Desc => Get_Result_Profile'Access);
+   end If_Desc;
+
+   ------------
+   -- Invoke --
+   ------------
+
+   procedure Invoke
+     (Self : access Object;
+      Req  : in     PolyORB.Requests.Request_Access)
+   is
+      Args : PolyORB.Any.NVList.Ref;
+   begin
+      pragma Debug (O ("The server is executing the request:"
+                    & PolyORB.Requests.Image (Req.all)));
+
+      Create (Args);
+
+      if Req.all.Operation = To_PolyORB_String ("Get") then
+
+         Add_Item (Args,
+                   (Name => To_PolyORB_String ("Message_Id"),
+                    Argument => Get_Empty_Any (TypeCode.TC_String),
+                    Arg_Modes => PolyORB.Any.ARG_IN));
+         Arguments (Req, Args);
+
+         declare
+            use PolyORB.Any.NVList.Internals;
+            Args_Sequence : constant NV_Sequence_Access
+              := List_Of (Args);
+            Get_Arg : PolyORB.Types.String :=
+              From_Any (NV_Sequence.Element_Of
+                        (Args_Sequence.all, 1).Argument);
+         begin
+            Set_Result (Req, Get (Self.Remote_Ref, Get_Arg));
+
+            pragma Debug (O ("Result: " & Image (Req.Result)));
+         end;
+
+      end if;
+   end Invoke;
+
+   --------------------
+   -- Set_Remote_Ref --
+   --------------------
+
+   procedure Set_Remote_Ref (Self : in out Object;
+                             Ref  : PolyORB.References.Ref)
+   is
+   begin
+      Self.Remote_Ref := Ref;
+   end Set_Remote_Ref;
 
 end MOMA.Provider.Message_Consumer;

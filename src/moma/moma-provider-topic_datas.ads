@@ -51,20 +51,11 @@ package MOMA.Provider.Topic_Datas is
                                        MOMA.Destinations."=");
    --  A chained list of destinations.
 
-   type Topic is record
-      Name        : MOMA.Types.String;
-      Subscribers : Destination_List.List;
-   end record;
-   --  Name : Name of the topic.
+   type Topic is private;
+   --  Name          : Name of the topic.
    --  Subscribers   : chained list of destinations, which are the message
    --                  pools subscribed to this topic.
-   --  XXX Should be private.
    --  XXX Maybe not necessary to store a name...
-
-   package Perfect_Htable is
-      new PolyORB.Utils.HTables.Perfect (Topic);
-
-   use Perfect_Htable;
 
    Key_Not_Found : exception;
 
@@ -90,38 +81,19 @@ package MOMA.Provider.Topic_Datas is
 
 private
 
+   type Topic is record
+      Name        : MOMA.Types.String;
+      Subscribers : Destination_List.List;
+   end record;
+
+   package Perfect_Htable is
+      new PolyORB.Utils.HTables.Perfect (Topic);
+
    type Topic_Data is record
-      T             : Table_Instance;
+      T             : Perfect_Htable.Table_Instance;
       T_Initialized : Boolean := False;
       T_Lock        : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
    end record;
-
-   procedure Register
-     (W : in out Topic_Data;
-      K : String;
-      T : Topic);
-   --  Associate key K with topic T.
-
-   procedure Unregister
-     (W : in out Topic_Data;
-      K : String);
-   --  Remove any association for K. Key_Not_Found is raised
-   --  if no topic was registered for this key.
-
-   function Lookup
-      (W : Topic_Data;
-       K : String)
-     return Topic;
-   --  Lookup K in the dictionary, and return the associated topic.
-   --  Key_Not_Found is raised if no topic was registered for this key.
-
-   function Lookup
-     (W : Topic_Data;
-      K : String;
-      Default : Topic)
-     return Topic;
-   --  As above, but Default is returned for non-registered keys,
-   --  instead of raising an exception.
 
    function New_Topic (S : Destination_List.List) return Topic;
    --  Return a new topic with the list of subscribers S.

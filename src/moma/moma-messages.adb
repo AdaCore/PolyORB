@@ -458,8 +458,8 @@ package body MOMA.Messages is
    begin
       Set_Message_Id     (Self, To_MOMA_String ("moma"));
       Set_Correlation_Id (Self, To_MOMA_String ("moma"));
-      Set_Destination    (Self, Create);
-      Set_Reply_To       (Self, Create);
+      Set_Destination    (Self, Create_Destination);
+      Set_Reply_To       (Self, Create_Destination);
       --  Set_Priority       (Self, Priority);
       --  Set_Timestamp      (Self, Timestamp);
       --  Set_Expiration     (Self, Expiration);

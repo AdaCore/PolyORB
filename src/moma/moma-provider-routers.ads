@@ -162,4 +162,9 @@ private
       return MOMA.Provider.Topic_Datas.Destination_List.List;
    --  Return a copy of the list Self.Routers.List.
 
+   pragma Inline (Get_Id,
+                  Set_Id,
+                  Get_Self_Ref,
+                  Set_Self_Ref);
+
 end MOMA.Provider.Routers;

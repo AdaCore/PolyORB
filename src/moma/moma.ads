@@ -31,7 +31,7 @@
 ------------------------------------------------------------------------------
 
 --  Base package for all packages related to the MOMA application personality,
---  the Message Oriented Middelware for Ada API.
+--  the Message Oriented Middleware for Ada API.
 
 --  $Id$
 

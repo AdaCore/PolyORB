@@ -34,11 +34,13 @@
 
 with MOMA.Messages;
 with MOMA.Destinations;
+with MOMA.Provider.Message_Handler;
 with MOMA.Types;
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Log;
+with PolyORB.Minimal_Servant.Tools;
 with PolyORB.Types;
 with PolyORB.Requests;
 
@@ -52,6 +54,7 @@ package body MOMA.Message_Handlers is
    use PolyORB.Any;
    use PolyORB.Any.NVList;
    use PolyORB.Log;
+   use PolyORB.Minimal_Servant.Tools;
    use PolyORB.Types;
    use PolyORB.Requests;
 
@@ -59,6 +62,59 @@ package body MOMA.Message_Handlers is
      new PolyORB.Log.Facility_Log ("moma.message_handlers");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+
+   ---------------------
+   -- Create_Handler --
+   ---------------------
+
+   function Create_Handler
+     (Session        : MOMA.Sessions.Session;
+      Message_Cons   : MOMA.Message_Consumers.Message_Consumer_Acc)
+      return MOMA.Message_Handlers.Message_Handler_Acc
+   is
+      Handler : MOMA.Message_Handlers.Message_Handler_Acc :=
+         new MOMA.Message_Handlers.Message_Handler;
+      Servant : constant MOMA.Provider.Message_Handler.Object_Acc :=
+         new MOMA.Provider.Message_Handler.Object;
+      Servant_Ref : PolyORB.References.Ref;
+   begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Session);
+      pragma Warnings (On);
+      --  XXX Session is to be used to 'place' the receiver
+      --  using session position in the POA.
+      --  XXX XXX (same as in Create_Consumer)
+      Initiate_Servant (Servant,
+                        MOMA.Provider.Message_Handler.If_Desc,
+                        MOMA.Types.MOMA_Type_Id,
+                        Servant_Ref);
+      MOMA.Message_Handlers.Initialize (
+         Handler, Message_Cons, Servant_Ref, null, null);
+      MOMA.Provider.Message_Handler.Initialize (Servant, Handler);
+      return Handler;
+   end Create_Handler;
+
+   -----------------
+   -- Get_Handler --
+   -----------------
+
+   function  Get_Handler (Self : access Message_Handler)
+      return Handler
+   is
+   begin
+      return Self.Handler_Procedure;
+   end Get_Handler;
+
+   ------------------
+   -- Get_Notifier --
+   ------------------
+
+   function Get_Notifier (Self : access Message_Handler)
+      return Notifier
+   is
+   begin
+      return Self.Notifier_Procedure;
+   end Get_Notifier;
 
    ----------------
    -- Initialize --
@@ -83,28 +139,6 @@ package body MOMA.Message_Handlers is
       end if;
    end Initialize;
 
-   -----------------
-   -- Get_Handler --
-   -----------------
-
-   function  Get_Handler (Self : access Message_Handler)
-      return Handler
-   is
-   begin
-      return Self.Handler_Procedure;
-   end Get_Handler;
-
-   ------------------
-   -- Set_Notifier --
-   ------------------
-
-   function Get_Notifier (Self : access Message_Handler)
-      return Notifier
-   is
-   begin
-      return Self.Notifier_Procedure;
-   end Get_Notifier;
-
    -------------------------
    -- Register_To_Servant --
    -------------------------
@@ -116,7 +150,8 @@ package body MOMA.Message_Handlers is
       Result      : PolyORB.Any.NamedValue;
       Servant_Ref : PolyORB.References.Ref;
       Self_Dest   : constant MOMA.Destinations.Destination :=
-         MOMA.Destinations.Create (To_PolyORB_String (""), Self.Servant_Ref);
+         MOMA.Destinations.Create_Destination
+            (To_PolyORB_String (""), Self.Servant_Ref);
    begin
       pragma Debug (O ("Registering Message_Handler with " &
          Call_Back_Behavior'Image (Self.Behavior) & " behavior"));

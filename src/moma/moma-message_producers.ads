@@ -44,6 +44,7 @@ with Ada.Real_Time;
 
 with MOMA.Destinations;
 with MOMA.Messages;
+with MOMA.Sessions;
 with MOMA.Types;
 
 with PolyORB.Annotations;
@@ -61,12 +62,22 @@ package MOMA.Message_Producers is
    --  TTL            : default time to live for sent messages.
    --  Destination    : destination of sent messages.
    --  Type_Id_Of     : XXX to be defined.
-   --  Ref            : reference (XXX to be defined).
+   --  Ref            : reference to the provider servant.
    --  CBH            : call back handler associated to the producer.
 
    type CBH_Note is new PolyORB.Annotations.Note with record
       Dest : PolyORB.References.Ref;
    end record;
+
+   function Create_Producer (Session  : MOMA.Sessions.Session;
+                             Dest     : MOMA.Destinations.Destination)
+                             return Message_Producer;
+   --  Create a message producer whose destination is a MOM object.
+
+   function Create_Producer (ORB_Object : MOMA.Types.String;
+                             Mesg_Pool  : MOMA.Types.String)
+                             return Message_Producer;
+   --  Create a message producer whose destination is an ORB object.
 
    procedure Close;
    --  XXX not implemented. Rename it to Destroy ?
@@ -118,7 +129,7 @@ package MOMA.Message_Producers is
    procedure Set_Destination (Self : in out Message_Producer;
                               Dest : MOMA.Destinations.Destination);
 
-   --  XXX These two functions should not be called from the client
+   --  XXX These two functions should not be called from the client.
    --  Need to hide them ...
 
    function Get_Type_Id_Of (Self : Message_Producer)
@@ -146,18 +157,18 @@ private
    end record;
 
    pragma Inline (Get_Persistent,
-                    Set_Persistent,
-                    Get_Priority,
-                    Set_Priority,
-                    Get_Time_To_Live,
-                    Set_Time_To_Live,
-                    Get_Ref,
-                    Set_Ref,
-                    Get_Destination,
-                    Set_Destination,
-                    Get_Type_Id_Of,
-                    Set_Type_Id_Of,
-                    Get_CBH,
-                    Set_CBH);
+                  Set_Persistent,
+                  Get_Priority,
+                  Set_Priority,
+                  Get_Time_To_Live,
+                  Set_Time_To_Live,
+                  Get_Ref,
+                  Set_Ref,
+                  Get_Destination,
+                  Set_Destination,
+                  Get_Type_Id_Of,
+                  Set_Type_Id_Of,
+                  Get_CBH,
+                  Set_CBH);
 
 end MOMA.Message_Producers;

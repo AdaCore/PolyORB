@@ -45,25 +45,32 @@ package body MOMA.Connections is
       null;
    end Close;
 
-   --------------------
-   -- Create_Session --
-   --------------------
+   -----------------------
+   -- Create_Connection --
+   -----------------------
 
-   function Create_Session (Self             : Connection;
-                            Transacted       : Boolean;
-                            Acknowledge_Mode : MOMA.Types.Acknowledge_Type)
-                            return MOMA.Sessions.Session
+   function Create_Connection
+      (Factory : MOMA.Connection_Factories.Connection_Factory)
+      return Connection
    is
-      Session : MOMA.Sessions.Session;
+      New_Connection : Connection;
    begin
+      Set_Ref (New_Connection, MOMA.Connection_Factories.Get_Ref (Factory));
+      return New_Connection;
+   end Create_Connection;
+
+   function Create_Connection
+      (Factory   : MOMA.Connection_Factories.Connection_Factory;
+       Username  : String;
+       Password  : String)
+      return Connection
+   is
+   begin
+      raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
-      pragma Unreferenced (Self);
+      return Create_Connection (Factory, Username, Password);
       pragma Warnings (On);
-      --  XXX ??? Why
-      Session.Transacted := Transacted;
-      Session.Acknowledge_Mode := Acknowledge_Mode;
-      return Session;
-   end Create_Session;
+   end Create_Connection;
 
    -------------------
    -- Get_Client_Id --

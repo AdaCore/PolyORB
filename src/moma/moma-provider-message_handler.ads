@@ -63,14 +63,15 @@ package MOMA.Provider.Message_Handler is
    pragma Inline (If_Desc);
    --  Interface description for SOA object adapter.
 
-   procedure Initialize (
-      Self                 : access Object;
+   procedure Initialize
+     (Self                 : access Object;
       MOMA_Message_Handler : MOMA.Message_Handlers.Message_Handler_Acc);
    --  Initialize with MOMA_Message_Handler.
    --  Should be called after Initiate_Servant.
    --  Should be called only once.
 
 private
+
    type Object is new PolyORB.Minimal_Servant.Servant with record
       MOMA_Message_Handler : MOMA.Message_Handlers.Message_Handler_Acc := null;
    end record;

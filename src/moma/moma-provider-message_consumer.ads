@@ -45,12 +45,8 @@ with PolyORB.References;
 
 package MOMA.Provider.Message_Consumer is
 
-   type Object is new PolyORB.Minimal_Servant.Servant with record
-      Remote_Ref : PolyORB.References.Ref;
-      --  Reference to the remote object from which receive messages.
-
-   end record;
-   --  XXX should be private.
+   type Object is new PolyORB.Minimal_Servant.Servant with private;
+   --  Remote_Ref : Reference to the pool from which receive messages.
 
    type Object_Acc is access Object;
 
@@ -63,5 +59,19 @@ package MOMA.Provider.Message_Consumer is
      return PolyORB.Obj_Adapters.Simple.Interface_Description;
    pragma Inline (If_Desc);
    --  Interface description for SOA object adapter.
+
+   --  Accessors to Object internals.
+
+   function Get_Remote_Ref (Self : Object)
+      return PolyORB.References.Ref;
+
+   procedure Set_Remote_Ref (Self : in out Object;
+                             Ref  : PolyORB.References.Ref);
+
+private
+
+   type Object is new PolyORB.Minimal_Servant.Servant with record
+      Remote_Ref : PolyORB.References.Ref;
+   end record;
 
 end MOMA.Provider.Message_Consumer;

@@ -42,8 +42,9 @@
 
 with MOMA.Messages;
 with MOMA.Message_Consumers;
-
+with MOMA.Sessions;
 with MOMA.Types;
+
 with PolyORB.References;
 
 package MOMA.Message_Handlers is
@@ -56,7 +57,7 @@ package MOMA.Message_Handlers is
    --  Handler_Procedure
    --  Notifier_Procedure
    --  Behavior
-   --  XXX Add comments about the various attributes
+   --  XXX Add comments about the various attributes.
 
    type Message_Handler_Acc is access Message_Handler;
 
@@ -82,13 +83,20 @@ package MOMA.Message_Handlers is
    --  If the behavior is Handle and no Handler_Procedure is provided, the
    --  incoming messages will be lost.
 
+   function Create_Handler
+     (Session        : MOMA.Sessions.Session;
+      Message_Cons   : MOMA.Message_Consumers.Message_Consumer_Acc)
+      return MOMA.Message_Handlers.Message_Handler_Acc;
+   --  Create a Message Handler associated to the specified Message consumer.
+   --  Must set the Handler and Notifier procedures afterwards.
+
    function  Get_Handler (Self : access Message_Handler)
       return Handler;
-   --  Get the Handler procedure
+   --  Get the Handler procedure.
 
    function Get_Notifier (Self : access Message_Handler)
       return Notifier;
-   --  Get the Notifier procedure;
+   --  Get the Notifier procedure.
 
    procedure Set_Behavior (
       Self           : access Message_Handler;

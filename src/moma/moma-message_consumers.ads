@@ -44,6 +44,8 @@ with Ada.Real_Time;
 
 with MOMA.Destinations;
 with MOMA.Messages;
+with MOMA.Sessions;
+with MOMA.Types;
 
 with PolyORB.References;
 
@@ -54,6 +56,17 @@ package MOMA.Message_Consumers is
    --  Ref           : reference to the provider servant
 
    type Message_Consumer_Acc is access Message_Consumer;
+
+   function Create_Consumer (Session : MOMA.Sessions.Session;
+                             Dest    : MOMA.Destinations.Destination)
+      return Message_Consumer_Acc;
+   --  Create a new message consumer.
+
+   function Create_Consumer (Session          : MOMA.Sessions.Session;
+                             Dest             : MOMA.Destinations.Destination;
+                             Message_Selector : MOMA.Types.String)
+      return Message_Consumer_Acc;
+   --  XXX Not implemented.
 
    procedure Close;
    --  XXX not implemented. Rename it to Destroy ?
@@ -95,5 +108,10 @@ private
       Destination    : MOMA.Destinations.Destination;
       Ref            : PolyORB.References.Ref;
    end record;
+
+   pragma Inline (Get_Ref,
+                  Set_Ref,
+                  Get_Destination,
+                  Set_Destination);
 
 end MOMA.Message_Consumers;

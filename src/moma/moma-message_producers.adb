@@ -34,22 +34,27 @@
 
 with MOMA.Messages;
 with MOMA.Messages.MExecutes;
+with MOMA.Provider.Message_Producer;
 with MOMA.Types;
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Log;
+with PolyORB.Minimal_Servant.Tools;
 with PolyORB.References;
+with PolyORB.References.IOR;
 with PolyORB.Types;
 
 package body MOMA.Message_Producers is
 
    use MOMA.Messages;
    use MOMA.Messages.MExecutes;
+   use MOMA.Provider.Message_Producer;
    use MOMA.Types;
 
    use PolyORB.Any;
    use PolyORB.Log;
+   use PolyORB.Minimal_Servant.Tools;
    use PolyORB.Types;
 
    package L is
@@ -74,6 +79,88 @@ package body MOMA.Message_Producers is
    begin
       null;
    end Close;
+
+   ---------------------
+   -- Create_Producer --
+   ---------------------
+
+   function Create_Producer (Session  : MOMA.Sessions.Session;
+                             Dest     : MOMA.Destinations.Destination)
+                             return Message_Producer
+   is
+      use PolyORB.References;
+      use MOMA.Types;
+
+      MOMA_Obj : constant MOMA.Provider.Message_Producer.Object_Acc
+        := new MOMA.Provider.Message_Producer.Object;
+
+      MOMA_Ref : PolyORB.References.Ref;
+      Producer : MOMA.Message_Producers.Message_Producer;
+      Type_Id_S : MOMA.Types.String
+        := To_MOMA_String (Type_Id_Of (MOMA.Destinations.Get_Ref (Dest)));
+   begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Session);
+      pragma Warnings (On);
+      --  XXX Session is to be used to 'place' the receiver
+      --  using session position in the POA
+
+      Set_Remote_Ref (MOMA_Obj.all, MOMA.Destinations.Get_Ref (Dest));
+      Initiate_Servant (MOMA_Obj,
+                        MOMA.Provider.Message_Producer.If_Desc,
+                        MOMA.Types.MOMA_Type_Id,
+                        MOMA_Ref);
+
+      Set_Destination (Producer, Dest);
+      Set_Ref (Producer, MOMA_Ref);
+      Set_Type_Id_Of (Producer, Type_Id_S);
+      --  XXX Is it really useful to have the Ref to the remote destination in
+      --  the Message_Producer itself ? By construction, this ref is
+      --  encapsulated in the MOMA.Provider.Message_Producer.Object ....
+      return Producer;
+   end Create_Producer;
+
+   function Create_Producer (ORB_Object : MOMA.Types.String;
+                             Mesg_Pool  : MOMA.Types.String)
+                             return Message_Producer
+   is
+
+      use MOMA.Types;
+
+      use PolyORB.Annotations;
+      use PolyORB.Call_Back;
+      use PolyORB.References;
+      use PolyORB.References.IOR;
+      use PolyORB.Types;
+
+      Producer : MOMA.Message_Producers.Message_Producer;
+
+      ORB_Object_IOR      : constant IOR_Type := String_To_Object (ORB_Object);
+      Dest_Ref_Object_IOR : constant IOR_Type := String_To_Object (Mesg_Pool);
+
+      Type_Id_S : MOMA.Types.String
+        := To_MOMA_String (Type_Id_Of (ORB_Object_IOR));
+
+   begin
+      if Type_Id_S = MOMA_Type_Id then
+         raise  Program_Error;
+      end if;
+
+      Set_Ref (Producer, ORB_Object_IOR);
+      Set_Type_Id_Of (Producer, Type_Id_S);
+      Set_CBH (Producer, new PolyORB.Call_Back.Call_Back_Handler);
+      --  XXX should free this memory sometime, somewhere ...
+
+      Attach_Handler_To_CB
+        (Call_Back_Handler (Get_CBH (Producer).all),
+         MOMA.Message_Producers.Response_Handler'Access);
+
+      Set_Note
+         (Notepad_Of (Get_CBH (Producer)).all,
+          CBH_Note'(Note with Dest => Dest_Ref_Object_IOR));
+
+      return Producer;
+   end Create_Producer;
 
    -------------
    -- Get_CBH --
