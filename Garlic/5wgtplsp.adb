@@ -62,6 +62,31 @@ package body System.Garlic.TCP_Platform_Specific is
    pragma Convention (C, NT_Hostent_Access);
    --  Access to host entry
 
+   type Socket_Fd_Array is array (1 .. 64) of C.unsigned;
+   pragma Convention (C, Socket_Fd_Array);
+   --  Array of socket fd.
+
+   type NT_Fd_Set is record
+      fd_count : C.unsigned;
+      fd_array : Socket_Fd_Array;
+   end record;
+   pragma Convention (C, NT_Fd_Set);
+   --  Socket set
+
+   type NT_Fd_Set_Access is access all NT_Fd_Set;
+   pragma Convention (C, NT_Fd_Set_Access);
+   --  Access to socket set
+
+   type NT_Timeval is record
+      tv_sec, tv_usec : C.long;
+   end record;
+   pragma Convention (C, NT_Timeval);
+   --  Timeval record
+
+   type NT_Timeval_Access is access all NT_Timeval;
+   pragma Convention (C, NT_Timeval_Access);
+   --  Access to timeval record
+
    --------------
    -- C_Accept --
    --------------
@@ -363,6 +388,142 @@ package body System.Garlic.TCP_Platform_Specific is
    begin
       return Std_Recv (S, Buf, Len, Flags);
    end C_Recv;
+
+   --------------
+   -- C_Select --
+   --------------
+
+   function C_Select
+     (N         : C.int;
+      Rfds      : Fd_Set_Access;
+      Sfds      : Fd_Set_Access;
+      Exceptfds : Fd_Set_Access;
+      Tptr      : Timeval_Access)
+     return C.int;
+   pragma Export (C, C_Select, "select");
+
+   function Std_Select
+     (N         : C.int;
+      Rfds      : NT_Fd_Set_Access;
+      Sfds      : NT_Fd_Set_Access;
+      Exceptfds : NT_Fd_Set_Access;
+      Tptr      : NT_Timeval_Access)
+     return C.int;
+   pragma Import (Stdcall, Std_Select, "select");
+
+   function C_Select
+     (N         : C.int;
+      Rfds      : Fd_Set_Access;
+      Sfds      : Fd_Set_Access;
+      Exceptfds : Fd_Set_Access;
+      Tptr      : Timeval_Access)
+     return C.int
+   is
+
+      Mask : array (1 .. 32) of Thin.Fd_Set
+        := (2#00000000_00000000_00000000_00000001#,
+            2#00000000_00000000_00000000_00000010#,
+            2#00000000_00000000_00000000_00000100#,
+            2#00000000_00000000_00000000_00001000#,
+            2#00000000_00000000_00000000_00010000#,
+            2#00000000_00000000_00000000_00100000#,
+            2#00000000_00000000_00000000_01000000#,
+            2#00000000_00000000_00000000_10000000#,
+            2#00000000_00000000_00000001_00000000#,
+            2#00000000_00000000_00000010_00000000#,
+            2#00000000_00000000_00000100_00000000#,
+            2#00000000_00000000_00001000_00000000#,
+            2#00000000_00000000_00010000_00000000#,
+            2#00000000_00000000_00100000_00000000#,
+            2#00000000_00000000_01000000_00000000#,
+            2#00000000_00000000_10000000_00000000#,
+            2#00000000_00000001_00000000_00000000#,
+            2#00000000_00000010_00000000_00000000#,
+            2#00000000_00000100_00000000_00000000#,
+            2#00000000_00001000_00000000_00000000#,
+            2#00000000_00010000_00000000_00000000#,
+            2#00000000_00100000_00000000_00000000#,
+            2#00000000_01000000_00000000_00000000#,
+            2#00000000_10000000_00000000_00000000#,
+            2#00000001_00000000_00000000_00000000#,
+            2#00000010_00000000_00000000_00000000#,
+            2#00000100_00000000_00000000_00000000#,
+            2#00001000_00000000_00000000_00000000#,
+            2#00010000_00000000_00000000_00000000#,
+            2#00100000_00000000_00000000_00000000#,
+            2#01000000_00000000_00000000_00000000#,
+            2#10000000_00000000_00000000_00000000#);
+
+      procedure BSD_Fd_Set_To_NT (BSD  : in     Fd_Set_Access;
+                                  MS   :    out NT_Fd_Set);
+      pragma Inline (BSD_Fd_Set_To_NT);
+      --  convert from BSD fd_set to Microsoft fd_set.
+
+      procedure NT_To_BSD_Fd_Set (MS   : in NT_Fd_Set;
+                                  BSD  : in Fd_Set_Access);
+      pragma Inline (NT_To_BSD_Fd_Set);
+      --  convert from Microsoft fd_set to BSD fd_set.
+
+      L_Rfds, L_Sfds : aliased NT_Fd_Set;
+
+      L_Tptr         : aliased NT_Timeval
+        := (C.long (Tptr.Tv_Sec), C.long (Tptr.Tv_Usec));
+
+      Result : C.int;
+
+      ----------------------
+      -- BSD_Fd_Set_To_NT --
+      ----------------------
+
+      procedure BSD_Fd_Set_To_NT (BSD : in     Fd_Set_Access;
+                                         MS  :    out NT_Fd_Set)
+      is
+         use type C.unsigned;
+
+      begin
+         MS.fd_count := 0;
+
+         for K in 1 .. 32 loop
+            if not ((BSD.all and Mask (K)) = 0) then
+               MS.fd_count := MS.fd_count + 1;
+               MS.fd_array (Positive (MS.fd_count))
+                 := C.unsigned (Mask (K));
+            end if;
+         end loop;
+      end BSD_Fd_Set_To_NT;
+
+      ----------------------
+      -- NT_To_BSD_Fd_Set --
+      ----------------------
+
+      procedure NT_To_BSD_Fd_Set (MS  : in NT_Fd_Set;
+                                  BSD : in Fd_Set_Access)
+      is
+      begin
+         BSD.all := 0;
+
+         for K in 1 .. MS.fd_count loop
+            BSD.all := BSD.all + Mask (Positive (MS.fd_array (Positive (K))));
+         end loop;
+      end NT_To_BSD_Fd_Set;
+
+   begin
+      --  convert data from BSD format to Microsoft one.
+      BSD_Fd_Set_To_NT (Rfds, L_Rfds);
+      BSD_Fd_Set_To_NT (Sfds, L_Sfds);
+
+      Result := Std_Select (N,
+                            L_Rfds'Unchecked_Access,
+                            L_Sfds'Unchecked_Access,
+                            null,              --  not use right now
+                            L_Tptr'Unchecked_Access);
+
+      --  convert back to BSD format.
+      NT_To_BSD_Fd_Set (L_Rfds, Rfds);
+      NT_To_BSD_Fd_Set (L_Sfds, Sfds);
+
+      return Result;
+   end C_Select;
 
    ------------
    -- C_Send --
