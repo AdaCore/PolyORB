@@ -100,14 +100,18 @@ package body Exp_Hlpr is
      (Subprogram    : Entity_Id;
       Arry          : Entity_Id;
       Innermost_Stm : Node_Id;
-      Indices       : List_Id)
+      Indices       : List_Id;
+      Start_Dimen   : Entity_Id := Empty)
       return Node_Id;
    --  Build nested loop statements that iterate over the elements
    --  of an array Arry. Statement Innermost_Stm is executed
    --  for each element; Indices is the list of indices to be used
    --  in the construction of the indexed component that denotes
    --  the current element. Subprogram is the entity for the subprogram
-   --  for which this iterator is generated.
+   --  for which this iterator is generated. If Start_Dimen is not Empty,
+   --  it must be the name of a subprogram taking one integer parameter,
+   --  to be executed at the beginning of each dimension. The actual for
+   --  the parameter is the rank of the dimension.
 
    generic
       with procedure Process_One_Field (E : Entity_Id);
@@ -1618,7 +1622,8 @@ package body Exp_Hlpr is
      (Subprogram    : Entity_Id;
       Arry          : Entity_Id;
       Innermost_Stm : Node_Id;
-      Indices       : List_Id)
+      Indices       : List_Id;
+      Start_Dimen   : Entity_Id := Empty)
       return Node_Id
    is
       Loc       : constant Source_Ptr := Sloc (Subprogram);
@@ -1648,6 +1653,24 @@ package body Exp_Hlpr is
                          Expressions => New_List (
                            Make_Integer_Literal (Loc, Ndim - J + 1))))),
              Statements => New_List (Inner_Stm));
+
+         --  In the case of unconstrained arrays, additional processing
+         --  is required at the beginning of each dimension. Call the
+         --  appropriate subprogram (Start_Dimen).
+
+         if Present (Start_Dimen) then
+            Inner_Stm := Make_Block_Statement (Loc,
+              Handled_Sequence_Of_Statements =>
+                Make_Handled_Sequence_Of_Statements (Loc,
+                  Statements => New_List (
+                    Make_Procedure_Call_Statement (Loc,
+                      Name =>
+                        New_Occurrence_Of (Start_Dimen, Loc),
+                      Parameter_Associations =>
+                        New_List (Make_Integer_Literal (Loc, J))),
+                    Inner_Stm)));
+         end if;
+
       end loop;
       return Inner_Stm;
    end Make_Array_Iterator;
