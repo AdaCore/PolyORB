@@ -220,8 +220,8 @@ Nous souhaitons limiter notre étude à un ensemble de cas précis.
 
 Nous identifions les cas d'interopération possibles par une matrice~:
 
-{
 \newcommand{\RH}[1]{\raisebox{-1ex}[0pt][1em]{\makebox[1em][l]{\rotatebox{45}{#1}}}}
+{
 \def\myrule{\relax}
 \vspace{2cm}
 \begin{tabular}{l|*{4}{c!{\myrule}}@{\gdef\myrule{\vline}}}
@@ -1842,6 +1842,27 @@ Les politiques suivantes sont actuellement réalisées~:
 %%  ./sequences-unbounded-search.ads
 %%  ./sequences-unbounded.ads
 %%  ./sequences.ads
+
+\section{Performances}
+
+Nous avons mesuré le temps pour effectuer 10\,000 RPC locaux
+consistant en un écho d'une chaîne de caractères, avec des
+clients dynamiques basés l'un sur \droopi{}, l'autre sur
+\adabroker, et des serveurs basés sur ces deux intergiciels.
+Les résultats sont donnés en secondes.
+
+{
+\def\myrule{\relax}
+\vspace{2cm}
+\begin{tabular}{l|*{3}{c!{\myrule}}@{\gdef\myrule{\vline}}}
+\backslashbox{Client}{Serveur}
+& \RH{Serveur \droopi{} no tasking, BOA}
+& \RH{Serveur \droopi{} tasking, POA}
+& \RH{Server \adabroker{}}      \\ \hline\hline
+Client \droopi{}    & 13,36 & 31,66 & 8,64 \\ \hline
+Client \adabroker{} & 18,23 & 36,27 & 26,20 \\ \hline
+\end{tabular}
+}
 
 \section{Perspectives}
 
