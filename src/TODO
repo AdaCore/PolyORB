@@ -6,6 +6,10 @@ $Id$
 Items still requiring attention
 -------------------------------
 
+* Implement CORBA bounded strings
+
+* Implement CORBA fixed-point types
+
 * When registering a profile tag, the associated representation
   subprograms should be To_Any and From_Any, not CDR marshalling
   subprograms.
