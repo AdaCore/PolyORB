@@ -47,12 +47,6 @@ DISTCLEANFILES = @APPLI_EXES@ @SERVICE_EXES@
 
 all-local:  @APPLI_EXES@ @SERVICE_EXES@
 
-.idl.ads:
-	$(IDLAC) $(IDLAC_FLAGS) $<
-
-.idl.adb:
-	$(IDLAC) $(IDLAC_FLAGS) $<
-
 @APPLI_EXES@ @SERVICE_EXES@: forced_targets $(EXAMPLE:%=%.ads)
 	$(GNATMAKE_FOR_TARGET) $@ $($@_FLAGS) $(GNATMAKE_FLAGS)
 
@@ -62,8 +56,7 @@ src: force
 	cd $(top_builddir)/cos && $(MAKE)
 	cd $(top_builddir)/src && $(MAKE)
 
-$(IDLAC): force
-	cd $(top_builddir)/compilers && $(MAKE)
+FORCE_IDLAC=	force
 
 force:
 
