@@ -28,7 +28,7 @@ procedure Dynclient is
    begin
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Short),
+                 Argument => To_Any (CORBA.Short (0)),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Functions,
@@ -92,7 +92,7 @@ procedure Dynclient is
    begin
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Short),
+                 Argument => To_Any (CORBA.Short (0)),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Functions,
@@ -512,7 +512,7 @@ procedure Dynclient is
    begin
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Short),
+                 Argument => To_Any (CORBA.Short (0)),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Functions,
@@ -561,7 +561,7 @@ procedure Dynclient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Short),
+                 Argument => To_Any (CORBA.Short (0)),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Functions,
@@ -1021,7 +1021,7 @@ procedure Dynclient is
    begin
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Short),
+                 Argument => To_Any (CORBA.Short (0)),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Functions,
@@ -1224,8 +1224,8 @@ begin
          delay 5.0;
          Ok := Oneway_Checker (Myall_Functions) = 2;
       end if;
---    exception when others =>
---       Ok := False;
+   exception when others =>
+      Ok := False;
    end;
     Output ("test void one way procedure", Ok);
 

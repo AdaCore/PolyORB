@@ -766,7 +766,8 @@ package CORBA is
                               Continue : out Boolean);
    procedure Iterate_Over_Any_Elements (In_Any : in Any);
 
-   --  Not in spec : get empty Any (no value ptr)
+   --  Not in spec : returns an empty Any (with no value but a type)
+   --  Should never be called outside the broca.cdr package
    function Get_Empty_Any (Tc : TypeCode.Object) return Any;
 
    --  Not in spec : return true if the Any has a value, false
@@ -776,6 +777,7 @@ package CORBA is
    --  These functions allows the user to set the value of an any
    --  directly if he knows its kind. It a function is called on a
    --  bad kind of any, a BAD_TYPECODE exception will be raised
+   --  Should never be called outside the broca.cdr package
    procedure Set_Any_Value (Any_Value : in out CORBA.Any;
                             Value : in CORBA.Octet);
    procedure Set_Any_Value (Any_Value : in out CORBA.Any;
