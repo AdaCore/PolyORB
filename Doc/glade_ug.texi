@@ -1311,7 +1311,7 @@ REPRESENTATION_CLAUSE ::=
  | @b{for} Partition'Filter @b{use} STRING_LITERAL;
 @end smallexample
 
-@node Version Consistency, , Channel and Partition Filter, The Configuration Language
+@node Version Consistency, Anonymous Tasks Pool, Channel and Partition Filter, The Configuration Language
 @subsection Version Consistency
 
 @smallexample
@@ -1731,9 +1731,11 @@ features. Some of these features are not configurable by the user.
 @menu
 * Heterogeneous Systems::       
 * Multiple Requests::           
+* Priority Inheritance::        
+* Remote Procedure Call Abortion::  
 @end menu
 
-@node Heterogeneous Systems, , GLADE Internals, GLADE Internals
+@node Heterogeneous Systems, Multiple Requests, GLADE Internals, GLADE Internals
 @subsection Heterogeneous Systems
 
 The GNAT environment provides default attributes except for non remote
@@ -1751,7 +1753,7 @@ performance purposes or to use another protocol to marshall and
 unmarshall predefined types, he can replace @t{s-stratt.adb} by his own
 implementation.
 
-@node Multiple Requests,  , Heterogeneous Systems, GLADE Internals
+@node Multiple Requests, , Heterogeneous Systems, GLADE Internals
 @subsection Multiple Requests
 When multiple remote procedure calls occur on the same partition, they
 are handled by several anonymous tasks. The number of tasks in the
@@ -1763,6 +1765,21 @@ multiple requests features, he can force the configuration of the
 anonymous tasks pool to (0 | 1, 0 | 1, 1). That means that there is at
 most one anonymous task running at a time.
 
+@node Priority Inheritance, , Multiple Requests, GLADE Internals
+@subsection Priority Inheritance
+It is compiler-dependent to preserve the caller priority during a remote
+procedure call. In fact, it can be unsafe because two partitions may
+have different priority range and policy. Nevertheless, GLADE preserves
+the caller priority. This priority is marshalled and unmarshalled during
+the remote procedure call and the anonymous task is set to the caller
+priority. There is no way yet to suppress this feature.
+
+@node  Remote Procedure Call Abortion,  , Priority Inheritance, GLADE Internals
+@subsection Remote Procedure Call Abortion
+When a remote procedure call is aborted, GLADE will abort the calling
+task on the caller side. But it will also try to abort the remote
+anonymous task performing the remote call. This task will be aborted
+without being requeued in the anonymous tasks pool.
 
 @c @node
 @c @section Restrictions
