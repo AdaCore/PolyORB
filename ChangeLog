@@ -1,3 +1,7 @@
+Thu Feb  6 16:21:41 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+Thu Dec 19 14:36:31 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
 	* configure.in: Changed detection of get_errno. Should raise an
 	  error on Linux instead of producing bad assembly code.
 
