@@ -37,8 +37,7 @@ package Droopi.ORB.Thread_Pool is
       Msg : Message'Class);
 
    procedure Initialize
-     (ORB               : ORB_Type;
-      Number_Of_Threads : Positive;
+     (Number_Of_Threads : Positive;
       Queue_Size        : Positive);
    --  This function must be called once before any other call in this package.
    --  Number_Of_Threads indicates how many threads will be created to deal

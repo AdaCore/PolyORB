@@ -11,7 +11,7 @@ CFLAGS=		-O2 -gnatfy -gnatwae -Icorba $(COPTS)
 # Development
 CFLAGS+=	-g -gnatao
 
-all: droopi-setup-test
+all: droopi-test-no_tasking droopi-test-thread_pool
 
 clean:
 	$(RM) *.ali *.o *.dot *.ps
@@ -22,8 +22,11 @@ alldeps.dot: droopi-setup-test
 alldeps.ps: alldeps.dot
 	dot -Tps $< | epsffit -c -r 10 10 535 831 > $@
 
-droopi-setup-test: force
-	$(GNATMAKE) droopi-setup-test -cargs $(CFLAGS)
+droopi-test-no_tasking: force
+	$(GNATMAKE) $@ -cargs $(CFLAGS)
+
+droopi-test-thread_pool: force
+	$(GNATMAKE) $@ -cargs $(CFLAGS)
 
 force:
 

@@ -71,7 +71,7 @@ package body Droopi.ORB.Task_Policies is
    ------------------------------
 
    procedure Queue_Request_To_Handler
-     (P   : access Thread_Pool_Policy;
+     (P   : access No_Tasking;
       ORB : ORB_Access;
       Msg : Message'Class)
    is

@@ -175,8 +175,7 @@ package body Droopi.ORB.Thread_Pool is
    ----------------
 
    procedure Initialize
-     (ORB               : ORB_Type;
-      Number_Of_Threads : Positive;
+     (Number_Of_Threads : Positive;
       Queue_Size        : Positive)
    is
       Dummy_Task : Pool_Thread_Access;

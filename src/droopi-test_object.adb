@@ -45,7 +45,8 @@ package body Droopi.Test_Object is
                    & To_Standard_String (S)
                    & Integer'Image (Integer (T))));
 
-      delay (Duration (T));
+      --  delay (Duration (T));
+      --  XXX Relative delay forbidden under pragma Ravenscar.
       return S;
    end waitAndEchoString;
 

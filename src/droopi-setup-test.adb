@@ -16,7 +16,6 @@ with Droopi.Filters.Slicers;
 with Droopi.Log;
 with Droopi.Obj_Adapters.Simple;
 with Droopi.Objects;
-with Droopi.ORB.Thread_Pool;
 with Droopi.ORB.Interface;
 
 with Droopi.Binding_Data.Test;
@@ -30,8 +29,6 @@ with Droopi.Protocols.Echo;
 with Droopi.Protocols.GIOP;
 with Droopi.Protocols.SRP;
 
-with Droopi.Protected_Objects;
-
 with Droopi.References;
 with Droopi.References.IOR;
 
@@ -43,8 +40,8 @@ with Droopi.Test_Object;
 with Droopi.Transport.Sockets;
 with Droopi.Types;
 
-procedure Droopi.Setup.Test
-is
+package body Droopi.Setup.Test is
+
    use Droopi.Binding_Data;
    use Droopi.Filters;
    use Droopi.Objects;
@@ -133,115 +130,120 @@ is
 
    SRP_Protocol  : aliased Protocols.SRP.SRP_Protocol;
 
-begin
+   procedure Initialize_Test_Server
+     (SL_Init : Parameterless_Procedure;
+      TP : ORB.Tasking_Policy_Access) is
+   begin
 
-   -------------------------------
-   -- Initialize all subsystems --
-   -------------------------------
+      -------------------------------
+      -- Initialize all subsystems --
+      -------------------------------
 
-   Put ("Initializing subsystems...");
+      Put ("Initializing subsystems...");
 
-   Droopi.Log.Initialize;
-   Put (" logging");
-   --  Logging subsystem. Start this one first so we can debug
-   --  problems in others.
+      Droopi.Log.Initialize;
+      Put (" logging");
+      --  Logging subsystem. Start this one first so we can debug
+      --  problems in others.
 
-   Droopi.Protected_Objects.Initialize;
-   Put (" tasking");
-   --  Setup soft links.
+      SL_Init.all;
+      Put (" soft-links");
+      --  Setup soft links.
 
-   Droopi.Smart_Pointers.Initialize;
-   Put (" smart-pointers");
-   --  Depends on Soft_Links.
+      Droopi.Smart_Pointers.Initialize;
+      Put (" smart-pointers");
+      --  Depends on Soft_Links.
 
-   -------------------------------------------
-   -- Initialize personality-specific stuff --
-   -------------------------------------------
+      -------------------------------------------
+      -- Initialize personality-specific stuff --
+      -------------------------------------------
 
-   Droopi.Binding_Data.IIOP.Initialize;
-   Put (" binding-iiop");
+      Droopi.Binding_Data.IIOP.Initialize;
+      Put (" binding-iiop");
 
-   --------------------------
-   -- Create ORB singleton --
-   --------------------------
+      --------------------------
+      -- Create ORB singleton --
+      --------------------------
 
-   Setup.The_ORB := new ORB.ORB_Type
-     (Tasking_Policy_Access'(new Thread_Pool.Thread_Pool_Policy));
+      Setup.The_ORB := new ORB.ORB_Type (TP);
 
-   Droopi.ORB.Create (Setup.The_ORB.all);
-   Thread_Pool.Initialize (Setup.The_ORB.all, 4, 10);
-   --  XXX Is it OK to Create the ORB /before/ the TP is initialized?
+      Droopi.ORB.Create (Setup.The_ORB.all);
+      Put (" ORB");
 
-   Put (" ORB");
+      Put_Line (" done");
+   end Initialize_Test_Server;
 
-   Put_Line (" done");
+   procedure Initialize_Test_Access_Points is
+   begin
 
-   --------------------------------------
-   -- Create server (listening) socket --
-   --------------------------------------
+      --------------------------------------
+      -- Create server (listening) socket --
+      --------------------------------------
 
-   Put ("Creating Test/Echo access point... ");
-   Initialize_Socket (Test_Access_Point, 9998);
-   Register_Access_Point
-     (ORB    => The_ORB,
-      TAP    => Test_Access_Point.SAP,
-      Chain  => Echo_Protocol'Unchecked_Access,
-      PF     => Test_Access_Point.PF);
-   --  Register socket with ORB object, associating a protocol
-   --  to the transport service access point.
+      Put ("Creating Test/Echo access point... ");
+      Initialize_Socket (Test_Access_Point, 9998);
+      Register_Access_Point
+        (ORB    => The_ORB,
+         TAP    => Test_Access_Point.SAP,
+         Chain  => Echo_Protocol'Unchecked_Access,
+         PF     => Test_Access_Point.PF);
+      --  Register socket with ORB object, associating a protocol
+      --  to the transport service access point.
 
-   ---------------------------------------------
-   -- Create server (listening) socket - GIOP --
-   ---------------------------------------------
+      ---------------------------------------------
+      -- Create server (listening) socket - GIOP --
+      ---------------------------------------------
 
-   Put ("Creating GIOP access point...");
+      Put ("Creating GIOP access point...");
 
-   Initialize_Socket (GIOP_Access_Point, 10000);
-   Chain_Factories ((0 => Slicer_Factory'Unchecked_Access,
-                     1 => GIOP_Protocol'Unchecked_Access));
-   Register_Access_Point
-     (ORB    => The_ORB,
-      TAP    => GIOP_Access_Point.SAP,
-      Chain  => Slicer_Factory'Unchecked_Access,
-      PF     => GIOP_Access_Point.PF);
+      Initialize_Socket (GIOP_Access_Point, 10000);
+      Chain_Factories ((0 => Slicer_Factory'Unchecked_Access,
+                        1 => GIOP_Protocol'Unchecked_Access));
+      Register_Access_Point
+        (ORB    => The_ORB,
+         TAP    => GIOP_Access_Point.SAP,
+         Chain  => Slicer_Factory'Unchecked_Access,
+         PF     => GIOP_Access_Point.PF);
 
-   --------------------------------------------
-   -- Create server (listening) socket - SRP --
-   --------------------------------------------
+      --------------------------------------------
+      -- Create server (listening) socket - SRP --
+      --------------------------------------------
 
-   Put ("Creating SRP access point... ");
-   Initialize_Socket (SRP_Access_Point, 10002);
-   Register_Access_Point
-     (ORB    => The_ORB,
-      TAP    => SRP_Access_Point.SAP,
-      Chain  => SRP_Protocol'Unchecked_Access,
-      PF     => SRP_Access_Point.PF);
-   --  Register socket with ORB object, associating a protocol
-   --  to the transport service access point.
+      Put ("Creating SRP access point... ");
+      Initialize_Socket (SRP_Access_Point, 10002);
+      Register_Access_Point
+        (ORB    => The_ORB,
+         TAP    => SRP_Access_Point.SAP,
+         Chain  => SRP_Protocol'Unchecked_Access,
+         PF     => SRP_Access_Point.PF);
+      --  Register socket with ORB object, associating a protocol
+      --  to the transport service access point.
 
-   ----------------------------------
-   -- Create simple object adapter --
-   ----------------------------------
+      ----------------------------------
+      -- Create simple object adapter --
+      ----------------------------------
 
-   Put ("Creating object adapter...");
-   Obj_Adapter := new Obj_Adapters.Simple.Simple_Obj_Adapter;
-   Obj_Adapters.Create (Obj_Adapter);
-   --  Create object adapter
+      Put ("Creating object adapter...");
+      Obj_Adapter := new Obj_Adapters.Simple.Simple_Obj_Adapter;
+      Obj_Adapters.Create (Obj_Adapter);
+      --  Create object adapter
 
-   Set_Object_Adapter (The_ORB, Obj_Adapter);
-   --  Link object adapter with ORB.
+      Set_Object_Adapter (The_ORB, Obj_Adapter);
+      --  Link object adapter with ORB.
 
-   My_Servant := new Test_Object.My_Object;
-   --  Create application server object.
+      My_Servant := new Test_Object.My_Object;
+      --  Create application server object.
 
-   Put_Line (" done.");
+      Put_Line (" done.");
+   end Initialize_Test_Access_Points;
 
-   declare
+   My_Ref : Droopi.References.Ref;
+
+   procedure Initialize_Test_Object
+   is
       My_Id : aliased Object_Id
         := Obj_Adapters.Export (Obj_Adapter, My_Servant);
       --  Register it with the SOA.
-
-      My_Ref : Droopi.References.Ref;
 
    begin
       Obj_Adapters.Simple.Set_Interface_Description
@@ -267,8 +269,10 @@ begin
             Put_Line ("Warning: Object_To_String raised:");
             Put_Line (Ada.Exceptions.Exception_Information (E));
       end;
+   end Initialize_Test_Object;
 
-
+   procedure Run_Test is
+   begin
       --  Check if we simply run the ORB to accept remote acccess
       --  or if we run a local request to the ORB
       if Ada.Command_Line.Argument_Count = 1
@@ -351,6 +355,6 @@ begin
          --  Execute the ORB.
 
       end if;
-   end;
+   end Run_Test;
 
 end Droopi.Setup.Test;
