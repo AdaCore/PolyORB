@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //droopi/main/utils/make_distrib#1 $
+# $Id: //droopi/main/utils/make_distrib#2 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
@@ -124,8 +124,9 @@ for i in `cat MANIFEST`; do
   flist="${flist} ${dir}/${i}"
 done
 cd ..
-tar cvf ${dir}.tar ${flist}
+tar cf ${dir}.tar ${flist}
 gzip --best ${dir}.tar
+ls -l ${dir}.tar.gz
 mv ${dir}.tar.gz ${prev}
 cd ${prev}
 rm -rf ${tmp}

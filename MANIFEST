@@ -48,9 +48,9 @@ compilers/idlac/idl_fe-tree-synthetic.ads
 compilers/idlac/idl_fe-types.adb
 compilers/idlac/idl_fe-types.ads
 compilers/idlac/Makefile.am
+compilers/idlac/Makefile.in
 compilers/idlac/make_nodes.py
 compilers/idlac/nodes.txt
-compilers/idlac/platform.ads
 compilers/idlac/platform.ads.in
 compilers/idlac/README.Expansion
 compilers/idlac/testgen.adb
@@ -62,6 +62,7 @@ compilers/idlac/testsuite/adabroker.torture/torture.idl
 compilers/idlac/testsuite/lexer/testlexer.idl
 compilers/idlac/testsuite/lexer/testlexer_include.idl
 compilers/idlac/testsuite/Makefile.am
+compilers/idlac/testsuite/Makefile.in
 compilers/idlac/testsuite/mapping/arg.idl
 compilers/idlac/testsuite/mapping/union1.idl
 compilers/idlac/testsuite/mapping/union2.idl
@@ -96,13 +97,16 @@ compilers/idlac/TODO
 compilers/idlac/utils.adb
 compilers/idlac/utils.ads
 compilers/Makefile.am
+compilers/Makefile.in
 configure.in
+configure
 COPYING
 design/droopi-uml.ps
 doc/architecture.ps
 doc/CODING_GUIDELINES
 doc/NOTES
 Makefile.am
+Makefile.in
 MANIFEST
 README
 src/corba/corba-abstractbase.adb
@@ -184,9 +188,8 @@ src/echo-impl.adb
 src/echo-impl.ads
 src/gnat.adc
 src/gnat.adc.exclude
-src/locked_queue.adb
-src/locked_queue.ads
 src/Makefile.am
+src/Makefile.in
 src/polyorb.ads
 src/polyorb-annotations.adb
 src/polyorb-annotations.ads

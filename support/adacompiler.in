@@ -10,6 +10,11 @@ while [ $# -gt 1 ]; do
     case "$first" in
       *.ad[sb])
         src="$1"
+	srcdir=`dirname "$src"`
+	if [ "x$srcdir" = "x" ]
+	then
+	  srcdir=.
+	fi
         ;;
     esac
     shift
@@ -20,7 +25,7 @@ tmp="tmp$$"
 trap "rm -rf $tmp" 0 1 2 3 15
 mkdir $tmp
 newname=$tmp/`echo $1 | sed -e 's,^\.libs/\(.*\).lo$,\1.o,'`
-if grep "$src" gnat.adc.exclude > /dev/null
+if grep `basename "$src"` "$srcdir"/gnat.adc.exclude > /dev/null 2>&1
 then
   mv gnat.adc gnat.adc-
   $ADA $cline$newname
