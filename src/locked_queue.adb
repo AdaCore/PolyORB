@@ -17,6 +17,8 @@ package body Locked_Queue is
 
    procedure Free is new Unchecked_Deallocation
      (Queue_Node, Queue_Node_Access);
+   procedure Free is new Unchecked_Deallocation
+     (Queue_Element, Queue_Element_Access);
 
    ---------------
    -- Get_Count --
@@ -77,10 +79,15 @@ package body Locked_Queue is
       Max_Count : in     Positive)
    is
    begin
+      Create (Q.State_Lock);
+
+      Enter (Q.State_Lock);
       Q.Max_Count := Max_Count;
+      Q.Count := 0;
       Create (Q.Empty_Lock);
       Create (Q.Full_Lock);
       Create (Q.State_Lock);
+      Leave (Q.State_Lock);
 
       Enter (Q.Empty_Lock);
    end Create;
@@ -97,7 +104,7 @@ package body Locked_Queue is
       Enter (Q.Full_Lock);
 
       Enter (Q.State_Lock);
-      if Q.Last = null then
+      if Q.First = null then
          Q.Last := new Queue_Node'
            (Element => new Queue_Element'(E),
             Next    => null);
@@ -136,13 +143,11 @@ package body Locked_Queue is
       Enter (Q.State_Lock);
 
       declare
-         --  Old_First : Queue_Node_Access := Q.First;
+         Old_First : Queue_Node_Access := Q.First;
       begin
          E := Q.First.Element.all;
          Q.First := Q.First.Next;
-
-         --  ??? Should free old elements !!
-         --  Free (Old_First);
+         Free (Old_First);
       end;
 
       Q.Count := Q.Count - 1;
