@@ -2110,6 +2110,13 @@ package body Parser is
          return No_Node;
       end if;
 
+      Scan_Token (T_Semi_Colon);
+      if Token = T_Error then
+         Restore_Lexer (State);
+         Skip_Declaration (T_Semi_Colon);
+         return No_Node;
+      end if;
+
       State_Member := New_Node (K_State_Member, State);
       Set_Type_Spec   (State_Member, Type_Spec);
       Set_Is_Public   (State_Member, Is_Public);
