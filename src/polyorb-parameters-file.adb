@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -148,7 +148,7 @@ package body PolyORB.Parameters.File is
                         O ("Syntax error on line" &
                            Integer'Image (Current_Line) &
                            ": " & Line (Line'First .. Last));
-                        raise Syntax_Error;
+                        raise Program_Error;
                      end if;
 
                      Set_Current_Section (Line (Bra + 1 .. Ket - 1));
@@ -164,14 +164,14 @@ package body PolyORB.Parameters.File is
                         O ("Assignment out of any section on line" &
                            Integer'Image (Current_Line) &
                            ": " & Line (Line'First .. Last));
-                        raise Syntax_Error;
+                        raise Program_Error;
                      end if;
 
                      if Eq not in Line'First + 1 .. Last - 1 then
                         O ("Syntax error on line" &
                            Integer'Image (Current_Line) &
                            ": " & Line (Line'First .. Last));
-                        raise Syntax_Error;
+                        raise Program_Error;
                      end if;
 
                      Set_Conf
