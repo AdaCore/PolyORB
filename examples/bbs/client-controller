@@ -33,7 +33,8 @@ while [ "$hosts" != "" ]; do
   host=`eval echo \\\$host_$clinumber`
   ssh $host "POLYORB_CORBA_NAMING_IOR=$POLYORB_CORBA_NAMING_IOR \
     LD_LIBRARY_PATH=/usr/local/lib \
-    $evolutedp TEST_$clinumber/$nmax > $cliout/cli$clinumber-$host" < $ctl &
+    $evolutedp -n $nmax -c 100 -s $size TEST_$clinumber \
+      > $cliout/cli$clinumber-$host" < $ctl &
   Revolutedp_pids="$Revolutedp_pids $!"
   echo "" > $ctl
   eval "cli_host_$clinumber=$h"
