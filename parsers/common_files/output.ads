@@ -37,7 +37,8 @@
 --  for writing error messages and informational output. It is also used
 --  by the debug source file output routines (see Sprintf.Print_Eol).
 
-with Types; use Types;
+with GNAT.OS_Lib;
+with Types;          use Types;
 
 package Output is
 pragma Elaborate_Body (Output);
@@ -45,6 +46,9 @@ pragma Elaborate_Body (Output);
    -----------------
    -- Subprograms --
    -----------------
+
+   procedure Set_Output (New_Output : GNAT.OS_Lib.File_Descriptor);
+   --  Sets subsequent output to appear on the given file
 
    procedure Set_Standard_Error;
    --  Sets subsequent output to appear on the standard error file

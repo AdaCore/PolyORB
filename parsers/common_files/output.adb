@@ -131,6 +131,17 @@ package body Output is
       N_Space := N_Space + Space_Increment;
    end Increment_Indentation;
 
+   ----------------
+   -- Set_Output --
+   ----------------
+
+   procedure Set_Output (New_Output : File_Descriptor) is
+   begin
+      Flush_Buffer;
+      Next_Column := 1;
+      Current_FD := New_Output;
+   end Set_Output;
+
    -------------------------
    -- Set_Space_Increment --
    -------------------------
