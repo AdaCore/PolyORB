@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#19 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#20 $
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
@@ -137,6 +137,7 @@ Installation
 * Supported Platforms::
 * Build requirements::
 * Build instructions::
+* Building the documentation and PolyORB's examples::
 * Platform notes::
 
 Overview of PolyORB personalities
@@ -413,6 +414,7 @@ Reusable Object-Oriented Polymorphic Infrastructure}
 * Supported Platforms::
 * Build requirements::
 * Build instructions::
+* Building the documentation and PolyORB's examples::
 * Platform notes::
 @end menu
 
@@ -485,6 +487,22 @@ another prefix than @file{/usr/local}, give configure a
 @option{--prefix=whereveryouwant} argument.
 
 Note: at this time, you MUST use GNU make to compile this software.
+
+@c -------------------------------------------------------------------
+@node Building the documentation and PolyORB's examples
+@section Building the documentation and PolyORB's examples
+@c -------------------------------------------------------------------
+
+@noindent
+PolyORB's documentation and examples are built separately.
+
+After building PolyORB, simply run make in the @file{examples} (resp.
+@file{doc}) directory to build the examples (resp. the
+documentation). The build process will only build examples that
+correspond to the personalities you configured.
+
+Note: you may also install PolyORB's documentation in standard
+location typing @command{make install}.
 
 @c -------------------------------------------------------------------
 @subsection Build Options
