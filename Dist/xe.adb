@@ -143,31 +143,6 @@ package body XE is
    Function_Type_Node  : Node_Id := Null_Node;
    Procedure_Type_Node : Node_Id := Null_Node;
 
-   First_Stamp : Boolean := True;
-
-   -----------------------------
-   -- Maybe_Most_Recent_Stamp --
-   -----------------------------
-
-   procedure Maybe_Most_Recent_Stamp
-     (Stamp : Time_Stamp_Type;
-      File  : File_Name_Type) is
-   begin
-      if First_Stamp or else Stamp > Most_Recent_Stamp then
-         First_Stamp := False;
-         Most_Recent_Stamp := Stamp;
-         if Debug_Mode then
-            Write_Program_Name;
-            Write_Str (": ");
-            Write_Name (File);
-            Write_Str (" is more recent than ");
-            Write_Name (Most_Recent_File);
-            Write_Eol;
-         end if;
-         Most_Recent_File  := File;
-      end if;
-   end Maybe_Most_Recent_Stamp;
-
    --------------------
    -- Load_All_Units --
    --------------------
@@ -259,6 +234,7 @@ package body XE is
       Partitions.Table (Partition).First_Unit      := Null_CUID;
       Partitions.Table (Partition).Last_Unit       := Null_CUID;
       Partitions.Table (Partition).To_Build        := True;
+      Partitions.Table (Partition).Most_Recent     := Configuration_File;
       PID := Partition;
    end Create_Partition;
 
@@ -1701,6 +1677,17 @@ package body XE is
    end Get_Absolute_Exec;
 
    -----------------------
+   -- Get_Partition_Dir --
+   -----------------------
+
+   function Get_Partition_Dir (P : in PID_Type) return File_Name_Type is
+   begin
+      return DSA_Dir &
+        Dir_Sep_Id & Configuration &
+        Dir_Sep_Id & Partitions.Table (P).Name;
+   end Get_Partition_Dir;
+
+   -----------------------
    -- Get_Relative_Exec --
    -----------------------
 
@@ -1850,6 +1837,29 @@ package body XE is
       Name_Len := Name_Len - 4;
       return Name_Find;
    end Get_Unit_Sfile;
+
+   ----------------------------
+   -- Update_Partition_Stamp --
+   ----------------------------
+
+   procedure Update_Partition_Stamp (P : in PID_Type; F : in File_Name_Type) is
+   begin
+      if More_Recent (F, Partitions.Table (P).Most_Recent) then
+         if Debug_Mode then
+            Write_Program_Name;
+            Write_Str   (": ");
+            Write_Name  (F);
+            Write_File_Stamp (F);
+            Write_Str   (", ");
+            Write_Name  (Partitions.Table (P).Name);
+            Write_Str   ("'s most recent file (previously ");
+            Write_File_Stamp (Partitions.Table (P).Most_Recent);
+            Write_Str   (")");
+            Write_Eol;
+         end if;
+         Partitions.Table (P).Most_Recent := F;
+      end if;
+   end Update_Partition_Stamp;
 
    ----------------
    -- Write_SLOC --

@@ -165,20 +165,21 @@ package XE is
    type Predefined_Type is
       (Pre_Type_Unknown,
        Pre_Type_Partition,      --  (1)  Partition
-       Pre_Type_Boolean,        --  (2)  Boolean
-       Pre_Type_String,         --  (3)  String
-       Pre_Type_Starter,        --  (4)  Type__Starter
-       Pre_Type_Entity,         --  (5)  Type__Entity
-       Pre_Type_Convention,     --  (6)  Type__Convention
-       Pre_Type_Ada_Unit,       --  (7)  Type__Ada_Unit
-       Pre_Type_Subprogram,     --  (8)  Type__Subprogram
-       Pre_Type_Function,       --  (9)  Type__*_Function
-       Pre_Type_Procedure       --  (10) Type__*_Procedure
+       Pre_Type_Channel,        --  (2)  Channel
+       Pre_Type_Boolean,        --  (3)  Boolean
+       Pre_Type_String,         --  (4)  String
+       Pre_Type_Starter,        --  (5)  Type__Starter
+       Pre_Type_Entity,         --  (6)  Type__Entity
+       Pre_Type_Convention,     --  (7)  Type__Convention
+       Pre_Type_Ada_Unit,       --  (8)  Type__Ada_Unit
+       Pre_Type_Subprogram,     --  (9)  Type__Subprogram
+       Pre_Type_Function,       --  (10) Type__*_Function
+       Pre_Type_Procedure       --  (11) Type__*_Procedure
        );
 
    Pre_Type_Wrong : constant Int := 400;
    Pre_Type_First : constant Int := Pre_Type_Wrong + 1;
-   Pre_Type_Last  : constant Int := Pre_Type_Wrong + 10;
+   Pre_Type_Last  : constant Int := Pre_Type_Wrong + 11;
    --  Should match Predefined_Type length
 
    type Pre_Type_Id is new Int range Pre_Type_Wrong .. Pre_Type_Last;
@@ -218,6 +219,7 @@ package XE is
    Configuration_Node   : Configuration_Id;
 
    Partition_Type_Node      : Type_Id;
+   Channel_Type_Node        : Type_Id;
    Boolean_Type_Node        : Type_Id;
    String_Type_Node         : Type_Id;
    Starter_Type_Node        : Type_Id;
@@ -631,6 +633,7 @@ package XE is
       First_Unit      : CUID_Type;
       Last_Unit       : CUID_Type;
       To_Build        : Boolean;
+      Most_Recent     : File_Name_Type;
    end record;
 
    package Partitions  is new Table
@@ -697,8 +700,9 @@ package XE is
 
    function Str_To_Id (S : String) return Name_Id;
 
-   function Get_Absolute_Exec   (P : in PID_Type) return Name_Id;
-   function Get_Relative_Exec   (P : in PID_Type) return Name_Id;
+   function Get_Partition_Dir   (P : in PID_Type) return File_Name_Type;
+   function Get_Absolute_Exec   (P : in PID_Type) return File_Name_Type;
+   function Get_Relative_Exec   (P : in PID_Type) return File_Name_Type;
    function Get_Host            (P : in PID_Type) return Name_Id;
    function Get_Command_Line    (P : in PID_Type) return Command_Line_Type;
    function Get_Main_Subprogram (P : in PID_Type) return Main_Subprogram_Type;
@@ -706,8 +710,10 @@ package XE is
    function Get_Permanent       (P : in PID_Type) return Boolean;
    function Get_Unit_Sfile      (U : in Unit_Id)  return File_Name_Type;
 
-   Configuration_File : Name_Id := No_Name;
-   Configuration      : Name_Id := No_Name;
+   procedure Update_Partition_Stamp (P : in PID_Type; F : in File_Name_Type);
+
+   Configuration_File  : File_Name_Type  := No_File;
+   Configuration       : Name_Id         := No_Name;
    --  Name of the configuration
 
    Main_Partition     : PID_Type  := Null_PID;
@@ -716,8 +722,6 @@ package XE is
    Main_Subprogram    : Name_Id        := No_Name;
    Main_Source_File   : File_Name_Type := No_Name;
    Main_ALI           : ALI_Id;
-   Most_Recent_Stamp  : Time_Stamp_Type;
-   Most_Recent_File   : File_Name_Type;
    --  Several variables related to the main procedure.
 
    Protocol_Name      : Name_Id        := No_Name;
@@ -726,11 +730,6 @@ package XE is
 
    procedure Write_SLOC (Node : Node_Id);
    --  See Write_Location.
-
-   procedure Maybe_Most_Recent_Stamp
-     (Stamp : Time_Stamp_Type;
-      File  : File_Name_Type);
-   --  Maybe set Most_Recent_Stamp.
 
    Verbose_Mode       : Boolean;
    Debug_Mode         : Boolean;

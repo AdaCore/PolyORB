@@ -43,46 +43,39 @@ procedure XE_Stubs is
    Root_Dir     : String_Access;
    Root_Dir_Len : Natural;
 
+   Directory    : File_Name_Type;
+   --  Where partition files are stored.
+
+   Executable : File_Name_Type;
+
    Separator : Character renames GNAT.Os_Lib.Directory_Separator;
-
-   procedure Deallocate is new Unchecked_Deallocation (String, String_Access);
-
-   --  Local subprograms
-
-   procedure Mark_RCI_Callers
-     (PID : PID_Type;
-      ALI : ALI_Id);
-   --  Starting from an ali file, search though all the dependency
-   --  chain to mark RCI callers. This is specially useful to
-   --  know the version checks to perform.
-
-   procedure Create_Main_Unit (PID : in PID_Type);
-   --  Create a procedure which "withes" all the RCI receivers
-   --  of the partition and insert the main procedure if needed.
-
-   procedure Copy_Stub (Source_Dir, Target_Dir, Base_Name : in File_Name_Type);
-   --  Copy all the stub files (base_name.*) from a source directory to
-   --  a target directory. The suffixes used are .adb .o .ali.
-
-   procedure Delete_Stub (Source_Dir, Base_Name : in File_Name_Type);
-   --  Delete all the stub files (base_name.*) from a source directory. The
-   --  suffixes used are .adb .o .ali.
 
    procedure Build_Stub (Base_Name : in File_Name_Type;
                          Spec_Only : in Boolean);
    --  Create the caller stub and the receiver stub for a RCI unit.
 
+   procedure Copy_Stub (Source_Dir, Target_Dir, Base_Name : in File_Name_Type);
+   --  Copy all the stub files (base_name.*) from a source directory to
+   --  a target directory. The suffixes used are .adb .o .ali.
+
    procedure Create_Elaboration_File (PID : in PID_Type);
    --  Create the elaboration unit for the given partition.
 
-   procedure Update_Switch (S : in out String_Access);
-   --  For a given '-I' switch (or equivalent -L -a*), update it
-   --  if it is a relative path and add ../../.. at the beginning.
+   procedure Create_Main_Unit (PID : in PID_Type);
+   --  Create a procedure which "withes" all the RCI receivers
+   --  of the partition and insert the main procedure if needed.
 
-   procedure Dwrite_Str (File   : in File_Descriptor;
-                         Line   : in String;
+   procedure Deallocate is new Unchecked_Deallocation (String, String_Access);
+
+   --  Local subprograms
+
+   procedure Delete_Stub (Source_Dir, Base_Name : in File_Name_Type);
+   --  Delete all the stub files (base_name.*) from a source directory. The
+   --  suffixes used are .adb .o .ali.
+
+   procedure Dwrite_Eol (File   : in File_Descriptor;
                          Stdout : in Boolean := Building_Script)
-     renames Write_Str;
+     renames Write_Eol;
    --  Changed default parameter.
 
    procedure Dwrite_Name (File   : in File_Descriptor;
@@ -91,95 +84,362 @@ procedure XE_Stubs is
      renames Write_Name;
    --  Changed default parameter.
 
-   procedure Dwrite_Eol (File   : in File_Descriptor;
+   procedure Dwrite_Str (File   : in File_Descriptor;
+                         Line   : in String;
                          Stdout : in Boolean := Building_Script)
-     renames Write_Eol;
+     renames Write_Str;
    --  Changed default parameter.
 
-   Cache_Dir : Name_Id;
-   --  Where partition files are stored.
-
-   ------------------------
-   -- Write_Caller_Withs --
-   ------------------------
-
    procedure Mark_RCI_Callers
-     (PID : PID_Type;
-      ALI : ALI_Id) is
+     (PID : in PID_Type;
+      ALI : in ALI_Id);
+   --  Starting from an ali file, search though all the dependency
+   --  chain to mark RCI callers. This is specially useful to
+   --  know the version checks to perform.
 
-      Current_ALI : ALI_Id;
-      Continue    : Boolean;
+   procedure Update_Switch (S : in out String_Access);
+   --  For a given '-I' switch (or equivalent -L -a*), update it
+   --  if it is a relative path and add ../../.. at the beginning.
+
+   ----------------
+   -- Build_Stub --
+   ----------------
+
+   procedure Build_Stub (Base_Name : in Name_Id;
+                         Spec_Only : in Boolean) is
+
+      Obsolete        : Boolean := False;
+      Full_RCI_Spec   : Name_Id;
+      Full_RCI_Body   : Name_Id;
+      Full_ALI_File   : Name_Id;
+      RCI_Spec        : Name_Id;
+      RCI_Body        : Name_Id;
+      Caller_Body     : Name_Id;
+      Caller_Object   : Name_Id;
+      Caller_ALI      : Name_Id;
+      Receiver_Body   : Name_Id;
+      Receiver_Object : Name_Id;
+      Receiver_ALI    : Name_Id;
 
    begin
 
-      --  Mark this unit to avoid infinite recursive search.
-      for I in ALIs.Table (ALI).First_Unit ..
-               ALIs.Table (ALI).Last_Unit loop
-         Set_PID (Unit.Table (I).Uname, PID);
-      end loop;
+      RCI_Spec        := Base_Name & ADS_Suffix;
+      RCI_Body        := Base_Name & ADB_Suffix;
+      Full_RCI_Spec   := Full_Source_Name (RCI_Spec);
+      Full_RCI_Body   := Full_Source_Name (RCI_Body);
+      Caller_Body     := Caller_Dir & Dir_Sep_Id & Base_Name & ADB_Suffix;
+      Receiver_Body   := Receiver_Dir & Dir_Sep_Id & Base_Name & ADB_Suffix;
+      Caller_Object   := Caller_Dir & Dir_Sep_Id & Base_Name & Obj_Suffix;
+      Receiver_Object := Receiver_Dir & Dir_Sep_Id & Base_Name & Obj_Suffix;
+      Caller_ALI      := Caller_Dir & Dir_Sep_Id & Base_Name & ALI_Suffix;
+      Receiver_ALI    := Receiver_Dir & Dir_Sep_Id & Base_Name & ALI_Suffix;
+      Full_ALI_File   := Base_Name & ALI_Suffix;
 
-      for I in ALIs.Table (ALI).First_Unit ..
-               ALIs.Table (ALI).Last_Unit loop
-         for J in Unit.Table (I).First_With ..
-                  Unit.Table (I).Last_With loop
+      --  Do we need to regenerate the caller stub and its ali.
+      if not Obsolete and then not Is_Regular_File (Caller_Body) then
+         if Verbose_Mode then
+            Write_Missing_File (Caller_Body);
+         end if;
+         Obsolete := True;
+      elsif not Obsolete and then More_Recent (Full_RCI_Spec, Caller_Body) then
+         if Verbose_Mode then
+            Write_Stamp_Comparison (Full_RCI_Spec, Caller_Body);
+         end if;
+         Obsolete := True;
+      end if;
 
-            --  Avoid generic units.
-            Continue := not (Withs.Table (J).Afile = No_File);
+      if not Obsolete and then not Is_Regular_File (Caller_Object) then
+         if Verbose_Mode then
+            Write_Missing_File (Caller_Object);
+         end if;
+         Obsolete := True;
+      elsif not Obsolete and then More_Recent (Caller_Body, Caller_Object) then
+         if Verbose_Mode then
+            Write_Stamp_Comparison (Caller_Body, Caller_Object);
+         end if;
+         Obsolete := True;
+      end if;
 
-            if Continue then
-               --  An Afile name key is its ALI id.
-               Current_ALI := Get_ALI_Id (Withs.Table (J).Afile);
+      if not Obsolete and then not Is_Regular_File (Caller_ALI) then
+         if Verbose_Mode then
+            Write_Missing_File (Caller_ALI);
+         end if;
+         Obsolete := True;
+      elsif not Obsolete and then More_Recent (Caller_Body, Caller_ALI) then
+         if Verbose_Mode then
+            Write_Stamp_Comparison (Caller_Body, Caller_ALI);
+         end if;
+         Obsolete := True;
+      end if;
 
-               --  If this ALI file has not been loaded, then we do not
-               --  need to check it (this means that we encountered an
-               --  internal unit that was not specified in the configuration
-               --  file and thus not recursively checked for consistency).
+      if not Obsolete and then More_Recent (Full_ALI_File, Caller_ALI) then
+         if Verbose_Mode then
+            Write_Stamp_Comparison (Full_ALI_File, Caller_ALI);
+         end if;
+         Obsolete := True;
+      end if;
 
-               if Current_ALI = No_ALI_Id then
-                  Continue := False;
-               end if;
-            end if;
+      if Obsolete then
 
-            if Continue then
+         if not Quiet_Output then
+            Write_Program_Name;
+            Write_Str  (": building ");
+            Write_Name (Caller_Body);
+            Write_Str  (" from ");
+            Write_Name (Full_RCI_Spec);
+            Write_Eol;
+         end if;
 
-               for K in ALIs.Table (Current_ALI).First_Unit ..
-                        ALIs.Table (Current_ALI).Last_Unit loop
+         Change_Dir (Caller_Dir);
+         Build_RCI_Caller
+           (RCI_Body, Original_Dir & Dir_Sep_Id & Full_RCI_Spec);
+         Compile_RCI_Caller (RCI_Body);
+         Change_Dir (Original_Dir);
 
-                  --  Look for a RCI units
-                  if Unit.Table (K).RCI then
+      elsif not Quiet_Output then
+         Write_Program_Name;
+         Write_Str  (":    ");
+         Write_Name (Caller_Body);
+         Write_Str  (" caller stub is up to date");
+         Write_Eol;
+      end if;
 
-                     --  This one is a caller (mapped on a different
-                     --  partition. Note that an unit name key is
-                     --  a partition id if unit is RCI.
-                     if Get_PID (Unit.Table (K).Uname) /= PID then
-                        Get_Name_String (Unit.Table (K).Uname);
-                        Set_PID (Unit.Table (K).Uname, PID);
-                     end if;
+      --  If no RCI body is available, use RCI spec.
+      if Spec_Only then
+         Full_RCI_Body := Full_RCI_Spec;
+      end if;
 
-                     --  No need to search deeper. This unit is not
-                     --  on this partition.
-                     Continue := False;
-                     exit;
+      --  Do we need to generate the receiver stub and its ali.
+      Obsolete := False;
 
-                  elsif Get_PID (Unit.Table (K).Uname) = PID then
+      if not Obsolete and then not Is_Regular_File (Receiver_Body) then
+         if Verbose_Mode then
+            Write_Missing_File (Receiver_Body);
+         end if;
+         Obsolete := True;
+      elsif not Obsolete and then
+         More_Recent (Full_RCI_Body, Receiver_Body) then
+         if Verbose_Mode then
+            Write_Stamp_Comparison (Full_RCI_Body, Receiver_Body);
+         end if;
+         Obsolete := True;
+      end if;
+      if not Obsolete and then not Is_Regular_File (Receiver_Object) then
+         if Verbose_Mode then
+            Write_Missing_File (Receiver_Object);
+         end if;
+         Obsolete := True;
+      elsif not Obsolete and then
+         More_Recent (Receiver_Body, Receiver_Object) then
+         if Verbose_Mode then
+            Write_Stamp_Comparison (Receiver_Body, Receiver_Object);
+         end if;
+         Obsolete := True;
+      end if;
+      if not Obsolete and then not Is_Regular_File (Receiver_ALI) then
+         if Verbose_Mode then
+            Write_Missing_File (Receiver_ALI);
+         end if;
+         Obsolete := True;
+      elsif not Obsolete and then
+         More_Recent (Receiver_Body, Receiver_ALI) then
+         if Verbose_Mode then
+            Write_Stamp_Comparison (Receiver_Body, Receiver_ALI);
+         end if;
+         Obsolete := True;
+      end if;
+      if not Obsolete and then
+         More_Recent (Full_ALI_File, Receiver_ALI) then
+         if Verbose_Mode then
+            Write_Stamp_Comparison (Full_ALI_File, Receiver_ALI);
+         end if;
+         Obsolete := True;
+      end if;
 
-                     --  No need to search deeper. Already done.
-                     Continue := False;
-                     exit;
+      if Obsolete then
 
-                  end if;
-               end loop;
+         if not Quiet_Output then
+            Write_Program_Name;
+            Write_Str  (": building ");
+            Write_Name (Receiver_Body);
+            Write_Str  (" from ");
+            Write_Name (Full_RCI_Body);
+            Write_Eol;
+         end if;
 
-               --  This unit is not a RCI unit or has not been scanned.
-               if Continue then
-                  Mark_RCI_Callers (PID, Current_ALI);
-               end if;
-            end if;
+         Change_Dir (Receiver_Dir);
+         Build_RCI_Receiver
+           (RCI_Body, Original_Dir & Dir_Sep_Id & Full_RCI_Body);
+         Compile_RCI_Receiver (RCI_Body);
+         Change_Dir (Original_Dir);
 
-         end loop;
-      end loop;
+      elsif not Quiet_Output then
+         Write_Program_Name;
+         Write_Str  (":    ");
+         Write_Name (Receiver_Body);
+         Write_Str  (" receiver stub is up to date");
+         Write_Eol;
+      end if;
 
-   end Mark_RCI_Callers;
+   end Build_Stub;
+
+   ---------------
+   -- Copy_Stub --
+   ---------------
+
+   procedure Copy_Stub (Source_Dir, Target_Dir, Base_Name  : in Name_Id) is
+      ALI_Src : File_Name_Type
+        := Source_Dir & Dir_Sep_Id & Base_Name & ALI_Suffix;
+      ALI_Tgt : File_Name_Type
+        := Target_Dir & Dir_Sep_Id & Base_Name & ALI_Suffix;
+      Obj_Src : File_Name_Type
+        :=  Source_Dir & Dir_Sep_Id & Base_Name & Obj_Suffix;
+      Obj_Tgt : File_Name_Type
+        := Target_Dir & Dir_Sep_Id & Base_Name & Obj_Suffix;
+      ADB_Src : File_Name_Type
+        := Source_Dir & Dir_Sep_Id & Base_Name & ADB_Suffix;
+      ADB_Tgt : File_Name_Type
+        := Target_Dir & Dir_Sep_Id & Base_Name & ADB_Suffix;
+   begin
+
+      --  Copy the stubs from source directory to the target directory.
+
+      if not Is_Regular_File (ALI_Src) then
+         Write_Program_Name;
+         Write_Str  (": ");
+         Write_Name (ALI_Src);
+         Write_Str  (" not found");
+         Write_Eol;
+         raise Fatal_Error;
+      else
+         Copy_With_File_Stamp (ALI_Src, ALI_Tgt);
+      end if;
+
+      if not Is_Regular_File (Obj_Src) then
+         Write_Program_Name;
+         Write_Str  (": ");
+         Write_Name (Obj_Src);
+         Write_Str  (" not found");
+         Write_Eol;
+         raise Fatal_Error;
+      else
+         Copy_With_File_Stamp (Obj_Src, Obj_Tgt);
+      end if;
+
+      if not Is_Regular_File (ADB_Src) then
+         Write_Program_Name;
+         Write_Str  (": ");
+         Write_Name (ADB_Src);
+         Write_Str  (" not found");
+         Write_Eol;
+         raise Fatal_Error;
+      else
+         Copy_With_File_Stamp (ADB_Src, ADB_Tgt);
+      end if;
+
+   end Copy_Stub;
+
+   -----------------------------
+   -- Create_Elaboration_File --
+   -----------------------------
+
+   procedure Create_Elaboration_File (PID : in PID_Type) is
+
+      Partition   : Partition_Name_Type;
+      Elaboration : File_Name_Type;
+      Most_Recent : File_Name_Type;
+
+      FD : File_Descriptor;
+
+   begin
+
+      Partition   := Partitions.Table (PID) .Name;
+      Elaboration := Directory & Dir_Sep_Id & Elaboration_Name & ADB_Suffix;
+      Most_Recent := Partitions.Table (PID).Most_Recent;
+
+      if not Is_Regular_File (Elaboration) then
+         if Verbose_Mode then
+            Write_Missing_File (Elaboration);
+         end if;
+      elsif More_Recent (Most_Recent, Elaboration) then
+         if Verbose_Mode then
+            Write_Stamp_Comparison (Most_Recent, Elaboration);
+         end if;
+      else
+         return;
+      end if;
+
+      if Building_Script then
+         Write_Str  (Standout, "cat >");
+         Write_Name (Standout, Elaboration);
+         Write_Str  (Standout, " <<__EOF__");
+         Write_Eol  (Standout);
+      end if;
+
+      Create (FD, Elaboration);
+
+      --  Header.
+
+      Dwrite_Str  (FD, "with System.Garlic.Options;");
+      Dwrite_Eol  (FD);
+      Dwrite_Str  (FD, "use System.Garlic.Options;");
+      Dwrite_Eol  (FD);
+      Dwrite_Str  (FD, "package body ");
+      Dwrite_Name (FD, Elaboration_Full_Name);
+      Dwrite_Str  (FD, " is");
+      Dwrite_Eol  (FD);
+      Dwrite_Str  (FD, "begin");
+      Dwrite_Eol  (FD);
+
+      --  If the partition holds the main unit, then it cannot be slave.
+      --  Otherwise, it is.
+
+      if PID = Main_Partition then
+         Dwrite_Str (FD, "   Set_Is_Slave (False);");
+      else
+         Dwrite_Str (FD, "   Set_Is_Slave (True);");
+      end if;
+      Dwrite_Eol (FD);
+
+      --  The partition should not terminate.
+
+      if Get_Permanent (PID) then
+         Dwrite_Str (FD, "   Set_Permanent (True);");
+      else
+         Dwrite_Str (FD, "   Set_Permanent (False);");
+      end if;
+      Dwrite_Eol (FD);
+
+      --  If a protocol has been specified, then use it (with its data
+      --  if present).
+
+      if Protocol_Name /= No_Name then
+         Dwrite_Str  (FD, "   Set_Boot_Server (""");
+         Dwrite_Name (FD, Protocol_Name);
+         if Protocol_Data /= No_Name then
+            Dwrite_Str  (FD, "://");
+            Dwrite_Name (FD, Protocol_Data);
+         end if;
+         Dwrite_Str  (FD, """);");
+         Dwrite_Eol  (FD);
+      end if;
+
+      --  Footer.
+      Dwrite_Str  (FD, "end ");
+      Dwrite_Name (FD, Elaboration_Full_Name);
+      Dwrite_Str  (FD, ";");
+      Dwrite_Eol  (FD);
+
+      if Building_Script then
+         Write_Str (Standout, "__EOF__");
+         Write_Eol (Standout);
+      end if;
+
+      Close (FD);
+
+      Update_Partition_Stamp (PID, Elaboration);
+
+   end Create_Elaboration_File;
 
    ----------------------
    -- Create_Main_Unit --
@@ -187,57 +447,46 @@ procedure XE_Stubs is
 
    procedure Create_Main_Unit (PID : in PID_Type) is
 
-      PName : constant Partition_Name_Type := Partitions.Table (PID).Name;
-      UID   : CUID_Type;
-      FD    : File_Descriptor;
-      Cache : Name_Id
-        := DSA_Dir & Dir_Sep_Id & Configuration & Dir_Sep_Id & PName;
-      Fname : File_Name_Type := Cache & Dir_Sep_Id & PName & ADB_Suffix;
+      Partition   : Partition_Name_Type;
+      Main_File   : File_Name_Type;
+      Most_Recent : File_Name_Type;
 
+      UID   : CUID_Type;
       Host  : Name_Id;
       Main  : Name_Id;
 
+      FD : File_Descriptor;
+
    begin
 
-      if not Is_Regular_File (Fname) then
+      Partition   := Partitions.Table (PID).Name;
+      Main_File   := Directory & Dir_Sep_Id & Partition & ADB_Suffix;
+      Most_Recent := Partitions.Table (PID).Most_Recent;
+
+      if not Is_Regular_File (Main_File) then
          if Verbose_Mode then
-            Write_Program_Name;
-            Write_Str (": ");
-            Write_Name (Fname);
-            Write_Str (" does not exist");
-            Write_Eol;
+            Write_Missing_File (Main_File);
          end if;
-      elsif Most_Recent_Stamp > Source_File_Stamp (Fname) then
+      elsif More_Recent (Most_Recent, Main_File) then
          if Verbose_Mode then
-            Write_Program_Name;
-            Write_Str (": ");
-            Write_Name (Configuration_File);
-            Write_Stamp (Configuration_File);
-            Write_Str (" is more recent than ");
-            Write_Name (Fname);
-            Write_Stamp (Fname);
-            Write_Eol;
+            Write_Stamp_Comparison (Most_Recent, Main_File);
          end if;
       else
          return;
       end if;
 
-      if not Is_Directory (Cache) then
-         Create_Dir (Cache);
-      end if;
-
       if Building_Script then
          Write_Str  (Standout, "cat >");
-         Write_Name (Standout, Fname);
+         Write_Name (Standout, Main_File);
          Write_Str  (Standout, " <<__EOF__");
          Write_Eol  (Standout);
       end if;
 
-      Create (FD, Fname);
+      Create (FD, Main_File);
 
       --  Force the RCI receivers to be present on the partition.
       Dwrite_Eol (FD);
-      Dwrite_Str (FD, "--  RCI receiver and non-RCI units");
+      Dwrite_Str (FD, "--  RCI receivers and non-RCI units");
       Dwrite_Eol (FD);
       UID := Partitions.Table (PID).First_Unit;
       while UID /= Null_CUID loop
@@ -255,12 +504,6 @@ procedure XE_Stubs is
       Dwrite_Eol (FD);
       Dwrite_Str (FD, "--  RCI caller units");
       Dwrite_Eol (FD);
-
-      UID := Partitions.Table (PID).First_Unit;
-      while UID /= Null_CUID loop
-         Mark_RCI_Callers (PID, CUnit.Table (UID).My_ALI);
-         UID := CUnit.Table (UID).Next;
-      end loop;
 
       --  First pass to 'with' the RCI callers.
       for U in CUnit.First .. CUnit.Last loop
@@ -303,7 +546,7 @@ procedure XE_Stubs is
       end if;
 
       Dwrite_Str  (FD, "procedure ");
-      Dwrite_Name (FD, PName);
+      Dwrite_Name (FD, Partition);
       Dwrite_Str  (FD, " is");
       Dwrite_Eol  (FD);
 
@@ -428,7 +671,7 @@ procedure XE_Stubs is
       end if;
 
       Dwrite_Str  (FD, "end ");
-      Dwrite_Name (FD, PName);
+      Dwrite_Name (FD, Partition);
       Dwrite_Str  (FD, ";");
       Dwrite_Eol  (FD);
 
@@ -439,71 +682,9 @@ procedure XE_Stubs is
 
       Close (FD);
 
-      if not Quiet_Output then
-         Write_Program_Name;
-         Write_Str  (": building ");
-         Write_Name (PName);
-         Write_Str  (" main procedure");
-         Write_Eol;
-      end if;
+      Update_Partition_Stamp (PID, Main_File);
 
    end Create_Main_Unit;
-
-   ---------------
-   -- Copy_Stub --
-   ---------------
-
-   procedure Copy_Stub (Source_Dir, Target_Dir, Base_Name  : in Name_Id) is
-      ALI_Src : File_Name_Type
-        := Source_Dir & Dir_Sep_Id & Base_Name & ALI_Suffix;
-      ALI_Tgt : File_Name_Type
-        := Target_Dir & Dir_Sep_Id & Base_Name & ALI_Suffix;
-      Obj_Src : File_Name_Type
-        :=  Source_Dir & Dir_Sep_Id & Base_Name & Obj_Suffix;
-      Obj_Tgt : File_Name_Type
-        := Target_Dir & Dir_Sep_Id & Base_Name & Obj_Suffix;
-      ADB_Src : File_Name_Type
-        := Source_Dir & Dir_Sep_Id & Base_Name & ADB_Suffix;
-      ADB_Tgt : File_Name_Type
-        := Target_Dir & Dir_Sep_Id & Base_Name & ADB_Suffix;
-   begin
-
-      --  Copy the stubs from source directory to the target directory.
-
-      if not Is_Regular_File (ALI_Src) then
-         Write_Program_Name;
-         Write_Str  (": ");
-         Write_Name (ALI_Src);
-         Write_Str  (" not found");
-         Write_Eol;
-         raise Fatal_Error;
-      else
-         Copy_With_File_Stamp (ALI_Src, ALI_Tgt);
-      end if;
-
-      if not Is_Regular_File (Obj_Src) then
-         Write_Program_Name;
-         Write_Str  (": ");
-         Write_Name (Obj_Src);
-         Write_Str  (" not found");
-         Write_Eol;
-         raise Fatal_Error;
-      else
-         Copy_With_File_Stamp (Obj_Src, Obj_Tgt);
-      end if;
-
-      if not Is_Regular_File (ADB_Src) then
-         Write_Program_Name;
-         Write_Str  (": ");
-         Write_Name (ADB_Src);
-         Write_Str  (" not found");
-         Write_Eol;
-         raise Fatal_Error;
-      else
-         Copy_With_File_Stamp (ADB_Src, ADB_Tgt);
-      end if;
-
-   end Copy_Stub;
 
    -----------------
    -- Delete_Stub --
@@ -532,359 +713,99 @@ procedure XE_Stubs is
 
    end Delete_Stub;
 
-   ----------------
-   -- Build_Stub --
-   ----------------
+   ------------------------
+   -- Write_Caller_Withs --
+   ------------------------
 
-   procedure Build_Stub (Base_Name : in Name_Id;
-                         Spec_Only : in Boolean) is
+   procedure Mark_RCI_Callers
+     (PID : in PID_Type;
+      ALI : in ALI_Id) is
 
-      Obsolete        : Boolean := False;
-      Full_RCI_Spec   : Name_Id;
-      Full_RCI_Body   : Name_Id;
-      Full_ALI_File   : Name_Id;
-      RCI_Spec        : Name_Id;
-      RCI_Body        : Name_Id;
-      Caller_Body     : Name_Id;
-      Caller_Object   : Name_Id;
-      Caller_ALI      : Name_Id;
-      Receiver_Body   : Name_Id;
-      Receiver_Object : Name_Id;
-      Receiver_ALI    : Name_Id;
+      Current_ALI : ALI_Id;
+      Continue    : Boolean;
 
    begin
 
-      RCI_Spec        := Base_Name & ADS_Suffix;
-      RCI_Body        := Base_Name & ADB_Suffix;
-      Full_RCI_Spec   := Full_Source_Name (RCI_Spec);
-      Full_RCI_Body   := Full_Source_Name (RCI_Body);
-      Caller_Body     := Caller_Dir & Dir_Sep_Id & Base_Name & ADB_Suffix;
-      Receiver_Body   := Receiver_Dir & Dir_Sep_Id & Base_Name & ADB_Suffix;
-      Caller_Object   := Caller_Dir & Dir_Sep_Id & Base_Name & Obj_Suffix;
-      Receiver_Object := Receiver_Dir & Dir_Sep_Id & Base_Name & Obj_Suffix;
-      Caller_ALI      := Caller_Dir & Dir_Sep_Id & Base_Name & ALI_Suffix;
-      Receiver_ALI    := Receiver_Dir & Dir_Sep_Id & Base_Name & ALI_Suffix;
-      Full_ALI_File   := Base_Name & ALI_Suffix;
-
-      --  Do we need to regenerate the caller stub and its ali.
-      if not Obsolete and then not Is_Regular_File (Caller_Body) then
-         if Verbose_Mode then
-            Write_Program_Name;
-            Write_Str (": ");
-            Write_Name (Caller_Body);
-            Write_Str (" does not exist");
-            Write_Eol;
-         end if;
-         Obsolete := True;
-      elsif not Obsolete and then More_Recent (Full_RCI_Spec, Caller_Body) then
-         if Verbose_Mode then
-            Write_Program_Name;
-            Write_Str (": ");
-            Write_Name (Full_RCI_Spec);
-            Write_Stamp (Full_RCI_Spec);
-            Write_Str (" is more recent than ");
-            Write_Name (Caller_Body);
-            Write_Stamp (Caller_Body);
-            Write_Eol;
-         end if;
-         Obsolete := True;
-      end if;
-
-      if not Obsolete and then not Is_Regular_File (Caller_Object) then
-         if Verbose_Mode then
-            Write_Program_Name;
-            Write_Str (": ");
-            Write_Name (Caller_Object);
-            Write_Str (" does not exist");
-            Write_Eol;
-         end if;
-         Obsolete := True;
-      elsif not Obsolete and then More_Recent (Caller_Body, Caller_Object) then
-         if Verbose_Mode then
-            Write_Program_Name;
-            Write_Str (": ");
-            Write_Name (Caller_Body);
-            Write_Stamp (Caller_Body);
-            Write_Str (" is more recent than ");
-            Write_Name (Caller_Object);
-            Write_Stamp (Caller_Object);
-            Write_Eol;
-         end if;
-         Obsolete := True;
-      end if;
-
-      if not Obsolete and then not Is_Regular_File (Caller_ALI) then
-         if Verbose_Mode then
-            Write_Program_Name;
-            Write_Str (": ");
-            Write_Name (Caller_ALI);
-            Write_Str (" does not exist");
-            Write_Eol;
-         end if;
-         Obsolete := True;
-      elsif not Obsolete and then More_Recent (Caller_Body, Caller_ALI) then
-         if Verbose_Mode then
-            Write_Program_Name;
-            Write_Str (": ");
-            Write_Name (Caller_Body);
-            Write_Stamp (Caller_Body);
-            Write_Str (" is more recent than ");
-            Write_Name (Caller_ALI);
-            Write_Stamp (Caller_ALI);
-            Write_Eol;
-         end if;
-         Obsolete := True;
-      end if;
-
-      if not Obsolete and then More_Recent (Full_ALI_File, Caller_ALI) then
-         if Verbose_Mode then
-            Write_Program_Name;
-            Write_Str (": ");
-            Write_Name (Full_ALI_File);
-            Write_Stamp (Full_ALI_File);
-            Write_Str (" is more recent than ");
-            Write_Name (Caller_ALI);
-            Write_Stamp (Caller_ALI);
-            Write_Eol;
-         end if;
-         Obsolete := True;
-      end if;
-
-      if Obsolete then
-
-         if not Quiet_Output then
-            Write_Program_Name;
-            Write_Str  (": building ");
-            Write_Name (Caller_Body);
-            Write_Str  (" from ");
-            Write_Name (Full_RCI_Spec);
-            Write_Eol;
-         end if;
-
-         Change_Dir (Caller_Dir);
-         Build_RCI_Caller
-           (RCI_Body, Original_Dir & Dir_Sep_Id & Full_RCI_Spec);
-         Compile_RCI_Caller (RCI_Body);
-         Change_Dir (Original_Dir);
-
-      elsif not Quiet_Output then
+      if Debug_Mode then
          Write_Program_Name;
-         Write_Str  (":    ");
-         Write_Name (Caller_Body);
-         Write_Str  (" caller stub is up to date");
+         Write_Str  (": mark ali file ");
+         Write_Name (ALIs.Table (ALI).Afile);
          Write_Eol;
       end if;
 
-      --  If no RCI body is available, use RCI spec.
-      if Spec_Only then
-         Full_RCI_Body := Full_RCI_Spec;
-      end if;
+      --  If this unit is one of the most recent compiled unit,
+      --  update Partitions.Table (PID).Most_Recent.
+      Update_Partition_Stamp (PID, ALIs.Table (ALI).Afile);
 
-      --  Do we need to generate the receiver stub and its ali.
-      Obsolete := False;
+      --  Mark this unit to avoid infinite recursive search.
+      for I in ALIs.Table (ALI).First_Unit ..
+               ALIs.Table (ALI).Last_Unit loop
+         Set_PID (Unit.Table (I).Uname, PID);
+      end loop;
 
-      if not Obsolete and then not Is_Regular_File (Receiver_Body) then
-         if Verbose_Mode then
-            Write_Program_Name;
-            Write_Str (": ");
-            Write_Name (Receiver_Body);
-            Write_Str (" does not exist");
-            Write_Eol;
-         end if;
-         Obsolete := True;
-      elsif not Obsolete and then
-         More_Recent (Full_RCI_Body, Receiver_Body) then
-         if Verbose_Mode then
-            Write_Program_Name;
-            Write_Str (": ");
-            Write_Name (Full_RCI_Body);
-            Write_Stamp (Full_RCI_Body);
-            Write_Str (" is more recent than ");
-            Write_Name (Receiver_Body);
-            Write_Stamp (Receiver_Body);
-            Write_Eol;
-         end if;
-         Obsolete := True;
-      end if;
-      if not Obsolete and then not Is_Regular_File (Receiver_Object) then
-         if Verbose_Mode then
-            Write_Program_Name;
-            Write_Str (": ");
-            Write_Name (Receiver_Object);
-            Write_Str (" does not exist");
-            Write_Eol;
-         end if;
-         Obsolete := True;
-      elsif not Obsolete and then
-         More_Recent (Receiver_Body, Receiver_Object) then
-         if Verbose_Mode then
-            Write_Program_Name;
-            Write_Str (": ");
-            Write_Name (Receiver_Body);
-            Write_Stamp (Receiver_Body);
-            Write_Str (" is more recent than ");
-            Write_Name (Receiver_Object);
-            Write_Stamp (Receiver_Object);
-            Write_Eol;
-         end if;
-         Obsolete := True;
-      end if;
-      if not Obsolete and then not Is_Regular_File (Receiver_ALI) then
-         if Verbose_Mode then
-            Write_Program_Name;
-            Write_Str (": ");
-            Write_Name (Receiver_ALI);
-            Write_Str (" does not exist");
-            Write_Eol;
-         end if;
-         Obsolete := True;
-      elsif not Obsolete and then
-         More_Recent (Receiver_Body, Receiver_ALI) then
-         if Verbose_Mode then
-            Write_Program_Name;
-            Write_Str (": ");
-            Write_Name (Receiver_Body);
-            Write_Stamp (Receiver_Body);
-            Write_Str (" is more recent than ");
-            Write_Name (Receiver_ALI);
-            Write_Stamp (Receiver_ALI);
-            Write_Eol;
-         end if;
-         Obsolete := True;
-      end if;
-      if not Obsolete and then
-         More_Recent (Full_ALI_File, Receiver_ALI) then
-         if Verbose_Mode then
-            Write_Program_Name;
-            Write_Str (": ");
-            Write_Name (Full_ALI_File);
-            Write_Stamp (Full_ALI_File);
-            Write_Str (" is more recent than ");
-            Write_Name (Receiver_ALI);
-            Write_Stamp (Receiver_ALI);
-            Write_Eol;
-         end if;
-         Obsolete := True;
-      end if;
+      for I in ALIs.Table (ALI).First_Unit ..
+               ALIs.Table (ALI).Last_Unit loop
+         for J in Unit.Table (I).First_With ..
+                  Unit.Table (I).Last_With loop
 
-      if Obsolete then
+            --  Avoid generic units.
+            Continue := not (Withs.Table (J).Afile = No_File);
 
-         if not Quiet_Output then
-            Write_Program_Name;
-            Write_Str  (": building ");
-            Write_Name (Receiver_Body);
-            Write_Str  (" from ");
-            Write_Name (Full_RCI_Body);
-            Write_Eol;
-         end if;
+            if Continue then
 
-         Change_Dir (Receiver_Dir);
-         Build_RCI_Receiver
-           (RCI_Body, Original_Dir & Dir_Sep_Id & Full_RCI_Body);
-         Compile_RCI_Receiver (RCI_Body);
-         Change_Dir (Original_Dir);
+               --  An Afile name key is its ALI id.
+               Current_ALI := Get_ALI_Id (Withs.Table (J).Afile);
 
-      elsif not Quiet_Output then
-         Write_Program_Name;
-         Write_Str  (":    ");
-         Write_Name (Receiver_Body);
-         Write_Str  (" receiver stub is up to date");
-         Write_Eol;
-      end if;
+               --  If this ALI file has not been loaded, then we do not
+               --  need to check it (this means that we encountered an
+               --  internal unit that was not specified in the configuration
+               --  file and thus not recursively checked for consistency).
+               if Current_ALI = No_ALI_Id then
+                  Continue := False;
+               end if;
 
-   end Build_Stub;
+            end if;
 
-   -----------------------------
-   -- Create_Elaboration_File --
-   -----------------------------
+            if Continue then
 
-   procedure Create_Elaboration_File (PID : in PID_Type) is
+               for K in ALIs.Table (Current_ALI).First_Unit ..
+                        ALIs.Table (Current_ALI).Last_Unit loop
 
-      PName : constant Partition_Name_Type := Partitions.Table (PID) .Name;
-      FName : constant File_Name_Type      := Elaboration_Name & ADB_Suffix;
-      Cache : Name_Id
-        := DSA_Dir & Dir_Sep_Id & Configuration & Dir_Sep_Id & PName;
-      FD    : File_Descriptor;
+                  --  Look for a RCI units
+                  if Unit.Table (K).RCI then
 
-   begin
+                     --  This one is a caller (mapped on a different
+                     --  partition). Note that an unit name key is
+                     --  a partition id if unit is RCI.
+                     if Get_PID (Unit.Table (K).Uname) /= PID then
+                        Get_Name_String (Unit.Table (K).Uname);
+                        Set_PID (Unit.Table (K).Uname, PID);
+                     end if;
 
-      if not Is_Directory (Cache) then
-         Create_Dir (Cache);
-      end if;
+                     --  No need to search deeper. This unit is not
+                     --  on this partition.
+                     Continue := False;
+                     exit;
 
-      Change_Dir (Cache);
+                  elsif Get_PID (Unit.Table (K).Uname) = PID then
 
-      if Building_Script then
-         Write_Str  (Standout, "cat >");
-         Write_Name (Standout, FName);
-         Write_Str  (Standout, " <<__EOF__");
-         Write_Eol  (Standout);
-      end if;
+                     --  No need to search deeper. Already done.
+                     Continue := False;
+                     exit;
 
-      Create (FD, FName);
+                  end if;
+               end loop;
 
-      --  Header.
+               --  This unit is not a RCI unit or has not been scanned.
+               if Continue then
+                  Mark_RCI_Callers (PID, Current_ALI);
+               end if;
+            end if;
 
-      Dwrite_Str  (FD, "with System.Garlic.Options;");
-      Dwrite_Eol  (FD);
-      Dwrite_Str  (FD, "use System.Garlic.Options;");
-      Dwrite_Eol  (FD);
-      Dwrite_Str  (FD, "package body ");
-      Dwrite_Name (FD, Elaboration_Full_Name);
-      Dwrite_Str  (FD, " is");
-      Dwrite_Eol  (FD);
-      Dwrite_Str  (FD, "begin");
-      Dwrite_Eol  (FD);
+         end loop;
+      end loop;
 
-      --  If the partition holds the main unit, then it cannot be slave.
-      --  Otherwise, it is.
-
-      if PID = Main_Partition then
-         Dwrite_Str (FD, "   Set_Is_Slave (False);");
-      else
-         Dwrite_Str (FD, "   Set_Is_Slave (True);");
-      end if;
-      Dwrite_Eol (FD);
-
-      --  The partition should not terminate.
-
-      if Get_Permanent (PID) then
-         Dwrite_Str (FD, "   Set_Permanent (True);");
-      else
-         Dwrite_Str (FD, "   Set_Permanent (False);");
-      end if;
-      Dwrite_Eol (FD);
-
-      --  If a protocol has been specified, then use it (with its data
-      --  if present).
-
-      if Protocol_Name /= No_Name then
-         Dwrite_Str  (FD, "   Set_Boot_Server (""");
-         Dwrite_Name (FD, Protocol_Name);
-         if Protocol_Data /= No_Name then
-            Dwrite_Str  (FD, "://");
-            Dwrite_Name (FD, Protocol_Data);
-         end if;
-         Dwrite_Str  (FD, """);");
-         Dwrite_Eol  (FD);
-      end if;
-
-      --  Footer.
-      Dwrite_Str  (FD, "end ");
-      Dwrite_Name (FD, Elaboration_Full_Name);
-      Dwrite_Str  (FD, ";");
-      Dwrite_Eol  (FD);
-
-      if Building_Script then
-         Write_Str (Standout, "__EOF__");
-         Write_Eol (Standout);
-      end if;
-
-      Change_Dir (Original_Dir);
-
-      Close (FD);
-
-   end Create_Elaboration_File;
+   end Mark_RCI_Callers;
 
    -------------------
    -- Update_Switch --
@@ -983,85 +904,66 @@ begin
 
       if Partitions.Table (PID).To_Build then
 
-         Cache_Dir := DSA_Dir & Dir_Sep_Id & Configuration & Dir_Sep_Id &
-           Partitions.Table (PID).Name;
+         Directory := Get_Partition_Dir (PID);
 
-         if not Is_Directory (Cache_Dir) then
-            Create_Dir (Cache_Dir);
+         if not Is_Directory (Directory) then
+            Create_Dir (Directory);
          end if;
 
-         Create_Main_Unit (PID);
+         declare
+            UID : CUID_Type;
+         begin
+            --  Mark all the RCI callers.
+            UID := Partitions.Table (PID).First_Unit;
+            while UID /= Null_CUID loop
+               Mark_RCI_Callers (PID, CUnit.Table (UID).My_ALI);
+               UID := CUnit.Table (UID).Next;
+            end loop;
+         end;
 
+         Create_Main_Unit (PID);
          Create_Elaboration_File (PID);
 
          --  Copy RCI receiver stubs when this unit has been assigned on
          --  PID partition. RCI caller stubs are not needed because GNATDIST
          --  add the caller directory in its include path.
+
          for UID in CUnit.First .. CUnit.Last loop
             if Unit.Table (CUnit.Table (UID).My_Unit).RCI then
                if CUnit.Table (UID).Partition = PID then
                   Copy_Stub
                     (Receiver_Dir,
-                     Cache_Dir,
+                     Directory,
                      Get_Unit_Sfile (CUnit.Table (UID).My_Unit));
                else
                   Delete_Stub
-                    (Cache_Dir, Get_Unit_Sfile (CUnit.Table (UID).My_Unit));
+                    (Directory,
+                     Get_Unit_Sfile (CUnit.Table (UID).My_Unit));
                end if;
             end if;
          end loop;
 
          --  Bind and link each partition.
-         declare
 
-            Exec_Name : Name_Id := Partitions.Table (PID).Name;
-            Dir_Name  : Name_Id;
+         Executable := Partitions.Table (PID).Name;
 
-         begin
+         if Partitions.Table (PID).Storage_Dir = No_Storage_Dir then
+            Directory := Default_Storage_Dir;
+         else
+            Directory := Partitions.Table (PID).Storage_Dir;
+         end if;
 
-            if Partitions.Table (PID).Storage_Dir = No_Storage_Dir then
-               Dir_Name := Default_Storage_Dir;
-            else
-               Dir_Name := Partitions.Table (PID).Storage_Dir;
+         if Directory  = No_Storage_Dir then
+            Executable := Original_Dir & Dir_Sep_Id & Executable;
+         else
+            if not Is_Directory (Directory) then
+               Create_Dir (Directory);
             end if;
+            Executable := Directory & Dir_Sep_Id & Executable;
+         end if;
 
-            --  Bind and link are performed in the partition directory
-            --  dsa/<partition_name>. We compute relative output.
-            if Dir_Name  = No_Storage_Dir then
-
-               Exec_Name := Original_Dir & Dir_Sep_Id & Exec_Name;
-
-            else
-
-               declare
-
-                  Str : String (1 .. Strlen (Dir_Name));
-
-               begin
-
-                  Get_Name_String (Dir_Name);
-                  Str := Name_Buffer (1 .. Name_Len);
-
-                  --  Is it a relative storage directory ?
-                  if Str (1) /= Separator then
-
-                     --  Create dir before changing directory,
-                     if not Is_Directory (Dir_Name) then
-                        Create_Dir (Dir_Name);
-                     end if;
-                     Dir_Name := Original_Dir & Dir_Sep_Id & Dir_Name;
-
-                  elsif not Is_Directory (Dir_Name) then
-
-                     Create_Dir (Dir_Name);
-
-                  end if;
-
-                  Exec_Name := Dir_Name & Dir_Sep_Id & Exec_Name;
-
-               end;
-
-            end if;
+         if not Is_Regular_File (Executable) or else
+            More_Recent (Partitions.Table (PID).Most_Recent, Executable) then
 
             if not Quiet_Output then
                Write_Program_Name;
@@ -1070,9 +972,15 @@ begin
                Write_Eol;
             end if;
 
-            Build_Partition (Partitions.Table (PID).Name, Exec_Name);
+            --  Is it a relative storage directory ?
+            if Is_Relative_Dir (Executable) then
+               Executable := Original_Dir & Dir_Sep_Id & Executable;
+            end if;
 
-         end;
+            Build_Partition (Partitions.Table (PID).Name, Executable);
+
+         end if;
+
       end if;
 
    end loop;

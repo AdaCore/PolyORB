@@ -1519,9 +1519,6 @@ package body XE_Parse is
    procedure Parse is
    begin  --  Parse
 
-      Maybe_Most_Recent_Stamp
-        (Source_File_Stamp (Configuration_File), Configuration_File);
-
       Load_File (Configuration_File);
 
       P_Configuration_Declaration;
@@ -1738,6 +1735,16 @@ package body XE_Parse is
          Attribute_Kind => Attribute_Permanent,
          Attribute_Sloc => Null_Location,
          Attribute_Node => Attribute_Node);
+
+      --  type Channel (standard)
+
+      Declare_Type
+        (Conf_Node    => Configuration_Node,
+         Type_Name    => Str_To_Id ("channel"),
+         Type_Kind    => Pre_Type_Channel,
+         Structure    => True,
+         Type_Sloc    => Null_Location,
+         Type_Node    => Channel_Type_Node);
 
       --  type type__ada_unit (standard)
 

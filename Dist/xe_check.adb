@@ -108,17 +108,15 @@ package body XE_Check is
                XE_Utils.Build_Compile_Command (Name);
             end if;
 
-            --  Use later on to avoid unnecessary bind + link phases.
-
-            if Compiled = No_File then
-               Maybe_Most_Recent_Stamp (Stamp, Compiled);
-            end if;
-
          end if;
       end Recompile;
 
 
    begin
+
+      if Debug_Mode then
+         Write_Message ("unmark configured units");
+      end if;
 
       for U in CUnit.First .. CUnit.Last loop
          Set_Name_Table_Info (CUnit.Table (U).CUname, 0);
@@ -132,14 +130,15 @@ package body XE_Check is
 
       if not No_Recompilation then
 
-         Maybe_Most_Recent_Stamp
-           (Source_File_Stamp (Configuration_File), Configuration_File);
-
          Display_Commands (Verbose_Mode or Building_Script);
          for Switch in Gcc_Switches.First .. Gcc_Switches.Last loop
             Args (Switch) := Gcc_Switches.Table (Switch);
          end loop;
 
+      end if;
+
+      if Debug_Mode then
+         Write_Message ("load dist. app. units");
       end if;
 
       for U in CUnit.First .. CUnit.Last loop
@@ -157,6 +156,10 @@ package body XE_Check is
          end if;
 
       end loop;
+
+      if Debug_Mode then
+         Write_Message ("load external configured units");
+      end if;
 
       for H in Hosts.First .. Hosts.Last loop
 
@@ -176,12 +179,21 @@ package body XE_Check is
 
       --  Set configured unit name key to No_Ali_Id.       (1)
 
+      if Debug_Mode then
+         Write_Message ("set configured unit name key to No_Ali_Id");
+      end if;
+
       for U in CUnit.First .. CUnit.Last loop
          Set_ALI_Id (CUnit.Table (U).CUname, No_ALI_Id);
       end loop;
 
       --  Set ada unit name key to null.                   (2)
       --  Set configured unit name key to the ali file id. (3)
+
+      if Debug_Mode then
+         Write_Message ("set ada unit name key to null");
+         Write_Message ("set configured unit name key to the ali file id");
+      end if;
 
       for U in Unit.First .. Unit.Last loop
          Set_CUID (Unit.Table (U).Uname, Null_CUID);
@@ -191,6 +203,10 @@ package body XE_Check is
       end loop;
 
       --  Set partition name key to Null_PID.              (4)
+
+      if Debug_Mode then
+         Write_Message ("set partition name key to Null_PID");
+      end if;
 
       for P in Partitions.First .. Partitions.Last loop
          Set_PID (Partitions.Table (P).Name, Null_PID);
@@ -226,7 +242,13 @@ package body XE_Check is
          raise Partitioning_Error;
       end if;
 
-      --  Check mapped unit name key to detect non-Ada unit.
+      --  Check conf. unit name key to detect non-Ada unit.
+      --  Check conf. unit are not multiply configured.
+
+      if Debug_Mode then
+         Write_Message ("check conf. unit name key to detect non-Ada unit");
+         Write_Message ("conf. unit are not multiply configured");
+      end if;
 
       for U in CUnit.First .. CUnit.Last loop
          Ali := Get_ALI_Id (CUnit.Table (U).CUname);
@@ -294,6 +316,10 @@ package body XE_Check is
 
       --  Use (5) and (2). To check all RCI units are configured.
 
+      if Debug_Mode then
+         Write_Message ("check all RCI units are configured");
+      end if;
+
       for U in Unit.First .. Unit.Last loop
          if Unit.Table (U).RCI and then
             Get_CUID (Unit.Table (U).Uname) = Null_CUID then
@@ -307,6 +333,10 @@ package body XE_Check is
       end loop;
 
       --  Use (7). Check that no partition is empty.
+
+      if Debug_Mode then
+         Write_Message ("check that no partition is empty");
+      end if;
 
       for P in Partitions.First .. Partitions.Last loop
          PID := Get_PID (Partitions.Table (P).Name);

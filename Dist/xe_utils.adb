@@ -127,125 +127,157 @@ package body XE_Utils is
    --  Execute the command and raise Fatal Error if not successful
 
    procedure Execute_XE_Gcc
-     (Source : String_Access;
-      Target : String_Access;
-      Flags  : Argument_List);
+     (Source : in String_Access;
+      Target : in String_Access;
+      Flags  : in Argument_List);
    --  Execute xe-gcc and add gnatdist compilation flags
 
    procedure Execute_Gcc
-     (File : File_Name_Type;
-      Args : Argument_List);
+     (File : in File_Name_Type;
+      Args : in Argument_List);
    --  Execute gcc and add gnatdist compilation flags
 
    procedure Execute_Bind
-     (Lib  : File_Name_Type;
-      Args : Argument_List);
+     (Lib  : in File_Name_Type;
+      Args : in Argument_List);
    --  Execute gnatbind and add gnatdist flags
 
    procedure Execute_Link
-     (Lib  : File_Name_Type;
-      Exec : File_Name_Type;
-      Args : Argument_List);
+     (Lib  : in File_Name_Type;
+      Exec : in File_Name_Type;
+      Args : in Argument_List);
    --  Execute gnatlink and add gnatdist flags
 
-   -----------------
-   -- More_Recent --
-   -----------------
+   ---------
+   -- "&" --
+   ---------
 
-   function More_Recent (File1, File2 : Name_Id) return Boolean is
+   function "&" (Prefix, Suffix : Name_Id) return Name_Id is
+      Length : Natural := Strlen (Prefix) + Strlen (Suffix);
+      Name   : String (1 .. Length);
    begin
-      return Source_File_Stamp (File1) > Source_File_Stamp (File2);
-   end More_Recent;
+      Get_Name_String (Prefix);
+      Name (1 .. Name_Len) := Name_Buffer (1 .. Name_Len);
+      Length := Name_Len;
+      Get_Name_String (Suffix);
+      Name (Length + 1 .. Length + Name_Len) := Name_Buffer (1 .. Name_Len);
+      Name_Len := Name'Length;
+      Name_Buffer (1 .. Name_Len) := Name;
+      return Name_Find;
+   end "&";
 
-   -------------
-   -- Execute --
-   -------------
+   ---------------------------
+   -- Build_Compile_Command --
+   ---------------------------
 
-   procedure Execute
-     (Prog : String_Access;
-      Args : Argument_List) is
-      Success : Boolean := False;
+   procedure Build_Compile_Command (Name : in File_Name_Type) is
+   begin
+      Write_Str  (Standout, Gnatmake.all);
+      Write_Str  (Standout, " -c ");
+      for I in Gcc_Switches.First .. Gcc_Switches.Last loop
+         Write_Str (Standout, Gcc_Switches.Table (I).all);
+         Write_Str (Standout, " ");
+      end loop;
+      Write_Name (Standout, Name);
+      Write_Eol  (Standout);
+   end Build_Compile_Command;
+
+   ---------------------
+   -- Build_Partition --
+   ---------------------
+
+   procedure Build_Partition
+     (Partition   : in Name_Id;
+      Executable  : in File_Name_Type) is
+
+      Dir_Name : File_Name_Type
+        := DSA_Dir & Dir_Sep_Id & Configuration & Dir_Sep_Id & Partition;
+
    begin
 
-      if Verbose_Mode or else Building_Script then
-         if Building_Script then
-            Write_Str (Standout, Prog.all);
-         else
-            Write_Str (Prog.all);
-         end if;
-         for Index in Args'Range loop
-            if Args (Index) /= null then
-               if Building_Script then
-                  Write_Str (Standout, " ");
-                  Write_Str (Standout, Args (Index).all);
-               else
-                  Write_Str (" ");
-                  Write_Str (Args (Index).all);
-               end if;
-            end if;
-         end loop;
-         if Building_Script then
-            Write_Eol (Standout);
-         else
-            Write_Eol;
-         end if;
-      end if;
+      Change_Dir (Dir_Name);
 
-      Spawn (Prog.all, Args, Success);
+      Execute_Gcc
+        (Elaboration_Name & ADB_Suffix,
+         (GNATLib_Compile_Flag,
+          I_Original_Dir,
+             I_GARLIC_Dir)
+         );
 
-      if not Success then
-         Write_Program_Name;
-         Write_Str (": ");
-         Write_Str (Prog.all);
-         Write_Str (" failed");
-         Write_Eol;
-         raise XE.Fatal_Error;
-      end if;
+      Execute_Gcc
+        (Partition & ADB_Suffix,
+         (I_Current_Dir,
+          I_Caller_Dir,
+          I_Original_Dir)
+         );
 
-   end Execute;
+      --  I_Garlic_Dir is not included here because it was added by the
+      --  gnatdist shell script.
 
-   -----------------
-   -- Unlink_File --
-   -----------------
 
-   procedure Unlink_File (File : File_Name_Type) is
-      File_Name : String_Access := new String (1 .. Strlen (File));
-   procedure Free is new Unchecked_Deallocation (String, String_Access);
-   begin
-      Get_Name_String (File);
-      File_Name.all := Name_Buffer (1 .. Name_Len);
-      Execute (Rm, (Force, File_Name));
-      Free (File_Name);
-   end Unlink_File;
+      Execute_Bind
+        (Partition & ALI_Suffix,
+         (I_Current_Dir,
+          I_Caller_Dir,
+          I_Original_Dir)
+            );
 
-   --------------------------
-   -- Copy_With_File_Stamp --
-   --------------------------
+      Execute_Link
+        (Partition & ALI_Suffix,
+         Executable,
+         (L_Current_Dir,
+          L_Caller_Dir,
+          L_Original_Dir,
+          L_GARLIC_Dir)
+         );
 
-   procedure Copy_With_File_Stamp
-     (Source, Target : in File_Name_Type;
-      Maybe_Symbolic : in Boolean := False) is
-      S : String_Access := new String (1 .. Strlen (Source));
-      T : String_Access := new String (1 .. Strlen (Target));
-      procedure Free is new Unchecked_Deallocation (String, String_Access);
+         Change_Dir (Original_Dir);
+
+   end Build_Partition;
+
+   ----------------------
+   -- Build_RCI_Caller --
+   ----------------------
+
+   procedure Build_RCI_Caller (Source, Target : in File_Name_Type) is
+      Source_Name_Len : Natural := Strlen (Source);
+      Target_Name_Len : Natural := Strlen (Target);
+      Source_Name     : String (1 .. Source_Name_Len);
+      Target_Name     : String (1 .. Target_Name_Len);
    begin
       Get_Name_String (Source);
-      S.all := Name_Buffer (1 .. Name_Len);
+      Source_Name := Name_Buffer (1 .. Name_Len);
       Get_Name_String (Target);
-      T.all := Name_Buffer (1 .. Name_Len);
-      if Link = null then
-         Execute (Copy, (Preserve, S, T));
-      else
-         Execute (Rm, (Force, T));
-         if Maybe_Symbolic then
-            Execute (Link, (Symbolic, S, T));
-         else
-            Execute (Link, (S, T));
-         end if;
-      end if;
-      Free (S);
-      Free (T);
-   end Copy_With_File_Stamp;
+      Target_Name := Name_Buffer (1 .. Name_Len);
+      Execute_XE_Gcc
+        (new String'(Target_Name),
+         new String'(Source_Name),
+         (Sem_Only_Flag,
+          Caller_Build_Flag,
+          I_GARLIC_Dir));
+   end Build_RCI_Caller;
+
+   ------------------------
+   -- Build_RCI_Receiver --
+   ------------------------
+
+   procedure Build_RCI_Receiver (Source, Target : in File_Name_Type) is
+      Source_Name_Len : Natural := Strlen (Source);
+      Target_Name_Len : Natural := Strlen (Target);
+      Source_Name     : String (1 .. Source_Name_Len);
+      Target_Name     : String (1 .. Target_Name_Len);
+   begin
+      Get_Name_String (Source);
+      Source_Name := Name_Buffer (1 .. Name_Len);
+      Get_Name_String (Target);
+      Target_Name := Name_Buffer (1 .. Name_Len);
+      Execute_XE_Gcc
+        (new String'(Target_Name),
+         new String'(Source_Name),
+         (Sem_Only_Flag,
+          Receiver_Build_Flag,
+          I_GARLIC_Dir));
+   end Build_RCI_Receiver;
 
    ----------------
    -- Change_Dir --
@@ -287,148 +319,69 @@ package body XE_Utils is
 
    end Change_Dir;
 
-   ----------------
-   -- Create_Dir --
-   ----------------
+   ------------------------
+   -- Compile_RCI_Caller --
+   ------------------------
 
-   procedure Create_Dir (To : in File_Name_Type) is
-      Dir_Name_Len : Natural := Strlen (To);
-      Dir_Name     : String (1 .. Dir_Name_Len);
+   procedure Compile_RCI_Caller (Source : in File_Name_Type) is
    begin
+      Execute_Gcc
+        (Source,
+         (Caller_Compile_Flag,
+          I_Original_Dir,
+          I_GARLIC_Dir)
+         );
+   end Compile_RCI_Caller;
 
-      Get_Name_String (To);
-      Dir_Name := Name_Buffer (1 .. Name_Len);
-      for Index in Dir_Name'Range loop
+   --------------------------
+   -- Compile_RCI_Receiver --
+   --------------------------
 
-         --  XXXXX
-         if Dir_Name (Index) = Separator and then Index > 1 and then
-            not Is_Directory (Dir_Name (1 .. Index - 1)) then
-            Execute (Mkdir, (1 => new String'(Dir_Name (1 .. Index - 1))));
-         elsif Index = Dir_Name'Last then
-            Execute (Mkdir, (1 => new String'(Dir_Name)));
+   procedure Compile_RCI_Receiver (Source : in File_Name_Type) is
+   begin
+      Execute_Gcc
+        (Source,
+         (Receiver_Compile_Flag,
+          I_Original_Dir,
+          I_GARLIC_Dir)
+         );
+   end Compile_RCI_Receiver;
+
+   --------------------------
+   -- Copy_With_File_Stamp --
+   --------------------------
+
+   procedure Copy_With_File_Stamp
+     (Source, Target : in File_Name_Type;
+      Maybe_Symbolic : in Boolean := False) is
+      S : String_Access := new String (1 .. Strlen (Source));
+      T : String_Access := new String (1 .. Strlen (Target));
+      procedure Free is new Unchecked_Deallocation (String, String_Access);
+   begin
+      Get_Name_String (Source);
+      S.all := Name_Buffer (1 .. Name_Len);
+      Get_Name_String (Target);
+      T.all := Name_Buffer (1 .. Name_Len);
+      if Link = null then
+         Execute (Copy, (Preserve, S, T));
+      else
+         Execute (Rm, (Force, T));
+         if Maybe_Symbolic then
+            Execute (Link, (Symbolic, S, T));
+         else
+            Execute (Link, (S, T));
          end if;
-      end loop;
-
-   end Create_Dir;
-
-   -----------------
-   -- Write_Stamp --
-   -----------------
-
-   procedure Write_Stamp (File : Name_Id) is
-   begin
-      Write_Str (" (");
-      Write_Str (String (Source_File_Stamp (File)));
-      Write_Str (")");
-   end Write_Stamp;
-
-   ---------------
-   -- Write_Str --
-   ---------------
-
-   procedure Write_Str
-     (File   : in File_Descriptor;
-      Line   : in String;
-      Stdout : in Boolean := False) is
-   begin
-
-      if File = Invalid_FD then
-         raise Usage_Error;
       end if;
-
-      if Write (File, Line'Address, Line'Length) /= Line'Length then
-         Write_Str ("error : disk full");
-         Write_Eol;
-         raise XE.Fatal_Error;
-      end if;
-
-      if Stdout then
-         Write_Str (Standout, Line);
-      end if;
-
-   end Write_Str;
-
-   ----------------
-   -- Write_Name --
-   ----------------
-
-   procedure Write_Name
-     (File   : in File_Descriptor;
-      Name   : in Name_Id;
-      Stdout : in Boolean := False) is
-   begin
-
-      if File = Invalid_FD then
-         raise Usage_Error;
-      end if;
-
-      if Name /= No_Name then
-         Get_Name_String (Name);
-         if Name_Buffer (Name_Len - 1) = '%' then --  %
-            Name_Len := Name_Len - 2;
-         end if;
-         if Write (File, Name_Buffer'Address, Name_Len) /= Name_Len then
-            Write_Str ("error : disk full");
-            Write_Eol;
-            raise XE.Fatal_Error;
-         end if;
-
-         if Stdout then
-            Write_Name (Standout, Name);
-         end if;
-
-      end if;
-
-   end Write_Name;
-
-   ---------------
-   -- Write_Eol --
-   ---------------
-
-   procedure Write_Eol
-     (File   : in File_Descriptor;
-      Stdout : in Boolean := False) is
-   begin
-
-      if File = Invalid_FD then
-         raise Usage_Error;
-      end if;
-
-      if EOL'Length /= Write (File, EOL'Address, EOL'Length) then
-         Write_Str ("error : disk full");
-         Write_Eol;
-         raise XE.Fatal_Error;
-      end if;
-
-      if Stdout then
-         Write_Eol (Standout);
-      end if;
-
-   end Write_Eol;
-
-   ---------------------------
-   -- Build_Compile_Command --
-   ---------------------------
-
-   procedure Build_Compile_Command (Name : in File_Name_Type)
-   is
-   begin
-      Write_Str  (Standout, Gnatmake.all);
-      Write_Str  (Standout, " -c ");
-      for I in Gcc_Switches.First .. Gcc_Switches.Last loop
-         Write_Str (Standout, Gcc_Switches.Table (I).all);
-         Write_Str (Standout, " ");
-      end loop;
-      Write_Name (Standout, Name);
-      Write_Eol  (Standout);
-   end Build_Compile_Command;
+      Free (S);
+      Free (T);
+   end Copy_With_File_Stamp;
 
    ------------
    -- Create --
    ------------
 
    procedure Create
-     (File   : in out File_Descriptor;
+     (File : in out File_Descriptor;
       Name : in File_Name_Type;
       Exec : in Boolean := False) is
       File_Name_Len : Natural := Strlen (Name);
@@ -464,11 +417,35 @@ package body XE_Utils is
 
    end Create;
 
+   ----------------
+   -- Create_Dir --
+   ----------------
+
+   procedure Create_Dir (To : in File_Name_Type) is
+      Dir_Name_Len : Natural := Strlen (To);
+      Dir_Name     : String (1 .. Dir_Name_Len);
+   begin
+
+      Get_Name_String (To);
+      Dir_Name := Name_Buffer (1 .. Name_Len);
+      for Index in Dir_Name'Range loop
+
+         --  XXXXX
+         if Dir_Name (Index) = Separator and then Index > 1 and then
+            not Is_Directory (Dir_Name (1 .. Index - 1)) then
+            Execute (Mkdir, (1 => new String'(Dir_Name (1 .. Index - 1))));
+         elsif Index = Dir_Name'Last then
+            Execute (Mkdir, (1 => new String'(Dir_Name)));
+         end if;
+      end loop;
+
+   end Create_Dir;
+
    ------------
    -- Delete --
    ------------
 
-   procedure Delete (File : File_Name_Type) is
+   procedure Delete (File : in File_Name_Type) is
       Error : Boolean;
    begin
       Get_Name_String (File);
@@ -477,86 +454,60 @@ package body XE_Utils is
       Delete_File (Name_Buffer'Address, Error);
    end Delete;
 
-   --------------------
-   -- Execute_XE_Gcc --
-   --------------------
+   -------------
+   -- Execute --
+   -------------
 
-   procedure Execute_XE_Gcc
-     (Source : String_Access;
-      Target : String_Access;
-      Flags  : Argument_List) is
-      N : Natural := 1;
-      L : constant Natural
-        := Gcc_Switches.Last - Gcc_Switches.First + 5 + Flags'Length;
-      A : Argument_List (1 .. L);
-   begin
-      A (N) := Target;
-      N := N + 1;
-      A (N) := Gcc;
-      N := N + 1;
-      A (N) := Compile_Flag;
-      N := N + 1;
-      for I in Flags'First .. Flags'Last loop
-         A (N) := Flags (I);
-         N := N + 1;
-      end loop;
-      for I in Gcc_Switches.First .. Gcc_Switches.Last loop
-         A (N) := Gcc_Switches.Table (I);
-         N := N + 1;
-      end loop;
-      A (N) := Source;
-      Execute (XE_Gcc, A);
-   end Execute_XE_Gcc;
-
-   -----------------
-   -- Execute_Gcc --
-   -----------------
-
-   procedure Execute_Gcc
-     (File : File_Name_Type;
-      Args : Argument_List) is
-
-      Length      : constant Natural
-        := Gcc_Switches.Last - Gcc_Switches.First + 1 + Args'Length + 2;
-
-      Gcc_Flags   : Argument_List (1 .. Length);
-
-      File_Name   : String (1 .. Strlen (File));
-
-      N_Gcc_Flags : Natural range 0 .. Length := 0;
-
+   procedure Execute
+     (Prog : in String_Access;
+      Args : in Argument_List) is
+      Success : Boolean := False;
    begin
 
-      N_Gcc_Flags := N_Gcc_Flags + 1;
-      Gcc_Flags (N_Gcc_Flags) := Compile_Flag;
+      if Verbose_Mode or else Building_Script then
+         if Building_Script then
+            Write_Str (Standout, Prog.all);
+         else
+            Write_Str (Prog.all);
+         end if;
+         for Index in Args'Range loop
+            if Args (Index) /= null then
+               if Building_Script then
+                  Write_Str (Standout, " ");
+                  Write_Str (Standout, Args (Index).all);
+               else
+                  Write_Str (" ");
+                  Write_Str (Args (Index).all);
+               end if;
+            end if;
+         end loop;
+         if Building_Script then
+            Write_Eol (Standout);
+         else
+            Write_Eol;
+         end if;
+      end if;
 
-      Get_Name_String (File);
-      File_Name := Name_Buffer (1 .. Name_Len);
+      Spawn (Prog.all, Args, Success);
 
-      N_Gcc_Flags := N_Gcc_Flags + 1;
-      Gcc_Flags (N_Gcc_Flags) := new String'(File_Name);
+      if not Success then
+         Write_Program_Name;
+         Write_Str (": ");
+         Write_Str (Prog.all);
+         Write_Str (" failed");
+         Write_Eol;
+         raise XE.Fatal_Error;
+      end if;
 
-      for I in Args'Range loop
-         N_Gcc_Flags := N_Gcc_Flags + 1;
-         Gcc_Flags (N_Gcc_Flags) := Args (I);
-      end loop;
-
-      for I in Gcc_Switches.First .. Gcc_Switches.Last loop
-         N_Gcc_Flags := N_Gcc_Flags + 1;
-         Gcc_Flags (N_Gcc_Flags) := Gcc_Switches.Table (I);
-      end loop;
-
-      Execute (Gcc, Gcc_Flags);
-
-   end Execute_Gcc;
+   end Execute;
 
    ------------------
    -- Execute_Bind --
    ------------------
 
    procedure Execute_Bind
-     (Lib  : File_Name_Type;
-      Args : Argument_List) is
+     (Lib  : in File_Name_Type;
+      Args : in Argument_List) is
 
 
       Length : constant Positive :=
@@ -598,14 +549,56 @@ package body XE_Utils is
 
    end Execute_Bind;
 
+   -----------------
+   -- Execute_Gcc --
+   -----------------
+
+   procedure Execute_Gcc
+     (File : in File_Name_Type;
+      Args : in Argument_List) is
+
+      Length      : constant Natural
+        := Gcc_Switches.Last - Gcc_Switches.First + 1 + Args'Length + 2;
+
+      Gcc_Flags   : Argument_List (1 .. Length);
+
+      File_Name   : String (1 .. Strlen (File));
+
+      N_Gcc_Flags : Natural range 0 .. Length := 0;
+
+   begin
+
+      N_Gcc_Flags := N_Gcc_Flags + 1;
+      Gcc_Flags (N_Gcc_Flags) := Compile_Flag;
+
+      Get_Name_String (File);
+      File_Name := Name_Buffer (1 .. Name_Len);
+
+      N_Gcc_Flags := N_Gcc_Flags + 1;
+      Gcc_Flags (N_Gcc_Flags) := new String'(File_Name);
+
+      for I in Args'Range loop
+         N_Gcc_Flags := N_Gcc_Flags + 1;
+         Gcc_Flags (N_Gcc_Flags) := Args (I);
+      end loop;
+
+      for I in Gcc_Switches.First .. Gcc_Switches.Last loop
+         N_Gcc_Flags := N_Gcc_Flags + 1;
+         Gcc_Flags (N_Gcc_Flags) := Gcc_Switches.Table (I);
+      end loop;
+
+      Execute (Gcc, Gcc_Flags);
+
+   end Execute_Gcc;
+
    ------------------
    -- Execute_Link --
    ------------------
 
    procedure Execute_Link
-     (Lib  : File_Name_Type;
-      Exec : File_Name_Type;
-      Args : Argument_List) is
+     (Lib  : in File_Name_Type;
+      Exec : in File_Name_Type;
+      Args : in Argument_List) is
 
 
       Length : constant Positive :=
@@ -657,217 +650,36 @@ package body XE_Utils is
 
    end Execute_Link;
 
-   ---------------------
-   -- Write_Unit_Name --
-   ---------------------
+   --------------------
+   -- Execute_XE_Gcc --
+   --------------------
 
-   procedure Write_Unit_Name (N : Unit_Name_Type) is
+   procedure Execute_XE_Gcc
+     (Source : in String_Access;
+      Target : in String_Access;
+      Flags  : in Argument_List) is
+      N : Natural := 1;
+      L : constant Natural
+        := Gcc_Switches.Last - Gcc_Switches.First + 5 + Flags'Length;
+      A : Argument_List (1 .. L);
    begin
-      Get_Decoded_Name_String (N);
-      Set_Casing (Mixed_Case, Mixed_Case);
-      for J in 1 .. Name_Len loop
-         if Name_Buffer (J) = '-' then
-            Name_Buffer (J) := '.';
-         end if;
+      A (N) := Target;
+      N := N + 1;
+      A (N) := Gcc;
+      N := N + 1;
+      A (N) := Compile_Flag;
+      N := N + 1;
+      for I in Flags'First .. Flags'Last loop
+         A (N) := Flags (I);
+         N := N + 1;
       end loop;
-      Name_Len := Name_Len - 2;
-      Write_Str (Name_Buffer (1 .. Name_Len));
-   end Write_Unit_Name;
-
-   ------------
-   -- Strlen --
-   ------------
-
-   function Strlen (Name : in Name_Id) return Natural is
-   begin
-      Get_Name_String (Name);
-      return Name_Len;
-   end Strlen;
-
-   ---------------------
-   -- Is_Regular_File --
-   ---------------------
-
-   function Is_Regular_File (File : File_Name_Type) return Boolean is
-   begin
-      Get_Name_String (File);
-      return GNAT.Os_Lib.Is_Regular_File (Name_Buffer (1 .. Name_Len));
-   end Is_Regular_File;
-
-   ------------------
-   -- Is_Directory --
-   ------------------
-
-   function Is_Directory    (File : File_Name_Type) return Boolean is
-   begin
-      Get_Name_String (File);
-      return Is_Directory (Name_Buffer (1 .. Name_Len));
-   end Is_Directory;
-
-   ---------
-   -- "&" --
-   ---------
-
-   function "&" (Prefix, Suffix : Name_Id) return Name_Id is
-      Length : Natural := Strlen (Prefix) + Strlen (Suffix);
-      Name   : String (1 .. Length);
-   begin
-      Get_Name_String (Prefix);
-      Name (1 .. Name_Len) := Name_Buffer (1 .. Name_Len);
-      Length := Name_Len;
-      Get_Name_String (Suffix);
-      Name (Length + 1 .. Length + Name_Len) := Name_Buffer (1 .. Name_Len);
-      Name_Len := Name'Length;
-      Name_Buffer (1 .. Name_Len) := Name;
-      return Name_Find;
-   end "&";
-
-   ---------------------
-   -- Build_Partition --
-   ---------------------
-
-   procedure Build_Partition (Partition : Name_Id; Exec : File_Name_Type) is
-      Cache_Dir : Name_Id
-        := DSA_Dir & Dir_Sep_Id & Configuration & Dir_Sep_Id & Partition;
-   begin
-      Change_Dir (Cache_Dir);
-
-      Maybe_Most_Recent_Stamp
-        (Source_File_Stamp (Elaboration_Name & ADB_Suffix),
-         Elaboration_Name & ADB_Suffix);
-
-      if Opt.Force_Compilations or else
-        More_Recent (Elaboration_Name & ADB_Suffix,
-                     Elaboration_Name & ALI_Suffix) then
-         Execute_Gcc
-           (Elaboration_Name & ADB_Suffix,
-            (GNATLib_Compile_Flag,
-             I_Original_Dir,
-             I_GARLIC_Dir)
-            );
-
-      end if;
-
-      Maybe_Most_Recent_Stamp
-        (Source_File_Stamp (Partition & ADB_Suffix), Partition & ADB_Suffix);
-
-      if Opt.Force_Compilations or else
-        More_Recent (Partition & ADB_Suffix,
-                     Partition & ALI_Suffix) then
-
-         Execute_Gcc
-           (Partition & ADB_Suffix,
-            (I_Current_Dir,
-             I_Caller_Dir,
-             I_Original_Dir)
-            );
-
-      end if;
-
-      if Opt.Force_Compilations or else
-        Most_Recent_Stamp > Source_File_Stamp (Exec) then
-
-         --  I_Garlic_Dir is not included here because it was added by the
-         --  gnatdist shell script.
-
-
-         Execute_Bind
-           (Partition & ALI_Suffix,
-            (I_Current_Dir,
-             I_Caller_Dir,
-             I_Original_Dir)
-            );
-
-         Execute_Link
-           (Partition & ALI_Suffix,
-            Exec,
-            (L_Current_Dir,
-             L_Caller_Dir,
-             L_Original_Dir,
-             L_GARLIC_Dir)
-            );
-
-      end if;
-
-      Change_Dir (Original_Dir);
-
-   end Build_Partition;
-
-   ------------------------
-   -- Compile_RCI_Caller --
-   ------------------------
-
-   procedure Compile_RCI_Caller (Source : File_Name_Type) is
-   begin
-      Maybe_Most_Recent_Stamp
-        (Source_File_Stamp (Source), Source);
-      Execute_Gcc
-        (Source,
-         (Caller_Compile_Flag,
-          I_Original_Dir,
-          I_GARLIC_Dir)
-         );
-   end Compile_RCI_Caller;
-
-   --------------------------
-   -- Compile_RCI_Receiver --
-   --------------------------
-
-   procedure Compile_RCI_Receiver (Source : File_Name_Type) is
-   begin
-      Maybe_Most_Recent_Stamp
-        (Source_File_Stamp (Source), Source);
-      Execute_Gcc
-        (Source,
-         (Receiver_Compile_Flag,
-          I_Original_Dir,
-          I_GARLIC_Dir)
-         );
-   end Compile_RCI_Receiver;
-
-   ----------------------
-   -- Build_RCI_Caller --
-   ----------------------
-
-   procedure Build_RCI_Caller     (Source, Target : File_Name_Type) is
-      Source_Name_Len : Natural := Strlen (Source);
-      Target_Name_Len : Natural := Strlen (Target);
-      Source_Name     : String (1 .. Source_Name_Len);
-      Target_Name     : String (1 .. Target_Name_Len);
-   begin
-      Get_Name_String (Source);
-      Source_Name := Name_Buffer (1 .. Name_Len);
-      Get_Name_String (Target);
-      Target_Name := Name_Buffer (1 .. Name_Len);
-      Execute_XE_Gcc
-        (new String'(Target_Name),
-         new String'(Source_Name),
-         (Sem_Only_Flag,
-          Caller_Build_Flag,
-          I_GARLIC_Dir));
-   end Build_RCI_Caller;
-
-   ------------------------
-   -- Build_RCI_Receiver --
-   ------------------------
-
-   procedure Build_RCI_Receiver   (Source, Target : File_Name_Type) is
-      Source_Name_Len : Natural := Strlen (Source);
-      Target_Name_Len : Natural := Strlen (Target);
-      Source_Name     : String (1 .. Source_Name_Len);
-      Target_Name     : String (1 .. Target_Name_Len);
-   begin
-      Get_Name_String (Source);
-      Source_Name := Name_Buffer (1 .. Name_Len);
-      Get_Name_String (Target);
-      Target_Name := Name_Buffer (1 .. Name_Len);
-      Execute_XE_Gcc
-        (new String'(Target_Name),
-         new String'(Source_Name),
-         (Sem_Only_Flag,
-          Receiver_Build_Flag,
-          I_GARLIC_Dir));
-   end Build_RCI_Receiver;
+      for I in Gcc_Switches.First .. Gcc_Switches.Last loop
+         A (N) := Gcc_Switches.Table (I);
+         N := N + 1;
+      end loop;
+      A (N) := Source;
+      Execute (XE_Gcc, A);
+   end Execute_XE_Gcc;
 
    ----------------
    -- Initialize --
@@ -922,6 +734,226 @@ package body XE_Utils is
       end;
 
    end Initialize;
+
+   ------------------
+   -- Is_Directory --
+   ------------------
+
+   function Is_Directory (File : File_Name_Type) return Boolean is
+   begin
+      Get_Name_String (File);
+      return Is_Directory (Name_Buffer (1 .. Name_Len));
+   end Is_Directory;
+
+   ---------------------
+   -- Is_Regular_File --
+   ---------------------
+
+   function Is_Regular_File (File : File_Name_Type) return Boolean is
+   begin
+      Get_Name_String (File);
+      return GNAT.Os_Lib.Is_Regular_File (Name_Buffer (1 .. Name_Len));
+   end Is_Regular_File;
+
+   ---------------------
+   -- Is_Relative_Dir --
+   ---------------------
+
+   function Is_Relative_Dir (File : File_Name_Type) return Boolean is
+   begin
+      Get_Name_String (File);
+      return Name_Buffer (1) /= Separator;
+   end Is_Relative_Dir;
+
+   -----------------
+   -- More_Recent --
+   -----------------
+
+   function More_Recent (File1, File2 : Name_Id) return Boolean is
+   begin
+      return Source_File_Stamp (File1) > Source_File_Stamp (File2);
+   end More_Recent;
+
+   ------------
+   -- Strlen --
+   ------------
+
+   function Strlen (Name : in Name_Id) return Natural is
+   begin
+      Get_Name_String (Name);
+      return Name_Len;
+   end Strlen;
+
+   -----------------
+   -- Unlink_File --
+   -----------------
+
+   procedure Unlink_File (File : in File_Name_Type) is
+      File_Name : String_Access := new String (1 .. Strlen (File));
+      procedure Free is new Unchecked_Deallocation (String, String_Access);
+   begin
+      Get_Name_String (File);
+      File_Name.all := Name_Buffer (1 .. Name_Len);
+      Execute (Rm, (Force, File_Name));
+      Free (File_Name);
+   end Unlink_File;
+
+   ---------------
+   -- Write_Eol --
+   ---------------
+
+   procedure Write_Eol
+     (File   : in File_Descriptor;
+      Stdout : in Boolean := False) is
+   begin
+
+      if File = Invalid_FD then
+         raise Usage_Error;
+      end if;
+
+      if EOL'Length /= Write (File, EOL'Address, EOL'Length) then
+         Write_Str ("error : disk full");
+         Write_Eol;
+         raise XE.Fatal_Error;
+      end if;
+
+      if Stdout then
+         Write_Eol (Standout);
+      end if;
+
+   end Write_Eol;
+
+   ----------------------
+   -- Write_File_Stamp --
+   ----------------------
+
+   procedure Write_File_Stamp
+     (File : in File_Name_Type) is
+   begin
+      Write_Str (" (");
+      Write_Str (String (Source_File_Stamp (File)));
+      Write_Str (")");
+   end Write_File_Stamp;
+
+   -------------------
+   -- Write_Message --
+   -------------------
+
+   procedure Write_Message
+     (Message : in String) is
+   begin
+      Write_Program_Name;
+      Write_Str (": ");
+      Write_Str (Message);
+      Write_Eol;
+   end Write_Message;
+
+   ------------------------
+   -- Write_Missing_File --
+   ------------------------
+
+   procedure Write_Missing_File
+     (File  : in File_Name_Type) is
+   begin
+      Write_Program_Name;
+      Write_Str (": ");
+      Write_Name (File);
+      Write_Str (" does not exist");
+      Write_Eol;
+   end Write_Missing_File;
+
+   ----------------
+   -- Write_Name --
+   ----------------
+
+   procedure Write_Name
+     (File   : in File_Descriptor;
+      Name   : in Name_Id;
+      Stdout : in Boolean := False) is
+   begin
+
+      if File = Invalid_FD then
+         raise Usage_Error;
+      end if;
+
+      if Name /= No_Name then
+         Get_Name_String (Name);
+         if Name_Buffer (Name_Len - 1) = '%' then --  %
+            Name_Len := Name_Len - 2;
+         end if;
+         if Write (File, Name_Buffer'Address, Name_Len) /= Name_Len then
+            Write_Str ("error : disk full");
+            Write_Eol;
+            raise XE.Fatal_Error;
+         end if;
+
+         if Stdout then
+            Write_Name (Standout, Name);
+         end if;
+
+      end if;
+
+   end Write_Name;
+
+   ----------------------------
+   -- Write_Stamp_Comparison --
+   ----------------------------
+
+   procedure Write_Stamp_Comparison
+     (Newer, Older : in File_Name_Type) is
+   begin
+      Write_Program_Name;
+      Write_Str (": ");
+      Write_Name (Newer);
+      Write_File_Stamp (Newer);
+      Write_Str (" is more recent than ");
+      Write_Name (Older);
+      Write_File_Stamp (Older);
+      Write_Eol;
+   end Write_Stamp_Comparison;
+
+   ---------------
+   -- Write_Str --
+   ---------------
+
+   procedure Write_Str
+     (File   : in File_Descriptor;
+      Line   : in String;
+      Stdout : in Boolean := False) is
+   begin
+
+      if File = Invalid_FD then
+         raise Usage_Error;
+      end if;
+
+      if Write (File, Line'Address, Line'Length) /= Line'Length then
+         Write_Str ("error : disk full");
+         Write_Eol;
+         raise XE.Fatal_Error;
+      end if;
+
+      if Stdout then
+         Write_Str (Standout, Line);
+      end if;
+
+   end Write_Str;
+
+   ---------------------
+   -- Write_Unit_Name --
+   ---------------------
+
+   procedure Write_Unit_Name (U : in Unit_Name_Type) is
+   begin
+      Get_Decoded_Name_String (U);
+      Set_Casing (Mixed_Case, Mixed_Case);
+      for J in 1 .. Name_Len loop
+         if Name_Buffer (J) = '-' then
+            Name_Buffer (J) := '.';
+         end if;
+      end loop;
+      Name_Len := Name_Len - 2;
+      Write_Str (Name_Buffer (1 .. Name_Len));
+   end Write_Unit_Name;
 
 end XE_Utils;
 

@@ -35,28 +35,28 @@ package XE_Utils is
 
    function More_Recent (File1, File2 : Name_Id) return Boolean;
 
-   Obj_Suffix   : Name_Id;
-   ALI_Suffix   : Name_Id;
-   ADS_Suffix   : Name_Id;
-   ADB_Suffix   : Name_Id;
+   Obj_Suffix   : File_Name_Type;
+   ALI_Suffix   : File_Name_Type;
+   ADS_Suffix   : File_Name_Type;
+   ADB_Suffix   : File_Name_Type;
 
-   Spec_Suffix  : Name_Id;
-   Body_Suffix  : Name_Id;
+   Spec_Suffix  : File_Name_Type;
+   Body_Suffix  : File_Name_Type;
 
-   Com_Sep_Id   : Name_Id;
-   Dir_Sep_Id   : Name_Id;
-   Dot_Sep_Id   : Name_Id;
+   Com_Sep_Id   : File_Name_Type;
+   Dir_Sep_Id   : File_Name_Type;
+   Dot_Sep_Id   : File_Name_Type;
 
-   DSA_Dir      : Name_Id;
-   Caller_Dir   : Name_Id;
-   Receiver_Dir : Name_Id;
-   Parent_Dir   : Name_Id;
-   Original_Dir : Name_Id;
+   DSA_Dir      : File_Name_Type;
+   Caller_Dir   : File_Name_Type;
+   Receiver_Dir : File_Name_Type;
+   Parent_Dir   : File_Name_Type;
+   Original_Dir : File_Name_Type;
 
-   PWD_Id       : Name_Id;
+   PWD_Id       : File_Name_Type;
 
-   Elaboration_Name      : Name_Id;
-   Elaboration_Full_Name : Name_Id;
+   Elaboration_Name      : File_Name_Type;
+   Elaboration_Full_Name : File_Name_Type;
 
    procedure Copy_With_File_Stamp
      (Source, Target : in File_Name_Type;
@@ -73,11 +73,10 @@ package XE_Utils is
    --  Generates the source's receiver stubs into target (-gnatzr).
 
    procedure Build_Partition
-     (Partition : in Name_Id;
-      Exec      : in File_Name_Type);
+     (Partition  : in Name_Id;
+      Executable : in File_Name_Type);
    --  Generates the partition ada main subprogram (generation
-   --  of Ada code, compilation, bind and link). Exec is the name
-   --  of the executable.
+   --  of Ada code, compilation, bind and link).
 
    procedure Build_Compile_Command (Name : in File_Name_Type);
    --  Generates on standard-out the command needed to compile
@@ -97,6 +96,7 @@ package XE_Utils is
    procedure Create_Dir (To : in File_Name_Type);
 
    function Is_Regular_File (File : File_Name_Type) return Boolean;
+   function Is_Relative_Dir (File : File_Name_Type) return Boolean;
    function Is_Directory    (File : File_Name_Type) return Boolean;
 
    procedure Create
@@ -110,29 +110,38 @@ package XE_Utils is
    procedure Unlink_File
      (File : in File_Name_Type);
 
-   procedure Write_Stamp
-     (File : in Name_Id);
+   procedure Write_Eol
+     (File   : in File_Descriptor;
+      Stdout : in Boolean := False);
+
+   procedure Write_File_Stamp
+     (File : in File_Name_Type);
+
+   procedure Write_Message
+     (Message : in String);
+
+   procedure Write_Missing_File
+     (File  : in File_Name_Type);
+
+   procedure Write_Name
+     (File   : in File_Descriptor;
+      Name   : in File_Name_Type;
+      Stdout : in Boolean := False);
+
+   procedure Write_Stamp_Comparison
+     (Newer, Older : in File_Name_Type);
 
    procedure Write_Str
      (File   : in File_Descriptor;
       Line   : in String;
       Stdout : in Boolean := False);
 
-   procedure Write_Name
-     (File   : in File_Descriptor;
-      Name   : in Name_Id;
-      Stdout : in Boolean := False);
-
-   procedure Write_Eol
-     (File   : in File_Descriptor;
-      Stdout : in Boolean := False);
-
    procedure Write_Unit_Name
-     (N : in Unit_Name_Type);
+     (U : in Unit_Name_Type);
 
    function Strlen (Name : in Name_Id) return Natural;
 
-   function "&" (Prefix, Suffix : Name_Id) return Name_Id;
+   function "&" (Prefix, Suffix : File_Name_Type) return File_Name_Type;
 
    procedure Initialize;
 
