@@ -1,60 +1,62 @@
 alidir = $(libdir)/adabroker
 
 ADA_FULL = \
+	   sequences-unbounded.ads \
 	   broca-debug.ads \
 	   broca-opaque-chunk_pools.ads \
 	   broca-buffers.ads \
 	   broca-buffers-io_operations.ads \
-           broca-exceptions.ads \
-           broca-exceptions-stack.ads \
-           broca-flags.ads \
-           broca-giop.ads \
-           broca-iiop.ads \
-           broca-inet_server.ads \
-           broca-ior.ads \
-           broca-locks.ads \
-           broca-cdr.ads \
+	   broca-exceptions.ads \
+	   broca-exceptions-stack.ads \
+	   broca-flags.ads \
+	   broca-giop.ads \
+	   broca-iiop.ads \
+	   broca-inet_server.ads \
+	   broca-ior.ads \
+	   broca-locks.ads \
+	   broca-cdr.ads \
 	   broca-cdr-refs.ads \
-           broca-object.ads \
-           broca-orb.ads \
-           broca-poa.ads \
-           broca-policy.ads \
-           broca-refs.ads \
-           broca-repository.ads \
-           broca-rootpoa.ads \
-           broca-sequences.ads \
-           broca-server.ads \
-           broca-stream.ads \
-           broca-task_attributes.ads \
-           broca-vararray.ads \
-           corba-forward.ads \
-           corba-object.ads \
-           corba-orb.ads \
-           corba-sequences-bounded.ads \
-           corba-sequences-unbounded.ads \
-           corba.ads \
+	   broca-object.ads \
+	   broca-orb.ads \
+	   broca-poa.ads \
+	   broca-policy.ads \
+	   broca-refs.ads \
+	   broca-repository.ads \
+	   broca-rootpoa.ads \
+	   broca-sequences.ads \
+	   broca-server.ads \
+	   broca-stream.ads \
+	   broca-task_attributes.ads \
+	   broca-vararray.ads \
+	   corba-forward.ads \
+	   corba-object.ads \
+	   corba-orb.ads \
+	   corba-sequences-bounded.ads \
+	   corba-sequences-unbounded.ads \
+	   corba.ads \
 	   corba-abstractbase.ads \
 	   corba-impl.ads \
 	   corba-value-forward.ads \
-           portableserver-adapteractivator-impl.ads \
-           portableserver-adapteractivator.ads \
-           portableserver-current.ads \
-           portableserver-poa.ads \
-           portableserver-poamanager.ads \
-           portableserver-servantactivator.ads \
-           portableserver-servantlocator.ads \
-           portableserver-servantmanager-impl.ads \
-           portableserver.ads
+	   portableserver-adapteractivator-impl.ads \
+	   portableserver-adapteractivator.ads \
+	   portableserver-current.ads \
+	   portableserver-poa.ads \
+	   portableserver-poamanager.ads \
+	   portableserver-servantactivator.ads \
+	   portableserver-servantlocator.ads \
+	   portableserver-servantmanager-impl.ads \
+	   portableserver.ads
 
 ADA_SPECS = $(ADA_FULL) \
-           broca.ads \
-           broca-opaque.ads \
-           broca-iop.ads \
-           corba-current.ads \
-           corba-sequences.ads \
-           portableserver-servantactivator-impl.ads \
-           portableserver-servantlocator-impl.ads \
-           portableserver-servantmanager.ads \
+	   sequences.ads \
+	   broca.ads \
+	   broca-opaque.ads \
+	   broca-iop.ads \
+	   corba-current.ads \
+	   corba-sequences.ads \
+	   portableserver-servantactivator-impl.ads \
+	   portableserver-servantlocator-impl.ads \
+	   portableserver-servantmanager.ads \
 	   corba-value.ads 
 
 ADA_BODIES = $(ADA_FULL:.ads=.adb)
