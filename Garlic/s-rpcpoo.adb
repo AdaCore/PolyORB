@@ -193,6 +193,8 @@ package body System.RPC.Pool is
       Free_Tasks_List   : Task_Identifier_Access;
       Free_Tasks_Count  : Natural := 0;
       Total_Tasks_Count : Natural := 0;
+      Allocations       : Natural := 0;
+      Deallocations     : Natural := 0;
    end Free_Tasks;
 
    task type Background_Creation is
@@ -368,6 +370,7 @@ package body System.RPC.Pool is
             Free_Tasks.Queue (Self, Queued);
             if not Queued then
                pragma Debug (D ("Too many tasks, queuing refused"));
+               Free (Self);
                exit;
             end if;
          end;
@@ -446,6 +449,7 @@ package body System.RPC.Pool is
          else
             Identifier := null;
             if not Terminated then
+               Allocations       := Allocations + 1;
                Total_Tasks_Count := Total_Tasks_Count + 1;
             end if;
          end if;
@@ -471,6 +475,7 @@ package body System.RPC.Pool is
 
          else
             Accepted          := False;
+            Deallocations     := Deallocations + 1;
             Total_Tasks_Count := Total_Tasks_Count - 1;
          end if;
          Status;
@@ -484,6 +489,8 @@ package body System.RPC.Pool is
       begin
          pragma Debug (D ("Free tasks:" & Free_Tasks_Count'Img));
          pragma Debug (D ("Total tasks:" & Total_Tasks_Count'Img));
+         pragma Debug (D ("Allocations :" & Allocations'Img));
+         pragma Debug (D ("Deallocations :" & Deallocations'Img));
          null;
       end Status;
 
@@ -535,6 +542,7 @@ package body System.RPC.Pool is
       Terminated : Boolean;
    begin
       pragma Debug (D ("Shutdown called"));
+      Free_Tasks.Status;
       Free_Tasks.Shutdown;
       Task_Manager.Shutdown;
       if Background_Task /= null then
