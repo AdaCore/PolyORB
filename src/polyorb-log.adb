@@ -40,7 +40,6 @@
 --  XXX we do not use System.IO because we need atomic write.
 
 with GNAT.OS_Lib;
-with Interfaces.C;
 with System;
 
 package body PolyORB.Log is
