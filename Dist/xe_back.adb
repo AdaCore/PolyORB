@@ -1965,7 +1965,7 @@ package body XE_Back is
          Write_Field (1, "Protocols");
          declare
             LID : LID_Type := Def_Boot_Location_First;
-            One : Boolean  := (Locations.Table (LID).Next = Null_LID);
+            One : constant Boolean := (Locations.Table (LID).Next = Null_LID);
          begin
             if One then
                Write_Name (Locations.Table (LID).Major);
