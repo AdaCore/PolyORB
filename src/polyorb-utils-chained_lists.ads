@@ -107,8 +107,14 @@ package PolyORB.Utils.Chained_Lists is
       All_Occurrences : Boolean := True);
    --  Remove first/all occurences of value I from list L
 
+   function Is_Empty (L : List) return Boolean;
+   --  True iff L contains no elements
+
    Empty : constant List;
    --  A list that contains no elements
+
+   --  NOTE: No guarantee is made that a list for which Is_Empty is
+   --  true is equal to Empty.
 
    function "+" (I : T) return List;
    --  Make a list with I as its only element

@@ -128,7 +128,7 @@ package body PolyORB.Utils.Chained_Lists is
       Result : out T)
    is
    begin
-      if L.First = null then
+      if Is_Empty (L) then
          raise Constraint_Error;
       end if;
       Result := L.First.Value;
@@ -180,6 +180,15 @@ package body PolyORB.Utils.Chained_Lists is
       end if;
       pragma Assert ((L.First = null) = (L.Last = null));
    end Insert;
+
+   --------------
+   -- Is_Empty --
+   --------------
+
+   function Is_Empty (L : List) return Boolean is
+   begin
+      return L.First = null;
+   end Is_Empty;
 
    ----------
    -- Last --
