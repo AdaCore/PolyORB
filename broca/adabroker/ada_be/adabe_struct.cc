@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.5 $
+//                            $Revision: 1.6 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -96,6 +96,22 @@ adabe_structure::produce_stream_ads (dep_list & with,
 {
   gen_marshalling_declarations (body, get_ada_local_name ());
 
+  // for all of the field we must lauch his
+  // produce_marshall_ads
+  UTL_ScopeActiveIterator i (this, UTL_Scope::IK_decls);
+  while (!i.is_done ())
+    {
+      AST_Decl *d = i.item ();
+      if (d->node_type () == AST_Decl::NT_field) {
+	dynamic_cast<adabe_field *>(d)->produce_stream_ads
+	  (with, body);
+      }
+      else throw adabe_internal_error
+	     (__FILE__,__LINE__,"Unexpected node in structure");
+      i.next ();
+    }
+
+
   set_already_defined ();
 }
 
@@ -133,7 +149,7 @@ adabe_structure::produce_stream_adb (dep_list & with,
     "   begin\n";
 
   // for all of the field we must lauch his
-  // produce_marshall adb
+  // produce_marshall_ads
   UTL_ScopeActiveIterator i (this, UTL_Scope::IK_decls);
   while (!i.is_done ())
     {

@@ -24,10 +24,10 @@ interface all_types {
   // Exceptions
   //-----------
 //  exception simple_exception {};
-//  exception complexe_exception {long excep;};
+  exception my_exception {long excep;};
 
 //  void simple_exception_test () raises (simple_exception);
-//  void complexe_exception_test () raises (complexe_exception);
+  void testException () raises (my_exception);
 
 
   // Unions
@@ -41,14 +41,18 @@ interface all_types {
 //  example echo1 (in example arg);
 
 
+  // Arrays
+  typedef long simple_array[5];
+  simple_array echoArray (in simple_array arg);
+
   // Structs
   //--------
-//  struct simple_struct {
-//      long a[10];
-//      long b;
-//  };
+  struct simple_struct {
+      long a[10];
+      string s;
+  };
 
-//  simple_struct echo2 (in simple_struct arg);
+  simple_struct echoStruct (in simple_struct arg);
 
 //  struct manu_struct {
 //    boolean a;

@@ -77,6 +77,19 @@ private
       arg  : in Color)
       return Color;
 
+   function EchoArray
+     (Self : access Object;
+      Arg : in Simple_Array)
+      return Simple_Array;
+
+   procedure TestException
+     (Self : access Object);
+
+   function echoStruct
+     (Self : access Object;
+      arg  : in Simple_Struct)
+      return Simple_Struct;
+
 --   procedure simple_exception_test
 --     (Self : access Object);
 --
@@ -160,9 +173,5 @@ private
 --     (Self : access Object)
 --      return Ref;
 --
---   function EchoArray
---     (Self : access Object;
---      Arg : in Simple_Array)
---      return Simple_Array;
 
 end all_types.Impl;

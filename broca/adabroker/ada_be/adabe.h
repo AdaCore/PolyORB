@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.8 $
+//                            $Revision: 1.9 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -305,6 +305,7 @@ public:
   DEF_NARROW_FROM_DECL(adabe_field);
 
   virtual void produce_ads (dep_list &with, string &body, string &previous);
+  void produce_stream_ads(dep_list& with, string &body);
   void produce_stream_adb(dep_list& with, string &body, string &marshall, string &unmarshall, string &align_size);
 
 };

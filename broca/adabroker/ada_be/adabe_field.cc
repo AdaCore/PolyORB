@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.3 $
+//                            $Revision: 1.4 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -57,12 +57,32 @@ adabe_field::produce_ads (dep_list& with, string &body, string &previous)
 }
 
 void
-adabe_field::produce_stream_adb (dep_list& with, string &body, string &marshall, string &unmarshall, string &marshall_size)
+adabe_field::produce_stream_ads (dep_list& with, string &body)
 {
   string previous = "";
   adabe_name *e = dynamic_cast<adabe_name *>(field_type ());
+
+  // If the marshalling functions for the type of the field
+  // have not been produced yet [field is an array].
+
+  if (e->node_type () == NT_array) {
+    e->produce_stream_ads (with, body, previous);
+    body += previous;
+  }
+}
+
+void
+adabe_field::produce_stream_adb (dep_list& with, string &body, string &marshall, string &unmarshall, string &marshall_size)
+{
+  string previous = "";
+  string dummy = "";
+  adabe_name *e = dynamic_cast<adabe_name *>(field_type ());
   string name = e->marshal_name (with, previous);
   
+  if (e->node_type () == NT_array) {
+    e->produce_stream_adb (with, body, dummy);
+  }
+
   body += previous;
   
   marshall += 

@@ -45,6 +45,13 @@ begin
            To_CORBA_String ("hello"));
    Output ("test enum", EchoColor (MyAll_Types, Blue) = Blue);
 
+   declare
+      Test_Struct : constant Simple_Struct
+        := ((others => 123), To_CORBA_String ("Hello world!"));
+   begin
+      Output ("test struct", EchoStruct (MyAll_Types, Test_Struct) = Test_Struct);
+   end;
+
 --   begin
 --      Ok := False;
 --      Simple_Exception_Test (MyAll_Types);

@@ -107,6 +107,29 @@ package body all_types.Impl is
       return arg;
    end echoColor;
 
+   function EchoArray
+     (Self : access Object;
+      Arg : in Simple_Array)
+      return Simple_Array
+   is
+   begin
+      return Arg;
+   end EchoArray;
+
+   procedure TestException
+     (Self : access Object) is
+   begin
+      raise My_Exception;
+   end TestException;
+
+   function echoStruct  
+     (Self : access Object;
+      arg  : in Simple_Struct)
+      return Simple_Struct is
+   begin
+      return arg;
+   end echoStruct;
+
 --   procedure simple_exception_test
 --     (Self : access Object)
 --   is
@@ -270,13 +293,5 @@ package body all_types.Impl is
 --      return Result;
 --   end get_myself;
 --
---   function EchoArray
---     (Self : access Object;
---      Arg : in Simple_Array)
---      return Simple_Array
---   is
---   begin
---      return Arg;
---   end EchoArray;
 
 end all_types.Impl;
