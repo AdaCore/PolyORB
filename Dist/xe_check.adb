@@ -104,6 +104,10 @@ package body XE_Check is
                Initialize_Ali_Data   => False,
                Max_Process           => 1);
 
+            if Building_Script then
+               XE_Utils.Build_Compile_Command (Name);
+            end if;
+
             --  Use later on to avoid unnecessary bind + link phases.
 
             if Compiled = No_File then

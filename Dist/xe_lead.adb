@@ -117,13 +117,14 @@ begin
 
          Unlink_File (Main_Subprogram);
 
-         Create (FD, Main_Subprogram, True);
-
          if Building_Script then
-            Write_Str  ("cat >");
-            Write_Name (Main_Subprogram);
-            Write_Str  (" <<EOF");
-            Write_Eol;
+            FD := Standout;
+            Write_Str  (FD, "cat >");
+            Write_Name (FD, Main_Subprogram);
+            Write_Str  (FD, " <<__EOF__");
+            Write_Eol  (FD);
+         else
+            Create (FD, Main_Subprogram, True);
          end if;
 
          Write_Str (FD, "#! /bin/sh");
@@ -145,11 +146,11 @@ begin
          end loop;
          Set_Launcher (Partition  => Main_Partition);
 
-         Close (FD);
-
          if Building_Script then
-            Write_Str ("EOF");
-            Write_Eol;
+            Write_Str (FD, "__EOF__");
+            Write_Eol (FD);
+         else
+            Close (FD);
          end if;
 
       when Ada_Starter =>

@@ -145,6 +145,11 @@ begin
 
       Configuration_File := File_Name;
 
+      if Building_Script then
+         Write_Str (Standout, "#! /bin/sh");
+         Write_Eol (Standout);
+      end if;
+
       Parse;
       Back;
 

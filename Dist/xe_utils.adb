@@ -75,6 +75,7 @@ package body XE_Utils is
    Output_Option  : constant String_Access := new String'("-o");
    XE_Gcc         : constant String_Access := Locate ("xe-gcc");
    Gcc            : constant String_Access := Locate ("gcc");
+   Gnatmake       : constant String_Access := Locate ("gnatmake");
    Mkdir          : constant String_Access := Locate ("mkdir");
    Copy           : constant String_Access := Locate ("cp");
    Link           : constant String_Access := Locate ("ln", False);
@@ -158,14 +159,27 @@ package body XE_Utils is
    begin
 
       if Verbose_Mode or else Building_Script then
-         Write_Str (Prog.all);
+         if Building_Script then
+            Write_Str (Standout, Prog.all);
+         else
+            Write_Str (Prog.all);
+         end if;
          for Index in Args'Range loop
             if Args (Index) /= null then
-               Write_Str (" ");
-               Write_Str (Args (Index).all);
+               if Building_Script then
+                  Write_Str (Standout, " ");
+                  Write_Str (Standout, Args (Index).all);
+               else
+                  Write_Str (" ");
+                  Write_Str (Args (Index).all);
+               end if;
             end if;
          end loop;
-         Write_Eol;
+         if Building_Script then
+            Write_Eol (Standout);
+         else
+            Write_Eol;
+         end if;
       end if;
 
       Spawn (Prog.all, Args, Success);
@@ -249,9 +263,17 @@ package body XE_Utils is
       end if;
 
       if Building_Script then
-         Write_Str ("cd ");
-         Write_Name (To);
-         Write_Eol;
+         if Name_Len < 3 or else Name_Buffer (1 .. 3) /= "../" then
+            Write_Str  (Standout, "if test ! -d ");
+            Write_Name (Standout, To);
+            Write_Str  (Standout, "; then mkdir -p ");
+            Write_Name (Standout, To);
+            Write_Str  (Standout, "; fi");
+            Write_Eol  (Standout);
+         end if;
+         Write_Str  (Standout, "cd ");
+         Write_Name (Standout, To);
+         Write_Eol  (Standout);
       end if;
 
    end Change_Dir;
@@ -264,9 +286,11 @@ package body XE_Utils is
       Dir_Name_Len : Natural := Strlen (To);
       Dir_Name     : String (1 .. Dir_Name_Len);
    begin
+
       Get_Name_String (To);
       Dir_Name := Name_Buffer (1 .. Name_Len);
       for Index in Dir_Name'Range loop
+
          --  XXXXX
          if Dir_Name (Index) = Separator and then Index > 1 and then
             not Is_Directory (Dir_Name (1 .. Index - 1)) then
@@ -275,6 +299,7 @@ package body XE_Utils is
             Execute (Mkdir, (1 => new String'(Dir_Name)));
          end if;
       end loop;
+
    end Create_Dir;
 
    -----------------
@@ -294,7 +319,8 @@ package body XE_Utils is
 
    procedure Write_Str
      (File   : in File_Descriptor;
-      Line : in String) is
+      Line   : in String;
+      Stdout : in Boolean := False) is
    begin
 
       if File = Invalid_FD then
@@ -307,8 +333,8 @@ package body XE_Utils is
          raise XE.Fatal_Error;
       end if;
 
-      if Building_Script then
-         Write_Str (Line);
+      if Stdout then
+         Write_Str (Standout, Line);
       end if;
 
    end Write_Str;
@@ -318,8 +344,9 @@ package body XE_Utils is
    ----------------
 
    procedure Write_Name
-     (File : in File_Descriptor;
-      Name : in Name_Id) is
+     (File   : in File_Descriptor;
+      Name   : in Name_Id;
+      Stdout : in Boolean := False) is
    begin
 
       if File = Invalid_FD then
@@ -337,9 +364,10 @@ package body XE_Utils is
             raise XE.Fatal_Error;
          end if;
 
-         if Building_Script then
-            Write_Str (Name_Buffer (1 .. Name_Len));
+         if Stdout then
+            Write_Name (Standout, Name);
          end if;
+
       end if;
 
    end Write_Name;
@@ -349,7 +377,8 @@ package body XE_Utils is
    ---------------
 
    procedure Write_Eol
-     (File : in File_Descriptor) is
+     (File   : in File_Descriptor;
+      Stdout : in Boolean := False) is
    begin
 
       if File = Invalid_FD then
@@ -362,11 +391,28 @@ package body XE_Utils is
          raise XE.Fatal_Error;
       end if;
 
-      if Building_Script then
-         Write_Eol;
+      if Stdout then
+         Write_Eol (Standout);
       end if;
 
    end Write_Eol;
+
+   ---------------------------
+   -- Build_Compile_Command --
+   ---------------------------
+
+   procedure Build_Compile_Command (Name : in File_Name_Type)
+   is
+   begin
+      Write_Str  (Standout, Gnatmake.all);
+      Write_Str  (Standout, " -c ");
+      for I in Gcc_Switches.First .. Gcc_Switches.Last loop
+         Write_Str (Standout, Gcc_Switches.Table (I).all);
+         Write_Str (Standout, " ");
+      end loop;
+      Write_Name (Standout, Name);
+      Write_Eol  (Standout);
+   end Build_Compile_Command;
 
    ------------
    -- Create --
@@ -675,9 +721,9 @@ package body XE_Utils is
    begin
       Change_Dir (DSA_Dir & Dir_Sep_Id & Partition);
 
-      if More_Recent
-        (Configuration & ADB_Suffix,
-         Configuration & ALI_Suffix) then
+      if Opt.Force_Compilations or else
+        More_Recent (Configuration & ADB_Suffix,
+                     Configuration & ALI_Suffix) then
 
          Execute_Gcc
            (Configuration & ADB_Suffix,
@@ -688,7 +734,8 @@ package body XE_Utils is
 
       end if;
 
-      if Most_Recent_Stamp > Source_File_Stamp (Exec) then
+      if Opt.Force_Compilations or else
+        Most_Recent_Stamp > Source_File_Stamp (Exec) then
 
          --  I_Garlic_Dir is not included here because it was added by the
          --  gnatdist shell script.

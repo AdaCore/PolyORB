@@ -1,3 +1,20 @@
+Wed Nov 27 18:07:17 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_utils.ads: New argument to Write_* functions with file
+	  descriptors to allow duplicate output when generating scripts.
+
+	* xe_utils.adb: Fixed the way script output was handled.
+
+	* xe_stubs.adb: Write on standard out (if needed) as well as in
+	  generated file.
+
+	* xe_lead.adb: Use "__EOF__" instead of "EOF" and do not
+	  unconditionnally close output.
+
+	* xe_check.adb: Generates "gnatmake -c ..." commands.
+
+	* xe_build.adb: Add "#! /bin/sh" at the beginning of the script.
+
 Wed Nov 20 12:39:57 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
 	* xe.ads: Move Write_SLOC from xe_back.adb to xe.ads.

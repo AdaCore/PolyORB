@@ -73,6 +73,23 @@ procedure XE_Stubs is
    --  For a given '-I' switch (or equivalent -L -a*), update it
    --  if it is a relative path and add ../.. at the beginning.
 
+   procedure Dwrite_Str (File   : in File_Descriptor;
+                         Line   : in String;
+                         Stdout : in Boolean := Building_Script)
+     renames Write_Str;
+   --  Changed default parameter.
+
+   procedure Dwrite_Name (File   : in File_Descriptor;
+                          Name   : in Name_Id;
+                          Stdout : in Boolean := Building_Script)
+     renames Write_Name;
+   --  Changed default parameter.
+
+   procedure Dwrite_Eol (File   : in File_Descriptor;
+                         Stdout : in Boolean := Building_Script)
+     renames Write_Eol;
+   --  Changed default parameter.
+
    ------------------------
    -- Write_Caller_Withs --
    ------------------------
@@ -200,37 +217,34 @@ procedure XE_Stubs is
       end if;
 
       if Building_Script then
-         Write_Str ("cat >");
-         Write_Name (Fname);
-         Write_Str (" <<EOF");
-         Write_Eol;
-         FD := Standout;
-
-      else
-         Create (FD, Fname);
-
+         Write_Str  (Standout, "cat >");
+         Write_Name (Standout, Fname);
+         Write_Str  (Standout, " <<__EOF__");
+         Write_Eol  (Standout);
       end if;
 
+      Create (FD, Fname);
+
       --  Force the RCI receivers to be present on the partition.
-      Write_Eol (FD);
-      Write_Str (FD, "--  RCI receiver and non-RCI units");
-      Write_Eol (FD);
+      Dwrite_Eol (FD);
+      Dwrite_Str (FD, "--  RCI receiver and non-RCI units");
+      Dwrite_Eol (FD);
       UID := Partitions.Table (PID).First_Unit;
       while UID /= Null_CUID loop
          Set_PID (Unit.Table (CUnit.Table (UID).My_Unit).Uname,
                   CUnit.Table (UID).Partition);
-         Write_Str  (FD, "with ");
-         Write_Name (FD, CUnit.Table (UID).CUname);
-         Write_Str  (FD, ";");
-         Write_Eol  (FD);
+         Dwrite_Str  (FD, "with ");
+         Dwrite_Name (FD, CUnit.Table (UID).CUname);
+         Dwrite_Str  (FD, ";");
+         Dwrite_Eol  (FD);
          UID := CUnit.Table (UID).Next;
       end loop;
 
       --  Need the RCI callers to compare their version with the
       --  receiver version.
-      Write_Eol (FD);
-      Write_Str (FD, "--  RCI caller units");
-      Write_Eol (FD);
+      Dwrite_Eol (FD);
+      Dwrite_Str (FD, "--  RCI caller units");
+      Dwrite_Eol (FD);
 
       UID := Partitions.Table (PID).First_Unit;
       while UID /= Null_CUID loop
@@ -243,96 +257,96 @@ procedure XE_Stubs is
          if Unit.Table (CUnit.Table (U).My_Unit).RCI then
             if CUnit.Table (U).Partition /= PID and then
               Get_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname) = PID then
-               Write_Str  (FD, "with ");
-               Write_Name (FD, CUnit.Table (U).CUname);
-               Write_Str  (FD, "; ");
-               Write_Eol  (FD);
+               Dwrite_Str  (FD, "with ");
+               Dwrite_Name (FD, CUnit.Table (U).CUname);
+               Dwrite_Str  (FD, "; ");
+               Dwrite_Eol  (FD);
             end if;
          else
             Set_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname, Null_PID);
          end if;
       end loop;
 
-      Write_Eol (FD);
-      Write_Str (FD, "--  System");
-      Write_Eol (FD);
-      Write_Str (FD, "with system.garlic.startup;");
-      Write_Eol (FD);
-      Write_Str (FD, "pragma elaborate_all (system.garlic.startup);");
-      Write_Eol (FD);
-      Write_Str (FD, "with system.garlic.heart;");
-      Write_Eol (FD);
-      Write_Str (FD, "with system.partition_interface;");
-      Write_Eol (FD);
-      Write_Str (FD, "with ada.exceptions;");
-      Write_Eol (FD);
+      Dwrite_Eol (FD);
+      Dwrite_Str (FD, "--  System");
+      Dwrite_Eol (FD);
+      Dwrite_Str (FD, "with system.garlic.startup;");
+      Dwrite_Eol (FD);
+      Dwrite_Str (FD, "pragma elaborate_all (system.garlic.startup);");
+      Dwrite_Eol (FD);
+      Dwrite_Str (FD, "with system.garlic.heart;");
+      Dwrite_Eol (FD);
+      Dwrite_Str (FD, "with system.partition_interface;");
+      Dwrite_Eol (FD);
+      Dwrite_Str (FD, "with ada.exceptions;");
+      Dwrite_Eol (FD);
 
       --  XXXXX: debug.
-      Write_Str (FD, "with system.io;");
-      Write_Eol (FD);
+      Dwrite_Str (FD, "with system.io;");
+      Dwrite_Eol (FD);
 
       if PID = Main_Partition and then Starter_Method = Ada_Starter then
-         Write_Str (FD, "with system.garlic.remote;");
-         Write_Eol (FD);
-         Write_Str (FD, "with system.garlic.options;");
-         Write_Eol (FD);
+         Dwrite_Str (FD, "with system.garlic.remote;");
+         Dwrite_Eol (FD);
+         Dwrite_Str (FD, "with system.garlic.options;");
+         Dwrite_Eol (FD);
       end if;
 
-      Write_Str  (FD, "procedure ");
-      Write_Name (FD, Configuration);
-      Write_Str  (FD, " is");
-      Write_Eol  (FD);
+      Dwrite_Str  (FD, "procedure ");
+      Dwrite_Name (FD, Configuration);
+      Dwrite_Str  (FD, " is");
+      Dwrite_Eol  (FD);
 
       if PID = Main_Partition then
-         Write_Str (FD, "   what    : ada.exceptions.exception_id;");
-         Write_Eol (FD);
-         Write_Str (FD, "   message : system.garlic.heart.string_ptr;");
-         Write_Eol (FD);
+         Dwrite_Str (FD, "   what    : ada.exceptions.exception_id;");
+         Dwrite_Eol (FD);
+         Dwrite_Str (FD, "   message : system.garlic.heart.string_ptr;");
+         Dwrite_Eol (FD);
       end if;
 
-      Write_Str  (FD, "begin");
-      Write_Eol  (FD);
+      Dwrite_Str  (FD, "begin");
+      Dwrite_Eol  (FD);
 
       if PID = Main_Partition then
          if Starter_Method = Ada_Starter and
             Partitions.First /= Partitions.Last then
-            Write_Str (FD, "   if not system.garlic.options");
-            Write_Str (FD, ".get_nolaunch then");
-            Write_Eol (FD);
+            Dwrite_Str (FD, "   if not system.garlic.options");
+            Dwrite_Str (FD, ".get_nolaunch then");
+            Dwrite_Eol (FD);
             for Partition in Partitions.First .. Partitions.Last loop
                if Partition /= Main_Partition then
-                  Write_Str  (FD, "      system.garlic.remote.full_launch");
-                  Write_Eol  (FD);
+                  Dwrite_Str  (FD, "      system.garlic.remote.full_launch");
+                  Dwrite_Eol  (FD);
                   Host := Get_Host (Partition);
                   if Host = No_Name then
-                     Write_Str  (FD, "         (host            => ");
-                     Write_Str  (FD, "system.garlic.remote.get_host (""");
-                     Write_Name (FD, Partitions.Table (Partition) .Name);
-                     Write_Str  (FD, """),");
+                     Dwrite_Str  (FD, "         (host            => ");
+                     Dwrite_Str  (FD, "system.garlic.remote.get_host (""");
+                     Dwrite_Name (FD, Partitions.Table (Partition) .Name);
+                     Dwrite_Str  (FD, """),");
                   else
-                     Write_Str  (FD, "         (host            => ");
-                     Write_Name (FD, Get_Host (Partition));
-                     Write_Str  (FD, ",");
+                     Dwrite_Str  (FD, "         (host            => ");
+                     Dwrite_Name (FD, Get_Host (Partition));
+                     Dwrite_Str  (FD, ",");
                   end if;
-                  Write_Eol  (FD);
-                  Write_Str  (FD, "          executable_name => """);
-                  Write_Name (FD, Get_Absolute_Exec (Partition));
-                  Write_Name (FD, Get_Command_Line  (Partition));
-                  Write_Str  (FD, """,");
-                  Write_Eol  (FD);
-                  Write_Str  (FD, "          boot_server  => ");
-                  Write_Str  (FD, "system.garlic.heart.get_boot_server);");
-                  Write_Eol  (FD);
+                  Dwrite_Eol  (FD);
+                  Dwrite_Str  (FD, "          executable_name => """);
+                  Dwrite_Name (FD, Get_Absolute_Exec (Partition));
+                  Dwrite_Name (FD, Get_Command_Line  (Partition));
+                  Dwrite_Str  (FD, """,");
+                  Dwrite_Eol  (FD);
+                  Dwrite_Str  (FD, "          boot_server  => ");
+                  Dwrite_Str  (FD, "system.garlic.heart.get_boot_server);");
+                  Dwrite_Eol  (FD);
                end if;
             end loop;
-            Write_Str (FD, "   end if;");
-            Write_Eol (FD);
+            Dwrite_Str (FD, "   end if;");
+            Dwrite_Eol (FD);
          end if;
 
       end if;
 
-      Write_Str (FD, "   system.garlic.heart.elaboration_is_terminated;");
-      Write_Eol (FD);
+      Dwrite_Str (FD, "   system.garlic.heart.elaboration_is_terminated;");
+      Dwrite_Eol (FD);
 
       if Version_Checks then
 
@@ -342,78 +356,78 @@ procedure XE_Stubs is
             if Unit.Table (CUnit.Table (U).My_Unit).RCI and then
               CUnit.Table (U).Partition /= PID and then
               Get_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname) = PID then
-               Write_Str  (FD, "   if ");
-               Write_Name (FD, CUnit.Table (U).CUname);
-               Write_Str  (FD, "'version /= ");
-               Write_Str  (FD, "system.partition_interface.");
-               Write_Eol  (FD);
-               Write_Str  (FD, "      ");
-               Write_Str  (FD, "get_active_version (""");
-               Write_Name (FD, CUnit.Table (U).CUname);
-               Write_Str  (FD, """) then");
-               Write_Eol  (FD);
-               Write_Str  (FD, "      system.garlic.heart.soft_shutdown;");
-               Write_Eol  (FD);
-               Write_Str  (FD, "      ada.exceptions.raise_exception");
-               Write_Eol  (FD);
-               Write_Str  (FD, "         (program_error'identity,");
-               Write_Eol  (FD);
-               Write_Str
+               Dwrite_Str  (FD, "   if ");
+               Dwrite_Name (FD, CUnit.Table (U).CUname);
+               Dwrite_Str  (FD, "'version /= ");
+               Dwrite_Str  (FD, "system.partition_interface.");
+               Dwrite_Eol  (FD);
+               Dwrite_Str  (FD, "      ");
+               Dwrite_Str  (FD, "get_active_version (""");
+               Dwrite_Name (FD, CUnit.Table (U).CUname);
+               Dwrite_Str  (FD, """) then");
+               Dwrite_Eol  (FD);
+               Dwrite_Str  (FD, "      system.garlic.heart.soft_shutdown;");
+               Dwrite_Eol  (FD);
+               Dwrite_Str  (FD, "      ada.exceptions.raise_exception");
+               Dwrite_Eol  (FD);
+               Dwrite_Str  (FD, "         (program_error'identity,");
+               Dwrite_Eol  (FD);
+               Dwrite_Str
                  (FD, "          ""Versions differ for partition """"");
-               Write_Name (FD, CUnit.Table (U).CUname);
-               Write_Str  (FD, """"""");");
-               Write_Eol  (FD);
-               Write_Str  (FD, "   end if;");
-               Write_Eol  (FD);
+               Dwrite_Name (FD, CUnit.Table (U).CUname);
+               Dwrite_Str  (FD, """"""");");
+               Dwrite_Eol  (FD);
+               Dwrite_Str  (FD, "   end if;");
+               Dwrite_Eol  (FD);
                Set_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname, Null_PID);
             end if;
          end loop;
       end if;
 
       if PID = Main_Partition then
-         Write_Str  (FD, "   select");
-         Write_Eol  (FD);
-         Write_Str  (FD, "      system.garlic.heart.fatal_error.occurred(");
-         Write_Str  (FD, "what, message);");
-         Write_Eol  (FD);
-         Write_Str  (FD, "      system.garlic.heart.soft_shutdown;");
-         Write_Eol  (FD);
-         Write_Str  (FD, "      ada.exceptions.raise_exception");
-         Write_Eol  (FD);
-         Write_Str  (FD, "         (what, message.all);");
-         Write_Eol  (FD);
-         Write_Str  (FD, "   then abort");
-         Write_Eol  (FD);
-         Write_Str  (FD, "      ");
-         Write_Name (FD, Main_Subprogram);
-         Write_Str  (FD, ";");
-         Write_Eol  (FD);
-         Write_Str  (FD, "   end select;");
-         Write_Eol  (FD);
+         Dwrite_Str  (FD, "   select");
+         Dwrite_Eol  (FD);
+         Dwrite_Str  (FD, "      system.garlic.heart.fatal_error.occurred(");
+         Dwrite_Str  (FD, "what, message);");
+         Dwrite_Eol  (FD);
+         Dwrite_Str  (FD, "      system.garlic.heart.soft_shutdown;");
+         Dwrite_Eol  (FD);
+         Dwrite_Str  (FD, "      ada.exceptions.raise_exception");
+         Dwrite_Eol  (FD);
+         Dwrite_Str  (FD, "         (what, message.all);");
+         Dwrite_Eol  (FD);
+         Dwrite_Str  (FD, "   then abort");
+         Dwrite_Eol  (FD);
+         Dwrite_Str  (FD, "      ");
+         Dwrite_Name (FD, Main_Subprogram);
+         Dwrite_Str  (FD, ";");
+         Dwrite_Eol  (FD);
+         Dwrite_Str  (FD, "   end select;");
+         Dwrite_Eol  (FD);
       else
          Main := Partitions.Table (PID).Main_Subprogram;
          if Main = No_Main_Subprogram then
             Main := Default_Main;
          end if;
          if Main /= No_Name then
-            Write_Str  (FD, "   ");
-            Write_Name (FD, Main);
-            Write_Str  (FD, ";");
-            Write_Eol  (FD);
+            Dwrite_Str  (FD, "   ");
+            Dwrite_Name (FD, Main);
+            Dwrite_Str  (FD, ";");
+            Dwrite_Eol  (FD);
          end if;
       end if;
 
-      Write_Str  (FD, "end ");
-      Write_Name (FD, Configuration);
-      Write_Str  (FD, ";");
-      Write_Eol  (FD);
+      Dwrite_Str  (FD, "end ");
+      Dwrite_Name (FD, Configuration);
+      Dwrite_Str  (FD, ";");
+      Dwrite_Eol  (FD);
 
       if Building_Script then
-         Write_Str ("EOF");
-         Write_Eol;
-      else
-         Close (FD);
+         Write_Str (Standout, "__EOF__");
+         Write_Eol (Standout);
       end if;
+
+      Close (FD);
 
       if not Quiet_Output then
          Write_Program_Name;

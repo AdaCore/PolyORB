@@ -76,6 +76,10 @@ package XE_Utils is
    --  of Ada code, compilation, bind and link). Exec is the name
    --  of the executable.
 
+   procedure Build_Compile_Command (Name : in File_Name_Type);
+   --  Generates on standard-out the command needed to compile
+   --  a sub-tree from a given package.
+
    procedure Compile_RCI_Caller
      (Source    : in File_Name_Type);
    --  Compile the caller stubs (-gnatzC).
@@ -107,15 +111,18 @@ package XE_Utils is
      (File : in Name_Id);
 
    procedure Write_Str
-     (File : in File_Descriptor;
-      Line : in String);
+     (File   : in File_Descriptor;
+      Line   : in String;
+      Stdout : in Boolean := False);
 
    procedure Write_Name
      (File   : in File_Descriptor;
-      Name   : in Name_Id);
+      Name   : in Name_Id;
+      Stdout : in Boolean := False);
 
    procedure Write_Eol
-     (File : in File_Descriptor);
+     (File   : in File_Descriptor;
+      Stdout : in Boolean := False);
 
    procedure Write_Unit_Name
      (N : in Unit_Name_Type);
