@@ -24,10 +24,11 @@
 **                                                                               **
 **********************************************************************************/
 
+
 #include <idl.hh>
 #include <idl_extern.hh>
 #include <o2be.h>
-#include <adabe.h> 
+#include <adabe.h>  
 
 #ifdef HAS_pch
 #pragma hdrstop
@@ -146,8 +147,13 @@ BE_produce()
 {
   try {
     if (strcmp(idl_global->be(),"c")==0) o2be_global::root()->produce(); 
-    else if (strcmp(idl_global->be(),"ada")==0) adabe_global::root()->produce();
-
+    else if (strcmp(idl_global->be(),"ada")==0) 
+      {
+#ifdef DEBUG_CFE
+	cout << "produce is launched on the root" << endl;
+#endif
+	adabe_global::root()->produce();	
+      }
   }
   catch (o2be_fe_error &ex) {
     std::cerr << "Error: " << ex.errmsg() << std::endl;

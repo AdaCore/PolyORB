@@ -23,6 +23,18 @@ adabe_root::produce() {
   try {
     string name      = idl_global->stripped_filename()->get_string();
     string idl_file_name = "";
+#ifdef DEBUG_ROOT
+    cout << "Here is the produce" << endl;
+    {
+      UTL_ScopeActiveIterator header_activator(this,UTL_Scope::IK_decls);
+      while (!header_activator.is_done())
+	{
+	  AST_Decl *d = header_activator.item();
+	  cout << "In root scope, list of the node types encountered :" << (int) d->node_type() << endl;
+	  header_activator.next();
+	}
+    }
+#endif
     idl_file_name =  name + "IDL_FILE";
     
     // **************************
@@ -39,6 +51,9 @@ adabe_root::produce() {
       while (!header_activator.is_done())
 	{
 	  AST_Decl *d = header_activator.item();
+#ifdef DEBUG_ROOT
+	  cout << "In root, node type encountered :" << (int) d->node_type() << endl;
+#endif 
 	  switch(d->node_type()) {
 	  case AST_Decl::NT_sequence:
 	  case AST_Decl::NT_string:
@@ -92,10 +107,11 @@ adabe_root::produce() {
 	    }
 	  
 	  break;
-	  default:
-	    throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope");
+       	  default:
+	    //    throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope");
 	    break;
 	  }
+	  header_activator.next(); 
 	}
 
       // Opening of the header file
@@ -604,8 +620,9 @@ adabe_root::produce() {
     }
 
   }
-  catch (adabe_internal_error)
+  catch (adabe_internal_error &e)
     {
+      cout << "in : " << e.file() << "   Line : "<< e.line() << endl << e.errmsg() << endl;
     };
 }
 

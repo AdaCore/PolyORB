@@ -42,14 +42,14 @@ adabe_enum::produce_ads(dep_list with,string &body, string &previous) {
 void  
 adabe_enum::produce_marshal_ads(dep_list with, string &body, string &previous)
 {
-  string tmp="";
+  string tmp = "";
 
-  tmp+="procedure Marshall (A : in ";
-  tmp+= get_ada_local_name();         // question ...N' est-ce ada_global_name
-  tmp+=";S : in out Object'Class) ; \n"
+  tmp += "procedure Marshall (A : in ";
+  tmp += get_ada_local_name();         // question ...N' est-ce ada_global_name
+  tmp += ";S : in out Object'Class) ; \n";
   //suggest also to  include a comment like:  Marshalls a enum  into a netbufferedstream object
   
-  body+=tmp;
+  body += tmp;
 }
 
 

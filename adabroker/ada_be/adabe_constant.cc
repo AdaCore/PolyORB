@@ -1,6 +1,7 @@
 #include <adabe.h>
 #include <stdio.h>
 
+
 adabe_constant::adabe_constant(AST_Expression::ExprType et,
 			 AST_Expression *v,
 			 UTL_ScopedName *n,
@@ -63,7 +64,7 @@ adabe_constant::produce_ads(dep_list with, string & String, string &previousdefi
     write_string_to_ada(temp, String);
     initialized = true;
   }
-    break;
+  break;
   default:
     throw adabe_internal_error(__FILE__,__LINE__,"unexpected type under constant class");
     break;
@@ -122,3 +123,25 @@ void adabe_constant::write_string_to_ada(string &c_string, string &output) {
     }
   }
 }
+
+string
+adabe_constant::dump_name(dep_list with, string &body, string &previous)
+{
+  if (!is_imported(with))
+    {
+      if (!is_already_defined())
+	{
+	  string tmp = "";
+	  produce_ads(with, tmp, previous);
+	  previous += tmp;
+	}
+      return get_ada_local_name();
+    }
+  return get_ada_full_name();	   
+}
+
+IMPL_NARROW_METHODS1(adabe_constant, AST_Constant)
+IMPL_NARROW_FROM_DECL(adabe_constant)
+
+
+

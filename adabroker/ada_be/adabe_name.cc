@@ -19,6 +19,85 @@ adabe_name::get_ada_full_name()
 }
 
 void
+adabe_name::set_ada_local_name(string s)
+{
+  pd_ada_local_name = s;
+} 
+
+void
+adabe_name::set_ada_full_name(string s)
+{
+  pd_ada_full_name = s;
+}
+
+void 
+adabe_name::produce_ads(dep_list, string, string)
+{
+  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+}
+
+void 
+adabe_name::produce_adb(dep_list, string, string)
+{
+  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+}
+
+void 
+adabe_name::produce_impl_ads(dep_list, string, string)
+{
+  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+}
+
+void 
+adabe_name::produce_impl_adb(dep_list, string, string)
+{
+  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+}
+
+void 
+adabe_name::produce_proxies_ads(dep_list, string, string)
+{
+  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+}
+
+void 
+adabe_name::produce_proxies_adb(dep_list, string, string)
+{
+  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+}
+
+void 
+adabe_name::produce_skel_ads(dep_list, string, string)
+{
+  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+}
+
+void 
+adabe_name::produce_skel_adb(dep_list, string, string)
+{
+  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+}
+
+void 
+adabe_name::produce_marshal_ads(dep_list, string, string)
+{
+  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+}
+
+void 
+adabe_name::produce_marshal_adb(dep_list, string, string)
+{
+  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+}
+
+string 
+adabe_name::dump_name(dep_list, string, string)
+{
+  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+}
+
+
+void
 adabe_name::compute_ada_name()
 {
   int already_used;
@@ -284,4 +363,5 @@ adabe_name::is_imported (dep_list with)
 
 IMPL_NARROW_FROM_DECL(adabe_name)
 IMPL_NARROW_FROM_SCOPE(adabe_name)
+
 

@@ -25,6 +25,7 @@
 #include <string>
 #include <idl.hh>
 #include <idl_extern.hh>
+#include "debug.h"
 
 class string_list
 {
@@ -120,7 +121,7 @@ public:
   // function used to produce the body and specification for the
   // marshalling functions of the non predefined types
 
-  virtual string dump_name(dep_list, string, string){};
+  virtual string dump_name(dep_list, string, string);
   // this function drops the name in the return string,
   // and if necessary defines the type in the last ones or
   // add a dependency in the dep_list
@@ -138,7 +139,7 @@ public:
   void convert(string &);        
   // give the ADA name given by the OMG mapping rules of the AST node
 
-  bool is_reserved_name(void);
+  //  bool is_reserved_name(void);
   // determines if the name of the node is an ADA reserved name
 };
 
@@ -171,7 +172,7 @@ public:
   adabe_constant(AST_Expression::ExprType et,
 		AST_Expression *v,
 		UTL_ScopedName *n,
-		UTL_StrList *p);
+		 UTL_StrList *p);
 
   DEF_NARROW_METHODS1(adabe_constant, AST_Constant);
   DEF_NARROW_FROM_DECL(adabe_constant);
@@ -180,11 +181,9 @@ public:
   virtual string dump_name(dep_list with, string &body, string &previous);
   
 private:
-  adabe_constant();
   void  write_string_to_ada(string &c_string, string &ada_string);
 
 };
-
 
 class adabe_enum : public virtual AST_Enum,
 		  public virtual adabe_name
@@ -232,8 +231,8 @@ public:
   DEF_NARROW_FROM_DECL(adabe_string);
 
   virtual void produce_ads(dep_list with, string &body, string &previous);
-  virtual void produce_marshal_ads(dep_list with, string &body, string &previous);
-  virtual void produce_marshal_adb(dep_list with, string &body, string &previous);
+  //  virtual void produce_marshal_ads(dep_list with, string &body, string &previous);
+  //  virtual void produce_marshal_adb(dep_list with, string &body, string &previous);
   virtual string dump_name(dep_list with, string &body, string &previous);
   
 };
@@ -528,26 +527,11 @@ public:
   adabe_root(UTL_ScopedName *n, UTL_StrList *p);
   ~adabe_root() {}
 
-  virtual AST_Sequence *add_sequence(AST_Sequence *s);
-
   DEF_NARROW_METHODS1(adabe_root, AST_Root);
   DEF_NARROW_FROM_DECL(adabe_root);
   DEF_NARROW_FROM_SCOPE(adabe_root);
 
   void produce();
-
-private:
-
-  virtual void produce_ads(dep_list with, string &body, string &previous);
-  virtual void produce_adb(dep_list with, string &body, string &previous);
-  virtual void produce_impl_ads(dep_list with, string &body, string &previous);
-  virtual void produce_impl_adb(dep_list with, string &body, string &previous);
-  virtual void produce_proxies_ads(dep_list with, string &body, string &private_definition);
-  virtual void produce_proxies_adb(dep_list with, string &body, string &private_definition);
-  virtual void produce_skel_ads(dep_list with, string &body, string &previous);
-  virtual void produce_skel_adb(dep_list with, string &body, string &private_definition);
-  virtual void produce_marshal_ads(dep_list with, string &body, string &previous);
-  virtual void produce_marshal_adb(dep_list with, string &body, string &previous);
 };
 
 

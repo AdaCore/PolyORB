@@ -59,11 +59,12 @@ adabe_union::produce_ads(dep_list with, string &body, string &previous)
 */
 
 void
-adabe_structure::produce_marshal_ads(dep_list with, string &body, string &previous)
+adabe_union::produce_marshal_ads(dep_list with, string &body, string &previous)
 {
 }
+
 void
-adabe_structure::produce_marshal_adb(dep_list with, string &body, string &previous)
+adabe_union::produce_marshal_adb(dep_list with, string &body, string &previous)
 {
 }
 
