@@ -7,10 +7,12 @@ Items still requiring attention
 -------------------------------
 
 * Support logging to syslog (also for Java ?)
-* Unified runtime configuration file
-  (modifications to Droopi.Log).
+* Unified runtime configuration file (modifications to Droopi.Log).
+
 * When a connection is closed, release all associated resources.
+
 * Droopi.Buffers: remove mentions of CDR.
+* Droopi.Buffers: remove mention of sockets.
 
 * An object adapter.
 
@@ -19,7 +21,17 @@ Items still requiring attention
   -> A multi-tasking server configuration.
   -> A multi-tasking client configuration.
 
-* An abstraction of transport endpoints.
+* Realtime profile (Ravenscar?)
+
+* Configuration of memory allocation:
+  -> usage of Storage_Pools?
+  -> static allocation?
+  -> real-time allocator?
+  -> smart resource management (garbage collection, system audit...)?
+
+  See Allocator abstract class in Quarterware.
+
+* Alternative implementations of transport endpoints:
 
   -> A mechanism for use of non-connected message passing
      protocols (eg UDP).
@@ -33,7 +45,7 @@ Items still requiring attention
      A provision for polling multiple sources of asynchronous
      events.
 
-* Architecture documentation
+* Architecture documentation.
 
 Items processed
 ---------------
@@ -55,3 +67,5 @@ Items processed
 * A filter to gather a message of a given size from lower
   layers before signalling to upper layers (as did the old
   Channel type) (2830).
+
+* An abstraction of transport endpoints (2866).
