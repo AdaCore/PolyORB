@@ -1,3 +1,10 @@
+2003-03-03  Pascal Obry  <obry@gnat.com>
+
+	* xe_utils.adb:
+	(Copy_With_File_Stamp): Correctly copy file in overwrite mode.
+	Fixes for C303-002.
+	Update copyright notice.
+	
 2003-02-03  Pascal Obry  <obry@gnat.com>
 
 	* xe_usage.adb:
