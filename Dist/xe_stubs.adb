@@ -165,8 +165,8 @@ procedure XE_Stubs is
       Fname : File_Name_Type := DSA_Dir & Dir_Sep_Id &
                                 PName & Dir_Sep_Id &
                                 PName & ADB_Suffix;
-      Host  : Host_Id;
-      Main  : Main_Subprogram_Type;
+      Host  : Name_Id;
+      Main  : Name_Id;
 
    begin
 
@@ -299,101 +299,28 @@ procedure XE_Stubs is
             Write_Eol (FD);
             for Partition in Partitions.First .. Partitions.Last loop
                if Partition /= Main_Partition then
-                  Write_Str (FD, "      system.garlic.remote.full_launch");
-                  Write_Eol (FD);
-                  if Partitions.Table (Partition).Host = Null_Host then
-                     Host := Default_Host;
-                  else
-                     Host := Partitions.Table (Partition).Host;
-                  end if;
-                  if Host = Null_Host then
+                  Write_Str  (FD, "      system.garlic.remote.full_launch");
+                  Write_Eol  (FD);
+                  Host := Get_Host (Partition);
+                  if Host = No_Name then
                      Write_Str  (FD, "         (host            => ");
                      Write_Str  (FD, "system.garlic.remote.get_host (""");
                      Write_Name (FD, Partitions.Table (Partition) .Name);
                      Write_Str  (FD, """),");
                   else
-                     Write_Str  (FD, "         (Host            => ");
-                     if not Hosts.Table (Host).Static then
-                        if Hosts.Table (Host).Import = Shell_Import then
-                           Write_Str (FD, """`");
-                           Write_Name (FD, Hosts.Table (Host).External);
-                           Write_Str (FD, "`""");
-                        elsif Hosts.Table (Host).Import = Ada_Import then
-                           Write_Name (FD, Hosts.Table (Host).External);
-                           Write_Str (FD, "(");
-                           Write_Name (FD, Partitions.Table (Partition).Name);
-                           Write_Str (FD, ")");
-                        end if;
-                     else
-                        Write_Str  (FD, """");
-                        Write_Name (FD, Hosts.Table (Host).Name);
-                        Write_Str  (FD, """");
-                     end if;
+                     Write_Str  (FD, "         (host            => ");
+                     Write_Name (FD, Get_Host (Partition));
                      Write_Str  (FD, ",");
                   end if;
-                  Write_Eol (FD);
-                  Write_Str (FD, "          executable_name => """);
-
-                  Write_Executable_Name : declare
-                     Dir : Name_Id
-                       := Partitions.Table (Partition).Storage_Dir;
-                  begin
-
-                     if Dir = No_Storage_Dir then
-                        Dir := Default_Storage_Dir;
-                     end if;
-
-                     if Dir = No_Storage_Dir then
-
-                        --  No storage dir means current directory
-
-                        Write_Str (FD, "`pwd`/");
-
-                     else
-                        Get_Name_String (Dir);
-                        if Name_Buffer (1) /= Separator then
-
-                           --  The storage dir is relative
-
-                           Write_Str (FD, "`pwd`/");
-
-                        end if;
-
-                        --  Write the dir as it has been written
-
-                        Write_Str (FD, Name_Buffer (1 .. Name_Len));
-                        Write_Str (FD, "/");
-
-                     end if;
-
-                     --  Write the program name
-
-                     Write_Name (FD, Partitions.Table (Partition) .Name);
-                  end Write_Executable_Name;
-
-                  Write_Command_Line : declare
-                     Cmd : Name_Id
-                       := Partitions.Table (Partition).Command_Line;
-                  begin
-
-                     if Cmd = No_Command_Line then
-                        Cmd := Default_Command_Line;
-                     end if;
-
-                     if Cmd /= No_Command_Line then
-                        Write_Str (FD, " ");
-                        Get_Name_String (Cmd);
-                        Write_Str (FD, Name_Buffer (1 .. Name_Len));
-                     end if;
-
-
-                  end Write_Command_Line;
-
-                  Write_Str (FD, """,");
-                  Write_Eol (FD);
-                  Write_Str (FD, "          boot_server  => ");
-                  Write_Str (FD, "system.garlic.heart.get_boot_server);");
-                  Write_Eol (FD);
+                  Write_Eol  (FD);
+                  Write_Str  (FD, "          executable_name => """);
+                  Write_Name (FD, Get_Absolute_Exec (Partition));
+                  Write_Name (FD, Get_Command_Line  (Partition));
+                  Write_Str  (FD, """,");
+                  Write_Eol  (FD);
+                  Write_Str  (FD, "          boot_server  => ");
+                  Write_Str  (FD, "system.garlic.heart.get_boot_server);");
+                  Write_Eol  (FD);
                end if;
             end loop;
             Write_Str (FD, "   end if;");

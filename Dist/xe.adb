@@ -61,7 +61,7 @@ package body XE is
    type Node_Type is
       record
          Kind    : Node_Kind := K_Null;
-         Name    : Name_Id   := Null_Name;
+         Name    : Name_Id   := No_Name;
          Node_1  : Node_Id   := Null_Node;
          Node_2  : Node_Id   := Null_Node;
          Node_3  : Node_Id   := Null_Node;
@@ -1487,11 +1487,11 @@ package body XE is
       Command_Line : Command_Line_Type;
 
    begin
-      Write_Str (" -------------------------------");
+      Write_Str (" ------------------------------");
       Write_Eol;
-      Write_Str (" ----- Configuration report ----");
+      Write_Str (" ---- Configuration report ----");
       Write_Eol;
-      Write_Str (" -------------------------------");
+      Write_Str (" ------------------------------");
       Write_Eol;
       Write_Str ("Configuration :");
       Write_Eol;
@@ -1538,20 +1538,17 @@ package body XE is
                Write_Eol;
             end if;
 
-            if I.Host /= Null_Host then
-               Host := I.Host;
-            elsif Hosts.Table (Default_Host).Name /= Null_Name then
+            Host := I.Host;
+            if Host = Null_Host then
                Host := Default_Host;
-            else
-               Host := Null_Host;
             end if;
 
             if Host /= Null_Host then
                Write_Str ("   Host     : ");
-               if not Hosts.Table (Host).Static then
+               if Hosts.Table (Host).Static then
+                  Write_Name (Hosts.Table (Host).Name);
+               else
                   Write_Str ("function call :: ");
-               end if;
-               if not Hosts.Table (Host).Static then
                   Write_Name (Hosts.Table (Host).External);
                   case Hosts.Table (Host).Import is
                      when None_Import =>
@@ -1616,6 +1613,124 @@ package body XE is
       Write_Eol;
 
    end Show_Configuration;
+
+   function Get_Absolute_Exec (P : in PID_Type) return Name_Id is
+      Dir  : Name_Id := Partitions.Table (P).Storage_Dir;
+      Name : Name_Id renames Partitions.Table (P).Name;
+   begin
+
+      if Dir = No_Storage_Dir then
+         Dir := Default_Storage_Dir;
+      end if;
+
+      if Dir = No_Storage_Dir then
+
+         --  No storage dir means current directory
+
+         return PWD_Id & Name;
+
+      else
+         Get_Name_String (Dir);
+         if Name_Buffer (1) /= Separator then
+
+            --  The storage dir is relative
+
+            return PWD_Id & Dir & Dir_Sep_Id & Name;
+
+         end if;
+
+         --  Write the dir as it has been written
+
+         return Dir & Dir_Sep_Id & Name;
+
+      end if;
+
+   end Get_Absolute_Exec;
+
+   function Get_Relative_Exec (P : in PID_Type) return Name_Id is
+      Dir  : Name_Id := Partitions.Table (P).Storage_Dir;
+      Name : Name_Id renames Partitions.Table (P).Name;
+   begin
+
+      if Dir = No_Storage_Dir then
+         Dir := Default_Storage_Dir;
+      end if;
+
+      if Dir = No_Storage_Dir then
+
+         --  No storage dir means current directory
+
+         return Name;
+
+      else
+
+         --  The storage dir is relative
+
+         return Dir & Dir_Sep_Id & Name;
+
+      end if;
+
+   end Get_Relative_Exec;
+
+   function Get_Host            (P : in PID_Type) return Name_Id is
+      H : Host_Id := Partitions.Table (P).Host;
+   begin
+
+      if H = Null_Host then
+         H := Default_Host;
+      end if;
+
+      if H /= Null_Host then
+         if not Hosts.Table (H).Static then
+            if Hosts.Table (H).Import = Shell_Import then
+               return  Str_To_Id ("""`") &
+                       Hosts.Table (H).External &
+                       Str_To_Id (" ") &
+                       Partitions.Table (P).Name &
+                       Str_To_Id ("`""");
+            elsif Hosts.Table (H).Import = Ada_Import then
+               return  Hosts.Table (H).External &
+                       Str_To_Id ("(") &
+                       Partitions.Table (P).Name &
+                       Str_To_Id (")");
+            end if;
+            raise Parsing_Error;
+         else
+            return Str_To_Id ("""") &
+                   Hosts.Table (H).Name &
+                   Str_To_Id ("""");
+         end if;
+
+      else
+         return No_Name;
+
+      end if;
+
+   end Get_Host;
+
+   function Get_Command_Line    (P : in PID_Type) return Name_Id is
+      Cmd : Command_Line_Type := Partitions.Table (P).Command_Line;
+   begin
+
+      if Cmd = No_Command_Line then
+         Cmd := Default_Command_Line;
+      end if;
+
+      return Cmd;
+
+   end Get_Command_Line;
+
+   function Get_Main_Subprogram (P : in PID_Type) return Name_Id is
+      Main : Main_Subprogram_Type := Partitions.Table (P).Main_Subprogram;
+   begin
+
+      if Main = No_Main_Subprogram then
+         Main := Default_Main;
+      end if;
+
+      return Main;
+
+   end Get_Main_Subprogram;
 
 end XE;
 

@@ -44,8 +44,6 @@ package body XE_Parse is
    subtype Unit_Name_Type is Types.Unit_Name_Type;
    subtype Int            is Types.Int;
 
-   Null_Name : constant Name_Id := Types.No_Name;
-
    Attribute_Prefix : Name_Id;
    Type_Prefix      : Name_Id;
    Pragma_Prefix    : Name_Id;

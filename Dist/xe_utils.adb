@@ -326,18 +326,20 @@ package body XE_Utils is
          raise Usage_Error;
       end if;
 
-      Get_Name_String (Name);
-      if Name_Buffer (Name_Len - 1) = '%' then --  %
-         Name_Len := Name_Len - 2;
-      end if;
-      if Write (File, Name_Buffer'Address, Name_Len) /= Name_Len then
-         Write_Str ("error : disk full");
-         Write_Eol;
-         raise XE.Fatal_Error;
-      end if;
+      if Name /= No_Name then
+         Get_Name_String (Name);
+         if Name_Buffer (Name_Len - 1) = '%' then --  %
+            Name_Len := Name_Len - 2;
+         end if;
+         if Write (File, Name_Buffer'Address, Name_Len) /= Name_Len then
+            Write_Str ("error : disk full");
+            Write_Eol;
+            raise XE.Fatal_Error;
+         end if;
 
-      if Building_Script then
-         Write_Str (Name_Buffer (1 .. Name_Len));
+         if Building_Script then
+            Write_Str (Name_Buffer (1 .. Name_Len));
+         end if;
       end if;
 
    end Write_Name;
@@ -808,7 +810,7 @@ package body XE_Utils is
       Parent_Dir     := Str_To_Id ("..");
       G_Parent_Dir   := Parent_Dir & Dir_Sep_Id & Parent_Dir;
 
-      GNAT_ADC       := Str_To_Id ("gnat.adc");
+      PWD_Id         := Str_To_Id ("`pwd`/");
 
       declare
          GARLIC_Dir  : constant String_Access := Get_GARLIC_Dir;

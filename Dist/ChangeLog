@@ -1,3 +1,9 @@
+Mon Sep 23 18:23:05 1996  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe.adb: Get_Host, Get_Command_Line, Get_Absolute_Exec,
+	Get_Relative_Exec and Get_Main_Subprogram return default values
+	when no specific value has been specified.
+
 Wed Sep 11 19:26:16 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* xe_parse.adb: Give proper error message on undeclared variable.

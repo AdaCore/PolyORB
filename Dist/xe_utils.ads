@@ -52,16 +52,36 @@ package XE_Utils is
    Parent_Dir   : Name_Id;
    G_Parent_Dir : Name_Id;
 
-   GNAT_ADC     : Name_Id;
+   PWD_Id       : Name_Id;
 
    procedure Copy_With_File_Stamp
      (Source, Target : in File_Name_Type;
       Maybe_Symbolic : in Boolean := False);
-   procedure Build_RCI_Caller     (Source, Target : File_Name_Type);
-   procedure Build_RCI_Receiver   (Source, Target : File_Name_Type);
-   procedure Build_Partition      (Partition : Name_Id; Exec : File_Name_Type);
-   procedure Compile_RCI_Caller   (Source    : File_Name_Type);
-   procedure Compile_RCI_Receiver (Source    : File_Name_Type);
+   --  Basically, this procedure copies source into target and
+   --  preserves file stamps.
+
+   procedure Build_RCI_Caller
+     (Source, Target : in File_Name_Type);
+   --  Generates the source's caller stubs into target (-gnatzc).
+
+   procedure Build_RCI_Receiver
+     (Source, Target : in File_Name_Type);
+   --  Generates the source's receiver stubs into target (-gnatzr).
+
+   procedure Build_Partition
+     (Partition : in Name_Id;
+      Exec      : in File_Name_Type);
+   --  Generates the partition ada main subprogram (generation
+   --  of Ada code, compilation, bind and link). Exec is the name
+   --  of the executable.
+
+   procedure Compile_RCI_Caller
+     (Source    : in File_Name_Type);
+   --  Compile the caller stubs (-gnatzC).
+
+   procedure Compile_RCI_Receiver
+     (Source    : in File_Name_Type);
+   --  Compile the receiver stubs (-gnatzR).
 
    Separator : Character renames Directory_Separator;
 
@@ -76,9 +96,11 @@ package XE_Utils is
       Name : in File_Name_Type;
       Exec : in Boolean := False);
 
-   procedure Delete (File : File_Name_Type);
+   procedure Delete
+     (File : in File_Name_Type);
 
-   procedure Unlink_File (File : File_Name_Type);
+   procedure Unlink_File
+     (File : in File_Name_Type);
 
    procedure Write_Stamp
      (File : in Name_Id);
@@ -94,7 +116,8 @@ package XE_Utils is
    procedure Write_Eol
      (File : in File_Descriptor);
 
-   procedure Write_Unit_Name (N : Unit_Name_Type);
+   procedure Write_Unit_Name
+     (N : in Unit_Name_Type);
 
    function Strlen (Name : in Name_Id) return Natural;
 

@@ -540,7 +540,7 @@ package body XE_Back is
          Next_Configuration_Declaration (Node);
       end loop;
 
-      if Main_Subprogram = Null_Name then
+      if Main_Subprogram = No_Main_Subprogram then
          Write_Program_Name;
          Write_Str (": main program has not been declared");
          Write_Eol;

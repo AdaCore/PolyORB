@@ -37,19 +37,17 @@ procedure XE_Lead is
 
    FD : File_Descriptor;
 
-   procedure Set_Host           (Partition : in PID_Type);
+   procedure Set_Host        (Partition : in PID_Type);
 
    procedure Set_Boot_Server (Partition : in PID_Type);
 
-   procedure Set_Launcher       (Partition  : in PID_Type);
+   procedure Set_Launcher    (Partition : in PID_Type);
 
-   procedure Set_Host           (Partition : in PID_Type) is
-      Host : Host_Id := Partitions.Table (Partition).Host;
+   procedure Set_Host        (Partition : in PID_Type) is
+      Host : Name_Id := Get_Host (Partition);
+
    begin
-      if Host = Null_Host then
-         Host := Default_Host;
-      end if;
-      if Host = Null_Host or else Hosts.Table (Host).Name = No_Name then
+      if Host = No_Name then
          Write_Str  (FD, "echo '");
          Write_Name (FD, Partitions.Table (Partition).Name);
          Write_Str  (FD, " host: '");
@@ -59,89 +57,32 @@ procedure XE_Lead is
          Write_Str  (FD, "_HOST");
          Write_Eol  (FD);
 
-      --  XXXX : These tests should not occur there (xe_check)
-      elsif not Hosts.Table (Host).Static then
-         if Starter_Method = Ada_Starter and then
-            Hosts.Table (Host).Import = Shell_Import then
-            Write_Program_Name;
-            Write_Str  (": Starter method is Ada when function ");
-            Write_Name (Hosts.Table (Host).Name);
-            Write_Str  (" is imported from Shell");
-            Write_Eol;
-            raise Parsing_Error;
-         elsif Starter_Method = Shell_Starter and then
-            Hosts.Table (Host).Import = Ada_Import then
-            Write_Program_Name;
-            Write_Str  (": Starter method is Shell when function ");
-            Write_Name (Hosts.Table (Host).Name);
-            Write_Str  (" is imported from Ada");
-            Write_Eol;
-            raise Parsing_Error;
-         end if;
-         Write_Name (FD, Partitions.Table (Partition).Name);
-         Write_Str  (FD, "_HOST=`");
-         Write_Name (FD, Hosts.Table (Host).External);
-         Write_Str  (FD, "`");
-         Write_Eol  (FD);
       else
          Write_Name (FD, Partitions.Table (Partition).Name);
          Write_Str  (FD, "_HOST=");
-         Write_Name (FD, Hosts.Table (Host).Name);
+         Write_Name (FD, Get_Host (Partition));
          Write_Eol  (FD);
+
       end if;
    end Set_Host;
 
    procedure Set_Launcher (Partition  : in PID_Type) is
    begin
+
       if Partition /= Main_Partition then
          Write_Str  (FD, "rsh -n $");
          Write_Name (FD, Partitions.Table (Partition).Name);
          Write_Str  (FD, "_HOST """);
       end if;
-      if Partitions.Table (Partition).Storage_Dir /= No_Storage_Dir then
-         declare
-            Dir : constant Name_Id := Partitions.Table (Partition).Storage_Dir;
-            Str : String (1 .. Strlen (Dir));
-         begin
-            Get_Name_String (Dir);
-            Str := Name_Buffer (1 .. Name_Len);
-            if Str (1) /= Separator then
-               Write_Str  (FD, "`pwd`/");
-               Write_Str  (FD, Str);
-               Write_Str  (FD, "/");
-            else
-               Write_Str  (FD, Str);
-               Write_Str  (FD, "/");
-            end if;
-         end;
-      elsif Default_Storage_Dir = Null_Name then
-         Write_Str  (FD, "`pwd`/");
-      else
-         Write_Name (FD, Default_Storage_Dir & Dir_Sep_Id);
-      end if;
 
-      Write_Name (FD, Partitions.Table (Partition).Name);
+      Write_Name (FD, Get_Absolute_Exec (Partition));
+
       Write_Str  (FD, " --boot_server $BOOT_SERVER");
-
-      declare
-         Cmd : Command_Line_Type;
-      begin
-         if Partitions.Table (Partition).Command_Line = No_Command_Line then
-            Cmd := Default_Command_Line;
-         else
-            Cmd := Partitions.Table (Partition).Command_Line;
-         end if;
-
-         if Cmd /= No_Command_Line then
-            Write_Str (FD, " ");
-            Write_Name (FD, Cmd);
-            Write_Str (FD, " ");
-         end if;
-      end;
-
+      Write_Name (FD, Get_Command_Line (Partition));
       if Partition /= Main_Partition then
          Write_Str (FD, " --detach --slave &""");
       end if;
+
       Write_Eol (FD);
    end Set_Launcher;
 

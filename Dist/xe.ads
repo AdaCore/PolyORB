@@ -212,8 +212,6 @@ package XE is
    Null_Subprogram    : constant Subprogram_Id    := Subprogram_Id (NN);
    Null_Configuration : constant Configuration_Id := Configuration_Id (NN);
 
-   Null_Name            : constant Types.Name_Id := Types.No_Name;
-
    Configuration_Node   : Configuration_Id;
 
    Partition_Type_Node      : Type_Id;
@@ -599,10 +597,10 @@ package XE is
    No_Storage_Dir    : constant Storage_Dir_Name_Type := No_Name;
 
    --  Default values
-   Default_Main          : Main_Subprogram_Type   := No_Main_Subprogram;
-   Default_Host          : Host_Id   := Null_Host;
+   Default_Main          : Main_Subprogram_Type  := No_Main_Subprogram;
+   Default_Host          : Host_Id               := Null_Host;
    Default_Storage_Dir   : Storage_Dir_Name_Type := No_Storage_Dir;
-   Default_Command_Line  : Command_Line_Type := No_Command_Line;
+   Default_Command_Line  : Command_Line_Type     := No_Command_Line;
 
    type Partition_Type is record
       Name            : Partition_Name_Type   := No_Partition_Name;
@@ -679,7 +677,11 @@ package XE is
 
    function Str_To_Id (S : String) return Name_Id;
 
-   RCI_Name_Server    : constant String := "rns";
+   function Get_Absolute_Exec   (P : in PID_Type) return Name_Id;
+   function Get_Relative_Exec   (P : in PID_Type) return Name_Id;
+   function Get_Host            (P : in PID_Type) return Name_Id;
+   function Get_Command_Line    (P : in PID_Type) return Name_Id;
+   function Get_Main_Subprogram (P : in PID_Type) return Name_Id;
 
    Configuration_File : Name_Id := No_Name;
    Configuration      : Name_Id := No_Name;
