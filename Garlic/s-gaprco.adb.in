@@ -62,14 +62,14 @@ package body System.Garlic.Protocols.Config is
       raise Constraint_Error;
    end Register;
 
-   ------------
-   -- Create --
-   ------------
+   ----------------
+   -- Initialize --
+   ----------------
 
-   procedure Create is
+   procedure Initialize is
    begin
       Register (System.Garlic.Loopback.Create);
       @TCP_INCLUDED@Register (System.Garlic.TCP.Create);
-   end Create;
+   end Initialize;
 
 end System.Garlic.Protocols.Config;

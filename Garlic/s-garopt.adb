@@ -49,11 +49,19 @@ package body System.Garlic.Options is
      renames Print_Debug_Info;
    --  Debugging stuff.
 
-   ------------------------
-   -- Get_Boot_Server --
-   ------------------------
+   type String_Access is access String;
 
-   function Get_Boot_Server (Default : String := "tcp") return String is
+   Boot_Server_Default     : String_Access := new String'("tcp");
+   Connection_Hits_Default : Natural := 128;
+   Detach_Default          : Boolean := False;
+   Is_Slave_Default        : Boolean := False;
+   Nolaunch_Default        : Boolean := False;
+
+   ---------------------
+   -- Get_Boot_Server --
+   ---------------------
+
+   function Get_Boot_Server return String is
    begin
       for Index in 1 .. Argument_Count - 1 loop
          if Argument (Index) = "--boot_server" then
@@ -64,17 +72,26 @@ package body System.Garlic.Options is
          EV : constant String := Getenv ("BOOT_SERVER");
       begin
          if EV = "" then
-            return Default;
+            return Boot_Server_Default.all;
          end if;
          return EV;
       end;
    end Get_Boot_Server;
 
+   ---------------------
+   -- Set_Boot_Server --
+   ---------------------
+
+   procedure Set_Boot_Server (Default : String) is
+   begin
+      Boot_Server_Default := new String'(Default);
+   end Set_Boot_Server;
+
    -------------------------
    -- Get_Connection_Hits --
    -------------------------
 
-   function Get_Connection_Hits (Default : Natural := 128) return Natural is
+   function Get_Connection_Hits return Natural is
    begin
       for Index in 1 .. Argument_Count - 1 loop
          if Argument (Index) = "--connection_hits" then
@@ -87,15 +104,21 @@ package body System.Garlic.Options is
          EV : constant String := Getenv ("CONNECTION_HITS");
       begin
          if EV = "" then
-            return Default;
+            return Connection_Hits_Default;
          end if;
          pragma Debug (D (D_Debug, "CONNECTION_HITS env. variable available"));
          return Natural'Value (EV);
       end;
-   exception when others =>
-      pragma Debug (D (D_Exception, "(get_connection_hits) Get lost ..."));
-      raise;
    end Get_Connection_Hits;
+
+   -------------------------
+   -- Set_Connection_Hits --
+   -------------------------
+
+   procedure Set_Connection_Hits (Default : Natural) is
+   begin
+      Connection_Hits_Default := Default;
+   end Set_Connection_Hits;
 
    ----------------
    -- Get_Detach --
@@ -109,12 +132,20 @@ package body System.Garlic.Options is
             return True;
          end if;
       end loop;
-      return Getenv ("DETACH") /= "";
-   exception
-      when others =>
-         pragma Debug (D (D_Exception, "(get_detach) Get lost ..."));
-         raise;
+      if Getenv ("DETACH") /= "" then
+         return True;
+      end if;
+      return Detach_Default;
    end Get_Detach;
+
+   ----------------
+   -- Set_Detach --
+   ----------------
+
+   procedure Set_Detach (Default : Boolean) is
+   begin
+      Detach_Default := Default;
+   end Set_Detach;
 
    ------------------
    -- Get_Is_Slave --
@@ -128,16 +159,24 @@ package body System.Garlic.Options is
             return True;
          end if;
       end loop;
-      return Getenv ("SLAVE") /= "";
-   exception
-      when others =>
-         pragma Debug (D (D_Exception, "(get_is_slave) Get lost ..."));
-         raise;
+      if Getenv ("SLAVE") /= "" then
+         return True;
+      end if;
+      return Is_Slave_Default;
    end Get_Is_Slave;
 
-   -------------------
-   -- Get_No_Launch --
-   -------------------
+   ------------------
+   -- Set_Is_Slave --
+   ------------------
+
+   procedure Set_Is_Slave (Default : Boolean) is
+   begin
+      Is_Slave_Default := Default;
+   end Set_Is_Slave;
+
+   ------------------
+   -- Get_Nolaunch --
+   ------------------
 
    function Get_Nolaunch return Boolean is
    begin
@@ -147,11 +186,19 @@ package body System.Garlic.Options is
             return True;
          end if;
       end loop;
-      return Getenv ("NOLAUNCH") /= "";
-   exception
-      when others =>
-         pragma Debug (D (D_Exception, "(get_nolaunch) Get lost ..."));
-         raise;
+      if Getenv ("NOLAUNCH") /= "" then
+         return True;
+      end if;
+      return Nolaunch_Default;
    end Get_Nolaunch;
+
+   ------------------
+   -- Set_Nolaunch --
+   ------------------
+
+   procedure Set_Nolaunch (Default : Boolean) is
+   begin
+      Nolaunch_Default := Default;
+   end Set_Nolaunch;
 
 end System.Garlic.Options;

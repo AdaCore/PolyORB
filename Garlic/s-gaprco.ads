@@ -40,6 +40,6 @@ package System.Garlic.Protocols.Config is
    subtype Protocol_Access is System.Garlic.Protocols.Protocol_Access;
    Protocol_Table : array (1 .. Max_Protocols) of Protocol_Access;
 
-   procedure Create;
+   procedure Initialize;
 
 end System.Garlic.Protocols.Config;

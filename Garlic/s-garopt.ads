@@ -35,12 +35,12 @@
 
 package System.Garlic.Options is
 
-   function Get_Boot_Server (Default : String := "tcp") return String;
+   function Get_Boot_Server return String;
    --  Return value specified by --boot_server command line arg or else
    --         value specified by "BOOT_SERVER" environment var or else
    --         Default if no such environment variable.
 
-   function Get_Connection_Hits (Default : Natural := 128) return Natural;
+   function Get_Connection_Hits return Natural;
    --  Return value specified by --connection_hits command line arg or else
    --         value specified by "CONNECTION_HITS" environment var or else
    --         Default if no such environment variable.
@@ -56,6 +56,16 @@ package System.Garlic.Options is
    function Get_Is_Slave return Boolean;
    --  Return True if --slave is present on the command line arg or if
    --  a SLAVE environment variable with a non empty value is present.
+
+   procedure Set_Boot_Server (Default : String);
+
+   procedure Set_Connection_Hits (Default : Natural);
+
+   procedure Set_Detach   (Default : Boolean);
+
+   procedure Set_Nolaunch (Default : Boolean);
+
+   procedure Set_Is_Slave (Default : Boolean);
 
 end System.Garlic.Options;
 

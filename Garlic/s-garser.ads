@@ -36,7 +36,7 @@
 package System.Garlic.Services is
 
    procedure Initialize;
-   --  Inialize all the services for which the body has been
+   --  Initialize all the services for which the body has been
    --  configured for.
 
 end System.Garlic.Services;

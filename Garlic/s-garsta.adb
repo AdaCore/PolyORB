@@ -63,6 +63,9 @@ pragma Elaborate_All (System.Garlic.Services);
 
 with System.RPC;
 
+with System.Garlic.Elaboration;
+pragma Elaborate_All (System.Garlic.Elaboration);
+
 package body System.Garlic.Startup is
 
    Private_Debug_Key : constant Debug_Key :=
@@ -85,7 +88,7 @@ begin
 
    --  Phase (2) (see s-garlic.ads)
 
-   System.Garlic.Protocols.Config.Create;
+   System.Garlic.Protocols.Config.Initialize;
 
    declare
       Boot_Location : constant Location :=

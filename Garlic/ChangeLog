@@ -1,3 +1,14 @@
+Tue Nov 19 16:56:07 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
+
+	* s-garela.adb: New package provided to set usual defaults.
+
+	* s-garopt.adb: Add Set_[...] (Default : [...]) corresponding to
+	Get_[...] return [...] in order to set defaults during elaboration
+	of a new package system.garlic.elaboration.
+
+	* s-gaprco.adb: Change System.Garlic.Config.Create into
+	[...].Initialize.
+
 Wed Nov  6 18:34:57 1996  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* s-gartcp.adb: sin_family was no longer initialized AF_INET.
