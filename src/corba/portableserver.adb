@@ -37,18 +37,20 @@ with Ada.Tags;
 with CORBA;
 
 with PolyORB.CORBA_P.Names;
+with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Requests;
 with PolyORB.Objects.Interface;
 with PolyORB.POA_Types;
-with PolyORB.Tasking.Soft_Links;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
+with PolyORB.Utils.Strings;
 
 package body PortableServer is
 
    use PolyORB.Log;
-   use PolyORB.Tasking.Soft_Links;
+   use PolyORB.Tasking.Mutexes;
 
    package L is new PolyORB.Log.Facility_Log ("portableserver");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
@@ -144,6 +146,7 @@ package body PortableServer is
      (Skeleton_Info);
 
    All_Skeletons : Skeleton_Lists.List;
+   Skeleton_Lock : Mutex_Access;
 
    Skeleton_Unknown : exception;
 
@@ -164,7 +167,8 @@ package body PortableServer is
       pragma Debug
         (O ("Find_Info: servant of type "
             & Ada.Tags.External_Tag (For_Servant'Tag)));
-      Enter_Critical_Section;
+
+      Enter (Skeleton_Lock);
       It := First (All_Skeletons);
 
       while not Last (It) loop
@@ -175,12 +179,12 @@ package body PortableServer is
       end loop;
 
       if Last (It) then
-         Leave_Critical_Section;
+         Leave (Skeleton_Lock);
          raise Skeleton_Unknown;
       end if;
 
       Info := Value (It).all;
-      Leave_Critical_Section;
+      Leave (Skeleton_Lock);
 
       return Info;
    end Find_Info;
@@ -458,5 +462,29 @@ package body PortableServer is
          (CORBA.Unsigned_Long (RequestProcessingPolicyValue'Pos (Item))));
       return Result;
    end To_Any;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      Create (Skeleton_Lock);
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name => +"portableserver",
+       Conflicts => Empty,
+       Depends => +"soft_links",
+       Provides => Empty,
+       Init => Initialize'Access));
 
 end PortableServer;
