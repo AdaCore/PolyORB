@@ -46,6 +46,10 @@ package System.Garlic.Protocols.Replay is
    type Replay_Protocol is
       new System.Garlic.Protocols.Protocol_Type with private;
 
+   procedure Activate
+     (Protocol : access Replay_Protocol;
+      Error    : in out Exceptions.Error_Type);
+
    function Create return System.Garlic.Protocols.Protocol_Access;
    --  Return always the same self reference.
 
@@ -66,7 +70,7 @@ package System.Garlic.Protocols.Replay is
 
    function Receive
      (Protocol  : access Replay_Protocol;
-      Timeout   : Protocols.Milliseconds)
+      Timeout   : Duration)
      return Boolean;
 
    procedure Send

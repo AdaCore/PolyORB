@@ -57,6 +57,16 @@ package System.Garlic.Protocols is
    Max_Protocols  : constant := 10;
    Protocol_Table : array (First_Protocol .. Max_Protocols) of Protocol_Access;
 
+   procedure Activate
+     (Protocol : access Protocol_Type;
+      Error    : in out Exceptions.Error_Type) is abstract;
+   --  We first initialize the protocol to provide some data to accept
+   --  incoming connections. The incomplete data provided have to be
+   --  completed on initialization. This procedure is supposed to
+   --  activate all the incoming connections and to accept incoming
+   --  requests. For instance, this must be done prior to any
+   --  communication with boot server.
+
    function Get_Name (Protocol : access Protocol_Type) return String
      is abstract;
    --  Return a string containing the name of the protocol
@@ -70,20 +80,20 @@ package System.Garlic.Protocols is
      is abstract;
    --  Initialize protocol. When Self_Data is non-null, use this
    --  location to receive messages. Required means that this
-   --  initialization has to be done. When Required is false, this
+   --  initialization must be done. When Required is false, this
    --  initialization has to be performed only when the protocol was
    --  not previously initialized. This occurs when the current
    --  partition has no self location depending on this protocol. We
    --  have to initialize this protocol anyway, because it may be
-   --  needed to contact other partitions.
+   --  needed to contact other partitions. Incomplete data have to be
+   --  completed once initialized.
 
-   type Milliseconds is new Natural;
-
-   Forever : constant Milliseconds := 0;
+   Forever : constant Duration := Duration'Last;
+   Polling : constant Duration := 0.2;
 
    function Receive
      (Protocol  : access Protocol_Type;
-      Timeout   : Milliseconds)
+      Timeout   : Duration)
      return Boolean is abstract;
    --  Try to receive any incoming stream, analyze and process
    --  it. Return False if Timeout expired.

@@ -52,8 +52,8 @@ package body System.Garlic.Protocols is
 
    procedure Receive_From_All_Protocols
    is
-      Timeout  : Milliseconds := 10000;
-      Protocol : Natural := First_Protocol;
+      Timeout  : Duration := Polling;
+      Protocol : Natural  := First_Protocol;
 
    begin
       if First_Protocol = Last_Protocol then

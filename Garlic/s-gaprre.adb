@@ -65,6 +65,23 @@ package body System.Garlic.Protocols.Replay is
 
    Self_Reference : Protocol_Access;
 
+   --------------
+   -- Activate --
+   --------------
+
+   procedure Activate
+     (Protocol : access Replay_Protocol;
+      Error    : in out Error_Type) is
+   begin
+      if Options.Execution_Mode = Replay_Mode
+        and then Engine = null
+      then
+         Engine := new Engine_Type;
+      end if;
+
+      pragma Debug (D ("Activate replay protocol"));
+   end Activate;
+
    ------------
    -- Create --
    ------------
@@ -184,7 +201,7 @@ package body System.Garlic.Protocols.Replay is
 
    function Receive
      (Protocol  : access Replay_Protocol;
-      Timeout   : Protocols.Milliseconds)
+      Timeout   : Duration)
      return Boolean is
    begin
       return True;
@@ -202,12 +219,6 @@ package body System.Garlic.Protocols.Replay is
    begin
       pragma Debug
          (D ("Send (but do nothing)" & Data'Length'Img & " bytes"));
-
-      if Options.Execution_Mode = Replay_Mode
-        and then Engine = null
-      then
-         Engine := new Engine_Type;
-      end if;
 
       --  Send is a no-op since every partition gets its messages from
       --  the trace file.
@@ -241,9 +252,6 @@ package body System.Garlic.Protocols.Replay is
          Open (Trace_File, In_File, Trace_File_Name.all);
          Set_Execution_Mode (Replay_Mode);
          Set_Boot_Location (To_Location (Self_Reference, Trace_File_Name.all));
-         if Options.Is_Boot_Server then
-            Engine := new Engine_Type;
-         end if;
       exception when others =>
          Throw (Error, "Cannot open " & Trace_File_Name.all);
       end;
