@@ -22,6 +22,7 @@
 ***                                                                                            ***
 ***                                                                                            ***
 *************************************************************************************************/
+
 #include <adabe.h>
 
 ////////////////////////////////////////////////////////////////////////
@@ -35,14 +36,23 @@ adabe_argument::adabe_argument(AST_Argument::Direction d, AST_Type *ft, UTL_Scop
 {
 }
 
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////     produce_ads     ///////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 void
 adabe_argument::produce_ads(dep_list& with, string &body, string &previous)
+  // This methods produces code for the .ads file
+  // Actually, it produces for this argument the code to put in a function
+  // declaration
 {
+  // compute the name of this argument
   compute_ada_name();
+
+  // add the name of the argument to the body
   body += get_ada_local_name() + " : ";
+
+  // add its direction (in, inout or out)
   AST_Argument::Direction dir = direction();
   switch (dir)
     {
@@ -56,9 +66,14 @@ adabe_argument::produce_ads(dep_list& with, string &body, string &previous)
       body += "in out ";
       break;
     }
+
+  // get the type of the argument as an AST_Decl object
   AST_Decl *d = field_type();
-  body +=  dynamic_cast<adabe_name *>(d)->dump_name(with, previous); // virtual method
+
+  // add the name of the type to the body
+  body +=  dynamic_cast<adabe_name *>(d)->dump_name(with, previous) ;
 }
+
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////     produce_ads     ///////////////////////////////////
@@ -66,7 +81,19 @@ adabe_argument::produce_ads(dep_list& with, string &body, string &previous)
 void
 adabe_argument::produce_adb(dep_list& with, bool &no_out, string space,
 			    string &in_decls, string &in_args, string &out_args)
+  // This methods produces code for the .adb file
+  // Actually, it produces several pieces of code and booleans
+  //    - the boolean no_out is put to false if the argument is in
+  // out or inout mode
+  //    - in_decls contains the field declarations to put in the object
+  // declaration at the end of .adb file
+  //    - in_args contains the list of arguments to pass to the Init
+  // function corresponding to the operation
+  //    - out_args contains the list of arguments to pass to the Get_Result
+  // function corresponding to the operation
+  // at least space is used for indentation
 {
+  // get the direction of the argument (in, out or inout)
   AST_Argument::Direction dir = direction();
   string dir_st = "";
   switch (dir)
@@ -81,15 +108,24 @@ adabe_argument::produce_adb(dep_list& with, bool &no_out, string space,
       dir_st = "in out ";
       break;
     }
-  AST_Decl *d = field_type();
-  string previous = "";
-  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, previous); // virtual method
 
-  in_decls += ";\n              " + space + get_ada_local_name() + " : " + dir_st +  name;
+  // get the type of the argument as an AST_Decl object
+  AST_Decl *d = field_type();
   
+  string previous = "";  // temporary string. unused
+
+  // get the name of the argument via dump_name function
+  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
+
+  // computation of in_decls string
+  in_decls += ";\n              " + space + get_ada_local_name() + " : " + dir_st +  name;
+
+  // computation of in_args string if the argument is in in or inout mode
   if ((dir == AST_Argument::dir_IN) || (dir == AST_Argument::dir_INOUT))
     in_args += ", " + get_ada_local_name ();
 
+  // computation of out_args string if the argument is in out or inout mode
+  // in this case, put no_out to false
   if ((dir == AST_Argument::dir_OUT) || (dir == AST_Argument::dir_INOUT))
     {
       no_out = false;
@@ -97,18 +133,40 @@ adabe_argument::produce_adb(dep_list& with, bool &no_out, string space,
     }
 }
 
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////     produce_proxies_ads     ///////////////////////////
 ////////////////////////////////////////////////////////////////////////
 void 
-adabe_argument::produce_proxies_ads(dep_list &with, string &in_decls, bool &no_in, bool &no_out, string &fields, string &out_args)
+adabe_argument::produce_proxies_ads(dep_list &with, string &in_decls,bool &no_in,
+				    bool &no_out, string &fields, string &out_args)
+  // This methods produces code for the proxies.ads file
+  // Actually, it produces several pieces of code and booleans
+  //    - in_decls contains the list of arguments to put in the declaration
+  // of the Init function corresponding to the operation
+  //    - the boolean no_in is put to false if the argument is in
+  // in or inout mode
+  //    - the boolean no_out is put to false if the argument is in
+  // out or inout mode
+  //    - fields contains the list of declarations to put in the private part,
+  // at the end of the proxies.ads file
+  //    - out_args contains the list of arguments to put in the declaration
+  // of the Get_Result function corresponding to the operation
 {
-  string body, previous = "";
+  string previous = "";  // temporary unused string
+
+  // get the argument type as an adabe_name object
   AST_Decl *d = field_type();
   adabe_name *type_adabe_name = dynamic_cast<adabe_name *>(d) ;
+
+  // get the name o the argument via the dump_name function
   string type_name = type_adabe_name->dump_name(with, previous);
+
+  // get the full name of the argument
   string full_type_name = type_adabe_name->get_ada_full_name() ;
 
+  // computation of in_decls if the argument is in in or inout mode
+  // in this case, put no_in to false
   if ((direction() == AST_Argument::dir_IN) || (direction() == AST_Argument::dir_INOUT)) {
     no_in = false;
     in_decls += " ;\n                  ";
@@ -116,16 +174,22 @@ adabe_argument::produce_proxies_ads(dep_list &with, string &in_decls, bool &no_i
     in_decls += " : in ";
     in_decls += type_name;
   }
+
+  // computation of out_args if the argument is in out or inout mode
+  // in this case, put no_out to false
   if ((direction() == AST_Argument::dir_OUT) || (direction() == AST_Argument::dir_INOUT)) {
     no_out = false;
     out_args += "; " + get_ada_local_name () + " : out " + type_name;
   }
+
+  // computation of fields for all arguments 
   fields += "      ";
   fields += get_ada_local_name ();
   fields += " : ";
   fields += type_name;
   fields += "_Ptr := null ;\n";
 }
+
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////     produce_proxies_adb     ///////////////////////////
