@@ -154,6 +154,10 @@ package PolyORB.POA.Basic_POA is
    -- Proxy namespace management --
    --------------------------------
 
+   procedure Set_Proxies_OA
+     (OA         : access Basic_Obj_Adapter;
+      Proxies_OA :        Basic_Obj_Adapter_Access);
+
    function Is_Proxy_Oid
      (OA  : access Basic_Obj_Adapter;
       Oid : access Objects.Object_Id)

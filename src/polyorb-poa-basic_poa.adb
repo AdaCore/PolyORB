@@ -1080,6 +1080,16 @@ package body PolyORB.POA.Basic_POA is
       --  destroy it now (else do nothing).
    end Release_Servant;
 
+   procedure Set_Proxies_OA
+     (OA         : access Basic_Obj_Adapter;
+      Proxies_OA :        Basic_Obj_Adapter_Access)
+   is
+   begin
+      pragma Assert (OA.Proxies_OA = null and then Proxies_OA /= null);
+      OA.Proxies_OA := Proxies_OA;
+   end Set_Proxies_OA;
+
+
    function Is_Proxy_Oid
      (OA  : access Basic_Obj_Adapter;
       Oid : access Objects.Object_Id)
