@@ -32,6 +32,8 @@
 ------------------------------------------------------------------------------
 
 with CORBA;
+with CORBA.Object;
+
 with Broca.Buffers; use Broca.Buffers;
 with Broca.POA;
 with Broca.Stream;
@@ -137,14 +139,15 @@ package Broca.Server is
    procedure Unregister_POA
      (POA : Broca.POA.Ref);
 
-   --  This procedure builds an IOR.
-   --  It can return a null_string if there is no profiles for this object.
+   --  This procedure builds an IOR and returns a properly
+   --  externalised object reference.
    --  KEY is only the key for the POA, not the full object key.
    function Build_IOR
      (Type_Id : CORBA.RepositoryId;
       POA : Broca.POA.Ref;
       Key : Broca.Buffers.Encapsulation)
-     return Encapsulation;
+     return CORBA.Object.Ref;
+
 private
    type Server_Id_Type is new Natural;
 end Broca.Server;

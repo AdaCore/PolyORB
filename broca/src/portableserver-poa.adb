@@ -228,19 +228,19 @@ package body Portableserver.POA is
    begin
       --  Note - The NON_RETAIN policy requires either the USE_DEFAULT_SERVANT
       --  or USE_SERVANT_MANAGER policies.
-      if Sp = NON_RETAIN and (Rp /= USE_DEFAULT_SERVANT
-                              and then Rp /= USE_SERVANT_MANAGER)
-      then
-         Broca.Exceptions.Raise_Bad_Param;
-      end if;
-      if Rp = USE_ACTIVE_OBJECT_MAP_ONLY and then Sp /= RETAIN then
-         Broca.Exceptions.Raise_Bad_Param;
-      end if;
-      if Rp = USE_DEFAULT_SERVANT and then Up /= MULTIPLE_ID then
-         Broca.Exceptions.Raise_Bad_Param;
-      end if;
-      if Ap = IMPLICIT_ACTIVATION and then (Ip /= SYSTEM_ID
-                                            or else Sp /= RETAIN)
+
+      if (Sp = NON_RETAIN
+          and then Rp /= USE_DEFAULT_SERVANT
+          and then Rp /= USE_SERVANT_MANAGER)
+        or else
+         (Rp = USE_ACTIVE_OBJECT_MAP_ONLY
+          and then Sp /= RETAIN)
+        or else
+         (Rp = USE_DEFAULT_SERVANT
+          and then Up /= MULTIPLE_ID)
+        or else
+         (Ap = IMPLICIT_ACTIVATION
+          and then (Ip /= SYSTEM_ID or else Sp /= RETAIN))
       then
          Broca.Exceptions.Raise_Bad_Param;
       end if;
@@ -470,14 +470,16 @@ package body Portableserver.POA is
         := To_POA (Self);
 
    begin
-      if POA.Servant_Policy /= RETAIN
-        or else (POA.Uniqueness_Policy /= UNIQUE_ID
-                 and then POA.Activation_Policy /= IMPLICIT_ACTIVATION)
+      if POA.Request_Policy /= USE_DEFAULT_SERVANT
+        and then
+        (POA.Servant_Policy /= RETAIN
+         or else (POA.Uniqueness_Policy /= UNIQUE_ID
+                  and then POA.Activation_Policy /= IMPLICIT_ACTIVATION))
       then
          raise WrongPolicy;
       end if;
 
-      return Broca.POA.Servant_To_Id (POA, P_Servant);
+      return Broca.POA.Servant_To_Skeleton (POA, P_Servant).Object_Id;
    end Servant_To_Id;
 
    --------------------------
@@ -491,6 +493,9 @@ package body Portableserver.POA is
       POA : constant Broca.POA.POA_Object_Ptr
         := To_POA (Self);
    begin
+      --  FIXME: If Servant_To_Reference is called in the context
+      --    of executing a request on the given servant, there are
+      --    no constraints on the POA's policies. (11.3.8.21).
       if POA.Servant_Policy /= RETAIN
         or else (POA.Uniqueness_Policy /= UNIQUE_ID
                  and then POA.Activation_Policy /= IMPLICIT_ACTIVATION)

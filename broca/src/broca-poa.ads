@@ -234,15 +234,20 @@ package Broca.POA is
      (Self : access POA_Object; Oid : ObjectId; Intf : CORBA.RepositoryId)
       return CORBA.Object.Ref is abstract;
 
-   function Servant_To_Id (Self : access POA_Object; P_Servant : Servant)
-                           return ObjectId is abstract;
-
-   function Servant_To_Skeleton (Self : access POA_Object; P_Servant : Servant)
-      return Broca.POA.Skeleton_Ptr is abstract;
+   function Servant_To_Skeleton
+     (Self      : access POA_Object;
+      P_Servant : Servant)
+     return Broca.POA.Skeleton_Ptr
+      is abstract;
+   --  Return a skeleton for the given servant.
+   --  This is used to implement the Servant_To_Id and
+   --  Servant_To_Reference POA operations.
 
    function Skeleton_To_Servant
-     (Self : access POA_Object; Skeleton : Broca.POA.Skeleton_Ptr)
-     return Servant is abstract;
+     (Self     : access POA_Object;
+      Skeleton : Broca.POA.Skeleton_Ptr)
+     return Servant
+      is abstract;
 
    function Id_To_Skeleton (Self : access POA_Object; Oid : ObjectId)
      return Skeleton_Ptr is abstract;

@@ -6,6 +6,7 @@ with CORBA;
 with CORBA.Impl;
 with CORBA.Object;
 with CORBA.ORB;
+with PortableServer;
 
 with CosNaming;                        use CosNaming;
 with CosNaming.NamingContext;          use CosNaming.NamingContext;
@@ -272,8 +273,8 @@ begin
    Broca.Basic_Startup.Initiate_Server;
 
    Ada.Text_IO.Put_Line ("create root directory");
-   NamingContext.Set
-     (WDR, CORBA.Impl.Object_Ptr (NamingContext.Impl.New_Context));
+   WDR := NamingContext.Impl.New_Context;
+
    begin
       Bind_Context (WDR, Here, WDR);
    exception
@@ -329,9 +330,7 @@ begin
                      raise Syntax_Error;
                   end if;
                   Argv  := Argument (2);
-                  NamingContext.Set
-                    (Dir,
-                     CORBA.Impl.Object_Ptr (NamingContext.Impl.New_Context));
+                  Dir := NamingContext.Impl.New_Context;
                   Bind_Context (From (Argv), To_Name (Argv), Dir);
                   Bind_Context (Dir, Here, Dir);
                   Bind_Context (Dir, Back, Parent (Argv));
@@ -395,6 +394,8 @@ begin
                         end if;
                         Ada.Text_IO.New_Line;
                      end loop;
+
+                     Destroy (Iterator);
                   end;
 
                when Mount =>

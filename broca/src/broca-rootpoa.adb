@@ -420,11 +420,6 @@ package body Broca.RootPOA is
       Intf : CORBA.RepositoryId)
      return CORBA.Object.Ref;
 
-   function Servant_To_Id
-     (Self : access Object;
-      P_Servant : Servant)
-     return ObjectId;
-
    function Skeleton_To_Servant
      (Self : access Object;
       Skeleton : Broca.POA.Skeleton_Ptr)
@@ -475,6 +470,7 @@ package body Broca.RootPOA is
      (Self : access Object;
       P_Servant : Servant)
      return Broca.POA.Skeleton_Ptr;
+
    function Id_To_Skeleton
      (Self : access Object; Oid : ObjectId)
      return Skeleton_Ptr;
@@ -946,14 +942,6 @@ package body Broca.RootPOA is
       return Res;
    end Create_Reference_With_Id;
 
-   function Servant_To_Id
-     (Self : access Object;
-      P_Servant : Servant)
-     return ObjectId is
-   begin
-      return Servant_To_Skeleton (Self, P_Servant).Object_Id;
-   end Servant_To_Id;
-
    function Servant_To_Skeleton
      (Self : access Object; P_Servant : Servant)
       return Broca.POA.Skeleton_Ptr
@@ -961,7 +949,10 @@ package body Broca.RootPOA is
       Slot : Slot_Index;
       Obj : Broca.POA.Skeleton_Ptr;
    begin
-      if Self.Uniqueness_Policy = UNIQUE_ID then
+      if True
+        and then Self.Servant_Policy = RETAIN
+        and then Self.Uniqueness_Policy = UNIQUE_ID
+      then
          Slot := Slot_By_Servant (Self, P_Servant);
 
          if Slot /= Bad_Slot then
@@ -969,7 +960,9 @@ package body Broca.RootPOA is
          end if;
       end if;
 
-      if Self.Activation_Policy = IMPLICIT_ACTIVATION
+      if True
+        and then Self.Servant_Policy = RETAIN
+        and then Self.Activation_Policy = IMPLICIT_ACTIVATION
         and then (Self.Uniqueness_Policy = MULTIPLE_ID
                   or else Nbr_Slots_For_Servant (Self, P_Servant) = 0)
       then
@@ -981,6 +974,16 @@ package body Broca.RootPOA is
 
          return Self.Object_Map (Slot).Skeleton;
       end if;
+
+      --  FIXME: If this is called in the context of executing
+      --    a request on the specified servant, the reference
+      --    associated with the current invocation must be
+      --    returned. To comply with the exact wording of
+      --    the standard, if Servant_To_Skeleton is called
+      --    from Servant_To_Id, a check that the POA has the
+      --    USE_DEFAULT_SERVANT policy must be made here
+      --    (no check is required if Servant_To_Skeleton
+      --    is called from Servant_To_Reference).
 
       raise PortableServer.POA.ServantNotActive;
    end Servant_To_Skeleton;

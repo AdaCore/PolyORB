@@ -73,8 +73,8 @@ package body CosNaming.NamingContext.Impl is
       BT  : in BindingType;
       Obj : in CORBA.Object.Ref);
    --  Append a bound object to a naming context (NC). This bound
-   --  object is composed of a binding (BN, BT) and an object Obj. Set
-   --  a new entry in the hash table using its Key.
+   --  object is composed of a binding (BN, BT) and an object Obj.
+   --  Set a new entry in the hash table using its Key.
 
    procedure Display_NC
      (Text : in String;
@@ -113,6 +113,12 @@ package body CosNaming.NamingContext.Impl is
       Locked : Boolean := False);
    --  Check whether NC is null. If null, raise an exception and
    --  unlock global lock if locked.
+
+   function Servant_To_Reference
+     (S : Object_Ptr)
+     return CosNaming.NamingContext.Ref;
+   --  Create an external object reference for NamingContext servant S.
+   --  The servant is activated if necessary.
 
    procedure Free is
       new Ada.Unchecked_Deallocation (Bound_Object, Bound_Object_Ptr);
@@ -553,13 +559,9 @@ package body CosNaming.NamingContext.Impl is
 
    function New_Context
      (Self : access Object)
-     return NamingContext.Ref
-   is
-      Its_Ref : NamingContext.Ref;
-
+     return NamingContext.Ref is
    begin
-      NamingContext.Set (Its_Ref, CORBA.Impl.Object_Ptr (New_Context));
-      return Its_Ref;
+      return New_Context;
    end New_Context;
 
    -----------------
@@ -567,18 +569,33 @@ package body CosNaming.NamingContext.Impl is
    -----------------
 
    function New_Context
-     return Object_Ptr
+     return NamingContext.Ref
    is
       Obj : Object_Ptr;
-      Ref : CORBA.Object.Ref;
 
    begin
       Obj      := new Object;
       Obj.Self := Obj;
       Obj.Key  := Allocate;
-      Broca.Basic_Startup.Initiate_Servant (PortableServer.Servant (Obj), Ref);
-      return Obj;
+      return Servant_To_Reference (Obj);
    end New_Context;
+
+   --------------------------
+   -- Servant_To_Reference --
+   --------------------------
+
+   function Servant_To_Reference
+     (S : Object_Ptr)
+     return CosNaming.NamingContext.Ref
+   is
+      The_Ref : CORBA.Object.Ref;
+   begin
+      Broca.Basic_Startup.Initiate_Servant
+        (PortableServer.Servant (S),
+         The_Ref);
+
+      return CosNaming.NamingContext.Helper.To_Ref (The_Ref);
+   end Servant_To_Reference;
 
    ------------
    -- Rebind --

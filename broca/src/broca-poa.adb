@@ -33,7 +33,6 @@
 
 with Broca.Exceptions;
 with Broca.Refs;
-with Broca.Sequences;
 with Broca.CDR;
 with Broca.Buffers; use Broca.Buffers;
 with Broca.Server;
@@ -102,24 +101,10 @@ package body Broca.POA is
 
    function Skeleton_To_Ref
      (Skel : Skeleton)
-     return CORBA.Object.Ref
-   is
-      use Broca.Sequences;
-      use Broca.Sequences.Octet_Sequences;
-
-      IOR_Encapsulation : aliased Encapsulation
-        := Broca.Server.Build_IOR
-        (Skel.Type_Id, Skel.POA, Skel.Object_Key.all);
-
-      B : aliased Buffer_Type;
-      R : CORBA.Object.Ref;
-
+     return CORBA.Object.Ref is
    begin
-      Broca.Buffers.Decapsulate (IOR_Encapsulation'Access, B'Access);
-      Show (B);
-      Broca.CDR.Unmarshall (B'Access, R);
-      Release (B);
-      return R;
+      return Broca.Server.Build_IOR
+        (Skel.Type_Id, Skel.POA, Skel.Object_Key.all);
    end Skeleton_To_Ref;
 
    -------------------
