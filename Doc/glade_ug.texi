@@ -11,7 +11,7 @@
 
 @title GLADE User's Guide
 @subtitle GLADE, GNAT Library for Ada Distributed Environment
-@subtitle GLADE Version glade-3.15a
+@subtitle GLADE Version glade-3.15a1
 @subtitle @today
 @author Laurent Pautet, Samuel Tardieu
 
@@ -32,7 +32,6 @@ to the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 @end titlepage
 
-@ifinfo
 @node Top, About This Guide, (dir), (dir)
 @top GLADE User Guide
 
@@ -44,9 +43,7 @@ GLADE is the GNAT implementation of the Ada95 Distributed Systems Annex.
 * The Distributed Systems Annex::  
 * Getting Started With GLADE::  
 * DSA and CORBA::               
-* GNU Free Documentation License::  
 @end menu
-@end ifinfo
 
 @node About This Guide, Introduction to Distributed Systems, Top, Top
 @unnumbered About This Guide
@@ -1271,6 +1268,7 @@ environment variables.
 * Partition Attribute Self_Location::  
 * Partition Attribute Passive::  
 * Partition Attribute Data_Location::  
+* Partition Attribute Allow_Light_PCS::  
 * Partition Attribute Host::    
 * Pragma Import::               
 * Partition Attribute Directory::  
@@ -1648,7 +1646,7 @@ REPRESENTATION_CLAUSE ::=
 
 @end smallexample
 
-@node Partition Attribute Data_Location, Partition Attribute Host, Partition Attribute Passive, The Configuration Language
+@node Partition Attribute Data_Location, Partition Attribute Allow_Light_PCS, Partition Attribute Passive, The Configuration Language
 @subsection Partition Attribute Data_Location
 
 Shared passive units can be mapped on passive or active partitions. In
@@ -1686,7 +1684,35 @@ As passive partitions cannot be activated, it is not possible to provide
 a location list as a data_location attribute. It is not possible to
 change dynamically its location either.
 
-@node Partition Attribute Host, Pragma Import, Partition Attribute Data_Location, The Configuration Language
+@node  Partition Attribute Allow_Light_PCS, Partition Attribute Host, Partition Attribute Data_Location, The Configuration Language
+@subsection Partition Attribute Allow_Light_PCS
+
+On some circumstances, GLADE can detect that a partition does not need
+the full PCS functionalities. This occurs in particular when the
+partition does use any task, any RCI unit or any RACW object. Therefore,
+the partition does not receive any message that is not a reply to a
+previous request. In this case, the PCS does not dragg the tasking
+library and a light PCS is linked in the partition executable.
+This specific configuration is automatically determined by GNATDIST with
+the ALI file information.
+
+This optimization can be inappropriate especially when the user wants to
+use the "Distributed Shared Memory" storage support which runs Li and
+Hudak's algorithm. In this case, messages are exchanged without being
+replies to previously sent requests and the normal PCS should be linked
+instead of the light one. Note also that GNATDIST cannot know for sure
+that the DSM storage support assigned at configuration time is used at
+run-time. The user can configure this optimization with the following
+attribute.
+
+@smallexample
+
+REPRESENTATION_CLAUSE ::=
+   @b{for} PARTITION_IDENTIFIER'Allow_Light_PCS @b{use} BOOLEAN_LITERAL;
+
+@end smallexample
+
+@node Partition Attribute Host, Pragma Import, Partition Attribute Allow_Light_PCS, The Configuration Language
 @subsection Partition Attribute Host
 
 Logical nodes (or partitions) can be mapped onto physical nodes. The
@@ -2779,7 +2805,7 @@ kill MAIN_PART.
 @c Language-defined exceptions propagate well through different
 @c partitions.
 
-@node DSA and CORBA, GNU Free Documentation License, Getting Started With GLADE, Top
+@node DSA and CORBA,  , Getting Started With GLADE, Top
 @appendix DSA and CORBA
 
 @menu
@@ -3202,7 +3228,7 @@ ORB. This would also allow applications written in other languages to
 invoke DSA features. We are also seeking to use this approach to offer a
 DII mechanism for DSA.
 
-@node GNU Free Documentation License,  , DSA and CORBA, Top
+@c @node GNU Free Documentation License,  , DSA and CORBA, Top
 @include gfdl.texi
 
 

@@ -69,7 +69,7 @@ ada.sed\
 cfg.sed\
 idl.sed
 
-TEXIFILES = $(ADAFILES:=.texi) $(CFGFILES:=.texi) $(IDLFILES:=.texi)
+TEXIFILES = $(ADAFILES:=.texi) $(CFGFILES:=.texi) $(IDLFILES:=.texi) gfdl.texi
 
 JPGFILES = $(FIGFILES:=.jpg)
 EPSFILES = $(FIGFILES:=.eps)
@@ -86,7 +86,7 @@ all: $(GUIDE).ps $(GUIDE).info $(GUIDE).html $(GUIDE).txt
 $(GUIDE).texi:  $(TEXIFILES)
 
 $(GUIDE).html: $(GUIDE).texi $(JPGFILES) $(SEDFILES)
-	makeinfo --html --ifinfo $(GUIDE).texi
+	makeinfo --html --no-split $(GUIDE).texi
 
 $(GUIDE).info: $(GUIDE).texi $(SEDFILES)
 	makeinfo $(GUIDE).texi
@@ -139,6 +139,7 @@ clean:
 veryclean: clean
 	@rm -f $(GUIDE).info* $(GUIDE).txt $(GUIDE).html *.jpg $(GUIDE).ps
 	@rm -f ada.sed idl.sed cfg.sed
+	@rm -fr $(GUIDE)
 
 release: all
 	@rm -f MANIFEST
@@ -151,6 +152,7 @@ release: all
 	@echo $(JPGFILES)                >>MANIFEST
 	@echo $(CFGFILES)                >>MANIFEST
 	@echo $(IDLFILES)                >>MANIFEST
+	@echo gfdl.texi                  >>MANIFEST
 	@echo $(GUIDE).info*             >>MANIFEST
 	@echo $(GUIDE).html              >>MANIFEST
 	@echo $(GUIDE).ps                >>MANIFEST
