@@ -354,8 +354,6 @@ AC_OUTPUT([
 	support/adacompiler
 	support/linker
 	polyorb-config
-	design/cospriority/idl/Makefile
-	design/cospriority/cospriority/Makefile
 ])
 
 ##########################################
