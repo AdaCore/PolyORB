@@ -55,7 +55,6 @@ target_alias = @target_alias@
 target_triplet = @target@
 AWK = @AWK@
 CC = @CC@
-CERRNO = @CERRNO@
 EXEEXT = @EXEEXT@
 EXTRA_LIBS = @EXTRA_LIBS@
 GNAT_SOURCE = @GNAT_SOURCE@

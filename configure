@@ -1467,51 +1467,6 @@ fi
 
 
 #
-# Find get_errno or __get_errno
-#
-echo $ac_n "checking for get_errno in -lgnat""... $ac_c" 1>&6
-echo "configure:1474: checking for get_errno in -lgnat" >&5
-ac_lib_var=`echo gnat'_'get_errno | sed 'y%./+-%__p_%'`
-if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
-  echo $ac_n "(cached) $ac_c" 1>&6
-else
-  ac_save_LIBS="$LIBS"
-LIBS="-lgnat  $LIBS"
-cat > conftest.$ac_ext <<EOF
-#line 1482 "configure"
-#include "confdefs.h"
-/* Override any gcc2 internal prototype to avoid an error.  */
-/* We use char because int might match the return type of a gcc2
-    builtin and then its argument prototype would still apply.  */
-char get_errno();
-
-int main() {
-get_errno()
-; return 0; }
-EOF
-if { (eval echo configure:1493: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=yes"
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=no"
-fi
-rm -f conftest*
-LIBS="$ac_save_LIBS"
-
-fi
-if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
-  echo "$ac_t""yes" 1>&6
-  CERRNO=get_errno
-else
-  echo "$ac_t""no" 1>&6
-CERRNO=__get_errno
-fi
-
-
-#
 # Extra libraries
 #
 # Check whether --with-extra-libs or --without-extra-libs was given.
@@ -1639,7 +1594,7 @@ ac_given_INSTALL="$INSTALL"
 
 trap 'rm -fr `echo "Makefile
            Dist/Makefile Dist/gnatdist
-           Garlic/Makefile Garlic/s-gaosli.ads Garlic/s-gaplsp.ads
+           Garlic/Makefile Garlic/s-gaplsp.ads
            Garlic/s-gaprco.adb Garlic/s-garser.adb
            Examples/check-config
            Examples/Makefile
@@ -1726,7 +1681,6 @@ s%@FILTERFILE@%%g
 s%@PROTOCOLSSOURCES@%$PROTOCOLSSOURCES%g
 s%@PROTOCOLSOBJECTS@%$PROTOCOLSOBJECTS%g
 s%@TCP_INCLUDED@%$TCP_INCLUDED%g
-s%@CERRNO@%$CERRNO%g
 s%@EXTRA_LIBS@%$EXTRA_LIBS%g
 
 CEOF
@@ -1771,7 +1725,7 @@ cat >> $CONFIG_STATUS <<EOF
 
 CONFIG_FILES=\${CONFIG_FILES-"Makefile
            Dist/Makefile Dist/gnatdist
-           Garlic/Makefile Garlic/s-gaosli.ads Garlic/s-gaplsp.ads
+           Garlic/Makefile Garlic/s-gaplsp.ads
            Garlic/s-gaprco.adb Garlic/s-garser.adb
            Examples/check-config
            Examples/Makefile
