@@ -60,6 +60,7 @@ package body PolyORB.Transport.Datagram is
       pragma Warnings (Off);
       pragma Unreferenced (TAP);
       pragma Warnings (On);
+
    begin
       pragma Debug (O ("Return null endpoint"));
       return null;
@@ -78,13 +79,15 @@ package body PolyORB.Transport.Datagram is
       use PolyORB.Filters;
 
       --  Create associated Endpoint
+
       New_TE : constant Transport_Endpoint_Access
         := Transport_Endpoint_Access
         (Create_Endpoint (Datagram_Transport_Access_Point_Access (H.TAP)));
-      New_BO : Smart_Pointers.Ref;
+
    begin
-      Set_Allocation_Class (New_TE.all, Dynamic);
       if New_TE /= null then
+         Set_Allocation_Class (New_TE.all, Dynamic);
+
          pragma Debug (O ("Create and register Endpoint"));
 
          Binding_Objects.Setup_Binding_Object
@@ -92,8 +95,8 @@ package body PolyORB.Transport.Datagram is
             TE      => New_TE,
             FFC     => H.Filter_Factory_Chain.all,
             Role    => ORB.Server,
-            BO_Ref  => New_BO);
-         --  Setup binding object.
+            BO_Ref  => New_TE.Dependent_Binding_Object);
+         --  Setup binding object
       end if;
    end Handle_Event;
 
