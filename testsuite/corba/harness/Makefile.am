@@ -6,7 +6,8 @@ corba_exe= \
 	server_thread_pool_lf \
 	server_thread_per_request \
 	server_thread_per_session \
-	client
+	client \
+	local
 
 idl=harness
 include $(srcdir)/../../Makefile.common
