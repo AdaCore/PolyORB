@@ -1,0 +1,104 @@
+--  Example binding data concrete implementation.
+
+--  $Id$
+
+with Ada.Streams; use Ada.Streams;
+
+with Droopi.Buffers; use Droopi.Buffers;
+with Droopi.Sockets;
+with Droopi.Types;
+
+with Sequences.Unbounded;
+
+package Droopi.Binding_Data.IIOP is
+
+   pragma Elaborate_Body;
+
+   type IIOP_Profile_Type is new Profile_Type with private;
+
+   type Octets_Access is access all Stream_Element_Array;
+
+   type Tagged_Component is record
+      Tag         : Types.Unsigned_Long;
+      Component_Data : Octets_Access;
+   end record;
+
+   package Component_Seq is new Sequences.Unbounded (Tagged_Component);
+
+   procedure Initialize;
+
+   procedure Initialize (P : in out IIOP_Profile_Type);
+   procedure Adjust     (P : in out IIOP_Profile_Type);
+   procedure Finalize   (P : in out IIOP_Profile_Type);
+
+   function Get_Object_Key
+     (Profile : IIOP_Profile_Type)
+     return Objects.Object_Id;
+
+   procedure Bind_Profile
+     (Profile   : IIOP_Profile_Type;
+      TE        : out Transport.Transport_Endpoint_Access;
+      Filter    : out Components.Component_Access);
+
+   function Get_Profile_Tag
+     (Profile : IIOP_Profile_Type)
+     return Profile_Tag;
+   pragma Inline (Get_Profile_Tag);
+
+   function Get_Profile_Preference
+     (Profile : IIOP_Profile_Type)
+     return Profile_Preference;
+   pragma Inline (Get_Profile_Preference);
+
+   type IIOP_Profile_Factory is new Profile_Factory with private;
+
+   procedure Create_Factory
+     (PF : out IIOP_Profile_Factory;
+      TAP : Transport.Transport_Access_Point_Access);
+
+   function Create_Profile
+     (PF  : access IIOP_Profile_Factory;
+      TAP : Transport.Transport_Access_Point_Access;
+      Oid : Objects.Object_Id)
+     return Profile_Access;
+
+   function Is_Local_Profile
+     (PF : access IIOP_Profile_Factory;
+      P : Profile_Access) return Boolean;
+
+   procedure Marshall_IIOP_Profile_Body
+     (Buf     : access Buffer_Type;
+      Profile : Profile_Access);
+
+   function   Unmarshall_IIOP_Profile_Body
+     (Buffer   : access Buffer_Type)
+    return  Profile_Access;
+
+   procedure Marshall_Tagged_Component
+     (Buffer        : access Buffer_Type;
+      Components    : Component_Seq.Sequence);
+
+   function  Unmarshall_Tagged_Component
+     (Buffer   : access Buffer_Type)
+     return Component_Seq.Sequence;
+
+   function Image (Prof : IIOP_Profile_Type) return String;
+
+private
+
+
+
+   type IIOP_Profile_Type is new Profile_Type with record
+      Address    : Sockets.Sock_Addr_Type;
+      Object_Id  : Objects.Object_Id_Access;
+      Components : Component_Seq.Sequence;
+   end record;
+
+   type IIOP_Profile_Factory is new Profile_Factory with record
+      Address : Sockets.Sock_Addr_Type;
+   end record;
+
+   IIOP_Major_Version : constant Types.Octet := 1;
+   IIOP_Minor_Version : constant Types.Octet := 2;
+
+end Droopi.Binding_Data.IIOP;

@@ -1,0 +1,147 @@
+TODO for Droopi
+---------------
+
+$Id$
+
+Items still requiring attention
+-------------------------------
+
+* Make compliant PortableServer tree for CORBA personality.
+
+REQUIRED:
+---------
+corba-context.ads
+corba-contextlist.ads
+corba-current.ads
+corba-exceptionlist.ads
+corba-fixed_point.ads
+corba-local.ads
+corba-nvlist.ads
+corba-object-helper.ads
+corba-orb-typecode.ads
+corba-policy.ads
+corba-request.ads
+corba-sequences-bounded.ads
+corba-sequences-unbounded.ads
+corba-sequences.ads
+corba-value-box.ads
+corba-value-forward.ads
+corba-value.ads
+
+REQUIRED on server side:
+------------------------
+
+portableserver-adapteractivator-impl.ads
+portableserver-adapteractivator.ads
+portableserver-current.ads
+portableserver-poa.ads
+portableserver-poamanager.ads
+portableserver-servantactivator-impl.ads
+portableserver-servantactivator.ads
+portableserver-servantlocator-impl.ads
+portableserver-servantlocator.ads
+portableserver-servantmanager-impl.ads
+portableserver-servantmanager.ads
+portableserver-servantretentionpolicy.ads
+portableserver-threadpolicy.ads
+portableserver.ads
+
+DONE:
+-----
+
+corba
+corba-abstractbase
+corba-impl
+corba-forward
+corba-object
+corba-orb
+
+* Remove all deps on CORBA in Droopi.POA.*, Droopi.POA_Policies.* & co.
+
+* Dynamic Task Pool threading policy.
+
+* Architecture and documentation:
+  Define a typical usage case for the interoperability
+  feature, demonstrating how DROOPI allows to do the same
+  as CIAO *and more* (ie the case must include a cross-model
+  callback).
+
+* Ada 95 DSA personality:
+  -> define targets and milestones (RCI support, partial RT
+     support (eg only constrained types), full RT support,
+     SP support)
+  -> define an interface with the compiler and with user code
+     (ie the interface of stub and skeleton objects).
+   
+* See whether Buffers.Set_Initial_Position can be made private
+  or moved to unit body.
+
+* Support logging to syslog (also for Java ?)
+* Unified runtime configuration file (modifications to Droopi.Log).
+
+* When a connection is closed, release all associated resources.
+
+* Droopi.Buffers: remove mentions of CDR.
+* Droopi.Buffers: remove mention of sockets.
+
+* Different tasking configurations
+  -> A single-task client configuration.
+  -> A multi-tasking server configuration.
+  -> A multi-tasking client configuration.
+
+* Configuration of memory allocation:
+  -> usage of Storage_Pools?
+  -> static allocation?
+  -> real-time allocator?
+  -> smart resource management (garbage collection, system audit...)?
+
+  See Allocator abstract class in Quarterware.
+
+* Alternative implementations of transport endpoints:
+
+  -> A mechanism for use of non-connected message passing
+     protocols (eg UDP).
+   
+  -> A mechanism for optional implementation of reliable
+     message delivery over a non-reliable message delivery
+     protocol (eg UDP with ack/retransmission)
+     
+  -> A mechanism for message exchange not based on sockets
+     (eg SysV IPC).
+     A provision for polling multiple sources of asynchronous
+     events.
+
+* Architecture documentation.
+
+Items processed
+---------------
+
+* Data reception: when the protocol knows how much data will
+  arrive, preallocate so that unmarshalling is guaranteed
+  to be presented with contiguous data.
+  When it does not, Receive_Buffer should call Receive_Socket
+  with Length no greater than the available space in the
+  chunk, and advance the current position by the exact
+  size of the received data (2770).
+
+* Rework Droopi.ORB event handling:
+  The event handling loop must occur within the critical
+  section (because it must mask certain sockets).
+  Jobs should be created for each event, which will be
+  actually processed by ORB tasks (2770).
+
+* A filter to gather a message of a given size from lower
+  layers before signalling to upper layers (as did the old
+  Channel type) (2830).
+
+* An abstraction of transport endpoints (2871).
+
+* An object adapter.
+
+* Use of the Ravenscar profile.
+
+* Profile type registration system (for References.IOR).
+  For a profile to be used when creating and parsing IORs,
+  its tag must be registered.
+
+* Move CORBA.POA to Droopi.<something> (3329).

@@ -1,0 +1,23 @@
+#! /bin/sh
+
+eval 'file=${'$#'}'
+
+ADAGCC=`(which adagcc || which gnatgcc || echo gcc) 2> /dev/null`
+
+echo -n "Compiling $file"
+
+case $file in
+  droopi-orb-thread_pool.adb|droopi-protected_objects.adb)
+    echo " without gnat.adc"
+    mv -f gnat.adc gnat.adc-
+    $ADAGCC "$@"
+    rc=$!
+    mv -f gnat.adc- gnat.adc
+    exit $rc
+    ;;
+  *)
+    echo ""
+    exec $ADAGCC "$@"
+    ;;
+esac
+
