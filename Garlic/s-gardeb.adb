@@ -38,7 +38,7 @@ pragma Warnings (Off);
 with System.Assertions;
 pragma Elaborate_All (System.Assertions);  --  ??? Used by expansion
 pragma Warnings (On);
-with System.Garlic.OS_Lib;
+with GNAT.OS_Lib;   use GNAT.OS_Lib;
 
 package body System.Garlic.Debug is
 
@@ -58,8 +58,6 @@ package body System.Garlic.Debug is
                       Debug_Level) of Boolean :=
      (others => (others => False));
    --  Map of flags.
-
-   type String_Access is access String;
 
    Banner_Map : array (Debug_Key range 1 .. Max_Debugs)
      of String_Access;
@@ -229,7 +227,7 @@ package body System.Garlic.Debug is
       Banner   : String)
       return Debug_Key
    is
-      Value : constant String_Access := new String'(OS_Lib.Getenv (Variable));
+      Value : constant String_Access := Getenv (Variable);
       C     : Character;
       L     : Debug_Level;
    begin

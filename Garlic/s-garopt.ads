@@ -34,7 +34,7 @@
 ------------------------------------------------------------------------------
 
 with System.Garlic.Heart;
-with System.Garlic.Types;
+with GNAT.OS_Lib;
 
 package System.Garlic.Options is
 
@@ -47,15 +47,15 @@ package System.Garlic.Options is
 
    Has_RCI_Pkg_Or_RACW_Var : Boolean := True;
 
-   Boot_Server     : Types.String_Access;
+   Boot_Server     : GNAT.OS_Lib.String_Access;
    Connection_Hits : Natural;
    Detach          : Boolean;
    Is_Slave        : Boolean;
    Nolaunch        : Boolean;
    Termination     : Heart.Termination_Type;
-   Partition_Name  : Types.String_Access;
+   Partition_Name  : GNAT.OS_Lib.String_Access;
    Execution_Mode  : Heart.Execution_Mode_Type;
-   Trace_File_Name : Types.String_Access;
+   Trace_File_Name : GNAT.OS_Lib.String_Access;
 
    procedure Initialize;
 

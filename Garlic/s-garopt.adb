@@ -36,7 +36,8 @@
 with Ada.Command_Line;         use Ada.Command_Line;
 with System.Garlic.Debug;      use System.Garlic.Debug;
 with System.Garlic.Heart;      use System.Garlic.Heart;
-with System.Garlic.OS_Lib;     use System.Garlic.OS_Lib;
+with GNAT.OS_Lib;              use GNAT.OS_Lib;
+with Unchecked_Deallocation;
 
 package body System.Garlic.Options is
 
@@ -49,9 +50,9 @@ package body System.Garlic.Options is
      renames Print_Debug_Info;
    --  Debugging stuff
 
-   use System.Garlic.Types;
-
    function Value (S : String) return Termination_Type;
+
+   procedure Free is new Unchecked_Deallocation (String, String_Access);
 
    ----------------
    -- Initialize --
@@ -59,56 +60,57 @@ package body System.Garlic.Options is
 
    procedure Initialize is
       Index : Natural := 1;
+      EV    : String_Access;
    begin
       Execution_Mode := Normal_Mode;
 
-      declare
-         EV : constant String := Getenv ("BOOT_SERVER");
-      begin
-         if EV /= "" then
-            Set_Boot_Server (EV);
-         else
-            Set_Boot_Server ("tcp");
-         end if;
-      end;
+      EV := Getenv ("BOOT_SERVER");
+      if EV.all /= "" then
+         Set_Boot_Server (EV.all);
+      else
+         Set_Boot_Server ("tcp");
+      end if;
+      Free (EV);
 
-      declare
-         EV : constant String := Getenv ("CONNECTION_HITS");
-      begin
-         if EV /= "" then
-            Set_Connection_Hits (Natural'Value (EV));
-         else
-            Set_Connection_Hits (128);
-         end if;
-      end;
+      EV := Getenv ("CONNECTION_HITS");
+      if EV.all /= "" then
+         Set_Connection_Hits (Natural'Value (EV.all));
+      else
+         Set_Connection_Hits (128);
+      end if;
+      Free (EV);
 
-      if Getenv ("DETACH") /= "" then
+      EV := Getenv ("DETACH");
+      if EV.all /= "" then
          Set_Detach (True);
       else
          Set_Detach (False);
       end if;
+      Free (EV);
 
-      if Getenv ("SLAVE") /= "" then
+      EV := Getenv ("SLAVE");
+      if EV.all /= "" then
          Set_Is_Slave (True);
       else
          Set_Is_Slave (False);
       end if;
+      Free (EV);
 
-      declare
-         EV : constant String := Getenv ("TERMINATE");
-      begin
-         if EV /= "" then
-            Set_Termination (Value (EV));
-         else
-            Set_Termination (Global_Termination);
-         end if;
-      end;
+      EV := Getenv ("TERMINATE");
+      if EV.all /= "" then
+         Set_Termination (Value (EV.all));
+      else
+         Set_Termination (Global_Termination);
+      end if;
+      Free (EV);
 
-      if Getenv ("NOLAUNCH") /= "" then
+      EV := Getenv ("NOLAUNCH");
+      if EV.all /= "" then
          Set_Nolaunch (True);
       else
          Set_Nolaunch (False);
       end if;
+      Free (EV);
 
       while Index <= Argument_Count loop
 

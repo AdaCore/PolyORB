@@ -1,3 +1,13 @@
+1998-02-19  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-gardeb.adb: Use GNAT.OS_Lib.String_Access and remove
+ 	dependencies from System.Garlic.OS_Lib.
+
+	* s-garopt.ads, s-garopt.adb: Ditto.
+
+	* Makefile.am, Makefile.in: Remove s-gaosli.* from the Makefiles
+	and update dependencies.
+
 1998-02-18  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* Makefile.am, Makefile.in: Remove s-gafino.ad[bs]. No longer
