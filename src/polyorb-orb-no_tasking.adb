@@ -61,6 +61,9 @@ package body PolyORB.ORB.No_Tasking is
       ORB : ORB_Access;
       C   : Active_Connection) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (P);
+      pragma Warnings (On);
       pragma Debug (O ("No_Tasking: new server connection"));
       Insert_Source (ORB, C.AES);
       Components.Emit_No_Reply
@@ -76,6 +79,9 @@ package body PolyORB.ORB.No_Tasking is
       ORB : ORB_Access;
       C   : Active_Connection) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (P);
+      pragma Warnings (On);
       pragma Debug (O ("No_Tasking: new client connection"));
       Insert_Source (ORB, C.AES);
       Components.Emit_No_Reply
@@ -91,6 +97,10 @@ package body PolyORB.ORB.No_Tasking is
       ORB : ORB_Access;
       RJ  : access Jobs.Job'Class) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (P);
+      pragma Unreferenced (ORB);
+      pragma Warnings (On);
       pragma Debug (O ("No_Tasking: request execution"));
 
       Jobs.Run (RJ);
@@ -99,6 +109,10 @@ package body PolyORB.ORB.No_Tasking is
 
    procedure Idle (P : access No_Tasking; ORB : ORB_Access) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (P);
+      pragma Unreferenced (ORB);
+      pragma Warnings (On);
       pragma Debug (O ("No_Tasking: Idle (BAD BAD!)"));
       raise Program_Error;
       --  When there is no tasking, the (only) task in the
@@ -116,6 +130,9 @@ package body PolyORB.ORB.No_Tasking is
       Msg : Message'Class)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (P);
+      pragma Warnings (On);
       Emit_No_Reply (Component_Access (ORB), Msg);
    end Queue_Request_To_Handler;
 

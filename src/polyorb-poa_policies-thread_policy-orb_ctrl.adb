@@ -51,6 +51,9 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
      (Self : ORB_Ctrl_Policy)
      return String is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       return "THREAD_POLICY.ORB_CTRL";
    end Policy_Id;
 
@@ -63,6 +66,10 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
       OA   : PolyORB.POA_Types.Obj_Adapter_Access)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Unreferenced (OA);
+      pragma Warnings (On);
       null;
    end Check_Compatibility;
 
@@ -71,10 +78,13 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
    ----------
 
    procedure Free
-     (P   : in     ORB_Ctrl_Policy;
-      Ptr : in out Policy_Access)
+     (Self : in     ORB_Ctrl_Policy;
+      Ptr  : in out Policy_Access)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       Free (ORB_Ctrl_Policy_Access (Ptr));
    end Free;
 

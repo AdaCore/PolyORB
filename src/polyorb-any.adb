@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#15 $
+--  $Id: //droopi/main/src/polyorb-any.adb#16 $
 
 with Ada.Tags;
 
@@ -2453,6 +2453,9 @@ package body PolyORB.Any is
    procedure Deallocate (Object : access Content) is
    begin
       pragma Debug (O2 ("Deallocate (generic) : enter & end"));
+      pragma Warnings (Off);
+      pragma Unreferenced (Object);
+      pragma Warnings (On);
       --  we should never be here since Any_Content_Ptr should
       --  never be the real type of a variable
       raise Program_Error;

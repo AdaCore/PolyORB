@@ -60,6 +60,9 @@ package body PolyORB.Filters.Slicers is
 
       Res : constant Filter_Access := new Slicer_Filter;
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Fact);
+      pragma Warnings (On);
       Set_Allocation_Class (Res.all, Dynamic);
       Slicer_Filter (Res.all).Data_Expected := 0;
       Slicer := Res;

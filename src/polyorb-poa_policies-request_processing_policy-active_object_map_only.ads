@@ -67,8 +67,8 @@ package
      return Servant_Access;
 
    procedure Free
-     (P   : in     Active_Map_Only_Policy;
-      Ptr : in out Policy_Access);
+     (Self : in     Active_Map_Only_Policy;
+      Ptr  : in out Policy_Access);
 
    procedure Free is
       new Ada.Unchecked_Deallocation

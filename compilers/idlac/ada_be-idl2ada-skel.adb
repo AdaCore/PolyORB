@@ -42,6 +42,9 @@ package body Ada_Be.Idl2Ada.Skel is
    Flag : constant Natural := Ada_Be.Debug.Is_Active
      ("ada_be.idl2ada.skel");
    procedure O is new Ada_Be.Debug.Output (Flag);
+   pragma Warnings (Off);
+   pragma Unreferenced (O);
+   pragma Warnings (On);
 
    procedure Gen_Is_A
      (CU   : in out Compilation_Unit;
@@ -49,6 +52,9 @@ package body Ada_Be.Idl2Ada.Skel is
       Node : in Node_Id);
    --  Generate server-side support for the Is_A
    --  operation.
+   pragma Warnings (Off);
+   pragma Unreferenced (Gen_Is_A);
+   pragma Warnings (On);
 
    procedure Gen_Body_Common_Start
      (CU   : in out Compilation_Unit;

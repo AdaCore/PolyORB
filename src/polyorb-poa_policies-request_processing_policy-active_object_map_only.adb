@@ -55,6 +55,9 @@ is
      (Self : Active_Map_Only_Policy;
       OA   : PolyORB.POA_Types.Obj_Adapter_Access) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       if not
         (POA.Obj_Adapter_Access (OA).Servant_Retention_Policy.all in
          POA_Policies.Servant_Retention_Policy.Retain.Retain_Policy)
@@ -71,6 +74,9 @@ is
      (Self : Active_Map_Only_Policy)
      return String is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       return "REQUEST_PROCESSING_POLICY.ACTIVE_MAP_ONLY";
    end Policy_Id;
 
@@ -84,6 +90,11 @@ is
       U_Oid : Unmarshalled_Oid)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Unreferenced (OA);
+      pragma Unreferenced (U_Oid);
+      pragma Warnings (On);
       null;
    end Etherealize_All;
 
@@ -106,6 +117,9 @@ is
          OA,
          P_Servant);
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       return Oid;
    end Servant_To_Id;
 
@@ -124,6 +138,9 @@ is
       Oid_A : Object_Id_Access := new Object_Id'(Oid);
       Servant : Servant_Access;
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       Servant := Id_To_Servant
         (POA.Obj_Adapter_Access (OA).Servant_Retention_Policy.all,
          OA,
@@ -140,10 +157,13 @@ is
    ----------
 
    procedure Free
-     (P   : in     Active_Map_Only_Policy;
-      Ptr : in out Policy_Access)
+     (Self : in     Active_Map_Only_Policy;
+      Ptr  : in out Policy_Access)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       Free (Active_Map_Only_Policy_Access (Ptr));
    end Free;
 

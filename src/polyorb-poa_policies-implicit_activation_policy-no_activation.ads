@@ -53,8 +53,8 @@ package PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
       P_Servant : Servant_Access)
      return Object_Id_Access;
 
-   procedure Free (P   : in     No_Activation_Policy;
-                   Ptr : in out Policy_Access);
+   procedure Free (Self : in     No_Activation_Policy;
+                   Ptr  : in out Policy_Access);
 
    procedure Free is
       new Ada.Unchecked_Deallocation (No_Activation_Policy,

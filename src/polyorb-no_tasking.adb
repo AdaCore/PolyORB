@@ -103,6 +103,9 @@ package body PolyORB.No_Tasking is
 
    procedure Destroy (M : in out Unprotected_Adv_Mutex_Type) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (M);
+      pragma Warnings (On);
       null;
    end Destroy;
 
@@ -112,6 +115,9 @@ package body PolyORB.No_Tasking is
 
    procedure Destroy (M : in out Unprotected_Mutex_Type) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (M);
+      pragma Warnings (On);
       null;
    end Destroy;
 
@@ -219,6 +225,9 @@ package body PolyORB.No_Tasking is
 
    procedure Enter (M : in Unprotected_Mutex_Type) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (M);
+      pragma Warnings (On);
       null;
    end Enter;
 
@@ -228,6 +237,9 @@ package body PolyORB.No_Tasking is
 
    procedure Enter (M : in Unprotected_Adv_Mutex_Type) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (M);
+      pragma Warnings (On);
       null;
    end Enter;
 
@@ -254,6 +266,9 @@ package body PolyORB.No_Tasking is
 
    procedure Leave (M : in Unprotected_Adv_Mutex_Type) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (M);
+      pragma Warnings (On);
       null;
    end Leave;
 
@@ -263,6 +278,9 @@ package body PolyORB.No_Tasking is
 
    procedure Leave (M : in Unprotected_Mutex_Type) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (M);
+      pragma Warnings (On);
       null;
    end Leave;
 
@@ -325,6 +343,9 @@ package body PolyORB.No_Tasking is
 
    function To_Integer (T : No_Task_Id) return Integer is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (T);
+      pragma Warnings (On);
       return 0;
    end To_Integer;
 

@@ -173,15 +173,6 @@ package body PolyORB.ORB is
       Leave (ORB.ORB_Lock.all);
    end Create;
 
-   procedure Start (ORB : access ORB_Type);
-
-   procedure Start (ORB : access ORB_Type) is
-   begin
-      --  Start accepting incoming connections.
-      --  XXX TBD
-      raise Not_Implemented;
-   end Start;
-
    function Try_Perform_Work
      (ORB : access ORB_Type;
       Q   : access Job_Queue)

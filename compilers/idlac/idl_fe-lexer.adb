@@ -114,9 +114,6 @@ package body Idl_Fe.Lexer is
    --  low level string processing  --
    -----------------------------------
 
-   --  The current token, set by next_token.
-   Current_Token : Idl_Token := T_Error;
-
    --  The current location in the parsed file
    Current_Location : Errors.Location;
 

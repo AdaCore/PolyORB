@@ -62,6 +62,10 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       OA   : PolyORB.POA_Types.Obj_Adapter_Access)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Unreferenced (OA);
+      pragma Warnings (On);
       null;
    end Check_Compatibility;
 
@@ -73,6 +77,9 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
      (Self : System_Id_Policy)
      return String is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       return "ID_ASSIGNMENT_POLICY.SYSTEM_ID";
    end Policy_Id;
 
@@ -80,9 +87,12 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
    -- Is_System --
    ---------------
 
-   function Is_System (P : System_Id_Policy) return Boolean
+   function Is_System (Self : System_Id_Policy) return Boolean
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       return True;
    end Is_System;
 
@@ -101,6 +111,9 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       New_Entry : Seq_Object_Map_Entry_Access;
       Index     : Integer;
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       New_Entry         := new Seq_Object_Map_Entry;
       New_Entry.Servant := Object;
 
@@ -140,6 +153,9 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       Oid_A : Object_Id_Access := new Object_Id'(Oid);
       New_Entry : Seq_Object_Map_Entry_Access;
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       New_Entry         := new Seq_Object_Map_Entry;
       New_Entry.Oid     := new Unmarshalled_Oid'(Oid_To_U_Oid (Oid_A));
       Free (Oid_A);
@@ -162,6 +178,9 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       U_Oid : Unmarshalled_Oid)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       if U_Oid.System_Generated = False then
          raise PolyORB.POA.Bad_Param;
       end if;
@@ -181,6 +200,9 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
         := PolyORB.POA.Obj_Adapter_Access (OA);
       Index : Integer := Integer'Value (To_Standard_String (U_Oid.Id));
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       Lock_R (P_OA.Map_Lock);
       An_Entry := Get_By_Index (P_OA.Active_Object_Map.all, Index);
       Unlock_R (P_OA.Map_Lock);
@@ -204,6 +226,9 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       P_OA     : PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       Lock_W (P_OA.Map_Lock);
       An_Entry := Get_By_Index (P_OA.Active_Object_Map.all, Index);
       if An_Entry = null then
@@ -234,6 +259,9 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
         := PolyORB.POA.Obj_Adapter_Access (OA);
       Servant  : Servant_Access;
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       Lock_R (P_OA.Map_Lock);
       An_Entry := Get_By_Index (P_OA.Active_Object_Map.all, Index);
       if An_Entry /= null then
@@ -247,10 +275,13 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
    -- Free --
    ----------
 
-   procedure Free (P   : in     System_Id_Policy;
-                   Ptr : in out Policy_Access)
+   procedure Free (Self : in     System_Id_Policy;
+                   Ptr  : in out Policy_Access)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       Free (System_Id_Policy_Access (Ptr));
    end Free;
 

@@ -1037,9 +1037,15 @@ package body PolyORB.POA.Basic_POA is
       Servant : in out PolyORB.Objects.Servant_Access)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (OA);
+      pragma Unreferenced (Id);
+      pragma Unreferenced (Servant);
+      pragma Warnings (On);
+
       null;
-      --  XXX if servant has been created on the fly, must
-      --  destroy it now.
+      --  XXX if servant has been created on the fly, should
+      --  destroy it now (else do nothing).
    end Release_Servant;
 
 end PolyORB.POA.Basic_POA;

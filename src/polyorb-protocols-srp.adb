@@ -80,6 +80,9 @@ package body PolyORB.Protocols.SRP is
       Session : out Filter_Access)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Proto);
+      pragma Warnings (On);
       --  This should be factored in PolyORB.Protocols.
 
       Session := new SRP_Session;
@@ -92,6 +95,9 @@ package body PolyORB.Protocols.SRP is
 
    procedure Connect (S : access SRP_Session) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (S);
+      pragma Warnings (On);
       null;
    end Connect;
 
@@ -101,6 +107,11 @@ package body PolyORB.Protocols.SRP is
       P : access Binding_Data.Profile_Type'Class)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (S);
+      pragma Unreferenced (R);
+      pragma Unreferenced (P);
+      pragma Warnings (On);
       null;
    end Invoke_Request;
 
@@ -109,6 +120,10 @@ package body PolyORB.Protocols.SRP is
       R :  Requests.Request_Access)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (S);
+      pragma Unreferenced (R);
+      pragma Warnings (On);
       null;
    end Abort_Request;
 
@@ -196,12 +211,6 @@ package body PolyORB.Protocols.SRP is
 
    end Request_Received;
 
-   procedure Reply_Received (S : access SRP_Session);
-   procedure Reply_Received (S : access SRP_Session)is
-   begin
-      raise Not_Implemented;
-   end Reply_Received;
-
    procedure Send_Reply (S : access SRP_Session; R : Request_Access)
    is
       use Buffers;
@@ -260,26 +269,21 @@ package body PolyORB.Protocols.SRP is
 
    procedure Handle_Connect_Confirmation (S : access SRP_Session) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (S);
+      pragma Warnings (On);
       null;
       --  No setup is necessary for newly-created client connections.
    end Handle_Connect_Confirmation;
-
-   --  type String_Array is array (Integer range <>) of String_Ptr;
-
-
-   --  procedure Free (SA : in out String_Array);
-   --  procedure Free (SA : in out String_Array) is
-   --  begin
-   --     for I in SA'Range loop
-   --        Free (SA (I));
-   --     end loop;
-   --  end Free;
 
    procedure Handle_Data_Indication
      (S : access SRP_Session;
       Data_Amount : Stream_Element_Count)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Data_Amount);
+      pragma Warnings (On);
       pragma Debug (O ("Received data on SRP service..."));
       pragma Debug (Buffers.Show (S.Buffer_In.all));
 

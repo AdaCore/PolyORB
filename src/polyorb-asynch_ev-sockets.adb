@@ -199,6 +199,10 @@ package body PolyORB.Asynch_Ev.Sockets is
    function AEM_Factory_Of (AES : Socket_Event_Source)
      return AEM_Factory is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (AES);
+      pragma Warnings (On);
+      --  Parameter used only for dispatch.
       return Create_Socket_Event_Monitor'Access;
    end AEM_Factory_Of;
 

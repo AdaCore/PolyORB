@@ -55,6 +55,10 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
       OA   : PolyORB.POA_Types.Obj_Adapter_Access)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Unreferenced (OA);
+      pragma Warnings (On);
       null;
    end Check_Compatibility;
 
@@ -66,6 +70,9 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
      (Self : Transient_Policy)
      return String is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       return "LIFESPAN_POLICY.TRANSIENT";
    end Policy_Id;
 
@@ -74,10 +81,13 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
    --------------------
 
    function Get_Time_Stamp
-     (P  : Transient_Policy;
-      OA : PolyORB.POA_Types.Obj_Adapter_Access)
+     (Self : Transient_Policy;
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
      return Time_Stamp is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       return PolyORB.POA.Obj_Adapter_Access (OA).Boot_Time;
    end Get_Time_Stamp;
 
@@ -86,10 +96,13 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
    ---------------------
 
    procedure Ensure_Lifespan
-     (P     : Transient_Policy;
+     (Self  : Transient_Policy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       if U_Oid.Persistency_Flag
         /= PolyORB.POA.Obj_Adapter_Access (OA).Boot_Time
       then
@@ -102,10 +115,13 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
    ----------
 
    procedure Free
-     (P   : in     Transient_Policy;
-      Ptr : in out Policy_Access)
+     (Self : in     Transient_Policy;
+      Ptr  : in out Policy_Access)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       Free (Transient_Policy_Access (Ptr));
    end Free;
 

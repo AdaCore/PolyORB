@@ -49,6 +49,9 @@ package body PolyORB.POA is
       U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Id);
       URI : Types.String := To_PolyORB_String ("/");
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (OA);
+      pragma Warnings (On);
       if Length (U_Oid.Creator) /= 0 then
          URI := URI & U_Oid.Creator & To_PolyORB_String ("/");
       end if;
@@ -76,6 +79,9 @@ package body PolyORB.POA is
       URI : Types.String)
      return Object_Id_Access
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (OA);
+      pragma Warnings (On);
       U_Oid : aliased Unmarshalled_Oid;
       S : constant String := To_Standard_String (URI);
 

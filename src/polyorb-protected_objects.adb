@@ -58,6 +58,8 @@ package body PolyORB.Protected_Objects is
 
    Critical_Section : Protected_Adv_Mutex_Type;
 
+   pragma Warnings (Off);
+   --  XXX Work around bug 9707-004: inaccurate 'type unreferenced' warning.
    protected type Barrier_PO is
       entry Barrier_Wait;
       procedure Signal (How_Many : Positive := 1);
@@ -66,6 +68,7 @@ package body PolyORB.Protected_Objects is
       Free : Natural := 0;
       Perm : Boolean := False;
    end Barrier_PO;
+
    --  Any number of task may be waiting on Wait. Signal unblocks How_Many
    --  tasks (the order depends on the queuing policy) and Signal_All
    --  unblocks all the tasks and Wait will no longer be blocking. If
@@ -100,6 +103,7 @@ package body PolyORB.Protected_Objects is
    --  Enter a critical section several times without leaving it first it
    --  is not blocked and can continue. Leave keeps track of the number of
    --  times Enter has been successful.
+   pragma Warnings (On);
 
    procedure Free is
      new Ada.Unchecked_Deallocation (Mutex_PO, Mutex_PO_Access);

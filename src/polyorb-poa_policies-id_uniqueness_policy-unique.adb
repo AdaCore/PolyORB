@@ -56,6 +56,10 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
      (Self : Unique_Id_Policy;
       OA   : PolyORB.POA_Types.Obj_Adapter_Access) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Unreferenced (OA);
+      pragma Warnings (On);
       null;
    end Check_Compatibility;
 
@@ -67,6 +71,9 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
      (Self : Unique_Id_Policy)
      return String is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       return "ID_UNIQUENESS_POLICY.UNIQUE_ID";
    end Policy_Id;
 
@@ -82,6 +89,9 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
       P_OA : PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       if P_OA.Active_Object_Map /= null then
          Lock_R (P_OA.Map_Lock);
          if Is_Servant_In (P_OA.Active_Object_Map.all, P_Servant) then
@@ -105,6 +115,9 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
         := PolyORB.POA.Obj_Adapter_Access (OA);
       An_Entry    : Object_Map_Entry_Access;
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       if P_OA.Active_Object_Map /= null then
          Lock_R (P_OA.Map_Lock);
          An_Entry := Get_By_Servant (P_OA.Active_Object_Map.all, P_Servant);
@@ -120,10 +133,13 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
    -- Free --
    ----------
 
-   procedure Free (P   : in     Unique_Id_Policy;
-                   Ptr : in out Policy_Access)
+   procedure Free (Self : in     Unique_Id_Policy;
+                   Ptr  : in out Policy_Access)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       Free (Unique_Id_Policy_Access (Ptr));
    end Free;
 

@@ -76,6 +76,9 @@ package body PolyORB.Protocols.Echo is
       Session : out Filter_Access)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Proto);
+      pragma Warnings (On);
 
       --  This should be factored in PolyORB.Protocols.
 
@@ -94,11 +97,20 @@ package body PolyORB.Protocols.Echo is
       R : Request_Access;
       P : access Binding_Data.Profile_Type'Class) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (S);
+      pragma Unreferenced (R);
+      pragma Unreferenced (P);
+      pragma Warnings (On);
       null;
    end Invoke_Request;
 
    procedure Abort_Request (S : access Echo_Session; R : Request_Access) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (S);
+      pragma Unreferenced (R);
+      pragma Warnings (On);
       null;
    end Abort_Request;
 
@@ -147,6 +159,9 @@ package body PolyORB.Protocols.Echo is
 
    procedure Handle_Connect_Confirmation (S : access Echo_Session) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (S);
+      pragma Warnings (On);
       null;
       --  No setup is necessary for newly-created client connections.
    end Handle_Connect_Confirmation;
@@ -195,6 +210,9 @@ package body PolyORB.Protocols.Echo is
       use References;
 
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Data_Amount);
+      pragma Warnings (On);
       pragma Debug (O ("Received data on echo service..."));
       pragma Debug (Buffers.Show (S.Buffer.all));
 

@@ -324,6 +324,9 @@ package body PolyORB.POA_Manager.Basic_Manager is
      (Self : access Basic_POA_Manager)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       --  ??? What's this thing about the threads ? Ignored for now.
       --  ??? Iterates through the POAs to wait for completion
       null;
@@ -337,6 +340,9 @@ package body PolyORB.POA_Manager.Basic_Manager is
      (Self : access Basic_POA_Manager)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       null;
       --  ??? To be implemented
    end Do_Etherealize_Objects;
@@ -403,11 +409,17 @@ package body PolyORB.POA_Manager.Basic_Manager is
       Null_Message : PolyORB.Components.Null_Message;
    begin
       pragma Debug (O ("Hold Servant queues message"));
+
+      S := Hold_Servant_Access (Obj);
+
+      pragma Warnings (Off);
+      pragma Unreferenced (Msg);
+      pragma Warnings (On);
       --      Obj.Queue_Entry.Msg := Msg;
       --  ??? How do we queue the messages?
 
-      S := Hold_Servant_Access (Obj);
       Free (S);
+
       return Null_Message;
    end Handle_Message;
 

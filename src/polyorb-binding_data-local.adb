@@ -84,6 +84,10 @@ package body PolyORB.Binding_Data.Local is
      (Profile : Local_Profile_Type)
      return Profile_Tag is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Profile);
+      pragma Warnings (On);
+      --  Parameter used only to dispatch.
       return Tag_Local;
    end Get_Profile_Tag;
 
@@ -91,6 +95,10 @@ package body PolyORB.Binding_Data.Local is
      (Profile : Local_Profile_Type)
      return Profile_Preference is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Profile);
+      pragma Warnings (On);
+      --  Parameter used only to dispatch.
       return Profile_Preference'Last;
       --  A local profile is always preferred to any other.
    end Get_Profile_Preference;

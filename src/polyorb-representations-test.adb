@@ -80,6 +80,9 @@ package body PolyORB.Representations.Test is
       S : String)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (R);
+      pragma Warnings (On);
       for I in S'Range loop
          Marshall_Char (B, S (I));
       end loop;
@@ -96,6 +99,9 @@ package body PolyORB.Representations.Test is
       Max : constant Stream_Element_Count
         := Length (B);
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (R);
+      pragma Warnings (On);
       loop
          exit when Last - S'First + 1 = Integer (Max);
          C := Unmarshall_Char (B);

@@ -96,6 +96,9 @@ package body PolyORB.Binding_Data.Test is
      (Profile : Test_Profile_Type)
      return Profile_Tag is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Profile);
+      pragma Warnings (On);
       return Tag_Test;
    end Get_Profile_Tag;
 
@@ -103,6 +106,9 @@ package body PolyORB.Binding_Data.Test is
      (Profile : Test_Profile_Type)
      return Profile_Preference is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Profile);
+      pragma Warnings (On);
       return Preference_Default;
    end Get_Profile_Preference;
 
@@ -112,6 +118,9 @@ package body PolyORB.Binding_Data.Test is
       ORB : Components.Component_Access)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (ORB);
+      pragma Warnings (On);
       PF.Address := Address_Of (Socket_Access_Point (TAP.all));
    end Create_Factory;
 
@@ -127,6 +136,9 @@ package body PolyORB.Binding_Data.Test is
       TResult : Test_Profile_Type
         renames Test_Profile_Type (Result.all);
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (TAP);
+      pragma Warnings (On);
       TResult.Object_Id := new Object_Id'(Oid);
       TResult.Address   := PF.Address;
       return  Result;

@@ -48,18 +48,18 @@ package PolyORB.POA_Policies.Lifespan_Policy.Transient is
      return String;
 
    function Get_Time_Stamp
-     (P  : Transient_Policy;
-      OA : PolyORB.POA_Types.Obj_Adapter_Access)
+     (Self : Transient_Policy;
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
      return Time_Stamp;
 
    procedure Ensure_Lifespan
-     (P     : Transient_Policy;
+     (Self  : Transient_Policy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid);
 
    procedure Free
-     (P   : in     Transient_Policy;
-      Ptr : in out Policy_Access);
+     (Self : in     Transient_Policy;
+      Ptr  : in out Policy_Access);
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Transient_Policy,

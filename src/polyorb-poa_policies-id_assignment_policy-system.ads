@@ -47,7 +47,7 @@ package PolyORB.POA_Policies.Id_Assignment_Policy.System is
      (Self : System_Id_Policy)
      return String;
 
-   function Is_System (P : System_Id_Policy) return Boolean;
+   function Is_System (Self : System_Id_Policy) return Boolean;
 
    function Activate_Object
      (Self   : System_Id_Policy;
@@ -81,8 +81,8 @@ package PolyORB.POA_Policies.Id_Assignment_Policy.System is
      return Servant_Access;
 
    procedure Free
-     (P   : in     System_Id_Policy;
-      Ptr : in out Policy_Access);
+     (Self : in     System_Id_Policy;
+      Ptr  : in out Policy_Access);
 
    procedure Free is new Ada.Unchecked_Deallocation
      (System_Id_Policy,

@@ -31,7 +31,7 @@
 --  XXX The latter should be moved away to a Ada_Be.Idl2Ada.Stubs
 --  child unit one day.
 
---  $Id: //droopi/main/compilers/idlac/ada_be-idl2ada.adb#19 $
+--  $Id: //droopi/main/compilers/idlac/ada_be-idl2ada.adb#20 $
 
 with Ada.Characters.Handling;
 with Ada.Strings.Unbounded;
@@ -122,6 +122,10 @@ package body Ada_Be.Idl2Ada is
       Stubs_Body : in out Compilation_Unit);
    --  Generate code for Repository_Id and Is_A
    --  object reference operation.
+   pragma Warnings (Off);
+   pragma Unreferenced (Gen_Is_A);
+   pragma Warnings (On);
+   --  XXX Not rewritten for PolyORB yet.
 
    procedure Gen_Client_Stub_Type_Declaration
      (CU        : in out Compilation_Unit;

@@ -40,6 +40,9 @@ package body Ada_Be.Idl2Ada.Helper is
 
    Flag : constant Natural := Ada_Be.Debug.Is_Active ("ada_be.idl2ada.helper");
    procedure O is new Ada_Be.Debug.Output (Flag);
+   pragma Warnings (Off);
+   pragma Unreferenced (O);
+   pragma Warnings (On);
 
    --  Helpers need a special diversion for the initialization procedure.
 

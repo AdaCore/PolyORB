@@ -57,6 +57,10 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       OA   : PolyORB.POA_Types.Obj_Adapter_Access)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Unreferenced (OA);
+      pragma Warnings (On);
       null;
    end Check_Compatibility;
 
@@ -68,6 +72,9 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
      (Self : Retain_Policy)
      return String is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       return "SERVANT_RETENTION_POLICY.RETAIN";
    end Policy_Id;
 
@@ -89,6 +96,9 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       P : constant Id_Assignment_Policy_Access
         := POA.Id_Assignment_Policy;
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       if not Is_System (P.all) then
          raise PolyORB.POA.Invalid_Policy;
          --  XXX was Wrong_Policy, is that the same?
@@ -117,6 +127,9 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       Oid_A : Object_Id_Access := new Object_Id'(Oid);
       U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Oid_A);
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       Free (Oid_A);
       Ensure_Oid_Origin
         (POA.Id_Assignment_Policy.all, U_Oid);
@@ -152,6 +165,9 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       Oid_A : Object_Id_Access := new Object_Id'(Oid);
       U_Oid : Unmarshalled_Oid := Oid_To_U_Oid (Oid_A);
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       Free (Oid_A);
       Etherealize_All
         (POA.Request_Processing_Policy.all, OA, U_Oid);
@@ -178,6 +194,9 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
         := PolyORB.POA.Obj_Adapter_Access (OA);
       Oid : Object_Id_Access;
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       Oid := Servant_To_Id
         (POA.Id_Uniqueness_Policy.all, OA, P_Servant);
 
@@ -202,6 +221,9 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       use PolyORB.POA_Policies.Lifespan_Policy;
       use PolyORB.POA_Policies.Id_Assignment_Policy;
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       Ensure_Lifespan
         (POA.Obj_Adapter_Access (OA).Lifespan_Policy.all,
          OA, U_Oid);
@@ -215,10 +237,13 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
    ----------
 
    procedure Free
-     (P   : in     Retain_Policy;
-      Ptr : in out Policy_Access)
+     (Self : in     Retain_Policy;
+      Ptr  : in out Policy_Access)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       Free (Retain_Policy_Access (Ptr));
    end Free;
 

@@ -356,12 +356,21 @@ package body PolyORB.Representations.SRP is
    function To_Long_Long is
       new Ada.Unchecked_Conversion
         (PolyORB.Types.Unsigned_Long_Long, PolyORB.Types.Long_Long);
+   pragma Warnings (Off);
+   pragma Unreferenced (To_Long_Long);
+   pragma Warnings (On);
    function To_Unsigned_Long_Long is
       new Ada.Unchecked_Conversion
         (PolyORB.Types.Long_Long, PolyORB.Types.Unsigned_Long_Long);
+   pragma Warnings (Off);
+   pragma Unreferenced (To_Unsigned_Long_Long);
+   pragma Warnings (On);
    function To_Long is
       new Ada.Unchecked_Conversion
         (PolyORB.Types.Unsigned_Long, PolyORB.Types.Long);
+   pragma Warnings (Off);
+   pragma Unreferenced (To_Long);
+   pragma Warnings (On);
    function To_Unsigned_Long is
       new Ada.Unchecked_Conversion
         (PolyORB.Types.Long, PolyORB.Types.Unsigned_Long);
@@ -2281,6 +2290,9 @@ package body PolyORB.Representations.SRP is
       S : String)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (R);
+      pragma Warnings (On);
       for I in S'Range loop
          Marshall_Char (B, S (I));
       end loop;
@@ -2301,6 +2313,9 @@ package body PolyORB.Representations.SRP is
       Max : constant Stream_Element_Count
         := Length (B);
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (R);
+      pragma Warnings (On);
       loop
          exit when Last - S'First + 1 = Integer (Max);
          C := Unmarshall_Char (B);
@@ -2372,6 +2387,9 @@ package body PolyORB.Representations.SRP is
       Local_SRP_Info : Split_SRP := SRP_Info;
       Coded_URL : String_Ptr;
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (R);
+      pragma Warnings (On);
 --       Encode_URL (Local_SRP_Info);
 --       Coded_URL :=
 --         new Types.String'((From_Any (Join (Local_SRP_Info))));

@@ -86,14 +86,6 @@ package body PolyORB.ORB.Thread_Per_Session is
 
    package Request_Queue is new Locked_Queue (Request_Info);
 
-   type Queue_Access is access Request_Queue.Queue;
-
-   type Queue_Indication is
-     new PolyORB.Filters.Interface.Data_Indication
-     with record
-        Queue : Queue_Access;
-     end record;
-
    ----------------------------------
    -- Handle_New_Server_Connection --
    ----------------------------------
@@ -104,6 +96,9 @@ package body PolyORB.ORB.Thread_Per_Session is
       C   : Active_Connection)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (P);
+      pragma Warnings (On);
       pragma Debug (O (" new server connection. "));
       Insert_Source (ORB, C.AES);
       Components.Emit_No_Reply
@@ -121,6 +116,9 @@ package body PolyORB.ORB.Thread_Per_Session is
       C   : Active_Connection)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (P);
+      pragma Warnings (On);
       pragma Debug (O (" new client connection"));
       Insert_Source (ORB, C.AES);
       Components.Emit_No_Reply
@@ -138,6 +136,10 @@ package body PolyORB.ORB.Thread_Per_Session is
       RJ  : access Jobs.Job'Class)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (P);
+      pragma Unreferenced (ORB);
+      pragma Warnings (On);
       Jobs.Run (RJ);
    end Handle_Request_Execution;
 
@@ -150,7 +152,14 @@ package body PolyORB.ORB.Thread_Per_Session is
       ORB : ORB_Access)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (P);
+      pragma Unreferenced (ORB);
+      pragma Warnings (On);
       null;
+      --  XXX This is probably wrong!
+      raise Program_Error;
+      --  (XXX just in case).
    end Idle;
 
    ------------------------------
@@ -164,6 +173,9 @@ package body PolyORB.ORB.Thread_Per_Session is
    is
       Dummy_Task : Session_Thread_Access;
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (P);
+      pragma Warnings (On);
       if Msg in Interface.Queue_Request then
          declare
             QR : Interface.Queue_Request

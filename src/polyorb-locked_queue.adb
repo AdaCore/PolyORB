@@ -48,6 +48,9 @@ package body PolyORB.Locked_Queue is
      ("polyorb.locked_queue");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+   pragma Warnings (Off);
+   pragma Unreferenced (O);
+   pragma Warnings (On);
 
    procedure Free is new Unchecked_Deallocation
      (Queue_Node, Queue_Node_Access);
@@ -94,6 +97,7 @@ package body PolyORB.Locked_Queue is
       Enter (Q.State_Lock);
       while Q.First /= null loop
          Next := Q.First.Next;
+         Free (Q.First.Element);
          Free (Q.First);
          Q.First := Next;
       end loop;

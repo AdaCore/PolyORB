@@ -50,8 +50,8 @@ package PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
      return String;
 
    procedure Free
-     (P   : in     ORB_Ctrl_Policy;
-      Ptr : in out Policy_Access);
+     (Self : in     ORB_Ctrl_Policy;
+      Ptr  : in out Policy_Access);
 
    procedure Free is new Ada.Unchecked_Deallocation
      (ORB_Ctrl_Policy,

@@ -526,12 +526,6 @@ package body Idl_Fe.Types is
       end if;
    end Get_Node;
 
-   --  To deallocate an identifier_definition_list
-   procedure Unchecked_Deallocation is
-      new Ada.Unchecked_Deallocation
-     (Object => Identifier_Definition_Cell,
-      Name   => Identifier_Definition_List);
-
    ---------------------------------
    --  Add_Identifier_Definition  --
    ---------------------------------

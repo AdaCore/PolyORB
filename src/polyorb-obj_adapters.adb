@@ -54,6 +54,9 @@ package body PolyORB.Obj_Adapters is
       Id : access Object_Id)
      return Types.String is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (OA);
+      pragma Warnings (On);
       return Types.To_PolyORB_String ("/" & To_String (Id.all));
    end Oid_To_Rel_URI;
 
@@ -64,6 +67,9 @@ package body PolyORB.Obj_Adapters is
    is
       S : constant String := Types.To_Standard_String (URI);
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (OA);
+      pragma Warnings (On);
       if S (S'First) /= '/' then
          raise Constraint_Error;
       end if;

@@ -137,6 +137,9 @@ package body PolyORB.ORB.Thread_Pool is
       C   : Active_Connection)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (P);
+      pragma Warnings (On);
       pragma Debug (O ("Thread_Pool: new server connection"));
       Insert_Source (ORB, C.AES);
       Components.Emit_No_Reply
@@ -157,6 +160,9 @@ package body PolyORB.ORB.Thread_Pool is
       C   : Active_Connection)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (P);
+      pragma Warnings (On);
       pragma Debug (O ("Thread_Pool: new client connection"));
       Insert_Source (ORB, C.AES);
       Components.Emit_No_Reply
@@ -177,6 +183,10 @@ package body PolyORB.ORB.Thread_Pool is
       RJ  : access Jobs.Job'Class)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (P);
+      pragma Unreferenced (ORB);
+      pragma Warnings (On);
       pragma Debug (O ("Thread_Pool: handle request execution"));
       Request_Queue.Add
         (The_Request_Queue,
@@ -195,6 +205,9 @@ package body PolyORB.ORB.Thread_Pool is
       use PolyORB.Soft_Links;
       V : Version_Id;
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (P);
+      pragma Warnings (On);
       pragma Debug (O ("Going idle."));
 
       Lookup (ORB.Idle_Tasks, V);
@@ -217,6 +230,9 @@ package body PolyORB.ORB.Thread_Pool is
       Msg : Message'Class)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (P);
+      pragma Warnings (On);
       Emit_No_Reply (Component_Access (ORB), Msg);
    end Queue_Request_To_Handler;
 

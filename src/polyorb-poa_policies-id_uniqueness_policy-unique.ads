@@ -59,8 +59,8 @@ package PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
      return Object_Id_Access;
 
    procedure Free
-     (P   : in     Unique_Id_Policy;
-      Ptr : in out Policy_Access);
+     (Self : in     Unique_Id_Policy;
+      Ptr  : in out Policy_Access);
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Unique_Id_Policy,

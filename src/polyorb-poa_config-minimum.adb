@@ -56,6 +56,9 @@ package body PolyORB.POA_Config.Minimum is
    procedure Initialize
      (C : Minimum_Configuration)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (C);
+      pragma Warnings (On);
       use PolyORB.POA_Policies.Policy_Sequences;
       P : constant Element_Array
         := (Policy_Access (Id_Assignment_Policy.System.Create),
@@ -78,6 +81,9 @@ package body PolyORB.POA_Config.Minimum is
      (C : Minimum_Configuration)
      return PolyORB.POA_Policies.PolicyList_Access is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (C);
+      pragma Warnings (On);
       return My_Default_Policies'Access;
    end Default_Policies;
 

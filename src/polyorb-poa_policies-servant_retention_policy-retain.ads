@@ -76,8 +76,8 @@ package PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
      return Servant_Access;
 
    procedure Free
-     (P   : in     Retain_Policy;
-      Ptr : in out Policy_Access);
+     (Self : in     Retain_Policy;
+      Ptr  : in out Policy_Access);
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Retain_Policy,

@@ -265,6 +265,10 @@ package body PolyORB.Obj_Adapters.Simple is
       Id : access Object_Id;
       Servant : in out Servant_Access) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (OA);
+      pragma Unreferenced (Id);
+      pragma Warnings (On);
       --  SOA: do nothing.
       Servant := null;
    end Release_Servant;

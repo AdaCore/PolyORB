@@ -111,6 +111,9 @@ package body PolyORB.Any.NVList is
 
    procedure Free (Self : Ref) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
       null;
    end Free;
 
