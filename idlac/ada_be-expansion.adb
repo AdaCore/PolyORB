@@ -15,7 +15,6 @@ package body Ada_Be.Expansion is
    Flag : constant Natural := Ada_Be.Debug.Is_Active ("ada_be.expansion");
    procedure O is new Ada_Be.Debug.Output (Flag);
 
-
    -----------------
    -- Expand_Node --
    -----------------
@@ -117,7 +116,7 @@ package body Ada_Be.Expansion is
                Success := Add_Identifier (Idl_File_Node,
                                           Filename.all & "_IDL_File");
                if not Success then
-                  --  conflicts in filenames not implemented yet
+                  --  conflicts in filenames, not implemented yet
                   --  *** NIY ***
                   raise Program_Error;
                end if;
@@ -144,6 +143,7 @@ package body Ada_Be.Expansion is
    --------------------
    --  Expand_Module --
    --------------------
+
    procedure Expand_Module (Node : in Node_Id) is
    begin
       pragma Assert (Kind (Node) = K_Module);
@@ -155,6 +155,7 @@ package body Ada_Be.Expansion is
    --------------------------
    --  Expand_Ben_Idl_File --
    --------------------------
+
    procedure Expand_Ben_Idl_File (Node : in Node_Id) is
    begin
       pragma Assert (Kind (Node) = K_Ben_Idl_File);
@@ -166,6 +167,7 @@ package body Ada_Be.Expansion is
    -----------------------
    --  Expand_Interface --
    -----------------------
+
    procedure Expand_Interface (Node : in Node_Id) is
    begin
       pragma Assert (Kind (Node) = K_Interface);
@@ -178,24 +180,33 @@ package body Ada_Be.Expansion is
    --  Expand_Attribute --
    -----------------------
 
-   procedure Expand_Attribute (Node : in Node_Id) is
-      New_Node : Node_Id;
-      Old_Node : Node_Id;
+   procedure Expand_Attribute
+     (Node : in Node_Id)
+   is
+      Exports_List : Node_List
+        := Nil_List;
+      --  The exports list of the interface
+      --  containing these attributes, wherein we insert
+      --  _get_Attribute and _set_Attribute operations.
+
+      Position : Node_Id
+        := Node;
       Iterator : Node_Iterator;
       Current_Declarator : Node_Id;
    begin
       pragma Assert (Kind (Node) = K_Attribute);
-      --  create a new node (list of nodes)
-      New_Node := Make_Ben_Node_List;
-      Old_Node := Node;
-      Replace_Node (Old_Node, New_Node);
 
-      --  create an iterator for all the declarators
-      Init (Iterator, Declarators (Old_Node));
+      Init (Iterator, Declarators (Node));
 
       while not Is_End (Iterator) loop
 
          Current_Declarator := Get_Node (Iterator);
+         Next (Iterator);
+
+         if Exports_List = Nil_List then
+            Exports_List := Contents (Parent_Scope (Current_Declarator));
+            pragma Assert (Exports_List /= Nil_List);
+         end if;
 
          pragma Debug (O ("Expanding attribute declarator "
                           & Name (Current_Declarator)));
@@ -206,80 +217,55 @@ package body Ada_Be.Expansion is
             Success : Boolean;
          begin
             Push_Scope (Get_Method);
-            Success := Add_Identifier (Get_Method, "Get_"
+            Success := Add_Identifier (Get_Method, "_get_"
                                        & Name (Current_Declarator));
             pragma Assert (Success = True);
             Set_Is_Oneway (Get_Method, False);
-            Set_Operation_Type (Get_Method, A_Type (Old_Node));
+            Set_Operation_Type (Get_Method, A_Type (Node));
             --  parameters
-            declare
-               Param1 : Node_Id := Make_Param;
-               Decl : Node_Id := Make_Declarator;
-               Params : Node_List := Nil_List;
-               Def : Identifier_Definition_Acc;
-            begin
-               Set_Mode (Param1, Mode_In);
-               Def := Definition (Current_Declarator);
-               Set_Param_Type (Param1, Def.all.Parent_Scope);
-               Success := Add_Identifier (Decl, "Self");
-               pragma Assert (Success = True);
-               Set_Array_Bounds (Decl, Nil_List);
-               Set_Parent (Decl, Param1);
-               Set_Declarator (Param1, Decl);
-               Append_Node (Params, Param1);
-               Set_Parameters (Get_Method, Params);
-            end;
+            Set_Parameters (Get_Method, Nil_List);
             Set_Raises (Get_Method, Nil_List);
             Set_Contexts (Get_Method, Nil_List);
 
             --  add the node to the node list
-            Append_Node_To_Contents (New_Node, Get_Method);
+            --  Append_Node_To_Contents (New_Node, Get_Method);
+            Insert_After
+              (List => Exports_List,
+               Node => Get_Method,
+               After => Position);
+            Position := Get_Method;
             Pop_Scope;
          end;
 
 
          --  create the Set method
-         if not Is_Readonly (Old_Node) then
+         if not Is_Readonly (Node) then
             declare
                Set_Method : Node_Id := Make_Operation;
                Success : Boolean;
                Void_Node : Node_Id := Make_Void;
             begin
                Push_Scope (Set_Method);
-               Success := Add_Identifier (Set_Method, "Set_"
+               Success := Add_Identifier (Set_Method, "_set_"
                                           & Name (Current_Declarator));
                pragma Assert (Success = True);
                Set_Is_Oneway (Set_Method, False);
                Set_Operation_Type (Set_Method, Void_Node);
                --  parameters
                declare
-                  Param1 : Node_Id := Make_Param;
-                  Param2 : Node_Id := Make_Param;
-                  Decl1 : Node_Id := Make_Declarator;
-                  Decl2 : Node_Id := Make_Declarator;
+                  Param : Node_Id := Make_Param;
+                  Decl : Node_Id := Make_Declarator;
                   Params : Node_List := Nil_List;
-                  Def : Identifier_Definition_Acc;
                begin
-                  --  Object Ref parameter
-                  Set_Mode (Param1, Mode_Inout);
-                  Def := Definition (Current_Declarator);
-                  Set_Param_Type (Param1, Def.all.Parent_Scope);
-                  Success := Add_Identifier (Decl1, "Self");
-                  pragma Assert (Success = True);
-                  Set_Array_Bounds (Decl1, Nil_List);
-                  Set_Parent (Decl1, Param1);
-                  Set_Declarator (Param1, Decl1);
-                  Append_Node (Params, Param1);
-
                   --  new value parameter
-                  Set_Mode (Param2, Mode_In);
-                  Set_Param_Type (Param2, A_Type (Old_Node));
-                  Success := Add_Identifier (Decl2, "To");
+                  Set_Mode (Param, Mode_In);
+                  Set_Param_Type (Param, A_Type (Node));
+                  Success := Add_Identifier (Decl, "To");
                   pragma Assert (Success = True);
-                  Set_Array_Bounds (Decl2, Nil_List);
-                  Set_Parent (Decl2, Param2);
-                  Set_Declarator (Param2, Decl2);
-                  Append_Node (Params, Param2);
+                  Set_Array_Bounds (Decl, Nil_List);
+                  Set_Parent (Decl, Param);
+                  Set_Declarator (Param, Decl);
+                  Append_Node (Params, Param);
 
                   Set_Parameters (Set_Method, Params);
                end;
@@ -287,16 +273,16 @@ package body Ada_Be.Expansion is
                Set_Contexts (Set_Method, Nil_List);
 
                --  add the node to the node list
-               Append_Node_To_Contents (New_Node, Set_Method);
+               Insert_After
+                 (List => Exports_List,
+                  Node => Set_Method,
+                  After => Position);
+               Position := Set_Method;
                Pop_Scope;
             end;
          end if;
-
-         Next (Iterator);
       end loop;
    end Expand_Attribute;
-
-
 
    -----------------------------------------
    --          private utilities          --
@@ -314,15 +300,16 @@ package body Ada_Be.Expansion is
       end if;
    end Expand_Node_List;
 
-   -----------------------------
-   --  Append_Node_To_Content --
-   -----------------------------
-   procedure Append_Node_To_Contents (Parent : Node_Id;
-                                      Child : Node_Id) is
-      Temp : Node_List := Contents (Parent);
+   ------------------------------
+   --  Append_Node_To_Contents --
+   ------------------------------
+
+   procedure Append_Node_To_Contents
+     (Parent : Node_Id;
+      Child : Node_Id) is
    begin
-      Append_Node (Temp, Child);
-      Set_Contents (Parent, Temp);
+      Set_Contents
+        (Parent, Append_Node (Contents (Parent), Child));
    end Append_Node_To_Contents;
 
 end Ada_Be.Expansion;

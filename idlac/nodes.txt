@@ -237,9 +237,5 @@ ValueBase
 Ben_Idl_File <-- Named
   Contents : Node_List
 
-Ben_Node_List
-  --  An anonymous list to replace a single node by several.
-  Contents : Node_List
-
 END
 
