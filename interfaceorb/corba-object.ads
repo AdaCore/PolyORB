@@ -1,7 +1,3 @@
---  This package corresponds to the CORBA 2.0 specification.  It contains
---  the definition of type Corba.Object.Ref, which is the base class of all
---  proxy objects
-
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
 
@@ -10,41 +6,36 @@ with OmniObject;
 with NetBufferedStream;
 with MemBufferedStream;
 
+--  with CORBA.ImplementationDef;
+--  with CORBA.InterfaceDef;
+--  with CORBA.Context;
+--  with CORBA.NVList;
+--  with CORBA.Request;
+
 package CORBA.Object is
 
    ------------------------------
-   -- CORBA 2.2 specifications --
+   -- CORBA 2.2 28 February 99 --
    ------------------------------
 
    type Ref is tagged private;
 
    function Is_Nil  (Self : in Ref) return CORBA.Boolean;
    function Is_Null (Self : in Ref) return CORBA.Boolean renames Is_Nil;
-   --  Returns nil if the ORB is sure that this is a nil object ie, it
-   --  points nowhere
 
-   procedure Release (Self : in out Ref'class);
-   --  Releases all the resources this proxy object uses.
-
-   --  Object duplicate() is not needed in Ada we use assignment according
-   --  to the CORBA 2.0 specification
+   procedure Release (Self : in out Ref);
 
    function Is_A
      (Self            : in Ref;
       Logical_Type_Id : in CORBA.String)
       return CORBA.Boolean;
-   --  Returns true if this object is of this Logical_Type_Id (here
+   --  Returns True if this object is of this Logical_Type_Id (here
    --  Logical_Type_Id is a Repository_Id) or one of its descendants
-
-   function Is_A
-     (Logical_Type_Id : in CORBA.String)
-      return CORBA.Boolean;
-   --  Same, but non dispatching, must be called CORBA.Object.Is_A (...)
 
    function Non_Existent
      (Self : in Ref)
       return CORBA.Boolean;
-   --  Returns true if the ORB knows that the implementation referenced by
+   --  Returns True if the ORB knows that the implementation referenced by
    --  this proxy object does not exist
 
    function Is_Equivalent
@@ -61,18 +52,42 @@ package CORBA.Object is
    --  Return a hash value for object not implemented yet, it returns 0
 
 
-   --  Get_Implementation and Get_Interface are not supported
 
+   --    not yet implemented
+   --
+   --    function To_Any (From : in Ref) return Any;
+   --    function To_Ref (From : in Any) return Ref;
+   --
+   --    function Get_Implementation (Self : in Ref)
+   --      return CORBA.ImplementationDef.Ref;
+   --
+   --    function Get_InterfaceDef (Self : in Ref)
+   --      return CORBA.InterfaceDef.Ref;
+   --
+   --    procedure Create_Request
+   --      (Self      : in     Ref;
+   --       Ctx       : in     CORBA.Context.Object;
+   --       Operation : in     Identifier;
+   --       Arg_List  : in     CORBA.NVList.Object;
+   --       Result    : in out NamedValue;
+   --       Request   :    out CORBA.Request.Object;
+   --       Req_Flags : in     Flags;
+   --       Returns   : out    Status);
+
+   ---------------
+   -- AdaBroker --
+   ---------------
+
+   function Is_A
+     (Logical_Type_Id : in CORBA.String)
+      return CORBA.Boolean;
+   --  Same, but non dispatching, must be called CORBA.Object.Is_A (...)
 
    function To_Ref
      (The_Ref : in CORBA.Object.Ref'Class)
       return Ref;
    --  Used to cast any CORBA.Object.Ref'Class into a CORBA.Object.Ref it
    --  has to be overloaded for all descendants of CORBA.Object.Ref
-
-   ------------------------
-   -- AdaBroker specific --
-   ------------------------
 
    Repository_Id : CORBA.String
      := CORBA.To_CORBA_String
@@ -87,13 +102,7 @@ package CORBA.Object is
    --  Ref using To_Ref, Get_Repository_Id will return the repository ID of
    --  CORBA.Object.Ref
 
-
-   --  function Get_Nil_Ref(Self : in Ref) return Constant_Ref_Ptr;
-   --  This function returns a Nil_Ref of the same type of the object it is
-   --  given. It is used for typing (see below)
-
-
-   function Get_Omniobject_Ptr
+   function Get_OmniObject_Ptr
      (Self : in Ref'Class)
       return OmniObject.Object_Ptr;
    --  Returns the underlying Omniobject.Object used in
@@ -137,7 +146,7 @@ package CORBA.Object is
    -- registering new interfaces into the ORB --
    ---------------------------------------------
 
-   procedure Create_Proxy_Object_Factory (RepoID : in CORBA.String);
+   procedure Create_Proxy_Object_Factory (Repoid : in CORBA.String);
    --  The ORB has to know how to create new proxy objects when we ask him
    --  to (out of an IOR for example.  To do that, it keeps a global
    --  variable which is a list of proxyObjectFactories.  They all have a

@@ -1,227 +1,227 @@
------------------------------------------------------------------------
------------------------------------------------------------------------
-----                                                               ----
-----                         AdaBroker                             ----
-----                                                               ----
-----                       package Giop_s                          ----
-----                                                               ----
-----                                                               ----
-----   Copyright (C) 1999 ENST                                     ----
-----                                                               ----
-----   This file is part of the AdaBroker library                  ----
-----                                                               ----
-----   The AdaBroker library is free software; you can             ----
-----   redistribute it and/or modify it under the terms of the     ----
-----   GNU Library General Public License as published by the      ----
-----   Free Software Foundation; either version 2 of the License,  ----
-----   or (at your option) any later version.                      ----
-----                                                               ----
-----   This library is distributed in the hope that it will be     ----
-----   useful, but WITHOUT ANY WARRANTY; without even the implied  ----
-----   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ----
-----   PURPOSE.  See the GNU Library General Public License for    ----
-----   more details.                                               ----
-----                                                               ----
-----   You should have received a copy of the GNU Library General  ----
-----   Public License along with this library; if not, write to    ----
-----   the Free Software Foundation, Inc., 59 Temple Place -       ----
-----   Suite 330, Boston, MA 02111-1307, USA                       ----
-----                                                               ----
-----                                                               ----
-----                                                               ----
-----   Description                                                 ----
-----   -----------                                                 ----
-----                                                               ----
-----     This package is wrapped around the C++ class              ----
-----   Ada_Giop_s declared in Ada_Giop_s.hh.                       ----
-----     It provides the same functions as this package plus       ----
-----   the Ada version of thouse where arguments types are         ----
-----   to be change.                                               ----
-----     It does not include an Init function since it is          ----
-----   useless for AdaBroker. (AdaBroker never creates a Giop_s    ----
-----   object)                                                     ----
-----                                                               ----
-----                                                               ----
-----   authors : Sebastien Ponce, Fabien Azavant                   ----
-----   date    : 02/28/99                                          ----
-----                                                               ----
------------------------------------------------------------------------
------------------------------------------------------------------------
 
+--  This package is wrapped around the C++ class Ada_GIOP_s declared in
+--  Ada_GIOP_s.hh.  It provides the same functions as this package plus the
+--  Ada version of thouse where arguments types are to be change.  It does
+--  not include an Init function since it is useless for
+--  AdaBroker. (AdaBroker never creates a GIOP_s object)
 
-with Ada.Exceptions ;
-with Ada.Strings.Unbounded ;
+with Ada.Strings.Unbounded;
 
-with Corba ;
-use type Corba.Unsigned_Long ;
+with CORBA;
 
-with Adabroker_Debug ; use Adabroker_Debug ;
+with Adabroker_Debug; use Adabroker_Debug;
 
-package body Giop_C is
+package body GIOP_C is
 
+   use type CORBA.Unsigned_Long;
 
-   -- C_Init
-   ---------
-   procedure C_Init (Self : in out Object'Class ;
-                     R : in System.Address) ;
-   pragma Import (CPP,C_Init,"Init__10Ada_Giop_cP4Rope") ;
-   -- wrapper around  Ada_Giop_c procedure Init
-   -- (see Ada_Giop_c.hh)
-   -- called by the Ada equivalent : Init
+   ------------
+   -- C_Init --
+   ------------
 
+   procedure C_Init
+     (Self : in out Object'Class;
+      R    : in System.Address);
 
-   -- Init
-   -------
-   procedure Init (Self : in out Object'Class ;
-                   R : in Rope.Object) is
+   pragma Import (CPP, C_Init, "Init__10Ada_Giop_cP4Rope");
+   --  Wrapper around Ada_Giop_c procedure Init (see Ada_Giop_c.hh) called
+   --  by the Ada equivalent : Init
+
+   ----------
+   -- Init --
+   ----------
+
+   procedure Init
+     (Self : in out Object'Class;
+      R    : in Rope.Object)
+   is
    begin
-      pragma Debug(Output(Debug, "--- giop_c.Init ---"))  ;
-      pragma Debug(Output(Debug, "init_Ok = " & Boolean'Image(Sys_Dep.Boolean_C_To_Ada(Self.Init_Ok))))  ;
-      -- just calls the C procedure
-      C_Init (Self, System.Address (R)) ;
-   end;
+      pragma Debug (Output (Debug, "--- giop_c.Init ---"));
+      pragma Debug
+        (Output (Debug,
+                 "init_Ok = " &
+                 Boolean'Image (Sys_Dep.Boolean_C_To_Ada (Self.Init_Ok))));
+      --  Just calls the C procedure
+      C_Init (Self, System.Address (R));
+   end Init;
 
+   --------------------------
+   -- C_Initialize_Request --
+   --------------------------
 
-   -- C_Initialize_Request
-   -----------------------
-   procedure C_Initialize_Request (Self : in Object'Class ;
-                                   Objkey : in Key.Object ;
-                                   Objkeysize : in Interfaces.C.Unsigned_Long ;
-                                   Opname : in Interfaces.C.Strings.Chars_Ptr ;
-                                   Opnamesize : in Interfaces.C.Unsigned_Long ;
-                                   MsgSize : in Interfaces.C.Unsigned_Long ;
-                                   Oneway : in Sys_Dep.C_Boolean) ;
-   pragma Import (CPP,C_Initialize_Request,"InitialiseRequest__10Ada_Giop_cPCvUiPCcUiUib") ;
-   -- wrapper around  Ada_Giop_c procedure Initialize_Request
-   -- (see Ada_Giop_c.hh)
-   -- called by the Ada equivalent : Initialize_Request
+   procedure C_Initialize_Request
+     (Self       : in Object'Class;
+      Objkey     : in Key.Object;
+      Objkeysize : in Interfaces.C.unsigned_long;
+      Opname     : in Interfaces.C.Strings.chars_ptr;
+      Opnamesize : in Interfaces.C.unsigned_long;
+      MsgSize    : in Interfaces.C.unsigned_long;
+      Oneway     : in Sys_Dep.C_Boolean);
+   pragma Import
+     (CPP, C_Initialize_Request,
+      "InitialiseRequest__10Ada_Giop_cPCvUiPCcUiUib");
+   --  Wrapper around Ada_Giop_c procedure Initialize_Request (see
+   --  Ada_Giop_c.hh) called by the Ada equivalent : Initialize_Request
 
-
-   -- Initialize_Request
-   ---------------------
-   procedure Initialize_Request (Self : in Object'Class ;
-                                 Objkey : in Key.Object ;
-                                 Objkeysize : in Corba.Unsigned_Long ;
-                                 Opname : in Corba.String ;
-                                 MsgSize : in Corba.Unsigned_Long ;
-                                 Oneway : in Corba.Boolean) is
-      C_Objkeysize : Interfaces.C.Unsigned_Long ;
-      Ada_Opname : String := Ada.Strings.Unbounded.To_String (Ada.Strings.Unbounded.Unbounded_String (Opname)) ;
-      C_Opname : Interfaces.C.Strings.Chars_Ptr ;
-      C_OpnameSize : Interfaces.C.Unsigned_Long ;
-      C_MsgSize : Interfaces.C.Unsigned_Long ;
-      C_Oneway : Sys_Dep.C_Boolean ;
-   begin
-      -- transforms the arguments into a C type ...
-      C_Objkeysize := Interfaces.C.Unsigned_Long (Objkeysize) ;
-      C_Opname := Interfaces.C.Strings.New_String (Ada_Opname) ;
-      -- desallocation in a few lines
-      C_Opnamesize := Interfaces.C.Unsigned_Long (Corba.Length (Opname)
-                                                  + Corba.Unsigned_Long (1)) ;
-      C_MsgSize := Interfaces.C.Unsigned_Long (MsgSize) ;
-      C_Oneway := Sys_Dep.Boolean_Ada_To_C (Oneway) ;
-      -- ... and calls the C procedure
-      C_Initialize_Request (Self,
-                            Objkey,
-                            C_Objkeysize,
-                            C_Opname,
-                            C_Opnamesize,
-                            C_MsgSize,
-                            C_Oneway) ;
-      -- desallocation of C_Opname
-      Interfaces.C.Strings.Free (C_Opname) ;
-   end ;
-
-
-   -- C_Receive_Reply
-   ------------------
-   procedure C_Receive_Reply (Self : in out Object'Class ;
-                             Result : out Interfaces.C.Int) ;
-   pragma Import (CPP,C_Receive_Reply,"ReceiveReply__10Ada_Giop_cRQ24GIOP15ReplyStatusType") ;
-   -- wrapper around  Ada_Giop_c procedure Receive_Reply
-   -- (see Ada_Giop_c.hh)
-   -- called by the Ada equivalent : Receive_Reply
-
-
-   -- Receive_Reply
-   ----------------
-   procedure Receive_Reply (Self : in out Object'Class ;
-                            Result : out Giop.Reply_Status_Type) is
-      C_Result : Interfaces.C.Int ;
-   begin
-      -- calls the C function ...
-      pragma Debug(Output(Debug, "Giop_c.Receive_Reply : call of the C_function"))  ;
-      C_Receive_Reply (Self,C_Result) ;
-      pragma Debug(Output(Debug, "Giop_c.Receive_Reply : C_function returned successfull"))  ;
-      -- ... and transforms the result into an Ada type
-      Result := Giop.C_Int_To_Reply_Status_Type (C_Result) ;
-   end;
-
-
-   -- C_Request_Completed
-   ----------------------
-   procedure C_Request_Completed (Self : in Object'Class ;
-                                  Skip_Msg : in Sys_Dep.C_Boolean) ;
-   pragma Import (CPP,C_Request_Completed,"RequestCompleted__10Ada_Giop_cb") ;
-   -- wrapper around  Ada_Giop_c procedure Request_Completed
-   -- (see Ada_Giop_c.hh)
-   -- called by the Ada equivalent : Request_Completed
-
-
-   -- Request_Completed
-   --------------------
-   procedure Request_Completed (Self : in Object'Class ;
-                                Skip_Msg : in CORBA.Boolean := False) is
-      C_Skip_Msg : Sys_Dep.C_Boolean ;
-   begin
-      -- transforms the arguments into a C type ...
-      C_Skip_Msg := Sys_Dep.Boolean_Ada_To_C (Skip_Msg) ;
-      -- ... and calls the C procedure
-      C_Request_Completed (Self, C_Skip_Msg) ;
-   end ;
-
-
-   -- C_Request_Header_Size
    ------------------------
-   function C_Request_Header_Size (Self : in Object'Class ;
-                                   Objkeysize : in Interfaces.C.Unsigned_long ;
-                                   Opnamesize : in Interfaces.C.Unsigned_long)
-                                   return Interfaces.C.Unsigned_long ;
-   pragma Import (CPP,C_Request_Header_Size,"RequestHeaderSize__10Ada_Giop_cUiUi") ;
-   -- wrapper around Ada_Giop_c procedure Request_Header_Size
-   -- (see Ada_Giop_c.hh)
-   -- called by the Ada equivalent : Request_Header_Size
+   -- Initialize_Request --
+   ------------------------
 
-
-   -- Request_Header_Size
-   ----------------------
-   function Request_Header_Size (Self : in Object'Class;
-                                 Objkeysize : in Corba.Unsigned_long ;
-                                 Opnamesize : in Corba.Unsigned_long)
-                                 return Corba.Unsigned_long is
-      C_Objkeysize : Interfaces.C.Unsigned_Long ;
-      C_Opnamesize : Interfaces.C.Unsigned_Long ;
-      C_Result : Interfaces.C.Unsigned_Long ;
+   procedure Initialize_Request
+     (Self       : in Object'Class;
+      Objkey     : in Key.Object;
+      Objkeysize : in CORBA.Unsigned_Long;
+      Opname     : in CORBA.String;
+      MsgSize    : in CORBA.Unsigned_Long;
+      Oneway     : in CORBA.Boolean)
+   is
+      C_Objkeysize : Interfaces.C.unsigned_long;
+      Ada_Opname   : String
+        := Ada.Strings.Unbounded.To_String
+        (Ada.Strings.Unbounded.Unbounded_String (Opname));
+      C_Opname     : Interfaces.C.Strings.chars_ptr;
+      C_OpnameSize : Interfaces.C.unsigned_long;
+      C_MsgSize    : Interfaces.C.unsigned_long;
+      C_Oneway     : Sys_Dep.C_Boolean;
    begin
-      -- transforms the arguments into a C type ...
-      C_Objkeysize := Interfaces.C.Unsigned_Long (Objkeysize) ;
-      C_Opnamesize := Interfaces.C.Unsigned_Long (Opnamesize + 1 ) ;
-      -- THE "+1" is because the length of a C string
-      -- is a character longer than an Ada one,
-      -- with the \O at the end
-      -- ... calls the C procedure ...
-      C_Result := C_Request_Header_Size (Self, C_Objkeysize, C_Opnamesize) ;
-      -- ... and transforms the result into an Ada type
-      return  Corba.Unsigned_Long (C_Result) ;
-   end;
+      --  Transform the arguments into a C type ...
+      C_Objkeysize := Interfaces.C.unsigned_long (Objkeysize);
+      C_Opname     := Interfaces.C.Strings.New_String (Ada_Opname);
 
+      --  Desallocation in a few lines
+      C_OpnameSize := Interfaces.C.unsigned_long
+        (CORBA.Length (Opname) + CORBA.Unsigned_Long (1));
+      C_MsgSize    := Interfaces.C.unsigned_long (MsgSize);
+      C_Oneway     := Sys_Dep.Boolean_Ada_To_C (Oneway);
 
-   -- Finalize
-   -----------
-   procedure Finalize(Self : in out Controlled_Wrapper) is
+      --  Call the C procedure
+      C_Initialize_Request
+        (Self, Objkey, C_Objkeysize, C_Opname,
+         C_OpnameSize, C_MsgSize, C_Oneway);
+
+      --  Desallocation of C_Opname
+      Interfaces.C.Strings.Free (C_Opname);
+   end Initialize_Request;
+
+   ---------------------
+   -- C_Receive_Reply --
+   ---------------------
+
+   procedure C_Receive_Reply
+     (Self   : in out Object'Class;
+      Result : out Interfaces.C.int);
+
+   pragma Import
+     (CPP, C_Receive_Reply,
+      "ReceiveReply__10Ada_Giop_cRQ24GIOP15ReplyStatusType");
+   --  Wrapper around Ada_Giop_c procedure Receive_Reply (see
+   --  Ada_Giop_c.hh) called by the Ada equivalent : Receive_Reply
+
+   -------------------
+   -- Receive_Reply --
+   -------------------
+
+   procedure Receive_Reply
+     (Self   : in out Object'Class;
+      Result : out GIOP.Reply_Status_Type)
+   is
+      C_Result : Interfaces.C.int;
    begin
-      Free(Self.Real) ;
-   end ;
+      --  Call the C function ...
+      pragma Debug
+        (Output (Debug,
+                 "GIOP_c.Receive_Reply : call of the C_function"));
 
-end Giop_C ;
+      C_Receive_Reply (Self, C_Result);
+
+      pragma Debug
+        (Output (Debug,
+                 "GIOP_c.Receive_Reply : C_function returned successfull"));
+      --  Transform the result into an Ada type
+
+      Result := GIOP.C_Int_To_Reply_Status_Type (C_Result);
+   end Receive_Reply;
+
+   -------------------------
+   -- C_Request_Completed --
+   -------------------------
+
+   procedure C_Request_Completed
+     (Self     : in Object'Class;
+      Skip_Msg : in Sys_Dep.C_Boolean);
+
+   pragma Import (CPP, C_Request_Completed, "RequestCompleted__10Ada_Giop_cb");
+   --  Wrapper around Ada_Giop_c procedure Request_Completed (see
+   --  Ada_Giop_c.hh) called by the Ada equivalent : Request_Completed
+
+   -----------------------
+   -- Request_Completed --
+   -----------------------
+
+   procedure Request_Completed
+     (Self     : in Object'Class;
+      Skip_Msg : in CORBA.Boolean := False)
+   is
+      C_Skip_Msg : Sys_Dep.C_Boolean;
+   begin
+      --  Transform the arguments into a C type ...
+      C_Skip_Msg := Sys_Dep.Boolean_Ada_To_C (Skip_Msg);
+
+      --  Call the C procedure
+      C_Request_Completed (Self, C_Skip_Msg);
+   end Request_Completed;
+
+   ---------------------------
+   -- C_Request_Header_Size --
+   ---------------------------
+
+   function C_Request_Header_Size
+     (Self       : in Object'Class;
+      Objkeysize : in Interfaces.C.unsigned_long;
+      Opnamesize : in Interfaces.C.unsigned_long)
+      return Interfaces.C.unsigned_long;
+
+   pragma Import
+     (CPP, C_Request_Header_Size, "RequestHeaderSize__10Ada_Giop_cUiUi");
+   --  Wrapper around Ada_Giop_c procedure Request_Header_Size (see
+   --  Ada_Giop_c.hh) called by the Ada equivalent : Request_Header_Size
+
+   -------------------------
+   -- Request_Header_Size --
+   -------------------------
+
+   function Request_Header_Size
+     (Self       : in Object'Class;
+      Objkeysize : in CORBA.Unsigned_Long;
+      Opnamesize : in CORBA.Unsigned_Long)
+      return CORBA.Unsigned_Long
+   is
+      C_Objkeysize : Interfaces.C.unsigned_long;
+      C_Opnamesize : Interfaces.C.unsigned_long;
+      C_Result     : Interfaces.C.unsigned_long;
+   begin
+      --  Transform the arguments into a C type ...
+      C_Objkeysize := Interfaces.C.unsigned_long (Objkeysize);
+      C_Opnamesize := Interfaces.C.unsigned_long (Opnamesize + 1);
+
+      --  The "+1" is because the length of a C string is a character
+      --  longer than an Ada one, with the \O at the end ... calls the C
+      --  procedure ...
+      C_Result := C_Request_Header_Size (Self, C_Objkeysize, C_Opnamesize);
+
+      --  Transform the result into an Ada type
+      return CORBA.Unsigned_Long (C_Result);
+   end Request_Header_Size;
+
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize
+     (Self : in out Controlled_Wrapper) is
+   begin
+      Free (Self.Real);
+   end Finalize;
+
+end GIOP_C;
 

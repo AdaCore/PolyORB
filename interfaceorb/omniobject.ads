@@ -16,10 +16,9 @@ with System.Address_To_Access_Conversions;
 
 with CORBA;
 
-with Giop_S;
+with GIOP_S;
 with Sys_Dep;
 with IOP;
-with Rope;
 with OmniRopeAndKey;
 with NetBufferedStream;
 with MemBufferedStream;
@@ -36,7 +35,7 @@ package OmniObject is
 
    type Dispatch_Procedure is access
      procedure (Self                  : Implemented_Object_Ptr;
-                Orls                  : in out Giop_S.Object;
+                Orls                  : in out GIOP_S.Object;
                 Orl_Op                : in Standard.String;
                 Orl_Response_Expected : in CORBA.Boolean;
                 Success               : out CORBA.Boolean);
@@ -210,7 +209,7 @@ package OmniObject is
    -- constructors and destructors --
    ----------------------------------
 
-   function Create_Omniobject
+   function Create_OmniObject
      (Most_Derived_Repoid : in CORBA.String;
       Profiles            : in IOP.Tagged_Profile_List;
       Release             : in CORBA.Boolean)
@@ -220,11 +219,11 @@ package OmniObject is
    --  object out of a bufferedstream, and to create a
    --  CORBA.object.ref'class.
 
-   function Omniobject_Duplicate (Self : in Object_Ptr) return Object_Ptr;
+   function OmniObject_Duplicate (Self : in Object_Ptr) return Object_Ptr;
    --  Creates a new Object referencing the same omniObject_C2Ada see
    --  Ada_OmniObject.hh
 
-   procedure Omniobject_Destructor (Self : in Object_Ptr);
+   procedure OmniObject_Destructor (Self : in Object_Ptr);
    --  C++ destructor of Ada_omniObject calls omni::objectRelease on the
    --  omniObject_C2Ada and destroys the Ada_omniObject
 
@@ -233,7 +232,7 @@ package OmniObject is
    -- registering into the ORB --
    ------------------------------
 
-   procedure Omniobject_Dispose (Self : in Object_Ptr);
+   procedure OmniObject_Dispose (Self : in Object_Ptr);
    --  Tells the BOA this local object does not accept connexions any
    --  longer only called by Dispose_Object(Implemented_Object)
 
@@ -248,7 +247,7 @@ package OmniObject is
    --  This function trys to create the Object corresponding to this
    --  resitory_id, returns null on failure
 
-   function Object_To_String (Obj_ptr : in Object_Ptr) return CORBA.String;
+   function Object_To_String (Obj_Ptr : in Object_Ptr) return CORBA.String;
    --  Returns the IOR for this object Obj can be null
 
    function Is_Proxy
@@ -326,7 +325,7 @@ private
      new Ada.Unchecked_Conversion
      (Object_Ptr, Address_To_Object.Object_Pointer);
 
-   procedure Omniobject_Is_Ready (Self : in Object_Ptr);
+   procedure OmniObject_Is_Ready (Self : in Object_Ptr);
    --  Registers a local object into the ORB only called by
    --  Object_Is_Ready(Implemented_Object)
 
@@ -339,7 +338,7 @@ private
 
    procedure C_Dispatch
      (Self                  : in Object'Class;
-      Orls                  : in out Giop_S.Object;
+      Orls                  : in out GIOP_S.Object;
       Orl_Op                : in Interfaces.C.Strings.chars_ptr;
       Orl_Response_Expected : in Sys_Dep.C_Boolean;
       Success               : out Sys_Dep.C_Boolean);

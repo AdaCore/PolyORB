@@ -1,632 +1,761 @@
------------------------------------------------------------------------
------------------------------------------------------------------------
-----                                                               ----
-----                         AdaBroker                             ----
-----                                                               ----
-----                 package membufferedstream                     ----
-----                                                               ----
-----                                                               ----
-----   Copyright (C) 1999 ENST                                     ----
-----                                                               ----
-----   This file is part of the AdaBroker library                  ----
-----                                                               ----
-----   The AdaBroker library is free software; you can             ----
-----   redistribute it and/or modify it under the terms of the     ----
-----   GNU Library General Public License as published by the      ----
-----   Free Software Foundation; either version 2 of the License,  ----
-----   or (at your option) any later version.                      ----
-----                                                               ----
-----   This library is distributed in the hope that it will be     ----
-----   useful, but WITHOUT ANY WARRANTY; without even the implied  ----
-----   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ----
-----   PURPOSE.  See the GNU Library General Public License for    ----
-----   more details.                                               ----
-----                                                               ----
-----   You should have received a copy of the GNU Library General  ----
-----   Public License along with this library; if not, write to    ----
-----   the Free Software Foundation, Inc., 59 Temple Place -       ----
-----   Suite 330, Boston, MA 02111-1307, USA                       ----
-----                                                               ----
-----                                                               ----
-----                                                               ----
-----   Description                                                 ----
-----   -----------                                                 ----
-----                                                               ----
-----     This package is wrapped around a C++ class whose name     ----
-----   is Ada_memBufferedStream. (see Ada_memBufferedStream.hh)    ----
-----     It provides two types of methods : the C functions        ----
-----   of the Ada_memBufferedStream class and their equivalent     ----
-----   in Ada. (he first ones have a C_ prefix.)                   ----
-----     In addition, there is a raise_ada_exception function      ----
-----   that allows C functions to raise the ada No_Initialisation  ----
-----   exception.                                                  ----
-----     At last, there is only one Init procedure in place of     ----
-----   two in Ada_memBufferedStream since the second one is        ----
-----   useless for AdaBroker.                                      ----
-----                                                               ----
-----                                                               ----
-----   authors : Sebastien Ponce, Fabien Azavant                   ----
-----   date    : 02/28/99                                          ----
-----                                                               ----
------------------------------------------------------------------------
------------------------------------------------------------------------
 
-with Ada.Exceptions ;
-with Ada.Strings.Unbounded ;
-use type Ada.Strings.Unbounded.Unbounded_String ;
-with Ada.Strings ;
-with Ada.Characters.Latin_1 ;
-with Interfaces.C ;
+--  This package is wrapped around a C++ class whose name is
+--  Ada_memBufferedStream. (see Ada_memBufferedStream.hh) It provides two
+--  types of methods : the C functions of the Ada_memBufferedStream class
+--  and their equivalent in Ada. (he first ones have a C_ prefix.)  In
+--  addition, there is a raise_ada_exception function that allows C
+--  functions to raise the ada No_Initialisation exception.  At last, there
+--  is only one Init procedure in place of two in Ada_memBufferedStream
+--  since the second one is useless for AdaBroker.
 
-with Corba ;
-use type Corba.String ;
-use type Corba.Unsigned_Long ;
-with Omni ;
+
+with Ada.Exceptions;
+with Ada.Strings.Unbounded;
+with Ada.Strings;
+with Ada.Characters.Latin_1;
+with Interfaces.C;
+
+with CORBA;
 
 package body MemBufferedStream is
 
-   -- C_Init
-   ---------
-   procedure C_Init (Self : in Object'Class ;
-                     Bufsize : in Interfaces.C.Unsigned_Long) ;
-   pragma Import (CPP,C_Init,"Init__21Ada_memBufferedStreamUi") ;
-   -- wrapper around Ada_MemBufferedStream function Init
-   -- (see Ada_MemBufferedStream.hh)
-   -- name was changed to avoid conflict
-   -- called by the Ada equivalent : Init
+   use type Ada.Strings.Unbounded.Unbounded_String;
+   use type CORBA.String;
+   use type CORBA.Unsigned_Long;
 
+   ------------
+   -- C_Init --
+   ------------
 
-   -- Init
-   -------
-   procedure Init (Self : in Object'Class ;
-                   Bufsize : in Corba.Unsigned_Long) is
-      C_Bufsize : Interfaces.C.Unsigned_Long ;
+   procedure C_Init
+     (Self    : in Object'Class;
+      Bufsize : in Interfaces.C.unsigned_long);
+
+   pragma Import (CPP, C_Init, "Init__21Ada_memBufferedStreamUi");
+   --  Wrapper around Ada_MemBufferedStream function Init (see
+   --  Ada_MemBufferedStream.hh) name was changed to avoid conflict called
+   --  by the Ada equivalent : Init
+
+   ----------
+   -- Init --
+   ----------
+
+   procedure Init
+     (Self      : in Object'Class;
+      Bufsize   : in CORBA.Unsigned_Long)
+   is
+      C_Bufsize : Interfaces.C.unsigned_long;
    begin
-      -- transforms the arguments into a C type ...
-      C_Bufsize := Interfaces.C.Unsigned_long(Bufsize) ;
-      -- ... and calls the C procedure
-      C_Init (Self, C_Bufsize) ;
-   end ;
+      --  Transform the arguments into a C type ...
+      C_Bufsize := Interfaces.C.unsigned_long (Bufsize);
 
+      --  Call the C procedure
+      C_Init (Self, C_Bufsize);
+   end Init;
 
-   -- C_Marshall_1
-   ---------------
-   procedure C_Marshall_1 (A : in Interfaces.C.Char ;
-                           S : in out Object'Class) ;
-   pragma Import (CPP,C_Marshall_1,
-                  "marshall__21Ada_memBufferedStreamUcR21Ada_memBufferedStream") ;
-   -- wrapper around Ada_memBufferedStream function marshall
-   -- (see Ada_memBufferedStream.hh)
-   -- name was changed to avoid conflict
-   -- called by the Ada equivalent : Marshall
+   ------------------
+   -- C_Marshall_1 --
+   ------------------
 
+   procedure C_Marshall_1
+     (A : in Interfaces.C.char;
+      S : in out Object'Class);
 
-   -- Marshall
-   -----------
-   procedure Marshall (A : in Corba.Char ;
-                       S : in out Object'Class) is
-      C_A : Interfaces.C.Char ;
+   pragma Import
+     (CPP, C_Marshall_1,
+      "marshall__21Ada_memBufferedStreamUcR21Ada_memBufferedStream");
+   --  Wrapper around Ada_memBufferedStream function marshall (see
+   --  Ada_memBufferedStream.hh) name was changed to avoid conflict called
+   --  by the Ada equivalent : Marshall
+
+   --------------
+   -- Marshall --
+   --------------
+
+   procedure Marshall
+     (A : in CORBA.Char;
+      S : in out Object'Class)
+   is
+      C_A : Interfaces.C.char;
    begin
-      -- transforms the arguments in a C type ...
-      C_A := Interfaces.C.Char(A) ;
-      -- ... and calls the C procedure
-      C_Marshall_1 (C_A,S) ;
-   end;
+      --  Transform the arguments in a C type ...
+      C_A := Interfaces.C.char (A);
+
+      --  Call the C procedure
+      C_Marshall_1 (C_A, S);
+   end Marshall;
+
+   --------------------
+   -- C_Unmarshall_1 --
+   --------------------
+
+   procedure C_Unmarshall_1
+     (A : out Interfaces.C.char;
+      S : in out Object'Class);
+
+   pragma Import
+     (CPP, C_Unmarshall_1,
+      "unmarshall__21Ada_memBufferedStreamRUcR21Ada_memBufferedStream");
+   --  Wrapper around Ada_memBufferedStream function marshall (see
+   --  Ada_memBufferedStream.hh) name was changed to avoid conflict called
+   --  by the Ada equivalent : UnMarshall
 
 
-   -- C_UnMarshall_1
-   -----------------
-   procedure C_UnMarshall_1 (A : out Interfaces.C.Char ;
-                             S : in out Object'Class) ;
-   pragma Import (CPP,C_UnMarshall_1,"unmarshall__21Ada_memBufferedStreamRUcR21Ada_memBufferedStream") ;
-   -- wrapper around Ada_memBufferedStream function marshall
-   -- (see Ada_memBufferedStream.hh)
-   -- name was changed to avoid conflict
-   -- called by the Ada equivalent : UnMarshall
+   ----------------
+   -- Unmarshall --
+   ----------------
 
-
-   -- UnMarshall
-   -------------
-   procedure UnMarshall (A : out Corba.Char ;
-                         S : in out Object'Class) is
-      C_A : Interfaces.C.Char ;
+   procedure Unmarshall
+     (A : out CORBA.Char;
+      S : in out Object'Class)
+   is
+      C_A : Interfaces.C.char;
    begin
-      C_UnMarshall_1 (C_A,S) ;
-      A := Corba.Char(C_A) ;
-   end;
+      C_Unmarshall_1 (C_A, S);
+      A := CORBA.Char (C_A);
+   end Unmarshall;
 
+   ------------------
+   -- C_Marshall_2 --
+   ------------------
+   procedure C_Marshall_2
+     (A : in Sys_Dep.C_Boolean;
+      S : in out Object'Class);
 
-   -- C_Marshall_2
-   ---------------
-   procedure C_Marshall_2 (A : in Sys_Dep.C_Boolean ;
-                           S : in out Object'Class) ;
-   pragma Import (CPP,C_Marshall_2,"marshall__21Ada_memBufferedStreambR21Ada_memBufferedStream") ;
-   -- wrapper around Ada_memBufferedStream function marshall
-   -- (see Ada_memBufferedStream.hh)
-   -- name was changed to avoid conflict
-   -- called by the Ada equivalent : Marshall
+   pragma Import
+     (CPP, C_Marshall_2,
+      "marshall__21Ada_memBufferedStreambR21Ada_memBufferedStream");
+   --  Wrapper around Ada_memBufferedStream function marshall (see
+   --  Ada_memBufferedStream.hh) name was changed to avoid conflict called
+   --  by the Ada equivalent : Marshall
 
+   --------------
+   -- Marshall --
+   --------------
 
-   -- Marshall
-   -----------
-   procedure Marshall (A : in Corba.Boolean ;
-                       S : in out Object'Class) is
-      C_A : Sys_Dep.C_Boolean ;
+   procedure Marshall
+     (A : in CORBA.Boolean;
+      S : in out Object'Class)
+   is
+      C_A : Sys_Dep.C_Boolean;
    begin
-      -- transforms the arguments in a C type ...
-      C_A := Sys_Dep.Boolean_Ada_To_C (A) ;
-      -- ... and calls the C procedure
-      C_Marshall_2 (C_A,S) ;
-   end;
+      --  Transform the arguments in a C type ...
+      C_A := Sys_Dep.Boolean_Ada_To_C (A);
 
+      --  Call the C procedure
+      C_Marshall_2 (C_A, S);
+   end Marshall;
 
-   -- C_UnMarshall_2
-   -----------------
-   procedure C_UnMarshall_2 (A : out Sys_Dep.C_Boolean ;
-                             S : in out Object'Class) ;
-   pragma Import (CPP,C_UnMarshall_2,"unmarshall__21Ada_memBufferedStreamRbR21Ada_memBufferedStream") ;
-   -- wrapper around Ada_memBufferedStream function marshall
-   -- (see Ada_memBufferedStream.hh)
-   -- name was changed to avoid conflict
-   -- called by the Ada equivalent : UnMarshall
+   --------------------
+   -- C_UnMarshall_2 --
+   --------------------
 
+   procedure C_UnMarshall_2
+     (A : out Sys_Dep.C_Boolean;
+      S : in out Object'Class);
 
-   -- UnMarshall
-   -------------
-   procedure UnMarshall (A : out Corba.Boolean ;
-                         S : in out Object'Class) is
-      C_A : Sys_Dep.C_boolean ;
+   pragma Import
+     (CPP, C_UnMarshall_2,
+      "unmarshall__21Ada_memBufferedStreamRbR21Ada_memBufferedStream");
+   --  Wrapper around Ada_memBufferedStream function marshall (see
+   --  Ada_memBufferedStream.hh) name was changed to avoid conflict called
+   --  by the Ada equivalent : UnMarshall
+
+   ----------------
+   -- Unmarshall --
+   ----------------
+
+   procedure Unmarshall
+     (A : out CORBA.Boolean;
+      S : in out Object'Class)
+   is
+      C_A : Sys_Dep.C_Boolean;
    begin
-      C_UnMarshall_2 (C_A,S) ;
-      A := Sys_Dep.Boolean_C_To_Ada(C_A) ;
-   end;
+      C_UnMarshall_2 (C_A, S);
+      A := Sys_Dep.Boolean_C_To_Ada (C_A);
+   end Unmarshall;
 
+   ------------------
+   -- C_Marshall_3 --
+   ------------------
 
-   -- C_Marshall_3
-   ---------------
-   procedure C_Marshall_3 (A : in Interfaces.C.Short ;
-                           S : in out Object'Class) ;
-   pragma Import (CPP,C_Marshall_3,"marshall__21Ada_memBufferedStreamsR21Ada_memBufferedStream") ;
-   -- wrapper around Ada_memBufferedStream function marshall
-   -- (see Ada_memBufferedStream.hh)
-   -- name was changed to avoid conflict
-   -- called by the Ada equivalent : Marshall
+   procedure C_Marshall_3
+     (A : in Interfaces.C.short;
+      S : in out Object'Class);
 
+   pragma Import
+     (CPP, C_Marshall_3,
+      "marshall__21Ada_memBufferedStreamsR21Ada_memBufferedStream");
+   --  Wrapper around Ada_memBufferedStream function marshall (see
+   --  Ada_memBufferedStream.hh) name was changed to avoid conflict called
+   --  by the Ada equivalent : Marshall
 
-   -- Marshall
-   -----------
-   procedure Marshall (A : in Corba.Short ;
-                       S : in out Object'Class) is
-      C_A : Interfaces.C.Short ;
+   --------------
+   -- Marshall --
+   --------------
+
+   procedure Marshall
+     (A : in CORBA.Short;
+      S : in out Object'Class)
+   is
+      C_A : Interfaces.C.short;
    begin
-      -- transforms the arguments in a C type ...
-      C_A := Interfaces.C.Short(C_A) ;
-      -- ... and calls the C procedure
-      C_Marshall_3 (C_A,S) ;
-   end;
+      --  Tranform the arguments in a C type ...
+      C_A := Interfaces.C.short (C_A);
+      --  Call the C procedure
+      C_Marshall_3 (C_A, S);
+   end Marshall;
 
+   --------------------
+   -- C_Unmarshall_3 --
+   --------------------
 
-   -- C_UnMarshall_3
-   -----------------
-   procedure C_UnMarshall_3 (A : out Interfaces.C.Short ;
-                             S : in out Object'Class) ;
-   pragma Import (CPP,C_UnMarshall_3,"unmarshall__21Ada_memBufferedStreamRsR21Ada_memBufferedStream") ;
-   -- wrapper around Ada_memBufferedStream function marshall
-   -- (see Ada_memBufferedStream.hh)
-   -- name was changed to avoid conflict
-   -- called by the Ada equivalent : UnMarshall
+   procedure C_Unmarshall_3
+     (A : out Interfaces.C.short;
+      S : in out Object'Class);
 
+   pragma Import
+     (CPP, C_Unmarshall_3,
+      "unmarshall__21Ada_memBufferedStreamRsR21Ada_memBufferedStream");
+   --  Wrapper around Ada_memBufferedStream function marshall (see
+   --  Ada_memBufferedStream.hh) name was changed to avoid conflict called
+   --  by the Ada equivalent : UnMarshall
 
-   -- UnMarshall
-   -------------
-   procedure UnMarshall (A : out Corba.Short ;
-                         S : in out Object'Class) is
-      C_A : Interfaces.C.Short ;
+   ----------------
+   -- UnMarshall --
+   ----------------
+
+   procedure Unmarshall
+     (A : out CORBA.Short;
+      S : in out Object'Class)
+   is
+      C_A : Interfaces.C.short;
    begin
-      C_UnMarshall_3 (C_A,S) ;
-      A := Corba.Short(C_A) ;
-   end;
+      C_Unmarshall_3 (C_A, S);
+      A := CORBA.Short (C_A);
+   end Unmarshall;
 
+   ------------------
+   -- C_Marshall_4 --
+   ------------------
 
-   -- C_Marshall_4
-   ---------------
-   procedure C_Marshall_4 (A : in Interfaces.C.Unsigned_Short ;
-                           S : in out Object'Class) ;
-   pragma Import (CPP,C_Marshall_4,"marshall__21Ada_memBufferedStreamUsR21Ada_memBufferedStream") ;
-   -- wrapper around Ada_memBufferedStream function marshall
-   -- (see Ada_memBufferedStream.hh)
-   -- name was changed to avoid conflict
-   -- called by the Ada equivalent : Marshall
+   procedure C_Marshall_4
+     (A : in Interfaces.C.unsigned_short;
+      S : in out Object'Class);
 
+   pragma Import
+     (CPP, C_Marshall_4,
+      "marshall__21Ada_memBufferedStreamUsR21Ada_memBufferedStream");
+   --  Wrapper around Ada_memBufferedStream function marshall (see
+   --  Ada_memBufferedStream.hh) name was changed to avoid conflict called
+   --  by the Ada equivalent : Marshall
 
-   -- Marshall
-   -----------
-   procedure Marshall (A : in Corba.Unsigned_Short ;
-                       S : in out Object'Class) is
-      C_A : Interfaces.C.Unsigned_Short ;
+   --------------
+   -- Marshall --
+   --------------
+   procedure Marshall
+     (A : in CORBA.Unsigned_Short;
+      S : in out Object'Class)
+   is
+      C_A : Interfaces.C.unsigned_short;
    begin
-      -- transforms the arguments in a C type ...
-      C_A := Interfaces.C.Unsigned_Short (A) ;
-      -- ... and calls the C procedure
-      C_Marshall_4 (C_A,S) ;
-   end;
+      --  Transform the arguments in a C type ...
+      C_A := Interfaces.C.unsigned_short (A);
+      --  Call the C procedure
+      C_Marshall_4 (C_A, S);
+   end Marshall;
 
+   --------------------
+   -- C_UnMarshall_4 --
+   --------------------
 
-   -- C_UnMarshall_4
-   -----------------
-   procedure C_UnMarshall_4 (A : out Interfaces.C.Unsigned_Short ;
-                             S : in out Object'Class) ;
-   pragma Import (CPP,C_UnMarshall_4,"unmarshall__21Ada_memBufferedStreamRUsR21Ada_memBufferedStream") ;
-   -- wrapper around Ada_memBufferedStream function marshall
-   -- (see Ada_memBufferedStream.hh)
-   -- name was changed to avoid conflict
-   -- called by the Ada equivalent : UnMarshall
+   procedure C_Unmarshall_4
+     (A : out Interfaces.C.unsigned_short;
+      S : in out Object'Class);
+   pragma Import
+     (CPP, C_Unmarshall_4,
+      "unmarshall__21Ada_memBufferedStreamRUsR21Ada_memBufferedStream");
+   --  Wrapper around Ada_memBufferedStream function marshall (see
+   --  Ada_memBufferedStream.hh) name was changed to avoid conflict called
+   --  by the Ada equivalent : UnMarshall
 
+   ----------------
+   -- Unmarshall --
+   ----------------
 
-   -- UnMarshall
-   -------------
-   procedure UnMarshall (A : out Corba.Unsigned_Short ;
-                         S : in out Object'Class) is
-      C_A : Interfaces.C.Unsigned_Short ;
+   procedure Unmarshall
+     (A : out CORBA.Unsigned_Short;
+      S : in out Object'Class)
+   is
+      C_A : Interfaces.C.unsigned_short;
    begin
-      C_UnMarshall_4 (C_A,S) ;
-      A := Corba.Unsigned_Short(C_A) ;
-   end;
+      C_Unmarshall_4 (C_A, S);
+      A := CORBA.Unsigned_Short (C_A);
+   end Unmarshall;
 
+   ------------------
+   -- C_Marshall_5 --
+   ------------------
 
-   -- C_Marshall_5
-   ---------------
-   procedure C_Marshall_5 (A : in Interfaces.C.Long ;
-                           S : in out Object'Class) ;
-   pragma Import (CPP,C_Marshall_5,"marshall__21Ada_memBufferedStreamlR21Ada_memBufferedStream") ;
-   -- wrapper around Ada_memBufferedStream function marshall
-   -- (see Ada_memBufferedStream.hh)
-   -- name was changed to avoid conflict
-   -- called by the Ada equivalent : Marshall
+   procedure C_Marshall_5
+     (A : in Interfaces.C.long;
+      S : in out Object'Class);
 
+   pragma Import
+     (CPP, C_Marshall_5,
+      "marshall__21Ada_memBufferedStreamlR21Ada_memBufferedStream");
+   --  Wrapper around Ada_memBufferedStream function marshall (see
+   --  Ada_memBufferedStream.hh) name was changed to avoid conflict called
+   --  by the Ada equivalent : Marshall
 
-   -- Marshall
-   -----------
-   procedure Marshall (A : in Corba.Long ;
-                       S : in out Object'Class) is
-      C_A : Interfaces.C.Long ;
+   --------------
+   -- Marshall --
+   --------------
+
+   procedure Marshall
+     (A : in CORBA.Long;
+      S : in out Object'Class)
+   is
+      C_A : Interfaces.C.long;
    begin
-      -- transforms the arguments in a C type ...
-      C_A := Interfaces.C.Long(A) ;
-      -- ... and calls the C procedure
-      C_Marshall_5 (C_A,S) ;
-   end;
+      --  Transform the arguments in a C type ...
+      C_A := Interfaces.C.long (A);
+      --  Call the C procedure
+      C_Marshall_5 (C_A, S);
+   end Marshall;
 
+   --------------------
+   -- C_Unmarshall_5 --
+   --------------------
 
-   -- C_UnMarshall_5
-   -----------------
-   procedure C_UnMarshall_5 (A : out Interfaces.C.Long ;
-                             S : in out Object'Class) ;
-   pragma Import (CPP,C_UnMarshall_5,"unmarshall__21Ada_memBufferedStreamRlR21Ada_memBufferedStream") ;
-   -- wrapper around Ada_memBufferedStream function marshall
-   -- (see Ada_memBufferedStream.hh)
-   -- name was changed to avoid conflict
-   -- called by the Ada equivalent : UnMarshall
+   procedure C_Unmarshall_5
+     (A : out Interfaces.C.long;
+      S : in out Object'Class);
 
+   pragma Import
+     (CPP, C_Unmarshall_5,
+      "unmarshall__21Ada_memBufferedStreamRlR21Ada_memBufferedStream");
+   --  Wrapper around Ada_memBufferedStream function marshall (see
+   --  Ada_memBufferedStream.hh) name was changed to avoid conflict called
+   --  by the Ada equivalent : UnMarshall
 
-   -- UnMarshall
-   -------------
-   procedure UnMarshall (A : out Corba.Long ;
-                         S : in out Object'Class) is
-      C_A : Interfaces.C.Long ;
+   ----------------
+   -- Unmarshall --
+   ----------------
+   procedure Unmarshall
+     (A : out CORBA.Long;
+      S : in out Object'Class)
+   is
+      C_A : Interfaces.C.long;
    begin
-      C_UnMarshall_5 (C_A,S) ;
-      A := Corba.Long(C_A) ;
-   end;
+      C_Unmarshall_5 (C_A, S);
+      A := CORBA.Long (C_A);
+   end Unmarshall;
 
+   ------------------
+   -- C_Marshall_6 --
+   ------------------
 
-   -- C_Marshall_6
-   ---------------
-   procedure C_Marshall_6 (A : in Interfaces.C.Unsigned_Long ;
-                           S : in out Object'Class) ;
-   pragma Import (CPP,C_Marshall_6,"marshall__21Ada_memBufferedStreamUlR21Ada_memBufferedStream") ;
-   -- wrapper around Ada_memBufferedStream function marshall
-   -- (see Ada_memBufferedStream.hh)
-   -- name was changed to avoid conflict
-   -- called by the Ada equivalent : Marshall
+   procedure C_Marshall_6
+     (A : in Interfaces.C.unsigned_long;
+      S : in out Object'Class);
 
+   pragma Import
+     (CPP, C_Marshall_6,
+      "marshall__21Ada_memBufferedStreamUlR21Ada_memBufferedStream");
+   --  Wrapper around Ada_memBufferedStream function marshall (see
+   --  Ada_memBufferedStream.hh) name was changed to avoid conflict called
+   --  by the Ada equivalent : Marshall
 
-   -- Marshall
-   -----------
-   procedure Marshall (A : in Corba.Unsigned_Long ;
-                       S : in out Object'Class) is
-      C_A : Interfaces.C.Unsigned_Long ;
+   --------------
+   -- Marshall --
+   --------------
+
+   procedure Marshall
+     (A : in CORBA.Unsigned_Long;
+      S : in out Object'Class)
+   is
+      C_A : Interfaces.C.unsigned_long;
    begin
-      -- transforms the arguments in a C type ...
-      C_A := Interfaces.C.Unsigned_Long (A) ;
-      -- ... and calls the C procedure
-      C_Marshall_6 (C_A,S) ;
-   end;
+      --  Transform the arguments in a C type ...
+      C_A := Interfaces.C.unsigned_long (A);
+      --  Call the C procedure
+      C_Marshall_6 (C_A, S);
+   end Marshall;
 
+   --------------------
+   -- C_Unmarshall_6 --
+   --------------------
 
-   -- C_UnMarshall_6
-   -----------------
-   procedure C_UnMarshall_6 (A : out Interfaces.C.Unsigned_Long ;
-                             S : in out Object'Class) ;
-   pragma Import (CPP,C_UnMarshall_6,"unmarshall__21Ada_memBufferedStreamRUlR21Ada_memBufferedStream") ;
-   -- wrapper around Ada_memBufferedStream function marshall
-   -- (see Ada_memBufferedStream.hh)
-   -- name was changed to avoid conflict
-   -- called by the Ada equivalent : UnMarshall
+   procedure C_Unmarshall_6
+     (A : out Interfaces.C.unsigned_long;
+      S : in out Object'Class);
 
+   pragma Import
+     (CPP, C_Unmarshall_6,
+      "unmarshall__21Ada_memBufferedStreamRUlR21Ada_memBufferedStream");
+   --  Wrapper around Ada_memBufferedStream function marshall (see
+   --  Ada_memBufferedStream.hh) name was changed to avoid conflict called
+   --  by the Ada equivalent : UnMarshall
 
-   -- UnMarshall
-   -------------
-   procedure UnMarshall (A : out Corba.Unsigned_Long ;
-                         S : in out Object'Class) is
-      C_A : Interfaces.C.Unsigned_Long ;
+   ----------------
+   -- Unmarshall --
+   ----------------
+
+   procedure Unmarshall
+     (A : out CORBA.Unsigned_Long;
+      S : in out Object'Class)
+   is
+      C_A : Interfaces.C.unsigned_long;
    begin
-      C_UnMarshall_6 (C_A,S) ;
-      A := Corba.Unsigned_Long(C_A) ;
-   end;
+      C_Unmarshall_6 (C_A, S);
+      A := CORBA.Unsigned_Long (C_A);
+   end Unmarshall;
 
+   ------------------
+   -- C_Marshall_7 --
+   ------------------
 
-   -- C_Marshall_7
-   ---------------
-   procedure C_Marshall_7 (A : in Interfaces.C.C_Float ;
-                           S : in out Object'Class) ;
-   pragma Import (CPP,C_Marshall_7,"marshall__21Ada_memBufferedStreamfR21Ada_memBufferedStream") ;
-   -- wrapper around Ada_memBufferedStream function marshall
-   -- (see Ada_memBufferedStream.hh)
-   -- name was changed to avoid conflict
-   -- called by the Ada equivalent : Marshall
+   procedure C_Marshall_7
+     (A : in Interfaces.C.C_float;
+      S : in out Object'Class);
 
+   pragma Import
+     (CPP, C_Marshall_7,
+      "marshall__21Ada_memBufferedStreamfR21Ada_memBufferedStream");
+   --  Wrapper around Ada_memBufferedStream function marshall (see
+   --  Ada_memBufferedStream.hh) name was changed to avoid conflict called
+   --  by the Ada equivalent : Marshall
 
-   -- Marshall
-   -----------
-   procedure Marshall (A : in Corba.Float ;
-                       S : in out Object'Class) is
-      C_A : Interfaces.C.C_Float ;
+   --------------
+   -- Marshall --
+   --------------
+
+   procedure Marshall
+     (A : in CORBA.Float;
+      S : in out Object'Class)
+   is
+      C_A : Interfaces.C.C_float;
    begin
-      -- transforms the arguments in a C type ...
-      C_A := Interfaces.C.C_Float (A) ;
-      -- ... and calls the C procedure
-      C_Marshall_7 (C_A,S) ;
-   end;
+      --  Transform the arguments in a C type ...
+      C_A := Interfaces.C.C_float (A);
+      --  Call the C procedure
+      C_Marshall_7 (C_A, S);
+   end Marshall;
 
+   --------------------
+   -- C_Unmarshall_7 --
+   --------------------
 
-   -- C_UnMarshall_7
-   -----------------
-   procedure C_UnMarshall_7 (A : out Interfaces.C.C_Float ;
-                             S : in out Object'Class) ;
-   pragma Import (CPP,C_UnMarshall_7,"unmarshall__21Ada_memBufferedStreamRfR21Ada_memBufferedStream") ;
-   -- wrapper around Ada_memBufferedStream function marshall
-   -- (see Ada_memBufferedStream.hh)
-   -- name was changed to avoid conflict
-   -- called by the Ada equivalent : UnMarshall
+   procedure C_Unmarshall_7
+     (A : out Interfaces.C.C_float;
+      S : in out Object'Class);
 
+   pragma Import
+     (CPP, C_Unmarshall_7,
+      "unmarshall__21Ada_memBufferedStreamRfR21Ada_memBufferedStream");
+   --  Wrapper around Ada_memBufferedStream function marshall (see
+   --  Ada_memBufferedStream.hh) name was changed to avoid conflict called
+   --  by the Ada equivalent : UnMarshall
 
-   -- UnMarshall
-   -------------
-   procedure UnMarshall (A : out Corba.Float ;
-                         S : in out Object'Class) is
-      C_A : Interfaces.C.C_Float ;
+   ----------------
+   -- Unmarshall --
+   ----------------
+
+   procedure Unmarshall
+     (A : out CORBA.Float;
+      S : in out Object'Class)
+   is
+      C_A : Interfaces.C.C_float;
    begin
-      C_UnMarshall_7 (C_A,S) ;
-      A := Corba.Float(C_A) ;
-   end;
+      C_Unmarshall_7 (C_A, S);
+      A := CORBA.Float (C_A);
+   end Unmarshall;
 
+   ------------------
+   -- C_Marshall_8 --
+   ------------------
 
-   -- C_Marshall_8
-   ---------------
-   procedure C_Marshall_8 (A : in Interfaces.C.Double ;
-                           S : in out Object'Class) ;
-   pragma Import (CPP,C_Marshall_8,"marshall__21Ada_memBufferedStreamdR21Ada_memBufferedStream") ;
-   -- wrapper around Ada_memBufferedStream function marshall
-   -- (see Ada_memBufferedStream.hh)
-   -- name was changed to avoid conflict
-   -- called by the Ada equivalent : Marshall
+   procedure C_Marshall_8
+     (A : in Interfaces.C.double;
+      S : in out Object'Class);
 
+   pragma Import
+     (CPP, C_Marshall_8,
+      "marshall__21Ada_memBufferedStreamdR21Ada_memBufferedStream");
+   --  Wrapper around Ada_memBufferedStream function marshall (see
+   --  Ada_memBufferedStream.hh) name was changed to avoid conflict called
+   --  by the Ada equivalent : Marshall
 
-   -- Marshall
-   -----------
-   procedure Marshall (A : in Corba.Double ;
-                       S : in out Object'Class) is
-      C_A : Interfaces.C.Double ;
+   --------------
+   -- Marshall --
+   --------------
+
+   procedure Marshall
+     (A : in CORBA.Double;
+      S : in out Object'Class)
+   is
+      C_A : Interfaces.C.double;
    begin
-      -- transforms the arguments in a C type ...
-      C_A := Interfaces.C.Double(A) ;
-      -- ... and calls the C procedure
-      C_Marshall_8 (C_A,S) ;
-   end;
+      --  Transform the arguments in a C type ...
+      C_A := Interfaces.C.double (A);
+      --  Call the C procedure
+      C_Marshall_8 (C_A, S);
+   end Marshall;
 
+   --------------------
+   -- C_Unmarshall_8 --
+   --------------------
 
-   -- C_UnMarshall_8
-   -----------------
-   procedure C_UnMarshall_8 (A : out Interfaces.C.Double ;
-                             S : in out Object'Class) ;
-   pragma Import (CPP,C_UnMarshall_8,"unmarshall__21Ada_memBufferedStreamRdR21Ada_memBufferedStream") ;
-   -- wrapper around Ada_memBufferedStream function marshall
-   -- (see Ada_memBufferedStream.hh)
-   -- name was changed to avoid conflict
-   -- called by the Ada equivalent : UnMarshall
+   procedure C_Unmarshall_8
+     (A : out Interfaces.C.double;
+      S : in out Object'Class);
 
+   pragma Import
+     (CPP, C_Unmarshall_8,
+      "unmarshall__21Ada_memBufferedStreamRdR21Ada_memBufferedStream");
+   --  Wrapper around Ada_memBufferedStream function marshall (see
+   --  Ada_memBufferedStream.hh) name was changed to avoid conflict called
+   --  by the Ada equivalent : UnMarshall
 
-   -- UnMarshall
-   -------------
-   procedure UnMarshall (A : out Corba.Double ;
-                         S : in out Object'Class) is
-      C_A : Interfaces.C.Double ;
+   ----------------
+   -- Unmarshall --
+   ----------------
+
+   procedure Unmarshall
+     (A : out CORBA.Double;
+      S : in out Object'Class)
+   is
+      C_A : Interfaces.C.double;
    begin
-      C_UnMarshall_8 (C_A,S) ;
-      A := Corba.Double(C_A) ;
-   end;
+      C_Unmarshall_8 (C_A, S);
+      A := CORBA.Double (C_A);
+   end Unmarshall;
 
+   ------------------
+   -- C_Marshall_9 --
+   ------------------
 
-   -- C_Marshall_9
-   ---------------
-   procedure C_Marshall_9 (A : in Corba.Octet ;
-                           S : in out Object'Class) ;
-   pragma Import (CPP,C_Marshall_9,"marshall__21Ada_memBufferedStreamUcR21Ada_memBufferedStream") ;
-   -- wrapper around Ada_memBufferedStream function marshall
-   -- FOR CHAR TYPE BECAUSE IT IS THE SAME TYPE IN C++
-   -- (see Ada_memBufferedStream.hh)
-   -- name was changed to avoid conflict
-   -- called by the Ada equivalent : Marshall
+   procedure C_Marshall_9
+     (A : in CORBA.Octet;
+      S : in out Object'Class);
 
+   pragma Import
+     (CPP, C_Marshall_9,
+      "marshall__21Ada_memBufferedStreamUcR21Ada_memBufferedStream");
+   --  Wrapper around Ada_memBufferedStream function marshall FOR CHAR TYPE
+   --  BECAUSE IT IS THE SAME TYPE IN C++ (see Ada_memBufferedStream.hh)
+   --  name was changed to avoid conflict called by the Ada equivalent :
+   --  Marshall
 
-   -- Marshall
-   -----------
-   procedure Marshall (A : in Corba.Octet ;
-                       S : in out Object'Class) is
+   --------------
+   -- Marshall --
+   --------------
+
+   procedure Marshall
+     (A : in CORBA.Octet;
+      S : in out Object'Class)
+   is
    begin
-      C_Marshall_9 (A,S) ;
-   end;
+      C_Marshall_9 (A, S);
+   end Marshall;
 
+   --------------------
+   -- C_Unmarshall_9 --
+   --------------------
+   procedure C_Unmarshall_9
+     (A : out CORBA.Octet;
+      S : in out Object'Class);
 
-   -- C_UnMarshall_9
-   -----------------
-   procedure C_UnMarshall_9 (A : out Corba.Octet ;
-                             S : in out Object'Class) ;
-   pragma Import (CPP,C_UnMarshall_9,"unmarshall__21Ada_memBufferedStreamRUcR21Ada_memBufferedStream") ;
-   -- wrapper around Ada_memBufferedStream function marshall
-   -- FOR CHAR TYPE BECAUSE IT IS THE SAME TYPE IN C++
-   -- (see Ada_memBufferedStream.hh)
-   -- name was changed to avoid conflict
-   -- called by the Ada equivalent : UnMarshall
+   pragma Import
+     (CPP, C_Unmarshall_9,
+      "unmarshall__21Ada_memBufferedStreamRUcR21Ada_memBufferedStream");
+   --  Wrapper around Ada_memBufferedStream function marshall FOR CHAR TYPE
+   --  BECAUSE IT IS THE SAME TYPE IN C++ (see Ada_memBufferedStream.hh)
+   --  name was changed to avoid conflict called by the Ada equivalent :
+   --  UnMarshall
 
+   ----------------
+   -- Unmarshall --
+   ----------------
 
-   -- UnMarshall
-   -------------
-   procedure UnMarshall (A : out Corba.Octet ;
-                         S : in out Object'Class) is
+   procedure Unmarshall
+     (A : out CORBA.Octet;
+      S : in out Object'Class) is
    begin
-      C_UnMarshall_9 (A,S) ;
-   end;
+      C_Unmarshall_9 (A, S);
+   end Unmarshall;
 
-
-   -- Marshall
-   -----------
-   procedure Marshall (A : in Corba.String ;
-                       S : in out Object'Class) is
-      Size : Corba.Unsigned_Long ;
-      C : Standard.Character ;
+   --------------
+   -- Marshall --
+   --------------
+   procedure Marshall
+     (A : in CORBA.String;
+      S : in out Object'Class)
+   is
+      Size : CORBA.Unsigned_Long;
+      C    : Standard.Character;
    begin
-      -- first marshall the size of the string + 1
-      -- 1 is the size of the null character we must marshall
-      -- at the end of the string (C style)
-      Size := Corba.Length (A) + Corba.Unsigned_Long (1) ;
-      Marshall (Size , S) ;
-      -- Then marshall the string itself and a null character at the end
-      for I in 1..Integer(Size)-1 loop
-         C := Ada.Strings.Unbounded.Element (Ada.Strings.Unbounded.Unbounded_String (A),I) ;
-         Marshall (C,S) ;
-      end loop ;
-      Marshall (Corba.Char (Ada.Characters.Latin_1.nul),S) ;
-   end ;
+      --  First marshall the size of the string + 1 1 is the size of the
+      --  null character we must marshall at the end of the string (C
+      --  style)
 
+      Size := CORBA.Length (A) + CORBA.Unsigned_Long (1);
+      Marshall (Size, S);
 
-   -- UnMarshall
-   -------------
-   procedure UnMarshall (A : out Corba.String ;
-                         S : in out Object'Class) is
-      Size : Corba.Unsigned_Long ;
-      C : Standard.Character ;
+      --  Then marshall the string itself and a null character at the end
+
+      for I in 1 .. Integer (Size) - 1 loop
+         C := Ada.Strings.Unbounded.Element
+           (Ada.Strings.Unbounded.Unbounded_String (A), I);
+         Marshall (C, S);
+      end loop;
+
+      Marshall (CORBA.Char (Ada.Characters.Latin_1.NUL), S);
+   end Marshall;
+
+   ----------------
+   -- UnMarshall --
+   ----------------
+
+   procedure Unmarshall
+     (A : out CORBA.String;
+      S : in out Object'Class)
+   is
+      Size : CORBA.Unsigned_Long;
+      C    : Standard.Character;
    begin
-      -- first unmarshalls the size of the string
-      UnMarshall (Size,S) ;
+      --  First unmarshalls the size of the string
+      Unmarshall (Size, S);
+
       case Size is
          when 0 =>
-            -- the size is never 0 so raise exception if it is the case
-            Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
-                                           "Size of the string was 0 in membufferedstream.UnMarshall.") ;
+            --  The size is never 0 so raise exception if it is the case
+            Ada.Exceptions.Raise_Exception
+              (CORBA.AdaBroker_Fatal_Error'Identity,
+               "Size of the string was 0 in membufferedstream.UnMarshall.");
+
          when 1 =>
-            -- if the size is 1 then the String is empty
-            A := Corba.String (Ada.Strings.Unbounded.To_Unbounded_String ("")) ;
+            --  If the size is 1 then the String is empty
+            A := CORBA.String (Ada.Strings.Unbounded.To_Unbounded_String (""));
+
          when others =>
-            -- else we can unmarshall the string
+            --  Else we can unmarshall the string
             declare
-               Tmp : String (1..Integer(Size)-1) ;
+               Tmp : String (1 .. Integer (Size) - 1);
             begin
-               for I in 1..Integer(Size)-1 loop
-                  UnMarshall (Tmp(I),S);
-               end loop ;
-               A := Corba.String (Ada.Strings.Unbounded.To_Unbounded_String (Tmp)) ;
-            end ;
-      end case ;
-      -- unmarshall the null character at the end of the string (C style)
-      -- and verify it is null
-      UnMarshall (C,S) ;
-      if C /= Ada.Characters.Latin_1.Nul then
-         Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
-                                        "Size not ended by null character in membufferedstream.UnMarshall.") ;
-      end if ;
-   end ;
+               for I in Tmp'Range loop
+                  Unmarshall (Tmp (I), S);
+               end loop;
+               A := CORBA.String
+                 (Ada.Strings.Unbounded.To_Unbounded_String (Tmp));
+            end;
 
+      end case;
 
-   -- Marshall
-   -----------
-   procedure Marshall (A : in Corba.Completion_Status ;
-                       S : in out Object'Class) is
+      --  Unmarshall the null character at the end of the string (C style)
+      --  and verify it is null
+
+      Unmarshall (C, S);
+
+      if C /= Ada.Characters.Latin_1.NUL then
+         Ada.Exceptions.Raise_Exception
+           (CORBA.AdaBroker_Fatal_Error'Identity,
+            "Size not ended by null character in UnMarshall.");
+      end if;
+   end Unmarshall;
+
+   --------------
+   -- Marshall --
+   --------------
+
+   procedure Marshall
+     (A : in CORBA.Completion_Status;
+      S : in out Object'Class)
+   is
    begin
-      -- maps the possible values on the firste shorts
-      -- and marshall the right one
+      --  Maps the possible values on the firste shorts and marshall the
+      --  right one
+
       case A is
-         when Corba.Completed_Yes =>
-            Marshall (Corba.Unsigned_Short (1),S) ;
-         when Corba.Completed_No =>
-            Marshall (Corba.Unsigned_Short (2),S) ;
-         when Corba.Completed_Maybe =>
-            Marshall (Corba.Unsigned_Short (3),S) ;
-      end case ;
-   end ;
+         when CORBA.Completed_Yes =>
+            Marshall (CORBA.Unsigned_Short (1), S);
 
+         when CORBA.Completed_No =>
+            Marshall (CORBA.Unsigned_Short (2), S);
 
-   -- UnMarshall
-   -------------
-   procedure UnMarshall (A : out Corba.Completion_Status ;
-                         S : in out Object'Class) is
-      Tmp : Corba.Unsigned_Short ;
+         when CORBA.Completed_Maybe =>
+            Marshall (CORBA.Unsigned_Short (3), S);
+
+      end case;
+   end Marshall;
+
+   ----------------
+   -- Unmarshall --
+   ----------------
+
+   procedure Unmarshall
+     (A : out CORBA.Completion_Status;
+      S : in out Object'Class)
+   is
+      Tmp : CORBA.Unsigned_Short;
    begin
-      -- unmarshalls an unsigned short
-      UnMarshall (Tmp,S) ;
-      -- and returns the corresponding Completion_Status
+      --  Unmarshalls an unsigned short
+      Unmarshall (Tmp, S);
+
+      --  And returns the corresponding Completion_Status
       case Tmp is
          when 1 =>
-            A := Corba.Completed_Yes ;
+            A := CORBA.Completed_Yes;
+
          when 2 =>
-            A := Corba.Completed_No ;
+            A := CORBA.Completed_No;
+
          when 3 =>
-            A := Corba.Completed_Maybe ;
+            A := CORBA.Completed_Maybe;
+
          when others =>
-            Ada.Exceptions.Raise_Exception (Corba.AdaBroker_Fatal_Error'Identity,
-                                            "Expected Completion_Status in membufferedstream.UnMarshall" & Corba.CRLF &
-                                            "Short out of range" & Corba.CRLF &
-                                            "(see membufferedstream L660)");
-      end case ;
-   end ;
+            Ada.Exceptions.Raise_Exception
+              (CORBA.AdaBroker_Fatal_Error'Identity,
+               "Expected Completion_Status in UnMarshall" & CORBA.CRLF &
+               "Short out of range" & CORBA.CRLF &
+               "(see membufferedstream L660)");
 
+      end case;
+   end Unmarshall;
 
-   -- Marshall
-   -----------
-   procedure Marshall (A : in Corba.Ex_Body'Class ;
-                       S : in out Object'Class) is
+   --------------
+   -- Marshall --
+   --------------
+
+   procedure Marshall
+
+     (A : in CORBA.Ex_Body'Class;
+      S : in out Object'Class) is
    begin
-      -- just marshall each field
-      Marshall (A.Minor,S) ;
-      Marshall (A.Completed,S) ;
-   end;
+      --  Just marshall each field
+      Marshall (A.Minor, S);
+      Marshall (A.Completed, S);
+   end Marshall;
 
+   ----------------
+   -- UnMarshall --
+   ----------------
 
-   -- UnMarshall
-   -------------
-   procedure UnMarshall (A : out Corba.Ex_Body'Class ;
-                         S : in out Object'Class) is
-      Minor : Corba.Unsigned_Long ;
-      Completed : Corba.Completion_Status ;
+   procedure Unmarshall
+     (A : out CORBA.Ex_Body'Class;
+      S : in out Object'Class)
+   is
+      Minor     : CORBA.Unsigned_Long;
+      Completed : CORBA.Completion_Status;
    begin
-      -- Unmarshalls the two fields
-      UnMarshall (Completed,S) ;
-      UnMarshall (Minor,S) ;
-      -- and return the object
-      A.Minor := Minor ;
-      A.Completed := Completed ;
-   end;
+      --  Unmarshalls the two fields
+      Unmarshall (Completed, S);
+      Unmarshall (Minor, S);
 
+      --  And return the object
+      A.Minor     := Minor;
+      A.Completed := Completed;
+   end Unmarshall;
 
-end MemBufferedStream ;
+end MemBufferedStream;

@@ -4,13 +4,13 @@
 
 with Interfaces.C;
 
-package Giop is
+package GIOP is
 
    type Reply_Status_Type is
-      (NO_EXCEPTION,
-       USER_EXCEPTION,
-       SYSTEM_EXCEPTION,
-       LOCATION_FORWARD);
+      (No_Exception,
+       User_Exception,
+       System_Exception,
+       Location_Forward);
    --  Corresponds to enum ReplyStatusType { NO_EXCEPTION, USER_EXCEPTION,
    --  SYSTEM_EXCEPTION, LOCATION_FORWARD } in GIOP.h L 81
 
@@ -30,7 +30,7 @@ package Giop is
    --  NO_EXCEPTION, 1 -> USER_EXCEPTION ...  An Ada Exception
    --  C_Out_Of_Range is raised if the C value is incorrect.
 
-end Giop;
+end GIOP;
 
 
 

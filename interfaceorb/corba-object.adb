@@ -16,9 +16,23 @@ pragma Elaborate (Adabroker_Debug);
 
 package body CORBA.Object is
 
-   Debug : constant Boolean := Adabroker_Debug.Is_Active("corba.object");
+   Debug : constant Boolean := Adabroker_Debug.Is_Active ("corba.object");
 
-   use type Omniobject.Object_Ptr;
+   use type OmniObject.Object_Ptr;
+
+   procedure Create_Ref
+     (Most_Derived_Repoid : in CORBA.String;
+      Profiles            : in IOP.Tagged_Profile_List;
+      Release             : in CORBA.Boolean;
+      To                  : in out Ref'Class);
+
+   function Get_Dynamic_Type_From_Repository_Id
+     (Repoid : in CORBA.String)
+      return CORBA.Object.Constant_Ref_Ptr;
+
+   function Get_Profile_List
+     (Obj : in Ref'Class)
+      return IOP.Tagged_Profile_List;
 
    ------------
    -- Is_Nil --
@@ -33,7 +47,7 @@ package body CORBA.Object is
    -- Release --
    -------------
 
-   procedure Release (Self : in out Ref'class) is
+   procedure Release (Self : in out Ref) is
    begin
       Finalize (Self);
    end Release;
@@ -83,13 +97,13 @@ package body CORBA.Object is
       return CORBA.Boolean
    is
       Rak       : OmniRopeAndKey.Controlled_Wrapper;
-      Other_Rak : Omniropeandkey.Controlled_Wrapper;
+      Other_Rak : OmniRopeAndKey.Controlled_Wrapper;
       S1, S2    : CORBA.Boolean;
    begin
       --  This is copied from corbaObject.cc L160. Here, Refs are proxy
       --  objects
       OmniObject.Get_Rope_And_Key (Self.Omniobj.all,  Rak.Real, S1);
-      Omniobject.Get_Rope_And_Key (Other.Omniobj.all, Other_Rak.Real, S2);
+      OmniObject.Get_Rope_And_Key (Other.Omniobj.all, Other_Rak.Real, S2);
 
       return S1 and S2 and (Rak.Real = Other_Rak.Real);
    end Is_Equivalent;
@@ -100,7 +114,7 @@ package body CORBA.Object is
 
    function Hash
      (Self    : in Ref;
-      Maximum : in CORBA.Unsigned_long)
+      Maximum : in CORBA.Unsigned_Long)
       return CORBA.Unsigned_Long
    is
    begin
@@ -109,7 +123,7 @@ package body CORBA.Object is
            (Constraint_Error'Identity,
             "Cannot call function hash on a nil reference");
       end if;
-      return OmniObject.Hash(Self.Omniobj.all, Maximum);
+      return OmniObject.Hash (Self.Omniobj.all, Maximum);
    end Hash;
 
    -----------
@@ -156,7 +170,7 @@ package body CORBA.Object is
 
       Tmp  := new Cell'(Repoid, Dyn_Type, List);
       List := Tmp;
-   end;
+   end Register;
 
    -----------------------------------------
    -- Get_Dynamic_Type_From_Repository_Id --
@@ -196,7 +210,7 @@ package body CORBA.Object is
    procedure Free (Self : in out Ref_Ptr) is
    begin
       Private_Free (Self);
-   end;
+   end Free;
 
    -----------------------
    -- Get_Repository_Id --
@@ -214,95 +228,18 @@ package body CORBA.Object is
 
    function Get_OmniObject_Ptr
      (Self : in Ref'Class)
-      return Omniobject.Object_Ptr
+      return OmniObject.Object_Ptr
    is
    begin
       return Self.Omniobj;
    end Get_OmniObject_Ptr;
 
    ----------------------
-   -- Object_To_String --
-   ----------------------
-
-   function Object_To_String
-     (Self : in Ref'class)
-      return CORBA.String is
-   begin
-      if Is_Nil (Self) then
-         return OmniObject.Object_To_String (null);
-      else
-         return OmniObject.Object_To_String (Self.Omniobj);
-      end if;
-   end Object_To_String;
-
-   ----------------------
-   -- String_To_Object --
-   ----------------------
-
-   procedure String_To_Object
-     (From : in CORBA.String;
-      To   : out CORBA.Object.Ref'class)
-   is
-      Repoid            : CORBA.String;
-      Most_Derived_Type : Constant_Ref_Ptr;
-   begin
-      --  Get the omniobject
-      To.Omniobj := OmniObject.String_To_Object (From);
-
-      --  If the result is correct
-      if To.Omniobj /= null then
-
-         --  Just print a message to tell if the C++ object is a proxy or a
-         --  local object
-
-         if  Omniobject.Is_Proxy (To.Omniobj.all) then
-            pragma Debug
-              (Output (Debug,
-                       "CORBA.Object.String_To_Object :" &
-                       " creating Ref with local object inside"));
-            null;
-         else
-            pragma Debug
-              (Output (Debug,
-                       "CORBA.Object.String_To_Object :" &
-                       " creating Ref with local object inside"));
-            null;
-         end if;
-
-         --  Check if the omniobject we got can be put into To (type
-         --  implied the repoId)
-         Repoid := OmniObject.Get_Repository_Id (To.Omniobj.all);
-
-         pragma Debug
-           (Output (Debug,
-                    "CORBA.Object.String_To_Object : repoid = "
-                    & CORBA.To_Standard_String(RepoId)));
-
-         Most_Derived_Type :=
-           Get_Dynamic_Type_From_Repository_Id (Repoid);
-
-         --  Dyn_type is now an object of the most derived type of the new
-         --  created object
-
-         if Is_A (Most_Derived_Type.all, Get_Repository_Id (To)) then
-            To.Dynamic_Type := Most_Derived_Type;
-            return;
-         end if;
-      end if;
-
-      --  Otherwise, the operation is illegal return Nil_Ref in the right
-      --  class
-
-      To.Omniobj      := null;
-      To.Dynamic_Type := null;
-   end String_To_Object;
-
-   ----------------------
    -- Get_Dynamic_Type --
    ----------------------
 
    function Get_Dynamic_Type
-     (Self: in Ref)
+     (Self : in Ref)
       return Ref'Class is
    begin
       if Is_Nil (Self) then
@@ -334,10 +271,10 @@ package body CORBA.Object is
       pragma Debug
         (Output (Debug, "CORBA.Object.Internal_Copy(Ref) : adjusting ..."));
 
-      Adjust(To);
+      Adjust (To);
 
       pragma Debug
-        (Output (Debug,"CORBA.Object.Internal_Copy(Ref) : exiting ... OK"));
+        (Output (Debug, "CORBA.Object.Internal_Copy(Ref) : exiting ... OK"));
    end Internal_Copy;
 
    -------------------
@@ -375,7 +312,7 @@ package body CORBA.Object is
    -----------------------------------
 
    procedure C_Create_Proxy_Object_Factory
-     (Repoid : in Interfaces.C.Strings.Chars_ptr);
+     (Repoid : in Interfaces.C.Strings.chars_ptr);
    pragma Import
      (CPP, C_Create_Proxy_Object_Factory, "createProxyObjectFactory__FPCc");
    --  Corresponds to void createProxyObjectFactory(const char* repoID) see
@@ -388,8 +325,8 @@ package body CORBA.Object is
    procedure Create_Proxy_Object_Factory
      (Repoid : in CORBA.String)
    is
-      C_Repoid : Interfaces.C.Strings.Chars_Ptr;
-      Tmp      : Standard.String := CORBA.To_Standard_String (RepoId);
+      C_Repoid : Interfaces.C.Strings.chars_ptr;
+      Tmp      : Standard.String := CORBA.To_Standard_String (Repoid);
    begin
       C_Repoid := Interfaces.C.Strings.New_String (Tmp);
 
@@ -410,7 +347,7 @@ package body CORBA.Object is
      (Most_Derived_Repoid : in CORBA.String;
       Profiles            : in IOP.Tagged_Profile_List;
       Release             : in CORBA.Boolean;
-      To                  : in out Ref'Class )
+      To                  : in out Ref'Class)
    is
       Most_Derived_Type : Constant_Ref_Ptr;
    begin
@@ -426,7 +363,7 @@ package body CORBA.Object is
       if Is_A (Most_Derived_Type.all, Get_Repository_Id (To)) then
 
          --  Get the OmniObject
-         To.Omniobj := OmniObject.Create_Omniobject
+         To.Omniobj := OmniObject.Create_OmniObject
            (Most_Derived_Repoid,
             Profiles,
             Release);
@@ -447,7 +384,7 @@ package body CORBA.Object is
                  "In a " & CORBA.To_Standard_String (Get_Repository_Id (To))));
       To.Omniobj      := null;
       To.Dynamic_Type := null;
-   end;
+   end Create_Ref;
 
    ----------------------
    -- Get_Profile_List --
@@ -458,7 +395,7 @@ package body CORBA.Object is
       return IOP.Tagged_Profile_List
    is
    begin
-      return Omniobject.Get_Profile_List (Obj.Omniobj.all);
+      return OmniObject.Get_Profile_List (Obj.Omniobj.all);
       --  Calls the corresponding function on the underlying omniobject
    end Get_Profile_List;
 
@@ -486,7 +423,7 @@ package body CORBA.Object is
    begin
       --  Calls the corresponding function on the underlying omniobject
       OmniObject.Marshall (Obj.Omniobj, S);
-   end;
+   end Marshall;
 
    --------------
    -- Marshall --
@@ -498,7 +435,7 @@ package body CORBA.Object is
    is
    begin
       --  Calls the corresponding function on the underlying omniobject
-      OmniObject.Marshall (Obj.Omniobj,S);
+      OmniObject.Marshall (Obj.Omniobj, S);
    end Marshall;
 
    ----------------
@@ -599,47 +536,124 @@ package body CORBA.Object is
       Self.Dynamic_Type := null;
    end Initialize;
 
-     ------------
-     -- Adjust --
-     ------------
+   ------------
+   -- Adjust --
+   ------------
 
-     procedure Adjust (Self : in out Ref) is
-     begin
-     pragma Debug (Output (Debug, "CORBA.Object.Adjust : entering ..."));
-     if not Is_Nil (Self) then
-        pragma Debug
-          (Output (Debug, "CORBA.Object.Adjust : not nil -> duplicating"));
+   procedure Adjust (Self : in out Ref) is
+   begin
+      pragma Debug (Output (Debug, "CORBA.Object.Adjust : entering ..."));
+      if not Is_Nil (Self) then
+         pragma Debug
+           (Output (Debug, "CORBA.Object.Adjust : not nil -> duplicating"));
 
-        Self.Omniobj := OmniObject.OmniObject_Duplicate(Self.Omniobj);
-     end if;
-     pragma Debug (Output( Debug,"CORBA.Object.Adjust : exiting ... OK"));
-     end Adjust;
+         Self.Omniobj := OmniObject.OmniObject_Duplicate (Self.Omniobj);
+      end if;
+      pragma Debug (Output (Debug, "CORBA.Object.Adjust : exiting ... OK"));
+   end Adjust;
 
-     --------------
-     -- Finalize --
-     --------------
+   --------------
+   -- Finalize --
+   --------------
 
-     procedure Finalize (Self: in out Ref) is
-     begin
-        pragma Debug (Output (Debug, "CORBA.Object.Finalize : start"));
+   procedure Finalize (Self : in out Ref) is
+   begin
+      pragma Debug (Output (Debug, "CORBA.Object.Finalize : start"));
 
-        if not Is_Nil (Self) then
-           pragma Debug
-             (Output (Debug,
-                      "CORBA.Object.Finalize : finalizing non nil Ref"));
+      if not Is_Nil (Self) then
+         pragma Debug
+           (Output (Debug,
+                    "CORBA.Object.Finalize : finalizing non nil Ref"));
 
-           OmniObject.OmniObject_Destructor (Self.Omniobj);
+         OmniObject.OmniObject_Destructor (Self.Omniobj);
 
-           Self.Omniobj      := null;
-           Self.Dynamic_Type := null;
-        else
-           pragma Debug
-             (Output (Debug,
-                      "CORBA.Object.Finalize : cannot finalize nil ref"));
-           null;
-        end if;
-        pragma Debug (Output (Debug, "CORBA.Object.Finalize : done"));
-     end Finalize;
+         Self.Omniobj      := null;
+         Self.Dynamic_Type := null;
+      else
+         pragma Debug
+           (Output (Debug,
+                    "CORBA.Object.Finalize : cannot finalize nil ref"));
+         null;
+      end if;
+      pragma Debug (Output (Debug, "CORBA.Object.Finalize : done"));
+   end Finalize;
+
+   ----------------------
+   -- Object_To_String --
+   ----------------------
+
+   function Object_To_String
+     (Self : in Ref'Class)
+      return CORBA.String is
+   begin
+      if Is_Nil (Self) then
+         return OmniObject.Object_To_String (null);
+      else
+         return OmniObject.Object_To_String (Self.Omniobj);
+      end if;
+   end Object_To_String;
+
+   ----------------------
+   -- String_To_Object --
+   ----------------------
+
+   procedure String_To_Object
+     (From : in CORBA.String;
+      To   : out CORBA.Object.Ref'class)
+   is
+      Repoid            : CORBA.String;
+      Most_Derived_Type : Constant_Ref_Ptr;
+   begin
+      --  Get the omniobject
+      To.Omniobj := OmniObject.String_To_Object (From);
+
+      --  If the result is correct
+      if To.Omniobj /= null then
+
+         --  Just print a message to tell if the C++ object is a proxy or a
+         --  local object
+
+         if  OmniObject.Is_Proxy (To.Omniobj.all) then
+            pragma Debug
+              (Output (Debug,
+                       "CORBA.Object.String_To_Object :" &
+                       " creating Ref with local object inside"));
+            null;
+         else
+            pragma Debug
+              (Output (Debug,
+                       "CORBA.Object.String_To_Object :" &
+                       " creating Ref with local object inside"));
+            null;
+         end if;
+
+         --  Check if the omniobject we got can be put into To (type
+         --  implied the repoId)
+         Repoid := OmniObject.Get_Repository_Id (To.Omniobj.all);
+
+         pragma Debug
+           (Output (Debug,
+                    "CORBA.Object.String_To_Object : repoid = "
+                    & CORBA.To_Standard_String (Repoid)));
+
+         Most_Derived_Type :=
+           Get_Dynamic_Type_From_Repository_Id (Repoid);
+
+         --  Dyn_type is now an object of the most derived type of the new
+         --  created object
+
+         if Is_A (Most_Derived_Type.all, Get_Repository_Id (To)) then
+            To.Dynamic_Type := Most_Derived_Type;
+            return;
+         end if;
+      end if;
+
+      --  Otherwise, the operation is illegal return Nil_Ref in the right
+      --  class
+
+      To.Omniobj      := null;
+      To.Dynamic_Type := null;
+   end String_To_Object;
 
 begin
 

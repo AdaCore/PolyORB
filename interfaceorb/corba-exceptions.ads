@@ -3,8 +3,6 @@
 --  Get_Members. These functions allows the programmer to associate to each
 --  exception a "memmber" structure with all kinds of datas he needs.
 
-with Sys_Dep;
-
 package Corba.Exceptions is
 
    procedure Get_Members

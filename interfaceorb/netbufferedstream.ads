@@ -10,7 +10,6 @@
 with Ada.Unchecked_Deallocation;
 
 with Interfaces.CPP;
-with Interfaces.C.Strings;
 
 with System;
 
@@ -43,9 +42,9 @@ package NetBufferedStream is
    procedure Init
      (Self    : in Object'Class;
       R       : in Rope.Object;
-      Rdlock  : in CORBA.Boolean;
+      RdLock  : in CORBA.Boolean;
       WrLock  : in CORBA.Boolean;
-      Bufsize : in CORBA.Unsigned_Long);
+      BufSize : in CORBA.Unsigned_Long);
    --  Ada constructor of the class.  This function must be called after
    --  each declaration of an Object object. If it is not, you can not use
    --  the object.

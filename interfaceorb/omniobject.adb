@@ -16,13 +16,12 @@ with System;
 with CORBA;
 
 with Constants;
-with CORBA.Exceptions;
 with Omni;
-with Giop;
-with Giop_S;
+with GIOP;
+with GIOP_S;
 
 with Adabroker_Debug;
- use Adabroker_Debug;
+use Adabroker_Debug;
 
 package body OmniObject is
 
@@ -30,14 +29,17 @@ package body OmniObject is
    use type CORBA.String;
    use type CORBA.Unsigned_Long;
 
-   Omniobject : constant Boolean := Adabroker_Debug.Is_Active("omniobject");
+   Omniobject : constant Boolean := Adabroker_Debug.Is_Active ("omniobject");
 
    --  Implemented_Object this is the type of local implementations of
    --  objects it is the root of all XXX.Impl.Object
 
-   -------------------
-   -- miscellaneous --
-   -------------------
+   procedure Dispatch
+     (Self                  : in Object'Class;
+      Orls                  : in out GIOP_S.Object;
+      Orl_Op                : in Standard.String;
+      Orl_Response_Expected : in CORBA.Boolean;
+      Success               : out CORBA.Boolean);
 
    ------------
    -- C_Init --
@@ -45,7 +47,7 @@ package body OmniObject is
 
    procedure C_Init_Local_Object
      (Self : in out Object'Class;
-      Repoid : in Interfaces.C.Strings.Chars_Ptr);
+      Repoid : in Interfaces.C.Strings.chars_ptr);
 
    pragma Import
      (CPP, C_Init_Local_Object, "initLocalObject__14Ada_OmniObjectPCc");
@@ -62,7 +64,7 @@ package body OmniObject is
       Disp   : in Dispatch_Procedure;
       Isa    : in Is_A_Function)
    is
-      C_Repoid : Interfaces.C.Strings.Chars_Ptr;
+      C_Repoid : Interfaces.C.Strings.chars_ptr;
    begin
       pragma Debug (Output (Omniobject, "Omniobject.Init_Local_Object"));
       if not Is_Nil (Self) then
@@ -145,10 +147,10 @@ package body OmniObject is
      (Self : in Implemented_Object'Class) is
    begin
       if not Is_Nil (Self) then
-         Omniobject_Is_Ready (Self.Omniobj);
+         OmniObject_Is_Ready (Self.Omniobj);
       else
          Ada.Exceptions.Raise_Exception
-           (CORBA.Adabroker_Fatal_Error'Identity,
+           (CORBA.AdaBroker_Fatal_Error'Identity,
             "Omniobject.Object_Is_Ready(Implemented_Object)" & CORBA.CRLF
             & "Cannot be called on nil object");
       end if;
@@ -163,10 +165,10 @@ package body OmniObject is
    is
    begin
       if not Is_Nil (Self) then
-         Omniobject_Dispose (Self.Omniobj);
+         OmniObject_Dispose (Self.Omniobj);
       else
          Ada.Exceptions.Raise_Exception
-           (CORBA.Adabroker_Fatal_Error'Identity,
+           (CORBA.AdaBroker_Fatal_Error'Identity,
             "Omniobject.Dispose_Object(Implemented_Object)" & CORBA.CRLF
             & "Cannot be called on nil object");
       end if;
@@ -188,7 +190,7 @@ package body OmniObject is
       if Is_Nil (Self) then
          return Object_To_String (null);
       else
-         return Object_To_String(Self.Omniobj);
+         return Object_To_String (Self.Omniobj);
       end if;
    end Object_To_String;
 
@@ -209,7 +211,7 @@ package body OmniObject is
       if Obj = null then
          --  Never reached normally
          Ada.Exceptions.Raise_Exception
-           (CORBA.AdaBroker_Fatal_Error'Identity ,
+           (CORBA.AdaBroker_Fatal_Error'Identity,
             "Null pointer argument in function Align_Size in corba-object.");
       else
          --  Calls the corresponding function on the underlying omniobject
@@ -228,7 +230,7 @@ package body OmniObject is
       if Obj = null then
          --  Never reached normally
          Ada.Exceptions.Raise_Exception
-           (CORBA.AdaBroker_Fatal_Error'Identity ,
+           (CORBA.AdaBroker_Fatal_Error'Identity,
             "Null pointer argument in procedure Marshall in corba-object.");
       else
          --  Calls the corresponding function on the underlying omniobject
@@ -248,7 +250,7 @@ package body OmniObject is
       if Obj = null then
          --  Never reached normally
          Ada.Exceptions.Raise_Exception
-           (CORBA.AdaBroker_Fatal_Error'Identity ,
+           (CORBA.AdaBroker_Fatal_Error'Identity,
             "Null pointer argument in procedure Marshall in corba-object.");
       else
          --  Calls the corresponding function on the underlying omniobject
@@ -289,7 +291,7 @@ package body OmniObject is
          begin
             Offset := Offset + 4;
             Offset := Offset + CORBA.Length (Repoid) + 1;
-            Offset := Iop.Align_Size (Get_Profile_List (Obj.all), Offset);
+            Offset := IOP.Align_Size (Get_Profile_List (Obj.all), Offset);
             return Offset;
          end;
       end if;
@@ -308,12 +310,12 @@ package body OmniObject is
 
          --  If object null, marshall null object
          NetBufferedStream.Marshall (CORBA.Unsigned_Long (1), S);
-         NetBufferedStream.Marshall (CORBA.Char (Latin_1.Nul), S);
+         NetBufferedStream.Marshall (CORBA.Char (Latin_1.NUL), S);
          NetBufferedStream.Marshall (CORBA.Unsigned_Long (0), S);
       else
          --  Else marshall the Repo_ID and the iopProfiles
          NetBufferedStream.Marshall (Get_Repository_Id (Obj.all), S);
-         Iop.Marshall (Get_Profile_List (Obj.all), S);
+         IOP.Marshall (Get_Profile_List (Obj.all), S);
       end if;
    end Marshall;
 
@@ -329,7 +331,7 @@ package body OmniObject is
       if Obj = null then
          --  If object null, marshall null object
          MemBufferedStream.Marshall (CORBA.Unsigned_Long (1), S);
-         MemBufferedStream.Marshall (CORBA.Char (Latin_1.nul), S);
+         MemBufferedStream.Marshall (CORBA.Char (Latin_1.NUL), S);
          MemBufferedStream.Marshall (CORBA.Unsigned_Long (0), S);
       else
          --  Else marshall the Repo_ID and the iopProfiles
@@ -343,7 +345,7 @@ package body OmniObject is
    ----------------------------------
 
    function C_Create_Omniobject
-     (Most_Derived_Repoid : in Interfaces.C.Strings.Chars_ptr;
+     (Most_Derived_Repoid : in Interfaces.C.Strings.chars_ptr;
       Profiles            : in System.Address;
       Release             : in Sys_Dep.C_Boolean)
       return System.Address;
@@ -365,7 +367,7 @@ package body OmniObject is
       Release             : in CORBA.Boolean)
       return Object_Ptr
    is
-      C_Mdr      : Interfaces.C.Strings.Chars_Ptr;
+      C_Mdr      : Interfaces.C.Strings.chars_ptr;
       C_R        : Sys_Dep.C_Boolean;
       C_Profiles : System.Address;
       C_Result   : System.Address;
@@ -541,7 +543,7 @@ package body OmniObject is
    ------------------------
 
    function C_String_To_Object
-     (Repoid : in Interfaces.C.Strings.Chars_Ptr)
+     (Repoid : in Interfaces.C.Strings.chars_ptr)
       return System.Address;
    pragma Import
      (CPP, C_String_To_Object, "string_to_ada_object__14Ada_OmniObjectPCc");
@@ -555,11 +557,11 @@ package body OmniObject is
      (Repoid : in CORBA.String)
       return Object_Ptr
    is
-      C_Repoid : Interfaces.C.Strings.Chars_Ptr;
+      C_Repoid : Interfaces.C.Strings.chars_ptr;
       C_Result : System.Address;
       Result   : Object_Ptr;
    begin
-      -- Transform arguments into C types ...
+      --  Transform arguments into C types ...
       C_Repoid := Interfaces.C.Strings.New_String
         (CORBA.To_Standard_String (Repoid));
 
@@ -586,7 +588,7 @@ package body OmniObject is
 
    function C_Object_To_String
      (Obj : in System.Address)
-      return Interfaces.C.Strings.Chars_Ptr;
+      return Interfaces.C.Strings.chars_ptr;
 
    pragma Import
      (CPP, C_Object_To_String,
@@ -598,15 +600,15 @@ package body OmniObject is
    ----------------------
 
    function Object_To_String
-     (Obj_ptr : in Object_Ptr)
+     (Obj_Ptr : in Object_Ptr)
       return CORBA.String
    is
       C_Obj_Ptr : System.Address;
-      C_Result  : Interfaces.C.Strings.Chars_Ptr;
+      C_Result  : Interfaces.C.Strings.chars_ptr;
    begin
       C_Obj_Ptr := Address_To_Object.To_Address (From_Object_Ptr (Obj_Ptr));
-      C_Result  := C_Object_To_String (C_Obj_ptr);
-      return CORBA.To_CORBA_String(Interfaces.C.Strings.Value(C_Result));
+      C_Result  := C_Object_To_String (C_Obj_Ptr);
+      return CORBA.To_CORBA_String (Interfaces.C.Strings.Value (C_Result));
    end Object_To_String;
 
 
@@ -620,8 +622,8 @@ package body OmniObject is
 
    function C_Hash
      (Self    : in Object'Class;
-      Maximum : in Interfaces.C.Unsigned_Long)
-      return Interfaces.C.Unsigned_Long;
+      Maximum : in Interfaces.C.unsigned_long)
+      return Interfaces.C.unsigned_long;
 
    pragma Import (CPP, C_Hash, "hash__14Ada_OmniObjectUl");
    --  Calls Ada_OmniObject::hash
@@ -636,7 +638,7 @@ package body OmniObject is
       return CORBA.Unsigned_Long is
    begin
       return CORBA.Unsigned_Long
-        (C_Hash (Self, Interfaces.C.Unsigned_Long (Maximum)));
+        (C_Hash (Self, Interfaces.C.unsigned_long (Maximum)));
    end Hash;
 
    --------------------
@@ -662,7 +664,7 @@ package body OmniObject is
 
    procedure C_Get_Rope_And_Key
      (Self    : in Object'Class;
-      L       : in out Omniropeandkey.Object;
+      L       : in out OmniRopeAndKey.Object;
       Success : out Sys_Dep.C_Boolean);
    pragma Import
      (CPP, C_Get_Rope_And_Key,
@@ -676,8 +678,8 @@ package body OmniObject is
 
    procedure Get_Rope_And_Key
      (Self    : in Object'Class;
-      L       : in out Omniropeandkey.Object;
-      Success : out CORBA.Boolean )
+      L       : in out OmniRopeAndKey.Object;
+      Success : out CORBA.Boolean)
    is
       C_Success : Sys_Dep.C_Boolean;
    begin
@@ -699,7 +701,7 @@ package body OmniObject is
    -------------------------
    function C_Get_Repository_Id
      (Self : in Object'class)
-      return Interfaces.C.Strings.Chars_Ptr;
+      return Interfaces.C.Strings.chars_ptr;
 
    pragma Import
      (CPP, C_Get_Repository_Id, "getRepositoryID__14Ada_OmniObject");
@@ -712,7 +714,7 @@ package body OmniObject is
      (Self : in Object'class)
       return CORBA.String
    is
-      C_Result : Interfaces.C.Strings.Chars_Ptr;
+      C_Result : Interfaces.C.Strings.chars_ptr;
    begin
       C_Result := C_Get_Repository_Id (Self);
       return CORBA.To_CORBA_String (Interfaces.C.Strings.Value (C_Result));
@@ -743,7 +745,7 @@ package body OmniObject is
       Result := C_Get_Profile_List (Self);
 
       --  Transforms the result in an Ada type
-      return Iop.Tagged_Profile_List (Result);
+      return IOP.Tagged_Profile_List (Result);
    end Get_Profile_List;
 
    --  Implemented_Object this is the type of local implementations of
@@ -757,7 +759,7 @@ package body OmniObject is
    -- Initialize --
    ----------------
 
-   procedure Initialize (Self: in out Implemented_Object)
+   procedure Initialize (Self : in out Implemented_Object)
    is
       type Ptr is access all Implemented_Object;
       function To_Implemented_Object_Ptr is
@@ -775,7 +777,7 @@ package body OmniObject is
    -- Adjust --
    ------------
 
-   procedure Adjust (Self: in out Implemented_Object) is
+   procedure Adjust (Self : in out Implemented_Object) is
    begin
       null;
    end Adjust;
@@ -784,7 +786,7 @@ package body OmniObject is
    -- Finalize --
    --------------
 
-   procedure Finalize (Self: in out Implemented_Object)
+   procedure Finalize (Self : in out Implemented_Object)
    is
    begin
       pragma Debug (Output (Omniobject, "Omniobject.Finalize"));
@@ -793,7 +795,7 @@ package body OmniObject is
          pragma Debug
            (Output (Omniobject, "Omniobject.Finalizing non nil object"));
 
-         Omniobject_Destructor (Self.Omniobj);
+         OmniObject_Destructor (Self.Omniobj);
 
          pragma Debug
            (Output (Omniobject, "Omniobject.Finalize :object destroyed"));
@@ -832,7 +834,7 @@ package body OmniObject is
 
    procedure C_Set_Repository_Id
      (Self   : in out Object'Class;
-      Repoid : Interfaces.C.Strings.Chars_Ptr);
+      Repoid : Interfaces.C.Strings.chars_ptr);
    pragma Import
      (CPP, C_Set_Repository_Id, "setRepositoryID__14Ada_OmniObjectPCc");
    --  Corresponds to Ada_OmniObject::setRepositoryID
@@ -845,7 +847,7 @@ package body OmniObject is
      (Self   : in out Object'class;
       Repoid : in CORBA.String)
    is
-      C_Repoid : Interfaces.C.Strings.Chars_Ptr;
+      C_Repoid : Interfaces.C.Strings.chars_ptr;
    begin
       if Is_Proxy (Self) then
          Ada.Exceptions.Raise_Exception
@@ -870,7 +872,7 @@ package body OmniObject is
       L       : in out OmniRopeAndKey.Object;
       KeepIOP : in Sys_Dep.C_Boolean);
    pragma Import
-     (CPP,C_Set_Rope_And_Key,
+     (CPP, C_Set_Rope_And_Key,
       "setRopeAndKey__14Ada_OmniObjectRC18Ada_OmniRopeAndKeyb");
    --  Wrapper around Ada_OmniObject function setRopeAndKey (see
    --  Ada_OmniObject.hh)
@@ -881,7 +883,7 @@ package body OmniObject is
 
    procedure Set_Rope_And_Key
      (Self    : in out Object'Class;
-      L       : in out Omniropeandkey.Object;
+      L       : in out OmniRopeAndKey.Object;
       KeepIOP : in Boolean := True)
    is
       C_KeepIOP : Sys_Dep.C_Boolean;
@@ -890,7 +892,7 @@ package body OmniObject is
       C_KeepIOP := Sys_Dep.Boolean_Ada_To_C (KeepIOP);
 
       --  Calls the C procedure
-      C_Set_Rope_And_Key (Self,L,C_KeepIOP);
+      C_Set_Rope_And_Key (Self, L, C_KeepIOP);
    end Set_Rope_And_Key;
 
    --------------
@@ -899,16 +901,25 @@ package body OmniObject is
 
    procedure Dispatch
      (Self                  : in Object'Class;
-      Orls                  : in out Giop_S.Object;
+      Orls                  : in out GIOP_S.Object;
       Orl_Op                : in Standard.String;
       Orl_Response_Expected : in CORBA.Boolean;
       Success               : out CORBA.Boolean)
    is
 
       procedure Marshall_System_Exception
-        (Repoid : in Constants.Exception_ID;
+        (Repoid : in Constants.Exception_Id;
          Exbd   : in CORBA.Ex_Body'Class;
-         Orls   : in out Giop_S.Object)
+         Orls   : in out GIOP_S.Object);
+
+      -------------------------------
+      -- Marshall_System_Exception --
+      -------------------------------
+
+      procedure Marshall_System_Exception
+        (Repoid : in Constants.Exception_Id;
+         Exbd   : in CORBA.Ex_Body'Class;
+         Orls   : in out GIOP_S.Object)
       is
          Msgsize : CORBA.Unsigned_Long := 0;
       begin
@@ -916,29 +927,29 @@ package body OmniObject is
            (Output (Omniobject, "Dispatch : Marshalling System Exception : " &
                     Constants.To_Standard_String (Repoid)));
          pragma Debug
-           (Output (Omniobject,"Dispatch : Marshalling System Exception : " &
+           (Output (Omniobject, "Dispatch : Marshalling System Exception : " &
                     " msgsize = " & CORBA.Unsigned_Long'Image (Msgsize)));
 
-         Msgsize := Giop_S.Reply_Header_Size;
+         Msgsize := GIOP_S.Reply_Header_Size;
 
          pragma Debug
            (Output (Omniobject, "Dispatch : Marshalling System Exception : " &
                     " msgsize = " & CORBA.Unsigned_Long'Image (Msgsize)));
 
-         Msgsize := Netbufferedstream.Align_Size
+         Msgsize := NetBufferedStream.Align_Size
            (CORBA.To_CORBA_String (Repoid), Msgsize);
 
          pragma Debug
            (Output (Omniobject, "Dispatch : Marshalling System Exception : " &
                     " msgsize = " & CORBA.Unsigned_Long'Image (Msgsize)));
 
-         Msgsize := Netbufferedstream.Align_Size (Exbd, Msgsize);
+         Msgsize := NetBufferedStream.Align_Size (Exbd, Msgsize);
 
          pragma Debug
            (Output (Omniobject, "Dispatch : Marshalling System Exception : " &
                     " msgsize = " & CORBA.Unsigned_Long'Image (Msgsize)));
 
-         Giop_S.Initialize_Reply (Orls, Giop.SYSTEM_EXCEPTION, Msgsize);
+         GIOP_S.Initialize_Reply (Orls, GIOP.System_Exception, Msgsize);
 
          pragma Debug
            (Output (Omniobject, "Dispatch : Marshalling System Exception : " &
@@ -956,7 +967,7 @@ package body OmniObject is
            (Output (Omniobject, "Dispatch : Marshalling System Exception : " &
                     " Ex_Body marshalled OK"));
 
-         Giop_S.Reply_Completed (Orls);
+         GIOP_S.Reply_Completed (Orls);
 
          pragma Debug
            (Output (Omniobject, "Dispatch : Marshalling System Exception : " &
@@ -975,7 +986,7 @@ package body OmniObject is
                     "Omniobject.Dispatch : raise Fatal error"));
 
          Ada.Exceptions.Raise_Exception
-           (CORBA.Adabroker_Fatal_Error'Identity,
+           (CORBA.AdaBroker_Fatal_Error'Identity,
             "Omniobject.Dispatch should not be called on a proxy object");
 
       else
@@ -989,7 +1000,7 @@ package body OmniObject is
                Orls,
                Orl_Op,
                Orl_Response_Expected,
-               success);
+               Success);
 
             pragma Debug
               (Output (Omniobject,
@@ -1006,22 +1017,22 @@ package body OmniObject is
                     (Constants.Unknown_Repoid, Exbd, Orls);
                end;
 
-            when E : CORBA.Bad_param =>
+            when E : CORBA.Bad_Param =>
                declare
                   Exbd : CORBA.Bad_Param_Members;
                begin
                   CORBA.Get_Members (E, Exbd);
                   Marshall_System_Exception
-                    (Constants.Bad_param_Repoid, Exbd, Orls);
+                    (Constants.Bad_Param_Repoid, Exbd, Orls);
                end;
 
-            when E : CORBA.No_memory =>
+            when E : CORBA.No_Memory =>
                declare
                   Exbd : CORBA.No_Memory_Members;
                begin
                   CORBA.Get_Members (E, Exbd);
                   Marshall_System_Exception
-                    (Constants.No_memory_Repoid, Exbd, Orls);
+                    (Constants.No_Memory_Repoid, Exbd, Orls);
                end;
 
             when E : CORBA.Imp_Limit =>
@@ -1033,7 +1044,7 @@ package body OmniObject is
                     (Constants.Imp_Limit_Repoid, Exbd, Orls);
                end;
 
-            when E : CORBA.Comm_failure =>
+            when E : CORBA.Comm_Failure =>
                declare
                   Exbd : CORBA.Comm_Failure_Members;
                begin
@@ -1048,16 +1059,16 @@ package body OmniObject is
                begin
                   CORBA.Get_Members (E, Exbd);
                   Marshall_System_Exception
-                    (Constants.Inv_Objref_Repoid, Exbd, Orls);
+                    (Constants.Inv_ObjRef_Repoid, Exbd, Orls);
                end;
 
             when E : CORBA.No_Permission =>
                declare
-                  Exbd : CORBA.No_permission_Members;
+                  Exbd : CORBA.No_Permission_Members;
                begin
                   CORBA.Get_Members (E, Exbd);
                   Marshall_System_Exception
-                    (Constants.No_permission_Repoid, Exbd, Orls);
+                    (Constants.No_Permission_Repoid, Exbd, Orls);
                end;
 
             when E : CORBA.Internal =>
@@ -1107,7 +1118,7 @@ package body OmniObject is
 
             when E : CORBA.Bad_Operation =>
                declare
-                  Exbd : CORBA.Bad_operation_Members;
+                  Exbd : CORBA.Bad_Operation_Members;
                begin
                   CORBA.Get_Members (E, Exbd);
                   Marshall_System_Exception
@@ -1125,7 +1136,7 @@ package body OmniObject is
 
             when E : CORBA.Persist_Store =>
                declare
-                  Exbd : CORBA.Persist_store_Members;
+                  Exbd : CORBA.Persist_Store_Members;
                begin
                   CORBA.Get_Members (E, Exbd);
                   Marshall_System_Exception
@@ -1177,7 +1188,7 @@ package body OmniObject is
                     (Constants.Inv_Flag_Repoid, Exbd, Orls);
                end;
 
-            when E : CORBA.Intf_repos =>
+            when E : CORBA.Intf_Repos =>
                declare
                   Exbd : CORBA.Intf_Repos_Members;
                begin
@@ -1213,7 +1224,7 @@ package body OmniObject is
                     (Constants.Data_Conversion_Repoid, Exbd, Orls);
                end;
 
-            when E : CORBA.Object_Not_exist =>
+            when E : CORBA.Object_Not_Exist =>
                declare
                   Exbd : CORBA.Object_Not_Exist_Members;
                begin
@@ -1249,11 +1260,11 @@ package body OmniObject is
                     (Constants.Wrong_Transaction_Repoid, Exbd, Orls);
                end;
 
-            when E: CORBA.Adabroker_Fatal_Error |
-              CORBA.No_Initialisation_Error     |
-              CORBA.C_Out_Of_Range              |
-              CORBA.OmniORB_Fatal_Error         |
-              CORBA.Dummy_User                  =>
+            when E : CORBA.AdaBroker_Fatal_Error |
+              CORBA.No_Initialisation_Error      |
+              CORBA.C_Out_Of_Range               |
+              CORBA.OmniORB_Fatal_Error          |
+              CORBA.Dummy_User                   =>
                pragma Debug
                  (Output (Omniobject,
                           "Omniobject.Dispatch : caught a serious error : " &
@@ -1267,7 +1278,7 @@ package body OmniObject is
                   pragma Debug
                     (Output (Omniobject,
                              "Omniobject.Dispatch : caught other exception"));
-                  Exbd := (0, CORBA.COMPLETED_MAYBE);
+                  Exbd := (0, CORBA.Completed_Maybe);
                   Marshall_System_Exception
                     (Constants.Unknown_Repoid, Exbd, Orls);
                end;
@@ -1281,12 +1292,12 @@ package body OmniObject is
    ----------------
    procedure C_Dispatch
      (Self                  : in Object'Class;
-      Orls                  : in out Giop_S.Object;
-      Orl_Op                : in Interfaces.C.Strings.Chars_Ptr;
+      Orls                  : in out GIOP_S.Object;
+      Orl_Op                : in Interfaces.C.Strings.chars_ptr;
       Orl_Response_Expected : in Sys_Dep.C_Boolean;
       Success               : out Sys_Dep.C_Boolean)
    is
-      Ada_Orl_Op : Standard.String := Interfaces.C.Strings.Value (Orl_OP);
+      Ada_Orl_Op : Standard.String := Interfaces.C.Strings.Value (Orl_Op);
       Ada_Orl_Response_Expected : CORBA.Boolean;
       Ada_Success : CORBA.Boolean;
    begin
@@ -1316,7 +1327,7 @@ package body OmniObject is
 
    function C_Is_A
      (Self   : in Object'Class;
-      Repoid : in Interfaces.C.Strings.Chars_Ptr)
+      Repoid : in Interfaces.C.Strings.chars_ptr)
       return  Sys_Dep.C_Boolean
    is
       Rep : CORBA.String;

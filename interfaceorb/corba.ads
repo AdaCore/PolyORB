@@ -1,9 +1,3 @@
---  This package deffines all general types and associated functions used
---  in AdaBroker. The first part is the definition of corba types out of
---  Ada ones. Pointers on these types are also defined as well as the
---  associated free functions. Then, the corba exception type is defined
---  and all corba system exceptions. At last, some OmniOrb or AdaBroker
-
 with Ada.Exceptions;
 with Ada.Characters.Latin_1;
 with Ada.Strings.Unbounded;
@@ -15,15 +9,14 @@ with Constants;
 
 package CORBA is
 
-   --  CORBA Module: In order to prevent names defined with the
-   --  CORBA specification from clashing with names in programming languages
-   --  and other software systems, all names defined by CORBA are treated as
-   --  if they were defined with a module named CORBA.
+   --  CORBA Module: In order to prevent names defined with the CORBA
+   --  specification from clashing with names in programming languages and
+   --  other software systems, all names defined by CORBA are treated as if
+   --  they were defined with a module named CORBA.
 
-   --  Each IDL data type is mapped to a native data
-   --  type via the appropriate language mapping.
-   --  The following definitions may differ. See the mapping
-   --  specification for more information.
+   --  Each IDL data type is mapped to a native data type via the
+   --  appropriate language mapping. The following definitions may
+   --  differ. See the mapping specification for more information.
 
    subtype Boolean        is Standard.Boolean;
    type    Short          is new Interfaces.Integer_16;
@@ -47,9 +40,6 @@ package CORBA is
    --  arguments when an exception is raised. The default Member record is
    --  abstract and empty but all other records will inherit from it.
 
-   type IDL_Exception_Members_Ptr is access all IDL_Exception_Members'Class;
-   --  Type pointer on the IDL_Exception_Members type
-
    procedure Get_Members
      (From : in Ada.Exceptions.Exception_Occurrence;
       To   : out IDL_Exception_Members) is abstract;
@@ -57,19 +47,15 @@ package CORBA is
    --  occurence This methos must be redefined for each new member
    --  type. That's why it is declared abstract.
 
-   procedure Free is
-     new Ada.Unchecked_Deallocation
-     (IDL_Exception_Members'Class,
-      IDL_Exception_Members_Ptr);
    --  Free method associated to the type Idl_Exception_Members_Ptr
-
-   type Exception_Type is (No_Exception, System_Exception, User_Exception);
-   --  Type used for characterize exceptions.  It is defined by the CORBA
-   --  specification.
 
    type Completion_Status is (Completed_Yes, Completed_No, Completed_Maybe);
    --  Type used for characterize the state of an exception It is defined
    --  by the CORBA specification.
+
+   type Exception_Type is (No_Exception, System_Exception, User_Exception);
+   --  Type used for characterize exceptions.  It is defined by the CORBA
+   --  specification.
 
    type Ex_Body is new CORBA.IDL_Exception_Members with
       record
@@ -78,9 +64,6 @@ package CORBA is
       end record;
    --  Member type for System exceptions.  It is defined by the CORBA
    --  specification
-
-   type Ex_Body_Ptr is access all Ex_Body;
-   --  Type pointer on the Ex_Body type
 
    procedure Get_Members
      (From : in Ada.Exceptions.Exception_Occurrence;
@@ -141,9 +124,9 @@ package CORBA is
    type Data_Conversion_Members is new Ex_Body with null record;
 
 
-   ------------------------
-   -- AdaBroker specific --
-   ------------------------
+   ---------------
+   -- AdaBroker --
+   ---------------
 
    type Boolean_Ptr        is access all Boolean;
    type Short_Ptr          is access all Short;
@@ -190,19 +173,19 @@ package CORBA is
    --  wants to split a string into sevral lines : just write "first line"
    --  & CORBA.CRLF & "second line"
 
-   AdaBroker_Fatal_Error : exception;
+   AdaBroker_Fatal_Error         : exception;
    --  Error in the AdaBroker runtime
 
    AdaBroker_Not_Implemented_Yet : exception;
    --  Function was not implemented yet
 
-   No_Initialisation_Error : exception;
+   No_Initialisation_Error       : exception;
    --  A C object was used before being initialised via an Init function
 
-   C_Out_Of_Range : exception;
+   C_Out_Of_Range                : exception;
    --  A C Value was to be converted into an Ada Value but was out of range
 
-   Dummy_User : exception;
+   Dummy_User                    : exception;
    --  The user tried to call an unchecked case in an union
 
    function To_CORBA_String

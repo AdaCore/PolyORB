@@ -6,17 +6,14 @@
 
 with Interfaces.C;
 with Interfaces.CPP;
-with Interfaces.C.Strings;
-
-with System;
 
 with CORBA;
 
-with Giop;
+with GIOP;
 with Sys_Dep;
 with NetBufferedStream;
 
-package Giop_S is
+package GIOP_S is
 
    type Object is new NetBufferedStream.Object with record
       Table1 : Interfaces.CPP.Vtable_Ptr;
@@ -46,7 +43,7 @@ package Giop_S is
 
    procedure Initialize_Reply
      (Self    : in out Object'Class;
-      Status  : in Giop.Reply_Status_Type;
+      Status  : in GIOP.Reply_Status_Type;
       MsgSize : in CORBA.Unsigned_Long);
    --  Initialisation of a reply (see giopDriver.h L150 for more details)
 
@@ -66,5 +63,5 @@ private
    --  Default constructor of the C class. Actually, this constructor does
    --  nothing.
 
-end Giop_S;
+end GIOP_S;
 

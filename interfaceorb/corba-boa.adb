@@ -1,95 +1,66 @@
------------------------------------------------------------------------
------------------------------------------------------------------------
-----                                                               ----
-----                         AdaBroker                             ----
-----                                                               ----
-----                    package Corba.Boa                          ----
-----                                                               ----
-----                                                               ----
-----   Copyright (C) 1999 ENST                                     ----
-----                                                               ----
-----   This file is part of the AdaBroker library                  ----
-----                                                               ----
-----   The AdaBroker library is free software; you can             ----
-----   redistribute it and/or modify it under the terms of the     ----
-----   GNU Library General Public License as published by the      ----
-----   Free Software Foundation; either version 2 of the License,  ----
-----   or (at your option) any later version.                      ----
-----                                                               ----
-----   This library is distributed in the hope that it will be     ----
-----   useful, but WITHOUT ANY WARRANTY; without even the implied  ----
-----   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ----
-----   PURPOSE.  See the GNU Library General Public License for    ----
-----   more details.                                               ----
-----                                                               ----
-----   You should have received a copy of the GNU Library General  ----
-----   Public License along with this library; if not, write to    ----
-----   the Free Software Foundation, Inc., 59 Temple Place -       ----
-----   Suite 330, Boston, MA 02111-1307, USA                       ----
-----                                                               ----
-----                                                               ----
-----                                                               ----
-----   Description                                                 ----
-----   -----------                                                 ----
-----                                                               ----
-----     This package is wrapped around a C++ class whose name     ----
-----   is BOA declared in file CORBA.h.                            ----
-----     It provides two types of methods : the C functions        ----
-----   of the BOA class and their equivalent in                    ----
-----   Ada. (the first ones have a C_ prefix.)                     ----
-----                                                               ----
-----                                                               ----
-----   authors : Sebastien Ponce, Fabien Azavant                   ----
-----   date    : 02/28/99                                          ----
-----                                                               ----
------------------------------------------------------------------------
------------------------------------------------------------------------
 
+--  This package is wrapped around a C++ class whose name is BOA declared
+--  in file CORBA.h.  It provides two types of methods : the C functions of
+--  the BOA class and their equivalent in Ada. (the first ones have a C_
+--  prefix.)
 
-with Sys_Dep ;
+with Sys_Dep;
 
-package body Corba.Boa is
+package body CORBA.BOA is
 
+   -------------------------------
+   -- C_Implementation_Is_Ready --
+   -------------------------------
 
-   -- C_Implementation_Is_Ready
-   ----------------------------
-   procedure C_Implementation_Is_Ready(Self : in Object ;
-                                       ImplementationDef_ptr : in System.Address ;
-                                       Non_Blocking : in Sys_Dep.C_Boolean );
-   pragma Import(CPP, C_Implementation_Is_Ready, "impl_is_ready__FPQ25CORBA3BOAPQ25CORBA17ImplementationDefb") ;
-   -- corresponds to Ada_Corba_Boa method impl is ready
-   -- see Ada_Corba_Boa.hh
+   procedure C_Implementation_Is_Ready
+     (Self                  : in Object;
+      ImplementationDef_Ptr : in System.Address;
+      Non_Blocking          : in Sys_Dep.C_Boolean);
+   pragma Import
+     (CPP, C_Implementation_Is_Ready,
+      "impl_is_ready__FPQ25CORBA3BOAPQ25CORBA17ImplementationDefb");
+   --  Corresponds to Ada_CORBA_Boa method impl is ready see
+   --  Ada_CORBA_Boa.hh
 
-
-   -- Implementation_Is_Ready
-   --------------------------
-   procedure Implementation_Is_Ready(Self : in Object ;
-                                     Non_Blocking : in Boolean := False )  is
-      Tmp : System.Address := System.Null_Address ;
-      NB : Sys_Dep.C_Boolean := Sys_Dep.Boolean_Ada_To_C(Non_Blocking) ;
+   -----------------------------
+   -- Implementation_Is_Ready --
+   -----------------------------
+   procedure Implementation_Is_Ready
+     (Self         : in Object;
+      Non_Blocking : in Boolean := False)
+   is
+      Tmp : System.Address    := System.Null_Address;
+      NB  : Sys_Dep.C_Boolean := Sys_Dep.Boolean_Ada_To_C (Non_Blocking);
    begin
-      C_Implementation_Is_Ready(Self, Tmp, NB) ;
-   end ;
+      C_Implementation_Is_Ready (Self, Tmp, NB);
+   end Implementation_Is_Ready;
 
+   ---------------------
+   -- Object_Is_Ready --
+   ---------------------
 
-   -- Object_Is_Ready
-   -------------------
-   procedure Object_Is_Ready(Self: in Object ;
-                             Obj: in Omniobject.Implemented_Object'Class ) is
+   procedure Object_Is_Ready
+     (Self : in Object;
+      Obj  : in OmniObject.Implemented_Object'Class)
+   is
    begin
-      -- it does not take the BOA into account because thereis only
-      -- one BOA in omniORB2. ( See corbaBoa.cc )
-      Omniobject.Object_Is_Ready(Obj) ;
-   end ;
+      --  It does not take the BOA into account because thereis only one
+      --  BOA in omniORB2. ( See corbaBoa.cc)
+      OmniObject.Object_Is_Ready (Obj);
+   end Object_Is_Ready;
 
-   -- Object_Is_Ready
-   -------------------
-   procedure Dispose_Object(Self: in Object ;
-                            Obj: in Omniobject.Implemented_Object'Class ) is
+   ---------------------
+   -- Object_Is_Ready --
+   ---------------------
+
+   procedure Dispose_Object
+     (Self : in Object;
+      Obj  : in OmniObject.Implemented_Object'Class)
+   is
    begin
-      -- it does not take the BOA into account because thereis only
-      -- one BOA in omniORB2. ( See corbaBoa.cc )
-      Omniobject.Dispose_Object(Obj) ;
-   end ;
+      --  It does not take the BOA into account because thereis only one
+      --  BOA in omniORB2. ( See corbaBoa.cc)
+      OmniObject.Dispose_Object (Obj);
+   end Dispose_Object;
 
-end Corba.Boa ;
+end CORBA.BOA;

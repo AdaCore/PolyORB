@@ -1,73 +1,30 @@
------------------------------------------------------------------------
------------------------------------------------------------------------
-----                                                               ----
-----                         AdaBroker                             ----
-----                                                               ----
-----                       package Omni                            ----
-----                                                               ----
-----                                                               ----
-----   Copyright (C) 1999 ENST                                     ----
-----                                                               ----
-----   This file is part of the AdaBroker library                  ----
-----                                                               ----
-----   The AdaBroker library is free software; you can             ----
-----   redistribute it and/or modify it under the terms of the     ----
-----   GNU Library General Public License as published by the      ----
-----   Free Software Foundation; either version 2 of the License,  ----
-----   or (at your option) any later version.                      ----
-----                                                               ----
-----   This library is distributed in the hope that it will be     ----
-----   useful, but WITHOUT ANY WARRANTY; without even the implied  ----
-----   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ----
-----   PURPOSE.  See the GNU Library General Public License for    ----
-----   more details.                                               ----
-----                                                               ----
-----   You should have received a copy of the GNU Library General  ----
-----   Public License along with this library; if not, write to    ----
-----   the Free Software Foundation, Inc., 59 Temple Place -       ----
-----   Suite 330, Boston, MA 02111-1307, USA                       ----
-----                                                               ----
-----                                                               ----
-----                                                               ----
-----   Description                                                 ----
-----   -----------                                                 ----
-----                                                               ----
-----     This package is wrapped around the C class omni_C2Ada     ----
-----   declared in omni_C2Ada.hh;                                  ----
-----     It provides the 2 functions of omni_C2Ada and their       ----
-----   equivalent in ADA.                                          ----
-----                                                               ----
-----                                                               ----
-----   authors : Sebastien Ponce, Fabien Azavant                   ----
-----   date    : 02/28/99                                          ----
-----                                                               ----
------------------------------------------------------------------------
------------------------------------------------------------------------
 
+with CORBA;
 
-with Ada.Exceptions ;
+package body Omni is
 
-with Corba ;
-use type Corba.Unsigned_Long ;
+   use type CORBA.Unsigned_Long;
 
-Package body Omni is
+   --------------
+   -- Align_To --
+   --------------
 
-   -- Align_To
-   -----------
-   function Align_To(Size : in Corba.Unsigned_Long ;
-                     Align : in Alignment_T)
-                     return Corba.Unsigned_Long is
-      Temp : Corba.Unsigned_Long ;
+   function Align_To
+     (Size  : in CORBA.Unsigned_Long;
+      Align : in Alignment_T)
+      return CORBA.Unsigned_Long
+   is
+      Temp : CORBA.Unsigned_Long;
    begin
-      Temp := Size mod Corba.Unsigned_Long (Align) ;
+      Temp := Size mod CORBA.Unsigned_Long (Align);
       if Temp = 0 then
-         return Size ;
+         return Size;
       else
-         return Size + Corba.Unsigned_Long (Align) - Temp ;
-      end if ;
-   end ;
+         return Size + CORBA.Unsigned_Long (Align) - Temp;
+      end if;
+   end Align_To;
 
-end Omni ;
+end Omni;
 
 
 

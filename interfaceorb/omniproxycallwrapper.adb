@@ -1,1269 +1,1632 @@
------------------------------------------------------------------------
------------------------------------------------------------------------
-----                                                               ----
-----                         AdaBroker                             ----
-----                                                               ----
-----                       package Giop                            ----
-----                                                               ----
-----                                                               ----
-----   Copyright (C) 1999 ENST                                     ----
-----                                                               ----
-----   This file is part of the AdaBroker library                  ----
-----                                                               ----
-----   The AdaBroker library is free software; you can             ----
-----   redistribute it and/or modify it under the terms of the     ----
-----   GNU Library General Public License as published by the      ----
-----   Free Software Foundation; either version 2 of the License,  ----
-----   or (at your option) any later version.                      ----
-----                                                               ----
-----   This library is distributed in the hope that it will be     ----
-----   useful, but WITHOUT ANY WARRANTY; without even the implied  ----
-----   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ----
-----   PURPOSE.  See the GNU Library General Public License for    ----
-----   more details.                                               ----
-----                                                               ----
-----   You should have received a copy of the GNU Library General  ----
-----   Public License along with this library; if not, write to    ----
-----   the Free Software Foundation, Inc., 59 Temple Place -       ----
-----   Suite 330, Boston, MA 02111-1307, USA                       ----
-----                                                               ----
-----                                                               ----
-----                                                               ----
-----   Description                                                 ----
-----   -----------                                                 ----
-----                                                               ----
-----   For each function defined in the IDL file, a descendant     ----
-----   of Omniproxycalldesc is created. It is the object in        ----
-----   charge of storing the arguments of the function,            ----
-----   marshalling them into a bufferedstream, call the remote     ----
-----   object, and unmarshall the result.                          ----
-----                                                               ----
-----                                                               ----
-----   authors : Sebastien Ponce, Fabien Azavant                   ----
-----   date    : 02/28/99                                          ----
-----                                                               ----
------------------------------------------------------------------------
------------------------------------------------------------------------
 
+--  For each function defined in the IDL file, a descendant of
+--  Omniproxycalldesc is created. It is the object in charge of storing the
+--  arguments of the function, marshalling them into a bufferedstream, call
+--  the remote object, and unmarshall the result.
 
-with Ada.Exceptions ;
-with Interfaces.C ;
-with System ;
-use type System.Address ;
+with Ada.Exceptions;
+with Interfaces.C;
+with System;
 
-with Corba ;
-with Corba.Object ;
-with Corba.Exceptions ;
-with Constants ;
-use type Corba.Unsigned_Long ;
-with Giop ;
-with Omniropeandkey ;
-with Giop_C ;
-with Netbufferedstream ;
-with Omniproxycalldesc ;
-with Omniobject ; use type Omniobject.Object_Ptr ;
-with Sys_Dep ;
-with Rope ;
+with CORBA;
+with CORBA.Object;
+with GIOP;
+with OmniRopeAndKey;
+with GIOP_C;
+with NetBufferedStream;
+with OmniProxyCallDesc;
+with OmniObject;
+with Sys_Dep;
+with Rope;
 
-with Adabroker_Debug ; use Adabroker_Debug ;
+with Adabroker_Debug; use Adabroker_Debug;
 
-with Text_IO; use Text_IO;
+package body OmniProxyCallWrapper is
 
-package body omniProxyCallWrapper is
+   use type OmniObject.Object_Ptr;
+   use type CORBA.Unsigned_Long;
+   use type System.Address;
 
-   -- Invoke
-   ---------
-   ----------------
-   -- This is a traduction into Ada of the C++ function
-   -- invoke in proxyCall.cc L 46
-   --
-   -- Does not take into account :
-   --   - omniORB's tracelevel
-   --
-   ----------------
-   procedure Invoke (Obj : in Corba.Object.Ref'Class ;
-                     Call_Desc : in out OmniProxyCallDesc.Object'Class ) is
-      OmniObj_Ptr : Omniobject.Object_Ptr := Corba.Object.Get_OmniObject_Ptr (Obj);
-      -- pointer on the underlying omniobject
+   function Completion_Status_To_C_Int
+     (Status : in CORBA.Completion_Status)
+      return Interfaces.C.int;
 
-      Retries : Corba.Unsigned_Long := 0 ;
-      -- current number of retries
+   function C_Int_To_Completion_Status
+     (N : in Interfaces.C.int)
+      return CORBA.Completion_Status;
 
-      Rope_And_Key : Omniropeandkey.Controlled_Wrapper ;
-      -- rope and key of the omniobject
+   ------------
+   -- Invoke --
+   ------------
 
-      The_Rope : Rope.Object ;
-      -- rope of the omniobject
+   procedure Invoke
+     (Obj       : in CORBA.Object.Ref'Class;
+      Call_Desc : in out OmniProxyCallDesc.Object'Class)
+   is
+      --  This is a traduction into Ada of the C++ function invoke in
+      --  proxyCall.cc L 46
+      --
+      --  Does not take into account : - omniORB's tracelevel
 
-      Is_Fwd : Corba.Boolean ;
-      -- False if Rope_And_Key corresponds to the rope and key stored in
-      -- the IOP profile. True otherwise.
+      OmniObj_Ptr : OmniObject.Object_Ptr
+        := CORBA.Object.Get_OmniObject_Ptr (Obj);
+      --  Pointer on the underlying omniobject
 
-      Reuse : Corba.Boolean := False ;
-      -- true if this is not the first Sync object instantiated to
-      -- use the Strand. False otherwise.
+      Retries : CORBA.Unsigned_Long := 0;
+      --  Current number of retries
 
-      Giop_Client : Giop_C.Controlled_Wrapper ;
-      -- Giop_c object used forcommunications with the ORB
+      Rope_And_Key : OmniRopeAndKey.Controlled_Wrapper;
+      --  Rope and key of the omniobject
 
-      Message_Size : Corba.Unsigned_Long ;
-      -- size of the message to pass to the giop_c object
+      The_Rope : Rope.Object;
+      --  Rope of the omniobject
 
-      Result : Giop.Reply_Status_Type ;
-      -- result of call to reply_completed
+      Is_Fwd : CORBA.Boolean;
+      --  False if Rope_And_Key corresponds to the rope and key stored in
+      --  the IOP profile. True otherwise.
+
+      Reuse : CORBA.Boolean := False;
+      --  True if this is not the first Sync object instantiated to use the
+      --  Strand. False otherwise.
+
+      GIOP_Client : GIOP_C.Controlled_Wrapper;
+      --  GIOP_c object used forcommunications with the ORB
+
+      Message_Size : CORBA.Unsigned_Long;
+      --  Size of the message to pass to the giop_c object
+
+      Result : GIOP.Reply_Status_Type;
+      --  Result of call to reply_completed
+
    begin
       loop
-         pragma Debug(Output(Debug, "Corba.omniproxycallwrapper.invoke : "
-                             & "begin, retries = "
-                             & Corba.Unsigned_Long'Image (Retries)));
+         pragma Debug
+           (Output (Debug,
+                    "CORBA.omniproxycallwrapper.invoke : begin, retries = " &
+                    CORBA.Unsigned_Long'Image (Retries)));
 
-         -- verify that the underlying omniobject is not null
+         --  Verify that the underlying omniobject is not null
+
          if OmniObj_Ptr = null then
-            pragma Debug(Output(Debug,
-                                "Corba.omniproxycallwrapper.invoke : raise Constraint_Error")) ;
-            Ada.Exceptions.Raise_Exception (Constraint_Error'Identity,
-                                            "Cannot call subprogram on nil reference !"
-                                            & Corba.CRLF
-                                            & "Check that your object is not nil with Is_Nil") ;
-         end if ;
+            pragma Debug
+              (Output (Debug,
+                       "omniproxycallwrapper.invoke : " &
+                       "raise Constraint_Error"));
+            Ada.Exceptions.Raise_Exception
+              (Constraint_Error'Identity,
+               "Cannot call subprogram on nil reference !" & CORBA.CRLF &
+               "Check that your object is not nil with Is_Nil");
+         end if;
 
-         -- verify that the object exists
-         Omniobject.Assert_Object_Existent(OmniObj_Ptr.all) ;
+         --  Verify that the object exists
+         OmniObject.Assert_Object_Existent (OmniObj_Ptr.all);
 
-         pragma Debug(Output(Debug,
-                             "Corba.omniproxycallwrapper.invoke : "
-                             & "Object existent OK")) ;
+         pragma Debug
+           (Output (Debug,
+                    "CORBA.omniproxycallwrapper.invoke : Object existent OK"));
 
-         -- get the current values of the rope and the key
-         Omniobject.Get_Rope_And_Key(OmniObj_Ptr.all,
-                                     Rope_And_Key.Real,
-                                     Is_Fwd) ;
+         --  Get the current values of the rope and the key
+         OmniObject.Get_Rope_And_Key
+           (OmniObj_Ptr.all,
+            Rope_And_Key.Real,
+            Is_Fwd);
 
-         pragma Debug(Output(Debug,
-                             "Corba.omniproxycallwrapper.invoke : "
-                             & "Get_Rope_And_Key OK, Is_Fwd = "
-                             & Boolean'Image(Is_Fwd))) ;
+         pragma Debug
+           (Output (Debug,
+                    "OmniProxyCallWrapper.invoke : Get_Rope_And_Key, Is_Fwd = "
+                    & Boolean'Image (Is_Fwd)));
 
-         pragma Debug(Output(Debug, "Corba.omniproxycallwrapper.invoke : calling Giop_c.init"));
+         pragma Debug
+           (Output (Debug, "omniproxycallwrapper.invoke : GIOP_c.init"));
 
          begin
-            -- Get a GIOP driven strand
-            The_Rope := Omniropeandkey.Get_Rope(Rope_And_Key.Real) ;
+            --  Get a GIOP driven strand
+            The_Rope := OmniRopeAndKey.Get_Rope (Rope_And_Key.Real);
 
-            pragma Debug(Output(Debug, "Corba.omniproxycallwrapper.invoke : Got The rope"));
+            pragma Debug
+              (Output (Debug,
+                       "CORBA.omniproxycallwrapper.invoke : Got The rope"));
 
-            Giop_C.Init (Giop_Client.Real, The_Rope) ;
+            GIOP_C.Init (GIOP_Client.Real, The_Rope);
 
-            -- does the giop_client reuse an existing connection ?
-            Reuse := Netbufferedstream.Is_Reusing_Existing_Connection(Giop_Client.Real) ;
+            --  Does the giop_client reuse an existing connection ?
+            Reuse := NetBufferedStream.Is_Reusing_Existing_Connection
+              (GIOP_Client.Real);
 
-            pragma Debug(Output(Debug,"Corba.omniproxycallwrapper.invoke : reuse = "
-                                & Boolean'Image(Reuse))) ;
+            pragma Debug
+              (Output (Debug,
+                       "CORBA.omniproxycallwrapper.invoke : reuse = " &
+                       Boolean'Image (Reuse)));
 
-            pragma Debug(Output(Debug, "Corba.omniproxycallwrapper.invoke : key_size = "
-                                & Corba.Unsigned_Long'Image
-                                (Omniropeandkey.Key_Size(Rope_And_Key.Real))));
+            pragma Debug
+              (Output (Debug,
+                       "CORBA.omniproxycallwrapper.invoke : key_size = " &
+                       CORBA.Unsigned_Long'Image
+                       (OmniRopeAndKey.Key_Size (Rope_And_Key.Real))));
 
-            -- Calculates the size of the message
-            -- first the size of the header
+            --  Calculates the size of the message first the size of the
+            --  header
             Message_Size :=
-              Giop_C.Request_Header_Size
-              (Giop_Client.Real,
-               Omniropeandkey.Key_Size(Rope_And_Key.Real),
-               Corba.Length(Omniproxycalldesc.Operation(Call_Desc))) ;
+              GIOP_C.Request_Header_Size
+              (GIOP_Client.Real,
+               OmniRopeAndKey.Key_Size (Rope_And_Key.Real),
+               CORBA.Length (OmniProxyCallDesc.Operation (Call_Desc)));
 
-            pragma Debug(Output(Debug,
-                                "Corba.omniproxycallwrapper.invoke : Message_Size :=" & Corba.Unsigned_Long'Image (Message_Size)));
+            pragma Debug
+              (Output (Debug,
+                       "CORBA.omniproxycallwrapper.invoke : Message_Size :=" &
+                       CORBA.Unsigned_Long'Image (Message_Size)));
 
-            -- and then the size of the message itself
-            Message_Size := Omniproxycalldesc.Align_Size (Call_Desc,
-                                                          Message_Size) ;
+            --  And then the size of the message itself
+            Message_Size := OmniProxyCallDesc.Align_Size
+              (Call_Desc, Message_Size);
 
-            pragma Debug(Output(Debug,
-                                "Corba.omniproxycallwrapper.invoke : Message_Size :=" & Corba.Unsigned_Long'Image (Message_Size)));
+            pragma Debug
+              (Output (Debug,
+                       "CORBA.omniproxycallwrapper.invoke : Message_Size :=" &
+                       CORBA.Unsigned_Long'Image (Message_Size)));
 
-            -- Initialize the request
-            Giop_C.Initialize_Request(Giop_Client.Real,
-                                      Omniropeandkey.Get_Key(Rope_And_Key.Real),
-                                      Omniropeandkey.Key_Size(Rope_And_Key.Real),
-                                      OmniProxycalldesc.Operation(Call_Desc),
-                                      Message_Size,
-                                      False);
+            --  Initialize the request
+            GIOP_C.Initialize_Request
+              (GIOP_Client.Real,
+               OmniRopeAndKey.Get_Key (Rope_And_Key.Real),
+               OmniRopeAndKey.Key_Size (Rope_And_Key.Real),
+               OmniProxyCallDesc.Operation (Call_Desc),
+               Message_Size,
+               False);
 
-            pragma Debug(Output(Debug,
-                                "Corba.omniproxycallwrapper.invoke : initialise_request completed"));
+            pragma Debug
+              (Output (Debug,
+                       "omniproxycallwrapper.invoke : initialise_request"));
 
-            -- Marshal the arguments to the operation
-            Omniproxycalldesc.Marshal_Arguments (Call_Desc, Giop_Client.Real) ;
+            --  Marshall the arguments to the operation
+            OmniProxyCallDesc.Marshal_Arguments (Call_Desc, GIOP_Client.Real);
 
-            pragma Debug(Output(Debug,
-                                "Corba.omniproxycallwrapper.invoke : marshal_arguments completed"));
+            pragma Debug
+              (Output (Debug,
+                       "omniproxycallwrapper.invoke : marshal_arguments"));
 
-            -- wait for the reply
-            Giop_C.Receive_Reply(Giop_Client.Real, Result);
+            --  Wait for the reply
+            GIOP_C.Receive_Reply (GIOP_Client.Real, Result);
 
-            pragma Debug(Output(Debug,
-                                "Corba.omniproxycallwrapper.invoke : Reply received "
-                                & Integer'Image(Giop.Reply_Status_Type'Pos(Result))));
+            pragma Debug
+              (Output (Debug,
+                       "CORBA.omniproxycallwrapper.invoke : Reply received " &
+                       Integer'Image (GIOP.Reply_Status_Type'Pos (Result))));
 
 
             case Result is
-               when Giop.NO_EXCEPTION =>
-                  pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : Reply is NO_EXCEPTION")) ;
-                  -- unmarshal the results and out/inout arguments
-                  Omniproxycalldesc.Unmarshal_Returned_Values(Call_Desc,
-                                                              Giop_Client.Real) ;
-                  -- inform the ORB that the request was completed
-                  Giop_C.Request_Completed(Giop_Client.Real) ;
-                  pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : result Unmarshalled")) ;
-                  return ;
+               when GIOP.No_Exception =>
+                  pragma Debug
+                    (Output (Debug,
+                             "omniproxycallwrapper.invoke : No_Exception"));
 
-               when Giop.USER_EXCEPTION =>
-                  pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : Reply is USER_EXCEPTION")) ;
-                  -- check if the exception is due to the proxycalldesc
-                  if not Omniproxycalldesc.Has_User_Exceptions(Call_Desc) then
+                  --  Unmarshall the results and out/inout arguments
+                  OmniProxyCallDesc.Unmarshal_Returned_Values
+                    (Call_Desc, GIOP_Client.Real);
+
+                  --  Inform the ORB that the request was completed
+                  GIOP_C.Request_Completed (GIOP_Client.Real);
+
+                  pragma Debug
+                    (Output (Debug,
+                             "omniproxycallwrapper.invoke : Unmarshalled"));
+                  return;
+
+               when GIOP.User_Exception =>
+                  pragma Debug
+                    (Output (Debug,
+                             "omniproxycallwrapper.invoke : USER_EXCEPTION"));
+
+                  --  Check if the exception is due to the proxycalldesc
+                  if not OmniProxyCallDesc.Has_User_Exceptions (Call_Desc) then
                      declare
-                        Excpt_Members : Corba.Unknown_Members ;
-                  begin
-                    pragma Debug(Output(Debug,"Corba.omniproxycallwrapper.invoke : No user exception declared "));
-                     -- inform the ORB that the message was skiped
-                     Giop_C.Request_Completed(Giop_Client.Real,True) ;
-                     -- raise an Unknown exception
-                     Excpt_Members := (0, Corba.Completed_Maybe) ;
-                     Corba.Raise_Corba_Exception(Corba.Unknown'Identity,
-                                                 Excpt_Members) ;
-                  end ;
-                  end if ;
+                        Excpt_Members : CORBA.Unknown_Members;
+                     begin
+                        pragma Debug
+                          (Output (Debug,
+                                   "omniproxycallwrapper.invoke : " &
+                                   "No user exception declared "));
 
-                  -- retrieve the interface repository ID of the exception
+                        --  Inform the ORB that the message was skiped
+                        GIOP_C.Request_Completed (GIOP_Client.Real, True);
+
+                        --  Raise an Unknown exception
+                        Excpt_Members := (0, CORBA.Completed_Maybe);
+                        CORBA.Raise_CORBA_Exception
+                          (CORBA.Unknown'Identity,
+                           Excpt_Members);
+                     end;
+                  end if;
+
+                  --  Retrieve the interface repository ID of the exception
                   declare
-                     RepoID : Corba.String ;
+                     Repoid : CORBA.String;
                   begin
-                     pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : Unmarshall raised exception")) ;
-                     -- UnMarshalls the RepoID
-                     Netbufferedstream.UnMarshall (RepoID,Giop_Client.Real) ;
+                     pragma Debug
+                       (Output (Debug,
+                                "omniproxycallwrapper.invoke : " &
+                                "Unmarshall raised exception"));
 
-                     pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : call User_exception")) ;
-                     -- may be simplified,
-                     -- it was done like this in C++ for memory allocation
-                     Omniproxycalldesc.User_Exception(Call_Desc,
-                                                      Giop_Client.Real,
-                                                      RepoID) ;
+                     --  Unmarshalls the RepoID
+                     NetBufferedStream.Unmarshall (Repoid, GIOP_Client.Real);
 
-                     -- never reach this point,
-                     -- the preceding operations must raise either
-                     -- a user exception or Corba.Marshal
+                     pragma Debug
+                       (Output (Debug,
+                                "omniproxycallwrapper.invoke : " &
+                                "call User_exception"));
 
-                     pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : raise Fatal_error")) ;
-                     Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,
-                                                    "Should never reach this point,"
-                                                    & Corba.CRLF
-                                                    & "omniproxycallwrapper.adb"
-                                                    & Corba.CRLF
-                                                    & "procedure invoke"
-                                                    & Corba.CRLF
-                                                    & "when Giop.USER_EXCEPTION") ;
-                  end ;
+                     --  May be simplified, it was done like this in C++
+                     --  for memory allocation
+                     OmniProxyCallDesc.User_Exception
+                       (Call_Desc, GIOP_Client.Real, Repoid);
 
-               when Giop.SYSTEM_EXCEPTION =>
-                  -- never reach here since the C equivalent of receivereply throws the system exceptions if any
-                  Ada.Exceptions.Raise_Exception (Corba.AdaBroker_Fatal_Error'Identity,
-                                                  "omniProxyCallWrapper.invoke : System_Exception detected ") ;
+                     --  Never reach this point, the preceding operations
+                     --  must raise either a user exception or
+                     --  CORBA.Marshal
 
-               when Giop.LOCATION_FORWARD =>
-                  pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : Reply is LOCATION_FORWARD")) ;
+                     pragma Debug
+                       (Output (Debug,
+                                "omniproxycallwrapper.invoke : " &
+                                "raise Fatal_error"));
+
+                     Ada.Exceptions.Raise_Exception
+                       (CORBA.AdaBroker_Fatal_Error'Identity,
+                        "Should never reach this point," & CORBA.CRLF &
+                        "omniproxycallwrapper.adb" & CORBA.CRLF &
+                        "procedure invoke" & CORBA.CRLF &
+                        "when GIOP.USER_EXCEPTION");
+                  end;
+
+               when GIOP.System_Exception =>
+                  --  Never reach here since the C equivalent of
+                  --  receivereply throws the system exceptions if any
+                  Ada.Exceptions.Raise_Exception
+                    (CORBA.AdaBroker_Fatal_Error'Identity,
+                     "omniProxyCallWrapper.invoke : System_Exception ");
+
+               when GIOP.Location_Forward =>
+                  pragma Debug
+                    (Output (Debug,
+                             "omniproxycallwrapper.invoke : " &
+                             "Reply is LOCATION_FORWARD"));
                   declare
-                     Obj_Ref : Corba.Object.Ref ;
-                     Omniobj_Ptr2 : Omniobject.Object_Ptr ;
-                     R : Omniropeandkey.Controlled_Wrapper ;
-                     Unneeded_Result : Corba.Boolean ;
+                     Obj_Ref      : CORBA.Object.Ref;
+                     OmniObj_Ptr2 : OmniObject.Object_Ptr;
+                     R            : OmniRopeAndKey.Controlled_Wrapper;
+                     Unneeded_Result : CORBA.Boolean;
                   begin
-                     -- unmarshall the object
-                     Corba.Object.UnMarshall (Obj_Ref,Giop_Client.Real) ;
-                     -- inform the ORB that the request was completed
-                     Giop_C.Request_Completed(Giop_Client.Real) ;
-                     -- verify that the object is not null
-                     if Corba.Object.Is_Nil(Obj_Ref) then
+                     --  Unmarshall the object
+                     CORBA.Object.Unmarshall (Obj_Ref, GIOP_Client.Real);
+
+                     --  Inform the ORB that the request was completed
+                     GIOP_C.Request_Completed (GIOP_Client.Real);
+
+                     --  Verify that the object is not null
+                     if CORBA.Object.Is_Nil (Obj_Ref) then
                         declare
-                           Excpt_Members : Corba.Comm_Failure_Members ;
+                           Excpt_Members : CORBA.Comm_Failure_Members;
                         begin
-                           -- raise a Comm_Failure exception
-                           Excpt_Members := (0, Corba.Completed_No) ;
-                           Corba.Raise_Corba_Exception (Corba.Comm_Failure'Identity,
-                                                        Excpt_Members) ;
-                        end ;
+                           --  Raise a Comm_Failure exception
+                           Excpt_Members := (0, CORBA.Completed_No);
+                           CORBA.Raise_CORBA_Exception
+                             (CORBA.Comm_Failure'Identity,
+                              Excpt_Members);
+                        end;
                      end if;
-                     -- get the underlying omniobject object
-                     Omniobj_Ptr2 := Corba.Object.Get_OmniObject_Ptr(Obj_Ref) ;
-                     -- verify it is not null
-                     if OmniObj_Ptr2 = null then
-                        Ada.Exceptions.Raise_Exception (Corba.AdaBroker_Fatal_Error'Identity,
-                                                        "null omniobject_ptr found in method invoke (omniProxyCallWrapper L 216)") ;
-                     end if ;
-                     -- get the rope and the key of the object
-                     Omniobject.Get_Rope_And_Key (Omniobj_Ptr2.all,
-                                                  R.Real ,
-                                                  Unneeded_result) ;
-                     -- and set these rope and key to Omniobj
-                     Omniobject.Set_Rope_And_Key(Omniobj_Ptr.all, R.Real) ;
-                     return ;
 
-                  end ;
-            end case ;
+                     --  Get the underlying omniobject object
+                     OmniObj_Ptr2 := CORBA.Object.Get_OmniObject_Ptr (Obj_Ref);
+
+                     --  Verify it is not null
+                     if OmniObj_Ptr2 = null then
+                        Ada.Exceptions.Raise_Exception
+                          (CORBA.AdaBroker_Fatal_Error'Identity,
+                           "null omniobject_ptr found in method invoke" &
+                           "(omniProxyCallWrapper L 216)");
+                     end if;
+
+                     --  Get the rope and the key of the object
+                     OmniObject.Get_Rope_And_Key
+                       (OmniObj_Ptr2.all,
+                        R.Real,
+                        Unneeded_Result);
+
+                     --  And set these rope and key to OmniObj
+                     OmniObject.Set_Rope_And_Key (OmniObj_Ptr.all, R.Real);
+
+                     return;
+
+                  end;
+            end case;
 
          exception
 
-            when E : Corba.Comm_Failure =>
-               pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : Caught Corba.Comm_Failure")) ;
+            when E : CORBA.Comm_Failure =>
+               pragma Debug
+                 (Output (Debug,
+                          "omniproxycallwrapper.invoke : " &
+                          "Caught CORBA.Comm_Failure"));
                declare
-                  Member : Corba.Comm_Failure_Members ;
+                  Member : CORBA.Comm_Failure_Members;
                begin
-                  Retries := Retries + 1 ;
-                  Corba.Get_Members (E, Member) ;
+                  Retries := Retries + 1;
+                  CORBA.Get_Members (E, Member);
                   if Reuse or Is_Fwd then
-                     pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : Reuse or Is_Fwd  = True, calling Omni_Call_Transient_Exception_Handler")) ;
+                     pragma Debug
+                       (Output (Debug,
+                                "omniproxycallwrapper.invoke : " &
+                                "Reuse or Is_Fwd  = True, calling " &
+                                "Omni_Call_Transient_Exception_Handler"));
+
                      if Is_Fwd then
-                        Omniobject.Reset_Rope_And_Key (OmniObj_Ptr.all) ;
-                     end if ;
+                        OmniObject.Reset_Rope_And_Key (OmniObj_Ptr.all);
+                     end if;
+
                      if not Omni_Call_Transient_Exception_Handler
-                       (OmniObj_Ptr.all,Retries,Member.Minor, Member.Completed) then
+                       (OmniObj_Ptr.all,
+                        Retries,
+                        Member.Minor,
+                        Member.Completed)
+                     then
                         declare
-                           Member2 : Corba.Transient_Members := (Member.Minor,
-                                                                 Member.Completed) ;
+                           Member2 : CORBA.Transient_Members
+                             := (Member.Minor, Member.Completed);
                         begin
-                           Corba.Raise_Corba_Exception (Corba.Transient'Identity,
-                                                        Member2) ;
-                        end ;
-                     end if ;
+                           CORBA.Raise_CORBA_Exception
+                             (CORBA.Transient'Identity, Member2);
+                        end;
+                     end if;
                   else
-                     pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : Reuse or Is_Fwd  = False, calling Omni_Comm_Failure_Exception_Handler")) ;
+                     pragma Debug
+                       (Output (Debug,
+                                "omniproxycallwrapper.invoke : Reuse or " &
+                                "Is_Fwd  = False, calling " &
+                                "Omni_Comm_Failure_Exception_Handler"));
+
                      if not Omni_Comm_Failure_Exception_Handler
-                       (OmniObj_Ptr.all,Retries,Member.Minor,Member.Completed) then
-                        Corba.Raise_Corba_Exception (Corba.Comm_Failure'Identity,
-                                                     Member) ;
-                     end if ;
-                  end if ;
-               end ;
+                       (OmniObj_Ptr.all,
+                        Retries,
+                        Member.Minor,
+                        Member.Completed)
+                     then
+                        CORBA.Raise_CORBA_Exception
+                          (CORBA.Comm_Failure'Identity, Member);
+                     end if;
+                  end if;
+               end;
 
-            when E : Corba.Transient =>
-               pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : Caught Corba.Transient")) ;
+            when CORBA.Transient =>
+               pragma Debug
+                 (Output (Debug,
+                          "omniproxycallwrapper.invoke : " &
+                          "Caught CORBA.Transient"));
                declare
-                  Member : Corba.Transient_Members ;
+                  Member : CORBA.Transient_Members;
                begin
-                  Retries := Retries + 1 ;
+                  Retries := Retries + 1;
                   if not Omni_Call_Transient_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Corba.Transient'Identity,
-                                                  Member) ;
-                  end if ;
-               end ;
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (CORBA.Transient'Identity,
+                        Member);
+                  end if;
+               end;
 
-            when E : Corba.Object_Not_Exist =>
-               pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : Caught Corba.Object_Not_Exist")) ;
+            when CORBA.Object_Not_Exist =>
                declare
-                  Member : Corba.Object_Not_Exist_Members ;
+                  Member : CORBA.Object_Not_Exist_Members;
                begin
                   if Is_Fwd then
-                     -- if Is_Fwd = True, we have to reset the rope and the key
-                     -- of the object according to IOP profile.
-                     Omniobject.Reset_Rope_And_Key (OmniObj_Ptr.all) ;
-                     Retries := Retries + 1 ;
+                     --  if Is_Fwd = True, we have to reset the rope and
+                     --  the key Of the object according to IOP profile.
+                     OmniObject.Reset_Rope_And_Key (OmniObj_Ptr.all);
+                     Retries := Retries + 1;
                      if not Omni_Call_Transient_Exception_Handler
-                       (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
+                       (OmniObj_Ptr.all,
+                        Retries,
+                        Member.Minor,
+                        Member.Completed)
+                     then
                         declare
-                           Member2 : Corba.Transient_Members := (Member.Minor,
-                                                                 Member.Completed) ;
+                           Member2 : CORBA.Transient_Members
+                             := (Member.Minor, Member.Completed);
                         begin
-                           Corba.Raise_Corba_Exception (Corba.Transient'Identity,
-                                                        Member2) ;
-                        end ;
-                     end if ;
+                           CORBA.Raise_CORBA_Exception
+                             (CORBA.Transient'Identity, Member2);
+                        end;
+                     end if;
                   else
-                     Retries := Retries + 1 ;
+                     Retries := Retries + 1;
                      if not Omni_System_Exception_Handler
-                       (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                        Corba.Raise_Corba_Exception (Corba.Object_Not_Exist'Identity,
-                                                     Member) ;
-                     end if ;
-                  end if ;
-               end ;
+                       (OmniObj_Ptr.all,
+                        Retries,
+                        Member.Minor,
+                        Member.Completed)
+                     then
+                        CORBA.Raise_CORBA_Exception
+                          (CORBA.Object_Not_Exist'Identity, Member);
+                     end if;
+                  end if;
+               end;
 
-            when E : Corba.Unknown =>
+            when E : CORBA.Unknown =>
                declare
-                  Member : Corba.Unknown_Members ;
+                  Member : CORBA.Unknown_Members;
                begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
                   if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Bad_Param =>
-               declare
-                  Member : Corba.Bad_Param_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.No_Memory =>
-               declare
-                  Member : Corba.No_Memory_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Imp_Limit =>
-               declare
-                  Member : Corba.Imp_Limit_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Inv_Objref =>
-               declare
-                  Member : Corba.Inv_Objref_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.No_Permission =>
-               declare
-                  Member : Corba.No_Permission_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Internal =>
-               declare
-                  Member : Corba.Internal_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Marshal =>
-               declare
-                  Member : Corba.Marshal_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Initialization_Failure =>
-               declare
-                  Member : Corba.Initialization_Failure_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.No_Implement =>
-               declare
-                  Member : Corba.No_Implement_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Bad_Typecode =>
-               declare
-                  Member : Corba.Bad_Typecode_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Bad_Operation =>
-               declare
-                  Member : Corba.Bad_Operation_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.No_Resources =>
-               declare
-                  Member : Corba.No_Resources_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.No_Response =>
-               declare
-                  Member : Corba.No_Response_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Persist_Store =>
-               declare
-                  Member : Corba.Persist_Store_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Bad_Inv_Order =>
-               declare
-                  Member : Corba.Bad_Inv_Order_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E :Corba.Free_Mem =>
-               declare
-                  Member : Corba.Free_Mem_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Inv_Ident =>
-               declare
-                  Member : Corba.Inv_Ident_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Inv_Flag =>
-               declare
-                  Member : Corba.Inv_Flag_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Intf_Repos =>
-               declare
-                  Member : Corba.Intf_Repos_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Bad_Context =>
-               declare
-                  Member : Corba.Bad_Context_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Obj_Adapter =>
-               declare
-                  Member : Corba.Obj_Adapter_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Data_Conversion =>
-               declare
-                  Member : Corba.Data_Conversion_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-         end ;
-      end loop ;
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E), Member);
+                  end if;
+               end;
 
-   end;
+            when E : CORBA.Bad_Param =>
+               declare
+                  Member : CORBA.Bad_Param_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E), Member);
+                  end if;
+               end;
 
+            when E : CORBA.No_Memory =>
+               declare
+                  Member : CORBA.No_Memory_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E), Member);
+                  end if;
+               end;
 
-   -- One_Way
-   ----------
-   procedure One_Way(Obj : in Corba.Object.Ref'Class ;
-                     Call_Desc : in out OmniProxyCallDesc.Object'Class) is
-      OmniObj_Ptr : Omniobject.Object_Ptr := Corba.Object.Get_OmniObject_Ptr (Obj);
-      -- pointer on the underlying omniobject
+            when E : CORBA.Imp_Limit =>
+               declare
+                  Member : CORBA.Imp_Limit_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E), Member);
+                  end if;
+               end;
 
-      Retries : Corba.Unsigned_Long := 0 ;
-      -- current number of retries
+            when E : CORBA.Inv_Objref =>
+               declare
+                  Member : CORBA.Inv_Objref_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E), Member);
+                  end if;
+               end;
 
-      Rope_And_Key : Omniropeandkey.Controlled_Wrapper ;
-      -- rope and key of the omniobject
+            when E : CORBA.No_Permission =>
+               declare
+                  Member : CORBA.No_Permission_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E), Member);
+                  end if;
+               end;
 
-      Is_Fwd : Corba.Boolean ;
-      -- False if Rope_And_Key corresponds to the rope and key stored in
-      -- the IOP profile. True otherwise.
+            when E : CORBA.Internal =>
+               declare
+                  Member : CORBA.Internal_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E), Member);
+                  end if;
+               end;
 
-      Reuse : Corba.Boolean := False ;
-      -- true if this is not the first Sync object instantiated to
-      -- use the Strand. False otherwise.
+            when E : CORBA.Marshal =>
+               declare
+                  Member : CORBA.Marshal_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E), Member);
+                  end if;
+               end;
 
-      Giop_Client : Giop_C.Controlled_Wrapper ;
-      -- Giop_c object used for communications with the ORB
+            when E : CORBA.Initialization_Failure =>
+               declare
+                  Member : CORBA.Initialization_Failure_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E), Member);
+                  end if;
+               end;
 
-      Message_Size : Corba.Unsigned_Long ;
-      -- size of the message to pass to the giop_c object
+            when E : CORBA.No_Implement =>
+               declare
+                  Member : CORBA.No_Implement_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E), Member);
+                  end if;
+               end;
 
-      Result : Giop.Reply_Status_Type ;
-      -- result of call to reply_completed
+            when E : CORBA.Bad_Typecode =>
+               declare
+                  Member : CORBA.Bad_Typecode_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E), Member);
+                  end if;
+               end;
+
+            when E : CORBA.Bad_Operation =>
+               declare
+                  Member : CORBA.Bad_Operation_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E), Member);
+                  end if;
+               end;
+
+            when E : CORBA.No_Resources =>
+               declare
+                  Member : CORBA.No_Resources_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E), Member);
+                  end if;
+               end;
+
+            when E : CORBA.No_Response =>
+               declare
+                  Member : CORBA.No_Response_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E), Member);
+                  end if;
+               end;
+
+            when E : CORBA.Persist_Store =>
+               declare
+                  Member : CORBA.Persist_Store_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E), Member);
+                  end if;
+               end;
+
+            when E : CORBA.Bad_Inv_Order =>
+               declare
+                  Member : CORBA.Bad_Inv_Order_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+            when E : CORBA.Free_Mem =>
+               declare
+                  Member : CORBA.Free_Mem_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+
+            when E : CORBA.Inv_Ident =>
+               declare
+                  Member : CORBA.Inv_Ident_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+
+            when E : CORBA.Inv_Flag =>
+               declare
+                  Member : CORBA.Inv_Flag_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+
+            when E : CORBA.Intf_Repos =>
+               declare
+                  Member : CORBA.Intf_Repos_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+
+            when E : CORBA.Bad_Context =>
+               declare
+                  Member : CORBA.Bad_Context_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+
+            when E : CORBA.Obj_Adapter =>
+               declare
+                  Member : CORBA.Obj_Adapter_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+
+            when E : CORBA.Data_Conversion =>
+               declare
+                  Member : CORBA.Data_Conversion_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+         end;
+      end loop;
+   end Invoke;
+
+   -------------
+   -- One_Way --
+   -------------
+
+   procedure One_Way
+     (Obj       : in CORBA.Object.Ref'Class;
+      Call_Desc : in out OmniProxyCallDesc.Object'Class)
+   is
+      OmniObj_Ptr : OmniObject.Object_Ptr
+        := CORBA.Object.Get_OmniObject_Ptr (Obj);
+      --  Pointer on the underlying omniobject
+
+      Retries : CORBA.Unsigned_Long := 0;
+      --  Current number of retries
+
+      Rope_And_Key : OmniRopeAndKey.Controlled_Wrapper;
+      --  Rope and key of the omniobject
+
+      Is_Fwd : CORBA.Boolean;
+      --  False if Rope_And_Key corresponds to the rope and key stored in
+      --  the IOP profile. True otherwise.
+
+      Reuse : CORBA.Boolean := False;
+      --  True if this is not the first Sync object instantiated to use the
+      --  Strand. False otherwise.
+
+      GIOP_Client : GIOP_C.Controlled_Wrapper;
+      --  GIOP_c object used for communications with the ORB
+
+      Message_Size : CORBA.Unsigned_Long;
+      --  Size of the message to pass to the giop_c object
+
+      Result : GIOP.Reply_Status_Type;
+      --  Result of call to reply_completed
    begin
       loop
-         -- verify that the underlying omniobject is not null
+         --  Verify that the underlying omniobject is not null
          if OmniObj_Ptr = null then
-            pragma Debug(Output(Debug,
-                                "Corba.omniproxycallwrapper.One_Way : raise Constraint_Error")) ;
-            Ada.Exceptions.Raise_Exception (Constraint_Error'Identity,
-                                            "Cannot call subprogram on nil reference !"
-                                            & Corba.CRLF
-                                            & "Check that your object is not nil with Is_Nil") ;
-         end if ;
+            pragma Debug
+              (Output (Debug,
+                       "CORBA.omniproxycallwrapper.One_Way : " &
+                       "raise Constraint_Error"));
 
-         -- verify that the object exists
-         Omniobject.Assert_Object_Existent(OmniObj_Ptr.all) ;
+            Ada.Exceptions.Raise_Exception
+              (Constraint_Error'Identity,
+               "Cannot call subprogram on nil reference !" & CORBA.CRLF &
+               "Check that your object is not nil with Is_Nil");
+         end if;
 
-         -- get the current values of the rope and the key
-         Omniobject.Get_Rope_And_Key(OmniObj_Ptr.all,Rope_And_Key.Real,Is_Fwd) ;
+         --  Verify that the object exists
+         OmniObject.Assert_Object_Existent (OmniObj_Ptr.all);
+
+         --  Get the current values of the rope and the key
+         OmniObject.Get_Rope_And_Key
+           (OmniObj_Ptr.all, Rope_And_Key.Real, Is_Fwd);
 
          begin
+            --  Get a GIOP driven strand
+            GIOP_C.Init
+              (GIOP_Client.Real, OmniRopeAndKey.Get_Rope (Rope_And_Key.Real));
 
-            -- Get a GIOP driven strand
-            Giop_C.Init (Giop_Client.Real, Omniropeandkey.Get_Rope(Rope_And_Key.Real)) ;
+            --  Do the giop_client reuse an existing connection ?
+            Reuse := NetBufferedStream.Is_Reusing_Existing_Connection
+              (GIOP_Client.Real);
 
-            -- do the giop_client reuse an existing connection ?
-            Reuse := Netbufferedstream.Is_Reusing_Existing_Connection(Giop_Client.Real) ;
-
-            -- Calculates the size of the message
-            -- first the size of the header
+            --  Calculates the size of the message first the size of the
+            --  header
             Message_Size :=
-              Giop_C.Request_Header_Size
-              (Giop_Client.Real,
-               Omniropeandkey.Key_Size(Rope_And_Key.Real),
-               Corba.Length(Omniproxycalldesc.Operation(Call_Desc))) ;
-            -- and then the size of the message itself
-            Message_Size := Omniproxycalldesc.Align_Size (Call_Desc,
-                                                          Message_Size) ;
+              GIOP_C.Request_Header_Size
+              (GIOP_Client.Real,
+               OmniRopeAndKey.Key_Size (Rope_And_Key.Real),
+               CORBA.Length (OmniProxyCallDesc.Operation (Call_Desc)));
 
-            -- Initialise the request
-            Giop_C.Initialize_Request(Giop_Client.Real,
-                                      Omniropeandkey.Get_Key(Rope_And_Key.Real),
-                                      Omniropeandkey.Key_Size(Rope_And_Key.Real),
-                                      OmniProxycalldesc.Operation(Call_Desc),
-                                      Message_Size,
-                                      True);
+            --  And then the size of the message itself
+            Message_Size := OmniProxyCallDesc.Align_Size
+              (Call_Desc,
+               Message_Size);
 
-            -- Marshal the arguments to the operation
-            Omniproxycalldesc.Marshal_Arguments (Call_Desc, Giop_Client.Real) ;
+            --  Initialise the request
+            GIOP_C.Initialize_Request
+              (GIOP_Client.Real,
+               OmniRopeAndKey.Get_Key (Rope_And_Key.Real),
+               OmniRopeAndKey.Key_Size (Rope_And_Key.Real),
+               OmniProxyCallDesc.Operation (Call_Desc),
+               Message_Size,
+               True);
 
-            -- wait for the reply
-            Giop_C.Receive_Reply(Giop_Client.Real,result) ;
+            --  Marshal the arguments to the operation
+            OmniProxyCallDesc.Marshal_Arguments (Call_Desc, GIOP_Client.Real);
+
+            --  Wait for the reply
+            GIOP_C.Receive_Reply (GIOP_Client.Real, Result);
 
             case Result is
+               when GIOP.No_Exception =>
+                  --  Inform the ORB that the request was completed
+                  GIOP_C.Request_Completed (GIOP_Client.Real);
+                  return;
 
-               when Giop.NO_EXCEPTION =>
-                  -- inform the ORB that the request was completed
-                  Giop_C.Request_Completed(Giop_Client.Real) ;
-                  return ;
-
-               when Giop.USER_EXCEPTION |
-                 Giop.SYSTEM_EXCEPTION |
-                 Giop.LOCATION_FORWARD =>
-                  Giop_C.Request_Completed(Giop_Client.Real,True) ;
-                  Ada.Exceptions.Raise_Exception (Corba.AdaBroker_Fatal_Error'Identity,
-                                                  "GIOP_C::ReceiveReply() returned unexpected code on oneway" &
-                                                  Corba.CRLF & "in method One_Way" &
-                                                  Corba.CRLF & "(see omniproxycallwrapper L 422") ;
-            end case ;
+               when GIOP.User_Exception   |
+                    GIOP.System_Exception |
+                    GIOP.Location_Forward =>
+                  GIOP_C.Request_Completed (GIOP_Client.Real, True);
+                  Ada.Exceptions.Raise_Exception
+                    (CORBA.AdaBroker_Fatal_Error'Identity,
+                     "GIOP_C::ReceiveReply() returned unexpected code " &
+                     " on oneway" & CORBA.CRLF &
+                     "in method One_Way" & CORBA.CRLF &
+                     "(see omniproxycallwrapper L 422");
+            end case;
 
          exception
-
-            when E : Corba.Comm_Failure =>
+            when E : CORBA.Comm_Failure =>
                declare
-                  Member : Corba.Comm_Failure_Members ;
+                  Member : CORBA.Comm_Failure_Members;
                begin
-                  Corba.Get_Members (E, Member) ;
+                  CORBA.Get_Members (E, Member);
                   if Reuse or Is_Fwd then
                      if Is_Fwd then
-                        Omniobject.Reset_Rope_And_Key (OmniObj_Ptr.all) ;
-                     end if ;
-                     Retries := Retries + 1 ;
+                        OmniObject.Reset_Rope_And_Key (OmniObj_Ptr.all);
+                     end if;
+                     Retries := Retries + 1;
                      if not Omni_Call_Transient_Exception_Handler
-                       (OmniObj_Ptr.all,Retries,Member.Minor, Member.Completed) then
+                       (OmniObj_Ptr.all,
+                        Retries,
+                        Member.Minor,
+                        Member.Completed)
+                     then
                         declare
-                           Member2 : Corba.Transient_Members := (Member.Minor,
-                                                                 Member.Completed) ;
+                           Member2 : CORBA.Transient_Members
+                             := (Member.Minor,
+                                 Member.Completed);
                         begin
-                           Corba.Raise_Corba_Exception (Corba.Transient'Identity,
-                                                        Member2) ;
-                        end ;
-                     end if ;
+                           CORBA.Raise_CORBA_Exception
+                             (CORBA.Transient'Identity,
+                              Member2);
+                        end;
+                     end if;
                   else
-                     Retries := Retries + 1 ;
+                     Retries := Retries + 1;
                      if not Omni_Comm_Failure_Exception_Handler
-                       (OmniObj_Ptr.all,Retries,Member.Minor,Member.Completed) then
-                        Corba.Raise_Corba_Exception (Corba.Comm_Failure'Identity,
-                                                     Member) ;
-                     end if ;
-                  end if ;
-               end ;
+                       (OmniObj_Ptr.all,
+                        Retries,
+                        Member.Minor,
+                        Member.Completed)
+                     then
+                        CORBA.Raise_CORBA_Exception
+                          (CORBA.Comm_Failure'Identity,
+                           Member);
+                     end if;
+                  end if;
+               end;
 
-            when E : Corba.Transient =>
+            when CORBA.Transient =>
                declare
-                  Member : Corba.Transient_Members ;
+                  Member : CORBA.Transient_Members;
                begin
-                  Retries := Retries + 1 ;
+                  Retries := Retries + 1;
                   if not Omni_Call_Transient_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Corba.Transient'Identity,
-                                                  Member) ;
-                  end if ;
-               end ;
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (CORBA.Transient'Identity,
+                        Member);
+                  end if;
+               end;
 
-            when E : Corba.Unknown =>
+            when E : CORBA.Unknown =>
                declare
-                  Member : Corba.Unknown_Members ;
+                  Member : CORBA.Unknown_Members;
                begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
                   if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Bad_Param =>
-               declare
-                  Member : Corba.Bad_Param_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.No_Memory =>
-               declare
-                  Member : Corba.No_Memory_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Imp_Limit =>
-               declare
-                  Member : Corba.Imp_Limit_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Inv_Objref =>
-               declare
-                  Member : Corba.Inv_Objref_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.No_Permission =>
-               declare
-                  Member : Corba.No_Permission_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Internal =>
-               declare
-                  Member : Corba.Internal_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Marshal =>
-               declare
-                  Member : Corba.Marshal_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Initialization_Failure =>
-               declare
-                  Member : Corba.Initialization_Failure_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.No_Implement =>
-               declare
-                  Member : Corba.No_Implement_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Bad_Typecode =>
-               declare
-                  Member : Corba.Bad_Typecode_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Bad_Operation =>
-               declare
-                  Member : Corba.Bad_Operation_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.No_Resources =>
-               declare
-                  Member : Corba.No_Resources_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.No_Response =>
-               declare
-                  Member : Corba.No_Response_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Persist_Store =>
-               declare
-                  Member : Corba.Persist_Store_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Bad_Inv_Order =>
-               declare
-                  Member : Corba.Bad_Inv_Order_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E :Corba.Free_Mem =>
-               declare
-                  Member : Corba.Free_Mem_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Inv_Ident =>
-               declare
-                  Member : Corba.Inv_Ident_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Inv_Flag =>
-               declare
-                  Member : Corba.Inv_Flag_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Intf_Repos =>
-               declare
-                  Member : Corba.Intf_Repos_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Bad_Context =>
-               declare
-                  Member : Corba.Bad_Context_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Obj_Adapter =>
-               declare
-                  Member : Corba.Obj_Adapter_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-            when E : Corba.Data_Conversion =>
-               declare
-                  Member : Corba.Data_Conversion_Members ;
-               begin
-                  Corba.Get_Members (E,Member) ;
-                  Retries := Retries + 1 ;
-                  if not Omni_System_Exception_Handler
-                    (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
-                     Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
-                                                  Member) ;
-                  end if ;
-               end ;
-         end ;
-      end loop ;
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
 
-   end ;
+            when E : CORBA.Bad_Param =>
+               declare
+                  Member : CORBA.Bad_Param_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
 
+            when E : CORBA.No_Memory =>
+               declare
+                  Member : CORBA.No_Memory_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
 
+            when E : CORBA.Imp_Limit =>
+               declare
+                  Member : CORBA.Imp_Limit_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+            when E : CORBA.Inv_Objref =>
+               declare
+                  Member : CORBA.Inv_Objref_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
 
-   -------------------------------------------------
-   --              exception handling             --
-   -------------------------------------------------
+            when E : CORBA.No_Permission =>
+               declare
+                  Member : CORBA.No_Permission_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
 
+            when E : CORBA.Internal =>
+               declare
+                  Member : CORBA.Internal_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
 
-   -- Completion_Status_To_C_Int
-   -----------------------------
-   function Completion_Status_To_C_Int (Status : in Corba.Completion_Status)
-                                        return Interfaces.C.Int is
+            when E : CORBA.Marshal =>
+               declare
+                  Member : CORBA.Marshal_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+
+            when E : CORBA.Initialization_Failure =>
+               declare
+                  Member : CORBA.Initialization_Failure_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+
+            when E : CORBA.No_Implement =>
+               declare
+                  Member : CORBA.No_Implement_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+
+            when E : CORBA.Bad_Typecode =>
+               declare
+                  Member : CORBA.Bad_Typecode_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+
+            when E : CORBA.Bad_Operation =>
+               declare
+                  Member : CORBA.Bad_Operation_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+
+            when E : CORBA.No_Resources =>
+               declare
+                  Member : CORBA.No_Resources_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+
+            when E : CORBA.No_Response =>
+               declare
+                  Member : CORBA.No_Response_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+
+            when E : CORBA.Persist_Store =>
+               declare
+                  Member : CORBA.Persist_Store_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+
+            when E : CORBA.Bad_Inv_Order =>
+               declare
+                  Member : CORBA.Bad_Inv_Order_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+
+            when E : CORBA.Free_Mem =>
+               declare
+                  Member : CORBA.Free_Mem_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+
+            when E : CORBA.Inv_Ident =>
+               declare
+                  Member : CORBA.Inv_Ident_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+
+            when E : CORBA.Inv_Flag =>
+               declare
+                  Member : CORBA.Inv_Flag_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+
+            when E : CORBA.Intf_Repos =>
+               declare
+                  Member : CORBA.Intf_Repos_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+
+            when E : CORBA.Bad_Context =>
+               declare
+                  Member : CORBA.Bad_Context_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+
+            when E : CORBA.Obj_Adapter =>
+               declare
+                  Member : CORBA.Obj_Adapter_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+
+            when E : CORBA.Data_Conversion =>
+               declare
+                  Member : CORBA.Data_Conversion_Members;
+               begin
+                  CORBA.Get_Members (E, Member);
+                  Retries := Retries + 1;
+                  if not Omni_System_Exception_Handler
+                    (OmniObj_Ptr.all,
+                     Retries,
+                     Member.Minor,
+                     Member.Completed)
+                  then
+                     CORBA.Raise_CORBA_Exception
+                       (Ada.Exceptions.Exception_Identity (E),
+                        Member);
+                  end if;
+               end;
+
+         end;
+      end loop;
+   end One_Way;
+
+   --------------------------------
+   -- Completion_Status_To_C_Int --
+   --------------------------------
+
+   function Completion_Status_To_C_Int
+     (Status : in CORBA.Completion_Status)
+      return Interfaces.C.int is
    begin
       case Status is
-         when Corba.Completed_Yes =>
-            return Interfaces.C.Int (0) ;
-         when Corba.Completed_No =>
-            return Interfaces.C.Int (1) ;
-         when Corba.Completed_Maybe =>
-            return Interfaces.C.Int (2) ;
-      end case ;
-   end;
+         when CORBA.Completed_Yes =>
+            return Interfaces.C.int (0);
+         when CORBA.Completed_No =>
+            return Interfaces.C.int (1);
+         when CORBA.Completed_Maybe =>
+            return Interfaces.C.int (2);
+      end case;
+   end Completion_Status_To_C_Int;
 
+   --------------------------------
+   -- C_Int_To_Completion_Status --
+   --------------------------------
 
-   -- C_Int_To_Completion_Status
-   -----------------------------
-   function C_Int_To_Completion_Status (N : in Interfaces.C.Int)
-                                        return Corba.Completion_Status is
+   function C_Int_To_Completion_Status
+     (N : in Interfaces.C.int)
+      return CORBA.Completion_Status is
    begin
       case N is
          when 1 =>
-            return Corba.Completed_Yes ;
+            return CORBA.Completed_Yes;
          when 2 =>
-            return Corba.Completed_No ;
+            return CORBA.Completed_No;
          when 3 =>
-            return Corba.Completed_Maybe ;
+            return CORBA.Completed_Maybe;
          when others =>
-            Ada.Exceptions.Raise_Exception (Corba.AdaBroker_Fatal_Error'Identity,
-                                            "Expected Completion_Status in C_Int_To_Completion_Status" & Corba.CRLF &
-                                            "Int out of range" & Corba.CRLF &
-                                            "(see corba_exceptions.adb L210)");
-      end case ;
-   end ;
+            Ada.Exceptions.Raise_Exception
+              (CORBA.AdaBroker_Fatal_Error'Identity,
+               "Completion_Status in C_Int_To_Completion_Status" & CORBA.CRLF &
+               "Int out of range" & CORBA.CRLF &
+               "(see corba_exceptions.adb L210)");
+      end case;
+   end C_Int_To_Completion_Status;
 
-
-   -- C_Omni_Call_Transient_Exeption_Handler
-   -----------------------------------------
+   --------------------------------------------
+   -- C_Omni_Call_Transient_Exeption_Handler --
+   -------------------------------------------
    function C_Omni_Call_Transient_Exeption_Handler
-     (Obj : in System.Address ;
-      Retries : in Interfaces.C.Unsigned_Long ;
-      Minor : in Interfaces.C.Unsigned_Long ;
-      Status : in Interfaces.C.Int)
-      return Sys_Dep.C_Boolean ;
-   pragma Import (CPP,
-                  C_Omni_Call_Transient_Exeption_Handler,
-                  "_omni_callTransientExceptionHandler__FP10omniObjectUlRCQ25CORBA9TRANSIENT") ;
+     (Obj     : in System.Address;
+      Retries : in Interfaces.C.unsigned_long;
+      Minor   : in Interfaces.C.unsigned_long;
+      Status  : in Interfaces.C.int)
+      return Sys_Dep.C_Boolean;
+   pragma Import
+     (CPP, C_Omni_Call_Transient_Exeption_Handler,
+      "_omni_callTransientExceptionHandler_" &
+      "_FP10omniObjectUlRCQ25CORBA9TRANSIENT");
 
+   -------------------------------------------
+   -- Omni_Call_Transient_Exception_Handler --
+   -------------------------------------------
 
-   -- Omni_Call_Transient_Exception_Handler
-   ----------------------------------------
    function Omni_Call_Transient_Exception_Handler
-     (Obj : in Omniobject.Object'Class ;
-      Retries : in Corba.Unsigned_Long ;
-      Minor : in Corba.Unsigned_Long ;
-      Status : in Corba.Completion_Status)
-      return Corba.Boolean is
-      C_Obj : System.Address ;
-      C_Retries : Interfaces.C.Unsigned_Long ;
-      C_Minor : Interfaces.C.Unsigned_Long ;
-      C_Status : Interfaces.C.Int ;
-      C_Result : Sys_Dep.C_Boolean ;
+     (Obj     : in OmniObject.Object'Class;
+      Retries : in CORBA.Unsigned_Long;
+      Minor   : in CORBA.Unsigned_Long;
+      Status  : in CORBA.Completion_Status)
+      return CORBA.Boolean
+   is
+      C_Obj     : System.Address;
+      C_Retries : Interfaces.C.unsigned_long;
+      C_Minor   : Interfaces.C.unsigned_long;
+      C_Status  : Interfaces.C.int;
+      C_Result  : Sys_Dep.C_Boolean;
    begin
-      -- transforms the arguments in a C type ...
-      C_Obj := Obj'Address ;
-      C_Retries := Interfaces.C.Unsigned_Long (Retries) ;
-      C_Minor := Interfaces.C.Unsigned_Long (Minor) ;
-      C_Status := Completion_Status_To_C_Int (Status) ;
-      -- ... calls the C function ...
-      C_Result := C_Omni_Call_Transient_Exeption_Handler (C_Obj,
-                                                          C_Retries,
-                                                          C_Minor,
-                                                          C_Status) ;
-      -- ... and transforms the result into an Ada type
-      return Sys_Dep.Boolean_C_To_Ada (C_Result) ;
-   end ;
+      --  Transform the arguments in a C type ...
+      C_Obj     := Obj'Address;
+      C_Retries := Interfaces.C.unsigned_long (Retries);
+      C_Minor   := Interfaces.C.unsigned_long (Minor);
+      C_Status  := Completion_Status_To_C_Int (Status);
 
+      --  Call the C function ...
+      C_Result := C_Omni_Call_Transient_Exeption_Handler
+        (C_Obj, C_Retries, C_Minor, C_Status);
 
-   -- C_Omni_Comm_Failure_Exception_Handler
-   ----------------------------------------
+      --  Transform the result into an Ada type
+      return Sys_Dep.Boolean_C_To_Ada (C_Result);
+   end Omni_Call_Transient_Exception_Handler;
+
+   -------------------------------------------
+   -- C_Omni_Comm_Failure_Exception_Handler --
+   -------------------------------------------
+
    function C_Omni_Comm_Failure_Exception_Handler
-     (Obj : in System.Address ;
-      Retries : in Interfaces.C.Unsigned_Long ;
-      Minor : in Interfaces.C.Unsigned_Long ;
-      Status : in Interfaces.C.Int)
-      return Sys_Dep.C_Boolean ;
-   pragma Import (CPP,
-                  C_Omni_Comm_Failure_Exception_Handler,
-                  "_omni_callCommFailureExceptionHandler__FP10omniObjectUlRCQ25CORBA12COMM_FAILURE") ;
+     (Obj     : in System.Address;
+      Retries : in Interfaces.C.unsigned_long;
+      Minor   : in Interfaces.C.unsigned_long;
+      Status  : in Interfaces.C.int)
+      return Sys_Dep.C_Boolean;
 
+   pragma Import
+     (CPP, C_Omni_Comm_Failure_Exception_Handler,
+      "_omni_callCommFailureExceptionHandler_" &
+      "_FP10omniObjectUlRCQ25CORBA12COMM_FAILURE");
 
-   -- Omni_Comm_Failure_Exception_Handler
-   --------------------------------------
+   -----------------------------------------
+   -- Omni_Comm_Failure_Exception_Handler --
+   -----------------------------------------
+
    function Omni_Comm_Failure_Exception_Handler
-     (Obj : in Omniobject.Object'Class ;
-      Retries : in Corba.Unsigned_Long ;
-      Minor : in Corba.Unsigned_Long ;
-      Status : in Corba.Completion_Status)
-      return Corba.Boolean is
-      C_Obj : System.Address ;
-      C_Retries : Interfaces.C.Unsigned_Long ;
-      C_Minor : Interfaces.C.Unsigned_Long ;
-      C_Status : Interfaces.C.Int ;
-      C_Result : Sys_Dep.C_Boolean ;
+     (Obj     : in OmniObject.Object'Class;
+      Retries : in CORBA.Unsigned_Long;
+      Minor   : in CORBA.Unsigned_Long;
+      Status  : in CORBA.Completion_Status)
+      return CORBA.Boolean
+   is
+      C_Obj     : System.Address;
+      C_Retries : Interfaces.C.unsigned_long;
+      C_Minor   : Interfaces.C.unsigned_long;
+      C_Status  : Interfaces.C.int;
+      C_Result  : Sys_Dep.C_Boolean;
    begin
-      -- transforms the arguments in a C type ...
-      C_Obj := Obj'Address ;
-      C_Retries := Interfaces.C.Unsigned_Long (Retries) ;
-      C_Minor := Interfaces.C.Unsigned_Long (Minor) ;
-      C_Status := Completion_Status_To_C_Int (Status) ;
-      -- ... and calls the C function
-      C_Result := C_Omni_Comm_Failure_Exception_Handler (C_Obj,
-                                                         C_Retries,
-                                                         C_Minor,
-                                                         C_Status) ;
-      -- ... and transforms the result into an Ada type
-      return Sys_Dep.Boolean_C_To_Ada (C_Result) ;
-   end ;
+      --  Transform the arguments in a C type ...
+      C_Obj     := Obj'Address;
+      C_Retries := Interfaces.C.unsigned_long (Retries);
+      C_Minor   := Interfaces.C.unsigned_long (Minor);
+      C_Status  := Completion_Status_To_C_Int (Status);
 
+      --  Call the C function
+      C_Result := C_Omni_Comm_Failure_Exception_Handler
+        (C_Obj, C_Retries, C_Minor, C_Status);
 
-   -- C_Omni_System_Exception_Handler
-   ----------------------------------
+      --  Transform the result into an Ada type
+      return Sys_Dep.Boolean_C_To_Ada (C_Result);
+   end Omni_Comm_Failure_Exception_Handler;
+
+   -------------------------------------
+   -- C_Omni_System_Exception_Handler --
+   -------------------------------------
+
    function C_Omni_System_Exception_Handler
-     (Obj : in System.Address ;
-      Retries : in Interfaces.C.Unsigned_Long ;
-      Minor : in Interfaces.C.Unsigned_Long ;
-      Status : in Interfaces.C.Int)
-      return Sys_Dep.C_Boolean ;
-   pragma Import (CPP,
-                  C_Omni_System_Exception_Handler,
-                  "_omni_callSystemExceptionHandler__FP10omniObjectUlRCQ25CORBA15SystemException") ;
+     (Obj     : in System.Address;
+      Retries : in Interfaces.C.unsigned_long;
+      Minor   : in Interfaces.C.unsigned_long;
+      Status  : in Interfaces.C.int)
+      return Sys_Dep.C_Boolean;
 
+   pragma Import
+     (CPP, C_Omni_System_Exception_Handler,
+      "_omni_callSystemExceptionHandler_" &
+      "_FP10omniObjectUlRCQ25CORBA15SystemException");
 
-   -- Omni_System_Exception_Handler
-   --------------------------------
+   -----------------------------------
+   -- Omni_System_Exception_Handler --
+   -----------------------------------
+
    function Omni_System_Exception_Handler
-     (Obj : in Omniobject.Object'Class ;
-      Retries : in Corba.Unsigned_Long ;
-      Minor : in Corba.Unsigned_Long ;
-      Status : in Corba.Completion_Status)
-      return Corba.Boolean is
-      C_Obj : System.Address ;
-      C_Retries : Interfaces.C.Unsigned_Long ;
-      C_Minor : Interfaces.C.Unsigned_Long ;
-      C_Status : Interfaces.C.Int ;
-      C_Result : Sys_Dep.C_Boolean ;
+     (Obj     : in OmniObject.Object'Class;
+      Retries : in CORBA.Unsigned_Long;
+      Minor   : in CORBA.Unsigned_Long;
+      Status  : in CORBA.Completion_Status)
+      return CORBA.Boolean
+   is
+      C_Obj     : System.Address;
+      C_Retries : Interfaces.C.unsigned_long;
+      C_Minor   : Interfaces.C.unsigned_long;
+      C_Status  : Interfaces.C.int;
+      C_Result  : Sys_Dep.C_Boolean;
    begin
-      -- transforms the arguments in a C type ...
-      C_Obj := Obj'Address ;
-      C_Retries := Interfaces.C.Unsigned_Long (Retries) ;
-      C_Minor := Interfaces.C.Unsigned_Long (Minor) ;
-      C_Status := Completion_Status_To_C_Int (Status) ;
-      -- ... and calls the C function
-      C_Result := C_Omni_System_Exception_Handler (C_Obj,
-                                                   C_Retries,
-                                                   C_Minor,
-                                                   C_Status) ;
-      pragma Debug(Output(Debug,
-                          "Corba.omniproxycallwrapper." &
-                          "omni_system_exception_handler : result computed : "
-                          & Boolean'Image (Sys_Dep.Boolean_C_To_Ada (C_Result))));
+      --  Transform the arguments in a C type ...
+      C_Obj     := Obj'Address;
+      C_Retries := Interfaces.C.unsigned_long (Retries);
+      C_Minor   := Interfaces.C.unsigned_long (Minor);
+      C_Status  := Completion_Status_To_C_Int (Status);
 
-      -- ... and transforms the result into an Ada type
-      return Sys_Dep.Boolean_C_To_Ada (C_Result) ;
-   end ;
+      --  Call the C function
+      C_Result := C_Omni_System_Exception_Handler
+        (C_Obj, C_Retries, C_Minor, C_Status);
 
-end omniproxyCallWrapper ;
+      pragma Debug
+        (Output (Debug,
+                 "CORBA.omniproxycallwrapper." &
+                 "omni_system_exception_handler : result computed : " &
+                 Boolean'Image (Sys_Dep.Boolean_C_To_Ada (C_Result))));
+
+      --  Transform the result into an Ada type
+      return Sys_Dep.Boolean_C_To_Ada (C_Result);
+   end Omni_System_Exception_Handler;
+
+end OmniProxyCallWrapper;

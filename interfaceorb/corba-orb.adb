@@ -1,28 +1,24 @@
-with Ada.Exceptions;
-with Ada.Unchecked_Conversion;
-
 with Interfaces.C.Strings;
 
 with System;
-with System.Address_To_Access_Conversions;
 
 with Adabroker_Debug; use Adabroker_Debug;
 
 with CORBA.Command_Line;
 with CORBA.Object;    use CORBA.Object;
 
-with Omniobject;
+with OmniObject;
 
 package body CORBA.ORB is
 
-   use type Omniobject.Object_Ptr;
+   use type OmniObject.Object_Ptr;
 
    Debug : constant Boolean := Adabroker_Debug.Is_Active ("corba.orb");
 
    function C_ORB_Init
-     (Argc    : in Interfaces.C.Int;
+     (Argc    : in Interfaces.C.int;
       Argv    : in System.Address;
-      ORBname : in Interfaces.C.Strings.Chars_Ptr)
+      ORBname : in Interfaces.C.Strings.chars_ptr)
       return Object;
 
    pragma Import (CPP, C_ORB_Init, "Ada_ORB_init__FiPPcPCc");
@@ -36,7 +32,7 @@ package body CORBA.ORB is
      (ORB_Name : in Standard.String)
       return Object
    is
-      C_ORB_Name : Interfaces.C.Strings.Chars_Ptr;
+      C_ORB_Name : Interfaces.C.Strings.chars_ptr;
       Result     : Object;
    begin
       pragma Debug (Output (Debug, "-- CORBA.ORB.ORB_Init --"));
@@ -64,10 +60,10 @@ package body CORBA.ORB is
 
    function C_BOA_Init
      (Self    : in Object;
-      Argc    : in Interfaces.C.Int;
+      Argc    : in Interfaces.C.int;
       Argv    : in System.Address;
-      Boaname : in Interfaces.C.Strings.Chars_Ptr)
-      return CORBA.Boa.Object;
+      Boaname : in Interfaces.C.Strings.chars_ptr)
+      return CORBA.BOA.Object;
 
    pragma Import (CPP, C_BOA_Init, "Ada_BOA_init__FPQ25CORBA3ORBiPPcPCc");
    --  Calls Ada_Boa_Init. See Ada_CORBA_ORB.hh.
@@ -81,10 +77,10 @@ package body CORBA.ORB is
       BOA_Name : in Standard.String)
       return CORBA.BOA.Object
    is
-      C_BOA_Name : Interfaces.C.Strings.Chars_Ptr;
+      C_BOA_Name : Interfaces.C.Strings.chars_ptr;
       Result     : CORBA.BOA.Object;
    begin
-      C_BOA_Name := Interfaces.C.Strings.New_String (Boa_Name);
+      C_BOA_Name := Interfaces.C.Strings.New_String (BOA_Name);
       --  Deallocated 4 lines further
 
       Result := C_BOA_Init
@@ -103,20 +99,9 @@ package body CORBA.ORB is
 
    function C_Resolve_Initial_References
      (Self       : in Object;
-      Identifier : in Interfaces.C.Strings.Chars_Ptr)
+      Identifier : in Interfaces.C.Strings.chars_ptr)
       return Object;
    pragma Import (CPP, C_Resolve_Initial_References, "Ada_ORB_init__FiPPcPCc");
    --  Wrapper around Ada_Resolve_Initial_References Ada_CORBA_ORB.hh
-
-   --------------------------------
-   -- Resolve_Initial_References --
-   --------------------------------
-
-   procedure Resolve_Initial_References
-     (Identifier : in Standard.String;
-      Result     : out CORBA.Object.Ref'class) is
-   begin
-      null;
-   end Resolve_Initial_References;
 
 end CORBA.ORB;

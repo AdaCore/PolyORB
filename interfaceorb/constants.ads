@@ -1,7 +1,5 @@
 --  This package contains the repository ids of CORBA exceptions.
 
-with Ada.Strings.Unbounded;
-
 package Constants is
 
    type Exception_Id is new Standard.String;
@@ -20,7 +18,7 @@ package Constants is
    Unknown_Repoid   : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/UNKNOWN:1.0");
 
-   Bad_param_Repoid : constant Exception_Id
+   Bad_Param_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/BAD_PARAM:1.0");
 
    No_Memory_Repoid : constant Exception_Id
@@ -35,37 +33,37 @@ package Constants is
    Inv_ObjRef_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/INV_OBJREF:1.0");
 
-   No_permission_Repoid : constant Exception_Id
+   No_Permission_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/NO_PERMISSION:1.0");
 
-   internal_Repoid : constant Exception_Id
+   Internal_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/INTERNAL:1.0");
 
-   marshal_Repoid : constant Exception_Id
+   Marshal_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/MARSHAL:1.0");
 
-   Initialization_failure_Repoid : constant Exception_Id
+   Initialization_Failure_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/INITIALIZE:1.0");
 
-   No_implement_Repoid : constant Exception_Id
+   No_Implement_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/NO_IMPLEMENT:1.0");
 
-   Bad_typecode_Repoid : constant Exception_Id
+   Bad_Typecode_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/BAD_TYPECODE:1.0");
 
-   Bad_operation_Repoid : constant Exception_Id
+   Bad_Operation_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/BAD_OPERATION:1.0");
 
-   No_resources_Repoid : constant Exception_Id
+   No_Resources_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/NO_RESSOURCES:1.0");
 
-   No_response_Repoid : constant Exception_Id
+   No_Response_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/NO_RESPONSE:1.0");
 
-   Persist_store_Repoid : constant Exception_Id
+   Persist_Store_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/PERSIST_STORE:1.0");
 
-   Bad_Inv_order_Repoid : constant Exception_Id
+   Bad_Inv_Order_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/BAD_INV_ORDER:1.0");
 
    Transient_Repoid : constant Exception_Id
@@ -77,34 +75,34 @@ package Constants is
    Inv_Ident_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/INV_IDENT:1.0");
 
-   Inv_flag_Repoid : constant Exception_Id
+   Inv_Flag_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/INV_FLAG:1.0");
 
-   Intf_repos_Repoid : constant Exception_Id
+   Intf_Repos_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/INTF_REPOS:1.0");
 
-   Bad_context_Repoid : constant Exception_Id
+   Bad_Context_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/BAD_CONTEXT:1.0");
 
-   Obj_adapter_Repoid : constant Exception_Id
+   Obj_Adapter_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/OBJ_ADAPTER:1.0");
 
-   Data_conversion_Repoid : constant Exception_Id
+   Data_Conversion_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/DATA_CONVERSION:1.0");
 
-   Object_Not_exist_Repoid : constant Exception_Id
+   Object_Not_Exist_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/OBJECT_NOT_EXIST:1.0");
 
-   Transaction_required_Repoid : constant Exception_Id
+   Transaction_Required_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/TRANSACTION_REQUIRED:1.0");
 
-   Transaction_rolledback_Repoid : constant Exception_Id
+   Transaction_Rolledback_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/TRANSACTION_ROLLEDBACK:1.0");
 
-   Invalid_transaction_Repoid : constant Exception_Id
+   Invalid_Transaction_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/INVALID_TRANSACTION:1.0");
 
-   Wrong_transaction_Repoid : constant Exception_Id
+   Wrong_Transaction_Repoid : constant Exception_Id
      := Exception_Id'("IDL:omg.org/CORBA/WRONG_TRANSACTION:1.0");
 
 end Constants;

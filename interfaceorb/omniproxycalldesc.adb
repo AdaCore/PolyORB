@@ -1,123 +1,92 @@
------------------------------------------------------------------------
------------------------------------------------------------------------
-----                                                               ----
-----                         AdaBroker                             ----
-----                                                               ----
-----                 package Omniproxycalldesc                     ----
-----                                                               ----
-----                                                               ----
-----   Copyright (C) 1999 ENST                                     ----
-----                                                               ----
-----   This file is part of the AdaBroker library                  ----
-----                                                               ----
-----   The AdaBroker library is free software; you can             ----
-----   redistribute it and/or modify it under the terms of the     ----
-----   GNU Library General Public License as published by the      ----
-----   Free Software Foundation; either version 2 of the License,  ----
-----   or (at your option) any later version.                      ----
-----                                                               ----
-----   This library is distributed in the hope that it will be     ----
-----   useful, but WITHOUT ANY WARRANTY; without even the implied  ----
-----   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ----
-----   PURPOSE.  See the GNU Library General Public License for    ----
-----   more details.                                               ----
-----                                                               ----
-----   You should have received a copy of the GNU Library General  ----
-----   Public License along with this library; if not, write to    ----
-----   the Free Software Foundation, Inc., 59 Temple Place -       ----
-----   Suite 330, Boston, MA 02111-1307, USA                       ----
-----                                                               ----
-----                                                               ----
-----                                                               ----
-----   Description                                                 ----
-----   -----------                                                 ----
-----                                                               ----
-----      This is a root class. For each subprogram of an IDL      ----
-----    interface, which is not declared "one way", a descendant   ----
-----    of this class has to be provided.                          ----
-----    It contains al the information to make the remote call :   ----
-----    arguments, results, exceptions, and how to send them on/   ----
-----    reveive them from a giop.                                  ----
-----    ( see proxyCall.h )                                        ----
-----                                                               ----
-----                                                               ----
-----   authors : Sebastien Ponce, Fabien Azavant                   ----
-----   date    : 02/28/99                                          ----
-----                                                               ----
------------------------------------------------------------------------
------------------------------------------------------------------------
 
+--  This is a root class. For each subprogram of an IDL interface, which is
+--  not declared "one way", a descendant of this class has to be provided.
+--  It contains al the information to make the remote call : arguments,
+--  results, exceptions, and how to send them on/ reveive them from a giop.
+--  ( see proxyCall.h )
 
-with Ada.Exceptions ;
+with Ada.Exceptions;
 
-package body omniProxyCallDesc is
+package body OmniProxyCallDesc is
 
-   -- Set_User_exceptions
-   ----------------------
-   procedure Set_User_exceptions (Self : in out Object ;
-                                  Has_Exceptions : Corba.Boolean ) is
+   -------------------------
+   -- Set_User_Exceptions --
+   -------------------------
+
+   procedure Set_User_Exceptions
+     (Self           : in out Object;
+      Has_Exceptions : CORBA.Boolean) is
    begin
-      Self.Pd_Has_User_Exception := Has_Exceptions ;
-   end ;
+      Self.Pd_Has_User_Exception := Has_Exceptions;
+   end Set_User_Exceptions;
 
+   ----------------
+   -- Align_Size --
+   ----------------
 
-   -- Align_Size
-   -------------
-   function Align_Size(Self : in Object ;
-                       Size_In: in Corba.Unsigned_Long )
-                       return Corba.Unsigned_Long is
+   function Align_Size
+     (Self    : in Object;
+      Size_In : in CORBA.Unsigned_Long)
+      return CORBA.Unsigned_Long is
    begin
-      return Size_In ;
-   end ;
+      return Size_In;
+   end Align_Size;
 
+   -----------------------
+   -- Marshal_Arguments --
+   -----------------------
 
-   -- Marshall_Arguments
-   ---------------------
-   procedure Marshal_Arguments (Self : in Object ;
-                                Giop_Client: in out Giop_C.Object ) is
+   procedure Marshal_Arguments
+     (Self        : in Object;
+      GIOP_Client : in out GIOP_C.Object) is
    begin
-      null ;
-   end ;
+      null;
+   end Marshal_Arguments;
 
+   -------------------------------
+   -- Unmarshal_Returned_Values --
+   -------------------------------
 
-   -- Unmarshall_Returned_Values
-   -----------------------------
-   procedure Unmarshal_Returned_Values (Self : in out Object ;
-                                        Giop_Client: in out Giop_C.Object ) is
+   procedure Unmarshal_Returned_Values
+     (Self        : in out Object;
+      GIOP_Client : in out GIOP_C.Object) is
    begin
-      null ;
-   end ;
+      null;
+   end Unmarshal_Returned_Values;
 
+   --------------------
+   -- User_Exception --
+   --------------------
 
-   -- User_Exception
-   -----------------
-   procedure User_Exception (Self : in Object ;
-                             Giop_Client : in out Giop_C.Object ;
-                             RepoId : in CORBA.String) is
+   procedure User_Exception
+     (Self        : in Object;
+      GIOP_Client : in out GIOP_C.Object;
+      Repoid      : in CORBA.String) is
    begin
       if Self.Pd_Has_User_Exception then
-         Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
-                                        "Omniproxycalldesc.User_Exception"
-                                        & Corba.CRLF
-                                        & "Should not be called for a calldesc that can throw exceptions"
-                                        & Corba.CRLF
-                                        & "This procedure should have been overloaded") ;
+         Ada.Exceptions.Raise_Exception
+           (CORBA.AdaBroker_Fatal_Error'Identity,
+            "Omniproxycalldesc.User_Exception" & CORBA.CRLF
+            & "Should not be called for a calldesc that can throw exceptions" &
+            CORBA.CRLF & "This procedure should have been overloaded");
       else
-         -- nothing to be done since we do not throw any exception
-         null ;
-      end if ;
-   end ;
+         --  Nothing to be done since we do not throw any exception
+         null;
+      end if;
+   end User_Exception;
 
+   -------------------------
+   -- Has_User_Exceptions --
+   -------------------------
 
-   -- Has_User_Exceptions
-   ----------------------
-   function Has_User_Exceptions (Self : in Object)
-                                 return CORBA.Boolean is
+   function Has_User_Exceptions
+     (Self : in Object)
+      return CORBA.Boolean is
    begin
-      return Self.Pd_Has_User_Exception ;
-   end ;
+      return Self.Pd_Has_User_Exception;
+   end Has_User_Exceptions;
 
-end omniproxyCallDesc ;
+end OmniProxyCallDesc;
 
 
 

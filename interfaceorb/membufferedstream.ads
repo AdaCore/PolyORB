@@ -11,7 +11,6 @@ with Ada.Unchecked_Deallocation;
 
 with Interfaces.C;
 with Interfaces.CPP;
-with Interfaces.C.Strings;
 
 with System;
 

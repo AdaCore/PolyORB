@@ -1,7 +1,4 @@
-with Interfaces.CPP;
 with System;
-
-with CORBA.Object;
 with OmniObject;
 
 package CORBA.BOA is
