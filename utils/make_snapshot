@@ -1,9 +1,26 @@
 #! /bin/sh
 # $Id$
+#
+# Build a snapshot of PolyORB from Perforce repository files.
+#
+# make_snapshot [-scp]
+#   -scp : update snapshots directory on PolyORB's Web site.
+#
+
+scp=false
+
+case $1 in
+    -scp) scp=true; shift;;
+    *) ;;
+esac
 
 change=`p4 changes -m 1 ... | cut -f 2 -d \ `
 name=polyorb-snap-$change
 
 TMPDIR=$HOME utils/make_distrib -p4 $change $name
-tar=$name.tar.gz
 
+if $scp; then
+tar=$name.tar.gz
+scp $tar libre.act-europe.fr:/paris.a/httpd/html-libre/polyorb/snapshots/ \
+  && rm -f $tar
+fi
