@@ -34,24 +34,26 @@
 package PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    type System_Id_Policy is new IdAssignmentPolicy with null record;
+
    type System_Id_Policy_Access is access all System_Id_Policy;
 
-   function Create return System_Id_Policy_Access;
+   function Create
+     return System_Id_Policy_Access;
 
    procedure Check_Compatibility
-     (Self : System_Id_Policy;
-      Other_Policies   : AllPolicies;
-      Error : in out PolyORB.Exceptions.Error_Container);
+     (Self           :        System_Id_Policy;
+      Other_Policies :        AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container);
 
    function Policy_Id
      (Self : System_Id_Policy)
      return String;
 
    procedure Assign_Object_Identifier
-     (Self  : System_Id_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      Hint  : Object_Id_Access;
-      U_Oid : out Unmarshalled_Oid;
+     (Self  :        System_Id_Policy;
+      OA    :        PolyORB.POA_Types.Obj_Adapter_Access;
+      Hint  :        Object_Id_Access;
+      U_Oid :    out Unmarshalled_Oid;
       Error : in out PolyORB.Exceptions.Error_Container);
 
 end PolyORB.POA_Policies.Id_Assignment_Policy.System;

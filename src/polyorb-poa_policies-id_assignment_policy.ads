@@ -38,10 +38,8 @@ package PolyORB.POA_Policies.Id_Assignment_Policy is
    use PolyORB.POA_Types;
 
    type IdAssignmentPolicy is abstract new Policy with null record;
-   subtype Id_Assignment_Policy is IdAssignmentPolicy;
 
    type IdAssignmentPolicy_Access is access all IdAssignmentPolicy'Class;
-   subtype Id_Assignment_Policy_Access is IdAssignmentPolicy_Access;
 
    procedure Assign_Object_Identifier
      (Self   :        IdAssignmentPolicy;

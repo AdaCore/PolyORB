@@ -59,7 +59,8 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
    -- Create --
    ------------
 
-   function Create return System_Id_Policy_Access is
+   function Create
+     return System_Id_Policy_Access is
    begin
       return new System_Id_Policy;
    end Create;
@@ -69,8 +70,8 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
    -------------------------
 
    procedure Check_Compatibility
-     (Self           : System_Id_Policy;
-      Other_Policies : AllPolicies;
+     (Self           :        System_Id_Policy;
+      Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);

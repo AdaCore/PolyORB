@@ -38,11 +38,6 @@
 --  $Id$
 
 with PolyORB.Exceptions;
-
-with PolyORB.Objects;
-pragma Warnings (Off, PolyORB.Objects);
---  Required in child units.
-
 with PolyORB.Sequences.Unbounded;
 
 package PolyORB.POA_Policies is
@@ -54,7 +49,6 @@ package PolyORB.POA_Policies is
 
    package Policy_Sequences is new PolyORB.Sequences.Unbounded (Policy_Access);
    subtype PolicyList is Policy_Sequences.Sequence;
-   --  type PolicyList_Access is access all PolicyList;
 
    type AllPolicies is array (1 .. 7) of Policy_Access;
 
@@ -62,7 +56,7 @@ package PolyORB.POA_Policies is
      (Self : Policy)
      return String
       is abstract;
-   --  Return the name of a Policy.
+   --  Return Policy name.
 
    procedure Check_Compatibility
      (Self           :        Policy;

@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Log;
-with PolyORB.Objects;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Lifespan_Policy;
 with PolyORB.POA_Types;
@@ -41,6 +40,7 @@ with PolyORB.Types;
 package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
 
    use PolyORB.Log;
+
    package L is new Log.Facility_Log
      ("polyorb.poa_policies.id_assignement_policy.user");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
@@ -50,7 +50,8 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
    -- Create --
    ------------
 
-   function Create return User_Id_Policy_Access is
+   function Create
+     return User_Id_Policy_Access is
    begin
       return new User_Id_Policy;
    end Create;
@@ -60,8 +61,8 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
    -------------------------
 
    procedure Check_Compatibility
-     (Self           : User_Id_Policy;
-      Other_Policies : AllPolicies;
+     (Self           :        User_Id_Policy;
+      Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
