@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -124,8 +124,14 @@ package body RTCORBA.Current is
      (Self : in Ref;
       To   : in RTCORBA.Priority)
    is
+      use type PolyORB.RTCORBA_P.Setup.PriorityMapping_Access;
+
       Success : CORBA.Boolean;
       New_Priority : RTCORBA.NativePriority;
+
+      Priority_Mapping : constant
+        PolyORB.RTCORBA_P.Setup.PriorityMapping_Access
+        := PolyORB.RTCORBA_P.Setup.Get_Priority_Mapping;
 
    begin
       --  Consistency check: To is in range 0 .. 32767
@@ -138,13 +144,17 @@ package body RTCORBA.Current is
 
       --  Compute new priority
 
+      if Priority_Mapping = null then
+         CORBA.Raise_Internal (CORBA.Default_Sys_Member);
+      end if;
+
       RTCORBA.PriorityMapping.To_Native
-        (PolyORB.RTCORBA_P.Setup.Get_Priority_Mapping,
+        (Priority_Mapping.all,
          To,
          New_Priority,
          Success);
 
-      if False then
+      if not Success then
          CORBA.Raise_Data_Conversion
            (CORBA.System_Exception_Members'(Minor     => 2,
                                             Completed => CORBA.Completed_No));
