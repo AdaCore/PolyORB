@@ -1138,18 +1138,19 @@ package body Broca.Server is
    procedure Serv is
       Server : Server_Ptr;
    begin
-      Ada.Text_IO.Put_Line ("Starting server loop");
+      pragma Debug (O ("Starting server loop"));
       loop
          Server_Table.Get_Server (Server);
          Perform_Work (Server);
       end loop;
    exception
       when E : others =>
-         Ada.Text_IO.Put ("ORB task Server: exception ");
-         Ada.Text_IO.Put (Ada.Exceptions.Exception_Name (E));
-         Ada.Text_IO.Put (": ");
-         Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message (E));
-         Ada.Text_IO.Put_Line ("ORB task Server shut down");
+         pragma Debug
+           (O ("ORB task Server: exception " &
+               Ada.Exceptions.Exception_Name (E) & ": " &
+               Ada.Exceptions.Exception_Message (E)));
+         pragma Debug (O ("ORB task Server shut down"));
+         null;
    end Serv;
 
    procedure Run (ORB : in out This_ORB_Type) is
