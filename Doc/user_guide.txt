@@ -36,6 +36,7 @@ Contents.
    Remote Shell Notes.
    Warnings.
    Filtering.
+   Trace/Replay Debugging.
    Restrictions.
 ---------------------------------------------------------------------------
 
@@ -132,7 +133,7 @@ distributed application:
    partition except if another option has been specified (pragma
    Starter). In this case, a shell script (or nothing) is generated to
    start the partitions on the appropriate machines. This is specially
-   usefull when one wants to write client / server applications where
+   useful when one wants to write client / server applications where
    the number of instances of the partition is unknown.
 
 The Configuration Language.
@@ -213,7 +214,7 @@ configuration My_Config is
   --  partition.
 
   for Partition_4'Command_Line use "-v";
-  --  Specify additionnal arguments to pass on the command line when a 
+  --  Specify additional arguments to pass on the command line when a 
   --  given partition is launched.
 
   pragma Starter (Method => Ada);
@@ -228,7 +229,7 @@ configuration My_Config is
   --  If no starter is given, then an Ada starter will be used.
   --
   --  In this example, Partition_2, Partitions_3 and Partition_4 will be
-  --  started from Partition_1 (ie from the ada procedure Master_Procedure).
+  --  started from Partition_1 (ie from the Ada procedure Master_Procedure).
 
   pragma Boot_Server
     (Protocol_Name => "tcp", Protocol_Data => "`hostname`:`unused-port`");
@@ -349,7 +350,7 @@ depending on the configuration of the distributed application.
    The configuration language not only knows about partitions, it also knows
    about the connections between them. Such a connection is called a "Channel"
    and represents a bi-directional link between two partitions. In order to
-   define filtering, one must first declare the cannels between the partitions
+   define filtering, one must first declare the channels between the partitions
    of an application:
 
        A_Channel : Channel := (Partition_1, Partition_2);
@@ -429,6 +430,46 @@ depending on the configuration of the distributed application.
    "Secure Communication in Distributed Ada", Proceedings of Ada-Europe '96,
    Montreux, Switzerland, June 1996, published as Lecture Notes in Computer
    Science 1088, pp. 198 - 210, Springer 1996.
+
+
+Trace/Replay Debugging.
+-----------------------
+
+GLADE has a facility for trace/replay based debugging. If trace mode
+is turned on, GLADE will record all messages received by a partition
+into a trace file. The trace file can then be used to replay the
+execution of the partition, in isolation.
+
+To get a partition to generate a trace file, it has to be passed the
+command line argument "--trace". This is most easily done by using the
+"for Partition'Command_Line use..." construct (described above) in the
+configuration file to add "--trace" to the command lines of the
+partitions whose executions are to be replayed. When the application
+has been built, starting it using the starter, as usual, will then
+result in the trace files being generated.
+
+In order to replay a partition whose execution has been previously
+traced, the command line argument "--replay" is required. In addition,
+the special boot server location "replay://" has to be specified,
+i.e. by using the "--boot_server replay://" command line argument.
+
+Example: To replay a traced execution of partition whose executable is
+named PART, you would start it with the command
+
+        % PART [--nolaunch] [--slave] --replay --boot_server replay://
+
+possibly under the control of a debugger, such as gdb.
+
+Since the exact contents of the messages received is recorded,
+differences in input from external sources (such as standard input)
+during replay will most likely give unexpected results. Also, replay
+of applications whose behavior is inherently non-deterministic will be
+problematic.
+
+N.B. It is important that the same executable is used for replay as
+when the trace file was generated, otherwise strange behavior can be
+expected.
+
 
 Restrictions.
 -------------
