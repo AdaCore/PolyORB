@@ -187,6 +187,13 @@ package body System.Garlic.Filters.Zip is
       Exchange_Params := False;
    end Generate_Params;
 
-begin
-   Register_Filter (Compressor'Access, "zip");
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      Register_Filter (Compressor'Access, "zip");
+   end Initialize;
+
 end System.Garlic.Filters.Zip;

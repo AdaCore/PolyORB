@@ -38,6 +38,8 @@ with System.Garlic.Streams;
 
 package System.Garlic.Filters.Zip is
 
+   procedure Initialize;
+
 private
 
    pragma Linker_Options ("-lz");
@@ -47,11 +49,11 @@ private
    type Compress_Filter_Params_Type is new Filter_Params_Type with null record;
 
    function Filter_Incoming
-      (Filter : in Compress_Filter_Type;
-       Params : in Filter_Params_Access;
-       Stream : in Streams.Stream_Element_Access;
-       Offset : in Ada.Streams.Stream_Element_Offset)
-      return Streams.Stream_Element_Access;
+     (Filter : in Compress_Filter_Type;
+      Params : in Filter_Params_Access;
+      Stream : in Streams.Stream_Element_Access;
+      Offset : in Ada.Streams.Stream_Element_Offset)
+     return Streams.Stream_Element_Access;
 
    function Filter_Outgoing
      (Filter : in     Compress_Filter_Type;
@@ -60,19 +62,19 @@ private
      return Streams.Stream_Element_Access;
 
    function Filter_Params_Read
-      (Filter : Compress_Filter_Type;
-       Stream : Ada.Streams.Stream_Element_Array)
+     (Filter : Compress_Filter_Type;
+      Stream : Ada.Streams.Stream_Element_Array)
      return Filter_Params_Access;
 
    function Filter_Params_Write
-      (Filter : Compress_Filter_Type;
-       Params : Filter_Params_Access)
-      return Streams.Stream_Element_Access;
+     (Filter : Compress_Filter_Type;
+      Params : Filter_Params_Access)
+     return Streams.Stream_Element_Access;
 
    procedure Generate_Params
-      (Filter          : in  Compress_Filter_Type;
-       Public_Params   : out Filter_Params_Access;
-       Private_Params  : out Filter_Params_Access;
-       Exchange_Params : out Boolean);
+     (Filter          : in  Compress_Filter_Type;
+      Public_Params   : out Filter_Params_Access;
+      Private_Params  : out Filter_Params_Access;
+      Exchange_Params : out Boolean);
 
 end System.Garlic.Filters.Zip;
