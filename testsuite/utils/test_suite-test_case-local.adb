@@ -107,11 +107,12 @@ package body Test_Suite.Test_Case.Local is
    exception
 
       when GNAT.Expect.Process_Died =>
-         --  The process may normally exit or die because of an internal
-         --  error. We cannot judge at this stage.
 
-         Log (Output, "==> Process Terminated <==");
-         Test_Result := True;
+         --  If we catch this exception before the test program
+         --  produces expected output then the test failed.
+
+         Log (Output, "==> Process terminated abnormally <==");
+         Test_Result := False;
 
          Close (Fd);
          Close_Test_Output_Context (Output, Test_Result);
