@@ -733,7 +733,7 @@ package body PolyORB.Protocols.GIOP is
       return null;
    end Select_Profile;
 
-   --  Version managing
+   --  Version management
 
    ----------------------------------
    -- Global_Register_GIOP_Version --
@@ -756,14 +756,18 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Get_GIOP_Implem
      (Sess    : access GIOP_Session;
-      Version :        GIOP_Version) is
+      Version :        GIOP_Version)
+   is
+      use PolyORB.Utils;
+
    begin
+      pragma Debug (O ("Looking up implementation for version "
+                       & Trimmed_Image (Integer (Version.Major))
+                       & "."
+                       & Trimmed_Image (Integer (Version.Minor))));
+
       for J in 1 .. Sess.Conf.Nb_Implem loop
          if Sess.Conf.GIOP_Implem_List (J).Version = Version then
-            pragma Debug (O ("Binding session to version:"
-                             & Version.Major'Img
-                             & "."
-                             & Version.Minor'Img));
 
             Sess.Implem := Sess.Conf.GIOP_Implem_List (J);
             Initialize_Session (Sess.Implem, Sess);

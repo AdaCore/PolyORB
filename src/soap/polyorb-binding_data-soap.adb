@@ -456,7 +456,7 @@ begin
       (Name      => +"binding_data.soap",
        Conflicts => Empty,
        Depends   => Empty,
-       Provides  => Empty,
+       Provides  => +"binding_factories",
        Init      => Initialize'Access));
 
 end PolyORB.Binding_Data.SOAP;

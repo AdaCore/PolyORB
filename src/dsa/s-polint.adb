@@ -1453,8 +1453,8 @@ begin
        & "naming.Helper"
        & "naming.NamingContext.Helper"
        & "tasking.mutexes"
-       & "access_points"
-       & "protocols",
+       & "access_points?"
+       & "binding_factories",
        Provides => Empty,
        Init => Initialize'Access));
 

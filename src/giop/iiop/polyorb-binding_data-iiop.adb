@@ -418,8 +418,8 @@ begin
      (Module_Info'
       (Name      => +"binding_data.iiop",
        Conflicts => Empty,
-       Depends   => Empty,
-       Provides  => Empty,
+       Depends   => +"protocols.giop.iiop",
+       Provides  => +"binding_factories",
        Init      => Initialize'Access));
 
 end PolyORB.Binding_Data.IIOP;

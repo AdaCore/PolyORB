@@ -101,7 +101,7 @@ begin
      (Module_Info'
       (Name      => +"tcp_access_points.corba",
        Conflicts => Empty,
-       Depends   => +"orb",
+       Depends   => +"orb" & "protocols.giop.iiop",
        Provides  => +"access_points",
        Init      => Initialize_Access_Points'Access));
 
