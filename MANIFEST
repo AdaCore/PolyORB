@@ -379,6 +379,16 @@ ada/make.adb
 ada/make.ads
 ada/makeusg.adb
 ada/makeusg.ads
+ada/mlib.adb
+ada/mlib.ads
+ada/mlib-fil.adb
+ada/mlib-fil.ads
+ada/mlib-prj.adb
+ada/mlib-prj.ads
+ada/mlib-tgt.adb
+ada/mlib-tgt.ads
+ada/mlib-utl.adb
+ada/mlib-utl.ads
 ada/namet.adb
 ada/namet.ads
 ada/nlists.adb
