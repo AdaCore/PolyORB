@@ -41,6 +41,7 @@ with GNAT.Sockets;                    use GNAT.Sockets;
 
 with Interfaces.C;                    use Interfaces.C;
 
+with System.Garlic.Debug;             use System.Garlic.Debug;
 with System.Garlic.Options;
 with System.Garlic.Partitions;        use System.Garlic.Partitions;
 with System.Garlic.Platform_Specific; use System.Garlic.Platform_Specific;
@@ -50,6 +51,15 @@ package body System.Garlic.Remote is
 
    package C renames Interfaces.C;
    --  Shortcuts
+
+   Private_Debug_Key : constant Debug_Key :=
+     Debug_Initialize ("S_GARREM", "(s-garrem): ");
+
+   procedure D
+     (Message : in String;
+      Key     : in Debug_Key := Private_Debug_Key)
+     renames Print_Debug_Info;
+   pragma Unreferenced (D);
 
    function Is_Local_Host (Host : String) return Boolean;
    --  Return True if the Host we are trying to contact is the same as the
