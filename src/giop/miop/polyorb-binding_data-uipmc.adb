@@ -33,7 +33,6 @@
 
 --  Binding data concrete implementation for MIOP.
 
-with PolyORB.Configuration;
 with PolyORB.Exceptions;
 with PolyORB.Filters;
 with PolyORB.Filters.MIOP;
@@ -41,11 +40,13 @@ with PolyORB.Filters.MIOP.MIOP_Out;
 with PolyORB.GIOP_P.Tagged_Components;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Log;
 with PolyORB.MIOP_P.Tagged_Components;
 with PolyORB.MIOP_P.Groups;
 with PolyORB.ORB;
 with PolyORB.Obj_Adapters;
+with PolyORB.Parameters;
 with PolyORB.Protocols;
 with PolyORB.Protocols.GIOP.UIPMC;
 with PolyORB.References.Corbaloc;
@@ -125,11 +126,11 @@ package body PolyORB.Binding_Data.UIPMC is
       The_ORB : Components.Component_Access)
      return Components.Component_Access
    is
-      use PolyORB.Configuration;
       use PolyORB.Components;
       use PolyORB.Filters;
       use PolyORB.Filters.MIOP.MIOP_Out;
       use PolyORB.ORB;
+      use PolyORB.Parameters;
       use PolyORB.Protocols;
       use PolyORB.Protocols.GIOP.UIPMC;
       use PolyORB.Sockets;
@@ -595,7 +596,7 @@ package body PolyORB.Binding_Data.UIPMC is
    procedure Initialize
    is
       Preference_Offset : constant String
-        := PolyORB.Configuration.Get_Conf
+        := PolyORB.Parameters.Get_Conf
         (Section => "corba",
          Key     => "polyorb.binding_data.uipmc.preference",
          Default => "0");

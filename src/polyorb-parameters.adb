@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                P O L Y O R B . C O N F I G U R A T I O N                 --
+--                    P O L Y O R B . P A R A M T E R S                     --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -46,7 +46,7 @@ with PolyORB.Log;
 with PolyORB.Utils;
 with PolyORB.Utils.Strings;
 
-package body PolyORB.Configuration is
+package body PolyORB.Parameters is
 
    use Ada.Characters.Handling;
    use Ada.Text_IO;
@@ -425,4 +425,4 @@ package body PolyORB.Configuration is
       PolyORB.Log.Get_Conf_Hook := Get_Conf'Access;
    end Initialize;
 
-end PolyORB.Configuration;
+end PolyORB.Parameters;

@@ -33,7 +33,7 @@
 
 --  $Id$
 
-with PolyORB.Configuration;
+with PolyORB.Parameters;
 with PolyORB.POA_Manager;
 with PolyORB.POA_Config.Proxies;
 with PolyORB.POA.Basic_POA;
@@ -53,7 +53,7 @@ is
 
    Proxy_POA   : PolyORB.POA.Obj_Adapter_Access;
 begin
-   if PolyORB.Configuration.Get_Conf ("proxies", "enable_proxies", False) then
+   if PolyORB.Parameters.Get_Conf ("proxies", "enable_proxies", False) then
 
       pragma Assert (Root_POA_Object /= null);
 

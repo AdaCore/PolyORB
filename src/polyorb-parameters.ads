@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                P O L Y O R B . C O N F I G U R A T I O N                 --
+--                   P O L Y O R B . P A R A M E T E R S                    --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -35,7 +35,7 @@
 
 --  $Id$
 
-package PolyORB.Configuration is
+package PolyORB.Parameters is
 
    pragma Elaborate_Body;
 
@@ -113,4 +113,4 @@ package PolyORB.Configuration is
    --  representation of an integer number.
    --  Constraint_Error is raised if the value is set to anything else.
 
-end PolyORB.Configuration;
+end PolyORB.Parameters;

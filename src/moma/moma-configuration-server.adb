@@ -43,10 +43,10 @@ with PolyORB.MOMA_P.Exceptions;
 
 package body MOMA.Configuration.Server is
 
-   use PolyORB.Configuration;
    use PolyORB.Exceptions;
    use PolyORB.Log;
    use PolyORB.Minimal_Servant.Tools;
+   use PolyORB.Parameters;
    use PolyORB.References;
 
    use MOMA.Types;

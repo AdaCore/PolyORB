@@ -38,12 +38,12 @@
 
 with MOMA.Types;
 
-with PolyORB.Configuration;
+with PolyORB.Parameters;
 
 package MOMA.Configuration is
 
    procedure Load_Configuration_File (Conf_File_Name : String)
-    renames PolyORB.Configuration.Load_Configuration_File;
+    renames PolyORB.Parameters.Load_Configuration_File;
    --  Load the content of Conf_File_Name into PolyORB configuration table.
 
    --  Accessors to MOMA destination configuration files data.

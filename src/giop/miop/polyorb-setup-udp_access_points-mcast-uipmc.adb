@@ -34,13 +34,14 @@
 --  Setup socket for UIPMC
 
 with PolyORB.Binding_Data.UIPMC;
-with PolyORB.Configuration;
 with PolyORB.Filters;
 with PolyORB.Filters.Fragmenter;
 with PolyORB.Filters.MIOP.MIOP_In;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.ORB;
+with PolyORB.Parameters;
 with PolyORB.Protocols;
 with PolyORB.Protocols.GIOP.UIPMC;
 with PolyORB.Transport.Datagram.Sockets_In;
@@ -72,7 +73,7 @@ package body PolyORB.Setup.UDP_Access_Points.MCast.UIPMC is
 
    procedure Initialize_Access_Points
    is
-      use PolyORB.Configuration;
+      use PolyORB.Parameters;
 
       Addr : constant String
         := Get_Conf

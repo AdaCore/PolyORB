@@ -33,15 +33,15 @@
 
 --  $Id$
 
-with PolyORB.Configuration;
 with PolyORB.Log;
+with PolyORB.Parameters;
 
 with MOMA.Types;
 
 package body MOMA.Configuration is
 
-   use PolyORB.Configuration;
    use PolyORB.Log;
+   use PolyORB.Parameters;
 
    use MOMA.Types;
 

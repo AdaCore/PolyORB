@@ -37,11 +37,11 @@ with PolyORB.Binding_Data.SOAP;
 with PolyORB.Filters.HTTP;
 with PolyORB.Protocols.SOAP_Pr;
 
-with PolyORB.Configuration;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.ORB;
+with PolyORB.Parameters;
 with PolyORB.Protocols;
 with PolyORB.Transport.Connected.Sockets;
 with PolyORB.Utils.Strings;
@@ -79,7 +79,8 @@ package body PolyORB.Setup.TCP_Access_Points.SOAP is
 
    procedure Initialize_Access_Points
    is
-      use PolyORB.Configuration;
+      use PolyORB.Parameters;
+
    begin
       if Get_Conf ("access_points", "soap", True) then
 

@@ -36,13 +36,13 @@
 with PolyORB.Binding_Data.DIOP;
 with PolyORB.Protocols.GIOP.DIOP;
 
-with PolyORB.Configuration;
 with PolyORB.Filters;
 with PolyORB.Filters.Fragmenter;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.ORB;
+with PolyORB.Parameters;
 with PolyORB.Protocols;
 with PolyORB.Transport.Datagram.Sockets_In;
 with PolyORB.Utils.Strings;
@@ -71,7 +71,7 @@ package body PolyORB.Setup.UDP_Access_Points.Sockets.DIOP is
 
    procedure Initialize_Access_Points
    is
-      use PolyORB.Configuration;
+      use PolyORB.Parameters;
 
    begin
       if Get_Conf ("access_points", "diop", True) then

@@ -33,9 +33,9 @@
 
 --  MIOP filter for data which arrive from a GIOP Session
 
-with PolyORB.Configuration;
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
+with PolyORB.Parameters;
 with PolyORB.Representations.CDR;
 with PolyORB.Types;
 
@@ -63,7 +63,7 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
       pragma Warnings (On);
 
       use PolyORB.Components;
-      use PolyORB.Configuration;
+      use PolyORB.Parameters;
 
       Res : constant Filter_Access := new MIOP_Out_Filter;
    begin

@@ -44,7 +44,6 @@ with System.RPC;
 with GNAT.HTable;
 
 with PolyORB.Binding_Data;
-with PolyORB.Configuration;
 with PolyORB.DSA_P.Exceptions;
 with PolyORB.DSA_P.Partitions;
 with PolyORB.Dynamic_Dict;
@@ -60,6 +59,7 @@ pragma Warnings (Off);
 with PolyORB.Opaque;
 pragma Warnings (On);
 with PolyORB.ORB;
+with PolyORB.Parameters;
 with PolyORB.POA;
 with PolyORB.POA_Config;
 with PolyORB.POA_Types;
@@ -211,7 +211,7 @@ package body System.PolyORB_Interface is
    begin
       if PSNNC.Is_Nil (Naming_Context_Cache) then
          PolyORB.References.String_To_Object
-           (PolyORB.Configuration.Get_Conf ("dsa", "naming_ior"),
+           (PolyORB.Parameters.Get_Conf ("dsa", "naming_ior"),
             R);
          PSNNC.Set (Naming_Context_Cache, Entity_Of (R));
       end if;

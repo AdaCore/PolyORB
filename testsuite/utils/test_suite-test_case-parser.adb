@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Configuration;
+with PolyORB.Parameters;
 
 with Test_Suite.Test_Case.Local;
 with Test_Suite.Test_Case.Client_Server;
@@ -40,7 +40,7 @@ package body Test_Suite.Test_Case.Parser is
 
    use Ada.Strings.Unbounded;
 
-   use PolyORB.Configuration;
+   use PolyORB.Parameters;
 
    use Test_Suite.Test_Case.Local;
    use Test_Suite.Test_Case.Client_Server;

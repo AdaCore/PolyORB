@@ -679,8 +679,6 @@ src/polyorb-call_back.adb
 src/polyorb-call_back.ads
 src/polyorb-components.adb
 src/polyorb-components.ads
-src/polyorb-configuration.adb
-src/polyorb-configuration.ads
 src/polyorb-constants.ads
 src/polyorb-dynamic_dict.adb
 src/polyorb-dynamic_dict.ads
@@ -738,6 +736,8 @@ src/polyorb-orb-thread_pool.adb
 src/polyorb-orb-thread_pool.ads
 src/polyorb-orb.adb
 src/polyorb-orb.ads
+src/polyorb-parameters.adb
+src/polyorb-parameters.ads
 src/polyorb-poa-basic_poa.adb
 src/polyorb-poa-basic_poa.ads
 src/polyorb-poa.adb

@@ -35,7 +35,6 @@
 
 with Ada.Streams;
 
-with PolyORB.Configuration;
 with PolyORB.Filters;
 with PolyORB.Filters.Slicers;
 with PolyORB.Initialization;
@@ -43,6 +42,7 @@ pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.ORB;
+with PolyORB.Parameters;
 with PolyORB.Protocols;
 with PolyORB.Protocols.GIOP;
 with PolyORB.Protocols.GIOP.IIOP;
@@ -513,7 +513,7 @@ package body PolyORB.Binding_Data.IIOP is
    procedure Initialize
    is
       Preference_Offset : constant String
-        := PolyORB.Configuration.Get_Conf
+        := PolyORB.Parameters.Get_Conf
         (Section => "corba",
          Key     => "polyorb.binding_data.iiop.preference",
          Default => "0");

@@ -37,7 +37,6 @@ with PolyORB.Any;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Buffers;
 with PolyORB.Components;
-with PolyORB.Configuration;
 with PolyORB.Exceptions;
 with PolyORB.Filters;
 with PolyORB.Initialization;
@@ -48,6 +47,7 @@ with PolyORB.Objects;
 with PolyORB.Obj_Adapters;
 with PolyORB.Obj_Adapters.Group_Object_Adapter;
 with PolyORB.ORB.Interface;
+with PolyORB.Parameters;
 with PolyORB.References.Binding;
 with PolyORB.References.IOR;
 with PolyORB.Representations.CDR;
@@ -123,8 +123,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
    procedure Initialize_Implem (Implem : access GIOP_Implem_1_2)
    is
+      use PolyORB.Parameters;
       use PolyORB.Types;
-      use PolyORB.Configuration;
 
       Max : constant Types.Unsigned_Long
         := Types.Unsigned_Long

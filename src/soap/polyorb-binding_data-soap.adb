@@ -35,15 +35,14 @@
 
 --  $Id$
 
-with Ada.Streams; use Ada.Streams;
+with Ada.Streams;
 
-with PolyORB.Configuration;
-with PolyORB.Filters;
 with PolyORB.Filters.HTTP;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.ORB.Interface;
+with PolyORB.Parameters;
 with PolyORB.Protocols;
 with PolyORB.Protocols.SOAP_Pr;
 with PolyORB.Setup;
@@ -64,6 +63,8 @@ with PolyORB.Log;
 with AWS.URL;
 
 package body PolyORB.Binding_Data.SOAP is
+
+   use Ada.Streams;
 
    use PolyORB.Log;
    use PolyORB.Buffers;
@@ -534,7 +535,7 @@ package body PolyORB.Binding_Data.SOAP is
       use PolyORB.References.URI;
 
       Preference_Offset : constant String :=
-        PolyORB.Configuration.Get_Conf
+        PolyORB.Parameters.Get_Conf
         (Section => "soap",
          Key     => "polyorb.binding_data.soap.preference",
          Default => "0");

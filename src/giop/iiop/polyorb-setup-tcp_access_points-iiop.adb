@@ -37,13 +37,13 @@ with PolyORB.Binding_Data.IIOP;
 with PolyORB.Protocols.GIOP;
 with PolyORB.Protocols.GIOP.IIOP;
 
-with PolyORB.Configuration;
 with PolyORB.Filters;
 with PolyORB.Filters.Slicers;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.ORB;
+with PolyORB.Parameters;
 with PolyORB.Protocols;
 with PolyORB.Transport.Connected.Sockets;
 with PolyORB.Utils.Strings;
@@ -74,7 +74,8 @@ package body PolyORB.Setup.TCP_Access_Points.IIOP is
 
    procedure Initialize_Access_Points
    is
-      use PolyORB.Configuration;
+      use PolyORB.Parameters;
+
    begin
       if Get_Conf ("access_points", "iiop", True) then
 

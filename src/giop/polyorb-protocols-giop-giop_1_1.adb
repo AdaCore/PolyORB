@@ -36,7 +36,6 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.Any;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Buffers;
-with PolyORB.Configuration;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
@@ -44,6 +43,7 @@ with PolyORB.Log;
 with PolyORB.Objects;
 with PolyORB.Obj_Adapters;
 with PolyORB.ORB.Interface;
+with PolyORB.Parameters;
 with PolyORB.References;
 with PolyORB.Representations.CDR;
 with PolyORB.Utils.Strings;
@@ -108,8 +108,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    procedure Initialize_Implem
      (Implem : access GIOP_Implem_1_1)
    is
+      use PolyORB.Parameters;
       use PolyORB.Types;
-      use PolyORB.Configuration;
 
       Max : constant Types.Unsigned_Long
         := Types.Unsigned_Long

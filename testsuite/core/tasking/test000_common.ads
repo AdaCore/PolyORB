@@ -36,12 +36,12 @@
 
 --  $Id$
 
-with PolyORB.Configuration;
-pragma Elaborate_All (PolyORB.Configuration); --  WAG:3.15
+with PolyORB.Parameters;
+pragma Elaborate_All (PolyORB.Parameters); --  WAG:3.15
 
 package Test000_Common is
 
-   use PolyORB.Configuration;
+   use PolyORB.Parameters;
 
    Number_Of_Tasks : constant Integer :=
      Get_Conf ("test", "tasking.number_of_tasks", 2);
