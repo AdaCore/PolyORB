@@ -1,8 +1,13 @@
+2003-03-15  Pascal Obry  <obry@gnat.com>
+
+	* MANIFEST: Add tempdir.ad[sb].
+	Continued work for C311-010.
+
 2002-11-26  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* aclocal.m4, configure: Fix BB23-001 (test concerning gnatgcc).
 
-2002-11-23  Pascal Obry  <p.obry@wanadoo.fr>
+2002-11-23  Pascal Obry  <obry@gnat.com>
 
 	* MANIFEST: Remove ctrl_c.c it was a wrong entry after all.
 
