@@ -29,16 +29,8 @@
 
 This file details the compilation and installation of PolyORB.
 
-Supported Platforms
--------------------
-
-PolyORB has been compiled and successfully tested on the following platforms:
-
-- FreeBSD
-- HP-UX
-- Linux
-- Solaris
-- Windows
+For more details about supported platforms or platform specific
+information, please refer to PolyORB User's Guide.
 
 Build requirements
 ------------------
@@ -113,18 +105,4 @@ in your PATH, and configure picks the wrong one, you can indicate
 what compiler should be used with the following syntax:
 
 ADA=/path/to/good/compiler/gcc ./configure [options]
-
-Platform notes
---------------
-
-Solaris 2.8:
-
-  * /usr/bin/sed and /usr/ucb/sed will silently chop long
-    lines, and /usr/xpg4/bin/sed will enter an endless loop while
-    processing PolyORB files.
-    GNU sed is required to configure and build PolyORB.
-
-  * /usr/ucb/tr does not handle control character escape sequences: it
-    cannot be used to recompute dependencies ('make depend');
-    /usr/bin/tr or /usr/xpg4/bin/tr must be used.
 
