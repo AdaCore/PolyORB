@@ -36,8 +36,6 @@
 --  Designed to interact with others implementation of
 --  the CORBA Naming Service
 
---  $Id$
-
 with Ada.Command_Line;
 with Ada.Text_IO;
 
