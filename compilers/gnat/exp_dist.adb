@@ -402,21 +402,16 @@ package body Exp_Dist is
    procedure Add_RAS_From_Any
      (RAS_Type     : in Entity_Id;
       Declarations : in List_Id);
-   pragma Unreferenced (Add_RAS_From_Any);
    --  Add the From_Any TSS for this RAS type.
 
    procedure Add_RAS_To_Any
-     (Designated_Type : in Entity_Id;
-      RAS_Type        : in Entity_Id;
+     (RAS_Type        : in Entity_Id;
       Declarations    : in List_Id);
-   pragma Unreferenced (Add_RAS_To_Any);
    --  Add the To_Any TSS for this RAS type.
 
    procedure Add_RAS_TypeCode
-     (Designated_Type : in Entity_Id;
-      RAS_Type        : in Entity_Id;
+     (RAS_Type        : in Entity_Id;
       Declarations    : in List_Id);
-   pragma Unreferenced (Add_RAS_TypeCode);
    --  Add the TypeCode TSS for this RAS type.
 
    function RCI_Package_Locator
@@ -2467,8 +2462,7 @@ package body Exp_Dist is
    end Add_RAS_From_Any;
 
    procedure Add_RAS_To_Any
-     (Designated_Type : in Entity_Id;
-      RAS_Type        : in Entity_Id;
+     (RAS_Type        : in Entity_Id;
       Declarations    : in List_Id)
    is
       Loc : constant Source_Ptr := Sloc (RAS_Type);
@@ -2488,10 +2482,18 @@ package body Exp_Dist is
       RAS_Parameter : constant Entity_Id :=
         Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
 
+      RACW_Parameter : constant Node_Id :=
+        Make_Selected_Component (Loc,
+          Prefix =>
+            New_Occurrence_Of (RAS_Parameter, Loc),
+          Selector_Name =>
+            Make_Identifier (Loc, Name_Ras));
+
    begin
 
       --  Object declarations
 
+      Set_Etype (RACW_Parameter, Underlying_RACW_Type (RAS_Type));
       Decls := New_List (
         Make_Object_Declaration (Loc,
           Defining_Identifier =>
@@ -2499,13 +2501,7 @@ package body Exp_Dist is
           Object_Definition =>
             New_Occurrence_Of (RTE (RE_Any), Loc),
           Expression =>
-            Build_To_Any_Call (
-              Make_Selected_Component (Loc,
-                Prefix =>
-                  New_Occurrence_Of (RAS_Parameter, Loc),
-                Selector_Name =>
-                  Make_Identifier (Loc, Name_Ras)),
-               No_List)));
+            Build_To_Any_Call (RACW_Parameter, No_List)));
 
       Statements := New_List (
         Make_Procedure_Call_Statement (Loc,
@@ -2513,7 +2509,7 @@ package body Exp_Dist is
             New_Occurrence_Of (RTE (RE_Set_TC), Loc),
           Parameter_Associations => New_List (
             New_Occurrence_Of (Any, Loc),
-            Build_TypeCode_Call (Loc, RAS_Type, No_List))),
+            Build_TypeCode_Call (Loc, RAS_Type, Decls))),
         Make_Return_Statement (Loc,
           Expression =>
             New_Occurrence_Of (Any, Loc)));
@@ -2558,8 +2554,7 @@ package body Exp_Dist is
    ----------------------
 
    procedure Add_RAS_TypeCode
-     (Designated_Type : in Entity_Id;
-      RAS_Type        : in Entity_Id;
+     (RAS_Type        : in Entity_Id;
       Declarations    : in List_Id)
    is
       Loc : constant Source_Ptr := Sloc (RAS_Type);
@@ -2570,6 +2565,7 @@ package body Exp_Dist is
       Func_Decl : Node_Id;
       Func_Body : Node_Id;
 
+      Decls : constant List_Id := New_List;
       Name_String : String_Id;
       Repo_Id_String : String_Id;
 
@@ -2613,7 +2609,7 @@ package body Exp_Dist is
         Make_Subprogram_Body (Loc,
           Specification              =>
             Copy_Specification (Loc, Func_Spec),
-          Declarations               => Empty_List,
+          Declarations               => Decls,
           Handled_Statement_Sequence =>
             Make_Handled_Sequence_Of_Statements (Loc,
               Statements => New_List (
@@ -2641,9 +2637,9 @@ package body Exp_Dist is
                                 Name =>
                                   New_Occurrence_Of (RTE (RE_TA_TC), Loc),
                                 Parameter_Associations => New_List (
-                              Build_TypeCode_Call (Loc,
-                                Underlying_RACW_Type (RAS_Type),
-                                No_List)))))))))));
+                                  Build_TypeCode_Call (Loc,
+                                    Underlying_RACW_Type (RAS_Type),
+                                    Decls)))))))))));
 
       Insert_After (Declaration_Node (RAS_Type), Func_Decl);
       Append_To (Declarations, Func_Body);
@@ -2656,13 +2652,28 @@ package body Exp_Dist is
    -----------------------
 
    procedure Add_RAST_Features (Vis_Decl : Node_Id) is
+      RAS_Type : constant Entity_Id :=
+        Equivalent_Type (Defining_Identifier (Vis_Decl));
+
+      Spec : constant Node_Id :=
+        Specification (Unit (Enclosing_Lib_Unit_Node (Vis_Decl)));
+      Decls : List_Id := Private_Declarations (Spec);
+
    begin
-      pragma Assert (No (
-        TSS (Equivalent_Type (Defining_Identifier (
-          Vis_Decl)), Name_uRAS_Access)));
+      pragma Assert (No (TSS (RAS_Type, Name_uRAS_Access)));
 
       --  Add_RAS_Dereference_TSS (Vis_Decl);
       Add_RAS_Access_TSS (Vis_Decl);
+
+      if No (Decls) then
+         Decls := Visible_Declarations (Spec);
+      end if;
+
+      Add_RAS_From_Any (RAS_Type, Decls);
+      Add_RAS_TypeCode (RAS_Type, Decls);
+      Add_RAS_To_Any (RAS_Type, Decls);
+      --  To_Any uses TypeCode, and therefore needs to
+      --  be generated last.
    end Add_RAST_Features;
 
    -----------------------------------------
@@ -2682,7 +2693,6 @@ package body Exp_Dist is
       Pkg_RPC_Receiver_Stmts       : List_Id;
       Pkg_RPC_Receiver_Cases       : constant List_Id := New_List;
       --  A Pkg_RPC_Receiver is built to decode the request
-
 
       Request                     : Node_Id;
       --  Request object received from neutral layer
