@@ -1607,11 +1607,15 @@ package body Exp_Hlpr is
                         Decls),
                       Build_To_Any_Call (Inner_TypeCode, Decls)));
                else
+
+                  --  Unconstrained case: add low bound for each dimension.
+
                   Get_Name_String (New_External_Name ('L', J));
                   Add_String_Parameter (String_From_Name_Buffer);
                   Add_TypeCode_Parameter
                     (Build_TypeCode_Call (Loc, Etype (Indx), Decls));
                   Next_Index (Indx);
+
                   Inner_TypeCode := Make_Constructed_TypeCode
                     (RTE (RE_TC_Sequence), New_List (
                       Build_To_Any_Call (
@@ -1625,8 +1629,6 @@ package body Exp_Hlpr is
             if Constrained then
                Return_Alias_TypeCode (Inner_TypeCode);
             else
-               --  XXX for each dimen: store low bound
-               --  (sequence contains length).
                Start_String;
                Store_String_Char ('V');
                Add_String_Parameter (End_String);
