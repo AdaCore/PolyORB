@@ -139,6 +139,7 @@ package Backend.BE_Ada.Runtime is
                                     --     Interceptors_Hooks.Client_Invoke
       RE_Raise_From_Any,            --  PolyORB.CORBA_P.
                                     --     Exceptions.Raise_From_Any
+      RE_Add,                       --  PolyORB.Utils.Strings."+"
       RE_Empty,                     --  PolyORB.Utils.Strings.Lists.Empty
       RE_Servant,                   --  PortableServer.Servant
       RE_Servant_Base,              --  PortableServer.Servant_Base
@@ -216,6 +217,7 @@ package Backend.BE_Ada.Runtime is
          RE_Arguments               => RU_CORBA_ServerRequest,
          RE_Object_Ptr              => RU_CORBA_ServerRequest,
          RE_Operation               => RU_CORBA_ServerRequest,
+         RE_Set_Result              => RU_CORBA_ServerRequest,
          RE_Object                  => RU_CORBA_TypeCode,
          RE_Add_Parameter           => RU_CORBA_TypeCode_Internals,
          RE_To_CORBA_Object         => RU_CORBA_TypeCode_Internals,
@@ -240,9 +242,9 @@ package Backend.BE_Ada.Runtime is
          RE_Create_Request          => RU_PolyORB_Requests,
          RE_Destroy_Request         => RU_PolyORB_Requests,
          RE_Flags                   => RU_PolyORB_Requests,
-         RE_Set_Result              => RU_PolyORB_Requests,
          RE_Identifier              => RU_PolyORB_Types,
          RE_To_PolyORB_String       => RU_PolyORB_Types,
+         RE_Add                     => RU_PolyORB_Utils_Strings,
          RE_Empty                   => RU_PolyORB_Utils_Strings_Lists,
          RE_Servant                 => RU_PortableServer,
          RE_Servant_Base            => RU_PortableServer,

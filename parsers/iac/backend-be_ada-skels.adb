@@ -429,8 +429,8 @@ package body Backend.BE_Ada.Skels is
          Append_Node_To_List (N, Statements);
          N := Make_Block_Statement
            (Declarative_Part => Declarative_Part,
-            Statements       =>
-              Make_List_Id (New_Node (K_Null_Statement))); -- Bugs
+            Statements       => Statements);
+
 
          return N;
       end Is_A_Invoke_Part;

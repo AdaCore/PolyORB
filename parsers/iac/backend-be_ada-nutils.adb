@@ -113,14 +113,24 @@ package body Backend.BE_Ada.Nutils is
          return E;
       end To_Library_Unit;
 
-      P : constant Node_Id := To_Library_Unit (E);
-      W : Node_Id;
-      N : Name_Id;
-      B : Byte;
-      D : Node_Id;
-      I : Node_Id;
+      P           : constant Node_Id := To_Library_Unit (E);
+      W           : Node_Id;
+      N           : Name_Id;
+      B           : Byte;
+      D           : Node_Id;
+      I           : Node_Id;
+      Helper_Name : Name_Id;
+      Skel_Name   : Name_Id;
+      Impl_Name   : Name_Id;
 
    begin
+      Set_Str_To_Name_Buffer ("Helper");
+      Helper_Name := Name_Find;
+      Set_Str_To_Name_Buffer ("Skel");
+      Skel_Name := Name_Find;
+      Set_Str_To_Name_Buffer ("Impl");
+      Impl_Name := Name_Find;
+
       if No (P) then
          return;
       end if;
@@ -135,8 +145,13 @@ package body Backend.BE_Ada.Nutils is
 
          --  This is a local entity and there is no need for a with clause
 
-         if Is_N_Parent_Of_M (D, FE_Node (Current_Entity)) then
-            return;
+         if BEN.Name (Defining_Identifier (P)) /= Helper_Name
+           and then BEN.Name (Defining_Identifier (P)) /= Skel_Name
+           and then BEN.Name (Defining_Identifier (P)) /= Impl_Name
+         then
+            if Is_N_Parent_Of_M (D, FE_Node (Current_Entity)) then
+               return;
+            end if;
          end if;
       end if;
 
@@ -217,6 +232,7 @@ package body Backend.BE_Ada.Nutils is
          when FEN.K_String              => return RE_String_0;
          when FEN.K_Wide_String         => return RE_Wide_String;
          when FEN.K_Boolean             => return RE_Boolean;
+         when FEN.K_Octet               => return RE_Octet;
          when others                    =>
             raise Program_Error;
       end case;
@@ -259,6 +275,7 @@ package body Backend.BE_Ada.Nutils is
          when K_Designator =>
             C := New_Node (K_Designator);
             Set_Defining_Identifier (C, Defining_Identifier (N));
+            Set_FE_Node (C, FE_Node (N));
             Set_Parent_Unit_Name (C, Parent_Unit_Name (N));
 
          when K_Defining_Identifier =>
