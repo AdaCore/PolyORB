@@ -39,7 +39,7 @@ install-data-local:
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
 aws.lo:aws.ads 
 aws-mime.lo:aws.ads aws-mime.adb aws-mime.ads 
-aws-url.lo:aws.ads aws-url.adb aws-url.ads aws-url-raise_url_error.ads aws-utils.ads md5.ads ./../polyorb.ads ./../polyorb-utils.adb ./../polyorb-utils.ads 
+aws-url.lo:aws.ads aws-url.adb aws-url.ads aws-url-raise_url_error.ads aws-utils.ads md5.ads ./../polyorb.ads ../polyorb.ads ./../polyorb-utils.adb ../polyorb-utils.adb ./../polyorb-utils.ads ../polyorb-utils.ads 
 aws-url-raise_url_error.lo:aws.ads aws-url.ads aws-url-raise_url_error.adb aws-url-raise_url_error.ads 
 aws-utils.lo:aws.ads aws-utils.adb aws-utils.ads md5.ads 
 md5.lo:md5.adb md5.ads 
