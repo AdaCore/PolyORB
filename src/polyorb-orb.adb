@@ -1365,7 +1365,10 @@ begin
          & "protocols.giop?"
          & "protocols.soap?"
          & "smart_pointers"
-         & "exceptions.stack",
+         & "exceptions.stack"
+         & "tasking.threads"
+         & "tasking.mutexes"
+         & "tasking.condition_variables",
        Provides => Empty,
        Init => Initialize'Access));
 
