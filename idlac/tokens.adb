@@ -17,9 +17,11 @@
 --
 
 with Ada.Text_Io;
-with Ada.Strings.Fixed;
+with Ada.Command_Line;
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
+with Ada.Characters.Handling;
 with Gnat.Case_Util;
+with Gnat.OS_Lib;
 with Types; use Types;
 with Errors;
 
@@ -30,11 +32,13 @@ package body Tokens is
    -----------------------------------
 
    type State_Type is record
+      File_Name : Errors.File_Name_Ptr;
       Line_Number : Natural;
       Line_Len : Natural;
    end record;
 
-   Current_State : State_Type := (Line_Number => 0,
+   Current_State : State_Type := (File_Name => new String'(""),
+                                  Line_Number => 0,
                                   Line_Len => 0);
    Line : String (1 .. 2047);
    Col : Natural := 2048;
@@ -45,11 +49,7 @@ package body Tokens is
    --  The current token, set by next_token.
    Current_Token : Idl_Token := T_Error;
 
-   --  If not t_error, the replacement token.
-   Replacement_Token : Idl_Token := T_Error;
-
-
-   --  reads the next line
+   --  Reads the next line
    procedure Read_Line is
    begin
       --  Get next line and append a LF at the end.
@@ -76,6 +76,7 @@ package body Tokens is
    procedure Skip_Line is
    begin
       Read_Line;
+      Col := Col - 1;
    end Skip_Line;
 
    --  Gets the next char and consume it
@@ -819,18 +820,186 @@ package body Tokens is
    end Scan_Underscore;
 
 
-   ------------------------------------
-   --  The main method : next_token  --
-   ------------------------------------
+   --  Called when the current character is a #.
+   --  Deals with the preprocessor directives.
+   --  Actually, most of these are processed by gcc in a former
+   --  step; this function only deals with #PRAGMA and
+   --  #LINE directives.
+   --  it returns true if it produced a token, false else
+   --
+   --  IDL Syntax and semantics, CORBA V2.3 § 3.3
+   function Scan_Preprocessor return Boolean is
+      use Ada.Characters.Handling;
+   begin
+      Skip_Spaces;
+      case View_Next_Char is
+         when 'A' .. 'Z'
+           | LC_A .. LC_Z
+           | UC_A_Grave .. UC_I_Diaeresis
+           | LC_A_Grave .. LC_I_Diaeresis
+           | UC_N_Tilde .. UC_O_Diaeresis
+           | LC_N_Tilde .. LC_O_Diaeresis
+           | UC_O_Oblique_Stroke .. UC_U_Diaeresis
+           | LC_O_Oblique_Stroke .. LC_U_Diaeresis
+           | LC_German_Sharp_S
+           | LC_Y_Diaeresis =>
+            --  This is a preprocessor directive
+            Skip_Char;
+            Set_Mark;
+            while Is_Identifier_Character (View_Next_Char)
+            loop
+               Skip_Char;
+            end loop;
+            if To_Lower (Get_Marked_Text) = "if"
+                 or To_Lower (Get_Marked_Text) = "elif"
+                 or To_Lower (Get_Marked_Text) = "else"
+                 or To_Lower (Get_Marked_Text) = "endif"
+                 or To_Lower (Get_Marked_Text) = "define"
+                 or To_Lower (Get_Marked_Text) = "undef"
+                 or To_Lower (Get_Marked_Text) = "ifdef"
+                 or To_Lower (Get_Marked_Text) = "ifndef"
+                 or To_Lower (Get_Marked_Text) = "include"
+                 or To_Lower (Get_Marked_Text) = "error" then
+               Errors.Lexer_Error
+                 ("cannot handle preprocessor directive in "
+                  & "lexer, use -p",  --  FIXME : -p ???
+                  Errors.Error);
+               Skip_Line;
+            elsif To_Lower (Get_Marked_Text) = "pragma" then
+               --  Currently ignored.
+               --  FIXME
+               Skip_Line;
+            else
+               Errors.Lexer_Error
+                 ("unknow preprocessor directive : "
+                  & Get_Marked_Text & ".",
+                  Errors.Error);
+               Skip_Line;
+            end if;
+         when  '0' .. '9' =>
+            --  here line number and maybe file name must be changed
+            declare
+               New_Line_Number : Natural;
+               Last : Positive;
+               package Natural_IO is new Ada.Text_IO.Integer_IO (Natural);
+            begin
+               Natural_IO.Get (Line (Col .. Line'Last),
+                               New_Line_Number,
+                               Last);
+               Col := Last;
+               Current_State.Line_Number := New_Line_Number;
+                  Skip_Spaces;
+               if View_Next_Char = Quotation then
+                  Skip_Char;
+                  Set_Mark;
+                  Go_To_End_Of_String;
+                  Errors.Free (Current_State.File_Name);
+                  Current_State.File_Name
+                    := new String'(Get_Marked_Text);
+               end if;
+            end;
+            Skip_Line;
+         when Lf =>
+            --  This is an end of line.
+            return False;
+         when others =>
+            Errors.Lexer_Error ("bad preprocessor line",
+                                Errors.Error);
+            Skip_Line;
+      end case;
+      return False;
+   end Scan_Preprocessor;
+
+
+
+   -----------------------------------------------------
+   --  Tools and constants for the preprocessor call  --
+   -----------------------------------------------------
+
+   --  If true then keep temporary files;
+   Keep_Temporary_Files : Boolean := False;
+
+   --  Name of the temporary file to be created if the
+   --  preprocessor is used.
+   Tmp_File_Name : GNAT.OS_Lib.Temp_File_Name;
+
+   --  Manipulation of an array of strings for
+   --  the arguments to be given to the preprocessor
+   Args : GNAT.OS_Lib.Argument_List (1 .. 64);
+   Arg_Count : Positive := 1;
+   procedure Add_Argument (Str : String) is
+   begin
+      Args (Arg_Count) := new String'(Str);
+      Arg_Count := Arg_Count + 1;
+   end Add_Argument;
+
+
+   ----------------------------------------------------
+   --  The main methods : initialize and next_token  --
+   ----------------------------------------------------
+
+   --  initializes the lexer by opening the file to process
+   --  and by preprocessing it if necessary
+   procedure Initialize (Filename : in String;
+                         Preprocess : in Boolean;
+                         Keep_Temporary_Files : in Boolean) is
+      Idl_File : Ada.Text_Io.File_Type;
+   begin
+      if Filename'Length = 0 then
+         Errors.Lexer_Error ("Missing idl file as argument",
+                             Errors.Fatal);
+      end if;
+      Tokens.Keep_Temporary_Files := Keep_Temporary_Files;
+      if Preprocess then
+         declare
+            use GNAT.OS_Lib;
+            Spawn_Result : Boolean;
+            Fd : File_Descriptor;
+         begin
+            --  Use default options:
+            --  -E           only preprocess
+            --  -C           do not discard comments
+            --  -x c++       use c++ preprocessor semantic
+            Add_Argument ("-E");
+            Add_Argument ("-C");
+            Add_Argument ("-x");
+            Add_Argument ("c++");
+            Add_Argument ("-ansi");
+            Create_Temp_File (Fd, Tmp_File_Name);
+            if Fd = Invalid_FD then
+               Errors.Lexer_Error (Ada.Command_Line.Command_Name &
+                                   ": cannot create temporary file name",
+                                   Errors.Fatal);
+            end if;
+            --  We don't need the fd.
+            Close (Fd);
+
+            Add_Argument ("-o");
+            Add_Argument (Tmp_File_Name);
+            Args (Arg_Count) := new String'(Filename);
+            Spawn (Locate_Exec_On_Path ("gnatgcc").all,
+                   Args (1 .. Arg_Count),
+                   Spawn_Result);
+            if not Spawn_Result then
+               Errors.Lexer_Error (Ada.Command_Line.Command_Name &
+                             ": preprocessor failed",
+                             Errors.Fatal);
+            end if;
+            Ada.Text_Io.Open (Idl_File,
+                              Ada.Text_Io.In_File,
+                              Tmp_File_Name);
+         end;
+      else
+         Ada.Text_Io.Open (Idl_File,
+                           Ada.Text_Io.In_File,
+                           Filename);
+      end if;
+      Ada.Text_Io.Set_Input (Idl_File);
+   end initialize;
 
    --  Gets the next token and puts it in current_token
    procedure Next_Token is
    begin
-      if Replacement_Token /= T_Error then
-         Current_Token := Replacement_Token;
-         Replacement_Token := T_Error;
-         return;
-      end if;
       loop
          case Next_Char is
             when Space | Cr | Vt | Ff | Lf =>
@@ -952,6 +1121,10 @@ package body Tokens is
             when Quotation =>
                Scan_String;
                return;
+            when Number_Sign =>
+               if Scan_Preprocessor then
+                  return;
+               end if;
             when others =>
                if Get_Current_Char >= ' ' then
                   Errors.Lexer_Error ("Invalid character '"
@@ -971,6 +1144,14 @@ package body Tokens is
       exception
          when Ada.Text_Io.End_Error =>
             Current_Token := T_Eof;
+            if not Keep_Temporary_Files then
+               declare
+                  use GNAT.OS_Lib;
+                  Spawn_Result : Boolean;
+               begin
+                  Delete_File (Tmp_File_Name'Address, Spawn_Result);
+               end;
+            end if;
             return;
    end Next_Token;
 
@@ -987,12 +1168,8 @@ package body Tokens is
 
    --  returns the current location
    function Get_Location return Errors.Location is
-      Name : String := Ada.Text_Io.Name (Ada.Text_Io.Current_Input);
-      Name2 : String (1 .. 50);
    begin
-      Name2  := (1 .. 50 => ' ');
-      Ada.Strings.Fixed.Replace_Slice (Name2, 1, Name'Length, Name);
-      return Errors.Location'(Filename => Name2,
+      return Errors.Location'(Filename => Current_State.File_Name,
                               Line => Current_State.Line_Number,
                               Col => Token_Col + Col - Line'First);
    end Get_Location;
@@ -1008,17 +1185,29 @@ package body Tokens is
       end if;
    end Get_Identifier;
 
-   --  returns a numeric literal as a string in case the current
-   --  token is a numeric one. Else, raises an internal error exception
+   --  returns a literal as a string in case the current
+   --  token is a literal. Else, raises an internal error exception
    function Get_Literal return String is
    begin
       case Current_Token is
-         when T_Lit_Decimal_Integer |
+         when  T_Lit_Decimal_Integer |
            T_Lit_Octal_Integer |
            T_Lit_Hexa_Integer |
+           T_Lit_Simple_Char |
+           T_Lit_Escape_Char |
+           T_Lit_Octal_Char |
+           T_Lit_Hexa_Char |
+           T_Lit_Unicode_Char |
+           T_Lit_Wide_Simple_Char |
+           T_Lit_Wide_Escape_Char |
+           T_Lit_Wide_Octal_Char |
+           T_Lit_Wide_Hexa_Char |
+           T_Lit_Wide_Unicode_Char |
            T_Lit_Simple_Floating_Point |
            T_Lit_Exponent_Floating_Point |
            T_Lit_Pure_Exponent_Floating_Point |
+           T_Lit_String |
+           T_Lit_Wide_String |
            T_Lit_Simple_Fixed_Point |
            T_Lit_Floating_Fixed_Point =>
             return Get_Marked_Text;
@@ -1063,68 +1252,6 @@ package body Tokens is
 --             return '`' & Idl_Token'Image (Token) & ''';
 --       end case;
 --    end Image;
-
---    --  forces the next token to be Tok.
---    --  used when there is a recoverable error to force the next token
---    procedure Set_Replacement_Token (Tok : Idl_Token) is
---    begin
---       if Tok = T_Error or else Replacement_Token /= T_Error then
---          raise Errors.Internal_Error;
---       end if;
---       Replacement_Token := Tok;
---    end Set_Replacement_Token;
---
---    --  Preprocessing, not really implemented
---    procedure Scan_Preprocessor is
---    begin
---       if Get_Current_Char /= '#' then
---          raise Errors.Internal_Error;
---       end if;
---       Skip_Spaces;
---       case View_Next_Char is
---          when 'A' .. 'Z' | 'a' .. 'z' =>
---             --  This is a preprocessor directive
---             Skip_Char;
---             Set_Mark;
---             while View_Next_Char in 'a' .. 'z'
---               or else View_Next_Char in 'A' .. 'Z'
---               or else View_Next_Char = '_'
---             loop
---                Skip_Char;
---             end loop;
---             if Get_Marked_Text = "define"
---               or else Get_Marked_Text = "if"
---               or else Get_Marked_Text = "ifdef"
---               or else Get_Marked_Text = "ifndef"
---               or else Get_Marked_Text = "undef"
---               or else Get_Marked_Text = "include"
---               or else Get_Marked_Text = "assert"
---             then
---                Errors.Lexer_Error
---                  ("cannot handle preprocessor directive, use -p",
---                   Errors.Error);
---             elsif Get_Marked_Text = "pragma" then
---                --  Currently ignored.
---                --  FIXME
---                Skip_Line;
---             else
---                Errors.Lexer_Error
---                  ("unknow preprocessor directive.  -p can help",
---                   Errors.Error);
---             end if;
---          when '0' .. '9' =>
---             --  This is line directive
---             --  Skip it.
---             --  FIXME.
---             Skip_Line;
---          when Lf =>
---             --  This is an end of line.
---             null;
---          when others =>
---             Errors.Lexer_Error ("bad preprocessor line",
---                                   Errors.Error);
---       end case;
---    end Scan_Preprocessor;
 
 end Tokens;
 

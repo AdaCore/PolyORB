@@ -1,5 +1,50 @@
 interface echo {
 
+  /*** preprocessor tests ***/
+
+  #if 1
+  const string "if OK";
+  #endif
+
+  #if 0
+  #error
+  #else
+  const string "else OK";
+  #endif
+
+  #if 0
+  #error
+  #elseif 1
+  const string "elif OK"
+  #endif
+
+  #define string1 const string "#define OK"
+  string1
+
+  #ifdef string1
+  const string "#ifdef OK"
+  #endif
+
+  #define string2 NE SERA PAS COMPILE
+  #undef string2
+  #ifdef string2
+  #error
+  #else
+  const string "#undef OK"
+  #endif
+
+  #ifndef string2
+  const string "#ifndef OK"
+  #endif
+
+  #include "testlexer_include.idl"
+
+  #pragma toto
+  #line 500
+  const char '\8';
+  #line 45
+
+
   /*** comment tests ***/
 
   // conneries
@@ -67,24 +112,24 @@ interface echo {
   const wchar L'\uabcd';
 
   /* bad ones */
-  const char ''';
-  const char '\';
+//  const char ''';
+//  const char '\';
   const char '\8';
   const char '\k';
   const char '\1234';
   const char '\xzfrt';
-  const char 'zfrtjhsu
+//  const char 'zfrtjhsu
   const char '\xabc';
   const char '\ux';
   const char '\uabcde';
 
-  const wchar L''';
-  const wchar L'\';
+//  const wchar L''';
+//  const wchar L'\';
   const wchar L'\8';
   const wchar L'\k';
   const wchar L'\1234';
   const wchar L'\xzfrt';
-  const wchar L'zfrtjhsu
+//  const wchar L'zfrtjhsu
   const wchar L'\xabc';
   const wchar L'\ux';
   const wchar L'\uabcde';

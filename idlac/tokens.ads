@@ -178,13 +178,21 @@ package Tokens is
        T_Lit_Simple_Fixed_Point,
        T_Lit_Floating_Fixed_Point,
        T_Identifier,                 --  Identifier
-       T_Eof                         --  Misc
+       T_Eof,                        --  Misc
+       T_Pragma,
+       T_Line
        );
 
 
-   ------------------------------------
-   --  The main method : next_token  --
-   ------------------------------------
+   ----------------------------------------------------
+   --  The main methods : initialize and next_token  --
+   ----------------------------------------------------
+
+   --  initializes the lexer by opening the file to process
+   --  and by preprocessing it if necessary
+   procedure Initialize (Filename : in String;
+                         Preprocess : in Boolean;
+                         Keep_Temporary_Files : in Boolean);
 
    --  Advance the lexical analyse until a new token is found.
    --  An invalid token will make function TOKEN returns t_error.
@@ -206,7 +214,7 @@ package Tokens is
    --  its value as a string.
    function Get_Identifier return String;
 
-   --  FIXME:  if the current token is a literal, returns its value as a
+   --  If the current token is a literal, returns its value as a
    --  string.
    function Get_Literal return String;
 

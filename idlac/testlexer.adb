@@ -1,31 +1,44 @@
-with Ada.Text_IO; use Ada.Text_IO;
-with GNAT.Command_Line; use GNAT.Command_Line;
-with GNAT.OS_Lib; use GNAT.OS_Lib;
---  with Tree;
+with Ada.Text_IO;
+with GNAT.Command_Line;
 with Tokens; use Tokens;
---  with Parse;
---  with Disp;
---  with Types;
 
 procedure testlexer is
-
-   Idl_File : File_Type;
-   File_Name : String_Access;
---   Rep : Tree.N_Repository_Acc;
 begin
-   File_Name := new String'(Get_Argument);
-   if File_Name.all'Length = 0 then
-      return;
-   end if;
-
-   Open (Idl_File, In_File, File_Name.all);
-   Set_Input (Idl_File);
+   Tokens.Initialize (GNAT.Command_Line.Get_Argument,
+                      True,
+                      True);
 
    loop
-      Tokens.Next_Token;
-      Ada.Text_Io.Put_Line (Idl_Token'Image (Token));
+      Next_Token;
+      Ada.Text_Io.Put (Idl_Token'Image (Token));
+      case Token is
+         when T_Lit_Decimal_Integer |
+           T_Lit_Octal_Integer |
+           T_Lit_Hexa_Integer |
+           T_Lit_Simple_Char |
+           T_Lit_Escape_Char |
+           T_Lit_Octal_Char |
+           T_Lit_Hexa_Char |
+           T_Lit_Unicode_Char |
+           T_Lit_Wide_Simple_Char |
+           T_Lit_Wide_Escape_Char |
+           T_Lit_Wide_Octal_Char |
+           T_Lit_Wide_Hexa_Char |
+           T_Lit_Wide_Unicode_Char |
+           T_Lit_Simple_Floating_Point |
+           T_Lit_Exponent_Floating_Point |
+           T_Lit_Pure_Exponent_Floating_Point |
+           T_Lit_String |
+           T_Lit_Wide_String |
+           T_Lit_Simple_Fixed_Point |
+           T_Lit_Floating_Fixed_Point =>
+            Ada.Text_Io.Put (" : " & Get_Literal);
+         when T_Identifier =>
+            Ada.Text_Io.Put (" : " & Get_Identifier);
+         when others =>
+            null;
+      end case;
+      Ada.Text_Io.Put_Line ("");
       exit when Token = T_Eof;
    end loop;
---   Rep := Parse.Parse_Specification;
---   Disp.Disp_Tree (Rep.all);
 end testlexer;

@@ -1,9 +1,14 @@
+with Ada.Unchecked_Deallocation;
+
 package Errors is
+
+   type File_Name_Ptr is access String;
+   procedure Free is new Ada.Unchecked_Deallocation (String, File_Name_Ptr);
 
    --  defines a place in one of the parsed files
    type Location is record
-      Filename : String (1 .. 50);
-      Line : Positive;
+      Filename : File_Name_Ptr;
+      Line : Natural;
       Col : Natural;
    end record;
 

@@ -26,17 +26,20 @@ package body Errors is
       Loc := Tokens.Get_Location;
       case Level is
          when Fatal =>
-            Ada.Text_Io.Put ("FATAL ERROR occured at line ");
+            Ada.Text_Io.Put ("FATAL ERROR occured");
          when Error =>
-            Ada.Text_Io.Put ("ERROR occured at line ");
+            Ada.Text_Io.Put ("ERROR occured");
          when WARNING =>
-            Ada.Text_Io.Put ("WARNING occured at line ");
+            Ada.Text_Io.Put ("WARNING occured");
       end case;
-      Ada.Text_Io.Put (Nat_To_String (Loc.Line));
-      Ada.Text_Io.Put (", column ");
-      Ada.Text_Io.Put (Nat_To_String (Loc.Col));
-      Ada.Text_Io.Put (" of file ");
-      Ada.Text_Io.Put (Loc.Filename);
+      if Loc.Line > 0 then
+         Ada.Text_Io.Put (" at line");
+         Ada.Text_Io.Put (Nat_To_String (Loc.Line));
+         Ada.Text_Io.Put (", column ");
+         Ada.Text_Io.Put (Nat_To_String (Loc.Col));
+         Ada.Text_Io.Put (" of file ");
+         Ada.Text_Io.Put (Loc.Filename.all);
+      end if;
       Ada.Text_Io.New_Line;
       Ada.Text_Io.Put ("    ");
       Ada.Text_Io.Put_Line (Message);
