@@ -62,6 +62,14 @@ xe_defs.adb: Makefile
 	@echo "   begin" >>xe_defs.adb;
 	@echo "      return \"$(RSH_OPT)\";" >>xe_defs.adb;
 	@echo "   end Get_Rsh_Options;" >>xe_defs.adb;
+	@echo "   function Get_Def_Storage_Data return String is" >>xe_defs.adb;
+	@echo "   begin" >>xe_defs.adb;
+	@echo "      return \"$(DEFSTORAGEDATA)\";" >>xe_defs.adb;
+	@echo "   end Get_Def_Storage_Data;" >>xe_defs.adb;
+	@echo "   function Get_Def_Storage_Name return String is" >>xe_defs.adb;
+	@echo "   begin" >>xe_defs.adb;
+	@echo "      return \"$(DEFSTORAGENAME)\";" >>xe_defs.adb;
+	@echo "   end Get_Def_Storage_Name;" >>xe_defs.adb;
 	@echo "end XE_Defs;" >>xe_defs.adb;
 
 xe_defs.o: xe_defs.ads xe_defs.adb
