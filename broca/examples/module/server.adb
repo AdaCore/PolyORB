@@ -30,8 +30,8 @@ with M1.Echo.Impl;
 with CORBA;
 with CORBA.Object;
 
-with Broca.Basic_Startup; use Broca.Basic_Startup;
-pragma Elaborate (Broca.Basic_Startup);
+with Broca.Server_Tools; use Broca.Server_Tools;
+pragma Elaborate (Broca.Server_Tools);
 
 with Ada.Text_IO;
 

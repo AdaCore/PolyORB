@@ -230,8 +230,8 @@ src/Makefile.in
 src/aclocal.m4
 src/adabroker-config.in
 src/allsrc.adb
-src/broca-basic_startup.adb
-src/broca-basic_startup.ads
+src/broca-server_tools.adb
+src/broca-server_tools.ads
 src/broca-buffers-io_operations.adb
 src/broca-buffers-io_operations.ads
 src/broca-buffers.adb
