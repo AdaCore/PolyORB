@@ -1,3 +1,7 @@
+Wed Oct 29 19:28:51 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* gnatdist.in: Use EXTRA_LIBS from configure.
+
 Wed Oct 29 19:11:39 1997  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_utils.adb, xe_utils.ads: Remove unused subprograms (basically
