@@ -2,7 +2,7 @@ include $(top_srcdir)/idls/Makefile.common
 
 alidir = $(includedir)/polyorb/corba/cos
 
-IDL=$(srcdir)/CosTime.idl
+IDL=$(srcdir)/CosTime.idl $(srcdir)/TimeBase.idl
 
 COS_ADAFLAGS = -I$(top_srcdir)/cos/time
 
