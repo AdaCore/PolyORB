@@ -579,9 +579,26 @@ package body Backend.BE_IDL is
       Generate (Type_Spec (E));
       Write_Space;
       Generate (Identifier (E));
+      Write (T_Left_Paren);
 
       L := Parameters (E);
       if not Is_Empty (L) then
+         C := First_Node (L);
+         loop
+            Generate (C);
+            C := Next_Node (C);
+            exit when No (C);
+            Write (T_Comma);
+            Write_Space;
+         end loop;
+      end if;
+      Write (T_Right_Paren);
+
+      L := Exceptions (E);
+      if not Is_Empty (L) then
+         Write_Space;
+         Write (T_Raises);
+         Write_Space;
          Write (T_Left_Paren);
          C := First_Node (L);
          loop
@@ -592,21 +609,6 @@ package body Backend.BE_IDL is
             Write_Space;
          end loop;
          Write (T_Right_Paren);
-      end if;
-
-      L := Exceptions (E);
-      if not Is_Empty (L) then
-         Write_Space;
-         Write (T_Raises);
-         Write_Space;
-         C := First_Node (L);
-         loop
-            Generate (C);
-            C := Next_Node (C);
-            exit when No (C);
-            Write (T_Comma);
-            Write_Space;
-         end loop;
       end if;
 
       L := Contexts (E);
