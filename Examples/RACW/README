@@ -1,0 +1,26 @@
+This is an example using remote access to class wide types but also an
+example using some kind of multiprogramming.
+
+part2 and part3 are equivalent. The configuration file allows you to
+map a normal package even if this package is not supposed to be present
+on the partition for visibility reasons. worker_pkg is a normal
+package and is forced to be present on part2 and part3.
+
+In this package, the abstract type worker from common is derived into
+Real_Worker. An object of this type is registered to controller on
+part1. main has several jobs to perform and asks controller for a free
+worker. Then, main calls a dispatching procedure with a free worker
+reference. The dispatching call will be redirected to the partition
+where the worker has been created.
+
+When the program starts, the user is asked for a worker speed for each
+partition where a worker has been created (you have to answer
+quickly. Otherwise, the active worker will pollute the output). Then,
+the program outputs the worker activity.
+
+The program is terminated when the distributed termination is
+detected.
+
+To build this program, once in the "Examples/RACW" directory, type
+"make". To execute the distributed program type "./main".
+
