@@ -929,9 +929,7 @@ package body XE_Utils is
          declare
             Argv : String := Argument (I);
          begin
-            if Argv (1) = Switch_Character
-              or else Argv (1) = '-'
-            then
+            if Argv (1) = '-' then
                if Argv'Length >= 2
                  and then Argv (2) = 'g'
                  and then (Argv'Length < 5
