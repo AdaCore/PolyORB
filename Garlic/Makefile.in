@@ -66,6 +66,7 @@ PLATFORM_SPECIFIC = @PLATFORM_SPECIFIC@
 PROTOCOLSOBJECTS = @PROTOCOLSOBJECTS@
 PROTOCOLSSOURCES = @PROTOCOLSSOURCES@
 RSH = @RSH@
+SUPPORTS_LOCAL_LAUNCH = @SUPPORTS_LOCAL_LAUNCH@
 TAR = @TAR@
 TCP_INCLUDED = @TCP_INCLUDED@
 UNZIP = @UNZIP@
@@ -89,10 +90,12 @@ TCP_PLATFORM       = 2${PLATFORM}gtplsp.ads
 CONSTANTS_PLATFORM = ${srcdir}/2${PLATFORM}garcon.ads
 
 LAUNCHINGOBJECTS = \
-s-garnam.o \
+s-gaplsp.o\
+s-garnam.o\
 s-garrem.o
 
 LAUNCHINGSOURCES = \
+        ./s-gaplsp.ads                        \
 ${srcdir}/s-garnam.ads ${srcdir}/s-garnam.adb \
 ${srcdir}/s-garrem.ads ${srcdir}/s-garrem.adb
 
@@ -187,13 +190,14 @@ $(FILTERSSOURCES) \
 $(COMMONSOURCES)
 
 CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads s-gaosli.ads s-gaprco.adb \
-	s-garser.adb $(FILTERSOBJECTS) split
+	s-garser.adb s-gaplsp.ads $(FILTERSOBJECTS) split
 
 SUFFIXES = .adb .ads .ali .o .xrb
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
-CONFIG_CLEAN_FILES =  s-gaprco.adb s-garser.adb s-gaosli.ads
+CONFIG_CLEAN_FILES =  s-gaosli.ads s-gaplsp.ads s-gaprco.adb \
+s-garser.adb
 DIST_COMMON =  ChangeLog Makefile.am Makefile.in TODO s-gaosli.ads.in \
-s-gaprco.adb.in s-garser.adb.in
+s-gaplsp.ads.in s-gaprco.adb.in s-garser.adb.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -210,11 +214,13 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
+s-gaosli.ads: $(top_builddir)/config.status s-gaosli.ads.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
+s-gaplsp.ads: $(top_builddir)/config.status s-gaplsp.ads.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
 s-gaprco.adb: $(top_builddir)/config.status s-gaprco.adb.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
 s-garser.adb: $(top_builddir)/config.status s-garser.adb.in
-	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
-s-gaosli.ads: $(top_builddir)/config.status s-gaosli.ads.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
 tags: TAGS
 TAGS:

@@ -20,10 +20,12 @@ TCP_PLATFORM       = 2${PLATFORM}gtplsp.ads
 CONSTANTS_PLATFORM = ${srcdir}/2${PLATFORM}garcon.ads
 
 LAUNCHINGOBJECTS = \
-s-garnam.o \
+s-gaplsp.o\
+s-garnam.o\
 s-garrem.o
 
 LAUNCHINGSOURCES = \
+        ./s-gaplsp.ads                        \
 ${srcdir}/s-garnam.ads ${srcdir}/s-garnam.adb \
 ${srcdir}/s-garrem.ads ${srcdir}/s-garrem.adb
 
@@ -122,7 +124,7 @@ $(FILTERSSOURCES) \
 $(COMMONSOURCES)
 
 CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads s-gaosli.ads s-gaprco.adb \
-	s-garser.adb $(FILTERSOBJECTS) split
+	s-garser.adb s-gaplsp.ads $(FILTERSOBJECTS) split
 
 SUFFIXES = .adb .ads .ali .o .xrb
 

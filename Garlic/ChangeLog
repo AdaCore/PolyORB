@@ -1,3 +1,8 @@
+Thu Oct  9 15:58:13 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-gaplsp.ads.in: Platform specific file to avoid local launching on
+	Linux where it is broken.
+
 Wed Oct  1 18:30:25 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garhea.adb: Remove reference to the new variable
