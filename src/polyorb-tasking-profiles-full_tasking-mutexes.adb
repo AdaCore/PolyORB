@@ -2,12 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . T A S K I N G . P R O F I L E S              --
---                . F U L L _ T A S K I N G . M U T E X E S                 --
+--              POLYORB.TASKING.PROFILES.FULL_TASKING.MUTEXES               --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,11 +44,8 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.tasking.profiles.full_tasking.mutexes");
-
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
-
-   procedure Initialize;
 
    -------------------------------------------------------------
    -- Underlying protected object for Full_Tasking_Mutex_Type --
@@ -68,6 +64,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
    private
       Locked   : Boolean := False;
       --  False when the lock is free; else True;
+
    end Mutex_PO;
 
    ----------
@@ -131,17 +128,6 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
       M.The_PO.Enter;
    end Enter;
 
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize is
-   begin
-      pragma Debug (O ("Initialize package Profiles.Full_Tasking.Mutexes"));
-      PTM.Register_Mutex_Factory (PTM.Mutex_Factory_Access
-                                    (The_Mutex_Factory));
-   end Initialize;
-
    -----------
    -- Leave --
    -----------
@@ -151,9 +137,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
       M.The_PO.Leave;
    end Leave;
 
-   ----------------
+   ---------------
    -- Mutex_PO --
-   ----------------
+   ---------------
 
    protected body Mutex_PO is
 
@@ -164,6 +150,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
       entry Enter when not Locked is
       begin
          pragma Debug (O ("Enter mutex"));
+
          Locked := True;
       end Enter;
 
@@ -179,6 +166,19 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
       end Leave;
 
    end Mutex_PO;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      pragma Debug (O ("Initialize package Profiles.Full_Tasking.Mutexes"));
+      PTM.Register_Mutex_Factory (PTM.Mutex_Factory_Access
+                                    (The_Mutex_Factory));
+   end Initialize;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
