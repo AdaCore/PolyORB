@@ -85,12 +85,14 @@ NOBLTCPOBJECTS = \
 s-ganobl.o
 
 COMMONOBJECTS = \
+s-gafino.o\
 s-garthi.o\
 s-gaphlo.o\
 s-gaosli.o\
 s-garcon.o\
 s-garser.o\
 s-gardeb.o\
+s-garfil.o\
 s-garhea.o\
 s-garlic.o\
 s-garopt.o\
@@ -119,12 +121,14 @@ NOBLTCPSOURCES = \
 ${srcdir}/s-ganobl.ads ${srcdir}/s-ganobl.adb
 
 COMMONSOURCES = \
+${srcdir}/s-gafino.ads ${srcdir}/s-gafino.adb \
 ${srcdir}/s-garthi.ads \
         ./s-gaosli.ads ${srcdir}/s-gaosli.adb \
 ${srcdir}/s-gaphlo.ads ${srcdir}/s-gaphlo.adb \
 ${srcdir}/s-garcac.ads ${srcdir}/s-garcac.adb \
         ./s-garcon.ads                        \
 ${srcdir}/s-gardeb.ads ${srcdir}/s-gardeb.adb \
+${srcdir}/s-garfil.ads ${srcdir}/s-garfil.adb \
 ${srcdir}/s-garhea.ads ${srcdir}/s-garhea.adb \
 ${srcdir}/s-garlic.ads                        \
 ${srcdir}/s-garloo.ads ${srcdir}/s-garloo.adb \
