@@ -25,10 +25,12 @@ package Droopi.Representations.SOAP is
    type XML_String is new Types.String;
 
    XML_Null_String  : constant XML_String :=
- XML_String (Null_Unbounded_String);
+         XML_String (Null_Unbounded_String);
 
-   type XML_Component is private;
-   type XML_Component_Access is access all XML_Component;
+   type Empty_XML_Component is private;
+
+   type XML_Component is tagged private;
+   type XML_Component_Access is access all XML_Component'Class;
 
    type Child_List_Record is private;
    type Child_List_Access is access all Child_List_Record;
@@ -42,6 +44,9 @@ package Droopi.Representations.SOAP is
 
    type Container_Element is private;
    type Container_Element_Access is access all Container_Element;
+
+   type Stream_Char is private;
+   type Stream_Char_Access is access all Stream_Char;
 
    type Xsd_Types is (Xsd_Simple, Xsd_Struct, Xsd_Array);
 
@@ -84,7 +89,27 @@ package Droopi.Representations.SOAP is
          others => To_Droopi_String ("undefined"));
 
    SOAP_Error : exception;
+   Unexpected_Token : exception;
 
+   ---------------------------------------------
+   --   Function to handle incoming XML strings
+   --   and To Convert them to XML Component
+   ---------------------------------------------
+
+
+   function Get (Str : Stream_Char_Access)
+       return Character;
+
+   function Peek (Str : Stream_Char_Access)
+       return Character;
+
+   function End_Of_Input (Str : Stream_Char_Access)
+       return Boolean;
+
+   -----------------------------------------
+   --   Procedures to convert simple types to
+   --   XML Component
+   ----------------------------------------
 
    procedure To_XML_Component
       (Name : Types.Identifier;
@@ -157,9 +182,17 @@ package Droopi.Representations.SOAP is
    procedure Set_Parent (Child : in out XML_Component_Access;
                           Pt : XML_Component_Access);
 
+   procedure Add_Comp_List
+      (Container_Elt : in out Container_Element_Access;
+       XML_Elt  : XML_Component_Access);
+
    procedure Add_Child
       (Comp    : in out XML_Component_Access;
        Child   : XML_Component_Access);
+
+   procedure Tree_Course
+      (Comp : in XML_Component_Access;
+       Container : in out Container_Element_Access);
 
    procedure Add_Attributes
        (Comp :  in out XML_Component_Access;
@@ -170,11 +203,31 @@ package Droopi.Representations.SOAP is
        (Comp : XML_Component_Access)
        return Attributes_Seq.Sequence;
 
-   procedure Initialize_XML_Comp
-       (Comp : XML_Component_Access;
-        Tag  : XML_String;
-        Comp_Type : Xsd_Types);
+   procedure Initialize
+     (Comp : XML_Component_Access;
+      Tag  : XML_String;
+      Value : XML_String := XML_Null_String;
+      Comp_Type : Xsd_Types := Xsd_Simple;
+      Is_Method : Boolean := False);
 
+   ----------------------------------
+   --  Parse XML Incoming Strings
+   ------------------------------------
+
+   function Next_Token (Str : Stream_Char_Access)
+     return XML_String;
+
+   procedure Parse_Tag
+      (XML_Comp : in out XML_Component_Access;
+       Str      : Stream_Char_Access);
+
+   procedure Parse_Component
+      (XML_Comp : in out XML_Component_Access;
+       Str      : Stream_Char_Access);
+
+   procedure XML_Parse
+      (XML_Comp : in out XML_Component_Access;
+       Str      : Stream_Char_Access);
 
 
 private
@@ -191,25 +244,33 @@ private
    end record;
 
 
-
    type Attributes_Record is record
        Tag_Id : XML_String := XML_Null_String;
        Value  : XML_String := XML_Null_String;
    end record;
 
 
-   type XML_Component is record
-      Tag    : XML_String := XML_Null_String;
-      Value  : XML_String := XML_Null_String;
+   type Empty_XML_Component is tagged record
+      Tag  : XML_String := XML_Null_String;
       Component_Type : Xsd_Types := Xsd_Simple;
-      Attributes : Attributes_Seq.Sequence :=
-                  Attributes_Seq.Null_Sequence;
-      Parent : XML_Component_Access := null;
+      Is_Method  : Boolean := False;
+      Parent  : XML_Component_Access := null;
       Childs  : Container_Element_Access := null;
    end record;
 
 
+   type XML_Component is new Empty_XML_Component with record
+      Value  : XML_String := XML_Null_String;
+      Attributes : Attributes_Seq.Sequence :=
+                  Attributes_Seq.Null_Sequence;
+      Empty : Boolean := False;
+   end record;
 
+
+   type Stream_Char is record
+      Current_Pos   : Integer := 0;
+      Chars         : XML_String;
+   end record;
 
    Name_Space_Uri : XML_String;
 
@@ -223,10 +284,8 @@ private
                ("SOAP-ENC:");
 
 
-
    Ur_Type_Tag : constant XML_String := To_Droopi_String
                ("SOAP-ENC:ur-type");
-
 
 
    Namespace_Tag : constant XML_String := To_Droopi_String
