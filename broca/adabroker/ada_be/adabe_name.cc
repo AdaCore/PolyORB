@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.3 $
+//                            $Revision: 1.4 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -617,7 +617,7 @@ adabe_name::is_imported (dep_list& with)
 {
   if ((!in_main_file ()) && (node_type () != AST_Decl::NT_interface)) return 0;
     // the predefined type are not in main file
-    // but they are declared in th root and not imported
+    // but they are declared in the root and not imported
     // so the root must not be included in those cases
   
   if (this == adabe_global::adabe_current_file ())

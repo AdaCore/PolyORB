@@ -53,9 +53,9 @@ all:: $(lib)
 $(lib): $(ADA_OBJS)
 	ar rvs $@ $^
 
-$(ADA_OBJS): allsrc.o
+$(ADA_OBJS): allsrc
 
-allsrc.o: $(ADA_SRCS)
+allsrc: $(ADA_SRCS)
 	$(GNATMAKE) $(BROCA_FLAGS) allsrc; \
 
 clean::

@@ -19,7 +19,7 @@ define MakeSubdirs
  fi; \
  for dir in $$subdirs ; do \
    $(CreateDir); \
-   (cd $$dir ; echo "making $$target in $(CURRENT)/$$dir..." ; \
+   (cd $$dir ; echo "making $$target in $(BROCA_CURRENT)/$$dir..." ; \
     eval $(MAKE) $$subdir_makeflags $$target ) ; \
    if [ $$? != 0 ]; then \
      exit 1; \

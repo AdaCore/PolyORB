@@ -130,6 +130,13 @@ package body Broca.Marshalling is
    end Unmarshall;
 
    procedure Unmarshall
+     (Stream : in out Buffer_Descriptor; Res : out CORBA.Char) is
+   begin
+      Res := CORBA.Char'Val (Stream.Buffer (Stream.Pos));
+      Stream.Pos := Stream.Pos + 1;
+   end Unmarshall;
+
+   procedure Unmarshall
      (Stream : in out Buffer_Descriptor; Res : out CORBA.Boolean) is
    begin
       case Stream.Buffer (Stream.Pos) is
@@ -281,6 +288,24 @@ package body Broca.Marshalling is
    begin
       Marshall_Align_4 (Stream);
       Stream.Pos := Stream.Pos + 4 + Buffer_Index_Type (Val'Length) + 1;
+   end Marshall_Size;
+
+   procedure Marshall_Size
+     (Stream : in out Buffer_Descriptor; Val : CORBA.Octet) is
+   begin
+      Marshall_Size_Octet (Stream);
+   end Marshall_Size;
+
+   procedure Marshall_Size
+     (Stream : in out Buffer_Descriptor; Val : CORBA.Char) is
+   begin
+      Marshall_Size_Octet (Stream);
+   end Marshall_Size;
+
+   procedure Marshall_Size
+     (Stream : in out Buffer_Descriptor; Val : CORBA.Boolean) is
+   begin
+      Marshall_Size_Octet (Stream);
    end Marshall_Size;
 
    procedure Marshall_Size

@@ -23,7 +23,7 @@ CPP = /usr/bin/cpp
 
 CXX = g++
 CXXMAKEDEPEND = $(TOP)/$(BINDIR)/omkdepend -D__cplusplus -D__GNUG__ -D__GNUC__
-CXXDEBUGFLAGS = 
+CXXDEBUGFLAGS =  -g
 CXXOPTIONS    =  -fexceptions -Wall -Wno-unused
 
 CXXLINK		= $(CXX)

@@ -44,6 +44,8 @@ package Broca.Marshalling is
    procedure Unmarshall
      (Stream : in out Buffer_Descriptor; Res : out CORBA.Octet);
    procedure Unmarshall
+     (Stream : in out Buffer_Descriptor; Res : out CORBA.Char);
+   procedure Unmarshall
      (Stream : in out Buffer_Descriptor; Res : out CORBA.Boolean);
    procedure Unmarshall
      (Stream : in out Buffer_Descriptor; Res : out CORBA.Unsigned_Short);
@@ -69,12 +71,16 @@ package Broca.Marshalling is
    procedure Marshall_Size_Unsigned_Short (Stream : in out Buffer_Descriptor);
    procedure Marshall_Size_Unsigned_Long (Stream : in out Buffer_Descriptor);
 
-   --  For a CORBA string.
    procedure Marshall_Size
      (Stream : in out Buffer_Descriptor; Val : CORBA.String);
-   --  For an Ada string.
    procedure Marshall_Size
      (Stream : in out Buffer_Descriptor; Val : String);
+   procedure Marshall_Size
+     (Stream : in out Buffer_Descriptor; Val : CORBA.Octet);
+   procedure Marshall_Size
+     (Stream : in out Buffer_Descriptor; Val : CORBA.Char);
+   procedure Marshall_Size
+     (Stream : in out Buffer_Descriptor; Val : CORBA.Boolean);
    procedure Marshall_Size
      (Stream : in out Buffer_Descriptor; Val : CORBA.Unsigned_Long);
    procedure Marshall_Size

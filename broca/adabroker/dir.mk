@@ -47,6 +47,6 @@ $(prog): $(DRV_OBJS) $(OBJ_LIBS)
 	@(libs="$(LIBS) $(LIBS)"; $(CXXExecutable))
 
 clean::
-	rm adabroker
+	-rm -f adabroker
 
 
