@@ -10,11 +10,11 @@ all: axil
 axil: lexer parser
 	${CMD} axil
 
-parser: nodes errormsg
+parser: nodes
 	${CMD} parser
 
-errormsg:
-	${CMD} errormsg
+parser-errors:
+	${CMD} parser-errors
 
 lexer:
 	${CMD} lexer
@@ -29,7 +29,7 @@ nodes: nodes.ads nodes.adb debug
 	${CMD} nodes
 
 nodes.ads nodes.adb : nodes.idl
-	$(IAC_PATH)/mknodes nodes.idl > $(NODESTEMP)
+	$(IAC_PATH)mknodes nodes.idl > $(NODESTEMP)
 	-gnatchop -w ${NODESTEMP}
 	-rm -f ${NODESTEMP}
 

@@ -4,7 +4,7 @@ with Namet;        use Namet;
 with Output;       use Output;
 with Types;        use Types;
 
-package body ErrorMsg is
+package body Parser.Errors is
 
    Parsing_Str : constant array (Parsing_Code) of String_Ptr :=
      (
@@ -12,6 +12,9 @@ package body ErrorMsg is
       PC_AADL_Specification       => new String'("AADL_Specification"),
       PC_Annex_Specification      => new String'("Annex_Specification"),
       PC_Component                => new String'("Component"),
+      PC_Component_Category       => new String'("Component_Category"),
+      PC_Component_Implementation => new String'("Component_Implementation"),
+      PC_Component_Type           => new String'("Component_Type"),
       PC_Defining_Name            => new String'("Defining_Name"),
       PC_Identifiers              => new String'("Identifiers"),
       PC_None_Statement           => new String'("None_Statement"),
@@ -97,4 +100,4 @@ package body ErrorMsg is
       Set_Standard_Output;
    end Display_Parsing_Error;
 
-end ErrorMsg;
+end Parser.Errors;

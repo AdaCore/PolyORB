@@ -1,10 +1,10 @@
-with ErrorMsg;   use ErrorMsg;
-with Errors;     use Errors;
-with Lexer;      use Lexer;
-with Locations;  use Locations;
-with Nodes;      use Nodes;
-with Nutils;     use Nutils;
-with Types;      use Types;
+with Errors;          use Errors;
+with Lexer;           use Lexer;
+with Locations;       use Locations;
+with Nodes;           use Nodes;
+with Nutils;          use Nutils;
+with Parser.Errors;   use Parser.Errors;
+with Types;           use Types;
 
 package body Parser is
 
@@ -12,16 +12,19 @@ package body Parser is
 
    --  Component categories
 
---   Cat_Data        : constant Natural :=  1;
---   Cat_Subprogram  : constant Natural :=  2;
---   Cat_Thread      : constant Natural :=  3;
---   Cat_Threadgroup : constant Natural :=  4;
---   Cat_Process     : constant Natural :=  5;
---   Cat_Memory      : constant Natural :=  6;
---   Cat_Processor   : constant Natural :=  7;
---   Cat_Bus         : constant Natural :=  8;
---   Cat_Device      : constant Natural :=  9;
---   Cat_System      : constant Natural := 10;
+   type Component_Category is
+     (
+      CC_Data, CC_Subprogram, CC_Thread, CC_Threadgroup, CC_Process,
+      CC_Memory, CC_Processor, CC_Bus, CC_Device, CC_System, CC_Unknown
+     );
+
+   Component_Category_To_Byte : constant array (Component_Category) of Byte :=
+     (
+      CC_Data        =>  1, CC_Subprogram  =>  2, CC_Thread      =>  3,
+      CC_Threadgroup =>  4, CC_Process     =>  5, CC_Memory      =>  6,
+      CC_Processor   =>  7, CC_Bus         =>  8, CC_Device      =>  9,
+      CC_System      => 10, CC_Unknown     =>  0
+     );
 
    procedure Add_Package_Items (S : Node_Id; D : Node_Id);
    --  Add all package items of S into D (i.e. all items and properties)
@@ -30,11 +33,21 @@ package body Parser is
    function P_AADL_Declaration return Node_Id;
    function P_AADL_Specification return Node_Id;
 
-   function P_Annex_Specification return Node_Id;
+   function P_Annex_Specification (Start_Loc : Location) return Node_Id;
 
-   function P_Component return Node_Id;
+   function P_Component (Start_Loc : Location) return Node_Id;
    --  Parse Component_Type, Component_Type_Extension
    --        Component_Implementation, Component_Implementation_Extension
+
+   function P_Component_Category return Component_Category;
+   --  Parse Component_Category, current token is the first token of
+   --  Component_Category
+
+   function P_Component_Implementation (Start_Loc : Location;
+                                        Category  : Component_Category)
+                                       return Node_Id;
+   function P_Component_Type (Start_Loc : Location;
+                              Category : Component_Category) return Node_Id;
 
    function P_Expected_Identifiers (Identifiers : List_Id;
                                     Delimiter : Token_Type) return Boolean;
@@ -56,11 +69,11 @@ package body Parser is
    --  Return TRUE if the reserved word 'none' is followed by a ';'
 
    function P_Package_Items return Node_Id;
-   function P_Package_Specification return Node_Id;
-   function P_Port_Group return Node_Id;
+   function P_Package_Specification (Start_Loc : Location) return Node_Id;
+   function P_Port_Group (Start_Loc : Location) return Node_Id;
    function P_Property_Association return Node_Id;
-   function P_Property_Set return Node_Id;
-   function P_System_Instance return Node_Id;
+   function P_Property_Set (Start_Loc : Location) return Node_Id;
+   function P_System_Instance (Start_Loc : Location) return Node_Id;
 
 
    -----------------------
@@ -89,7 +102,6 @@ package body Parser is
    --  property_set                  begins with 'property set'
 
    function P_AADL_Declaration return Node_Id is
-      Declaration : Node_Id := No_Node;
       Loc         : Location;
 
    begin
@@ -97,40 +109,43 @@ package body Parser is
       Scan_Token;
 
       case Token is
-         when T_Component =>
-            Declaration := P_Component;
+         when T_Data | T_Subprogram | T_Thread | T_Process
+           | T_Memory | T_Processor | T_Bus | T_Device
+           | T_System =>
+            return P_Component (Loc);
 
          when T_Package =>
-            Declaration := P_Package_Specification;
+            return P_Package_Specification (Loc);
 
          when T_Port =>
             Scan_Token;
             if Token = T_Group then
-               Declaration := P_Port_Group;
+               return P_Port_Group (Loc);
             else
                DPE (PC_Port_Group, T_Group);
                Restore_Lexer (Loc);
+               Scan_Token;  --  error, ignore 'port'
                return No_Node;  --  OPT: ignore ---> ';'
             end if;
 
          when T_Property =>
             Scan_Token;
             if Token = T_Set then
-               Declaration := P_Property_Set;
+               return P_Property_Set (Loc);
             else
                DPE (PC_Property_Set, T_Set);
                Restore_Lexer (Loc);
+               Scan_Token;  --  error, ignore 'property'
                return No_Node;  --  OPT: ignore ---> ';'
             end if;
 
          when T_Identifier =>
-            Declaration := P_System_Instance;
+            return P_System_Instance (Loc);
 
          when others =>
             DPE (PC_AADL_Declaration);
+            return No_Node;  --  OPT: ignore ----> ';'
       end case;
-
-      return Declaration;
    end P_AADL_Declaration;
 
    --------------------------
@@ -144,7 +159,8 @@ package body Parser is
       Declaration     : Node_Id;
 
    begin
-      Declarations := New_List (K_AADL_Declaration_List, Token_Location);
+      Specification := New_Node (K_AADL_Specification, Token_Location);
+      Declarations  := New_List (K_AADL_Declaration_List, Token_Location);
 
       loop
          exit when End_Of_File;
@@ -154,7 +170,6 @@ package body Parser is
          end if;
       end loop;
 
-      Specification := New_Node (K_AADL_Specification, Token_Location);
       Set_Declarations (Specification, Declarations);
 
       return Specification;
@@ -164,19 +179,142 @@ package body Parser is
    -- P_Annex_Specification --
    ---------------------------
 
-   function P_Annex_Specification return Node_Id is
+   function P_Annex_Specification (Start_Loc : Location) return Node_Id is
+      Annex : Node_Id;
    begin
-      return No_Node;
+      --  TODO
+      Annex := New_Node (K_Node_Id, Start_Loc);
+      return Annex;
    end P_Annex_Specification;
 
    -----------------
    -- P_Component --
    -----------------
 
-   function P_Component return Node_Id is
+   function P_Component (Start_Loc : Location) return Node_Id is
+      Category : Component_Category;
+      Loc      : Location;
+
    begin
-      return No_Node;
+      Category := P_Component_Category;
+      Save_Lexer (Loc);
+      Scan_Token;
+      if Token = T_Implementation then
+         return P_Component_Implementation (Start_Loc, Category);
+      else
+         Restore_Lexer (Loc);
+         return P_Component_Type (Start_Loc, Category);
+      end if;
    end P_Component;
+
+   --------------------------
+   -- P_Component_Category --
+   --------------------------
+
+   --  component_category ::=  software_category | platform_category
+   --                                    | composite_category
+   --  software_category ::= data | subprogram | thread | thread group
+   --                                    | process
+   --  platform_category ::= memory | processor | bus | device
+   --  composite_category ::= system
+
+   function P_Component_Category return Component_Category is
+      Loc : Location;
+
+   begin
+      case Token is
+         when T_Data =>
+            return CC_Data;
+
+         when T_Subprogram =>
+            return CC_Subprogram;
+
+         when T_Thread =>
+            Save_Lexer (Loc);
+            Scan_Token;
+            if Token = T_Group then
+               return CC_Threadgroup;
+            else
+               Restore_Lexer (Loc);
+               return CC_Thread;
+            end if;
+
+         when T_Process =>
+            return CC_Process;
+
+         when T_Memory =>
+            return CC_Memory;
+
+         when T_Processor =>
+            return CC_Processor;
+
+         when T_Bus =>
+            return CC_Bus;
+
+         when T_Device =>
+            return CC_Device;
+
+         when T_System =>
+            return CC_System;
+
+         when others =>
+            DPE (PC_Component_Category);
+            return CC_Unknown;
+      end case;
+   end P_Component_Category;
+
+   --------------------------------
+   -- P_Component_Implementation --
+   --------------------------------
+
+   function P_Component_Implementation (Start_Loc : Location;
+                                        Category  : Component_Category)
+                                       return Node_Id is
+      Impl : Node_Id;    --  output
+
+   begin
+      Impl := New_Node (K_Component_Implementation, Start_Loc);
+      Set_Category (Impl, Component_Category_To_Byte (Category));
+      return Impl;
+   end P_Component_Implementation;
+
+   ----------------------
+   -- P_Component_Type --
+   ----------------------
+
+   --  component_type ::=
+   --     component_category defining_component_type_identifier
+   --     [ provides ( { feature } + | none_statement ) ]
+   --     [ requires ( { required_subcomponent_access } + | none_statement ) ]
+   --     [ parameters ( { parameter } + | none_statement ) ]
+   --     [ properties ( { component_type_property_association } +
+   --                    | none_statement ) ]
+   --     { annex_subclause } *
+   --  end defining_component_type_identifier ;
+
+   --  component_type_extension ::=
+   --     component_category defining_component_type_identifier
+   --     extends unique_component_type_identifier
+   --     [ provides ( { feature | feature_refinement } + | none_statement ) ]
+   --     [ requires ( { required_subcomponent_access
+   --                  | required_subcomponent_access_refinement } +
+   --                | none_statement ) ]
+   --     [ parameters ( { parameter | parameter_refinement } +
+   --                | none_statement ) ]
+   --     [ properties ( { component_type_property_association } +
+   --               | none_statement ) ]
+   --     { annex_subclause } *
+   --  end defining_component_type_identifier ;
+
+   function P_Component_Type (Start_Loc : Location;
+                              Category : Component_Category) return Node_Id is
+      Component : Node_Id;     --  output
+
+   begin
+      Component := New_Node (K_Component_Type, Start_Loc);
+      Set_Category (Component, Component_Category_To_Byte (Category));
+      return Component;
+   end P_Component_Type;
 
    ----------------------------
    -- P_Expected_Identifiers --
@@ -270,6 +408,7 @@ package body Parser is
 
    function P_None_Statement return Boolean is
       Loc : Location;
+
    begin
       Save_Lexer (Loc);
       Scan_Token;
@@ -303,6 +442,8 @@ package body Parser is
       Loc           : Location;
 
    begin
+      Package_Items := New_Node (K_Package_Items, Token_Location);
+
       --  Parse items
 
       Items := New_List (K_List_Id, Token_Location);
@@ -310,21 +451,24 @@ package body Parser is
          Save_Lexer (Loc);
          Scan_Token;
          case Token is
-            when T_Component =>
-               Item := P_Component;
+            when T_Data | T_Subprogram | T_Thread | T_Process
+              | T_Memory | T_Processor | T_Bus | T_Device
+              | T_System =>
+               return P_Component (Loc);
 
-            when T_Group =>
+            when T_Port =>
                Scan_Token;
                if Token = T_Group then
-                  Item := P_Port_Group;
+                  Item := P_Port_Group (Loc);
                else
                   DPE (PC_Port_Group, T_Group);
                   Restore_Lexer (Loc);
+                  Scan_Token;  --  error, ignore 'port'
                   return No_Node;   --  OPT: ignore ----> ";"
                end if;
 
             when T_Annex =>
-               Item := P_Annex_Specification;
+               Item := P_Annex_Specification (Loc);
 
             when others =>
                Restore_Lexer (Loc);
@@ -380,7 +524,6 @@ package body Parser is
 
       --  Return result
 
-      Package_Items := New_Node (K_Package_Items, Token_Location);
       Set_Items (Package_Items, Items);
       Set_Properties (Package_Items, Properties);
 
@@ -399,8 +542,7 @@ package body Parser is
 
    --  package_name ::= { package_identifier . } * package_identifier
 
-   function P_Package_Specification return Node_Id is
-
+   function P_Package_Specification (Start_Loc : Location) return Node_Id is
       Package_Spec   : Node_Id;      --  result
       Defining_Name  : List_Id;      --  package name
       Current_Items  : Node_Id;      --  items parsed by P_Package_Items
@@ -409,7 +551,8 @@ package body Parser is
       Loc            : Location;
 
    begin
-      Defining_Name := New_List (K_Package_Name, Token_Location);
+      Package_Spec  := New_Node (K_Package_Spec, Start_Loc);
+      Defining_Name := New_List (K_Package_Identifiers, Token_Location);
       Public_Items  := No_Node;
       Private_Items := No_Node;
 
@@ -462,8 +605,7 @@ package body Parser is
          Scan_Token;
 
          if Token = T_Semicolon then
-            Package_Spec := New_Node (K_Package_Spec, Token_Location);
-            Set_Full_Name (Package_Spec, Defining_Name);
+            Set_Package_Name (Package_Spec, Defining_Name);
             Set_Public_Package_Items (Package_Spec, Public_Items);
             Set_Private_Package_Items (Package_Spec, Private_Items);
 
@@ -483,9 +625,13 @@ package body Parser is
    -- P_Port_Group --
    ------------------
 
-   function P_Port_Group return Node_Id is
+   function P_Port_Group (Start_Loc : Location) return Node_Id is
+      Port_Group : Node_Id;
+
    begin
-      return No_Node;
+      --  TODO
+      Port_Group := New_Node (K_Node_Id, Start_Loc);
+      return Port_Group;
    end P_Port_Group;
 
    ----------------------------
@@ -501,21 +647,27 @@ package body Parser is
    -- P_Property_Set --
    --------------------
 
-   function P_Property_Set return Node_Id is
+   function P_Property_Set (Start_Loc : Location) return Node_Id is
+      Property_Set : Node_Id;
+
    begin
-      return No_Node;
+      --  TODO
+      Property_Set := New_Node (K_Node_Id, Start_Loc);
+      return Property_Set;
    end P_Property_Set;
 
    -----------------------
    -- P_System_Instance --
    -----------------------
 
-   function P_System_Instance return Node_Id is
-
+   function P_System_Instance (Start_Loc : Location) return Node_Id is
+      System_Instance : Node_Id;
       --  First identifier is in CURRENT TOKEN
 
    begin
-      return No_Node;
+      --  TODO
+      System_Instance := New_Node (K_Node_Id, Start_Loc);
+      return System_Instance;
    end P_System_Instance;
 
    -------------

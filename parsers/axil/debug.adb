@@ -99,7 +99,7 @@ package body Debug is
                Node := Next_Node (Node);
             end loop;
 
-         when K_Package_Name =>
+         when K_Package_Identifiers =>
             Ident := First_Node (List_Id (N));
             while Present (Ident) loop
                Print_Node (Ident);
@@ -111,7 +111,7 @@ package body Debug is
 
          when K_Package_Spec =>
             Write_Str ("Package: ");
-            Print_Node (Node_Id (Full_Name (N)));
+            Print_Node (Node_Id (Package_Name (N)));
             Write_Eol;
 
          when others =>

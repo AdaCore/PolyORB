@@ -1,7 +1,7 @@
 with Lexer;     use Lexer;
 with Types;     use Types;
 
-package ErrorMsg is
+package Parser.Errors is
 
    --  Parsing Code
 
@@ -11,6 +11,9 @@ package ErrorMsg is
       PC_AADL_Specification,
       PC_Annex_Specification,
       PC_Component,
+      PC_Component_Category,
+      PC_Component_Implementation,
+      PC_Component_Type,
       PC_Defining_Name,
       PC_Identifiers,
       PC_None_Statement,
@@ -47,4 +50,4 @@ package ErrorMsg is
    --  Display an output error message:
    --     Location: parsing ..., token ... expected, found Image_Current_Token
 
-end ErrorMsg;
+end Parser.Errors;

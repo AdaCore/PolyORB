@@ -64,7 +64,7 @@ module Nodes {
 
     // package_name ::= { package_identifier . } * package_identifier
 
-  interface Package_Name : List_Id { };
+  interface Package_Identifiers : List_Id { };
 
     // package_spec ::= 
     //    package defining_package_name 
@@ -73,11 +73,10 @@ module Nodes {
     //    end defining_package_name;
 
   interface Package_Spec : Node_Id {
-    List_Id  Full_Name;
+    List_Id  Package_Name;
     Node_Id  Public_Package_Items;
     Node_Id  Private_Package_Items;
   };
-
 
     /*******************/
     /* Component Types */
@@ -93,18 +92,6 @@ module Nodes {
     //    { annex_subclause } *
     // end defining_component_type_identifier ;
 
-  typedef octet Component_Category;
-
-  interface Component_Type : Node_Id {
-    Name_Id  Name;
-    octet    Category;
-    List_Id  Provides;
-    List_Id  Requires;
-    List_Id  Parameters;
-    List_Id  Properties;
-    List_Id  Annexes;
-  };
-
     // component_type_extension ::= 
     //    component_category defining_component_type_identifier 
     //    extends unique_component_type_identifier
@@ -119,7 +106,59 @@ module Nodes {
     //    { annex_subclause } *
     //  end defining_component_type_identifier ;
 
-  interface Component_Type_Ext : Component_Type {
-    Node_Id   Parent;
+  typedef octet Component_Category;
+
+  interface Unique_Component_Name : Node_Id {
+    List_Id  Package_Name;
+    Name_Id  Name;
   };
+
+  interface Component_Type : Node_Id {
+    Node_Id  Component_Identifier;
+    octet    Category;
+    List_Id  Provides;
+    List_Id  Requires;
+    List_Id  Parameters;
+    List_Id  Properties;
+    List_Id  Annexes;
+    Node_Id  Parent;
+  };
+
+    // component_implementation ::= 
+    //    component_category implementation
+    //    component_type_identifier . defining_component_implementation_name
+    //    [ refines type 
+    //     ( { feature_refinement | required_subcomponent_access_refinement } +
+    //       | none_statement ) ]
+    //    [ subcomponents ( { subcomponent } +  | none_statement ) ]
+    //    [ connections ( { connection } + | none_statement ) ]
+    //    [ calls ( { subprogram_call_sequence } +  | none_statement ) ]   
+    //    [ modes ( mode_subclause | none_statement ) ]
+    //    [ properties ( { property_association } + | none_statement ) ]
+    //    { annex_subclause } *
+    // end component_type_identifier.defining_component_implementation_name ;
+
+    // component_implementation_extension ::= 
+    //    component_category implementation
+    //    component_type_identifier . defining_component_implementation_name
+    //    extends unique_component_implementation_name 
+    //    [ refines type 
+    //     ( { feature_refinement | required_subcomponent_access_refinement } +
+    //       | none_statement ) ]
+    //    [ subcomponents 
+    //     ( { subcomponent | subcomponent_refinement } +  | none_statement ) ]
+    //    [ connections 
+    //     ( { connection | connection_refinement } +  | none_statement ) ]
+    //    [ calls ( { subprogram_call_sequence } +  | none_statement ) ]   
+    //    [ modes ( mode_subclause | none_statement ) ]
+    //    [ properties ( { property_association } + | none_statement ) ]
+    //    { annex_subclause } *
+    // end component_type_identifier.defining_component_implementation_name ;
+
+  interface Component_Implementation : Node_Id {
+    Node_Id Component_Identifier;
+    octet Category;
+    // TODO ...
+  };
+
 };
