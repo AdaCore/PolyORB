@@ -344,11 +344,11 @@ package body Idl_Fe.Types is
       end if;
    end Is_In_List;
 
-   -------------------------
-   --  Is_In_Parent_List  --
-   -------------------------
+   --------------------------
+   --  Is_In_Pointed_List  --
+   --------------------------
 
-   function Is_In_Parent_List
+   function Is_In_Pointed_List
      (List : Node_List;
       Node : Node_Id)
       return Boolean is
@@ -360,9 +360,9 @@ package body Idl_Fe.Types is
       if Value (List.Car) = Value (Node) then
          return True;
       else
-         return Is_In_Parent_List (List.Cdr, Node);
+         return Is_In_Pointed_List (List.Cdr, Node);
       end if;
-   end Is_In_Parent_List;
+   end Is_In_Pointed_List;
 
    -------------------
    --  Remove_Node  --
@@ -1022,7 +1022,7 @@ package body Idl_Fe.Types is
       A_Definition := Find_Identifier_Definition (Name);
       if A_Definition /= null then
          pragma Debug (O ("Is_Redefinable : " &
-                          "Definition found is" &
+                          "Definition found is " &
                           Node_Kind'Image
                           (Kind (A_Definition.Node))));
          --  Checks if the identifier is not being redefined in the same

@@ -322,7 +322,7 @@ typedef ValueBase type25;
 typedef sequence<long> type26;
 typedef string type27;
 typedef wstring type28;
-typedef fixed<3,4> type29;
+typedef fixed<4,4> type29;
 
 // Rule 48
 typedef struct struct2 { long l; } type30;

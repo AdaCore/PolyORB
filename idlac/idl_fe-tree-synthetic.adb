@@ -215,11 +215,15 @@ package body Idl_Fe.Tree.Synthetic is
       P_Node : constant Node_Id
         := Parent_Scope (Node);
    begin
-      if Kind (P_Node) = K_Repository then
-         return Name (Node);
+      if P_Node /= No_Node then
+         if Kind (P_Node) = K_Repository then
+            return Name (Node);
+         else
+            return Default_Repository_Id (Parent_Scope (Node))
+              & "/" & Name (Node);
+         end if;
       else
-         return Default_Repository_Id (Parent_Scope (Node))
-           & "/" & Name (Node);
+         return Name (Node);
       end if;
    end Default_Repository_Id;
 

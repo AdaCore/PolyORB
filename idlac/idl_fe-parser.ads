@@ -1047,7 +1047,7 @@ private
    --  Goes to the next Cbracket opening.
    procedure Go_To_Next_Left_Cbracket;
 
-   --  Goes to the next Cbracket opening.
+   --  Goes to the next Cbracket closing;
    procedure Go_To_Next_Right_Cbracket;
 
    --  Goes to the next export (see rule 9)
@@ -1076,5 +1076,14 @@ private
 
    --  Goes to the next T_End_Pragma token and consumes it
    procedure Go_To_End_Of_Pragma;
+
+   --  Goes to the end of an enumeration
+   procedure Go_To_End_Of_Enumeration;
+
+   --  Goes to the next ';' and consumes it
+   procedure Go_To_Next_Semi_Colon;
+
+   --  Goes to the next '>' and consumes it
+   procedure Go_To_Next_Greater;
 
 end Idl_Fe.Parser;

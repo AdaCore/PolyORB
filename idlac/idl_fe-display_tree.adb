@@ -451,14 +451,18 @@ package body Idl_Fe.Display_Tree is
             end case;
             Disp_Indent (N_Indent, "name :");
             Disp_Tree (Declarator (N), N_Indent + Offset, False);
-            case (Kind (Param_Type (N))) is
-               when K_Interface | K_ValueType =>
-                  Disp_Indent (N_Indent, "type : "
-                               & Name (Param_Type (N)));
-               when others =>
-                  Disp_Indent (N_Indent, "type : ");
-                  Disp_Tree (Param_Type (N), N_Indent, Full);
-            end case;
+            if Param_Type (N) /= No_Node then
+               case (Kind (Param_Type (N))) is
+                  when K_Interface | K_ValueType =>
+                     Disp_Indent (N_Indent, "type : "
+                                  & Name (Param_Type (N)));
+                  when others =>
+                     Disp_Indent (N_Indent, "type : ");
+                     Disp_Tree (Param_Type (N), N_Indent, Full);
+               end case;
+            else
+               Disp_Indent (N_Indent, "type : no valid type");
+            end if;
 
          when K_Exception =>
             Put ("exception ");

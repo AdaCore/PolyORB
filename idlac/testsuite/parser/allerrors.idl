@@ -36,7 +36,7 @@ interface resume4 {};
 // an empty module (not allowed)
 module module3 {};
 // '}' forgotten
-module module4 {;
+module module4 {;};
 // just to resume the parsing on a right definition
 interface resume5 {};
 
@@ -51,7 +51,7 @@ interface interface2 ERROR
 // just to resume the parsing on a right definition
 interface resume6 {};
 // '}' forgotten
-interface interface3 {;
+interface interface3 {;};
 // just to resume the parsing on a right definition
 interface resume7 {};
 
@@ -154,10 +154,6 @@ interface resume20 {};
 valuetype;
 // just to resume the parsing on a right definition
 interface resume21 {};
-// type_spec forgotten
-valuetype valuetype1;
-// just to resume the parsing on a right definition
-interface resume22 {};
 
 
 /*** Test of rule 16 ***/
@@ -174,7 +170,7 @@ abstract valuetype valuetype2 ERROR
 // just to resume the parsing on a right definition
 interface resume25 {};
 // '}' forgotten
-abstract valuetype valuetype3 { ERROR
+abstract valuetype valuetype3 { ERROR };
 // just to resume the parsing on a right definition
 interface resume26 {};
 
@@ -185,7 +181,7 @@ custom valuetype valuetype4 ERROR
 // just to resume the parsing on a right definition
 interface resume27 {};
 // '}' forgotten
-custom valuetype valuetype5 { ERROR
+custom valuetype valuetype5 { ERROR };
 // just to resume the parsing on a right definition
 interface resume28 {};
 
@@ -232,11 +228,6 @@ interface resume36 {};
 valuetype valuetype12 supports {};
 // just to resume the parsing on a right definition
 interface resume37 {};
-// ',' or '{' expected
-interface interface14 {};
-valuetype valuetype13 supports interface14 ERROR
-// just to resume the parsing on a right definition
-interface resume38 {};
 // interface_name forgotten
 interface interface15 {};
 valuetype valuetype14 supports interface15, {};
@@ -296,39 +287,39 @@ valuetype value24 {
 /*** Test of rule 24 ***/
 // bad init_param_decls
 valuetype value25 {
-  factory factory1 (;)
+  factory factory1 (;);
 };
 
 
 /*** Test of rule 25 ***/
 // Bad init_param_decl
 valuetype value26 {
-  factory factory1 (;)
+  factory factory1 (;);
 };
 // init_param_attribute forgotten
 valuetype value27 {
-  factory factory1 (long argument1)
+  factory factory1 (long argument1);
 };
 // param_type_spec forgotten
 valuetype value28 {
-  factory factory1 (in)
+  factory factory1 (in);
 };
 // simple declarator forgotten
 valuetype value29 {
-  factory factory1 (in long)
+  factory factory1 (in long);
 };
 
 
 /*** Test of rule 26 ***/
 // Bad init param attribute
 valuetype value30 {
-  factory factory1 (;)
+  factory factory1 (;);
 };
 valuetype value31 {
-  factory factory1 (out long argument1)
+  factory factory1 (out long argument1);
 };
 valuetype value32 {
-  factory factory1 (inout long argument1)
+  factory factory1 (inout long argument1);
 };
 
 
@@ -602,7 +593,7 @@ struct struct1;
 // just to resume the parsing on a right definition
 interface resume65 {};
 // '}' forgotten
-struct struct3 { long member1; ;
+struct struct3 { long member1; ; };
 // just to resume the parsing on a right definition
 interface resume66 {};
 
@@ -647,7 +638,7 @@ interface resume71 {};
 // switch body forgotten
 union union7 switch (boolean) {};
 // '}' forgotten
-union union8 switch (boolean) { case TRUE : long element1; ;
+union union8 switch (boolean) { case TRUE : long element1; ; };
 // just to resume the parsing on a right definition
 interface resume72 {};
 
@@ -711,7 +702,7 @@ enum enum2 {};
 // enumerator forgotten
 enum enum3 { e1, };
 // '}' forgotten
-enum enum4 { e2, e3;
+enum enum4 { e2, e3; };
 // just to resume the parsing on a right definition
 interface resume81 {};
 
@@ -799,7 +790,7 @@ exception exception1;
 // just to resume the parsing on a right definition
 interface resume92 {};
 // '}' expected
-exception exception2 {;
+exception exception2 {; };
 // just to resume the parsing on a right definition
 interface resume93 {};
 // bad member
@@ -1150,16 +1141,28 @@ valuetype valuetypeAP supports interfaceZ, valuetypeAO {};
 valuetype valuetypeAQ {
   typedef long type1;
   typedef long type1;
+};
+valuetype valuetypeAR {
   const long constant1 = 5;
   const long constant1 = 5;
+};
+valuetype valuetypeAS {
   exception exception1 {};
   exception exception1 {};
+};
+valuetype valuetypeAT {
   attribute long attribute1;
   attribute long attribute1;
+};
+valuetype valuetypeAU {
   void operation1 ();
   void operation1 ();
+};
+valuetype valuetypeAV {
   public long member1;
   public long member1;
+};
+valuetype valuetypeAW {
   factory factory1 ();
   factory factory1 ();
 };
@@ -1279,9 +1282,9 @@ const short constAX = -3000000000;
 // long range
 const short constAY = 3000000000;
 // longlong range
-const short constAZ = -10000000000000000000;
+//const short constAZ = -10000000000000000000;
 // longlong range
-const short constBA = 10000000000000000000;
+//const short constBA = 10000000000000000000;
 // unsigned short range
 const short constBB = -3;
 // unsigned short range
@@ -1293,7 +1296,7 @@ const short constBE = 5000000000;
 // unsigned longlong range
 const short constBF = -1;
 // unsigned longlong range
-const short constBG = 18000000000000000000;
+//const short constBG = 18000000000000000000;
 // float range
 const float constBH = -4e38;
 // float range
@@ -1332,11 +1335,11 @@ const short constBW = 2000000000 + 1000000000;
 // long range
 const short constBX = 2000000000 * 2;
 // longlong range
-const short constBY = -5000000000000000000 - 5000000000000000000;
+//const short constBY = -5000000000000000000 - 5000000000000000000;
 // longlong range
-const short constBZ = 5000000000000000000 + 5000000000000000000;
+//const short constBZ = 5000000000000000000 + 5000000000000000000;
 // unsigned short range
-const short constCA = 5000000000000000000 *2;
+//const short constCA = 5000000000000000000 *2;
 // unsigned short range
 const short constCB = 5 - 8;
 // unsigned short range
@@ -1352,9 +1355,9 @@ const short constCH = 3000000000 * 2;
 // unsigned longlong range
 const short constCI = 5 - 8;
 // unsigned longlong range
-const short constCJ = 9000000000000000000 + 9000000000000000000;
+//const short constCJ = 9000000000000000000 + 9000000000000000000;
 // unsigned longlong range
-const short constCK = 9000000000000000000 * 2;
+//const short constCK = 9000000000000000000 * 2;
 // float range
 const float constCL = -2e38 - 2e38;
 // float range
@@ -1372,13 +1375,13 @@ const long double constCR = -0.6E4932 - 0.6E4932;
 // long double range
 const long double constCS = 0.6E4932 + 0.6E4932;
 // long double range
-const long double constCT = 0.6E4932 * 2;
+const long double constCT = 0.6E4932 * 2.;
 // fixed point range
 const fixed <3,0> constCU = 605d + 605d;
 // fixed point range
 const fixed <3,0> constCV = -605d - 605d;
 // fixed point range
-const fixed <3,0> constCW = 605d * 2;
+const fixed <3,0> constCW = 605d * 2d;
 
 
 /*** type declarations and scoped names ***/

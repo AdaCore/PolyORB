@@ -280,8 +280,8 @@ package Idl_Fe.Types is
    --  node is supposed to be a scoped name and the list must be
    --  a list of scoped names. What is compared here is not the nodes
    --  themselves but the node they are pointing to
-   function Is_In_Parent_List (List : Node_List; Node : Node_Id)
-                               return Boolean;
+   function Is_In_Pointed_List (List : Node_List; Node : Node_Id)
+                                return Boolean;
 
    --  Frees all the list
    procedure Free (List : in out Node_List);
