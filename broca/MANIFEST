@@ -410,6 +410,12 @@ src/broca-poa.adb
 src/broca-poa.ads
 src/broca-policy.adb
 src/broca-policy.ads
+src/broca-profiles.adb
+src/broca-profiles.ads
+src/broca-profiles-tc.adb
+src/broca-profiles-tc.ads
+src/broca-profiles-unknown.adb
+src/broca-profiles-unknown.ads
 src/broca-protected_objects.adb
 src/broca-protected_objects.ads
 src/broca-refs.adb

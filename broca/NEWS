@@ -16,6 +16,10 @@ Bugs fixed include:
   Interoperability problems with TAO clients fixed.
   (Problem reported by Olliver Kellog, PR #42).
 
+  Some IIOP bugs have been fixed. Sergei Lodyagin <sergei@moontown.dp.ua>
+  sent a patch for this. This patch also prepares AdaBroker to become
+  IIOP 1.1 compliant.
+
 New features in version 1.0pre3
 ===============================
 

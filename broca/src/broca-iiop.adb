@@ -33,21 +33,22 @@
 
 with Ada.Unchecked_Deallocation;
 
-with CORBA;             use CORBA;
+with CORBA;                       use CORBA;
 
 with GNAT.HTable;
 
 with Broca.Exceptions;
-with Broca.CDR;         use Broca.CDR;
-with Broca.Buffers;     use Broca.Buffers;
+with Broca.CDR;                   use Broca.CDR;
+with Broca.Buffers;               use Broca.Buffers;
 with Broca.Opaque;
-with Broca.Soft_Links;  use Broca.Soft_Links;
+with Broca.Soft_Links;            use Broca.Soft_Links;
 with Broca.Buffers.IO_Operations;
-with Broca.IOP;         use Broca.IOP;
-with Broca.Profiles;    use Broca.Profiles;
+with Broca.IOP;                   use Broca.IOP;
+with Broca.Profiles;              use Broca.Profiles;
+with Broca.Profiles.Unknown;      use Broca.Profiles, Broca.Profiles.Unknown;
 pragma Elaborate_All (Broca.Profiles);
 
-with Broca.Sequences;   use Broca.Sequences;
+with Broca.Sequences;             use Broca.Sequences;
 with Broca.Sockets;
 
 with Sockets.Constants;
@@ -413,7 +414,7 @@ package body Broca.IIOP is
                      Result := Profile_Ptr (R);
                   end;
                when 1 =>
-                  Tagged_Components := Broca.Profiles.Unmarshall
+                  Tagged_Components := Broca.Profiles.TC.Unmarshall
                     (Profile_Buffer'Access);
                   declare
                      R : Profile_IIOP_1_1_Access

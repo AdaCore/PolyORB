@@ -41,6 +41,7 @@ with Broca.Refs;
 with Broca.IOP;             use Broca.IOP;
 pragma Elaborate (Broca.IOP);
 with Broca.Profiles;        use Broca.Profiles;
+with Broca.Profiles.TC;     use Broca.Profiles.TC;
 
 package Broca.IIOP is
 
