@@ -5,11 +5,14 @@
 with Ada.Tags;
 
 with Droopi.Binding_Data.Local;
+with Droopi.Components;
+with Droopi.Filters;
 with Droopi.Log;
 pragma Elaborate_All (Droopi.Log);
 
 with Droopi.Obj_Adapters;
 with Droopi.ORB;
+with Droopi.Transport;
 
 package body Droopi.References.Binding is
 
@@ -22,7 +25,7 @@ package body Droopi.References.Binding is
    function Bind
      (R         : Ref;
       Local_ORB : ORB.ORB_Access)
-     return Objects.Servant_Access is
+     return Components.Component_Access is
    begin
       pragma Debug (O ("Bind: enter"));
       if Is_Nil (R) then
@@ -81,8 +84,10 @@ package body Droopi.References.Binding is
               or else Is_Profile_Local (Local_ORB, P) then
                --  Easy case: local profile.
                --  Resolve object id within local object adapter.
-               return Find_Servant
-                 (Object_Adapter (Local_ORB), Get_Object_Key (P.all));
+               return Components.Component_Access
+                 (Find_Servant
+                  (Object_Adapter (Local_ORB),
+                   Get_Object_Key (P.all)));
 
                --  ==> When binding a local reference, an OA
                --      is needed. Where do we obtain it from?
@@ -94,10 +99,29 @@ package body Droopi.References.Binding is
                --      query for each profile (for the condition below).
 
             else
-               null;
-               --  XXX TODO!
-               --     S := Find_Session (P.Address);
-               --     return Make_Surrogate (S);
+               declare
+                  use Droopi.Components;
+                  use Droopi.Filters;
+
+                  New_TE      : Transport.Transport_Endpoint_Access;
+                  New_Filter  : Filter_Access;
+                  FU : Filter_Access;
+               begin
+                  Droopi.Binding_Data.Bind_Profile
+                    (P.all, New_TE, Component_Access (New_Filter));
+                  ORB.Register_Endpoint
+                    (Local_ORB, New_TE, New_Filter, Client);
+
+                  loop
+                     FU := Filter_Access (Upper (New_Filter));
+                     exit when FU = null;
+                     New_Filter := FU;
+                  end loop;
+
+                  return Components.Component_Access (New_Filter);
+                  --  The Session itself acts as a remote surrogate
+                  --  of the designated object.
+               end;
             end if;
 
          end;

@@ -174,10 +174,10 @@ package Droopi.ORB is
    type Endpoint_Role is (Client, Server);
 
    procedure Register_Endpoint
-     (ORB   : access ORB_Type;
-      TE    : Transport_Endpoint_Access;
-      Chain : Filters.Factory_Access;
-      Role  : Endpoint_Role);
+     (ORB          : access ORB_Type;
+      TE           :        Transport_Endpoint_Access;
+      Filter_Stack :        Filters.Filter_Access;
+      Role         :        Endpoint_Role);
    --  Register a newly-created transport endpoint with ORB.
    --  A filter chain is instanciated using Chain, and associated
    --  with TE.
@@ -279,10 +279,6 @@ private
       AES : Asynch_Ev_Source_Access);
    --  Delete AES from the set of asynchronous event sources
    --  monitored by ORB.
-
-
-   --
-
 
    type AES_Note_Kind is
      (A_TAP_AES,

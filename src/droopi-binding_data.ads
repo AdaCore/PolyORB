@@ -1,7 +1,7 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/droopi-binding_data.ads#12 $
+--  $Id: //droopi/main/src/droopi-binding_data.ads#13 $
 
 with Ada.Finalization;
 
@@ -57,15 +57,13 @@ package Droopi.Binding_Data is
    procedure Bind_Profile
      (Profile : Profile_Type;
       TE      : out Transport.Transport_Endpoint_Access;
-      Session : out Components.Component_Access)
+      Filter  : out Components.Component_Access)
       is abstract;
    --  Find or create a transport endpoint and an attached protocol
    --  stack instance (or create new ones) that match this profile,
    --  in order to send a message to the designated middleware.
    --  The Transport_Endpoint at the bottom of the transport stack
-   --  and the Session at the top are returned.
-   --  XXXXX: please document the reason why Session is not of type
-   --  Session_Access.
+   --  and the Filter just above (ie the base of the protocol stack).
 
    function Get_Profile_Tag
      (Profile : Profile_Type)

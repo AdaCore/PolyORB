@@ -102,15 +102,14 @@ package body Droopi.Binding_Data.IIOP is
                         1 => Pro'Unchecked_Access));
 
       Filter := Component_Access (Create_Filter_Chain (Sli'Unchecked_Access));
+      --  Filter must be an access to the lowest filter in
+      --  the stack (the slicer in the case of GIOP).
 
       TProf.Address := Profile.Address;
       TProf.Object_Id := Profile.Object_Id;
 
       Store_Profile (GIOP_Session (Upper (Filter_Access
              (Filter)).all)'Access, Prof);
-
-      --  XXX Session must be an access to the lowest filter in
-      --  the stack (=> the Slicer).
 
       --  The caller will invoke Register_Endpoint on TE.
    end Bind_Profile;

@@ -137,12 +137,14 @@ package body Droopi.ORB is
             pragma Debug (O ("A_TAP_AES"));
             declare
                New_TE     : Transport_Endpoint_Access;
+               New_Filter : Filter_Access;
             begin
                Accept_Connection (Note.D.TAP.all, New_TE);
                --  Create transport endpoint.
 
-               Register_Endpoint
-                 (ORB, New_TE, Note.D.Filter_Factory_Chain, Server);
+               New_Filter := Create_Filter_Chain
+                 (Note.D.Filter_Factory_Chain);
+               Register_Endpoint (ORB, New_TE, New_Filter, Server);
             end;
 
             Insert_Source (ORB, AES);
@@ -442,26 +444,22 @@ package body Droopi.ORB is
    end Is_Profile_Local;
 
    procedure Register_Endpoint
-     (ORB   : access ORB_Type;
-      TE    : Transport_Endpoint_Access;
-      Chain : Filters.Factory_Access;
-      Role  : Endpoint_Role)
+     (ORB          : access ORB_Type;
+      TE           :        Transport_Endpoint_Access;
+      Filter_Stack :        Filters.Filter_Access;
+      Role         :        Endpoint_Role)
    is
       New_AES    : Asynch_Ev_Source_Access;
-      New_Filter : Filter_Access;
    begin
       New_AES := Create_Event_Source (TE.all);
       --  Create associated asynchronous event source.
 
-      New_Filter := Create_Filter_Chain (Chain);
-      --  Create filter/protocol stack.
-
-      Connect_Upper (TE, Component_Access (New_Filter));
-      Connect_Lower (New_Filter, Component_Access (TE));
+      Connect_Upper (TE, Component_Access (Filter_Stack));
+      Connect_Lower (Filter_Stack, Component_Access (TE));
       --  Connect filter to transport.
 
       Emit_No_Reply
-        (Component_Access (New_Filter),
+        (Component_Access (Filter_Stack),
          Filters.Interface.Set_Server'
          (Server => Component_Access (ORB)));
 
@@ -576,7 +574,7 @@ package body Droopi.ORB is
 --             := Extract_Local_Object_Id (J.Req.Target);
 
 
-         Servant : constant Objects.Servant_Access
+         Surrogate : constant Components.Component_Access
            := References.Binding.Bind (J.Request.Target, J.ORB);
       begin
          pragma Debug (O ("Executing: "
@@ -585,7 +583,7 @@ package body Droopi.ORB is
 
          declare
             Result : constant Components.Message'class
-              := Emit (Component_Access (Servant),
+              := Emit (Surrogate,
                        Objects.Interface.Execute_Request'
                        (Req => J.Request));
          begin

@@ -29,14 +29,20 @@ package body Droopi.Components is
    function Emit
      (Port : Component_Access;
       Msg    : Message'Class)
-     return Message'Class is
+     return Message'Class
+   is
+      Res : constant Null_Message := (null record);
    begin
-      pragma Debug (O ("Sending message " & External_Tag (Msg'Tag)
-                       & " to target " & External_Tag (Port.all'Tag)));
       if Port /= null then
+         pragma Debug
+           (O ("Sending message " & External_Tag (Msg'Tag)
+               & " to target " & External_Tag (Port.all'Tag)));
          return Handle_Message (Port, Msg);
       else
-         raise Unhandled_Message;
+         pragma Debug
+           (O ("Message " & External_Tag (Msg'Tag)
+               & " ignored (null target)"));
+         return Res;
       end if;
    end Emit;
 
