@@ -35,6 +35,7 @@
 
 --  $Id$
 
+with PolyORB.Binding_Objects;
 with PolyORB.Filters;
 with PolyORB.ORB;
 with PolyORB.Protocols.SRP;
@@ -65,35 +66,36 @@ package body PolyORB.Binding_Data.SRP is
       Free (P.Object_Id);
    end Release;
 
+   Pro : aliased Protocols.SRP.SRP_Protocol;
+   SRP_Factories : constant Filters.Factory_Array
+     := (0 => Pro'Access);
+
    procedure Bind_Profile
      (Profile :     SRP_Profile_Type;
       The_ORB :     Components.Component_Access;
-      Servant : out Components.Component_Access;
+      BO_Ref  : out Smart_Pointers.Ref;
       Error   : out Exceptions.Error_Container)
    is
       use PolyORB.Exceptions;
       use PolyORB.ORB;
-      use PolyORB.Protocols.SRP;
       use PolyORB.Sockets;
 
       S : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
-      P : aliased SRP_Protocol;
-      Session : Components.Component_Access;
       TE : constant Transport_Endpoint_Access
         := new Socket_Endpoint;
    begin
       Create_Socket (S);
       Connect_Socket (S, Remote_Addr);
       Create (Socket_Endpoint (TE.all), S);
-      Create (P'Access, Filters.Filter_Access (Session));
+      --  Create (P'Access, Filters.Filter_Access (Session));
 
-      ORB.Register_Endpoint
-        (ORB_Access (The_ORB),
+      Binding_Objects.Setup_Binding_Object
+        (ORB.ORB_Access (The_ORB),
          TE,
-         Filters.Filter_Access (Session),
-         ORB.Client);
-      Servant := Session;
+         SRP_Factories,
+         ORB.Client,
+         BO_Ref);
 
    exception
       when Sockets.Socket_Error =>

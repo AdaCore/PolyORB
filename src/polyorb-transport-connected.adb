@@ -36,6 +36,8 @@
 
 --  $Id$
 
+with PolyORB.Binding_Objects;
+with PolyORB.Components;
 with PolyORB.Log;
 with PolyORB.Filters;
 with PolyORB.Filters.Interface;
@@ -61,8 +63,7 @@ package body PolyORB.Transport.Connected is
       use PolyORB.ORB.Interface;
       use PolyORB.Filters;
 
-      New_TE     : Transport_Endpoint_Access;
-      New_Bottom, New_Top : Filter_Access;
+      New_TE : Transport_Endpoint_Access;
    begin
       pragma Debug (O ("Handle_Event: Connected TAP AES"));
 
@@ -70,75 +71,18 @@ package body PolyORB.Transport.Connected is
         (Connected_Transport_Access_Point'Class (H.TAP.all), New_TE);
       --  Create transport endpoint.
 
-      Create_Filter_Chain
-        (H.Filter_Factory_Chain.all,
-         Bottom => New_Bottom,
-         Top    => New_Top);
-      --  Create filter chain for end point
-
-      pragma Debug (O ("Inserting new source: Endpoint"));
-      Register_Endpoint (ORB_Access (H.ORB),
-                         New_TE,
-                         New_Bottom, Server);
-      --  Register end point to ORB
+      Binding_Objects.Setup_Binding_Object
+        (The_ORB => H.ORB,
+         TE      => New_TE,
+         FFC     => H.Filter_Factory_Chain.all,
+         Role    => ORB.Server,
+         BO_Ref  => New_TE.Dependent_Binding_Object);
+      --  Setup binding object.
 
       Emit_No_Reply
-        (H.ORB,
+        (Component_Access (H.ORB),
          Monitor_Access_Point'(TAP => H.TAP));
       --  Continue monitoring the TAP's AES.
-   end Handle_Event;
-
-   ------------------
-   -- Handle_Event --
-   ------------------
-
-   procedure Handle_Event
-     (H : access Connected_TE_AES_Event_Handler)
-   is
-      use PolyORB.Components;
-      use PolyORB.ORB;
-
-      Reply : constant Message'Class
-        := Emit
-        (Component_Access (H.TE),
-         Filters.Interface.Data_Indication'
-         (Data_Amount => 0));
-      --  The size of the data received is not known yet.
-
-   begin
-
-      if Reply in Filters.Interface.Disconnect_Confirmation then
-         Handle_Close_Server_Connection
-           (ORB_Access (H.ORB).Tasking_Policy, H.TE);
-         --  Close has been called on the transport endpoint.
-         --  Both the Endpoint and the associated AES must
-         --  now be destroyed.
-
-         Close (H.TE.all);
-         --  Close the transport endpoint.
-
-         Destroy (H.TE);
-         --  Destroy the transport endpoint and the associated
-         --  protocol stack.
-
-         --  XXX Some requests being processed in user code
-         --    might still be holding references to the session
-         --    (which is their Requestor).
-
-         Destroy (H.AES);
-         --  No need to Unregister_Source, because the AES
-         --  is already unregistered while an event is being
-         --  processed.
-
-      elsif Reply in Filters.Interface.Filter_Error then
-         Close (H.TE.all);
-         Destroy (H.TE);
-         Destroy (H.AES);
-
-      else
-         null;
-      end if;
-
    end Handle_Event;
 
    --------------------
@@ -186,6 +130,7 @@ package body PolyORB.Transport.Connected is
                (TE => Transport_Endpoint_Access (TE)));
          end if;
 
+
       elsif Msg in Data_Indication then
          pragma Debug (O ("Data received"));
 
@@ -199,8 +144,6 @@ package body PolyORB.Transport.Connected is
             if TE.In_Buf = null then
                O ("Unexpected data (no buffer)");
 
-               Close (Transport_Endpoint'Class (TE.all));
-
                Throw (Error, Comm_Failure_E,
                       System_Exception_Members'
                       (Minor => 0, Completed => Completed_Maybe));
@@ -211,17 +154,11 @@ package body PolyORB.Transport.Connected is
                  (Transport_Endpoint'Class (TE.all), TE.In_Buf, Size, Error);
             end if;
 
-            if not Is_Error (Error) then
-               if Size = 0 then
-                  return Emit (TE.Upper, Disconnect_Indication'(null record));
-               else
-                  return Emit (TE.Upper, Data_Indication'
-                               (Data_Amount => Size));
-               end if;
-               --  Note: this component guarantees that the upper layers will
-               --  only receive Data_Indications with a non-zero Data_Amount.
+            if not Is_Error (Error) and then Size /= 0 then
+               return Emit (TE.Upper, Data_Indication'
+                            (Data_Amount => Size));
             else
-               return Emit (TE.Upper, Filter_Error'(Error => Error));
+               return Filter_Error'(Error => Error);
             end if;
          end;
 
@@ -241,15 +178,13 @@ package body PolyORB.Transport.Connected is
          TE.Server := Set_Server (Msg).Server;
          return Emit (TE.Upper, Msg);
 
-      elsif Msg in Connect_Confirmation then
+      elsif Msg in Connect_Confirmation
+        or else Msg in Disconnect_Indication
+      then
          return Emit (TE.Upper, Msg);
 
       elsif Msg in Disconnect_Request then
-         Close (Transport_Endpoint'Class (TE.all));
-         return Emit
-           (TE.Server, ORB.Interface.Unregister_Endpoint'
-            (TE => Transport_Endpoint_Access (TE)));
-
+         Close (Transport_Endpoint'Class (TE.all)'Access);
       else
          --  Must not happen.
          raise Components.Unhandled_Message;

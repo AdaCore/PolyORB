@@ -102,13 +102,6 @@ private
    --  Retrieve the binding object associated with R, if R is bound.
    --  Otherwise, return null.
 
-   procedure Set_Binding_Info
-     (R   : Ref'Class;
-      BOC : Components.Component_Access;
-      Pro : Binding_Data.Profile_Access);
-   --  Set BOC to be the binding object associated with R.
-   --  R must not be already bound.
-
    procedure Share_Binding_Info
      (Dest   : Ref'Class;
       Source : Ref'Class);
@@ -143,6 +136,18 @@ private
          --  of Binding_Objects among references to different objects
          --  residing on the same node.
      end record;
+   type Reference_Info_Access is access all Reference_Info'Class;
+
+   function Ref_Info_Of (R : Ref'Class) return Reference_Info_Access;
+   --  Obtain the object reference information from R.
+
+   --  When an object reference is bound (i.e. associated at
+   --  runtime with a transport service endpoint and a messaging
+   --  protocol stack), it becomes associated with a Binding_Object
+   --  which will remain in existence until all references to
+   --  the object have been finalized (at which time the transport
+   --  connection and protocol stack will be torn down, as a
+   --  result of finalizing the binding object).
 
    procedure Finalize (RI : in out Reference_Info);
 

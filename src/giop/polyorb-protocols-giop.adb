@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -179,10 +179,10 @@ package body PolyORB.Protocols.GIOP is
    -- Finalize --
    --------------
 
-   procedure Finalize
+   procedure Destroy
      (S : in out GIOP_Session) is
    begin
-      pragma Debug (O ("Finalizing GIOP session"));
+      pragma Debug (O ("Destroying GIOP session"));
 
       pragma Assert (Pend_Req_List.Length (S.Pending_Reqs) = 0);
       --  XXX Check the session has no pending requests.
@@ -196,8 +196,8 @@ package body PolyORB.Protocols.GIOP is
          Finalize_Session (S.Implem, S'Access);
       end if;
 
-      Protocols.Finalize (Protocols.Session (S));
-   end Finalize;
+      Protocols.Destroy (Protocols.Session (S));
+   end Destroy;
 
    ----------------------------
    -- Handle_Data_Indication --
@@ -700,6 +700,12 @@ package body PolyORB.Protocols.GIOP is
         := Profiles_Of (New_Ref);
 
    begin
+
+      --  XXX This looks incorrect and dangerous:
+      --  as soon as we exit the scope of this function,
+      --  New_Ref will be finalized, and its profiles will
+      --  be free'd, so the returned pointer will become invalid.
+
       for J in Prof_Array'Range loop
          if Get_Profile_Tag (Prof_Array (J).all) = Tag_Internet_IOP then
             return Prof_Array (J);

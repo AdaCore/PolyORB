@@ -79,8 +79,9 @@ package PolyORB.Filters.Interface is
 
    type Disconnect_Indication is new Root_Data_Unit with null record;
    --  Direction: from lower to upper.
-   --  Semantics: a transport endpoint has been closed.
-   --    upper layers must release all associated resources.
+   --  Semantics: a transport endpoint has been closed, or some other
+   --    condition occured, causing the ORB to determine that the
+   --    protocol layer must be dismantled.
 
    type Disconnect_Confirmation is new Root_Data_Unit with null record;
    --  Direction: from upper to lower
@@ -88,8 +89,8 @@ package PolyORB.Filters.Interface is
 
    type Disconnect_Request is new Root_Data_Unit with null record;
    --  Direction: from upper to lower.
-   --  Semantics: the upper layer requests that the whole
-   --    protocol stack be disconnected.
+   --  Semantics: the application requests that the whole
+   --    protocol stack be dismantled.
 
    type Data_Expected is new Root_Data_Unit with record
       --  Direction: from upper to lower.

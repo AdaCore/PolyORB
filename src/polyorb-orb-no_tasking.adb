@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -55,11 +55,11 @@ package body PolyORB.ORB.No_Tasking is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   ------------------------------------
-   -- Handle_Close_Server_Connection --
-   ------------------------------------
+   -----------------------------
+   -- Handle_Close_Connection --
+   -----------------------------
 
-   procedure Handle_Close_Server_Connection
+   procedure Handle_Close_Connection
      (P   : access No_Tasking;
       TE  :        Transport_Endpoint_Access)
    is
@@ -70,7 +70,7 @@ package body PolyORB.ORB.No_Tasking is
 
    begin
       null;
-   end Handle_Close_Server_Connection;
+   end Handle_Close_Connection;
 
    ----------------------------------
    -- Handle_New_Client_Connection --

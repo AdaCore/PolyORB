@@ -37,6 +37,7 @@
 
 with Ada.Streams;
 
+with PolyORB.Binding_Objects;
 with PolyORB.Filters.HTTP;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
@@ -106,7 +107,7 @@ package body PolyORB.Binding_Data.SOAP is
    procedure Bind_Profile
      (Profile :     SOAP_Profile_Type;
       The_ORB :     Components.Component_Access;
-      Servant : out Components.Component_Access;
+      BO_Ref  : out Smart_Pointers.Ref;
       Error   : out Exceptions.Error_Container)
    is
       use PolyORB.Components;
@@ -120,26 +121,18 @@ package body PolyORB.Binding_Data.SOAP is
       Remote_Addr : Sock_Addr_Type := Profile.Address;
       TE   : constant Transport.Transport_Endpoint_Access :=
         new Socket_Endpoint;
-      New_Bottom, New_Top : Filter_Access;
 
    begin
       Create_Socket (Sock);
       Connect_Socket (Sock, Remote_Addr);
       Create (Socket_Endpoint (TE.all), Sock);
 
-      Create_Filter_Chain
-        (SOAP_Factories,
-         Bottom => New_Bottom,
-         Top    => New_Top);
-
-      ORB.Register_Endpoint
-        (ORB_Access (The_ORB),
+      Binding_Objects.Setup_Binding_Object
+        (ORB.ORB_Access (The_ORB),
          TE,
-         New_Bottom,
-         ORB.Client);
-      --  Register the endpoint and lowest filter with the ORB.
-
-      Servant := Component_Access (New_Top);
+         SOAP_Factories,
+         ORB.Client,
+         BO_Ref);
 
    exception
       when Sockets.Socket_Error =>

@@ -34,7 +34,7 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/polyorb-binding_data.ads#29 $
+--  $Id: //droopi/main/src/polyorb-binding_data.ads#30 $
 
 with PolyORB.Components;
 with PolyORB.Exceptions;
@@ -101,7 +101,7 @@ package PolyORB.Binding_Data is
    procedure Bind_Profile
      (Profile :     Profile_Type;
       The_ORB :     Components.Component_Access;
-      Servant : out Components.Component_Access;
+      BO_Ref  : out Smart_Pointers.Ref;
       Error   : out Exceptions.Error_Container)
       is abstract;
    --  Retrieve a transport endpoint and an attached protocol

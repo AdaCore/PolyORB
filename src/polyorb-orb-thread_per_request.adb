@@ -81,11 +81,11 @@ package body PolyORB.ORB.Thread_Per_Request is
    procedure Request_Thread;
    --  Main loop executed by thread processing a request.
 
-   ------------------------------------
-   -- Handle_Close_Server_Connection --
-   ------------------------------------
+   -----------------------------
+   -- Handle_Close_Connection --
+   -----------------------------
 
-   procedure Handle_Close_Server_Connection
+   procedure Handle_Close_Connection
      (P   : access Thread_Per_Request_Policy;
       TE  :        Transport_Endpoint_Access)
    is
@@ -96,7 +96,7 @@ package body PolyORB.ORB.Thread_Per_Request is
 
    begin
       null;
-   end Handle_Close_Server_Connection;
+   end Handle_Close_Connection;
 
    ----------------------------------
    -- Handle_New_Client_Connection --

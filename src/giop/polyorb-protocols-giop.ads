@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -362,7 +362,7 @@ private
    type GIOP_Session_Access is access all GIOP_Session;
 
    procedure Initialize (S : in out GIOP_Session);
-   procedure Finalize (S : in out GIOP_Session);
+   procedure Destroy (S : in out GIOP_Session);
 
    --  Magic identifier
    --  Begin of all GIOP Messages

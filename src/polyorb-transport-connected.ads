@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -86,11 +86,11 @@ package PolyORB.Transport.Connected is
 
 private
 
-   type Connected_Transport_Access_Point
-      is abstract new Transport_Access_Point with null record;
+   type Connected_Transport_Access_Point is
+     abstract new Transport_Access_Point with null record;
 
-   type Connected_Transport_Endpoint
-      is abstract new Transport_Endpoint with null record;
+   type Connected_Transport_Endpoint is
+     abstract new Transport_Endpoint with null record;
 
    type Connected_TAP_AES_Event_Handler is
      new Handlers.TAP_AES_Event_Handler with null record;
@@ -98,10 +98,7 @@ private
    procedure Handle_Event
      (H : access Connected_TAP_AES_Event_Handler);
 
-   type Connected_TE_AES_Event_Handler is
-     new Handlers.TE_AES_Event_Handler with null record;
-
-   procedure Handle_Event
-     (H : access Connected_TE_AES_Event_Handler);
+   subtype Connected_TE_AES_Event_Handler is
+     Handlers.TE_AES_Event_Handler;
 
 end PolyORB.Transport.Connected;

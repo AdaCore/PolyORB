@@ -33,12 +33,12 @@
 
 --  $Id$
 
-with Ada.Exceptions;
-
+with PolyORB.Binding_Objects;
 with PolyORB.Log;
 with PolyORB.Filters;
 with PolyORB.Filters.Interface;
 with PolyORB.ORB.Interface;
+with PolyORB.Smart_Pointers;
 with PolyORB.Transport.Handlers;
 
 package body PolyORB.Transport.Datagram is
@@ -81,48 +81,19 @@ package body PolyORB.Transport.Datagram is
       New_TE : constant Transport_Endpoint_Access
         := Transport_Endpoint_Access
         (Create_Endpoint (Datagram_Transport_Access_Point_Access (H.TAP)));
-      New_Bottom, New_Top : Filter_Access;
+      New_BO : Smart_Pointers.Ref;
    begin
       if New_TE /= null then
          pragma Debug (O ("Create and register Endpoint"));
-         Create_Filter_Chain
-           (H.Filter_Factory_Chain.all,
-            Bottom => New_Bottom,
-            Top    => New_Top);
-         --  Create filter chain
 
-         Register_Endpoint (ORB_Access (H.ORB),
-                            New_TE,
-                            New_Bottom,
-                            Server);
-         --  Monitor the endpoint
+         Binding_Objects.Setup_Binding_Object
+           (The_ORB => H.ORB,
+            TE      => New_TE,
+            FFC     => H.Filter_Factory_Chain.all,
+            Role    => ORB.Server,
+            BO_Ref  => New_BO);
+         --  Setup binding object.
       end if;
-   end Handle_Event;
-
-   ------------------
-   -- Handle_Event --
-   ------------------
-
-   procedure Handle_Event
-     (H : access Datagram_TE_AES_Event_Handler)
-   is
-      use PolyORB.Components;
-      use PolyORB.ORB;
-   begin
-      Emit_No_Reply
-        (Component_Access (H.TE),
-         Filters.Interface.Data_Indication'
-         (Data_Amount => 0));
-      --  The size of the data received is not known yet.
-
-   exception
-      when E : others =>
-         O ("Got exception while sending Data_Indication:", Error);
-         O (Ada.Exceptions.Exception_Information (E), Error);
-         Close (H.TE.all);
-
-         Destroy (H.TE);
-         Destroy (H.AES);
    end Handle_Event;
 
    --------------------
@@ -169,25 +140,20 @@ package body PolyORB.Transport.Datagram is
             if TE.In_Buf = null then
                O ("Unexpected data (no buffer)");
 
-               Close (Transport_Endpoint'Class (TE.all));
-
-               --  XXX raise Connection_Closed;
                Throw (Error, Comm_Failure_E,
                       System_Exception_Members'
                       (Minor => 0, Completed => Completed_Maybe));
                --  Notify the ORB that the socket is closed.
+
             else
                Read
                  (Transport_Endpoint'Class (TE.all), TE.In_Buf, Size, Error);
             end if;
 
-            if not Is_Error (Error) then
-               pragma Assert (Size > 0);
+            if not Is_Error (Error) and then Size /= 0 then
                return Emit (TE.Upper, Data_Indication'(Data_Amount => Size));
-               --  Note: this component guarantees that the upper layers will
-               --  only receive Data_Indications with a non-zero Data_Amount.
             else
-               return Emit (TE.Upper, Filter_Error'(Error => Error));
+               return Filter_Error'(Error => Error);
             end if;
          end;
 
@@ -207,15 +173,13 @@ package body PolyORB.Transport.Datagram is
          TE.Server := Set_Server (Msg).Server;
          return Emit (TE.Upper, Msg);
 
-      elsif Msg in Connect_Confirmation then
+      elsif Msg in Connect_Confirmation
+        or else Msg in Disconnect_Indication
+      then
          return Emit (TE.Upper, Msg);
 
       elsif Msg in Disconnect_Request then
-         Close (Transport_Endpoint'Class (TE.all));
-         return Emit
-           (TE.Server, ORB.Interface.Unregister_Endpoint'
-            (TE => Transport_Endpoint_Access (TE)));
-
+         Close (Transport_Endpoint'Class (TE.all)'Access);
       else
          --  Must not happen.
          raise Components.Unhandled_Message;

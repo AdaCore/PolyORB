@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -98,7 +98,9 @@ package PolyORB.Transport.Connected.Sockets is
       Buffer :        Buffers.Buffer_Access;
       Error  :    out Exceptions.Error_Container);
 
-   procedure Close (TE : in out Socket_Endpoint);
+   procedure Close (TE : access Socket_Endpoint);
+
+   procedure Destroy (TE : in out Socket_Endpoint);
 
 private
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,21 +52,6 @@ package body PolyORB.Components is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   --------------
-   -- Finalize --
-   --------------
-
-   procedure Finalize (C : in out Component) is
-      pragma Warnings (Off);
-      pragma Unreferenced (C);
-      pragma Warnings (On);
-   begin
-      pragma Debug (O ("finalizing component"));
-      null;
-      --  Do nothing, as we actually always finalize types derived
-      --  from Component.
-   end Finalize;
-
    -------------
    -- Connect --
    -------------
@@ -111,8 +96,6 @@ package body PolyORB.Components is
       Msg  : Message'Class)
    is
       Reply : constant Message'Class := Emit (Port, Msg);
-      pragma Warnings (Off, Reply);
-      --  Reply must be a Null_Message, and is ignored.
    begin
       pragma Assert (Reply in Null_Message);
       null;
@@ -122,24 +105,28 @@ package body PolyORB.Components is
    -- Destroy --
    -------------
 
+   procedure Destroy (C : in out Component) is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (C);
+      pragma Warnings (On);  --  WAG:3.15
+
+   begin
+      null;
+   end Destroy;
+
    procedure Destroy (C : in out Component_Access)
    is
       procedure Free is
          new Ada.Unchecked_Deallocation
         (Component'Class, Component_Access);
    begin
-      pragma Debug
-        (O ("Destroying component with allocation class "
-            & C.Allocation_Class'Img));
       pragma Assert (C /= null);
+      pragma Assert (C.Allocation_Class = Dynamic);
+      --  Thou shalt not attempt to dynamically destroy a
+      --  non-dynamically-allocated Component.
 
-      case C.Allocation_Class is
-         when Dynamic =>
-            Finalize (C.all);
-            Free (C);
-         when others =>
-            null;
-      end case;
+      Destroy (C.all);
+      Free (C);
    end Destroy;
 
    --------------------------

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -135,11 +135,23 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
    -- Close --
    -----------
 
-   procedure Close (TE : in out Socket_Out_Endpoint) is
+   procedure Close (TE : access Socket_Out_Endpoint) is
    begin
       pragma Debug (O ("Closing UDP socket"));
+      Enter (TE.Mutex);
+      PolyORB.Transport.Datagram.Close
+        (Datagram_Transport_Endpoint (TE.all)'Access);
       TE.Socket := No_Socket;
-      Destroy (TE.Mutex);
+      Leave (TE.Mutex);
    end Close;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (TE : in out Socket_Out_Endpoint) is
+   begin
+      Destroy (TE.Mutex);
+   end Destroy;
 
 end PolyORB.Transport.Datagram.Sockets_Out;

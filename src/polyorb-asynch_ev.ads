@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,7 +37,6 @@
 
 with PolyORB.Annotations;
 with PolyORB.Jobs;
-with PolyORB.Components;
 
 package PolyORB.Asynch_Ev is
 
@@ -152,7 +151,6 @@ package PolyORB.Asynch_Ev is
    --  an ORB task.
 
    type AES_Event_Handler is abstract new PolyORB.Jobs.Job with record
-      ORB : PolyORB.Components.Component_Access;
       AES : Asynch_Ev_Source_Access;
    end record;
    type AES_Event_Handler_Access is access AES_Event_Handler'Class;

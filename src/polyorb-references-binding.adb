@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,6 +39,7 @@ with Ada.Exceptions;
 with Ada.Tags;
 
 with PolyORB.Binding_Data.Local;
+with PolyORB.Binding_Objects;
 with PolyORB.Components;
 with PolyORB.Log;
 with PolyORB.Obj_Adapters;
@@ -264,14 +265,19 @@ package body PolyORB.References.Binding is
          end if;
 
          declare
-            use PolyORB.Components;
+            use PolyORB.Binding_Objects;
+            --  use PolyORB.Components;
+
+            RI : constant Reference_Info_Access := Ref_Info_Of (R);
          begin
             pragma Debug (O ("Binding non-local profile"));
             pragma Debug (O ("Creating new binding object"));
 
             PolyORB.Binding_Data.Bind_Profile
-              (Selected_Profile.all, Component_Access (Local_ORB),
-               Servant, Error);
+              (Selected_Profile.all,
+               Components.Component_Access (Local_ORB),
+               RI.Binding_Object_Ref,
+               Error);
             --  The Session itself acts as a remote surrogate
             --  of the designated object.
 
@@ -279,9 +285,9 @@ package body PolyORB.References.Binding is
                return;
             end if;
 
-            pragma Debug (O ("Caching binding info"));
             Pro := Selected_Profile;
-            Set_Binding_Info (R, Servant, Selected_Profile);
+            RI.Binding_Object_Profile := Selected_Profile;
+            Servant := Get_Component (RI.Binding_Object_Ref);
             pragma Debug (O ("... done"));
          end;
       end;

@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 POLYORB.TRANSPORT.DATAGRAM.SOCKETS_OUT                   --
+--           P O L Y O R B . T R A N S P O R T . H A N D L E R S            --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
@@ -31,66 +31,50 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Datagram Socket End Point to send data to network
+--  Event handlers associated with all transport access points and
+--  transport endpoints.
 
 --  $Id$
 
-with PolyORB.Sockets;
-with PolyORB.Tasking.Mutexes;
+with PolyORB.Asynch_Ev;
+with PolyORB.Components;
+with PolyORB.Filters.Interface;
+with PolyORB.ORB;
 
-package PolyORB.Transport.Datagram.Sockets_Out is
+package body PolyORB.Transport.Handlers is
 
-   pragma Elaborate_Body;
+   ------------------
+   -- Handle_Event --
+   ------------------
 
-   use PolyORB.Sockets;
+   procedure Handle_Event
+     (H : access TE_AES_Event_Handler)
+   is
+      use PolyORB.Components;
+      use PolyORB.ORB;
 
-   End_Point_Write_Only : exception;
+      Reply : constant Message'Class
+        := Emit
+        (Component_Access (H.TE),
+         Filters.Interface.Data_Indication'
+         (Data_Amount => 0));
+      --  The size of the data received is not known yet.
 
-   ---------------
-   -- End Point --
-   ---------------
+   begin
 
-   type Socket_Out_Endpoint
-     is new Datagram_Transport_Endpoint with private;
-   --  Datagram Socket Access Point to send data
+      if Reply in Filters.Interface.Filter_Error then
+         Handle_Close_Connection
+           (H.ORB.Tasking_Policy, H.TE);
+         --  Notify the tasking policy that an endpoint is being destroyed.
 
-   procedure Create
-     (TE   : in out Socket_Out_Endpoint;
-      S    :        Socket_Type;
-      Addr :        Sock_Addr_Type);
+         PolyORB.Transport.Close (H.TE);
+         --  Close the transport endpoint. A disconnect indication
+         --  will be propagated through the protocol stack just before
+         --  it is dismantled.
+      else
+         null;
+      end if;
 
-   function Create_Event_Source
-     (TE : Socket_Out_Endpoint)
-      return Asynch_Ev.Asynch_Ev_Source_Access;
+   end Handle_Event;
 
-   procedure Read
-     (TE     : in out Socket_Out_Endpoint;
-      Buffer :        Buffers.Buffer_Access;
-      Size   : in out Ada.Streams.Stream_Element_Count;
-      Error  :    out Exceptions.Error_Container);
-   pragma No_Return (Read);
-   pragma Unreferenced (Read);
-   --  Read data from datagram socket
-   --  Unused for write-only transport endpoints, an exception will be raised
-   --  at run-time.
-
-   procedure Write
-     (TE     : in out Socket_Out_Endpoint;
-      Buffer :        Buffers.Buffer_Access;
-      Error  :    out Exceptions.Error_Container);
-   --  Write data to datagram socket
-
-   procedure Close (TE : access Socket_Out_Endpoint);
-
-   procedure Destroy (TE : in out Socket_Out_Endpoint);
-
-private
-
-   type Socket_Out_Endpoint is new Datagram_Transport_Endpoint
-     with record
-        Socket : Socket_Type := No_Socket;
-        Addr   : Sock_Addr_Type;
-        Mutex  : Tasking.Mutexes.Mutex_Access;
-     end record;
-
-end PolyORB.Transport.Datagram.Sockets_Out;
+end PolyORB.Transport.Handlers;

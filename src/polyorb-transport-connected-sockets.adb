@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,6 +35,8 @@
 --  and communication endpoints.
 
 --  $Id$
+
+with Ada.Exceptions;
 
 with PolyORB.Asynch_Ev.Sockets;
 with PolyORB.Log;
@@ -100,16 +102,15 @@ package body PolyORB.Transport.Connected.Sockets is
      (TAP :     Socket_Access_Point;
       TE  : out Transport_Endpoint_Access)
    is
-      New_TE : constant Transport_Endpoint_Access
-        := new Socket_Endpoint;
-      --  XXX dynamic allocation
+      New_Socket : Socket_Type;
+      New_Address : Sock_Addr_Type;
    begin
+      TE := new Socket_Endpoint;
       Accept_Socket
         (Server  => TAP.Socket,
-         Socket  => Socket_Endpoint (New_TE.all).Socket,
-         Address => Socket_Endpoint (New_TE.all).Addr);
-      Create (Socket_Endpoint (New_TE.all).Mutex);
-      TE := New_TE;
+         Socket  => New_Socket,
+         Address => New_Address);
+      Create (Socket_Endpoint (TE.all), New_Socket);
    end Accept_Connection;
 
    ----------------
@@ -195,13 +196,14 @@ package body PolyORB.Transport.Connected.Sockets is
               (Error, Comm_Failure_E,
                System_Exception_Members'
                (Minor => 0, Completed => Completed_Maybe));
+            return;
 
          when others =>
             Throw
               (Error, Unknown_E,
                System_Exception_Members'
                (Minor => 0, Completed => Completed_Maybe));
-
+            return;
       end;
 
       pragma Assert (Data_Received <= Size);
@@ -246,16 +248,34 @@ package body PolyORB.Transport.Connected.Sockets is
    -- Close --
    -----------
 
-   procedure Close (TE : in out Socket_Endpoint) is
+   procedure Close (TE : access Socket_Endpoint) is
    begin
       Enter (TE.Mutex);
-      --  Ensure that no-one is holding this mutex, since
-      --  we are about to destroy it.
-      if TE.Socket /= No_Socket then
-         Close_Socket (TE.Socket);
-      end if;
+      begin
+         if TE.Socket /= No_Socket then
+            pragma Debug (O ("Closing socket"
+                             & PolyORB.Sockets.Image (TE.Socket)));
+            Close_Socket (TE.Socket);
+         end if;
+         PolyORB.Transport.Connected.Close
+           (Connected_Transport_Endpoint (TE.all)'Access);
+      exception
+         when E : others =>
+            pragma Debug (O ("Close (Socket_Endpoint): got "
+                             & Ada.Exceptions.Exception_Information (E)));
+            null;
+      end;
       TE.Socket := No_Socket;
-      Destroy (TE.Mutex);
+      Leave (TE.Mutex);
    end Close;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (TE : in out Socket_Endpoint) is
+   begin
+      Destroy (TE.Mutex);
+   end Destroy;
 
 end PolyORB.Transport.Connected.Sockets;

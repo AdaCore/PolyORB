@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         P O L Y O R B . P R O T O C O L S . G I O P . C O M M O N        --
+--        P O L Y O R B . P R O T O C O L S . G I O P . C O M M O N         --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,11 +32,13 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Any.ExceptionList;
+with PolyORB.Binding_Objects;
 with PolyORB.Buffers;
 with PolyORB.Exceptions;
 with PolyORB.GIOP_P.Exceptions;
 with PolyORB.Log;
 with PolyORB.Servants.Interface;
+with PolyORB.Smart_Pointers;
 with PolyORB.Representations.CDR;
 
 package body PolyORB.Protocols.GIOP.Common is
@@ -519,16 +521,23 @@ package body PolyORB.Protocols.GIOP.Common is
          when Location_Forward | Location_Forward_Perm =>
             declare
                use PolyORB.Binding_Data;
+               use PolyORB.Binding_Objects;
 
-               New_Sess : Session_Access;
+               New_BO   : Smart_Pointers.Ref;
                Prof     : Profile_Access;
                Error    : Exceptions.Error_Container;
             begin
                Prof := Select_Profile (Sess.Buffer_In);
+               --  XXX it is dubious whether the returned profile
+               --  access is valid! Should be checked by using
+               --  a debug pool for GIOP-based profiles.
+
                Binding_Data.Bind_Profile
                  (Prof.all, Component_Access (ORB),
-                  Component_Access (New_Sess), Error);
+                  New_BO, Error);
                Release (Sess.Buffer_In);
+               --  XXX New_BO should be recorded as the binding object
+               --  for the original ref!
 
                if Exceptions.Found (Error) then
                   Exceptions.Catch (Error);
@@ -541,7 +550,8 @@ package body PolyORB.Protocols.GIOP.Common is
 
                Req.Target_Profile := Prof;
                Invoke_Request
-                 (GIOP_Session (New_Sess.all)'Access, Req.Req, Prof);
+                 (GIOP_Session (Get_Component (New_BO).all)'Access,
+                  Req.Req, Prof);
             end;
 
          when others =>

@@ -37,28 +37,38 @@
 --  $Id$
 
 with PolyORB.Components;
+with PolyORB.Filters;
+with PolyORB.ORB;
 with PolyORB.Smart_Pointers;
+with PolyORB.Transport;
 
 package PolyORB.Binding_Objects is
 
    type Binding_Object is new Smart_Pointers.Entity with private;
+   type Binding_Object_Access is access all Binding_Object'Class;
    --  A protocol session and associated transport and filter stack,
    --  seen globally as a reference-counted entity.
 
    function Get_Component
-     (X : Binding_Object)
-      return PolyORB.Components.Component_Access;
-   --  Return the associated session.
+     (X : Smart_Pointers.Ref)
+     return PolyORB.Components.Component_Access;
+   --  Return the top component of the Binding_Object designated
+   --  by reference X.
 
-   procedure Set_Component
-     (X : in out Binding_Object;
-      C :        Components.Component_Access);
-   --  Set the component in X to C.
+   procedure Setup_Binding_Object
+     (The_ORB :     ORB.ORB_Access;
+      TE      :     Transport.Transport_Endpoint_Access;
+      FFC     :     Filters.Factory_Array;
+      Role    :     ORB.Endpoint_Role;
+      BO_Ref  : out Smart_Pointers.Ref);
+   --  Create a binding object associating TE with a protocol stack
+   --  instantiated using FFC.
 
 private
 
    type Binding_Object is new Smart_Pointers.Entity with record
-      BO_Component : Components.Component_Access;
+      Transport_Endpoint : Transport.Transport_Endpoint_Access;
+      Top : Filters.Filter_Access;
    end record;
 
    procedure Finalize (X : in out Binding_Object);

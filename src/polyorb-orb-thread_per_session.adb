@@ -106,11 +106,11 @@ package body PolyORB.ORB.Thread_Per_Session is
       pragma Debug (O ("A request has been queued"));
    end Add_Request;
 
-   ------------------------------------
-   -- Handle_Close_Server_Connection --
-   ------------------------------------
+   -----------------------------
+   -- Handle_Close_Connection --
+   -----------------------------
 
-   procedure Handle_Close_Server_Connection
+   procedure Handle_Close_Connection
      (P   : access Thread_Per_Session_Policy;
       TE  :        Transport_Endpoint_Access)
    is
@@ -146,7 +146,7 @@ package body PolyORB.ORB.Thread_Per_Session is
       end;
 
       pragma Debug (O ("A End_Thread_Job has been queued"));
-   end Handle_Close_Server_Connection;
+   end Handle_Close_Connection;
 
    ----------------------------------
    -- Handle_New_Client_Connection --

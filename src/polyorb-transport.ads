@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,6 +42,7 @@ with PolyORB.Asynch_Ev;
 with PolyORB.Buffers;
 with PolyORB.Components;
 with PolyORB.Exceptions;
+with PolyORB.Smart_Pointers;
 
 package PolyORB.Transport is
 
@@ -152,7 +153,9 @@ package PolyORB.Transport is
       is abstract;
    --  Write out the contents of Buffer onto TE.
 
-   procedure Close (TE : in out Transport_Endpoint) is abstract;
+   procedure Close (TE : access Transport_Endpoint);
+   --  Dissociate the transport endpoint from any communication
+   --  resource.
 
 private
 
@@ -170,6 +173,11 @@ private
 
          Upper  : Components.Component_Access;
          --  Communication signal to upper layer.
+
+         Dependent_Binding_Object : Smart_Pointers.Ref;
+         --  For server-side transport endpoints, keep a reference
+         --  to the associated binding object as long as the
+         --  transport endpoint is alive.
 
          In_Buf : Buffers.Buffer_Access;
          Max    : Ada.Streams.Stream_Element_Count;

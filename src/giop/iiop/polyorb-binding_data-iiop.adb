@@ -35,11 +35,11 @@
 
 with Ada.Streams;
 
+with PolyORB.Binding_Objects;
 with PolyORB.Filters;
 with PolyORB.Filters.Slicers;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
-
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.Parameters;
@@ -100,7 +100,7 @@ package body PolyORB.Binding_Data.IIOP is
    procedure Bind_Profile
      (Profile :     IIOP_Profile_Type;
       The_ORB :     Components.Component_Access;
-      Servant : out Components.Component_Access;
+      BO_Ref  : out Smart_Pointers.Ref;
       Error   : out Exceptions.Error_Container)
    is
       use PolyORB.Components;
@@ -116,7 +116,6 @@ package body PolyORB.Binding_Data.IIOP is
       Remote_Addr : Sock_Addr_Type := Profile.Address;
       TE          : constant Transport.Transport_Endpoint_Access :=
         new Socket_Endpoint;
-      New_Bottom, New_Top : Filters.Filter_Access;
 
    begin
       pragma Debug (O ("Bind IIOP profile: enter"));
@@ -125,20 +124,14 @@ package body PolyORB.Binding_Data.IIOP is
       Connect_Socket (Sock, Remote_Addr);
       Create (Socket_Endpoint (TE.all), Sock);
 
-      Create_Filter_Chain
-        (IIOP_Factories,
-         Bottom => New_Bottom,
-         Top    => New_Top);
-
-      ORB.Register_Endpoint
-        (ORB_Access (The_ORB),
+      Binding_Objects.Setup_Binding_Object
+        (ORB.ORB_Access (The_ORB),
          TE,
-         New_Bottom,
-         ORB.Client);
-      --  Register the endpoint and lowest filter with the ORB.
+         IIOP_Factories,
+         ORB.Client,
+         BO_Ref);
 
       pragma Debug (O ("Bind IIOP profile: leave"));
-      Servant := Component_Access (New_Top);
 
    exception
       when Sockets.Socket_Error =>

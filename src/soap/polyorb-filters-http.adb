@@ -160,11 +160,11 @@ package body PolyORB.Filters.HTTP is
       Clear_Message_State (F);
    end Initialize;
 
-   procedure Finalize (F : in out HTTP_Filter) is
+   procedure Destroy (F : in out HTTP_Filter) is
    begin
       Clear_Message_State (F);
-      Finalize (Filter (F));
-   end Finalize;
+      PolyORB.Filters.Destroy (Filter (F));
+   end Destroy;
 
    Buffer_Size : constant := 1024;
 

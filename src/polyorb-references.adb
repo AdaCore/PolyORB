@@ -56,8 +56,6 @@ package body PolyORB.References is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   type Reference_Info_Access is access all Reference_Info'Class;
-
    --------------------------------
    -- System location management --
    --------------------------------
@@ -85,21 +83,6 @@ package body PolyORB.References is
                                              Func   => Func));
       pragma Debug (O ("register prefix: " & Prefix));
    end Register_String_To_Object;
-
-   ------------------------
-   -- Local declarations --
-   ------------------------
-
-   function Ref_Info_Of (R : Ref'Class) return Reference_Info_Access;
-   --  Obtain the object reference information from R.
-
-   --  When an object reference is bound (i.e. associated at
-   --  runtime with a transport service endpoint and a messaging
-   --  protocol stack), it becomes associated with a Binding_Object
-   --  which will remain in existence until all references to
-   --  the object have been finalized (at which time the transport
-   --  connection and protocol stack will be torn down, as a
-   --  result of finalizing the binding object).
 
    ----------------------
    -- Create_Reference --
@@ -178,8 +161,7 @@ package body PolyORB.References is
          BOC := null;
          Pro := null;
       else
-         BOC := Get_Component (Binding_Object
-                               (Entity_Of (RI.Binding_Object_Ref).all));
+         BOC := Get_Component (RI.Binding_Object_Ref);
          Pro := RI.Binding_Object_Profile;
       end if;
    end Get_Binding_Info;
@@ -310,27 +292,6 @@ package body PolyORB.References is
 
       return null;
    end Ref_Info_Of;
-
-   ----------------------
-   -- Set_Binding_Info --
-   ----------------------
-
-   procedure Set_Binding_Info
-     (R   : Ref'Class;
-      BOC : Components.Component_Access;
-      Pro : Binding_Data.Profile_Access)
-   is
-      RI : constant Reference_Info_Access := Ref_Info_Of (R);
-      BOP : constant Entity_Ptr := new Binding_Object;
-
-   begin
-      pragma Assert (Is_Nil (RI.Binding_Object_Ref));
-      pragma Assert (BOC /= null);
-
-      Set_Component (Binding_Object (BOP.all), BOC);
-      Set (RI.Binding_Object_Ref, BOP);
-      RI.Binding_Object_Profile := Pro;
-   end Set_Binding_Info;
 
    ------------------------
    -- Share_Binding_Info --

@@ -63,7 +63,7 @@ package PolyORB.Binding_Data.UIPMC is
    procedure Bind_Profile
      (Profile :     UIPMC_Profile_Type;
       The_ORB :     Components.Component_Access;
-      Servant : out Components.Component_Access;
+      BO_Ref  : out Smart_Pointers.Ref;
       Error   : out Exceptions.Error_Container);
 
    function Get_Profile_Tag

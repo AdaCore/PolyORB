@@ -56,8 +56,6 @@ package PolyORB.Components is
 
    Unhandled_Message : exception;
 
-   procedure Finalize (C : in out Component);
-
    type Component_Allocation_Class is
      (Auto, Dynamic);
 
@@ -100,8 +98,11 @@ package PolyORB.Components is
    --  Emit message Msg on Port. The expected reply must be
    --  Null_Message, and will be discarded.
 
+   procedure Destroy (C : in out Component);
+   --  Destroy component C.
+
    procedure Destroy (C : in out Component_Access);
-   --  Destroy C.
+   --  Destroy the component designated by C and deallocate it.
 
    -------------------------
    -- Component factories --

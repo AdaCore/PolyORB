@@ -85,11 +85,7 @@ private
    procedure Handle_Event
      (H : access Datagram_TAP_AES_Event_Handler);
 
-   type Datagram_TE_AES_Event_Handler is
-     new Handlers.TE_AES_Event_Handler with null record;
-
-   procedure Handle_Event
-     (H : access Datagram_TE_AES_Event_Handler);
-
+   subtype Datagram_TE_AES_Event_Handler is
+     Handlers.TE_AES_Event_Handler;
 
 end PolyORB.Transport.Datagram;

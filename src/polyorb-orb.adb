@@ -590,8 +590,8 @@ package body PolyORB.ORB is
          TAP_Handler : TAP_AES_Event_Handler
            renames TAP_AES_Event_Handler (Handler.all);
       begin
-         Handler.ORB := Component_Access (ORB);
          Handler.AES := New_AES;
+         TAP_Handler.ORB := ORB_Access (ORB);
          TAP_Handler.TAP := TAP;
          TAP_Handler.Filter_Factory_Chain := Chain;
          TAP_Handler.Profile_Factory := PF;
@@ -685,9 +685,8 @@ package body PolyORB.ORB is
          begin
             --  Register link from AES to TE.
 
-            Handler.ORB := Component_Access (ORB);
             Handler.AES := New_AES;
-
+            TE_Handler.ORB := ORB_Access (ORB);
             TE_Handler.TE := TE;
          end;
       end if;
@@ -1078,7 +1077,7 @@ package body PolyORB.ORB is
    is
       use PolyORB.Servants.Interface;
 
-      Result : Components.Null_Message;
+      Nothing : Components.Null_Message;
    begin
       pragma Debug (O ("Handling message of type "
                        & Ada.Tags.External_Tag (Msg'Tag)));
@@ -1221,16 +1220,15 @@ package body PolyORB.ORB is
 
       elsif Msg in Interface.Unregister_Endpoint then
          declare
-            TE : Transport_Endpoint_Access
-              := Interface.Unregister_Endpoint (Msg).TE;
             Note : TE_Note;
          begin
-            Get_Note (Notepad_Of (TE).all, Note);
+            Get_Note
+              (Notepad_Of
+               (Interface.Unregister_Endpoint (Msg).TE).all, Note);
 
             if Note.AES /= null then
                Delete_Source (ORB, Note.AES);
             end if;
-            Destroy (TE);
          end;
 
       else
@@ -1239,7 +1237,7 @@ package body PolyORB.ORB is
          raise Components.Unhandled_Message;
       end if;
 
-      return Result;
+      return Nothing;
    end Handle_Message;
 
    ----------------

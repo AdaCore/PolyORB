@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,7 +54,7 @@ package PolyORB.ORB.Thread_Per_Request is
       ORB :        ORB_Access;
       C   :        Active_Connection);
 
-   procedure Handle_Close_Server_Connection
+   procedure Handle_Close_Connection
      (P   : access Thread_Per_Request_Policy;
       TE  :        Transport_Endpoint_Access);
 

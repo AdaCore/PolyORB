@@ -36,10 +36,19 @@
 
 --  $Id$
 
+with Ada.Exceptions;
+
 with PolyORB.Filters.Interface;
 with PolyORB.Components;
+with PolyORB.Log;
 
 package body PolyORB.Binding_Objects is
+
+   use PolyORB.Log;
+
+   package L is new PolyORB.Log.Facility_Log ("polyorb.binding_objects");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    use type PolyORB.Components.Component_Access;
 
@@ -49,11 +58,18 @@ package body PolyORB.Binding_Objects is
 
    procedure Finalize (X : in out Binding_Object) is
       use PolyORB.Components;
-      M : Filters.Interface.Disconnect_Request;
 
+      M : Filters.Interface.Disconnect_Indication;
+      Reply : constant Message'Class
+        := Emit (Component_Access (X.Transport_Endpoint), M);
    begin
-      Components.Emit_No_Reply (X.BO_Component, M);
-      X.BO_Component := null;
+      pragma Assert (Reply in Filters.Interface.Disconnect_Confirmation);
+      null;
+   exception
+      when E : others =>
+         pragma Debug (O ("Finalization of binding object raised: "
+                          & Ada.Exceptions.Exception_Information (E)));
+         raise;
    end Finalize;
 
    -------------------
@@ -61,24 +77,40 @@ package body PolyORB.Binding_Objects is
    -------------------
 
    function Get_Component
-     (X : Binding_Object)
-      return PolyORB.Components.Component_Access
+     (X : Smart_Pointers.Ref)
+      return Components.Component_Access
    is
    begin
-      return X.BO_Component;
+      return Components.Component_Access
+        (Binding_Object_Access (Smart_Pointers.Entity_Of (X)).Top);
    end Get_Component;
 
-   -------------------
-   -- Set_Component --
-   -------------------
+   --------------------------
+   -- Setup_Binding_Object --
+   --------------------------
 
-   procedure Set_Component
-     (X : in out Binding_Object;
-      C :        Components.Component_Access)
+   procedure Setup_Binding_Object
+     (The_ORB :        ORB.ORB_Access;
+      TE      :        Transport.Transport_Endpoint_Access;
+      FFC     :        Filters.Factory_Array;
+      Role    :        ORB.Endpoint_Role;
+      BO_Ref  :    out Smart_Pointers.Ref)
    is
+      BO : Binding_Object_Access;
+      Bottom : Filters.Filter_Access;
    begin
-      pragma Assert (X.BO_Component = null xor C = null);
-      X.BO_Component := C;
-   end Set_Component;
+      BO  := new Binding_Object;
+      Filters.Create_Filter_Chain
+        (FFC,
+         Bottom => Bottom,
+         Top    => BO.Top);
+      ORB.Register_Endpoint
+        (The_ORB,
+         TE,
+         Bottom,
+         Role);
+      BO.Transport_Endpoint := TE;
+      Smart_Pointers.Set (BO_Ref, Smart_Pointers.Entity_Ptr (BO));
+   end Setup_Binding_Object;
 
 end PolyORB.Binding_Objects;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -103,7 +103,7 @@ package PolyORB.Transport.Datagram.Sockets_In is
    --  Unused for read-only transport endpoints, an exception will be raised
    --  at run-time.
 
-   procedure Close (TE : in out Socket_In_Endpoint);
+   procedure Close (TE : access Socket_In_Endpoint);
 
    function Create_Endpoint
      (TAP : access Socket_In_Access_Point)

@@ -33,6 +33,7 @@
 
 --  Binding data concrete implementation for MIOP.
 
+with PolyORB.Binding_Objects;
 with PolyORB.Exceptions;
 with PolyORB.Filters;
 with PolyORB.Filters.MIOP.MIOP_Out;
@@ -105,7 +106,7 @@ package body PolyORB.Binding_Data.UIPMC is
    procedure Bind_Profile
      (Profile :     UIPMC_Profile_Type;
       The_ORB :     Components.Component_Access;
-      Servant : out Components.Component_Access;
+      BO_Ref  : out Smart_Pointers.Ref;
       Error   : out Exceptions.Error_Container)
    is
       use PolyORB.Components;
@@ -124,7 +125,6 @@ package body PolyORB.Binding_Data.UIPMC is
 
       TE          : constant Transport.Transport_Endpoint_Access
         := new Socket_Out_Endpoint;
-      New_Bottom, New_Top : Filters.Filter_Access;
 
    begin
       pragma Debug (O ("Bind UIPMC profile: enter"));
@@ -145,19 +145,14 @@ package body PolyORB.Binding_Data.UIPMC is
 
       Create (Socket_Out_Endpoint (TE.all), Sock, Remote_Addr);
 
-      Create_Filter_Chain
-        (MIOP_Factories,
-         Bottom => New_Bottom,
-         Top    => New_Top);
-
-      ORB.Register_Endpoint
-        (ORB_Access (The_ORB),
+      Binding_Objects.Setup_Binding_Object
+        (ORB.ORB_Access (The_ORB),
          TE,
-         New_Bottom,
-         ORB.Client);
+         MIOP_Factories,
+         ORB.Client,
+         BO_Ref);
 
       pragma Debug (O ("Bind UIPMC profile: leave"));
-      Servant := Component_Access (New_Top);
 
    exception
       when Sockets.Socket_Error =>

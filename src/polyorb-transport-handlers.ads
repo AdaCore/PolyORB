@@ -31,43 +31,55 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Event handlers associated with transport access points and transport
---  endpoints.
+--  Event handlers associated with all transport access points and
+--  transport endpoints.
 
 --  $Id$
 
 with PolyORB.Binding_Data;
 with PolyORB.Filters;
+with PolyORB.ORB;
 
 package PolyORB.Transport.Handlers is
 
-   subtype EH is PolyORB.Asynch_Ev.AES_Event_Handler;
+   type Transport_Event_Handler is
+     abstract new PolyORB.Asynch_Ev.AES_Event_Handler with
+      record
+         ORB : PolyORB.ORB.ORB_Access;
+      end record;
 
    --------------------------------
    -- Access point event handler --
    --------------------------------
 
-   type TAP_AES_Event_Handler is abstract new EH with record
-      TAP : PolyORB.Transport.Transport_Access_Point_Access;
-      --  Factory of Transport_Endpoint components.
+   type TAP_AES_Event_Handler is
+     abstract new Transport_Event_Handler with
+      record
+         TAP : PolyORB.Transport.Transport_Access_Point_Access;
+         --  Factory of Transport_Endpoint components.
 
-      Filter_Factory_Chain : Filters.Factories_Access;
-      --  Factory of Filter (protocol stack) components.
+         Filter_Factory_Chain : Filters.Factories_Access;
+         --  Factory of Filter (protocol stack) components.
 
-      Profile_Factory : Binding_Data.Profile_Factory_Access;
-      --  Factory of profiles capable of associating the
-      --  address of TAP and the specification of the
-      --  protocol implemented by Filter_Factory_Chain
-      --  with an object id.
-   end record;
+         Profile_Factory : Binding_Data.Profile_Factory_Access;
+         --  Factory of profiles capable of associating the
+         --  address of TAP and the specification of the
+         --  protocol implemented by Filter_Factory_Chain
+         --  with an object id.
+      end record;
 
    ----------------------------
    -- Endpoint event handler --
    ----------------------------
 
-   type TE_AES_Event_Handler is abstract new EH with record
-      TE : PolyORB.Transport.Transport_Endpoint_Access;
-      --  Back pointer to the corresponding endpoint.
-   end record;
+   type TE_AES_Event_Handler is
+     new Transport_Event_Handler with
+      record
+         TE : PolyORB.Transport.Transport_Endpoint_Access;
+         --  Back pointer to the corresponding endpoint.
+      end record;
+
+   procedure Handle_Event
+     (H : access TE_AES_Event_Handler);
 
 end PolyORB.Transport.Handlers;

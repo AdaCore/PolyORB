@@ -71,11 +71,11 @@ package body PolyORB.Binding_Data.Local is
    procedure Bind_Profile
      (Profile :     Local_Profile_Type;
       The_ORB :     Components.Component_Access;
-      Servant : out Components.Component_Access;
+      BO_Ref  : out Smart_Pointers.Ref;
       Error   : out Exceptions.Error_Container)
    is
       pragma Warnings (Off); -- WAG:3.15
-      pragma Unreferenced (Profile, The_ORB, Servant, Error);
+      pragma Unreferenced (Profile, The_ORB, BO_Ref, Error);
       pragma Warnings (On); -- WAG:3.15
 
    begin
@@ -87,6 +87,7 @@ package body PolyORB.Binding_Data.Local is
       --  Servant := Components.Component_Access
       --    (Find_Servant
       --     (Object_Adapter (Local_ORB), Profile.Object_Id));
+      --  Set (BO_Ref, Servant_To_Binding_Object (Servant));
    end Bind_Profile;
 
    ---------------------

@@ -73,9 +73,6 @@ package PolyORB.Filters is
 
    function Upper (F : access Filter) return PC.Component_Access;
 
-   procedure Finalize (F : in out Filter);
-   --  Destroy Filter and all of its UPPER components in the stack.
-
    --------------------------------------------------------
    -- Filters communicate by exchanging Data_Units,      --
    -- defined in child package PolyORB.Filters.Interface. --
@@ -97,6 +94,8 @@ package PolyORB.Filters is
       is abstract;
    --  Each filter factory implements a Create operation that
    --  instanciates the corresponding filter.
+
+   procedure Destroy (F : in out Filter);
 
    procedure Create_Filter_Chain
      (Factories :     Factory_Array;
