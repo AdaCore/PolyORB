@@ -80,12 +80,7 @@ package body PolyORB.Initialization is
 
    function Lookup_Module (Name : String) return Module_Access is
    begin
-      return World_Dict.Lookup (Name);
-   exception
-      when World_Dict.Key_Not_Found =>
-         return null;
-      when others =>
-         raise;
+      return World_Dict.Lookup (Name, Default => null);
    end Lookup_Module;
 
    procedure Register_Module (Info : Module_Info)
