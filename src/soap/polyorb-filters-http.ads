@@ -90,10 +90,13 @@ private
      (Start_Line,
       Header,
       Chunk_Size,
-      Entity);
+      Entity,
+      Trailer);
    --  An HTTP session is either expecting a (request or response)
-   --  message start line, a generic message header, or an entity
-   --  constituting a message body?
+   --  message start line, a generic message header, the start of
+   --  a data chunk (in chunked transfer encoding), entity data
+   --  or a trailer of entity-headers following the last chunk
+   --  of chunked data.
 
    subtype Line_By_Line is HTTP_State range Start_Line .. Chunk_Size;
    --  In these states, message data is processed by entire lines
@@ -121,6 +124,10 @@ private
       Data_Received : Ada.Streams.Stream_Element_Count;
       --  Data received in In_Buf and not processed yet
       --  (reset when changing states).
+
+      Message_Buf : PolyORB.Buffers.Buffer_Access;
+      --  This buffer is used for communication of complete
+      --  received message bodies to the upper layer.
 
       ----------------------------------------------------------
       -- Parameters concerning the HTTP message               --

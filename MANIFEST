@@ -299,7 +299,6 @@ src/polyorb-references.adb
 src/polyorb-references.ads
 src/polyorb-references-binding.adb
 src/polyorb-references-binding.ads
-src/polyorb-representations.adb
 src/polyorb-representations.ads
 src/polyorb-representations-http.adb
 src/polyorb-representations-http.ads
@@ -340,10 +339,14 @@ src/polyorb-types.adb
 src/polyorb-types.ads
 src/polyorb-utils.adb
 src/polyorb-utils.ads
+src/polyorb-utils-buffers.adb
+src/polyorb-utils-buffers.ads
 src/polyorb-utils-chained_lists.adb
 src/polyorb-utils-chained_lists.ads
 src/polyorb-utils-srp.adb
 src/polyorb-utils-srp.ads
+src/polyorb-utils-text_buffers.adb
+src/polyorb-utils-text_buffers.ads
 src/ROADMAP
 src/sequences.ads
 src/sequences-bounded.adb

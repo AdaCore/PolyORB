@@ -32,7 +32,7 @@
 
 --  Buffer management
 
---  $Id: //droopi/main/src/polyorb-buffers.ads#7 $
+--  $Id: //droopi/main/src/polyorb-buffers.ads#8 $
 
 with System;
 --  For bit-order information.
@@ -268,6 +268,10 @@ package PolyORB.Buffers is
      return Stream_Element_Offset;
    --  Return the current CDR position of the buffer
    --  in the marshalling stream.
+
+   procedure Rewind (Buffer : access Buffer_Type);
+   --  Reset the current position in Buffer to the initial
+   --  position.
 
    ---------------------------------------
    -- The input/output view of a buffer --

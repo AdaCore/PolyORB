@@ -2,20 +2,20 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         P O L Y O R B . R E P R E S E N T A T I O N S . T E S T          --
+--           P O L Y O R B . U T I L S . T E X T _ B U F F E R S            --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
 --                Copyright (C) 2001 Free Software Fundation                --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
@@ -34,27 +34,14 @@
 
 --  $Id$
 
-with Ada.Streams; use Ada.Streams;
+with Ada.Streams;
+with PolyORB.Utils.Buffers;
 
-with PolyORB.Utils.Buffers; use PolyORB.Utils.Buffers;
+package body PolyORB.Utils.Text_Buffers is
 
-package body PolyORB.Representations.Test is
-
-   procedure Marshall_From_Any
-     (R      : Rep_Test;
-      Buffer : access Buffers.Buffer_Type;
-      Data   : Any.Any) is
-   begin
-      raise Not_Implemented;
-   end Marshall_From_Any;
-
-   procedure Unmarshall_To_Any
-     (R      : Rep_Test;
-      Buffer : access Buffers.Buffer_Type;
-      Data   : in out Any.Any) is
-   begin
-      raise Not_Implemented;
-   end Unmarshall_To_Any;
+   use Ada.Streams;
+   use PolyORB.Buffers;
+   use PolyORB.Utils.Buffers;
 
    procedure Marshall_Char
      (B : access Buffer_Type;
@@ -76,8 +63,7 @@ package body PolyORB.Representations.Test is
    end Unmarshall_Char;
 
    procedure Marshall_String
-     (R : access Rep_Test;
-      B : access Buffer_Type;
+     (B : access Buffer_Type;
       S : String)
    is
    begin
@@ -86,32 +72,14 @@ package body PolyORB.Representations.Test is
       end loop;
    end Marshall_String;
 
-   function Unmarshall_String
-     (R : access Rep_Test;
-      B : access Buffer_Type)
-     return String
+   procedure Unmarshall_String
+     (B : access Buffer_Type;
+      S : out String)
    is
-      S : String (1 .. 1024);
-      C : Character;
-      Last : Integer := S'First - 1;
-      Max : constant Stream_Element_Count
-        := Length (B);
    begin
-      loop
-         exit when Last - S'First + 1 = Integer (Max);
-         C := Unmarshall_Char (B);
-         if C = ASCII.CR then
-            C := Unmarshall_Char (B);
-            pragma Assert (C = ASCII.LF);
-
-            exit;
-         end if;
-         Last := Last + 1;
-         S (Last) := C;
-         exit when Last = S'Last;
+      for I in S'Range loop
+         S (I) := Unmarshall_Char (B);
       end loop;
-
-      return S (S'First .. Last);
    end Unmarshall_String;
 
-end PolyORB.Representations.Test;
+end PolyORB.Utils.Text_Buffers;

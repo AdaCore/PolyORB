@@ -41,6 +41,7 @@ with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Opaque;
 with PolyORB.Utils;
+with PolyORB.Utils.Text_Buffers;
 
 package body PolyORB.Filters.HTTP is
 
@@ -105,6 +106,10 @@ package body PolyORB.Filters.HTTP is
    --  starting at the current input buffer position of F,
    --  and spanning Line_Length characters.
 
+   procedure Message_Complete (F : access HTTP_Filter);
+   --  A message has been completely received and processed by F:
+   --  send the upper layer a Data_Indication.
+
    --  General filter management
 
    procedure Create
@@ -165,13 +170,15 @@ package body PolyORB.Filters.HTTP is
             F.Role := Client;
          end if;
 
+         Expect_Data (F, F.In_Buf, Buffer_Size);
+         --  Wait for first line of message.
+
          F.State := Start_Line;
          F.Data_Received := 0;
          F.In_Buf := new PolyORB.Buffers.Buffer_Type;
          --  HTTP has its own buffer.
-
-         Expect_Data (F, F.In_Buf, Buffer_Size);
-         --  Wait for first line of message.
+      elsif S in Data_Expected then
+         F.Message_Buf := Data_Expected (S).In_Buf;
 
       elsif S in Data_Indication then
 
@@ -301,8 +308,7 @@ package body PolyORB.Filters.HTTP is
                         F.State := Chunk_Size;
                         F.Transfer_Length := -1;
                      else
-                        --  XXX Entity_Complete (F);
-                        raise Not_Implemented;
+                        Message_Complete (F);
                      end if;
                   end if;
                end;
@@ -445,7 +451,7 @@ package body PolyORB.Filters.HTTP is
          when Chunk_Size =>
             Parse_Chunk_Size (F, S);
 
-         when Header =>
+         when Header | Trailer =>
             if S'Length > 2 then
                Parse_Header_Line (F, S);
             else
@@ -771,15 +777,56 @@ package body PolyORB.Filters.HTTP is
       if Chunk_Size > 0 then
          F.Transfer_Length := Chunk_Size + 2;
          --  Expect chunk-data + CRLF
+
          F.State := Entity;
       else
-         --  Last chunk received, go to trailer (= entity-header)
-         --  state. When in trailer mode and headers are completed,
-         --  finally call Entity_Complete.
-         raise PolyORB.Not_Implemented;
-         --  XXX
+
+         --  Last chunk received, go to trailer state.
+         --  When in trailer state and headers are completed,
+         --  finally call Message_Complete.
+
+         F.Transfer_Length := -1;
+         F.State := Trailer;
       end if;
 
    end Parse_Chunk_Size;
+
+   procedure Message_Complete (F : access HTTP_Filter)
+   is
+      use PolyORB.Buffers;
+      use PolyORB.Types;
+   begin
+      pragma Debug (O ("Message_Complete: enter"));
+
+      --  Check validity of message body buffer now.
+      if F.Message_Buf = null then
+         raise Program_Error;
+      end if;
+      Release_Contents (F.Message_Buf.all);
+
+      declare
+         S : constant String := To_Standard_String (F.Entity);
+         --  XXX BAD BAD do not allocate that on the stack!
+      begin
+         PolyORB.Utils.Text_Buffers.Marshall_String
+           (F.Message_Buf, S);
+         Rewind (F.Message_Buf);
+         Emit_No_Reply
+           (F.Upper, Data_Indication'(Data_Amount => S'Length));
+      end;
+      --  XXX it is unfortunate that we:
+      --    1. receive entity data in In_Buf;
+      --    2. copy it to Unbounded_String entity;
+      --    3. copy it back to buffer Message_Buf.
+      --  Alternative solutions:
+      --    * receive directly in Message_Buf (BUT we may
+      --      have to copy the first few bytes of the entity
+      --      body from In_Buf) (or insert them as a foreign chunk!)
+      --      (but then we do not guarantee the contiguousness of
+      --      Message_Buf)
+      --    * no Message_Buf, send a Data_Indication containing
+      --      he Entity unbounded-string (for efficiency's sake,
+      --      check that unbounded strings are copy-on-write.)
+   end Message_Complete;
 
 end PolyORB.Filters.HTTP;

@@ -30,11 +30,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Data representation methods
-
 --  $Id$
 
-package body PolyORB.Representations is
+package body PolyORB.Utils.Buffers is
 
    ---------
    -- Rev --
@@ -161,4 +159,4 @@ package body PolyORB.Representations is
         (Data_Address.Offset .. Data_Address.Offset + Size - 1);
    end Align_Unmarshall_Copy;
 
-end PolyORB.Representations;
+end PolyORB.Utils.Buffers;

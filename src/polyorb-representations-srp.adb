@@ -40,9 +40,11 @@ with PolyORB.Any;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Objects;
+with PolyORB.Opaque; use PolyORB.Opaque;
 with PolyORB.Types;
 with PolyORB.Utils;
 with PolyORB.Utils.SRP; use PolyORB.Utils.SRP;
+with PolyORB.Utils.Buffers; use PolyORB.Utils.Buffers;
 
 with Interfaces;
 
