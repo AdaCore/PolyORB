@@ -163,11 +163,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             Marshall
               (Buffer, Stream_Element_Array
                (Target_Ref.Object_Key.all));
+
          when Profile_Addr  =>
             Marshall_IIOP_Profile_Body (Buffer, Target_Ref.Profile);
+
          when Reference_Addr  =>
             Marshall (Buffer, Target_Ref.Ref.Selected_Profile_Index);
-            References.IOR.Marshall (Buffer, Target_Ref.Ref.IOR);
+            References.IOR.Marshall_IOR (Buffer, Target_Ref.Ref.IOR);
       end case;
 
       --  Operation
@@ -285,7 +287,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       end loop;
 
       --  Reference
-      References.IOR.Marshall (Buffer, Target_Ref);
+      References.IOR.Marshall_IOR (Buffer, Target_Ref);
 
    end Marshall_Location_Forward;
 
@@ -354,7 +356,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
          when Reference_Addr =>
             Marshall (Buffer, Target_Ref.Ref.Selected_Profile_Index);
-            References.IOR.Marshall (Buffer, Target_Ref.Ref.IOR);
+            References.IOR.Marshall_IOR (Buffer, Target_Ref.Ref.IOR);
       end case;
 
    end Marshall_Locate_Request;
@@ -443,7 +445,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
             begin
                Temp_Ref.Selected_Profile_Index := Unmarshall (Buffer);
-               Temp_Ref.IOR := Unmarshall (Buffer);
+               Temp_Ref.IOR := Representations.CDR.Unmarshall (Buffer);
 
                Target_Ref := new Target_Address'
                  (Address_Type => Reference_Addr,
@@ -549,7 +551,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                     := new IOR_Addressing_Info;
             begin
                   Temp_Ref.Selected_Profile_Index := Unmarshall (Buffer);
-                  Temp_Ref.IOR := Unmarshall (Buffer);
+                  Temp_Ref.IOR := Representations.CDR.Unmarshall (Buffer);
                   Target_Ref := Target_Address'
                     (Address_Type => Reference_Addr,
                      Ref  => Temp_Ref);

@@ -1103,7 +1103,7 @@ package body PolyORB.Protocols.GIOP is
       use PolyORB.References;
       use PolyORB.References.IOR;
 
-      New_Ref    : IOR.IOR_Type := Unmarshall (Buffer);
+      New_Ref    : IOR.IOR_Type := Representations.CDR.Unmarshall (Buffer);
       Prof_Array : PolyORB.References.Profile_Array
         := Profiles_Of (New_Ref);
 

@@ -40,12 +40,9 @@
 
 with Ada.Streams; use Ada.Streams;
 
-with CORBA;
-with CORBA.AbstractBase;
-with CORBA.Object;
-
-with PolyORB.Buffers; use PolyORB.Buffers;
 with PolyORB.Any;
+with PolyORB.Buffers; use PolyORB.Buffers;
+with PolyORB.References;
 with PolyORB.Types;
 
 package PolyORB.Representations.CDR is
@@ -350,15 +347,15 @@ package PolyORB.Representations.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.AbstractBase.Ref'Class);
+      Data   : in PolyORB.References.Ref'Class);
 
    procedure Unmarshall
      (Buffer : access Buffer_Type;
-      Data : in out CORBA.AbstractBase.Ref'Class);
+      Data : in out PolyORB.References.Ref'Class);
 
    function Unmarshall
      (Buffer : access Buffer_Type)
-     return CORBA.Object.Ref;
+     return PolyORB.References.Ref;
 
    --  Marshalling of octets sequences.
 

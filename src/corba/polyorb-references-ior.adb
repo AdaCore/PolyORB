@@ -60,7 +60,7 @@ package body PolyORB.References.IOR is
    -- Marshall --
    --------------
 
-   procedure Marshall
+   procedure Marshall_IOR
      (Buffer : access Buffer_Type;
       Value  : in IOR_Type)
    is
@@ -123,13 +123,13 @@ package body PolyORB.References.IOR is
          end if;
       end loop;
       pragma Debug (O ("Marshall: Leave"));
-   end Marshall;
+   end Marshall_IOR;
 
    ----------------
    -- Unmarshall --
    ----------------
 
-   function Unmarshall
+   function Unmarshall_IOR
      (Buffer : access Buffer_Type)
    return  IOR_Type
    is
@@ -180,7 +180,7 @@ package body PolyORB.References.IOR is
          References.Ref (Result));
 
       return Result;
-   end Unmarshall;
+   end Unmarshall_IOR;
 
    function Object_To_Opaque (IOR : IOR_Type)
      return Stream_Element_Array
@@ -188,7 +188,7 @@ package body PolyORB.References.IOR is
       Buf : Buffer_Access := new Buffer_Type;
    begin
       Start_Encapsulation (Buf);
-      Marshall (Buf, IOR);
+      Representations.CDR.Marshall (Buf, IOR);
 
       declare
          Octets : constant Encapsulation := Encapsulate (Buf);

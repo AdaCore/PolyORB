@@ -525,7 +525,14 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Objref =>
             pragma Debug (O ("Marshall_From_Any : dealing with an objRef"));
-            Marshall (Buffer, CORBA.Object.Helper.From_Any (Data));
+            declare
+               CO : constant CORBA.Object.Ref
+                 := CORBA.Object.Helper.From_Any (Data);
+               O : PolyORB.References.Ref;
+            begin
+               PolyORB.References.Set (O, CORBA.Object.Entity_Of (CO));
+               Marshall (Buffer, O);
+            end;
 
          when Tk_Struct | Tk_Except =>
             declare
@@ -1622,9 +1629,13 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Objref =>
             declare
-               O : constant CORBA.Object.Ref := Unmarshall (Buffer);
+               O : constant PolyORB.References.Ref
+                 := Unmarshall (Buffer);
+               CO : CORBA.Object.Ref;
             begin
-               CORBA.Object.Helper.Set_Any_Value (Result, O);
+               CORBA.Object.Set
+                 (CO, PolyORB.References.Entity_Of (O));
+               CORBA.Object.Helper.Set_Any_Value (Result, CO);
             end;
 
          when Tk_Struct | Tk_Except =>
@@ -2324,7 +2335,7 @@ package body PolyORB.Representations.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.AbstractBase.Ref'Class) is
+      Data : in PolyORB.References.Ref'Class) is
    begin
       --  !!!!!!!!!!!!!!!!!
       --  FIXME: I've just noticed that abstract interfaces must be
@@ -2361,8 +2372,8 @@ package body PolyORB.Representations.CDR is
          use PolyORB.References.IOR;
          IOR : IOR_Type;
       begin
-         Set (IOR, CORBA.AbstractBase.Entity_Of (Data));
-         Marshall (Buffer, IOR);
+         Set (IOR, PolyORB.References.Entity_Of (Data));
+         Marshall_IOR (Buffer, IOR);
       end;
 --      end if;
    end Marshall;
@@ -2373,13 +2384,13 @@ package body PolyORB.Representations.CDR is
 
    procedure Unmarshall
      (Buffer : access Buffer_Type;
-      Data   : in out CORBA.AbstractBase.Ref'Class)
+      Data   : in out PolyORB.References.Ref'Class)
    is
       use PolyORB.References;
       use PolyORB.References.IOR;
-      IOR : constant IOR_Type := Unmarshall (Buffer);
+      IOR : constant IOR_Type := Unmarshall_IOR (Buffer);
    begin
-      CORBA.AbstractBase.Set (Data, Entity_Of (IOR));
+      PolyORB.References.Set (Data, Entity_Of (IOR));
    end Unmarshall;
 
    ----------------
@@ -2387,12 +2398,12 @@ package body PolyORB.Representations.CDR is
    ----------------
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Object.Ref
+     return PolyORB.References.Ref
    is
-      New_Ref : CORBA.Object.Ref;
+      Result : PolyORB.References.Ref;
    begin
-      Unmarshall (Buffer, New_Ref);
-      return New_Ref;
+      Unmarshall (Buffer, Result);
+      return Result;
    end Unmarshall;
 
    -----------------------------------

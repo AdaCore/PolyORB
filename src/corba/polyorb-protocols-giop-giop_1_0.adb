@@ -225,7 +225,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Marshall (Buffer, GIOP.Location_Forward);
 
       --  Object reference
-      References.IOR.Marshall (Buffer, Forward_Ref);
+      References.IOR.Marshall_IOR (Buffer, Forward_Ref);
 
    end  Marshall_Location_Forward;
 

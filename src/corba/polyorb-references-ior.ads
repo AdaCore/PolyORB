@@ -74,11 +74,11 @@ package PolyORB.References.IOR is
 
    subtype IOR_Type is PolyORB.References.Ref;
 
-   procedure Marshall
+   procedure Marshall_IOR
      (Buffer : access Buffer_Type;
       Value  : in IOR_Type);
 
-   function  Unmarshall
+   function  Unmarshall_IOR
      (Buffer : access Buffer_Type)
    return  IOR_Type;
 
