@@ -49,25 +49,19 @@ package body System.Garlic.Filters.Zip is
    package C renames Interfaces.C;
    use C;
 
-   package Zipper is
+   function Compress (dest     : in System.Address;
+                      dest_len : in System.Address;
+                      src      : in System.Address;
+                      src_len  : in C.long)
+                      return C.int;
+   pragma Import (C, Compress,   "compress");
 
-      function Compress (dest     : in System.Address;
-                         dest_len : in System.Address;
-                         src      : in System.Address;
-                         src_len  : in C.long)
-         return C.int;
-      pragma Import (C, Compress,   "compress");
-
-      function Decompress (dest     : in System.Address;
-                           dest_len : in System.Address;
-                           src      : in System.Address;
-                           src_len  : in C.long)
-         return C.int;
-      pragma Import (C, Decompress, "uncompress");
-
-   end Zipper;
-
-   use Zipper;
+   function Decompress (dest     : in System.Address;
+                        dest_len : in System.Address;
+                        src      : in System.Address;
+                        src_len  : in C.long)
+                        return C.int;
+   pragma Import (C, Decompress, "uncompress");
 
    Compressor   : aliased Compress_Filter_Type;
 
@@ -91,6 +85,7 @@ package body System.Garlic.Filters.Zip is
          Target_Length :=
            Target_Length * 256 + Stream_Element_Offset (Stream (I));
       end loop;
+      target_bytes := C.long (Target_Length);
       Target_Buffer := new Stream_Element_Array (1 .. Target_Length);
       if Target_Length > 0 then
          source_bytes := Stream'Length - 4;

@@ -1,5 +1,10 @@
 1998-07-23  Laurent Pautet  <pautet@scapin.enst.fr>
 
+	* s-gafizi.adb: target_bytes should be initialized before
+	executing Compress C function (because this variable is passed by
+	address and its value is used - not only updated). Last step
+	before full SGI port.
+
 	* s-garrem.adb: Check whether host is "localhost". In this case,
  	do not use rsh but fork instead.
 
