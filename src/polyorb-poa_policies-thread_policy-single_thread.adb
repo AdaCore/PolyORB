@@ -111,8 +111,8 @@ package body PolyORB.POA_Policies.Thread_Policy.Single_Thread is
 
    function Handle_Request_Execution
      (Self      : access Single_Thread_Policy;
-      Msg       : PolyORB.Components.Message'Class;
-      Requestor : PolyORB.Components.Component_Access)
+      Msg       :        PolyORB.Components.Message'Class;
+      Requestor :        PolyORB.Components.Component_Access)
       return PolyORB.Components.Message'Class
    is
       use PolyORB.Annotations;

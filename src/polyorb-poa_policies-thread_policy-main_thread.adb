@@ -57,7 +57,8 @@ package body PolyORB.POA_Policies.Thread_Policy.Main_Thread is
    -- Create --
    ------------
 
-   function Create return Main_Thread_Policy_Access is
+   function Create
+     return Main_Thread_Policy_Access is
    begin
       return new Main_Thread_Policy;
    end Create;
@@ -104,8 +105,8 @@ package body PolyORB.POA_Policies.Thread_Policy.Main_Thread is
 
    function Handle_Request_Execution
      (Self      : access Main_Thread_Policy;
-      Msg       : PolyORB.Components.Message'Class;
-      Requestor : PolyORB.Components.Component_Access)
+      Msg       :        PolyORB.Components.Message'Class;
+      Requestor :        PolyORB.Components.Component_Access)
       return PolyORB.Components.Message'Class
    is
       use PolyORB.Servants;

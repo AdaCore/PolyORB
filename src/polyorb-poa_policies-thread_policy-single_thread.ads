@@ -36,9 +36,11 @@
 package PolyORB.POA_Policies.Thread_Policy.Single_Thread is
 
    type Single_Thread_Policy is new ThreadPolicy with null record;
+
    type Single_Thread_Policy_Access is access all Single_Thread_Policy;
 
-   function Create return Single_Thread_Policy_Access;
+   function Create
+     return Single_Thread_Policy_Access;
 
    procedure Check_Compatibility
      (Self           :        Single_Thread_Policy;
@@ -51,8 +53,8 @@ package PolyORB.POA_Policies.Thread_Policy.Single_Thread is
 
    function Handle_Request_Execution
      (Self      : access Single_Thread_Policy;
-      Msg       : PolyORB.Components.Message'Class;
-      Requestor : PolyORB.Components.Component_Access)
+      Msg       :        PolyORB.Components.Message'Class;
+      Requestor :        PolyORB.Components.Component_Access)
       return PolyORB.Components.Message'Class;
 
 end PolyORB.POA_Policies.Thread_Policy.Single_Thread;

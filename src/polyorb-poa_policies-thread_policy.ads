@@ -38,14 +38,8 @@ with PolyORB.Components;
 package PolyORB.POA_Policies.Thread_Policy is
 
    type ThreadPolicy is abstract new Policy with null record;
-   subtype Thread_Policy is ThreadPolicy;
-   type ThreadPolicy_Access is access all ThreadPolicy'Class;
-   subtype Thread_Policy_Access is ThreadPolicy_Access;
 
-   function Policy_Id
-     (Self : ThreadPolicy)
-     return String
-      is abstract;
+   type ThreadPolicy_Access is access all ThreadPolicy'Class;
 
    function Handle_Request_Execution
      (Self      : access ThreadPolicy;

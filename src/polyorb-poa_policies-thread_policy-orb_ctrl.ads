@@ -36,9 +36,11 @@
 package PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
 
    type ORB_Ctrl_Policy is new ThreadPolicy with null record;
+
    type ORB_Ctrl_Policy_Access is access all ORB_Ctrl_Policy;
 
-   function Create return ORB_Ctrl_Policy_Access;
+   function Create
+     return ORB_Ctrl_Policy_Access;
 
    procedure Check_Compatibility
      (Self           :        ORB_Ctrl_Policy;
@@ -51,8 +53,8 @@ package PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
 
    function Handle_Request_Execution
      (Self      : access ORB_Ctrl_Policy;
-      Msg       : PolyORB.Components.Message'Class;
-      Requestor : PolyORB.Components.Component_Access)
+      Msg       :        PolyORB.Components.Message'Class;
+      Requestor :        PolyORB.Components.Component_Access)
       return PolyORB.Components.Message'Class;
 
 end PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;

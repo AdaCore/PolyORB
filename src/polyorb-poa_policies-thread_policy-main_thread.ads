@@ -36,13 +36,15 @@
 package PolyORB.POA_Policies.Thread_Policy.Main_Thread is
 
    type Main_Thread_Policy is new ThreadPolicy with null record;
+
    type Main_Thread_Policy_Access is access all Main_Thread_Policy;
 
-   function Create return Main_Thread_Policy_Access;
+   function Create
+     return Main_Thread_Policy_Access;
 
    procedure Check_Compatibility
-     (Self           : Main_Thread_Policy;
-      Other_Policies : AllPolicies;
+     (Self           :        Main_Thread_Policy;
+      Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Exceptions.Error_Container);
 
    function Policy_Id
@@ -51,8 +53,8 @@ package PolyORB.POA_Policies.Thread_Policy.Main_Thread is
 
    function Handle_Request_Execution
      (Self      : access Main_Thread_Policy;
-      Msg       : PolyORB.Components.Message'Class;
-      Requestor : PolyORB.Components.Component_Access)
+      Msg       :        PolyORB.Components.Message'Class;
+      Requestor :        PolyORB.Components.Component_Access)
       return PolyORB.Components.Message'Class;
 
 end PolyORB.POA_Policies.Thread_Policy.Main_Thread;

@@ -44,7 +44,8 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
    -- Create --
    ------------
 
-   function Create return ORB_Ctrl_Policy_Access is
+   function Create
+     return ORB_Ctrl_Policy_Access is
    begin
       return new ORB_Ctrl_Policy;
    end Create;
@@ -91,8 +92,8 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
 
    function Handle_Request_Execution
      (Self      : access ORB_Ctrl_Policy;
-      Msg       : PolyORB.Components.Message'Class;
-      Requestor : PolyORB.Components.Component_Access)
+      Msg       :        PolyORB.Components.Message'Class;
+      Requestor :        PolyORB.Components.Component_Access)
       return PolyORB.Components.Message'Class
    is
       use PolyORB.Servants;
