@@ -932,11 +932,15 @@ package body CORBA.Repository_Root.Contained.Impl is
    ---------------------
    --  Print_content  --
    ---------------------
-   procedure Print_Content (In_Seq : Contained_Seq.Sequence;
-                            Inc : Standard.String) is
-      Cont_Array : Contained_Seq.Element_Array
+   procedure Print_Content
+     (In_Seq : Contained_Seq.Sequence;
+      Inc : Standard.String)
+   is
+      use Ada.Text_IO;
+
+      Cont_Array : constant Contained_Seq.Element_Array
         := Contained_Seq.To_Element_Array (In_Seq);
-      use Text_IO;
+
    begin
       for I in Cont_Array'Range loop
          declare

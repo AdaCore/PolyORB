@@ -44,7 +44,6 @@ with Ada.Text_IO;
 
 procedure Server is
    Ref : CORBA.Object.Ref;
-   Obj : PortableServer.Servant;
    Repo : Repository.Impl.Object_Ptr := new Repository.Impl.Object;
 begin
    Repository.Impl.Init (Repo,
