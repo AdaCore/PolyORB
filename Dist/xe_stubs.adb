@@ -1063,6 +1063,10 @@ package body XE_Stubs is
       if Buffer (Ptr) /= Ascii.LF and then Buffer (Ptr) = Ascii.CR then
          return True;
       end if;
+
+      if Ascii.CR then
+         Ptr := Ptr + 1;
+      end if;
       Ptr := Ptr + 1;
 
       --  Load configuration file stamp.
