@@ -76,8 +76,6 @@ build the SOAP protocol personality.
 Build instructions
 ------------------
 
-See file INSTALL.
-
 Developers building PolyORB from the version control repository
 who need to rebuild the configure and Makefile.in files should
 use the script support/reconfig for this purpose.
