@@ -31,7 +31,7 @@
 --  XXX The latter should be moved away to a Ada_Be.Idl2Ada.Stubs
 --  child unit one day.
 
---  $Id: //droopi/main/compilers/idlac/ada_be-idl2ada.adb#23 $
+--  $Id: //droopi/main/compilers/idlac/ada_be-idl2ada.adb#24 $
 
 with Ada.Characters.Handling;
 with Ada.Strings.Unbounded;
@@ -48,7 +48,6 @@ with Ada_Be.Temporaries;    use Ada_Be.Temporaries;
 with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
 
---  with Ada_Be.Idl2Ada.Stream;
 with Ada_Be.Idl2Ada.Impl;
 with Ada_Be.Idl2Ada.Value_Impl;
 with Ada_Be.Idl2Ada.Helper;
@@ -291,10 +290,6 @@ package body Ada_Be.Idl2Ada is
          Divert (Stubs_Spec, Visible_Declarations);
       end if;
 
-      --  Marshalling subprograms for the reference type
---       Stream.Gen_Node_Spec (Stream_Spec, Node);
---       Stream.Gen_Node_Body (Stream_Body, Node);
-
       if not Abst (Node) then
          --  Value_Impl type
          Value_Impl.Gen_Node_Spec (Value_Impl_Spec, Node);
@@ -339,13 +334,7 @@ package body Ada_Be.Idl2Ada is
                pragma Debug (O ("Gen_Node_Stubs_Spec"));
                Gen_Node_Stubs_Spec (Stubs_Spec, Export_Node);
                pragma Debug (O ("Gen_ValueType_Stubs_Body"));
-               Gen_ValueType_Stubs_Body (Stubs_Body,
-                                         Export_Node);
-
---                pragma Debug (O ("Stream.Gen_Node_Spec"));
-
---                Stream.Gen_Node_Spec (Stream_Spec, Export_Node);
---                Stream.Gen_Node_Body (Stream_Body, Export_Node);
+               Gen_ValueType_Stubs_Body (Stubs_Body, Export_Node);
 
                --  Value_Skel packages
                pragma Debug (O ("Value_Skel.Gen_Node_Spec"));
@@ -673,11 +662,6 @@ package body Ada_Be.Idl2Ada is
 
                      --  Exception declarations cause
                      --  generation of a Get_Members procedure.
-
---                      Stream.Gen_Node_Spec
---                        (Stream_Spec, Decl_Node);
---                      Stream.Gen_Node_Body
---                        (Stream_Body, Decl_Node);
 
                      Helper.Gen_Node_Spec (Helper_Spec, Decl_Node);
                      Helper.Gen_Node_Body (Helper_Body, Decl_Node);

@@ -46,6 +46,8 @@ package body Ada_Be.Idl2Ada.Skel is
    pragma Unreferenced (O);
    pragma Warnings (On);
 
+   Want_Interface_Repository : constant Boolean := False;
+
    procedure Gen_Is_A
      (CU   : in out Compilation_Unit;
       SK   : in Skel_Kind;
@@ -166,7 +168,6 @@ package body Ada_Be.Idl2Ada.Skel is
             null;
       end case;
    end Gen_Node_Body;
-
 
    --------------
    -- Gen_Is_A --
