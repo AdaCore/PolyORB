@@ -41,23 +41,27 @@ with PolyORB.Tasking.Profiles.Ravenscar.Mutexes;
 with PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables;
 
 generic
-   Number_Of_Threads    : Integer;
-   --  Number of preallocated tasks.
+   Number_Of_Application_Tasks    : Integer;
+   --  Number of tasks created by the user.
 
-   Number_Of_Conditions : Integer;
+   Number_Of_System_Tasks         : Integer;
+   --  Number of tasks created by the PolyORB run-time library.
+
+   Number_Of_Conditions           : Integer;
    --  Number of preallocated conditions.
 
-   Number_Of_Mutexes    : Integer;
+   Number_Of_Mutexes              : Integer;
    --  Number of preallocated mutexes.
 
-   Task_Priority        : System.Priority;
+   Task_Priority                  : System.Priority;
    --  Priority affected  to the tasks of the pool.
 
 package PolyORB.Profiles.Ravenscar is
 
    package Threads_Package is
       new PolyORB.Tasking.Profiles.Ravenscar.Threads
-     (Number_Of_Threads,
+     (Number_Of_Application_Tasks,
+      Number_Of_System_Tasks,
       Task_Priority);
 
    package Conditions_Package is
