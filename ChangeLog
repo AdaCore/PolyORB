@@ -1,3 +1,8 @@
+2002-04-22  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* MANIFEST: Add inffixed.h in zlib directory because of an update
+	from 1.0.8 to 1.1.4.
+
 2002-02-08  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* MANIFEST: Add ada/targparm.ad[bs] to fix 8812-004.
