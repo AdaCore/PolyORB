@@ -595,8 +595,15 @@ package Droopi.Any is
 
    --  returns an empty any aggregate
    --  puts its type to Tc
-   function Get_Empty_Any_Aggregate (Tc : TypeCode.Object)
-                                     return Any;
+   function Get_Empty_Any_Aggregate
+     (Tc : TypeCode.Object)
+     return Any;
+
+   function Get_By_Ref
+     (A : in Any)
+     return Any;
+   --  Return an Any with the same contents as A
+   --  but by-reference semantics (instead of by-value).
 
    -----------------
    --  NamedValue --
@@ -610,8 +617,8 @@ package Droopi.Any is
    IN_COPY_VALUE : constant Flags;
 
    type NamedValue is record
-      Name :      Types.Identifier;
-      Argument :  Any;
+      Name      : Types.Identifier;
+      Argument  : Any;
       Arg_Modes : Flags;
    end record;
 

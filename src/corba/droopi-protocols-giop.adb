@@ -64,8 +64,8 @@ package body Droopi.Protocols.GIOP is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   --  Each request has a unique Request_Id, allocated through
-   --  the use of a global counter.
+   --  Each GIOP request has a unique Request_Id, allocated
+   --  using a global counter.
 
    Current_Request_Id : Types.Unsigned_Long := 1;
    Counter_Lock : Mutex_Access;
@@ -73,7 +73,7 @@ package body Droopi.Protocols.GIOP is
    --  only with Counter_Lock locked.
 
    --  A note can be attached to a DROOPI request to augment
-   --  it with personality-specific information. The GIOP
+   --  it with personality-specific information. The GIOP stack
    --  uses such a note to associate the Request with its
    --  Request_Id.
 

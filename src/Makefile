@@ -30,7 +30,7 @@ alldeps.ps: alldeps.dot
 	dot -Tps $< | epsffit -c -r 10 10 535 831 > $@
 
 $(TESTS): force
-	$(GNATMAKE) $@ -cargs $(CFLAGS)
+	$(GNATMAKE) $@ -cargs $(CFLAGS) -largs $(LDFLAGS)
 
 force:
 

@@ -31,11 +31,15 @@ package body Droopi.Requests is
      )
    is
       Res : constant Request_Access := new Request;
+      Result_Any : Droopi.Any.Any := Any.Get_By_Ref (Result.Argument);
    begin
       Res.Target    := Target;
       Res.Operation := To_Droopi_String (Operation);
       Res.Args      := Arg_List;
-      Res.Result    := Result;
+      Res.Result    :=
+        (Name      => Result.Name,
+         Argument  => Result_Any,
+         Arg_Modes => Result.Arg_Modes);
 
       Req := Res;
    end Create_Request;

@@ -2291,6 +2291,26 @@ package body Droopi.Any is
       return Result;
    end Get_Empty_Any_Aggregate;
 
+   function Get_By_Ref (A : Any) return Any
+   is
+      The_Value   : Any_Content_Ptr_Ptr;
+      The_Counter : Natural_Ptr;
+   begin
+      pragma Assert (not A.As_Reference);
+      Lock_W (A.Any_Lock);
+      The_Value   := A.The_Value;
+      The_Counter := A.Ref_Counter;
+      A.Ref_Counter.all := A.Ref_Counter.all + 1;
+      Unlock_W (A.Any_Lock);
+
+      return (Ada.Finalization.Controlled with
+              The_Value    => A.The_Value,
+              The_Type     => A.The_Type,
+              As_Reference => True,
+              Ref_Counter  => The_Counter,
+              Any_Lock     => A.Any_Lock);
+   end Get_By_Ref;
+
    -----------------
    --  Duplicate  --
    -----------------
