@@ -52,7 +52,6 @@
 -----------------------------------------------------------------------
 
 
-with Ada.Unchecked_Conversion ;
 with Ada.Exceptions ;
 with Ada.Strings.Unbounded ;
 use type Ada.Strings.Unbounded.Unbounded_String ;
@@ -66,15 +65,6 @@ use type Corba.Unsigned_Long ;
 with Omni ;
 
 package body NetBufferedStream is
-
-   -- Ada_To_C_Unsigned_Long
-   -------------------------
-   function Ada_To_C_Unsigned_Long is
-     new Ada.Unchecked_Conversion (Corba.Unsigned_Long,
-                                   Interfaces.C.Unsigned_Long) ;
-   -- needed to change ada type Corba.Unsigned_Long
-   -- into C type Interfaces.C.Unsigned_Long
-
 
    -- C_Init
    ---------
@@ -104,26 +94,18 @@ package body NetBufferedStream is
       -- transforms the arguments into a C type ...
       C_RdLock := Sys_Dep.Boolean_Ada_To_C (RdLock) ;
       C_WrLock := Sys_Dep.Boolean_Ada_To_C (WrLock) ;
-      C_Bufsize := Ada_To_C_Unsigned_Long (Bufsize) ;
+      C_Bufsize := Interfaces.C.Unsigned_Long (Bufsize) ;
       -- ... and calls the C procedure
       C_Init (Self, System.Address (R), C_RdLock, C_WrLock, C_Bufsize) ;
    end ;
 
 
-   -- Ada_To_C_Char
-   ----------------
-   function Ada_To_C_Char is
-     new Ada.Unchecked_Conversion (Corba.Char,
-                                   Interfaces.C.Char) ;
-   -- needed to change ada type Corba.Char
-   -- into C type Interfaces.C.Char
-
-
    -- C_Marshall_1
    ---------------
    procedure C_Marshall_1 (A : in Interfaces.C.Char ;
-                           S : in out System.Address) ;
-   pragma Import (C,C_Marshall_1,"marshall__21Ada_netBufferedStreamUcR17NetBufferedStream") ;
+                           S : in out Object'Class) ;
+   pragma Import (C,C_Marshall_1,
+                  "marshall__21Ada_netBufferedStreamUcR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -135,21 +117,19 @@ package body NetBufferedStream is
    procedure Marshall (A : in Corba.Char ;
                        S : in out Object'Class) is
       C_A : Interfaces.C.Char ;
-      C_S : System.Address ;
    begin
       -- transforms the arguments in a C type ...
-      C_A := Ada_To_C_Char (A) ;
-      C_S := S'Address ;
+      C_A := Interfaces.C.Char(A) ;
       -- ... and calls the C procedure
-      C_Marshall_1 (C_A,C_S) ;
+      C_Marshall_1 (C_A,S) ;
    end;
 
 
    -- C_UnMarshall_1
    -----------------
-   procedure C_UnMarshall_1 (A : out System.Address ;
-                             S : in out System.Address) ;
-   pragma Import (C,C_UnMarshall_1,"unmarshall__21Ada_netBufferedStreamRUcR17NetBufferedStream") ;
+   procedure C_UnMarshall_1 (A : out Interfaces.C.Char ;
+                             S : in out Object'Class) ;
+   pragma Import (C,C_UnMarshall_1,"unmarshall__21Ada_netBufferedStreamRUcR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -160,14 +140,10 @@ package body NetBufferedStream is
    -------------
    procedure UnMarshall (A : out Corba.Char ;
                          S : in out Object'Class) is
-      C_A : System.Address ;
-      C_S : System.Address ;
+      C_A : Interfaces.C.Char ;
    begin
-      -- transforms the arguments in a C type ...
-      C_A := A'Address ;
-      C_S := S'Address ;
-      -- ... and calls the C procedure
-      C_UnMarshall_1 (C_A,C_S) ;
+      C_UnMarshall_1 (C_A,S) ;
+      A := Corba.Char(C_A) ;
    end;
 
 
@@ -185,8 +161,8 @@ package body NetBufferedStream is
    -- C_Marshall_2
    ---------------
    procedure C_Marshall_2 (A : in Sys_Dep.C_Boolean ;
-                           S : in out System.Address) ;
-   pragma Import (C,C_Marshall_2,"marshall__21Ada_netBufferedStreambR17NetBufferedStream") ;
+                           S : in out Object'Class) ;
+   pragma Import (C,C_Marshall_2,"marshall__21Ada_netBufferedStreambR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -198,21 +174,19 @@ package body NetBufferedStream is
    procedure Marshall (A : in Corba.Boolean ;
                        S : in out Object'Class) is
       C_A : Sys_Dep.C_Boolean ;
-      C_S : System.Address ;
    begin
       -- transforms the arguments in a C type ...
       C_A := Sys_Dep.Boolean_Ada_To_C (A) ;
-      C_S := S'Address ;
       -- ... and calls the C procedure
-      C_Marshall_2 (C_A,C_S) ;
+      C_Marshall_2 (C_A,S) ;
    end;
 
 
    -- C_UnMarshall_2
    -----------------
-   procedure C_UnMarshall_2 (A : out System.Address ;
-                             S : in out System.Address) ;
-   pragma Import (C,C_UnMarshall_2,"unmarshall__21Ada_netBufferedStreamRbR17NetBufferedStream") ;
+   procedure C_UnMarshall_2 (A : out Sys_Dep.C_Boolean ;
+                             S : in out Object'Class) ;
+   pragma Import (C,C_UnMarshall_2,"unmarshall__21Ada_netBufferedStreamRbR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -223,14 +197,10 @@ package body NetBufferedStream is
    -------------
    procedure UnMarshall (A : out Corba.Boolean ;
                          S : in out Object'Class) is
-      C_A : System.Address ;
-      C_S : System.Address ;
+      C_A : Sys_Dep.C_boolean ;
    begin
-      -- transforms the arguments in a C type ...
-      C_A := A'Address ;
-      C_S := S'Address ;
-      -- ... and calls the C procedure
-      C_UnMarshall_2 (C_A,C_S) ;
+      C_UnMarshall_2 (C_A,S) ;
+      A := Sys_Dep.Boolean_C_To_Ada(C_A) ;
    end;
 
 
@@ -246,20 +216,11 @@ package body NetBufferedStream is
    end ;
 
 
-   -- Ada_To_C_Short
-   -----------------
-   function Ada_To_C_Short is
-     new Ada.Unchecked_Conversion (Corba.Short,
-                                   Interfaces.C.Short) ;
-   -- needed to change ada type Corba.Short
-   -- into C type Interfaces.C.Short
-
-
    -- C_Marshall_3
    ---------------
    procedure C_Marshall_3 (A : in Interfaces.C.Short ;
-                           S : in out System.Address) ;
-   pragma Import (C,C_Marshall_3,"marshall__21Ada_netBufferedStreamsR17NetBufferedStream") ;
+                           S : in out Object'Class) ;
+   pragma Import (C,C_Marshall_3,"marshall__21Ada_netBufferedStreamsR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -271,21 +232,19 @@ package body NetBufferedStream is
    procedure Marshall (A : in Corba.Short ;
                        S : in out Object'Class) is
       C_A : Interfaces.C.Short ;
-      C_S : System.Address ;
    begin
       -- transforms the arguments in a C type ...
-      C_A := Ada_To_C_Short (A) ;
-      C_S := S'Address ;
+      C_A := Interfaces.C.Short(C_A) ;
       -- ... and calls the C procedure
-      C_Marshall_3 (C_A,C_S) ;
+      C_Marshall_3 (C_A,S) ;
    end;
 
 
    -- C_UnMarshall_3
    -----------------
-   procedure C_UnMarshall_3 (A : out System.Address ;
-                             S : in out System.Address) ;
-   pragma Import (C,C_UnMarshall_3,"unmarshall__21Ada_netBufferedStreamRsR17NetBufferedStream") ;
+   procedure C_UnMarshall_3 (A : out Interfaces.C.Short ;
+                             S : in out Object'Class) ;
+   pragma Import (C,C_UnMarshall_3,"unmarshall__21Ada_netBufferedStreamRsR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -296,24 +255,11 @@ package body NetBufferedStream is
    -------------
    procedure UnMarshall (A : out Corba.Short ;
                          S : in out Object'Class) is
-      C_A : System.Address ;
-      C_S : System.Address ;
+      C_A : Interfaces.C.Short ;
    begin
-      -- transforms the arguments in a C type ...
-      C_A := A'Address ;
-      C_S := S'Address ;
-      -- ... and calls the C procedure
-      C_UnMarshall_3 (C_A,C_S) ;
+      C_UnMarshall_3 (C_A,S) ;
+      A := Corba.Short(C_A) ;
    end;
-
-
-   -- Ada_To_C_Unsigned_Short
-   --------------------------
-   function Ada_To_C_Unsigned_Short is
-     new Ada.Unchecked_Conversion (Corba.Unsigned_Short,
-                                   Interfaces.C.Unsigned_Short) ;
-   -- needed to change ada type Corba.Unsigned_Short
-   -- into C type Interfaces.C.Unsigned_Short
 
 
    -- Align_Size
@@ -331,8 +277,8 @@ package body NetBufferedStream is
    -- C_Marshall_4
    ---------------
    procedure C_Marshall_4 (A : in Interfaces.C.Unsigned_Short ;
-                           S : in out System.Address) ;
-   pragma Import (C,C_Marshall_4,"marshall__21Ada_netBufferedStreamUsR17NetBufferedStream") ;
+                           S : in out Object'Class) ;
+   pragma Import (C,C_Marshall_4,"marshall__21Ada_netBufferedStreamUsR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -344,21 +290,19 @@ package body NetBufferedStream is
    procedure Marshall (A : in Corba.Unsigned_Short ;
                        S : in out Object'Class) is
       C_A : Interfaces.C.Unsigned_Short ;
-      C_S : System.Address ;
    begin
       -- transforms the arguments in a C type ...
-      C_A := Ada_To_C_Unsigned_Short (A) ;
-      C_S := S'Address ;
+      C_A := Interfaces.C.Unsigned_Short (A) ;
       -- ... and calls the C procedure
-      C_Marshall_4 (C_A,C_S) ;
+      C_Marshall_4 (C_A,S) ;
    end;
 
 
    -- C_UnMarshall_4
    -----------------
-   procedure C_UnMarshall_4 (A : out System.Address ;
-                             S : in out System.Address) ;
-   pragma Import (C,C_UnMarshall_4,"unmarshall__21Ada_netBufferedStreamRUsR17NetBufferedStream") ;
+   procedure C_UnMarshall_4 (A : out Interfaces.C.Unsigned_Short ;
+                             S : in out Object'Class) ;
+   pragma Import (C,C_UnMarshall_4,"unmarshall__21Ada_netBufferedStreamRUsR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -369,14 +313,10 @@ package body NetBufferedStream is
    -------------
    procedure UnMarshall (A : out Corba.Unsigned_Short ;
                          S : in out Object'Class) is
-      C_A : System.Address ;
-      C_S : System.Address ;
+      C_A : Interfaces.C.Unsigned_Short ;
    begin
-      -- transforms the arguments in a C type ...
-      C_A := A'Address ;
-      C_S := S'Address ;
-      -- ... and calls the C procedure
-      C_UnMarshall_4 (C_A,C_S) ;
+      C_UnMarshall_4 (C_A,S) ;
+      A := Corba.Unsigned_Short(C_A) ;
    end;
 
 
@@ -392,20 +332,13 @@ package body NetBufferedStream is
    end ;
 
 
-   -- Ada_To_C_Long
-   -----------------
-   function Ada_To_C_Long is
-     new Ada.Unchecked_Conversion (Corba.Long,
-                                   Interfaces.C.Long) ;
-   -- needed to change ada type Corba.Long
-   -- into C type Interfaces.C.Long
 
 
    -- C_Marshall_5
    ---------------
    procedure C_Marshall_5 (A : in Interfaces.C.Long ;
-                           S : in out System.Address) ;
-   pragma Import (C,C_Marshall_5,"marshall__21Ada_netBufferedStreamlR17NetBufferedStream") ;
+                           S : in out Object'Class) ;
+   pragma Import (C,C_Marshall_5,"marshall__21Ada_netBufferedStreamlR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -417,21 +350,19 @@ package body NetBufferedStream is
    procedure Marshall (A : in Corba.Long ;
                        S : in out Object'Class) is
       C_A : Interfaces.C.Long ;
-      C_S : System.Address ;
    begin
       -- transforms the arguments in a C type ...
-      C_A := Ada_To_C_Long (A) ;
-      C_S := S'Address ;
+      C_A := Interfaces.C.Long(A) ;
       -- ... and calls the C procedure
-      C_Marshall_5 (C_A,C_S) ;
+      C_Marshall_5 (C_A,S) ;
    end;
 
 
    -- C_UnMarshall_5
    -----------------
-   procedure C_UnMarshall_5 (A : out System.Address ;
-                             S : in out System.Address) ;
-   pragma Import (C,C_UnMarshall_5,"unmarshall__21Ada_netBufferedStreamRlR17NetBufferedStream") ;
+   procedure C_UnMarshall_5 (A : out Interfaces.C.Long ;
+                             S : in out Object'Class) ;
+   pragma Import (C,C_UnMarshall_5,"unmarshall__21Ada_netBufferedStreamRlR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -442,14 +373,10 @@ package body NetBufferedStream is
    -------------
    procedure UnMarshall (A : out Corba.Long ;
                          S : in out Object'Class) is
-      C_A : System.Address ;
-      C_S : System.Address ;
+      C_A : Interfaces.C.Long ;
    begin
-      -- transforms the arguments in a C type ...
-      C_A := A'Address ;
-      C_S := S'Address ;
-      -- ... and calls the C procedure
-      C_UnMarshall_5 (C_A,C_S) ;
+      C_UnMarshall_5 (C_A,S) ;
+      A := Corba.Long(C_A) ;
    end;
 
 
@@ -468,8 +395,8 @@ package body NetBufferedStream is
    -- C_Marshall_6
    ---------------
    procedure C_Marshall_6 (A : in Interfaces.C.Unsigned_Long ;
-                           S : in out System.Address) ;
-   pragma Import (C,C_Marshall_6,"marshall__21Ada_netBufferedStreamUlR17NetBufferedStream") ;
+                           S : in out Object'Class) ;
+   pragma Import (C,C_Marshall_6,"marshall__21Ada_netBufferedStreamUlR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -481,21 +408,19 @@ package body NetBufferedStream is
    procedure Marshall (A : in Corba.Unsigned_Long ;
                        S : in out Object'Class) is
       C_A : Interfaces.C.Unsigned_Long ;
-      C_S : System.Address ;
    begin
       -- transforms the arguments in a C type ...
-      C_A := Ada_To_C_Unsigned_Long (A) ;
-      C_S := S'Address ;
+      C_A := Interfaces.C.Unsigned_Long (A) ;
       -- ... and calls the C procedure
-      C_Marshall_6 (C_A,C_S) ;
+      C_Marshall_6 (C_A,S) ;
    end;
 
 
    -- C_UnMarshall_6
    -----------------
-   procedure C_UnMarshall_6 (A : out System.Address ;
-                             S : in out System.Address) ;
-   pragma Import (C,C_UnMarshall_6,"unmarshall__21Ada_netBufferedStreamRUlR17NetBufferedStream") ;
+   procedure C_UnMarshall_6 (A : out Interfaces.C.Unsigned_Long ;
+                             S : in out Object'Class) ;
+   pragma Import (C,C_UnMarshall_6,"unmarshall__21Ada_netBufferedStreamRUlR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -506,14 +431,10 @@ package body NetBufferedStream is
    -------------
    procedure UnMarshall (A : out Corba.Unsigned_Long ;
                          S : in out Object'Class) is
-      C_A : System.Address ;
-      C_S : System.Address ;
+      C_A : Interfaces.C.Unsigned_Long ;
    begin
-      -- transforms the arguments in a C type ...
-      C_A := A'Address ;
-      C_S := S'Address ;
-      -- ... and calls the C procedure
-      C_UnMarshall_6 (C_A,C_S) ;
+      C_UnMarshall_6 (C_A,S) ;
+      A := Corba.Unsigned_Long(C_A) ;
    end;
 
 
@@ -529,20 +450,11 @@ package body NetBufferedStream is
    end ;
 
 
-   -- Ada_To_C_Float
-   -----------------
-   function Ada_To_C_Float is
-     new Ada.Unchecked_Conversion (Corba.Float,
-                                   Interfaces.C.C_Float) ;
-   -- needed to change ada type Corba.Float
-   -- into C type Interfaces.C.C_Float
-
-
    -- C_Marshall_7
    ---------------
    procedure C_Marshall_7 (A : in Interfaces.C.C_Float ;
-                           S : in out System.Address) ;
-   pragma Import (C,C_Marshall_7,"marshall__21Ada_netBufferedStreamfR17NetBufferedStream") ;
+                           S : in out Object'Class) ;
+   pragma Import (C,C_Marshall_7,"marshall__21Ada_netBufferedStreamfR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -554,21 +466,19 @@ package body NetBufferedStream is
    procedure Marshall (A : in Corba.Float ;
                        S : in out Object'Class) is
       C_A : Interfaces.C.C_Float ;
-      C_S : System.Address ;
    begin
       -- transforms the arguments in a C type ...
-      C_A := Ada_To_C_Float (A) ;
-      C_S := S'Address ;
+      C_A := Interfaces.C.C_Float (A) ;
       -- ... and calls the C procedure
-      C_Marshall_7 (C_A,C_S) ;
+      C_Marshall_7 (C_A,S) ;
    end;
 
 
    -- C_UnMarshall_7
    -----------------
-   procedure C_UnMarshall_7 (A : out System.Address ;
-                             S : in out System.Address) ;
-   pragma Import (C,C_UnMarshall_7,"unmarshall__21Ada_netBufferedStreamRfR17NetBufferedStream") ;
+   procedure C_UnMarshall_7 (A : out Interfaces.C.C_Float ;
+                             S : in out Object'Class) ;
+   pragma Import (C,C_UnMarshall_7,"unmarshall__21Ada_netBufferedStreamRfR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -579,14 +489,10 @@ package body NetBufferedStream is
    -------------
    procedure UnMarshall (A : out Corba.Float ;
                          S : in out Object'Class) is
-      C_A : System.Address ;
-      C_S : System.Address ;
+      C_A : Interfaces.C.C_Float ;
    begin
-      -- transforms the arguments in a C type ...
-      C_A := A'Address ;
-      C_S := S'Address ;
-      -- ... and calls the C procedure
-      C_UnMarshall_7 (C_A,C_S) ;
+      C_UnMarshall_7 (C_A,S) ;
+      A := Corba.Float(C_A) ;
    end;
 
 
@@ -602,20 +508,11 @@ package body NetBufferedStream is
    end ;
 
 
-   -- Ada_To_C_Double
-   ------------------
-   function Ada_To_C_Double is
-     new Ada.Unchecked_Conversion (Corba.Double,
-                                   Interfaces.C.Double) ;
-   -- needed to change ada type Corba.Double
-   -- into C type Interfaces.C.Double
-
-
    -- C_Marshall_8
    ---------------
    procedure C_Marshall_8 (A : in Interfaces.C.Double ;
-                           S : in out System.Address) ;
-   pragma Import (C,C_Marshall_8,"marshall__21Ada_netBufferedStreamdR17NetBufferedStream") ;
+                           S : in out Object'Class) ;
+   pragma Import (C,C_Marshall_8,"marshall__21Ada_netBufferedStreamdR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -627,21 +524,19 @@ package body NetBufferedStream is
    procedure Marshall (A : in Corba.Double ;
                        S : in out Object'Class) is
       C_A : Interfaces.C.Double ;
-      C_S : System.Address ;
    begin
       -- transforms the arguments in a C type ...
-      C_A := Ada_To_C_Double (A) ;
-      C_S := S'Address ;
+      C_A := Interfaces.C.Double(A) ;
       -- ... and calls the C procedure
-      C_Marshall_8 (C_A,C_S) ;
+      C_Marshall_8 (C_A,S) ;
    end;
 
 
    -- C_UnMarshall_8
    -----------------
-   procedure C_UnMarshall_8 (A : out System.Address ;
-                             S : in out System.Address) ;
-   pragma Import (C,C_UnMarshall_8,"unmarshall__21Ada_netBufferedStreamRdR17NetBufferedStream") ;
+   procedure C_UnMarshall_8 (A : out Interfaces.C.Double ;
+                             S : in out Object'Class) ;
+   pragma Import (C,C_UnMarshall_8,"unmarshall__21Ada_netBufferedStreamRdR21Ada_netBufferedStream") ;
    -- wrapper around Ada_netBufferedStream function marshall
    -- (see Ada_netBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -652,14 +547,10 @@ package body NetBufferedStream is
    -------------
    procedure UnMarshall (A : out Corba.Double ;
                          S : in out Object'Class) is
-      C_A : System.Address ;
-      C_S : System.Address ;
+      C_A : Interfaces.C.Double ;
    begin
-      -- transforms the arguments in a C type ...
-      C_A := A'Address ;
-      C_S := S'Address ;
-      -- ... and calls the C procedure
-      C_UnMarshall_8 (C_A,C_S) ;
+      C_UnMarshall_8 (C_A,S) ;
+      A := Corba.Double(C_A) ;
    end;
 
 

@@ -125,7 +125,7 @@ public:
   _CORBA_Boolean is_proxy();
   // calls the is_proxy function of C_Object
   
-  virtual void dispatch(GIOP_S &,
+  virtual void dispatch(Ada_Giop_s &,
 			const char *operation,
 			_CORBA_Boolean response_expected,
 			_CORBA_Boolean& success);

@@ -49,6 +49,9 @@
 
 #include "Ada_Giop_s.hh"
 
+// DEBUG
+#include "omniORB2/CORBA.h"
+// end DEGUN
 
 // Default Constructor
 //--------------------
@@ -59,6 +62,14 @@ Ada_Giop_s::Ada_Giop_s ()
 };
 
   
+// Constructor
+//------------
+Ada_Giop_s::Ada_Giop_s(GIOP_S *c_obj) {
+  Init_Ok = true ;
+  C_Object = c_obj ; 
+};
+
+
 // Init
 //-----
 void
@@ -77,7 +88,7 @@ Ada_Giop_s::RequestReceived(_CORBA_Boolean skip)
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    ((Ada_Giop_s *) C_Object)->RequestReceived(skip);
+    ( (GIOP_S *) C_Object )->RequestReceived(skip);
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_Giop_s::RequestReceived without initialising object.");
@@ -92,10 +103,24 @@ Ada_Giop_s::InitialiseReply(const int status,
 			    const size_t  msgsize)
 {
   if (Init_Ok) {
+    cerr << "InitialiseReply " << status << "  " << msgsize << endl ;
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    ((Ada_Giop_s *) C_Object)->InitialiseReply((GIOP::ReplyStatusType) status,
-					       msgsize);
+    try {
+      GIOP::ReplyStatusType a = GIOP::NO_EXCEPTION ;
+      ((GIOP_S *) C_Object)->InitialiseReply(a, msgsize);
+      //    ((GIOP_S *) C_Object)->InitialiseReply((GIOP::ReplyStatusType) status,
+      //				       msgsize);
+      cerr << "InitialiseReply OKOKOKOK" << endl ;
+    } catch (CORBA::INTERNAL &e) {
+      cerr << "CAUGHT !!!!" << endl ;
+    } catch (omniORB::fatalException e) {
+      cerr << "Yup !!" << endl ;
+    } catch (CORBA::MARSHAL &e) {
+      cerr << "Oyehhh" << endl ;
+    } catch (...) {
+      cerr << "smth else " << endl ;
+    }
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_Giop_s::InitialiseReply without initialising object.");
@@ -111,7 +136,7 @@ Ada_Giop_s::ReplyCompleted()
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    ((Ada_Giop_s *) C_Object)->ReplyCompleted();
+    ((GIOP_S *) C_Object)->ReplyCompleted();
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_Giop_s::ReplyCompleted without initialising object.");

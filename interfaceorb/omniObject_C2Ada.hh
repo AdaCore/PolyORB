@@ -49,6 +49,8 @@
 
 #include "omniORB2/omniInternal.h"
 
+#include "Ada_Giop_s.hh"
+
 #ifndef __Ada_OmniObject__
 #define __omniObject_C2Ada__
 #include "Ada_OmniObject.hh"

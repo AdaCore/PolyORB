@@ -408,7 +408,7 @@ private
                         Orl_Response_Expected : in Sys_Dep.C_Boolean ;
                         Success : out Sys_Dep.C_Boolean) ;
    pragma Export (CPP,C_Dispatch,
-                  "dispatch__14Ada_OmniObjectR6GIOP_SPCcbRb");
+                  "dispatch__14Ada_OmniObjectR10Ada_Giop_sPCcbRb");
    -- wrapper around Ada_OmniObject function dispatch
    -- (see Ada_OmniObject.hh)
    -- This function is implemented in Ada and exported to C

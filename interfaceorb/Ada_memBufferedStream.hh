@@ -30,52 +30,52 @@ public:
   // underlying MemBufferedStream constructor
   
   
-  void marshall (_CORBA_Char a, MemBufferedStream& s);
+  static void marshall (_CORBA_Char a, Ada_memBufferedStream& s);
   // wrapper around inline friend inline void operator>>= 
 
-  void unmarshall (_CORBA_Char& a, MemBufferedStream& s);
+  static void unmarshall (_CORBA_Char& a, Ada_memBufferedStream& s);
   // wrapper around friend inline void operator<<=
   
-  void marshall (_CORBA_Boolean b, MemBufferedStream& s);
+  static void marshall (_CORBA_Boolean b, Ada_memBufferedStream& s);
   // wrapper around friend inline void operator>>=
   
-  void unmarshall (_CORBA_Boolean& b, MemBufferedStream& s);
+  static void unmarshall (_CORBA_Boolean& b, Ada_memBufferedStream& s);
   // wrapper around friend inline void operator<<=
   
-  void marshall (_CORBA_Short a, MemBufferedStream& s);
+  static void marshall (_CORBA_Short a, Ada_memBufferedStream& s);
   // wrapper around friend inline void operator>>=
   
-  void unmarshall (_CORBA_Short& a, MemBufferedStream& s);
+  static void unmarshall (_CORBA_Short& a, Ada_memBufferedStream& s);
   // wrapper around friend inline void operator<<=
   
-  void marshall (_CORBA_UShort a, MemBufferedStream& s);
+  static void marshall (_CORBA_UShort a, Ada_memBufferedStream& s);
   // wrapper around friend inline void operator>>=
   
-  void unmarshall (_CORBA_UShort& a, MemBufferedStream& s);
+  static void unmarshall (_CORBA_UShort& a, Ada_memBufferedStream& s);
   // wrapper around friend inline void operator<<=
   
-  void marshall (_CORBA_Long a, MemBufferedStream& s);
+  static void marshall (_CORBA_Long a, Ada_memBufferedStream& s);
   // wrapper around friend inline void operator>>=
   
-  void unmarshall (_CORBA_Long& a, MemBufferedStream& s);
+  static void unmarshall (_CORBA_Long& a, Ada_memBufferedStream& s);
   // wrapper around friend inline void operator<<=
   
-  void marshall (_CORBA_ULong a, MemBufferedStream& s);
+  static void marshall (_CORBA_ULong a, Ada_memBufferedStream& s);
   // wrapper around friend inline void operator>>=
   
-  void unmarshall (_CORBA_ULong& a, MemBufferedStream& s);
+  static void unmarshall (_CORBA_ULong& a, Ada_memBufferedStream& s);
   // wrapper around friend inline void operator<<=
   
-  void marshall (_CORBA_Float a, MemBufferedStream& s);
+  static void marshall (_CORBA_Float a, Ada_memBufferedStream& s);
   // wrapper around friend inline void operator>>=
   
-  void unmarshall (_CORBA_Float& a, MemBufferedStream& s);
+  static void unmarshall (_CORBA_Float& a, Ada_memBufferedStream& s);
   // wrapper around friend inline void operator<<=
   
-  void marshall (_CORBA_Double a, MemBufferedStream& s);
+  static void marshall (_CORBA_Double a, Ada_memBufferedStream& s);
   // wrapper around friend inline void operator>>=
   
-  void unmarshall (_CORBA_Double& a, MemBufferedStream& s);
+  static void unmarshall (_CORBA_Double& a, Ada_memBufferedStream& s);
   // wrapper around friend inliney void operator<<=
 
   

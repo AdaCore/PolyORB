@@ -81,20 +81,20 @@ package Giop_S is
    -- compute the size of the header for a reply
 
 
-   procedure Request_Received (Self : in Object'Class ;
+   procedure Request_Received (Self : in out Object'Class ;
                                Skip : in Boolean := False) ;
    -- informs the ORB that the request was received
    -- (see giopDriver.h L150 for more details)
 
 
-   procedure Initialize_Reply (Self : in Object'Class ;
+   procedure Initialize_Reply (Self : in out Object'Class ;
                                Status : in Giop.Reply_Status_Type ;
                                MsgSize : in Corba.Unsigned_long);
    -- Initialisation of a reply
    -- (see giopDriver.h L150 for more details)
 
 
-   procedure Reply_Completed (Self : in Object'Class);
+   procedure Reply_Completed (Self : in out Object'Class);
    pragma Import (C,Reply_Completed,"ReplyCompleted__10Ada_Giop_s") ;
    -- wrapper around  Ada_Giop_s procedure InitialiseReply
    -- (see Ada_Giop_s.hh)

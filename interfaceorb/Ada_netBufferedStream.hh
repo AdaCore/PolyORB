@@ -69,52 +69,52 @@ public:
   // underlying netBufferedStream constructor
   
   
-  void marshall (_CORBA_Char a, NetBufferedStream& s);
+  static void marshall (_CORBA_Char a, Ada_netBufferedStream& s);
   // wrapper around inline friend inline void operator>>= 
 
-  void unmarshall (_CORBA_Char& a, NetBufferedStream& s);
+  static void unmarshall (_CORBA_Char& a, Ada_netBufferedStream& s);
   // wrapper around friend inline void operator<<=
   
-  void marshall (_CORBA_Boolean b, NetBufferedStream& s);
+  static void marshall (_CORBA_Boolean b, Ada_netBufferedStream& s);
   // wrapper around friend inline void operator>>=
   
-  void unmarshall (_CORBA_Boolean& b, NetBufferedStream& s);
+  static void unmarshall (_CORBA_Boolean& b, Ada_netBufferedStream& s);
   // wrapper around friend inline void operator<<=
   
-  void marshall (_CORBA_Short a, NetBufferedStream& s);
+  static void marshall (_CORBA_Short a, Ada_netBufferedStream& s);
   // wrapper around friend inline void operator>>=
   
-  void unmarshall (_CORBA_Short& a, NetBufferedStream& s);
+  static void unmarshall (_CORBA_Short& a, Ada_netBufferedStream& s);
   // wrapper around friend inline void operator<<=
   
-  void marshall (_CORBA_UShort a, NetBufferedStream& s);
+  static void marshall (_CORBA_UShort a, Ada_netBufferedStream& s);
   // wrapper around friend inline void operator>>=
   
-  void unmarshall (_CORBA_UShort& a, NetBufferedStream& s);
+  static void unmarshall (_CORBA_UShort& a, Ada_netBufferedStream& s);
   // wrapper around friend inline void operator<<=
   
-  void marshall (_CORBA_Long a, NetBufferedStream& s);
+  static void marshall (_CORBA_Long a, Ada_netBufferedStream &s);
   // wrapper around friend inline void operator>>=
   
-  void unmarshall (_CORBA_Long& a, NetBufferedStream& s);
+  static void unmarshall (_CORBA_Long& a, Ada_netBufferedStream &s);
   // wrapper around friend inline void operator<<=
   
-  void marshall (_CORBA_ULong a, NetBufferedStream& s);
+  static void marshall (_CORBA_ULong a, Ada_netBufferedStream& s);
   // wrapper around friend inline void operator>>=
   
-  void unmarshall (_CORBA_ULong& a, NetBufferedStream& s);
+  static void unmarshall (_CORBA_ULong& a, Ada_netBufferedStream& s);
   // wrapper around friend inline void operator<<=
   
-  void marshall (_CORBA_Float a, NetBufferedStream& s);
+  static void marshall (_CORBA_Float a, Ada_netBufferedStream& s);
   // wrapper around friend inline void operator>>=
   
-  void unmarshall (_CORBA_Float& a, NetBufferedStream& s);
+  static void unmarshall (_CORBA_Float& a, Ada_netBufferedStream& s);
   // wrapper around friend inline void operator<<=
   
-  void marshall (_CORBA_Double a, NetBufferedStream& s);
+  static void marshall (_CORBA_Double a, Ada_netBufferedStream& s);
   // wrapper around friend inline void operator>>=
   
-  void unmarshall (_CORBA_Double& a, NetBufferedStream& s);
+  static void unmarshall (_CORBA_Double& a, Ada_netBufferedStream& s);
   // wrapper around friend inliney void operator<<=
 
   _CORBA_Boolean isReUsingExistingConnection();

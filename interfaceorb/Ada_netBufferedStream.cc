@@ -92,12 +92,12 @@ Ada_netBufferedStream::Init (Rope *r, _CORBA_Boolean RdLock,
 // marshall
 //---------
 void
-Ada_netBufferedStream::marshall (_CORBA_Char a, NetBufferedStream& s)
+Ada_netBufferedStream::marshall (_CORBA_Char a, Ada_netBufferedStream& s)
 {
-  if (Init_Ok) {
+  if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    a >>= s;
+    a >>= *(s.C_Object);
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
@@ -108,12 +108,12 @@ Ada_netBufferedStream::marshall (_CORBA_Char a, NetBufferedStream& s)
 // unmarshall
 //-----------
 void
-Ada_netBufferedStream::unmarshall (_CORBA_Char& a, NetBufferedStream& s)
+Ada_netBufferedStream::unmarshall (_CORBA_Char& a, Ada_netBufferedStream& s)
 {
-  if (Init_Ok) {
+  if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    a <<= s;
+    a <<= *(s.C_Object);
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
@@ -124,12 +124,12 @@ Ada_netBufferedStream::unmarshall (_CORBA_Char& a, NetBufferedStream& s)
 // marshall
 //---------
 void
-Ada_netBufferedStream::marshall (_CORBA_Boolean b, NetBufferedStream& s)
+Ada_netBufferedStream::marshall (_CORBA_Boolean a, Ada_netBufferedStream& s)
 {
-  if (Init_Ok) {
+  if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    b >>= s;
+    a >>= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
@@ -140,12 +140,12 @@ Ada_netBufferedStream::marshall (_CORBA_Boolean b, NetBufferedStream& s)
 // unmarshall
 //-----------
 void
-Ada_netBufferedStream::unmarshall (_CORBA_Boolean& b, NetBufferedStream& s)
+Ada_netBufferedStream::unmarshall (_CORBA_Boolean& a, Ada_netBufferedStream& s)
 {
-  if (Init_Ok) {
+  if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    b <<= s;
+    a <<= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
@@ -156,12 +156,12 @@ Ada_netBufferedStream::unmarshall (_CORBA_Boolean& b, NetBufferedStream& s)
 //marshall
 //---------
 void
-Ada_netBufferedStream::marshall (_CORBA_Short a, NetBufferedStream& s)
+Ada_netBufferedStream::marshall (_CORBA_Short a, Ada_netBufferedStream& s)
 {
-  if (Init_Ok) {
+  if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    a >>= s;
+    a >>= *(s.C_Object);
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
@@ -172,12 +172,12 @@ Ada_netBufferedStream::marshall (_CORBA_Short a, NetBufferedStream& s)
 // unmarshall
 //-----------
 void
-Ada_netBufferedStream::unmarshall (_CORBA_Short& a, NetBufferedStream& s)
+Ada_netBufferedStream::unmarshall (_CORBA_Short& a, Ada_netBufferedStream& s)
 {
-  if (Init_Ok) {
+  if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    a <<= s;
+    a <<= *(s.C_Object);
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
@@ -188,12 +188,12 @@ Ada_netBufferedStream::unmarshall (_CORBA_Short& a, NetBufferedStream& s)
 // marshall
 //---------
 void
-Ada_netBufferedStream::marshall (_CORBA_UShort a, NetBufferedStream& s)
+Ada_netBufferedStream::marshall (_CORBA_UShort a, Ada_netBufferedStream& s)
 {
-  if (Init_Ok) {
+  if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    a >>= s;
+    a >>= *(s.C_Object);
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
@@ -204,12 +204,12 @@ Ada_netBufferedStream::marshall (_CORBA_UShort a, NetBufferedStream& s)
 // unmarshall
 //-----------
 void
-Ada_netBufferedStream::unmarshall (_CORBA_UShort& a, NetBufferedStream& s)
+Ada_netBufferedStream::unmarshall (_CORBA_UShort& a, Ada_netBufferedStream& s)
 {
-  if (Init_Ok) {
+  if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    a <<= s;
+    a <<= *(s.C_Object);
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
@@ -220,12 +220,12 @@ Ada_netBufferedStream::unmarshall (_CORBA_UShort& a, NetBufferedStream& s)
 // marshall
 //---------
 void
-Ada_netBufferedStream::marshall (_CORBA_Long a, NetBufferedStream& s)
+Ada_netBufferedStream::marshall (_CORBA_Long a, Ada_netBufferedStream &s)
 {
-  if (Init_Ok) {
+  if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    a >>= s;
+    a >>= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
@@ -233,12 +233,12 @@ Ada_netBufferedStream::marshall (_CORBA_Long a, NetBufferedStream& s)
 };
 
 void
-Ada_netBufferedStream::unmarshall (_CORBA_Long& a, NetBufferedStream& s)
+Ada_netBufferedStream::unmarshall (_CORBA_Long& a, Ada_netBufferedStream& s)
 {
-  if (Init_Ok) {
+  if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    a <<= s;
+    a <<=  *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
@@ -249,44 +249,12 @@ Ada_netBufferedStream::unmarshall (_CORBA_Long& a, NetBufferedStream& s)
 // marshall
 //---------
 void
-Ada_netBufferedStream::marshall (_CORBA_ULong a, NetBufferedStream& s)
+Ada_netBufferedStream::marshall (_CORBA_ULong a, Ada_netBufferedStream& s)
 {
-  if (Init_Ok) {
+  if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    a >>= s;
-  } else {
-    // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
-  }
-};
-
-
-// unmarshall
-//-----------
-void
-Ada_netBufferedStream::unmarshall (_CORBA_ULong& a, NetBufferedStream& s)
-{
-  if (Init_Ok) {
-    // if Initialisation was made then call the corresponding
-    // function on C_Object
-    a <<= s;
-  } else {
-    // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
-  }
-};
-
-
-// marshall
-//---------
-void
-Ada_netBufferedStream::marshall (_CORBA_Float a, NetBufferedStream& s)
-{
-  if (Init_Ok) {
-    // if Initialisation was made then call the corresponding
-    // function on C_Object
-    a >>= s;
+    a >>= *(s.C_Object);
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
@@ -297,12 +265,12 @@ Ada_netBufferedStream::marshall (_CORBA_Float a, NetBufferedStream& s)
 // unmarshall
 //-----------
 void
-Ada_netBufferedStream::unmarshall (_CORBA_Float& a, NetBufferedStream& s)
+Ada_netBufferedStream::unmarshall (_CORBA_ULong& a, Ada_netBufferedStream& s)
 {
-  if (Init_Ok) {
+  if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    a <<= s;
+    a <<= *(s.C_Object);
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
@@ -313,12 +281,12 @@ Ada_netBufferedStream::unmarshall (_CORBA_Float& a, NetBufferedStream& s)
 // marshall
 //---------
 void
-Ada_netBufferedStream::marshall (_CORBA_Double a, NetBufferedStream& s)
+Ada_netBufferedStream::marshall (_CORBA_Float a, Ada_netBufferedStream& s)
 {
-  if (Init_Ok) {
+  if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    a >>= s;
+    a >>= *(s.C_Object);
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
@@ -329,12 +297,44 @@ Ada_netBufferedStream::marshall (_CORBA_Double a, NetBufferedStream& s)
 // unmarshall
 //-----------
 void
-Ada_netBufferedStream::unmarshall (_CORBA_Double& a, NetBufferedStream& s)
+Ada_netBufferedStream::unmarshall (_CORBA_Float& a, Ada_netBufferedStream& s)
 {
-  if (Init_Ok) {
+  if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    a <<= s;
+    a <<= *(s.C_Object);
+  } else {
+    // else raise an Ada Exception
+    raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
+  }
+};
+
+
+// marshall
+//---------
+void
+Ada_netBufferedStream::marshall (_CORBA_Double a, Ada_netBufferedStream& s)
+{
+  if (s.Init_Ok) {
+    // if Initialisation was made then call the corresponding
+    // function on C_Object
+    a >>= *(s.C_Object);
+  } else {
+    // else raise an Ada Exception
+    raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
+  }
+};
+
+
+// unmarshall
+//-----------
+void
+Ada_netBufferedStream::unmarshall (_CORBA_Double& a, Ada_netBufferedStream& s)
+{
+  if (s.Init_Ok) {
+    // if Initialisation was made then call the corresponding
+    // function on C_Object
+    a <<= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");

@@ -91,19 +91,23 @@ omniObject_C2Ada::omniObject_C2Ada(const char *repoId,
 // dispatch
 //---------
 _CORBA_Boolean
-omniObject_C2Ada::dispatch(GIOP_S &giop,
+omniObject_C2Ada::dispatch(GIOP_S &giop_s,
 			   const char *operation,
 			   _CORBA_Boolean response_expected)
 {
 #ifdef DEBUG
   cerr << "omniObject_C2Ada::dispatch" << endl ;
 #endif
-  
+
+  // declaration of the arguments for the Ada function
+  Ada_Giop_s ada_giop_s(&giop_s) ;
   _CORBA_Boolean success ;
-  Ada_OmniObject_Pointer->dispatch(giop,
+
+  Ada_OmniObject_Pointer->dispatch(ada_giop_s,
 				   operation,
 				   response_expected,
 				   success);
+
   return success ;
   // calls dispatch on the Ada_OmniObject pointed by Ada_OmniObject_Pointer
   // This function allows the C code to call the Ada function dispatch

@@ -84,7 +84,7 @@ package body Giop_S is
 
    -- C_Request_Received
    ---------------------
-   procedure C_Request_Received (Self : in Object'Class ;
+   procedure C_Request_Received (Self : in out Object'Class ;
                                  Skip : in Sys_Dep.C_Boolean) ;
    pragma Import (C,C_Request_Received,"RequestReceived__10Ada_Giop_sb") ;
    -- wrapper around  Ada_Giop_s procedure RequestReceived
@@ -94,7 +94,7 @@ package body Giop_S is
 
    -- Request_Received
    -------------------
-   procedure Request_Received (Self : in Object'Class ;
+   procedure Request_Received (Self : in out Object'Class ;
                                Skip : in Boolean := False) is
       C_Skip : Sys_Dep.C_Boolean ;
    begin
@@ -116,8 +116,8 @@ package body Giop_S is
 
    -- C_Initialise_Reply
    ---------------------
-   procedure C_Initialize_Reply (Self : in Object'Class ;
-                                 Status : in Interfaces.C.int ;
+   procedure C_Initialize_Reply (Self : in out Object'Class ;
+                                 Status : in Interfaces.C.Int ;
                                  MsgSize : in Interfaces.C.Unsigned_Long);
    pragma Import (C,C_Initialize_Reply,"InitialiseReply__10Ada_Giop_siUi") ;
    -- wrapper around  Ada_Giop_s procedure InitialiseReply
@@ -127,9 +127,9 @@ package body Giop_S is
 
    -- Initialize_Reply
    -------------------
-   procedure Initialize_Reply (Self : in Object'Class ;
-                              Status : in Giop.Reply_Status_Type ;
-                              MsgSize : in Corba.Unsigned_Long ) is
+   procedure Initialize_Reply (Self : in out Object'Class ;
+                               Status : in Giop.Reply_Status_Type ;
+                               MsgSize : in Corba.Unsigned_Long ) is
       C_Status : Interfaces.C.Int ;
       C_MsgSize : Interfaces.C.Unsigned_Long ;
    begin

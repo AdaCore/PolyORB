@@ -56,7 +56,11 @@ public:
 
   Ada_Giop_s ();
   // Default Constructor
-  
+
+  Ada_Giop_s(GIOP_S *c_obj) ;
+  // Constructor used in omniObject_C2Ada::dispatch
+  // to create an Ada_Giop_s out of a C++ Giop_s
+
   void Init (Strand *s);
   // Initialisation of Ada_Giop_s, calls the
   // underlying GIOP_S constructor
