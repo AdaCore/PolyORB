@@ -347,7 +347,6 @@ package body System.PolyORB_Interface is
       Set (Right_Object, Right.Target);
 
       return Left /= null and then Right /= null
-        and then Left.Addr = Right.Addr
         and then PolyORB.References.Is_Same_Object
         (Left_Object, Right_Object);
    end Compare_Content;
@@ -940,7 +939,7 @@ package body System.PolyORB_Interface is
                     := Subp_Info_Addr_Conv.To_Pointer (Rec_Stub.Subp_Info);
                begin
                   if Rec_Stub.Kind = Pkg_Stub
-                    and then Rec_Stub.Name.all = Pkg_Name
+                    and then To_Lower (Rec_Stub.Name.all) = To_Lower (Pkg_Name)
                   then
                      for J in Subp_Info'Range loop
                         declare
@@ -1073,7 +1072,6 @@ package body System.PolyORB_Interface is
          --  remote access to subprogram type.
 
          Answer.Target   := Handler.Target;
-         Answer.Addr     := Handler.Addr;
          Answer.Asynchronous := Handler.Asynchronous;
 
          Objects_HTable.Set (Answer, Answer);

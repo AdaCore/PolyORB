@@ -128,6 +128,11 @@ package body RCI is
       return S;
    end echoString;
 
+   function getRAS return echo_RAS is
+   begin
+      return echoString'Access;
+   end getRAS;
+
    function echoString_Delayed (S : String; Seconds : Integer) return String is
       use Ada.Real_Time;
    begin

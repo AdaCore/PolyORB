@@ -247,10 +247,9 @@ package body Exp_Dist is
    --  Return True if nothing prevents the program whose specification is
    --  given to be asynchronous (i.e. no out parameter).
 
-   function Get_Pkg_Name_String_Id (Decl_Node : Node_Id) return String_Id;
-   function Get_String_Id (Val : String) return String_Id;
-   --  Ugly functions used to retrieve a package name. Inherited from the
-   --  old exp_dist.adb and not rewritten yet ???
+   procedure Get_Pkg_Name_String (Decl_Node : Node_Id);
+   --  Retrieve the fully expanded name of the library unit declared by decl
+   --  into the name buffer.
 
    function Pack_Entity_Into_Stream_Access
      (Loc    : Source_Ptr;
@@ -1740,7 +1739,8 @@ package body Exp_Dist is
                      Full_Qualified_Name (Designated_Type)),
                    Make_Attribute_Reference (Loc,
                      Prefix =>
-                       New_Occurrence_Of (Stub_Elements.Object_RPC_Receiver, Loc),
+                       New_Occurrence_Of (
+                         Stub_Elements.Object_RPC_Receiver, Loc),
                      Attribute_Name =>
                        Name_Access),
                    New_Occurrence_Of (Reference, Loc))))));
@@ -2209,35 +2209,35 @@ package body Exp_Dist is
 
             Then_Statements => New_List (
 
-              --  Stub.Target := Entity_Of (Ref);
+            --  Stub.Target := Entity_Of (Ref);
 
-                Set_Field (Name_Target,
-                  Make_Function_Call (Loc,
-                    Name =>
-                      New_Occurrence_Of (RTE (RE_Entity_Of), Loc),
-                    Parameter_Associations => New_List (
-                      New_Occurrence_Of (Subp_Ref, Loc)))),
-
-              --  Inc_Usage (Stub.Target);
-
-                Make_Procedure_Call_Statement (Loc,
+              Set_Field (Name_Target,
+                Make_Function_Call (Loc,
                   Name =>
-                    New_Occurrence_Of (RTE (RE_Inc_Usage), Loc),
+                    New_Occurrence_Of (RTE (RE_Entity_Of), Loc),
                   Parameter_Associations => New_List (
-                    Make_Selected_Component (Loc,
-                      Prefix        => New_Occurrence_Of (Stub_Ptr, Loc),
-                      Selector_Name => Make_Identifier (Loc, Name_Target)))),
+                    New_Occurrence_Of (Subp_Ref, Loc)))),
 
-                Set_Field (Name_Asynchronous,
-                  Make_Or_Else (Loc,
-                    New_Occurrence_Of (Asynch_P, Loc),
-                    New_Occurrence_Of (Boolean_Literals (
-                      Is_Asynchronous (Ras_Type)), Loc))))));
-              --  E.4.1(9) A remote call is asynchronous if it is a call to
-              --  a procedure, or a call through a value of an access-to-procedure
-              --  type, to which a pragma Asynchronous applies.
-              --  Parameter Asynch_P is true when the procedure is asynchronous;
-              --  Expression Asynch_T is true when the type is asynchronous.
+            --  Inc_Usage (Stub.Target);
+
+              Make_Procedure_Call_Statement (Loc,
+                Name =>
+                  New_Occurrence_Of (RTE (RE_Inc_Usage), Loc),
+                Parameter_Associations => New_List (
+                  Make_Selected_Component (Loc,
+                    Prefix        => New_Occurrence_Of (Stub_Ptr, Loc),
+                    Selector_Name => Make_Identifier (Loc, Name_Target)))),
+
+              Set_Field (Name_Asynchronous,
+                Make_Or_Else (Loc,
+                  New_Occurrence_Of (Asynch_P, Loc),
+                  New_Occurrence_Of (Boolean_Literals (
+                    Is_Asynchronous (Ras_Type)), Loc))))));
+            --  E.4.1(9) A remote call is asynchronous if it is a call to a
+            --  procedure, or a call through a value of an access-to-procedure
+            --  type, to which a pragma Asynchronous applies.
+            --  Parameter Asynch_P is true when the procedure is asynchronous;
+            --  Expression Asynch_T is true when the type is asynchronous.
 
       Append_List_To (Then_Statements (Last (Proc_Statements)),
         Build_Get_Unique_RP_Call (Loc,
@@ -2250,11 +2250,17 @@ package body Exp_Dist is
         Make_Implicit_If_Statement (N,
           Condition =>
             New_Occurrence_Of (Is_Local, Loc),
+
           Then_Statements => New_List (
 
-        --  if A.Stub = Null_Address then
-        --     A.Stub := Stub_Ptr;
-        --  end if;
+         --  if A.Stub = Null_Address then
+         --     A.Stub := Stub_Ptr;
+         --  end if;
+
+         --  XXX ??? Warning, it is wrong to cache the Asynchronous flag here
+         --  across successive calls to RAS_Access for the same subprogram,
+         --  because the value of Asynchronous on the RAS type might be
+         --  different. Only Target should be cached in the proxy.
 
             Make_Implicit_If_Statement (N,
               Condition =>
@@ -2267,6 +2273,7 @@ package body Exp_Dist is
                       Selector_Name =>
                         Make_Identifier (Loc, Name_Stub)),
                   New_Occurrence_Of (RTE (RE_Null_Address), Loc)),
+
               Then_Statements => New_List (
                 Make_Assignment_Statement (Loc,
                   Name =>
@@ -2281,25 +2288,38 @@ package body Exp_Dist is
                     RTE (RE_Address),
                     New_Occurrence_Of (Stub_Ptr, Loc))))),
 
-        --  if not All_Calls_Remote then
-        --     return Fat_Type!(A);
-        --  end if;
+         --  if All_Calls_Remote then
+         --     return Fat_Type!(A.Stub);
+         --   else
+         --     return Fat_Type!(A);
+         --  end if;
 
               Make_Implicit_If_Statement (N,
                 Condition =>
-                  Make_Op_Not (Loc,
-                    New_Occurrence_Of (All_Calls_Remote, Loc)),
+                  New_Occurrence_Of (All_Calls_Remote, Loc),
+
                 Then_Statements => New_List (
                   Make_Return_Statement (Loc,
                     Unchecked_Convert_To (Fat_Type,
-                      New_Occurrence_Of (Local_Addr, Loc))))),
+                      Make_Selected_Component (Loc,
+                        Prefix =>
+                          Unchecked_Convert_To (
+                            RTE (RE_RAS_Proxy_Type_Access),
+                            New_Occurrence_Of (Local_Addr, Loc)),
+                        Selector_Name =>
+                          Make_Identifier (Loc, Name_Stub))))),
 
-      --  end if;  --  L
+                Else_Statements => New_List (
+                  Make_Return_Statement (Loc,
+                    Unchecked_Convert_To (Fat_Type,
+                      New_Occurrence_Of (Local_Addr, Loc))))))),
+
+         --  end if;  --  L
 
         Make_Return_Statement (Loc,
           Expression =>
             Unchecked_Convert_To (Fat_Type,
-              New_Occurrence_Of (Stub_Ptr, Loc)))))));
+              New_Occurrence_Of (Stub_Ptr, Loc)))));
 
       Proc_Spec :=
         Make_Function_Specification (Loc,
@@ -2655,8 +2675,7 @@ package body Exp_Dist is
       Func_Body : Node_Id;
 
       Decls : constant List_Id := New_List;
-      Name_String : String_Id;
-      Repo_Id_String : String_Id;
+      Name_String, Repo_Id_String : String_Id;
 
       RAS_Parameter : constant Entity_Id
         := Make_Defining_Identifier (Loc, Name_R);
@@ -2689,11 +2708,19 @@ package body Exp_Dist is
       --  XXX the following is heavily borrowed from Exp_Hlpr
       --  and should be factored out.
 
+      Start_String;
+      Store_String_Chars ("DSA:");
+      Get_Pkg_Name_String (Scope (RAS_Type));
+      Store_String_Chars (
+        Name_Buffer (Name_Buffer'First .. Name_Buffer'First + Name_Len - 1));
+      Store_String_Char ('.');
       Get_Name_String (Chars
         (Defining_Identifier (Declaration_Node (RAS_Type))));
+      Store_String_Chars (
+        Name_Buffer (Name_Buffer'First .. Name_Buffer'First + Name_Len - 1));
+      Store_String_Chars (":1.0");
+      Repo_Id_String := End_String;
       Name_String := String_From_Name_Buffer;
-      Repo_Id_String := Name_String;
-      --  XXX should compute a proper repository id!
 
       Func_Body :=
         Make_Subprogram_Body (Loc,
@@ -2709,7 +2736,7 @@ package body Exp_Dist is
                       Name =>
                         New_Occurrence_Of (RTE (RE_TC_Build), Loc),
                       Parameter_Associations => New_List (
-                        New_Occurrence_Of (RTE (RE_TC_Alias), Loc),
+                        New_Occurrence_Of (RTE (RE_TC_Object), Loc),
                         Make_Aggregate (Loc,
                           Expressions =>
                             New_List (
@@ -2722,14 +2749,8 @@ package body Exp_Dist is
                                 Name =>
                                   New_Occurrence_Of (RTE (RE_TA_String), Loc),
                                 Parameter_Associations => New_List (
-                                  Make_String_Literal (Loc, Repo_Id_String))),
-                              Make_Function_Call (Loc,
-                                Name =>
-                                  New_Occurrence_Of (RTE (RE_TA_TC), Loc),
-                                Parameter_Associations => New_List (
-                                  Build_TypeCode_Call (Loc,
-                                    Underlying_RACW_Type (RAS_Type),
-                                    Decls)))))))))));
+                                  Make_String_Literal (Loc,
+                                    Repo_Id_String)))))))))));
 
       Insert_After (Declaration_Node (RAS_Type), Func_Decl);
       Append_To (Declarations, Func_Body);
@@ -3380,10 +3401,11 @@ package body Exp_Dist is
       Append_To (Decls, Dummy_Register_Decl);
       Analyze (Dummy_Register_Decl);
 
+      Get_Pkg_Name_String (Pkg_Spec);
       Append_To (Register_Pkg_Actuals,
          --  Name
         Make_String_Literal (Loc,
-          Strval => Get_Pkg_Name_String_Id (Pkg_Spec)));
+          Strval => String_From_Name_Buffer));
 
       Append_To (Register_Pkg_Actuals,
          --  Version
@@ -4140,12 +4162,13 @@ package body Exp_Dist is
          L := Declarations (U);
       end if;
 
+      Get_Pkg_Name_String (Pkg_Spec);
       Reg :=
         Make_Procedure_Call_Statement (Loc,
           Name                   =>
             New_Occurrence_Of (RTE (RE_Register_Passive_Package), Loc),
           Parameter_Associations => New_List (
-            Make_String_Literal (Loc, Get_Pkg_Name_String_Id (Pkg_Spec)),
+            Make_String_Literal (Loc, String_From_Name_Buffer),
             Make_Attribute_Reference (Loc,
               Prefix         =>
                 New_Occurrence_Of (Defining_Entity (Pkg_Spec), Loc),
@@ -5427,11 +5450,11 @@ package body Exp_Dist is
       Pop_Scope;
    end Expand_Receiving_Stubs_Bodies;
 
-   ----------------------------
-   -- Get_Pkg_Name_string_Id --
-   ----------------------------
+   -------------------------
+   -- Get_Pkg_Name_string --
+   -------------------------
 
-   function Get_Pkg_Name_String_Id (Decl_Node : Node_Id) return String_Id is
+   procedure Get_Pkg_Name_String (Decl_Node : Node_Id) is
       Unit_Name_Id : constant Unit_Name_Type := Get_Unit_Name (Decl_Node);
 
    begin
@@ -5441,20 +5464,7 @@ package body Exp_Dist is
 
       Name_Len := Name_Len - 7;
       pragma Assert (Name_Buffer (Name_Len + 1) = ' ');
-
-      return Get_String_Id (Name_Buffer (1 .. Name_Len));
-   end Get_Pkg_Name_String_Id;
-
-   -------------------
-   -- Get_String_Id --
-   -------------------
-
-   function Get_String_Id (Val : String) return String_Id is
-   begin
-      Start_String;
-      Store_String_Chars (Val);
-      return End_String;
-   end Get_String_Id;
+   end Get_Pkg_Name_String;
 
    -------------------------------
    -- Get_Subprogram_Identifier --
@@ -5759,21 +5769,20 @@ package body Exp_Dist is
       Package_Spec : Node_Id)
       return         Node_Id
    is
-      Inst : constant Node_Id :=
-               Make_Package_Instantiation (Loc,
-                 Defining_Unit_Name   =>
-                   Make_Defining_Identifier (Loc, New_Internal_Name ('R')),
-                 Name                 =>
-                   New_Occurrence_Of (RTE (RE_RCI_Locator), Loc),
-                 Generic_Associations => New_List (
-                   Make_Generic_Association (Loc,
-                     Selector_Name                     =>
-                       Make_Identifier (Loc, Name_RCI_Name),
-                     Explicit_Generic_Actual_Parameter =>
-                       Make_String_Literal (Loc,
-                         Strval => Get_Pkg_Name_String_Id (Package_Spec)))));
-
+      Inst : Node_Id;
    begin
+      Get_Pkg_Name_String (Package_Spec);
+      Inst := Make_Package_Instantiation (Loc,
+        Defining_Unit_Name   =>
+          Make_Defining_Identifier (Loc, New_Internal_Name ('R')),
+        Name                 =>
+          New_Occurrence_Of (RTE (RE_RCI_Locator), Loc),
+        Generic_Associations => New_List (
+          Make_Generic_Association (Loc,
+            Selector_Name                     =>
+              Make_Identifier (Loc, Name_RCI_Name),
+            Explicit_Generic_Actual_Parameter =>
+              Make_String_Literal (Loc, String_From_Name_Buffer))));
       RCI_Locator_Table.Set (Defining_Unit_Name (Package_Spec),
         Defining_Unit_Name (Inst));
       return Inst;

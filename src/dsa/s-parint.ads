@@ -75,7 +75,7 @@ package System.Partition_Interface is
 
    subtype RAS_Proxy_Type is System.PolyORB_Interface.RAS_Proxy_Type;
    subtype RAS_Proxy_Type_Access is
-     Sustem.PolyORB_Interface.RAS_Proxy_Type_Access;
+     System.PolyORB_Interface.RAS_Proxy_Type_Access;
    --  SHARED: none
 
 --    procedure Check
