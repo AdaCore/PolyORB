@@ -33,8 +33,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with GNAT.OS_Lib;         use GNAT.OS_Lib;
+with GNAT.OS_Lib; use GNAT.OS_Lib;
+
 with System.Garlic.Debug; use System.Garlic.Debug;
+pragma Elaborate (System.Garlic.Debug);
 
 package body System.Garlic.Exceptions is
 
@@ -47,6 +49,53 @@ package body System.Garlic.Exceptions is
      (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
+
+   -----------
+   -- Catch --
+   -----------
+
+   procedure Catch (Error : in out Error_Type)
+   is
+   begin
+      if Error /= null then
+         pragma Debug (D ("*** Catch *** " & Error.all));
+         Free (Error);
+      end if;
+   end Catch;
+
+   -------------
+   -- Content --
+   -------------
+
+   function Content (Error : access Error_Type) return String is
+      pragma Assert (Error.all /= null);
+      Error_Message : constant String := Error.all.all;
+   begin
+      Free (Error.all);
+      return Error_Message;
+   end Content;
+
+   -----------
+   -- Found --
+   -----------
+
+   function Found (Error : Error_Type) return Boolean is
+   begin
+      return Error /= null;
+   end Found;
+
+   -------------------------------
+   -- Raise_Communication_Error --
+   -------------------------------
+
+   procedure Raise_Communication_Error (Error : in out Error_Type) is
+      pragma Assert (Error /= null);
+      Error_Message : constant String := Error.all;
+   begin
+      Free (Error);
+      Ada.Exceptions.Raise_Exception
+        (Communication_Error'Identity, Error_Message);
+   end Raise_Communication_Error;
 
    -------------------------------
    -- Raise_Communication_Error --
@@ -70,5 +119,23 @@ package body System.Garlic.Exceptions is
    begin
       Raise_Exception (Id, "Error" & Integer'Image (Errno));
    end Raise_With_Errno;
+
+   -----------
+   -- Throw --
+   -----------
+
+   procedure Throw (Error : in out Error_Type; Message : in String)
+   is
+   begin
+      if Error /= null then
+         pragma Debug (D ("*** Abort *** " & Error.all));
+
+         Free (Error);
+      end if;
+
+      Error := new String'(Message);
+
+      pragma Debug (D ("*** Throw *** " & Error.all));
+   end Throw;
 
 end System.Garlic.Exceptions;

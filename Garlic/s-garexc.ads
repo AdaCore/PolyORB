@@ -35,6 +35,8 @@
 
 with Ada.Exceptions;
 
+with GNAT.OS_Lib;
+
 package System.Garlic.Exceptions is
 
    pragma Elaborate_Body;
@@ -48,5 +50,19 @@ package System.Garlic.Exceptions is
    pragma Inline (Raise_Communication_Error);
    --  Idem, but with the specific exception System.RPC.Communication_Error.
    --  If an alternate message is given, it will be used instead.
+
+   type Error_Type is limited private;
+   function Found (Error : Error_Type) return Boolean;
+   procedure Throw (Error : in out Error_Type; Message : in String);
+   procedure Catch (Error : in out Error_Type);
+   procedure Raise_Communication_Error (Error : in out Error_Type);
+   function Content (Error : access Error_Type) return String;
+   --  Error type and associated primitives. By default, an Error_Type is
+   --  not considered as being an error until Throw has been called.
+   --  Catch, Raise_Communication_Error and Content cancel the error.
+
+private
+
+   type Error_Type is new GNAT.OS_Lib.String_Access;
 
 end System.Garlic.Exceptions;
