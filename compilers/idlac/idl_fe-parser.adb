@@ -9183,6 +9183,7 @@ package body Idl_Fe.Parser is
                  | T_Typedef
                  | T_Custom
                  | T_Abstract
+                 | T_Local
                  | T_ValueType
                  | T_Const
                  | T_Right_Cbracket =>
