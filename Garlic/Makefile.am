@@ -127,7 +127,7 @@ $(COMMONSOURCES)
 CLEANFILES = lib*.a *.ali *.o b_*.c b~*.ad[bs]\
 	s-gaprco.adb s-galiop.ads\
 	inlining gnatlib/* constants_nodef\
-	b_gaprco$(EXEECT) isthrbio$(EXEEXT)\
+	b_gaprco$(EXEEXT) isthrbio$(EXEEXT)\
 	$(FILTERSOBJECTS)
 
 DISTCLEANFILES = Makefile.fil s-garrem.adb
