@@ -38,10 +38,9 @@
 --  partitions.
 
 with GNAT.IO;
-with GNAT.OS_Lib;                     use GNAT.OS_Lib;
-with Interfaces.C;                    use Interfaces.C;
-with System.Tasking.Debug;
-pragma Elaborate_All (System.Tasking.Debug);
+with GNAT.OS_Lib;              use GNAT.OS_Lib;
+with Interfaces.C;             use Interfaces.C;
+with System.Garlic.Soft_Links; use System.Garlic.Soft_Links;
 
 package body System.Garlic.Debug is
 
@@ -56,12 +55,6 @@ package body System.Garlic.Debug is
 
    Debug_Table : array (Debug_Key) of Debug_Info;
 
-   protected Semaphore is
-      entry P;
-      procedure V;
-   private
-      Free : Boolean := True;
-   end Semaphore;
    --  The semaphore object which protects outputs from being mixed
 
    Termination_Directory : String_Access;
@@ -72,9 +65,6 @@ package body System.Garlic.Debug is
    --  This file is created at elaboration time and deleted once the
    --  partition has cleanly terminated. This feature is used to detect
    --  incorrect termination.
-
-   Tasking_Flag : Boolean := False;
-   --  Do we output tasking info in debugging messages.
 
    -------------------------------------
    --  Create_Termination_Sanity_File --
@@ -122,12 +112,7 @@ package body System.Garlic.Debug is
       Termination_Sanity_FD :=
         Create_New_File (Termination_Filename.all'Address, Binary);
 
-      if Termination_Sanity_FD = Invalid_FD then
-         GNAT.IO.Put_Line
-           ("Cannot create termination sanity file " &
-            Termination_Filename.all);
-         raise Program_Error;
-      end if;
+      pragma Assert (Termination_Sanity_FD /= Invalid_FD);
 
       Close (Termination_Sanity_FD);
    end Create_Termination_Sanity_File;
@@ -161,12 +146,7 @@ package body System.Garlic.Debug is
                    or else Value (Value'First) /= 'T');
    begin
       Free (Value);
-      if Current >= Debug_Key'Last then
-         Semaphore.P;
-         GNAT.IO.Put_Line ("Change Debug_Key range in s-gardeb.ads");
-         Semaphore.V;
-         raise Program_Error;
-      end if;
+      pragma Assert (Current <= Debug_Key'Last);
       Current := Current + 1;
       Debug_Table (Current).Banner := new String'(Banner);
       if Value_OK then
@@ -207,47 +187,13 @@ package body System.Garlic.Debug is
    procedure Print_Debug_Info
      (Message : in String;
       Key     : in Debug_Key) is
-      use System.Tasking.Debug;
    begin
       if Debug_Table (Key).Active then
-         Semaphore.P;
-         if Tasking_Flag then
-            declare
-               B : String := Image (Self);
-            begin
-               GNAT.IO.Put ("[" & B (11 .. B'Last) & "] ");
-            end;
-         end if;
+         Enter_Critical_Section;
          GNAT.IO.Put_Line (Debug_Table (Key).Banner.all & Message);
-         Semaphore.V;
+         Leave_Critical_Section;
       end if;
    end Print_Debug_Info;
-
-   ---------------
-   -- Semaphore --
-   ---------------
-
-   protected body Semaphore is
-
-      -------
-      -- P --
-      -------
-
-      entry P when Free is
-      begin
-         Free := False;
-      end P;
-
-      -------
-      -- V --
-      -------
-
-      procedure V is
-      begin
-         Free := True;
-      end V;
-
-   end Semaphore;
 
 begin
    Termination_Directory := GNAT.OS_Lib.Getenv ("GLADE_SANITY_DIR");
@@ -255,13 +201,4 @@ begin
       Create_Termination_Sanity_File;
    end if;
    Debug_Table (Always) := (Active => True, Banner => new String'(""));
-   declare
-      Debug_Option : String_Access := Getenv ("S_GARDEB");
-   begin
-      if Debug_Option'Length /= 0 then
-         if Debug_Option.all = "tasking" then
-            Tasking_Flag := True;
-         end if;
-      end if;
-   end;
 end System.Garlic.Debug;
