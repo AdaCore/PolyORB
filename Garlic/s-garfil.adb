@@ -58,15 +58,6 @@ package body System.Garlic.Filters is
    type String_Access is access all String;
    --  Partition names are stored in dynamically allocated memory!
 
-   No_Filter_Name : aliased String := "";
-   --  Initially, all channels are initialized to use the filter with
-   --  this name. There *must* be a filter with that name, and all
-   --  calls to 'Set_Channel_Filter' must be made on both ends before
-   --  the first message is ever sent through that channel. (Note:
-   --  this implementation doesn't yet incorporate protocols for
-   --  negociating a change of the filter algorithm or even the filter
-   --  parameters at run-time.)
-
    type Filter_Code is (Query_Name,          --  <empty>
                         Tell_Name,           --  Name, Public Params
                         Set_Session_Params,  --  Public (Name, Private)

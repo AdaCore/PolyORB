@@ -112,6 +112,15 @@ private
    type Filter_Params_Access is access all Filter_Params'Class;
    --  Access to Filter_Params or derivative
 
+   No_Filter_Name : aliased String := "none";
+   --  Initially, all channels are initialized to use the filter with
+   --  this name. There *must* be a filter with that name, and all
+   --  calls to 'Set_Channel_Filter' must be made on both ends before
+   --  the first message is ever sent through that channel. (Note:
+   --  this implementation doesn't yet incorporate protocols for
+   --  negociating a change of the filter algorithm or even the filter
+   --  parameters at run-time.)
+
    function Filter_Outgoing
       (Filter : in     Filter_Type;
        Params : in     Filter_Params_Access;

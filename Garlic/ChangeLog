@@ -1,3 +1,8 @@
+Fri Feb 28 16:45:36 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
+
+	* s-garfil.ads, s-garfil.adb, s-gafino.adb: Move decalration of
+ 	No_Fitler_name into System.Garlic.Filters private part.
+
 Thu Feb 27 11:13:51 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
 	* s-gafino.adb: Change Dummy_Name from "" to "none".
