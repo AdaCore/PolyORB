@@ -8,7 +8,7 @@ with PolyORB.Types;
 
 package System.PolyORB_Interface is
 
-   pragma Preelaborate;
+   pragma Elaborate_Body;
 
    function To_PolyORB_String (S : Standard.String)
      return PolyORB.Types.Identifier

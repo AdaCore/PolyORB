@@ -109,7 +109,7 @@ package body Exp_Hlpr is
       FST     : constant Entity_Id  := First_Subtype (U_Type);
       P_Size  : constant Uint       := Esize (FST);
 
-      Pnam : Entity_Id := Empty;
+      Fnam : Entity_Id := Empty;
       Lib_RE  : RE_Id := RE_Null;
 
    begin
@@ -117,7 +117,7 @@ package body Exp_Hlpr is
       --  First simple case where the TypeCode is present
       --  in the type's TSS.
 
-      Pnam := Find_Helper (N, P_Type, Name_uTypeCode);
+      Fnam := Find_Helper (N, P_Type, Name_uTypeCode);
 
       --  Check first for Boolean and Character. These are enumeration types,
       --  but we treat them specially, since they may require special handling
@@ -125,7 +125,7 @@ package body Exp_Hlpr is
       --  if they have standard representation, otherwise they are treated like
       --  any other enumeration type.
 
-      if Present (Pnam) then
+      if Present (Fnam) then
          null;
 
       elsif U_Type = Standard_Boolean then
@@ -242,13 +242,13 @@ package body Exp_Hlpr is
       --  Call the function
 
       if Lib_RE /= RE_Null then
-         pragma Assert (No (Pnam));
-         Pnam := New_Occurrence_Of (RTE (Lib_RE), Loc);
+         pragma Assert (No (Fnam));
+         Fnam := New_Occurrence_Of (RTE (Lib_RE), Loc);
       end if;
 
       return
           Make_Function_Call (Loc,
-            Name => Pnam,
+            Name => New_Occurrence_Of (Fnam, Loc),
             Parameter_Associations => Empty_List);
 
    end Build_TypeCode_Call;
@@ -264,6 +264,7 @@ package body Exp_Hlpr is
       Fnam : out Entity_Id)
    is
       Spec : Node_Id;
+      Decls : constant List_Id := New_List;
       Stms : constant List_Id := New_List;
    begin
       Fnam := Make_Stream_Procedure_Function_Name (Loc, Typ, Name_uTypeCode);
@@ -272,7 +273,7 @@ package body Exp_Hlpr is
         Make_Function_Specification (Loc,
           Defining_Unit_Name => Fnam,
           Parameter_Specifications => Empty_List,
-          Subtype_Mark => RTE (RE_TypeCode));
+          Subtype_Mark => New_Occurrence_Of (RTE (RE_TypeCode), Loc));
 
       if Is_Derived_Type (Typ)
         and then not Is_Tagged_Type (Typ)
@@ -312,13 +313,28 @@ package body Exp_Hlpr is
                                   (Declaration_Node (Base_Type (Typ)))))))))));
          end;
       else
-         Append_To (Stms, Make_Null_Statement (Loc));
+         declare
+            TypeCode_Parameter : constant Entity_Id
+              := Make_Defining_Identifier (Loc,
+                   New_Internal_Name ('T'));
+         begin
+            --  XXX dummy placeholder
+            Append_To (Decls,
+              Make_Object_Declaration (Loc,
+               Defining_Identifier => TypeCode_Parameter,
+               Object_Definition   =>
+                 New_Occurrence_Of (RTE (RE_TypeCode), Loc)));
+            Append_To (Stms,
+              Make_Return_Statement (Loc,
+                Expression =>
+                  New_Occurrence_Of (TypeCode_Parameter, Loc)));
+         end;
       end if;
 
       Decl :=
         Make_Subprogram_Body (Loc,
           Specification => Spec,
-          Declarations => Empty_List,
+          Declarations => Decls,
           Handled_Statement_Sequence =>
             Make_Handled_Sequence_Of_Statements (Loc,
               Statements => Stms));
