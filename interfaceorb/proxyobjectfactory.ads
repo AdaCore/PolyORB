@@ -31,8 +31,17 @@ package Proxyobjectfactory is
                              Profiles : in Iop.Tagged_Profile_List ;
                              Release : in Corba.Boolean)
                              return Corba.Object.Ref ;
+   -- called by the C++ code
+   -- The Name in C++ is : newProxyObject
+   -- !!!! appelle moi pour le corba.object.Ref !!!!!
 
    function Is_A(Base_RepoID : in String) return Corba.Boolean  ;
+   -- called by the ORB, exactly like Dispatch
+   -- the name of the C++ function is is_a
+
+   function Repository_Id return Corba.String is abstract ;
+   -- called by the ORB, exactly like Dispatch
+   -- The Name of The C++ function is irRepoId
 
    function Nil return Corba.Object.Ref'Class  ;
 

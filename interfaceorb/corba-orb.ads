@@ -23,7 +23,7 @@ package Corba.Orb is
 
    -- string object_to_string (in Object obj);
    -- client-side
-   function Object_To_String (Obj : CORBA.Object.Ref'class)
+   function Object_To_String (Obj : in CORBA.Object.Ref'class)
                               return CORBA.String;
 
 
@@ -36,12 +36,6 @@ package Corba.Orb is
    -- server-side
    function Object_To_String (Obj : in CORBA.Object.Object'class)
                               return CORBA.String;
-
-
-   -- Object string_to_object (in string str);
-   -- server-side
-   procedure String_to_Object (From : in CORBA.String;
-                               To : out CORBA.Object.Object'class);
 
 
 
