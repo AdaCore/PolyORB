@@ -4,9 +4,9 @@
 --                                                                          --
 --                          S Y S T E M . R P C                             --
 --                                                                          --
---                                 B o d y                                  --
+--                                B o d y                                   --
 --                                                                          --
---                            1.25                             --
+--                           $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --

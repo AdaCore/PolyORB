@@ -4,9 +4,9 @@
 --                                                                          --
 --                            X E _ C H E C K                               --
 --                                                                          --
---                                 S p e c                                  --
+--                                S p e c                                   --
 --                                                                          --
---                            $Revision$                              --
+--                           $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --

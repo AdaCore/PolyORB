@@ -4,9 +4,9 @@
 --                                                                          --
 --                            X E _ U T I L S                               --
 --                                                                          --
---                                 B o d y                                  --
+--                                B o d y                                   --
 --                                                                          --
---                            $Revision$                              --
+--                           $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --

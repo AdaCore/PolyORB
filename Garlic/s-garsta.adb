@@ -4,9 +4,9 @@
 --                                                                          --
 --               S Y S T E M . G A R L I C . S T A R T U P                  --
 --                                                                          --
---                                 B o d y                                  --
+--                                B o d y                                   --
 --                                                                          --
---                            1.14                             --
+--                           $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --

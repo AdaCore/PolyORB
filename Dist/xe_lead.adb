@@ -2,11 +2,11 @@
 --                                                                          --
 --                          GNATDIST COMPONENTS                             --
 --                                                                          --
---                              X E _ L E A D                               --
+--                             X E _ L E A D                                --
 --                                                                          --
---                                 B o d y                                  --
+--                                B o d y                                   --
 --                                                                          --
---                            $Revision$                              --
+--                           $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -25,6 +25,7 @@
 --            (email:distribution@act-europe.gnat.com).                     --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 with Types;       use Types;
 with Namet;       use Namet;
 with XE_Utils;    use XE_Utils;

@@ -4,9 +4,9 @@
 --                                                                          --
 --          S Y S T E M . P A R T I T I O N _ I N T E R F A C E             --
 --                                                                          --
---                                 B o d y                                  --
+--                                B o d y                                   --
 --                                                                          --
---                            1.24                             --
+--                           $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --

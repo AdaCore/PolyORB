@@ -4,9 +4,9 @@
 --                                                                          --
 --      S Y S T E M . G A R L I C . P R O T O C O L S . C O N F I G         --
 --                                                                          --
---                                 S p e c                                  --
+--                                S p e c                                   --
 --                                                                          --
---                            1.14                             --
+--                           $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --

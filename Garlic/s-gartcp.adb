@@ -4,9 +4,9 @@
 --                                                                          --
 --                   S Y S T E M . G A R L I C . T C P                      --
 --                                                                          --
---                                 B o d y                                  --
+--                                B o d y                                   --
 --                                                                          --
---                            1.34                             --
+--                           $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --

@@ -2,11 +2,11 @@
 --                                                                          --
 --                          GNATDIST COMPONENTS                             --
 --                                                                          --
---                              X E _ S C A N                               --
+--                             X E _ S C A N                                --
 --                                                                          --
---                                 S p e c                                  --
+--                                S p e c                                   --
 --                                                                          --
---                            $Revision$                              --
+--                           $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -25,6 +25,7 @@
 --            (email:distribution@act-europe.gnat.com).                     --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 with Types;        use Types;
 with XE;           use XE;
 package XE_Scan is

@@ -4,9 +4,9 @@
 --                                                                          --
 --               S Y S T E M . G A R L I C . O P T I O N S                  --
 --                                                                          --
---                                 B o d y                                  --
+--                                B o d y                                   --
 --                                                                          --
---                            1.10                             --
+--                           $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -32,6 +32,7 @@
 --            (email:distribution@act-europe.gnat.com).                     --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 with System.Garlic.Debug;      use System.Garlic.Debug;
 with Ada.Command_Line;         use Ada.Command_Line;
 with GNAT.OS_Lib;              use GNAT.OS_Lib;

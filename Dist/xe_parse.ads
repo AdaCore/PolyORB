@@ -2,11 +2,11 @@
 --                                                                          --
 --                          GNATDIST COMPONENTS                             --
 --                                                                          --
---                             X E _ P A R S E                              --
+--                            X E _ P A R S E                               --
 --                                                                          --
---                                 S p e c                                  --
+--                                S p e c                                   --
 --                                                                          --
---                            $Revision$                              --
+--                           $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -25,6 +25,7 @@
 --            (email:distribution@act-europe.gnat.com).                     --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 package XE_Parse is
 
    procedure Parse;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                          GNATDIST COMPONENTS                             --
 --                                                                          --
---                                   X E                                    --
+--                                  X E                                     --
 --                                                                          --
---                                 B o d y                                  --
+--                                B o d y                                   --
 --                                                                          --
---                            $Revision$                              --
+--                           $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -25,6 +25,7 @@
 --            (email:distribution@act-europe.gnat.com).                     --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 with Fname;        use Fname;
 with Output;       use Output;
 with Osint;        use Osint;

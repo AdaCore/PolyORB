@@ -4,9 +4,9 @@
 --                                                                          --
 --             S Y S T E M . G A R L I C . P R O T O C O L S                --
 --                                                                          --
---                                 B o d y                                  --
+--                                B o d y                                   --
 --                                                                          --
---                            1.6                             --
+--                           $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           GARLIC COMPONENTS                              --
 --                                                                          --
---               S Y S T E M . G A R L I C . L O O P B A C K                --
+--              S Y S T E M . G A R L I C . L O O P B A C K                 --
 --                                                                          --
---                                 S p e c                                  --
+--                                S p e c                                   --
 --                                                                          --
---                            $Revision$                              --
+--                           $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --

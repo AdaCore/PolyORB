@@ -4,9 +4,9 @@
 --                                                                          --
 --           S Y S T E M . G A R L I C . T E R M I N A T I O N              --
 --                                                                          --
---                                 S p e c                                  --
+--                                S p e c                                   --
 --                                                                          --
---                            1.6                             --
+--                           $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --

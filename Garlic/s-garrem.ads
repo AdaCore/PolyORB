@@ -4,9 +4,9 @@
 --                                                                          --
 --                S Y S T E M . G A R L I C . R E M O T E                   --
 --                                                                          --
---                                 S p e c                                  --
+--                                S p e c                                   --
 --                                                                          --
---                            1.6                             --
+--                           $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           GARLIC COMPONENTS                              --
 --                                                                          --
---                           S Y S T E M . R P C                            --
+--                          S Y S T E M . R P C                             --
 --                                                                          --
---                                 S p e c                                  --
+--                                S p e c                                   --
 --                                                                          --
---                            1.7                             --
+--                           $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -32,6 +32,7 @@
 --            (email:distribution@act-europe.gnat.com).                     --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 with Ada.Streams;
 with System.Storage_Elements;
 

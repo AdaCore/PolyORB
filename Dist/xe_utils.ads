@@ -4,9 +4,9 @@
 --                                                                          --
 --                            X E _ U T I L S                               --
 --                                                                          --
---                                 S p e c                                  --
+--                                S p e c                                   --
 --                                                                          --
---                            $Revision$                              --
+--                           $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -25,6 +25,7 @@
 --            (email:distribution@act-europe.gnat.com).                     --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 with Types;       use Types;
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 with XE_Defs;     use XE_Defs;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           GARLIC COMPONENTS                              --
 --                                                                          --
---             S Y S T E M . G A R L I C . P R O T O C O L S                --
+--               S Y S T E M . G A R L I C . O P T I O N S                  --
 --                                                                          --
---                                 S p e c                                  --
+--                                S p e c                                   --
 --                                                                          --
---                            1.9                             --
+--                           $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -32,6 +32,7 @@
 --            (email:distribution@act-europe.gnat.com).                     --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 package System.Garlic.Options is
 
    function Get_Boot_Server (Default : String := "tcp") return String;

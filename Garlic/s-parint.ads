@@ -4,9 +4,9 @@
 --                                                                          --
 --          S Y S T E M . P A R T I T I O N _ I N T E R F A C E             --
 --                                                                          --
---                                 S p e c                                  --
+--                                S p e c                                   --
 --                                                                          --
---                            1.11                             --
+--                           $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --

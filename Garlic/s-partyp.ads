@@ -2,11 +2,11 @@
 --                                                                          --
 --                           GARLIC COMPONENTS                              --
 --                                                                          --
---              S Y S T E M . P A R T I T I O N _ T Y P ES                  --
+--              S Y S T E M . P A R T I T I O N _ T Y P E S                 --
 --                                                                          --
---                                 S p e c                                  --
+--                                S p e c                                   --
 --                                                                          --
---                            1.8                             --
+--                           $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -32,6 +32,7 @@
 --            (email:distribution@act-europe.gnat.com).                     --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 with System.RPC;
 
 package System.Partition_Types is

@@ -1,12 +1,12 @@
------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 --                                                                          --
 --                          GNATDIST COMPONENTS                             --
 --                                                                          --
---                             X E _ S T U B S                              --
+--                            X E _ S T U B S                               --
 --                                                                          --
---                                 B o d y                                  --
+--                                B o d y                                   --
 --                                                                          --
---                            $Revision$                              --
+--                           $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -25,6 +25,7 @@
 --            (email:distribution@act-europe.gnat.com).                     --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 with Fname;            use Fname;
 with Osint;            use Osint;
 with Namet;            use Namet;

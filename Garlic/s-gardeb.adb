@@ -4,9 +4,9 @@
 --                                                                          --
 --                 S Y S T E M . G A R L I C . D E B U G                    --
 --                                                                          --
---                                 B o d y                                  --
+--                                B o d y                                   --
 --                                                                          --
---                            1.4                             --
+--                           $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --

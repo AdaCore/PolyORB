@@ -12,6 +12,12 @@
   (interactive)
   (let (name spec)
     (goto-char (point-min))
+    (if (re-search-forward "^--  $Id" nil t)
+	(progn
+	  (next-line 2)
+	  (beginning-of-line)
+	  (delete-region (point-min) (point))))
+    (goto-char (point-min))
     (next-line 1)
     (if (re-search-forward "^----------" nil t)
 	(progn
@@ -61,7 +67,7 @@
 (defun center-ada (l)
   (let* ((tt 71)
 	 (n (length l))
-	 (s (/ (- tt n) 2)))
+	 (s (- (/ (- tt n) 2) 1)))
     (concat "-- " (spaces-ada s) l (spaces-ada (- tt (+ s n))) "  --\n")))
 
 (defun spaces-ada (n)
@@ -71,7 +77,7 @@
 (defun update-headers ()
   "Update headers of files given on the command line"
   (interactive)
-  (let ((l (directory-files "." nil "\\.ad." nil t)))
+  (let ((l (directory-files "." nil "\\.ad.$" nil t)))
     (while l
       (let ((current (car l)))
 	(message "Updating %s..." current)
