@@ -1,3 +1,8 @@
+1998-12-08  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* Makefile.am, Makefile.in: Add user write mode to
+ 	${GARLIC}/libgnat.a before updating it. Then, remove user write mode.
+
 1998-12-01  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-gaphlo.adb, s-gaphlo.ads: Add a procedure to free a location
