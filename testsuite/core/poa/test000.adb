@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,7 +39,6 @@ with PolyORB.POA.Basic_POA;
 with PolyORB.POA_Types;
 with PolyORB.POA_Manager;
 with PolyORB.POA_Policies;
-with PolyORB.POA_Config;
 with PolyORB.POA_Config.Minimum;
 
 with PolyORB.Initialization;
@@ -51,7 +50,7 @@ with PolyORB.Objects;
 with PolyORB.Servants;
 with PolyORB.Types;
 
-with Report;
+with PolyORB.Report;
 with Test_Servant;
 
 procedure Test000 is
@@ -72,28 +71,24 @@ procedure Test000 is
 
    procedure Test_Root_POA
    is
-      Root_POA_Object : PolyORB.POA.Obj_Adapter_Access;
+      Root_POA_Object : PolyORB.POA.Obj_Adapter_Access
+        := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
 
    begin
       PolyORB.POA_Config.Set_Configuration
         (new PolyORB.POA_Config.Minimum.Minimum_Configuration);
 
       --  Root POA creation
-      Root_POA_Object := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
-      PolyORB.POA.Basic_POA.Create
-        (PolyORB.POA.Basic_POA.Basic_Obj_Adapter (Root_POA_Object.all)'Access);
-
-      Report.Output ("RootPOA creation", True);
+      PolyORB.POA.Create (Root_POA_Object);
+      PolyORB.Report.Output ("RootPOA creation", True);
 
       --  Root POA destruction
-      PolyORB.POA.Basic_POA.Destroy
-        (PolyORB.POA.Basic_POA.Basic_Obj_Adapter (Root_POA_Object.all)'Access);
-
-      Report.Output ("RootPOA destruction", True);
+      PolyORB.POA.Destroy (Root_POA_Object);
+      PolyORB.Report.Output ("RootPOA destruction", True);
 
    exception
       when others =>
-         Report.Output ("RootPOA creation/destruction", False);
+         PolyORB.Report.Output ("RootPOA creation/destruction", False);
          raise;
 
    end Test_Root_POA;
@@ -108,12 +103,12 @@ procedure Test000 is
    procedure Test_Child_POA is
 
       use PolyORB.POA;
-      use PolyORB.POA.Basic_POA;
       use PolyORB.POA_Manager;
       use PolyORB.POA_Policies;
       use PolyORB.POA_Policies.Policy_Sequences;
 
-      Root_POA : PolyORB.POA.Obj_Adapter_Access;
+      Root_POA : PolyORB.POA.Obj_Adapter_Access
+        := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
 
       OA1, OA2, OA3 : Obj_Adapter_Access;
       Policies      : PolicyList;
@@ -121,9 +116,7 @@ procedure Test000 is
       Ok            : Boolean := False;
    begin
       --  Root POA creation.
-      Root_POA := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
-      PolyORB.POA.Basic_POA.Create
-        (PolyORB.POA.Basic_POA.Basic_Obj_Adapter (Root_POA.all)'Access);
+      PolyORB.POA.Create (Root_POA);
 
       --  Construct policy list.
       Append (Policies,
@@ -135,27 +128,23 @@ procedure Test000 is
       PM1 := POAManager_Access (Entity_Of (Root_POA.POA_Manager));
 
       --  POA1 Creation.
-      OA1 := PolyORB.POA.Basic_POA.Create_POA
-        (Basic_Obj_Adapter (Root_POA.all)'Access,
-         To_PolyORB_String ("POA1"), PM1, Policies);
+      OA1 := PolyORB.POA.Create_POA
+        (Root_POA, To_PolyORB_String ("POA1"), PM1, Policies);
 
       --  POA2 Creation.
-      OA2 := PolyORB.POA.Basic_POA.Create_POA
-        (Basic_Obj_Adapter (OA1.all)'Access,
-         To_PolyORB_String ("POA2"), null, Policies);
+      OA2 := PolyORB.POA.Create_POA
+        (OA1, To_PolyORB_String ("POA2"), null, Policies);
 
       --  POA3 Creation.
-      OA3 := PolyORB.POA.Basic_POA.Create_POA
-        (Basic_Obj_Adapter (OA1.all)'Access,
-         To_PolyORB_String ("POA3"), PM1, Policies);
+      OA3 := PolyORB.POA.Create_POA
+        (OA1, To_PolyORB_String ("POA3"), PM1, Policies);
 
-      Report.Output ("Child POA construction", True);
+      PolyORB.Report.Output ("Child POA construction", True);
 
       Ok := False;
       begin
-         OA2 := PolyORB.POA.Basic_POA.Create_POA
-           (Basic_Obj_Adapter (OA1.all)'Access,
-            To_PolyORB_String ("POA3"), PM1, Policies);
+         OA2 := PolyORB.POA.Create_POA
+           (OA1, To_PolyORB_String ("POA3"), PM1, Policies);
 
       exception
          when Adapter_Already_Exists =>
@@ -163,25 +152,23 @@ procedure Test000 is
          when others =>
             raise;
       end;
-      Report.Output ("Raised Adapter_Already_Exists", Ok);
+      PolyORB.Report.Output ("Raised Adapter_Already_Exists", Ok);
 
       Ok := False;
       if OA1.POA_Manager = OA3.POA_Manager then
          Ok := True;
       end if;
-      Report.Output ("Same POA Manager", Ok);
+      PolyORB.Report.Output ("Same POA Manager", Ok);
 
       Ok := False;
       if OA1.POA_Manager /= OA2.POA_Manager then
          Ok := True;
       end if;
-      Report.Output ("Implicit creation of a POA Manager", Ok);
+      PolyORB.Report.Output ("Implicit creation of a POA Manager", Ok);
 
       --  POA recursive destruction.
-      PolyORB.POA.Basic_POA.Destroy
-        (PolyORB.POA.Basic_POA.Basic_Obj_Adapter (Root_POA.all)'Access);
-
-      Report.Output ("POA recursive destruction", True);
+      PolyORB.POA.Destroy (Root_POA);
+      PolyORB.Report.Output ("POA recursive destruction", True);
 
    exception
       when others =>
@@ -198,7 +185,6 @@ procedure Test000 is
    procedure Test_Activate_Object
    is
       use PolyORB.POA;
-      use PolyORB.POA.Basic_POA;
       use Test_Servant;
 
       S1  : My_Servant_Access;
@@ -209,35 +195,34 @@ procedure Test000 is
       S1.Name  := To_PolyORB_String ("Servant1");
 
       declare
-         Root_POA : Obj_Adapter_Access;
+         Root_POA : PolyORB.POA.Obj_Adapter_Access
+           := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
 
       begin
-         Root_POA := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
-         PolyORB.POA.Basic_POA.Create
-            (PolyORB.POA.Basic_POA.Basic_Obj_Adapter (Root_POA.all)'Access);
+         PolyORB.POA.Create (Root_POA);
 
          declare
             Id1 : constant PolyORB.POA_Types.Object_Id :=
-              Activate_Object (Basic_Obj_Adapter (Root_POA.all)'Access,
+              Activate_Object (Root_POA,
                                PolyORB.Servants.Servant_Access (S1));
 
             Ok : Boolean := False;
          begin
-            Report.Output ("Servant activation", True);
+            PolyORB.Report.Output ("Servant activation", True);
 
-            Deactivate_Object (Basic_Obj_Adapter (Root_POA.all)'Access, Id1);
-            Report.Output ("Servant deactivation", True);
+            Deactivate_Object (Root_POA, Id1);
+            PolyORB.Report.Output ("Servant deactivation", True);
 
             begin
-               Deactivate_Object (Basic_Obj_Adapter (Root_POA.all)'Access,
-                                  Id1);
+               Deactivate_Object (Root_POA, Id1);
+
             exception
                when Object_Not_Active =>
                   Ok := True;
             end;
-            Report.Output ("Raised Object_Not_Active", Ok);
+            PolyORB.Report.Output ("Raised Object_Not_Active", Ok);
 
-            PolyORB.POA.Basic_POA.Destroy (Root_POA, True, True);
+            PolyORB.POA.Destroy (Root_POA);
 
          exception
             when others =>
@@ -246,33 +231,33 @@ procedure Test000 is
       end;
 
       declare
-         Root_POA : Obj_Adapter_Access;
+         Root_POA : PolyORB.POA.Obj_Adapter_Access
+           := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
 
       begin
-         Root_POA := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
-         PolyORB.POA.Basic_POA.Create
-            (PolyORB.POA.Basic_POA.Basic_Obj_Adapter (Root_POA.all)'Access);
+         PolyORB.POA.Create (Root_POA);
 
          declare
             pragma Warnings (Off);
             Id1 : constant PolyORB.POA_Types.Object_Id :=
-              Activate_Object (Basic_Obj_Adapter (Root_POA.all)'Access,
+              Activate_Object (Root_POA,
                                PolyORB.Servants.Servant_Access (S1));
 
             Id2 : constant PolyORB.POA_Types.Object_Id :=
-              Activate_Object (Basic_Obj_Adapter (Root_POA.all)'Access,
+              Activate_Object (Root_POA,
                                PolyORB.Servants.Servant_Access (S1));
             pragma Unreferenced (Id1);
             pragma Unreferenced (Id2);
             pragma Warnings (On);
 
          begin
-            PolyORB.POA.Basic_POA.Destroy (Root_POA, True, True);
+            PolyORB.POA.Destroy (Root_POA);
          end;
-         Report.Output ("Raised Servant_Already_Active", False);
+
+         PolyORB.Report.Output ("Raised Servant_Already_Active", False);
       exception
          when Servant_Already_Active =>
-            Report.Output ("Raised Servant_Already_Active", True);
+            PolyORB.Report.Output ("Raised Servant_Already_Active", True);
 
          when others =>
             raise;
@@ -374,65 +359,62 @@ procedure Test000 is
    procedure Test_Servant_To_Id
    is
       use PolyORB.POA;
-      use PolyORB.POA.Basic_POA;
       use Test_Servant;
       use PolyORB.Objects;
 
       S1  : My_Servant_Access;
       Root_POA : Obj_Adapter_Access;
+
    begin
       S1 := new My_Servant;
       S1.Nb    := 1;
       S1.Name  := To_PolyORB_String ("Servant1");
 
-
       begin
          Root_POA := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
-         PolyORB.POA.Basic_POA.Create
-           (PolyORB.POA.Basic_POA.Basic_Obj_Adapter (Root_POA.all)'Access);
+         PolyORB.POA.Create (Root_POA);
 
          declare
             Id1 : constant PolyORB.POA_Types.Object_Id :=
-              Activate_Object (Basic_Obj_Adapter (Root_POA.all)'Access,
+              Activate_Object (Root_POA,
                                PolyORB.Servants.Servant_Access (S1));
 
             Id2 : constant PolyORB.POA_Types.Object_Id
-              := Servant_To_Id (Basic_Obj_Adapter (Root_POA.all)'Access,
+              := Servant_To_Id (Root_POA,
                                 PolyORB.Servants.Servant_Access (S1));
          begin
             if Id1 /= Id2 then
                raise Incorrect_Execution;
             end if;
-            PolyORB.POA.Basic_POA.Destroy (Root_POA, True, True);
-            Report.Output ("Servant_To_Id", True);
+            PolyORB.POA.Destroy (Root_POA);
+            PolyORB.Report.Output ("Servant_To_Id", True);
          end;
       end;
 
       begin
          Root_POA := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
-         PolyORB.POA.Basic_POA.Create
-           (PolyORB.POA.Basic_POA.Basic_Obj_Adapter (Root_POA.all)'Access);
+         PolyORB.POA.Create (Root_POA);
 
          declare
             pragma Warnings (Off);
             Id2 : constant PolyORB.POA_Types.Object_Id
-              := Servant_To_Id (Basic_Obj_Adapter (Root_POA.all)'Access,
+              := Servant_To_Id (Root_POA,
                                 PolyORB.Servants.Servant_Access (S1));
 
             pragma Unreferenced (Id2);
             pragma Warnings (On);
          begin
-            PolyORB.POA.Basic_POA.Destroy (Root_POA, True, True);
+            PolyORB.POA.Destroy (Root_POA);
          end;
       end;
-      Report.Output ("Raised Servant_Not_Active", False);
+      PolyORB.Report.Output ("Raised Servant_Not_Active", False);
 
    exception
       when Servant_Not_Active =>
-         Report.Output ("Raised Servant_Not_Active", True);
+         PolyORB.Report.Output ("Raised Servant_Not_Active", True);
 
       when others =>
-         Report.Output ("Raised Servant_Not_Active", False);
+         PolyORB.Report.Output ("Raised Servant_Not_Active", False);
          raise;
 
    end Test_Servant_To_Id;
@@ -446,7 +428,6 @@ procedure Test000 is
    procedure Test_Id_To_Servant
    is
       use PolyORB.POA;
-      use PolyORB.POA.Basic_POA;
       use Test_Servant;
 
       S1  : My_Servant_Access;
@@ -460,52 +441,50 @@ procedure Test000 is
 
       begin
          Root_POA := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
-         PolyORB.POA.Basic_POA.Create
-           (PolyORB.POA.Basic_POA.Basic_Obj_Adapter (Root_POA.all)'Access);
+         PolyORB.POA.Create (Root_POA);
 
          declare
             Id1 : constant PolyORB.POA_Types.Object_Id
-              := Activate_Object (Basic_Obj_Adapter (Root_POA.all)'Access,
+              := Activate_Object (Root_POA,
                                   PolyORB.Servants.Servant_Access (S1));
             S2 : constant My_Servant_Access
-              := My_Servant_Access (Id_To_Servant
-                                    (Basic_Obj_Adapter (Root_POA.all)'Access,
-                                     Id1));
+              := My_Servant_Access (Id_To_Servant (Root_POA, Id1));
+
          begin
             if S1 /= S2 then
-               Report.Output ("Id_to_Servant", False);
-               raise Incorrect_Execution;
+               PolyORB.Report.Output ("Id_to_Servant", False);
             end if;
 
-            PolyORB.POA.Basic_POA.Destroy (Root_POA, True, True);
-            Report.Output ("Id_to_Servant", True);
+            PolyORB.POA.Destroy (Root_POA);
+            PolyORB.Report.Output ("Id_to_Servant", True);
          end;
       end;
 
       begin
          Root_POA := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
-         PolyORB.POA.Basic_POA.Create
-           (PolyORB.POA.Basic_POA.Basic_Obj_Adapter (Root_POA.all)'Access);
+         PolyORB.POA.Create (Root_POA);
 
          declare
             Id1 : constant PolyORB.POA_Types.Object_Id
-              := Activate_Object (Basic_Obj_Adapter (Root_POA.all)'Access,
+              := Activate_Object (Root_POA,
                                   PolyORB.Servants.Servant_Access (S1));
             S2 : My_Servant_Access;
+
          begin
-            Deactivate_Object (Basic_Obj_Adapter (Root_POA.all)'Access, Id1);
-            S2 := My_Servant_Access
-              (Id_To_Servant (Basic_Obj_Adapter (Root_POA.all)'Access, Id1));
-            PolyORB.POA.Basic_POA.Destroy (Root_POA, True, True);
+            Deactivate_Object (Root_POA, Id1);
+            S2 := My_Servant_Access (Id_To_Servant (Root_POA, Id1));
+
+            PolyORB.POA.Destroy (Root_POA);
          exception
             when Object_Not_Active =>
                Ok := True;
+
             when others =>
                raise;
          end;
 
-         PolyORB.POA.Basic_POA.Destroy (Root_POA, True, True);
-         Report.Output ("Raised Object_Not_Active", Ok);
+         PolyORB.POA.Destroy (Root_POA);
+         PolyORB.Report.Output ("Raised Object_Not_Active", Ok);
       end;
 
    exception
@@ -524,7 +503,7 @@ begin
    Test_Servant_To_Id;
    Test_Id_To_Servant;
 
-   Report.End_Report;
+   PolyORB.Report.End_Report;
 
 exception
    when E : others =>
@@ -532,6 +511,6 @@ exception
                 & Exception_Name (E)
                 & " : "
                 & Exception_Message (E));
-      Report.Output ("END TESTS", False);
+      PolyORB.Report.Output ("END TESTS", False);
 
 end Test000;
