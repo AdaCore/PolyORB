@@ -1,5 +1,10 @@
 Wed Nov 20 12:39:57 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
+	* xe_back.adb: Use SLOC to print a more usefull error message.
+
+	* xe_parse.adb: Check in P_Configuration_End that the
+	configuration name is known before checking that it matches.
+
 	* xe_stubs.adb: Create_Main_Unit rebuilds the partition main
 	subprogram when Most_Recent_Stamp is more recent than the current
 	partition main subprogram file stamp.

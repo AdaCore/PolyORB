@@ -45,6 +45,8 @@ package body XE_Back is
    subtype Unit_Name_Type is Types.Unit_Name_Type;
    subtype Int            is Types.Int;
 
+   procedure Write_SLOC (Node : Node_Id);
+
    procedure Set_Host
      (Node : in Node_Id;
       Host : in Host_Id);
@@ -71,6 +73,22 @@ package body XE_Back is
      (Pre_Type : Type_Id);
    procedure Set_Pragma_Statement
      (Subprogram : Subprogram_Id);
+
+   ----------------
+   -- Write_SLOC --
+   ----------------
+
+   procedure Write_SLOC (Node : Node_Id) is
+      X, Y : Int;
+   begin
+      Get_Node_SLOC (Node, X, Y);
+      Write_Name (Configuration_File);
+      Write_Str (":");
+      Write_Int (X);
+      Write_Str (":");
+      Write_Int (Y);
+      Write_Str (": ");
+   end Write_SLOC;
 
    --------------
    -- Set_Host --
@@ -156,16 +174,11 @@ package body XE_Back is
 
                   --  Has the main program already been declared ?
                   if Main_Partition /= Null_PID then
-                     Write_Program_Name;
-                     Write_Str (": ");
+                     Write_SLOC (Node_Id (Ada_Unit_Name));
                      Write_Name (Main_Subprogram);
                      Write_Str  (" and ");
                      Write_Name (Ada_Unit_Name);
-                     Write_Str  (" are declared");
-                     Write_Eol;
-                     Write_Program_Name;
-                     Write_Str  (": as non-distributed application main");
-                     Write_Str  (" procedures at the same time");
+                     Write_Str  (" are both non-dist. app. main subprograms");
                      Write_Eol;
                      raise Parsing_Error;
                   end if;
@@ -275,9 +288,9 @@ package body XE_Back is
             --  Only strings are allowed here.
 
             if Get_Variable_Type (Attribute_Item) /= String_Type_Node then
-               Write_Program_Name;
+               Write_SLOC (Node_Id (Attribute_Item));
                Write_Name (Partitions.Table (Partition).Name);
-               Write_Str  ("'s storage dir attribute is not a string value");
+               Write_Str  ("'s attribute must be of type string");
                Write_Eol;
                raise Parsing_Error;
             end if;
@@ -300,14 +313,13 @@ package body XE_Back is
             --  This operation has already been done !
 
             else
-               Write_Program_Name;
-               Write_Str (": ");
+               Write_SLOC (Node_Id (Attribute_Item));
                if Partition = Null_PID then
                   Write_Str ("type partition");
                else
                   Write_Name (Partitions.Table (Partition).Name);
                end if;
-               Write_Str ("'s command_line has been assigned twice");
+               Write_Str ("'s command_line attribute has been assigned twice");
                Write_Eol;
                raise Parsing_Error;
             end if;
@@ -331,8 +343,7 @@ package body XE_Back is
                   Hosts.Table (Host).Static := True;
 
                else
-                  Write_Program_Name;
-                  Write_Str (": ");
+                  Write_SLOC (Node_Id (Attribute_Item));
                   Write_Name (Partitions.Table (Partition).Name);
                   Write_Str  ("'s host attribute is not a string value");
                   Write_Eol;
@@ -353,14 +364,13 @@ package body XE_Back is
                   Partitions.Table (Partition).Host := Host;
 
                else
-                  Write_Program_Name;
-                  Write_Str (": ");
+                  Write_SLOC (Node_Id (Attribute_Item));
                   if Partition = Null_PID then
                      Write_Str ("type partition");
                   else
                      Write_Name (Partitions.Table (Partition).Name);
                   end if;
-                  Write_Str ("'s host has been assigned twice");
+                  Write_Str ("'s host attribute has been assigned twice");
                   Write_Eol;
                   raise Parsing_Error;
                end if;
@@ -391,14 +401,13 @@ package body XE_Back is
                Add_Conf_Unit (Ada_Unit_Name, Partition);
 
             else
-               Write_Program_Name;
-               Write_Str (": ");
+               Write_SLOC (Node_Id (Attribute_Item));
                if Partition = Null_PID then
                   Write_Str ("type partition");
                else
                   Write_Name (Partitions.Table (Partition).Name);
                end if;
-               Write_Str ("'s main has been assigned twice");
+               Write_Str ("'s main attribute has been assigned twice");
                Write_Eol;
                raise Parsing_Error;
             end if;
@@ -408,10 +417,9 @@ package body XE_Back is
             --  Only strings are allowed.
 
             if Get_Variable_Type (Attribute_Item) /= String_Type_Node then
-               Write_Program_Name;
-               Write_Str (": ");
+               Write_SLOC (Node_Id (Attribute_Item));
                Write_Name (Partitions.Table (Partition).Name);
-               Write_Str  ("'s command line attribute is not a string value");
+               Write_Str  ("'s command line attribute must be of string type");
                Write_Eol;
                raise Parsing_Error;
             end if;
@@ -433,14 +441,13 @@ package body XE_Back is
                  := Get_Node_Name (Node_Id (Attribute_Item));
 
             else
-               Write_Program_Name;
-               Write_Str (": ");
+               Write_SLOC (Node_Id (Attribute_Item));
                if Partition = Null_PID then
                   Write_Str ("type partition");
                else
                   Write_Name (Partitions.Table (Partition).Name);
                end if;
-               Write_Str ("'s command_line has been assigned twice");
+               Write_Str ("'s command_line attribute has been assigned twice");
                Write_Eol;
                raise Parsing_Error;
             end if;
@@ -546,8 +553,8 @@ package body XE_Back is
       end loop;
 
       if Main_Subprogram = No_Main_Subprogram then
-         Write_Program_Name;
-         Write_Str (": main program has not been declared");
+         Write_SLOC (Node_Id (Configuration_Node));
+         Write_Str ("non-dist. app. main subprogram has not been declared");
          Write_Eol;
          raise Parsing_Error;
       end if;

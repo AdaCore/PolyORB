@@ -770,7 +770,7 @@ package body XE_Parse is
 
       if Token = Tok_Identifier then
          Search_Declaration (Token_Name, Conf);
-         if not Is_Configuration (Conf) then
+         if Conf = Null_Node or else not Is_Configuration (Conf) then
             Write_Location (Get_Token_Location);
             Write_Str ("name mismatch");
             Write_Eol;
