@@ -160,8 +160,9 @@ package body PolyORB.Binding_Data.IIOP is
    end Get_Profile_Preference;
 
    procedure Create_Factory
-     (PF : out IIOP_Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access) is
+     (PF  : out IIOP_Profile_Factory;
+      TAP : Transport.Transport_Access_Point_Access;
+      ORB : Components.Component_Access) is
    begin
       PF.Address := Address_Of (Socket_Access_Point (TAP.all));
    end Create_Factory;

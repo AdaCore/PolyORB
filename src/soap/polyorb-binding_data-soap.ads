@@ -36,6 +36,7 @@
 
 with PolyORB.Buffers;
 with PolyORB.Sockets;
+with PolyORB.Types;
 
 package PolyORB.Binding_Data.SOAP is
 
@@ -64,11 +65,16 @@ package PolyORB.Binding_Data.SOAP is
      return Profile_Preference;
    pragma Inline (Get_Profile_Preference);
 
+   function Get_URI_Path
+     (Profile : SOAP_Profile_Type)
+     return Types.String;
+
    type SOAP_Profile_Factory is new Profile_Factory with private;
 
    procedure Create_Factory
-     (PF : out SOAP_Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access);
+     (PF  : out SOAP_Profile_Factory;
+      TAP : Transport.Transport_Access_Point_Access;
+      ORB : Components.Component_Access);
 
    function Create_Profile
      (PF  : access SOAP_Profile_Factory;
@@ -93,11 +99,13 @@ package PolyORB.Binding_Data.SOAP is
 private
 
    type SOAP_Profile_Type is new Profile_Type with record
-      Address    : Sockets.Sock_Addr_Type;
+      Address  : Sockets.Sock_Addr_Type;
+      URI_Path : Types.String;
    end record;
 
    type SOAP_Profile_Factory is new Profile_Factory with record
       Address : Sockets.Sock_Addr_Type;
+      ORB     : Components.Component_Access;
    end record;
 
 end PolyORB.Binding_Data.SOAP;

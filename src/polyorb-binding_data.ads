@@ -33,7 +33,7 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/polyorb-binding_data.ads#4 $
+--  $Id: //droopi/main/src/polyorb-binding_data.ads#5 $
 
 with Ada.Finalization;
 
@@ -127,9 +127,11 @@ package PolyORB.Binding_Data is
 
    procedure Create_Factory
      (PF : out Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access)
+      TAP : Transport.Transport_Access_Point_Access;
+      ORB : Components.Component_Access)
       is abstract;
-   --  Initialize PF to act as profile factory for TAP.
+   --  Initialize PF to act as profile factory for transport
+   --  access point TAP managed by ORB.
 
    function Create_Profile
      (PF  : access Profile_Factory;

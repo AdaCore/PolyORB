@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Example binding data concrete implementation.
+--  Binding data for the Simple Request Protocol over TCP.
 
 --  $Id$
 
@@ -103,7 +103,9 @@ package body PolyORB.Binding_Data.SRP is
 
    procedure Create_Factory
      (PF : out SRP_Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access) is
+      TAP : Transport.Transport_Access_Point_Access;
+      ORB : Components.Component_Access)
+   is
    begin
       PF.Address := Address_Of (Socket_Access_Point (TAP.all));
    end Create_Factory;

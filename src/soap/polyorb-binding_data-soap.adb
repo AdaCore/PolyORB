@@ -39,6 +39,7 @@ with Ada.Streams; use Ada.Streams;
 with PolyORB.Any;
 with PolyORB.Filters;
 with PolyORB.Filters.HTTP;
+with PolyORB.ORB.Interface;
 with PolyORB.Protocols;
 with PolyORB.Protocols.SOAP_Pr;
 
@@ -149,11 +150,20 @@ package body PolyORB.Binding_Data.SOAP is
       return Preference_Default + 1;
    end Get_Profile_Preference;
 
+   function Get_URI_Path
+     (Profile : SOAP_Profile_Type)
+     return Types.String is
+   begin
+      return Profile.URI_Path;
+   end Get_URI_Path;
+
    procedure Create_Factory
      (PF : out SOAP_Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access) is
+      TAP : Transport.Transport_Access_Point_Access;
+      ORB : Components.Component_Access) is
    begin
       PF.Address := Address_Of (Socket_Access_Point (TAP.all));
+      PF.ORB := ORB;
    end Create_Factory;
 
    function Create_Profile
@@ -173,6 +183,17 @@ package body PolyORB.Binding_Data.SOAP is
       TResult.Object_Id := new Object_Id'(Oid);
       TResult.Address   := Address_Of
         (Socket_Access_Point (TAP.all));
+
+      declare
+         M : constant Components.Message'Class
+           := Components.Emit
+           (PF.ORB, ORB.Interface.Oid_Translate'(Oid => TResult.Object_Id));
+         TM : constant ORB.Interface.URI_Translate
+           := ORB.Interface.URI_Translate (M);
+      begin
+         TResult.URI_Path := TM.Path;
+      end;
+
       return  Result;
    end Create_Profile;
 
@@ -211,6 +232,8 @@ package body PolyORB.Binding_Data.SOAP is
         (Profile_Body, Stream_Element_Array
          (SOAP_Profile.Object_Id.all));
 
+      Marshall (Profile_Body, SOAP_Profile.URI_Path);
+
       --  Marshall the Profile_Body into IOR.
       Marshall (Buf, Encapsulate (Profile_Body));
       Release (Profile_Body);
@@ -242,6 +265,7 @@ package body PolyORB.Binding_Data.SOAP is
       begin
          TResult.Object_Id := new Object_Id'(Object_Id (Str));
       end;
+      TResult.URI_Path := Unmarshall (Profile_Buffer);
       Release (Profile_Buffer);
       return Result;
 

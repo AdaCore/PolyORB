@@ -140,7 +140,8 @@ package body PolyORB.Setup.Test is
          DAP.Socket,
          DAP.Address);
       if DAP.PF /= null then
-         Create_Factory (DAP.PF.all, DAP.SAP);
+         Create_Factory
+           (DAP.PF.all, DAP.SAP, Components.Component_Access (The_ORB));
       else
          Put_Line (" (null profile factory!)");
       end if;

@@ -83,8 +83,9 @@ package PolyORB.Binding_Data.IIOP is
    type IIOP_Profile_Factory is new Profile_Factory with private;
 
    procedure Create_Factory
-     (PF : out IIOP_Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access);
+     (PF  : out IIOP_Profile_Factory;
+      TAP : Transport.Transport_Access_Point_Access;
+      ORB : Components.Component_Access);
 
    function Create_Profile
      (PF  : access IIOP_Profile_Factory;

@@ -64,8 +64,9 @@ package PolyORB.Binding_Data.Test is
    type Test_Profile_Factory is new Profile_Factory with private;
 
    procedure Create_Factory
-     (PF : out Test_Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access);
+     (PF  : out Test_Profile_Factory;
+      TAP : Transport.Transport_Access_Point_Access;
+      ORB : Components.Component_Access);
 
    function Create_Profile
      (PF  : access Test_Profile_Factory;
