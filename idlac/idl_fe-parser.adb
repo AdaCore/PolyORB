@@ -1246,7 +1246,7 @@ package body Idl_Fe.Parser is
             pragma Debug (O ("Parse_Scoped_Name : name is null"));
             Errors.Error
               ("Bad identifier in scoped name : " &
-               "this identifier does not exist",
+               "identifier `" & Get_Token_String & "' does not exist",
                Errors.Error,
                Get_Token_Location);
             Go_To_End_Of_Scoped_Name;
@@ -1300,7 +1300,8 @@ package body Idl_Fe.Parser is
             if not Is_Scope (A_Name) then
                Errors.Error
                  ("Bad identifier in scoped name : " &
-                  "this identifier does not denote a scope",
+                  "identifier `" & Name (A_Name) &
+                  "' does not denote a scope",
                   Errors.Error,
                   Get_Token_Location);
                Go_To_End_Of_Scoped_Name;
@@ -1339,8 +1340,9 @@ package body Idl_Fe.Parser is
             --  if it does not exist
             if Def = null then
                Errors.Error
-                 ("Bad identifier in scoped name : " &
-                  "This identifier does not exist in the given scope",
+                 ("Bad identifier `" & Get_Token_String &
+                  "' in scoped name : this identifier does not exist " &
+                  "in the given scope",
                   Errors.Error,
                   Get_Token_Location);
                Go_To_End_Of_Scoped_Name;
@@ -1354,8 +1356,9 @@ package body Idl_Fe.Parser is
             if View_Next_Token = T_Colon_Colon then
                if not Is_Scope (A_Name) then
                   Errors.Error
-                    ("Bad identifier in scoped name : " &
-                     "this identifier does not denote a scope",
+                    ("Bad identifier `" & Name (A_Name) &
+                     "' in scoped name : this identifier does not denote " &
+                     "a scope",
                      Errors.Error,
                      Get_Token_Location);
                   Go_To_End_Of_Scoped_Name;
