@@ -44,8 +44,6 @@ package body XE_Back is
 
    type RU_Id is
      (RU_PolyORB,
-      RU_PolyORB_Access_Points,
-      RU_PolyORB_Access_Points_IIOP,
       RU_PolyORB_Binding_Data,
       RU_PolyORB_Binding_Data_IIOP,
       RU_PolyORB_Initialization,
@@ -55,10 +53,12 @@ package body XE_Back is
       RU_PolyORB_POA_Config,
       RU_PolyORB_POA_Config_RACWs,
       RU_PolyORB_Setup,
+      RU_PolyORB_Setup_Access_Points,
+      RU_PolyORB_Setup_Access_Points_IIOP,
       RU_PolyORB_Setup_IIOP,
-      RU_PolyORB_Tasking,
-      RU_PolyORB_Tasking_Full_Tasking,
-      RU_PolyORB_Tasking_No_Tasking,
+      RU_PolyORB_Setup_Tasking,
+      RU_PolyORB_Setup_Tasking_Full_Tasking,
+      RU_PolyORB_Setup_Tasking_No_Tasking,
       RU_System_Partition_Interface,
       RU_System_RPC,
       RU_System_RPC_Server);
@@ -438,12 +438,12 @@ package body XE_Back is
       Write_With_Clause (RU (RU_PolyORB_Setup_IIOP), False, True);
 
       if Current.Tasking = 'N' then
-         Write_With_Clause (RU (RU_PolyORB_Tasking_No_Tasking));
+         Write_With_Clause (RU (RU_PolyORB_Setup_Tasking_No_Tasking));
          Write_With_Clause (RU (RU_PolyORB_ORB_No_Tasking));
          Write_With_Clause (RU (RU_PolyORB_Binding_Data_IIOP));
 
       else
-         Write_With_Clause (RU (RU_PolyORB_Tasking_Full_Tasking));
+         Write_With_Clause (RU (RU_PolyORB_Setup_Tasking_Full_Tasking));
 
          if Current.Tasking = 'T' then
             Write_With_Clause (RU (RU_PolyORB_ORB_No_Tasking));
@@ -451,7 +451,7 @@ package body XE_Back is
 
          else
             Write_With_Clause (RU (RU_PolyORB_ORB_Thread_Pool));
-            Write_With_Clause (RU (RU_PolyORB_Access_Points_IIOP));
+            Write_With_Clause (RU (RU_PolyORB_Setup_Access_Points_IIOP));
             Write_With_Clause (RU (RU_PolyORB_POA_Config_RACWs));
          end if;
       end if;
