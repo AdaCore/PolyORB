@@ -1,5 +1,5 @@
-SUBDIRS = .
-# corba soap
+SUBDIRS = . corba
+# soap
 
 alidir = $(libdir)/polyorb
 
@@ -92,6 +92,7 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb-poa_policies-thread_policy.ads \
 		polyorb-protocols-interface.ads \
 		polyorb-setup.ads \
+		polyorb-setup-test.ads \
 		polyorb-sockets.ads \
 		polyorb-storage_pools.ads \
 		polyorb-test.ads \

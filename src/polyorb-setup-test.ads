@@ -38,6 +38,13 @@ with PolyORB.ORB;
 with PolyORB.References;
 pragma Elaborate_All (PolyORB.References);
 
+with PolyORB.Smart_Pointers;
+pragma Elaborate_All (PolyORB.Smart_Pointers);
+--  The dependency and pragma above should not be necessary
+--  (because of the dependency and pragma on PolyORB.References,
+--  which has Smart_Pointers in its closure). They are necessary to
+--  work around a bug in GNAT 3.15.
+
 package PolyORB.Setup.Test is
 
    pragma Elaborate_Body;
