@@ -102,6 +102,28 @@ package body MOMA.Message_Handlers is
       return Self;
    end Create_Handler;
 
+   ------------------------
+   -- Get_Call_Back_Data --
+   ------------------------
+
+   function Get_Call_Back_Data (Self : access Message_Handler)
+      return Call_Back_Data_Acc
+   is
+   begin
+      return Self.Call_Back_Object;
+   end Get_Call_Back_Data;
+
+   ------------------
+   -- Get_Consumer --
+   ------------------
+
+   function Get_Consumer (Self : access Message_Handler)
+      return MOMA.Message_Consumers.Message_Consumer
+   is
+   begin
+      return Self.Message_Cons.all;
+   end Get_Consumer;
+
    -----------------
    -- Get_Handler --
    -----------------
@@ -186,6 +208,17 @@ package body MOMA.Message_Handlers is
          Register_To_Servant (Self);
       end if;
    end Set_Behavior;
+
+   ------------------------
+   -- Set_Call_Back_Data --
+   ------------------------
+
+   procedure Set_Call_Back_Data (Self : access Message_Handler;
+                                 Call_Back_Object : access Call_Back_Data)
+   is
+   begin
+      Self.Call_Back_Object := Call_Back_Data_Acc (Call_Back_Object);
+   end Set_Call_Back_Data;
 
    -----------------
    -- Set_Handler --

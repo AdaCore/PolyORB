@@ -32,10 +32,12 @@
 
 --  Testing MOMA client with Message_Handler call_backs.
 
---  $Id: //droopi/main/examples/moma/client_call_back
+--  $Id: //droopi/main/examples/moma/client_call_back.adb
 
 with Ada.Command_Line;
 with Ada.Text_IO;
+
+with Client_Call_Back_Procedures;
 
 with PolyORB.Setup.Thread_Pool_Server;
 pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
@@ -50,14 +52,14 @@ with MOMA.Message_Producers;
 with MOMA.Message_Consumers;
 with MOMA.Message_Handlers;
 
-with MOMA.Messages;
-with MOMA.Messages.MBytes;
+--  with MOMA.Messages;
 
 with MOMA.Types;
 
 with PolyORB.Initialization;
 with PolyORB.References;
 with PolyORB.References.IOR;
+with PolyORB.Types;
 
 with Report;
 
@@ -66,18 +68,20 @@ procedure Client_Call_Back is
    use Ada.Command_Line;
    use Ada.Text_IO;
 
+   use Client_Call_Back_Procedures;
+
    use MOMA.Connection_Factories;
    use MOMA.Sessions;
    use MOMA.Connections;
    use MOMA.Destinations;
+--   use MOMA.Messages;
    use MOMA.Message_Producers;
    use MOMA.Message_Consumers;
    use MOMA.Message_Handlers;
-   use MOMA.Messages;
-   use MOMA.Messages.MBytes;
    use MOMA.Types;
 
    use PolyORB.References;
+   use PolyORB.Types;
 
    use Report;
 
@@ -91,97 +95,9 @@ procedure Client_Call_Back is
    MOMA_Consumer_Acc  : MOMA.Message_Consumers.Message_Consumer_Acc;
    MOMA_Handler       : MOMA.Message_Handlers.Message_Handler;
    MOMA_Handler_Acc   : MOMA.Message_Handlers.Message_Handler_Acc;
-   Ok : Boolean;
+   Call_Back_Test     : aliased Call_Back_Byte_Test;
 
    Message_Id         : MOMA.Types.Byte;
-
-   -----------------------
-   -- Byte Message Test --
-   -----------------------
-
-   procedure Send_MByte (Id : MOMA.Types.Byte);
-
-   procedure Send_MByte (Id : MOMA.Types.Byte)
-   is
-
-      MByte_Message_Sent : MOMA.Messages.MBytes.MByte := Create_Byte_Message;
-
-   begin
-      Set_Byte (MByte_Message_Sent, Id);
-      Send (MOMA_Producer, MByte_Message_Sent);
-   end Send_MByte;
-
-
-   function Get_Byte_Value (Message : MOMA.Messages.Message'Class)
-      return MOMA.Types.Byte;
-
-   function Get_Byte_Value (Message : MOMA.Messages.Message'Class)
-                           return MOMA.Types.Byte
-   is
-      MByte_Message_Rcvd : MOMA.Messages.MBytes.MByte;
-
-   begin
-      if Message in MOMA.Messages.MBytes.MByte then
-         MByte_Message_Rcvd :=
-           MOMA.Messages.MBytes.MByte (Message);
-      else
-         raise Program_Error;
-      end if;
-      return Get_Byte (MByte_Message_Rcvd);
-   end Get_Byte_Value;
-
-
-   function Receive_MByte return MOMA.Types.Byte;
-
-   function Receive_MByte return MOMA.Types.Byte is
-      MOMA_Message_Temp : MOMA.Messages.Message'Class
-         := Receive (MOMA_Consumer);
-   begin
-      return Get_Byte_Value (MOMA_Message_Temp);
-   end Receive_MByte;
-
-   --------------------------
-   -- Call_Back Procedures --
-   --------------------------
-
-   procedure P_Handler1 (
-      MOMA_Handler : access Message_Handler;
-      Message : MOMA.Messages.Message'Class);
-   pragma Warnings (Off);
-   pragma Unreferenced (P_Handler1);
-   pragma Warnings (On);
-
-   procedure P_Handler1 (
-      MOMA_Handler : access Message_Handler;
-      Message : MOMA.Messages.Message'Class)
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (MOMA_Handler);
-      pragma Warnings (On);
-
-   begin
-      Put_Line ("Handling Message " &
-         MOMA.Types.Byte'Image (Get_Byte_Value (Message)));
-   end P_Handler1;
-
-   procedure P_Notifier1 (MOMA_Handler : access Message_Handler);
-   pragma Warnings (Off);
-   pragma Unreferenced (P_Notifier1);
-   pragma Warnings (On);
-
-   procedure P_Notifier1 (MOMA_Handler : access Message_Handler)
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (MOMA_Handler);
-      pragma Warnings (On);
-
-   begin
-      Put_Line ("Notifying Message");
-   end P_Notifier1;
-
-   Handler1 : MOMA.Message_Handlers.Handler;
-
-   Notifier1 : MOMA.Message_Handlers.Notifier;
 
    ---------------
    -- Put_Usage --
@@ -194,6 +110,20 @@ procedure Client_Call_Back is
    begin
       Put_Line ("usage : client <IOR>");
    end Put_Usage;
+
+   ----------
+   -- Wait --
+   ----------
+
+   procedure Wait;
+
+   procedure Wait is
+   begin
+      while not Call_Back_Test.Proceed loop
+         delay 0.5;
+      end loop;
+      Call_Back_Test.Proceed := False;
+   end Wait;
 
    --------------------
    -- Main Procedure --
@@ -250,25 +180,65 @@ begin
    --  Initialization is completed.
    Output ("Initialization", True);
 
-   Handler1 := MOMA.Message_Handlers.Template_Handler'Access;
+   Call_Back_Test.Byte_Value := MOMA.Types.Byte (1);
+   Call_Back_Test.Proceed := False;
+   Set_Call_Back_Data (MOMA_Handler_Acc, Call_Back_Test'Access);
 
-   Notifier1 := MOMA.Message_Handlers.Template_Notifier'Access;
-
-   Set_Handler (MOMA_Handler_Acc, Handler1);
-   Set_Notifier (MOMA_Handler_Acc, Notifier1);
-   Set_Behavior (MOMA_Handler_Acc, Notify);
+   Set_Handler (MOMA_Handler_Acc, Handle_Then_Notify'Access);
+   Set_Notifier (MOMA_Handler_Acc, Notify_And_Receive'Access);
+   Set_Behavior (MOMA_Handler_Acc, Handle);
    Output ("Set behavior and procedures", True);
 
    Put_Line ("Send messages");
-   Send_MByte (1);
+   Send_MByte (MOMA_Producer, 1);
+   --  Message 1 is handled.
+   --  Behavior is set to Notify by current Handle procedure.
+   Wait;
 
-   Set_Behavior (MOMA_Handler_Acc, Handle);
+   Set_Behavior (MOMA_Handler_Acc, Notify);
+   Call_Back_Test.Byte_Value := MOMA.Types.Byte (2);
 
-   Send_MByte (2);
+   Send_MByte (MOMA_Producer, 2);
+   --  Message 2 is notified and received.
+   Wait;
 
-   Message_Id := Receive_MByte;
-   Message_Id := Receive_MByte;
-   Ok := True;
+   Set_Notifier (MOMA_Handler_Acc,
+                 MOMA.Message_Handlers.Template_Notifier'Access);
+
+   Send_MByte (MOMA_Producer, 3);
+   --  Message 3 is notified and not received.
+   Wait;
+
+   Set_Notifier (MOMA_Handler_Acc, Notify_Then_Handle'Access);
+
+   Send_MByte (MOMA_Producer, 4);
+   --  Message 4 is notified and not received.
+   --  Behavior is set to Handle by current Notify procedure.
+   Wait;
+
+   Call_Back_Test.Byte_Value := MOMA.Types.Byte (5);
+
+   Send_MByte (MOMA_Producer, 5);
+   --  Message 5 is handled.
+   --  Behavior is set to Notify by current Handle procedure.
+   Wait;
+
+   Set_Behavior (MOMA_Handler_Acc, None);
+
+   Send_MByte (MOMA_Producer, 6);
+   --  No call_back actions are defined for Message 6
+
+   Message_Id := Receive_MByte (MOMA_Consumer);
+   Output ("Receive message " & MOMA.Types.Byte'Image (Message_Id),
+      Message_Id = MOMA.Types.Byte (3));
+
+   Message_Id := Receive_MByte (MOMA_Consumer);
+   Output ("Receive message " & MOMA.Types.Byte'Image (Message_Id),
+      Message_Id = MOMA.Types.Byte (4));
+
+   Message_Id := Receive_MByte (MOMA_Consumer);
+   Output ("Receive message " & MOMA.Types.Byte'Image (Message_Id),
+      Message_Id = MOMA.Types.Byte (6));
 
    --  XXX should destroy all structures here !
 end Client_Call_Back;
