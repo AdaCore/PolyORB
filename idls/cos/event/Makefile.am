@@ -71,6 +71,8 @@ GEN_SPECS_WITH_BODY= \
   costypedeventcomm-typedpushconsumer-skel.ads \
   costypedeventcomm-typedpushconsumer.ads
 
+GEN_BODIES = $(GEN_SPECS_WITH_BODY:.ads=.adb)
+
 GEN_SPECS_NO_BODY= \
   costypedeventcomm.ads
 
@@ -84,7 +86,11 @@ $(GEN): $(IDL) $(IDLAC)
 	done
 	touch $@
 
-DISTCLEANFILES += ${GEN}
+$(GEN_BODIES): $(GEN)
+
+$(ADA_LIBADD): $(GEN)
+
+DISTCLEANFILES += $(GEN) $(GEN_BODIES)
 
 #
 # Building libpolyorb-corba-cos-event library
@@ -98,6 +104,6 @@ ADA_SPECS_NO_BODY = \
 
 lib_LTLIBRARIES = libpolyorb-corba-cos-event.la
 
-libpolyorb_corba_cos_event_la_SOURCES = $(GEN)
+libpolyorb_corba_cos_event_la_SOURCES = $(GEN_BODIES)
 libpolyorb_corba_cos_event_la_LIBADD  = $(ADA_LIBADD)
 libpolyorb_corba_cos_event_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)

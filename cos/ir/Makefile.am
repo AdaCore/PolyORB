@@ -129,6 +129,8 @@ $(GEN): $(srcdir)/ir.idl $(srcdir)/typecode.sh $(IDLAC)
 	@chmod +x $(srcdir)/typecode.sh
 	$(srcdir)/typecode.sh $(SED) $(RM) $(GEN) $(GEN_BODIES)
 
+$(GEN_BODIES): $(GEN)
+
 DISTCLEANFILES += $(GEN) $(GEN_BODIES)
 
 #
@@ -144,6 +146,6 @@ ADA_SPECS_NO_BODY = \
 
 lib_LTLIBRARIES = libpolyorb-corba-cos-ir-impl.la
 
-libpolyorb_corba_cos_ir_impl_la_SOURCES = $(GEN)
+libpolyorb_corba_cos_ir_impl_la_SOURCES = $(GEN_BODIES)
 libpolyorb_corba_cos_ir_impl_la_LIBADD  = $(ADA_LIBADD)
 libpolyorb_corba_cos_ir_impl_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
