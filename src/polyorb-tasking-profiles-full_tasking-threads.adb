@@ -34,8 +34,6 @@
 
 with System.Tasking;
 
-with Ada.Task_Identification;
-with Ada.Dynamic_Priorities;
 with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 
@@ -53,11 +51,6 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
    procedure Free is new Ada.Unchecked_Deallocation
      (PTT.Runnable_Controller'Class, PTT.Runnable_Controller_Access);
-
-   function P_To_A_Task_Id (TID : PTT.Thread_Id)
-     return Ada.Task_Identification.Task_Id;
-   pragma Inline (P_To_A_Task_Id);
-   --  Convert PolyORB Task_Id to Ada Task_Id.
 
    function A_To_P_Task_Id (ATID : Ada.Task_Identification.Task_Id)
      return PTT.Thread_Id;
@@ -122,7 +115,8 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    -- Run --
    ---------
 
-   procedure Run (SR : access Simple_Runnable) is
+   procedure Run (SR : access Simple_Runnable)
+   is
       use type PTT.Parameterless_Procedure;
    begin
       if SR.Main_Subprogram /= null then
@@ -140,7 +134,8 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       Default_Priority : System.Any_Priority := System.Default_Priority;
       R                : PTT.Runnable_Access;
       C                : PTT.Runnable_Controller_Access)
-     return PTT.Thread_Access is
+     return PTT.Thread_Access
+   is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
       pragma Warnings (On);
@@ -251,15 +246,35 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
    procedure Set_Priority
      (TF : access Full_Tasking_Thread_Factory_Type;
-      T  : PTT.Thread_Id;
-      P  : System.Any_Priority)
+      T  :        PTT.Thread_Id;
+      P  :        System.Any_Priority)
    is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
       pragma Warnings (On);
    begin
-      Ada.Dynamic_Priorities.Set_Priority (P, P_To_A_Task_Id (T));
+      raise PolyORB.Tasking.Tasking_Profile_Error;
    end Set_Priority;
+
+   ------------------
+   -- Get_Priority --
+   ------------------
+
+   function Get_Priority
+     (TF : access Full_Tasking_Thread_Factory_Type;
+      T  :        PTT.Thread_Id)
+     return System.Any_Priority
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (TF);
+      pragma Warnings (On);
+   begin
+      --  XXX how to implement this function ???
+
+      raise PolyORB.Tasking.Tasking_Profile_Error;
+
+      return 0;
+   end Get_Priority;
 
    ----------------
    -- Initialize --

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                              T E S T 0 0 1                               --
+--    POLYORB.TASKING.PROFILES.FULL_TASKING.THREADS_DYNAMIC_PRIORITIES      --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,29 +30,73 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Thread testsuite.
-
 --  $Id$
 
-with Ada.Command_Line;
+with Ada.Dynamic_Priorities;
 
 with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
-with Test001_Common;
+with PolyORB.Utils.Strings;
 
-procedure Test001 is
-   use Ada.Command_Line;
+package body PolyORB.Tasking.Profiles.Full_Tasking.Threads_Dynamic_Priorities
+is
 
-   use Test001_Common;
+   ------------------
+   -- Set_Priority --
+   ------------------
 
-   Nb_Of_Tasks : Natural := 1000;
+   procedure Set_Priority
+     (TF : access Full_Tasking_DP_Thread_Factory_Type;
+      T  :        PTT.Thread_Id;
+      P  :        System.Any_Priority)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (TF);
+      pragma Warnings (On);
+   begin
+      Ada.Dynamic_Priorities.Set_Priority (P, PTPFT.P_To_A_Task_Id (T));
+   end Set_Priority;
+
+   ------------------
+   -- Get_Priority --
+   ------------------
+
+   function Get_Priority
+     (TF : access Full_Tasking_DP_Thread_Factory_Type;
+      T  :        PTT.Thread_Id)
+     return System.Any_Priority
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (TF);
+      pragma Warnings (On);
+   begin
+      return Ada.Dynamic_Priorities.Get_Priority (PTPFT.P_To_A_Task_Id (T));
+   end Get_Priority;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      PTT.Register_Thread_Factory (PTT.Thread_Factory_Access
+                                   (The_Thread_Factory));
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
 begin
-   if Ada.Command_Line.Argument_Count = 1 then
-      Nb_Of_Tasks := Natural'Value (Ada.Command_Line.Argument (1));
-   end if;
-   PolyORB.Initialization.Initialize_World;
-   Initialize_Test;
-   Test_Task_Creation (Nb_Of_Tasks);
-   Test_Task_Priorities;
+   Register_Module
+     (Module_Info'
+      (Name => +"tasking.profiles.full_tasking.thread_dynamic_priorities",
+       Conflicts => Empty,
+       Depends => Empty,
+       Provides => +"tasking.threads",
+       Init => Initialize'Access));
 
-end Test001;
+end PolyORB.Tasking.Profiles.Full_Tasking.Threads_Dynamic_Priorities;

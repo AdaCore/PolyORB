@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                              T E S T 0 0 1                               --
+--    POLYORB.TASKING.PROFILES.FULL_TASKING.THREADS_DYNAMIC_PRIORITIES      --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,29 +30,41 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Thread testsuite.
+--  This packages provides a thread library for an Ada full tasking
+--  runtime, using Ada.Dynamic_Priorities.
 
---  $Id$
+with PolyORB.Tasking.Threads;
+with PolyORB.Tasking.Profiles.Full_Tasking.Threads;
 
-with Ada.Command_Line;
+with System;
 
-with PolyORB.Initialization;
+package PolyORB.Tasking.Profiles.Full_Tasking.Threads_Dynamic_Priorities is
 
-with Test001_Common;
+   package PTPFT renames PolyORB.Tasking.Profiles.Full_Tasking.Threads;
+   package PTT   renames PolyORB.Tasking.Threads;
 
-procedure Test001 is
-   use Ada.Command_Line;
+   type Full_Tasking_DP_Thread_Factory_Type is
+     new PTPFT.Full_Tasking_Thread_Factory_Type with private;
 
-   use Test001_Common;
+   type Full_Tasking_DP_Thread_Factory_Type_Access is
+     access all Full_Tasking_DP_Thread_Factory_Type'Class;
 
-   Nb_Of_Tasks : Natural := 1000;
-begin
-   if Ada.Command_Line.Argument_Count = 1 then
-      Nb_Of_Tasks := Natural'Value (Ada.Command_Line.Argument (1));
-   end if;
-   PolyORB.Initialization.Initialize_World;
-   Initialize_Test;
-   Test_Task_Creation (Nb_Of_Tasks);
-   Test_Task_Priorities;
+   procedure Set_Priority
+     (TF : access Full_Tasking_DP_Thread_Factory_Type;
+      T  :        PTT.Thread_Id;
+      P  :        System.Any_Priority);
 
-end Test001;
+   function Get_Priority
+     (TF : access Full_Tasking_DP_Thread_Factory_Type;
+      T  :        PTT.Thread_Id)
+     return System.Any_Priority;
+
+private
+
+   type Full_Tasking_DP_Thread_Factory_Type is
+     new PTPFT.Full_Tasking_Thread_Factory_Type with null record;
+
+   The_Thread_Factory : constant Full_Tasking_DP_Thread_Factory_Type_Access
+     := new Full_Tasking_DP_Thread_Factory_Type;
+
+end PolyORB.Tasking.Profiles.Full_Tasking.Threads_Dynamic_Priorities;

@@ -791,6 +791,8 @@ src/polyorb-tasking-profiles-full_tasking-mutexes.adb
 src/polyorb-tasking-profiles-full_tasking-mutexes.ads
 src/polyorb-tasking-profiles-full_tasking-threads.adb
 src/polyorb-tasking-profiles-full_tasking-threads.ads
+src/polyorb-tasking-profiles-full_tasking-threads_dynamic_priorities.ads
+src/polyorb-tasking-profiles-full_tasking-threads_dynamic_priorities.adb
 src/polyorb-tasking-profiles-full_tasking.ads
 src/polyorb-tasking-profiles-no_tasking-condition_variables.adb
 src/polyorb-tasking-profiles-no_tasking-condition_variables.ads

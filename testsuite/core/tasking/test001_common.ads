@@ -40,4 +40,7 @@ package Test001_Common is
    procedure Test_Task_Creation (Nb_Of_Tasks : Natural := 1000);
    --  Create 'Nb_Of_Tasks' tasks that wait 1s then exit.
 
+   procedure Test_Task_Priorities;
+   --  Test Task priority management.
+
 end Test001_Common;

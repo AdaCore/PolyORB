@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  This package defines priority management within PolyORB.
+
 --  This package defines priority ranges available within PolyORB for
 --  execution threads. It also defines priority mapping between entity
 --  priority (e.g. as request, message, object) that impact the
@@ -38,6 +40,7 @@
 --  $Id$
 
 with System;
+
 with PolyORB.Types;
 
 package PolyORB.Tasking.Priorities is
@@ -47,9 +50,9 @@ package PolyORB.Tasking.Priorities is
    ------------------
 
    --  ORB internal priorities are derived from Ada native priorities.
-   --  We define ORB_Core and ORB_Component priority levels,so we make
-   --  a distinction between ORB Core entities that require high
-   --  priority to process some information; from other components.
+   --  We define ORB_Core and ORB_Component priority levels, so we
+   --  make a distinction between ORB Core entities that require high
+   --  priority to process some information and other components.
 
    subtype ORB_Priority is System.Priority range
      System.Priority'First .. System.Priority'Last;
@@ -58,17 +61,23 @@ package PolyORB.Tasking.Priorities is
    ORB_Core_Levels : constant Natural := 1;
    --  Number of priority levels affected to the ORB Core.
 
-   subtype ORB_Component_Priority is System.Priority range
+   subtype ORB_Component_Priority is ORB_Priority range
      ORB_Priority'First .. ORB_Priority'Last - ORB_Core_Levels;
-   --  ORB_Component_Priority defines the priority set an ORB
-   --  component may have. This range usually applies to most
-   --  components, including user components.
+   --  ORB_Component_Priority defines the priority an ORB component
+   --  may have. This range usually applies to most components,
+   --  including user components.
+
+   Default_Component_Priority : constant ORB_Component_Priority;
+   --  Default priority for ORB Components.
 
    subtype ORB_Core_Priority is System.Priority range
      ORB_Priority'Last - ORB_Core_Levels + 1 .. ORB_Priority'Last;
    --  ORB_Core_Priority defines the priority of some ORB key
    --  components. It is reserved to high priority loops, such as
    --  PolyORB.ORB main loop.
+
+   Default_Core_Priority : constant ORB_Core_Priority;
+   --  Default priority for ORB Core.
 
    ----------------------
    -- Priority mapping --
@@ -89,14 +98,21 @@ package PolyORB.Tasking.Priorities is
       PolyORB_Priority  : out ORB_Component_Priority;
       Returns           : out PolyORB.Types.Boolean) is abstract;
    --  Map an 'Eternal_Priority' into an ORB_Component_Priority.
-   --  'Returns' is set to true if the operation was succsful.
+   --  'Returns' is set to true if the operation was succesful.
 
    procedure To_External_Priority
      (Self              : in  Priority_Mapping;
       PolyORB_Priority  : in  ORB_Component_Priority;
       External_Priority : out Integer;
       Returns           : out PolyORB.Types.Boolean) is abstract;
-   --  Map an ORB_Component_Priority into an 'Eternal_Priority'.
-   --  'Returns' is set to true if the operation was succsful.
+   --  Map an ORB_Component_Priority into an 'External_Priority'.
+   --  'Returns' is set to true if the operation was succesful.
+
+private
+   Default_Component_Priority : constant ORB_Component_Priority
+     := ORB_Component_Priority (System.Default_Priority);
+
+   Default_Core_Priority : constant ORB_Core_Priority
+     := ORB_Core_Priority'First;
 
 end PolyORB.Tasking.Priorities;
