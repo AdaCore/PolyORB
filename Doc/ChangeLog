@@ -1,63 +1,63 @@
-Sun Apr 13 16:48:54 1997  Laurent Pautet  <pautet@dorine.enst.fr>
-
-	* glade_ug.texi: Starting GLADE User Guide (texinfo). user_guide.html
-     should be removed.
-
-Thu Apr 10 22:31:39 1997  Laurent Pautet  <pautet@dorine.enst.fr>
-
-	* user_guide.txt: Add documentation on the default installed
- 	filter and the default used filter. 
-
-Wed Feb 12 10:50:01 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
-
-	* user_guide.txt: Building a shell script is not the
- 	default. Directory hierarchy has been changed (everything is under
- 	directory dsa). Remove obsolete warnings on exceptions.
-
-Tue Feb 11 10:21:51 1997  Laurent Pautet <pautet@inf.enst.fr>
-
-	* user_guide.txt, install_guide.txt: Change references to mailing
-	  lists.
-
-Fri Nov 29 11:49:30 1996  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* user_guide.txt: Documented the Ada starter.
-
-Wed Nov 27 15:42:47 1996  Laurent Pautet <pautet@inf.enst.fr>
-
-	* install_guide.txt: New file.
-
-Sat Nov 23 17:07:41 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
-
-	* user_guide.txt: Description of :
-	Partition'<Attribute>    ... (apply to all partitions)
-	procedure <Main>         ... (declare a main subprorgam; see below)
-	<Partition>'Main         ... (use specific partition main subprogr.)
-	<Partition>'Command_Line ... (add arg. on command line)
-	pragma Version           ... (don't check consistency version)
-	pragma Boot_Server       ... (use specific invocation key)
-
-	Mention possible execution in heterogeneous sys.
-	Remove shell restrictions when Ada starter was requested.
-
-Thu Nov  7 14:08:40 1996  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* user_guide.txt: Description of --nolaunch and addition of
-	  --slave.
-
-Fri Jul  5 16:33:00 1996  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* user_guide.txt: Franco's changes.
-
-Wed May  8 15:48:29 1996  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* gnatdist.txt: Added Garlic and Gnatdist version.
-
-Sun May  5 15:47:46 1996  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* gnatdist.txt: Boot_Server -> Boot_Server.
-
-Mon Apr 22 13:58:07 1996  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* gnatdist.txt: Updated.
-
+1997-04-13  Laurent Pautet <pautet@dorine.enst.fr>
+        
+        * glade_ug.texi: Starting GLADE User Guide (texinfo). user_guide.html
+        should be removed.
+        
+1997-04-10  Laurent Pautet <pautet@dorine.enst.fr>
+        
+        * user_guide.txt: Add documentation on the default installed
+        filter and the default used filter.
+        
+1997-02-12  Laurent Pautet <pautet@lglsun11.epfl.ch>
+        
+        * user_guide.txt: Building a shell script is not the
+        default. Directory hierarchy has been changed (everything is under
+        directory dsa). Remove obsolete warnings on exceptions.
+        
+1997-02-11  Laurent Pautet <pautet@inf.enst.fr>
+        
+        * user_guide.txt, install_guide.txt: Change references to mailing
+        lists.
+        
+1996-11-29  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * user_guide.txt: Documented the Ada starter.
+        
+1996-11-27  Laurent Pautet <pautet@inf.enst.fr>
+        
+        * install_guide.txt: New file.
+        
+1996-11-23  Laurent Pautet <pautet@quasimodo.enst.fr>
+        
+        * user_guide.txt: Description of :
+        Partition'<Attribute>    ... (apply to all partitions)
+        procedure <Main>         ... (declare a main subprorgam; see below)
+        <Partition>'Main         ... (use specific partition main subprogr.)
+        <Partition>'Command_Line ... (add arg. on command line)
+        pragma Version           ... (don't check consistency version)
+        pragma Boot_Server       ... (use specific invocation key)
+        
+        Mention possible execution in heterogeneous sys.
+        Remove shell restrictions when Ada starter was requested.
+        
+1996-11-07  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * user_guide.txt: Description of --nolaunch and addition of
+        --slave.
+        
+1996-07-05  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * user_guide.txt: Franco's changes.
+        
+1996-05-08  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * gnatdist.txt: Added Garlic and Gnatdist version.
+        
+1996-05-05  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * gnatdist.txt: Boot_Server -> Boot_Server.
+        
+1996-04-22  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * gnatdist.txt: Updated.
+        

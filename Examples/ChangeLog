@@ -1,64 +1,64 @@
-Wed Nov 19 23:19:01 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
-
-	* Filters: Rescue Filters example due to new stream storage pool
- 	features.
-
-Sun Sep  7 16:20:05 1997  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* check-config.in: Do not check for rsh to localhost anymore since 
-	  it will not be used.
-
-Wed May  7 18:19:09 1997  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* Messages/Makefile.am: Changed bogus pathes.
-
-Tue Apr 29 12:26:03 1997  Laurent Pautet  <pautet@dorine.enst.fr>
-
-	* check-config.in: Use $RSH instead of rsh (HP).
-
-Fri Apr 25 18:11:52 1997  Laurent Pautet <pautet@inf.enst.fr>
-
-	* Makefile.am, Makefile.in: get rid of RACW in distrib. Use Eratho
-     examples instead of RACW.
-
-Thu Apr 24 14:01:26 1997  Laurent Pautet  <pautet@scapin.enst.fr>
-
-	* Makefile.am, Makefile.in: Fix several problems in Examples/*
- 	Makefiles. First, gnatdist was invoked several times for the
- 	example due to an incorrect target specification. Second, a target
- 	was missing for one of the examples.
-
-Mon Apr  7 16:14:20 1997  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* check-config.in: Take cygwin32 extension (.exe) into account.
-
-	* Bank/Makefile.am: Remove gnatdist's full path. Code check-config
-	  path as relative to ${top_srcdir}.
-
-	* LightBank/Makefile.am: Ditto.
-
-Thu Mar 13 17:19:15 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
-
-	* Makefile.am: Add LightBank.
-
-	* Makefile.in: Modified (Makefile.am).
-
-Wed Feb 12 11:12:15 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
-
-	* Eratho/README: Add several comments on client/server
- 	applications. And give a full description of the example
- 	behaviour.
-
-Tue Jan  7 12:18:57 1997  Laurent Pautet  <pautet@scapin.enst.fr>
-
-	* check-config.in (exec_prefix): Quote variables in the last test
- 	in case of blank characters (?!)
-
-Mon Sep 30 11:21:27 1996  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* Prime/Makefile.am (all-local): Use ../check-stamp instead of
-	  calling check-config each time.
-
-	* check-config.in: don't use type anymore and make sure that the
-	  gnatdist which is first in PATH is the right one.
-
+1997-11-19  Laurent Pautet <pautet@esmeralda.enst.fr>
+        
+        * Filters: Rescue Filters example due to new stream storage pool
+        features.
+        
+1997-09-07  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * check-config.in: Do not check for rsh to localhost anymore since
+        it will not be used.
+        
+1997-05-07  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * Messages/Makefile.am: Changed bogus pathes.
+        
+1997-04-29  Laurent Pautet <pautet@dorine.enst.fr>
+        
+        * check-config.in: Use $RSH instead of rsh (HP).
+        
+1997-04-25  Laurent Pautet <pautet@inf.enst.fr>
+        
+        * Makefile.am, Makefile.in: get rid of RACW in distrib. Use Eratho
+        examples instead of RACW.
+        
+1997-04-24  Laurent Pautet <pautet@scapin.enst.fr>
+        
+        * Makefile.am, Makefile.in: Fix several problems in Examples/*
+        Makefiles. First, gnatdist was invoked several times for the
+        example due to an incorrect target specification. Second, a target
+        was missing for one of the examples.
+        
+1997-04-07  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * check-config.in: Take cygwin32 extension (.exe) into account.
+        
+        * Bank/Makefile.am: Remove gnatdist's full path. Code check-config
+        path as relative to ${top_srcdir}.
+        
+        * LightBank/Makefile.am: Ditto.
+        
+1997-03-13  Laurent Pautet <pautet@esmeralda.enst.fr>
+        
+        * Makefile.am: Add LightBank.
+        
+        * Makefile.in: Modified (Makefile.am).
+        
+1997-02-12  Laurent Pautet <pautet@lglsun11.epfl.ch>
+        
+        * Eratho/README: Add several comments on client/server
+        applications. And give a full description of the example
+        behaviour.
+        
+1997-01-07  Laurent Pautet <pautet@scapin.enst.fr>
+        
+        * check-config.in (exec_prefix): Quote variables in the last test
+        in case of blank characters (?!)
+        
+1996-09-30  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * Prime/Makefile.am (all-local): Use ../check-stamp instead of
+        calling check-config each time.
+        
+        * check-config.in: don't use type anymore and make sure that the
+        gnatdist which is first in PATH is the right one.
+        
