@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.5 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -46,8 +46,17 @@ package CORBA.Principal is
 
 private
 
-   --  Dummy declaration to compile unit.
-   type Object is new Integer;
+   type Object is
+      record
+         Dummy : Integer;
+      end record;
+
+   type CORBA_Principal_Ptr is access all CORBA.Principal.Object;
+   package Address_To_CORBA_Principal is
+     new System.Address_To_Access_Conversions (CORBA.Principal.Object);
+   function To_CORBA_Principal is
+     new Ada.Unchecked_Conversion
+     (Address_To_CORBA_Principal.Object_Pointer, CORBA_Principal_Ptr);
 
 end CORBA.Principal;
 

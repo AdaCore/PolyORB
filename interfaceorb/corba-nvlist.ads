@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.5 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -56,9 +56,23 @@ package CORBA.NVList is
    Null_Object : constant Object;
 
 private
+   --  implementation defined
 
-   --  To be fixed
-   type Object is new Integer;
-   Null_Object : constant Object := 0;
+   type Cell;
+   type Cell_Ptr is access all Cell;
+   type Cell is record
+      Value : CORBA.NamedValue;
+      Next : Cell_Ptr;
+   end record;
+
+   --  the implementation should maintain Args_Count to the current
+   --  number of cells in the list
+   type Object is
+      record
+         Args_Count : Long := 0;
+         List       : Cell_Ptr := null;
+      end record;
+
+   Null_Object : constant Object := (0, null);
 
 end CORBA.NVList;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.1 $
+--                            $Revision: 1.2 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -93,5 +93,30 @@ package body CORBA.Request is
    begin
       null;
    end Get_Response;
+
+   ----------------------------------------
+   --  implementation defined functions  --
+   ----------------------------------------
+
+   -----------
+   --  set  --
+   -----------
+
+   procedure Set
+     (Self       :    out CORBA.Request.Object;
+      Ctx        : in     CORBA.Context.Object;
+      Operation  : in     CORBA.Identifier;
+      Arg_List   : in     CORBA.NVList.Object;
+      Result     : access CORBA.NamedValue;
+      Req_Flags  : in     CORBA.Flags) is
+   begin
+      Self := (null, --  contexts used not implemented at all for now
+               Operation,
+               Arg_List,
+               Ptr (Result),
+               Req_Flags);
+   end Set;
+
+
 
 end CORBA.Request;

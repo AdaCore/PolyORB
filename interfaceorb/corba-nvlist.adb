@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.1 $
+--                            $Revision: 1.2 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -45,8 +45,13 @@ package body CORBA.NVList is
       Item       : in     Any;
       Item_Flags : in     Flags)
    is
+      Nv : NamedValue;
    begin
-      null;
+      Nv := (Item_Name,
+             Item,
+             1, --  to do
+             Item_Flags);
+      Add_Item (Self, Nv);
    end Add_Item;
 
    --------------
@@ -57,8 +62,10 @@ package body CORBA.NVList is
      (Self : in out Object;
       Item : in     NamedValue)
    is
+      Tmp : Cell_Ptr := new Cell'(Item, Self.List);
    begin
-      null;
+      Self.List := Tmp;
+      Self.Args_Count := Self.Args_Count + 1;
    end Add_Item;
 
    ---------------
@@ -70,7 +77,7 @@ package body CORBA.NVList is
       Count : out CORBA.Long)
    is
    begin
-      Count := 0;
+      Count := Self.Args_Count;
    end Get_Count;
 
 end CORBA.NVList;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.5 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -39,39 +39,47 @@ package CORBA.Context is
 
    type Object is limited private;
 
+   Null_Object : constant Object;
+
    procedure Set_One_Value
      (Self      : in out Object;
-      Prop_Name : in    Identifier;
-      Value     : in    CORBA.String);
+      Prop_Name : in     CORBA.Identifier;
+      Value     : in     CORBA.String);
 
    procedure Set_Values
      (Self      : in out Object;
       Values    : in     CORBA.NVList.Object);
 
    procedure Get_Values
-     (Self        : in     Object;
-      Start_Scope : in     Identifier;
-      This_Object : in     Boolean := True;
-      Prop_Name   : in     Identifier;
+     (Self        : in out Object;
+      Start_Scope : in     CORBA.Identifier;
+      Op_Flags    : in     CORBA.Flags;
+      Prop_Name   : in     CORBA.Identifier;
       Values      :    out CORBA.NVList.Object);
 
    procedure Delete_Values
      (Self      : in out Object;
-      Prop_Name : in     Identifier);
+      Prop_Name : in     CORBA.Identifier);
 
    procedure Create_Child
      (Self      : in out Object;
-      Ctx_Name  : in     Identifier;
+      Ctx_Name  : in     CORBA.Identifier;
       Child_Ctx :    out Object);
 
    procedure Delete
-     (Self              : in Object;
-      Delete_Descendant : in Boolean := False);
+     (Self              : in out Object;
+      Delete_Descendant : in     CORBA.Flags);
 
 private
 
    --  implementation defined
    --  Dummy declaration to compile unit.
-   type Object is new Integer;
+   type Object is
+      record
+         Dummy : Integer;
+      end record;
+
+   Null_Object : constant Object := (Dummy => 0);
+
 
 end CORBA.Context;

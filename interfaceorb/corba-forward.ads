@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.14 $
+--                            $Revision: 1.15 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -46,6 +46,22 @@ package CORBA.Forward is
       function From_Forward (The_Forward : in Ref)  return Ref_Type;
       function To_Forward   (The_Ref : in Ref_Type) return Ref;
    end Convert;
+
+
+private
+   -----------------
+   --  DII stuff  --
+   -----------------
+
+   function From_Any (From : in Any)
+                      return Ref;
+   type CORBA_Forward_Ref_Ptr is access all CORBA.Forward.Ref;
+   package Address_To_CORBA_Forward_Ref is
+     new System.Address_To_Access_Conversions (CORBA.Forward.Ref);
+   function To_CORBA_Forward_Ref is
+     new Ada.Unchecked_Conversion
+     (Address_To_CORBA_Forward_Ref.Object_Pointer, CORBA_Forward_Ref_Ptr);
+
 
 end CORBA.Forward;
 

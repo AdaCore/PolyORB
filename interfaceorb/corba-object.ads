@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.70 $
+--                            $Revision: 1.71 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -37,6 +37,10 @@ with Ada.Finalization;
 
 with AdaBroker;
 with AdaBroker.OmniORB;
+with CORBA.Context;
+with CORBA.NVList;
+with CORBA.Request;
+
 
 package CORBA.Object is
 
@@ -79,6 +83,39 @@ package CORBA.Object is
 
    Nil_Ref : constant Ref;
 
+
+   -----------------------------
+   --  DII related functions  --
+   -----------------------------
+
+   function To_Any (From : in Ref) return Any;
+
+   function From_any (From : in Any) return Ref;
+
+
+   --  the 2 following functions will be implemented later
+
+   --   function Get_Implementation
+   --  deprecated,  will be removed in CORBA 2.2
+   --     (Self : in Ref)
+   --      return CORBA.ImplementationDef.Ref;
+
+   --   function Get_Interface
+   --     (Self : in Ref)
+   --      return CORBA.InterfaceDef.Ref;
+
+   procedure Create_Request
+   --  the only way for a client to build dynamically a request
+   --  he may use Add_Arg method (corba-request) after that
+     (Self      : in     Ref;
+      Ctx       : in     CORBA.Context.Object;
+      Operation : in     Identifier;
+      Arg_List  : in     CORBA.NVList.Object;
+      Result    : access NamedValue;
+      Request   :    out CORBA.Request.Object;
+      Req_Flags : in     Flags);
+
+
 private
 
    type Ref is new Ada.Finalization.Controlled with record
@@ -99,5 +136,16 @@ private
 
    Nil_Ref : constant Ref
      := (Ada.Finalization.Controlled with OmniObj => null);
+
+   -----------------
+   --  DII stuff  --
+   -----------------
+
+   type CORBA_Object_Ref_Ptr is access all CORBA.Object.Ref;
+   package Address_To_CORBA_Object_Ref is
+     new System.Address_To_Access_Conversions (CORBA.Object.Ref);
+   function To_CORBA_Object_Ref is
+     new Ada.Unchecked_Conversion
+     (Address_To_CORBA_Object_Ref.Object_Pointer, CORBA_Object_Ref_Ptr);
 
 end CORBA.Object;

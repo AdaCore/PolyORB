@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.47 $
+--                            $Revision: 1.48 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -245,7 +245,7 @@ package CORBA is
 
       function "="
         (Left, Right : in Object)
-         return Boolean
+         return CORBA.Boolean
         renames Equal;
 
       function Kind
@@ -319,7 +319,7 @@ package CORBA is
    type Flags is new CORBA.Unsigned_Long;
    ARG_IN    : constant Flags := 1;
    ARG_OUT   : constant Flags := 2;
-   ARG_INOUT : constant Flags := 3;
+   ARG_INOUT : constant Flags := 4;
 
    type NamedValue is record
       Name      : Identifier; -- arg name
@@ -328,13 +328,13 @@ package CORBA is
       Arg_Modes : Flags;      -- arg mode flags
    end record;
 
-   OUT_LIST_MEMORY    : constant Flags := 4; -- CORBA 6.2.1
-   IN_COPY_VALUE      : constant Flags := 5; -- CORBA 6.2.2
-   INV_NO_RESPONSE    : constant Flags := 6; -- CORBA 6.3.1
-   INV_TERM_ON_ERR    : constant Flags := 7; -- CORBA 6.3.2
-   RESP_NO_WAIT       : constant Flags := 8; -- CORBA 6.3.3
-   DEPENDENT_LIST     : constant Flags := 9; -- CORBA 6.4.2
-   CTX_RESTRICT_SCOPE : constant Flags := 10; -- CORBA 6.6.4
+   OUT_LIST_MEMORY    : constant Flags := 8; -- CORBA 6.2.1
+   IN_COPY_VALUE      : constant Flags := 16; -- CORBA 6.2.2
+   INV_NO_RESPONSE    : constant Flags := 32; -- CORBA 6.3.1
+   INV_TERM_ON_ERR    : constant Flags := 64; -- CORBA 6.3.2
+   RESP_NO_WAIT       : constant Flags := 128; -- CORBA 6.3.3
+   DEPENDENT_LIST     : constant Flags := 256; -- CORBA 6.4.2
+   CTX_RESTRICT_SCOPE : constant Flags := 512; -- CORBA 6.6.4
 
    --  Container and Contained Objects
    --  moved to child package CORBA.Repository_Root

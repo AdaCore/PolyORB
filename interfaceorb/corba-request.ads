@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.5 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -33,6 +33,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with CORBA.NVList;
+with CORBA.Context;
+
 package CORBA.Request is
 
    type Object is private;
@@ -56,10 +59,30 @@ package CORBA.Request is
      (Self           : in out Object;
       Response_Flags : in     Flags);
 
-private
+   --  implementation defined
 
-   --  Implementation defined
-   --  Dummy declaration to compile unit.
-   type Object is new Integer;
+   type Context_Object_Ptr is access all CORBA.Context.Object;
+
+   procedure Set
+     (Self       :    out CORBA.Request.Object;
+      Ctx        : in     CORBA.Context.Object;
+      Operation  : in     CORBA.Identifier;
+      Arg_List   : in     CORBA.NVList.Object;
+      Result     : access CORBA.NamedValue;
+      Req_Flags  : in     CORBA.Flags);
+
+
+private
+   --  implementation defined
+   type Ptr is access all CORBA.NamedValue;
+
+   type Object is
+      record
+         Ctx        : Context_Object_Ptr;
+         Operation  : CORBA.Identifier;
+         Args_List  : CORBA.NVList.Object;
+         Result     : Ptr;
+         Req_Flags  : CORBA.Flags;
+      end record;
 
 end CORBA.Request;

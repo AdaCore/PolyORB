@@ -1,4 +1,4 @@
-------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.62 $
+--                            $Revision: 1.63 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -196,5 +196,53 @@ package body CORBA.Object is
 
       pragma Debug (O ("finalize : leave"));
    end Finalize;
+
+
+   -----------------------------
+   --  DII related functions  --
+   -----------------------------
+
+   function To_Any (From : in Ref)
+                    return CORBA.Any is
+      SysAdr : System.Address := From'Address;
+      The_Any : CORBA.Any;
+      Tco : CORBA.TypeCode.Object;
+   begin
+      CORBA.TypeCode.Set (Tco, Tk_Objref);
+      CORBA.SetAny (The_Any, SysAdr, Tco);
+      return The_Any;
+   end To_Any;
+
+   function From_Any (From : in Any)
+                      return Ref is
+      Ptr : CORBA_Object_Ref_Ptr;
+   begin
+      if (TypeCode.Kind (From.The_Type) /= Tk_Objref) then
+         raise CORBA.Bad_Typecode;
+      end if;
+      Ptr := To_CORBA_Object_Ref
+        (Address_To_CORBA_Object_Ref.To_Pointer (From.The_Value));
+      return Ptr.all;
+   end From_Any;
+
+   procedure Create_Request (Self      : in     Ref;
+                             Ctx       : in     CORBA.Context.Object;
+                             Operation : in     CORBA.Identifier;
+                             Arg_List  : in     CORBA.NVList.Object;
+                             Result    : access CORBA.NamedValue;
+                             Request   :    out CORBA.Request.Object;
+                             Req_Flags : in     CORBA.Flags) is
+      --  to be fixed
+   begin
+      CORBA.Request.Set (Request,
+                         Ctx,
+                         Operation,
+                         Arg_List,
+                         Result,
+                         Req_Flags);
+      --  Self is not used now ???
+   end Create_Request;
+
+
 
 end CORBA.Object;

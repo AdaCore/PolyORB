@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.1 $
+--                            $Revision: 1.2 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -39,8 +39,8 @@ package body CORBA.Context is
 
    procedure Set_One_Value
      (Self      : in out Object;
-      Prop_Name : in    Identifier;
-      Value     : in    CORBA.String)
+      Prop_Name : in     CORBA.Identifier;
+      Value     : in     CORBA.String)
    is
    begin
       null;
@@ -63,14 +63,15 @@ package body CORBA.Context is
    ----------------
 
    procedure Get_Values
-     (Self        : in     Object;
-      Start_Scope : in     Identifier;
-      This_Object : in     Boolean := True;
-      Prop_Name   : in     Identifier;
+     (Self        : in out Object;
+      Start_Scope : in     CORBA.Identifier;
+      Op_Flags    : in     CORBA.Flags;
+      Prop_Name   : in     CORBA.Identifier;
       Values      :    out CORBA.NVList.Object)
    is
    begin
-      Values := Null_Object;
+      Values := CORBA.NVList.Null_Object;  --  dummy
+      null;
    end Get_Values;
 
    -------------------
@@ -79,7 +80,7 @@ package body CORBA.Context is
 
    procedure Delete_Values
      (Self      : in out Object;
-      Prop_Name : in     Identifier)
+      Prop_Name : in     CORBA.Identifier)
    is
    begin
       null;
@@ -91,11 +92,11 @@ package body CORBA.Context is
 
    procedure Create_Child
      (Self      : in out Object;
-      Ctx_Name  : in     Identifier;
+      Ctx_Name  : in     CORBA.Identifier;
       Child_Ctx :    out Object)
    is
    begin
-      Child_Ctx := 0;
+      Child_Ctx := Null_Object; --  dummy
    end Create_Child;
 
    ------------
@@ -103,8 +104,8 @@ package body CORBA.Context is
    ------------
 
    procedure Delete
-     (Self              : in Object;
-      Delete_Descendant : in Boolean := False)
+     (Self              : in out Object;
+      Delete_Descendant : in     CORBA.Flags)
    is
    begin
       null;
