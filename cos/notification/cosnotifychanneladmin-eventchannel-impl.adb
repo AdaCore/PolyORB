@@ -433,8 +433,9 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
       for Index in 1 .. SeqLen loop
          MyProp := Get_Element (QoS, Index);
          if MyProp.name = "EventReliability" then
-            if (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-               CORBA.Short'(From_Any (MyProp.value)) /= 1) then
+            if CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (0)));
@@ -442,14 +443,17 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "ConnectionReliability" then
-            if (Consumers > 0 or Suppliers > 0) then
+            if Consumers > 0
+              or else Suppliers > 0
+            then
                MyErrCode := UNAVAILABLE_PROPERTY;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (0)));
                MyError   := (MyErrCode, MyProp.name, MyRange);
                Append (MyErrorSeq, MyError);
-            elsif (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-                   CORBA.Short'(From_Any (MyProp.value)) /= 1) then
+            elsif CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (0)));
@@ -457,8 +461,9 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "Priority" then
-            if (CORBA.Short'(From_Any (MyProp.value)) < -32767 and
-               CORBA.Short'(From_Any (MyProp.value)) > 32767) then
+            if CORBA.Short'(From_Any (MyProp.value)) < -32767
+              or else CORBA.Short'(From_Any (MyProp.value)) > 32767
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (-32767)),
                              To_Any (CORBA.Short (32767)));
@@ -478,10 +483,11 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
                MyError   := (MyErrCode, MyProp.name, MyRange);
                Append (MyErrorSeq, MyError);
          elsif MyProp.name = "OrderPolicy" then
-            if (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 1 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 2 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 3) then
+            if CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 2
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 3
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (3)));
@@ -489,11 +495,12 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "DiscardPolicy" then
-            if (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 1 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 2 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 3 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 4) then
+            if CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 2
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 3
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 4
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (4)));
@@ -527,7 +534,7 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
          end if;
       end loop;
 
-      if (Length (MyErrorSeq) > 0) then
+      if Length (MyErrorSeq) > 0 then
          declare
             Members : CORBA.IDL_Exception_Members'Class
                     := UnsupportedQoS_Members'(qos_err => MyErrorSeq);
@@ -592,8 +599,9 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
       for Index in 1 .. SeqLen loop
          MyProp := Get_Element (Required_QoS, Index);
          if MyProp.name = "EventReliability" then
-            if (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-               CORBA.Short'(From_Any (MyProp.value)) /= 1) then
+            if CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (0)));
@@ -601,14 +609,15 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "ConnectionReliability" then
-            if (Consumers > 0 or Suppliers > 0) then
+            if Consumers > 0 or Suppliers > 0 then
                MyErrCode := UNAVAILABLE_PROPERTY;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (0)));
                MyError   := (MyErrCode, MyProp.name, MyRange);
                Append (MyErrorSeq, MyError);
-            elsif (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-                   CORBA.Short'(From_Any (MyProp.value)) /= 1) then
+            elsif CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (0)));
@@ -616,8 +625,9 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "Priority" then
-            if (CORBA.Short'(From_Any (MyProp.value)) < -32767 and
-               CORBA.Short'(From_Any (MyProp.value)) > 32767) then
+            if CORBA.Short'(From_Any (MyProp.value)) < -32767
+              or else CORBA.Short'(From_Any (MyProp.value)) > 32767
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (-32767)),
                              To_Any (CORBA.Short (32767)));
@@ -637,10 +647,11 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
                MyError   := (MyErrCode, MyProp.name, MyRange);
                Append (MyErrorSeq, MyError);
          elsif MyProp.name = "OrderPolicy" then
-            if (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 1 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 2 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 3) then
+            if CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 2
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 3
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (3)));
@@ -648,11 +659,12 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "DiscardPolicy" then
-            if (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 1 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 2 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 3 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 4) then
+            if CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 2
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 3
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 4
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (4)));
@@ -686,7 +698,7 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
          end if;
       end loop;
 
-      if (Length (MyErrorSeq) > 0) then
+      if Length (MyErrorSeq) > 0 then
          declare
             Members : CORBA.IDL_Exception_Members'Class
                     := UnsupportedQoS_Members'(qos_err => MyErrorSeq);
@@ -834,7 +846,7 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
          end if;
       end loop;
 
-      if (Length (MyErrorSeq) > 0) then
+      if Length (MyErrorSeq) > 0 then
          declare
             Members : CORBA.IDL_Exception_Members'Class
                     := UnsupportedAdmin_Members'(admin_err => MyErrorSeq);
@@ -956,8 +968,9 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
       for Index in 1 .. SeqLen loop
          MyProp := Get_Element (Initial_QoS, Index);
          if MyProp.name = "EventReliability" then
-            if (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-               CORBA.Short'(From_Any (MyProp.value)) /= 1) then
+            if CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (0)));
@@ -965,8 +978,9 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "ConnectionReliability" then
-            if (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-               CORBA.Short'(From_Any (MyProp.value)) /= 1) then
+            if CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (0)));
@@ -974,8 +988,9 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "Priority" then
-            if (CORBA.Short'(From_Any (MyProp.value)) < -32767 and
-               CORBA.Short'(From_Any (MyProp.value)) > 32767) then
+            if CORBA.Short'(From_Any (MyProp.value)) < -32767
+              or else CORBA.Short'(From_Any (MyProp.value)) > 32767
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (-32767)),
                              To_Any (CORBA.Short (32767)));
@@ -995,10 +1010,11 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
                MyError := (MyErrCode, MyProp.name, MyRange);
                Append (MyErrorSeq, MyError);
          elsif MyProp.name = "OrderPolicy" then
-            if (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 1 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 2 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 3) then
+            if CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 2
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 3
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (3)));
@@ -1006,11 +1022,12 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "DiscardPolicy" then
-            if (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 1 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 2 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 3 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 4) then
+            if CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 2
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 3
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 4
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (4)));
@@ -1044,7 +1061,7 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
          end if;
       end loop;
 
-      if (Length (MyErrorSeq) > 0) then
+      if Length (MyErrorSeq) > 0 then
          declare
             Members : CORBA.IDL_Exception_Members'Class
                     := UnsupportedQoS_Members'(qos_err => MyErrorSeq);
@@ -1097,7 +1114,7 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
          end if;
       end loop;
 
-      if (Length (MyErrorSeq) > 0) then
+      if Length (MyErrorSeq) > 0 then
          declare
             Members : CORBA.IDL_Exception_Members'Class
                     := UnsupportedAdmin_Members'(admin_err => MyErrorSeq);
@@ -1423,14 +1440,14 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
       Leave (Self_Mutex);
       MaxCons := CORBA.Long'(From_Any (MyProp.value));
 
-      if (MaxCons = 0) then
+      if MaxCons = 0 then
          Res := True;
       else
          Enter (Self_Mutex);
          My_Ptr := Self.X.This;
          Leave (Self_Mutex);
          PresCons := GetTotalConsumers (My_Ptr);
-         if (PresCons < MaxCons) then
+         if PresCons < MaxCons then
             Res := True;
          else
             Res := False;
@@ -1463,14 +1480,14 @@ package body CosNotifyChannelAdmin.EventChannel.Impl is
       Leave (Self_Mutex);
       MaxSups := CORBA.Long'(From_Any (MyProp.value));
 
-      if (MaxSups = 0) then
+      if MaxSups = 0 then
          Res := True;
       else
          Enter (Self_Mutex);
          My_Ptr := Self.X.This;
          Leave (Self_Mutex);
          PresSups := GetTotalSuppliers (My_Ptr);
-         if (PresSups < MaxSups) then
+         if PresSups < MaxSups then
             Res := True;
          else
             Res := False;

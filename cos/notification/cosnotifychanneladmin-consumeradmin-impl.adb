@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 COSNOTIFYCHANNELADMIN.CONSUMERADMIN.IMPL                 --
+--                COSNOTIFYCHANNELADMIN.CONSUMERADMIN.IMPL                  --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -401,7 +401,7 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
          raise AdminLimitExceeded;
       end if;
 
-      if (Ctype = ANY_EVENT) then
+      if Ctype = ANY_EVENT then
          Ptype := PULL_ANY;
          Proxy_Id := CosNotifyChannelAdmin.ProxyID
                      (AllProxies.Length (Self.X.AllPxs));
@@ -414,7 +414,7 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
          PullSuppliers.Append (Self.X.Pulls, SRef);
          Append (Self.X.PullIDSeq, Proxy_Id);
          AllProxies.Append (Self.X.AllPxs, CORBA.Long (Proxy_Id));
-      elsif (Ctype = STRUCTURED_EVENT) then
+      elsif Ctype = STRUCTURED_EVENT then
          Ptype := PULL_STRUCTURED;
          Proxy_Id := CosNotifyChannelAdmin.ProxyID
                      (AllProxies.Length (Self.X.AllPxs));
@@ -430,7 +430,7 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
          StructuredPullSuppliers.Append (Self.X.StructPulls, Struct_SRef);
          Append (Self.X.PullIDSeq, Proxy_Id);
          AllProxies.Append (Self.X.AllPxs, CORBA.Long (Proxy_Id));
-      elsif (Ctype = SEQUENCE_EVENT) then
+      elsif Ctype = SEQUENCE_EVENT then
          Ptype := PULL_SEQUENCE;
          Proxy_Id := CosNotifyChannelAdmin.ProxyID
                      (AllProxies.Length (Self.X.AllPxs));
@@ -490,7 +490,7 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
          raise AdminLimitExceeded;
       end if;
 
-      if (Ctype = ANY_EVENT) then
+      if Ctype = ANY_EVENT then
          Ptype := PUSH_ANY;
          Proxy_Id := CosNotifyChannelAdmin.ProxyID
                      (AllProxies.Length (Self.X.AllPxs));
@@ -503,7 +503,7 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
          PushSuppliers.Append (Self.X.Pushs, SRef);
          Append (Self.X.PushIDSeq, Proxy_Id);
          AllProxies.Append (Self.X.AllPxs, CORBA.Long (Proxy_Id));
-      elsif (Ctype = STRUCTURED_EVENT) then
+      elsif Ctype = STRUCTURED_EVENT then
          Ptype := PUSH_STRUCTURED;
          Proxy_Id := CosNotifyChannelAdmin.ProxyID
                      (AllProxies.Length (Self.X.AllPxs));
@@ -519,7 +519,7 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
          StructuredPushSuppliers.Append (Self.X.StructPushs, Struct_SRef);
          Append (Self.X.PushIDSeq, Proxy_Id);
          AllProxies.Append (Self.X.AllPxs, CORBA.Long (Proxy_Id));
-      elsif (Ctype = SEQUENCE_EVENT) then
+      elsif Ctype = SEQUENCE_EVENT then
          Ptype := PUSH_SEQUENCE;
          Proxy_Id := CosNotifyChannelAdmin.ProxyID
                      (AllProxies.Length (Self.X.AllPxs));
@@ -622,8 +622,9 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
                              To_Any (CORBA.Short (0)));
                MyError   := (MyErrCode, MyProp.name, MyRange);
                Append (MyErrorSeq, MyError);
-            elsif (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-                   CORBA.Short'(From_Any (MyProp.value)) /= 1) then
+            elsif CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (0)));
@@ -631,8 +632,9 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "Priority" then
-            if (CORBA.Short'(From_Any (MyProp.value)) < -32767 and
-               CORBA.Short'(From_Any (MyProp.value)) > 32767) then
+            if CORBA.Short'(From_Any (MyProp.value)) < -32767
+              or else CORBA.Short'(From_Any (MyProp.value)) > 32767
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (-32767)),
                              To_Any (CORBA.Short (32767)));
@@ -652,10 +654,11 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
                MyError   := (MyErrCode, MyProp.name, MyRange);
                Append (MyErrorSeq, MyError);
          elsif MyProp.name = "OrderPolicy" then
-            if (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 1 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 2 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 3) then
+            if CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 2
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 3
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (3)));
@@ -663,11 +666,12 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "DiscardPolicy" then
-            if (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 1 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 2 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 3 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 4) then
+            if CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 2
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 3
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 4
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (4)));
@@ -701,7 +705,7 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
          end if;
       end loop;
 
-      if (Length (MyErrorSeq) > 0) then
+      if Length (MyErrorSeq) > 0 then
          declare
             Members : CORBA.IDL_Exception_Members'Class
                     := UnsupportedQoS_Members'(qos_err => MyErrorSeq);
@@ -772,8 +776,9 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
                              To_Any (CORBA.Short (0)));
                MyError   := (MyErrCode, MyProp.name, MyRange);
                Append (MyErrorSeq, MyError);
-            elsif (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-                   CORBA.Short'(From_Any (MyProp.value)) /= 1) then
+            elsif CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (0)));
@@ -781,8 +786,9 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "Priority" then
-            if (CORBA.Short'(From_Any (MyProp.value)) < -32767 and
-               CORBA.Short'(From_Any (MyProp.value)) > 32767) then
+            if CORBA.Short'(From_Any (MyProp.value)) < -32767
+              or else CORBA.Short'(From_Any (MyProp.value)) > 32767
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (-32767)),
                              To_Any (CORBA.Short (32767)));
@@ -802,10 +808,11 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
                MyError   := (MyErrCode, MyProp.name, MyRange);
                Append (MyErrorSeq, MyError);
          elsif MyProp.name = "OrderPolicy" then
-            if (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 1 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 2 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 3) then
+            if CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 2
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 3
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (3)));
@@ -813,11 +820,12 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "DiscardPolicy" then
-            if (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 1 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 2 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 3 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 4) then
+            if CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 2
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 3
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 4
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (4)));
@@ -851,7 +859,7 @@ package body CosNotifyChannelAdmin.ConsumerAdmin.Impl is
          end if;
       end loop;
 
-      if (Length (MyErrorSeq) > 0) then
+      if Length (MyErrorSeq) > 0 then
          declare
             Members : CORBA.IDL_Exception_Members'Class
                     := UnsupportedQoS_Members'(qos_err => MyErrorSeq);

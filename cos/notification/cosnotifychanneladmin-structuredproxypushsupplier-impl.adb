@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---          COSNOTIFYCHANNELADMIN.STRUCTUREDPROXYPUSHSUPPLIER.IMPL          --
+--         COSNOTIFYCHANNELADMIN.STRUCTUREDPROXYPUSHSUPPLIER.IMPL           --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -381,8 +381,9 @@ package body CosNotifyChannelAdmin.StructuredProxyPushSupplier.Impl is
                MyError   := (MyErrCode, MyProp.name, MyRange);
                Append (MyErrorSeq, MyError);
          elsif MyProp.name = "ConnectionReliability" then
-            if (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 1) then
+            if CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (0)));
@@ -390,8 +391,9 @@ package body CosNotifyChannelAdmin.StructuredProxyPushSupplier.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "Priority" then
-            if (CORBA.Short'(From_Any (MyProp.value)) < -32767 and
-                CORBA.Short'(From_Any (MyProp.value)) > 32767) then
+            if CORBA.Short'(From_Any (MyProp.value)) < -32767
+              or else CORBA.Short'(From_Any (MyProp.value)) > 32767
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (-32767)),
                              To_Any (CORBA.Short (32767)));
@@ -411,10 +413,11 @@ package body CosNotifyChannelAdmin.StructuredProxyPushSupplier.Impl is
                MyError   := (MyErrCode, MyProp.name, MyRange);
                Append (MyErrorSeq, MyError);
          elsif MyProp.name = "OrderPolicy" then
-            if (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 1 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 2 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 3) then
+            if CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 2
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 3
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (3)));
@@ -422,11 +425,12 @@ package body CosNotifyChannelAdmin.StructuredProxyPushSupplier.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "DiscardPolicy" then
-            if (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 1 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 2 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 3 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 4) then
+            if CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 2
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 3
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 4
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (4)));
@@ -460,7 +464,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPushSupplier.Impl is
          end if;
       end loop;
 
-      if (Length (MyErrorSeq) > 0) then
+      if Length (MyErrorSeq) > 0 then
          declare
             Members : CORBA.IDL_Exception_Members'Class
                     := UnsupportedQoS_Members'(qos_err => MyErrorSeq);
@@ -518,8 +522,9 @@ package body CosNotifyChannelAdmin.StructuredProxyPushSupplier.Impl is
                MyError   := (MyErrCode, MyProp.name, MyRange);
                Append (MyErrorSeq, MyError);
          elsif MyProp.name = "ConnectionReliability" then
-            if (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 1) then
+            if CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (0)));
@@ -527,8 +532,9 @@ package body CosNotifyChannelAdmin.StructuredProxyPushSupplier.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "Priority" then
-            if (CORBA.Short'(From_Any (MyProp.value)) < -32767 and
-                CORBA.Short'(From_Any (MyProp.value)) > 32767) then
+            if CORBA.Short'(From_Any (MyProp.value)) < -32767
+              or else CORBA.Short'(From_Any (MyProp.value)) > 32767
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (-32767)),
                              To_Any (CORBA.Short (32767)));
@@ -548,10 +554,11 @@ package body CosNotifyChannelAdmin.StructuredProxyPushSupplier.Impl is
                MyError   := (MyErrCode, MyProp.name, MyRange);
                Append (MyErrorSeq, MyError);
          elsif MyProp.name = "OrderPolicy" then
-            if (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 1 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 2 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 3) then
+            if CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 2
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 3
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (3)));
@@ -559,11 +566,12 @@ package body CosNotifyChannelAdmin.StructuredProxyPushSupplier.Impl is
                Append (MyErrorSeq, MyError);
             end if;
          elsif MyProp.name = "DiscardPolicy" then
-            if (CORBA.Short'(From_Any (MyProp.value)) /= 0 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 1 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 2 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 3 and
-                CORBA.Short'(From_Any (MyProp.value)) /= 4) then
+            if CORBA.Short'(From_Any (MyProp.value)) /= 0
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 1
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 2
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 3
+              and then CORBA.Short'(From_Any (MyProp.value)) /= 4
+            then
                MyErrCode := BAD_VALUE;
                MyRange   := (To_Any (CORBA.Short (0)),
                              To_Any (CORBA.Short (4)));
@@ -597,7 +605,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPushSupplier.Impl is
          end if;
       end loop;
 
-      if (Length (MyErrorSeq) > 0) then
+      if Length (MyErrorSeq) > 0 then
          declare
             Members : CORBA.IDL_Exception_Members'Class
                     := UnsupportedQoS_Members'(qos_err => MyErrorSeq);
