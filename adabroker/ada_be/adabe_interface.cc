@@ -25,8 +25,9 @@
 
 #include <adabe.h>
 
-// Constructor
-//------------
+////////////////////////////////////////////////////////////////////////
+////////////////      constructor    ///////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 adabe_interface::adabe_interface(UTL_ScopedName *n, AST_Interface **ih, long nih,
 				 UTL_StrList *p)
   : AST_Interface(n, ih, nih, p),
@@ -47,12 +48,13 @@ adabe_interface::adabe_interface(UTL_ScopedName *n, AST_Interface **ih, long nih
 }
 
 
-// Produce_ads
-//------------
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_ads     ///////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
 {
-  // some usefull variables
+  // some useful variables
   adabe_interface *inher;  // direct ancestor of current interface
   string corps = "";       // name of this ancestor
   string tmp = "";         // temporary string
@@ -296,6 +298,9 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
   set_already_defined();
 }
   
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_adb     ///////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
 {
@@ -442,42 +447,88 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
   body += "end " + get_ada_full_name() + " ;\n";  
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_impl_ads     //////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous)
 {
-  if (n_inherits() > 1) 
-    {
-      cerr << "No files will be generated for the skeletons and the implementation of "<< get_ada_full_name() <<",\n";
-      cerr <<" because there's multiple inheritance (the server side shouldn't contain multiple inheritance)\n";
-      return ;
-    }
   adabe_global::set_adabe_current_file(this);
   string prev = "";
   string tmp = "";
   adabe_interface * inher;
   with.add("Omniobject");
   body += "\npackage " + get_ada_full_name() + ".Impl is\n\n";
-  if (n_inherits() == 0)
+
+  if (n_inherits() == 0) {
     body += "   type Object is new Omniobject.Implemented_Object with private ;\n";
-  body += "   type Object_Ptr is access all Object ;\n\n\n";
+  } else {
 
- // forward declarated
+    // find the direct ancestor of this interface. The direct ancestor
+    // is simply the first one in the list of all ancestors
+    inher = adabe_interface::narrow_from_decl(inherits()[0]);
+    
+    // add this ancestor to the with list
+    string corps = inher->get_ada_full_name();
+    with.add(corps);
+    
+    // define type Object as child of the ancestor Object type
+    body += "   type Object is new " + corps + ".Object with private ;\n";
 
-  if (pd_is_forwarded == true)           
-    {
-      with.add(get_ada_full_name() + "_Forward");
-      tmp += "   package Convert is access " + get_ada_full_name() + "_Forward.Convert(Object) ;\n";
+    // Now loop over all other ancestors to redefine the subprograms
+    if (n_inherits() > 1) {
+      // loop over all parents from the second one
+      for(int i = 1; i < n_inherits(); i++) {
+	// get a parent as adabe_interface object
+	inher = adabe_interface::narrow_from_decl(inherits()[i]);
+	
+	// compute its name
+	string corps2 = inher->get_ada_full_name();
+	int len = corps2.length();
+	
+	with.add(corps2);
+	
+	tmp += "   -----------------------" + spaces(len,'-') + "\n";
+	tmp += "   -- inheritance from " + corps2 + "\n";
+	tmp += "   -----------------------" + spaces(len,'-') + "\n\n";
+	{
+	  // loop over all declarations of the current parent
+	  UTL_ScopeActiveIterator j(inher,UTL_Scope::IK_decls);
+	  while (!j.is_done())
+	    {
+	      // get the current declaration as an adabe_name object
+	      AST_Decl *d = j.item();
+	      adabe_name *e = dynamic_cast<adabe_name *>(d);
+	      
+	      switch(d->node_type())
+		{
+		case AST_Decl::NT_op:
+		case AST_Decl::NT_attr:
+		  {
+		    string tempo1 = "";
+		    string tempo2 = "";
+		    e->produce_ads(with, tempo1, tempo2);
+		    tmp += tempo2 + tempo1;
+		  }
+		  break ;
+		default:break;
+		}
+	      // get next element
+	      j.next();
+	    }
+	  tmp += "\n\n\n" ;
+	}
+      }
     }
-  if (n_inherits() > 0)
-    {
-      inher = adabe_interface::narrow_from_decl(inherits()[0]);      
-      body += "   type Object is new " + inher->get_ada_full_name() +
-	".Object with private ;\n\n\n";
-    } 
+  } 
+  body += "   type Object_Ptr is access all Object ;\n\n\n";
   body += tmp;
   
-  // instructions
-  
+
+  // now all the subprogram of this IDL interface
+  body += "   -----------------------\n" ;
+  body += "   -- IDL definitions   --\n" ;
+  body += "   -----------------------\n\n" ;
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
@@ -497,7 +548,8 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
 	}
        i.next();
     }
-  
+
+  body += "\n\n\n" ;
   body += "private\n\n" ;
   body += "   -- You may add fields to this record\n" ;
   if (n_inherits() == 0) {
@@ -515,11 +567,13 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
   
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_impl_adb     //////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous)
 {
-  if (n_inherits() > 1) return ;
-    
+
   // If there is an ancestor, get its name
   string ancestor ;
   if (n_inherits()) {
@@ -530,14 +584,59 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
   adabe_global::set_adabe_current_file(this);
   with.add(get_ada_full_name() + ".Skeleton") ;
   body += "\n\n" ;
-  /*
-    with.add("Ada.Tags");
-    with.add("Ada.exceptions");
-    with.add("Ada.Omniproxycallwrapper");
-    with.add("Ada.Proxies");
-    with.add("Ada.Object");
-  */
   body += "package body " + get_ada_full_name() + ".Impl is \n\n\n";
+  
+  // In case of multiple inheritance, we have to redefine
+  // ll the function of the parents but the first one
+  if (n_inherits() > 1) {
+    // loop over all parents from the second one
+    for(int i = 1; i < n_inherits(); i++) {
+      // get a parent as adabe_interface object
+      adabe_interface *inher = adabe_interface::narrow_from_decl(inherits()[i]);
+      
+      // compute its name
+      string corps2 = inher->get_ada_full_name();
+      int len = corps2.length();
+      
+      with.add(corps2);
+      
+      body += "   -----------------------" + spaces(len,'-') + "\n";
+      body += "   -- inheritance from " + corps2 + "\n";
+      body += "   -----------------------" + spaces(len,'-') + "\n\n";
+      {
+	// loop over all declarations of the current parent
+	UTL_ScopeActiveIterator j(inher,UTL_Scope::IK_decls);
+	while (!j.is_done())
+	  {
+	    // get the current declaration as an adabe_name object
+	    AST_Decl *d = j.item();
+	    adabe_name *e = dynamic_cast<adabe_name *>(d);
+	    
+	    switch(d->node_type())
+	      {
+	      case AST_Decl::NT_op:
+	      case AST_Decl::NT_attr:
+		{
+		  string tempo1 = "";
+		  string tempo2 = "";
+		  e->produce_impl_adb(with, tempo1, tempo2);
+		  body += tempo2 + tempo1;
+		}
+		break ;
+	      default:break;
+	      }
+	    // get next element
+	    j.next();
+	  }
+	body += "\n\n\n" ;
+      }
+    }
+  }
+    
+  // now all the subprogram of this IDL interface
+  body += "   -----------------------\n" ;
+  body += "   -- IDL definitions   --\n" ;
+  body += "   -----------------------\n\n" ;
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
@@ -557,6 +656,8 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
 	}
       i.next();
     }
+
+  body += "\n\n\n" ;
 
   body += "   -----------------------------------------------------------\n" ;
   body += "   --  Implementations objects are controlled, you can add  --\n" ;
@@ -579,7 +680,7 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
   body += get_ada_full_name() + ".Skeleton.Dispatch'Access,\n" ;
   body += "                        " ;
   body += get_ada_full_name() + ".Is_A'Access) ;\n" ;
-  body += "      -- You can add things *BELOW* this line\n" ;
+  body += "      -- You can add things *BELOW* this line\n\n" ;
   body += "   end Initialize ;\n\n\n" ;
   body += "   -- Adjust\n" ;
   body += "   ---------\n" ;
@@ -592,12 +693,12 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
     body += "Omniobject.Adjust(Omniobject.Implemented_Object(" ;
   }
   body += "Self)) ;\n" ;
-  body += "      -- You can add things *BELOW* this line\n" ;
+  body += "      -- You can add things *BELOW* this line\n\n" ;
   body += "   end Adjust ;\n\n\n" ;
   body += "   -- Finalize\n" ;
   body += "   -----------\n" ;
   body += "   procedure Finalize(Self : in out Object) is\n" ;
-  body += "   begin\n" ;
+  body += "   begin\n\n" ;
   body += "      -- You can add things *BEFORE* this line\n" ;
   body += "   " ;
   if(n_inherits()) {
@@ -610,10 +711,12 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
   body += "end " + get_ada_full_name() + ".Impl ;\n";
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_skel_ads     //////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_interface::produce_skel_ads(dep_list& with, string &body, string &previous)
 {
-  if (n_inherits() > 1) return ;
   adabe_global::set_adabe_current_file(this);
   with.add("Omniobject");
   with.add("Giop_S");
@@ -626,6 +729,9 @@ adabe_interface::produce_skel_ads(dep_list& with, string &body, string &previous
   body += "end " + get_ada_full_name() + ".Skeleton  ;\n";
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_proxies_ads     ///////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_interface::produce_proxies_ads(dep_list& with, string &body, string &previous)
 {
@@ -664,10 +770,12 @@ adabe_interface::produce_proxies_ads(dep_list& with, string &body, string &previ
   body += "end " + get_ada_full_name() + ".Proxies ;\n";
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_skel_adb     //////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_interface::produce_skel_adb(dep_list& with, string &body, string &previous)
 {
-  if (n_inherits() > 1) return ;
   adabe_global::set_adabe_current_file(this);
   with.add(get_ada_full_name() + ".Impl");
   with.add(get_ada_full_name() + ".Marshal");
@@ -691,6 +799,11 @@ adabe_interface::produce_skel_adb(dep_list& with, string &body, string &previous
   body += ".Impl.Object_Ptr(Myself) ;\n";
   body += "   begin\n";
 
+
+  // Generate what is necessary for the first parent
+  body += "   -----------------------\n" ;
+  body += "   -- IDL definitions   --\n" ;
+  body += "   -----------------------\n\n" ;
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
@@ -710,12 +823,63 @@ adabe_interface::produce_skel_adb(dep_list& with, string &body, string &previous
 	}
       i.next();
     } 
+  body += "\n\n" ;
   
+  // In case of multiple inheritance, generate what
+  // is needed for all other parents
+  if (n_inherits() > 1) {
+    // loop over all parents from the second one
+    for(int i = 1; i < n_inherits(); i++) {
+      // get a parent as adabe_interface object
+      adabe_interface *inher = adabe_interface::narrow_from_decl(inherits()[i]);
+      
+      // compute its name
+      string corps2 = inher->get_ada_full_name();
+      int len = corps2.length();
+      
+      with.add(corps2);
+      
+      body += "   -----------------------" + spaces(len,'-') + "\n";
+      body += "   -- inheritance from " + corps2 + "\n";
+      body += "   -----------------------" + spaces(len,'-') + "\n\n";
+      {
+	// loop over all declarations of the current parent
+	UTL_ScopeActiveIterator j(inher,UTL_Scope::IK_decls);
+	while (!j.is_done())
+	  {
+	    // get the current declaration as an adabe_name object
+	    AST_Decl *d = j.item();
+	    adabe_name *e = dynamic_cast<adabe_name *>(d);
+	    
+	    switch(d->node_type())
+	      {
+	      case AST_Decl::NT_op:
+	      case AST_Decl::NT_attr:
+		{
+		  string tempo1 = "";
+		  string tempo2 = "";
+		  e->produce_skel_adb(with, tempo1, tempo2);
+		  body += tempo2 + tempo1;
+		}
+		break ;
+	      default:break;
+	      }
+	    // get next element
+	    j.next();
+	  }
+	body += "\n\n" ;
+      }
+    }
+  }
+    
   body += "      Returns := false ;\n";
   body += "   end ;\n\n";
   body += "end " + get_ada_full_name() + ".Skeleton  ;\n";
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_proxies_adb     ///////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_interface::produce_proxies_adb(dep_list& with, string &body, string &previous)
 {
@@ -756,6 +920,9 @@ adabe_interface::produce_proxies_adb(dep_list& with, string &body, string &previ
 }
 
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_marshal_ads     ///////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_interface::produce_marshal_ads(dep_list& with, string &body, string &previous)
 {
@@ -796,6 +963,9 @@ adabe_interface::produce_marshal_ads(dep_list& with, string &body, string &previ
   body += "end " + get_ada_full_name() + ".Marshal ;\n";  
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_marshal_adb     ///////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_interface::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
@@ -835,6 +1005,9 @@ adabe_interface::produce_marshal_adb(dep_list& with, string &body, string &previ
   if (empty) body = "";
 }
 
+////////////////////////////////////////////////////////////////////////
+//////////////////////     miscellaneous     ///////////////////////////
+////////////////////////////////////////////////////////////////////////
 string
 adabe_interface::dump_name(dep_list& with, string &previous)
 {
