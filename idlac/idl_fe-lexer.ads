@@ -167,8 +167,16 @@ package Idl_Fe.Lexer is
        T_Lit_Decimal_Integer,        --  Literals
        T_Lit_Octal_Integer,
        T_Lit_Hexa_Integer,
-       T_Lit_Char,
-       T_Lit_Wide_Char,
+       T_Lit_Simple_Char,
+       T_Lit_Escape_Char,
+       T_Lit_Octal_Char,
+       T_Lit_Hexa_Char,
+       T_Lit_Unicode_Char,
+       T_Lit_Wide_Simple_Char,
+       T_Lit_Wide_Escape_Char,
+       T_Lit_Wide_Octal_Char,
+       T_Lit_Wide_Hexa_Char,
+       T_Lit_Wide_Unicode_Char,
        T_Lit_Simple_Floating_Point,
        T_Lit_Exponent_Floating_Point,
        T_Lit_Pure_Exponent_Floating_Point,
@@ -380,12 +388,7 @@ private
    --
    --  The escape \uhhhh consist of a backslash followed by the character
    --  'u', followed by one, two, three or four hexadecimal digits.
-   --
-   --  Wide is used to say if the scanner should scan a wide
-   --  character or not. If not and the character looks like
-   --  '/u...' then an error is raised and the function returns
-   --  T_Error
-   function Scan_Char (Wide : Boolean) return Idl_Token;
+   function Scan_Char return Idl_Token;
 
 
    --  Called when the current character is a ".
@@ -404,11 +407,7 @@ private
    --  Within a string, the double quote character " must be preceded
    --  by a \.
    --  A string literal may not contain the character '\0'.
-   --
-   --  Wide is used to say if the scanner should scan a wide
-   --  string or not. If not and a character looks like
-   --  '/u...' then an error is raised
-   function Scan_String (Wide : Boolean) return Idl_Token;
+   function Scan_String return Idl_Token;
 
 
    --  Called when the current character is a letter.

@@ -105,18 +105,12 @@ package Idl_Fe.Tree.Synthetic is
    function Integer_Value
      (Node : Node_Id)
      return Integer;
-   function String_Value
-     (Node : Node_Id)
-     return String;
-   function Boolean_Value
-     (Node : Node_Id)
-     return Boolean;
-   --  Return the value of a constant expression
-   --  node as an {integer,string,boolean}.
-
-   procedure Set_String_Value
-     (Node : Node_Id;
-      Val  : String);
-   --  Set the value of a string node.
+   --  Return the value of a numeric constant expression
+   --  node as an integer.
+   --  FIXME: This should be done in the parser with full
+   --    arithmetic evalutaion. This will work only for
+   --    expressions that are numeric literals.
+   --    This function is here just for lack of a better
+   --    way of handling numeric literals.
 
 end Idl_Fe.Tree.Synthetic;
