@@ -72,6 +72,7 @@ package body PolyORB.Protocols.GIOP is
 
    use Ada.Streams;
 
+   use PolyORB.Annotations;
    use PolyORB.Any.NVList;
    use PolyORB.Binding_Data;
    use PolyORB.Binding_Data.IIOP;
@@ -85,9 +86,8 @@ package body PolyORB.Protocols.GIOP is
    use PolyORB.Requests;
    use PolyORB.Representations;
    use PolyORB.Representations.CDR;
-   use PolyORB.Types;
-   use PolyORB.Annotations;
    use PolyORB.Soft_Links;
+   use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.giop");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -209,7 +209,7 @@ package body PolyORB.Protocols.GIOP is
          5 => Loc_Needs_Addressing_Mode);
 
    ---------------
-   -- To_buffer --
+   -- To_Buffer --
    ---------------
 
    --  Utility function for testing.
@@ -1113,7 +1113,7 @@ package body PolyORB.Protocols.GIOP is
    end Select_Profile;
 
    -------------------
-   -- Store Profile --
+   -- Store_Profile --
    -------------------
 
    procedure Store_Profile
