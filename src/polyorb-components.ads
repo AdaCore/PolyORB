@@ -53,7 +53,8 @@ package PolyORB.Components is
 
    type Null_Message is new Message with private;
 
-   type Component is abstract tagged limited private;
+   type Component is
+     abstract new Ada.Finalization.Limited_Controlled with private;
    type Component_Access is access all Component'Class;
 
    Unhandled_Message : exception;
@@ -145,8 +146,7 @@ private
    type Null_Message is new Message with null record;
 
    type Component is
-     abstract new Ada.Finalization.Limited_Controlled
-     with record
+     abstract new Ada.Finalization.Limited_Controlled with record
         Allocation_Class : Component_Allocation_Class := Auto;
      end record;
 
