@@ -1,0 +1,205 @@
+typedef octet   Mode_Id;
+typedef octet   Operator_Id;
+typedef long    Name_Id;
+
+interface Node_Id {
+};
+
+interface Entity_Id {
+  Node_Id      Identifier;
+  boolean      Is_Visible;
+  Entity_Id    Next_Entity;
+};
+
+interface List_Id {
+  Entity_Id    First_Entity;
+  Entity_Id    Last_Entity;
+};
+
+interface Literal : Entity_Id {
+  Name_Id      Literal;
+};
+
+interface Identifier : Node_Id {
+  Name_Id      Name;
+  Name_Id      IDL_Name;
+  Node_Id      Homonym;
+  Entity_Id    Entity;
+  Entity_Id    Scope;
+  long         Scope_Depth;
+};
+
+interface Declaration : Entity_Id {
+  Entity_Id    Type_Spec;
+};
+
+interface Array_Size_List : List_Id {};
+interface Simple_Declarator : Declaration {};
+interface Complex_Declarator : Simple_Declarator {
+  List_Id      Array_Sizes;
+};
+
+interface Expression : Entity_Id {
+  Operator_Id  Operator;
+  Entity_Id    Left_Expr;
+  Entity_Id    Right_Expr;
+};
+
+interface Constant_Declaration : Declaration {
+  Entity_Id    Expression;
+};
+
+interface Definition_List : List_Id {};
+interface _Module : Entity_Id {
+  List_Id      Definitions;
+}; 
+
+interface Forward_Entity_Id : Entity_Id {
+  Entity_Id    Forward;
+};
+
+interface Forward_Interface_Declaration : Forward_Entity_Id {
+  boolean      Is_Abstract;
+};
+
+interface Interface_Name_List : List_Id {};
+interface Interface_Body : List_Id {};
+interface Interface_Declaration : Entity_Id {
+  boolean      Is_Abstract;
+  List_Id      Interface_Spec;
+  List_Id      Interface_Body;
+};
+
+interface Parameter_Declaration : Declaration {
+  Mode_Id      Parameter_Mode;
+};
+
+interface Attribute_Declaration : Declaration {
+  boolean      Is_Readonly;
+  Entity_Id    Base_Interface;
+};
+
+interface Exception_List : List_Id {};
+interface Context_List : List_Id {};
+interface Parameter_List : List_Id {};
+interface Operation_Declaration : Declaration {
+  boolean      Is_Oneway;
+  List_Id      Exceptions;
+  List_Id      Contexts;
+  List_Id      Parameters;
+  Entity_Id    Base_Interface;
+};
+
+interface Scoped_Name : Entity_Id {
+  Entity_Id    Parent;
+  Entity_Id    Reference;
+  Entity_Id    Next_Scoped_Name;
+};
+
+interface Value_Forward_Declaration : Forward_Entity_Id {
+  boolean      Is_Abstract;
+};
+
+interface Value_Box_Declaration : Entity_Id {
+  Entity_Id    Value_Spec;
+};
+
+interface Value_Body : List_Id {};
+interface Generic_Value_Declaration : Value_Box_Declaration {
+  List_Id      Value_Body;
+};
+
+interface Value_Declaration : Generic_Value_Declaration {
+  boolean      Is_Custom;
+};
+
+interface Abstract_Value_Declaration : Generic_Value_Declaration {};
+
+interface Value_Name_List : List_Id {};
+interface Value_Spec : Entity_Id {
+  boolean      Is_Truncatable;
+  List_Id      Value_Names;
+  List_Id      Interface_Names;
+};
+
+interface State_Member : Declaration {
+  boolean      Is_Public;
+};
+
+interface Initializer_Parameter_List : List_Id {};
+interface Initializer_Declaration : Entity_Id {
+  List_Id      Parameters;
+};
+
+interface Initializer_Parameter : Parameter_Declaration {};
+
+interface Base_Type {};
+
+interface Type_Declaration : Declaration {};
+
+interface Forward_Structure_Type : Forward_Entity_Id {};
+
+interface Member : Declaration {};
+interface Member_List : List_Id {};
+
+interface Structure_Type : Entity_Id {
+  List_Id      Members;
+};
+
+interface Forward_Union_Type : Forward_Entity_Id {};
+
+interface Case_Label_List : List_Id {};
+interface Switch_Alternative : Entity_Id {
+  List_Id      Labels;
+  Entity_Id    Element;
+};
+
+interface Switch_Type_Body : List_Id {};
+interface Union_Type : Entity_Id {
+  Entity_Id    Switch_Type_Spec;
+  List_Id      Switch_Type_Body;
+};
+
+interface Enumerator_List : List_Id {};
+interface Enumeration_Type : Entity_Id {
+  List_Id      Enumerators;
+};
+
+interface Exception_Declaration : Entity_Id {
+  List_Id      Members;
+};
+
+interface Native_Type : Entity_Id {};
+
+interface Sequence_Type : Declaration {
+  Name_Id      Max_Size;
+};
+
+interface _String : Entity_Id {
+  Name_Id      Max_Size;      
+};
+
+interface Wide_String : _String {};
+
+interface Fixed_Point_Type : Entity_Id {
+  Name_Id      N_Digits;
+  Name_Id      N_Delta;
+};
+
+interface _Float : Base_Type {};
+interface _Double : Base_Type {};
+interface Long_Double : Base_Type {};
+interface _Short : Base_Type {};
+interface _Long : Base_Type {};
+interface Long_Long : Base_Type {};
+interface Unsigned_Short : Base_Type {};
+interface Unsigned_Long : Base_Type {};
+interface Unsigned_Long_Long : Base_Type {};
+interface _Char : Base_Type {};
+interface Wide_Char : Base_Type {};
+interface _Boolean : Base_Type {};
+interface _Octet : Base_Type {};
+interface _Object : Base_Type {};
+interface _Any : Base_Type {};
+interface _Void : Base_Type {};
+interface Value_Base : Base_Type {};
