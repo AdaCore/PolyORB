@@ -106,7 +106,7 @@ ADA_FOR_TARGET = @ADA_FOR_TARGET@
 CONSTANTS_SH = $(srcdir)/constants.sh
 CP = cp
 GARLIC = $(prefix)/lib/garlic
-GNATFLAGS = -gnatg @GNATFLAGS@
+GNATFLAGS = -gnatg -f -u -a @GNATFLAGS@
 INCFLAGS = -I. -I$(srcdir)
 
 GNATMAKE = gnatmake
@@ -249,16 +249,16 @@ Makefile: Makefile.fil
 @FILTERSMAKEFILE@
 
 .adb.o:
-	@$(ADA_FOR_TARGET) -u -f -a $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
+	@$(ADA_FOR_TARGET) $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
 
 .ads.o:
-	@$(ADA_FOR_TARGET) -u -f -a $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
+	@$(ADA_FOR_TARGET) $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
 
 .adb.ali:
-	@$(ADA_FOR_TARGET) -u -f -a $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
+	@$(ADA_FOR_TARGET) $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
 
 .ads.ali:
-	@$(ADA_FOR_TARGET) -u -f -a $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
+	@$(ADA_FOR_TARGET) $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
 
 b_gaprco$(EXEEXT): $(srcdir)/b_gaprco.adb
 	@${GNATMAKE} b_gaprco -o b_gaprco$(EXEEXT)
@@ -326,14 +326,15 @@ inlining: all-local
 	   for o in `cat gnatlib/tocheck`; do\
 	      if [ ! -f gnatlib/$$o ]; then\
 	          s=`gnatls -a -s $$o | sed 's/\013//g'`;\
-	          $(ADA_FOR_TARGET) -u -f -a $(CFLAGS) $(GNATFLAGS) -I. -I-\
-                    $$s -o gnatlib/$$o;\
-	          if test $$? = 0; then\
-	             echo $$o >>gnatlib/rebuild;\
-	          else\
-	             $(RM) -f gnatlib/tocheck;\
-	             break;\
-	          fi;\
+	          (cd gnatlib;\
+	           $(ADA_FOR_TARGET) $(CFLAGS) $(GNATFLAGS) -I. -I- $$s;\
+	           if test $$? = 0; then\
+	              echo $$o >>rebuild;\
+	           else\
+	              $(RM) -f tocheck;\
+	              break;\
+	           fi;\
+	          );\
 	      fi;\
 	   done;\
 	   echo yes > inlining;\
