@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,12 +44,18 @@ with Random;
 with PolyORB.Setup.Client;
 pragma Warnings (Off, PolyORB.Setup.Client);
 
+with PolyORB.Utils.Report;
+
 procedure Client is
+   use PolyORB.Utils.Report;
+
    IOR : CORBA.String;
    myRandom : Random.Ref;
    Result : CORBA.Long;
 
 begin
+   New_Test ("CORBA Random");
+
    CORBA.ORB.Initialize ("ORB");
    if Ada.Command_Line.Argument_Count < 1 then
       Put_Line ("usage : client <IOR_string_from_server>");
@@ -74,7 +80,9 @@ begin
       Result := Random.lrand48 (myRandom);
       Put (CORBA.Long'Image (Result) & " ");
    end loop;
+   New_Line;
 
+   End_Report;
 exception
    when E : CORBA.Transient =>
       declare
@@ -85,5 +93,6 @@ exception
          Put (Unsigned_Long'Image (Memb.Minor));
          Put (", completion status: ");
          Put_Line (Completion_Status'Image (Memb.Completed));
+         End_Report;
       end;
 end Client;

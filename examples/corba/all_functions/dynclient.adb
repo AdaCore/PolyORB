@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1128,6 +1128,8 @@ procedure Dynclient is
    end Oneway_Checker;
 
 begin
+   New_Test ("Different invocation modes");
+
    CORBA.ORB.Initialize ("ORB");
 
    if Ada.Command_Line.Argument_Count < 1 then
@@ -1333,8 +1335,5 @@ begin
    end;
    Output ("test in param one way procedure", Ok);
 
+   End_Report;
 end Dynclient;
-
-
-
-

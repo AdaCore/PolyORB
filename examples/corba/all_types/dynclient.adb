@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1097,6 +1097,8 @@ procedure DynClient is
    end TestUnknownException;
 
 begin
+   New_Test ("CORBA Types");
+
    CORBA.ORB.Initialize ("ORB");
    if Ada.Command_Line.Argument_Count < 1 then
       Ada.Text_IO.Put_Line
@@ -1296,4 +1298,5 @@ begin
       exit when One_Shot;
    end loop;
 
+   End_Report;
 end DynClient;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,7 +46,10 @@ with CORBA.ORB;
 with PolyORB.Setup.Client;
 pragma Warnings (Off, PolyORB.Setup.Client);
 
+with PolyORB.Utils.Report;
+
 procedure DynClient is
+   use PolyORB.Utils.Report;
 
    myecho : CORBA.Object.Ref;
 
@@ -103,6 +106,8 @@ procedure DynClient is
    Iter : Natural := 1;
 
 begin
+   New_Test ("Echo dynamic client");
+
    CORBA.ORB.Initialize ("ORB");
 
    if Ada.Command_Line.Argument_Count < 1 then
@@ -127,4 +132,5 @@ begin
       Do_Test;
    end loop;
 
+   End_Report;
 end DynClient;

@@ -33,7 +33,7 @@
 
 --  All_Types client.
 
---  $Id: //droopi/main/examples/corba/all_types/client.adb#15 $
+--  $Id: //droopi/main/examples/corba/all_types/client.adb#16 $
 
 with Ada.Characters.Handling;
 with Ada.Command_Line; use Ada.Command_Line;
@@ -65,6 +65,8 @@ procedure Client is
    What : Test_Type := All_Tests;
 
 begin
+   New_Test ("CORBA Types");
+
    CORBA.ORB.Initialize ("ORB");
    if Argument_Count < 1 then
       Ada.Text_IO.Put_Line
@@ -356,5 +358,4 @@ begin
    end loop;
 
    End_Report;
-
 end Client;
