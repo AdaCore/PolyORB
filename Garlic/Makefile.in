@@ -98,6 +98,8 @@ SED = @SED@
 SUPPORTS_LOCAL_LAUNCH = @SUPPORTS_LOCAL_LAUNCH@
 S_GTPLSP_ADB = @S_GTPLSP_ADB@
 S_GTPLSP_ADS = @S_GTPLSP_ADS@
+S_GARTHI_ADB = @S_GARTHI_ADB@
+S_GARTHI_ADS = @S_GARTHI_ADS@
 TAR = @TAR@
 TCP_INCLUDED = @TCP_INCLUDED@
 TCP_PLATFORM_SOURCES = @TCP_PLATFORM_SOURCES@
@@ -399,6 +401,16 @@ $(TCP_PLATFORM_SOURCES): $(S_GTPLSP_ADS) $(S_GTPLSP_ADB)
 	cp $(srcdir)/$(S_GTPLSP_ADS) s-gtplsp.ads
 	@if test -n "$(S_GTPLSP_ADB)"; then \
 	  cp $(srcdir)/$(S_GTPLSP_ADB) s-gtplsp.adb; \
+	fi
+
+force:
+
+s-garthi.ads s-garthi.adb: $(S_GARTHI_ADS) $(S_GARTHI_ADB) force
+	@if test -e "$(S_GARTHI_ADB)"; then \
+	  cp $(srcdir)/$(S_GARTHI_ADB) s-garthi.adb; \
+	fi
+	@if test -e "$(S_GARTHI_ADS)"; then \
+	  cp $(srcdir)/$(S_GARTHI_ADS) s-garthi.ads; \
 	fi
 
 split: $(srcdir)/split.adb
