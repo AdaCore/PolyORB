@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-parser.adb#13 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-parser.adb#14 $
 
 with Ada.Characters.Latin_1;
 with Ada.Unchecked_Deallocation;
@@ -4237,7 +4237,7 @@ package body Idl_Fe.Parser is
         := new Constant_Value (Kind => C_General_Integer);
    begin
 
-      --  We cannot call Pase_Const_Exp directly, since we do
+      --  We cannot call Parse_Const_Exp directly, since we do
       --  not have a node specifying the type of the constant,
       --  so we call Parse_Or_Expr, and then check the result
       --  against the unsigned type bounds.
