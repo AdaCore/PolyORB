@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS = foreign no-dependencies
 ACLOCAL_AMFLAGS = -I support
 
-corba_dir      =
+corba_dir      = idls cos
 dsa_dir        =
 moma_dir       =
 web_common_dir =
@@ -16,7 +16,7 @@ else
 TESTSUITE=
 endif
 
-SUBDIRS = support compilers idls src cos examples @DOC_DIR@ $(TESTSUITE) @APPLI_DIRS@ @PROTO_DIRS@ @LIBS_DIRS@
+SUBDIRS = support compilers @APPLI_DIRS@ @PROTO_DIRS@ @LIBS_DIRS@ src examples @DOC_DIR@ $(TESTSUITE) 
 
 CLEANFILES = config-stamp
 DISTCLEANFILES = support/adacompiler support/native-adacompiler support/linker polyorb-config
