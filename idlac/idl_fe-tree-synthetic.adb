@@ -3,44 +3,6 @@ with Idl_Fe.Tree; use Idl_Fe.Tree;
 
 package body Idl_Fe.Tree.Synthetic is
 
-   function Head
-     (NL : Node_List)
-     return Node_Id
-   is
-      It : Node_Iterator;
-   begin
-      Init (It, NL);
-      return Get_Node (It);
-   end Head;
-
-   function Is_Empty
-     (NL : Node_List)
-     return Boolean
-   is
-      It : Node_Iterator;
-   begin
-      Init (It, NL);
-      return Is_End (It);
-   end Is_Empty;
-
-   function Length
-     (NL : Node_List)
-     return Natural
-   is
-      It : Node_Iterator;
-      Count : Natural
-        := 0;
-   begin
-      Init (It, NL);
-      while not Is_End (It) loop
-         Count := Count + 1;
-         --  Dummy := Get_Node (It);
-         Next (It);
-      end loop;
-
-      return Count;
-   end Length;
-
    function Is_Interface_Type
      (Node : Node_Id)
      return Boolean is
@@ -219,8 +181,7 @@ package body Idl_Fe.Tree.Synthetic is
       Init (It, Parents (Node));
 
       while not Is_End (It) loop
-         I_Node := Get_Node (It);
-         Next (It);
+         Get_Next_Node (It, I_Node);
 
          P_Node := Value (I_Node);
          if not (False

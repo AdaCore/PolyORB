@@ -268,8 +268,7 @@ package body Ada_Be.Idl2Ada is
             begin
                Init (It, Contents (Node));
                while not Is_End (It) loop
-                  Decl_Node := Get_Node (It);
-                  Next (It);
+                  Get_Next_Node (It, Decl_Node);
 
                   if Is_Gen_Scope (Decl_Node) then
                      Gen_Scope (Decl_Node, Implement);
@@ -374,8 +373,7 @@ package body Ada_Be.Idl2Ada is
             begin
                Init (It, Contents (Node));
                while not Is_End (It) loop
-                  Export_Node := Get_Node (It);
-                  Next (It);
+                  Get_Next_Node (It, Export_Node);
                   if Is_Gen_Scope (Export_Node) then
                      Gen_Scope (Export_Node, Implement);
                   else
@@ -446,8 +444,7 @@ package body Ada_Be.Idl2Ada is
             begin
                Init (It, Parents);
                while not Is_End (It) loop
-                  P_Node := Get_Node (It);
-                  Next (It);
+                  Get_Next_Node (It, P_Node);
 
                   Add_With (Stubs_Body, Ada_Full_Name (P_Node));
                   PL (Stubs_Body, "  or else Type_Id = "
@@ -574,8 +571,7 @@ package body Ada_Be.Idl2Ada is
                   Init (It, Parents (Node));
 
                   while not Is_End (It) loop
-                     P_Node := Get_Node (It);
-                     Next (It);
+                     Get_Next_Node (It, P_Node);
 
                      Add_With (CU, Ada_Full_Name (P_Node)
                                & Impl_Suffix,
@@ -620,8 +616,7 @@ package body Ada_Be.Idl2Ada is
 
       Init (It, Labels (Node));
       while not Is_End (It) loop
-         Label_Node := Get_Node (It);
-         Next (It);
+         Get_Next_Node (It, Label_Node);
 
          if First_Label then
             Put (CU, "when ");
@@ -732,8 +727,7 @@ package body Ada_Be.Idl2Ada is
             begin
                Init (It, Decl (Node));
                while not Is_End (It) loop
-                  Decl_Node := Get_Node (It);
-                  Next (It);
+                  Get_Next_Node (It, Decl_Node);
 
                   Gen_Node_Stubs_Spec (CU, Decl_Node);
                   Put (CU, " : ");
@@ -762,8 +756,7 @@ package body Ada_Be.Idl2Ada is
                      II (CU);
                   end if;
 
-                  E_Node := Get_Node (It);
-                  Next (It);
+                  Get_Next_Node (It, E_Node);
 
                   Gen_Node_Stubs_Spec (CU, E_Node);
 
@@ -787,8 +780,7 @@ package body Ada_Be.Idl2Ada is
                begin
                   Init (It, Declarators (Node));
                   while not Is_End (It) loop
-                     Decl_Node := Get_Node (It);
-                     Next (It);
+                     Get_Next_Node (It, Decl_Node);
 
                      declare
                         Bounds_It : Node_Iterator;
@@ -815,8 +807,7 @@ package body Ada_Be.Idl2Ada is
                         if Is_Array then
                            Init (Bounds_It, Array_Bounds (Decl_Node));
                            while not Is_End (Bounds_It) loop
-                              Bound_Node := Get_Node (Bounds_It);
-                              Next (Bounds_It);
+                              Get_Next_Node (Bounds_It, Bound_Node);
 
                               if First_Bound then
                                  Put (CU, "array (");
@@ -862,8 +853,7 @@ package body Ada_Be.Idl2Ada is
             begin
                Init (It, Cases (Node));
                while not Is_End (It) loop
-                  Case_Node := Get_Node (It);
-                  Next (It);
+                  Get_Next_Node (It, Case_Node);
 
                   Gen_When_Clause (CU, Case_Node, Has_Default);
 
@@ -938,8 +928,7 @@ package body Ada_Be.Idl2Ada is
                begin
                   Init (It, Members (Node));
                   while not Is_End (It) loop
-                     Member_Node := Get_Node (It);
-                     Next (It);
+                     Get_Next_Node (It, Member_Node);
                      Gen_Node_Stubs_Spec (CU, Member_Node);
                   end loop;
                end;
@@ -1146,8 +1135,7 @@ package body Ada_Be.Idl2Ada is
 
             Init (It, Parameters (Node));
             while not Is_End (It) loop
-               P_Node := Get_Node (It);
-               Next (It);
+               Get_Next_Node (It, P_Node);
 
                PL (CU, "IDL_"
                    & Ada_Name (Declarator (P_Node))
@@ -1173,8 +1161,7 @@ package body Ada_Be.Idl2Ada is
          begin
             Init (It, Parameters (Node));
             while not Is_End (It) loop
-               P_Node := Get_Node (It);
-               Next (It);
+               Get_Next_Node (It, P_Node);
 
                if First then
                   NL (CU);
@@ -1216,8 +1203,7 @@ package body Ada_Be.Idl2Ada is
 
             Init (It, Parameters (Node));
             while not Is_End (It) loop
-               P_Node := Get_Node (It);
-               Next (It);
+               Get_Next_Node (It, P_Node);
 
                PL (CU, ",");
                Put (CU, "IDL_"
@@ -1243,8 +1229,7 @@ package body Ada_Be.Idl2Ada is
                   First := False;
                end if;
 
-               R_Node := Get_Node (It);
-               Next (It);
+               Get_Next_Node (It, R_Node);
                E_Node := Value (R_Node);
                --  Each R_Node is a scoped_name
                --  that denotes an exception.
@@ -1337,8 +1322,7 @@ package body Ada_Be.Idl2Ada is
 
             Init (It, Parameters (Node));
             while not Is_End (It) loop
-               P_Node := Get_Node (It);
-               Next (It);
+               Get_Next_Node (It, P_Node);
 
                case Mode (P_Node) is
                   when
@@ -1454,8 +1438,7 @@ package body Ada_Be.Idl2Ada is
                begin
                   Init (It, Parameters (Node));
                   while not Is_End (It) loop
-                     P_Node := Get_Node (It);
-                     Next (It);
+                     Get_Next_Node (It, P_Node);
 
                      Add_With_Stream (CU, Param_Type (P_Node));
 
@@ -1512,8 +1495,7 @@ package body Ada_Be.Idl2Ada is
                begin
                   Init (It, Parameters (Node));
                   while not Is_End (It) loop
-                     P_Node := Get_Node (It);
-                     Next (It);
+                     Get_Next_Node (It, P_Node);
 
                      case Mode (P_Node) is
                         when Mode_Inout | Mode_Out =>
@@ -1557,8 +1539,7 @@ package body Ada_Be.Idl2Ada is
                begin
                   Init (It, Raises (Node));
                   while not Is_End (It) loop
-                     R_Node := Get_Node (It);
-                     Next (It);
+                     Get_Next_Node (It, R_Node);
                      E_Node := Value (R_Node);
                      --  Each R_Node is a scoped name
                      --  that denotes an exception.
@@ -1681,8 +1662,7 @@ package body Ada_Be.Idl2Ada is
                   begin
                      Init (It, Declarators (Node));
                      while not Is_End (It) loop
-                        Decl_Node := Get_Node (It);
-                        Next (It);
+                        Get_Next_Node (It, Decl_Node);
 
                         NL (CU);
                         Gen_Marshall_Profile
@@ -1734,8 +1714,7 @@ package body Ada_Be.Idl2Ada is
 
                Init (It, Parameters (Node));
                while not Is_End (It) loop
-                  P_Node := Get_Node (It);
-                  Next (It);
+                  Get_Next_Node (It, P_Node);
 
                   PL (CU, ";");
                   Gen_Operation_Profile
@@ -1900,8 +1879,7 @@ package body Ada_Be.Idl2Ada is
                begin
                   Init (It, Members (Node));
                   while not Is_End (It) loop
-                     Member_Node := Get_Node (It);
-                     Next (It);
+                     Get_Next_Node (It, Member_Node);
 
                      Add_With_Stream (CU, M_Type (Member_Node));
 
@@ -1911,8 +1889,7 @@ package body Ada_Be.Idl2Ada is
                      begin
                         Init (DIt, Decl (Member_Node));
                         while not Is_End (DIt) loop
-                           Decl_Node := Get_Node (DIt);
-                           Next (DIt);
+                           Get_Next_Node (DIt, Decl_Node);
 
                            PL (CU, "Marshall (Buffer, Val."
                                      & Ada_Name (Decl_Node)
@@ -1941,8 +1918,7 @@ package body Ada_Be.Idl2Ada is
                begin
                   Init (It, Members (Node));
                   while not Is_End (It) loop
-                     Member_Node := Get_Node (It);
-                     Next (It);
+                     Get_Next_Node (It, Member_Node);
 
                      declare
                         DIt   : Node_Iterator;
@@ -1950,8 +1926,7 @@ package body Ada_Be.Idl2Ada is
                      begin
                         Init (DIt, Decl (Member_Node));
                         while not Is_End (DIt) loop
-                           Decl_Node := Get_Node (DIt);
-                           Next (DIt);
+                           Get_Next_Node (DIt, Decl_Node);
 
                            PL (CU, T_Returns & "."
                                      & Ada_Name (Decl_Node)
@@ -1990,8 +1965,7 @@ package body Ada_Be.Idl2Ada is
                begin
                   Init (It, Cases (Node));
                   while not Is_End (It) loop
-                     Case_Node := Get_Node (It);
-                     Next (It);
+                     Get_Next_Node (It, Case_Node);
 
                      NL (CU);
                      Gen_When_Clause (CU, Case_Node, Has_Default);
@@ -2043,8 +2017,7 @@ package body Ada_Be.Idl2Ada is
                begin
                   Init (It, Cases (Node));
                   while not Is_End (It) loop
-                     Case_Node := Get_Node (It);
-                     Next (It);
+                     Get_Next_Node (It, Case_Node);
 
                      NL (CU);
                      Gen_When_Clause (CU, Case_Node, Has_Default);
@@ -2123,8 +2096,7 @@ package body Ada_Be.Idl2Ada is
                      Add_With_Stream (CU, T_Type (Node));
                      Init (It, Declarators (Node));
                      while not Is_End (It) loop
-                        Decl_Node := Get_Node (It);
-                        Next (It);
+                        Get_Next_Node (It, Decl_Node);
 
                         declare
                            Type_Name : constant String

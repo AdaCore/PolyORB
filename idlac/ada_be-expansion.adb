@@ -89,6 +89,12 @@ package body Ada_Be.Expansion is
    --  node is also inserted as a declaration in the current
    --  scope.
 
+   procedure Expand_Constructed_Type
+     (Node : Node_Id);
+   --  Expand a constructed type (enum, struct, or union)
+   --  not occurring directly as a declaration into
+   --  a declaration and a reference.
+
    ----------------------
    -- Utility routines --
    ----------------------
@@ -208,13 +214,17 @@ package body Ada_Be.Expansion is
       Init (Iterator, Contents (Old_Repository));
       while not Is_End (Iterator) loop
          declare
-            Current : Node_Id := Get_Node (Iterator);
-            Loc : Idl_Fe.Errors.Location
-              := Get_Location (Current);
-            Filename : Idl_Fe.Errors.File_Name_Ptr := Loc.Filename;
+            Current : Node_Id;
+            Loc : Idl_Fe.Errors.Location;
+            Filename : Idl_Fe.Errors.File_Name_Ptr;
+
             Idl_File_Node : Node_Id;
             Success : Boolean;
          begin
+            Get_Next_Node (Iterator, Current);
+            Loc := Get_Location (Current);
+            Filename := Loc.Filename;
+
             pragma Assert (Filename /= null);
             pragma Debug (O ("node "
                              & Node_Kind'Image (Kind (Current))
@@ -231,8 +241,9 @@ package body Ada_Be.Expansion is
 
                --  set its name
                --  is it correct when conflict ?
-               Success := Add_Identifier (Idl_File_Node,
-                                          Filename.all & "_IDL_File");
+               Success := Add_Identifier
+                 (Idl_File_Node,
+                  Filename.all & "_IDL_File");
                if not Success then
                   --  conflicts in filenames, not implemented yet
                   --  *** NIY ***
@@ -247,9 +258,6 @@ package body Ada_Be.Expansion is
 
             --  add the current node to the correct Ben_Idl_File
             Append_Node_To_Contents (Idl_File_Node, Current);
-
-            --  next node
-            Next (Iterator);
          end;
       end loop;
 
@@ -323,8 +331,7 @@ package body Ada_Be.Expansion is
 
       Init (Ops_It, Contents (From));
       while not Is_End (Ops_It) loop
-         O_Node := Get_Node (Ops_It);
-         Next (Ops_It);
+         Get_Next_Node (Ops_It, O_Node);
 
          if Kind (O_Node) = K_Operation
            and then From = Original_Parent_Scope (O_Node)
@@ -341,8 +348,7 @@ package body Ada_Be.Expansion is
 
       Init (Inh_It, Parents (From));
       while not Is_End (Inh_It) loop
-         I_Node := Get_Node (Inh_It);
-         Next (Inh_It);
+         Get_Next_Node (Inh_It, I_Node);
 
          Recursive_Copy_Operations
            (Into, Parent, Value (I_Node),
@@ -372,8 +378,7 @@ package body Ada_Be.Expansion is
 
       Init (It, Parents (Node));
       while not Is_End (It) loop
-         I_Node := Get_Node (It);
-         Next (It);
+         Get_Next_Node (It, I_Node);
 
          Recursive_Copy_Operations
            (Into => Export_List,
@@ -414,8 +419,7 @@ package body Ada_Be.Expansion is
 
       while not Is_End (Iterator) loop
 
-         Current_Declarator := Get_Node (Iterator);
-         Next (Iterator);
+         Get_Next_Node (Iterator, Current_Declarator);
 
          if Exports_List = Nil_List then
             Exports_List := Contents (Parent_Scope (Current_Declarator));
@@ -553,6 +557,7 @@ package body Ada_Be.Expansion is
    procedure Expand_Type_Declarator
      (Node : Node_Id) is
    begin
+      Expand_Constructed_Type (T_Type (Node));
       Expand_Node (T_Type (Node));
    end Expand_Type_Declarator;
 
@@ -565,18 +570,21 @@ package body Ada_Be.Expansion is
    procedure Expand_Member
      (Node : Node_Id) is
    begin
+      Expand_Constructed_Type (M_Type (Node));
       Expand_Node (M_Type (Node));
    end Expand_Member;
 
    procedure Expand_Union
      (Node : Node_Id) is
    begin
+      Expand_Constructed_Type (Switch_Type (Node));
       Expand_Node_List (Cases (Node), False);
    end Expand_Union;
 
    procedure Expand_Case
      (Node : Node_Id) is
    begin
+      Expand_Constructed_Type (Case_Type (Node));
       Expand_Node (Case_Type (Node));
    end Expand_Case;
 
@@ -591,16 +599,18 @@ package body Ada_Be.Expansion is
         := Make_Sequence_Instance;
       Success : Boolean;
    begin
-      Expand_Node (Sequence_Type (Node));
-
       Success := Add_Identifier
         (Seq_Inst_Node,
          "IDL_" & Sequence_Type_Name (Node));
       pragma Assert (Success);
+      --  FIXME: The Add_Identifier should be performed
+      --    in the Current_Gen_Scope, not in the Current_Scope.
       --  FIXME: If the identifier is not available
-      --  in the current scope, that means that the
-      --  correct sequence type has already been created.
-      --  We should reuse it.
+      --     in the current gen scope, that means that the
+      --     correct sequence type has already been created.
+      --     We should reuse it.
+
+      Expand_Node (Sequence_Type (Node));
 
       declare
          Current_Gen_Scope : constant Node_Id
@@ -623,6 +633,80 @@ package body Ada_Be.Expansion is
       Set_Sequence (Seq_Inst_Node, Sequence_Node);
    end Expand_Sequence;
 
+   procedure Expand_Constructed_Type
+     (Node : Node_Id)
+   is
+      NK : constant Node_Kind
+        := Kind (Node);
+
+   begin
+      if not (False
+        or else NK = K_Enum
+        or else NK = K_Union
+        or else NK = K_Struct) then
+         return;
+      end if;
+
+      Expand_Node (Node);
+
+      pragma Debug (O ("Expand_Constructed_Type: enter"));
+
+      declare
+         Current_Gen_Scope : constant Node_Id
+           := Get_Current_Gen_Scope;
+         Current_Scope_Contents : Node_List;
+
+         Constr_Type_Node : Node_Id := Node;
+         Constr_Type_Ref_Node : Node_Id
+           := Make_Scoped_Name;
+
+         Success : Boolean;
+      begin
+         pragma Assert (Is_Gen_Scope (Current_Gen_Scope));
+         Current_Scope_Contents
+           := Contents (Current_Gen_Scope);
+
+         Replace_Node (Constr_Type_Node, Constr_Type_Ref_Node);
+
+         Insert_Before
+           (Current_Scope_Contents,
+            Constr_Type_Node,
+            Before => Current_Position_In_List);
+
+         if Parent_Scope (Constr_Type_Node) /= Current_Gen_Scope then
+            Success :=
+              Add_Identifier (Constr_Type_Node, Name (Constr_Type_Node));
+            pragma Assert (Success);
+            --  FIXME: We change the parent scope of Constr_Type_Node
+            --    (it becomes Current_Scope). Actually this should
+            --    be Current_Gen_Scope.
+         end if;
+
+         if Kind (Constr_Type_Node) = K_Enum then
+            --  Also reparent all enumerators
+            declare
+               It : Node_Iterator;
+               E_Node : Node_Id;
+            begin
+               Init (It, Enumerators (Constr_Type_Node));
+
+               while not Is_End (It) loop
+                  Get_Next_Node (It, E_Node);
+
+                  Success := Add_Identifier (E_Node, Name (E_Node));
+                  pragma Assert (Success);
+                  --   FIXME: See above.
+               end loop;
+            end;
+         end if;
+
+         Set_Contents (Current_Gen_Scope, Current_Scope_Contents);
+
+         Set_Value (Constr_Type_Ref_Node, Constr_Type_Node);
+         Set_S_Type (Constr_Type_Ref_Node, Constr_Type_Node);
+      end;
+   end Expand_Constructed_Type;
+
    -----------------------------------------
    --          private utilities          --
    -----------------------------------------
@@ -633,15 +717,26 @@ package body Ada_Be.Expansion is
 
    procedure Expand_Node_List
      (List : in Node_List;
-     Set_Current_Position : in Boolean) is
+      Set_Current_Position : in Boolean)
+   is
+      It : Node_Iterator;
+      Node : Node_Id;
    begin
-      if List /= Nil_List then
+      Init (It, List);
+
+      while not Is_End (It) loop
+         Get_Next_Node (It, Node);
+
          if Set_Current_Position then
-            Current_Position_In_List := List.Car;
+            Current_Position_In_List := Node;
+            pragma Debug
+              (O ("Current_Position_In_List = "
+                  & Img (Integer (Node))));
          end if;
-         Expand_Node (List.Car);
-         Expand_Node_List (List.Cdr, Set_Current_Position);
-      end if;
+         Expand_Node (Node);
+
+      end loop;
+
       if Set_Current_Position then
          Current_Position_In_List := No_Node;
       end if;

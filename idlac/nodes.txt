@@ -25,7 +25,8 @@ Named
   Parent_Scope_Override : Node_Id
   --  Expansion attribute: override that
   --  value of Definition.Parent_Scope for this
-  --  copy of the node.
+  --  copy of the node (used for inherited operation
+  --  and attribute nodes).
 
 Scope <-- Named
   Identifier_List : Identifier_Definition_List

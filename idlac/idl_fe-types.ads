@@ -106,19 +106,29 @@ package Idl_Fe.Types is
    -- A useful list of root nodes --
    ---------------------------------
 
-   --  Definition in a lisp like style of a node list
-   type Node_List_Cell;
-   type Node_List is access Node_List_Cell;
-   type Node_List_Cell is record
-      Car : Node_Id;
-      Cdr : Node_List;
-   end record;
+   type Node_List is private;
+   --  A list of nodes.
 
-   --  Definition of the iterator on a node list
-   type Node_Iterator is new Node_List;
+   type Node_Iterator is private;
+   --  An iterator on a node list.
 
    --  the empty list
-   Nil_List : constant Node_List := null;
+   Nil_List : constant Node_List;
+
+   function Head
+     (NL : Node_List)
+     return Node_Id;
+   --  Return the first node in NL.
+
+   function Is_Empty
+     (NL : Node_List)
+     return Boolean;
+   --  True iff NL is empty.
+
+   function Length
+     (NL : Node_List)
+     return Natural;
+   --  The length of a list.
 
    --  Simple way to iterate over a node_list.
    --  NODE_ITERATOR is a type representing an iterator, which must
@@ -133,14 +143,22 @@ package Idl_Fe.Types is
    --  begin
    --    init (it, rep.contents);
    --    while not is_end (it) loop
-   --      node := get_node (it);
+   --      get_next_node (it, node);
    --      ...
-   --      next (it);
    --    end loop;
-   procedure Init (It : out Node_Iterator; List : Node_List);
-   function Get_Node (It : Node_Iterator) return Node_Id;
-   procedure Next (It : in out Node_Iterator);
-   function Is_End (It : Node_Iterator) return Boolean;
+   --  end;
+
+   procedure Init
+     (It : out Node_Iterator;
+      List : Node_List);
+
+   procedure Get_Next_Node
+     (It : in out Node_Iterator;
+      Node : out Node_Id);
+
+   function Is_End
+     (It : Node_Iterator)
+     return Boolean;
 
    --  Appends a node at the end of a list.
    procedure Append_Node (List : in out Node_List;
@@ -266,18 +284,6 @@ package Idl_Fe.Types is
    --  If result is false, means that Find_Identifier_Definition
    --  has a NOT NULL result!
 
-   function Check_Identifier_Index
-     (Identifier : String)
-     return Uniq_Id;
-   --  Check if the  uniq_id from an identifier is already defined
-   --  return it or Nil_Uniq_Id
-
-   function Create_Identifier_Index
-     (Identifier : String)
-     return Uniq_Id;
-   --  Create the uniq_id entry for an identifier if it doesn't exist
-   --  return it
-
    function Find_Identifier_Definition
      (Name : String)
      return Identifier_Definition_Acc;
@@ -289,10 +295,6 @@ package Idl_Fe.Types is
    --  Find the node corresponding to the current identifier.
    --  The current identifier is the one just scanned by the lexer
    --  If this identifier is not defined, returns a null pointer.
-
---   function Find_Identifier_Node (Scope : Node_Id; Name : String)
---                                  return Node_Id;
-
 
    procedure Redefine_Identifier
      (A_Definition : Identifier_Definition_Acc;
@@ -310,51 +312,22 @@ package Idl_Fe.Types is
    --  Returns true if successful, False if the identifier was
    --  already in this scope.
 
-   function Check_Identifier_In_Storage
-     (Scope : Node_Id;
-      Identifier : String)
-     return Uniq_Id;
-   --  Check if the  uniq_id from an identifier is already defined
-   --  in the scope and return it or Nil_Uniq_Id
-
    function Find_Identifier_In_Storage
      (Scope : Node_Id; Name : String)
      return Identifier_Definition_Acc;
    --  Find the identifier definition in Scope.
    --  If this identifier is not defined, returns a null pointer.
 
-   function Create_Identifier_In_Storage
-     (Identifier : String)
-     return Uniq_Id;
-   --  Create the uniq_id entry for an identifier in the storage table
-   --  at the end of the scope parsing
-   --  return it
-
    procedure Add_Definition_To_Storage
      (Definition : in Identifier_Definition_Acc);
    --  Add the definition to the current scope storage table.
    --  It is done at the end of the scope parsing (called by pop_scope)
-
-   function Check_Imported_Identifier_Index
-     (Identifier : String)
-     return Uniq_Id;
-   --  Check if the  uniq_id from an identifier is already defined
-   --  in the imported table.
-   --  return it or Nil_Uniq_Id
 
    function Find_Imported_Identifier_Definition
      (Name : String)
      return Identifier_Definition_Acc;
    --  Find the identifier definition in the imported table.
    --  If this identifier is not defined, returns a null pointer.
-
-   function Create_Identifier_In_Imported
-     (Identifier : String;
-      Scope : Node_Id)
-     return Uniq_Id;
-   --  Create the uniq_id entry for an identifier in the imported table of
-   --  the given scope
-   --  return it
 
    procedure Add_Definition_To_Imported
      (Definition : in Identifier_Definition_Acc;
@@ -414,6 +387,7 @@ package Idl_Fe.Types is
    ----------------------------------
    --  The Gnat_Table adapted type --
    ----------------------------------
+
    --  This section provides an implementation of dynamically resizable one
    --  dimensional array type.The idea is to mimic the normal Ada semantics for
    --  arrays as closely as possible with the one additional capability of
@@ -493,11 +467,11 @@ package Idl_Fe.Types is
    -------------------------------------------------
    --  the structure used for storing identifiers --
    -------------------------------------------------
+
    type Storage is record
       Hash_Table : Hash_Table_Type := (others => Nil_Uniq_Id);
       Content_Table : Table;
    end record;
-
 
 private
 
@@ -521,5 +495,20 @@ private
    --  The hashing function. Takes an identifier and return its hash
    --  value
    function Hash (Str : in String) return Hash_Value_Type;
+
+   ---------------
+   -- Node list --
+   ---------------
+
+   type Node_List_Cell;
+   type Node_List is access Node_List_Cell;
+   type Node_List_Cell is record
+      Car : Node_Id;
+      Cdr : Node_List;
+   end record;
+
+   Nil_List : constant Node_List := null;
+
+   type Node_Iterator is new Node_List;
 
 end Idl_Fe.Types;

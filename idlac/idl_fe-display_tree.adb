@@ -32,13 +32,13 @@ package body Idl_Fe.Display_Tree is
    begin
       Init (It, List);
       while not Is_End (It) loop
-         N := Get_Node (It);
+         Get_Next_Node (It, N);
+
          if N /= No_Node then
             Disp_Tree (N, Indent, Full);
          else
             Disp_Indent (Indent, "*null*");
          end if;
-         Next (It);
       end loop;
    end Disp_List;
 
