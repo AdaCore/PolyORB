@@ -4,13 +4,19 @@ man_MANS = ab_names.1 idlac.1 polyorb-config.1 polyorb.7
 SUFFIXES = .idl .ads .adb .texi .sed
 
 polyorb_ug_TEXINFOS = polyorb_ug_ref.texi \
-	../src/corba/polyorb-corba_p-server_tools.ads.texi \
-	../cos/naming/polyorb-corba_p-naming_tools.ads.texi \
+	polyorb-corba_p-server_tools.texi \
+	polyorb-corba_p-naming_tools.texi \
 	echo.texi \
-	echo-impl-spec.ads.texi \
-	echo-impl-body.adb.texi \
-	server.adb.texi \
-	client.adb.texi
+	echo-impl-spec.texi \
+	echo-impl-body.texi \
+	server.texi \
+	client.texi
+
+polyorb-corba_p-server_tools.ads: ../src/corba/polyorb-corba_p-server_tools.ads
+	cp ../src/corba/polyorb-corba_p-server_tools.ads .
+
+polyorb-corba_p-naming_tools.ads: ../cos/naming/polyorb-corba_p-naming_tools.ads
+	cp ../cos/naming/polyorb-corba_p-naming_tools.ads .
 
 polyorb_ug.html: ${srcdir}/polyorb_ug.texi
 	-${TEXI2HTML} -menu -split section -number $<
@@ -64,11 +70,11 @@ ADA_KW    = use package is in out exception function with type constant \
 		private of return range procedure begin end array record \
 		subtype generic limited access all
 
-%.ads.texi: %.ads ada.sed ../support/gentexifile
+%.texi: %.ads ada.sed ../support/gentexifile
 	../support/gentexifile $< .ads
 	-@${RM} genout
 
-%.adb.texi: %.adb ada.sed ../support/gentexifile
+%.texi: %.adb ada.sed ../support/gentexifile
 	../support/gentexifile $< .adb
 	-@${RM} genout
 
@@ -106,7 +112,6 @@ idl.sed:
 		echo "s/^$$kw$$/@b{$$kw}/g" >> idl.sed; \
 	done
 
-
 all-local: polyorb_ug.html polyorb_ug.pdf polyorb_ug.ps polyorb_ug.txt
 
 clean-local:
@@ -114,7 +119,7 @@ clean-local:
 	-@${RM} polyorb_ug_ref.aux polyorb_ug_ref.bbl polyorb_ug_ref.blg 
 	-@${RM} polyorb_ug_ref.dvi polyorb_ug_ref.log
 	-@${RM} ${polyorb_ug_TEXINFOS}
-	-@${RM} polyorb_dg.pdf polyorb_dg.txt polyorb_dg.info polyorb_dg.html
+	-@${RM} polyorb_dg.pdf polyorb_dg.txt polyorb_dg.info polyorb_dg*.html
 	-@${RM} idl.sed ada.sed
 
 install-data-local:
