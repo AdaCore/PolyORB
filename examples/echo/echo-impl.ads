@@ -10,6 +10,7 @@
 ----------------------------------------------------------------------------
 
 with Omniobject ;
+with Giop_S ;
 
 with Adabroker_Debug ;
 pragma Elaborate(Adabroker_Debug) ;
@@ -29,6 +30,12 @@ package Echo.Impl is
                        Message : in Corba.String) return Corba.String ;
 
 
+
+   procedure Dispatch (Self : in out Echo.Impl.Object ;
+                       Orls : in out Giop_S.Object ;
+                       Orl_Op : in Standard.String ;
+                       Orl_Response_Expected : in Corba.Boolean ;
+                       Returns : out Corba.Boolean ) ;
 
 private
 

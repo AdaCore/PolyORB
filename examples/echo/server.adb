@@ -16,18 +16,12 @@ with Text_IO ; use Text_Io ;
 with Echo.Impl ;
 
 procedure server is
-   Orb : Corba.Orb.Object  ;
-   Boa : Corba.Boa.Object ;
+   Orb : Corba.Orb.Object := Corba.Orb.Orb_Init("omniORB2") ;
+   Boa : Corba.Boa.Object := Corba.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
    Myecho : Echo.Impl.Object ;
    Ior : Corba.String ;
 begin
    Put_Line("main: starting server") ;
-
-   Orb := Corba.Orb.Orb_Init("omniORB2") ;
-   Put_Line("main: ORB initialized") ;
-
-   Boa := Corba.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
-   Put_Line("main: BOA initialized") ;
 
    Object_Is_Ready(Boa, Myecho) ;
    Put_Line("main: Object is ready !") ;

@@ -9,3 +9,5 @@
 #corba.object
 echo
 echo.impl
+omniobject
+
