@@ -9,6 +9,7 @@
 ----                                                                    ----
 ----------------------------------------------------------------------------
 
+with Giop_S, Corba.Object, OmniORB ;
 
 package Weapon.Impl is
 
@@ -18,7 +19,7 @@ package Weapon.Impl is
 
    type Object is new Corba.Implementation_Defined.Object with private;
 
-   procedure Shoot (Self: in Ref; Weapon_Name: in Name) ;
+   procedure Shoot (Self: in access Object; Weapon_Name: in Name) ;
 
 
    --------------------------------------------------
@@ -31,7 +32,7 @@ package Weapon.Impl is
    function Dispatch (Self : in Object;
                       Orls : in out Giop_S;
                       Orl_Op : in Corba.String;
-                      Orl_Response_Expected : Corba.Boolean)
+                      Orl_Response_Expected : in Corba.Boolean)
                       return Corba.Boolean;
    -- called by the ORB's dispatch function in omniObject.ads
    -- calls the function whose name is Orl_OP
@@ -40,6 +41,6 @@ package Weapon.Impl is
 
 private
 
-   type Object is new Corba.Object.Object with null record;
+   type Object is new Corba.Object.Ref with null record;
 
 End Weapon.Impl ;

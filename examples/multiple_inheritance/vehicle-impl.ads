@@ -9,6 +9,7 @@
 ----                                                                    ----
 ----------------------------------------------------------------------------
 
+with Giop_S, Corba.Object, OmniORB ;
 
 package Vehicle.Impl is
 
@@ -18,12 +19,12 @@ package Vehicle.Impl is
 
    type Object is new Corba.Implementation_Defined.Object with private;
 
-   procedure Set_Mark (Self: in Ref ;
+   procedure Set_Mark (Self: in access Object ;
                        To: in Corba.String) ;
 
-   function Get_Mark (Self: in Ref) return Corba.String ;
+   function Get_Mark (Self: in access Object) return Corba.String ;
 
-   procedure Drive (Self: in Ref;
+   procedure Drive (Self: in access Object ;
                     Vehicle_Mark: in Corba.String) ;
 
 
@@ -37,7 +38,7 @@ package Vehicle.Impl is
    function Dispatch (Self : in Object;
                       Orls : in out Giop_S;
                       Orl_Op : in Corba.String;
-                      Orl_Response_Expected : Corba.Boolean)
+                      Orl_Response_Expected : in Corba.Boolean)
                       return Corba.Boolean;
    -- called by the ORB's dispatch function in omniObject.ads
    -- calls the function whose name is Orl_OP
@@ -46,7 +47,7 @@ package Vehicle.Impl is
 
 private
 
-   type Object is new Corba.Object.Object with record
+   type Object is new Corba.Object.Ref with record
       Mark: Corba.String ;
    end record ;
 

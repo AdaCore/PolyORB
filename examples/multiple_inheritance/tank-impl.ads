@@ -9,10 +9,7 @@
 ----                                                                    ----
 ----------------------------------------------------------------------------
 
-with Corba;
-with Omniproxycalldesc;
-with Giop_C;
-
+with Giop_S, Corba.Object, OmniORB ;
 
 package Tank.Impl is
 
@@ -21,13 +18,13 @@ package Tank.Impl is
    --------------------------------------------------
 
    -- Inheritance from vehicle
-   type Object is new Tank.Impl.Object with private;
+   type Object is new Vehicle.Impl.Object with private;
 
 
    -- Added from weapon for multiple inheritance
    type Name is new Corba.String ;
 
-   procedure Shoot (Self: in Ref;
+   procedure Shoot (Self: in access Object ;
                     Weapon_Name: in Name) ;
 
 
@@ -42,7 +39,7 @@ package Tank.Impl is
    function Dispatch (Self : in Object;
                       Orls : in out Giop_S;
                       Orl_Op : in Corba.String;
-                      Orl_Response_Expected : Corba.Boolean)
+                      Orl_Response_Expected : in Corba.Boolean)
                       return Corba.Boolean;
    -- called by the ORB's dispatch function in omniObject.ads
    -- calls the function whose name is Orl_OP
@@ -51,6 +48,6 @@ package Tank.Impl is
 
 private
 
-   type Object is new Tank.Impl.Object with null record;
+   type Object is new Vehicle.Impl.Object with null record;
 
 End Tank.Impl ;

@@ -22,7 +22,7 @@ package Vehicle is
 
    type Ref is new Corba.Object.Ref with null record;
 
-   function To_Ref(From: in Corba.Object.Ref'Class) return Ref ;
+   function To_Ref(The_Ref: in Corba.Object.Ref'Class) return Ref ;
 
    procedure Set_Mark (Self: in Ref ;
                        To: in Corba.String) ;
@@ -43,12 +43,12 @@ package Vehicle is
                         return Corba.Unsigned_Long ;
 
    procedure MarshalArguments(Self: in OmniProxyCallDesc_Vehicle;
-                                Giop_Client: in out Giop_C) ;
+                                Giop_Client: in out Giop_C.Object) ;
 
    procedure UnmarshalReturnedValues(Self: in OmniProxyCallDesc_Vehicle;
-                                       Giop_Client: in out Giop_C) ;
+                                       Giop_Client: in out Giop_C.Object) ;
 
-   function Result (Self : in Object) return CORBA.String;
+   function Result (Self : in Ref) return CORBA.String;
 
 
    --------------------------------------------------
@@ -56,15 +56,15 @@ package Vehicle is
    --------------------------------------------------
 
    procedure AdaBroker_Cast_To_Parent(Real_Object: in Ref;
-                                      Result: out Corba.Object'Class) ;
+                                      Result: out Corba.Object.Ref'Class) ;
 
 
 
 private
 
-   type OmniProxyCallDesc_Vehicle is new OmniProxyCallDesc with record
+   type OmniProxyCallDesc_Vehicle is new OmniProxyCallDesc.Object with record
       Vehicle_Mark : Corba.String ;
-      Result : Corba.String ;
+      Private_Result : Corba.String ;
    end record ;
 
 
