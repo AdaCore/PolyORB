@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,7 +32,7 @@
 
 --  $Id$
 
-with Unchecked_Deallocation;
+with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Tasking.Threads is
 
@@ -45,7 +45,7 @@ package body PolyORB.Tasking.Threads is
    -- Free --
    ----------
 
-   procedure Free is new Unchecked_Deallocation
+   procedure Free is new Ada.Unchecked_Deallocation
      (Runnable'Class, Runnable_Access);
 
    -----------------
@@ -53,7 +53,8 @@ package body PolyORB.Tasking.Threads is
    -----------------
 
    procedure Create_Task
-     (Main : Parameterless_Procedure) is
+     (Main : Parameterless_Procedure)
+   is
       T  : Thread_Access;
    begin
       T := Run_In_Task
@@ -65,7 +66,8 @@ package body PolyORB.Tasking.Threads is
    -- Current_Task --
    ------------------
 
-   function Current_Task return Thread_Id is
+   function Current_Task
+     return Thread_Id is
    begin
       return Get_Current_Thread_Id (My_Thread_Factory);
    end Current_Task;
@@ -76,7 +78,8 @@ package body PolyORB.Tasking.Threads is
 
    procedure Free_Runnable
      (C : in out Runnable_Controller;
-      R : in out Runnable_Access) is
+      R : in out Runnable_Access)
+   is
       pragma Warnings (Off);
       pragma Unreferenced (C);
       pragma Warnings (On);
@@ -92,6 +95,7 @@ package body PolyORB.Tasking.Threads is
      return Thread_Factory_Access is
    begin
       pragma Assert (Initialised);
+
       return My_Thread_Factory;
    end Get_Thread_Factory;
 
@@ -99,7 +103,8 @@ package body PolyORB.Tasking.Threads is
    -- Image --
    -----------
 
-   function Image (TID : Thread_Id) return String is
+   function Image (TID : Thread_Id)
+                  return String is
    begin
       return Thread_Id_Image (My_Thread_Factory, TID);
    end Image;
@@ -123,7 +128,8 @@ package body PolyORB.Tasking.Threads is
    -- Null_Thread_Id --
    --------------------
 
-   function Null_Thread_Id return Thread_Id is
+   function Null_Thread_Id
+     return Thread_Id is
    begin
       return Thread_Id (System.Null_Address);
    end Null_Thread_Id;
@@ -132,7 +138,8 @@ package body PolyORB.Tasking.Threads is
    -- To_Address --
    ----------------
 
-   function To_Address (TID : Thread_Id) return System.Address is
+   function To_Address (TID : Thread_Id)
+                       return System.Address is
    begin
       return System.Address (TID);
    end To_Address;
@@ -141,7 +148,8 @@ package body PolyORB.Tasking.Threads is
    -- To_Thread_Id --
    ------------------
 
-   function To_Thread_Id (A : System.Address) return Thread_Id is
+   function To_Thread_Id (A : System.Address)
+                         return Thread_Id is
    begin
       return Thread_Id (A);
    end To_Thread_Id;

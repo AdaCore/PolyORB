@@ -2,12 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . T A S K I N G . P R O F I L E S              --
---                   . R A V E N S C A R . T H R E A D S                    --
+--               POLYORB.TASKING.PROFILES.RAVENSCAR.THREADS                 --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,17 +32,17 @@
 
 --  Abstraction types for Ravenscar tasking.
 
---  Under the Ravenscar profile, "Threads" are
---  associated with an unique synchronisation
---  object on which is the only one they can wait on.
---  This assures that only one task wait on every
---  entry, as required in the Ravenscar profile.
+--  Under the Ravenscar profile, "Threads" are associated with an
+--  unique synchronisation object which is the only one they can wait
+--  on. This assures that only one task wait on every entry, as
+--  required in the Ravenscar profile.
 
---  The child packages of this package should only
---  be packages providing tasking facilities. Other
---  packages shoud not have access to "suspend" and "resume",
---  the procedures affecting the internal
+--  The child packages of this package should only be packages
+--  providing tasking facilities. Other packages shoud not have access
+--  to "suspend" and "resume", the procedures affecting the internal
 --  synchronisation object.
+
+--  XXX inconsistant, "suspend" and "resume" are used by CV and mutexes !!!
 
 with System;
 
@@ -214,17 +213,5 @@ private
       --  Run_In_Task, Sync_Id is the Id of the Synchro on which the
       --  corresponding task is waiting.
    end record;
-
-   package Thread_Index_Manager is
-      new PolyORB.Tasking.Profiles.Ravenscar.Index_Manager
-     (PolyORB.Tasking.Profiles.Ravenscar.Configuration.Number_Of_Threads - 1);
-
-   subtype Task_Index_Type is Thread_Index_Manager.Index_Type;
-   --  Type of the Ids of the Threads that are not the one of the main task.
-
-   subtype Thread_Index_Type is Integer
-     range Task_Index_Type'First .. Task_Index_Type'Last + 1;
-   --  Type of the Ids of all the Threads, including the one
-   --  of the main task
 
 end PolyORB.Tasking.Profiles.Ravenscar.Threads;

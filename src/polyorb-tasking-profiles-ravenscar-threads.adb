@@ -50,7 +50,6 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.tasking.profiles.ravenscar.threads");
-
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -67,12 +66,22 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    --  In this package, it is called the main task, and the Thread object
    --  associated to it is called the main Thread.
 
-   --  paramaters associated to this main task :
+   package Thread_Index_Manager is
+      new PolyORB.Tasking.Profiles.Ravenscar.Index_Manager
+     (PolyORB.Tasking.Profiles.Ravenscar.Configuration.Number_Of_Threads - 1);
+
+   subtype Task_Index_Type is Thread_Index_Manager.Index_Type;
+   --  Type of the Ids of the Threads that are not the one of the main task.
+
+   subtype Thread_Index_Type is Integer
+     range Task_Index_Type'First .. Task_Index_Type'Last + 1;
+   --  Type of the Ids of all the Threads, including the one
+   --  of the main task
+
+   --  Paramaters associated to this main task :
 
    Main_Task_Index : constant Integer := Thread_Index_Type'Last;
-
    Main_Task_Tid    : Ada.Task_Identification.Task_Id;
-
    --  XXX These two functions are duplicated from Full_Tasking.
 
    function P_To_A_Task_Id (TID : PTT.Thread_Id)
@@ -85,6 +94,10 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    pragma Inline (A_To_P_Task_Id);
    --  Convert Ada Task_Id to PolyORB Task_Id.
 
+   --------------------
+   -- P_To_A_Task_Id --
+   --------------------
+
    function P_To_A_Task_Id (TID : PTT.Thread_Id)
      return Ada.Task_Identification.Task_Id
    is
@@ -93,6 +106,10 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    begin
       return STID_To_ATID (System.Tasking.To_Task_Id (PTT.To_Address (TID)));
    end P_To_A_Task_Id;
+
+   --------------------
+   -- A_To_P_Task_Id --
+   --------------------
 
    function A_To_P_Task_Id (ATID : Ada.Task_Identification.Task_Id)
      return PTT.Thread_Id
@@ -215,8 +232,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    --  by a Runnable or by a Parameterless_Procedure.
    --  This type is used to discriminate.
 
-   type Job_Passing_Arr is array (Thread_Index_Type)
-     of Job_Passing;
+   type Job_Passing_Arr is array (Thread_Index_Type) of Job_Passing;
 
    My_Job_Passing_Arr : Job_Passing_Arr;
 
@@ -244,10 +260,6 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    Sync_Pool : Barrier_Arr;
    --  Pool of Barrier used for synchronisations.
 
-   ----------
-   -- Free --
-   ----------
-
    -------------------
    -- Abort_Suspend --
    -------------------
@@ -256,8 +268,11 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    begin
       pragma Assert (Initialized);
       pragma Debug (O ("abort suspend on " & Integer'Image (Integer (S))));
+
       Sync_Pool (S).Prepare_Wait (False);
+
       pragma Debug (O ("abort done on " & Integer'Image (Integer (S))));
+
       Synchro_Index_Manager.Release (Synchro_Index_Manager.Index_Type (S));
    end Abort_Suspend;
 
@@ -267,10 +282,18 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    protected body Barrier is
 
+      -------------------------
+      -- Barrier.Get_Waiting --
+      -------------------------
+
       function Get_Waiting return Boolean is
       begin
          return Waiting;
       end Get_Waiting;
+
+      --------------------------
+      -- Barrier.Get_Signaled --
+      --------------------------
 
       function Get_Signaled return Boolean is
       begin
@@ -286,10 +309,13 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
          pragma Assert (not Signaled);
          --  Why should we be signaled if we are not waiting yet?
          --  It would definitely be an error.
+
          pragma Assert (State or Waiting);
          --  Fail if we try to abort, but no call to suspend were prepared.
+
          pragma Assert (not State or not Waiting);
          --  Fail if it is the second call to Prepare_Wait (True)
+
          Waiting := State;
       end Prepare_Wait;
 
@@ -329,6 +355,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
          pragma Assert (Waiting);
          --  Error : Prepare_Wait have not been called before.
          pragma Debug (O ("wait done!"));
+
          Signaled := False;
          Waiting := False;
       end Wait;
@@ -363,6 +390,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
       pragma Warnings (On);
+
       Index_Image : constant String := Integer'Image (Get_Thread_Index (TID));
    begin
       return Ada.Task_Identification.Image (P_To_A_Task_Id (TID))
@@ -385,7 +413,8 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    -- Get_Thread_Index --
    ----------------------
 
-   function Get_Thread_Index (T : Thread_Id) return Integer is
+   function Get_Thread_Index (T : Thread_Id)
+                             return Integer is
       Index : Integer;
    begin
       pragma Assert (Initialized);
@@ -409,6 +438,10 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       Pool_Manager.Wait_For_Package_Initialization;
       Initialized := True;
    end Initialize;
+
+   -------------
+   -- Stopper --
+   -------------
 
    protected Stopper is
 

@@ -2,12 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . T A S K I N G . P R O F I L E S .             --
---                 F U L L _ T A S K I N G . T H R E A D S                  --
+--              POLYORB.TASKING.PROFILES.FULL_TASKING.THREADS               --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,10 +30,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provide a real implementation for base types for tasking
+--  This package provide an implementation for base types for tasking
 --  using full Ada tasking. For all comments, see PolyORB.Tasking.Threads.
 
 with PolyORB.Tasking.Threads;
+
 with System;
 
 package PolyORB.Tasking.Profiles.Full_Tasking.Threads is
@@ -108,11 +108,5 @@ private
 
    The_Thread_Factory : constant Full_Tasking_Thread_Factory_Access
      := new Full_Tasking_Thread_Factory_Type;
-
-   type Simple_Runnable is new PTT.Runnable with record
-      Main_Subprogram : PTT.Parameterless_Procedure;
-   end record;
-
-   procedure Run (SR : access Simple_Runnable);
 
 end PolyORB.Tasking.Profiles.Full_Tasking.Threads;

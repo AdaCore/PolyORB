@@ -2,12 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . T A S K I N G . P R O F I L E S              --
---                  . N O _ T A S K I N G . T H R E A D S                   --
+--               POLYORB.TASKING.PROFILES.NO_TASKING.THREADS                --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,19 +30,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Implementation of PolyORB.Tasking.Threads for the No_Tasking profile
+--  Implementation of PolyORB.Tasking.Threads for the No_Tasking profile.
 
 with System;
 
 with PolyORB.Tasking.Threads;
-use PolyORB.Tasking.Threads;
 
 package PolyORB.Tasking.Profiles.No_Tasking.Threads is
 
    package PTT renames PolyORB.Tasking.Threads;
-
-   procedure  Initialize;
-   --  Initialize this package.
 
    ----------------------------
    -- No_Tasking_Thread Type --
@@ -78,9 +73,9 @@ package PolyORB.Tasking.Profiles.No_Tasking.Threads is
      (TF               : access No_Tasking_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
-      R                : Runnable_Access;
-      C                : Runnable_Controller_Access)
-     return Thread_Access;
+      R                : PTT.Runnable_Access;
+      C                : PTT.Runnable_Controller_Access)
+     return PTT.Thread_Access;
    --  This function has no sense in No_Tasking profile.
    --  It simply raises a Tasking.Tasking_Profile_Error.
 
@@ -88,14 +83,14 @@ package PolyORB.Tasking.Profiles.No_Tasking.Threads is
      (TF               : access No_Tasking_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
-      P                : Parameterless_Procedure)
-     return Thread_Access;
+      P                : PTT.Parameterless_Procedure)
+     return PTT.Thread_Access;
    --  This function has no sense in No_Tasking profile.
    --  It simply raises a Tasking.Tasking_Profile_Error.
 
    procedure Set_Priority
      (TF : access No_Tasking_Thread_Factory_Type;
-      T  : Thread_Id;
+      T  : PTT.Thread_Id;
       P  : System.Any_Priority);
    --  This procedure does nothing in this profile.
 

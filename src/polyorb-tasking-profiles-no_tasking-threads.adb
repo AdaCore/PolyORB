@@ -2,12 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . T A S K I N G . P R O F I L E S              --
---                  . N O _ T A S K I N G . T H R E A D S                   --
+--               POLYORB.TASKING.PROFILES.NO_TASKING.THREADS                --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -68,23 +67,13 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
       return PTT.Null_Thread_Id;
    end Get_Thread_Id;
 
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize is
-   begin
-      PTT.Register_Thread_Factory (PTT.Thread_Factory_Access
-                                   (The_Thread_Factory));
-   end Initialize;
-
    -----------
    -- Image --
    -----------
 
    function Thread_Id_Image
      (TF  : access No_Tasking_Thread_Factory_Type;
-      TID : Thread_Id)
+      TID : PTT.Thread_Id)
       return String
    is
       pragma Warnings (Off);
@@ -102,9 +91,9 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
      (TF               : access No_Tasking_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
-      R                : Runnable_Access;
-      C                : Runnable_Controller_Access)
-     return Thread_Access is
+      R                : PTT.Runnable_Access;
+      C                : PTT.Runnable_Controller_Access)
+     return PTT.Thread_Access is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
       pragma Unreferenced (Name);
@@ -121,8 +110,8 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
      (TF               : access No_Tasking_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
-      P                : Parameterless_Procedure)
-     return Thread_Access is
+      P                : PTT.Parameterless_Procedure)
+     return PTT.Thread_Access is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
       pragma Unreferenced (Name);
@@ -140,7 +129,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
 
    procedure Set_Priority
      (TF : access No_Tasking_Thread_Factory_Type;
-      T  : Thread_Id;
+      T  : PTT.Thread_Id;
       P  : System.Any_Priority)
    is
       pragma Warnings (Off);
@@ -151,6 +140,18 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
    begin
       null;
    end Set_Priority;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure  Initialize;
+
+   procedure Initialize is
+   begin
+      PTT.Register_Thread_Factory (PTT.Thread_Factory_Access
+                                   (The_Thread_Factory));
+   end Initialize;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
