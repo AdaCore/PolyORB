@@ -49,6 +49,7 @@ private package System.RPC.Util is
    --  Deallocate a Params_Stream_Access.
 
    procedure Deep_Free (Stream : in out Params_Stream_Access);
+   pragma Inline (Deep_Free);
    --  This procedure make sure that unconsumed data has been freed. This
    --  may occur in case of cancellation.
 
