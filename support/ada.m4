@@ -73,7 +73,8 @@ dnl Look for an Ada compiler for the target (same as the host one if host and
 dnl target are equal)
 
 AC_DEFUN([AM_CROSS_PROG_ADA],
-[AC_REQUIRE([AM_PROG_WORKING_ADA])
+[AC_BEFORE([$0], [AM_TRY_CROSS_ADA])
+AC_REQUIRE([AM_PROG_WORKING_ADA])
  if test $host = $target; then
    ADA_FOR_TARGET=$ADA
    AC_SUBST(ADA_FOR_TARGET)
@@ -141,7 +142,7 @@ dnl Usage: AM_HAS_GNAT_SOCKETS_COPY
 dnl Determine whether GNAT.Sockets has a Copy operation.
 
 AC_DEFUN([AM_HAS_GNAT_SOCKETS_COPY],
-[AC_REQUIRE([AM_PROG_ADA])
+[AC_REQUIRE([AM_CROSS_PROG_ADA])
 AC_MSG_CHECKING([whether you have GNAT.Sockets.Copy])
 OLDADA=$ADA
 ADA=$ADA_FOR_TARGET
@@ -164,7 +165,7 @@ dnl Usage: AM_HAS_GNAT_OS_LIB_CLOSE_WITH_STATUS
 dnl Determine whether GNAT.OS_Lib has a Close operation with status report.
 
 AC_DEFUN([AM_HAS_GNAT_OS_LIB_CLOSE_WITH_STATUS],
-[AC_REQUIRE([AM_PROG_ADA])
+[AC_REQUIRE([AM_CROSS_PROG_ADA])
 AC_MSG_CHECKING([whether you have GNAT.OS_Lib.Close (FD : File_Descriptor; Status : out Boolean)])
 OLDADA=$ADA
 ADA=$ADA_FOR_TARGET
@@ -183,3 +184,33 @@ HAVE_GNAT_OS_LIB_CLOSE_WITH_STATUS="--  "])
 ADA=$OLDADA
 AC_SUBST(MISS_GNAT_OS_LIB_CLOSE_WITH_STATUS)dnl
 AC_SUBST(HAVE_GNAT_OS_LIB_CLOSE_WITH_STATUS)])
+
+AC_DEFUN([AM_HAS_PRAGMA_PROFILE_RAVENSCAR],
+[AC_REQUIRE([AM_CROSS_PROG_ADA])
+AC_MSG_CHECKING([whether pragma Profile (Ravenscar) is supported])
+OLDADA=$ADA
+ADA=$ADA_FOR_TARGET
+AM_TRY_ADA([check.adb],
+[pragma Profile (Ravenscar);
+procedure Check is begin null; end;
+], [AC_MSG_RESULT(yes)
+PRAGMA_PROFILE_RAVENSCAR="pragma Profile (Ravenscar);"],
+[AC_MSG_RESULT(no)
+PRAGMA_PROFILE_RAVENSCAR="pragma Ravenscar;"])
+ADA=$OLDADA
+AC_SUBST(PRAGMA_PROFILE_RAVENSCAR)])
+
+AC_DEFUN([AM_HAS_PRAGMA_PROFILE_WARNINGS],
+[AC_REQUIRE([AM_CROSS_PROG_ADA])
+AC_MSG_CHECKING([whether pragma Profile_Warnings (Ravenscar) is supported])
+OLDADA=$ADA
+ADA=$ADA_FOR_TARGET
+AM_TRY_ADA([check.adb],
+[pragma Profile_Warnings (Ravenscar);
+procedure Check is begin null; end;
+], [AC_MSG_RESULT(yes)
+DISABLE_PROFILE_WARNINGS=""],
+[AC_MSG_RESULT(no)
+DISABLE_PROFILE_WARNINGS="-- "])
+ADA=$OLDADA
+AC_SUBST(DISABLE_PROFILE_WARNINGS)])

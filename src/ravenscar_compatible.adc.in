@@ -16,6 +16,7 @@
 --  full-tasking applications, so the same set of compiled objects can
 --  be used in both cases.
 
+@DISABLE_PROFILE_WARNINGS@pragma Profile_Warnings (Ravenscar);
 @DISABLE_RESTRICTION_WARNINGS@pragma Restriction_Warnings (
 @DISABLE_RESTRICTION_WARNINGS@  Boolean_Entry_Barriers,
 @DISABLE_RESTRICTION_WARNINGS@  No_Abort_Statements,
