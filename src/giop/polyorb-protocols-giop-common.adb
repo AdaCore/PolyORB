@@ -365,7 +365,6 @@ package body PolyORB.Protocols.GIOP.Common is
 
       Emit_Message (Sess.Implem, Sess, Buffer);
 
-      Free_Pending_Request (Sess, Current_Req.Request_Id);
       Release (Buffer);
    end Common_Process_Abort_Request;
 
@@ -382,7 +381,6 @@ package body PolyORB.Protocols.GIOP.Common is
       use PolyORB.Any;
       use PolyORB.ORB;
       use PolyORB.Components;
-      use Pend_Req_Seq;
 
       Req          : Pending_Request_Access;
       Success      : Boolean;
@@ -542,7 +540,6 @@ package body PolyORB.Protocols.GIOP.Common is
             raise Not_Implemented;
       end case;
 
-      Free_Pending_Request (Sess, Request_Id);
       Expect_GIOP_Header (Sess);
    end Common_Reply_Received;
 

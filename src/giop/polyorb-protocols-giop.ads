@@ -37,8 +37,8 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.Buffers;
 with PolyORB.ORB;
 with PolyORB.Opaque;
-with PolyORB.Sequences.Unbounded;
 with PolyORB.Types;
+with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Simple_Flags;
 with PolyORB.Filters.Interface;
 
@@ -127,12 +127,13 @@ private
       --  profile.
    end record;
 
-   type Pending_Request_Access is access Pending_Request;
+   type Pending_Request_Access is access all Pending_Request;
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Pending_Request, Pending_Request_Access);
 
-   package Pend_Req_Seq is new Sequences.Unbounded (Pending_Request_Access);
+   package Pend_Req_List is
+      new PolyORB.Utils.Chained_Lists (Pending_Request_Access);
 
    --------------------
    -- GIOP Send Mode --
@@ -351,7 +352,7 @@ private
       --  Role of session for ORB
       Role         : ORB.Endpoint_Role;
       --  List of pendings request
-      Pending_Reqs : Pend_Req_Seq.Sequence;
+      Pending_Reqs : Pend_Req_List.List;
       --  Counter to have new Request Index
       Req_Index    : Types.Unsigned_Long := 1;
       --  Access to GIOP_Protocol, which contain GIOP_Implems
@@ -454,11 +455,6 @@ private
       Req     :    out Pending_Request_Access;
       Success :    out Boolean);
    --  Retrieve a pending request of Ses by its locate request id.
-
-   procedure Free_Pending_Request
-     (Sess : access GIOP_Session;
-      Id   :        Types.Unsigned_Long);
-   --  Free the pending request
 
    ---------------------------------
    -- Marshall Unmarshall helpers --

@@ -187,6 +187,10 @@ package body PolyORB.Protocols.GIOP is
    begin
       pragma Debug (O ("Finalizing GIOP session"));
 
+      pragma Assert (Pend_Req_List.Length (S.Pending_Reqs) = 0);
+      --  XXX Check the session has no pending requests.
+      --  What if there is one ? Should we emit an error message ?
+
       if S.Buffer_In /= null then
          Release (S.Buffer_In);
       end if;
@@ -209,8 +213,6 @@ package body PolyORB.Protocols.GIOP is
       pragma Warnings (Off);
       pragma Unreferenced (Data_Amount);
       pragma Warnings (On);
-
-      use Pend_Req_Seq;
 
       Version : GIOP_Version;
    begin
@@ -782,18 +784,22 @@ package body PolyORB.Protocols.GIOP is
       Req     :    out Pending_Request_Access;
       Success :    out Boolean)
    is
-      Pending_Reqs : constant Pend_Req_Seq.Element_Array
-        := Pend_Req_Seq.To_Element_Array (Sess.Pending_Reqs);
+      use Pend_Req_List;
+
+      It : Iterator := First (Sess.Pending_Reqs);
+
    begin
       pragma Debug (O ("Retrieving pending request with id"
-                       & Id'Img));
+                       & Types.Unsigned_Long'Image (Id)));
 
-      for J in Pending_Reqs'Range loop
-         if Pending_Reqs (J).Request_Id = Id then
-            Req := Pending_Reqs (J);
+      while not Last (It) loop
+         if Pending_Request_Access (Value (It).all).Request_Id = Id then
+            Req := Pending_Request_Access (Value (It).all);
+            Remove (Sess.Pending_Reqs, It);
             Success := True;
             return;
          end if;
+         Next (It);
       end loop;
 
       Success := False;
@@ -809,18 +815,21 @@ package body PolyORB.Protocols.GIOP is
       Req     :    out Pending_Request_Access;
       Success :    out Boolean)
    is
-      Pending_Reqs : constant Pend_Req_Seq.Element_Array
-        := Pend_Req_Seq.To_Element_Array (Sess.Pending_Reqs);
+      use Pend_Req_List;
+
+      It : Iterator := First (Sess.Pending_Reqs);
 
    begin
-      pragma Debug (O ("Retrieving pending request with locate id" & Id'Img));
+      pragma Debug (O ("Retrieving pending request with locate id"
+                       & Types.Unsigned_Long'Image (Id)));
 
-      for J in Pending_Reqs'Range loop
-         if Pending_Reqs (J).Locate_Req_Id = Id then
-            Req := Pending_Reqs (J);
+      while not Last (It) loop
+         if Pending_Request_Access (Value (It).all).Locate_Req_Id = Id then
+            Req := Pending_Request_Access (Value (It).all);
             Success := True;
             return;
          end if;
+         Next (It);
       end loop;
 
       Success := False;
@@ -834,7 +843,7 @@ package body PolyORB.Protocols.GIOP is
      (Sess     : access GIOP_Session;
       Pend_Req : in     Pending_Request_Access)
    is
-      use Pend_Req_Seq;
+      use Pend_Req_List;
 
       Request_Id : constant Types.Unsigned_Long := Get_Request_Id (Sess);
    begin
@@ -864,32 +873,6 @@ package body PolyORB.Protocols.GIOP is
       Sess.Req_Index := Sess.Req_Index + 1;
       return R;
    end Get_Request_Id;
-
-   --------------------------
-   -- Free Pending Request --
-   --------------------------
-
-   procedure Free_Pending_Request
-     (Sess    : access GIOP_Session;
-      Id      :        Types.Unsigned_Long)
-   is
-      Pending_Reqs : Pend_Req_Seq.Element_Array
-        := Pend_Req_Seq.To_Element_Array (Sess.Pending_Reqs);
-
-   begin
-      for J in Pending_Reqs'Range loop
-         if Pending_Reqs (J).Request_Id = Id then
-            pragma Debug (O ("Free request with id :" & Id'Img));
-            Free (Pending_Reqs (J));
-            Pend_Req_Seq.Delete (Sess.Pending_Reqs, J, 1);
-            return;
-         end if;
-      end loop;
-
-      --  Should not come to this point
-
-      raise GIOP_Error;
-   end Free_Pending_Request;
 
    --------------------
    -- Get_Conf_Chain --
