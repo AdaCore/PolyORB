@@ -17,7 +17,6 @@ module CORBA {
   const Visibility PUBLIC_MEMBER  = 1;
   ////////////////////
 
-  module Repository_Root {
     enum DefinitionKind {
 #       pragma version DefinitionKind 2.3
         dk_none,        dk_all,
@@ -553,7 +552,6 @@ module CORBA {
                                              in short           scale
         );
     };
-  };
 };
 
 
