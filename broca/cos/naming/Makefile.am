@@ -6,7 +6,7 @@ GNATMAKE_FLAGS = -I$(srcdir) \
 	-I../../src \
 	-I$(srcdir)/../../src \
 	-I$(COS_DIRS) \
-	$(ADASOCKETS_INLUDE) \
+	$(ADASOCKETS_INCLUDE) \
 	-g -O2 -m -gnata \
 	-largs $(ADASOCKETS_LIBS)
 
