@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2002 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1361,6 +1361,12 @@ package Einfo is
 --       Pure_Function was given for the entity. In some cases, we need to
 --       know that Is_Pure was explicitly set using this pragma.
 
+--    Has_Pragma_Unreferenced (Flag180)
+--       Present in all entities. Set if a valid pragma Unreferenced applies
+--       to the pragma, indicating that no warning should be given if the
+--       entity has no references, but a warning should be given if it is
+--       in fact referenced.
+
 --    Has_Primitive_Operations (Flag120) [base type only]
 --       Present in all type entities. Set if at least one primitive operation
 --       is defined on the type. This flag is not yet properly set ???
@@ -2014,7 +2020,9 @@ package Einfo is
 --       if the type appears in the Packed_Array_Type field of some other type
 --       entity. It is used by Gigi to activate the special processing for such
 --       types (unchecked conversions that would not otherwise be allowed are
---       allowed for such types).
+--       allowed for such types). If the Is_Packed_Array_Type flag is set in
+--       an entity, then the Original_Array_Type field of this entity points
+--       to the original array type for which this is the packed array type.
 
 --    Is_Potentially_Use_Visible (Flag9)
 --       Present in all entities. Set if entity is potentially use visible,
@@ -2253,7 +2261,9 @@ package Einfo is
 --    Mechanism (Uint8) (returned as Mechanism_Type)
 --       Present in functions and non-generic formal parameters. Indicates
 --       the mechanism to be used for the function return or for the formal
---       parameter. See separate section on passing mechanisms.
+--       parameter. See separate section on passing mechanisms. This field
+--       is also set (to the default value of zero) in a subprogram body
+--       entity but not used in this context.
 
 --    Modulus (Uint17) [base type only]
 --       Present in modular types. Contains the modulus. For the binary
@@ -2428,6 +2438,13 @@ package Einfo is
 --    Number_Formals (synthesized)
 --       Applies to subprograms and subprogram types. Yields the number of
 --       formals as a value of type Pos.
+
+--    Original_Array_Type (Node21)
+--       Present in modular types and array types and subtypes. Set only
+--       if the Is_Packed_Array_Type flag is set, indicating that the type
+--       is the implementation type for a packed array, and in this case it
+--       points to the original array type for which this is the packed
+--       array implementation type.
 
 --    Object_Ref (Node17)
 --       Present in protected bodies. This is an implicit prival for the
@@ -3671,6 +3688,7 @@ package Einfo is
    --    Has_Homonym                   (Flag56)
    --    Has_Pragma_Elaborate_Body     (Flag150)
    --    Has_Pragma_Inline             (Flag157)
+   --    Has_Pragma_Unreferenced       (Flag180)
    --    Has_Private_Declaration       (Flag155)
    --    Has_Qualified_Name            (Flag161)
    --    Has_Unknown_Discriminants     (Flag72)
@@ -3843,6 +3861,7 @@ package Einfo is
    --    First_Index                   (Node17)
    --    Related_Array_Object          (Node19)
    --    Component_Type                (Node20)   (base type only)
+   --    Original_Array_Type           (Node21)
    --    Component_Size                (Uint22)   (base type only)
    --    Packed_Array_Type             (Node23)
    --    Component_Alignment           (special)  (base type only)
@@ -4166,6 +4185,7 @@ package Einfo is
    --  E_Modular_Integer_Type
    --  E_Modular_Integer_Subtype
    --    Modulus                       (Uint17)    (base type only)
+   --    Original_Array_Type           (Node21)
    --    Scalar_Range                  (Node20)
    --    Non_Binary_Modulus            (Flag58)    (base type only)
    --    Has_Biased_Representation     (Flag139)
@@ -4423,6 +4443,7 @@ package Einfo is
    --    (plus type attributes)
 
    --  E_Subprogram_Body
+   --    Mechanism                     (Uint8)
    --    First_Entity                  (Node17)
    --    Last_Entity                   (Node20)
    --    Scope_Depth_Value             (Uint22)
@@ -4847,6 +4868,7 @@ package Einfo is
    function Has_Pragma_Inline                  (Id : E) return B;
    function Has_Pragma_Pack                    (Id : E) return B;
    function Has_Pragma_Pure_Function           (Id : E) return B;
+   function Has_Pragma_Unreferenced            (Id : E) return B;
    function Has_Primitive_Operations           (Id : E) return B;
    function Has_Qualified_Name                 (Id : E) return B;
    function Has_Record_Rep_Clause              (Id : E) return B;
@@ -4957,6 +4979,7 @@ package Einfo is
    function Normalized_Position_Max            (Id : E) return U;
    function Not_Source_Assigned                (Id : E) return B;
    function Object_Ref                         (Id : E) return E;
+   function Original_Array_Type                (Id : E) return E;
    function Original_Record_Component          (Id : E) return E;
    function Packed_Array_Type                  (Id : E) return E;
    function Parent_Subtype                     (Id : E) return E;
@@ -5304,6 +5327,7 @@ package Einfo is
    procedure Set_Has_Pragma_Inline             (Id : E; V : B := True);
    procedure Set_Has_Pragma_Pack               (Id : E; V : B := True);
    procedure Set_Has_Pragma_Pure_Function      (Id : E; V : B := True);
+   procedure Set_Has_Pragma_Unreferenced       (Id : E; V : B := True);
    procedure Set_Has_Primitive_Operations      (Id : E; V : B := True);
    procedure Set_Has_Private_Declaration       (Id : E; V : B := True);
    procedure Set_Has_Qualified_Name            (Id : E; V : B := True);
@@ -5419,6 +5443,7 @@ package Einfo is
    procedure Set_Normalized_Position_Max       (Id : E; V : U);
    procedure Set_Not_Source_Assigned           (Id : E; V : B := True);
    procedure Set_Object_Ref                    (Id : E; V : E);
+   procedure Set_Original_Array_Type           (Id : E; V : E);
    procedure Set_Original_Record_Component     (Id : E; V : E);
    procedure Set_Packed_Array_Type             (Id : E; V : E);
    procedure Set_Parent_Subtype                (Id : E; V : E);
@@ -5772,6 +5797,7 @@ package Einfo is
    pragma Inline (Has_Pragma_Inline);
    pragma Inline (Has_Pragma_Pack);
    pragma Inline (Has_Pragma_Pure_Function);
+   pragma Inline (Has_Pragma_Unreferenced);
    pragma Inline (Has_Primitive_Operations);
    pragma Inline (Has_Private_Declaration);
    pragma Inline (Has_Qualified_Name);
@@ -5923,6 +5949,7 @@ package Einfo is
    pragma Inline (Normalized_Position_Max);
    pragma Inline (Not_Source_Assigned);
    pragma Inline (Object_Ref);
+   pragma Inline (Original_Array_Type);
    pragma Inline (Original_Record_Component);
    pragma Inline (Packed_Array_Type);
    pragma Inline (Parameter_Mode);
@@ -6105,6 +6132,7 @@ package Einfo is
    pragma Inline (Set_Has_Pragma_Inline);
    pragma Inline (Set_Has_Pragma_Pack);
    pragma Inline (Set_Has_Pragma_Pure_Function);
+   pragma Inline (Set_Has_Pragma_Unreferenced);
    pragma Inline (Set_Has_Primitive_Operations);
    pragma Inline (Set_Has_Private_Declaration);
    pragma Inline (Set_Has_Qualified_Name);
@@ -6220,6 +6248,7 @@ package Einfo is
    pragma Inline (Set_Normalized_Position_Max);
    pragma Inline (Set_Not_Source_Assigned);
    pragma Inline (Set_Object_Ref);
+   pragma Inline (Set_Original_Array_Type);
    pragma Inline (Set_Original_Record_Component);
    pragma Inline (Set_Packed_Array_Type);
    pragma Inline (Set_Parent_Subtype);

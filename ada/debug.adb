@@ -166,7 +166,7 @@ package body Debug is
    --  dr
    --  ds
    --  dt
-   --  du
+   --  du  List units as their ali files are acquired
    --  dv
    --  dw  Prints the list of units withed by the unit currently explored
    --  dx

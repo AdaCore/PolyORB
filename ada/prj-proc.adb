@@ -106,9 +106,8 @@ package body Prj.Proc is
    --  Then process the declarative items of the project.
 
    procedure Check (Project : in out Project_Id);
-   --  Set all projects to not checked, then call Recursive_Check for
-   --  the main project Project.
-   --  Project is set to No_Project if errors occurred.
+   --  Set all projects to not checked, then call Recursive_Check for the
+   --  main project Project. Project is set to No_Project if errors occurred.
 
    procedure Recursive_Check (Project : Project_Id);
    --  If Project is marked as not checked, mark it as checked,
@@ -205,7 +204,7 @@ package body Prj.Proc is
 
    procedure Check (Project : in out Project_Id) is
    begin
-      --  Make sure that all projects are marked as not checked.
+      --  Make sure that all projects are marked as not checked
 
       for Index in 1 .. Projects.Last loop
          Projects.Table (Index).Checked := False;
@@ -213,7 +212,7 @@ package body Prj.Proc is
 
       Recursive_Check (Project);
 
-      if Errout.Errors_Detected > 0 then
+      if Errout.Total_Errors_Detected > 0 then
          Project := No_Project;
       end if;
 
@@ -418,7 +417,9 @@ package body Prj.Proc is
 
                   The_Name := Name_Of (The_Current_Term);
 
-                  Index := Associative_Array_Index_Of (The_Current_Term);
+                  if Kind_Of (The_Current_Term) = N_Attribute_Reference then
+                     Index := Associative_Array_Index_Of (The_Current_Term);
+                  end if;
 
                   --  If it is not an associative array attribute
 
@@ -830,14 +831,13 @@ package body Prj.Proc is
          From_Project_Node => From_Project_Node,
          Modified_By       => No_Project);
 
-      if Errout.Errors_Detected > 0 then
+      if Errout.Total_Errors_Detected > 0 then
          Project := No_Project;
       end if;
 
       if Project /= No_Project then
          Check (Project);
       end if;
-
    end Process;
 
    -------------------------------
@@ -1389,15 +1389,14 @@ package body Prj.Proc is
             Projects.Increment_Last;
             Project := Projects.Last;
             Processed_Projects.Set (Name, Project);
+
             Processed_Data.Name        := Name;
             Processed_Data.Path_Name   := Path_Name_Of (From_Project_Node);
             Processed_Data.Location    := Location_Of (From_Project_Node);
             Processed_Data.Directory   := Directory_Of (From_Project_Node);
             Processed_Data.Modified_By := Modified_By;
-            Processed_Data.Naming.Specification_Suffix :=
-              Prj.Default_Spec_Suffixs;
-            Processed_Data.Naming.Implementation_Suffix :=
-              Prj.Default_Impl_Suffixs;
+            Processed_Data.Naming      := Standard_Naming_Data;
+
             Add_Attributes (Processed_Data.Decl, Attribute_First);
             With_Clause := First_With_Clause_Of (From_Project_Node);
 

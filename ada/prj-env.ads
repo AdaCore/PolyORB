@@ -43,6 +43,10 @@ package Prj.Env is
    --  Create a temporary mapping file. For each unit, put the mapping of
    --  its spec and or body to its file name and path name in this file.
 
+   procedure Set_Mapping_File_Initial_State_To_Empty;
+   --  When creating a mapping file, create an empty map. This case occurs
+   --  when run time source files are found in the project files.
+
    procedure Create_Config_Pragmas_File
      (For_Project  : Project_Id;
       Main_Project : Project_Id);

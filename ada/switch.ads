@@ -26,9 +26,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package scans switches. Note that the body of Usage must be
---  coordinated with the switches that are recognized by this package.
---  The Usage package also acts as the official documentation for the
+--  This package together with a child package appropriate to the client
+--  tool scans switches. Note that the body of the appropraite Usage package
+--  must be coordinated with the switches that are recognized by this package.
+--  These Usage packages also act as the official documentation for the
 --  switches that are recognized. In addition, package Debug documents
 --  the otherwise undocumented debug switches that are also recognized.
 
@@ -58,6 +59,10 @@ package Switch is
    --  ie. it starts with -I or -gnat.
 
 private
+
+   --  This section contains some common routines used by the tool dependent
+   --  child packages (there is one such child package for each tool that
+   --  uses Switches to scan switches - Compiler/gnatbind/gnatmake/.
 
    Bad_Switch : exception;
    --  Exception raised if bad switch encountered

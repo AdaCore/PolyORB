@@ -177,7 +177,7 @@ package body Lib is
 
    procedure Set_Fatal_Error (U : Unit_Number_Type; B : Boolean := True) is
    begin
-      Units.Table (U).Fatal_Error := True;
+      Units.Table (U).Fatal_Error := B;
    end Set_Fatal_Error;
 
    procedure Set_Generate_Code (U : Unit_Number_Type; B : Boolean := True) is
@@ -483,7 +483,7 @@ package body Lib is
       return Main_Unit;
    end Get_Code_Unit;
 
-   function Get_Code_Unit (N : Node_Id) return Unit_Number_Type is
+   function Get_Code_Unit (N : Node_Or_Entity_Id) return Unit_Number_Type is
    begin
       return Get_Code_Unit (Sloc (N));
    end Get_Code_Unit;
@@ -567,7 +567,7 @@ package body Lib is
       return Main_Unit;
    end Get_Source_Unit;
 
-   function Get_Source_Unit (N : Node_Id) return Unit_Number_Type is
+   function Get_Source_Unit (N : Node_Or_Entity_Id) return Unit_Number_Type is
    begin
       return Get_Source_Unit (Sloc (N));
    end Get_Source_Unit;
@@ -576,7 +576,10 @@ package body Lib is
    -- In_Extended_Main_Code_Unit --
    --------------------------------
 
-   function In_Extended_Main_Code_Unit (N : Node_Id) return Boolean is
+   function In_Extended_Main_Code_Unit
+     (N    : Node_Or_Entity_Id)
+      return Boolean
+   is
    begin
       if Sloc (N) = Standard_Location then
          return True;
@@ -608,7 +611,10 @@ package body Lib is
    -- In_Extended_Main_Source_Unit --
    ----------------------------------
 
-   function In_Extended_Main_Source_Unit (N : Node_Id) return Boolean is
+   function In_Extended_Main_Source_Unit
+     (N    : Node_Or_Entity_Id)
+      return Boolean
+   is
    begin
       if Sloc (N) = Standard_Location then
          return True;

@@ -1107,6 +1107,24 @@ package body Sinput is
       Source_File.Table (S).License := L;
    end Set_License;
 
+   ----------------------
+   -- Trim_Lines_Table --
+   ----------------------
+
+   procedure Trim_Lines_Table (S : Source_File_Index) is
+      Max : constant Nat := Nat (Source_File.Table (S).Last_Source_Line);
+
+   begin
+      --  Release allocated storage that is no longer needed
+
+      Source_File.Table (S).Lines_Table := To_Pointer
+        (Memory.Realloc
+          (To_Address (Source_File.Table (S).Lines_Table),
+           Memory.size_t
+            (Max * (Lines_Table_Type'Component_Size / System.Storage_Unit))));
+      Source_File.Table (S).Lines_Table_Max := Physical_Line_Number (Max);
+   end Trim_Lines_Table;
+
    --------
    -- wl --
    --------

@@ -551,9 +551,9 @@ package Sinfo is
 
    --  All_Others (Flag11-Sem)
    --    Present in an N_Others_Choice node. This flag is set in the case
-   --    of an others exception where all exceptions, even those that are
-   --    not normally handled (in particular the tasking abort signal) by
-   --    others. This is used for translation of the at end handler into
+   --    of an others exception where all exceptions are to be caught, even
+   --    those that are not normally handled (in particular the tasking abort
+   --    signal). This is used for translation of the at end handler into
    --    a normal exception handler.
 
    --  Assignment_OK (Flag15-Sem)

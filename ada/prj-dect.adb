@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2001 Free Software Foundation, Inc.            --
+--           Copyright (C) 2001-2002 Free Software Foundation, Inc          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -68,16 +68,14 @@ package body Prj.Dect is
    --  Parse a package declaration
 
    procedure Parse_String_Type_Declaration
-     (String_Type       : out Project_Node_Id;
-      Current_Project   : Project_Node_Id;
-      First_Attribute   : Attribute_Node_Id);
+     (String_Type     : out Project_Node_Id;
+      Current_Project : Project_Node_Id);
    --  type <name> is ( <literal_string> { , <literal_string> } ) ;
 
    procedure Parse_Variable_Declaration
-     (Variable          : out Project_Node_Id;
-      First_Attribute   : Attribute_Node_Id;
-      Current_Project   : Project_Node_Id;
-      Current_Package   : Project_Node_Id);
+     (Variable        : out Project_Node_Id;
+      Current_Project : Project_Node_Id;
+      Current_Package : Project_Node_Id);
    --  Parse a variable assignment
    --  <variable_Name> := <expression>; OR
    --  <variable_Name> : <string_type_Name> := <string_expression>;
@@ -243,19 +241,19 @@ package body Prj.Dect is
       Current_Project   : Project_Node_Id;
       Current_Package   : Project_Node_Id)
    is
-      Current_Item      : Project_Node_Id := Empty_Node;
-      Next_Item         : Project_Node_Id := Empty_Node;
-      First_Case_Item   : Boolean := True;
+      Current_Item    : Project_Node_Id := Empty_Node;
+      Next_Item       : Project_Node_Id := Empty_Node;
+      First_Case_Item : Boolean := True;
 
       Variable_Location : Source_Ptr := No_Location;
 
-      String_Type       : Project_Node_Id := Empty_Node;
+      String_Type : Project_Node_Id := Empty_Node;
 
-      Case_Variable     : Project_Node_Id := Empty_Node;
+      Case_Variable : Project_Node_Id := Empty_Node;
 
       First_Declarative_Item : Project_Node_Id := Empty_Node;
 
-      First_Choice      : Project_Node_Id := Empty_Node;
+      First_Choice : Project_Node_Id := Empty_Node;
 
    begin
       Case_Construction  :=
@@ -434,7 +432,6 @@ package body Prj.Dect is
 
                Parse_Variable_Declaration
                  (Current_Declaration,
-                  First_Attribute => First_Attribute,
                   Current_Project => Current_Project,
                   Current_Package => Current_Package);
 
@@ -469,8 +466,7 @@ package body Prj.Dect is
 
                Parse_String_Type_Declaration
                  (String_Type     => Current_Declaration,
-                  Current_Project => Current_Project,
-                  First_Attribute => First_Attribute);
+                  Current_Project => Current_Project);
 
             when Tok_Case =>
 
@@ -592,11 +588,12 @@ package body Prj.Dect is
          --  Scan past the package name
 
          Scan;
-
       end if;
 
       if Token = Tok_Renames then
+
          --  Scan past "renames"
+
          Scan;
 
          Expect (Tok_Identifier, "identifier");
@@ -723,8 +720,7 @@ package body Prj.Dect is
 
    procedure Parse_String_Type_Declaration
      (String_Type     : out Project_Node_Id;
-      Current_Project : Project_Node_Id;
-      First_Attribute : Attribute_Node_Id)
+      Current_Project : Project_Node_Id)
    is
       Current      : Project_Node_Id := Empty_Node;
       First_String : Project_Node_Id := Empty_Node;
@@ -810,7 +806,6 @@ package body Prj.Dect is
 
    procedure Parse_Variable_Declaration
      (Variable        : out Project_Node_Id;
-      First_Attribute : Attribute_Node_Id;
       Current_Project : Project_Node_Id;
       Current_Package : Project_Node_Id)
    is

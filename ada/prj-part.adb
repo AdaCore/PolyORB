@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2001 Free Software Foundation, Inc.            --
+--          Copyright (C) 2001-2002 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -86,13 +86,6 @@ package body Prj.Part is
    --  Recursive procedure: it calls itself for imported and
    --  modified projects.
 
-   function Path_Name_Of
-     (File_Name : String;
-      Directory : String)
-      return      String;
-   --  Returns the path name of a (non project) file.
-   --  Returns an empty string if file cannot be found.
-
    function Project_Path_Name_Of
      (Project_File_Name : String;
       Directory         : String)
@@ -164,8 +157,8 @@ package body Prj.Part is
 
       declare
          Path_Name : constant String :=
-           Project_Path_Name_Of (Project_File_Name,
-                                 Directory   => Current_Directory);
+                       Project_Path_Name_Of (Project_File_Name,
+                                             Directory   => Current_Directory);
 
       begin
          Errout.Initialize;
@@ -181,7 +174,10 @@ package body Prj.Part is
             Path_Name       => Path_Name,
             Modified        => False);
 
-         if Errout.Errors_Detected > 0 then
+         --  If there were any kind of error during the parsing, serious
+         --  or not, then the parsing fails.
+
+         if Errout.Total_Errors_Detected > 0 then
             Project := Empty_Node;
          end if;
 
@@ -647,30 +643,6 @@ package body Prj.Part is
 
       Project_Stack.Decrement_Last;
    end Parse_Single_Project;
-
-   ------------------
-   -- Path_Name_Of --
-   ------------------
-
-   function Path_Name_Of
-     (File_Name : String;
-      Directory : String)
-      return      String
-   is
-      Result : String_Access;
-
-   begin
-      Result := Locate_Regular_File (File_Name => File_Name,
-                                     Path      => Directory);
-
-      if Result = null then
-         return "";
-
-      else
-         Canonical_Case_File_Name (Result.all);
-         return Result.all;
-      end if;
-   end Path_Name_Of;
 
    -----------------------
    -- Project_Name_From --

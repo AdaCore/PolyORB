@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                            --
 --                                                                          --
---          Copyright (C) 1992-2001, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2002, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -261,6 +261,8 @@ package body Snames is
      "title#" &
      "unchecked_union#" &
      "unimplemented_unit#" &
+     "universal_data#" &
+     "unreferenced#" &
      "unreserve_all_interrupts#" &
      "volatile#" &
      "volatile_components#" &
@@ -642,7 +644,7 @@ package body Snames is
 
    --    TxxxT   type of literal table for enumeration type xxx     (Sem_Ch3)
 
-   --  (list not yet complete ???)
+   --  (Note: this list is not complete or accurate ???)
 
    ----------------------
    -- Get_Attribute_Id --

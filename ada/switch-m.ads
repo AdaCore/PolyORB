@@ -32,6 +32,8 @@
 --  switches that are recognized. In addition, package Debug documents
 --  the otherwise undocumented debug switches that are also recognized.
 
+with GNAT.OS_Lib; use GNAT.OS_Lib;
+
 package Switch.M is
 
    procedure Scan_Make_Switches (Switch_Chars : String);
@@ -42,5 +44,33 @@ package Switch.M is
    --  an optional terminating NUL character is allowed. A bad switch causes
    --  a fatal error exit and control does not return. The call also sets
    --  Usage_Requested to True if a ? switch is encountered.
+
+   procedure Normalize_Compiler_Switches
+     (Switch_Chars : String;
+      Switches     : in out Argument_List_Access;
+      Last         : out Natural);
+   --  Takes a compiler switch which potentially is equivalent to more
+   --  that one simple switches and returns the equivalent list of simple
+   --  switches that are stored in an ALI file. Switches will be extended
+   --  if initially null or too short. Last indicates the index in Switches
+   --  of the last simple switch. Last is equal to zero, if it has been
+   --  determined that Switch_Chars is ill-formed or does not contain any
+   --  switch that should be stored in an ALI file. Otherwise, the list of
+   --  simple switches is Switches (Switches'First .. Last).
+   --
+   --    Example: if Switch_Chars is equal to "-gnatAwue", then the list of
+   --    simple switches will have 3 components: -gnatA, -gnatwu, -gnatwe.
+   --
+   --  The String_Access components of Switches should not be deallocated:
+   --  they are shallow copies of components in a table in the body.
+
+   function Normalize_Compiler_Switches
+     (Switch_Chars : String)
+      return         Argument_List;
+   --  Similar to the previous procedure. The return value is the list of
+   --  simple switches. It may be an empty array if it has been determined
+   --  that Switch_Chars is ill-formed or does not contain any switch that
+   --  should be stored in an ALI file. The String_Access components of the
+   --  returned value should not be deallocated.
 
 end Switch.M;

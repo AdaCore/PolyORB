@@ -46,6 +46,8 @@ package body MLib is
       Output_File : String;
       Output_Dir  : String)
    is
+      pragma Warnings (Off, Afiles);
+
       use GNAT.OS_Lib;
 
    begin

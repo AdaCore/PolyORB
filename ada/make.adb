@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2002 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -31,25 +31,26 @@ with Ada.Command_Line; use Ada.Command_Line;
 
 with GNAT.Directory_Operations; use GNAT.Directory_Operations;
 
-with ALI;              use ALI;
-with ALI.Util;         use ALI.Util;
+with ALI;      use ALI;
+with ALI.Util; use ALI.Util;
 with Csets;
 with Debug;
-with Fname;            use Fname;
-with Fname.SF;         use Fname.SF;
-with Fname.UF;         use Fname.UF;
-with Gnatvsn;          use Gnatvsn;
-with Hostparm;         use Hostparm;
+with Fname;    use Fname;
+with Fname.SF; use Fname.SF;
+with Fname.UF; use Fname.UF;
+with Gnatvsn;  use Gnatvsn;
+with Hostparm; use Hostparm;
 with Makeusg;
 with MLib.Prj;
 with MLib.Tgt;
 with MLib.Utl;
-with Namet;            use Namet;
-with Opt;              use Opt;
-with Osint;            use Osint;
+with Namet;    use Namet;
+with Opt;      use Opt;
+with Osint.M;  use Osint.M;
+with Osint;    use Osint;
 with Gnatvsn;
-with Output;           use Output;
-with Prj;              use Prj;
+with Output;   use Output;
+with Prj;      use Prj;
 with Prj.Com;
 with Prj.Env;
 with Prj.Ext;
@@ -57,18 +58,17 @@ with Prj.Pars;
 with Prj.Util;
 with SFN_Scan;
 with Sinput.L;
-with Snames;           use Snames;
-with Stringt;          use Stringt;
-with Switch.M;         use Switch.M;
+with Snames;   use Snames;
+with Stringt;  use Stringt;
+with Switch;   use Switch;
+with Switch.M; use Switch.M;
 
-with System.WCh_Con;   use System.WCh_Con;
+with System.WCh_Con; use System.WCh_Con;
 
 package body Make is
 
    use ASCII;
    --  Make control characters visible
-
-   use Switch;
 
    Standard_Library_Package_Body_Name : constant String := "s-stalib.adb";
    --  Every program depends on this package, that must then be checked,
@@ -192,6 +192,17 @@ package body Make is
       Table_Increment      => 100,
       Table_Name           => "Make.Saved_Make_Switches");
 
+   package Switches_To_Check is new Table.Table (
+     Table_Component_Type => String_Access,
+     Table_Index_Type     => Integer,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 20,
+     Table_Increment      => 100,
+     Table_Name           => "Make.Switches_To_Check");
+
+   Normalized_Switches : Argument_List_Access := new Argument_List (1 .. 10);
+   Last_Norm_Switch    : Natural := 0;
+
    Saved_Maximum_Processes : Natural := 0;
    Saved_WC_Encoding_Method : WC_Encoding_Method := WC_Encoding_Method'First;
    Saved_WC_Encoding_Method_Set : Boolean := False;
@@ -237,23 +248,6 @@ package body Make is
      Table_Name           => "Make.Bad_Compilation");
    --  Full name of all the source files for which compilation fails.
 
-   type Special_Argument is record
-      File : String_Access;
-      Args : Argument_List_Access;
-   end record;
-   --  File is the name of the file for which a special set of compilation
-   --  arguments (Args) is required.
-
-   package Special_Args is new Table.Table (
-     Table_Component_Type => Special_Argument,
-     Table_Index_Type     => Natural,
-     Table_Low_Bound      => 1,
-     Table_Initial        => 20,
-     Table_Increment      => 100,
-     Table_Name           => "Make.Special_Args");
-   --  Compilation arguments of all the source files for which an entry has
-   --  been found in the project file.
-
    Original_Ada_Include_Path : constant String_Access :=
                                  Getenv ("ADA_INCLUDE_PATH");
    Original_Ada_Objects_Path : constant String_Access :=
@@ -281,9 +275,6 @@ package body Make is
 
    function Is_Marked (Source_File : File_Name_Type) return Boolean;
    --  Returns True if Source_File was previously marked.
-
-   procedure Unmark (Source_File : File_Name_Type);
-   --  Unmarks Source_File.
 
    -------------------
    -- Misc Routines --
@@ -314,14 +305,22 @@ package body Make is
    --  after S1. S2 is printed last. Both N1 and N2 are printed in quotation
    --  marks.
 
+   Usage_Needed : Boolean := True;
+   --  Flag used to make sure Makeusg is call at most once
+
+   procedure Usage;
+   --  Call Makeusg, if Usage_Needed is True.
+   --  Set Usage_Needed to False.
+
    -----------------------
    -- Gnatmake Routines --
    -----------------------
 
    subtype Lib_Mark_Type is Byte;
+   --  ??? this needs a comment
 
-   Ada_Lib_Dir  : constant Lib_Mark_Type := 1;
-   GNAT_Lib_Dir : constant Lib_Mark_Type := 2;
+   Ada_Lib_Dir : constant Lib_Mark_Type := 1;
+   --  ??? this needs a comment
 
    --  Note that the notion of GNAT lib dir is no longer used. The code
    --  related to it has not been removed to give an idea on how to use
@@ -350,11 +349,6 @@ package body Make is
    function In_Ada_Lib_Dir  (File : File_Name_Type) return Boolean;
    --  Get directory prefix of this file and get lib mark stored in name
    --  table for this directory. Then check if an Ada lib mark has been set.
-
-   procedure Mark_Dir_Path
-     (Path : String_Access;
-      Mark : Lib_Mark_Type);
-   --  Invoke Mark_Directory on each directory of the path.
 
    procedure Mark_Directory
      (Dir  : String;
@@ -387,14 +381,16 @@ package body Make is
    --  Return the switches for the source file in the specified package
    --  of a project file. If the Source_File ends with a standard GNAT
    --  extension (".ads" or ".adb"), try first the full name, then the
-   --  name without the extension. If there is no switches for either
-   --  names, try the default switches for Ada. If all failed, return
-   --  No_Variable_Value.
+   --  name without the extension, then, if Allow_ALI is True, the name with
+   --  the extension ".ali". If there is no switches for either names, try the
+   --  default switches for Ada. If all failed, return No_Variable_Value.
 
-   procedure Test_If_Relative_Path (Switch : String_Access);
+   procedure Test_If_Relative_Path
+     (Switch : in out String_Access;
+      Parent : String_Access);
    --  Test if Switch is a relative search path switch.
-   --  Fail if it is. This subprogram is only called
-   --  when using project files.
+   --  If it is, fail if Parent is null, otherwise prepend the path with
+   --  Parent. This subprogram is only called when using project files.
 
    procedure Set_Library_For
      (Project             : Project_Id;
@@ -925,9 +921,6 @@ package body Make is
       Num_Args : Integer;
       --  Number of compiler arguments processed
 
-      Special_Arg : Argument_List_Access;
-      --  Special arguments if any of a given compilation file
-
    --  Start of processing for Check
 
    begin
@@ -997,111 +990,71 @@ package body Make is
 
             Get_Name_String (ALIs.Table (ALI).Sfile);
 
-            for J in 1 .. Special_Args.Last loop
-               if Special_Args.Table (J).File.all =
-                                        Name_Buffer (1 .. Name_Len)
+            Switches_To_Check.Set_Last (0);
+
+            for J in Gcc_Switches.First .. Gcc_Switches.Last loop
+
+               --  Skip non switches, -I and -o switches
+
+               if Gcc_Switches.Table (J) (1) = '-'
+                 and then Gcc_Switches.Table (J) (2) /= 'o'
+                 and then Gcc_Switches.Table (J) (2) /= 'I'
                then
-                  Special_Arg := Special_Args.Table (J).Args;
-                  exit;
+                  Normalize_Compiler_Switches
+                    (Gcc_Switches.Table (J).all,
+                     Normalized_Switches,
+                     Last_Norm_Switch);
+
+                  for K in 1 .. Last_Norm_Switch loop
+                     Switches_To_Check.Increment_Last;
+                     Switches_To_Check.Table (Switches_To_Check.Last) :=
+                       Normalized_Switches (K);
+                  end loop;
                end if;
             end loop;
 
-            if Main_Project /= No_Project then
-               null;
-            end if;
+            for J in 1 .. Switches_To_Check.Last loop
 
-            if Special_Arg = null then
-               for J in Gcc_Switches.First .. Gcc_Switches.Last loop
+               --  Comparing switches is delicate because gcc reorders
+               --  a number of switches, according to lang-specs.h, but
+               --  gnatmake doesn't have the sufficient knowledge to
+               --  perform the same reordering. Instead, we ignore orders
+               --  between different "first letter" switches, but keep
+               --  orders between same switches, e.g -O -O2 is different
+               --  than -O2 -O, but -g -O is equivalent to -O -g.
 
-                  --  Skip non switches, -I and -o switches
+               if Switches_To_Check.Table (J) (2) /= Prev_Switch then
+                  Prev_Switch := Switches_To_Check.Table (J) (2);
+                  Arg :=
+                    Units.Table (ALIs.Table (ALI).First_Unit).First_Arg;
+               end if;
 
-                  if Gcc_Switches.Table (J) (1) = '-'
-                    and then Gcc_Switches.Table (J) (2) /= 'o'
-                    and then Gcc_Switches.Table (J) (2) /= 'I'
+               Switch_Found := False;
+
+               for K in Arg ..
+                 Units.Table (ALIs.Table (ALI).First_Unit).Last_Arg
+               loop
+                  Num_Args := Num_Args + 1;
+
+                  if
+                    Switches_To_Check.Table (J).all = Args.Table (K).all
                   then
-                     Num_Args := Num_Args + 1;
-
-                     --  Comparing switches is delicate because gcc reorders
-                     --  a number of switches, according to lang-specs.h, but
-                     --  gnatmake doesn't have the sufficient knowledge to
-                     --  perform the same reordering. Instead, we ignore orders
-                     --  between different "first letter" switches, but keep
-                     --  orders between same switches, e.g -O -O2 is different
-                     --  than -O2 -O, but -g -O is equivalent to -O -g.
-
-                     if Gcc_Switches.Table (J) (2) /= Prev_Switch then
-                        Prev_Switch := Gcc_Switches.Table (J) (2);
-                        Arg :=
-                          Units.Table (ALIs.Table (ALI).First_Unit).First_Arg;
-                     end if;
-
-                     Switch_Found := False;
-
-                     for K in Arg ..
-                       Units.Table (ALIs.Table (ALI).First_Unit).Last_Arg
-                     loop
-                        if Gcc_Switches.Table (J).all = Args.Table (K).all then
-                           Arg := K + 1;
-                           Switch_Found := True;
-                           exit;
-                        end if;
-                     end loop;
-
-                     if not Switch_Found then
-                        if Opt.Verbose_Mode then
-                           Verbose_Msg (ALIs.Table (ALI).Sfile,
-                             "switch mismatch");
-                        end if;
-
-                        ALI := No_ALI_Id;
-                        return;
-                     end if;
+                     Arg := K + 1;
+                     Switch_Found := True;
+                     exit;
                   end if;
                end loop;
 
-            --  Special_Arg is non-null
-
-            else
-               for J in Special_Arg'Range loop
-
-                  --  Skip non switches, -I and -o switches
-
-                  if Special_Arg (J) (1) = '-'
-                    and then Special_Arg (J) (2) /= 'o'
-                    and then Special_Arg (J) (2) /= 'I'
-                  then
-                     Num_Args := Num_Args + 1;
-
-                     if Special_Arg (J) (2) /= Prev_Switch then
-                        Prev_Switch := Special_Arg (J) (2);
-                        Arg :=
-                          Units.Table (ALIs.Table (ALI).First_Unit).First_Arg;
-                     end if;
-
-                     Switch_Found := False;
-
-                     for K in Arg ..
-                       Units.Table (ALIs.Table (ALI).First_Unit).Last_Arg
-                     loop
-                        if Special_Arg (J).all = Args.Table (K).all then
-                           Arg := K + 1;
-                           Switch_Found := True;
-                           exit;
-                        end if;
-                     end loop;
-
-                     if not Switch_Found then
-                        if Opt.Verbose_Mode then
-                           Verbose_Msg (ALIs.Table (ALI).Sfile,
-                             "switch mismatch");
-                        end if;
-
-                        ALI := No_ALI_Id;
-                        return;
-                     end if;
+               if not Switch_Found then
+                  if Opt.Verbose_Mode then
+                     Verbose_Msg (ALIs.Table (ALI).Sfile,
+                                  "switch mismatch");
                   end if;
-               end loop;
-            end if;
+
+                  ALI := No_ALI_Id;
+                  return;
+               end if;
+            end loop;
 
             if Num_Args /=
               Integer (Units.Table (ALIs.Table (ALI).First_Unit).Last_Arg -
@@ -1780,7 +1733,8 @@ package body Make is
                                  String_To_Name_Buffer (Element.Value);
                                  New_Args (Index) :=
                                    new String' (Name_Buffer (1 .. Name_Len));
-                                 Test_If_Relative_Path (New_Args (Index));
+                                 Test_If_Relative_Path
+                                   (New_Args (Index), Parent => null);
                                  Current := Element.Next;
                               end loop;
 
@@ -1798,15 +1752,16 @@ package body Make is
                      --  this switch, plus the saved gcc switches.
 
                      when Single =>
-
                         String_To_Name_Buffer (Switches.Value);
+
                         declare
-                           New_Args : constant Argument_List :=
+                           New_Args : Argument_List :=
                                         (1 => new String'
                                                 (Name_Buffer (1 .. Name_Len)));
 
                         begin
-                           Test_If_Relative_Path (New_Args (1));
+                           Test_If_Relative_Path
+                             (New_Args (1), Parent => null);
                            Pid := Compile
                              (Path_Name,
                               Lib_File,
@@ -2086,7 +2041,6 @@ package body Make is
       --  Package and Queue initializations.
 
       Good_ALI.Init;
-      Bad_Compilation.Init;
       Output.Set_Standard_Error;
       Init_Q;
 
@@ -2298,11 +2252,28 @@ package body Make is
 
             if not Compilation_OK then
                Record_Failure (Full_Source_File, Source_Unit);
+            end if;
 
-            else
+            if Compilation_OK or else Keep_Going then
+
                --  Re-read the updated library file
 
-               Text := Read_Library_Info (Lib_File);
+               declare
+                  Saved_Object_Consistency : constant Boolean :=
+                                               Opt.Check_Object_Consistency;
+
+               begin
+                  --  If compilation was not OK, don't check object
+                  --  consistency.
+
+                  Opt.Check_Object_Consistency :=
+                    Opt.Check_Object_Consistency and Compilation_OK;
+                  Text := Read_Library_Info (Lib_File);
+
+                  --  Restore Check_Object_Consistency to its initial value
+
+                  Opt.Check_Object_Consistency := Saved_Object_Consistency;
+               end;
 
                --  If no ALI file was generated by this compilation nothing
                --  more to do, otherwise scan the ali file and record it.
@@ -2314,9 +2285,15 @@ package body Make is
                     Scan_ALI (Lib_File, Text, Ignore_ED => False, Err => True);
 
                   if ALI = No_ALI_Id then
-                     Inform
-                       (Lib_File, "incompatible ALI file, please recompile");
-                     Record_Failure (Full_Source_File, Source_Unit);
+
+                     --  Record a failure only if not already done
+
+                     if Compilation_OK then
+                        Inform
+                          (Lib_File,
+                           "incompatible ALI file, please recompile");
+                        Record_Failure (Full_Source_File, Source_Unit);
+                     end if;
                   else
                      Free (Text);
                      Record_Good_ALI (ALI);
@@ -2328,12 +2305,15 @@ package body Make is
                --  is set Read_Library_Info checks that the time stamp of the
                --  object file is more recent than that of the ALI). For an
                --  example of problems caught by this test see [6625-009].
+               --  However, we record a failure only if not already done.
 
                else
-                  Inform
-                    (Lib_File,
-                     "WARNING: ALI or object file not found after compile");
-                  Record_Failure (Full_Source_File, Source_Unit);
+                  if Compilation_OK then
+                     Inform
+                       (Lib_File,
+                        "WARNING: ALI or object file not found after compile");
+                     Record_Failure (Full_Source_File, Source_Unit);
+                  end if;
                end if;
             end if;
          end if;
@@ -2372,7 +2352,8 @@ package body Make is
 
                if not ALIs.Table (ALI).No_Run_Time then
                   declare
-                     Sfile : Name_Id;
+                     Sfile  : Name_Id;
+                     Add_It : Boolean := True;
 
                   begin
                      Name_Len := Standard_Library_Package_Body_Name'Length;
@@ -2380,7 +2361,14 @@ package body Make is
                        Standard_Library_Package_Body_Name;
                      Sfile := Name_Enter;
 
-                     if not Is_Marked (Sfile) then
+                     --  If we have a special runtime, we add the standard
+                     --  library only if we can find it.
+
+                     if Opt.RTS_Switch then
+                        Add_It := Find_File (Sfile, Osint.Source) /= No_File;
+                     end if;
+
+                     if Add_It and then not Is_Marked (Sfile) then
                         Insert_Q (Sfile);
                         Mark (Sfile);
                      end if;
@@ -2476,6 +2464,7 @@ package body Make is
 
    procedure Delete_Mapping_Files is
       Success : Boolean;
+
    begin
       for Index in 1 .. Last_Mapping_File_Name loop
          Delete_File
@@ -2595,6 +2584,8 @@ package body Make is
 
       Compilation_Failures : Natural;
 
+      Total_Compilation_Failures : Natural := 0;
+
       Is_Main_Unit : Boolean;
       --  Set to True by Compile_Sources if the Main_Source_File can be a
       --  main unit.
@@ -2605,7 +2596,7 @@ package body Make is
       Executable : File_Name_Type := No_File;
       --  The file name of an executable
 
-      Non_Std_Executable  : Boolean        := False;
+      Non_Std_Executable : Boolean := False;
       --  Non_Std_Executable is set to True when there is a possibility
       --  that the linker will not choose the correct executable file name.
 
@@ -2614,6 +2605,11 @@ package body Make is
       --  and is never reset to False. Any subsequent main will always
       --  be rebuild (if we rebuild mains), even in the case when it is not
       --  really necessary, because it is too hard to decide.
+
+      Current_Work_Dir : constant String_Access :=
+                                    new String'(Get_Current_Dir);
+      --  The current working directory, used to modify some relative path
+      --  switches on the command line when a project file is used.
 
    begin
       Do_Compile_Step := True;
@@ -2637,7 +2633,7 @@ package body Make is
          Write_Eol;
          Write_Str ("GNATMAKE ");
          Write_Str (Gnatvsn.Gnat_Version_String);
-         Write_Str (" Copyright 1995-2001 Free Software Foundation, Inc.");
+         Write_Str (" Copyright 1995-2002 Free Software Foundation, Inc.");
          Write_Eol;
       end if;
 
@@ -2672,6 +2668,10 @@ package body Make is
 
                Do_Bind_Step := False;
                Do_Link_Step := False;
+
+               --  Set Unique_Compile if it was not already set
+
+               Unique_Compile := True;
 
                --  Put all the sources in the queue
 
@@ -2925,6 +2925,43 @@ package body Make is
 
       Display_Commands (not Opt.Quiet_Output);
 
+      --  If we are using a project file, relative paths are forbidden in the
+      --  project file, but we add the current working directory for any
+      --  relative path on the command line.
+
+      if Main_Project /= No_Project then
+
+         for J in 1 .. Binder_Switches.Last loop
+            Test_If_Relative_Path
+              (Binder_Switches.Table (J), Parent => null);
+         end loop;
+
+         for J in 1 .. Saved_Binder_Switches.Last loop
+            Test_If_Relative_Path
+              (Saved_Binder_Switches.Table (J), Parent => Current_Work_Dir);
+         end loop;
+
+         for J in 1 .. Linker_Switches.Last loop
+            Test_If_Relative_Path
+              (Linker_Switches.Table (J), Parent => null);
+         end loop;
+
+         for J in 1 .. Saved_Linker_Switches.Last loop
+            Test_If_Relative_Path
+              (Saved_Linker_Switches.Table (J), Parent => Current_Work_Dir);
+         end loop;
+
+         for J in 1 .. Gcc_Switches.Last loop
+            Test_If_Relative_Path
+              (Gcc_Switches.Table (J), Parent => null);
+         end loop;
+
+         for J in 1 .. Saved_Gcc_Switches.Last loop
+            Test_If_Relative_Path
+              (Saved_Gcc_Switches.Table (J), Parent => Current_Work_Dir);
+         end loop;
+      end if;
+
       --  We now put in the Binder_Switches and Linker_Switches tables,
       --  the binder and linker switches of the command line that have been
       --  put in the Saved_ tables. If a project file was used, then the
@@ -2965,28 +3002,12 @@ package body Make is
 
          for J in 1 .. Saved_Gcc_Switches.Last loop
             The_Saved_Gcc_Switches (J) := Saved_Gcc_Switches.Table (J);
-            Test_If_Relative_Path (The_Saved_Gcc_Switches (J));
          end loop;
 
          --  We never use gnat.adc when a project file is used
 
          The_Saved_Gcc_Switches (The_Saved_Gcc_Switches'Last) :=
            No_gnat_adc;
-
-         --  Check if there are any relative search paths in the switches.
-         --  Fail if there is one.
-
-         for J in 1 .. Gcc_Switches.Last loop
-            Test_If_Relative_Path (Gcc_Switches.Table (J));
-         end loop;
-
-         for J in 1 .. Binder_Switches.Last loop
-            Test_If_Relative_Path (Binder_Switches.Table (J));
-         end loop;
-
-         for J in 1 .. Linker_Switches.Last loop
-            Test_If_Relative_Path (Linker_Switches.Table (J));
-         end loop;
 
       end if;
 
@@ -3038,6 +3059,8 @@ package body Make is
             Do_Link_Step := False;
          end if;
       end if;
+
+      Bad_Compilation.Init;
 
       --  Here is where the make process is started
 
@@ -3231,9 +3254,17 @@ package body Make is
                   Write_Eol;
                end if;
 
-               if Compilation_Failures /= 0 then
-                  List_Bad_Compilations;
-                  raise Compilation_Failed;
+               Total_Compilation_Failures :=
+                 Total_Compilation_Failures + Compilation_Failures;
+
+               if Total_Compilation_Failures /= 0 then
+                  if Opt.Keep_Going then
+                     goto Next_Main;
+
+                  else
+                     List_Bad_Compilations;
+                     raise Compilation_Failed;
+                  end if;
                end if;
 
                --  Regenerate libraries, if any and if object files
@@ -3593,6 +3624,11 @@ package body Make is
          end if;
       end loop Multiple_Main_Loop;
 
+      if Total_Compilation_Failures /= 0 then
+         List_Bad_Compilations;
+         raise Compilation_Failed;
+      end if;
+
       --  Delete the temporary mapping file that was created if we are
       --  using project files.
 
@@ -3702,7 +3738,6 @@ package body Make is
       --  Package initializations. The order of calls is important here.
 
       Output.Set_Standard_Error;
-      Osint.Initialize (Osint.Make);
 
       Gcc_Switches.Init;
       Binder_Switches.Init;
@@ -4087,28 +4122,6 @@ package body Make is
       Set_Name_Table_Byte (Source_File, 1);
    end Mark;
 
-   -------------------
-   -- Mark_Dir_Path --
-   -------------------
-
-   procedure Mark_Dir_Path
-     (Path : String_Access;
-      Mark : Lib_Mark_Type)
-   is
-      Dir : String_Access;
-
-   begin
-      if Path /= null then
-         Osint.Get_Next_Dir_In_Path_Init (Path);
-
-         loop
-            Dir := Osint.Get_Next_Dir_In_Path (Path);
-            exit when Dir = null;
-            Mark_Directory (Dir.all, Mark);
-         end loop;
-      end if;
-   end Mark_Dir_Path;
-
    --------------------
    -- Mark_Directory --
    --------------------
@@ -4143,19 +4156,20 @@ package body Make is
    ----------------------
 
    function Object_File_Name (Source : String) return String is
-      Pos : Natural := Source'Last;
-
    begin
-      while Pos >= Source'First and then
-        Source (Pos) /= '.' loop
-         Pos := Pos - 1;
+      --  If the source name has an extension, then replace it with
+      --  the object suffix.
+
+      for Index in reverse Source'First + 1 .. Source'Last loop
+         if Source (Index) = '.' then
+            return Source (Source'First .. Index - 1) & Object_Suffix;
+         end if;
       end loop;
 
-      if Pos >= Source'First then
-         Pos := Pos - 1;
-      end if;
+      --  If there is no dot, or if it is the first character, just add the
+      --  object suffix.
 
-      return Source (Source'First .. Pos) & Object_Suffix;
+      return Source & Object_Suffix;
    end Object_File_Name;
 
    -------------------
@@ -4322,11 +4336,52 @@ package body Make is
                end loop;
             end;
 
-         elsif Argv'Length > 4 and then
+         elsif Argv'Length >= 5 and then
            Argv (1 .. 5) = "--RTS"
          then
             Add_Switch (Argv, Compiler, And_Save => And_Save);
             Add_Switch (Argv, Binder, And_Save => And_Save);
+
+            if Argv'Length <= 6 or else Argv (6) /= '=' then
+               Osint.Fail ("missing path for --RTS");
+
+            else
+               --  Valid --RTS switch
+
+               Opt.No_Stdinc := True;
+               Opt.No_Stdlib := True;
+               Opt.RTS_Switch := True;
+
+               declare
+                  Src_Path_Name : String_Ptr :=
+                                    Get_RTS_Search_Dir
+                                      (Argv (7 .. Argv'Last), Include);
+                  Lib_Path_Name : String_Ptr :=
+                                    Get_RTS_Search_Dir
+                                      (Argv (7 .. Argv'Last), Objects);
+
+               begin
+                  if Src_Path_Name /= null and then
+                    Lib_Path_Name /= null
+                  then
+                     Add_Search_Dirs (Src_Path_Name, Include);
+                     Add_Search_Dirs (Lib_Path_Name, Objects);
+
+                  elsif  Src_Path_Name = null
+                    and Lib_Path_Name = null then
+                     Osint.Fail ("RTS path not valid: missing " &
+                                 "adainclude and adalib directories");
+
+                  elsif Src_Path_Name = null then
+                     Osint.Fail ("RTS path not valid: missing " &
+                                 "adainclude directory");
+
+                  elsif  Lib_Path_Name = null then
+                     Osint.Fail ("RTS path not valid: missing " &
+                                 "adalib directory");
+                  end if;
+               end;
+            end if;
 
          else
             Fail ("unknown switch: ", Argv);
@@ -4469,7 +4524,6 @@ package body Make is
 
             else
                Project_File_Name := new String' (Argv (3 .. Argv'Last));
-               Create_Mapping_File := True;
             end if;
 
          --  -S (Assemble)
@@ -4523,11 +4577,10 @@ package body Make is
             null;
 
          --  If -gnath is present, then generate the usage information
-         --  right now for the compiler, and do not pass this option
-         --  on to the compiler calls.
+         --  right now and do not pass this option on to the compiler calls.
 
          elsif Argv = "-gnath" then
-            null;
+            Usage;
 
          --  If -gnatc is specified, make sure the bind step and the link
          --  step are not executed.
@@ -4562,8 +4615,8 @@ package body Make is
 
             --  By default all switches with more than one character
             --  or one character switches which are not in 'a' .. 'z'
-            --  (except 'M') are passed to the compiler, unless we are dealing
-            --  with a debug switch (starts with 'd')
+            --  (except 'C' and 'M') are passed to the compiler, unless we are
+            --  dealing with a debug switch (starts with 'd')
 
          elsif Argv (2) /= 'd'
            and then Argv (2 .. Argv'Last) /= "M"
@@ -4582,7 +4635,7 @@ package body Make is
 
       else
          File_Name_Seen := True;
-         Set_Main_File_Name (Argv);
+         Add_File (Argv);
       end if;
    end Scan_Make_Arg;
 
@@ -4805,7 +4858,9 @@ package body Make is
                  (Index => Name_Find,
                   In_Array => Switches_Array);
 
-               if Switches = Nil_Variable_Value then
+               if Switches = Nil_Variable_Value
+                 and then Allow_ALI
+               then
                   Last := Source_File_Name'Length;
 
                   while Name (Last) /= '.' loop
@@ -4815,10 +4870,10 @@ package body Make is
                   Name (Last + 1 .. Last + 3) := "ali";
                   Name_Len := Last + 3;
                   Name_Buffer (1 .. Name_Len) := Name (1 .. Name_Len);
-                                 Switches :=
-                 Prj.Util.Value_Of
-                    (Index => Name_Find,
-                     In_Array => Switches_Array);
+                  Switches :=
+                    Prj.Util.Value_Of
+                       (Index => Name_Find,
+                        In_Array => Switches_Array);
                end if;
             end if;
          end;
@@ -4836,7 +4891,10 @@ package body Make is
    -- Test_If_Relative_Path --
    ---------------------------
 
-   procedure Test_If_Relative_Path (Switch : String_Access) is
+   procedure Test_If_Relative_Path
+     (Switch : in out String_Access;
+      Parent : String_Access)
+   is
    begin
       if Switch /= null then
 
@@ -4866,27 +4924,44 @@ package body Make is
                then
                   Start := 4;
 
+               elsif Sw'Length >= 7
+                 and then Sw (2 .. 6) = "-RTS="
+               then
+                  Start := 7;
                else
                   return;
                end if;
 
                if not Is_Absolute_Path (Sw (Start .. Sw'Last)) then
-                  Fail ("relative search path switches (""" &
-                        Sw & """) are not allowed when using project files");
+                  if Parent = null then
+                     Fail ("relative search path switches (""" & Sw &
+                           """) are not allowed inside project files");
+
+                  else
+                     Switch :=
+                       new String'
+                         (Sw (1 .. Start - 1) &
+                          Parent.all &
+                          Directory_Separator &
+                          Sw (Start .. Sw'Last));
+                  end if;
                end if;
             end if;
          end;
       end if;
    end Test_If_Relative_Path;
 
-   ------------
-   -- Unmark --
-   ------------
+   -----------
+   -- Usage --
+   -----------
 
-   procedure Unmark (Source_File : File_Name_Type) is
+   procedure Usage is
    begin
-      Set_Name_Table_Byte (Source_File, 0);
-   end Unmark;
+      if Usage_Needed then
+         Usage_Needed := False;
+         Makeusg;
+      end if;
+   end Usage;
 
    -----------------
    -- Verbose_Msg --

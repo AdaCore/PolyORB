@@ -33,6 +33,8 @@
 
 package body MLib.Tgt is
 
+   pragma Warnings (Off); -- stop warnings on unreferenced formals
+
    -----------------
    -- Archive_Ext --
    -----------------

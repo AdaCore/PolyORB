@@ -44,6 +44,8 @@ package body Prj is
 
    The_Empty_String : String_Id;
 
+   Ada_Language     : constant Name_Id := Name_Ada;
+
    subtype Known_Casing is Casing_Type range All_Upper_Case .. Mixed_Case;
 
    The_Casing_Images : array (Known_Casing) of String_Access :=
@@ -107,28 +109,6 @@ package body Prj is
       Flag1                        => False,
       Flag2                        => False);
 
-   Default_Specification_Suffixs  : Array_Element_Id := No_Array_Element;
-
-   Default_Implementation_Suffixs : Array_Element_Id := No_Array_Element;
-
-   --------------------------
-   -- Default_Impl_Suffixs --
-   --------------------------
-
-   function Default_Impl_Suffixs return Array_Element_Id is
-   begin
-      return Default_Implementation_Suffixs;
-   end Default_Impl_Suffixs;
-
-   --------------------------
-   -- Default_Spec_Suffixs --
-   --------------------------
-
-   function Default_Spec_Suffixs return Array_Element_Id is
-   begin
-      return Default_Specification_Suffixs;
-   end Default_Spec_Suffixs;
-
    -------------------
    -- Empty_Project --
    -------------------
@@ -178,7 +158,7 @@ package body Prj is
 
       begin
          if not Projects.Table (Project).Seen then
-            Projects.Table (Project).Seen := False;
+            Projects.Table (Project).Seen := True;
             Action (Project, With_State);
 
             List := Projects.Table (Project).Imported_Projects;
@@ -226,6 +206,10 @@ package body Prj is
          Std_Naming_Data.Current_Spec_Suffix := Default_Ada_Spec_Suffix;
          Std_Naming_Data.Current_Impl_Suffix := Default_Ada_Impl_Suffix;
          Std_Naming_Data.Separate_Suffix     := Default_Ada_Impl_Suffix;
+         Register_Default_Naming_Scheme
+           (Language            => Ada_Language,
+            Default_Spec_Suffix => Default_Ada_Spec_Suffix,
+            Default_Impl_Suffix => Default_Ada_Impl_Suffix);
          Prj.Env.Initialize;
          Prj.Attr.Initialize;
          Set_Name_Table_Byte (Name_Project,  Token_Type'Pos (Tok_Project));
@@ -268,7 +252,7 @@ package body Prj is
       Store_String_Chars (Name_Buffer (1 .. Name_Len));
       Impl_Str := End_String;
 
-      Suffix := Default_Specification_Suffixs;
+      Suffix := Std_Naming_Data.Specification_Suffix;
       Found := False;
 
       while Suffix /= No_Array_Element and then not Found loop
@@ -291,13 +275,13 @@ package body Prj is
                       Location => No_Location,
                       Default  => False,
                       Value    => Spec_Str),
-            Next  => Default_Specification_Suffixs);
+            Next  => Std_Naming_Data.Specification_Suffix);
          Array_Elements.Increment_Last;
          Array_Elements.Table (Array_Elements.Last) := Element;
-         Default_Specification_Suffixs := Array_Elements.Last;
+         Std_Naming_Data.Specification_Suffix := Array_Elements.Last;
       end if;
 
-      Suffix := Default_Implementation_Suffixs;
+      Suffix := Std_Naming_Data.Implementation_Suffix;
       Found := False;
 
       while Suffix /= No_Array_Element and then not Found loop
@@ -320,10 +304,10 @@ package body Prj is
                       Location => No_Location,
                       Default  => False,
                       Value    => Impl_Str),
-            Next  => Default_Implementation_Suffixs);
+            Next  => Std_Naming_Data.Implementation_Suffix);
          Array_Elements.Increment_Last;
          Array_Elements.Table (Array_Elements.Last) := Element;
-         Default_Implementation_Suffixs := Array_Elements.Last;
+         Std_Naming_Data.Implementation_Suffix := Array_Elements.Last;
       end if;
    end Register_Default_Naming_Scheme;
 

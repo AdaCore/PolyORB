@@ -1061,7 +1061,7 @@ package body Scn is
             --  Special check for || to give nice message
 
             if Source (Scan_Ptr + 1) = '|' then
-               Error_Msg_S ("""||"" should be `OR ELSE`");
+               Error_Msg_S ("""'|'|"" should be `OR ELSE`");
                Scan_Ptr := Scan_Ptr + 2;
                Token := Tok_Or;
                return;

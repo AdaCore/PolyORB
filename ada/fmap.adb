@@ -166,7 +166,7 @@ package body Fmap is
          File_Hash_Table.Reset;
          Path_Mapping.Set_Last (0);
          File_Mapping.Set_Last (0);
-         Last := 0;
+         Last_In_Table := 0;
       end Empty_Tables;
 
       --------------
@@ -401,12 +401,25 @@ package body Fmap is
       --  Only Update if there are new entries in the mappings
 
       if Last_In_Table < File_Mapping.Last then
-         File := Open_Read_Write (Name => File_Name, Fmode => Binary);
+
+         --  If the tables have been emptied, recreate the file.
+         --  Otherwise, append to it.
+
+         if Last_In_Table = 0 then
+            declare
+               Discard : Boolean;
+
+            begin
+               Delete_File (File_Name, Discard);
+            end;
+
+            File := Create_File (File_Name, Binary);
+
+         else
+            File := Open_Read_Write (Name => File_Name, Fmode => Binary);
+         end if;
 
          if File /= Invalid_FD then
-            --  If the tables have been emptied, rewrite the mapping file.
-            --  Otherwise, happen to it.
-
             if Last_In_Table > 0 then
                Lseek (File, 0, Seek_End);
             end if;

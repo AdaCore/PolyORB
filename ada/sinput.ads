@@ -631,4 +631,9 @@ private
    --  present, also increments logical lines table size by one, and
    --  sets new entry.
 
+   procedure Trim_Lines_Table (S : Source_File_Index);
+   --  Set lines table size for entry S in the source file table to
+   --  correspond to the current value of Num_Source_Lines, releasing
+   --  any unused storage. This is used by Sinput.L and Sinput.D.
+
 end Sinput;

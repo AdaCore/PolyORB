@@ -380,6 +380,9 @@ pragma Preelaborate (Types);
    --  indicate that some kind of error was encountered in scanning out
    --  the relevant name, so it does not have a representable label.
 
+   subtype Error_Name_Or_No_Name is Name_Id range No_Name .. Error_Name;
+   --  Used to test for either error name or no name
+
    First_Name_Id : constant Name_Id := Names_Low_Bound + 2;
    --  Subscript of first entry in names table
 

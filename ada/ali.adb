@@ -713,6 +713,8 @@ package body ALI is
 
          if Debug_Flag_U then
             Write_Str (" ----> reading unit ");
+            Write_Int (Int (Units.Last));
+            Write_Str ("  ");
             Write_Unit_Name (Units.Table (Units.Last).Uname);
             Write_Str (" from file ");
             Write_Name (Units.Table (Units.Last).Sfile);
@@ -729,15 +731,22 @@ package body ALI is
               and then Units.Table (Units.Last).Sfile /=
                        Units.Table (Unit_Id (Info)).Sfile
             then
-               --  If Err is set then treat duplicate unit name as an instance
-               --  of a bad ALI format. This is the case of being called from
-               --  gnatmake, and the point is that if anything is wrong with
-               --  the ALI file, then gnatmake should just recompile.
+               --  If Err is set then ignore duplicate unit name. This is the
+               --  case of a call from gnatmake, where the situation can arise
+               --  from substitution of source files. In such situations, the
+               --  processing in gnatmake will always result in any required
+               --  recompilations in any case, and if we consider this to be
+               --  an error we get strange cases (for example when a generic
+               --  instantiation is replaced by a normal package) where we
+               --  read the old ali file, decide to recompile, and then decide
+               --  that the old and new ali files are incompatible.
 
                if Err then
-                  raise Bad_ALI_Format;
+                  null;
 
-               --  If Err is not set, then this is a fatal error
+               --  If Err is not set, then this is a fatal error. This is
+               --  the case of being called from the binder, where we must
+               --  definitely diagnose this as an error.
 
                else
                   Set_Standard_Error;

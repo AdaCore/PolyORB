@@ -401,28 +401,28 @@ package Prj is
 
       Include_Path : String_Access := null;
       --  The cached value of ADA_INCLUDE_PATH for this project file.
-      --  Set by gnatmake (prj.Env.Set_Ada_Paths).
+      --  Set by gnatmake (Prj.Env.Set_Ada_Paths).
       --  Do not use this field directly outside of the compiler, use
       --  Prj.Env.Ada_Source_Path instead.
 
       Objects_Path : String_Access := null;
       --  The cached value of ADA_OBJECTS_PATH for this project file.
-      --  Set by gnatmake (prj.Env.Set_Ada_Paths).
+      --  Set by gnatmake (Prj.Env.Set_Ada_Paths).
       --  Do not use this field directly outside of the compiler, use
       --  Prj.Env.Ada_Objects_Path instead.
 
       Config_File_Name : Name_Id := No_Name;
       --  The name of the configuration pragmas file, if any.
-      --  Set by gnatmage (Prj.Env.Create_Config_Pragmas_File).
+      --  Set by gnatmake (Prj.Env.Create_Config_Pragmas_File).
 
       Config_File_Temp : Boolean := False;
       --  An indication that the configuration pragmas file is
       --  a temporary file that must be deleted at the end.
-      --  Set by gnatmage (Prj.Env.Create_Config_Pragmas_File).
+      --  Set by gnatmake (Prj.Env.Create_Config_Pragmas_File).
 
       Config_Checked : Boolean := False;
       --  A flag to avoid checking repetitively the configuration pragmas file.
-      --  Set by gnatmage (Prj.Env.Create_Config_Pragmas_File).
+      --  Set by gnatmake (Prj.Env.Create_Config_Pragmas_File).
 
       Language_Independent_Checked : Boolean := False;
       --  A flag that indicates that the project file has been checked
@@ -480,18 +480,6 @@ package Prj is
    --  Otherwise, this information will be automatically added to Naming_Data
    --  when a project is processed, in the lists Specification_Suffix and
    --  Implementation_Suffix.
-
-   function Default_Spec_Suffixs return Array_Element_Id;
-   --  Return the default specification suffixs that have been registerd
-   --  using Register_Default_Naming_Scheme.
-   --  Return No_Array_Element if Register_Default_Naming_Scheme has never
-   --  been called.
-
-   function Default_Impl_Suffixs return Array_Element_Id;
-   --  Return the default implementation suffixs that have been registerd
-   --  using Register_Default_Naming_Scheme.
-   --  Return No_Array_Element if Register_Default_Naming_Scheme has never
-   --  been called.
 
    generic
       type State is limited private;

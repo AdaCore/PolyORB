@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2001 Free Software Foundation, Inc.            --
+--          Copyright (C) 2001-2002 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -40,7 +40,6 @@ with Table;
 package body Prj.Env is
 
    type Naming_Id is new Nat;
-   No_Naming : constant Naming_Id := 0;
 
    Ada_Path_Buffer : String_Access := new String (1 .. 1_000);
    --  A buffer where values for ADA_INCLUDE_PATH
@@ -61,6 +60,8 @@ package body Prj.Env is
 
    Global_Configuration_Pragmas : Name_Id;
    Local_Configuration_Pragmas  : Name_Id;
+
+   Fill_Mapping_File : Boolean := True;
 
    -----------------------
    -- Local Subprograms --
@@ -855,32 +856,34 @@ package body Prj.Env is
          Write_Line ("""");
       end if;
 
-      --  For all units in table Units
+      if Fill_Mapping_File then
+         --  For all units in table Units
 
-      for Unit in 1 .. Units.Last loop
-         The_Unit_Data := Units.Table (Unit);
+         for Unit in 1 .. Units.Last loop
+            The_Unit_Data := Units.Table (Unit);
 
-         --  If the unit has a valid name
+            --  If the unit has a valid name
 
-         if The_Unit_Data.Name /= No_Name then
-            Data := The_Unit_Data.File_Names (Specification);
+            if The_Unit_Data.Name /= No_Name then
+               Data := The_Unit_Data.File_Names (Specification);
 
-            --  If there is a spec, put it mapping in the file
+               --  If there is a spec, put it mapping in the file
 
-            if Data.Name /= No_Name then
-               Put_Data (Spec => True);
+               if Data.Name /= No_Name then
+                  Put_Data (Spec => True);
+               end if;
+
+               Data := The_Unit_Data.File_Names (Body_Part);
+
+               --  If there is a body (or subunit) put its mapping in the file
+
+               if Data.Name /= No_Name then
+                  Put_Data (Spec => False);
+               end if;
+
             end if;
-
-            Data := The_Unit_Data.File_Names (Body_Part);
-
-            --  If there is a body (or subunit) put its mapping in the file
-
-            if Data.Name /= No_Name then
-               Put_Data (Spec => False);
-            end if;
-
-         end if;
-      end loop;
+         end loop;
+      end if;
 
       GNAT.OS_Lib.Close (File);
 
@@ -1522,6 +1525,15 @@ package body Prj.Env is
 
       Write_Line ("end of List of Sources.");
    end Print_Sources;
+
+   ---------------------------------------------
+   -- Set_Mapping_File_Initial_State_To_Empty --
+   ---------------------------------------------
+
+   procedure Set_Mapping_File_Initial_State_To_Empty is
+   begin
+      Fill_Mapping_File := False;
+   end Set_Mapping_File_Initial_State_To_Empty;
 
    -----------------------
    -- Spec_Path_Name_Of --

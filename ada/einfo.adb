@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2002 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -181,8 +181,9 @@ package body Einfo is
    --    Accept_Address                  Elist21
    --    Default_Expr_Function           Node21
    --    Discriminant_Constraint         Elist21
-   --    Small_Value                     Ureal21
    --    Interface_Name                  Node21
+   --    Original_Array_Type             Node21
+   --    Small_Value                     Ureal21
 
    --    Associated_Storage_Pool         Node22
    --    Component_Size                  Uint22
@@ -395,8 +396,8 @@ package body Einfo is
    --    Size_Depends_On_Discriminant   Flag177
    --    Is_Null_Init_Proc              Flag178
    --    Has_Pragma_Pure_Function       Flag179
+   --    Has_Pragma_Unreferenced        Flag180
 
-   --    (unused)                       Flag180
    --    (unused)                       Flag181
    --    (unused)                       Flag182
    --    (unused)                       Flag183
@@ -1090,6 +1091,11 @@ package body Einfo is
       return Flag179 (Id);
    end Has_Pragma_Pure_Function;
 
+   function Has_Pragma_Unreferenced (Id : E) return B is
+   begin
+      return Flag180 (Id);
+   end Has_Pragma_Unreferenced;
+
    function Has_Primitive_Operations (Id : E) return B is
    begin
       pragma Assert (Is_Type (Id));
@@ -1720,6 +1726,12 @@ package body Einfo is
       pragma Assert (Ekind (Id) = E_Protected_Body);
       return Node17 (Id);
    end Object_Ref;
+
+   function Original_Array_Type (Id : E) return E is
+   begin
+      pragma Assert (Is_Array_Type (Id) or else Is_Modular_Integer_Type (Id));
+      return Node21 (Id);
+   end Original_Array_Type;
 
    function Original_Record_Component (Id : E) return E is
    begin
@@ -2935,6 +2947,11 @@ package body Einfo is
       Set_Flag179 (Id, V);
    end Set_Has_Pragma_Pure_Function;
 
+   procedure Set_Has_Pragma_Unreferenced (Id : E; V : B := True) is
+   begin
+      Set_Flag180 (Id, V);
+   end Set_Has_Pragma_Unreferenced;
+
    procedure Set_Has_Primitive_Operations (Id : E; V : B := True) is
    begin
       pragma Assert (Id = Base_Type (Id));
@@ -3597,6 +3614,12 @@ package body Einfo is
       pragma Assert (Ekind (Id) = E_Protected_Body);
       Set_Node17 (Id, V);
    end Set_Object_Ref;
+
+   procedure Set_Original_Array_Type (Id : E; V : E) is
+   begin
+      pragma Assert (Is_Array_Type (Id) or else Is_Modular_Integer_Type (Id));
+      Set_Node21 (Id, V);
+   end Set_Original_Array_Type;
 
    procedure Set_Original_Record_Component (Id : E; V : E) is
    begin
@@ -5867,6 +5890,7 @@ package body Einfo is
       W ("Has_Pragma_Inline",             Flag157 (Id));
       W ("Has_Pragma_Pack",               Flag121 (Id));
       W ("Has_Pragma_Pure_Function",      Flag179 (Id));
+      W ("Has_Pragma_Unreferenced",       Flag180 (Id));
       W ("Has_Primitive_Operations",      Flag120 (Id));
       W ("Has_Private_Declaration",       Flag155 (Id));
       W ("Has_Qualified_Name",            Flag161 (Id));
@@ -6121,6 +6145,8 @@ package body Einfo is
    -----------------------
 
    procedure Write_Field6_Name (Id : Entity_Id) is
+      pragma Warnings (Off, Id);
+
    begin
       Write_Str ("First_Rep_Item");
    end Write_Field6_Name;
@@ -6130,6 +6156,8 @@ package body Einfo is
    -----------------------
 
    procedure Write_Field7_Name (Id : Entity_Id) is
+      pragma Warnings (Off, Id);
+
    begin
       Write_Str ("Freeze_Node");
    end Write_Field7_Name;
@@ -6146,7 +6174,8 @@ package body Einfo is
             Write_Str ("Normalized_First_Bit");
 
          when Formal_Kind                                |
-              E_Function                                 =>
+              E_Function                                 |
+              E_Subprogram_Body                          =>
             Write_Str ("Mechanism");
 
          when Type_Kind                                  =>
@@ -6707,6 +6736,10 @@ package body Einfo is
 
          when E_In_Parameter                             =>
             Write_Str ("Default_Expr_Function");
+
+         when Array_Kind                                 |
+              Modular_Integer_Kind                       =>
+            Write_Str ("Original_Array_Type");
 
          when others                                     =>
             Write_Str ("Field21??");

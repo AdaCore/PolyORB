@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 2000-2001 Free Software Foundation, Inc.          --
+--          Copyright (C) 2000-2002 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -40,6 +40,7 @@ with Namet;                      use Namet;
 with Osint;                      use Osint;
 with Output;                     use Output;
 with Prj.Com;                    use Prj.Com;
+with Prj.Env;                    use Prj.Env;
 with Prj.Util;                   use Prj.Util;
 with Snames;                     use Snames;
 with Stringt;                    use Stringt;
@@ -77,19 +78,25 @@ package body Prj.Nmsc is
    --  specific SFN pragma is needed. If the file name corresponds to no
    --  unit, then Unit_Name will be No_Name.
 
-   function Is_Illegal_Append (This : String) return Boolean;
-   --  Returns True if the string This cannot be used as
-   --  a Specification_Append, a Body_Append or a Separate_Append.
+   function Is_Illegal_Suffix
+     (Suffix                          : String;
+      Dot_Replacement_Is_A_Single_Dot : Boolean)
+      return                            Boolean;
+   --  Returns True if the string Suffix cannot be used as
+   --  a spec suffix, a body suffix or a separate suffix.
 
    procedure Record_Source
-     (File_Name        : Name_Id;
-      Path_Name        : Name_Id;
-      Project          : Project_Id;
-      Data             : in out Project_Data;
-      Location         : Source_Ptr;
-      Current_Source   : in out String_List_Id);
+     (File_Name          : Name_Id;
+      Path_Name          : Name_Id;
+      Project            : Project_Id;
+      Data               : in out Project_Data;
+      Location           : Source_Ptr;
+      Current_Source     : in out String_List_Id;
+      Error_If_Not_Found : Boolean);
    --  Put a unit in the list of units of a project, if the file name
-   --  corresponds to a valid unit name.
+   --  corresponds to a valid unit name. If Error_If_Not_Found is True and
+   --  the source cannot be found or is not a valid source file name, then
+   --  an error is reported.
 
    procedure Show_Source_Dirs (Project : Project_Id);
    --  List all the source directories of a project.
@@ -107,13 +114,6 @@ package body Prj.Nmsc is
       return      String;
    --  Returns the path name of a (non project) file.
    --  Returns an empty string if file cannot be found.
-
-   function Path_Name_Of
-     (File_Name : String_Id;
-      Directory : String_Id)
-      return      String;
-   --  Same as above except that Directory is a String_Id instead
-   --  of a Name_Id.
 
    ---------------
    -- Ada_Check --
@@ -256,12 +256,13 @@ package body Prj.Nmsc is
                               --  duplicate unit name.
 
                               Record_Source
-                                (File_Name        => File_Name,
-                                 Path_Name        => Path_Name,
-                                 Project          => Project,
-                                 Data             => Data,
-                                 Location         => No_Location,
-                                 Current_Source   => Current_Source);
+                                (File_Name          => File_Name,
+                                 Path_Name          => Path_Name,
+                                 Project            => Project,
+                                 Data               => Data,
+                                 Location           => No_Location,
+                                 Current_Source     => Current_Source,
+                                 Error_If_Not_Found => False);
 
                            else
                               if Current_Verbosity = High then
@@ -310,8 +311,10 @@ package body Prj.Nmsc is
          Source_Dir : String_List_Id := Data.Source_Dirs;
          Element    : String_Element;
          Path_Name  : GNAT.OS_Lib.String_Access;
-         Found      : Boolean := False;
          File       : Name_Id;
+         Path       : Name_Id;
+
+         Found      : Boolean := False;
 
       begin
          if Current_Verbosity = High then
@@ -319,6 +322,10 @@ package body Prj.Nmsc is
             Write_Str  (File_Name);
             Write_Line (""".");
          end if;
+
+         Name_Len := File_Name'Length;
+         Name_Buffer (1 .. Name_Len) := File_Name;
+         File := Name_Find;
 
          --  We look in all source directories for this file name
 
@@ -341,22 +348,21 @@ package body Prj.Nmsc is
                   Write_Line ("OK");
                end if;
 
-               Name_Len := File_Name'Length;
-               Name_Buffer (1 .. Name_Len) := File_Name;
-               File := Name_Find;
                Name_Len := Path_Name'Length;
                Name_Buffer (1 .. Name_Len) := Path_Name.all;
+               Path := Name_Find;
 
                --  Register the source. Report an error if the file does not
                --  correspond to a source.
 
                Record_Source
-                 (File_Name        => File,
-                  Path_Name        => Name_Find,
-                  Project          => Project,
-                  Data             => Data,
-                  Location         => Location,
-                  Current_Source   => Current_Source);
+                 (File_Name          => File,
+                  Path_Name          => Path,
+                  Project            => Project,
+                  Data               => Data,
+                  Location           => Location,
+                  Current_Source     => Current_Source,
+                  Error_If_Not_Found => True);
                Found := True;
                exit;
 
@@ -368,6 +374,14 @@ package body Prj.Nmsc is
                Source_Dir := Element.Next;
             end if;
          end loop;
+
+         --  It is an error if a source file names in a source list or
+         --  in a source list file is not found.
+
+         if not Found then
+            Error_Msg_Name_1 := File;
+            Error_Msg ("source file { cannot be found", Location);
+         end if;
 
       end Get_Path_Name_And_Record_Source;
 
@@ -383,8 +397,6 @@ package body Prj.Nmsc is
          Line           : String (1 .. 250);
          Last           : Natural;
          Current_Source : String_List_Id := Nil_String;
-
-         Nmb_Errors : constant Nat := Errors_Detected;
 
       begin
          if Current_Verbosity = High then
@@ -413,7 +425,6 @@ package body Prj.Nmsc is
                     (File_Name => Line (1 .. Last),
                      Location => Location,
                      Current_Source => Current_Source);
-                  exit when Nmb_Errors /= Errors_Detected;
                end if;
             end loop;
 
@@ -990,25 +1001,31 @@ package body Prj.Nmsc is
             --   - start with an alphanumeric
             --   - start with an '_' followed by an alphanumeric
 
-            if Is_Illegal_Append (Specification_Suffix) then
+            if Is_Illegal_Suffix
+              (Specification_Suffix, Dot_Replacement = ".")
+            then
                Error_Msg_Name_1 := Naming.Current_Spec_Suffix;
                Error_Msg
                  ("{ is illegal for Specification_Suffix",
                   Naming.Spec_Suffix_Loc);
             end if;
 
-            if Is_Illegal_Append (Implementation_Suffix) then
+            if Is_Illegal_Suffix
+              (Implementation_Suffix, Dot_Replacement = ".")
+            then
                Error_Msg_Name_1 := Naming.Current_Impl_Suffix;
                Error_Msg
-                 ("% is illegal for Implementation_Suffix",
+                 ("{ is illegal for Implementation_Suffix",
                   Naming.Impl_Suffix_Loc);
             end if;
 
             if Implementation_Suffix /= Separate_Suffix then
-               if Is_Illegal_Append (Separate_Suffix) then
+               if Is_Illegal_Suffix
+                 (Separate_Suffix, Dot_Replacement = ".")
+               then
                   Error_Msg_Name_1 := Naming.Separate_Suffix;
                   Error_Msg
-                    ("{ is illegal for Separate_Append",
+                    ("{ is illegal for Separate_Suffix",
                      Naming.Sep_Suffix_Loc);
                end if;
             end if;
@@ -1425,21 +1442,31 @@ package body Prj.Nmsc is
                Mapping => Lower_Case_Map);
 
             --  In the standard GNAT naming scheme, check for special cases:
-            --  children or separates of A, G, I or S.
+            --  children or separates of A, G, I or S, and run time sources.
 
             if Standard_GNAT and then Src'Length >= 3 then
                declare
                   S1 : constant Character := Src (Src'First);
                   S2 : constant Character := Src (Src'First + 1);
+
                begin
                   if S1 = 'a' or else S1 = 'g'
                     or else S1 = 'i' or else S1 = 's'
                   then
+                     --  Children or separates of packages A, G, I or S
+
                      if (Hostparm.OpenVMS and then S2 = '$')
                        or else (not Hostparm.OpenVMS and then S2 = '~')
                      then
                         Src (Src'First + 1) := '.';
+
+                     --  If it is potentially a run time source, disable
+                     --  filling of the mapping file to avoid warnings.
+
+                     elsif S2 = '.' then
+                        Set_Mapping_File_Initial_State_To_Empty;
                      end if;
+
                   end if;
                end;
             end if;
@@ -1462,18 +1489,48 @@ package body Prj.Nmsc is
    end Get_Unit;
 
    -----------------------
-   -- Is_Illegal_Append --
+   -- Is_Illegal_Suffix --
    -----------------------
 
-   function Is_Illegal_Append (This : String) return Boolean is
+   function Is_Illegal_Suffix
+     (Suffix                          : String;
+      Dot_Replacement_Is_A_Single_Dot : Boolean)
+      return                            Boolean
+   is
    begin
-      return This'Length = 0
-        or else Is_Alphanumeric (This (This'First))
-        or else Index (This, ".") = 0
-        or else (This'Length >= 2
-                 and then This (This'First) = '_'
-                 and then Is_Alphanumeric (This (This'First + 1)));
-   end Is_Illegal_Append;
+      if Suffix'Length = 0
+        or else Is_Alphanumeric (Suffix (Suffix'First))
+        or else Index (Suffix, ".") = 0
+        or else (Suffix'Length >= 2
+                 and then Suffix (Suffix'First) = '_'
+                 and then Is_Alphanumeric (Suffix (Suffix'First + 1)))
+      then
+         return True;
+      end if;
+
+      --  If dot replacement is a single dot, and first character of
+      --  suffix is also a dot
+
+      if Dot_Replacement_Is_A_Single_Dot
+        and then Suffix (Suffix'First) = '.'
+      then
+         for Index in Suffix'First + 1 .. Suffix'Last loop
+
+            --  If there is another dot
+
+            if Suffix (Index) = '.' then
+
+               --  It is illegal to have a letter following the initial dot
+
+               return Is_Letter (Suffix (Suffix'First + 1));
+            end if;
+         end loop;
+      end if;
+
+      --  Everything is OK
+
+      return False;
+   end Is_Illegal_Suffix;
 
    --------------------------------
    -- Language_Independent_Check --
@@ -2342,34 +2399,6 @@ package body Prj.Nmsc is
 
    function Path_Name_Of
      (File_Name : String_Id;
-      Directory : String_Id)
-      return      String
-   is
-      Result : String_Access;
-
-   begin
-      String_To_Name_Buffer (File_Name);
-
-      declare
-         The_File_Name : constant String := Name_Buffer (1 .. Name_Len);
-
-      begin
-         String_To_Name_Buffer (Directory);
-         Result := Locate_Regular_File
-           (File_Name => The_File_Name,
-            Path      => Name_Buffer (1 .. Name_Len));
-      end;
-
-      if Result = null then
-         return "";
-      else
-         Canonical_Case_File_Name (Result.all);
-         return Result.all;
-      end if;
-   end Path_Name_Of;
-
-   function Path_Name_Of
-     (File_Name : String_Id;
       Directory : Name_Id)
       return      String
    is
@@ -2395,12 +2424,13 @@ package body Prj.Nmsc is
    -------------------
 
    procedure Record_Source
-     (File_Name        : Name_Id;
-      Path_Name        : Name_Id;
-      Project          : Project_Id;
-      Data             : in out Project_Data;
-      Location         : Source_Ptr;
-      Current_Source   : in out String_List_Id)
+     (File_Name          : Name_Id;
+      Path_Name          : Name_Id;
+      Project            : Project_Id;
+      Data               : in out Project_Data;
+      Location           : Source_Ptr;
+      Current_Source     : in out String_List_Id;
+      Error_If_Not_Found : Boolean)
    is
       Unit_Name    : Name_Id;
       Unit_Kind    : Spec_Or_Body;
@@ -2419,7 +2449,11 @@ package body Prj.Nmsc is
          Needs_Pragma => Needs_Pragma);
 
       if Unit_Name = No_Name then
-         if Current_Verbosity = High then
+         if Error_If_Not_Found then
+            Error_Msg_Name_1 := File_Name;
+            Error_Msg ("{ is not a valid source file name", Location);
+
+         elsif Current_Verbosity = High then
             Write_Str  ("   """);
             Write_Str  (Get_Name_String (File_Name));
             Write_Line (""" is not a valid source file name (ignored).");

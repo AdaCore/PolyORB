@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2001 Free Software Foundation, Inc.            --
+--          Copyright (C) 2001-2002 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -37,8 +37,6 @@ with Table;
 with Types;     use Types;
 
 package body Prj.Strt is
-
-   Initial_Size : constant := 8;
 
    type Name_Location is record
       Name     : Name_Id := No_Name;
@@ -73,11 +71,6 @@ package body Prj.Strt is
 
    First_Choice_Node_Id : constant Choice_Node_Id :=
      Choice_Node_Low_Bound;
-
-   Empty_Choice : constant Choice_Node_Id :=
-     Choice_Node_Low_Bound;
-
-   First_Choice_Id : constant Choice_Node_Id := First_Choice_Node_Id + 1;
 
    package Choices is
       new Table.Table (Table_Component_Type => Choice_String,
