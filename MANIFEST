@@ -7,6 +7,12 @@ aclocal.m4
 compilers/Makefile.am
 compilers/Makefile.common
 compilers/Makefile.in
+compilers/gnatprfh/Makefile.am
+compilers/gnatprfh/Makefile.in
+compilers/gnatprfh/g-pehama.adb
+compilers/gnatprfh/g-pehage.adb
+compilers/gnatprfh/g-pehage.ads
+compilers/gnatprfh/g-perhas.ads
 compilers/idlac/Makefile.am
 compilers/idlac/Makefile.in
 compilers/idlac/README.Expansion
