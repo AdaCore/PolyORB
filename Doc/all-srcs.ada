@@ -196,14 +196,13 @@ private
    type String_Access is access String;
 
    type Node;
-   type Node_Access is access Node;
+   type List is access Node;
 
    type Node is record
       Content : String_Access;
-      Next    : Node_Access;
+      Next    : List;
    end record;
 
-   type List is new Node_Access;
    procedure Read
      (S : access Root_Stream_Type'Class;
       L : out List);
@@ -373,7 +372,7 @@ package body RemPkg2 is
    begin
       RemPkg1.Subprogram;
    exception when E : others =>
-      Raise_Exception (E, Exception_Message (E));
+      Raise_Exception (Exception_Identity (E), Exception_Message (E));
    end Subprogram;
 end RemPkg2;
 with Ada.Text_IO, Ada.Exceptions; use Ada.Text_IO, Ada.Exceptions;
@@ -387,8 +386,8 @@ end RemExcMain;
 with Node1, Node2;
 procedure NonDeterministic is
 begin
-   Node1.Set (1);
-   Node2.Set (2);
+   Node1.Send (1);
+   Node2.Send (2);
 end NonDeterministic;
 package Node1 is
    pragma Remote_Call_Interface;
@@ -449,10 +448,10 @@ procedure AsynchronousMain is
    RACW : AsynchronousRACW := Create;
 begin
    --  Asynchronous Dynamically Bound Remote Call (1)
-   RAS := Asynchronous'Access;
+   RAS := AsynchronousRCI.Asynchronous'Access;
    RAS (0);  --  Abbrev for RAS.all (0)
    --  Synchronous Dynamically Bound Remote Call (2)
-   RAS := Synchronous'Access;
+   RAS := AsynchronousRCI.Synchronous'Access;
    RAS (0);
    --  Asynchronous Dynamically Bound Remote Call (3)
    Asynchronous (RACW.all);
@@ -465,8 +464,10 @@ package GenericRCI is
 
    procedure P;
 end GenericRCI;
+with GenericRCI;
 package RCIInstantiation is new GenericRCI;
 pragma Remote_Call_Interface (RCIInstantiation);
+with GenericRCI;
 package NormalInstantiation is new GenericRCI;
 package Pure is
    pragma Pure;
