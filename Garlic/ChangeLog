@@ -1,3 +1,7 @@
+2000-01-29  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* Makefile.zip: Typo in zipLIBOBJS.
+
 2000-01-28  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* Makefile.am, Makefile.in, Makefile.zip: Remove macros specific
