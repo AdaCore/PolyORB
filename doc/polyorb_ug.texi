@@ -56,7 +56,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#3 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#4 $
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
@@ -514,7 +514,7 @@ OPTIONS
 
 @noindent
 Ensure PolyORB has been configured and then compiled with CORBA
-application personality. @xref{Building an application with PolyORB}
+application personality. See @ref{Building an application with PolyORB}
 for more details on how to check installed personalities.
 
 To enable the configuration of the CORBA application personality,
