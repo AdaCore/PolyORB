@@ -20,6 +20,7 @@ with Broca.Inet_Server;
 with Broca.Locks;
 with Broca.Marshalling;
 with Broca.Flags;
+with Ada.Task_Attributes;
 pragma Elaborate_All (Broca.Vararray);
 pragma Elaborate_All (Broca.Orb);
 pragma Elaborate_All (Broca.Refs);
@@ -236,6 +237,17 @@ package body Broca.Rootpoa is
    ----------------------------------
    --  An implementation of a POA  --
    ----------------------------------
+
+   type POA_Task_Attribute is record
+      Current_Object    : PortableServer.ObjectId;
+      Current_POA       : PortableServer.POA_Forward.Ref;
+   end record;
+
+   Nil_Attribute : POA_Task_Attribute;
+
+   package Attributes is new Ada.Task_Attributes
+     (Attribute => POA_Task_Attribute,
+      Initial_Value => Nil_Attribute);
 
    type Cell_State_Type is (Free, Reserved, Active, To_Be_Destroyed);
    --  A servant_cell_type is in fact an object map entry.
@@ -1002,6 +1014,8 @@ package body Broca.Rootpoa is
          A_Servant := null;
       end if;
 
+      PortableServer.POA.Set (A_Poa, Broca.Refs.Ref_Acc (Self));
+
       if A_Servant = null then
 	 pragma Debug (O ("Giop_invoke : A_Servant is null"));
          case Self.Request_Policy is
@@ -1037,7 +1051,6 @@ package body Broca.Rootpoa is
                else
                   Skel := To_Internal_Skeleton (Self.Servant_Manager);
                end if;
-               PortableServer.POA.Set (A_Poa, Broca.Refs.Ref_Acc (Self));
                if Self.Servant_Policy = RETAIN then
                   begin
                      Self.Servant_Lock.Lock;
@@ -1070,6 +1083,9 @@ package body Broca.Rootpoa is
                     (PortableServer.ServantLocator.Impl.Object'Class
                      (Skel.P_Servant.all),
                      Oid, A_Poa, Operation, The_Cookie, A_Servant);
+                  Attributes.Set_Value
+                    (POA_Task_Attribute'(Current_Object => Oid,
+                                         Current_POA    => PortableServer.POA.Convert.To_Forward (A_Poa)));
                   Giop_Dispatch
                     (A_Servant, CORBA.To_Standard_String (Operation),
                      Request_Id, Reponse_Expected, Message);
@@ -1088,6 +1104,9 @@ package body Broca.Rootpoa is
 	    Self.Object_Map (Slot).Requests_Lock.Lock_R;
          end if;
 	 pragma Debug (O ("Giop_Invoke : call giop_dispatch for " & CORBA.To_Standard_String (Operation)));
+         Attributes.Set_Value
+           (POA_Task_Attribute'(Current_Object => Oid,
+                                Current_POA    => PortableServer.POA.Convert.To_Forward (A_Poa)));
          Giop_Dispatch
            (A_Servant, CORBA.To_Standard_String (Operation), Request_Id,
             Reponse_Expected, Message);
