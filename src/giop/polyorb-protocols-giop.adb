@@ -562,15 +562,16 @@ package body PolyORB.Protocols.GIOP is
    begin
       pragma Assert (Direction = ARG_IN or else Direction = ARG_OUT);
 
+      if not Last (It) then
+         Align_Position (Buffer, First_Arg_Alignment);
+      end if;
+
       while not Last (It) loop
          Arg := Value (It);
          if False
            or else Arg.Arg_Modes = Direction
            or else Arg.Arg_Modes = ARG_INOUT
          then
-            if First (It) then
-               Align_Position (Buffer, First_Arg_Alignment);
-            end if;
             Unmarshall_To_Any (Buffer, Arg.Argument);
          end if;
          Next (It);
@@ -601,6 +602,10 @@ package body PolyORB.Protocols.GIOP is
    begin
       pragma Assert (Direction = ARG_IN or Direction = ARG_OUT);
 
+      if not Last (It) then
+         Pad_Align (Buffer, First_Arg_Alignment);
+      end if;
+
       while not Last (It) loop
          Arg := Value (It);
 
@@ -611,10 +616,6 @@ package body PolyORB.Protocols.GIOP is
             pragma Debug (O ("Marshalling argument "
                              & Types.To_Standard_String (Arg.Name)
                              & " = " & Image (Arg.Argument)));
-
-            if First (It) then
-               Pad_Align (Buffer, First_Arg_Alignment);
-            end if;
 
             Marshall (Buffer, Arg.all);
          end if;
