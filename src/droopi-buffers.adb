@@ -176,8 +176,10 @@ package body Droopi.Buffers is
         (Buffer_Type, Buffer_Access);
 
    begin
-      Release_Contents (A_Buffer.all);
-      Free (A_Buffer);
+      if A_Buffer /= null then
+         Release_Contents (A_Buffer.all);
+         Free (A_Buffer);
+      end if;
    end Release;
 
    function To_Stream_Element_Array
