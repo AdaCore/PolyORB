@@ -526,15 +526,16 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Struct =>
             declare
-                  Nb : constant PolyORB.Types.Unsigned_Long
-                        := PolyORB.Any.Get_Aggregate_Count (Data);
-                  Value : PolyORB.Any.Any;
+               Nb : constant PolyORB.Types.Unsigned_Long
+                 := PolyORB.Any.Get_Aggregate_Count (Data);
+               Value : PolyORB.Any.Any;
             begin
                pragma Debug (O ("Marshall_From_Any : dealing with a struct"));
                for I in 0 .. Nb - 1 loop
                   Value := PolyORB.Any.Get_Aggregate_Element
-                     (Data,
-                      PolyORB.Any.TypeCode.Member_Type (Data_Type, I), I);
+                    (Data,
+                     PolyORB.Any.TypeCode.Member_Type
+                     (Data_Type, I), I);
                   Marshall_From_Any (Buffer, Value);
                end loop;
             end;
@@ -1633,35 +1634,32 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Struct =>
             declare
-               Nb : Unsigned_Long :=
-                 TypeCode.Member_Count (Tc);
-               Arg : PolyORB.Any.Any;
+               Nb : constant Unsigned_Long
+                 := TypeCode.Member_Count (Tc);
+               Arg : PolyORB.Any.Any := Get_Empty_Any_Aggregate
+                 (Get_Type (Result));
+               Val : PolyORB.Any.Any;
             begin
                pragma Debug (O ("unmarshall_to_any : dealing with a struct"));
-               PolyORB.Any.Set_Any_Aggregate_Value (Result);
-               pragma Debug (O ("unmarshall_to_any : about to "
-                                & "unmarshall parameters"));
+
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
                      pragma Debug (O ("unmarshall_to_any : get the element"));
-                     if Is_Empty then
-                        Arg := Get_Empty_Any (TypeCode.Member_Type (Tc, I));
-                     else
-                        Arg := Get_Aggregate_Element
-                          (Result,
-                           TypeCode.Member_Type (Tc, I),
-                           I);
-                     end if;
+                     Val := Get_Empty_Any (TypeCode.Member_Type (Tc, I));
+
                      pragma Debug (O ("unmarshall_to_any : about to "
                                       & "unmarshall a parameter"));
-                     Unmarshall_To_Any (Buffer,
-                                        Arg);
-                     if Is_Empty then
-                        Add_Aggregate_Element (Result, Arg);
-                     end if;
+                     Unmarshall_To_Any (Buffer, Val);
+                     Add_Aggregate_Element (Arg, Val);
                   end loop;
                end if;
+               Copy_Any_Value (Result, Arg);
+               --  XXX VERY inefficient if Result was initially
+               --  not empty. In that case, should unmarshall
+               --  directly into the already-allocate aggregate
+               --  elements.
             end;
+
          when Tk_Union =>
             declare
                Nb : Unsigned_Long;
@@ -1704,6 +1702,7 @@ package body PolyORB.Representations.CDR is
                   end loop;
                end if;
             end;
+
          when Tk_Enum =>
             declare
                Arg : PolyORB.Any.Any
@@ -1714,6 +1713,7 @@ package body PolyORB.Representations.CDR is
                Unmarshall_To_Any (Buffer, Val);
                Add_Aggregate_Element (Arg, Val);
                Copy_Any_Value (Result, Arg);
+               --  XXX Inefficient, see comment for Tk_Struct.
             end;
 
          when Tk_String =>
