@@ -32,11 +32,24 @@ with Types; use Types;
 
 package Exp_Hlpr is
 
+   function Build_Elementary_TypeCode_Call (N : Node_Id) return Node_Id;
+   --  Build call to TypeCode attribute function for elementary type
+   --  N is the attribute reference node.
+
    procedure Build_TypeCode_Function
      (Loc : Source_Ptr;
       Typ : Entity_Id;
       Decl : out Node_Id;
       Fnam : out Entity_Id);
    --  Build function for TypeCode of type.
+
+   function Find_Helper
+     (N    : Node_Id;
+      Typ  : Entity_Id;
+      Hnam : Name_Id)
+      return Entity_Id;
+   --  Retrieve helper Hnam of type Typ, building it
+   --  if it was not already, in the course of expanding
+   --  node N.
 
 end Exp_Hlpr;

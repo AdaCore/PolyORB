@@ -26,20 +26,25 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  with Atree;    use Atree;
+with Atree;    use Atree;
 with Einfo;    use Einfo;
+with Exp_Util; use Exp_Util;
 with Lib;      use Lib;
 --  with Namet;    use Namet;
 with Nlists;   use Nlists;
 with Nmake;    use Nmake;
 with Rtsfind;  use Rtsfind;
---  with Sinfo;    use Sinfo;
+with Sinfo;    use Sinfo;
+with Einfo;    use Einfo;
+with Sem_Ch7;  use Sem_Ch7;
+with Sem_Ch8;  use Sem_Ch8;
+with Sem_Util; use Sem_Util;
 with Snames;   use Snames;
---  with Stand;    use Stand;
+with Stand;    use Stand;
 with Tbuild;   use Tbuild;
---  with Ttypes;   use Ttypes;
---  with Exp_Tss;  use Exp_Tss;
---  with Uintp;    use Uintp;
+with Ttypes;   use Ttypes;
+with Exp_Tss;  use Exp_Tss;
+with Uintp;    use Uintp;
 
 package body Exp_Hlpr is
 
@@ -47,17 +52,180 @@ package body Exp_Hlpr is
    -- Local Subprograms --
    -----------------------
 
+   procedure Compile_Stream_Body_In_Scope
+     (N     : Node_Id;
+      Decl  : Node_Id;
+      Arr   : Entity_Id;
+      Check : Boolean);
+   --  The body for a stream subprogram may be generated outside of the scope
+   --  of the type. If the type is fully private, it may depend on the full
+   --  view of other types (e.g. indices) that are currently private as well.
+   --  We install the declarations of the package in which the type is declared
+   --  before compiling the body in what is its proper environment. The Check
+   --  parameter indicates if checks are to be suppressed for the stream body.
+   --  We suppress checks for array/record reads, since the rule is that these
+   --  are like assignments, out of range values due to uninitialized storage,
+   --  or other invalid values do NOT cause a Constraint_Error to be raised.
+   --  (copied from exp_attr.adb)
+
+   function Find_Inherited_TSS
+     (Typ : Entity_Id;
+      Nam : Name_Id) return Entity_Id;
+   --  A TSS reference for a representation aspect of a derived tagged type
+   --  must take into account inheritance of that aspect from ancestor types.
+   --  (copied from exp_attr.adb)
+
    function Make_Stream_Procedure_Function_Name
      (Loc : Source_Ptr;
       Typ : Entity_Id;
       Nam : Name_Id)
       return Entity_Id;
    --  Return the name to be assigned for stream subprogram Nam of Typ.
-   --  (copied from exp_strm)
+   --  (copied from exp_strm.adb)
 
-   ---------------------------------
-   -- Build_Record_Read_Procedure --
-   ---------------------------------
+   ------------------------------------
+   -- Build_Elementary_TypeCode_Call --
+   ------------------------------------
+
+   function Build_Elementary_TypeCode_Call (N : Node_Id) return Node_Id is
+      Loc     : constant Source_Ptr := Sloc (N);
+      P_Type  : constant Entity_Id  := Entity (Prefix (N));
+      U_Type  : constant Entity_Id  := Underlying_Type (P_Type);
+      Rt_Type : constant Entity_Id  := Root_Type (U_Type);
+      FST     : constant Entity_Id  := First_Subtype (U_Type);
+      P_Size  : constant Uint       := Esize (FST);
+      Lib_RE  : RE_Id;
+
+   begin
+      --  Check first for Boolean and Character. These are enumeration types,
+      --  but we treat them specially, since they may require special handling
+      --  in the transfer protocol. However, this special handling only applies
+      --  if they have standard representation, otherwise they are treated like
+      --  any other enumeration type.
+
+      if Rt_Type = Standard_Boolean then
+         Lib_RE := RE_TC_B;
+
+      elsif Rt_Type = Standard_Character then
+         Lib_RE := RE_TC_C;
+
+      elsif Rt_Type = Standard_Wide_Character then
+         Lib_RE := RE_TC_WC;
+
+      --  Floating point types
+
+      elsif Is_Floating_Point_Type (U_Type) then
+
+         if Rt_Type = Standard_Short_Float then
+            Lib_RE := RE_TC_SF;
+
+         elsif Rt_Type = Standard_Float then
+            Lib_RE := RE_TC_F;
+
+         elsif Rt_Type = Standard_Long_Float then
+            Lib_RE := RE_TC_LF;
+
+         else pragma Assert (Rt_Type = Standard_Long_Long_Float);
+            Lib_RE := RE_TC_LLF;
+         end if;
+
+      --  Signed integer types. Also includes signed fixed-point types and
+      --  enumeration types with a signed representation.
+
+      --  Note on signed integer types. We do not consider types as signed for
+      --  this purpose if they have no negative numbers, or if they have biased
+      --  representation. The reason is that the value in either case basically
+      --  represents an unsigned value.
+
+      --  For example, consider:
+
+      --     type W is range 0 .. 2**32 - 1;
+      --     for W'Size use 32;
+
+      --  This is a signed type, but the representation is unsigned, and may
+      --  be outside the range of a 32-bit signed integer, so this must be
+      --  treated as 32-bit unsigned.
+
+      --  Similarly, if we have
+
+      --     type W is range -1 .. +254;
+      --     for W'Size use 8;
+
+      --  then the representation is unsigned
+
+      elsif not Is_Unsigned_Type (FST)
+        and then
+          (Is_Fixed_Point_Type (U_Type)
+             or else
+           Is_Enumeration_Type (U_Type)
+             or else
+           (Is_Signed_Integer_Type (U_Type)
+              and then not Has_Biased_Representation (FST)))
+      then
+         if P_Size <= Standard_Short_Short_Integer_Size then
+            Lib_RE := RE_TC_SSI;
+
+         elsif P_Size <= Standard_Short_Integer_Size then
+            Lib_RE := RE_TC_SI;
+
+         elsif P_Size <= Standard_Integer_Size then
+            Lib_RE := RE_TC_I;
+
+         elsif P_Size <= Standard_Long_Integer_Size then
+            Lib_RE := RE_TC_LI;
+
+         else
+            Lib_RE := RE_TC_LLI;
+         end if;
+
+      --  Unsigned integer types, also includes unsigned fixed-point types
+      --  and enumeration types with an unsigned representation (note that
+      --  we know they are unsigned because we already tested for signed).
+
+      --  Also includes signed integer types that are unsigned in the sense
+      --  that they do not include negative numbers. See above for details.
+
+      elsif Is_Modular_Integer_Type    (U_Type)
+        or else Is_Fixed_Point_Type    (U_Type)
+        or else Is_Enumeration_Type    (U_Type)
+        or else Is_Signed_Integer_Type (U_Type)
+      then
+         if P_Size <= Standard_Short_Short_Integer_Size then
+            Lib_RE := RE_TC_SSU;
+
+         elsif P_Size <= Standard_Short_Integer_Size then
+            Lib_RE := RE_TC_SU;
+
+         elsif P_Size <= Standard_Integer_Size then
+            Lib_RE := RE_TC_U;
+
+         elsif P_Size <= Standard_Long_Integer_Size then
+            Lib_RE := RE_TC_LU;
+
+         else
+            Lib_RE := RE_TC_LLU;
+         end if;
+
+      else pragma Assert (Is_Access_Type (U_Type));
+         if P_Size > System_Address_Size then
+            Lib_RE := RE_TC_AD;
+         else
+            Lib_RE := RE_TC_AS;
+         end if;
+      end if;
+
+      --  Call the function
+
+      return
+          Make_Function_Call (Loc,
+            Name => New_Occurrence_Of (RTE (Lib_RE), Loc),
+            Parameter_Associations => Empty_List);
+
+   end Build_Elementary_TypeCode_Call;
+
+   -----------------------------
+   -- Build_TypeCode_function --
+   -----------------------------
 
    procedure Build_TypeCode_Function
      (Loc : Source_Ptr;
@@ -66,7 +234,8 @@ package body Exp_Hlpr is
       Fnam : out Entity_Id)
    is
       Spec : Node_Id;
-      Stms : List_Id;
+      Stms : constant List_Id :=
+        New_List (Make_Null_Statement (Loc));
    begin
       Fnam := Make_Stream_Procedure_Function_Name (Loc, Typ, Name_uTypeCode);
 
@@ -76,8 +245,6 @@ package body Exp_Hlpr is
           Parameter_Specifications => Empty_List,
           Subtype_Mark => RTE (RE_TypeCode));
 
-      Stms := New_List (Make_Null_Statement (Loc));
-
       Decl :=
         Make_Subprogram_Body (Loc,
           Specification => Spec,
@@ -86,6 +253,134 @@ package body Exp_Hlpr is
             Make_Handled_Sequence_Of_Statements (Loc,
               Statements => Stms));
    end Build_TypeCode_Function;
+
+   ----------------------------------
+   -- Compile_Stream_Body_In_Scope --
+   ----------------------------------
+
+   procedure Compile_Stream_Body_In_Scope
+     (N     : Node_Id;
+      Decl  : Node_Id;
+      Arr   : Entity_Id;
+      Check : Boolean)
+   is
+      Installed : Boolean := False;
+      Scop      : constant Entity_Id := Scope (Arr);
+      Curr      : constant Entity_Id := Current_Scope;
+
+   begin
+      if Is_Hidden (Arr)
+        and then not In_Open_Scopes (Scop)
+        and then Ekind (Scop) = E_Package
+      then
+         New_Scope (Scop);
+         Install_Visible_Declarations (Scop);
+         Install_Private_Declarations (Scop);
+         Installed := True;
+
+         --  The entities in the package are now visible, but the generated
+         --  stream entity must appear in the current scope (usually an
+         --  enclosing stream function) so that itypes all have their proper
+         --  scopes.
+
+         New_Scope (Curr);
+      end if;
+
+      if Check then
+         Insert_Action (N, Decl);
+      else
+         Insert_Action (N, Decl, All_Checks);
+      end if;
+
+      if Installed then
+
+         --  Remove extra copy of current scope, and package itself
+
+         Pop_Scope;
+         End_Package_Scope (Scop);
+      end if;
+   end Compile_Stream_Body_In_Scope;
+
+   -----------------
+   -- Find_Helper --
+   -----------------
+
+   function Find_Helper
+     (N : Node_Id;
+      Typ : Entity_Id;
+      Hnam : Name_Id)
+      return Entity_Id
+   is
+      Loc : constant Source_Ptr := Sloc (N);
+      Pname : Entity_Id;
+      Decl : Node_Id;
+
+   begin
+
+      Pname := Find_Inherited_TSS (Typ, Hnam);
+
+      if Present (Pname) then
+         null;
+      elsif Hnam = Name_uTypeCode then
+         Build_TypeCode_Function (Loc, Typ, Decl, Pname);
+         Compile_Stream_Body_In_Scope
+           (N, Decl, Typ, Check => False);
+--        elsif Hnam = Name_uFrom_Any then
+--           Build_From_Any_Function (Typ, Pname);
+--        else
+--           pragma Assert (Hnam = Name_uto_Any);
+--           Build_To_Any_Function (Typ, Pname);
+      end if;
+
+      pragma Assert (Present (Pname));
+      return Pname;
+   end Find_Helper;
+
+   ------------------------
+   -- Find_Inherited_TSS --
+   ------------------------
+
+   function Find_Inherited_TSS
+     (Typ : Entity_Id;
+      Nam : Name_Id) return Entity_Id
+   is
+      P_Type : Entity_Id := Typ;
+      Proc   : Entity_Id;
+
+   begin
+      Proc :=  TSS (Base_Type (Typ), Nam);
+
+      --  Check first if there is a TSS given for the type itself.
+
+      if Present (Proc) then
+         return Proc;
+      end if;
+
+      --  If Typ is a derived type, it may inherit attributes from some
+      --  ancestor which is not the ultimate underlying one.
+      --  If Typ is a derived tagged type, the corresponding primitive
+      --  operation has been created explicitly.
+
+      if Is_Derived_Type (P_Type) then
+         if Is_Tagged_Type (P_Type) then
+            return Find_Prim_Op (P_Type, Nam);
+         else
+            while Is_Derived_Type (P_Type) loop
+               Proc :=  TSS (Base_Type (Etype (Typ)), Nam);
+
+               if Present (Proc) then
+                  return Proc;
+               else
+                  P_Type := Base_Type (Etype (P_Type));
+               end if;
+            end loop;
+         end if;
+      end if;
+
+      --  If nothing else, use the TSS of the root type.
+
+      return TSS (Base_Type (Underlying_Type (Typ)), Nam);
+   end Find_Inherited_TSS;
 
    -----------------------------------------
    -- Make_Stream_Procedure_Function_Name --
