@@ -407,7 +407,7 @@ package body PolyORB.Ravenscar.Threads is
       -- Pool_Manager.Wait_For_Package_Initialization --
       --------------------------------------------------
 
-      entry Wait_For_Package_Initialization when Package_Initialized Is
+      entry Wait_For_Package_Initialization when Package_Initialized is
       begin
          null;
       end Wait_For_Package_Initialization;
