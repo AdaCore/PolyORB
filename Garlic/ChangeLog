@@ -1,3 +1,8 @@
+2001-01-05  Pascal Obry <obry@gnat.com>
+
+	* Makefile.in: put back s-garthi.ad[sb] rules removed in 1.174.
+	Fixes 8504-001.
+	
 2000-12-14  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* s-garthi.ads: Add Socketpair to implement Select_Abort.
