@@ -76,6 +76,10 @@ package body Osint is
    --  The Fmode parameter is set to either Text or Binary (see description
    --  of GNAT.OS_Lib.Create_File).
 
+   procedure Find_Program_Name;
+   --  Put in Buffer_Name the name of the current program being run
+   --  excluding the directory path
+
    procedure Write_With_Check (A  : Address; N  : Integer);
    --  Writes N bytes from buffer starting at address A to file whose FD is
    --  stored in Output_FD, and whose file name is stored as a
@@ -393,9 +397,9 @@ package body Osint is
             end if;
          end loop;
 
-         Findex2 := Findex1;
+         Findex2 := File_Name'Last;
          while File_Name (Findex2) /=  '.' loop
-            Findex2 := Findex2 + 1;
+            Findex2 := Findex2 - 1;
          end loop;
 
          Flength := Findex2 - Findex1;
@@ -595,7 +599,6 @@ package body Osint is
 
    function Current_Library_File_Stamp return Time_Stamp_Type is
    begin
-      pragma Assert (Opt.Check_Object_Consistency);
       return Current_Full_Lib_Stamp;
    end Current_Library_File_Stamp;
 
@@ -605,7 +608,6 @@ package body Osint is
 
    function Current_Object_File_Stamp return Time_Stamp_Type is
    begin
-      pragma Assert (Opt.Check_Object_Consistency);
       return Current_Full_Obj_Stamp;
    end Current_Object_File_Stamp;
 
@@ -2309,11 +2311,12 @@ package body Osint is
       Write_With_Check (EOL'Address, 1);
    end Write_Library_Info;
 
-   ------------------------
-   -- Write_Program_Name --
-   ------------------------
 
-   procedure Write_Program_Name is
+   -----------------------
+   -- Find_Program_Name --
+   -----------------------
+
+   procedure Find_Program_Name is
       Command_Name : String (1 .. Len_Arg (0));
       Cindex1 : Integer := Command_Name'First;
       Cindex2 : Integer := Command_Name'Last;
@@ -2327,8 +2330,7 @@ package body Osint is
       --  directory_separator allow the '/' to act as separator since this
       --  is allowed in MS-DOS, Windows 95/NT, and OS2 ports. On VMS, the
       --  situation is more complicated because there are two characters to
-      --  check for. In addition, convert the name to lower case so error
-      --  messages are the same on all systems.
+      --  check for.
 
       for I in reverse Cindex1 .. Cindex2 loop
          if Command_Name (I) = Directory_Separator
@@ -2349,14 +2351,71 @@ package body Osint is
          end if;
       end loop;
 
-      for I in Cindex1 .. Cindex2 loop
-         if Command_Name (I) in 'A' .. 'Z' then
-            Command_Name (I) :=
-              Character'Val (Character'Pos (Command_Name (I)) + 32);
+      Name_Len := Cindex2 - Cindex1 + 1;
+      Name_Buffer (1 .. Name_Len) := Command_Name (Cindex1 .. Cindex2);
+   end Find_Program_Name;
+
+   ------------------
+   -- Program_Name --
+   ------------------
+
+   function Program_Name (Nam : String) return String_Access is
+      Res : String_Access;
+
+   begin
+
+      --  Get the name of the current program being executed
+
+      Find_Program_Name;
+
+      --  Find the target prefix if any, for the cross compilation case
+      --  for instance in "alpha-dec-vxworks-gcc" the target prefix is
+      --  "alpha-dec-vxworks-"
+
+      while Name_Len > 0  loop
+         if Name_Buffer (Name_Len) = '-' then
+            exit;
+         end if;
+
+         Name_Len := Name_Len - 1;
+      end loop;
+
+      --  Create the new program name
+
+      Res := new String (1 .. Name_Len + Nam'Length);
+      Res.all (1 .. Name_Len) := Name_Buffer (1 .. Name_Len);
+      Res.all (Name_Len + 1 .. Name_Len + Nam'Length) := Nam;
+      return Res;
+   end Program_Name;
+
+   ------------------------
+   -- Write_Program_Name --
+   ------------------------
+
+   procedure Write_Program_Name is
+      Save_Buffer : String (1 .. Name_Len) := Name_Buffer (1 .. Name_Len);
+
+   begin
+
+      Find_Program_Name;
+
+      --  Convert the name to lower case so error messages are the same on
+      --  all systems.
+
+      for J in 1 .. Name_Len loop
+         if Name_Buffer (J) in 'A' .. 'Z' then
+            Name_Buffer (J) :=
+              Character'Val (Character'Pos (Name_Buffer (J)) + 32);
          end if;
       end loop;
 
-      Write_Str (Command_Name (Cindex1 .. Cindex2));
+      Write_Str (Name_Buffer (1 .. Name_Len));
+
+      --  Restore Name_Buffer which was clobbered by the call to
+      --  Find_Program_Name
+
+      Name_Len := Save_Buffer'Last;
+      Name_Buffer (1 .. Name_Len) := Save_Buffer;
    end Write_Program_Name;
 
    ----------------------

@@ -327,6 +327,11 @@ package Opt is
    --  for GNATBIND or when the object filename is given with option
    --  -gnatO for GNAT.
 
+   Propagate_Exceptions : Boolean := False;
+   --  Indicates if subprogram descriptor exception tables should be
+   --  built for imported subprograms. Set True if a Propagate_Exceptions
+   --  pragma applies to the extended main unit.
+
    Queuing_Policy : Character := ' ';
    --  GNAT1, GNATF, GNATBIND
    --  Set to ' ' for the default case (no queuing policy specified). Reset to
@@ -465,6 +470,16 @@ package Opt is
    --  This flag is used to indicate to semantic analyzer that the current
    --  compilation is done for GNATF. So the expander mustn't be called.
 
+   Xref_Active : Boolean;
+   --  GNAT
+   --  Set if cross-referencing is enabled (i.e. xref info in ali files)
+
+   ---------------------------------
+   -- Obsolescent flags for GNATF --
+   ---------------------------------
+
+   --  To be removed when GNATF is fully retired from action
+
    Xref_Flag_1 : Boolean := False;
    --  GNATF
    --  Set to generate warning messages for unused with clauses.
@@ -509,9 +524,9 @@ package Opt is
    --  If set, cross-reference file includes information on required interfaces
    --  for library package specs.
 
-   Xref_Level : Int := 0;
-   --  GNAT
-   --  Cross-reference level (0,1,2) for -gnatx0/x1/x2
+   -----------------
+   -- Subprograms --
+   -----------------
 
    function Check_Ada_95 (File_Name : File_Name_Type) return Boolean;
    --  Set Ada_95 mode for predefined and internal units, otherwise set

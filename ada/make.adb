@@ -33,7 +33,7 @@ with Fname;    use Fname;
 with Gnatvsn;  use Gnatvsn;
 with Hostparm; use Hostparm;
 with Namet;    use Namet;
-with Opt;
+with Opt;      use Opt;
 with Osint;    use Osint;
 with Gnatvsn;
 with Output;   use Output;
@@ -204,9 +204,9 @@ package body Make is
    -- Compiler, Binder & Linker Data and Subprograms --
    ----------------------------------------------------
 
-   Gcc             : String_Access := new String'("gcc");
-   Gnatbind        : String_Access := new String'("gnatbind");
-   Gnatlink        : String_Access := new String'("gnatlink");
+   Gcc             : String_Access := Program_Name ("gcc");
+   Gnatbind        : String_Access := Program_Name ("gnatbind");
+   Gnatlink        : String_Access := Program_Name ("gnatlink");
    --  Default compiler, binder, linker programs
 
    Gcc_Path        : String_Access :=
@@ -508,6 +508,9 @@ package body Make is
             end if;
 
             --  Convert unit name into spec name
+            --  ??? this code seems dubious in presence of pragma
+            --  Source_File_Name since there is no more direct relationship
+            --  between unit name and file name.
 
             Name_Buffer (Name_Len) := 's';
             Spec_Name := Name_Find;
@@ -538,7 +541,8 @@ package body Make is
          U_Chk : for U in
            ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit
          loop
-            exit U_Chk when New_Spec (Unit.Table (U).Uname);
+            exit U_Chk when Unit.Table (U).Utype = Is_Body_Only
+               and then New_Spec (Unit.Table (U).Uname);
 
             for W in Unit.Table (U).First_With .. Unit.Table (U).Last_With loop
                exit U_Chk when
@@ -618,6 +622,17 @@ package body Make is
 
          if ALIs.Table (ALI).Ver /= Library_Version then
             Verbose_Msg (Full_Lib_File, "compiled with old GNAT version");
+            ALI := No_ALI_Id;
+            return;
+         end if;
+
+         --  Don't take Ali file into account if it was generated without
+         --  object.
+
+         if  Opt.Operating_Mode /= Opt.Check_Semantics
+           and then ALIs.Table (ALI).No_Object
+         then
+            Verbose_Msg (Full_Lib_File, "has no corresponding object");
             ALI := No_ALI_Id;
             return;
          end if;
@@ -2405,6 +2420,15 @@ package body Make is
          --  or one character switches which are not in 'a' .. 'z'
          --  are passed to the compiler, unless we are dealing
          --  with a -jnum switch or a debug switch (starts with 'd')
+
+         elsif Argv'Length > 5
+           and then Argv (2 .. 5) = "gnat"
+           and then Argv (6) = 'c'
+         then
+            Add_Switch (Argv, Compiler);
+            Opt.Operating_Mode := Opt.Check_Semantics;
+            Opt.Check_Object_Consistency := False;
+            Opt.Compile_Only             := True;
 
          elsif Argv (2) /= 'j'
            and then Argv (2) /= 'd'

@@ -608,57 +608,62 @@ package body Switch is
             if Program = Compiler then
 
                case Switches (Ptr) is
+
+                  --  Following tests are for obsolescent GNAT switches, to
+                  --  be removed when GNATF is finally retired. We set the
+                  --  normal GNAT1 xref active if any numeric level is given.
+
                   when '0' =>
-                     Xref_Level := 0;
+                     Xref_Active := False;
                      Ptr := Ptr + 1;
 
                   when '1' =>
                      Xref_Flag_1 := True;
-                     Xref_Level := 1;
+                     Xref_Active := True;
                      Ptr := Ptr + 1;
 
                   when '2' =>
                      Xref_Flag_2 := True;
-                     Xref_Level := 2;
+                     Xref_Active := True;
                      Ptr := Ptr + 1;
 
                   when '3' =>
                      Xref_Flag_3 := True;
-                     Xref_Level := 2;
+                     Xref_Active := True;
                      Ptr := Ptr + 1;
 
                   when '4' =>
                      Xref_Flag_4 := True;
-                     Xref_Level := 2;
+                     Xref_Active := True;
                      Ptr := Ptr + 1;
 
                   when '5' =>
                      Xref_Flag_5 := True;
-                     Xref_Level := 2;
+                     Xref_Active := True;
                      Ptr := Ptr + 1;
 
                   when '6' =>
                      Xref_Flag_6 := True;
-                     Xref_Level := 2;
+                     Xref_Active := True;
                      Ptr := Ptr + 1;
 
                   when '9' =>
                      Xref_Flag_9 := True;
-                     Xref_Level := 2;
+                     Xref_Active := True;
                      Ptr := Ptr + 1;
 
                   when 'b' =>
                      Xref_Flag_B := True;
-                     Xref_Level := 2;
+                     Xref_Active := True;
                      Ptr := Ptr + 1;
 
                   when 's' =>
                      Xref_Flag_S := True;
-                     Xref_Level := 2;
+                     Xref_Active := True;
                      Ptr := Ptr + 1;
 
                   when others =>
-                     Xref_Level := 1;
+                     Xref_Active := True;
                end case;
 
                Ptr := Ptr + 1;

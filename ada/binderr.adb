@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -26,11 +26,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Butil;            use Butil;
-with Namet;            use Namet;
-with Opt;              use Opt;
-with Osint;            use Osint;
-with Output;           use Output;
+with Butil;   use Butil;
+with Namet;   use Namet;
+with Opt;     use Opt;
+with Output;  use Output;
 
 package body Binderr is
 
