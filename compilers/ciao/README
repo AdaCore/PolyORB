@@ -21,7 +21,7 @@
 
 Created by Thomas Quinot <quinot@inf.enst.fr>.
 
-$Id: //depot/ciao/main/README#7 $
+$Id$
 
 The purpose of the CIAO project is to provide an automated means
 of providing a CORBA interface for CORBA clients to perform
