@@ -682,6 +682,32 @@ package body XE_Stdcnf is
          Null_Location,
          Parameter_Node);
 
+      --  pragma remote_shell ... or
+      --  procedure pragma__remote_shell
+      --    (command : type__string;
+      --     options : type__string);
+
+      Declare_Subprogram
+        (Pragma_Prefix & "remote_shell",
+         Pragma_Remote_Shell,
+         True,
+         Null_Location,
+         Pragma_Remote_Shell_Node);
+
+      Declare_Subprogram_Parameter
+        (Str_To_Id ("command"),
+         String_Type_Node,
+         Pragma_Remote_Shell_Node,
+         Null_Location,
+         Parameter_Node);
+
+      Declare_Subprogram_Parameter
+        (Str_To_Id ("options"),
+         String_Type_Node,
+         Pragma_Remote_Shell_Node,
+         Null_Location,
+         Parameter_Node);
+
    end Initialize;
 
 end XE_Stdcnf;

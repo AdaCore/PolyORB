@@ -30,7 +30,6 @@ with GNAT.OS_Lib; use GNAT.OS_Lib;
 with Types;       use Types;
 with XE;          use XE;
 with XE_Back;     use XE_Back;
-with XE_Defs;     use XE_Defs;
 with XE_Utils;    use XE_Utils;
 
 procedure XE_Lead is
@@ -122,11 +121,12 @@ procedure XE_Lead is
       end if;
 
       if Partition /= Main_Partition then
-         Write_Str  (FD, Get_Rsh_Command);
+         Write_Name (FD, Get_Rsh_Command);
          Write_Str  (FD, " $");
          Write_Name (FD, Partitions.Table (Partition).Name);
          Write_Str  (FD, "_HOST ");
-         Write_Str  (FD, Get_Rsh_Options & ' ' & Ext_Quote);
+         Write_Name (FD, Get_Rsh_Options);
+         Write_Str  (FD, ' ' & Ext_Quote);
       end if;
 
       --  Write_Str  (FD, (1 => Int_Quote));

@@ -1,4 +1,13 @@
+2001-02-08  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* xe.ads, xe_back.adb, xe_back.ads, xe_lead.adb, xe_stubs.adb: Add
+	pragma Remote_Shell to configure the remote shell command and
+	options to use when we launch a remote partition. Fix 8607-013.
+
 2001-01-26  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* xe_lead.adb: Do not embrace executable name with quotes. It
+	does not help on NT and it fails on SGI.
 
 	* xe_stubs.adb: Use remote shell command and options from
 	platform_specific instead of those from xe_defs. Fix differences

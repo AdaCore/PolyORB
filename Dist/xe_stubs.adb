@@ -487,6 +487,12 @@ package body XE_Stubs is
       Dwrite_Line (File, 1, "begin");
 
       Dwrite_Call
+        (File, 2, "Set_Rsh_Command", Quote (Get_Rsh_Command));
+
+      Dwrite_Call
+        (File, 2, "Set_Rsh_Options", Quote (Get_Rsh_Options));
+
+      Dwrite_Call
         (File, 2, "Set_Slave", C (Boolean'Image (PID /= Main_Partition)));
 
       --  How should the partition terminate. Note that in Garlic,

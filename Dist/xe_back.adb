@@ -903,6 +903,32 @@ package body XE_Back is
       end if;
    end Get_Relative_Exec;
 
+   ---------------------
+   -- Get_Rsh_Command --
+   ---------------------
+
+   function Get_Rsh_Command return Types.Name_Id is
+   begin
+      if Default_Rsh_Command = No_Name then
+         return Str_To_Id (XE_Defs.Get_Rsh_Command);
+      else
+         return Default_Rsh_Command;
+      end if;
+   end Get_Rsh_Command;
+
+   ---------------------
+   -- Get_Rsh_Options --
+   ---------------------
+
+   function Get_Rsh_Options return Types.Name_Id is
+   begin
+      if Default_Rsh_Options = No_Name then
+         return Str_To_Id (XE_Defs.Get_Rsh_Options);
+      else
+         return Default_Rsh_Options;
+      end if;
+   end Get_Rsh_Options;
+
    -----------------
    -- Get_Storage --
    -----------------
@@ -1603,6 +1629,15 @@ package body XE_Back is
             Next_Subprogram_Parameter (Parameter);
             Value := Get_Parameter_Value (Parameter);
             Hosts.Table (Host).External := Get_Variable_Name (Value);
+
+         when Pragma_Remote_Shell =>
+            Value := Get_Parameter_Value (Parameter);
+            Default_Rsh_Command := Get_Variable_Name (Value);
+
+            Next_Subprogram_Parameter (Parameter);
+
+            Value := Get_Parameter_Value (Parameter);
+            Default_Rsh_Options := Get_Variable_Name (Value);
 
          when Pragma_Starter =>
             Value := Get_Parameter_Value (Parameter);

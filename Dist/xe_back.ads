@@ -122,6 +122,8 @@ package XE_Back is
    Def_Data_Location           : LID_Type              := Null_LID;
    Default_Starter             : XE.Import_Method_Type := XE.Ada_Import;
    Default_Version_Check       : Boolean               := True;
+   Default_Rsh_Command         : Types.Name_Id         := Types.No_Name;
+   Default_Rsh_Options         : Types.Name_Id         := Types.No_Name;
 
    -- Table element types --
 
@@ -314,6 +316,9 @@ package XE_Back is
 
    function Get_Host            (P : PID_Type) return Types.Name_Id;
    --  Look for host into partitions. If null, return default.
+
+   function Get_Rsh_Command return Types.Name_Id;
+   function Get_Rsh_Options return Types.Name_Id;
 
    function Get_RCI_Or_RACW     (P : PID_Type) return Boolean;
    --  Return true when a partition has either RCI or RACW.
