@@ -43,6 +43,7 @@
 -----------------------------------------------------------------------
 
 with Ada.Exceptions ;
+with Corba.Object ;
 
 with Adabroker_Debug ; use Adabroker_Debug ;
 
@@ -91,8 +92,10 @@ package body Corba.Forward is
       -------------
       function To_Forward(The_Ref : in Ref_Type)
                           return Ref is
+         Result : Ref ;
       begin
-         return (Corba.Object.Ref(The_Ref) with null record) ;
+         Corba.Object.Internal_Copy(The_Ref,Result) ;
+         return Result ;
       end ;
 
 

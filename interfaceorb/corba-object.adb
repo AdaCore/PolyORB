@@ -325,10 +325,22 @@ package body Corba.Object is
 
    --  Get_Dynamic_Type
    ----------------------
-    function Get_Dynamic_Type(Self: in Ref) return Ref'Class is
-    begin
-       return Self.Dynamic_Type.all ;
-    end ;
+   function Get_Dynamic_Type(Self: in Ref) return Ref'Class is
+   begin
+      return Self.Dynamic_Type.all ;
+   end ;
+
+
+   -- Internal_Copy
+   ----------------
+   procedure Internal_Copy(From : in Ref'Class ;
+                           To : out Ref'Class) is
+   begin
+      Finalize(To) ;
+      To.Omniobj := From.Omniobj ;
+      To.Dynamic_Type := From.Dynamic_Type ;
+      Adjust(To) ;
+   end ;
 
 
    --------------------------------------------------
