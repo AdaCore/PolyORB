@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -214,7 +214,7 @@ package PolyORB.ORB is
    procedure Register_Access_Point
      (ORB   : access ORB_Type;
       TAP   :        PT.Transport_Access_Point_Access;
-      Chain :        PF.Factory_Access;
+      Chain :        PF.Factories_Access;
       PF    :        PBD.Profile_Factory_Access);
    --  Register a newly-created transport access point with
    --  ORB. When a connection is received on TAP, a filter

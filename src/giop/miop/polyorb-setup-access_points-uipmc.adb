@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -65,9 +65,11 @@ package body PolyORB.Setup.Access_Points.UIPMC is
          SAP     => new Socket_In_Access_Point,
          PF      => new Binding_Data.UIPMC.UIPMC_Profile_Factory);
 
-   UIPMC_Pro : aliased Protocols.GIOP.UIPMC.UIPMC_Protocol;
-   M_Fact    : aliased MIOP_In_Factory;
-   Frag      : aliased Fragmenter_Factory;
+   Fra : aliased Fragmenter_Factory;
+   Min : aliased MIOP_In_Factory;
+   Pro : aliased Protocols.GIOP.UIPMC.UIPMC_Protocol;
+   UIPMC_Factories : aliased Filters.Factory_Array
+     := (0 => Fra'Access, 1 => Min'Access, 2 => Pro'Access);
 
    ------------------------------
    -- Initialize_Access_Points --
@@ -93,14 +95,10 @@ package body PolyORB.Setup.Access_Points.UIPMC is
          Initialize_Multicast_Socket
            (UIPMC_Access_Point, Inet_Addr (Addr), Port);
 
-         Chain_Factories ((0 => Frag'Unchecked_Access,
-                           1 => M_Fact'Unchecked_Access,
-                           2 => UIPMC_Pro'Unchecked_Access));
-
          Register_Access_Point
            (ORB    => The_ORB,
             TAP    => UIPMC_Access_Point.SAP,
-            Chain  => Frag'Unchecked_Access,
+            Chain  => UIPMC_Factories'Access,
             PF     => UIPMC_Access_Point.PF);
       end if;
 

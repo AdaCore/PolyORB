@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -62,7 +62,7 @@ package body PolyORB.Transport.Connected is
       use PolyORB.Filters;
 
       New_TE     : Transport_Endpoint_Access;
-      New_Filter : Filter_Access;
+      New_Bottom, New_Top : Filter_Access;
    begin
       pragma Debug (O ("Handle_Event: Connected TAP AES"));
 
@@ -70,14 +70,16 @@ package body PolyORB.Transport.Connected is
         (Connected_Transport_Access_Point'Class (H.TAP.all), New_TE);
       --  Create transport endpoint.
 
-      New_Filter := Create_Filter_Chain
-        (H.Filter_Factory_Chain);
+      Create_Filter_Chain
+        (H.Filter_Factory_Chain.all,
+         Bottom => New_Bottom,
+         Top    => New_Top);
       --  Create filter chain for end point
 
       pragma Debug (O ("Inserting new source: Endpoint"));
       Register_Endpoint (ORB_Access (H.ORB),
                          New_TE,
-                         New_Filter, Server);
+                         New_Bottom, Server);
       --  Register end point to ORB
 
       Emit_No_Reply

@@ -571,7 +571,7 @@ package body PolyORB.ORB is
    procedure Register_Access_Point
      (ORB   : access ORB_Type;
       TAP   :        PT.Transport_Access_Point_Access;
-      Chain :        PF.Factory_Access;
+      Chain :        PF.Factories_Access;
       PF    :        PBD.Profile_Factory_Access)
    is
       New_AES : constant Asynch_Ev_Source_Access

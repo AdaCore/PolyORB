@@ -90,6 +90,13 @@ package body PolyORB.Binding_Data.IIOP is
    -- Bind_Profile --
    ------------------
 
+   --  Factories
+
+   Sli            : aliased PolyORB.Filters.Slicers.Slicer_Factory;
+   Pro            : aliased PolyORB.Protocols.GIOP.IIOP.IIOP_Protocol;
+   IIOP_Factories : constant PolyORB.Filters.Factory_Array
+     := (0 => Sli'Access, 1 => Pro'Access);
+
    procedure Bind_Profile
      (Profile :     IIOP_Profile_Type;
       The_ORB :     Components.Component_Access;
@@ -99,7 +106,6 @@ package body PolyORB.Binding_Data.IIOP is
       use PolyORB.Components;
       use PolyORB.Exceptions;
       use PolyORB.Filters;
-      use PolyORB.Filters.Slicers;
       use PolyORB.ORB;
       use PolyORB.Protocols;
       use PolyORB.Protocols.GIOP;
@@ -110,9 +116,7 @@ package body PolyORB.Binding_Data.IIOP is
       Remote_Addr : Sock_Addr_Type := Profile.Address;
       TE          : constant Transport.Transport_Endpoint_Access :=
         new Socket_Endpoint;
-      Pro         : aliased IIOP_Protocol;
-      Sli         : aliased Slicer_Factory;
-      Filter      : Filters.Filter_Access;
+      New_Bottom, New_Top : Filters.Filter_Access;
 
    begin
       pragma Debug (O ("Bind IIOP profile: enter"));
@@ -121,31 +125,21 @@ package body PolyORB.Binding_Data.IIOP is
       Connect_Socket (Sock, Remote_Addr);
       Create (Socket_Endpoint (TE.all), Sock);
 
-      Chain_Factories ((0 => Sli'Unchecked_Access,
-                        1 => Pro'Unchecked_Access));
-
-      Filter :=
-        Slicers.Create_Filter_Chain (Sli'Unchecked_Access);
-      --  Filter must be an access to the lowest filter in
-      --  the stack (the slicer in the case of GIOP).
-      --  The call to CFC is qualified to work around a bug in
-      --  the APEX compiler.
+      Create_Filter_Chain
+        (IIOP_Factories,
+         Bottom => New_Bottom,
+         Top    => New_Top);
 
       ORB.Register_Endpoint
         (ORB_Access (The_ORB),
          TE,
-         Filter,
+         New_Bottom,
          ORB.Client);
       --  Register the endpoint and lowest filter with the ORB.
 
-      declare
-         S : GIOP_Session
-           renames GIOP_Session (Upper (Filter).all);
+      pragma Debug (O ("Bind IIOP profile: leave"));
+      Servant := Component_Access (New_Top);
 
-      begin
-         pragma Debug (O ("Bind IIOP profile: leave"));
-         Servant := S'Access;
-      end;
    exception
       when Sockets.Socket_Error =>
          Throw (Error, Comm_Failure_E, System_Exception_Members'

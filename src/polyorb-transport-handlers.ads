@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                    P O L Y O R B . T R A N S P O R T                     --
+--           P O L Y O R B . T R A N S P O R T . H A N D L E R S            --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,7 +51,7 @@ package PolyORB.Transport.Handlers is
       TAP : PolyORB.Transport.Transport_Access_Point_Access;
       --  Factory of Transport_Endpoint components.
 
-      Filter_Factory_Chain : Filters.Factory_Access;
+      Filter_Factory_Chain : Filters.Factories_Access;
       --  Factory of Filter (protocol stack) components.
 
       Profile_Factory : Binding_Data.Profile_Factory_Access;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,16 +45,6 @@ with PolyORB.Types;
 package PolyORB.Filters.Interface is
 
    pragma Elaborate_Body;
-
-   -----------------------------
-   -- Filter_Factory messages --
-   -----------------------------
-
-   type Create_Filter_Chain is new Message with null record;
-
-   type Created_Filter_Chain is new Message with record
-      Filter_Chain : Filter_Access;
-   end record;
 
    ---------------------
    -- Filter messages --

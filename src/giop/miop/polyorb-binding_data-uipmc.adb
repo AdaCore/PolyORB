@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . B I N D I N G _ D A T A . U I P M C           --
+--           P O L Y O R B . B I N D I N G _ D A T A . U I P M C            --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2003-2004 Free Software Foundation, Inc.         --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,7 +35,6 @@
 
 with PolyORB.Exceptions;
 with PolyORB.Filters;
-with PolyORB.Filters.MIOP;
 with PolyORB.Filters.MIOP.MIOP_Out;
 with PolyORB.GIOP_P.Tagged_Components;
 with PolyORB.Initialization;
@@ -97,6 +96,12 @@ package body PolyORB.Binding_Data.UIPMC is
    -- Bind_Profile --
    ------------------
 
+   Mou : aliased Filters.MIOP.MIOP_Out.MIOP_Out_Factory;
+   Pro : aliased Protocols.GIOP.UIPMC.UIPMC_Protocol;
+
+   MIOP_Factories : constant Filters.Factory_Array
+     := (0 => Mou'Access, 1 => Pro'Access);
+
    procedure Bind_Profile
      (Profile :     UIPMC_Profile_Type;
       The_ORB :     Components.Component_Access;
@@ -106,7 +111,6 @@ package body PolyORB.Binding_Data.UIPMC is
       use PolyORB.Components;
       use PolyORB.Exceptions;
       use PolyORB.Filters;
-      use PolyORB.Filters.MIOP.MIOP_Out;
       use PolyORB.ORB;
       use PolyORB.Parameters;
       use PolyORB.Protocols;
@@ -120,9 +124,7 @@ package body PolyORB.Binding_Data.UIPMC is
 
       TE          : constant Transport.Transport_Endpoint_Access
         := new Socket_Out_Endpoint;
-      Pro         : aliased UIPMC_Protocol;
-      M_Fact      : aliased MIOP_Out_Factory;
-      Filter      : Filters.Filter_Access;
+      New_Bottom, New_Top : Filters.Filter_Access;
 
    begin
       pragma Debug (O ("Bind UIPMC profile: enter"));
@@ -143,23 +145,19 @@ package body PolyORB.Binding_Data.UIPMC is
 
       Create (Socket_Out_Endpoint (TE.all), Sock, Remote_Addr);
 
-      Chain_Factories ((0 => M_Fact'Unchecked_Access,
-                        1 => Pro'Unchecked_Access));
-
-      Filter := MIOP.MIOP_Out.Create_Filter_Chain (M_Fact'Unchecked_Access);
+      Create_Filter_Chain
+        (MIOP_Factories,
+         Bottom => New_Bottom,
+         Top    => New_Top);
 
       ORB.Register_Endpoint
         (ORB_Access (The_ORB),
          TE,
-         Filter,
+         New_Bottom,
          ORB.Client);
 
-      declare
-         C : Component renames Component (Upper (Filter).all);
-      begin
-         pragma Debug (O ("Bind UIPMC profile: leave"));
-         Servant := C'Access;
-      end;
+      pragma Debug (O ("Bind UIPMC profile: leave"));
+      Servant := Component_Access (New_Top);
 
    exception
       when Sockets.Socket_Error =>

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -64,8 +64,10 @@ package body PolyORB.Setup.Access_Points.DIOP is
          SAP     => new Socket_In_Access_Point,
          PF      => new Binding_Data.DIOP.DIOP_Profile_Factory);
 
-   Pro  : aliased Protocols.GIOP.DIOP.DIOP_Protocol;
-   Frag : aliased Fragmenter_Factory;
+   Fra : aliased Fragmenter_Factory;
+   Pro : aliased Protocols.GIOP.DIOP.DIOP_Protocol;
+   DIOP_Factories : aliased Filters.Factory_Array
+     := (0 => Fra'Access, 1 => Pro'Access);
 
    ------------------------------
    -- Initialize_Access_Points --
@@ -89,13 +91,10 @@ package body PolyORB.Setup.Access_Points.DIOP is
          begin
             Initialize_Unicast_Socket (DIOP_Access_Point, Port);
 
-            Chain_Factories ((0 => Frag'Unchecked_Access,
-                              1 => Pro'Unchecked_Access));
-
             Register_Access_Point
               (ORB    => The_ORB,
                TAP    => DIOP_Access_Point.SAP,
-               Chain  => Frag'Unchecked_Access,
+               Chain  => DIOP_Factories'Access,
                PF     => DIOP_Access_Point.PF);
          end;
       end if;

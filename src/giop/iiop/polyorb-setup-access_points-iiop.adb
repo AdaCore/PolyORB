@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -67,8 +67,10 @@ package body PolyORB.Setup.Access_Points.IIOP is
          SAP     => new Socket_Access_Point,
          PF      => new Binding_Data.IIOP.IIOP_Profile_Factory);
 
-   IIOP_Pro : aliased Protocols.GIOP.IIOP.IIOP_Protocol;
-   Sli      : aliased Slicer_Factory;
+   Sli : aliased Slicer_Factory;
+   Pro : aliased Protocols.GIOP.IIOP.IIOP_Protocol;
+   IIOP_Factories : aliased Filters.Factory_Array
+     := (0 => Sli'Access, 1 => Pro'Access);
 
    ------------------------------
    -- Initialize_Access_Points --
@@ -92,13 +94,10 @@ package body PolyORB.Setup.Access_Points.IIOP is
          begin
             Initialize_Socket (GIOP_Access_Point, Port);
 
-            Chain_Factories ((0 => Sli'Unchecked_Access,
-                              1 => IIOP_Pro'Unchecked_Access));
-
             Register_Access_Point
               (ORB    => The_ORB,
                TAP    => GIOP_Access_Point.SAP,
-               Chain  => Sli'Unchecked_Access,
+               Chain  => IIOP_Factories'Access,
                PF     => GIOP_Access_Point.PF);
          end;
       end if;

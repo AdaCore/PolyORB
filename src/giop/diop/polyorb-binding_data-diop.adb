@@ -92,6 +92,12 @@ package body PolyORB.Binding_Data.DIOP is
    -- Bind_Profile --
    ------------------
 
+   --  Factories
+
+   Pro : aliased Protocols.GIOP.DIOP.DIOP_Protocol;
+   DIOP_Factories : constant Filters.Factory_Array
+     := (0 => Pro'Access);
+
    procedure Bind_Profile
      (Profile :     DIOP_Profile_Type;
       The_ORB :     Components.Component_Access;
@@ -112,8 +118,7 @@ package body PolyORB.Binding_Data.DIOP is
       Remote_Addr : constant Sock_Addr_Type := Profile.Address;
       TE          : constant Transport.Transport_Endpoint_Access :=
         new Socket_Out_Endpoint;
-      Pro         : aliased DIOP_Protocol;
-      Filter      : Filters.Filter_Access;
+      New_Bottom, New_Top : Filters.Filter_Access;
 
    begin
       pragma Debug (O ("Bind DIOP profile: enter"));
@@ -124,25 +129,20 @@ package body PolyORB.Binding_Data.DIOP is
 
       Create (Socket_Out_Endpoint (TE.all), Sock, Remote_Addr);
 
-      Chain_Factories ((0 => Pro'Unchecked_Access));
-
-      Filter := GIOP.DIOP.Create_Filter_Chain (Pro'Unchecked_Access);
+      Create_Filter_Chain
+        (DIOP_Factories,
+         Bottom => New_Bottom,
+         Top    => New_Top);
 
       ORB.Register_Endpoint
         (ORB_Access (The_ORB),
          TE,
-         Filter,
+         New_Bottom,
          ORB.Client);
       --  Register the endpoint and lowest filter with the ORB.
 
-      declare
-         S : GIOP_Session
-           renames GIOP_Session (Filter.all);
-
-      begin
-         pragma Debug (O ("Bind DIOP profile: leave"));
-         Servant := S'Access;
-      end;
+      pragma Debug (O ("Bind DIOP profile: leave"));
+      Servant := Component_Access (New_Top);
 
    exception
       when Sockets.Socket_Error =>

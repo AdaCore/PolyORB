@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -67,6 +67,8 @@ package body PolyORB.Setup.Access_Points.SRP is
          PF      => new Binding_Data.SRP.SRP_Profile_Factory);
 
    SRP_Protocol  : aliased Protocols.SRP.SRP_Protocol;
+   SRP_Factories : aliased Filters.Factory_Array
+     := (0 => SRP_Protocol'Access);
 
    ------------------------------
    -- Initialize_Access_Points --
@@ -84,7 +86,7 @@ package body PolyORB.Setup.Access_Points.SRP is
          Register_Access_Point
            (ORB    => The_ORB,
             TAP    => SRP_Access_Point.SAP,
-            Chain  => SRP_Protocol'Unchecked_Access,
+            Chain  => SRP_Factories'Access,
             PF     => SRP_Access_Point.PF);
          --  Register socket with ORB object, associating a protocol
          --  to the transport service access point.

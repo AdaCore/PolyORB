@@ -80,7 +80,6 @@ package body PolyORB.Binding_Data.SOAP is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-
    Preference : Profile_Preference;
    --  Global variable: the preference to be returned
    --  by Get_Profile_Preference for SOAP profiles.
@@ -99,6 +98,11 @@ package body PolyORB.Binding_Data.SOAP is
    -- Bind_Profile --
    ------------------
 
+   Htt  : aliased Filters.HTTP.HTTP_Filter_Factory;
+   Pro  : aliased Protocols.SOAP_Pr.SOAP_Protocol;
+   SOAP_Factories : constant Filters.Factory_Array
+     := (0 => Htt'Access, 1 => Pro'Access);
+
    procedure Bind_Profile
      (Profile :     SOAP_Profile_Type;
       The_ORB :     Components.Component_Access;
@@ -114,32 +118,28 @@ package body PolyORB.Binding_Data.SOAP is
 
       Sock : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
-      Pro  : aliased SOAP_Protocol;
-      Htt  : aliased HTTP_Filter_Factory;
       TE   : constant Transport.Transport_Endpoint_Access :=
         new Socket_Endpoint;
-      Filter : Filter_Access;
+      New_Bottom, New_Top : Filter_Access;
 
    begin
       Create_Socket (Sock);
       Connect_Socket (Sock, Remote_Addr);
       Create (Socket_Endpoint (TE.all), Sock);
 
-      Chain_Factories ((0 => Htt'Unchecked_Access,
-                        1 => Pro'Unchecked_Access));
-
-      Filter := HTTP.Create_Filter_Chain (Htt'Unchecked_Access);
-      --  Filter must be an access to the lowest filter in
-      --  the stack (the HTTP filter in the case of SOAP/HTTP).
+      Create_Filter_Chain
+        (SOAP_Factories,
+         Bottom => New_Bottom,
+         Top    => New_Top);
 
       ORB.Register_Endpoint
         (ORB_Access (The_ORB),
          TE,
-         Filter,
+         New_Bottom,
          ORB.Client);
       --  Register the endpoint and lowest filter with the ORB.
 
-      Servant := Component_Access (Upper (Filter));
+      Servant := Component_Access (New_Top);
 
    exception
       when Sockets.Socket_Error =>

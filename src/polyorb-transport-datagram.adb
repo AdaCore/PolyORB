@@ -81,17 +81,19 @@ package body PolyORB.Transport.Datagram is
       New_TE : constant Transport_Endpoint_Access
         := Transport_Endpoint_Access
         (Create_Endpoint (Datagram_Transport_Access_Point_Access (H.TAP)));
-      New_Filter : Filter_Access;
+      New_Bottom, New_Top : Filter_Access;
    begin
       if New_TE /= null then
          pragma Debug (O ("Create and register Endpoint"));
-         New_Filter := Create_Filter_Chain
-           (H.Filter_Factory_Chain);
+         Create_Filter_Chain
+           (H.Filter_Factory_Chain.all,
+            Bottom => New_Bottom,
+            Top    => New_Top);
          --  Create filter chain
 
          Register_Endpoint (ORB_Access (H.ORB),
                             New_TE,
-                            New_Filter,
+                            New_Bottom,
                             Server);
          --  Monitor the endpoint
       end if;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -68,7 +68,7 @@ package body PolyORB.Setup.Access_Points.SOAP is
    HTTP_Filter   : aliased PolyORB.Filters.HTTP.HTTP_Filter_Factory;
    SOAP_Protocol : aliased Protocols.SOAP_Pr.SOAP_Protocol;
    --  XXX
-   --  It is not a very satisfying thing to have to chain
+   --  It is not a very satisfying thing to have to declare
    --  HTTP_Filter and SOAP_Protocol explicitly on the server
    --  side. On the client side, this is done in Binding_Data.SOAP
    --  (as an effect of binding a SOAP object reference).
@@ -76,6 +76,9 @@ package body PolyORB.Setup.Access_Points.SOAP is
    --  with a complete transport stack, it should also provide
    --  the corresponding server-side primitive (eg as a constant
    --  filter chain created at initialisation.)
+
+   SOAP_Factories : aliased Filters.Factory_Array
+     := (0 => HTTP_Filter'Access, 1 => SOAP_Protocol'Access);
 
    ------------------------------
    -- Initialize_Access_Points --
@@ -98,13 +101,10 @@ package body PolyORB.Setup.Access_Points.SOAP is
                 8080));
          begin
             Initialize_Socket (SOAP_Access_Point, Port);
-            Chain_Factories
-              ((0 => HTTP_Filter'Unchecked_Access,
-                1 => SOAP_Protocol'Unchecked_Access));
             Register_Access_Point
               (ORB    => The_ORB,
                TAP    => SOAP_Access_Point.SAP,
-               Chain  => HTTP_Filter'Unchecked_Access,
+               Chain  => SOAP_Factories'Access,
                PF     => SOAP_Access_Point.PF);
             --  Register socket with ORB object, associating a protocol
             --  to the transport service access point.
