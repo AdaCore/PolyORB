@@ -39,6 +39,7 @@ with Ada_Be.Idl2Ada.Stream;
 with Ada_Be.Idl2Ada.Impl;
 with Ada_Be.Idl2Ada.Value_Impl;
 with Ada_Be.Idl2Ada.Helper;
+with Ada_Be.Idl2Ada.Value_Skel;
 
 with Errors;                use Errors;
 with Utils;                 use Utils;
@@ -85,12 +86,6 @@ package body Ada_Be.Idl2Ada is
      (CU   : in out Compilation_Unit;
       Node : Node_Id);
    --  Generate the skeleton code for a node.
-
-   procedure Gen_Node_Default
-     (CU   : in out Compilation_Unit;
-      Node : Node_Id);
-   --  Generate the text for a node whose mapping is
-   --  common to all generated files.
 
    ----------------------------------------
    -- Specialised generation subprograms --
@@ -201,6 +196,8 @@ package body Ada_Be.Idl2Ada is
         := Stubs_Name & Value_Impl.Suffix;
       Helper_Name : constant String
         := Stubs_Name & Helper.Suffix;
+      Value_Skel_Name : constant String
+        := Stubs_Name & Value_Skel.Suffix;
 
       Stubs_Spec : Compilation_Unit
         := New_Package (Stubs_Name, Unit_Spec);
@@ -222,6 +219,10 @@ package body Ada_Be.Idl2Ada is
       Helper_Body : Compilation_Unit
         := New_Package (Helper_Name, Unit_Body);
 
+      Value_Skel_Spec : Compilation_Unit
+        := New_Package (Value_Skel_Name, Unit_Spec);
+      Value_Skel_Body : Compilation_Unit
+        := New_Package (Value_Skel_Name, Unit_Body);
    begin
       --  ValueType reference type.
       Gen_Object_Reference_Declaration
@@ -232,7 +233,8 @@ package body Ada_Be.Idl2Ada is
          Divert (Stubs_Spec, Private_Declarations);
          PL (Stubs_Spec, "Null_Value : constant Value_ref");
          II (Stubs_Spec);
-         PL (Stubs_Spec, ":= (Ptr => null);");
+         Add_With (Stubs_Spec, "CORBA.AbstractBase");
+         PL (Stubs_Spec, ":= ( CORBA.AbstractBase.Nil_Ref with null record);");
          DI (Stubs_Spec);
          Divert (Stubs_Spec, Visible_Declarations);
       end if;
@@ -244,7 +246,6 @@ package body Ada_Be.Idl2Ada is
 
       if not Abst (Node) then
          --  Value_Impl type
-
          Value_Impl.Gen_Node_Spec (Value_Impl_Spec, Node);
       end if;
 
@@ -273,7 +274,11 @@ package body Ada_Be.Idl2Ada is
                Stream.Gen_Node_Spec (Stream_Spec, Export_Node);
                Stream.Gen_Node_Body (Stream_Body, Export_Node);
 
+               --  Value_Skel packages
+               Value_Skel.Gen_Node_Spec (Value_Skel_Spec, Export_Node);
+
                if not Abst (Node) then
+                  Value_Skel.Gen_Node_Body (Value_Skel_Body, Export_Node);
                   Value_Impl.Gen_Node_Spec (Value_Impl_Spec, Export_Node);
                   Value_Impl.Gen_Node_Body (Value_Impl_Body, Export_Node);
                end if;
@@ -299,6 +304,8 @@ package body Ada_Be.Idl2Ada is
          Generate (Stream_Body, False, To_Stdout);
          Generate (Helper_Spec, False, To_Stdout);
          Generate (Helper_Body, False, To_Stdout);
+         Generate (Value_Skel_Spec, False, To_Stdout);
+         Generate (Value_Skel_Body, False, To_Stdout);
       end if;
 
    end Gen_Value_Scope;
@@ -318,40 +325,70 @@ package body Ada_Be.Idl2Ada is
                  := Ada_Operation_Name (Node);
                Is_Function : constant Boolean
                  := Kind (Operation_Type (Node)) /= K_Void;
+               Original_Operation : Node_Id
+                 := Original_Node (Node);
             begin
                if not Is_Implicit_Inherited (Node) then
+                  Add_With (CU, Parent_Scope_Name (Node)
+                            & Value_Skel.Suffix);
+                  Add_With (CU, "CORBA.Impl");
+                  if Original_Operation = No_Node then
+                     Original_Operation := Node;
+                  end if;
                   Gen_Operation_Profile
                     (CU,
                      Ada_Type_Defining_Name
                      (Parent_Scope (Node)),
                      Node);
                   PL (CU, " is");
+                  II (CU);
+                  PL (CU,
+                      Ada_Be.Temporaries.T_Value_Operation
+                      & " : "
+                      & Parent_Scope_Name (Original_Operation)
+                      & Value_Skel.Suffix
+                      & "."
+                      & Ada_Operation_Name (Node)
+                      & "_Type;");
+                  PL (CU,
+                      Ada_Be.Temporaries.T_Impl_Object_Ptr
+                      & " : CORBA.Impl.Object_Ptr;");
+                  DI (CU);
                   PL (CU, "begin");
                   II (CU);
-
+                  PL (CU, "--  sanity check");
                   PL (CU, "if Is_Nil (Self) then");
                   II (CU);
                   Add_With (CU, "Broca.Exceptions");
                   PL (CU, "Broca.Exceptions.Raise_Inv_Objref;");
                   DI (CU);
                   PL (CU, "end if;");
+                  NL (CU);
 
+                  PL (CU, "--  find the operation");
+                  PL (CU,
+                      Ada_Be.Temporaries.T_Impl_Object_Ptr
+                      & " := CORBA.Impl.Object_Ptr (Object_Of (Self));");
+                  PL (CU,
+                      Ada_Be.Temporaries.T_Value_Operation
+                      & " := "
+                      & Parent_Scope_Name (Original_Operation)
+                      & Value_Skel.Suffix
+                      & "."
+                      & Op_Name
+                      & "_Store.Get_Operation (Obj.all'Tag);");
+
+                  NL (CU);
+                  PL (CU, "--  call the operation");
                   if Is_Function then
-                     PL (CU, "return");
+                     Put (CU, "return");
                      II (CU);
                   end if;
-
-                  Add_With (CU,
-                            Ada_Full_Name (Parent_Scope (Node))
-                            & ".Value_Impl");
-                  PL (CU, Ada_Full_Name (Parent_Scope (Node))
-                      & ".Value_Impl."
-                      & Op_Name);
+                  PL (CU, Ada_Be.Temporaries.T_Value_Operation);
                   II (CU);
-
-                  --  The controlling formal parameter
-
-                  Put (CU, "( Value_Impl.Object_Ptr (Self.Ptr)");
+                  Put (CU,
+                       "("
+                       & Ada_Be.Temporaries.T_Impl_Object_Ptr);
 
                   --  The remaining formals
 
@@ -376,6 +413,7 @@ package body Ada_Be.Idl2Ada is
                   end if;
 
                   DI (CU);
+                  NL (CU);
                   PL (CU, "end " & Op_Name & ";");
                end if;
             end;
@@ -1939,6 +1977,7 @@ package body Ada_Be.Idl2Ada is
       case Kind (Node) is
 
          when K_Operation =>
+
             --  Subprogram name
 
             NL (CU);
@@ -2148,7 +2187,8 @@ package body Ada_Be.Idl2Ada is
 
          when others =>
             Error
-              ("Don't know what to do with a "
+              ("ada_be-idl2ada.Gen_Node_Default: "
+               & "Don't know what to do with a "
                & Kind (Node)'Img & " node.",
                Fatal, Get_Location (Node));
       end case;

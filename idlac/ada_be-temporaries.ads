@@ -34,6 +34,8 @@ package Ada_Be.Temporaries is
    T_Repository_Id       : constant String;
    T_Exception_Repo_Id   : constant String;
    T_Members             : constant String;
+   T_Impl_Object_Ptr     : constant String;
+   T_Value_Operation     : constant String;
 
 private
 
@@ -43,5 +45,7 @@ private
    T_Repository_Id       : constant String := "Repository_Id_Ü";
    T_Exception_Repo_Id   : constant String := "Exception_Repo_Id_Ü";
    T_Members             : constant String := "Members_Ü";
+   T_Impl_Object_Ptr     : constant String := "Object_Ü";
+   T_Value_Operation     : constant String := "Op_Ü";
 
 end Ada_Be.Temporaries;

@@ -115,6 +115,12 @@ private
       Node : Node_Id);
    --  Generate the representation of a constant expression.
 
+   procedure Gen_Node_Default
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id);
+   --  Generate the text for a node whose mapping is
+   --  common to all generated files.
+
    ---------------
    -- Shortcuts --
    ---------------

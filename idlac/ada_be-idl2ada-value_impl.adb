@@ -26,6 +26,7 @@
 
 with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
+with Idl_Fe.Tree.Synthetic;           use Idl_Fe.Tree.Synthetic;
 
 with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
 with Ada_Be.Debug;
@@ -58,57 +59,66 @@ package body Ada_Be.Idl2Ada.Value_Impl is
             Put (CU, "type Object is new ");
 
             --  check parent
-            if Parents (Node) = Nil_List then
-               Add_With (CU, "CORBA.Value");
-               Put (CU, "CORBA.Value.Impl_Base");
-            else
-               declare
-                  First_Parent : Node_Id := Head (Parents (Node));
-               begin
-                  Add_With (CU, Ada_Full_Name (First_Parent));
-                  Put (CU, Ada_Type_Name (First_Parent));
-               end;
-            end if;
+            declare
+               Primary_Parent : Node_Id
+                 := Idl_Fe.Tree.Synthetic.Primary_Parent (Node);
+            begin
+               if Primary_Parent = No_Node then
+                  Add_With (CU, "CORBA.Value");
+                  Put (CU, "CORBA.Value.Impl_Base");
+               else
+                  Add_With (CU,
+                            Ada_Full_Name (Primary_Parent)
+                            & ".Value_Impl");
+                  Put (CU, Ada_Full_Name (Primary_Parent)
+                       & ".Value_Impl.Object");
+               end if;
+            end;
 
             --  write members
-            if Is_Empty (Contents (Node)) then
-               PL (CU, " with null record;");
-            else
-               PL (CU, " with record");
-               II (CU);
-               declare
-                  It   : Node_Iterator;
-                  Member_Node : Node_Id;
-               begin
-                  Init (It, Contents (Node));
-                  while not Is_End (It) loop
-                     Get_Next_Node (It, Member_Node);
-                     if Kind (Member_Node) = K_State_Member then
-                        declare
-                           Decl_Iterator : Node_Iterator;
-                           Decl_Node : Node_Id;
-                        begin
-                           Init (Decl_Iterator,
-                                 State_Declarators (Member_Node));
-                           while not Is_End (Decl_Iterator) loop
-                              Get_Next_Node (Decl_Iterator, Decl_Node);
-                              if Kind (Decl_Node) = K_Declarator then
-                                 Gen_Node_Stubs_Spec (CU, Decl_Node);
-                                 Put (CU, " : ");
-                                 Gen_Node_Stubs_Spec
-                                   (CU, State_Type (Member_Node));
-                                 PL (CU, ";");
-                              end if;
-                           end loop;
-                        end;
-                     end if;
-                  end loop;
-               end;
+            declare
+               First : Boolean := True;
+               It   : Node_Iterator;
+               Member_Node : Node_Id;
+            begin
+               Init (It, Contents (Node));
+               while not Is_End (It) loop
+                  Get_Next_Node (It, Member_Node);
+                  if Kind (Member_Node) = K_State_Member then
+                     declare
+                        Decl_Iterator : Node_Iterator;
+                        Decl_Node : Node_Id;
+                     begin
+                        if First then
+                           PL (CU, " with record");
+                           II (CU);
+                           First := False;
+                        end if;
+                        Init (Decl_Iterator,
+                              State_Declarators (Member_Node));
+                        while not Is_End (Decl_Iterator) loop
+                           Get_Next_Node (Decl_Iterator, Decl_Node);
+                           if Kind (Decl_Node) = K_Declarator then
+                              Gen_Node_Stubs_Spec (CU, Decl_Node);
+                              Put (CU, " : ");
+                              Gen_Node_Stubs_Spec
+                                (CU, State_Type (Member_Node));
+                              PL (CU, ";");
+                           end if;
+                        end loop;
+                     end;
+                  end if;
+               end loop;
+               if First then
+                  PL (CU, " with null record;");
+               else
+                  DI (CU);
+                  PL (CU, "end record;");
+               end if;
+               NL (CU);
+            end;
 
-               DI (CU);
-               PL (CU, "end record;");
-               PL (CU, "type Object_Ptr is access all Object'Class;");
-            end if;
+            PL (CU, "type Object_Ptr is access all Object'Class;");
 
          when K_Initializer =>
             Gen_Initializer_Profile (CU,
