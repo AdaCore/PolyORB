@@ -36,8 +36,6 @@
 --  modification of a running thread. For all comments, see
 --  PolyORB.Tasking.Threads.
 
---  $Id$
-
 with Ada.Task_Identification;
 
 with PolyORB.Tasking.Threads;
