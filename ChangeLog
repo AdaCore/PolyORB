@@ -1,3 +1,9 @@
+2000-01-28  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in, configure: Remove macros specific to GNU make in
+ 	order to avoid bug reports of users using other make tools.
+
+
 2000-01-24  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* NEWS: Add a paragraph on multi-protocols feature.

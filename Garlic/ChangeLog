@@ -1,3 +1,9 @@
+2000-01-28  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* Makefile.am, Makefile.in, Makefile.zip: Remove macros specific
+	to GNU make in order to avoid bug reports of users using other
+	make tools.
+
 2000-01-26  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garthi.ads: Simplify C_Open, C_Dup2 and C_Setsid interfaces.
