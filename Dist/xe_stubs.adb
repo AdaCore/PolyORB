@@ -430,7 +430,7 @@ package body XE_Stubs is
       --  Otherwise, it is.
 
       Dwrite_Call
-        (FD, 2, "Set_Is_Slave", C (Boolean'Image (PID /= Main_Partition)));
+        (FD, 2, "Set_Slave", C (Boolean'Image (PID /= Main_Partition)));
 
       --  How should the partition terminate. Note that in Garlic,
       --  Global_Termination is the default. No need to force the default.

@@ -1,3 +1,8 @@
+1998-12-08  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_stubs.adb: Change stub generation because one of the Garlic
+ 	subprograms has changed of profile.
+
 1998-10-23  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_lead.adb: Generate at run-time a default boot server address
