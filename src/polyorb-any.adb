@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#14 $
+--  $Id: //droopi/main/src/polyorb-any.adb#15 $
 
 with Ada.Tags;
 
@@ -2370,7 +2370,8 @@ package body PolyORB.Any is
       if TypeCode.Kind (Get_Precise_Type (Dest))
         /= TypeCode.Kind (Get_Precise_Type (Src))
       then
-         pragma Debug (O ("Copy any value from: " & Image (Get_Precise_Type (Src))));
+         pragma Debug (O ("Copy Any value from: "
+                          & Image (Get_Precise_Type (Src))));
          pragma Debug (O ("  to: " & Image (Get_Precise_Type (Dest))));
          raise TypeCode.Bad_TypeCode;
       end if;
