@@ -116,6 +116,10 @@ package body XE_Check is
 
    begin
 
+      for U in CUnit.First .. CUnit.Last loop
+         Set_Name_Table_Info (CUnit.Table (U).CUname, 0);
+      end loop;
+
       --  Set future Ada names to null. Compile (or load) all Ada units and
       --  check later on that these are not already used.
       Set_Name_Table_Info (Configuration, 0);

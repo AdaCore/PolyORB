@@ -180,7 +180,7 @@ procedure XE_Stubs is
             Write_Str (" does not exist");
             Write_Eol;
          end if;
-      elsif More_Recent (Configuration_File, Fname) then
+      elsif Most_Recent_Stamp > Source_File_Stamp (Fname) then
          if Verbose_Mode then
             Write_Program_Name;
             Write_Str (": ");
