@@ -2729,9 +2729,9 @@ package body Exp_Dist is
       --  be generated last.
    end Add_RAST_Features;
 
-   -------------------
-   -- Add_RAS_Proxy --
-   -------------------
+   -------------------------------
+   -- Add_RAS_Proxy_And_Analyze --
+   -------------------------------
 
    procedure Add_RAS_Proxy_And_Analyze
      (Decls              :     List_Id;
@@ -3093,11 +3093,8 @@ package body Exp_Dist is
       --  case statement will be made on the Subprogram_Id to dispatch
       --  to the right subprogram.
 
-      if Has_All_Calls_Remote (Defining_Entity (Pkg_Spec)) then
-         All_Calls_Remote_E := Standard_True;
-      else
-         All_Calls_Remote_E := Standard_False;
-      end if;
+      All_Calls_Remote_E := Boolean_Literals (
+        Has_All_Calls_Remote (Defining_Entity (Pkg_Spec)));
 
       Overload_Counter_Table.Reset;
       Reserve_NamingContext_Methods;
