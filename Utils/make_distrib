@@ -34,13 +34,15 @@ fi
 find . -name aclocal.m4 -exec touch {} \;
 find . -name Makefile.in -exec touch {} \;
 find . -name configure -exec touch {} \;
+./configure
+make distclean
 chmod -R og=u-w .
 flist=""
 for i in `cat MANIFEST`; do
   flist="${flist} ${dir}/${i}"
 done
 cd ..
-tar cvf ${dir}.tar ${flist}
+tar cvf ${dir}.tar `ls -tr ${flist}`
 gzip --best ${dir}.tar
 mv ${dir}.tar.gz ${prev}
 cd ${prev}
