@@ -1,29 +1,66 @@
-////////////////////////////////////////////////////////////////////////////
-////                                                                    ////
-////     This class is both a C class and an Ada Class (see             ////
-////     giop_c.ads). It is wrapped around GIOP_C in order to           ////
-////     avoid the presence of non default constructors.                ////
-////     So, it provides the same functions as GIOP_C except that       ////
-////     constructors are replaced by Init functions.                   ////
-////     It has also a pointer on the underlying GIOP_C object.         ////
-////                                                                    ////
-////                                                                    ////
-////                Date : 02/28/99                                     ////
-////                                                                    ////
-////                author : Sebastien Ponce                            ////
-////                                                                    ////
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+////                                                               ////
+////                         AdaBroker                             ////
+////                                                               ////
+////                 class Ada_Giop_c                              ////
+////                                                               ////
+////                                                               ////
+////   Copyright (C) 1999 ENST                                     ////
+////                                                               ////
+////   This file is part of the AdaBroker library                  ////
+////                                                               ////
+////   The AdaBroker library is free software; you can             ////
+////   redistribute it and/or modify it under the terms of the     ////
+////   GNU Library General Public License as published by the      ////
+////   Free Software Foundation; either version 2 of the License,  ////
+////   or (at your option) any later version.                      ////
+////                                                               ////
+////   This library is distributed in the hope that it will be     ////
+////   useful, but WITHOUT ANY WARRANTY; without even the implied  ////
+////   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ////
+////   PURPOSE.  See the GNU Library General Public License for    ////
+////   more details.                                               ////
+////                                                               ////
+////   You should have received a copy of the GNU Library General  ////
+////   Public License along with this library; if not, write to    ////
+////   the Free Software Foundation, Inc., 59 Temple Place -       ////
+////   Suite 330, Boston, MA 02111-1307, USA                       ////
+////                                                               ////
+////                                                               ////
+////                                                               ////
+////   Description                                                 ////
+////   -----------                                                 ////
+////     This class is both a C class and an Ada Class (see        ////
+////     giop_c.ads). It is wrapped around GIOP_C in order to      ////
+////     avoid the presence of non default constructors.           ////
+////     So, it provides the same functions as GIOP_C except that  ////
+////     constructors are replaced by Init functions.              ////
+////     It has also a pointer on the underlying GIOP_C object.    ////
+////                                                               ////
+////                                                               ////
+////                                                               ////
+////   authors : Sebastien Ponce, Fabien Azavant                   ////
+////   date    : 02/28/99                                          ////
+////                                                               ////
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+
 
 #include "Ada_Giop_c.hh"
 
 
+// Default Constructor
+//--------------------
 Ada_Giop_c::Ada_Giop_c ()
 {
   Init_Ok = false;
   C_Giop_c = NULL;
 };
-// Default Constructor
+
   
+// Init
+//-----
 void
 Ada_Giop_c::Init (Rope *r)
 {
@@ -32,6 +69,8 @@ Ada_Giop_c::Init (Rope *r)
 };
 
 
+// InitialiseRequest
+//------------------
 void
 Ada_Giop_c::InitialiseRequest(const void          *objkey,
 			      const size_t         objkeysize,
@@ -55,7 +94,8 @@ Ada_Giop_c::InitialiseRequest(const void          *objkey,
   }
 };
 
-
+// ReceiveReply
+//-------------
 GIOP::ReplyStatusType
 Ada_Giop_c::ReceiveReply()
 {
@@ -70,6 +110,8 @@ Ada_Giop_c::ReceiveReply()
 };
 
 
+// RequestCompleted
+//------------------
 void
 Ada_Giop_c::RequestCompleted(_CORBA_Boolean skip)
 {
