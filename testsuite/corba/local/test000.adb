@@ -91,7 +91,7 @@ begin
          Output ("Test on initialized ref", True);
 
       when others =>
-         Output ("Test on uninitialized ref", False);
+         Output ("Test on initialized ref", False);
    end;
 
    End_Report;
