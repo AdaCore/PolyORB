@@ -1,3 +1,8 @@
+2001-06-05  Pascal Obry  <obry@gnat.com>
+
+	* xe_reg.adb: Check for GCC_ROOT environment variable before
+	looking in the registry. Fix 9004-005.
+	
 2001-05-30  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* xe.ads, xe.adb, xe_stubs.adb, xe_back.adb, xe_back.ads,
