@@ -121,7 +121,7 @@ package PolyORB.POA_Manager.Basic_Manager is
      (Left, Right : Hold_Servant)
      return Boolean;
 
-   function Handle_Message
+   function Execute_Servant
      (Obj : access Hold_Servant;
       Msg :        PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class;

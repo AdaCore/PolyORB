@@ -34,7 +34,7 @@
 
 package body CORBA.Impl is
 
-   function Handle_Message
+   function Execute_Servant
      (Self : access Object;
       Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class
@@ -45,15 +45,15 @@ package body CORBA.Impl is
    begin
       raise Unhandled_Message;
       return Res;
-   end Handle_Message;
+   end Execute_Servant;
 
-   function Handle_Message
+   function Execute_Servant
      (Self : access Implementation;
       Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class is
    begin
-      return Handle_Message (Self.As_Object, Msg);
-   end Handle_Message;
+      return Execute_Servant (Self.As_Object, Msg);
+   end Execute_Servant;
 
    function To_PolyORB_Servant (S : access Object)
      return PolyORB.Servants.Servant_Access is

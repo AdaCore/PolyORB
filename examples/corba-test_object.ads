@@ -56,7 +56,7 @@ package CORBA.Test_Object is
       I : CORBA.Long)
      return CORBA.Long;
 
-   function Handle_Message
+   function Execute_Servant
      (Obj : access My_Object;
       Msg : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class;

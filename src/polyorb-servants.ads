@@ -49,6 +49,11 @@ package PolyORB.Servants is
    function Handle_Message
      (S   : access Servant;
       Msg : Components.Message'Class)
+      return Components.Message'Class;
+
+   function Execute_Servant
+     (S   : access Servant;
+      Msg : Components.Message'Class)
       return Components.Message'Class is abstract;
 
    procedure Set_Thread_Policy

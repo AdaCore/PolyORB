@@ -45,4 +45,10 @@ package PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
      (Self : ORB_Ctrl_Policy)
      return String;
 
+   function Handle_Request_Execution
+     (Self      : access ORB_Ctrl_Policy;
+      Msg       : PolyORB.Components.Message'Class;
+      Requestor : PolyORB.Components.Component_Access)
+      return PolyORB.Components.Message'Class;
+
 end PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;

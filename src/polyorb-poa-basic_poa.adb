@@ -1110,6 +1110,7 @@ package body PolyORB.POA.Basic_POA is
       declare
          The_OA : constant Basic_Obj_Adapter_Access
            := Find_POA_Recursively (OA, U_Oid.Creator);
+         S      : Servants.Servant_Access;
       begin
          pragma Debug
            (O ("OA : " & To_Standard_String (The_OA.Name)
@@ -1117,8 +1118,9 @@ package body PolyORB.POA.Basic_POA is
                & Objects.To_String (Id.all)));
 
          if The_OA /= null then
-            return Servants.Servant_Access
-              (Id_To_Servant (The_OA, Id.all));
+            S := Servants.Servant_Access (Id_To_Servant (The_OA, Id.all));
+            Servants.Set_Thread_Policy (S, The_OA.Thread_Policy);
+            return S;
          else
             raise Invalid_Object_Id;
             --  This is an exception from PolyORB

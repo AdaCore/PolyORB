@@ -16,7 +16,7 @@ package body PolyORB.Minimal_Servant is
    -- Handle_Message --
    --------------------
 
-   function Handle_Message
+   function Execute_Servant
      (Self : access Servant;
       Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class
@@ -42,15 +42,15 @@ package body PolyORB.Minimal_Servant is
       else
          raise PolyORB.Components.Unhandled_Message;
       end if;
-   end Handle_Message;
+   end Execute_Servant;
 
-   function Handle_Message
+   function Execute_Servant
      (Self : access Implementation;
       Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class is
    begin
-      return Handle_Message (Self.As_Servant, Msg);
-   end Handle_Message;
+      return Execute_Servant (Self.As_Servant, Msg);
+   end Execute_Servant;
 
    ------------------------
    -- To_PolyORB_Servant --

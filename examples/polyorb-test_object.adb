@@ -118,7 +118,7 @@ package body PolyORB.Test_Object is
    -- "Middleware glue" that should be generated automatically --
    --------------------------------------------------------------
 
-   function Handle_Message
+   function Execute_Servant
      (Obj : access My_Object;
       Msg : Components.Message'Class)
      return Components.Message'Class is
@@ -191,7 +191,7 @@ package body PolyORB.Test_Object is
          raise;
 
 
-   end Handle_Message;
+   end Execute_Servant;
 
    function Get_Parameter_Profile
      (Method : String)

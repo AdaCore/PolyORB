@@ -32,6 +32,8 @@
 
 --  $Id$
 
+with PolyORB.Components;
+
 package PolyORB.POA_Policies.Thread_Policy is
 
    type ThreadPolicy is abstract new Policy with null record;
@@ -43,5 +45,16 @@ package PolyORB.POA_Policies.Thread_Policy is
      (Self : ThreadPolicy;
       Other_Policies   : AllPolicies)
      is abstract;
+
+   function Policy_Id
+     (Self : ThreadPolicy)
+      return String is abstract;
+
+   function Handle_Request_Execution
+     (Self      : access ThreadPolicy;
+      Msg       : PolyORB.Components.Message'Class;
+      Requestor : PolyORB.Components.Component_Access)
+      return PolyORB.Components.Message'Class
+      is abstract;
 
 end PolyORB.POA_Policies.Thread_Policy;

@@ -399,7 +399,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    -- Handle_Message --
    --------------------
 
-   function Handle_Message
+   function Execute_Servant
      (Obj : access Hold_Servant;
       Msg :        PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class
@@ -420,6 +420,6 @@ package body PolyORB.POA_Manager.Basic_Manager is
       Free (S);
 
       return Null_Message;
-   end Handle_Message;
+   end Execute_Servant;
 
 end PolyORB.POA_Manager.Basic_Manager;

@@ -32,6 +32,8 @@
 
 --  $Id$
 
+with PolyORB.Objects.Interface;
+
 package body PolyORB.Servants is
 
    -----------------------
@@ -45,5 +47,28 @@ package body PolyORB.Servants is
    begin
       S.TP_Access := TP;
    end Set_Thread_Policy;
+
+   --------------------
+   -- Handle_Message --
+   --------------------
+
+   function Handle_Message
+     (S   : access Servant;
+      Msg : Components.Message'Class)
+      return Components.Message'Class
+   is
+      use PolyORB.Objects.Interface;
+      use PolyORB.POA_Policies.Thread_Policy;
+   begin
+      if Msg in Execute_Request then
+         --  Dispatch by OA thread policies
+         return Handle_Request_Execution
+           (S.TP_Access,
+            Msg,
+            PolyORB.Components.Component_Access (S));
+      else
+         raise PolyORB.Components.Unhandled_Message;
+      end if;
+   end Handle_Message;
 
 end PolyORB.Servants;

@@ -207,7 +207,7 @@ private
    type DynamicImplementation is
      abstract new CORBA.Impl.Object with null record;
 
-   function Handle_Message
+   function Execute_Servant
      (Self : access DynamicImplementation;
       Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class;

@@ -30,6 +30,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  $Id$
+
+with PolyORB.Servants;
+
 package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
 
    ------------
@@ -71,4 +75,17 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
       null;
    end Check_Compatibility;
 
+   function Handle_Request_Execution
+     (Self      : access ORB_Ctrl_Policy;
+      Msg       : PolyORB.Components.Message'Class;
+      Requestor : PolyORB.Components.Component_Access)
+      return PolyORB.Components.Message'Class
+   is
+      --  use PolyORB.Components;
+      --  Result : constant Components.Message'Class := Emit (Requestor,
+      --                                                    Msg);
+      use PolyORB.Servants;
+   begin
+      return Execute_Servant (Servant_Access (Requestor), Msg);
+   end Handle_Request_Execution;
 end PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;

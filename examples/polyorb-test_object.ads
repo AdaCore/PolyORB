@@ -63,7 +63,7 @@ package PolyORB.Test_Object is
       I : Types.Long)
      return Types.Long;
 
-   function Handle_Message
+   function Execute_Servant
      (Obj : access My_Object;
       Msg : Components.Message'Class)
      return Components.Message'Class;

@@ -38,6 +38,11 @@
 with Ada.Streams; use Ada.Streams;
 with Ada.Unchecked_Conversion;
 
+with PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
+use PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
+with PolyORB.POA_Policies.Thread_Policy;
+use PolyORB.POA_Policies.Thread_Policy;
+
 package body PolyORB.Obj_Adapters.Simple is
 
    use PolyORB.Soft_Links;
@@ -275,6 +280,8 @@ package body PolyORB.Obj_Adapters.Simple is
       return Result;
    end Get_Empty_Result;
 
+   No_Thread_Policy : ThreadPolicy_Access := new ORB_Ctrl_Policy;
+
    function Find_Servant
      (OA : access Simple_Obj_Adapter;
       Id : access Objects.Object_Id)
@@ -285,6 +292,7 @@ package body PolyORB.Obj_Adapters.Simple is
       Enter (OA.Lock);
       Result := Element_Of (OA.Object_Map, Oid_To_Index
                             (Simple_OA_Oid (Id.all))).Servant;
+      Servants.Set_Thread_Policy (Result, No_Thread_Policy);
       Leave (OA.Lock);
       return Result;
    end Find_Servant;

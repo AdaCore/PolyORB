@@ -95,7 +95,7 @@ package body CORBA.Test_Object is
    -- "Middleware glue" that should be generated automatically --
    --------------------------------------------------------------
 
-   function Handle_Message
+   function Execute_Servant
      (Obj : access My_Object;
       Msg : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class is
@@ -164,7 +164,7 @@ package body CORBA.Test_Object is
          pragma Debug (Output ("Handle_Message: Got exception "
                           & Ada.Exceptions.Exception_Information (E)));
          raise;
-   end Handle_Message;
+   end Execute_Servant;
 
 end CORBA.Test_Object;
 

@@ -52,7 +52,7 @@ package body PortableServer is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   function Handle_Message
+   function Execute_Servant
      (Self : access DynamicImplementation;
       Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class
@@ -79,7 +79,7 @@ package body PortableServer is
       else
          raise PolyORB.Components.Unhandled_Message;
       end if;
-   end Handle_Message;
+   end Execute_Servant;
 
    procedure Invoke
      (Self    : access Servant_Base;

@@ -46,7 +46,7 @@ package PolyORB.Minimal_Servant is
 
    type Servant_Acc is access all Servant;
 
-   function Handle_Message
+   function Execute_Servant
      (Self : access Servant;
       Msg  : PolyORB.Components.Message'Class)
       return PolyORB.Components.Message'Class;
@@ -69,7 +69,7 @@ private
    --  XXX Why does the compiler require the presence of this operator?
    --  As a descendant of Component, Implementation is a limited type!
 
-   function Handle_Message
+   function Execute_Servant
      (Self : access Implementation;
       Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class;
