@@ -198,6 +198,24 @@ void
 adabe_argument::produce_proxies_adb(dep_list &with, string &in_decls, bool &no_in, bool &no_out, string &init,
                                     string &align_size, string&marshall, string &unmarshall_decls, string &unmarshall,
                                     string &finalize, string &out_args, string &result_decls)
+  // This methods produces code for the proxies.adb file
+  // Actually, it produces several pieces of code and booleans
+  //    - in_decls contains the list of arguments to put in the header
+  // of the Init function corresponding to the operation
+  //    - the boolean no_in is put to false if the argument is in
+  // in or inout mode
+  //    - the boolean no_out is put to false if the argument is in
+  // out or inout mode
+  //    - init contains the code to put in the init function
+  //    - align_size contains the code to put in the align_size function
+  //    - marshall contains the code to put in the marshall function
+  //    - unmarshall_decls contains the list of declarations to put in the header
+  // of the unmarshal_returned_values function
+  //    - unmarshall contains the code to put in the unmarshall_returned_values function
+  //    - finalize contains the code to put in the finalize function
+  //    - out_args contains the list of arguments to put in the declaration
+  // of the Get_Result function corresponding to the operation
+  //    - result_decls contains the code to put in the get_result function
 {
   string body, previous = "";
   AST_Decl *d = field_type();

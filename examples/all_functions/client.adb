@@ -18,8 +18,8 @@ use Corba ;
 
 procedure Client is
 
+   -- Initialization of the ORB
    Orb : Corba.Orb.Object := Corba.Orb.Orb_Init("omniORB2");
-   Boa : Corba.Boa.Object := Corba.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
 
    Sent_Msg, Rcvd_Msg, IOR : CORBA.String ;
 
