@@ -15,8 +15,11 @@ package Droopi.Transport.Sockets is
    --  a listening stream-oriented socket.
 
    procedure Create
-     (SAP : in out Socket_Access_Point;
-      Socket : Socket_Type);
+     (SAP     : in out Socket_Access_Point;
+      Socket  :        Socket_Type;
+      Address :        Sock_Addr_Type);
+   --  Initialise SAP: bind Socket to Address, listen on it,
+   --  and set up the corresponding Socket_Access_Point.
 
    function Create_Event_Source
      (TAP : Socket_Access_Point)
@@ -58,6 +61,7 @@ private
    type Socket_Access_Point is new Transport_Access_Point
      with record
         Socket : Socket_Type := No_Socket;
+        Addr   : Sock_Addr_Type;
      end record;
 
    type Socket_Endpoint is new Transport_Endpoint

@@ -32,14 +32,14 @@ package body Droopi.Test_Object is
    -- Application part of the servant. --
    --------------------------------------
 
-   function Echo_String
+   function echoString
      (O : My_Object;
       S : Types.String)
      return Types.String is
    begin
---  pragma Debug (O ("Echo_String is being executed with argument: " & S));
+--  pragma Debug (O ("echoString is being executed with argument: " & S));
       return S;
-   end Echo_String;
+   end echoString;
 
    function Echo_Integer
      (O : My_Object;
@@ -70,16 +70,15 @@ package body Droopi.Test_Object is
          begin
             pragma Debug (O ("The server is executing the request:"
                              & Droopi.Requests.Image (Req.all)));
-            if Req.all.Operation = To_Droopi_String ("Echo_String") then
+            if Req.all.Operation = To_Droopi_String ("echoString") then
                declare
-                  Echo_String_Arg : Types.String :=
+                  echoString_Arg : Types.String :=
                     From_Any (NV_Sequence.Element_Of
                               (Args_Sequence.all, 1).Argument);
-                  Result : Types.String_Ptr;
+                  --  Result : Types.String_Ptr;
                begin
-                  Result :=
-                    new Types.String'(Echo_String
-                                (Obj.all, Echo_String_Arg));
+                  Req.Result.Argument := To_Any
+                    (echoString (Obj.all, echoString_Arg));
                end;
             elsif Req.all.Operation = "Echo_Integer" then
 --                declare
@@ -123,7 +122,7 @@ package body Droopi.Test_Object is
    begin
       Any.NVList.Create (Result);
       pragma Debug (O ("Parameter profile for " & Method & " requested."));
-      if Method = "Echo_String" then
+      if Method = "echoString" then
          Add_Item (Result,
                    (Name => To_Droopi_String ("S"),
                     Argument => Get_Empty_Any (TypeCode.TC_String),
@@ -146,7 +145,7 @@ package body Droopi.Test_Object is
 
    begin
       pragma Debug (O ("Result profile for " & Method & " requested."));
-      if Method = "Echo_String" then
+      if Method = "echoString" then
          return Get_Empty_Any (TypeCode.TC_String);
       elsif Method = "Echo_Integer" then
          return Get_Empty_Any (TypeCode.TC_Long);

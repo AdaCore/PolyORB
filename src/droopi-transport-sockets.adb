@@ -17,10 +17,15 @@ package body Droopi.Transport.Sockets is
      renames L.Output;
 
    procedure Create
-     (SAP : in out Socket_Access_Point;
-      Socket : Socket_Type) is
+     (SAP     : in out Socket_Access_Point;
+      Socket  :        Socket_Type;
+      Address :        Sock_Addr_Type) is
    begin
       SAP.Socket := Socket;
+      SAP.Addr   := Address;
+
+      Bind_Socket (SAP.Socket, Address);
+      Listen_Socket (SAP.Socket);
    end Create;
 
    function Create_Event_Source
@@ -48,7 +53,7 @@ package body Droopi.Transport.Sockets is
    function Address_Of (SAP : Socket_Access_Point)
      return Sock_Addr_Type is
    begin
-      return Get_Socket_Name (SAP.Socket);
+      return SAP.Addr;
    end Address_Of;
 
    procedure Create

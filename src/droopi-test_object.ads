@@ -12,7 +12,7 @@ package Droopi.Test_Object is
 
    type My_Object is new Droopi.Objects.Servant with null record;
 
-   function Echo_String
+   function echoString
      (O : My_Object;
       S : Types.String)
      return Types.String;

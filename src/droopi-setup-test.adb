@@ -93,12 +93,10 @@ is
          Socket_Level,
          (Reuse_Address, True));
 
-      Put (" bind " & Image (DAP.Address) & "...");
-      Bind_Socket (DAP.Socket, DAP.Address);
-      Put (" check " & Image (Get_Socket_Name (DAP.Socket)));
-      Listen_Socket (DAP.Socket);
-
-      Create (Socket_Access_Point (DAP.SAP.all), DAP.Socket);
+      Create
+        (Socket_Access_Point (DAP.SAP.all),
+         DAP.Socket,
+         DAP.Address);
       Create_Factory (DAP.PF.all, DAP.SAP);
       Put_Line (" done.");
    end Initialize_Socket;
@@ -257,7 +255,7 @@ begin
                    (References.IOR.Object_To_String
                     ((Ref => My_Ref,
                       Type_Id => CORBA.To_CORBA_String
-                      ("IDL:Echo_Type:1.0")))));
+                      ("IDL:Echo:1.0")))));
       exception
          when E : others =>
             Put_Line ("Warning: Object_To_String raised:");
@@ -291,14 +289,14 @@ begin
             Create (Args);
             Add_Item
               (Args,
-               To_Droopi_String ("Echo_String"),
+               To_Droopi_String ("echoString"),
                To_Any (To_Droopi_String ("Test")),
                ARG_IN);
 
             Put ("Creating servant request...  ");
             Create_Request
               (My_Ref,
-               "Echo_String",
+               "echoString",
                Args,
                Result,
                Req);
