@@ -47,15 +47,6 @@ package body Giop_S is
    -- into C type Interfaces.C.Unsigned_Long
 
 
-   -- Ada_To_C_Int
-   ---------------
-   function Ada_To_C_Int is
-     new Ada.Unchecked_Conversion (Integer,
-                                   Interfaces.C.Int) ;
-   -- needed to change ada type Integer
-   -- into C type Interfaces.C.Int
-
-
    -- Initialize_Reply
    -------------------
    procedure Initialize_Reply (Self : in Object'Class ;
@@ -65,7 +56,7 @@ package body Giop_S is
       C_MsgSize : Interfaces.C.Unsigned_Long ;
    begin
       -- transforms the arguments into a C type ...
-      C_Status := Ada_To_C_Int (Giop.Reply_Status_Type'Pos(Status)) ;
+      C_Status := Giop.Reply_Status_Type_To_C_Int(Status) ;
       C_MsgSize := Ada_To_C_Unsigned_Long (MsgSize) ;
       -- ... and calls the C procedure
       C_Initialize_Reply (Self, C_Status, C_MsgSize) ;

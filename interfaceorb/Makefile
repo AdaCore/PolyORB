@@ -34,7 +34,7 @@ ADA_LIBS_NAME_NO_ADB = rope
 
 all : sys_dep.o Ada_Rope.o rope.o Ada_OmniRopeAndKey.o omniropeandkey.o \
 omniobjectmanager.o omniObject_C2Ada.o Ada_OmniObject.o omniobject.o \
-giop.o Ada_Giop_s.o giop_s.o
+giop.o Ada_Giop_s.o giop_s.o Ada_Giop_c.o giop_c.o
 
 clean :
 	rm *.ali *.o 
@@ -68,14 +68,21 @@ Ada_OmniObject.o : Ada_OmniObject.hh Ada_OmniObject.cc
 omniobject.o : omniobject.ads omniobject.adb
 	$(GNATGCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) omniobject.adb
 
-giop.o : giop.ads
-	$(GNATGCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) giop.ads
+giop.o : giop.ads giop.adb
+	$(GNATGCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) giop.adb
 
 Ada_Giop_s.o : Ada_Giop_s.hh Ada_Giop_s.cc
 	$(GCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) Ada_Giop_s.cc
 
 giop_s.o : giop_s.ads giop_s.adb
 	$(GNATGCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) giop_s.adb
+
+Ada_Giop_c.o : Ada_Giop_c.hh Ada_Giop_c.cc
+	$(GCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) Ada_Giop_c.cc
+
+giop_c.o : giop_c.ads giop_c.adb
+	$(GNATGCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) giop_c.adb
+
 
 ################################################
 # compilation of files that do not depend on C++

@@ -175,6 +175,10 @@ package Corba is
     -- raised when a C object is used before being initialised
     -- via an Ada Init function
 
+    C_Out_Of_Range : exception ;
+    -- raised when a C Value must be converted into an Ada Value
+    -- and when the C value is out of range
+
     procedure Raise_Corba_Exception(Excp : in Ada.Exceptions.Exception_Id ;
                                     Excp_Memb: in Idl_Exception_Members'class) ;
     -- raises the corresponding exception
