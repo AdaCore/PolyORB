@@ -61,8 +61,6 @@ package body Sequences.Unbounded is
 
    Initial_Size   : constant Natural := 3;
    Increment_Size : constant Natural := 2;
-   Null_Element   : Element;
-   pragma Warnings (Off, Null_Element);
 
    procedure Allocate
      (Source : in out Sequence;
@@ -470,9 +468,15 @@ package body Sequences.Unbounded is
       else
          --  Force finalization.
 
-         for I in Source.Length + 1 .. Old_Length loop
-            Source.Content (I) := Null_Element;
-         end loop;
+         declare
+            Null_Element : Element;
+            pragma Warnings (Off, Null_Element);
+            --  Null_Element is never assign a value.
+         begin
+            for I in Source.Length + 1 .. Old_Length loop
+               Source.Content (I) := Null_Element;
+            end loop;
+         end;
       end if;
    end Delete;
 
@@ -805,9 +809,15 @@ package body Sequences.Unbounded is
          else
             --  Force finalization.
 
-            for I in Min_Length + 1 .. Old_Length loop
-               Source.Content (I) := Null_Element;
-            end loop;
+            declare
+               Null_Element : Element;
+               pragma Warnings (Off, Null_Element);
+               --  Null_Element is never assign a value.
+            begin
+               for I in Min_Length + 1 .. Old_Length loop
+                  Source.Content (I) := Null_Element;
+               end loop;
+            end;
          end if;
       end if;
       Source.Length := Length;
@@ -912,9 +922,15 @@ package body Sequences.Unbounded is
       else
          --  Force finalization
 
-         for I in Old_Length + 1 .. Source.Length loop
-            Source.Content (I) := Null_Element;
-         end loop;
+         declare
+            Null_Element : Element;
+            pragma Warnings (Off, Null_Element);
+            --  Null_Element is never assign a value.
+         begin
+            for I in Old_Length + 1 .. Source.Length loop
+               Source.Content (I) := Null_Element;
+            end loop;
+         end;
       end if;
    end Replace_Slice;
 
