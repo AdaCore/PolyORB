@@ -258,6 +258,14 @@ package Sockets.Thin is
       Optlen  : access C.int)
       return C.int;
 
+   function C_Getsockopt
+     (S       : C.int;
+      Level   : C.int;
+      Optname : C.int;
+      Optval  : System.Address;
+      Optlen  : access C.int)
+      return C.int;
+
    function C_Inet_Addr
      (Cp : Strings.chars_ptr)
       return Interfaces.Unsigned_32;
@@ -401,6 +409,12 @@ package Sockets.Thin is
       Iovcnt : C.int)
      return C.int;
 
+   function C_Ioctl
+     (S    : C.int;
+      Req  : C.int;
+      Arg  : access C.int)
+      return C.int;
+
 private
 
    pragma Import (Stdcall, C_Accept, "accept");
@@ -440,5 +454,6 @@ private
    pragma Import (Stdcall, C_Shutdown, "shutdown");
    pragma Import (Stdcall, C_Socket, "socket");
    pragma Import (Stdcall, C_Strerror, "strerror");
+   pragma Import (Stdcall, C_Ioctl, "ioctlsocket");
 
 end Sockets.Thin;

@@ -72,14 +72,18 @@ package body Sockets is
       IP_MULTICAST_TTL   => Constants.Ip_Multicast_Ttl,
       IP_ADD_MEMBERSHIP  => Constants.Ip_Add_Membership,
       IP_DROP_MEMBERSHIP => Constants.Ip_Drop_Membership,
-      IP_MULTICAST_LOOP  => Constants.Ip_Multicast_Loop);
+      IP_MULTICAST_LOOP  => Constants.Ip_Multicast_Loop,
+      SO_SNDBUF          => Constants.So_Sndbuf,
+      SO_RCVBUF          => Constants.So_Rcvbuf);
 
    Socket_Option_Size  : constant array (Socket_Option) of Natural :=
      (SO_REUSEADDR       => 4,
       IP_MULTICAST_TTL   => 1,
       IP_ADD_MEMBERSHIP  => 8,
       IP_DROP_MEMBERSHIP => 8,
-      IP_MULTICAST_LOOP  => 1);
+      IP_MULTICAST_LOOP  => 1,
+      SO_SNDBUF          => 4,
+      SO_RCVBUF          => 4);
 
    function "*" (Left : String; Right : Natural) return String;
    pragma Inline ("*");
@@ -280,6 +284,54 @@ package body Sockets is
          end if;
       end loop;
    end Get_Line;
+
+   procedure Getsockopt
+     (Socket  : in  Socket_FD'Class;
+      Level   : in  Socket_Level := SOL_SOCKET;
+      Optname : in  Socket_Option;
+      Optval  : out Integer)
+   is
+      Len : aliased int;
+   begin
+      case Socket_Option_Size (Optname) is
+
+         when 1 =>
+            declare
+               C_Char_Optval : aliased char;
+            begin
+               pragma Assert (C_Char_Optval'Size = 8);
+               Len := 1;
+               if C_Getsockopt (Socket.FD, Socket_Level_Match (Level),
+                                Socket_Option_Match (Optname),
+                                C_Char_Optval'Address, Len'Access) = Failure
+               then
+                  Raise_With_Message ("Getsockopt failed");
+               end if;
+               Optval := char'Pos (C_Char_Optval);
+            end;
+
+         when 4 =>
+            declare
+               C_Int_Optval : aliased int;
+            begin
+               pragma Assert (C_Int_Optval'Size = 32);
+               Len := 4;
+               if C_Getsockopt (Socket.FD, Socket_Level_Match (Level),
+                                Socket_Option_Match (Optname),
+                                C_Int_Optval'Address, Len'Access) = Failure
+               then
+                  Raise_With_Message ("Getsockopt failed");
+               end if;
+               Optval := Integer (C_Int_Optval);
+
+            end;
+
+         when others =>
+            Raise_With_Message ("Getsockopt called with wrong arguments",
+                                False);
+
+      end case;
+   end Getsockopt;
 
    ------------
    -- Listen --

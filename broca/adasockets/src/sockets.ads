@@ -88,7 +88,14 @@ package Sockets is
 
    type Socket_Option is (SO_REUSEADDR, IP_MULTICAST_TTL,
                           IP_ADD_MEMBERSHIP, IP_DROP_MEMBERSHIP,
-                          IP_MULTICAST_LOOP);
+                          IP_MULTICAST_LOOP, SO_SNDBUF, SO_RCVBUF);
+
+   procedure Getsockopt
+     (Socket  : in  Socket_FD'Class;
+      Level   : in  Socket_Level := SOL_SOCKET;
+      Optname : in  Socket_Option;
+      Optval  : out Integer);
+   --  Get a socket option
 
    procedure Setsockopt
      (Socket  : in Socket_FD'Class;

@@ -23,7 +23,7 @@ constants="${constants} NO_DATA NO_ADDRESS POLLIN POLLPRI POLLOUT POLLERR"
 constants="${constants} POLLHUP POLLNVAL I_SETSIG S_RDNORM S_WRNORM"
 constants="${constants} IPPROTO_IP IP_ADD_MEMBERSHIP IP_MULTICAST_LOOP"
 constants="${constants} IP_MULTICAST_TTL IP_DROP_MEMBERSHIP"
-constants="${constants} O_NONBLOCK MSG_PEEK"
+constants="${constants} O_NONBLOCK MSG_PEEK FIONBIO FIONREAD SO_SNDBUF"
 
 # Debug
 

@@ -1,5 +1,22 @@
 -*- outline -*-
 
+* New in AdaSockets 0.1.20
+
+** New contrib directory
+
+The new contrib directory includes scripts to make win32 installation easier,
+thanks to Dmitriy Anisimkov <anisimkov@yahoo.com>.
+
+** New high-level function
+
+Getsockopt is now available. Patch sent by Dmitriy Anisimkov
+<anisimkov@yahoo.com>.
+
+** New thin function and constants
+
+The ioctl() function and two constants, FIONBIO and FIONREAD, have been added
+to the thin binding. Thanks to Dmitriy Anisimkov <anisimkov@yahoo.com>.
+
 * New in AdaSockets 0.1.19
 
 ** New features for Windows
@@ -13,6 +30,11 @@ AdaBroker on this new platform.
 When a socket is closed, its buffer space is reclaimed if the socket was
 still in buffered mode. Suggestion and patch sent by Dmitriy
 Anisimkov <anisimkov@yahoo.com>.
+
+** Example fix
+
+The multicast example (which now works on Windows) has been fixed to do
+what it says. Fix sent by Juanma Barranquero <lektu@terra.es>.
 
 * New in AdaSockets 0.1.18
 
