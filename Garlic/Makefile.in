@@ -388,8 +388,8 @@ install-dirs-local:
 	$(mkinstalldirs) $(GARLIC)
 
 inlining: all-local
+	@-mkdir gnatlib >/dev/null 2>&1;
 	@if test ! -f inlining; then\
-	   mkdir gnatlib >/dev/null 2>&1;\
 	   gnatlibdir=`$(srcdir)/../Dist/config.sdefault pathtolib`;\
 	   for o in `cd $$gnatlibdir && echo *.ali`; do\
 	     grep "D s-stratt.adb" $$gnatlibdir/$$o /dev/null;\

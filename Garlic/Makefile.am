@@ -244,6 +244,7 @@ install-dirs-local:
 
 inlining: all-local
 	@if test ! -f inlining; then\
+	   rm -rf gnatlib >/dev/null 2>&1;\
 	   mkdir gnatlib >/dev/null 2>&1;\
 	   gnatlibdir=`$(srcdir)/../Dist/config.sdefault pathtolib`;\
 	   for o in `cd $$gnatlibdir && echo *.ali`; do\
