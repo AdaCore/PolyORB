@@ -1,3 +1,12 @@
+1998-05-31  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* support/config.guess, support/config.sub: Updated from GCC
+	sources to detect the right libc under Linux.
+
+	* configure.in: Use local launching for Linux when not using
+	libc1. It looks like Linux does not crash anymore when local
+	launching is used with newer LinuxThreads.
+
 1998-05-21  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* MANIFEST: Add ada/rident.ads.

@@ -1649,13 +1649,13 @@ esac
 echo "$ac_t""$CP_PRESERVE" 1>&6
 #
 # Local launcher. Linux does not support local launching of programs with
-# LinuxThreads. This crashes the machine.
+# LinuxThreads with libc1. This crashes the machine.
 #
 echo $ac_n "checking if platform supports local launching""... $ac_c" 1>&6
 echo "configure:1656: checking if platform supports local launching" >&5
 case "${target}" in
-  *-linux*)	SUPPORTS_LOCAL_LAUNCH=False; echo "$ac_t""no" 1>&6;;
-  *)            SUPPORTS_LOCAL_LAUNCH=True; echo "$ac_t""yes" 1>&6;;
+  *-linux*libc1*)	SUPPORTS_LOCAL_LAUNCH=False; echo "$ac_t""no" 1>&6;;
+  *)            	SUPPORTS_LOCAL_LAUNCH=True; echo "$ac_t""yes" 1>&6;;
 esac
 
 #
