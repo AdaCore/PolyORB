@@ -137,7 +137,7 @@ package System.Garlic.Units is
    --  Version     : unit version id
    --  Cache       : reference ot the caller cache
 
-   package X is new System.Garlic.Table.Complex
+   package Complex is new System.Garlic.Table.Complex
      (Index_Type     => Unit_Id,
       Null_Index     => Null_Unit_Id,
       First_Index    => First_Unit_Id,

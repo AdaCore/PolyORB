@@ -636,7 +636,9 @@ package body System.Garlic.Heart is
 
       --  Run Process in an exclusive and unabortable procedure
 
+      pragma Debug (D (D_Debug, "Request to apply"));
       Apply (PID, Request, Process'Access);
+      pragma Debug (D (D_Debug, "Request applied"));
 
       --  If the remote partition is in a boot phase, send to this
       --  partition the boot partition info and then its partition info.

@@ -72,14 +72,8 @@ package body System.Garlic.Table is
 
       Usage   : Usage_Table_Access;
 
-      function Allocate (N : Index_Type := Null_Index) return Index_Type;
-      --  Allocate a new component. When N /= Null_Index then allocate
-      --  N. When this component index is not in the table's range,
-      --  return Null_Index.
-
-      procedure Check (N : Index_Type);
-      --  Check whether N is in range of current table. Otherwise,
-      --  raise Constraint_Error.
+      function Allocate return Index_Type;
+      --  Allocate a new component.
 
       procedure Free is
         new Ada.Unchecked_Deallocation
@@ -88,6 +82,8 @@ package body System.Garlic.Table is
       procedure Free is
         new Ada.Unchecked_Deallocation
         (Usage_Table_Type, Usage_Table_Access);
+
+      function Valid (N : Index_Type) return Boolean;
 
       Local_Mutex : Mutex_Access := Create;
       --  This lock is used to block tasks until the table is
@@ -105,29 +101,12 @@ package body System.Garlic.Table is
       -- Allocate --
       --------------
 
-      function Allocate (N : Index_Type := Null_Index) return Index_Type
+      function Allocate return Index_Type
       is
          Old_Max   : Index_Type;
          Old_Table : Component_Table_Access;
          Old_Usage : Usage_Table_Access;
       begin
-         --  Try to allocate N as required when N /= Null_Index
-
-         if N /= Null_Index then
-            if Max < N or else N < Min then
-               return Null_Index;
-            end if;
-
-            --  Mark the slot as used so that it is not allocated for another
-            --  client.
-
-            if Usage (N).Free then
-               Usage (N).Free := False;
-            end if;
-
-            return N;
-         end if;
-
          --  Try to allocate a free slot
 
          for Index in Min .. Max loop
@@ -181,12 +160,20 @@ package body System.Garlic.Table is
       begin
          pragma Abort_Defer;
 
-         Check (N);
+         pragma Assert (Valid (N));
          loop
             Enter (Local_Mutex);
-            Enter_Critical_Section;
-            Process (N, Parameter, Table (N), Status);
-            Leave_Critical_Section;
+            declare
+               Component : Component_Type;
+            begin
+               Enter_Critical_Section;
+               Component := Table (N);
+               Leave_Critical_Section;
+               Process (N, Parameter, Component, Status);
+               Enter_Critical_Section;
+               Table (N) := Component;
+               Leave_Critical_Section;
+            end;
             Leave (Local_Mutex, Status);
 
             --  Loop when the subprogram execution has been postponed
@@ -194,23 +181,6 @@ package body System.Garlic.Table is
             exit when Status /= Postponed;
          end loop;
       end Apply;
-
-      -----------
-      -- Check --
-      -----------
-
-      procedure Check (N : Index_Type)
-      is
-         Error : Boolean;
-      begin
-         Enter_Critical_Section;
-         Error := (Allocate (N) = Null_Index);
-         Leave_Critical_Section;
-
-         if Error then
-            raise Constraint_Error;
-         end if;
-      end Check;
 
       -------------------
       -- Get_Component --
@@ -220,7 +190,7 @@ package body System.Garlic.Table is
       is
          Component : Component_Type;
       begin
-         Check (N);
+         pragma Assert (Valid (N));
          Enter_Critical_Section;
          Component := Table (N);
          Leave_Critical_Section;
@@ -284,7 +254,7 @@ package body System.Garlic.Table is
       procedure Set_Component (N : Index_Type; C : Component_Type)
       is
       begin
-         Check (N);
+         pragma Assert (Valid (N));
          Enter_Critical_Section;
          Table (N) := C;
          Leave_Critical_Section;
@@ -297,12 +267,17 @@ package body System.Garlic.Table is
       procedure Set_Name (N : Index_Type; S : String)
       is
       begin
-         Check (N);
+         pragma Assert (Valid (N));
          Enter_Critical_Section;
          Usage (N).Name := Get (S);
          Set_Info (Usage (N).Name, Integer (Index_Type'Pos (N)));
          Leave_Critical_Section;
       end Set_Name;
+
+      function Valid (N : Index_Type) return Boolean is
+      begin
+         return Min <= N and then N <= Max;
+      end Valid;
 
    begin
       Table := new Component_Table_Type'(Min .. Max => Null_Component);
@@ -332,14 +307,8 @@ package body System.Garlic.Table is
 
       Usage   : Usage_Table_Access;
 
-      function Allocate (N : Index_Type := Null_Index) return Index_Type;
-      --  Allocate a new component. When N /= Null_Index then allocate
-      --  N. When this component index is not in the table's range,
-      --  return Null_Index.
-
-      procedure Check (N : Index_Type);
-      --  Check whether N is in range of current table. Otherwise,
-      --  raise Constraint_Error.
+      function Allocate return Index_Type;
+      --  Allocate a new component.
 
       procedure Free is
         new Ada.Unchecked_Deallocation
@@ -348,6 +317,8 @@ package body System.Garlic.Table is
       procedure Free is
         new Ada.Unchecked_Deallocation
         (Usage_Table_Type, Usage_Table_Access);
+
+      function Valid (N : Index_Type) return Boolean;
 
       --  Most of these subprograms are abort deferred. At the beginning of
       --  them, the code enter a critical section. At the end, it leaves
@@ -358,29 +329,12 @@ package body System.Garlic.Table is
       -- Allocate --
       --------------
 
-      function Allocate (N : Index_Type := Null_Index) return Index_Type
+      function Allocate return Index_Type
       is
          Old_Max   : Index_Type;
          Old_Table : Component_Table_Access;
          Old_Usage : Usage_Table_Access;
       begin
-         --  Try to allocate N as required when N /= Null_Index
-
-         if N /= Null_Index then
-            if Max < N or else N < Min then
-               return Null_Index;
-            end if;
-
-            --  Mark the slot as used so that it is not allocated for another
-            --  client.
-
-            if Usage (N).Free then
-               Usage (N).Free := False;
-            end if;
-
-            return N;
-         end if;
-
          --  Try to allocate a free slot
 
          for Index in Min .. Max loop
@@ -421,23 +375,6 @@ package body System.Garlic.Table is
          return Old_Max + 1;
       end Allocate;
 
-      -----------
-      -- Check --
-      -----------
-
-      procedure Check (N : Index_Type)
-      is
-         Error : Boolean;
-      begin
-         Enter_Critical_Section;
-         Error := (Allocate (N) = Null_Index);
-         Leave_Critical_Section;
-
-         if Error then
-            raise Constraint_Error;
-         end if;
-      end Check;
-
       -------------------
       -- Get_Component --
       -------------------
@@ -448,7 +385,7 @@ package body System.Garlic.Table is
       begin
          pragma Abort_Defer;
 
-         Check (N);
+         pragma Assert (Valid (N));
          Enter_Critical_Section;
          Component := Table (N);
          Leave_Critical_Section;
@@ -518,7 +455,7 @@ package body System.Garlic.Table is
       begin
          pragma Abort_Defer;
 
-         Check (N);
+         pragma Assert (Valid (N));
          Enter_Critical_Section;
          Table (N) := C;
          Leave_Critical_Section;
@@ -533,12 +470,17 @@ package body System.Garlic.Table is
       begin
          pragma Abort_Defer;
 
-         Check (N);
+         pragma Assert (Valid (N));
          Enter_Critical_Section;
          Usage (N).Name := Get (S);
          Set_Info (Usage (N).Name, Integer (Index_Type'Pos (N)));
          Leave_Critical_Section;
       end Set_Name;
+
+      function Valid (N : Index_Type) return Boolean is
+      begin
+         return Min <= N and then N <= Max;
+      end Valid;
 
    begin
       Table := new Component_Table_Type'(Min .. Max => Null_Component);

@@ -55,7 +55,7 @@ package body System.Garlic.Units is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   use System.Garlic.Units.X;
+   use System.Garlic.Units.Complex;
 
    Local_Partition  : constant Partition_ID := Get_My_Partition_ID;
    Get_Unit_Request : constant Request_Type :=

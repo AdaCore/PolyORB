@@ -35,10 +35,19 @@
 
 with Ada.Task_Identification;  use Ada.Task_Identification;
 with System.Garlic.Soft_Links;
+with System.Garlic.Debug; use System.Garlic.Debug;
 
 package body System.Garlic.Locking is
 
    procedure Enter_Critical_Section;
+   Private_Debug_Key : constant Debug_Key :=
+     Debug_Initialize ("S_GARLOC", "(s-garloc): ");
+   procedure D
+     (Level   : in Debug_Level;
+      Message : in String;
+      Key     : in Debug_Key := Private_Debug_Key)
+     renames Print_Debug_Info;
+
    procedure Leave_Critical_Section;
    --  Procedures that will be registered through the soft-links mechanism
 
@@ -90,6 +99,13 @@ package body System.Garlic.Locking is
 
       entry Enter (Id : in Task_Id) when True is
       begin
+         pragma Debug
+           (D (D_Debug,
+               "Enter critical section when" &
+               " o = "  & Image (Lock_Owner) &
+               " l ="   & Lock_Level'Img &
+               " m = " & Image (Id)));
+
          if Lock_Level > 0 and then Id = Lock_Owner then
 
             --  The task already has one or more locks on this object. In this
@@ -123,6 +139,13 @@ package body System.Garlic.Locking is
          else
             raise Program_Error;
          end if;
+         pragma Debug
+           (D (D_Debug,
+               "Leave critical section when" &
+               " o = "  & Image (Lock_Owner) &
+               " l ="   & Lock_Level'Img &
+               " m = " & Image (Id)));
+
       end Leave;
 
    end Lock;

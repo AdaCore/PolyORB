@@ -1,3 +1,14 @@
+1998-09-14  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-gartab.adb: Suppress calls to global critical section which
+ 	were done in the middle of a blocking procedure. We probably
+ 	should simplify Enter_Critical_Section and Leave_Critical_Section
+ 	now.
+
+	* s-garpar.ads, s-garuni.ads, s-garuni.adb, s-parint.adb,
+ 	s-rpc.adb: Change instanciation name of
+ 	System.Garlic.Table.Complex.
+
 1998-09-13  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-gartcp.adb: Part of the Garlic full re-writting. Remove

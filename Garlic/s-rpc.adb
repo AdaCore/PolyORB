@@ -53,7 +53,8 @@ with System.RPC.Stream_IO;
 package body System.RPC is
 
    use Ada.Streams;
-   use System.Garlic.Units.X;
+   use System.Garlic.Units.Complex;
+
    use type System.Garlic.Streams.Params_Stream_Access;
    use type System.Garlic.Streams.Params_Stream_Type;
    use type System.Garlic.Types.Partition_ID;
