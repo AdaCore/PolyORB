@@ -1,3 +1,28 @@
+2000-04-21  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* Makefile.am, Makefile.in, xe_defs.ads: Add info on support name
+ 	and specific data of default data storage in xe_defs.
+
+	* xe.adb, xe.ads, xe_back.adb, xe_back.ads, xe_stdcnf.adb: Define
+ 	new attributes Passive and Storage. Replace attribute Storage_Dir
+ 	with Directory to avoid confusion with data storage for passive
+ 	partition. Minor reformatting.
+
+	* xe_build.adb, xe_check.adb, xe_usage.adb: Minor reformating.
+
+	* xe_lead.adb: Replace BOOT_SERVER with BOOT_LOCATION.
+
+	* xe_stubs.adb: Move file and string operations to
+ 	xe_utils. Create a garlic storage configuration file like protocol
+ 	configuration file. If as a default, tcp is automatically loaded
+ 	on a partition, no storage support is automacally loaded for an
+ 	active partition. dfs is automatically loaded for a passive
+ 	partition. 
+
+	* xe_utils.adb, xe_utils.ads: Get some procedures from
+ 	xe_stubs. Sort procedures in alphabetic order. Add names and
+ 	procedures to deal with data storages.
+
 2000-03-25  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* Makefile.am: Fix the previous fix. Makefile.in is automatically
