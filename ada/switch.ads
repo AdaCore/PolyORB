@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---        Copyright (C) 1992,1993,1994 Free Software Foundation, Inc.       --
+--          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -43,6 +43,9 @@ package Switch is
    --  characters, or letters appearing in the parameter to a switch, may be
    --  either upper case or lower case.
 
+   Usage_Requested : Boolean := False;
+   --  Set to True if ? switch encountered requesting usage information
+
    -----------------
    -- Subprograms --
    -----------------
@@ -53,6 +56,7 @@ package Switch is
    --  blanks or other switch terminator characters in the string, so the
    --  entire string should consist of valid switch characters, except that
    --  an optional terminating NUL character is allowed. A bad switch causes
-   --  a fatal error exit and control does not return.
+   --  a fatal error exit and control does not return. The call also sets
+   --  Usage_Requested to True if a ? switch is encountered.
 
 end Switch;

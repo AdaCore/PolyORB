@@ -30,10 +30,10 @@
 
 --  Note: this version of the package should be usable in both Unix and DOS
 
-with Debug;  use Debug;
-with Osint;  use Osint;
-with Opt;    use Opt;
-with Types;  use Types;
+with Debug;   use Debug;
+with Osint;   use Osint;
+with Opt;     use Opt;
+with Types;   use Types;
 
 with System.WCh_Con; use System.WCh_Con;
 
@@ -114,7 +114,7 @@ package body Switch is
       while Ptr <= Max loop
          C := Switches (Ptr);
 
-         --  Processing for -a switch
+         --  Processing for a switch
 
          if C = 'a' then
             Ptr := Ptr + 1;
@@ -127,7 +127,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -A switch
+         --  Processing for A switch
 
          elsif C = 'A' then
             Ptr := Ptr + 1;
@@ -138,7 +138,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -b switch
+         --  Processing for b switch
 
          elsif C = 'b' then
             if Program = Compiler or else Program = Binder then
@@ -148,7 +148,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -c switch
+         --  Processing for c switch
 
          elsif C = 'c' then
             Ptr := Ptr + 1;
@@ -163,7 +163,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -C switch
+         --  Processing for C switch
 
          elsif C = 'C' then
             Ptr := Ptr + 1;
@@ -174,7 +174,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -d switch
+         --  Processing for d switch
 
          elsif C = 'd' then
 
@@ -201,7 +201,7 @@ package body Switch is
 
             return;
 
-         --  Processing for -e switch
+         --  Processing for e switch
 
          elsif C = 'e' then
             Ptr := Ptr + 1;
@@ -214,7 +214,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -E switch
+         --  Processing for E switch
 
          elsif C = 'E' then
             Ptr := Ptr + 1;
@@ -225,7 +225,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -f switch
+         --  Processing for f switch
 
          elsif C = 'f' then
             Ptr := Ptr + 1;
@@ -240,7 +240,18 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -g switch
+         --  Processing for H switch
+
+         elsif C = 'H' then
+            Ptr := Ptr + 1;
+
+            if Program = Compiler then
+               HLO_Active := True;
+            else
+               raise Bad_Switch;
+            end if;
+
+         --  Processing for g switch
 
          elsif C = 'g' then
             Ptr := Ptr + 1;
@@ -270,7 +281,16 @@ package body Switch is
                end if;
             end if;
 
-         --  Processing for -h switch
+         --  Processing for G switch
+
+         --  Note: this switch is equivalent to -gnatdg, it is separately
+         --  provided since this particular debugging switch is more likely
+         --  to be of interest to users than the others.
+
+         elsif C = 'G' then
+            Set_Debug_Flag ('g');
+
+         --  Processing for h switch
 
          elsif C = 'h' then
             Ptr := Ptr + 1;
@@ -282,7 +302,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -i switch
+         --  Processing for i switch
 
          elsif C = 'i' then
             if Program = Compiler or else Program = Binder then
@@ -314,7 +334,7 @@ package body Switch is
                In_Place_Mode := True;
             end if;
 
-         --  Processing for -j switch
+         --  Processing for j switch
 
          elsif C = 'j' then
             Ptr := Ptr + 1;
@@ -325,7 +345,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -k switch
+         --  Processing for k switch
 
          elsif C = 'k' then
             Ptr := Ptr + 1;
@@ -338,7 +358,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -l switch
+         --  Processing for l switch
 
          elsif C = 'l' then
             Ptr := Ptr + 1;
@@ -351,7 +371,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -m switch
+         --  Processing for m switch
 
          elsif C = 'm' then
             Ptr := Ptr + 1;
@@ -362,7 +382,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -M switch
+         --  Processing for M switch
 
          elsif C = 'M' then
             Ptr := Ptr + 1;
@@ -373,7 +393,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -n switch
+         --  Processing for n switch
 
          elsif C = 'n' then
             Ptr := Ptr + 1;
@@ -388,7 +408,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -N switch
+         --  Processing for N switch
 
          elsif C = 'N' then
             Ptr := Ptr + 1;
@@ -399,7 +419,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -o switch
+         --  Processing for o switch
 
          elsif C = 'o' then
             Ptr := Ptr + 1;
@@ -416,7 +436,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -O switch
+         --  Processing for O switch
 
          elsif C = 'O' then
             Ptr := Ptr + 1;
@@ -427,7 +447,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -p switch
+         --  Processing for p switch
 
          elsif C = 'p' then
             Ptr := Ptr + 1;
@@ -451,7 +471,18 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -q switch
+         --  Processing for P switch
+
+         elsif C = 'P' then
+            Ptr := Ptr + 1;
+
+            if Program = Compiler then
+               Polling_Required := True;
+            else
+               raise Bad_Switch;
+            end if;
+
+         --  Processing for q switch
 
          elsif C = 'q' then
             Ptr := Ptr + 1;
@@ -464,7 +495,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -r switch
+         --  Processing for r switch
 
          elsif C = 'r' then
             Ptr := Ptr + 1;
@@ -477,7 +508,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -s switch
+         --  Processing for s switch
 
          elsif C = 's' then
             Ptr := Ptr + 1;
@@ -491,7 +522,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -t switch
+         --  Processing for t switch
 
          elsif C = 't' then
             Ptr := Ptr + 1;
@@ -504,7 +535,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -T switch
+         --  Processing for T switch
 
          elsif C = 'T' then
             Ptr := Ptr + 1;
@@ -515,7 +546,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -u switch
+         --  Processing for u switch
 
          elsif C = 'u' then
             Ptr := Ptr + 1;
@@ -526,7 +557,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -v switch
+         --  Processing for v switch
 
          elsif C = 'v' then
             Ptr := Ptr + 1;
@@ -540,7 +571,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -w switch
+         --  Processing for w switch
 
          elsif C = 'w' then
             Ptr := Ptr + 1;
@@ -566,7 +597,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -W switch
+         --  Processing for W switch
 
          elsif C = 'W' then
             Ptr := Ptr + 1;
@@ -595,7 +626,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -x switch
+         --  Processing for x switch
 
          elsif C = 'x' then
             Ptr := Ptr + 1;
@@ -676,7 +707,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -z switch
+         --  Processing for z switch
 
          elsif C = 'z' then
             Ptr := Ptr + 1;
@@ -704,7 +735,7 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
-         --  Processing for -83 switch
+         --  Processing for 83 switch
 
          elsif C = '8' then
 
@@ -727,6 +758,12 @@ package body Switch is
             else
                raise Bad_Switch;
             end if;
+
+         --  Processing for -? switch
+
+         elsif C = '?' then
+            Ptr := Ptr + 1;
+            Usage_Requested := True;
 
          --  Ignore extra switch character
 

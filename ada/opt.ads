@@ -36,7 +36,7 @@
 --  This package contains global switches set by the initialization
 --  routine from the command line and referenced throughout the compiler,
 --  the binder or gnatmake. The comments indicate which options are used by
---  which programs (GNAT, GNATF, GNATBIND, GNATMAKE).
+--  which programs (GNAT, GNATBIND, GNATMAKE).
 
 with Types;          use Types;
 with System.WCh_Con; use System.WCh_Con;
@@ -48,23 +48,23 @@ package Opt is
    --  Set True if binder file to be generated in Ada rather than C
 
    Ada_83_Switch : Boolean := False;
-   --  GNAT, GNATF
+   --  GNAT
    --  This is the value of the command line switch for Ada 83 mode. At the
    --  start of compiling a unit, Ada_95 and Ada_83 are set from this value
    --  but then they can be subsequently modified by pragmas Ada_83, Ada_95.
 
    Ada_95 : Boolean := True;
-   --  GNAT, GNATF
+   --  GNAT
    --  Set True if operating in Ada 95 mode
    --  Set False if operating in Ada 83 mode
 
    Ada_83 : Boolean := False;
-   --  GNAT, GNATF
+   --  GNAT
    --  Set True if operating in Ada 83 mode
    --  Set False if operating in Ada 95 mode
 
    All_Errors_Mode : Boolean := False;
-   --  GNAT, GNATF
+   --  GNAT
    --  Flag set to force display of multiple errors on a single line and
    --  also repeated error messages for references to undefined identifiers
    --  and certain other repeated error messages.
@@ -75,7 +75,7 @@ package Opt is
    --  directly modified by gnatmake to affect the shared binder routines.
 
    Assertions_Enabled : Boolean := False;
-   --  GNAT, GNATF
+   --  GNAT
    --  Enable assertions made using pragma Assert. Used only by GNATF, ignored
    --  by GNAT1 (actually the pragmas are still processed, but if no code is
    --  generated, they have no effect).
@@ -89,7 +89,7 @@ package Opt is
    --  Set to True if main should be called gnat_main.
 
    Brief_Output : Boolean := False;
-   --  GNAT, GNATF, GNATBIND
+   --  GNAT, GNATBIND
    --  Force brief error messages to standard error, even if verbose mode is
    --  set (so that main error messages go to standard output).
 
@@ -172,7 +172,7 @@ package Opt is
    --  Set to True to output chosen elaboration order
 
    Elab_Warnings : Boolean := False;
-   --  GNAT, GNATF
+   --  GNAT
    --  Set to True to generate full elaboration warnings (-gnatwl)
 
    Force_Compilations : Boolean := False;
@@ -180,7 +180,7 @@ package Opt is
    --  Set to force recompilations even when the objects are up-to-date.
 
    Full_List : Boolean := False;
-   --  GNAT, GNATF
+   --  GNAT
    --  Set True to generate full source listing with embedded errors
 
    Float_Format : Character := ' ';
@@ -207,15 +207,19 @@ package Opt is
    --  Set true if a pragma Discard_Names applies to the current unit
 
    GNAT_Mode : Boolean := False;
-   --  GNAT, GNATF
+   --  GNAT
    --  True if compiling in GNAT system mode (-g switch set)
+
+   HLO_Active : Boolean := False;
+   --  GNAT
+   --  True if High Level Optimizer is activated
 
    Horrible_Elab_Order : Boolean := False;
    --  GNATBIND
    --  True if horrible elaboration order is to be chosen (-h switch set)
 
    Identifier_Character_Set : Character;
-   --  GNAT, GNATF
+   --  GNAT
    --  This variable indicates the character set to be used for identifiers.
    --  The possible settings are:
    --    '1'  Latin-1
@@ -236,18 +240,18 @@ package Opt is
    --  reset if a command line switch is used to change the setting.
 
    Immediate_Errors : Boolean := False;
-   --  GNAT, GNATF
+   --  GNAT
    --  If set to True, then error messages are output as soon as they are
    --  detected (useful for navigating around compiler error situations)
 
    Inline_Active : Boolean := False;
-   --  GNAT, GNATF
+   --  GNAT
    --  Set True to activate pragma Inline processing across modules. Default
    --  for now is not to inline across module boundaries.
    --  Used by GNAT1, ignored by GNATF.
 
    Inline_All : Boolean := False;
-   --  GNAT, GNATF
+   --  GNAT
    --  Set True to activate Inline processing across modules for all
    --  subprograms, regardless of individual pragmas.
    --  Used by GNAT1, ignored by GNATF.
@@ -264,7 +268,7 @@ package Opt is
    --  processing sources until there is no more work.
 
    List_Units : Boolean := False;
-   --  GNAT, GNATF
+   --  GNAT
    --  List units in the active lbrary
 
    List_Dependencies : Boolean := False;
@@ -281,17 +285,17 @@ package Opt is
    --  value if any unit specifies a policy.
 
    Look_In_Primary_Dir : Boolean := True;
-   --  GNAT, GNATF, GNATBIND, GNATMAKE
+   --  GNAT, GNATBIND, GNATMAKE
    --  Set to False if a -I- was present on the command line.
    --  When True we are allowed to look in the primary directory to locate
    --  other source or library files.
 
    Maximum_Errors : Int := 9999;
-   --  GNAT, GNATF, GNATBIND
+   --  GNAT, GNATBIND
    --  Maximum number of errors before compilation is terminated
 
    Maximum_File_Name_Length : Int;
-   --  GNAT, GNATF, GNATBIND
+   --  GNAT, GNATBIND
    --  Maximum number of characters allowed in a file name, not counting the
    --  extension, as set by the appropriate switch. If no switch is given,
    --  then this value is initialized by Osint to the appropriate value.
@@ -312,7 +316,7 @@ package Opt is
 
    type Operating_Mode_Type is (Check_Syntax, Check_Semantics, Generate_Code);
    Operating_Mode : Operating_Mode_Type := Generate_Code;
-   --  GNAT, GNATF
+   --  GNAT
    --  Indicates the operating mode of the compiler. The default is generate
    --  code, which runs the parser, semantics and backend. Switches can be
    --  used to set syntax checking only mode, or syntax and semantics checking
@@ -328,7 +332,13 @@ package Opt is
    --  for GNATBIND or when the object filename is given with option
    --  -gnatO for GNAT.
 
+   Polling_Required : Boolean := False;
+   --  GNAT
+   --  Set to True if polling for asynchronous abort is enabled by using
+   --  the -gnatP option for GNAT.
+
    Propagate_Exceptions : Boolean := False;
+   --  GNAT
    --  Indicates if subprogram descriptor exception tables should be
    --  built for imported subprograms. Set True if a Propagate_Exceptions
    --  pragma applies to the extended main unit.
@@ -345,7 +355,7 @@ package Opt is
    --  Set to True if the list of compilation commands should not be output.
 
    RM_Column_Check : Boolean := False;
-   --  GNAT, GNATF
+   --  GNAT
    --  Flag set to cause column alignment to be taken into account in
    --  determining legality of various constructs, using the layout rules
    --  specified in the RM.
@@ -359,7 +369,7 @@ package Opt is
    --  GNAT1, not used by GNATF.
 
    Strict_Math : aliased Boolean := False;
-   --  GNAT, GNATF
+   --  GNAT
    --  This switch is set True if the current unit is to be compiled in
    --  strict math mode. The effect is to cause certain library file name
    --  substitutions to implement strict math semantics. See the routine
@@ -370,7 +380,7 @@ package Opt is
    --  settable by a switch and a configuration pragma.
 
    Style_Check : Boolean := False;
-   --  GNAT, GNATF
+   --  GNAT
    --  Set True to perform style checks. Activates checks carried out
    --  in package Style (see body of this package for details of checks)
 
@@ -384,7 +394,7 @@ package Opt is
    --  generation active. This causes code generation to be skipped.
 
    Suppress_Options : Suppress_Record;
-   --  GNAT, GNATF
+   --  GNAT
    --  Flags set True to suppress corresponding check, i.e. add an implicit
    --  pragma Suppress at the outer level of each unit compiled. Note that
    --  these suppress actions can be overridden by the use of the Unsuppress
@@ -424,18 +434,18 @@ package Opt is
    --  set true, then inconsistencies result in warnings rather than errors.
 
    Tree_Output : Boolean := False;
-   --  GNAT, GNATF
+   --  GNAT
    --  Set True to generate output tree file
 
    Try_Semantics : Boolean := False;
-   --  GNAT, GNATF
+   --  GNAT
    --  Flag set to force attempt at semantic analysis, even if parser errors
    --  occur. This will probably cause blowups at this stage in the game. On
    --  the other hand, most such blowups will be caught cleanly and simply
    --  say compilation abandoned.
 
    Upper_Half_Encoding : Boolean := False;
-   --  GNAT, GNATF
+   --  GNAT
    --  Normally set False, indicating that upper half ASCII characters are
    --  used in the normal way to represent themselves. If the wide character
    --  encoding method uses the upper bit for this encoding, then this flag
@@ -447,20 +457,20 @@ package Opt is
    --  Set to True if a valid pragma Use_VADS_Size is processed
 
    Verbose_Mode : Boolean := False;
-   --  GNAT, GNATF, GNATBIND
+   --  GNAT, GNATBIND
    --  Set to True to get verbose mode (full error message text and location
    --  information sent to standard output, also header, copyright and summary)
 
    type Warning_Mode_Type is (Suppress, Normal, Treat_As_Error);
    Warning_Mode : Warning_Mode_Type := Normal;
-   --  GNAT, GNATF, GNATBIND
+   --  GNAT, GNATBIND
    --  Controls treatment of warning messages. If set to Suppress, warning
    --  messages are not generated at all. In Normal mode, they are generated
    --  but do not count as errors. In Treat_As_Error mode, warning messages
    --  are generated and are treated as errors.
 
    Wide_Character_Encoding_Method : WC_Encoding_Method := WCEM_Brackets;
-   --  GNAT, GNATF
+   --  GNAT
    --  Method used for encoding wide characters in the source program. See
    --  description of type in unit System.WCh_Con for a list of the methods
    --  that are currently supported. Note that brackets notation is always
@@ -471,7 +481,7 @@ package Opt is
    --  is used to provide the default for Wide_Text_IO files.
 
    Xref_Analyze : Boolean := False;
-   --  GNAT, GNATF
+   --  GNAT
    --  This flag is used to indicate to semantic analyzer that the current
    --  compilation is done for GNATF. So the expander mustn't be called.
 
@@ -483,49 +493,42 @@ package Opt is
    -- Obsolescent flags for GNATF --
    ---------------------------------
 
-   --  To be removed when GNATF is fully retired from action
+   --  To be removed when GNATF is fully retired from action. Note that
+   --  other flags defined previously as applying to GNAT also apply to
+   --  GNATF (at least those that are concerned with front end semantics).
 
    Xref_Flag_1 : Boolean := False;
-   --  GNATF
    --  Set to generate warning messages for unused with clauses.
 
    Xref_Flag_2 : Boolean := False;
-   --  GNATF
    --  Set to generate warning messages for unused entities (including
    --  unused with clauses).
 
    Xref_Flag_3 : Boolean := False;
-   --  GNATF
    --  Set to generate cross-reference file listing all references in the
    --  compiled files (also generates warning messages described above).
 
    Xref_Flag_4 : Boolean := False;
-   --  GNATF
    --  Set to include in the reference list all informations about entities
    --  declared in bodies if the corresponding spec declares inlined
    --  subprograms or generics. Includes effects of Xref_Flag_1,2,3).
 
    Xref_Flag_5 : Boolean := False;
-   --  GNATF
    --  Set to include all information in cross-reference listing.
    --  (includes effects of Xref_Flag_1,2,3 described above).
 
    Xref_Flag_6 : Boolean := False;
-   --  GNATF
    --  Same thing as Xef_Flag_5 except that a global xref file is generated
 
    Xref_Flag_9 : Boolean := False;
-   --  GNAT, GNATF
    --  Set to generate a cross-reference listing of Ada 95 features used. This
    --  listing is sorted by category and output to the standard output file.
 
    Xref_Flag_B : Boolean := False;
-   --  GNATF
    --  If set, cross-reference file includes information on required interfaces
    --  for library unit bodies.
 
    Xref_Flag_S : Boolean := False;
-   --  GNATF
    --  If set, cross-reference file includes information on required interfaces
    --  for library package specs.
 

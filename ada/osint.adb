@@ -500,20 +500,17 @@ package body Osint is
       pragma Assert (In_Compiler);
       Get_Name_String (Current_Main);
 
-      Dot_Index := 0;
+      --  Find last dot since we replace the existing extension by .ali. The
+      --  initialization to Name_Len + 1 provides for simply adding the .ali
+      --  extension if the source file name has no extension.
+
+      Dot_Index := Name_Len + 1;
       for J in reverse 1 .. Name_Len loop
          if Name_Buffer (J) = '.' then
             Dot_Index := J;
             exit;
          end if;
       end loop;
-
-      --  Should be impossible to not have an extension
-
-      if Dot_Index = 0 then
-         pragma Assert (False);
-         raise Program_Error;
-      end if;
 
       --  Make sure that the output file name matches the source file name.
       --  To compare them, remove filename directories and extensions.
@@ -539,6 +536,7 @@ package body Osint is
          end;
       end if;
 
+      Name_Buffer (Dot_Index) := '.';
       Name_Buffer (Dot_Index + 1 .. Dot_Index + 3) := ALI_Suffix.all;
       Name_Buffer (Dot_Index + 4) := Ascii.NUL;
       Name_Len := Dot_Index + 3;
