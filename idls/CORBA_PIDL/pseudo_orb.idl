@@ -1,5 +1,5 @@
 // File: pseudo_orb.idl
-// From CORBA 2.3
+// From CORBA 3.0
 #ifndef _PSEUDO_ORB_IDL_
 #define _PSEUDO_ORB_IDL_
 
@@ -43,8 +43,13 @@
 //    definition that results in valid IDL, even if it doesn't yield
 //    useful stubs and skeletons. Of course, PIDL never results in
 //    the standard stubs so that's not a problem.
-#define native typedef long
+//
+// Set the variable _MASK_NATIVE_ in the IDL compiler to enable it to
+// parse this file.
 
+#ifdef _MASK_NATIVE_
+#define native typedef long
+#endif // _MASK_NATIVE_
 
 module CORBA {
 
@@ -78,13 +83,10 @@ module CORBA {
 
 // Forward references, alphabetically 
     interface Context;                   // Chapter  7, CORBA_Context.idl
-	interface Interceptor;               // Chapter 21, CORBA_Interceptor.idl
-	interface MessageInterceptor;        // Chapter 21, CORBA_Interceptor.idl
     interface NVList;                    // Chapter  7, CORBA_NVList.idl
-	interface Object;                    // Chapter  4, CORBA_Object.idl
+    interface Object;                    // Chapter  4, CORBA_Object.idl
     interface ORB;                       // Chapter  4, CORBA_ORB.idl
     interface Request;                   // Chapter  7, CORBA_Request.idl
-	interface RequestInterceptor;        // Chapter 21, CORBA_Interceptor.idl
     interface ServerRequest;             // Chapter  8, CORBA_ServerRequest.idl
     valuetype ValueBase;                 // Chapter  4, CORBA_ValueBase.idl
 
@@ -105,9 +107,6 @@ module CORBA {
 // Chapter 8: Dynamic Skeleton Interface
 #include <CORBA_ServerRequest.idl>
 
-// Chapter 21: Interceptors
-#include <CORBA_Interceptor.idl>
 };
 
 #endif // _PSEUDO_ORB_IDL_
-
