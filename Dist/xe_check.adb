@@ -1,4 +1,4 @@
-------------------------------------------------------------------------------
+ÿ------------------------------------------------------------------------------
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
@@ -562,6 +562,7 @@ package body XE_Check is
       Unmask_Object_Consistency_Check;
 
       A := Scan_ALI (Afile, Text);
+      Free (Text);
       ALIs.Table (A).Ofile_Full_Name := Full_Lib_File_Name (Afile);
       Set_Source_Table (A);
 
@@ -660,6 +661,7 @@ package body XE_Check is
       end if;
 
       A := Scan_ALI (L, T);
+      Free (T);
       ALIs.Table (A).Ofile_Full_Name := Full_Lib_File_Name (L);
       Set_Source_Table (A);
 
@@ -732,6 +734,7 @@ package body XE_Check is
       end if;
 
       A := Scan_ALI (L, T);
+      Free (T);
       ALIs.Table (A).Ofile_Full_Name := Full_Lib_File_Name (L);
       Set_Source_Table (A);
 

@@ -1,3 +1,8 @@
+1999-01-03  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_check.adb: Deallocate ali test buffer once scanned. Part of
+	fix for 6023-G01.
+
 1998-12-08  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_stubs.adb: Change stub generation because one of the Garlic
