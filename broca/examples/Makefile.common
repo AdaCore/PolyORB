@@ -21,9 +21,10 @@ CLEANFILES = b~*.* \
 
 DISTCLEANFILES = client server
 
-all-local: client server dynclient
+all-local: client server $(EXTRA)
 
-%.ads %.adb: %.idl $(IDLAC)
+SUFFIXES = .idl .ads .adb
+.idl.ads .idl.adb: $(IDLAC)
 	$(IDLAC) $<
 
 $(IDLAC): force
@@ -32,11 +33,8 @@ $(IDLAC): force
 $(SOCK_CONS):
 	cd ../../adasockets/src && $(MAKE) sockets-constants.ads
 
-client server: force $(EXAMPLE).ads
+client server $(EXTRA): force $(EXAMPLE).ads
 	$(GNATMAKE) $@ $(EXAMPLES_GNATMAKE_FLAGS)
-
-dynclient: force
-	if test -a $@.adb; then $(GNATMAKE) $@ $(EXAMPLES_GNATMAKE_FLAGS); fi;
 
 force::
 	cd ../../src && $(MAKE)
