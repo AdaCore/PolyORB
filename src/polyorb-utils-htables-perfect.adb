@@ -970,8 +970,9 @@ package body PolyORB.Utils.HTables.Perfect is
    -- Is_Empty --
    --------------
 
-   function Is_Empty (T : Table_Instance)
-                     return Boolean is
+   function Is_Empty
+     (T : Table_Instance)
+     return Boolean is
    begin
       return T.T.HTable.Info.Count = 0;
    end Is_Empty;
@@ -980,8 +981,9 @@ package body PolyORB.Utils.HTables.Perfect is
    -- First --
    -----------
 
-   function First (T : Table_Instance)
-                  return Iterator
+   function First
+     (T : Table_Instance)
+     return Iterator
    is
       Elements : Element_Array renames T.T.HTable.Elements;
 
@@ -999,8 +1001,9 @@ package body PolyORB.Utils.HTables.Perfect is
    -- Value --
    -----------
 
-   function Value (I : Iterator)
-                  return Item
+   function Value
+     (I : Iterator)
+     return Item
    is
       Elements : Dynamic_Element_Array.Table_Ptr
         renames I.On_Table.T.HTable.Elements.Table;
@@ -1015,14 +1018,15 @@ package body PolyORB.Utils.HTables.Perfect is
    -- Last --
    ----------
 
-   function Last (I : Iterator)
-                 return Boolean
+   function Last
+     (I : Iterator)
+     return Boolean
    is
       Elements : Element_Array renames I.On_Table.T.HTable.Elements;
 
       Result : Boolean := True;
    begin
-      for J in I.Position + 1 .. Last (Elements) loop
+      for J in I.Position .. Last (Elements) loop
          Result := Result and not Elements.Table (J).Used;
       end loop;
 
@@ -1033,7 +1037,8 @@ package body PolyORB.Utils.HTables.Perfect is
    -- Next --
    ----------
 
-   procedure Next (I : in out Iterator)
+   procedure Next
+     (I : in out Iterator)
    is
       Elements : Element_Array renames I.On_Table.T.HTable.Elements;
 
@@ -1041,9 +1046,11 @@ package body PolyORB.Utils.HTables.Perfect is
       for J in I.Position + 1 .. Last (Elements) loop
          if Elements.Table (J).Used then
             I.Position := J;
-            exit;
+            return;
          end if;
       end loop;
+
+      I.Position := Last (Elements) + 1;
    end Next;
 
 end PolyORB.Utils.HTables.Perfect;
