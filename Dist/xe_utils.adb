@@ -58,7 +58,6 @@ package body XE_Utils is
 
    Dir_Sep : Character renames GNAT.OS_Lib.Directory_Separator;
 
-   GNAT_Verbose   : String_Access;
    Gcc            : String_Access;
    Link           : String_Access;
    Gnatbind       : String_Access;
@@ -82,7 +81,7 @@ package body XE_Utils is
    System_Tasking        : constant String  := "system.tasking";
    System_Tasking_Length : constant Natural := System_Tasking'Length;
 
-   GARLIC                : String_Access;
+   --  GARLIC                : String_Access;
 
    function Locate
      (Exec_Name  : String;
@@ -97,10 +96,6 @@ package body XE_Utils is
    --  Check whether File has a standard extension for GCC and hence does
    --  not need the "-x ada" command line argument (typically ".ads" or
    --  ".adb" terminated file).
-
-   procedure Add_Default_Optimization;
-   --  Add the default optimization flag if Optimization_Mode is True. Turns
-   --  if off afterwise.
 
    procedure Print_Flags;
 
@@ -139,19 +134,6 @@ package body XE_Utils is
       Add_Str_To_Name_Buffer (N2);
       return Name_Find;
    end "&";
-
-   ------------------------------
-   -- Add_Default_Optimization --
-   ------------------------------
-
-   procedure Add_Default_Optimization is
-      Opt : constant String := Get_Default_Optimization;
-   begin
-      if Optimization_Mode and then Opt /= "O0" then
-         Scan_Make_Arg ("-" & Opt, And_Save => False);
-      end if;
-      Optimization_Mode := False;
-   end Add_Default_Optimization;
 
    -------
    -- C --
@@ -551,7 +533,8 @@ package body XE_Utils is
       Fatal : in Boolean := True)
    is
       Length : constant Positive :=
-        Args'Length + Binder_Switches.Last - Binder_Switches.First + 3;
+        Args'Length +
+        Make.Binder_Switches.Last - Make.Binder_Switches.First + 3;
 
       Bind_Flags   : Argument_List (1 .. Length);
 
@@ -570,9 +553,9 @@ package body XE_Utils is
          Bind_Flags (N_Bind_Flags) := Args (I);
       end loop;
 
-      for I in Binder_Switches.First .. Binder_Switches.Last loop
+      for I in Make.Binder_Switches.First .. Make.Binder_Switches.Last loop
          N_Bind_Flags := N_Bind_Flags + 1;
-         Bind_Flags (N_Bind_Flags) := Binder_Switches.Table (I);
+         Bind_Flags (N_Bind_Flags) := Make.Binder_Switches.Table (I);
       end loop;
 
       --  <unit name>
@@ -668,7 +651,7 @@ package body XE_Utils is
         2 +            --  -o <executable name>
         1 +            --  <unit_name>
         Args'Length +
-        Linker_Switches.Last - Linker_Switches.First + 1;
+        Make.Linker_Switches.Last - Make.Linker_Switches.First + 1;
 
       Link_Flags   : Argument_List (1 .. Length);
 
@@ -700,9 +683,9 @@ package body XE_Utils is
       N_Link_Flags := N_Link_Flags + 1;
       Link_Flags (N_Link_Flags) := new String'(Lib_Name);
 
-      for I in Linker_Switches.First .. Linker_Switches.Last loop
+      for I in Make.Linker_Switches.First .. Make.Linker_Switches.Last loop
          N_Link_Flags := N_Link_Flags + 1;
-         Link_Flags (N_Link_Flags) := Linker_Switches.Table (I);
+         Link_Flags (N_Link_Flags) := Make.Linker_Switches.Table (I);
       end loop;
 
       --  Call gnatmake
@@ -850,9 +833,9 @@ package body XE_Utils is
 
       Output.Set_Standard_Error;
 
-      Gcc_Switches.Init;
-      Binder_Switches.Init;
-      Linker_Switches.Init;
+      Make.Gcc_Switches.Init;
+      Make.Binder_Switches.Init;
+      Make.Linker_Switches.Init;
 
       Csets.Initialize;
       Namet.Initialize;
@@ -900,13 +883,6 @@ package body XE_Utils is
       Storage_Config_File  := Str_To_Id ("s-gastco");
       Storage_Config_Name  := Str_To_Id ("System.Garlic.Storages.Config");
 
-      GARLIC := Getenv ("GLADE_LIBRARY_DIR");
-      if GARLIC = null
-        or else GARLIC'Length = 0
-      then
-         GARLIC := Get_GARLIC_Dir;
-      end if;
-
       I_Current_Dir := new String'("-I" & Normalized_CWD);
       L_Current_Dir := new String'("-L" & Normalized_CWD);
 
@@ -918,10 +894,9 @@ package body XE_Utils is
       Name_Buffer (2) := 'L';
       L_Caller_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
-      Name_Len := 2;
-      Name_Buffer (1 .. 2) := "-I";
-      Add_Str_To_Name_Buffer (GARLIC.all);
-      I_GARLIC_Dir := new String'(Name_Buffer (1 .. Name_Len));
+      for I in 1 .. Argument_Count loop
+         Scan_Make_Arg (Argument (I), And_Save => False);
+      end loop;
 
       --  gnatmake has its own set of flags. gnatdist parses them
       --  first and then passes them to gnatmake. gnatmake keeps also
@@ -934,81 +909,28 @@ package body XE_Utils is
       --  pass those flags in the command line changing Program_Args
       --  to something different from none.
 
-      Optimization_Mode := True;
-      for I in 1 .. Argument_Count loop
-         declare
-            Argv : String := Argument (I);
-         begin
-            if Argv (1) = '-' then
-               if Argv'Length >= 2
-                 and then Argv (2) = 'g'
-                 and then (Argv'Length < 5
-                           or else Argv (2 .. 5) /= "gnat")
-               then
-                  Optimization_Mode := False;
-               elsif Argv'Length >= 2
-                 and then Argv (2) = 'O'
-               then
-                  Optimization_Mode := False;
-               end if;
-            end if;
-            Scan_Make_Arg (Argv, And_Save => False);
-         end;
+      XE_Defs.Initialize;
+
+      Scan_Make_Arg ("-cargs", And_Save => False);
+      for I in 1 .. XE.Compiler_Switches.Last loop
+         Scan_Make_Arg (XE.Compiler_Switches.Table (I).all, And_Save => False);
       end loop;
 
-      Add_Default_Optimization;
+      Scan_Make_Arg ("-bargs", And_Save => False);
+      for I in 1 .. XE.Binder_Switches.Last loop
+         Scan_Make_Arg (XE.Binder_Switches.Table (I).all, And_Save => False);
+      end loop;
 
-      declare
-         RTS_Flag : constant String := Get_RTS_Flag;
-      begin
-         if RTS_Flag'Length /= 0 then
-            Scan_Make_Arg (RTS_Flag, And_Save => False);
-         end if;
-      end;
-
-      declare
-         Primary_Dir : String_Ptr;
-      begin
-
-         --  We must add GARLIC in the src and lib search dirs. But
-         --  when we want to use an internal GARLIC file from the
-         --  current directory (or somewhere else), we must add -I- to
-         --  remove the primary directory (GARLIC directory here).
-
-         if Opt.Look_In_Primary_Dir then
-            Primary_Dir :=
-              Normalize_Directory_Name (Get_Primary_Src_Search_Directory.all);
-         end if;
-         if Number_Of_Files > 0 then
-            Scan_Make_Arg ("-cargs", And_Save => False);
-            if Primary_Dir /= null then
-               Scan_Make_Arg ("-I" & Primary_Dir.all, And_Save => False);
-               Scan_Make_Arg ("-I-", And_Save => False);
-            end if;
-            Scan_Make_Arg (I_GARLIC_Dir.all, And_Save => False);
-            Scan_Make_Arg ("-bargs", And_Save => False);
-         end if;
-         if Primary_Dir /= null then
-            Scan_Make_Arg ("-I" & Primary_Dir.all, And_Save => False);
-            Scan_Make_Arg ("-I-", And_Save => False);
-         end if;
-         Scan_Make_Arg (I_GARLIC_Dir.all, And_Save => False);
-      end;
+      Scan_Make_Arg ("-largs", And_Save => False);
+      for I in 1 .. XE.Linker_Switches.Last loop
+         Scan_Make_Arg (XE.Linker_Switches.Table (I).all, And_Save => False);
+      end loop;
 
       Osint.Add_Default_Search_Dirs;
-
-      --  Source file lookups should be cached for efficiency.
-      --  Source files are not supposed to change.
-
-      --  Osint.Source_File_Data (Cache => True);
-
-      Linker_Switches.Increment_Last;
-      Linker_Switches.Table (Linker_Switches.Last) := new String'("-lgarlic");
 
       --  Use Gnatmake already defined switches.
       Verbose_Mode       := Opt.Verbose_Mode;
       Debug_Mode         := Debug.Debug_Flag_Q;
-      Optimization_Mode  := Optimization_Mode and then Debug.Debug_Flag_S;
       Quiet_Mode         := Opt.Quiet_Output;
       No_Recompilation   := Opt.Do_Not_Execute;
       Building_Script    := Opt.List_Dependencies;
@@ -1025,12 +947,6 @@ package body XE_Utils is
 
       Opt.Check_Source_Files := False;
       Opt.All_Sources        := False;
-
-      if Verbose_Mode then
-         GNAT_Verbose := new String'("-v");
-      else
-         GNAT_Verbose := new String'("-q");
-      end if;
 
       --  Read gnat.adc file to initialize Fname.UF
 
@@ -1170,25 +1086,25 @@ package body XE_Utils is
 
    procedure Print_Flags is
    begin
-      for I in Gcc_Switches.First .. Gcc_Switches.Last loop
+      for I in Make.Gcc_Switches.First .. Make.Gcc_Switches.Last loop
          Write_Str ("compiler [");
          Write_Int (Int (I));
          Write_Str ("] = ");
-         Write_Str (Gcc_Switches.Table (I).all);
+         Write_Str (Make.Gcc_Switches.Table (I).all);
          Write_Eol;
       end loop;
-      for I in Binder_Switches.First .. Binder_Switches.Last loop
+      for I in Make.Binder_Switches.First .. Make.Binder_Switches.Last loop
          Write_Str ("binder [");
          Write_Int (Int (I));
          Write_Str ("] = ");
-         Write_Str (Binder_Switches.Table (I).all);
+         Write_Str (Make.Binder_Switches.Table (I).all);
          Write_Eol;
       end loop;
-      for I in Linker_Switches.First .. Linker_Switches.Last loop
+      for I in Make.Linker_Switches.First .. Make.Linker_Switches.Last loop
          Write_Str ("linker [");
          Write_Int (Int (I));
          Write_Str ("] = ");
-         Write_Str (Linker_Switches.Table (I).all);
+         Write_Str (Make.Linker_Switches.Table (I).all);
          Write_Eol;
       end loop;
    end Print_Flags;
