@@ -33,6 +33,8 @@
 --  $Id$
 
 with Ada.Characters.Handling;
+with Ada.Exceptions;
+with Ada.Unchecked_Conversion;
 
 with PolyORB.Components;
 with PolyORB.Filters.Interface;
@@ -110,6 +112,12 @@ package body PolyORB.Filters.HTTP is
    --  A message has been completely received and processed by F:
    --  send the upper layer a Data_Indication.
 
+   procedure Error
+     (F : access HTTP_Filter;
+      Status : HTTP_Status_Code);
+   --  Send an error message to F.
+   --  XXX should a message body be included with the error status?
+
    --  General filter management
 
    procedure Create
@@ -124,7 +132,7 @@ package body PolyORB.Filters.HTTP is
    procedure Clear_Message_State (F : in out HTTP_Filter) is
    begin
       F.Version := Default_HTTP_Version;
-      F.Status  := -1;
+      F.Status  := S_Unknown;
 
       F.Request_Method := PolyORB.HTTP_Methods.Extension_Method;
       Deallocate (F.Request_URI);
@@ -228,10 +236,26 @@ package body PolyORB.Filters.HTTP is
                         end if;
                         F.CR_Seen := False;
 
-                        Process_Line
-                          (F, Line_Length =>
-                             New_Data_Position - CDR_Position (F.In_Buf)
-                           + I - New_Data.Offset + 1);
+                        begin
+                           Process_Line
+                             (F, Line_Length =>
+                                New_Data_Position - CDR_Position (F.In_Buf)
+                              + I - New_Data.Offset + 1);
+                        exception
+                           when E : others =>
+                              O ("Received exception in "
+                                 & F.State'Img & " state:", Error);
+                              O (Ada.Exceptions.Exception_Information (E),
+                                 Error);
+                              Clear_Message_State (F.all);
+                              if F.Role = Server then
+                                 Error (F, S_400_Bad_Request);
+                              else
+                                 --  XXX what to do on client side?
+                                 raise;
+                              end if;
+                              --  XXX close???
+                        end;
 
                         --  Calculation of the length of the current line:
                         --  New_Data_Position - CDR_Position = amount of data
@@ -401,6 +425,13 @@ package body PolyORB.Filters.HTTP is
 
    function Parse_HTTP_Version (S : String) return HTTP_Version;
    --  HTTP-Version
+
+   function To_HTTP_Status_Code (Status : Integer) return HTTP_Status_Code;
+   --  HTTP status codes.
+   --  Integers corresponding to known codes are translated to the
+   --  corresponding enum value. Integers corresponding to unknown
+   --  codes in a valid class are translated to the 'other' code for
+   --  that class. For other values of Status, Constraint_Error is raised.
 
    procedure Parse_Request_Line (F : access HTTP_Filter; S : String);
    --  Request-Line
@@ -658,7 +689,6 @@ package body PolyORB.Filters.HTTP is
    is
       Space : Integer;
       Status_Pos : Integer;
-      Status : Natural;
    begin
       Space := Find_Whitespace (S, S'First);
       if Space > S'Last then
@@ -671,17 +701,14 @@ package body PolyORB.Filters.HTTP is
          raise Protocol_Error;
       end if;
 
-      Status := Natural'Value (S (Status_Pos .. Space - 1));
-      if Status < 100 then
-         raise Protocol_Error;
-      end if;
-      F.Status := Status;
+      F.Status := To_HTTP_Status_Code
+        (Natural'Value (S (Status_Pos .. Space - 1)));
 
       --  The remainder of the line is the response-phrase
       --  and is ignored.
 
       pragma Debug (O ("Parsed status-line:"));
-      pragma Debug (O (Image (F.Version) & Status'Img
+      pragma Debug (O (Image (F.Version) & F.Status'Img
                        & S (Space .. S'Last)));
    end Parse_Status_Line;
 
@@ -828,5 +855,57 @@ package body PolyORB.Filters.HTTP is
       --      he Entity unbounded-string (for efficiency's sake,
       --      check that unbounded strings are copy-on-write.)
    end Message_Complete;
+
+   function To_HTTP_Status_Code
+     (Status : Integer)
+     return HTTP_Status_Code
+   is
+      function Cvt is new Ada.Unchecked_Conversion
+        (Integer, HTTP_Status_Code);
+      Res : HTTP_Status_Code := Cvt (Status);
+
+      Unknown_Codes : constant array (Integer range <>) of HTTP_Status_Code
+        := (1 => S_1xx_Other_Informational,
+            2 => S_2xx_Other_Successful,
+            3 => S_3xx_Other_Redirection,
+            4 => S_4xx_Other_Client_Error,
+            5 => S_5xx_Other_Server_Error);
+   begin
+      if Res'Valid then
+         return Res;
+      else
+         declare
+            Class : constant Integer := Status / 100;
+         begin
+            if Class in Unknown_Codes'Range then
+               return Unknown_Codes (Class);
+            else
+               raise Constraint_Error;
+            end if;
+         end;
+      end if;
+   end To_HTTP_Status_Code;
+
+   function To_Integer is new Ada.Unchecked_Conversion
+     (HTTP_Status_Code, Integer);
+
+   procedure Put_Status_Line (F : HTTP_Filter; Status : HTTP_Status_Code);
+
+   procedure Put_Status_Line (F : HTTP_Filter; Status : HTTP_Status_Code) is
+   begin
+      PolyORB.Utils.Text_Buffers.Marshall_String
+        (F.Out_Buf,
+         Image (F.Version)
+         --  XXX Should we reply with that version?
+         & Integer'Image (To_Integer (Status)) & " "
+         & Status'Img);
+   end Put_Status_Line;
+
+   procedure Error (F : access HTTP_Filter; Status : HTTP_Status_Code) is
+   begin
+      Put_Status_Line (F.all, Status);
+      Clear_Message_State (F.all);
+      Emit_No_Reply (Lower (F), Data_Out'(Out_Buf => F.Out_Buf));
+   end Error;
 
 end PolyORB.Filters.HTTP;

@@ -80,6 +80,126 @@ private
    Default_HTTP_Version : constant HTTP_Version
      := (Major => 1, Minor => 1);
 
+   type HTTP_Status_Code is
+     (S_Unknown,
+
+      S_100_Continue,
+      S_101_Switching_Protocols,
+      S_1xx_Other_Informational,
+
+      S_200_OK,
+      S_201_Created,
+      S_202_Accepted,
+      S_203_Non_Authoritative_Information,
+      S_204_No_Content,
+      S_205_Reset_Content,
+      S_206_Partial_Content,
+      S_2xx_Other_Successful,
+
+      S_300_Multiple_Choices,
+      S_301_Moved_Permanently,
+      S_302_Found,
+      S_303_See_Other,
+      S_304_Not_Modified,
+      S_305_Use_Proxy,
+      S_306_Unused,
+      S_307_Temporary_Redirect,
+      S_3xx_Other_Redirection,
+
+      S_400_Bad_Request,
+      S_401_Unauthorized,
+      S_402_Payment_Required,
+      S_403_Forbidden,
+      S_404_Not_Found,
+      S_405_Method_Not_Allowed,
+      S_406_Not_Acceptable,
+      S_407_Proxy_Authentication_Required,
+      S_408_Request_Timeout,
+      S_409_Conflict,
+      S_410_Gone,
+      S_411_Length_Required,
+      S_412_Precondition_Failed,
+      S_413_Request_Entity_Too_Large,
+      S_414_Request_URI_Too_Long,
+      S_415_Unsupported_Media_Type,
+      S_416_Request_Range_Not_Satisfiable,
+      S_417_Expectation_Failed,
+      S_4xx_Other_Client_Error,
+
+      S_500_Internal_Server_Error,
+      S_501_Not_Implemented,
+      S_502_Bad_Gateway,
+      S_503_Service_Unavailable,
+      S_504_Gateway_Timeout,
+      S_505_HTTP_Version_Not_Supprted,
+      S_5xx_Other_Server_Error);
+
+   for HTTP_Status_Code'Size use Integer'Size;
+   for HTTP_Status_Code use
+      (S_Unknown => 0,
+
+       S_100_Continue => 100,
+       S_101_Switching_Protocols => 101,
+       S_1xx_Other_Informational => 199,
+
+       S_200_OK => 200,
+       S_201_Created => 201,
+       S_202_Accepted => 202,
+       S_203_Non_Authoritative_Information => 203,
+       S_204_No_Content => 204,
+       S_205_Reset_Content => 205,
+       S_206_Partial_Content => 206,
+       S_2xx_Other_Successful => 299,
+
+       S_300_Multiple_Choices => 300,
+       S_301_Moved_Permanently => 301,
+       S_302_Found => 302,
+       S_303_See_Other => 303,
+       S_304_Not_Modified => 304,
+       S_305_Use_Proxy => 305,
+       S_306_Unused => 306,
+       S_307_Temporary_Redirect => 307,
+       S_3xx_Other_Redirection => 399,
+
+       S_400_Bad_Request => 400,
+       S_401_Unauthorized => 401,
+       S_402_Payment_Required => 402,
+       S_403_Forbidden => 403,
+       S_404_Not_Found => 404,
+       S_405_Method_Not_Allowed => 405,
+       S_406_Not_Acceptable => 406,
+       S_407_Proxy_Authentication_Required => 407,
+       S_408_Request_Timeout => 408,
+       S_409_Conflict => 409,
+       S_410_Gone => 410,
+       S_411_Length_Required => 411,
+       S_412_Precondition_Failed => 412,
+       S_413_Request_Entity_Too_Large => 413,
+       S_414_Request_URI_Too_Long => 414,
+       S_415_Unsupported_Media_Type => 415,
+       S_416_Request_Range_Not_Satisfiable => 416,
+       S_417_Expectation_Failed => 417,
+       S_4xx_Other_Client_Error => 499,
+
+       S_500_Internal_Server_Error => 500,
+       S_501_Not_Implemented => 501,
+       S_502_Bad_Gateway => 502,
+       S_503_Service_Unavailable => 503,
+       S_504_Gateway_Timeout => 504,
+       S_505_HTTP_Version_Not_Supprted => 505,
+       S_5xx_Other_Server_Error => 599);
+
+   subtype Informational_Status_Code is HTTP_Status_Code
+     range S_100_Continue .. S_1xx_Other_Informational;
+   subtype Successful_Status_Code is HTTP_Status_Code
+     range S_200_OK .. S_2xx_Other_Successful;
+   subtype Redirection_Status_Code is HTTP_Status_Code
+     range S_300_Multiple_Choices .. S_3xx_Other_Redirection;
+   subtype Client_Error_Status_Code is HTTP_Status_Code
+     range S_400_Bad_Request .. S_4xx_Other_Client_Error;
+   subtype Server_Error_Status_Code is HTTP_Status_Code
+     range S_500_Internal_Server_Error .. S_5xx_Other_Server_Error;
+
    -----------
    -- Types --
    -----------
@@ -129,6 +249,9 @@ private
       --  This buffer is used for communication of complete
       --  received message bodies to the upper layer.
 
+      Out_Buf : PolyORB.Buffers.Buffer_Access;
+      --  Buffer used to prepare outbound messages.
+
       ----------------------------------------------------------
       -- Parameters concerning the HTTP message               --
       -- currently being processed.                           --
@@ -137,7 +260,7 @@ private
       ----------------------------------------------------------
 
       Version : HTTP_Version;
-      Status  : Integer;
+      Status  : HTTP_Status_Code;
 
       Request_Method : PolyORB.HTTP_Methods.Method;
       Request_URI    : String_Ptr;
