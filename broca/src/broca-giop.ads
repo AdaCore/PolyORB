@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.12 $
+--                            $Revision: 1.13 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -132,10 +132,6 @@ package Broca.GIOP is
       end record;
 
    --  Send a request.
-   --  procedure Send_Request_Size
-   --    (Handler   : in out Request_Handler;
-   --     Target    : in Object.Object_Ptr;
-   --     Operation : in CORBA.Identifier);
 
    procedure Send_Request_Marshall
      (Handler           : in out Request_Handler;
