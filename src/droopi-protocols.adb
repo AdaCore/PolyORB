@@ -26,7 +26,9 @@ package body Droopi.Protocols is
       Nothing : Components.Null_Message;
    begin
       if S in Connect_Indication then
-         Handle_Connect (Session_Access (Sess));
+         Handle_Connect_Indication (Session_Access (Sess));
+      elsif S in Connect_Confirmation then
+         Handle_Connect_Confirmation (Session_Access (Sess));
       elsif S in Disconnect_Indication then
          Handle_Disconnect (Session_Access (Sess));
       elsif S in Data_Indication then

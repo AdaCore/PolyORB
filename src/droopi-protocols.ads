@@ -86,9 +86,13 @@ package Droopi.Protocols is
      return Components.Message'Class;
    --  Demultiplex Data_Units to specialized operations.
 
-   procedure Handle_Connect (S : access Session) is abstract;
-   --  Invoked when a new incoming connection has been accepted
-   --  as session S.
+   procedure Handle_Connect_Indication (S : access Session)
+      is abstract;
+   --  A new server connection has been accepted as session S.
+
+   procedure Handle_Connect_Confirmation (S : access Session)
+      is abstract;
+   --  A new client connection has been established as session S.
 
    procedure Handle_Data_Indication (S : access Session) is abstract;
    --  Invoked when some data arrives for session S.

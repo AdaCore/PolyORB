@@ -51,12 +51,19 @@ package Droopi.ORB is
       TE  : Transport_Endpoint_Access;
    end record;
 
-   procedure Handle_New_Connection
+   procedure Handle_New_Server_Connection
      (P   : access Tasking_Policy_Type;
       ORB : ORB_Access;
       C   : Active_Connection) is abstract;
    --  Create the necessary processing resources for newly-created
-   --  communication endpoint AS.
+   --  communication endpoint AS on server side.
+
+   procedure Handle_New_Client_Connection
+     (P   : access Tasking_Policy_Type;
+      ORB : ORB_Access;
+      C   : Active_Connection) is abstract;
+   --  Create the necessary processing resources for newly-created
+   --  communication endpoint AS on client side.
 
    procedure Handle_Request
      (P   : access Tasking_Policy_Type;
@@ -115,10 +122,13 @@ package Droopi.ORB is
    --  chain is instanciated using Chain, and associated
    --  to the corresponding transport endpoint.
 
+   type Endpoint_Role is (Client, Server);
+
    procedure Register_Endpoint
      (ORB   : access ORB_Type;
-      TE    : Transport_Endoint_Access;
-      Chain : Filters.Factory_Chain_Access);
+      TE    : Transport_Endpoint_Access;
+      Chain : Filters.Factory_Chain_Access;
+      Role  : Endpoint_Role);
    --  Register a newly-created transport endpoint with ORB.
    --  A filter chain is instanciated using Chain, and associated
    --  with TE.

@@ -19,7 +19,12 @@ package Droopi.ORB.Task_Policies is
 
    type No_Tasking is new Tasking_Policy_Type with private;
 
-   procedure Handle_New_Connection
+   procedure Handle_New_Server_Connection
+     (P   : access No_Tasking;
+      ORB : ORB_Access;
+      C   : Active_Connection);
+
+   procedure Handle_New_Client_Connection
      (P   : access No_Tasking;
       ORB : ORB_Access;
       C   : Active_Connection);

@@ -32,6 +32,10 @@ package Droopi.Filters.Interface is
    --  Semantics: a new incoming transport connection is
    --  being initiated.
 
+   type Connect_Confirmation is new Root_Data_Unit with null record;
+   --  Direction: from lower to upper.
+   --  Semantics: a new client transport connection has been established.
+
    type Disconnect_Indication is new Root_Data_Unit with null record;
    --  Direction: from lower to upper.
    --  Semantics: a transport endpoint has been closed.

@@ -25,8 +25,11 @@ package Droopi.Protocols.Echo is
    procedure Abort_Request (S : access Echo_Session; R : Request);
    --  These are just for show and do nothing.
 
-   procedure Handle_Connect (S : access Echo_Session);
+   procedure Handle_Connect_Indication (S : access Echo_Session);
    --  Send a greeting banner to user.
+
+   procedure Handle_Connect_Confirmation (S : access Echo_Session);
+   --  Setup client dialog.
 
    procedure Handle_Data_Indication (S : access Echo_Session);
    --  Handle data received from user.

@@ -138,55 +138,22 @@ package body Droopi.ORB is
    is
       Note : ORB_Note;
 
-      procedure Set_Server (F : Filter_Access; S : Server_Access);
-
-      procedure Set_Server (F : Filter_Access; S : Server_Access) is
-      begin
-         Emit_No_Reply
-           (Component_Access (F),
-            Filters.Interface.Set_Server'(Server => S));
-      end Set_Server;
-
    begin
       Get_Note (Notepad_Of (AES).all, Note);
       case Note.D.Kind is
          when A_TAP_AES =>
             declare
                New_TE     : Transport_Endpoint_Access;
-               New_AES    : Asynch_Ev_Source_Access;
-               New_Filter : Filter_Access;
             begin
                Accept_Connection (Note.D.TAP.all, New_TE);
                --  Create transport endpoint.
 
-               New_AES := Create_Event_Source (New_TE.all);
-               --  Create associated asynchronous event source.
-
-               New_Filter := Create_Filter_Chain
-                 (Note.D.Filter_Factory_Chain);
-               --  Create filter/protocol stack.
-
-               Connect_Upper (New_TE, Component_Access (New_Filter));
-               Connect_Lower (New_Filter, Component_Access (New_TE));
-               --  Connect filter to transport.
-
-               Set_Server (New_Filter, Server_Access (ORB));
-
-               Set_Note (Notepad_Of (New_AES).all,
-                         ORB_Note'(Annotations.Note with D =>
-                                     (Kind   => A_TE_AES,
-                                      TE     => New_TE)));
-               --  Register link from AES to TE.
-
-               Handle_New_Connection
-                 (ORB.Tasking_Policy,
-                  ORB_Access (ORB),
-                  Active_Connection'(AES => New_AES, TE => New_TE));
-               --  Assign execution resources to the newly-created connection.
+               Register_Endpoint
+                 (ORB, New_TE, Note.D.Filter_Factory_Chain, Server);
             end;
 
             Insert_Source (ORB, AES);
-            --  Continue monitoring this source.
+            --  Continue monitoring the TAP's AES.
 
          when A_TE_AES =>
             begin
@@ -368,6 +335,54 @@ package body Droopi.ORB is
       --  XXX Should also keep a direct list of TAPs.
       Leave (ORB.ORB_Lock.all);
    end Register_Access_Point;
+
+   procedure Register_Endpoint
+     (ORB   : access ORB_Type;
+      TE    : Transport_Endpoint_Access;
+      Chain : Filters.Factory_Chain_Access;
+      Role  : Endpoint_Role)
+   is
+      New_AES    : Asynch_Ev_Source_Access;
+      New_Filter : Filter_Access;
+   begin
+      New_AES := Create_Event_Source (TE.all);
+      --  Create associated asynchronous event source.
+
+      New_Filter := Create_Filter_Chain (Chain);
+      --  Create filter/protocol stack.
+
+      Connect_Upper (TE, Component_Access (New_Filter));
+      Connect_Lower (New_Filter, Component_Access (TE));
+      --  Connect filter to transport.
+
+      Emit_No_Reply
+        (Component_Access (New_Filter),
+         Filters.Interface.Set_Server'
+         (Server => Server_Access (ORB)));
+
+      Set_Note
+        (Notepad_Of (New_AES).all,
+         ORB_Note'(Annotations.Note with D =>
+                     (Kind   => A_TE_AES,
+                      TE     => TE)));
+      --  Register link from AES to TE.
+
+      --  Assign execution resources to the newly-created connection.
+
+      case Role is
+         when Server =>
+            Handle_New_Server_Connection
+              (ORB.Tasking_Policy,
+               ORB_Access (ORB),
+               Active_Connection'(AES => New_AES, TE => TE));
+         when Client =>
+            Handle_New_Client_Connection
+              (ORB.Tasking_Policy,
+               ORB_Access (ORB),
+               Active_Connection'(AES => New_AES, TE => TE));
+      end case;
+
+   end Register_Endpoint;
 
    procedure Set_Object_Adapter
      (ORB : access ORB_Type;

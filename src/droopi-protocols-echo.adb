@@ -59,14 +59,20 @@ package body Droopi.Protocols.Echo is
       null;
    end Abort_Request;
 
-   procedure Handle_Connect (S : access Echo_Session) is
+   procedure Handle_Connect_Indication (S : access Echo_Session) is
    begin
       --  Send_String ("Hello, please type data." & ASCII.LF);
       pragma Debug (O ("Received new connection to echo service..."));
       Expect_Data (S, S.Buffer, 1024
       --  Exact => False
                    );
-   end Handle_Connect;
+   end Handle_Connect_Indication;
+
+   procedure Handle_Connect_Confirmation (S : access Echo_Session) is
+   begin
+      null;
+      --  No setup is necessary for newly-created client connections.
+   end Handle_Connect_Confirmation;
 
    type String_Array is array (Integer range <>) of String_Ptr;
 
