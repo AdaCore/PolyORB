@@ -52,9 +52,31 @@ package body Ada_Be.Identifiers is
 
    function Ada_Name
      (Node : Node_Id)
-     return String is
+     return String
+   is
+      Result : String
+        := Name (Node);
+      First : Integer := Result'First;
+
    begin
-      return Name (Node);
+      while First <= Result'Last
+        and then Result (First) = '_' loop
+         First := First + 1;
+      end loop;
+
+      for I in First .. Result'Last loop
+         if Result (I) = '_'
+           and then I < Result'Last
+           and then Result (I + 1) = '_' then
+            Result (I + 1) := 'U';
+         end if;
+      end loop;
+
+      --  FIXME: Check for collisions with Ada reserved
+      --  words and other name clashes (part of this task
+      --  should probably be done during expansion).
+
+      return Result (First .. Result'Last);
    end Ada_Name;
 
    function Scope_Name

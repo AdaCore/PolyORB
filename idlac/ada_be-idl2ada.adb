@@ -165,6 +165,19 @@ package body Ada_Be.Idl2Ada is
    --  unmarshalling subprograms for the type defined
    --  by Node.
 
+   function Ada_Operation_Name
+     (Node : Node_Id)
+     return String;
+   --  The name of the Ada subprogram that maps
+   --  K_Operation Node.
+
+   function Idl_Operation_Id
+     (Node : Node_Id)
+     return String;
+   --  The GIOP operation identifier (to use in
+   --  a GIOP Request message) corresponding
+   --  to K_Operation node.
+
    ---------------
    -- Shortcuts --
    ---------------
@@ -1009,7 +1022,7 @@ package body Ada_Be.Idl2Ada is
                   PL (CU, "return Result;");
                end if;
                DI (CU);
-               PL (CU, "end " & Ada_Name (Node) & ";");
+               PL (CU, "end " & Ada_Operation_Name (Node) & ";");
             end;
 
             --        when K_Attribute =>
@@ -1038,7 +1051,7 @@ package body Ada_Be.Idl2Ada is
            := Kind (Operation_Type (Node)) /= K_Void;
       begin
          NL (CU);
-         PL (CU, "if Operation = """ & Ada_Name (Node) & """ then");
+         PL (CU, "if Operation = """ & Idl_Operation_Id (Node) & """ then");
          II (CU);
          PL (CU, "declare");
          II (CU);
@@ -1312,7 +1325,7 @@ package body Ada_Be.Idl2Ada is
 
             declare
                O_Name : constant String
-                 := Ada_Name (Node);
+                 := Ada_Operation_Name (Node);
                O_Type : constant Node_Id
                  := Operation_Type (Node);
                Response_Expected : constant Boolean
@@ -1328,7 +1341,7 @@ package body Ada_Be.Idl2Ada is
                PL (CU, O_Name
                          & "_Operation : constant CORBA.Identifier");
                PL (CU, "  := CORBA.To_CORBA_String ("""
-                         & O_Name & """);");
+                         & Idl_Operation_Id (Node) & """);");
 
                Gen_Operation_Profile (CU, "in Ref", Node);
                NL (CU);
@@ -1620,7 +1633,7 @@ package body Ada_Be.Idl2Ada is
                Put (CU, "function ");
             end if;
 
-            Put (CU, Ada_Name (Node));
+            Put (CU, Ada_Operation_Name (Node));
 
             --  Formals
 
@@ -1668,21 +1681,27 @@ package body Ada_Be.Idl2Ada is
                when Mode_Inout =>
                   Put (CU, " : in out ");
             end case;
-            Add_With_Entity (CU, Param_Type (Node));
-            Gen_Operation_Profile
-              (CU, Object_Type, Param_Type (Node));
-            if Is_Interface_Type (Node) then
-               --  An operation of an interface is a
-               --  primitive operation of the tagged type
-               --  that maps this interface. If it has
-               --  other formal parameters that are object
-               --  references as well, the operation cannot
-               --  be a primitive operation of their tagged
-               --  types as well.
-               --  (Ada RTF issue #2459).
 
-               Put (CU, "'Class");
-            end if;
+            declare
+               T_Node : constant Node_Id
+                 := Param_Type (Node);
+            begin
+               Add_With_Entity (CU, T_Node);
+               Put (CU, Ada_Type_Name (T_Node));
+               if Is_Interface_Type (T_Node) then
+                  --  An operation of an interface is a
+                  --  primitive operation of the tagged type
+                  --  that maps this interface. If it has
+                  --  other formal parameters that are object
+                  --  references as well, the operation cannot
+                  --  be a primitive operation of their tagged
+                  --  types as well.
+                  --  (Ada RTF issue #2459).
+
+                  Put (CU, "'Class");
+               end if;
+            end;
+
          when others =>
             Gen_Node_Default (CU, Node);
 
@@ -2166,6 +2185,10 @@ package body Ada_Be.Idl2Ada is
          when K_Enumerator =>
             Put (CU, Ada_Name (Node));
 
+         when K_Attribute =>
+            null;
+            --  Attributes are expanded into operations.
+
          when K_Or_Expr =>                   --  Binary operators.
             null;
 
@@ -2401,6 +2424,32 @@ package body Ada_Be.Idl2Ada is
             raise Program_Error;
       end case;
    end Add_With_Stream;
+
+   ---------------------------------------------------------
+   -- Ada_Operation_Name and Idl_Operation_Id differ      --
+   -- for operations that are created by the expander and --
+   -- represent attributes:                               --
+   -- given an attribute Foo of an interface, the "get"   --
+   -- and "set" operations will be generated with         --
+   -- Ada_Operation_Names "get_Foo" and "set_Foo", and    --
+   -- Idl_Operation_Ids "_get_Foo" and "_set_Foo".        --
+   ---------------------------------------------------------
+
+   function Ada_Operation_Name
+     (Node : Node_Id)
+     return String is
+   begin
+      pragma Assert (Kind (Node) = K_Operation);
+      return Ada_Name (Node);
+   end Ada_Operation_Name;
+
+   function Idl_Operation_Id
+     (Node : Node_Id)
+     return String is
+   begin
+      pragma Assert (Kind (Node) = K_Operation);
+      return Name (Node);
+   end Idl_Operation_Id;
 
    procedure Gen_To_Ref
      (Stubs_Spec : in out Compilation_Unit;

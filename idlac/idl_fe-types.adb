@@ -97,20 +97,9 @@ package body Idl_Fe.Types is
 
    procedure Append_Node
      (List : in out Node_List;
-      Node : in Node_Id)
-   is
-      Cell, Last : Node_List;
+      Node : in Node_Id) is
    begin
-      Cell := new Node_List_Cell'(Car => Node, Cdr => null);
-      if List = null then
-         List := Cell;
-      else
-         Last := List;
-         while Last.Cdr /= null loop
-            Last := Last.Cdr;
-         end loop;
-         Last.Cdr := Cell;
-      end if;
+      List := Append_Node (List, Node);
    end Append_Node;
 
    -------------------
@@ -135,6 +124,25 @@ package body Idl_Fe.Types is
          return List;
       end if;
    end Append_Node;
+
+   procedure Insert_After
+     (List : in Node_List;
+      Node : Node_Id;
+      After : Node_Id)
+   is
+      Cell : Node_List;
+   begin
+      pragma Assert (List /= Nil_List);
+
+      if List.Car = After then
+         Cell := new Node_List_Cell'
+           (Car => Node,
+            Cdr => List.Cdr);
+         List.Cdr := Cell;
+      else
+         Insert_After (List.Cdr, Node, After);
+      end if;
+   end Insert_After;
 
    ------------------
    --  Is_In_List  --

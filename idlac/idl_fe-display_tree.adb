@@ -515,9 +515,6 @@ package body Idl_Fe.Display_Tree is
             Put_Line ("ben_idl_file " & Name (N));
             Disp_List (Contents (N), N_Indent, Full);
 
-         when K_Ben_Node_List =>
-            Disp_List (Contents (N), Indent, Full);
-
             --  ************************** --
          when others =>
             Put_Line ("not implemented yet");
