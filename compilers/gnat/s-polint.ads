@@ -345,6 +345,9 @@ package System.PolyORB_Interface is
    function TC_Alias return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.TC_Alias;
    --  Empty Tk_Alias typecode.
+   function TC_Struct return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TypeCode.TC_Struct;
+   --  Empty Tk_Struct typecode.
 
    type Any_Array is array (Natural range <>) of Any;
 

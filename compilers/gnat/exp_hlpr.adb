@@ -715,52 +715,129 @@ package body Exp_Hlpr is
       Decls : constant List_Id := New_List;
       Stms : constant List_Id := New_List;
 
-      function Build_TC_Alias_Call
-        (Loc            : Source_Ptr;
-         Name_String    : String_Id;
-         Repo_Id_String : String_Id;
-         Base_TypeCode  : Node_Id)
-         return Node_Id;
-      --  Construct a call to TC_Alias to build a typecode
-      --  with the specified name, repository id and base type.
+      Parameters : List_Id;
 
-      function Build_TC_Alias_Call
-        (Loc            : Source_Ptr;
-         Name_String    : String_Id;
-         Repo_Id_String : String_Id;
-         Base_TypeCode  : Node_Id)
-         return Node_Id
+      procedure Add_String_Parameter (S : String_Id);
+      --  Add a literal for S to Parameters.
+
+      procedure Add_TypeCode_Parameter (TC_Node : Node_Id);
+      --  Add the typecode for Typ to Parameters.
+
+      procedure Initialize_Parameter_List
+        (Name_String    : String_Id;
+         Repo_Id_String : String_Id);
+      --  Return a list that contains the first two parameters
+      --  for a parameterized typecode: name and repository id.
+
+      procedure Return_Constructed_TypeCode (Kind : Entity_Id);
+      --  Make a return statement that calls TC_Build with
+      --  the given typecode kind, and the constructed parameters
+      --  list.
+
+      procedure Return_Alias_TypeCode
+        (Base_TypeCode  : Node_Id);
+      --  Return a typecode that is a TC_Alias for the given
+      --  typecode.
+
+      procedure Add_String_Parameter (S : String_Id)
       is
       begin
-         return Make_Function_Call (Loc,
-                  Name =>
-                    New_Occurrence_Of (RTE (RE_TC_Build), Loc),
-                  Parameter_Associations => New_List (
-                    New_Occurrence_Of (RTE (RE_TC_Alias), Loc),
-                    Make_Aggregate (Loc,
-                      Expressions =>
-                        New_List (
-                          Make_Function_Call (Loc,
-                            Name =>
-                              New_Occurrence_Of (RTE (RE_TA_String), Loc),
-                            Parameter_Associations => New_List (
-                              Make_String_Literal (Loc, Name_String))),
-                          Make_Function_Call (Loc,
-                            Name =>
-                              New_Occurrence_Of (RTE (RE_TA_String), Loc),
-                            Parameter_Associations => New_List (
-                              Make_String_Literal (Loc, Repo_Id_String))),
-                          Make_Function_Call (Loc,
-                            Name =>
-                              New_Occurrence_Of (RTE (RE_TA_TC), Loc),
-                            Parameter_Associations => New_List (
-                              Base_TypeCode))))));
-      end Build_TC_Alias_Call;
+         Append_To (Parameters,
+           Make_Function_Call (Loc,
+             Name =>
+               New_Occurrence_Of (RTE (RE_TA_String), Loc),
+             Parameter_Associations => New_List (
+               Make_String_Literal (Loc, S))));
+      end Add_String_Parameter;
 
-      Name_String : String_Id;
-      Repo_Id_String : String_Id;
+      procedure Add_TypeCode_Parameter (TC_Node : Node_Id)
+      is
+      begin
+         Append_To (Parameters,
+           Make_Function_Call (Loc,
+             Name =>
+               New_Occurrence_Of (RTE (RE_TA_TC), Loc),
+             Parameter_Associations => New_List (
+               TC_Node)));
+      end Add_TypeCode_Parameter;
 
+      procedure Initialize_Parameter_List
+        (Name_String    : String_Id;
+         Repo_Id_String : String_Id)
+      is
+      begin
+         Parameters := New_List;
+         Add_String_Parameter (Name_String);
+         Add_String_Parameter (Repo_Id_String);
+      end Initialize_Parameter_List;
+
+      procedure Return_Alias_TypeCode
+        (Base_TypeCode  : Node_Id)
+      is
+      begin
+         Add_TypeCode_Parameter (Base_TypeCode);
+         Return_Constructed_TypeCode (RTE (RE_TC_Alias));
+      end Return_Alias_TypeCode;
+
+      procedure Return_Constructed_TypeCode (Kind : Entity_Id) is
+      begin
+         Append_To (Stms,
+           Make_Return_Statement (Loc,
+             Expression =>
+               Make_Function_Call (Loc,
+                 Name =>
+                   New_Occurrence_Of (RTE (RE_TC_Build), Loc),
+                 Parameter_Associations => New_List (
+                   New_Occurrence_Of (Kind, Loc),
+                   Make_Aggregate (Loc,
+                      Expressions => Parameters)))));
+      end Return_Constructed_TypeCode;
+
+      ------------------
+      -- Record types --
+      ------------------
+
+      procedure Add_Parameters_For_Component_List (Clist : Node_Id);
+      --  Process a complete component list.
+
+      procedure Add_Parameters_For_Fields (CL : List_Id);
+      --  Process a complete component list.
+
+      procedure Add_Parameters_For_Component_List (Clist : Node_Id)
+      is
+         CI : constant List_Id := Component_Items (Clist);
+         VP : constant Node_Id := Variant_Part (Clist);
+      begin
+         Add_Parameters_For_Fields (CI);
+
+         if Present (VP) then
+            raise Program_Error;
+            --  XXX Variant Part not implemented yet.
+         end if;
+      end Add_Parameters_For_Component_List;
+
+      procedure Add_Parameters_For_Fields (CL : List_Id) is
+         Item : Node_Id;
+         Def  : Entity_Id;
+      begin
+         Item := First (CL);
+         while Present (Item) loop
+            Def := Defining_Identifier (Item);
+            if not Is_Internal_Name (Chars (Def)) then
+               Add_TypeCode_Parameter (
+                 Build_TypeCode_Call (Loc, Etype (Def), Decls));
+               Get_Name_String (Chars (Def));
+               Add_String_Parameter (String_From_Name_Buffer);
+            end if;
+            Next (Item);
+         end loop;
+      end Add_Parameters_For_Fields;
+
+   --  Build_TypeCode_Function
+
+      Type_Name_Str : String_Id;
    begin
+
       Fnam := Make_Stream_Procedure_Function_Name
         (Loc, Typ, Name_uTypeCode);
 
@@ -770,6 +847,12 @@ package body Exp_Hlpr is
           Parameter_Specifications => Empty_List,
           Subtype_Mark => New_Occurrence_Of (RTE (RE_TypeCode), Loc));
 
+      Get_Name_String (Chars
+        (Defining_Identifier (Declaration_Node (Typ))));
+      Type_Name_Str := String_From_Name_Buffer;
+      Initialize_Parameter_List (Type_Name_Str, Type_Name_Str);
+      --  XXX should compute a proper repository id!
+
       if Is_Derived_Type (Typ)
         and then not Is_Tagged_Type (Typ)
       then
@@ -777,11 +860,6 @@ package body Exp_Hlpr is
             D_Node : constant Node_Id := Declaration_Node (Typ);
             Parent_Type : Entity_Id := Etype (Typ);
          begin
-            Get_Name_String (Chars
-              (Defining_Identifier (Declaration_Node (Typ))));
-            Name_String := String_From_Name_Buffer;
-            Repo_Id_String := Name_String;
-            --  XXX should compute a proper repository id!
 
             if Is_Enumeration_Type (Typ)
               and then Nkind (D_Node) = N_Subtype_Declaration
@@ -795,27 +873,43 @@ package body Exp_Hlpr is
                Parent_Type := Etype (Parent_Type);
             end if;
 
-            Append_To (Stms,
-              Make_Return_Statement (Loc,
-                Expression => Build_TC_Alias_Call (Loc,
-                  Name_String,
-                  Repo_Id_String,
-                  Build_TypeCode_Call (Loc, Parent_Type, Decls))));
+            Return_Alias_TypeCode (
+              Build_TypeCode_Call (Loc, Parent_Type, Decls));
          end;
       elsif Is_Integer_Type (Typ)
         or else Is_Unsigned_Type (Typ)
       then
-         Get_Name_String (Chars
-           (Defining_Identifier (Declaration_Node (Typ))));
-         Name_String := String_From_Name_Buffer;
-         Repo_Id_String := Name_String;
-         Append_To (Stms,
-           Make_Return_Statement (Loc,
-             Expression => Build_TC_Alias_Call (Loc,
-               Name_String,
-               Repo_Id_String,
-               Build_TypeCode_Call (Loc,
-                  Find_Numeric_Representation (Typ), Decls))));
+         Return_Alias_TypeCode (
+           Build_TypeCode_Call (Loc,
+             Find_Numeric_Representation (Typ), Decls));
+
+      elsif Is_Record_Type (Typ)
+        and then not Is_Tagged_Type (Typ)
+      then
+         declare
+            Disc : Entity_Id := Empty;
+            Rdef : constant Node_Id :=
+              Type_Definition (Declaration_Node (Typ));
+         begin
+            --  First all discriminants
+
+            if Has_Discriminants (Typ) then
+               Disc := First_Discriminant (Typ);
+            end if;
+            while Present (Disc) loop
+               Add_TypeCode_Parameter (
+                 Build_TypeCode_Call (Loc, Etype (Disc), Decls));
+               Get_Name_String (Chars (Disc));
+               Add_String_Parameter (String_From_Name_Buffer);
+               Next_Discriminant (Disc);
+            end loop;
+
+            --  ... then all components
+
+            Add_Parameters_For_Component_List (Component_List (Rdef));
+            Return_Constructed_TypeCode (RTE (RE_TC_Struct));
+         end;
+
       else
          declare
             TypeCode_Parameter : constant Entity_Id
