@@ -124,7 +124,9 @@ ADABROKER_TRY
 					     oneway);
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_Giop_c::InitialiseRequest without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_Giop_c::InitialiseRequestwithout initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -141,7 +143,9 @@ ADABROKER_TRY
       result = ((GIOP_C *) C_Object)->ReceiveReply();
     } else {
       // else raise an Ada Exception
-      raise_ada_exception ("Call of Ada_Giop_c::ReceiveReply without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_Giop_c::ReceiveReply without initialising object.") ;
     }
 ADABROKER_CATCH
 };
@@ -159,7 +163,9 @@ ADABROKER_TRY
     ((GIOP_C *) C_Object)->RequestCompleted (skip);
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_Giop_c::RequestCompleted without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_Giop_c::RequestCompleted without initialising object.") ;
   }
 ADABROKER_CATCH
 };

@@ -101,7 +101,9 @@ ADABROKER_TRY
     return C_Object->rope();
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_OmniRopeAndKey::rope without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_OmniRopeAndKey::rope without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -119,7 +121,9 @@ ADABROKER_TRY
     return C_Object->key();
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_OmniRopeAndKey::key without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_OmniRopeAndKey::key without initialising object.") ;
   }
 ADABROKER_CATCH 
 };
@@ -137,7 +141,9 @@ ADABROKER_TRY
     return C_Object->keysize();
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_OmniRopeAndKey::keysize without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_OmniRopeAndKey::keysize without initialising object.") ;
   }
 ADABROKER_CATCH 
 };
@@ -165,7 +171,9 @@ ADABROKER_TRY
 
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_OmniRopeAndKey::equals without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_OmniRopeAndKey::equals without initialising object.") ;
   }
 ADABROKER_CATCH 
 }

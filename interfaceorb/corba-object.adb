@@ -157,14 +157,14 @@ package body Corba.Object is
       Next : Cell_Ptr ;
    end record ;
 
-   protected Pd_List is
-      procedure Register (RepoId : in Corba.String ;
-                          Dyn_Type : in Corba.Object.Constant_Ref_Ptr);
-      function Get_Dynamic_Type_From_Repository_Id (RepoID : in Corba.String)
-                                                    return Corba.Object.Constant_Ref_Ptr ;
-   private
+--   protected Pd_List is
+--      procedure Register (RepoId : in Corba.String ;
+--                          Dyn_Type : in Corba.Object.Constant_Ref_Ptr);
+--      function Get_Dynamic_Type_From_Repository_Id (RepoID : in Corba.String)
+--                                                    return Corba.Object.Constant_Ref_Ptr ;
+--   private
       List : Cell_Ptr := null ;
-   end Pd_List;
+--   end Pd_List;
    -- This is a static list that contains all the
    -- pairs (repoID, static object ref)
    -- So it is protected to be thread-safe
@@ -173,7 +173,7 @@ package body Corba.Object is
    procedure Free is new Ada.Unchecked_Deallocation(Cell, Cell_Ptr) ;
 
 
-   protected body Pd_List is
+--   protected body Pd_List is
 
       -- Register :
       -------------
@@ -212,14 +212,15 @@ package body Corba.Object is
          end loop ;
       end ;
 
-   end Pd_List ;
+--   end Pd_List ;
 
 
-   procedure Register (RepoId : in Corba.String ;
-                       Dyn_Type : in Corba.Object.Constant_Ref_Ptr) is
-   begin
-      Pd_List.Register (RepoId, Dyn_Type) ;
-   end ;
+--   procedure Register (RepoId : in Corba.String ;
+--                       Dyn_Type : in Corba.Object.Constant_Ref_Ptr) is
+--   begin
+--      Pd_List.
+--      Register (RepoId, Dyn_Type) ;
+--   end ;
 
 
    --------------------------------------------------
@@ -285,7 +286,8 @@ package body Corba.Object is
                              "Corba.Object.String_To_Object : repoid = "
                              & Corba.To_Standard_String(RepoId))) ;
 
-         Most_Derived_Type := Pd_List.Get_Dynamic_Type_From_Repository_Id(Repoid) ;
+         Most_Derived_Type := --Pd_List.
+           Get_Dynamic_Type_From_Repository_Id(Repoid) ;
          -- dyn_type is now an object of the most derived type
          -- of the new created object
 
@@ -368,7 +370,8 @@ package body Corba.Object is
    begin
       -- check if the omniobject we got can be put into
       -- To (type implied the repoId)
-         Most_Derived_Type := Pd_List.Get_Dynamic_Type_From_Repository_Id(Most_Derived_Repoid) ;
+         Most_Derived_Type := --Pd_List.
+           Get_Dynamic_Type_From_Repository_Id(Most_Derived_Repoid) ;
          -- most_derived_type is now an object of the most derived type
          -- of the new created object
       if Is_A(Most_Derived_Type.all, Get_Repository_Id(To)) then
@@ -379,7 +382,8 @@ package body Corba.Object is
                                                     Release) ;
          -- if the result is correct
          if not (To.Omniobj = null) then
-            To.Dynamic_Type := Pd_List.Get_Dynamic_Type_From_Repository_Id(Most_Derived_Repoid) ;
+            To.Dynamic_Type := --Pd_List.
+              Get_Dynamic_Type_From_Repository_Id(Most_Derived_Repoid) ;
             return ;
          end if ;
       end if ;
@@ -530,7 +534,8 @@ package body Corba.Object is
 
 begin
 
-   Pd_List.Register(Repository_Id, Nil_Ref'Access) ;
+   --Pd_List.
+   Register(Repository_Id, Nil_Ref'Access) ;
    -- registers the fact that a new IDL interface : the root of all the others
    -- can be used in the program
 

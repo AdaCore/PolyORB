@@ -90,7 +90,9 @@ ADABROKER_TRY
     a >>= *(s.C_Object);
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_netBufferedStream::operator>>= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -108,7 +110,9 @@ ADABROKER_TRY
     a <<= *(s.C_Object);
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_netBufferedStream::operator<<= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -126,7 +130,9 @@ ADABROKER_TRY
     a >>= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_netBufferedStream::operator>>= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -144,7 +150,9 @@ ADABROKER_TRY
     a <<= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_netBufferedStream::operator<<= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -162,7 +170,9 @@ ADABROKER_TRY
     a >>= *(s.C_Object);
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_netBufferedStream::operator>>= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -180,7 +190,9 @@ ADABROKER_TRY
     a <<= *(s.C_Object);
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_netBufferedStream::operator<<= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -198,7 +210,9 @@ ADABROKER_TRY
     a >>= *(s.C_Object);
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_netBufferedStream::operator>>= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -216,7 +230,9 @@ ADABROKER_TRY
     a <<= *(s.C_Object);
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_netBufferedStream::operator<<= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -234,7 +250,9 @@ ADABROKER_TRY
     a >>= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_netBufferedStream::operator>>= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -249,7 +267,9 @@ ADABROKER_TRY
     a <<=  *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_netBufferedStream::operator<<= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -267,7 +287,9 @@ ADABROKER_TRY
     a >>= *(s.C_Object);
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_netBufferedStream::operator>>= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -285,7 +307,9 @@ ADABROKER_TRY
     a <<= *(s.C_Object);
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_netBufferedStream::operator<<= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -303,7 +327,9 @@ ADABROKER_TRY
     a >>= *(s.C_Object);
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_netBufferedStream::operator>>= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -321,7 +347,9 @@ ADABROKER_TRY
     a <<= *(s.C_Object);
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_netBufferedStream::operator<<= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -339,7 +367,9 @@ ADABROKER_TRY
     a >>= *(s.C_Object);
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_netBufferedStream::operator>>= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -357,7 +387,9 @@ ADABROKER_TRY
     a <<= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_netBufferedStream::operator<<= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -375,7 +407,9 @@ ADABROKER_TRY
     return C_Object->isReUsingExistingConnection();
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of isReUsingExistingConnection without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_netBufferedStream::isReUsingExistingConnection without initialising object.") ;
   }
 ADABROKER_CATCH
 };

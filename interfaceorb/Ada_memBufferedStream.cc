@@ -87,7 +87,9 @@ ADABROKER_TRY
     a >>= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_memBufferedStream::operator>>= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_memBufferedStream::operator>>= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -105,7 +107,9 @@ ADABROKER_TRY
     a <<= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_memBufferedStream::operator<<= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_memBufferedStream::operator<<= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -123,7 +127,9 @@ ADABROKER_TRY
     a >>= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_memBufferedStream::operator>>= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_memBufferedStream::operator>>= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -141,7 +147,9 @@ ADABROKER_TRY
     a <<= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_memBufferedStream::operator<<= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_memBufferedStream::operator<<= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -159,7 +167,9 @@ ADABROKER_TRY
     a >>= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_memBufferedStream::operator>>= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_memBufferedStream::operator>>= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -177,7 +187,9 @@ ADABROKER_TRY
     a <<= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_memBufferedStream::operator<<= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_memBufferedStream::operator<<= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -195,7 +207,9 @@ ADABROKER_TRY
     a >>= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_memBufferedStream::operator>>= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_memBufferedStream::operator>>= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -213,7 +227,9 @@ ADABROKER_TRY
     a <<= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_memBufferedStream::operator<<= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_memBufferedStream::operator<<= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -231,7 +247,9 @@ ADABROKER_TRY
     a >>= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_memBufferedStream::operator>>= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_memBufferedStream::operator>>= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -249,7 +267,9 @@ ADABROKER_TRY
     a <<= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_memBufferedStream::operator<<= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_memBufferedStream::operator<<= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -267,7 +287,9 @@ ADABROKER_TRY
     a >>= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_memBufferedStream::operator>>= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_memBufferedStream::operator>>= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -285,7 +307,9 @@ ADABROKER_TRY
     a <<= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_memBufferedStream::operator<<= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_memBufferedStream::operator<<= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -303,7 +327,9 @@ ADABROKER_TRY
     a >>= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_memBufferedStream::operator>>= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_memBufferedStream::operator>>= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -321,7 +347,9 @@ ADABROKER_TRY
     a <<= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_memBufferedStream::operator<<= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_memBufferedStream::operator<<= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -339,7 +367,9 @@ ADABROKER_TRY
     a >>= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_memBufferedStream::operator>>= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_memBufferedStream::operator>>= without initialising object.") ;
   }
 ADABROKER_CATCH
 };
@@ -357,7 +387,9 @@ ADABROKER_TRY
     a <<= *(s.C_Object) ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_memBufferedStream::operator<<= without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_memBufferedStream::operator<<= without initialising object.") ;
   }
 ADABROKER_CATCH
 };

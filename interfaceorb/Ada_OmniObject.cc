@@ -76,7 +76,9 @@ Ada_OmniObject::~Ada_OmniObject()
     // refernces to this object. omniORB's objectRelease is
     // here to handle memory
   } else {
-    raise_ada_exception("Ada_OmniObject::~Ada_OmniObject cannot be called on a non-initialized object") ;
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_OmniObject::~Ada_OmniObject without initialising object.") ;
   }
 } ;
 
@@ -99,7 +101,9 @@ ADABROKER_TRY
   if (o->Init_Ok) {
     delete o ;
   } else {
-    raise_ada_exception("Ada_OmniObject::Destructor cannot be called on a non-initialized object") ;
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_OmniObject::Destructor without initialising object.") ;
   }
 ADABROKER_CATCH
 }
@@ -164,7 +168,9 @@ ADABROKER_TRY
     result->C_Object = same->C_Object ;
     result->Init_Ok = true ;
   } else {
-    raise_ada_exception("Ada_OmniObject::objectDuplicate cannot be called on a non-initialized object") ;
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_OmniObject::objectDuplicate without initialising object.") ;
   }
 ADABROKER_CATCH 
 }
@@ -178,7 +184,9 @@ ADABROKER_TRY
   if (Init_Ok) {
     omni::objectIsReady(C_Object) ;
   } else {
-    raise_ada_exception("Ada_OmniObject::objectIsReady cannot be called on a non-initialized object") ;
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_OmniObject::objectIsReady without initialising object.") ;
   }
 ADABROKER_CATCH
 }
@@ -192,7 +200,9 @@ ADABROKER_TRY
   if (Init_Ok) {
   omni::disposeObject(C_Object) ;
   } else {
-    raise_ada_exception("Ada_OmniObject::disposeObject cannot be called on a non-initialized object") ;
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_OmniObject::disposeObject without initialising object.") ;
   }
 ADABROKER_CATCH
 }
@@ -202,6 +212,7 @@ ADABROKER_CATCH
 //-----
 _CORBA_ULong
 Ada_OmniObject::hash(_CORBA_ULong maximum) {
+ADABROKER_TRY
   if (Init_Ok) {
     CORBA::Object_ptr tmp = new CORBA::Object ;
     tmp->PR_setobj(C_Object) ;
@@ -209,8 +220,11 @@ Ada_OmniObject::hash(_CORBA_ULong maximum) {
     delete tmp ;
     return result ;
   } else {
-    raise_ada_exception("Ada_OmniObject::hash cannot be called on a non-initialized object") ;
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_OmniObject::hash without initialising object.") ;
   }
+ADABROKER_CATCH
 }
 
 
@@ -218,6 +232,7 @@ Ada_OmniObject::hash(_CORBA_ULong maximum) {
 //-------------
 bool
 Ada_OmniObject::non_existent() {
+ADABROKER_TRY
   if (Init_Ok) {
     CORBA::Object_ptr tmp = new CORBA::Object ;
     tmp->PR_setobj(C_Object) ;
@@ -225,8 +240,11 @@ Ada_OmniObject::non_existent() {
     delete tmp ;
     return result ;
   } else {
-    raise_ada_exception("Ada_OmniObject::non_existent cannot be called on a non-initialized object") ;
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_OmniObject::non_existent without initialising object.") ;
   }
+ADABROKER_CATCH
 }
 
 
@@ -243,7 +261,9 @@ ADABROKER_TRY
     return;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_OmniObject::setRopeAndKey without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_OmniObject::setRopeAndKey without initialising object.") ;
   }
 ADABROKER_CATCH 
 };
@@ -262,7 +282,9 @@ ADABROKER_TRY
     return;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_OmniObject::resetRopeAndKey without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_OmniObject::resetRopeAndKey without initialising object.") ;
   }
 ADABROKER_CATCH 
 };
@@ -281,7 +303,9 @@ ADABROKER_TRY
     return ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_OmniObject::getRopeAndKey without initialising objects.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_OmniObject::getRopeAndKey without initialising object.") ;
   }
 ADABROKER_CATCH 
 }
@@ -300,7 +324,9 @@ ADABROKER_TRY
     return;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_OmniObject::assertObjectExistent without initialising object.");    
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_OmniObject::assertObjectExistent without initialising object.") ;
   }
 ADABROKER_CATCH 
 }
@@ -316,7 +342,9 @@ Ada_OmniObject::is_proxy() {
     return C_Object->is_proxy();
   } else {
     // else raise an Ada Exception
-   raise_ada_exception ("Call of Ada_OmniObject::is_proxy without initialising object.");    
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_OmniObject::is_proxy without initialising object.") ;
   }
 }
 
@@ -347,7 +375,9 @@ ADABROKER_TRY
     return;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_OmniObject::setRepositoryId without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_OmniObject::setRepositoryId without initialising object.") ;
   }
 ADABROKER_CATCH
 }
@@ -370,7 +400,9 @@ ADABROKER_TRY
     return result ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_OmniObject::getRepositoryId without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_OmniObject::getRepositoryIdgetRepositoryId without initialising object.") ;
   }
 ADABROKER_CATCH
 }
@@ -404,7 +436,9 @@ ADABROKER_TRY
     if (objptr->Init_Ok) {
       return omni::objectToString(objptr->C_Object) ;
     } else {
-      raise_ada_exception("Ada_OmniObject::ada_object_to_string cannot be called on a non-initialized object") ;
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_OmniObject::ada_object_to_string without initialising object.") ;
     }
   }
 ADABROKER_CATCH
@@ -422,7 +456,9 @@ ADABROKER_TRY
     return C_Object->iopProfiles();
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_OmniObject::getRepositoryId without initialising object.");
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_OmniObject::getRepositoryId without initialising object.") ;
   }
 ADABROKER_CATCH
 }
@@ -435,7 +471,9 @@ Ada_OmniObject::getOmniObject() {
   if (Init_Ok) {
     return C_Object ;
   } else {
-    raise_ada_exception("Ada_OmniObject::getOmniObject cannot be called on a non-initialized object") ;
+    throw omniORB::fatalException(__FILE__,
+				  __LINE__,
+				  "Call of Ada_OmniObject::getOmniObject without initialising object.") ;
   }
 }
 

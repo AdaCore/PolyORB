@@ -263,19 +263,6 @@ package Corba is
     -- a C Value was to be converted into an Ada Value but was out of range
 
 
-    procedure C_Raise_Ada_Exception (Msg : in Interfaces.C.Strings.Chars_Ptr) ;
-    pragma Export (CPP,C_Raise_Ada_Exception,"raise_ada_exception__FPCc") ;
-    -- This function allows C++ code to raise AdaBroker specific exceptions
-    -- It it then exported into C++
-    -- (used in Ada_Giop_c.hh, Ada_Giop_s.hh, Ada_OmniObject.hh,
-    --          Ada_OmniRopeAndKey.hh, Ada_netBufferedStream.hh)
-
-
-    procedure Raise_Ada_Exception (Msg : in Standard.String) ;
-    -- This function is the Ada equivalent of C function C_Raise_Ada_Exception
-    -- It is called by C_Raise_Ada_Exception to raise an Ada exception
-
-
     function To_Corba_String(S: in Standard.String) return Corba.String ;
     -- transforms a standard string into the correponding corba string
 
