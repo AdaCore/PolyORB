@@ -63,18 +63,37 @@ What is PolyORB?
 
 <p>
 PolyORB is a polymorphic, reusable infrastructure for building object-oriented
-distributed systems. In other words, PolyORB is a middleware environment
-that decouples the personality presented to applications on one side
+distributed systems. Middleware environments are software libraries that
+hide the complex issues of distribution and provide the programmer with
+high-level abstractions that allow easy and transparent construction of
+distributed applications. A number of different standards exist for
+creating object-oriented distributed applications. These standards define
+two things:
+<ul>
+<li>the interface seen by the developer's applicative objects;
+<li>the protocol used by the middleware environment to talk to other
+    nodes in the distributed application.
+</ul>
+
+<p>
+A polymorphic middleware allows the existence of several different
+implementations of each of these aspects to be used within the same
+middleware framework. In addition, PolyORB allows such different
+personalities to coexist in the same instance of the running middleware;
+it decouples the personality presented to applications on one side
 ("application personality"), and the personality presented to other middlewares
 on the other side ("protocol personality"). Multiple implementations
-of each personalisable aspect are supported simultaneously within the same
-instance of the middleware.
+of each personalisable aspect can coexist within the same instance of the
+running middleware: unlike previous generic middlewares, PolyORB is
+actually <em>schizophrenic</em>.
 
 <p>
 The decoupling of application and protocol personalities, and the support
 for multiple simultaneous personalities within the same running middleware
 are key features required for the construction of interoperable distributed
-applications.
+applications. The PolyORB architecture also permits the automatic,
+just-in-time creation of proxies between incompatible environments
+(although this feature is not implemented yet).
 
 <p>
 <em>Note:</em> PolyORB is the project formerly known as DROOPI,
