@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                              Ada Web Server                              --
 --                                                                          --
---                         Copyright (C) 2000-2001                          --
+--                         Copyright (C) 2000-2003                          --
 --                                ACT-Europe                                --
 --                                                                          --
 --  Authors: Dmitriy Anisimkov - Pascal Obry                                --
@@ -32,13 +32,14 @@
 
 package AWS is
 
-   pragma Pure;
+   pragma Pure (AWS);
 
-   Internal_Error   : exception;
-   Connection_Error : exception;
+   Version      : constant String := "1.3";
 
-   Version          : constant String := "1.1";
-
-   HTTP_Version     : constant String := "HTTP/1.1";
+   HTTP_Version : constant String := "HTTP/1.1";
 
 end AWS;
+
+
+
+
