@@ -55,7 +55,7 @@ lib = $(patsubst %,$(LibPattern),broca)
 
 all:: $(lib)
 
-$(BROCA_ADASOCKET)/socket.ads:
+$(BROCA_ADASOCKET)/sockets.ads:
 	-mkdir -p $(BROCA_ADASOCKET)
 	cd $(BROCA_ADASOCKET)/../.. && \
 	./configure --prefix=`pwd` && \
@@ -66,7 +66,7 @@ $(lib): $(ADA_OBJS)
 
 $(ADA_OBJS): allsrc
 
-allsrc: $(ADA_SPECS) $(ADA_IMPLS) $(BROCA_ADASOCKET)/socket.ads
+allsrc: $(ADA_SPECS) $(ADA_IMPLS) $(BROCA_ADASOCKET)/sockets.ads
 	$(GNATMAKE) $(BROCA_FLAGS) allsrc; \
 
 clean::
