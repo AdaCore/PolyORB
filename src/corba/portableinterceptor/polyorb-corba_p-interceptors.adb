@@ -144,6 +144,15 @@ package body PolyORB.CORBA_P.Interceptors is
 
    All_Initializer_Refs : Initializer_Ref_Lists.List;
 
+   --  Internal subprograms
+
+   function To_PolyORB_ForwardRequest_Members_Any
+     (Members : in PortableInterceptor.ForwardRequest_Members)
+      return PolyORB.Any.Any;
+   pragma Inline (To_PolyORB_ForwardRequest_Members_Any);
+   --  Converting PortableInterceptor::ForwardRequest_Members into
+   --  PolyORB internal representation.
+
    ---------
    -- "=" --
    ---------
@@ -259,7 +268,7 @@ package body PolyORB.CORBA_P.Interceptors is
 
       when E : PortableInterceptor.ForwardRequest =>
 
-         --  If forwarding in this interception point is allowed then
+         --  If forwarding at this interception point is allowed then
          --  convert PortableInterceptor::ForwardRequest to
          --  PolyORB::ForwardRequest.
 
@@ -270,12 +279,7 @@ package body PolyORB.CORBA_P.Interceptors is
             begin
                PolyORB.Exceptions.User_Get_Members (E, Members);
 
-               Excp_Inf :=
-                 PolyORB.Exceptions.To_Any
-                 (PolyORB.Exceptions.ForwardRequest_Members'
-                  (Forward_Reference =>
-                     PolyORB.Smart_Pointers.Ref
-                   (CORBA.Object.To_PolyORB_Ref (Members.Forward))));
+               Excp_Inf := To_PolyORB_ForwardRequest_Members_Any (Members);
             end;
 
          else
@@ -381,7 +385,7 @@ package body PolyORB.CORBA_P.Interceptors is
 
       when E : PortableInterceptor.ForwardRequest =>
 
-         --  If forwarding in this interception point is allowed then
+         --  If forwarding at this interception point is allowed then
          --  convert PortableInterceptor::ForwardRequest to
          --  PolyORB::ForwardRequest.
 
@@ -392,12 +396,7 @@ package body PolyORB.CORBA_P.Interceptors is
             begin
                PolyORB.Exceptions.User_Get_Members (E, Members);
 
-               Excp_Inf :=
-                 PolyORB.Exceptions.To_Any
-                 (PolyORB.Exceptions.ForwardRequest_Members'
-                  (Forward_Reference =>
-                     PolyORB.Smart_Pointers.Ref
-                   (CORBA.Object.To_PolyORB_Ref (Members.Forward))));
+               Excp_Inf := To_PolyORB_ForwardRequest_Members_Any (Members);
             end;
 
          else
@@ -698,26 +697,32 @@ package body PolyORB.CORBA_P.Interceptors is
 
       Note             : Server_Interceptor_Note;
       Break_Invocation : Boolean := False;
+
+      It : Iterator := First (All_Server_Interceptors);
+
    begin
       PolyORB.Annotations.Get_Note (Request.Notepad, Note);
 
       if not Note.Intermediate_Called then
          Note.Intermediate_Called := True;
 
-         for J in 0 .. Length (All_Server_Interceptors) - 1 loop
+         while not Last (It) loop
             Call_Receive_Request
-              (Element (All_Server_Interceptors, J).all,
+              (Value (It).all,
                Create_Server_Request_Info
-                 (Request, Note.Profile, Receive_Request, From_Arguments),
+               (Request, Note.Profile, Receive_Request, From_Arguments),
                True,
                Note.Exception_Info);
 
             if not PolyORB.Any.Is_Empty (Note.Exception_Info) then
-               --  Exception information can't saved in Request, becase
-               --  skeleton replace it to CORBA.UNKNOWN exception.
+               --  Exception information can't be saved in Request,
+               --  because skeleton replace it to CORBA.UNKNOWN
+               --  exception.
+
                Break_Invocation := True;
                exit;
             end if;
+            Next (It);
          end loop;
       end if;
 
@@ -725,6 +730,7 @@ package body PolyORB.CORBA_P.Interceptors is
 
       if Break_Invocation then
          --  XXX Is this valid for PolyORB::ForwardRequest?
+
          PolyORB.CORBA_P.Exceptions.Raise_From_Any (Note.Exception_Info);
       end if;
    end Server_Intermediate;
@@ -850,6 +856,23 @@ package body PolyORB.CORBA_P.Interceptors is
          end if;
       end loop;
    end Server_Invoke;
+
+   -------------------------------------------
+   -- To_PolyORB_ForwardRequest_Members_Any --
+   -------------------------------------------
+
+   function To_PolyORB_ForwardRequest_Members_Any
+     (Members : in PortableInterceptor.ForwardRequest_Members)
+      return PolyORB.Any.Any
+   is
+   begin
+      return
+        PolyORB.Exceptions.To_Any
+        (PolyORB.Exceptions.ForwardRequest_Members'
+         (Forward_Reference =>
+            PolyORB.Smart_Pointers.Ref
+          (CORBA.Object.To_PolyORB_Ref (Members.Forward))));
+   end To_PolyORB_ForwardRequest_Members_Any;
 
    ----------------
    -- Initialize --
