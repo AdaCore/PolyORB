@@ -213,10 +213,7 @@ package body PolyORB.Protocols.SOAP_Pr is
       use PolyORB.Any.NVList.Internals.NV_Lists;
 
       R : constant Requests.Request_Access := S.Pending_Rq;
-
-      Return_Args : PolyORB.Any.NVList.Ref := R.Args;
-      --  Return_Args : PolyORB.Any.NVList.Ref;
-
+      Return_Args : PolyORB.Any.NVList.Ref;
       --  This is an empty NVList, since SOAP is a self-described
       --  protocol. Thus it can fill the returned arguments by itself
 
@@ -229,14 +226,8 @@ package body PolyORB.Protocols.SOAP_Pr is
       end if;
       R.Result.Arg_Modes := ARG_OUT;
       --  Ensure proper mode for Result.
-      List_Of (Return_Args).all := R.Result & List_Of (Return_Args).all;
 
       Buffer_Sources.Set_Buffer (Src, S.In_Buf);
---        declare
---           M : PolyORB.SOAP_P.Message.Response.Object_Access
---             := PolyORB.SOAP_P.Message.XML.Load_Response
---             (Src'Access, Return_Args);
---        begin
       PolyORB.SOAP_P.Message.XML.Load_Response (Src'Access, Return_Args);
       pragma Debug (O ("Process_Reply: processed "
                        & PolyORB.Types.Long'Image
@@ -244,29 +235,34 @@ package body PolyORB.Protocols.SOAP_Pr is
                         (Return_Args))
                        & " arguments"));
 
---           PolyORB.SOAP_P.Message.Response.Free (M);
---        end;
-      --  Only evaluate the side effects of Load_Response.
-      --  The values designated by the any's in Return_Args
-      --  will be modified in-place: no copy is necessary.
-
       --  XXX BAD BAD this subprogram does not take into account
       --  the case where a FAULT or EXCEPTION has been received
       --  instead of a normal reply!!
 
-      S.Pending_Rq := null;
-
-      Buffers.Release_Contents (S.In_Buf.all);
-
       declare
-         Return_Args_It : Iterator;
+         use PolyORB.Any;
+
+         Res : NamedValue;
       begin
-         Return_Args_It := First (List_Of (Return_Args).all);
-         R.Result := Value (Return_Args_It).all;
-         Components.Emit_No_Reply
-           (R.Requesting_Component,
-            Servants.Interface.Executed_Request'(Req => R));
+         Extract_First (List_Of (Return_Args).all, Res);
+         PolyORB.Requests.Set_Result (R, Res.Argument);
       end;
+      --  Some applicative personnalities, like AWS, do not specify
+      --  the type of the result they are expecting; other do, like
+      --  Corba. So we use Set_Result, which can either copy the any
+      --  data if the type of the namedvalue is specified, or simply
+      --  set the namedvalue if its type is not specified.
+
+      --  XXX We should consider changing this, by moving this kind of
+      --  mechanism into the neutral layer. Thus, protocol
+      --  personalities would send data to the neutral layer, like
+      --  applicative personalities do for incoming arguments.
+
+      S.Pending_Rq := null;
+      Buffers.Release_Contents (S.In_Buf.all);
+      Components.Emit_No_Reply
+        (R.Requesting_Component,
+         Servants.Interface.Executed_Request'(Req => R));
    end Process_Reply;
 
    procedure Handle_Unmarshall_Arguments
