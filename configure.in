@@ -359,7 +359,9 @@ esac
 AM_CONDITIONAL(WINDOWS, test x$windows = xtrue)
 
 ##########################################
-# Build polyorb-setup-* files
+# Build src/polyorb-setup-client.adb
+#       src/polyorb-setup-client.adb
+#       tools/po_catref/po_catref_setup.adb
 ##########################################
 
 PROTO_CLIENT_WITHS=${srcdir}/proto_client_withs.adb
@@ -438,6 +440,16 @@ EOF
 done
 
 
+done
+
+##########################################
+# Clean up files
+##########################################
+
+for F in ${PO_CATREF_WITHS} ${PROTO_CLIENT_WITHS} ${PROTO_SERVER_WITHS}
+do
+   ${SED} -e 's/.*PolyORB.Binding_Data.GIOP.INET.*//g' < ${F} > ${F}.new
+   mv ${F}.new ${F}
 done
 
 AC_SUBST_FILE(PROTO_CLIENT_WITHS)
