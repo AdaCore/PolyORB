@@ -32,6 +32,8 @@
 
 --  $Id$
 
+with Ada.Streams;
+
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 
@@ -56,30 +58,31 @@ package body CORBA.Fixed_Point is
    package CDR_Fixed_F is
       new PolyORB.Representations.CDR.Fixed_Point (F);
 
+   ------------
+   -- To_Any --
+   ------------
 
-   --------------
-   --  To_Any  --
-   --------------
    function To_Any (Item : in F) return Any is
       Tco : CORBA.TypeCode.Object;
    begin
---       CORBA.TypeCode.Set_Kind (Tco, PolyORB.Any.Tk_Fixed);
---       CORBA.TypeCode.Add_Parameter
---         (Tco, To_Any (CORBA.Unsigned_Short (F'Digits)));
---       CORBA.TypeCode.Add_Parameter (Tco, To_Any (CORBA.Short (F'Scale)));
---       declare
---          Result : Any := CORBA.Get_Empty_Any_Aggregate (Tco);
---          Octets : Octet_Array := CDR_Fixed_F.Fixed_To_Octets (Item);
---       begin
---          for I in Octets'Range loop
---             CORBA.Add_Aggregate_Element
---               (Result,
---                CORBA.To_Any (CORBA.Octet (Octets (I))));
---          end loop;
---          return Result;
---       end;
-      raise PolyORB.Not_Implemented;
-      return To_Any (Item);
+      CORBA.TypeCode.Set_Kind (Tco, PolyORB.Any.Tk_Fixed);
+      CORBA.TypeCode.Add_Parameter
+        (Tco, To_Any (CORBA.Unsigned_Short (F'Digits)));
+      CORBA.TypeCode.Add_Parameter (Tco, To_Any (CORBA.Short (F'Scale)));
+      declare
+         Result : Any := CORBA.Get_Empty_Any_Aggregate (Tco);
+         Octets : constant Ada.Streams.Stream_Element_Array
+           := CDR_Fixed_F.Fixed_To_Octets (Item);
+      begin
+         for I in Octets'Range loop
+            CORBA.Add_Aggregate_Element
+              (Result,
+               CORBA.To_Any (CORBA.Octet (Octets (I))));
+         end loop;
+         return Result;
+      end;
+--       raise PolyORB.Not_Implemented;
+--       return To_Any (Item);
    end To_Any;
 
    ----------------

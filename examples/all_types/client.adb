@@ -84,6 +84,31 @@ begin
               To_Standard_String
               (echoString (Myall_types, To_CORBA_String ("hello"))) = "hello");
       Output ("test enum", echoColor (Myall_types, Blue) = Blue);
+
+      --  Refs
+      declare
+         X : all_types.Ref;
+      begin
+         X := echoRef (Myall_types, Myall_types);
+         for I in 1 .. 20 loop
+            X := echoRef (X, X);
+         end loop;
+         Output ("test self reference", echoLong (X, 31337) = 31337);
+
+         X := Echootheralltypes (X, X);
+         Output ("test self reference typedef", echoLong (X, 31337) = 31337);
+
+         X := All_Types.Helper.To_Ref
+           (EchoObject (X, CORBA.Object.Ref (X)));
+         Output ("test object", echoLong (X, 23459) = 23459);
+
+         X := All_Types.Helper.To_Ref
+           (EchootherObject (X, CORBA.Object.Ref (X)));
+         Output ("test object typedef", echoLong (X, 34563) = 34563);
+
+      end;
+
+      --  Fixed point
       Output ("test fixed point",
               echoMoney (Myall_types, 6423.50) = 6423.50
               and then echoMoney (Myall_types, 0.0) = 0.0
@@ -216,29 +241,6 @@ begin
       begin
          X := X & 1 & 2 & 3 & 4 & 5;
          Output ("test bounded sequence",  echoBsequence (Myall_types, X) = X);
-      end;
-
-      --  Refs
-      declare
-         X : all_types.Ref;
-      begin
-         X := echoRef (Myall_types, Myall_types);
-         for I in 1 .. 20 loop
-            X := echoRef (X, X);
-         end loop;
-         Output ("test self reference", echoLong (X, 31337) = 31337);
-
-         X := Echootheralltypes (X, X);
-         Output ("test self reference typedef", echoLong (X, 31337) = 31337);
-
-         X := All_Types.Helper.To_Ref
-           (EchoObject (X, CORBA.Object.Ref (X)));
-         Output ("test object", echoLong (X, 23459) = 23459);
-
-         X := All_Types.Helper.To_Ref
-           (EchootherObject (X, CORBA.Object.Ref (X)));
-         Output ("test object typedef", echoLong (X, 34563) = 34563);
-
       end;
 
       exit when One_Shot;

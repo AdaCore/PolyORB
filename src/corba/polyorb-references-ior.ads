@@ -71,11 +71,7 @@ package PolyORB.References.IOR is
    --  reflected by its Ada type) and the associated type information
    --  (within the IDL typing model).
 
-   type IOR_Type is record
-      Ref : PolyORB.References.Ref;
-   end record;
-
-   type IOR_Access is access all IOR_Type;
+   type IOR_Type is new PolyORB.References.Ref with null record;
 
    procedure Marshall
      (Buffer : access Buffer_Type;

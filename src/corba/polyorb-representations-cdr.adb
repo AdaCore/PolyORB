@@ -37,17 +37,17 @@ with Ada.Streams;
 with Ada.Exceptions;
 
 with PolyORB.Any; use PolyORB.Any;
-
 with PolyORB.Buffers; use PolyORB.Buffers;
-with PolyORB.Opaque;  use PolyORB.Opaque;
-with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
-with PolyORB.Utils.Buffers; use PolyORB.Utils.Buffers;
-
-with CORBA;
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Exceptions.Stack;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
+with PolyORB.Opaque;  use PolyORB.Opaque;
+with PolyORB.References.IOR;
 with PolyORB.Types;
+with PolyORB.Utils.Buffers; use PolyORB.Utils.Buffers;
+
+with CORBA.Object.Helper;
 
 package body PolyORB.Representations.CDR is
 
@@ -522,8 +522,7 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Objref =>
             pragma Debug (O ("Marshall_From_Any : dealing with an objRef"));
-            --  Marshall (Buffer, PolyORB.Types.Object.Helper.From_Any (Data));
-            raise PolyORB.Not_Implemented;
+            Marshall (Buffer, CORBA.Object.Helper.From_Any (Data));
 
          when Tk_Struct =>
             declare
@@ -1624,13 +1623,14 @@ package body PolyORB.Representations.CDR is
          when Tk_Principal =>
             --  FIXME : to be done
             raise PolyORB.Not_Implemented;
+
          when Tk_Objref =>
-            --  declare
-            --     O : PolyORB.Types.Object.Ref := Unmarshall (Buffer);
-            --  begin
-            --     PolyORB.Types.Object.Helper.Set_Any_Value (Result, O);
-            --  end;
-            raise PolyORB.Not_Implemented;
+            declare
+               O : CORBA.Object.Ref := Unmarshall (Buffer);
+            begin
+               CORBA.Object.Helper.Set_Any_Value (Result, O);
+            end;
+
          when Tk_Struct =>
             declare
                Nb : Unsigned_Long :=
@@ -2331,7 +2331,7 @@ package body PolyORB.Representations.CDR is
 
    function  Unmarshall
      (Buffer : access Buffer_Type)
-      return PolyORB.Any.NamedValue
+     return PolyORB.Any.NamedValue
    is
       NV  :  PolyORB.Any.NamedValue;
    begin
@@ -2372,78 +2372,76 @@ package body PolyORB.Representations.CDR is
    -- Marshall --
    --------------
 
---   procedure Marshall
---     (Buffer : access Buffer_Type;
---      Data : in PolyORB.Types.AbstractBase.Ref'Class) is
---   begin
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data : in CORBA.AbstractBase.Ref'Class) is
+   begin
       --  !!!!!!!!!!!!!!!!!
       --  FIXME: I've just noticed that abstract interfaces must be
       --  encoded as unions
       --  with a boolean discriminator, cf spec and change code below.
       --  !!!!!!!!!!!!!!!!!
 
-      --  1. if Data is a valuetype, call the valuetype marshalling function
---    if Data in PolyORB.Types.Value.Base'Class then
---       PolyORB.CORBA_P.Value.Stream.Marshall (Buffer,
---                                    PolyORB.Types.Value.Base'Class (Data));
+      --  ValueTypes are not implemented in PolyORB.
 
-         --  2. check if Data is a nil ref, raise marshall if true
---    elsif PolyORB.Types.AbstractBase.Is_Nil (Data) then
---       PolyORB.CORBA_P.Exceptions.Raise_Marshal;
+--      --  1. if Data is a valuetype, call the valuetype marshalling function
+--      if Data in CORBA.Value.Base'Class then
+--  --         PolyORB.CORBA_P.Value.Stream.Marshall
+--  --           (Buffer, PolyORB.Types.Value.Base'Class (Data));
+--         raise PolyORB.Not_Implemented;
 
-         --  3. If Data is an abstract interface and the referenced object is
-         --     a valuetype, then call the valuetype marshalling function.
-         --  In practice, just check if the referenced object is a valuetype.
---    elsif PolyORB.Types.AbstractBase.Object_Of (Data).all
---   in PolyORB.Types.Value.Impl_Base'Class then
-         --  PolyORB.CORBA_P.Value.Stream.Marshall (Buffer,
-         --                             Data);
---       null;
-         --  Not implemented yet
+--         --  2. check if Data is a nil ref, raise marshall if true
+--      elsif CORBA.AbstractBase.Is_Nil (Data) then
+--         PolyORB.CORBA_P.Exceptions.Raise_Marshal;
 
-      --  4. Call the interface marshalling function
---    else
-         --  Make a redispatching call on the designated
-         --  object.
---       declare
---            P : constant PolyORB.Types.Impl.Object_Ptr
---              := PolyORB.Types.AbstractBase.Object_Of (Data);
---         begin
---            PolyORB.Types.Impl.Marshall
---              (Buffer,
---               PolyORB.Types.Impl.Object'Class (P.all));
---         end;
+--         --  3. If Data is an abstract interface and the referenced object is
+--         --     a valuetype, then call the valuetype marshalling function.
+--         --  In practice, just check if the referenced object is a valuetype.
+--      elsif CORBA.AbstractBase.Object_Of (Data).all
+--        in CORBA.Value.Impl_Base'Class then
+--         --  PolyORB.CORBA_P.Value.Stream.Marshall (Buffer,
+--         --                             Data);
+--         raise PolyORB.Not_Implemented;
+--         --  Not implemented yet
+
+--         --  4. Call the interface marshalling function
+--      else
+      declare
+         use PolyORB.References.IOR;
+         IOR : IOR_Type;
+      begin
+         Set (IOR, CORBA.AbstractBase.Entity_Of (Data));
+         Marshall (Buffer, IOR);
+      end;
 --      end if;
---   end Marshall;
+   end Marshall;
 
    ----------------
    -- Unmarshall --
    ----------------
 
---   procedure Unmarshall
---     (Buffer : access Buffer_Type;
---      Data : in out PolyORB.Types.AbstractBase.Ref'Class) is
---      Obj : constant PolyORB.CORBA_P.Object.Object_Ptr
---        := new PolyORB.CORBA_P.Object.Object_Type (Local_Object => False);
---   begin
---      PolyORB.CORBA_P.Object.Unmarshall
---        (Buffer, PolyORB.CORBA_P.Object.Object_Type (Obj.all));
---      PolyORB.Types.AbstractBase.Set
---        (Data, PolyORB.Types.Impl.Object_Ptr (Obj));
---   end Unmarshall;
+   procedure Unmarshall
+     (Buffer : access Buffer_Type;
+      Data   : in out CORBA.AbstractBase.Ref'Class)
+   is
+      use PolyORB.References.IOR;
+      IOR : constant IOR_Type := Unmarshall (Buffer);
+   begin
+      CORBA.AbstractBase.Set (Data, Entity_Of (IOR));
+   end Unmarshall;
 
    ----------------
    -- Unmarshall --
    ----------------
 
---   function Unmarshall
---     (Buffer : access Buffer_Type)
---     return PolyORB.Types.Object.Ref is
---      New_Ref : PolyORB.Types.Object.Ref;
---   begin
---      Unmarshall (Buffer, New_Ref);
---*     return New_Ref;
---   end Unmarshall;
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Object.Ref
+   is
+      New_Ref : CORBA.Object.Ref;
+   begin
+      Unmarshall (Buffer, New_Ref);
+      return New_Ref;
+   end Unmarshall;
 
    -----------------------
    -- System exceptions --
@@ -2599,9 +2597,9 @@ package body PolyORB.Representations.CDR is
 
    package body Fixed_Point is
 
-      Fixed_Positive_Zero : constant PolyORB.Types.Octet
+      Fixed_Positive_Zero : constant Stream_Element
         := 16#C#;
-      Fixed_Negative : constant PolyORB.Types.Octet
+      Fixed_Negative : constant Stream_Element
         := 16#D#;
 
       procedure Marshall
@@ -2613,14 +2611,17 @@ package body PolyORB.Representations.CDR is
 
       procedure Marshall
         (Buffer : access Buffer_Type;
-         Data   :        F)
-      is
-         N_Digits : Integer
-           := 0;
+         Data   : in F) is
+      begin
+         Align_Marshall_Copy (Buffer, Fixed_To_Octets (Data), 1);
+      end Marshall;
 
+      function Fixed_To_Octets (Data : in F)
+        return Stream_Element_Array
+      is
+         N_Digits : Integer := 0;
          Val : F := Data;
       begin
-
          loop
             N_Digits := N_Digits + 1;
             Val := Val * 0.1;
@@ -2670,40 +2671,55 @@ package body PolyORB.Representations.CDR is
                Octets (Octets'Last) :=
                  Octets (Octets'Last) + Stream_Element (Fixed_Negative);
             end if;
-            Align_Marshall_Copy (Buffer, Octets, 1);
+            return Octets;
          end;
-      end Marshall;
+      end Fixed_To_Octets;
+
+      function Octets_To_Fixed (Octets : Stream_Element_Array)
+        return F is
+         Result : F := 0.0;
+      begin
+         for I in Octets'Range loop
+            if Octets (I) / 16 > 9
+              or else
+              (Octets (I) mod 16 > 9 and then I < Octets'Last)
+              or else
+              (Octets (I) mod 16 > 9 and then I = Octets'Last
+              and then (Octets (I) mod 16 /= Fixed_Positive_Zero)
+              and then (Octets (I) mod 16 /= Fixed_Negative))
+            then
+               pragma Debug
+                 (O ("Octets_To_Fixed : exception raised, " &
+                     "Octets (I) = " & Stream_Element'Image
+                     (Octets (I))));
+               PolyORB.CORBA_P.Exceptions.Raise_Marshal;
+            end if;
+            Result := Result * 10 + F (Octets (I) / 16) * F'Delta;
+            if I < Octets'Last then
+               Result := Result * 10 + F (Octets (I) mod 16) * F'Delta;
+            else
+               if Octets (I) mod 16 = Fixed_Negative then
+                  Result := -Result;
+               end if;
+            end if;
+         end loop;
+         return Result;
+      end Octets_To_Fixed;
 
       function Unmarshall
         (Buffer : access Buffer_Type)
-         return F
-      is
-         O : PolyORB.Types.Octet;
-         Result : F := 0.0;
+        return F  is
+         --  31 is the maximum number of digits for a fixed type
+         Octets : Stream_Element_Array (1 .. 31) := (others => 0);
+         I : Stream_Element_Count := 0;
       begin
          loop
-            O := Unmarshall (Buffer);
-            if O / 16 > 9
-              or else
-              (O mod 16 > 9
-               and then O mod 16 /= PolyORB.Types.Octet (Fixed_Positive_Zero)
-               and then O mod 16 /= PolyORB.Types.Octet (Fixed_Negative))
-            then
-               PolyORB.CORBA_P.Exceptions.Raise_Marshal;
-            end if;
-
-            Result := Result * 10 + F (O / 16) * F'Delta;
-            if O mod 16 < 10 then
-               Result := Result * 10 + F (O mod 16) * F'Delta;
-            else
-               if O mod 16 = PolyORB.Types.Octet (Fixed_Negative) then
-                  Result := -Result;
-               end if;
-               exit;
-            end if;
+            I := I + 1;
+            Octets (I) := Stream_Element
+              (PolyORB.Types.Octet'(Unmarshall (Buffer)));
+            exit when Octets (I) mod 16 > 9;
          end loop;
-
-         return Result;
+         return Octets_To_Fixed (Octets (1 .. I));
       end Unmarshall;
 
    end Fixed_Point;

@@ -41,6 +41,8 @@
 with Ada.Streams; use Ada.Streams;
 
 with CORBA;
+with CORBA.AbstractBase;
+with CORBA.Object;
 
 with PolyORB.Buffers; use PolyORB.Buffers;
 with PolyORB.Any;
@@ -346,17 +348,17 @@ package PolyORB.Representations.CDR is
    --  Marshalling and unmashalling of object references
    --  (but not valuetypes)
 
---   procedure Marshall
---     (Buffer : access Buffer_Type;
---      Data   : in PolyORB.Types.AbstractBase.Ref'Class);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in CORBA.AbstractBase.Ref'Class);
 
---   procedure Unmarshall
---     (Buffer : access Buffer_Type;
---      Data : in out PolyORB.Types.AbstractBase.Ref'Class);
+   procedure Unmarshall
+     (Buffer : access Buffer_Type;
+      Data : in out CORBA.AbstractBase.Ref'Class);
 
---   function Unmarshall
---     (Buffer : access Buffer_Type)
---     return PolyORB.Types.Object.Ref;
+   function Unmarshall
+     (Buffer : access Buffer_Type)
+     return CORBA.Object.Ref;
 
    --  Marshalling and unmarshalling of system exceptions
 
@@ -392,8 +394,18 @@ package PolyORB.Representations.CDR is
         (Buffer : access Buffer_Type;
          Data   : in F);
 
-      function Unmarshall (Buffer : access Buffer_Type)
-                           return F;
+      function Unmarshall
+        (Buffer : access Buffer_Type)
+        return F;
+
+      function Fixed_To_Octets
+        (Data : in F)
+        return Stream_Element_Array;
+
+      function Octets_To_Fixed
+        (Octets : Stream_Element_Array)
+        return F;
+
    end Fixed_Point;
 
 end  PolyORB.Representations.CDR;

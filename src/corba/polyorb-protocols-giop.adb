@@ -1071,9 +1071,9 @@ package body PolyORB.Protocols.GIOP is
       use PolyORB.References;
       use PolyORB.References.IOR;
 
-      New_Ref    : PolyORB.References.IOR.IOR_Type := Unmarshall (Buffer);
+      New_Ref    : IOR.IOR_Type := Unmarshall (Buffer);
       Prof_Array : PolyORB.References.Profile_Array
-        := Profiles_Of (New_Ref.Ref);
+        := Profiles_Of (New_Ref);
 
    begin
       pragma Debug (O ("Reply Message : Received Location_Forward"));
@@ -1322,7 +1322,7 @@ package body PolyORB.Protocols.GIOP is
             --  adapter, and query the target object for its most derived
             --  type.
          else
-            Target := Target_Ref.Ref.IOR.Ref;
+            Target := References.Ref (Target_Ref.Ref.IOR);
          end if;
          Free (Target_Ref);
          --  XXX Corollary: when Target_Ref.Address_Type = Profile_Addr,

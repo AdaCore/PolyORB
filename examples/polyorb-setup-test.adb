@@ -39,7 +39,8 @@ with Ada.Exceptions;
 with Ada.Text_IO; use Ada.Text_IO;
 
 with CORBA;
---  For To_Standard_String (display of stringified IOR).
+with CORBA.Object;
+with CORBA.ORB;
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
@@ -51,9 +52,6 @@ with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
-
---  Utility.
-with PolyORB.References.IOR;
 
 --  Our application object.
 with PolyORB.Test_Object;
@@ -89,6 +87,7 @@ package body PolyORB.Setup.Test is
          My_Id : Object_Id_Access
            := new Object_Id'(Obj_Adapters.Export (Obj_Adapter, My_Servant));
          --  Register it with the SOA.
+         My_CORBA_Ref : CORBA.Object.Ref;
       begin
          Obj_Adapters.Simple.Set_Interface_Description
            (Obj_Adapters.Simple.Simple_Obj_Adapter (Obj_Adapter.all),
@@ -96,6 +95,8 @@ package body PolyORB.Setup.Test is
          --  Set object description.
 
          Create_Reference (The_ORB, My_Id, "IDL:Echo:1.0", My_Ref);
+         CORBA.Object.Set
+           (My_CORBA_Ref, PolyORB.References.Entity_Of (My_Ref));
          --  Obtain object reference.
 
          Put_Line ("Registered object: " & Image (My_Id.all));
@@ -103,8 +104,7 @@ package body PolyORB.Setup.Test is
          begin
             Put_Line ("IOR is           : "
                       & CORBA.To_Standard_String
-                      (References.IOR.Object_To_String
-                       ((Ref => My_Ref))));
+                      (CORBA.ORB.Object_To_String (My_CORBA_Ref)));
          exception
             when E : others =>
                Put_Line ("Warning: Object_To_String raised:");

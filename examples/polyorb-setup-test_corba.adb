@@ -39,7 +39,8 @@ with Ada.Text_IO; use Ada.Text_IO;
 
 with CORBA;
 with CORBA.Test_Object; use CORBA.Test_Object;
-
+with CORBA.Object;
+with CORBA.ORB;
 with CORBA.ServerRequest;
 pragma Warnings (Off, CORBA.ServerRequest);
 --  XXX Not used for now.
@@ -55,7 +56,6 @@ with PolyORB.ORB; use PolyORB.ORB;
 with PolyORB.POA;
 with PolyORB.POA.Basic_POA; use PolyORB.POA.Basic_POA;
 with PolyORB.References;
-with PolyORB.References.IOR;
 with PolyORB.Setup.Test; use PolyORB.Setup.Test;
 with PolyORB.Types;
 with PolyORB.POA_Config;
@@ -96,13 +96,14 @@ package body PolyORB.Setup.Test_CORBA is
            (PolyORB.Obj_Adapters.Obj_Adapter_Access (Obj_Adapter),
             PolyORB.Objects.Servant_Access (My_Servant));
          --  Register it with the SOA.
-
+         My_CORBA_Ref : CORBA.Object.Ref;
       begin
          Put_Line ("Registered object: " & PolyORB.Objects.Image (My_Id));
          Create_Reference
            (The_ORB, My_Id'Access, "IDL:Echo:1.0", My_Ref);
          --  Obtain object reference.
-
+         CORBA.Object.Set
+           (My_CORBA_Ref, PolyORB.References.Entity_Of (My_Ref));
          Put_Line ("Reference is     : " & References.Image (My_Ref));
          Put_Line ("URI is           : "
                    & PolyORB.Types.To_Standard_String
@@ -111,8 +112,7 @@ package body PolyORB.Setup.Test_CORBA is
          begin
             Put_Line ("IOR is           : "
                       & CORBA.To_Standard_String
-                      (References.IOR.Object_To_String
-                       ((Ref => My_Ref))));
+                      (CORBA.ORB.Object_To_String (My_CORBA_Ref)));
          exception
             when E : others =>
                Put_Line ("Warning: Object_To_String raised:");

@@ -34,17 +34,18 @@
 
 with Ada.Streams; use Ada.Streams;
 
-with CORBA;
+with Sequences.Unbounded;
+
+with PolyORB.Binding_Data;
 with PolyORB.Buffers; use PolyORB.Buffers;
+with PolyORB.CORBA_P.Exceptions;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
-
-with PolyORB.Utils;
 with PolyORB.Representations.CDR;
-with PolyORB.CORBA_P.Exceptions;
-with Sequences.Unbounded;
-with PolyORB.Binding_Data;
 with PolyORB.Types;
+with PolyORB.Utils;
+
+with CORBA;
 
 package body PolyORB.References.IOR is
 
@@ -59,10 +60,6 @@ package body PolyORB.References.IOR is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   Hexa_Digits : constant array (0 .. 15) of Character
-     := "0123456789abcdef";
-
-
    --------------
    -- Marshall --
    --------------
@@ -73,13 +70,14 @@ package body PolyORB.References.IOR is
    is
       use PolyORB.Types;
       use Profile_Seqs;
-      Profs    : constant Profile_Array := Profiles_Of (Value.Ref);
+
+      Profs    : constant Profile_Array := Profiles_Of (Value);
       Counter  : Integer := 0;
 
    begin
       Marshall
         (Buffer,
-         CORBA.String'(CORBA.To_CORBA_String (Type_Id_Of (Value.Ref))));
+         CORBA.String'(CORBA.To_CORBA_String (Type_Id_Of (Value))));
       Marshall (Buffer, Types.Unsigned_Long (Length (Callbacks)));
 
       pragma Debug (O ("Marshall: enter"));
@@ -165,7 +163,8 @@ package body PolyORB.References.IOR is
       end loop;
 
       Create_Reference
-        (Profs (Profs'First .. Last_Profile), Type_Id, Result.Ref);
+        (Profs (Profs'First .. Last_Profile), Type_Id,
+         References.Ref (Result));
 
       return Result;
    end Unmarshall;

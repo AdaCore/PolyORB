@@ -324,11 +324,15 @@ package body CORBA.ORB is
    -- Object_To_String --
    ----------------------
 
-   function Object_To_String (Obj : in CORBA.Object.Ref'Class)
-      return CORBA.String is
+   function Object_To_String
+     (Obj : in CORBA.Object.Ref'Class)
+     return CORBA.String
+   is
+      use PolyORB.References.IOR;
    begin
-      return PolyORB.References.IOR.Object_To_String
-        ((Ref => CORBA.Object.To_PolyORB_Ref (CORBA.Object.Ref (Obj))));
+      return Object_To_String
+        (IOR_Type'(CORBA.Object.To_PolyORB_Ref (CORBA.Object.Ref (Obj))
+                   with null record));
    end Object_To_String;
 
    ----------------------
@@ -339,11 +343,10 @@ package body CORBA.ORB is
      (From : in     CORBA.String;
       To   : in out CORBA.Object.Ref'Class)
    is
-      IOR : constant PolyORB.References.IOR.IOR_Type
-        := PolyORB.References.IOR.String_To_Object (From);
+      use PolyORB.References.IOR;
+      IOR : constant IOR_Type := String_To_Object (From);
    begin
-      CORBA.Object.Set
-        (To, PolyORB.References.Entity_Of (IOR.Ref));
+      CORBA.Object.Set (To, Entity_Of (IOR));
    end String_To_Object;
 
    ------------------
