@@ -69,15 +69,16 @@ package PolyORB.POA.Basic_POA is
       Etherealize_Objects : in     Boolean;
       Wait_For_Completion : in     Boolean);
 
-   function Activate_Object
-     (Self      : access Basic_Obj_Adapter;
-      P_Servant : in     Servant_Access)
+   function Create_Object_Identification
+     (Self : access Basic_Obj_Adapter;
+      Hint :        Object_Id_Access := null)
      return Object_Id;
 
-   procedure Activate_Object_With_Id
+   function Activate_Object
      (Self      : access Basic_Obj_Adapter;
-      P_Servant : in     Servant_Access;
-      Oid       : in     Object_Id);
+      P_Servant :        Servant_Access;
+      Hint      :        Object_Id_Access := null)
+     return Object_Id;
 
    procedure Deactivate_Object
      (Self      : access Basic_Obj_Adapter;

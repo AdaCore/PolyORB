@@ -612,43 +612,48 @@ package body PolyORB.POA.Basic_POA is
          raise;
    end Destroy;
 
+   ----------------------------------
+   -- Create_Object_Identification --
+   ----------------------------------
+
+   function Create_Object_Identification
+     (Self : access Basic_Obj_Adapter;
+      Hint :        Object_Id_Access := null)
+     return Object_Id is
+   begin
+      raise Not_Implemented;
+      pragma Warnings (Off);
+      return Create_Object_Identification
+        (Self, Hint);
+      pragma Warnings (On);
+   end Create_Object_Identification;
+
    ---------------------
    -- Activate_Object --
    ---------------------
 
    function Activate_Object
      (Self      : access Basic_Obj_Adapter;
-      P_Servant : in     Servant_Access)
+      P_Servant : in     Servant_Access;
+      Hint      :        Object_Id_Access := null)
      return Object_Id
    is
-      Oid : Object_Id_Access
-        := Activate_Object
-        (Self.Servant_Retention_Policy.all,
-         POA_Types.Obj_Adapter_Access (Self),
-         P_Servant);
    begin
-      return Oid.all;
-      --  XXX likely memory leak: Oid is not freed.
+      if Hint = null then
+         return Activate_Object
+           (Self.Servant_Retention_Policy.all,
+            POA_Types.Obj_Adapter_Access (Self),
+            P_Servant).all;
+         --  XXX likely memory leak: Oid is not freed.
+      else
+         Activate_Object_With_Id
+           (Self.Servant_Retention_Policy.all,
+            POA_Types.Obj_Adapter_Access (Self),
+            P_Servant,
+            Hint.all);
+         return Hint.all;
+      end if;
    end Activate_Object;
-
-   -----------------------------
-   -- Activate_Object_With_Id --
-   -----------------------------
-
-   procedure Activate_Object_With_Id
-     (Self      : access Basic_Obj_Adapter;
-      P_Servant : in     Servant_Access;
-      Oid       : in     Object_Id)
-   is
-   begin
-      --  PolyORB.POA_Policies.Servant_Retention_Policy.
-      --    Activate_Object_With_Id
-      Activate_Object_With_Id
-        (Self.Servant_Retention_Policy.all,
-         POA_Types.Obj_Adapter_Access (Self),
-         P_Servant,
-         Oid);
-   end Activate_Object_With_Id;
 
    -----------------------
    -- Deactivate_Object --

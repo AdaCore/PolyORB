@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#16 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#17 $
 
 with Ada.Exceptions;
 
@@ -39,6 +39,7 @@ pragma Elaborate_All (PolyORB.Log);
 with PolyORB.ORB;
 with PolyORB.POA;
 with PolyORB.POA_Manager;
+with PolyORB.POA_Types;
 with PolyORB.References;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
@@ -439,12 +440,14 @@ package body PortableServer.POA is
 --          raise WrongPolicy;
 --       end if;
 
---       return PolyORB.POA.Activate_Object (POA, P_Servant);
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Activate_Object (Self, P_Servant);
-      --  "Possible infinite recursion".
-      pragma Warnings (On);
+      return ObjectId (PolyORB.POA.Activate_Object
+        (POA, PolyORB.POA_Types.Servant_Access
+         (To_PolyORB_Servant (P_Servant))));
+--       raise PolyORB.Not_Implemented;
+--       pragma Warnings (Off);
+--       return Activate_Object (Self, P_Servant);
+--       --  "Possible infinite recursion".
+--       pragma Warnings (On);
    end Activate_Object;
 
    -----------------------------
@@ -458,15 +461,21 @@ package body PortableServer.POA is
    is
       POA : constant PolyORB.POA.Obj_Adapter_Access
         := To_POA (Self);
-
+      A_Oid : aliased PolyORB.POA_Types.Object_Id
+        := PolyORB.POA_Types.Object_Id (Oid);
+      pragma Warnings (Off);
+      R_Oid : constant PolyORB.POA_Types.Object_Id
+        := PolyORB.POA.Activate_Object
+        (POA, PolyORB.POA_Types.Servant_Access
+         (To_PolyORB_Servant (P_Servant)), A_Oid'Unchecked_Access);
+      pragma Unreferenced (R_Oid);
+      pragma Warnings (On);
    begin
 --       --  Cf 9-34: this operation requires RETAIN policy.
 --       if POA.Servant_Policy /= RETAIN then
 --          raise WrongPolicy;
 --       end if;
-
---       PolyORB.POA.Activate_Object_With_Id (POA, Oid, P_Servant);
-      raise PolyORB.Not_Implemented;
+      null;
    end Activate_Object_With_Id;
 
    -----------------------

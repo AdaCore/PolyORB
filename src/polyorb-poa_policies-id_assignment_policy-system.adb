@@ -31,7 +31,6 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Object_Maps;
-with PolyORB.Object_Maps.Seq;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Lifespan_Policy;
 with PolyORB.Locks;
@@ -42,7 +41,6 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    use PolyORB.Locks;
    use PolyORB.Object_Maps;
-   use PolyORB.Object_Maps.Seq;
 
    ------------
    -- Create --
@@ -108,21 +106,22 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
    is
       P_OA      : PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
-      New_Entry : Seq_Object_Map_Entry_Access;
+      New_Entry : Object_Map_Entry_Access;
       Index     : Integer;
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
-      New_Entry         := new Seq_Object_Map_Entry;
+      New_Entry         := new Object_Map_Entry;
       New_Entry.Servant := Object;
 
       Lock_W (P_OA.Map_Lock);
       if P_OA.Active_Object_Map = null then
-         P_OA.Active_Object_Map := Object_Map_Access (New_Map);
+         P_OA.Active_Object_Map := new Object_Map;
       end if;
-      Index := Object_Maps.Add (P_OA.Active_Object_Map.all'Access,
-                    Object_Map_Entry_Access (New_Entry));
+      Index := Object_Maps.Add
+        (P_OA.Active_Object_Map.all'Access,
+         New_Entry);
 
       New_Entry.Oid := new Unmarshalled_Oid;
       New_Entry.Oid.Id := To_PolyORB_String
@@ -151,12 +150,12 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       P_OA      : constant PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
       Oid_A : Object_Id_Access := new Object_Id'(Oid);
-      New_Entry : Seq_Object_Map_Entry_Access;
+      New_Entry : Object_Map_Entry_Access;
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
-      New_Entry         := new Seq_Object_Map_Entry;
+      New_Entry         := new Object_Map_Entry;
       New_Entry.Oid     := new Unmarshalled_Oid'(Oid_To_U_Oid (Oid_A));
       Free (Oid_A);
       New_Entry.Servant := Object;
@@ -164,7 +163,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       Lock_W (P_OA.Map_Lock);
       Object_Maps.Replace_By_Index
         (P_OA.Active_Object_Map.all'Access,
-         Object_Map_Entry_Access (New_Entry),
+         New_Entry,
          Integer'Value (To_Standard_String (New_Entry.Oid.Id)));
       Unlock_W (P_OA.Map_Lock);
    end Activate_Object_With_Id;
@@ -240,7 +239,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       --  Frees only the Unmarshalled_Oid_Access and the entry.
       --  The servant has to be freed by the application.
       Free (An_Entry.Oid);
-      Free (Seq_Object_Map_Entry_Access (An_Entry));
+      Free (An_Entry);
    end Remove_Entry;
 
    -------------------

@@ -119,19 +119,25 @@ package PolyORB.POA is
       is abstract;
    --  Destroys recursively the POA and all his descendants
 
-   function Activate_Object
-     (Self      : access Obj_Adapter;
-      P_Servant : in     Servant_Access)
+   function Create_Object_Identification
+     (Self : access Obj_Adapter;
+      Hint :        Object_Id_Access := null)
      return Object_Id
       is abstract;
-   --  Activates an object
+   --  Reserve a complete object identifier, possibly using
+   --  the given Hint (if not null) for the construction of
+   --  the object identifier included in the Object_Id.
 
-   procedure Activate_Object_With_Id
+   function Activate_Object
      (Self      : access Obj_Adapter;
-      P_Servant : in     Servant_Access;
-      Oid       : in     Object_Id)
+      P_Servant :        Servant_Access;
+      Hint      :        Object_Id_Access := null)
+     return Object_Id
       is abstract;
-   --  Activates an object with a specified Id
+   --  Activates an object, i.e. associate it with a local
+   --  identification, possibly using the given Hint (if not null)
+   --  for the construction of the object identifier included
+   --  in the Object_Id.
 
    procedure Deactivate_Object
      (Self : access Obj_Adapter;

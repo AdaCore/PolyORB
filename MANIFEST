@@ -450,10 +450,7 @@ src/polyorb-obj_adapters-simple.adb
 src/polyorb-obj_adapters-simple.ads
 src/polyorb-obj_adapters.adb
 src/polyorb-obj_adapters.ads
-src/polyorb-object_map.adb
-src/polyorb-object_map.ads
-src/polyorb-object_maps-seq.adb
-src/polyorb-object_maps-seq.ads
+src/polyorb-object_maps.adb
 src/polyorb-object_maps.ads
 src/polyorb-objects-interface.ads
 src/polyorb-objects.adb
