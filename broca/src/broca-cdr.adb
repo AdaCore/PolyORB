@@ -40,6 +40,7 @@ with Broca.Exceptions;
 with Broca.Exceptions.Stack;
 with Ada.Exceptions;
 with Broca.Object;
+with Broca.Opaque;            use Broca.Opaque;
 
 with CORBA.Impl;
 with CORBA.Object.Helper;

@@ -35,7 +35,6 @@ with CORBA;
 with CORBA.AbstractBase;
 with CORBA.Object;
 
-with Broca.Opaque; use Broca.Opaque;
 with Broca.Buffers; use Broca.Buffers;
 
 package Broca.CDR is
