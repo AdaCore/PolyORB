@@ -5021,6 +5021,17 @@ package body Exp_Dist is
                 Out_Present         => Out_Present (Current_Parameter),
                 Expression          =>
                   New_Copy_Tree (Expression (Current_Parameter))));
+            if Is_Entity_Name (Current_Type) then
+               Set_Etype (New_Identifier, Entity (Current_Type));
+            else
+
+               --  Current_Type is an anonymous access type, will have
+               --  special processing with respect to distribution,
+               --  so no need to set the etype here.
+
+               null;
+
+            end if;
 
             Next (Current_Parameter);
          end loop;
