@@ -148,8 +148,6 @@ adabe_attribute::produce_proxies_ads(dep_list& with, string &body, string &priva
       body += "                       return Corba.Unsigned_Long ;\n\n";
       body += "   procedure Marshal_Arguments(Self : in Set_" + get_ada_local_name() + "_Proxy ;\n";
       body += "                               Giop_Client : in out Giop_C.Object);\n\n";
-      body += "   procedure Unmarshal_Returned_Values(Self : in out Set_" + get_ada_local_name() + "_Proxy ;\n";
-      body += "                                       Giop_Client : in Giop_C.Object) ;\n\n";
 
       private_definition += "   type Set_" + get_ada_local_name() + "_Proxy is new OmniProxyCallDesc.Object with record \n";
       private_definition += "      Arg : " + name + "_Ptr := null;\n";
@@ -163,6 +161,7 @@ void
 adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &private_definition)
 {
   AST_Decl *d = field_type();
+  with.add("Netbufferedstream") ;
   string name = dynamic_cast<adabe_name *>(d)->dump_name(with, private_definition);
   body += "   -----------------------------------------------------------\n" ;
   body += "   ---               Get_" + get_ada_local_name() + "\n" ; 
@@ -178,7 +177,7 @@ adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &priva
   body += "   function Operation(Self : in Get_" + get_ada_local_name() + "_Proxy)\n";
   body += "                      return Corba.String is\n";
   body += "   begin\n";
-  body += "      return Corba.To_Corba_String(\"get_" + get_ada_local_name() + "\") ;\n";
+  body += "      return Corba.To_Corba_String(\"_get_" + get_ada_local_name() + "\") ;\n";
   body += "   end ;\n\n\n";
   body += "   -- Unmarshal_Returned_Values\n" ;
   body += "   ----------------------------\n" ;
@@ -200,7 +199,7 @@ adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &priva
   body += "   -----------\n" ;
   body += "   procedure Finalize (Self : in out Get_" + get_ada_local_name() + "_Proxy) is\n";
   body += "   begin\n";
-  body += "      Free(Self.Result) ;\n";
+  body += "      Free(Self.Private_Result) ;\n";
   body += "   end ;\n\n\n";
 
   if (!readonly())
@@ -210,7 +209,7 @@ adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &priva
       body += "   -----------------------------------------------------------\n\n" ;
       body += "   -- Init\n" ;
       body += "   -------\n" ;
-      body += "   procedure Init(Self : in out Set_" + get_ada_local_name() + "_Proxy is\n";
+      body += "   procedure Init(Self : in out Set_" + get_ada_local_name() + "_Proxy ;\n";
       body += "                  Arg : in " + name + ") is\n";
       body += "   begin\n";
       body += "      Set_User_Exceptions(Self, False) ;\n";
@@ -218,14 +217,14 @@ adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &priva
       body += "   end ;\n\n\n";
       body += "   -- Operation\n" ;
       body += "   ------------\n" ;
-      body += "   function Operation(Self : in Set_" + get_ada_local_name() + "_Proxy) is\n";
+      body += "   function Operation(Self : in Set_" + get_ada_local_name() + "_Proxy)\n";
       body += "                      return Corba.String is\n";
       body += "   begin\n";
-      body += "      return Corba.To_Corba_String(\"set_" + get_ada_local_name() + "\") ;\n";
+      body += "      return Corba.To_Corba_String(\"_set_" + get_ada_local_name() + "\") ;\n";
       body += "   end ;\n\n\n";
       body += "   -- Align_Size\n" ;
       body += "   -------------\n" ;
-      body += "   function Align_Size(Self : in Set_" + get_ada_local_name() + "_Proxy is\n";
+      body += "   function Align_Size(Self : in Set_" + get_ada_local_name() + "_Proxy ;\n";
       body += "                       Size_In : in Corba.Unsigned_Long)\n";
       body += "                       return Corba.Unsigned_Long is\n";
       body += "   begin\n";
@@ -233,7 +232,7 @@ adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &priva
       body += "   end ;\n\n\n";
       body += "   -- Marshall_Arguments\n" ;
       body += "   ---------------------\n" ;
-      body += "   procedure Marshal_Arguments(Self : in Set_" + get_ada_local_name() + "_Proxy is\n";
+      body += "   procedure Marshal_Arguments(Self : in Set_" +	get_ada_local_name() + "_Proxy ;\n";
       body += "                               Giop_Client : in out Giop_C.Object) is\n";
       body += "   begin\n";
       body += "      Marshall(Self.Arg.all, Giop_client) ;\n";

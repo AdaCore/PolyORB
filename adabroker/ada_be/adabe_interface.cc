@@ -540,7 +540,6 @@ adabe_interface::produce_proxies_ads(dep_list& with, string &body, string &previ
   adabe_global::set_adabe_current_file(this);
   with.add("Giop_C");
   with.add("Omniproxycalldesc");
-  with.add("Proxyobject factory");
   with.add("Rope");
   with.add("Iop");
   body += "package " + get_ada_full_name() + ".Proxies is \n";
