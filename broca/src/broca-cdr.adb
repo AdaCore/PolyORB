@@ -1518,6 +1518,7 @@ package body Broca.CDR is
                      TC_Unsigned_Long,
                      CORBA.Unsigned_Long (0));
                end if;
+               Unmarshall_To_Any (Buffer, Arg);
                if Is_Empty then
                   Add_Aggregate_Element (Result, Arg);
                end if;
