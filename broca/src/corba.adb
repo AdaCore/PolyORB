@@ -34,6 +34,10 @@
 with Broca.Exceptions;
 with Broca.Debug;
 
+with Broca.Configuration;
+pragma Elaborate (Broca.Configuration);
+pragma Warnings (Off, Broca.Configuration);
+
 with Ada.Tags;
 
 package body CORBA is
