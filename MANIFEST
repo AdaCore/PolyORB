@@ -41,6 +41,7 @@
 ./Examples/naming_service/echo-impl.adb
 ./Examples/naming_service/echo-impl.ads
 ./Examples/naming_service/echo.idl
+./Examples/naming_service/Naming.idl
 ./Examples/naming_service/server.adb
 ./Examples/echo/GNUmakefile
 ./Examples/echo/client.adb
