@@ -562,6 +562,15 @@ package body Exp_Dist is
 
    RCI_Cache : Node_Id;
 
+   Output_From_Constrained : constant array (Boolean) of Name_Id :=
+     (False => Name_Output,
+      True  => Name_Write);
+   --  The attribute to choose depending on the fact that the parameter
+   --  is constrained or not. There is no such thing as Input_From_Constrained
+   --  since this require separate mechanisms ('Input is a function while
+   --  'Read is a procedure).
+   pragma Unreferenced (Output_From_Constrained);
+
    ---------------------------------------
    -- Add_Calling_Stubs_To_Declarations --
    ---------------------------------------
@@ -571,12 +580,15 @@ package body Exp_Dist is
       Decls    : List_Id)
    is
       Current_Subprogram_Number : Int := First_RCI_Subprogram_Id;
+      --  Subprogram id 0 is reserved for calls received from
+      --  remote access-to-subprogram dereferences.
 
       Current_Declaration       : Node_Id;
       Loc                       : constant Source_Ptr := Sloc (Pkg_Spec);
       RCI_Instantiation         : Node_Id;
       Subp_Stubs                : Node_Id;
       Subp_Str                  : String_Id;
+
    begin
       --  The first thing added is an instantiation of the generic package
       --  System.Partition_Interface.RCI_Locator with the name of this
@@ -615,7 +627,6 @@ package body Exp_Dist is
                 Subp_Id      =>
                   Build_Subprogram_Id (Loc,
                     Defining_Unit_Name (Specification (Current_Declaration))),
-
                 Asynchronous =>
                   Nkind (Specification (Current_Declaration)) =
                     N_Procedure_Specification
@@ -946,8 +957,7 @@ package body Exp_Dist is
                        Parent_Primitive         => Current_Primitive);
 
                   Current_Receiver :=
-                    Defining_Unit_Name (
-                      Specification (Current_Receiver_Body));
+                    Defining_Unit_Name (Specification (Current_Receiver_Body));
 
                   Append_To (Decls, Current_Receiver_Body);
 
@@ -1060,8 +1070,8 @@ package body Exp_Dist is
                       Nkind (Type_Def) = N_Access_Function_Definition;
 
       Is_Degenerate : Boolean;
-      --  Set to True if the subprogram_specification for this RAS has an
-      --  anonymous access parameter (see Process_Remote_AST_Declaration).
+      --  Set to True if the subprogram_specification for this RAS has
+      --  an anonymous access parameter (see Process_Remote_AST_Declaration).
 
       Spec : constant Node_Id := Type_Def;
 
@@ -1131,9 +1141,9 @@ package body Exp_Dist is
          RACW_Primitive_Name := New_Occurrence_Of (Proc, Loc);
 
       else
-         --  For a normal RAS type, we cast the RAS formal to the
-         --  corresponding tagged type, and perform a dispatching call to
-         --  its Call primitive operation.
+         --  For a normal RAS type, we cast the RAS formal to the corresponding
+         --  tagged type, and perform a dispatching call to its Call
+         --  primitive operation.
 
          Prepend_To (Param_Assoc,
            Unchecked_Convert_To (RACW_Type,
