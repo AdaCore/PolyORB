@@ -61,9 +61,85 @@ package body Idl_Fe.Types is
       return Loc (N);
    end Get_Location;
 
+
+   ----------------------------------
+   --  Management of const values  --
+   ----------------------------------
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+
+   function Duplicate (C : in Constant_Value_Ptr)
+                       return Constant_Value_Ptr is
+      Result : Constant_Value_Ptr := new Constant_Value (Kind => C.Kind);
+   begin
+      case C.Kind is
+         when C_Octet
+           | C_Short
+           | C_Long
+           | C_LongLong
+           | C_UShort
+           | C_ULong
+           | C_ULongLong
+           | C_General_Integer =>
+            Result.Integer_Value := C.Integer_Value;
+         when C_Char =>
+            Result.Char_Value := C.Char_Value;
+         when C_WChar =>
+            Result.WChar_Value := C.WChar_Value;
+         when C_Boolean =>
+            Result.Boolean_Value := C.Boolean_Value;
+         when C_Float
+           | C_Double
+           | C_LongDouble
+           | C_General_Float =>
+            Result.Float_Value := C.Float_Value;
+         when C_String =>
+            Result.String_Value := C.String_Value;
+         when C_WString =>
+            Result.WString_Value := C.WString_Value;
+         when C_Fixed
+           | C_General_Fixed =>
+            Result.Fixed_Value := C.Fixed_Value;
+            Result.Digits_Nb := C.Digits_Nb;
+            Result.Scale := C.Scale;
+         when C_Enum =>
+            Result.Enum_Value := C.Enum_Value;
+            Result.Enum_Name := C.Enum_Name;
+         when C_No_Kind =>
+            null;
+      end case;
+      return Result;
+   end Duplicate;
+
+   ------------
+   --  Free  --
+   ------------
+
+   procedure Free (C : in out Constant_Value_Ptr) is
+      procedure Real_Free is new Ada.Unchecked_Deallocation
+        (Constant_Value, Constant_Value_Ptr);
+   begin
+      case C.Kind is
+         when C_String =>
+            Free_Idl_String (C.String_Value);
+         when C_WString =>
+            Free_Idl_Wide_String (C.WString_Value);
+         when others =>
+            null;
+      end case;
+      Real_Free (C);
+   end Free;
+
+
    ---------------------
    -- A list of nodes --
    ---------------------
+
+   ------------
+   --  Head  --
+   ------------
 
    function Head
      (NL : Node_List)
@@ -73,12 +149,20 @@ package body Idl_Fe.Types is
       return NL.Car;
    end Head;
 
+   ----------------
+   --  Is_Empty  --
+   ----------------
+
    function Is_Empty
      (NL : Node_List)
      return Boolean is
    begin
       return NL = Nil_List;
    end Is_Empty;
+
+   --------------
+   --  Length  --
+   --------------
 
    function Length
      (NL : Node_List)

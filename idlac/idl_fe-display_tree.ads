@@ -26,4 +26,8 @@ private
                          Full : Boolean;
                          Op : String);
 
+   --  displays a constant value and its type
+   procedure Disp_Const_Value (Expr : Constant_Value_Ptr;
+                               Indent : Natural);
+
 end Idl_Fe.Display_Tree;

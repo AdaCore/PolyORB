@@ -211,11 +211,11 @@ package body Idl_Fe.Tree.Synthetic is
    function Integer_Value
      (Node : Node_Id)
      return Integer is
-      O_Node : constant Node_Id
-        := Operand (Node);
+--      O_Node : constant Node_Id
+--        := Operand (Node);
    begin
-      return Integer'Value
-        (String_Value (O_Node).all);
+      return 0;
+--      return Expr_Value (O_Node).Integer_Value;
    end Integer_Value;
 
 end Idl_Fe.Tree.Synthetic;
