@@ -20,7 +20,7 @@ ac_help="$ac_help
 ac_help="$ac_help
   --with-remsh=command    Select a remote shell command"
 ac_help="$ac_help
-  --with-filters=list     Enumerate filter list (default=zip)"
+  --with-filters=list     Enumerate filter list (default=none+zip)"
 ac_help="$ac_help
   --with-protocols=list   Enumerate protocol list"
 ac_help="$ac_help

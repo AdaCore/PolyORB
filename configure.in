@@ -127,7 +127,7 @@ AC_MSG_RESULT($RSH)
 # Filter list
 #
 AC_ARG_WITH(filters,
-[  --with-filters=list     Enumerate filter list (default=zip)],
+[  --with-filters=list     Enumerate filter list (default=none+zip)],
 [
   FILTERLIST="${withval}";
 ],
