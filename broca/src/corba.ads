@@ -404,8 +404,10 @@ package CORBA is
 
    package TypeCode is
 
-      --  Spec  --
-      ------------
+      ----------
+      -- Spec --
+      ----------
+
       type Object is private;
       type Object_Ptr is access all Object;
 
@@ -622,7 +624,9 @@ package CORBA is
                                 return Unsigned_Long;
 
    private
-      --       --  implementation defined
+
+      --  Implementation-defined
+
       --       Out_Of_Bounds_Index : exception;  --  FIXME : remove it ?
 
       --  list of parameters (which are some any)
