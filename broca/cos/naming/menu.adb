@@ -7,7 +7,7 @@ package body Menu is
 
    Args : array (1 .. 16) of String_Access;
    Argc : Natural;
-   Line : String (1 .. 256);
+   Line : String (1 .. 1024);
    Last : Natural;
    Scan : Natural;
 
