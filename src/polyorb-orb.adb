@@ -1145,9 +1145,8 @@ package body PolyORB.ORB is
                        (Watcher (Req.Requesting_Task.all));
                end case;
             else
-               O ("ARGH! No requesting task,"
-                    & " discarding Executed_Request: "
-                    & Image (Req), Error);
+               --  The requesting task has already taken note of
+               --  the completion of the request: nothing to do.
                null;
             end if;
          end;
