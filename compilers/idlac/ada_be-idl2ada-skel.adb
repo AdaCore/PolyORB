@@ -638,7 +638,7 @@ package body Ada_Be.Idl2Ada.Skel is
                            II (CU);
                            PL (CU, "Get_Members (E, Members);");
                            PL (CU, "CORBA.ServerRequest.Set_Exception");
-                           PL (CU, "  (Request.all,");
+                           PL (CU, "  (Request,");
                            II (CU);
                            PL (CU, Prefix & ".To_Any (Members));");
                            DI (CU);
@@ -649,10 +649,27 @@ package body Ada_Be.Idl2Ada.Skel is
                         end;
                      end loop;
                   end;
-
-                  PL (CU, "when others =>");
-                  PL (CU, "   null;");
                end if;
+
+--                PL (CU, "when others =>");
+--                II (CU);
+--                PL (CU, "declare");
+--                II (CU);
+--                PL (CU, "use CORBA;");
+--                PL (CU, "Members : constant Unknown_Members");
+--                PL (CU, "  := (Minor => 1, Completed => Completed_Maybe);");
+--                DI (CU);
+--                PL (CU, "begin");
+--                II (CU);
+--                PL (CU, "CORBA.ServerRequest.Set_Exception");
+--                PL (CU, "  (Request,");
+--                II (CU);
+--                PL (CU, "CORBA.To_Any (Members));");
+--                DI (CU);
+--                PL (CU, "return;");
+--                DI (CU);
+--                PL (CU, "end;");
+--                DI (CU);
 
                DI (CU);
                PL (CU, "end;");

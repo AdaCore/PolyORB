@@ -218,13 +218,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
       --  Occurrence
       Marshall (Buffer, Occurence);
+      --  XXX WRONG! This procedure can only marshall
+      --  SYSTEM exceptions, not USER exceptions!
    end Marshall_Exception;
 
-
-
    -------------------------------------
-   --   Location Forward Reply Marshall
-   ------------------------------------
+   -- Location Forward Reply Marshall --
+   -------------------------------------
 
    procedure Marshall_Location_Forward
     (Buffer           : access Buffer_Type;

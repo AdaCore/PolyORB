@@ -114,6 +114,13 @@ package PolyORB.Requests is
       --  Unmarshall_Arguments is called.
 
       Result    : Any.NamedValue;
+      --  The result returned by the object after execution of
+      --  this request.
+
+      Exception_Info : Any.Any;
+      --  If non-empty, information relatuve to an exception
+      --  raised during execution of this request.
+
       --  Exc_List   : CORBA.ExceptionList.Ref;
       --  Ctxt_List  : CORBA.ContextList.Ref;
       --  Req_Flags  : CORBA.Flags;

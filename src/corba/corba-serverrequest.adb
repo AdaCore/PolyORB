@@ -76,30 +76,12 @@ package body CORBA.ServerRequest is
       end if;
    end Set_Result;
 
-   procedure Set_Exception (Obj : Object; Val : Any)
+   procedure Set_Exception (Obj : access Object; Val : Any)
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (Obj);
-      pragma Warnings (On);
    begin
       pragma Debug
         (O ("Server notifies exception: " & Image (Val)));
-      --  O.Exception_Info := Val;
-      raise PolyORB.Not_Implemented;
+      Obj.Exception_Info := Val;
    end Set_Exception;
-
---    function To_PolyORB_Request
---      (O : Object)
---      return PolyORB.Requests.Request_Access is
---    begin
---       return PolyORB.Requests.Request_Access (O);
---    end To_PolyORB_Request;
-
---    function To_CORBA_ServerRequest
---      (R : PolyORB.Requests.Request_Access)
---      return Object is
---    begin
---       return Object (R);
---    end To_CORBA_ServerRequest;
 
 end CORBA.ServerRequest;

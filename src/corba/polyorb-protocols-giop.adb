@@ -1732,10 +1732,24 @@ package body PolyORB.Protocols.GIOP is
       end if;
 
       Release_Contents (S.Buffer_Out.all);
-      No_Exception_Reply (S, R, Fragment_Next);
-      --  XXX what if R has raised an exception?
 
-      pragma Debug (O ("Sending Reply"));
+      if PolyORB.Any.Is_Empty (R.Exception_Info) then
+         No_Exception_Reply (S, R, Fragment_Next);
+      else
+         raise Not_Implemented;
+--          declare
+--             EType : CORBA.Exception_Type;
+--             pragma Warnings (Off, EType);
+--             --  XXX should initialize EType according
+--             --  to whether R.Exception_Info denotes a user
+--             --  or system exception.
+--          begin
+--             Exception_Reply
+--               (S, R, EType, R.Exception_Info, Fragment_Next);
+--          end;
+      end if;
+
+      pragma Debug (O ("Sending reply"));
 
       --  Sending the message
       Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => S.Buffer_Out));
