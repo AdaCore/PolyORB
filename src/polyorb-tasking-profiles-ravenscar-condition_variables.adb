@@ -118,6 +118,25 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
    The_Condition_PO_Arr : Condition_PO_Arr;
    --  Pool of Condition_PO.
 
+   ---------------
+   -- Broadcast --
+   ---------------
+
+   procedure Broadcast
+     (C : in out Ravenscar_Condition_Type) is
+      To_Free : Thread_Queue;
+   begin
+      pragma Debug (O ("Broadcast"));
+      The_Condition_PO_Arr (C.Id).Broadcast (To_Free);
+      for J in To_Free'Range loop
+
+         if To_Free (J).Is_Waiting = True then
+            Resume (To_Free (J).Sync);
+         end if;
+
+      end loop;
+   end Broadcast;
+
    ------------
    -- Create --
    ------------
@@ -134,6 +153,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
       Index : Condition_Index_Type;
       C     : Ravenscar_Condition_Access;
    begin
+      pragma Debug (O ("Create"));
       Condition_Index_Manager.Get (Index);
       C := The_Condition_Pool (Index)'Access;
       C.Id := Index;
@@ -152,22 +172,9 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
       pragma Unreferenced (MF);
       pragma Warnings (On);
    begin
+      pragma Debug (O ("Destroy"));
       Condition_Index_Manager.Release (Ravenscar_Condition_Access (C).Id);
    end Destroy;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize is
-   begin
-      Condition_Index_Manager.Initialize;
-      for J in The_Condition_PO_Arr'Range loop
-         The_Condition_PO_Arr (J).Initialize (J);
-      end loop;
-      PTCV.Register_Condition_Factory (PTCV.Condition_Factory_Access
-                                    (The_Condition_Factory));
-   end Initialize;
 
    ------------------
    -- Condition_PO --
@@ -296,6 +303,20 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
 
    end Condition_PO;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      Condition_Index_Manager.Initialize;
+      for J in The_Condition_PO_Arr'Range loop
+         The_Condition_PO_Arr (J).Initialize (J);
+      end loop;
+      PTCV.Register_Condition_Factory (PTCV.Condition_Factory_Access
+                                    (The_Condition_Factory));
+   end Initialize;
+
    ------------
    -- Signal --
    ------------
@@ -305,30 +326,13 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
       Someone_Is_Waiting : Boolean;
       To_Free            : Synchro_Index_Type;
    begin
+      pragma Debug (O ("Signal"));
       The_Condition_PO_Arr (C.Id).Signal (Someone_Is_Waiting, To_Free);
 
       if Someone_Is_Waiting then
          Resume (To_Free);
       end if;
    end Signal;
-
-   ---------------
-   -- Broadcast --
-   ---------------
-
-   procedure Broadcast
-     (C : in out Ravenscar_Condition_Type) is
-      To_Free : Thread_Queue;
-   begin
-      The_Condition_PO_Arr (C.Id).Broadcast (To_Free);
-      for J in To_Free'Range loop
-
-         if To_Free (J).Is_Waiting = True then
-            Resume (To_Free (J).Sync);
-         end if;
-
-      end loop;
-   end Broadcast;
 
    ----------
    -- Wait --
@@ -339,6 +343,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
       M : access PTM.Mutex_Type'Class) is
       S : Synchro_Index_Type;
    begin
+      pragma Debug (O ("Wait"));
       S := Prepare_Suspend;
       The_Condition_PO_Arr (C.Id).Prepare_Wait (S);
       PTM.Leave (M.all);
