@@ -14,6 +14,9 @@
 package body Corba.Object is
 
 
+   --------------------------------------------------
+   ---        AdaBroker  specific                 ---
+   --------------------------------------------------
 
    --  Get_Dynamic_Object
    ----------------------
@@ -23,6 +26,19 @@ package body Corba.Object is
     end ;
 
 
+    -- To_Ref
+    ---------
+    function To_Ref(The_Ref : in Ref'Class) return Ref is
+       Real_Object : Ref'Class :=
+         Get_Dynamic_Object(The_Ref) ;
+       Result : Ref ;
+    begin
+       AdaBroker_Cast_To_Parent(Real_Object,Result) ;
+       return Result;
+    end ;
+
+
+
 private
 
    -- Initialize
@@ -30,13 +46,13 @@ private
    procedure Initialize (Self: in out Ref'Class) is
    begin
       Dynamic_Object := Ref'Access;
-   end Initialize;
+   end ;
 
 
    -- Adjust
    ---------
    procedure Adjust (Self: in out Ref'Class)
-     renames Initialise;
+     renames Initialize;
 
    -- Finalize
    -----------
@@ -44,8 +60,10 @@ private
    begin
       -- nothing to do for the moment
       -- releases the underlying C++ pointer
-   end Finalize;
+   end ;
 
+
+end Corba.Object ;
 
 
 

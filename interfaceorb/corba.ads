@@ -48,7 +48,7 @@ package Corba is
    -- And now all the pointers to those types :
 
    type Boolean_Ptr is access all Boolean ;
-   type Short Ptr is access all Short ;
+   type Short_Ptr is access all Short ;
    type Long_Ptr is access all Long ;
    type Unsigned_Short_Ptr is access all Unsigned_Short ;
    type Unsigned_Long_Ptr is access all Unsigned_Long ;
@@ -164,7 +164,7 @@ package Corba is
 
     function To_Standard_String(S: in Corba.String) return Standard.String ;
 
-    function Length(Str : in Corba.String) return Integer ;
+    function Length(Str : in Corba.String) return Corba.Unsigned_Long ;
 
     Not_Implemented_Yet : exception ;
     -- thos exception is raised in each function

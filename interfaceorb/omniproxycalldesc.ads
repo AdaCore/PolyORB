@@ -14,17 +14,18 @@ with Corba, Giop_C ;
 
 package omniProxyCallDesc is
 
-   type Object(Op_Size : Natural) is abstract tagged limited private;
+   type Object(Op_Size : Natural) is abstract tagged private;
 
    -- all the following funcitions correspond
    -- to omniORB's OmniProxyCallDesc
    -- In proxyCall.h L33
    procedure Init (Self : in out Object ;
                    Operator : in String ;
-                   Has_Exceptions : Corba.boolean);
+                   Has_Exceptions : Corba.Boolean := False ) ;
 
-   procedure Aligned_Size(Self : in Object ;
-                          Size_In: in out Corba.Unsigned_Long) is abstract ;
+   function Aligned_Size(Self : in Object ;
+                          Size_In: in Corba.Unsigned_Long )
+     return Corba.Unsigned_Long is abstract ;
    -- used to be a function as in omniORB
    -- taking Size_In as a parameter and
    -- returning the same parameter modified
@@ -47,11 +48,11 @@ package omniProxyCallDesc is
                            return Integer ;
 
    function Operation (Self : in Object)
-                       return CORBA.String;
+                       return CORBA.String ;
 
 private
 
-   type Object(Op_Size : Natural) is abstract tagged limited record
+   type Object(Op_Size : Natural) is abstract tagged record
       Pd_Has_User_Exception : Corba.Boolean ;
       Operation_Name :  Standard.String(1..Op_Size) ;
    end record ;

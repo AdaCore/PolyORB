@@ -27,7 +27,7 @@ package Corba.Boa is
    -- in CORBA.h L 2092
 
 
-   procedure Object_Is_Ready(The_Object : in Corba.Implementation_Defined.Object'Class) ;
+   procedure Object_Is_Ready(The_Object : in Corba.Object.Ref'Class) ;
    -- wrapper around void
    -- CORBA::
    --BOA::obj_is_ready(Object_ptr op, ImplementationDef_ptr ip /* ignored */)
@@ -44,7 +44,7 @@ package Corba.Boa is
    -- this function must also create the underlying C++ object
    -- since it has not been done yet
 
-   procedure Impl_Is_Ready(The_Object : in Corba.Implementation_Defined.Object'Class) ;
+   procedure Impl_Is_Ready(The_Object : in Corba.Object.Ref'Class) ;
    -- wrapper around impl_is_ready() ;
 
 

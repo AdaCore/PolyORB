@@ -58,6 +58,8 @@ package Corba.Object is
    --------------------------------------------------
    function Get_Dynamic_Object(Self: in Ref'Class) return Ref'Class ;
 
+   function To_Ref(The_Ref: in Ref'Class) return Ref ;
+
 
    procedure Marshal_Obj_Ref(The_Object: Ref'Class ;
                              RepoID : String ;

@@ -21,8 +21,8 @@ package OmniRopeAndKey is
       Table : Interfaces.CPP.Vtable_Ptr ;
    end record;
 
-   pragma CPP_Class (Object) ;
-   pragma CPP_Vtable (Object,Table,1) ;
+   -- pragma CPP_Class (Object) ;
+   -- pragma CPP_Vtable (Object,Table,1) ;
 
    procedure Init (This : in out Object'Class ;
                    R : in Rope.Object ;

@@ -47,6 +47,9 @@ package BufferedStream is
    function UnMarshal (Buff_Str : in Object)
                         return CORBA.Unsigned_Long ;
 
+   function UnMarshal (Buff_Str : in Object)
+                        return CORBA.String ;
+
 
    -------------------------------------------------------
    ----           others                              ----
@@ -54,7 +57,7 @@ package BufferedStream is
 
    procedure Put_Char_Array (Self: in Object ;
                              B: in Corba.String ;
-                             Size: in Integer ;
+                             Size: in Corba.Unsigned_Long ;
                              Align: in Omni.Alignment_T := Omni.ALIGN_1 ;
                              StartMTU: in Corba.Boolean := False ;
                              At_Most_One: in Corba.Boolean := False ) ;
