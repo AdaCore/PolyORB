@@ -5,6 +5,8 @@
 
 with CORBA.Repository_Root.IRObject.Impl;
 
+with PolyORB.Sequences.Unbounded;
+
 package CORBA.Repository_Root.Contained.Impl is
 
    type Object is
