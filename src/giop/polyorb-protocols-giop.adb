@@ -810,6 +810,8 @@ package body PolyORB.Protocols.GIOP is
       CORBA_Occurence : PolyORB.Any.Any;
 
    begin
+      Fragment_Next := False;
+
       if Exception_Type = System_Exception then
          CORBA_Occurence :=
            PolyORB.GIOP_P.Exceptions.To_CORBA_Exception (Occurence);
@@ -859,7 +861,7 @@ package body PolyORB.Protocols.GIOP is
                Exception_Type,
                CORBA_Occurence);
 
-            if  Length (Buffer_Out) > Maximum_Message_Size then
+            if Length (Buffer_Out) > Maximum_Message_Size then
                Fragment_Next := True;
             end if;
 
