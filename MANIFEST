@@ -674,10 +674,16 @@ src/giop/polyorb-binding_data-giop-inet.adb
 src/giop/polyorb-binding_data-giop-inet.ads
 src/giop/polyorb-binding_data-giop.adb
 src/giop/polyorb-binding_data-giop.ads
+src/giop/polyorb-giop_p-code_sets-converters.adb
+src/giop/polyorb-giop_p-code_sets-converters.ads
+src/giop/polyorb-giop_p-code_sets.adb
+src/giop/polyorb-giop_p-code_sets.ads
 src/giop/polyorb-giop_p-exceptions.adb
 src/giop/polyorb-giop_p-exceptions.ads
 src/giop/polyorb-giop_p-service_contexts.adb
 src/giop/polyorb-giop_p-service_contexts.ads
+src/giop/polyorb-giop_p-tagged_components-code_sets.adb
+src/giop/polyorb-giop_p-tagged_components-code_sets.ads
 src/giop/polyorb-giop_p-tagged_components-policies-priority_model_policy.adb
 src/giop/polyorb-giop_p-tagged_components-policies-priority_model_policy.ads
 src/giop/polyorb-giop_p-tagged_components-policies.adb
