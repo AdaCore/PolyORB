@@ -1,5 +1,3 @@
-pragma Style_Checks (Off);
-
 ------------------------------------------------------------------------------
 --                                                                          --
 --                           ADABROKER SERVICES                             --
@@ -83,8 +81,6 @@ with CORBA.Object;
 with CORBA.Impl;
 with CORBA.ORB;
 
---  with Broca.Server_Tools; use Broca.Server_Tools;
---  modification apportée pour passer de Adabrocker à PolyORB
 with PolyORB.CORBA_P.Server_Tools;
 use  PolyORB.CORBA_P.Server_Tools;
 
@@ -605,6 +601,7 @@ begin
             when E : others =>
                Ada.Text_IO.Put_Line ("raise "& Exception_Name (E));
                Ada.Text_IO.Put_Line (Exception_Message (E));
+               Ada.Text_IO.Put_Line (Exception_Information (E));
          end;
       end if;
    end loop;
