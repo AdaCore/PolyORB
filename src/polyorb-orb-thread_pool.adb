@@ -187,17 +187,13 @@ package body PolyORB.ORB.Thread_Pool is
 
    begin
       pragma Debug (O ("Thread "
-                       & Image (Current_Task)
+                       & Image (PTI.Id (This_Task))
                        & " is going idle."));
-
-      --  Precondition: ORB_Lock is held.
 
       PTCV.Wait (PTI.Condition (This_Task), PTI.Mutex (This_Task));
 
-      --  Post condition: ORB_Lock is held.
-
       pragma Debug (O ("Thread "
-                       & Image (Current_Task)
+                       & Image (PTI.Id (This_Task))
                        & " is leaving Idle state"));
    end Idle;
 
