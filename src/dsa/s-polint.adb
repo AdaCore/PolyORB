@@ -131,6 +131,8 @@ package body System.PolyORB_Interface is
    --  Never assigned a value.
 
    package Known_RCIs is new PolyORB.Dynamic_Dict (RCI_Info, No_RCI_Info);
+   --  This list is keyed with the lowercased full names of the
+   --  RCI units.
 
    function Retrieve_RCI_Info (Name : String) return RCI_Info;
    --  Retrieve RCI information for a local or remote RCI package.
@@ -176,6 +178,11 @@ package body System.PolyORB_Interface is
    --  Use the specified POA configuration (which must include
    --  the USER_ID, NON_RETAIN and USE_DEFAULT_SERVANT policies).
    --  The components of Servant are set appropriately.
+
+   function DSA_Exception_To_Any
+     (E : Ada.Exceptions.Exception_Occurrence)
+      return Any;
+   --  Construct an Any from an Ada exception raised by a servant.
 
    -------------------------
    -- Any_Aggregate_Build --
@@ -237,6 +244,43 @@ package body System.PolyORB_Interface is
         and then PolyORB.References.Is_Same_Object
         (Left_Object, Right_Object);
    end Compare_Content;
+
+   function DSA_Exception_To_Any
+     (E : Ada.Exceptions.Exception_Occurrence)
+      return Any
+   is
+      use PolyORB.Exceptions;
+      use PolyORB.Types;
+
+      package PATC renames PolyORB.Any.TypeCode;
+
+      Name : constant RepositoryId := Occurrence_To_Name (E);
+      TC : PATC.Object := PATC.TC_Except;
+      Result : PolyORB.Any.Any;
+   begin
+      --  Name
+      PATC.Add_Parameter
+        (TC, To_Any (PolyORB.Types.String (Name)));
+
+      --  RepositoryId : 'DSA:<Name>:<version>'
+      PATC.Add_Parameter
+        (TC, To_Any (To_PolyORB_String ("DSA:")
+                       & PolyORB.Types.String (Name)
+                       & PolyORB_Exc_Version));
+
+      --  Valuation: Exception_Message
+
+      PATC.Add_Parameter
+        (TC, To_Any (TC_String));
+      PATC.Add_Parameter
+        (TC, To_Any (To_PolyORB_String ("exception_message")));
+
+      Result := Get_Empty_Any_Aggregate (TC);
+      Add_Aggregate_Element
+        (Result, To_Any
+           (To_PolyORB_String (Ada.Exceptions.Exception_Message (E))));
+      return Result;
+   end DSA_Exception_To_Any;
 
    --------------
    -- From_Any --
@@ -511,19 +555,30 @@ package body System.PolyORB_Interface is
                  = Op_Get_Partition_Id
                then
 
-                  -----------------------
-                  -- _get_partition_id --
-                  -----------------------
+                  declare
+                     Arg_List    : NVList_Ref;
+                  begin
 
-                  --  Return the partition identifier assigned to the partition
-                  --  on which this RCI unit resides.
+                     -----------------------
+                     -- _get_partition_id --
+                     -----------------------
 
-                  EMsg.Req.Result :=
-                    (Name      => PolyORB.Types.To_PolyORB_String
-                     ("result"),
-                     Arg_Modes => ARG_OUT,
-                     Argument  => TA_I (Integer (Get_Local_Partition_ID)));
-                  goto Request_Completed;
+                     --  Return the partition identifier assigned to
+                     --  the partition on which this RCI unit resides.
+
+                     NVList_Create (Arg_List);
+                     Request_Arguments (EMsg.Req, Arg_List);
+                     --  Must call Arguments (with an empty Arg_List)
+                     --  to notify the protocol personality that this
+                     --  request has been completely received.
+
+                     EMsg.Req.Result :=
+                       (Name      => PolyORB.Types.To_PolyORB_String
+                          ("result"),
+                        Arg_Modes => ARG_OUT,
+                        Argument  => TA_I (Integer (Get_Local_Partition_ID)));
+                     goto Request_Completed;
+                  end;
                end if;
             end if;
 
@@ -538,7 +593,7 @@ package body System.PolyORB_Interface is
             exception
                when E : others =>
                   EMsg.Req.Exception_Info
-                    := System_Exception_To_Any (E);
+                    := DSA_Exception_To_Any (E);
                   --  XXX Should map Ada exceptions to Anies
                   --  correctly!
             end;
@@ -627,9 +682,10 @@ package body System.PolyORB_Interface is
                        (The_ORB, Oid'Access,
                         "DSA:" & Stub.Name.all & ":" & Stub.Version.all,
                         Ref);
-                     pragma Debug (O ("Registering RCI: " & Stub.Name.all));
+                     pragma Debug
+                       (O ("Registering local RCI: " & Stub.Name.all));
                      Known_RCIs.Register
-                       (Stub.Name.all, RCI_Info'
+                       (To_Lower (Stub.Name.all), RCI_Info'
                           (Base_Ref            => Ref,
                            Is_Local            => True,
                            Is_All_Calls_Remote =>
@@ -986,21 +1042,23 @@ package body System.PolyORB_Interface is
 
    function Retrieve_RCI_Info (Name : String) return RCI_Info
    is
+      LName : constant String := To_Lower (Name);
       Info : RCI_Info;
       pragma Warnings (Off, Info);
       --  The default initialization value is meaningful.
    begin
-      Info := Known_RCIs.Lookup (Name, Info);
+      pragma Debug (O ("Retrieve RCI info: " & Name));
+      Info := Known_RCIs.Lookup (LName, Info);
       if PolyORB.References.Is_Nil (Info.Base_Ref) then
          --  Not known yet: we therefore know that it is remote,
          --  and that we need to look it up with the naming service.
          Info := RCI_Info'
            (Base_Ref => CORBA.Object.To_PolyORB_Ref
               (PolyORB.CORBA_P.Naming_Tools.Locate
-                 (To_Lower (Name) & ".RCI")),
+                 (LName & ".RCI")),
             Is_Local => False,
             Is_All_Calls_Remote => True);
-         Known_RCIs.Register (Name, Info);
+         Known_RCIs.Register (LName, Info);
       end if;
       return Info;
    end Retrieve_RCI_Info;
