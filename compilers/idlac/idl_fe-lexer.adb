@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.adb#9 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.adb#10 $
 
 with Ada.Command_Line;
 with Ada.Text_IO;
@@ -1454,10 +1454,24 @@ package body Idl_Fe.Lexer is
       Add_Argument ("-o");
       Add_Argument (Tmp_File_Name);
       Args (Arg_Count) := new String'(Filename);
-      Spawn (Locate_Exec_On_Path
-               (CPP_Arg_List (CPP_Arg_List'First).all).all,
-             Args (Args'First .. Arg_Count),
-             Spawn_Result);
+
+      declare
+         Preprocessor_Full_Pathname : constant String_Access
+           := Locate_Exec_On_Path (CPP_Arg_List (CPP_Arg_List'First).all);
+      begin
+         if Preprocessor_Full_Pathname = null then
+            Errors.Error
+              ("Cannot find preprocessor "
+               & "'" & CPP_Arg_List (CPP_Arg_List'First).all & "'",
+               Errors.Fatal,
+               Errors.No_Location);
+         end if;
+
+         Spawn (Preprocessor_Full_Pathname.all,
+                Args (Args'First .. Arg_Count),
+                Spawn_Result);
+      end;
+
       pragma Debug (O ("Initialize: preprocessing done"));
       if not Spawn_Result then
          pragma Debug (O ("Initialize: preprocessing failed"));
