@@ -1,3 +1,9 @@
+1999-07-12  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garpar.adb, s-garpar.ads: Fix remaining memory leaks. Info
+ 	concerning dead partitions are now kept to the minimum in terms of
+ 	memory and data exchanged between boot mirrors.
+	
 1999-07-10  Laurent Pautet  <pautet@dorine.enst.fr>
 
         * s-gartcp.adb: Recycle Connection_Handler once a connection is

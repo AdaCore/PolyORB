@@ -96,7 +96,9 @@ package System.Garlic.Partitions is
                  Compute_Partition_ID =>
                Partition : Types.Partition_ID;
             when Define_New_Partition =>
-               Info : Partition_Info;
+               null;
+               --  Note that a partition info always follows such a
+               --  request.
          end case;
       end record;
 
@@ -205,10 +207,6 @@ package System.Garlic.Partitions is
    --  the next partition which is also a boot mirror. It may return the
    --  same partition number if no other boot mirror is available.
 
-   procedure Read_Partitions
-     (Stream : access Streams.Params_Stream_Type);
-   --  Marshal partition info table.
-
    procedure Send_Boot_Request
      (Location : in Physical_Location.Location_Type;
       Error    : in out Utils.Error_Type);
@@ -231,9 +229,5 @@ package System.Garlic.Partitions is
      (PID  : in out Types.Partition_ID;
       From : in Types.Partition_ID);
    --  Validation occurs when all the boot server agree for a given PID.
-
-   procedure Write_Partitions
-     (Stream : access Streams.Params_Stream_Type);
-   --  Unmarshal partition info table.
 
 end System.Garlic.Partitions;
