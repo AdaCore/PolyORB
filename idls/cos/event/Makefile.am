@@ -188,20 +188,20 @@ CLEANFILES+=	stamp-gen-CosEventChannelAdmin stamp-gen-CosEventComm \
 $(CosEventChannelAdmin_GEN): stamp-gen-CosEventChannelAdmin
 
 stamp-gen-CosEventChannelAdmin: $(CosEventChannelAdmin_IDL) $(IDLAC)
-	touch stamp-gen-CosEventChannelAdmin
 	$(IDLAC) $(CosEventChannelAdmin_IDL) -I$(srcdir)
+	touch $@
 
 $(CosEventComm_GEN): stamp-gen-CosEventComm
 stamp-gen-CosEventComm: $(CosEventComm_IDL) $(IDLAC)
-	touch stamp-gen-CosEventComm
 	$(IDLAC) $(CosEventComm_IDL) -I$(srcdir)
+	touch $@
 
 $(CosTypedEventChannelAdmin_GEN): stamp-gen-CosTypedEventChannelAdmin
 stamp-gen-CosTypedEventChannelAdmin: $(CosTypedEventChannelAdmin_IDL) $(IDLAC)
-	touch stamp-gen-CosTypedEventChannelAdmin
 	$(IDLAC) $(CosTypedEventChannelAdmin_IDL) -I$(srcdir)
+	touch $@
 
 $(CosTypedEventComm_GEN): stamp-gen-CosTypedEventComm
 stamp-gen-CosTypedEventComm: $(CosTypedEventComm_IDL) $(IDLAC)
-	touch stamp-gen-CosTypedEventComm
 	$(IDLAC) $(CosTypedEventComm_IDL) -I$(srcdir)
+	touch $@

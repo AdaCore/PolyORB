@@ -2087,31 +2087,31 @@ CLEANFILES+=stamp-gen-CosNotification stamp-gen-CosNotifyComm \
 
 $(CosNotification_GEN): stamp-gen-CosNotification
 stamp-gen-CosNotification: $(CosNotification) $(IDLAC)
-	touch stamp-gen-CosNotification
 	$(IDLAC) $(CosNotification_IDL) -I$(srcdir) -I$(srcdir)/../event/
+	touch $@
 
 $(CosNotifyComm_GEN): stamp-gen-CosNotifyComm
 stamp-gen-CosNotifyComm: $(CosNotifyComm) $(IDLAC)
-	touch stamp-gen-CosNotifyComm
 	$(IDLAC) $(CosNotifyComm_IDL) -I$(srcdir) -I$(srcdir)/../event/
+	touch $@
 
 $(CosTypedNotifyChannelAdmin_GEN): stamp-gen-CosTypedNotifyChannelAdmin
 stamp-gen-CosTypedNotifyChannelAdmin: $(CosTypedNotifyChannelAdmin) $(IDLAC)
-	touch stamp-gen-CosTypedNotifyChannelAdmin
 	$(IDLAC) $(CosTypedNotifyChannelAdmin_IDL) -I$(srcdir) -I$(srcdir)/../event/
+	touch $@
 
 $(CosNotifyChannelAdmin_GEN): stamp-gen-CosNotifyChannelAdmin
 stamp-gen-CosNotifyChannelAdmin: $(CosNotifyChannelAdmin) $(IDLAC)
-	touch stamp-gen-CosNotifyChannelAdmin
 	$(IDLAC) $(CosNotifyChannelAdmin_IDL) -I$(srcdir) -I$(srcdir)/../event/
+	touch $@
 
 $(CosTypedNotifyComm_GEN): stamp-gen-CosTypedNotifyComm
 stamp-gen-CosTypedNotifyComm: $(CosTypedNotifyComm) $(IDLAC)
-	touch stamp-gen-CosTypedNotifyComm
 	$(IDLAC) $(CosTypedNotifyComm_IDL) -I$(srcdir) -I$(srcdir)/../event/
+	touch $@
 
 $(CosNotifyFilter_GEN): stamp-gen-CosNotifyFilter
 stamp-gen-CosNotifyFilter: $(CosNotifyFilter) $(IDLAC)
-	touch stamp-gen-CosNotifyFilter
 	$(IDLAC) $(CosNotifyFilter_IDL) -I$(srcdir) -I$(srcdir)/../event/
+	touch $@
 
