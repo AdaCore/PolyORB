@@ -61,20 +61,10 @@ package body Ada_Be.Idl2Ada.Helper is
       Type_Node : in     Node_Id);
    --  Generate the profile for the From_Any operation of a type
 
-   procedure Gen_From_Any_Ref_Profile
-     (CU        : in out Compilation_Unit;
-      Type_Node : in     Node_Id);
-   --  Generate the profile for the From_Any_Ref operation of a type
-
    procedure Gen_To_Any_Profile
      (CU        : in out Compilation_Unit;
       Type_Node : in     Node_Id);
    --  Generate the profile for the To_Any operation of a type
-
-   procedure Gen_To_Any_Ref_Profile
-     (CU        : in out Compilation_Unit;
-      Type_Node : in     Node_Id);
-   --  Generate the profile for the To_Any_Ref operation of a type
 
    procedure Gen_Raise_From_Any_Profile
      (CU   : in out Compilation_Unit;
@@ -365,23 +355,6 @@ package body Ada_Be.Idl2Ada.Helper is
       DI (CU);
    end Gen_From_Any_Profile;
 
-   ------------------------------
-   -- Gen_From_Any_Ref_Profile --
-   ------------------------------
-
-   procedure Gen_From_Any_Ref_Profile
-     (CU        : in out Compilation_Unit;
-      Type_Node : in     Node_Id)
-   is
-   begin
-      Add_With (CU, "CORBA");
-      PL (CU, "function From_Any_Ref (Item : in CORBA.Any)");
-      II (CU);
-      Put (CU, "return "
-           & Ada_Type_Name (Type_Node));
-      DI (CU);
-   end Gen_From_Any_Ref_Profile;
-
    ------------------------
    -- Gen_To_Any_Profile --
    ------------------------
@@ -398,23 +371,6 @@ package body Ada_Be.Idl2Ada.Helper is
           & ")");
       Put (CU, "  return CORBA.Any");
    end Gen_To_Any_Profile;
-
-   ----------------------------
-   -- Gen_To_Any_Ref_Profile --
-   ----------------------------
-
-   procedure Gen_To_Any_Ref_Profile
-     (CU        : in out Compilation_Unit;
-      Type_Node : in Node_Id)
-   is
-   begin
-      Add_With (CU, "CORBA");
-      PL (CU, "function To_Any_Ref");
-      PL (CU, "  (Item : in "
-          & Ada_Type_Name (Type_Node)
-          & ")");
-      Put (CU, "  return CORBA.Any");
-   end Gen_To_Any_Ref_Profile;
 
    --------------------------------
    -- Gen_Raise_From_Any_Profile --
