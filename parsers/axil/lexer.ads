@@ -193,7 +193,7 @@ package Lexer is
    --  Various literal values updated when the corresponding token is read
 
    Token_Name            : Name_Id;   --  for Tokens : T_Identifier
-   Display_Name          : Name_Id;   --  for Tokens : T_Identifier
+   Token_Display_Name    : Name_Id;   --  for Tokens : T_Identifier
    String_Literal_Value  : Name_Id;   --  for Tokens : T_String
 
    Integer_Literal_Value : Unsigned_Long_Long;

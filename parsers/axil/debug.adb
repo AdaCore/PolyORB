@@ -104,8 +104,8 @@ package body Debug is
 
    procedure Print_Node (N : Node_Id) is
       Ident : Node_Id;
-      Str   : Name_Id;
       Node  : Node_Id;
+
    begin
       N_Indents := N_Indents + 1;
 

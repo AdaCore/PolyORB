@@ -1,4 +1,4 @@
-with Lexer;
+with Lexer;    use Lexer;
 
 package body Nutils is
 
@@ -51,11 +51,11 @@ package body Nutils is
 
    function Make_Current_Identifier return Node_Id
    is
-      Node : constant Node_Id := New_Node (K_Identifier, Lexer.Token_Location);
+      Node : constant Node_Id := New_Node (K_Identifier, Token_Location);
 
    begin
-      Set_Name (Node, Lexer.Token_Name);
-      Set_Display_Name (Node, Lexer.Display_Name);
+      Set_Name (Node, Token_Name);
+      Set_Display_Name (Node, Token_Display_Name);
       return Node;
    end Make_Current_Identifier;
 

@@ -111,7 +111,7 @@ module Nodes {
 
   typedef octet Component_Category;
 
-  interface Unique_Component_Name : Node_Id {
+  interface Unique_Component_Type_Name : Node_Id {
     List_Id  Package_Name;
     Node_Id  Identifier;
   };
@@ -161,8 +161,8 @@ module Nodes {
     //     [ unique_component_type_name [ . component_implementation_name ] ]
 
   interface Classifier_Ref : Node_Id {
-    Node_Id Comp_Type;
-    Node_Id Comp_Impl;
+    Node_Id Component_Type_Name;
+    Node_Id Component_Impl_Name;
   };
 
   interface Port_Type : Node_Id {

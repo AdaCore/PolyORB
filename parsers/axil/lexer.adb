@@ -131,7 +131,7 @@ package body Lexer is
             return "[ERROR]";
 
          when T_Identifier =>
-            return "<" & Get_Name_String (Display_Name) & ">";
+            return "<" & Get_Name_String (Token_Display_Name) & ">";
 
          when T_Quotation_Mark .. T_End_Annex =>
             return "'" & Image (Token) & "'";
@@ -612,7 +612,7 @@ package body Lexer is
          for I in 1 .. Display_Name_Len loop
             Add_Char_To_Name_Buffer (Display_Name_Buffer (I));
          end loop;
-         Display_Name := Name_Find;
+         Token_Display_Name := Name_Find;
       end if;
    end Scan_Identifier;
 
