@@ -193,6 +193,15 @@ private
 
    function Justify (S : in String; Max : in Integer) return String;
 
+   --------------------------------------------------------
+   -- Diversions for packages with module initialization --
+   --------------------------------------------------------
+
+   Deferred_Initialization     : constant Source_Streams.Diversion
+     := Source_Streams.Allocate_User_Diversion;
+   Initialization_Dependencies : constant Source_Streams.Diversion
+     := Source_Streams.Allocate_User_Diversion;
+
    ---------------
    -- Shortcuts --
    ---------------

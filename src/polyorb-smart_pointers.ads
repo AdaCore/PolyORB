@@ -73,7 +73,6 @@ package PolyORB.Smart_Pointers is
    --  but never extended. It contains one field, which designates
    --  the referenced object.
 
-   procedure Initialize (The_Ref : in out Ref);
    procedure Adjust     (The_Ref : in out Ref);
    procedure Finalize   (The_Ref : in out Ref);
 

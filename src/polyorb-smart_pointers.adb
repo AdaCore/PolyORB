@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.adb#28 $
+--  $Id: //droopi/main/src/polyorb-smart_pointers.adb#29 $
 
 with Ada.Unchecked_Deallocation;
 with Ada.Tags;
@@ -66,6 +66,7 @@ package body PolyORB.Smart_Pointers is
       pragma Debug (O ("Inc_Usage: Obj is a "
                        & Ada.Tags.External_Tag (Obj.all'Tag)));
 
+      pragma Assert (Counter_Lock /= null);
       Enter (Counter_Lock);
       pragma Debug (O ("Inc_Usage: Counter"
                        & Natural'Image (Obj.Counter)
@@ -91,6 +92,7 @@ package body PolyORB.Smart_Pointers is
       pragma Debug (O ("Dec_Usage: Obj is a "
                        & Ada.Tags.External_Tag (Obj.all'Tag)));
 
+      pragma Assert (Counter_Lock /= null);
       Enter (Counter_Lock);
       pragma Debug (O ("Dec_Usage: Counter"
                        & Natural'Image (Obj.Counter)
@@ -181,18 +183,6 @@ package body PolyORB.Smart_Pointers is
    begin
       null;
    end Finalize;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize
-     (The_Ref : in out Ref) is
-   begin
-      pragma Assert (The_Ref.A_Ref = null);
-      pragma Debug (O ("Initialized a Ref"));
-      null;
-   end Initialize;
 
    ------------
    -- Adjust --

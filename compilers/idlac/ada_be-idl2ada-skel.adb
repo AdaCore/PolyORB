@@ -372,8 +372,6 @@ package body Ada_Be.Idl2Ada.Skel is
       DI (CU);
       PL (CU, "end Invoke;");
 
-      Divert (CU, Elaboration);
-
       if not Is_Delegate then
          Init (It, Parents (Node));
          while not Is_End (It) loop
@@ -385,6 +383,8 @@ package body Ada_Be.Idl2Ada.Skel is
                       No_Warnings => True);
          end loop;
       end if;
+
+      Divert (CU, Deferred_Initialization);
 
       PL (CU, "PortableServer.Register_Skeleton");
       Put (CU, "  (CORBA.To_CORBA_String (");

@@ -129,6 +129,12 @@ package body Ada_Be.Idl2Ada is
      (CU : in out Compilation_Unit;
       Node : in Node_Id);
 
+   procedure Gen_Module_Init_Prelude
+     (CU : in out Compilation_Unit);
+
+   procedure Gen_Module_Init_Postlude
+     (CU : in out Compilation_Unit);
+
    ----------------------------------------
    -- Specialised generation subprograms --
    ----------------------------------------
@@ -341,7 +347,8 @@ package body Ada_Be.Idl2Ada is
             No_Warnings => True);
          --  Work-around for GNAT bug 9530-011.
 
-         Helper.Gen_Body_Prelude (S.Helper (Unit_Body));
+         Gen_Module_Init_Prelude (S.Helper (Unit_Body));
+         Gen_Module_Init_Prelude (S.Skel (Unit_Body));
 
          if Intf_Repo then
             IR_Info.Gen_Spec_Prelude (S.IR_Info (Unit_Spec));
@@ -453,8 +460,9 @@ package body Ada_Be.Idl2Ada is
          return;
       end if;
 
-      Helper.Gen_Spec_Postlude (S.Helper (Unit_Spec));
-      Helper.Gen_Body_Postlude (S.Helper (Unit_Body));
+      Gen_Module_Init_Postlude (S.Helper (Unit_Body));
+      Gen_Module_Init_Postlude (S.Skel (Unit_Body));
+
       if Intf_Repo then
          IR_Info.Gen_Body_Postlude (S.IR_Info (Unit_Body));
       end if;
@@ -706,7 +714,8 @@ package body Ada_Be.Idl2Ada is
             No_Warnings => True);
          --  Work-around for GNAT bug 9530-011.
 
-         Helper.Gen_Body_Prelude (S.Helper (Unit_Body));
+         Gen_Module_Init_Prelude (S.Helper (Unit_Body));
+         Gen_Module_Init_Prelude (S.Skel (Unit_Body));
          if Intf_Repo then
             IR_Info.Gen_Spec_Prelude (S.IR_Info (Unit_Spec));
             IR_Info.Gen_Body_Prelude (S.IR_Info (Unit_Body));
@@ -981,8 +990,8 @@ package body Ada_Be.Idl2Ada is
          return;
       end if;
 
-      Helper.Gen_Spec_Postlude (S.Helper (Unit_Spec));
-      Helper.Gen_Body_Postlude (S.Helper (Unit_Body));
+      Gen_Module_Init_Postlude (S.Helper (Unit_Body));
+      Gen_Module_Init_Postlude (S.Skel (Unit_Body));
       if Intf_Repo then
          IR_Info.Gen_Body_Postlude (S.IR_Info (Unit_Body));
       end if;
@@ -3131,5 +3140,75 @@ package body Ada_Be.Idl2Ada is
    begin
       return Ada_Helper_Name (Node) & "." & Ada_TC_Name (Node);
    end Ada_Full_TC_Name;
+
+   -----------------------------
+   -- Gen_Module_Init_Prelude --
+   -----------------------------
+
+   procedure Gen_Module_Init_Prelude
+     (CU : in out Compilation_Unit) is
+   begin
+      Divert (CU, Deferred_Initialization);
+      PL (CU, "procedure Deferred_Initialization is");
+      PL (CU, "begin");
+      II (CU);
+      PL (CU, "null;");
+      --  Make sure the initialization sequence_of_statements
+      --  is not empty.
+
+      Divert (CU, Initialization_Dependencies);
+      II (CU); II (CU); II (CU);
+      PL (CU, "Empty");
+
+      Divert (CU, Visible_Declarations);
+   end Gen_Module_Init_Prelude;
+
+   ------------------------------
+   -- Gen_Module_Init_Postlude --
+   ------------------------------
+
+   procedure Gen_Module_Init_Postlude
+     (CU : in out Compilation_Unit) is
+   begin
+      Divert (CU, Deferred_Initialization);
+      DI (CU);
+      PL (CU, "end Deferred_Initialization;");
+
+      Divert (CU, Visible_Declarations);
+      Undivert (CU, Deferred_Initialization);
+
+      Divert (CU, Visible_Declarations);
+      Add_With
+        (CU, "PolyORB.Initialization", Elab_Control => Elaborate_All);
+      Add_With (CU, "PolyORB.Utils.Strings");
+
+      Divert (CU, Elaboration);
+      PL (CU, "declare");
+      II (CU);
+      PL (CU, "use PolyORB.Initialization;");
+      PL (CU, "use PolyORB.Initialization.String_Lists;");
+      PL (CU, "use PolyORB.Utils.Strings;");
+      DI (CU);
+      PL (CU, "begin");
+      II (CU);
+      PL (CU, "Register_Module");
+      PL (CU, "  (Module_Info'");
+      II (CU);
+      PL (CU, "(Name      => +""" & Name (CU) & """,");
+      PL (CU, " Conflicts => Empty,");
+      PL (CU, " Depends   =>");
+      Undivert (CU, Initialization_Dependencies);
+      --  The creation of type codes requires the handling of
+      --  'Any' types, which are controlled and use soft links
+      --  to guard concurrent access to their internal structures.
+      PL (CU, " ,");
+      PL (CU, " Provides  => Empty,");
+      PL (CU, " Implicit  => False,");
+      PL (CU, " Init      => Deferred_Initialization'Access));");
+      DI (CU);
+      DI (CU);
+      PL (CU, "end;");
+   end Gen_Module_Init_Postlude;
+
 
 end Ada_Be.Idl2Ada;

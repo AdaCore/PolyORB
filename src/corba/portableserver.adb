@@ -39,20 +39,14 @@ with PolyORB.CORBA_P.Names;
 
 with PolyORB.Annotations;
 with PolyORB.Exceptions;
-with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
-
 with PolyORB.Log;
 with PolyORB.Requests;
 with PolyORB.Servants.Interface;
-with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Chained_Lists;
-with PolyORB.Utils.Strings;
 
 package body PortableServer is
 
    use PolyORB.Log;
-   use PolyORB.Tasking.Mutexes;
 
    package L is new PolyORB.Log.Facility_Log ("portableserver");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
@@ -76,7 +70,6 @@ package body PortableServer is
      (Skeleton_Info);
 
    All_Skeletons : Skeleton_Lists.List;
-   Skeleton_Lock : Mutex_Access;
 
    Skeleton_Unknown : exception;
 
@@ -181,16 +174,12 @@ package body PortableServer is
    is
       use Skeleton_Lists;
 
-      It   : Iterator;
-      Info : Skeleton_Info;
+      It : Iterator := First (All_Skeletons);
 
    begin
       pragma Debug
         (O ("Find_Info: servant of type "
             & Ada.Tags.External_Tag (For_Servant'Tag)));
-
-      Enter (Skeleton_Lock);
-      It := First (All_Skeletons);
 
       while not Last (It) loop
          pragma Debug (O ("... skeleton id: "
@@ -200,14 +189,10 @@ package body PortableServer is
       end loop;
 
       if Last (It) then
-         Leave (Skeleton_Lock);
          raise Skeleton_Unknown;
       end if;
 
-      Info := Value (It).all;
-      Leave (Skeleton_Lock);
-
-      return Info;
+      return Value (It).all;
    end Find_Info;
 
    -----------------------
@@ -532,28 +517,4 @@ package body PortableServer is
       return Result;
    end To_Any;
 
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize;
-
-   procedure Initialize is
-   begin
-      Create (Skeleton_Lock);
-   end Initialize;
-
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
-
-begin
-   Register_Module
-     (Module_Info'
-      (Name      => +"portableserver",
-       Conflicts => Empty,
-       Depends   => Empty,
-       Provides  => Empty,
-       Implicit  => False,
-       Init      => Initialize'Access));
 end PortableServer;
