@@ -167,22 +167,22 @@ package body XE_Reg is
    --------------------
 
    function Get_GARLIC_Dir return String_Access is
-      FSF_Key : HKEY;
+      ACT_Key : HKEY;
       Result  : String_Access;
    begin
 
       --  open "HKEY_LOCAL_MACHINE\SOFTWARE\Free Software Foundation" key
-      FSF_Key := Open_Key (HKEY_LOCAL_MACHINE,
-                           "SOFTWARE\Free Software Foundation");
+      ACT_Key := Open_Key (HKEY_LOCAL_MACHINE,
+                           "SOFTWARE\Ada Core Technologies");
 
       --  get GCC value
-      Result := new String'(Get_Key (FSF_Key, "GCC") & "\lib\garlic");
+      Result := new String'(Get_Key (ACT_Key, "GCC") & "\lib\garlic");
 
       --  close key
       declare
          Result : LONG;
       begin
-         Result := RegCloseKey (FSF_Key);
+         Result := RegCloseKey (ACT_Key);
       end;
 
       return Result;
