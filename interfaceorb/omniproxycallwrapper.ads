@@ -48,6 +48,7 @@
 
 with Corba.Object ;
 with Omniproxycalldesc ;
+with Omniobject ;
 
 package omniProxyCallWrapper is
 

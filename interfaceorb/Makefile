@@ -104,11 +104,8 @@ adabroker_debug.ali corba.ali corba-boa.ali corba-command_line.ali  \
 corba-exceptions.ali corba-object.ali corba-orb.ali  \
 corba-sequences-bounded.ali corba-sequences-unbounded.ali exceptions.ali \
 giop.ali giop_c.ali giop_s.ali iop.ali membufferedstream.ali \
-netbufferedstream.ali omni.ali omniobject.ali \
-omniproxycalldesc.ali \
-#omniproxycallwrapper.ali \
-omniropeandkey.ali \
-rope.ali sys_dep.ali
+netbufferedstream.ali omni.ali omniobject.ali omniproxycalldesc.ali \
+omniproxycallwrapper.ali omniropeandkey.ali rope.ali sys_dep.ali
 
 .SUFFIXES: .adb .ali
 
@@ -118,7 +115,7 @@ rope.ali sys_dep.ali
 
 adabroker_debug.ali: adabroker_debug.ads adabroker_debug.adb
 
-corba.ali: corba.ads corba.adb
+corba.ali: corba.ads corba.adb corba-exceptions.ali
 
 corba-boa.ali : corba-boa.ads corba-boa.adb corba-object.ali omniobject.ali \
 corba.ali
