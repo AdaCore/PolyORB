@@ -67,6 +67,11 @@ package body System.Garlic.Filters is
    --  negociating a change of the filter algorithm or even the filter
    --  parameters at run-time.)
    
+   Opcode_Elems  : Ada.Streams.Stream_Element_Count := 0;
+   --  Initial segment that is to be skipped in filtering incoming data
+   --  (i.e. length of the result of a 'Opcode'Write'). Is initialized
+   --  in (guess where?) 'Filters.Initialize'.
+   
    type Filter_Code is (Query_Name,          --  <empty>
                         Tell_Name,           --  Name, Public Params
                         Set_Session_Params,  --  Public (Name, Private)
@@ -114,18 +119,18 @@ package body System.Garlic.Filters is
    --  makes that function's type compatible with 'Filter_Proc' above!
 
    function Default_Filter_Outgoing
-      (To_Partition : in System.RPC.Partition_ID;
-       Stream       : in Ada.Streams.Stream_Element_Array)
+      (To_Partition : in     System.RPC.Partition_ID;
+       Stream       : access System.RPC.Params_Stream_Type)
       return Ada.Streams.Stream_Element_Array;
 
    function Filter_Incoming
       (From_Partition : in System.RPC.Partition_ID;
-       Params         : in Ada.Streams.Stream_Element_Array)
+       Stream         : in Ada.Streams.Stream_Element_Array)
       return Ada.Streams.Stream_Element_Array;
 
    function Filter_Outgoing
-      (To_Partition : in System.RPC.Partition_ID;
-       Params       : in Ada.Streams.Stream_Element_Array)
+      (To_Partition : in     System.RPC.Partition_ID;
+       Stream       : access System.RPC.Params_Stream_Type)
       return Ada.Streams.Stream_Element_Array;
 
    --  The following types and the protected table are used to keep track
@@ -842,10 +847,10 @@ package body System.Garlic.Filters is
             --  channel. This message must be run through the public
             --  filter!
             declare
-               Filtered_Data   : Ada.Streams.Stream_Element_Array :=
-                  Default_Filter_Incoming (
-                     Partition,
-                     Ada.Streams.Stream_Element_Array'Input (Params));
+               Buffer          : Ada.Streams.Stream_Element_Array
+                 := To_Stream_Element_Array (Params);
+               Filtered_Data   : Ada.Streams.Stream_Element_Array
+                 := Default_Filter_Incoming (Partition, Buffer);
                Filtered_Params : aliased Params_Stream_Type
                                            (Filtered_Data'Length);
             begin
@@ -867,9 +872,10 @@ package body System.Garlic.Filters is
             --  the message. Must be run through the private filter for
             --  'Partition'!
             declare
-               Filtered_Data   : Ada.Streams.Stream_Element_Array :=
-                  Filter_Incoming (Partition,
-                                   To_Stream_Element_Array (Params));
+               Buffer          : Ada.Streams.Stream_Element_Array
+                 := To_Stream_Element_Array (Params);
+               Filtered_Data   : Ada.Streams.Stream_Element_Array
+                 := Filter_Incoming (Partition, Buffer);
                Filtered_Params : aliased Params_Stream_Type
                                            (Filtered_Data'Length);
             begin
@@ -889,112 +895,15 @@ package body System.Garlic.Filters is
          raise Communication_Error;
    end Message_Handler;
 
-   --  Tables and selection routine for selecting the appropriate filter. I
-   --  chose this indirect way because it allows me to implement the selection
-   --  criteria (which must be the same for outgoing and incoming messages)
-   --  only once. TW.
+   --  The following table tells us for which opcodes we have to filter.
 
-   type Filter_Proc is access
-      function (Partition : System.RPC.Partition_ID;
-                Params : Ada.Streams.Stream_Element_Array)
-         return Ada.Streams.Stream_Element_Array;
-
-   type Direction is (Incoming, Outgoing);
-
-   type Filter_Proc_Table is array (Direction) of Filter_Proc;
-
-   Default_Filtering : constant Filter_Proc_Table :=
-      (Default_Filter_Incoming'Access, Default_Filter_Outgoing'Access);
-
-   Std_Filtering     : constant Filter_Proc_Table :=
-      (Filter_Incoming'Access, Filter_Outgoing'Access);
-
-   function Filter_It
-      (Partition : in System.RPC.Partition_ID;
-       Which_Way : in Direction;
-       Operation : in System.Garlic.Heart.Opcode;
-       Params    : in Ada.Streams.Stream_Element_Array)
-      return Ada.Streams.Stream_Element_Array;
-   --  Determine which filter to use depending on the first three parameters,
-   --  then filter 'Params' accordingly.
-
-   ---------------
-   -- Filter_It --
-   ---------------
-
-   function Filter_It
-      (Partition : in System.RPC.Partition_ID;
-       Which_Way : in Direction;
-       Operation : in System.Garlic.Heart.Opcode;
-       Params    : in Ada.Streams.Stream_Element_Array)
-      return Ada.Streams.Stream_Element_Array is
-
-      procedure Check_Name
-         (Partition : in System.RPC.Partition_ID;
-          Which_Way : in Direction;
-          Operation : in System.Garlic.Heart.Opcode);
-
-      procedure Check_Name
-         (Partition : in System.RPC.Partition_ID;
-          Which_Way : in Direction;
-          Operation : in System.Garlic.Heart.Opcode) is
-         Told : Boolean;
-      begin
-         if Which_Way = Outgoing and then Operation /= Set_Location then
-            Partition_Name_Table.Did_I_Tell (Partition, Told);
-            if not Told then
-               Tell_My_Name (Partition);
-               Partition_Name_Table.Told (Partition);
-            end if;
-         end if;
-      end Check_Name;
-
-   begin
-      if Operation in Internal_Opcode then
-         if Operation /= Set_Location then
-            --  Filter all internal messages using the default filter.
-            --  Note: It should even be possible to use the channel-
-            --  specific filter for this! (TW)
-            pragma Debug (D (D_Debug, "Internal opcode " &
-               Opcode'Image (Operation) & " Dir: " &
-               Direction'Image (Which_Way) & " Part:" &
-               Partition_ID'Image (Partition)));
-            Check_Name (Partition, Which_Way, Operation);
-            return Default_Filtering (Which_Way) (Partition, Params);
-         else
-            --  No filtering for 'Set_Location': we cannot have made known
-            --  our name and parameters before having told the lead partition
-            --  where we are, therefore filtering is impossible.
-            pragma Debug (D (D_Debug, "Internal opcode " &
-               Opcode'Image (Operation) & " Dir: " &
-               Direction'Image (Which_Way) & " Part:" &
-               Partition_ID'Image (Partition) & " NO FILTERING"));
-            null;
-         end if;
-      elsif Operation in Public_Opcode then
-         if Operation /= Filtering then
-            --  Filter all messages.
-            pragma Debug (D (D_Debug, "Public opcode " &
-               Opcode'Image (Operation) & " Dir: " &
-               Direction'Image (Which_Way) & " Part:" &
-               Partition_ID'Image (Partition)));
-            Check_Name (Partition, Which_Way, Operation);
-            return Std_Filtering (Which_Way) (Partition, Params);
-         else
-            --  No filtering for 'Filtering' messages: we handle all filtering
-            --  ourselves!
-            pragma Debug (D (D_Debug, "Public opcode " &
-               Opcode'Image (Operation) & " Dir: " &
-               Direction'Image (Which_Way) & " Part:" &
-               Partition_ID'Image (Partition) & " NO FILTERING"));
-            null;
-         end if;
-      else
-         raise Constraint_Error;
-      end if;
-      return Params;
-   end Filter_It;
-
+   type Do_Filter_Table is array (Opcode) of Boolean;
+   
+   Do_Filter : Do_Filter_Table :=
+     (Set_Location => False,
+      Filtering    => False,
+      others       => True);
+      
    --  The two exported routines for filtering data.
 
    ---------------------
@@ -1002,13 +911,35 @@ package body System.Garlic.Filters is
    ---------------------
 
    function Filter_Outgoing
-      (To_Partition : in System.RPC.Partition_ID;
-       Operation    : in System.Garlic.Heart.Opcode;
-       Params       : in Ada.Streams.Stream_Element_Array)
+      (To_Partition : in     System.RPC.Partition_ID;
+       Operation    : in     System.Garlic.Heart.Opcode;
+       Params       : access System.RPC.Params_Stream_Type)
       return Ada.Streams.Stream_Element_Array is
+      
+      Told : Boolean;
+      
    begin
       pragma Debug (D (D_Debug, "Generic filter outgoing"));
-      return Filter_It (To_Partition, Outgoing, Operation, Params);
+      if Do_Filter (Operation) then
+         if Operation in Internal_Opcode then
+            Partition_Name_Table.Did_I_Tell (To_Partition, Told);
+            if not Told then
+               Tell_My_Name (To_Partition);
+               Partition_Name_Table.Told (To_Partition);
+            end if;
+            return Default_Filter_Outgoing (To_Partition, Params);
+         elsif Operation in Public_Opcode then
+            Partition_Name_Table.Did_I_Tell (To_Partition, Told);
+            if not Told then
+               Tell_My_Name (To_Partition);
+               Partition_Name_Table.Told (To_Partition);
+            end if;
+            return Filter_Outgoing (To_Partition, Params);
+         else
+            raise Constraint_Error;
+         end if;
+      end if;
+      return To_Stream_Element_Array (Params);
    end Filter_Outgoing;
 
    ---------------------
@@ -1020,9 +951,25 @@ package body System.Garlic.Filters is
        Operation      : in System.Garlic.Heart.Opcode;
        Params         : in Ada.Streams.Stream_Element_Array)
       return Ada.Streams.Stream_Element_Array is
+      
+      use type Ada.Streams.Stream_Element_Offset;
+      
    begin
       pragma Debug (D (D_Debug, "Generic filter incoming"));
-      return Filter_It (From_Partition, Incoming, Operation, Params);
+      if Do_Filter (Operation) then
+         if Operation in Internal_Opcode then
+            return Default_Filter_Incoming
+                     (From_Partition,
+                      Params (Params'First + Opcode_Elems .. Params'Last));
+         elsif Operation in Public_Opcode then
+            return Filter_Incoming
+                     (From_Partition,
+                      Params (Params'First + Opcode_Elems .. Params'Last));
+         else
+            raise Constraint_Error;
+         end if;
+      end if;
+      return Params (Params'First + Opcode_Elems .. Params'Last);
    end Filter_Incoming;
 
    --  Only for debugging purposes. (Spec only to shut up GNAT's style
@@ -1064,20 +1011,74 @@ package body System.Garlic.Filters is
          null;
       end if;
    end Dbg;
-
+  
    --  Standard filtering routines for outgoing and incoming data.
 
+   function Filter_Data_Out
+      (Method    : in     Filter_Access;
+       Params    : in     Filter_Params_Access;
+       Data      : access System.RPC.Params_Stream_Type;
+       Msg       : in     String := "")
+      return Ada.Streams.Stream_Element_Array;
+      
+   function Filter_Data_Out
+      (Method    : in     Filter_Access;
+       Params    : in     Filter_Params_Access;
+       Data      : access System.RPC.Params_Stream_Type;
+       Msg       : in     String := "")
+      return Ada.Streams.Stream_Element_Array is
+   begin
+      pragma Debug (D (D_Debug, "Just before filtering..."));
+      declare
+         Filtered_Data : aliased Ada.Streams.Stream_Element_Array :=
+            Filter_Outgoing (Method.all, Params, Data);
+      begin
+         pragma Debug (
+            Dbg (Filtered_Data,
+                 "Data after filtering (OUTGOING, " & Msg & ")"));
+         return Filtered_Data;
+      end;
+   end Filter_Data_Out;
+   
+   function Filter_Data_In
+      (Method    : in Filter_Access;
+       Params    : in Filter_Params_Access;
+       Data      : in Ada.Streams.Stream_Element_Array;
+       Msg       : in String := "")
+      return Ada.Streams.Stream_Element_Array;
+      
+   function Filter_Data_In
+      (Method    : in Filter_Access;
+       Params    : in Filter_Params_Access;
+       Data      : in Ada.Streams.Stream_Element_Array;
+       Msg       : in String := "")
+      return Ada.Streams.Stream_Element_Array is
+   begin
+      pragma Debug (
+            Dbg (Data,
+                 "Data before filtering (INCOMING, " & Msg & ")"));
+      declare
+         Filtered_Data : aliased Ada.Streams.Stream_Element_Array :=
+            Filter_Incoming (Method.all, Params, Data);
+      begin
+         pragma Debug (
+            Dbg (Filtered_Data,
+                 "Data after filtering (INCOMING, " & Msg & ")"));
+         return Filtered_Data;
+      end;
+   end Filter_Data_In;
+   
    ---------------------
    -- Filter_Outgoing --
    ---------------------
 
    function Filter_Outgoing
-      (To_Partition : in System.RPC.Partition_ID;
-       Params       : in Ada.Streams.Stream_Element_Array)
+      (To_Partition : in     System.RPC.Partition_ID;
+       Stream       : access System.RPC.Params_Stream_Type)
       return Ada.Streams.Stream_Element_Array is
 
       Filter_Method         : Filter_Access;
-      F_Params              : Filter_Params_Access;
+      Params                : Filter_Params_Access;
       Private_Params        : Filter_Params_Access;
       Needs_Params_Exchange : Boolean;
 
@@ -1090,16 +1091,16 @@ package body System.Garlic.Filters is
       --  Get the Params
       pragma Debug (D (D_Debug, "Got filter method..."));
       Partition_Filter_Params_Table.Wait_For_Params
-          (To_Partition, F_Params);
-      if F_Params = null then
+          (To_Partition, Params);
+      if Params = null then
          pragma Debug (D (D_Debug, "I have to create new params"));
-         Generate_Params (Filter_Method.all, F_Params,
+         Generate_Params (Filter_Method.all, Params,
                           Private_Params, Needs_Params_Exchange);
          if Needs_Params_Exchange = True then
             pragma Debug (D (D_Debug, "I have to exchange parameters"));
             declare
                Buffer     : Ada.Streams.Stream_Element_Array :=
-                              Filter_Params_Write (To_Partition, F_Params);
+                              Filter_Params_Write (To_Partition, Params);
                Par_Stream : aliased Params_Stream_Type (0);
                My_Name    : String_Access;
             begin
@@ -1108,10 +1109,9 @@ package body System.Garlic.Filters is
                Ada.Streams.Stream_Element_Array'Output
                   (Par_Stream'Access, Buffer);
                declare
-                  Code_Buffer : Ada.Streams.Stream_Element_Array :=
-                     Default_Filter_Outgoing
-                        (To_Partition,
-                         To_Stream_Element_Array (Par_Stream'Access));
+                  Code_Buffer : Ada.Streams.Stream_Element_Array
+                    := Default_Filter_Outgoing
+                          (To_Partition, Par_Stream'Access);
                   Code_Stream : aliased Params_Stream_Type (0);
                begin
                   Filter_Code'Write (Code_Stream'Access, Set_Session_Params);
@@ -1122,25 +1122,12 @@ package body System.Garlic.Filters is
             end;
          end if;
          Partition_Filter_Params_Table.Set_Filter_Params
-           (To_Partition, F_Params);
+           (To_Partition, Params);
          pragma Debug (D (D_Debug,
             "Params to partition" & Partition_ID'Image (To_Partition) &
             " is now in the table"));
       end if;
-
-      pragma Debug (Dbg (Params,
-                         "Data before filtering (outgoing)"));
-
-      declare
-         Filtered_Params : Ada.Streams.Stream_Element_Array :=
-            Filter_Outgoing (Filter_Method.all, F_Params, Params);
-      begin
-         pragma Debug (Dbg (Filtered_Params,
-                            "Data after filtering (outgoing)"));
-         pragma Debug (D (D_Debug, "Done filtering (outgoing)"));
-         return Filtered_Params;
-      end;
-
+      return Filter_Data_Out (Filter_Method, Params, Stream);
    end Filter_Outgoing;
 
    ---------------------
@@ -1149,11 +1136,11 @@ package body System.Garlic.Filters is
 
    function Filter_Incoming
       (From_Partition : in System.RPC.Partition_ID;
-       Params         : in Ada.Streams.Stream_Element_Array)
+       Stream         : in Ada.Streams.Stream_Element_Array)
       return Ada.Streams.Stream_Element_Array is
 
       Filter_Method            : Filter_Access;
-      F_Params, Private_Params : Filter_Params_Access;
+      Params, Private_Params   : Filter_Params_Access;
       Needs_Params_Exchange    : Boolean;
 
    begin
@@ -1165,41 +1152,29 @@ package body System.Garlic.Filters is
 
       --  Get the parameters
       Partition_Filter_Params_Table.Wait_For_Params
-          (From_Partition, F_Params);
+          (From_Partition, Params);
 
-      if F_Params = null then
-         Generate_Params (Filter_Method.all, F_Params,
+      if Params = null then
+         Generate_Params (Filter_Method.all, Params,
                           Private_Params, Needs_Params_Exchange);
          if Needs_Params_Exchange = True then
             --  I guess we'd better wait until the parameters arrive -
             --  don't use the ones we just generated!
             Partition_Filter_Params_Table.Wait_For_Params
-               (From_Partition, F_Params);
+               (From_Partition, Params);
          else
             --  We have a filter that doesn't need a parameter transfer -
             --  in other words, our locally generated params are sufficient
             --  to filter the messages: enter the new parameters and then
             --  continue!
             Partition_Filter_Params_Table.Set_Filter_Params
-               (From_Partition, F_Params);
+               (From_Partition, Params);
          end if;
          pragma Debug (D (D_Debug,
             "Params from partition" & Partition_ID'Image (From_Partition) &
             " are now in the table"));
       end if;
-
-      pragma Debug (Dbg (Params,
-                         "Data before filtering (incoming)"));
-
-      declare
-         Filtered_Params : Ada.Streams.Stream_Element_Array :=
-            Filter_Incoming (Filter_Method.all, F_Params, Params);
-      begin
-         pragma Debug (Dbg (Filtered_Params,
-                            "Data after filtering (incoming)"));
-         return Filtered_Params;
-      end;
-
+      return Filter_Data_In (Filter_Method, Params, Stream);
    end Filter_Incoming;
 
    --  Internal auxiliary routine to properly initialize the default
@@ -1217,8 +1192,7 @@ package body System.Garlic.Filters is
       Partition_Filter_Params_Table.Get_My_Defaults
          (Default_Filter, Public_Params, Private_Params);
       if Default_Filter = null then
-         --  Get the default filter's name (if it's still unknown, wait until
-         --  we know it).
+         --  Get the default filter's name
          Default_Name := Partition_Filter_Table.Get_Default;
          --  Get the default filter object, waiting until it is registered.
          Filter_Methods_Table.Wait_For_Filter
@@ -1279,8 +1253,8 @@ package body System.Garlic.Filters is
    -----------------------------
 
    function Default_Filter_Outgoing
-      (To_Partition : in System.RPC.Partition_ID;
-       Stream       : in Ada.Streams.Stream_Element_Array)
+      (To_Partition : in     System.RPC.Partition_ID;
+       Stream       : access System.RPC.Params_Stream_Type)
       return Ada.Streams.Stream_Element_Array is
 
       Public_Params    : Filter_Params_Access;  --  of 'To_Partition'
@@ -1290,8 +1264,7 @@ package body System.Garlic.Filters is
       Default_Filter := Get_Default_Filter;
 
       pragma Debug (D (D_Debug,
-         "Default_Filter_Outgoing a stream of length" &
-         Ada.Streams.Stream_Element_Offset'Image (Stream'Last) &
+         "Default_Filter_Outgoing a stream " &
          " with public Params of partition" &
          Partition_ID'Image (To_Partition)));
 
@@ -1303,16 +1276,8 @@ package body System.Garlic.Filters is
          "Found public params for partition " &
          Partition_ID'Image (To_Partition)));
 
-      pragma Debug (Dbg (Stream, "Before filtering (default OUT):"));
-
-      declare
-         Filtered_Params : Ada.Streams.Stream_Element_Array :=
-            Filter_Outgoing (Default_Filter.all, Public_Params, Stream);
-      begin
-         pragma Debug (Dbg (Filtered_Params,
-                            "After filtering (default OUT):"));
-         return Filtered_Params;
-      end;
+      return Filter_Data_Out (Default_Filter, Public_Params,
+                              Stream, "default");
    end Default_Filter_Outgoing;
 
    ----------------------------
@@ -1332,17 +1297,8 @@ package body System.Garlic.Filters is
       Default_Filter := Get_Default_Filter;
       Partition_Filter_Params_Table.Get_My_Defaults
          (Default_Filter, Public_Params, Private_Params);
-
-      pragma Debug (Dbg (Stream, "Before filtering (default IN):"));
-
-      declare
-         Filtered_Params : Ada.Streams.Stream_Element_Array :=
-            Filter_Incoming (Default_Filter.all, Private_Params, Stream);
-      begin
-         pragma Debug (Dbg (Filtered_Params,
-                            "After filtering (default IN):"));
-         return Filtered_Params;
-      end;
+      return Filter_Data_In (Default_Filter, Private_Params,
+                             Stream, "default");
    end Default_Filter_Incoming;
 
    --  Subprograms for reading and writing filter parameters. There are two
@@ -1492,12 +1448,22 @@ package body System.Garlic.Filters is
 
    procedure Initialize is
    begin
-
+      --  Determine 'Opcode_Elems':
+      declare
+         Stream : aliased Params_Stream_Type (0);
+      begin
+         Opcode'Write (Stream'Access, Opcode'Last);
+         declare
+            Buffer : Ada.Streams.Stream_Element_Array
+               := To_Stream_Element_Array (Stream'Access);
+         begin
+            Opcode_Elems := Buffer'Length;
+         end;
+      end;
       --  Register our message handler with Garlic.Heart to receive all
       --  messages of kind 'Filtering'.
       Receive (Filtering, Message_Handler'Access);
       pragma Debug (D (D_Debug, "Finished elaboration..."));
-
    end Initialize;
 
 end System.Garlic.Filters;

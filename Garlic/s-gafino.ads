@@ -48,9 +48,9 @@ private
    type No_Filter_Params is new Filter_Params with null record;
 
    function Filter_Outgoing
-     (Filter : in No_Filter;
-      Params : in Filter_Params_Access;
-      Stream : in Ada.Streams.Stream_Element_Array)
+     (Filter : in     No_Filter;
+      Params : in     Filter_Params_Access;
+      Stream : access System.RPC.Params_Stream_Type)
       return Ada.Streams.Stream_Element_Array;
 
    function Filter_Incoming

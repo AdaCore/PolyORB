@@ -60,12 +60,12 @@ package body System.Garlic.Filters.None is
    ---------------------
 
    function Filter_Outgoing
-     (Filter : in No_Filter;
-      Params : in Filter_Params_Access;
-      Stream : in Stream_Element_Array)
+     (Filter : in     No_Filter;
+      Params : in     Filter_Params_Access;
+      Stream : access System.RPC.Params_Stream_Type)
       return Stream_Element_Array is
    begin
-      return Stream;
+      return To_Stream_Element_Array (Stream);
    end Filter_Outgoing;
 
    ---------------------
@@ -75,7 +75,7 @@ package body System.Garlic.Filters.None is
    function Filter_Incoming
      (Filter : in No_Filter;
       Params : in Filter_Params_Access;
-      Stream : in Stream_Element_Array)
+      Stream : in Ada.Streams.Stream_Element_Array)
       return Stream_Element_Array is
    begin
       return Stream;

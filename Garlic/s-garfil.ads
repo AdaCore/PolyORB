@@ -44,9 +44,9 @@ with System.Garlic.Heart;
 package System.Garlic.Filters is
 
    function Filter_Outgoing
-      (To_Partition : in System.RPC.Partition_ID;
-       Operation    : in System.Garlic.Heart.Opcode;
-       Params       : in Ada.Streams.Stream_Element_Array)
+      (To_Partition : in     System.RPC.Partition_ID;
+       Operation    : in     System.Garlic.Heart.Opcode;
+       Params       : access System.RPC.Params_Stream_Type)
       return Ada.Streams.Stream_Element_Array;
 
    function Filter_Incoming
@@ -99,18 +99,18 @@ private
    --  Access to Filter_Params or derivative
 
    function Filter_Outgoing
-      (Filter : Filter_Type;
-       Params : Filter_Params_Access;
-       Stream : Ada.Streams.Stream_Element_Array)
+      (Filter : in     Filter_Type;
+       Params : in     Filter_Params_Access;
+       Stream : access System.RPC.Params_Stream_Type)
       return Ada.Streams.Stream_Element_Array
       is abstract;
    --  Run the unfiltered data in 'Stream' through the filter and return
    --  the result.
 
    function Filter_Incoming
-      (Filter : Filter_Type;
-       Params : Filter_Params_Access;
-       Stream : Ada.Streams.Stream_Element_Array)
+      (Filter : in Filter_Type;
+       Params : in Filter_Params_Access;
+       Stream : in Ada.Streams.Stream_Element_Array)
       return Ada.Streams.Stream_Element_Array
       is abstract;
    --  Run the filtered data in 'Stream' through the inverse filter and
