@@ -3,7 +3,7 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
-with Text_IO;
+with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 with Ada.Strings.Unbounded;
 

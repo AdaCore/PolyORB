@@ -28,7 +28,7 @@
 
 --   echo dynamic client.
 with Ada.Command_Line;
-with Text_IO; use Text_IO;
+with Ada.Text_IO; use Ada.Text_IO;
 with CORBA; use CORBA;
 with CORBA.Object;
 with CORBA.Context;
