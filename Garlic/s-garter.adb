@@ -105,6 +105,10 @@ package body System.Garlic.Termination is
    procedure Initiate_Synchronization;
    --  This procedure sends the two messages to everyone.
 
+   function Get_Active_Task_Count return Natural;
+   --  Active task count (i.e. tasks in a non-terminating state -
+   --  non-terminating tasks).
+
    task type Termination_Service is
       pragma Storage_Size (150_000);
       pragma Priority (Priorities.Master_Termination_Priority);

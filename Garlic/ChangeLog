@@ -1,3 +1,9 @@
+Fri Sep  6 17:52:46 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garter.adb: Added spec for Get_Active_Task_Count.
+
+	* s-garter.ads: Removed Get_Active_Task_Count from spec.
+
 Mon Sep  2 18:03:05 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-stratt.ads: Added.

@@ -59,10 +59,6 @@ package System.Garlic.Termination is
    pragma Inline (Add_Non_Terminating_Task);
    --  Let Garlic know that a task is no longer a non terminating task.
 
-   function Get_Active_Task_Count return Natural;
-   --  Active task count (i.e. tasks in a non-terminating state -
-   --  non-terminating tasks).
-
    procedure Shutdown;
    --  Shutdown any active task.
 
