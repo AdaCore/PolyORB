@@ -1,3 +1,13 @@
+Fri Oct 17 18:27:45 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
+
+	* s-garela.ads, s-garela.adb: Add procedure Initialize to remove
+ 	elaboration code.
+
+	* s-garsta.adb: Invoke Elaboration.Initialize after
+ 	Options.Initialize.
+
+	* s-garthi.ads: Add some procedures and types for IPC messages.
+
 Wed Oct 15 13:39:22 1997  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garser.adb.in: Update caused by previous changes.

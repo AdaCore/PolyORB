@@ -40,6 +40,11 @@ package body System.Garlic.Elaboration is
    --  This package body is provided for linking purpose. It will be
    --  replaced in a distributed model by a partition-specific file.
 
+   procedure Initialize is
+   begin
+      null;
+   end Initialize;
+
 end System.Garlic.Elaboration;
 
 

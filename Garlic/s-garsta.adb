@@ -92,6 +92,7 @@ begin
    --  Phase (0) (see s-garlic.ads)
 
    System.Garlic.Options.Initialize;
+   System.Garlic.Elaboration.Initialize;
 
    --  Phase (1) (see s-garlic.ads)
 

@@ -59,6 +59,9 @@ package System.Garlic.Thin is
    type mode_t is new C.int;
    pragma Convention (C, mode_t);
 
+   type key_t is new C.int;
+   pragma Convention (C, key_t);
+
    type Chars_Ptr_Array is array (C.size_t range <>) of
      aliased Strings.chars_ptr;
 
@@ -169,22 +172,25 @@ package System.Garlic.Thin is
    type Pollfd_Array is array (Positive range <>) of Pollfd;
    pragma Convention (C, Pollfd_Array);
 
-   function C_Accept (S       : C.int;
-                       Addr    : Sockaddr_Access;
-                       Addrlen : access C.int)
-     return C.int;
+   function C_Accept
+     (S       : C.int;
+      Addr    : Sockaddr_Access;
+      Addrlen : access C.int)
+      return C.int;
 
-   function C_Bind (S       : C.int;
-                     Name    : Sockaddr_Access;
-                     Namelen : C.int)
-     return C.int;
+   function C_Bind
+     (S       : C.int;
+      Name    : Sockaddr_Access;
+      Namelen : C.int)
+      return C.int;
 
    function C_Close (Fildes : C.int) return C.int;
 
-   function C_Connect (S       : C.int;
-                        Name    : Sockaddr_Access;
-                        Namelen : C.int)
-     return C.int;
+   function C_Connect
+     (S       : C.int;
+      Name    : Sockaddr_Access;
+      Namelen : C.int)
+      return C.int;
 
    function C_Dup2 (Fildes, Fildes2 : C.int) return C.int;
 
@@ -192,27 +198,27 @@ package System.Garlic.Thin is
      (Fildes : C.int;
       Cmd    : C.int;
       Arg    : C.int := 0)
-     return C.int;
+      return C.int;
 
    function C_Getenv
      (Name   : Strings.chars_ptr)
-     return Strings.chars_ptr;
+      return Strings.chars_ptr;
 
    function C_Gethostbyaddr
      (Addr     : Strings.chars_ptr;
       Length   : C.int;
       Typ      : C.int)
       return Hostent_Access;
-
+   
    function C_Gethostbyname
      (Name : Strings.chars_ptr)
       return Hostent_Access;
-
+   
    function C_Gethostname
      (Name    : Strings.chars_ptr;
       Namelen : C.int)
-     return C.int;
-
+      return C.int;
+   
    function C_Getpeername
      (S       : C.int;
       Name    : Sockaddr_Access;
@@ -225,7 +231,7 @@ package System.Garlic.Thin is
      (S       : C.int;
       Name    : Sockaddr_Access;
       Namelen : access C.int)
-     return C.int;
+      return C.int;
 
    function C_Getsockopt
      (S       : C.int;
@@ -233,18 +239,20 @@ package System.Garlic.Thin is
       Optname : C.int;
       Optval  : Strings.chars_ptr;
       Optlen  : access C.int)
-     return C.int;
+      return C.int;
 
-   function C_Inet_Addr (Cp : Strings.chars_ptr)
-     return Interfaces.Unsigned_32;
+   function C_Inet_Addr
+     (Cp : Strings.chars_ptr)
+      return Interfaces.Unsigned_32;
 
-   function C_Inet_Network (Cp : Strings.chars_ptr)
-     return Interfaces.Unsigned_32;
+   function C_Inet_Network
+     (Cp : Strings.chars_ptr)
+      return Interfaces.Unsigned_32;
 
    function C_Inet_Makeaddr
      (Net : C.int;
       Lna : C.int)
-     return In_Addr;
+      return In_Addr;
 
    function C_Inet_Lnaof (I : In_Addr) return C.int;
 
@@ -255,6 +263,26 @@ package System.Garlic.Thin is
    function C_Kill (Pid : pid_t; Sig : C.int) return C.int;
 
    function C_Listen (S, Backlog : C.int) return C.int;
+
+   function C_Msgget
+     (Key    : key_t;
+      Msgflg : C.int)
+      return C.int;
+
+   function C_Msgrcv
+     (Msqid  : C.int;
+      Msgp   : Strings.chars_ptr;
+      Msgsz  : C.int;
+      Msgtyp : C.long;
+      Msgflg : C.Int)
+     return C.int;
+
+   function C_Msgsnd
+     (Msqid  : C.int;
+      Msgp   : Strings.chars_ptr;
+      Msgsz  : C.int;
+      Msgflg : C.Int)
+     return C.int;
 
    function C_Open
      (Path  : Strings.chars_ptr;
@@ -377,6 +405,9 @@ private
    pragma Import (C, C_Inet_Ntoa, "inet_ntoa");
    pragma Import (C, C_Kill, "kill");
    pragma Import (C, C_Listen, "listen");
+   pragma Import (C, C_Msgget, "msgget");
+   pragma Import (C, C_Msgrcv, "msgrcv");
+   pragma Import (C, C_Msgsnd, "msgsnd");
    pragma Import (C, C_Open, "open");
    pragma Import (C, C_Pipe, "pipe");
    pragma Import (C, C_Poll, "poll");
