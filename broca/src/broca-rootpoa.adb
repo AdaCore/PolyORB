@@ -1017,11 +1017,8 @@ package body Broca.RootPOA is
       return Self.Object_Map (Slot).Skeleton;
    end Id_To_Skeleton;
 
-   subtype Octet_Array is
-     IDL_SEQUENCE_Octet.Element_Array;
-
    subtype Slot_Index_Data is
-     Octet_Array
+     IDL_SEQUENCE_Octet.Element_Array
        (0 .. (Slot_Index'Size + CORBA.Octet'Size - 1) / CORBA.Octet'Size - 1);
 
    function To_SI_Data is
