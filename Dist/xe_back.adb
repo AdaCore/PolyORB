@@ -223,7 +223,6 @@ package body XE_Back is
    procedure Build_New_Channel
      (Channel   : in Variable_Id) is
       Channel_Name   : Name_Id := Get_Node_Name (Node_Id (Channel));
-      Channel_Type   : Type_Id := Get_Variable_Type (Channel);
       Partition_Name : Name_Id;
       Partition_Node : Node_Id;
       Component_Node : Component_Id;
@@ -296,7 +295,6 @@ package body XE_Back is
    procedure Build_New_Partition
      (Partition : in Variable_Id) is
       Partition_Name : Name_Id := Get_Node_Name (Node_Id (Partition));
-      Partition_Type : Type_Id := Get_Variable_Type (Partition);
       Ada_Unit_Name  : Name_Id;
       Ada_Unit_Node  : Node_Id;
       Component_Node : Component_Id;

@@ -107,7 +107,6 @@ begin
       Boot_Protocol : constant Protocol_Access := Get_Protocol (Boot_Location);
       Boot_Data     : constant String := Get_Data (Boot_Location);
       Is_Master     : constant Boolean := not Options.Is_Slave;
-      New_Location  : Location_Type;
    begin
 
       if Boot_Protocol = null then
@@ -159,11 +158,15 @@ begin
    declare
       --  First, let boot server know about this partition
 
+      pragma Warnings (Off);
       P : constant System.RPC.Partition_ID := Get_My_Partition_ID;
+      pragma Warnings (On);
 
       --  Then, let this partition know about boot server
 
+      pragma Warnings (Off);
       D : constant Partition_Data := Get_Partition_Data (Get_Boot_Server);
+      pragma Warnings (On);
    begin
       null;
    end;

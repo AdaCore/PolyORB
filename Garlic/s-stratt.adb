@@ -1196,8 +1196,6 @@ package body System.Stream_Attributes is
       E_Size  : Integer  renames Fields (I).E_Size;
       E_Bias  : Integer  renames Fields (I).E_Bias;
       E_Last  : Integer  renames Fields (I).E_Last;
-      F_Size  : Integer  renames Fields (I).F_Size;
-      F_Mask  : SE       renames Fields (I).F_Mask;
       E_Bytes : SEO      renames Fields (I).E_Bytes;
       F_Bytes : SEO      renames Fields (I).F_Bytes;
 
@@ -1306,8 +1304,6 @@ package body System.Stream_Attributes is
       E_Size  : Integer  renames Fields (I).E_Size;
       E_Bias  : Integer  renames Fields (I).E_Bias;
       E_Last  : Integer  renames Fields (I).E_Last;
-      F_Size  : Integer  renames Fields (I).F_Size;
-      F_Mask  : SE       renames Fields (I).F_Mask;
       E_Bytes : SEO      renames Fields (I).E_Bytes;
       F_Bytes : SEO      renames Fields (I).F_Bytes;
 
@@ -1416,8 +1412,6 @@ package body System.Stream_Attributes is
       E_Size  : Integer  renames Fields (I).E_Size;
       E_Bias  : Integer  renames Fields (I).E_Bias;
       E_Last  : Integer  renames Fields (I).E_Last;
-      F_Size  : Integer  renames Fields (I).F_Size;
-      F_Mask  : SE       renames Fields (I).F_Mask;
       E_Bytes : SEO      renames Fields (I).E_Bytes;
       F_Bytes : SEO      renames Fields (I).F_Bytes;
 
@@ -1526,8 +1520,6 @@ package body System.Stream_Attributes is
       E_Size  : Integer  renames Fields (I).E_Size;
       E_Bias  : Integer  renames Fields (I).E_Bias;
       E_Last  : Integer  renames Fields (I).E_Last;
-      F_Size  : Integer  renames Fields (I).F_Size;
-      F_Mask  : SE       renames Fields (I).F_Mask;
       E_Bytes : SEO      renames Fields (I).E_Bytes;
       F_Bytes : SEO      renames Fields (I).F_Bytes;
 

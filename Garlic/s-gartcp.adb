@@ -350,7 +350,6 @@ package body System.Garlic.TCP is
    --------------------------------
 
    procedure Establish_Listening_Socket is
-      Addr  : Naming.Address renames Self_Host.Location.Addr;
       Port  : C.unsigned_short renames Self_Host.Location.Port;
       FD    : C.int renames Self_Host.FD;
       Sin   : Sockaddr_In_Access := new Sockaddr_In;

@@ -267,7 +267,6 @@ package body System.RPC is
 
    procedure Finalize (Keeper : in out Abort_Keeper) is
       Id  : Request_Id renames Keeper.Id;
-      Res : Result_Type;
    begin
       if Keeper.Sent then
          Send_Abort_Message (Keeper.Partition, Id);

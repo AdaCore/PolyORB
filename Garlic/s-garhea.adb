@@ -434,7 +434,9 @@ package body System.Garlic.Heart is
       if Partition /= Server_Partition_ID
         and then not Partition_Map_Cache (Partition) .Known then
          declare
+            pragma Warnings (Off);
             Dummy : constant Partition_Data := Get_Partition_Data (Partition);
+            pragma Warnings (On);
          begin
             null;
          end;

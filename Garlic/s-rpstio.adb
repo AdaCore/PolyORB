@@ -175,7 +175,6 @@ package body System.RPC.Stream_IO is
       Last   : out    Ada.Streams.Stream_Element_Offset) is
       FID : Partition_ID;
       LID : Partition_ID;
-      PID : Partition_ID := Any_Partition;
       Len : Stream_Element_Offset := 0;
       Str : Partition_Stream_Access := Fetch (Stream.PID);
    begin
