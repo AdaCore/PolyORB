@@ -36,6 +36,8 @@ with CORBA.Object;
 
 package Broca.Repository is
 
+   pragma Elaborate_Body;
+
    function Is_Equivalent
      (RI1 : CORBA.RepositoryId;
       RI2 : CORBA.RepositoryId)

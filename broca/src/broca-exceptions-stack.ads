@@ -35,6 +35,8 @@ with CORBA;
 
 package Broca.Exceptions.Stack is
 
+   pragma Elaborate_Body;
+
    procedure Get_Members
      (Exc_Occ : in CORBA.Exception_Occurrence;
       Exc_Mbr : out IDL_Exception_Members'Class);

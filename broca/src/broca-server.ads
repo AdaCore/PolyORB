@@ -157,6 +157,15 @@ package Broca.Server is
    --  externalised object reference. KEY is the key relative to the
    --  POA, not the full object key.
 
+   --  Build_IOR creates an object reference that associates local
+   --  object identity information (the object key) which profiles
+   --  that denote this ORB's available TSAPs. It must therefore ensure
+   --  that all configured transports have been correctly initialised
+   --  and registered.
+
+   procedure Start;
+   --  Create an ORB and register it with Broca.ORB.
+
 private
 
    type Server_Id_Type is new Natural;

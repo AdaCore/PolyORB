@@ -50,6 +50,9 @@ with Broca.Flags;
 with Broca.ORB;
 with Broca.Object;
 
+with Broca.Inet_Server;
+--  The TCP/IP transport
+
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
 
@@ -928,6 +931,9 @@ package body Broca.Server is
          --  to allow future use of marshall-by-reference
          --  for the construction of Object_Key.
 
+         --  We are going to walk the list of available TSAPs:
+         --  make sure that all servers are properly registered.
+         Broca.Inet_Server.Ensure_Started;
          Nbr_Profiles := 0;
          for N in Server_Id_Type loop
             Server := Server_Table.Get_Server_By_Id (N);
@@ -1227,7 +1233,18 @@ package body Broca.Server is
       end if;
    end Unmarshall;
 
-begin
-   Broca.ORB.Register_ORB
-     (new This_ORB_Type'(Broca.ORB.ORB_Type with null record));
+   Started : Boolean := False;
+
+   procedure Start is
+   begin
+      if Started then
+         return;
+      end if;
+
+      Broca.ORB.Register_ORB
+        (new This_ORB_Type'(Broca.ORB.ORB_Type with null record));
+
+      Started := True;
+   end Start;
+
 end Broca.Server;

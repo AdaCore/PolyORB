@@ -63,6 +63,8 @@ generic
 
 package Sequences.Unbounded is
 
+   pragma Elaborate_Body;
+
    type Element_Array is array (Integer range <>) of Element;
 
    Null_Element_Array : Element_Array (1 .. 0);
@@ -75,7 +77,6 @@ package Sequences.Unbounded is
 
    type Element_Array_Access is access all Element_Array;
    procedure Free (X : in out Element_Array_Access);
-
 
    function To_Sequence (Source : in Element_Array) return Sequence;
 
@@ -132,7 +133,6 @@ package Sequences.Unbounded is
    function "=" (Left : in Sequence;
                  Right : in Element_Array) return Boolean;
 
-
    function Index
      (Source  : in Sequence;
       Pattern : in Element_Array;
@@ -143,7 +143,6 @@ package Sequences.Unbounded is
      (Source  : in Sequence;
       Pattern : in Element_Array)
       return Natural;
-
 
    function Replace_Slice
      (Source : in Sequence;
@@ -223,7 +222,6 @@ package Sequences.Unbounded is
 
    function "*" (Left : in Natural;
                  Right : in Sequence) return Sequence;
-
 
 private
 

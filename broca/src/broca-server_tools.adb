@@ -38,11 +38,8 @@ with PortableServer.POA;
 with PortableServer.POAManager;
 
 with Broca.Inet_Server;
-
 with Broca.Parameters;
 
-with Broca.RootPOA;
-pragma Elaborate (Broca.RootPOA);
 pragma Elaborate_All (PortableServer.POA);
 
 with Broca.Debug;

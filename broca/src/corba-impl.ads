@@ -31,25 +31,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  with Ada.Finalization;
 with Broca.Refs;
 
 package CORBA.Impl is
 
-   --  type Object is abstract new Ada.Finalization.Limited_Controlled
-   --  with record
-   --  COUNTER is used to count the number of references
-   --  Counter : Integer := 0;
-   --  end record;
-   --  Counter : Integer := 0;
-   --  end record;
+   pragma Elaborate_Body;
 
    type Object is new Broca.Refs.Entity with null record;
    type Object_Ptr is access all Object'Class;
 
-   --  procedure Initialize (This : in out Object);
-   --  procedure Finalize (This : in out Object);
-   --  Adabroker specific  --
+   --  Adabroker specific
+
    procedure Inc_Usage (Obj : in Object_Ptr);
    procedure Dec_Usage (Obj : in out Object_Ptr);
 

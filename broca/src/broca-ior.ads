@@ -37,6 +37,8 @@ with Broca.Buffers; use Broca.Buffers;
 
 package Broca.IOR is
 
+   pragma Elaborate_Body;
+
    --  function IOR_String_To_Buffer
    --    (IOR : CORBA.String)
    --    return Buffer_Type;

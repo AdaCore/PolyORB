@@ -33,8 +33,8 @@
 
 package Broca.RootPOA is
 
-   pragma Elaborate_Body;
-   pragma Warnings (Off, Broca.RootPOA);
+   procedure Start;
+   --  Construct the root POA and register it with the ORB.
 
 end Broca.RootPOA;
 

@@ -38,6 +38,9 @@ with Broca.Locks;
 with Interfaces.C;
 
 package Broca.Stream is
+
+   pragma Elaborate_Body;
+
    --  A stream is a channel of communication.
    --  It has the same features as a connection.
    --  A stream is bidirectionnal: Data can be sent or received, however, there

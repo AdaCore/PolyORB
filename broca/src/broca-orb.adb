@@ -50,9 +50,8 @@ with Broca.Debug;
 pragma Elaborate (Broca.Debug);
 
 with Broca.IIOP;
-pragma Warnings (Off, Broca.IIOP);
-
 with Broca.POA;
+with Broca.RootPOA;
 with PortableServer.POA;
 with PortableServer.ServantLocator.Impl;
 with PortableServer.ServantManager;
@@ -370,6 +369,9 @@ package body Broca.ORB is
          declare
             R : PortableServer.POA.Ref;
          begin
+            Broca.RootPOA.Start;
+            --  Ensure that the root POA exists.
+
             PortableServer.POA.Set (R, CORBA.Impl.Object_Ptr (Root_POA));
             return R;
          end;

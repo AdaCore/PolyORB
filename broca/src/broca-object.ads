@@ -39,6 +39,8 @@ with Broca.IOP;
 
 package Broca.Object is
 
+   pragma Elaborate_Body;
+
    type Object_Type is new CORBA.Impl.Object with
       record
          Type_Id  : CORBA.String;
