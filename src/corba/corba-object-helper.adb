@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,7 +43,10 @@ package body CORBA.Object.Helper is
    -- To_Any --
    ------------
 
-   function To_Any (Item : in CORBA.Object.Ref) return Any is
+   function To_Any
+     (Item : in CORBA.Object.Ref)
+     return Any
+   is
       A : Any := PolyORB.Any.ObjRef.To_Any (To_PolyORB_Ref (Item));
    begin
       Set_Type (A, CORBA.Object.TC_Object);
@@ -56,7 +59,8 @@ package body CORBA.Object.Helper is
    -- From_Any --
    --------------
 
-   function From_Any (Item : in Any) return CORBA.Object.Ref
+   function From_Any
+     (Item : in Any) return CORBA.Object.Ref
    is
       Result : CORBA.Object.Ref;
    begin
@@ -66,13 +70,13 @@ package body CORBA.Object.Helper is
       return Result;
    end From_Any;
 
-   ---------------------
-   --  Set_Any_Value  --
-   ---------------------
+   -------------------
+   -- Set_Any_Value --
+   -------------------
 
    procedure Set_Any_Value
      (Any_Value : in out CORBA.Any;
-      Value : in CORBA.Object.Ref) is
+      Value     : in     CORBA.Object.Ref) is
    begin
       PolyORB.Any.ObjRef.Set_Any_Value
         (Any_Value, To_PolyORB_Ref (Value));
