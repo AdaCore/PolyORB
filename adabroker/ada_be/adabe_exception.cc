@@ -92,7 +92,8 @@ adabe_exception::produce_skel_adb (dep_list &with, string &body)
   body += "                  Repo_Id : Corba.String := ";
   body += get_ada_local_name ();
   body += "_Repository_Id ;\n";
-
+  body += "                  Mesg_Size : Corba.Unsigned_Long ;\n";
+  
   if (has_member) {
     body += "                  Member : ";
     body += get_ada_local_name ();

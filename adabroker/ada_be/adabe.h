@@ -2,7 +2,11 @@
 ***                              ADA BACK-END COMPILER HEADER                                  ***
 ***                               file:  adabe.h                                               ***
 ***                                                                                            ***
-***                                                                                            ***
+***      This file is the single header file of all AdaBroker Back_End.                        ***
+***   It contains all class and type definitions that are implemented in .cc files.            ***
+***   Most of the class defined here are children of classes of the Sun Front-End. The rule    ***
+***   is that a AST_Toto class in the front_end has a correspondant adabe_toto class in the    ***
+***   AdaBroker Back-End.                                                                      ***
 ***                                                                                            ***
 ***   Copyright 1999                                                                           ***
 ***   Jean Marie Cottin, Laurent Kubler, Vincent Niebel                                        ***
@@ -27,6 +31,10 @@
 #include <idl.hh>
 #include <idl_extern.hh>
 #include "debug.h"
+
+string spaces (int n, char d);
+// return a string of n identical d chars
+// used for indentation
 
 char *lower (const char *str);
 // Used to removed the upper case in a string

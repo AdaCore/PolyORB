@@ -101,23 +101,31 @@ void adabe_string::produce_ads (dep_list &with,string &body, string &previous)
   no_fixed_size();
   // set a flag of this object and its ancestors saying
   // they have not a fixed size.
+
+  //  with.add ("Corba.Bounded_Strings");
   
   if (evaluate(max_size()->ev())==0)
     {
-      body+= "   type " + get_ada_local_name() + " is new Corba.String ;\n\n\n";
+      body+= "   type " + get_ada_local_name() + " is new Corba.String ;\n";
     }
   else
     {
-      
-      body += "   package Corba.Bounded_String_" + to_string(max_size()->ev());
-      body += " is new Corba.Bounded_String(";
+      // PROBLEM TO SOLVE
+      body += "   package Corba.Bounded_Strings_" + to_string(max_size()->ev());
+      body += " is new Corba.Bounded_Strings(";
       body +=  to_string(max_size()->ev());
       body += ") ;\n\n";
-      body += "   type "+ get_ada_local_name() + " is new Corba.Bounded_String_";
+      body += "   type "+ get_ada_local_name() + " is new Corba.Bounded_Strings_";
       body += to_string(max_size()->ev());
-      body += ".Bounded_String ;\n\n\n";
+      body += ".Bounded_String ;\n";
     }
 
+  body += "   type " + get_ada_local_name() + "_Ptr is access ";
+  body += get_ada_local_name() + " ;\n\n";
+  body += "   procedure Free is new Ada.Unchecked_Deallocation(";
+  body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr) ;\n\n\n";
+  set_already_defined();
+  
   set_already_defined();
 }
 

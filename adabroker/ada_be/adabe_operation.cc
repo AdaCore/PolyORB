@@ -528,8 +528,10 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
     body += "            Result : ";
     body += full_result_name;
     body += " ;\n";
-    body += "            Mesg_Size : Corba.Unsigned_Long ;\n";
   }
+
+  if ((!no_out) || (is_function()))
+    body += "            Mesg_Size : Corba.Unsigned_Long ;\n";
 
   body += "         begin\n";
 

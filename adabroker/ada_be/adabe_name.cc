@@ -800,6 +800,13 @@ char *lower (const char *str)
   return new_str;
 }
 
+string spaces (int n, char d)
+{
+  string tmp = "";
+  for (i=0;i<n;i++) tmp+=d;
+  return tmp;
+}
+
 IMPL_NARROW_FROM_DECL(adabe_name)
 IMPL_NARROW_FROM_SCOPE(adabe_name)
 
