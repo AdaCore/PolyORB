@@ -166,4 +166,7 @@ exception
       Exit_Program (E_Fatal);
    when Compilation_Error =>
       Exit_Program (E_Fatal);
+   when others =>
+      Remove_All_Temp_Files;
+      raise;
 end XE_Main;
