@@ -23,6 +23,11 @@ with Types; use Types;
 with Errors;
 
 package body Tokens is
+
+   -----------------------------------
+   --  low level string processing  --
+   -----------------------------------
+
    type State_Type is record
       Line_Number : Natural;
       Line_Len : Natural;
@@ -33,6 +38,7 @@ package body Tokens is
    Col : Natural;
    Col_Offset : Natural;
    Token_Col : Natural;
+   Mark_Pos : Natural;
 
    --  The current token, set by next_token.
    Current_Token : Idl_Token;
@@ -40,8 +46,8 @@ package body Tokens is
    --  If not t_error, the replacement token.
    Replacement_Token : Idl_Token;
 
-   Current_Str_Start, Current_Str_End : Natural;
 
+   --  reads the next line
    procedure Read_Line is
    begin
       --  Get next line and append a LF at the end.
@@ -51,7 +57,101 @@ package body Tokens is
       Current_State.Line_Number := Current_State.Line_Number + 1;
       Col := Line'First;
       Col_Offset := 0;
+      Mark_Pos := Col;
    end Read_Line;
+
+   --  skips current char
+   procedure Skip_Char is
+   begin
+      Col := Col + 1;
+      if Col > Current_State.Line_Len then
+         Read_Line;
+      end if;
+   end Skip_Char;
+
+   --  skips the current line
+   procedure Skip_Line is
+   begin
+      Read_Line;
+   end Skip_Line;
+
+   --  Gets the next char and consume it
+   function Next_Char return Character is
+   begin
+      Skip_Char;
+      return Line (Col);
+   end Next_Char;
+
+   --  returns the next char without consuming it
+   --  warning : if it is the end of a line, returns
+   --  LF and not the first char of the next line
+   function View_Next_Char return Character is
+   begin
+      if Col = Current_State.Line_Len then
+         return Lf;
+      else
+         return Line (Col + 1);
+      end if;
+   end View_Next_Char;
+
+   --  returns the current char
+   function Get_Current_Char return Character is
+   begin
+      return Line (Col);
+   end Get_Current_Char;
+
+   --  calculates the new offset of the column when a tabulation
+   --  occurs
+   procedure Refresh_Offset is
+   begin
+      Col_Offset := Col_Offset + 8 - (Col + Col_Offset) mod 8;
+   end Refresh_Offset;
+
+   --  Skips all spaces.
+   --  Actually, only used in scan_preprocessor
+   procedure Skip_Spaces is
+   begin
+      loop
+         case View_Next_Char is
+            when Space | Cr | Vt | Ff | Ht =>
+               Skip_Char;
+            when others =>
+               return;
+         end case;
+      end loop;
+   end Skip_Spaces;
+
+   --  Skips a /* ... */ comment
+   procedure Skip_Comment is
+   begin
+      loop
+         while Next_Char /= '*' loop
+            null;
+         end loop;
+         if Next_Char = '/' then
+            return;
+         end if;
+      end loop;
+   end Skip_Comment;
+
+   --  Sets a mark in the text.
+   --  If the line changes, the mark is replaced at the beginning
+   --  of the new line
+   procedure Set_Mark is
+   begin
+      Mark_Pos := Col;
+   end Set_Mark;
+
+   --  gets the text from the mark to the current position
+   function Get_Marked_Text return String is
+   begin
+      return Line (Mark_Pos .. Col);
+   end Get_Marked_Text;
+
+
+   ---------------------------------
+   --  more high level functions  --
+   ---------------------------------
 
    procedure Initialize is
    begin
@@ -61,7 +161,9 @@ package body Tokens is
       Token_Col := Line'First;
       Current_Token := T_Error;
       Replacement_Token := T_Error;
+      Mark_Pos := Line'First;
       Read_Line;
+      Col := Col - 1;
    end Initialize;
 
    procedure Set_Replacement_Token (Tok : Idl_Token) is
@@ -107,27 +209,21 @@ package body Tokens is
       Is_A_Keyword : Idl_Keyword_State;
       Tok : Idl_Token;
    begin
-      Current_Str_Start := Col;
-
+      Set_Mark;
       --  CORBA V2.2, 3.2.3:
       --  An identifier is an arbritrarily long sequence of alphabetic, digit
       --  and underscore characters.  The first character must be an
       --  alphabetic character.  All characters are significant.
-      Col := Col + 1;
-      while Line (Col) in 'A' .. 'Z' or else Line (Col) in 'a' .. 'z'
-        or else Line (Col) in '0' .. '9' or else Line (Col) = '_'
+      while View_Next_Char in 'A' .. 'Z' or else View_Next_Char in 'a' .. 'z'
+        or else View_Next_Char in '0' .. '9' or else View_Next_Char = '_'
       loop
-         Col := Col + 1;
+         Skip_Char;
       end loop;
-
-      --  The identifier was scanned.
-      Current_Str_End := Col - 1;
-
       --  check if it is a reserved keyword or not :
       --  CORBA V2.3, 3.2.4 :
       --  keywords must be written exactly as in the above list. Identifiers
       --  that collide with keywords (...) are illegal.
-      Is_Idl_Keyword (Line (Current_Str_Start .. Current_Str_End),
+      Is_Idl_Keyword (Get_Marked_Text,
                       Is_A_Keyword,
                       tok);
       case Is_A_Keyword is
@@ -157,45 +253,44 @@ package body Tokens is
    --
    procedure Scan_Numeric is
    begin
-      Current_Str_Start := Col;
-      if Line (Col) = '0' and then Line (Col + 1) /= '.' then
-         if Line (Col + 1) = 'x' or Line (Col + 1) = 'X' then
-            Col := Col + 2;
-            while Line (Col) in '0' .. '9'
-              or else Line (Col) in 'A' .. 'F'
-              or else Line (Col) in 'a' .. 'f' loop
-               Col := Col + 1;
+      Set_Mark;
+      if Get_Current_Char = '0' and then View_Next_Char /= '.' then
+         if View_Next_Char = 'x' or View_Next_Char = 'X' then
+            Skip_Char;
+            while View_Next_Char in '0' .. '9'
+              or else View_Next_Char in 'A' .. 'F'
+              or else View_Next_Char in 'a' .. 'f' loop
+               Skip_Char;
             end loop;
             Current_Token := T_Lit_Integer;
-         elsif Line (Col + 1) in '0' .. '7' then
-            while Line (Col) in '0' .. '7' loop
-               Col := Col + 1;
+         elsif View_Next_Char in '0' .. '7' then
+            while View_Next_Char in '0' .. '7' loop
+               Skip_Char;
             end loop;
             Current_Token := T_Lit_Integer;
          else
             --  This is only a digit.
-            Col := Col + 1;
             Current_Token := T_Lit_Integer;
          end if;
       else
-         while Line (Col) in '0' .. '9' loop
-            Col := Col + 1;
+         while View_Next_Char in '0' .. '9' loop
+            Skip_Char;
          end loop;
-         if Line (Col) = '.' then
-            Col := Col + 1;
-            while Line (Col) in '0' .. '9' loop
-               Col := Col + 1;
+         if View_Next_Char = '.' then
+            Skip_Char;
+            while View_Next_Char in '0' .. '9' loop
+               Skip_Char;
             end loop;
-            if Line (Col) = 'D' or else Line (Col) = 'd' then
-               Col := Col + 1;
+            if View_Next_Char = 'D' or else View_Next_Char = 'd' then
+               Skip_Char;
                Current_Token := T_Lit_Fixed_Point;
-            elsif Line (Col) = 'E' or else Line (Col) = 'e' then
-               Col := Col + 1;
-               if Line (Col) = '+' or else Line (Col) = '-' then
-                  Col := Col + 1;
+            elsif View_Next_Char = 'E' or else View_Next_Char = 'e' then
+               Skip_Char;
+               if View_Next_Char = '+' or else View_Next_Char = '-' then
+                  Skip_Char;
                end if;
-               while Line (Col) in '0' .. '9' loop
-                  Col := Col + 1;
+               while View_Next_Char in '0' .. '9' loop
+                  Skip_Char;
                end loop;
                Current_Token := T_Lit_Floating_Point;
             else
@@ -205,49 +300,32 @@ package body Tokens is
             Current_Token := T_Lit_Integer;
          end if;
       end if;
-      Current_Str_End := Col - 1;
    end Scan_Numeric;
 
-   --  Skip all spaces.
-   procedure Skip_Spaces is
-   begin
-      loop
-         case Line (Col) is
-            when Space | Cr | Vt | Ff =>
-               Col := Col + 1;
-            when Ht =>
-               Col_Offset := Col_Offset + 8 - (Col + Col_Offset) mod 8;
-               Col := Col + 1;
-            when others =>
-               return;
-         end case;
-      end loop;
-   end Skip_Spaces;
-
    procedure Scan_Preprocessor is
-      S, E : Natural;
    begin
-      if Line (Col) /= '#' then
+      if Get_Current_Char /= '#' then
          raise Internal_Error;
       end if;
-      Col := Col + 1;
       Skip_Spaces;
-      case Line (Col) is
+      case View_Next_Char is
          when 'A' .. 'Z' | 'a' .. 'z' =>
             --  This is a preprocessor directive
-            S := Col;
-            Col := Col + 1;
-            while Line (Col) in 'a' .. 'z'
-              or else Line (Col) in 'A' .. 'Z'
-              or else Line (Col) = '_'
+            Skip_Char;
+            Set_Mark;
+            while View_Next_Char in 'a' .. 'z'
+              or else View_Next_Char in 'A' .. 'Z'
+              or else View_Next_Char = '_'
             loop
-               Col := Col + 1;
+               Skip_Char;
             end loop;
-            E := Col - 1;
-            if Line (S .. E) = "define" or else Line (S .. E) = "if"
-              or else Line (S .. E) = "ifdef" or else Line (S .. E) = "ifndef"
-              or else Line (S .. E) = "undef" or else Line (S .. E) = "include"
-              or else Line (S .. E) = "assert"
+            if Get_Marked_Text = "define"
+              or else Get_Marked_Text = "if"
+              or else Get_Marked_Text = "ifdef"
+              or else Get_Marked_Text = "ifndef"
+              or else Get_Marked_Text = "undef"
+              or else Get_Marked_Text = "include"
+              or else Get_Marked_Text = "assert"
             then
                Errors.Display_Error
                  ("cannot handle preprocessor directive, use -p",
@@ -255,10 +333,10 @@ package body Tokens is
                   Col,
                   Errors.Error);
                raise Fatal_Error;
-            elsif Line (S .. E) = "pragma" then
+            elsif Get_Marked_Text = "pragma" then
                --  Currently ignored.
                --  FIXME
-               Col := Current_State.Line_Len;
+               Skip_Line;
             else
                Errors.Display_Error
                  ("unknow preprocessor directive.  -p can help",
@@ -270,7 +348,7 @@ package body Tokens is
             --  This is line directive
             --  Skip it.
             --  FIXME.
-            Col := Current_State.Line_Len;
+            Skip_Line;
          when Lf =>
             --  This is an end of line.
             null;
@@ -290,166 +368,142 @@ package body Tokens is
          Replacement_Token := T_Error;
          return;
       end if;
-
-      << Next_Line >> null;
-      if Col > Current_State.Line_Len then
-         Read_Line;
-      end if;
-
-      << Next_Char >> null;
-      Skip_Spaces;
-      Token_Col := Col + Col_offset;
-      case Line (Col) is
-         when Lf =>
-            if Col /= Current_State.Line_Len then
-               raise Internal_Error;
-            else
-               Col := Col + 1;
-               goto Next_Line;
-            end if;
-         when Space | Cr | Vt | Ff | Ht =>
-            --  Must not happen, since eat by skip_spaces.
-            raise Internal_Error;
-         when Exclamation =>
-            --  invalid character.
-            Current_Token := T_Error;
-            return;
-         when '(' =>
-            Col := Col + 1;
-            Current_Token := T_Left_Paren;
-            return;
-         when ')' =>
-            Col := Col + 1;
-            Current_Token := T_Right_Paren;
-            return;
-         when '*' =>
-            Col := Col + 1;
-            Current_Token := T_Star;
-            return;
-         when '+' =>
-            Col := Col + 1;
-            Current_Token := T_Plus;
-            return;
-         when '#' =>
-            Scan_Preprocessor;
-            goto Next_Line;
-         when '/' =>
-            if Line (Col + 1) = '/' then
-               --  This is a line comment.
-               Col := Current_State.Line_Len + 1;
-               goto Next_Line;
-            else
-               Current_Token := T_Slash;
-               Col := Col + 1;
+      loop
+         case Next_Char is
+            when Space | Cr | Vt | Ff | Lf =>
+               null;
+            when Ht =>
+               Refresh_Offset;
+               Token_Col := Col + Col_offset;
+            when Exclamation =>
+               --  invalid character.
+               Current_Token := T_Error;
                return;
-            end if;
-         when ':' =>
-            Col := Col + 1;
-            if Line (Col) = ':' then
-               Col := Col + 1;
-               Current_Token := T_Colon_Colon;
-            else
-               Current_Token := T_Colon;
-            end if;
-            return;
-         when ';' =>
-            Col := Col + 1;
-            Current_Token := T_Semi_Colon;
-            return;
-         when '<' =>
-            Col := Col + 1;
-            if Line (Col) = '<' then
-               Col := Col + 1;
-               Current_Token := T_Less_Less;
-            else
-               Current_Token := T_Less;
-            end if;
-            return;
-         when '>' =>
-            Col := Col + 1;
-            if Line (Col) = '>' then
-               Col := Col + 1;
-               Current_Token := T_Greater_Greater;
-            else
-               Current_Token := T_Greater;
-            end if;
-            return;
-         when ',' =>
-            Col := Col + 1;
-            Current_Token := T_Comma;
-            return;
-         when '=' =>
-            Col := Col + 1;
-            Current_Token := T_Equal;
-            return;
-         when '0' .. '9' =>
-            Scan_Numeric;
-            return;
-         when 'A' .. 'Z' | 'a' .. 'z' =>
-            --  Keyword or identifier.
-            Current_Token := Scan_Identifier;
-            return;
-         when '[' =>
-            Col := Col + 1;
-            Current_Token := T_Left_Sbracket;
-            return;
-         when ']' =>
-            Col := Col + 1;
-            Current_Token := T_Right_Sbracket;
-            return;
-         when '{' =>
-            Col := Col + 1;
-            Current_Token := T_Left_Cbracket;
-            return;
-         when '}' =>
-            Col := Col + 1;
-            Current_Token := T_Right_Cbracket;
-            return;
-            --  mapping of escaped identifiers
-            --  CORBA 2.3 - 3.2.3.1 :
-            --  "users may lexically "escape" identifiers by prepending an
-            --  underscore (_) to na identifier.
-         when '_' =>
-            Col := Col + 1;
-            if Line (Col) in 'A' .. 'Z'
-              or else Line (Col) in 'a' .. 'z' then
-               Current_Token := Scan_Identifier;
-               if Current_Token = T_Identifier then
-                  Errors.Display_Error
-                    ("Invalid identifier name. An identifier cannot begin" &
-                     " with '_', except if the end is an idl keyword",
-                     Current_State.Line_Number,
-                     Col - 1,
-                     Errors.Error);
-                  raise Fatal_Error;
+            when '(' =>
+               Current_Token := T_Left_Paren;
+               return;
+            when ')' =>
+               Current_Token := T_Right_Paren;
+               return;
+            when '*' =>
+               Current_Token := T_Star;
+               return;
+            when '+' =>
+               Current_Token := T_Plus;
+               return;
+            when '#' =>
+               Scan_Preprocessor;
+               Skip_Line;
+            when '/' =>
+               if View_Next_Char = '/' then
+                  --  This is a line comment.
+                  Skip_Line;
+               elsif View_Next_Char = '*' then
+                  --  This is the beginning of a comment
+                  Skip_Char;
+                  Skip_Comment;
                else
-                  Current_Token := T_Identifier;
+                  Current_Token := T_Slash;
                   return;
                end if;
-            else
-               Errors.Display_Error ("Invalid character '_'",
-                                     Current_State.Line_Number,
-                                     Col - 1,
-                                     Errors.Error);
-               raise Fatal_Error;
-            end if;
-         when others =>
-            if Line (Col) >= ' ' then
-               Errors.Display_Error ("bad characater `" & Line (Col) & "'",
-                                     Current_State.Line_Number,
-                                     Col,
-                                     Errors.Error);
-            else
-               Errors.Display_Error
-                 ("bad character "
-                  & Natural'Image (Character'Pos (Line (Col))),
-                  Current_State.Line_Number,
-                  Col,
-                  Errors.Error);
-            end if;
-            Current_Token := T_Error;
-            return;
-      end case;
+            when ':' =>
+               if view_next_char = ':' then
+                  Skip_Char;
+                  Current_Token := T_Colon_Colon;
+               else
+                  Current_Token := T_Colon;
+               end if;
+               return;
+            when ';' =>
+               Current_Token := T_Semi_Colon;
+               return;
+            when '<' =>
+               if View_Next_Char = '<' then
+                  Skip_Char;
+                  Current_Token := T_Less_Less;
+               else
+                  Current_Token := T_Less;
+               end if;
+               return;
+            when '>' =>
+               if View_Next_Char = '>' then
+                  Skip_Char;
+                  Current_Token := T_Greater_Greater;
+               else
+                  Current_Token := T_Greater;
+               end if;
+               return;
+            when ',' =>
+               Current_Token := T_Comma;
+               return;
+            when '=' =>
+               Current_Token := T_Equal;
+               return;
+            when '0' .. '9' =>
+               Scan_Numeric;
+               return;
+            when 'A' .. 'Z' | 'a' .. 'z' =>
+               --  Keyword or identifier.
+               Current_Token := Scan_Identifier;
+               return;
+            when '[' =>
+               Current_Token := T_Left_Sbracket;
+               return;
+            when ']' =>
+               Current_Token := T_Right_Sbracket;
+               return;
+            when '{' =>
+               Current_Token := T_Left_Cbracket;
+               return;
+            when '}' =>
+               Current_Token := T_Right_Cbracket;
+               return;
+               --  mapping of escaped identifiers
+               --  CORBA 2.3 - 3.2.3.1 :
+               --  "users may lexically "escape" identifiers by prepending an
+               --  underscore (_) to an identifier.
+            when '_' =>
+               if View_Next_Char in 'A' .. 'Z'
+                 or else View_Next_Char in 'a' .. 'z' then
+                  Skip_Char;
+                  Current_Token := Scan_Identifier;
+                  if Current_Token = T_Identifier then
+                     Errors.Display_Error
+                       ("Invalid identifier name. An identifier cannot begin" &
+                        " with '_', except if the end is an idl keyword",
+                        Current_State.Line_Number,
+                        Col - 1,
+                        Errors.Error);
+                     raise Fatal_Error;
+                  else
+                     Current_Token := T_Identifier;
+                     return;
+                  end if;
+               else
+                  Errors.Display_Error ("Invalid character '_'",
+                                        Current_State.Line_Number,
+                                        Col - 1,
+                                        Errors.Error);
+                  raise Fatal_Error;
+               end if;
+            when others =>
+               if Get_Current_Char >= ' ' then
+                  Errors.Display_Error ("bad characater `" & Line (Col) & "'",
+                                        Current_State.Line_Number,
+                                        Col,
+                                        Errors.Error);
+               else
+                  Errors.Display_Error
+                    ("bad character "
+                     & Natural'Image (Character'Pos (Line (Col))),
+                     Current_State.Line_Number,
+                     Col,
+                     Errors.Error);
+               end if;
+               Current_Token := T_Error;
+               return;
+         end case;
+      end loop;
       exception
          when Ada.Text_Io.End_Error =>
             Current_Token := T_Eof;
@@ -471,7 +525,7 @@ package body Tokens is
    function Get_Identifier return String is
    begin
       if Current_Token = T_Identifier then
-         return Line (Current_Str_Start .. Current_Str_End);
+         return Get_Marked_Text;
       else
          raise Internal_Error;
       end if;
@@ -481,7 +535,7 @@ package body Tokens is
    begin
       case Current_Token is
          when T_Lit_Integer | T_Lit_Floating_Point | T_Lit_Fixed_Point =>
-            return Line (Current_Str_Start .. Current_Str_End);
+            return Get_Marked_Text;
          when others =>
             raise Internal_Error;
       end case;

@@ -175,19 +175,6 @@ package Tokens is
        T_Eof
        );
 
-   --  checks whether s is an Idl keyword or not
-   --  the result can be Is_Keyword if it is,
-   --  Is_Identifier if it is not and Bad_Case if
-   --  it is one but with bad case
-   --  CORBA V2.3, 3.2.4 :
-   --  keywords must be written exactly as in the above list. Identifiers
-   --  that collide with keywords (...) are illegal.
-   procedure Is_Idl_Keyword (S : in String;
-                             Is_A_Keyword : out Idl_Keyword_State;
-                             Tok : out Idl_Token);
-
-
-   subtype Idl_Keywords is Idl_Token range T_Any .. T_Wstring;
 
    --  Initialize the lexical analyser.
    --  The lexical analyser use the standard input file.
@@ -220,6 +207,20 @@ package Tokens is
    --  This procedure can stack only one token, ie, it must be called after
    --  next_token.
    procedure Set_Replacement_Token (Tok : Idl_Token);
+
+   --  checks whether s is an Idl keyword or not
+   --  the result can be Is_Keyword if it is,
+   --  Is_Identifier if it is not and Bad_Case if
+   --  it is one but with bad case
+   --  CORBA V2.3, 3.2.4 :
+   --  keywords must be written exactly as in the above list. Identifiers
+   --  that collide with keywords (...) are illegal.
+   procedure Is_Idl_Keyword (S : in String;
+                             Is_A_Keyword : out Idl_Keyword_State;
+                             Tok : out Idl_Token);
+
+
+   subtype Idl_Keywords is Idl_Token range T_Any .. T_Wstring;
 
    function Idl_Compare (Left, Right : String) return Boolean;
 
