@@ -17,6 +17,8 @@ with Droopi.Objects;
 with Droopi.References.IOR;
 with Droopi.Types;
 
+with Sequences.Unbounded;
+
 package body Droopi.Binding_Data.IIOP is
 
 
@@ -142,6 +144,7 @@ package body Droopi.Binding_Data.IIOP is
      return Profile_Access
    is
       use Droopi.Transport.Sockets;
+      use Component_Seq;
 
       Result : constant Profile_Access
         := new IIOP_Profile_Type;
@@ -152,6 +155,7 @@ package body Droopi.Binding_Data.IIOP is
       TResult.Object_Id := new Object_Id'(Oid);
       TResult.Address   := Address_Of
         (Socket_Access_Point (TAP.all));
+      TResult.Components := Null_Sequence;
       return  Result;
    end Create_Profile;
 
@@ -244,21 +248,14 @@ package body Droopi.Binding_Data.IIOP is
 
             TResult.Object_Id := new Object_Id'(Object_Id (Str));
             if Minor_Version /= 0 then
-               --  Length := Unmarshall (Profile_Buffer);
-               --  if Length /= 0 then
-               --   Release (Profile_Buffer);
-               --   FIXME: Multiple components are not yet handled.
-               --   Droopi.CORBA_P.Exceptions.Raise_Bad_Param;
-               --  end if;
-               null;
+               TResult.Components := Unmarshall_Tagged_Component
+                   (Profile_Buffer);
             end if;
       end;
       Release (Profile_Buffer);
       return Result;
 
    end Unmarshall_IIOP_Profile_Body;
-
-
 
    procedure Marshall_Socket
        (Buffer   : access Buffer_Type;
@@ -295,6 +292,42 @@ package body Droopi.Binding_Data.IIOP is
 
    end Unmarshall_Socket;
 
+
+   procedure Marshall_Tagged_Component
+     (Buffer         : access Buffer_Type;
+      Components     : Component_Seq.Sequence)
+
+   is
+      use Component_Seq;
+   begin
+
+      Marshall (Buffer,  Types.Unsigned_Long (Length (Components)));
+      for I in 1 .. Length (Components) loop
+         Marshall (Buffer, Element_Of (Components, I).Tag);
+         Marshall (Buffer, Element_Of (Components, I).Component_Data.all);
+      end loop;
+
+   end Marshall_Tagged_Component;
+
+
+   function  Unmarshall_Tagged_Component
+     (Buffer   : access Buffer_Type)
+     return Component_Seq.Sequence
+   is
+      use Component_Seq;
+      Comp        : Tagged_Component;
+      Components  : Component_Seq.Sequence := Null_Sequence;
+      Len         : Types.Unsigned_Long;
+   begin
+      Len := Unmarshall (Buffer);
+      for I in 1 .. Len loop
+         Comp.Tag  := Unmarshall (Buffer);
+         Comp.Component_Data := new Stream_Element_Array'(Unmarshall
+                            (Buffer));
+         Append (Components, Comp);
+      end loop;
+      return Components;
+   end Unmarshall_Tagged_Component;
 
    -----------
    -- Image --

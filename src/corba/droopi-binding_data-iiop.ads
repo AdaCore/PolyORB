@@ -2,15 +2,28 @@
 
 --  $Id$
 
+with Ada.Streams; use Ada.Streams;
+
 with Droopi.Buffers; use Droopi.Buffers;
 with Droopi.Sockets;
 with Droopi.Types;
+
+with Sequences.Unbounded;
 
 package Droopi.Binding_Data.IIOP is
 
    pragma Elaborate_Body;
 
    type IIOP_Profile_Type is new Profile_Type with private;
+
+   type Octets_Access is access all Stream_Element_Array;
+
+   type Tagged_Component is record
+      Tag         : Types.Unsigned_Long;
+      Component_Data : Octets_Access;
+   end record;
+
+   package Component_Seq is new Sequences.Unbounded (Tagged_Component);
 
    procedure Initialize;
 
@@ -61,13 +74,24 @@ package Droopi.Binding_Data.IIOP is
      (Buffer   : access Buffer_Type)
     return  Profile_Access;
 
+   procedure Marshall_Tagged_Component
+     (Buffer        : access Buffer_Type;
+      Components    : Component_Seq.Sequence);
+
+   function  Unmarshall_Tagged_Component
+     (Buffer   : access Buffer_Type)
+     return Component_Seq.Sequence;
+
    function Image (Prof : IIOP_Profile_Type) return String;
 
 private
 
+
+
    type IIOP_Profile_Type is new Profile_Type with record
-      Address   : Sockets.Sock_Addr_Type;
-      Object_Id : Objects.Object_Id_Access;
+      Address    : Sockets.Sock_Addr_Type;
+      Object_Id  : Objects.Object_Id_Access;
+      Components : Component_Seq.Sequence;
    end record;
 
    type IIOP_Profile_Factory is new Profile_Factory with record
