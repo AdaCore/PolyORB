@@ -302,11 +302,22 @@ package body PortableInterceptor.RequestInfo.Impl is
      (Self : access Object)
       return CORBA.Boolean
    is
-      pragma Unreferenced (Self);
+      use PolyORB.Requests;
+      use PolyORB.Requests.Unsigned_Long_Flags;
    begin
-      --  In current PolyORB implementation all request are synchronous.
-      raise PolyORB.Not_Implemented;
-      return True;
+      if Is_Set (Sync_None, Self.Request.Req_Flags)
+        or else Is_Set (Sync_With_Transport, Self.Request.Req_Flags)
+      then
+         return False;
+
+      elsif Is_Set (Sync_With_Server, Self.Request.Req_Flags)
+        or else Is_Set (Sync_With_Target, Self.Request.Req_Flags)
+      then
+         return True;
+
+      else
+         raise PolyORB.Not_Implemented;
+      end if;
    end Get_Response_Expected;
 
    ----------------
@@ -345,12 +356,24 @@ package body PortableInterceptor.RequestInfo.Impl is
      (Self : access Object)
       return Messaging.SyncScope
    is
-      pragma Unreferenced (Self);
-
-      Result : Messaging.SyncScope;
+      use PolyORB.Requests;
+      use PolyORB.Requests.Unsigned_Long_Flags;
    begin
-      raise PolyORB.Not_Implemented;
-      return Result;
+      if Is_Set (Sync_None, Self.Request.Req_Flags) then
+         return Messaging.Sync_None;
+
+      elsif Is_Set (Sync_With_Transport, Self.Request.Req_Flags) then
+         return Messaging.Sync_With_Transport;
+
+      elsif Is_Set (Sync_With_Server, Self.Request.Req_Flags) then
+         return Messaging.Sync_With_Server;
+
+      elsif Is_Set (Sync_With_Target, Self.Request.Req_Flags) then
+         return Messaging.Sync_With_Target;
+
+      else
+         raise PolyORB.Not_Implemented;
+      end if;
    end Get_Sync_Scope;
 
    ----------
