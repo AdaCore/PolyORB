@@ -8,6 +8,7 @@ ada0004/tin.idl
 #ada0007/tin.idl
 #ada0008/tin.idl
 #ada0009/tin.idl
+all_types/all_types.idl
 echo/echo.idl
 # Tests from CORBA 2.6 Chapter 3
 idl02030/tin.idl
