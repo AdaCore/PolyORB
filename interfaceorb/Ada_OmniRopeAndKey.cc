@@ -72,6 +72,7 @@ Ada_OmniRopeAndKey::rope()
   }
 
   ADABROKER_CATCH
+
     // Never reach this code. Just a default return for dummy
     // compilers.
     Rope* default_result = NULL;

@@ -23,30 +23,40 @@ proxyObjectFactory_C2Ada::newProxyObject(Rope *r,
 					 IOP::TaggedProfileList *profiles,
 					 CORBA::Boolean release) 
 {
-  if (omniORB::traceLevel > 5)
-    cerr << "proxyObjectFactory_C2Ada::newProxyObject : " << pd_repoID << endl;
-  
-  omniObject_C2Ada *omniobj =  new omniObject_C2Ada 
-    (pd_repoID, r, key, keysize, profiles, release);
-  
-  omni::objectIsReady(omniobj);
-  // Tell ORB this object is ready to use connexions.
-  
-  CORBA::Object_ptr result = new CORBA::Object();
-  result->PR_setobj(omniobj);
+  ADABROKER_TRY
 
-  return result;
+    if (omniORB::traceLevel > 5)
+      cerr << "proxyObjectFactory_C2Ada::newProxyObject : "
+           << pd_repoID
+           << endl;
+  
+    omniObject_C2Ada *omniobj =  new omniObject_C2Ada 
+      (pd_repoID, r, key, keysize, profiles, release);
+  
+    omni::objectIsReady(omniobj);
+    // Tell ORB this object is ready to use connexions.
+    
+    CORBA::Object_ptr result = new CORBA::Object();
+    result->PR_setobj(omniobj);
 
-  ////////////////////////////////
-  // WARNING  WARNING  WARNING  //
-  //       MEMORY LEAK          //
-  ////////////////////////////////
+    return result;
 
-  // As a matter of fact, this function must return a
-  // CORBA::Object_Ptr, whereas the calling function (createObjRef)
-  // calls PR_getobj as soon as it gets the result.  therefore, we
-  // have to create this CORBA::Object_ptr that will never be
-  // referenced again, and we do not know when it can be released.
+    ////////////////////////////////
+    // WARNING  WARNING  WARNING  //
+    //       MEMORY LEAK          //
+    ////////////////////////////////
+
+    // As a matter of fact, this function must return a
+    // CORBA::Object_Ptr, whereas the calling function (createObjRef)
+    // calls PR_getobj as soon as it gets the result.  therefore, we
+    // have to create this CORBA::Object_ptr that will never be
+    // referenced again, and we do not know when it can be released.
+
+  ADABROKER_CATCH
+
+    // Never reach this code. Just a default return for dummy compilers.
+    CORBA::Object_ptr default_result = NULL;
+    return default_result; 
 }
 
 

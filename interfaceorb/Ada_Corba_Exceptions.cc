@@ -62,6 +62,7 @@ _omni_callSystemExceptionHandler(Ada_OmniObject* omniobj,
 					     retries,
 					     ex);
   ADABROKER_CATCH
+
     // Never reach this code. Just a default return for dummy
     // compilers.
     CORBA::Boolean default_result = false;

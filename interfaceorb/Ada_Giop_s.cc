@@ -15,7 +15,8 @@ Ada_Giop_s::Ada_Giop_s () : Ada_netBufferedStream::Ada_netBufferedStream ()
 // Ada_Giop_s::Ada_Giop_s //
 //------------------------//
 
-Ada_Giop_s::Ada_Giop_s (GIOP_S *c_obj) {
+Ada_Giop_s::Ada_Giop_s (GIOP_S *c_obj)
+{
   Init_Ok = true;
   CPP_Object = c_obj; 
 }

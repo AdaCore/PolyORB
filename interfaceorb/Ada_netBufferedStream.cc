@@ -471,6 +471,7 @@ Ada_netBufferedStream::isReUsingExistingConnection()
     }
 
   ADABROKER_CATCH
+
     // Never reach this code. Just a default return for dummy
     // compilers.
     CORBA::Boolean default_result = false;

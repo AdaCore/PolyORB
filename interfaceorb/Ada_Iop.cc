@@ -90,6 +90,7 @@ NP_alignedSize (IOP::TaggedProfileList* t, size_t initialoffset)
 	 "Ada_Iop::NP_alignedSize: null TaggedProfileList");
 
   ADABROKER_CATCH
+
     // Never reach this code. Just a default return for dummy
     // compilers.
     size_t default_result = 0;

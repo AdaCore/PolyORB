@@ -319,7 +319,9 @@ Ada_OmniObject::is_equivalent(Ada_OmniObject * other)
 	 __LINE__,
 	 "Ada_OmniObject::is_equivalent : uninitialized object.");
     }
+
   ADABROKER_CATCH
+
     // Never reach this code. Just a default return for dummy
     // compilers.
     _CORBA_Boolean default_result = false;
@@ -334,6 +336,7 @@ bool
 Ada_OmniObject::non_existent()
 {
   ADABROKER_TRY
+
     if (Init_Ok) {
       CORBA::Object_ptr tmp = new CORBA::Object;
       tmp->PR_setobj(CPP_Object);
@@ -346,7 +349,9 @@ Ada_OmniObject::non_existent()
 	 __LINE__,
 	 "Ada_OmniObject::non_existent : uninitialized object.");
     }
+
   ADABROKER_CATCH
+
     // Never reach this code. Just a default return for dummy compilers.
     bool default_result = false;
     return default_result; 
@@ -361,6 +366,7 @@ Ada_OmniObject::setRopeAndKey(const Ada_OmniRopeAndKey& l,
 			      _CORBA_Boolean keepIOP)
 {
   ADABROKER_TRY
+
     if ( (Init_Ok) && (l.assertInit_Ok())) {
       // If already initialized, call function on CPP_Object.
       CPP_Object->setRopeAndKey(*(l.CPP_Object),keepIOP);
@@ -371,6 +377,7 @@ Ada_OmniObject::setRopeAndKey(const Ada_OmniRopeAndKey& l,
 	 __LINE__,
 	 "Ada_OmniObject::setRopeAndKey : uninitialized object.");
     }
+
   ADABROKER_CATCH 
 }
 
@@ -382,6 +389,7 @@ void
 Ada_OmniObject::resetRopeAndKey ()
 {
   ADABROKER_TRY
+
     if (Init_Ok) {
       // If already initialized, call function on CPP_Object.
       CPP_Object->resetRopeAndKey();
@@ -392,6 +400,7 @@ Ada_OmniObject::resetRopeAndKey ()
 	 __LINE__,
 	 "Ada_OmniObject::resetRopeAndKey : uninitialized object.");
     }
+
   ADABROKER_CATCH 
 }
   
@@ -404,6 +413,7 @@ Ada_OmniObject::getRopeAndKey(Ada_OmniRopeAndKey & l,
 			      _CORBA_Boolean     & success)
 {
   ADABROKER_TRY
+
     if ((Init_Ok) && (l.assertInit_Ok())) {
       // It already initialized, call function on CPP_Object.
       success = CPP_Object->getRopeAndKey(*(l.CPP_Object));
@@ -414,6 +424,7 @@ Ada_OmniObject::getRopeAndKey(Ada_OmniRopeAndKey & l,
 	 __LINE__,
 	 "Ada_OmniObject::getRopeAndKey : uninitialized object.");
     }
+
   ADABROKER_CATCH 
 }
 
@@ -425,6 +436,7 @@ void
 Ada_OmniObject::assertObjectExistent()
 {
   ADABROKER_TRY
+
     if (Init_Ok) {
       // If already Initialized, call function on CPP_Object.
       CPP_Object->assertObjectExistent();
@@ -435,6 +447,7 @@ Ada_OmniObject::assertObjectExistent()
 	 __LINE__,
 	 "Ada_OmniObject::assertObjectExistent : uninitialized object.");
     }
+
   ADABROKER_CATCH 
 }
 
@@ -445,16 +458,24 @@ Ada_OmniObject::assertObjectExistent()
 _CORBA_Boolean
 Ada_OmniObject::is_proxy() 
 {
-  if (Init_Ok) {
-    // If already initialized, call function on CPP_Object.
-    return CPP_Object->is_proxy();
-  } else {
-    // Raise an Ada Exception.
-    throw omniORB::fatalException
-      (__FILE__,
-       __LINE__,
-       "Ada_OmniObject::is_proxy : uninitialized object.");
-  }
+  ADABROKER_TRY
+
+    if (Init_Ok) {
+      // If already initialized, call function on CPP_Object.
+      return CPP_Object->is_proxy();
+    } else {
+      // Raise an Ada Exception.
+      throw omniORB::fatalException
+        (__FILE__,
+         __LINE__,
+         "Ada_OmniObject::is_proxy : uninitialized object.");
+    }
+
+  ADABROKER_CATCH 
+
+    // Never reach this code. Just a default return for dummy compilers.
+    bool default_result = false;
+    return default_result; 
 }
 
 extern _CORBA_Boolean dispatch(GIOP_S         &,
@@ -483,12 +504,14 @@ Ada_OmniObject::setRepositoryID(const char* repoId)
 	 __LINE__,
 	 "Ada_OmniObject::setRepositoryId : uninitialized object.");
     }
+
   ADABROKER_CATCH
 }
 
 //---------------------------------//
 // Ada_OmniObject::getRepositoryID //
 //---------------------------------//
+
 const char*
 Ada_OmniObject::getRepositoryID() 
 {
@@ -527,6 +550,7 @@ Ada_OmniObject::Ada_resolve_initial_references(CORBA::ORB_ptr   theORB,
 					       const char     * identifier)
 {
   ADABROKER_TRY
+
     CORBA::Object_ptr obj = theORB->resolve_initial_references(identifier);
     omniObject *omniobj   = obj->PR_getobj();
     omniObject_C2Ada *adaobj = dynamic_cast<omniObject_C2Ada*>(omniobj);
@@ -538,7 +562,9 @@ Ada_OmniObject::Ada_resolve_initial_references(CORBA::ORB_ptr   theORB,
       // omniObject_C2Ada.
       return new Ada_OmniObject (adaobj, 0);
     }
+
   ADABROKER_CATCH
+
     // Never reach this code. Just a default return for dummy
     // compilers.
     Ada_OmniObject* default_result = NULL;
@@ -553,6 +579,7 @@ Ada_OmniObject*
 Ada_OmniObject::string_to_ada_object(const char *from)
 {
   ADABROKER_TRY
+
     omniObject *objptr = omni::stringToObject(from);
     omniObject_C2Ada *adaobj = dynamic_cast<omniObject_C2Ada*>(objptr);
   
@@ -563,11 +590,13 @@ Ada_OmniObject::string_to_ada_object(const char *from)
       // omniObject_C2Ada.
       return new Ada_OmniObject (adaobj, 0);
     }
-    ADABROKER_CATCH
-      // Never reach this code. Just a default return for dummy
-      // compilers.
-      Ada_OmniObject* default_result = NULL;
-      return default_result; 
+
+  ADABROKER_CATCH
+
+    // Never reach this code. Just a default return for dummy
+    // compilers.
+    Ada_OmniObject* default_result = NULL;
+    return default_result; 
 }
 
 //--------------------------------------//
@@ -619,6 +648,7 @@ IOP::TaggedProfileList*
 Ada_OmniObject::iopProfiles() 
 {
   ADABROKER_TRY
+
     if (Init_Ok) {
       // If already initialized, call function on CPP_Object.
       return CPP_Object->iopProfiles();
@@ -629,7 +659,9 @@ Ada_OmniObject::iopProfiles()
        __LINE__,
        "Ada_OmniObject::getRepositoryId : uninitialized object.");
     }
+
   ADABROKER_CATCH
+
     // Never reach this code. Just a default return for dummy
     // compilers.
     IOP::TaggedProfileList* default_result = NULL;
@@ -643,14 +675,23 @@ Ada_OmniObject::iopProfiles()
 omniObject_C2Ada*
 Ada_OmniObject::getOmniObject() 
 {
-  if (Init_Ok) {
-    return CPP_Object;
-  } else {
-    throw omniORB::fatalException
-      (__FILE__,
-       __LINE__,
-       "Ada_OmniObject::getOmniObject : uninitialized object.");
-  }
+  ADABROKER_TRY
+
+    if (Init_Ok) {
+      return CPP_Object;
+    } else {
+      throw omniORB::fatalException
+        (__FILE__,
+         __LINE__,
+         "Ada_OmniObject::getOmniObject : uninitialized object.");
+    }
+
+  ADABROKER_CATCH
+
+    // Never reach this code. Just a default return for dummy
+    // compilers.
+    omniObject_C2Ada * default_result = NULL;
+    return default_result; 
 }
 
 //-----------------------------------//
@@ -687,6 +728,6 @@ Ada_OmniObject::ada_create_objref(const char             * repoId,
 
     // Never reach this code. Just a default return for dummy
     // compilers.
-    Ada_OmniObject* default_result = NULL;
+    Ada_OmniObject * default_result = NULL;
     return default_result; 
 }
