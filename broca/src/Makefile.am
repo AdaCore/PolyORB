@@ -65,11 +65,11 @@ bin_SCRIPTS = adabroker-config
 lib_LTLIBRARIES = libbroca.la
 libbroca_la_SOURCES = $(ADA_SPECS) $(ADA_BODIES)
 libbroca_la_LIBADD = $(ADA_LIBADD)
-libbroca_la_LDFLAGS = -lgnat -no-undefined -release 0.9.0
+libbroca_la_LDFLAGS = -lgnat -no-undefined -version-info $(LIBVERSIONINFO)
 
 CLEANFILES = *.ali
 
-LINK = libtool $(ADA) -o libbroca.la
+LINK = $(LIBTOOL) $(ADA) -o libbroca.la
 
 ADAFLAGS = -gnatwu -gnatwl -gnatf -gnatgao \
 	-I. -I$(srcdir) -I../adasockets/src -I$(srcdir)/../adasockets/src \
@@ -92,11 +92,10 @@ ADACOMPILER = ../support/adacompiler
 $(ADA_LIBADD): ../adasockets/src/sockets-constants.ads
 
 install-data-local:
-	$(INSTALL) -d $(alidir)
-	$(INSTALL) -m 444 *.ali $(alidir)
-
-uninstall-local:
-	-$(RM) $(alidir)/*.ali
+	$(INSTALL) -d $(DESTDIR)$(alidir)
+	$(INSTALL) -m 444 *.ad[bs] ../adasockets/src/*.ad[bs] $(DESTDIR)$(alidir)
+	$(INSTALL) -m 444 $(srcdir)/*.ad[bs] $(srcdir)/../adasockets/src/*.ad[bs] $(DESTDIR)$(alidir)
+	$(INSTALL) -m 444 *.ali $(DESTDIR)$(alidir)
 
 ../adasockets/src/sockets-constants.ads:
 	cd ../adasockets/src && $(MAKE) sockets-constants.ads

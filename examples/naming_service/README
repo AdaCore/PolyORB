@@ -1,0 +1,7 @@
+Do not forget to unsetenv the two following system variables before launching
+server and clients :
+OMNIORB_CONFIG and OMNINAMES_LOGDIR
+
+Therefore, you must launch omniNames before the server.
+
+Sebastien Ponce

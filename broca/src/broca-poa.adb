@@ -54,7 +54,6 @@ package body Broca.POA is
      (Buffer : access Buffer_Type;
       Value  : in Skeleton) is
    begin
-      --  XXX Is this correct?
       Broca.Sequences.Marshall (Buffer, Value.IOR);
    end Marshall;
 
@@ -72,9 +71,10 @@ package body Broca.POA is
       end if;
    end To_Skeleton;
 
-   --  Can raise bad_param.
-   function To_Internal_Skeleton (Ref : CORBA.Object.Ref'Class)
-                                  return Internal_Skeleton_Ptr
+   --  Can raise Bad_Param.
+   function To_Internal_Skeleton
+     (Ref : CORBA.Object.Ref'Class)
+     return Internal_Skeleton_Ptr
    is
       use Broca.Refs;
       Res : Broca.Refs.Ref_Ptr;

@@ -27,6 +27,8 @@
 ------------------------------------------------------------------------------
 
 with Ada.Text_IO;
+with Echo.Skel;
+pragma Elaborate (Echo.Skel);
 
 package body Echo.Impl is
 

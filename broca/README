@@ -6,7 +6,7 @@
 --                                                                          --
 --                            $Revision: 1.3 $
 --                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--       Copyright (C) 1999-2000 ENST Paris University, France.             --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -27,36 +27,17 @@ This is the documentation for AdaBroker version @adabroker_version@.
 Build requirements
 ------------------
 
-C++ compiler: any compiler supported by OmniORB.
 Ada 95 compiler: GNAT 3.12p.
-
-AdaBroker has only been tested with an EGCS G++ and a GCC 2.8.1 GNAT.
-The C++ part should work correctly with any C++ compiler supported
-by omniORB.  However, we have had failure reports with GCC 2.8.1.
-This will be fixed as soon as GNAT is officially ported on EGCS.
 
 Build instructions
 ------------------
 
--  Edit adabroker/config/config.mk to select your target environment.
-   Take care to select the proper C++ compiler here. These settings
-   have no influence on the build of the Ada components of AdaBroker.
-
--  Make sure that the gnatmake binary from GNAT 3.12p is in your PATH.
-
--  In the top-level source directory, run "make". This will build:
-
-   adabroker/adabroker: the IDL-to-Ada compiler.
-   adasockets/lib/adasockets/*.{ali,o}: the Ada sockets
-      library.
-   src/{*.ali,libbroca.a}: Broca, the AdaBroker ORB
-   examples/*: miscellaneous examples.
-
+See file INSTALL.
 
 Usage
 -----
 
-  adabroker <myinterface>.idl
+  idlac [-options] <myinterface>.idl
  
 This creates several files :
 

@@ -72,7 +72,7 @@ package body Broca.IOP is
                        & To_Standard_String (Type_Id)
                        & " (" & N_Profiles'Img & " profiles)."));
 
-      Profiles := new Profile_Ptr_Array (1 .. N_Profiles);
+      Profiles := new Profile_Ptr_Array'(1 .. N_Profiles => null);
 
       for N in Profiles'Range loop
          declare

@@ -37,16 +37,19 @@ with Ada.Unchecked_Deallocation;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with Ada.Task_Identification;
+
 with CORBA; use CORBA;
 with PortableServer;
-with Broca.Opaque;
+
 with Broca.Buffers;     use Broca.Buffers;
+with Broca.CDR;         use Broca.CDR;
+with Broca.Opaque;
 with Broca.Exceptions;
-with Broca.CDR;
 with Broca.GIOP;
-with Broca.ORB;
 with Broca.Stream;
 with Broca.Flags;
+
+with Broca.ORB;
 pragma Elaborate_All (Broca.ORB);
 
 with Broca.Debug;
@@ -200,7 +203,6 @@ package body Broca.Server is
       POA : Broca.POA.POA_Object_Ptr;
       Num : Natural := 0)
    is
-      use Broca.CDR;
       use Broca.POA;
    begin
       if POA.Parent = null then
@@ -216,7 +218,6 @@ package body Broca.Server is
      (Buffer : access Buffer_Type;
       POA : Broca.POA.POA_Object_Ptr)
    is
-      use Broca.CDR;
       use PortableServer;
    begin
       pragma Debug (O ("Marshall : enter"));
@@ -239,7 +240,6 @@ package body Broca.Server is
       POA       : out Broca.POA.POA_Object_Ptr;
       POA_State : out Broca.POA.Processing_State_Type)
    is
-      use Broca.CDR;
       use Broca.POA;
 
       Current_POA : Broca.POA.POA_Object_Ptr;
@@ -757,7 +757,6 @@ package body Broca.Server is
    procedure Handle_Request (Stream : Broca.Stream.Stream_Ptr;
                              Buffer : access Buffer_Type) is
       use Broca.POA;
-      use Broca.CDR;
       use Broca.Stream;
       Context    : CORBA.Unsigned_Long;
       Request_Id : CORBA.Unsigned_Long;
@@ -773,7 +772,7 @@ package body Broca.Server is
    begin
       pragma Debug (O ("Handle_Request : enter"));
 
-      --  XXX this should be encapsulated.
+      --  FIXME: This should be encapsulated.
       --  Prepare the reply body buffer to hold
       --  the reply message data.
       Set_Initial_Position
@@ -838,7 +837,7 @@ package body Broca.Server is
                         Request_Id, Response_Expected, Buffer,
                         Reply_Buffer'Access);
 
-                     --  XXX This behaviour (prepend GIOP header)
+                     --  FIXME: This behaviour (prepend GIOP header)
                      --  should be encapsulated.
                      Broca.GIOP.Marshall_GIOP_Header
                        (Header_Buffer'Access, Broca.GIOP.Reply,
@@ -853,7 +852,7 @@ package body Broca.Server is
                         Broca.GIOP.Marshall
                           (Reply_Buffer'Access, Request_Id, E);
 
-                        --  XXX This behaviour (prepend GIOP header)
+                        --  FIXME: This behaviour (prepend GIOP header)
                         --  should be encapsulated.
                         Broca.GIOP.Marshall_GIOP_Header
                           (Header_Buffer'Access, Broca.GIOP.Reply,
@@ -870,7 +869,7 @@ package body Broca.Server is
                           (Reply_Buffer'Access,
                            Request_Id, FRM.Forward_Reference);
 
-                        --  XXX This behaviour (prepend GIOP header)
+                        --  FIXME: This behaviour (prepend GIOP header)
                         --  should be encapsulated.
                         Broca.GIOP.Marshall_GIOP_Header
                           (Header_Buffer'Access, Broca.GIOP.Reply,
@@ -898,7 +897,7 @@ package body Broca.Server is
                   when E : CORBA.Transient =>
                      Broca.GIOP.Marshall (Reply_Buffer'Access, Request_Id, E);
 
-                     --  XXX This behaviour (prepend GIOP header)
+                     --  FIXME: This behaviour (prepend GIOP header)
                      --  should be encapsulated.
                      Broca.GIOP.Marshall_GIOP_Header
                        (Header_Buffer'Access, Broca.GIOP.Reply,
@@ -932,7 +931,7 @@ package body Broca.Server is
                      Broca.GIOP.Marshall
                        (Reply_Buffer'Access, Request_Id, E);
 
-                     --  XXX This behaviour (prepend GIOP header)
+                     --  FIXME: This behaviour (prepend GIOP header)
                      --  should be encapsulated.
                      Broca.GIOP.Marshall_GIOP_Header
                        (Header_Buffer'Access, Broca.GIOP.Reply,
@@ -958,15 +957,13 @@ package body Broca.Server is
      (Stream : in Broca.Stream.Stream_Ptr;
       Buffer : access Buffer_Type)
    is
-      use Broca.POA;
-      use Broca.CDR;
       use Broca.GIOP;
       use Broca.Stream;
+
       Message_Type : MsgType;
       Message_Size : CORBA.Unsigned_Long;
       Message_Endianness : Endianness_Type;
       Request_Id : CORBA.Unsigned_Long;
-      POA : Broca.POA.POA_Object_Ptr;
       Header_Correct : Boolean;
 
    begin
@@ -1026,8 +1023,7 @@ package body Broca.Server is
                Request_Id := Unmarshall
                  (Message_Body_Buffer'Access);
 
-               --  Object key
-               POA.Link_Lock.Unlock_R;
+               --  ObjectKey ??
 
                --  FIXME
                --  There may be a problem here, ask Tristan.
@@ -1069,9 +1065,6 @@ package body Broca.Server is
       Key : Broca.Buffers.Encapsulation)
      return Encapsulation
    is
-
-      use Broca.CDR;
-
       Object_Key_Buffer : aliased Buffer_Type;
       Server            : Server_Ptr;
    begin

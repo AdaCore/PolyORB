@@ -1,13 +1,29 @@
+with Utils; use Utils;
+
 with Idl_Fe.Types; use Idl_Fe.Types;
 with Idl_Fe.Tree; use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 
+with Ada_Be.Debug;
+
 package body Ada_Be.Identifiers is
+
+   --------------
+   --   Debug  --
+   --------------
+
+   Flag : constant Natural
+     := Ada_Be.Debug.Is_Active ("ada_be.identifiers");
+   procedure O is new Ada_Be.Debug.Output (Flag);
 
    function Ada_Full_Name
      (Node : Node_Id)
      return String is
    begin
+      pragma Debug
+        (O ("Ada_Full_Name: enter (Node = " & Img (Node)
+            & ", Kind = " & Img (Kind (Node)) & ")"));
+
       case Kind (Node) is
          when K_Scoped_Name =>
             return Ada_Full_Name (Value (Node));
@@ -16,33 +32,21 @@ package body Ada_Be.Identifiers is
             return Ada_Name (Node);
 
          when K_Repository =>
-            --  XXX Should be an error.
-            return "";
+            raise Program_Error;
 
          when others =>
             declare
                P_Node : constant Node_Id
                  := Parent_Scope (Node);
             begin
-               pragma Assert (P_Node /= No_Node);
+               pragma Assert (Kind (P_Node) /= K_Repository);
 
                if Kind (P_Node) = K_Ben_Idl_File
                  and then Is_Gen_Scope (Node) then
                   return Ada_Name (Node);
                else
-                  --  return Ada_Full_Name (Parent_Scope (Node))
-                  --    & "." & Ada_Name (Node);
-                  --  XXX TEMPORARY WORKAROUND
-                  declare
-                     FN : constant String
-                       := Ada_Full_Name (Parent_Scope (Node));
-                  begin
-                     if FN'Length = 0 then
-                        return Ada_Name (Node);
-                     else
-                        return FN & "." & Ada_Name (Node);
-                     end if;
-                  end;
+                  return Ada_Full_Name (P_Node)
+                    & "." & Ada_Name (Node);
                end if;
             end;
       end case;
