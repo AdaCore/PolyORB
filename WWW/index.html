@@ -1,4 +1,9 @@
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+
+<!-- $Id: //depot/adabroker/main/WWW/index.html#26 $ --
+  -- $Date:$ --
+  -- $Author:$ -->
+
 <?
 function mailfrom($fromaddress, $toaddress, $subject, $body, $headers) {
   $fp = popen('/usr/sbin/sendmail -f'.$fromaddress.' '.$toaddress,"w");
@@ -47,11 +52,19 @@ function mailfrom($fromaddress, $toaddress, $subject, $body, $headers) {
 
     <center><h1>Download AdaBroker</h1></center>
 
+    <P>
     The latest pre-release of AdaBroker 1.0 is available <a
     href="distrib/adabroker-1.0pre3.tar.gz">here</a>. See file
     <tt><a href="NEWS">NEWS</a></tt> within the archive for information about
     what changed since the previous release.
 
+    <P>
+    You can also download <A HREF="distrib/gatm.tar.gz">GATM
+    (GNOME Ada Task Monitor)</A>, an example GNOME Applet developed
+    with AdaBroker and GTKAda by a team of ENST students: Karim Chine,
+    Joseph Fruhauf, Frederic Genin, and Julien Viard. This applet lets a
+    user monitor the state of an Ada program's tasks.
+ 
     <center><h1>Features Available</h1></center>
 
     Most of the CORBA features are implemented except dynamic
@@ -122,6 +135,5 @@ mailing-list archives</a>.
 This page is maintained by
 <address><a href="adabroker@adabroker.eu.org">The AdaBroker team</a></address>.
 
-<!-- $Id: //depot/adabroker/main/WWW/index.html#25 $ -->
-  </body>
+</body>
 </html>
