@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#30 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#31 $
 
 @include version.texi
 
@@ -1761,6 +1761,9 @@ Here is a summary of available parameters for each instance of GIOP.
 # Preference level for IIOP
 #polyorb.binding_data.iiop.preference=0
 
+# IIOP's default address
+#polyorb.protocols.iiop.default_addr=127.0.0.1
+
 # IIOP's default port
 #polyorb.protocols.iiop.default_port=2809
 
@@ -1935,6 +1938,9 @@ Here is a summary of available parameters for each instance of SOAP.
 # Preference level for SOAP
 #polyorb.binding_data.soap.preference=0
 
+# SOAP's default address
+#polyorb.protocols.soap.default_addr=127.0.0.1
+
 # SOAP's default port
 #polyorb.protocols.soap.default_port=8080
 @end smallexample
@@ -1958,7 +1964,7 @@ Here is a summary of available parameters for each instance of SOAP.
 
 @noindent
 @command{po_catref} is a utility for viewing components of a
-stringified reference (CORBA IOR, corbaloc or URI).  Reference's
+stringified reference (CORBA IOR, corbaloc or URI). Reference's
 component include reference to access an object through multiple
 protocols (e.g. CORBA IIOP, SOAP) and configuration parameters
 associated to a reference (e.g. GIOP Service Contexts).
