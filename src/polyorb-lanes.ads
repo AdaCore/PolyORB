@@ -63,6 +63,8 @@ package PolyORB.Lanes is
    type Lane_Root is abstract tagged limited private;
    type Lane_Root_Access is access all Lane_Root'Class;
 
+   procedure Queue_Job (L : access Lane_Root; J : Job_Access) is abstract;
+
    procedure Destroy (L : access Lane_Root) is abstract;
 
    ----------
@@ -98,9 +100,7 @@ package PolyORB.Lanes is
       Max_Buffer_Size           : PolyORB.Types.Unsigned_Long)
      return Lane_Access;
 
-   procedure Queue_Job
-     (L : access Lane;
-      J :        Job_Access);
+   procedure Queue_Job (L : access Lane; J : Job_Access);
 
    procedure Destroy (L : access Lane);
 
@@ -130,10 +130,7 @@ package PolyORB.Lanes is
       Index :        Positive);
    --  Add lane L at position Index in Set
 
-   procedure Queue_Job
-     (L : access Lanes_Set;
-      P :        External_Priority;
-      J :        Job_Access);
+   procedure Queue_Job (L : access Lanes_Set; J : Job_Access);
 
    procedure Destroy (L : access Lanes_Set);
 

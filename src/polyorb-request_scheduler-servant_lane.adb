@@ -92,7 +92,7 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
             if To_Lane /= null then
                --  Queue request to the lane attached to servant
 
-               Queue_Job (Lane_Access (To_Lane), Job);
+               Queue_Job (To_Lane, Job);
 
                return True;
             end if;

@@ -35,6 +35,7 @@
 
 with PolyORB.Log;
 with PolyORB.ORB;
+with PolyORB.Request_QoS;
 
 package body PolyORB.Lanes is
 
@@ -244,7 +245,7 @@ package body PolyORB.Lanes is
 
       Enter (L.Lock);
 
-      --  First, try to directly queue job on one taks
+      --  First, try to directly queue job on one task
 
       declare
          use type Idle_Task_Lists.List;
@@ -289,18 +290,40 @@ package body PolyORB.Lanes is
 
    procedure Queue_Job
      (L : access Lanes_Set;
-      P :        External_Priority;
       J :        Job_Access)
    is
+      use PolyORB.Request_QoS;
+      use PolyORB.Request_QoS.QoS_Parameter_Lists;
+
+      RJ : PolyORB.ORB.Request_Job renames PolyORB.ORB.Request_Job (J.all);
+
    begin
       --  XXX should find a way to do this in O (1)
 
-      for K in L.Set'Range loop
-         if L.Set (K).all.Ext_Priority = P then
-            Queue_Job (L.Set (K).all.Job_Queue, J);
-            return;
+      declare
+         Parameter : constant QoS_Parameter
+           := Extract_Parameter (Static_Priority, RJ.Request);
+
+      begin
+         if Parameter.Kind = Static_Priority then
+            pragma Debug (O ("About to queue a job at priority"
+                             & Parameter.OP'Img));
+
+            for K in L.Set'Range loop
+               pragma Debug (O ("Testing lane, priority"
+                                & L.Set (K).all.ORB_Priority'Img));
+
+               if L.Set (K).all.Ext_Priority = Parameter.EP then
+                  Queue_Job (L.Set (K), J);
+                  return;
+               end if;
+            end loop;
+         else
+            pragma Debug
+              (O ("Cannot queue job, no lane matches request priority"));
+            raise Program_Error;
          end if;
-      end loop;
+      end;
    end Queue_Job;
 
    ----------
