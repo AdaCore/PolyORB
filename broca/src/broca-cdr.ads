@@ -303,6 +303,10 @@ package Broca.CDR is
      (Buffer : access Buffer_Type;
       Data : in out CORBA.Object.Ref'Class);
 
+   function Unmarshall
+     (Buffer : access Buffer_Type)
+      return CORBA.Object.Ref'Class;
+
    generic
       type F is delta <> digits <>;
    package Fixed_Point is

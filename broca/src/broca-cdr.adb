@@ -1731,7 +1731,21 @@ package body Broca.CDR is
       CORBA.Object.Set (Data, Obj);
    end Unmarshall;
 
+   -----------------
+   --  Unmarshall --
+   -----------------
+   function Unmarshall (Buffer : access Buffer_Type)
+                        return CORBA.Object.Ref'Class is
+      New_Ref : CORBA.Object.Ref;
+   begin
+      Unmarshall (Buffer, New_Ref);
+      return New_Ref;
+   end Unmarshall;
 
+
+   ------------------
+   --  Fixed_Point --
+   ------------------
    package body Fixed_Point is
 
       Flag : constant Natural :=
