@@ -147,7 +147,7 @@ private
       --  Reference to the holding servant.
 
       Held_Requests : Requests_Queue;
-      --  List of holded requests.
+      --  List of requests held by the POAManager.
 
       Queue_Lock      : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
       --  Lock on the queue of pending requests.
