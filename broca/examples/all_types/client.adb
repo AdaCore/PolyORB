@@ -222,10 +222,10 @@ begin
    declare
       X : all_types.Ref;
    begin
-      --  X := all_types.Convert_Forward.From_Forward
-      --   (echoRef (Myall_types, all_types.Convert_Forward.To_Forward
-      --    (Myall_types)));
       X := echoRef (Myall_types, Myall_types);
+      for I in 1 .. 20 loop
+         X := echoRef (X, X);
+      end loop;
       Output ("test self reference", echoLong (X, 31337) = 31337);
    end;
 
