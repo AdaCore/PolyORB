@@ -1100,7 +1100,7 @@ package body Droopi.Representations.CDR is
      (Buffer : access Buffer_Type;
       Data   : in Droopi.Any.NamedValue) is
    begin
-      pragma Debug (O ("Marshall (Namedalue) : enter"));
+      pragma Debug (O ("Marshall (NamedValue) : enter"));
       Marshall_From_Any (Buffer, Data.Argument);
       pragma Debug (O ("Marshall (NamedValue) : end"));
    end Marshall;

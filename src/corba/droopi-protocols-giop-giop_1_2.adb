@@ -229,7 +229,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
      Reply_Type    :   in  Reply_Status_Type;
      Target_Ref    :   in  Droopi.References.IOR.IOR_Type)
    is
-      use  Representations.CDR;
+      use Representations.CDR;
       use References.IOR;
    begin
 
@@ -324,10 +324,9 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
 
    end Marshall_Locate_Request;
 
-
-   ---------------------------------------
-   ----- Fragment Message Marshall
-   ----------------------------------------
+   -------------------------------
+   -- Fragment Message Marshall --
+   -------------------------------
 
 
    procedure Marshall_Fragment
@@ -343,18 +342,19 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
    end Marshall_Fragment;
 
 
-   -------------------------------------
-   --- Request Unmarshall
-   -------------------------------------
+   ------------------------
+   -- Request Unmarshall --
+   ------------------------
 
    procedure Unmarshall_Request_Message
      (Buffer            : access Buffer_Type;
-      Request_Id        : out Types.Unsigned_Long;
-      Response_Expected : out Boolean;
-      Target_Ref        : out Target_Address_Access;
-      Operation         : out Types.String)
+      Request_Id        :    out Types.Unsigned_Long;
+      Response_Expected :    out Boolean;
+      Target_Ref        :    out Target_Address_Access;
+      Operation         :    out Types.String)
    is
       use  Representations.CDR;
+
       Service_Context      : array (0 .. 9) of Types.Unsigned_Long;
       Reserved             : Types.Octet;
       Received_Flags       : Types.Octet;
@@ -384,39 +384,33 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
 
       case  Temp_Octet  is
          when 0  =>
+            --  XXX Where do these hard-coded values come from??
+            --  what is Temp_Octet?????
             declare
-                  Obj : Stream_Element_Array :=  Unmarshall (Buffer);
-                  Target : aliased Target_Address :=  Target_Address'(
-                          Address_Type => Key_Addr,
-                          Object_Key => new Object_Id'(Object_Id (Obj)));
+               Obj : Stream_Element_Array :=  Unmarshall (Buffer);
             begin
-                  Target_Ref := Target'Unchecked_Access;
+               Target_Ref := new Target_Address'
+                 (Address_Type => Key_Addr,
+                  Object_Key => new Object_Id'(Object_Id (Obj)));
             end;
          when 1  =>
-            declare
-                  Target : aliased Target_Address :=
-                    Target_Address'(Address_Type => Profile_Addr,
-                    Profile  =>  Binding_Data.IIOP.
-                                 Unmarshall_IIOP_Profile_Body (Buffer));
-            begin
-                  Target_Ref := Target'Unchecked_Access;
-            end;
+            Target_Ref := new Target_Address'
+              (Address_Type => Profile_Addr,
+               Profile  =>  Binding_Data.IIOP.
+               Unmarshall_IIOP_Profile_Body (Buffer));
 
          when 2  =>
             declare
-                  Temp_Ref :  IOR_Addressing_Info_Access :=
-                                new IOR_Addressing_Info;
+               Temp_Ref : constant IOR_Addressing_Info_Access
+                 := new IOR_Addressing_Info;
 
             begin
-                  Temp_Ref.Selected_Profile_Index := Unmarshall (Buffer);
-                  Temp_Ref.IOR := Unmarshall (Buffer);
-                  declare
-                        Target : aliased Target_Address := Target_Address'
-                              (Address_Type => Reference_Addr,
-                              Ref  => Temp_Ref);
-                  begin
-                        Target_Ref := Target'Unchecked_Access;
-                  end;
+               Temp_Ref.Selected_Profile_Index := Unmarshall (Buffer);
+               Temp_Ref.IOR := Unmarshall (Buffer);
+
+               Target_Ref := new Target_Address'
+                 (Address_Type => Reference_Addr,
+                  Ref  => Temp_Ref);
             end;
 
          when others =>
@@ -435,20 +429,17 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       for I in 0 .. 9 loop
          if Service_Context (I) /= ServiceId'Pos
             (Service_Context_List_1_2 (I)) then
-            pragma Debug (O
-               (" Request_Message_Unmarshall: incorrect context"));
+            pragma Debug
+              (O ("Request_Message_Unmarshall: incorrect context"));
             raise GIOP_Error;
          end if;
       end loop;
 
-
    end Unmarshall_Request_Message;
 
-
-   ---------------------------------------
-   --- Reply Message Unmarshall ----------
-   --------------------------------------
-
+   ------------------------------
+   -- Reply Message Unmarshall --
+   ------------------------------
 
    procedure Unmarshall_Reply_Message
       (Buffer       : access Buffer_Type;
@@ -462,7 +453,6 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
 
       --  Request id
       Request_Id := Unmarshall (Buffer);
-
 
       --  Reply Status
       Reply_Status := Unmarshall (Buffer);
@@ -482,7 +472,6 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       end loop;
 
    end Unmarshall_Reply_Message;
-
 
    procedure Unmarshall_Locate_Request
      (Buffer        : access Buffer_Type;
@@ -530,7 +519,5 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       end case;
 
    end Unmarshall_Locate_Request;
-
-
 
 end Droopi.Protocols.GIOP.GIOP_1_2;

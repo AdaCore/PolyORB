@@ -1090,7 +1090,9 @@ package body Droopi.Protocols.GIOP is
 
       use References;
 
+      use Droopi.Any;
       use Droopi.Objects;
+
       use Req_Seq;
 
       Request_Id        :  Types.Unsigned_Long;
@@ -1152,28 +1154,33 @@ package body Droopi.Protocols.GIOP is
       --  Unmarshalling of arguments
       List :=  List_Of (Args);
       for I in 1 .. Get_Count (Args) loop
-         Temp_Arg :=  NV_Sequence.Element_Of (List.all, Positive (I));
-         Temp_Arg := Unmarshall (Ses.Buffer_In);
-         NV_Sequence.Replace_Element (List.all, Positive (I), Temp_Arg);
+         Temp_Arg :=  NV_Sequence.Element_Of
+           (List.all, Positive (I));
+         if False
+           or else Temp_Arg.Arg_Modes = ARG_IN
+           or else Temp_Arg.Arg_Modes = ARG_INOUT
+         then
+            Unmarshall_To_Any (Ses.Buffer_In, Temp_Arg.Argument);
+         end if;
+         NV_Sequence.Replace_Element
+           (List.all, Positive (I), Temp_Arg);
+         --  XXX This is very inefficient because of multiple
+         --    copies of an Any. The Unmarshall_To_Any should
+         --    be done in-place on the actual Element_Array
+         --    deep within List...
       end loop;
 
-      Result := (Name     => To_Droopi_String ("Result"),
-                 Argument => Obj_Adapters.Get_Empty_Result
-                 (Object_Adapter (ORB),
-                  Object_Key.all,
-                  To_Standard_String (Operation)),
-                 Arg_Modes => 0);
+      Result :=
+        (Name     => To_Droopi_String ("Result"),
+         Argument => Obj_Adapters.Get_Empty_Result
+         (Object_Adapter (ORB),
+          Object_Key.all,
+          To_Standard_String (Operation)),
+         Arg_Modes => 0);
 
-      --  XXX Target_Ref is statically null (see above).
-      --  Since we have already raised Program_Error if
-      --  Ses.Minor_Version = 2, we known that it won't
-      --  actually be dereferenced, and we can ignore the
-      --  warning for now.
-      pragma Warnings (Off);
       if Ses.Minor_Version = 2
         and then Target_Ref.Address_Type /= Key_Addr
       then
-         pragma Warnings (On);
          if Target_Ref.Address_Type = Profile_Addr then
             Create_Reference ((1 => Target_Ref.Profile), Target);
          else
