@@ -43,6 +43,7 @@ pragma Elaborate_All (System.Garlic.Heart);
 with System.Garlic.Options;     use System.Garlic.Options;
 with System.Garlic.Partitions;  use System.Garlic.Partitions;
 with System.Garlic.Streams;     use System.Garlic.Streams;
+with System.Garlic.Table;
 with System.Garlic.Types;       use System.Garlic.Types;
 with System.Garlic.Utils;       use System.Garlic.Utils;
 
@@ -56,11 +57,34 @@ package body System.Garlic.Units is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   procedure Answer_Pending_Requests (List : in Request_List);
-   --  A boot server or mirror can receive a request on an unit for which
-   --  it has no info on it yet. So, we keep track of this request in order
-   --  to answer it later on. When info becomes available, answer to
-   --  pending requests.
+   type Request_Info is record
+      PID  : Partition_ID;
+      Next : Request_Id;
+   end record;
+   Null_Request_Info : constant Request_Info := (Null_PID, Null_Request_Id);
+
+   package Requests is
+     new System.Garlic.Table.Complex
+     (Request_Id,
+      Null_Request_Id,
+      First_Request_Id,
+      Request_Id_Increment,
+      Request_Id_Increment,
+      Request_Info,
+      Null_Request_Info);
+
+   procedure Pop
+     (List : in out Request_Id;
+      PID  : out Partition_ID);
+   procedure Push
+     (List : in out Request_Id;
+      PID  : in Partition_ID);
+
+   procedure Answer_Pending_Requests (List : in Request_Id);
+   --  A boot server or mirror can receive a request on an unit for
+   --  which it has no info on it yet. So, we keep track of this
+   --  request in order to answer it later on. When info becomes
+   --  available, answer to pending requests.
 
    procedure Dump_Unit_Info
      (Unit : in Unit_Id;
@@ -95,16 +119,17 @@ package body System.Garlic.Units is
       Receiver  : in Unsigned_64;
       Version   : in Version_Type;
       Status    : in Unit_Status;
-      Pending   : in out Request_List);
+      Pending   : in out Request_Id);
    --  Fill new unit slot and link unit into the partition unit list.
-   --  Return a pending requests list. Basically, this procedure *merges*
-   --  the new info with the old info already present. For instance, an
-   --  update from Invalidated to Defined will be ignored because the
-   --  sender does know that a particular partition has been invalidated.
+   --  Return a pending requests list. Basically, this procedure
+   --  *merges* the new info with the old info already present. For
+   --  instance, an update from Invalidated to Defined will be ignored
+   --  because the sender does know that a particular partition has
+   --  been invalidated.
 
    procedure Read_Units
      (Stream : access Params_Stream_Type;
-      List   : out Request_List);
+      List   : out Request_Id);
    procedure Write_Units
      (Stream : access Params_Stream_Type);
    --  Marshal and unmarshal the units table. We marshal this table
@@ -140,39 +165,40 @@ package body System.Garlic.Units is
    -- Answer_Pending_Requests --
    -----------------------------
 
-   procedure Answer_Pending_Requests (List : in Request_List) is
+   procedure Answer_Pending_Requests (List : in Request_Id) is
+      Root : Request_Id := List;
+      PID  : Partition_ID;
    begin
-      for PID in List'Range loop
-         if List (PID) then
+      while Root /= Null_Request_Id loop
+         Pop (Root, PID);
 
-            if Is_Dead (PID) then
+         if Is_Dead (PID) then
 
-               --  The partition is dead in the meantime. Do nothing as
-               --  it is already marked as dead.
+            --  The partition is dead in the meantime. Do nothing as
+            --  it is already marked as dead.
 
-               pragma Debug (D ("Skipping pending request for dead " &
-                                "partition" & Partition_ID'Image (PID)));
-               null;
+            pragma Debug (D ("Skipping pending request for dead " &
+                             "partition" & Partition_ID'Image (PID)));
+            null;
 
-            else
-               --  Send the whole table even if the request was on a specific
-               --  unit.
+         elsif Self_PID /= PID then
+            --  Send the whole table even if the request was on a
+            --  specific unit.
 
-               declare
-                  Reply : aliased Params_Stream_Type (0);
-                  Error : Error_Type;
-               begin
-                  pragma Debug (D ("Handling pending request for partition " &
-                                   Partition_ID'Image (PID)));
-                  Request_Type'Output (Reply'Access, Push_Units);
-                  Write_Units         (Reply'Access);
-                  Send (PID, Unit_Name_Service, Reply'Access, Error);
-                  Deallocate (Reply);
-                  Catch (Error);
-                  pragma Debug (D ("Request for partition" &
-                                   Partition_ID'Image (PID) & " handled"));
-               end;
-            end if;
+            declare
+               Reply : aliased Params_Stream_Type (0);
+               Error : Error_Type;
+            begin
+               pragma Debug (D ("Handling pending request for partition " &
+                                Partition_ID'Image (PID)));
+               Request_Type'Output (Reply'Access, Push_Units);
+               Write_Units         (Reply'Access);
+               Send (PID, Unit_Name_Service, Reply'Access, Error);
+               Deallocate (Reply);
+               Catch (Error);
+               pragma Debug (D ("Request for partition" &
+                                Partition_ID'Image (PID) & " handled"));
+            end;
          end if;
       end loop;
    exception
@@ -190,21 +216,17 @@ package body System.Garlic.Units is
      (Unit : in Unit_Id;
       Info : in Unit_Info)
    is
-      PID : Partition_ID := Null_PID;
-
-      function Partition_List return String;
-      function Partition_List return String is
+      function Request_List_Image (L : Request_Id) return String;
+      function Request_List_Image (L : Request_Id) return String
+      is
+         Info : Request_Info;
       begin
-         while PID < Info.Requests'Last loop
-            PID := PID + 1;
-            exit when Info.Requests (PID);
-         end loop;
-         if not Info.Requests (PID) then
-            return "";
-         else
-            return PID'Img & Partition_List;
+         if L /= Null_Request_Id then
+            Info := Requests.Get_Component (L);
+            return Info.PID'Img & Request_List_Image (Info.Next);
          end if;
-      end Partition_List;
+         return "";
+      end Request_List_Image;
 
    begin
       D ("* Unit " & Units.Get_Name (Unit));
@@ -215,8 +237,8 @@ package body System.Garlic.Units is
       else
          D ("   Version       <no version>");
       end if;
-      if Info.Pending then
-         D ("   Requests     " & Partition_List);
+      if Info.Requests /= Null_Request_Id then
+         D ("   Requests     " & Request_List_Image (Info.Requests));
       end if;
       D ("   Status        " & Info.Status'Img);
       D ("   Next Unit    " & Info.Next_Unit'Img);
@@ -247,7 +269,7 @@ package body System.Garlic.Units is
       D ("** Partition Unknown");
       for U in First_Unit_Id .. Units.Last loop
          Info := Units.Get_Component (U);
-         if Info.Pending then
+         if Info.Requests /= Null_Request_Id then
             Dump_Unit_Info (U, Info);
          end if;
       end loop;
@@ -320,7 +342,7 @@ package body System.Garlic.Units is
    is
       To_All  : Boolean;
       Token   : aliased Params_Stream_Type (0);
-      Pending : Request_List := Null_List;
+      Pending : Request_Id := Null_Request_Id;
       Request : Request_Type;
       Unit    : Unit_Id;
       Info    : Unit_Info;
@@ -359,8 +381,7 @@ package body System.Garlic.Units is
                   --  Queue this request in order to answer it when info is
                   --  available.
 
-                  Info.Pending := True;
-                  Info.Requests (Partition) := True;
+                  Push (Info.Requests, Partition);
                   Units.Set_Component (Unit, Info);
 
                when Queried =>
@@ -378,15 +399,23 @@ package body System.Garlic.Units is
             Read_Units (Query, Pending);
 
             declare
-               Second_Pass : Boolean;
+               List        : Request_Id := Pending;
+               Info        : Request_Info;
+               Second_Pass : Boolean := False;
             begin
 
                --  Having a pending request for the current partition means
                --  that it has to send a second copy of the unit info table.
                --  Some units were only Declared but are now Defined.
 
-               Second_Pass := Pending (Self_PID);
-               Pending (Self_PID) := False;
+               while List /= Null_Request_Id loop
+                  Info := Requests.Get_Component (List);
+                  if Info.PID = Self_PID then
+                     Second_Pass := True;
+                     exit;
+                  end if;
+                  List := Info.Next;
+               end loop;
                Answer_Pending_Requests (Pending);
 
                --  This is a group request. If it has started on this
@@ -419,7 +448,6 @@ package body System.Garlic.Units is
                if N_Boot_Mirrors > 1 then
                   To_All := True;
                else
-                  Pending (Self_PID) := False;
                   Answer_Pending_Requests (Pending);
                end if;
             end if;
@@ -544,13 +572,52 @@ package body System.Garlic.Units is
       end loop;
    end Invalidate_Unit_List;
 
+   ---------
+   -- Pop --
+   ---------
+
+   procedure Pop
+     (List : in out Request_Id;
+      PID  : out Partition_ID)
+   is
+      Info : Request_Info;
+   begin
+      Info := Requests.Get_Component (List);
+      Requests.Set_Component (List, Null_Request_Info);
+      PID  := Info.PID;
+      List := Info.Next;
+   end Pop;
+
+   ----------
+   -- Push --
+   ----------
+
+   procedure Push
+     (List : in out Request_Id;
+      PID  : in Partition_ID)
+   is
+      Info : Request_Info;
+      Root : Request_Id;
+   begin
+      Root := Null_Request_Id;
+      for R in First_Request_Id .. Requests.Last + 1 loop
+         Info := Requests.Get_Component (R);
+         if Info = Null_Request_Info then
+            Root := R;
+            exit;
+         end if;
+      end loop;
+      Requests.Set_Component (Root, (PID, List));
+      List := Root;
+   end Push;
+
    ----------------
    -- Read_Units --
    ----------------
 
    procedure Read_Units
      (Stream : access Params_Stream_Type;
-      List   : out Request_List)
+      List   : out Request_Id)
    is
       Unit      : Unit_Id;
       Partition : Partition_ID;
@@ -558,7 +625,7 @@ package body System.Garlic.Units is
       Version   : Version_Type;
       Status    : Unit_Status;
    begin
-      List := Null_List;
+      List := Null_Request_Id;
 
       while Boolean'Input (Stream) loop
          Partition_ID'Read (Stream, Partition);
@@ -680,7 +747,7 @@ package body System.Garlic.Units is
       Receiver  : in Unsigned_64;
       Version   : in Version_Type;
       Status    : in Unit_Status;
-      Pending   : in out Request_List)
+      Pending   : in out Request_Id)
    is
       Current_Info      : Unit_Info := Units.Get_Component (Unit);
       Current_Status    : Unit_Status renames Current_Info.Status;
@@ -808,7 +875,7 @@ package body System.Garlic.Units is
          elsif Boot_Partition (Partition) = Self_PID then
             pragma Debug (D ("Defining unit " & Units.Get_Name (Unit)));
             Current_Status := Defined;
-            Pending (Self_PID) := True;
+            Push (Pending, Self_PID);
 
          else
             pragma Debug (D ("Declaring unit " & Units.Get_Name (Unit)));
@@ -851,16 +918,11 @@ package body System.Garlic.Units is
       --  Add pending requests to Pending and mark them as handled
 
       if Current_Status in Defined .. Invalid then
-         if Current_Info.Pending then
+         if Current_Info.Requests /= Null_Request_Id then
             pragma Debug (D ("Dequeuing pending requests for unit " &
                              Units.Get_Name (Unit)));
-            for PID in Current_Info.Requests'Range loop
-               if Current_Info.Requests (PID) then
-                  Pending (PID) := True;
-                  Current_Info.Requests (PID) := False;
-               end if;
-            end loop;
-            Current_Info.Pending := False;
+            Pending := Current_Info.Requests;
+            Current_Info.Requests := Null_Request_Id;
          end if;
       end if;
 

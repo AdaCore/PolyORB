@@ -49,8 +49,10 @@ package System.Garlic.Units is
    First_Unit_Id : constant Unit_Id := 2_000_000;
    Unit_Id_Increment : constant := 10;
 
-   type Request_List is array (Types.Partition_ID) of Boolean;
-   Null_List : constant Request_List := (others => False);
+   type Request_Id is new Natural;
+   Null_Request_Id  : constant Request_Id := 0;
+   First_Request_Id : constant Request_Id := 3_000_000;
+   Request_Id_Increment : constant := 10;
 
    type Request_Kind is (Copy_Units_Table,
                          Define_New_Units,
@@ -80,8 +82,7 @@ package System.Garlic.Units is
          Receiver  : Interfaces.Unsigned_64;
          Version   : Types.Version_Type;
          Status    : Unit_Status;
-         Pending   : Boolean;
-         Requests  : Request_List;
+         Requests  : Request_Id;
       end record;
 
    Null_Unit : constant Unit_Info :=
@@ -90,8 +91,7 @@ package System.Garlic.Units is
       Receiver  => 0,
       Version   => Types.Null_Version,
       Status    => Undefined,
-      Pending   => False,
-      Requests  => Null_List);
+      Requests  => Null_Request_Id);
 
    --  Next_Unit   : units on the same partition are linked together
    --  Partition   : unit partition id

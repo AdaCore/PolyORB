@@ -1,7 +1,8 @@
 1999-07-14  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garuni.adb: As there is no second pass when there is no boot
- 	mirrors, reply to pending requests immediatly.
+ 	mirrors, reply to pending requests immediatly. Redefine pending
+ 	requests not to be a array of boolean with Partition_ID as index.
 
 1999-07-14  Laurent Pautet  <pautet@dorine.enst.fr>
 
