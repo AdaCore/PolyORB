@@ -6195,16 +6195,43 @@ package body Idl_Fe.Parser is
       Node, Node2 : Node_Id;
       Result : Boolean := True;
       List : Node_List := Nil_List;
+      Result_List : Node_List := Nil_List;
 
       procedure Call_Find_Identifier_In_Inheritance (Node : Node_Id);
 
       procedure Call_Find_Identifier_In_Inheritance (Node : Node_Id) is
+         It3 : Node_Iterator;
+         First_Node : Node_Id;
       begin
+         --  find the given node in previous inheritance
          Find_Identifier_In_Inheritance (Name (Node), Scope, List);
-         if List /= Nil_List then
-            Free (List);
-            Result := False;
-         end if;
+         --  remove duplicated nodes
+         Result_List := Simplify_Node_List (List);
+         Free (List);
+         --  if the list has more than one element,
+         --  one of the two definition comes from an inherited
+         --  interface that is not Scope, so the definitions clash.
+         --  If there is only one element, we must test its scope.
+         --  If there are none, there is no problem.
+         case Get_Length (Result_List) is
+            when 0 =>
+               pragma Debug (O ("Interface_Is_Importable : list is nil_list"));
+               null;
+            when 1 =>
+               Init (It3, Result_List);
+               Get_Next_Node (It3, First_Node);
+               pragma Debug (O ("Interface_Is_Importable : list length is 1"));
+               pragma Debug (O ("Interface_Is_Importable : parent scope is " &
+                                Name (Definition (First_Node).Parent_Scope)));
+               pragma Debug (O ("Interface_Is_Importable : scope is " &
+                                Name (Value (Int))));
+               if Definition (First_Node).Parent_Scope /= Value (Int) then
+                  Result := False;
+               end if;
+            when others =>
+               pragma Debug (O ("Interface_Is_Importable : list length > 1"));
+               Result := False;
+         end case;
       end Call_Find_Identifier_In_Inheritance;
 
    begin
@@ -6213,13 +6240,16 @@ package body Idl_Fe.Parser is
       pragma Assert (Kind (Int) = K_Scoped_Name);
       pragma Assert (Kind (Value (Int)) = K_Interface);
       pragma Assert (Kind (Scope) = K_Interface);
+      --  loop over each definition in the interface
       Init (It, Contents (Value (Int)));
       while (not Is_End (It)) and Result loop
          pragma Debug (O ("Interface_Is_Importable : beginning of loop"));
          Get_Next_Node (It, Node);
+         --  if the current definition is an operation
          if Kind (Node) = K_Operation then
             Call_Find_Identifier_In_Inheritance (Node);
          end if;
+         --  if it is an attribute, loop over its declarators
          if Kind (Node) = K_Attribute then
             Init (It2, Declarators (Node));
             while (not Is_End (It2)) and Result loop
