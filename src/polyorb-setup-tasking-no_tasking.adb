@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                     P O L Y O R B . P R O F I L E S                      --
+--          P O L Y O R B . P R O F I L E S . N O _ T A S K I N G           --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,10 +31,22 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  root package for the setup of the tasking profiles
-
 --  $Id$
 
-package PolyORB.Profiles is
-   pragma Pure;
-end PolyORB.Profiles;
+with PolyORB.Tasking.Profiles.No_Tasking.Threads;
+pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Threads);
+pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Threads);
+
+with PolyORB.Tasking.Profiles.No_Tasking.Mutexes;
+pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Mutexes);
+pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Mutexes);
+
+with PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables;
+pragma Elaborate_All
+  (PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables);
+pragma Warnings
+  (Off, PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables);
+
+package body PolyORB.Setup.Tasking.No_Tasking is
+
+end PolyORB.Setup.Tasking.No_Tasking;

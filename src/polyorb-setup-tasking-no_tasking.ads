@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---        P O L Y O R B . P R O F I L E S . F U L L _ T A S K I N G         --
+--     P O L Y O R B . S E T U P . T A S K I N G . N O _ T A S K I N G      --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,25 +31,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  //droopi/main/design/tasking/polyorb-tasking-full_tasking_profile.adb
+--  Set up a "no tasking" profile.
 
 --  $Id$
 
-with PolyORB.Tasking.Profiles.Full_Tasking.Threads;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.Full_Tasking.Threads);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.Full_Tasking.Threads);
+package PolyORB.Setup.Tasking.No_Tasking is
 
-with PolyORB.Tasking.Profiles.Full_Tasking.Mutexes;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.Full_Tasking.Mutexes);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.Full_Tasking.Mutexes);
+   pragma Elaborate_Body;
 
-with PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables;
-pragma Elaborate_All
-  (PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables);
-pragma Warnings
-  (Off, PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables);
-
-package body PolyORB.Profiles.Full_Tasking is
-begin
-   null;
-end PolyORB.Profiles.Full_Tasking;
+end PolyORB.Setup.Tasking.No_Tasking;

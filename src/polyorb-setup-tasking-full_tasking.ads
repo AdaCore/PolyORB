@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,10 +33,10 @@
 
 --  Set up a full tasking profile
 
---  //droopi/main/design/tasking/polyorb-tasking-full_tasking_profile.ads
-
 --  $Id$
 
-package PolyORB.Profiles.Full_Tasking is
+package PolyORB.Setup.Tasking.Full_Tasking is
+
    pragma Elaborate_Body;
-end PolyORB.Profiles.Full_Tasking;
+
+end PolyORB.Setup.Tasking.Full_Tasking;

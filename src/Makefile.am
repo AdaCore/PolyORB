@@ -77,8 +77,6 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-poa_policies-thread_policy-main_thread.ads \
 		polyorb-poa_policies-thread_policy-single_thread.ads \
 		polyorb-poa_types.ads \
-		polyorb-profiles-full_tasking.ads \
-		polyorb-profiles-no_tasking.ads \
 		polyorb-protocols.ads \
 		polyorb-protocols-echo.ads \
 		polyorb-references.ads \
@@ -96,6 +94,8 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-servants.ads \
 		polyorb-servants-group_servants.ads \
 		polyorb-setup-proxies_poa.ads \
+		polyorb-setup-tasking-full_tasking.ads \
+		polyorb-setup-tasking-no_tasking.ads \
 		polyorb-setup-tcp_access_points.ads \
 		polyorb-setup-udp_access_points.ads \
 		polyorb-setup-udp_access_points-sockets.ads \
@@ -156,12 +156,12 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb-poa_policies-servant_retention_policy.ads \
 		polyorb-poa_policies-thread_policy.ads \
 		polyorb-protocols-interface.ads \
-		polyorb-profiles.ads \
-		polyorb-profiles-ravenscar.ads \
 		polyorb-representations.ads \
 		polyorb-sequences.ads \
 		polyorb-servants-interface.ads \
 		polyorb-setup.ads \
+		polyorb-setup-tasking.ads \
+		polyorb-setup-tasking-ravenscar.ads \
 		polyorb-sockets.ads \
 		polyorb-storage_pools.ads \
 		polyorb-tasking.ads \

@@ -37,9 +37,9 @@
 
 with PolyORB.Initialization;
 
-with PolyORB.Profiles.Full_Tasking;
-pragma Elaborate_All (PolyORB.Profiles.Full_Tasking);
-pragma Warnings (Off, PolyORB.Profiles.Full_Tasking);
+with PolyORB.Setup.Tasking.Full_Tasking;
+pragma Elaborate_All (PolyORB.Setup.Tasking.Full_Tasking);
+pragma Warnings (Off, PolyORB.Setup.Tasking.Full_Tasking);
 
 with Test002_Common;
 

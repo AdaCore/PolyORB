@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---          P O L Y O R B . P R O F I L E S . N O _ T A S K I N G           --
+--      P O L Y O R B . S E T U P . T A S K I N G . R A V E N S C A R       --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,25 +31,47 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  //droopi/main/design/tasking/polyorb-tasking-full_tasking_profile.adb
+--  You should instanciate this package to set up a ravenscar profile.
 
 --  $Id$
 
-with PolyORB.Tasking.Profiles.No_Tasking.Threads;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Threads);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Threads);
+with System;
+with PolyORB.Tasking.Profiles.Ravenscar.Threads;
+with PolyORB.Tasking.Profiles.Ravenscar.Mutexes;
+with PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables;
 
-with PolyORB.Tasking.Profiles.No_Tasking.Mutexes;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Mutexes);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Mutexes);
+generic
+   Number_Of_Application_Tasks    : Integer;
+   --  Number of tasks created by the user.
 
-with PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables;
-pragma Elaborate_All
-  (PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables);
-pragma Warnings
-  (Off, PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables);
+   Number_Of_System_Tasks         : Integer;
+   --  Number of tasks created by the PolyORB run-time library.
 
-package body PolyORB.Profiles.No_Tasking is
-begin
-   null;
-end PolyORB.Profiles.No_Tasking;
+   Number_Of_Conditions           : Integer;
+   --  Number of preallocated conditions.
+
+   Number_Of_Mutexes              : Integer;
+   --  Number of preallocated mutexes.
+
+   Task_Priority                  : System.Priority;
+   --  Priority affected  to the tasks of the pool.
+
+package PolyORB.Setup.Tasking.Ravenscar is
+
+   package Threads_Package is
+      new PolyORB.Tasking.Profiles.Ravenscar.Threads
+     (Number_Of_Application_Tasks,
+      Number_Of_System_Tasks,
+      Task_Priority);
+
+   package Conditions_Package is
+      new PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables
+     (Threads_Package,
+      Number_Of_Conditions);
+
+   package Mutexes_Package is
+      new PolyORB.Tasking.Profiles.Ravenscar.Mutexes
+     (Threads_Package,
+      Number_Of_Mutexes);
+
+end PolyORB.Setup.Tasking.Ravenscar;

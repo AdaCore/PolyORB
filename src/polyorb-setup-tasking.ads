@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---          P O L Y O R B . P R O F I L E S . N O _ T A S K I N G           --
+--                P O L Y O R B . S E T U P . T A S K I N G                 --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,12 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Set up a no tasking profile
-
---  //droopi/main/design/tasking/polyorb-tasking-full_tasking_profile.ads
+--  Root package for the setup of the tasking profiles.
 
 --  $Id$
 
-package PolyORB.Profiles.No_Tasking is
-   pragma Elaborate_Body;
-end PolyORB.Profiles.No_Tasking;
+package PolyORB.Setup.Tasking is
+
+end PolyORB.Setup.Tasking;

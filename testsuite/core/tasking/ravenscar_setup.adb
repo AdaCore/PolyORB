@@ -35,9 +35,9 @@
 
 with System;
 
-with PolyORB.Profiles.Ravenscar;
-pragma Elaborate_All (PolyORB.Profiles.Ravenscar);
-pragma Warnings (Off, PolyORB.Profiles.Ravenscar);
+with PolyORB.Setup.Tasking.Ravenscar;
+pragma Elaborate_All (PolyORB.Setup.Tasking.Ravenscar);
+pragma Warnings (Off, PolyORB.Setup.Tasking.Ravenscar);
 
 package body Ravenscar_Setup is
 
@@ -47,7 +47,7 @@ package body Ravenscar_Setup is
    --  the tasking runtime.
 
    package Ravenscar_Profile_Instance is
-      new PolyORB.Profiles.Ravenscar
+      new PolyORB.Setup.Tasking.Ravenscar
      (Number_Of_Application_Tasks => 4,
       Number_Of_System_Tasks      => 20,
       Number_Of_Conditions        => 1_000,
