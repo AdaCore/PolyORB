@@ -113,7 +113,7 @@ package body PolyORB.Tasking.Watchers is
      (W : in out Watcher_Type;
       V : in Version_Id) is
    begin
-      pragma Debug (O ("Differ: enter, V =" & Version_Id'Image (V));
+      pragma Debug (O ("Differ: enter, V =" & Version_Id'Image (V)));
       PTM.Enter (W.WMutex);
       pragma Debug (O ("... W.Version =" & Version_Id'Image (W.Version)));
 
@@ -131,7 +131,7 @@ package body PolyORB.Tasking.Watchers is
             pragma Debug (O ("Differ: suspend, Cnt =" & W.Await_Count'Img));
             while not W.Updated loop
                PTCV.Wait (W.WCondition, W.WMutex);
-               pragma Debug (O ("Differ: resume, Cnt =" & W.Await_Count'Img,
+               pragma Debug (O ("Differ: resume, Cnt =" & W.Await_Count'Img
                  & ", W.Version =" & Version_Id'Image (W.Version)));
             end loop;
             pragma Debug (O ("Differ: updated!"));
