@@ -32,7 +32,7 @@
 
 --  Inter-process synchronisation objects.
 
---  $Id: //droopi/main/src/polyorb-tasking-rw_locks.ads#2 $
+--  $Id: //droopi/main/src/polyorb-tasking-rw_locks.ads#3 $
 
 with PolyORB.Tasking.Condition_Variables;
 
@@ -44,10 +44,14 @@ package PolyORB.Tasking.Rw_Locks is
    -- A readers/writers lock --
    ----------------------------
 
-   --  Several tasks can own the lock in R (read) mode.
-   --  Only one task can own the lock in W (write) mode.
-   --  If there is a request for writing, requests for reading are not accepted
-   --  anymore.
+   --  Several tasks can own the lock in read (shared) mode.
+   --  Only one task can own the lock in write (exclusive) mode.
+   --  No task can own the lock in exclusive mode while any other
+   --  task owns it in read mode.
+
+   --  The contention resolution policy gives priority to
+   --  writers: as long as a task is blocked waiting for
+   --  write access, requests for read access are declined.
 
    type Rw_Lock_Type is limited private;
    type Rw_Lock_Access is access all Rw_Lock_Type;
@@ -56,21 +60,21 @@ package PolyORB.Tasking.Rw_Locks is
    procedure Destroy (L : in out Rw_Lock_Access);
 
    procedure Lock_W (L : access Rw_Lock_Type);
-   --  Get lock in writing mode.
+   --  Get lock in write mode.
 
    procedure Lock_R (L : access Rw_Lock_Type);
-   --  Get lock in reading mode.
+   --  Get lock in read mode.
 
    procedure Unlock_W (L : access Rw_Lock_Type);
-   --  Release writing lock.
+   --  Release write mode lock.
 
    procedure Unlock_R (L : access Rw_Lock_Type);
-   --  Release reading mode lock.
+   --  Release read mode lock.
 
    procedure Set_Max_Count
      (L : access Rw_Lock_Type;
       Max : Natural);
-   --  Set maximum number of reader.
+   --  Set maximum number of readers.
 
 private
 
