@@ -3,6 +3,7 @@ with Droopi.CORBA_P.Exceptions; use Droopi.CORBA_P.Exceptions;
 with CORBA.Object_Map.Sequence_Map;
 with CORBA.POA;
 with CORBA.Policy.Lifespan_Policy;
+with CORBA.Policy_Types;            use CORBA.Policy_Types;
 with Droopi.Locks;                  use Droopi.Locks;
 
 package body CORBA.Policy.Id_Assignement_Policy.System is

@@ -2,11 +2,11 @@
 
 --  $Id$
 
-with CORBA.Policy_Types;  use CORBA.Policy_Types;
 with CORBA.Policy_Values; use CORBA.Policy_Values;
 with CORBA.POA_Types;
 with Sequences.Unbounded;
 with Generic_Factory;
+pragma Elaborate_All (Generic_Factory);
 
 package CORBA.Policy is
 

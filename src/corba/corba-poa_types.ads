@@ -19,15 +19,15 @@ with Droopi.Any;
 with Droopi.Any.NVList;
 with Droopi.Requests;
 with Sequences.Unbounded;
-with Unchecked_Deallocation;
-
-with Ada.Real_Time;
 
 ---------------------
 -- CORBA.POA_Types --
 ---------------------
 
 package CORBA.POA_Types is
+
+   Invalid_Object_Id : exception renames Droopi.Obj_Adapters.Invalid_Object_Id;
+   Invalid_Method    : exception renames Droopi.Obj_Adapters.Invalid_Method;
 
    subtype Time_Stamp is Unsigned_Long;
 

@@ -1,8 +1,5 @@
-with Droopi.Obj_Adapters;
-with Droopi.Requests;
 with Droopi.Locks;
 
-with CORBA.NVList;
 with CORBA.POA_Types;               use CORBA.POA_Types;
 with CORBA.POA_Manager;
 with CORBA.Object_Map;
@@ -24,6 +21,9 @@ use CORBA.Policy.Implicit_Activation_Policy;
 
 package CORBA.POA is
 
+   Invalid_Object_Id : exception renames CORBA.POA_Types.Invalid_Object_Id;
+   Invalid_Method    : exception renames CORBA.POA_Types.Invalid_Method;
+
    type Obj_Adapter is abstract new CORBA.POA_Types.Obj_Adapter with
       record
          Name                       : CORBA.String;
@@ -31,7 +31,6 @@ package CORBA.POA is
          Boot_Time                  : Time_Stamp;
          Absolute_Address           : String;
          Active_Object_Map          : CORBA.Object_Map.Object_Map_Access;
-         --  ??? Access?
 
          --  Policies (one of each is required)
          Thread_Policy              : ThreadPolicy_Access             := null;
@@ -134,5 +133,15 @@ package CORBA.POA is
    --    is used, returns the default servant (if one has been registered).
    --  Otherwise:
    --    Raises ObjectNotActive
+
+   -------------------------------------------------------
+   --  Functions and procedures not in the CORBA Norme  --
+   -------------------------------------------------------
+
+   procedure Copy_Obj_Adapter (From : in     Obj_Adapter;
+                               To   : access Obj_Adapter)
+      is abstract;
+   --  Copy values from one Obj_Adapter to another
+   --  (Obj_Adapter is limited...)
 
 end CORBA.POA;

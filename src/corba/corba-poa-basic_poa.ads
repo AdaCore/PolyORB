@@ -1,16 +1,12 @@
 with Ada.Unchecked_Deallocation;
 
-with Generic_Factory;
-
 with Droopi.Objects;
-with Droopi.Obj_Adapters;
 with Droopi.Any;
 with Droopi.Any.NVList;
+with Droopi.Requests;
 
-with CORBA.POA_Types;
 with CORBA.Policy;
 with CORBA.Policy_Values; use CORBA.Policy_Values;
-
 with CORBA.Policy.Thread_Policy;
 with CORBA.Policy.Request_Processing_Policy;
 with CORBA.Policy.Id_Assignement_Policy;
@@ -163,8 +159,12 @@ package CORBA.POA.Basic_POA is
    --  Utilities, neither in CORBA nor in Droopi  --
    -------------------------------------------------
 
+   procedure Copy_Obj_Adapter (From : in     Basic_Obj_Adapter;
+                               To   : access Basic_Obj_Adapter);
+
    function Create_Root_POA
      return Obj_Adapter_Access;
+   --  ??? Should be private ; access is possible through Create
 
    function Find_POA_Recursively
      (Self : access Basic_Obj_Adapter;
@@ -172,6 +172,7 @@ package CORBA.POA.Basic_POA is
      return Basic_Obj_Adapter_Access;
    --  Starting from given POA, looks for the POA in all the descendancy whose
    --  name is Name. Returns null if not found.
+   --  ??? Should be private
 
    procedure Free is new Ada.Unchecked_Deallocation (Basic_Obj_Adapter,
                                                      Basic_Obj_Adapter_Access);

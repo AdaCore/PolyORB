@@ -1,5 +1,3 @@
-with CORBA.Policy_Values; use CORBA.Policy_Values;
-with Droopi.Objects;      use Droopi.Objects;
 with CORBA.POA_Types;
 
 package CORBA.Policy.Thread_Policy is

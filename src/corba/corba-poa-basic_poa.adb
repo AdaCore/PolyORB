@@ -1,16 +1,13 @@
-with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Real_Time;
 
 with Droopi.Objects;
-
-with Sequences.Unbounded;
-with Sequences.Unbounded.Search;
 with Droopi.Log;
 pragma Elaborate_All (Droopi.Log);
-
 with Droopi.CORBA_P.Exceptions; use Droopi.CORBA_P.Exceptions;
+
 with CORBA.Policy_Types;
 with CORBA.Policy_Values;
+with CORBA.POA_Types;
 
 with POA_Configuration.Minimum;
 with POA_Configuration;
@@ -26,7 +23,7 @@ package body CORBA.POA.Basic_POA is
    use POA_Configuration;
    use POA_Configuration.Minimum;
 
-   package L is new Droopi.Log.Facility_Log ("CORBA.POA.Root_POA");
+   package L is new Droopi.Log.Facility_Log ("corba.poa.basic_poa");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -46,9 +43,14 @@ package body CORBA.POA.Basic_POA is
    function Register_Child (Self  : access Basic_Obj_Adapter;
                             Child :        Basic_Obj_Adapter_Access)
                            return Positive;
-
    --  Add a child to the current POA
    --  The procedure doesn't take care of locking the list of children!
+
+   procedure Destroy_Policies (OA : in out Basic_Obj_Adapter);
+   --  Destroys OA's policies
+
+   procedure Destroy_Locks (OA : in out Basic_Obj_Adapter);
+   --  Destroys OA's locks
 
    ---------------
    -- Get_Child --
@@ -59,9 +61,9 @@ package body CORBA.POA.Basic_POA is
                       return POA_Types.Obj_Adapter_Access
    is
       use POA_Sequences;
-      Result  : POAList;
       A_Child : POA_Types.Obj_Adapter_Access;
    begin
+      pragma Debug (O ("Get_Child : " & To_Standard_String (Name)));
       if Adapter.Children /= null then
          for I in 1 .. Length (Adapter.Children.all) loop
             A_Child := Element_Of (Adapter.Children.all, I);
@@ -101,61 +103,79 @@ package body CORBA.POA.Basic_POA is
    is
       A_Policy : Policy_Access;
    begin
+      pragma Debug (O ("Init Basic_POA with user provided policies"));
       for I in 1 .. Policy_Sequences.Length (Policies.all) loop
          A_Policy := Policy_Sequences.Element_Of (Policies.all, I);
          case A_Policy.Policy_Type is
             when THREAD_POLICY_ID =>
                if OA.Thread_Policy /= null then
-                  O ("Duplicate in ThreadPolicy: using last one");
+                  pragma Debug
+                    (O ("Duplicate in ThreadPolicy: using last one"));
+                  null;
                end if;
                OA.Thread_Policy
                  := Create_Thread_Policy (OA,  A_Policy.Value);
 
             when LIFESPAN_POLICY_ID =>
                if OA.Lifespan_Policy /= null then
-                  O ("Duplicate in LifespanPolicy: using last one");
+                  pragma Debug
+                    (O ("Duplicate in LifespanPolicy: using last one"));
+                  null;
                end if;
                OA.Lifespan_Policy
                  := Create_Lifespan_Policy (OA,  A_Policy.Value);
 
             when ID_UNIQUENESS_POLICY_ID =>
                if OA.Id_Uniqueness_Policy /= null then
-                  O ("Duplicate in IdUniquenessPolicy: using last one");
+                  pragma Debug
+                    (O ("Duplicate in IdUniquenessPolicy: using last one"));
+                  null;
                end if;
                OA.Id_Uniqueness_Policy
                  := Create_Id_Uniqueness_Policy (OA,  A_Policy.Value);
 
             when ID_ASSIGNEMENT_POLICY_ID =>
                if OA.Id_Assignement_Policy /= null then
-                  O ("Duplicate in IdAssignementPolicy: using last one");
+                  pragma Debug
+                    (O ("Duplicate in IdAssignementPolicy: using last one"));
+                  null;
                end if;
                OA.Id_Assignement_Policy
                  := Create_Id_Assignement_Policy (OA,  A_Policy.Value);
 
             when SERVANT_RETENTION_POLICY_ID =>
                if OA.Servant_Retention_Policy /= null then
-                  O ("Duplicate in ServantRetentionPolicy: using last one");
+                  pragma Debug
+                    (O ("Duplicate in ServantRetentionPolicy:"
+                        & " using last one"));
+                  null;
                end if;
                OA.Servant_Retention_Policy
                  := Create_Servant_Retention_Policy (OA,  A_Policy.Value);
 
             when REQUEST_PROCESSING_POLICY_ID =>
                if OA.Request_Processing_Policy /= null then
-                  O ("Duplicate in RequestProcessingPolicy: using last one");
+                  pragma Debug
+                    (O ("Duplicate in RequestProcessingPolicy:"
+                        & " using last one"));
+                  null;
                end if;
                OA.Request_Processing_Policy
                  := Create_Request_Processing_Policy (OA,  A_Policy.Value);
 
             when IMPLICIT_ACTIVATION_POLICY_ID =>
                if OA.Implicit_Activation_Policy /= null then
-                  O ("Duplicate in ImplicitActivationPolicy: using last one");
+                  pragma Debug
+                    (O ("Duplicate in ImplicitActivationPolicy:"
+                        & "using last one"));
+                  null;
                end if;
                OA.Implicit_Activation_Policy
                  := Create_Implicit_Activation_Policy (OA,  A_Policy.Value);
 
             when others =>
                null;
-               O ("Unknown policy ignored");
+               pragma Debug (O ("Unknown policy ignored"));
          end case;
       end loop;
    end Init_With_User_Policies;
@@ -168,6 +188,7 @@ package body CORBA.POA.Basic_POA is
    is
       use CORBA.Policy_Values;
    begin
+      pragma Debug (O ("Init Basic_POA with default policies"));
       if OA.Thread_Policy = null then
          OA.Thread_Policy := Create_Thread_Policy (OA, ORB_CTRL_MODEL);
       end if;
@@ -212,6 +233,7 @@ package body CORBA.POA.Basic_POA is
    procedure Check_Policies_Compatibility (OA : Basic_Obj_Adapter_Access)
    is
    begin
+      pragma Debug (O ("Check compatibilities between policies"));
       Check_Compatibility
         (OA.Thread_Policy.all,
          CORBA.POA_Types.Obj_Adapter_Access (OA));
@@ -245,6 +267,8 @@ package body CORBA.POA.Basic_POA is
    is
       use CORBA.POA_Types.POA_Sequences;
    begin
+      pragma Debug (O ("Register child"
+                       & To_Standard_String (Child.Name)));
       if (Self.Children = null) then
          Self.Children := new POAList;
       end if;
@@ -260,6 +284,41 @@ package body CORBA.POA.Basic_POA is
               CORBA.POA_Types.Obj_Adapter_Access (Child));
       return Length (Sequence (Self.Children.all));
    end Register_Child;
+
+   ----------------------
+   -- Destroy_Policies --
+   ----------------------
+
+   procedure Destroy_Policies (OA : in out Basic_Obj_Adapter)
+   is
+   begin
+      Free (OA.Thread_Policy.all,
+            Policy_Access (OA.Thread_Policy));
+      Free (OA.Thread_Policy.all,
+            Policy_Access (OA.Id_Uniqueness_Policy));
+      Free (OA.Thread_Policy.all,
+            Policy_Access (OA.Id_Assignement_Policy));
+      Free (OA.Thread_Policy.all,
+            Policy_Access (OA.Implicit_Activation_Policy));
+      Free (OA.Thread_Policy.all,
+            Policy_Access (OA.Lifespan_Policy));
+      Free (OA.Thread_Policy.all,
+            Policy_Access (OA.Request_Processing_Policy));
+      Free (OA.Thread_Policy.all,
+            Policy_Access (OA.Servant_Retention_Policy));
+   end Destroy_Policies;
+
+   -------------------
+   -- Destroy_Locks --
+   -------------------
+
+   procedure Destroy_Locks (OA : in out Basic_Obj_Adapter)
+   is
+      use Droopi.Locks;
+   begin
+      Destroy (OA.Children_Lock);
+      Destroy (OA.Map_Lock);
+   end Destroy_Locks;
 
    ----------------
    -- Create_POA --
@@ -277,7 +336,7 @@ package body CORBA.POA.Basic_POA is
       Conf            : POA_Configuration.Minimum.Minimum_Configuration;
       Index           : Positive;
    begin
-      O ("Enter Basic_POA.Create_POA");
+      pragma Debug (O ("Enter Basic_POA.Create_POA"));
       --  ??? Add check code here
 
       --  If self is null, that means that the poa to create is the RootPOA
@@ -334,8 +393,12 @@ package body CORBA.POA.Basic_POA is
          New_Obj_Adapter.Absolute_Address := Self.Absolute_Address
            & To_CORBA_String (".") & Adapter_Name;
       else
-         New_Obj_Adapter.Absolute_Address := Self.Absolute_Address & Adapter_Name;
+         New_Obj_Adapter.Absolute_Address
+           := Self.Absolute_Address & Adapter_Name;
       end if;
+      pragma Debug (O
+                    ("Absolute name of created POA is "
+                     & To_Standard_String (New_Obj_Adapter.Absolute_Address)));
       Unlock_W (Self.Children_Lock);
 
       return Obj_Adapter_Access (New_Obj_Adapter);
@@ -343,26 +406,14 @@ package body CORBA.POA.Basic_POA is
    exception
       when CORBA.Adapter_Already_Exists =>
          --  Reraise exception
-         Droopi.CORBA_P.Exceptions.Raise_Adapter_Already_Exists;
          Unlock_W (Self.Children_Lock);
+         Droopi.CORBA_P.Exceptions.Raise_Adapter_Already_Exists;
          return null;
       when CORBA.Invalid_Policy =>
          --  ??? Free POA Manager, if a new one has been created
          Unlock_W (Self.Children_Lock);
-         Free (New_Obj_Adapter.Thread_Policy.all,
-               Policy_Access (New_Obj_Adapter.Thread_Policy));
-         Free (New_Obj_Adapter.Thread_Policy.all,
-               Policy_Access (New_Obj_Adapter.Id_Uniqueness_Policy));
-         Free (New_Obj_Adapter.Thread_Policy.all,
-               Policy_Access (New_Obj_Adapter.Id_Assignement_Policy));
-         Free (New_Obj_Adapter.Thread_Policy.all,
-               Policy_Access (New_Obj_Adapter.Implicit_Activation_Policy));
-         Free (New_Obj_Adapter.Thread_Policy.all,
-               Policy_Access (New_Obj_Adapter.Lifespan_Policy));
-         Free (New_Obj_Adapter.Thread_Policy.all,
-               Policy_Access (New_Obj_Adapter.Request_Processing_Policy));
-         Free (New_Obj_Adapter.Thread_Policy.all,
-               Policy_Access (New_Obj_Adapter.Servant_Retention_Policy));
+         Destroy_Policies (New_Obj_Adapter.all);
+         Destroy_Locks    (New_Obj_Adapter.all);
          Droopi.CORBA_P.Exceptions.Raise_Invalid_Policy;
          return null;
    end Create_POA;
@@ -377,7 +428,7 @@ package body CORBA.POA.Basic_POA is
       New_Obj_Adapter : Basic_Obj_Adapter_Access;
       Conf            : POA_Configuration.Minimum.Minimum_Configuration;
    begin
-      O ("Enter Basic_POA.Create_Root_POA");
+      pragma Debug (O ("Enter Basic_POA.Create_Root_POA"));
 
       --  Create new object adapter
       New_Obj_Adapter           := new Basic_Obj_Adapter;
@@ -406,11 +457,10 @@ package body CORBA.POA.Basic_POA is
 
    procedure Create (OA : access Basic_Obj_Adapter)
    is
-      --       Result : Basic_Obj_Adapter_Access
-      --         := Basic_Obj_Adapter_Access (Create_Root_POA);
+      Result : Basic_Obj_Adapter_Access
+        := Basic_Obj_Adapter_Access (Create_Root_POA);
    begin
-      --       OA := Result.all;
-      null;
+      Copy_Obj_Adapter (Result.all, OA);
    end Create;
 
    --------------------------
@@ -609,8 +659,10 @@ package body CORBA.POA.Basic_POA is
       Remaining_Name   : String;
       A_Child_Name     : String;
       A_Child          : Obj_Adapter_Access;
-      A                : Integer;
    begin
+      if Name = "" then
+         return Basic_Obj_Adapter_Access (Self);
+      end if;
       if Split_Point /= 0 then
          A_Child_Name := Head (Name, Split_Point - 1);
          Remaining_Name := Tail (Name, Length (Name) - Split_Point);
@@ -634,11 +686,35 @@ package body CORBA.POA.Basic_POA is
       return null;
    end Find_POA_Recursively;
 
-   ----------------------------------------------------
-   --  Procedures and functions not yet implemented  --
-   ----------------------------------------------------
-   pragma Warnings (OFF);
-   --  Avoid useless warnings
+   ----------------------
+   -- Copy_Obj_Adapter --
+   ----------------------
+
+   procedure Copy_Obj_Adapter (From : in     Basic_Obj_Adapter;
+                               To   : access Basic_Obj_Adapter)
+   is
+   begin
+      To.Name              := From.Name;
+      To.POA_Manager       := From.POA_Manager;
+      To.Boot_Time         := From.Boot_Time;
+      To.Absolute_Address  := From.Absolute_Address;
+      To.Active_Object_Map := From.Active_Object_Map;
+      To.Thread_Policy              := From.Thread_Policy;
+      To.Request_Processing_Policy  := From.Request_Processing_Policy;
+      To.Id_Assignement_Policy      := From.Id_Assignement_Policy;
+      To.Id_Uniqueness_Policy       := From.Id_Uniqueness_Policy;
+      To.Servant_Retention_Policy   := From.Servant_Retention_Policy;
+      To.Lifespan_Policy            := From.Lifespan_Policy;
+      To.Implicit_Activation_Policy := From.Implicit_Activation_Policy;
+      To.Father            := From.Father;
+      To.Children          := From.Children;
+      To.Children_Lock     := From.Children_Lock;
+      To.Map_Lock          := From.Map_Lock;
+   end Copy_Obj_Adapter;
+
+   ---------------------------------------------------
+   --  Procedures and functions required by Droopi  --
+   ---------------------------------------------------
 
    -------------
    -- Destroy --
@@ -647,7 +723,12 @@ package body CORBA.POA.Basic_POA is
    procedure Destroy (OA : in out Basic_Obj_Adapter)
    is
    begin
-      null;
+      --  Destroy POA_Manager
+      --  ??? To be implemented
+      --  Destroy policies
+      Destroy_Policies (OA);
+      --  Destroy locks
+      Destroy_Locks (OA);
    end Destroy;
 
    ------------
@@ -659,8 +740,13 @@ package body CORBA.POA.Basic_POA is
       Obj :        Droopi.Objects.Servant_Access)
      return Droopi.Objects.Object_Id
    is
+      Id : Droopi.Objects.Object_Id
+        := Droopi.Objects.Object_Id (Activate_Object (OA,
+                                                      Servant_Access (Obj)));
    begin
-      return Droopi.Objects.Object_Id (Activate_Object (OA, Servant_Access (Obj)));
+      pragma Debug (O ("Exporting Servant, resulting Id is "
+                       & Droopi.Objects.To_String (Id)));
+      return Id;
    end Export;
 
    --------------
@@ -687,9 +773,10 @@ package body CORBA.POA.Basic_POA is
    is
       S : Servant_Access;
    begin
---       S := Servant_Access (Find_Servant (OA'Access, Oid));
---       return S.If_Desc.PP_Desc (Method);
-      return Get_Empty_Arg_List (OA, Oid, Method);
+      pragma Debug (O ("Get_Empty_Arg_List for Id"
+                       & Droopi.Objects.To_String (Oid)));
+      S := Servant_Access (Find_Servant (OA, Oid));
+      return S.If_Desc.PP_Desc (Method);
    end Get_Empty_Arg_List;
 
    ----------------------
@@ -702,8 +789,12 @@ package body CORBA.POA.Basic_POA is
       Method : Droopi.Requests.Operation_Id)
      return Droopi.Any.Any
    is
+      S : Servant_Access;
    begin
-      return Get_Empty_Result (OA, Oid, Method);
+      pragma Debug (O ("Get_Empty_Result for Id"
+                       & Droopi.Objects.To_String (Oid)));
+      S := Servant_Access (Find_Servant (OA, Oid));
+      return S.If_Desc.RP_Desc (Method);
    end Get_Empty_Result;
 
    ------------------
@@ -717,15 +808,22 @@ package body CORBA.POA.Basic_POA is
    is
       U_Oid  : Unmarshalled_Oid_Access
         := Oid_To_U_Oid (Object_Id (Id));
-      The_OA : Basic_Obj_Adapter_Access
-        := Find_POA_Recursively (OA, U_Oid.Creator);
+      The_OA : Basic_Obj_Adapter_Access;
    begin
+      pragma Debug (O ("Look for OA with name #"
+                       & To_Standard_String (U_Oid.Creator)
+                       & "# starting from RootPOA"));
+      The_OA := Find_POA_Recursively (OA, U_Oid.Creator);
+      pragma Debug (O ("OA : "
+                       & To_Standard_String (The_OA.Name)
+                       & " looks for servant associated to Id"
+                       & Droopi.Objects.To_String (Id)));
       if The_OA /= null then
-         return Droopi.Objects.Servant_Access (Id_To_Servant (The_OA.all'Access,
+         return Droopi.Objects.Servant_Access (Id_To_Servant (The_OA,
                                                               Id));
       else
-         --  ??? raise exception
-         null;
+         raise Invalid_Object_Id;
+         --  This is an exception from Droopi
       end if;
    end Find_Servant;
 
@@ -741,7 +839,5 @@ package body CORBA.POA.Basic_POA is
    begin
       null;
    end Release_Servant;
-
-   pragma Warnings (ON);
 
 end CORBA.POA.Basic_POA;

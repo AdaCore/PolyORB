@@ -2,7 +2,6 @@ with Droopi.Representations.CDR; use Droopi.Representations.CDR;
 with Droopi.Buffers;             use Droopi.Buffers;
 with Droopi.Types;
 with Ada.Streams;
-with Ada.Unchecked_Conversion;
 
 package body CORBA.POA_Types is
 

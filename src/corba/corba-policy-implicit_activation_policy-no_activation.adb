@@ -1,6 +1,9 @@
+with CORBA.Policy_Types;
+
 package body CORBA.Policy.Implicit_Activation_Policy.No_Activation is
 
    use CORBA.Policy_Values;
+   use CORBA.Policy_Types;
 
    ------------
    -- Create --

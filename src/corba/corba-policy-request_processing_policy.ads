@@ -1,4 +1,3 @@
-with CORBA.Policy_Values; use CORBA.Policy_Values;
 with CORBA.POA_Types;     use CORBA.POA_Types;
 
 package CORBA.Policy.Request_Processing_Policy is

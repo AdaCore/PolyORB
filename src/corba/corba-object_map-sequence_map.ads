@@ -2,8 +2,8 @@
 --  (Droopi.Unbounded_Sequences). It uses the generic package Droopi.Object_Map
 --  to do so.
 
-with Droopi.Objects;
 with Droopi.Object_Map;
+pragma Elaborate_All (Droopi.Object_Map);
 with CORBA.POA_Types;
 
 package CORBA.Object_Map.Sequence_Map is

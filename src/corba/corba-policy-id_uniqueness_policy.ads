@@ -1,5 +1,3 @@
-with CORBA.Policy_Values;           use CORBA.Policy_Values;
-with CORBA.Object_Map;              use CORBA.Object_Map;
 with CORBA.POA_Types;               use CORBA.POA_Types;
 
 package CORBA.Policy.Id_Uniqueness_Policy is

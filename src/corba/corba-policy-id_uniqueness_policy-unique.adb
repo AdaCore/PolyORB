@@ -2,7 +2,8 @@ with Droopi.CORBA_P.Exceptions; use Droopi.CORBA_P.Exceptions;
 with Droopi.Locks;              use Droopi.Locks;
 
 with CORBA.POA;
-with CORBA.Object_Map.Sequence_Map;
+with CORBA.Object_Map;
+with CORBA.Policy_Types;            use CORBA.Policy_Types;
 
 package body CORBA.Policy.Id_Uniqueness_Policy.Unique is
 
@@ -43,6 +44,7 @@ package body CORBA.Policy.Id_Uniqueness_Policy.Unique is
       OA        : CORBA.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access)
    is
+      use CORBA.Object_Map;
       P_OA : CORBA.POA.Obj_Adapter_Access
         := CORBA.POA.Obj_Adapter_Access (OA);
    begin

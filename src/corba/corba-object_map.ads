@@ -2,7 +2,6 @@
 --  An implementation of this map needs to be able to access an entry
 --  by its index (an Integer).
 
-with Droopi.Objects;
 with CORBA.POA_Types;
 
 package CORBA.Object_Map is

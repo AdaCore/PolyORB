@@ -1,7 +1,6 @@
 package body CORBA.Object_Map.Sequence_Map is
 
    use Active_Object_Map;
-   use Droopi.Objects;
    use CORBA.POA_Types;
 
    ----------------------

@@ -1,0 +1,341 @@
+--  Set up a test ORB.
+
+--  $Id$
+
+with Ada.Command_Line;
+with Ada.Exceptions;
+with Ada.Text_IO; use Ada.Text_IO;
+
+with Droopi.Any;
+with Droopi.Any.NVList;
+with Droopi.Filters;
+with Droopi.Filters.Slicers;
+with Droopi.Log;
+with Droopi.No_Tasking;
+with Droopi.Obj_Adapters;
+--  with Droopi.Obj_Adapters.Simple;
+with Droopi.Objects;
+--  with Droopi.ORB.Task_Policies;
+with Droopi.ORB.Thread_Pool;
+with Droopi.ORB.Interface;
+
+with Droopi.Binding_Data.Test;
+with Droopi.Binding_Data.IIOP;
+with Droopi.Binding_Data.SRP;
+
+with Droopi.Components;
+
+with Droopi.Protocols;
+with Droopi.Protocols.Echo;
+with Droopi.Protocols.GIOP;
+with Droopi.Protocols.SRP;
+
+with Droopi.References;
+with Droopi.References.IOR;
+
+with Droopi.Requests;
+
+with Droopi.Smart_Pointers;
+with Droopi.Sockets;
+--  with Droopi.Test_Object;
+with CORBA.Test_Object;
+with Droopi.Transport.Sockets;
+with Droopi.Types;
+
+with CORBA;
+with CORBA.POA;
+with CORBA.POA.Basic_POA;
+with CORBA.POA_Types;
+
+procedure Droopi.Setup.Test_Corba
+is
+   use Droopi.Binding_Data;
+   use Droopi.Filters;
+   --   use Droopi.Objects;
+   use Droopi.ORB;
+   use Droopi.Sockets;
+   use Droopi.Transport;
+   use Droopi.Transport.Sockets;
+   use CORBA.POA.Basic_POA;
+   use CORBA.Test_Object;
+   --  package My_Thread_Pool is new Thread_Pool (4);
+
+   Obj_Adapter : CORBA.POA_Types.Obj_Adapter_Access;
+
+   My_Servant : CORBA.POA_Types.Servant_Access;
+
+   ---------------------------------------------
+   -- Common data for all test access points. --
+   ---------------------------------------------
+
+   type Decorated_Access_Point is record
+      Socket  : Socket_Type;
+      Address : Sock_Addr_Type;
+
+      SAP : Transport_Access_Point_Access;
+      PF  : Profile_Factory_Access;
+   end record;
+
+   procedure Initialize_Socket
+     (DAP  : in out Decorated_Access_Point;
+      Port : Port_Type);
+   --  Initialize DAP.Socket and bind it to a free port,
+   --  Port if possible.
+
+   procedure Initialize_Socket
+     (DAP  : in out Decorated_Access_Point;
+      Port : Port_Type) is
+   begin
+      Put ("Socket...");
+
+      Create_Socket (DAP.Socket);
+
+      DAP.Address.Addr := Addresses
+        (Get_Host_By_Name ("localhost"), 1);
+      DAP.Address.Port := Port;
+
+      --  Allow reuse of local addresses.
+
+      Set_Socket_Option
+        (DAP.Socket,
+         Socket_Level,
+         (Reuse_Address, True));
+
+      Create
+        (Socket_Access_Point (DAP.SAP.all),
+         DAP.Socket,
+         DAP.Address);
+      Create_Factory (DAP.PF.all, DAP.SAP);
+      Put_Line (" done.");
+   end Initialize_Socket;
+
+   --  The 'test' access point.
+
+   Test_Access_Point : Decorated_Access_Point
+     := (Socket  => No_Socket,
+         Address => No_Sock_Addr,
+         SAP     => new Socket_Access_Point,
+         PF      => new Binding_Data.Test.Test_Profile_Factory);
+
+   Echo_Protocol : aliased Protocols.Echo.Echo_Protocol;
+
+   --  The 'GIOP' access point.
+
+   GIOP_Access_Point : Decorated_Access_Point
+     := (Socket  => No_Socket,
+         Address => No_Sock_Addr,
+         SAP     => new Socket_Access_Point,
+         PF      => new Binding_Data.IIOP.IIOP_Profile_Factory);
+
+   GIOP_Protocol  : aliased Protocols.GIOP.GIOP_Protocol;
+   Slicer_Factory : aliased Filters.Slicers.Slicer_Factory;
+
+   --  The 'SRP' access point.
+
+   SRP_Access_Point : Decorated_Access_Point
+     := (Socket  => No_Socket,
+         Address => No_Sock_Addr,
+         SAP     => new Socket_Access_Point,
+         PF      => new Binding_Data.SRP.SRP_Profile_Factory);
+
+   SRP_Protocol  : aliased Protocols.SRP.SRP_Protocol;
+
+begin
+
+   -------------------------------
+   -- Initialize all subsystems --
+   -------------------------------
+
+   Put ("Initializing subsystems...");
+
+   Droopi.Log.Initialize;
+   Put (" logging");
+   --  Logging subsystem. Start this one first so we can debug
+   --  problems in others.
+
+   Droopi.No_Tasking.Initialize;
+   Put (" no-tasking");
+   --  Setup soft links.
+
+   Droopi.Smart_Pointers.Initialize;
+   Put (" smart-pointers");
+   --  Depends on Soft_Links.
+
+   -------------------------------------------
+   -- Initialize personality-specific stuff --
+   -------------------------------------------
+
+   Droopi.Binding_Data.IIOP.Initialize;
+   Put (" binding-iiop");
+
+   --------------------------
+   -- Create ORB singleton --
+   --------------------------
+
+   Setup.The_ORB := new ORB.ORB_Type
+     (Tasking_Policy_Access'(new Thread_Pool.Thread_Pool_Policy));
+
+--     Setup.The_ORB := new ORB.ORB_Type
+--       (Tasking_Policy_Access'(new Task_Policies.No_Tasking));
+
+   Droopi.ORB.Create (Setup.The_ORB.all);
+
+   Thread_Pool.Initialize (Setup.The_ORB.all, 4, 10);
+
+   Put (" ORB");
+
+   Put_Line (" done");
+
+   --------------------------------------
+   -- Create server (listening) socket --
+   --------------------------------------
+
+   Put ("Creating Test/Echo access point... ");
+   Initialize_Socket (Test_Access_Point, 9998);
+   Register_Access_Point
+     (ORB    => The_ORB,
+      TAP    => Test_Access_Point.SAP,
+      Chain  => Echo_Protocol'Unchecked_Access,
+      PF     => Test_Access_Point.PF);
+   --  Register socket with ORB object, associating a protocol
+   --  to the transport service access point.
+
+   ---------------------------------------------
+   -- Create server (listening) socket - GIOP --
+   ---------------------------------------------
+
+   Put ("Creating GIOP access point...");
+
+   Initialize_Socket (GIOP_Access_Point, 10000);
+   Chain_Factories ((0 => Slicer_Factory'Unchecked_Access,
+                     1 => GIOP_Protocol'Unchecked_Access));
+   Register_Access_Point
+     (ORB    => The_ORB,
+      TAP    => GIOP_Access_Point.SAP,
+      Chain  => Slicer_Factory'Unchecked_Access,
+      PF     => GIOP_Access_Point.PF);
+
+   --------------------------------------------
+   -- Create server (listening) socket - SRP --
+   --------------------------------------------
+
+   Put ("Creating SRP access point... ");
+   Initialize_Socket (SRP_Access_Point, 10002);
+   Register_Access_Point
+     (ORB    => The_ORB,
+      TAP    => SRP_Access_Point.SAP,
+      Chain  => SRP_Protocol'Unchecked_Access,
+      PF     => SRP_Access_Point.PF);
+   --  Register socket with ORB object, associating a protocol
+   --  to the transport service access point.
+
+   ----------------------------------
+   -- Create simple object adapter --
+   ----------------------------------
+
+   Put ("Creating object adapter...");
+   Obj_Adapter := new CORBA.POA.Basic_POA.Basic_Obj_Adapter;
+   CORBA.POA.Basic_POA.Create (Basic_Obj_Adapter (Obj_Adapter.all)'Access);
+   --  Create object adapter
+
+   Set_Object_Adapter (The_ORB,
+                       Droopi.Obj_Adapters.Obj_Adapter_Access (Obj_Adapter));
+   --  Link object adapter with ORB.
+
+   My_Servant := new CORBA.Test_Object.My_Object;
+   --  Create application server object.
+   CORBA.Test_Object.Create (My_Object (My_Servant.all));
+
+   Put_Line (" done.");
+
+   declare
+      My_Id : aliased Droopi.Objects.Object_Id
+        := Droopi.Obj_Adapters.Export
+        (Droopi.Obj_Adapters.Obj_Adapter_Access (Obj_Adapter),
+         Droopi.Objects.Servant_Access (My_Servant));
+      --  Register it with the SOA.
+
+      My_Ref : Droopi.References.Ref;
+
+   begin
+      Create_Reference (The_ORB, My_Id'Unchecked_Access, My_Ref);
+      --  Obtain object reference.
+
+      Put_Line ("Registered object: " & Droopi.Objects.Image (My_Id));
+      Put_Line ("Reference is     : " & References.Image (My_Ref));
+      begin
+         Put_Line ("IOR is           : "
+                   & CORBA.To_Standard_String
+                   (References.IOR.Object_To_String
+                    ((Ref => My_Ref,
+                      Type_Id => CORBA.To_CORBA_String
+                      ("IDL:Echo:1.0")))));
+      exception
+         when E : others =>
+            Put_Line ("Warning: Object_To_String raised:");
+            Put_Line (Ada.Exceptions.Exception_Information (E));
+      end;
+
+
+      --  Check if we simply run the ORB to accept remote acccess
+      --  or if we run a local request to the ORB
+      if Ada.Command_Line.Argument_Count = 1
+        and then Ada.Command_Line.Argument (1) = "local" then
+
+         ---------------------------------------
+         -- Create a local request to the ORB --
+         ---------------------------------------
+
+         declare
+            use Droopi.Any;
+            use Droopi.Any.NVList;
+            use Droopi.Components;
+            use Droopi.ORB.Interface;
+            use Droopi.Requests;
+            use Droopi.Types;
+
+            Req : Request_Access;
+            Args : Any.NVList.Ref;
+            Result : Any.NamedValue;
+
+         begin
+            Create (Args);
+            Add_Item
+              (Args,
+               To_Droopi_String ("echoString"),
+               To_Any (To_Droopi_String ("Test")),
+               ARG_IN);
+
+            Put ("Creating servant request...  ");
+            Create_Request
+              (My_Ref,
+               "echoString",
+               Args,
+               Result,
+               Req);
+            Put_Line ("Done...");
+
+            Emit_No_Reply
+              (Component_Access (The_ORB),
+               Queue_Request'(Request   => Req,
+                              Requestor => null,
+                              Requesting_Task => null));
+
+            Run (The_ORB,
+                 (Condition =>
+                    Req.Completed'Access,
+                  Task_Info => Req.Requesting_Task'Access),
+                 May_Poll => True);
+            --  Execute the ORB.
+         end;
+
+      else
+
+         Run (The_ORB, May_Poll => True);
+         --  Execute the ORB.
+
+      end if;
+
+   end;
+
+end Droopi.Setup.Test_Corba;

@@ -1,6 +1,9 @@
+with CORBA.Policy_Types;
+
 package body CORBA.Policy.Thread_Policy.Orb_Ctrl is
 
    use CORBA.Policy_Values;
+   use CORBA.Policy_Types;
 
    ------------
    -- Create --

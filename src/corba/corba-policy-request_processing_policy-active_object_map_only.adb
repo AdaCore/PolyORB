@@ -2,10 +2,12 @@ with Droopi.CORBA_P.Exceptions; use Droopi.CORBA_P.Exceptions;
 with CORBA.Policy.Servant_Retention_Policy;
 with CORBA.Policy_Values;
 with CORBA.POA;
+with CORBA.Policy_Types;
 
 package body CORBA.Policy.Request_Processing_Policy.Active_Object_Map_Only is
 
    use CORBA.Policy_Values;
+   use CORBA.Policy_Types;
 
    ------------
    -- Create --

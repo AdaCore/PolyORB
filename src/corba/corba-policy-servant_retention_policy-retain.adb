@@ -5,10 +5,12 @@ with CORBA.Policy.Lifespan_Policy;
 with CORBA.Policy.Request_Processing_Policy;
 with CORBA.Policy.Implicit_Activation_Policy;
 with CORBA.POA;
+with CORBA.Policy_Types;
 
 package body CORBA.Policy.Servant_Retention_Policy.Retain is
 
    use CORBA.Policy_Values;
+   use CORBA.Policy_Types;
 
    ------------
    -- Create --

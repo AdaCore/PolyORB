@@ -1,10 +1,12 @@
 with Droopi.CORBA_P.Exceptions; use Droopi.CORBA_P.Exceptions;
 
 with CORBA.POA;
+with CORBA.Policy_Types;
 
 package body CORBA.Policy.Lifespan_Policy.Transient is
 
    use CORBA.Policy_Values;
+   use CORBA.Policy_Types;
 
    ------------
    -- Create --
