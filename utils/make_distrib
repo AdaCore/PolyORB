@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //droopi/main/utils/make_distrib#6 $
+# $Id: //droopi/main/utils/make_distrib#7 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
@@ -132,7 +132,7 @@ awk '
     manifest[nf++] = $0;
     next;
   }
-  /^AC_CONFIG_FILES/ {
+  /^AC_OUTPUT\(/ {
     st = 1; print; next;
   }
   st == 1 && /^\]/ {
@@ -170,11 +170,8 @@ echo Adapting modes
 chmod -R og=u-w .
 flist=""
 echo Packaging
-for i in `cat MANIFEST`; do
-  flist="${flist} ${dir}/${i}"
-done
 cd ..
-tar cf ${dir}.tar ${flist}
+tar cf ${dir}.tar `sed s,^,${dir}/, < ${dir}/MANIFEST`
 gzip --best ${dir}.tar
 ls -l ${dir}.tar.gz
 mv ${dir}.tar.gz ${prev}

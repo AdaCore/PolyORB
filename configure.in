@@ -296,7 +296,7 @@ dnl Important! One file per line, nothing before
 dnl or after except whitespace! This section
 dnl is edited automatically by make_distrib.
 
-AC_CONFIG_FILES([
+AC_OUTPUT([
 	Makefile
 	compilers/Makefile
 	compilers/gnatprfh/Makefile
@@ -355,7 +355,6 @@ AC_CONFIG_FILES([
 	support/linker
 	polyorb-config
 ])
-AC_OUTPUT
 
 ##########################################
 # Clean up
