@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 2001-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -136,6 +136,11 @@ package PolyORB.POA_Types is
    --  Marshall an Unmarshalled_Oid into an Object_Id. The caller
    --  is responsible for deallocating the returned Object_Id_Access
    --  after use.
+
+   function U_Oid_To_Oid
+     (U_Oid : Unmarshalled_Oid)
+     return Object_Id;
+   --  Marshall an Unmarshalled_Oid into an Object_Id.
 
    procedure Free (X : in out PolyORB.POA_Types.Object_Id_Access)
      renames PolyORB.Objects.Free;

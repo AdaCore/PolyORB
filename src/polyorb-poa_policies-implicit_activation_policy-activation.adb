@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      POLYORB.POA_POLICIES.IMPLICIT_ACTIVATION_POLICY.NO_ACTIVATION       --
+--       POLYORB.POA_POLICIES.IMPLICIT_ACTIVATION_POLICY.ACTIVATION         --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -30,15 +30,19 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
+with PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;
+with PolyORB.POA_Policies.Id_Assignment_Policy.System;
+with PolyORB.POA;
+
+package body PolyORB.POA_Policies.Implicit_Activation_Policy.Activation is
 
    ------------
    -- Create --
    ------------
 
-   function Create return No_Activation_Policy_Access is
+   function Create return Activation_Policy_Access is
    begin
-      return new No_Activation_Policy;
+      return new Activation_Policy;
    end Create;
 
    -------------------------
@@ -46,17 +50,37 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
    -------------------------
 
    procedure Check_Compatibility
-     (Self : No_Activation_Policy;
+     (Self : Activation_Policy;
       Other_Policies   : AllPolicies)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
-      pragma Unreferenced (Other_Policies);
       pragma Warnings (On);
 
+      use PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;
+      use PolyORB.POA_Policies.Id_Assignment_Policy.System;
+
    begin
-      null;
-      --  No rule to test.
+      --  Implcit activation requires System_ID and Retain Policies.
+
+      for I in Other_Policies'Range loop
+         if Other_Policies (I).all in
+           POA_Policies.Servant_Retention_Policy.Servant_Retention_Policy
+         and then not (Other_Policies (I).all in Non_Retain_Policy) then
+            raise PolyORB.POA.Invalid_Policy;
+            --  XXX we may raise an exception, but should we ?
+         end if;
+
+         if Other_Policies (I).all in
+           POA_Policies.Id_Assignment_Policy.Id_Assignment_Policy
+         and then not (Other_Policies (I).all in System_Id_Policy) then
+            raise PolyORB.POA.Invalid_Policy;
+            --  XXX we may raise an exception, but should we ?
+         end if;
+
+
+      end loop;
+
    end Check_Compatibility;
 
    ---------------
@@ -64,7 +88,7 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
    ---------------
 
    function Policy_Id
-     (Self : No_Activation_Policy)
+     (Self : Activation_Policy)
      return String
    is
       pragma Warnings (Off);
@@ -72,7 +96,7 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
       pragma Warnings (On);
 
    begin
-      return "IMPLICIT_ACTIVATION_POLICY.NO_ACTIVATION";
+      return "IMPLICIT_ACTIVATION_POLICY.ACTIVATION";
    end Policy_Id;
 
    -------------------------------
@@ -80,7 +104,7 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
    -------------------------------
 
    function Implicit_Activate_Servant
-     (Self      : No_Activation_Policy;
+     (Self      : Activation_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servants.Servant_Access)
      return Object_Id_Access
@@ -95,4 +119,4 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
       return null;
    end Implicit_Activate_Servant;
 
-end PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation;
+end PolyORB.POA_Policies.Implicit_Activation_Policy.Activation;

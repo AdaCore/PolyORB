@@ -38,6 +38,7 @@ with PolyORB.POA_Policies.Id_Assignment_Policy.User;
 with PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple;
 with PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique;
 
+with PolyORB.POA_Policies.Implicit_Activation_Policy.Activation;
 with PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation;
 
 with PolyORB.POA_Policies.Lifespan_Policy.Persistent;
@@ -61,6 +62,7 @@ package body PolyORB.CORBA_P.POA_Config is
    use PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple;
    use PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique;
 
+   use PolyORB.POA_Policies.Implicit_Activation_Policy.Activation;
    use PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation;
 
    use PolyORB.POA_Policies.Lifespan_Policy.Persistent;
@@ -152,7 +154,9 @@ package body PolyORB.CORBA_P.POA_Config is
 
       case Ap is
          when IMPLICIT_ACTIVATION =>
-            raise Not_Implemented;
+            Append (Result,
+                    Policy_Access
+                    (Implicit_Activation_Policy.Activation.Create));
 
          when NO_IMPLICIT_ACTIVATION =>
             Append (Result,

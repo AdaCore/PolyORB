@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      POLYORB.POA_POLICIES.IMPLICIT_ACTIVATION_POLICY.NO_ACTIVATION       --
+--       POLYORB.POA_POLICIES.IMPLICIT_ACTIVATION_POLICY.ACTIVATION         --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
@@ -30,69 +30,25 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
+package PolyORB.POA_Policies.Implicit_Activation_Policy.Activation is
 
-   ------------
-   -- Create --
-   ------------
+   type Activation_Policy is new ImplicitActivationPolicy with null record;
+   type Activation_Policy_Access is access all Activation_Policy;
 
-   function Create return No_Activation_Policy_Access is
-   begin
-      return new No_Activation_Policy;
-   end Create;
-
-   -------------------------
-   -- Check_Compatibility --
-   -------------------------
+   function Create return Activation_Policy_Access;
 
    procedure Check_Compatibility
-     (Self : No_Activation_Policy;
-      Other_Policies   : AllPolicies)
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Unreferenced (Other_Policies);
-      pragma Warnings (On);
-
-   begin
-      null;
-      --  No rule to test.
-   end Check_Compatibility;
-
-   ---------------
-   -- Policy_Id --
-   ---------------
+     (Self : Activation_Policy;
+      Other_Policies   : AllPolicies);
 
    function Policy_Id
-     (Self : No_Activation_Policy)
-     return String
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-
-   begin
-      return "IMPLICIT_ACTIVATION_POLICY.NO_ACTIVATION";
-   end Policy_Id;
-
-   -------------------------------
-   -- Implicit_Activate_Servant --
-   -------------------------------
+     (Self : Activation_Policy)
+     return String;
 
    function Implicit_Activate_Servant
-     (Self      : No_Activation_Policy;
+     (Self      : Activation_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servants.Servant_Access)
-     return Object_Id_Access
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Unreferenced (OA);
-      pragma Unreferenced (P_Servant);
-      pragma Warnings (On);
+     return Object_Id_Access;
 
-   begin
-      return null;
-   end Implicit_Activate_Servant;
-
-end PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation;
+end PolyORB.POA_Policies.Implicit_Activation_Policy.Activation;

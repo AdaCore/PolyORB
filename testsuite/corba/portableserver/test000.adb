@@ -58,11 +58,13 @@ with CORBA.Impl;
 with PortableServer.POA;
 with PortableServer.POAManager;
 
+with Echo.Helper;
 with Echo.Impl;
 
 with Test_Job;
 
 procedure Test000 is
+   pragma Warnings (Off);
 
    use Ada.Exceptions;
    use Ada.Text_IO;
@@ -92,10 +94,13 @@ procedure Test000 is
    --  Test POA Manager behavior.
 
    procedure Test_Single_Thread_Policy;
-   --  Test POA Single_Thread Thread Policy;
+   --  Test POA Single_Thread Thread Policy.
 
    procedure Test_Main_Thread_Policy;
-   --  Test POA Main_Thread Thread Policy;
+   --  Test POA Main_Thread Thread Policy.
+
+   procedure Test_Activation_Policies;
+   --  Test Servant Actication Policies.
 
    ---------------
    -- Test_Init --
@@ -122,12 +127,10 @@ procedure Test000 is
       Obj     : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
 
    begin
-      CORBA.Object.Set
-        (CORBA.Object.Ref (Obj_Ref),
-         CORBA.Object.Object_Of
-         (Servant_To_Reference (To_POA,
-                                PortableServer.Servant (Obj))));
-      --  Not clear it is the correct way to do things ...
+      Obj_Ref := Echo.Helper.To_Ref
+        (PortableServer.POA.Servant_To_Reference
+         (To_POA,
+          PortableServer.Servant (Obj)));
 
       PolyORB.Report.Output ("Attach servant to POA " &
                              To_Standard_String (Get_The_Name (To_POA)),
@@ -147,7 +150,7 @@ procedure Test000 is
          begin
             PolyORB.Report.Output
               ("Invocation on reentrant servant",
-               IOR = Echo.EchoString_Reentrant (Obj_Ref, IOR));
+               IOR = Echo.echoString_reentrant (Obj_Ref, IOR));
          end;
       else
          PolyORB.Report.Output
@@ -168,6 +171,7 @@ procedure Test000 is
       Root_POA : PortableServer.POA.Ref;
       Obj_Ref  : Echo.Ref;
    begin
+      PolyORB.Report.New_Test ("RootPOA");
       --  Get a reference on the RootPOA.
       --  XXX should use Get_Initial_References !
       Root_POA := Get_Root_POA;
@@ -189,21 +193,22 @@ procedure Test000 is
       Child_POA : PortableServer.POA.Ref;
       Obj_Ref  : Echo.Ref;
    begin
-      PolyORB.Report.Output ("Begin tests on POAManager", True);
+      PolyORB.Report.New_Test ("POAManager");
 
       --  Register a Child POA.
 
-      Child_POA := PortableServer.POA.Ref (PortableServer.POA.Create_POA
-        (Root_POA,
-         To_CORBA_String ("Child_POA"),
-         PortableServer.POA.Get_The_POAManager (Root_POA),
-         PortableServer.ORB_CTRL_MODEL,
-         PortableServer.TRANSIENT,
-         PortableServer.UNIQUE_ID,
-         PortableServer.SYSTEM_ID,
-         PortableServer.NO_IMPLICIT_ACTIVATION,
-         PortableServer.RETAIN,
-         PortableServer.USE_ACTIVE_OBJECT_MAP_ONLY));
+      Child_POA := PortableServer.POA.Ref
+        (PortableServer.POA.Create_POA
+         (Root_POA,
+          To_CORBA_String ("Child_POA"),
+          PortableServer.POA.Get_The_POAManager (Root_POA),
+          PortableServer.ORB_CTRL_MODEL,
+          PortableServer.TRANSIENT,
+          PortableServer.UNIQUE_ID,
+          PortableServer.SYSTEM_ID,
+          PortableServer.NO_IMPLICIT_ACTIVATION,
+          PortableServer.RETAIN,
+          PortableServer.USE_ACTIVE_OBJECT_MAP_ONLY));
       PolyORB.Report.Output ("Created child POA", True);
 
       Attach_Servant (Child_POA, Obj_Ref);
@@ -275,7 +280,7 @@ procedure Test000 is
       Child_POA : PortableServer.POA.Ref;
       Obj_Ref, Obj_Ref2  : Echo.Ref;
    begin
-      PolyORB.Report.Output ("Begin tests of Single Thread Policy", True);
+      PolyORB.Report.New_Test ("Single Thread Policy");
 
       --  Register a Child POA.
 
@@ -301,7 +306,7 @@ procedure Test000 is
       --  PolyORB.POA_Policies.Thread_Policy.Single_Thread for more details.
 
       Attach_Servant (Child_POA, Obj_Ref);
-      Invoke_On_Servant (Obj_Ref, True);
+      --      Invoke_On_Servant (Obj_Ref, True);
 
       --  Test multiple calls on the same servant.
       Test_Job.Global_Obj_Ref := Obj_Ref;
@@ -340,7 +345,7 @@ procedure Test000 is
       Child_POA : PortableServer.POA.Ref;
       Obj_Ref, Obj_Ref2  : Echo.Ref;
    begin
-      PolyORB.Report.Output ("Begin tests of Main Thread Policy", True);
+      PolyORB.Report.New_Test ("Main Thread Policy");
 
       --  Register a Child POA.
 
@@ -385,12 +390,73 @@ procedure Test000 is
 
    end Test_Main_Thread_Policy;
 
+   ------------------------------
+   -- Test_Activation_Policies --
+   ------------------------------
+
+   procedure Test_Activation_Policies
+   is
+      Root_POA : constant PortableServer.POA.Ref := Get_Root_POA;
+
+   begin
+      PolyORB.Report.New_Test ("Activation Policies");
+
+      --  Servant_To_Refence implicitely activates servant.
+
+      declare
+         Servant : constant PortableServer.Servant := new Echo.Impl.Object;
+         Obj_Ref : Echo.Ref;
+      begin
+         Obj_Ref := Echo.Helper.To_Ref
+           (PortableServer.POA.Servant_To_Reference (Root_POA, Servant));
+
+         PolyORB.Report.Output ("Implicitly activate servant in POA " &
+                                To_Standard_String (Get_The_Name (Root_POA)),
+                                True);
+
+         Invoke_On_Servant (Obj_Ref);
+
+         PolyORB.Report.Output
+           ("Default Repository_Id is correct",
+            Echo.Repository_Id = To_Standard_String
+            (Get_Type_Id (Reference_To_Servant (Root_POA, Obj_Ref))));
+
+      end;
+
+      --  Explicitely activate servant.
+
+      declare
+         Servant : constant PortableServer.Servant := new Echo.Impl.Object;
+         Obj_Ref : Echo.Ref;
+
+         OID : ObjectId := PortableServer.POA.Activate_Object
+           (Root_POA, Servant);
+
+      begin
+         PolyORB.Report.Output ("Servant Activated", True);
+
+         Obj_Ref := Echo.Helper.To_Ref
+           (PortableServer.POA.Servant_To_Reference
+            (Root_POA, Servant));
+
+         Invoke_On_Servant (Obj_Ref);
+
+         PolyORB.Report.Output
+           ("Default Repository_Id is correct",
+            Echo.Repository_Id = To_Standard_String
+            (Get_Type_Id (Reference_To_Servant (Root_POA, Obj_Ref))));
+
+      end;
+
+   end Test_Activation_Policies;
+
 begin
    Test_Init;
    Test_Root_POA;
    Test_POAManager;
    Test_Single_Thread_Policy;
    Test_Main_Thread_Policy;
+   Test_Activation_Policies;
 
    PolyORB.Report.End_Report;
 
@@ -405,5 +471,6 @@ exception
                 & " : "
                 & Exception_Message (E));
       PolyORB.Report.Output ("END TESTS", False);
+      GNAT.OS_Lib.OS_Exit (1);
 
 end Test000;

@@ -318,4 +318,16 @@ package body PolyORB.POA_Types is
       return Oid;
    end U_Oid_To_Oid;
 
+   function U_Oid_To_Oid
+     (U_Oid : Unmarshalled_Oid)
+     return Object_Id is
+   begin
+      return Object_Id'
+        (Object_Id
+         (Put_String    (U_Oid.Creator)
+          & Put_String  (U_Oid.Id)
+          & Put_Boolean (U_Oid.System_Generated)
+          & Put_ULong   (U_Oid.Persistency_Flag)));
+   end U_Oid_To_Oid;
+
 end PolyORB.POA_Types;

@@ -49,21 +49,23 @@ with PolyORB.POA_Config.Minimum;
 with PolyORB.Setup.Proxies_POA;
 --  XXX should be depended upon only when proxies are desired.
 
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-with CORBA.Object;
-pragma Warnings (Off, CORBA.Object);
 with CORBA.AbstractBase;
 pragma Warnings (Off, CORBA.AbstractBase);
 
-with CORBA;
+with CORBA.Impl;
+pragma Warnings (Off, CORBA.Impl);
+
+with CORBA.Object;
+pragma Warnings (Off, CORBA.Object);
+
 with CORBA.ORB;
 
+with PolyORB.Log;
+
 with PortableServer.POA;
-with PortableServer.POAManager;
 pragma Elaborate_All (PortableServer.POA);
 
-with PolyORB.Log;
+with PortableServer.POAManager;
 
 package body PolyORB.CORBA_P.Server_Tools is
 

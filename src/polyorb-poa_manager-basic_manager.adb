@@ -103,13 +103,9 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
       --  If we were holding requests, reemit them.
 
-      if Self.PM_Hold_Servant = null then
-         pragma Debug (O ("No hold servant !"));
-         null;
-      else
-         if Length (Self.Holded_Requests) > 0 then
-            Reemit_Requests (Self);
-         end if;
+      if Self.PM_Hold_Servant /= null
+        and then Length (Self.Holded_Requests) > 0 then
+         Reemit_Requests (Self);
       end if;
 
       pragma Debug (O ("Activate POAManager: leave"));
@@ -254,32 +250,18 @@ package body PolyORB.POA_Manager.Basic_Manager is
    is
       use PolyORB.POA_Types.POA_Sequences;
 
-      procedure Free is new Ada.Unchecked_Deallocation
-        (POAList, POAList_Access);
-
    begin
       pragma Debug (O ("Create a new Basic_POA_Manager"));
-      --  XXX could we assume 'M' is a real empty access to a
-      --  Basic_POA ?  if 'yes', no need to w/ lock , if 'no', should
-      --  deallocate some structs before ...
 
       Create (M.State_Lock);
       Create (M.Count_Lock);
       Create (M.POAs_Lock);
       Create (M.Queue_Lock);
 
-      Lock_W (M.POAs_Lock);
-
-      if M.Managed_POAs /= null then
-         Free (M.Managed_POAs);
-      end if;
-
       M.Managed_POAs := new POAList;
-      Unlock_W (M.POAs_Lock);
 
-      Lock_W (M.State_Lock);
       M.Current_State := HOLDING;
-      Unlock_W (M.State_Lock);
+
    end Create;
 
    ------------------
@@ -446,12 +428,16 @@ package body PolyORB.POA_Manager.Basic_Manager is
       procedure Free is new Ada.Unchecked_Deallocation
         (Hold_Servant, Hold_Servant_Access);
 
+      procedure Free is new Ada.Unchecked_Deallocation
+        (POAList, POAList_Access);
+
    begin
       Lock_R (Self.Count_Lock);
 
       if Self.Usage_Count = 0 then
          pragma Debug (O ("POAManager is no longer used, destroying it"));
          Unlock_R (Self.Count_Lock);
+
          Destroy (Self.State_Lock);
          Destroy (Self.Count_Lock);
          Destroy (Self.POAs_Lock);
@@ -460,6 +446,8 @@ package body PolyORB.POA_Manager.Basic_Manager is
          if Self.PM_Hold_Servant /= null then
             Free (Self.PM_Hold_Servant);
          end if;
+
+         Free (Self.Managed_POAs);
 
          Finalize (Self);
          pragma Debug (O ("POAManager destroyed."));

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#26 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#27 $
 
 with Ada.Exceptions;
 
@@ -325,13 +325,12 @@ package body PortableServer.POA is
       use PolyORB.CORBA_P.POA_Config;
 
       Res : PolyORB.POA.Obj_Adapter_Access;
-      POA : constant PolyORB.POA.Obj_Adapter_Access
-        := To_POA (Self);
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
    begin
-      pragma Debug (O ("Creating POA"
+      pragma Debug (O ("Creating POA "
                        & CORBA.To_Standard_String (Adapter_Name)));
 
-      --  Note : Policy compability is ensured by 'PolyORB.POA.Create_POA'.
+      --  Note : Policy compability is tested by PolyORB.POA.Create_POA.
 
       Res := PolyORB.POA.Create_POA
         (POA,
@@ -340,7 +339,14 @@ package body PortableServer.POA is
          (PortableServer.POAManager.Entity_Of (A_POAManager)),
          Create_PolicyList (Tp, Lp, Up, Ip, Ap, Sp, Rp));
 
-      return Create_Ref (PolyORB.Smart_Pointers.Entity_Ptr (Res));
+      pragma Debug (O ("POA created"));
+
+      declare
+         New_Ref : Ref'Class :=
+           Create_Ref (PolyORB.Smart_Pointers.Entity_Ptr (Res));
+      begin
+         return New_Ref;
+      end;
    end Create_POA;
 
    --------------
@@ -381,7 +387,7 @@ package body PortableServer.POA is
    -------------
 
    procedure Destroy
-     (Self                : in Ref;
+     (Self                : in out Ref;
       Etherealize_Objects : in CORBA.Boolean;
       Wait_For_Completion : in CORBA.Boolean)
    is
@@ -394,18 +400,18 @@ package body PortableServer.POA is
          PolyORB.Types.Boolean (Etherealize_Objects),
          PolyORB.Types.Boolean (Wait_For_Completion));
 
-      --  FIXME: Huh, SELF is still a reference to an invalid POA.
-      --    --> file an issue against the spec to have Ref converted
-      --        to an 'in out' arg...
-      null;
+      --  XXX CORBA Specifications says 'Self' should be an 'in'
+      --  parameter; by doin so 'Self' is still a reference to an
+      --  invalid POA --> file an issue against the spec to have Ref
+      --  converted to an 'in out' arg...
+
    end Destroy;
 
    -----------------
    -- Get_Servant --
    -----------------
 
-   function Get_Servant
-     (Self : Ref)
+   function Get_Servant (Self : Ref)
      return Servant
    is
 --       POA : constant PolyORB.POA.Obj_Adapter_Access
@@ -457,8 +463,7 @@ package body PortableServer.POA is
       P_Servant : Servant)
      return ObjectId
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Access
-        := To_POA (Self);
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 
    begin
       return ObjectId (PolyORB.POA.Activate_Object
@@ -499,8 +504,7 @@ package body PortableServer.POA is
      (Self : in Ref;
       Oid  : in ObjectId)
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Access
-        := To_POA (Self);
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 
       A_Oid : aliased constant PolyORB.POA_Types.Object_Id
         := PolyORB.POA_Types.Object_Id (Oid);
@@ -518,15 +522,26 @@ package body PortableServer.POA is
       Intf : CORBA.RepositoryId)
       return CORBA.Object.Ref
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Access
-        := To_POA (Self);
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+
+      Oid : aliased PolyORB.POA_Types.Object_Id :=
+        PolyORB.POA_Types.U_Oid_To_Oid
+        (PolyORB.POA.Create_Object_Identification (POA));
+
+      P_Result : PolyORB.References.Ref;
+      C_Result : CORBA.Object.Ref;
 
    begin
-      raise PolyORB.Not_Implemented;
+      PolyORB.ORB.Create_Reference
+        (PolyORB.Setup.The_ORB,
+         Oid'Access,
+         CORBA.To_Standard_String (Intf),
+         P_Result);
+      --  Obtain object reference.
 
-      pragma Warnings (Off);
-      return Create_Reference (Self, Intf);
-      pragma Warnings (On);
+      CORBA.Object.Convert_To_CORBA_Ref (P_Result, C_Result);
+      return C_Result;
+
    end Create_Reference;
 
    ------------------------------
@@ -539,15 +554,30 @@ package body PortableServer.POA is
       Intf : CORBA.RepositoryId)
       return CORBA.Object.Ref
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Access
-        := To_POA (Self);
+      use PolyORB.POA_Types;
+
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+
+      OOid : constant Object_Id_Access := new Object_Id'(Object_Id (Oid));
+
+      A_Oid : aliased PolyORB.POA_Types.Object_Id :=
+        PolyORB.POA_Types.U_Oid_To_Oid
+        (PolyORB.POA.Create_Object_Identification (POA, OOid));
+
+      P_Result : PolyORB.References.Ref;
+      C_Result : CORBA.Object.Ref;
 
    begin
-      raise PolyORB.Not_Implemented;
+      PolyORB.ORB.Create_Reference
+        (PolyORB.Setup.The_ORB,
+         A_Oid'Access,
+         CORBA.To_Standard_String (Intf),
+         P_Result);
+      --  Obtain object reference.
 
-      pragma Warnings (Off);
-      return Create_Reference_With_Id (Self, Oid, Intf);
-      pragma Warnings (On);
+      CORBA.Object.Convert_To_CORBA_Ref (P_Result, C_Result);
+      return C_Result;
+
    end Create_Reference_With_Id;
 
    -------------------
@@ -559,8 +589,7 @@ package body PortableServer.POA is
       P_Servant : Servant)
      return ObjectId
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Access
-        := To_POA (Self);
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 
    begin
       return ObjectId (PolyORB.POA.Servant_To_Id
@@ -576,7 +605,7 @@ package body PortableServer.POA is
       P_Servant : Servant)
      return CORBA.Object.Ref
    is
-      POA  : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
       Oid : aliased PolyORB.Objects.Object_Id
         := PolyORB.POA.Export (POA, To_PolyORB_Servant (P_Servant));
       TID : constant Standard.String
@@ -601,7 +630,6 @@ package body PortableServer.POA is
      (Self : Ref;
       Reference : CORBA.Object.Ref'Class)
      return ObjectId is
-
    begin
       --  XXX does someone know a better implementation ?
 
@@ -645,8 +673,7 @@ package body PortableServer.POA is
       Oid  : ObjectId)
      return Servant
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Access
-        := To_POA (Self);
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 
    begin
       return Servant (CORBA.Impl.To_CORBA_Servant
