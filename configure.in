@@ -247,25 +247,40 @@ AC_SUBST(PROTOCOLSOBJECTS)
 AC_SUBST(TCP_INCLUDED)
 AC_SUBST(ISTHRBIO)
 #
-# Default boot server address
+# Default storage location
 #
-AC_ARG_WITH(boot-server,
-[  --with-boot-server=url  Default boot server (url=<protocol>:<data>)],
+AC_ARG_WITH(data-location,
+[  --with-data-location=x  Default data location (x=<name>://<data>)],
 [
-AC_MSG_CHECKING([for default boot server address])
+DEFSTORAGENAME=`echo ${withval} | ${SED} 's,^\(.*\)://.*$,\1,'`
+DEFSTORAGEDATA=`echo ${withval} | ${SED} 's,^.*://\(.*\)$,\1,'`
+],
+[
+DEFSTORAGENAME="dfs"
+DEFSTORAGEDATA=""
+])
+AC_MSG_CHECKING([for default data location])
+AC_MSG_RESULT([${DEFSTORAGENAME}://${DEFSTORAGEDATA}])
+AC_SUBST(DEFSTORAGENAME)
+AC_SUBST(DEFSTORAGEDATA)
+#
+# Default boot location
+#
+AC_ARG_WITH(boot-location,
+[  --with-boot-location=x  Default boot location (x=<name>://<data>)],
+[
 DEFPROTOCOLNAME=`echo ${withval} | ${SED} 's,^\(.*\)://.*$,\1,'`
 DEFPROTOCOLDATA=`echo ${withval} | ${SED} 's,^.*://\(.*\)$,\1,'`
-AC_MSG_RESULT([${DEFPROTOCOLNAME}://${DEFPROTOCOLDATA}])
 ],
 [
 if test -z "${TCP_INCLUDED}"; then
-  AC_MSG_CHECKING([for default boot server address])
   DEFPROTOCOLDATA=`echo 000$$ | ${SED} 's,^.*\(...\)$,localhost:5\1,'`
-  AC_MSG_RESULT([${DEFPROTOCOLNAME}://${DEFPROTOCOLDATA}])
 else
   BOOT_SERVER=""
 fi
 ])
+AC_MSG_CHECKING([for default boot location])
+AC_MSG_RESULT([${DEFPROTOCOLNAME}://${DEFPROTOCOLDATA}])
 AC_SUBST(DEFPROTOCOLNAME)
 AC_SUBST(DEFPROTOCOLDATA)
 #
