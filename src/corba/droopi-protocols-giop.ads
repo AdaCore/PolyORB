@@ -295,37 +295,37 @@ package Droopi.Protocols.GIOP is
 
    procedure Exception_Reply
      (Ses             : access GIOP_Session;
-      Pend_Req      : access Pending_Request;
+      Request         :  Requests.Request_Access;
       Exception_Type  : in Reply_Status_Type;
       Occurence       : in CORBA.Exception_Occurrence;
       Fragment_Next   : out Boolean);
 
    procedure Location_Forward_Reply
      (Ses             : access GIOP_Session;
-      Pend_Req      : access Pending_Request;
+      Request         :  Requests.Request_Access;
       Forward_Ref     : in Droopi.References.IOR.IOR_Type;
       Fragment_Next   : out Boolean);
 
    procedure Need_Addressing_Mode_Message
      (Ses             : access GIOP_Session;
-      Pend_Req      : access Pending_Request;
+      Request         : Requests.Request_Access;
       Address_Type    : in Addressing_Disposition);
 
    procedure Cancel_Request_Message
      (Ses             : access GIOP_Session;
-      Pend_Req      : access Pending_Request);
+      Request         : Requests.Request_Access);
 
 
    procedure Locate_Request_Message
      (Ses             : access GIOP_Session;
-      Pend_Req      : access Pending_Request;
+      Request         : Requests.Request_Access;
       Object_Key      : in Objects.Object_Id_Access;
       Fragment_Next   : out Boolean);
 
 
    procedure Locate_Reply_Message
      (Ses             : access GIOP_Session;
-      Pend_Req      : access Pending_Request;
+      Request         : Requests.Request_Access;
       Locate_Status   : in Locate_Status_Type);
 
    ----------------------------
@@ -393,17 +393,11 @@ package Droopi.Protocols.GIOP is
 
    GIOP_Error : exception;
 
-   --  for debugging purposes
-   function Ret_Id (Pend : Pending_Request)
-     return Types.Unsigned_Long;
-
-
 private
 
    type Pending_Request is
      record
        Req             : Requests.Request_Access;
-       Request_Id      : Types.Unsigned_Long := 0;
        Target_Profile  : Binding_Data.Profile_Access;
      end record;
 
