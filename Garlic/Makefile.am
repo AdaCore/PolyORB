@@ -95,11 +95,13 @@ ${srcdir}/s-stratt.adb
 OBJECTS = \
 @PROTOCOLSOBJECTS@ \
 @LAUNCHINGOBJECTS@ \
+$(FITLERSSOURCES) \
 $(COMMONOBJECTS)
 
 SOURCES = \
 @PROTOCOLSSOURCES@ \
 @LAUNCHINGSOURCES@ \
+$(FILTERSOBJECTS) \
 $(COMMONSOURCES)
 
 CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads s-gaosli.ads s-gaprco.adb \
@@ -131,7 +133,7 @@ s-garcon.ads: ${CONSTANTS_SH}
 s-gtplsp.ads: ${srcdir}/${TCP_PLATFORM}
 	cp ${srcdir}/${TCP_PLATFORM} s-gtplsp.ads
 
-all-local: ${OBJECTS} ${SOURCES} ${FILTERSOURCES} ${FILTEROBJECTS}
+all-local: ${OBJECTS} ${SOURCES}
 
 install-dirs-local:
 	-rm -rf ${GARLIC}
