@@ -1345,21 +1345,29 @@ package body Osint is
       --  environment variable. Get this value, extract the directory names
       --  and store in the tables.
 
+      --  On VMS, don't expand the logical name (e.g. environment variable),
+      --  just put it into Unix (e.g. canonical) format. System services
+      --  will handle the expansion as part of the file processing.
+
       for Additional_Source_Dir in False .. True loop
 
          if Additional_Source_Dir then
-            if Hostparm.OpenVMS then
-               Search_Path := To_Canonical_Path_Spec ("ADA_INCLUDE_PATH:");
-            else
-               Search_Path := To_Canonical_Path_Spec
-                 (Getenv ("ADA_INCLUDE_PATH").all);
+            Search_Path := Getenv ("ADA_INCLUDE_PATH");
+            if Search_Path'Length > 0 then
+               if Hostparm.OpenVMS then
+                  Search_Path := To_Canonical_Path_Spec ("ADA_INCLUDE_PATH:");
+               else
+                  Search_Path := To_Canonical_Path_Spec (Search_Path.all);
+               end if;
             end if;
          else
-            if Hostparm.OpenVMS then
-               Search_Path := To_Canonical_Path_Spec ("ADA_OBJECTS_PATH:");
-            else
-               Search_Path := To_Canonical_Path_Spec
-                 (Getenv ("ADA_OBJECTS_PATH").all);
+            Search_Path := Getenv ("ADA_OBJECTS_PATH");
+            if Search_Path'Length > 0 then
+               if Hostparm.OpenVMS then
+                  Search_Path := To_Canonical_Path_Spec ("ADA_OBJECTS_PATH:");
+               else
+                  Search_Path := To_Canonical_Path_Spec (Search_Path.all);
+               end if;
             end if;
          end if;
 

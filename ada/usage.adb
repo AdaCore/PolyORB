@@ -147,11 +147,6 @@ begin
    Write_Switch_Char ("D");
    Write_Line ("Debug expanded generated code rather than source code");
 
-   --  Line for -gnate switch
-
-   Write_Switch_Char ("e");
-   Write_Line ("Error messages generated immediately, not saved up till end");
-
    --  Line for -gnatE switch
 
    Write_Switch_Char ("E");
@@ -244,8 +239,8 @@ begin
 
    --  Line for -gnatR switch
 
-   Write_Switch_Char ("R");
-   Write_Line ("List representation information");
+   Write_Switch_Char ("R?");
+   Write_Line ("List representation information (?=0/1/2 for none/types/all)");
 
    --  Lines for -gnats switch
 
@@ -277,10 +272,34 @@ begin
    Write_Switch_Char ("v");
    Write_Line ("Verbose mode. Full error output with source lines to stdout");
 
+   --  Line for -gnatV switch
+
+   Write_Switch_Char ("V?");
+   Write_Line ("Validity checking (?=n/d/f for None/Default/Full)");
+
    --  Lines for -gnatw switch
 
    Write_Switch_Char ("w?");
-   Write_Line ("Warning mode. (?=s/e/l/u for suppress/error/elab/undefined)");
+
+   Write_Switch_Char ("wxxx");
+   Write_Line ("Enable selected warning modes, xxx = list of parameters:");
+   Write_Line ("        a    turn on all optional warnings (except h)");
+   Write_Line ("        A    turn off all optional warnings");
+   Write_Line ("        c    turn on constant conditional warnings");
+   Write_Line ("        C*   turn off constant conditional warnings");
+   Write_Line ("        e    treat all warnings as errors");
+   Write_Line ("        h    turn on warnings for hiding variables");
+   Write_Line ("        H*   turn off warnings for hiding variables");
+   Write_Line ("        i*   turn on warnings for implementation units");
+   Write_Line ("        I    turn off warnings for implementation units");
+   Write_Line ("        l    turn on elaboration warnings");
+   Write_Line ("        L*   turn off elaboration warnings");
+   Write_Line ("        o*   turn on address clause overlay warnings");
+   Write_Line ("        O    turn off address clause overlay warnings");
+   Write_Line ("        s    suppress all warnings");
+   Write_Line ("        u    turn on warnings for unused entities");
+   Write_Line ("        U*   turn off warnings for unused entities");
+   Write_Line ("        *    indicates default in above list");
 
    --  Line for -gnatW switch
 

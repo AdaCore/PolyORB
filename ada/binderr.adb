@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -33,15 +33,6 @@ with Output;  use Output;
 
 package body Binderr is
 
-   -----------------------
-   -- Local Subprograms --
-   -----------------------
-
-   procedure Error_Msg_Output (Msg : String; Info : Boolean := False);
-   --  Output given message, with insertions, to current message output file.
-   --  The second argument is True for an info message, false for a normal
-   --  warning or error message.
-
    ---------------
    -- Error_Msg --
    ---------------
@@ -65,7 +56,7 @@ package body Binderr is
 
       if Brief_Output or else (not Verbose_Mode) then
          Set_Standard_Error;
-         Error_Msg_Output (Msg);
+         Error_Msg_Output (Msg, Info => False);
          Set_Standard_Output;
       end if;
 
@@ -74,7 +65,7 @@ package body Binderr is
             Write_Eol;
          end if;
 
-         Error_Msg_Output (Msg);
+         Error_Msg_Output (Msg, Info => False);
       end if;
 
       if Warnings_Detected + Errors_Detected > Maximum_Errors then
@@ -91,12 +82,12 @@ package body Binderr is
    begin
       if Brief_Output or else (not Verbose_Mode) then
          Set_Standard_Error;
-         Error_Msg_Output (Msg, True);
+         Error_Msg_Output (Msg, Info => True);
          Set_Standard_Output;
       end if;
 
       if Verbose_Mode then
-         Error_Msg_Output (Msg, True);
+         Error_Msg_Output (Msg, Info => True);
       end if;
 
    end Error_Msg_Info;
@@ -105,7 +96,7 @@ package body Binderr is
    -- Error_Msg_Output --
    ----------------------
 
-   procedure Error_Msg_Output (Msg : String; Info : Boolean := False) is
+   procedure Error_Msg_Output (Msg : String; Info : Boolean) is
       Use_Second_Name : Boolean := False;
 
    begin

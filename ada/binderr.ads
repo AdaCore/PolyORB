@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -99,6 +99,14 @@ package Binderr is
    --  that the prefix is info: instead of error: and the error count is
    --  not incremented. The prefix may be suppressed by setting the global
    --  variable Info_Prefix_Suppress to True.
+
+   procedure Error_Msg_Output (Msg : String; Info : Boolean);
+   --  Output given message, with insertions, to current message output file.
+   --  The second argument is True for an info message, false for a normal
+   --  warning or error message. Normally this is not called directly, but
+   --  rather only by Error_Msg or Error_Msg_Info. It is called directly
+   --  when the caller must control whether the output goes to stderr or
+   --  stdout (Error_Msg_Output always goes to the current output file).
 
    procedure Finalize_Binderr;
    --  Finalize error output for one file

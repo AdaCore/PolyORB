@@ -531,7 +531,7 @@ pragma Preelaborate (Types);
    pragma Inline (Get_Character);
    --  For a character C that is in character range (see above function), this
    --  function returns the corresponding Character value. It is an error to
-   --  call Get_Char if C is not in character range
+   --  call Get_Character if C is not in character range
 
    ---------------------------------------
    -- Types used for Library Management --
@@ -553,6 +553,10 @@ pragma Preelaborate (Types);
 
    No_Source_File : constant Source_File_Index := 0;
    --  Value used to indicate no source file present
+
+   System_Source_File_Index : constant Source_File_Index := 1;
+   --  Value used for source file table entry for system.ads, which is
+   --  always the first source file read (see unit Targparm for details).
 
    subtype File_Name_Type is Name_Id;
    --  File names are stored in the names table and this synonym is used to

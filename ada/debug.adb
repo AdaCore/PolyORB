@@ -68,12 +68,12 @@ package body Debug is
    --  dy   Print tree of package Standard
    --  dz   Print source of package Standard
 
-   --  dA
+   --  dA   All entities included in representation information output
    --  dB   Output debug encoding of type names and variants
    --  dC
    --  dD
    --  dE   Apply elaboration checks to predefined units
-   --  dF
+   --  dF   Front end data layout enabled.
    --  dG
    --  dH
    --  dI   Inhibit internal name numbering in gnatG listing
@@ -82,13 +82,13 @@ package body Debug is
    --  dL   Output trace information on elaboration checking
    --  dM
    --  dN   Do not generate file/line exception messages
-   --  dO
+   --  dO   Output immediate error messages
    --  dP   Do not check for controlled objects in preelaborable packages
    --  dQ
    --  dR   Bypass check for correct vesion of s-rpc
    --  dS   Never convert numbers to machine numbers in Sem_Eval
    --  dT   Convert to machine numbers only for constant declarations
-   --  dU
+   --  dU   Enable garbage collection of unreachable entities
    --  dV
    --  dW
    --  dX   Force use of zero-cost exception approach
@@ -111,7 +111,7 @@ package body Debug is
    --  db
    --  dc  List units as they are chosen
    --  dd
-   --  de
+   --  de  Elaboration dependencies including system units
    --  df
    --  dg
    --  dh
@@ -212,11 +212,16 @@ package body Debug is
    --       be effective, this swich must be used in combination with one or
    --       more of dt, dg, do or ds.
 
+   --  dF   Front end data layout enabled. Normally front end data layout
+   --       is only enabled if the target parameter Backend_Layout is False.
+   --       This debugging switch enables it unconditionally.
+
    --  dg   Print the source recreated from the generated tree. In the case
    --       where the tree has been rewritten this output includes only the
    --       generated code, not the original code (see also df,do,ds,dz).
-   --       This flag is obsolescent, since it is replaced by -gnatG, but
-   --       it is retained for compaibility with old habits and scripts.
+   --       This flag differs from -gnatG in that the output also includes
+   --       non-source generated null statements, and freeze nodes, which
+   --       are normally omitted in -gnatG mode.
 
    --  dh   Generates a table at the end of a compilation showing how the hash
    --       table chains built by the Namet package are loaded. This is useful
@@ -311,6 +316,10 @@ package body Debug is
    --       This switch forces output of the source recreated from the internal
    --       tree built for Standard.
 
+   --  dA   Forces output of representation information, including full
+   --       information for all internal type and object entities, as well
+   --       as all user defined type and object entities.
+
    --  dB   Output debug encodings for types and variants. See Exp_Dbug for
    --       exact form of the generated output.
 
@@ -329,6 +338,12 @@ package body Debug is
    --       instantiation as it is checked, and the progress of the recursive
    --       trace through calls at elaboration time.
 
+   --  dO   Output immediate error messages. This causes error messages to
+   --       be output as soon as they are generated (disconnecting several
+   --       circuits for improvement of messages, deletion of duplicate
+   --       messages etc). Useful to diagnose compiler bombs caused by
+   --       erroneous handling of error situations
+
    --  dP   Do not check for controlled objects in preelaborable packages.
    --       RM 10.2.1(9) forbids the use of library level controlled objects
    --       in preelaborable packages, but this restriction is a huge pain,
@@ -346,6 +361,10 @@ package body Debug is
 
    --  dT   Similar to dS, but omits the conversions only in the case where
    --       the parent is not a constant declaration.
+
+   --  dU   Enable garbage collection of unreachable entities. This enables
+   --       both the reachability analysis and changing the Is_Public and
+   --       Is_Eliminated flags.
 
    --  dX   Force use of zero-cost exceptions even if the system configuration
    --       specifies that they should not be used (i.e. the configuration
@@ -397,6 +416,10 @@ package body Debug is
    --  dc  List units as they are chosen. As units are selected for addition to
    --      the elaboration order, a line of output is generated showing which
    --      unit has been selected.
+
+   --  de  Similar to the effect of -e (output complete list of elaboration
+   --      dependencies) except that internal units are included in the
+   --      listing.
 
    --  dn  List details of manipulation of Num_Pred values during execution of
    --      the algorithm used to determine a correct order of elaboration. This

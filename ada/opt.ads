@@ -64,6 +64,10 @@ package Opt is
    --  Set True if operating in Ada 83 mode
    --  Set False if operating in Ada 95 mode
 
+   Address_Clause_Overlay_Warnings : Boolean := True;
+   --  GNAT
+   --  Set False to disable address clause warnings
+
    All_Errors_Mode : Boolean := False;
    --  GNAT
    --  Flag set to force display of multiple errors on a single line and
@@ -277,6 +281,11 @@ package Opt is
    --  GNAT
    --  True if High Level Optimizer is activated
 
+   Implementation_Unit_Warnings : Boolean := True;
+   --  GNAT
+   --  Set True to active warnings for use of implementation internal units.
+   --  Can be controlled by use of -gnatwi/-gnatwI.
+
    Identifier_Character_Set : Character;
    --  GNAT
    --  This variable indicates the character set to be used for identifiers.
@@ -298,15 +307,14 @@ package Opt is
    --  default value appropriate to the system (in Osint.Initialize), and then
    --  reset if a command line switch is used to change the setting.
 
-   Immediate_Errors : Boolean := False;
-   --  GNAT
-   --  If set to True, then error messages are output as soon as they are
-   --  detected (useful for navigating around compiler error situations)
-
    Inline_Active : Boolean := False;
    --  GNAT
    --  Set True to activate pragma Inline processing across modules. Default
    --  for now is not to inline across module boundaries.
+
+   Front_End_Inlining : Boolean := False;
+   --  GNAT
+   --  Set True to activate inlining by front-end expansion.
 
    Inline_Processing_Required : Boolean := False;
    --  GNAT
@@ -335,9 +343,14 @@ package Opt is
    --  outputs the list of object dependencies. This list can be used
    --  directly in a Makefile.
 
-   List_Representation_Info : Boolean := False;
+   List_Representation_Info : Int range 0 .. 2 := 0;
    --  GNAT
-   --  Set true by -gnatR switch to list representation information
+   --  Set true by -gnatR switch to list representation information.
+   --  The settings are as follows:
+   --
+   --    0 = no listing of representation information (default as above)
+   --    1 = list rep info for user defined record and array types
+   --    2 = list rep info for all user defined types and objects
 
    Locking_Policy : Character := ' ';
    --  GNAT
@@ -569,10 +582,48 @@ package Opt is
    --  GNAT
    --  Set to True if a valid pragma Use_VADS_Size is processed
 
+   type Validity_Checking_Type is (None, Default, Full);
+   Validity_Checking : Validity_Checking_Type := Default;
+   --  GNAT
+   --  Indicates level of checking for invalid values (i.e. values outside
+   --  the range of a subtype caused by uninitialized variables, as discussed
+   --  in (RM 13.9.1(9-11)).
+   --
+   --    None = No validity checking
+   --
+   --      No special checks for invalid values are performed. This means
+   --      that references to uninitialized variables can cause erroneous
+   --      behavior from constructs like case statements and subscripted
+   --      array assignments. Given that the RM allows these operations
+   --      to be implementation defined, it is arguable whether this mode
+   --      meets the letter of the RM, but it certainly does not meet the
+   --      spirit of the requirement!
+   --
+   --    Default = standard RM required validity checking
+   --
+   --      This is the default level of validity checking. In this mode
+   --      checks are made to prevent erroneous behavior in accordance
+   --      with the above RM reference. Notably extra checks may be needed
+   --      for case statements and subscripted array assignments.
+   --
+   --    Full = Full validity checking
+   --
+   --      In this mode, every assignment is checked for validity, so that
+   --      it is impossible to assign invalid values. The RM specifically
+   --      allows such assignments, but in this mode, invalid values can
+   --      never be assigned, and an attempt to perform such an assignment
+   --      immediately raises Constraint_Error. This behavior is allowed
+   --      (but not required) by the RM.
+
    Verbose_Mode : Boolean := False;
    --  GNAT, GNATBIND
    --  Set to True to get verbose mode (full error message text and location
    --  information sent to standard output, also header, copyright and summary)
+
+   Warn_On_Hiding : Boolean := False;
+   --  GNAT
+   --  Set to True to generate warnings if a declared entity hides another
+   --  entity. The default is that this warning is suppressed.
 
    type Warning_Mode_Type is (Suppress, Normal, Treat_As_Error);
    Warning_Mode : Warning_Mode_Type := Normal;
@@ -592,11 +643,6 @@ package Opt is
    --  to be recognized. If this is the main unit, this setting also
    --  controls the output of the W=? parameter in the ali file, which
    --  is used to provide the default for Wide_Text_IO files.
-
-   Xref_Analyze : Boolean := False;
-   --  GNAT
-   --  This flag is used to indicate to semantic analyzer that the current
-   --  compilation is done for GNATF. So the expander mustn't be called.
 
    Xref_Active : Boolean := True;
    --  GNAT

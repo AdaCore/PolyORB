@@ -142,7 +142,9 @@ package body Switch is
 
          --  Processing for a switch
 
-         if C = 'a' then
+         case C is
+
+         when 'a' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -155,7 +157,7 @@ package body Switch is
 
          --  Processing for A switch
 
-         elsif C = 'A' then
+         when 'A' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -168,7 +170,7 @@ package body Switch is
 
          --  Processing for b switch
 
-         elsif C = 'b' then
+         when 'b' =>
             if Program = Compiler or else Program = Binder then
                Ptr := Ptr + 1;
                Brief_Output := True;
@@ -178,7 +180,7 @@ package body Switch is
 
          --  Processing for c switch
 
-         elsif C = 'c' then
+         when 'c' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -193,7 +195,7 @@ package body Switch is
 
          --  Processing for C switch
 
-         elsif C = 'C' then
+         when 'C' =>
             Ptr := Ptr + 1;
 
             if Program = Binder then
@@ -204,7 +206,7 @@ package body Switch is
 
          --  Processing for d switch
 
-         elsif C = 'd' then
+         when 'd' =>
 
             --  Note: for the debug switch, the remaining characters in this
             --  switch field must all be debug flags, since all valid switch
@@ -239,7 +241,7 @@ package body Switch is
 
          --  Processing for D switch
 
-         elsif C = 'D' then
+         when 'D' =>
             Ptr := Ptr + 1;
 
             --  Note: -gnatD also sets -gnatx (to turn off cross-reference
@@ -257,12 +259,10 @@ package body Switch is
 
          --  Processing for e switch
 
-         elsif C = 'e' then
+         when 'e' =>
             Ptr := Ptr + 1;
 
-            if Program = Compiler then
-               Immediate_Errors := True;
-            elsif Program = Binder then
+            if Program = Binder then
                Elab_Dependency_Output := True;
             else
                raise Bad_Switch;
@@ -270,7 +270,7 @@ package body Switch is
 
          --  Processing for E switch
 
-         elsif C = 'E' then
+         when 'E' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -283,7 +283,7 @@ package body Switch is
 
          --  Processing for f switch
 
-         elsif C = 'f' then
+         when 'f' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -298,7 +298,7 @@ package body Switch is
 
          --  Processing for F switch
 
-         elsif C = 'F' then
+         when 'F' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -310,7 +310,7 @@ package body Switch is
 
          --  Processing for g switch
 
-         elsif C = 'g' then
+         when 'g' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -344,19 +344,19 @@ package body Switch is
 
          --  Processing for G switch
 
-         elsif C = 'G' then
+         when 'G' =>
             Ptr := Ptr + 1;
             Print_Generated_Code := True;
 
          --  Processing for h switch
 
-         elsif C = 'h' then
+         when 'h' =>
             Ptr := Ptr + 1;
             Usage_Requested := True;
 
          --  Processing for H switch
 
-         elsif C = 'H' then
+         when 'H' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -367,7 +367,7 @@ package body Switch is
 
          --  Processing for i switch
 
-         elsif C = 'i' then
+         when 'i' =>
             if Program = Compiler or else Program = Binder then
                if Ptr = Max then
                   raise Bad_Switch;
@@ -399,7 +399,7 @@ package body Switch is
 
          --  Processing for j switch
 
-         elsif C = 'j' then
+         when 'j' =>
             Ptr := Ptr + 1;
 
             if Program = Make then
@@ -410,7 +410,7 @@ package body Switch is
 
          --  Processing for k switch
 
-         elsif C = 'k' then
+         when 'k' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -423,7 +423,7 @@ package body Switch is
 
          --  Processing for l switch
 
-         elsif C = 'l' then
+         when 'l' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -436,7 +436,7 @@ package body Switch is
 
          --  Processing for L switch
 
-         elsif C = 'L' then
+         when 'L' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -448,7 +448,7 @@ package body Switch is
 
          --  Processing for m switch
 
-         elsif C = 'm' then
+         when 'm' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler or else Program = Binder then
@@ -459,7 +459,7 @@ package body Switch is
 
          --  Processing for M switch
 
-         elsif C = 'M' then
+         when 'M' =>
             Ptr := Ptr + 1;
 
             if Program = Make then
@@ -470,7 +470,7 @@ package body Switch is
 
          --  Processing for n switch
 
-         elsif C = 'n' then
+         when 'n' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -485,22 +485,19 @@ package body Switch is
 
          --  Processing for N switch
 
-         --  We treat this as equivalent to 'n' for back compatibility. It
-         --  used to mean inline all subprograms, but we abandoned this
-         --  capability, since it did not turn out to be useful.
-
-         elsif C = 'N' then
+         when 'N' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
                Inline_Active := True;
+               Front_End_Inlining := True;
             else
                raise Bad_Switch;
             end if;
 
          --  Processing for o switch
 
-         elsif C = 'o' then
+         when 'o' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -518,7 +515,7 @@ package body Switch is
 
          --  Processing for O switch
 
-         elsif C = 'O' then
+         when 'O' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -531,7 +528,7 @@ package body Switch is
 
          --  Processing for p switch
 
-         elsif C = 'p' then
+         when 'p' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -559,7 +556,7 @@ package body Switch is
 
          --  Processing for P switch
 
-         elsif C = 'P' then
+         when 'P' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -570,7 +567,7 @@ package body Switch is
 
          --  Processing for q switch
 
-         elsif C = 'q' then
+         when 'q' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -583,7 +580,7 @@ package body Switch is
 
          --  Processing for q switch
 
-         elsif C = 'Q' then
+         when 'Q' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -594,7 +591,7 @@ package body Switch is
 
          --  Processing for r switch
 
-         elsif C = 'r' then
+         when 'r' =>
             Ptr := Ptr + 1;
 
             --  Temporarily allow -gnatr to mean -gnatyl (use RM layout)
@@ -609,19 +606,34 @@ package body Switch is
 
          --  Processing for R switch
 
-         elsif C = 'R' then
+         when 'R' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
-               List_Representation_Info := True;
                Back_Annotate_Rep_Info := True;
+
+               if Switch_Chars (Ptr) in '0' .. '9' then
+                  C := Switch_Chars (Ptr);
+
+                  if C in '3' .. '9' then
+                     raise Bad_Switch;
+                  else
+                     List_Representation_Info :=
+                       Character'Pos (C) - Character'Pos ('0');
+                     Ptr := Ptr + 1;
+                  end if;
+
+               else
+                  List_Representation_Info := 1;
+               end if;
+
             else
                raise Bad_Switch;
             end if;
 
          --  Processing for s switch
 
-         elsif C = 's' then
+         when 's' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -638,7 +650,7 @@ package body Switch is
 
          --  Processing for t switch
 
-         elsif C = 't' then
+         when 't' =>
             Ptr := Ptr + 1;
 
             if Program = Binder then
@@ -652,7 +664,7 @@ package body Switch is
 
          --  Processing for T switch
 
-         elsif C = 'T' then
+         when 'T' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler or else Program = Binder then
@@ -664,7 +676,7 @@ package body Switch is
 
          --  Processing for u switch
 
-         elsif C = 'u' then
+         when 'u' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -675,7 +687,7 @@ package body Switch is
 
          --  Processing for U switch
 
-         elsif C = 'U' then
+         when 'U' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -686,7 +698,7 @@ package body Switch is
 
          --  Processing for v switch
 
-         elsif C = 'v' then
+         when 'v' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler
@@ -698,9 +710,34 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
+         --  Processing for V switch
+
+         when 'V' =>
+            Ptr := Ptr + 1;
+
+            if Program = Compiler then
+               case Switch_Chars (Ptr) is
+                  when 'n' =>
+                     Validity_Checking := None;
+
+                  when 'd' =>
+                     Validity_Checking := Default;
+
+                  when 'f' =>
+                     Validity_Checking := Full;
+
+                  when others =>
+                     raise Bad_Switch;
+               end case;
+
+               Ptr := Ptr + 1;
+            else
+               raise Bad_Switch;
+            end if;
+
          --  Processing for w switch
 
-         elsif C = 'w' then
+         when 'w' =>
 
             --  For the binder we only allow suppress/error cases
 
@@ -727,56 +764,78 @@ package body Switch is
 
                while Ptr < Max loop
                   Ptr := Ptr + 1;
+                  C := Switch_Chars (Ptr);
 
-                     case Switch_Chars (Ptr) is
+                  case C is
 
-                        when 'a' =>
-                           Constant_Condition_Warnings := True;
-                           Elab_Warnings               := True;
-                           Check_Unreferenced          := True;
-                           Check_Withs                 := True;
+                     when 'a' =>
+                        Constant_Condition_Warnings  := True;
+                        Elab_Warnings                := True;
+                        Check_Unreferenced           := True;
+                        Check_Withs                  := True;
+                        Implementation_Unit_Warnings := True;
 
-                        when 'A' =>
-                           Constant_Condition_Warnings := False;
-                           Elab_Warnings               := False;
-                           Check_Unreferenced          := False;
-                           Check_Withs                 := False;
+                     when 'A' =>
+                        Constant_Condition_Warnings  := False;
+                        Elab_Warnings                := False;
+                        Check_Unreferenced           := False;
+                        Check_Withs                  := False;
+                        Implementation_Unit_Warnings := False;
+                        Warn_On_Hiding               := False;
 
-                        when 'c' =>
-                           Constant_Condition_Warnings := True;
+                     when 'c' =>
+                        Constant_Condition_Warnings := True;
 
-                        when 'C' =>
-                           Constant_Condition_Warnings := False;
+                     when 'C' =>
+                        Constant_Condition_Warnings := False;
 
-                        when 'e' =>
-                           Warning_Mode  := Treat_As_Error;
+                     when 'e' =>
+                        Warning_Mode  := Treat_As_Error;
 
-                        when 'l' =>
-                           Elab_Warnings := True;
+                     when 'h' =>
+                        Warn_On_Hiding := True;
 
-                        when 'L' =>
-                           Elab_Warnings := False;
+                     when 'H' =>
+                        Warn_On_Hiding := False;
 
-                        when 's' =>
-                           Warning_Mode  := Suppress;
+                     when 'i' =>
+                        Implementation_Unit_Warnings := True;
 
-                        when 'u' =>
-                           Check_Unreferenced := True;
-                           Check_Withs        := True;
+                     when 'I' =>
+                        Implementation_Unit_Warnings := False;
 
-                        when 'U' =>
-                           Check_Unreferenced := False;
-                           Check_Withs        := False;
+                     when 'l' =>
+                        Elab_Warnings := True;
 
-                        --  Allow and ignore 'w' so that the old
-                        --  format (e.g. -gnatwuwl) will work.
+                     when 'L' =>
+                        Elab_Warnings := False;
 
-                        when 'w' =>
-                           null;
+                     when 'o' =>
+                        Address_Clause_Overlay_Warnings := True;
 
-                        when others =>
-                           raise Bad_Switch;
-                     end case;
+                     when 'O' =>
+                        Address_Clause_Overlay_Warnings := False;
+
+                     when 's' =>
+                        Warning_Mode  := Suppress;
+
+                     when 'u' =>
+                        Check_Unreferenced := True;
+                        Check_Withs        := True;
+
+                     when 'U' =>
+                        Check_Unreferenced := False;
+                        Check_Withs        := False;
+
+                     --  Allow and ignore 'w' so that the old
+                     --  format (e.g. -gnatwuwl) will work.
+
+                     when 'w' =>
+                        null;
+
+                     when others =>
+                        raise Bad_Switch;
+                  end case;
                end loop;
 
                return;
@@ -787,7 +846,7 @@ package body Switch is
 
          --  Processing for W switch
 
-         elsif C = 'W' then
+         when 'W' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler
@@ -816,7 +875,7 @@ package body Switch is
 
          --  Processing for x switch
 
-         elsif C = 'x' then
+         when 'x' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -832,7 +891,7 @@ package body Switch is
 
          --  Processing for X switch
 
-         elsif C = 'X' then
+         when 'X' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -844,7 +903,7 @@ package body Switch is
 
          --  Processing for y switch
 
-         elsif C = 'y' then
+         when 'y' =>
             if Program = Compiler then
                Ptr := Ptr + 1;
 
@@ -871,7 +930,7 @@ package body Switch is
 
          --  Processing for z switch
 
-         elsif C = 'z' then
+         when 'z' =>
             Ptr := Ptr + 1;
 
             --  Allowed for compiler, only if this is the only
@@ -904,7 +963,7 @@ package body Switch is
 
          --  Processing for Z switch
 
-         elsif C = 'Z' then
+         when 'Z' =>
             Ptr := Ptr + 1;
 
             if Program = Compiler then
@@ -916,7 +975,7 @@ package body Switch is
 
          --  Processing for 83 switch
 
-         elsif C = '8' then
+         when '8' =>
 
             if Program = Compiler then
                if Ptr = Max then
@@ -939,14 +998,15 @@ package body Switch is
 
          --  Ignore extra switch character
 
-         elsif C = '/' or else C = '-' then
+         when '/' | '-' =>
             Ptr := Ptr + 1;
 
          --  Anything else is an error (illegal switch character)
 
-         else
+         when others =>
             raise Bad_Switch;
-         end if;
+
+         end case;
 
       end loop;
 

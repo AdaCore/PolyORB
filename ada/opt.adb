@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -46,6 +46,12 @@ package body Opt is
    --  Therefore its length is taken directly from the version string in
    --  Gnatvsn. If the length of the version string stored in the three is
    --  different, then versions are for sure different.
+
+   Immediate_Errors : Boolean := True;
+   --  This is an obsolete flag that is no longer present in opt.ads. We
+   --  retain it here because this flag was written to the tree and there
+   --  is no point in making trees incomaptible just for the sake of saving
+   --  one byte of data. The value written is ignored.
 
    ----------------------------------
    -- Register_Opt_Config_Switches --

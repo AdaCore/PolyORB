@@ -2,7 +2,7 @@
 --                                                                          --
 --                         GNAT COMPILER COMPONENTS                         --
 --                                                                          --
---                                F N A M E                                 --
+--                             F N A M E . U F                              --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -21,61 +21,29 @@
 -- to  the Free Software Foundation,  59 Temple Place - Suite 330,  Boston, --
 -- MA 02111-1307, USA.                                                      --
 --                                                                          --
--- As a special exception,  if other files  instantiate  generics from this --
--- unit, or you link  this unit with other files  to produce an executable, --
--- this  unit  does not  by itself cause  the resulting  executable  to  be --
--- covered  by the  GNU  General  Public  License.  This exception does not --
--- however invalidate  any other reasons why  the executable file  might be --
--- covered by the  GNU Public License.                                      --
---                                                                          --
 -- GNAT was originally developed  by the GNAT team at  New York University. --
 -- It is now maintained by Ada Core Technologies Inc (http://www.gnat.com). --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package defines the association between source file names and
---  unit names as defined in package Uname.
+--  This child package contains the routines to translate a unit name to
+--  a file name taking into account Source_File_Name pragmas. It also
+--  contains the auxiliary routines used to record data from the pragmas.
+
+--  Note: the reason we split this into a child unit is that the routines
+--  for unit name translation have a significant number of additional
+--  dependencies, including osint, and hence sdefault. There are a number
+--  of tools that use utility subprograms in the Fname parent, but do not
+--  need the functionality in this child package (and certainly do not want
+--  to deal with the extra dependencies).
 
 with Casing; use Casing;
-with Types;  use Types;
 
-package Fname is
-
-   --  Note: this package spec does not depend on the Uname spec in the Ada
-   --  sense, but the comments and description of the semantics do depend on
-   --  the conventions established by Uname.
-
-   ---------------------------
-   -- File Name Conventions --
-   ---------------------------
-
-   --  GNAT requires that there be a one to one correspondence between source
-   --  file names (as used in the Osint package interface) and unit names as
-   --  defined by the Uname package. This correspondence is defined by the
-   --  two subprograms defined here in the Fname package.
-
-   --   For full rules of file naming, see GNAT User's Guide. Note that the
-   --   naming rules are affected by the presence of Source_File_Name pragmas
-   --   that have been previously processed.
-
-   --  Note that the file name does *not* include the directory name. The
-   --  management of directories is provided by Osint, and full file names
-   --  are used only for error message purposes within GNAT itself.
+package Fname.UF is
 
    -----------------
    -- Subprograms --
    -----------------
-
-   type Expected_Unit_Type is (Expect_Body, Expect_Spec, Unknown);
-   --  Return value from Get_Expected_Unit_Type
-
-   function Get_Expected_Unit_Type
-     (Fname : File_Name_Type)
-      return  Expected_Unit_Type;
-   --  If possible, determine whether the given file name corresponds to a unit
-   --  that is a spec or body (e.g. by examining the extension). If this cannot
-   --  be determined with the file naming conventions in use, then the returned
-   --  value is set to Unknown.
 
    function Get_File_Name
      (Uname   : Unit_Name_Type;
@@ -95,26 +63,6 @@ package Fname is
 
    procedure Lock;
    --  Lock tables before calling back end
-
-   function Is_Predefined_File_Name
-     (Fname              : File_Name_Type;
-      Renamings_Included : Boolean := True)
-      return               Boolean;
-   --  This function determines if the given file name (which must be a simple
-   --  file name with no directory information) is the file name for one of
-   --  the predefined library units. On return, Name_Buffer contains the
-   --  file name. The Renamings_Included parameter indicates whether annex
-   --  J renamings such as Text_IO are to be considered as predefined. If
-   --  Renamings_Included is True, then Text_IO will return True, otherwise
-   --  only children of Ada, Interfaces and System return True.
-
-   function Is_Internal_File_Name
-     (Fname              : File_Name_Type;
-      Renamings_Included : Boolean := True)
-      return               Boolean;
-   --  Similar to Is_Predefined_File_Name. The internal file set is a
-   --  superset of the predefined file set including children of GNAT,
-   --  and also children of DEC for the VMS case.
 
    function File_Name_Of_Spec (Name : Name_Id) return File_Name_Type;
    --  Returns the file name that corresponds to the spec of a given unit
@@ -142,12 +90,4 @@ package Fname is
    --  for child/subunit names, and Cas is one of Lower/Upper/Mixed
    --  indicating the required case for the file name.
 
-   procedure Tree_Read;
-   --  Initializes internal tables from current tree file using Tree_Read.
-   --  Note that Initialize should not be called if Tree_Read is used.
-   --  Tree_Read includes all necessary initialization.
-
-   procedure Tree_Write;
-   --  Writes out internal tables to current tree file using Tree_Write
-
-end Fname;
+end Fname.UF;
