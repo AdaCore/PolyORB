@@ -1,0 +1,18 @@
+#!/bin/sh
+if [ $# = 0 ]; then
+   echo "Usage: $0 <gladedir> [<gnatdir=~/g/gnat>]"
+   exit
+fi
+
+GLADEDIR=$1
+/bin/rm -fr $GLADEDIR/ada
+mkdir $GLADEDIR/ada
+
+GNATDIR=$HOME/g/gnat
+if [ $# = 2 ]; then
+   GNATDIR=$2
+fi
+
+for i in `cat $GLADEDIR/MANIFEST | grep '^ada/' | sed 's,^ada/,,g'`; do
+  /bin/cp $GNATDIR/$i $GLADEDIR/ada
+done
