@@ -338,6 +338,7 @@ package body Lexer is
       New_Token (T_Refines, "refines");
       New_Token (T_Requires, "requires");
       New_Token (T_Server, "server");
+      New_Token (T_Set, "set");
       New_Token (T_String, "string");
       New_Token (T_Subcomponents, "subcomponents");
       New_Token (T_Subprogram, "subprogram");

@@ -17,7 +17,7 @@ package Debug is
    procedure W_List_Id     (L : List_Id);
    procedure W_Node_Id     (N : Node_Id);
    procedure W_Node_Header (N : Node_Id);
-   procedure W_Full_Tree   (N : Node_Id);
+   procedure W_Full_Tree (N : Node_Id);
 
    procedure W_Node_Attribute
      (A : String;

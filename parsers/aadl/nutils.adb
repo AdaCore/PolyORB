@@ -41,9 +41,9 @@ package body Nutils is
       Entries.Table (L) := Entries.Table (N);
       Set_Loc       (L, No_Location);
       Set_Next_Node (L, No_Node);
-      if Kind (L) = K_Identifier then
-         Set_Homonym (L, No_Node);
-      end if;
+--      if Kind (L) = K_Identifier then
+--         Set_Homonym (L, No_Node);
+--      end if;
       return L;
    end New_Copy;
 

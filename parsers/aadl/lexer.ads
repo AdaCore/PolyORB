@@ -115,6 +115,7 @@ package Lexer is
       T_Refines,               --  'refines'
       T_Requires,              --  'requires'
       T_Server,                --  'server'
+      T_Set,                   --  'set'
       T_String,                --  'string'
       T_Subcomponents,         --  'subcomponents'
       T_Subprogram,            --  'subprogram'

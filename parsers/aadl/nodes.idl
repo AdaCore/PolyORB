@@ -20,6 +20,9 @@ module Nodes {
     Node_Id    Last_Node;
   };
 
+  interface Identifier : Node_Id {
+    Name_Id    Name;
+  };
 
     /***********************/
     /* AADL Specifications */
@@ -27,11 +30,16 @@ module Nodes {
 
     // AADL_specification ::= { AADL_declaration } +
 
-  interface AADL_Spec : List_Id {};
+  interface AADL_Specification : Node_Id {
+    List_Id    Declarations;
+  };
 
     // AADL_declaration ::= component_classifier | package_spec | 
     //                      port_group_type | port_group_type_extension |
     //                      system_instance | property_set
+
+  interface AADL_Declaration : Node_Id {};
+  interface AADL_Declaration_List : List_Id {};
 
     // component_classifier ::= component_type | component_type_extension | 
     //                          component_implementation |
@@ -54,6 +62,10 @@ module Nodes {
     List_Id  Properties;
   };
 
+    // package_name ::= { package_identifier . } * package_identifier
+
+  interface Package_Name : List_Id { };
+
     // package_spec ::= 
     //    package defining_package_name 
     //     ( public package_items [ private package_items ]
@@ -61,7 +73,7 @@ module Nodes {
     // end defining_package_name;
 
   interface Package_Spec : Node_Id {
-    Name_Id  Name;
+    List_Id  Name;
     Node_Id  Public_Package_Items;
     Node_Id  Private_Package_Items;
   };

@@ -4,6 +4,7 @@ with Lexer;       use Lexer;
 with Namet;       use Namet;
 with Nodes;       use Nodes;
 with Output;      use Output;
+--  with Scopes;      use Scopes;
 with Types;       use Types;
 with Utils;       use Utils;
 
@@ -46,7 +47,7 @@ package body Debug is
 
    function Image (N : Mode_Id) return String is
    begin
-      return Quoted (Image (Token_Type'Val (N)), ''');
+      return Quoted (Image (Token_Type'Val (N)));
    end Image;
 
    function Image (N : Operator_Id) return String is
@@ -147,6 +148,8 @@ package body Debug is
         or else A = "Homonym"
         or else A = "Name"
         or else A = "Scoped_Identifiers"
+--          or else A = "Explicitely_Visible"
+--          or else A = "Implicitely_Visible"
         or else A = "Next_Identifier"
       then
          return;
@@ -164,13 +167,11 @@ package body Debug is
       elsif K = "Node_Id"
         and then Present (C)
       then
-         Write_Line (V);
-
 --         case Kind (C) is
 --            when K_Float .. K_Value_Base =>
 --               Write_Line ('(' & Image (Kind (Node_Id (N))) & ')');
 --            when others =>
---               Write_Line (V);
+               Write_Line (V);
 --         end case;
 
       else
@@ -216,7 +217,7 @@ package body Debug is
       if N = No_Node then
          return;
       end if;
-      W_Node (1, N);
+      W_Node (N);
    end W_Node_Id;
 
    ---------

@@ -32,6 +32,8 @@ package body Nodes is
    begin
       pragma Assert (False
         or else Table (Node_Id (N)).Kind = K_Node_Id
+        or else Table (Node_Id (N)).Kind = K_AADL_Specification
+        or else Table (Node_Id (N)).Kind = K_AADL_Declaration
         or else Table (Node_Id (N)).Kind = K_Package_Items
         or else Table (Node_Id (N)).Kind = K_Package_Spec
         or else Table (Node_Id (N)).Kind = K_Component_Type
@@ -44,6 +46,8 @@ package body Nodes is
    begin
       pragma Assert (False
         or else Table (Node_Id (N)).Kind = K_Node_Id
+        or else Table (Node_Id (N)).Kind = K_AADL_Specification
+        or else Table (Node_Id (N)).Kind = K_AADL_Declaration
         or else Table (Node_Id (N)).Kind = K_Package_Items
         or else Table (Node_Id (N)).Kind = K_Package_Spec
         or else Table (Node_Id (N)).Kind = K_Component_Type
@@ -57,7 +61,7 @@ package body Nodes is
    begin
       pragma Assert (False
         or else Table (Node_Id (N)).Kind = K_List_Id
-        or else Table (Node_Id (N)).Kind = K_AADL_Spec);
+        or else Table (Node_Id (N)).Kind = K_AADL_Declaration_List);
 
       return Node_Id (Table (Node_Id (N)).L (1));
    end First_Node;
@@ -66,7 +70,7 @@ package body Nodes is
    begin
       pragma Assert (False
         or else Table (Node_Id (N)).Kind = K_List_Id
-        or else Table (Node_Id (N)).Kind = K_AADL_Spec);
+        or else Table (Node_Id (N)).Kind = K_AADL_Declaration_List);
 
       Table (Node_Id (N)).L (1) := Int (V);
    end Set_First_Node;
@@ -76,7 +80,7 @@ package body Nodes is
    begin
       pragma Assert (False
         or else Table (Node_Id (N)).Kind = K_List_Id
-        or else Table (Node_Id (N)).Kind = K_AADL_Spec);
+        or else Table (Node_Id (N)).Kind = K_AADL_Declaration_List);
 
       return Node_Id (Table (Node_Id (N)).L (2));
    end Last_Node;
@@ -85,10 +89,27 @@ package body Nodes is
    begin
       pragma Assert (False
         or else Table (Node_Id (N)).Kind = K_List_Id
-        or else Table (Node_Id (N)).Kind = K_AADL_Spec);
+        or else Table (Node_Id (N)).Kind = K_AADL_Declaration_List);
 
       Table (Node_Id (N)).L (2) := Int (V);
    end Set_Last_Node;
+
+
+   function Declarations (N : Node_Id) return List_Id is
+   begin
+      pragma Assert (False
+        or else Table (Node_Id (N)).Kind = K_AADL_Specification);
+
+      return List_Id (Table (Node_Id (N)).L (2));
+   end Declarations;
+
+   procedure Set_Declarations (N : Node_Id; V : List_Id) is
+   begin
+      pragma Assert (False
+        or else Table (Node_Id (N)).Kind = K_AADL_Specification);
+
+      Table (Node_Id (N)).L (2) := Int (V);
+   end Set_Declarations;
 
 
    function Items (N : Node_Id) return List_Id is
@@ -296,215 +317,212 @@ package body Nodes is
    end Set_Parent;
 
 
-   procedure W_Node (I : Natural; N : Node_Id) is
+   procedure W_Node (N : Node_Id) is
    begin
       case Kind (N) is
-         when K_AADL_Spec =>
-            W_AADL_Spec
-              (I,
-               List_Id (N));
+         when K_AADL_Specification =>
+            W_AADL_Specification
+              (Node_Id (N));
+         when K_AADL_Declaration =>
+            W_AADL_Declaration
+              (Node_Id (N));
+         when K_AADL_Declaration_List =>
+            W_AADL_Declaration_List
+              (List_Id (N));
          when K_Package_Items =>
             W_Package_Items
-              (I,
-               Node_Id (N));
+              (Node_Id (N));
          when K_Package_Spec =>
             W_Package_Spec
-              (I,
-               Node_Id (N));
+              (Node_Id (N));
          when K_Component_Type =>
             W_Component_Type
-              (I,
-               Node_Id (N));
+              (Node_Id (N));
          when K_Component_Type_Ext =>
             W_Component_Type_Ext
-              (I,
-               Node_Id (N));
+              (Node_Id (N));
          when others =>
             null;
       end case;
    end W_Node;
 
-   procedure W_AADL_Spec (I : Natural; N : List_Id) is
+   procedure W_AADL_Specification (N : Node_Id) is
    begin
       W_Node_Header
-        (I,
-         Node_Id (N));
+        (Node_Id (N));
       W_Node_Attribute
-        (I,
-         "First_Node",
-         "Node_Id",
-         Image (First_Node (N)),
-         Int (First_Node (N)));
-      W_Node_Attribute
-        (I,
-         "Last_Node",
-         "Node_Id",
-         Image (Last_Node (N)),
-         Int (Last_Node (N)));
-   end W_AADL_Spec;
-
-   procedure W_Package_Items (I : Natural; N : Node_Id) is
-   begin
-      W_Node_Header
-        (I,
-         Node_Id (N));
-      W_Node_Attribute
-        (I,
-         "Next_Node",
+        ("Next_Node",
          "Node_Id",
          Image (Next_Node (N)),
          Int (Next_Node (N)));
       W_Node_Attribute
-        (I,
-         "Items",
+        ("Declarations",
+         "List_Id",
+         Image (Declarations (N)),
+         Int (Declarations (N)));
+   end W_AADL_Specification;
+
+   procedure W_AADL_Declaration (N : Node_Id) is
+   begin
+      W_Node_Header
+        (Node_Id (N));
+      W_Node_Attribute
+        ("Next_Node",
+         "Node_Id",
+         Image (Next_Node (N)),
+         Int (Next_Node (N)));
+   end W_AADL_Declaration;
+
+   procedure W_AADL_Declaration_List (N : List_Id) is
+   begin
+      W_Node_Header
+        (Node_Id (N));
+      W_Node_Attribute
+        ("First_Node",
+         "Node_Id",
+         Image (First_Node (N)),
+         Int (First_Node (N)));
+      W_Node_Attribute
+        ("Last_Node",
+         "Node_Id",
+         Image (Last_Node (N)),
+         Int (Last_Node (N)));
+   end W_AADL_Declaration_List;
+
+   procedure W_Package_Items (N : Node_Id) is
+   begin
+      W_Node_Header
+        (Node_Id (N));
+      W_Node_Attribute
+        ("Next_Node",
+         "Node_Id",
+         Image (Next_Node (N)),
+         Int (Next_Node (N)));
+      W_Node_Attribute
+        ("Items",
          "List_Id",
          Image (Items (N)),
          Int (Items (N)));
       W_Node_Attribute
-        (I,
-         "Properties",
+        ("Properties",
          "List_Id",
          Image (Properties (N)),
          Int (Properties (N)));
    end W_Package_Items;
 
-   procedure W_Package_Spec (I : Natural; N : Node_Id) is
+   procedure W_Package_Spec (N : Node_Id) is
    begin
       W_Node_Header
-        (I,
-         Node_Id (N));
+        (Node_Id (N));
       W_Node_Attribute
-        (I,
-         "Next_Node",
+        ("Next_Node",
          "Node_Id",
          Image (Next_Node (N)),
          Int (Next_Node (N)));
       W_Node_Attribute
-        (I,
-         "Name",
+        ("Name",
          "Name_Id",
          Image (Name (N)));
       W_Node_Attribute
-        (I,
-         "Public_Package_Items",
+        ("Public_Package_Items",
          "Node_Id",
          Image (Public_Package_Items (N)),
          Int (Public_Package_Items (N)));
       W_Node_Attribute
-        (I,
-         "Private_Package_Items",
+        ("Private_Package_Items",
          "Node_Id",
          Image (Private_Package_Items (N)),
          Int (Private_Package_Items (N)));
    end W_Package_Spec;
 
-   procedure W_Component_Type (I : Natural; N : Node_Id) is
+   procedure W_Component_Type (N : Node_Id) is
    begin
       W_Node_Header
-        (I,
-         Node_Id (N));
+        (Node_Id (N));
       W_Node_Attribute
-        (I,
-         "Next_Node",
+        ("Next_Node",
          "Node_Id",
          Image (Next_Node (N)),
          Int (Next_Node (N)));
       W_Node_Attribute
-        (I,
-         "Properties",
+        ("Properties",
          "List_Id",
          Image (Properties (N)),
          Int (Properties (N)));
       W_Node_Attribute
-        (I,
-         "Name",
+        ("Name",
          "Name_Id",
          Image (Name (N)));
       W_Node_Attribute
-        (I,
-         "Category",
+        ("Category",
          "Byte",
          Image (Category (N)));
       W_Node_Attribute
-        (I,
-         "Provides",
+        ("Provides",
          "List_Id",
          Image (Provides (N)),
          Int (Provides (N)));
       W_Node_Attribute
-        (I,
-         "Requires",
+        ("Requires",
          "List_Id",
          Image (Requires (N)),
          Int (Requires (N)));
       W_Node_Attribute
-        (I,
-         "Parameters",
+        ("Parameters",
          "List_Id",
          Image (Parameters (N)),
          Int (Parameters (N)));
       W_Node_Attribute
-        (I,
-         "Annexes",
+        ("Annexes",
          "List_Id",
          Image (Annexes (N)),
          Int (Annexes (N)));
    end W_Component_Type;
 
-   procedure W_Component_Type_Ext (I : Natural; N : Node_Id) is
+   procedure W_Component_Type_Ext (N : Node_Id) is
    begin
       W_Node_Header
-        (I,
-         Node_Id (N));
+        (Node_Id (N));
       W_Node_Attribute
-        (I,
-         "Next_Node",
+        ("Next_Node",
          "Node_Id",
          Image (Next_Node (N)),
          Int (Next_Node (N)));
       W_Node_Attribute
-        (I,
-         "Properties",
+        ("Properties",
          "List_Id",
          Image (Properties (N)),
          Int (Properties (N)));
       W_Node_Attribute
-        (I,
-         "Name",
+        ("Name",
          "Name_Id",
          Image (Name (N)));
       W_Node_Attribute
-        (I,
-         "Category",
+        ("Category",
          "Byte",
          Image (Category (N)));
       W_Node_Attribute
-        (I,
-         "Provides",
+        ("Provides",
          "List_Id",
          Image (Provides (N)),
          Int (Provides (N)));
       W_Node_Attribute
-        (I,
-         "Requires",
+        ("Requires",
          "List_Id",
          Image (Requires (N)),
          Int (Requires (N)));
       W_Node_Attribute
-        (I,
-         "Parameters",
+        ("Parameters",
          "List_Id",
          Image (Parameters (N)),
          Int (Parameters (N)));
       W_Node_Attribute
-        (I,
-         "Annexes",
+        ("Annexes",
          "List_Id",
          Image (Annexes (N)),
          Int (Annexes (N)));
       W_Node_Attribute
-        (I,
-         "Parent",
+        ("Parent",
          "Node_Id",
          Image (Parent (N)),
          Int (Parent (N)));
