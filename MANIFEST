@@ -3,6 +3,7 @@ FEATURES
 INSTALL
 MANIFEST
 Makefile.am
+Makefile.common
 Makefile.in
 README
 aclocal.m4
