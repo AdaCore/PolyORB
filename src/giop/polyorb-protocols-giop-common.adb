@@ -396,7 +396,7 @@ package body PolyORB.Protocols.GIOP.Common is
                        & Loc_Type'Img));
 
       case Loc_Type is
-         when Object_Here =>
+         when Object_Here | Unknown_Object =>
             declare
                use PolyORB.Exceptions;
 
@@ -410,25 +410,35 @@ package body PolyORB.Protocols.GIOP.Common is
                   Req,
                   Success);
 
-               if Success then
+               if not Success then
+                  raise GIOP_Error;
+               end if;
+
+               if Loc_Type = Object_Here then
                   Send_Request (Sess.Implem, Sess, Req, Error);
+               else
+                  Throw (Error,
+                    Inv_Objref_E,
+                    System_Exception_Members'(
+                      Minor     => 0, --  ??? Is this right?
+                      Completed => Completed_No));
+               end if;
 
-                  if Found (Error) then
-                     Req.Req.Exception_Info := Error_To_Any (Error);
-                     Catch (Error);
+               if Found (Error) then
+                  Req.Req.Exception_Info := Error_To_Any (Error);
+                  Catch (Error);
 
-                     Components.Emit_No_Reply
-                       (Components.Component_Access (ORB),
-                        Servants.Interface.Executed_Request'(Req => Req.Req));
+                  Components.Emit_No_Reply
+                    (Components.Component_Access (ORB),
+                     Servants.Interface.Executed_Request'(Req => Req.Req));
 
-                     Remove_Pending_Request_By_Locate
-                       (Sess,
-                        Locate_Request_Id,
-                        Success);
+                  Remove_Pending_Request_By_Locate
+                    (Sess,
+                     Locate_Request_Id,
+                     Success);
 
-                     if not Success then
-                        raise GIOP_Error;
-                     end if;
+                  if not Success then
+                     raise GIOP_Error;
                   end if;
                end if;
             end;
@@ -520,7 +530,6 @@ package body PolyORB.Protocols.GIOP.Common is
 
       Release (Buffer);
    end Common_Process_Abort_Request;
-
 
    ---------------------------
    -- Common_Reply_Received --
