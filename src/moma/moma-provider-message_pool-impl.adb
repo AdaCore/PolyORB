@@ -32,14 +32,14 @@
 
 --  $Id$
 
-with MOMA.Types;
 with MOMA.Provider.Message_Pool.Warehouse;
 with PolyORB.Log;
+with PolyORB.Any;
 
 package body MOMA.Provider.Message_Pool.Impl is
 
-   use MOMA.Types;
    use MOMA.Provider.Message_Pool.Warehouse;
+   use PolyORB.Any;
    use PolyORB.Log;
 
    package L is new
@@ -53,28 +53,30 @@ package body MOMA.Provider.Message_Pool.Impl is
    --  => to be done later, after proper message definition
 
    Message_Id : Natural := 0;
-   --  Dummy counter for message_id, to be trashed ...
+   --  XXX Dummy counter for message_id, to be trashed ...
+
+   Last_Read_Id : Natural := 0;
+   --  XXX Dummy counter for message_id, to be trashed ...
 
    -------------
    -- Publish --
    -------------
 
-   function Publish (Message : in MOMA.Types.String)
-                     return MOMA.Types.String is
+   procedure Publish (Message : in PolyORB.Any.Any)
+   is
       Temp : constant String := Integer'Image (Message_Id);
       Key  : constant String := "M" & Temp (2 .. Temp'Last);
       --  Dummy Key construction, should be analyzed from message
    begin
-      pragma Debug (O ("Got new message " & To_Standard_String (Message)
-                       & " with Key " & Key));
+      pragma Debug (O ("Got new message " & Image (Message)
+                       & " with Key " & Key
+                       & " with Content " & Image (From_Any (Message))));
 
       Ensure_Initialization (W);
 
       Message_Id := Message_Id + 1;
 
       Register (W, Key, Message);
-
-      return To_MOMA_String (Key);
    end Publish;
 
    ---------
@@ -82,11 +84,24 @@ package body MOMA.Provider.Message_Pool.Impl is
    ---------
 
    function Get (Message_Id : in MOMA.Types.String)
-                 return MOMA.Types.String is
+                 return PolyORB.Any.Any is
+      Result : PolyORB.Any.Any;
+      Temp : constant String := Integer'Image (Last_Read_Id);
+      Key  : constant String := "M" & Temp (2 .. Temp'Last);
    begin
-      pragma Debug (O ("Sending back message "
-                       & To_Standard_String (Message_Id)));
-      return Lookup (W, To_Standard_String (Message_Id));
+      pragma Warnings (Off);
+      pragma Unreferenced (Message_Id);
+      pragma Warnings (On);
+      --  XXX We only implement dummy message pool
+      --  should be done with a FIFO when available
+
+      Result := Lookup (W, Key);
+      Last_Read_Id := Last_Read_Id + 1;
+
+      pragma Debug (O ("Sending back message " & Image (Result)
+                       & " with Key " & Key
+                       & " with Content " & Image (From_Any (Result))));
+      return Result;
    end Get;
 
 end MOMA.Provider.Message_Pool.Impl;

@@ -36,7 +36,6 @@ with Ada.Calendar; use Ada.Calendar;
 
 with MOMA.Destinations.Queues;
 with MOMA.Messages;
-with MOMA.Types;
 
 package MOMA.Message_Consumers.Queues is
 
@@ -44,7 +43,7 @@ package MOMA.Message_Consumers.Queues is
 
    function Get_Queue return MOMA.Destinations.Queues.Queue;
 
-   function Receive (Self : Queue) return MOMA.Types.String;
+   function Receive (Self : Queue) return MOMA.Messages.Message'Class;
 
    function Receive (Timeout : Time) return MOMA.Messages.Message;
 

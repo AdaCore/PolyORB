@@ -96,31 +96,6 @@ package body MOMA.Sessions is
       pragma Warnings (On);
    end Create_Stream_Message;
 
-   --------------------------
-   --  Create_Text_Message --
-   --------------------------
-
-   function Create_Text_Message return Messages.MTexts.MText is
-   begin
-      pragma Warnings (Off);
-      return Create_Text_Message;
-      pragma Warnings (On);
-   end Create_Text_Message;
-
-   --------------------------
-   --  Create_Text_Message --
-   --------------------------
-
-   function Create_Text_Message
-     (Value : MOMA.Types.String)
-      return MOMA.Messages.MTexts.MText
-   is
-   begin
-      pragma Warnings (Off);
-      return Create_Text_Message (Value);
-      pragma Warnings (On);
-   end Create_Text_Message;
-
    ---------------------
    --  Get_Transacted --
    ---------------------

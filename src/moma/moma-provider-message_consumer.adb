@@ -32,17 +32,21 @@
 
 --  $Id$
 
-with PolyORB.Any; use PolyORB.Any;
-with PolyORB.Any.NVList; use PolyORB.Any.NVList;
+with PolyORB.Any;
+with PolyORB.Any.NVList;
 with PolyORB.Log;
-with PolyORB.Types; use PolyORB.Types;
-with PolyORB.Requests; use PolyORB.Requests;
+with PolyORB.Types;
+with PolyORB.Requests;
 
 with MOMA.Provider.Message_Consumer.Impl;
 
 package body MOMA.Provider.Message_Consumer is
 
+   use PolyORB.Any;
+   use PolyORB.Any.NVList;
    use PolyORB.Log;
+   use PolyORB.Types;
+   use PolyORB.Requests;
 
    package L is
      new PolyORB.Log.Facility_Log ("moma.provider.message_consumer");
@@ -80,9 +84,9 @@ package body MOMA.Provider.Message_Consumer is
               From_Any (NV_Sequence.Element_Of
                         (Args_Sequence.all, 1).Argument);
          begin
-            Set_Result (Req, To_Any
-              (MOMA.Provider.Message_Consumer.Impl.Get (Self.Remote_Ref,
-                                                        Get_Arg)));
+            Set_Result (Req, MOMA.Provider.Message_Consumer.Impl.Get
+                        (Self.Remote_Ref, Get_Arg));
+
             pragma Debug (O ("Result: " & Image (Req.Result)));
          end;
 
@@ -137,7 +141,7 @@ package body MOMA.Provider.Message_Consumer is
    begin
       pragma Debug (O ("Result profile for " & Method & " requested."));
       if Method = "Get" then
-         return Get_Empty_Any (TypeCode.TC_String);
+         return Get_Empty_Any (TypeCode.TC_Any);
       else
          raise Program_Error;
       end if;

@@ -34,115 +34,161 @@
 
 package body MOMA.Messages is
 
-   ----------------------------
-   --  Acknowledge Procedure --
-   ----------------------------
+   -----------------
+   -- Acknowledge --
+   -----------------
+
    procedure Acknowledge is
    begin
       null;
    end Acknowledge;
 
-   ---------------------------
-   --  Clear_Body Procedure --
-   ---------------------------
+   ----------------
+   -- Clear_Body --
+   ----------------
+
    procedure Clear_Body is
    begin
       null;
    end Clear_Body;
 
-   ----------------------------
-   --  Get_Property Function --
-   ----------------------------
-   function Get_Property (Name : String) return MOMA.Types.Property_Type is
+   ------------------
+   -- Get_Property --
+   ------------------
+
+   function Get_Property (Name : MOMA.Types.String)
+                          return MOMA.Types.Property_Type is
    begin
       pragma Warnings (Off);
       return Get_Property (Name);
       pragma Warnings (On);
    end Get_Property;
 
-   ----------------------------------
-   --  Get_Correlation_Id Function --
-   ----------------------------------
-   function Get_Correlation_Id return String is
+   ------------------------
+   -- Get_Correlation_Id --
+   ------------------------
+
+   function Get_Correlation_Id (Self : Message)
+                                return MOMA.Types.String is
    begin
-      return "null";
+      return Self.Correlation_Id;
    end Get_Correlation_Id;
 
-   ------------------------------
-   --  Get_Persistent Function --
-   ------------------------------
-   function Get_Persistent return Boolean is
+   --------------------
+   -- Get_Persistent --
+   --------------------
+
+   function Get_Persistent (Self : Message)
+                            return MOMA.Types.Boolean is
    begin
-      return False;
+      return Self.Is_Persistent;
    end Get_Persistent;
 
-   ------------------------------
-   --  Get_Expiration Function --
-   ------------------------------
-   function Get_Expiration return Ada.Calendar.Time is
+   ---------------------
+   -- Get_Destination --
+   ---------------------
+
+   function Get_Destination (Self : Message)
+                             return MOMA.Destinations.Destination is
    begin
-      pragma Warnings (Off);
-      return Get_Expiration;
-      pragma Warnings (On);
+      return Self.Destination;
+   end Get_Destination;
+
+   --------------------
+   -- Get_Expiration --
+   --------------------
+
+   function Get_Expiration (Self : Message)
+                            return Ada.Calendar.Time is
+   begin
+      return Self.Expiration;
    end Get_Expiration;
 
-   ------------------------------
-   --  Get_Message_Id Function --
-   ------------------------------
-   function Get_Message_Id return String is
+   --------------------
+   -- Get_Message_Id --
+   --------------------
+
+   function Get_Message_Id (Self : Message)
+                            return MOMA.Types.String is
    begin
-      return "null";
+      return Self.Message_Id;
    end Get_Message_Id;
 
-   ----------------------------
-   --  Get_Priority Function --
-   ----------------------------
-   function Get_Priority return MOMA.Types.Priority is
+   -----------------
+   -- Get_Payload --
+   -----------------
+
+   function Get_Payload (Self : Message)
+                         return PolyORB.Any.Any is
    begin
-      pragma Warnings (Off);
-      return Get_Priority;
-      pragma Warnings (On);
+      return Self.Payload;
+   end Get_Payload;
+
+   -------------------
+   --  Get_Priority --
+   -------------------
+
+   function Get_Priority (Self : Message)
+                          return MOMA.Types.Priority is
+   begin
+      return Self.Priority;
    end Get_Priority;
 
-   -------------------------------
-   --  Get_Redelivered Function --
-   -------------------------------
-   function Get_Redelivered return Boolean is
+   ---------------------
+   -- Get_Redelivered --
+   ---------------------
+
+   function Get_Redelivered (Self : Message)
+                             return MOMA.Types.Boolean is
    begin
-      return False;
+      return Self.Is_Redelivered;
    end Get_Redelivered;
 
-   -----------------------------
-   --  Get_Timestamp Function --
-   -----------------------------
-   function Get_Timestamp return Ada.Calendar.Time is
+   ------------------
+   -- Get_Reply_To --
+   ------------------
+
+   function Get_Reply_To (Self : Message)
+                          return MOMA.Destinations.Destination is
    begin
-      pragma Warnings (Off);
-      return Get_Timestamp;
-      pragma Warnings (On);
+      return Self.Reply_To;
+   end Get_Reply_To;
+
+   -------------------
+   -- Get_Timestamp --
+   -------------------
+
+   function Get_Timestamp (Self : Message)
+                           return Ada.Calendar.Time is
+   begin
+      return Self.Timestamp;
    end Get_Timestamp;
 
-   ------------------------
-   --  Get_Type Function --
-   ------------------------
-   function Get_Type return String is
+   --------------
+   -- Get_Type --
+   --------------
+
+   function Get_Type (Self : Message)
+                      return MOMA.Types.Message_Type is
    begin
-      return "null";
+      return Self.Type_Of_Message;
    end Get_Type;
 
-   ----------------------------------
-   --  Get_Property_Names Function --
-   ----------------------------------
+   ------------------------
+   -- Get_Property_Names --
+   ------------------------
    --  ???
    function Get_Property_Names return Integer is
    begin
       return 0;
    end Get_Property_Names;
 
-   -------------------------------
-   --  Property_Exists Function --
-   -------------------------------
-   function Property_Exists (Name : String) return Boolean is
+   ---------------------
+   -- Property_Exists --
+   ---------------------
+
+   function Property_Exists (Name : MOMA.Types.String)
+                             return MOMA.Types.Boolean is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Name);
@@ -150,10 +196,12 @@ package body MOMA.Messages is
       return False;
    end Property_Exists;
 
-   -----------------------------
-   --  Set_Property Procedure --
-   -----------------------------
-   procedure Set_Property (Name : String; Value : MOMA.Types.Property_Type) is
+   ------------------
+   -- Set_Property --
+   ------------------
+
+   procedure Set_Property (Name : MOMA.Types.String;
+                           Value : MOMA.Types.Property_Type) is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Name);
@@ -162,103 +210,142 @@ package body MOMA.Messages is
       null;
    end Set_Property;
 
-   -----------------------------------
-   --  Set_Correlation_Id Procedure --
-   -----------------------------------
-   procedure Set_Correlation_Id (Correlation_Id : String) is
+   ------------------------
+   -- Set_Correlation_Id --
+   ------------------------
+
+   procedure Set_Correlation_Id (Self : in out Message;
+                                 Correlation_Id : MOMA.Types.String) is
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Correlation_Id);
-      pragma Warnings (On);
-      null;
+      Self.Correlation_Id := Correlation_Id;
    end Set_Correlation_Id;
 
-   -------------------------------
-   --  Set_Persistent Procedure --
-   -------------------------------
-   procedure Set_Persistent (Is_Persistent : Boolean) is
+   --------------------
+   -- Set_Persistent --
+   --------------------
+
+   procedure Set_Persistent (Self : in out Message;
+                             Is_Persistent : MOMA.Types.Boolean) is
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Is_Persistent);
-      pragma Warnings (On);
-      null;
+      Self.Is_Persistent := Is_Persistent;
    end Set_Persistent;
 
-   --------------------------------
-   --  Set_Destination Procedure --
-   --------------------------------
-   procedure Set_Destination (Destination : MOMA.Destinations.Destination) is
+   ---------------------
+   -- Set_Destination --
+   ---------------------
+
+   procedure Set_Destination (Self : in out Message;
+                              Destination : MOMA.Destinations.Destination) is
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Destination);
-      pragma Warnings (On);
-      null;
+      Self.Destination := Destination;
    end Set_Destination;
 
-   -------------------------------
-   --  Set_Expiration Procedure --
-   -------------------------------
-   procedure Set_Expiration (Expiration : Ada.Calendar.Time) is
+   --------------------
+   -- Set_Expiration --
+   --------------------
+
+   procedure Set_Expiration (Self : in out Message;
+                             Expiration : Ada.Calendar.Time) is
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Expiration);
-      pragma Warnings (On);
-      null;
+      Self.Expiration := Expiration;
    end Set_Expiration;
 
-   -------------------------------
-   --  Set_Message_Id Procedure --
-   -------------------------------
-   procedure Set_Message_Id (Id : String) is
+   -----------------
+   -- Set_Payload --
+   -----------------
+
+   procedure Set_Payload (Self : in out Message;
+                          Payload : PolyORB.Any.Any) is
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Id);
-      pragma Warnings (On);
-      null;
+      Self.Payload := Payload;
+   end Set_Payload;
+
+   --------------------
+   -- Set_Message_Id --
+   --------------------
+
+   procedure Set_Message_Id (Self : in out Message;
+                             Id : MOMA.Types.String) is
+   begin
+      Self.Message_Id := Id;
    end Set_Message_Id;
 
-   -----------------------------
-   --  Set_Priority Procedure --
-   -----------------------------
-   procedure Set_Priority (Value : MOMA.Types.Priority) is
+   ------------------
+   -- Set_Priority --
+   ------------------
+
+   procedure Set_Priority (Self : in out Message;
+                           Priority : MOMA.Types.Priority) is
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Value);
-      pragma Warnings (On);
-      null;
+      Self.Priority := Priority;
    end Set_Priority;
 
-   --------------------------------
-   --  Set_Redelivered Procedure --
-   --------------------------------
-   procedure Set_Redelivered (Redelivered : Boolean) is
+   ---------------------
+   -- Set_Redelivered --
+   ---------------------
+
+   procedure Set_Redelivered (Self : in out Message;
+                              Redelivered : MOMA.Types.Boolean) is
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Redelivered);
-      pragma Warnings (On);
-      null;
+      Self.Is_Redelivered := Redelivered;
    end Set_Redelivered;
 
-   -----------------------------
-   --  Set_Reply_To Procedure --
-   -----------------------------
-   procedure Set_Reply_To (Reply_To : MOMA.Destinations.Destination) is
+   ------------------
+   -- Set_Reply_To --
+   ------------------
+
+   procedure Set_Reply_To (Self : in out Message;
+                           Reply_To : MOMA.Destinations.Destination) is
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Reply_To);
-      pragma Warnings (On);
-      null;
+      Self.Reply_To := Reply_To;
    end Set_Reply_To;
 
-   ------------------------------
-   --  Set_Timestamp Procedure --
-   ------------------------------
-   procedure Set_Timestamp (Timestamp : Ada.Calendar.Time) is
+   -------------------
+   -- Set_Timestamp --
+   -------------------
+
+   procedure Set_Timestamp (Self : in out Message;
+                            Timestamp : Ada.Calendar.Time) is
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Timestamp);
-      pragma Warnings (On);
-      null;
+      Self.Timestamp := Timestamp;
    end Set_Timestamp;
+
+   --------------
+   -- Set_Type --
+   --------------
+
+   procedure Set_Type (Self : in out Message;
+                       Type_Of_Message : MOMA.Types.Message_Type) is
+   begin
+      Self.Type_Of_Message := Type_Of_Message;
+   end Set_Type;
+
+   ------------
+   -- To_Any --
+   ------------
+
+   function To_Any (Self : Message) return PolyORB.Any.Any is
+   begin
+      return Self.Message_To_Any (Self);
+   end To_Any;
+
+   ------------------------
+   -- Set_Message_to_Any --
+   ------------------------
+
+   procedure Set_Message_To_Any (Self : in out Message;
+                                 Message_To_Any : Message_To_Any_T) is
+   begin
+      Self.Message_To_Any := Message_To_Any;
+   end Set_Message_To_Any;
+
+   ------------------------
+   -- Simple_Marshalling --
+   ------------------------
+
+   function Simple_Marshalling (Self : Message) return PolyORB.Any.Any is
+   begin
+      return PolyORB.Any.To_Any (Self.Payload);
+   end Simple_Marshalling;
 
 end MOMA.Messages;

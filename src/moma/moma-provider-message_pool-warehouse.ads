@@ -34,19 +34,14 @@
 
 --  $Id$
 
---  generic
-
---  type Value is private;
---  No_Value : Value;
-
-with MOMA.Types;
+with PolyORB.Any;
 with PolyORB.Utils.HTables.Perfect;
 with PolyORB.Locks;
 
 package MOMA.Provider.Message_Pool.Warehouse is
 
    package Perfect_Htable is
-      new PolyORB.Utils.HTables.Perfect (MOMA.Types.String);
+      new PolyORB.Utils.HTables.Perfect (PolyORB.Any.Any);
 
    use Perfect_Htable;
 
@@ -65,7 +60,7 @@ package MOMA.Provider.Message_Pool.Warehouse is
    procedure Register
      (W : Warehouse;
       K : String;
-      V : MOMA.Types.String);
+      V : PolyORB.Any.Any);
    --  Associate key K with value V.
 
    procedure Unregister
@@ -77,7 +72,7 @@ package MOMA.Provider.Message_Pool.Warehouse is
    function Lookup
       (W : Warehouse;
        K : String)
-     return MOMA.Types.String;
+     return PolyORB.Any.Any;
    --  Lookup K in the dictionary, and return the associated value.
    --  Key_Not_Found is raised if no value was registered for this
    --  key.
@@ -85,8 +80,8 @@ package MOMA.Provider.Message_Pool.Warehouse is
    function Lookup
      (W : Warehouse;
       K : String;
-      Default : MOMA.Types.String)
-     return MOMA.Types.String;
+      Default : PolyORB.Any.Any)
+     return PolyORB.Any.Any;
    --  As above, but Default is returned for non-registered keys,
    --  insted of raising an exception.
 

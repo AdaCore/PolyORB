@@ -45,52 +45,35 @@ package body MOMA.Provider.Message_Producer.Impl is
    -- Publish --
    -------------
 
-   function Publish (Self    : in PolyORB.References.Ref;
-                     Message : in PolyORB.Types.String)
-                     return PolyORB.Types.String
+   procedure Publish (Self    : in PolyORB.References.Ref;
+                      Message : in PolyORB.Any.Any)
    is
-      Arg_Name_Mesg : PolyORB.Types.Identifier
-       := PolyORB.Types.To_PolyORB_String ("Mesg");
-
-      Argument_Mesg : PolyORB.Any.Any := PolyORB.Any.To_Any (Message);
-
-      Operation_Name : constant Standard.String := "Publish";
-
-      Request : PolyORB.Requests.Request_Access;
-      Arg_List : PolyORB.Any.NVList.Ref;
-      Result : PolyORB.Any.NamedValue;
-      Result_Name : PolyORB.Types.String := To_PolyORB_String ("Result");
+      Request     : PolyORB.Requests.Request_Access;
+      Arg_List    : PolyORB.Any.NVList.Ref;
+      Result      : PolyORB.Any.NamedValue;
 
    begin
       PolyORB.Any.NVList.Create (Arg_List);
 
       PolyORB.Any.NVList.Add_Item (Arg_List,
-                                   Arg_Name_Mesg,
-                                   Argument_Mesg,
+                                   To_PolyORB_String ("Message"),
+                                   Message,
                                    PolyORB.Any.ARG_IN);
 
-      Result := (Name => PolyORB.Types.Identifier (Result_Name),
-                 Argument => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_String),
+      Result := (Name      => To_PolyORB_String ("Result"),
+                 Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
                  Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
         (Target    => Self,
-         Operation => Operation_Name,
+         Operation => "Publish",
          Arg_List  => Arg_List,
          Result    => Result,
          Req       => Request);
 
       PolyORB.Requests.Invoke (Request);
 
-      --    if not PolyORB.Any.Is_Empty (Request.Exception_Info) then
-      --          PolyORB.CORBA_P.Exceptions.Raise_From_Any
-      --            (Request.Exception_Info);
-      --       end if;
-
       PolyORB.Requests.Destroy_Request (Request);
-
-      --  Retrieve return value.
-      return PolyORB.Any.From_Any (Result.Argument);
 
    end Publish;
 

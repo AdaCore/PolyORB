@@ -33,12 +33,13 @@
 --  $Id$
 
 with MOMA.Types;
+with PolyORB.Any;
 with PolyORB.References;
 
 package MOMA.Provider.Message_Consumer.Impl is
 
    function Get (Self       : in PolyORB.References.Ref;
                  Message_Id : in MOMA.Types.String)
-                 return MOMA.Types.String;
+                 return PolyORB.Any.Any;
 
 end MOMA.Provider.Message_Consumer.Impl;

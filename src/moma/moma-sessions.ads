@@ -36,7 +36,6 @@ with MOMA.Messages.MArrays;
 with MOMA.Messages.MBytes;
 with MOMA.Messages.MRecords;
 with MOMA.Messages.MStreams;
-with MOMA.Messages.MTexts;
 with MOMA.Types;
 
 package MOMA.Sessions is
@@ -57,11 +56,6 @@ package MOMA.Sessions is
    procedure Commit;
 
    function Create_Byte_Message return MOMA.Messages.MBytes.MByte;
-
-   function Create_Text_Message return MOMA.Messages.MTexts.MText;
-
-   function Create_Text_Message (Value : MOMA.Types.String)
-                                 return MOMA.Messages.MTexts.MText;
 
    function Create_Array_Message
      return MOMA.Messages.MArrays.MArray;

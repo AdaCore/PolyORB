@@ -33,13 +33,13 @@
 --  $Id$
 
 with MOMA.Types;
+with PolyORB.Any;
 
 package MOMA.Provider.Message_Pool.Impl is
 
-   function Publish (Message : in MOMA.Types.String)
-                     return MOMA.Types.String;
+   procedure Publish (Message : in PolyORB.Any.Any);
 
    function Get (Message_Id : in MOMA.Types.String)
-                 return MOMA.Types.String;
+                 return PolyORB.Any.Any;
 
 end MOMA.Provider.Message_Pool.Impl;

@@ -34,10 +34,8 @@
 
 --  $Id$
 
-with Ada.Command_Line; use Ada.Command_Line;
-with Ada.Text_IO;      use Ada.Text_IO;
-
-with PolyORB.Types;
+with Ada.Command_Line;
+with Ada.Text_IO;
 
 with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
@@ -54,24 +52,31 @@ with MOMA.Sessions.Queues;
 with MOMA.Destinations;
 with MOMA.Message_Producers.Queues;
 with MOMA.Message_Consumers.Queues;
+with MOMA.Messages;
+with MOMA.Messages.MTexts;
+with MOMA.Types;
 
 procedure Client is
+
+   use Ada.Command_Line;
+   use Ada.Text_IO;
 
    use MOMA.Connection_Factories.Queues;
    use MOMA.Sessions.Queues;
    use MOMA.Connections;
    use MOMA.Message_Producers.Queues;
    use MOMA.Message_Consumers.Queues;
-   use PolyORB.Types;
+   use MOMA.Messages;
+   use MOMA.Messages.MTexts;
+   use MOMA.Types;
 
-   MOMA_Queue       : MOMA.Connections.Queues.Queue;
-   MOMA_Session     : MOMA.Sessions.Queues.Queue;
-   MOMA_Destination : MOMA.Destinations.Destination;
-   MOMA_Producer    : MOMA.Message_Producers.Queues.Queue;
-   MOMA_Consumer    : MOMA.Message_Consumers.Queues.Queue;
-
-   Mesg_To_Send : PolyORB.Types.String := To_PolyORB_String ("Hi MOM !");
-   Rcvd_Msg : PolyORB.Types.String;
+   MOMA_Queue        : MOMA.Connections.Queues.Queue;
+   MOMA_Session      : MOMA.Sessions.Queues.Queue;
+   MOMA_Destination  : MOMA.Destinations.Destination;
+   MOMA_Producer     : MOMA.Message_Producers.Queues.Queue;
+   MOMA_Consumer     : MOMA.Message_Consumers.Queues.Queue;
+   MOMA_Message_Sent : MOMA.Messages.MTexts.MText;
+   MOMA_Message_Rcvd : MOMA.Messages.MTexts.MText;
 
 begin
    --  Argument check
@@ -81,11 +86,11 @@ begin
    end if;
 
    --  Create Queue using Queue Connection Factory
-   MOMA_Queue := Create (To_PolyORB_String (Ada.Command_Line.Argument (1)));
+   MOMA_Queue := Create (To_MOMA_String (Ada.Command_Line.Argument (1)));
 
    --  Create Destination Queue associated to the connection
    MOMA_Destination := Create_Queue (MOMA_Queue,
-                                     To_PolyORB_String ("queue1"));
+                                     To_MOMA_String ("queue1"));
 
    --  Create Session,
    MOMA_Session := Create_Session (False, 1);
@@ -96,15 +101,28 @@ begin
    --  Create Message Consumer associated to the Session
    MOMA_Consumer := Create_Receiver (MOMA_Session, MOMA_Destination);
 
+   --  Create new Text Message
+   MOMA_Message_Sent := Create_Text_Message;
+   Set_Text (MOMA_Message_Sent, To_MOMA_String ("Hi MOM !"));
+
    --  Send message
-   Send (MOMA_Producer, Mesg_To_Send);
+   Send (MOMA_Producer, MOMA_Message_Sent);
 
    --  Get Message
-   Rcvd_Msg := Receive (MOMA_Consumer);
+   declare
+      MOMA_Message_Temp : MOMA.Messages.Message'Class
+        := Receive (MOMA_Consumer);
+   begin
+      if MOMA_Message_Temp in MOMA.Messages.MTexts.MText then
+         MOMA_Message_Rcvd := MOMA.Messages.MTexts.MText (MOMA_Message_Temp);
+      else
+         raise Program_Error;
+      end if;
+   end;
 
    --  Print results
-   Put_Line ("I sent     : " & To_String (Mesg_To_Send));
-   Put_Line ("I received : " & To_String (Rcvd_Msg));
+   Put_Line ("I sent     : " & Image (MOMA_Message_Sent));
+   Put_Line ("I received : " & Image (MOMA_Message_Rcvd));
 
    --  End of File
    --  Put_Line ("waiting");

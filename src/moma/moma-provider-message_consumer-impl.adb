@@ -47,18 +47,18 @@ package body MOMA.Provider.Message_Consumer.Impl is
 
    function Get (Self       : in PolyORB.References.Ref;
                  Message_Id : in PolyORB.Types.String)
-                 return PolyORB.Types.String
+                 return PolyORB.Any.Any
    is
       Arg_Name_Mesg : PolyORB.Types.Identifier
-       := PolyORB.Types.To_PolyORB_String ("Mesg");
+       := PolyORB.Types.To_PolyORB_String ("Message");
 
       Argument_Mesg : PolyORB.Any.Any := PolyORB.Any.To_Any (Message_Id);
 
       Operation_Name : constant Standard.String := "Get";
 
-      Request : PolyORB.Requests.Request_Access;
-      Arg_List : PolyORB.Any.NVList.Ref;
-      Result : PolyORB.Any.NamedValue;
+      Request     : PolyORB.Requests.Request_Access;
+      Arg_List    : PolyORB.Any.NVList.Ref;
+      Result      : PolyORB.Any.NamedValue;
       Result_Name : PolyORB.Types.String := To_PolyORB_String ("Result");
 
    begin
@@ -69,8 +69,8 @@ package body MOMA.Provider.Message_Consumer.Impl is
                                    Argument_Mesg,
                                    PolyORB.Any.ARG_IN);
 
-      Result := (Name => PolyORB.Types.Identifier (Result_Name),
-                 Argument => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_String),
+      Result := (Name      => PolyORB.Types.Identifier (Result_Name),
+                 Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Any),
                  Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
@@ -82,15 +82,10 @@ package body MOMA.Provider.Message_Consumer.Impl is
 
       PolyORB.Requests.Invoke (Request);
 
-      --    if not PolyORB.Any.Is_Empty (Request.Exception_Info) then
-      --          PolyORB.CORBA_P.Exceptions.Raise_From_Any
-      --            (Request.Exception_Info);
-      --       end if;
-
       PolyORB.Requests.Destroy_Request (Request);
 
       --  Retrieve return value.
-      return PolyORB.Any.From_Any (Result.Argument);
+      return Result.Argument;
 
    end Get;
 

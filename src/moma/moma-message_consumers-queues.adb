@@ -30,16 +30,29 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
+--  $Id: //droopi/main/src/moma/moma-message_consumers-queues.adb#3
+
+with MOMA.Messages;
+with MOMA.Messages.MTexts;
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
-with PolyORB.Types;
+with PolyORB.Log;
 with PolyORB.Requests;
+with PolyORB.Types;
 
 package body MOMA.Message_Consumers.Queues is
 
+   use PolyORB.Any;
+   use PolyORB.Log;
    use PolyORB.Types;
+   use MOMA.Messages;
+   use MOMA.Messages.MTexts;
+
+   package L is
+     new PolyORB.Log.Facility_Log ("moma.message_consumers.queues");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
 
    ------------------------
    -- Get_Queue Function --
@@ -57,21 +70,23 @@ package body MOMA.Message_Consumers.Queues is
    -------------
 
    function Receive (Self : Queue)
-                     return PolyORB.Types.String
+                     return MOMA.Messages.Message'Class
    is
       Arg_Name_Mesg : PolyORB.Types.Identifier
-       := PolyORB.Types.To_PolyORB_String ("Mesg");
+       := PolyORB.Types.To_PolyORB_String ("Message");
 
       Argument_Mesg : PolyORB.Any.Any := PolyORB.Any.To_Any
-        (To_PolyORB_String ("M0"));
-      --  XXX Temporary hack, need to solve message_pool-warehouse
+        (To_PolyORB_String (""));
+      --  XXX Temporary hack, should pass message filter ... or not ?
 
       Operation_Name : constant Standard.String := "Get";
 
-      Request : PolyORB.Requests.Request_Access;
-      Arg_List : PolyORB.Any.NVList.Ref;
-      Result : PolyORB.Any.NamedValue;
+      Request     : PolyORB.Requests.Request_Access;
+      Arg_List    : PolyORB.Any.NVList.Ref;
+      Result      : PolyORB.Any.NamedValue;
       Result_Name : PolyORB.Types.String := To_PolyORB_String ("Result");
+      Result_Any  : PolyORB.Any.Any;
+
    begin
       PolyORB.Any.NVList.Create (Arg_List);
 
@@ -80,8 +95,8 @@ package body MOMA.Message_Consumers.Queues is
                                    Argument_Mesg,
                                    PolyORB.Any.ARG_IN);
 
-      Result := (Name => PolyORB.Types.Identifier (Result_Name),
-                 Argument => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_String),
+      Result := (Name      => PolyORB.Types.Identifier (Result_Name),
+                 Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Any),
                  Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
@@ -95,22 +110,30 @@ package body MOMA.Message_Consumers.Queues is
 
       PolyORB.Requests.Destroy_Request (Request);
 
-      return PolyORB.Any.From_Any (Result.Argument);
+      Result_Any := From_Any (Result.Argument);
+      pragma Debug (O ("Received " & PolyORB.Any.Image (Result_Any)));
+
+      if TypeCode.Kind (Get_Type (Result_Any)) = Tk_String then
+         declare
+            Rcvd_Message : MOMA.Messages.MTexts.MText := Create_Text_Message;
+         begin
+            Set_Payload (Rcvd_Message, Result_Any);
+            return Rcvd_Message;
+         end;
+      end if;
+      raise Program_Error;
    end Receive;
 
    function Receive (Timeout : Time) return MOMA.Messages.Message is
-      Temp : MOMA.Messages.Message;
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (Timeout);
+      return Receive (Timeout);
       pragma Warnings (On);
-
-      return Temp;
    end Receive;
 
-   ----------------------
-   -- Receive _No_Wait --
-   ----------------------
+   ---------------------
+   -- Receive_No_Wait --
+   ---------------------
 
    function Receive_No_Wait return MOMA.Messages.Message is
    begin
@@ -119,7 +142,4 @@ package body MOMA.Message_Consumers.Queues is
       pragma Warnings (On);
    end Receive_No_Wait;
 
-
-
 end MOMA.Message_Consumers.Queues;
-

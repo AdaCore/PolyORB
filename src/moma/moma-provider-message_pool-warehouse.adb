@@ -62,9 +62,9 @@ package body MOMA.Provider.Message_Pool.Warehouse is
    function Lookup
      (W : Warehouse;
       K : String)
-      return MOMA.Types.String
+      return PolyORB.Any.Any
    is
-      Result : MOMA.Types.String;
+      Result : PolyORB.Any.Any;
       Temp : Warehouse := W;
    begin
       Ensure_Initialization (Temp);
@@ -81,10 +81,10 @@ package body MOMA.Provider.Message_Pool.Warehouse is
    function Lookup
      (W : Warehouse;
       K : String;
-      Default : MOMA.Types.String)
-     return MOMA.Types.String
+      Default : PolyORB.Any.Any)
+     return PolyORB.Any.Any
    is
-      V : MOMA.Types.String;
+      V : PolyORB.Any.Any;
       Temp : Warehouse := W;
    begin
       Ensure_Initialization (Temp);
@@ -103,7 +103,7 @@ package body MOMA.Provider.Message_Pool.Warehouse is
    procedure Register
      (W : Warehouse;
       K : String;
-      V : MOMA.Types.String)
+      V : PolyORB.Any.Any)
    is
       Temp : Warehouse := W;
    begin
@@ -122,7 +122,7 @@ package body MOMA.Provider.Message_Pool.Warehouse is
      (W : Warehouse;
       K : String)
    is
-      V : MOMA.Types.String;
+      V : PolyORB.Any.Any;
       Temp : Warehouse := W;
    begin
       Ensure_Initialization (Temp);

@@ -35,11 +35,18 @@
 with PolyORB.Types;
 with PolyORB.Any;
 with PolyORB.Any.NVList;
+with PolyORB.Log;
 with PolyORB.Requests;
 
 package body MOMA.Message_Producers.Queues is
 
    use PolyORB.Types;
+   use PolyORB.Log;
+
+   package L is
+     new PolyORB.Log.Facility_Log ("moma.message_producers.queues");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
 
    ---------------
    -- Get_Queue --
@@ -57,45 +64,37 @@ package body MOMA.Message_Producers.Queues is
    ----------
 
    procedure Send (Self    : Queue;
-                   Message : PolyORB.Types.String)
+                   Message : MOMA.Messages.Message'Class)
    is
-      Arg_Name_Mesg : PolyORB.Types.Identifier
-       := PolyORB.Types.To_PolyORB_String ("Mesg");
-
-      Argument_Mesg : PolyORB.Any.Any := PolyORB.Any.To_Any (Message);
-
-      Operation_Name : constant Standard.String := "Publish";
-
-      Request : PolyORB.Requests.Request_Access;
-      Arg_List : PolyORB.Any.NVList.Ref;
-      Result : PolyORB.Any.NamedValue;
-      Result_Name : PolyORB.Types.String := To_PolyORB_String ("Result");
+      Argument_Mesg : PolyORB.Any.Any := MOMA.Messages.To_Any (Message);
+      Request       : PolyORB.Requests.Request_Access;
+      Arg_List      : PolyORB.Any.NVList.Ref;
+      Result        : PolyORB.Any.NamedValue;
 
    begin
+      pragma Debug (O ("Sending : " & PolyORB.Any.Image (Argument_Mesg)));
+      pragma Debug (O (" original data : " & PolyORB.Any.Image
+                       (PolyORB.Any.From_Any (Argument_Mesg))));
+
       PolyORB.Any.NVList.Create (Arg_List);
 
       PolyORB.Any.NVList.Add_Item (Arg_List,
-                                   Arg_Name_Mesg,
+                                   To_PolyORB_String ("Message"),
                                    Argument_Mesg,
                                    PolyORB.Any.ARG_IN);
 
-      Result := (Name => PolyORB.Types.Identifier (Result_Name),
-                 Argument => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
+      Result := (Name      => To_PolyORB_String ("Result"),
+                 Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
                  Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
         (Target    => Get_Ref (Self),
-         Operation => Operation_Name,
+         Operation => "Publish",
          Arg_List  => Arg_List,
          Result    => Result,
          Req       => Request);
 
       PolyORB.Requests.Invoke (Request);
-
-      --    if not PolyORB.Any.Is_Empty (Request.Exception_Info) then
-      --          PolyORB.CORBA_P.Exceptions.Raise_From_Any
-      --            (Request.Exception_Info);
-      --       end if;
 
       PolyORB.Requests.Destroy_Request (Request);
 

@@ -70,7 +70,7 @@ package body MOMA.Provider.Message_Producer is
 
          Add_Item (Args,
                    (Name => To_PolyORB_String ("Message"),
-                    Argument => Get_Empty_Any (TypeCode.TC_String),
+                    Argument => Get_Empty_Any (TypeCode.TC_Any),
                     Arg_Modes => PolyORB.Any.ARG_IN));
          Arguments (Req, Args);
 
@@ -78,14 +78,11 @@ package body MOMA.Provider.Message_Producer is
             use PolyORB.Any.NVList.Internals;
             Args_Sequence : constant NV_Sequence_Access
               := List_Of (Args);
-            Publish_Arg : PolyORB.Types.String :=
-              From_Any (NV_Sequence.Element_Of
-                        (Args_Sequence.all, 1).Argument);
+            Publish_Arg : PolyORB.Any.Any :=
+              NV_Sequence.Element_Of (Args_Sequence.all, 1).Argument;
          begin
-            Req.Result.Argument := To_Any
-              (MOMA.Provider.Message_Producer.Impl.Publish (Self.Remote_Ref,
-                                                            Publish_Arg));
-            pragma Debug (O ("Result: " & Image (Req.Result)));
+            MOMA.Provider.Message_Producer.Impl.Publish (Self.Remote_Ref,
+                                                         Publish_Arg);
          end;
 
       end if;
@@ -109,16 +106,19 @@ package body MOMA.Provider.Message_Producer is
 
       Result : PolyORB.Any.NVList.Ref;
    begin
-      PolyORB.Any.NVList.Create (Result);
       pragma Debug (O ("Parameter profile for " & Method & " requested."));
+
+      PolyORB.Any.NVList.Create (Result);
+
       if Method = "Publish" then
          Add_Item (Result,
-                   (Name => To_PolyORB_String ("Message"),
-                    Argument => Get_Empty_Any (TypeCode.TC_String),
+                   (Name      => To_PolyORB_String ("Message"),
+                    Argument  => Get_Empty_Any (TypeCode.TC_Any),
                     Arg_Modes => ARG_IN));
       else
          raise Program_Error;
       end if;
+
       return Result;
    end Get_Parameter_Profile;
 
@@ -139,7 +139,7 @@ package body MOMA.Provider.Message_Producer is
    begin
       pragma Debug (O ("Result profile for " & Method & " requested."));
       if Method = "Publish" then
-         return Get_Empty_Any (TypeCode.TC_String);
+         return Get_Empty_Any (TypeCode.TC_Void);
       else
          raise Program_Error;
       end if;

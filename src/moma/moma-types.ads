@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---              PROVIDES TYPES USED BY ALL MOMA PACKAGES, IT                --
+--                           M O M A . T Y P E S                            --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -30,8 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides types used by all MOMA packages, it is mostly derived
---  from PolyORB.Types
+--  MOMA Types definitions.
 
 --  $Id$
 
@@ -39,11 +38,14 @@ with PolyORB.Types;
 
 package MOMA.Types is
 
+   --  Generic types.
    --
-   --  Generic types
-   --
+   --  Whenever possible, we reuse definitions from the CORBA specifications
 
-   subtype String is PolyORB.Types.String;
+   subtype Boolean is Standard.Boolean;
+   subtype String  is PolyORB.Types.String;
+
+   --  String conversion fonctions.
 
    function To_Standard_String (V : PolyORB.Types.String)
                                 return Standard.String
@@ -53,17 +55,18 @@ package MOMA.Types is
                             return PolyORB.Types.String
      renames PolyORB.Types.To_PolyORB_String;
 
-   --
    --  MOMA specific types
-   --
 
-   type Meta_Data is new Integer;
-   type Acknowledge_Type is new Integer;
-   type Property_Type is new Integer;
-   type String_Ptr is access String;
-   type Priority is new Integer range 1 .. 10;
-   type Record_Type is new Integer;
-   type Array_Type is new Integer;
+   type Meta_Data        is new    Integer;
+   type Acknowledge_Type is new    Integer;
+   type Property_Type    is new    Integer;
+   type String_Ptr       is access String;
+   type Priority         is new    Integer range 1 .. 10;
+   type Record_Type      is new    Integer;
+   type Array_Type       is new    Integer;
+
+   type Message_Type is (Byte_M, Text_M);
+   --  XXX to be completed
 
 end MOMA.Types;
 
