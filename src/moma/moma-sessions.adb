@@ -94,7 +94,7 @@ package body MOMA.Sessions is
    is
       Handler : MOMA.Message_Handlers.Message_Handler_Acc :=
          new MOMA.Message_Handlers.Message_Handler;
-      Servant : MOMA.Provider.Message_Handler.Object_Acc :=
+      Servant : constant MOMA.Provider.Message_Handler.Object_Acc :=
          new MOMA.Provider.Message_Handler.Object;
       Servant_Ref : PolyORB.References.Ref;
    begin
