@@ -92,15 +92,23 @@ private
       record
          Type_Id  : CORBA.String;
          Profiles : Broca.IOP.Profile_Ptr_Array_Ptr := null;
-         case Local_Object is
-            when False =>
-               Used_Profile_Index   : CORBA.Unsigned_Long := 0;
-               Is_Supported_Profile : Boolean             := False;
-               --  True if server is placed in the same address space with
-               --  Object.
-            when True =>
-               null;
-         end case;
+
+         Used_Profile_Index   : CORBA.Unsigned_Long := 0;
+         Is_Supported_Profile : Boolean             := False;
+
+--           case Local_Object is
+--              when False =>
+--                 Used_Profile_Index   : CORBA.Unsigned_Long := 0;
+--                 Is_Supported_Profile : Boolean             := False;
+--                 --  True if server is placed in the same address space with
+--                 --  Object.
+--              when True =>
+--                 null;
+--           end case;
+         --  FIXME:
+         --  These should be present only for non-local objects;
+         --  local objects should be accessed directly, not through
+         --  a socket.
       end record;
 
 end Broca.Object;

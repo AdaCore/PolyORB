@@ -120,8 +120,13 @@ package body Broca.Object is
 
    begin
       pragma Assert (Object /= null);
-      if Object.Local_Object then
-         --  Should not be called for local objects
+      if False and then Object.Local_Object then
+         --  Should not be called for local objects...
+         --  if we knew how to send a request to a local object directly.
+         --  This is not currently the case, so local objects are accessed
+         --  through a socket anyway.
+         --  FIXME:
+         --  Should access local objects directly, not through a socket.
          Broca.Exceptions.Raise_Internal;
       elsif Object.Profiles /= null then
          return Object.Profiles (Object.Used_Profile_Index);
@@ -201,7 +206,9 @@ package body Broca.Object is
    begin
       Obj.Type_Id := Type_Id;
       Obj.Profiles := Profiles;
-      if not Local_Object then
+      if True or else not Local_Object then
+         --  FIXME:
+         --  should access local object directly, not through a socket.
          Broca.IOP.Find_Best_Profile
            (Profiles, Obj.Used_Profile_Index, Obj.Is_Supported_Profile);
       end if;

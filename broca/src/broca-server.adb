@@ -898,6 +898,7 @@ package body Broca.Server is
       Object_Key_Buffer : aliased Buffer_Type;
       Server  : Server_Ptr;
    begin
+      pragma Debug (O ("Build_IOR: enter"));
       Lock_R (POA_Object_Of (POA).Link_Lock);
       --  Lock the POA.  As a result, we are sure it won't be destroyed
       --  during the marshalling of the IOR.
@@ -918,6 +919,9 @@ package body Broca.Server is
       end;
 
       declare
+         use Broca.IOP;
+         --  For operation /= on Profile_Ptr.
+
          Object_Key   : constant Encapsulation
            := Encapsulate (Object_Key_Buffer'Access);
 
@@ -943,6 +947,8 @@ package body Broca.Server is
             end if;
          end loop;
 
+         pragma Debug (O ("Build_IOR:" & Nbr_Profiles'Img & " profiles"));
+
          Profiles := new Broca.IOP.Profile_Ptr_Array'
            (1 .. Nbr_Profiles => null);
 
@@ -950,10 +956,14 @@ package body Broca.Server is
             Server := Server_Table.Get_Server_By_Id (N);
             exit when Server = null;
             if Can_Create_Profile (Server) then
-               Profiles (CORBA.Unsigned_Long (N))
+               Profiles (Nbr_Profiles)
                  := Make_Profile (Server, Object_Key);
+               pragma Assert (Profiles (Nbr_Profiles) /= null);
+               Nbr_Profiles := Nbr_Profiles - 1;
             end if;
          end loop;
+
+         pragma Assert (Nbr_Profiles = 0);
 
          declare
             The_IOR : Broca.Object.Object_Ptr := Broca.Object.Create_Object
