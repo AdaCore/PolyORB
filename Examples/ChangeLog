@@ -1,3 +1,8 @@
+Sun Sep  7 16:20:05 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* check-config.in: Do not check for rsh to localhost anymore since 
+	  it will not be used.
+
 Wed May  7 18:19:09 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* Messages/Makefile.am: Changed bogus pathes.
