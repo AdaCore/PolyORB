@@ -90,7 +90,9 @@ package body PolyORB.Protocols is
       elsif S in Disconnect_Indication then
          Handle_Disconnect (Session_Access (Sess));
       elsif S in Data_Indication then
-         Handle_Data_Indication (Session_Access (Sess));
+         Handle_Data_Indication
+           (Session_Access (Sess),
+            Data_Indication (S).Data_Amount);
       elsif S in Unmarshall_Arguments then
          declare
             Args : PolyORB.Any.NVList.Ref
@@ -105,7 +107,8 @@ package body PolyORB.Protocols is
       elsif S in Execute_Request then
          Invoke_Request
            (Session_Access (Sess),
-            Execute_Request (S).Req);
+            Execute_Request (S).Req,
+            Execute_Request (S).Pro);
       elsif S in Executed_Request then
          declare
             Var_Req : Request_Access
@@ -137,17 +140,6 @@ package body PolyORB.Protocols is
       end if;
       return Nothing;
    end Handle_Message;
-
-   procedure Expect_Data
-     (S      : access Session;
-      In_Buf : Buffers.Buffer_Access;
-      Max    : Ada.Streams.Stream_Element_Count) is
-   begin
-      Emit_No_Reply
-        (Port   => Lower (S),
-         Msg    => Data_Expected'
-           (In_Buf => In_Buf, Max => Max));
-   end Expect_Data;
 
    -------------------------
    -- Get_Request_Watcher --

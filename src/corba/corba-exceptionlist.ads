@@ -66,7 +66,7 @@ package CORBA.ExceptionList is
      (Self : in Ref;
       Index : in CORBA.Unsigned_Long);
 
-   function Create_Object return Object_Ptr;
+   procedure Create_List (Self : out Ref);
 
    function Search_Exception_Id
      (Self : in Ref;

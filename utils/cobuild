@@ -2,7 +2,7 @@
 
 # cobuild: Build something from a checked-out wavefront.
 
-# $Id: //droopi/main/utils/cobuild#4 $
+# $Id: //droopi/main/utils/cobuild#8 $
 
 PROJECT=DROOPI
 
@@ -120,7 +120,8 @@ export CHANGE
 
   if [ -x $CLIENT_TOP/configure ]
   then
-    $CLIENT_TOP/configure --disable-shared --prefix=$OUTDIR/install
+    $CLIENT_TOP/configure --disable-shared --enable-debug --enable-xmlada \
+      --prefix=$OUTDIR/install
   fi && make && make install
   RC=$?
   exit $RC

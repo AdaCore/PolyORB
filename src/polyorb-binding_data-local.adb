@@ -65,13 +65,6 @@ package body PolyORB.Binding_Data.Local is
       pragma Assert (P.Object_Id /= null);
    end Create_Local_Profile;
 
-   function Get_Object_Key
-     (Profile : Local_Profile_Type)
-     return Objects.Object_Id is
-   begin
-      return Profile.Object_Id.all;
-   end Get_Object_Key;
-
    pragma Warnings (Off);
    --  Out parameters are not assigned a value.
 
@@ -80,8 +73,6 @@ package body PolyORB.Binding_Data.Local is
       TE      : out Transport.Transport_Endpoint_Access;
       Session : out Components.Component_Access) is
    begin
-      pragma Assert (False);
-
       raise Program_Error;
       --  May not happen (no such a profile does not support
       --  connections).
@@ -106,7 +97,7 @@ package body PolyORB.Binding_Data.Local is
 
    function Image (Prof : Local_Profile_Type) return String is
    begin
-      return "Object_Id : " & PolyORB.Objects.Image (Prof.Object_Id.all);
+      return "Object_Id: " & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
 
 end PolyORB.Binding_Data.Local;

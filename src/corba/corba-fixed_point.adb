@@ -35,9 +35,7 @@
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 
-with PolyORB.Any;
 with PolyORB.Representations.CDR;
-with PolyORB.Opaque;            use PolyORB.Opaque;
 
 package body CORBA.Fixed_Point is
 
@@ -90,7 +88,9 @@ package body CORBA.Fixed_Point is
    function From_Any (Item : in Any) return F is
    begin
 --       pragma Debug (O ("From_Any (Fixed) : enter"));
---       if (TypeCode.Kind (Get_Precise_Type (Item)) /= PolyORB.Any.Tk_Fixed) then
+--       if (TypeCode.Kind (Get_Precise_Type (Item))
+--         /= PolyORB.Any.Tk_Fixed)
+--       then
 --          pragma Debug
 --            (O ("From_Any (Fixed) : Bad_TypeCode, type is " &
 --                CORBA.TCKind'Image

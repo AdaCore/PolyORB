@@ -46,4 +46,28 @@ package body PolyORB.Obj_Adapters is
       OA.ORB := The_ORB;
    end Set_ORB;
 
+   --  Default relative URI representation of an object ID:
+   --  "/" & hexadecimal representation of oid value.
+
+   function Oid_To_Rel_URI
+     (OA : access Obj_Adapter;
+      Id : access Object_Id)
+     return Types.String is
+   begin
+      return Types.To_PolyORB_String ("/" & To_String (Id.all));
+   end Oid_To_Rel_URI;
+
+   function Rel_URI_To_Oid
+     (OA  : access Obj_Adapter;
+      URI : Types.String)
+     return Object_Id_Access
+   is
+      S : constant String := Types.To_Standard_String (URI);
+   begin
+      if S (S'First) /= '/' then
+         raise Constraint_Error;
+      end if;
+      return new Object_Id'(To_Oid (S (S'First + 1 .. S'Last)));
+   end Rel_URI_To_Oid;
+
 end PolyORB.Obj_Adapters;

@@ -39,8 +39,8 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.POA_Types; use PolyORB.POA_Types;
 with PolyORB.Locks;
 with PolyORB.Components;
-with Locked_Queue;
-pragma Elaborate_All (Locked_Queue);
+with PolyORB.Locked_Queue;
+pragma Elaborate_All (PolyORB.Locked_Queue);
 
 package PolyORB.POA_Manager.Basic_Manager is
 
@@ -136,7 +136,7 @@ private
       end record;
    type Queue_Element_Access is access all Queue_Element;
 
-   package Requests_Queue_P is new Locked_Queue (Queue_Element_Access);
+   package Requests_Queue_P is new PolyORB.Locked_Queue (Queue_Element_Access);
    subtype Requests_Queue is Requests_Queue_P.Queue;
 
    type Basic_POA_Manager is new POAManager with

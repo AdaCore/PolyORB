@@ -32,7 +32,7 @@
 
 --  Buffer management
 
---  $Id: //droopi/main/src/polyorb-buffers.ads#3 $
+--  $Id: //droopi/main/src/polyorb-buffers.ads#8 $
 
 with System;
 --  For bit-order information.
@@ -139,6 +139,16 @@ package PolyORB.Buffers is
      (Buffer   : access Buffer_Type)
      return Stream_Element_Array;
    --  Dump the contents of Buffer into a Stream_Element_Array.
+   --  Using this function is dangerous because it may overflow
+   --  the stack with the contents of a big buffer. It is therefore
+   --  DEPRECATED. Use the following instead.
+
+   function To_Stream_Element_Array
+     (Buffer   : access Buffer_Type)
+     return Opaque.Zone_Access;
+   --  Dump the contents of Buffer into a Stream_Element_Array,
+   --  and return a pointer to it. The caller must take care of
+   --  deallocating the pointer after use.
 
    ------------------------------
    -- The CDR view of a buffer --
@@ -241,17 +251,27 @@ package PolyORB.Buffers is
    --  Retrieving data from a buffer
 
    procedure Extract_Data
-     (Buffer : access Buffer_Type;
-      Data   : out Opaque_Pointer;
-      Size   : Stream_Element_Count);
-   --  Retrieve Size elements from Buffer.
+     (Buffer      : access Buffer_Type;
+      Data        : out Opaque_Pointer;
+      Size        : Stream_Element_Count;
+      Use_Current : Boolean := True;
+      At_Position : Stream_Element_Offset := 0);
+   --  Retrieve Size elements from Buffer. If Use_Current,
+   --  the extraction starts at the current position in the
+   --  buffer, else it starts at At_Position.
+
    --  On return, Data contains an access to the retrieved
-   --  Data, and the CDR current position is advanced by Size.
+   --  Data, and if Use_Current, then the CDR current position
+   --  is advanced by Size.
 
    function CDR_Position (Buffer : access Buffer_Type)
      return Stream_Element_Offset;
-   --  return the current CDR position of the buffer
+   --  Return the current CDR position of the buffer
    --  in the marshalling stream.
+
+   procedure Rewind (Buffer : access Buffer_Type);
+   --  Reset the current position in Buffer to the initial
+   --  position.
 
    ---------------------------------------
    -- The input/output view of a buffer --
@@ -269,8 +289,8 @@ package PolyORB.Buffers is
       Received : out Stream_Element_Count);
    --  Received at most Max octets of data into Buffer at
    --  current position. On return, Received is set to the
-   --  effective amount of data received, and the current
-   --  position is advanced by that much.
+   --  effective amount of data received. The current position
+   --  is unchanged.
 
    -------------------------
    -- Utility subprograms --

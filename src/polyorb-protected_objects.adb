@@ -35,15 +35,17 @@
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 
-with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
-
 pragma Warnings (Off);
 with System.Soft_Links;
 pragma Warnings (On);
 --  Internal GNAT unit.
 
+with PolyORB.Configurator;
+pragma Elaborate_All (PolyORB.Configurator);
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Soft_Links;  use PolyORB.Soft_Links;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.Protected_Objects is
 
@@ -533,4 +535,16 @@ package body PolyORB.Protected_Objects is
       return Task_Id_To_Integer (T.X);
    end To_Integer;
 
+   use PolyORB.Configurator;
+   use PolyORB.Configurator.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name => +"protected_objects",
+       Conflicts => Empty,
+       Depends => Empty,
+       Provides => +"soft_links",
+       Init => Initialize'Access));
 end PolyORB.Protected_Objects;

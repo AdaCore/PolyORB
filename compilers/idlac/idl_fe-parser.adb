@@ -7384,10 +7384,13 @@ package body Idl_Fe.Parser is
    --------------------------
    --  Hexa_Char_To_Digit  --
    --------------------------
-   function Hexa_Char_To_Digit (C : in Character)
-                                return Integer is
-      Result : Integer;
+   function Hexa_Char_To_Digit
+     (C : in Character)
+   return Integer
+   is
       use Ada.Characters.Latin_1;
+
+      Result : Integer;
    begin
       Result := Character'Pos (C);
       if Result >= Character'Pos ('0') and
@@ -7399,7 +7402,7 @@ package body Idl_Fe.Parser is
       else
          Result := Result + 10 - Character'Pos ('A');
       end if;
-      return Integer (Result);
+      return Result;
    end Hexa_Char_To_Digit;
 
    ------------------------

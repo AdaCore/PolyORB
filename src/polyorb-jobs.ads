@@ -71,7 +71,7 @@ package PolyORB.Jobs is
       J : Job_Access);
    --  Enter a pending Job into Q.
 
-   function Empty (Q : access Job_Queue) return Boolean;
+   function Is_Empty (Q : access Job_Queue) return Boolean;
    --  True if, and only if, Q contains no pending Job.
 
    function Fetch_Job (Q : access Job_Queue) return Job_Access;

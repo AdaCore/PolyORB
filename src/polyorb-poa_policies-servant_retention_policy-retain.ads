@@ -72,7 +72,7 @@ package PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
    function Id_To_Servant
      (Self  : Retain_Policy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid_Access)
+      U_Oid : Unmarshalled_Oid)
      return Servant_Access;
 
    procedure Free

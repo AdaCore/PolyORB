@@ -30,7 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  with Ada.Exceptions;
 --  $Id$
 
 with Ada.Streams; use Ada.Streams;
@@ -96,27 +95,31 @@ package body PolyORB.Protocols.SRP is
       null;
    end Connect;
 
-   procedure Invoke_Request (S : access SRP_Session;
-             R :  Requests.Request_Access)
+   procedure Invoke_Request
+     (S : access SRP_Session;
+      R :  Requests.Request_Access;
+      P : access Binding_Data.Profile_Type'Class)
    is
    begin
       null;
    end Invoke_Request;
 
-   procedure Abort_Request (S : access SRP_Session;
-             R :  Requests.Request_Access)
+   procedure Abort_Request
+     (S : access SRP_Session;
+      R :  Requests.Request_Access)
    is
    begin
       null;
    end Abort_Request;
 
    procedure Request_Received (S : access SRP_Session);
+
    procedure Request_Received (S : access SRP_Session)
    is
       use Binding_Data.Local;
       use PolyORB.Obj_Adapters;
 
-      Info_SRP : Split_SRP;
+      SRP_Info : Split_SRP;
 
       --  used to store the arg list needed by the method called
       Args   : Any.NVList.Ref;
@@ -140,15 +143,15 @@ package body PolyORB.Protocols.SRP is
 
       --  Split the string in its different parts and store them in
       --  a Split_SRP record
-      Info_SRP := Split (Request_String.all);
+      SRP_Info := Split (Request_String.all);
 
       --  Get the arg profile needed by the method called
       Args := Obj_Adapters.Get_Empty_Arg_List
         (Object_Adapter (ORB),
-         Info_SRP.Oid.all,
-         To_Standard_String (Info_SRP.Method.all));
+         SRP_Info.Oid,
+         To_Standard_String (SRP_Info.Method.all));
 
-      Unmarshall (Args, Info_SRP);
+      Unmarshall (Args, SRP_Info);
 
       --  Get Object_Id and Operation_Id
 --      Unmarshall_Request_Message (S.Buffer_In,
@@ -163,19 +166,19 @@ package body PolyORB.Protocols.SRP is
       --  appropriate Any.NamedValue for the result
       Result := (Name     => To_PolyORB_String ("Result"),
                  Argument =>  Obj_Adapters.Get_Empty_Result
-                   (Object_Adapter (ORB), Info_SRP.Oid.all,
-                    To_Standard_String (Info_SRP.Method.all)),
+                   (Object_Adapter (ORB), SRP_Info.Oid,
+                    To_Standard_String (SRP_Info.Method.all)),
                  Arg_Modes => 0);
 
       --  Create a local profile for the request. Indeed, the request isnnow
       --  local
       Create_Local_Profile
-        (Info_SRP.Oid.all, Local_Profile_Type (Target_Profile.all));
+        (SRP_Info.Oid.all, Local_Profile_Type (Target_Profile.all));
       References.Create_Reference ((1 => Target_Profile), "", Target);
 
       --  Create a Request
       Create_Request (Target    => Target,
-                      Operation => To_Standard_String (Info_SRP.Method.all),
+                      Operation => To_Standard_String (SRP_Info.Method.all),
                       Arg_List  => Args,
                       Result    => Result,
                       Req       => Req);
@@ -272,7 +275,9 @@ package body PolyORB.Protocols.SRP is
    --     end loop;
    --  end Free;
 
-   procedure Handle_Data_Indication (S : access SRP_Session)
+   procedure Handle_Data_Indication
+     (S : access SRP_Session;
+      Data_Amount : Stream_Element_Count)
    is
    begin
       pragma Debug (O ("Received data on SRP service..."));
@@ -567,7 +572,7 @@ package body PolyORB.Protocols.SRP is
       return Value;
    end To_SEA;
 
-   procedure Unmarshall (Args : in out Any.NVList.Ref; Info_SRP : Split_SRP)
+   procedure Unmarshall (Args : in out Any.NVList.Ref; SRP_Info : Split_SRP)
    is
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
@@ -576,9 +581,11 @@ package body PolyORB.Protocols.SRP is
       use PolyORB.Utils;
 
       Args_List   : NV_Sequence_Access;
-      Current_Arg : Arg_Info_Ptr := Info_SRP.Args;
+      Current_Arg : Arg_Info_Ptr := SRP_Info.Args;
       Temp_Arg  : NamedValue;
+
       Temp_Buffer : aliased Buffer_Type;
+      --  XXX BAD BAD buffer allocated on the stack
    begin
       --  By modifing Args_list, we modify directly Args
       Args_List := List_Of (Args);

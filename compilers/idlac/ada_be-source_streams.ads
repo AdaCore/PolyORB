@@ -38,14 +38,19 @@ package Ada_Be.Source_Streams is
      (Unit_Spec, Unit_Body);
    --  The kind of a compilation unit.
 
-   type Diversion is
-     (Visible_Declarations,
-      Private_Declarations,
-      Generic_Formals,
-      Elaboration);
+   Max_Diversions : constant := 32;
+
+   type Diversion is private;
    --  A compilation unit can have several diversions,
    --  each of which is a linear stream of source code
-   --  lines.
+   --  lines. There can be at most Max_Diversions of these
+   --  in one compilation unit.
+
+   --  Predefined diversions:
+   Visible_Declarations : constant Diversion;
+   Private_Declarations : constant Diversion;
+   Generic_Formals      : constant Diversion;
+   Elaboration          : constant Diversion;
    --  The Visible_Declarations and Private_Declarations
    --  diversions correspond to the visible and private
    --  parts of the compilation unit's declarative region.
@@ -64,6 +69,10 @@ package Ada_Be.Source_Streams is
    -- a compilation unit.                           --
    ---------------------------------------------------
 
+   function Allocate_User_Diversion return Diversion;
+   --  Creates a system-wide user-defined diversion identifier
+   --  and returns it.
+
    procedure Divert
      (CU     : in out Compilation_Unit;
       Whence : Diversion);
@@ -73,15 +82,35 @@ package Ada_Be.Source_Streams is
    --  If CU is a Unit_Body, it is not allowed to set the current
    --  diversion to Private_Declarations or Generic_Formals.
 
-   procedure Add_With (Unit      : in out Compilation_Unit;
-                       Dep       : String;
-                       Use_It    : Boolean := False;
-                       Elab_Control : Elab_Control_Pragma := None);
+   procedure Undivert
+     (CU : in out Compilation_Unit;
+      D  : Diversion);
+   --  Insert the contents of diversion D into CU at the current
+   --  position. D is emptied and unused after Undivert returns.
+
+   procedure Add_With
+     (Unit         : in out Compilation_Unit;
+      Dep          :        String;
+      Use_It       :        Boolean             := False;
+      Elab_Control :        Elab_Control_Pragma := None;
+      No_Warnings  :        Boolean             := False);
    --  Add Dep to the semantic dependecies of Unit,
    --  if it is not already present. If Use_It is true,
    --  a "use" clause will be added for that unit.
    --  Additionnally, an elaboration control pragma may
    --  be inserted according to Elab_Control.
+   --  If No_Warnings is True, also emit a
+   --    pragma Warnings (Off, Withed_Unit) (useful e.g.
+   --  when no entities from the withed unit are referenced.)
+
+   --  If Add_With is called several times for the same unit:
+   --    - the unit is use'd if at least one call was made with
+   --      Use_It set to True;
+   --    - the elab control is set to Elaborate_All if any call
+   --      was made with Elab_Control = Elaborate_All,
+   --    - else the elab control is set to Elaborate if any call
+   --      was made with Elab_Control = Elaborate,
+   --    - else the elab control is set to None.
 
    procedure Add_Elaborate_Body (Unit : in out Compilation_Unit);
    --  Add a pragma Elaborate_Body to the spec denoted by Unit.
@@ -140,10 +169,23 @@ private
    type Dependency_Node;
    type Dependency is access Dependency_Node;
 
+   type Diversion is new Integer range 0 .. Max_Diversions - 1;
+
+   Visible_Declarations : constant Diversion := 0;
+   Private_Declarations : constant Diversion := 1;
+   Generic_Formals      : constant Diversion := 2;
+   Elaboration          : constant Diversion := 3;
+
+   subtype Predefined_Diversions is Diversion
+     range Visible_Declarations .. Elaboration;
+   subtype User_Diversions is Diversion
+     range Predefined_Diversions'Last + 1 .. Diversion'Last;
+
    type Diversion_Data is record
+      Empty          : Boolean := True;
+      --  True iff some text has been Insert'ed in this diversion.
+
       Library_Item   : Unbounded_String;
-      Empty          : Boolean
-        := True;
       Indent_Level   : Positive := 1;
       At_BOL         : Boolean := True;
       --  True if a line has just been ended, and the
@@ -154,7 +196,6 @@ private
    type Diversion_Set is array (Diversion) of aliased Diversion_Data;
 
    type Compilation_Unit is new Ada.Finalization.Controlled with record
-
       Library_Unit_Name : String_Ptr;
       Kind              : Unit_Kind;
       Elaborate_Body    : Boolean    := False;
@@ -167,6 +208,6 @@ private
       Diversions        : Diversion_Set;
    end record;
 
-   procedure Finalize (Object : in out Compilation_Unit);
+   procedure Finalize   (CU : in out Compilation_Unit);
 
 end Ada_Be.Source_Streams;

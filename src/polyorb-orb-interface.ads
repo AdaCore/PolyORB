@@ -37,6 +37,7 @@
 with PolyORB.Components;
 with PolyORB.Jobs;
 with PolyORB.Requests;
+with PolyORB.Types;
 
 package PolyORB.ORB.Interface is
 
@@ -60,5 +61,13 @@ package PolyORB.ORB.Interface is
    --  Requestor must be set to null.
    --  The client the responsible of the destruction of
    --  the Request after its execution is completed.
+
+   type Oid_Translate is new Components.Message with record
+      Oid : Objects.Object_Id_Access;
+   end record;
+
+   type URI_Translate is new Components.Message with record
+      Path : Types.String;
+   end record;
 
 end PolyORB.ORB.Interface;

@@ -105,6 +105,12 @@ private
    --  package that contains the mapping of
    --  the entity defined by Node.
 
+   function Helper_Unit
+     (Node : Node_Id)
+     return String;
+   --  The name of the Helper unit containing To_Any and
+   --  From_Any for type Node.
+
    procedure Gen_When_Clause
      (CU   : in out Compilation_Unit;
       Node : Node_Id;
@@ -156,6 +162,20 @@ private
       Node : Node_Id);
    --  Generate the text for a node whose mapping is
    --  common to all generated files.
+
+   procedure Gen_Forward_Conversion
+     (CU        : in out Compilation_Unit;
+      T_Node    : in     Node_Id;
+      Direction : in     String;
+      What      : in     String);
+   --  Generate a call to a forward <-> actual reference conversion,
+   --  if necessary.
+
+   -------------------
+   -- Text handling --
+   -------------------
+
+   function Justify (S : in String; Max : in Integer) return String;
 
    ---------------
    -- Shortcuts --

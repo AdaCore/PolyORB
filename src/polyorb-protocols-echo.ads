@@ -52,7 +52,11 @@ package PolyORB.Protocols.Echo is
 
    type Echo_Session is new Session with private;
 
-   procedure Invoke_Request (S : access Echo_Session; R : Request_Access);
+   procedure Invoke_Request
+     (S : access Echo_Session;
+      R : Request_Access;
+      P : access Binding_Data.Profile_Type'Class);
+
    procedure Abort_Request (S : access Echo_Session; R : Request_Access);
    --  These are just for show and do nothing.
 
@@ -65,7 +69,9 @@ package PolyORB.Protocols.Echo is
    procedure Handle_Connect_Confirmation (S : access Echo_Session);
    --  Setup client dialog.
 
-   procedure Handle_Data_Indication (S : access Echo_Session);
+   procedure Handle_Data_Indication
+     (S : access Echo_Session;
+      Data_Amount : Ada.Streams.Stream_Element_Count);
    --  Handle data received from user.
 
    procedure Handle_Disconnect (S : access Echo_Session);

@@ -210,8 +210,10 @@ package PolyORB.Protocols.GIOP is
      (Proto   : access GIOP_Protocol;
       Session : out Filter_Access);
 
-   procedure Invoke_Request (S : access GIOP_Session;
-                 R : Requests.Request_Access);
+   procedure Invoke_Request
+     (S   : access GIOP_Session;
+      R   : Requests.Request_Access;
+      Pro : access Binding_Data.Profile_Type'Class);
 
    procedure Abort_Request (S : access GIOP_Session;
                  R : Requests.Request_Access);
@@ -223,7 +225,9 @@ package PolyORB.Protocols.GIOP is
 
    procedure Handle_Connect_Confirmation (S : access GIOP_Session);
 
-   procedure Handle_Data_Indication (S : access GIOP_Session);
+   procedure Handle_Data_Indication
+     (S : access GIOP_Session;
+      Data_Amount : Stream_Element_Count);
 
    procedure Handle_Disconnect (S : access GIOP_Session);
 

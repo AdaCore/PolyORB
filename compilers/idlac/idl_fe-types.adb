@@ -1232,7 +1232,7 @@ package body Idl_Fe.Types is
 
          Increment_Last (Table);
          Result := Uniq_Id (Table.Last_Val);
-         Table.Table (Previous).Next := Uniq_Id (Result);
+         Table.Table (Previous).Next := Result;
       end if;
 
       --  Add an entry for Index, using default values

@@ -30,9 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.CORBA_P.Exceptions; use PolyORB.CORBA_P.Exceptions;
---  XXX remove dep on CORBA_P!
-
 with PolyORB.POA;
 with PolyORB.Types;
 
@@ -91,12 +88,12 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
    procedure Ensure_Lifespan
      (P     : Transient_Policy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid_Access) is
+      U_Oid : Unmarshalled_Oid) is
    begin
       if U_Oid.Persistency_Flag
         /= PolyORB.POA.Obj_Adapter_Access (OA).Boot_Time
       then
-         Raise_Bad_Param;
+         raise PolyORB.POA.Object_Not_Exist;
       end if;
    end Ensure_Lifespan;
 

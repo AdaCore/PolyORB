@@ -66,13 +66,6 @@ package body PolyORB.Binding_Data.Test is
       Free (P.Object_Id);
    end Finalize;
 
-   function Get_Object_Key
-     (Profile : Test_Profile_Type)
-     return Objects.Object_Id is
-   begin
-      return Profile.Object_Id.all;
-   end Get_Object_Key;
-
    procedure Bind_Profile
      (Profile : Test_Profile_Type;
       TE      : out Transport.Transport_Endpoint_Access;
@@ -114,8 +107,10 @@ package body PolyORB.Binding_Data.Test is
    end Get_Profile_Preference;
 
    procedure Create_Factory
-     (PF : out Test_Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access) is
+     (PF  : out Test_Profile_Factory;
+      TAP : Transport.Transport_Access_Point_Access;
+      ORB : Components.Component_Access)
+   is
    begin
       PF.Address := Address_Of (Socket_Access_Point (TAP.all));
    end Create_Factory;

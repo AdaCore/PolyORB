@@ -38,35 +38,28 @@ with Ada.Real_Time;
 
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
-
 with PolyORB.Objects;
-with PolyORB.Smart_Pointers;
-
-with CORBA;
-with PolyORB.CORBA_P.Exceptions; use PolyORB.CORBA_P.Exceptions;
---  For CORBA exceptions (XXX should not!)
-
-with PolyORB.Types;
-
-with PolyORB.POA_Types;
-with PolyORB.POA_Manager.Basic_Manager;
 with PolyORB.POA_Config;
+with PolyORB.POA_Manager.Basic_Manager;
+with PolyORB.POA_Types;
+with PolyORB.Smart_Pointers;
+with PolyORB.Types;
 
 package body PolyORB.POA.Basic_POA is
 
-   use PolyORB.Types;
-
-   use POA_Types;
-
    use PolyORB.Locks;
    use PolyORB.Log;
-   use PolyORB.POA_Policies;
    use PolyORB.POA_Manager;
    use PolyORB.POA_Manager.Basic_Manager;
+   use PolyORB.POA_Policies;
+   use PolyORB.POA_Types;
+   use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("corba.poa.basic_poa");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+
+   POA_Path_Separator : constant String := "/";
 
    ----------------------------------------------------------
    --  Declaration of additional procedures and functions  --
@@ -111,7 +104,7 @@ package body PolyORB.POA.Basic_POA is
 
    function Find_Servant
      (OA       : access Basic_Obj_Adapter;
-      Id       :        PolyORB.Objects.Object_Id;
+      Id       : access PolyORB.Objects.Object_Id;
       Do_Check :        Check_State)
      return PolyORB.Objects.Servant_Access;
    --  The Find_Servant from PolyORB, plus a parameter.
@@ -505,10 +498,15 @@ package body PolyORB.POA.Basic_POA is
    is
       New_Obj_Adapter : Basic_Obj_Adapter_Access;
       Children_Locked : Boolean := False;
-      Index           : Positive;
+      Child_Id : Integer;
+
    begin
-      --  Adapter_Name should be not empty
-      pragma Assert (Adapter_Name /= "");
+      --  Validity checks on Adapter_Name
+      if Adapter_Name = ""
+        or else Index (Adapter_Name, POA_Path_Separator) /= 0
+      then
+         raise PolyORB.POA.Invalid_Name;
+      end if;
 
       --  Look if there is already a child with this name
       if Self.Children /= null then
@@ -517,7 +515,7 @@ package body PolyORB.POA.Basic_POA is
          --  we add the new child.
          Children_Locked := True;
          if Get_Child (Self, To_Standard_String (Adapter_Name)) /= null then
-            PolyORB.CORBA_P.Exceptions.Raise_Adapter_Already_Exists;
+            raise PolyORB.POA.Adapter_Already_Exists;
          end if;
       end if;
 
@@ -559,10 +557,11 @@ package body PolyORB.POA.Basic_POA is
       if not Children_Locked then
          Lock_W (Self.Children_Lock);
       end if;
-      Index := Register_Child (Self, New_Obj_Adapter);
+
+      Child_Id := Register_Child (Self, New_Obj_Adapter);
       if Length (Self.Absolute_Address) > 0 then
          New_Obj_Adapter.Absolute_Address := Self.Absolute_Address
-           & To_PolyORB_String (".") & Adapter_Name;
+           & To_PolyORB_String (POA_Path_Separator) & Adapter_Name;
       else
          New_Obj_Adapter.Absolute_Address
            := Self.Absolute_Address & Adapter_Name;
@@ -575,10 +574,8 @@ package body PolyORB.POA.Basic_POA is
       return Obj_Adapter_Access (New_Obj_Adapter);
 
    exception
-      when CORBA.Adapter_Already_Exists =>
-         --  Reraise exception
-         PolyORB.CORBA_P.Exceptions.Raise_Adapter_Already_Exists;
-         return null;
+      when PolyORB.POA.Adapter_Already_Exists =>
+         raise;
       when others =>
          Destroy_OA (New_Obj_Adapter);
          raise;
@@ -703,7 +700,7 @@ package body PolyORB.POA.Basic_POA is
                           P_Servant);
    begin
       if Oid = null then
-         Raise_Servant_Not_Active;
+         raise PolyORB.POA.Servant_Not_Active;
       end if;
       return Oid.all;
    end Servant_To_Id;
@@ -739,7 +736,10 @@ package body PolyORB.POA.Basic_POA is
      return Basic_Obj_Adapter_Access
    is
       use PolyORB.POA_Types.POA_Sequences;
-      Split_Point      : Natural := Index (Name, ".");
+
+      Split_Point      : constant Natural
+        := Index (Name, POA_Path_Separator);
+
       Remaining_Name   : Types.String;
       A_Child_Name     : Types.String;
       A_Child          : Obj_Adapter_Access;
@@ -747,24 +747,22 @@ package body PolyORB.POA.Basic_POA is
       if Name = "" then
          return Basic_Obj_Adapter_Access (Self);
       end if;
+
       if Split_Point /= 0 then
          A_Child_Name := Head (Name, Split_Point - 1);
          Remaining_Name := Tail (Name, Length (Name) - Split_Point);
       else
          A_Child_Name := Name;
       end if;
+
       for I in 1 .. Length (Sequence (Self.Children.all)) loop
-         A_Child := Obj_Adapter_Access (Element_Of
-                                        (Sequence (Self.Children.all),
-                                         I));
+         A_Child := Obj_Adapter_Access
+           (Element_Of (Sequence (Self.Children.all), I));
+
          if A_Child.Name = A_Child_Name then
-            if Remaining_Name /= "" then
-               return Find_POA_Recursively
-                 (Basic_Obj_Adapter (A_Child.all)'Access,
-                  Remaining_Name);
-            else
-               return Basic_Obj_Adapter_Access (A_Child);
-            end if;
+            return Find_POA_Recursively
+              (Basic_Obj_Adapter (A_Child.all)'Access,
+               Remaining_Name);
          end if;
       end loop;
       return null;
@@ -909,7 +907,7 @@ package body PolyORB.POA.Basic_POA is
 
    function Get_Empty_Arg_List
      (OA     : access Basic_Obj_Adapter;
-      Oid    : PolyORB.Objects.Object_Id;
+      Oid    : access PolyORB.Objects.Object_Id;
       Method : PolyORB.Requests.Operation_Id)
      return PolyORB.Any.NVList.Ref
    is
@@ -917,7 +915,7 @@ package body PolyORB.POA.Basic_POA is
       Nil_Result : PolyORB.Any.NVList.Ref;
    begin
       pragma Debug (O ("Get_Empty_Arg_List for Id "
-                       & PolyORB.Objects.To_String (Oid)));
+                       & PolyORB.Objects.To_String (Oid.all)));
       S := Servant_Access (Find_Servant (OA, Oid, NO_CHECK));
       if S.If_Desc.PP_Desc /= null then
          return S.If_Desc.PP_Desc (Method);
@@ -943,14 +941,14 @@ package body PolyORB.POA.Basic_POA is
 
    function Get_Empty_Result
      (OA     : access Basic_Obj_Adapter;
-      Oid    : PolyORB.Objects.Object_Id;
+      Oid    : access PolyORB.Objects.Object_Id;
       Method : PolyORB.Requests.Operation_Id)
      return PolyORB.Any.Any
    is
       S : Servant_Access;
    begin
       pragma Debug (O ("Get_Empty_Result for Id "
-                       & PolyORB.Objects.To_String (Oid)));
+                       & PolyORB.Objects.To_String (Oid.all)));
       S := Servant_Access (Find_Servant (OA, Oid, NO_CHECK));
       if S.If_Desc.RP_Desc /= null then
          return S.If_Desc.RP_Desc (Method);
@@ -965,7 +963,7 @@ package body PolyORB.POA.Basic_POA is
 
    function Find_Servant
      (OA : access Basic_Obj_Adapter;
-      Id :        PolyORB.Objects.Object_Id)
+      Id : access PolyORB.Objects.Object_Id)
      return PolyORB.Objects.Servant_Access
    is
    begin
@@ -978,18 +976,18 @@ package body PolyORB.POA.Basic_POA is
 
    function Find_Servant
      (OA       : access Basic_Obj_Adapter;
-      Id       :        PolyORB.Objects.Object_Id;
+      Id       : access PolyORB.Objects.Object_Id;
       Do_Check :        Check_State)
      return PolyORB.Objects.Servant_Access
    is
-      U_Oid  : Unmarshalled_Oid_Access
-        := Oid_To_U_Oid (Object_Id (Id));
+      U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Id);
    begin
       if Do_Check = CHECK then
          case Get_State (POA_Manager_Of (OA).all) is
             when DISCARDING | INACTIVE =>
-               Raise_Transient (1);
+               --  Raise_Transient (1);
                --  ??? Do we have to do something special for INACTIVE
+               raise Transient;
             when HOLDING =>
                declare
                   S : PolyORB.Objects.Servant_Access;
@@ -1017,11 +1015,11 @@ package body PolyORB.POA.Basic_POA is
          pragma Debug
            (O ("OA : " & To_Standard_String (The_OA.Name)
                & " looks for servant associated with Id "
-               & PolyORB.Objects.To_String (Id)));
+               & PolyORB.Objects.To_String (Id.all)));
 
          if The_OA /= null then
             return PolyORB.Objects.Servant_Access
-              (Id_To_Servant (The_OA, Id));
+              (Id_To_Servant (The_OA, Id.all));
          else
             raise Invalid_Object_Id;
             --  This is an exception from PolyORB
@@ -1035,11 +1033,13 @@ package body PolyORB.POA.Basic_POA is
 
    procedure Release_Servant
      (OA      : access Basic_Obj_Adapter;
-      Id      :        PolyORB.Objects.Object_Id;
+      Id      : access PolyORB.Objects.Object_Id;
       Servant : in out PolyORB.Objects.Servant_Access)
    is
    begin
       null;
+      --  XXX if servant has been created on the fly, must
+      --  destroy it now.
    end Release_Servant;
 
 end PolyORB.POA.Basic_POA;

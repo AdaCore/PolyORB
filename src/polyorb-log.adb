@@ -32,6 +32,7 @@
 
 --  $Id$
 
+with Ada.Exceptions;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Characters.Handling;
 
@@ -80,9 +81,12 @@ package body PolyORB.Log is
             begin
                Facility_Level := Get_Log_Level (Facility);
             exception
-               when Log_Level_Dict.Key_Not_Found =>
+               when PolyORB.Log.Log_Level_Dict.Key_Not_Found =>
                   Facility_Level := Notice;
-               when others =>
+               when E : others =>
+                  Ada.Text_IO.Put_Line ("Argh!");
+                  Ada.Text_IO.Put_Line
+                    (Ada.Exceptions.Exception_Information (E));
                   raise;
             end;
             Initialized := True;

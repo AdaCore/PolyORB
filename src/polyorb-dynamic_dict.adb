@@ -34,8 +34,8 @@
 
 --  $Id$
 
-with Ada.Unchecked_Deallocation;
 with GNAT.HTable;
+with PolyORB.Utils.Strings; use PolyORB.Utils.Strings;
 
 package body PolyORB.Dynamic_Dict is
 
@@ -43,9 +43,6 @@ package body PolyORB.Dynamic_Dict is
    -- A hash table that stores the Value associated with --
    -- a String key.                                      --
    --------------------------------------------------------
-
-   type String_Ptr is access all String;
-   procedure Free is new Ada.Unchecked_Deallocation (String, String_Ptr);
 
    type Hash_Val is new Integer range 0 .. 32;
 

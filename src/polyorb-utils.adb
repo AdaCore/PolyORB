@@ -68,9 +68,6 @@ package body PolyORB.Utils is
          'f' => 15,
          others => -1);
 
-   function Hex_Value (C : Character) return Integer;
-   --  Self-explanatory.
-
    ---------------
    -- Hex_Value --
    ---------------
@@ -118,5 +115,86 @@ package body PolyORB.Utils is
       end loop;
       return A;
    end To_Stream_Element_Array;
+
+   Need_Escape : constant array (Character) of Boolean
+     := (';' | '/' | '?' | ':' | '@' | '&' | '=' | '+' | '$' | ',' |
+         '<' | '>' | '#' | '%' | '"' |
+         '{' | '}' | '|' | '\' | '^' | '[' | ']' | '`' => True,
+         others => False);
+
+   function URI_Encode (S : String) return String is
+      Result : String (1 .. 3 * S'Length);
+      DI : Integer := Result'First;
+   begin
+      for SI in S'Range loop
+         if Need_Escape (S (SI)) then
+            Result (DI .. DI + 2)
+              := '%' & Hex (Character'Pos (S (SI)) / 16)
+              & Hex (Character'Pos (S (SI)) mod 16);
+            DI := DI + 3;
+         else
+            if S (SI) = ' ' then
+               Result (DI) := '+';
+            else
+               Result (DI) := S (SI);
+            end if;
+            DI := DI + 1;
+         end if;
+      end loop;
+      return Result (Result'First .. DI - 1);
+   end URI_Encode;
+
+   function URI_Decode (S : String) return String is
+      Result : String (S'Range);
+      SI : Integer := S'First;
+      DI : Integer := Result'First;
+   begin
+      while SI <= S'Last loop
+         if S (SI) = '%' then
+            if SI > S'Last - 2 then
+               raise Constraint_Error;
+            end if;
+            Result (DI) := Character'Val
+              (Hex_Value (S (SI + 1)) * 16 + Hex_Value (S (SI + 2)));
+            SI := SI + 3;
+         else
+            if S (SI) = '+' then
+               Result (DI) := ' ';
+            else
+               Result (DI) := S (SI);
+            end if;
+            SI := SI + 1;
+         end if;
+         DI := DI + 1;
+      end loop;
+      return Result (Result'First .. DI - 1);
+   end URI_Decode;
+
+   function Trimmed_Image (I : Integer) return String is
+      R : constant String := Integer'Image (I);
+   begin
+      if I >= 0 then
+         return R (R'First + 1 .. R'Last);
+      else
+         return R;
+      end if;
+   end Trimmed_Image;
+
+   function Find_Skip
+     (S     : String;
+      Start : Integer;
+      What  : Character;
+      Skip  : Boolean)
+     return Integer
+   is
+      I : Integer := Start;
+   begin
+      while I < S'Last loop
+         I := I + 1;
+         exit when I > S'Last or else (S (I) = What xor Skip);
+      end loop;
+
+      return I;
+   end Find_Skip;
 
 end PolyORB.Utils;

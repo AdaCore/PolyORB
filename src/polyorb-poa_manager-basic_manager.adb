@@ -32,14 +32,13 @@
 
 --  $Id$
 
-with PolyORB.CORBA_P.Exceptions;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
+with PolyORB.POA;
 
 package body PolyORB.POA_Manager.Basic_Manager is
 
    use PolyORB.Locks;
-   use PolyORB.CORBA_P.Exceptions;
    use PolyORB.Log;
    use Requests_Queue_P;
 
@@ -71,7 +70,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
       Lock_W (Self.State_Lock);
       if Self.Current_State = INACTIVE then
          Unlock_W (Self.State_Lock);
-         Raise_Adapter_Inactive;
+         raise PolyORB.POA.Adapter_Inactive;
       else
          Self.Current_State := ACTIVE;
       end if;
@@ -92,7 +91,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
       Lock_W (Self.State_Lock);
       if Self.Current_State = INACTIVE then
          Unlock_W (Self.State_Lock);
-         Raise_Adapter_Inactive;
+         raise PolyORB.POA.Adapter_Inactive;
       else
          Self.Current_State := HOLDING;
          null;
@@ -118,7 +117,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
       Lock_W (Self.State_Lock);
       if Self.Current_State = INACTIVE then
          Unlock_W (Self.State_Lock);
-         Raise_Adapter_Inactive;
+         raise PolyORB.POA.Adapter_Inactive;
       else
          Self.Current_State := DISCARDING;
          null;
@@ -147,7 +146,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
       Lock_W (Self.State_Lock);
       if Self.Current_State = INACTIVE then
          Unlock_W (Self.State_Lock);
-         Raise_Adapter_Inactive;
+         raise PolyORB.POA.Adapter_Inactive;
       else
          Self.Current_State := INACTIVE;
       end if;
@@ -273,7 +272,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
         Get_Max_Count (Self.Holded_Requests)
       then
          Unlock_W (Self.Queue_Lock);
-         Raise_Transient (1);
+         raise PolyORB.POA.Transient;
       end if;
 
       New_Entry     := new Queue_Element;

@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-
-
 --  $Id$
 
 with Ada.Streams; use Ada.Streams;
@@ -84,25 +82,35 @@ package body PolyORB.References.IOR is
          CORBA.String'(CORBA.To_CORBA_String (Type_Id_Of (Value.Ref))));
       Marshall (Buffer, Types.Unsigned_Long (Length (Callbacks)));
 
-      pragma Debug (O ("Marshall Profile : Enter"));
+      pragma Debug (O ("Marshall: enter"));
 
       for N in Profs'Range loop
-         for I in 1 .. Length (Callbacks) loop
-            if Element_Of (Callbacks, I).Tag =
-               Get_Profile_Tag (Profs (N).all) then
-               Marshall (Buffer, Types.Unsigned_Long (Get_Profile_Tag
-                         (Profs (N).all)));
+         pragma Debug (O ("Considering profile with tag"
+                          & Get_Profile_Tag (Profs (N).all)'Img));
 
-               Element_Of (Callbacks, I).
-                         Marshall_Profile_Body (Buffer, Profs (N));
-               Counter := Counter + 1;
-            end if;
+         for I in 1 .. Length (Callbacks) loop
+            pragma Assert (Profs (N) /= null);
+
+            declare
+               T : constant Profile_Tag
+                 := Get_Profile_Tag (Profs (N).all);
+            begin
+               pragma Debug (O ("... with callback" & I'Img
+                                & " whose tag is "
+                                & Element_Of (Callbacks, I).Tag'Img));
+               if T = Element_Of (Callbacks, I).Tag then
+                  Marshall (Buffer, Types.Unsigned_Long (T));
+
+                  Element_Of
+                    (Callbacks, I).Marshall_Profile_Body
+                    (Buffer, Profs (N));
+                  Counter := Counter + 1;
+               end if;
+            end;
          end loop;
       end loop;
 
-
-      pragma Debug (O ("Marshall Profile : Leave"));
-
+      pragma Debug (O ("Marshall: Leave"));
    end Marshall;
 
    ----------------
@@ -128,31 +136,36 @@ package body PolyORB.References.IOR is
         := Unmarshall (Buffer);
 
       Profs   : Profile_Array := (1 .. Integer (N_Profiles) => null);
+      Last_Profile : Integer := Profs'First - 1;
    begin
 
       pragma Debug
         (O ("Decapsulate_IOR: type " & Type_Id
             & " (" & N_Profiles'Img & " profiles)."));
 
-      for N in Profs'Range loop
+      for N in 1 .. N_Profiles loop
          declare
             Temp_Tag : Types.Unsigned_Long := Unmarshall (Buffer);
             Tag      : constant Profile_Tag := Profile_Tag (Temp_Tag);
          begin
-
             for I in 1 .. Length (Callbacks) loop
                if Element_Of (Callbacks, I).Tag = Tag then
-                  Profs (N) := Element_Of (Callbacks, I).
+                  Last_Profile := Last_Profile + 1;
+                  Profs (Last_Profile) := Element_Of (Callbacks, I).
                     Unmarshall_Profile_Body (Buffer);
                   --  Profiles dynamically allocated here
                   --  will be freed when the returned
                   --  reference is finalised.
                end if;
             end loop;
+            --  XXX actually if no callback matches this tag,
+            --  we should unmarshall the profile body as an encaps
+            --  and simply keep it as 'unsupported profile'.
          end;
       end loop;
 
-      Create_Reference (Profs, Type_Id, Result.Ref);
+      Create_Reference
+        (Profs (Profs'First .. Last_Profile), Type_Id, Result.Ref);
 
       return Result;
    end Unmarshall;
@@ -226,22 +239,20 @@ package body PolyORB.References.IOR is
 
    end String_To_Object;
 
-
    --------------
    -- Register --
    --------------
 
-
    procedure Register
      (Profile     : in Profile_Tag;
       Marshall_Profile_Body   : in Marshall_Profile_Body_Type;
-      Unmarshall_Profile_Body : in Unmarshall_Profile_Body_Type) is
-
-      Elt : constant Profile_Record := (Profile, Marshall_Profile_Body,
-                                        Unmarshall_Profile_Body);
+      Unmarshall_Profile_Body : in Unmarshall_Profile_Body_Type)
+   is
+      Elt : constant Profile_Record
+        := (Profile, Marshall_Profile_Body,
+            Unmarshall_Profile_Body);
    begin
       Append (Callbacks, Elt);
    end Register;
-
 
 end PolyORB.References.IOR;

@@ -146,7 +146,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       --  Object key
       Marshall (Buffer, Stream_Element_Array
             (Binding_Data.IIOP.Get_Object_Key (IIOP.IIOP_Profile_Type
-            (Target_Profile.all))));
+            (Target_Profile.all)).all));
 
 
       --  Operation

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#8 $
+--  $Id: //droopi/main/src/polyorb-any.adb#11 $
 
 with Ada.Tags;
 
@@ -737,7 +737,7 @@ package body PolyORB.Any is
          Default_Nb : Unsigned_Long := 0;
       begin
          --  See the big explanation after the declaration of
-         --  typecode.object in the private part of corba.typecode
+         --  typecode.object in the private part of PolyORB.Any
          --  to understand the magic numbers used here.
          pragma Debug (O ("Member_Count_With_Label : enter"));
          if TypeCode.Kind (Self) = Tk_Union then
@@ -1105,45 +1105,96 @@ package body PolyORB.Any is
    --  Any  --
    -----------
 
-   function Image (A : Any) return Standard.String is
+   function Image (TC : TypeCode.Object) return Standard.String;
+   function Image (TC : TypeCode.Object) return Standard.String is
+      use TypeCode;
+
+      Kind : constant TCKind := TypeCode.Kind (TC);
+      Result : Types.String;
    begin
---       case TypeCode.Parameter_Count (A.The_Type) is
---          when 0 =>
---             return "<No parameter>";
---          when others =>
-            case TypeCode.Kind (A.The_Type) is
-               when Tk_Short =>
-                  return Short'Image (From_Any (A));
-               when Tk_Long =>
-                  return Long'Image (From_Any (A));
-               when Tk_Ushort =>
-                  return Unsigned_Short'Image (From_Any (A));
-               when Tk_Ulong =>
-                  return Unsigned_Long'Image (From_Any (A));
-               when Tk_Float =>
-                  return Types.Float'Image (From_Any (A));
-               when Tk_Double =>
-                  return Double'Image (From_Any (A));
-               when Tk_Boolean =>
-                  return Boolean'Image (From_Any (A));
-               when Tk_Char =>
-                  return Char'Image (From_Any (A));
-               when Tk_Octet =>
-                  return Octet'Image (From_Any (A));
-               when Tk_Any =>
-                  return "<Any value (Any)>";
-               when Tk_TypeCode =>
-                  return "<Any value (TypeCode)>";
-               when Tk_String =>
-                  return To_Standard_String (From_Any (A));
-               when Tk_Longlong =>
-                  return Long_Long'Image (From_Any (A));
-               when Tk_Ulonglong =>
-                  return Unsigned_Long_Long'Image (From_Any (A));
+      case Kind is
+         when
+           Tk_Objref             |
+           Tk_Struct             |
+           Tk_Union              |
+           Tk_Enum               |
+           Tk_Alias              |
+           Tk_Value              |
+           Tk_Valuebox           |
+           Tk_Native             |
+           Tk_Abstract_Interface |
+           Tk_Except             =>
+            Result := To_PolyORB_String (Kind'Img & " ")
+              & Types.String'(From_Any (Get_Parameter (TC, 0)))
+              & To_PolyORB_String (" (")
+              & Types.String'(From_Any (Get_Parameter (TC, 1)))
+              & To_PolyORB_String (")");
+
+            case Kind is
+               when
+                 Tk_Objref             |
+                 Tk_Native             |
+                 Tk_Abstract_Interface =>
+                  return To_Standard_String (Result);
+               when Tk_Struct | Tk_Except =>
+                  Result := Result & To_PolyORB_String (" {");
+                  declare
+                     I : Types.Unsigned_Long := 2;
+                     C : constant Types.Unsigned_Long
+                       := Parameter_Count (TC);
+                  begin
+                     while I < C loop
+                        Result := Result & To_PolyORB_String
+                          (" " & Image
+                           (TypeCode.Object'
+                            (From_Any (Get_Parameter (TC, I))))
+                           & " ")
+                          & Types.String'
+                          (From_Any (Get_Parameter (TC, I + 1)));
+                        I := I + 2;
+                     end loop;
+                  end;
+                  Result := Result & To_PolyORB_String ("}");
+                  return To_Standard_String (Result);
                when others =>
-                  return "<No standard type>";
+                  return "<aggregate:" & Kind'Img & ">";
             end case;
---      end case;
+         when others =>
+            return Kind'Img;
+      end case;
+   end Image;
+
+   function Image (A : Any) return Standard.String is
+      Kind : constant TCKind := TypeCode.Kind (A.The_Type);
+   begin
+      case Kind is
+         when Tk_Short =>
+            return Short'Image (From_Any (A));
+         when Tk_Long =>
+            return Long'Image (From_Any (A));
+         when Tk_Ushort =>
+            return Unsigned_Short'Image (From_Any (A));
+         when Tk_Ulong =>
+            return Unsigned_Long'Image (From_Any (A));
+         when Tk_Float =>
+            return Types.Float'Image (From_Any (A));
+         when Tk_Double =>
+            return Double'Image (From_Any (A));
+         when Tk_Boolean =>
+            return Boolean'Image (From_Any (A));
+         when Tk_Char =>
+            return Char'Image (From_Any (A));
+         when Tk_Octet =>
+            return Octet'Image (From_Any (A));
+         when Tk_String =>
+            return To_Standard_String (From_Any (A));
+         when Tk_Longlong =>
+            return Long_Long'Image (From_Any (A));
+         when Tk_Ulonglong =>
+            return Unsigned_Long_Long'Image (From_Any (A));
+         when others =>
+            return "<Any:" & Image (A.The_Type) & ">";
+      end case;
    end Image;
 
    -----------
@@ -2254,6 +2305,7 @@ package body PolyORB.Any is
    begin
       pragma Debug (O ("Get_Aggregate_Element : enter"));
       Lock_R (Value.Any_Lock);
+      pragma Assert (Value.The_Value /= null);
       Ptr := Content_Aggregate_Ptr (Value.The_Value.all).Value;
       pragma Debug (O ("Get_Aggregate_Element : Index = "
                        & Unsigned_Long'Image (Index)
@@ -2311,6 +2363,27 @@ package body PolyORB.Any is
               Ref_Counter  => The_Counter,
               Any_Lock     => A.Any_Lock);
    end Get_By_Ref;
+
+   procedure Copy_Any_Value (Dest : in out Any; Src : Any)
+   is
+   begin
+      if TypeCode.Kind (Get_Precise_Type (Dest))
+        /= TypeCode.Kind (Get_Precise_Type (Src))
+      then
+         raise TypeCode.Bad_TypeCode;
+      end if;
+
+      Lock_W (Dest.Any_Lock);
+      if Dest.The_Value.all /= Null_Content_Ptr then
+         Deallocate (Dest.The_Value.all);
+         --  We can do a simple deallocate/replacement here
+         --  because The_Value.all.all is not alised (ie
+         --  it is pointed to only by the Any_Content_Ptr
+         --  The_Value.all).
+      end if;
+      Dest.The_Value.all := Duplicate (Get_Value (Src));
+      Unlock_W (Dest.Any_Lock);
+   end Copy_Any_Value;
 
    -----------------
    --  Duplicate  --

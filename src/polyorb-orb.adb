@@ -39,18 +39,21 @@ with Ada.Real_Time;
 with Ada.Tags;
 
 with PolyORB.Annotations;
+with PolyORB.Configurator;
+pragma Elaborate_All (PolyORB.Configurator);
 with PolyORB.Constants;
 with PolyORB.Filters;
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
-
 with PolyORB.Objects.Interface;
 with PolyORB.ORB.Interface;
-with PolyORB.Task_Info;
 with PolyORB.References.Binding;
+with PolyORB.Setup;
 with PolyORB.Soft_Links;
+with PolyORB.Task_Info;
 with PolyORB.Transport;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.ORB is
 
@@ -147,7 +150,7 @@ package body PolyORB.ORB is
       Q   : access Job_Queue)
      return Boolean is
    begin
-      if not Empty (Q) then
+      if not Is_Empty (Q) then
          declare
             Job : Job_Access := Fetch_Job (Q);
          begin
@@ -204,7 +207,8 @@ package body PolyORB.ORB is
                Emit_No_Reply
                  (Component_Access (Note.D.TE),
                   Filters.Interface.Data_Indication'
-                    (null record));
+                    (Data_Amount => 0));
+               --  The size of the data received is not known yet.
 
                Insert_Source (ORB, AES);
                --  Continue monitoring this source.
@@ -218,19 +222,21 @@ package body PolyORB.ORB is
                   --  now be destroyed.
 
                   Destroy (Note.D.TE);
+                  --  Destroy the transport endpoint and the associated
+                  --  protocol stack.
+
                   Destroy (AES);
                   --  No need to Unregister_Source, because the AES
                   --  is already unregistered while an event is being
                   --  processed.
 
-                  --  XXX
-                  --  the associated filter stack must be destroyed as well.
-
                when E : others =>
-                  O ("Got exception while sending Data_Indication:");
-                  O (Ada.Exceptions.Exception_Information (E));
-                  --  XXX What to do?
-                  --  raise; ???
+                  O ("Got exception while sending Data_Indication:", Error);
+                  O (Ada.Exceptions.Exception_Information (E), Error);
+                  Close (Note.D.TE.all);
+
+                  Destroy (Note.D.TE);
+                  Destroy (AES);
             end;
       end case;
    end Handle_Event;
@@ -404,7 +410,7 @@ package body PolyORB.ORB is
       Result : Boolean;
    begin
       Enter (ORB.ORB_Lock.all);
-      Result := not Empty (ORB.Job_Queue);
+      Result := not Is_Empty (ORB.Job_Queue);
       Leave (ORB.ORB_Lock.all);
       return Result;
    end Work_Pending;
@@ -529,8 +535,8 @@ package body PolyORB.ORB is
       Set_Note
         (Notepad_Of (New_AES).all,
          AES_Note'(Annotations.Note with D =>
-                     (Kind   => A_TE_AES,
-                      TE     => TE)));
+                     (Kind => A_TE_AES,
+                      TE   => TE)));
       --  Register link from AES to TE.
 
       --  Assign execution resources to the newly-created connection.
@@ -633,22 +639,24 @@ package body PolyORB.ORB is
       pragma Assert (J.Request /= null);
 
       declare
---           Oid : constant Objects.Object_Id
---             := Extract_Local_Object_Id (J.Req.Target);
-
-
-         Surrogate : constant Components.Component_Access
-           := References.Binding.Bind (J.Request.Target, J.ORB);
+         Surrogate : Components.Component_Access;
+         Pro : PolyORB.Binding_Data.Profile_Access;
       begin
          pragma Debug (O ("Executing: "
                            & Requests.Image (J.Request.all)));
+
+         References.Binding.Bind
+           (J.Request.Target, J.ORB, Surrogate, Pro);
+
          --  Setup_Environment (Oid);
+         --  XXX for 'Current'
 
          declare
             Result : constant Components.Message'class
               := Emit (Surrogate,
                        Objects.Interface.Execute_Request'
-                       (Req => J.Request));
+                       (Req => J.Request,
+                        Pro => Pro));
          begin
             --  Unsetup_Environment ();
             --  Unbind (J.Req.Target, J.ORB, Servant);
@@ -696,14 +704,28 @@ package body PolyORB.ORB is
            := To_Element_Array (ORB.Transport_Access_Points);
 
          Profiles : References.Profile_Array (TAPs'Range);
+         Last_Profile : Integer := Profiles'First - 1;
       begin
          Leave (ORB.ORB_Lock.all);
          for I in TAPs'Range loop
-            Profiles (I) := Create_Profile
-              (Profile_Factory_Of (TAPs (I)), TAPs (I), Oid.all);
+            declare
+               PF : constant Profile_Factory_Access
+                 := Profile_Factory_Of (TAPs (I));
+            begin
+               if PF /= null then
+                  --  Null profile factories may occur for access points
+                  --  that have an ad hoc protocol stack, but no binding
+                  --  data information.
+                  Last_Profile := Last_Profile + 1;
+                  Profiles (Last_Profile) := Create_Profile
+                    (Profile_Factory_Of (TAPs (I)), TAPs (I), Oid.all);
+                  pragma Assert (Profiles (Last_Profile) /= null);
+               end if;
+            end;
          end loop;
 
-         References.Create_Reference (Profiles, Typ, Ref);
+         References.Create_Reference
+           (Profiles (Profiles'First .. Last_Profile), Typ, Ref);
       end;
    end Create_Reference;
 
@@ -771,6 +793,15 @@ package body PolyORB.ORB is
             end if;
          end;
 
+      elsif Msg in Interface.Oid_Translate then
+         return Interface.URI_Translate'
+           (Path => Obj_Adapters.Oid_To_Rel_URI
+            (ORB.Obj_Adapter, Interface.Oid_Translate (Msg).Oid));
+      elsif Msg in Interface.URI_Translate then
+         return Interface.Oid_Translate'
+           (Oid => Obj_Adapters.Rel_URI_To_Oid
+            (ORB.Obj_Adapter, Interface.URI_Translate (Msg).Path));
+
       else
          pragma Debug (O ("ORB received unhandled message of type "
                           & Ada.Tags.External_Tag (Msg'Tag)));
@@ -780,4 +811,23 @@ package body PolyORB.ORB is
       return Result;
    end Handle_Message;
 
+   procedure Initialize;
+   procedure Initialize is
+   begin
+      Setup.The_ORB := new ORB_Type (Setup.The_Tasking_Policy);
+      Create (Setup.The_ORB.all);
+   end Initialize;
+
+   use PolyORB.Configurator;
+   use PolyORB.Configurator.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name => +"orb",
+       Conflicts => Empty,
+       Depends => +"soft_links" & "orb.tasking_policy",
+       Provides => Empty,
+       Init => Initialize'Access));
 end PolyORB.ORB;

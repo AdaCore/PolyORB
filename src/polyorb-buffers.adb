@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-buffers.adb#3 $
+--  $Id: //droopi/main/src/polyorb-buffers.adb#8 $
 
 with Ada.Unchecked_Deallocation;
 --  For Iovec_Pools.Free.
@@ -185,13 +185,20 @@ package body PolyORB.Buffers is
 
    function To_Stream_Element_Array
      (Buffer   : access Buffer_Type)
-     return Stream_Element_Array
+     return Opaque.Zone_Access
    is
-      Contents : Zone_Access := Iovec_Pools.Dump (Buffer.Contents);
-      Result   : constant Stream_Element_Array  := Contents.all;
    begin
       pragma Assert (Buffer.Initial_CDR_Position = 0);
+      return Iovec_Pools.Dump (Buffer.Contents);
+   end To_Stream_Element_Array;
 
+   function To_Stream_Element_Array
+     (Buffer   : access Buffer_Type)
+     return Stream_Element_Array
+   is
+      Contents : Zone_Access := To_Stream_Element_Array (Buffer);
+      Result   : constant Stream_Element_Array  := Contents.all;
+   begin
       Free (Contents);
       return Result;
    end To_Stream_Element_Array;
@@ -333,23 +340,39 @@ package body PolyORB.Buffers is
    procedure Extract_Data
      (Buffer : access Buffer_Type;
       Data   : out Opaque_Pointer;
-      Size   : Stream_Element_Count) is
+      Size   : Stream_Element_Count;
+      Use_Current : Boolean := True;
+      At_Position : Stream_Element_Offset := 0)
+   is
+      Start_Position : Stream_Element_Offset;
    begin
+      if Use_Current then
+         Start_Position := Buffer.CDR_Position;
+      else
+         Start_Position := At_Position;
+      end if;
       Extract_Data
-        (Buffer.Contents,
-         Data,
-         Buffer.CDR_Position - Buffer.Initial_CDR_Position,
-         Size);
-      Buffer.CDR_Position := Buffer.CDR_Position + Size;
+        (Buffer.Contents, Data,
+         Start_Position - Buffer.Initial_CDR_Position, Size);
+      if Use_Current then
+         Buffer.CDR_Position := Buffer.CDR_Position + Size;
+      end if;
    end Extract_Data;
-
 
    function CDR_Position
      (Buffer : access Buffer_Type)
-     return Stream_Element_Offset is
+     return Stream_Element_Offset
+   is
    begin
       return Buffer.CDR_Position;
    end CDR_Position;
+
+   procedure Rewind
+     (Buffer : access Buffer_Type)
+   is
+   begin
+      Buffer.CDR_Position := Buffer.Initial_CDR_Position;
+   end Rewind;
 
    ---------------------------------------
    -- The input/output view of a buffer --
@@ -357,7 +380,8 @@ package body PolyORB.Buffers is
 
    procedure Send_Buffer
      (Buffer : access Buffer_Type;
-      Socket : Sockets.Socket_Type) is
+      Socket : Sockets.Socket_Type)
+   is
    begin
       Iovec_Pools.Write_To_Socket (Socket, Buffer.Contents'Access);
    end Send_Buffer;
@@ -371,6 +395,8 @@ package body PolyORB.Buffers is
       Data : Opaque_Pointer;
       Last : Stream_Element_Offset;
       Addr : PolyORB.Sockets.Sock_Addr_Type;
+      Saved_CDR_Position : constant Stream_Element_Offset
+        := Buffer.CDR_Position;
    begin
       Allocate_And_Insert_Cooked_Data (Buffer, Max, Data);
       PolyORB.Sockets.Receive_Socket
@@ -380,8 +406,7 @@ package body PolyORB.Buffers is
          From   => Addr);
       Received := Last - Data.Offset + 1;
       Unuse_Allocation (Buffer, Max - Received);
-
-      Buffer.CDR_Position := Buffer.Initial_CDR_Position;
+      Buffer.CDR_Position := Saved_CDR_Position;
    end Receive_Buffer;
 
    -------------------------

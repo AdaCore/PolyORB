@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver.ads#7 $
+--  $Id$
 
 with PolyORB.Components;
 with PolyORB.Objects;
@@ -48,14 +48,33 @@ package PortableServer is
 
    package POA_Forward is new CORBA.Forward;
 
-   type Servant_Base is new CORBA.Impl.Object with private;
+   ---------------------------
+   -- DynamicImplementation --
+   ---------------------------
 
+   --  The root of all implementation objects:
+   --  DynamicImplementation.
+
+   type DynamicImplementation is
+     abstract new CORBA.Impl.Object with private;
+
+   procedure Invoke
+     (Self    : access DynamicImplementation;
+      Request : in CORBA.ServerRequest.Object_Ptr)
+      is abstract;
+
+   type Servant is access all DynamicImplementation'Class;
+
+   --  The root of all static implementations: Servant_Base,
+   --  a type derived from DynamicImplementation (which provides
+   --  a default implementation of the Invoke operation.)
+
+   type Servant_Base is
+     abstract new DynamicImplementation with private;
    --  21.41.1
    --  Conforming implementations must provide a controlled (tagged)
    --  Servant_Base type and default implementations of the primitve
    --  operations on Servant_Base that meet the required semantics.
-
-   type Servant is access all Servant_Base'Class;
 
    --  FIXME: how to implement this ?
    --  function "=" (Left, Right : Servant) return Boolean;
@@ -77,18 +96,6 @@ package PortableServer is
    --     function Non_Existent
    --       (For_Servant : Servant_Base)
    --       return Boolean;
-
-   ---------------------------
-   -- DynamicImplementation --
-   ---------------------------
-
-   type DynamicImplementation is
-     abstract new Servant_Base with private;
-
-   procedure Invoke
-     (Self    : access DynamicImplementation;
-      Request : in CORBA.ServerRequest.Object_Ptr)
-     is abstract;
 
    --------------
    -- ObjectId --
@@ -156,9 +163,9 @@ package PortableServer is
    --  XXX Old AdaBroker-specific spec, kept here for
    --  now for easy reference. Please do not remove yet.
 
---    -----------------------
---    -- Specific to Broca --
---    -----------------------
+   -------------------------
+   -- Specific to PolyORB --
+   -------------------------
 
 --    procedure Marshall
 --      (Buffer : access Broca.Buffers.Buffer_Type;
@@ -168,8 +175,8 @@ package PortableServer is
 --      (Buffer : access Broca.Buffers.Buffer_Type)
 --      return ObjectId;
 
---    function Get_Type_Id
---      (For_Servant : Servant) return CORBA.RepositoryId;
+   function Get_Type_Id (For_Servant : Servant)
+     return CORBA.RepositoryId;
 
 --    procedure GIOP_Dispatch
 --      (For_Servant       : in Servant;
@@ -194,14 +201,27 @@ package PortableServer is
 --       Request_Buffer   : access Broca.Buffers.Buffer_Type;
 --       Reply_Buffer     : access Broca.Buffers.Buffer_Type);
 
---    type Servant_Class_Predicate is access function
---      (For_Servant : Servant)
---      return Boolean;
+   type Request_Dispatcher is access procedure
+     (For_Servant : in Servant;
+      Request     : in CORBA.ServerRequest.Object_Ptr);
+   --  Same signature as primitive 'Invoke' of type
+   --  DynamicImplementation.
 
---    procedure Register_Skeleton
---      (Type_Id    : in CORBA.RepositoryId;
---       Is_A       : in Servant_Class_Predicate;
---       Dispatcher : in GIOP_Dispatcher);
+   type Servant_Class_Predicate is access function
+     (For_Servant : Servant)
+     return Boolean;
+
+   procedure Register_Skeleton
+     (Type_Id    : in CORBA.RepositoryId;
+      Is_A       : in Servant_Class_Predicate;
+      Dispatcher : in Request_Dispatcher := null);
+   --  Associate a type id with a class predicate.
+   --  A Dispatcher function can also be specified if the
+   --  class predicate corresponds to a class derived from
+   --  PortableServer.Servant_Base. For other classes derived
+   --  from PortableServer.DynamicImplementation, the user
+   --  must override the Invoke operation himself, and the
+   --  Dispatcher will be ignored and can be null.
 
 --    --  Calling ForwardRequest does not increase the usage counter of
 --    --  REFERENCE.  As a result, the user must ensure not to release
@@ -216,15 +236,33 @@ package PortableServer is
 
 private
 
-   type Servant_Base is
-     new CORBA.Impl.Object with null record;
-
    type DynamicImplementation is
-     abstract new Servant_Base with null record;
+     abstract new CORBA.Impl.Object with null record;
 
    function Handle_Message
      (Self : access DynamicImplementation;
       Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class;
+
+   type Servant_Base is
+     abstract new DynamicImplementation with null record;
+
+   procedure Invoke
+     (Self    : access Servant_Base;
+      Request : in CORBA.ServerRequest.Object_Ptr);
+
+   ---------------------------------------
+   -- Information about a skeleton unit --
+   ---------------------------------------
+
+   type Skeleton_Info is record
+      Type_Id    : CORBA.RepositoryId;
+      Is_A       : Servant_Class_Predicate;
+      Dispatcher : Request_Dispatcher;
+   end record;
+
+   function Find_Info
+     (For_Servant : Servant)
+     return Skeleton_Info;
 
 end PortableServer;

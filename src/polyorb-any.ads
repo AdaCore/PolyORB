@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.ads#5 $
+--  $Id: //droopi/main/src/polyorb-any.ads#7 $
 
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
@@ -351,46 +351,60 @@ package PolyORB.Any is
             Parameters : Cell_Ptr := null;
          end record;
 
-      --  here is the way the typecodes are coded :
-      --    for null, void, short, long, long_long,
-      --  unsigned_short, unsigned_long, unsigned_long_long, float,
-      --  double, long_double, boolean, char, Wchar, octet, any,
-      --  typeCode, Principal parameters = null
-      --    for Objref, Struct, union, enum, alias, value, valueBox,
-      --  native, abstract_interface and except, the first parameter
-      --  will contain the name and the second the repository Id
-      --    The objref, native and abstract_interface don't have
-      --  any other parameter.
-      --    for the struct and the except, the next parameters will
-      --  be alternatively a type and a name. So the number of
-      --  parameters will be 2 * number_of_members + 2
-      --    for the union, the third parameter will be the
-      --  discriminator type. The fourth will be the index of the
-      --  default case as a long. If there's no default case, then
-      --  you'll find -1. Then we'll have alternatively a
-      --  member label, a member type and a member name. At least,
-      --  for the default label, the member label will contain a
-      --  valid label but without any semantic significance.
-      --  So the number of parameters will be 3 * number_of_members + 4
-      --    for the enum, the next parameters will be names of the
-      --  different members. So the number of parameters will be
-      --  number_of_members + 2
-      --    for the alias, the third parameter is its content type
-      --    for the value, the third parameter will be a type
-      --  modifier and the fourth one a concrete base type. The next
-      --  parameters will be alternatively a visibility, a type and
-      --  a name. So the number of parameters will be
-      --  3 * number_of_members + 4.
-      --    for the valueBox, the third parameter is the content type
-      --    for the string and wide_string, the only parameter will
-      --  be the length of the string. Its value will be 0 in case of
-      --  unbounded strings or wide strings.
-      --    for the sequence and the array, the first parameter will
-      --  be the length of the sequence or the array and the second
-      --  the content type. As for strings, an unbounded sequence will
-      --  have a length of 0.
-      --    for the fixed, the first parameter will be the digits
-      --  number and the second the scale.
+      ---------------------------
+      -- Encoding of TypeCodes --
+      ---------------------------
+
+      --  1. For null, void, short, long, long_long, unsigned_short,
+      --     unsigned_long, unsigned_long_long, float, double,
+      --     long_double, boolean, char, Wchar, octet, any,
+      --     TypeCode, Principal: parameters = null
+      --
+      --  2. For Objref, struct, union, enum, alias, value, valueBox,
+      --     native, abstract_interface and except, the first parameter
+      --     will contain the name and the second the repository id.
+      --
+      --     objref, native and abstract_interface don't have
+      --     any further parameters.
+      --
+      --  3. For struct and except, the next parameters will
+      --     be alternatively a type and a name. So the number of
+      --     parameters will be 2 * number_of_members + 2
+      --
+      --  4. For union, the third parameter will be the
+      --     discriminator type. The fourth will be the index of the
+      --     default case as a long. If there's no default case, then
+      --     you'll find -1. Then we'll have alternatively a
+      --     member label, a member type and a member name. At least,
+      --     for the default label, the member label will contain a
+      --     valid label but without any semantic significance.
+      --     So the number of parameters will be 3 * number_of_members + 4
+      --
+      --  5. For enum, the next parameters will be names of the
+      --     different enumerators. So the number of parameters will be
+      --     number_of_enumerators + 2
+      --
+      --  6. For alias, the third parameter is its content type
+      --
+      --  7. For value, the third parameter will be a type
+      --     modifier and the fourth one a concrete base type. The next
+      --     parameters will be alternatively a visibility, a type and
+      --     a name. So the number of parameters will be
+      --     3 * number_of_members + 4.
+      --
+      --  8. For valueBox, the third parameter is the content type
+      --
+      --  9. For string and wide_string, the only parameter will
+      --     be the length of the string. Its value will be 0 for
+      --     unbounded strings or wide strings.
+      --
+      --  10. For sequence and array, the first parameter will
+      --      be the length of the sequence or the array and the second
+      --      the content type. As for strings, an unbounded sequence will
+      --      have a length of 0.
+      --
+      --  11. For fixed, the first parameter will be the digits
+      --      number and the second the scale.
 
       --  The most current typecodes
       PTC_Null               : constant Object := (Tk_Null, null);
@@ -613,6 +627,15 @@ package PolyORB.Any is
    function Get_Empty_Any_Aggregate
      (Tc : TypeCode.Object)
      return Any;
+
+   procedure Copy_Any_Value (Dest : in out Any; Src : Any);
+   --  Set the value of Dest from the value of Src (as
+   --  Set_Any_Value would do, but without the need to
+   --  know the precise type of Src). Dest and Src must be Any's
+   --  with identical typecodes. Dest may be empty.
+   --  This is not the same as Set_Any_Value (Dest, Src), which
+   --  sets the value of Dest (an Any which a Tk_Any type code)
+   --  to be Src (not the /value/ of Src).
 
    function Get_By_Ref
      (A : in Any)

@@ -158,10 +158,10 @@ package body PolyORB.Obj_Adapters.Simple is
 
    procedure Set_Interface_Description
      (OA      : in out Simple_Obj_Adapter;
-      Id      : Object_Id;
+      Id      : access Object_Id;
       If_Desc : Interface_Description)
    is
-      Index : constant Integer := Oid_To_Index (Simple_OA_Oid (Id));
+      Index : constant Integer := Oid_To_Index (Simple_OA_Oid (Id.all));
    begin
       Enter (OA.Lock);
 
@@ -185,11 +185,11 @@ package body PolyORB.Obj_Adapters.Simple is
 
    function Get_Empty_Arg_List
      (OA     : access Simple_Obj_Adapter;
-      Oid    : Object_Id;
+      Oid    : access Object_Id;
       Method : Requests.Operation_Id)
      return Any.NVList.Ref
    is
-      Index : constant Integer := Oid_To_Index (Simple_OA_Oid (Oid));
+      Index : constant Integer := Oid_To_Index (Simple_OA_Oid (Oid.all));
       Result : Any.NVList.Ref;
    begin
       Enter (OA.Lock);
@@ -216,11 +216,11 @@ package body PolyORB.Obj_Adapters.Simple is
 
    function Get_Empty_Result
      (OA     : access Simple_Obj_Adapter;
-      Oid    : Object_Id;
+      Oid    : access Object_Id;
       Method : Requests.Operation_Id)
      return Any.Any
    is
-      Index : constant Integer := Oid_To_Index (Simple_OA_Oid (Oid));
+      Index : constant Integer := Oid_To_Index (Simple_OA_Oid (Oid.all));
       Result : Any.Any;
    begin
       Enter (OA.Lock);
@@ -248,21 +248,21 @@ package body PolyORB.Obj_Adapters.Simple is
 
    function Find_Servant
      (OA : access Simple_Obj_Adapter;
-      Id : Object_Id)
+      Id : access Object_Id)
      return Servant_Access
    is
       Result : Servant_Access;
    begin
       Enter (OA.Lock);
       Result := Element_Of (OA.Object_Map, Oid_To_Index
-                            (Simple_OA_Oid (Id))).Servant;
+                            (Simple_OA_Oid (Id.all))).Servant;
       Leave (OA.Lock);
       return Result;
    end Find_Servant;
 
    procedure Release_Servant
      (OA : access Simple_Obj_Adapter;
-      Id : Object_Id;
+      Id : access Object_Id;
       Servant : in out Servant_Access) is
    begin
       --  SOA: do nothing.

@@ -30,7 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.CORBA_P.Exceptions; use PolyORB.CORBA_P.Exceptions;
 with PolyORB.POA_Policies.Servant_Retention_Policy;
 with PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
 with PolyORB.POA;
@@ -54,16 +53,13 @@ is
 
    procedure Check_Compatibility
      (Self : Active_Map_Only_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
-   is
-      use PolyORB.CORBA_P.Exceptions;
-
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access) is
    begin
       if not
         (POA.Obj_Adapter_Access (OA).Servant_Retention_Policy.all in
          POA_Policies.Servant_Retention_Policy.Retain.Retain_Policy)
       then
-         Raise_Invalid_Policy;
+         raise PolyORB.POA.Invalid_Policy;
       end if;
    end Check_Compatibility;
 
@@ -85,7 +81,7 @@ is
    procedure Etherealize_All
      (Self  : Active_Map_Only_Policy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid_Access)
+      U_Oid : Unmarshalled_Oid)
    is
    begin
       null;
@@ -98,7 +94,8 @@ is
    function Servant_To_Id
      (Self  : Active_Map_Only_Policy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access) return Object_Id_Access
+      P_Servant : Servant_Access)
+     return Object_Id_Access
    is
       use PolyORB.POA_Policies.Servant_Retention_Policy;
 
@@ -119,20 +116,21 @@ is
    function Id_To_Servant
      (Self : Active_Map_Only_Policy;
       OA   : PolyORB.POA_Types.Obj_Adapter_Access;
-      Oid  : Object_Id) return Servant_Access
+      Oid  : Object_Id)
+     return Servant_Access
    is
       use PolyORB.POA_Policies.Servant_Retention_Policy;
 
-      U_Oid   : constant Unmarshalled_Oid_Access
-        := Oid_To_U_Oid (Oid);
+      Oid_A : Object_Id_Access := new Object_Id'(Oid);
       Servant : Servant_Access;
    begin
       Servant := Id_To_Servant
         (POA.Obj_Adapter_Access (OA).Servant_Retention_Policy.all,
          OA,
-         U_Oid);
+         Oid_To_U_Oid (Oid_A));
+      Free (Oid_A);
       if Servant = null then
-         Raise_Object_Not_Active;
+         raise PolyORB.POA.Object_Not_Active;
       end if;
       return Servant;
    end Id_To_Servant;

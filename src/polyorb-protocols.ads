@@ -37,7 +37,7 @@
 with Ada.Streams;
 
 with PolyORB.Any.NVList;
-with PolyORB.Buffers;
+with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Filters; use PolyORB.Filters;
 with PolyORB.Requests; use PolyORB.Requests;
@@ -95,11 +95,16 @@ package PolyORB.Protocols is
    -- Protocol primitives (interface to upper layers) --
    -----------------------------------------------------
 
-   procedure Invoke_Request (S : access Session; R :  Request_Access)
+   procedure Invoke_Request
+     (S : access Session;
+      R : Requests.Request_Access;
+      P : access Binding_Data.Profile_Type'Class)
       is abstract;
    --  Send a method invocation message for request R on session S.
 
-   procedure Abort_Request (S : access Session; R :  Request_Access)
+   procedure Abort_Request
+     (S : access Session;
+      R :  Request_Access)
       is abstract;
    --  Abort pending invocation of R.
 
@@ -120,7 +125,10 @@ package PolyORB.Protocols is
       is abstract;
    --  A new client connection has been established as session S.
 
-   procedure Handle_Data_Indication (S : access Session) is abstract;
+   procedure Handle_Data_Indication
+     (S : access Session;
+      Data_Amount : Ada.Streams.Stream_Element_Count)
+      is abstract;
    --  Invoked when some data arrives for session S.
 
    procedure Handle_Disconnect (S : access Session) is abstract;
@@ -143,6 +151,8 @@ package PolyORB.Protocols is
      return Components.Message'Class;
    --  Demultiplex Messages to the above specialized operations.
 
+   Protocol_Error : exception;
+
 private
 
    type Protocol is abstract new Filters.Factory with null record;
@@ -157,10 +167,5 @@ private
       --    documentation in the spec of PolyORB.Components.
       --    Store-and-forward behaviour is not expected.)
    end record;
-
-   procedure Expect_Data
-     (S      : access Session;
-      In_Buf : Buffers.Buffer_Access;
-      Max    : Ada.Streams.Stream_Element_Count);
 
 end PolyORB.Protocols;

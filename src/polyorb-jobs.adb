@@ -74,10 +74,10 @@ package body PolyORB.Jobs is
       end if;
    end Queue_Job;
 
-   function Empty (Q : access Job_Queue) return Boolean is
+   function Is_Empty (Q : access Job_Queue) return Boolean is
    begin
       return Q.First = null;
-   end Empty;
+   end Is_Empty;
 
    function Fetch_Job (Q : access Job_Queue) return Job_Access is
       First  : Queue_Element_Access := Q.First;

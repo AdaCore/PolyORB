@@ -95,10 +95,11 @@ package PolyORB.POA_Policies.Servant_Retention_Policy is
    --  Case NON_RETAIN:
    --    Returns null
 
-   function Id_To_Servant (Self      : ServantRetentionPolicy;
-                           OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-                           U_Oid     : Unmarshalled_Oid_Access)
-                          return Servant_Access
+   function Id_To_Servant
+     (Self      : ServantRetentionPolicy;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid     : Unmarshalled_Oid)
+     return Servant_Access
       is abstract;
    --  Case RETAIN:
    --    Asks the Id_Assignment_Policy to look for the given Object_Id.

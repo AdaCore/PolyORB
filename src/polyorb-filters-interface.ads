@@ -38,8 +38,11 @@ with Ada.Streams; use Ada.Streams;
 
 with PolyORB.Buffers; use PolyORB.Buffers;
 with PolyORB.Components; use PolyORB.Components;
+with PolyORB.Types;
 
 package PolyORB.Filters.Interface is
+
+   pragma Elaborate_Body;
 
    -----------------------------
    -- Filter_Factory messages --
@@ -65,6 +68,14 @@ package PolyORB.Filters.Interface is
    --  Semantics: inform stacks participants of the ORB
    --  component they are working for.
 
+   type Set_Target_Object is new Root_Data_Unit with record
+      Target : PolyORB.Types.String;
+   end record;
+   --  Direction: from lower to upper.
+   --  Semantics: a lower layer has determined what application
+   --  object a specific message is destined to, and informs
+   --  the upper layer.
+
    type Set_Buffer is new Root_Data_Unit with record
       Buffer : Buffer_Access;
    end record;
@@ -86,7 +97,10 @@ package PolyORB.Filters.Interface is
    --  Semantics: a transport endpoint has been closed.
    --    upper layers must release all associated resources.
 
-   type Data_Indication is new Root_Data_Unit with null record;
+   type Data_Indication is new Root_Data_Unit with record
+      Data_Amount : Stream_Element_Count := 0;
+      --  The amount of data received, 0 if unknown.
+   end record;
    --  Direction: from lower to upper.
    --  Semantics: Data has been received and must be handled.
 
@@ -108,6 +122,17 @@ package PolyORB.Filters.Interface is
       Out_Buf : Buffer_Access;
       --  The data to be sent down.
    end record;
+
+   ---------------------
+   -- Helper routines --
+   ---------------------
+
+   procedure Expect_Data
+     (Self   : access Filter'Class;
+      In_Buf : Buffers.Buffer_Access;
+      Max    : Ada.Streams.Stream_Element_Count);
+   --  Signal Lower (Self) that data is expected using
+   --  Data_Expected message.
 
 end PolyORB.Filters.Interface;
 

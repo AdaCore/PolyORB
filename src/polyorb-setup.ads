@@ -40,8 +40,7 @@ with PolyORB.ORB;
 
 package PolyORB.Setup is
 
-   --  No proper body: no need for elab control pragma.
-
+   The_Tasking_Policy : PolyORB.ORB.Tasking_Policy_Access;
    The_ORB : PolyORB.ORB.ORB_Access;
 
 end PolyORB.Setup;

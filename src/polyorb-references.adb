@@ -36,7 +36,6 @@
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Tags;
-with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
@@ -45,6 +44,7 @@ package body PolyORB.References is
 
    use PolyORB.Log;
    use PolyORB.Smart_Pointers;
+   use PolyORB.Utils.Strings;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.references");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -58,6 +58,11 @@ package body PolyORB.References is
       if Profiles'Length = 0 then
          Set (R, null);
       else
+         for I in Profiles'Range loop
+            null;
+            pragma Assert (Profiles (I) /= null);
+         end loop;
+
          declare
             RIP : constant Entity_Ptr := new Reference_Info;
             TRIP : Reference_Info renames Reference_Info (RIP.all);
@@ -115,9 +120,6 @@ package body PolyORB.References is
 
       return To_String (Res);
    end Image;
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (String, String_Ptr);
 
    procedure Finalize (RI : in out Reference_Info)
    is

@@ -33,8 +33,6 @@
 --  $Id$
 
 with PolyORB.Any.ObjRef;
-with PolyORB.CORBA_P.Exceptions;
-with PolyORB.Locks; use PolyORB.Locks;
 
 package body CORBA.Object.Helper is
 

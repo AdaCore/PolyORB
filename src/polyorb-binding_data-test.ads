@@ -46,10 +46,6 @@ package PolyORB.Binding_Data.Test is
    procedure Adjust (P : in out Test_Profile_Type);
    procedure Finalize (P : in out Test_Profile_Type);
 
-   function Get_Object_Key
-     (Profile : Test_Profile_Type)
-     return Objects.Object_Id;
-
    procedure Bind_Profile
      (Profile : Test_Profile_Type;
       TE      : out Transport.Transport_Endpoint_Access;
@@ -68,8 +64,9 @@ package PolyORB.Binding_Data.Test is
    type Test_Profile_Factory is new Profile_Factory with private;
 
    procedure Create_Factory
-     (PF : out Test_Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access);
+     (PF  : out Test_Profile_Factory;
+      TAP : Transport.Transport_Access_Point_Access;
+      ORB : Components.Component_Access);
 
    function Create_Profile
      (PF  : access Test_Profile_Factory;
@@ -88,7 +85,6 @@ private
 
    type Test_Profile_Type is new Profile_Type with record
       Address   : Sockets.Sock_Addr_Type;
-      Object_Id : Objects.Object_Id_Access;
    end record;
 
    type Test_Profile_Factory is new Profile_Factory

@@ -39,8 +39,7 @@ with Sequences.Unbounded;
 
 with PolyORB.Binding_Data; use PolyORB.Binding_Data;
 with PolyORB.Smart_Pointers;
-with PolyORB.Storage_Pools;
-pragma Elaborate_All (PolyORB.Storage_Pools);
+with PolyORB.Utils.Strings;
 
 package PolyORB.References is
 
@@ -81,13 +80,9 @@ private
 
    subtype Profile_Seq is Profile_Seqs.Sequence;
 
-   type String_Ptr is access Standard.String;
-   for String_Ptr'Storage_Pool
-     use PolyORB.Storage_Pools.Debug_Pool;
-
    type Reference_Info is new PolyORB.Smart_Pointers.Entity with
       record
-         Type_Id  : String_Ptr;
+         Type_Id  : Utils.Strings.String_Ptr;
          Profiles : Profile_Seq;
          --  The collection of tagged profiles that designate
          --  transport access points where this object can be

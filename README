@@ -1,0 +1,127 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                Copyright (C) 2001 Free Software Fundation                --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+--              PolyORB is maintained by ENST Paris University.             --
+--                                                                          --
+------------------------------------------------------------------------------
+
+This is the documentation for PolyORB version @polyorb_version@.
+
+Build requirements
+------------------
+
+Ada 95 compiler: GNAT 3.14a1 or later.
+
+Optional: XmlAda (http://libre.act-europe.fr/xmlada/) if you want to
+build the SOAP protocol personality.
+
+Build instructions
+------------------
+
+See file INSTALL.
+
+Available options for the 'configure' script include:
+  --enable-xmlada: set if you have XmlAda and you want to build the
+                   SOAP protocol personality.
+  --enable-shared: build shared libraries.
+  --enable-debug:  enable debugging information generation and supplementary
+                   runtime checks.
+
+Documentation overview
+----------------------
+
+README: This file, first instructions.
+src/ROADMAP: Overview of PolyORB source code.
+doc/*: Miscellaneous documents describing PolyORB internals.
+
+Usage of idlac
+--------------
+
+idlac is the IDL-to-Ada 95 compiler of PolyORB. It is an evolution
+of the compiler that was present in AdaBroker.
+
+  idlac [-i] [-k] idl_file [-cppargs ...]
+
+  -i    Generate implementation template.
+  -k    Keep temporary files.
+  -q    Be quiet.
+  -cppargs ARGS
+        Pass ARGS to the C++ preprocessor.
+
+This creates several files :
+
+- myinterface.ads, myinterface.adb : these files contain the mapping
+  for user defined types (client and server side).
+
+- myinterface-impl.ads, myinterface-impl.adb : these files are to be
+  filled by the user. They contain the implementation of the
+  server. They are generated only if the -i flag is specified.
+
+- myinterface.ads, myinterface.adb : these files
+  contain the client stubs for the interface.
+
+- myinterface-skel.ads, myinterface-skel.adb : these files
+  contain the server-side skeletons for the interface.
+
+- myinterface-stream.ads, myinterface-stream.adb : these files
+  contain subprograms to marshall data according to the CDR protocol.
+
+Usage of PolyORB
+----------------
+
+See examples of simple CORBA clients and servers in subdirectory 'examples/'.
+Basically, a simple non-tasking CORBA client should have a dependency
+and a pragma Elaborate_All on PolyORB.Setup.CORBA_Client. A CORBA+SOAP
+server should have a dependcy and pragma Elaborate_All on one of
+PolyORB.Setup.No_Tasking_Server, PolyORB.Setup.Thread_Pool_Server or
+PolyORB.Setup.Thread_Per_Session_Server.
+
+If you want anything different, you should create a package similar
+to one of these setup packages and use it instead. That package must
+have dependencies and pragmas Elaborate_All on all subsystems you need
+to use, and must contain a call to PolyORB.Configurator.Initialize_World
+in its own elaboration code.
+
+Features
+--------
+
+Bug reports
+-----------
+
+Mailing-lists
+-------------
+
+Contributors:
+-------------
+
+PolyORB has been developped since January, 1999 by the following
+contributors:
+
+* Fabien Azavant (azavant@enst.fr)
+* Emmanuel Chavane (chavane@enst.fr)
+* Jean-Marie Cottin (cottin@enst.fr)
+* Michael Friess
+* Nicolas Fritsch
+* Mejdi Kaddour
+* Laurent Kubler (kubler@enst.fr)
+* Vincent Niebel (niebel@enst.fr)
+* Laurent Pautet (pautet@enst.fr)
+* Sebastien Ponce (ponce@enst.fr)
+* Thomas Quinot (quinot@enst.fr)
+* Nicolas Setton
+* Frank Singhoff (singhoff@enst.fr)
+* Samuel Tardieu (sam@enst.fr)

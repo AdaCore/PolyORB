@@ -51,10 +51,6 @@ package PolyORB.Binding_Data.Local is
      (Oid : Objects.Object_Id;
       P   : out Local_Profile_Type);
 
-   function Get_Object_Key
-     (Profile : Local_Profile_Type)
-     return Objects.Object_Id;
-
    procedure Bind_Profile
      (Profile : Local_Profile_Type;
       TE      : out Transport.Transport_Endpoint_Access;
@@ -78,8 +74,6 @@ package PolyORB.Binding_Data.Local is
 
 private
 
-   type Local_Profile_Type is new Profile_Type with record
-      Object_Id : Objects.Object_Id_Access;
-   end record;
+   type Local_Profile_Type is new Profile_Type with null record;
 
 end PolyORB.Binding_Data.Local;

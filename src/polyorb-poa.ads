@@ -35,15 +35,8 @@
 --  $Id$
 
 with PolyORB.Locks;
-
-with PolyORB.POA_Types;     use PolyORB.POA_Types;
+with PolyORB.Object_Maps;
 with PolyORB.POA_Manager;
-
-with CORBA;
-with CORBA.Object_Map;
-
-with PolyORB.Types;
-
 with PolyORB.POA_Policies;
 with PolyORB.POA_Policies.Thread_Policy;
 with PolyORB.POA_Policies.Request_Processing_Policy;
@@ -52,8 +45,12 @@ with PolyORB.POA_Policies.Id_Uniqueness_Policy;
 with PolyORB.POA_Policies.Servant_Retention_Policy;
 with PolyORB.POA_Policies.Lifespan_Policy;
 with PolyORB.POA_Policies.Implicit_Activation_Policy;
+with PolyORB.POA_Types;
+with PolyORB.Types;
 
 package PolyORB.POA is
+
+   pragma Elaborate_Body;
 
    use PolyORB.POA_Policies.Thread_Policy;
    use PolyORB.POA_Policies.Request_Processing_Policy;
@@ -62,6 +59,7 @@ package PolyORB.POA is
    use PolyORB.POA_Policies.Servant_Retention_Policy;
    use PolyORB.POA_Policies.Lifespan_Policy;
    use PolyORB.POA_Policies.Implicit_Activation_Policy;
+   use PolyORB.POA_Types;
 
    --  Unit has no proper body: no elab control necessary.
 
@@ -74,7 +72,7 @@ package PolyORB.POA is
          POA_Manager                : PolyORB.POA_Manager.Ref;
          Boot_Time                  : Time_Stamp;
          Absolute_Address           : Types.String;
-         Active_Object_Map          : CORBA.Object_Map.Object_Map_Access;
+         Active_Object_Map          : PolyORB.Object_Maps.Object_Map_Access;
 
          --  Policies (one of each is required)
          Thread_Policy              : ThreadPolicy_Access             := null;
@@ -99,12 +97,6 @@ package PolyORB.POA is
    --  The policies are used by all corba-policy-*, we can keep them public
 
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
-   --  XXX
-   --  for Obj_Adapter_Access'Storage_Pool
-   --    use PolyORB.Storage_Pools.Debug_Pool;
-
-   subtype Obj_Adapter_Ptr is Obj_Adapter_Access;
-   --  XXX for easier porting of legacy AdaBroker code.
 
    --------------------------------------------------
    --  Procedures and functions required by CORBA  --
@@ -197,5 +189,30 @@ package PolyORB.POA is
      (Self       : access Obj_Adapter;
       Child_Name :        Types.String)
      is abstract;
+   --  XXX documentation?
+
+   function Oid_To_Rel_URI
+     (OA : access Obj_Adapter;
+      Id : access Object_Id)
+     return Types.String;
+
+   function Rel_URI_To_Oid
+     (OA  : access Obj_Adapter;
+      URI : Types.String)
+     return Object_Id_Access;
+
+   Invalid_Name : exception;
+
+   Invalid_Policy : exception;
+   Adapter_Inactive : exception;
+   Adapter_Already_Exists : exception;
+   Servant_Not_Active : exception;
+   Servant_Already_Active : exception;
+   Transient : exception;
+   Bad_Param : exception;
+   Object_Already_Active : exception;
+   Object_Not_Active : exception;
+   Object_Not_Exist : exception;
+   --  Inspired from equivalent CORBA POA exceptions.
 
 end PolyORB.POA;

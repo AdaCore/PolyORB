@@ -6,65 +6,12 @@ $Id$
 Items still requiring attention
 -------------------------------
 
-* Make Droopi.References.Ref a Smart_Pointers.Entity
-  so the list of profiles can be free'd when not used
-  anymore.
-
-* Make compliant PortableServer tree for CORBA personality.
+* Fix memory leaks.
 
 * Factor out common code between different versions of
   Droopi.Binding_Data.*
 
-REQUIRED:
----------
-
-corba-context.ads
-corba-contextlist.ads
-corba-current.ads
-corba-exceptionlist.ads
-corba-fixed_point.ads
-corba-local.ads
-corba-nvlist.ads
-corba-object-helper.ads
-corba-orb-typecode.ads
-corba-policy.ads
-corba-request.ads
-corba-sequences-bounded.ads
-corba-sequences-unbounded.ads
-corba-sequences.ads
-corba-value-box.ads
-corba-value-forward.ads
-corba-value.ads
-
-REQUIRED on server side:
-------------------------
-
-portableserver-adapteractivator-impl.ads
-portableserver-adapteractivator.ads
-portableserver-current.ads
-portableserver-poa.ads
-portableserver-poamanager.ads
-portableserver-servantactivator-impl.ads
-portableserver-servantactivator.ads
-portableserver-servantlocator-impl.ads
-portableserver-servantlocator.ads
-portableserver-servantmanager-impl.ads
-portableserver-servantmanager.ads
-portableserver-servantretentionpolicy.ads
-portableserver-threadpolicy.ads
-portableserver.ads
-
-DONE in that list:
-------------------
-
-corba
-corba-abstractbase
-corba-impl
-corba-forward
-corba-object
-corba-orb
-
-* Remove all deps on CORBA in Droopi.POA.*, Droopi.POA_Policies.* & co.
+* Exception support
 
 * Dynamic Task Pool threading policy.
 
@@ -87,8 +34,6 @@ corba-orb
 * Support logging to syslog (also for Java ?)
 * Unified runtime configuration file (modifications to Droopi.Log).
 
-* When a connection is closed, release all associated resources.
-
 * Droopi.Buffers: remove mentions of CDR.
 * Droopi.Buffers: remove mention of sockets.
 
@@ -108,7 +53,7 @@ corba-orb
 * Alternative implementations of transport endpoints:
 
   -> A mechanism for use of non-connected message passing
-     protocols (eg UDP).
+     protocols (eg UDP, email).
    
   -> A mechanism for optional implementation of reliable
      message delivery over a non-reliable message delivery
@@ -155,3 +100,18 @@ Items processed
   its tag must be registered.
 
 * Move CORBA.POA to Droopi.<something> (3329).
+
+* Make Droopi.References.Ref a Smart_Pointers.Entity
+  so the list of profiles can be free'd when not used
+  anymore.
+
+* When a connection is closed, release all associated resources.
+
+* Make compliant PortableServer tree for CORBA personality.
+
+* Correct handling of arg modes in SOAP (in/inout/out).
+  The SOAP engine sees incoming argument and marks them as IN.
+  If the object expects some args to be inout or out, make
+  sure that before calling the object, the parameters are present
+  and marked with proper modes. Then, the SOAP engine knows to
+  send out any INOUT or OUT argument with the reply.

@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-
-
 --  $Id$
 
 with Ada.Streams;                use Ada.Streams;
@@ -41,12 +39,13 @@ with Sequences.Unbounded;
 with PolyORB.Any;
 with PolyORB.Annotations;
 with PolyORB.Any.NVList;
-with PolyORB.Buffers;             use PolyORB.Buffers;
-with PolyORB.Opaque;
 with PolyORB.Binding_Data;        use PolyORB.Binding_Data;
 with PolyORB.Binding_Data.IIOP;
 with PolyORB.Binding_Data.Local;
+with PolyORB.Buffers;             use PolyORB.Buffers;
 with PolyORB.Components;
+with PolyORB.Configurator;
+pragma Elaborate_All (PolyORB.Configurator);
 with PolyORB.Filters;
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
@@ -54,6 +53,7 @@ pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.Objects.Interface;
+with PolyORB.Opaque;
 with PolyORB.ORB;
 with PolyORB.ORB.Interface;
 with PolyORB.Protocols;           use PolyORB.Protocols;
@@ -65,15 +65,17 @@ with PolyORB.References.IOR;
 with PolyORB.Representations;     use PolyORB.Representations;
 with PolyORB.Representations.CDR;
 with PolyORB.Requests;
+with PolyORB.Soft_Links;
 with PolyORB.Transport;
 with PolyORB.Types;
-with PolyORB.Soft_Links;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.Protocols.GIOP is
 
    use PolyORB.Any.NVList;
    use PolyORB.Binding_Data.IIOP;
    use PolyORB.Components;
+   use PolyORB.Filters.Interface;
    use PolyORB.Log;
    use PolyORB.ORB;
    use PolyORB.ORB.Interface;
@@ -108,6 +110,7 @@ package body PolyORB.Protocols.GIOP is
    end record;
 
    --  Subprograms related to the global Request_Id counter.
+   --  (actually used only on the GIOP client side).
 
    procedure Initialize is
    begin
@@ -541,16 +544,16 @@ package body PolyORB.Protocols.GIOP is
                          (Pend_Req.Target_Profile.all))));
 
             declare
-               Key : aliased Object_Id
-                 := (Binding_Data.IIOP.Get_Object_Key
-                     (IIOP_Profile_Type (Pend_Req.Target_Profile.all)));
+               Oid : constant Object_Id_Access
+                 := Binding_Data.Get_Object_Key
+                 (Pend_Req.Target_Profile.all);
             begin
                GIOP.GIOP_1_2.Marshall_Request_Message
                  (Ses.Buffer_Out,
                   Request_Id,
                   Target_Address'
                   (Address_Type => Key_Addr,
-                   Object_Key   => Key'Unchecked_Access),
+                   Object_Key   => Oid),
                   Sync,
                   To_Standard_String (Pend_Req.Req.Operation));
             end;
@@ -638,6 +641,8 @@ package body PolyORB.Protocols.GIOP is
 
       --  Marshall the reply Body
       Marshall (Ses.Buffer_Out, Request.Result);
+      --  XXX it seems to me that we should also be marshalling
+      --  the INOUT and OUT arguments here.
 
       if Length (Ses.Buffer_Out)  > Maximum_Message_Size then
          Fragment_Next := True;
@@ -1279,7 +1284,7 @@ package body PolyORB.Protocols.GIOP is
 
       Args := Obj_Adapters.Get_Empty_Arg_List
         (Object_Adapter (ORB),
-         Object_Key.all,
+         Object_Key,
          To_Standard_String (Operation));
 
       Ses.State := Arguments_Ready;
@@ -1430,8 +1435,6 @@ package body PolyORB.Protocols.GIOP is
               (Ses.Buffer_In, Current_Req.Req.Result.Argument);
             --  XXX This looks wrong: not only should we unmarshall
             --  the result, but also the "out" and "inout" arguments.
-            --  Also check that when sending the request, we send out
-            --  only the "in" and "inout" arguments.
 
             Emit_No_Reply
               (Component_Access (ORB),
@@ -1464,8 +1467,10 @@ package body PolyORB.Protocols.GIOP is
 
                Store_Request (Ses, Current_Req.Req, Prof, Current_Req);
 
-               Invoke_Request (GIOP_Session (New_Ses.all)'Access,
-                                   Current_Req.Req);
+               Invoke_Request
+                 (GIOP_Session (New_Ses.all)'Access,
+                  Current_Req.Req,
+                  Prof);
             end;
 
          when Needs_Addressing_Mode =>
@@ -1540,7 +1545,8 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Invoke_Request
      (S   : access GIOP_Session;
-      R   : Requests.Request_Access)
+      R   : Requests.Request_Access;
+      Pro : access Binding_Data.Profile_Type'Class)
    is
       use Buffers;
       use Binding_Data.IIOP;
@@ -1575,14 +1581,13 @@ package body PolyORB.Protocols.GIOP is
       --      the Server part of this GIOP stack.
 
       if False and then S.Object_Found = False then
-         if  S.Nbr_Tries <= Max_Nb_Tries then
+         if S.Nbr_Tries <= Max_Nb_Tries then
             declare
-               Oid : aliased Object_Id := Get_Object_Key
+               Oid : constant Object_Id_Access := Get_Object_Key
                    (Current_Req.Target_Profile.all);
             begin
                Locate_Request_Message
-                 (S, Current_Req.Req,
-                  Oid'Access, Fragment_Next);
+                 (S, Current_Req.Req, Oid, Fragment_Next);
                S.Nbr_Tries := S.Nbr_Tries + 1;
                pragma Debug (O ("Locate Request Message"));
             end;
@@ -1599,7 +1604,7 @@ package body PolyORB.Protocols.GIOP is
 
       --  Sending the message
       --  Sending the data to lower layers
-      Emit_No_Reply (Lower (S), Data_Out' (Out_Buf => S.Buffer_Out));
+      Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => S.Buffer_Out));
    end Invoke_Request;
 
    -------------------
@@ -1665,6 +1670,7 @@ package body PolyORB.Protocols.GIOP is
 
       Release_Contents (S.Buffer_Out.all);
       No_Exception_Reply (S, R, Fragment_Next);
+      --  XXX what if R has raised an exception?
 
       pragma Debug (O ("Sending Reply"));
 
@@ -1694,7 +1700,9 @@ package body PolyORB.Protocols.GIOP is
       Expect_Message (S);
    end Handle_Connect_Confirmation;
 
-   procedure Handle_Data_Indication (S : access GIOP_Session)
+   procedure Handle_Data_Indication
+     (S : access GIOP_Session;
+      Data_Amount : Stream_Element_Count)
    is
       use Binding_Data.IIOP;
       use Objects;
@@ -1805,7 +1813,10 @@ package body PolyORB.Protocols.GIOP is
                               raise GIOP_Error;
                            end if;
 
-                           Invoke_Request (S, Current_Req.Req);
+                           Invoke_Request
+                             (S,
+                              Current_Req.Req,
+                              Current_Req.Target_Profile);
                         end;
 
                      when Unknown_Object =>
@@ -1842,8 +1853,10 @@ package body PolyORB.Protocols.GIOP is
                            --  Release the previous session buffers
                            Release (S.Buffer_In);
                            Release (S.Buffer_Out);
-                           Invoke_Request (GIOP_Session (New_Ses.all)'Access,
-                                           Current_Req.Req);
+                           Invoke_Request
+                             (GIOP_Session (New_Ses.all)'Access,
+                              Current_Req.Req,
+                              Current_Req.Target_Profile);
                         end;
 
                      when Loc_Needs_Addressing_Mode =>
@@ -1906,5 +1919,16 @@ package body PolyORB.Protocols.GIOP is
       return (Bit_Field and (2 ** Bit_Order)) /= 0;
    end Is_Set;
 
-end PolyORB.Protocols.GIOP;
+   use PolyORB.Configurator;
+   use PolyORB.Configurator.String_Lists;
+   use PolyORB.Utils.Strings;
 
+begin
+   Register_Module
+     (Module_Info'
+      (Name => +"protocols.giop",
+       Conflicts => Empty,
+       Depends => Empty,
+       Provides => Empty,
+       Init => Initialize'Access));
+end PolyORB.Protocols.GIOP;

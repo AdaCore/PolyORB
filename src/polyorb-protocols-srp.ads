@@ -39,7 +39,6 @@ with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Buffers;
 with PolyORB.Objects;
---  with PolyORB.ORB;
 with PolyORB.Types;
 with PolyORB.Utils.SRP;
 
@@ -71,7 +70,10 @@ package PolyORB.Protocols.SRP is
    type SRP_Session is new Session with private;
 
    procedure Connect (S : access SRP_Session);
-   procedure Invoke_Request (S : access SRP_Session; R : Request_Access);
+   procedure Invoke_Request
+     (S : access SRP_Session;
+      R : Request_Access;
+      P : access Binding_Data.Profile_Type'Class);
    procedure Abort_Request (S : access SRP_Session; R :  Request_Access);
    --  Do nothing.
 
@@ -84,25 +86,28 @@ package PolyORB.Protocols.SRP is
    procedure Handle_Connect_Confirmation (S : access SRP_Session);
    --  Setup client dialog.
 
-   procedure Handle_Data_Indication (S : access SRP_Session);
+   procedure Handle_Data_Indication
+     (S : access SRP_Session;
+      Data_Amount : Ada.Streams.Stream_Element_Count);
    --  Handle data received from user.
 
    procedure Handle_Disconnect (S : access SRP_Session);
    --  Handle disconnection from user.
 
-   procedure Unmarshall_Request_Message (Buffer : access Buffer_Type;
-                                         Oid    : access Object_Id;
-                                         Method : access Types.String);
---                                          Oid    : out Objects.Object_Id;
---                                          Method : out Types.String);
+   procedure Unmarshall_Request_Message
+     (Buffer : access Buffer_Type;
+      Oid    : access Object_Id;
+      Method : access Types.String);
    --  Get from the buffer the Object_Id and the Method to be called
 
-   procedure Unmarshall_Args (Buffer : access Buffer_Type;
-                              Args   : in out Any.NVList.Ref);
+   procedure Unmarshall_Args
+     (Buffer : access Buffer_Type;
+      Args   : in out Any.NVList.Ref);
    --  Unmarshall the arguments from Buffer in Args
    --  Args must be an arg list with empty any(s), but with their type set
 
-   procedure Unmarshall (Args : in out Any.NVList.Ref; Info_SRP : Split_SRP);
+   procedure Unmarshall
+     (Args : in out Any.NVList.Ref; SRP_Info : Split_SRP);
    --  Get the values stored in Info_SRP and unmarshall them in Args
    --  Attention: Args already should contain the types
    --  (cf. Obj_Adapters.Get_Empty_Arg_List)

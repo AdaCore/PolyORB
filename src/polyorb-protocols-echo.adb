@@ -35,7 +35,6 @@
 --  $Id$
 
 with Ada.Exceptions;
-with Ada.Unchecked_Deallocation;
 
 with PolyORB.Any.NVList;
 
@@ -55,6 +54,7 @@ with PolyORB.Requests; use PolyORB.Requests;
 
 with PolyORB.Representations.Test; use PolyORB.Representations.Test;
 with PolyORB.Types; use PolyORB.Types;
+with PolyORB.Utils.Strings; use PolyORB.Utils.Strings;
 
 package body PolyORB.Protocols.Echo is
 
@@ -89,7 +89,10 @@ package body PolyORB.Protocols.Echo is
 
    end Create;
 
-   procedure Invoke_Request (S : access Echo_Session; R : Request_Access) is
+   procedure Invoke_Request
+     (S : access Echo_Session;
+      R : Request_Access;
+      P : access Binding_Data.Profile_Type'Class) is
    begin
       null;
    end Invoke_Request;
@@ -148,8 +151,7 @@ package body PolyORB.Protocols.Echo is
       --  No setup is necessary for newly-created client connections.
    end Handle_Connect_Confirmation;
 
-   type String_Ptr is access all Standard.String;
-   type String_Array is array (Integer range <>) of String_Ptr;
+   type String_Array is array (Integer range <>) of Utils.Strings.String_Ptr;
 
    function Split (S : String) return String_Array;
    function Split (S : String) return String_Array
@@ -177,17 +179,16 @@ package body PolyORB.Protocols.Echo is
 
    procedure Free (SA : in out String_Array);
 
-   procedure Free (SA : in out String_Array)
-   is
-      procedure Free is
-         new Ada.Unchecked_Deallocation (Standard.String, String_Ptr);
+   procedure Free (SA : in out String_Array) is
    begin
       for I in SA'Range loop
          Free (SA (I));
       end loop;
    end Free;
 
-   procedure Handle_Data_Indication (S : access Echo_Session)
+   procedure Handle_Data_Indication
+     (S : access Echo_Session;
+      Data_Amount : Ada.Streams.Stream_Element_Count)
    is
       use Binding_Data.Local;
       use Objects;
@@ -202,7 +203,7 @@ package body PolyORB.Protocols.Echo is
            := Split (Unmarshall_String (Rep, S.Buffer));
 
          Method     : constant String := Argv (1).all;
-         Oid        : constant Object_Id := To_Oid (Argv (2).all);
+         Oid        : aliased Object_Id := To_Oid (Argv (2).all);
          Arg_String : constant String := Argv (3).all;
 
          Req : Request_Access := null;
@@ -225,11 +226,11 @@ package body PolyORB.Protocols.Echo is
                              & " with args " & Arg_String));
 
             Args   := Obj_Adapters.Get_Empty_Arg_List
-              (Object_Adapter (ORB), Oid, Method);
+              (Object_Adapter (ORB), Oid'Access, Method);
             Result :=
               (Name     => To_PolyORB_String ("Result"),
                Argument => Obj_Adapters.Get_Empty_Result
-               (Object_Adapter (ORB), Oid, Method),
+               (Object_Adapter (ORB), Oid'Access, Method),
                Arg_Modes => 0);
 
             Create_Local_Profile

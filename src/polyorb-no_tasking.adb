@@ -34,6 +34,10 @@
 
 with Ada.Unchecked_Deallocation;
 
+with PolyORB.Configurator;
+pragma Elaborate_All (PolyORB.Configurator);
+with PolyORB.Utils.Strings;
+
 package body PolyORB.No_Tasking is
 
    use PolyORB.Soft_Links;
@@ -324,4 +328,16 @@ package body PolyORB.No_Tasking is
       return 0;
    end To_Integer;
 
+   use PolyORB.Configurator;
+   use PolyORB.Configurator.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name => +"no_tasking",
+       Conflicts => Empty,
+       Depends => Empty,
+       Provides => +"soft_links",
+       Init => Initialize'Access));
 end PolyORB.No_Tasking;

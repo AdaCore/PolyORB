@@ -44,6 +44,10 @@
 --  Note: the remove_by_index and get_by_index may raise an INDEX_ERROR
 --  exception.
 
+--  XXX
+--  This is used for the implementation of PolyORB.Object_Maps.Seq,
+--  and should be merged therein.
+
 --  $Id$
 
 with Sequences.Unbounded;

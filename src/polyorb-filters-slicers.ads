@@ -60,6 +60,7 @@ private
    type Slicer_Filter is new Filter with record
       In_Buf        : Buffers.Buffer_Access;
       Data_Expected : Ada.Streams.Stream_Element_Count;
+      Initial_Data_Expected : Ada.Streams.Stream_Element_Count;
       Buffer_Length : Ada.Streams.Stream_Element_Count;
    end record;
 

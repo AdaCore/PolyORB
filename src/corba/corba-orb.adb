@@ -57,11 +57,12 @@ with Ada.Exceptions;
 
 with Sequences.Unbounded;
 
+with PolyORB.Configurator;
+
 with PolyORB.Dynamic_Dict;
 pragma Elaborate_All (PolyORB.Dynamic_Dict);
 
 with PolyORB.ORB;
-with PolyORB.ORB.Task_Policies;
 with PolyORB.Objects;
 with PolyORB.References.IOR;
 with PolyORB.Setup;
@@ -71,7 +72,6 @@ pragma Elaborate_All (PolyORB.Log);
 package body CORBA.ORB is
 
    use PolyORB.Log;
-   use PolyORB.ORB.Task_Policies;
    use PolyORB.ORB;
    use PolyORB.Setup;
 
@@ -144,18 +144,19 @@ package body CORBA.ORB is
    -- Create_List --
    -----------------
 
+   pragma Warnings (Off);
+   --  Parameter 'Count' below is only a hint.
+   --  In this implementation, it is ignored.
    procedure Create_List
      (Count    : in     CORBA.Long;
       New_List :    out CORBA.NVList.Ref)
    is
    begin
-      if Count /= 0 then
-         raise PolyORB.Not_Implemented;
-         --  XXX How should the list be populated?
-      else
-         CORBA.NVList.Create (New_List);
-      end if;
+      CORBA.NVList.Create (New_List);
    end Create_List;
+
+   procedure Create_List (New_List : out CORBA.ExceptionList.Ref)
+     renames CORBA.ExceptionList.Create_List;
 
    ----------------------
    -- create_native_tc --
@@ -327,7 +328,7 @@ package body CORBA.ORB is
       return CORBA.String is
    begin
       return PolyORB.References.IOR.Object_To_String
-        ((Ref => CORBA.Object.To_PolyORB_Ref (Obj)));
+        ((Ref => CORBA.Object.To_PolyORB_Ref (CORBA.Object.Ref (Obj))));
    end Object_To_String;
 
    ----------------------
@@ -358,19 +359,14 @@ package body CORBA.ORB is
    -- Initialize --
    ----------------
 
-   procedure Initialize
-     (ORB_Name : in Standard.String)
-   is
-      My_Policy : Tasking_Policy_Access;
+   procedure Initialize (ORB_Name : in Standard.String) is
    begin
-      if The_ORB /= null then
+      PolyORB.Configurator.Initialize_World;
+   exception
+      when PolyORB.Configurator.Already_Initialized =>
          raise Initialization_Failure;
-      end if;
-      My_Policy := new No_Tasking;
-      --  ??? Must implement other policies !!
-
-      The_ORB := new PolyORB.ORB.ORB_Type (My_Policy);
-      PolyORB.ORB.Create (The_ORB.all);
+      when others =>
+         raise;
    end Initialize;
 
    ----------------------

@@ -37,12 +37,18 @@ package body Ada_Be.Source_Streams is
    Flag : constant Natural := Ada_Be.Debug.Is_Active ("ada_be.source_streams");
    procedure O is new Ada_Be.Debug.Output (Flag);
 
+   --  User-defined diversion identifiers are allocated on a system-wide basis.
+
+   Diversions_Allocation : array (Diversion) of Boolean
+     := (Predefined_Diversions'Range => True, others => False);
+
    --  Semantic dependencies
 
    type Dependency_Node is record
       Library_Unit : String_Ptr;
-      Use_It : Boolean := False;
+      Use_It : Boolean;
       Elab_Control : Elab_Control_Pragma := None;
+      No_Warnings : Boolean;
       Next : Dependency;
    end record;
 
@@ -71,10 +77,11 @@ package body Ada_Be.Source_Streams is
    end Is_Ancestor;
 
    procedure Add_With
-     (Unit   : in out Compilation_Unit;
-      Dep    : String;
-      Use_It : Boolean := False;
-      Elab_Control : Elab_Control_Pragma := None)
+     (Unit         : in out Compilation_Unit;
+      Dep          :        String;
+      Use_It       :        Boolean             := False;
+      Elab_Control :        Elab_Control_Pragma := None;
+      No_Warnings  :        Boolean             := False)
    is
       Dep_Node : Dependency := Unit.Context_Clause;
       LU_Name : constant String
@@ -113,10 +120,14 @@ package body Ada_Be.Source_Streams is
            (Library_Unit => new String'(Dep),
             Use_It => Use_It,
             Elab_Control => Elab_Control,
+            No_Warnings => No_Warnings,
             Next => Unit.Context_Clause);
          Unit.Context_Clause := Dep_Node;
       else
-         Dep_Node.Use_It := Dep_Node.Use_It or else Use_It;
+         Dep_Node.Use_It
+           := Dep_Node.Use_It or else Use_It;
+         Dep_Node.No_Warnings
+           := Dep_Node.No_Warnings and then No_Warnings;
          if Elab_Control = Elaborate_All
            or else Dep_Node.Elab_Control = Elaborate_All then
             Dep_Node.Elab_Control := Elaborate_All;
@@ -144,21 +155,60 @@ package body Ada_Be.Source_Streams is
 
    --  Source streams (global)
 
+   function Allocate_User_Diversion
+     return Diversion is
+   begin
+      for I in User_Diversions'Range loop
+         if not Diversions_Allocation (I) then
+            Diversions_Allocation (I) := True;
+            return I;
+         end if;
+      end loop;
+
+      raise Program_Error;
+      --  Too many diversions open.
+   end Allocate_User_Diversion;
+
    procedure Divert
      (CU     : in out Compilation_Unit;
       Whence : Diversion) is
    begin
-      if not (False
-        or else Whence = Visible_Declarations
-        or else (Whence = Private_Declarations and then CU.Kind = Unit_Spec)
-        or else (Whence = Elaboration and then CU.Kind = Unit_Body)
-        or else (Whence = Generic_Formals and then CU.Kind = Unit_Spec))
+      if not
+        (Diversions_Allocation (Whence)
+         and then (False
+           or else Whence in User_Diversions'Range
+           or else Whence = Visible_Declarations
+           or else (Whence = Private_Declarations and then CU.Kind = Unit_Spec)
+           or else (Whence = Elaboration and then CU.Kind = Unit_Body)
+           or else (Whence = Generic_Formals and then CU.Kind = Unit_Spec)))
       then
          raise Program_Error;
       end if;
 
       CU.Current_Diversion := Whence;
    end Divert;
+
+   procedure Undivert
+     (CU : in out Compilation_Unit;
+      D  : Diversion)
+   is
+      Div : Diversion_Data renames CU.Diversions (D);
+      Empty_Diversion : Diversion_Data;
+   begin
+      if not Diversions_Allocation (D) then
+         raise Program_Error;
+      end if;
+
+      if not (Div.Empty) then
+         CU.Diversions (CU.Current_Diversion).At_BOL := False;
+         --  The indentation must be made in diversion D.
+
+         Put (CU, To_String (Div.Library_Item));
+      end if;
+
+      CU.Diversions (D) := Empty_Diversion;
+      --  Reset diversion D to empty state.
+   end Undivert;
 
    function New_Package
      (Name : String;
@@ -274,6 +324,10 @@ package body Ada_Be.Source_Streams is
                when None =>
                   null;
             end case;
+            if Dep_Node.No_Warnings then
+               Put_Line (File, "pragma Warnings (Off, "
+                         & Dep_Node.Library_Unit.all & ");");
+            end if;
             Dep_Node := Dep_Node.Next;
          end loop;
 
@@ -415,11 +469,11 @@ package body Ada_Be.Source_Streams is
       Free (Object.Library_Unit);
    end Finalize;
 
-   procedure Finalize (Object : in out Compilation_Unit) is
+   procedure Finalize (CU : in out Compilation_Unit) is
    begin
-      if Object.Context_Clause /= null then
-         Finalize (Object.Context_Clause.all);
-         Free (Object.Context_Clause);
+      if CU.Context_Clause /= null then
+         Finalize (CU.Context_Clause.all);
+         Free (CU.Context_Clause);
       end if;
    end Finalize;
 

@@ -39,7 +39,6 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.Any;
 with PolyORB.Objects; use PolyORB.Objects;
 with PolyORB.Types; use PolyORB.Types;
---  with PolyORB.Types; use PolyORB.Types;
 
 package PolyORB.Utils.SRP is
 
@@ -57,6 +56,8 @@ package PolyORB.Utils.SRP is
 --      Value : Any.Any;
       Next  : Arg_Info_Ptr := null;
    end record;
+   --  XXX should be reimplemented in terms of
+   --  PolyORB.Utils.Chained_Lists.
 
    --  Record use to store the URL when it is splitted
    type Split_SRP is record

@@ -35,9 +35,11 @@
 --  $Id$
 
 with Sequences.Unbounded;
-with CORBA.Object;
-with CORBA.NVList;
+
 with CORBA.Context;
+with CORBA.ExceptionList;
+with CORBA.NVList;
+with CORBA.Object;
 
 with PolyORB.References;
 
@@ -84,6 +86,9 @@ package CORBA.ORB is
    procedure Create_List
      (Count    : in     CORBA.Long;
       New_List :    out CORBA.NVList.Ref);
+
+   procedure Create_List
+     (New_List : out CORBA.ExceptionList.Ref);
 
    --  ??? Requires CORBA.OperationDef
 

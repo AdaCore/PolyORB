@@ -40,6 +40,11 @@ package PolyORB.Utils is
 
    pragma Pure;
 
+   function Hex_Value (C : Character) return Integer;
+   --  The integer value corresponding to hexadecimal digit C.
+   --  If C is not a valid hexadecimal digit, Constraint_Error
+   --  is raised.
+
    function To_String
      (A : Ada.Streams.Stream_Element_Array)
      return String;
@@ -51,5 +56,61 @@ package PolyORB.Utils is
      return Ada.Streams.Stream_Element_Array;
    --  Return the Stream_Element_Array represented by the
    --  string of hexadecimal digits contaned in S.
+
+   function URI_Encode (S : String) return String;
+   --  Return S with special characters replaced by
+   --  "%" "hexdigit" "hexdigit" if these characters
+   --  need to be escaped in URIs, except for spaces
+   --  which are replaced by '+'.
+
+   function URI_Decode (S : String) return String;
+   --  Return S with any %xy sequence replaced with
+   --  the character whose hexadecimal representation
+   --  is xy, and any '+' characters replaced by spaces.
+
+   -----------------------
+   -- String operations --
+   -----------------------
+
+   function Trimmed_Image (I : Integer) return String;
+   --  Return Integer'Image (I) without a leading space.
+
+   function Find_Skip
+     (S     : String;
+      Start : Integer;
+      What  : Character;
+      Skip  : Boolean)
+     return Integer;
+   --  If Skip is False, return the index of the
+   --  first occurrence of What in S.
+   --  If Skip is True, return the index of the
+   --  first occurrence of any character OTHER THAN What.
+   --  If no such character exists, S'Last + 1 is returned.
+
+   --  Shorthands for commonly-used forms of Find_Skip
+
+   function Find
+     (S     : String;
+      Start : Integer;
+      What  : Character;
+      Skip  : Boolean := False)
+     return Integer
+     renames Find_Skip;
+
+   function Find_Whitespace
+     (S     : String;
+      Start : Integer;
+      What  : Character := ' ';
+      Skip  : Boolean := False)
+     return Integer
+     renames Find_Skip;
+
+   function Skip_Whitespace
+     (S     : String;
+      Start : Integer;
+      What  : Character := ' ';
+      Skip  : Boolean := True)
+     return Integer
+     renames Find_Skip;
 
 end PolyORB.Utils;

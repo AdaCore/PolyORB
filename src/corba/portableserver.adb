@@ -33,10 +33,23 @@
 --  $Id$
 
 with PolyORB;
+with PolyORB.CORBA_P.Names;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Requests;
 with PolyORB.Objects.Interface;
+with PolyORB.Soft_Links;
+with PolyORB.Utils.Chained_Lists;
+pragma Elaborate_All (PolyORB.Utils.Chained_Lists);
 
 package body PortableServer is
+
+   use PolyORB.Log;
+   use PolyORB.Soft_Links;
+
+   package L is new PolyORB.Log.Facility_Log ("portableserver");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
 
    function Handle_Message
      (Self : access DynamicImplementation;
@@ -65,6 +78,17 @@ package body PortableServer is
       end if;
    end Handle_Message;
 
+   procedure Invoke
+     (Self    : access Servant_Base;
+      Request : in CORBA.ServerRequest.Object_Ptr) is
+   begin
+      Find_Info (Servant (Self)).Dispatcher (Servant (Self), Request);
+      --  Invoke primitive for static object implementations:
+      --  look up the skeleton associated with Self's class,
+      --  and delegate the dispatching of Request to one of
+      --  Self's primitive operations to that skeleton.
+   end Invoke;
+
    function Get_Default_POA
      (For_Servant : Servant_Base)
      return POA_Forward.Ref is
@@ -79,5 +103,89 @@ package body PortableServer is
    begin
       raise PolyORB.Not_Implemented;
    end Get_Members;
+
+   -----------------------------
+   -- A list of Skeleton_Info --
+   -----------------------------
+
+   package Skeleton_Lists is new PolyORB.Utils.Chained_Lists
+     (Skeleton_Info);
+
+   All_Skeletons : Skeleton_Lists.List;
+
+   Skeleton_Exists  : exception;
+   Skeleton_Unknown : exception;
+
+   ---------------
+   -- Find_Info --
+   ---------------
+
+   function Find_Info
+     (For_Servant : Servant)
+     return Skeleton_Info
+   is
+      use Skeleton_Lists;
+
+      It : Iterator;
+      Info    : Skeleton_Info;
+
+   begin
+      Enter_Critical_Section;
+      It := First (All_Skeletons);
+
+      while not Last (It) loop
+         exit when Value (It).Is_A (For_Servant);
+         Next (It);
+      end loop;
+
+      if Last (It) then
+         Leave_Critical_Section;
+         raise Skeleton_Unknown;
+      end if;
+
+      Info := Value (It).all;
+      Leave_Critical_Section;
+
+      return Info;
+   end Find_Info;
+
+   -----------------------
+   -- Register_Skeleton --
+   -----------------------
+
+   procedure Register_Skeleton
+     (Type_Id    : in CORBA.RepositoryId;
+      Is_A       : in Servant_Class_Predicate;
+      Dispatcher : in Request_Dispatcher := null)
+   is
+      use Skeleton_Lists;
+   begin
+      pragma Debug (O ("Register_Skeleton enter"));
+      Enter_Critical_Section;
+      Append (All_Skeletons,
+              (Type_Id    => Type_Id,
+               Is_A       => Is_A,
+               Dispatcher => Dispatcher));
+      pragma Debug (O ("Registered : type_id = " &
+                       CORBA.To_Standard_String (Type_Id)));
+      Leave_Critical_Section;
+   end Register_Skeleton;
+
+   -----------------
+   -- Get_Type_Id --
+   -----------------
+
+   function Get_Type_Id
+     (For_Servant : Servant)
+     return CORBA.RepositoryId is
+   begin
+      return Find_Info (For_Servant).Type_Id;
+   exception
+      when Skeleton_Unknown =>
+         return CORBA.To_CORBA_String
+           (PolyORB.CORBA_P.Names.OMG_RepositoryId ("CORBA/OBJECT"));
+      when others =>
+         raise;
+   end Get_Type_Id;
 
 end PortableServer;

@@ -35,17 +35,15 @@
 --  $Id$
 
 with PolyORB.Obj_Adapters;
+with PolyORB.ORB;
 with PolyORB.POA;
 with PolyORB.POA.Basic_POA; use PolyORB.POA.Basic_POA;
 with PolyORB.POA_Config;
-with PolyORB.POA_Config.Minimum;
---  XXX hardcoded configuration!!!!!!
 with PolyORB.Setup;
-with PolyORB.Setup.Test; use PolyORB.Setup.Test;
 with PolyORB.Smart_Pointers;
-with PolyORB.No_Tasking;
---  XXX hardcoded tasking policy!!!
-with PolyORB.ORB.Task_Policies;
+
+with PolyORB.POA_Config.Minimum;
+--  XXX hardcoded POA configuration!!!!!!
 
 with CORBA.Impl;
 pragma Warnings (Off, CORBA.Impl);
@@ -74,42 +72,7 @@ package body PolyORB.CORBA_P.Server_Tools is
 
    Root_POA : PortableServer.POA.Ref;
 
---    task type ORBTask is
---       pragma Storage_Size
---         (PolyORB.CORBA_P.Parameters.Server_Tasks_Storage_Size);
---    end ORBTask;
---    type ORBTaskPtr is access ORBTask;
-
---    task body ORBTask is
---    begin
---       CORBA.ORB.Run;
---    end ORBTask;
-
    procedure Initiate_RootPOA;
-
-   -----------
-   -- Debug --
-   -----------
-
-
-   Setup_Done : Boolean := False;
-
-   procedure Ensure_Setup;
-
-   procedure Ensure_Setup is
-   begin
-      if Setup_Done then
-         return;
-      end if;
-      Setup_Done := True;
-
-      Initialize_Test_Server
-        (PolyORB.No_Tasking.Initialize'Access,
-         new PolyORB.ORB.Task_Policies.No_Tasking);
-
-
-      Initialize_Test_Access_Points;
-   end Ensure_Setup;
 
    ----------------------
    -- Initiate_RootPOA --
@@ -119,8 +82,6 @@ package body PolyORB.CORBA_P.Server_Tools is
       --  RootPOAStr  : CORBA.String;
       Obj_Adapter : PolyORB.POA.Obj_Adapter_Access;
    begin
-      Ensure_Setup;
-
       pragma Debug (O ("Initializing OA configuration... "));
       PolyORB.POA_Config.Set_Configuration
         (new PolyORB.POA_Config.Minimum.Minimum_Configuration);
@@ -153,8 +114,6 @@ package body PolyORB.CORBA_P.Server_Tools is
    is
       --  ORBMainLoop : ORBTaskPtr;
    begin
-      Ensure_Setup;
-
       if CORBA.Object.Is_Nil (CORBA.Object.Ref (Root_POA)) then
          Initiate_RootPOA;
       end if;
@@ -178,11 +137,11 @@ package body PolyORB.CORBA_P.Server_Tools is
       R : out CORBA.Object.Ref'Class) is
    begin
       pragma Debug (O ("Initiate_Servant : enter"));
-      Ensure_Setup;
 
       if CORBA.Object.Is_Nil (CORBA.Object.Ref (Root_POA)) then
          Initiate_RootPOA;
       end if;
+
       pragma Debug (O ("Initiate_Servant : ready to "
                        & "call CORBA.Object.Set"));
       CORBA.Object.Set
