@@ -1,5 +1,13 @@
 -*- outline -*-
 
+* New in AdaSockets 0.1.15
+
+** Bug fix
+
+Send could sometimes incorrectly raise Constraint_Error instead of
+the more logical Connection_Closed. Reported and fixed by
+Pascal Obry <p.obry@wanadoo.fr>.
+
 * New in AdaSockets 0.1.14
 
 ** Bug fix

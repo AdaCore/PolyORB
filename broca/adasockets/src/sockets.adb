@@ -356,9 +356,11 @@ package body Sockets is
    begin
       while Rest > 0 loop
          Count := C_Send (Socket.FD, Data (Index) 'Address, int (Rest), 0);
-         if Count < 0 then
-            Raise_With_Message ("Send failed");
-         elsif Count = 0 then
+         if Count <= 0 then
+            --  Count could be zero if the socket was in non-blocking mode
+            --  and the output buffers were full. Since we do not support
+            --  non-blocking mode, this is an error.
+
             raise Connection_Closed;
          end if;
          Index := Index + Stream_Element_Count (Count);
