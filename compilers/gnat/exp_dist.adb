@@ -2027,12 +2027,8 @@ package body Exp_Dist is
       Proc_Decls        : List_Id;
       Proc_Statements   : constant List_Id := New_List;
 
+      Proc : Entity_Id;
       Proc_Spec : Node_Id;
-      Proc_Body : Node_Id;
-      pragma Unreferenced (Proc_Body);
-      --  Body of a TSS.
-
-      Proc : Node_Id;
 
       Package_Name : Node_Id;
       Subp_Id      : Node_Id;
@@ -2045,26 +2041,29 @@ package body Exp_Dist is
 
       All_Calls_Remote : Entity_Id;
       --  True if an All_Calls_Remote pragma applies to the RCI unit
-      --  that contains the procedure.
+      --  that contains the subprogram.
 
       Subp_Ref : Entity_Id;
 
       Is_Local : Entity_Id;
       --  For the call to Get_Local_Address
 
-      procedure Set_Field (Field_Name : in Name_Id; Value : in Node_Id);
-      --  Set a field name for the return value
+      function Set_Field (Field_Name : in Name_Id; Value : in Node_Id)
+        return Node_Id;
+      --  Construct an assignment that sets the named component in the
+      --  returned record
 
-      procedure Set_Field (Field_Name : in Name_Id; Value : in Node_Id)
+      function Set_Field (Field_Name : in Name_Id; Value : in Node_Id)
+        return Node_Id
       is
       begin
-         Append_To (Proc_Statements,
+         return
            Make_Assignment_Statement (Loc,
              Name       =>
                Make_Selected_Component (Loc,
                  Prefix        => New_Occurrence_Of (Stub_Ptr, Loc),
                  Selector_Name => Make_Identifier (Loc, Field_Name)),
-             Expression => Value));
+             Expression => Value);
       end Set_Field;
 
    --  Start of processing for Add_RAS_Access_Attribute
@@ -2117,32 +2116,30 @@ package body Exp_Dist is
 
       --  Initialize the fields of the record type with the appropriate data
 
-      Append_To (Proc_Statements,
+      Append_List_To (Proc_Statements, New_List (
         Make_Procedure_Call_Statement (Loc,
           Name =>
             New_Occurrence_Of (RTE (RE_Get_RAS_Ref), Loc),
           Parameter_Associations => New_List (
             New_Occurrence_Of (Package_Name, Loc),
             New_Occurrence_Of (Subp_Id, Loc),
-            New_Occurrence_Of (Subp_Ref, Loc))));
+            New_Occurrence_Of (Subp_Ref, Loc))),
 
-      Set_Field (Name_Target,
-        Make_Function_Call (Loc,
-          Name =>
-            New_Occurrence_Of (RTE (RE_Entity_Of), Loc),
-          Parameter_Associations => New_List (
-            New_Occurrence_Of (Subp_Ref, Loc))));
+        Set_Field (Name_Target,
+          Make_Function_Call (Loc,
+            Name =>
+              New_Occurrence_Of (RTE (RE_Entity_Of), Loc),
+            Parameter_Associations => New_List (
+              New_Occurrence_Of (Subp_Ref, Loc)))),
 
-      Append_To (Proc_Statements,
         Make_Procedure_Call_Statement (Loc,
           Name =>
             New_Occurrence_Of (RTE (RE_Inc_Usage), Loc),
           Parameter_Associations => New_List (
             Make_Selected_Component (Loc,
               Prefix        => New_Occurrence_Of (Stub_Ptr, Loc),
-              Selector_Name => Make_Identifier (Loc, Name_Target)))));
+              Selector_Name => Make_Identifier (Loc, Name_Target)))),
 
-      Append_To (Proc_Statements,
         Make_Procedure_Call_Statement (Loc,
           Name =>
             New_Occurrence_Of (RTE (RE_Get_Local_Address), Loc),
@@ -2151,7 +2148,7 @@ package body Exp_Dist is
             New_Occurrence_Of (Is_Local, Loc),
             Make_Selected_Component (Loc,
               Prefix        => New_Occurrence_Of (Stub_Ptr, Loc),
-              Selector_Name => Make_Identifier (Loc, Name_Addr)))));
+              Selector_Name => Make_Identifier (Loc, Name_Addr))))));
       --  At this point Addr is 0 if the reference is remote,
       --  and the local address of the real subprogram otherwise.
 
@@ -2160,12 +2157,8 @@ package body Exp_Dist is
           Condition =>
             New_Occurrence_Of (All_Calls_Remote, Loc),
           Then_Statements => New_List (
-            Make_Assignment_Statement (Loc,
-              Name       =>
-                Make_Selected_Component (Loc,
-                  Prefix        => New_Occurrence_Of (Stub_Ptr, Loc),
-                  Selector_Name => Make_Identifier (Loc, Name_Addr)),
-              Expression => New_Occurrence_Of (RTE (RE_Null_Address), Loc)))));
+            Set_Field (Name_Addr,
+              New_Occurrence_Of (RTE (RE_Null_Address), Loc)))));
       --  If this is an All_Calls_Remote local subprogram, then do not
       --  store the local subprogram address here, to prevent it from
       --  being called directly when the RAS is dereferenced.
@@ -2176,10 +2169,11 @@ package body Exp_Dist is
          Asynch_T := New_Occurrence_Of (Standard_False, Loc);
       end if;
 
-      Set_Field (Name_Asynchronous,
-        Make_Or_Else (Loc,
-          New_Occurrence_Of (Asynch_P, Loc),
-          Asynch_T));
+      Append_To (Proc_Statements,
+        Set_Field (Name_Asynchronous,
+          Make_Or_Else (Loc,
+            New_Occurrence_Of (Asynch_P, Loc),
+            Asynch_T)));
       --  E.4.1(9) A remote call is asynchronous if it is a call to
       --  a procedure, or a call through a value of an access-to-procedure
       --  type, to which a pragma Asynchronous applies.
@@ -2245,13 +2239,13 @@ package body Exp_Dist is
       Set_Ekind (Proc, E_Function);
       Set_Etype (Proc, New_Occurrence_Of (Fat_Type, Loc));
 
-      Proc_Body :=
+      Discard_Node (
         Make_Subprogram_Body (Loc,
           Specification              => Proc_Spec,
           Declarations               => Proc_Decls,
           Handled_Statement_Sequence =>
             Make_Handled_Sequence_Of_Statements (Loc,
-              Statements => Proc_Statements));
+              Statements => Proc_Statements)));
 
       Set_TSS (Fat_Type, Proc);
 
@@ -2284,12 +2278,8 @@ package body Exp_Dist is
       Remote_Statements : constant List_Id := New_List;
       RACW_Primitive_Name : Node_Id;
 
-      Proc : Node_Id;
-
+      Proc : Entity_Id;
       Proc_Spec : Node_Id;
-      Proc_Body : Node_Id;
-      pragma Unreferenced (Proc_Body);
-      --  Body of a TSS.
 
       Param_Specs : constant List_Id := New_List;
       Param_Assoc_Direct : constant List_Id := New_List;
@@ -2481,13 +2471,13 @@ package body Exp_Dist is
                 Make_Handled_Sequence_Of_Statements (Loc,
                   Statements => Remote_Statements)))));
 
-      Proc_Body :=
+      Discard_Node (
         Make_Subprogram_Body (Loc,
           Specification              => Proc_Spec,
           Declarations               => Proc_Decls,
           Handled_Statement_Sequence =>
             Make_Handled_Sequence_Of_Statements (Loc,
-              Statements => Proc_Statements));
+              Statements => Proc_Statements)));
 
       Set_TSS (Fat_Type, Proc);
    end Add_RAS_Dereference_TSS;
@@ -3637,6 +3627,7 @@ package body Exp_Dist is
                          Attribute_Name =>
                            Name_Unrestricted_Access));
                   end if;
+
                end if;
 
                if In_Present (Current_Parameter)

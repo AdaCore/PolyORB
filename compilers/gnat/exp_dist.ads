@@ -101,8 +101,4 @@ package Exp_Dist is
    --  Given a remote access-to-subprogram type or its equivalent
    --  record type, return the RACW type generated to implement it.
 
-   function Build_Subprogram_Id (Loc : Source_Ptr; E : Entity_Id)
-     return Node_Id;
-   --  Build a literal representing the remote subprogram identifier of E.
-
 end Exp_Dist;
