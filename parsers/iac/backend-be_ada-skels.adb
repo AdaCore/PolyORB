@@ -1,4 +1,3 @@
---  with Namet;  use Namet;
 with Values; use Values;
 
 with Frontend.Nodes;  use Frontend.Nodes;
@@ -174,7 +173,7 @@ package body Backend.BE_Ada.Skels is
                end if;
 
                C :=  Make_Subprogram_Call
-                 (Defining_Identifier   => RE (RE_Get_Empty_Any_0),
+                 (Defining_Identifier   => RE (RE_Get_Empty_Any),
                   Actual_Parameter_Part =>
                     Make_List_Id (C));
                New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);

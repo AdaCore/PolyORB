@@ -4,14 +4,14 @@ with Values;    use Values;
 
 with Frontend.Nutils;
 with Frontend.Nodes;            use Frontend.Nodes;
---  with Frontend.Debug;
+--  with Frontend.Debug;            use Frontend.Debug;
 
 with Backend.BE_Ada.Expand; use Backend.BE_Ada.Expand;
 with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Nodes;      use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;     use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime;    use Backend.BE_Ada.Runtime;
---  with Backend.BE_Ada.Debug;    use Backend.BE_Ada.Debug;
+with Backend.BE_Ada.Debug;    use Backend.BE_Ada.Debug;
 
 package body Backend.BE_Ada.Stubs is
 
@@ -24,7 +24,7 @@ package body Backend.BE_Ada.Stubs is
 
 
    function Marshaller_Body
-     (Subp_Spec : Node_Id; Local_Variables : List_Id) return List_Id;
+     (Subp_Spec : Node_Id) return List_Id;
    function Marshaller_Declarations
      (Subp_Spec : Node_Id) return List_Id;
    function Local_Is_A_Body (E : Node_Id) return Node_Id;
@@ -333,6 +333,7 @@ package body Backend.BE_Ada.Stubs is
          while Present (IDL_Param) loop
             Type_Designator := Map_Designator
               (Type_Spec (IDL_Param));
+            Set_FE_Node (Type_Designator, Type_Spec (IDL_Param));
             Ada_Param := Make_Parameter_Specification
               (Map_Defining_Identifier (Declarator (IDL_Param)),
                Type_Designator,
@@ -550,7 +551,7 @@ package body Backend.BE_Ada.Stubs is
             Set_Main_Body;
             S := Stub_Node (BE_Node (Identifier (A)));
             D := Marshaller_Declarations (S);
-            B := Marshaller_Body (S, No_List);
+            B := Marshaller_Body (S);
             N := Make_Subprogram_Implementation
               (Specification => S,
                Declarations => D,
@@ -561,7 +562,7 @@ package body Backend.BE_Ada.Stubs is
                Set_Main_Body;
                S := Next_Node (S);
                D := Marshaller_Declarations (S);
-               B := Marshaller_Body (S, No_List);
+               B := Marshaller_Body (S);
                N := Make_Subprogram_Implementation
                  (Specification => S,
                   Declarations => D,
@@ -582,7 +583,7 @@ package body Backend.BE_Ada.Stubs is
       begin
          N := BEN.Parent (Stub_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
-         Set_Helper_Body;
+         Set_Main_Body;
          N := First_Entity (Interface_Body (E));
          while Present (N) loop
             Visit (N);
@@ -601,9 +602,20 @@ package body Backend.BE_Ada.Stubs is
       ---------------------------------
 
       procedure Visit_Operation_Declaration (E : Node_Id) is
-         pragma Unreferenced (E);
+         S : Node_Id;
+         D : List_Id;
+         B : List_Id;
+         N : Node_Id;
       begin
-         null;
+         Set_Main_Body;
+         S := Stub_Node (BE_Node (Identifier (E)));
+         D := Marshaller_Declarations (S);
+         B := Marshaller_Body (S);
+         N := Make_Subprogram_Implementation
+           (Specification => S,
+            Declarations => D,
+            Statements => B);
+         Append_Node_To_List (N, Statements (Current_Package));
       end Visit_Operation_Declaration;
 
       -------------------------
@@ -631,8 +643,7 @@ package body Backend.BE_Ada.Stubs is
    ---------------------
 
    function Marshaller_Body
-     (Subp_Spec       : Node_Id;
-      Local_Variables : List_Id)
+     (Subp_Spec       : Node_Id)
       return            List_Id
    is
       Statements    : List_Id;
@@ -644,7 +655,7 @@ package body Backend.BE_Ada.Stubs is
       Return_T      : Node_Id;
       I             : Node_Id;
       Param         : Node_Id;
-      pragma Unreferenced (Local_Variables);
+
    begin
       Return_T := Return_Type (Subp_Spec);
       Statements := New_List (BEN.K_List_Id);
@@ -656,7 +667,7 @@ package body Backend.BE_Ada.Stubs is
         (C, RE (RE_Raise_Inv_Objref));
       S := New_List (BEN.K_List_Id);
       Append_Node_To_List
-        (Make_Defining_Identifier (VN (V_Def_Sys_Member)), S);
+        (RE (RE_Default_Sys_Member), S);
       Set_Actual_Parameter_Part (C, S);
       S := New_List (BEN.K_List_Id);
       Append_Node_To_List (C, S);
@@ -736,27 +747,34 @@ package body Backend.BE_Ada.Stubs is
         (Selector_Name => Make_Defining_Identifier (PN (P_Name)),
          Expression    => C);
       P := Make_List_Id (N);
-
+      W_Node_Id (Return_T);
       if No (Return_T) then
-         I := RE (RE_Get_Empty_Any_1);
          Param := RE (RE_TC_Void);
       elsif Is_Base_Type
         (FE_Node (Return_T))
       then
          Param := Base_Type_TC (FEN.Kind (FE_Node (Return_T)));
-         I := RE (RE_Get_Empty_Any_0);
       else
-         Param := Identifier (FE_Node (Return_T));
-         Param := Helper_Node
-           (BE_Node (Identifier
-                     (Reference (Corresponding_Entity (Param)))));
+         Param := Corresponding_Entity
+           (Identifier (FE_Node (Return_T)));
+
+         if FEN.Kind (Param) = K_Scoped_Name then
+            Param := Helper_Node
+              (BE_Node (Identifier
+                        (Reference (Param))));
+         else
+            Param := Helper_Node
+              (BE_Node (Identifier (Param)));
+         end if;
+
          Param := Expand_Designator (Param);
-         I := RE (RE_Get_Empty_Any_0);
       end if;
 
       C := Make_Subprogram_Call
-        (Defining_Identifier  => I,
+        (Defining_Identifier  => RE (RE_Get_Empty_Any),
          Actual_Parameter_Part => Make_List_Id (Param));
+      C := Make_Subprogram_Call
+        (RE (RE_To_PolyORB_Any), Make_List_Id (C));
       N := Make_Component_Association
         (Selector_Name => Make_Defining_Identifier (PN (P_Argument)),
          Expression    => C);
@@ -771,7 +789,7 @@ package body Backend.BE_Ada.Stubs is
 
       N := Make_Assignment_Statement
         (Variable_Identifier =>
-           Make_Defining_Identifier (VN (V_Result_Name)),
+           Make_Defining_Identifier (VN (V_Result)),
          Expression => N);
       Append_Node_To_List (N, Statements);
 
@@ -794,7 +812,7 @@ package body Backend.BE_Ada.Stubs is
       Append_Node_To_List (N, P);
       N := Make_Component_Association
         (Selector_Name => Make_Defining_Identifier (PN (P_Result)),
-         Expression    => Make_Defining_Identifier (VN (V_Result_Name)));
+         Expression    => Make_Defining_Identifier (VN (V_Result)));
       Append_Node_To_List (N, P);
       N := Make_Component_Association
         (Selector_Name => Make_Defining_Identifier (PN (P_Req)),
@@ -934,24 +952,22 @@ package body Backend.BE_Ada.Stubs is
          if Is_Base_Type (BEN.FE_Node (Parameter_Type (I))) then
 
             if BEN.Parameter_Mode (I) = Mode_Out then
-               D := RE (RE_Get_Empty_Any_0);
+               D := RE (RE_Get_Empty_Any);
             else
                D := RE (RE_To_Any_0);
             end if;
 
          else
             if BEN.Parameter_Mode (I) = Mode_Out then
-               D := RE (RE_Get_Empty_Any_1);
+               D := RE (RE_Get_Empty_Any);
                Set_Parent_Unit_Name
                  (D, Defining_Identifier (Helper_Package (Current_Entity)));
-
             else
                D := Identifier (FE_Node (Parameter_Type (I)));
                D := Helper_Node
                  (BE_Node (Identifier (Reference (Corresponding_Entity (D)))));
                D := Expand_Designator (Next_Node (Next_Node (D)));
             end if;
-
          end if;
 
          C :=  Make_Subprogram_Call
@@ -1049,7 +1065,7 @@ package body Backend.BE_Ada.Stubs is
       S             : constant List_Id := New_List (K_List_Id);
       M             : Node_Id;
       Repository_Id : Node_Id;
-      Object_URL    : Value_Id;
+      Rep_Value    : Value_Id;
 
    begin
       N := Stub_Node (BE_Node (Identifier (E)));
@@ -1062,17 +1078,17 @@ package body Backend.BE_Ada.Stubs is
           Repository_Id));
 
       if FEN.Kind (E) = K_Interface_Declaration then
-         Set_Str_To_Name_Buffer ("IDL:Omg.Org/CORBA/Object:1.0");
+         Set_Str_To_Name_Buffer ("IDL:omg.org/CORBA/Object:1.0");
       else
-         Set_Str_To_Name_Buffer ("IDL:Omg.Org/CORBA/ValueBase:1.0");
+         Set_Str_To_Name_Buffer ("IDL:omg.org/CORBA/ValueBase:1.0");
       end if;
 
-      Object_URL := New_String_Value (Name_Find, False);
+      Rep_Value := New_String_Value (Name_Find, False);
       M := Make_Subprogram_Call
         (RE (RE_Is_Equivalent),
          Make_List_Id
          (Make_Defining_Identifier (PN (P_Logical_Type_Id)),
-          Make_Literal (Object_URL)));
+          Make_Literal (Rep_Value)));
       N := Make_Expression
         (N, Op_Or_Else,
          Make_Expression
@@ -1116,7 +1132,7 @@ package body Backend.BE_Ada.Stubs is
       S : constant List_Id := New_List (K_List_Id);
    begin
       M := Make_Subprogram_Call
-        (RE (RE_Ref_1),
+        (RE (RE_Ref_2),
          Make_List_Id (Make_Defining_Identifier (PN (P_Self))));
       M := Make_Subprogram_Call
         (RE (RE_Is_A),

@@ -8,7 +8,7 @@ package Backend.BE_Ada is
 
    Print_Ada_Tree       : Boolean := False;
    Print_IDL_Tree       : Boolean := False;
-   Impl_Packages_Gen    : Boolean := False;
+   Impl_Packages_Gen    : Boolean := True;  -- temporary enabled
    Disable_Pkg_Impl_Gen : Boolean := False;
    Disable_Pkg_Spec_Gen : Boolean := False;
    Output_Unit_Withing  : Boolean := False;

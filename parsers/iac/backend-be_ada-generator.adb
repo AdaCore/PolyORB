@@ -465,8 +465,8 @@ package body Backend.BE_Ada.Generator is
          Write_Indentation;
          Generate (D);
          D := Next_Node (D);
-         Write_Line (Tok_Semicolon);
          exit when No (D);
+         Write_Line (Tok_Semicolon);
       end loop;
       Decrement_Indentation;
    end Generate_Elsif_Statement;
@@ -655,10 +655,10 @@ package body Backend.BE_Ada.Generator is
          loop
             Write_Indentation;
             Generate (I);
+            Write_Line (Tok_Semicolon);
             I := Next_Node (I);
             exit when No (I);
          end loop;
-         Write (Tok_Semicolon);
       end if;
 
       --  Else_Statement can be empty

@@ -7,6 +7,7 @@ with Backend.BE_Ada.Nodes;    use Backend.BE_Ada.Nodes;
 package Backend.BE_Ada.Nutils is
 
    Int0_Val : Value_Id;
+   Var_Suffix : constant String := "_Ü";
 
    type Token_Type is
      (
@@ -186,7 +187,6 @@ package Backend.BE_Ada.Nutils is
       V_Argument_List,
       V_Argument_Name,
       V_Context,
-      V_Def_Sys_Member,
       V_Exception_List,
       V_Handler,
       V_Id,

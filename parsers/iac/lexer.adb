@@ -374,24 +374,28 @@ package body Lexer is
 
       Preprocessor := Locate_Exec_On_Path (Platform.Preprocessor);
       if Preprocessor = null then
-         DE ("cannot locate " & Platform.Preprocessor);
-         raise Fatal_Error;
-      end if;
+         DE ("cannot locate " & Platform.Preprocessor, K_Warning);
+         Get_Name_String (Source);
+         Add_Char_To_Name_Buffer (ASCII.NUL);
+         Tmp_FDesc := Open_Read (Name_Buffer'Address, Binary);
+      else
+         Spawn
+           (Preprocessor.all, CPP_Arg_Values (1 .. CPP_Arg_Count), Success);
 
-      Spawn (Preprocessor.all, CPP_Arg_Values (1 .. CPP_Arg_Count), Success);
-      if not Success then
-         Error_Name (1) := Source;
-         DE ("fail to preprocess%");
-         raise Fatal_Error;
-      end if;
+         if not Success then
+            Error_Name (1) := Source;
+            DE ("fail to preprocess%");
+            raise Fatal_Error;
+         end if;
 
-      Name_Buffer (1 .. Temp_File_Len) := Tmp_FName;
-      Name_Buffer (Temp_File_Len + 1)  := ASCII.NUL;
+         Name_Buffer (1 .. Temp_File_Len) := Tmp_FName;
+         Name_Buffer (Temp_File_Len + 1)  := ASCII.NUL;
 
-      Tmp_FDesc := Open_Read (Name_Buffer'Address, Binary);
-      if Tmp_FDesc = Invalid_FD then
-         DE ("cannot open preprocessor output");
-         raise Fatal_Error;
+         Tmp_FDesc := Open_Read (Name_Buffer'Address, Binary);
+         if Tmp_FDesc = Invalid_FD then
+            DE ("cannot open preprocessor output");
+            raise Fatal_Error;
+         end if;
       end if;
 
       Result := Tmp_FDesc;

@@ -818,7 +818,8 @@ package body Backend.BE_Ada.Helpers is
             loop
                Set_Str_To_Name_Buffer ("I");
                Add_Str_To_Name_Buffer (Img (I));
-               M := Make_Defining_Identifier (Name_Find);
+               M := Make_Defining_Identifier
+                 (Add_Suffix_To_Name (Var_Suffix, Name_Find));
                Append_Node_To_List (M, L);
                Enclosing_Statements := Loop_Statements;
                Loop_Statements := New_List (K_List_Id);
@@ -833,10 +834,7 @@ package body Backend.BE_Ada.Helpers is
 
                I := I + 1;
                Dim := Next_Node (Dim);
-
-               if No (Dim) then
-                  exit;
-               end if;
+               exit when No (Dim);
             end loop;
             N := Make_Subprogram_Call
               (Make_Defining_Identifier (Helper_Name), L);

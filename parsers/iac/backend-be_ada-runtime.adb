@@ -145,6 +145,7 @@ package body Backend.BE_Ada.Runtime is
            (To_Spec_Name (Fully_Qualified_Name (RUD (U))), Int (RUD (U)));
       end loop;
 
+      Declare_Subunit (RUD (RU_CORBA_Internals));
       Declare_Subunit (RUD (RU_CORBA_TypeCode));
       Declare_Subunit (RUD (RU_CORBA_TypeCode_Internals));
       Declare_Subunit (RUD (RU_PolyORB_Any_TypeCode));

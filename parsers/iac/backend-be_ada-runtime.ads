@@ -38,7 +38,6 @@ package Backend.BE_Ada.Runtime is
      (RE_Ref_0,                     --  Ref
       RE_To_Any_1,                  --  To_Any
       RE_Empty,                     --  Empty
-      RE_Get_Empty_Any_1,           --  Get_Empty_Any
       RE_False,                     --  False
       RE_Module_Info,               --  Module_Info
       RE_True,                      --  True
@@ -46,11 +45,12 @@ package Backend.BE_Ada.Runtime is
       RE_ARG_IN_0,                  --  CORBA.ARG_IN
       RE_ARG_OUT_0,                 --  CORBA.ARG_OUT
       RE_ARG_INOUT_0,               --  CORBA.ARG_INOUT
+      RE_Default_Sys_Member,        --  CORBA.Default_Sys_Member
       RE_TC_Void,                   --  CORBA.TC_Void
       RE_Any,                       --  CORBA.Any
       RE_To_Any_0,                  --  CORBA.To_Any
-      RE_From_Any_0,                --  CORBA.From_Any
-      RE_Get_Empty_Any_0,           --  CORBA.Get_Empty_Any
+      RE_From_Any_0,                  --  CORBA.From_Any
+      RE_Get_Empty_Any,           --  CORBA.Get_Empty_Any
       RE_Identifier_0,              --  CORBA.Identifier
       RE_Is_Equivalent,             --  CORBA.Is_Equivalent
       RE_Float,                     --  CORBA.Float
@@ -88,7 +88,6 @@ package Backend.BE_Ada.Runtime is
       RE_Object_Is_Nil,             --  CORBA.Object_Is_Nil
       RE_Raise_Inv_Objref,          --  CORBA.Raise_Inv_Objref
       RE_Raise_Bad_Param,           --  CORBA.Raise_Bad_Param
-      RE_To_PolyORB_Ref,            --  CORBA.To_PolyORB_Ref
       RE_To_CORBA_String,           --  CORBA.To_CORBA_String
       RE_Ref_1,                     --  CORBA.AbstractBase.Ref
       RE_Set_Type,                  --  CORBA.Set_Type
@@ -103,6 +102,7 @@ package Backend.BE_Ada.Runtime is
       RE_Is_A,                      --  CORBA.Object.Is_A
       RE_To_Any_3,                  --  CORBA.Object.Helper.To_Any
       RE_From_Any_1,                --  CORBA.Object.Helper.From_Any
+      RE_To_PolyORB_Ref,            --  CORBA.Object.To_PolyORB_Ref
       RE_Create_List,               --  CORBA.ORB.Create_List,
       RE_Object,                    --  CORBA.TypeCode.Object
       RE_Add_Parameter,             --  CORBA.TypeCode.Internals.Add_Parameter
@@ -142,8 +142,8 @@ package Backend.BE_Ada.Runtime is
    RE_Unit_Table : constant array (RE_Id) of RU_Id
      := (RE_Ref_0                   => RU_Null,
          RE_To_Any_1                => RU_Null,
+
          RE_Empty                   => RU_Null,
-         RE_Get_Empty_Any_1         => RU_Null,
          RE_False                   => RU_Null,
          RE_Module_Info             => RU_Null,
          RE_True                    => RU_Null,
@@ -151,11 +151,12 @@ package Backend.BE_Ada.Runtime is
          RE_ARG_IN_0                => RU_CORBA,
          RE_ARG_OUT_0               => RU_CORBA,
          RE_ARG_INOUT_0             => RU_CORBA,
+         RE_Default_Sys_Member      => RU_CORBA,
          RE_TC_Void                 => RU_CORBA,
          RE_Any                     => RU_CORBA,
          RE_To_Any_0                => RU_CORBA,
          RE_From_Any_0              => RU_CORBA,
-         RE_Get_Empty_Any_0         => RU_CORBA,
+         RE_Get_Empty_Any           => RU_CORBA,
          RE_Identifier_0            => RU_CORBA,
          RE_Is_Equivalent           => RU_CORBA,
          RE_Float                   => RU_CORBA,
@@ -194,7 +195,6 @@ package Backend.BE_Ada.Runtime is
          RE_To_CORBA_String         => RU_CORBA,
          RE_Raise_Inv_Objref        => RU_CORBA,
          RE_Raise_Bad_Param         => RU_CORBA,
-         RE_To_PolyORB_Ref          => RU_CORBA,
          RE_Set_Type                => RU_CORBA,
          RE_Get_Empty_Any_Aggregate => RU_CORBA,
          RE_Add_Aggregate_Element   => RU_CORBA,
@@ -206,6 +206,7 @@ package Backend.BE_Ada.Runtime is
          RE_Object_Of               => RU_CORBA_Object,
          RE_Is_A                    => RU_CORBA_Object,
          RE_Is_Nil                  => RU_CORBA_Object,
+         RE_To_PolyORB_Ref          => RU_CORBA_Object,
          RE_To_Any_3                => RU_CORBA_Object_Helper,
          RE_From_Any_1              => RU_CORBA_Object_Helper,
          RE_Create_List             => RU_CORBA_ORB,

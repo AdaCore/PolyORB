@@ -335,7 +335,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
       elsif K in FEN.K_Float .. FEN.K_Value_Base then
          N := RE (Convert (K));
-
+         Set_FE_Node (N, Entity);
       else
          N := New_Node (K_Designator);
          Set_Defining_Identifier (N, Map_Defining_Identifier (Entity));

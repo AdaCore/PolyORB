@@ -459,7 +459,7 @@ package body Backend.BE_Ada.Nutils is
       for V in Variable_Id loop
          Set_Str_To_Name_Buffer (Variable_Id'Image (V));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
-         Add_Str_To_Name_Buffer ("_U");
+         Add_Str_To_Name_Buffer (Var_Suffix);
          To_Lower (Name_Buffer (1 .. Name_Len));
          Capitalize (Name_Buffer (1 .. Name_Len));
          VN (V) := Name_Find;
