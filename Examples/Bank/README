@@ -12,7 +12,6 @@ get the same partition id in order to differentiate them.
 To proove that, the bank server notifies a customer when its account
 has been granted with money by another customer.
 
-
 To play with this example, you have to do the following :
 
 % gnatdist simcity
