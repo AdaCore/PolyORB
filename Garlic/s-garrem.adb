@@ -182,7 +182,8 @@ package body System.Garlic.Remote is
    is
 
    begin
-      if Is_Local_Host (Host) then
+      if Host (Host'First) /= '`'
+        and then Is_Local_Host (Host) then
          Local_Launcher (Launcher, Host, Command);
       else
          declare
