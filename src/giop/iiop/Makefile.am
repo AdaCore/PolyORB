@@ -24,7 +24,7 @@ CLEANFILES = *.ali
 
 LINK = $(LIBTOOL) $(ADA) -o libpolyorb-iiop.la
 
-ADAFLAGS = -I. -I$(srcdir) -I.. -I ../../ -I$(srcdir)/.. $(GNATFLAGS)
+ADAFLAGS = -I. -I$(srcdir) -I.. -I ../../ -I$(srcdir)/.. -I$(srcdir)/../.. $(GNATFLAGS)
 
 ADACOMPILER = ../../../support/adacompiler
 
