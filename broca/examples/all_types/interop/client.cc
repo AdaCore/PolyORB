@@ -1,11 +1,34 @@
-// client.cc - This is the source code of example 2 used in Chapter 2
-//              "The Basics" of the omniORB2 user guide.
-//
-//              This is the client. The object reference is given as a
-//              stringified IOR on the command line.
+//----------------------------------------------------------------------------
+//                                                                          --
+//                          ADABROKER COMPONENTS                            --
+//                                                                          --
+//                               C L I E N T                                --
+//                                                                          --
+//                                 B o d y                                  --
+//                                                                          --
+//         Copyright (C) 1999-2000 ENST Paris University, France.           --
+//                                                                          --
+// AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+// under terms of the  GNU General Public License as published by the  Free --
+// Software Foundation;  either version 2,  or (at your option)  any  later --
+// version. AdaBroker  is distributed  in the hope that it will be  useful, --
+// but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+// TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+// License  for more details.  You should have received  a copy of the GNU  --
+// General Public License distributed with AdaBroker; see file COPYING. If  --
+// not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+// Boston, MA 02111-1307, USA.                                              --
+//                                                                          --
+//             AdaBroker is maintained by ENST Paris University.            --
+//                     (email: broker@inf.enst.fr)                          --
+//                                                                          --
+//----------------------------------------------------------------------------
+
+// This is the All_Types interop client. The object reference is given as a
+// stringified IOR on the command line.
 //
 // Usage: client <object reference>
-//
+
 #include <iostream.h>
 #include <string.h>
 #include "all_types.hh"
@@ -65,21 +88,39 @@ main (int argc, char **argv)
       Output ("test string", !strcmp (at->echoString ("hello"), "hello"));
       Output ("test enum", at->echoColor (all_types::Blue) == all_types::Blue);
 
+      // fixed point NIY.
+
       {
 	struct all_types::simple_struct Test_Struct;
 	struct all_types::simple_struct Copy_Struct;
-	bool Pass = 1;
-	int i;
 
 	Test_Struct.a = 123;
 	Test_Struct.s = "foobar";
 
 	Copy_Struct = *at->echoStruct (Test_Struct);
 
-	Pass = ((Copy_Struct.a == Test_Struct.a)
-	     && !strcmp (Copy_Struct.s, Test_Struct.s));
+	Output ("test struct",
+		((Copy_Struct.a == Test_Struct.a)
+		 && !strcmp (Copy_Struct.s, Test_Struct.s)));
+      }
 
-	Output ("test struct", Pass);
+      {
+	struct all_types::array_struct Test_Struct;
+	struct all_types::array_struct Copy_Struct;
+	bool Pass = 1;
+	int i;
+
+	for (i = 0 ; i < 10 ; i++)
+	  Test_Struct.a[i] = 3 * i + 7;
+	Test_Struct.b = 12345;
+
+	Copy_Struct = at->echoArrayStruct (Test_Struct);
+
+	for (i = 0 ; i < 10 ; i++)
+	  Pass &= (Test_Struct.a[i] == Copy_Struct.a[i]);
+	Pass &= (Copy_Struct.b == Test_Struct.b);
+
+	Output ("test array struct", Pass);
       }
 
       {

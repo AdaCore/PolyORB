@@ -55,8 +55,8 @@ interface all_types {
   simple_struct echoStruct (in simple_struct arg);
 
   struct array_struct {
-      long A[10];
-      unsigned short B;
+      long a[10];
+      unsigned short b;
   };
   array_struct echoArrayStruct (in array_struct arg);
 

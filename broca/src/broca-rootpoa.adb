@@ -349,9 +349,9 @@ package body Broca.Rootpoa is
       --  Number of requests to this object.  Used for etherealize.
    end record;
 
-   type Slot_Index_Type is new CORBA.Unsigned_Long;
-   Bad_Slot_Index : constant Slot_Index_Type := -1;
-   type Object_Map_Type is array (Slot_Index_Type range <>)
+   type Slot_Index is new CORBA.Unsigned_Long;
+   Bad_Slot : constant Slot_Index := -1;
+   type Object_Map_Type is array (Slot_Index range <>)
      of Object_Map_Entry;
    type Object_Map_Ptr is access Object_Map_Type;
 
@@ -369,7 +369,7 @@ package body Broca.Rootpoa is
       --  The object map.
       --  It is valid only if the servant retention policy is RETAIN.
 
-      Last_Slot : Slot_Index_Type := Bad_Slot_Index;
+      Last_Slot : Slot_Index := Bad_Slot;
       --  Only used if NON_RETAIN and SYSTEM_ID to allocate uniq oid.
 
       Map_Lock : Broca.Locks.Mutex_Type;
@@ -450,53 +450,71 @@ package body Broca.Rootpoa is
                           Wait_For_Completion : CORBA.Boolean);
    procedure Cleanup (Self : access Object);
 
-   function Servant_To_Skeleton (Self : access Object; P_Servant : Servant)
-      return Broca.POA.Skeleton_Ptr;
-   function Id_To_Skeleton (Self : access Object; Oid : ObjectId)
+   function Servant_To_Skeleton
+     (Self : access Object;
+      P_Servant : Servant)
+     return Broca.POA.Skeleton_Ptr;
+   function Id_To_Skeleton
+     (Self : access Object; Oid : ObjectId)
      return Skeleton_Ptr;
 
-   subtype Objectid_Type is
-     IDL_SEQUENCE_Octet.Element_Array (0 .. 3);
-
-   function Slot_Index_Type_To_Objectid_Type is
-      new Ada.Unchecked_Conversion
-        (Slot_Index_Type, Objectid_Type);
-
-   function Objectid_Type_To_Slot_Index_Type is new Ada.Unchecked_Conversion
-     (Source => Objectid_Type, Target => Slot_Index_Type);
+   function Slot_Index_To_ObjectId
+     (Slot : Slot_Index)
+     return ObjectId;
+   function ObjectId_To_Slot_Index
+     (Oid : ObjectId)
+     return Slot_Index;
 
    procedure Unchecked_Deallocation is new Ada.Unchecked_Deallocation
      (Object => Object_Map_Type, Name => Object_Map_Ptr);
 
-   --  Disable "should be in package spec" warning.
-   pragma Warnings (Off);
+   Null_Object : Object;
+   --  Freeze type 'Objects' to keep the compiler happy about
+   --  the following operations, which are not intended to be
+   --  primitive operations of Object.
 
-   function Slot_By_Object_Id (Self : access Object; Name : ObjectId)
-                               return Slot_Index_Type;
-   function Slot_By_Servant (Self : access Object; P_Servant : Servant)
-                             return Slot_Index_Type;
+   function Slot_By_Object_Id
+     (Self : access Object;
+      Oid  : ObjectId)
+     return Slot_Index;
+
+   function Slot_By_Servant
+     (Self : access Object;
+      P_Servant : Servant)
+     return Slot_Index;
+
    function Slot_By_Skeleton
-     (Self : access Object; Skeleton : Broca.POA.Skeleton_Ptr)
-      return Slot_Index_Type;
+     (Self : access Object;
+      Skeleton : Broca.POA.Skeleton_Ptr)
+      return Slot_Index;
 
    --  Return how many times the servant was activated.
-   function Nbr_Slots_For_Servant (Self : access Object; P_Servant : Servant)
+   function Nbr_Slots_For_Servant
+     (Self : access Object;
+      P_Servant : Servant)
      return Natural;
-   function Reserve_A_Slot (Self : access Object) return Slot_Index_Type;
+
+   function Reserve_A_Slot
+     (Self : access Object)
+     return Slot_Index;
 
    procedure Build_Key_For_ObjectId
      (Buffer : access Buffer_Type;
       Oid : ObjectId);
 
-   function Clean_Slot (Self : access Object; Slot : Slot_Index_Type)
-                        return Boolean;
+   function Clean_Slot
+     (Self : access Object;
+      Slot : Slot_Index)
+     return Boolean;
    procedure Unlink_POA (Self : POA_Object_Ptr);
 
    --  Find a skeleton to be destroyed
-   function Get_Slot_To_Destroy (Self : access Object) return Slot_Index_Type;
+   function Get_Slot_To_Destroy
+     (Self : access Object)
+     return Slot_Index;
 
-   procedure Set_Cleanup_Call_Back (Self : access Object);
-   pragma Warnings (On);
+   procedure Set_Cleanup_Call_Back
+     (Self : access Object);
 
    function Nbr_Slots_For_Servant
      (Self : access Object;
@@ -524,20 +542,20 @@ package body Broca.Rootpoa is
 
    function Slot_By_Object_Id
      (Self : access Object;
-      Name : ObjectId)
-     return Slot_Index_Type is
+      Oid  : ObjectId)
+     return Slot_Index is
    begin
       if Self.Object_Map /= null then
          for I in Self.Object_Map.all'Range loop
             if True
               and then Self.Object_Map (I).Skeleton /= null
-              and then Self.Object_Map (I).Skeleton.Object_Id = Name
+              and then Self.Object_Map (I).Skeleton.Object_Id = Oid
             then
                return I;
             end if;
          end loop;
       end if;
-      return Bad_Slot_Index;
+      return Bad_Slot;
    end Slot_By_Object_Id;
 
    ---------------------
@@ -547,7 +565,7 @@ package body Broca.Rootpoa is
    function Slot_By_Servant
      (Self      : access Object;
       P_Servant : Servant)
-     return Slot_Index_Type is
+     return Slot_Index is
    begin
       if Self.Object_Map /= null then
          for I in Self.Object_Map.all'Range loop
@@ -559,7 +577,7 @@ package body Broca.Rootpoa is
             end if;
          end loop;
       end if;
-      return Bad_Slot_Index;
+      return Bad_Slot;
    end Slot_By_Servant;
 
    ----------------------
@@ -569,7 +587,7 @@ package body Broca.Rootpoa is
    function Slot_By_Skeleton
      (Self : access Object;
       Skeleton : Broca.POA.Skeleton_Ptr)
-      return Slot_Index_Type is
+      return Slot_Index is
    begin
       if Self.Object_Map /= null then
          for I in Self.Object_Map.all'Range loop
@@ -579,7 +597,7 @@ package body Broca.Rootpoa is
             end if;
          end loop;
       end if;
-      return Bad_Slot_Index;
+      return Bad_Slot;
    end Slot_By_Skeleton;
 
    --------------------
@@ -588,9 +606,9 @@ package body Broca.Rootpoa is
 
    function Reserve_A_Slot
      (Self : access Object)
-     return Slot_Index_Type
+     return Slot_Index
    is
-      Slot           : Slot_Index_Type;
+      Slot           : Slot_Index;
       Found          : Boolean;
    begin
       Self.Map_Lock.Lock;
@@ -652,21 +670,21 @@ package body Broca.Rootpoa is
 
    procedure Build_Key_For_Slot
      (Buffer : access Buffer_Type;
-      Self : access Object; Slot : Slot_Index_Type);
+      Self : access Object; Slot : Slot_Index);
 
-   procedure Key_To_Slot
+   function Key_To_Slot
      (Self : access Object;
-      Key : access Buffer_Type;
-      Slot : out Slot_Index_Type);
+      Key : access Buffer_Type)
+     return Slot_Index;
 
-   procedure Key_To_ObjectId
-     (Key : access Buffer_Type;
-      Oid : out ObjectId);
+   function Key_To_ObjectId
+     (Key : access Buffer_Type)
+     return ObjectId;
 
    --  Possible only if RETAIN policy.
    procedure Build_Key_For_Slot
      (Buffer : access Buffer_Type;
-      Self : access Object; Slot : Slot_Index_Type)
+      Self : access Object; Slot : Slot_Index)
    is
       use Broca.CDR;
 
@@ -686,37 +704,38 @@ package body Broca.Rootpoa is
 
    end Build_Key_For_Slot;
 
-   procedure Key_To_Slot
+   function Key_To_Slot
      (Self : access Object;
-      Key : access Buffer_Type;
-      Slot : out Slot_Index_Type)
+      Key : access Buffer_Type)
+     return Slot_Index
    is
       use Broca.CDR;
 
-      Res  : Slot_Index_Type;
-      Date : CORBA.Unsigned_Long;
-      Oid  : ObjectId;
    begin
       if Self.Lifespan_Policy = PERSISTENT then
-         Oid  := Unmarshall (Key);
-         Slot := Slot_By_Object_Id (Self, Oid);
-         return;
+         return Slot_By_Object_Id
+           (Self, Unmarshall (Key));
       end if;
-      Res := Slot_Index_Type
-        (CORBA.Unsigned_Long'(Unmarshall (Key)));
-      Date := Unmarshall (Key);
-      if Self.Object_Map = null
-        or else Res not in Self.Object_Map.all'Range
-        or else Self.Object_Map (Res).Date /= Natural (Date)
-        or else Self.Object_Map (Res).State /= Active
-      then
-         --  The object does not exist in the map.
-         Slot := Bad_Slot_Index;
-         return;
-      else
-         Slot := Res;
-         return;
-      end if;
+
+      declare
+         Res  : constant Slot_Index
+           := Slot_Index
+           (CORBA.Unsigned_Long'(Unmarshall (Key)));
+         Date : constant CORBA.Unsigned_Long
+           := Unmarshall (Key);
+      begin
+         if True
+           and then Self.Object_Map /= null
+           and then Res in Self.Object_Map.all'Range
+           and then Self.Object_Map (Res).Date = Natural (Date)
+           and then Self.Object_Map (Res).State = Active
+         then
+            return Res;
+         end if;
+      end;
+
+      --  The object does not exist in the active object map.
+      return Bad_Slot;
    end Key_To_Slot;
 
    --  Possible only if NON_RETAIN policy.
@@ -727,16 +746,17 @@ package body Broca.Rootpoa is
       Marshall (Buffer, Oid);
    end Build_Key_For_ObjectId;
 
-   procedure Key_To_ObjectId (Key : access Buffer_Type;
-                              Oid : out ObjectId) is
+   function Key_To_ObjectId
+     (Key : access Buffer_Type)
+     return ObjectId is
    begin
-      Oid := Unmarshall (Key);
+      return Unmarshall (Key);
    end Key_To_ObjectId;
 
    --  if SELF has NON_RETAIN policy, SLOT is not used.
    function Create_Skeleton
      (Self      : access Object;
-      Slot      : Slot_Index_Type;
+      Slot      : Slot_Index;
       P_Servant : PortableServer.Servant;
       Type_Id   : CORBA.RepositoryId;
       Oid       : ObjectId)
@@ -744,7 +764,7 @@ package body Broca.Rootpoa is
 
    function Create_Skeleton
      (Self      : access Object;
-      Slot      : Slot_Index_Type;
+      Slot      : Slot_Index;
       P_Servant : PortableServer.Servant;
       Type_Id   : CORBA.RepositoryId;
       Oid       : ObjectId)
@@ -789,19 +809,19 @@ package body Broca.Rootpoa is
                              P_Servant : PortableServer.Servant)
                              return PortableServer.ObjectId
    is
-      Slot : Slot_Index_Type;
+      Slot : Slot_Index;
       Oid : ObjectId;
       Obj : Broca.POA.Skeleton_Ptr;
    begin
       if Self.Uniqueness_Policy = UNIQUE_ID
-        and then Slot_By_Servant (Self, P_Servant) /= Bad_Slot_Index
+        and then Slot_By_Servant (Self, P_Servant) /= Bad_Slot
       then
          raise PortableServer.POA.ServantAlreadyActive;
       end if;
 
       Slot := Reserve_A_Slot (Self);
 
-      Oid := To_Sequence (Slot_Index_Type_To_Objectid_Type (Slot));
+      Oid := Slot_Index_To_ObjectId (Slot);
       Obj := Create_Skeleton
         (Self, Slot, P_Servant, Get_Type_Id (P_Servant), Oid);
       return Oid;
@@ -812,12 +832,12 @@ package body Broca.Rootpoa is
       Oid       : in ObjectId;
       P_Servant : in PortableServer.Servant)
    is
-      Slot : Slot_Index_Type;
+      Slot : Slot_Index;
       Obj : Broca.POA.Skeleton_Ptr;
 
    begin
       Slot := Slot_By_Object_Id (Self, Oid);
-      if Slot = Bad_Slot_Index then
+      if Slot = Bad_Slot then
          if Self.Id_Assign_Policy = SYSTEM_ID then
             Broca.Exceptions.Raise_Bad_Param;
          end if;
@@ -825,12 +845,12 @@ package body Broca.Rootpoa is
          raise PortableServer.POA.ObjectAlreadyActive;
       end if;
       if Self.Uniqueness_Policy = UNIQUE_ID
-        and then Slot_By_Servant (Self, P_Servant) /= Bad_Slot_Index
+        and then Slot_By_Servant (Self, P_Servant) /= Bad_Slot
       then
          raise PortableServer.POA.ServantAlreadyActive;
       end if;
 
-      if Slot = Bad_Slot_Index then
+      if Slot = Bad_Slot then
          Slot := Reserve_A_Slot (Self);
       end if;
 
@@ -838,19 +858,21 @@ package body Broca.Rootpoa is
         (Self, Slot, P_Servant, Get_Type_Id (P_Servant), Oid);
    end Activate_Object_With_Id;
 
-   function Create_Reference (Self : access Object; Intf : CORBA.RepositoryId)
-                              return CORBA.Object.Ref
+   function Create_Reference
+     (Self : access Object;
+      Intf : CORBA.RepositoryId)
+     return CORBA.Object.Ref
    is
       Res : CORBA.Object.Ref;
-      Slot : Slot_Index_Type;
+      Slot : Slot_Index;
       Obj : Broca.POA.Skeleton_Ptr;
-      Oid : ObjectId;
-   begin
-      --  Allocate an objectId.
-      Slot := Reserve_A_Slot (Self);
-      Oid := To_Sequence (Slot_Index_Type_To_Objectid_Type (Slot));
 
-      Obj := Create_Skeleton (Self, Slot, null, Intf, Oid);
+   begin
+      Slot := Reserve_A_Slot (Self);
+      --  Allocate an ObjectId.
+
+      Obj := Create_Skeleton
+        (Self, Slot, null, Intf, Slot_Index_To_ObjectId (Slot));
 
       --  Create the reference.
       CORBA.Object.Set (Res, CORBA.Impl.Object_Ptr (Obj));
@@ -862,18 +884,18 @@ package body Broca.Rootpoa is
       return CORBA.Object.Ref
    is
       Res : CORBA.Object.Ref;
-      Slot : Slot_Index_Type;
+      Slot : Slot_Index;
       Obj : Broca.POA.Skeleton_Ptr;
    begin
       if Self.Servant_Policy = RETAIN then
          Slot := Slot_By_Object_Id (Self, Oid);
          if Self.Id_Assign_Policy = SYSTEM_ID then
-            if Slot_By_Object_Id (Self, Oid) = Bad_Slot_Index then
+            if Slot_By_Object_Id (Self, Oid) = Bad_Slot then
                Broca.Exceptions.Raise_Bad_Param;
             end if;
          end if;
       else
-         Slot := Bad_Slot_Index;
+         Slot := Bad_Slot;
       end if;
 
       Obj := Create_Skeleton (Self, Slot, null, Intf, Oid);
@@ -883,67 +905,55 @@ package body Broca.Rootpoa is
       return Res;
    end Create_Reference_With_Id;
 
-   function Servant_To_Id (Self : access Object; P_Servant : Servant)
-                           return ObjectId
-   is
-      Slot : Slot_Index_Type;
-      Oid : ObjectId;
-      Obj : Broca.POA.Skeleton_Ptr;
+   function Servant_To_Id
+     (Self : access Object;
+      P_Servant : Servant)
+     return ObjectId is
    begin
-      if Self.Uniqueness_Policy = UNIQUE_ID then
-         Slot := Slot_By_Servant (Self, P_Servant);
-         if Slot /= Bad_Slot_Index then
-            return Self.Object_Map (Slot).Skeleton.Object_Id;
-         end if;
-      end if;
-      if Self.Activation_Policy = IMPLICIT_ACTIVATION
-        and then (Self.Uniqueness_Policy = MULTIPLE_ID
-                  or else Nbr_Slots_For_Servant (Self, P_Servant) = 0)
-      then
-         Slot := Reserve_A_Slot (Self);
-         Oid := To_Sequence (Slot_Index_Type_To_Objectid_Type (Slot));
-         Obj := Create_Skeleton
-           (Self, Slot, P_Servant, Get_Type_Id (P_Servant), Oid);
-         return Oid;
-      end if;
-      raise PortableServer.POA.ServantNotActive;
+      return Servant_To_Skeleton (Self, P_Servant).Object_Id;
    end Servant_To_Id;
 
-   function Servant_To_Skeleton (Self : access Object; P_Servant : Servant)
+   function Servant_To_Skeleton
+     (Self : access Object; P_Servant : Servant)
       return Broca.POA.Skeleton_Ptr
    is
-      Slot : Slot_Index_Type;
-      Oid : ObjectId;
+      Slot : Slot_Index;
       Obj : Broca.POA.Skeleton_Ptr;
    begin
       if Self.Uniqueness_Policy = UNIQUE_ID then
          Slot := Slot_By_Servant (Self, P_Servant);
-         if Slot /= Bad_Slot_Index then
+
+         if Slot /= Bad_Slot then
             return Self.Object_Map (Slot).Skeleton;
          end if;
       end if;
+
       if Self.Activation_Policy = IMPLICIT_ACTIVATION
         and then (Self.Uniqueness_Policy = MULTIPLE_ID
                   or else Nbr_Slots_For_Servant (Self, P_Servant) = 0)
       then
          Slot := Reserve_A_Slot (Self);
-         Oid := To_Sequence (Slot_Index_Type_To_Objectid_Type (Slot));
+
          Obj := Create_Skeleton
-           (Self, Slot, P_Servant, Get_Type_Id (P_Servant), Oid);
+           (Self, Slot, P_Servant, Get_Type_Id (P_Servant),
+            Slot_Index_To_ObjectId (Slot));
+
          return Self.Object_Map (Slot).Skeleton;
       end if;
+
       raise PortableServer.POA.ServantNotActive;
    end Servant_To_Skeleton;
 
    function Skeleton_To_Servant
-     (Self : access Object; Skeleton : Broca.POA.Skeleton_Ptr)
+     (Self : access Object;
+      Skeleton : Broca.POA.Skeleton_Ptr)
      return Servant
    is
-      Slot : Slot_Index_Type;
+      Slot : Slot_Index;
    begin
       if Self.Servant_Policy = RETAIN then
          Slot := Slot_By_Skeleton (Self, Skeleton);
-         if Slot /= Bad_Slot_Index then
+         if Slot /= Bad_Slot then
             return Skeleton.P_Servant;
          end if;
       end if;
@@ -955,21 +965,50 @@ package body Broca.Rootpoa is
       raise PortableServer.POA.ObjectNotActive;
    end Skeleton_To_Servant;
 
-   function Id_To_Skeleton (Self : access Object; Oid : ObjectId)
+   function Id_To_Skeleton
+     (Self : access Object;
+      Oid : ObjectId)
      return Skeleton_Ptr
    is
-      Slot : Slot_Index_Type;
+      Slot : Slot_Index;
    begin
       Slot := Slot_By_Object_Id (Self, Oid);
-      if Slot = Bad_Slot_Index then
+      if Slot = Bad_Slot then
          raise PortableServer.POA.ObjectNotActive;
       end if;
 
       return Self.Object_Map (Slot).Skeleton;
    end Id_To_Skeleton;
 
-   function Get_Slot_To_Destroy (Self : access Object) return Slot_Index_Type
-   is
+   subtype Octet_Array is
+     IDL_SEQUENCE_Octet.Element_Array;
+
+   subtype Slot_Index_Data is
+     Octet_Array
+       (0 .. (Slot_Index'Size + CORBA.Octet'Size - 1) / CORBA.Octet'Size - 1);
+
+   function To_SI_Data is
+      new Ada.Unchecked_Conversion (Slot_Index, Slot_Index_Data);
+   function From_SI_Data is
+      new Ada.Unchecked_Conversion (Slot_Index_Data, Slot_Index);
+
+   function Slot_Index_To_ObjectId
+     (Slot : Slot_Index)
+     return ObjectId is
+   begin
+      return To_Sequence (To_SI_Data (Slot));
+   end Slot_Index_To_ObjectId;
+
+   function ObjectId_To_Slot_Index
+     (Oid : ObjectId)
+     return Slot_Index is
+   begin
+      return From_SI_Data (To_Element_Array (Oid));
+   end ObjectId_To_Slot_Index;
+
+   function Get_Slot_To_Destroy
+     (Self : access Object)
+     return Slot_Index is
    begin
       Self.Map_Lock.Lock;
       if Self.Object_Map /= null then
@@ -982,13 +1021,13 @@ package body Broca.Rootpoa is
          end loop;
       end if;
       Self.Map_Lock.Unlock;
-      return Bad_Slot_Index;
+      return Bad_Slot;
    end Get_Slot_To_Destroy;
 
    --  Try to free a slot.
    --  Return true if cleanup should be called.
    --  The Object Map must be locked.
-   function Clean_Slot (Self : access Object; Slot : Slot_Index_Type)
+   function Clean_Slot (Self : access Object; Slot : Slot_Index)
                         return Boolean is
       --  use Broca.Refs;
    begin
@@ -1009,7 +1048,7 @@ package body Broca.Rootpoa is
 
    procedure Cleanup (Self : access Object)
    is
-      Slot : Slot_Index_Type;
+      Slot : Slot_Index;
       Sm : Broca.POA.Internal_Skeleton_Ptr;
       A_Servant : PortableServer.Servant;
       A_Poa : PortableServer.POA.Ref;
@@ -1021,7 +1060,7 @@ package body Broca.Rootpoa is
 
       loop
          Slot := Get_Slot_To_Destroy (Self);
-         exit when Slot = Bad_Slot_Index;
+         exit when Slot = Bad_Slot;
 
          if CORBA.Impl."/="
            (PortableServer.ServantManager.Get (Self.Servant_Manager), null)
@@ -1098,10 +1137,10 @@ package body Broca.Rootpoa is
    end Deactivate;
 
    procedure Deactivate_Object (Self : access Object; Oid : ObjectId) is
-      Slot : Slot_Index_Type;
+      Slot : Slot_Index;
    begin
       Slot := Slot_By_Object_Id (Self, Oid);
-      if Slot = Bad_Slot_Index then
+      if Slot = Bad_Slot then
          raise PortableServer.POA.ObjectNotActive;
       end if;
       if Clean_Slot (Self, Slot) then
@@ -1120,7 +1159,7 @@ package body Broca.Rootpoa is
       Reply      : access Buffer_Type)
    is
       use PortableServer;
-      Slot : Slot_Index_Type;
+      Slot : Slot_Index;
       A_Servant : Servant := null;
       Skel : Internal_Skeleton_Ptr;
       A_Poa : PortableServer.POA.Ref;
@@ -1137,8 +1176,8 @@ package body Broca.Rootpoa is
 
       --  Find the ObjectId in the Active Map if RETAIN Policy.
       if Self.Servant_Policy = RETAIN then
-         Key_To_Slot (Self, Key_Buffer'Access, Slot);
-         if Slot /= Bad_Slot_Index then
+         Slot := Key_To_Slot (Self, Key_Buffer'Access);
+         if Slot /= Bad_Slot then
             A_Servant := Self.Object_Map (Slot).Skeleton.P_Servant;
          end if;
       end if;
@@ -1166,7 +1205,7 @@ package body Broca.Rootpoa is
 
                A_Servant := Self.Default_Servant;
                if Self.Servant_Policy = RETAIN
-                 and then Slot /= Bad_Slot_Index
+                 and then Slot /= Bad_Slot
                then
                   --  FIXME: persistent
                   Self.Object_Map (Slot).Skeleton.P_Servant := A_Servant;
@@ -1204,14 +1243,14 @@ package body Broca.Rootpoa is
                   then
                      Broca.Exceptions.Raise_Obj_Adapter;
                   end if;
-                  if Slot = Bad_Slot_Index then
+                  if Slot = Bad_Slot then
                      --  FIXME: persistent.
                      Broca.Exceptions.Raise_Internal (615);
                   end if;
 
                   Self.Object_Map (Slot).Skeleton.P_Servant := A_Servant;
                else
-                  Key_To_ObjectId (Key_Buffer'Access, Oid);
+                  Oid := Key_To_ObjectId (Key_Buffer'Access);
                   Release (Key_Buffer);
                   PortableServer.ServantLocator.Impl.Preinvoke
                     (PortableServer.ServantLocator.Impl.Object'Class

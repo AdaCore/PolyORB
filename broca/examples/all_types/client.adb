@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.20 $
---                                                                          --
---            Copyright (C) 1999 ENST Paris University, France.             --
+--         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -149,15 +147,19 @@ begin
                  echoMatrix (Myall_types, M) = M);
       end;
 
---   declare
---      X : simple_struct := (A => (0,1,2,3,4,5,6,7,8,9), B => 10);
---   begin
---      Output ("test simple structure", echo2 (Myall_types, X) = X);
---   end;
+      set_myColor (Myall_types, Green);
+      Output ("test attribute", get_myColor (Myall_types) = Green);
+      declare
+         Counter_First_Value : CORBA.Long
+           := get_Counter (Myall_types);
+         Counter_Second_Value : CORBA.Long
+           := get_Counter (Myall_types);
+      begin
+         Output ("test read-only attribute",
+                 Counter_Second_Value = Counter_First_Value + 1);
+      end;
 
---   Output ("test enumeration", echo3 (Myall_types, Blue) = Blue);
---
-   --  Bounded sequences
+      --  Bounded sequences
 --   declare
 --      X : B_Sequence := B_Sequence (IDL_SEQUENCE_Long_1.Null_Sequence);
 --   begin
@@ -213,18 +215,6 @@ begin
 --      Output ("test CORBA.Object.Ref",
 --         Is_Equivalent (echo12 (Myall_types, X), X));
 --   end;
-
-      set_myColor (Myall_types, Green);
-      Output ("test attribute", get_myColor (Myall_types) = Green);
-      declare
-         Counter_First_Value : CORBA.Long
-           := get_Counter (Myall_types);
-         Counter_Second_Value : CORBA.Long
-           := get_Counter (Myall_types);
-      begin
-         Output ("test read-only attribute",
-                 Counter_Second_Value = Counter_First_Value + 1);
-      end;
 
       exit when One_Shot;
    end loop;
