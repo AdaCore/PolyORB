@@ -159,14 +159,18 @@ private
    --
    --  These rules are equivalent to
    --
+   --  Rule Inter1
    --  <interface> ::= ["abstract"] "interface" <identifier>
    --                  <interface_end>
    --
+   --  Rule Inter2
    --  <interface_end> ::= <forward_dcl_end>
    --                  |   <interface_dcl_end>
    --
+   --  Rule Inter3
    --  <forward_dcl_end> ::=
    --
+   --  Rule Inter4
    --  <interface_dcl_end> ::= [<interface_inheritance_spec>] "{"
    --                          <interface_body> "}"
    --  this last will be used in Parse_Interface_Dcl_End
@@ -837,6 +841,28 @@ private
    procedure Parse_Value_Base_Type (Result : in out Node_Id;
                                     Success : out Boolean);
 
+   ------------------------------
+   --  Inheritance management  --
+   ------------------------------
+
+   --  verifying that an interface can be imported :
+   --     Int in a scoped name denoting the interface to be imported
+   --     Scope is an interface where the other will be imported
+   --  This method verifies that there is no operation or
+   --  attributes in the new imported interface that clashes
+   --  with the already imported ones.
+   function Interface_Is_Importable (Int : in Node_Id;
+                                     Scope : in Node_Id)
+                                     return Boolean;
+
+   --------------------------
+   --  Parsing of pragmas  --
+   --------------------------
+
+   --  parsing pragmas
+   procedure Parse_Pragma (Result : out Node_Id;
+                           Success : out Boolean);
+
    ---------------------------
    --  Parsing of literals  --
    ---------------------------
@@ -1020,5 +1046,8 @@ private
 
    --  Goes to the end of a scoped name (see rule 12)
    procedure Go_To_End_Of_Scoped_Name;
+
+   --  Goes to the next T_End_Pragma token and consumes it
+   procedure Go_To_End_Of_Pragma;
 
 end Idl_Fe.Parser;

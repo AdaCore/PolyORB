@@ -21,5 +21,5 @@ package body Report is
          Ada.Text_IO.Put_Line (": FAILED");
       end if;
    end Output;
-end;
+end Report;
 

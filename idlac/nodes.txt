@@ -22,6 +22,9 @@ Root
 
 Named
   Definition : Identifier_Definition_Acc
+  Repository_Id : Node_Id
+  --  A repository ID explicitly set for this entity
+  --  using #pragma ID.
   Parent_Scope_Override : Node_Id
   --  Expansion attribute: override that
   --  value of Definition.Parent_Scope for this
@@ -225,11 +228,29 @@ Not_Expr <-- Unary_Expr
 
 Literal
 
-Lit_Boolean <-- Literal
-  Bool_Value : Boolean
+Lit_Integer <-- Literal
+  Int_Value : String_Cacc
 
 Lit_String <-- Literal
   String_Value : String_Cacc
+
+Lit_Wide_String <-- Literal
+  Wide_String_Value : String_Cacc
+
+Lit_Character <-- Literal
+  Character_Value : String_Cacc
+
+Lit_Wide_Character <-- Literal
+  Wide_Character_Value : String_Cacc
+
+Lit_Fixed_Point <-- Literal
+  Fixed_Point_Value : String_Cacc
+
+Lit_Floating_Point <-- Literal
+  Floating_Point_Value : String_Cacc
+
+Lit_Boolean <-- Literal
+  Bool_Value : Boolean
 
 Const_Dcl <-- Named
   Constant_Type : Node_Id

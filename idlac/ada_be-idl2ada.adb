@@ -271,6 +271,26 @@ package body Ada_Be.Idl2Ada is
                   Get_Next_Node (It, Decl_Node);
 
                   if Is_Gen_Scope (Decl_Node) then
+                     --  Ensure current unit has a non-empty
+                     --  spec, if it has child packages.
+                     if Kind (Node) /= K_Repository then
+                        NL (Stubs_Spec);
+                        Put (Stubs_Spec, "--  ");
+                        case Kind (Decl_Node) is
+                           when K_Module =>
+                              Put (Stubs_Spec, "Module ");
+                           when K_Interface =>
+                              Put (Stubs_Spec, "Interface ");
+                           when K_ValueType =>
+                              Put (Stubs_Spec, "ValueType ");
+                           when others =>
+                              --  Does not happen.
+                              raise Program_Error;
+                        end case;
+                        PL (Stubs_Spec, Name (Decl_Node)
+                            & " is defined in a child unit.");
+
+                     end if;
                      Gen_Scope (Decl_Node, Implement);
                   else
                      Gen_Node_Stubs_Spec
@@ -1477,7 +1497,7 @@ package body Ada_Be.Idl2Ada is
                               First := False;
                            end if;
                            PL (CU, Ada_Name (Declarator (P_Node))
-                               & ":= Unmarshall (" & T_Handler &
+                               & " := Unmarshall (" & T_Handler &
                                ".Buffer'Access);");
                         when others =>
                            null;
@@ -1699,13 +1719,39 @@ package body Ada_Be.Idl2Ada is
 
             --  Return type
 
-            if Kind (Operation_Type (Node)) /= K_Void then
-               NL (CU);
-               Add_With_Entity (CU, Operation_Type (Node));
-               Put (CU, "  return "
-                    & Ada_Type_Name (Operation_Type (Node)));
-            end if;
+            declare
+               O_Type : constant Node_Id
+                 := Operation_Type (Node);
+            begin
+               if Kind (O_Type) /= K_Void then
+                  NL (CU);
+                  Add_With_Entity (CU, O_Type);
+                  Put (CU, "  return "
+                       & Ada_Type_Name (O_Type));
 
+                  --  FIXME:
+                  --  This is disabled for now because
+                  --  it requires fixing the unmarshalling
+                  --  of references (we must really be able to
+                  --  unmarshall any kind of reference and
+                  --  return a CORBA.Object.Ref'Class).
+
+                  if False
+                    and then Kind (O_Type) = K_Scoped_Name
+                    and then S_Type (O_Type)
+                    = Parent_Scope (Node) then
+                     --  An operation of an interface is a
+                     --  primitive operation of the tagged type
+                     --  that maps this interface. If it has
+                     --  other formal parameters that are object
+                     --  references of the same interface type, then
+                     --  these formals must not be controlling.
+                     --  (Ada RTF issue #2459).
+
+                     Put (CU, "'Class");
+                  end if;
+               end if;
+            end;
          when K_Param =>
 
             Gen_Operation_Profile
@@ -1725,15 +1771,23 @@ package body Ada_Be.Idl2Ada is
             begin
                Add_With_Entity (CU, T_Node);
                Put (CU, Ada_Type_Name (T_Node));
-               if Is_Interface_Type (T_Node) then
+
+               --  FIXME:
+               --  Code disabled, see above.
+
+               if False
+                 and then Kind (T_Node) = K_Scoped_Name
+                 and then S_Type (T_Node) = Parent_Scope
+                 (Parent_Scope (Declarator (Node))) then
+
                   --  An operation of an interface is a
                   --  primitive operation of the tagged type
                   --  that maps this interface. If it has
                   --  other formal parameters that are object
-                  --  references as well, the operation cannot
-                  --  be a primitive operation of their tagged
-                  --  types as well.
+                  --  references of the same interface type, then
+                  --  these formals must not be controlling.
                   --  (Ada RTF issue #2459).
+                  --  (see above) -- FIXME: code duplication.
 
                   Put (CU, "'Class");
                end if;
@@ -2459,6 +2513,9 @@ package body Ada_Be.Idl2Ada is
          when K_Octet =>
             return "CORBA.Octet";
 
+         when K_Object =>
+            return "CORBA.Object.Ref";
+
          when others =>
             --  Improper use: node N is not
             --  mapped to an Ada type.
@@ -2512,7 +2569,8 @@ package body Ada_Be.Idl2Ada is
            K_Long_Double        |
            K_String             |
            K_Wide_String        |
-           K_Octet              =>
+           K_Octet              |
+           K_Object             =>
             Add_With (CU, "CORBA");
 
          when others =>
@@ -2586,16 +2644,22 @@ package body Ada_Be.Idl2Ada is
            K_String             |
            K_Wide_String        |
            K_Octet              =>
+
             Add_With (CU, "Broca.CDR",
+                      Use_It => True);
+
+           when K_Object             =>
+            Add_With (CU, "Broca.CDR.Refs",
                       Use_It => True);
 
          when others =>
             --  Improper use: node N is not
             --  mapped to an Ada type.
 
-            Ada.Text_IO.Put_Line ("Error: A "
-                                  & NK'Img
-                                  & " does not denote a type.");
+            Ada.Text_IO.Put_Line
+              ("Error: A "
+               & NK'Img
+               & " does not denote a streamable type.");
             raise Program_Error;
       end case;
    end Add_With_Stream;

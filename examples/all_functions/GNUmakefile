@@ -1,3 +1,3 @@
-ADABROKER_TOP = ../..
-ADABROKER_CURRENT = Examples/all_functions
-include $(ADABROKER_TOP)/config/config.mk
+BROCA_TOP = ../..
+BROCA_CURRENT = examples/all_functions
+include $(BROCA_TOP)/config/config.mk

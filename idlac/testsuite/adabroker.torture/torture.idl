@@ -71,11 +71,15 @@ module MyModule {
 
   interface MyInterface;
 
+  typedef sequence<unsigned long> longSeq;
+
   interface MyInterface {
-    string echoString (in string Arg);
-    Color echoColor (in Color Arg);
-    MyInterface echoRef (in MyInterface Arg);
+    string echoString (in string arg);
+    Color echoColor (in Color arg);
+    MyInterface echoRef (in MyInterface arg);
+    longSeq echoLongSeq (in longSeq arg);
   };
+  #pragma ID MyInterface "IDL:toto/titi/tata/tutu:1.0"
   
   exception MyException {
     unsigned long Einfo;

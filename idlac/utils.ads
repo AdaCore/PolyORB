@@ -1,4 +1,5 @@
 with Idl_Fe.Types; use Idl_Fe.Types;
+with Idl_Fe.Tree; use Idl_Fe.Tree;
 with System;
 
 package Utils is
@@ -9,6 +10,9 @@ package Utils is
 
    function Img (N : Node_Id) return String;
    --  Return the image of a Node_Id.
+
+   function Img (N : Node_Kind) return String;
+   --  Return the image of a Node_Kind.
 
    function Img (B : Boolean) return String;
    --  Return "True" or "False", cased that way.
