@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -65,7 +65,7 @@ package body System.Garlic.Heart is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   use System.RPC, System.Garlic.Utils;
+   use System.RPC, System.Garlic.Types, System.Garlic.Utils;
    use type Ada.Exceptions.Exception_Id;
 
    subtype Valid_Partition_ID is Partition_ID
@@ -277,7 +277,7 @@ package body System.Garlic.Heart is
 
       entry Occurred
         (What    : out Ada.Exceptions.Exception_Id;
-         Message : out String_Ptr)
+         Message : out String_Access)
       when Exc /= Ada.Exceptions.Null_Id is
       begin
          What    := Exc;
@@ -292,7 +292,6 @@ package body System.Garlic.Heart is
         (What    : in Ada.Exceptions.Exception_Id;
          Message : in String := "")
       is
-         procedure Free is new Ada.Unchecked_Deallocation (String, String_Ptr);
       begin
          Free (Msg);
          Exc := What;
@@ -428,7 +427,12 @@ package body System.Garlic.Heart is
      (Partition : Partition_ID)
       return Protocols.Protocol_Access is
    begin
-      if not Partition_Map_Cache (Partition) .Known then
+      --  If the partition is the boot server, then the protocol is
+      --  already known even when Partition_Data is only partially
+      --  initialized.
+
+      if Partition /= Server_Partition_ID
+        and then not Partition_Map_Cache (Partition) .Known then
          declare
             Dummy : constant Partition_Data := Get_Partition_Data (Partition);
          begin
@@ -584,6 +588,9 @@ package body System.Garlic.Heart is
          Trace_Data (Partition, Data);
       end if;
 
+      pragma Debug (D (D_Debug, "Dumping incoming stream"));
+      pragma Debug (Dump (D_Debug, Data, Private_Debug_Key));
+
       declare
          Params : aliased Params_Stream_Type (Opcode_Size);
       begin
@@ -620,6 +627,9 @@ package body System.Garlic.Heart is
             pragma Debug (D (D_Debug, "Aborting due to invalid opcode"));
             raise Constraint_Error;
          end if;
+      exception when others =>
+         pragma Debug (D (D_Debug, "Exception in block Has_Arrived"));
+         raise;
       end;
    end Has_Arrived;
 
@@ -632,6 +642,10 @@ package body System.Garlic.Heart is
       --  Some size that certainly is enough
    begin
       My_Partition_Name := Get (Options.Partition_Name.all);
+
+      pragma Debug
+        (D (D_Debug, "My partition name is " & Get (My_Partition_Name)));
+
       Opcode'Write (Stream'Access, Opcode'Last);
       declare
          Buffer : Ada.Streams.Stream_Element_Array
@@ -945,6 +959,8 @@ package body System.Garlic.Heart is
          Free (Filtered_Data);
          pragma Debug
            (D (D_Debug, "Sending an operation with opcode " & Operation'Img));
+         pragma Debug (D (D_Debug, "Dumping outgoing stream"));
+         pragma Debug (Dump (D_Debug, Packet, Private_Debug_Key));
          Protocols.Send (Protocol, Partition, Packet'Access);
       end;
    end Send;
@@ -953,10 +969,16 @@ package body System.Garlic.Heart is
    -- Set_Boot_Location --
    -----------------------
 
-   procedure Set_Boot_Location (Location : in Location_Type) is
-      Data : constant Partition_Data := (Location, Null_Name, True, False);
+   procedure Set_Boot_Location
+     (Location : in Location_Type) is
+      Data : Partition_Data := (Location, Null_Name, False, False);
 
    begin
+      if Is_Boot_Partition then
+         Data.Name  := My_Partition_Name;
+         Data.Known := True;
+      end if;
+
       Partition_Map.Set_Data (Server_Partition_ID, Data);
    end Set_Boot_Location;
 
