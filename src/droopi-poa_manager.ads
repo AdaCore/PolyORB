@@ -3,6 +3,8 @@
 --  $Id$
 
 with Droopi.POA_Types; use Droopi.POA_Types;
+with Droopi.Smart_Pointers;
+with Droopi.Storage_Pools;
 
 package Droopi.POA_Manager is
 
@@ -11,8 +13,14 @@ package Droopi.POA_Manager is
    type State is
      (HOLDING, ACTIVE, DISCARDING, INACTIVE);
 
-   type POAManager is abstract tagged limited private;
+   type POAManager is abstract new Smart_Pointers.Entity
+     with private;
+
    type POAManager_Access is access all POAManager'Class;
+   for POAManager_Access'Storage_Pool use Storage_Pools.Debug_Pool;
+
+   subtype POAManager_Object_Ptr is POAManager_Access;
+   --  XXX for easier portability of legacy AdaBroker code.
 
    Invalid_Obj_Adapter : exception;
 
@@ -75,7 +83,8 @@ package Droopi.POA_Manager is
       is abstract;
 
 private
-   type POAManager is abstract tagged limited record
+
+   type POAManager is abstract new Smart_Pointers.Entity with record
       Current_State : State;
       Managed_POAs  : POAList_Access;
    end record;

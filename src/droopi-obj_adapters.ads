@@ -6,13 +6,15 @@
 with Droopi.Any;
 with Droopi.Any.NVList;
 
+with Droopi.Components;
 with Droopi.Objects; use Droopi.Objects;
 with Droopi.Requests;
-with Droopi.Components;
+with Droopi.Smart_Pointers;
 
 package Droopi.Obj_Adapters is
 
-   type Obj_Adapter is abstract tagged limited private;
+   type Obj_Adapter is abstract new Smart_Pointers.Entity
+     with private;
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
 
    procedure Create (OA : access Obj_Adapter) is abstract;
@@ -86,7 +88,7 @@ package Droopi.Obj_Adapters is
 
 private
 
-   type Obj_Adapter is abstract tagged limited
+   type Obj_Adapter is abstract new Smart_Pointers.Entity with
       record
          ORB : Droopi.Components.Component_Access;
          --  The ORB the OA is attached to. Needs to be casted into an

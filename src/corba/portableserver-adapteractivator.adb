@@ -2,9 +2,9 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                       P O R T A B L E S E R V E R                        --
+--      P O R T A B L E S E R V E R . A D A P T E R A C T I V A T O R       --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --          Copyright (C) 1999-2001 ENST Paris University, France.          --
 --                                                                          --
@@ -31,53 +31,24 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Droopi;
-with Droopi.Requests;
-with Droopi.Objects.Interface;
+--  with PortableServer.AdapterActivator.Impl;
 
-package body PortableServer is
+package body PortableServer.AdapterActivator is
 
-   function Handle_Message
-     (Self : access DynamicImplementation;
-      Msg  : Droopi.Components.Message'Class)
-     return Droopi.Components.Message'Class
+   function Unknown_Adapter
+     (Self   : Ref;
+      Parent : PortableServer.POA_Forward.Ref;
+      Name   : CORBA.String)
+      return Boolean
    is
-      use Droopi.Objects.Interface;
-
+      --  Res : Boolean;
    begin
-      if Msg in Execute_Request then
-         declare
-            use Droopi.Requests;
-            use CORBA.ServerRequest;
-
-            R : constant Request_Access
-              := Execute_Request (Msg).Req;
-         begin
-            Invoke
-              (DynamicImplementation'Class (Self.all),
-               To_CORBA_ServerRequest (R));
-            --  Redispatch
-
-            return Executed_Request'(Req => R);
-         end;
-      else
-         raise Droopi.Components.Unhandled_Message;
-      end if;
-   end Handle_Message;
-
-   function Get_Default_POA
-     (For_Servant : Servant_Base)
-     return POA_Forward.Ref is
-   begin
+--       Impl.Unknown_Adapter
+--         (Impl.Object'Class (Object_Of (Self).all),
+--          Parent, Name, Res);
+--       return Res;
       raise Droopi.Not_Implemented;
-      return Get_Default_POA (For_Servant);
-   end Get_Default_POA;
+      return False;
+   end Unknown_Adapter;
 
-   procedure Get_Members
-     (From : in CORBA.Exception_Occurrence;
-      To   : out ForwardRequest_Members) is
-   begin
-      raise Droopi.Not_Implemented;
-   end Get_Members;
-
-end PortableServer;
+end PortableServer.AdapterActivator;

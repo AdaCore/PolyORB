@@ -27,8 +27,23 @@ package CORBA.ServerRequest is
    procedure Set_Result (O : Object; Val : Any);
    procedure Set_Exception (O : Object; Val : Any);
 
+   --------------------------------------
+   -- The following is DROOPI-specific --
+   --------------------------------------
+
+   function To_Droopi_Request
+     (O : Object)
+     return Droopi.Requests.Request_Access;
+
+   function To_CORBA_ServerRequest
+     (R : Droopi.Requests.Request_Access)
+     return Object;
+
 private
 
    type Object is new Droopi.Requests.Request_Access;
+
+   pragma Inline (To_Droopi_Request);
+   pragma Inline (To_CORBA_ServerRequest);
 
 end CORBA.ServerRequest;

@@ -8,9 +8,9 @@ with Droopi.POA_Types;     use Droopi.POA_Types;
 with Droopi.POA_Manager;
 
 with CORBA;
---  with CORBA.Policy_Values; use CORBA.Policy_Values;
 with CORBA.Object_Map;
 
+with Droopi.Storage_Pools;
 with Droopi.Types;
 
 with Droopi.POA_Policies;
@@ -62,10 +62,16 @@ package Droopi.POA is
          Children_Lock              : Droopi.Locks.Rw_Lock_Access;
          Map_Lock                   : Droopi.Locks.Rw_Lock_Access;
       end record;
-   type Obj_Adapter_Access is access all Obj_Adapter'Class;
+
    --  The POA object
-   --  ??? Part of this should be private (locks, active object map, father...)
+   --  XXX Part of this should be private (locks, active object map, father...)
    --  The policies are used by all corba-policy-*, we can keep them public
+
+   type Obj_Adapter_Access is access all Obj_Adapter'Class;
+   for Obj_Adapter_Access'Storage_Pool use Droopi.Storage_Pools.Debug_Pool;
+
+   subtype Obj_Adapter_Ptr is Obj_Adapter_Access;
+   --  XXX for easier porting of legacy AdaBroker code.
 
    --------------------------------------------------
    --  Procedures and functions required by CORBA  --

@@ -56,12 +56,19 @@ package body CORBA.Request is
       Droopi.Requests.Destroy_Request (Self.The_Request);
    end Delete;
 
-   function Get_Droopi_Request
+   function To_Droopi_Request
      (Request : Object)
      return Droopi.Requests.Request_Access is
    begin
       return Request.The_Request;
-   end Get_Droopi_Request;
+   end To_Droopi_Request;
+
+   function To_CORBA_Request
+     (Request : Droopi.Requests.Request_Access)
+     return Object is
+   begin
+      return Object'(The_Request => Request);
+   end To_CORBA_Request;
 
 end CORBA.Request;
 

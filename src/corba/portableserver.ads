@@ -31,6 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Droopi.Components;
 with Droopi.Objects;
 
 with CORBA;
@@ -47,11 +48,6 @@ package PortableServer is
    package POA_Forward is new CORBA.Forward;
 
    type Servant_Base is new CORBA.Impl.Object with private;
-   type DynamicImplementation is new Servant_Base with private;
-
-   procedure Invoke
-     (Self : DynamicImplementation;
-      Request : CORBA.ServerRequest.Object);
 
    --  21.41.1
    --  Conforming implementations must provide a controlled (tagged)
@@ -81,8 +77,21 @@ package PortableServer is
    --       (For_Servant : Servant_Base)
    --       return Boolean;
 
---    package IDL_SEQUENCE_Octet renames Broca.Sequences.Octet_Sequences;
-   --    type ObjectId is new IDL_SEQUENCE_Octet.Sequence;
+   ---------------------------
+   -- DynamicImplementation --
+   ---------------------------
+
+   type DynamicImplementation is
+     abstract new Servant_Base with private;
+
+   procedure Invoke
+     (Self    : DynamicImplementation;
+      Request : CORBA.ServerRequest.Object)
+     is abstract;
+
+   --------------
+   -- ObjectId --
+   --------------
 
    type ObjectId is new Droopi.Objects.Object_Id;
 
@@ -206,7 +215,15 @@ package PortableServer is
 
 private
 
-   type Servant_Base is new CORBA.Impl.Object with null record;
-   type DynamicImplementation is new Servant_Base with null record;
+   type Servant_Base is
+     new CORBA.Impl.Object with null record;
+
+   type DynamicImplementation is
+     abstract new Servant_Base with null record;
+
+   function Handle_Message
+     (Self : access DynamicImplementation;
+      Msg  : Droopi.Components.Message'Class)
+     return Droopi.Components.Message'Class;
 
 end PortableServer;

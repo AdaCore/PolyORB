@@ -12,8 +12,8 @@ with CORBA.ServerRequest;
 pragma Warnings (Off, CORBA.ServerRequest);
 --  XXX Not used for now.
 
-with PortableServer;
-pragma Warnings (Off, PortableServer);
+with PortableServer.POA;
+pragma Warnings (Off, PortableServer.POA);
 --  XXX Not used for now.
 
 with Droopi.POA_Types;

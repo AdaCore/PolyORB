@@ -46,15 +46,25 @@ package CORBA.Request is
 
    --  The following is specific to DROOPI.
 
-   function Get_Droopi_Request
+   function To_Droopi_Request
      (Request : Object)
      return Droopi.Requests.Request_Access;
+
+   function To_CORBA_Request
+     (Request : Droopi.Requests.Request_Access)
+     return Object;
 
 private
 
    type Object is record
       The_Request : Droopi.Requests.Request_Access;
    end record;
+   --  XXX Would it not be simpler to declare
+   --  type Object is new Droopi.Requests.Request_Access; ?
+   --  (as is presently done in CORBA.ServerRequest!)
+
+   pragma Inline (To_Droopi_Request);
+   pragma Inline (To_CORBA_Request);
 
 end CORBA.Request;
 
