@@ -291,7 +291,7 @@ sections.
 * Pragma Shared_Passive::       
 * Overview of Pragma Pure::     
 * More About Categorization Pragmas::  
-* Marshalling and Unmarshalling Operations::  
+* Partition Communication Subsystem::  
 * Most Features in One Example::  
 @end menu
 
@@ -658,7 +658,7 @@ type. It is particularly useful to define types, constants and
 subprograms shared by several categorized packages. Remember that normal
 packages cannot be withed in categorized package declarations.
 
-@node More About Categorization Pragmas, Marshalling and Unmarshalling Operations, Overview of Pragma Pure, The Distributed Systems Annex
+@node More About Categorization Pragmas, Partition Communication Subsystem, Overview of Pragma Pure, The Distributed Systems Annex
 @section More About Categorization Pragmas
 
 
@@ -821,8 +821,22 @@ general rule, RCI > RT > SP > Pure. That means that a
 Remote_Types package can make visible in its specification only
 Remote_Types, Shared_Passive and Pure units.
 
-@node Marshalling and Unmarshalling Operations, Most Features in One Example, More About Categorization Pragmas, The Distributed Systems Annex
-@section Marshalling and Unmarshalling Operations
+@node Partition Communication Subsystem, Most Features in One Example, More About Categorization Pragmas, The Distributed Systems Annex
+@section Partition Communication Subsystem
+
+@menu
+* Marshalling and Unmarshalling Operations::  
+* Consistency of a Distributed System::  
+* Remote Call Abortion::        
+* Incorrect Remote Dispatching::  
+* Partition Ids::               
+* Concurrent Remote Calls::     
+* Partition Elaboration::       
+* Partition Termination::       
+@end menu
+
+@node Marshalling and Unmarshalling Operations, Consistency of a Distributed System, Partition Communication Subsystem, Partition Communication Subsystem
+@subsection Marshalling and Unmarshalling Operations
 
 The PCS marshalls and unmarshalls users data into a stream of type
 @t{System.RPC.Params_Stream_Type}:
@@ -858,7 +872,7 @@ if needed
 An Ada compiler provides default 'Read and 'Write operations. But it is
 up to the compiler to provide default 'Read and 'Write to ensure proper
 operation between heterogeneous architectures (see @ref{Heterogeneous
-Systems}).
+System}).
 
 The user can overload these operations except for predefined
 types. Overloading with a textual version provides the user with a way
@@ -873,8 +887,38 @@ remote access types. Transmitting an access value by dumping its content
 into astream makes no sense when it is going to be transmitted to
 another partition (different memory spaces). To transmit non remote
 access types see @ref{Transmitting Dynamic Structure}.
+
+@node Consistency of a Distributed System, Remote Call Abortion, Marshalling and Unmarshalling Operations, Partition Communication Subsystem
+@subsection Consistency of a Distributed System
+
+@node Remote Call Abortion, Incorrect Remote Dispatching, Consistency of a Distributed System, Partition Communication Subsystem
+@subsection Remote Call Abortion
+
+@node Incorrect Remote Dispatching, Partition Ids, Remote Call Abortion, Partition Communication Subsystem
+@subsection Incorrect Remote Dispatching
+
+@node Partition Ids, Concurrent Remote Calls, Incorrect Remote Dispatching, Partition Communication Subsystem
+@subsection Partition Ids
+
+U'Partition_ID identifies the partition where unit U has been
+elaborated. For this reason, the PCS provides an integer type
+Partition_ID to uniquely designate a partition. But a Partition_ID is an
+universal integer whose meaning has no sense outside of the PCS. The RM
+requires that two partitions of the distributed program have different
+Partition_ID at a given time. A Partition_ID may or may not be
+attributed statically (at compile or link time). A Partition_ID may or
+may not be related to the physical location of the partition.
+
+@node Concurrent Remote Calls, Partition Elaboration, Partition Ids, Partition Communication Subsystem
+@subsection Concurrent Remote Calls
+
+@node Partition Elaboration, Partition Termination, Concurrent Remote Calls, Partition Communication Subsystem
+@subsection Partition Elaboration
+
+@node Partition Termination,  , Partition Elaboration, Partition Communication Subsystem
+@subsection Partition Termination
  
-@node Most Features in One Example,  , Marshalling and Unmarshalling Operations, The Distributed Systems Annex
+@node Most Features in One Example,  , Partition Communication Subsystem, The Distributed Systems Annex
 @section Most Features in One Example
 
 The example shown on the following figure highlights most of
@@ -1727,77 +1771,242 @@ Partition 3 contains one RCI package RCI_B3
 Most of the previous attributes and pragmas can be modified at
 run-time. The user can redefine some of the configuration options by
 defining shell environment variables or by passing arguments on the
-command line to the partition executable.
+command line to the partition executable. In general, for a given
+feature (Aa_Bb_Cc), there is a corresponding environmnent variable
+(AA_BB_CC) and a corresponding command line option (@code{--}aa_bb_cc).
+
+The environment variable (AA_BB_CC) can be set to a value fo the
+expected type. When a partition is executed from such a shell, the value
+assigned in the configuration file is replaced by the value of the
+environment variable. If the user shell is @i{sh}, @i{bash} or @i{zsh},
+type:
+
+@smallexample
+AA_BB_CC=<x>
+export AA_BB_CC
+@end smallexample
+
+If the user shell is @i{csh} or @i{tcsh}, type:
+
+@smallexample
+setenv AA_BB_CC <x>
+@end smallexample
+
+where <x> is a value of the expected type.
+
+When the partition is launched with a command line option
+@code{--}aa_bb_cc <x>, the value assigned in the configuration file or
+by the shell environment variable is replaced by <x>.
+
+For some environment variable, the value of the environment variable has
+no importance. For some command line options, there is no extra
+argument. In the following, type None means that an extra information is 
+not needed. THe feature is activated as soon as the environment variable 
+existst or as soon as the option is passed on the command line.
+
+The precedence ordre is the command line option, then the environment
+variable and then the configuration attribute or pragma.
 
 @menu
-* Boot_Server Command Line Option::  
-* Reconnection Command Line Option::  
-* Termination Command Line Option::  
+* Command Line Option --boot_server::  
+* Command Line Option --nolaunch::  
+* Command Line Option --detach::  
+* Command Line Option --slave::  
+* Command Line Option --self_location::  
+* Command Line Option --boot_mirror::  
+* Command Line Option --mirror_expected::  
+* Command Line Option --connection_hits::  
+* Command Line Option --reconnection::  
+* Command Line Option --termination::  
+* Command Line Option --nolaunch::  
+* Command Line Option --detach::  
+* Command Line Option --slave::  
 * Trace Command Line Option::   
 * Replay Command Line Option::  
 @end menu
 
-@node Boot_Server Command Line Option, Reconnection Command Line Option, Partition Command Line Options, Partition Command Line Options
-@subsection Boot_Server Command Line Option
+@node Command Line Option --boot_server, Command Line Option --nolaunch, Partition Command Line Options, Partition Command Line Options
+@subsection Command Line Option --boot_server
 
-This allows to set the boot server (see @ref{Pragma Boot_Server}
+This allows to set the boot server address (see @ref{Pragma Boot_Server}
 for details).
 
-A shell environment variable BOOT_SERVER can be set to a string
-conforming to the protocol data convention (see @ref{Pragma
-Boot_Server}). When a partition is executed from such a shell, the value
-assigned in the configuration file is replaced by the value of the
-environment variable.
+@multitable @columnfractions .33 .33 .33
+@item Environment Variable @tab Command Line Option @tab Type
+@item BOOT_SERVER @tab @code{--}boot_server @tab Formatted String
+@end multitable
 
-When the partition is launched with a command line argument
-@code{--}boot_server=<x> where <x> is a string conforming to the protocol
-data convention (see @ref{Pragma Boot_Server}), the value
-assigned in the configuration file or by the shell environment variable
-is replaced by <x>.
+The formatted string must conform to the notation
+<protocol_name>://<protocol_data>. In general, this would be
+tcp://<machine>:<port>.
 
-@node  Reconnection Command Line Option, Termination Command Line Option, Boot_Server Command Line Option, Partition Command Line Options
-@subsection Reconnection Command Line Option
+@node Command Line Option --nolaunch, Command Line Option --detach, Command Line Option --boot_server, Partition Command Line Options
+@subsection Command Line Option --nolaunch
+
+This feature is useful when the configuration has been built with an Ada 
+starter. When this feature is activated, the main partition does not
+launch the other partitions anymore. The user has to launch the other
+partitions by hand.
+
+@multitable @columnfractions .33 .33 .33
+@item Environment Variable @tab Command Line Option @tab Type
+@item NOLAUNCH @tab @code{--}nolaunch @tab None
+@end multitable
+
+@node Command Line Option --detach, Command Line Option --slave, Command Line Option --nolaunch, Partition Command Line Options
+@subsection Command Line Option --detach
+
+This feature is not supposed to be used by the user. When
+this feature is activated, the process forks itself and the child closes
+its standard input, output and error descriptors. This is always used
+when a partition is launched by a remote shell (starter Ada or Shell).
+
+The only case where it can be useful is for a configuration build with a
+Shell starter. In this case, the user can edit the shell script to pipe
+the output of a partition into a file. To do so, the detach feature has
+to be removed.
+
+@multitable @columnfractions .33 .33 .33
+@item Environment Variable @tab Command Line Option @tab Type
+@item DETACH @tab @code{--}detach @tab None
+@end multitable
+
+@node Command Line Option --slave, Command Line Option --self_location, Command Line Option --detach, Partition Command Line Options
+@subsection Command Line Option --slave
+
+This feature is not supposed to be used by the user. When
+this feature is activated, this partition cannot be a boot server
+partition anymore. This is useful when a partition has been configured
+as a boot partition and when the user does not want it to be a main
+partition anymore.
+
+@multitable @columnfractions .33 .33 .33
+@item Environment Variable @tab Command Line Option @tab Type
+@item SLAVE @tab @code{--}slave @tab None
+@end multitable
+
+@node Command Line Option --self_location, Command Line Option --boot_mirror, Command Line Option --slave, Partition Command Line Options
+@subsection Command Line Option --self_location
+
+Except for the boot partition on which the boot server is located, a
+partition is reachable through a dynamically computed location (for
+instance, the partition looks for a free port when the protocol is
+tcp). The user may want such a partition to be reachable from a given
+location in order to be a boot mirror. To do so, he can force the
+partition location with self location feature.
+
+@multitable @columnfractions .33 .33 .33
+@item Environment Variable @tab Command Line Option @tab Type
+@item SELF_LOCATION @tab @code{--}self_location @tab Formatted String
+@end multitable
+
+The formatted string must conform to the notation
+<protocol_name>://<protocol_data>. In general, this would be
+tcp://<machine>:<port>.
+
+@node Command Line Option --boot_mirror, Command Line Option --mirror_expected, Command Line Option --self_location, Partition Command Line Options
+@subsection Command Line Option --boot_mirror
+
+As a default, except for a boot partition on which the boot server is
+located, a partition is not a boot mirror. The user can force a
+partition to be a boot mirror.
+
+@multitable @columnfractions .33 .33 .33
+@item Environment Variable @tab Command Line Option @tab Type
+@item BOOT_MIRROR @tab @code{--}boot_mirror @tab None
+@end multitable
+
+@node Command Line Option --mirror_expected, Command Line Option --connection_hits, Command Line Option --boot_mirror, Partition Command Line Options
+@subsection Command Line Option --mirror_expected
+
+This allows to suspend the execution of the distributed application
+until there is at least one boot mirror partition if we except the boot
+server.
+
+@multitable @columnfractions .33 .33 .33
+@item Environment Variable @tab Command Line Option @tab Type
+@item MIRROR_EXPECTED @tab @code{--}mirror_expected @tab None
+@end multitable
+
+@node Command Line Option --connection_hits, Command Line Option --reconnection, Command Line Option --mirror_expected, Partition Command Line Options
+@subsection Command Line Option --connection_hits
+
+This allows to set the number of times the PCS tries to connect to the
+boot server before raising a Communication_Error exception.
+
+@multitable @columnfractions .33 .33 .33
+@item Environment Variable @tab Command Line Option @tab Type
+@item CONNECTION_HITS @tab @code{--}connection_hits @tab Natural
+@end multitable
+
+@node Command Line Option --reconnection, Command Line Option --termination, Command Line Option --connection_hits, Partition Command Line Options
+@subsection Command Line Option --reconnection
 
 This allows to set the reconnection policy (see @ref{Partition
 Attribute Reconnection} for details).
 
-A shell environment variable RECONNECTION can be set to one of the three
-possible reconnection policies. When a partition is executed from such a
-shell, the value assigned in the configuration file is replaced by the
-value of the shell environment variable.
+@multitable @columnfractions .33 .33 .33
+@item Environment Variable @tab Command Line Option @tab Type
+@item RECONNECTION @tab @code{--}reconnection @tab Reconnection_Type
+@end multitable
 
-When the partition is launched with a command line argument
-@code{--}reconnection=<x> where <x> is one of the three possible
-reconnection policies, the value assigned in the configuration file or
-by the shell environment variable is replaced by <x>.
-
-@node Termination Command Line Option, Trace Command Line Option, Reconnection Command Line Option, Partition Command Line Options
-@subsection Termination Command Line Option
+@node Command Line Option --termination, Command Line Option --nolaunch, Command Line Option --reconnection, Partition Command Line Options
+@subsection Command Line Option --termination
 
 This allows to set the termination policy (see @ref{Partition
 Attribute Termination} for details).
 
-A shell environment variable TERMINATION can be set to one of the three
-possible termination policies. When a partition is executed from such a
-shell, the value assigned in the configuration file is replaced by the
-value of the shell environment variable.
+@multitable @columnfractions .33 .33 .33
+@item Environment Variable @tab Command Line Option @tab Type
+@item TERMINATION @tab @code{--}termination @tab Termination_Type
+@end multitable
 
-When the partition is launched with a command line argument
-@code{--}termination=<x> where <x> is one of the three possible
-termination policies, the value assigned in the configuration file or by
-the shell environment variable is replaced by <x>.
+@node Command Line Option --nolaunch, Command Line Option --detach, Command Line Option --termination, Partition Command Line Options
+@subsection Command Line Option --nolaunch
 
+This feature is useful when the configuration has been built with an Ada 
+starter. When this feature is activated, the main partition does not
+launch the other partitions anymore. The user has to launch the other
+partitions by hand.
 
-@c @item @tab CONNECTION_HITS @tab
-@c @item @tab DETACH @tab --detach
-@c @item @tab SELF_LOCATION @tab --self_location
-@c @item @tab BOOT_MIRROR @tab --boot_mirror
-@c @item @tab MIRROR_EXCEPTED @tab
-@c @item @tab SLAVE @tab --slave
-@c @item @tab NOLAUNCH @tab --nolaunch
-@c @end multitable
+@multitable @columnfractions .33 .33 .33
+@item Environment Variable @tab Command Line Option @tab Type
+@item NOLAUNCH @tab @code{--}nolaunch @tab None
+@end multitable
 
-@node Trace Command Line Option, Replay Command Line Option, Termination Command Line Option, Partition Command Line Options
+@node Command Line Option --detach, Command Line Option --slave, Command Line Option --nolaunch, Partition Command Line Options
+@subsection Command Line Option --detach
+
+This feature is not supposed to be used by the user. When
+this feature is activated, the process forks itself and the child closes
+its standard input, output and error descriptors. This is always used
+when a partition is launched by a remote shell (starter Ada or Shell).
+
+The only case where it can be useful is for a configuration build with a
+Shell starter. In this case, the user can edit the shell script to pipe
+the output of a partition into a file. To do so, the detach feature has
+to be removed.
+
+@multitable @columnfractions .33 .33 .33
+@item Environment Variable @tab Command Line Option @tab Type
+@item DETACH @tab @code{--}detach @tab None
+@end multitable
+
+@node Command Line Option --slave, Trace Command Line Option, Command Line Option --detach, Partition Command Line Options
+@subsection Command Line Option --slave
+
+This feature is not supposed to be used by the user. When
+this feature is activated, this partition cannot be a boot server
+partition anymore. This is useful when a partition has been configured
+as a boot partition and when the user does not want it to be a main
+partition anymore.
+
+@multitable @columnfractions .33 .33 .33
+@item Environment Variable @tab Command Line Option @tab Type
+@item SLAVE @tab @code{--}slave @tab None
+@end multitable
+
+@node Trace Command Line Option, Replay Command Line Option, Command Line Option --slave, Partition Command Line Options
 @subsection Trace Command Line Option
 
 GLADE has a facility for trace / replay based debugging. If trace mode
@@ -1885,15 +2094,15 @@ consistency and remote launching are provided via GARLIC specific
 features. Some of these features are not configurable by the user.
 
 @menu
-* Heterogeneous Systems::       
-* Multiple Requests::           
+* Heterogeneous System::        
+* Concurrent Remote Calls::     
 * Priority Inheritance::        
-* Remote Procedure Call Abortion::  
+* Remote Call Abortion::        
 * User Filter Implementation::  
 @end menu
 
-@node Heterogeneous Systems, Multiple Requests, GLADE Internals, GLADE Internals
-@subsection Heterogeneous Systems
+@node Heterogeneous System, Concurrent Remote Calls, GLADE Internals, GLADE Internals
+@subsection Heterogeneous System
 
 The GNAT environment provides default attributes except for non remote
 access types (see @ref{Transmitting Dynamic Structure} and
@@ -1910,10 +2119,22 @@ performance purposes or to use another protocol to marshall and
 unmarshall predefined types, he can replace @t{s-stratt.adb} by his own
 implementation.
 
-@node Multiple Requests, Priority Inheritance, Heterogeneous Systems, GLADE Internals
-@subsection Multiple Requests
+@node
+@subsection Partition Ids
 
-When multiple remote procedure calls occur on the same partition, they
+The Partition_ID is allocated dynamically, at run-time. Each partition
+connects to a Partition ID Server which is lcoated on the boot server
+and asks for a free Partition_ID. The advantage of this approach is that
+it supports easily client / server solution (client partitions may be
+duplicated, they will obtain different Partition Ids). There is no need
+to recompile or relink all the partitions when a new partition is added
+to the system. The Partition_ID is not tight in any way to a specific
+protocol or to a specific location.
+
+@node Concurrent Remote Calls, Priority Inheritance, Heterogeneous System, GLADE Internals
+@subsection Concurrent Remote Calls
+
+When multiple remote subprogram calls occur on the same partition, they
 are handled by several anonymous tasks. The number of tasks in the
 anonymous tasks pool can be configured by three figures (see
 @ref{Partition Attribute Task_Pool}). Therefore, the user may have to
@@ -1923,7 +2144,7 @@ the multiple requests features, he can force the configuration of the
 anonymous tasks pool to (0 | 1, 0 | 1, 1). That means that there is at
 most one anonymous task running at a time.
 
-@node Priority Inheritance, Remote Procedure Call Abortion, Multiple Requests, GLADE Internals
+@node Priority Inheritance, Remote Call Abortion, Concurrent Remote Calls, GLADE Internals
 @subsection Priority Inheritance
 
 It is compiler-dependent to preserve the caller priority during a remote
@@ -1933,15 +2154,15 @@ the caller priority. This priority is marshalled and unmarshalled during
 the remote procedure call and the anonymous task is set to the caller
 priority. There is no way yet to suppress this feature.
 
-@node Remote Procedure Call Abortion, User Filter Implementation, Priority Inheritance, GLADE Internals
-@subsection Remote Procedure Call Abortion
+@node Remote Call Abortion, User Filter Implementation, Priority Inheritance, GLADE Internals
+@subsection Remote Call Abortion
 
 When a remote procedure call is aborted, GLADE will abort the calling
 task on the caller side. But it will also try to abort the remote
 anonymous task performing the remote call. This task will be aborted
 without being requeued in the anonymous tasks pool.
 
-@node User Filter Implementation,  , Remote Procedure Call Abortion, GLADE Internals
+@node User Filter Implementation,  , Remote Call Abortion, GLADE Internals
 @subsection User Filter Implementation
 
 As has been briefly mentioned above, a filter with a name "NAME" must be
