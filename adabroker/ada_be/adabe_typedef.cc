@@ -15,13 +15,26 @@ adabe_typedef::produce_ads(dep_list with,string &String, string &previousdefinit
 */
 
 void
+adabe_typedef::produce_adb(dep_list with,string &String, string &previousdefinition);
+/*
+  if (!is_imported(with)) return get_ada_name();}
+  return get_ada_full_name();	   
+ 
+*/
+  
+void
 adabe_typedef::produce_impl_ads(dep_list with,string &String, string &previousdefinition);
 /*
-produce_ads(with, &String, &previousdefinition);
+  produce_ads(with, &String, &previousdefinition);
  */
-//  void produce_adb(std::fstream& s);
-//  void produce_impl_ads(std::fstream& s);
-//  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
+
+void
+adabe_typedef::produce_impl_adb(dep_list with,string &String, string &previousdefinition);
+/*
+  if (!is_imported(with)) return get_ada_name();}
+  return get_ada_full_name();	   
+  
+*/
 
 
 

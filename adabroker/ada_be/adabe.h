@@ -217,10 +217,6 @@ public:
   void produce_adb(dep_list with,string &String, string &previousdefinition); 
   //produce the name of the union in the implementation body
   
-  //  void produce_adb(std::fstream& s);
-  //  void produce_impl_ads(std::fstream& s);
-  //  void produce_impl_adb(std::fstream& s);
-
 };
 
 
@@ -385,10 +381,6 @@ public:
   void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
   //produce an attribute in the implementation body
 
-  //  void produce_adb(std::fstream& s);
-  //  void produce_impl_ads(std::fstream& s);
-  //  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
-
 };
 
 
@@ -416,10 +408,6 @@ public:
   void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
   //produce an operation in the implementation body
 
-  //  void produce_adb(std::fstream& s);
-  //  void produce_impl_ads(std::fstream& s);
-  //  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
-
 
 private:
   bool is_function();
@@ -440,12 +428,13 @@ public:
 
   void produce_ads(dep_list with,string &String, string &previousdefinition);
   //produce a typedef in the header
+  void produce_adb(dep_list with,string &String, string &previousdefinition);
+  //produce the name of the typedef in the body
   void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
   //produce a typedef in the implementation header
+  void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
+  //produce the name of the typedef in the implementation body
 
-  //  void produce_adb(std::fstream& s);
-  //  void produce_impl_ads(std::fstream& s);
-  //  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
 
 };
 
@@ -472,10 +461,6 @@ public:
   void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
   //produce an interface in the implementation body
   
-  //  void produce_adb(std::fstream& s);
-  //  void produce_impl_ads(std::fstream& s);
-  //  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
-
 };
 
 
@@ -495,12 +480,6 @@ public:
   //produce the interface forward in the header
   void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
   //produce the interface forward in the implementation header
-
-  //  void produce_adb(std::fstream& s);
-  //  void produce_impl_ads(std::fstream& s);
-  //  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
-
-
 
 };
 
