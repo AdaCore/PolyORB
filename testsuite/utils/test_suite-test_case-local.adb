@@ -92,8 +92,6 @@ package body Test_Suite.Test_Case.Local is
 
             Test_Result := False;
 
-            Close_Test_Output_Context (Output, Test_Result);
-
             return Test_Result;
          end if;
 
