@@ -13,5 +13,5 @@ SUBDIRS = utils core
 
 CLEANFILES = config-stamp
 
-depend:
-	cd src && ${MAKE} depend
+run_tests:
+	utils/test_driver -full scenarios

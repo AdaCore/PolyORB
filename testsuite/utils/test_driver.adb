@@ -72,8 +72,16 @@ procedure Test_Driver is
       Timeout    : Integer := 0;
    end record;
 
-   function Read_Test (Number : Natural)
-                      return Test_Case;
+   Null_Test : constant Test_Case :=
+     (Id => To_Unbounded_String (""),
+      Test_Type => Local,
+      Executable => To_Unbounded_String (""),
+      Timeout => 0);
+
+   function Read_Test
+     (Scenario : String;
+      Number   : Natural)
+     return Test_Case;
    --  Extract test case #Number from scenario file.
 
    procedure Launch_Test (Test_To_Run : Test_Case);
@@ -89,24 +97,45 @@ procedure Test_Driver is
    -- Read_Test --
    ---------------
 
-   function Read_Test (Number : Natural)
-                      return Test_Case
+   function Read_Test
+     (Scenario : String;
+      Number   : Natural)
+     return Test_Case
    is
-      Section : constant String := "test" & Natural'Image (Number);
+      Test_Id : constant String := Natural'Image (Number);
+      Section : constant String
+        := "test " & Scenario & "_"
+        & Test_Id (Test_Id'First + 1 .. Test_Id'Last);
+
       Result : Test_Case;
 
       Id_S         : constant String := Get_Conf (Section, "id");
       Test_Type_S  : constant String := Get_Conf (Section, "type");
       Executable_S : constant String := Get_Conf (Section, "command");
    begin
+
+      --  Does the test exist ?
+
+      if Id_S = "" and then Test_Type_S = "" and then Executable_S = "" then
+         return Null_Test;
+      end if;
+
+      O ("Read     : " & Section);
+      O (" Id      : " & Id_S);
+      O (" Type    : " & Test_Type_S);
+      O (" Command : " & Executable_S);
+
+      --  Test Id.
       Result.Id := To_Unbounded_String (Id_S);
 
+      --  Test type.
       if Test_Type_S = "local" then
          Result.Test_Type := Local;
       else
          raise Program_Error;
       end if;
 
+      --  Test timeout.
       declare
          Timeout_S : constant String := Get_Conf (Section, "timeout");
       begin
@@ -117,12 +146,8 @@ procedure Test_Driver is
             Result.Timeout := Default_Timeout;
       end;
 
+      --  Test executable.
       Result.Executable := To_Unbounded_String (Executable_S);
-
-      O ("Read:");
-      O (" Id  : " & Id_S);
-      O (" Type: " & Test_Type_S);
-      O (" Command: " & Executable_S);
 
       return Result;
    end Read_Test;
@@ -143,7 +168,7 @@ procedure Test_Driver is
                          +"END TESTS(.*)PASSED");
 
    begin
-      O ("Launching test: " & To_String (Test_To_Run.Id));
+      Put_Line ("Launching test: " & To_String (Test_To_Run.Id));
 
       Non_Blocking_Spawn (Fd,
                           "./" & To_String (Test_To_Run.Executable),
@@ -152,19 +177,20 @@ procedure Test_Driver is
       Expect (Fd, Result, Item_To_Match, Test_To_Run.Timeout);
       case Result is
          when 1 =>
-            O ("==> Test failed <==");
+            Put_Line ("==> Test failed <==");
 
          when 2 =>
-            O ("==> Test finished <==");
+            Put_Line ("==> Test finished <==");
 
          when Expect_Timeout =>
-            O ("==> Time Out ! <==");
+            Put_Line ("==> Time Out ! <==");
 
          when others =>
             null;
 
       end case;
 
+      New_Line;
       Close (Fd);
    end Launch_Test;
 
@@ -175,19 +201,28 @@ procedure Test_Driver is
    procedure Run_Scenario
    is
       Scenario_Name : constant String :=
-        Get_Conf ("scenario", "scenario_name");
+        Get_Conf ("scenario", "name");
 
-      Test_Last : constant Natural :=
-        Integer'Value (Get_Conf ("scenario", "test_last"));
+      Scenario_Id : constant String :=
+        Get_Conf ("scenario", "id");
 
+      Count : Integer := 0;
+      Test : Test_Case;
    begin
-      O ("Running scenario: " & Scenario_Name);
-      O (Integer'Image (Test_Last + 1) & " tests to run.");
+      Put_Line ("Running scenario: " & Scenario_Name);
+      Put_Line ("Description: " & Scenario_Id);
+      New_Line;
 
-      for J in 0 .. Test_Last loop
-         Launch_Test (Read_Test (J));
+      loop
+         Test := Read_Test (Scenario_Name, Count);
+         exit when Test = Null_Test;
+
+         Launch_Test (Test);
+         Count := Count + 1;
       end loop;
 
+      Put_Line ("All tests done in scenario: " & Scenario_Name);
+      New_Line;
    end Run_Scenario;
 
    -----------
@@ -203,6 +238,8 @@ procedure Test_Driver is
                 "in directory.");
       New_Line;
    end Usage;
+
+   --  Main procedure begins here.
 
 begin
    O ("Test driver launched.");
@@ -233,12 +270,15 @@ begin
                      Read (Dir, Scenario, Last);
                      exit when Scenario (1 .. Last) = "";
 
-                     if Scenario (1 .. Last) /= "."
-                       and then Scenario (1 .. Last) /= ".."  then
-                        Load_Configuration_File
-                          (Parameter & "/" & Scenario (1 .. Last));
-                        Run_Scenario;
-                     end if;
+                     declare
+                        Full_Name : constant String :=
+                          Parameter & "/" & Scenario (1 .. Last);
+                     begin
+                        if Is_Regular_File (Full_Name) then
+                           Load_Configuration_File (Full_Name);
+                           Run_Scenario;
+                        end if;
+                     end;
                   end loop;
                end;
             end if;
