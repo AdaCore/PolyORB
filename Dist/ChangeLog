@@ -1,6 +1,14 @@
 2000-05-12  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* Makefile.am (xe_defs.adb): Generate the code for
+	Get_Default_Optimization.
+
 	* Makefile.am: xe_sysdep.adb was VPATH-unfriendly.
+
+	* xe_defs.ads (Get_Default_Optimization): new function.
+
+	* xe_utils.adb: Take the value of the default optimization to be added
+	from XE_Defs instead of an hardcoded value.
 
 2000-04-21  Laurent Pautet  <pautet@inf.enst.fr>
 

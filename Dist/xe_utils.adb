@@ -87,6 +87,10 @@ package body XE_Utils is
    --  not need the "-x ada" command line argument (typically ".ads" or
    --  ".adb" terminated file).
 
+   procedure Add_Default_Optimization;
+   --  Add the default optimization flag if Optimization_Mode is True. Turns
+   --  if off afterwise.
+
    ---------
    -- "&" --
    ---------
@@ -122,6 +126,19 @@ package body XE_Utils is
       Add_Str_To_Name_Buffer (N2);
       return Name_Find;
    end "&";
+
+   ------------------------------
+   -- Add_Default_Optimization --
+   ------------------------------
+
+   procedure Add_Default_Optimization is
+      Opt : constant String := Get_Default_Optimization;
+   begin
+      if Optimization_Mode and then Opt /= "O0" then
+         Scan_Make_Arg ("-" & Opt);
+      end if;
+      Optimization_Mode := False;
+   end Add_Default_Optimization;
 
    -------
    -- C --
@@ -897,26 +914,25 @@ package body XE_Utils is
             if Argument (I)(2 .. Argument (I)'Last) = "bargs"
               or else Argument (I)(2 .. Argument (I)'Last) = "largs"
             then
-               if Optimization_Mode then
-                  Scan_Make_Arg ("-O2");
-                  Optimization_Mode := False;
-               end if;
+               Add_Default_Optimization;
                Scan_Make_Arg (I_GARLIC_Dir.all);
                GARLIC_Included := True;
-            elsif Argument (I)'Length = 2
-              and then Argument (I)(2) = 'g' then
+            elsif Argument (I)'Length >= 2
+              and then Argument (I)(2) = 'g'
+              and then (Argument (I)'Length < 5
+                        or else Argument (I)(2 .. 5) /= "gnat")
+            then
                Optimization_Mode := False;
-            elsif Argument (I)'Length > 2
-              and then Argument (I)(2) = 'O' then
+            elsif Argument (I)'Length >= 2
+              and then Argument (I)(2) = 'O'
+            then
                Optimization_Mode := False;
             end if;
          end if;
          Scan_Make_Arg (Argument (I));
       end loop;
 
-      if Optimization_Mode then
-         Scan_Make_Arg ("-O2");
-      end if;
+      Add_Default_Optimization;
 
       if not GARLIC_Included then
          Scan_Make_Arg (I_GARLIC_Dir.all);
