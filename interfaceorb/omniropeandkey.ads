@@ -94,6 +94,16 @@ package OmniRopeAndKey is
    -- Ada equivalent of C function C_Key_Size
 
 
+   function Equals(Self : in Object'Class ;
+                   Other : in Object'Class) return Boolean ;
+   pragma Import(C, Equals, "???") ;
+   -- redefinition of the operator to compare the C++ objects
+   -- see Ada_OmniRopeAndKey.hh
+
+   function "="(Self : in Object'Class ;
+                Other : in Object'Class) return Boolean
+   renames Equals ;
+
 private
 
    function Constructor return Object'Class;

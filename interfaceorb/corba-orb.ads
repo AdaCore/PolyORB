@@ -43,11 +43,14 @@ package Corba.Orb is
    ---             omniORB2 specific             ----
    --------------------------------------------------
 
-   procedure Init(Orb_Name : in Standard.String) ;
-   -- wrapper around CORBA::ORB_init(int& argc, char** argv,
-   --                               const char* orb_identifier);
-   -- in CORBA.h L 2246
+   function ORB_Init(Orb_Name : in Standard.String) return Object'Class ;
+   -- initializes and returns the ORB with parameters of the command line
 
+
+   function BOA_Init(Self : in Object'Class ;
+                     Boa_Name : in Standard.String)
+                     return Corba.Boa.Object'Class ;
+   -- initializes and returns the BOA
 
 private
 

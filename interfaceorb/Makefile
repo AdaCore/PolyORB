@@ -5,7 +5,7 @@
 
 # Ada compiler
 # as for now, it only works with gnat
-ADA_COMP = gnatgcc
+ADA_COMP = gnatgcc -gnatf 
 
 # Ada preprocessor
 ADA_PREP = gnatprep
@@ -51,9 +51,8 @@ c2ada : Ada_Sys_Dep sys_dep.o Ada_Rope.o rope.o Ada_OmniRopeAndKey.o \
 omniropeandkey.o omniobjectmanager.o omniObject_C2Ada.o Ada_OmniObject.o \
 omniobject.o giop.o Ada_Giop_s.o giop_s.o Ada_Giop_c.o giop_c.o \
 Ada_netBufferedStream.o netbufferedstream.o corba-object.o corba-boa.o \
-membufferedstream.o iop.o proxyObjectFactory_C2Ada.o \
-Ada_exceptions.o exceptions.o
-#omni.o \#omni_C2Ada.o \
+membufferedstream.o iop.o proxyObjectFactory_C2Ada.o omni_C2Ada.o \
+omni.o# Ada_exceptions.o
 
 Ada_Sys_Dep : Ada_Sys_Dep.cc
 	$(CPP_COMP) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_Sys_Dep.cc -o Ada_Sys_Dep
@@ -128,8 +127,9 @@ proxyObjectFactory_C2Ada.o: proxyObjectFactory_C2Ada.hh proxyObjectFactory_C2Ada
 omni_C2Ada.o: omni_C2Ada.hh omni_C2Ada.cc
 	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) omni_C2Ada.cc
 
-#omni.o : omni.ads omni.adb
-#	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) omni.adb
+
+omni.o : omni.ads omni.adb
+	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) omni.adb
 
 Ada_exceptions.o : Ada_exceptions.cc Ada_exceptions.hh
 	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_exceptions.cc
@@ -142,7 +142,7 @@ exceptions.o : exceptions.ads exceptions.adb
 # compilation of files that do not depend on C++
 ################################################
 adaonly: corba.ali corba-object.ali giop_s.ali giop.ali omni.ali \
-netbufferedstream.ali 
+netbufferedstream.ali corba-command_line.ali
 
 .SUFFIXES: .adb .ali
 
@@ -162,7 +162,6 @@ omni.ali: omni.ads omni.adb
 netbufferedstream.ali: netbufferedstream.ads netbufferedstream.adb
 
 membufferedstream.ali: membufferedstream.ads membufferedstream.adb
-
 
 ##############################################################
 clean :

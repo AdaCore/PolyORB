@@ -13,6 +13,8 @@
 with Ada.Tags ;
 with Omniobject ;
 use type Omniobject.Object_Ptr ;
+with Omniropeandkey ; use Omniropeandkey ;
+
 
 package body Corba.Object is
 
@@ -66,9 +68,7 @@ package body Corba.Object is
       if Is_Nil(self) then
          return True ;
       end if ;
-      return False ;--Real_Non_Existent(Self) ;
-      -- in our omniobject C to Ada, copy paste the code for non_existent
-      -- that can be found in corbaObject.cc
+      return False ;
    end ;
 
 
@@ -77,19 +77,15 @@ package body Corba.Object is
    function Is_Equivalent(Self : in Ref ;
                           Other : in Ref)
                           return Corba.Boolean is
-      --Rak : Ropeandkey.Object ;
-      --Other_Rak : Ropeandkey.Object ;
+      Rak : Omniropeandkey.Object ;
+      Other_Rak : Omniropeandkey.Object ;
+      S1, S2 : Corba.Boolean ;
    begin
       -- this is copied from corbaObject.cc L160.
       -- Here, Refs are proxy objects
-      --Rak := Get_Rope_And_Key(Self) ;
-      --Other_Rak := Get_Rope_And_Key(Other) ;
-      --if Rak = Other_Rak then
-      --   return True ;
-      --else return False ;
-      --end if ;
-      return False ;
-      -- to be implemented
+      OmniObject.Get_Rope_And_Key(Self.Omniobj.all, Rak, S1) ;
+      Omniobject.Get_Rope_And_Key(Other.Omniobj.all, Other_Rak, S2) ;
+      return S1 and S2 and (Rak = Other_Rak) ;
    end;
 
 
@@ -104,6 +100,20 @@ package body Corba.Object is
       return Corba.Unsigned_Long(0) ;
    end ;
 
+
+   -- Object_Is_Ready
+   ------------------
+   procedure Object_Is_Ready(Self : in Ref'Class) is
+   begin
+      if not Is_Nil(Self) then
+         Omniobject.Omniobject_Is_Ready(Self.Omniobj.all) ;
+      else
+         Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
+                                        "Corba.Object.Object_Is_Ready(Corba.Object.Ref)"
+                                        & Corba.CRLF
+                                        & "Cannot be called on nil object") ;
+      end if ;
+   end ;
    --------------------------------------------------
    ---        AdaBroker  specific                 ---
    --------------------------------------------------
@@ -158,14 +168,16 @@ package body Corba.Object is
     ---        omniORB specific                    ---
     --------------------------------------------------
 
-    -- Marshal_Object_Reference
-    ---------------------------
-    procedure Marshal_Object_Reference(The_Ref : in Ref ;
-                                       S : in out NetBufferedStream.Object) is
-       Tmp : Ref'Class := The_Ref ;
-    begin
-       null ;
-    end ;
+
+
+   -- Marshal_Object_Reference
+   ---------------------------
+   procedure Marshal_Object_Reference(The_Ref : in Ref ;
+                                      S : in out NetBufferedStream.Object) is
+      Tmp : Ref'Class := The_Ref ;
+   begin
+      null ;
+   end ;
 
 
 

@@ -33,50 +33,41 @@ package Corba.Boa is
    pragma CPP_Vtable (Object,Table,1);
    -- This object is wrapped around BOA (see CORBA.h)
 
-   type Object_Access is access Object ;
+   type Object_Ptr is access Object ;
    -- just to give a name to pointers on Object
 
+   procedure Object_Is_Ready(Self: in Object'Class ;
+                             Obj: in Omniobject.Implemented_Object'Class ) ;
+   -- calls the C++ function omni::objectIsReady
+   -- has to be done when an implemented object has been created
+   -- to register it into the ORB
+   -- (as a local object )
+   -- BEWARE : MUST BE CALLED ONLY ONCE FOR EACH OBJECT
 
-   procedure C_Obj_Is_Ready (Self: in Object'Class ;
-                             object: in System.Address ;
-                             p: in System.Address) ;
-   pragma Import (C,C_Obj_Is_Ready,"toto") ;
-   -- wrapper around BOA function obj_is_ready
-   -- (see CORBA.h)
-
-   procedure Obj_Is_Ready(Self: in Object'Class ;
-                          object: in Corba.Object.Ref'Class ;
-                          p: in Omniobject.Implemented_Object) ;
-   -- Ada equivalent of C procedure C_Obj_Is_Ready
+   procedure Object_Is_Ready(Self: in Object'Class ;
+                             Obj: in Corba.Object.Ref'Class ) ;
+   -- calls the C++ function omni::objectIsReady
+   -- has to be done when an implemented object has been created
+   -- to register it into the ORB
+   -- (as a proxy object )
+   -- BEWARE : MUST BE CALLED ONLY ONCE FOR EACH OBJECT
 
 
-   function C_Get_Boa (Self: in Object'Class)
-                      return System.Address ;
-   pragma Import (C,C_Get_Boa,"toto") ;
-   -- wrapper around BOA function getBOA
-   -- (see CORBA.h)
-
-   function Get_Boa (Self: in Object'Class)
-                     return Object'Class ;
+   --function Get_Boa (Self: in Object'Class)
+   --                  return Object'Class ;
    -- Ada equivalent to C function C_Get_Boa
 
 
-   procedure C_Dispose (Self : in Object'Class ;
-                        object : in System.Address) ;
-   pragma Import (C,C_Dispose,"toto") ;
-   -- wrapper around BOA function dispose
-   -- (see CORBA.h)
-
-   procedure Dispose(Self: in Object'Class ;
-                     Obj : in Corba.Object.Ref'Class) ;
+   --procedure Dispose(Self: in Object'Class ;
+   --                  Obj : in Corba.Object.Ref'Class) ;
    -- Ada equivalent of C procedure C_Dispose
 
 
 private
 
-   function Init return Object'Class;
-   pragma CPP_Constructor (Init);
-   pragma Import (CPP,Init,"__Q25CORBA3BOA");
+   function Constructor return Object'Class;
+   pragma CPP_Constructor (Constructor);
+   pragma Import (CPP,Constructor,"__Q25CORBA3BOA");
    -- wrapped around the C constructor of BOA
 
 end Corba.Boa ;

@@ -89,12 +89,13 @@ Ada_OmniObject::setRopeAndKey(const omniRopeAndKey& l,_CORBA_Boolean keepIOP=1)
   }
 };
 
-_CORBA_Boolean
-Ada_OmniObject::getRopeAndKey(omniRopeAndKey& l) {
+void
+Ada_OmniObject::getRopeAndKey(omniRopeAndKey& l, _CORBA_Boolean& success) {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_OmniObject
-    return C_OmniObject->getRopeAndKey(l);
+    success = C_OmniObject->getRopeAndKey(l);
+    return ;
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_OmniObject::getRopeAndKey without initialising object.");

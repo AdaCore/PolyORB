@@ -71,7 +71,6 @@ package OmniObject is
    type Object_Ptr is access all Object'Class ;
 
 
-
    -----------------------------------------------
    --         Implemented_Object                --
    --       this is the type of local           --
@@ -87,7 +86,15 @@ package OmniObject is
    -- and sets the repoID of this object
 
    function Is_Nil(Self : in Implemented_Object) return Corba.Boolean ;
+   function Is_Null(Self: in Implemented_Object) return Corba.Boolean renames Is_Nil;
 
+
+   procedure Object_Is_Ready(Self : in Implemented_Object'Class) ;
+   -- calls the C++ function omni::objectIsReady
+   -- has to be done when an object has been created
+   -- to register it into the ORB
+   -- (as a local object)
+   -- BEWARE : MUST BE CALLED ONLY ONCE FOR EACH OBJECT
 
    -----------------------------------------------
    --             Omniobject                    --
@@ -107,6 +114,21 @@ package OmniObject is
    -- omni::objectRelease(omniObject*)
    -- it decrements the reference count by one
    -- and releases the resources if it comes to 0
+
+   procedure Omniobject_Is_Ready(Self : in Object'Class) ;
+   pragma Import (C,Omniobject_Is_Ready,"objectIsReady__4omniP10omniObject") ;
+   -- corresponds to omni::objectIsReady
+   -- objectRef.cc L 230
+   -- only called by Object_Is_Ready(Implemented_Object)
+   -- or Object_Is_Ready(Corba.Object.Ref)
+
+
+   procedure Get_Rope_And_Key (Self : in Object'Class ;
+                              L : in out Omniropeandkey.Object ;
+                              Success : out Boolean ) ;
+   -- returns the rope and key for this omniobject
+   -- if it is a proxy object
+
 
 private
 
@@ -186,19 +208,6 @@ private
    -- Ada equivalent of C procedure C_Set_Rope_And_Key
 
 
-   function C_Get_Rope_And_Key (Self : in Object'Class ;
-                                L : in System.Address)
-                                return Sys_Dep.C_Boolean ;
-   pragma Import (CPP,C_Get_Rope_And_Key,
-                  "getRopeAndKey__C10omniObjectR14omniRopeAndKey") ;
-   -- wrapper around  Ada_OmniObject function getRopeAndKey
-   -- (see Ada_OmniObject.hh)
-
-   function Get_Rope_And_Key (Self : in Object'Class ;
-                              L : in Omniropeandkey.Object)
-                              return Boolean ;
-   -- Ada equivalent of C function C_Get_Rope_And_Key
-
 
    procedure Assert_Object_Existent (Self : in Object'Class) ;
    pragma Import (CPP,Assert_Object_Existent,
@@ -235,12 +244,6 @@ private
    -- Ada equivalent of C function C_Dispatch
    -- this function is called by the C one
    -- It is not implemented here but in the sub-classes of omniObject
-
-   procedure Object_Is_Ready(Self : in Object'Class) ;
-   pragma Import (C,Object_Is_Ready,"objectIsReady__4omniP10omniObject") ;
-   -- wrapper around omniORB's omni::objectIsReady in objectRef.CC L 230
-   -- No Ada equivalent since there is no arguments
-
 
 
 

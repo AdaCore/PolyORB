@@ -42,6 +42,8 @@ public:
   _CORBA_ULong keysize();
   // wrapper around inline _CORBA_ULong keysize() const
 
+  _CORBA_Boolean equals(Ada_OmniRopeAndKey other) ;
+  // compares two objects, imported in Ada
   
 private:
 

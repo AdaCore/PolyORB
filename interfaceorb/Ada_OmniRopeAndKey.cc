@@ -80,3 +80,27 @@ Ada_OmniRopeAndKey::keysize()
 };
 
 
+_CORBA_Boolean
+Ada_OmniRopeAndKey::equals(Ada_OmniRopeAndKey other) {
+  if (Init_Ok) {
+    // if Initialisation was made then 
+    // compare effectively the two objects
+    // this code is pasted from corbaObject.cc L160
+    if (C_omniRopeAndKey->keysize() != other.C_omniRopeAndKey->keysize() ||
+	memcmp((void*)(C_omniRopeAndKey->key()),(void*)(other.C_omniRopeAndKey->key()),
+	       C_omniRopeAndKey->keysize()) != 0) {
+      return 0 ;
+    }
+    
+    if (C_omniRopeAndKey->rope() == other.C_omniRopeAndKey->rope())
+      return 1;
+    else
+      return 0;      
+
+  } else {
+    // else raise an Ada Exception
+    raise_ada_exception ("Call of Ada_OmniRopeAndKey::equals without initialising object.");
+  }
+}
+
+

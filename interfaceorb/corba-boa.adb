@@ -23,20 +23,23 @@ with System.Address_To_Access_Conversions ;
 
 package body Corba.Boa is
 
-   -- Obj_Is_Ready
-   ---------------
-   procedure Obj_Is_Ready(Self: in Object'Class ;
-                          Object: in Corba.Object.Ref'Class ;
-                          P: in OmniObject.Implemented_Object) is
-      C_Object : System.Address ;
-      C_P : System.Address ;
+
+   -- Object_Is_Ready
+   -------------------
+   procedure Object_Is_Ready(Self: in Object'Class ;
+                             Obj: in Omniobject.Implemented_Object'Class ) is
    begin
-      -- transforms the arguments into a C type ...
-      C_Object := Object'Address ;
-      C_P := P'Address ;
-      -- ... and calls the C procedure
-      C_Obj_Is_Ready (Self,C_Object,C_P);
+      Omniobject.Object_Is_Ready(Obj) ;
    end ;
+
+   -- Object_Is_Ready
+   -------------------
+   procedure Object_Is_Ready(Self: in Object'Class ;
+                             Obj: in Corba.Object.Ref'Class ) is
+   begin
+      Corba.Object.Object_Is_Ready(Obj) ;
+   end ;
+
 
 
    -- Address_To_Object
@@ -45,6 +48,14 @@ package body Corba.Boa is
      new System.Address_To_Access_Conversions (Object) ;
    -- needed to convert System.Address into Object
 
+
+   -- C_Get_Boa
+   ----------
+   function C_Get_Boa (Self: in Object'Class)
+                      return System.Address ;
+   pragma Import (C,C_Get_Boa,"toto") ;
+   -- wrapper around BOA function getBOA
+   -- (see CORBA.h)
 
    -- Get_Boa
    ----------
@@ -58,6 +69,14 @@ package body Corba.Boa is
       return Address_To_Object.To_Pointer(C_result).All ;
    end ;
 
+
+   -- C_Dispose
+   ------------
+   procedure C_Dispose (Self : in Object'Class ;
+                        object : in System.Address) ;
+   pragma Import (C,C_Dispose,"toto") ;
+   -- wrapper around BOA function dispose
+   -- (see CORBA.h)
 
    -- Dispose
    ----------

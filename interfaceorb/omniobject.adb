@@ -236,6 +236,23 @@ package body OmniObject is
 
 
 
+  -- Object_Is_Ready
+   ------------------
+   procedure Object_Is_Ready(Self : in Implemented_Object'Class) is
+   begin
+      if not Is_Nil(Self) then
+         Omniobject_Is_Ready(Self.Omniobj.all) ;
+      else
+         Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
+                                        "Omniobject.Object_Is_Ready(Implemented_Object)"
+                                        & Corba.CRLF
+                                        & "Cannot be called on nil object") ;
+      end if ;
+   end ;
+
+
+
+
    -- Set_Rope_And_Key
    -------------------
    procedure Set_Rope_And_Key (Self : in out Object'Class ;
@@ -252,20 +269,33 @@ package body OmniObject is
    end ;
 
 
+   -- C_Get_Rope_And_Key
+   ---------------------
+   procedure C_Get_Rope_And_Key (Self : in Object'Class ;
+                                L : in out System.Address ;
+                                Success : out Sys_Dep.C_Boolean) ;
+   pragma Import (CPP,C_Get_Rope_And_Key, "????") ;
+   -- wrapper around  Ada_OmniObject function getRopeAndKey
+   -- (see Ada_OmniObject.hh)
+
    -- Get_Rope_And_Key
    -------------------
-   function Get_Rope_And_Key (Self : in Object'Class ;
-                              L : in Omniropeandkey.Object)
-                              return Boolean is
+   procedure Get_Rope_And_Key (Self : in Object'Class ;
+                               L : in out Omniropeandkey.Object ;
+                               Success : out Corba.Boolean ) is
       C_L : System.Address;
-      C_Result : Sys_Dep.C_Boolean ;
+      C_Success : Sys_Dep.C_Boolean ;
    begin
+      if Is_Proxy(Self) then
+         Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,
+                                        "Omniobject.Get_Rope_And_Key cannot be called on a local object") ;
+      end if ;
       -- transforms the arguments in a C type ...
       C_L := L'Address ;
       -- ... calls the C function ...
-      C_Result := C_Get_Rope_And_Key(Self,C_L) ;
+      C_Get_Rope_And_Key(Self, C_L, C_Success) ;
       -- ... and transforms the result into an Ada type
-      return Sys_Dep.Boolean_C_To_Ada (C_Result) ;
+      Success := Sys_Dep.Boolean_C_To_Ada (C_Success) ;
    end ;
 
 

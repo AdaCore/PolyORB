@@ -57,7 +57,7 @@ public:
   void setRopeAndKey(const omniRopeAndKey& l,_CORBA_Boolean keepIOP=1);
   // calls the setRopeAndKey function of C_OmniObject
   
-  _CORBA_Boolean getRopeAndKey(omniRopeAndKey& l);
+  void  getRopeAndKey(omniRopeAndKey& l, _CORBA_Boolean& success);
   // calls the getRopeAndKey function of C_OmniObject
   
   void assertObjectExistent();

@@ -26,8 +26,8 @@ package Corba.Object is
    Nil_Ref : constant Ref ;
 
    --I boolean is_nil();
-   function Is_Nil(Self: in Ref'Class) return Boolean;
-   function Is_Null(Self: in Ref'Class) return Boolean renames Is_Nil;
+   function Is_Nil(Self: in Ref'Class) return Corba.Boolean;
+   function Is_Null(Self: in Ref'Class) return Corba.Boolean renames Is_Nil;
 
    --I void release();
    procedure Release (Self : in out Ref'class);
@@ -40,10 +40,17 @@ package Corba.Object is
                  return Corba.Boolean ;
   -- returns true if this object is of this Logical_Type_Id
    -- or one of its descendants
+
    function Is_A(Logical_Type_Id : in Corba.String)
                  return Corba.Boolean ;
+   -- sam, but non dispatching, must be called
+   -- Corba.Object.Is_A(...)
 
    function Non_Existent(Self : in Ref) return Corba.Boolean ;
+   -- returns false if this reference is nil
+   -- it could be smarter and call omniORB's non_existent
+   -- in corbaObject.cc
+
 
    function Is_Equivalent(Self : in Ref ;
                           Other : in Ref)
@@ -74,6 +81,15 @@ package Corba.Object is
    --------------------------------------------------
    ---        omniORB specific                    ---
    --------------------------------------------------
+
+   procedure Object_Is_Ready(Self : in Ref'Class) ;
+   -- calls the C++ function omni::objectIsReady
+   -- has to be done when an object has been created
+   -- to register it into the ORB
+   -- (as a proxy object)
+   -- BEWARE : MUST BE CALLED ONLY ONCE FOR EACH OBJECT
+
+
 
    -- procedure AdaBroker_Dispatch (Self : in out Corba.Object.Object ;
    --                             Orls : in Giop_S.Object ;
