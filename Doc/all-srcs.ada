@@ -503,6 +503,7 @@ package body New_Integers is
 end New_Integers;
 with Ada.Streams; use Ada.Streams;
 package New_Integers is
+   pragma Pure;
 
    type New_Integer is new Integer;
 
