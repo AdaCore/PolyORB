@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                     P O L Y O R B - P R O F I L E S                      --
+--                     P O L Y O R B . P R O F I L E S                      --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,11 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  root package for the setup of the tasking profiles
+
+--  $Id$
 
 package PolyORB.Profiles is
    pragma Pure;
