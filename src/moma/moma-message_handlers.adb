@@ -177,7 +177,7 @@ package body MOMA.Message_Handlers is
                                       PolyORB.Any.ARG_IN);
          Result := (Name      => To_PolyORB_String ("Result"),
                     Argument  => PolyORB.Any.Get_Empty_Any
-                                    (TypeCode.TC_Any),
+                                    (TypeCode.TC_Void),
                     Arg_Modes => 0);
          PolyORB.Requests.Create_Request
            (Target    => Servant_Ref,

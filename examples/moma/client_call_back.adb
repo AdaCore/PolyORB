@@ -95,7 +95,7 @@ procedure Client_Call_Back is
    MOMA_Consumer_Acc  : MOMA.Message_Consumers.Message_Consumer_Acc;
    MOMA_Handler       : MOMA.Message_Handlers.Message_Handler;
    MOMA_Handler_Acc   : MOMA.Message_Handlers.Message_Handler_Acc;
-   Call_Back_Test     : aliased Call_Back_Byte_Test;
+   Call_Back_Test     : Call_Back_Byte_Test_Acc := new Call_Back_Byte_Test;
 
    Message_Id         : MOMA.Types.Byte;
 
@@ -172,8 +172,7 @@ begin
    MOMA_Consumer_Acc := Create_Consumer (MOMA_Session, MOMA_Dest_Pool);
    MOMA_Consumer := MOMA_Consumer_Acc.all;
 
-   MOMA_Handler_Acc := Create_Handler (
-      MOMA_Session, MOMA_Consumer_Acc);
+   MOMA_Handler_Acc := Create_Handler (MOMA_Session, MOMA_Consumer_Acc);
 
    MOMA_Handler := MOMA_Handler_Acc.all;
 
@@ -182,8 +181,7 @@ begin
 
    Call_Back_Test.Byte_Value := MOMA.Types.Byte (1);
    Call_Back_Test.Proceed := False;
-   Set_Call_Back_Data (MOMA_Handler_Acc, Call_Back_Test'Access);
-
+   Set_Call_Back_Data (MOMA_Handler_Acc, Call_Back_Test);
    Set_Handler (MOMA_Handler_Acc, Handle_Then_Notify'Access);
    Set_Notifier (MOMA_Handler_Acc, Notify_And_Receive'Access);
    Set_Behavior (MOMA_Handler_Acc, Handle);

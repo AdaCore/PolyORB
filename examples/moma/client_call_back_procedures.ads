@@ -52,7 +52,7 @@ package Client_Call_Back_Procedures is
       Proceed    : Boolean;
    end record;
 
-   type Call_Back_Byte_Test_Acc is access Call_Back_Byte_Test;
+   type Call_Back_Byte_Test_Acc is access all Call_Back_Byte_Test;
 
    function Get_Byte_Value (Message : MOMA.Messages.Message'Class)
       return MOMA.Types.Byte;
