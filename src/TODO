@@ -10,6 +10,8 @@ Items still requiring attention
 * Unified runtime configuration file
   (modifications to Droopi.Log).
 * Droopi.Buffers: remove mentions of CDR.
+* When a connection is closed, release all associated
+  resources in a top-down fashion.
 
 Items processed
 ---------------

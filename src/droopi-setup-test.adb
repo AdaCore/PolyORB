@@ -5,6 +5,8 @@
 with Droopi.Log;
 with Droopi.ORB.Task_Policies;
 with Droopi.No_Tasking;
+with Droopi.Protocols;
+with Droopi.Protocols.Echo;
 with Droopi.Sockets;
 
 procedure Droopi.Setup.Test
@@ -39,15 +41,25 @@ begin
    Addr.Addr := Addresses (Get_Host_By_Name ("localhost"), 1);
    Addr.Port := 9998;
 
+   --  Allow reuse of local addresses.
+
+--     Set_Socket_Option
+--       (Server,
+--        Socket_Level,
+--        (Reuse_Address, True));
+
    Bind_Socket (Server, Addr);
    Listen_Socket (Server);
 
 
    Insert_Socket
-     (The_ORB, Active_Socket'(Kind => Listening_Sk,
-                              Socket => Server,
-                              Protocol => null));
-   --  Register socket with ORB object.
+     (The_ORB, Active_Socket'
+      (Kind => Listening_Sk,
+       Socket => Server,
+       Protocol => Protocols.Protocol_Access'
+       (new Protocols.Echo.Echo_Protocol)));
+   --  Register socket with ORB object, associating a protocol
+   --  to the transport service access point.
 
    Run (The_ORB, May_Poll => True);
    --  Execute the ORB.

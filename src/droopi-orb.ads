@@ -61,7 +61,12 @@ package Droopi.ORB is
       end case;
    end record;
 
-   procedure Handle_Event (ORB : access ORB_Type; AS : Active_Socket);
+   type Event_Status is (No_Status, Connection_Closed);
+
+   function Handle_Event
+     (ORB : access ORB_Type;
+      AS : Active_Socket)
+     return Event_Status;
    --  Process events that have occurred on active socket AS, managed
    --  by server ORB.
 

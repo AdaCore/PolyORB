@@ -30,10 +30,21 @@ package body Droopi.ORB is
    end record;
 
    procedure Run (J : access Socket_Ev_Job);
-   procedure Run (J : access Socket_Ev_Job) is
+   procedure Run (J : access Socket_Ev_Job)
+   is
+      Status : constant Event_Status
+        := Handle_Event (J.ORB, J.AS);
    begin
-      Handle_Event (J.ORB, J.AS);
-      Insert_Socket (J.ORB, J.AS);
+      case Status is
+
+         when No_Status =>
+            Insert_Socket (J.ORB, J.AS);
+
+         when Connection_Closed =>
+            pragma Assert (J.AS.Kind = Communication_Sk);
+            Close_Socket (J.AS.Socket);
+
+      end case;
    end Run;
 
    ------------------------------------------
@@ -63,7 +74,12 @@ package body Droopi.ORB is
    -- Server object operations --
    ------------------------------
 
-   procedure Handle_Event (ORB : access ORB_Type; AS : Active_Socket) is
+   function Handle_Event
+     (ORB : access ORB_Type;
+      AS : Active_Socket)
+     return Event_Status
+   is
+      Result : Event_Status := No_Status;
    begin
       case AS.Kind is
          when Listening_Sk =>
@@ -92,17 +108,18 @@ package body Droopi.ORB is
                   & " on socket " & Image (New_AS.Socket), Info);
 
                if New_AS.Protocol /= null then
-                  New_AS.Session := Create_Session (New_AS.Protocol);
+                  Create_Session
+                    (New_AS.Protocol,
+                     New_AS.Socket,
+                     New_AS.Session,
+                     New_AS.Channel);
                end if;
 
-               New_AS.Channel := Channels.Create
-                 (Socket  => New_AS.Socket,
-                  Session => New_AS.Session,
-                  Server  => Server_Access (ORB));
+               Handle_Connect (New_AS.Session);
+               --  Startup protocol.
 
                Handle_New_Connection
                  (ORB.Tasking_Policy, ORB_Access (ORB), New_AS);
-
                --  Insert connection in list of active connections.
                --  If the threading policy is "thread-per-session",
                --  a new specific task is created which will handle all
@@ -116,28 +133,31 @@ package body Droopi.ORB is
             pragma Debug (O ("Data received on socket"
                              & Image (AS.Socket)));
 
+            --  Signal upper layers that data is available on this
+            --  channel. Further processing and possible tasking
+            --  decisions are delegated to the upstream protocol,
+            --  since they may depend upon the particular messages
+            --  received.
+
             declare
-               Channel : constant Droopi.Channels.Channel_Access
-                 := AS.Channel;
+               Closed : Boolean;
             begin
-               Droopi.Channels.Handle_Data (Channel, AS.Socket);
-
-               --  Signal upper layers that data is available on this
-               --  channel. Further processing and possible tasking
-               --  decisions are delegated to the upstream protocol,
-               --  since they may depend upon the particular messages
-               --  received.
-
+               Channels.Handle_Data (AS.Channel, Closed);
+               if Closed then
+                  Result := Connection_Closed;
+               end if;
             end;
 
          when Invalid_Sk =>
 
-            --  An error condition (AS is not a valid
-            --  active socket descriptor).
+            --  An error condition (AS is not a valid active socket).
 
             pragma Assert (False);
             null;
       end case;
+
+      return Result;
+
    end Handle_Event;
 
    procedure Run

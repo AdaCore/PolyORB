@@ -1,3 +1,11 @@
+2001-01-30  Thomas Quinot  <quinot@inf.enst.fr>
+
+	* Droopi.Protocols.Echo, all: Tested protocol interface.
+	* Droopi.Channels, Droopi.Protocols: Make Channels.Channel
+	an abstract type, and Protocols.Session_Channel (private)
+	an extension thereof. Resolves circular dependence issue
+	between protocols and channels.
+
 2001-01-29  Thomas Quinot  <quinot@inf.enst.fr>
 
 	* Droopi.Channels: Implemented Send_Data and Receive_Data.
