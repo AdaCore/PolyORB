@@ -14,13 +14,12 @@ with Corba, Giop_C ;
 
 package omniProxyCallDesc is
 
-   type Object(Op_Size : Natural) is abstract tagged private;
+   type Object is abstract tagged private;
 
    -- all the following funcitions correspond
    -- to omniORB's OmniProxyCallDesc
    -- In proxyCall.h L33
    procedure Init (Self : in out Object ;
-                   Operator : in String ;
                    Has_Exceptions : Corba.Boolean := False ) ;
 
    function Aligned_Size(Self : in Object ;
@@ -34,8 +33,8 @@ package omniProxyCallDesc is
    procedure Marshal_Arguments (Self : in Object ;
                                 Giop_Client: in out Giop_C.Object ) is abstract ;
 
-   procedure Unmarshal_Returned_Values (Self : in Object ;
-                                        Giop_Client: in out Giop_C.Object ) is abstract ;
+   procedure Unmarshal_Returned_Values (Self : in out Object ;
+                                        Giop_Client: in Giop_C.Object ) is abstract ;
 
    procedure User_Exception (Self : in Object ;
                              Giop_Client : in Giop_C.Object ;
@@ -52,9 +51,8 @@ package omniProxyCallDesc is
 
 private
 
-   type Object(Op_Size : Natural) is abstract tagged record
+   type Object is abstract tagged record
       Pd_Has_User_Exception : Corba.Boolean ;
-      Operation_Name :  Standard.String(1..Op_Size) ;
    end record ;
 
 end omniproxyCallDesc ;

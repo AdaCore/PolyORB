@@ -12,7 +12,6 @@
 
 with Corba.Object ;
 with Corba.Boa ;
-with Corba.Implementation_Defined ;
 
 package Corba.Orb is
 
@@ -35,14 +34,14 @@ package Corba.Orb is
 
    -- string object_to_string (in Object obj);
    -- server-side
-   function Object_To_String (Obj : in CORBA.Implementation_Defined.Object'class)
+   function Object_To_String (Obj : in CORBA.Object.Object'class)
                               return CORBA.String;
 
 
    -- Object string_to_object (in string str);
    -- server-side
    procedure String_to_Object (From : in CORBA.String;
-                               To : out CORBA.Implementation_Defined.Object'class);
+                               To : out CORBA.Object.Object'class);
 
 
 

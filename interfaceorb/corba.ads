@@ -15,6 +15,7 @@ with Ada.Characters.Latin_1 ;
 with Ada.Exceptions ;
 with Ada.Strings.Unbounded ;
 with Interfaces ;
+with Ada.Unchecked_Deallocation ;
 
 --I module CORBA {
 package Corba is
@@ -46,7 +47,7 @@ package Corba is
    type String is new Ada.Strings.Unbounded.Unbounded_String;
 
    -- And now all the pointers to those types :
-
+   --------------------------------------------
    type Boolean_Ptr is access all Boolean ;
    type Short_Ptr is access all Short ;
    type Long_Ptr is access all Long ;
@@ -58,6 +59,18 @@ package Corba is
    type Octet_Ptr is access all Octet ;
    type String_Ptr is access all String ;
 
+   -- And now all the free procedures for those types
+   --------------------------------------------------
+   procedure Free is new Ada.Unchecked_Deallocation(Boolean, Boolean_Ptr) ;
+   procedure Free is new Ada.Unchecked_Deallocation(Short, Short_Ptr) ;
+   procedure Free is new Ada.Unchecked_Deallocation(Long, Long_Ptr) ;
+   procedure Free is new Ada.Unchecked_Deallocation(Unsigned_Short, Unsigned_Short_Ptr) ;
+   procedure Free is new Ada.Unchecked_Deallocation(Unsigned_Long, Unsigned_Long_Ptr) ;
+   procedure Free is new Ada.Unchecked_Deallocation(Float, Float_Ptr) ;
+   procedure Free is new Ada.Unchecked_Deallocation(Double, Double_Ptr) ;
+   procedure Free is new Ada.Unchecked_Deallocation(Char, Char_Ptr) ;
+   procedure Free is new Ada.Unchecked_Deallocation(Octet, Octet_Ptr) ;
+   procedure Free is new Ada.Unchecked_Deallocation(String, String_Ptr) ;
 
    -----------------------------------------------------------
    ----           Exceptions in spec                       ---

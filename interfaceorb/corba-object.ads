@@ -20,9 +20,13 @@ with Ada.Finalization ;
 
 package Corba.Object is
 
+   -- proxy objects are references to implementations
    type Ref is tagged private ;
+   type Ref_Ptr is access Ref ;
 
-   type Ref_Access is access Ref ;
+   -- objects are real implementations of the object
+   type Object is tagged private ;
+   type Object_Ptr is access Object ;
 
    --I boolean is_nil();
    function Is_Nil(Self: in Ref'Class) return Boolean;
@@ -58,7 +62,7 @@ package Corba.Object is
    --------------------------------------------------
    function Get_Dynamic_Object(Self: in Ref'Class) return Ref'Class ;
 
-   function To_Ref(The_Ref: in Ref'Class) return Ref ;
+   function To_Ref(The_Ref: in Corba.Object.Ref'Class) return Ref ;
 
 
    procedure Marshal_Obj_Ref(The_Object: Ref'Class ;
@@ -158,6 +162,11 @@ private
       -- removed because circular dependency
    end record ;
 
+   type Object is tagged null record ;
+   -- this is not definitive,
+   -- Ref and object will probably inherit
+   -- omniobject
+
    procedure Initialize (Self: in out Ref'Class);
    -- called each time a Ref object is created
    -- initializes the Dynamic_Object pointer
@@ -172,6 +181,10 @@ private
    -- releases the underlying C pointer
 
 end Corba.Object ;
+
+
+
+
 
 
 
