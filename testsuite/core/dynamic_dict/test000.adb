@@ -104,10 +104,10 @@ procedure Test000 is
          My_Dict.Unregister (Values (J).all);
       end loop;
 
-      Output ("Regression did not occured", True);
+      Output ("Check no exception is raised", True);
    exception
       when others =>
-         Output ("Regression test failed", False);
+         Output ("Check no exception is raised", False);
 
    end Test_Regression;
 
