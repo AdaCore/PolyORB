@@ -35,7 +35,7 @@
 
 package PolyORB.Binding_Data_Base is
 
-   type Profile_Type_Base is tagged null record;
+   type Profile_Type_Base is tagged limited null record;
 
 --   type Profile_Type_Base is new Ada.Finalization.Limited_Controlled
 --     with null record;
