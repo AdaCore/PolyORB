@@ -17,16 +17,16 @@ PLATFORM     = @PLATFORM_SPECIFIC@
 
 TCP_PLATFORM = 2${PLATFORM}gtplsp.ads
 
-LAUNCHING_OBJECTS = \
+LAUNCHINGOBJECTS = \
 s-garnam.o\
 s-garrem.o
 
-TCP_OBJECTS = \
+TCPOBJECTS = \
 s-ganobl.o\
 s-gtplsp.o\
 s-gartcp.o
 
-COMMON_OBJECTS = \
+COMMONOBJECTS = \
 s-garthi.o\
 s-gaphlo.o\
 s-gaosli.o\
@@ -49,18 +49,18 @@ s-partyp.o\
 s-rpc.o\
 s-stratt.o
 
-OBJECTS = $(COMMON_OBJECTS) @PROTOCOLS_OBJECTS@ @LAUNCHING_OBJECTS@
+OBJECTS = $(COMMONOBJECTS) @PROTOCOLSOBJECTS@ @LAUNCHINGOBJECTS@
 
-LAUNCHING_SOURCES = \
+LAUNCHINGSOURCES = \
 ${srcdir}/s-garnam.ads ${srcdir}/s-garnam.adb \
 ${srcdir}/s-garrem.ads ${srcdir}/s-garrem.adb
 
-TCP_SOURCES = \
+TCPSOURCES = \
 ${srcdir}/s-ganobl.ads ${srcdir}/s-ganobl.adb \
         ./s-gtplsp.ads                        \
 ${srcdir}/s-gartcp.ads ${srcdir}/s-gartcp.adb
 
-COMMON_SOURCES = \
+COMMONSOURCES = \
 ${srcdir}/rci_info.ads ${srcdir}/rci_info.adb \
 ${srcdir}/s-garthi.ads \
         ./s-gaosli.ads ${srcdir}/s-gaosli.adb \
@@ -69,16 +69,16 @@ ${srcdir}/s-garcac.ads ${srcdir}/s-garcac.adb \
         ./s-garcon.ads                        \
 ${srcdir}/s-gardeb.ads ${srcdir}/s-gardeb.adb \
 ${srcdir}/s-garhea.ads ${srcdir}/s-garhea.adb \
-${srcdir}/s-garser.ads ${srcdir}/s-garser.adb \
 ${srcdir}/s-garlic.ads                        \
+${srcdir}/s-garloo.ads ${srcdir}/s-garloo.adb \
 ${srcdir}/s-garopt.ads ${srcdir}/s-garopt.adb \
 ${srcdir}/s-garpro.ads                        \
 ${srcdir}/s-garpri.ads                        \
 ${srcdir}/s-garpoi.ads ${srcdir}/s-garpoi.adb \
 ${srcdir}/s-garpro.ads ${srcdir}/s-garpro.adb \
+${srcdir}/s-garser.ads           s-garser.adb \
 ${srcdir}/s-garsta.ads ${srcdir}/s-garsta.adb \
-${srcdir}/s-garloo.ads ${srcdir}/s-garloo.adb \
-${srcdir}/s-gaprco.ads ${srcdir}/s-gaprco.adb \
+${srcdir}/s-gaprco.ads           s-gaprco.adb \
 ${srcdir}/s-garela.ads ${srcdir}/s-garela.adb \
 ${srcdir}/s-garter.ads ${srcdir}/s-garter.adb \
 ${srcdir}/s-garuti.ads ${srcdir}/s-garuti.adb \
@@ -87,7 +87,7 @@ ${srcdir}/s-partyp.ads                        \
 ${srcdir}/s-rpc.ads    ${srcdir}/s-rpc.adb    \
 ${srcdir}/s-stratt.adb
 
-SOURCES = $(COMMON_SOURCES) @PROTOCOLS_SOURCES@ @LAUNCHING_SOURCES@
+SOURCES = $(COMMONSOURCES) @PROTOCOLSSOURCES@ @LAUNCHINGSOURCES@
 
 CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads s-gaosli.ads s-gaprco.adb \
 	s-garser.adb

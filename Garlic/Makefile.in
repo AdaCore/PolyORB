@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.0 from Makefile.am
+# Makefile.in generated automatically by automake 1.1g from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -37,6 +37,24 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
+target_alias = @target_alias@
+build_alias = @build_alias@
+host_triplet = @host@
+target_triplet = @target@
+build_triplet = @build@
+host_alias = @host_alias@
+LAUNCHING_INCLUDED = @LAUNCHING_INCLUDED@
+AWK = @AWK@
+VERSION = @VERSION@
+CERRNO = @CERRNO@
+PROTOCOLSSOURCES = @PROTOCOLSSOURCES@
+PLATFORM_SPECIFIC = @PLATFORM_SPECIFIC@
+GNAT_SOURCE = @GNAT_SOURCE@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+PACKAGE = @PACKAGE@
+EXTRA_LIBS = @EXTRA_LIBS@
+TCP_INCLUDED = @TCP_INCLUDED@
+PROTOCOLSOBJECTS = @PROTOCOLSOBJECTS@
 
 AUTOMAKE_OPTIONS = no-dependencies foreign
 
@@ -53,16 +71,16 @@ PLATFORM     = @PLATFORM_SPECIFIC@
 
 TCP_PLATFORM = 2${PLATFORM}gtplsp.ads
 
-LAUNCHING_OBJECTS = \
+LAUNCHINGOBJECTS = \
 s-garnam.o\
 s-garrem.o
 
-TCP_OBJECTS = \
+TCPOBJECTS = \
 s-ganobl.o\
 s-gtplsp.o\
 s-gartcp.o
 
-COMMON_OBJECTS = \
+COMMONOBJECTS = \
 s-garthi.o\
 s-gaphlo.o\
 s-gaosli.o\
@@ -85,18 +103,18 @@ s-partyp.o\
 s-rpc.o\
 s-stratt.o
 
-OBJECTS = $(COMMON_OBJECTS) @PROTOCOLS_OBJECTS@ @LAUNCHING_OBJECTS@
+OBJECTS = $(COMMONOBJECTS) @PROTOCOLSOBJECTS@ @LAUNCHINGOBJECTS@
 
-LAUNCHING_SOURCES = \
+LAUNCHINGSOURCES = \
 ${srcdir}/s-garnam.ads ${srcdir}/s-garnam.adb \
 ${srcdir}/s-garrem.ads ${srcdir}/s-garrem.adb
 
-TCP_SOURCES = \
+TCPSOURCES = \
 ${srcdir}/s-ganobl.ads ${srcdir}/s-ganobl.adb \
         ./s-gtplsp.ads                        \
 ${srcdir}/s-gartcp.ads ${srcdir}/s-gartcp.adb
 
-COMMON_SOURCES = \
+COMMONSOURCES = \
 ${srcdir}/rci_info.ads ${srcdir}/rci_info.adb \
 ${srcdir}/s-garthi.ads \
         ./s-gaosli.ads ${srcdir}/s-gaosli.adb \
@@ -105,16 +123,16 @@ ${srcdir}/s-garcac.ads ${srcdir}/s-garcac.adb \
         ./s-garcon.ads                        \
 ${srcdir}/s-gardeb.ads ${srcdir}/s-gardeb.adb \
 ${srcdir}/s-garhea.ads ${srcdir}/s-garhea.adb \
-${srcdir}/s-garser.ads ${srcdir}/s-garser.adb \
 ${srcdir}/s-garlic.ads                        \
+${srcdir}/s-garloo.ads ${srcdir}/s-garloo.adb \
 ${srcdir}/s-garopt.ads ${srcdir}/s-garopt.adb \
 ${srcdir}/s-garpro.ads                        \
 ${srcdir}/s-garpri.ads                        \
 ${srcdir}/s-garpoi.ads ${srcdir}/s-garpoi.adb \
 ${srcdir}/s-garpro.ads ${srcdir}/s-garpro.adb \
+${srcdir}/s-garser.ads           s-garser.adb \
 ${srcdir}/s-garsta.ads ${srcdir}/s-garsta.adb \
-${srcdir}/s-garloo.ads ${srcdir}/s-garloo.adb \
-${srcdir}/s-gaprco.ads ${srcdir}/s-gaprco.adb \
+${srcdir}/s-gaprco.ads           s-gaprco.adb \
 ${srcdir}/s-garela.ads ${srcdir}/s-garela.adb \
 ${srcdir}/s-garter.ads ${srcdir}/s-garter.adb \
 ${srcdir}/s-garuti.ads ${srcdir}/s-garuti.adb \
@@ -123,31 +141,29 @@ ${srcdir}/s-partyp.ads                        \
 ${srcdir}/s-rpc.ads    ${srcdir}/s-rpc.adb    \
 ${srcdir}/s-stratt.adb
 
-SOURCES = $(COMMON_SOURCES) @PROTOCOLS_SOURCES@ @LAUNCHING_SOURCES@
+SOURCES = $(COMMONSOURCES) @PROTOCOLSSOURCES@ @LAUNCHINGSOURCES@
 
 CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads s-gaosli.ads s-gaprco.adb \
 	s-garser.adb
-mkinstalldirs = $(top_srcdir)/mkinstalldirs
-DIST_COMMON = ChangeLog Makefile.am Makefile.in TODO
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_CLEAN_FILES =  s-gaprco.adb s-garser.adb s-gaosli.ads
+DIST_COMMON =  ChangeLog Makefile.am Makefile.in TODO s-gaosli.ads.in \
+s-gaprco.adb.in s-garser.adb.in
 
 
-PACKAGE = @PACKAGE@
-VERSION = @VERSION@
-
-DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(INFOS) $(MANS) $(EXTRA_DIST) $(DATA)
-DEP_DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(INFO_DEPS) $(MANS) $(EXTRA_DIST) $(DATA)
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
+	$(TEXINFOS) $(MANS) $(EXTRA_DIST)
 
 TAR = tar
 default: all
 
 
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in
-	cd $(top_srcdir) && automake $(subdir)/Makefile
+	cd $(top_srcdir) && automake --strictness=foreign $(subdir)/Makefile
 
-Makefile: $(top_builddir)/config.status Makefile.in
-	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
+Makefile: $(top_builddir)/config.status $(srcdir)/Makefile.in $(BUILT_SOURCES)
+	cd $(top_builddir) \
+	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 s-gaprco.adb: $(top_builddir)/config.status s-gaprco.adb.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
 s-garser.adb: $(top_builddir)/config.status s-garser.adb.in
@@ -158,25 +174,25 @@ tags: TAGS
 TAGS:
 
 
-subdir = Garlic
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
-distdir: $(DEP_DISTFILES)
-	@for file in `cd $(srcdir) && echo $(DISTFILES)`; do \
+
+subdir = Garlic
+distdir: $(DISTFILES)
+	@for file in $(DISTFILES); do \
+	  d=$(srcdir); \
 	  test -f $(distdir)/$$file \
-	  || ln $(srcdir)/$$file $(distdir)/$$file 2> /dev/null \
-	  || cp -p $(srcdir)/$$file $(distdir)/$$file; \
+	  || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
+	  || cp -p $$d/$$file $(distdir)/$$file; \
 	done
 info:
-
 dvi:
-
 check: all
-
 installcheck:
-
 install-exec: 
+	$(NORMAL_INSTALL)
 
 install-data: install-data-local
+	$(NORMAL_INSTALL)
 
 install: install-exec install-data all
 	@:
@@ -198,7 +214,8 @@ clean-generic:
 
 distclean-generic:
 	rm -f Makefile $(DISTCLEANFILES)
-	rm -f config.cache config.log $(CONFIG_HEADER) stamp-h
+	rm -f config.cache config.log stamp-h
+	test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 
 maintainer-clean-generic:
 	test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)

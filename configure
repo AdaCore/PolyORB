@@ -845,7 +845,8 @@ test -z "$INSTALL_PROGRAM" && INSTALL_PROGRAM='${INSTALL}'
 
 test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
 
-test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL} -m 755'
+
+test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL_PROGRAM}'
 
 
 # Do some error checking and defaulting for the host and target type.
@@ -875,7 +876,7 @@ else { echo "configure: error: can not run $ac_config_sub" 1>&2; exit 1; }
 fi
 
 echo $ac_n "checking host system type""... $ac_c" 1>&6
-echo "configure:879: checking host system type" >&5
+echo "configure:880: checking host system type" >&5
 
 host_alias=$host
 case "$host_alias" in
@@ -896,7 +897,7 @@ host_os=`echo $host | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\3/'`
 echo "$ac_t""$host" 1>&6
 
 echo $ac_n "checking target system type""... $ac_c" 1>&6
-echo "configure:900: checking target system type" >&5
+echo "configure:901: checking target system type" >&5
 
 target_alias=$target
 case "$target_alias" in
@@ -914,7 +915,7 @@ target_os=`echo $target | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\3/'`
 echo "$ac_t""$target" 1>&6
 
 echo $ac_n "checking build system type""... $ac_c" 1>&6
-echo "configure:918: checking build system type" >&5
+echo "configure:919: checking build system type" >&5
 
 build_alias=$build
 case "$build_alias" in
@@ -975,16 +976,16 @@ if test "${with_launching+set}" = set; then
   withval="$with_launching"
   
   echo $ac_n "checking launching facilities""... $ac_c" 1>&6
-echo "configure:979: checking launching facilities" >&5
+echo "configure:980: checking launching facilities" >&5
   case ${withval} in
   yes)
-     LAUNCHING_SOURCES="\$(LAUNCHING_SOURCES)";
-     LAUNCHING_OBJECTS="\$(LAUNCHING_OBJECTS)";
+     LAUNCHINGSOURCES="\$(LAUNCHINGSOURCES)";
+     LAUNCHINGOBJECTS="\$(LAUNCHINGOBJECTS)";
      LAUNCHING_INCLUDED="";
      echo "$ac_t""yes" 1>&6;;
   *)
-     LAUNCHING_SOURCES="";
-     LAUNCHING_OBJECTS="";
+     LAUNCHINGSOURCES="";
+     LAUNCHINGOBJECTS="";
      LAUNCHING_INCLUDED="--  ";
      echo "$ac_t""no" 1>&6;;
   esac;
@@ -992,9 +993,9 @@ echo "configure:979: checking launching facilities" >&5
 else
   
 echo $ac_n "checking launching facilities""... $ac_c" 1>&6
-echo "configure:996: checking launching facilities" >&5
-LAUNCHING_SOURCES="\$(LAUNCHING_SOURCES)";
-LAUNCHING_OBJECTS="\$(LAUNCHING_OBJECTS)";
+echo "configure:997: checking launching facilities" >&5
+LAUNCHINGSOURCES="\$(LAUNCHINGSOURCES)";
+LAUNCHINGOBJECTS="\$(LAUNCHINGOBJECTS)";
 LAUNCHING_INCLUDED="";
 echo "$ac_t""yes" 1>&6
 
@@ -1011,17 +1012,17 @@ if test "${with_protocols+set}" = set; then
   withval="$with_protocols"
   
   echo $ac_n "checking default protocols""... $ac_c" 1>&6
-echo "configure:1015: checking default protocols" >&5
+echo "configure:1016: checking default protocols" >&5
   LIST="";
-  PROTOCOLS_SOURCES="";
-  PROTOCOLS_OBJECTS="";
+  PROTOCOLSSOURCES="";
+  PROTOCOLSOBJECTS="";
   TCP_INCLUDED="--  ";
   for P in "${withval}"; do
      case ${P} in
      TCP|tcp) 
         LIST="${LIST} tcp";
-        PROTOCOLS_SOURCES="${PROTOCOLS_SOURCES} \$(TCP_SOURCES)";
-        PROTOCOLS_OBJECTS="${PROTOCOLS_OBJECTS} \$(TCP_OBJECTS)";
+        PROTOCOLSSOURCES="${PROTOCOLSSOURCES} \$(TCPSOURCES)";
+        PROTOCOLSOBJECTS="${PROTOCOLSOBJECTS} \$(TCPOBJECTS)";
         TCP_INCLUDED="";;
      no)
         LIST="none";
@@ -1036,9 +1037,9 @@ echo "configure:1015: checking default protocols" >&5
 else
   
 echo $ac_n "checking default protocols""... $ac_c" 1>&6
-echo "configure:1040: checking default protocols" >&5
-PROTOCOLS_SOURCES="\$(TCP_SOURCES)";
-PROTOCOLS_OBJECTS="\$(TCP_OBJECTS)";
+echo "configure:1041: checking default protocols" >&5
+PROTOCOLSSOURCES="\$(TCPSOURCES)";
+PROTOCOLSOBJECTS="\$(TCPOBJECTS)";
 TCP_INCLUDED=""
 echo "$ac_t""tcp" 1>&6
 
@@ -1053,7 +1054,7 @@ fi
 
 
   echo $ac_n "checking for GNAT sources""... $ac_c" 1>&6
-echo "configure:1057: checking for GNAT sources" >&5
+echo "configure:1058: checking for GNAT sources" >&5
   if test -f gnat/osint.ads; then
     GNAT_SOURCE=../gnat
     echo "$ac_t""gnat" 1>&6
@@ -1075,7 +1076,7 @@ echo "configure:1057: checking for GNAT sources" >&5
 # Make
 #
 echo $ac_n "checking whether ${MAKE-make} sets \${MAKE}""... $ac_c" 1>&6
-echo "configure:1079: checking whether ${MAKE-make} sets \${MAKE}" >&5
+echo "configure:1080: checking whether ${MAKE-make} sets \${MAKE}" >&5
 set dummy ${MAKE-make}; ac_make=`echo "$2" | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_prog_make_${ac_make}_set'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1105,7 +1106,7 @@ fi
 # Platform specific
 #
 echo $ac_n "checking which platform-specific variant to use""... $ac_c" 1>&6
-echo "configure:1109: checking which platform-specific variant to use" >&5
+echo "configure:1110: checking which platform-specific variant to use" >&5
 # Check whether --with-platform or --without-platform was given.
 if test "${with_platform+set}" = set; then
   withval="$with_platform"
@@ -1134,7 +1135,7 @@ echo "$ac_t""$PSNAME" 1>&6
 # Find get_errno or __get_errno
 #
 echo $ac_n "checking for is_regular_file in -lgnat""... $ac_c" 1>&6
-echo "configure:1138: checking for is_regular_file in -lgnat" >&5
+echo "configure:1139: checking for is_regular_file in -lgnat" >&5
 ac_lib_var=`echo gnat'_'is_regular_file | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1142,7 +1143,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lgnat  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1146 "configure"
+#line 1147 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -1153,7 +1154,7 @@ int main() {
 is_regular_file()
 ; return 0; }
 EOF
-if { (eval echo configure:1157: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:1158: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1183,12 +1184,12 @@ fi
 for ac_func in get_errno
 do
 echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
-echo "configure:1187: checking for $ac_func" >&5
+echo "configure:1188: checking for $ac_func" >&5
 if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1192 "configure"
+#line 1193 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char $ac_func(); below.  */
@@ -1211,7 +1212,7 @@ $ac_func();
 
 ; return 0; }
 EOF
-if { (eval echo configure:1215: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:1216: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_func_$ac_func=yes"
 else
@@ -1235,12 +1236,12 @@ else
 for ac_func in __get_errno
 do
 echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
-echo "configure:1239: checking for $ac_func" >&5
+echo "configure:1240: checking for $ac_func" >&5
 if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1244 "configure"
+#line 1245 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char $ac_func(); below.  */
@@ -1263,7 +1264,7 @@ $ac_func();
 
 ; return 0; }
 EOF
-if { (eval echo configure:1267: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:1268: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_func_$ac_func=yes"
 else
@@ -1465,11 +1466,11 @@ s%@build_cpu@%$build_cpu%g
 s%@build_vendor@%$build_vendor%g
 s%@build_os@%$build_os%g
 s%@GNATFLAGS@%$GNATFLAGS%g
-s%@LAUNCHING_SOURCES@%$LAUNCHING_SOURCES%g
-s%@LAUNCHING_OBJECTS@%$LAUNCHING_OBJECTS%g
+s%@LAUNCHINGSOURCES@%$LAUNCHINGSOURCES%g
+s%@LAUNCHINGOBJECTS@%$LAUNCHINGOBJECTS%g
 s%@LAUNCHING_INCLUDED@%$LAUNCHING_INCLUDED%g
-s%@PROTOCOLS_SOURCES@%$PROTOCOLS_SOURCES%g
-s%@PROTOCOLS_OBJECTS@%$PROTOCOLS_OBJECTS%g
+s%@PROTOCOLSSOURCES@%$PROTOCOLSSOURCES%g
+s%@PROTOCOLSOBJECTS@%$PROTOCOLSOBJECTS%g
 s%@TCP_INCLUDED@%$TCP_INCLUDED%g
 s%@GNAT_SOURCE@%$GNAT_SOURCE%g
 s%@SET_MAKE@%$SET_MAKE%g
