@@ -726,6 +726,9 @@ package body Ada_Be.Expansion is
       pragma Assert (Kind (Node) = K_State_Member);
       Declarators := State_Declarators (Node);
 
+      --  expand the type
+      Expand_Node (State_Type (Node));
+
       Init (It, Declarators);
       pragma Assert (not Is_End (It));
       Get_Next_Node (It, Current_Decl);

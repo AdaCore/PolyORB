@@ -1337,6 +1337,10 @@ package body Broca.RootPOA is
             when E : others =>
                pragma Debug (O ("GIOP_Invoke: system exception " &
                                 Ada.Exceptions.Exception_Name (E)));
+               --  FIXME : if non CORBA excpetion is caught, then
+               --  it cannot be marshalled
+               --  It will lead to broca.exceptions.get_member
+               --  raising Bad_Param and the server crashes
                if Response_Expected then
                   Broca.CDR.Marshall
                     (Reply, CORBA.Unsigned_Long (Broca.GIOP.No_Context));
@@ -1364,15 +1368,21 @@ package body Broca.RootPOA is
          POA_Manager_Ptr (Self.POA_Manager).State.Dec_Usage;
 
       exception
-         when others =>
+         when OtExcep : others =>
+         pragma Debug (O ("GIOP_Invoke : inner exception caught: "
+                          & Ada.Exceptions.Exception_Name (OtExcep)
+                          &", reraising it"));
             if Self.Servant_Policy = RETAIN then
                Self.Object_Map (Slot).Requests_Lock.Unlock_R;
             end if;
             raise;
       end;
-
+      pragma Debug (O ("GIOP_Invoke : end"));
    exception
-      when others =>
+      when OE : others =>
+         pragma Debug (O ("GIOP_Invoke : exception caught: "
+                          & Ada.Exceptions.Exception_Name (OE)
+                          &", reraising it"));
          Self.Requests_Lock.Unlock_R;
          POA_Manager_Ptr (Self.POA_Manager).State.Dec_Usage;
          raise;
