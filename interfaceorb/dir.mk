@@ -74,9 +74,11 @@ $(lib): $(CXXOBJS) $(ADAOBJS)
 clean::
 	-rm -f *.ali *.o Ada_Sys_Dep adabroker-sysdep.ads *~ libadabroker.a
 
-
 previous_check: Ada_Sys_Dep
-	./Ada_Sys_Dep
+	@if [ `./Ada_Sys_Dep` ]; then \
+	   echo "size of long has to be 4"; \
+	   exit 1; \
+	fi
 
 Ada_Sys_Dep: Ada_Sys_Dep.cc
 	$(CXX) $(DIR_CPPFLAGS) Ada_Sys_Dep.cc -o Ada_Sys_Dep 
