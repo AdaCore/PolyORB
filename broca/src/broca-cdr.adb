@@ -293,7 +293,7 @@ package body Broca.CDR is
         := To_Long_Double_Buf (Data);
    begin
       Align_Marshall_Host_Endian_Copy
-        (Buffer, Buf, 12);
+        (Buffer, Buf, 8);
    end Marshall;
 
    procedure Marshall
@@ -323,6 +323,20 @@ package body Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
+      Data : in CORBA.Identifier) is
+   begin
+      Marshall (Buffer, CORBA.String (Data));
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data : in CORBA.RepositoryId) is
+   begin
+      Marshall (Buffer, CORBA.String (Data));
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
       Data : in CORBA.Any) is
    begin
       null;
@@ -332,7 +346,77 @@ package body Broca.CDR is
      (Buffer : access Buffer_Type;
       Data : in CORBA.TypeCode.Object) is
    begin
-      null;
+      case CORBA.Typecode.Kind (Data) is
+         when Tk_Null =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(0));
+         when Tk_Void =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(1));
+         when Tk_Short =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(2));
+         when Tk_Long =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(3));
+         when Tk_Ushort =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(4));
+         when Tk_Ulong =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(5));
+         when Tk_Float =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(6));
+         when Tk_Double =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(7));
+         when Tk_Boolean =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(8));
+         when Tk_Char =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(9));
+         when Tk_Octet =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(10));
+         when Tk_Any =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(11));
+         when Tk_TypeCode =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(12));
+         when Tk_Principal =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(13));
+         when Tk_Objref =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(14));
+            Marshall (Buffer, CORBA.TypeCode.Id (Data));
+            Marshall (Buffer, CORBA.TypeCode.Name (Data));
+--  FIXME : not done under this point
+         when Tk_Struct =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(15));
+         when Tk_Union =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(16));
+         when Tk_Enum =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(17));
+         when Tk_String =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(18));
+         when Tk_Sequence =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(19));
+         when Tk_Array =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(20));
+         when Tk_Alias =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(21));
+         when Tk_Except =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(22));
+         when Tk_Longlong =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(23));
+         when Tk_Ulonglong =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(24));
+         when Tk_Longdouble =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(25));
+         when Tk_Widechar =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(26));
+         when Tk_Wstring =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(27));
+         when Tk_Fixed =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(28));
+         when Tk_Value =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(29));
+         when Tk_Valuebox =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(30));
+         when Tk_Native =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(31));
+         when Tk_Abstract_Interface =>
+            Marshall (Buffer, CORBA.Unsigned_Long'(32));
+      end case;
    end Marshall;
 
    procedure Marshall
@@ -459,6 +543,20 @@ package body Broca.CDR is
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : access CORBA.Wide_String) is
+   begin
+      Marshall (Buffer, Data.all);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.Identifier) is
+   begin
+      Marshall (Buffer, Data.all);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.RepositoryId) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
@@ -601,7 +699,7 @@ package body Broca.CDR is
    function Unmarshall (Buffer : access Buffer_Type)
      return CORBA.Long_Double is
       Octets : constant Octet_Array :=
-        Align_Unmarshall_Host_Endian_Copy (Buffer, 12, 16);
+        Align_Unmarshall_Host_Endian_Copy (Buffer, 12, 8);
    begin
       return To_Long_Double (Long_Double_Buf (Octets));
    end Unmarshall;
@@ -634,6 +732,20 @@ package body Broca.CDR is
       end loop;
       return CORBA.To_CORBA_Wide_String
         (Equiv (1 .. Equiv'Length - 1));
+   end Unmarshall;
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Identifier is
+      Result : CORBA.String := Unmarshall (Buffer);
+   begin
+      return CORBA.Identifier (Result);
+   end Unmarshall;
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.RepositoryId is
+      Result : CORBA.String := Unmarshall (Buffer);
+   begin
+      return CORBA.RepositoryId (Result);
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)
