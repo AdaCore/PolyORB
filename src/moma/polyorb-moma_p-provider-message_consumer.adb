@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -222,7 +222,8 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
          It := First (List_Of (Args).all);
          Set_Result
-           (Req, Get (Self.Remote_Ref, From_Any (Value (It).Argument)));
+           (Req,
+            Get (Self.Remote_Ref, PolyORB.Any.From_Any (Value (It).Argument)));
          pragma Debug (O ("Result: " & Image (Req.Result)));
 
       elsif Req.Operation = To_PolyORB_String ("Register_Handler") then
@@ -254,7 +255,7 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
                (MOMA.Destinations.From_Any (Handler_Dest.Argument)),
               MOMA.Types.Call_Back_Behavior'Value
                (MOMA.Types.To_Standard_String
-                (From_Any (Behavior.Argument))));
+                (MOMA.Types.From_Any (Behavior.Argument))));
             pragma Debug (O ("Handler registered"));
          end;
 
@@ -295,7 +296,8 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
       PolyORB.Any.NVList.Add_Item
         (Arg_List,
          To_PolyORB_String ("Behavior"),
-         To_Any (To_PolyORB_String (Call_Back_Behavior'Image (Behavior))),
+         PolyORB.Any.To_Any
+         (To_PolyORB_String (Call_Back_Behavior'Image (Behavior))),
          PolyORB.Any.ARG_IN);
 
       Result := (Name      => To_PolyORB_String ("Result"),

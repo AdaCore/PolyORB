@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -288,7 +288,7 @@ package body MOMA.Message_Producers is
          Note          : CBH_Note;
       begin
          Method_Name := (Name  => To_MOMA_String ("method"),
-                         Value => To_Any
+                         Value => PolyORB.Any.To_Any
                          (PolyORB.Types.String (Req.Operation)));
 
          Return_1 := (Name  => To_MOMA_String ("return_1"),
@@ -425,8 +425,8 @@ package body MOMA.Message_Producers is
 
          for J in 3 .. Length (Parameter_Map)  loop
             pragma Debug (O ("Argument : " & MOMA.Types.To_Standard_String
-                             (From_Any (Element_Of
-                                        (Parameter_Map, J).Value))));
+                             (PolyORB.Any.From_Any
+                              (Element_Of (Parameter_Map, J).Value))));
 
             PolyORB.Any.NVList.Add_Item (Arg_List,
                                          To_PolyORB_String ("Message"),

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -199,8 +199,9 @@ package body MOMA.Message_Handlers is
          PolyORB.Any.NVList.Add_Item
            (Arg_List,
             To_PolyORB_String ("Behavior"),
-            To_Any (To_PolyORB_String
-                    (Call_Back_Behavior'Image (Self.Behavior))),
+            PolyORB.Any.To_Any
+            (To_PolyORB_String (Call_Back_Behavior'Image (Self.Behavior))),
+
             PolyORB.Any.ARG_IN);
 
          Result := (Name      => To_PolyORB_String ("Result"),

@@ -331,7 +331,9 @@ package body PolyORB.MOMA_P.Provider.Routers is
             Next (It);
             From_Router_Id := Value (It);
             Publish
-              (Self, Message.Argument, From_Any (From_Router_Id.Argument));
+              (Self,
+               Message.Argument,
+               PolyORB.Any.From_Any (From_Router_Id.Argument));
          end;
 
       elsif Operation = "Subscribe"
@@ -478,7 +480,7 @@ package body PolyORB.MOMA_P.Provider.Routers is
       PolyORB.Any.NVList.Add_Item
         (Arg_List,
          To_PolyORB_String ("From_Router_Id"),
-         To_Any (Get_Id (Self.all)),
+         PolyORB.Any.To_Any (Get_Id (Self.all)),
          PolyORB.Any.ARG_IN);
 
       Result

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,15 +33,13 @@
 
 --  $Id$
 
-with MOMA.Types;
-
 package body MOMA.Messages.MAnys is
 
    --------------
    -- Get_Any --
    --------------
 
-   function Get_Any (Self : MAny) return PolyORB.Any.Any is
+   function Get_Any (Self : MAny) return MOMA.Types.Any is
    begin
       return Get_Payload (Self);
    end Get_Any;
@@ -50,7 +48,7 @@ package body MOMA.Messages.MAnys is
    -- Set_Any --
    --------------
 
-   procedure Set_Any (Self  : in out MAny; Value : PolyORB.Any.Any) is
+   procedure Set_Any (Self  : in out MAny; Value : MOMA.Types.Any) is
 
    begin
       Set_Payload (Self, Value);

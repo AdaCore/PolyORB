@@ -46,7 +46,6 @@ package body MOMA.Destinations is
 
    use MOMA.Types;
 
-   use PolyORB.Any;
    use PolyORB.Any.ObjRef;
    use PolyORB.Types;
 
@@ -128,19 +127,22 @@ package body MOMA.Destinations is
       Ref      : PolyORB.References.Ref;
    begin
       Name := From_Any
-        (Get_Aggregate_Element (Self,
-                                TypeCode.TC_String,
-                                PolyORB.Types.Unsigned_Long (0)));
+        (PolyORB.Any.Get_Aggregate_Element
+         (Self,
+          PolyORB.Any.TypeCode.TC_String,
+          PolyORB.Types.Unsigned_Long (0)));
 
       Ref := From_Any
-        (Get_Aggregate_Element (Self,
-                                TypeCode.TC_Object,
-                                PolyORB.Types.Unsigned_Long (1)));
+        (PolyORB.Any.Get_Aggregate_Element
+         (Self,
+          PolyORB.Any.TypeCode.TC_Object,
+          PolyORB.Types.Unsigned_Long (1)));
 
       Kind := MOMA.Types.From_Any
-        (Get_Aggregate_Element (Self,
-                                MOMA.Types.TC_Destination_Type,
-                                PolyORB.Types.Unsigned_Long (2)));
+        (PolyORB.Any.Get_Aggregate_Element
+         (Self,
+          MOMA.Types.TC_Destination_Type,
+          PolyORB.Types.Unsigned_Long (2)));
 
       return Create_Destination (Name, Ref, Kind);
    end From_Any;
@@ -231,13 +233,24 @@ package body MOMA.Destinations is
 
    function To_Any
      (Self : Destination)
-     return PolyORB.Any.Any
+     return MOMA.Types.Any
    is
-      Result : Any := Get_Empty_Any_Aggregate (TC_MOMA_Destination);
+      Result : MOMA.Types.Any
+        := PolyORB.Any.Get_Empty_Any_Aggregate (TC_MOMA_Destination);
+
    begin
-      Add_Aggregate_Element (Result, To_Any (Self.Name));
-      Add_Aggregate_Element (Result, To_Any (Self.Ref));
-      Add_Aggregate_Element (Result, MOMA.Types.To_Any (Self.Kind));
+      PolyORB.Any.Add_Aggregate_Element
+        (Result,
+         PolyORB.Any.To_Any (Self.Name));
+
+      PolyORB.Any.Add_Aggregate_Element
+        (Result,
+         PolyORB.Any.ObjRef.To_Any (Self.Ref));
+
+      PolyORB.Any.Add_Aggregate_Element
+        (Result,
+         MOMA.Types.To_Any (Self.Kind));
+
       return Result;
    end To_Any;
 
@@ -253,29 +266,48 @@ package body MOMA.Destinations is
       use PolyORB.Types;
 
       T : PolyORB.Any.TypeCode.Object := PolyORB.Any.TypeCode.TC_Object;
+
    begin
-      TypeCode.Add_Parameter (TC_MOMA_Destination,
-                              To_Any (To_PolyORB_String ("moma_destination")));
-      TypeCode.Add_Parameter
+      PolyORB.Any.TypeCode.Add_Parameter
+        (TC_MOMA_Destination,
+         To_Any (To_PolyORB_String ("moma_destination")));
+
+      PolyORB.Any.TypeCode.Add_Parameter
         (TC_MOMA_Destination,
          To_Any (To_PolyORB_String
                  ("MOMA:destinations/moma_destinations:1.0")));
 
-      TypeCode.Add_Parameter (TC_MOMA_Destination, To_Any (TC_String));
-      TypeCode.Add_Parameter (TC_MOMA_Destination,
-                              To_Any (To_PolyORB_String ("name")));
+      PolyORB.Any.TypeCode.Add_Parameter
+        (TC_MOMA_Destination,
+         PolyORB.Any.To_Any (PolyORB.Any.TypeCode.TC_String));
 
-      TypeCode.Add_Parameter (T, To_Any (To_PolyORB_String ("Object")));
-      TypeCode.Add_Parameter (T, To_Any (To_PolyORB_String ("plop")));
+      PolyORB.Any.TypeCode.Add_Parameter
+        (TC_MOMA_Destination,
+         To_Any (To_PolyORB_String ("name")));
 
-      TypeCode.Add_Parameter (TC_MOMA_Destination, To_Any (T));
-      TypeCode.Add_Parameter (TC_MOMA_Destination,
-                              To_Any (To_PolyORB_String ("ref")));
+      PolyORB.Any.TypeCode.Add_Parameter
+        (T,
+         To_Any (To_PolyORB_String ("Object")));
 
-      TypeCode.Add_Parameter (TC_MOMA_Destination,
-                              To_Any (MOMA.Types.TC_Destination_Type));
-      TypeCode.Add_Parameter (TC_MOMA_Destination,
-                              To_Any (To_PolyORB_String ("kind")));
+      PolyORB.Any.TypeCode.Add_Parameter
+        (T,
+         To_Any (To_PolyORB_String ("plop")));
+
+      PolyORB.Any.TypeCode.Add_Parameter
+        (TC_MOMA_Destination,
+         PolyORB.Any.To_Any (T));
+
+      PolyORB.Any.TypeCode.Add_Parameter
+        (TC_MOMA_Destination,
+         To_Any (To_PolyORB_String ("ref")));
+
+      PolyORB.Any.TypeCode.Add_Parameter
+        (TC_MOMA_Destination,
+         PolyORB.Any.To_Any (MOMA.Types.TC_Destination_Type));
+
+      PolyORB.Any.TypeCode.Add_Parameter
+        (TC_MOMA_Destination,
+         To_Any (To_PolyORB_String ("kind")));
    end Initialize;
 
 begin

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,13 +45,13 @@ with PolyORB.Sequences.Unbounded;
 
 package MOMA.Types is
 
-   use PolyORB.Any;
    use PolyORB.Types;
 
    --
    --  Basic types.
    --
 
+   subtype Any            is PolyORB.Any.Any;
    subtype Boolean        is PolyORB.Types.Boolean;
    subtype Byte           is PolyORB.Types.Octet;
    subtype Char           is PolyORB.Types.Char;
@@ -63,18 +63,43 @@ package MOMA.Types is
    subtype Unsigned_Long  is PolyORB.Types.Unsigned_Long;
    subtype Unsigned_Short is PolyORB.Types.Unsigned_Short;
 
+   function To_Any (Item : in Any)                return Any;
+   function To_Any (Item : in Boolean)            return Any;
+   function To_Any (Item : in Byte)               return Any;
+   function To_Any (Item : in Char)               return Any;
+   function To_Any (Item : in Double)             return Any;
+   function To_Any (Item : in MOMA.Types.Float)   return Any;
+   function To_Any (Item : in Long)               return Any;
+   function To_Any (Item : in Short)              return Any;
+   function To_Any (Item : in MOMA.Types.String)  return Any;
+   function To_Any (Item : in Unsigned_Short)     return Any;
+   function To_Any (Item : in Unsigned_Long)      return Any;
+
+   function From_Any (Item : in Any) return Any;
+   function From_Any (Item : in Any) return Boolean;
+   function From_Any (Item : in Any) return Byte;
+   function From_Any (Item : in Any) return Char;
+   function From_Any (Item : in Any) return Double;
+   function From_Any (Item : in Any) return MOMA.Types.Float;
+   function From_Any (Item : in Any) return Long;
+   function From_Any (Item : in Any) return Short;
+   function From_Any (Item : in Any) return MOMA.Types.String;
+   function From_Any (Item : in Any) return Unsigned_Long;
+   function From_Any (Item : in Any) return Unsigned_Short;
+
+   function "=" (Left, Right : in Any) return Boolean;
+
    --
    --  String conversion fonctions.
    --
 
    function To_Standard_String
-     (V : PolyORB.Types.String)
+     (V : MOMA.Types.String)
      return Standard.String renames PolyORB.Types.To_Standard_String;
-
 
    function To_MOMA_String
      (V : Standard.String)
-     return PolyORB.Types.String renames PolyORB.Types.To_PolyORB_String;
+     return MOMA.Types.String renames PolyORB.Types.To_PolyORB_String;
 
    --
    --  MOMA specific types.
@@ -89,15 +114,16 @@ package MOMA.Types is
    --  Map_Element type.
 
    type Map_Element is record
-     Name : MOMA.Types.String;
-     Value : PolyORB.Any.Any;
+     Name  : MOMA.Types.String;
+     Value : MOMA.Types.Any;
    end record;
 
-   TC_Map_Element : TypeCode.Object := TypeCode.TC_Struct;
+   TC_Map_Element : PolyORB.Any.TypeCode.Object
+     := PolyORB.Any.TypeCode.TC_Struct;
 
-   function To_Any (Item : in Map_Element) return PolyORB.Any.Any;
+   function To_Any (Item : in Map_Element) return MOMA.Types.Any;
 
-   function From_Any (Item : in PolyORB.Any.Any) return Map_Element;
+   function From_Any (Item : in MOMA.Types.Any) return Map_Element;
 
    function Get_Boolean
      (Self : Map_Element)
@@ -192,24 +218,24 @@ package MOMA.Types is
    package IDL_SEQUENCE_Map_Element is
      new PolyORB.Sequences.Unbounded (Map_Element);
 
-   TC_IDL_SEQUENCE_Map_Element : TypeCode.Object :=
-     TypeCode.TC_Sequence;
+   TC_IDL_SEQUENCE_Map_Element : PolyORB.Any.TypeCode.Object
+     := PolyORB.Any.TypeCode.TC_Sequence;
 
    function From_Any
-     (Item : in PolyORB.Any.Any)
+     (Item : in MOMA.Types.Any)
       return IDL_SEQUENCE_Map_Element.Sequence;
 
    function To_Any
      (Item : IDL_SEQUENCE_Map_Element.Sequence)
-     return PolyORB.Any.Any;
+     return MOMA.Types.Any;
 
-   TC_Map : TypeCode.Object := TypeCode.TC_Alias;
+   TC_Map : PolyORB.Any.TypeCode.Object := PolyORB.Any.TypeCode.TC_Alias;
 
    type Map is new MOMA.Types.IDL_SEQUENCE_Map_Element.Sequence;
 
-   function To_Any (Item : in Map) return PolyORB.Any.Any;
+   function To_Any (Item : in Map) return MOMA.Types.Any;
 
-   function From_Any (Item : in PolyORB.Any.Any) return Map;
+   function From_Any (Item : in MOMA.Types.Any) return Map;
 
    --
    --  MOMA administrative types.
@@ -222,12 +248,13 @@ package MOMA.Types is
                              Router,
                              Topic);
 
-   TC_Destination_Type : TypeCode.Object := TypeCode.TC_Enum;
+   TC_Destination_Type : PolyORB.Any.TypeCode.Object
+     := PolyORB.Any.TypeCode.TC_Enum;
 
    --  Marshalling functions for Destination_Type.
-   function From_Any (Item : in PolyORB.Any.Any) return Destination_Type;
+   function From_Any (Item : in MOMA.Types.Any) return Destination_Type;
 
-   function To_Any (Item : in Destination_Type) return PolyORB.Any.Any;
+   function To_Any (Item : in Destination_Type) return MOMA.Types.Any;
 
    type Pool_Type is (Queue,
                       Topic);

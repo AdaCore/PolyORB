@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -137,7 +137,9 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
          end if;
 
          Req.Result.Argument := Get
-           (Self, From_Any (Value (First (List_Of (Args).all)).Argument));
+           (Self,
+            PolyORB.Any.From_Any
+            (Value (First (List_Of (Args).all)).Argument));
          pragma Debug (O ("Result: " & Image (Req.Result)));
 
       elsif Req.Operation = To_PolyORB_String ("Register_Handler") then
@@ -171,7 +173,7 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
                (MOMA.Destinations.From_Any (Handler_Dest.Argument)),
                MOMA.Types.Call_Back_Behavior'Value
                (MOMA.Types.To_Standard_String
-                (From_Any (Behavior.Argument))));
+                (MOMA.Types.From_Any (Behavior.Argument))));
 
             pragma Debug (O ("Registered message handler"));
          end;

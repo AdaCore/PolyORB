@@ -41,6 +41,7 @@ with PolyORB.Utils.Strings;
 
 package body MOMA.Types is
 
+   use PolyORB.Any;
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("moma.types");
@@ -51,9 +52,9 @@ package body MOMA.Types is
    -- From_Any --
    --------------
 
-   function From_Any (Item : in PolyORB.Any.Any) return Map_Element
+   function From_Any (Item : in MOMA.Types.Any) return Map_Element
    is
-      Index  : Any;
+      Index  : PolyORB.Any.Any;
       Result : Map_Element;
 
    begin
@@ -71,7 +72,7 @@ package body MOMA.Types is
    end From_Any;
 
    function From_Any
-     (Item : in PolyORB.Any.Any)
+     (Item : in MOMA.Types.Any)
      return IDL_SEQUENCE_Map_Element.Sequence
    is
       use IDL_SEQUENCE_Map_Element;
@@ -96,7 +97,7 @@ package body MOMA.Types is
       return To_Sequence (Result);
    end From_Any;
 
-   function From_Any (Item : in PolyORB.Any.Any) return Map
+   function From_Any (Item : in MOMA.Types.Any) return Map
    is
       Result : IDL_SEQUENCE_Map_Element.Sequence := From_Any (Item);
    begin
@@ -104,7 +105,7 @@ package body MOMA.Types is
       return Map (Result);
    end From_Any;
 
-   function From_Any (Item : in PolyORB.Any.Any) return Destination_Type
+   function From_Any (Item : in MOMA.Types.Any) return Destination_Type
    is
       Index    : Any := Get_Aggregate_Element (Item,
                                                TC_Unsigned_Long,
@@ -114,11 +115,74 @@ package body MOMA.Types is
       return Destination_Type'Val (Position);
    end From_Any;
 
+   function From_Any (Item : in Any) return Short is
+   begin
+      return Short
+        (PolyORB.Types.Short'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : in Any) return Long is
+   begin
+      return Long
+        (PolyORB.Types.Long'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : in Any) return Unsigned_Short is
+   begin
+      return Unsigned_Short
+        (PolyORB.Types.Unsigned_Short'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : in Any) return Unsigned_Long is
+   begin
+      return Unsigned_Long
+        (PolyORB.Types.Unsigned_Long'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : in Any) return MOMA.Types.Float is
+   begin
+      return MOMA.Types.Float
+        (PolyORB.Types.Float'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : in Any) return Double is
+   begin
+      return Double
+        (PolyORB.Types.Double'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : in Any) return Boolean is
+   begin
+      return Boolean
+        (PolyORB.Types.Boolean'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : in Any) return Char is
+   begin
+      return Char
+        (PolyORB.Types.Char'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : in Any) return Byte is
+   begin
+      return Byte
+        (PolyORB.Types.Octet'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
+   function From_Any (Item : in Any) return Any
+     renames PolyORB.Any.From_Any;
+
+   function From_Any (Item : in Any) return MOMA.Types.String is
+   begin
+      return MOMA.Types.String
+        (PolyORB.Types.String'(PolyORB.Any.From_Any (Item)));
+   end From_Any;
+
    ------------
    -- To_Any --
    ------------
 
-   function To_Any (Item : in Map_Element) return PolyORB.Any.Any
+   function To_Any (Item : in Map_Element) return MOMA.Types.Any
    is
       Result : Any := Get_Empty_Any_Aggregate (TC_Map_Element);
 
@@ -132,7 +196,7 @@ package body MOMA.Types is
 
    function To_Any
      (Item : in IDL_SEQUENCE_Map_Element.Sequence)
-     return PolyORB.Any.Any
+     return MOMA.Types.Any
    is
       use IDL_SEQUENCE_Map_Element;
       Array_Item : Element_Array := To_Element_Array (Item);
@@ -152,7 +216,7 @@ package body MOMA.Types is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in Map) return PolyORB.Any.Any
+   function To_Any (Item : in Map) return MOMA.Types.Any
    is
       Result : Any := To_Any (IDL_SEQUENCE_Map_Element.Sequence (Item));
    begin
@@ -161,7 +225,7 @@ package body MOMA.Types is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in Destination_Type) return PolyORB.Any.Any
+   function To_Any (Item : in Destination_Type) return MOMA.Types.Any
    is
       Result : Any := Get_Empty_Any_Aggregate (TC_Destination_Type);
    begin
@@ -171,6 +235,66 @@ package body MOMA.Types is
       return Result;
    end To_Any;
 
+   function To_Any (Item : in Short) return Any is
+   begin
+      return PolyORB.Any.To_Any (PolyORB.Types.Short (Item));
+   end To_Any;
+
+   function To_Any (Item : in Long) return Any is
+   begin
+      return PolyORB.Any.To_Any (PolyORB.Types.Long (Item));
+   end To_Any;
+
+   function To_Any (Item : in Unsigned_Short) return Any is
+   begin
+      return PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Short (Item));
+   end To_Any;
+
+   function To_Any (Item : in Unsigned_Long) return Any is
+   begin
+      return PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Long (Item));
+   end To_Any;
+
+   function To_Any (Item : in MOMA.Types.Float) return Any is
+   begin
+      return PolyORB.Any.To_Any (PolyORB.Types.Float (Item));
+   end To_Any;
+
+   function To_Any (Item : in Double) return Any is
+   begin
+      return PolyORB.Any.To_Any (PolyORB.Types.Double (Item));
+   end To_Any;
+
+   function To_Any (Item : in Boolean) return Any is
+   begin
+      return PolyORB.Any.To_Any (PolyORB.Types.Boolean (Item));
+   end To_Any;
+
+   function To_Any (Item : in Char) return Any is
+   begin
+      return PolyORB.Any.To_Any (PolyORB.Types.Char (Item));
+   end To_Any;
+
+   function To_Any (Item : in Byte) return Any is
+   begin
+      return PolyORB.Any.To_Any (PolyORB.Types.Octet (Item));
+   end To_Any;
+
+   function To_Any (Item : in Any) return Any
+     renames PolyORB.Any.To_Any;
+
+   function To_Any (Item : in MOMA.Types.String) return Any is
+   begin
+      return PolyORB.Any.To_Any (PolyORB.Types.String (Item));
+   end To_Any;
+
+   ---------
+   -- "=" --
+   ---------
+
+   function "=" (Left, Right : in Any) return Boolean
+     renames PolyORB.Any."=";
+
    -----------------
    -- Get_Boolean --
    -----------------
@@ -179,7 +303,7 @@ package body MOMA.Types is
      (Self : Map_Element)
      return MOMA.Types.Boolean is
    begin
-      return PolyORB.Any.From_Any (Self.Value);
+      return From_Any (Self.Value);
    end Get_Boolean;
 
    -----------------
@@ -190,7 +314,7 @@ package body MOMA.Types is
      (Self  : in out Map_Element;
       Value :        MOMA.Types.Boolean) is
    begin
-      Self.Value := PolyORB.Any.To_Any (PolyORB.Types.Boolean (Value));
+      Self.Value := To_Any (PolyORB.Types.Boolean (Value));
    end Set_Boolean;
 
    --------------
@@ -201,7 +325,7 @@ package body MOMA.Types is
      (Self : Map_Element)
      return MOMA.Types.Byte is
    begin
-      return PolyORB.Any.From_Any (Self.Value);
+      return From_Any (Self.Value);
    end Get_Byte;
 
    --------------
@@ -212,7 +336,7 @@ package body MOMA.Types is
      (Self  : in out Map_Element;
       Value :        MOMA.Types.Byte) is
    begin
-      Self.Value := PolyORB.Any.To_Any (PolyORB.Types.Octet (Value));
+      Self.Value := To_Any (PolyORB.Types.Octet (Value));
    end Set_Byte;
 
    --------------
@@ -223,7 +347,7 @@ package body MOMA.Types is
      (Self : Map_Element)
      return MOMA.Types.Char is
    begin
-      return PolyORB.Any.From_Any (Self.Value);
+      return From_Any (Self.Value);
    end Get_Char;
 
    --------------
@@ -234,7 +358,7 @@ package body MOMA.Types is
      (Self  : in out Map_Element;
       Value :        MOMA.Types.Char) is
    begin
-      Self.Value := PolyORB.Any.To_Any (PolyORB.Types.Char (Value));
+      Self.Value := To_Any (PolyORB.Types.Char (Value));
    end Set_Char;
 
    ----------------
@@ -245,7 +369,7 @@ package body MOMA.Types is
      (Self : Map_Element)
      return MOMA.Types.Double is
    begin
-      return PolyORB.Any.From_Any (Self.Value);
+      return From_Any (Self.Value);
    end Get_Double;
 
    ----------------
@@ -256,7 +380,7 @@ package body MOMA.Types is
      (Self  : in out Map_Element;
       Value :        MOMA.Types.Double) is
    begin
-      Self.Value := PolyORB.Any.To_Any (PolyORB.Types.Double (Value));
+      Self.Value := To_Any (PolyORB.Types.Double (Value));
    end Set_Double;
 
    ---------------
@@ -267,7 +391,7 @@ package body MOMA.Types is
      (Self : Map_Element)
      return MOMA.Types.Float is
    begin
-      return PolyORB.Any.From_Any (Self.Value);
+      return From_Any (Self.Value);
    end Get_Float;
 
    ---------------
@@ -278,7 +402,7 @@ package body MOMA.Types is
      (Self  : in out Map_Element;
       Value :        MOMA.Types.Float) is
    begin
-      Self.Value := PolyORB.Any.To_Any (PolyORB.Types.Float (Value));
+      Self.Value := To_Any (PolyORB.Types.Float (Value));
    end Set_Float;
 
    --------------
@@ -289,7 +413,7 @@ package body MOMA.Types is
      (Self : Map_Element)
      return MOMA.Types.Long is
    begin
-      return PolyORB.Any.From_Any (Self.Value);
+      return From_Any (Self.Value);
    end Get_Long;
 
    --------------
@@ -300,7 +424,7 @@ package body MOMA.Types is
      (Self  : in out Map_Element;
       Value :        MOMA.Types.Long) is
    begin
-      Self.Value := PolyORB.Any.To_Any (PolyORB.Types.Long (Value));
+      Self.Value := To_Any (PolyORB.Types.Long (Value));
    end Set_Long;
 
    --------------
@@ -333,7 +457,7 @@ package body MOMA.Types is
      (Self : Map_Element)
      return MOMA.Types.Short is
    begin
-      return PolyORB.Any.From_Any (Self.Value);
+      return From_Any (Self.Value);
    end Get_Short;
 
    ---------------
@@ -344,7 +468,7 @@ package body MOMA.Types is
      (Self  : in out Map_Element;
       Value :        MOMA.Types.Short) is
    begin
-      Self.Value := PolyORB.Any.To_Any (PolyORB.Types.Short (Value));
+      Self.Value := To_Any (PolyORB.Types.Short (Value));
    end Set_Short;
 
    ----------------
@@ -355,7 +479,7 @@ package body MOMA.Types is
      (Self : Map_Element)
      return MOMA.Types.String is
    begin
-      return PolyORB.Any.From_Any (Self.Value);
+      return From_Any (Self.Value);
    end Get_String;
 
    ----------------
@@ -366,7 +490,7 @@ package body MOMA.Types is
      (Self  : in out Map_Element;
       Value :        MOMA.Types.String) is
    begin
-      Self.Value := PolyORB.Any.To_Any (PolyORB.Types.String (Value));
+      Self.Value := To_Any (PolyORB.Types.String (Value));
    end Set_String;
 
    -----------------------
@@ -377,7 +501,7 @@ package body MOMA.Types is
      (Self : Map_Element)
      return MOMA.Types.Unsigned_Long is
    begin
-      return PolyORB.Any.From_Any (Self.Value);
+      return From_Any (Self.Value);
    end Get_Unsigned_Long;
 
    -----------------------
@@ -388,7 +512,7 @@ package body MOMA.Types is
      (Self  : in out Map_Element;
       Value :        MOMA.Types.Unsigned_Long) is
    begin
-      Self.Value := PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Long (Value));
+      Self.Value := To_Any (PolyORB.Types.Unsigned_Long (Value));
    end Set_Unsigned_Long;
 
    ------------------------
@@ -399,7 +523,7 @@ package body MOMA.Types is
      (Self : Map_Element)
      return MOMA.Types.Unsigned_Short is
    begin
-      return PolyORB.Any.From_Any (Self.Value);
+      return From_Any (Self.Value);
    end Get_Unsigned_Short;
 
    ------------------------
@@ -410,7 +534,7 @@ package body MOMA.Types is
      (Self  : in out Map_Element;
       Value :        MOMA.Types.Unsigned_Short) is
    begin
-      Self.Value := PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Short (Value));
+      Self.Value := To_Any (PolyORB.Types.Unsigned_Short (Value));
    end Set_Unsigned_Short;
 
    --------------

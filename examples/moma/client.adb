@@ -62,7 +62,6 @@ with MOMA.Messages.MTexts;
 
 with MOMA.Types;
 
-with PolyORB.Any;
 with PolyORB.Initialization;
 with PolyORB.References;
 with PolyORB.Types;
@@ -119,7 +118,6 @@ procedure Client is
    procedure Test_MAny
    is
       use MOMA.Messages.MAnys;
-      use PolyORB.Any;
 
       MAny_Message_Sent : MOMA.Messages.MAnys.MAny;
       MAny_Message_Rcvd : MOMA.Messages.MAnys.MAny;
@@ -171,7 +169,6 @@ procedure Client is
    procedure Test_MByte
    is
       use MOMA.Messages.MBytes;
-      use PolyORB.Any;
 
       MByte_Message_Sent : MOMA.Messages.MBytes.MByte;
       MByte_Message_Rcvd : MOMA.Messages.MBytes.MByte;
@@ -276,7 +273,6 @@ procedure Client is
    procedure Test_MMap
    is
       use MOMA.Messages.MMaps;
-      use PolyORB.Any;
 
       MMap_Message_Sent : MOMA.Messages.MMaps.MMap;
       MMap_Message_Rcvd : MOMA.Messages.MMaps.MMap;
@@ -337,7 +333,6 @@ procedure Client is
    procedure Test_MText
    is
       use MOMA.Messages.MTexts;
-      use PolyORB.Any;
 
       MText_Message_Sent : MOMA.Messages.MTexts.MText;
       MText_Message_Rcvd : MOMA.Messages.MTexts.MText;
