@@ -35,9 +35,6 @@
 
 with Ada.Characters.Handling;
 
-with Interfaces.C.Strings;
-with System;
-
 with PolyORB.Dynamic_Dict;
 with PolyORB.Log;
 with PolyORB.Utils.Strings;
@@ -45,9 +42,6 @@ with PolyORB.Utils.Strings;
 package body PolyORB.Parameters is
 
    use Ada.Characters.Handling;
-
-   use Interfaces.C;
-   use Interfaces.C.Strings;
 
    use PolyORB.Utils.Strings;
 
@@ -253,16 +247,11 @@ package body PolyORB.Parameters is
       Default : String := "")
      return String
    is
-      function getenv (Key : System.Address) return chars_ptr;
-      pragma Import (C, getenv, "getenv");
-
-      C_Key   : aliased char_array := To_C (Key);
-      C_Value : constant chars_ptr := getenv (C_Key'Address);
    begin
-      if C_Value = Null_Ptr then
-         return Default;
+      if Fetch_From_Env_Hook /= null then
+         return Fetch_From_Env_Hook.all (Key, Default);
       else
-         return Value (C_Value);
+         return Default;
       end if;
    end Get_Env;
 

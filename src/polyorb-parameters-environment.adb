@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                   P O L Y O R B . P A R A M E T E R S                    --
+--       P O L Y O R B . P A R A M E T E R S . E N V I R O N M E N T        --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,70 +31,67 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  PolyORB runtime configuration facility.
+with PolyORB.Initialization;
+with PolyORB.Utils.Strings;
 
-package PolyORB.Parameters is
+with Interfaces.C.Strings;
+with System;
 
-   pragma Elaborate_Body;
+package body PolyORB.Parameters.Environment is
 
-   procedure Set_Hooks;
-   --  Set Get_Conf hooks in units that need to access parameters
-   --  but cannot depend on this package.
+   use Interfaces.C;
+   use Interfaces.C.Strings;
 
-   procedure Set_Conf
-     (Section, Key : String;
-      Value        : String);
-   --  Sets the value of the given Key in the named Section.
+   --------------------
+   -- Fetch_From_Env --
+   --------------------
 
-   function Get_Conf
-     (Section, Key : String;
+   function Fetch_From_Env
+     (Key     : String;
       Default : String := "")
      return String;
-   --  Return the value of the global variable Key or Default if this
-   --  variable is not defined.
 
-   function Get_Conf
-     (Section, Key : String;
-      Default : Boolean := False)
-     return Boolean;
-   --  Return the value of the global variable Key or Default if this
-   --  variable is not defined, interpreting the value as a Boolean:
-   --  * True if the value starts with '1' or 'Y' or 'y',
-   --    or is "on" or "enable" or "true"
-   --  * False if the value starts with '0' or 'n' or 'N',
-   --    or is "off" or "disable" or "false" or empty.
-   --  Constraint_Error is raised if the value is set to anything else.
-
-   function Get_Conf
-     (Section, Key : String;
-      Default : Integer := 0)
-     return Integer;
-   --  Return the value of the global variable Key or Default if this
-   --  variable is not defined, interpreting the value as the decimal
-   --  representation of an integer number.
-   --  Constraint_Error is raised if the value is set to anything else.
-
-   type Parameters_Initializer is access procedure;
-
-   procedure Reset;
-   --  Clear all variables previously positioned using Set_Conf.
-
-private
-
-   function Get_Env
-     (Key : String;
+   function Fetch_From_Env
+     (Key     : String;
       Default : String := "")
-     return String;
-   --  Get the value of variable Key from the system
-   --  environment variables, returning Default if not found.
+     return String
+   is
+      function getenv (Key : System.Address) return chars_ptr;
+      pragma Import (C, getenv, "getenv");
 
-   type Fetch_From_File_T is access function (Key : String) return String;
+      C_Key   : aliased char_array := To_C (Key);
+      C_Value : constant chars_ptr := getenv (C_Key'Address);
 
-   Fetch_From_File_Hook : Fetch_From_File_T := null;
+   begin
+      if C_Value = Null_Ptr then
+         return Default;
+      else
+         return Value (C_Value);
+      end if;
+   end Fetch_From_Env;
 
-   type Fetch_From_Env_T is
-     access function (Key : String; Default : String := "") return String;
+   ----------------
+   -- Initialize --
+   ----------------
 
-   Fetch_From_Env_Hook : Fetch_From_Env_T := null;
+   procedure Initialize;
 
-end PolyORB.Parameters;
+   procedure Initialize is
+   begin
+      Fetch_From_Env_Hook := Fetch_From_Env'Access;
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"parameters.environment",
+       Conflicts => Empty,
+       Depends   => Empty,
+       Provides  => +"parameters",
+       Implicit  => True,
+       Init      => Initialize'Access));
+end PolyORB.Parameters.Environment;

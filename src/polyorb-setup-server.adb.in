@@ -40,6 +40,10 @@ with PolyORB.Parameters.File;
 pragma Warnings (Off, PolyORB.Parameters.File);
 pragma Elaborate_All (PolyORB.Parameters.File);
 
+with PolyORB.Parameters.Environment;
+pragma Warnings (Off, PolyORB.Parameters.Environment);
+pragma Elaborate_All (PolyORB.Parameters.Environment);
+
 with PolyORB.Setup.OA.Basic_POA;
 pragma Warnings (Off, PolyORB.Setup.OA.Basic_POA);
 pragma Elaborate_All (PolyORB.Setup.OA.Basic_POA);

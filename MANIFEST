@@ -933,6 +933,8 @@ src/polyorb-orb_controller-no_tasking.adb
 src/polyorb-orb_controller-no_tasking.ads
 src/polyorb-orb_controller.adb
 src/polyorb-orb_controller.ads
+src/polyorb-parameters-environment.adb
+src/polyorb-parameters-environment.ads
 src/polyorb-parameters-file.adb
 src/polyorb-parameters-file.ads
 src/polyorb-parameters.adb

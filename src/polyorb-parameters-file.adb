@@ -194,7 +194,6 @@ package body PolyORB.Parameters.File is
    begin
       return Get_Env (PolyORB_Conf_Filename_Variable,
                       PolyORB_Conf_Default_Filename);
-
    end Configuration_File_Name;
 
    ----------------
@@ -220,7 +219,7 @@ begin
      (Module_Info'
       (Name      => +"parameters.file",
        Conflicts => Empty,
-       Depends   => Empty,
+       Depends   => +"parameters.environment?",
        Provides  => +"parameters",
        Implicit  => True,
        Init      => Initialize'Access));
