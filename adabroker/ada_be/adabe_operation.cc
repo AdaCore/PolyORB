@@ -104,13 +104,15 @@ adabe_operation::produce_ads(dep_list& with,string &body, string &previous)
 void
 adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
 {
+  bool oneway = false ;
   switch (flags())
     {
     case OP_noflags :
     case OP_idempotent :
       break;
     case OP_oneway :
-    body += "   ---   oneway   ---\n";
+      oneway = true ;
+      body += "   ---   oneway   ---\n";
     break;
     }
 
@@ -143,6 +145,9 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
   in_args += ") ;\n";
   out_args += ") ;\n";
   
+
+  body += "   -- " + get_ada_local_name() + "\n" ;
+  body += "   ---------------------------\n" ;
   if (is_function())
     body += "   function ";
   else
@@ -169,12 +174,16 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
   body += in_args;
 	  
   with.add("OmniProxyCallWrapper");
-  body += "      OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
-  if (is_function())
-    body += "      return " + name_of_the_package + ".Proxies.Get_Result(Opcd) ;\n";
-  else if (!no_out)
-    body += "      " + name_of_the_package + ".Proxies.Get_Result(Opcd" + out_args;
-  
+  body += "      OmniProxyCallWrapper." ;
+  if (oneway) {
+    body += "One_Way(Self, Opcd) ;\n";
+  } else {
+    body += "Invoke(Self, Opcd) ;\n" ;
+    if (is_function())
+      body += "      return " + name_of_the_package + ".Proxies.Get_Result(Opcd) ;\n";
+    else if (!no_out)
+      body += "      " + name_of_the_package + ".Proxies.Get_Result(Opcd" + out_args;
+  }
   body += "   end ;\n\n";
 }
 
@@ -237,6 +246,9 @@ adabe_operation::produce_impl_ads(dep_list& with,string &body, string &previous)
 void
 adabe_operation::produce_impl_adb(dep_list& with,string &body, string &previous)
 {
+
+  body += "   --  " + get_ada_local_name() + "\n" ;
+  body += "   -------------------------------\n" ;
   switch (flags()) {
   case OP_noflags :
   case OP_idempotent :
@@ -295,6 +307,7 @@ adabe_operation::produce_impl_adb(dep_list& with,string &body, string &previous)
 void
 adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &private_definition)
 {
+  bool oneway = (flags() == OP_oneway) ;
   string name = get_ada_full_name();
   string in_decls = "";
   string fields = "";
@@ -335,6 +348,8 @@ adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &privat
   // produce functions
   body += "   -----------------------------------------------------------\n" ;
   body += "   ---               " + get_ada_local_name() + "\n" ; 
+  if (oneway)
+    body += "   ---                 --    oneway   --\n" ;
   body += "   -----------------------------------------------------------\n\n" ;
   body += "   type " + get_ada_local_name() + "_Proxy is new OmniProxyCallDesc.Object with private ;\n\n";
   body += "   procedure Init(Self : in out " + get_ada_local_name() + "_Proxy";
@@ -579,6 +594,7 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
 void
 adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_definition)
 {
+  bool oneway = ( flags() == OP_oneway) ;
   string full_name = get_ada_full_name();
   string pack_name = adabe_global::adabe_current_file()->get_ada_full_name();
   // the name of the current interface should be taken because of the multiple inheritance
@@ -614,8 +630,12 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
   if ((!is_function())&&(!return_is_void())) {
     call_args += ", Returns ";
   }
-  
 
+  body += "      -- " + full_name + "\n" ;
+  body += "      -----------------------\n" ;
+  if (oneway) {
+    body += "      -- oneway --\n" ;
+  }
   body += "      if Orl_Op = \"";
   body += get_ada_local_name ();
   body += "\" then\n";
@@ -636,6 +656,19 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
 
   body += "         begin\n";
 
+  // if this is a oneway function, check that the client does not expect any reply
+  if (oneway) {
+    body += "            -- check that the client does not expect any reply\n" ;
+    body += "            if Orl_Response_Expected then\n" ;
+    body += "               declare\n" ;
+    body += "                  Exmb : Corba.Bad_Operation_Members := (0, COMPLETED_NO) ;\n" ;
+    body += "               begin\n" ;
+    body += "                  Corba.Raise_Corba_Exception( Corba.Bad_Operation'Identity,\n" ;
+    body += "                                               Exmb);\n" ;
+    body += "               end ;\n" ;
+    body += "            end if ;\n" ;
+  }
+  
   if (!no_in) {
     body += "            -- unmarshalls arguments\n";
     body += unmarshall;
@@ -654,22 +687,23 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
   body += call_args;
   body += ") ;\n";
 
-  body += "            -- compute the size of the replied message\n";
-  body += "            Mesg_Size := Giop_S.Reply_Header_Size ;\n";
-  body += align_size ;
-  if (!return_is_void()) {
-    body += "            Mesg_Size := Align_Size (Returns, Mesg_Size) ;\n";
+  if (!oneway) {
+    body += "            -- compute the size of the replied message\n";
+    body += "            Mesg_Size := Giop_S.Reply_Header_Size ;\n";
+    body += align_size ;
+    if (!return_is_void()) {
+      body += "            Mesg_Size := Align_Size (Returns, Mesg_Size) ;\n";
+    }
+    body += "            -- Initialisation of the reply\n";
+    body += "            Giop_S.Initialize_Reply (Orls, Giop.NO_EXCEPTION, Mesg_Size) ;\n";
+    
+    body += "            -- Marshall the arguments\n";
+    body += marshall;
+    
+    if (!return_is_void())
+      body += "            Marshall (Returns, Orls) ;\n";
+    
   }
-  body += "            -- Initialisation of the reply\n";
-  body += "            Giop_S.Initialize_Reply (Orls, Giop.NO_EXCEPTION, Mesg_Size) ;\n";
-  
-  body += "            -- Marshall the arguments\n";
-  body += marshall;
-
-  if (!return_is_void())
-    body += "            Marshall (Returns, Orls) ;\n";
-  
-
   body += "            -- inform the orb\n";
   body += "            Giop_S.Reply_Completed (Orls) ;\n";
 
