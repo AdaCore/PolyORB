@@ -114,15 +114,16 @@ package System.Garlic.Heart is
 
    type Any_Opcode is
       (Invalid_Operation,
-       No_Operation,             -- First Internal Opcode
+       No_Operation,             --  First Internal Opcode
        Partition_Operation,
-       Shutdown_Operation,       -- Last Internal Opcode
-       Remote_Call,              -- First Public Opcode
+       Shutdown_Operation,       --  Last Internal Opcode
+       Remote_Call,              --  First Public Opcode
        User_Message,
        Group_Service,
        Shutdown_Service,
        Unit_Name_Service,
-       Filtering_Service);       -- Last Public Opcode
+       DSM_Service,              --  Distributed Shared Memory Service
+       Filtering_Service);       --  Last Public Opcode
    subtype Internal_Opcode is Any_Opcode
      range No_Operation .. Shutdown_Operation;
    subtype External_Opcode is Any_Opcode

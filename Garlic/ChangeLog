@@ -1,3 +1,9 @@
+2000-09-08  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* Makefile.am, Makefile.in, s-gastdf.ads, s-gastdf.adb: Move
+ 	storage supports like DFS into the Storages hierarchy in order to
+ 	have a model similar to the Protocoles one.
+
 2000-09-07  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* s-shasto.ads, s-shasto.adb, Makefile.am, Makefile.in: Replace

@@ -58,7 +58,6 @@ s-garfil.o\
 s-gargro.o\
 s-garhea.o\
 s-garlic.o\
-s-gardfs.o\
 s-gaprre.o\
 s-gprese.o\
 s-garopt.o\
@@ -78,6 +77,7 @@ s-garuti.o\
 s-garsto.o\
 s-gasoli.o\
 s-gastco.o\
+s-gastdf.o\
 s-gatcop.o\
 s-ganota.o\
 s-parint.o\
@@ -96,7 +96,6 @@ $(srcdir)/s-gaprco.ads           s-gaprco.adb \
 $(srcdir)/s-gartas.ads $(srcdir)/s-gartas.adb \
           s-garcon.ads                        \
 $(srcdir)/s-gardeb.ads $(srcdir)/s-gardeb.adb \
-$(srcdir)/s-gardfs.ads $(srcdir)/s-gardfs.adb \
 $(srcdir)/s-garfil.ads $(srcdir)/s-garfil.adb \
 $(srcdir)/s-gargro.ads $(srcdir)/s-gargro.adb \
 $(srcdir)/s-garhea.ads $(srcdir)/s-garhea.adb \
@@ -124,6 +123,7 @@ $(srcdir)/s-garsto.ads $(srcdir)/s-garsto.adb \
 $(srcdir)/s-gasoli.ads $(srcdir)/s-gasoli.adb \
 $(srcdir)/s-gastco.ads $(srcdir)/s-gastco.adb \
 $(srcdir)/s-ganota.ads $(srcdir)/s-ganota.adb \
+$(srcdir)/s-gastdf.ads $(srcdir)/s-gastdf.adb \
 $(srcdir)/s-gastha.ads $(srcdir)/s-gastha.adb \
           s-gatcop.ads                        \
 $(srcdir)/s-parint.ads $(srcdir)/s-parint.adb \
