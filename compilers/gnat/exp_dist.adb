@@ -520,6 +520,22 @@ package body Exp_Dist is
    --  ancillary subprogram for Add_Stub_Type. If no RPC receiver declaration
    --  is generated, then RPC_Receiver_Decl is set to Empty.
 
+   procedure Specific_Build_RPC_Receiver_Body
+     (RPC_Receiver : Entity_Id;
+      Request      : out Entity_Id;
+      Subp_Id      : out Entity_Id;
+      Subp_Index   : out Entity_Id;
+      Stmts        : out List_Id;
+      Decl         : out Node_Id);
+   --  Make a subprogram body for an RPC receiver, with the given
+   --  defining unit name. On return:
+   --    - Subp_Id is the subprogram identifier from the PCS.
+   --    - Subp_Index is the index in the list of subprograms
+   --      used for dispatching (a variable of an integer type).
+   --    - Stmts is the place where the request dispatching
+   --      statements can occur,
+   --    - Decl is the subprogram body declaration.
+
    function Specific_Build_Subprogram_Receiving_Stubs
      (Vis_Decl                 : Node_Id;
       Asynchronous             : Boolean;
@@ -603,15 +619,9 @@ package body Exp_Dist is
         (RPC_Receiver : Entity_Id;
          Request      : out Entity_Id;
          Subp_Id      : out Entity_Id;
+         Subp_Index   : out Entity_Id;
          Stmts        : out List_Id;
          Decl         : out Node_Id);
-      --  Make a subprogram body for an RPC receiver, with the given
-      --  defining unit name. On return:
-      --    - Subp_Id is the Standard.String variable that contains
-      --      the identifier of the desired subprogram,
-      --    - Stmts is the place where the request dispatching
-      --      statements can occur,
-      --    - Decl is the subprogram body declaration.
 
    end GARLIC_Support;
 
@@ -678,15 +688,9 @@ package body Exp_Dist is
         (RPC_Receiver : Entity_Id;
          Request      : out Entity_Id;
          Subp_Id      : out Entity_Id;
+         Subp_Index   : out Entity_Id;
          Stmts        : out List_Id;
          Decl         : out Node_Id);
-      --  Make a subprogram body for an RPC receiver, with the given
-      --  defining unit name. On return:
-      --    - Subp_Id is the Standard.String variable that contains
-      --      the identifier of the desired subprogram,
-      --    - Stmts is the place where the request dispatching
-      --      statements can occur,
-      --    - Decl is the subprogram body declaration.
 
       procedure Reserve_NamingContext_Methods;
       --  Mark the method names for interface NamingContext as already used in
@@ -709,7 +713,6 @@ package body Exp_Dist is
          --      These generic containers are called 'Any' type values after
          --      the CORBA terminology, and hence the conversion subprograms
          --      are named To_Any and From_Any.
-
 
          function Build_From_Any_Call
            (Typ   : Entity_Id;
@@ -1140,22 +1143,13 @@ package body Exp_Dist is
       if not Is_RAS then
          RPC_Receiver := Make_Defining_Identifier (Loc,
                            New_Internal_Name ('P'));
-         RPC_Receiver_Subp_Index := Make_Defining_Identifier (Loc,
-                                      New_Internal_Name ('S'));
-         PolyORB_Support.Build_RPC_Receiver_Body (
+         Specific_Build_RPC_Receiver_Body (
            RPC_Receiver => RPC_Receiver,
            Request      => RPC_Receiver_Request,
            Subp_Id      => RPC_Receiver_Subp_Id,
+           Subp_Index   => RPC_Receiver_Subp_Index,
            Stmts        => RPC_Receiver_Statements,
            Decl         => RPC_Receiver_Decl);
-         Append_To (Declarations (RPC_Receiver_Decl),
-           Make_Object_Declaration (Loc,
-             Defining_Identifier => RPC_Receiver_Subp_Index,
-             Object_Definition   => New_Occurrence_Of (Standard_Integer, Loc),
-             Expression          =>
-               Make_Attribute_Reference (Loc,
-                 Prefix         => New_Occurrence_Of (Standard_Integer, Loc),
-                 Attribute_Name => Name_Last)));
 
          Append_To (RPC_Receiver_Statements,
            Make_Implicit_If_Statement (Designated_Type,
@@ -2294,16 +2288,17 @@ package body Exp_Dist is
                 Expression          =>
                   New_Copy_Tree (Expression (Current_Parameter))));
 
+            --  For a regular formal parameter (that needs to be marshalled
+            --  in the context of remote calls), set the Etype now, because
+            --  marshalling processing might need it.
+
             if Is_Entity_Name (Current_Type) then
                Set_Etype (New_Identifier, Entity (Current_Type));
             else
-
-               --  Current_Type is an anonymous access type, will have
-               --  special processing with respect to distribution,
-               --  so no need to set the etype here.
+               --  Current_Type is an access definition, special processing
+               --  (not requiring etype) will occur for marshalling.
 
                null;
-
             end if;
 
             Next (Current_Parameter);
@@ -3267,7 +3262,8 @@ package body Exp_Dist is
          --  A remote subprogram is created to allow peers to look up
          --  RAS information using subprogram ids.
 
-         Subp_Id : Node_Id;
+         Subp_Id    : Entity_Id;
+         Subp_Index : Entity_Id;
          --  Subprogram_Id as read from the incoming stream
 
          Current_Declaration       : Node_Id;
@@ -3340,8 +3336,10 @@ package body Exp_Dist is
            RPC_Receiver => Pkg_RPC_Receiver,
            Request      => Request_Parameter,
            Subp_Id      => Subp_Id,
+           Subp_Index   => Subp_Index,
            Stmts        => Pkg_RPC_Receiver_Statements,
            Decl         => Pkg_RPC_Receiver_Body);
+         pragma Assert (Subp_Id = Subp_Index);
 
          --  A null subp_id denotes a call through a RAS, in which case the
          --  next Uint_64 element in the stream is the address of the local
@@ -4073,6 +4071,7 @@ package body Exp_Dist is
         (RPC_Receiver : Entity_Id;
          Request      : out Entity_Id;
          Subp_Id      : out Entity_Id;
+         Subp_Index   : out Entity_Id;
          Stmts        : out List_Id;
          Decl         : out Node_Id)
       is
@@ -4089,7 +4088,8 @@ package body Exp_Dist is
              (RPC_Receiver      => RPC_Receiver,
               Request_Parameter => Request);
 
-         Subp_Id := Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
+         Subp_Id    := Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
+         Subp_Index := Subp_Id;
 
          --  Subp_Id may not be a constant, because in the case of the RPC
          --  receiver for an RCI package, when a call is received from a RAS
@@ -6486,9 +6486,14 @@ package body Exp_Dist is
          Request                     : Node_Id;
          --  Request object received from neutral layer
 
-         Subp_Id : Node_Id;
+         Subp_Id : Entity_Id;
          --  Subprogram identifier as received from the neutral
          --  distribution core.
+
+         Subp_Index : Entity_Id;
+         --  Internal index as determined by matching either the
+         --  method name from the request structure, or the local
+         --  subprogram address (in case of a RAS).
 
          Is_Local : constant Entity_Id :=
            Make_Defining_Identifier (Loc, New_Internal_Name ('L'));
@@ -6496,12 +6501,6 @@ package body Exp_Dist is
            Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
          --  Address of a local subprogram designated by a
          --  reference corresponding to a RAS.
-
-         Subp_Index : constant Entity_Id :=
-           Make_Defining_Identifier (Loc, New_Internal_Name ('I'));
-         --  Internal index as determined by matching either the
-         --  method name from the request structure, or the local
-         --  subprogram address (in case of a RAS).
 
          Dispatch_On_Address : constant List_Id := New_List;
          Dispatch_On_Name    : constant List_Id := New_List;
@@ -6624,6 +6623,7 @@ package body Exp_Dist is
            RPC_Receiver => Pkg_RPC_Receiver,
            Request      => Request,
            Subp_Id      => Subp_Id,
+           Subp_Index   => Subp_Index,
            Stmts        => Pkg_RPC_Receiver_Statements,
            Decl         => Pkg_RPC_Receiver_Body);
          Pkg_RPC_Receiver_Decls := Declarations (Pkg_RPC_Receiver_Body);
@@ -6645,12 +6645,6 @@ package body Exp_Dist is
                Local_Address,
              Object_Definition   =>
                New_Occurrence_Of (RTE (RE_Address), Loc)));
-         Append_To (Pkg_RPC_Receiver_Decls,
-           Make_Object_Declaration (Loc,
-             Defining_Identifier =>
-               Subp_Index,
-             Object_Definition   =>
-               New_Occurrence_Of (Standard_Integer, Loc)));
          Append_To (Pkg_RPC_Receiver_Statements,
            Make_Procedure_Call_Statement (Loc,
              Name =>
@@ -7455,6 +7449,7 @@ package body Exp_Dist is
         (RPC_Receiver : Entity_Id;
          Request      : out Entity_Id;
          Subp_Id      : out Entity_Id;
+         Subp_Index   : out Entity_Id;
          Stmts        : out List_Id;
          Decl         : out Node_Id)
       is
@@ -7471,22 +7466,27 @@ package body Exp_Dist is
              RPC_Receiver      => RPC_Receiver,
              Request_Parameter => Request);
 
-         Subp_Id := Make_Defining_Identifier (Loc, Name_P);
+         Subp_Id    := Make_Defining_Identifier (Loc, Name_P);
+         Subp_Index := Make_Defining_Identifier (Loc, Name_I);
 
          RPC_Receiver_Decls := New_List (
-           Make_Object_Declaration (Loc,
+           Make_Object_Renaming_Declaration (Loc,
              Defining_Identifier => Subp_Id,
-             Constant_Present    => True,
-             Object_Definition   =>
-               New_Occurrence_Of (Standard_String, Loc),
-             Expression          =>
-               Make_Function_Call (Loc,
-                 Name =>
-                   New_Occurrence_Of (RTE (RE_To_Standard_String), Loc),
-                 Parameter_Associations => New_List (
+             Subtype_Mark        => New_Occurrence_Of (Standard_String, Loc),
+             Name                =>
+               Make_Explicit_Dereference (Loc,
+                 Prefix =>
                    Make_Selected_Component (Loc,
                      Prefix        => Request,
-                     Selector_Name => Name_Operation)))));
+                     Selector_Name => Name_Operation))),
+
+           Make_Object_Declaration (Loc,
+             Defining_Identifier => Subp_Index,
+             Object_Definition   => New_Occurrence_Of (Standard_Integer, Loc),
+             Expression          =>
+               Make_Attribute_Reference (Loc,
+                 Prefix         => New_Occurrence_Of (Standard_Integer, Loc),
+                 Attribute_Name => Name_Last)));
 
          Stmts := New_List;
 
@@ -7497,7 +7497,6 @@ package body Exp_Dist is
              Handled_Statement_Sequence =>
                Make_Handled_Sequence_Of_Statements (Loc,
                  Statements => Stmts));
-
       end Build_RPC_Receiver_Body;
 
       --------------------------------------
@@ -10819,6 +10818,38 @@ package body Exp_Dist is
               Nod);
       end case;
    end Specific_Build_General_Calling_Stubs;
+
+   --------------------------------------
+   -- Specific_Build_RPC_Receiver_Body --
+   --------------------------------------
+
+   procedure Specific_Build_RPC_Receiver_Body
+     (RPC_Receiver : Entity_Id;
+      Request      : out Entity_Id;
+      Subp_Id      : out Entity_Id;
+      Subp_Index   : out Entity_Id;
+      Stmts        : out List_Id;
+      Decl         : out Node_Id) is
+   begin
+      case Get_PCS_Name is
+         when Name_PolyORB_DSA =>
+            PolyORB_Support.Build_RPC_Receiver_Body
+              (RPC_Receiver,
+               Request,
+               Subp_Id,
+               Subp_Index,
+               Stmts,
+               Decl);
+         when others =>
+            GARLIC_Support.Build_RPC_Receiver_Body
+              (RPC_Receiver,
+               Request,
+               Subp_Id,
+               Subp_Index,
+               Stmts,
+               Decl);
+      end case;
+   end Specific_Build_RPC_Receiver_Body;
 
    --------------------------------
    -- Specific_Build_Stub_Target --
