@@ -116,7 +116,7 @@ package body CORBA.Object.Policies is
      (Self : in Ref'Class)
       return CORBA.DomainManager.DomainManagersList
    is
-      Operation_Name : constant Standard.String := "get_domain_managers";
+      Operation_Name : constant Standard.String := "_domain_managers";
 
       Request     : PolyORB.Requests.Request_Access;
       Arg_List    : PolyORB.Any.NVList.Ref;
