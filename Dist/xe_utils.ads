@@ -70,42 +70,12 @@ package XE_Utils is
    package ALIs  renames ALI.ALIs;
    package Withs renames ALI.Withs;
 
-   function "=" (X, Y : Int) return Boolean renames Types."=";
-   function ">" (X, Y : Int) return Boolean renames Types.">";
-   function "+" (X, Y : Int) return Int renames Types."+";
-   function "-" (X, Y : Int) return Int renames Types."-";
-
-   function "=" (X, Y : Name_Id) return Boolean renames Types."=";
-
-   function "=" (X, Y : Text_Ptr) return Boolean renames Types."=";
-   function "=" (X, Y : Text_Buffer_Ptr) return Boolean renames Types."=";
-   function "=" (X, Y : Source_Buffer_Ptr) return Boolean renames Types."=";
-
-   function "+" (X, Y : Text_Ptr) return Text_Ptr renames Types."+";
-   function "-" (X, Y : Text_Ptr) return Text_Ptr renames Types."-";
-
-   function ">" (X, Y : Time_Stamp_Type) return Boolean renames Types.">";
-   function "=" (X, Y : Main_Program_Type) return Boolean renames Types."=";
-   function "=" (X, Y : Unit_Type) return Boolean renames Types."=";
-   function "=" (X, Y : ALI_Id) return Boolean renames Types."=";
-
-   function "<=" (X, Y : Int) return Boolean renames Types."<=";
-
-   procedure Close (FD : File_Descriptor) renames GNAT.Os_Lib.Close;
-
    Directory_Separator : constant Character := GNAT.Os_Lib.Directory_Separator;
-
-   procedure Read_ALI (Id : ALI_Id) renames ALI.Read_ALI;
-   function Scan_ALI (F : File_Name_Type; T : Text_Buffer_Ptr)
-                      return ALI_Id renames ALI.Scan_ALI;
-   procedure Initialize_ALI renames ALI.Initialize_ALI;
 
    First_Source_Ptr : constant Source_Ptr   := Types.First_Source_Ptr;
    EOF              : constant Character    := Types.EOF;
 
    --  This package is intended to provide all the OS facilities
-
-   function More_Recent (File1, File2 : Name_Id) return Boolean;
 
    Obj_Suffix   : File_Name_Type;
    ALI_Suffix   : File_Name_Type;
@@ -133,19 +103,43 @@ package XE_Utils is
    Partition_Main_File   : File_Name_Type;
    Partition_Main_Name   : File_Name_Type;
 
-   procedure Copy_With_File_Stamp
-     (Source, Target : in File_Name_Type;
-      Maybe_Symbolic : in Boolean := False);
-   --  Basically, this procedure copies source into target and
-   --  preserves file stamps.
+   Separator : Character renames Directory_Separator;
 
-   procedure Expand_And_Compile_RCI_Caller
-     (Source, Target : in File_Name_Type);
-   --  Generates the source's caller stubs into target (-gnatzc).
+   -- Exceptions --
 
-   procedure Expand_And_Compile_RCI_Receiver
-     (Source, Target : in File_Name_Type);
-   --  Generates the source's receiver stubs into target (-gnatzr).
+   Fatal_Error         : exception;   --  Operating system error
+   Scanning_Error      : exception;   --  Error during scanning
+   Parsing_Error       : exception;   --  Error during parsing
+   Partitioning_Error  : exception;   --  Error during partitionning
+   Usage_Error         : exception;   --  Command line error
+   Not_Yet_Implemented : exception;
+
+   function "&" (Prefix, Suffix : File_Name_Type) return File_Name_Type;
+
+   function "+" (X, Y : Int) return Int renames Types."+";
+   function "+" (X, Y : Text_Ptr) return Text_Ptr renames Types."+";
+   function "-" (X, Y : Int) return Int renames Types."-";
+
+   function "-" (X, Y : Text_Ptr) return Text_Ptr renames Types."-";
+
+   function "<=" (X, Y : Int) return Boolean renames Types."<=";
+
+   function "=" (X, Y : Int) return Boolean renames Types."=";
+   function "=" (X, Y : Name_Id) return Boolean renames Types."=";
+
+   function "=" (X, Y : Text_Ptr) return Boolean renames Types."=";
+   function "=" (X, Y : Text_Buffer_Ptr) return Boolean renames Types."=";
+   function "=" (X, Y : Source_Buffer_Ptr) return Boolean renames Types."=";
+
+   function "=" (X, Y : Main_Program_Type) return Boolean renames Types."=";
+   function "=" (X, Y : Unit_Type) return Boolean renames Types."=";
+   function "=" (X, Y : ALI_Id) return Boolean renames Types."=";
+
+   function ">" (X, Y : Int) return Boolean renames Types.">";
+   function ">" (X, Y : Time_Stamp_Type) return Boolean renames Types.">";
+   procedure Change_Dir (To : in File_Name_Type);
+
+   procedure Close (FD : File_Descriptor) renames GNAT.Os_Lib.Close;
 
    procedure Compile_RCI_Caller
      (Source    : in File_Name_Type);
@@ -155,22 +149,41 @@ package XE_Utils is
      (Source    : in File_Name_Type);
    --  Compile the receiver stubs (-gnatzR).
 
-   Separator : Character renames Directory_Separator;
-
-   procedure Change_Dir (To : in File_Name_Type);
-   procedure Create_Dir (To : in File_Name_Type);
-
-   function Is_Regular_File (File : File_Name_Type) return Boolean;
-   function Is_Relative_Dir (File : File_Name_Type) return Boolean;
-   function Is_Directory    (File : File_Name_Type) return Boolean;
+   procedure Copy_With_File_Stamp
+     (Source, Target : in File_Name_Type;
+      Maybe_Symbolic : in Boolean := False);
+   --  Basically, this procedure copies source into target and
+   --  preserves file stamps.
 
    procedure Create
      (File : in out File_Descriptor;
       Name : in File_Name_Type;
       Exec : in Boolean := False);
 
+   procedure Create_Dir (To : in File_Name_Type);
+
    procedure Delete
      (File : in File_Name_Type);
+
+   procedure Expand_And_Compile_RCI_Caller
+     (Source, Target : in File_Name_Type);
+   --  Generates the source's caller stubs into target (-gnatzc).
+
+   procedure Expand_And_Compile_RCI_Receiver
+     (Source, Target : in File_Name_Type);
+   --  Generates the source's receiver stubs into target (-gnatzr).
+
+   procedure Initialize;
+
+   procedure Initialize_ALI renames ALI.Initialize_ALI;
+
+   function Is_Directory    (File : File_Name_Type) return Boolean;
+
+   function Is_Regular_File (File : File_Name_Type) return Boolean;
+
+   function Is_Relative_Dir (File : File_Name_Type) return Boolean;
+
+   function More_Recent (File1, File2 : Name_Id) return Boolean;
 
    procedure Produce_Partition_Executable
      (Partition     : in Name_Id;
@@ -178,8 +191,13 @@ package XE_Utils is
    --  Generates the partition ada main subprogram (compilation, bind and
    --  link).
 
+   procedure Read_ALI (Id : ALI_Id) renames ALI.Read_ALI;
+   function Scan_ALI (F : File_Name_Type; T : Text_Buffer_Ptr)
+                      return ALI_Id renames ALI.Scan_ALI;
    function Str_To_Id           (S : String) return Name_Id;
    --  Set into name table and return id.
+
+   function Strlen (Name : in Name_Id) return Natural;
 
    procedure Unlink_File
      (File : in File_Name_Type);
@@ -217,23 +235,4 @@ package XE_Utils is
    procedure Write_Unit_Name
      (U : in Unit_Name_Type);
 
-   function Strlen (Name : in Name_Id) return Natural;
-
-   function "&" (Prefix, Suffix : File_Name_Type) return File_Name_Type;
-
-   procedure Initialize;
-
-   -- Exceptions --
-
-   Fatal_Error         : exception;   --  Operating system error
-   Scanning_Error      : exception;   --  Error during scanning
-   Parsing_Error       : exception;   --  Error during parsing
-   Partitioning_Error  : exception;   --  Error during partitionning
-   Usage_Error         : exception;   --  Command line error
-   Not_Yet_Implemented : exception;
-
 end XE_Utils;
-
-
-
-

@@ -1,3 +1,49 @@
+Wed Feb 26 22:03:43 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
+
+	* xe.ads: Change attribute filter into CFilter (Channel) and add a
+ 	new one PFilter (Partition). When this attribute applies to
+ 	predefined type Partition, then a partition always communicates
+ 	with another one using the given filter. When this attribute
+ 	applies to predefined channel type, any communication channel
+ 	declared in the configuration language uses the given filter. At
+ 	last, when this attributeapplies to a communication channel, the
+ 	filter used is the filter given.
+
+	* xe_stdcnf.adb: Propagate changes mentionned above.
+	
+	* xe.ads: Add pragma Registration_Filter. When a partition
+ 	registers its filters (and data) to the lead partition or when a
+ 	partition queries filters (and data) of another partition, then a
+ 	default filter can be used. In some way, it is similar to the
+ 	Boot_Server pragma. This feature is usefull for encryption when
+ 	two partitions have to exchange (for instance) a DES key encrypted
+ 	with public and private keys.
+
+	* xe_back.adb: Channels table has been redefined. In Partitions
+ 	table, First_Channel and Last_Channel are head and tail of a
+ 	linked list of channels. In Channels, a channel is a peer (L, R)
+ 	of Channel Partition, which contains the partition P and the next
+ 	channel of this partition P.
+
+	* xe_back.adb: P'Filter has been forbidden. I can't see the
+ 	possible usage of this feature. Only Partition'Filter is
+ 	meaningul.
+
+	* xe_back.adb: Change error messsages ("type bla" -> "predefined
+ 	type bla").
+
+	* xe_back.ads: Add several default variables and define Channel
+ 	Partition Type.
+
+	* xe_build.adb: Fix a bug concerning ".cfg" suffix.
+
+	* xe_check.adb: Filenames were not properly translated from unit
+ 	names. Call to the wrong routine. Write_Compile_Command was
+ 	invoked with the wrong parameter.
+
+	* xe_lead.adb, xe_utils.ads, xe_utils.adb, xe_scan.ads: Reorganize
+ 	code (alphabetical order).
+
 Mon Feb 24 09:18:50 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
 	* xe_parse.adb: Add a general Write_Error_Message procedure.

@@ -71,7 +71,40 @@ package body XE_Back is
 
    procedure Add_Channel_Partition
      (Partition : in Partition_Name_Type; To : in CID_Type) is
-      PID : PID_Type := Get_PID (Partition);
+      PID  : PID_Type := Get_PID (Partition);
+
+      procedure Update_Channel_Partition
+        (Channel_Partition : in out Channel_Partition_Type;
+         Partition         : in PID_Type;
+         Channel           : in CID_Type);
+      --  Link Channel into the list of partition channels. The head of
+      --  this list is First_Channel (Partitions) and the tail is
+      --  Last_Channel. Next elements are Next_Channel (Channels).
+
+      procedure Update_Channel_Partition
+        (Channel_Partition : in out Channel_Partition_Type;
+         Partition         : in PID_Type;
+         Channel           : in CID_Type) is
+         CID : CID_Type;
+      begin
+         Channel_Partition.My_Partition := Partition;
+         Channel_Partition.Next_Channel := Null_CID;
+
+         CID := Partitions.Table (Partition).Last_Channel;
+         if CID = Null_CID then
+            Partitions.Table (Partition).First_Channel := Channel;
+            Partitions.Table (Partition).Last_Channel  := Channel;
+         else
+            if Channels.Table (CID).Lower.My_Partition = Partition then
+               Channels.Table (CID).Lower.Next_Channel := Channel;
+            else
+               Channels.Table (CID).Upper.Next_Channel := Channel;
+            end if;
+            Partitions.Table (Partition).Last_Channel := Channel;
+         end if;
+
+      end Update_Channel_Partition;
+
    begin
       if Verbose_Mode then
          Write_Program_Name;
@@ -81,13 +114,13 @@ package body XE_Back is
          Write_Name (Channels.Table (To).Name);
          Write_Eol;
       end if;
-      if Channels.Table (To).Lower = Null_PID then
-         Channels.Table (To).Lower := PID;
-      elsif PID > Channels.Table (To).Lower then
-         Channels.Table (To).Upper := PID;
+      if Channels.Table (To).Lower = Null_Channel_Partition then
+         Update_Channel_Partition (Channels.Table (To).Lower, PID, To);
+      elsif PID > Channels.Table (To).Lower.My_Partition then
+         Update_Channel_Partition (Channels.Table (To).Upper, PID, To);
       else
          Channels.Table (To).Upper := Channels.Table (To).Lower;
-         Channels.Table (To).Lower := PID;
+         Update_Channel_Partition (Channels.Table (To).Lower, PID, To);
       end if;
    end Add_Channel_Partition;
 
@@ -217,12 +250,14 @@ package body XE_Back is
          --  This is a partition (upper or lower).
 
          if Get_Attribute_Kind (Component_Node) = Attribute_Unknown then
+            if Is_Component_Initialized (Component_Node) then
 
-            --  Append this partition to the pair.
-            Partition_Node := Get_Component_Value (Component_Node);
-            Partition_Name := Get_Node_Name (Partition_Node);
-            Add_Channel_Partition (Partition_Name, Channel_ID);
+               --  Append this partition to the pair.
+               Partition_Node := Get_Component_Value (Component_Node);
+               Partition_Name := Get_Node_Name (Partition_Node);
+               Add_Channel_Partition (Partition_Name, Channel_ID);
 
+            end if;
          else
             Set_Channel_Attribute
               (Attribute_Id (Component_Node), Channel_ID);
@@ -356,8 +391,8 @@ package body XE_Back is
       Set_CID (Name, Channel);
       Channels.Table (Channel).Name            := Name;
       Channels.Table (Channel).Node            := Node;
-      Channels.Table (Channel).Lower           := Null_PID;
-      Channels.Table (Channel).Upper           := Null_PID;
+      Channels.Table (Channel).Lower           := Null_Channel_Partition;
+      Channels.Table (Channel).Upper           := Null_Channel_Partition;
       Channels.Table (Channel).Filter          := No_Filter_Name;
       CID := Channel;
    end Create_Channel;
@@ -416,9 +451,12 @@ package body XE_Back is
       Partitions.Table (Partition).Storage_Dir     := No_Storage_Dir;
       Partitions.Table (Partition).Command_Line    := No_Command_Line;
       Partitions.Table (Partition).Main_Subprogram := No_Name;
+      Partitions.Table (Partition).Filter          := No_Filter_Name;
       Partitions.Table (Partition).Termination     := Unknown_Termination;
       Partitions.Table (Partition).First_Unit      := Null_CUID;
       Partitions.Table (Partition).Last_Unit       := Null_CUID;
+      Partitions.Table (Partition).First_Channel   := Null_CID;
+      Partitions.Table (Partition).Last_Channel    := Null_CID;
       Partitions.Table (Partition).To_Build        := True;
       Partitions.Table (Partition).Most_Recent     := Configuration_File;
       PID := Partition;
@@ -534,7 +572,7 @@ package body XE_Back is
    begin
 
       if F = No_Filter_Name then
-         F := Default_Filter;
+         F := Default_Channel_Filter;
       end if;
       return F;
 
@@ -811,29 +849,29 @@ package body XE_Back is
       Channel   : in CID_Type) is
 
       --  Could be a variable or a subprogram.
-      Attribute_Item : Node_Id;
-      Attribute_Kind : Attribute_Type;
+      Attr_Item : Node_Id;
+      Attr_Kind : Attribute_Type;
 
    begin
 
       --  Apply attribute to a channel.
 
-      Attribute_Kind := Get_Attribute_Kind (Component_Id (Attribute));
-      Attribute_Item := Get_Component_Value (Component_Id (Attribute));
+      Attr_Kind := Get_Attribute_Kind (Component_Id (Attribute));
+      Attr_Item := Get_Component_Value (Component_Id (Attribute));
 
       --  No attribute was really assigned.
 
-      if Attribute_Item = Null_Node then
+      if Attr_Item = Null_Node then
          return;
       end if;
 
-      case Attribute_Kind is
-         when Attribute_Filter =>
+      case Attr_Kind is
+         when Attribute_CFilter =>
 
             --  Only string literals are allowed here.
 
-            if not Is_Variable (Attribute_Item) or else
-              Get_Variable_Type (Variable_Id (Attribute_Item)) /=
+            if not Is_Variable (Attr_Item) or else
+              Get_Variable_Type (Variable_Id (Attr_Item)) /=
               String_Type_Node then
                Write_SLOC (Node_Id (Attribute));
                Write_Name (Channels.Table (Channel).Name);
@@ -847,8 +885,8 @@ package body XE_Back is
             --  that this has not already been done.
 
             if Channel = Null_CID and then
-               Default_Filter = No_Filter_Name then
-               Default_Filter := Get_Node_Name (Attribute_Item);
+               Default_Channel_Filter = No_Filter_Name then
+               Default_Channel_Filter := Get_Node_Name (Attr_Item);
 
             --  Apply to one channel. Check that it has not already
             --  been done.
@@ -856,14 +894,14 @@ package body XE_Back is
             elsif Channel /= Null_CID and then
               Channels.Table (Channel).Filter = No_Filter_Name then
                Channels.Table (Channel).Filter
-                 := Get_Node_Name (Attribute_Item);
+                 := Get_Node_Name (Attr_Item);
 
             --  This operation has already been done !
 
             else
-               Write_SLOC (Attribute_Item);
+               Write_SLOC (Attr_Item);
                if Channel = Null_CID then
-                  Write_Str ("type channel");
+                  Write_Str ("predefined type Channel");
                else
                   Write_Name (Channels.Table (Channel).Name);
                end if;
@@ -944,6 +982,54 @@ package body XE_Back is
       end if;
 
       case Attr_Kind is
+         when Attribute_PFilter =>
+
+            --  Only string literals are allowed here.
+
+            if not Is_Variable (Attr_Item) or else
+              Get_Variable_Type (Variable_Id (Attr_Item)) /=
+              String_Type_Node then
+               Write_SLOC (Node_Id (Attribute));
+               Write_Name (Partitions.Table (Partition).Name);
+               Write_Str ("'s filter attribute must be ");
+               Write_Str ("a string literal");
+               Write_Eol;
+               raise Parsing_Error;
+            end if;
+
+            --  Does it apply to all partitions ? Therefore, check
+            --  that this has not already been done.
+
+            if Partition = Null_PID and then
+               Default_Partition_Filter = No_Filter_Name then
+               Default_Partition_Filter := Get_Node_Name (Attr_Item);
+
+            --  Apply to one partition. Check that it has not already
+            --  been done.
+
+            elsif Partition /= Null_PID then
+               Write_SLOC (Node_Id (Attribute));
+               Write_Str ("a partition filter attribute applies only to ");
+               Write_Eol;
+               Write_SLOC (Node_Id (Attribute));
+               Write_Str ("predefined type Partition");
+               Write_Eol;
+               raise Parsing_Error;
+
+            --  This operation has already been done !
+
+            else
+               Write_SLOC (Attr_Item);
+               if Partition = Null_PID then
+                  Write_Str ("predefined type Partition ");
+               else
+                  Write_Name (Partitions.Table (Partition).Name);
+               end if;
+               Write_Str ("'s filter attribute has been assigned twice");
+               Write_Eol;
+               raise Parsing_Error;
+            end if;
+
          when Attribute_Storage_Dir =>
 
             --  Only strings are allowed here.
@@ -979,7 +1065,7 @@ package body XE_Back is
             else
                Write_SLOC (Attr_Item);
                if Partition = Null_PID then
-                  Write_Str ("type partition");
+                  Write_Str ("predefined type Partition");
                else
                   Write_Name (Partitions.Table (Partition).Name);
                end if;
@@ -1027,7 +1113,7 @@ package body XE_Back is
             else
                Write_SLOC (Node_Id (Attribute));
                if Partition = Null_PID then
-                  Write_Str ("type partition");
+                  Write_Str ("predefined type Partition");
                else
                   Write_Name (Partitions.Table (Partition).Name);
                end if;
@@ -1063,7 +1149,7 @@ package body XE_Back is
             else
                Write_SLOC (Node_Id (Attribute));
                if Partition = Null_PID then
-                  Write_Str ("type partition");
+                  Write_Str ("predefined type Partition");
                else
                   Write_Name (Partitions.Table (Partition).Name);
                end if;
@@ -1105,7 +1191,7 @@ package body XE_Back is
             else
                Write_SLOC (Node_Id (Attribute));
                if Partition = Null_PID then
-                  Write_Str ("type partition");
+                  Write_Str ("predefined type Partition");
                else
                   Write_Name (Partitions.Table (Partition).Name);
                end if;
@@ -1151,7 +1237,7 @@ package body XE_Back is
             else
                Write_SLOC (Node_Id (Attribute));
                if Partition = Null_PID then
-                  Write_Str ("type partition");
+                  Write_Str ("predefined type Partition");
                else
                   Write_Name (Partitions.Table (Partition).Name);
                end if;
@@ -1168,7 +1254,7 @@ package body XE_Back is
                Main_Partition := Partition;
             end if;
 
-         when Attribute_Filter | Attribute_Unknown =>
+         when Attribute_CFilter | Attribute_Unknown =>
             raise Fatal_Error;
 
       end case;
@@ -1240,9 +1326,9 @@ package body XE_Back is
             Value := Get_Variable_Value (Variable_Id (Parameter));
             Default_Version_Check := (Get_Scalar_Value (Value) /= 0);
 
-         when Pragma_Filter =>
+         when Pragma_Reg_Filter =>
             Value := Get_Variable_Value (Variable_Id (Parameter));
-            Default_Filter := Get_Node_Name (Node_Id (Value));
+            Default_Registration_Filter := Get_Node_Name (Node_Id (Value));
 
          when Pragma_Unknown =>
             null;
@@ -1443,14 +1529,29 @@ package body XE_Back is
                Write_Str  ("Channel ");
                Write_Name (Channels.Table (C).Name);
                Write_Eol;
+               if Debug_Mode then
+                  Write_Str  ("   Number      : ");
+                  Write_Int (Int (C));
+                  Write_Eol;
+               end if;
                Write_Str     ("   Partition 1 : ");
-               P := Channels.Table (C).Lower;
+               P := Channels.Table (C).Lower.My_Partition;
                Write_Name (Partitions.Table (P).Name);
                Write_Eol;
+               if Debug_Mode then
+                  Write_Str ("   Channel     : ");
+                  Write_Int (Int (Channels.Table (C).Lower.Next_Channel));
+                  Write_Eol;
+               end if;
                Write_Str     ("   Partition 2 : ");
-               P := Channels.Table (C).Upper;
+               P := Channels.Table (C).Upper.My_Partition;
                Write_Name (Partitions.Table (P).Name);
                Write_Eol;
+               if Debug_Mode then
+                  Write_Str ("   Channel     : ");
+                  Write_Int (Int (Channels.Table (C).Upper.Next_Channel));
+                  Write_Eol;
+               end if;
                F := Get_Filter (C);
                if F /= No_Filter_Name then
                   Write_Str  ("   Filter      : ");

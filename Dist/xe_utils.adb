@@ -40,11 +40,6 @@ package body XE_Utils is
 
    Path         : constant String_Access := GNAT.Os_Lib.Getenv ("PATH");
 
-   function Locate
-     (Exec_Name  : String;
-      Show_Error : Boolean := True)
-     return String_Access;
-
    GNAT_Verbose   : String_Access;
    XE_Gcc         : String_Access;
    Gcc            : String_Access;
@@ -103,31 +98,6 @@ package body XE_Utils is
 
    No_Args          : constant Argument_List (1 .. 0) := (others => null);
 
-   procedure Execute (Prog : String_Access; Args : Argument_List);
-   --  Execute the command and raise Fatal Error if not successful
-
-   procedure Execute_XE_Gcc
-     (Source : in String_Access;
-      Target : in String_Access;
-      Flags  : in Argument_List);
-   --  Execute xe-gcc and add gnatdist compilation flags
-
-   procedure Execute_Gcc
-     (File : in File_Name_Type;
-      Args : in Argument_List);
-   --  Execute gcc and add gnatdist compilation flags
-
-   procedure Execute_Bind
-     (Lib  : in File_Name_Type;
-      Args : in Argument_List);
-   --  Execute gnatbind and add gnatdist flags
-
-   procedure Execute_Link
-     (Lib  : in File_Name_Type;
-      Exec : in File_Name_Type;
-      Args : in Argument_List);
-   --  Execute gnatlink and add gnatdist flags
-
    ---------
    -- "&" --
    ---------
@@ -146,67 +116,35 @@ package body XE_Utils is
       return Name_Find;
    end "&";
 
-   ---------------------------
-   -- Write_Compile_Command --
-   ---------------------------
+   procedure Execute (Prog : String_Access; Args : Argument_List);
+   --  Execute the command and raise Fatal Error if not successful
 
-   procedure Write_Compile_Command (Name : in File_Name_Type) is
-   begin
-      Write_Str  (Standout, Gnatmake.all);
-      Write_Str  (Standout, " -c ");
-      for I in Gcc_Switches.First .. Gcc_Switches.Last loop
-         Write_Str (Standout, Gcc_Switches.Table (I).all);
-         Write_Str (Standout, " ");
-      end loop;
-      Write_Name (Standout, Name);
-      Write_Eol  (Standout);
-   end Write_Compile_Command;
+   procedure Execute_Bind
+     (Lib  : in File_Name_Type;
+      Args : in Argument_List);
+   --  Execute gnatbind and add gnatdist flags
 
-   -----------------------------------
-   -- Expand_And_Compile_RCI_Caller --
-   -----------------------------------
+   procedure Execute_Gcc
+     (File : in File_Name_Type;
+      Args : in Argument_List);
+   --  Execute gcc and add gnatdist compilation flags
 
-   procedure Expand_And_Compile_RCI_Caller
-     (Source, Target : in File_Name_Type) is
-      Source_Name_Len : Natural := Strlen (Source);
-      Target_Name_Len : Natural := Strlen (Target);
-      Source_Name     : String (1 .. Source_Name_Len);
-      Target_Name     : String (1 .. Target_Name_Len);
-   begin
-      Get_Name_String (Source);
-      Source_Name := Name_Buffer (1 .. Name_Len);
-      Get_Name_String (Target);
-      Target_Name := Name_Buffer (1 .. Name_Len);
-      Execute_XE_Gcc
-        (new String'(Target_Name),
-         new String'(Source_Name),
-         (Sem_Only_Flag,
-          Caller_Build_Flag,
-          I_GARLIC_Dir));
-   end Expand_And_Compile_RCI_Caller;
+   procedure Execute_Link
+     (Lib  : in File_Name_Type;
+      Exec : in File_Name_Type;
+      Args : in Argument_List);
+   --  Execute gnatlink and add gnatdist flags
 
-   -------------------------------------
-   -- Expand_And_Compile_RCI_Receiver --
-   -------------------------------------
+   procedure Execute_XE_Gcc
+     (Source : in String_Access;
+      Target : in String_Access;
+      Flags  : in Argument_List);
+   --  Execute xe-gcc and add gnatdist compilation flags
 
-   procedure Expand_And_Compile_RCI_Receiver
-     (Source, Target : in File_Name_Type) is
-      Source_Name_Len : Natural := Strlen (Source);
-      Target_Name_Len : Natural := Strlen (Target);
-      Source_Name     : String (1 .. Source_Name_Len);
-      Target_Name     : String (1 .. Target_Name_Len);
-   begin
-      Get_Name_String (Source);
-      Source_Name := Name_Buffer (1 .. Name_Len);
-      Get_Name_String (Target);
-      Target_Name := Name_Buffer (1 .. Name_Len);
-      Execute_XE_Gcc
-        (new String'(Target_Name),
-         new String'(Source_Name),
-         (Sem_Only_Flag,
-          Receiver_Build_Flag,
-          I_GARLIC_Dir));
-   end Expand_And_Compile_RCI_Receiver;
+   function Locate
+     (Exec_Name  : String;
+      Show_Error : Boolean := True)
+     return String_Access;
 
    ----------------
    -- Change_Dir --
@@ -617,6 +555,52 @@ package body XE_Utils is
       Execute (XE_Gcc, A);
    end Execute_XE_Gcc;
 
+   -----------------------------------
+   -- Expand_And_Compile_RCI_Caller --
+   -----------------------------------
+
+   procedure Expand_And_Compile_RCI_Caller
+     (Source, Target : in File_Name_Type) is
+      Source_Name_Len : Natural := Strlen (Source);
+      Target_Name_Len : Natural := Strlen (Target);
+      Source_Name     : String (1 .. Source_Name_Len);
+      Target_Name     : String (1 .. Target_Name_Len);
+   begin
+      Get_Name_String (Source);
+      Source_Name := Name_Buffer (1 .. Name_Len);
+      Get_Name_String (Target);
+      Target_Name := Name_Buffer (1 .. Name_Len);
+      Execute_XE_Gcc
+        (new String'(Target_Name),
+         new String'(Source_Name),
+         (Sem_Only_Flag,
+          Caller_Build_Flag,
+          I_GARLIC_Dir));
+   end Expand_And_Compile_RCI_Caller;
+
+   -------------------------------------
+   -- Expand_And_Compile_RCI_Receiver --
+   -------------------------------------
+
+   procedure Expand_And_Compile_RCI_Receiver
+     (Source, Target : in File_Name_Type) is
+      Source_Name_Len : Natural := Strlen (Source);
+      Target_Name_Len : Natural := Strlen (Target);
+      Source_Name     : String (1 .. Source_Name_Len);
+      Target_Name     : String (1 .. Target_Name_Len);
+   begin
+      Get_Name_String (Source);
+      Source_Name := Name_Buffer (1 .. Name_Len);
+      Get_Name_String (Target);
+      Target_Name := Name_Buffer (1 .. Name_Len);
+      Execute_XE_Gcc
+        (new String'(Target_Name),
+         new String'(Source_Name),
+         (Sem_Only_Flag,
+          Receiver_Build_Flag,
+          I_GARLIC_Dir));
+   end Expand_And_Compile_RCI_Receiver;
+
    ----------------
    -- Initialize --
    ----------------
@@ -889,6 +873,22 @@ package body XE_Utils is
       Execute (Rm, (Force, File_Name));
       Free (File_Name);
    end Unlink_File;
+
+   ---------------------------
+   -- Write_Compile_Command --
+   ---------------------------
+
+   procedure Write_Compile_Command (Name : in File_Name_Type) is
+   begin
+      Write_Str  (Standout, Gnatmake.all);
+      Write_Str  (Standout, " -c ");
+      for I in Gcc_Switches.First .. Gcc_Switches.Last loop
+         Write_Str (Standout, Gcc_Switches.Table (I).all);
+         Write_Str (Standout, " ");
+      end loop;
+      Write_Name (Standout, Name);
+      Write_Eol  (Standout);
+   end Write_Compile_Command;
 
    ---------------
    -- Write_Eol --

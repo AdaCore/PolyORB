@@ -1,18 +1,12 @@
 CLADS : Configuration Language for Ada Distributed System
 
-* Change the way a configuration node is set.
+* Problem configuration file is not local.
 
-* Improve debugging messages.
+* Change the way a configuration node is set.
 
 * There are still '/' characters to suppress (non-Unix stuff).
 
 * When marking ali, do not print multiple messages.
-
-* Improve tree output.
-
-* Improve error messages.
-
-* Move standard configuration creation outside parser.
 
 * Pragma Import should not accept None_Import (comes from Starter move into
   Import).

@@ -238,6 +238,14 @@ package body XE_Stdcnf is
          Attribute_Node => Attribute_Node);
 
       Declare_Type_Attribute
+        (Type_Node        => Partition_Type_Node,
+         Attribute_Name   => Str_To_Id ("filter"),
+         Attr_Type_Node   => String_Type_Node,
+         Attribute_Kind   => Attribute_PFilter,
+         Attribute_Sloc   => Null_Location,
+         Attribute_Node   => Attribute_Node);
+
+      Declare_Type_Attribute
         (Type_Node      => Partition_Type_Node,
          Attribute_Name => Str_To_Id ("_leader"),
          Attr_Type_Node => Boolean_Type_Node,
@@ -274,7 +282,7 @@ package body XE_Stdcnf is
         (Type_Node        => Channel_Type_Node,
          Attribute_Name   => Str_To_Id ("filter"),
          Attr_Type_Node   => String_Type_Node,
-         Attribute_Kind   => Attribute_Filter,
+         Attribute_Kind   => Attribute_CFilter,
          Attribute_Sloc   => Null_Location,
          Attribute_Node   => Attribute_Node);
 
@@ -408,6 +416,24 @@ package body XE_Stdcnf is
         (Str_To_Id ("check"),
          Boolean_Type_Node,
          Pragma_Version_Node,
+         Null_Location,
+         Parameter_Node);
+
+      --  pragma boot_server ... or
+      --  procedure pragma__starter
+      --    (check : starter__type);
+
+      Declare_Subprogram
+        (Pragma_Prefix & Str_To_Id ("registration_filter"),
+         Pragma_Reg_Filter,
+         True,
+         Null_Location,
+         Pragma_Reg_Filter_Node);
+
+      Declare_Subprogram_Parameter
+        (Str_To_Id ("filter"),
+         String_Type_Node,
+         Pragma_Reg_Filter_Node,
          Null_Location,
          Parameter_Node);
 

@@ -77,7 +77,7 @@ package XE is
 
    -- Attribute_Type --
 
-   type Attribute_Type is new Int range 200 .. 207;
+   type Attribute_Type is new Int range 200 .. 208;
 
    Attribute_Unknown      : constant Attribute_Type := 200;
    Attribute_Host         : constant Attribute_Type := 201;
@@ -86,7 +86,8 @@ package XE is
    Attribute_Command_Line : constant Attribute_Type := 204;
    Attribute_Termination  : constant Attribute_Type := 205;
    Attribute_Leader       : constant Attribute_Type := 206;
-   Attribute_Filter       : constant Attribute_Type := 207;
+   Attribute_PFilter      : constant Attribute_Type := 207;
+   Attribute_CFilter      : constant Attribute_Type := 208;
 
 
    -- Pragma_Type --
@@ -98,7 +99,7 @@ package XE is
    Pragma_Import          : constant Pragma_Type := 302;
    Pragma_Boot_Server     : constant Pragma_Type := 303;
    Pragma_Version         : constant Pragma_Type := 304;
-   Pragma_Filter          : constant Pragma_Type := 305;
+   Pragma_Reg_Filter      : constant Pragma_Type := 305;
 
 
    -- Import_Method_Type --
@@ -179,6 +180,7 @@ package XE is
    Pragma_Import_Node       : Subprogram_Id;
    Pragma_Boot_Server_Node  : Subprogram_Id;
    Pragma_Version_Node      : Subprogram_Id;
+   Pragma_Reg_Filter_Node   : Subprogram_Id;
 
 
    -- Internal System Names --

@@ -95,6 +95,7 @@ begin
          L := Name_Len;
 
          --  Remove suffix if needed.
+
          if L > S and then Name_Buffer (L - S + 1 .. L) = Suffix then
             L := L - S;
             N := Name_Find;

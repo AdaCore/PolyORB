@@ -99,24 +99,33 @@ package XE_Back is
 
    -- Defaults --
 
-   Default_Main          : Main_Subprogram_Type  := No_Main_Subprogram;
-   Default_Host          : HID_Type              := Null_HID;
-   Default_Storage_Dir   : Storage_Dir_Name_Type := No_Storage_Dir;
-   Default_Command_Line  : Command_Line_Type     := No_Command_Line;
-   Default_Termination   : Termination_Type      := Unknown_Termination;
-   Default_Filter        : Filter_Name_Type      := No_Filter_Name;
-   Default_Protocol_Name : Name_Id               := No_Name;
-   Default_Protocol_Data : Name_Id               := No_Name;
-   Default_Starter       : Import_Method_Type    := Ada_Import;
-   Default_Version_Check : Boolean               := True;
+   Default_Main                : Main_Subprogram_Type  := No_Main_Subprogram;
+   Default_Host                : HID_Type              := Null_HID;
+   Default_Storage_Dir         : Storage_Dir_Name_Type := No_Storage_Dir;
+   Default_Command_Line        : Command_Line_Type     := No_Command_Line;
+   Default_Termination         : Termination_Type      := Unknown_Termination;
+   Default_Channel_Filter      : Filter_Name_Type      := No_Filter_Name;
+   Default_Partition_Filter    : Filter_Name_Type      := No_Filter_Name;
+   Default_Registration_Filter : Filter_Name_Type      := No_Filter_Name;
+   Default_Protocol_Name       : Name_Id               := No_Name;
+   Default_Protocol_Data       : Name_Id               := No_Name;
+   Default_Starter             : Import_Method_Type    := Ada_Import;
+   Default_Version_Check       : Boolean               := True;
 
    -- Table element types --
+
+   type Channel_Partition_Type is record
+      My_Partition : PID_Type;
+      Next_Channel : CID_Type;
+   end record;
+
+   Null_Channel_Partition : Channel_Partition_Type := (Null_PID, Null_CID);
 
    type Channel_Type is record
       Name   : Channel_Name_Type;
       Node   : Node_Id;
-      Lower  : PID_Type;
-      Upper  : PID_Type;
+      Lower  : Channel_Partition_Type;
+      Upper  : Channel_Partition_Type;
       Filter : Filter_Name_Type;
    end record;
 
@@ -147,8 +156,11 @@ package XE_Back is
       Termination     : Termination_Type;
       First_Unit      : CUID_Type;
       Last_Unit       : CUID_Type;
+      First_Channel   : CID_Type;
+      Last_Channel    : CID_Type;
       To_Build        : Boolean;
       Most_Recent     : File_Name_Type;
+      Filter          : Filter_Name_Type;
    end record;
 
    -- Tables --

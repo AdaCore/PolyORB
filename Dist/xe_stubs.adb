@@ -68,8 +68,6 @@ package body XE_Stubs is
 
    procedure Deallocate is new Unchecked_Deallocation (String, String_Access);
 
-   --  Local subprograms
-
    procedure Delete_Stub (Source_Dir, Base_Name : in File_Name_Type);
    --  Delete all the stub files (base_name.*) from a source directory. The
    --  suffixes used are .adb .o .ali.
@@ -101,6 +99,126 @@ package body XE_Stubs is
    procedure Update_Switch (S : in out String_Access);
    --  For a given '-I' switch (or equivalent -L -a*), update it
    --  if it is a relative path and add ../../.. at the beginning.
+
+   -----------
+   -- Build --
+   -----------
+
+   procedure Build is
+   begin
+
+      Get_Name_String (Original_Dir & Dir_Sep_Id);
+      Root_Dir_Len := Name_Len;
+      Root_Dir := new String'(Name_Buffer (1 .. Root_Dir_Len));
+
+      if not Is_Directory (Caller_Dir) then
+         Create_Dir (Caller_Dir);
+      end if;
+
+      if not Is_Directory (Receiver_Dir) then
+         Create_Dir (Receiver_Dir);
+      end if;
+
+      --  At this point, everything is performed in dsa/<dir>. We update
+      --  all the relative paths (-I and -L).
+
+      for S in Gcc_Switches.First .. Gcc_Switches.Last loop
+         Update_Switch (Gcc_Switches.Table (S));
+      end loop;
+
+      for S in Linker_Switches.First .. Linker_Switches.Last loop
+         Update_Switch (Linker_Switches.Table (S));
+      end loop;
+
+      for S in Binder_Switches.First .. Binder_Switches.Last loop
+         Update_Switch (Binder_Switches.Table (S));
+      end loop;
+
+      --  Generate all the stubs (bodies, objects and alis). At this level,
+      --  we ensure that all conf. units are ada units.
+      for CUID in CUnit.First .. CUnit.Last loop
+         if Unit.Table (CUnit.Table (CUID).My_Unit).RCI then
+            if Verbose_Mode then
+               Write_Program_Name;
+               Write_Str (": building ");
+               Write_Name (CUnit.Table (CUID).CUname);
+               Write_Str (" stubs");
+               Write_Eol;
+            end if;
+            Build_Stub
+              (Get_Unit_Sfile (CUnit.Table (CUID).My_Unit),
+               Unit.Table (CUnit.Table (CUID).My_Unit).Utype = Is_Spec_Only);
+         end if;
+      end loop;
+
+      --  Create and fill partition directories.
+      for PID in Partitions.First .. Partitions.Last loop
+
+         if Partitions.Table (PID).To_Build then
+
+            Directory := Get_Partition_Dir (PID);
+
+            if not Is_Directory (Directory) then
+               Create_Dir (Directory);
+            end if;
+
+            declare
+               UID : CUID_Type;
+            begin
+               --  Mark all the RCI callers.
+               UID := Partitions.Table (PID).First_Unit;
+               while UID /= Null_CUID loop
+                  Mark_RCI_Callers (PID, CUnit.Table (UID).My_ALI);
+                  UID := CUnit.Table (UID).Next;
+               end loop;
+            end;
+
+            Create_Partition_Main_File (PID);
+            Create_Elaboration_File (PID);
+
+            --  Copy RCI receiver stubs when this unit has been assigned on
+            --  PID partition. RCI caller stubs are not needed because GNATDIST
+            --  add the caller directory in its include path.
+
+            for UID in CUnit.First .. CUnit.Last loop
+               if Unit.Table (CUnit.Table (UID).My_Unit).RCI then
+                  if CUnit.Table (UID).Partition = PID then
+                     Copy_Stub
+                       (Receiver_Dir,
+                        Directory,
+                        Get_Unit_Sfile (CUnit.Table (UID).My_Unit));
+                  else
+                     Delete_Stub
+                       (Directory,
+                        Get_Unit_Sfile (CUnit.Table (UID).My_Unit));
+                  end if;
+               end if;
+            end loop;
+
+            --  Bind and link each partition.
+
+            Executable := Partitions.Table (PID).Name;
+
+            if Partitions.Table (PID).Storage_Dir = No_Storage_Dir then
+               Directory := Default_Storage_Dir;
+            else
+               Directory := Partitions.Table (PID).Storage_Dir;
+            end if;
+
+            if Directory  /= No_Storage_Dir then
+               if not Is_Directory (Directory) then
+                  Create_Dir (Directory);
+               end if;
+               Executable := Directory & Dir_Sep_Id & Executable;
+            end if;
+
+            Build_Partition (PID, Executable);
+
+         end if;
+
+      end loop;
+
+   end Build;
 
    ---------------------
    -- Build_Partition --
@@ -383,9 +501,9 @@ package body XE_Stubs is
       Partition   : Partition_Name_Type;
       Elaboration : File_Name_Type;
       Most_Recent : File_Name_Type;
-      Part_Peer   : PID_Type;
 
-      FD : File_Descriptor;
+      CID : CID_Type;
+      FD  : File_Descriptor;
 
    begin
 
@@ -424,6 +542,42 @@ package body XE_Stubs is
       Dwrite_Eol  (FD);
       Dwrite_Str  (FD, "with System.Garlic.Filters.None;");
       Dwrite_Eol  (FD);
+
+      if Partitions.Table (PID).Filter /= No_Filter_Name then
+         Dwrite_Str  (FD, "--  Specific partition filters");
+         Dwrite_Eol  (FD);
+         Dwrite_Str  (FD, "with System.Garlic.Filters.");
+         Dwrite_Name (FD, Partitions.Table (PID).Filter);
+         Dwrite_Str  (FD, ";");
+         Dwrite_Eol  (FD);
+      end if;
+
+      if Partitions.Table (PID).First_Channel /= Null_CID then
+         Dwrite_Str  (FD, "--  Specific channel filters");
+         Dwrite_Eol  (FD);
+         if Default_Channel_Filter /= No_Filter_Name then
+            Dwrite_Str  (FD, "with System.Garlic.Filters.");
+            Dwrite_Name (FD, Default_Channel_Filter);
+            Dwrite_Str  (FD, ";");
+            Dwrite_Eol  (FD);
+         end if;
+         CID := Partitions.Table (PID).First_Channel;
+         while CID /= Null_CID loop
+            Write_Str ("Channel = ");
+            Write_Int (Int (CID));
+            Write_Eol;
+            Dwrite_Str  (FD, "with System.Garlic.Filters.");
+            Dwrite_Name (FD, Get_Filter (CID));
+            Dwrite_Str  (FD, ";");
+            Dwrite_Eol  (FD);
+            if Channels.Table (CID).Lower.My_Partition = PID then
+               CID := Channels.Table (CID).Lower.Next_Channel;
+            else
+               CID := Channels.Table (CID).Upper.Next_Channel;
+            end if;
+         end loop;
+      end if;
+
       Dwrite_Str  (FD, "use System.Garlic.Options;");
       Dwrite_Eol  (FD);
       Dwrite_Str  (FD, "use System.Garlic.Heart;");
@@ -481,29 +635,44 @@ package body XE_Stubs is
       Dwrite_Str     (FD, """);");
       Dwrite_Eol     (FD);
 
-      if Default_Filter /= No_Filter_Name then
-         Dwrite_Str     (FD, "   Set_Default_Filter (""");
-         Dwrite_Name    (FD, Default_Filter);
+      if Default_Registration_Filter /= No_Filter_Name then
+         Dwrite_Str     (FD, "   Set_Registration_Filter (""");
+         Dwrite_Name    (FD, Default_Registration_Filter);
          Dwrite_Str     (FD, """);");
          Dwrite_Eol     (FD);
       end if;
 
-      for C in Channels.First .. Channels.Last loop
-         Part_Peer := Null_PID;
-         if Channels.Table (C).Lower = PID then
-            Part_Peer := Channels.Table (C).Upper;
-         elsif Channels.Table (C).Upper = PID then
-            Part_Peer := Channels.Table (C).Lower;
-         end if;
-         if Part_Peer /= Null_PID then
-            Dwrite_Str  (FD, "   Set_Channel_Filter (""");
-            Dwrite_Name (FD, Partitions.Table (Part_Peer).Name);
-            Dwrite_Str  (FD, """, """);
-            Dwrite_Name (FD, Channels.Table (C).Filter);
-            Dwrite_Str  (FD, """);");
-            Dwrite_Eol  (FD);
-         end if;
-      end loop;
+      if Default_Partition_Filter /= No_Filter_Name then
+         Dwrite_Str     (FD, "   Set_Default_Filter (""");
+         Dwrite_Name    (FD, Default_Partition_Filter);
+         Dwrite_Str     (FD, """);");
+         Dwrite_Eol     (FD);
+      end if;
+
+      if Partitions.Table (PID).Last_Channel /= Null_CID then
+         CID := Partitions.Table (PID).First_Channel;
+         declare
+            Filter : Filter_Name_Type;
+            Peer   : PID_Type;
+         begin
+            while CID /= Null_CID loop
+               Filter := Get_Filter (CID);
+               if Channels.Table (CID).Lower.My_Partition = PID then
+                  Peer := Channels.Table (CID).Lower.My_Partition;
+                  CID  := Channels.Table (CID).Lower.Next_Channel;
+               else
+                  Peer := Channels.Table (CID).Upper.My_Partition;
+                  CID  := Channels.Table (CID).Upper.Next_Channel;
+               end if;
+               Dwrite_Str  (FD, "   Set_Channel_Filter (""");
+               Dwrite_Name (FD, Partitions.Table (Peer).Name);
+               Dwrite_Str  (FD, """, """);
+               Dwrite_Name (FD, Filter);
+               Dwrite_Str  (FD, """);");
+               Dwrite_Eol  (FD);
+            end loop;
+         end;
+      end if;
 
       --  Footer.
       Dwrite_Str  (FD, "end ");
@@ -801,171 +970,9 @@ package body XE_Stubs is
 
    end Delete_Stub;
 
-   -------------------
-   -- Update_Switch --
-   -------------------
-
-   procedure Update_Switch (S : in out String_Access) is
-
-      procedure Update (S : in out String_Access; I : Natural);
-
-      procedure Update (S : in out String_Access; I : Natural) is
-
-         T : String (S'First .. S'Last + Root_Dir_Len);
-         N : Natural := I - 1;
-
-      begin
-         T (S'First .. N) := S (S'First .. N);
-         N := N + 1;
-         T (N .. N + Root_Dir_Len) := Root_Dir.all;
-         N := N + Root_Dir_Len;
-         T (N .. T'Last) := S (I .. S'Last);
-         Deallocate (S);
-         S := new String'(T);
-      end Update;
-
-      N : Natural := S'First + 1;
-
-   begin
-      case S (N) is
-         when 'a' =>
-            case S (N + 1) is
-               when 'L' | 'O' | 'I' =>
-                  if S (N + 2) /= Separator then
-                     Update (S, N + 2);
-                  end if;
-               when others =>
-                  null;
-            end case;
-         when 'I' | 'L' | 'A' =>
-            if S (N + 1) /= Separator and then
-               S (N + 1) /= '-' then
-               Update (S, N + 1);
-            end if;
-         when others =>
-            null;
-      end case;
-   end Update_Switch;
-
-   procedure Build is
-   begin
-
-      Get_Name_String (Original_Dir & Dir_Sep_Id);
-      Root_Dir_Len := Name_Len;
-      Root_Dir := new String'(Name_Buffer (1 .. Root_Dir_Len));
-
-      if not Is_Directory (Caller_Dir) then
-         Create_Dir (Caller_Dir);
-      end if;
-
-      if not Is_Directory (Receiver_Dir) then
-         Create_Dir (Receiver_Dir);
-      end if;
-
-      --  At this point, everything is performed in dsa/<dir>. We update
-      --  all the relative paths (-I and -L).
-
-      for S in Gcc_Switches.First .. Gcc_Switches.Last loop
-         Update_Switch (Gcc_Switches.Table (S));
-      end loop;
-
-      for S in Linker_Switches.First .. Linker_Switches.Last loop
-         Update_Switch (Linker_Switches.Table (S));
-      end loop;
-
-      for S in Binder_Switches.First .. Binder_Switches.Last loop
-         Update_Switch (Binder_Switches.Table (S));
-      end loop;
-
-      --  Generate all the stubs (bodies, objects and alis). At this level,
-      --  we ensure that all conf. units are ada units.
-      for CUID in CUnit.First .. CUnit.Last loop
-         if Unit.Table (CUnit.Table (CUID).My_Unit).RCI then
-            if Verbose_Mode then
-               Write_Program_Name;
-               Write_Str (": building ");
-               Write_Name (CUnit.Table (CUID).CUname);
-               Write_Str (" stubs");
-               Write_Eol;
-            end if;
-            Build_Stub
-              (Get_Unit_Sfile (CUnit.Table (CUID).My_Unit),
-               Unit.Table (CUnit.Table (CUID).My_Unit).Utype = Is_Spec_Only);
-         end if;
-      end loop;
-
-      --  Create and fill partition directories.
-      for PID in Partitions.First .. Partitions.Last loop
-
-         if Partitions.Table (PID).To_Build then
-
-            Directory := Get_Partition_Dir (PID);
-
-            if not Is_Directory (Directory) then
-               Create_Dir (Directory);
-            end if;
-
-            declare
-               UID : CUID_Type;
-            begin
-               --  Mark all the RCI callers.
-               UID := Partitions.Table (PID).First_Unit;
-               while UID /= Null_CUID loop
-                  Mark_RCI_Callers (PID, CUnit.Table (UID).My_ALI);
-                  UID := CUnit.Table (UID).Next;
-               end loop;
-            end;
-
-            Create_Partition_Main_File (PID);
-            Create_Elaboration_File (PID);
-
-            --  Copy RCI receiver stubs when this unit has been assigned on
-            --  PID partition. RCI caller stubs are not needed because GNATDIST
-            --  add the caller directory in its include path.
-
-            for UID in CUnit.First .. CUnit.Last loop
-               if Unit.Table (CUnit.Table (UID).My_Unit).RCI then
-                  if CUnit.Table (UID).Partition = PID then
-                     Copy_Stub
-                       (Receiver_Dir,
-                        Directory,
-                        Get_Unit_Sfile (CUnit.Table (UID).My_Unit));
-                  else
-                     Delete_Stub
-                       (Directory,
-                        Get_Unit_Sfile (CUnit.Table (UID).My_Unit));
-                  end if;
-               end if;
-            end loop;
-
-            --  Bind and link each partition.
-
-            Executable := Partitions.Table (PID).Name;
-
-            if Partitions.Table (PID).Storage_Dir = No_Storage_Dir then
-               Directory := Default_Storage_Dir;
-            else
-               Directory := Partitions.Table (PID).Storage_Dir;
-            end if;
-
-            if Directory  /= No_Storage_Dir then
-               if not Is_Directory (Directory) then
-                  Create_Dir (Directory);
-               end if;
-               Executable := Directory & Dir_Sep_Id & Executable;
-            end if;
-
-            Build_Partition (PID, Executable);
-
-         end if;
-
-      end loop;
-
-   end Build;
-
-   ------------------------
-   -- Write_Caller_Withs --
-   ------------------------
+   ----------------------
+   -- Mark_RCI_Callers --
+   ----------------------
 
    procedure Mark_RCI_Callers
      (PID : in PID_Type;
@@ -1056,5 +1063,51 @@ package body XE_Stubs is
       end loop;
 
    end Mark_RCI_Callers;
+
+   -------------------
+   -- Update_Switch --
+   -------------------
+
+   procedure Update_Switch (S : in out String_Access) is
+
+      procedure Update (S : in out String_Access; I : Natural);
+
+      procedure Update (S : in out String_Access; I : Natural) is
+
+         T : String (S'First .. S'Last + Root_Dir_Len);
+         N : Natural := I - 1;
+
+      begin
+         T (S'First .. N) := S (S'First .. N);
+         N := N + 1;
+         T (N .. N + Root_Dir_Len) := Root_Dir.all;
+         N := N + Root_Dir_Len;
+         T (N .. T'Last) := S (I .. S'Last);
+         Deallocate (S);
+         S := new String'(T);
+      end Update;
+
+      N : Natural := S'First + 1;
+
+   begin
+      case S (N) is
+         when 'a' =>
+            case S (N + 1) is
+               when 'L' | 'O' | 'I' =>
+                  if S (N + 2) /= Separator then
+                     Update (S, N + 2);
+                  end if;
+               when others =>
+                  null;
+            end case;
+         when 'I' | 'L' | 'A' =>
+            if S (N + 1) /= Separator and then
+               S (N + 1) /= '-' then
+               Update (S, N + 1);
+            end if;
+         when others =>
+            null;
+      end case;
+   end Update_Switch;
 
 end XE_Stubs;

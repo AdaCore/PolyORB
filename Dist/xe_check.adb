@@ -38,18 +38,27 @@ with XE_Utils;         use XE_Utils;
 
 package body XE_Check is
 
-   --  Once this procedure called, we have the following properties:
-   --
-   --  * Key of CUnit.Table (U).CUname corresponds to its ALI_Id
-   --    ie ali index corresponding to ada unit CUnit.Table (U).CUname.
-   --
-   --  * Key of Unit.Table  (U).Uname  corresponds to its CUID_Id
-   --    ie mapped unit index corresponding to ada unit Unit.Table (U).Uname
-   --    if this unit has been mapped.
-   --
-   --  * Key of Partitions.Table (P).Name corresponds to its PID.
+   procedure Initialize is
+   begin
+      Initialize_ALI;
+   end Initialize;
+
+   -----------
+   -- Check --
+   -----------
 
    procedure Check is
+
+      --  Once this procedure called, we have the following properties:
+      --
+      --  * Key of CUnit.Table (U).CUname corresponds to its ALI_Id ie ali
+      --  index corresponding to ada unit CUnit.Table (U).CUname.
+      --
+      --  * Key of Unit.Table (U).Uname corresponds to its CUID_Id ie
+      --  mapped unit index corresponding to ada unit Unit.Table (U).Uname
+      --  if this unit has been mapped.
+      --
+      --  * Key of Partitions.Table (P).Name corresponds to its PID.
 
       Inconsistent : Boolean := False;
       PID  : PID_Type;
@@ -59,37 +68,33 @@ package body XE_Check is
       Obj       : Name_Id;
       Args      : Argument_List (Gcc_Switches.First .. Gcc_Switches.Last);
       Main      : Boolean;
-      Full_Name : File_Name_Type;
       Stamp     : Time_Stamp_Type;
 
-      procedure Recompile (Name : File_Name_Type);
+      procedure Recompile (Unit : Name_Id);
 
-      procedure Recompile (Name : File_Name_Type) is
+      procedure Recompile (Unit : Name_Id) is
+         File_Name : Name_Id;
       begin
-         if not Already_Loaded (Name) then
 
-            --  Taken from Gnatmake.
+         if not Already_Loaded (Unit) then
 
-            Look_For_Full_File_Name :
-            begin
-               Full_Name := Get_File_Name (Name & Body_Suffix);
-               if Full_Source_Name (Full_Name) = No_File then
-                  Full_Name := Get_File_Name (Name & Spec_Suffix);
-                  if Full_Source_Name (Full_Name) = No_File then
-                     Osint.Write_Program_Name;
-                     Write_Str (": """);
-                     Write_Name (Name);
-                     Write_Str (""" cannot be found");
-                     Write_Eol;
-                     Exit_Program (E_Fatal);
-                  end if;
+            File_Name := File_Name_Of_Body (Unit);
+            if Full_Source_Name (File_Name) = No_File then
+               File_Name := File_Name_Of_Spec (Unit);
+               if Full_Source_Name (File_Name) = No_File then
+                  Osint.Write_Program_Name;
+                  Write_Str (": """);
+                  Write_Name (Unit);
+                  Write_Str (""" cannot be found");
+                  Write_Eol;
+                  Exit_Program (E_Fatal);
                end if;
-            end Look_For_Full_File_Name;
+            end if;
 
             --  Taken from Gnatmake.
 
             Compile_Sources
-              (Main_Source           => Full_Name,
+              (Main_Source           => File_Name,
                Args                  => Args,
                First_Compiled_File   => Compiled,
                Most_Recent_Obj_File  => Obj,
@@ -102,7 +107,7 @@ package body XE_Check is
                Max_Process           => 1);
 
             if Building_Script then
-               Write_Compile_Command (Name);
+               Write_Compile_Command (File_Name);
             end if;
 
          end if;
@@ -351,10 +356,5 @@ package body XE_Check is
       end if;
 
    end Check;
-
-   procedure Initialize is
-   begin
-      Initialize_ALI;
-   end Initialize;
 
 end XE_Check;

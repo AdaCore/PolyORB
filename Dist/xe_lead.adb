@@ -37,11 +37,34 @@ procedure XE_Lead is
 
    FD : File_Descriptor;
 
-   procedure Set_Host        (Partition : in PID_Type);
-
    procedure Set_Boot_Server (Partition : in PID_Type);
 
+   procedure Set_Host        (Partition : in PID_Type);
+
    procedure Set_Launcher    (Partition : in PID_Type);
+
+   ---------------------
+   -- Set_Boot_Server --
+   ---------------------
+
+   procedure Set_Boot_Server
+     (Partition : in PID_Type) is
+   begin
+      if Default_Protocol_Name = No_Name then
+         Write_Str  (FD, "BOOT_SERVER=tcp://`hostname`:5555");
+         Write_Eol  (FD);
+      else
+         Write_Str  (FD, "BOOT_SERVER=");
+         Write_Name (FD, Default_Protocol_Name);
+         Write_Str  (FD, "://");
+         Write_Name (FD, Default_Protocol_Data);
+         Write_Eol  (FD);
+      end if;
+   end Set_Boot_Server;
+
+   --------------
+   -- Set_Host --
+   --------------
 
    procedure Set_Host        (Partition : in PID_Type) is
       Host : Name_Id := Get_Host (Partition);
@@ -66,6 +89,10 @@ procedure XE_Lead is
       end if;
    end Set_Host;
 
+   ------------------
+   -- Set_Launcher --
+   ------------------
+
    procedure Set_Launcher (Partition  : in PID_Type) is
    begin
 
@@ -85,21 +112,6 @@ procedure XE_Lead is
 
       Write_Eol (FD);
    end Set_Launcher;
-
-   procedure Set_Boot_Server
-     (Partition : in PID_Type) is
-   begin
-      if Default_Protocol_Name = No_Name then
-         Write_Str  (FD, "BOOT_SERVER=tcp://`hostname`:5555");
-         Write_Eol  (FD);
-      else
-         Write_Str  (FD, "BOOT_SERVER=");
-         Write_Name (FD, Default_Protocol_Name);
-         Write_Str  (FD, "://");
-         Write_Name (FD, Default_Protocol_Data);
-         Write_Eol  (FD);
-      end if;
-   end Set_Boot_Server;
 
 begin
 
@@ -186,5 +198,3 @@ begin
    end case;
 
 end XE_Lead;
-
-
