@@ -302,10 +302,6 @@ package body SOAP.Types is
            Tk_Octet  =>
             return PolyORB.Utils.Trimmed_Image (Get (O));
 
-         when Tk_Objref =>
---             return Ref_To_URI (From_Any (O.Argument));
-            return "http://some-object.soap.example.net/";
-
          when Tk_Float | Tk_Double =>
 
             declare
@@ -684,7 +680,7 @@ package body SOAP.Types is
    begin
       return "<" & Tag_Name
         & " xsi:type="""
-        & To_Standard_String (TypeCode.Id (Get_Type (O.Argument)))
+        & PolyORB.References.Type_Id_Of (Ref)
         & """>"
         & To_URI (SOAP_Profile_Type (SOAP_Profile.all))
         & "</" & Tag_Name & ">";
