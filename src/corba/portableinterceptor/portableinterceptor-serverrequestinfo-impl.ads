@@ -60,6 +60,7 @@ package PortableInterceptor.ServerRequestInfo.Impl is
         PolyORB.CORBA_P.Interceptors.Server_Interception_Point;
       Servant      : in     PortableServer.Servant;
       Request      : in     PolyORB.Requests.Request_Access;
+      Request_Id   : in     CORBA.Unsigned_Long;
       Profile      : in     PolyORB.Binding_Data.Profile_Access;
       Args_Present : in     Boolean);
 

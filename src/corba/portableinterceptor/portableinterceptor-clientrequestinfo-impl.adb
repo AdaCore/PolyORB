@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -448,13 +448,15 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
    ----------
 
    procedure Init
-     (Self    : access Object;
-      Point   : in     Client_Interception_Point;
-      Request : in     PolyORB.Requests.Request_Access;
-      Target  : in     CORBA.Object.Ref)
+     (Self       : access Object;
+      Point      : in     Client_Interception_Point;
+      Request    : in     PolyORB.Requests.Request_Access;
+      Request_Id : in     CORBA.Unsigned_Long;
+      Target     : in     CORBA.Object.Ref)
    is
    begin
-      RequestInfo.Impl.Init (RequestInfo.Impl.Object_Ptr (Self), Request);
+      RequestInfo.Impl.Init
+        (RequestInfo.Impl.Object_Ptr (Self), Request, Request_Id);
       Self.Point   := Point;
       Self.Request := Request;
       Self.Target  := Target;

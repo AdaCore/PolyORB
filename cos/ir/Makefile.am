@@ -39,6 +39,7 @@ IMPL_SPECS_WITH_BODY= \
   corba-repository_root-stringdef-impl.ads \
   corba-repository_root-structdef-impl.ads \
   corba-repository_root-typedefdef-impl.ads \
+  corba-repository_root-valueboxdef-impl.ads \
   corba-repository_root-valuedef-impl.ads \
   corba-repository_root-valuememberdef-impl.ads \
   corba-repository_root-uniondef-impl.ads \
@@ -151,8 +152,8 @@ GEN_BODIES = $(GEN_SPECS_WITH_BODY:.ads=.adb)
 GEN= \
 	$(GEN_SPECS_WITH_BODY)
 
-$(GEN): $(top_srcdir)/idls/corba/orb.idl $(top_srcdir)/idls/corba/CORBA_InterfaceRepository.idl $(top_srcdir)/idls/corba/CORBA_TypeCode.idl $(srcdir)/typecode.sh $(IDLAC)
-	$(IDLAC) -I$(top_srcdir)/idls/corba orb.idl
+$(GEN): $(top_srcdir)/idls/CORBA_IDL/orb.idl $(top_srcdir)/idls/CORBA_IDL/CORBA_InterfaceRepository.idl $(top_srcdir)/idls/CORBA_IDL/CORBA_TypeCode.idl $(srcdir)/typecode.sh $(IDLAC)
+	$(IDLAC) -I$(top_srcdir)/idls/CORBA_IDL orb.idl
 	$(RM) corba-repository_root.ads
 	@chmod +x $(srcdir)/typecode.sh
 	$(srcdir)/typecode.sh $(SED) $(RM) $(GEN) $(GEN_BODIES)
@@ -167,7 +168,9 @@ DISTCLEANFILES += $(GEN) $(GEN_BODIES)
 
 ADA_SPECS_WITH_BODY = \
 	$(IMPL_SPECS_WITH_BODY) \
-	$(GEN_SPECS_WITH_BODY)
+	$(GEN_SPECS_WITH_BODY) \
+	corba-orb-typecode.ads \
+	polyorb-corba_p-ir_tools.ads
 
 ADA_SPECS_NO_BODY = \
 	$(GEN_SPECS_NO_BODY)

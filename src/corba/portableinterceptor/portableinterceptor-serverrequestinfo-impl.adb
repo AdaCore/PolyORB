@@ -485,12 +485,13 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
       Point        : in     Server_Interception_Point;
       Servant      : in     PortableServer.Servant;
       Request      : in     PolyORB.Requests.Request_Access;
+      Request_Id   : in     CORBA.Unsigned_Long;
       Profile      : in     PolyORB.Binding_Data.Profile_Access;
       Args_Present : in     Boolean)
    is
    begin
       RequestInfo.Impl.Init
-       (RequestInfo.Impl.Object (Self.all)'Access, Request);
+       (RequestInfo.Impl.Object (Self.all)'Access, Request, Request_Id);
       Self.Point        := Point;
       Self.Servant      := Servant;
       Self.Request      := Request;
