@@ -1,9 +1,7 @@
 EXAMPLES_ROOT=../..
 EXAMPLE = all_functions
 
-#EXTRA = dynclient
-
-corba_exe=client server
+corba_exe=client server dynclient
 dsa_exe=
 moma_exe=
 

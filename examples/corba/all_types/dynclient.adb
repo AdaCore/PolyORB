@@ -1145,10 +1145,10 @@ begin
               all_types.Blue);
 
       --  fixed
-      Output ("test fixed point",
-              EchoMoney (Myall_Types, 6423.50) = 6423.50
-              and then EchoMoney (Myall_Types, 0.0) = 0.0
-        and then EchoMoney (Myall_Types, 3.14) = 3.14);
+--      Output ("test fixed point",
+--              EchoMoney (Myall_Types, 6423.50) = 6423.50
+--              and then EchoMoney (Myall_Types, 0.0) = 0.0
+--        and then EchoMoney (Myall_Types, 3.14) = 3.14);
 
       --  array
       declare

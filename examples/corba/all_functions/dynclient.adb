@@ -1,6 +1,6 @@
 with Ada.Command_Line;
 with Ada.Text_IO;
-with Ada.Exceptions;
+--  with Ada.Exceptions;
 
 with CORBA; use CORBA;
 with CORBA.Object;
@@ -9,11 +9,13 @@ with CORBA.Request;
 with CORBA.NVList;
 with CORBA.ORB;
 
-with All_Functions; use All_Functions;
 with Report; use Report;
 
+with PolyORB.Setup.Client;
+pragma Warnings (Off, PolyORB.Setup.Client);
+
 procedure Dynclient is
-   pragma Warnings (Off);
+--   pragma Warnings (Off);
    --  XXX Does not pass style checks...
 
    IOR : CORBA.String;
@@ -21,9 +23,13 @@ procedure Dynclient is
    I, J, K, L, M : CORBA.Short;
    Ok : Boolean;
 
-   function Get_The_Attribute (Self : in CORBA.Object.Ref)
-                               return CORBA.Short is
-      Operation_Name : CORBA.Identifier := To_CORBA_String ("_get_the_attribute");
+   function Get_The_Attribute return CORBA.Short;
+
+   function Get_The_Attribute
+     return CORBA.Short
+   is
+      Operation_Name : CORBA.Identifier
+        := To_CORBA_String ("_get_the_attribute");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
       Arg_List : CORBA.NVList.Ref;
@@ -50,9 +56,13 @@ procedure Dynclient is
       return From_Any (Result.Argument);
    end Get_The_Attribute;
 
-   procedure Set_The_Attribute (Self : in CORBA.Object.Ref;
-                                To   : in CORBA.Short) is
-      Operation_Name : CORBA.Identifier := To_CORBA_String ("_set_the_attribute");
+   procedure Set_The_Attribute (To   : in CORBA.Short);
+
+
+   procedure Set_The_Attribute (To   : in CORBA.Short)
+   is
+      Operation_Name : CORBA.Identifier
+        := To_CORBA_String ("_set_the_attribute");
       Arg_Name_To : CORBA.Identifier := To_CORBA_String ("to");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
@@ -84,9 +94,13 @@ procedure Dynclient is
       CORBA.Request.Invoke (Request, 0);
    end Set_The_Attribute;
 
-   function Get_The_Readonly_Attribute (Self : in CORBA.Object.Ref)
-                                        return CORBA.Short is
-      Operation_Name : CORBA.Identifier := To_CORBA_String ("_get_the_readonly_attribute");
+   function Get_The_Readonly_Attribute return CORBA.Short;
+
+   function Get_The_Readonly_Attribute
+     return CORBA.Short
+   is
+      Operation_Name : CORBA.Identifier
+        := To_CORBA_String ("_get_the_readonly_attribute");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
       Arg_List : CORBA.NVList.Ref;
@@ -113,7 +127,10 @@ procedure Dynclient is
       return From_Any (Result.Argument);
    end Get_The_Readonly_Attribute;
 
-   procedure Void_Proc (Self : in CORBA.Object.Ref) is
+   procedure Void_Proc;
+
+   procedure Void_Proc
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("void_proc");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
@@ -139,17 +156,19 @@ procedure Dynclient is
       CORBA.Request.Invoke (Request, 0);
    end Void_Proc;
 
-   procedure In_Proc (Self : in CORBA.Object.Ref;
-                      A, B, C : in CORBA.Short) is
+   procedure In_Proc (A, B, C : in CORBA.Short);
+
+   procedure In_Proc (A, B, C : in CORBA.Short)
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("in_proc");
       Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
       Arg_Name_B : CORBA.Identifier := To_CORBA_String ("b");
       Arg_Name_C : CORBA.Identifier := To_CORBA_String ("c");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
-      Argument_A : CORBA.Any:= CORBA.To_Any (A);
-      Argument_B : CORBA.Any:= CORBA.To_Any (B);
-      Argument_C : CORBA.Any:= CORBA.To_Any (C);
+      Argument_A : CORBA.Any := CORBA.To_Any (A);
+      Argument_B : CORBA.Any := CORBA.To_Any (B);
+      Argument_C : CORBA.Any := CORBA.To_Any (C);
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
@@ -184,93 +203,102 @@ procedure Dynclient is
       CORBA.Request.Invoke (Request, 0);
    end In_Proc;
 
-   procedure Out_Proc (Self : in CORBA.Object.Ref;
-                       A, B, C : out CORBA.Short) is
-      Operation_Name : CORBA.Identifier := To_CORBA_String ("out_proc");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
-   begin
-      --  creating an empty argument list
-      CORBA.ORB.Create_List (0, Arg_List);
-      --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Void),
-                 Arg_Modes => 0);
-      --  creating a request
-      CORBA.Object.Create_Request (Myall_Functions,
-                                   Ctx,
-                                   Operation_Name,
-                                   Arg_List,
-                                   Result,
-                                   Request,
-                                   0);
-      --  adding some arguments to the request
-      CORBA.Request.Add_Arg (Request,
-                             CORBA.TC_Short,
-                             A'address,
-                             CORBA.Short'Size,
-                             CORBA.ARG_OUT);
-      CORBA.Request.Add_Arg (Request,
-                             CORBA.TC_Short,
-                             B'address,
-                             CORBA.Short'Size,
-                             CORBA.ARG_OUT);
-      CORBA.Request.Add_Arg (Request,
-                             CORBA.TC_Short,
-                             C'address,
-                             CORBA.Short'Size,
-                             CORBA.ARG_OUT);
-      --  sending message
-      CORBA.Request.Invoke (Request, 0);
-   end Out_Proc;
+--     procedure Out_Proc (Self : in CORBA.Object.Ref;
+--                         A, B, C : out CORBA.Short);
 
-   procedure Inout_Proc (Self : in CORBA.Object.Ref;
-                         A, B : in out CORBA.Short) is
-      Operation_Name : CORBA.Identifier := To_CORBA_String ("inout_proc");
-      Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
-      Arg_Name_B : CORBA.Identifier := To_CORBA_String ("b");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
-   begin
-      --  creating the argument list
-      CORBA.ORB.Create_List (0, Arg_List);
-      CORBA.NVList.Add_Item (Arg_List,
-                             Arg_Name_A,
-                             CORBA.TC_Short,
-                             A'address,
-                             CORBA.Short'Size,
-                             CORBA.ARG_INOUT);
-      CORBA.NVList.Add_Item (Arg_List,
-                             Arg_Name_B,
-                             CORBA.TC_Short,
-                             B'address,
-                             CORBA.Short'Size,
-                             CORBA.ARG_INOUT);
-      --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Void),
-                 Arg_Modes => 0);
-      --  creating a request
-      CORBA.Object.Create_Request (Myall_Functions,
-                                   Ctx,
-                                   Operation_Name,
-                                   Arg_List,
-                                   Result,
-                                   Request,
-                                   0);
-      --  sending message
-      CORBA.Request.Invoke (Request, 0);
-   end Inout_Proc;
+--     procedure Out_Proc (Self : in CORBA.Object.Ref;
+--                         A, B, C : out CORBA.Short) is
+--        Operation_Name : CORBA.Identifier := To_CORBA_String ("out_proc");
+--        Request : CORBA.Request.Object;
+--        Ctx : CORBA.Context.Ref;
+--        Arg_List : CORBA.NVList.Ref;
+--        Result : CORBA.NamedValue;
+--        Result_Name : CORBA.String := To_CORBA_String ("Result");
+--     begin
+--        --  creating an empty argument list
+--        CORBA.ORB.Create_List (0, Arg_List);
+--        --  setting the result type
+--        Result := (Name => Identifier (Result_Name),
+--                   Argument => Get_Empty_Any (CORBA.TC_Void),
+--                   Arg_Modes => 0);
+--        --  creating a request
+--        CORBA.Object.Create_Request (Myall_Functions,
+--                                     Ctx,
+--                                     Operation_Name,
+--                                     Arg_List,
+--                                     Result,
+--                                     Request,
+--                                     0);
+--        --  adding some arguments to the request
+--        CORBA.Request.Add_Arg (Request,
+--                               CORBA.TC_Short,
+--                               A'Address,
+--                               CORBA.Short'Size,
+--                               CORBA.ARG_OUT);
+--        CORBA.Request.Add_Arg (Request,
+--                               CORBA.TC_Short,
+--                               B'Address,
+--                               CORBA.Short'Size,
+--                               CORBA.ARG_OUT);
+--        CORBA.Request.Add_Arg (Request,
+--                               CORBA.TC_Short,
+--                               C'Address,
+--                               CORBA.Short'Size,
+--                               CORBA.ARG_OUT);
+--        --  sending message
+--        CORBA.Request.Invoke (Request, 0);
+--     end Out_Proc;
 
-   procedure In_Out_Proc (Self : in CORBA.Object.Ref;
-                          A, B : in CORBA.Short;
-                          C, D : out CORBA.Short) is
+--     procedure Inout_Proc (Self : in CORBA.Object.Ref;
+--                           A, B : in out CORBA.Short);
+
+--     procedure Inout_Proc (Self : in CORBA.Object.Ref;
+--                           A, B : in out CORBA.Short) is
+--        Operation_Name : CORBA.Identifier := To_CORBA_String ("inout_proc");
+--        Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
+--        Arg_Name_B : CORBA.Identifier := To_CORBA_String ("b");
+--        Request : CORBA.Request.Object;
+--        Ctx : CORBA.Context.Ref;
+--        Arg_List : CORBA.NVList.Ref;
+--        Result : CORBA.NamedValue;
+--        Result_Name : CORBA.String := To_CORBA_String ("Result");
+--     begin
+--        --  creating the argument list
+--        CORBA.ORB.Create_List (0, Arg_List);
+--        CORBA.NVList.Add_Item (Arg_List,
+--                               Arg_Name_A,
+--                               CORBA.TC_Short,
+--                               A'Address,
+--                               CORBA.Short'Size,
+--                               CORBA.ARG_INOUT);
+--        CORBA.NVList.Add_Item (Arg_List,
+--                               Arg_Name_B,
+--                               CORBA.TC_Short,
+--                               B'Address,
+--                               CORBA.Short'Size,
+--                               CORBA.ARG_INOUT);
+--        --  setting the result type
+--        Result := (Name => Identifier (Result_Name),
+--                   Argument => Get_Empty_Any (CORBA.TC_Void),
+--                   Arg_Modes => 0);
+--        --  creating a request
+--        CORBA.Object.Create_Request (Myall_Functions,
+--                                     Ctx,
+--                                     Operation_Name,
+--                                     Arg_List,
+--                                     Result,
+--                                     Request,
+--                                     0);
+--        --  sending message
+--        CORBA.Request.Invoke (Request, 0);
+--     end Inout_Proc;
+
+   procedure In_Out_Proc (A, B : in CORBA.Short;
+                          C, D : out CORBA.Short);
+
+   procedure In_Out_Proc (A, B : in CORBA.Short;
+                          C, D : out CORBA.Short)
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("in_out_proc");
       Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
       Arg_Name_B : CORBA.Identifier := To_CORBA_String ("b");
@@ -323,11 +351,16 @@ procedure Dynclient is
       D := CORBA.From_Any (Argument_D);
    end In_Out_Proc;
 
-   procedure In_Inout_Proc (Self : in CORBA.Object.Ref;
-                            A : in CORBA.Short;
+   procedure In_Inout_Proc (A : in CORBA.Short;
                             B : in out CORBA.Short;
                             C : in CORBA.Short;
-                            D : in out CORBA.Short) is
+                            D : in out CORBA.Short);
+
+   procedure In_Inout_Proc (A : in CORBA.Short;
+                            B : in out CORBA.Short;
+                            C : in CORBA.Short;
+                            D : in out CORBA.Short)
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("in_inout_proc");
       Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
       Arg_Name_B : CORBA.Identifier := To_CORBA_String ("b");
@@ -380,68 +413,79 @@ procedure Dynclient is
       D := CORBA.From_Any (Argument_D);
    end In_Inout_Proc;
 
-   procedure Out_Inout_Proc (Self : in CORBA.Object.Ref;
-                             A : out CORBA.Short;
-                             B : in out CORBA.Short;
-                             C : in out CORBA.Short;
-                             D : out CORBA.Short) is
-      Operation_Name : CORBA.Identifier := To_CORBA_String ("out_inout_proc");
-      Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
-      Arg_Name_B : CORBA.Identifier := To_CORBA_String ("b");
-      Arg_Name_C : CORBA.Identifier := To_CORBA_String ("c");
-      Arg_Name_D : CORBA.Identifier := To_CORBA_String ("d");
-      Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
-      Arg_List : CORBA.NVList.Ref;
-      Result : CORBA.NamedValue;
-      Result_Name : CORBA.String := To_CORBA_String ("Result");
-   begin
-      --  creating the argument list
-      CORBA.ORB.Create_List (0, Arg_List);
-      CORBA.NVList.Add_Item (Arg_List,
-                             Arg_Name_A,
-                             CORBA.TC_Short,
-                             A'address,
-                             CORBA.Short'Size,
-                             CORBA.ARG_OUT);
-      CORBA.NVList.Add_Item (Arg_List,
-                             Arg_Name_B,
-                             CORBA.TC_Short,
-                             B'address,
-                             CORBA.Short'Size,
-                             CORBA.ARG_INOUT);
-      CORBA.NVList.Add_Item (Arg_List,
-                             Arg_Name_C,
-                             CORBA.TC_Short,
-                             C'address,
-                             CORBA.Short'Size,
-                             CORBA.ARG_INOUT);
-      CORBA.NVList.Add_Item (Arg_List,
-                             Arg_Name_D,
-                             CORBA.TC_Short,
-                             D'address,
-                             CORBA.Short'Size,
-                             CORBA.ARG_OUT);
-      --  setting the result type
-      Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Void),
-                 Arg_Modes => 0);
-      --  creating a request
-      CORBA.Object.Create_Request (Myall_Functions,
-                                   Ctx,
-                                   Operation_Name,
-                                   Arg_List,
-                                   Result,
-                                   Request,
-                                   0);
-      --  sending message
-      CORBA.Request.Invoke (Request, 0);
-   end Out_Inout_Proc;
+--     procedure Out_Inout_Proc (Self : in CORBA.Object.Ref;
+--                               A : out CORBA.Short;
+--                               B : in out CORBA.Short;
+--                               C : in out CORBA.Short;
+--                               D : out CORBA.Short);
 
-   procedure In_Out_Inout_Proc (Self : in CORBA.Object.Ref;
-                                A : in CORBA.Short;
+--     procedure Out_Inout_Proc (Self : in CORBA.Object.Ref;
+--                               A : out CORBA.Short;
+--                               B : in out CORBA.Short;
+--                               C : in out CORBA.Short;
+--                               D : out CORBA.Short)
+--     is
+--     Operation_Name : CORBA.Identifier := To_CORBA_String ("out_inout_proc");
+--        Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
+--        Arg_Name_B : CORBA.Identifier := To_CORBA_String ("b");
+--        Arg_Name_C : CORBA.Identifier := To_CORBA_String ("c");
+--        Arg_Name_D : CORBA.Identifier := To_CORBA_String ("d");
+--        Request : CORBA.Request.Object;
+--        Ctx : CORBA.Context.Ref;
+--        Arg_List : CORBA.NVList.Ref;
+--        Result : CORBA.NamedValue;
+--        Result_Name : CORBA.String := To_CORBA_String ("Result");
+--     begin
+--        --  creating the argument list
+--        CORBA.ORB.Create_List (0, Arg_List);
+--        CORBA.NVList.Add_Item (Arg_List,
+--                               Arg_Name_A,
+--                               CORBA.TC_Short,
+--                               A'Address,
+--                               CORBA.Short'Size,
+--                               CORBA.ARG_OUT);
+--        CORBA.NVList.Add_Item (Arg_List,
+--                               Arg_Name_B,
+--                               CORBA.TC_Short,
+--                               B'Address,
+--                               CORBA.Short'Size,
+--                               CORBA.ARG_INOUT);
+--        CORBA.NVList.Add_Item (Arg_List,
+--                               Arg_Name_C,
+--                               CORBA.TC_Short,
+--                               C'Address,
+--                               CORBA.Short'Size,
+--                               CORBA.ARG_INOUT);
+--        CORBA.NVList.Add_Item (Arg_List,
+--                               Arg_Name_D,
+--                               CORBA.TC_Short,
+--                               D'Address,
+--                               CORBA.Short'Size,
+--                               CORBA.ARG_OUT);
+--        --  setting the result type
+--        Result := (Name => Identifier (Result_Name),
+--                   Argument => Get_Empty_Any (CORBA.TC_Void),
+--                   Arg_Modes => 0);
+--        --  creating a request
+--        CORBA.Object.Create_Request (Myall_Functions,
+--                                     Ctx,
+--                                     Operation_Name,
+--                                     Arg_List,
+--                                     Result,
+--                                     Request,
+--                                     0);
+--        --  sending message
+--        CORBA.Request.Invoke (Request, 0);
+--     end Out_Inout_Proc;
+
+   procedure In_Out_Inout_Proc (A : in CORBA.Short;
                                 B : out CORBA.Short;
-                                C : in out CORBA.Short) is
+                                C : in out CORBA.Short);
+
+   procedure In_Out_Inout_Proc (A : in CORBA.Short;
+                                B : out CORBA.Short;
+                                C : in out CORBA.Short)
+   is
       Operation_Name : CORBA.Identifier :=
         To_CORBA_String ("in_out_inout_proc");
       Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
@@ -489,8 +533,10 @@ procedure Dynclient is
       C := CORBA.From_Any (Argument_C);
    end In_Out_Inout_Proc;
 
-   function Void_Fun (Self : in CORBA.Object.Ref)
-                      return CORBA.Short is
+   function Void_Fun return CORBA.Short;
+
+   function Void_Fun return CORBA.Short
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("void_fun");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
@@ -518,9 +564,12 @@ procedure Dynclient is
       return From_Any (Result.Argument);
    end Void_Fun;
 
-   function In_Fun (Self : in CORBA.Object.Ref;
-                    A, B, C : in CORBA.Short)
-                    return CORBA.Short is
+   function In_Fun (A, B, C : in CORBA.Short)
+                   return CORBA.Short;
+
+   function In_Fun (A, B, C : in CORBA.Short)
+                   return CORBA.Short
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("in_fun");
       Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
       Arg_Name_B : CORBA.Identifier := To_CORBA_String ("b");
@@ -566,9 +615,10 @@ procedure Dynclient is
       return From_Any (Result.Argument);
    end In_Fun;
 
+   procedure Out_Fun (A, B, C, Returns : out CORBA.Short);
+
    procedure Out_Fun
-     (Self : in CORBA.Object.Ref;
-      A, B, C, Returns : out CORBA.Short)
+     (A, B, C, Returns : out CORBA.Short)
    is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("out_fun");
       Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
@@ -619,8 +669,11 @@ procedure Dynclient is
    end Out_Fun;
 
    procedure Inout_Fun
-     (Self : in CORBA.Object.Ref;
-      A, B : in out CORBA.Short;
+     (A, B : in out CORBA.Short;
+      Returns : out CORBA.Short);
+
+   procedure Inout_Fun
+     (A, B : in out CORBA.Short;
       Returns : out CORBA.Short)
    is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("inout_fun");
@@ -665,8 +718,11 @@ procedure Dynclient is
    end Inout_Fun;
 
    procedure In_Out_Fun
-     (Self : in CORBA.Object.Ref;
-      A, B : in CORBA.Short;
+     (A, B : in CORBA.Short;
+      C, D, Returns : out CORBA.Short);
+
+   procedure In_Out_Fun
+     (A, B : in CORBA.Short;
       C, D, Returns : out CORBA.Short)
    is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("in_out_fun");
@@ -723,8 +779,14 @@ procedure Dynclient is
    end In_Out_Fun;
 
    procedure In_Inout_Fun
-     (Self : in CORBA.Object.Ref;
-      A : in CORBA.Short;
+     (A : in CORBA.Short;
+      B : in out CORBA.Short;
+      C : in CORBA.Short;
+      D : in out CORBA.Short;
+      Returns : out CORBA.Short);
+
+   procedure In_Inout_Fun
+     (A : in CORBA.Short;
       B : in out CORBA.Short;
       C : in CORBA.Short;
       D : in out CORBA.Short;
@@ -784,8 +846,14 @@ procedure Dynclient is
    end In_Inout_Fun;
 
    procedure Out_Inout_Fun
-     (Self : in CORBA.Object.Ref;
-      A : out CORBA.Short;
+     (A : out CORBA.Short;
+      B : in out CORBA.Short;
+      C : in out CORBA.Short;
+      D : out CORBA.Short;
+      Returns : out CORBA.Short);
+
+   procedure Out_Inout_Fun
+     (A : out CORBA.Short;
       B : in out CORBA.Short;
       C : in out CORBA.Short;
       D : out CORBA.Short;
@@ -846,11 +914,16 @@ procedure Dynclient is
       Returns := From_Any (Result.Argument);
    end Out_Inout_Fun;
 
-   procedure In_Out_Inout_Fun (Self : in CORBA.Object.Ref;
-                               A : in CORBA.Short;
+   procedure In_Out_Inout_Fun (A : in CORBA.Short;
                                B : out CORBA.Short;
                                C : in out CORBA.Short;
-                               Returns : out CORBA.Short) is
+                               Returns : out CORBA.Short);
+
+   procedure In_Out_Inout_Fun (A : in CORBA.Short;
+                               B : out CORBA.Short;
+                               C : in out CORBA.Short;
+                               Returns : out CORBA.Short)
+   is
       Operation_Name : CORBA.Identifier :=
         To_CORBA_String ("in_out_inout_fun");
       Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
@@ -899,8 +972,12 @@ procedure Dynclient is
       Returns := From_Any (Result.Argument);
    end In_Out_Inout_Fun;
 
-   procedure Oneway_Void_Proc (Self : in CORBA.Object.Ref) is
-      Operation_Name : CORBA.Identifier := To_CORBA_String ("oneway_void_proc");
+   procedure Oneway_Void_Proc;
+
+   procedure Oneway_Void_Proc
+   is
+      Operation_Name : CORBA.Identifier
+        := To_CORBA_String ("oneway_void_proc");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
       Arg_List : CORBA.NVList.Ref;
@@ -920,13 +997,15 @@ procedure Dynclient is
                                    Arg_List,
                                    Result,
                                    Request,
-                                   0);
+                                   2); --  value for Sync_With_Transport
       --  sending message
       CORBA.Request.Invoke (Request, 0);
    end Oneway_Void_Proc;
 
-   procedure Oneway_In_Proc (Self : in CORBA.Object.Ref;
-                             A, B : in CORBA.Short) is
+   procedure Oneway_In_Proc (A, B : in CORBA.Short);
+
+   procedure Oneway_In_Proc (A, B : in CORBA.Short)
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("oneway_in_proc");
       Arg_Name_A : CORBA.Identifier := To_CORBA_String ("a");
       Arg_Name_B : CORBA.Identifier := To_CORBA_String ("b");
@@ -959,13 +1038,15 @@ procedure Dynclient is
                                    Arg_List,
                                    Result,
                                    Request,
-                                   0);
+                                   2); --  value for Sync_With_Transport
       --  sending message
       CORBA.Request.Invoke (Request, 0);
    end Oneway_In_Proc;
 
-   function Oneway_Checker (Self : in CORBA.Object.Ref)
-                            return CORBA.Short is
+   function Oneway_Checker return CORBA.Short;
+
+   function Oneway_Checker return CORBA.Short
+   is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("oneway_checker");
       Request : CORBA.Request.Object;
       Ctx : CORBA.Context.Ref;
@@ -1002,26 +1083,27 @@ begin
    end if;
 
    --  transforms the Ada string into CORBA.String
-   IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1)) ;
+   IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
 
    --  getting the CORBA.Object
    CORBA.ORB.String_To_Object (IOR, Myall_Functions);
 
-   Set_The_Attribute (Myall_Functions, 24);
-   Output ("test attribute", Get_The_Attribute (Myall_Functions) = 24);
+   Set_The_Attribute (24);
+   Output ("test attribute", Get_The_Attribute = 24);
 
-   Output ("test readonly attribute", Get_The_Readonly_Attribute (Myall_Functions) = 18);
+   Output ("test readonly attribute",
+           Get_The_Readonly_Attribute = 18);
 
    begin
       Ok := True;
-      Void_Proc (Myall_Functions);
+      Void_Proc;
    exception when others =>
       Ok := False;
    end;
    Output ("test void procedure", Ok);
 
    begin
-      In_Proc (Myall_Functions, 1, 2, 3);
+      In_Proc (1, 2, 3);
       Ok := True;
    exception when others =>
       Ok := False;
@@ -1030,8 +1112,8 @@ begin
 
    begin
       Ok := False;
-      Out_Proc (Myall_Functions, I, J, K);
-      Ok := (I = 10) and then (J = 11) and then (K = 12);
+--      Out_Proc (Myall_Functions, I, J, K);
+--      Ok := (I = 10) and then (J = 11) and then (K = 12);
    exception when others =>
       Ok := False;
    end;
@@ -1041,8 +1123,8 @@ begin
       Ok := False;
       I  := 2;
       J  := 3;
-      Inout_Proc (Myall_Functions, I, J);
-      Ok := (I = 3 and then J = 4);
+--      Inout_Proc (Myall_Functions, I, J);
+--      Ok := (I = 3 and then J = 4);
    exception when others =>
       Ok := False;
    end;
@@ -1052,7 +1134,7 @@ begin
       Ok := False;
       I := 1;
       J := 2;
-      In_Out_Proc (Myall_Functions, 1, 2, I, J);
+      In_Out_Proc (1, 2, I, J);
       Ok := (I = 3 and then J = 4);
    exception when others =>
       Ok := False;
@@ -1063,7 +1145,7 @@ begin
       Ok := False;
       I  := -4;
       J  := -5;
-      In_Inout_Proc (Myall_Functions, 1, I, 3, J);
+      In_Inout_Proc (1, I, 3, J);
       Ok := (I = 36) and then (J = 40);
    exception when others =>
       Ok := False;
@@ -1071,12 +1153,13 @@ begin
    Output ("test in and inout param procedure", Ok);
 
    begin
+      Ok := False;
       I := -11;
       J := -21;
       K := -31;
       L := -41;
-      Out_Inout_Proc (Myall_Functions, I, J, K, L);
-      Ok := (I = 45) and then (J = 46) and then (K = 47) and then (L = 48);
+--      Out_Inout_Proc (Myall_Functions, I, J, K, L);
+--      Ok := (I = 45) and then (J = 46) and then (K = 47) and then (L = 48);
    exception when others =>
       Ok := False;
    end;
@@ -1086,15 +1169,15 @@ begin
       Ok := False;
       I := 78;
       J := 79;
-      In_Out_Inout_Proc (Myall_Functions, 1, I, J);
+      In_Out_Inout_Proc (1, I, J);
       Ok := (I = -54) and then (J = 80);
    exception when others =>
       Ok := False;
    end;
    Output ("test in and out and inout param procedure", Ok);
 
-   Output ("test void function", Void_Fun (Myall_Functions) = 3);
-   Output ("test in param function", In_Fun (Myall_Functions, 1, 2, 3) = 7);
+   Output ("test void function", Void_Fun = 3);
+   Output ("test in param function", In_Fun (1, 2, 3) = 7);
 
    begin
       Ok := False;
@@ -1102,7 +1185,7 @@ begin
       J := 2;
       K := 3;
       L := 4;
-      Out_Fun (Myall_Functions, I, J, K, L);
+      Out_Fun (I, J, K, L);
       Ok := (I = 5) and then (J = 6) and then (K = 7) and then (L = 10);
    exception when others =>
       Ok := False;
@@ -1114,7 +1197,7 @@ begin
       I := 1;
       J := 2;
       K := 3;
-      Inout_Fun (Myall_Functions, I, J, L);
+      Inout_Fun (I, J, L);
       Ok := (I = 2) and then (J = 3) and then (L = 5);
    exception when others =>
       Ok := False;
@@ -1125,7 +1208,7 @@ begin
       Ok := False;
       I := 10;
       J := 11;
-      In_Out_Fun (Myall_Functions, 1, 2, I, J, K);
+      In_Out_Fun (1, 2, I, J, K);
       Ok := (I = 2) and then (J = 1) and then (K = 3);
    exception when others =>
       Ok := False;
@@ -1137,7 +1220,7 @@ begin
       I := -1;
       J := -2;
       K := -3;
-      In_Inout_Fun (Myall_Functions, -1, I, -2, J, K);
+      In_Inout_Fun (-1, I, -2, J, K);
       Ok := (I = -2) and then (J = -4) and then (K = -6);
    exception when others =>
       Ok := False;
@@ -1151,7 +1234,7 @@ begin
       K := -3;
       L := -4;
       M := -5;
-      Out_Inout_Fun (Myall_Functions, I, J, K, L, M);
+      Out_Inout_Fun (I, J, K, L, M);
       Ok := (I = -2) and then (J = -1) and then (K = -2)
         and then (L = -3) and then (M = -7);
    exception when others =>
@@ -1164,7 +1247,7 @@ begin
       I := -1;
       J := -2;
       K := -3;
-      In_Out_Inout_Fun (Myall_Functions, 85, I, J, K);
+      In_Out_Inout_Fun (85, I, J, K);
       Ok := (I = 86) and then (J = 83) and then (K = -1);
    exception when others =>
       Ok := False;
@@ -1172,30 +1255,30 @@ begin
    Output ("test in and out and inout param function", Ok);
 
    begin
-      Oneway_Void_Proc (Myall_Functions);
+      Oneway_Void_Proc;
       delay 1.0;
-      Ok := Oneway_Checker (Myall_Functions) = 1;
+      Ok := Oneway_Checker = 1;
       if Ok then
          delay 5.0;
-         Ok := Oneway_Checker (Myall_Functions) = 2;
+         Ok := Oneway_Checker = 2;
       end if;
    exception when others =>
       Ok := False;
    end;
-    Output ("test void one way procedure", Ok);
+   Output ("test void one way procedure", Ok);
 
-    begin
-       Oneway_In_Proc (Myall_Functions, 10, 20);
-       delay 1.0;
-       Ok := Oneway_Checker (Myall_Functions) = 10;
-       if Ok then
-          delay 5.0;
-          Ok := Oneway_Checker (Myall_Functions) = 20;
-       end if;
-    exception when others =>
-       Ok := False;
-    end;
-    Output ("test in param one way procedure", Ok);
+   begin
+      Oneway_In_Proc (10, 20);
+      delay 1.0;
+      Ok := Oneway_Checker = 10;
+      if Ok then
+         delay 5.0;
+         Ok := Oneway_Checker = 20;
+      end if;
+   exception when others =>
+      Ok := False;
+   end;
+   Output ("test in param one way procedure", Ok);
 
 end Dynclient;
 

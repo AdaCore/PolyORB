@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,39 +46,25 @@ with PolyORB.Setup.Client;
 pragma Warnings (Off, PolyORB.Setup.Client);
 
 procedure DynClient is
-   Sent_Msg : CORBA.String := To_CORBA_String ("Hello Dynamic World");
-   Operation_Name : CORBA.Identifier := To_CORBA_String ("echoString");
-   Arg_Name : CORBA.Identifier := To_CORBA_String ("Mesg");
+
    myecho : CORBA.Object.Ref;
-   Request : CORBA.Request.Object;
-   Ctx : CORBA.Context.Ref;
-   Argument : CORBA.Any;
-   Arg_List : CORBA.NVList.Ref;
-   Result : CORBA.NamedValue;
-   Result_Name : CORBA.String := To_CORBA_String ("Result");
-   Recv_Msg : CORBA.String;
-   Iter : Natural := 1;
 
-begin
-   CORBA.ORB.Initialize ("ORB");
-   if Ada.Command_Line.Argument_Count < 1 then
-      Put_Line ("usage : client <IOR_string_from_server>|-i [niter]");
-      return;
-   end if;
+   procedure Do_Test;
 
-   --  getting the CORBA.Object
-   --  if Ada.Command_Line.Argument (1) = "-i" then
-   --     myecho := Locate ("echo");
-   --  else
-   --     myecho := Locate (Ada.Command_Line.Argument (1));
-   --  end if;
-   CORBA.ORB.String_To_Object
-     (To_CORBA_String (Ada.Command_Line.Argument (1)), myecho);
-   if Ada.Command_Line.Argument_Count > 1 then
-      Iter := Integer'Value (Ada.Command_Line.Argument (2));
-   end if;
+   procedure Do_Test
+   is
+      Sent_Msg : CORBA.String := To_CORBA_String ("Hello Dynamic World");
+      Operation_Name : CORBA.Identifier := To_CORBA_String ("echoString");
+      Arg_Name : CORBA.Identifier := To_CORBA_String ("Mesg");
+      Request : CORBA.Request.Object;
+      Ctx : CORBA.Context.Ref;
+      Argument : CORBA.Any;
+      Arg_List : CORBA.NVList.Ref;
+      Result : CORBA.NamedValue;
+      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Recv_Msg : CORBA.String;
 
-   for I in 1 .. Iter loop
+   begin
       --  creating the argument list
       CORBA.ORB.Create_List (0, Arg_List);
       Argument := CORBA.To_Any (Sent_Msg);
@@ -110,7 +96,34 @@ begin
       --  printing result
       Put_Line ("I said : " & CORBA.To_Standard_String (Sent_Msg));
       Put_Line ("The object answered : "
-         & CORBA.To_Standard_String (Recv_Msg));
+                & CORBA.To_Standard_String (Recv_Msg));
+   end Do_Test;
+
+   Iter : Natural := 1;
+
+begin
+   CORBA.ORB.Initialize ("ORB");
+
+   if Ada.Command_Line.Argument_Count < 1 then
+      Put_Line ("usage : client <IOR_string_from_server>|-i [niter]");
+      return;
+   end if;
+
+   --  getting the CORBA.Object
+   --  if Ada.Command_Line.Argument (1) = "-i" then
+   --     myecho := Locate ("echo");
+   --  else
+   --     myecho := Locate (Ada.Command_Line.Argument (1));
+   --  end if;
+   CORBA.ORB.String_To_Object
+     (To_CORBA_String (Ada.Command_Line.Argument (1)), myecho);
+
+   if Ada.Command_Line.Argument_Count > 1 then
+      Iter := Integer'Value (Ada.Command_Line.Argument (2));
+   end if;
+
+   for I in 1 .. Iter loop
+      Do_Test;
    end loop;
 
 end DynClient;
