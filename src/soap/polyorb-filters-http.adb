@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -234,12 +234,18 @@ package body PolyORB.Filters.HTTP is
             Release (Buf);
          end;
 
-      elsif S in Set_Server then
-         Emit_No_Reply (F.Upper, S);
+      elsif False
+        or else S in Set_Server
+        or else S in Disconnect_Indication
+      then
+         return Emit (F.Upper, S);
+
       elsif S in Disconnect_Request then
          return Emit (F.Lower, S);
+
       elsif S in AWS_Get_SOAP_Action then
          return AWS_SOAP_Action'(SOAP_Action => F.SOAP_Action);
+
       else
          raise PolyORB.Components.Unhandled_Message;
       end if;

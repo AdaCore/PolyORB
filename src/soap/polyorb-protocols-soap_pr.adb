@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -401,8 +401,21 @@ package body PolyORB.Protocols.SOAP_Pr is
    procedure Handle_Disconnect
      (S : access SOAP_Session)
    is
+      use type PolyORB.Buffers.Buffer_Access;
+      use PolyORB.SOAP_P.Message.Payload;
+
    begin
-      raise PolyORB.Not_Implemented;
+      if S.In_Buf /= null then
+         PolyORB.Buffers.Release (S.In_Buf);
+      end if;
+
+      if S.Current_SOAP_Req /= null then
+         Free (S.Current_SOAP_Req);
+      end if;
+
+      if S.Pending_Rq /= null then
+         Destroy_Request (S.Pending_Rq);
+      end if;
    end Handle_Disconnect;
 
    function Handle_Message
