@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.27 $
+--                            $Revision: 1.28 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -202,6 +202,11 @@ package body CORBA is
          end if;
       end Add_Parameter;
 
+
+      ----------------------------
+      --  conversion functions  --
+      ----------------------------
+
       function From_Any (From : in CORBA.Any)
                          return CORBA.TypeCode.Object
       is
@@ -228,6 +233,8 @@ package body CORBA is
          N   : in CORBA.Long)
          return CORBA.Long
       is
+         --  see the spec about the composition of the parameters list
+         --  for typecodes
       begin
          case Tck is
             when Tk_Struct =>
@@ -453,6 +460,11 @@ package body CORBA is
       return Tmp.Value;
    end From_Any;
 
+
+   --------------------------
+   --  Force_Any_TypeCode  --
+   --------------------------
+
    procedure Force_Any_TypeCode
      (A : in out CORBA.Any;
       T : in     CORBA.TypeCode.Object)
@@ -461,6 +473,10 @@ package body CORBA is
       A.The_Type := T;
    end Force_Any_TypeCode;
 
+
+   ------------------------------------
+   --  Prepare_Any_From_Agregate_Tc  --
+   ------------------------------------
 
    function Prepare_Any_From_Agregate_Tc
      (Tc : in TypeCode.Object)
@@ -477,6 +493,10 @@ package body CORBA is
       return A;
    end Prepare_Any_From_Agregate_Tc;
 
+
+   -------------------------------
+   --  Add_Agregate_Any_Member  --
+   -------------------------------
 
    procedure Add_Agregate_Any_Member
      (A      : in out Any;
@@ -497,6 +517,11 @@ package body CORBA is
          Cl.Next := new Content_Cell' (Member.The_Value, null);
       end if;
    end Add_Agregate_Any_Member;
+
+
+   -------------------------------
+   --  Get_Any_Agregate_Member  --
+   -------------------------------
 
    function Get_Any_Agregate_Member
      (A      : in Any;
@@ -521,57 +546,15 @@ package body CORBA is
       return Res;
    end Get_Any_Agregate_Member;
 
-   function Simple_Any_Equal
-     (A1 : in Any;
-      A2 : in Any)
-      return CORBA.Boolean
-   is
-   begin
-      if TypeCode.Kind (Get_Type (A1)) /= TypeCode.Kind (Get_Type (A2)) then
-         return False;
-      end if;
-      case TypeCode.Kind (Get_Type (A1)) is
-         when Tk_Null =>
-            return True;
-         when Tk_Void =>
-            return True;
-         when Tk_Float =>
-            return Content_Float_Ptr (A1.The_Value).Value =
-              Content_Float_Ptr (A2.The_Value).Value;
-         when Tk_Double =>
-            return Content_Double_Ptr (A1.The_Value).Value =
-              Content_Double_Ptr (A2.The_Value).Value;
-         when Tk_Long =>
-            return Content_Long_Ptr (A1.The_Value).Value =
-              Content_Long_Ptr (A2.The_Value).Value;
-         when Tk_Ulong =>
-            return Content_ULong_Ptr (A1.The_Value).Value =
-              Content_ULong_Ptr (A2.The_Value).Value;
-         when Tk_Short =>
-            return Content_Short_Ptr (A1.The_Value).Value =
-              Content_Short_Ptr (A2.The_Value).Value;
-         when Tk_Ushort =>
-            return Content_UShort_Ptr (A1.The_Value).Value =
-              Content_UShort_Ptr (A2.The_Value).Value;
-         when Tk_Boolean =>
-            return Content_Boolean_Ptr (A1.The_Value).Value =
-              Content_Boolean_Ptr (A2.The_Value).Value;
-         when Tk_Char =>
-            return Content_Char_Ptr (A1.The_Value).Value =
-              Content_Char_Ptr (A2.The_Value).Value;
-         when Tk_Octet =>
-            return Content_Octet_Ptr (A1.The_Value).Value =
-              Content_Octet_Ptr (A2.The_Value).Value;
-         when others =>
-            --  unsupported type for comparison
-            return False;
-      end case;
-   end Simple_Any_Equal;
+
+   -----------------
+   --  Any_Equal  --
+   -----------------
 
    function Any_Equal
      (A1 : in Any;
       A2 : in Any)
-      return CORBA.Boolean
+     return CORBA.Boolean
    is
       Tck : TCKind;
    begin
@@ -662,6 +645,11 @@ package body CORBA is
       end case;
    end Any_Equal;
 
+
+   -------------------------
+   --  Any_Agregate_Size  --
+   -------------------------
+
    function Any_Agregate_Size
      (A : in Any)
       return CORBA.Long
@@ -670,6 +658,11 @@ package body CORBA is
    begin
       return Agregate_Count (Cl);
    end Any_Agregate_Size;
+
+
+   ----------------------
+   --  Agregate_Count  --
+   ----------------------
 
    function Agregate_Count
      (Cl : in Content_List)
@@ -684,8 +677,6 @@ package body CORBA is
       end loop;
       return N;
    end Agregate_Count;
-
-
 
 end CORBA;
 

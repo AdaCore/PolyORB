@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.54 $
+--                            $Revision: 1.55 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -212,12 +212,13 @@ package CORBA is
    package TypeCode is
       --  TypeCodes are values that represent invocation argument types,
       --  attribute types, and Object types.
-      --  see spec 23-28
+      --  see spec 23-28, and chap 8.7.1
 
       type Object is private;
 
       procedure Set (O : out Object;
                      K : in CORBA.TCKind);
+      --  used to set the Kind field of a TypeCode.Object
 
       Bounds : exception;
 
@@ -238,6 +239,7 @@ package CORBA is
         (Self : in Object;
          TC   : in Object)
          return CORBA.Boolean;
+      --  comparison of typecodes (recursive for the list of parameters)
 
       function "="
         (Left, Right : in Object)
@@ -261,20 +263,22 @@ package CORBA is
       --  the index'th parameter. Parameters are indexed
       --  from 0 to (Param_Count - 1)
 
-      TC_Null  : constant Object;
-      TC_Void  : constant Object;
-      TC_Short : constant Object;
-      TC_Long  : constant Object;
-      TC_Ushort : constant Object;
-      TC_Ulong  : constant Object;
-      TC_Float  : constant Object;
-      TC_Double : constant Object;
-      TC_Boolean : constant Object;
-      TC_Char : constant Object;
-      TC_Octet : constant Object;
-      TC_Any : constant Object;
+      TC_Null      : constant Object;
+      TC_Void      : constant Object;
+      TC_Short     : constant Object;
+      TC_Long      : constant Object;
+      TC_Ushort    : constant Object;
+      TC_Ulong     : constant Object;
+      TC_Float     : constant Object;
+      TC_Double    : constant Object;
+      TC_Boolean   : constant Object;
+      TC_Char      : constant Object;
+      TC_Octet     : constant Object;
+      TC_Any       : constant Object;
       TC_Principal : constant Object;
-      TC_TypeCode : constant Object;
+      TC_TypeCode  : constant Object;
+      --  constant typecodes for basic types
+
 
       --
       --  implementation dependant procedures
@@ -285,10 +289,13 @@ package CORBA is
          Param : in     CORBA.Any);
       --  append an element in the typecode parameters list
 
-      function From_Any (From : in CORBA.Any)
-                         return CORBA.TypeCode.Object;
-      function To_Any (From : in CORBA.TypeCode.Object)
-                       return CORBA.Any;
+      function From_Any
+        (From : in CORBA.Any)
+         return CORBA.TypeCode.Object;
+
+      function To_Any
+        (From : in CORBA.TypeCode.Object)
+         return CORBA.Any;
 
       function Member_Index
         (Tck : in TCKind;
@@ -307,26 +314,30 @@ package CORBA is
          Parameter : CORBA.Any;
          Next : Cell_Ptr;
       end record;
+      --  list of parameters (which are some any)
+
       type Object is
          record
             Kind : CORBA.TCKind := Tk_Void;
             Parameters : Cell_Ptr := null;
          end record;
+      --  type code implementation
 
-      TC_Null  : constant Object := (Tk_Null, null);
-      TC_Void  : constant Object := (Tk_Void, null);
-      TC_Short : constant Object := (Tk_Short, null);
-      TC_Long  : constant Object := (Tk_Long, null);
-      TC_Ushort : constant Object := (Tk_Ushort, null);
-      TC_Ulong  : constant Object := (Tk_Ulong, null);
-      TC_Float  : constant Object := (Tk_Float, null);
-      TC_Double : constant Object := (Tk_Double, null);
-      TC_Boolean : constant Object := (Tk_Boolean, null);
-      TC_Char : constant Object := (Tk_Char, null);
-      TC_Octet : constant Object := (Tk_Octet, null);
-      TC_Any : constant Object := (Tk_Any, null);
+      TC_Null      : constant Object := (Tk_Null, null);
+      TC_Void      : constant Object := (Tk_Void, null);
+      TC_Short     : constant Object := (Tk_Short, null);
+      TC_Long      : constant Object := (Tk_Long, null);
+      TC_Ushort    : constant Object := (Tk_Ushort, null);
+      TC_Ulong     : constant Object := (Tk_Ulong, null);
+      TC_Float     : constant Object := (Tk_Float, null);
+      TC_Double    : constant Object := (Tk_Double, null);
+      TC_Boolean   : constant Object := (Tk_Boolean, null);
+      TC_Char      : constant Object := (Tk_Char, null);
+      TC_Octet     : constant Object := (Tk_Octet, null);
+      TC_Any       : constant Object := (Tk_Any, null);
       TC_Principal : constant Object := (Tk_Principal, null);
-      TC_TypeCode : constant Object := (Tk_TypeCode, null);
+      TC_TypeCode  : constant Object := (Tk_TypeCode, null);
+      --  theses basic typecodes need no parameters list
 
    end TypeCode;
 
@@ -345,7 +356,6 @@ package CORBA is
    function To_Any (From : in CORBA.Float)          return CORBA.Any;
    function To_Any (From : in CORBA.Double)         return CORBA.Any;
 
-
    function From_Any (From : in CORBA.Any) return CORBA.Octet;
    function From_Any (From : in CORBA.Any) return CORBA.Short;
    function From_Any (From : in CORBA.Any) return CORBA.Long;
@@ -358,14 +368,13 @@ package CORBA is
    function From_Any (From : in CORBA.Any) return CORBA.Float;
    function From_Any (From : in CORBA.Any) return CORBA.Double;
 
-
    type Identifier is new CORBA.String;
 
    --  implementation dependant
    procedure Force_Any_TypeCode
      (A : in out CORBA.Any;
       T : in     CORBA.TypeCode.Object);
-   --  used for omplex types like struct
+   --  used for omplex types like struct to set the type code of an any
 
    ----------------------------------
    -- Dynamic Invocation Interface --
@@ -381,13 +390,14 @@ package CORBA is
       Name      : Identifier; -- arg name
       Argument  : CORBA.Any;  -- value
       Len       : Long;       -- length/count of arg value
+      --  Len is not used in this implementation
       Arg_Modes : Flags;      -- arg mode flags
    end record;
 
-   OUT_LIST_MEMORY    : constant Flags := 8; -- CORBA 6.2.1
-   IN_COPY_VALUE      : constant Flags := 16; -- CORBA 6.2.2
-   INV_NO_RESPONSE    : constant Flags := 32; -- CORBA 6.3.1
-   INV_TERM_ON_ERR    : constant Flags := 64; -- CORBA 6.3.2
+   OUT_LIST_MEMORY    : constant Flags := 8;   -- CORBA 6.2.1
+   IN_COPY_VALUE      : constant Flags := 16;  -- CORBA 6.2.2
+   INV_NO_RESPONSE    : constant Flags := 32;  -- CORBA 6.3.1
+   INV_TERM_ON_ERR    : constant Flags := 64;  -- CORBA 6.3.2
    RESP_NO_WAIT       : constant Flags := 128; -- CORBA 6.3.3
    DEPENDENT_LIST     : constant Flags := 256; -- CORBA 6.4.2
    CTX_RESTRICT_SCOPE : constant Flags := 512; -- CORBA 6.6.4
@@ -426,39 +436,43 @@ package CORBA is
    Adabroker_DII_Union_Interpretation_Error : exception;
    AdaBroker_DII_Unsupported_Type           : exception;
 
+
+   --
+   --  agregate related methods below
+   --
+   --  They are used to manipulate the values of the Anys that carry
+   --  complex types (several values, like structs, arrays...)
+   --  See the comments in the private part on the implementation of Any.
+   --
+
    function Prepare_Any_From_Agregate_Tc
      (Tc : in TypeCode.Object)
       return Any;
-   --  buid an any likely to carry a struct, union
+   --  buid an any to carry a struct, union, array, sequence
 
    procedure Add_Agregate_Any_Member
      (A      : in out Any;
       Member : in     Any);
-   --  set the value of a member of the struct into the any
+   --  set the value of a member of the liste of the agregate any
 
    function Get_Any_Agregate_Member
      (A      : in Any;
       Tc     : in TypeCode.Object;
       N      : in CORBA.Long)
       return Any;
-   --  returns an any containing the value of
+   --  returns an any containing the value of a member of the list of
+   --  elements in the agregate any
 
    function Any_Agregate_Size
      (A : in Any)
       return CORBA.Long;
    --  returns the number of elements stored in an agregate any
 
-   function Simple_Any_Equal
-     (A1 : in Any;
-      A2 : in Any)
-      return CORBA.Boolean;
-   --  compares 2 simple any
-
    function Any_Equal
      (A1 : in Any;
       A2 : in Any)
       return CORBA.Boolean;
-   --  compares 2 any
+   --  compares 2 any recursively
 
    -----------------------
    -- omniORB2 specific --
@@ -484,6 +498,21 @@ package CORBA is
 
 
 private
+
+   --  any is implemented this way :
+   --   one field for the typecode (TypeCode.Object)
+   --   one field for the value
+   --
+   --  To be able to carry values of diffrent types, the second
+   --  field is an Any_Content_Ptr which is an access to any type
+   --  deriving from Content. Every basic types XXX that can be carried
+   --  into an Any should be associated to a child of Content (Content_XXX)
+   --  which contains a field of the XXX type.
+   --  For complex types (with several values, like styructures, arrays...),
+   --  we use a special child of Content, Content_Agregat, which has a field
+   --  pointing on a list of childs of Content; various methods are provided
+   --  to manipulate this list.
+
 
    type Content is abstract tagged null record;
    type Any_Content_Ptr is access Content'Class;
