@@ -98,7 +98,8 @@ for alifile in `echo *.ali | sort`; do
 ' | sort | uniq | while read dep; do
     case "${genlist}:" in
       *:${dep}:*)
-        ${ucbecho} -n " \$(top_builddir)/${dep}"
+        qualified_dep="\$(top_builddir)/${dep}"
+        ${ucbecho} -n " ${qualified_dep#\$(top_builddir)/`expand_dep ${builddir}`/}"
         ;;
       *)
         ${ucbecho} -n " \$(top_srcdir)/${dep}"
