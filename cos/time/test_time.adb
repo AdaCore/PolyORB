@@ -34,18 +34,25 @@
 with Ada.Text_IO;
 
 with CORBA.ORB;
+pragma Elaborate_All (CORBA.ORB);  -- WAG:3.15
 
 with PortableServer;
 
 with CosTime.TimeService;
+pragma Elaborate_All (CosTime.TimeService);  -- WAG:3.15
+
 with CosTime.TimeService.Impl;
 
 with CosTime.TIO;
+pragma Elaborate_All (CosTime.TIO);  -- WAG:3.15
+
 with CosTime.UTO;
+pragma Elaborate_All (CosTime.UTO);  -- WAG:3.15
 
 with TimeBase;
 
 with PolyORB.CORBA_P.Server_Tools;
+pragma Elaborate_All (PolyORB.CORBA_P.Server_Tools);  -- WAG:3.15
 
 with PolyORB.Setup.Thread_Pool_Server;
 pragma Elaborate_All (PolyORB.Setup.Thread_Pool_Server);
