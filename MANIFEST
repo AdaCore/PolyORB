@@ -567,6 +567,10 @@ src/corba/corba-context.ads
 src/corba/corba-contextlist.adb
 src/corba/corba-contextlist.ads
 src/corba/corba-current.ads
+src/corba/corba-domainmanager-helper.adb
+src/corba/corba-domainmanager-helper.ads
+src/corba/corba-domainmanager.adb
+src/corba/corba-domainmanager.ads
 src/corba/corba-exceptionlist.adb
 src/corba/corba-exceptionlist.ads
 src/corba/corba-fixed_point.adb
@@ -586,6 +590,8 @@ src/corba/corba-object.adb
 src/corba/corba-object.ads
 src/corba/corba-orb.adb
 src/corba/corba-orb.ads
+src/corba/corba-policy-helper.adb
+src/corba/corba-policy-helper.ads
 src/corba/corba-policy.adb
 src/corba/corba-policy.ads
 src/corba/corba-policycurrent.adb

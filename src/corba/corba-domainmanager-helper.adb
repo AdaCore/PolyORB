@@ -1,0 +1,129 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--           C O R B A . D O M A I N M A N A G E R . H E L P E R            --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
+
+with PolyORB.Initialization;
+with PolyORB.Utils.Strings;
+
+with CORBA.Object.Helper;
+
+package body CORBA.DomainManager.Helper is
+
+   procedure Deferred_Initialization;
+
+   TC_DomainManager_Cache : TypeCode.Object;
+
+   -----------------------------
+   -- Deferred_Initialization --
+   -----------------------------
+
+   procedure Deferred_Initialization is
+   begin
+      TC_DomainManager_Cache :=
+        TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Object);
+      TypeCode.Internals.Add_Parameter
+        (TC_DomainManager_Cache, To_Any (To_CORBA_String ("DomainManager")));
+      TypeCode.Internals.Add_Parameter
+        (TC_DomainManager_Cache, To_Any (To_CORBA_String (Repository_Id)));
+   end Deferred_Initialization;
+
+   --------------
+   -- From_Any --
+   --------------
+
+   function From_Any (Item : in Any) return Ref is
+   begin
+      return To_Ref (Object.Helper.From_Any (Item));
+   end From_Any;
+
+   ----------------------
+   -- TC_DomainManager --
+   ----------------------
+
+   function TC_DomainManager return TypeCode.Object is
+   begin
+      return TC_DomainManager_Cache;
+   end TC_DomainManager;
+
+   ------------
+   -- To_Any --
+   ------------
+
+   function To_Any (Item : in Ref) return Any is
+      Result : Any := Object.Helper.To_Any (Object.Ref (Item));
+   begin
+      Set_Type (Result, TC_DomainManager);
+      return Result;
+   end To_Any;
+
+   ------------
+   -- To_Ref --
+   ------------
+
+   function To_Ref (The_Ref : in Object.Ref'Class) return Ref is
+   begin
+      if Object.Is_Nil (The_Ref)
+        or else Object.Is_A (The_Ref, Repository_Id)
+      then
+         return Unchecked_To_Ref (The_Ref);
+      end if;
+
+      Raise_Bad_Param (Default_Sys_Member);
+   end To_Ref;
+
+   ----------------------
+   -- Unchecked_To_Ref --
+   ----------------------
+
+   function Unchecked_To_Ref (The_Ref : in Object.Ref'Class) return Ref is
+      Result : Ref;
+   begin
+      Set (Result, Object.Object_Of (The_Ref));
+      return Result;
+   end Unchecked_To_Ref;
+
+begin
+   declare
+      use PolyORB.Initialization;
+      use PolyORB.Initialization.String_Lists;
+      use PolyORB.Utils.Strings;
+   begin
+      Register_Module
+        (Module_Info'
+         (Name      => +"corba.domainmanager.helper",
+          Conflicts => Empty,
+          Depends   => +"corba" & "any",
+          Provides  => Empty,
+          Implicit  => False,
+          Init      => Deferred_Initialization'Access));
+   end;
+end CORBA.DomainManager.Helper;
