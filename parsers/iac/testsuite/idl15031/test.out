@@ -1,0 +1,9 @@
+typedef short TempType;
+module M {
+ typedef string ArgType;
+ struct S {
+ M::ArgType a1;
+ M::ArgType a2;
+ TempType temp;
+ };
+};
