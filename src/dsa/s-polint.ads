@@ -453,7 +453,8 @@ package System.PolyORB_Interface is
       Val  : Any)
      renames PolyORB.Requests.Set_Result;
 
-   Asynchronous_P_To_Sync_Scope : constant array (Boolean) of PolyORB.Requests.Flags
+   Asynchronous_P_To_Sync_Scope : constant array (Boolean)
+     of PolyORB.Requests.Flags
      := (False => PolyORB.Requests.Sync_With_Target,
          True  => PolyORB.Requests.Sync_With_Transport);
    --  Request_Flags to use for a request according to whether or not
