@@ -1030,18 +1030,14 @@ package body OmniObject is
                   Corba.Get_Members(E, Exbd) ;
                   MarshallSystemException(Constants.Wrong_Transaction_Repoid, Exbd, Orls) ;
                end ;
-            when E : Corba.Adabroker_Fatal_Error
+            when E: Corba.Adabroker_Fatal_Error
               | Corba.No_Initialisation_Error
               | Corba.C_Out_Of_Range
-              | Corba.OmniORB_Fatal_Error =>
-               declare
-                  Exbd : Corba.Internal_Members ;
-               begin
-                  pragma Debug(Output(Omniobject, "Omniobject.Dispatch : caught "
-                                      & Ada.Exceptions.Exception_Name(E))) ;
-                  Exbd := (0, Corba.COMPLETED_MAYBE) ;
-                  MarshallSystemException(Constants.Internal_Repoid, Exbd, Orls) ;
-                  end ;
+              | Corba.OmniORB_Fatal_Error
+              | Corba.Dummy_User =>
+               pragma Debug(Output(Omniobject, "Omniobject.Dispatch : caught a serious error : "
+                                   & Ada.Exceptions.Exception_Name(E))) ;
+               raise ;
             when others =>
                declare
                   Exbd : Corba.Unknown_Members ;
