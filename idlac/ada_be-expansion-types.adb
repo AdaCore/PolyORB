@@ -1,4 +1,5 @@
 with Idl_Fe.Types; use Idl_Fe.Types;
+with Text_IO; use Text_IO;
 
 package body Ada_Be.Expansion.Types is
 
@@ -8,10 +9,27 @@ package body Ada_Be.Expansion.Types is
       return Bek_Node_List;
    end Get_Be_Kind;
 
+   procedure Display (Node : Ben_Node_List;
+                      Indent : Natural;
+                      Full : boolean) is
+   begin
+      Put_Line ("Ben_Node_List");
+      Disp_List (Node.Elements, Indent + Offset, Full);
+   end Display;
+
+
    function Get_Be_Kind (Node : Ben_Idl_File) return Be_Node_Kind is
    begin
       return Bek_Idl_File;
    end Get_Be_Kind;
+
+   procedure Display (Node : Ben_Idl_File;
+                      Indent : Natural;
+                      Full : boolean) is
+   begin
+      Put_Line ("Ben_Idl_File: " & Node.Name.all);
+      Disp_List (Node.Elements, Indent + Offset, Full);
+   end Display;
 
 
 

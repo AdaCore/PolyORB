@@ -215,6 +215,14 @@ package Idl_Fe.Types is
    --  the list.
    procedure Remove_Node (List : in out Node_List; Node : N_Root_Acc);
 
+   --  Replaces a node in the list by another one
+   --  Raise constraint error if the node was not in the list
+   --  does not free the old node because it is supposed to be
+   --  referenced by the new one
+   procedure Replace_Node (List : in out Node_List;
+                           Old : in N_Root_Acc;
+                           New_Node : in N_Root_Acc);
+
    --  Frees all the list
    procedure Free (List : in out Node_List);
 

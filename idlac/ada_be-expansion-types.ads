@@ -1,7 +1,8 @@
 --  This package contains new nodes for the parse tree,
 --  that are created only by the expansion
 
-with Idl_Fe.Types;
+with Idl_Fe.Types; use Idl_Fe.Types;
+with Idl_Fe.Display_Tree;
 
 package Ada_Be.Expansion.Types is
 
@@ -14,7 +15,9 @@ package Ada_Be.Expansion.Types is
    --  Back-End node
    type Ben_Root is abstract new Idl_Fe.Tree.N_Unknown with null record;
    function Get_Be_Kind (Node : Ben_Root) return Be_Node_Kind is abstract;
-   --  procedure Display (Node : Ben_Root) is abstract;
+   procedure Display (Node : Ben_Root;
+                      Indent : Natural;
+                      Full : boolean) is abstract;
 
    --  when a node is expanded into several nodes,
    --  a node of this type is created
@@ -23,7 +26,9 @@ package Ada_Be.Expansion.Types is
    end record;
    type Ben_Node_List_Acc is access Ben_Node_List;
    function Get_Be_Kind (Node : Ben_Node_List) return Be_Node_Kind;
-   --  procedure Display (Node : Ben_Node_List);
+   procedure Display (Node : Ben_Node_List;
+                      Indent : Natural;
+                      Full : boolean);
 
 
    --  a tree root (N_Repository) can be the result
@@ -37,6 +42,18 @@ package Ada_Be.Expansion.Types is
    type Ben_Idl_File_Acc is access Ben_Idl_File;
    function Get_Be_Kind (Node : Ben_Idl_File) return Be_Node_Kind;
    function New_Ben_Idl_File (Filename : String_Ptr) return Ben_Idl_File_Acc;
-   --  procedure Display (Node : Ben_Idl_File);
+   procedure Display (Node : Ben_Idl_File;
+                      Indent : Natural;
+                      Full : boolean);
+
+
+private
+
+   Offset : constant Natural := Idl_Fe.Display_Tree.Offset;
+
+   --  display a node list
+   procedure Disp_List (List : Node_List; Indent : Natural; Full : Boolean)
+     renames Idl_Fe.Display_Tree.Disp_List;
+
 
 end Ada_Be.Expansion.Types;

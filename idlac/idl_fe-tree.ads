@@ -449,7 +449,9 @@ package Idl_Fe.Tree is
    ---------------------------------------------------------
    type N_Unknown is abstract new Types.N_Root with null record;
    function Get_Kind (Node : N_Unknown) return Types.Node_Kind;
-   --  procedure Display (Node : N_Unknown) is abstract;
+   procedure Display (Node : N_Unknown;
+                      Indent : Natural;
+                      Full : boolean) is abstract;
 
 --
 --  INUTILE ???

@@ -66,7 +66,6 @@ package body Idl_Fe.Display_Tree is
 
    --  Disp tree procedure
    procedure Disp_Tree (N : N_Root'Class; Indent : Natural; Full : Boolean) is
-      Offset : constant Natural := 2;
       N_Indent : Natural := Indent + Offset;
    begin
       Disp_Indent (Indent);
@@ -462,7 +461,7 @@ package body Idl_Fe.Display_Tree is
             Disp_Tree (N_Native (N).Declarator.all, N_Indent + Offset, Full);
 
          when K_Unknown =>
-            --  Display (N_Unknown'Class (N, Indent, Full);
+            Display (N_Unknown'Class (N), Indent, Full);
             null;
       end case;
    end Disp_Tree;
