@@ -60,6 +60,7 @@ begin
    Argument := (To_CORBA_String ("arg1"),
                 To_Any (Sent_Msg), 0, ARG_IN);
 
+
    Ada.Text_IO.Put_Line ("Client adding argument");
    Request.Add_Arg (Rq, Argument);
 
