@@ -135,13 +135,6 @@ package body Exp_Hlpr is
       if Present (VP) then
          raise Program_Error;
          --  XXX Variant Part not implemented yet.
-
---          Process_Union (VP);
---          while Present (Variant) loop
---             Process_Struct (Variant);
-
---             Recurse (Add_Component_List);
---          end loop;
       end if;
    end Add_Component_List;
 
@@ -364,7 +357,9 @@ package body Exp_Hlpr is
                --  Return the Element_Count'th element, of type Typ,
                --  in the aggregate being processed.
 
-               procedure Add_Field (F : Entity_Id) is
+               procedure Add_Field
+                 (F    : Entity_Id)
+               is
                begin
                   Append_To (Stms,
                     Make_Assignment_Statement (Loc,
@@ -882,11 +877,7 @@ package body Exp_Hlpr is
                      Element_Count := Element_Count + 1;
                      Next_Discriminant (Disc);
                   end loop;
-
                else
-
-                  --  Make elements an empty array
-
                   declare
                      Dummy_Any : constant Entity_Id :=
                        Make_Defining_Identifier (Loc,

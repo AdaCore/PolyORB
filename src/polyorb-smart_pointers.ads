@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.ads#11 $
+--  $Id: //droopi/main/src/polyorb-smart_pointers.ads#10 $
 
 with Ada.Finalization;
 
@@ -44,7 +44,6 @@ package PolyORB.Smart_Pointers is
    ------------
 
    type Non_Controlled_Entity is abstract tagged limited private;
-
    procedure Finalize (X : in out Non_Controlled_Entity);
    --  Entity is the base type of all objects that can be
    --  referenced. It contains a Counter, which is the number of
@@ -58,7 +57,6 @@ package PolyORB.Smart_Pointers is
    type Entity_Ptr is access all Non_Controlled_Entity'Class;
 
    type Entity is abstract new Non_Controlled_Entity with private;
-
    procedure Initialize (X : in out Entity);
    --  An entity that is a controlled object. Contrary to
    --  Non_Controlled_Entity, the Finalize operation is called
@@ -78,43 +76,30 @@ package PolyORB.Smart_Pointers is
    procedure Finalize   (The_Ref : in out Ref);
 
    procedure Set
-     (The_Ref    : in out Ref;
-      The_Entity :        Entity_Ptr);
+     (The_Ref : in out Ref;
+      The_Entity : Entity_Ptr);
 
-   procedure Unref
-     (The_Ref : in out Ref)
+   procedure Unref (The_Ref : in out Ref)
      renames Finalize;
 
-   function Is_Nil
-     (The_Ref : Ref)
-     return Boolean;
-
-   function Is_Null
-     (The_Ref : Ref)
-     return Boolean
+   function Is_Nil (The_Ref : Ref) return Boolean;
+   function Is_Null (The_Ref : Ref) return Boolean
      renames Is_Nil;
 
-   procedure Duplicate
-     (The_Ref : in out Ref)
+   procedure Duplicate (The_Ref : in out Ref)
      renames Adjust;
 
-   procedure Release
-     (The_Ref : in out Ref);
+   procedure Release (The_Ref : in out Ref);
 
-   function Entity_Of
-     (The_Ref : Ref)
-     return Entity_Ptr;
+   function Entity_Of (The_Ref : Ref) return Entity_Ptr;
 
    --  The following two low-level functions are exposed for
    --  cases where controlled types cannot be directly used
    --  in a personality. Great care must be taken when
    --  using them outside of this unit!
 
-   procedure Inc_Usage
-     (Obj : Entity_Ptr);
-
-   procedure Dec_Usage
-     (Obj : in out Entity_Ptr);
+   procedure Inc_Usage (Obj : Entity_Ptr);
+   procedure Dec_Usage (Obj : in out Entity_Ptr);
 
 private
 
@@ -126,18 +111,16 @@ private
       is new Ada.Finalization.Limited_Controlled
      with null record;
 
-   procedure Initialize
-     (X : in out Entity_Controller);
-
-   procedure Finalize
-     (X : in out Entity_Controller);
+   procedure Initialize (X : in out Entity_Controller);
+   procedure Finalize (X : in out Entity_Controller);
 
    type Entity is abstract new Non_Controlled_Entity with record
       Controller : Entity_Controller (Entity'Access);
    end record;
 
-   type Ref is new Ada.Finalization.Controlled with record
-      A_Ref : Entity_Ptr := null;
-   end record;
+   type Ref is new Ada.Finalization.Controlled with
+      record
+         A_Ref : Entity_Ptr := null;
+      end record;
 
 end PolyORB.Smart_Pointers;

@@ -159,10 +159,16 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
                declare
                   Index : constant Integer
                     := Add (POA.Active_Object_Map, The_Entry);
-                  pragma Warnings (Off);
-                  pragma Unreferenced (Index);
-                  pragma Warnings (On);
+
+                  Test_Entry : constant Object_Map_Entry_Access
+                    := Get_By_Id (POA.Active_Object_Map.all, U_Oid);
                begin
+                  pragma Debug (O ("Insert object at new index "
+                                   & Integer'Image (Index)));
+
+                  pragma Debug (O ("Ok ? "
+                                   & Boolean'Image (Test_Entry = The_Entry)));
+
                   null;
                end;
             else
