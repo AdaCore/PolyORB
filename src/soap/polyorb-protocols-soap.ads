@@ -32,6 +32,8 @@
 
 --  $Id$
 
+with PolyORB.ORB;
+
 package PolyORB.Protocols.SOAP is
 
    pragma Elaborate_Body;
@@ -48,11 +50,13 @@ package PolyORB.Protocols.SOAP is
      (S   : access SOAP_Session;
       R   : Requests.Request_Access);
 
-   procedure Abort_Request (S : access SOAP_Session;
-                 R : Requests.Request_Access);
+   procedure Abort_Request
+     (S : access SOAP_Session;
+      R : Requests.Request_Access);
 
-   procedure Send_Reply (S : access SOAP_Session;
-                 R : Requests.Request_Access);
+   procedure Send_Reply
+     (S : access SOAP_Session;
+      R : Requests.Request_Access);
 
    procedure Handle_Connect_Indication (S : access SOAP_Session);
 
@@ -66,6 +70,8 @@ private
 
    type SOAP_Protocol is new Protocol with null record;
 
-   type SOAP_Session is new Session with null record;
+   type SOAP_Session is new Session with record
+      Role : PolyORB.ORB.Endpoint_Role;
+   end record;
 
 end PolyORB.Protocols.SOAP;

@@ -38,6 +38,7 @@ pragma Elaborate_All (PolyORB.Log);
 package body PolyORB.Protocols.SOAP  is
 
    use PolyORB.Log;
+   use PolyORB.ORB;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.soap");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -90,14 +91,15 @@ package body PolyORB.Protocols.SOAP  is
      (S : access SOAP_Session)
    is
    begin
-      raise PolyORB.Not_Implemented;
+      S.Role := Server;
+      --  Expect_Data ();
    end Handle_Connect_Indication;
 
    procedure Handle_Connect_Confirmation
      (S : access SOAP_Session)
    is
    begin
-      raise PolyORB.Not_Implemented;
+      S.Role := Client;
    end Handle_Connect_Confirmation;
 
    procedure Handle_Disconnect
