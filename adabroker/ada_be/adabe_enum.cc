@@ -46,8 +46,8 @@ adabe_enum::produce_marshal_ads(dep_list& with, string &body, string &previous)
 
   tmp += "procedure Marshall (A : in ";
   tmp += get_ada_local_name();         // question ...N' est-ce ada_global_name
-  tmp += ";S : in out Object'Class) ; \n";
-  //suggest also to  include a comment like:  Marshalls a enum  into a netbufferedstream object
+  tmp += "; S : in out Object'Class) ; \n";
+  //suggest also to include a comment like:  Marshalls a enum  into a netbufferedstream object
   
   body += tmp;
 }
@@ -58,9 +58,11 @@ adabe_enum::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
   string tmp="";
 
-  tmp+="procedure UnMarshall (A : out ";
-  tmp+= get_ada_local_name();
-  tmp+=";S : in out Object'Class) ; \n";
+  tmp +="procedure Marshall (A : out ";
+  tmp += get_ada_local_name();
+  tmp +="; S : in out Object'Class) is \n";
+  tmp +="begin \n";
+  tmp +=" Marshall ("+get_ada_local_name()+"'Pos(A); S);
   body+=tmp;
 
 }
