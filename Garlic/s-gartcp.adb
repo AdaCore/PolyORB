@@ -804,7 +804,7 @@ package body System.Garlic.TCP is
 
       --  Write length at the beginning of the data, then the header.
 
-      Count := Banner_Size;
+      Count := SEC_Size;
       First := First - Count;
       Data (First .. First + Count - 1)
         := To_Stream_Element_Array (Data'Length - Unused_Space);
