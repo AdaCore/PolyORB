@@ -446,6 +446,23 @@ package body CORBA.ORB is
       return Result;
    end Create_Reference;
 
+   -------------------
+   -- Create_Policy --
+   -------------------
+
+   function Create_Policy
+     (The_Type : in PolicyType;
+      Val      :    Any)
+     return CORBA.Policy.Ref
+   is
+      Result : CORBA.Policy.Ref;
+   begin
+      Result.Type_Of_Ref := The_Type;
+      Result.Val         := Val;
+
+      return Result;
+   end Create_Policy;
+
    ----------------
    -- Initialize --
    ----------------

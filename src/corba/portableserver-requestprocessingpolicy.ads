@@ -42,17 +42,9 @@ package PortableServer.RequestProcessingPolicy is
 
    type Ref is new CORBA.Policy.Ref with private;
 
-   function Create_Request_Processing_Policy
-     (Value : in PortableServer.RequestProcessingPolicyValue)
-     return CORBA.Policy.Ref'Class;
-   --  XXX This function should be in PortableServer,
-   --  yet this would create a circular dependency ...
-
-   function Create_Policy
-     (The_Type : in CORBA.PolicyType;
-      Val      : CORBA.Any)
-     return PortableServer.RequestProcessingPolicy.Ref;
-   --  Implementation of CORBA.ORB.Create_Policy.
+   function To_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return Ref;
 
    function Get_Value
      (Self : Ref)
@@ -60,8 +52,6 @@ package PortableServer.RequestProcessingPolicy is
 
 private
 
-   type Ref is new CORBA.Policy.Ref with record
-      RequestProcessingPolicy : PortableServer.RequestProcessingPolicyValue;
-   end record;
+   type Ref is new CORBA.Policy.Ref with null record;
 
 end PortableServer.RequestProcessingPolicy;

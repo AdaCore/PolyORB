@@ -132,8 +132,9 @@ package body PolyORB.CORBA_P.POA_Config is
             when THREAD_POLICY_ID =>
                declare
                   PolicyValue : constant ThreadPolicyValue
-                    := Get_Value (PortableServer.ThreadPolicy.Ref
-                                  (CORBA_Policy_Array (J).all));
+                    := Get_Value
+                    (PortableServer.ThreadPolicy.To_Ref
+                     (CORBA_Policy_Array (J).all));
                begin
                   case PolicyValue is
                      when ORB_CTRL_MODEL =>
@@ -156,8 +157,9 @@ package body PolyORB.CORBA_P.POA_Config is
             when LIFESPAN_POLICY_ID =>
                declare
                   PolicyValue : constant LifespanPolicyValue
-                    := Get_Value (PortableServer.LifespanPolicy.Ref
-                                  (CORBA_Policy_Array (J).all));
+                    := Get_Value
+                    (PortableServer.LifespanPolicy.To_Ref
+                     (CORBA_Policy_Array (J).all));
                begin
                   case PolicyValue is
                      when PortableServer.TRANSIENT =>
@@ -176,8 +178,9 @@ package body PolyORB.CORBA_P.POA_Config is
             when ID_UNIQUENESS_POLICY_ID =>
                declare
                   PolicyValue : constant IdUniquenessPolicyValue
-                    := Get_Value (PortableServer.IdUniquenessPolicy.Ref
-                                  (CORBA_Policy_Array (J).all));
+                    := Get_Value
+                    (PortableServer.IdUniquenessPolicy.To_Ref
+                     (CORBA_Policy_Array (J).all));
                begin
                   case PolicyValue is
                      when UNIQUE_ID =>
@@ -196,8 +199,9 @@ package body PolyORB.CORBA_P.POA_Config is
             when ID_ASSIGNMENT_POLICY_ID =>
                declare
                   PolicyValue : constant IdAssignmentPolicyValue
-                    := Get_Value (PortableServer.IdAssignmentPolicy.Ref
-                                  (CORBA_Policy_Array (J).all));
+                    := Get_Value
+                    (PortableServer.IdAssignmentPolicy.To_Ref
+                     (CORBA_Policy_Array (J).all));
                begin
                   case PolicyValue is
                      when USER_ID =>
@@ -215,8 +219,9 @@ package body PolyORB.CORBA_P.POA_Config is
             when IMPLICIT_ACTIVATION_POLICY_ID =>
                declare
                   PolicyValue : constant ImplicitActivationPolicyValue
-                    := Get_Value (PortableServer.ImplicitActivationPolicy.Ref
-                                  (CORBA_Policy_Array (J).all));
+                    := Get_Value
+                    (PortableServer.ImplicitActivationPolicy.To_Ref
+                     (CORBA_Policy_Array (J).all));
                begin
                   case PolicyValue is
                      when IMPLICIT_ACTIVATION =>
@@ -236,8 +241,9 @@ package body PolyORB.CORBA_P.POA_Config is
             when SERVANT_RETENTION_POLICY_ID =>
                declare
                   PolicyValue : constant ServantRetentionPolicyValue
-                    := Get_Value (PortableServer.ServantRetentionPolicy.Ref
-                                  (CORBA_Policy_Array (J).all));
+                    := Get_Value
+                    (PortableServer.ServantRetentionPolicy.To_Ref
+                     (CORBA_Policy_Array (J).all));
                begin
                   case PolicyValue is
                      when RETAIN =>
@@ -257,8 +263,9 @@ package body PolyORB.CORBA_P.POA_Config is
             when REQUEST_PROCESSING_POLICY_ID =>
                declare
                   PolicyValue : constant RequestProcessingPolicyValue
-                    := Get_Value (PortableServer.RequestProcessingPolicy.Ref
-                                  (CORBA_Policy_Array (J).all));
+                    := Get_Value
+                    (PortableServer.RequestProcessingPolicy.To_Ref
+                     (CORBA_Policy_Array (J).all));
                begin
                   case PolicyValue is
 

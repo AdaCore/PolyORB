@@ -33,41 +33,31 @@
 
 package body PortableServer.RequestProcessingPolicy is
 
-   --------------------------------------
-   -- Create_Request_Processing_Policy --
-   --------------------------------------
+   ------------
+   -- To_Ref --
+   ------------
 
-   function Create_Request_Processing_Policy
-     (Value : in PortableServer.RequestProcessingPolicyValue)
-     return CORBA.Policy.Ref'Class
+   function To_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return Ref
    is
-      Result : PortableServer.RequestProcessingPolicy.Ref;
+      use type CORBA.PolicyType;
+      use CORBA.Policy;
+
+      Result : Ref;
    begin
-      Result.Type_Of_Ref := REQUEST_PROCESSING_POLICY_ID;
-      Result.RequestProcessingPolicy := Value;
-
-      return Result;
-   end Create_Request_Processing_Policy;
-
-   -------------------
-   -- Create_Policy --
-   -------------------
-
-   function Create_Policy
-     (The_Type : in CORBA.PolicyType;
-      Val      : CORBA.Any)
-     return PortableServer.RequestProcessingPolicy.Ref
-   is
-      use CORBA;
-
-   begin
-      if The_Type /= REQUEST_PROCESSING_POLICY_ID then
-         raise Program_Error;
+      if The_Ref not in CORBA.Policy.Ref'Class
+        or else Get_Policy_Type (CORBA.Policy.Ref (The_Ref))
+        /= REQUEST_PROCESSING_POLICY_ID
+      then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
-      return PortableServer.RequestProcessingPolicy.Ref
-        (Create_Request_Processing_Policy (From_Any (Val)));
-   end Create_Policy;
+      Result.Type_Of_Ref := CORBA.Policy.Ref (The_Ref).Type_Of_Ref;
+      Result.Val         := CORBA.Policy.Ref (The_Ref).Val;
+
+      return Result;
+   end To_Ref;
 
    ---------------
    -- Get_Value --
@@ -77,7 +67,7 @@ package body PortableServer.RequestProcessingPolicy is
      (Self : Ref)
      return PortableServer.RequestProcessingPolicyValue is
    begin
-      return Self.RequestProcessingPolicy;
+      return From_Any (Self.Val);
    end Get_Value;
 
 end PortableServer.RequestProcessingPolicy;

@@ -33,41 +33,31 @@
 
 package body PortableServer.ServantRetentionPolicy is
 
-   -------------------------------------
-   -- Create_Servant_Retention_Policy --
-   -------------------------------------
+   ------------
+   -- To_Ref --
+   ------------
 
-   function Create_Servant_Retention_Policy
-     (Value : in PortableServer.ServantRetentionPolicyValue)
-     return CORBA.Policy.Ref'Class
+   function To_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return Ref
    is
-      Result : PortableServer.ServantRetentionPolicy.Ref;
+      use type CORBA.PolicyType;
+      use CORBA.Policy;
+
+      Result : Ref;
    begin
-      Result.Type_Of_Ref := SERVANT_RETENTION_POLICY_ID;
-      Result.ServantRetentionPolicy := Value;
-
-      return Result;
-   end Create_Servant_Retention_Policy;
-
-   -------------------
-   -- Create_Policy --
-   -------------------
-
-   function Create_Policy
-     (The_Type : in CORBA.PolicyType;
-      Val      : CORBA.Any)
-     return PortableServer.ServantRetentionPolicy.Ref
-   is
-      use CORBA;
-
-   begin
-      if The_Type /= SERVANT_RETENTION_POLICY_ID then
-         raise Program_Error;
+      if The_Ref not in CORBA.Policy.Ref'Class
+        or else Get_Policy_Type (CORBA.Policy.Ref (The_Ref))
+        /= SERVANT_RETENTION_POLICY_ID
+      then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
-      return PortableServer.ServantRetentionPolicy.Ref
-        (Create_Servant_Retention_Policy (From_Any (Val)));
-   end Create_Policy;
+      Result.Type_Of_Ref := CORBA.Policy.Ref (The_Ref).Type_Of_Ref;
+      Result.Val         := CORBA.Policy.Ref (The_Ref).Val;
+
+      return Result;
+   end To_Ref;
 
    ---------------
    -- Get_Value --
@@ -77,7 +67,7 @@ package body PortableServer.ServantRetentionPolicy is
      (Self : Ref)
      return PortableServer.ServantRetentionPolicyValue is
    begin
-      return Self.ServantRetentionPolicy;
+      return From_Any (Self.Val);
    end Get_Value;
 
 end PortableServer.ServantRetentionPolicy;

@@ -42,17 +42,9 @@ package PortableServer.ImplicitActivationPolicy is
 
    type Ref is new CORBA.Policy.Ref with private;
 
-   function Create_Implicit_Activation_Policy
-     (Value : in PortableServer.ImplicitActivationPolicyValue)
-     return CORBA.Policy.Ref'Class;
-   --  XXX This function should be in PortableServer,
-   --  yet this would create a circular dependency ...
-
-   function Create_Policy
-     (The_Type : in CORBA.PolicyType;
-      Val      : CORBA.Any)
-     return PortableServer.ImplicitActivationPolicy.Ref;
-   --  Implementation of CORBA.ORB.Create_Policy.
+   function To_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return Ref;
 
    function Get_Value
      (Self : Ref)
@@ -60,8 +52,6 @@ package PortableServer.ImplicitActivationPolicy is
 
 private
 
-   type Ref is new CORBA.Policy.Ref with record
-      ImplicitActivationPolicy : PortableServer.ImplicitActivationPolicyValue;
-   end record;
+   type Ref is new CORBA.Policy.Ref with null record;
 
 end PortableServer.ImplicitActivationPolicy;

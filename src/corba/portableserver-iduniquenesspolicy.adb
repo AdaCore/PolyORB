@@ -33,41 +33,31 @@
 
 package body PortableServer.IdUniquenessPolicy is
 
-   ---------------------------------
-   -- Create_Id_Uniqueness_Policy --
-   ---------------------------------
+   ------------
+   -- To_Ref --
+   ------------
 
-   function Create_Id_Uniqueness_Policy
-     (Value : in PortableServer.IdUniquenessPolicyValue)
-     return CORBA.Policy.Ref'Class
+   function To_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return Ref
    is
-      Result : PortableServer.IdUniquenessPolicy.Ref;
+      use type CORBA.PolicyType;
+      use CORBA.Policy;
+
+      Result : Ref;
    begin
-      Result.Type_Of_Ref := ID_UNIQUENESS_POLICY_ID;
-      Result.IdUniquenessPolicy := Value;
-
-      return Result;
-   end Create_Id_Uniqueness_Policy;
-
-   -------------------
-   -- Create_Policy --
-   -------------------
-
-   function Create_Policy
-     (The_Type : in CORBA.PolicyType;
-      Val      : CORBA.Any)
-     return PortableServer.IdUniquenessPolicy.Ref
-   is
-      use CORBA;
-
-   begin
-      if The_Type /= ID_UNIQUENESS_POLICY_ID then
-         raise Program_Error;
+      if The_Ref not in CORBA.Policy.Ref'Class
+        or else Get_Policy_Type (CORBA.Policy.Ref (The_Ref))
+        /= ID_UNIQUENESS_POLICY_ID
+      then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
-      return PortableServer.IdUniquenessPolicy.Ref
-        (Create_Id_Uniqueness_Policy (From_Any (Val)));
-   end Create_Policy;
+      Result.Type_Of_Ref := CORBA.Policy.Ref (The_Ref).Type_Of_Ref;
+      Result.Val         := CORBA.Policy.Ref (The_Ref).Val;
+
+      return Result;
+   end To_Ref;
 
    ---------------
    -- Get_Value --
@@ -77,7 +67,7 @@ package body PortableServer.IdUniquenessPolicy is
      (Self : Ref)
      return PortableServer.IdUniquenessPolicyValue is
    begin
-      return Self.IdUniquenessPolicy;
+      return From_Any (Self.Val);
    end Get_Value;
 
 end PortableServer.IdUniquenessPolicy;

@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.ads#9 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.ads#10 $
 
 with Ada.Exceptions;
 
@@ -46,6 +46,14 @@ with CORBA.Policy;
 with PortableServer.POAManager;
 with PortableServer.AdapterActivator;
 with PortableServer.ServantManager;
+
+with PortableServer.IdAssignmentPolicy;
+with PortableServer.IdUniquenessPolicy;
+with PortableServer.ImplicitActivationPolicy;
+with PortableServer.LifespanPolicy;
+with PortableServer.RequestProcessingPolicy;
+with PortableServer.ServantRetentionPolicy;
+with PortableServer.ThreadPolicy;
 
 with PolyORB.Exceptions;
 
@@ -66,6 +74,8 @@ package PortableServer.POA is
    WrongAdapter         : exception;
    WrongPolicy          : exception;
 
+   --  POA creation and destruction
+
    function Create_POA
      (Self         : in Ref;
       Adapter_Name : in CORBA.String;
@@ -83,6 +93,38 @@ package PortableServer.POA is
      (Self                : in out Ref;
       Etherealize_Objects : in     CORBA.Boolean;
       Wait_For_Completion : in     CORBA.Boolean);
+
+   --  Factories for Policy objects
+
+   function Create_Id_Assignment_Policy
+     (Value : in PortableServer.IdAssignmentPolicyValue)
+     return PortableServer.IdAssignmentPolicy.Ref;
+
+   function Create_Id_Uniqueness_Policy
+     (Value : in PortableServer.IdUniquenessPolicyValue)
+     return PortableServer.IdUniquenessPolicy.Ref;
+
+   function Create_Implicit_Activation_Policy
+     (Value : in PortableServer.ImplicitActivationPolicyValue)
+     return PortableServer.ImplicitActivationPolicy.Ref;
+
+   function Create_Lifespan_Policy
+     (Value : in PortableServer.LifespanPolicyValue)
+     return PortableServer.LifespanPolicy.Ref;
+
+   function Create_Request_Processing_Policy
+     (Value : in PortableServer.RequestProcessingPolicyValue)
+     return PortableServer.RequestProcessingPolicy.Ref;
+
+   function Create_Servant_Retention_Policy
+     (Value : in PortableServer.ServantRetentionPolicyValue)
+     return PortableServer.ServantRetentionPolicy.Ref;
+
+   function Create_Thread_Policy
+     (Value : in PortableServer.ThreadPolicyValue)
+     return PortableServer.ThreadPolicy.Ref;
+
+   --  POA attributes
 
    function Get_The_Name
      (Self : in Ref)
@@ -104,6 +146,8 @@ package PortableServer.POA is
      (Self : in     Ref;
       To   : access PortableServer.AdapterActivator.Ref'Class);
 
+   --  Servant Manager registration
+
    function Get_Servant_Manager
      (Self : in Ref)
      return PortableServer.ServantManager.Ref'Class;
@@ -112,6 +156,8 @@ package PortableServer.POA is
      (Self : in     Ref;
       Imgr : access PortableServer.ServantManager.Ref'Class);
 
+   --  operations for the USE_DEFAULT_SERVANT policy
+
    function Get_Servant
      (Self : in Ref)
      return Servant;
@@ -119,6 +165,8 @@ package PortableServer.POA is
    procedure Set_Servant
      (Self      : in Ref;
       P_Servant : in Servant);
+
+   --  object activation and deactivation
 
    function Activate_Object
      (Self      : in Ref;
@@ -134,6 +182,8 @@ package PortableServer.POA is
      (Self : in Ref;
       Oid  : in ObjectId);
 
+   --  reference creation operations
+
    function Create_Reference
      (Self : in Ref;
       Intf : in CORBA.RepositoryId)
@@ -144,6 +194,8 @@ package PortableServer.POA is
       Oid  : in ObjectId;
       Intf : in CORBA.RepositoryId)
      return CORBA.Object.Ref;
+
+   --  identity mapping operations
 
    function Servant_To_Id
      (Self      : in Ref;

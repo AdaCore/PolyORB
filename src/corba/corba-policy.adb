@@ -33,8 +33,6 @@
 
 --  $Id$
 
-with PolyORB;
-
 package body CORBA.Policy is
 
    ---------------------
@@ -53,14 +51,12 @@ package body CORBA.Policy is
    ----------
 
    function Copy
-     (Self : Ref)
-     return Ref'Class is
+     (Self : Ref'Class)
+     return Ref'Class
+   is
+      Result : Ref'Class := Self;
    begin
-      raise PolyORB.Not_Implemented;
-
-      pragma Warnings (Off);
-      return Copy (Self);
-      pragma Warnings (On);
+      return Result;
    end Copy;
 
 end CORBA.Policy;

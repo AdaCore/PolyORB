@@ -44,17 +44,9 @@ package PortableServer.LifespanPolicy is
 
    type Ref is new CORBA.Policy.Ref with private;
 
-   function Create_Lifespan_Policy
-     (Value : in PortableServer.LifespanPolicyValue)
-     return CORBA.Policy.Ref'Class;
-   --  XXX This function should be in PortableServer,
-   --  yet this would create a circular dependency ...
-
-   function Create_Policy
-     (The_Type : in CORBA.PolicyType;
-      Val      : CORBA.Any)
-     return PortableServer.LifespanPolicy.Ref;
-   --  Implementation of CORBA.ORB.Create_Policy.
+   function To_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return Ref;
 
    function Get_Value
      (Self : Ref)
@@ -62,8 +54,6 @@ package PortableServer.LifespanPolicy is
 
 private
 
-   type Ref is new CORBA.Policy.Ref with record
-      LifespanPolicy : PortableServer.LifespanPolicyValue;
-   end record;
+   type Ref is new CORBA.Policy.Ref with null record;
 
 end PortableServer.LifespanPolicy;

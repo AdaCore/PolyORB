@@ -35,41 +35,31 @@
 
 package body PortableServer.LifespanPolicy is
 
-   ----------------------------
-   -- Create_Lifespan_Policy --
-   ----------------------------
+   ------------
+   -- To_Ref --
+   ------------
 
-   function Create_Lifespan_Policy
-     (Value : in PortableServer.LifespanPolicyValue)
-     return CORBA.Policy.Ref'Class
+   function To_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return Ref
    is
-      Result : PortableServer.LifespanPolicy.Ref;
+      use type CORBA.PolicyType;
+      use CORBA.Policy;
+
+      Result : Ref;
    begin
-      Result.Type_Of_Ref := LIFESPAN_POLICY_ID;
-      Result.LifespanPolicy := Value;
-
-      return Result;
-   end Create_Lifespan_Policy;
-
-   -------------------
-   -- Create_Policy --
-   -------------------
-
-   function Create_Policy
-     (The_Type : in CORBA.PolicyType;
-      Val      : CORBA.Any)
-     return PortableServer.LifespanPolicy.Ref
-   is
-      use CORBA;
-
-   begin
-      if The_Type /= LIFESPAN_POLICY_ID then
-         raise Program_Error;
+      if The_Ref not in CORBA.Policy.Ref'Class
+        or else Get_Policy_Type (CORBA.Policy.Ref (The_Ref))
+        /= LIFESPAN_POLICY_ID
+      then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
-      return PortableServer.LifespanPolicy.Ref
-        (Create_Lifespan_Policy (From_Any (Val)));
-   end Create_Policy;
+      Result.Type_Of_Ref := CORBA.Policy.Ref (The_Ref).Type_Of_Ref;
+      Result.Val         := CORBA.Policy.Ref (The_Ref).Val;
+
+      return Result;
+   end To_Ref;
 
    ---------------
    -- Get_Value --
@@ -79,7 +69,7 @@ package body PortableServer.LifespanPolicy is
      (Self : Ref)
      return PortableServer.LifespanPolicyValue is
    begin
-      return Self.LifespanPolicy;
+      return From_Any (Self.Val);
    end Get_Value;
 
 end PortableServer.LifespanPolicy;

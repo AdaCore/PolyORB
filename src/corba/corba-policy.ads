@@ -46,21 +46,42 @@ with CORBA.Sequences.Unbounded;
 
 package CORBA.Policy is
 
-   type Ref is abstract new CORBA.Object.Ref with record
+   --  Implementation note: The Ada mapping defines
+   --     type Ref is new abstract CORBA.Object.Ref with null record;
+   --  This raises Ada semantics error when defining IDL_Sequence_Policy
+   --  and CORBA.ORB.Create_Policy. We modified type Ref to reduce impacts on
+   --  others parts of this CORBA implementation
+
+   type Ref is new CORBA.Object.Ref with record
       Type_Of_Ref : PolicyType;
+      Val         : Any;
    end record;
+   --  XXX should be private
 
    type Ref_Access is access all Ref'Class;
 
-   function Get_Policy_Type (Self : Ref) return PolicyType;
+   function Get_Policy_Type
+     (Self : Ref)
+     return PolicyType;
 
-   function Copy (Self : Ref) return Ref'Class;
+   function Copy
+     (Self : Ref'Class)
+     return Ref'Class;
+
+   --  Destroy unneeded
+   --    procedure Destroy (Self : Ref);
+
+   --  XXX these two Sequence types should be defined in
+   --  package CORBA !
 
    package IDL_Sequence_Policy is new
      CORBA.Sequences.Unbounded (Ref_Access);
-   --  Note : Ref is an abstract type, thus we cannot instantiate a
-   --  sequence of Ref, we use a sequence of Ref_Access instead.
 
    subtype PolicyList is IDL_Sequence_Policy.Sequence;
+
+   package IDL_Sequence_PolicyType is new
+     CORBA.Sequences.Unbounded (PolicyType);
+
+   subtype PolicyTypeSeq is IDL_Sequence_PolicyType.Sequence;
 
 end CORBA.Policy;

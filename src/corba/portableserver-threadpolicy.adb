@@ -35,41 +35,31 @@
 
 package body PortableServer.ThreadPolicy is
 
-   --------------------------
-   -- Create_Thread_Policy --
-   --------------------------
+   ------------
+   -- To_Ref --
+   ------------
 
-   function Create_Thread_Policy
-     (Value : in PortableServer.ThreadPolicyValue)
-     return CORBA.Policy.Ref'Class
+   function To_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return Ref
    is
-      Result : PortableServer.ThreadPolicy.Ref;
+      use type CORBA.PolicyType;
+      use CORBA.Policy;
+
+      Result : Ref;
    begin
-      Result.Type_Of_Ref := THREAD_POLICY_ID;
-      Result.ThreadPolicy := Value;
-
-      return Result;
-   end Create_Thread_Policy;
-
-   -------------------
-   -- Create_Policy --
-   -------------------
-
-   function Create_Policy
-     (The_Type : in CORBA.PolicyType;
-      Val      : CORBA.Any)
-     return PortableServer.ThreadPolicy.Ref
-   is
-      use CORBA;
-
-   begin
-      if The_Type /= THREAD_POLICY_ID then
-         raise Program_Error;
+      if The_Ref not in CORBA.Policy.Ref'Class
+        or else Get_Policy_Type (CORBA.Policy.Ref (The_Ref))
+        /= THREAD_POLICY_ID
+      then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
-      return PortableServer.ThreadPolicy.Ref
-        (Create_Thread_Policy (From_Any (Val)));
-   end Create_Policy;
+      Result.Type_Of_Ref := CORBA.Policy.Ref (The_Ref).Type_Of_Ref;
+      Result.Val         := CORBA.Policy.Ref (The_Ref).Val;
+
+      return Result;
+   end To_Ref;
 
    ---------------
    -- Get_Value --
@@ -79,7 +69,7 @@ package body PortableServer.ThreadPolicy is
      (Self : Ref)
      return PortableServer.ThreadPolicyValue is
    begin
-      return Self.ThreadPolicy;
+      return From_Any (Self.Val);
    end Get_Value;
 
 end PortableServer.ThreadPolicy;

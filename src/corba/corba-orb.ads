@@ -186,11 +186,8 @@ package CORBA.ORB is
 
    function Create_Policy
      (The_Type : in PolicyType;
-      Val      : Any)
-     return CORBA.Policy.Ref
-     is abstract;
-   --  XXX This function is not marked abstract in the Ada Mapping.
-   --  It should be abstract to be compatible with CORBA.Policy.
+      Val      :    Any)
+     return CORBA.Policy.Ref;
 
    --  The following subprograms are not in CORBA spec.
 

@@ -33,41 +33,31 @@
 
 package body PortableServer.IdAssignmentPolicy is
 
-   ---------------------------------
-   -- Create_Id_Assignment_Policy --
-   ---------------------------------
+   ------------
+   -- To_Ref --
+   ------------
 
-   function Create_Id_Assignment_Policy
-     (Value : in PortableServer.IdAssignmentPolicyValue)
-     return CORBA.Policy.Ref'Class
+   function To_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return Ref
    is
-      Result : PortableServer.IdAssignmentPolicy.Ref;
+      use type CORBA.PolicyType;
+      use CORBA.Policy;
+
+      Result : Ref;
    begin
-      Result.Type_Of_Ref := ID_ASSIGNMENT_POLICY_ID;
-      Result.IdAssignmentPolicy := Value;
-
-      return Result;
-   end Create_Id_Assignment_Policy;
-
-   -------------------
-   -- Create_Policy --
-   -------------------
-
-   function Create_Policy
-     (The_Type : in CORBA.PolicyType;
-      Val      : CORBA.Any)
-     return PortableServer.IdAssignmentPolicy.Ref
-   is
-      use CORBA;
-
-   begin
-      if The_Type /= ID_ASSIGNMENT_POLICY_ID then
-         raise Program_Error;
+      if The_Ref not in CORBA.Policy.Ref'Class
+        or else Get_Policy_Type (CORBA.Policy.Ref (The_Ref))
+        /= ID_ASSIGNMENT_POLICY_ID
+      then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
-      return PortableServer.IdAssignmentPolicy.Ref
-        (Create_Id_Assignment_Policy (From_Any (Val)));
-   end Create_Policy;
+      Result.Type_Of_Ref := CORBA.Policy.Ref (The_Ref).Type_Of_Ref;
+      Result.Val         := CORBA.Policy.Ref (The_Ref).Val;
+
+      return Result;
+   end To_Ref;
 
    ---------------
    -- Get_Value --
@@ -77,7 +67,7 @@ package body PortableServer.IdAssignmentPolicy is
      (Self : Ref)
      return PortableServer.IdAssignmentPolicyValue is
    begin
-      return Self.IdAssignmentPolicy;
+      return From_Any (Self.Val);
    end Get_Value;
 
 end PortableServer.IdAssignmentPolicy;

@@ -42,17 +42,9 @@ package PortableServer.IdUniquenessPolicy is
 
    type Ref is new CORBA.Policy.Ref with private;
 
-   function Create_Id_Uniqueness_Policy
-     (Value : in PortableServer.IdUniquenessPolicyValue)
-     return CORBA.Policy.Ref'Class;
-   --  XXX This function should be in PortableServer,
-   --  yet this would create a circular dependency ...
-
-   function Create_Policy
-     (The_Type : in CORBA.PolicyType;
-      Val      : CORBA.Any)
-     return PortableServer.IdUniquenessPolicy.Ref;
-   --  Implementation of CORBA.ORB.Create_Policy.
+   function To_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return Ref;
 
    function Get_Value
      (Self : Ref)
@@ -60,8 +52,6 @@ package PortableServer.IdUniquenessPolicy is
 
 private
 
-   type Ref is new CORBA.Policy.Ref with record
-      IdUniquenessPolicy : PortableServer.IdUniquenessPolicyValue;
-   end record;
+   type Ref is new CORBA.Policy.Ref with null record;
 
 end PortableServer.IdUniquenessPolicy;

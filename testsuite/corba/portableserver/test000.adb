@@ -305,8 +305,8 @@ procedure Test000 is
       Policies : CORBA.Policy.PolicyList;
 
       Thread_Policy : CORBA.Policy.Ref_Access
-        := new CORBA.Policy.Ref'Class'(Create_Thread_Policy
-                                       (PortableServer.ORB_CTRL_MODEL));
+        := new PortableServer.ThreadPolicy.Ref'
+        (Create_Thread_Policy (PortableServer.ORB_CTRL_MODEL));
 
       Root_POA : constant PortableServer.POA.Ref :=
         PortableServer.POA.To_Ref
@@ -480,8 +480,8 @@ procedure Test000 is
       Policies : CORBA.Policy.PolicyList;
 
       Thread_Policy : CORBA.Policy.Ref_Access
-        := new CORBA.Policy.Ref'Class'(Create_Thread_Policy
-                                       (PortableServer.SINGLE_THREAD_MODEL));
+        := new PortableServer.ThreadPolicy.Ref'
+        (Create_Thread_Policy (PortableServer.SINGLE_THREAD_MODEL));
 
       Root_POA : constant PortableServer.POA.Ref :=
         PortableServer.POA.To_Ref
@@ -553,8 +553,8 @@ procedure Test000 is
       Policies : CORBA.Policy.PolicyList;
 
       Thread_Policy : CORBA.Policy.Ref_Access
-        := new CORBA.Policy.Ref'Class'(Create_Thread_Policy
-                                       (PortableServer.MAIN_THREAD_MODEL));
+        := new PortableServer.ThreadPolicy.Ref'
+        (Create_Thread_Policy (PortableServer.MAIN_THREAD_MODEL));
 
       Root_POA : constant PortableServer.POA.Ref :=
         PortableServer.POA.To_Ref
@@ -679,25 +679,32 @@ procedure Test000 is
       Policies : CORBA.Policy.PolicyList;
 
       Thread_Policy : CORBA.Policy.Ref_Access
-        := new CORBA.Policy.Ref'Class'(Create_Thread_Policy (Tp));
+        := new PortableServer.ThreadPolicy.Ref'
+        (Create_Thread_Policy (Tp));
 
       Lifespan_Policy : CORBA.Policy.Ref_Access
-        := new CORBA.Policy.Ref'Class'(Create_Lifespan_Policy (Lp));
+        := new portableServer.LifespanPolicy.Ref'
+        (Create_Lifespan_Policy (Lp));
 
       Id_Uniqueness_Policy : CORBA.Policy.Ref_Access
-        := new CORBA.Policy.Ref'Class'(Create_Id_Uniqueness_Policy (Up));
+        := new PortableServer.IdUniquenessPolicy.Ref'
+        (Create_Id_Uniqueness_Policy (Up));
 
       Id_Assignment_Policy : CORBA.Policy.Ref_Access
-        := new CORBA.Policy.Ref'Class'(Create_Id_Assignment_Policy (Ap));
+        := new PortableServer.IdAssignmentPolicy.Ref'
+        (Create_Id_Assignment_Policy (Ap));
 
       Implicit_Activation_Policy : CORBA.Policy.Ref_Access
-        := new CORBA.Policy.Ref'Class'(Create_Implicit_Activation_Policy (Ip));
+        := new PortableServer.ImplicitActivationPolicy.Ref'
+        (Create_Implicit_Activation_Policy (Ip));
 
       Servant_Retention_Policy : CORBA.Policy.Ref_Access
-        := new CORBA.Policy.Ref'Class'(Create_Servant_Retention_Policy (Sp));
+        := new PortableServer.ServantRetentionPolicy.Ref'
+        (Create_Servant_Retention_Policy (Sp));
 
       Request_Processing_Policy : CORBA.Policy.Ref_Access
-        := new CORBA.Policy.Ref'Class'(Create_Request_Processing_Policy (Rp));
+        := new PortableServer.RequestProcessingPolicy.Ref'
+        (Create_Request_Processing_Policy (Rp));
 
       Root_POA : constant PortableServer.POA.Ref :=
         PortableServer.POA.To_Ref

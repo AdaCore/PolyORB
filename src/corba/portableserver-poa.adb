@@ -31,9 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#38 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#39 $
 
 with Ada.Exceptions;
+
+with CORBA.ORB;
 
 with PortableServer.ServantActivator;
 with PortableServer.ServantLocator;
@@ -1011,6 +1013,97 @@ package body PortableServer.POA is
       return Servant_To_Reference
         (Self, Id_To_Servant (Self, Oid));
    end Id_To_Reference;
+
+   ---------------------------------
+   -- Create_Id_Assignment_Policy --
+   ---------------------------------
+
+   function Create_Id_Assignment_Policy
+     (Value : in PortableServer.IdAssignmentPolicyValue)
+     return PortableServer.IdAssignmentPolicy.Ref is
+   begin
+      return PortableServer.IdAssignmentPolicy.To_Ref
+        (CORBA.ORB.Create_Policy
+         (ID_ASSIGNMENT_POLICY_ID, To_Any (Value)));
+   end Create_Id_Assignment_Policy;
+
+   ---------------------------------
+   -- Create_Id_Uniqueness_Policy --
+   ---------------------------------
+
+   function Create_Id_Uniqueness_Policy
+     (Value : in PortableServer.IdUniquenessPolicyValue)
+     return PortableServer.IdUniquenessPolicy.Ref is
+   begin
+      return PortableServer.IdUniquenessPolicy.To_Ref
+        (CORBA.ORB.Create_Policy
+         (ID_UNIQUENESS_POLICY_ID, To_Any (Value)));
+   end Create_Id_Uniqueness_Policy;
+
+   ---------------------------------------
+   -- Create_Implicit_Activation_Policy --
+   ---------------------------------------
+
+   function Create_Implicit_Activation_Policy
+     (Value : in PortableServer.ImplicitActivationPolicyValue)
+     return PortableServer.ImplicitActivationPolicy.Ref is
+   begin
+      return PortableServer.ImplicitActivationPolicy.To_Ref
+        (CORBA.ORB.Create_Policy
+         (IMPLICIT_ACTIVATION_POLICY_ID, To_Any (Value)));
+   end Create_Implicit_Activation_Policy;
+
+   ----------------------------
+   -- Create_Lifespan_Policy --
+   ----------------------------
+
+   function Create_Lifespan_Policy
+     (Value : in PortableServer.LifespanPolicyValue)
+     return PortableServer.LifespanPolicy.Ref is
+   begin
+      return PortableServer.LifespanPolicy.To_Ref
+        (CORBA.ORB.Create_Policy
+         (LIFESPAN_POLICY_ID, To_Any (Value)));
+   end Create_Lifespan_Policy;
+
+   --------------------------------------
+   -- Create_Request_Processing_Policy --
+   --------------------------------------
+
+   function Create_Request_Processing_Policy
+     (Value : in PortableServer.RequestProcessingPolicyValue)
+     return PortableServer.RequestProcessingPolicy.Ref is
+   begin
+      return PortableServer.RequestProcessingPolicy.To_Ref
+        (CORBA.ORB.Create_Policy
+         (REQUEST_PROCESSING_POLICY_ID, To_Any (Value)));
+   end Create_Request_Processing_Policy;
+
+   -------------------------------------
+   -- Create_Servant_Retention_Policy --
+   -------------------------------------
+
+   function Create_Servant_Retention_Policy
+     (Value : in PortableServer.ServantRetentionPolicyValue)
+     return PortableServer.ServantRetentionPolicy.Ref is
+   begin
+      return PortableServer.ServantRetentionPolicy.To_Ref
+        (CORBA.ORB.Create_Policy
+         (SERVANT_RETENTION_POLICY_ID, To_Any (Value)));
+   end Create_Servant_Retention_Policy;
+
+   --------------------------
+   -- Create_Thread_Policy --
+   --------------------------
+
+   function Create_Thread_Policy
+     (Value : in PortableServer.ThreadPolicyValue)
+     return PortableServer.ThreadPolicy.Ref is
+   begin
+      return PortableServer.ThreadPolicy.To_Ref
+        (CORBA.ORB.Create_Policy
+         (THREAD_POLICY_ID, To_Any (Value)));
+   end Create_Thread_Policy;
 
    --------------------------------
    -- Raise_AdapterAlreadyExists --

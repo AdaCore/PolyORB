@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-threadpolicy.ads#4 $
+--  $Id: //droopi/main/src/corba/portableserver-threadpolicy.ads#5 $
 
 with CORBA.Policy;
 
@@ -44,17 +44,9 @@ package PortableServer.ThreadPolicy is
 
    type Ref is new CORBA.Policy.Ref with private;
 
-   function Create_Thread_Policy
-     (Value : in PortableServer.ThreadPolicyValue)
-     return CORBA.Policy.Ref'Class;
-   --  XXX This function should be in PortableServer,
-   --  yet this would create a circular dependency ...
-
-   function Create_Policy
-     (The_Type : in CORBA.PolicyType;
-      Val      : CORBA.Any)
-     return PortableServer.ThreadPolicy.Ref;
-   --  Implementation of CORBA.ORB.Create_Policy.
+   function To_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return Ref;
 
    function Get_Value
      (Self : Ref)
@@ -62,8 +54,6 @@ package PortableServer.ThreadPolicy is
 
 private
 
-   type Ref is new CORBA.Policy.Ref with record
-      ThreadPolicy : PortableServer.ThreadPolicyValue;
-   end record;
+   type Ref is new CORBA.Policy.Ref with null record;
 
 end PortableServer.ThreadPolicy;
