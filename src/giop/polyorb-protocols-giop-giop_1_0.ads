@@ -35,6 +35,7 @@ with PolyORB.Protocols.GIOP.Common;
 pragma Elaborate_All (PolyORB.Protocols.GIOP.Common); --  WAG:3.15
 
 package PolyORB.Protocols.GIOP.GIOP_1_0 is
+
    use PolyORB.Protocols.GIOP.Common;
 
    type GIOP_Implem_1_0 is tagged private;
@@ -48,6 +49,7 @@ private
    type GIOP_Implem_1_0 is new GIOP_Implem with null record;
 
    --  GIOP Message Type
+
    type Msg_Type is
      (Request,
       Reply,
@@ -58,6 +60,7 @@ private
       Message_Error);
 
    --  GIOP 1.0 context
+
    type GIOP_Ctx_1_0 is new GIOP_Ctx with record
       Message_Type : Msg_Type;
       Request_Id   : aliased Types.Unsigned_Long;
@@ -114,10 +117,12 @@ private
       R      : in     Request_Access);
 
    --  Data alignment
+
    Data_Alignment_1_0 : constant Opaque.Alignment_Type := 1;
 
    --  Principal
-   Nobody_Principal : constant Types.String
-     := Types.To_PolyORB_String ("nobody");
+
+   Nobody_Principal : constant Types.String :=
+     Types.To_PolyORB_String ("nobody");
 
 end PolyORB.Protocols.GIOP.GIOP_1_0;

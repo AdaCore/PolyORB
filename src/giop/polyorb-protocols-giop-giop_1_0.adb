@@ -34,27 +34,25 @@
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Any;
-with PolyORB.Log;
-with PolyORB.Buffers;
-with PolyORB.Representations.CDR;
-with PolyORB.Objects;
-with PolyORB.References;
-with PolyORB.Obj_Adapters;
-with PolyORB.Binding_Data;
 with PolyORB.Binding_Data.Local;
-with PolyORB.ORB.Interface;
+with PolyORB.Buffers;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
+with PolyORB.Log;
+with PolyORB.Objects;
+with PolyORB.Obj_Adapters;
+with PolyORB.ORB.Interface;
+with PolyORB.References;
+with PolyORB.Representations.CDR;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 
    use PolyORB.Buffers;
-   use PolyORB.Representations.CDR;
-   use PolyORB.Objects;
-
    use PolyORB.Log;
+   use PolyORB.Objects;
+   use PolyORB.Representations.CDR;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.protocols.giop.giop_1_0");
@@ -66,17 +64,19 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
      (GIOP_Ctx_1_0, GIOP_Ctx_1_0_Access);
 
    --  Msg_Type
+
    function Unmarshall is new Generic_Unmarshall
      (Msg_Type, Types.Octet, Unmarshall);
 
    procedure Marshall is new Generic_Marshall
      (Msg_Type, Types.Octet, Marshall);
 
-   --  local helpers
+   --  Helpers
+
    procedure Marshall_Locate_Request
-     (Buffer     :        Buffer_Access;
-      Request_Id : in     Types.Unsigned_Long;
-      Object_Key : in     PolyORB.Objects.Object_Id_Access);
+     (Buffer     : Buffer_Access;
+      Request_Id : Types.Unsigned_Long;
+      Object_Key : PolyORB.Objects.Object_Id_Access);
 
    procedure Unmarshall_Request_Message
      (Buffer     : access PolyORB.Buffers.Buffer_Type;
@@ -118,8 +118,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 
       Sess : GIOP_Session renames GIOP_Session (S.all);
    begin
-      Sess.Ctx := new GIOP_Ctx_1_0;
       pragma Debug (O ("Initialize context for GIOP session 1.0"));
+
+      Sess.Ctx := new GIOP_Ctx_1_0;
    end Initialize_Session;
 
    procedure Finalize_Session
@@ -167,10 +168,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
             end if;
             Unmarshall_Service_Context_List (Sess.Buffer_In);
             declare
-               Request_Id   : constant Types.Unsigned_Long
-                 := Unmarshall (Sess.Buffer_In);
-               Reply_Status : constant Reply_Status_Type
-                 := Unmarshall (Sess.Buffer_In);
+               Request_Id   : constant Types.Unsigned_Long :=
+                 Unmarshall (Sess.Buffer_In);
+               Reply_Status : constant Reply_Status_Type :=
+                 Unmarshall (Sess.Buffer_In);
             begin
                Common_Reply_Received (Sess'Access, Request_Id, Reply_Status);
             end;
@@ -187,10 +188,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
                raise GIOP_Error;
             end if;
             declare
-               Request_Id : constant Types.Unsigned_Long
-                 := Unmarshall (Sess.Buffer_In);
-               Locate_Reply : constant Locate_Reply_Type
-                 := Unmarshall (Sess.Buffer_In);
+               Request_Id : constant Types.Unsigned_Long :=
+                 Unmarshall (Sess.Buffer_In);
+               Locate_Reply : constant Locate_Reply_Type :=
+                 Unmarshall (Sess.Buffer_In);
             begin
                --  Exec request if request id is found in pending req list
                Common_Process_Locate_Reply (Sess'Access,
@@ -243,7 +244,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 
       Result      : Any.NamedValue;
       --  Dummy NamedValue for Create_Request;
-      --  the actual Result  is set by the called method.n
+      --  the actual Result is set by the called method.
    begin
       if S.Role /= Server then
          raise GIOP_Error;
@@ -279,6 +280,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
          pragma Debug (O ("Immediate arguments unmarshalling"));
          Handle_Unmarshall_Arguments
            (S, Args);
+
       else
          pragma Debug (O ("Unmarshalling of arguments deffered"));
          S.State := Waiting_Unmarshalling;
@@ -352,7 +354,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    end Process_Reply;
 
    ----------------------------
-   -- Process Locate Request --
+   -- Process_Locate_Request --
    ----------------------------
 
    procedure Process_Locate_Request
@@ -378,7 +380,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    end Process_Locate_Request;
 
    -------------------
-   -- Locate Object --
+   -- Locate_Object --
    -------------------
 
    procedure Locate_Object
@@ -428,7 +430,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    end Locate_Object;
 
    ------------------
-   -- Send Request --
+   -- Send_Request --
    ------------------
 
    procedure Send_Request
@@ -463,10 +465,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Marshall_Service_Context_List (Buffer);
       Marshall (Buffer, R.Request_Id);
       Marshall (Buffer, Resp_Exp);
-      Marshall
-        (Buffer,
-         Stream_Element_Array
-         (Oid.all));
+      Marshall (Buffer, Stream_Element_Array (Oid.all));
 
       pragma Debug (O ("Operation : "
                        & To_Standard_String (R.Req.Operation)));
@@ -520,9 +519,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    -- Unmarshalling / Marshalling --
    ---------------------------------
 
-   -----------------
-   -- GIOP Header --
-   -----------------
+   ----------------------------
+   -- Unmarshall_GIOP_Header --
+   ----------------------------
 
    procedure Unmarshall_GIOP_Header
      (Implem  : access GIOP_Implem_1_0;
@@ -563,6 +562,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
                        & Ctx.Message_Size'Img));
    end Unmarshall_GIOP_Header;
 
+   --------------------------
+   -- Marshall_GIOP_Header --
+   --------------------------
+
    procedure Marshall_GIOP_Header
      (Implem : access GIOP_Implem_1_0;
       S      : access Session'Class;
@@ -583,9 +586,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Marshall (Buffer, Ctx.Message_Size);
    end Marshall_GIOP_Header;
 
-   ---------------------
-   -- Request_Message --
-   ---------------------
+   --------------------------------
+   -- Unmarshall_Request_Message --
+   --------------------------------
 
    procedure Unmarshall_Request_Message
      (Buffer            : access PolyORB.Buffers.Buffer_Type;
@@ -598,17 +601,22 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       use Representations.CDR;
       use PolyORB.Types;
    begin
+
       --  Service context
+
       Unmarshall_Service_Context_List (Buffer);
 
       --  Request id
+
       Request_Id := Unmarshall (Buffer);
 
-      pragma Debug (O ("Request_Id :"
-                       & Request_Id'Img));
+      pragma Debug (O ("Request_Id :" & Request_Id'Img));
 
       --  Response flags
+
       Resp_Exp := Unmarshall (Buffer);
+
+      --  Object key
 
       declare
          Obj : constant Stream_Element_Array :=  Unmarshall (Buffer);
@@ -617,6 +625,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       end;
 
       --  Operation
+
       Operation :=  Unmarshall (Buffer);
       pragma Debug (O ("Operation  : "
                        & Types.To_Standard_String (Operation)));
@@ -625,9 +634,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 
    end Unmarshall_Request_Message;
 
-   -----------------------
-   -- GIOP Header Reply --
-   -----------------------
+   --------------------------------
+   -- Marshall_GIOP_Header_Reply --
+   --------------------------------
 
    procedure Marshall_GIOP_Header_Reply
      (Implem  : access GIOP_Implem_1_0;
@@ -651,10 +660,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    -----------------------------
 
    procedure Marshall_Locate_Request
-     (Buffer     :        Buffer_Access;
-      Request_Id : in     Types.Unsigned_Long;
-      Object_Key : in     PolyORB.Objects.Object_Id_Access)
-   is
+     (Buffer     : Buffer_Access;
+      Request_Id : Types.Unsigned_Long;
+      Object_Key : PolyORB.Objects.Object_Id_Access) is
    begin
       Marshall (Buffer, Request_Id);
       Marshall (Buffer, Stream_Element_Array (Object_Key.all));
