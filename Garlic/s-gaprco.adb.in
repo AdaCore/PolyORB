@@ -33,9 +33,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Loopback;
-pragma Elaborate_All (System.Garlic.Loopback);
-
 with System.Garlic.Replay;
 pragma Elaborate_All (System.Garlic.Replay);
 
@@ -56,7 +53,6 @@ package body System.Garlic.Protocols.Config is
 
    procedure Initialize is
    begin
-      Register (System.Garlic.Loopback.Create);
       Register (System.Garlic.Replay.Create);
       @TCP_INCLUDED@Register (System.Garlic.TCP.Create);
    end Initialize;
