@@ -326,6 +326,8 @@ package Broca.POA is
 
    procedure Cleanup (Self : access POA_Object) is abstract;
 
+   function To_POA_Ref (The_POA : POA_Object_Ptr) return Ref;
+
 private
 
    type Ref is new CORBA.AbstractBase.Ref with null record;

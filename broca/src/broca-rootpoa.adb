@@ -521,22 +521,9 @@ package body Broca.RootPOA is
    end Nbr_Slots_For_Servant;
 
    function To_POA_Ref
-     (The_POA : Broca.POA.POA_Object_Ptr)
-     return Broca.POA.Ref;
-   function To_POA_Ref
      (The_POA : access Object'Class)
      return Broca.POA.Ref;
    --  Return a reference to the given POA object.
-
-   function To_POA_Ref
-     (The_POA : Broca.POA.POA_Object_Ptr)
-     return Broca.POA.Ref
-   is
-      The_Ref : Broca.POA.Ref;
-   begin
-      Set (The_Ref, The_POA);
-      return The_Ref;
-   end To_POA_Ref;
 
    function To_POA_Ref
      (The_POA : access Object'Class)

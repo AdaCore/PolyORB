@@ -158,4 +158,16 @@ package body Broca.POA is
       return Server.Build_IOR (Skel.Type_Id, Skel.POA, Skel.Object_Key.all);
    end Skeleton_To_Ref;
 
+   ----------------
+   -- To_POA_Ref --
+   ----------------
+
+   function To_POA_Ref (The_POA : POA_Object_Ptr) return Ref
+   is
+      The_Ref : Ref;
+   begin
+      Set (The_Ref, The_POA);
+      return The_Ref;
+   end To_POA_Ref;
+
 end Broca.POA;
