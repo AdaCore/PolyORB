@@ -1,3 +1,8 @@
+Tue Jan  7 12:18:57 1997  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* check-config.in (exec_prefix): Quote variables in the last test
+ 	in case of blank characters (?!)
+
 Mon Sep 30 11:21:27 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* Prime/Makefile.am (all-local): Use ../check-stamp instead of

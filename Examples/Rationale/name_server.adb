@@ -46,7 +46,7 @@ package body Name_Server is
          end if;
       end loop;
       Semaphore.V;
-      raise Constraint_Error;
+      raise No_Such_Tape;
    end Name;
   
    function  Find (Name : String) return Tape_Ptr is
@@ -58,17 +58,19 @@ package body Name_Server is
       else
          N (1 .. Name'Length) := Name;
       end if;
-      Semaphore.P;
-      for I in Table'Range loop
-         if Table (I).Ptr /= null and then
-            Table (I).Name = N then
-            P := Table (I).Ptr;
-            Semaphore.V;
-            return P;
-         end if;
+      loop
+         Semaphore.P;
+         for I in Table'Range loop
+            if Table (I).Ptr /= null and then
+               Table (I).Name = N then
+               P := Table (I).Ptr;
+               Semaphore.V;
+               return P;
+            end if;
+         end loop;
+         Semaphore.V;
+         delay 1.0;
       end loop;
-      Semaphore.V;
-      return null;
    end Find;
 		
    procedure Register (Name : in String; T : in Tape_Ptr) is
@@ -89,7 +91,7 @@ package body Name_Server is
          end if;
       end loop;
       Semaphore.V;
-      raise Constraint_Error;
+      raise No_Space_Left;
    end Register;
    
    procedure Remove   (T : in Tape_Ptr) is
@@ -103,7 +105,7 @@ package body Name_Server is
          end if;
       end loop;
       Semaphore.V;
-      raise Constraint_Error;
+      raise No_Such_Tape;
    end Remove;
 
 end Name_Server;

@@ -15,6 +15,7 @@ package Name_Server is
    procedure Remove   (T : in Tape_Ptr);
    function  Name     (T : in Tape_Ptr) return String;
 
+   No_Space_Left, No_Such_Tape : exception;
    -- More operations
 
 end Name_Server;

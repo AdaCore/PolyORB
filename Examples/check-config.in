@@ -86,7 +86,7 @@ esac
 
 machine=`uname -n`
 res=`rsh -n $machine echo Works < /dev/null 2>&1 | grep Works | head -1`
-if test x$res != xWorks; then
+if test "x$res" != "xWorks"; then
   echo "You should make sure you are authorized to use the rsh command" >&2
   echo "You may want to check the rsh manual by typing: man rsh" >&2
   echo 'Look for the section concerning ".rhosts" files' >&2
