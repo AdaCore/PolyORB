@@ -36,20 +36,28 @@
 with PolyORB.Types;
 with PolyORB.Binding_Data;
 
+with Ada.Unchecked_Deallocation;
+
 package PolyORB.References.URI is
 
    function Profile_To_String
      (P : Binding_Data.Profile_Access)
-     return Types.String;
+     return String;
 
    function String_To_Profile
-     (Str : Types.String)
+     (Str : String)
      return Binding_Data.Profile_Access;
    --  Returns null if it failed
 
    subtype URI_Type is PolyORB.References.Ref;
 
-   type String_Array is array (Integer range <>) of Types.String;
+   type String_Access is access String;
+   type String_Array is array (Integer range <>) of String_Access;
+
+   procedure Free is new Ada.Unchecked_Deallocation (String, String_Access);
+
+   procedure Free (SA : in out String_Array);
+   --  Free a String_Array
 
    ------------------------------
    -- Object reference <-> URI --
@@ -57,18 +65,18 @@ package PolyORB.References.URI is
 
    function Object_To_String_With_Best_Profile
      (URI : URI_Type)
-     return Types.String;
+     return String;
    --  Returns the URI string for the best profile
 
    function Object_To_String
      (URI : URI_Type)
-     return Types.String
+     return String
      renames Object_To_String_With_Best_Profile;
 
    function Object_To_String
      (URI     : URI_Type;
       Profile : PolyORB.Binding_Data.Profile_Tag)
-     return Types.String;
+     return String;
    --  Returns the URI string for the requested profile
 
    function Object_To_Strings (URI : URI_Type) return String_Array;

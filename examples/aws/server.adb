@@ -50,7 +50,6 @@ with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
-with PolyORB.Types;
 with PolyORB.References.IOR;
 with PolyORB.References.URI;
 
@@ -127,16 +126,14 @@ begin
       Put_Line ("servers started");
 
       Put_Line ("SOAP_Server:");
-      Put_Line (PolyORB.Types.To_String
-                (PolyORB.References.URI.Object_To_String
-                 (AWS.Server.Get_Server_Reference (SOAP_Server))));
+      Put_Line (PolyORB.References.URI.Object_To_String
+                (AWS.Server.Get_Server_Reference (SOAP_Server)));
       Put_Line ((PolyORB.References.IOR.Object_To_String
                  (AWS.Server.Get_Server_Reference (SOAP_Server))));
 
       Put_Line ("Web_Server:");
-      Put_Line (PolyORB.Types.To_String
-                (PolyORB.References.URI.Object_To_String
-                 (AWS.Server.Get_Server_Reference (Web_Server))));
+      Put_Line (PolyORB.References.URI.Object_To_String
+                (AWS.Server.Get_Server_Reference (Web_Server)));
       Put_Line ((PolyORB.References.IOR.Object_To_String
                  (AWS.Server.Get_Server_Reference (Web_Server))));
 
