@@ -252,7 +252,7 @@ BE_parse_args(int argc, char **argv)
 
   DRV_cpp_init();
   idl_global->set_prog_name(argv[0]);
-  while ((c = getopt(argc,argv,"D:EI:U:Vuvwh:s:lamtb:")) != EOF) //////////////
+  while ((c = getopt(argc,argv,"D:EI:U:Vuvwh:s:lamtib:")) != EOF) //////////////
     {
       switch (c) 
 	{
@@ -299,7 +299,6 @@ BE_parse_args(int argc, char **argv)
 	  break;
 	case 'l':
 	  // XXX -Life cycle compiler flag
-	  adabe_global::set_impl_flags(true);
 	  idl_global->set_compile_flags(idl_global->compile_flags() |
 					IDL_CF_LIFECYCLE);
 	  break;
@@ -331,6 +330,9 @@ BE_parse_args(int argc, char **argv)
 	  idl_global->set_compile_flags(idl_global->compile_flags() |
 					IDL_CF_ONLY_USAGE);
 	  return;
+	case 'i':
+	  adabe_global::set_impl_flags(true);
+	  break;
 	}
     }
   if (be_defined==0)  idl_global->set_be("c"); 
