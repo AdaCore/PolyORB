@@ -36,7 +36,6 @@
 
 with PolyORB.Components;
 with PolyORB.Obj_Adapters.Simple;
-with PolyORB.Objects;
 with PolyORB.Servants;
 with PolyORB.Types;
 

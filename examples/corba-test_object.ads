@@ -35,7 +35,6 @@
 --  $Id$
 
 with PolyORB.Components;
-with PolyORB.Objects;
 with PolyORB.Servants;
 with CORBA;
 
