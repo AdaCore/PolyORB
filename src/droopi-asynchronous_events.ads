@@ -4,7 +4,7 @@
 
 with Sequences.Unbounded;
 
-with Droopi.Jobs;
+with Droopi.Annotations;
 
 package Droopi.Asynchronous_Events is
 
@@ -15,6 +15,10 @@ package Droopi.Asynchronous_Events is
    type Asynchronous_Event_Source is abstract tagged limited private;
    type Asynchronous_Event_Source_Access is
      access all Asynchronous_Event_Source'Class;
+
+   function Notepad_Of (AES : Asynchronous_Event_Source_Access)
+     return Annotations.Notepad_Access;
+   pragma Inline (Notepad_Of);
 
    procedure Create (AEM : out Asynchronous_Event_Monitor)
      is abstract;
@@ -38,21 +42,24 @@ package Droopi.Asynchronous_Events is
      is abstract;
    --  Remove AES from the set of sources monitored by AEM.
 
+   procedure Unregister_Source
+     (AES : Asynchronous_Event_Source_Access);
+   --  Remove AES from any AEM that it is currently in.
+
    Forever : constant Duration;
 
-   type Job_Array is array (Integer range <>) of Jobs.Job_Access;
+   type AES_Array is array (Integer range <>)
+     of Asynchronous_Event_Source_Access;
 
    function Check_Sources
-     (AEM     : Asynchronous_Event_Monitor;
+     (AEM     : access Asynchronous_Event_Monitor;
       Timeout : Duration)
-     return Job_Array
+     return AES_Array
       is abstract;
    --  Wait for events on sources monitored by AEM, and prepare Job
    --  structures for their processing.
    --  Return when one event source in AEM has had an event.
    --  If no event happened within Timeout, an empty array is returned.
-   --  The caller is responsible for deallocation the jobs after they
-   --  are processed.
    --  Note that a Timeout of 0.0 returns immediatly.
 
    procedure Abort_Check_Sources
@@ -62,7 +69,10 @@ package Droopi.Asynchronous_Events is
 
 private
 
-   type Asynchronous_Event_Source is abstract tagged limited null record;
+   type Asynchronous_Event_Source is abstract tagged limited record
+      Monitor : Asynchronous_Event_Monitor_Access;
+      Notes   : aliased Annotations.Notepad;
+   end record;
 
    package Source_Seqs is new Sequences.Unbounded
      (Asynchronous_Event_Source_Access);

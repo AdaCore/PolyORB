@@ -13,7 +13,10 @@ package Droopi.Annotations is
    --  A note that can be attached to an object.
 
    type Notepad is private;
+   type Notepad_Access is access all Notepad;
    --  A space for clients of an object to attach Notes into.
+   --  Notepad_Access can be used by private types to selectively
+   --  expose one Notepad component to their clients.
 
    procedure Set_Note (NP : in out Notepad; N : Note'Class);
    --  Add note N to notepad NP. If of the same type already

@@ -11,7 +11,8 @@ package body Droopi.Asynchronous_Events.Sockets is
    use Droopi.Log;
    use Droopi.Sockets;
 
-   package L is new Droopi.Log.Facility_Log ("droopi.asynchronous_events.sockets");
+   package L is new Droopi.Log.Facility_Log
+     ("droopi.asynchronous_events.sockets");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -56,9 +57,9 @@ package body Droopi.Asynchronous_Events.Sockets is
    end Unregister_Source;
 
    function Check_Sources
-     (AEM     : Socket_Event_Monitor;
+     (AEM     : access Socket_Event_Monitor;
       Timeout : Duration)
-     return Job_Array
+     return AES_Array
    is
       Monitored_Set : constant Source_Seqs.Element_Array
         := Source_Seqs.To_Element_Array (AEM.Sources);
@@ -68,6 +69,7 @@ package body Droopi.Asynchronous_Events.Sockets is
       S : Socket_Type;
       R_Set : Socket_Set_Type;
       W_Set : Socket_Set_Type;
+      Status : Selector_Status;
 
       Event_Count : Natural;
 
@@ -101,54 +103,50 @@ package body Droopi.Asynchronous_Events.Sockets is
 
       if Status = Completed then
          for I in Monitored_Set'Range loop
-            if Is_Set (R_Set, Monitored_Set (I).Socket) then
+            if Is_Set (R_Set, Socket_Event_Source
+                       (Monitored_Set (I).all).Socket) then
                pragma Debug
                  (O ("Got event on socket"
-                     & Image (Monitored_Set (I).Socket)));
+                     & Image (Socket_Event_Source
+                              (Monitored_Set (I).all).Socket)));
 
                Event_Count := Event_Count + 1;
-               Unregister_Source (AEM, Monitored_Set (I));
+               Unregister_Source (AEM.all, Monitored_Set (I));
             end if;
          end loop;
       end if;
 
       declare
-         Work : Job_Array (1 .. Event_Count);
+         Result : AES_Array (1 .. Event_Count);
       begin
          for I in Monitored_Set'Range loop
-            if Is_Set (R_Set, Monitored_Set (I).Socket) then
-               Work (Event_Count) := Create_Socket_Event_Job
-                 (Monitored_Set (I));
-
-                  when Listening_Sk =>
-                     Work (Event_Count) := Create_Socket_Accept_Job
-                       (Monitored_Set (I));
-               end case;
+            if Is_Set (R_Set, Socket_Event_Source
+                       (Monitored_Set (I).all).Socket) then
+               Result (Event_Count) := Monitored_Set (I);
                Event_Count := Event_Count - 1;
             end if;
          end loop;
 
-         return Work;
+         return Result;
       end;
    end Check_Sources;
 
    procedure Abort_Check_Sources (AEM : Socket_Event_Monitor) is
    begin
       --  XXX check that selector is currently blocking!
+      --  (and do it in a thread-safe manner, if applicable!)
       Abort_Selector (AEM.Selector.all);
    end Abort_Check_Sources;
 
    function Create_Event_Source
-     (Socket : Droopi.Sockets.Socket_Type;
-      Kind   : Socket_Kind)
-     return Asynchronous_Event_Source_Access is
+     (Socket : Droopi.Sockets.Socket_Type)
+     return Asynchronous_Event_Source_Access
+   is
+      Result : constant Asynchronous_Event_Source_Access
+        := new Socket_Event_Source;
    begin
-      case Kind is
-         when Listening_Sk =>
-            return new Listen_Socket_Event_Source (...);
-         when Communication_Sk =>
-            return new Comm_Socket_Event_Source (...);
-      end case;
+      Socket_Event_Source (Result.all).Socket := Socket;
+      return Result;
    end Create_Event_Source;
 
 end Droopi.Asynchronous_Events.Sockets;

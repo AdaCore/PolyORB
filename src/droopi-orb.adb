@@ -2,18 +2,24 @@
 
 with Ada.Exceptions;
 
+with Droopi.Annotations;
+with Droopi.Components;
 with Droopi.Filters.Sockets;
 with Droopi.Log;
 with Droopi.Soft_Links;
+with Droopi.Transport;
 
 package body Droopi.ORB is
 
+   use Droopi.Annotations;
    use Droopi.Asynchronous_Events;
+   use Droopi.Components;
    use Droopi.Filters;
    use Droopi.Jobs;
    use Droopi.Log;
    use Droopi.Requests;
    use Droopi.Soft_Links;
+   use Droopi.Transport;
 
    package L is new Droopi.Log.Facility_Log ("droopi.orb");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -80,6 +86,72 @@ package body Droopi.ORB is
       end if;
    end Try_Perform_Work;
 
+   type ORB_Note_Kind is
+     (A_TAP_AES,
+      --  Annotation for an asynchronous event source
+      --  associated with a transport access point.
+
+      A_TE_AES
+      --  Annotation for an asynchronous event source
+      --  associated with a transport endpoint.
+      );
+
+   type ORB_Note_Data (Kind : ORB_Note_Kind := ORB_Note_Kind'First)
+   is record
+      case Kind is
+         when A_TAP_AES =>
+              TAP : Transport_Access_Point_Access;
+              Filter_Factory_Chain : Filters.Factory_Chain_Access;
+         when A_TE_AES =>
+            TE : Transport_Endpoint_Access;
+            Filter : Filter_Access;
+      end case;
+   end record;
+
+   type ORB_Note is new Note with record
+      D : ORB_Note_Data;
+   end record;
+
+   procedure Handle_Event
+     (ORB : access ORB_Type;
+      AES : Asynchronous_Event_Source_Access)
+   is
+      Note : ORB_Note;
+   begin
+      Get_Note (Notepad_Of (AES).all, Note);
+      case Note.D.Kind is
+         when A_TAP_AES =>
+            declare
+               New_TE     : Transport_Endpoint_Access;
+               New_AES    : Asynchronous_Event_Source_Access;
+               New_Filter : Filter_Access;
+            begin
+               Accept_Connection (Note.D.TAP.all, New_TE);
+               New_AES := Create_Event_Source (New_TE.all);
+               New_Filter := Create_Filter_Chain
+                 (Note.D.Filter_Factory_Chain);
+
+               Set_Note (Notepad_Of (New_AES).all,
+                         ORB_Note'(Annotations.Note with D =>
+                                     (Kind   => A_TE_AES,
+                                      TE     => New_TE,
+                                      Filter => New_Filter)));
+               --  XXX TODO: Take the newly-created event source
+               --  into account.
+               --  Insert_Source (ORB, New_AES);
+            end;
+         when A_TE_AES =>
+            Emit (Component_Access (Note.D.Filter),
+                  Filters.Data_Units.Data_Indication'
+                  (null record));
+   --  XXX Actually the filter will need to know
+   --  which TE to obtain the data from...
+   --  Implementation: take Droopi.Filters.Sockets
+   --  and replace that with Droopi.Filters.Transport...
+   --  TE => Note.D.TE));
+      end case;
+   end Handle_Event;
+
    procedure Run
      (ORB            : access ORB_Type;
       Exit_Condition : Exit_Condition_Access := null;
@@ -123,14 +195,14 @@ package body Droopi.ORB is
 
                for I in Monitors'Range loop
                   declare
-                     Work : constant Job_Array
-                       := Check_Sources (Monitors (I).all, Timeout);
+                     Events : constant AES_Array
+                       := Check_Sources (Monitors (I), Timeout);
                   begin
-                     if Work'Length > 0 then
+                     if Events'Length > 0 then
                         Event_Happened := True;
                      end if;
-                     for I in Work'Range loop
-                        Queue_Job (ORB, Work (I));
+                     for I in Events'Range loop
+                        Handle_Event (ORB, Events (I));
                      end loop;
                   end;
                end loop;

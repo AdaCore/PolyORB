@@ -1,19 +1,20 @@
+--  Abstract data type for an asynchrous event source.
+
 --  $Id$
 
 package body Droopi.Asynchronous_Events is
 
-   procedure Set_Polling
-     (AES : access Asynchronous_Event_Source;
-      V   : Boolean) is
+   function Notepad_Of (AES : Asynchronous_Event_Source_Access)
+     return Annotations.Notepad_Access is
    begin
-      AES.Polling := V;
-   end Set_Polling;
+      return AES.Notes'Access;
+   end Notepad_Of;
 
-   function Polling
-     (AES : access Asynchronous_Event_Source)
-     return Boolean is
+   procedure Unregister_Source
+     (AES : Asynchronous_Event_Source_Access) is
    begin
-      return AES.Polling;
-   end Polling;
+      pragma Assert (AES /= null and then AES.Monitor /= null);
+      Unregister_Source (AES.Monitor.all, AES);
+   end Unregister_Source;
 
 end Droopi.Asynchronous_Events;
