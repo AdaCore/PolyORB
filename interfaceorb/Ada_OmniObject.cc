@@ -180,12 +180,21 @@ Ada_OmniObject*
 Ada_OmniObject::objectDuplicate(Ada_OmniObject* same) {
 ADABROKER_TRY
   if (same->Init_Ok) {
+#ifdef DEBUG
+    cerr << "Ada_OmniObject::objectDuplicate : entering, Init_Ok = true" << endl ;
+#endif
     omni::objectDuplicate(same->C_Object) ;
     // register a new pointer to this object
-    
+#ifdef DEBUG
+    cerr << "Ada_OmniObject::objectDuplicate : omni::objectDuplicate called OK" << endl ;
+#endif
+
     Ada_OmniObject *result = new Ada_OmniObject() ;
     result->C_Object = same->C_Object ;
     result->Init_Ok = true ;
+#ifdef DEBUG
+    cerr << "Ada_OmniObject::objectDuplicate : exiting ... OK" << endl ;
+#endif
   } else {
     throw omniORB::fatalException(__FILE__,
 				  __LINE__,

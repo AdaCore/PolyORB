@@ -1,6 +1,7 @@
 with Adabroker_Debug;
 with Corba.Boa ;
 with Corba.Command_Line ;
+with Corba.Constants ;
 with Corba.Exceptions ;
 with Corba.Forward ;
 with Corba.Object ;
