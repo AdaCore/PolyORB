@@ -507,6 +507,8 @@ src/corba/portableserver-implicitactivationpolicy.adb
 src/corba/portableserver-implicitactivationpolicy.ads
 src/corba/portableserver-lifespanpolicy.adb
 src/corba/portableserver-lifespanpolicy.ads
+src/corba/portableserver-poa-goa.adb
+src/corba/portableserver-poa-goa.ads
 src/corba/portableserver-poa.adb
 src/corba/portableserver-poa.ads
 src/corba/portableserver-poamanager.adb
