@@ -78,7 +78,7 @@ package body XE_Utils is
    Special_File_Flag     : constant String_Access := new String' ("-x");
    Ada_File_Flag         : constant String_Access := new String' ("ada");
 
-   Garlic           : constant String_Access := Get_GARLIC_Dir;
+   GARLIC                : String_Access;
 
    function Locate
      (Exec_Name  : String;
@@ -666,10 +666,17 @@ package body XE_Utils is
       Partition_Main_File := Str_To_Id ("partition");
       Partition_Main_Name := Str_To_Id ("Partition");
 
+      GARLIC := Getenv ("GLADE_LIBRARY_DIR");
+      if GARLIC = null
+        or else GARLIC'Length = 0
+      then
+         GARLIC := Get_GARLIC_Dir;
+      end if;
+
       Name_Len := 2;
       Name_Buffer (1) := '-';
       Name_Buffer (2) := 'I';
-      Add_Str_To_Name_Buffer (Garlic.all);
+      Add_Str_To_Name_Buffer (GARLIC.all);
       I_GARLIC_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
       Name_Buffer (2) := 'L';
