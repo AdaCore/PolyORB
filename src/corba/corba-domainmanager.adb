@@ -42,8 +42,6 @@ with PolyORB.CORBA_P.Interceptors_Hooks;
 
 package body CORBA.DomainManager is
 
-   function Is_A (Logical_Type_Id : in Standard.String) return CORBA.Boolean;
-
    -----------------------
    -- Get_Domain_Policy --
    -----------------------

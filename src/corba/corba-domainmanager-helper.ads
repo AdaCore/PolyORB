@@ -52,19 +52,15 @@ package CORBA.DomainManager.Helper is
 
    --  DomainManager sequence
 
-   function TC_IDL_Sequence_CORBA_DomainManager return TypeCode.Object;
+   function TC_IDL_Sequence_DomainManager return TypeCode.Object;
 
    function From_Any (Item : in Any)
-      return IDL_Sequence_CORBA_DomainManager.Sequence;
+      return IDL_Sequence_DomainManager.Sequence;
 
    function To_Any
-     (Item : in IDL_Sequence_CORBA_DomainManager.Sequence)
+     (Item : in IDL_Sequence_DomainManager.Sequence)
       return Any;
 
    function TC_DomainManagersList return TypeCode.Object;
-
-   function From_Any (Item : in Any) return DomainManagersList;
-
-   function To_Any (Item : in DomainManagersList) return Any;
 
 end CORBA.DomainManager.Helper;

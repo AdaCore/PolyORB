@@ -134,7 +134,7 @@ package body CORBA.Object.Policies is
         (Name      => PolyORB.Types.Identifier (Result_Name),
          Argument  => CORBA.Internals.To_PolyORB_Any
          (Get_Empty_Any
-          (CORBA.DomainManager.Helper.TC_IDL_Sequence_CORBA_DomainManager)),
+          (CORBA.DomainManager.Helper.TC_IDL_Sequence_DomainManager)),
          Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
@@ -188,6 +188,7 @@ package body CORBA.Object.Policies is
 
       declare
          use CORBA.DomainManager;
+         use CORBA.DomainManager.IDL_Sequence_DomainManager;
 
          Managers : constant DomainManagersList := Get_Domain_Managers (Self);
       begin

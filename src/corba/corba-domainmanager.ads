@@ -58,14 +58,24 @@ package CORBA.DomainManager is
    --  package CORBA. Yet, this would create circular dependencies
    --  between CORBA and CORBA.Sequences.
 
-   package IDL_Sequence_CORBA_DomainManager is
+   package IDL_Sequence_DomainManager is
      new CORBA.Sequences.Unbounded (Ref);
 
-   type DomainManagersList is new IDL_Sequence_CORBA_DomainManager.Sequence;
-
-private
+   subtype DomainManagersList is IDL_Sequence_DomainManager.Sequence;
+   --  Implementation Note: the IDL-to-Ada mapping defines the
+   --  DomainManagersList type as:
+   --    type DomainManagersList is
+   --         new IDL_Sequence_CORBA_DomainManager.Sequence;
+   --
+   --  This adds new primitives to Ref that requires overriding for
+   --  any derivation of Ref. We define DomainManagersList as a
+   --  subtype to avoid this behavior.
 
    Repository_Id : constant Standard.String
      := "IDL:omg.org/CORBA/DomainManager:1.0";
+
+private
+
+   function Is_A (Logical_Type_Id : in Standard.String) return CORBA.Boolean;
 
 end CORBA.DomainManager;
