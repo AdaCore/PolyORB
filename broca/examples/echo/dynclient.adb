@@ -28,19 +28,19 @@
 
 --   echo dynamic client.
 with Ada.Command_Line;
-with Ada.Text_IO; use Ada.Text_IO;
-with CORBA; use CORBA;
+with Ada.Text_IO;      use Ada.Text_IO;
+with CORBA;            use CORBA;
 with CORBA.Object;
 with CORBA.Context;
 with CORBA.Request;
 with CORBA.NVList;
 with CORBA.ORB;
+with Naming_Tools;
 
 procedure DynClient is
    Sent_Msg : CORBA.String := To_CORBA_String ("Hello Dynamic World");
    Operation_Name : CORBA.Identifier := To_CORBA_String ("echoString");
    Arg_Name : CORBA.Identifier := To_CORBA_String ("Mesg");
-   IOR : CORBA.String;
    myecho : CORBA.Object.Ref;
    Request : CORBA.Request.Object;
    Ctx : CORBA.Context.Ref;
@@ -52,15 +52,16 @@ procedure DynClient is
 begin
 
    if Ada.Command_Line.Argument_Count < 1 then
-      Put_Line ("usage : client <IOR_string_from_server>");
+      Put_Line ("usage : client <IOR_string_from_server>|-i");
       return;
    end if;
 
-   --  transforms the Ada string into CORBA.String
-   IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
-
    --  getting the CORBA.Object
-   CORBA.ORB.String_To_Object (IOR, myecho);
+   if Ada.Command_Line.Argument (1) = "-i" then
+      myecho := Naming_Tools.Locate ("echo");
+   else
+      myecho := Naming_Tools.Locate (Ada.Command_Line.Argument (1));
+   end if;
 
    --  creating the argument list
    CORBA.ORB.Create_List (0, Arg_List);

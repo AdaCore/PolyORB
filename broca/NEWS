@@ -1,6 +1,13 @@
 AdaBroker news
 --------------
 
+New features in version 1.0pre4
+===============================
+
+Delegations are now implemented. See the Echo example, which has one
+variant with delegation. Use idlac -d flag if you want to have the
+Delegate package generated.
+
 New features in version 1.0pre3
 ===============================
 

@@ -131,20 +131,9 @@ package body PortableServer is
       Is_A       : in Servant_Class_Predicate;
       Dispatcher : in GIOP_Dispatcher)
    is
-      Current : Skeleton_List;
-
    begin
       pragma Debug (O ("Register_Skeleton enter"));
       Enter_Critical_Section;
-      Current := All_Skeletons;
-      while Current /= null loop
-         if Current.Info.Type_Id = Type_Id then
-            Leave_Critical_Section;
-            raise Skeleton_Exists;
-         end if;
-         Current := Current.Next;
-      end loop;
-
       All_Skeletons := new Skeleton_Node'
            (Info => (Type_Id    => Type_Id,
                      Is_A       => Is_A,
@@ -154,42 +143,6 @@ package body PortableServer is
                        CORBA.To_Standard_String (Type_Id)));
       Leave_Critical_Section;
    end Register_Skeleton;
-
-   -------------------------
-   -- Unregister_Skeleton --
-   -------------------------
-
-   procedure Unregister_Skeleton
-     (Type_Id : in CORBA.RepositoryId)
-   is
-      Current  : Skeleton_List;
-      Previous : Skeleton_List;
-
-   begin
-      Enter_Critical_Section;
-      Current := All_Skeletons;
-      while Current /= null loop
-         exit when Current.Info.Type_Id = Type_Id;
-
-         Previous := Current;
-         Current  := Current.Next;
-      end loop;
-
-      if Current = null then
-         Leave_Critical_Section;
-         raise Skeleton_Unknown;
-      end if;
-
-      if Previous /= null then
-         Previous.Next := Current.Next;
-
-      else
-         All_Skeletons := Current.Next;
-      end if;
-
-      Free (Current);
-      Leave_Critical_Section;
-   end Unregister_Skeleton;
 
    -----------------
    -- Get_Type_Id --
