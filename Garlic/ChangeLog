@@ -1,3 +1,10 @@
+Wed Feb 26 11:28:07 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
+
+	* Makefile.am: Reduce the effort of a third party to add a new
+ 	filter. Clear almost everything that was dedicated to filters and
+ 	add @FILTERFILE@ which indicates where to include global filter
+ 	makefile.
+	
 Fri Feb 21 19:53:29 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
 	* Makefile.am: Add zip filtering. Z library is now included in the

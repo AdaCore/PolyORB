@@ -19,18 +19,28 @@ TCP_PLATFORM       = 2${PLATFORM}gtplsp.ads
 CONSTANTS_PLATFORM = ${srcdir}/2${PLATFORM}garcon.ads
 
 LAUNCHINGOBJECTS = \
-s-garnam.o\
+s-garnam.o \
 s-garrem.o
+
+LAUNCHINGSOURCES = \
+${srcdir}/s-garnam.ads ${srcdir}/s-garnam.adb \
+${srcdir}/s-garrem.ads ${srcdir}/s-garrem.adb
 
 TCPOBJECTS = \
 s-gtplsp.o\
 s-gartcp.o
 
-ZIPOBJECTS = \
-s-gafizi.o
+TCPSOURCES = \
+        ./s-gtplsp.ads                        \
+${srcdir}/s-gartcp.ads ${srcdir}/s-gartcp.adb
 
 NOBLTCPOBJECTS = \
 s-ganobl.o
+
+NOBLTCPSOURCES = \
+${srcdir}/s-ganobl.ads ${srcdir}/s-ganobl.adb
+
+@FILTERFILE@
 
 COMMONOBJECTS = \
 s-gafino.o\
@@ -54,26 +64,6 @@ s-garuti.o\
 s-parint.o\
 s-rpc.o\
 s-stratt.o
-
-OBJECTS = \
-$(COMMONOBJECTS) \
-@PROTOCOLSOBJECTS@ \
-@FILTERSOBJECTS@ \
-@LAUNCHINGOBJECTS@
-
-LAUNCHINGSOURCES = \
-${srcdir}/s-garnam.ads ${srcdir}/s-garnam.adb \
-${srcdir}/s-garrem.ads ${srcdir}/s-garrem.adb
-
-TCPSOURCES = \
-        ./s-gtplsp.ads                        \
-${srcdir}/s-gartcp.ads ${srcdir}/s-gartcp.adb
-
-ZIPSOURCES = \
-${srcdir}/s-gafizi.ads ${srcdir}/s-gafizi.adb
-
-NOBLTCPSOURCES = \
-${srcdir}/s-ganobl.ads ${srcdir}/s-ganobl.adb
 
 COMMONSOURCES = \
 ${srcdir}/s-gafino.ads ${srcdir}/s-gafino.adb \
@@ -102,15 +92,15 @@ ${srcdir}/s-parint.ads ${srcdir}/s-parint.adb \
 ${srcdir}/s-rpc.ads    ${srcdir}/s-rpc.adb    \
 ${srcdir}/s-stratt.adb
 
+OBJECTS = \
+@PROTOCOLSOBJECTS@ \
+@LAUNCHINGOBJECTS@ \
+$(COMMONOBJECTS)
+
 SOURCES = \
-$(COMMONSOURCES) \
 @PROTOCOLSSOURCES@ \
-@FILTERSSOURCES@ \
-@LAUNCHINGSOURCES@
-
-ZIP_LIBRARY = ${GARLIC}/libz.a
-
-EXTRALIBS = @ZIP_LIBRARY@
+@LAUNCHINGSOURCES@ \
+$(COMMONSOURCES)
 
 CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads s-gaosli.ads s-gaprco.adb \
 	s-garser.adb
@@ -141,19 +131,18 @@ s-garcon.ads: ${CONSTANTS_SH}
 s-gtplsp.ads: ${srcdir}/${TCP_PLATFORM}
 	cp ${srcdir}/${TCP_PLATFORM} s-gtplsp.ads
 
-all-local: ${OBJECTS} ${SOURCES} ${EXTRALIBS}
+all-local: ${OBJECTS} ${SOURCES} ${FILTERSOURCES} ${FILTEROBJECTS}
 
-install-data-local: all-local
+install-dirs-local:
 	-rm -rf ${GARLIC}
 	${top_srcdir}/mkinstalldirs ${GARLIC}
+
+install-extra-libs: ${FILTERINSTALL}
+
+install-data-local: install-dirs-local install-extra-libs all-local
 	${CP} -p ${SOURCES} ${OBJECTS} \
 		`echo ${OBJECTS} | sed -e 's/\.o/.ali/g'` ${GARLIC}
 
-${ZIP_LIBRARY}:
-	(cd zlib; make libz.a)
-	${CP} zlib/libz.a ${GARLIC}
-	ranlib ${GARLIC}/libz.a
- 
 # Cross references
 
 X.ref: ${SOURCES}
