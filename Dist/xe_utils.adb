@@ -30,11 +30,17 @@ with System;
 with Unchecked_Deallocation;
 
 with GNAT.OS_Lib;    use GNAT.OS_Lib;
+with Csets;          use Csets;
+with Debug;          use Debug;
+with Make;           use Make;
 with Namet;          use Namet;
+with Opt;
 with Osint;          use Osint;
 with Output;         use Output;
 with XE;             use XE;
 with XE_Defs;        use XE_Defs;
+
+with Ada.Command_Line; use Ada.Command_Line;
 
 package body XE_Utils is
 
@@ -71,6 +77,7 @@ package body XE_Utils is
    Object_Suffix         : constant String_Access := Get_Object_Suffix;
    Executable_Suffix     : constant String_Access := Get_Executable_Suffix;
 
+   A_GARLIC_Dir          : String_Access;
    I_GARLIC_Dir          : String_Access;
    L_GARLIC_Dir          : String_Access;
 
@@ -564,6 +571,29 @@ package body XE_Utils is
 
    begin
 
+      --  Default initialization of the flags affecting gnatdist
+
+      Opt.Check_Readonly_Files     := False;
+      Opt.Check_Object_Consistency := True;
+      Opt.Compile_Only             := False;
+      Opt.Dont_Execute             := False;
+      Opt.Force_Compilations       := False;
+      Opt.Quiet_Output             := False;
+      Opt.Minimal_Recompilation    := False;
+      Opt.Verbose_Mode             := False;
+
+      --  Package initializations. The order of calls is important here.
+
+      Output.Set_Standard_Error;
+      Osint.Initialize (Osint.Make); --  reads gnatmake switches
+
+      Gcc_Switches.Init;
+      Binder_Switches.Init;
+      Linker_Switches.Init;
+
+      Csets.Initialize;
+      Namet.Initialize;
+
       Gcc             := Locate ("gcc");
       Mkdir           := Locate ("mkdir");
       Copy            := Locate ("cp");
@@ -573,12 +603,6 @@ package body XE_Utils is
       Gnatbind        := Locate ("gnatbind");
       Gnatlink        := Locate ("gnatlink");
       Gnatmake        := Locate ("gnatmake");
-
-      if Verbose_Mode then
-         GNAT_Verbose := new String' ("-v");
-      else
-         GNAT_Verbose := new String' ("-q");
-      end if;
 
       Inc_Path_Flag  := Str_To_Id ("-I");
       Lib_Path_Flag  := Str_To_Id ("-L");
@@ -624,9 +648,11 @@ package body XE_Utils is
          Len  : Natural;
       begin
          Len := Dir'Length;
+
          Get_Name_String (Inc_Path_Flag);
          Name_Buffer (Name_Len + 1 .. Name_Len + Len) := Dir.all;
          I_GARLIC_Dir := new String'(Name_Buffer (1 .. Name_Len + Len));
+
          Get_Name_String (Lib_Path_Flag);
          Name_Buffer (Name_Len + 1 .. Name_Len + Len) := Dir.all;
          L_GARLIC_Dir := new String'(Name_Buffer (1 .. Name_Len + Len));
@@ -666,21 +692,54 @@ package body XE_Utils is
            Dir_Sep_Id & Parent_Dir & Dir_Sep_Id;
          L_Original_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
-         Add_Src_Search_Dir (Dir.all);
-         Add_Lib_Search_Dir (Dir.all);
+         for Next_Arg in 1 .. Argument_Count loop
+            Scan_Make_Arg (Argument (Next_Arg));
+         end loop;
 
-         Gcc_Switches.Increment_Last;
-         Gcc_Switches.Table (Gcc_Switches.Last) := I_GARLIC_Dir;
+         declare
+            GARLIC_Flag : String (1 .. Len + 2);
+         begin
+            GARLIC_Flag (1 .. 2) := "-A";
+            GARLIC_Flag (3 .. Len + 2) := Dir.all;
+            Scan_Make_Arg (GARLIC_Flag);
+         end;
 
-         Binder_Switches.Increment_Last;
-         Binder_Switches.Table (Binder_Switches.Last) := I_GARLIC_Dir;
+         Osint.Add_Default_Search_Dirs;
 
-         Linker_Switches.Increment_Last;
-         Linker_Switches.Table (Linker_Switches.Last) := L_GARLIC_Dir;
+         --  Source file lookups should be cached for efficiency.
+         --  Source files are not supposed to change.
+
+         Osint.Source_File_Data (Cache => True);
 
          Linker_Switches.Increment_Last;
          Linker_Switches.Table (Linker_Switches.Last)
            :=  new String'("-lgarlic");
+
+         --  Use Gnatmake already defined switches.
+         Verbose_Mode       := Opt.Verbose_Mode;
+         Debug_Mode         := Debug.Debug_Flag_Q;
+         Quiet_Output       := Opt.Quiet_Output;
+         No_Recompilation   := Opt.Dont_Execute;
+         Building_Script    := Opt.List_Dependencies;
+
+         --  Use -dq for Gnatdist internal debugging.
+         Debug.Debug_Flag_Q := False;
+
+         --  Don't want log messages that would corrupt scripts.
+         if Building_Script then
+            Verbose_Mode := False;
+            Quiet_Output := True;
+         end if;
+
+         Opt.Check_Source_Files := False;
+         Opt.All_Sources        := False;
+
+         if Verbose_Mode then
+            GNAT_Verbose := new String' ("-v");
+         else
+            GNAT_Verbose := new String' ("-q");
+         end if;
+
       end;
 
    end Initialize;

@@ -1,3 +1,11 @@
+1998-03-09  Laurent Pautet  <pautet@scapin.enst.fr>
+
+        * xe_utils.adb: Use Scan_Make_Arg from Make unit. Re-organize
+        Initialize to use a copy of Make.Initialize which includes
+        -A<GARLIC> flag.
+
+        * xe_build.adb: Re-organize code because of changes above.
+
 1998-03-08  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* config.sdefault: Change output when argument is pathtolib. This

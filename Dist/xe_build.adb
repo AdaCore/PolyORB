@@ -48,25 +48,7 @@ procedure XE_Build is
 
 begin
 
-   Make.Initialize;
-   --  Use Gnatmake already defined switches.
-   Verbose_Mode       := Opt.Verbose_Mode;
-   Debug_Mode         := Debug.Debug_Flag_Q;
-   Quiet_Output       := Opt.Quiet_Output;
-   No_Recompilation   := Opt.Dont_Execute;
-   Building_Script    := Opt.List_Dependencies;
-
-   --  Use -dq for Gnatdist internal debugging.
-   Debug.Debug_Flag_Q := False;
-
-   --  Don't want log messages that would corrupt scripts.
-   if Building_Script then
-      Verbose_Mode := False;
-      Quiet_Output := True;
-   end if;
-
-   Opt.Check_Source_Files := False;
-   Opt.All_Sources        := False;
+   XE_Utils.Initialize;
 
    if Osint.Number_Of_Files = 0 then
       XE_Usage;
@@ -75,7 +57,6 @@ begin
 
       --  Initialization of differents modules.
 
-      XE_Utils.Initialize;
       XE_Scan.Initialize;
       XE_Parse.Initialize;
       XE_Back.Initialize;
