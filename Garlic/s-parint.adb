@@ -42,6 +42,9 @@ with GNAT.Table;
 
 with System.Garlic.Debug;   use System.Garlic.Debug;
 
+with System.Garlic.Exceptions;   use System.Garlic.Exceptions;
+pragma Elaborate (System.Garlic.Exceptions);
+
 with System.Garlic.Heart;   use System.Garlic.Heart;
 pragma Elaborate (System.Garlic.Heart);
 
@@ -621,7 +624,7 @@ package body System.Partition_Interface is
 
    procedure Check (Name : in Unit_Name; Version : in String) is
    begin
-      if Version /= Get_Active_Version (Name) then
+      if Different (Version, Get_Active_Version (Name)) then
          Soft_Shutdown;
          Ada.Exceptions.Raise_Exception
            (Program_Error'Identity,

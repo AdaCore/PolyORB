@@ -40,6 +40,7 @@ with Interfaces.C.Strings;
 pragma Warnings (Off, Interfaces.C.Strings);
 with System.Garlic.Constants;             use System.Garlic.Constants;
 with System.Garlic.Debug;                 use System.Garlic.Debug;
+with System.Garlic.Exceptions;            use System.Garlic.Exceptions;
 with System.Garlic.Heart;                 use System.Garlic.Heart;
 with System.Garlic.Naming;                use System.Garlic.Naming;
 with System.Garlic.Network_Utilities;     use System.Garlic.Network_Utilities;
@@ -50,7 +51,6 @@ with System.Garlic.Streams;               use System.Garlic.Streams;
 with System.Garlic.Termination;           use System.Garlic.Termination;
 with System.Garlic.Thin;                  use System.Garlic.Thin;
 with System.Garlic.TCP.Platform_Specific;
-with System.Garlic.Utils;                 use System.Garlic.Utils;
 with System.Storage_Elements;             use System.Storage_Elements;
 
 package body System.Garlic.TCP is

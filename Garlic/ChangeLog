@@ -1,3 +1,19 @@
+1998-06-23  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garuti.ads, s-garuti.adb: Move exception utilities to
+ 	System.Garlic.Exceptions.
+	
+	* s-garexc.adb, s-garexc.ads: Move exception utilities to
+ 	System.Garlic.Exceptions.
+
+	* s-gartcp.adb: Update because of previous changes.
+
+	* s-parint.adb: Use function Different which was implemented but
+	never used. Different compares to Version_ID and adds a special
+	rule for Empty_Version (to please ADEPT project).
+
+	* Makefile.am, Makefile.in: Update because of new unit.
+
 1998-06-04  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* Makefile.am, Makefile.in: Update dependencies and remove

@@ -33,7 +33,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 with Ada.Task_Identification;
 
@@ -114,18 +113,5 @@ package System.Garlic.Utils is
    Global_Mutex : Adv_Mutex_Access;
    --  Global mutex to be used for coarse grained locking. Justified in
    --  every case ???
-
-   procedure Raise_With_Errno (Id : in Ada.Exceptions.Exception_Id);
-   pragma Inline (Raise_With_Errno);
-   --  Raise an exception with a message corresponding to errno
-
-   procedure Raise_Communication_Error (Msg : in String := "");
-   pragma Inline (Raise_Communication_Error);
-   --  Idem, but with the specific exception System.RPC.Communication_Error.
-   --  If an alternate message is given, it will be used instead.
-
-   function Different (V1, V2 : String) return Boolean;
-   --  Compare two version ids. If one of these version ids is a string
-   --  of blank characters then they will be considered as identical.
 
 end System.Garlic.Utils;

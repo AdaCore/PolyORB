@@ -34,12 +34,10 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
-with GNAT.OS_Lib;                use GNAT.OS_Lib;
-with System.Garlic.Types;
 
 package body System.Garlic.Utils is
 
-   use Ada.Exceptions, Ada.Task_Identification;
+   use Ada.Task_Identification;
 
    --------------
    -- Allocate --
@@ -98,31 +96,6 @@ package body System.Garlic.Utils is
       end Wait;
 
    end Barrier_Type;
-
-   ---------------
-   -- Different --
-   ---------------
-
-   function Different (V1, V2 : String) return Boolean is
-
-      function Not_Null_Version (V : in String) return Boolean;
-      --  Return true when V is not a string of blank characters
-
-      ----------------------
-      -- Not_Null_Version --
-      ----------------------
-
-      function Not_Null_Version (V : in String) return Boolean is
-         Null_String : constant String (V'Range) := (others => ' ');
-      begin
-         return V /= Null_String;
-      end Not_Null_Version;
-
-   begin
-      return     Not_Null_Version (V1)
-        and then Not_Null_Version (V2)
-        and then V1 /= V2;
-   end Different;
 
    -----------
    -- Enter --
@@ -212,28 +185,6 @@ package body System.Garlic.Utils is
       end Wait;
 
    end Mutex_Type;
-
-   -------------------------------
-   -- Raise_Communication_Error --
-   -------------------------------
-
-   procedure Raise_Communication_Error (Msg : in String := "") is
-   begin
-      if Msg = "" then
-         Raise_With_Errno (Types.Communication_Error'Identity);
-      else
-         Raise_Exception (Types.Communication_Error'Identity, Msg);
-      end if;
-   end Raise_Communication_Error;
-
-   ----------------------
-   -- Raise_With_Errno --
-   ----------------------
-
-   procedure Raise_With_Errno (Id : in Exception_Id) is
-   begin
-      Raise_Exception (Id, "Error" & Integer'Image (Errno));
-   end Raise_With_Errno;
 
    --------------
    -- To_Lower --
