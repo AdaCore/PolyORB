@@ -1,6 +1,7 @@
 include $(top_srcdir)/idls/Makefile.common
 
 alidir = $(includedir)/polyorb/corba/cos
+IDLdir = $(includedir)/polyorb/corba/idls/cos/naming
 
 IDL=$(srcdir)/CosNaming.idl
 

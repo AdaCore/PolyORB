@@ -507,6 +507,7 @@ AC_OUTPUT([
 	src/ravenscar.adc
 	src/ravenscar_compatible.adc
 	idls/Makefile
+	idls/CORBA_IDL/Makefile
 	idls/cos/Makefile
 	idls/cos/event/Makefile
 	idls/cos/naming/Makefile

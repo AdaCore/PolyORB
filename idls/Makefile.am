@@ -1,1 +1,1 @@
-SUBDIRS = cos
+SUBDIRS = CORBA_IDL cos

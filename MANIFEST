@@ -364,6 +364,8 @@ idls/CORBA_IDL/CORBA_Pollable.idl
 idls/CORBA_IDL/CORBA_StandardExceptions.idl
 idls/CORBA_IDL/CORBA_Stream.idl
 idls/CORBA_IDL/CORBA_TypeCode.idl
+idls/CORBA_IDL/Makefile.am
+idls/CORBA_IDL/Makefile.in
 idls/CORBA_IDL/orb.idl
 idls/CORBA_PIDL/corba_context.idl
 idls/CORBA_PIDL/corba_interceptor.idl
