@@ -101,6 +101,7 @@ package body PolyORB.Components is
       pragma Debug
         (O ("Destroying component with allocation class "
             & C.Allocation_Class'Img));
+      pragma Assert (C /= null);
 
       case C.Allocation_Class is
          when Dynamic =>

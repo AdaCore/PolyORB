@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#25 $
+--  $Id: //droopi/main/src/polyorb-any.adb#26 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -671,7 +671,7 @@ package body PolyORB.Any is
          pragma Debug (O ("Member_Type_With_Label: Param_Nb = "
                           & Unsigned_Long'Image (Param_Nb)
                           & ", Index = "
-                          & Unsigned_Long'Image (Index));
+                          & Unsigned_Long'Image (Index)));
 
          --  See the big explanation after the declaration of
          --  TypeCode.Object in the private part of TypeCode
