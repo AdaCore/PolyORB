@@ -2,9 +2,17 @@
 
 --  $Id$
 
+with Droopi.Obj_Adapters;
+with Droopi.POA;
+with Droopi.POA.Basic_POA; use Droopi.POA.Basic_POA;
+with Droopi.POA_Config;
+with Droopi.POA_Config.Minimum;
+--  XXX hardcoded configuration!!!!!!
+with Droopi.Setup;
 with Droopi.Setup.Test; use Droopi.Setup.Test;
-with Droopi.Setup.Test_CORBA;
+with Droopi.Smart_Pointers;
 with Droopi.No_Tasking;
+--  XXX hardcoded tasking policy!!!
 with Droopi.ORB.Task_Policies;
 
 with CORBA.Impl;
@@ -66,8 +74,9 @@ package body Droopi.CORBA_P.Server_Tools is
       Initialize_Test_Server
         (Droopi.No_Tasking.Initialize'Access,
          new Droopi.ORB.Task_Policies.No_Tasking);
+
+
       Initialize_Test_Access_Points;
-      Setup.Test_CORBA.Initialize_CORBA_Test_Object;
    end Ensure_Setup;
 
    ----------------------
@@ -75,14 +84,32 @@ package body Droopi.CORBA_P.Server_Tools is
    ----------------------
 
    procedure Initiate_RootPOA is
-      RootPOAStr  : CORBA.String;
+      --  RootPOAStr  : CORBA.String;
+      Obj_Adapter : Droopi.POA.Obj_Adapter_Access;
    begin
       Ensure_Setup;
 
-      RootPOAStr := CORBA.To_CORBA_String ("RootPOA");
-      Root_POA   := PortableServer.POA.To_Ref
-        (CORBA.ORB.Resolve_Initial_References
-         (CORBA.ORB.ObjectId (RootPOAStr)));
+      pragma Debug (O ("Initializing OA configuration... "));
+      Droopi.POA_Config.Set_Configuration
+        (new Droopi.POA_Config.Minimum.Minimum_Configuration);
+      pragma Debug (O ("Creating object adapter... "));
+      Obj_Adapter := new Droopi.POA.Basic_POA.Basic_Obj_Adapter;
+      Droopi.POA.Basic_POA.Create (Basic_Obj_Adapter (Obj_Adapter.all)'Access);
+      --  Create object adapter
+
+      Droopi.ORB.Set_Object_Adapter
+        (Droopi.Setup.The_ORB,
+         Droopi.Obj_Adapters.Obj_Adapter_Access (Obj_Adapter));
+      --  Link object adapter with ORB.
+
+      PortableServer.POA.Set
+        (Root_POA, Droopi.Smart_Pointers.Entity_Ptr (Obj_Adapter));
+
+--       RootPOAStr := CORBA.To_CORBA_String ("RootPOA");
+--       Root_POA   := PortableServer.POA.To_Ref
+--         (CORBA.ORB.Resolve_Initial_References
+--          (CORBA.ORB.ObjectId (RootPOAStr)));
+      --  XXX Should REGISTER initial ref for the root POA.
    end Initiate_RootPOA;
 
    ---------------------

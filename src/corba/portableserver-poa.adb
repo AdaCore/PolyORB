@@ -527,7 +527,11 @@ package body PortableServer.POA is
      (Self : Ref; P_Servant : Servant)
      return CORBA.Object.Ref
    is
-      POA  : constant Droopi.POA.Obj_Adapter_Ptr := To_POA (Self);
+      --  POA  : constant Droopi.POA.Obj_Adapter_Ptr := To_POA (Self);
+--       Oid : constant Object_Id_Access := new Object_Id'
+--         (Servant_To_Id (Self, P_Servant));
+      --  The_Ref : Droopi.References.Ref;
+      --  Result : CORBA.Object.Ref;
 --      Skel : Droopi.POA.Skeleton_Ptr;
    begin
 --       --  FIXME: If Servant_To_Reference is called in the context
@@ -544,6 +548,10 @@ package body PortableServer.POA is
 --         (POA, P_Servant, Called_From_Servant_To_Reference => True);
 
 --       return Droopi.POA.Skeleton_To_Ref (Skel.all);
+      --  Droopi.ORB.Create_Ref (Droopi.Setup.The_ORB, Oid, The_Ref);
+      --  XXX Create IOR
+      --  XXX Create Reference_Info
+      --  XXX Set (Result, Reference_Info);
       raise Droopi.Not_Implemented;
       return Servant_To_Reference (Self, P_Servant);
    end Servant_To_Reference;

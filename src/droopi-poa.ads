@@ -10,7 +10,6 @@ with Droopi.POA_Manager;
 with CORBA;
 with CORBA.Object_Map;
 
-with Droopi.Storage_Pools;
 with Droopi.Types;
 
 with Droopi.POA_Policies;
@@ -68,7 +67,8 @@ package Droopi.POA is
    --  The policies are used by all corba-policy-*, we can keep them public
 
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
-   for Obj_Adapter_Access'Storage_Pool use Droopi.Storage_Pools.Debug_Pool;
+   --  XXX
+   --  for Obj_Adapter_Access'Storage_Pool use Droopi.Storage_Pools.Debug_Pool;
 
    subtype Obj_Adapter_Ptr is Obj_Adapter_Access;
    --  XXX for easier porting of legacy AdaBroker code.
@@ -149,9 +149,9 @@ package Droopi.POA is
    --  Otherwise:
    --    Raises ObjectNotActive
 
-   -------------------------------------------------------
-   --  Functions and procedures not in the CORBA Norme  --
-   -------------------------------------------------------
+   --------------------------------------------------------
+   -- Functions and procedures not in the CORBA standard --
+   --------------------------------------------------------
 
    procedure Copy_Obj_Adapter
      (From : in     Obj_Adapter;

@@ -22,6 +22,8 @@
 -- String_To_Object --
 -- Work_Pending --
 
+with Ada.Exceptions;
+
 with Sequences.Unbounded;
 
 with Droopi.Dynamic_Dict;
@@ -34,11 +36,19 @@ with Droopi.References.IOR;
 with Droopi.Setup;
 with Droopi.Smart_Pointers;
 
+with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
+
 package body CORBA.ORB is
 
+   use Droopi.Log;
    use Droopi.ORB.Task_Policies;
    use Droopi.ORB;
    use Droopi.Setup;
+
+   package L is new Droopi.Log.Facility_Log ("corba.orb");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
 
    package Referenced_Objects is
       new Droopi.Dynamic_Dict (CORBA.Object.Ref);
@@ -258,11 +268,17 @@ package body CORBA.ORB is
 
    function Resolve_Initial_References
      (Identifier : ObjectId)
-      return CORBA.Object.Ref is
+     return CORBA.Object.Ref
+   is
+      Id : constant Standard.String
+        := To_Standard_String (Identifier);
    begin
-      return Referenced_Objects.Lookup (To_Standard_String (Identifier));
+      return Referenced_Objects.Lookup (Id);
    exception
-      when others =>
+      when E : others =>
+         pragma Debug
+           (O ("Got exception while looking up " & Id & ":"));
+         pragma Debug (O (Ada.Exceptions.Exception_Information (E)));
          raise CORBA.InvalidName;
    end Resolve_Initial_References;
 

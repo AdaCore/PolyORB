@@ -55,8 +55,10 @@ package body Droopi.POA_Policies.Servant_Retention_Policy.Retain is
 
       POA : constant Droopi.POA.Obj_Adapter_Access
         := Droopi.POA.Obj_Adapter_Access (OA);
+      P : constant Id_Assignment_Policy_Access
+        := POA.Id_Assignment_Policy;
    begin
-      if not Is_System (POA.Id_Assignment_Policy.all) then
+      if not Is_System (P.all) then
          Raise_Wrong_Policy;
       end if;
       Ensure_Servant_Uniqueness (POA.Id_Uniqueness_Policy.all,

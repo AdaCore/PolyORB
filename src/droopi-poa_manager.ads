@@ -4,7 +4,6 @@
 
 with Droopi.POA_Types; use Droopi.POA_Types;
 with Droopi.Smart_Pointers;
-with Droopi.Storage_Pools;
 
 package Droopi.POA_Manager is
 
@@ -17,7 +16,6 @@ package Droopi.POA_Manager is
      with private;
 
    type POAManager_Access is access all POAManager'Class;
-   for POAManager_Access'Storage_Pool use Storage_Pools.Debug_Pool;
 
    subtype POAManager_Object_Ptr is POAManager_Access;
    --  XXX for easier portability of legacy AdaBroker code.
