@@ -1034,6 +1034,14 @@ package body Idl_Fe.Parser is
                   else
                      pragma Debug (O ("Parse_Interface_Dcl_End : non " &
                                       "duplicated inheritance"));
+                     --  verify the abstraction of the inherited interface
+                     if Abst (Result) and not Abst (Value (Name)) then
+                        Idl_Fe.Errors.Parser_Error
+                          ("An abstract interface may not inherit from " &
+                           "a statefull one.",
+                           Idl_Fe.Errors.Error,
+                           Get_Token_Location);
+                     end if;
                      --  verify that the imported interface does not
                      --  define an attribute or an operation already
                      --  defined in a previouly imported one.
@@ -3116,8 +3124,12 @@ package body Idl_Fe.Parser is
                   when T_Identifier =>
                      --  FIXME : not always exit
                      exit While_Loop;
-                  when others =>
+                  when T_Greater
+                    | T_Greater_Greater
+                    | T_Comma =>
                      exit While_Loop;
+                  when others =>
+                     null;
                end case;
             end if;
             Loc := Get_Token_Location;
@@ -4197,6 +4209,15 @@ package body Idl_Fe.Parser is
                   end if;
                end;
             end if;
+         when T_Enum
+           | T_Struct
+           | T_Union =>
+            Idl_Fe.Errors.Parser_Error ("simple type specification " &
+                                        "expected. No constructed " &
+                                        "type allowed here.",
+                                        Idl_Fe.Errors.Error,
+                                        Get_Token_Location);
+            Parse_Constr_Type_Spec (Result, Success);
          when others =>
             Idl_Fe.Errors.Parser_Error ("simple type specification expected.",
                                         Idl_Fe.Errors.Error,
@@ -4831,21 +4852,22 @@ package body Idl_Fe.Parser is
            ("member expected : a struct may not be empty.",
             Idl_Fe.Errors.Error,
             Get_Token_Location);
+      else
+         loop
+            declare
+               Member : Node_Id;
+               Member_Success : Boolean;
+            begin
+               Parse_Member (Member, Member_Success);
+               if not Member_Success then
+                  Go_To_Next_Member;
+               else
+                  Append_Node (Result, Member);
+               end if;
+            end;
+            exit when Get_Token = T_Right_Cbracket or Get_Token = T_Eof;
+         end loop;
       end if;
-      loop
-         declare
-            Member : Node_Id;
-            Member_Success : Boolean;
-         begin
-            Parse_Member (Member, Member_Success);
-            if not Member_Success then
-               Go_To_Next_Member;
-            else
-               Append_Node (Result, Member);
-            end if;
-         end;
-         exit when Get_Token = T_Right_Cbracket or Get_Token = T_Eof;
-      end loop;
       Success := True;
       pragma Debug (O2 ("Parse_Member_List : end"));
       return;
@@ -5134,38 +5156,39 @@ package body Idl_Fe.Parser is
             "a union may not be empty.",
             Idl_Fe.Errors.Error,
             Get_Token_Location);
-      end if;
-      loop
-         declare
-            Case_Clause : Node_Id;
-            Case_Success : Boolean;
-            Loc : Idl_Fe.Errors.Location;
-         begin
-            pragma Debug (O ("Parse_Switch_Body : new case clause"));
-            Loc := Get_Token_Location;
-            Parse_Case (Case_Clause,
-                        Switch_Type,
-                        Case_Success);
-            if not Case_Success then
-               Go_To_End_Of_Case;
-            else
-               Append_Node (Result, Case_Clause);
-               if Default_Clause then
-                  if Is_In_List (Labels (Case_Clause), No_Node) then
-                     Idl_Fe.Errors.Parser_Error
-                       ("default clause already appeared.",
-                        Idl_Fe.Errors.Error,
-                        Loc);
-                  end if;
+      else
+         loop
+            declare
+               Case_Clause : Node_Id;
+               Case_Success : Boolean;
+               Loc : Idl_Fe.Errors.Location;
+            begin
+               pragma Debug (O ("Parse_Switch_Body : new case clause"));
+               Loc := Get_Token_Location;
+               Parse_Case (Case_Clause,
+                           Switch_Type,
+                           Case_Success);
+               if not Case_Success then
+                  Go_To_End_Of_Case;
                else
-                  if Is_In_List (Labels (Case_Clause), No_Node) then
-                     Default_Clause := True;
+                  Append_Node (Result, Case_Clause);
+                  if Default_Clause then
+                     if Is_In_List (Labels (Case_Clause), No_Node) then
+                        Idl_Fe.Errors.Parser_Error
+                          ("default clause already appeared.",
+                           Idl_Fe.Errors.Error,
+                           Loc);
+                     end if;
+                  else
+                     if Is_In_List (Labels (Case_Clause), No_Node) then
+                        Default_Clause := True;
+                     end if;
                   end if;
                end if;
-            end if;
-         end;
-         exit when Get_Token = T_Right_Cbracket or Get_Token = T_Eof;
-      end loop;
+            end;
+            exit when Get_Token = T_Right_Cbracket or Get_Token = T_Eof;
+         end loop;
+      end if;
 --      Release_All_Used_Values;
       Success := True;
       return;
@@ -6098,9 +6121,10 @@ package body Idl_Fe.Parser is
          begin
             Parse_Param_Dcl (Param, Success);
             if not Success then
-               return;
+               Go_To_Next_Right_Paren;
+            else
+               Append_Node (Result, Param);
             end if;
-            Append_Node (Result, Param);
          end;
       end loop;
       if Get_Token /= T_Right_Paren then

@@ -609,7 +609,7 @@ struct struct5 {;};
 // declarators forgotten
 struct struct6 { long };
 // ';' forgotten
-struct struct7 { long  member1 };
+struct struct7 { long member1 };
 
 
 /*** Test of rule 72 ***/
@@ -683,7 +683,7 @@ interface resume77 {};
 
 /*** Test of rule 77 ***/
 // declarator forgotten
-union union16 switch (boolean) { default : long ; };
+union union17 switch (boolean) { default : long ; };
 // just to resume the parsing on a right definition
 interface resume78 {};
 
@@ -773,11 +773,11 @@ interface interface16 { readonly; };
 // param_type_spec forgotten
 interface interface17 { attribute; };
 // simple declarator forgotten
-interface interface18 { attribute long; }
+interface interface18 { attribute long; };
 // simple declarator forgotten
-interface interface19 { attribute long attribute1, ; }
+interface interface19 { attribute long attribute1, ; };
 // bad param type
-interface interface20 { attribute fixed <3,2> attribute1; }
+interface interface20 { attribute fixed <3,2> attribute1; };
 
 
 /*** Test of rule 86 ***/
@@ -794,7 +794,7 @@ exception exception2 {; };
 // just to resume the parsing on a right definition
 interface resume93 {};
 // bad member
-exception exception3 { ; };
+exception exception3 { const ; };
 
 
 /*** Test of rule 87 ***/
@@ -833,7 +833,7 @@ interface interface29 { void operation1(in long); };
 
 /*** Test of rule 92 ***/
 // bad param_attribute
-interface interface30 { void operation1(;); };
+interface interface30 { void operation1(long arg1); };
 
 
 /*** Test of rule 93 ***/
@@ -912,14 +912,14 @@ interface resume98 {};
 
 /*** duplicated identifiers ***/
 // duplicated module
-module module0 { const long l = 5; }
-module module0 { const long l = 5; }
+module module0 { const long l = 5; };
+module module0 { const long l = 5; };
 interface interface0 {};
 interface interface0 {};
 valuetype valuetype0 {};
 valuetype valuetype0 {};
-constant boolean const0 = True;
-constant boolean const0 = True;
+const boolean const0 = TRUE;
+const boolean const0 = TRUE;
 typedef long type0;
 typedef long type0;
 typedef long type01[2];
@@ -1019,7 +1019,7 @@ interface interfaceP : interfaceO {
 typedef non_existing_scoped_name typeA;
 // all the identifier except the last one should denote scopes
 const long constA = 5;
-typedef constA::l typeB
+typedef constA::l typeB;
 // non existing complicated scope name
 interface interfaceQ { const long constA = 5;};
 typedef interfaceQ::constB typeC;
@@ -1032,8 +1032,8 @@ struct structA {
 };
 // recursivity not allowed in an union
 union unionB switch (boolean) {
-  case True : unionB unionC;
-}
+  case TRUE : unionB unionC;
+};
 
 
 /*** forwarded values ***/
