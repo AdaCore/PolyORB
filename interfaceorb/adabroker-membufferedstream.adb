@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.6 $
+--                            $Revision: 1.7 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -47,9 +47,12 @@ with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Strings;
 with Ada.Characters.Latin_1;
+
 with Interfaces.C;
 
 with CORBA;
+
+with AdaBroker.Exceptions; use AdaBroker.Exceptions;
 
 package body AdaBroker.MemBufferedStream is
 
@@ -702,20 +705,8 @@ package body AdaBroker.MemBufferedStream is
       S : in out Object'Class)
    is
    begin
-      --  Maps the possible values on the firste shorts and marshall the
-      --  right one
-
-      case A is
-         when CORBA.Completed_Yes =>
-            Marshall (CORBA.Unsigned_Short (1), S);
-
-         when CORBA.Completed_No =>
-            Marshall (CORBA.Unsigned_Short (2), S);
-
-         when CORBA.Completed_Maybe =>
-            Marshall (CORBA.Unsigned_Short (3), S);
-
-      end case;
+      --  Maps onto shorts and marshall.
+      Marshall (CORBA.Unsigned_Short (To_Int (A)), S);
    end Marshall;
 
    ----------------
@@ -731,24 +722,7 @@ package body AdaBroker.MemBufferedStream is
       --  Unmarshalls an unsigned short
       Unmarshall (Tmp, S);
 
-      --  And returns the corresponding Completion_Status
-      case Tmp is
-         when 1 =>
-            A := CORBA.Completed_Yes;
-
-         when 2 =>
-            A := CORBA.Completed_No;
-
-         when 3 =>
-            A := CORBA.Completed_Maybe;
-
-         when others =>
-            Ada.Exceptions.Raise_Exception
-              (CORBA.AdaBroker_Fatal_Error'Identity,
-               "incorrect Completion_Status in unmarshall " &
-               "(see membufferedstream L660)");
-
-      end case;
+      A := To_Status (Interfaces.C.int (Tmp));
    end Unmarshall;
 
    --------------
@@ -757,7 +731,7 @@ package body AdaBroker.MemBufferedStream is
 
    procedure Marshall
 
-     (A : in CORBA.Ex_Body'Class;
+     (A : in CORBA.System_Exception_Members'Class;
       S : in out Object'Class) is
    begin
       --  Just marshall each field
@@ -770,7 +744,7 @@ package body AdaBroker.MemBufferedStream is
    ----------------
 
    procedure Unmarshall
-     (A : out CORBA.Ex_Body'Class;
+     (A : out CORBA.System_Exception_Members'Class;
       S : in out Object'Class)
    is
       Minor     : CORBA.Unsigned_Long;

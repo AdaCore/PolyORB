@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.7 $
+--                            $Revision: 1.8 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -53,6 +53,7 @@ with Interfaces.C;
 with CORBA;
 
 with AdaBroker.Omni;
+with AdaBroker.Exceptions; use AdaBroker.Exceptions;
 with AdaBroker.Debug;
 pragma Elaborate_All (AdaBroker.Debug);
 
@@ -881,16 +882,7 @@ package body AdaBroker.NetBufferedStream is
       --  Maps the possible values on the firste shorts and marshall the
       --  right one.
 
-      case A is
-         when CORBA.Completed_Yes =>
-            Marshall (CORBA.Unsigned_Long (1), S);
-
-         when CORBA.Completed_No =>
-            Marshall (CORBA.Unsigned_Long (2), S);
-
-         when CORBA.Completed_Maybe =>
-            Marshall (CORBA.Unsigned_Long (3), S);
-      end case;
+      Marshall (CORBA.Unsigned_Long (To_Int (A)), S);
    end Marshall;
 
    ----------------
@@ -906,23 +898,7 @@ package body AdaBroker.NetBufferedStream is
       --  Unmarshalls an unsigned short
       Unmarshall (Tmp, S);
 
-      --  And returns the corresponding Completion_Status
-      case Tmp is
-         when 1 =>
-            A := CORBA.Completed_Yes;
-
-         when 2 =>
-            A := CORBA.Completed_No;
-
-         when 3 =>
-            A := CORBA.Completed_Maybe;
-
-         when others =>
-            Ada.Exceptions.Raise_Exception
-              (CORBA.AdaBroker_Fatal_Error'Identity,
-               "incorrect Completion_Status in unmarshall " &
-               "(see netbufferedstream L660)");
-      end case;
+      A := To_Status (Interfaces.C.int (Tmp));
    end Unmarshall;
 
    ----------------
@@ -947,7 +923,7 @@ package body AdaBroker.NetBufferedStream is
    --------------
 
    procedure Marshall
-     (A : in CORBA.Ex_Body'Class;
+     (A : in CORBA.System_Exception_Members'Class;
       S : in out Object'Class)
    is
    begin
@@ -960,7 +936,7 @@ package body AdaBroker.NetBufferedStream is
    ----------------
 
    procedure Unmarshall
-     (A : out CORBA.Ex_Body'Class;
+     (A : out CORBA.System_Exception_Members'Class;
       S : in out Object'Class)
    is
       Minor     : CORBA.Unsigned_Long;
@@ -977,7 +953,7 @@ package body AdaBroker.NetBufferedStream is
    ----------------
 
    function Align_Size
-     (A              : in CORBA.Ex_Body'Class;
+     (A              : in CORBA.System_Exception_Members'Class;
       Initial_Offset : in CORBA.Unsigned_Long;
       N              : in CORBA.Unsigned_Long := 1)
       return CORBA.Unsigned_Long
