@@ -31,7 +31,32 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with PolyORB.Initialization;
+with PolyORB.Utils.Strings;
+
 package body PolyORB.Representations.CDR.GIOP_1_2 is
+
+   function Create return CDR_Representation_Access;
+
+   procedure Deferred_Initialization;
+
+   ------------
+   -- Create --
+   ------------
+
+   function Create return CDR_Representation_Access is
+   begin
+      return new GIOP_1_2_CDR_Representation;
+   end Create;
+
+   -----------------------------
+   -- Deferred_Initialization --
+   -----------------------------
+
+   procedure Deferred_Initialization is
+   begin
+      Register_Factory (1, 2, Create'Access);
+   end Deferred_Initialization;
 
    --------------------
    -- Set_Converters --
@@ -47,4 +72,19 @@ package body PolyORB.Representations.CDR.GIOP_1_2 is
       GIOP_1_1.Set_Converters (GIOP_1_1.GIOP_1_1_CDR_Representation (R), C, W);
    end Set_Converters;
 
+begin
+   declare
+      use PolyORB.Initialization;
+      use PolyORB.Initialization.String_Lists;
+      use PolyORB.Utils.Strings;
+   begin
+      Register_Module
+        (Module_Info'
+         (Name      => +"representations.cdr.giop_1_2",
+          Conflicts => Empty,
+          Depends   => Empty,
+          Provides  => Empty,
+          Implicit  => False,
+          Init      => Deferred_Initialization'Access));
+   end;
 end PolyORB.Representations.CDR.GIOP_1_2;

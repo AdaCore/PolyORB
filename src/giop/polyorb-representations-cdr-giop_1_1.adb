@@ -33,7 +33,9 @@
 
 with Ada.Unchecked_Deallocation;
 
+with PolyORB.Initialization;
 with PolyORB.Representations.CDR.Common;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.Representations.CDR.GIOP_1_1 is
 
@@ -41,12 +43,34 @@ package body PolyORB.Representations.CDR.GIOP_1_1 is
    use PolyORB.GIOP_P.Code_Sets.Converters;
    use PolyORB.Representations.CDR.Common;
 
+   function Create return CDR_Representation_Access;
+
+   procedure Deferred_Initialization;
+
    procedure Free is
      new Ada.Unchecked_Deallocation (Converter'Class, Converter_Access);
 
    procedure Free is
      new Ada.Unchecked_Deallocation
           (Wide_Converter'Class, Wide_Converter_Access);
+
+   ------------
+   -- Create --
+   ------------
+
+   function Create return CDR_Representation_Access is
+   begin
+      return new GIOP_1_1_CDR_Representation;
+   end Create;
+
+   -----------------------------
+   -- Deferred_Initialization --
+   -----------------------------
+
+   procedure Deferred_Initialization is
+   begin
+      Register_Factory (1, 1, Create'Access);
+   end Deferred_Initialization;
 
    --------------
    -- Marshall --
@@ -248,4 +272,19 @@ package body PolyORB.Representations.CDR.GIOP_1_1 is
       end if;
    end Unmarshall;
 
+begin
+   declare
+      use PolyORB.Initialization;
+      use PolyORB.Initialization.String_Lists;
+      use PolyORB.Utils.Strings;
+   begin
+      Register_Module
+        (Module_Info'
+         (Name      => +"representations.cdr.giop_1_1",
+          Conflicts => Empty,
+          Depends   => Empty,
+          Provides  => Empty,
+          Implicit  => False,
+          Init      => Deferred_Initialization'Access));
+   end;
 end PolyORB.Representations.CDR.GIOP_1_1;

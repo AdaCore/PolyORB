@@ -135,6 +135,12 @@ package PolyORB.Representations.CDR is
       Error  : in out Exceptions.Error_Container)
       is abstract;
 
+   function Create_Representation
+     (Major : in Types.Octet;
+      Minor : in Types.Octet)
+      return CDR_Representation_Access;
+   --  Create Representation object for requested version
+
 private
 
    --  'Any' type
@@ -160,5 +166,15 @@ private
      (Buffer         : access Buffers.Buffer_Type;
       Representation : in     CDR_Representation'Class)
       return PolyORB.Any.TypeCode.Object;
+
+   --  CDR Representation versions registry
+
+   type CDR_Representation_Factory is
+      access function return CDR_Representation_Access;
+
+   procedure Register_Factory
+     (Major   : in Types.Octet;
+      Minor   : in Types.Octet;
+      Factory : in CDR_Representation_Factory);
 
 end PolyORB.Representations.CDR;

@@ -32,12 +32,36 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Exceptions;
+with PolyORB.Initialization;
 with PolyORB.Representations.CDR.Common;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.Representations.CDR.GIOP_1_0 is
 
    use PolyORB.Exceptions;
    use PolyORB.Representations.CDR.Common;
+
+   function Create return CDR_Representation_Access;
+
+   procedure Deferred_Initialization;
+
+   ------------
+   -- Create --
+   ------------
+
+   function Create return CDR_Representation_Access is
+   begin
+      return new GIOP_1_0_CDR_Representation;
+   end Create;
+
+   -----------------------------
+   -- Deferred_Initialization --
+   -----------------------------
+
+   procedure Deferred_Initialization is
+   begin
+      Register_Factory (1, 0, Create'Access);
+   end Deferred_Initialization;
 
    --------------
    -- Marshall --
@@ -193,4 +217,19 @@ package body PolyORB.Representations.CDR.GIOP_1_0 is
       --  XXX The minor code different for client and server
    end Unmarshall;
 
+begin
+   declare
+      use PolyORB.Initialization;
+      use PolyORB.Initialization.String_Lists;
+      use PolyORB.Utils.Strings;
+   begin
+      Register_Module
+        (Module_Info'
+         (Name      => +"representations.cdr.giop_1_0",
+          Conflicts => Empty,
+          Depends   => Empty,
+          Provides  => Empty,
+          Implicit  => False,
+          Init      => Deferred_Initialization'Access));
+   end;
 end PolyORB.Representations.CDR.GIOP_1_0;

@@ -40,6 +40,7 @@ with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Types;
+with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Buffers;
 
 package body PolyORB.Representations.CDR is
@@ -56,6 +57,16 @@ package body PolyORB.Representations.CDR is
    package L is new PolyORB.Log.Facility_Log ("polyorb.representations.cdr");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+
+   type Registry_Item is record
+      Major   : Octet;
+      Minor   : Octet;
+      Factory : CDR_Representation_Factory;
+   end record;
+
+   package Factory_Lists is new Utils.Chained_Lists (Registry_Item);
+
+   Factory_Registry : Factory_Lists.List;
 
    ------------------
    -- TypeCode Ids --
@@ -100,6 +111,32 @@ package body PolyORB.Representations.CDR is
    TC_Component_Id          : constant PolyORB.Types.Unsigned_Long := 34;
    TC_Home_Id               : constant PolyORB.Types.Unsigned_Long := 35;
    TC_Event_Id              : constant PolyORB.Types.Unsigned_Long := 36;
+
+   ---------------------------
+   -- Create_Representation --
+   ---------------------------
+
+   function Create_Representation
+     (Major : in Types.Octet;
+      Minor : in Types.Octet)
+      return CDR_Representation_Access
+   is
+      use Factory_Lists;
+
+      Iter : Iterator := First (Factory_Registry);
+   begin
+      while not Last (Iter) loop
+         if Value (Iter).Major = Major
+           and then Value (Iter).Minor = Minor
+         then
+            return Value (Iter).Factory.all;
+         end if;
+
+         Next (Iter);
+      end loop;
+
+      return null;
+   end Create_Representation;
 
    --------------
    -- Marshall --
@@ -939,6 +976,32 @@ package body PolyORB.Representations.CDR is
       end case;
       pragma Debug (O ("Marshall_From_Any : end"));
    end Marshall_From_Any;
+
+   ----------------------
+   -- Register_Factory --
+   ----------------------
+
+   procedure Register_Factory
+     (Major   : in Types.Octet;
+      Minor   : in Types.Octet;
+      Factory : in CDR_Representation_Factory)
+   is
+      use Factory_Lists;
+
+      Iter : Iterator := First (Factory_Registry);
+   begin
+      while not Last (Iter) loop
+         if Value (Iter).Major = Major
+           and then Value (Iter).Minor = Minor
+         then
+            raise Program_Error;
+         end if;
+
+         Next (Iter);
+      end loop;
+
+      Append (Factory_Registry, (Major, Minor, Factory));
+   end Register_Factory;
 
    ----------------
    -- Unmarshall --
