@@ -45,10 +45,6 @@ package Droopi.ORB is
       is new Droopi.Components.Component with private;
    type ORB_Access is access all ORB_Type;
 
-   package Monitor_Seqs is new Sequences.Unbounded
-     (Asynch_Ev.Asynch_Ev_Monitor_Access);
-   subtype Monitor_Seq is Monitor_Seqs.Sequence;
-
    type Active_Connection is record
       AES : Asynch_Ev_Source_Access;
       TE  : Transport_Endpoint_Access;
@@ -150,18 +146,6 @@ package Droopi.ORB is
      return Obj_Adapters.Obj_Adapter_Access;
    --  Return the object adapter associated with ORB.
 
-   procedure Insert_Source
-     (ORB : access ORB_Type;
-      AES : Asynch_Ev_Source_Access);
-   --  Insert AES in the set of asynchronous event sources
-   --  monitored by ORB.
-
-   procedure Delete_Source
-     (ORB : access ORB_Type;
-      AES : Asynch_Ev_Source_Access);
-   --  Delete AES from the set of asynchronous event sources
-   --  monitored by ORB.
-
    function Handle_Message
      (ORB : access ORB_Type;
       Msg : Droopi.Components.Message'Class)
@@ -170,6 +154,14 @@ package Droopi.ORB is
 private
 
    type Tasking_Policy_Type is abstract tagged limited null record;
+
+   package Monitor_Seqs is new Sequences.Unbounded
+     (Asynch_Ev.Asynch_Ev_Monitor_Access);
+   subtype Monitor_Seq is Monitor_Seqs.Sequence;
+
+   package TAP_Seqs is new Sequences.Unbounded
+     (Transport.Transport_Access_Point_Access);
+   subtype TAP_Seq is TAP_Seqs.Sequence;
 
    type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class)
    is new Droopi.Components.Component with record
@@ -197,6 +189,9 @@ private
       --  The set of asynchronous event monitors to be watched
       --  by ORB tasks.
 
+      Transport_Access_Points : TAP_Seq;
+      --  The set of transport access points managed by this ORB.
+
       Polling : Boolean;
       --  True if, and only if, one task is blocked waiting
       --  for external events on ORB_Sockets.
@@ -209,5 +204,21 @@ private
       --  The object adapter that manages objects registered
       --  with this ORB.
    end record;
+
+   -------------------------------------
+   -- Internal primitives of ORB_Type --
+   -------------------------------------
+
+   procedure Insert_Source
+     (ORB : access ORB_Type;
+      AES : Asynch_Ev_Source_Access);
+   --  Insert AES in the set of asynchronous event sources
+   --  monitored by ORB.
+
+   procedure Delete_Source
+     (ORB : access ORB_Type;
+      AES : Asynch_Ev_Source_Access);
+   --  Delete AES from the set of asynchronous event sources
+   --  monitored by ORB.
 
 end Droopi.ORB;

@@ -344,7 +344,7 @@ package body Droopi.ORB is
 
       Enter (ORB.ORB_Lock.all);
       Insert_Source (ORB, New_AES);
-      --  XXX Should also keep a direct list of TAPs.
+      TAP_Seqs.Append (ORB.Transport_Access_Points, TAP);
       Leave (ORB.ORB_Lock.all);
    end Register_Access_Point;
 
