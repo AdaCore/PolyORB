@@ -6,8 +6,6 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.16 $
---                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
