@@ -40,6 +40,7 @@ with PolyORB.Jobs;
 with PolyORB.Log;
 with PolyORB.Setup;
 with PolyORB.Utils.Strings;
+with PolyORB.Utils.Semaphores;
 
 package body PolyORB.ORB.Thread_Pool is
 
@@ -53,7 +54,7 @@ package body PolyORB.ORB.Thread_Pool is
    use PolyORB.Soft_Links;
    use PolyORB.Components;
    use PolyORB.Configuration;
-
+   use PolyORB.Utils.Semaphores;
    package L is new PolyORB.Log.Facility_Log ("polyorb.orb.thread_pool");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
@@ -159,8 +160,7 @@ package body PolyORB.ORB.Thread_Pool is
      (P : access Thread_Pool_Policy;
       ORB : ORB_Access)
    is
-      use PolyORB.Soft_Links;
-      V : Version_Id;
+      --  use PolyORB.Soft_Links;
    begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
@@ -169,14 +169,16 @@ package body PolyORB.ORB.Thread_Pool is
                        & Image (Current_Task)
                        & " is going idle."));
 
-      Enter (Thread_Idle_Mutex);
-      Lookup (ORB.Idle_Tasks, V);
-      Differ (ORB.Idle_Tasks, V);
-      Leave (Thread_Idle_Mutex);
+      --  Enter (Thread_Idle_Mutex);
+      --  Lookup (ORB.Idle_Tasks, V);
+      --  Differ (ORB.Idle_Tasks, V);
+      --  Leave (Thread_Idle_Mutex);
+      Down (ORB.Idle_Tasks_Sem);
 
       pragma Debug (O ("Thread "
                        & Image (Current_Task)
-                       & " left idle state."));
+                       & " left idle state, N = "
+                       & Integer'Image (State (ORB.Idle_Tasks_Sem))));
    end Idle;
 
    ------------------------------
