@@ -52,7 +52,13 @@ private
    --  to internal tables used by the perfect dynamic hash table
    --  algorithm.
 
-   --  XXXXX If (Used) <=> (Key /= null) then we do not need Used.
+   --  XXXXX If (Used) <=> (Key /= null) then we do not need Used :
+   --  I'm not agree with you. In the algorithm we don't immediatly
+   --  deallocate the Key when an  Element is removed from the table.
+   --  Because if the Element is reinserted we've just to put the flag to
+   --  False. an unused Key is deallocated in this cases :
+   --                - insertion of a Key with the same hashcodes
+   --                - reorganization of the sub_table or the table
 
 
    type Subtable is record
@@ -68,6 +74,29 @@ private
    --  for algorithm purposes. K is a subtable attribute that ensures
    --  h (Key) = ((K * Key) mod Prime) mod Size.
 
+   -- XXXXX Last-First+1 is not equal to the number of elements stored
+   -- in the sub-table :
+   -- Ex :      ---------------- Table Elements (see below in Hash_Table)
+   --           -              -
+   --           ----------------
+   --           -    Key1      - <- First
+   --           ----------------
+   --           -    null      -
+   --           ----------------
+   --           -    Key2      -
+   --           ----------------
+   --           -    null      -
+   --           ----------------
+   --           -    null      - <- Last
+   --           ----------------
+   --
+   -- there the number of element is 2
+   -- the size of the sub_table is last-first+1 (Last and First fix the limits
+   -- of the sub_table in the table of elements : Elements)
+   -- and the condition might be :
+   --       reorganize table when number of elements > 3 (what you called
+   --                                                     High)
+
    type Table_Info is record
       Prime        : Natural;
       Length       : Natural;
@@ -80,8 +109,14 @@ private
    --  the subtables. K is a table attribute that ensures h (Key) =
    --  ((K * Key) mod Prime) mod Size.
 
-   --  XXXXX : what is the difference between Table.K and Subtable.K.
-   --  Why is it duplicated ?
+   -- Why it is duplicated :
+   --  All the hash function have  the form :
+   --  h (Key) = ((K * Key) mod Prime) mod Size.
+   --  but we need two hash functions when a lookup is performed
+   --       - the first to find in which sub_table the element is stored
+   --         (we use Table_Info.K)
+   --       - the second to find where the element is stored in the
+   --         sub_table (there we use Sub_Table.K of the sub_table find above)
 
    type Element_Array is array (Natural range <>) of Element;
    type Element_Array_Ptr is access all Element_Array;
@@ -94,7 +129,9 @@ private
       Elements  : Element_Array_Ptr;
       Subtables : Subtable_Array_Ptr;
    end record;
-   --  XXXXX : comments ???
+   --  Info      contained the variable of the table
+   --  Elements  contained all the elements
+   --  SubTables contained the variable for all the sub-tables
 
    procedure Initialize
      (T      : out Hash_Table;
@@ -113,7 +150,8 @@ private
       Index2 : out Natural);
    --  Key is the string to hash.
 
-   --  XXXXX : meaning of Index1 and Index2 ?
+   --  Index1 indicates in which sub_table the key is stored
+   --  Index2 indicates the position of the key in the sub_table
 
    procedure Insert
      (T   : Hash_Table;
@@ -121,7 +159,8 @@ private
    --  Key is the string to hash.
    --  Value is the Item associated with Key
 
-   --  XXXXX where is Value now ???. Why don't we get the hash code back ?
+   --  XXXXX where is Value now ???. Why don't we get the hash code back :
+   --  Value type is Item which is generic (so not in this package)
 
    procedure Delete
      (T   : Hash_Table;
