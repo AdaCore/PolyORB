@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                            --
 --                                                                          --
---          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -2079,6 +2079,10 @@ package body Osint is
       else
          return To_Path_String_Access (Canonical_Dir_Addr, Canonical_Dir_Len);
       end if;
+   exception
+      when others =>
+         Fail ("erroneous directory spec: ", Host_Dir);
+         return null;
    end To_Canonical_Dir_Spec;
 
    ----------------------------
@@ -2109,6 +2113,10 @@ package body Osint is
          return To_Path_String_Access
                   (Canonical_File_Addr, Canonical_File_Len);
       end if;
+   exception
+      when others =>
+         Fail ("erroneous file spec: ", Host_File);
+         return null;
    end To_Canonical_File_Spec;
 
    ----------------------------
@@ -2136,6 +2144,10 @@ package body Osint is
       --  Return a null string (vice a null) for zero length paths, for
       --  compatibility with getenv().
       return To_Path_String_Access (Canonical_Path_Addr, Canonical_Path_Len);
+   exception
+      when others =>
+         Fail ("erroneous path spec: ", Host_Path);
+         return null;
    end To_Canonical_Path_Spec;
 
    ---------------------------

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -91,7 +91,7 @@ package body Debug is
    --  dU
    --  dV
    --  dW
-   --  dX
+   --  dX   Force use of zero-cost exception approach
    --  dY
    --  dZ
 
@@ -320,6 +320,12 @@ package body Debug is
    --       RM 10.2.1(9) forbids the use of library level controlled objects
    --       in preelaborable packages, but this restriction is a huge pain,
    --       especially in the predefined library units.
+
+   --  dX   Force use of zero-cost exceptions even if the system configuration
+   --       specifies that they should not be used (i.e. the configuration
+   --       flag Zero_Cost_Exceptions is False). Whether this will actually
+   --       work at runtime depends on whether an appropriate target dependent
+   --       version of a-emstop.adb has been provided.
 
    --  d1   Error msgs have node numbers where possible. Normally error
    --       messages have only source locations. This option is useful when

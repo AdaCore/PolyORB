@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -35,6 +35,9 @@ with Table;
 with Types;  use Types;
 
 package ALI is
+
+   Zero_Cost_Exceptions : Boolean := False;
+   --  Set to True if zero cost exceptions active for this bind
 
    --------------
    -- Id Types --
@@ -138,6 +141,9 @@ package ALI is
 
       Float_Format : Character;
       --  Set to float format (set to I if no float-format given)
+
+      Zero_Cost_Exceptions : Boolean;
+      --  Set to True if unit is compiled with zero cost exceptions
 
    end record;
 

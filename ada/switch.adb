@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                            --
 --                                                                          --
---          Copyright (C) 1992-1997, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-1998, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -498,7 +498,7 @@ package body Switch is
             Ptr := Ptr + 1;
 
             if Program = Binder then
-               Ignore_Time_Stamp_Errors := True;
+               Tolerate_Consistency_Errors := True;
             elsif Program = Compiler then
                Tree_Output := True;
             else

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -631,11 +631,12 @@ package body ALI is
       Set_Name_Table_Info (F, Int (Id));
 
       ALIs.Table (Id).Afile := F;
-      ALIs.Table (Id).Ofile_Full_Name  := Full_Object_File_Name;
-      ALIs.Table (Id).First_Unit       := No_Unit_Id;
-      ALIs.Table (Id).Main_Priority    := -1;
-      ALIs.Table (Id).Time_Slice_Value := -1;
-      ALIs.Table (Id).Main_Program     := None;
+      ALIs.Table (Id).Ofile_Full_Name      := Full_Object_File_Name;
+      ALIs.Table (Id).First_Unit           := No_Unit_Id;
+      ALIs.Table (Id).Main_Priority        := -1;
+      ALIs.Table (Id).Time_Slice_Value     := -1;
+      ALIs.Table (Id).Main_Program         := None;
+      ALIs.Table (Id).Zero_Cost_Exceptions := False;
 
       --  Acquire library version
 
@@ -978,9 +979,22 @@ package body ALI is
                   Fatal_Error;
                end if;
 
+            --  ZX parameter (zero cost exceptions)
+
+            --  Note: this is really a file wide option, but for convenience
+            --  it is given as a unit attribute, but in the ALI data tables,
+            --  it is the ALI file entry that is flagged, not the unit entry.
+
+            elsif C = 'Z' then
+               Checkc ('X');
+               Check_At_End_Of_Field;
+               ALIs.Table (Id).Zero_Cost_Exceptions := True;
+               Zero_Cost_Exceptions := True;
+
             else
                Fatal_Error;
             end if;
+
          end loop;
 
          Skip_Eol;

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                            --
 --                                                                          --
---          Copyright (C) 1992-1997, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-1998, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -227,10 +227,6 @@ package Opt is
    --  default value appropriate to the system (in Osint.Initialize), and then
    --  reset if a command line switch is used to change the setting.
 
-   Ignore_Time_Stamp_Errors : Boolean := False;
-   --  GNATBIND
-   --  Ignore time stamp mismatch errors (treat as warnings only)
-
    Immediate_Errors : Boolean := False;
    --  GNAT, GNATF
    --  If set to True, then error messages are output as soon as they are
@@ -407,6 +403,11 @@ package Opt is
    --  in microseconds. Negative values are stored as zero, and the value
    --  is not larger than 1_000_000_000 (1000 seconds). Values larger than
    --  this are reset to this maximum.
+
+   Tolerate_Consistency_Errors : Boolean := False;
+   --  GNATBIND
+   --  Tolerate time stamp and other consistency errors. If this switch is
+   --  set true, then inconsistencies result in warnings rather than errors.
 
    Tree_Output : Boolean := False;
    --  GNAT, GNATF

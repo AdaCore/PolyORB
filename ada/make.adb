@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,6 +30,7 @@ with ALI;      use ALI;
 with Csets;
 with Debug;
 with Fname;    use Fname;
+with Gnatvsn;  use Gnatvsn;
 with Hostparm; use Hostparm;
 with Namet;    use Namet;
 with Opt;
@@ -272,15 +273,15 @@ package body Make is
 
    procedure Check
      (Lib_File  : File_Name_Type;
-      Ali       : out ALI_Id;
+      ALI       : out ALI_Id;
       O_File    : out File_Name_Type;
       O_Stamp   : out Time_Stamp_Type);
    --  Determines whether the library file Lib_File is up-to-date or not.
    --  The full name (with path information) of the object file
    --  corresponding to Lib_File is returned in O_File. Its time stamp is
-   --  saved in O_Stamp. Ali is the ALI_Id corresponding to Lib_File. If
+   --  saved in O_Stamp. ALI is the ALI_Id corresponding to Lib_File. If
    --  Lib_File in not up-to-date, then the coresponding source file needs
-   --  to be recompiled. In this case Ali = No_ALI_Id.
+   --  to be recompiled. In this case ALI = No_ALI_Id.
 
    procedure Display (Program : String; Args : Argument_List);
    --  Displays Program followed by the arguments in Args if variable
@@ -409,7 +410,7 @@ package body Make is
    -- Bind --
    ----------
 
-   procedure Bind (Ali_File : File_Name_Type; Args : Argument_List) is
+   procedure Bind (ALI_File : File_Name_Type; Args : Argument_List) is
       Bind_Args : Argument_List (1 .. Args'Last + 2);
       Bind_Last : Integer;
       Success   : Boolean;
@@ -423,7 +424,7 @@ package body Make is
       if Args'Length = 2
         and then Args (Args'First).all = "-aO" & Normalized_CWD
         and then Args (Args'Last).all = "-I-"
-        and then Ali_File = Strip_Directory (Ali_File)
+        and then ALI_File = Strip_Directory (ALI_File)
       then
          Bind_Last := Args'First - 1;
 
@@ -438,7 +439,7 @@ package body Make is
       Bind_Last := Bind_Last + 1;
       Bind_Args (Bind_Last) := Dont_Check_Flag;
 
-      Get_Name_String (Ali_File);
+      Get_Name_String (ALI_File);
 
       Bind_Last := Bind_Last + 1;
       Bind_Args (Bind_Last) := new String'(Name_Buffer (1 .. Name_Len));
@@ -463,7 +464,7 @@ package body Make is
 
    procedure Check
      (Lib_File  : File_Name_Type;
-      Ali       : out ALI_Id;
+      ALI       : out ALI_Id;
       O_File    : out File_Name_Type;
       O_Stamp   : out Time_Stamp_Type)
    is
@@ -492,7 +493,7 @@ package body Make is
          function New_Spec (Uname : Unit_Name_Type) return Boolean;
          --  Uname is the name of the spec or body of some ada unit.
          --  This function returns True if the Uname is the name of a body
-         --  which has a spec not mentioned in ali file A. If True is returned
+         --  which has a spec not mentioned inali file A. If True is returned
          --  Spec_File_Name above is set to the name of this spec file.
 
          function New_Spec (Uname : Unit_Name_Type) return Boolean is
@@ -599,7 +600,7 @@ package body Make is
          Verbose_Msg (Full_Lib_File, "being checked ...", Ind => No_Indent);
       end if;
 
-      Ali     := No_ALI_Id;
+      ALI     := No_ALI_Id;
       O_File  := Full_Obj_File;
       O_Stamp := Obj_Stamp;
 
@@ -617,17 +618,23 @@ package body Make is
          end if;
 
       else
-         Ali := Scan_ALI (Lib_File, Text);
+         ALI := Scan_ALI (Lib_File, Text);
+
+         if ALIs.Table (ALI).Ver /= Library_Version then
+            Verbose_Msg (Full_Lib_File, "compiled with old GNAT version");
+            ALI := No_ALI_Id;
+            return;
+         end if;
 
          --  Get the source files and their time stamps. Note that some
-         --  sources may be missing if Ali is out-of-date.
+         --  sources may be missing if ALI is out-of-date.
 
-         Set_Source_Table (Ali);
+         Set_Source_Table (ALI);
 
-         Modified_Source := Time_Stamp_Mismatch (Ali);
+         Modified_Source := Time_Stamp_Mismatch (ALI);
 
          if Modified_Source /= No_File then
-            Ali := No_ALI_Id;
+            ALI := No_ALI_Id;
 
             if Opt.Verbose_Mode then
                Source_Name := Full_Source_Name (Modified_Source);
@@ -640,10 +647,10 @@ package body Make is
             end if;
 
          else
-            New_Spec := First_New_Spec (Ali);
+            New_Spec := First_New_Spec (ALI);
 
             if New_Spec /= No_File then
-               Ali := No_ALI_Id;
+               ALI := No_ALI_Id;
 
                if Opt.Verbose_Mode then
                   Source_Name := Full_Source_Name (New_Spec);
@@ -670,13 +677,13 @@ package body Make is
       Most_Recent_Obj_File  : out Name_Id;
       Most_Recent_Obj_Stamp : out Time_Stamp_Type;
       Main_Unit             : out Boolean;
-      Missing_Alis          : out Boolean;
+      Missing_ALIs          : out Boolean;
       Check_Readonly_Files  : Boolean  := False;
       Dont_Execute          : Boolean  := False;
       Force_Compilations    : Boolean  := False;
       Keep_Going            : Boolean  := False;
       In_Place_Mode         : Boolean  := False;
-      Initialize_Ali_Data   : Boolean  := True;
+      Initialize_ALI_Data   : Boolean  := True;
       Max_Process           : Positive := 1)
    is
       function Compile (S : Name_Id; L : Name_Id) return Process_Id;
@@ -710,22 +717,22 @@ package body Make is
       --  file. OK is set to True if the compilation succeeded. Note that S
       --  and L could be No_File if there were no compilations to wait for.
 
-      package Good_Ali is new Table.Table (
+      package Good_ALI is new Table.Table (
         Table_Component_Type => ALI_Id,
         Table_Index_Type     => Natural,
         Table_Low_Bound      => 1,
         Table_Initial        => 50,
         Table_Increment      => 100,
-        Table_Name           => "Make.Good_Ali");
-      --  Contains the set of valid Ali files that have not yet been scanned.
+        Table_Name           => "Make.Good_ALI");
+      --  Contains the set of valid ALI files that have not yet been scanned.
 
-      procedure Record_Good_Ali (A : ALI_Id);
-      --  Records in the previous set the Id of an Ali file.
+      procedure Record_Good_ALI (A : ALI_Id);
+      --  Records in the previous set the Id of an ALI file.
 
-      function Good_Ali_Present return Boolean;
-      --  Returns True if any Ali file was recorded in the previous set.
+      function Good_ALI_Present return Boolean;
+      --  Returns True if any ALI file was recorded in the previous set.
 
-      function Get_Next_Good_Ali return ALI_Id;
+      function Get_Next_Good_ALI return ALI_Id;
       --  Returns the next good ALI_Id record;
 
       type Bad_Compilation_Info is record
@@ -951,27 +958,27 @@ package body Make is
       end Debug_Msg;
 
       -----------------------
-      -- Get_Next_Good_Ali --
+      -- Get_Next_Good_ALI --
       -----------------------
 
-      function Get_Next_Good_Ali return ALI_Id is
-         Ali : ALI_Id;
+      function Get_Next_Good_ALI return ALI_Id is
+         ALI : ALI_Id;
 
       begin
-         pragma Assert (Good_Ali_Present);
-         Ali := Good_Ali.Table (Good_Ali.Last);
-         Good_Ali.Decrement_Last;
-         return Ali;
-      end Get_Next_Good_Ali;
+         pragma Assert (Good_ALI_Present);
+         ALI := Good_ALI.Table (Good_ALI.Last);
+         Good_ALI.Decrement_Last;
+         return ALI;
+      end Get_Next_Good_ALI;
 
       ----------------------
-      -- Good_Ali_Present --
+      -- Good_ALI_Present --
       ----------------------
 
-      function Good_Ali_Present return Boolean is
+      function Good_ALI_Present return Boolean is
       begin
-         return Good_Ali.First <= Good_Ali.Last;
-      end Good_Ali_Present;
+         return Good_ALI.First <= Good_ALI.Last;
+      end Good_ALI_Present;
 
       ---------------------------
       -- List_Bad_Compilations --
@@ -1001,14 +1008,14 @@ package body Make is
       end Record_Failure;
 
       ---------------------
-      -- Record_Good_Ali --
+      -- Record_Good_ALI --
       ---------------------
 
-      procedure Record_Good_Ali (A : ALI_Id) is
+      procedure Record_Good_ALI (A : ALI_Id) is
       begin
-         Good_Ali.Increment_Last;
-         Good_Ali.Table (Good_Ali.Last) := A;
-      end Record_Good_Ali;
+         Good_ALI.Increment_Last;
+         Good_ALI.Table (Good_ALI.Last) := A;
+      end Record_Good_ALI;
 
       --------------------------
       -- Compile_Sources Data --
@@ -1035,8 +1042,8 @@ package body Make is
       Sfile            : File_Name_Type;
       --  Contains, in turn, the source file of the units withed by Source_File
 
-      Ali              : ALI_Id;
-      --  Ali Id of the current Ali file
+      ALI              : ALI_Id;
+      --  ALI Id of the current ALI file
 
       Compilation_OK  : Boolean;
       Need_To_Compile : Boolean;
@@ -1051,16 +1058,16 @@ package body Make is
 
       --  Package and Queue initializations.
 
-      Good_Ali.Init;
+      Good_ALI.Init;
       Bad_Compilation.Init;
       Output.Set_Standard_Error;
       Init_Q;
 
-      if Initialize_Ali_Data then
+      if Initialize_ALI_Data then
          Initialize_ALI;
       end if;
 
-      --  The following two flags affect the behavior of Ali.Set_Source_Table.
+      --  The following two flags affect the behavior of ALI.Set_Source_Table.
       --  We set Opt.Check_Source_Files to True to ensure that source file
       --  time stamps are checked, and we set Opt.All_Sources to False to
       --  avoid checking the presence of the source files listed in the
@@ -1076,7 +1083,7 @@ package body Make is
       First_Compiled_File   := No_File;
       Most_Recent_Obj_File  := No_File;
       Main_Unit             := False;
-      Missing_Alis          := False;
+      Missing_ALIs          := False;
 
       --  Keep looping until there is no more work to do (the Q is empty)
       --  and all the outstanding compilations have terminated
@@ -1149,14 +1156,14 @@ package body Make is
                Need_To_Compile := Force_Compilations;
 
                if not Force_Compilations then
-                  Check (Lib_File, Ali, Obj_File, Obj_Stamp);
-                  Need_To_Compile := (Ali = No_ALI_Id);
+                  Check (Lib_File, ALI, Obj_File, Obj_Stamp);
+                  Need_To_Compile := (ALI = No_ALI_Id);
                end if;
 
                if not Need_To_Compile then
-                  --  The Ali file is up-to-date. Record its Id.
+                  --  The ALI file is up-to-date. Record its Id.
 
-                  Record_Good_Ali (Ali);
+                  Record_Good_ALI (ALI);
 
                   --  Record the time stamp of the most recent object file
                   --  as long as no (re)compilations are needed.
@@ -1227,11 +1234,11 @@ package body Make is
          --  PHASE 2: Now check if we should wait for a compilation to
          --  finish. This is the case if all the available processes are
          --  busy compiling sources or there is nothing else to do
-         --  (that is the Q is empty and there are no good Alis to process).
+         --  (that is the Q is empty and there are no good ALIs to process).
 
          if Outstanding_Compiles = Max_Process
            or else (Empty_Q
-                     and then not Good_Ali_Present
+                     and then not Good_ALI_Present
                      and then Outstanding_Compiles > 0)
          then
             Await_Compile (Full_Source_File, Lib_File, Compilation_OK);
@@ -1244,12 +1251,12 @@ package body Make is
 
                Text := Read_Library_Info (Lib_File);
 
-               --  If no Ali file was generated by this compilation nothing
+               --  If no ALI file was generated by this compilation nothing
                --  more to do, otherwise scan the ali file and record it
 
                if Text /= null then
-                  Ali := Scan_ALI (Lib_File, Text);
-                  Record_Good_Ali (Ali);
+                  ALI := Scan_ALI (Lib_File, Text);
+                  Record_Good_ALI (ALI);
 
                --  This should probably just be Assert (False) now. It is
                --  almost certainly junk code, dating from the time when
@@ -1258,26 +1265,26 @@ package body Make is
 
                else
                   Inform (Lib_File, "WARNING file not found after compile");
-                  Missing_Alis := True;
+                  Missing_ALIs := True;
                end if;
             end if;
          end if;
 
-         --  PHASE 3: Check if we recorded good Ali files. If yes process
+         --  PHASE 3: Check if we recorded good ALI files. If yes process
          --  them now in the order in which they have been recorded. There
          --  are two occasions in which we record good ali files. The first is
-         --  in phase 1 when, after scanning an existing Ali file we realise
+         --  in phase 1 when, after scanning an existing ALI file we realise
          --  it is up-to-date, the second instance is after a successful
          --  compilation.
 
-         while Good_Ali_Present loop
-            Ali := Get_Next_Good_Ali;
+         while Good_ALI_Present loop
+            ALI := Get_Next_Good_ALI;
 
             --  If we are processing the library file corresponding to the
             --  main source file check if this source can be a main unit.
 
-            if ALIs.Table (Ali).Sfile = Main_Source then
-               Main_Unit := ALIs.Table (Ali).Main_Program /= None;
+            if ALIs.Table (ALI).Sfile = Main_Source then
+               Main_Unit := ALIs.Table (ALI).Main_Program /= None;
             end if;
 
             --  Now insert in the Q the unmarked source files (i.e. those
@@ -1285,7 +1292,7 @@ package body Make is
             --  considered).
 
             for J in
-              ALIs.Table (Ali).First_Unit .. ALIs.Table (Ali).Last_Unit
+              ALIs.Table (ALI).First_Unit .. ALIs.Table (ALI).Last_Unit
             loop
                for K in
                  Unit.Table (J).First_With .. Unit.Table (J).Last_With
@@ -1488,14 +1495,14 @@ package body Make is
       Main_Source_File : File_Name_Type;
       --  The actual source file corresponding to Main_Name
 
-      Has_Missing_Alis : Boolean;
+      Has_Missing_ALIs : Boolean;
       --  Set True if there was a missing ali file (can this ever happen???)
 
       Is_Main_Unit     : Boolean;
       --  If True the Main_Source_File can be a main unit (is this used???
       --  It is not used here for sure???)
 
-      Main_Ali_File : File_Name_Type;
+      Main_ALI_File : File_Name_Type;
       --  The ali file corresponding to Main_Source_File
 
       File_Name : String_Ptr;
@@ -1732,7 +1739,7 @@ package body Make is
          Write_Eol;
          Write_Str ("GNATMAKE ");
          Write_Str (Gnatvsn.Gnat_Version_String);
-         Write_Str (" Copyright 1995 Free Software Foundation, Inc.");
+         Write_Str (" Copyright 1995-1998 Free Software Foundation, Inc.");
          Write_Eol;
       end if;
 
@@ -1865,13 +1872,13 @@ package body Make is
             Most_Recent_Obj_File  => Youngest_Obj_File,
             Most_Recent_Obj_Stamp => Youngest_Obj_Stamp,
             Main_Unit             => Is_Main_Unit,
-            Missing_Alis          => Has_Missing_Alis,
+            Missing_ALIs          => Has_Missing_ALIs,
             Check_Readonly_Files  => Opt.Check_Readonly_Files,
             Dont_Execute          => Opt.Dont_Execute,
             Force_Compilations    => Opt.Force_Compilations,
             In_Place_Mode         => Opt.In_Place_Mode,
             Keep_Going            => Opt.Keep_Going,
-            Initialize_Ali_Data   => True,
+            Initialize_ALI_Data   => True,
             Max_Process           => Opt.Maximum_Processes);
 
          if Opt.List_Dependencies then
@@ -1938,27 +1945,27 @@ package body Make is
       end Recursive_Compilation_Step;
 
       declare
-         Ali_File : File_Name_Type;
+         ALI_File : File_Name_Type;
          Src_File : File_Name_Type;
 
       begin
          Src_File      := Strip_Directory (Main_Source_File);
-         Ali_File      := Lib_File_Name (Src_File);
-         Main_Ali_File := Full_Lib_File_Name (Ali_File);
+         ALI_File      := Lib_File_Name (Src_File);
+         Main_ALI_File := Full_Lib_File_Name (ALI_File);
 
          --  When In_Place_Mode, the library file can be located in the
          --  Main_Source_File directory which may not be present in the
          --  library path. In this case, use the corresponding library file
          --  name.
 
-         if Main_Ali_File = No_File and then Opt.In_Place_Mode then
+         if Main_ALI_File = No_File and then Opt.In_Place_Mode then
             Get_Name_String (Get_Directory (Full_Source_Name (Src_File)));
-            Get_Name_String_And_Append (Ali_File);
-            Main_Ali_File := Name_Find;
-            Main_Ali_File := Full_Lib_File_Name (Main_Ali_File);
+            Get_Name_String_And_Append (ALI_File);
+            Main_ALI_File := Name_Find;
+            Main_ALI_File := Full_Lib_File_Name (Main_ALI_File);
          end if;
 
-         pragma Assert (Main_Ali_File /= No_File);
+         pragma Assert (Main_ALI_File /= No_File);
       end;
 
       Bind_Step : declare
@@ -1969,7 +1976,7 @@ package body Make is
             Args (I) := Binder_Switches.Table (I);
          end loop;
 
-         Bind (Main_Ali_File, Args);
+         Bind (Main_ALI_File, Args);
       end Bind_Step;
 
       Link_Step : declare
@@ -1980,7 +1987,7 @@ package body Make is
             Args (I) := Linker_Switches.Table (I);
          end loop;
 
-         Link (Main_Ali_File, Args);
+         Link (Main_ALI_File, Args);
       end Link_Step;
 
       Exit_Program (E_Success);
@@ -2050,14 +2057,14 @@ package body Make is
    -- Link --
    ----------
 
-   procedure Link (Ali_File : File_Name_Type; Args : Argument_List) is
+   procedure Link (ALI_File : File_Name_Type; Args : Argument_List) is
       Link_Args : Argument_List (Args'First .. Args'Last + 1);
       Success   : Boolean;
 
    begin
       Link_Args (Args'Range) :=  Args;
 
-      Get_Name_String (Ali_File);
+      Get_Name_String (ALI_File);
       Link_Args (Args'Last + 1) := new String'(Name_Buffer (1 .. Name_Len));
 
       Display (Gnatlink.all, Link_Args);

@@ -53,12 +53,12 @@ package Make is
    Link_Failed : exception;
    --  Raised by Link below if the link failed.
 
-   procedure Bind (Ali_File : File_Name_Type; Args : Argument_List);
-   --  Binds Ali_File. Args are the arguments to pass to the binder.
+   procedure Bind (ALI_File : File_Name_Type; Args : Argument_List);
+   --  Binds ALI_File. Args are the arguments to pass to the binder.
    --  Args must have a lower bound of 1.
 
-   procedure Link (Ali_File : File_Name_Type; Args : Argument_List);
-   --  Links Ali_File. Args are the arguments to pass to the linker.
+   procedure Link (ALI_File : File_Name_Type; Args : Argument_List);
+   --  Links ALI_File. Args are the arguments to pass to the linker.
    --  Args must have a lower bound of 1.
 
    procedure Initialize;
@@ -72,13 +72,13 @@ package Make is
       Most_Recent_Obj_File  : out Name_Id;
       Most_Recent_Obj_Stamp : out Time_Stamp_Type;
       Main_Unit             : out Boolean;
-      Missing_Alis          : out Boolean;
+      Missing_ALIs          : out Boolean;
       Check_Readonly_Files  : Boolean  := False;
       Dont_Execute          : Boolean  := False;
       Force_Compilations    : Boolean  := False;
       Keep_Going            : Boolean  := False;
       In_Place_Mode         : Boolean  := False;
-      Initialize_Ali_Data   : Boolean  := True;
+      Initialize_ALI_Data   : Boolean  := True;
       Max_Process           : Positive := 1);
    --  Compile_Sources will recursively compile all the sources needed by
    --  Main_Source. Before calling this routine make sure Namet has been
@@ -106,7 +106,7 @@ package Make is
    --    the value of Main_Unit is always False.
    --    Is this used any more??? It is certainly not used by gnatmake???
    --
-   --    Missing_Alis is set True if any of the constituent compilations
+   --    Missing_ALIs is set True if any of the constituent compilations
    --    fails to generate an ali file.
    --    Note from RBKD: This is probably obsolete junk ??? dating to the
    --    time when compiling generics generated junk object files and no
@@ -130,11 +130,11 @@ package Make is
    --    In_Place_Mode when True save library/object files in their object
    --    directory if they already exist; otherwise, in the source directory.
    --
-   --    Initialize_Ali_Data set it to True when you want to intialize Ali
+   --    Initialize_ALI_Data set it to True when you want to intialize ALI
    --    data-structures. This is what you should do most of the time.
    --    (especially the first time around when you call this routine).
    --    This parameter is set to False to preserve previously recorded
-   --    Ali file data.
+   --    ALI file data.
    --
    --    Max_Process is the maximum number of processes that should be spawned
    --    to carry out compilations.
@@ -159,12 +159,12 @@ package Make is
    --
    --  Upon return from Compile_Sources all the ALI data structures are left
    --  intact for further browsing. HOWEVER upon entry to this routine ALI
-   --  data structures are re-initialized if parameter Initialize_Ali_Data
+   --  data structures are re-initialized if parameter Initialize_ALI_Data
    --  above is set to true. Typically this is what you want the first time
    --  you call Compile_Sources. You should not load an ali file, call this
-   --  routine with flag Initialize_Ali_Data set to True and then expect
+   --  routine with flag Initialize_ALI_Data set to True and then expect
    --  that ALI information to be around after the call. Note that the first
-   --  time you call Compile_Sources you better set Initialize_Ali_Data to
+   --  time you call Compile_Sources you better set Initialize_ALI_Data to
    --  True unless you have called Initialize_ALI yourself.
    --
    --  Compile_Sources ALGORITHM : Compile_Sources (Main_Source)
