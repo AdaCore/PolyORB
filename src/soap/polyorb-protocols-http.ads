@@ -46,6 +46,8 @@ with PolyORB.Utils.HTTP_Messages;
 
 package PolyORB.Protocols.HTTP is
 
+   pragma Elaborate_Body;
+
    type Key_Value_Data is record
       Key, Value : Types.String;
    end record;

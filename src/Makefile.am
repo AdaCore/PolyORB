@@ -1,5 +1,4 @@
-SUBDIRS = . corba
-# soap
+SUBDIRS = . corba soap
 
 alidir = $(libdir)/polyorb
 
@@ -133,5 +132,17 @@ install-data-local:
 
 depend: all
 	$(srcdir)/../support/mkdep $(srcdir)
+
+TESTS=  polyorb-test-no_tasking \
+        polyorb-test-thread_pool \
+        polyorb-test-no_tasking_poa \
+        polyorb-test-thread_pool_poa \
+        dynclient \
+        server
+
+tests: $(TESTS)
+
+$(TESTS): all
+	$(GNATMAKE) -I. -Icorba -Isoap $@ -cargs $(CFLAGS) -largs $(LDFLAGS)
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###

@@ -28,7 +28,7 @@ ADA_SPECS_WITH_BODY = \
 	polyorb-protocols-giop.ads \
 	polyorb-references-ior.ads \
 	polyorb-representations-cdr.ads \
-	polyorb-setup-test.ads \
+	portableserver-adapteractivator.ads \
 	portableserver-poa.ads \
 	portableserver-poamanager.ads \
 	portableserver.ads

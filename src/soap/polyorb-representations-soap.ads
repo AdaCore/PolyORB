@@ -34,14 +34,16 @@
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
-with PolyORB.Types; use PolyORB.Types;
+with PolyORB.Types;
 with PolyORB.Any;
 with Sequences.Unbounded;
 
-
 package PolyORB.Representations.SOAP is
 
+   pragma Elaborate_Body;
+
    use PolyORB.Any;
+   use PolyORB.Types;
 
    type XML_String is new Types.String;
 

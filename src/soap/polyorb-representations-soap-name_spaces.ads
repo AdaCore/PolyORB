@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Representations.SOAP;
 with PolyORB.Obj_Adapters.Simple;
 with PolyORB.Objects;

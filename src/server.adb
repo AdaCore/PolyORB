@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/server.adb#7 $
+--  $Id: //droopi/main/src/server.adb#8 $
 
 with Echo.Impl;
 
@@ -42,6 +42,13 @@ with PortableServer;
 with PolyORB.CORBA_P.Server_Tools; use PolyORB.CORBA_P.Server_Tools;
 pragma Elaborate (PolyORB.CORBA_P.Server_Tools);
 with PolyORB.POA_Types;
+
+with PolyORB.Setup.Test;
+with PolyORB.No_Tasking;
+with PolyORB.ORB.Task_Policies;
+--  XXX The above 3 units should not be with'ed here;
+--  they should be depended upon (if necessary) by an an
+--  automatic configuration system.
 
 with GNAT.Command_Line;  use GNAT.Command_Line;
 with Ada.Text_IO;
@@ -72,6 +79,13 @@ begin
       Obj : constant Object_Ptr
         := new Echo.Impl.Object;
    begin
+      PolyORB.Setup.Test.Initialize_Test_Server
+        (PolyORB.No_Tasking.Initialize'Access,
+         new PolyORB.ORB.Task_Policies.No_Tasking);
+      PolyORB.Setup.Test.Initialize_Test_Access_Points;
+      --  XXX PolyORB initialisation.
+      --  Should be automated by PolyORB Automatic Configurator.
+
       PolyORB.POA_Types.Servant_Access
         (To_PolyORB_Servant
          (CORBA.Impl.Object (Obj.all)'Access)).If_Desc.External_Name
@@ -114,6 +128,8 @@ begin
    Ada.Text_IO.Put_Line
      ("'" & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)) &
       "'");
+
+
 
    --  Launch the server
    Initiate_Server;

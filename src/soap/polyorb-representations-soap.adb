@@ -39,6 +39,7 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.Types;
 with PolyORB.Any;
 with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
 with Sequences.Unbounded;
 
@@ -51,10 +52,6 @@ package body PolyORB.Representations.SOAP is
    package L is new PolyORB.Log.Facility_Log ("polyorb.representations.soap");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
-
-
-   -----------------------------------------------------
-   ----------------------------------------------------
 
    function Get (Str : Stream_Char_Access)
        return Character

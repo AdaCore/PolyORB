@@ -39,31 +39,22 @@ with Ada.Strings.Fixed;  use Ada.Strings.Fixed;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 with Ada.Streams;
---  with Ada.Exceptions; use Ada.Exceptions;
 
 with PolyORB.Types;
 
 with PolyORB.Buffers;
---   with PolyORB.Opaque;
-with PolyORB.Representations.CDR;
+with PolyORB.Representations.Test;
 
 with PolyORB.Utils.HTTP; use PolyORB.Utils.HTTP;
 with PolyORB.Utils.HTTP_Messages; use PolyORB.Utils.HTTP_Messages;
 
-
---   with PolyORB.Protocols.SOAP;
-
-
---  with Interfaces;
-
 package body  PolyORB.Protocols.HTTP is
-
 
    End_Section : constant String := "";
 
-   --------------------------------
-   ---  Utilities functions
-   --------------------------------
+   -----------------------
+   -- Utility functions --
+   -----------------------
 
    -------------
    -- Key_For --
@@ -97,23 +88,18 @@ package body  PolyORB.Protocols.HTTP is
    end Image;
 
 
-   -----------
+   ------------
    -- Buffer --
-   -----------
+   ------------
 
    function To_Buffer (S : String)
       return Buffer_Access
    is
-      use PolyORB.Representations.CDR;
-      Buf : Buffer_Access := new Buffer_Type;
+      Buf : constant Buffer_Access := new Buffer_Type;
+      R : aliased PolyORB.Representations.Test.Rep_Test;
    begin
-      for I in S'Range loop
-         Marshall (Buf, PolyORB.Types.Char (S (I)));
-         --  Car := PolyORB.Types.Char (S (I));
-         --  Align_Marshall_Copy (Buffer, (1 => Stream_Element
-         --    (PolyORB.Types.Octet'(PolyORB.Types.Char'Pos
-         --   (Data)))), 1);
-      end loop;
+      PolyORB.Representations.Test.Marshall_String
+        (R'Access, Buf, S);
       return Buf;
    end To_Buffer;
 
@@ -193,7 +179,6 @@ package body  PolyORB.Protocols.HTTP is
    begin
       return URL.URI;
    end Get_URI;
-
 
    ------------------
    -- Send_Command --

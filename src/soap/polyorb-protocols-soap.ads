@@ -45,6 +45,8 @@ with PolyORB.Protocols.HTTP;
 
 package PolyORB.Protocols.SOAP is
 
+   pragma Elaborate_Body;
+
    use PolyORB.Representations.SOAP;
    use PolyORB.Binding_Data;
    use PolyORB.Protocols.HTTP;

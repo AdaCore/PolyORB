@@ -54,22 +54,25 @@ with PolyORB.Buffers;
 with PolyORB.Components;
 with PolyORB.Filters.Interface;
 
-with PolyORB.Log; use PolyORB.Log;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 
-with PolyORB.Protocols;           use PolyORB.Protocols;
-with PolyORB.Protocols.HTTP; use PolyORB.Protocols.HTTP;
-
+with PolyORB.Protocols;
+with PolyORB.Protocols.HTTP;
 with PolyORB.Utils.HTTP;
-with PolyORB.Utils.HTTP_Messages; use PolyORB.Utils.HTTP_Messages;
-
+with PolyORB.Utils.HTTP_Messages;
 
 package body PolyORB.Protocols.SOAP  is
 
    use PolyORB.Any;
    use PolyORB.Any.NVList;
-   use PolyORB.Types;
-   use PolyORB.Representations.SOAP.Any;
    use PolyORB.Buffers;
+   use PolyORB.Log;
+   use PolyORB.Protocols;
+   use PolyORB.Protocols.HTTP;
+   use PolyORB.Representations.SOAP.Any;
+   use PolyORB.Types;
+   use PolyORB.Utils.HTTP_Messages;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.soap");
    procedure O (Message : in String; Level : Log_Level := Debug)
