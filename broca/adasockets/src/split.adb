@@ -54,6 +54,7 @@ procedure Split is
    begin
       if Was_Space and then Column /= 0 then
          Put (' ');
+         Column := Column + 1;
          Was_Space := False;
       end if;
    end Print_Space_Maybe;
