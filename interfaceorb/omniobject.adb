@@ -155,7 +155,7 @@ package body OmniObject is
                         Orls : in System.Address ;
                         Orl_Op : in Interfaces.C.Strings.Chars_Ptr ;
                         Orl_Response_Expected : in Sys_Dep.C_Boolean)
-                        return Interfaces.C.Unsigned_Char is
+                        return Sys_Dep.C_Boolean is
       Ada_Orls_Ptr : Address_To_Giop_S.Object_Pointer ;
       Ada_Orl_Op : String := Interfaces.C.Strings.Value(Orl_OP) ;
       Ada_Orl_Response_Expected : Boolean ;

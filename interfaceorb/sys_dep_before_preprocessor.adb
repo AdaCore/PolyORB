@@ -14,6 +14,10 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
+
+with Interfaces.C ; use Interfaces.C ;
+with Ada.Text_IO ;
+
 package body Sys_Dep is
 
    -- System_Dependant_Error
@@ -27,7 +31,8 @@ package body Sys_Dep is
    function Boolean_C_To_Ada (C_Bool : C_Boolean) return Boolean is
    begin
       return C_Bool /= C_False ;
-      -- No use of Boolean C_True because of its changing value in C
+      -- no use of C_True since every C_Boolean except 0 is true
+      -- and not only C_True which value is 1
    end ;
 
    -- Boolean_Ada_To_C
@@ -54,4 +59,15 @@ begin
       -- is not 8 bits. Needed to ensure compatibility between C++
       -- and Ada definitions of the Corba type Octet
    end if ;
+
+#If HAS_Cplusplus_Bool
+#else
+   Ada.Text_IO.Put_Line ("Error in package Sys_Dep :");
+   Ada.Text_IO.Put_Line ("   The system variable Has_Cplusplus_Bool does not") ;
+   Ada.Text_IO.Put_Line ("   exist. Unable to compile. You have to change.") ;
+   Ada.Text_IO.Put_Line ("   the definition of C_Boolean in Sys_Dep.ads.") ;
+   raise System_Dependant_Error ;
+#end if ;
+
 end Sys_Dep ;
+

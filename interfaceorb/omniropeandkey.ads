@@ -103,7 +103,7 @@ private
 
    procedure C_Raise_Ada_Exception (Self : in Object'Class ;
                                     Msg : in Interfaces.C.Strings.Chars_Ptr) ;
-   pragma Export (CPP,C_Raise_Ada_Exception,"raise_ada_exception__18Ada_OmniRopeAndKeyPCc") ;
+   pragma Export (CPP,C_Raise_Ada_Exception,"raise_ada_exception") ;
    -- This function allows C code to raise Ada exception
    -- (see Ada_OmniRopeAndKey.hh)
 

@@ -49,7 +49,7 @@ Ada_OmniRopeAndKey::rope()
     return C_omniRopeAndKey->rope();
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_OmniRopeAndKey::rope without initialising object.");
+    raise_ada_exception (this, "Call of Ada_OmniRopeAndKey::rope without initialising object.");
   }
 };
 
@@ -62,7 +62,7 @@ Ada_OmniRopeAndKey::key()
     return C_omniRopeAndKey->key();
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_OmniRopeAndKey::key without initialising object.");
+    raise_ada_exception (this, "Call of Ada_OmniRopeAndKey::key without initialising object.");
   }
 };
   
@@ -75,11 +75,11 @@ Ada_OmniRopeAndKey::keysize()
     return C_omniRopeAndKey->keysize();
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_OmniRopeAndKey::keysize without initialising object.");
+    raise_ada_exception (this, "Call of Ada_OmniRopeAndKey::keysize without initialising object.");
   }
 };
 
-extern void
-Ada_OmniRopeAndKey::raise_ada_exception (const char *msg);
+//extern void
+//Ada_OmniRopeAndKey::raise_ada_exception (const char *msg);
 // See implementation in omniropeandkey.adb
 

@@ -1,5 +1,3 @@
-
-
 ###################################################################
 ##                    compilers                                  ##
 ###################################################################
@@ -50,14 +48,11 @@ OMNIORB_LIBS += -I $(OMNIORB_PATH)/src/lib/omniORB2/orbcore/
 all : sys_dep.o Ada_Rope.o rope.o Ada_OmniRopeAndKey.o omniropeandkey.o \
 omniobjectmanager.o omniObject_C2Ada.o Ada_OmniObject.o omniobject.o \
 giop.o Ada_Giop_s.o giop_s.o Ada_Giop_c.o giop_c.o Ada_netBufferedStream.o \
-netbufferedstream.o corba-boa.o
+netbufferedstream.o corba-object.o corba-boa.o
 
 
 sys_dep.o : sys_dep.ads sys_dep.adb
 	$(ADA_COMP) $(DO_NOT_LINK) sys_dep.adb
-
-sys_dep.ads : sys_dep_before_preprocessor.ads sys_dep_before_preprocessor.adb
-	$(ADA_PREP) sys_dep_before_preprocessor.ads sys_dep.ads def_file -u
 
 sys_dep.adb : sys_dep_before_preprocessor.ads sys_dep_before_preprocessor.adb
 	$(ADA_PREP) sys_dep_before_preprocessor.adb sys_dep.adb def_file -u
@@ -101,13 +96,14 @@ Ada_Giop_c.o : Ada_Giop_c.hh Ada_Giop_c.cc
 giop_c.o : giop_c.ads giop_c.adb
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) giop_c.adb
 
-
-
 Ada_netBufferedStream.o : Ada_netBufferedStream.hh Ada_netBufferedStream.cc
 	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_netBufferedStream.cc
 
 netbufferedstream.o : netbufferedstream.ads netbufferedstream.adb
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) netbufferedstream.adb
+
+corba-object.o : corba-object.ads #corba-object.adb
+	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) corba-object.ads
 
 corba-boa.o : corba-boa.ads corba-boa.adb
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) corba-boa.adb
@@ -142,5 +138,3 @@ membufferedstream.ali: membufferedstream.ads membufferedstream.adb
 ##############################################################
 clean :
 	rm *.ali *.o *~
-
-

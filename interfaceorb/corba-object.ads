@@ -10,7 +10,7 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
--- with Omniobject ;
+ with Omniobject ;
 
 -- with Omniobjectmanager, Omniropeandkey ;
 
@@ -190,10 +190,10 @@ package Corba.Object is
 
 private
 
-
    --------------------------------------------------
    ---     references to implementations          ---
    --------------------------------------------------
+
    type Ref is new Ada.Finalization.Controlled with record
       Dynamic_Type : Ref_Ptr := null ;
       Is_Nil : Boolean := False ;
