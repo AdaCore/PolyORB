@@ -33,7 +33,6 @@
 with Debug;  use Debug;
 with Osint;  use Osint;
 with Opt;    use Opt;
-with Output; use Output;
 with Types;  use Types;
 
 with System.WCh_Con; use System.WCh_Con;
@@ -552,7 +551,10 @@ package body Switch is
                   when 's' => Warning_Mode       := Suppress;
                   when 'e' => Warning_Mode       := Treat_As_Error;
                   when 'l' => Elab_Warnings      := True;
-                  when 'u' => Check_Unreferenced := True;
+
+                  when 'u' =>
+                     Check_Unreferenced := True;
+                     Check_Withs        := True;
 
                   when others =>
                      raise Bad_Switch;

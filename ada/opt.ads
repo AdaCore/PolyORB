@@ -38,7 +38,6 @@
 --  the binder or gnatmake. The comments indicate which options are used by
 --  which programs (GNAT, GNATF, GNATBIND, GNATMAKE).
 
-with Hostparm;       use Hostparm;
 with Types;          use Types;
 with System.WCh_Con; use System.WCh_Con;
 
@@ -94,10 +93,6 @@ package Opt is
    --  Force brief error messages to standard error, even if verbose mode is
    --  set (so that main error messages go to standard output).
 
-   Check_Readonly_Files : Boolean := False;
-   --  GNATMAKE
-   --  Set to True to check readonly files during the make process.
-
    Check_Object_Consistency : Boolean := False;
    --  GNATBIND, GNATMAKE
    --  Set to True to check whether every object file is consistent with
@@ -109,6 +104,10 @@ package Opt is
    --  GNATBIND
    --  Set to True to do checks only, no output of binder file.
 
+   Check_Readonly_Files : Boolean := False;
+   --  GNATMAKE
+   --  Set to True to check readonly files during the make process.
+
    Check_Source_Files : Boolean := True;
    --  GNATBIND
    --  Set to True to enable consistency checking for any source files that
@@ -119,6 +118,11 @@ package Opt is
    Check_Unreferenced : Boolean := False;
    --  GNAT
    --  Set to True to enable checking for unreferenced variables
+
+   Check_Withs : Boolean := False;
+   --  GNAT
+   --  Set to True to enable checking for unused withs, and also the case
+   --  of withing a package and using none of the entities in the package.
 
    Compile_Only : Boolean := False;
    --  GNATMAKE

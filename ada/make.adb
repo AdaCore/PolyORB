@@ -37,7 +37,6 @@ with Opt;
 with Osint;    use Osint;
 with Gnatvsn;
 with Output;   use Output;
-with Sdefault;
 with Switch;   use Switch;
 with Table;
 with Types;    use Types;
