@@ -98,6 +98,6 @@ begin
 
 exception
    when others =>
-      Output ("Unexcpected exception", False);
+      Output ("Unexecpected exception", False);
       End_Report;
 end Test000;
