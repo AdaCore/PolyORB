@@ -37,6 +37,7 @@ with CORBA.ORB;
 
 with PolyORB.CORBA_P.Initial_References;
 
+with PolyORB.RTCORBA_P.Mutex;
 with PolyORB.RTCORBA_P.PriorityModelPolicy;
 with PolyORB.RTCORBA_P.ThreadPoolManager;
 with PolyORB.RTCORBA_P.To_ORB_Priority;
@@ -47,6 +48,7 @@ pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Lanes;
 with PolyORB.Smart_Pointers;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Priorities;
 with PolyORB.Types;
 with PolyORB.Utils.Strings.Lists;
@@ -99,10 +101,20 @@ package body RTCORBA.RTORB is
    ------------------
 
    function Create_Mutex (Self : in Ref) return RTCORBA.Mutex.Ref is
+      pragma Unreferenced (Self);
+
+      use PolyORB.Smart_Pointers;
+
+      Result : RTCORBA.Mutex.Ref;
+      Mutex_E : constant Entity_Ptr
+        := new PolyORB.RTCORBA_P.Mutex.Mutex_Entity;
+
    begin
-      pragma Warnings (Off); --  WAG:3.15
-      return Create_Mutex (Self);
-      pragma Warnings (On); --  WAG:3.15
+      PolyORB.Tasking.Mutexes.Create
+        (PolyORB.RTCORBA_P.Mutex.Mutex_Entity (Mutex_E.all).Mutex);
+      RTCORBA.Mutex.Set (Result, Mutex_E);
+
+      return Result;
    end Create_Mutex;
 
    -------------------
@@ -110,13 +122,17 @@ package body RTCORBA.RTORB is
    -------------------
 
    procedure Destroy_Mutex (Self : in Ref; The_Mutex : in RTCORBA.Mutex.Ref) is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
-      pragma Unreferenced (The_Mutex);
-      pragma Warnings (On); --  WAG:3.15
+
+      Mutex : PolyORB.Tasking.Mutexes.Mutex_Access
+        := PolyORB.RTCORBA_P.Mutex.Mutex_Entity
+        (RTCORBA.Mutex.Entity_Of (The_Mutex).all).Mutex;
 
    begin
-      null;
+      PolyORB.Tasking.Mutexes.Destroy (Mutex);
+
+      PolyORB.RTCORBA_P.Mutex.Mutex_Entity
+        (RTCORBA.Mutex.Entity_Of (The_Mutex).all).Mutex := null;
    end Destroy_Mutex;
 
    -----------------------

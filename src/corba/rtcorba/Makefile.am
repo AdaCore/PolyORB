@@ -5,6 +5,7 @@ include $(srcdir)/../../Makefile.common
 alidir = $(includedir)/polyorb/corba/rtcorba
 
 ADA_SPECS_WITH_BODY = \
+		polyorb-rtcorba_p-mutex.ads \
 		polyorb-rtcorba_p-prioritymodelpolicy.ads \
 		polyorb-rtcorba_p-threadpoolmanager.ads \
 		polyorb-rtcorba_p-to_orb_priority.ads \

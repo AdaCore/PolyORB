@@ -597,6 +597,8 @@ src/corba/portableserver.adb
 src/corba/portableserver.ads
 src/corba/rtcorba/Makefile.am
 src/corba/rtcorba/Makefile.in
+src/corba/rtcorba/polyorb-rtcorba_p-mutex.adb
+src/corba/rtcorba/polyorb-rtcorba_p-mutex.ads
 src/corba/rtcorba/polyorb-rtcorba_p-prioritymodelpolicy.adb
 src/corba/rtcorba/polyorb-rtcorba_p-prioritymodelpolicy.ads
 src/corba/rtcorba/polyorb-rtcorba_p-setup.adb

@@ -2,16 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                        R T C O R B A . M U T E X                         --
+--              P O L Y O R B . R T C O R B A _ P . M U T E X               --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --            Copyright (C) 2004 Free Software Foundation, Inc.             --
---                                                                          --
--- This specification is derived from the CORBA Specification, and adapted  --
--- for use with PolyORB. The copyright notice above, and the license        --
--- provisions that follow apply solely to the contents neither explicitely  --
--- nor implicitely specified by the CORBA Specification defined by the OMG. --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,29 +33,16 @@
 
 --  $Id$
 
+with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Mutexes;
-with PolyORB.RTCORBA_P.Mutex;
 
-package body RTCORBA.Mutex is
+package PolyORB.RTCORBA_P.Mutex is
 
-   ----------
-   -- Lock --
-   ----------
+   type Mutex_Entity is new PolyORB.Smart_Pointers.Non_Controlled_Entity
+     with record
+        Mutex : PolyORB.Tasking.Mutexes.Mutex_Access;
+     end record;
 
-   procedure Lock (Self : in Ref) is
-   begin
-      PolyORB.Tasking.Mutexes.Enter
-        (PolyORB.RTCORBA_P.Mutex.Mutex_Entity (Entity_Of (Self).all).Mutex);
-   end Lock;
+   procedure Finalize (Self : in out Mutex_Entity);
 
-   ------------
-   -- Unlock --
-   ------------
-
-   procedure Unlock (Self : in Ref) is
-   begin
-      PolyORB.Tasking.Mutexes.Leave
-        (PolyORB.RTCORBA_P.Mutex.Mutex_Entity (Entity_Of (Self).all).Mutex);
-   end Unlock;
-
-end RTCORBA.Mutex;
+end PolyORB.RTCORBA_P.Mutex;
