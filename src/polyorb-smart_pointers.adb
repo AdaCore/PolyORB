@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.adb#29 $
+--  $Id: //droopi/main/src/polyorb-smart_pointers.adb#30 $
 
 with Ada.Unchecked_Deallocation;
 with Ada.Tags;
@@ -102,7 +102,8 @@ package body PolyORB.Smart_Pointers is
 
       if Obj.Counter = 0 then
 
-         pragma Debug (O ("Dec_Usage: deallocating."));
+         pragma Debug (O ("Dec_Usage: deallocating "
+                          & Ada.Tags.External_Tag (Obj.all'Tag)));
 
          Leave (Counter_Lock);
          --  Releasing Counter_Lock at this stage is sufficient to
@@ -254,7 +255,6 @@ package body PolyORB.Smart_Pointers is
      (The_Ref : Ref)
      return Entity_Ptr is
    begin
-      pragma Debug (O ("Entity_Of"));
       return The_Ref.A_Ref;
    end Entity_Of;
 
