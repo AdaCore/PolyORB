@@ -13,6 +13,9 @@ Bugs fixed include:
   operation may raise an exception has been added.
   (Problem reported by Mehtap Kologlu of Eurocontrol, PR #43).
 
+  Interoperability problems with TAO clients fixed.
+  (Problem reported by Olliver Kellog, PR #42).
+
 New features in version 1.0pre3
 ===============================
 
