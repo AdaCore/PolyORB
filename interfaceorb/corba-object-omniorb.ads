@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.5 $
+--                            $Revision: 1.6 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -40,6 +40,7 @@ with CORBA.Object;
 with AdaBroker.OmniORB;
 with AdaBroker.MemBufferedStream;
 with AdaBroker.NetBufferedStream;
+with AdaBroker.GIOP_S;
 
 package CORBA.Object.OmniORB is
 
@@ -53,9 +54,13 @@ package CORBA.Object.OmniORB is
       To   : out CORBA.Object.Ref'Class);
    --  Return a Ref'Class out of an IOR (see CORBA.ORB).
 
-   --  function Resolve_Initial_References
-   --    (Identifier : in CORBA.String)
-   --    return CORBA.Object.Ref;
+   type Dispatch_Procedure is access
+     procedure (Self                  : AdaBroker.OmniORB.ImplObject_Ptr;
+                Orls                  : in out AdaBroker.GIOP_S.Object;
+                Orl_Op                : in Standard.String;
+                Orl_Response_Expected : in CORBA.Boolean;
+                Success               : out CORBA.Boolean);
+   --  This type is made to handle dispatching calls from the ORB.
 
    ----------------------------
    -- Marshalling Operations --
@@ -106,9 +111,10 @@ package CORBA.Object.OmniORB is
    type Ref_Ptr is access all Ref'Class;
 
    procedure Register
-     (The_Rep : in CORBA.String;
-      The_Ref : in Ref'Class);
-   --  Register a repository id and a nil ref.
+     (The_Rep  : in CORBA.String;
+      The_Ref  : in Ref'Class;
+      Dispatch : in Dispatch_Procedure);
+   --  Register a repository id, a nil ref and a dispatch procedure.
 
    --  Interfaces are registered in a table and we associate an index to
    --  each interface.
@@ -123,9 +129,10 @@ package CORBA.Object.OmniORB is
    function Tag_To_Id  (Self : Ref'Class) return Interfaces.C.int;
    --  Find interface index using the ref tag.
 
-   function Id_To_Ref  (Self : Interfaces.C.int) return Ref_Ptr;
-   function Id_To_Rep  (Self : Interfaces.C.int) return CORBA.String;
-   --  Return Ref or Rep of interface of index Self.
+   function Id_To_Ref      (Self : Interfaces.C.int) return Ref_Ptr;
+   function Id_To_Rep      (Self : Interfaces.C.int) return CORBA.String;
+   function Id_To_Dispatch (Self : Interfaces.C.int) return Dispatch_Procedure;
+   --  Return Ref, Rep or Dispatch of interface of index Self.
 
    function To_Ref
      (Self   : in AdaBroker.OmniORB.ImplObject'Class;

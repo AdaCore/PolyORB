@@ -1,59 +1,4 @@
-///////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////
-////                                                               ////
-////                         AdaBroker                             ////
-////                                                               ////
-////                 class OmniObject_C2Ada                        ////
-////                                                               ////
-////                                                               ////
-////   Copyright (C) 1999 ENST                                     ////
-////                                                               ////
-////   This file is part of the AdaBroker library                  ////
-////                                                               ////
-////   The AdaBroker library is free software; you can             ////
-////   redistribute it and/or modify it under the terms of the     ////
-////   GNU Library General Public License as published by the      ////
-////   Free Software Foundation; either version 2 of the License,  ////
-////   or (at your option) any later version.                      ////
-////                                                               ////
-////   This library is distributed in the hope that it will be     ////
-////   useful, but WITHOUT ANY WARRANTY; without even the implied  ////
-////   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ////
-////   PURPOSE.  See the GNU Library General Public License for    ////
-////   more details.                                               ////
-////                                                               ////
-////   You should have received a copy of the GNU Library General  ////
-////   Public License along with this library; if not, write to    ////
-////   the Free Software Foundation, Inc., 59 Temple Place -       ////
-////   Suite 330, Boston, MA 02111-1307, USA                       ////
-////                                                               ////
-////                                                               ////
-////                                                               ////
-////   Description                                                 ////
-////   -----------                                                 ////
-////     This class is a descendant of the omniObject              ////
-////     class. It provides the sames functions plus a pointer     ////
-////     on a Ada_OmniObject.                                      ////
-////                                                               ////
-////     Furthermore, the function dipatch is implemented and      ////
-////     simply calls the Ada one. It allows the C code of         ////
-////     omniORB to call the Ada objects.                          ////
-////                                                               ////
-////                                                               ////
-////   authors : Sebastien Ponce, Fabien Azavant                   ////
-////   date    : 02/28/99                                          ////
-////                                                               ////
-///////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////
-
-
 #include "omniObject_C2Ada.hh"
-
-// DEBUG is defined at the beginning of each file
-// and undefined at the end of each file
-//#define DEBUG
-
-
 
 // Constructor
 //------------
@@ -72,12 +17,13 @@ omniObject_C2Ada::omniObject_C2Ada(const char *repoId,
 				   _CORBA_Octet *key,
 				   size_t keysize,
 				   IOP::TaggedProfileList *profiles,
-				   _CORBA_Boolean release) : omniObject (repoId,
-									  r,
-									  key,
-									  keysize,
-									  profiles,
-									  release)
+				   _CORBA_Boolean release)
+  : omniObject (repoId,
+		r,
+		key,
+		keysize,
+		profiles,
+		release)
 {
   // calls the omniObject constructor
 };

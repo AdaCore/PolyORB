@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.6 $
+--                            $Revision: 1.7 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -40,7 +40,7 @@ with Interfaces.C.Strings;
 
 with CORBA.Object;
 
-with AdaBroker.IOP;        use AdaBroker.IOP;
+with AdaBroker.IOP;     use AdaBroker.IOP;
 with AdaBroker.OmniORB; use AdaBroker.OmniORB;
 
 with AdaBroker.Debug;
@@ -53,9 +53,10 @@ package body CORBA.Object.OmniORB is
    procedure O is new AdaBroker.Debug.Output (Flag);
 
    type Interface is record
-      Ref  : Ref_Ptr;
-      Rep  : CORBA.String;
-      Tag  : CORBA.String;
+      The_Ref  : Ref_Ptr;
+      The_Rep  : CORBA.String;
+      The_Tag  : CORBA.String;
+      Dispatch : Dispatch_Procedure;
    end record;
 
    Table : array (int range 1 .. 256) of Interface;
@@ -187,28 +188,55 @@ package body CORBA.Object.OmniORB is
    --------------
 
    procedure Register
-     (The_Rep : in CORBA.String;
-      The_Ref : in CORBA.Object.Ref'Class)
+     (The_Rep  : in CORBA.String;
+      The_Ref  : in CORBA.Object.Ref'Class;
+      Dispatch : in Dispatch_Procedure)
    is
       C_RepoID : Strings.chars_ptr;
+      Index    : int;
    begin
-      --  The ORB has to know how to create new proxy objects when we ask
-      --  him to do so (out of an IOR for example). It keeps a global
-      --  variable which is a list of proxyObjectFactories. They all have a
-      --  method newProxyObject which construct a proxy object of the
-      --  desired type
+      if Dispatch /= null then
+         pragma Debug (O ("Register impl of " &
+                          To_Standard_String (The_Rep)));
+         null;
+      else
+         pragma Debug (O ("Register ref of " &
+                          To_Standard_String (The_Rep)));
+         null;
+      end if;
 
-      C_RepoID := Strings.New_String (CORBA.To_Standard_String (The_Rep));
+      Index := 1;
+      while Index <= Last
+        and then Table (Index).The_Rep /= The_Rep
+      loop
+         Index := Index + 1;
+      end loop;
 
-      --  Never deallocated because it is stored in a global variable in
-      --  omniORB (proxyStubs).
+      if Index > Last then
+         --  The ORB has to know how to create new proxy objects when
+         --  we ask him to do so (out of an IOR for example). It keeps
+         --  a global variable which is a list of
+         --  proxyObjectFactories. They all have a method
+         --  newProxyObject which construct a proxy object of the
+         --  desired type
 
-      C_Create_Proxy_Object_Factory (C_RepoID);
+         C_RepoID := Strings.New_String (CORBA.To_Standard_String (The_Rep));
 
-      Last := Last + 1;
-      Table (Last) := (new Ref'Class'(The_Ref),
-                       The_Rep,
-                       To_CORBA_String (Expanded_Name (The_Ref'Tag)));
+         --  Never deallocated because it is stored in a global
+         --  variable in omniORB (proxyStubs).
+
+         C_Create_Proxy_Object_Factory (C_RepoID);
+
+         Last := Last + 1;
+         Table (Last) := (new Ref'Class'(The_Ref),
+                          The_Rep,
+                          To_CORBA_String (Expanded_Name (The_Ref'Tag)),
+                          Dispatch);
+
+      elsif Table (Index).Dispatch = null then
+         Table (Index).Dispatch := Dispatch;
+      end if;
+
       if The_Rep = CORBA.Object.Repository_Id then
          Base := Last;
       end if;
@@ -221,7 +249,7 @@ package body CORBA.Object.OmniORB is
    function Rep_To_Id  (Self : CORBA.String) return int is
    begin
       for I in 1 .. Last loop
-         if Table (I).Rep = Self then
+         if Table (I).The_Rep = Self then
             return I;
          end if;
       end loop;
@@ -236,7 +264,7 @@ package body CORBA.Object.OmniORB is
       Tag : CORBA.String := To_CORBA_String (Expanded_Name (Self'Tag));
    begin
       for I in 1 .. Last loop
-         if Table (I).Tag = Tag then
+         if Table (I).The_Tag = Tag then
             return I;
          end if;
       end loop;
@@ -268,7 +296,7 @@ package body CORBA.Object.OmniORB is
    function Id_To_Ref  (Self : int) return Ref_Ptr is
    begin
       if 1 <= Self and then  Self <= Last then
-         return Table (Self).Ref;
+         return Table (Self).The_Ref;
       end if;
       raise Constraint_Error;
    end Id_To_Ref;
@@ -280,10 +308,22 @@ package body CORBA.Object.OmniORB is
    function Id_To_Rep  (Self : int) return CORBA.String is
    begin
       if 1 <= Self and then  Self <= Last then
-         return Table (Self).Rep;
+         return Table (Self).The_Rep;
       end if;
       raise Constraint_Error;
    end Id_To_Rep;
+
+   ---------------
+   -- Id_To_Rep --
+   ---------------
+
+   function Id_To_Dispatch  (Self : int) return Dispatch_Procedure is
+   begin
+      if 1 <= Self and then  Self <= Last then
+         return Table (Self).Dispatch;
+      end if;
+      raise Constraint_Error;
+   end Id_To_Dispatch;
 
    ------------
    -- To_Ref --
@@ -445,7 +485,7 @@ package body CORBA.Object.OmniORB is
 
 begin
 
-   Register (CORBA.Object.Repository_Id, CORBA.Object.Nil_Ref);
+   Register (CORBA.Object.Repository_Id, CORBA.Object.Nil_Ref, null);
    --  Register CORBA.Object root interface. Work around for
    --  elaboration circularity.
 

@@ -2,6 +2,18 @@ with Interfaces.C;
 
 package AdaBroker.Sysdep is
 
+   pragma Linker_Options ("-ladabroker");
+   @STDCPP@pragma Linker_Options ("-lstdc++");
+   pragma Linker_Options ("-lomniORB2");
+   pragma Linker_Options ("-lomniDynamic2");
+   pragma Linker_Options ("-lomnithread");
+   pragma Linker_Options ("-lpthread");
+   pragma Linker_Options ("-lposix4");
+   @SOCKET@pragma Linker_Options ("-lsocket");
+   @SOCKET@pragma Linker_Options ("-lnsl");
+   pragma Linker_Options ("-ltcpwrapGK");
+
+
    type Bool is new @BOOL@;
 
    True  : Bool := Bool (1);

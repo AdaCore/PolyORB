@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.15 $
+--                            $Revision: 1.16 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -39,63 +39,127 @@
 --  prefix.)
 
 with AdaBroker.Sysdep;  use AdaBroker.Sysdep;
-with AdaBroker.OmniORB; use AdaBroker.OmniORB;
+with AdaBroker.OmniORB;
+with Interfaces.C;
+with Interfaces.C.Strings;
+with CORBA.ORB.OmniORB;
+with CORBA.Command_Line;
 
 package body CORBA.BOA is
 
-   -------------------------------
-   -- C_Implementation_Is_Ready --
-   -------------------------------
+   procedure Impl_Shutdown (Self : in System.Address);
+   pragma Import (CPP, Impl_Shutdown, "impl_shutdown__FPQ25CORBA3BOA");
 
-   procedure C_Implementation_Is_Ready
-     (Self                  : in Object;
-      ImplementationDef_Ptr : in System.Address;
-      Non_Blocking          : in Bool);
+   procedure Destroy (Self : in System.Address);
+   pragma Import (CPP, Destroy, "destroy__FPQ25CORBA3BOA");
+
+   ----------------
+   -- C_BOA_Init --
+   ----------------
+
+   function C_BOA_Init
+     (The_ORB : in System.Address;
+      Argc    : in Interfaces.C.int;
+      Argv    : in System.Address;
+      BOAName : in Interfaces.C.Strings.chars_ptr)
+      return System.Address;
+
+   pragma Import (CPP, C_BOA_Init, "Ada_BOA_init__FPQ25CORBA3ORBiPPcPCc");
+   --  Calls Ada_Boa_Init. See Ada_CORBA_ORB.hh.
+
+   The_BOA : System.Address;
+
+   --------------
+   -- Init --
+   --------------
+
+   procedure Init
+     (Identifier : in Standard.String)
+   is
+      C_Identifier : Interfaces.C.Strings.chars_ptr;
+   begin
+      C_Identifier := Interfaces.C.Strings.New_String (Identifier);
+
+      The_BOA := C_BOA_Init
+        (CORBA.ORB.OmniORB.The_ORB,
+         CORBA.Command_Line.Argc,
+         CORBA.Command_Line.Argv,
+         C_Identifier);
+
+      Interfaces.C.Strings.Free (C_Identifier);
+   end Init;
+
+   ---------------------
+   -- C_Impl_Is_Ready --
+   ---------------------
+
+   procedure C_Impl_Is_Ready
+     (The_BOA      : in System.Address;
+      Impl         : in System.Address;
+      Non_Blocking : in Bool);
    pragma Import
-     (CPP, C_Implementation_Is_Ready,
+     (CPP, C_Impl_Is_Ready,
       "impl_is_ready__FPQ25CORBA3BOAPQ25CORBA17ImplementationDefb");
    --  Corresponds to Ada_CORBA_Boa method impl is ready see
    --  Ada_CORBA_Boa.hh
 
-   -----------------------------
-   -- Implementation_Is_Ready --
-   -----------------------------
-   procedure Implementation_Is_Ready
-     (Self         : in Object;
-      Non_Blocking : in Boolean := False)
+   -------------------
+   -- Impl_Is_Ready --
+   -------------------
+
+   procedure Impl_Is_Ready
+     (Non_Blocking : in Boolean := False)
    is
       Tmp : System.Address    := System.Null_Address;
       NB  : Bool := To_Bool (Non_Blocking);
    begin
-      C_Implementation_Is_Ready (Self, Tmp, NB);
-   end Implementation_Is_Ready;
+      C_Impl_Is_Ready (The_BOA, Tmp, NB);
+   end Impl_Is_Ready;
 
    ---------------------
    -- Object_Is_Ready --
    ---------------------
 
    procedure Object_Is_Ready
-     (Self : in Object;
-      Obj  : in ImplObject'Class)
+     (Obj : in AdaBroker.OmniORB.ImplObject'Class)
    is
    begin
-      --  It does not take the BOA into account because thereis only one
-      --  BOA in omniORB2. ( See corbaBoa.cc)
-      Object_Is_Ready (Obj);
+      AdaBroker.OmniORB.Initialize_Local_Object (Obj);
+
+      --  It does not take the BOA into account because there is only
+      --  one BOA in omniORB2. (See corbaBoa.cc)
+      AdaBroker.OmniORB.Object_Is_Ready (Obj);
    end Object_Is_Ready;
 
-   ---------------------
-   -- Object_Is_Ready --
-   ---------------------
+   --------------------
+   -- Dispose_Object --
+   --------------------
 
    procedure Dispose_Object
-     (Self : in Object;
-      Obj  : in ImplObject'Class)
+     (Obj : in AdaBroker.OmniORB.ImplObject'Class)
    is
    begin
-      --  It does not take the BOA into account because thereis only one
-      --  BOA in omniORB2. ( See corbaBoa.cc)
-      Dispose_Object (Obj);
+      --  It does not take the BOA into account because there is only
+      --  one BOA in omniORB2. (See corbaBoa.cc)
+      AdaBroker.OmniORB.Dispose_Object (Obj);
    end Dispose_Object;
+
+   -------------------
+   -- Impl_Shutdown --
+   -------------------
+
+   procedure Impl_Shutdown is
+   begin
+      Impl_Shutdown (The_BOA);
+   end Impl_Shutdown;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy is
+   begin
+      Destroy (The_BOA);
+   end Destroy;
 
 end CORBA.BOA;

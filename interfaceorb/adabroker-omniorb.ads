@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.5 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -72,6 +72,11 @@ package AdaBroker.OmniORB is
    ----------------------------
    -- Controlling Operations --
    ----------------------------
+
+   procedure Initialize
+     (Self   : in out ImplObject;
+      RepoID : in CORBA.String);
+   --  Create the underlying OmniObject both objects point on one another
 
    procedure Initialize (Self : in out ImplObject);
    --  Create the underlying OmniObject both objects point on one another
@@ -140,23 +145,8 @@ package AdaBroker.OmniORB is
    --  This procedure marshalls the object Obj into the stream S
 
 
-   type Dispatch_Procedure is access
-     procedure (Self                  : ImplObject_Ptr;
-                Orls                  : in out GIOP_S.Object;
-                Orl_Op                : in Standard.String;
-                Orl_Response_Expected : in CORBA.Boolean;
-                Success               : out CORBA.Boolean);
-   --  This type is used to make the dispatching call.  this type is made
-   --  to handle dispatching calls from the ORB. This procedure cannot be
-   --  made a primitive of ImplObject. Otherwise it would have to
-   --  for each descendant in the user's code.
-
-   procedure Initialize_Local_Object
-     (Self     : in out ImplObject;
-      RepoID   : in CORBA.String;
-      Dispatch : in Dispatch_Procedure);
-   --  Call C++ Init operation to set the Init_OK boolean to true and
-   --  to set repoID and Dispatch of this object.
+   procedure Initialize_Local_Object (Self : in ImplObject);
+   --  Call C++ Init operation to set the Init_OK boolean to true.
 
 
    -------------------------------
@@ -324,7 +314,6 @@ private
    type ImplObject is
      abstract new Ada.Finalization.Limited_Controlled with record
         OmniObj  : OmniObject_Ptr;
-        Dispatch : Dispatch_Procedure;
      end record;
 
    --  OmniObject this type is imported from C++ it is the equivalent of

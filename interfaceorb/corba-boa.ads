@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.24 $
+--                            $Revision: 1.25 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -33,27 +33,19 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System;
-
 with AdaBroker.OmniORB;
 
 package CORBA.BOA is
 
-   type Object is private;
+   procedure Init (Identifier : in Standard.String);
 
-   procedure Implementation_Is_Ready
-     (Self         : in Object;
-      Non_Blocking : in Boolean := False);
+   procedure Impl_Is_Ready (Non_Blocking : in Boolean := False);
    --  Calling this function will cause the BOA to start accepting requests
    --  from other address spaces.  Default behaviour will block
    --  indefinitely on this call if the Non_Blocking argument is not set to
    --  True
 
-   procedure Implementation_Shutdown (Self : in Object);
-   pragma Import
-     (CPP, Implementation_Shutdown, "impl_shutdown__FPQ25CORBA3BOA");
-   --  omniORB2 specific.
-   --
+   procedure Impl_Shutdown;
    --  This is the reverse of impl_is_ready().  When this call returns, all
    --  the internal threads and network connections will be shutdown.  Any
    --  thread blocking on impl_is_ready is unblocked.  When this call
@@ -66,10 +58,7 @@ package CORBA.BOA is
    --  waiting on itself to complete the request.
 
 
-   procedure Destroy (Self : in Object);
-   pragma Import
-     (CPP, Destroy, "destroy__FPQ25CORBA3BOA");
-   --  omniORB2 specific.
+   procedure Destroy;
    --
    --  Calling this function will destroy this BOA. The function will call
    --  impl_shutdown() implicitly if it has not been called. When this call
@@ -89,22 +78,16 @@ package CORBA.BOA is
 
 
    procedure Object_Is_Ready
-     (Self : in Object;
-      Obj  : in AdaBroker.OmniORB.ImplObject'Class);
+     (Obj  : in AdaBroker.OmniORB.ImplObject'Class);
    --  Tell the BOA that this object is ready to accept connexions it has
    --  to be done once (and only once) for each local object.  The user HAS
    --  to call this function, it cannot be called automatically.
 
    procedure Dispose_Object
-     (Self : in Object;
-      Obj  : in AdaBroker.OmniORB.ImplObject'Class);
+     (Obj  : in AdaBroker.OmniORB.ImplObject'Class);
    --  Tell the BOA that this object is going to be destroyed and that it
    --  should not accept connexions any longer The user HAS to call this
    --  function, it cannot be called automatically.
-
-private
-
-   type Object is new System.Address;
 
 end CORBA.BOA;
 
