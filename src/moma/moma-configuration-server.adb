@@ -38,12 +38,14 @@ with MOMA.Provider.Routers;
 with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Minimal_Servant.Tools;
+with PolyORB.MOMA_P.Exceptions;
 
 package body MOMA.Configuration.Server is
 
    use PolyORB.Configuration;
-   use PolyORB.Minimal_Servant.Tools;
+   use PolyORB.Exceptions;
    use PolyORB.Log;
+   use PolyORB.Minimal_Servant.Tools;
    use PolyORB.References;
 
    use MOMA.Types;
@@ -59,8 +61,6 @@ package body MOMA.Configuration.Server is
    procedure Create_Message_Pool (Pool : MOMA.Types.Message_Pool;
                                   Ref  : out PolyORB.References.Ref)
    is
-      use PolyORB.Exceptions;
-
       MOMA_Obj : constant MOMA.Provider.Message_Pool.Object_Acc
        := new MOMA.Provider.Message_Pool.Object;
 
@@ -77,7 +77,7 @@ package body MOMA.Configuration.Server is
                         Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         PolyORB.MOMA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
       MOMA.Provider.Message_Pool.Initialize (MOMA_Obj, Pool);
@@ -92,8 +92,6 @@ package body MOMA.Configuration.Server is
                             Router_Ref : PolyORB.References.Ref :=
                                             PolyORB.References.Nil_Ref)
    is
-      use PolyORB.Exceptions;
-
       Router : constant MOMA.Provider.Routers.Router_Acc
        := new MOMA.Provider.Routers.Router;
 
@@ -110,7 +108,7 @@ package body MOMA.Configuration.Server is
                         Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         PolyORB.MOMA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
       MOMA.Provider.Routers.Set_Id (Router.all, Id);

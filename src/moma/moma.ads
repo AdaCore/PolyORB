@@ -39,4 +39,7 @@ package MOMA is
 
    pragma Pure (MOMA);
 
+   Internal_Error : exception;
+   --  Raised when an interal error occurs within MOMA.
+
 end MOMA;

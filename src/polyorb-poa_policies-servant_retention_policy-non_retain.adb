@@ -83,9 +83,8 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
          then
             Throw
               (Error,
-               Invalid_Policy'Identity,
-               new System_Exception_Members'(Minor => 0,
-                                             Completed => Completed_No));
+               InvalidPolicy_E,
+               InvalidPolicy_Members'(Index => 0));
          end if;
       end loop;
 

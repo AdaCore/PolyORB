@@ -30,21 +30,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-exceptions-stack.ads#1 $
+--  $Id: //droopi/main/src/polyorb-exceptions-stack.ads#2 $
 
 package PolyORB.Exceptions.Stack is
 
    pragma Elaborate_Body;
 
    procedure Get_Members
-     (Exc_Occ : in  Exception_Occurrence;
+     (Exc_Occ : in  Ada.Exceptions.Exception_Occurrence;
       Exc_Mbr : out Exception_Members'Class);
    --  Find the members object associated to a given exception occurrence.
    --  Remove it from the stack and return it. Raise CORBA.Imp_Limit if
    --  the members are not in this stack.
 
    procedure Purge_Members
-     (Exc_Occ : in Exception_Occurrence);
+     (Exc_Occ : in Ada.Exceptions.Exception_Occurrence);
    --  Remove the members object associated to a given exception occurrence.
    --  No exception is raised.
 

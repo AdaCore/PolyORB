@@ -107,9 +107,9 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
    begin
       if Hint = null then
          Throw (Error,
-                Bad_Param'Identity,
-                new System_Exception_Members'(Minor => 0,
-                                              Completed => Completed_No));
+                Bad_Param_E,
+                System_Exception_Members'(Minor => 0,
+                                          Completed => Completed_No));
       end if;
 
       U_Oid :=

@@ -255,17 +255,4 @@ package PolyORB.POA is
    Invalid_Object_Id : exception renames PolyORB.POA_Types.Invalid_Object_Id;
    Invalid_Method    : exception renames PolyORB.POA_Types.Invalid_Method;
 
-   Invalid_Name           : exception;
-   Invalid_Policy         : exception;
-   Adapter_Inactive       : exception;
-   Adapter_Already_Exists : exception;
-   Servant_Not_Active     : exception;
-   Servant_Already_Active : exception;
-   Transient              : exception;
-   Bad_Param              : exception;
-   Object_Already_Active  : exception;
-   Object_Not_Active      : exception;
-   Object_Not_Exist       : exception;
-   --  Inspired from equivalent CORBA POA exceptions.
-
 end PolyORB.POA;

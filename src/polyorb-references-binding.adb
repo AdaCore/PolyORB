@@ -100,9 +100,9 @@ package body PolyORB.References.Binding is
 
       if Is_Nil (R) then
          Throw (Error,
-                Invalid_Reference'Identity,
-                new System_Exception_Members'(Minor => 0,
-                                              Completed => Completed_No));
+                Inv_Objref_E,
+                System_Exception_Members'(Minor => 0,
+                                          Completed => Completed_No));
          return;
       end if;
 
@@ -148,9 +148,9 @@ package body PolyORB.References.Binding is
         or else Best_Preference = Profile_Preference'First
       then
          Throw (Error,
-                Invalid_Reference'Identity,
-                new System_Exception_Members'(Minor => 0,
-                                              Completed => Completed_No));
+                Inv_Objref_E,
+                System_Exception_Members'(Minor => 0,
+                                          Completed => Completed_No));
          return;
       end if;
 

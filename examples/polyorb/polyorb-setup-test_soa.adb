@@ -100,7 +100,7 @@ package body PolyORB.Setup.Test_SOA is
       --  Register it with the SOA.
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         raise Program_Error;
       end if;
 
       Obj_Adapters.Simple.Set_Interface_Description

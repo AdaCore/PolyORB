@@ -142,7 +142,7 @@ package body Ada_Be.Idl2Ada.Skel is
             if not Abst (Node) then
                --  No skel or impl packages are generated for
                --  abstract interfaces.
-               Add_With (CU, "PolyORB.Exceptions");
+               Add_With (CU, "PolyORB.CORBA_P.Exceptions");
                Add_With (CU, "PortableServer",
                          Use_It => False,
                          Elab_Control => Elaborate_All);
@@ -342,7 +342,7 @@ package body Ada_Be.Idl2Ada.Skel is
       NL (CU);
       PL (CU, "else");
       II (CU);
-      PL (CU, "PolyORB.Exceptions.Raise_Bad_Operation;");
+      PL (CU, "CORBA.Raise_Bad_Operation (CORBA.Default_Sys_Member);");
       DI (CU);
       PL (CU, "end if;");
       DI (CU);
@@ -355,7 +355,7 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "CORBA.ServerRequest.Set_Exception");
       PL (CU, "  (Request,");
       II (CU);
-      PL (CU, "PolyORB.Exceptions.System_Exception_To_Any (E));");
+      PL (CU, "PolyORB.CORBA_P.Exceptions.System_Exception_To_Any (E));");
       DI (CU);
       PL (CU, "return;");
       DI (CU);

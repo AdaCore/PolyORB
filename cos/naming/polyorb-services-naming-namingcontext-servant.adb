@@ -461,7 +461,8 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 --          end;
 
       else
-         PolyORB.Exceptions.Raise_Bad_Operation;
+         --         PolyORB.Exceptions.Raise_Bad_Operation;
+         raise Program_Error;
       end if;
    end Invoke;
 
@@ -1055,20 +1056,23 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
          end if;
 
          NC  := NCA (NCA'Last);
-      exception when PolyORB.Exceptions.Bad_Param =>
-         declare
-            Member : NotFound_Members;
 
-         begin
-            --  Cannot cast the current name component into a
-            --  naming context.
+      exception
+         --      when PolyORB.Exceptions.Bad_Param =>
+         when others =>
+            declare
+               Member : NotFound_Members;
 
-            Member.why          := not_context;
-            Member.rest_of_name := To_Sequence
-              (NCA (Current_Idx + 1 .. NCA'Last));
-            PolyORB.Exceptions.User_Raise_Exception
-              (NotFound'Identity, Member);
-         end;
+            begin
+               --  Cannot cast the current name component into a
+               --  naming context.
+
+               Member.why          := not_context;
+               Member.rest_of_name := To_Sequence
+                 (NCA (Current_Idx + 1 .. NCA'Last));
+               PolyORB.Exceptions.User_Raise_Exception
+                 (NotFound'Identity, Member);
+            end;
       end;
    end Get_Ctx_And_Last_NC;
 
@@ -1212,7 +1216,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
           Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         raise Program_Error;
       end if;
 
       return My_Ref;

@@ -80,9 +80,8 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
            and then Other_Policies (J).all'Tag = Non_Retain_Policy'Tag
          then
             Throw (Error,
-                   Invalid_Policy'Identity,
-                   new System_Exception_Members'(Minor => 0,
-                                                 Completed => Completed_No));
+                   InvalidPolicy_E,
+                   InvalidPolicy_Members'(Index => 0));
          end if;
       end loop;
 
@@ -127,9 +126,8 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
 
          if Is_Servant_In (POA.Active_Object_Map.all, P_Servant) then
             Throw (Error,
-                   Servant_Already_Active'Identity,
-                   new System_Exception_Members'(Minor => 0,
-                                                 Completed => Completed_No));
+                   ServantAlreadyActive_E,
+                   Null_Members'(Null_Member));
          end if;
 
          Unlock_R (POA.Map_Lock);

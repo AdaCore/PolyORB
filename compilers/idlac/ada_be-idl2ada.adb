@@ -535,8 +535,8 @@ package body Ada_Be.Idl2Ada is
                   PL (CU, "--  Sanity check");
                   PL (CU, "if Is_Nil (" & Self_Expr & ") then");
                   II (CU);
-                  Add_With (CU, "PolyORB.Exceptions");
-                  PL (CU, "PolyORB.Exceptions.Raise_Inv_Objref;");
+                  Add_With (CU, "CORBA");
+                  PL (CU, "CORBA.Raise_Inv_Objref (Default_Sys_Member);");
                   DI (CU);
                   PL (CU, "end if;");
                   NL (CU);
@@ -1956,7 +1956,6 @@ package body Ada_Be.Idl2Ada is
                          Use_It    => True,
                          Elab_Control => Elaborate_All);
 
-               Add_With (CU, "PolyORB.Exceptions");
                Add_With (CU, "PolyORB.CORBA_P.Exceptions");
                Add_With (CU, "PolyORB.Any.NVList");
                Add_With (CU, "PolyORB.Requests");
@@ -2039,7 +2038,7 @@ package body Ada_Be.Idl2Ada is
                NL (CU);
                PL (CU, "if CORBA.Object.Is_Nil (" & T_Self_Ref & ") then");
                II (CU);
-               PL (CU, "PolyORB.Exceptions.Raise_Inv_Objref;");
+               PL (CU, "CORBA.Raise_Inv_Objref (Default_Sys_Member);");
                DI (CU);
                PL (CU, "end if;");
                NL (CU);

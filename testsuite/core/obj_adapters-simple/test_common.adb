@@ -60,7 +60,7 @@ package body Test_Common is
       --  Register it with the SOA.
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         raise Program_Error;
       end if;
 
       Create_Reference (The_ORB, My_Id, "POLYORB:TEST_SERVANT:1.0", My_Ref);
@@ -85,7 +85,7 @@ package body Test_Common is
          Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         raise Program_Error;
       end if;
 
       Output ("Unregistered object", True);

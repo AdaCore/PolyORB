@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.ads#6 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.ads#7 $
 
 with Ada.Exceptions;
 
@@ -40,6 +40,8 @@ with CORBA.Policy;
 with PortableServer.POAManager;
 with PortableServer.AdapterActivator;
 with PortableServer.ServantManager;
+
+with PolyORB.Exceptions;
 
 package PortableServer.POA is
 
@@ -97,7 +99,7 @@ package PortableServer.POA is
       To   : in PortableServer.AdapterActivator.Ref);
 
    function Get_Servant_Manager
-     (Self : Ref)
+     (Self : in Ref)
      return PortableServer.ServantManager.Ref;
 
    procedure Set_Servant_Manager
@@ -170,36 +172,67 @@ package PortableServer.POA is
    package Convert is new
      PortableServer.POA_Forward.Convert (Ref);
 
-   --  Exception manipulation.
+   -------------------------------
+   -- POA Exceptions Management --
+   -------------------------------
+
+   procedure Raise_From_Error
+     (Error : in out PolyORB.Exceptions.Error_Container);
+
+   --  AdapterAlreadyExists
 
    type AdapterAlreadyExists_Members is new CORBA.IDL_Exception_Members
      with null record;
 
    procedure Get_Members
-     (From : in Ada.Exceptions.Exception_Occurrence;
+     (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out AdapterAlreadyExists_Members);
+
+   procedure Raise_AdapterAlreadyExists
+     (Excp_Memb : in AdapterAlreadyExists_Members);
+   pragma No_Return (Raise_AdapterAlreadyExists);
+
+   --  AdapterNonExistent
 
    type AdapterNonExistent_Members is new CORBA.IDL_Exception_Members
      with null record;
 
    procedure Get_Members
-     (From : in Ada.Exceptions.Exception_Occurrence;
+     (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out AdapterNonExistent_Members);
+
+   procedure Raise_AdapterNonExistent
+     (Excp_Memb : in AdapterNonExistent_Members);
+   pragma No_Return (Raise_AdapterNonExistent);
+
+   --  InvalidPolicy
 
    type InvalidPolicy_Members is new CORBA.IDL_Exception_Members with record
       Index : CORBA.Short;
    end record;
 
    procedure Get_Members
-     (From : in Ada.Exceptions.Exception_Occurrence;
+     (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out InvalidPolicy_Members);
+
+   procedure Raise_InvalidPolicy
+     (Excp_Memb : in InvalidPolicy_Members);
+   pragma No_Return (Raise_InvalidPolicy);
+
+   --  NoServant
 
    type NoServant_Members is new CORBA.IDL_Exception_Members
      with null record;
 
    procedure Get_Members
-     (From : in Ada.Exceptions.Exception_Occurrence;
+     (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out NoServant_Members);
+
+   procedure Raise_NoServant
+     (Excp_Memb : in NoServant_Members);
+   pragma No_Return (Raise_NoServant);
+
+   --  ObjectAlreadyActive
 
    type ObjectAlreadyActive_Members is new CORBA.IDL_Exception_Members
      with null record;
@@ -208,39 +241,73 @@ package PortableServer.POA is
      (From : in Ada.Exceptions.Exception_Occurrence;
       To   : out ObjectAlreadyActive_Members);
 
+   procedure Raise_ObjectAlreadyActive
+     (Excp_Memb : in ObjectAlreadyActive_Members);
+   pragma No_Return (Raise_ObjectAlreadyActive);
+
+   --  ObjectNotActive
+
    type ObjectNotActive_Members is new CORBA.IDL_Exception_Members
      with null record;
 
    procedure Get_Members
-     (From : in Ada.Exceptions.Exception_Occurrence;
+     (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out ObjectNotActive_Members);
+
+   procedure Raise_ObjectNotActive
+     (Excp_Memb : in ObjectNotActive_Members);
+   pragma No_Return (Raise_ObjectNotActive);
+
+   --  ServantAlreadyActive
 
    type ServantAlreadyActive_Members is new CORBA.IDL_Exception_Members
      with null record;
 
    procedure Get_Members
-     (From : in Ada.Exceptions.Exception_Occurrence;
+     (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out ServantAlreadyActive_Members);
+
+   procedure Raise_ServantAlreadyActive
+     (Excp_Memb : in ServantAlreadyActive_Members);
+   pragma No_Return (Raise_ServantAlreadyActive);
+
+   --  ServantNotActive
 
    type ServantNotActive_Members is new CORBA.IDL_Exception_Members
      with null record;
 
    procedure Get_Members
-     (From : in Ada.Exceptions.Exception_Occurrence;
+     (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out ServantNotActive_Members);
+
+   procedure Raise_ServantNotActive
+     (Excp_Memb : in ServantNotActive_Members);
+   pragma No_Return (Raise_ServantNotActive);
+
+   --  WrongAdapter
 
    type WrongAdapter_Members is new CORBA.IDL_Exception_Members
      with null record;
 
    procedure Get_Members
-     (From : in Ada.Exceptions.Exception_Occurrence;
+     (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out WrongAdapter_Members);
+
+   procedure Raise_WrongAdapter
+     (Excp_Memb : in WrongAdapter_Members);
+   pragma No_Return (Raise_WrongAdapter);
+
+   --  WrongPolicy
 
    type WrongPolicy_Members is new CORBA.IDL_Exception_Members
      with null record;
 
    procedure Get_Members
-     (From : in Ada.Exceptions.Exception_Occurrence;
+     (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out WrongPolicy_Members);
+
+   procedure Raise_WrongPolicy
+     (Excp_Memb : in WrongPolicy_Members);
+   pragma No_Return (Raise_WrongPolicy);
 
 end PortableServer.POA;

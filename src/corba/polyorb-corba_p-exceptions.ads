@@ -30,15 +30,34 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Exceptions management for the CORBA Applicative Personality
---  of PolyORB.
+--  Exceptions management for the CORBA Application Personality of PolyORB.
+
+with Ada.Exceptions;
 
 with PolyORB.Any;
+with PolyORB.Exceptions;
 
 package PolyORB.CORBA_P.Exceptions is
 
    procedure Raise_From_Any (Occurrence : PolyORB.Any.Any);
    pragma No_Return (Raise_From_Any);
    --  Raise CORBA exception.
+
+   procedure Raise_From_Error
+     (Error : in out PolyORB.Exceptions.Error_Container);
+   pragma No_Return (Raise_From_Error);
+   --  Raise a CORBA specific exception from the data in 'Error'
+
+   function System_Exception_To_Any
+     (E : Ada.Exceptions.Exception_Occurrence)
+     return PolyORB.Any.Any;
+
+   type Raise_From_Error_Hook is access
+     procedure (Error : in out PolyORB.Exceptions.Error_Container);
+
+   CORBA_Raise_From_Error : Raise_From_Error_Hook := null;
+   POA_Raise_From_Error : Raise_From_Error_Hook := null;
+   POAManager_Raise_From_Error : Raise_From_Error_Hook := null;
+
 
 end PolyORB.CORBA_P.Exceptions;

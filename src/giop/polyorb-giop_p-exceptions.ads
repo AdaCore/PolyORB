@@ -38,6 +38,8 @@ with PolyORB.Any;
 
 package PolyORB.GIOP_P.Exceptions is
 
+   function Is_System_Exception (Name : String) return Boolean;
+
    function To_CORBA_Exception (Exc : PolyORB.Any.Any)
                                return PolyORB.Any.Any;
    --  Convert PolyORB exception 'any' to CORBA exception 'any'.
@@ -45,5 +47,11 @@ package PolyORB.GIOP_P.Exceptions is
    function Extract_System_Exception_Name (Name : Standard.String)
                                           return Standard.String;
    --  Extract the name of the system exception found in 'Name'.
+
+   function System_Exception_TypeCode
+     (Name : Standard.String)
+     return PolyORB.Any.TypeCode.Object;
+   --  Return the TypeCode corresponding to the indicated
+   --  system exception name.
 
 end PolyORB.GIOP_P.Exceptions;

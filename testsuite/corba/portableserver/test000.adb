@@ -378,9 +378,17 @@ procedure Test000 is
          Invoke_On_Servant (Obj_Ref);
          Output ("Invoke raised exception", False);
       exception
-         when others =>
+         when CORBA.Transient =>
             Output ("Invoke raised exception", True);
-            --  XXX should rework exception framework to rafine this test.
+
+         when E : others =>
+            Put_Line ("Got exception "
+                      & Exception_Name (E)
+                      & " : "
+                      & Exception_Message (E));
+            Output ("END TESTS", False);
+            GNAT.OS_Lib.OS_Exit (1);
+
       end;
 
       Activate (PortableServer.POA.Get_The_POAManager (Child_POA));
@@ -400,6 +408,14 @@ procedure Test000 is
       exception
          when AdapterInactive =>
             Output ("Activate raised exception", True);
+
+         when E : others =>
+            Put_Line ("Got exception "
+                      & Exception_Name (E)
+                      & " : "
+                      & Exception_Message (E));
+            Output ("END TESTS", False);
+            GNAT.OS_Lib.OS_Exit (1);
       end;
 
       Destroy (Child_POA, True, True);
@@ -773,6 +789,11 @@ procedure Test000 is
                      for Sp in ServantRetentionPolicyValue'Range loop
                         for Rp in RequestProcessingPolicyValue'Range loop
 
+                           pragma Debug (O (" "));
+                           pragma Debug (O ("Testing: "
+                                            & Policies_Image
+                                            (Tp, Lp, Up, Ap, Ip, Sp, Rp)));
+
                            Result := Result and Create_And_Destroy_POA
                              (Tp, Lp, Up, Ap, Ip, Sp, Rp);
 
@@ -954,7 +975,7 @@ procedure Test000 is
          begin
             Temp := Invoke_On_Servant (Obj_Ref);
 
-            pragma Dbeug (O ("FATAL: Invoke_On_Servant raised no exception"));
+            pragma Debug (O ("FATAL: Invoke_On_Servant raised no exception"));
             Result.Fatal := True;
          exception
             when E : others =>
@@ -1086,6 +1107,7 @@ procedure Test000 is
                            if Are_Policies_Valid
                              (Tp, Lp, Up, Ap, Ip, Sp, Rp) then
 
+                              pragma Debug (O (" "));
                               pragma Debug (O ("Testing: " &
                                                Policies_Image
                                                (Tp, Lp, Up, Ap, Ip, Sp, Rp)));

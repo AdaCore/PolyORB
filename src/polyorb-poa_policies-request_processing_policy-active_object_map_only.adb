@@ -77,9 +77,9 @@ is
          and then Other_Policies (J).all'Tag /= Retain_Policy'Tag
          then
             Throw (Error,
-                   Invalid_Policy'Identity,
-                   new System_Exception_Members'(Minor => 0,
-                                                 Completed => Completed_No));
+                   InvalidPolicy_E,
+                   InvalidPolicy_Members'(Index => 0));
+
          end if;
       end loop;
    end Check_Compatibility;
@@ -157,9 +157,8 @@ is
 
       if Servant = null then
          Throw (Error,
-                Object_Not_Active'Identity,
-                new System_Exception_Members'(Minor => 0,
-                                              Completed => Completed_No));
+                ObjectNotActive_E,
+                Null_Members'(Null_Member));
       end if;
    end Id_To_Servant;
 

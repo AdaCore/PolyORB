@@ -138,7 +138,7 @@ procedure Test000 is
         (Root_POA, To_PolyORB_String ("POA1"), PM1, Policies, OA1, Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         raise Program_Error;
       end if;
 
       --  POA2 Creation.
@@ -146,7 +146,7 @@ procedure Test000 is
         (OA1, To_PolyORB_String ("POA2"), null, Policies, OA2, Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         raise Program_Error;
       end if;
 
       --  POA3 Creation.
@@ -154,7 +154,7 @@ procedure Test000 is
         (OA1, To_PolyORB_String ("POA3"), PM1, Policies, OA3, Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         raise Program_Error;
       end if;
 
       Output ("Child POA construction", True);
@@ -227,7 +227,7 @@ procedure Test000 is
                           Error);
 
          if Found (Error) then
-            Raise_From_Error (Error);
+            raise Program_Error;
          end if;
 
          Output ("Servant activation", True);
@@ -237,7 +237,7 @@ procedure Test000 is
                             Error);
 
          if Found (Error) then
-            Raise_From_Error (Error);
+            raise Program_Error;
          end if;
 
          Output ("Servant deactivation", True);
@@ -275,7 +275,7 @@ procedure Test000 is
                           Error);
 
          if Found (Error) then
-            Raise_From_Error (Error);
+            raise Program_Error;
          end if;
 
          Activate_Object (Root_POA,
@@ -421,7 +421,7 @@ procedure Test000 is
                           Error);
 
          if Found (Error) then
-            Raise_From_Error (Error);
+            raise Program_Error;
          end if;
 
          Activate_Object (Root_POA,
@@ -511,7 +511,7 @@ procedure Test000 is
                           Error);
 
          if Found (Error) then
-            Raise_From_Error (Error);
+            raise Program_Error;
          end if;
 
          Id_To_Servant (Root_POA,
@@ -520,7 +520,7 @@ procedure Test000 is
                         Error);
 
          if Found (Error) then
-            Raise_From_Error (Error);
+            raise Program_Error;
          end if;
 
          if S1 /= S2 then
@@ -547,7 +547,7 @@ procedure Test000 is
                           Error);
 
          if Found (Error) then
-            Raise_From_Error (Error);
+            raise Program_Error;
          end if;
 
          Deactivate_Object (Root_POA,
@@ -555,7 +555,7 @@ procedure Test000 is
                             Error);
 
          if Found (Error) then
-            Raise_From_Error (Error);
+            raise Program_Error;
          end if;
 
          Id_To_Servant (Root_POA,

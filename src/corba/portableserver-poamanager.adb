@@ -30,13 +30,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poamanager.adb#9 $
+--  $Id: //droopi/main/src/corba/portableserver-poamanager.adb#10 $
 
 with PolyORB.Exceptions;
+with PolyORB.Initialization;
 with PolyORB.Smart_Pointers;
+with PolyORB.Utils.Strings;
+
+with PolyORB.CORBA_P.Exceptions;
 
 package body PortableServer.POAManager is
 
+   use PolyORB.Exceptions;
    use PolyORB.POA_Manager;
 
    function To_POA_Manager (Self : Ref) return POAManager_Access;
@@ -60,12 +65,51 @@ package body PortableServer.POAManager is
 
    begin
       if Exception_Identity (From) /= AdapterInactive'Identity then
-         PolyORB.Exceptions.Raise_Bad_Param;
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
       To := AdapterInactive_Members'
         (CORBA.IDL_Exception_Members with null record);
    end Get_Members;
+
+   ---------------------------
+   -- Raise_AdapterInactive --
+   ---------------------------
+
+   procedure Raise_AdapterInactive
+     (Excp_Memb : in AdapterInactive_Members)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Excp_Memb);
+      pragma Warnings (On); --  WAG:3.15
+   begin
+      raise AdapterInactive;
+   end Raise_AdapterInactive;
+
+   ----------------------
+   -- Raise_From_Error --
+   ----------------------
+
+   procedure Raise_From_Error
+     (Error : in out PolyORB.Exceptions.Error_Container) is
+
+   begin
+      pragma Assert (Is_Error (Error));
+
+      case Error.Kind is
+         when AdapterInactive_E =>
+            declare
+               Member : constant AdapterInactive_Members
+                 := AdapterInactive_Members (Error.Member.all);
+            begin
+               Free (Error.Member);
+               Raise_AdapterInactive (Member);
+            end;
+
+         when others =>
+            raise Program_Error;
+      end case;
+   end Raise_From_Error;
 
    --------------------
    -- To_POA_Manager --
@@ -79,7 +123,7 @@ package body PortableServer.POAManager is
    begin
       if Is_Nil (Self)
         or else Res.all not in PolyORB.POA_Manager.POAManager'Class then
-         PolyORB.Exceptions.Raise_Bad_Param;
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
       return POAManager_Access (Res);
@@ -108,8 +152,6 @@ package body PortableServer.POAManager is
    procedure Activate
      (Self : in Ref)
    is
-      use PolyORB.Exceptions;
-
       POA_Manager : constant POAManager_Access
         := To_Active_POA_Manager (Self);
 
@@ -119,7 +161,7 @@ package body PortableServer.POAManager is
       Activate (POA_Manager, Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
    end Activate;
 
@@ -131,8 +173,6 @@ package body PortableServer.POAManager is
      (Self                : in Ref;
       Wait_For_Completion : in CORBA.Boolean)
    is
-      use PolyORB.Exceptions;
-
       POA_Manager : constant POAManager_Access
         := To_Active_POA_Manager (Self);
 
@@ -142,7 +182,7 @@ package body PortableServer.POAManager is
       Hold_Requests (POA_Manager, Wait_For_Completion, Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
    end Hold_Requests;
 
@@ -154,8 +194,6 @@ package body PortableServer.POAManager is
      (Self                : in Ref;
       Wait_For_Completion : in CORBA.Boolean)
    is
-      use PolyORB.Exceptions;
-
       POA_Manager : constant POAManager_Access
         := To_Active_POA_Manager (Self);
 
@@ -165,7 +203,7 @@ package body PortableServer.POAManager is
       Discard_Requests (POA_Manager, Wait_For_Completion, Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
    end Discard_Requests;
 
@@ -199,5 +237,30 @@ package body PortableServer.POAManager is
    begin
       return Get_State (POA_Manager.all);
    end Get_State;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      PolyORB.CORBA_P.Exceptions.POAManager_Raise_From_Error
+        := Raise_From_Error'Access;
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name => +"portableserver.poamanager",
+       Conflicts => Empty,
+       Depends => Empty,
+       Provides => Empty,
+       Init => Initialize'Access));
 
 end PortableServer.POAManager;

@@ -30,13 +30,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#32 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#33 $
 
 with Ada.Exceptions;
 
 with PolyORB.Binding_Data;
 with PolyORB.Components;
-with PolyORB.Exceptions;
+with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.POA;
@@ -48,7 +48,9 @@ with PolyORB.Servants;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
+with PolyORB.Utils.Strings;
 
+with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.POA_Config;
 
 --  with PortableServer.ServantManager.Impl;
@@ -97,7 +99,7 @@ package body PortableServer.POA is
 
    begin
       if Exception_Identity (From) /= AdapterAlreadyExists'Identity then
-         PolyORB.Exceptions.Raise_Bad_Param;
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
       To := AdapterAlreadyExists_Members'
@@ -112,7 +114,7 @@ package body PortableServer.POA is
 
    begin
       if Exception_Identity (From) /= AdapterNonExistent'Identity then
-         PolyORB.Exceptions.Raise_Bad_Param;
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
       To := AdapterNonExistent_Members'
@@ -127,7 +129,7 @@ package body PortableServer.POA is
 
    begin
       if Exception_Identity (From) /= InvalidPolicy'Identity then
-         PolyORB.Exceptions.Raise_Bad_Param;
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
       PolyORB.Exceptions.User_Get_Members (From, To);
@@ -141,7 +143,7 @@ package body PortableServer.POA is
 
    begin
       if Exception_Identity (From) /= NoServant'Identity then
-         PolyORB.Exceptions.Raise_Bad_Param;
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
       To := NoServant_Members'
@@ -156,7 +158,7 @@ package body PortableServer.POA is
 
    begin
       if Exception_Identity (From) /= ObjectAlreadyActive'Identity then
-         PolyORB.Exceptions.Raise_Bad_Param;
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
       To := ObjectAlreadyActive_Members'
@@ -171,7 +173,7 @@ package body PortableServer.POA is
 
    begin
       if Exception_Identity (From) /= ObjectNotActive'Identity then
-         PolyORB.Exceptions.Raise_Bad_Param;
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
       To := ObjectNotActive_Members'
@@ -186,7 +188,7 @@ package body PortableServer.POA is
 
    begin
       if Exception_Identity (From) /= ServantAlreadyActive'Identity then
-         PolyORB.Exceptions.Raise_Bad_Param;
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
       To := ServantAlreadyActive_Members'
@@ -201,7 +203,7 @@ package body PortableServer.POA is
 
    begin
       if Exception_Identity (From) /= ServantNotActive'Identity then
-         PolyORB.Exceptions.Raise_Bad_Param;
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
       To := ServantNotActive_Members'
@@ -216,7 +218,7 @@ package body PortableServer.POA is
 
    begin
       if Exception_Identity (From) /= WrongAdapter'Identity then
-         PolyORB.Exceptions.Raise_Bad_Param;
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
       To := WrongAdapter_Members'
@@ -231,7 +233,7 @@ package body PortableServer.POA is
 
    begin
       if Exception_Identity (From) /= WrongPolicy'Identity then
-         PolyORB.Exceptions.Raise_Bad_Param;
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
       To := WrongPolicy_Members'
@@ -248,7 +250,7 @@ package body PortableServer.POA is
    begin
       if CORBA.Object.Entity_Of (Self).all
         not in PolyORB.POA.Obj_Adapter'Class then
-         PolyORB.Exceptions.Raise_Bad_Param;
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
       return Create_Ref (CORBA.Object.Entity_Of (Self));
@@ -270,7 +272,7 @@ package body PortableServer.POA is
    begin
       if Res = null
         or else Res.all not in PolyORB.POA.Obj_Adapter'Class then
-         PolyORB.Exceptions.Raise_Bad_Param;
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
       declare
@@ -280,7 +282,7 @@ package body PortableServer.POA is
            := PolyORB.POA.Obj_Adapter_Access (Res);
       begin
          if Is_Nil (The_POA.POA_Manager) then
-            PolyORB.Exceptions.Raise_Object_Not_Exist;
+            CORBA.Raise_Object_Not_Exist (CORBA.Default_Sys_Member);
          end if;
 
          return The_POA;
@@ -392,7 +394,7 @@ package body PortableServer.POA is
 --          (POA.Servant_Policy = NON_RETAIN
 --           and then Servant_Manager.all not in PSSL.Impl.Object'Class))
 --       then
---          PolyORB.Exceptions.Raise_Bad_Param;
+--          CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
 --       end if;
 
 --       POA.Servant_Manager := Imgr;
@@ -460,7 +462,7 @@ package body PortableServer.POA is
          Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
       pragma Debug (O ("POA created"));
@@ -603,7 +605,7 @@ package body PortableServer.POA is
          Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
       declare
@@ -641,7 +643,7 @@ package body PortableServer.POA is
          Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
    end Activate_Object_With_Id;
 
@@ -664,7 +666,7 @@ package body PortableServer.POA is
       PolyORB.POA.Deactivate_Object (POA, A_Oid, Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
    end Deactivate_Object;
 
@@ -688,7 +690,7 @@ package body PortableServer.POA is
       PolyORB.POA.Create_Object_Identification (POA, null, U_Oid, Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
       declare
@@ -736,7 +738,7 @@ package body PortableServer.POA is
       Free (OOid);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
       declare
@@ -780,7 +782,7 @@ package body PortableServer.POA is
          Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
       return ObjectId (Oid.all);
@@ -814,7 +816,7 @@ package body PortableServer.POA is
          Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
       PolyORB.ORB.Create_Reference
@@ -870,7 +872,7 @@ package body PortableServer.POA is
          Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
       --  Using 'Local_Only' should guarantee that The_Servant
@@ -902,7 +904,7 @@ package body PortableServer.POA is
          Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
       return Servant (CORBA.Impl.To_CORBA_Servant (S));
@@ -920,5 +922,278 @@ package body PortableServer.POA is
       return Servant_To_Reference
         (Self, Id_To_Servant (Self, Oid));
    end Id_To_Reference;
+
+   --------------------------------
+   -- Raise_AdapterAlreadyExists --
+   --------------------------------
+
+   procedure Raise_AdapterAlreadyExists
+     (Excp_Memb : in AdapterAlreadyExists_Members)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Excp_Memb);
+      pragma Warnings (On); --  WAG:3.15
+   begin
+      raise AdapterAlreadyExists;
+   end Raise_AdapterAlreadyExists;
+
+   ------------------------------
+   -- Raise_AdapterNonExistent --
+   ------------------------------
+
+   procedure Raise_AdapterNonExistent
+     (Excp_Memb : in AdapterNonExistent_Members)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Excp_Memb);
+      pragma Warnings (On); --  WAG:3.15
+   begin
+      raise AdapterNonExistent;
+   end Raise_AdapterNonExistent;
+
+   -------------------------
+   -- Raise_InvalidPolicy --
+   -------------------------
+
+   procedure Raise_InvalidPolicy
+     (Excp_Memb : in InvalidPolicy_Members)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Excp_Memb);
+      pragma Warnings (On); --  WAG:3.15
+   begin
+      raise InvalidPolicy;
+      --  XXX FIXME: need to marshall some data
+   end Raise_InvalidPolicy;
+
+   ---------------------
+   -- Raise_NoServant --
+   ---------------------
+
+   procedure Raise_NoServant
+     (Excp_Memb : in NoServant_Members)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Excp_Memb);
+      pragma Warnings (On); --  WAG:3.15
+   begin
+      raise NoServant;
+   end Raise_NoServant;
+
+   -------------------------------
+   -- Raise_ObjectAlreadyActive --
+   -------------------------------
+
+   procedure Raise_ObjectAlreadyActive
+     (Excp_Memb : in ObjectAlreadyActive_Members)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Excp_Memb);
+      pragma Warnings (On); --  WAG:3.15
+   begin
+      raise ObjectAlreadyActive;
+   end Raise_ObjectAlreadyActive;
+
+   ---------------------------
+   -- Raise_ObjectNotActive --
+   ---------------------------
+
+   procedure Raise_ObjectNotActive
+     (Excp_Memb : in ObjectNotActive_Members)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Excp_Memb);
+      pragma Warnings (On); --  WAG:3.15
+   begin
+      raise ObjectNotActive;
+   end Raise_ObjectNotActive;
+
+   --------------------------------
+   -- Raise_ServantAlreadyActive --
+   --------------------------------
+
+   procedure Raise_ServantAlreadyActive
+     (Excp_Memb : in ServantAlreadyActive_Members)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Excp_Memb);
+      pragma Warnings (On); --  WAG:3.15
+   begin
+      raise ServantAlreadyActive;
+   end Raise_ServantAlreadyActive;
+
+   ----------------------------
+   -- Raise_ServantNotActive --
+   ----------------------------
+
+   procedure Raise_ServantNotActive
+     (Excp_Memb : in ServantNotActive_Members)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Excp_Memb);
+      pragma Warnings (On); --  WAG:3.15
+   begin
+      raise ServantNotActive;
+   end Raise_ServantNotActive;
+
+   ------------------------
+   -- Raise_WrongAdapter --
+   ------------------------
+
+   procedure Raise_WrongAdapter
+     (Excp_Memb : in WrongAdapter_Members)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Excp_Memb);
+      pragma Warnings (On); --  WAG:3.15
+   begin
+      raise WrongAdapter;
+   end Raise_WrongAdapter;
+
+   -----------------------
+   -- Raise_WrongPolicy --
+   -----------------------
+
+   procedure Raise_WrongPolicy
+     (Excp_Memb : in WrongPolicy_Members)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Excp_Memb);
+      pragma Warnings (On); --  WAG:3.15
+   begin
+      raise WrongPolicy;
+   end Raise_WrongPolicy;
+
+   ----------------------
+   -- Raise_From_Error --
+   ----------------------
+
+   procedure Raise_From_Error
+     (Error : in out PolyORB.Exceptions.Error_Container) is
+   begin
+      pragma Assert (Is_Error (Error));
+
+      --  One to one mapping of PolyORB Error_Id to CORBA POA exceptions.
+
+      case Error.Kind is
+         when AdapterAlreadyExists_E =>
+            declare
+               Member : constant AdapterAlreadyExists_Members
+                 := AdapterAlreadyExists_Members (Error.Member.all);
+            begin
+               Free (Error.Member);
+               Raise_AdapterAlreadyExists (Member);
+            end;
+
+         when AdapterNonExistent_E =>
+            declare
+               Member : constant AdapterNonExistent_Members
+                 := AdapterNonExistent_Members (Error.Member.all);
+            begin
+               Free (Error.Member);
+               Raise_AdapterNonExistent (Member);
+            end;
+
+         when InvalidPolicy_E =>
+            declare
+               Member : constant InvalidPolicy_Members
+                 := InvalidPolicy_Members (Error.Member.all);
+            begin
+               Free (Error.Member);
+               Raise_InvalidPolicy (Member);
+            end;
+
+         when NoServant_E =>
+            declare
+               Member : constant NoServant_Members
+                 := NoServant_Members (Error.Member.all);
+            begin
+               Free (Error.Member);
+               Raise_NoServant (Member);
+            end;
+
+         when ObjectAlreadyActive_E =>
+            declare
+               Member : constant ObjectAlreadyActive_Members
+                 := ObjectAlreadyActive_Members (Error.Member.all);
+            begin
+               Free (Error.Member);
+               Raise_ObjectAlreadyActive (Member);
+            end;
+
+         when ObjectNotActive_E =>
+            declare
+               Member : constant ObjectNotActive_Members
+                 := ObjectNotActive_Members (Error.Member.all);
+            begin
+               Free (Error.Member);
+               Raise_ObjectNotActive (Member);
+            end;
+
+         when ServantAlreadyActive_E =>
+            declare
+               Member : constant ServantAlreadyActive_Members
+                 := ServantAlreadyActive_Members (Error.Member.all);
+            begin
+               Free (Error.Member);
+               Raise_ServantAlreadyActive (Member);
+            end;
+
+         when ServantNotActive_E =>
+            declare
+               Member : constant ServantNotActive_Members
+                 := ServantNotActive_Members (Error.Member.all);
+            begin
+               Free (Error.Member);
+               Raise_ServantNotActive (Member);
+            end;
+
+         when WrongAdapter_E =>
+            declare
+               Member : constant WrongAdapter_Members
+                 := WrongAdapter_Members (Error.Member.all);
+            begin
+               Free (Error.Member);
+               Raise_WrongAdapter (Member);
+            end;
+
+         when WrongPolicy_E =>
+            declare
+               Member : constant WrongPolicy_Members
+                 := WrongPolicy_Members (Error.Member.all);
+            begin
+               Free (Error.Member);
+               Raise_WrongPolicy (Member);
+            end;
+
+         when others =>
+            raise Program_Error;
+      end case;
+   end Raise_From_Error;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      PolyORB.CORBA_P.Exceptions.POA_Raise_From_Error
+        := Raise_From_Error'Access;
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name => +"portableserver.poa",
+       Conflicts => Empty,
+       Depends => Empty,
+       Provides => Empty,
+       Init => Initialize'Access));
 
 end PortableServer.POA;

@@ -707,7 +707,7 @@ package body SOAP.Types is
       --  in SOAP_Profile.
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         raise Program_Error;
       end if;
 
       if SOAP_Profile /= null then

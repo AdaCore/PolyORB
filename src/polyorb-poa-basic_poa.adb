@@ -307,7 +307,7 @@ package body PolyORB.POA.Basic_POA is
       OA_Policies : AllPolicies;
 
    begin
-      pragma Debug (O ("Check compatibilities between policies"));
+      pragma Debug (O ("Check compatibilities between policies: enter"));
       Lock_R (OA.POA_Lock);
 
       OA_Policies (1) := Policy_Access (OA.Thread_Policy);
@@ -354,6 +354,7 @@ package body PolyORB.POA.Basic_POA is
          Error);
 
       Unlock_R (OA.POA_Lock);
+      pragma Debug (O ("Check compatibilities between policies: leave"));
    end Check_Policies_Compatibility;
 
    --------------------
@@ -508,9 +509,9 @@ package body PolyORB.POA.Basic_POA is
         or else Index (Adapter_Name, (1 => POA_Path_Separator)) /= 0
       then
          Throw (Error,
-                Invalid_Name'Identity,
-                new System_Exception_Members'(Minor => 0,
-                                              Completed => Completed_No));
+                WrongAdapter_E,
+                Null_Members'(Null_Member));
+         --  XXX Check  error name
          return;
       end if;
 
@@ -526,9 +527,8 @@ package body PolyORB.POA.Basic_POA is
          if Lookup (Self.Children.all,
                     To_Standard_String (Adapter_Name), null) /= null then
             Throw (Error,
-                   Adapter_Already_Exists'Identity,
-                   new System_Exception_Members'(Minor => 0,
-                                                 Completed => Completed_No));
+                   AdapterAlreadyExists_E,
+                   Null_Members'(Null_Member));
 
             Unlock_W (Self.Children_Lock);
             return;
@@ -590,6 +590,7 @@ package body PolyORB.POA.Basic_POA is
       Check_Policies_Compatibility (New_Obj_Adapter, Error);
 
       if Found (Error) then
+         pragma Debug (O ("Got Error, destroying POA"));
          Destroy (New_Obj_Adapter, False, False);
          return;
       end if;
@@ -794,9 +795,8 @@ package body PolyORB.POA.Basic_POA is
 
       if Oid = null then
          Throw (Error,
-                Servant_Not_Active'Identity,
-                new System_Exception_Members'(Minor => 0,
-                                              Completed => Completed_No));
+                ServantNotActive_E,
+                Null_Members'(Null_Member));
 
          --  XXX here should also check whether we are in the
          --  context of executing a dispatched operation on
@@ -1045,9 +1045,8 @@ package body PolyORB.POA.Basic_POA is
    begin
       if U_Oid.System_Generated then
          Throw (Error,
-                Invalid_Object_Id'Identity,
-                new System_Exception_Members'(Minor => 0,
-                                              Completed => Completed_No));
+                Invalid_Object_Id_E,
+                Null_Members'(Null_Member));
       else
          User_Id := new Objects.Object_Id'
            (Objects.To_Oid (To_Standard_String (U_Oid.Id)));
@@ -1159,9 +1158,9 @@ package body PolyORB.POA.Basic_POA is
 
       if The_OA = null then
          Throw (Error,
-                Object_Not_Exist'Identity,
-                new System_Exception_Members'(Minor => 0,
-                                              Completed => Completed_No));
+                Object_Not_Exist_E,
+                System_Exception_Members'(Minor => 0,
+                                          Completed => Completed_No));
          return;
       end if;
 
@@ -1174,10 +1173,9 @@ package body PolyORB.POA.Basic_POA is
             when DISCARDING | INACTIVE =>
                --  XXX Do we have to do something special for INACTIVE ???
                Throw (Error,
-                      Transient'Identity,
-                      new System_Exception_Members'
-                      (Minor => 0,
-                       Completed => Completed_No));
+                      Transient_E,
+                      System_Exception_Members'(Minor => 0,
+                                                Completed => Completed_No));
                return;
 
             when HOLDING =>
@@ -1211,9 +1209,9 @@ package body PolyORB.POA.Basic_POA is
 
       if Servant = null then
          Throw (Error,
-                Object_Not_Exist'Identity,
-                new System_Exception_Members'(Minor => 0,
-                                              Completed => Completed_No));
+                Object_Not_Exist_E,
+                System_Exception_Members'(Minor => 0,
+                                          Completed => Completed_No));
          return;
       end if;
 

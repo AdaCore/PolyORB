@@ -94,10 +94,10 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
    ------------------------------
 
    procedure Assign_Object_Identifier
-     (Self  : System_Id_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      Hint  : Object_Id_Access;
-      U_Oid : out Unmarshalled_Oid;
+     (Self  :        System_Id_Policy;
+      OA    :        PolyORB.POA_Types.Obj_Adapter_Access;
+      Hint  :        Object_Id_Access;
+      U_Oid :    out Unmarshalled_Oid;
       Error : in out PolyORB.Exceptions.Error_Container)
 
    is
@@ -134,9 +134,8 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
          if The_Entry = null then
             Throw (Error,
-                   Invalid_Policy'Identity,
-                   new System_Exception_Members'(Minor => 0,
-                                                 Completed => Completed_No));
+                   InvalidPolicy_E,
+                   InvalidPolicy_Members'(Index => 0));
 
             --  Could not determine the slot associated with
             --  this index.

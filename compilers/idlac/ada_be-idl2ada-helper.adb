@@ -671,7 +671,6 @@ package body Ada_Be.Idl2Ada.Helper is
    begin
       pragma Assert (Kind (Node) = K_ValueType);
 
-      Add_With (CU, "PolyORB.Exceptions");
       Add_With (CU, "CORBA.Value");
       Add_With (CU, "PolyORB.Log");
       Add_With (CU, "Ada.Strings.Unbounded");
@@ -712,7 +711,7 @@ package body Ada_Be.Idl2Ada.Helper is
       DI (CU);
       PL (CU, "else");
       II (CU);
-      PL (CU, "PolyORB.Exceptions.Raise_Bad_Param;");
+      PL (CU, "CORBA.Raise_Bad_Param (Default_Sys_Member);");
       DI (CU);
       PL (CU, "end if;");
       DI (CU);
@@ -1188,8 +1187,6 @@ package body Ada_Be.Idl2Ada.Helper is
          Type_Name : constant String
            := Ada_Type_Name (Node);
       begin
-         Add_With (CU, "PolyORB.Exceptions");
-
          NL (CU);
          PL (CU, "function Unchecked_To_" & Type_Defining_Name);
          Add_With (CU, "CORBA.Object");
@@ -1252,7 +1249,7 @@ package body Ada_Be.Idl2Ada.Helper is
          DI (CU);
          PL (CU, "end if;");
 
-         PL (CU, "PolyORB.Exceptions.Raise_Bad_Param;");
+         PL (CU, "CORBA.Raise_Bad_Param (Default_Sys_Member);");
          DI (CU);
          PL (CU, "end To_" & Type_Defining_Name & ";");
       end;
@@ -1335,8 +1332,6 @@ package body Ada_Be.Idl2Ada.Helper is
          Type_Name : constant String
            := Ada_Type_Name (Node);
       begin
-         Add_With (CU, "PolyORB.Exceptions");
-
          NL (CU);
          PL (CU, "function Unchecked_To_" & Short_Type_Name);
          Add_With (CU, "CORBA.Object");
@@ -1379,7 +1374,7 @@ package body Ada_Be.Idl2Ada.Helper is
          DI (CU);
          PL (CU, "end if;");
 
-         PL (CU, "PolyORB.Exceptions.Raise_Bad_Param;");
+         PL (CU, "CORBA.Raise_Bad_Param (Default_Sys_Member);");
          DI (CU);
          PL (CU, "end To_" & Short_Type_Name & ";");
       end;
@@ -2742,8 +2737,7 @@ package body Ada_Be.Idl2Ada.Helper is
             Gen_Constant_Value (CU, Bound (Sequence (Node)));
             PL (CU, " then");
             II (CU);
-            Add_With (CU, "PolyORB.Exceptions");
-            PL (CU, "PolyORB.Exceptions.Raise_Bad_TypeCode;");
+            PL (CU, "CORBA.Raise_Bad_TypeCode (Default_Sys_Member);");
             DI (CU);
             PL (CU, "end if;");
          end if;

@@ -117,9 +117,9 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Persistent is
    begin
       if U_Oid.Persistency_Flag /= Null_Time_Stamp then
          Throw (Error,
-                Object_Not_Exist'Identity,
-                new System_Exception_Members'(Minor => 0,
-                                              Completed => Completed_No));
+                Object_Not_Exist_E,
+                System_Exception_Members'(Minor => 0,
+                                          Completed => Completed_No));
       end if;
    end Ensure_Lifespan;
 

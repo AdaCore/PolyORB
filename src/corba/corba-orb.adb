@@ -44,7 +44,6 @@
 with Ada.Exceptions;
 
 with PolyORB.Configuration;
-with PolyORB.Exceptions;
 with PolyORB.Dynamic_Dict;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
@@ -384,6 +383,7 @@ package body CORBA.ORB is
       declare
          use PolyORB.References;
          use PolyORB.References.IOR;
+
          IOR : constant IOR_Type
            := String_To_Object (PolyORB.Types.String (From));
       begin
@@ -391,7 +391,7 @@ package body CORBA.ORB is
       end;
    exception
       when Constraint_Error =>
-         PolyORB.Exceptions.Raise_Bad_Param;
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
    end String_To_Object;
 
    ------------------

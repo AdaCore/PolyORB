@@ -76,7 +76,7 @@ begin
                      Error);
 
    if Found (Error) then
-      Raise_From_Error (Error);
+      raise Program_Error;
    end if;
 
    Ada.Text_IO.Put_Line

@@ -54,6 +54,48 @@ package body PolyORB.GIOP_P.Exceptions is
    CORBA_Exc_Version : constant String := ":1.0";
    --  CORBA exceptions root and version.
 
+   function To_CORBA_Exception_TypeCode
+     (TC : PolyORB.Any.TypeCode.Object)
+     return PolyORB.Any.TypeCode.Object;
+
+   -------------------------
+   -- Is_System_Exception --
+   -------------------------
+
+   --  IMPLEMENTATION NOTE : Every change to this function should be
+   --  duplicated to PolyORB.CORBA_P.Exceptions.Is_System_Exception.
+
+   function Is_System_Exception
+     (Name : String)
+     return Boolean
+   is
+      Prefix_Length : constant Natural := PolyORB_Exc_Prefix'Length;
+      Version_Length : constant Natural
+        := To_Standard_String (PolyORB_Exc_Version)'Length;
+
+      Result : Boolean := False;
+   begin
+      if Name'Length > Prefix_Length + Version_Length
+        and then Name (Name'First .. Name'First + Prefix_Length - 1)
+        = PolyORB_Exc_Prefix
+      then
+         declare
+            Error_Id_Name : constant String
+              := Name (Name'First + Prefix_Length ..
+                       Name'Last - Version_Length) & "_E";
+
+         begin
+            pragma Debug (O ("Error_Id_Name : " & Error_Id_Name));
+
+            Result := Error_Id'Value (Error_Id_Name) in ORB_System_Error;
+         end;
+      end if;
+
+      pragma Debug (O (Name & " is a system exception ? "
+                       & Boolean'Image (Result)));
+      return Result;
+   end Is_System_Exception;
+
    -----------------------------------
    -- Extract_System_Exception_Name --
    -----------------------------------
@@ -71,7 +113,7 @@ package body PolyORB.GIOP_P.Exceptions is
          raise Program_Error;
       end if;
 
-      pragma Debug (O ("System exception name:"
+      pragma Debug (O ("System exception name :"
                        & Name (Name'First + CER_Length
                                .. Name'Last - CEV_Length)));
 
@@ -81,10 +123,6 @@ package body PolyORB.GIOP_P.Exceptions is
    ---------------------------------
    -- To_CORBA_Exception_TypeCode --
    ---------------------------------
-
-   function To_CORBA_Exception_TypeCode
-     (TC : PolyORB.Any.TypeCode.Object)
-     return PolyORB.Any.TypeCode.Object;
 
    function To_CORBA_Exception_TypeCode
      (TC : PolyORB.Any.TypeCode.Object)
@@ -153,10 +191,14 @@ package body PolyORB.GIOP_P.Exceptions is
       Result : Any.Any;
 
    begin
+      pragma Debug (O ("To_CORBA_Exception: enter"));
+
       --  Construct exception typecode
       Result_TC := To_CORBA_Exception_TypeCode (Exc_TC);
 
       if Exc_TC /= Result_TC then
+         pragma Debug (O ("Must modify Exc TypeCode"));
+
          Set_Type (Result, Result_TC);
 
          Result := Get_Empty_Any_Aggregate (Result_TC);
@@ -172,10 +214,60 @@ package body PolyORB.GIOP_P.Exceptions is
                                    TC_Completion_Status,
                                    Types.Unsigned_Long (1)));
 
+         pragma Debug (O ("To_CORBA_Exception: leave"));
          return Result;
       else
+         pragma Debug (O ("No need to modify Exc TypeCode"));
+         pragma Debug (O ("To_CORBA_Exception: leave"));
+
          return Exc;
       end if;
    end To_CORBA_Exception;
+
+   -------------------------------
+   -- System_Exception_TypeCode --
+   -------------------------------
+
+   function System_Exception_TypeCode
+     (Name : Standard.String)
+     return Any.TypeCode.Object
+   is
+      TC    : TypeCode.Object := TypeCode.TC_Except;
+      Shift : Natural := 0;
+
+      Repository_Id : PolyORB.Types.String;
+   begin
+      --  Name
+      TypeCode.Add_Parameter (TC, To_Any (To_PolyORB_String (Name)));
+
+      if Name (Name'First .. Name'First + PolyORB_Exc_Root'Length - 1)
+        = PolyORB_Exc_Root then
+         Shift := PolyORB_Exc_Root'Length + 1;
+      end if;
+
+      --  RepositoryId : 'INTERNAL:<Name>:1.0'
+      Repository_Id := To_PolyORB_String (PolyORB_Exc_Prefix)
+        & To_PolyORB_String (Name (Name'First + Shift .. Name'Last))
+        & PolyORB_Exc_Version;
+
+      TypeCode.Add_Parameter (TC, To_Any (Repository_Id));
+
+      --  Component 'minor'
+      TypeCode.Add_Parameter
+        (TC, To_Any (TC_Unsigned_Long));
+      TypeCode.Add_Parameter
+        (TC, To_Any (To_PolyORB_String ("minor")));
+
+      --  Component 'completed'
+      TypeCode.Add_Parameter
+        (TC, To_Any (TC_Completion_Status));
+      TypeCode.Add_Parameter
+        (TC, To_Any (To_PolyORB_String ("completed")));
+
+      pragma Debug (O ("Built Exception TypeCode for: "
+                       & To_Standard_String (Repository_Id)));
+
+      return TC;
+   end System_Exception_TypeCode;
 
 end PolyORB.GIOP_P.Exceptions;

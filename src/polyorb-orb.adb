@@ -909,26 +909,23 @@ package body PolyORB.ORB is
               (J.Request.Target, J.ORB, Surrogate, Pro, False, Error);
 
             if Found (Error) then
-               Raise_From_Error (Error);
-               --  XXX Dummy work around, should write an error_to_any
-               --  procedure
-            end if;
+               pragma Debug (O ("Run_Request: Got an error when binding: "
+                                & Error_Id'Image (Error.Kind)));
 
-         exception
-            when E : others =>
-               pragma Debug (O ("Run_Request: Got an exception when binding "
-                                & Ada.Exceptions.Exception_Information (E)));
-
-               --  Any exception caught at this level implies a
+               --  Any error caught at this level implies a
                --  problem within the object adapter. We bounce the
                --  exception to the user for further processing.
 
                J.Request.Exception_Info
-                 := PolyORB.Exceptions.System_Exception_To_Any (E);
+                 := PolyORB.Exceptions.Error_To_Any (Error);
+
+               Catch (Error);
 
                Emit_No_Reply (J.Requestor,
                               Objects.Interface.Executed_Request'
                               (Req => J.Request));
+               return;
+            end if;
          end;
 
          --  XXX May be a point to synchronize on With_Server ...

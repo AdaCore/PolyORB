@@ -42,8 +42,9 @@ with PolyORB.Any.NVList;
 with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Minimal_Servant.Tools;
-with PolyORB.Types;
+with PolyORB.MOMA_P.Exceptions;
 with PolyORB.Requests;
+with PolyORB.Types;
 
 package body MOMA.Message_Handlers is
 
@@ -105,7 +106,7 @@ package body MOMA.Message_Handlers is
                         Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         PolyORB.MOMA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
       MOMA.Provider.Message_Handler.Initialize (Servant, Self);

@@ -30,15 +30,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poamanager.ads#4 $
+--  $Id: //droopi/main/src/corba/portableserver-poamanager.ads#5 $
 
 with Ada.Exceptions;
 
 with CORBA.Object;
 
+with PolyORB.Exceptions;
 with PolyORB.POA_Manager;
 
 package PortableServer.POAManager is
+
    type Ref is new CORBA.Object.Ref with null record;
 
    subtype State is PolyORB.POA_Manager.State;
@@ -64,7 +66,14 @@ package PortableServer.POAManager is
 
    function Get_State (Self : in Ref) return State;
 
-   --  Exception manipulation.
+   --------------------------------------
+   -- POAManager Exceptions Management --
+   --------------------------------------
+
+   procedure Raise_From_Error
+     (Error : in out PolyORB.Exceptions.Error_Container);
+
+   --  AdapterInactive
 
    type AdapterInactive_Members is
      new CORBA.IDL_Exception_Members with null record;
@@ -72,5 +81,9 @@ package PortableServer.POAManager is
    procedure Get_Members
      (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out AdapterInactive_Members);
+
+   procedure Raise_AdapterInactive
+     (Excp_Memb : in AdapterInactive_Members);
+   pragma No_Return (Raise_AdapterInactive);
 
 end PortableServer.POAManager;

@@ -177,9 +177,9 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       if An_Entry = null then
          PolyORB.Exceptions.Throw
            (Error,
-            Object_Not_Active'Identity,
-            new System_Exception_Members'(Minor => 0,
-                                          Completed => Completed_No));
+            ObjectNotActive_E,
+            System_Exception_Members'(Minor => 0,
+                                      Completed => Completed_No));
       else
          --  Free the Unmarshalled_Oid_Access and the entry.
          --  Note: The servant has to be freed by the application.

@@ -120,9 +120,9 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
         /= PolyORB.POA.Obj_Adapter_Access (OA).Boot_Time
       then
          Throw (Error,
-                Object_Not_Exist'Identity,
-                new System_Exception_Members'(Minor => 0,
-                                              Completed => Completed_No));
+                Object_Not_Exist_E,
+                System_Exception_Members'(Minor => 0,
+                                          Completed => Completed_No));
       end if;
    end Ensure_Lifespan;
 

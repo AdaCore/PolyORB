@@ -1568,10 +1568,8 @@ package body PolyORB.Protocols.GIOP is
       Exception_Name : constant String
         := Extract_System_Exception_Name (Unmarshall (Buffer));
    begin
-      Info := Any.Get_Empty_Any
-        (PolyORB.Exceptions.System_Exception_TypeCode (Exception_Name));
-      Unmarshall_To_Any
-        (Buffer, Info);
+      Info := Any.Get_Empty_Any (System_Exception_TypeCode (Exception_Name));
+      Unmarshall_To_Any (Buffer, Info);
    end Unmarshall_System_Exception_To_Any;
 
    --------------------
@@ -2025,7 +2023,7 @@ package body PolyORB.Protocols.GIOP is
               := To_Standard_String (TypeCode.Id (TC));
             EType : Reply_Status_Type;
          begin
-            if PolyORB.Exceptions.Is_System_Exception (EId) then
+            if PolyORB.GIOP_P.Exceptions.Is_System_Exception (EId) then
                EType := System_Exception;
             else
                EType := User_Exception;

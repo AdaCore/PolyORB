@@ -92,9 +92,8 @@ package body PolyORB.POA_Manager.Basic_Manager is
          --  If the POAManager state is 'inactive', raise an exception.
 
          Throw (Error,
-                Adapter_Inactive'Identity,
-                new System_Exception_Members'(Minor => 0,
-                                              Completed => Completed_No));
+                AdapterInactive_E,
+                Null_Members'(Null_Member));
          Unlock_W (Self.State_Lock);
       else
 
@@ -136,9 +135,8 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
          Unlock_W (Self.State_Lock);
          Throw (Error,
-                Adapter_Inactive'Identity,
-                new System_Exception_Members'(Minor => 0,
-                                              Completed => Completed_No));
+                AdapterInactive_E,
+                Null_Members'(Null_Member));
 
       else
 
@@ -179,9 +177,8 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
          Unlock_W (Self.State_Lock);
          Throw (Error,
-                Adapter_Inactive'Identity,
-                new System_Exception_Members'(Minor => 0,
-                                              Completed => Completed_No));
+                AdapterInactive_E,
+                Null_Members'(Null_Member));
       else
 
          --  else set the POAManager state to 'discarding'

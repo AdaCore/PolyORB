@@ -41,6 +41,7 @@ with PolyORB.Any.NVList;
 with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Minimal_Servant.Tools;
+with PolyORB.MOMA_P.Exceptions;
 with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Requests;
@@ -123,7 +124,7 @@ package body MOMA.Message_Producers is
                         Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         PolyORB.MOMA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
       Set_Remote_Ref (MOMA_Obj.all, MOMA.Destinations.Get_Ref (Dest));

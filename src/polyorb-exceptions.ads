@@ -60,83 +60,6 @@ with PolyORB.Types;
 
 package PolyORB.Exceptions is
 
-   ----------------
-   -- Exceptions --
-   ----------------
-
-   --  A PolyORB exception is notionally equivalent to a CORBA exception.
-   --  It is composed by
-   --   - Exception Id,
-   --   - Exception Member.
-
-   type Exception_Members is abstract tagged null record;
-   --  Base type for all PolyORB exception members. A member is a record
-   --  attached to an exception that allows the programmer to pass
-   --  arguments when an exception is raised. The default Member record is
-   --  abstract and empty but all other records will inherit from it.
-
-   --  Note:
-   --  Exceptions_Members are handled differently according to the type
-   --  of the exception:
-   --   - for System exceptions, it is marshalled in the message
-   --   - for User exceptions, it is stored in a global stack
-   --   unless the members is an empty struct, in which case nothing
-   --   is stored and the Get_Members function created a new
-   --   object from a derivation of Exception_Members
-
-   type Exception_Members_Access is access all Exception_Members'Class;
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Exception_Members'Class, Exception_Members_Access);
-
-   subtype Exception_Occurrence is Ada.Exceptions.Exception_Occurrence;
-
-   ------------------
-   -- Exception Id --
-   ------------------
-
-   --  An exception Id has the following form:
-   --  NameSpace:Root'Separator' .. Version
-
-   PolyORB_Exc_NameSpace : constant String;
-   --  PolyORB exceptions namespace.
-
-   PolyORB_Root          : constant String;
-   --  PolyORB exceptions root.
-
-   PolyORB_Separator     : constant String;
-   --  PolyORB exceptions separator.
-
-   PolyORB_Prefix        : constant String;
-   --  Concantenation of PolyORB_Exc_NameSpace, PolyORB_Root and
-   --  PolyORB_Separator.
-
-   PolyORB_Exc_Version   : constant PolyORB.Types.String;
-   --  PolyORB exceptions version.
-
-   ---------------------
-   -- User exceptions --
-   ---------------------
-
-   procedure User_Get_Members
-     (Occurrence : in  Ada.Exceptions.Exception_Occurrence;
-      Members    : out Exception_Members'Class);
-   --  Extract members from a 'User' exception occurence
-
-   procedure User_Purge_Members
-     (Occurrence : in Ada.Exceptions.Exception_Occurrence);
-   --  Forget exception members associated with an exception occurrence
-
-   procedure User_Raise_Exception
-     (Id      : in Ada.Exceptions.Exception_Id;
-      Members : in Exception_Members'Class);
-   pragma No_Return (User_Raise_Exception);
-   --  Raise a user exception
-
-   procedure Raise_User_Exception_From_Any
-     (Repository_Id : PolyORB.Types.RepositoryId;
-      Occurence     : PolyORB.Any.Any);
-
    -----------------------
    -- Completion_Status --
    -----------------------
@@ -161,31 +84,52 @@ package PolyORB.Exceptions is
      (Item : PolyORB.Any.Any)
      return Completion_Status;
 
+   function To_Any
+     (Item : Completion_Status)
+     return Any.Any;
+
    function TC_Completion_Status
      return PolyORB.Any.TypeCode.Object;
    --  The typecode for standard enumeration type completion_status.
 
-   -----------------------
-   -- System exceptions --
-   -----------------------
+   ------------------------
+   -- Exceptions Members --
+   ------------------------
+
+   --  A PolyORB exception is notionally equivalent to a CORBA exception.
+   --  It is composed by
+   --   - Exception Id,
+   --   - Exception Member.
+
+   type Exception_Members is abstract tagged null record;
+   --  Base type for all PolyORB exception members. A member is a record
+   --  attached to an exception that allows the programmer to pass
+   --  arguments when an exception is raised. The default Member record is
+   --  abstract and empty but all other records will inherit from it.
+
+   type Exception_Members_Access is access all Exception_Members'Class;
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Exception_Members'Class, Exception_Members_Access);
+
+   --  Null_Members
+
+   type Null_Members is new Exception_Members with null record;
+
+   function To_Any
+     (Name   : Standard.String;
+      Member : Null_Members)
+     return PolyORB.Any.Any;
+
+   Null_Member : constant Null_Members
+     := Null_Members'(Exception_Members with null record);
+
+   --  System_Exception_Members
 
    type System_Exception_Members is new Exception_Members with record
       Minor     : PolyORB.Types.Unsigned_Long;
       Completed : Completion_Status;
    end record;
-   --  Member type for System exceptions.
-
-   procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
-      To   : out System_Exception_Members);
-   --  Extract members from a 'System' exception occurence
-
-   procedure Raise_System_Exception
-     (Excp      : in Ada.Exceptions.Exception_Id;
-      Excp_Memb : in System_Exception_Members);
-   pragma No_Return (Raise_System_Exception);
-   --  Raise the corresponding PolyORB system exception, and store its
-   --  members for later retrieval by Get_Members.
 
    function System_Exception_TypeCode
      (Name : Standard.String)
@@ -193,282 +137,146 @@ package PolyORB.Exceptions is
    --  Return the TypeCode corresponding to the indicated
    --  system exception name.
 
-   function System_Exception_To_Any
-     (E : Ada.Exceptions.Exception_Occurrence)
+   function To_Any
+     (Name   : Standard.String;
+      Member : System_Exception_Members)
      return PolyORB.Any.Any;
 
-   procedure Raise_System_Exception_From_Any
-     (System_Id  : Ada.Exceptions.Exception_Id;
-      Occurrence : PolyORB.Any.Any);
+   --  InvalidPolicy_Members
 
-   function Is_System_Exception
-     (Name : String)
-     return Boolean;
+   type InvalidPolicy_Members is new Exception_Members with record
+      Index : PolyORB.Types.Short;
+   end record;
 
-   ---------------------------------
-   -- System Exception definition --
-   ---------------------------------
+   ------------------
+   -- Exception Id --
+   ------------------
 
-   --  One to one mapping to CORBA System exceptions.
+   --  An exception Id has the following form:
+   --  NameSpace:Root'Separator' .. Version
 
-   Unknown                : exception;
-   Bad_Param              : exception;
-   No_Memory              : exception;
-   Imp_Limit              : exception;
-   Comm_Failure           : exception;
-   Inv_Objref             : exception;
-   No_Permission          : exception;
-   Internal               : exception;
-   Marshal                : exception;
-   Initialization_Failure : exception;
-   No_Implement           : exception;
-   Bad_TypeCode           : exception;
-   Bad_Operation          : exception;
-   No_Resources           : exception;
-   No_Response            : exception;
-   Persist_Store          : exception;
-   Bad_Inv_Order          : exception;
-   Transient              : exception;
-   Free_Mem               : exception;
-   Inv_Ident              : exception;
-   Inv_Flag               : exception;
-   Intf_Repos             : exception;
-   Bad_Context            : exception;
-   Obj_Adapter            : exception;
-   Data_Conversion        : exception;
-   Object_Not_Exist       : exception;
-   Transaction_Required   : exception;
-   Transaction_Rolledback : exception;
-   Invalid_Transaction    : exception;
-   Adapter_Already_Exists : exception;
-   Invalid_Policy         : exception;
-   Wrong_Policy           : exception;
-   Servant_Already_Active : exception;
-   Object_Already_Active  : exception;
-   Servant_Not_Active     : exception;
-   Object_Not_Active      : exception;
-   Adapter_Inactive       : exception;
+   PolyORB_Exc_NameSpace : constant String;
+   --  PolyORB exceptions namespace.
 
-   type Unknown_Members         is new
-     System_Exception_Members with null record;
+   PolyORB_Exc_Root      : constant String;
+   --  PolyORB exceptions root.
 
-   type Bad_Param_Members       is new
-     System_Exception_Members with null record;
+   PolyORB_Exc_Separator : constant String;
+   --  PolyORB exceptions separator.
 
-   type No_Memory_Members       is new
-     System_Exception_Members with null record;
+   PolyORB_Exc_Prefix    : constant String;
+   --  Concantenation of PolyORB_Exc_NameSpace, PolyORB_Root and
+   --  PolyORB_Separator.
 
-   type Imp_Limit_Members       is new
-     System_Exception_Members with null record;
+   PolyORB_Exc_Version   : constant PolyORB.Types.String;
+   --  PolyORB exceptions version.
 
-   type Comm_Failure_Members    is new
-     System_Exception_Members with null record;
+   ----------------
+   -- ORB Errors --
+   ----------------
 
-   type Inv_Objref_Members      is new
-     System_Exception_Members with null record;
+   type Error_Id is
+     (
+      No_Error,                 --  no error
 
-   type No_Permission_Members   is new
-     System_Exception_Members with null record;
+      --  One to one mapping of CORBA System exceptions.
 
-   type Internal_Members        is new
-     System_Exception_Members with null record;
+      Unknown_E,                  --  unknown exception
+      Bad_Param_E,                --  an invalid parameter was passed
+      No_Memory_E,                --  dynamic memory allocation failure
+      Imp_Limit_E,                --  violated implementation limit
+      Comm_Failure_E,             --  communication failure
+      Inv_Objref_E,               --  invalid object reference
+      No_Permission_E,            --  no permission for attempted op.
+      Internal_E,                 --  ORB internal error
+      Marshal_E,                  --  error marshalling param/result
+      Initialization_Failure_E,   --  ORB initialization failure
+      No_Implement_E,             --  operation impleme. unavailable
+      Bad_TypeCode_E,             --  bad typecode
+      Bad_Operation_E,            --  invalid operation
+      No_Resources_E,             --  insufficient resources for req.
+      No_Response_E,              --  response to request not available
+      Persist_Store_E,            --  persistent storage failure
+      Bad_Inv_Order_E,            --  routine invocations out of order
+      Transient_E,                --  transient failure - reissue request
+      Free_Mem_E,                 --  cannot free memory
+      Inv_Ident_E,                --  invalid identifier syntax
+      Inv_Flag_E,                 --  invalid flag was specified
+      Intf_Repos_E,               --  error accessing intf. repository
+      Bad_Context_E,              --  error processing context object
+      Obj_Adapter_E,              --  failure detected by object adapter
+      Data_Conversion_E,          --  data conversion error
+      Object_Not_Exist_E,         --  non-existent object, delete ref.
+      Transaction_Required_E,     --  transaction required
+      Transaction_Rolledback_E,   --  transaction rolled back
+      Invalid_Transaction_E,      --  invalid transaction
+      Inv_Policy_E,               --  invalid policy
+      Codeset_Incompatible_E,     --  incompatible code set
+      Rebind_E,                   --  rebind needed
+      Timeout_E,                  --  operation timed out
+      Transaction_Unavailable_E,  --  no transaction
+      Transaction_Mode_E,         --  invalid transaction mode
+      Bad_Qos_E,                  --  bad quality of service
 
-   type Marshal_Members         is new
-     System_Exception_Members with null record;
+      --  One to one mapping of POA exceptions.
 
-   type Initialization_Failure_Members is new
-     System_Exception_Members with null record;
+      AdapterAlreadyExists_E,
+      AdapterNonExistent_E,
+      InvalidPolicy_E,
+      NoServant_E,
+      ObjectAlreadyActive_E,
+      ObjectNotActive_E,
+      ServantAlreadyActive_E,
+      ServantNotActive_E,
+      WrongAdapter_E,
+      WrongPolicy_E,
 
-   type No_Implement_Members    is new
-     System_Exception_Members with null record;
+      --  One to one mapping of POA Manager exceptions.
 
-   type Bad_Typecode_Members    is new
-     System_Exception_Members with null record;
+      AdapterInactive_E,
 
-   type Bad_Operation_Members   is new
-     System_Exception_Members with null record;
+      --  PolyORB internal errors.
+      Invalid_Object_Id_E
 
-   type No_Resources_Members    is new
-     System_Exception_Members with null record;
+      );
 
-   type No_Response_Members     is new
-     System_Exception_Members with null record;
+   subtype ORB_System_Error       is Error_Id
+     range Unknown_E .. Bad_Qos_E;
+   subtype POA_Error              is Error_Id
+     range AdapterAlreadyExists_E .. WrongPolicy_E;
+   subtype POAManager_Error        is Error_Id
+     range AdapterInactive_E .. AdapterInactive_E;
+   subtype PolyORB_Internal_Error is Error_Id
+     range Invalid_Object_Id_E .. Error_Id'Last;
 
-   type Persist_Store_Members   is new
-     System_Exception_Members with null record;
+   ---------------------
+   -- User exceptions --
+   ---------------------
 
-   type Bad_Inv_Order_Members   is new
-     System_Exception_Members with null record;
+   procedure User_Get_Members
+     (Occurrence : in  Ada.Exceptions.Exception_Occurrence;
+      Members    : out PolyORB.Exceptions.Exception_Members'Class);
+   --  Extract members from a 'User' exception occurence
 
-   type Transient_Members       is new
-     System_Exception_Members with null record;
+   procedure User_Purge_Members
+     (Occurrence : in Ada.Exceptions.Exception_Occurrence);
+   --  Forget exception members associated with an exception occurrence
 
-   type Free_Mem_Members        is new
-     System_Exception_Members with null record;
+   procedure User_Raise_Exception
+     (Id      : in Ada.Exceptions.Exception_Id;
+      Members : in PolyORB.Exceptions.Exception_Members'Class);
+   pragma No_Return (User_Raise_Exception);
+   --  Raise a user exception with the specified members.
 
-   type Inv_Ident_Members       is new
-     System_Exception_Members with null record;
-
-   type Inv_Flag_Members        is new
-     System_Exception_Members with null record;
-
-   type Intf_Repos_Members      is new
-     System_Exception_Members with null record;
-
-   type Bad_Context_Members     is new
-     System_Exception_Members with null record;
-
-   type Obj_Adapter_Members     is new
-     System_Exception_Members with null record;
-
-   type Data_Conversion_Members is new
-     System_Exception_Members with null record;
-
-   type Object_Not_Exist_Members is new
-     System_Exception_Members with null record;
-
-   type Transaction_Required_Members is new
-     System_Exception_Members with null record;
-
-   type Transaction_Rolledback_Members is new
-     System_Exception_Members with null record;
-
-   type Invalid_Transaction_Members    is new
-     System_Exception_Members with null record;
-
-   type Adapter_Already_Exists_Members is new
-     System_Exception_Members with null record;
-
-   type Invalid_Policy_Members is new
-     System_Exception_Members with null record;
-
-   ------------------------------------------
-   -- Utilities to raise System Exceptions --
-   ------------------------------------------
-
-   procedure Raise_Unknown
-     (Minor  : PolyORB.Types.Unsigned_Long := 0;
-      Status : Completion_Status := Completed_No);
-   pragma No_Return (Raise_Unknown);
-
-   procedure Raise_Bad_Param
-     (Minor  : PolyORB.Types.Unsigned_Long := 0;
-      Status : Completion_Status := Completed_No);
-   pragma No_Return (Raise_Bad_Param);
-
-   procedure Raise_Marshal
-     (Minor  : PolyORB.Types.Unsigned_Long := 0;
-      Status : Completion_Status := Completed_No);
-   pragma No_Return (Raise_Marshal);
-
-   procedure Raise_Comm_Failure
-     (Minor  : PolyORB.Types.Unsigned_Long := 0;
-      Status : Completion_Status := Completed_No);
-   pragma No_Return (Raise_Comm_Failure);
-
-   procedure Raise_Inv_Objref
-     (Minor  : PolyORB.Types.Unsigned_Long := 0;
-      Status : Completion_Status := Completed_No);
-   pragma No_Return (Raise_Inv_Objref);
-
-   procedure Raise_Object_Not_Exist
-     (Minor  : PolyORB.Types.Unsigned_Long := 0;
-      Status : Completion_Status := Completed_No);
-   pragma No_Return (Raise_Object_Not_Exist);
-
-   procedure Raise_Obj_Adapter
-     (Minor  : PolyORB.Types.Unsigned_Long := 0;
-      Status : Completion_Status := Completed_No);
-   pragma No_Return (Raise_Obj_Adapter);
-
-   procedure Raise_Bad_Operation
-     (Minor  : PolyORB.Types.Unsigned_Long := 0;
-      Status : Completion_Status := Completed_No);
-   pragma No_Return (Raise_Bad_Operation);
-
-   procedure Raise_Transient
-     (Minor  : PolyORB.Types.Unsigned_Long := 0;
-      Status : Completion_Status := Completed_No);
-   pragma No_Return (Raise_Transient);
-
-   procedure Raise_No_Implement
-     (Minor  : PolyORB.Types.Unsigned_Long := 0;
-      Status : Completion_Status := Completed_No);
-   pragma No_Return (Raise_No_Implement);
-
-   procedure Raise_Internal
-     (Minor  : PolyORB.Types.Unsigned_Long := 0;
-      Status : Completion_Status := Completed_No);
-   pragma No_Return (Raise_Internal);
-
-   procedure Raise_Imp_Limit
-     (Minor : PolyORB.Types.Unsigned_Long := 0;
-      Status : Completion_Status := Completed_No);
-   pragma No_Return (Raise_Imp_Limit);
-
-   procedure Raise_Bad_Inv_Order
-     (Minor  : PolyORB.Types.Unsigned_Long := 0;
-      Status : Completion_Status := Completed_No);
-   pragma No_Return (Raise_Bad_Inv_Order);
-
-   procedure Raise_Bad_TypeCode
-     (Minor  : PolyORB.Types.Unsigned_Long := 0;
-      Status : Completion_Status := Completed_No);
-   pragma No_Return (Raise_Bad_TypeCode);
-
-   ------------------------------------
-   --  Exceptions raised by the POA  --
-   ------------------------------------
-
-   procedure Raise_Adapter_Already_Exists
-     (Minor  : PolyORB.Types.Unsigned_Long := 0;
-      Status : Completion_Status := Completed_No);
-   pragma No_Return (Raise_Bad_TypeCode);
-
-   procedure Raise_Invalid_Policy
-     (Minor  : PolyORB.Types.Unsigned_Long := 0;
-      Status : Completion_Status := Completed_No);
-   pragma No_Return (Raise_Bad_TypeCode);
-
-   procedure Raise_Wrong_Policy
-     (Minor  : PolyORB.Types.Unsigned_Long := 0;
-      Status : Completion_Status := Completed_No);
-   pragma No_Return (Raise_Bad_TypeCode);
-
-   procedure Raise_Servant_Already_Active
-     (Minor  : PolyORB.Types.Unsigned_Long := 0;
-      Status : Completion_Status := Completed_No);
-   pragma No_Return (Raise_Bad_TypeCode);
-
-   procedure Raise_Object_Already_Active
-     (Minor  : PolyORB.Types.Unsigned_Long := 0;
-      Status : Completion_Status := Completed_No);
-   pragma No_Return (Raise_Bad_TypeCode);
-
-   procedure Raise_Servant_Not_Active
-     (Minor  : PolyORB.Types.Unsigned_Long := 0;
-      Status : Completion_Status := Completed_No);
-   pragma No_Return (Raise_Bad_TypeCode);
-
-   procedure Raise_Object_Not_Active
-     (Minor  : PolyORB.Types.Unsigned_Long := 0;
-      Status : Completion_Status := Completed_No);
-   pragma No_Return (Raise_Bad_TypeCode);
-
-   procedure Raise_Adapter_Inactive
-     (Minor  : PolyORB.Types.Unsigned_Long := 0;
-      Status : Completion_Status := Completed_No);
-   pragma No_Return (Raise_Bad_TypeCode);
-
-   ---------------------------------
-   -- Exception utility functions --
-   ---------------------------------
+   procedure Raise_User_Exception_From_Any
+     (Repository_Id : PolyORB.Types.RepositoryId;
+      Occurence     : PolyORB.Any.Any);
 
    type Raise_From_Any_Procedure is access procedure
      (Occurrence : PolyORB.Any.Any);
 
    procedure Default_Raise_From_Any
-     (Occurrence : Any.Any);
+     (Occurrence : PolyORB.Any.Any);
 
    procedure Register_Exception
      (TC     : in PolyORB.Any.TypeCode.Object;
@@ -485,6 +293,10 @@ package PolyORB.Exceptions is
    --  in the application personality: here, raising a language
    --  exception with proper members.
 
+   ---------------------------------
+   -- Exception utility functions --
+   ---------------------------------
+
    function Occurrence_To_Name
      (Occurrence : Ada.Exceptions.Exception_Occurrence)
       return PolyORB.Types.RepositoryId;
@@ -493,16 +305,6 @@ package PolyORB.Exceptions is
      (Repository_Id : Standard.String)
       return Standard.String;
    --  Return the name of an exception from its repository ID.
-
-   type Exception_Info is record
-      TC     : PolyORB.Any.TypeCode.Object;
-      Raiser : Raise_From_Any_Procedure;
-   end record;
-
-   function Find_Exception_Info
-     (For_Exception : PolyORB.Types.RepositoryId)
-     return Exception_Info;
-   --  Return Exception_Info associated to 'For_Exception'.
 
    function Get_ExcepId_By_RepositoryId
      (RepoId  : Standard.String)
@@ -514,7 +316,10 @@ package PolyORB.Exceptions is
    -- PolyORB Internal Error handling functions --
    -----------------------------------------------
 
-   type Error_Container is private;
+   type Error_Container is record
+      Kind   : Error_Id := No_Error;
+      Member : Exception_Members_Access;
+   end record;
 
    function Found
      (Error : Error_Container)
@@ -523,35 +328,34 @@ package PolyORB.Exceptions is
 
    procedure Throw
      (Error  : in out Error_Container;
-      Kind   : in     Ada.Exceptions.Exception_Id;
-      Member : in     Exception_Members_Access);
+      Kind   : in     Error_Id;
+      Member : in     Exception_Members'Class);
    --  Generates an error whith Kind and Member information.
 
    procedure Catch
      (Error : in out Error_Container);
    --  Acknowledge 'Error' and reset its content.
 
-   procedure Raise_From_Error
-     (Error : in out Error_Container);
-   pragma No_Return (Raise_From_Error);
-   --  Raise an exception from the data in 'Error'
+   function Is_Error
+     (Error : in Error_Container)
+     return Boolean;
+   --  True iff Error is not No_Error;
+
+   function Error_To_Any
+     (Error : in Error_Container)
+     return PolyORB.Any.Any;
 
 private
 
    PolyORB_Exc_NameSpace : constant String := "INTERNAL:";
-   PolyORB_Root          : constant String := "POLYORB";
-   PolyORB_Separator     : constant String := "/";
-   PolyORB_Prefix        : constant String
+   PolyORB_Exc_Root      : constant String := "POLYORB";
+   PolyORB_Exc_Separator : constant String := "/";
+   PolyORB_Exc_Prefix    : constant String
      := PolyORB_Exc_NameSpace
-     & PolyORB_Root
-     & PolyORB_Separator;
+     & PolyORB_Exc_Root
+     & PolyORB_Exc_Separator;
 
    PolyORB_Exc_Version   : constant PolyORB.Types.String
      := PolyORB.Types.To_PolyORB_String (":1.0");
-
-   type Error_Container is record
-      Kind   : Ada.Exceptions.Exception_Id := Ada.Exceptions.Null_Id;
-      Member : Exception_Members_Access;
-   end record;
 
 end PolyORB.Exceptions;

@@ -227,9 +227,8 @@ package body PolyORB.Obj_Adapters.Simple is
       use PolyORB.Exceptions;
    begin
       Throw (Error,
-             Invalid_Object_Id'Identity,
-             new System_Exception_Members'(Minor => 0,
-                                           Completed => Completed_No));
+             Invalid_Object_Id_E,
+             Null_Members'(Null_Member));
       --  An SOA object identifier cannot contain a user-defined
       --  object key.
 

@@ -104,7 +104,7 @@ package body PolyORB.Setup.Test_POA is
       --  Register it with the SOA.
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         raise Program_Error;
       end if;
 
       Put_Line ("Registered object: " & PolyORB.Objects.Image (My_Id.all));

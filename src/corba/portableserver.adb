@@ -162,7 +162,7 @@ package body PortableServer is
       use Ada.Exceptions;
    begin
       if Exception_Identity (From) /= ForwardRequest'Identity then
-         PolyORB.Exceptions.Raise_Bad_Param;
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
       PolyORB.Exceptions.User_Get_Members (From, To);

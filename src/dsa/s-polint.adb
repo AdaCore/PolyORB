@@ -53,6 +53,7 @@ with CosNaming.NamingContext;
 --  as objects.
 
 with PolyORB.Binding_Data;
+with PolyORB.DSA_P.Exceptions;
 with PolyORB.DSA_P.Partitions;
 with PolyORB.Dynamic_Dict;
 with PolyORB.Exceptions;
@@ -237,6 +238,10 @@ package body System.PolyORB_Interface is
         (Left_Object, Right_Object);
    end Compare_Content;
 
+   --------------------------
+   -- DSA_Exception_To_Any --
+   --------------------------
+
    function DSA_Exception_To_Any
      (E : Ada.Exceptions.Exception_Occurrence)
       return Any
@@ -258,7 +263,7 @@ package body System.PolyORB_Interface is
       PATC.Add_Parameter
         (TC, To_Any (To_PolyORB_String ("DSA:")
                        & PolyORB.Types.String (Name)
-                       & PolyORB_Exc_Version));
+                       & ":1.0"));
 
       --  Valuation: Exception_Message
 
@@ -681,13 +686,13 @@ package body System.PolyORB_Interface is
          Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
       PolyORB.Setup.Proxies_POA (Root_POA_Object, Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
       pragma Debug (O ("Initializing DSA library units"));
@@ -732,7 +737,7 @@ package body System.PolyORB_Interface is
                         Error => Error);
 
                      if Found (Error) then
-                        Raise_From_Error (Error);
+                        PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
                      end if;
 
                      Create_Reference
@@ -820,7 +825,7 @@ package body System.PolyORB_Interface is
                      Error   => Error);
 
                   if Found (Error) then
-                     Raise_From_Error (Error);
+                     PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
                   end if;
 
                   Is_Local := True;
@@ -988,7 +993,7 @@ package body System.PolyORB_Interface is
                Error => Error);
 
             if Found (Error) then
-               Raise_From_Error (Error);
+               PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
             end if;
 
             PolyORB.ORB.Create_Reference
@@ -1211,7 +1216,7 @@ package body System.PolyORB_Interface is
          Error        => Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
       POA.Default_Servant := PolyORB.Servants.Servant_Access
@@ -1224,7 +1229,7 @@ package body System.PolyORB_Interface is
       Activate (POAManager_Access (Entity_Of (POA.POA_Manager)), Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
    end Setup_Object_RPC_Receiver;

@@ -45,6 +45,8 @@ with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Threads;
 
+with PolyORB.CORBA_P.Exceptions;
+
 with PolyORB.POA_Config.Root_POA;
 --  The configuration for the RootPOA.
 
@@ -115,7 +117,7 @@ package body PolyORB.CORBA_P.Server_Tools is
          Error);
 
       if Found (Error) then
-         Raise_From_Error (Error);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
       --  Register initial reference for "RootPOA".
