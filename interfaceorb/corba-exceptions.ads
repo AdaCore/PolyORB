@@ -65,10 +65,4 @@ package Corba.Exceptions is
    -- This method raises a Corba exception associated to the member object
    -- Excp_Memb.
 
-   procedure Raise_Corba_Exception(Repoid : in Constants.Exception_Id ;
-                                   Minor : in Corba.Unsigned_Long ;
-                                   Completed : in Completion_Status) ;
-   -- This method raises a Corba exception associated to the Repo_ID
-   -- with (minor, completed) as member
-
 end Corba.Exceptions ;
