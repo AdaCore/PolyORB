@@ -35,7 +35,7 @@ $(GEN): $(IDL) $(IDLAC)
 
 $(GEN_BODIES): $(GEN)
 
-DISTCLEANFILES += $(GEN) $(GEN_BODIES)
+DISTCLEANFILES = $(GEN) $(GEN_BODIES)
 
 #
 # Building libpolyorb-corba-cos-time library

@@ -90,7 +90,7 @@ $(GEN_BODIES): $(GEN)
 
 $(ADA_LIBADD): $(GEN)
 
-DISTCLEANFILES += $(GEN) $(GEN_BODIES)
+DISTCLEANFILES = $(GEN) $(GEN_BODIES)
 
 #
 # Building libpolyorb-corba-cos-event library
