@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#11 $
+--  $Id: //droopi/main/src/polyorb-any.adb#12 $
 
 with Ada.Tags;
 
@@ -1479,7 +1479,7 @@ package body PolyORB.Any is
    begin
       Set_Value (Result, new Content_Short' (Value => new Short' (Item)));
       Set_Type (Result, TypeCode.TC_Short);
-      Inc_Usage (Result);
+      --  Inc_Usage (Result);
       return Result;
    end To_Any;
 
@@ -1488,7 +1488,7 @@ package body PolyORB.Any is
    begin
       Set_Value (Result, new Content_Long' (Value => new Long' (Item)));
       Set_Type (Result, TypeCode.TC_Long);
-      Inc_Usage (Result);
+      --  Inc_Usage (Result);
       return Result;
    end To_Any;
 
@@ -1498,7 +1498,7 @@ package body PolyORB.Any is
       Set_Value (Result, new Content_Long_Long'
                  (Value => new Long_Long' (Item)));
       Set_Type (Result, TypeCode.TC_Long_Long);
-      Inc_Usage (Result);
+      --  Inc_Usage (Result);
       return Result;
    end To_Any;
 
@@ -1508,7 +1508,7 @@ package body PolyORB.Any is
       Set_Value (Result, new Content_UShort'
                  (Value => new Unsigned_Short' (Item)));
       Set_Type (Result, TypeCode.TC_Unsigned_Short);
-      Inc_Usage (Result);
+      --  Inc_Usage (Result);
       return Result;
    end To_Any;
 
@@ -1520,7 +1520,7 @@ package body PolyORB.Any is
                  (Value => new Unsigned_Long' (Item)));
       Set_Type (Result, TypeCode.TC_Unsigned_Long);
       pragma Debug (O ("To_Any (ULong) : end"));
-      Inc_Usage (Result);
+      --  Inc_Usage (Result);
       return Result;
    end To_Any;
 
@@ -1530,7 +1530,7 @@ package body PolyORB.Any is
       Set_Value (Result, new Content_ULong_Long'
                  (Value => new Unsigned_Long_Long' (Item)));
       Set_Type (Result, TypeCode.TC_Unsigned_Long_Long);
-      Inc_Usage (Result);
+      --  Inc_Usage (Result);
       return Result;
    end To_Any;
 
@@ -1540,7 +1540,7 @@ package body PolyORB.Any is
       Set_Value (Result, new Content_Float'
                  (Value => new Types.Float' (Item)));
       Set_Type (Result, TypeCode.TC_Float);
-      Inc_Usage (Result);
+      --  Inc_Usage (Result);
       return Result;
    end To_Any;
 
@@ -1550,7 +1550,7 @@ package body PolyORB.Any is
       Set_Value (Result, new Content_Double'
                  (Value => new Double' (Item)));
       Set_Type (Result, TypeCode.TC_Double);
-      Inc_Usage (Result);
+      --  Inc_Usage (Result);
       return Result;
    end To_Any;
 
@@ -1560,7 +1560,7 @@ package body PolyORB.Any is
       Set_Value (Result, new Content_Long_Double'
                  (Value => new Long_Double' (Item)));
       Set_Type (Result, TypeCode.TC_Long_Double);
-      Inc_Usage (Result);
+      --  Inc_Usage (Result);
       return Result;
    end To_Any;
 
@@ -1570,7 +1570,7 @@ package body PolyORB.Any is
       Set_Value (Result, new Content_Boolean'
                  (Value => new Boolean' (Item)));
       Set_Type (Result, TypeCode.TC_Boolean);
-      Inc_Usage (Result);
+      --  Inc_Usage (Result);
       return Result;
    end To_Any;
 
@@ -1580,7 +1580,7 @@ package body PolyORB.Any is
       Set_Value (Result, new Content_Char'
                  (Value => new Char' (Item)));
       Set_Type (Result, TypeCode.TC_Char);
-      Inc_Usage (Result);
+      --  Inc_Usage (Result);
       return Result;
    end To_Any;
 
@@ -1590,7 +1590,7 @@ package body PolyORB.Any is
       Set_Value (Result, new Content_Wchar'
                  (Value => new Wchar' (Item)));
       Set_Type (Result, TypeCode.TC_Wchar);
-      Inc_Usage (Result);
+      --  Inc_Usage (Result);
       return Result;
    end To_Any;
 
@@ -1600,7 +1600,7 @@ package body PolyORB.Any is
       Set_Value (Result, new Content_Octet'
                  (Value => new Octet' (Item)));
       Set_Type (Result, TypeCode.TC_Octet);
-      Inc_Usage (Result);
+      --  Inc_Usage (Result);
       return Result;
    end To_Any;
 
@@ -1610,7 +1610,7 @@ package body PolyORB.Any is
       Set_Value (Result, new Content_Any'
                  (Value => new Any' (Item)));
       Set_Type (Result, TypeCode.TC_Any);
-      Inc_Usage (Result);
+      --  Inc_Usage (Result);
       return Result;
    end To_Any;
 
@@ -1620,7 +1620,7 @@ package body PolyORB.Any is
       Set_Value (Result, new Content_TypeCode'
                  (Value => new TypeCode.Object' (Item)));
       Set_Type (Result, TypeCode.TC_TypeCode);
-      Inc_Usage (Result);
+      --  Inc_Usage (Result);
       return Result;
    end To_Any;
 
@@ -1636,7 +1636,7 @@ package body PolyORB.Any is
                  (Value => new PolyORB.Types.String' (Item)));
       Set_Type (Result, Tco);
       pragma Debug (O ("To_Any (String) : end"));
-      Inc_Usage (Result);
+      --  Inc_Usage (Result);
       return Result;
    end To_Any;
 
@@ -1650,7 +1650,7 @@ package body PolyORB.Any is
       Set_Value (Result, new Content_Wide_String'
                  (Value => new Types.Wide_String' (Item)));
       Set_Type (Result, Tco);
-      Inc_Usage (Result);
+      --  Inc_Usage (Result);
       return Result;
    end To_Any;
 
@@ -2987,9 +2987,10 @@ package body PolyORB.Any is
       return Counter;
    end Get_Counter;
 
-   -----------------
-   --  Inc_Usage  --
-   -----------------
+   ---------------
+   -- Inc_Usage --
+   ---------------
+
    procedure Inc_Usage (Obj : in Any) is
    begin
       pragma Debug (O2 ("Inc_Usage : enter"));
@@ -2999,9 +3000,10 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Inc_Usage : end"));
    end Inc_Usage;
 
-   -----------------
-   --  Dec_Usage  --
-   -----------------
+   ---------------
+   -- Dec_Usage --
+   ---------------
+
    procedure Dec_Usage (Obj : in out Any) is
    begin
       pragma Debug (O2 ("Dec_Usage : enter"));

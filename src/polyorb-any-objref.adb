@@ -49,12 +49,15 @@ package body PolyORB.Any.ObjRef is
    function To_Any (Item : in PolyORB.References.Ref) return Any
    is
       Result : Any;
+      Content : Content_ObjRef_Ptr;
    begin
-      Set_Value
-        (Result, new Content_ObjRef'
-         (Content with Value => new PolyORB.References.Ref'(Item)));
+      Content := new Content_ObjRef;
+      Content.Value := new PolyORB.References.Ref'(Item);
+
+      Set_Value (Result, Any_Content_Ptr (Content));
       Set_Type (Result, TypeCode.TC_Object);
-      Inc_Usage (Result);
+      --  Inc_Usage (Result);
+
       return Result;
    end To_Any;
 
