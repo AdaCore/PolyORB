@@ -32,6 +32,10 @@
 
 --  $Id$
 
+with Ada.Tags;
+
+with CORBA;
+
 with PolyORB.Any;
 with PolyORB.CORBA_P.Names;
 with PolyORB.Log;
@@ -145,10 +149,15 @@ package body PortableServer is
       Info    : Skeleton_Info;
 
    begin
+      pragma Debug
+        (O ("Find_Info: servant of type "
+            & Ada.Tags.External_Tag (For_Servant'Tag)));
       Enter_Critical_Section;
       It := First (All_Skeletons);
 
       while not Last (It) loop
+         pragma Debug (O ("... skeleton id: "
+           & CORBA.To_Standard_String (Value (It).Type_Id)));
          exit when Value (It).Is_A (For_Servant);
          Next (It);
       end loop;
@@ -177,10 +186,10 @@ package body PortableServer is
    begin
       pragma Debug (O ("Register_Skeleton enter"));
       Enter_Critical_Section;
-      Append (All_Skeletons,
-              (Type_Id    => Type_Id,
-               Is_A       => Is_A,
-               Dispatcher => Dispatcher));
+      Prepend (All_Skeletons,
+               (Type_Id    => Type_Id,
+                Is_A       => Is_A,
+                Dispatcher => Dispatcher));
       pragma Debug (O ("Registered : type_id = " &
                        CORBA.To_Standard_String (Type_Id)));
       Leave_Critical_Section;
