@@ -86,7 +86,7 @@ package body SOAP.Message.XML is
 
    type Array_State is
      (Void, A_Undefined, A_Int, A_Short, A_UInt, A_UShort,
-      A_Float, A_Double, A_String,
+      A_UByte, A_Float, A_Double, A_String, A_AnyURI,
       A_Boolean, A_Time_Instant, A_Base64);
 
    type State is record
@@ -111,6 +111,8 @@ package body SOAP.Message.XML is
      return PolyORB.Any.NamedValue;
    function Parse_UShort    (N : in DOM.Core.Node)
      return PolyORB.Any.NamedValue;
+   function Parse_UByte     (N : in DOM.Core.Node)
+     return PolyORB.Any.NamedValue;
 
    function Parse_Float     (N : in DOM.Core.Node)
      return PolyORB.Any.NamedValue;
@@ -118,6 +120,9 @@ package body SOAP.Message.XML is
      return PolyORB.Any.NamedValue;
 
    function Parse_String    (N : in DOM.Core.Node)
+     return PolyORB.Any.NamedValue;
+
+   function Parse_AnyURI    (N : in DOM.Core.Node)
      return PolyORB.Any.NamedValue;
 
    function Parse_Boolean   (N : in DOM.Core.Node)
@@ -517,6 +522,19 @@ package body SOAP.Message.XML is
          Arg_Modes => ARG_IN);
    end Parse_UShort;
 
+   function Parse_UByte (N : in DOM.Core.Node)
+     return PolyORB.Any.NamedValue is
+      Name  : constant PolyORB.Types.Identifier
+        := To_PolyORB_String (Local_Name (N));
+      Value : constant DOM.Core.Node := First_Child (N);
+   begin
+      return NamedValue'
+        (Name => Name,
+         Argument =>
+           To_Any (Octet'Value (Node_Value (Value))),
+         Arg_Modes => ARG_IN);
+   end Parse_UByte;
+
    -----------------
    -- Parse_Param --
    -----------------
@@ -553,6 +571,8 @@ package body SOAP.Message.XML is
                   return Parse_UInt (N);
                when A_UShort =>
                   return Parse_UShort (N);
+               when A_UByte =>
+                  return Parse_UByte (N);
 
                when A_Float =>
                   return Parse_Float (N);
@@ -561,6 +581,9 @@ package body SOAP.Message.XML is
 
                when A_String =>
                   return Parse_String (N);
+
+               when A_AnyURI =>
+                  return Parse_AnyURI (N);
 
                when A_Boolean =>
                   return Parse_Boolean (N);
@@ -605,6 +628,8 @@ package body SOAP.Message.XML is
                               return Parse_UInt (N);
                            elsif xsd = Types.XML_UShort then
                               return Parse_UShort (N);
+                           elsif xsd = Types.XML_UByte then
+                              return Parse_UByte (N);
 
                            elsif xsd = Types.XML_Float then
                               return Parse_Float (N);
@@ -613,6 +638,8 @@ package body SOAP.Message.XML is
 
                            elsif xsd = Types.XML_String then
                               return Parse_String (N);
+                           elsif xsd = Types.XML_AnyURI then
+                              return Parse_AnyURI (N);
 
                            elsif xsd = Types.XML_Boolean then
                               return Parse_Boolean (N);
@@ -705,6 +732,26 @@ package body SOAP.Message.XML is
                          (To_PolyORB_String (Node_Value (Value))),
                          Arg_Modes => ARG_IN);
    end Parse_String;
+
+   function Parse_AnyURI (N : in DOM.Core.Node)
+     return PolyORB.Any.NamedValue
+   is
+      Name  : constant PolyORB.Types.Identifier
+        := To_PolyORB_String (Local_Name (N));
+      Value : DOM.Core.Node;
+   begin
+      Normalize (N);
+      Value := First_Child (N);
+      declare
+         A : PolyORB.Any.Any
+           := Get_Empty_Any (PolyORB.Any.TypeCode.TC_Object);
+         --  := To_Any (URI_To_Ref (Node_Value (Value)));
+      begin
+         return NamedValue'(Name => Name,
+                            Argument => A,
+                            Arg_Modes => ARG_IN);
+      end;
+   end Parse_AnyURI;
 
    ------------------------
    -- Parse_Time_Instant --

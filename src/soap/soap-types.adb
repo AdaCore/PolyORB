@@ -172,6 +172,8 @@ package body SOAP.Types is
             return Integer (Unsigned_Short'(From_Any (O.Argument)));
          when Tk_Ulong =>
             return Integer (Unsigned_Long'(From_Any (O.Argument)));
+         when Tk_Octet =>
+            return Integer (Octet'(From_Any (O.Argument)));
 
          when others =>
             Exceptions.Raise_Exception
@@ -269,8 +271,13 @@ package body SOAP.Types is
            Tk_Long   |
            Tk_Short  |
            Tk_Ulong  |
-           Tk_Ushort =>
+           Tk_Ushort |
+           Tk_Octet  =>
             return PolyORB.Utils.Trimmed_Image (Get (O));
+
+         when Tk_Objref =>
+--             return Ref_To_URI (From_Any (O.Argument));
+            return "http://some-object.soap.example.net/";
 
          when Tk_Float | Tk_Double =>
 
@@ -644,6 +651,8 @@ package body SOAP.Types is
             return XML_UInt;
          when Tk_Ushort =>
             return XML_UShort;
+         when Tk_Octet =>
+            return XML_UByte;
 
          when Tk_Float =>
             return XML_Float;
@@ -655,6 +664,8 @@ package body SOAP.Types is
             return XML_Boolean;
          when Tk_Array =>
             return XML_Array;
+         when Tk_Objref =>
+            return XML_AnyURI;
 
          when others =>
             return "";
