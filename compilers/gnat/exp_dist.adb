@@ -185,7 +185,6 @@ package body Exp_Dist is
    --  Add receiving stubs to the declarative part
 
    procedure Add_RAS_Dereference_TSS (N : in Node_Id);
-   pragma Unreferenced (Add_RAS_Dereference_TSS);
    --  Add a subprogram body for RAS dereference
 
    procedure Add_RAS_Access_TSS (N : in Node_Id);
@@ -2161,9 +2160,10 @@ package body Exp_Dist is
       Proc_Body : Node_Id;
 
       Param_Specs : constant List_Id := New_List;
-      Param_Assoc : constant List_Id := New_List;
+      Param_Assoc_Direct : constant List_Id := New_List;
+      Param_Assoc_Remote : constant List_Id := New_List;
 
-      Pointer : Node_Id;
+      RAS_Parameter : Node_Id;
 
       RACW_Parameter   : Entity_Id;
       Converted_Ras    : Node_Id;
@@ -2182,22 +2182,21 @@ package body Exp_Dist is
       --  is safe to dereference the Ras field directly rather than
       --  performing a remote call.
 
-      Pointer :=
+      RAS_Parameter :=
         Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
 
       RACW_Parameter :=
         Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
 
-      Append_To (Inner_Decls,
-        Make_Object_Declaration (Loc,
+      Append_To (Proc_Decls,
+        Make_Object_Renaming_Declaration (Loc,
           Defining_Identifier => RACW_Parameter,
-          Constant_Present    => True,
-          Object_Definition   =>
+          Subtype_Mark        =>
             New_Occurrence_Of (RACW_Type, Loc),
-          Expression          =>
+          Name                =>
             Make_Selected_Component (Loc,
               Prefix        =>
-                New_Occurrence_Of (Pointer, Loc),
+                New_Occurrence_Of (RAS_Parameter, Loc),
               Selector_Name =>
                 Make_Identifier (Loc, Name_Ras))));
 
@@ -2218,7 +2217,10 @@ package body Exp_Dist is
                 Expression        =>
                   New_Copy_Tree (Expression (Current_Parameter))));
 
-            Append_To (Param_Assoc,
+            Append_To (Param_Assoc_Direct,
+              Make_Identifier (Loc,
+                Chars => Chars (Defining_Identifier (Current_Parameter))));
+            Append_To (Param_Assoc_Remote,
               Make_Identifier (Loc,
                 Chars => Chars (Defining_Identifier (Current_Parameter))));
 
@@ -2246,7 +2248,7 @@ package body Exp_Dist is
                  Name                   =>
                    Make_Explicit_Dereference (Loc,
                      Prefix => Converted_Ras),
-                 Parameter_Associations => Param_Assoc)));
+                 Parameter_Associations => Param_Assoc_Direct)));
 
       else
          Append_To (Direct_Statements,
@@ -2254,7 +2256,7 @@ package body Exp_Dist is
              Name                   =>
                Make_Explicit_Dereference (Loc,
                  Prefix => Converted_Ras),
-             Parameter_Associations => Param_Assoc));
+             Parameter_Associations => Param_Assoc_Direct));
       end if;
 
       --  In the remote case, perform the call through the
@@ -2262,7 +2264,7 @@ package body Exp_Dist is
 
       Prepend_To (Param_Specs,
         Make_Parameter_Specification (Loc,
-          Defining_Identifier => Pointer,
+          Defining_Identifier => RAS_Parameter,
           In_Present          => True,
           Parameter_Type      =>
             New_Occurrence_Of (Fat_Type, Loc)));
@@ -2280,13 +2282,13 @@ package body Exp_Dist is
              Expression =>
                Make_Function_Call (Loc,
                  Name                   => RACW_Primitive_Name,
-                 Parameter_Associations => Param_Assoc)));
+                 Parameter_Associations => Param_Assoc_Remote)));
 
       else
          Append_To (Remote_Statements,
            Make_Procedure_Call_Statement (Loc,
              Name                   => RACW_Primitive_Name,
-             Parameter_Associations => Param_Assoc));
+             Parameter_Associations => Param_Assoc_Remote));
       end if;
 
       --  Build the complete subprogram.
@@ -2317,10 +2319,10 @@ package body Exp_Dist is
          Set_Etype (Proc, Standard_Void_Type);
       end if;
 
-      Prepend_To (Param_Assoc,
+      Prepend_To (Param_Assoc_Remote,
         Make_Selected_Component (Loc,
           Prefix =>
-            New_Occurrence_Of (Pointer, Loc),
+            New_Occurrence_Of (RAS_Parameter, Loc),
           Selector_Name =>
             Make_Identifier (Loc, Name_Ras)));
 
@@ -2624,7 +2626,7 @@ package body Exp_Dist is
    begin
       pragma Assert (No (TSS (RAS_Type, Name_uRAS_Access)));
 
-      --  Add_RAS_Dereference_TSS (Vis_Decl);
+      Add_RAS_Dereference_TSS (Vis_Decl);
       Add_RAS_Access_TSS (Vis_Decl);
 
       if No (Decls) then
