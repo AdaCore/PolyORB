@@ -186,12 +186,14 @@ package body Broca.Profiles.TC is
       pragma Debug
         (O ("Unmarshalling" & Length'Img & " tagged components."));
 
-      Result := new Tagged_Component_Array (0 .. Length - 1);
-      pragma Assert (Result /= null);
+      if Length > 0 then
+         Result := new Tagged_Component_Array (0 .. Length - 1);
+         pragma Assert (Result /= null);
 
-      for I in Result'Range loop
-         Result (I) := Unmarshall (Buffer);
-      end loop;
+         for I in Result'Range loop
+            Result (I) := Unmarshall (Buffer);
+         end loop;
+      end if;
       return Result;
    end Unmarshall;
 
