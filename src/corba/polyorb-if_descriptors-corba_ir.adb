@@ -36,7 +36,6 @@
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
-with PolyORB.Exceptions;
 with PolyORB.CORBA_P.IR_Tools;
 with PolyORB.Log;
 with PolyORB.Types;
@@ -137,7 +136,7 @@ package body PolyORB.If_Descriptors.CORBA_IR is
                raise;
          end;
       end loop Base_Intfs_Loop;
-      PolyORB.Exceptions.Raise_Bad_Operation;
+      CORBA.Raise_Bad_Operation (CORBA.Default_Sys_Member);
    end Find_Operation;
 
    -------------------------------------------

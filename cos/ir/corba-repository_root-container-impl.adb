@@ -30,7 +30,6 @@ with CORBA.Repository_Root.StructDef;
 with CORBA.Repository_Root.UnionDef;
 with CORBA.Repository_Root.Repository;
 
-with PolyORB.Exceptions;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.CORBA_P.Server_Tools;
@@ -111,7 +110,7 @@ package body CORBA.Repository_Root.Container.Impl is
            dk_Operation  |
            dk_ValueMember|
            dk_none       =>
-            PolyORB.Exceptions.Raise_Internal;
+            CORBA.Raise_Internal (CORBA.Default_Sys_Member);
             return Result;
          when dk_Interface  =>
             declare
@@ -318,7 +317,7 @@ package body CORBA.Repository_Root.Container.Impl is
            dk_Native     |
            dk_all        |
            dk_none       =>
-            PolyORB.Exceptions.Raise_Internal;
+            CORBA.Raise_Internal (CORBA.Default_Sys_Member);
             return null;
          when
            --  inherited types
@@ -368,7 +367,9 @@ package body CORBA.Repository_Root.Container.Impl is
       end if;
       if not Contained.Is_Nil (Repository.Impl.lookup_Id (Rep, id)) then
          --  The same Id already exists in this repository
-         PolyORB.Exceptions.Raise_Bad_Param (2);
+         CORBA.Raise_Bad_Param (CORBA.System_Exception_Members'
+                                (Minor => 2,
+                                 Completed => CORBA.Completed_No));
          return False;
       end if;
 
@@ -389,7 +390,9 @@ package body CORBA.Repository_Root.Container.Impl is
         (Lookup_Name (Self, name, -1, dk_all, True)) /=
         Contained_For_Seq.Null_Sequence then
          --  there is already a node using this Name in this scope.
-         PolyORB.Exceptions.Raise_Bad_Param (Minor => 3);
+         CORBA.Raise_Bad_Param (CORBA.System_Exception_Members'
+                                (Minor => 3,
+                                 Completed => CORBA.Completed_No));
          return False;
       end if;
 
@@ -445,7 +448,9 @@ package body CORBA.Repository_Root.Container.Impl is
       end if;
 
       if Not_Allowed then
-         PolyORB.Exceptions.Raise_Bad_Param (Minor => 4);
+         CORBA.Raise_Bad_Param (CORBA.System_Exception_Members'
+                                (Minor => 4,
+                                 Completed => CORBA.Completed_No));
          return False;
       end if;
 
@@ -1204,7 +1209,9 @@ package body CORBA.Repository_Root.Container.Impl is
            (is_custom and is_truncatable) or
            (is_abstract and is_truncatable) then
             --  Spec is not precise...
-            PolyORB.Exceptions.Raise_Bad_Param (2);
+            CORBA.Raise_Bad_Param (CORBA.System_Exception_Members'
+                                   (Minor => 2,
+                                    Completed => CORBA.Completed_No));
          end if;
 
          --  initialization of the object
