@@ -53,9 +53,9 @@ package body PolyORB.Buffers is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   package LL is new PolyORB.Log.Facility_Log ("polyorb.buffers_show");
-   procedure OO (Message : in String; Level : Log_Level := Debug)
-     renames LL.Output;
+   package L2 is new PolyORB.Log.Facility_Log ("polyorb.buffers_show");
+   procedure O2 (Message : in String; Level : Log_Level := Debug)
+     renames L2.Output;
 
    ------------------------
    -- General operations --
@@ -584,8 +584,7 @@ package body PolyORB.Buffers is
    -- Show --
    ----------
 
-   procedure Show
-     (Octets : Zone_Access)
+   procedure Show (Octets : Zone_Access)
    is
       subtype Hexa_Line is String (1 .. 50);
       subtype Ascii_Line is String (1 .. 17);
@@ -623,7 +622,7 @@ package body PolyORB.Buffers is
          end if;
 
          if Index_Hexa > Hexa'Length then
-            pragma Debug (OO (Hexa & "   " & Ascii));
+            pragma Debug (O2 (Hexa & "   " & Ascii));
             Index_Hexa := 1;
             Hexa := Nil_Hexa;
             Index_Ascii := 1;
@@ -632,16 +631,14 @@ package body PolyORB.Buffers is
       end loop;
 
       if Index_Hexa /= 1 then
-         pragma Debug (OO (Hexa & "   " & Ascii));
+         pragma Debug (O2 (Hexa & "   " & Ascii));
          null;
       end if;
    end Show;
 
-   procedure Show
-     (Buffer : in Buffer_Type)
-   is
+   procedure Show (Buffer : in Buffer_Type) is
    begin
-      pragma Debug (OO ("Dumping "
+      pragma Debug (O2 ("Dumping "
                        & Endianness_Type'Image (Buffer.Endianness)
                        & " buffer, CDR position is "
                        & Stream_Element_Offset'Image
