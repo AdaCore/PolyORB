@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Wrapper to lunch PolyORB's testsuite.
+--  Wrapper to launch PolyORB's testsuite.
 
 --  $Id$
 
@@ -61,7 +61,9 @@ procedure Test_Driver is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   type Test_Kind is (Local);
+   type Test_Kind is
+     (Local,
+      Client_Server);
 
    Default_Timeout : constant Integer := 10_000;
 
@@ -78,7 +80,7 @@ procedure Test_Driver is
       Executable => To_Unbounded_String (""),
       Timeout => 0);
 
-   function Read_Test
+   function Extract_Test
      (Scenario : String;
       Number   : Natural)
      return Test_Case;
@@ -87,17 +89,20 @@ procedure Test_Driver is
    procedure Launch_Test (Test_To_Run : Test_Case);
    --  Launch test.
 
-   procedure Run_Scenario;
+   procedure Run_Scenario (Scenario_File : String);
    --  Run scenario file.
+
+   procedure Run_All_Scenarios (Directory_Name : String);
+   --  Run all scenarios from 'Directory_Name' directory.
 
    procedure Usage;
    --  Print usage information.
 
-   ---------------
-   -- Read_Test --
-   ---------------
+   ------------------
+   -- Extract_Test --
+   ------------------
 
-   function Read_Test
+   function Extract_Test
      (Scenario : String;
       Number   : Natural)
      return Test_Case
@@ -114,8 +119,7 @@ procedure Test_Driver is
       Executable_S : constant String := Get_Conf (Section, "command");
    begin
 
-      --  Does the test exist ?
-
+      --  Is there a test to extract ?
       if Id_S = "" and then Test_Type_S = "" and then Executable_S = "" then
          return Null_Test;
       end if;
@@ -150,7 +154,7 @@ procedure Test_Driver is
       Result.Executable := To_Unbounded_String (Executable_S);
 
       return Result;
-   end Read_Test;
+   end Extract_Test;
 
    -----------------
    -- Launch_Test --
@@ -198,32 +202,75 @@ procedure Test_Driver is
    -- Run_Scenario --
    ------------------
 
-   procedure Run_Scenario
-   is
-      Scenario_Name : constant String :=
-        Get_Conf ("scenario", "name");
+   procedure Run_Scenario (Scenario_File : String) is
 
-      Scenario_Id : constant String :=
-        Get_Conf ("scenario", "id");
+      ---------------------
+      -- Launch_Scenario --
+      ---------------------
 
-      Count : Integer := 0;
-      Test : Test_Case;
+      procedure Launch_Scenario;
+      --  Execute all tests in scenario file.
+
+      procedure Launch_Scenario
+      is
+         Scenario_Name : constant String :=
+           Get_Conf ("scenario", "name");
+
+         Scenario_Id : constant String :=
+           Get_Conf ("scenario", "id");
+
+         Count : Integer := 0;
+         Test : Test_Case;
+      begin
+         Put_Line ("Running scenario: " & Scenario_Name);
+         Put_Line ("Description: " & Scenario_Id);
+         New_Line;
+
+         loop
+            Test := Extract_Test (Scenario_Name, Count);
+            exit when Test = Null_Test;
+
+            Launch_Test (Test);
+            Count := Count + 1;
+         end loop;
+
+         Put_Line ("All tests done in scenario: " & Scenario_Name);
+         New_Line;
+      end Launch_Scenario;
+
    begin
-      Put_Line ("Running scenario: " & Scenario_Name);
-      Put_Line ("Description: " & Scenario_Id);
-      New_Line;
-
-      loop
-         Test := Read_Test (Scenario_Name, Count);
-         exit when Test = Null_Test;
-
-         Launch_Test (Test);
-         Count := Count + 1;
-      end loop;
-
-      Put_Line ("All tests done in scenario: " & Scenario_Name);
-      New_Line;
+      Load_Configuration_File (Scenario_File);
+      Launch_Scenario;
    end Run_Scenario;
+
+   -----------------------
+   -- Run_All_Scenarios --
+   -----------------------
+
+   procedure Run_All_Scenarios (Directory_Name : String)
+   is
+      Dir      : Dir_Type;
+      Scenario : String (1 .. 1024);
+      Last     : Natural;
+
+   begin
+      Put_Line ("Running all scenario from: " & Directory_Name);
+
+      Open (Dir, Directory_Name);
+      loop
+         Read (Dir, Scenario, Last);
+         exit when Scenario (1 .. Last) = "";
+
+         declare
+            Full_Name : constant String :=
+              Directory_Name & "/" & Scenario (1 .. Last);
+         begin
+            if Is_Regular_File (Full_Name) then
+               Run_Scenario (Full_Name);
+            end if;
+         end;
+      end loop;
+   end Run_All_Scenarios;
 
    -----------
    -- Usage --
@@ -242,7 +289,7 @@ procedure Test_Driver is
    --  Main procedure begins here.
 
 begin
-   O ("Test driver launched.");
+   Put_Line ("Test driver launched.");
 
    loop
       case Getopt ("scenario: full:") is
@@ -251,37 +298,14 @@ begin
 
          when 's' =>
             if Full_Switch = "scenario" then
-               O ("Loading scenario file: " & Parameter);
-               Load_Configuration_File (Parameter);
-               Run_Scenario;
-
+               Run_Scenario (Parameter);
             end if;
 
          when 'f' =>
             if Full_Switch = "full" then
-               O ("Running all scenario from: " & Parameter);
-               declare
-                  Dir      : Dir_Type;
-                  Scenario : String (1 .. 1024);
-                  Last     : Natural;
-               begin
-                  Open (Dir, Parameter);
-                  loop
-                     Read (Dir, Scenario, Last);
-                     exit when Scenario (1 .. Last) = "";
-
-                     declare
-                        Full_Name : constant String :=
-                          Parameter & "/" & Scenario (1 .. Last);
-                     begin
-                        if Is_Regular_File (Full_Name) then
-                           Load_Configuration_File (Full_Name);
-                           Run_Scenario;
-                        end if;
-                     end;
-                  end loop;
-               end;
+               Run_All_Scenarios (Parameter);
             end if;
+
          when others =>
             raise Program_Error;
       end case;
@@ -291,7 +315,9 @@ exception
    when Invalid_Switch =>
       Put_Line ("Invalid Switch " & Full_Switch);
       Usage;
+
    when Invalid_Parameter =>
       Put_Line ("No parameter for " & Full_Switch);
       Usage;
+
 end Test_Driver;
