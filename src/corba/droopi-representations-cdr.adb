@@ -15,18 +15,25 @@ with Interfaces;
 
 with Droopi.Buffers; use Droopi.Buffers;
 with Droopi.Opaque;  use Droopi.Opaque;
+with Droopi.Log;
 
 with CORBA;
+with CORBA.Exceptions;
+with CORBA.Exceptions.Stack;
 
-package body droopi.Representations.CDR is
+package body Droopi.Representations.CDR is
+
+   use Droopi.Log;
+   use CORBA.Exceptions; 
+   use CORBA.Exceptions.Stack;
 
    package L is new Droopi.Log.Facility_Log ("droopi.representations.cdr");
-   procedure O
-     (Message : in String;
-      Level   : in Log_Level := Debug)
+   procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+
    Octet_Order: constant Integer := 256;
+
 
    use CORBA;
 
@@ -46,7 +53,13 @@ package body droopi.Representations.CDR is
 
    function Sum_Octet
      (Octets: Stream_Element_Array;
-      Order:  CORBA.Unsigned_Long) return CORBA.Unsigned_Long;
+      Order:  Integer) return CORBA.Unsigned_Long;
+
+   function Sum_Octet
+     (Octets  : Stream_Element_Array;
+      Order   : Integer) return CORBA.Unsigned_Long_Long;
+
+
    -- return the Ulong stored in a array of octets
 
 
@@ -60,12 +73,11 @@ package body droopi.Representations.CDR is
    --  byte order.
 
 
-
    function Align_Unmarshall_Big_Endian_Copy
      (Buffer    : access Buffer_Type;
       Size      : Stream_Element_Count;
       Alignment : Alignment_Type := 1)
-     return Stream_Elment_Array;
+     return Stream_Element_Array;
    --  Align Buffer on Alignment, then unmarshall a copy of
    --  Size octets from it.
    --  The data is returned in big-endian byte order.
@@ -135,7 +147,7 @@ package body droopi.Representations.CDR is
 
    subtype Double_Buf is Stream_Element_Array (1 .. 8);
    --  FIXME LONG DOUBLE
-   subtype Long_Double_Buf is Octet_Array (1 .. 12);
+   subtype Long_Double_Buf is  Stream_Element_Array (1 .. 12);
 
    function To_Unsigned_Long is
       new Ada.Unchecked_Conversion
@@ -149,12 +161,13 @@ package body droopi.Representations.CDR is
    function To_Double is
       new Ada.Unchecked_Conversion
         (Double_Buf, CORBA.Double);
-    function To_Long_Double_Buf is
-       new Ada.Unchecked_Conversion
-        (CORBA.Long_Double, Long_Double_Buf);
-    function To_Long_Double is
-       new Ada.Unchecked_Conversion
-        (Long_Double_Buf, CORBA.Long_Double);
+ --   function To_Long_Double_Buf is
+ --      new Ada.Unchecked_Conversion
+ --       (CORBA.Long_Double, Long_Double_Buf);
+ --   function To_Long_Double is
+ --      new Ada.Unchecked_Conversion
+ --       (Long_Double_Buf, CORBA.Long_Double);
+
 
    ----------------------------------
    -- Marshall-by-copy subprograms --
@@ -186,10 +199,13 @@ package body droopi.Representations.CDR is
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Wchar)
    is
-      procedure Align_Octet is new Align_Octet (CORBA.Wchar);
+     
    begin
       pragma Debug (O ("Marshall (WChar) : enter"));
-      Align_Marshall_Big_Endian_Copy (Buffer, Align_Octet (Data, 2), 2);
+      Align_Marshall_Big_Endian_Copy
+        (Buffer,
+         Stream_Element_Array'(Stream_Element(CORBA.Wchar'Pos (Data) / 256),
+         Stream_Element(CORBA.Wchar'Pos (Data) mod 256)), 2);
       pragma Debug (O ("Marshall (WChar) : end"));
    end Marshall;
 
@@ -199,7 +215,7 @@ package body droopi.Representations.CDR is
       Data   : in CORBA.Octet) is
    begin
       pragma Debug (O ("Marshall (Octet) : enter"));
-      Align_Marshall_Copy (Buffer, (1 => CORBA.Octet'(Data)), 1);
+      Align_Marshall_Copy (Buffer, (1 => Stream_Element(CORBA.Octet'(Data))), 1);
       pragma Debug (O ("Marshall (Octet) : end"));
    end Marshall;
 
@@ -208,10 +224,14 @@ package body droopi.Representations.CDR is
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Unsigned_Short)
    is
-     procedure Align_Octet is new Align_Octet (CORBA.Unsigned_Short);
+    
    begin
       pragma Debug (O ("Marshall (UShort) : enter"));
-      Align_Marshall_Big_Endian_Copy (Buffer, Align_Octet (Data, 2), 2);
+      Align_Marshall_Big_Endian_Copy
+        (Buffer,
+         Stream_Element_Array'( Stream_Element(Data / 256),
+          Stream_Element (Data mod 256)),
+         2);
       pragma Debug (O ("Marshall (UShort) : end"));
    end Marshall;
 
@@ -220,10 +240,16 @@ package body droopi.Representations.CDR is
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Unsigned_Long)
    is
-      procedure Align_Octet is new Align_Octet (CORBA.Unsigned_Long);
+    
    begin
       pragma Debug (O ("Marshall (ULong) : enter"));
-      Align_Marshall_Big_Endian_Copy (Buffer, Align_Octet (Data, 4), 4);
+      Align_Marshall_Big_Endian_Copy
+        (Buffer,
+          Stream_Element_Array'(Stream_Element (Data / 256**3),
+          Stream_Element ((Data / 256**2) mod 256),
+          Stream_Element ((Data / 256) mod 256),
+          Stream_Element (Data mod 256)),
+         4);
       pragma Debug (O ("Marshall (ULong) : end"));
    end Marshall;
 
@@ -232,11 +258,21 @@ package body droopi.Representations.CDR is
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Unsigned_Long_Long)
    is
-      procedure Align_Octet is new Align_Octet (CORBA.Unsigned_Long_Long);
+     
    begin
       pragma Debug (O ("Marshall (ULongLong) : enter"));
-      Align_Marshall_Big_Endian_Copy (Buffer, Align_Octet (Data, 8), 8);
-      pragma Debug (O ("Marshall (ULongLong) : end"));
+      Align_Marshall_Big_Endian_Copy
+        (Buffer,
+         Stream_Element_Array'(Stream_Element (Data / 256**7),
+          Stream_Element ((Data / 256**6) mod 256),
+          Stream_Element ((Data / 256**5) mod 256),
+          Stream_Element ((Data / 256**4) mod 256),
+          Stream_Element ((Data / 256**3) mod 256),
+          Stream_Element ((Data / 256**2) mod 256),
+          Stream_Element ((Data / 256) mod 256),
+          Stream_Element (Data mod 256)),
+         8);
+     pragma Debug (O ("Marshall (ULongLong) : end"));
    end Marshall;
 
    --  Marshalling of a long long
@@ -292,17 +328,18 @@ package body droopi.Representations.CDR is
    end Marshall;
 
    -- Marshalling of a long double
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in CORBA.Long_Double)
-   is
-   --  FIXME LONG DOUBLE
-      Buf : Long_Double_Buf := To_Long_Double_Buf (Data);
-   begin
-      pragma Debug (O ("Marshall (LongDouble) : enter"));
-      Align_Marshall_Host_Endian_Copy (Buffer, Buf, 8);
-      pragma Debug (O ("Marshall (LongDouble) : end"));
-   end Marshall;
+    procedure Marshall
+      (Buffer : access Buffer_Type;
+       Data   : in CORBA.Long_Double)
+    is
+    --  FIXME LONG DOUBLE
+    --   Buf : Long_Double_Buf := To_Long_Double_Buf (Data);
+    begin
+        raise Not_Implemented;
+--      pragma Debug (O ("Marshall (LongDouble) : enter"));
+--      Align_Marshall_Host_Endian_Copy (Buffer, Buf, 8);
+--      pragma Debug (O ("Marshall (LongDouble) : end"));
+    end Marshall;
 
    -- Marshalling of a standard string
    procedure Marshall
@@ -487,7 +524,9 @@ package body droopi.Representations.CDR is
 
          when Tk_Objref =>
                pragma Debug (O ("Marshall_From_Any : dealing with an objRef"));
-            Marshall (Buffer, CORBA.Object.Helper.From_Any (Data));
+               --Marshall (Buffer, CORBA.Object.Helper.From_Any (Data));
+               null;
+               
 
          when Tk_Struct =>
            declare
@@ -641,54 +680,57 @@ package body droopi.Representations.CDR is
             Marshall (Buffer, CORBA.Wide_String'(From_Any (Data)));
 
          when Tk_Fixed =>
-            declare
-               Digit,Scale: CORBA.Any;
-            begin
-               pragma Debug (O ("Marshall_From_Any : dealing with a fixed"));
-               Digit:=Get_Aggregate_Element
-                      (Data,
-                       CORBA.TypeCode.Fixed_Digits(Data_Type),
-                       CORBA.Unsigned_Long(0));
-               Marshall_From_Any(Buffer,Digit);
-               Scale:=Get_Aggregate_Element
-                       (Data,
-                        CORBA.TypeCode.Fixed_Scale(Data_Type),
-                        CORBA.Unsigned_Long(1));
-               Marshall_From_Any(Buffer,Scale);
-            end;
+            --declare
+            --   Digit,Scale: CORBA.Any;
+            -- begin
+            --   pragma Debug (O ("Marshall_From_Any : dealing with a fixed"));
+            --   Digit:=Get_Aggregate_Element
+            --           (Data,
+            --            CORBA.TypeCode.TC_Unsigned_Long,
+            --            CORBA.TypeCode.Fixed_Digits(Data_Type),
+            --            CORBA.Unsigned_Long(0));
+            --   Marshall_From_Any(Buffer,Digit);
+            --   Scale:=Get_Aggregate_Element
+            --           (Data,
+            --            CORBA.TypeCode.Fixed_Scale(Data_Type),
+            --            CORBA.Unsigned_Long(1));
+            --   Marshall_From_Any(Buffer,Scale);
+            --   end;
+            null;
 
          when Tk_Value =>
-             declare
-                Nb: CORBA.Unsigned_Long;
-                Value_Modifier, Value_TypeCode, Value_Visibility : CORBA.Any;
-             begin
-               pragma Debug (O ("Marshall_From_Any : dealing with a value"));
-               Value_Modifier:= CORBA.Get_Aggregate_Element
-                    (Data,
-                     CORBA.TypeCode.Type_Modifier(Data_Type),
-                     CORBA.Unsigned_Long(0));
+           --  declare
+           --     Nb: CORBA.Unsigned_Long;
+           --     Value_Modifier, Value_TypeCode, Value_Visibility : CORBA.Any;
+           --  begin
+           --    pragma Debug (O ("Marshall_From_Any : dealing with a value"));
+           --    Value_Modifier:= CORBA.Get_Aggregate_Element
+           --         (Data,
+           --          CORBA.TypeCode.Type_Modifier(Data_Type),
+           --          CORBA.Unsigned_Long(0));
 
                --pragma Debug (0 ("Marshall_From_Any: got the value_modifier"));
-               Marshall_From_Any(Buffer,Val_Modifier);
-               Nb := CORBA.Get_Aggregate_Count(Data);
-               if Nb>1 then
-                while I<Nb-1 loop
+           --    Marshall_From_Any(Buffer,Val_Modifier);
+           --    Nb := CORBA.Get_Aggregate_Count(Data);
+           --    if Nb>1 then
+           --     while I<Nb-1 loop
 
-                  Value_Value:= CORBA.Get_Aggregate_Element
-                    (Data,
-                     CORBA.TypeCode.Member_Type (Data_Type, I),
-                     I);
-                  I:=I+1;
-                  Value_Visibility:=  CORBA.Get_Aggregate_Element
-                    (Data,
-                     CORBA.TypeCode.Member_Visibility(Data_Type, I),
-                     I);
-                  Marshall_From_Any(Buffer, Value);
-                  I:=I+2;
+           --       Value_Value:= CORBA.Get_Aggregate_Element
+           --         (Data,
+           --          CORBA.TypeCode.Member_Type (Data_Type, I),
+           --          I);
+           --       I:=I+1;
+           --       Value_Visibility:=  CORBA.Get_Aggregate_Element
+           --         (Data,
+           --          CORBA.TypeCode.Member_Visibility(Data_Type, I),
+           --          I);
+           --       Marshall_From_Any(Buffer, Value);
+           --       I:=I+2;
 
-                end loop;
-               end if;
-             end;
+           --     end loop;
+           --    end if;
+           --   end;
+           null;
 
 
          when Tk_Valuebox =>
@@ -719,7 +761,7 @@ package body droopi.Representations.CDR is
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : in CORBA.TypeCode.Object) is
-      Complex_Buffer : aliased Buffer_Type;
+      Complex_Buffer : Buffer_Access;
    begin
       pragma Debug (O ("Marshall (Typecode) : enter"));
       pragma Debug (O ("Marshall (Typecode) : kind is " &
@@ -766,12 +808,12 @@ package body droopi.Representations.CDR is
          when Tk_Struct =>
             pragma Debug (O ("Marshall (TypeCode) : dealing with a struct"));
             Marshall (Buffer, CORBA.Unsigned_Long'(15));
-            Start_Encapsulation (Complex_Buffer'Access);
+            Start_Encapsulation (Complex_Buffer);
             pragma Debug (O ("Marshall (TypeCode) : marshalling the id"));
-            Marshall (Complex_Buffer'Access,
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Id (Data));
             pragma Debug (O ("Marshall (TypeCode) : marshalling the name"));
-            Marshall (Complex_Buffer'Access,
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Name (Data));
             declare
                Nb : CORBA.Unsigned_Long :=
@@ -780,12 +822,12 @@ package body droopi.Representations.CDR is
                pragma Debug (O ("Marshall (TypeCode) : " &
                                 "marshalling the members. Nb = "
                                 & CORBA.Unsigned_Long'Image (Nb)));
-               Marshall (Complex_Buffer'Access, Nb);
+               Marshall (Complex_Buffer, Nb);
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
                      pragma Debug (O ("Marshall (TypeCode) : about "
                                       & "to marshall a new  member"));
-                     Marshall (Complex_Buffer'Access,
+                     Marshall (Complex_Buffer,
                                CORBA.TypeCode.Member_Name (Data, I));
                      pragma Debug (O ("Marshall (TypeCode) : marshalling "
                                       & "the type ("
@@ -793,7 +835,7 @@ package body droopi.Representations.CDR is
                                       (TypeCode.Kind
                                        (CORBA.TypeCode.Member_Type (Data, I)))
                                       & ")"));
-                     Marshall (Complex_Buffer'Access,
+                     Marshall (Complex_Buffer,
                                CORBA.TypeCode.Member_Type (Data, I));
                      pragma Debug (O ("Marshall (TypeCode) : "
                                       & "member marshalled"));
@@ -801,57 +843,57 @@ package body droopi.Representations.CDR is
                end if;
             end;
             pragma Debug (O ("Marshall : all members marshalled"));
-            Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
-            Release (Complex_Buffer);
+            Marshall (Buffer, Encapsulate (Complex_Buffer));
+            Release(Complex_Buffer);
          when Tk_Union =>
             Marshall (Buffer, CORBA.Unsigned_Long'(16));
-            Start_Encapsulation (Complex_Buffer'Access);
-            Marshall (Complex_Buffer'Access,
+            Start_Encapsulation (Complex_Buffer);
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Id (Data));
-            Marshall (Complex_Buffer'Access,
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Name (Data));
-            Marshall (Complex_Buffer'Access,
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Discriminator_Type (Data));
-            Marshall (Complex_Buffer'Access,
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Default_Index (Data));
             declare
                Nb : CORBA.Unsigned_Long :=
                  CORBA.TypeCode.Member_Count (Data);
             begin
-               Marshall (Complex_Buffer'Access, Nb);
+               Marshall (Complex_Buffer, Nb);
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
-                     Marshall_From_Any (Complex_Buffer'Access,
+                     Marshall_From_Any (Complex_Buffer,
                                         CORBA.TypeCode.Member_Label (Data, I));
-                     Marshall (Complex_Buffer'Access,
+                     Marshall (Complex_Buffer,
                                CORBA.TypeCode.Member_Name (Data, I));
-                     Marshall (Complex_Buffer'Access,
+                     Marshall (Complex_Buffer,
                                CORBA.TypeCode.Member_Type (Data, I));
                   end loop;
                end if;
             end;
-            Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+            Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
          when Tk_Enum =>
             Marshall (Buffer, CORBA.Unsigned_Long'(17));
-            Start_Encapsulation (Complex_Buffer'Access);
-            Marshall (Complex_Buffer'Access,
+            Start_Encapsulation (Complex_Buffer);
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Id (Data));
-            Marshall (Complex_Buffer'Access,
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Name (Data));
             declare
                Nb : CORBA.Unsigned_Long :=
                  CORBA.TypeCode.Member_Count (Data);
             begin
-               Marshall (Complex_Buffer'Access, Nb);
+               Marshall (Complex_Buffer, Nb);
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
-                     Marshall (Complex_Buffer'Access,
+                     Marshall (Complex_Buffer,
                                CORBA.TypeCode.Member_Name (Data, I));
                   end loop;
                end if;
             end;
-            Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+            Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
          when Tk_String =>
             pragma Debug (O ("marshall (typecode) : dealing with a string"));
@@ -864,55 +906,55 @@ package body droopi.Representations.CDR is
             pragma Debug (O ("marshall (typecode) : length marshalled"));
          when Tk_Sequence =>
             Marshall (Buffer, CORBA.Unsigned_Long'(19));
-            Start_Encapsulation (Complex_Buffer'Access);
-            Marshall (Complex_Buffer'Access,
+            Start_Encapsulation (Complex_Buffer);
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Content_Type (Data));
-            Marshall (Complex_Buffer'Access,
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Length (Data));
-            Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+            Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
          when Tk_Array =>
             Marshall (Buffer, CORBA.Unsigned_Long'(20));
-            Start_Encapsulation (Complex_Buffer'Access);
-            Marshall (Complex_Buffer'Access,
+            Start_Encapsulation (Complex_Buffer);
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Content_Type (Data));
-            Marshall (Complex_Buffer'Access,
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Length (Data));
-            Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+            Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
          when Tk_Alias =>
             Marshall (Buffer, CORBA.Unsigned_Long'(21));
-            Start_Encapsulation (Complex_Buffer'Access);
-            Marshall (Complex_Buffer'Access,
+            Start_Encapsulation (Complex_Buffer);
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Id (Data));
-            Marshall (Complex_Buffer'Access,
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Name (Data));
-            Marshall (Complex_Buffer'Access,
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Content_Type (Data));
-            Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+            Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
          when Tk_Except =>
             Marshall (Buffer, CORBA.Unsigned_Long'(22));
-            Start_Encapsulation (Complex_Buffer'Access);
-            Marshall (Complex_Buffer'Access,
+            Start_Encapsulation (Complex_Buffer);
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Id (Data));
-            Marshall (Complex_Buffer'Access,
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Name (Data));
             declare
                Nb : CORBA.Unsigned_Long :=
                  CORBA.TypeCode.Member_Count (Data);
             begin
-               Marshall (Complex_Buffer'Access, Nb);
+               Marshall (Complex_Buffer, Nb);
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
-                     Marshall (Complex_Buffer'Access,
+                     Marshall (Complex_Buffer,
                                CORBA.TypeCode.Member_Name (Data, I));
-                     Marshall (Complex_Buffer'Access,
+                     Marshall (Complex_Buffer,
                                CORBA.TypeCode.Member_Type (Data, I));
                   end loop;
                end if;
             end;
-            Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+            Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
          when Tk_Longlong =>
             Marshall (Buffer, CORBA.Unsigned_Long'(23));
@@ -931,61 +973,61 @@ package body droopi.Representations.CDR is
             Marshall (Buffer, CORBA.TypeCode.Fixed_Scale (Data));
          when Tk_Value =>
             Marshall (Buffer, CORBA.Unsigned_Long'(29));
-            Start_Encapsulation (Complex_Buffer'Access);
-            Marshall (Complex_Buffer'Access,
+            Start_Encapsulation (Complex_Buffer);
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Id (Data));
-            Marshall (Complex_Buffer'Access,
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Name (Data));
-            Marshall (Complex_Buffer'Access,
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Type_Modifier (Data));
-            Marshall (Complex_Buffer'Access,
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Concrete_Base_Type (Data));
             declare
                Nb : CORBA.Unsigned_Long :=
                  CORBA.TypeCode.Member_Count (Data);
             begin
-               Marshall (Complex_Buffer'Access, Nb);
+               Marshall (Complex_Buffer, Nb);
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
-                     Marshall (Complex_Buffer'Access,
+                     Marshall (Complex_Buffer,
                                CORBA.TypeCode.Member_Name (Data, I));
-                     Marshall (Complex_Buffer'Access,
+                     Marshall (Complex_Buffer,
                                CORBA.TypeCode.Member_Type (Data, I));
-                     Marshall (Complex_Buffer'Access,
+                     Marshall (Complex_Buffer,
                                CORBA.TypeCode.Member_Visibility (Data, I));
                   end loop;
                end if;
             end;
-            Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+            Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
          when Tk_Valuebox =>
             Marshall (Buffer, CORBA.Unsigned_Long'(30));
-            Start_Encapsulation (Complex_Buffer'Access);
-            Marshall (Complex_Buffer'Access,
+            Start_Encapsulation (Complex_Buffer);
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Id (Data));
-            Marshall (Complex_Buffer'Access,
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Name (Data));
-            Marshall (Complex_Buffer'Access,
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Content_Type (Data));
-            Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+            Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
          when Tk_Native =>
             Marshall (Buffer, CORBA.Unsigned_Long'(31));
-            Start_Encapsulation (Complex_Buffer'Access);
-            Marshall (Complex_Buffer'Access,
+            Start_Encapsulation (Complex_Buffer);
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Id (Data));
-            Marshall (Complex_Buffer'Access,
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Name (Data));
-            Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+            Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
          when Tk_Abstract_Interface =>
             Marshall (Buffer, CORBA.Unsigned_Long'(32));
-            Start_Encapsulation (Complex_Buffer'Access);
-            Marshall (Complex_Buffer'Access,
+            Start_Encapsulation (Complex_Buffer);
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Id (Data));
-            Marshall (Complex_Buffer'Access,
+            Marshall (Complex_Buffer,
                       CORBA.TypeCode.Name (Data));
-            Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+            Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
       end case;
       pragma Debug (O ("Marshall (Typecode) : end"));
@@ -1000,17 +1042,17 @@ package body droopi.Representations.CDR is
       pragma Debug (O ("Marshall (NamedValue) : end"));
    end Marshall;
 
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in Encapsulation) is
-   begin
-      pragma Debug (O ("Marshall (Encapsulation) : enter"));
-      Marshall (Buffer, CORBA.Unsigned_Long (Data'Length));
-      for I in Data'Range loop
-         Marshall (Buffer, CORBA.Octet (Data (I)));
-      end loop;
-      pragma Debug (O ("Marshall (Encapsulation) : end"));
-   end Marshall;
+ --  procedure Marshall
+ --    (Buffer : access Buffer_Type;
+ --     Data   : in Encapsulation) is
+ --  begin
+ --     pragma Debug (O ("Marshall (Encapsulation) : enter"));
+ --     Marshall (Buffer, CORBA.Unsigned_Long (Data'Length));
+ --     for I in Data'Range loop
+ --        Marshall (Buffer, CORBA.Octet (Data (I)));
+ --     end loop;
+ --     pragma Debug (O ("Marshall (Encapsulation) : end"));
+ --  end Marshall;
 
    ---------------------------------------------------
    -- Marshall-by-reference subprograms             --
@@ -1193,13 +1235,13 @@ package body droopi.Representations.CDR is
       Marshall (Buffer, Data.all);
    end Marshall;
 
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access Encapsulation) is
-   begin
-      Marshall (Buffer, CORBA.Unsigned_Long (Data'Length));
-      Insert_Raw_Data (Buffer, Data'Length, Data (Data'First)'Address);
-   end Marshall;
+  -- procedure Marshall
+  --   (Buffer : access Buffer_Type;
+  --    Data   : access Encapsulation) is
+  -- begin
+  --    Marshall (Buffer, CORBA.Unsigned_Long (Data'Length));
+  --    Insert_Raw_Data (Buffer, Data'Length, Opaque_Pointer'(Zone => Zone_Access(Data), Offset => 0));
+  -- end Marshall;
 
    ------------------------------------
    -- Unmarshall-by-copy subprograms --
@@ -1257,21 +1299,16 @@ package body droopi.Representations.CDR is
         Align_Unmarshall_Big_Endian_Copy (Buffer, 4, 4);
    begin
       pragma Debug (O ("Unmarshall (ULong) : enter & end"));
-      return Sum_Octets(Octets,4);
+      return Sum_Octet(Octets,4);
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)
-
-
-
-
-   function Unmarshall (Buffer : access Buffer_Type)
      return CORBA.Unsigned_Long_Long is
-      Octets : constant Octet_Array :=
+      Octets : constant Stream_Element_Array :=
         Align_Unmarshall_Big_Endian_Copy (Buffer, 8, 8);
    begin
       pragma Debug (O ("Unmarshall (ULongLong) : enter & end"));
-      return Sum_Octets(Octets,8);
+      return Sum_Octet(Octets,8);
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)
@@ -1307,21 +1344,22 @@ package body droopi.Representations.CDR is
 
    function Unmarshall (Buffer : access Buffer_Type)
      return CORBA.Double is
-      Octets : constant Octet_Array :=
+      Octets : constant Stream_Element_Array :=
         Align_Unmarshall_Host_Endian_Copy (Buffer, 8, 8);
    begin
       pragma Debug (O ("Unmarshall (Double) : enter & end"));
       return To_Double (Double_Buf (Octets));
    end Unmarshall;
 
-   function Unmarshall (Buffer : access Buffer_Type)
+    function Unmarshall (Buffer : access Buffer_Type)
      return CORBA.Long_Double is
-     Octets : constant Octet_Array :=
-       Align_Unmarshall_Host_Endian_Copy (Buffer, 12, 8);
-   begin
-      pragma Debug (O ("Unmarshall (LongDouble) : enter & end"));
-      return To_Long_Double (Long_Double_Buf (Octets));
-      --return CORBA.Long_Double (0);
+     --Octets : constant Stream_Element_Array :=
+     --  Align_Unmarshall_Host_Endian_Copy (Buffer, 12, 8);
+    begin
+      --raise Not_Implemented;
+      --pragma Debug (O ("Unmarshall (LongDouble) : enter & end"));
+      --return To_Long_Double (Long_Double_Buf (Octets));
+      return CORBA.Long_Double (0);
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)
@@ -1342,7 +1380,7 @@ package body droopi.Representations.CDR is
 
       if Character'Val (CORBA.Char'Pos (Unmarshall (Buffer)))
         /= ASCII.Nul then
-         Droopi.Exceptions.Raise_Marshal;
+         CORBA.Exceptions.Raise_Marshal;
       end if;
 
       pragma Debug (O ("Unmarshall (String): -> " & Equiv));
@@ -1519,11 +1557,12 @@ package body droopi.Representations.CDR is
             --  FIXME : to be done
             null;
          when Tk_Objref =>
-            declare
-               O : CORBA.Object.Ref := Unmarshall (Buffer);
-            begin
-               CORBA.Object.Helper.Set_Any_Value (Result, O);
-            end;
+          --  declare
+          --     O : CORBA.Object.Ref := Unmarshall (Buffer);
+          --  begin
+          --     CORBA.Object.Helper.Set_Any_Value (Result, O);
+          --  end;
+          null;
          when Tk_Struct =>
             declare
                Nb : Unsigned_Long :=
@@ -1630,7 +1669,7 @@ package body droopi.Representations.CDR is
                pragma Debug
                  (O ("Unmarshall_To_Any : dealing with a sequence"));
                if Max_Nb > 0 and then Nb > Max_Nb then
-                  Broca.Exceptions.Raise_Marshal;
+                  CORBA.Exceptions.Raise_Marshal;
                end if;
                Set_Any_Aggregate_Value (Result);
                pragma Debug (O ("Unmarshall_To_Any : aggregate value set"));
@@ -1748,97 +1787,99 @@ package body droopi.Representations.CDR is
             end;
          when Tk_Fixed =>
             --  FIXME : to be done
-            declare
-               Arg1,Arg2:CORBA.Any;
-            begin
+            --declare
+            --   Arg1,Arg2:CORBA.Any;
+            -- begin
                 --pragma Debug(0 ("unmarshall_to_any: dealing with a fixed"));
-                Set_Any_Aggregate_Value(Result);
-                if Is_Empty then
-                  Arg1:= Get_Empty_Any(TypeCode.Fixed_Digits(Tc));
-                else
-                  Arg1:= Get_Aggregate_Element
-                         (Result,
-                          TypeCode.Fixed_Digits(Tc),
-                          CORBA.Unsigned_Long(0));
-                end if;
-                Unmarshall_To_Any(Buffer, Arg1);
-                if Is_Empty then
-                  Add_Aggregate_Element(Result,Arg1);
-                end if;
+            --    Set_Any_Aggregate_Value(Result);
+            --    if Is_Empty then
+            --      Arg1:= Get_Empty_Any(TypeCode.Fixed_Digits(Tc));
+            --    else
+            --      Arg1:= Get_Aggregate_Element
+            --             (Result,
+            --              TypeCode.Fixed_Digits(Tc),
+            --              CORBA.Unsigned_Long(0));
+            --    end if;
+            --    Unmarshall_To_Any(Buffer, Arg1);
+            --    if Is_Empty then
+            --      Add_Aggregate_Element(Result,Arg1);
+            --    end if;
 
-                if Is_Empty then
-                  Arg2:= Get_Empty_Any(TypeCode.Fixed_Scale(Tc));
-                else
-                   Arg2:= Get_Aggregate_Element
-                         (Result,
-                          TypeCode.Fixed_Digits(Tc),
-                          CORBA.Unsigned_Long(0));
-                end if;
-                Unmarshall_To_Any(Buffer, Arg2);
-                if Is_Empty then
-                  Add_Aggregate_Element(Result,Arg2);
-                end if;
-            end;
+            --    if Is_Empty then
+            --      Arg2:= Get_Empty_Any(TypeCode.Fixed_Scale(Tc));
+            --    else
+            --       Arg2:= Get_Aggregate_Element
+            --             (Result,
+            --              TypeCode.Fixed_Digits(Tc),
+            --              CORBA.Unsigned_Long(0));
+            --    end if;
+            --    Unmarshall_To_Any(Buffer, Arg2);
+            --    if Is_Empty then
+            --      Add_Aggregate_Element(Result,Arg2);
+            --    end if;
+            -- end;
+            null;
 
 
          when Tk_Value =>
             --
-            declare
-              Val_Modifier,Arg: CORBA.Any;
-              Nb: CORBA.Unsigned_Long:=
-                     TypeCode.Member_Count(Tc);
+           -- declare
+           --   Val_Modifier,Arg: CORBA.Any;
+           --   Nb: CORBA.Unsigned_Long:=
+           --          TypeCode.Member_Count(Tc);
 
-            begin
-              Set_Any_Aggregate_Value(Result);
-              if Is_Empty then
-                Val_Modifier:= Get_Empty_Any(TypeCode.Type_Modifier(Tc));
-              else
-                Val_Modifier:= Get_Aggregate_Element
-                          (Result,
-                           TypeCode.Discriminator_Type(Tc),
-                           CORBA.Unsigned_Long(0));
-              end if;
-              Unmarshall_To_Any(Buffer,Val_Modifier);
-              if Is_Empty then
-                Add_Aggregate_Element(Result,Val_Modifier);
-              end if;
+           --  begin
+           --   Set_Any_Aggregate_Value(Result);
+           --   if Is_Empty then
+           --     Val_Modifier:= Get_Empty_Any(TypeCode.Type_Modifier(Tc));
+           --   else
+           --     Val_Modifier:= Get_Aggregate_Element
+           --               (Result,
+           --                TypeCode.Discriminator_Type(Tc),
+           --                CORBA.Unsigned_Long(0));
+           --   end if;
+           --   Unmarshall_To_Any(Buffer,Val_Modifier);
+           --   if Is_Empty then
+           --     Add_Aggregate_Element(Result,Val_Modifier);
+           --   end if;
 
-              if Nb /=0 then
-               for I in 0 .. Nb-1 loop
-                if Is_Empty then
-                   Arg:= Get_Empty_Any( TypeCode.Member_Visibility(Tc));
-                else
-                   Arg:= Get_Aggregate_Element
-                          (Result,
-                           TypeCode.Member_Visibility(Tc,I+1),
-                           I+1);
-                end if;
-                Unmarshall_To_Any(Buffer,Arg);
-                if Is_Empty  then
-                  Add_Aggregate_Element(Result,Arg);
-                end if;
-               end loop;
-              end if;
-            end;
-
+           --   if Nb /=0 then
+           --    for I in 0 .. Nb-1 loop
+           --     if Is_Empty then
+           --        Arg:= Get_Empty_Any( TypeCode.Member_Visibility(Tc));
+           --     else
+           --        Arg:= Get_Aggregate_Element
+           --               (Result,
+           --                TypeCode.Member_Visibility(Tc,I+1),
+           --                I+1);
+           --     end if;
+           --     Unmarshall_To_Any(Buffer,Arg);
+           --     if Is_Empty  then
+           --       Add_Aggregate_Element(Result,Arg);
+           --     end if;
+           --    end loop;
+           --   end if;
+           --   end;
+           null;
 
          when Tk_Valuebox =>
-            declare
-               Arg: Corba.Any;
-            begin
-               Set_Any_Aggregate_Value(Result);
-               if Is_Empty then
-                 Arg:= Get_Empty_Any(TypeCode.Member_Type(Tc,CORBA.Unsigned_Long(0)));
-               else
-                 Arg:= CORBA.Get_Aggregate_Element
-                           (Result,
-                            CORBA.TypeCode.Member_Type(Tc, CORBA.Unsigned_Long(0)));
-               end if;
-               Unmarshall_To_Any(Buffer,Arg);
-               if Is_Empty then
-                 Add_Aggregate_Element(Result, Arg);
-               end if;
-            end;
+          --  declare
+          --     Arg: Corba.Any;
+          --  begin
+          --     Set_Any_Aggregate_Value(Result);
+          --     if Is_Empty then
+          --       Arg:= Get_Empty_Any(TypeCode.Member_Type(Tc,CORBA.Unsigned_Long(0)));
+          --     else
+          --       Arg:= CORBA.Get_Aggregate_Element
+          --                 (Result,
+          --                  CORBA.TypeCode.Member_Type(Tc, CORBA.Unsigned_Long(0)));
+          --     end if;
+          --     Unmarshall_To_Any(Buffer,Arg);
+          --     if Is_Empty then
+          --       Add_Aggregate_Element(Result, Arg);
+          --     end if;
+          --  end;
+          null;
          when Tk_Native =>
             --  FIXME : to be done
             null;
@@ -1900,27 +1941,27 @@ package body droopi.Representations.CDR is
          when 15 =>
             Result := CORBA.TypeCode.TC_Struct;
             declare
-               Complex_Encap : aliased Encapsulation
+               Complex_Encap :  aliased Encapsulation
                  := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Buffer : Buffer_Access := null;
                Id, Name, Member_Name : CORBA.String;
                Nb : CORBA.Unsigned_Long;
                Member_Type : CORBA.TypeCode.Object;
             begin
                pragma Debug (O ("unmarshall (TypeCode) : dealing "
                                 & "with a struct"));
-               Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
-               Id   := Unmarshall (Complex_Buffer'Access);
-               Name := Unmarshall (Complex_Buffer'Access);
-               Nb   := Unmarshall (Complex_Buffer'Access);
+               Decapsulate (Complex_Encap'Access, Complex_Buffer);
+               Id   := Unmarshall (Complex_Buffer);
+               Name := Unmarshall (Complex_Buffer);
+               Nb   := Unmarshall (Complex_Buffer);
                CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
                CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Id));
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
-                     Member_Name := Unmarshall (Complex_Buffer'Access);
-                     Member_Type := Unmarshall (Complex_Buffer'Access);
+                     Member_Name := Unmarshall (Complex_Buffer);
+                     Member_Type := Unmarshall (Complex_Buffer);
                      CORBA.TypeCode.Add_Parameter
                        (Result, To_Any (Member_Type));
                      CORBA.TypeCode.Add_Parameter
@@ -1933,18 +1974,18 @@ package body droopi.Representations.CDR is
             declare
                Complex_Encap : aliased Encapsulation
                  := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Buffer : Buffer_Access := null;
                Id, Name, Member_Name : CORBA.String;
                Nb, Default_Index : CORBA.Unsigned_Long;
                Discriminator_Type, Member_Type : CORBA.TypeCode.Object;
                Member_Label : CORBA.Any;
             begin
-               Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
-               Id := Unmarshall (Complex_Buffer'Access);
-               Name := Unmarshall (Complex_Buffer'Access);
-               Discriminator_Type := Unmarshall (Complex_Buffer'Access);
-               Default_Index := Unmarshall (Complex_Buffer'Access);
-               Nb := Unmarshall (Complex_Buffer'Access);
+               Decapsulate (Complex_Encap'Access, Complex_Buffer);
+               Id := Unmarshall (Complex_Buffer);
+               Name := Unmarshall (Complex_Buffer);
+               Discriminator_Type := Unmarshall (Complex_Buffer);
+               Default_Index := Unmarshall (Complex_Buffer);
+               Nb := Unmarshall (Complex_Buffer);
                CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
                CORBA.TypeCode.Add_Parameter
@@ -1956,9 +1997,9 @@ package body droopi.Representations.CDR is
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
                      Member_Label := Get_Empty_Any (Discriminator_Type);
-                     Unmarshall_To_Any (Complex_Buffer'Access, Member_Label);
-                     Member_Name := Unmarshall (Complex_Buffer'Access);
-                     Member_Type := Unmarshall (Complex_Buffer'Access);
+                     Unmarshall_To_Any (Complex_Buffer, Member_Label);
+                     Member_Name := Unmarshall (Complex_Buffer);
+                     Member_Type := Unmarshall (Complex_Buffer);
                      CORBA.TypeCode.Add_Parameter
                        (Result, Member_Label);
                      CORBA.TypeCode.Add_Parameter
@@ -1971,23 +2012,23 @@ package body droopi.Representations.CDR is
          when 17 =>
             Result := CORBA.TypeCode.TC_Enum;
             declare
-               Complex_Encap : aliased Encapsulation
+               Complex_Encap :  aliased Encapsulation
                  := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Buffer :  Buffer_Access := null;
                Id, Name, Member_Name : CORBA.String;
                Nb : CORBA.Unsigned_Long;
             begin
-               Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
-               Id := Unmarshall (Complex_Buffer'Access);
-               Name := Unmarshall (Complex_Buffer'Access);
-               Nb := Unmarshall (Complex_Buffer'Access);
+               Decapsulate (Complex_Encap'Access, Complex_Buffer);
+               Id := Unmarshall (Complex_Buffer);
+               Name := Unmarshall (Complex_Buffer);
+               Nb := Unmarshall (Complex_Buffer);
                CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
                CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Id));
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
-                     Member_Name := Unmarshall (Complex_Buffer'Access);
+                     Member_Name := Unmarshall (Complex_Buffer);
                      CORBA.TypeCode.Add_Parameter
                        (Result, To_Any (Member_Name));
                   end loop;
@@ -2005,15 +2046,15 @@ package body droopi.Representations.CDR is
          when 19 =>
             Result := CORBA.TypeCode.TC_Sequence;
             declare
-               Complex_Encap : aliased Encapsulation
+               Complex_Encap :  aliased Encapsulation
                  := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Buffer : Buffer_Access := null;
                Length : CORBA.Unsigned_Long;
                Content_Type : CORBA.TypeCode.Object;
             begin
-               Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
-               Content_Type := Unmarshall (Complex_Buffer'Access);
-               Length := Unmarshall (Complex_Buffer'Access);
+               Decapsulate (Complex_Encap'Access, Complex_Buffer);
+               Content_Type := Unmarshall (Complex_Buffer);
+               Length := Unmarshall (Complex_Buffer);
                CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Length));
                CORBA.TypeCode.Add_Parameter
@@ -2024,13 +2065,13 @@ package body droopi.Representations.CDR is
             declare
                Complex_Encap : aliased Encapsulation
                  := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Buffer : Buffer_Access := null;
                Length : CORBA.Unsigned_Long;
                Content_Type : CORBA.TypeCode.Object;
             begin
-               Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
-               Content_Type := Unmarshall (Complex_Buffer'Access);
-               Length := Unmarshall (Complex_Buffer'Access);
+               Decapsulate (Complex_Encap'Access, Complex_Buffer);
+               Content_Type := Unmarshall (Complex_Buffer);
+               Length := Unmarshall (Complex_Buffer);
                CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Length));
                CORBA.TypeCode.Add_Parameter
@@ -2041,14 +2082,14 @@ package body droopi.Representations.CDR is
             declare
                Complex_Encap : aliased Encapsulation
                  := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Buffer : Buffer_Access := null;
                Id, Name : CORBA.String;
                Content_Type : CORBA.TypeCode.Object;
             begin
-               Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
-               Id := Unmarshall (Complex_Buffer'Access);
-               Name := Unmarshall (Complex_Buffer'Access);
-               Content_Type := Unmarshall (Complex_Buffer'Access);
+               Decapsulate (Complex_Encap'Access, Complex_Buffer);
+               Id := Unmarshall (Complex_Buffer);
+               Name := Unmarshall (Complex_Buffer);
+               Content_Type := Unmarshall (Complex_Buffer);
                CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
                CORBA.TypeCode.Add_Parameter
@@ -2061,23 +2102,23 @@ package body droopi.Representations.CDR is
             declare
                Complex_Encap : aliased Encapsulation
                  := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Buffer : Buffer_Access := null;
                Id, Name, Member_Name : CORBA.String;
                Nb : CORBA.Unsigned_Long;
                Member_Type : CORBA.TypeCode.Object;
             begin
-               Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
-               Id := Unmarshall (Complex_Buffer'Access);
-               Name := Unmarshall (Complex_Buffer'Access);
-               Nb := Unmarshall (Complex_Buffer'Access);
+               Decapsulate (Complex_Encap'Access, Complex_Buffer);
+               Id := Unmarshall (Complex_Buffer);
+               Name := Unmarshall (Complex_Buffer);
+               Nb := Unmarshall (Complex_Buffer);
                CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
                CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Id));
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
-                     Member_Name := Unmarshall (Complex_Buffer'Access);
-                     Member_Type := Unmarshall (Complex_Buffer'Access);
+                     Member_Name := Unmarshall (Complex_Buffer);
+                     Member_Type := Unmarshall (Complex_Buffer);
                      CORBA.TypeCode.Add_Parameter
                        (Result, To_Any (Member_Type));
                      CORBA.TypeCode.Add_Parameter
@@ -2120,18 +2161,18 @@ package body droopi.Representations.CDR is
             declare
                Complex_Encap : aliased Encapsulation
                  := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Buffer : Buffer_Access:= null;
                Id, Name, Member_Name : CORBA.String;
                Type_Modifier, Visibility : CORBA.Short;
                Nb : CORBA.Unsigned_Long;
                Concrete_Base_Type, Member_Type : CORBA.TypeCode.Object;
             begin
-               Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
-               Id := Unmarshall (Complex_Buffer'Access);
-               Name := Unmarshall (Complex_Buffer'Access);
-               Type_Modifier := Unmarshall (Complex_Buffer'Access);
-               Concrete_Base_Type := Unmarshall (Complex_Buffer'Access);
-               Nb := Unmarshall (Complex_Buffer'Access);
+               Decapsulate (Complex_Encap'Access, Complex_Buffer);
+               Id := Unmarshall (Complex_Buffer);
+               Name := Unmarshall (Complex_Buffer);
+               Type_Modifier := Unmarshall (Complex_Buffer);
+               Concrete_Base_Type := Unmarshall (Complex_Buffer);
+               Nb := Unmarshall (Complex_Buffer);
                CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
                CORBA.TypeCode.Add_Parameter
@@ -2142,9 +2183,9 @@ package body droopi.Representations.CDR is
                  (Result, To_Any (Concrete_Base_Type));
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
-                     Member_Name := Unmarshall (Complex_Buffer'Access);
-                     Member_Type := Unmarshall (Complex_Buffer'Access);
-                     Visibility := Unmarshall (Complex_Buffer'Access);
+                     Member_Name := Unmarshall (Complex_Buffer);
+                     Member_Type := Unmarshall (Complex_Buffer);
+                     Visibility := Unmarshall (Complex_Buffer);
                      CORBA.TypeCode.Add_Parameter
                        (Result, To_Any (Visibility));
                      CORBA.TypeCode.Add_Parameter
@@ -2157,16 +2198,16 @@ package body droopi.Representations.CDR is
          when 30 =>
             Result := CORBA.TypeCode.TC_Valuebox;
             declare
-               Complex_Encap : aliased Encapsulation
+               Complex_Encap :  aliased Encapsulation
                  := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Buffer : Buffer_Access := null;
                Id, Name : CORBA.String;
                Content_Type : CORBA.TypeCode.Object;
             begin
-               Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
-               Id := Unmarshall (Complex_Buffer'Access);
-               Name := Unmarshall (Complex_Buffer'Access);
-               Content_Type := Unmarshall (Complex_Buffer'Access);
+               Decapsulate (Complex_Encap'Access, Complex_Buffer);
+               Id := Unmarshall (Complex_Buffer);
+               Name := Unmarshall (Complex_Buffer);
+               Content_Type := Unmarshall (Complex_Buffer);
                CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
                CORBA.TypeCode.Add_Parameter
@@ -2177,14 +2218,14 @@ package body droopi.Representations.CDR is
          when 31 =>
             Result := CORBA.TypeCode.TC_Native;
             declare
-               Complex_Encap : aliased Encapsulation
+               Complex_Encap :  aliased Encapsulation
                  := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Buffer :  Buffer_Access := null;
                Id, Name : CORBA.String;
             begin
-               Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
-               Id := Unmarshall (Complex_Buffer'Access);
-               Name := Unmarshall (Complex_Buffer'Access);
+               Decapsulate (Complex_Encap'Access, Complex_Buffer);
+               Id := Unmarshall (Complex_Buffer);
+               Name := Unmarshall (Complex_Buffer);
                CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
                CORBA.TypeCode.Add_Parameter
@@ -2193,21 +2234,21 @@ package body droopi.Representations.CDR is
          when 32 =>
             Result := CORBA.TypeCode.TC_Abstract_Interface;
             declare
-               Complex_Encap : aliased Encapsulation
+               Complex_Encap :  aliased Encapsulation
                  := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Buffer : Buffer_Access := null;
                Id, Name : CORBA.String;
             begin
-               Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
-               Id := Unmarshall (Complex_Buffer'Access);
-               Name := Unmarshall (Complex_Buffer'Access);
+               Decapsulate (Complex_Encap'Access, Complex_Buffer);
+               Id := Unmarshall (Complex_Buffer);
+               Name := Unmarshall (Complex_Buffer);
                CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
                CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Id));
             end;
          when others =>
-            Broca.Exceptions.Raise_Marshal;
+            CORBA.Exceptions.Raise_Marshal;
       end case;
       pragma Debug (O ("Unmarshall (TypeCode) : end"));
       return Result;
@@ -2227,22 +2268,22 @@ package body droopi.Representations.CDR is
       pragma Debug (O ("Unmarshall (NamedValue) : end"));
    end Unmarshall;
 
-   function Unmarshall (Buffer : access Buffer_Type)
-     return Encapsulation
-   is
-      Length : constant CORBA.Unsigned_Long := Unmarshall (Buffer);
-   begin
-      pragma Debug (O ("Unmarshall (Encapsulation): length is" & Length'Img));
-      declare
-         E : Encapsulation (1 .. Index_Type (Length));
-      begin
-         for I in E'Range loop
-            E (I) := CORBA.Octet'(Unmarshall (Buffer));
-         end loop;
-         pragma Debug (O ("Unmarshall (Encapsulation): end"));
-         return E;
-      end;
-   end Unmarshall;
+--   function Unmarshall (Buffer : access Buffer_Type)
+--     return Encapsulation
+--   is
+--      Length : constant CORBA.Unsigned_Long := Unmarshall (Buffer);
+--   begin
+--      pragma Debug (O ("Unmarshall (Encapsulation): length is" & Length'Img));
+--      declare
+--         E : Encapsulation (1 .. Stream_Element_Offset(Length));
+--      begin
+--         for I in E'Range loop
+--            E (I) := Stream_Element(CORBA.Octet'(Unmarshall (Buffer)));
+--         end loop;
+--         pragma Debug (O ("Unmarshall (Encapsulation): end"));
+--         return E;
+--      end;
+--   end Unmarshall;
 
    ---------
    -- Rev -- reverse the order of the bytes
@@ -2261,42 +2302,62 @@ package body droopi.Representations.CDR is
    -- Align_Octet
    ----------
 
-   generic
-     type F is private;
+--   generic
+--     type F is private;
 
-   function Align_Octet(Data : in F;Order: in Integer)
-         return Stream_Element_Array;
+--   function Align_Octet(Data : in F;Order: in Integer)
+--         return Stream_Element_Array;
 
-   function Align_Octet
-     (Data   : in F;
-      Order  : in Integer) return Stream_Element_Array
-   is
-      I : Integer:=0;
-      Result : Stream_Element_Array(Integer range 0..Order-1);
-   begin
-     Results(Order-1):=CORBA.Octet'(Data/Octet_Order**(Order-1));
-     for I in 0..Order-2 loop
-       Results(I):=CORBA.Octet'(((Data/Octet_Order**(I)) mod Octet_Order));
-     end loop;
-     return Result;
-   end Align_Octet;
+--   function Align_Octet
+--     (Data   : in F;
+--      Order  : in Integer) return Stream_Element_Array
+--   is
+--      I : Integer:=0;
+--      Result : Stream_Element_Array(Integer range 0..Order-1);
+--   begin
+--     Results(Order-1):=CORBA.Octet'(Data/Octet_Order**(Order-1));
+--     for I in 0..Order-2 loop
+--       Results(I):=CORBA.Octet'(((Data/Octet_Order**(I)) mod Octet_Order));
+--     end loop;
+--     return Result;
+--   end Align_Octet;
 
    -----------------------------------------------------
    -- return the Ulong stored in a array of octets
    ---------------------------------------------------
 
    function Sum_Octet
-     (Octets: Stream_Element_Array;
-      Order: CORBA.Unsigned_Long) return CORBA.Unsigned_Long
+     (Octets  : Stream_Element_Array;
+      Order   : Integer) return CORBA.Unsigned_Long
    is
-     Result: Integer:=0;
-     I: Integer:=0;
+     use CORBA;
+     Result: CORBA.Unsigned_Long :=0;
    begin
      for I in 0..Order-1 loop
-       Result:= Result + CORBA.Unsigned_Long(Octets(Octets'First+I))* Octet_Order**(Order-I-1);
+       Result := Result + CORBA.Unsigned_Long(Octets(Octets'First+Stream_Element_Offset(I)))
+                    * CORBA.Unsigned_Long(Octet_Order**(Order-I-1));
      end loop;
      return Result;
    end;
+
+  
+   function Sum_Octet
+     (Octets  : Stream_Element_Array;
+      Order   : Integer) return CORBA.Unsigned_Long_Long 
+   is
+     use CORBA;
+     Result: CORBA.Unsigned_Long_Long  :=0;
+   begin
+     for I in 0..Order-1 loop
+       Result := Result + CORBA.Unsigned_Long_Long(Octets(Octets'First+Stream_Element_Offset(I)))
+                    * CORBA.Unsigned_Long_Long(Octet_Order**(Order-I-1));
+     end loop;
+     return Result;
+   end;
+
+
+
+   
 
 
    ------------------------------------
@@ -2368,7 +2429,7 @@ package body droopi.Representations.CDR is
 
    function Align_Unmarshall_Big_Endian_Copy
      (Buffer    : access Buffer_Type;
-      Size      : Index_Type;
+      Size      : Stream_Element_Count;
       Alignment : Alignment_Type := 1)
      return Stream_Element_Array
    is
@@ -2387,7 +2448,7 @@ package body droopi.Representations.CDR is
 
    function Align_Unmarshall_Host_Endian_Copy
      (Buffer    : access Buffer_Type;
-      Size      : Index_Type;
+      Size      : Stream_Element_Count;
       Alignment : Alignment_Type := 1)
      return Stream_Element_Array
    is
@@ -2406,7 +2467,7 @@ package body droopi.Representations.CDR is
 
    function Align_Unmarshall_Copy
      (Buffer    : access Buffer_Type;
-      Size      : Index_Type;
+      Size      : Stream_Element_Count;
       Alignment : Alignment_Type := 1)
      return Stream_Element_Array is
 
@@ -2435,10 +2496,10 @@ package body droopi.Representations.CDR is
    -- Marshall --
    --------------
 
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data : in CORBA.AbstractBase.Ref'Class) is
-   begin
+--   procedure Marshall
+--     (Buffer : access Buffer_Type;
+--      Data : in CORBA.AbstractBase.Ref'Class) is
+--   begin
       --  !!!!!!!!!!!!!!!!!
       --  FIXME: I've just noticed that abstract interfaces must be
       --  encoded as unions
@@ -2446,66 +2507,66 @@ package body droopi.Representations.CDR is
       --  !!!!!!!!!!!!!!!!!
 
       --  1. if Data is a valuetype, call the valuetype marshalling function
-      if Data in CORBA.Value.Base'Class then
-         Broca.Value.Stream.Marshall (Buffer,
-                                      CORBA.Value.Base'Class (Data));
+--    if Data in CORBA.Value.Base'Class then
+--       Broca.Value.Stream.Marshall (Buffer,
+--                                    CORBA.Value.Base'Class (Data));
 
          --  2. check if Data is a nil ref, raise marshall if true
-      elsif CORBA.AbstractBase.Is_Nil (Data) then
-         Broca.Exceptions.Raise_Marshal;
+--    elsif CORBA.AbstractBase.Is_Nil (Data) then
+--       Broca.Exceptions.Raise_Marshal;
 
          --  3. If Data is an abstract interface and the referenced object is
          --     a valuetype, then call the valuetype marshalling function.
          --  In practice, just check if the referenced object is a valuetype.
-      elsif CORBA.AbstractBase.Object_Of (Data).all
-        in CORBA.Value.Impl_Base'Class then
+--    elsif CORBA.AbstractBase.Object_Of (Data).all
+--   in CORBA.Value.Impl_Base'Class then
          --  Broca.Value.Stream.Marshall (Buffer,
          --                             Data);
-         null;
+--       null;
          --  Not implemented yet
 
       --  4. Call the interface marshalling function
-      else
+--    else
          --  Make a redispatching call on the designated
          --  object.
-         declare
-            P : constant CORBA.Impl.Object_Ptr
-              := CORBA.AbstractBase.Object_Of (Data);
-         begin
-            CORBA.Impl.Marshall
-              (Buffer,
-               CORBA.Impl.Object'Class (P.all));
-         end;
-      end if;
-   end Marshall;
+--       declare
+--            P : constant CORBA.Impl.Object_Ptr
+--              := CORBA.AbstractBase.Object_Of (Data);
+--         begin
+--            CORBA.Impl.Marshall
+--              (Buffer,
+--               CORBA.Impl.Object'Class (P.all));
+--         end;
+--      end if;
+--   end Marshall;
 
    ----------------
    -- Unmarshall --
    ----------------
 
-   procedure Unmarshall
-     (Buffer : access Buffer_Type;
-      Data : in out CORBA.AbstractBase.Ref'Class) is
-      Obj : constant Broca.Object.Object_Ptr
-        := new Broca.Object.Object_Type (Local_Object => False);
-   begin
-      Broca.Object.Unmarshall
-        (Buffer, Broca.Object.Object_Type (Obj.all));
-      CORBA.AbstractBase.Set (Data, CORBA.Impl.Object_Ptr (Obj));
-   end Unmarshall;
+--   procedure Unmarshall
+--     (Buffer : access Buffer_Type;
+--      Data : in out CORBA.AbstractBase.Ref'Class) is
+--      Obj : constant Broca.Object.Object_Ptr
+--        := new Broca.Object.Object_Type (Local_Object => False);
+--   begin
+--      Broca.Object.Unmarshall
+--        (Buffer, Broca.Object.Object_Type (Obj.all));
+--      CORBA.AbstractBase.Set (Data, CORBA.Impl.Object_Ptr (Obj));
+--   end Unmarshall;
 
    ----------------
    -- Unmarshall --
    ----------------
 
-   function Unmarshall
-     (Buffer : access Buffer_Type)
-     return CORBA.Object.Ref is
-      New_Ref : CORBA.Object.Ref;
-   begin
-      Unmarshall (Buffer, New_Ref);
-      return New_Ref;
-   end Unmarshall;
+--   function Unmarshall
+--     (Buffer : access Buffer_Type)
+--     return CORBA.Object.Ref is
+--      New_Ref : CORBA.Object.Ref;
+--   begin
+--      Unmarshall (Buffer, New_Ref);
+--*     return New_Ref;
+--   end Unmarshall;
 
    -----------------------
    -- System exceptions --
@@ -2517,12 +2578,12 @@ package body droopi.Representations.CDR is
    is
       Members : CORBA.System_Exception_Members;
    begin
-      Broca.Exceptions.Get_Members (Excpt, Members);
+      CORBA.Exceptions.Get_Members (Excpt, Members);
       Marshall
-        (Buffer, CORBA.String (Broca.Exceptions.Occurrence_To_Name (Excpt)));
+        (Buffer, CORBA.String (CORBA.Exceptions.Occurrence_To_Name (Excpt)));
       Marshall (Buffer, Members.Minor);
       Marshall
-        (Buffer, Broca.Exceptions.To_Unsigned_Long (Members.Completed));
+        (Buffer, CORBA.Exceptions.To_Unsigned_Long (Members.Completed));
    end Marshall;
 
    procedure Unmarshall_And_Raise
@@ -2537,7 +2598,7 @@ package body droopi.Representations.CDR is
 
    begin
       Repository := Unmarshall (Buffer);
-      Identity := Broca.Exceptions.Get_ExcepId_By_RepositoryId
+      Identity := CORBA.Exceptions.Get_ExcepId_By_RepositoryId
         (CORBA.To_Standard_String (Repository));
 
       if Identity = Null_Id then
@@ -2552,30 +2613,32 @@ package body droopi.Representations.CDR is
 
       --  Raise the exception
 
-      Broca.Exceptions.Stack.Raise_Exception
+      CORBA.Exceptions.Stack.Raise_Exception
         (Identity,
          CORBA.System_Exception_Members'
          (Minor,
-          Broca.Exceptions.To_Completion_Status (Status)));
+          CORBA.Exceptions.To_Completion_Status (Status)));
    end Unmarshall_And_Raise;
 
 
-  -------------------------------
-  --  Marshall a sequence of octets
-  ---------------------------------------
+   -------------------------------
+   --  Marshall a sequence of octets
+   ---------------------------------------
 
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : in Stream_Element_Array)
    is
-
+ 
    begin
-      Marshall (Buffer, CORBA.Unsigned_Long (Data'Length));
+      pragma Debug (O ("Marshall (Encapsulation) : enter"));
+      Marshall (Buffer, CORBA.Unsigned_Long(Data'Length));
       for I in Data'Range loop
-         Marshall (Buffer, Data(I));
+         Marshall (Buffer, CORBA.Octet (Data (I)));
       end loop;
-   end Marshall;
-
+      pragma Debug (O ("Marshall (Encapsulation) : end"));
+  end Marshall;
+  
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : access Stream_Element_Array)
@@ -2585,32 +2648,33 @@ package body droopi.Representations.CDR is
    end Marshall;
 
 
+
    function Unmarshall
      (Buffer : access Buffer_Type)
      return Stream_Element_Array
    is
-      Length : constant CORBA.Unsigned_Long
-        := Unmarshall (Buffer);
-
-      --  subtype Sub_Element_Array is
-      --  Element_Array (1 .. Integer (Length));
-      Octets : Stream_Element_Array(1..Integer(Length));
+      Length : constant CORBA.Unsigned_Long := Unmarshall (Buffer);
    begin
-      for I in Octets'Range loop
-         Octets (I) := Unmarshall (Buffer);
-      end loop;
-      return Octets;
+      pragma Debug (O ("Unmarshall (Encapsulation): length is" & Length'Img));
+      declare
+         E : Stream_Element_Array(1 .. Stream_Element_Offset(Length));
+      begin
+         for I in E'Range loop
+            E (I) := Stream_Element(CORBA.Octet'(Unmarshall (Buffer)));
+         end loop;
+         pragma Debug (O ("Unmarshall (Encapsulation): end"));
+         return E;
+      end;
    end Unmarshall;
+    
 
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in Objects.Object_Id)
-   is
-
-   begin
-      Marshall (Buffer, Stream_Element_Array(Data));
-   end Marshall;
+--   procedure Marshall
+--     (Buffer : access Buffer_Type;
+--      Data   : in Objects.Object_Id)
+--   is
+--   begin
+--      Marshall (Buffer, Stream_Element_Array(Data));
+--   end Marshall;
 
 
 
@@ -2618,33 +2682,33 @@ package body droopi.Representations.CDR is
    --  Marshalling of Objects Ids
    ---------------------------------
 
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access Objects.Object_Id)
-   is
-   begin
-      Marshall (Buffer, Data.all);
-   end Marshall;
+--   procedure Marshall
+--     (Buffer : access Buffer_Type;
+--      Data   : access Objects.Object_Id)
+--   is
+--   begin
+--      Marshall (Buffer, Data.all);
+--   end Marshall;
 
 
-   function Unmarshall
-     (Buffer : access Buffer_Type)
-     return Objects.Object_Id
-   is
-     Octets : Stream_Element_Array;
-   begin
-      return  Objects.Object_Id(Octets);
-   end Unmarshall;
+--   function Unmarshall
+--     (Buffer : access Buffer_Type)
+--     return Objects.Object_Id
+--   is
+--     Octets : Stream_Element_Array;
+--   begin
+--      return  Objects.Object_Id(Octets);
+--   end Unmarshall;
 
-   function Unmarshall
-     (Buffer : access Buffer_Type)
-     return Objects.Object_Id_Access
-   is
-     Obj : aliased Objects.Object_Id
-   begin
-     Obj := Unmarshall(Buffer);
-     return Obj'Access;
-   end
+--   function Unmarshall
+--     (Buffer : access Buffer_Type)
+--     return Objects.Object_Id_Access
+--   is
+--     Obj : aliased Objects.Object_Id;
+--   begin
+--     Obj := Unmarshall(Buffer);
+--     return Obj'Access;
+--   end Unmarshall;
 
 
    -----------------
@@ -2684,8 +2748,8 @@ package body droopi.Representations.CDR is
          end loop;
 
          declare
-            Octets : Octet_Array
-              (0 .. Index_Type ((N_Digits + 2) / 2 - 1))
+            Octets : Stream_Element_Array 
+              (0 .. Stream_Element_Offset ((N_Digits + 2) / 2 - 1))
               := (others => 0);
             --  The size of the representation is
             --  at least 1, plus 1 nibble for the sign.
@@ -2705,13 +2769,13 @@ package body droopi.Representations.CDR is
             for I in Offset .. Offset + N_Digits loop
                declare
                   Digit : constant CORBA.Octet
-                    := CORBA.Octet'(Val / Bias);
+                    := CORBA.Octet(Val / Bias);
                begin
                   if I mod 2 = 0 then
-                     Octets (Index_Type (I / 2)) := Digit * 16;
+                     Octets (Stream_Element_Offset (I / 2)) := Stream_Element(Digit * 16);
                   else
-                     Octets (Index_Type (I / 2))
-                       := Octets (Index_Type (I / 2)) + Digit;
+                     Octets (Stream_Element_Offset (I / 2))
+                       := Octets (Stream_Element_Offset (I / 2)) + Stream_Element(Digit);
                   end if;
                   Val := Val - F (Digit) * Bias;
                   Bias := 0.1 * Bias;
@@ -2719,10 +2783,10 @@ package body droopi.Representations.CDR is
             end loop;
             if Data >= 0.0 then
                Octets (Octets'Last) :=
-                 Octets (Octets'Last) + Fixed_Positive_Zero;
+                 Octets (Octets'Last) + Stream_Element(Fixed_Positive_Zero);
             else
                Octets (Octets'Last) :=
-                 Octets (Octets'Last) + Fixed_Negative;
+                 Octets (Octets'Last) + Stream_Element(Fixed_Negative);
             end if;
             Align_Marshall_Copy (Buffer, Octets, 1);
          end;
@@ -2745,7 +2809,7 @@ package body droopi.Representations.CDR is
                and then O mod 16 /= CORBA.Octet (Fixed_Positive_Zero)
                and then O mod 16 /= CORBA.Octet (Fixed_Negative))
             then
-               Broca.Exceptions.Raise_Marshal;
+               CORBA.Exceptions.Raise_Marshal;
             end if;
 
             Result := Result * 10 + F (O / 16) * F'Delta;

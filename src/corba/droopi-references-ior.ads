@@ -24,7 +24,7 @@ package Droopi.References.IOR is
 
    function  Unmarshall
      (Buffer : access Buffer_Type)
-   return IOR_Type;
+   return  IOR_Type;
 
    type Marshall_Profile_Body_Type is access procedure
      (Buffer  : access Buffers.Buffer_Type;

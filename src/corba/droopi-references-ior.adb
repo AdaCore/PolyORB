@@ -7,7 +7,7 @@ with CORBA;
 with Droopi.Buffers; use Droopi.Buffers;
 with Droopi.Log;
 
-package body Droopi.References.Ior is
+package body Droopi.References.IOR is
 
    package L is new Droopi.Log.Facility_Log ("droopi.protocols.giop");
    procedure O
@@ -40,11 +40,13 @@ package body Droopi.References.Ior is
    ----------------
 
    procedure Unmarshall
-     (Buffer : access Buffer_Type;
-      Result : out IOR_Type)
+     (Buffer : access Buffer_Type)
+   return  IOR_Type;
+
    is
        N_Profiles : CORBA.Unsigned_Long;
        Profiles   : access Profile_Array;
+       Result : out IOR_Type;
    begin
       Result.Type_Id := Unmarshall (Buffer);
       N_Profiles     := Unmarshall (Buffer);
@@ -65,6 +67,7 @@ package body Droopi.References.Ior is
       end loop;
 
       Result.Profiles := To_Sequence (Prof_Array);
+      return Result;
    end Unmarshall;
 
 end Droopi.References.IOR;

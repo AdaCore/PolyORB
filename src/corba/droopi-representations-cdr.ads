@@ -296,17 +296,17 @@ package Droopi.Representations.CDR is
    --  Marshalling and unmashalling of object references
    --  (but not valuetypes)
 
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in CORBA.AbstractBase.Ref'Class);
+--   procedure Marshall
+--     (Buffer : access Buffer_Type;
+--      Data   : in CORBA.AbstractBase.Ref'Class);
 
-   procedure Unmarshall
-     (Buffer : access Buffer_Type;
-      Data : in out CORBA.AbstractBase.Ref'Class);
+--   procedure Unmarshall
+--     (Buffer : access Buffer_Type;
+--      Data : in out CORBA.AbstractBase.Ref'Class);
 
-   function Unmarshall
-     (Buffer : access Buffer_Type)
-     return CORBA.Object.Ref;
+--   function Unmarshall
+--     (Buffer : access Buffer_Type)
+--     return CORBA.Object.Ref;
 
    --  Marshalling and unmarshalling of system exceptions
 
@@ -330,17 +330,6 @@ package Droopi.Representations.CDR is
 
    function Unmarshall (Buffer : access Buffer_Type)
      return Stream_Element_Array;
-
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in Objects.Object_Id);
-
-   function Unmarshall (Buffer : access Buffer_Type)
-      return Objects.Object_Id;
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return Objects.Object_Id_Access;
 
    generic
       type F is delta <> digits <>;
