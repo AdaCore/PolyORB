@@ -2301,10 +2301,12 @@ package body Ada_Be.Idl2Ada.Helper is
                   if Default_Index (Node) = I then
                      PL (CU, "CORBA.TypeCode.Add_Parameter ("
                          & Ada_TC_Name (Node)
-                         & ", " & Ada_Helper_Name (Switch_Type (Node))
+                         & ", CORBA.To_Any ("
+                         & Ada_Helper_Name (Switch_Type (Node))
                          & ".To_Any ("
                          & Ada_Type_Name (Switch_Type (Node))
-                         & "'First));");
+                         & "'First)));");
+
                      Add_With (CU, Ada_Helper_Name (Case_Type (Case_Node)));
                      PL (CU, "CORBA.TypeCode.Add_Parameter ("
                          & Ada_TC_Name (Node)
@@ -2322,12 +2324,14 @@ package body Ada_Be.Idl2Ada.Helper is
                         Get_Next_Node (It2, Label_Node);
                         Put (CU, "CORBA.TypeCode.Add_Parameter ("
                              & Ada_TC_Name (Node)
-                             & ", " & Ada_Helper_Name (Switch_Type (Node))
+                             & ", CORBA.To_Any ("
+                             & Ada_Helper_Name (Switch_Type (Node))
                              & ".To_Any ("
                              & Ada_Type_Name (Switch_Type (Node))
                              & " (");
                         Gen_Constant_Value (CU, Label_Node);
-                        PL (CU, ")));");
+                        PL (CU, "))));");
+
                         Add_With (CU, Ada_Helper_Name (Case_Type (Case_Node)));
                         PL (CU, "CORBA.TypeCode.Add_Parameter ("
                             & Ada_TC_Name (Node)
