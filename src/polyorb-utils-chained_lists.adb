@@ -129,21 +129,13 @@ package body PolyORB.Utils.Chained_Lists is
 
    procedure Extract_First
      (L      : in out List;
-      Result : out T)
-   is
-      First : Node_Access := L.First;
+      Result : out T) is
    begin
-      if First = null then
+      if L.First = null then
          raise Constraint_Error;
       end if;
-
-      L.First := First.Next;
-      if L.First = null then
-         L.Last := null;
-      end if;
-
-      Result := First.Value;
-      Free (First);
+      Result := L.First.Value;
+      Remove (L, Item => L.First, Previous => null);
    end Extract_First;
 
    -----------
@@ -152,7 +144,7 @@ package body PolyORB.Utils.Chained_Lists is
 
    function First (L : List) return Iterator is
    begin
-      return Iterator'(Current => L.First, Previous => null);
+      return Iterator'(Current => L.First);
    end First;
 
    ------------
@@ -164,6 +156,8 @@ package body PolyORB.Utils.Chained_Lists is
       N : constant Node_Access
         := new Node'(Value => I, Next => Before.Current, Prev => null);
    begin
+      pragma Assert ((L.First = null) = (L.Last = null));
+
       if Before.Current = L.First then
          --  Insert at first position
          L.First := N;
@@ -188,6 +182,7 @@ package body PolyORB.Utils.Chained_Lists is
          N.Prev := Before.Current.Prev;
          Before.Current.Prev := N;
       end if;
+      pragma Assert ((L.First = null) = (L.Last = null));
    end Insert;
 
    ----------
@@ -195,8 +190,9 @@ package body PolyORB.Utils.Chained_Lists is
    ----------
 
    function Last (L : List) return Iterator is
+      pragma Unreferenced (L);
    begin
-      return Iterator'(Current => null, Previous => L.Last);
+      return Iterator'(Current => null);
    end Last;
 
    ----------
@@ -229,7 +225,6 @@ package body PolyORB.Utils.Chained_Lists is
 
    procedure Next (I : in out Iterator) is
    begin
-      I.Previous := I.Current;
       I.Current  := I.Current.Next;
    end Next;
 
