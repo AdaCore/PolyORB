@@ -2,6 +2,9 @@
 
 --  $Id$
 
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Ada.Tags;
+
 package body Droopi.References is
 
    procedure Create_Reference
@@ -26,10 +29,20 @@ package body Droopi.References is
       return R.Nil_Ref;
    end Is_Nil;
 
-   function Image (R : Ref) return String is
+   function Image (R : Ref) return String
+   is
+      P : constant Profile_Array
+        := Profiles_Of (R);
+      Res : Unbounded_String
+        := To_Unbounded_String ("Object reference:" & ASCII.LF);
    begin
-      --  XXX TODO!
-      return "<ObjectRef>";
+      for I in P'Range loop
+         Res := Res & "  " & Ada.Tags.External_Tag
+           (P (I).all'Tag) & ASCII.LF;
+         --  Res := Res & "    " & Binding_Data.Image (P (I).all);
+      end loop;
+
+      return To_String (Res);
    end Image;
 
 end Droopi.References;
