@@ -116,7 +116,15 @@ package body PolyORB.Binding_Data.GIOP.INET is
         PolyORB.Sockets.Port_Type'Value (S (Index .. Index2 - 1));
       Index := Index2 + 1;
 
-      TResult.Object_Id := new Object_Id'(To_Oid (S (Index .. S'Last)));
+      declare
+         Oid_Str : constant String := URI_Decode (S (Index .. S'Last));
+         Oid     : Object_Id (Stream_Element_Offset (Index)
+                           .. Stream_Element_Offset (S'Last));
+         pragma Import (Ada, Oid);
+         for Oid'Address use Oid_Str (Oid_Str'First)'Address;
+      begin
+         TResult.Object_Id := new Object_Id'(Oid);
+      end;
 
       if TResult.Object_Id = null then
          Destroy_Profile (Profile);
@@ -144,6 +152,11 @@ package body PolyORB.Binding_Data.GIOP.INET is
 
       GIOP_Profile : GIOP_Profile_Type'Class
         renames GIOP_Profile_Type'Class (Profile.all);
+      Oid_Str : String (Integer (Profile.Object_Id'First)
+                     .. Integer (Profile.Object_Id'Last));
+      pragma Import (Ada, Oid_Str);
+      for Oid_Str'Address use
+        Profile.Object_Id (Profile.Object_Id'First)'Address;
    begin
       pragma Debug (O ("Common_IIOP_DIOP_Profile_To_Corbaloc"));
 
@@ -152,7 +165,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
         Trimmed_Image (Integer (GIOP_Profile.Version_Minor)) & "@" &
         Image (Address.Addr) & ":" &
         Trimmed_Image (Integer (Address.Port)) & "/" &
-        To_String (Profile.Object_Id.all);
+        URI_Encode (Oid_Str);
    end Common_IIOP_DIOP_Profile_To_Corbaloc;
 
    ----------------------------------
