@@ -6,19 +6,20 @@
 	list and finds the first non-subunit parent in order to with
 	it. Add Fully_Qualified_Name which takes a designator or a
 	defining identifier and builds the fully qualified name of this
-	entity. Add To_Spec_Name which takes a name and return another
+	entity. Add To_Spec_Name which takes a name and returns another
 	name with %s at the end when needed. This name designates the
 	specification of a unit. The name info is supposed to contain a
 	reference to the corresponding node.
 
 	* backend-be_ada-runtime.adb, backend-be_ada-runtime.ads: Remove
-	special names and find special words into identifiers in order to
-	apply special casing. For instance, all identifiers with "corba"
-	in it like "to_corba_object" are output with "CORBA" in it. Define
-	run-time entities no only as designator but as package spec as
-	well and set attributes Is_Runtime_Package and Is_Subunit_Package
-	to true when required. Entities and units are supposed to be in
-	alphabetic order.
+	special name mechanism and find special words into identifiers in
+	order to apply special casing. For instance, all identifiers with
+	"corba" in it like "to_corba_object" are output with "CORBA" in
+	it. Define run-time units not only as designator but as package
+	spec as well and set attributes Is_Runtime_Package and
+	Is_Subunit_Package to true when required. Entities and units are
+	supposed to be in alphabetic order (otherwise, we may have serious
+	problems).
 
 	* backend-be_ada-expand.adb, backend-be_ada-expand.ads,
 	backend-be_ada-idl_to_ada.adb, backend-be_ada-idl_to_ada.ads,
@@ -27,7 +28,7 @@
 
 	* backend-be_ada-nodes.idl: Remove Is_Generated since it is not
 	used (no call to Is_Generated) and add Is_Runtime_Package and
-	Is_Subunit_Package.
+	Is_Subunit_Package attributes.
 
 	* backend-be_ada.adb, backend-be_ada.ads,
 	backend-be_ada-generator.adb: Add new options. -ta to print Ada
@@ -43,25 +44,25 @@
 
 2004-08-03  Saber Souli  <souli@neraka.enst.fr>
 
-	* backend-be_ada-stubs.adb: added instructions to the marshaller
+	* backend-be_ada-stubs.adb: Add instructions to the marshaller
 	body. 
 
-	* backend-be_ada-runtime.ads: Added new runtimes entities used in
-	stubs body. 
+	* backend-be_ada-runtime.ads: Add new runtime entities used in
+	stubs body.
 
-	* backend-be_ada-generator.adb: Modified Generate_Expression to
-	handle well the generation of unary operation. 
+	* backend-be_ada-generator.adb: Modify Generate_Expression to
+	handle the generation of unary operation.
 
-	* backend-be_ada-nutils.ads: Added Op_Not in Operation_Type. 
+	* backend-be_ada-nutils.ads: Add Op_Not in Operation_Type. 
 
-	* backend-be_ada-nutils.adb: Added Make_Designator a subprogram
-	that returns a designator for a given name_id. Expr2 field in
-	Make_expression is now optional (to handle unary operations).  
-	
+	* backend-be_ada-nutils.adb: Add Make_Designator to return a
+	designator for a given name_id. Right_Expr field in
+	Make_Expression is now optional (to handle unary operation).
 
 2004-08-03  Saber Souli  <souli@neraka.enst.fr>
 
-	* backend-be_ada-impls.adb: Complete generation of the  implementation body. 
+	* backend-be_ada-impls.adb: Complete generation of the
+	implementation body.
 
 2004-08-03  Saber Souli  <souli@neraka.enst.fr>
 
