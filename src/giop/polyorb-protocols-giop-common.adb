@@ -387,7 +387,7 @@ package body PolyORB.Protocols.GIOP.Common is
       Success      : Boolean;
 
       ORB          : constant ORB_Access := ORB_Access (Sess.Server);
-      Arguments_Alignment : Opaque.Alignment_Type
+      Arguments_Alignment : Buffers.Alignment_Type
         := Sess.Implem.Data_Alignment;
    begin
       pragma Assert ((Sess.Implem.Version = GIOP_Version'(1, 0)) or

@@ -587,7 +587,7 @@ package body PolyORB.Protocols.GIOP is
       Buffer              :        Buffer_Access;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
-      First_Arg_Alignment :        Opaque.Alignment_Type)
+      First_Arg_Alignment :        Buffers.Alignment_Type)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Implem);
@@ -627,7 +627,7 @@ package body PolyORB.Protocols.GIOP is
       Buffer              :        Buffer_Access;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
-      First_Arg_Alignment :        Opaque.Alignment_Type)
+      First_Arg_Alignment :        Buffers.Alignment_Type)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Implem);

@@ -248,7 +248,7 @@ package body PolyORB.Buffers is
    begin
       pragma Assert (Buffer.Initial_CDR_Position = 0);
       Result := new Stream_Element_Array (1 .. Length (Buffer));
-      Iovec_Pools.Dump (Buffer.Contents, To_Opaque_Pointer (Result));
+      Iovec_Pools.Dump (Buffer.Contents, Result (Result'First)'Address);
       return Result;
    end To_Stream_Element_Array;
 

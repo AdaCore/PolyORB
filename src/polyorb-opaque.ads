@@ -31,9 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Storage of opaque data.
+--  Utility declarations for low-level memory management.
 
---  $Id: //droopi/main/src/polyorb-opaque.ads#8 $
+--  $Id: //droopi/main/src/polyorb-opaque.ads#9 $
 
 with Ada.Streams;
 with Ada.Unchecked_Deallocation;
@@ -43,20 +43,23 @@ package PolyORB.Opaque is
 
    pragma Preelaborate;
 
+   ----------------------------------------
+   -- All-purpose memory allocation type --
+   ----------------------------------------
+
    type Zone_Access is access all Ada.Streams.Stream_Element_Array;
    --  A storage zone: an array of bytes.
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Ada.Streams.Stream_Element_Array, Zone_Access);
 
+   --------------------------------------
+   -- All-purpose memory location type --
+   --------------------------------------
+
    subtype Opaque_Pointer is System.Address;
 
    function Is_Null (P : Opaque_Pointer) return Boolean;
    pragma Inline (Is_Null);
-
-   function To_Opaque_Pointer (Z : Zone_Access) return Opaque_Pointer;
-   pragma Inline (To_Opaque_Pointer);
-
-   subtype Alignment_Type is Ada.Streams.Stream_Element_Offset range 1 .. 8;
 
 end PolyORB.Opaque;

@@ -45,13 +45,4 @@ package body PolyORB.Opaque is
       return P = System.Null_Address;
    end Is_Null;
 
-   -----------------------
-   -- To_Opaque_Pointer --
-   -----------------------
-
-   function To_Opaque_Pointer (Z : Zone_Access) return Opaque_Pointer is
-   begin
-      return Z (Z'First)'Address;
-   end To_Opaque_Pointer;
-
 end PolyORB.Opaque;

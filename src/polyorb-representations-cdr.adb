@@ -1839,15 +1839,6 @@ package body PolyORB.Representations.CDR is
       Marshall (Buffer, Data.all);
    end Marshall;
 
-   --  procedure Marshall
-   --   (Buffer : access Buffer_Type;
-   --    Data   : access Encapsulation) is
-   --  begin
-   --    Marshall (Buffer, PolyORB.Types.Unsigned_Long (Data'Length));
-   --    Insert_Raw_Data (Buffer, Data'Length,
-   --    Opaque_Pointer'(Zone => Zone_Access(Data), Offset => 0));
-   --  end Marshall;
-
    ------------------------------------
    -- Unmarshall-by-copy subprograms --
    ------------------------------------

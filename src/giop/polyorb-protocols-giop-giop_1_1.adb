@@ -592,7 +592,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Buffer              :         PolyORB.Buffers.Buffer_Access;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
-      First_Arg_Alignment :        Opaque.Alignment_Type)
+      First_Arg_Alignment :        Buffers.Alignment_Type)
    is
       use PolyORB.Any;
       use PolyORB.Any.NVList.Internals;

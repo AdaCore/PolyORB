@@ -36,7 +36,6 @@ with Ada.Unchecked_Deallocation;
 
 with PolyORB.Buffers;
 with PolyORB.ORB;
-with PolyORB.Opaque;
 with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Simple_Flags;
@@ -171,7 +170,7 @@ private
    type GIOP_Implem is abstract tagged record
       Version               : GIOP_Version;
       --  This values must be set at Implem initialization !
-      Data_Alignment        : Opaque.Alignment_Type;
+      Data_Alignment        : Buffers.Alignment_Type;
       Locate_Then_Request   : Boolean;
       --  Configuration values
       Section               : Types.String;
@@ -256,10 +255,10 @@ private
 
    procedure Marshall_Argument_List
      (Implem              : access GIOP_Implem;
-      Buffer              :        PolyORB.Buffers.Buffer_Access;
+      Buffer              :        Buffers.Buffer_Access;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
-      First_Arg_Alignment :        Opaque.Alignment_Type);
+      First_Arg_Alignment :        Buffers.Alignment_Type);
    --  Internal subprogram: Marshall arguments from Args
    --  into Buf.
    --  Direction may be ARG_IN or ARG_OUT. Only NamedValues
@@ -269,10 +268,10 @@ private
 
    procedure Unmarshall_Argument_List
      (Implem              : access GIOP_Implem;
-      Buffer              :        PolyORB.Buffers.Buffer_Access;
+      Buffer              :        Buffers.Buffer_Access;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
-      First_Arg_Alignment :        PolyORB.Opaque.Alignment_Type);
+      First_Arg_Alignment :        Buffers.Alignment_Type);
    --  Internal subprogram: set the values of arguments in
    --  Args by unmarshalling them from Ses.
    --  Direction may be ARG_IN or ARG_OUT. Only NamedValues

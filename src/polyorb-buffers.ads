@@ -40,7 +40,7 @@
 
 --  Note: Buffers should only be read/written sequentially.
 
---  $Id: //droopi/main/src/polyorb-buffers.ads#26 $
+--  $Id: //droopi/main/src/polyorb-buffers.ads#27 $
 
 with Ada.Streams;
 
@@ -58,6 +58,7 @@ package PolyORB.Buffers is
    -------------------------
 
    type Endianness_Type is (Little_Endian, Big_Endian);
+   subtype Alignment_Type is Ada.Streams.Stream_Element_Offset range 1 .. 8;
 
    Host_Order : constant Endianness_Type;
    --  The byte order of this host.
@@ -181,14 +182,14 @@ package PolyORB.Buffers is
 
    procedure Pad_Align
      (Buffer    : access Buffer_Type;
-      Alignment :        Opaque.Alignment_Type);
+      Alignment :        Alignment_Type);
    --  Aligns Buffer on specified Alignment before inserting
    --  aligned data. A padding chunk is inserted into Buffer
    --  if necessary.
 
    procedure Align_Position
      (Buffer    : access Buffer_Type;
-      Alignment :        Opaque.Alignment_Type);
+      Alignment :        Alignment_Type);
    --  Aligns Buffer on specified Alignment before retrieving
    --  aligned data.
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -142,7 +142,7 @@ private
       Buffer              :        PolyORB.Buffers.Buffer_Access;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
-      First_Arg_Alignment :        Opaque.Alignment_Type);
+      First_Arg_Alignment :        Buffers.Alignment_Type);
 
    --  bits inf flags field
 
@@ -150,7 +150,7 @@ private
 
    --  Data alignment
 
-   Data_Alignment_1_1 : constant Opaque.Alignment_Type := 1;
+   Data_Alignment_1_1 : constant Buffers.Alignment_Type := 1;
 
    --  Principal
 

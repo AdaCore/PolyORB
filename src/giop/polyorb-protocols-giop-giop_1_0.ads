@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -118,7 +118,7 @@ private
 
    --  Data alignment
 
-   Data_Alignment_1_0 : constant Opaque.Alignment_Type := 1;
+   Data_Alignment_1_0 : constant Buffers.Alignment_Type := 1;
 
    --  Principal
 
