@@ -36,7 +36,6 @@
 with GNAT.OS_Lib;                     use GNAT.OS_Lib;
 with Ada.Exceptions;                  use Ada.Exceptions;
 pragma Warnings (Off, Ada.Exceptions);
-with Ada.Unchecked_Deallocation;
 with Interfaces.C.Strings;
 pragma Warnings (Off, Interfaces.C.Strings);
 with System.Garlic.Constants;             use System.Garlic.Constants;
@@ -176,14 +175,12 @@ package body System.Garlic.Tcp is
    procedure Enter (PID : Partition_ID);
    procedure Leave (PID : Partition_ID);
 
-   procedure Free is
-     new Ada.Unchecked_Deallocation (Sockaddr_In, Sockaddr_In_Access);
-
    procedure Physical_Receive
      (Peer  : in C.int;
       Data  : access Stream_Element_Array;
       Error : in out Error_Type);
    pragma Inline (Physical_Receive);
+   pragma Export (Ada, Physical_Receive, "GLADE_Physical_Receive");
 
    procedure Physical_Send
      (Peer   : in C.int;
@@ -191,9 +188,11 @@ package body System.Garlic.Tcp is
       First  : in Stream_Element_Count;
       Error  : in out Error_Type);
    pragma Inline (Physical_Send);
+   pragma Export (Ada, Physical_Send, "GLADE_Physical_Send");
    --  Receive and send data. Physical_Receive loops as long as Data has
    --  not been filled and Physical_Send as long as everything has not been
-   --  sent.
+   --  sent. These two procedures are exported so that they can be used in
+   --  profiling programs without being in the spec.
 
    Data_Stream : aliased Stream_Element_Array
      := (1 .. Banner_Size => Banner_Kind'Pos (Data_Banner));

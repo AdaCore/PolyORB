@@ -1,5 +1,10 @@
 2000-01-19  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* s-gartcp.adb: Remove unused instantiation of
+	Ada.Unchecked_Deallocation as well as the dependency on it.
+	Export symbols for Physical_Send and Physical_Receive so that they
+	can be used in profiling tests (with convention Ada).
+
 	* s-ganeut.ads: Make this package public so that it can be used
 	by performance measurements programs.
 
