@@ -33,9 +33,9 @@
 
 --  $Id$
 
-with Unchecked_Deallocation;
+with Ada.Unchecked_Deallocation;
 
-package PolyORB.Tasking.Semaphores is
+package body PolyORB.Tasking.Semaphores is
 
    ----------
    -- Free --
@@ -81,11 +81,11 @@ package PolyORB.Tasking.Semaphores is
    procedure Down (S : Semaphore_Access) is
    begin
       Enter (M.Mutex.all);
-      Value := Value - 1;
 
       while Value = 0 loop
          Wait (M.Condition.all, M.Mutex);
       end loop;
+      Value := Value - 1;
 
       Leave (M.Mutex.all);
    end Down;
@@ -98,17 +98,5 @@ package PolyORB.Tasking.Semaphores is
       Leave (M.Mutex.all);
       return Result;
    end State;
-
-private
-
-   package PTM renames PolyORB.Tasking.Mutexes;
-
-   package PTCV renames PolyORB.Tasking.Condition_Variables;
-
-   type Semaphore is record
-      Value     : Natural;
-      Mutex     : PTM.Mutex_Access;
-      Condition : PTCV.Condition_Access;
-   end record;
 
 end PolyORB.Tasking.Semaphores;
