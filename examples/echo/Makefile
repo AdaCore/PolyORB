@@ -11,10 +11,11 @@ CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_Giop_s.o
 CPP_LINK_FILES += $(ADABROKER_PATH)/omniObject_C2Ada.o
 CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_OmniObject.o
 CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_OmniRopeAndKey.o
-CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_Rope.o
 CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_netBufferedStream.o
 CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_memBufferedStream.o
 CPP_LINK_FILES += $(ADABROKER_PATH)/proxyObjectFactory_C2Ada.o
+CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_Corba_Orb.o
+CPP_LINK_FILES += $(ADABROKER_PATH)/toto.o
 
 
 
@@ -23,7 +24,7 @@ main:
 	make client
 #	make server
 
-client: echo.o echo-proxies.o client.o
+client: echo.o echo-proxies.o client.o  $(ADABROKER_PATH)
 	$(BIND) -I$(ADABROKER_PATH) client.ali
 	$(LINK)  \
 -Wl,-rpath,../../omniORB_2.7.0/lib/i586_linux_2.0_glibc \
@@ -48,7 +49,7 @@ server.ali $(CPP_LINK_FILES) \
 
 echo.o : echo.ads echo.adb echo-proxies.ads echo-proxies.adb $(ADABROKER_PATH)
 
-echo-impl.o : echo-impl.ads echo-impl.adb echo.o $(ADABROKER_PATH) 
+echo-impl.o : echo-impl.ads echo-impl.adb echo.o $(ADABROKER_PATH)
 
 echo-proxies.o: echo-proxies.ads echo-proxies.adb echo.o $(ADABROKER_PATH)
 

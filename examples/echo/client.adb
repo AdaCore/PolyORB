@@ -18,8 +18,8 @@ with Echo ;
 
 procedure Client is
 
-   Orb_ptr : Corba.Orb.Object_ptr ;
-   Boa_ptr : Corba.Boa.Object_ptr ;
+   Orb : Corba.Orb.Object ;
+   Boa : Corba.Boa.Object ;
 
    Sent_Msg, Rcvd_Msg, IOR : CORBA.String ;
 
@@ -30,10 +30,10 @@ begin
 
    Put_Line("Starting client") ;
 
-   Orb_ptr := Corba.Orb.Orb_Init("omniORB2") ;
+   Orb := Corba.Orb.Orb_Init("omniORB2") ;
    Put_Line("ORB initialized") ;
 
-   Boa_ptr := Corba.Orb.Boa_Init(Orb_Ptr, "omniORB2_BOA") ;
+   Boa := Corba.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
    Put_Line("BOA initialized") ;
 
 
