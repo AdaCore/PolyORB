@@ -1844,7 +1844,8 @@ package body Exp_Dist is
                 RACW_Parameter,
               Parameter_Type =>
                 Make_Access_Definition (Loc,
-                  New_Occurrence_Of (RACW_Type, Loc)))),
+                  Subtype_Mark =>
+                    New_Occurrence_Of (RACW_Type, Loc)))),
           Subtype_Mark => New_Occurrence_Of (RTE (RE_TypeCode), Loc));
       --  Dummy 'access RACW' argument, just over overload.
 
@@ -2732,7 +2733,8 @@ package body Exp_Dist is
                 RAS_Parameter,
               Parameter_Type =>
                 Make_Access_Definition (Loc,
-                  New_Occurrence_Of (RAS_Type, Loc)))),
+                  Subtype_Mark =>
+                    New_Occurrence_Of (RAS_Type, Loc)))),
           Subtype_Mark => New_Occurrence_Of (RTE (RE_TypeCode), Loc));
       --  Dummy 'access RAS' argument, just over overload.
 
