@@ -141,7 +141,7 @@ package body PolyORB.Transport.Datagram is
       if Msg in Connect_Indication then
          return Emit (TE.Upper, Msg);
 
-      elsif Msg in Data_Expected then
+      elsif Msg in Data_Expected'Class then
          declare
             DE : Data_Expected renames Data_Expected (Msg);
          begin
