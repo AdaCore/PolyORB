@@ -62,7 +62,7 @@ package body Iop is
    -- Marshall
    -----------
    procedure Marshall (A : in Iop.Tagged_Profile_List ;
-                       S : in out Netbufferedstream.Object) is
+                       S : in out Netbufferedstream.Object'Class) is
       C_A : System.Address ;
       C_S : System.Address ;
    begin
@@ -87,7 +87,7 @@ package body Iop is
    -- UnMarshall
    -------------
    procedure UnMarshall (A : out IOP.Tagged_Profile_List ;
-                         S : in out Netbufferedstream.Object) is
+                         S : in out Netbufferedstream.Object'Class) is
       C_A : System.Address ;
       C_S : System.Address ;
    begin
@@ -114,7 +114,7 @@ package body Iop is
    -- Marshall
    -----------
    procedure Marshall (A : in Iop.Tagged_Profile_List ;
-                       S : in out Membufferedstream.Object) is
+                       S : in out Membufferedstream.Object'Class) is
       C_A : System.Address ;
       C_S : System.Address ;
    begin
@@ -140,7 +140,7 @@ package body Iop is
    -- UnMarshall
    -------------
    procedure UnMarshall (A : out IOP.Tagged_Profile_List ;
-                         S : in out Membufferedstream.Object) is
+                         S : in out Membufferedstream.Object'Class) is
       C_A : System.Address ;
       C_S : System.Address ;
    begin

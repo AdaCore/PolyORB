@@ -47,13 +47,13 @@
 
 with Ada.Exceptions ;
 
-with Corba, Corba.Object ;
+with Corba, Corba.Object, Corba.Exceptions ;
 with Giop ;
 with Omniropeandkey ;
-with Giop_C ; use Giop_C ;
-with Netbufferedstream ; use Netbufferedstream ;
-with Omniproxycalldesc ; use Omniproxycalldesc ;
-
+with Giop_C ;
+with Netbufferedstream ;
+with Omniproxycalldesc ;
+with Omniobject ; use type Omniobject.Object_Ptr ;
 
 
 package body omniProxyCallWrapper is
@@ -73,13 +73,28 @@ package body omniProxyCallWrapper is
    ----------------
    procedure Invoke (Obj : in Corba.Object.Ref'Class ;
                      Call_Desc : in out OmniProxyCallDesc.Object'Class ) is
-      OmniObj_Ptr : Omniobject.Object_Ptr := OmniObject.GetOmniObject (Obj);
---      Retries : Corba.Unsigned_Long := 0 ;
+      OmniObj_Ptr : Omniobject.Object_Ptr := Corba.Object.Get_OmniObject_Ptr (Obj);
+      -- pointer on the underlying omniobject
+
+      Retries : Corba.Unsigned_Long := 0 ;
+      -- current number of retries
+
       Rope_And_Key : Omniropeandkey.Object ;
+      -- rope and key of the omniobject
+
       Is_Fwd : Corba.Boolean ;
+      -- False if Rope_And_Key corresponds to the rope and key stored in
+      -- the IOP profile. True otherwise.
+
       Reuse : Corba.Boolean := False ;
+      -- true if this is not the first Sync object instantiated to
+      -- use the Strand. False otherwise.
+
       Giop_Client : Giop_C.Object ;
---      Message_Size : Corba.Unsigned_Long ;
+      -- Giop_c object used forcommunications with the ORB
+
+      Message_Size : Corba.Unsigned_Long ;
+      -- size of the message to pass to the giop_c object
    begin
       loop
          -- verify that the underlying omniobject is not null
@@ -103,8 +118,9 @@ package body omniProxyCallWrapper is
          -- Calculates the size of the message
          -- first the size of the header
          Message_Size :=
-           Giop_C.Request_Header_Size(Omniropeandkey.Key_Size(Rope_And_Key),
-                                      Corba.Length(Operation(Call_Desc))) ;
+           Giop_C.Request_Header_Size
+           (Omniropeandkey.Key_Size(Rope_And_Key),
+            Corba.Length(Omniproxycalldesc.Operation(Call_Desc))) ;
          -- and then the size of the message itself
          Message_Size := Omniproxycalldesc.Aligned_Size (Call_Desc,
                                                          Message_Size) ;
@@ -129,7 +145,6 @@ package body omniProxyCallWrapper is
                                                            Giop_Client) ;
                -- inform the ORB that the request was completed
                Giop_C.Request_Completed(Giop_Client) ;
-               return ;
 
             when Giop.USER_EXCEPTION =>
                -- check if the exception is due to the proxycalldesc
@@ -151,7 +166,7 @@ package body omniProxyCallWrapper is
                RepoID : Corba.String ;
             begin
                -- UnMarshalls the RepoID
-               Netbufferedstream.UnMarshal(RepoID,Giop_Client) ;
+               Netbufferedstream.UnMarshall (RepoID,Giop_Client) ;
 
                -- may be simplified,
                -- it was done like this in C++ for memory allocation
@@ -188,7 +203,7 @@ package body omniProxyCallWrapper is
 
             when Giop.LOCATION_FORWARD =>
                declare
-                  Obj_Ref : Corba.Object.Ref'Class ;
+                  Obj_Ref : Corba.Object.Ref ;
                   Omniobj_Ptr2 : Omniobject.Object_Ptr ;
                   R : Omniropeandkey.Object ;
                   Unneeded_Result : Corba.Boolean ;
@@ -216,77 +231,282 @@ package body omniProxyCallWrapper is
                                                      "null omniobject_ptr found in method invoke (omniProxyCallWrapper L 216)") ;
                   end if ;
                   -- get the rope and the key of the object
-                  Corba.Object.Get_Rope_And_Key (Omniobj2_Ptr.all,
-                                                 R,
-                                                 Unneeded_result) ;
+                  Omniobject.Get_Rope_And_Key (Omniobj_Ptr2.all,
+                                               R,
+                                               Unneeded_result) ;
                   -- and set these rope and key to Omniobj
-                  Corba.Object.Set_Rope_And_Key(Omniobj.all, R) ;
+                  Omniobject.Set_Rope_And_Key(Omniobj_Ptr.all, R) ;
                   return ;
 
                end ;
          end case ;
-
-      exception
-
-         when
-
-               ----------------------------------------------------
-               ----------------------------------------------------
-               ------------------- J'EN SUIS LA -------------------
-               ----------------------------------------------------
-               ----------------------------------------------------
-
-
-
-
-
-      -- Exception handlers
-      -- are not imlpemented yet
-      -- they should be the same as in proxyCall.cc L 46
-   exception
-      when Ex : Corba.Comm_Failure =>
-         Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,
-                                        "in omniproxycallwrapper.adb, procedure invoke"
-                                        & Corba.CRLF
-                                        & "caught exception Corba.Comm_Failure"
-                                        & Corba.CRLF
-                                        & "handler not implemented yet");
-      when Ex : Corba.Transient =>
-         Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,
-                                        "in omniproxycallwrapper.adb, procedure invoke"
-                                        & Corba.CRLF
-                                        & "caught exception Corba.Transient"
-                                        & Corba.CRLF
-                                        & "handler not implemented yet");
-      when Ex : Corba.Object_Not_Exist =>
-         Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,
-                                        "in omniproxycallwrapper.adb, procedure invoke"
-                                        & Corba.CRLF
-                                        & "caught exception Corba.Object_Not_Exist"
-                                        & Corba.CRLF
-                                        & "handler not implemented yet");
-      when Ex : others =>
-         Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,
-                                        "in omniproxycallwrapper.adb, procedure invoke"
-                                        & Corba.CRLF
-                                        & "caught other exception "
-                                        & Ada.Exceptions.Exception_Name(Ex)
-                                        & Corba.CRLF
-                                        & "handler not implemented yet");
-
-         -- should end infinite loop
-         -- to be done when exceptions are handled
-
       end loop ;
+
+   exception
+
+      when E : Corba.Comm_Failure =>
+         declare
+            Member : Corba.Comm_Failure_Members ;
+         begin
+            Corba.Get_Members (E, Member) ;
+            if Reuse or Is_Fwd then
+               if Is_Fwd then
+                  Omniobject.Reset_Rope_And_Key (OmniObj_Ptr.all) ;
+               end if ;
+               if Corba.Exceptions.Omni_Call_Transient_Exception_Handler
+                 (OmniObj_Ptr.all,Retries,Member.Minor, Member.Completed) then
+                  declare
+                    Member2 : Corba.Transient_Members := (Member.Minor,
+                                                          Member.Completed) ;
+                  begin
+                     Corba.Raise_Corba_Exception (Corba.Transient'Identity,
+                                                  Member2) ;
+                  end ;
+               end if ;
+            else
+               if Corba.Exceptions.Omni_Comm_Failure_Exception_Handler
+                 (OmniObj_Ptr.all,Retries,Member.Minor,Member.Completed) then
+                  Corba.Raise_Corba_Exception (Corba.Comm_Failure'Identity,
+                                               Member) ;
+               end if ;
+            end if ;
+         end ;
+
+      when E : Corba.Transient =>
+         declare
+            Member : Corba.Transient_Members ;
+         begin
+            if Corba.Exceptions.Omni_Call_Transient_Exception_Handler
+              (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
+               Corba.Raise_Corba_Exception (Corba.Transient'Identity,
+                                            Member) ;
+            end if ;
+         end ;
+
+      when E : Corba.Object_Not_Exist =>
+         declare
+            Member : Corba.Object_Not_Exist_Members ;
+         begin
+            if Is_Fwd then
+               -- if Is_Fwd = True, we have to reset the rope and the key
+               -- of the object according to IOP profile.
+               Omniobject.Reset_Rope_And_Key (OmniObj_Ptr.all) ;
+               if Corba.Exceptions.Omni_Call_Transient_Exception_Handler
+                 (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
+                  declare
+                     Member2 : Corba.Transient_Members := (Member.Minor,
+                                                           Member.Completed) ;
+                  begin
+                     Corba.Raise_Corba_Exception (Corba.Transient'Identity,
+                                                  Member2) ;
+                  end ;
+               end if ;
+            else
+               if Corba.Exceptions.Omni_System_Exception_Handler
+                 (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
+                  Corba.Raise_Corba_Exception (Corba.Object_Not_Exist'Identity,
+                                               Member) ;
+               end if ;
+            end if ;
+         end ;
+
+      when E : Corba.Unknown |
+        Corba.Bad_Param |
+        Corba.No_Memory |
+        Corba.Imp_Limit |
+        Corba.Inv_Objref |
+        Corba.No_Permission |
+        Corba.Internal |
+        Corba.Marshal |
+        Corba.Initialization_Failure |
+        Corba.No_Implement |
+        Corba.Bad_Typecode |
+        Corba.Bad_Operation |
+        Corba.No_Resources |
+        Corba.No_Response |
+        Corba.Persist_Store |
+        Corba.Bad_Inv_Order |
+        Corba.Free_Mem |
+        Corba.Inv_Ident |
+        Corba.Inv_Flag |
+        Corba.Intf_Repos |
+        Corba.Bad_Context |
+        Corba.Obj_Adapter |
+        Corba.Data_Conversion =>
+         declare
+            Member : Corba.Inv_Objref_Members ;
+         begin
+            if Corba.Exceptions.Omni_System_Exception_Handler
+              (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
+               Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
+                                            Member) ;
+            end if ;
+         end;
+
    end;
 
 
    -- One_Way
    ----------
-   procedure One_Way(The_Obj : in Corba.Object.Ref'Class ;
+   procedure One_Way(Obj : in Corba.Object.Ref'Class ;
                      Call_Desc : in out OmniProxyCallDesc.Object'Class) is
+      OmniObj_Ptr : Omniobject.Object_Ptr := Corba.Object.Get_OmniObject_Ptr (Obj);
+      -- pointer on the underlying omniobject
+
+      Retries : Corba.Unsigned_Long := 0 ;
+      -- current number of retries
+
+      Rope_And_Key : Omniropeandkey.Object ;
+      -- rope and key of the omniobject
+
+      Is_Fwd : Corba.Boolean ;
+      -- False if Rope_And_Key corresponds to the rope and key stored in
+      -- the IOP profile. True otherwise.
+
+      Reuse : Corba.Boolean := False ;
+      -- true if this is not the first Sync object instantiated to
+      -- use the Strand. False otherwise.
+
+      Giop_Client : Giop_C.Object ;
+      -- Giop_c object used forcommunications with the ORB
+
+      Message_Size : Corba.Unsigned_Long ;
+      -- size of the message to pass to the giop_c object
    begin
-      return ;
+      loop
+         -- verify that the underlying omniobject is not null
+         if OmniObj_Ptr = null then
+            Ada.Exceptions.Raise_Exception (Corba.AdaBroker_Fatal_Error'Identity,
+                                            "null omniobject_ptr found in method invoke (omniProxyCallWrapper L 86)") ;
+         end if ;
+
+         -- verify that the object exists
+         Omniobject.Assert_Object_Existent(OmniObj_Ptr.all) ;
+
+         -- get the current values of the rope and the key
+         Omniobject.Get_Rope_And_Key(OmniObj_Ptr.all,Rope_And_Key,Is_Fwd) ;
+
+         -- Get a GIOP driven strand
+         Giop_C.Init (Giop_Client, Omniropeandkey.Get_Rope(Rope_And_Key)) ;
+
+         -- do the giop_client reuse an existing connection ?
+         Reuse := Netbufferedstream.Is_Reusing_Existing_Connection(Giop_Client) ;
+
+         -- Calculates the size of the message
+         -- first the size of the header
+         Message_Size :=
+           Giop_C.Request_Header_Size
+           (Omniropeandkey.Key_Size(Rope_And_Key),
+            Corba.Length(Omniproxycalldesc.Operation(Call_Desc))) ;
+         -- and then the size of the message itself
+         Message_Size := Omniproxycalldesc.Aligned_Size (Call_Desc,
+                                                         Message_Size) ;
+
+         -- Initialise the request
+         Giop_C.Initialize_Request(Giop_Client,
+                                   Omniropeandkey.Get_Key(Rope_And_Key),
+                                   Omniropeandkey.Key_Size(Rope_And_Key),
+                                   OmniProxycalldesc.Operation(Call_Desc),
+                                   Message_Size,
+                                   True);
+
+         -- Marshal the arguments to the operation
+         Omniproxycalldesc.Marshal_Arguments (Call_Desc, Giop_Client) ;
+
+         -- wait for the reply
+         case Giop_C.Receive_Reply(Giop_Client) is
+
+            when Giop.NO_EXCEPTION =>
+               -- inform the ORB that the request was completed
+               Giop_C.Request_Completed(Giop_Client) ;
+
+            when Giop.USER_EXCEPTION |
+              Giop.SYSTEM_EXCEPTION |
+              Giop.LOCATION_FORWARD =>
+               Giop_C.Request_Completed(Giop_Client,True) ;
+               Ada.Exceptions.Raise_Exception (Corba.AdaBroker_Fatal_Error'Identity,
+                                               "GIOP_C::ReceiveReply() returned unexpected code on oneway" &
+                                               Corba.CRLF & "in method One_Way" &
+                                               Corba.CRLF & "(see omniproxycallwrapper L 422") ;
+         end case ;
+
+      end loop ;
+
+   exception
+
+      when E : Corba.Comm_Failure =>
+         declare
+            Member : Corba.Comm_Failure_Members ;
+         begin
+            Corba.Get_Members (E, Member) ;
+            if Reuse or Is_Fwd then
+               if Is_Fwd then
+                  Omniobject.Reset_Rope_And_Key (OmniObj_Ptr.all) ;
+               end if ;
+               if Corba.Exceptions.Omni_Call_Transient_Exception_Handler
+                 (OmniObj_Ptr.all,Retries,Member.Minor, Member.Completed) then
+                  declare
+                    Member2 : Corba.Transient_Members := (Member.Minor,
+                                                          Member.Completed) ;
+                  begin
+                     Corba.Raise_Corba_Exception (Corba.Transient'Identity,
+                                                  Member2) ;
+                  end ;
+               end if ;
+            else
+               if Corba.Exceptions.Omni_Comm_Failure_Exception_Handler
+                 (OmniObj_Ptr.all,Retries,Member.Minor,Member.Completed) then
+                  Corba.Raise_Corba_Exception (Corba.Comm_Failure'Identity,
+                                               Member) ;
+               end if ;
+            end if ;
+         end ;
+
+      when E : Corba.Transient =>
+         declare
+            Member : Corba.Transient_Members ;
+         begin
+            if Corba.Exceptions.Omni_Call_Transient_Exception_Handler
+              (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
+               Corba.Raise_Corba_Exception (Corba.Transient'Identity,
+                                            Member) ;
+            end if ;
+         end ;
+
+      when E : Corba.Unknown |
+        Corba.Bad_Param |
+        Corba.No_Memory |
+        Corba.Imp_Limit |
+        Corba.Object_Not_Exist |
+        Corba.Inv_Objref |
+        Corba.No_Permission |
+        Corba.Internal |
+        Corba.Marshal |
+        Corba.Initialization_Failure |
+        Corba.No_Implement |
+        Corba.Bad_Typecode |
+        Corba.Bad_Operation |
+        Corba.No_Resources |
+        Corba.No_Response |
+        Corba.Persist_Store |
+        Corba.Bad_Inv_Order |
+        Corba.Free_Mem |
+        Corba.Inv_Ident |
+        Corba.Inv_Flag |
+        Corba.Intf_Repos |
+        Corba.Bad_Context |
+        Corba.Obj_Adapter |
+        Corba.Data_Conversion =>
+         declare
+            Member : Corba.Inv_Objref_Members ;
+         begin
+            if Corba.Exceptions.Omni_System_Exception_Handler
+              (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
+               Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
+                                            Member) ;
+            end if ;
+         end;
+
    end ;
 
 

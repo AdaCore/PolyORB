@@ -61,7 +61,7 @@ package body Giop_C is
 
    -- C_Init
    ---------
-   procedure C_Init (Self : in Object'Class ;
+   procedure C_Init (Self : out Object'Class ;
                      R : in System.Address) ;
    pragma Import (C,C_Init,"Init__10Ada_Giop_cP4Rope") ;
    -- wrapper around  Ada_Giop_c procedure Init
@@ -71,7 +71,7 @@ package body Giop_C is
 
    -- Init
    -------
-   procedure Init (Self : in out Object'Class ;
+   procedure Init (Self : out Object'Class ;
                    R : in Rope.Object) is
    begin
       -- just calls the C procedure

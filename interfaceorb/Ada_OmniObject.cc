@@ -146,6 +146,24 @@ Ada_OmniObject::setRopeAndKey(const omniRopeAndKey& l,_CORBA_Boolean keepIOP=1)
 };
 
 
+// resetRopeAndKey
+//----------------
+void
+Ada_OmniObject::resetRopeAndKey ()
+{
+  if (Init_Ok) {
+    // if Initialisation was made then call the corresponding
+    // function on C_Object
+    C_Object->resetRopeAndKey();
+    return;
+  } else {
+    // else raise an Ada Exception
+    raise_ada_exception ("Call of Ada_OmniObject::resetRopeAndKey without initialising object.");
+  }
+};
+  
+
+
 // getRopeAndKey
 //--------------
 void
@@ -207,15 +225,6 @@ extern _CORBA_Boolean Ada_Is_A(const char* repoId) ;
 // See implementation in omniobject.adb
 
 
-// getOmniObject
-//--------------
-omniObject_C2Ada *
-Ada_OmniObject::getOmniObject() {
-  return C_Object ;
-}
-
-
-
 // setRepositoryID
 //----------------
 void
@@ -230,7 +239,6 @@ Ada_OmniObject::setRepositoryID(const char* repoId) {
     raise_ada_exception ("Call of Ada_OmniObject::setRepositoryId without initialising object.");
   }
 }
-
 
 
 // getRepositoryID

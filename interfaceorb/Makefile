@@ -55,17 +55,22 @@ main: C_files Ada_adb_files Ada_ads_files Sys_Dep
 # compilation of C++ files
 ##########################
 C_files : \
-Ada_exceptions.o Ada_Corba_Orb.o Ada_Giop_c.o Ada_Giop_s.o \
-Ada_memBufferedStream.o Ada_netBufferedStream.o Ada_OmniObject.o \
-Ada_OmniRopeAndKey.o omniObject_C2Ada.o proxyObjectFactory_C2Ada.o \
-omniObject_C2Ada.o proxyObjectFactory_C2Ada.o  
+Ada_Corba_Exceptions.o Ada_Corba_Orb.o Ada_exceptions.o \
+Ada_Giop_c.o Ada_Giop_s.o Ada_memBufferedStream.o Ada_netBufferedStream.o \
+Ada_OmniObject.o Ada_OmniRopeAndKey.o omniObject_C2Ada.o \
+proxyObjectFactory_C2Ada.o omniObject_C2Ada.o proxyObjectFactory_C2Ada.o  
 
 .SUFFIXES: .cc .o
 
 .cc.o:
 	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) $<
 
+Ada_Corba_Exceptions.o : Ada_Corba_Exceptions.hh Ada_Corba_Exceptions.cc
+
 Ada_Corba_Orb.o : Ada_Corba_Orb.hh Ada_Corba_Orb.cc
+
+Ada_exceptions.o : Ada_exceptions.cc Ada_exceptions.hh exceptions.ads \
+exceptions.adb
 
 Ada_Giop_c.o : Ada_Giop_c.hh Ada_Giop_c.cc Ada_netBufferedStream.o
 
@@ -85,8 +90,6 @@ omniObject_C2Ada.o : omniObject_C2Ada.hh omniObject_C2Ada.cc
 proxyObjectFactory_C2Ada.o: proxyObjectFactory_C2Ada.hh \
 proxyObjectFactory_C2Ada.cc omniObject_C2Ada.o
 
-Ada_exceptions.o : Ada_exceptions.cc Ada_exceptions.hh exceptions.ads \
-exceptions.adb
 
 
 
@@ -122,7 +125,7 @@ corba-command_line.ali : corba-command_line.ads corba-command_line.adb \
 corba.ali
 
 corba-exceptions.ali : corba-exceptions.ads corba-exceptions.adb \
-corba.ali
+corba.ali Ada_Corba_Exceptions.o omniobject.ali sys_dep.ali
 
 corba-forward.ali: corba-forward.ads corba-forward.adb corba.ali
 
@@ -168,8 +171,9 @@ omniproxycalldesc.ali: omniproxycalldesc.ads omniproxycalldesc.adb \
 corba.ali giop_c.ali
 
 omniproxycallwrapper.ali: omniproxycallwrapper.ads omniproxycallwrapper.adb \
-omniproxycalldesc.ali corba-object.ali corba.ali corba-object.ali \
-omniropeandkey.ali giop_c.ali netbufferedstream.ali 
+omniproxycalldesc.ali corba-object.ali corba.ali omniobject.ali \
+omniropeandkey.ali giop_c.ali netbufferedstream.ali giop.ali \
+corba-exceptions.ali
 
 omniropeandkey.ali : omniropeandkey.ads omniropeandkey.adb corba.ali \
 rope.ali Ada_OmniRopeAndKey.o sys_dep.ali

@@ -173,12 +173,12 @@ package OmniObject is
 
 
    procedure Marshall (Obj : in Implemented_Object_Ptr ;
-                       S : in out NetBufferedStream.Object) ;
+                       S : in out NetBufferedStream.Object'class) ;
    -- This procedure marshalls the object Obj into the stream S
 
 
    procedure Marshall (Obj : in Implemented_Object_Ptr ;
-                       S : in out MemBufferedStream.Object) ;
+                       S : in out MemBufferedStream.Object'class) ;
    -- This procedure marshalls the object Obj into the stream S
 
 
@@ -198,12 +198,12 @@ package OmniObject is
 
 
    procedure Marshall (Obj : in Object_Ptr ;
-                       S : in out NetBufferedStream.Object) ;
+                       S : in out NetBufferedStream.Object'Class) ;
    -- This procedure marshalls the object Obj into the stream S
 
 
    procedure Marshall (Obj : in Object_Ptr ;
-                       S : in out MemBufferedStream.Object) ;
+                       S : in out MemBufferedStream.Object'Class) ;
    -- This procedure marshalls the object Obj into the stream S
 
 
@@ -238,11 +238,33 @@ package OmniObject is
    -- or Object_Is_Ready(Corba.Object.Ref)
 
 
+   procedure Assert_Object_Existent (Self : in Object'Class) ;
+   pragma Import (CPP,Assert_Object_Existent,
+                  "assertObjectExistent__10omniObject");
+   -- wrapper around  Ada_OmniObject function assertObjectExistent
+   -- (see Ada_OmniObject.hh)
+   -- no Ada equivalent since there is no arguments
+
+
    procedure Get_Rope_And_Key (Self : in Object'Class ;
                                L : in out Omniropeandkey.Object ;
                                Success : out Boolean ) ;
    -- returns the rope and key for this omniobject
    -- if it is a proxy object
+
+
+   procedure Set_Rope_And_Key (Self : in out Object'Class ;
+                               L : in Omniropeandkey.Object ;
+                               KeepIOP : in Boolean := True) ;
+   -- sets the rope and key for this object
+
+
+   procedure Reset_Rope_And_Key (Self : in out Object'Class) ;
+   -- resets the rope and key for this object according to the IOP profile
+   pragma Import (CPP,Reset_Rope_And_Key,
+                  "resetRopeAndKey__14Ada_OmniObject") ;
+   -- wrapper around  Ada_OmniObject function resetRopeAndKey
+   -- (see Ada_OmniObject.hh)
 
 
    function Get_Repository_Id(Self : in Object'class)
@@ -318,11 +340,6 @@ private
    -- sets the reopsitory ID for this object
    -- it is called by Init(Omniobject.Implemented_Object)
 
-   procedure Set_Rope_And_Key (Self : in out Object'Class ;
-                               L : in Omniropeandkey.Object ;
-                               KeepIOP : in Boolean := True) ;
-   -- sets the rope and key for this object
-
 
    function C_Dispatch (Self : in Object'Class ;
                         Orls : in System.Address ;
@@ -344,13 +361,6 @@ private
    -- returns true if self is in repoID,
    -- or one of its descendant
 
-
-   procedure Assert_Object_Existent (Self : in Object'Class) ;
-   pragma Import (CPP,Assert_Object_Existent,
-                  "assertObjectExistent__10omniObject");
-   -- wrapper around  Ada_OmniObject function assertObjectExistent
-   -- (see Ada_OmniObject.hh)
-   -- no Ada equivalent since there is no arguments
 
    -----------------------------------------------
    ---         memory handling                 ---

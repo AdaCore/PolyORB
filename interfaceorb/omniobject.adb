@@ -212,7 +212,7 @@ package body OmniObject is
    -- Marshall
    -----------
    procedure Marshall (Obj : in Implemented_Object_Ptr ;
-                       S : in out NetBufferedStream.Object) is
+                       S : in out NetBufferedStream.Object'Class) is
    begin
       if Obj = null then
          -- never reached normally
@@ -228,7 +228,7 @@ package body OmniObject is
    -- Marshall
    -----------
    procedure Marshall (Obj : in Implemented_Object_Ptr ;
-                       S : in out MemBufferedStream.Object) is
+                       S : in out MemBufferedStream.Object'Class) is
    begin
       if Obj = null then
          -- never reached normally
@@ -329,7 +329,7 @@ package body OmniObject is
    -- Marshall
    -----------
    procedure Marshall (Obj : in Object_Ptr ;
-                       S : in out NetBufferedStream.Object) is
+                       S : in out NetBufferedStream.Object'Class) is
    begin
       if Obj = null then
          -- if object null, marshall null object
@@ -346,7 +346,7 @@ package body OmniObject is
    -- Marshall
    -----------
    procedure Marshall (Obj : in Object_Ptr ;
-                       S : in out MemBufferedStream.Object) is
+                       S : in out MemBufferedStream.Object'Class) is
    begin
       if Obj = null then
          -- if object null, marshall null object
@@ -532,17 +532,15 @@ package body OmniObject is
    end ;
 
 
-
    -- C_Set_Rope_And_Key
    ----------------------
    procedure C_Set_Rope_And_Key (Self : in out Object'Class ;
                                  L : in System.Address ;
                                  KeepIOP : in Sys_Dep.C_Boolean) ;
    pragma Import (CPP,C_Set_Rope_And_Key,
-                  "setRopeAndKey__10omniObjectRC14omniRopeAndKeyb") ;
+                  "setRopeAndKey__14Ada_OmniObjectRC14omniRopeAndKeyb") ;
    -- wrapper around  Ada_OmniObject function setRopeAndKey
    -- (see Ada_OmniObject.hh)
-
 
 
    -- Set_Rope_And_Key
@@ -568,7 +566,7 @@ package body OmniObject is
                                 Success : out Sys_Dep.C_Boolean) ;
    pragma Import (CPP,
                   C_Get_Rope_And_Key,
-                  "getRopeAndKey__C10omniObjectR14omniRopeAndKey") ;
+                  "getRopeAndKey__14Ada_OmniObjectR14omniRopeAndKeyRb") ;
    -- wrapper around  Ada_OmniObject function getRopeAndKey
    -- (see Ada_OmniObject.hh)
 

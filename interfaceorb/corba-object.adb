@@ -404,7 +404,7 @@ package body Corba.Object is
    -- Marshall
    -----------
    procedure Marshal (Obj : in Ref_Ptr ;
-                      S : in out NetBufferedStream.Object) is
+                      S : in out NetBufferedStream.Object'Class) is
    begin
       if Obj = null then
          -- never reached normally
@@ -420,7 +420,7 @@ package body Corba.Object is
    -- Marshall
    -----------
    procedure Marshal (Obj : in Ref_Ptr ;
-                      S : in out MemBufferedStream.Object) is
+                      S : in out MemBufferedStream.Object'Class) is
    begin
       if Obj = null then
          -- never reached normally
@@ -436,7 +436,7 @@ package body Corba.Object is
    -- UnMarshall
    -------------
    procedure UnMarshal (Obj : out Ref'Class ;
-                        S : in out NetBufferedStream.Object) is
+                        S : in out NetBufferedStream.Object'Class) is
       Repo_ID : Corba.String ;
       Iop_List : Iop.Tagged_Profile_List ;
       Tmp : Ref'Class := Corba.Object.Nil_Ref ;
@@ -460,7 +460,7 @@ package body Corba.Object is
    -- UnMarshall
    -------------
    procedure UnMarshal (Obj : out Ref'Class ;
-                        S : in out MemBufferedStream.Object) is
+                        S : in out MemBufferedStream.Object'Class) is
       Repo_ID : Corba.String ;
       Iop_List : Iop.Tagged_Profile_List ;
       Tmp : Ref'Class := Corba.Object.Nil_Ref ;

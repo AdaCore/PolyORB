@@ -77,7 +77,7 @@ package Giop_C is
    -- type pointer on type Object
 
 
-   procedure Init (Self : in out Object'Class ;
+   procedure Init (Self : out Object'Class ;
                    R : in Rope.Object) ;
    -- Ada constructor of the class.
    -- This function must be called after each declaration of

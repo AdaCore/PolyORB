@@ -248,19 +248,19 @@ package Corba.Object is
    -- This function computes the size needed to marshall the object obj
 
    procedure Marshal (Obj : in Ref_Ptr ;
-                      S : in out NetBufferedStream.Object) ;
+                      S : in out NetBufferedStream.Object'Class) ;
    -- This procedure marshalls the object Obj into the stream S
 
    procedure Marshal (Obj : in Ref_Ptr ;
-                      S : in out MemBufferedStream.Object) ;
+                      S : in out MemBufferedStream.Object'Class) ;
    -- This procedure marshalls the object Obj into the stream S
 
    procedure UnMarshal (Obj : out Ref'Class ;
-                        S : in out NetBufferedStream.Object) ;
+                        S : in out NetBufferedStream.Object'Class) ;
    -- This procedure marshalls the object Obj into the stream S
 
    procedure UnMarshal (Obj : out Ref'Class ;
-                        S : in out MemBufferedStream.Object) ;
+                        S : in out MemBufferedStream.Object'Class) ;
    -- This procedure marshalls the object Obj into the stream S
 
 

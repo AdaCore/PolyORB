@@ -61,22 +61,22 @@ package Iop is
 
 
    procedure Marshall (A : in Iop.Tagged_Profile_List ;
-                       S : in out Netbufferedstream.Object);
+                       S : in out Netbufferedstream.Object'Class);
    -- Marshalls a Tagged_Profile_List into a Netbufferedstream
 
 
    procedure UnMarshall (A : out IOP.Tagged_Profile_List ;
-                         S : in out Netbufferedstream.Object);
+                         S : in out Netbufferedstream.Object'Class);
    -- UnMarshalls a Tagged_Profile_List from a Netbufferedstream
 
 
    procedure Marshall (A : in Iop.Tagged_Profile_List ;
-                       S : in out Membufferedstream.Object);
+                       S : in out Membufferedstream.Object'Class);
    -- Marshalls a Tagged_Profile_List into a Membufferedstream
 
 
    procedure UnMarshall (A : out IOP.Tagged_Profile_List ;
-                         S : in out Membufferedstream.Object);
+                         S : in out Membufferedstream.Object'Class);
    -- UnMarshalls a Tagged_Profile_List from a Membufferedstream
 
 

@@ -73,7 +73,7 @@ public:
 
   void Init ();
   // Initialisation of a local object via call to the
-  // omniObject_C2Ada constructor on C_OmniObject
+  // omniObject_C2Ada constructor on C_Object
   
   void Init (const char *repoId,
 	     Rope *r,
@@ -82,22 +82,25 @@ public:
 	     IOP::TaggedProfileList *profiles,
 	     _CORBA_Boolean release); 
   // Initialisation of a proxy object via call to the
-  // omniObject_C2Ada constructor on C_OmniObject
+  // omniObject_C2Ada constructor on C_Object
   
   void Init (omniObject_C2Ada *omniobj);
   //Initialisation by giving the underlying omniObject_C2Ada pointer
   
   void setRopeAndKey(const omniRopeAndKey& l,_CORBA_Boolean keepIOP=1);
-  // calls the setRopeAndKey function of C_OmniObject
+  // calls the setRopeAndKey function of C_Object
 
   void  getRopeAndKey(omniRopeAndKey& l, _CORBA_Boolean& success);
-  // calls the getRopeAndKey function of C_OmniObject
+  // calls the getRopeAndKey function of C_Object
+
+  void resetRopeAndKey();
+  // calls the resetRopeAdnKey function of C_Object
   
   void assertObjectExistent();
-  // calls the assertObjectExistent function of C_OmniObject
+  // calls the assertObjectExistent function of C_Object
   
   _CORBA_Boolean is_proxy();
-  // calls the is_proxy function of C_OmniObject
+  // calls the is_proxy function of C_Object
   
   virtual _CORBA_Boolean dispatch(GIOP_S &,
 				  const char *operation,
@@ -114,9 +117,6 @@ public:
   
   const char* getRepositoryID() ;
   // calls th NP_repositoryId of omniObject
-  
-  omniObject_C2Ada *getOmniObject() ;
-  // returns the underlying omniObject_C2Ada
   
   static Ada_OmniObject* string_to_ada_object(const char *repoId) ;
   // this function executes omni::stringToObject,

@@ -58,6 +58,7 @@ with Ada.Strings.Unbounded ;
 use type Ada.Strings.Unbounded.Unbounded_String ;
 with Ada.Strings ;
 with Ada.Characters.Latin_1 ;
+with Interfaces.C ;
 
 with Corba ;
 use type Corba.String ;
