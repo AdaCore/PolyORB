@@ -46,6 +46,7 @@ package body Droopi.Binding_Data.Test is
       TE      : out Transport.Transport_Endpoint_Access;
       Session : out Components.Component_Access)
    is
+      use Droopi.Filters;
       use Droopi.Protocols.Echo;
       use Droopi.Sockets;
       use Droopi.Transport.Sockets;
@@ -59,8 +60,11 @@ package body Droopi.Binding_Data.Test is
       Connect_Socket (S, Remote_Addr);
       TE := new Transport.Sockets.Socket_Endpoint;
       Create (Socket_Endpoint (TE.all), S);
-      Create (P'Access, Filters.Filter_Access (Session));
-      --  XXXXX: should connect Session and TE
+      Create (P'Access, Filter_Access (Session));
+
+      Transport.Connect_Upper (TE, Session);
+      Connect_Lower
+        (Filter_Access (Session), Components.Component_Access (TE));
    end Bind_Profile;
 
    function Get_Profile_Tag
