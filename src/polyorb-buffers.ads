@@ -40,7 +40,7 @@
 
 --  Note: Buffers should only be read/written sequentially.
 
---  $Id: //droopi/main/src/polyorb-buffers.ads#17 $
+--  $Id: //droopi/main/src/polyorb-buffers.ads#18 $
 
 with Ada.Streams;
 
@@ -156,6 +156,13 @@ package PolyORB.Buffers is
    --  Dump the contents of Buffer into a Stream_Element_Array,
    --  and return a pointer to it. The caller must take care of
    --  deallocating the pointer after use.
+
+   function Peek
+     (Buffer : access Buffer_Type;
+      Offset :      Ada.Streams.Stream_Element_Offset)
+   return Ada.Streams.Stream_Element;
+   --  return the octet at offset from the buffer
+   --  raise a Read_Error Exception if not found
 
    -------------------------------------
    -- Representation view of a buffer --
@@ -414,6 +421,13 @@ private
       function Dump (Iovec_Pool : Iovec_Pool_Type) return Opaque.Zone_Access;
       --  Dump the contents of Iovec_Pool into an array of octets. The result
       --  must be deallocated when not used anymore.
+
+      function Peek
+        (Iovec_Pool : Iovec_Pool_Type;
+         Offset     : Ada.Streams.Stream_Element_Offset)
+        return Ada.Streams.Stream_Element;
+      --  return the octet at offset from the buffer
+      --  raise a Read_Error Exception if not found
 
    private
 

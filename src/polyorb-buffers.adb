@@ -249,6 +249,20 @@ package body PolyORB.Buffers is
       return Result;
    end To_Stream_Element_Array;
 
+   ----------
+   -- Peek --
+   ----------
+
+   function Peek
+     (Buffer : access Buffer_Type;
+      Offset :      Ada.Streams.Stream_Element_Offset)
+     return Ada.Streams.Stream_Element
+   is
+   begin
+      return Iovec_Pools.Peek (Buffer.Contents, Offset);
+   end Peek;
+
+
    ------------------------------
    -- The CDR view of a buffer --
    ------------------------------
@@ -966,6 +980,44 @@ package body PolyORB.Buffers is
          when others =>
             raise Read_Error;
       end Extract_Data;
+
+      ----------
+      -- Peek --
+      ----------
+
+      function Peek
+        (Iovec_Pool : Iovec_Pool_Type;
+         Offset     : Stream_Element_Offset)
+        return Stream_Element
+      is
+         Vecs_Address : constant System.Address
+           := Iovecs_Address (Iovec_Pool);
+         Iovecs : Iovec_Array (1 .. Iovec_Pool.Last);
+         for Iovecs'Address use Vecs_Address;
+         pragma Import (Ada, Iovecs);
+         Current_Offset : Stream_Element_Offset := 0;
+      begin
+         for J in Iovecs'Range loop
+            declare
+               L : constant Stream_Element_Offset
+                 := Stream_Element_Offset (Iovecs (J).Iov_Len);
+            begin
+               if Offset < L + Current_Offset then
+                  declare
+                     S_Addr : constant System.Address
+                    := Iovecs (J).Iov_Base;
+                     S : Stream_Element_Array (0 .. L - 1);
+                     for S'Address use S_Addr;
+                     pragma Import (Ada, S);
+                  begin
+                     return S (Offset - Current_Offset);
+                  end;
+               end if;
+               Current_Offset := Current_Offset + L;
+            end;
+         end loop;
+         raise Read_Error;
+      end Peek;
 
       -------------
       -- Release --
