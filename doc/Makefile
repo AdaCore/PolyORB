@@ -2,6 +2,7 @@ EPSFILES=\
 droopi-arch.eps\
 droopi-func-addressing.eps\
 droopi-func-transport.eps\
+droopi-func-binding.eps\
 droopi-func-representation.eps\
 droopi-func-protocol.eps\
 droopi-func-activation.eps\
