@@ -88,34 +88,44 @@ package body Test_Suite.Scenarios is
       use Test_Suite.Test_Case.Parser;
       use Test_Suite.Test_Case;
 
-      Count : Natural := 0;
-
-      Scenario_Name : constant String
-        := Open_Scenario (Scenario_File, Index, Output);
-
-      Result : Boolean := True;
-
    begin
-      loop
-         declare
-            Extracted_Test : Test'Class
-              := Extract_Test (Scenario_Name, Count, Output);
+      declare
+         Count : Natural := 0;
 
-         begin
-            exit when Extracted_Test in Null_Test;
+         Scenario_Name : constant String
+           := Open_Scenario (Scenario_File, Index, Output);
 
-            Result := Result and Run_Test (Extracted_Test, Output);
-            Count := Count + 1;
+         Result : Boolean := True;
 
-            delay 1.0;
-         end;
-      end loop;
+      begin
 
-      Log (Output, "All tests done in scenario: " & Scenario_Name);
-      Separator (Output);
+         loop
+            declare
+               Extracted_Test : Test'Class
+                 := Extract_Test (Scenario_Name, Count, Output);
 
-      Close_Scenario_Output_Context (Output, Result);
-      PolyORB.Parameters.Reset;
+            begin
+               exit when Extracted_Test in Null_Test;
+
+               Result := Result and Run_Test (Extracted_Test, Output);
+               Count := Count + 1;
+
+               delay 1.0;
+            end;
+         end loop;
+
+         Log (Output, "All tests done in scenario: " & Scenario_Name);
+         Separator (Output);
+
+         Close_Scenario_Output_Context (Output, Result);
+         PolyORB.Parameters.Reset;
+      end;
+
+   exception
+      when others =>
+         Log (Output, "Error in scenario file: " & Scenario_File);
+         Separator (Output);
+
    end Run_Scenario;
 
    -----------------------
