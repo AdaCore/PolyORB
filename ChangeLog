@@ -1,3 +1,7 @@
+1998-05-11  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* MANIFEST: Remove s-painst.ad?.
+
 1998-05-06  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* configure, configure.in: Fix typo which caused incorrect update
