@@ -144,6 +144,12 @@ etc during this process).
 Please include COMPLETE identification of the version of the system
 you are running.
 
+Also please add, at the beginning of your mail, the output of the 
+"gnatdist -V" command, especially the part surrounded by bracketed lines.
+The information contained in these cryptic lines (this is in fact the
+file Dist/glade_version.txt in the distribution) helps us to track the
+exact version you got.
+
 To be maximally helpful, for a report that contains multiple separate
 compilation units, and hence multiple files, submit them in the form
 of a single file that is acceptable input to gnatchop i.e. contains no
@@ -178,6 +184,8 @@ and send us the patch_file via E-mail at the address above.
 If your diff version do not understand the --recursive or --context
 option, please use the GNU diffutils package which may be found on any
 GNU archive (e.g. ftp://ftp.lip6.fr/pub/gnu/).
+
+Note that unified diff files (-u option of GNU diff) are also welcomed.
 
 GLADE History.
 --------------

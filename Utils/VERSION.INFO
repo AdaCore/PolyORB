@@ -6,7 +6,7 @@
 # has to be tagged "to_be_released" and to be kept in synch as new releases
 # appear.
 #
-# DO NOT CALLED THIS FILE EXPLICITLY. IT WILL BE CALLED BY THE make_distrib
+# DO NOT CALL THIS FILE EXPLICITLY. IT WILL BE CALLED BY THE make_distrib
 # program.
 
 #
@@ -18,7 +18,7 @@ gnat_version='3.11w'
 #
 # files hold the list of files in which substitutions will occur
 #
-files="README INSTALL Doc/install_guide.txt"
+files="README INSTALL Dist/glade_version.txt Doc/install_guide.txt"
 
 #
 # Do the job

@@ -1,3 +1,13 @@
+1997-12-15  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* README: Add a note on "gnatdist -V".
+	Mention that unified diff (-u) are accepted as well when
+	submitting patches.
+
+1997-12-14  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Add glade_version.txt in distribution.
+
 1997-12-10  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* configure.in: Add -gnatwe flag when --enable-debug is selected
