@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  $Id$
+
 --  Scheduling Policies for PolyORB ORB main loop.
 
 --  A Scheduling Policy is responsible for the allocation of existing
@@ -48,8 +50,6 @@
 --  1) No task are created. It is the responsability of the ORB
 --     Tasking Policy and/or user application code to create tasks.
 --  2) Scheduler must be called from within ORB critical section
-
---  $Id$
 
 with PolyORB.Task_Info;
 with PolyORB.Tasking.Mutexes;
@@ -169,25 +169,25 @@ private
 
    type Scheduling_Policy is tagged limited null record;
 
-   End_Of_Check_Sources_E : constant Event (End_Of_Check_Sources)
-     := Event'(Kind =>  End_Of_Check_Sources);
+   End_Of_Check_Sources_E : constant Event (End_Of_Check_Sources) :=
+     Event'(Kind =>  End_Of_Check_Sources);
 
-   Event_Sources_Added_E : constant Event (Event_Sources_Added)
-     := Event'(Kind => Event_Sources_Added);
+   Event_Sources_Added_E : constant Event (Event_Sources_Added) :=
+     Event'(Kind => Event_Sources_Added);
 
-   Event_Sources_Deleted_E : constant Event (Event_Sources_Deleted)
-     := Event'(Kind => Event_Sources_Deleted);
+   Event_Sources_Deleted_E : constant Event (Event_Sources_Deleted) :=
+     Event'(Kind => Event_Sources_Deleted);
 
-   Executing_Job_E : constant Event (Executing_Job)
-     := Event'(Kind => Executing_Job);
+   Executing_Job_E : constant Event (Executing_Job) :=
+     Event'(Kind => Executing_Job);
 
-   Job_Completed_E : constant Event (Job_Completed)
-     := Event'(Kind => Job_Completed);
+   Job_Completed_E : constant Event (Job_Completed) :=
+     Event'(Kind => Job_Completed);
 
-   Job_Queued_E : constant Event (Job_Queued)
-     := Event'(Kind => Job_Queued);
+   Job_Queued_E : constant Event (Job_Queued) :=
+     Event'(Kind => Job_Queued);
 
-   ORB_Shutdown_E : constant Event (ORB_Shutdown)
-     := Event'(Kind => ORB_Shutdown);
+   ORB_Shutdown_E : constant Event (ORB_Shutdown) :=
+     Event'(Kind => ORB_Shutdown);
 
 end PolyORB.Scheduler;
