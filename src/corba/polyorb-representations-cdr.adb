@@ -1663,44 +1663,30 @@ package body PolyORB.Representations.CDR is
          when Tk_Union =>
             declare
                Nb : Unsigned_Long;
-               Label, Arg : PolyORB.Any.Any;
+               Arg : PolyORB.Any.Any := Get_Empty_Any_Aggregate
+                 (Get_Type (Result));
+               Label, Val : PolyORB.Any.Any;
             begin
                pragma Debug (O ("Unmarshall_To_Any : dealing with an union"));
-               Set_Any_Aggregate_Value (Result);
-               if Is_Empty then
-                  Label := Get_Empty_Any (TypeCode.Discriminator_Type (Tc));
-               else
-                  Label := Get_Aggregate_Element
-                    (Result,
-                     TypeCode.Discriminator_Type (Tc),
-                     PolyORB.Types.Unsigned_Long (0));
-               end if;
+               Label := Get_Empty_Any (TypeCode.Discriminator_Type (Tc));
                Unmarshall_To_Any (Buffer, Label);
-               if Is_Empty then
-                  pragma Debug (O ("Unmarshall_To_Any : about to call "
-                                   & "add_aggregate"));
-                  Add_Aggregate_Element (Result, Label);
-               end if;
+               Add_Aggregate_Element (Arg, Label);
+
                pragma Debug (O ("Unmarshall_To_Any : about to call "
                                 & "member_count_with_label"));
                Nb := PolyORB.Any.TypeCode.Member_Count_With_Label (Tc, Label);
-               if Nb > 0 then
-                  for I in 0 .. Nb - 1 loop
-                     if Is_Empty then
-                        Arg := Get_Empty_Any
-                          (TypeCode.Member_Type_With_Label (Tc, Label, I));
-                     else
-                        Arg := Get_Aggregate_Element
-                          (Result,
-                           TypeCode.Member_Type_With_Label (Tc, Label, I),
-                           I + 1);
-                     end if;
-                     Unmarshall_To_Any (Buffer, Arg);
-                     if Is_Empty then
-                        Add_Aggregate_Element (Result, Arg);
-                     end if;
-                  end loop;
-               end if;
+               pragma Debug (O ("Now unmarshalling"
+                                & Unsigned_Long'Image (Nb) & " elements"));
+               for I in 0 .. Nb - 1 loop
+                  Val := Get_Empty_Any
+                    (TypeCode.Member_Type_With_Label
+                     (Tc, Label, I));
+                  Unmarshall_To_Any (Buffer, Val);
+                  Add_Aggregate_Element (Arg, Val);
+               end loop;
+
+               Copy_Any_Value (Result, Arg);
+               --  XXX Inefficient, see comment for Tk_Struct above.
             end;
 
          when Tk_Enum =>
@@ -1713,7 +1699,7 @@ package body PolyORB.Representations.CDR is
                Unmarshall_To_Any (Buffer, Val);
                Add_Aggregate_Element (Arg, Val);
                Copy_Any_Value (Result, Arg);
-               --  XXX Inefficient, see comment for Tk_Struct.
+               --  XXX Inefficient, see comment for Tk_Struct above.
             end;
 
          when Tk_String =>
