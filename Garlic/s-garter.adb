@@ -408,7 +408,7 @@ package body System.Garlic.Termination is
                  (D (D_Debug,
                      "Get_Active_Task_Count is" & Get_Active_Task_Count'Img));
 
-               if Success and Get_Active_Task_Count = 1 then
+               if Success and then Get_Active_Task_Count = 1 then
 
                   --  Everyone agrees it's time to die, so let's initiate
                   --  this if nothing runs here.
