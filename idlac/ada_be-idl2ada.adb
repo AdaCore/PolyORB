@@ -503,7 +503,7 @@ package body Ada_Be.Idl2Ada is
 
       Helper_Spec : Compilation_Unit
         := New_Package (Helper_Name, Unit_Spec);
-      Impl_Body : Compilation_Unit
+      Helper_Body : Compilation_Unit
         := New_Package (Helper_Name, Unit_Body);
 
 
@@ -776,6 +776,8 @@ package body Ada_Be.Idl2Ada is
 
       NL (Stubs_Spec);
       NL (Stubs_Body);
+      NL (Helper_Spec);
+      NL (Helper_Body);
       NL (Stream_Spec);
       NL (Stream_Body);
       NL (Skel_Spec);
@@ -790,6 +792,8 @@ package body Ada_Be.Idl2Ada is
       else
          Generate (Stubs_Spec, False, To_Stdout);
          Generate (Stubs_Body, False, To_Stdout);
+         --  Generate (Helper_Spec, False, To_Stdout);
+         --  Generate (Helper_Body, False, To_Stdout);
          Generate (Stream_Spec, False, To_Stdout);
          Generate (Stream_Body, False, To_Stdout);
          Generate (Skel_Spec, False, To_Stdout);
