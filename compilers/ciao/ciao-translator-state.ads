@@ -17,7 +17,7 @@
 ----------------------------------------
 
 --  The internal state of the translator.
---  $Id: //droopi/main/compilers/ciao/ciao-translator-state.ads#4 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator-state.ads#5 $
 
 package CIAO.Translator.State is
 
@@ -31,16 +31,6 @@ package CIAO.Translator.State is
      (Normal,
       --  We are translating declarations in order of
       --  appearance.
-
---      Deferred_Discriminant_Part,
-      --  We are translating a discriminant part which was
-      --  precedently left over into a set of <member>s.
-
---      Type_Definition,
-      --  We are translating a type_definition into a <type_spec>.
-
---       Translate_Subtype_Mark,
-      --  We are translating a subtype_mark.
 
       Normal_Formal_Parameter,
       --  An ordinary formal parameter of a subprogram
@@ -81,7 +71,14 @@ package CIAO.Translator.State is
       Previous_Current_Node : Node_Id);
    pragma Inline (Set_Previous_Current_Node);
    --  Record the IDL node that was Current_Node when
-   --  Element started being processed.
+   --  Element started being processed. This must be called
+   --  before returning from a Pre_Translate_Element operation
+   --  in an ASIS recursive iterator when State.Current_Node has
+   --  been changed and the children of that node are processed
+   --  using the implicit recursive traversal. In that case,
+   --  the Post_Translate_Element operation must restore
+   --  State.Current_Node to its recorded previous value when
+   --  the element and all its children have been processed.
 
    function Get_Translation (Element : Asis.Element)
      return Node_Id;
