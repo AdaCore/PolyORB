@@ -359,7 +359,8 @@ package body Broca.GIOP is
       use Broca.CDR;
       use CORBA;
 
-      Header_Buffer      : aliased Buffer_Type;
+      Header_Buffer      : Buffer_Access := new Buffer_Type;
+
       Message_Type       : MsgType;
       Message_Size       : CORBA.Unsigned_Long;
       Message_Endianness : Endianness_Type;
@@ -371,15 +372,16 @@ package body Broca.GIOP is
       pragma Debug (O ("Send_Request_Send: enter"));
       --  Add GIOP header.
       Marshall_GIOP_Header
-        (Header_Buffer'Access,
+        (Header_Buffer,
          Broca.GIOP.Request,
          Length (Handler.Buffer'Access));
-      Prepend (Header_Buffer, Handler.Buffer'Access);
+      Prepend (Header_Buffer.all, Handler.Buffer'Access);
 
       pragma Debug (O ("Send_Request_Send: about to send request"));
       --  1.3 Send request.
       IOP.Send (Handler.Connection, Handler.Buffer'Access);
       Release (Handler.Buffer);
+      Release (Header_Buffer);
 
       pragma Debug (O ("Send_Request_Send: request sent"));
       if not Reponse_Expected then
@@ -393,39 +395,37 @@ package body Broca.GIOP is
 
       pragma Debug (O ("Send_Request_Send: Receive answer ..."));
       declare
-         Message_Header : Broca.Opaque.Octet_Array_Ptr
-           := IOP.Receive (Handler.Connection,
-                           Message_Header_Size);
-         Message_Header_Buffer : aliased Buffer_Type;
+         Header : Broca.Opaque.Octet_Array_Ptr := IOP.Receive
+           (Handler.Connection, Message_Header_Size);
+         Header_Buffer : Buffer_Access := new Buffer_Type;
          Endianness : Endianness_Type;
       begin
          pragma Debug (O ("Send_Request_Send: Receive answer done"));
 
          if CORBA.Boolean'Val
-           (CORBA.Octet (Message_Header
-                         (Message_Header'First
-                          + Byte_Order_Offset)) and 1) then
+           (CORBA.Octet (Header (Header'First + Byte_Order_Offset)) and 1)
+         then
             Endianness := Little_Endian;
          else
             Endianness := Big_Endian;
          end if;
 
          Broca.Buffers.Initialize_Buffer
-           (Message_Header_Buffer'Access,
+           (Header_Buffer,
             Message_Header_Size,
-            Message_Header.all'Address,
+            Header.all'Address,
             Endianness,
             0);
 
          Unmarshall_GIOP_Header
-           (Message_Header_Buffer'Access,
+           (Header_Buffer,
             Message_Type, Message_Size, Message_Endianness,
             Header_Correct);
 
          pragma Assert (Message_Endianness = Endianness);
 
-         Release (Message_Header_Buffer);
-         Free (Message_Header);
+         Release (Header_Buffer);
+         Free (Header);
       end;
 
       if not (Header_Correct and then Message_Type = Reply) then
