@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -286,7 +286,7 @@ package Sinput is
    --  signals an error while scanning a token in this internal buffer.
 
    Internal_Source_Ptr : constant Source_Buffer_Ptr :=
-                           Internal_Source'Unchecked_Access;
+                           Internal_Source'Unrestricted_Access;
    --  Pointer to internal source buffer
 
    -----------------

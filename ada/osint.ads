@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -120,6 +120,14 @@ package Osint is
    procedure Add_Default_Search_Dirs;
    --  This routine adds the default search dirs indicated by the
    --  environment variables and sdefault package.
+
+   function Nb_Dir_In_Src_Search_Path return Natural;
+   function Dir_In_Src_Search_Path (Position : Natural) return String_Ptr;
+   --  Functions to access the directory names in the source search path
+
+   function Nb_Dir_In_Obj_Search_Path return Natural;
+   function Dir_In_Obj_Search_Path (Position : Natural) return String_Ptr;
+   --  Functions to access the directory names in the Object search path
 
    procedure Initialize (P : Program_Type);
    --  This routine scans parameters and initializes for the first call to
@@ -242,6 +250,14 @@ package Osint is
    --  information.  The source file directory lookup penalty is incurred
    --  every single time the routines are called unless you have previously
    --  called Source_File_Data (Cache => True). See below.
+
+   function Matching_Full_Source_Name
+     (N : File_Name_Type;
+      T : Time_Stamp_Type)
+      return File_Name_Type;
+   --  Same semantics than Full_Source_Name but will search on the source
+   --  path until a source file with time stamp matching T is found. If
+   --  none is found returns No_File.
 
    procedure Source_File_Data (Cache : Boolean);
    --  By default source file data (full source file name and time stamp)

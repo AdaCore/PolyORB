@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -622,6 +622,7 @@ package body ALI is
                --  PK indicates unit is package
 
                elsif C = 'K' then
+                  Unit.Table (Unit.Last).Unit_Kind := 'p';
                   Check_At_End_Of_Field;
 
                else
@@ -661,6 +662,7 @@ package body ALI is
                --  SU parameter indicates unit is subprogram
 
                elsif C = 'U' then
+                  Unit.Table (Unit.Last).Unit_Kind := 's';
                   Check_At_End_Of_Field;
 
                else

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -252,10 +252,9 @@ package body Fname is
    is
       subtype Str8 is String (1 .. 8);
 
-      Predef_Names : array (1 .. 12) of Str8 :=
+      Predef_Names : array (1 .. 11) of Str8 :=
         ("ada     ",       -- Ada
          "calendar",       -- Calendar
-         "gnat    ",       -- GNAT
          "interfac",       -- Interfaces
          "system  ",       -- System
          "machcode",       -- Machine_Code
@@ -270,7 +269,7 @@ package body Fname is
          "text_io ");      -- Text_IO
 
          Num_Entries : constant Natural :=
-                         8 + 4 * Boolean'Pos (Renamings_Included);
+                         7 + 4 * Boolean'Pos (Renamings_Included);
 
    begin
       --  Get file name, removing the extension (if any)
@@ -291,7 +290,6 @@ package body Fname is
       elsif Name_Len > 2
         and then Name_Buffer (2) = '-'
         and then (Name_Buffer (1) = 'a' or else
-                  Name_Buffer (1) = 'g' or else
                   Name_Buffer (1) = 'i' or else
                   Name_Buffer (1) = 's')
       then

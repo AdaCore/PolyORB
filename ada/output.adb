@@ -115,8 +115,9 @@ package body Output is
 
    procedure Write_Buffer is
    begin
-      if Buffer (Buffer_Count) = Ascii.LF
-        or else not Hostparm.OpenVMS
+      if (not Hostparm.OpenVMS)
+        or else (Buffer_Count in Buffer'Range
+                  and then Buffer (Buffer_Count) = Ascii.LF)
       then
          if Buffer_Count /=
               Write (Current_FD, Buffer'Address, Buffer_Count)

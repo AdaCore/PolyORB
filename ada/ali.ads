@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -135,7 +135,6 @@ package ALI is
       --  pragma was present or that this is a language defined unit.
       --  Otherwise set to first character (upper case) of policy name.
 
-
    end record;
 
    No_Main_Priority : constant Int := -1;
@@ -218,6 +217,10 @@ package ALI is
 
       Utype : Unit_Type;
       --  Type of entry
+
+      Unit_Kind : Character;
+      --  Indicates the nature of the unit. 'p' for Packages and 's' for
+      --  subprograms.
 
       Version : Version_String;
       --  Version of unit

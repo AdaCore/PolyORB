@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -177,7 +177,7 @@ package body Table is
       end if;
 
       New_Size :=
-        size_t ((Max - Min + 1) * (Table.all'Component_Size / Storage_Unit));
+        size_t ((Max - Min + 1) * (Table_Type'Component_Size / Storage_Unit));
 
       if Table = null then
          Table := malloc (New_Size);

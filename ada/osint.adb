@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                            --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -88,6 +88,19 @@ package body Osint is
    --  Implements Next_Main_Source and Next_Main_Lib_File.
 
    type File_Type is (Source, Library);
+
+   function Locate_File
+     (N    : File_Name_Type;
+      T    : File_Type;
+      Dir  : Natural;
+      Name : String)
+      return File_Name_Type;
+   --  See if the file N whose name is Name exists in directory Dir. Dir is
+   --  an index into the Lib_Search_Directories table if T = Library.
+   --  Otherwise if T = Source, Dir is an index into the
+   --  Src_Search_Directories table. Returns the File_Name_Type of the
+   --  full file name if file found, or No_File if not found.
+
    function Find_File
      (N : File_Name_Type;
       T : File_Type)
@@ -583,6 +596,53 @@ package body Osint is
       end if;
    end File_Stamp;
 
+   -----------------
+   -- Locate_File --
+   -----------------
+
+   function Locate_File
+     (N    : File_Name_Type;
+      T    : File_Type;
+      Dir  : Natural;
+      Name : String)
+      return File_Name_Type
+   is
+      Dir_Name : String_Ptr;
+
+   begin
+      if T = Library then
+         Dir_Name := Lib_Search_Directories.Table (Dir);
+      elsif T = Source then
+         Dir_Name := Src_Search_Directories.Table (Dir);
+      else
+         pragma Assert (False);
+         null;
+      end if;
+
+      declare
+         Full_Name : String (1 .. Dir_Name'Length + Name'Length);
+
+      begin
+         Full_Name (1 .. Dir_Name'Length) := Dir_Name.all;
+         Full_Name (Dir_Name'Length + 1 .. Full_Name'Length) := Name;
+
+         if not Is_Regular_File (Full_Name) then
+            return No_File;
+
+         else
+            --  if the file is in the current directory then return N itself
+
+            if Dir_Name'Length = 0 then
+               return N;
+            else
+               Name_Len := Full_Name'Length;
+               Name_Buffer (1 .. Name_Len) := Full_Name;
+               return Name_Enter;
+            end if;
+         end if;
+      end;
+   end Locate_File;
+
    ---------------
    -- Find_File --
    ---------------
@@ -593,56 +653,6 @@ package body Osint is
       return File_Name_Type
    is
 
-      function Locate_File
-        (Dir  : Natural;
-         Name : String)
-         return File_Name_Type;
-      --  See if the file whose name is Name exists in directory Dir. Dir is
-      --  an index into the Lib_Search_Directories table if T = Library.
-      --  Otherwise if T = Source, Dir is an index into the
-      --  Src_Search_Directories table. Returns the File_Name_Type of the
-      --  full file name if file found, or No_File if not found.
-
-      function Locate_File
-        (Dir  : Natural;
-         Name : String)
-         return File_Name_Type
-      is
-         Dir_Name : String_Ptr;
-
-      begin
-         if T = Library then
-            Dir_Name := Lib_Search_Directories.Table (Dir);
-         elsif T = Source then
-            Dir_Name := Src_Search_Directories.Table (Dir);
-         else
-            pragma Assert (False);
-            null;
-         end if;
-
-         declare
-            Full_Name : String (1 .. Dir_Name'Length + Name'Length);
-
-         begin
-            Full_Name (1 .. Dir_Name'Length) := Dir_Name.all;
-            Full_Name (Dir_Name'Length + 1 .. Full_Name'Length) := Name;
-
-            if not Is_Regular_File (Full_Name) then
-               return No_File;
-
-            else
-               --  if the file is in the current directory then return N itself
-
-               if Dir_Name'Length = 0 then
-                  return N;
-               else
-                  Name_Len := Full_Name'Length;
-                  Name_Buffer (1 .. Name_Len) := Full_Name;
-                  return Name_Enter;
-               end if;
-            end if;
-         end;
-      end Locate_File;
 
       --  Variables of Find_File
 
@@ -663,14 +673,14 @@ package body Osint is
          --  directory where the user said it was.
 
          if Is_Main_File then
-            return Locate_File (Primary_Directory, File_Name);
+            return Locate_File (N, T, Primary_Directory, File_Name);
          end if;
 
          --  Otherwise, for other files the first place to look is in the
          --  primary directory unless this has been disabled with -I-
 
          if Opt.Look_In_Primary_Dir then
-            File := Locate_File (Primary_Directory, File_Name);
+            File := Locate_File (N, T, Primary_Directory, File_Name);
 
             if File /= No_File then
                return File;
@@ -686,7 +696,7 @@ package body Osint is
          end if;
 
          for D in Primary_Directory + 1 .. Last_Dir loop
-            File := Locate_File (D, File_Name);
+            File := Locate_File (N, T, D, File_Name);
 
             if File /= No_File then
                return File;
@@ -741,6 +751,47 @@ package body Osint is
    begin
       return Smart_Find_File (N, Source);
    end Full_Source_Name;
+
+   -------------------------------
+   -- Matching_Full_Source_Name --
+   -------------------------------
+
+   function Matching_Full_Source_Name
+     (N : File_Name_Type;
+      T : Time_Stamp_Type)
+      return File_Name_Type
+   is
+
+   begin
+      Get_Name_String (N);
+
+      declare
+         File_Name : constant String := Name_Buffer (1 .. Name_Len);
+         File      : File_Name_Type := No_File;
+         Last_Dir  : Natural;
+
+      begin
+         if Opt.Look_In_Primary_Dir then
+            File := Locate_File (N, Source, Primary_Directory, File_Name);
+
+            if File /= No_File and then T = File_Stamp (N) then
+               return File;
+            end if;
+         end if;
+
+         Last_Dir := Src_Search_Directories.Last;
+
+         for D in Primary_Directory + 1 .. Last_Dir loop
+            File := Locate_File (N, Source, D, File_Name);
+
+            if File /= No_File and then T = File_Stamp (File) then
+               return File;
+            end if;
+         end loop;
+
+         return No_File;
+      end;
+   end Matching_Full_Source_Name;
 
    ----------------------
    -- Object_File_Name --
@@ -1029,6 +1080,63 @@ package body Osint is
 
    end Add_Default_Search_Dirs;
 
+   -------------------------------
+   -- Nb_Dir_In_Src_Search_Path --
+   -------------------------------
+
+   function Nb_Dir_In_Src_Search_Path return Natural is
+   begin
+      if Opt.Look_In_Primary_Dir then
+         return Src_Search_Directories.Last -  Primary_Directory + 1;
+
+      else
+         return Src_Search_Directories.Last -  Primary_Directory;
+      end if;
+   end Nb_Dir_In_Src_Search_Path;
+
+   ----------------------------
+   -- Dir_In_Src_Search_Path --
+   ----------------------------
+
+   function Dir_In_Src_Search_Path (Position : Natural) return String_Ptr is
+   begin
+      if Opt.Look_In_Primary_Dir then
+         return
+           Src_Search_Directories.Table (Primary_Directory + Position - 1);
+      else
+         return Src_Search_Directories.Table (Primary_Directory + Position);
+      end if;
+   end Dir_In_Src_Search_Path;
+
+   -------------------------------
+   -- Nb_Dir_In_Obj_Search_Path --
+   -------------------------------
+
+   function Nb_Dir_In_Obj_Search_Path return Natural is
+   begin
+      if Opt.Look_In_Primary_Dir then
+         return Lib_Search_Directories.Last -  Primary_Directory + 1;
+
+      else
+         return Lib_Search_Directories.Last -  Primary_Directory;
+      end if;
+   end Nb_Dir_In_Obj_Search_Path;
+
+   ----------------------------
+   -- Dir_In_Obj_Search_Path --
+   ----------------------------
+
+   function Dir_In_Obj_Search_Path (Position : Natural) return String_Ptr is
+   begin
+      if Opt.Look_In_Primary_Dir then
+         return
+           Lib_Search_Directories.Table (Primary_Directory + Position - 1);
+      else
+         return Lib_Search_Directories.Table (Primary_Directory + Position);
+      end if;
+   end Dir_In_Obj_Search_Path;
+
+
    -------------------
    -- Lib_File_Name --
    -------------------
@@ -1203,17 +1311,14 @@ package body Osint is
       Result : String_Ptr;
 
    begin
-      --  For now this just insures that the string is terminated with
-      --  the directory separator character. Add more later?
 
-      if Directory (Directory'Last) = Directory_Separator
+      if Directory'Length = 0 then
+         Result := new String'(Hostparm.Normalized_CWD);
+
+      elsif Directory (Directory'Last) = Directory_Separator
         or else Directory (Directory'Last) = '/'
       then
          Result := new String'(Directory);
-
-      elsif Directory'Length = 0 then
-         Result := new String'(Hostparm.Normalized_CWD);
-
       else
          Result := new String (1 .. Directory'Length + 1);
          Result (1 .. Directory'Length) := Directory;
