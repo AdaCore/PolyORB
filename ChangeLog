@@ -1,3 +1,12 @@
+2000-04-21  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* MANIFEST: Add new files from Garlic concerning data storages for 
+	shared passive units and passive partitions.
+
+	* configure.in, configure, Makefile.in: Define flag
+ 	--with-data-location=x to change default data storage and use
+	DEFSTORAGENAME and DEFSTORAGEDATA in this purpose.
+
 2000-03-28  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* MANIFEST: Add 5hlgarcon.ads.
