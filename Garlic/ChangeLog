@@ -1,3 +1,13 @@
+Fri Nov 29 12:43:07 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garter.adb: On the boot server, launch the termination task
+	  only if this partition is not permanent. On other partitions,
+	  reject global termination if the partition is permanent.
+
+	* s-garopt.ads: Added support for the new 'Permanent attribute.
+
+	* s-garopt.adb: Ditto.
+
 Thu Nov 28 22:33:30 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* Makefile.am: Adapted for new elaboration packages.

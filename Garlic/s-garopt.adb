@@ -51,11 +51,12 @@ package body System.Garlic.Options is
 
    type String_Access is access String;
 
-   Boot_Server_Default     : String_Access := new String'("tcp");
+   Boot_Server_Default     : String_Access := new String'("serial");
    Connection_Hits_Default : Natural := 128;
    Detach_Default          : Boolean := False;
    Is_Slave_Default        : Boolean := False;
    Nolaunch_Default        : Boolean := False;
+   Permanent_Default       : Boolean := False;
 
    ---------------------
    -- Get_Boot_Server --
@@ -77,15 +78,6 @@ package body System.Garlic.Options is
          return EV;
       end;
    end Get_Boot_Server;
-
-   ---------------------
-   -- Set_Boot_Server --
-   ---------------------
-
-   procedure Set_Boot_Server (Default : String) is
-   begin
-      Boot_Server_Default := new String'(Default);
-   end Set_Boot_Server;
 
    -------------------------
    -- Get_Connection_Hits --
@@ -111,15 +103,6 @@ package body System.Garlic.Options is
       end;
    end Get_Connection_Hits;
 
-   -------------------------
-   -- Set_Connection_Hits --
-   -------------------------
-
-   procedure Set_Connection_Hits (Default : Natural) is
-   begin
-      Connection_Hits_Default := Default;
-   end Set_Connection_Hits;
-
    ----------------
    -- Get_Detach --
    ----------------
@@ -137,15 +120,6 @@ package body System.Garlic.Options is
       end if;
       return Detach_Default;
    end Get_Detach;
-
-   ----------------
-   -- Set_Detach --
-   ----------------
-
-   procedure Set_Detach (Default : Boolean) is
-   begin
-      Detach_Default := Default;
-   end Set_Detach;
 
    ------------------
    -- Get_Is_Slave --
@@ -165,14 +139,24 @@ package body System.Garlic.Options is
       return Is_Slave_Default;
    end Get_Is_Slave;
 
-   ------------------
-   -- Set_Is_Slave --
-   ------------------
+   -------------------
+   -- Get_Permanent --
+   -------------------
 
-   procedure Set_Is_Slave (Default : Boolean) is
+   function Get_Permanent return Boolean is
    begin
-      Is_Slave_Default := Default;
-   end Set_Is_Slave;
+      for Index in 1 .. Argument_Count loop
+         if Argument (Index) = "--permanent" then
+            pragma Debug (D (D_Debug,
+                             "--permanent available on command line"));
+            return True;
+         end if;
+      end loop;
+      if Getenv ("PERMANENT") /= "" then
+         return True;
+      end if;
+      return Permanent_Default;
+   end Get_Permanent;
 
    ------------------
    -- Get_Nolaunch --
@@ -192,13 +176,58 @@ package body System.Garlic.Options is
       return Nolaunch_Default;
    end Get_Nolaunch;
 
+   ---------------------
+   -- Set_Boot_Server --
+   ---------------------
+
+   procedure Set_Boot_Server (Default : in String) is
+   begin
+      Boot_Server_Default := new String'(Default);
+   end Set_Boot_Server;
+
+   -------------------------
+   -- Set_Connection_Hits --
+   -------------------------
+
+   procedure Set_Connection_Hits (Default : in Natural) is
+   begin
+      Connection_Hits_Default := Default;
+   end Set_Connection_Hits;
+
+   ----------------
+   -- Set_Detach --
+   ----------------
+
+   procedure Set_Detach (Default : in Boolean) is
+   begin
+      Detach_Default := Default;
+   end Set_Detach;
+
+   ------------------
+   -- Set_Is_Slave --
+   ------------------
+
+   procedure Set_Is_Slave (Default : in Boolean) is
+   begin
+      Is_Slave_Default := Default;
+   end Set_Is_Slave;
+
    ------------------
    -- Set_Nolaunch --
    ------------------
 
-   procedure Set_Nolaunch (Default : Boolean) is
+   procedure Set_Nolaunch (Default : in Boolean) is
    begin
       Nolaunch_Default := Default;
    end Set_Nolaunch;
+
+   -------------------
+   -- Set_Permanent --
+   -------------------
+
+   procedure Set_Permanent (Default : in Boolean) is
+   begin
+      Permanent_Default := Default;
+   end Set_Permanent;
 
 end System.Garlic.Options;

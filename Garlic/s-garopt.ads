@@ -57,15 +57,21 @@ package System.Garlic.Options is
    --  Return True if --slave is present on the command line arg or if
    --  a SLAVE environment variable with a non empty value is present.
 
-   procedure Set_Boot_Server (Default : String);
+   function Get_Permanent return Boolean;
+   --  Return True if --permanent is present on the command line or if
+   --  a PERMANENT environment variable with a non empty value is present.
 
-   procedure Set_Connection_Hits (Default : Natural);
+   procedure Set_Boot_Server (Default : in String);
 
-   procedure Set_Detach   (Default : Boolean);
+   procedure Set_Connection_Hits (Default : in Natural);
 
-   procedure Set_Nolaunch (Default : Boolean);
+   procedure Set_Detach   (Default : in Boolean);
 
-   procedure Set_Is_Slave (Default : Boolean);
+   procedure Set_Nolaunch (Default : in Boolean);
+
+   procedure Set_Is_Slave (Default : in Boolean);
+
+   procedure Set_Permanent (Default : in Boolean);
 
 end System.Garlic.Options;
 

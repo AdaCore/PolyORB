@@ -35,6 +35,7 @@
 
 with System.Garlic.Debug; use System.Garlic.Debug;
 with System.Garlic.Heart; use System.Garlic.Heart;
+with System.Garlic.Options;
 with System.Garlic.Priorities;
 with System.Garlic.Utils;
 with System.RPC; use System.RPC;
@@ -229,7 +230,7 @@ package body System.Garlic.Termination is
    procedure Initialize is
       Dummy : Termination_Service_Access;
    begin
-      if Is_Boot_Partition then
+      if Is_Boot_Partition and then not Options.Get_Permanent then
          Dummy := new Termination_Service;
       end if;
       Receive (Shutdown_Synchronization, Receive_Message'Access);
@@ -278,7 +279,11 @@ package body System.Garlic.Termination is
                --  Send a positive ack if there has been no activity and
                --  no task is active but the current one.
 
-               if OK and then Get_Active_Task_Count = 1 then
+               pragma Debug (D (D_Debug,
+                                "Active task count is" &
+                                Natural'Image (Get_Active_Task_Count)));
+               if OK and then Get_Active_Task_Count = 1 and then
+                 not Options.Get_Permanent then
                   Termination_Code'Write (Answer'Access, Positive_Ack);
                else
                   Termination_Code'Write (Answer'Access, Negative_Ack);
