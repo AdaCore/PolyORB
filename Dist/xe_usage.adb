@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -34,7 +34,7 @@ procedure XE_Usage is
 begin
    if Verbose_Mode then
       Write_Str ("GNATDIST __glade_version__ / GNAT __gnat_version__");
-      Write_Str (" Copyright 1996-2000 Free Software Foundation, Inc.");
+      Write_Str (" Copyright 1996-2001 Free Software Foundation, Inc.");
       Write_Eol;
    end if;
 
