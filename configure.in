@@ -196,8 +196,7 @@ AC_SUBST(SERVICE_INCS)
 AC_SUBST(SERVICE_EXES)
 
 ##########################################
-# Test : if SOAP personality is built,
-#        then XmlAda should be configured
+# Xml/Ada
 ##########################################
 
 XMLADA_INCS=""
@@ -215,15 +214,32 @@ fi
 AC_MSG_RESULT($has_xmlada)
 
 AM_CONDITIONAL(HAS_XMLADA, test x"$has_xmlada" = xyes)
-AC_SUBST(XMLADA_INCS)
-AC_SUBST(XMLADA_LIBS)
 
 soap_enabled=`echo ${PROTO_LIST} | ${AWK} '/soap/{print "yes"}'`
+
+##########################################
+# Test : if SOAP personality is built,
+#        then XmlAda must be configured
+##########################################
 
 if test x"$soap_enabled" = xyes -a x"$has_xmlada" != xyes
 then
    AC_MSG_ERROR("Protocol personality SOAP requires XmlAda")
 fi
+
+##########################################
+# Update Xml/Ada configuration flags 
+# iff SOAP is built
+##########################################
+
+if test x"$soap_enabled" != xyes
+then
+   XMLADA_INCS=""
+   XMLADA_LIBS=""
+fi
+
+AC_SUBST(XMLADA_INCS)
+AC_SUBST(XMLADA_LIBS)
 
 ##########################################
 # Test : if IR is built,
