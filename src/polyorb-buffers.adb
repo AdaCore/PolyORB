@@ -530,10 +530,12 @@ package body PolyORB.Buffers is
 
    procedure Send_Buffer
      (Buffer : access Buffer_Type;
-      Socket :        Sockets.Socket_Type) is
+      Socket :        Sockets.Socket_Type;
+      To     :        Sockets.Sock_Addr_Type := Sockets.No_Sock_Addr)
+   is
    begin
       Iovec_Pools.Write_To_Socket
-        (Socket, Buffer.Contents'Access, Buffer.Length);
+        (Socket, Buffer.Contents'Access, Buffer.Length, To);
    end Send_Buffer;
 
    --------------------
@@ -1070,7 +1072,8 @@ package body PolyORB.Buffers is
       procedure Write_To_Socket
         (S          :        PolyORB.Sockets.Socket_Type;
          Iovec_Pool : access Iovec_Pool_Type;
-         Length     :        Stream_Element_Count)
+         Length     :        Stream_Element_Count;
+         To         :        PolyORB.Sockets.Sock_Addr_Type)
       is
          use PolyORB.Sockets;
 
@@ -1133,7 +1136,7 @@ package body PolyORB.Buffers is
                Last : Stream_Element_Offset;
             begin
 
-               Send_Socket (S, Z, Last);
+               Send_Socket (S, Z, Last, To);
                --  May raise Socket_Error.
                Count := Stream_Element_Count (Last) + 1;
             end;    --  WAG:3.16

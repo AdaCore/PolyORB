@@ -40,7 +40,7 @@
 
 --  Note: Buffers should only be read/written sequentially.
 
---  $Id: //droopi/main/src/polyorb-buffers.ads#20 $
+--  $Id: //droopi/main/src/polyorb-buffers.ads#21 $
 
 with Ada.Streams;
 
@@ -276,7 +276,8 @@ package PolyORB.Buffers is
 
    procedure Send_Buffer
      (Buffer : access Buffer_Type;
-      Socket :        Sockets.Socket_Type);
+      Socket :        Sockets.Socket_Type;
+      To     :        Sockets.Sock_Addr_Type := Sockets.No_Sock_Addr);
    --  Send the contents of Buffer onto Socket.
 
    procedure Receive_Buffer
@@ -407,10 +408,12 @@ private
       --  The associated Iovec array storage is returned to
       --  the system.
 
+
       procedure Write_To_Socket
         (S          :        PolyORB.Sockets.Socket_Type;
          Iovec_Pool : access Iovec_Pool_Type;
-         Length     :        Ada.Streams.Stream_Element_Count);
+         Length     :        Ada.Streams.Stream_Element_Count;
+         To         :        PolyORB.Sockets.Sock_Addr_Type);
       --  Write Length elements of the contents of Iovec_Pool onto S.
 
       ---------------------------------------
