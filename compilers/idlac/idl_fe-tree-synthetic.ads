@@ -132,7 +132,7 @@ package Idl_Fe.Tree.Synthetic is
      return Character;
    function Float_Value
      (Node : Node_Id)
-     return Long_Long_Float;
+     return Idl_Float;
    function String_Value
      (Node : Node_Id)
      return String;

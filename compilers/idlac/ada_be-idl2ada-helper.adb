@@ -1781,7 +1781,7 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "CORBA.TypeCode.Add_Parameter ("
              & Ada_TC_Name (Node)
              & ", CORBA.To_Any (CORBA.Long ("
-             & Img (Default_Index (Node))
+             & Long_Integer_Img (Default_Index (Node))
           & ")));");
 
          declare

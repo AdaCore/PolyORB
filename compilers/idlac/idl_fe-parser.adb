@@ -25,7 +25,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Latin_1;
-with Ada.Characters.Wide_Latin_1;
 with Ada.Unchecked_Deallocation;
 with Ada.Strings.Unbounded;
 
@@ -5805,7 +5804,7 @@ package body Idl_Fe.Parser is
       end if;
 
       declare
-         Count : Long_Long_Integer := 1;
+         Count : Idl_Integer := 1;
       begin
          loop
             declare
@@ -5824,7 +5823,7 @@ package body Idl_Fe.Parser is
                      return;
                   end if;
                   Count := Count + 1;
-                  if Count = Idl_Enum_Max + 1 then
+                  if Count = Idl_Enum_Max then
                      Errors.Error
                        ("two much possible values in this " &
                         "enumeration : maximum is 2^32.",
@@ -7445,19 +7444,19 @@ package body Idl_Fe.Parser is
          Offset := 2;
          case S (S'First + 1) is
             when LC_N =>
-               Result := Ada.Characters.Wide_Latin_1.LF;
+               Result := Wide_Character'Val (Character'Pos (ASCII.Lf));
             when LC_T =>
-               Result := Ada.Characters.Wide_Latin_1.HT;
+               Result := Wide_Character'Val (Character'Pos (ASCII.Ht));
             when LC_V =>
-               Result := Ada.Characters.Wide_Latin_1.VT;
+               Result := Wide_Character'Val (Character'Pos (ASCII.Vt));
             when LC_B =>
-               Result := Ada.Characters.Wide_Latin_1.BS;
+               Result := Wide_Character'Val (Character'Pos (ASCII.Bs));
             when LC_R =>
-               Result := Ada.Characters.Wide_Latin_1.CR;
+               Result := Wide_Character'Val (Character'Pos (CR));
             when LC_F =>
-               Result := Ada.Characters.Wide_Latin_1.FF;
+               Result := Wide_Character'Val (Character'Pos (FF));
             when LC_A =>
-               Result := Ada.Characters.Wide_Latin_1.BEL;
+               Result := Wide_Character'Val (Character'Pos (BEL));
             when '\' =>
                Result := '\';
             when '?' =>
@@ -7465,7 +7464,7 @@ package body Idl_Fe.Parser is
             when ''' =>
                Result := ''';
             when Quotation =>
-               Result := Ada.Characters.Wide_Latin_1.Quotation;
+               Result := Wide_Character'Val (Character'Pos (Quotation));
             when '0' .. '7' =>
                declare
                   Pos : Integer;

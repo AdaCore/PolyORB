@@ -274,9 +274,9 @@ package body Idl_Fe.Tree.Synthetic is
 
    function Float_Value
      (Node : Node_Id)
-     return Long_Long_Float is
+     return Idl_Float is
    begin
-      return Long_Long_Float (Expr_Value (Node).Float_Value);
+      return Idl_Float (Expr_Value (Node).Float_Value);
    end Float_Value;
 
    function String_Value

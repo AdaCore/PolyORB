@@ -109,9 +109,16 @@ package body PolyORB.Any.NVList is
 
    function Get_Count (Self : Ref) return Types.Long
    is
-      Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
    begin
-      return Types.Long (NV_Sequence.Length (Obj.List));
+      if Is_Null (Self) then
+         return 0;
+      else
+         declare
+            Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
+         begin
+            return Types.Long (NV_Sequence.Length (Obj.List));
+         end;
+      end if;
    end Get_Count;
 
    -------------------
@@ -176,9 +183,16 @@ package body PolyORB.Any.NVList is
 
    package body Internals is
 
-      function List_Of (NVList : Ref) return NV_Sequence_Access is
+      function List_Of (NVList : Ref) return NV_Sequence_Access
+      is
+         use type PolyORB.Smart_Pointers.Entity_Ptr;
+         Entity : constant PolyORB.Smart_Pointers.Entity_Ptr
+            := Entity_Of (NVList);
       begin
-         return Object_Ptr (Entity_Of (NVList)).List'Access;
+         if Entity /= null then
+            return Object_Ptr (Entity_Of (NVList)).List'Access;
+         end if;
+         return null;
       end List_Of;
 
    end Internals;

@@ -81,13 +81,32 @@ package body PolyORB.Representations.SRP is
       function Base64 (E : in Stream_Element) return Character;
       --  returns the base64 character given a number
 
-      function Shift_Left (Value  : in Stream_Element;
-                           Amount : in Natural) return Stream_Element;
-      pragma Import (Intrinsic, Shift_Left);
+      function Shift_Left
+        (Value : in Stream_Element; Amount : in Natural)
+        return Stream_Element;
+      function Shift_Right
+        (Value : in Stream_Element; Amount : in Natural)
+        return Stream_Element;
+      pragma Inline (Shift_Left);
+      pragma Inline (Shift_Right);
 
-      function Shift_Right (Value  : in Stream_Element;
-                            Amount : in Natural) return Stream_Element;
-      pragma Import (Intrinsic, Shift_Right);
+      function Shift_Left
+        (Value : in Stream_Element; Amount : in Natural)
+        return Stream_Element is
+      begin
+         return Stream_Element
+           (Interfaces.Shift_Left
+            (Interfaces.Unsigned_8 (Value), Amount));
+      end Shift_Left;
+
+      function Shift_Right
+        (Value : in Stream_Element; Amount : in Natural)
+        return Stream_Element is
+      begin
+         return Stream_Element
+           (Interfaces.Shift_Right
+            (Interfaces.Unsigned_8 (Value), Amount));
+      end Shift_Right;
 
       Result : Unbounded_String;
       Length : Natural := 0;
@@ -178,13 +197,14 @@ package body PolyORB.Representations.SRP is
       function Base64 (C : in Character) return Interfaces.Unsigned_32;
       --  returns the base64 stream element given a character
 
-      function Shift_Left (Value  : in Interfaces.Unsigned_32;
-                           Amount : in Natural) return Interfaces.Unsigned_32;
-      pragma Import (Intrinsic, Shift_Left);
+      function Shift_Left
+                 (Value : in Interfaces.Unsigned_32; Amount : in Natural)
+                 return Interfaces.Unsigned_32 renames Interfaces.Shift_Left;
 
-      function Shift_Right (Value  : in Interfaces.Unsigned_32;
-                            Amount : in Natural) return Interfaces.Unsigned_32;
-      pragma Import (Intrinsic, Shift_Right);
+      function Shift_Right
+                 (Value : in Interfaces.Unsigned_32; Amount : in Natural)
+                 return Interfaces.Unsigned_32
+        renames Interfaces.Shift_Right;
 
       Result : Stream_Element_Array
         (Stream_Element_Offset range 1 .. B64_Data'Length);

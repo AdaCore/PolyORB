@@ -135,7 +135,7 @@ package body PolyORB.Binding_Data.SOAP is
                         1 => Pro'Unchecked_Access));
 
       Filter := Component_Access
-        (Create_Filter_Chain (Htt'Unchecked_Access));
+        (HTTP.Create_Filter_Chain (Htt'Unchecked_Access));
       --  Filter must be an access to the lowest filter in
       --  the stack (the HTTP filter in the case of SOAP/HTTP).
 
@@ -204,11 +204,17 @@ package body PolyORB.Binding_Data.SOAP is
         (Socket_Access_Point (TAP.all));
 
       declare
-         M : constant Components.Message'Class
-           := Components.Emit
-           (PF.ORB, ORB.Interface.Oid_Translate'(Oid => TResult.Object_Id));
-         TM : constant ORB.Interface.URI_Translate
-           := ORB.Interface.URI_Translate (M);
+         PF_ORB : PolyORB.Components.Component_Access renames PF.ORB;
+
+         Oid_Translate : constant ORB.Interface.Oid_Translate
+           := (PolyORB.Components.Message with Oid => TResult.Object_Id);
+         TOid_Translate : PolyORB.Components.Message'Class
+           renames PolyORB.Components.Message'Class (Oid_Translate);
+         M : constant PolyORB.Components.Message'Class
+           := PolyORB.Components.Emit
+           (Port => PF_ORB,  Msg => TOid_Translate);
+         TM : ORB.Interface.URI_Translate renames
+           ORB.Interface.URI_Translate (M);
       begin
          TResult.URI_Path := TM.Path;
       end;

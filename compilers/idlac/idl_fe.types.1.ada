@@ -24,9 +24,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-types.ads#3 $
+--  $Id$
 
---  Base types for the IDL front-end (standard version).
+--  Base types for the IDL front-end (Apex version).
 
 with Ada.Unchecked_Deallocation;
 with Interfaces;
@@ -39,7 +39,9 @@ package Idl_Fe.Types is
    --  simple type definitions  --
    -------------------------------
 
-   type Node_Id is new Integer;
+   Min_Id : constant := -16#07FF_FFFF#;
+   Max_Id : constant := 16#07FF_FFFF#;
+   type Node_Id is new Integer range Min_Id .. Max_Id;
    No_Node : constant Node_Id := 0;
 
    --  used for the identifiers
@@ -47,7 +49,7 @@ package Idl_Fe.Types is
 
    --  Identifiers are numbered, in order to make comparaison
    --  easier and static. Each number is unique.
-   type Uniq_Id is new Natural;
+   type Uniq_Id is new Natural range 0 .. Max_Id;
    Nil_Uniq_Id : constant Uniq_Id := 0;
 
    type Param_Mode is (Mode_In, Mode_Inout, Mode_Out);
@@ -108,12 +110,12 @@ package Idl_Fe.Types is
    --  type will be used for a short and a long long or for a float
    --  and a long double. However, the value will be checked and
    --  correspond to the type of the constant
-   subtype Idl_Integer is Long_Long_Integer;
+   subtype Idl_Integer is Long_Integer;
    type Idl_String is access String;
    type Idl_Wide_String is access Wide_String;
    subtype Idl_Character is Character;
    subtype Idl_Wide_Character is Wide_Character;
-   subtype Idl_Float is Long_Long_Float;
+   subtype Idl_Float is Long_Float;
    subtype Idl_Boolean is Boolean;
 
    --  To deallocate Idl strings
@@ -130,22 +132,22 @@ package Idl_Fe.Types is
    Idl_Short_Max : constant Idl_Integer := (2 ** 15) - 1;
    Idl_Long_Min : constant Idl_Integer := (-2 ** 31);
    Idl_Long_Max : constant Idl_Integer := (2 ** 31) - 1;
-   Idl_LongLong_Min : constant Idl_Integer := (-2 ** 63);
-   Idl_LongLong_Max : constant Idl_Integer := (2 ** 63) - 1;
+   Idl_Longlong_Min : constant Idl_Integer := (-2 ** 31);
+   Idl_Longlong_Max : constant Idl_Integer := (2 ** 31) - 1;
    Idl_UShort_Min : constant Idl_Integer := 0;
    Idl_UShort_Max : constant Idl_Integer := (2 ** 16) - 1;
    Idl_ULong_Min : constant Idl_Integer := 0;
-   Idl_ULong_Max : constant Idl_Integer := (2 ** 32) - 1;
+   Idl_ULong_Max : constant Idl_Integer := Idl_Integer'Last;
    Idl_ULongLong_Min : constant Idl_Integer := 0;
    Idl_ULongLong_Max : constant Idl_Integer := Idl_ULong_Max
 ; --  (2 ** 64) - 1;
-   Idl_Float_Min : constant Idl_Float := Long_Long_Float (Float'First);
-   Idl_Float_Max : constant Idl_Float := Long_Long_Float (Float'Last);
-   Idl_Double_Min : constant Idl_Float := Long_Long_Float (Long_Float'First);
-   Idl_Double_Max : constant Idl_Float := Long_Long_Float (Long_Float'Last);
-   Idl_Long_Double_Min : constant Idl_Float := Long_Long_Float'First;
-   Idl_Long_Double_Max : constant Idl_Float := Long_Long_Float'Last;
-   Idl_Enum_Max : constant Long_Long_Integer := (2 ** 32) - 1;
+   Idl_Float_Min : constant Idl_Float := Idl_Float (Float'First);
+   Idl_Float_Max : constant Idl_Float := Idl_Float (Float'Last);
+   Idl_Double_Min : constant Idl_Float := Idl_Float (Long_Float'First);
+   Idl_Double_Max : constant Idl_Float := Idl_Float (Long_Float'Last);
+   Idl_Long_Double_Min : constant Idl_Float := Idl_Float'First;
+   Idl_Long_Double_Max : constant Idl_Float := Idl_Float'Last;
+   Idl_Enum_Max : constant Idl_Integer := Idl_Longlong_Max;
 
    --  definition of a constant, depending on its kind
    --  This type is also used to specify a constant type
@@ -501,7 +503,7 @@ package Idl_Fe.Types is
       Definition     : Identifier_Definition_Acc
         := null;
       Is_Inheritable : Boolean := True;
-      Next           : Uniq_Id;
+      Next           : Uniq_Id := Nil_Uniq_Id;
    end record;
 
    ----------------------------------
@@ -631,8 +633,8 @@ private
    type Node_List_Cell;
    type Node_List is access Node_List_Cell;
    type Node_List_Cell is record
-      Car : Node_Id;
-      Cdr : Node_List;
+      Car : Node_Id := No_Node;
+      Cdr : Node_List := null;
    end record;
 
    Nil_List : constant Node_List := null;

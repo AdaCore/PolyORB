@@ -63,6 +63,7 @@ compilers/idlac/idl_fe-utils.adb
 compilers/idlac/idl_fe-utils.ads
 compilers/idlac/idl_fe.ads
 compilers/idlac/idl_fe.opt
+compilers/idlac/idl_fe.types.1.ada
 compilers/idlac/idlac.adb
 compilers/idlac/idlac_flags.ads
 compilers/idlac/make_nodes.py

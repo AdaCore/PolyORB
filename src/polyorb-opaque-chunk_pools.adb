@@ -32,9 +32,10 @@
 
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.adb#4 $
+--  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.adb#5 $
 
 with Ada.Unchecked_Deallocation;
+with System;
 
 package body PolyORB.Opaque.Chunk_Pools is
 
@@ -110,9 +111,10 @@ package body PolyORB.Opaque.Chunk_Pools is
    begin
       while Current /= null loop
          declare
+            use type System.Address;
             Next : Chunk_Access := Current.Next;
          begin
-            if Current /= Pool.Prealloc'Access then
+            if Current.all'Address /= Pool.Prealloc'Address then
                Free (Current);
             end if;
             Current := Next;

@@ -12,6 +12,9 @@
 --    if one wants to use the Node_Access.Manip package.
 --
 --    Accessors will have the name Field and Set_Field.
+--
+--  $Id: //droopi/main/compilers/idlac/nodes.txt#6 $
+--
 
 START
 
