@@ -237,6 +237,23 @@ package NetBufferedStream is
    -- Compute the size needed to marshall A into S
 
 
+   procedure Marshall (A : in Corba.Octet ;
+                       S : in out Object'Class) ;
+   -- Marshalls a Corba.Octet into a netbufferedstream object
+
+
+   procedure UnMarshall (A : out Corba.Octet ;
+                         S : in out Object'Class) ;
+   -- UnMarshalls a Corba.Octet from a netbufferedstream object
+
+
+   function Align_Size (A : in Corba.Octet ;
+                        Initial_Offset : in Corba.Unsigned_Long ;
+                        N : in Corba.Unsigned_Long := 1)
+                        return Corba.Unsigned_Long ;
+   -- Compute the size needed to marshall A into S
+
+
    procedure Marshall (A : in Corba.String ;
                        S : in out Object'Class) ;
    -- Marshalls a Corba.String into a netbufferedstream object

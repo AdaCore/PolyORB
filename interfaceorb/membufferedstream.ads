@@ -173,6 +173,16 @@ package MemBufferedStream is
    -- UnMarshalls a Corba.Double from a membufferedstream object
 
 
+   procedure Marshall (A : in Corba.Octet ;
+                       S : in out Object'Class) ;
+   -- Marshalls a Corba.Octet into a membufferedstream object
+
+
+   procedure UnMarshall (A : out Corba.Octet ;
+                         S : in out Object'Class) ;
+   -- UnMarshalls a Corba.Octet from a membufferedstream object
+
+
    procedure Marshall (A : in Corba.String ;
                        S : in out Object'Class);
    -- Marshalls a Corba.String into a membufferedstream object

@@ -587,6 +587,59 @@ package body NetBufferedStream is
    end ;
 
 
+   -- C_Marshall_9
+   ---------------
+   procedure C_Marshall_9 (A : in Corba.Octet ;
+                           S : in out Object'Class) ;
+   pragma Import (CPP,C_Marshall_9,"marshall__21Ada_netBufferedStreamUcR21Ada_netBufferedStream") ;
+   -- wrapper around Ada_netBufferedStream function marshall
+   -- FOR CHAR TYPE BECAUSE IT IS THE SAME TYPE IN C++
+   -- (see Ada_netBufferedStream.hh)
+   -- name was changed to avoid conflict
+   -- called by the Ada equivalent : Marshall
+
+
+   -- Marshall
+   -----------
+   procedure Marshall (A : in Corba.Octet ;
+                       S : in out Object'Class) is
+   begin
+      C_Marshall_9 (A,S) ;
+   end;
+
+
+   -- C_UnMarshall_9
+   -----------------
+   procedure C_UnMarshall_9 (A : out Corba.Octet ;
+                             S : in out Object'Class) ;
+   pragma Import (CPP,C_UnMarshall_9,"unmarshall__21Ada_netBufferedStreamRUcR21Ada_netBufferedStream") ;
+   -- wrapper around Ada_netBufferedStream function marshall
+   -- FOR CHAR TYPE BECAUSE IT IS THE SAME TYPE IN C++
+   -- (see Ada_netBufferedStream.hh)
+   -- name was changed to avoid conflict
+   -- called by the Ada equivalent : UnMarshall
+
+
+   -- UnMarshall
+   -------------
+   procedure UnMarshall (A : out Corba.Octet ;
+                         S : in out Object'Class) is
+   begin
+      C_UnMarshall_9 (A,S) ;
+   end;
+
+
+   -- Align_Size
+   -------------
+   function Align_Size (A : in Corba.Octet ;
+                        Initial_Offset : in Corba.Unsigned_Long ;
+                        N : in Corba.Unsigned_Long := 1)
+                        return Corba.Unsigned_Long is
+   begin
+      return Initial_Offset + N ;
+   end ;
+
+
    -- Marshall
    -----------
    procedure Marshall (A : in Corba.String ;

@@ -395,6 +395,7 @@ ADABROKER_CATCH
 };
 
 
+
 // isReUsingExistingConnection
 //----------------------------
 _CORBA_Boolean

@@ -458,6 +458,48 @@ package body MemBufferedStream is
    end;
 
 
+   -- C_Marshall_9
+   ---------------
+   procedure C_Marshall_9 (A : in Corba.Octet ;
+                           S : in out Object'Class) ;
+   pragma Import (CPP,C_Marshall_9,"marshall__21Ada_memBufferedStreamUcR21Ada_memBufferedStream") ;
+   -- wrapper around Ada_memBufferedStream function marshall
+   -- FOR CHAR TYPE BECAUSE IT IS THE SAME TYPE IN C++
+   -- (see Ada_memBufferedStream.hh)
+   -- name was changed to avoid conflict
+   -- called by the Ada equivalent : Marshall
+
+
+   -- Marshall
+   -----------
+   procedure Marshall (A : in Corba.Octet ;
+                       S : in out Object'Class) is
+   begin
+      C_Marshall_9 (A,S) ;
+   end;
+
+
+   -- C_UnMarshall_9
+   -----------------
+   procedure C_UnMarshall_9 (A : out Corba.Octet ;
+                             S : in out Object'Class) ;
+   pragma Import (CPP,C_UnMarshall_9,"unmarshall__21Ada_memBufferedStreamRUcR21Ada_memBufferedStream") ;
+   -- wrapper around Ada_memBufferedStream function marshall
+   -- FOR CHAR TYPE BECAUSE IT IS THE SAME TYPE IN C++
+   -- (see Ada_memBufferedStream.hh)
+   -- name was changed to avoid conflict
+   -- called by the Ada equivalent : UnMarshall
+
+
+   -- UnMarshall
+   -------------
+   procedure UnMarshall (A : out Corba.Octet ;
+                         S : in out Object'Class) is
+   begin
+      C_UnMarshall_9 (A,S) ;
+   end;
+
+
    -- Marshall
    -----------
    procedure Marshall (A : in Corba.String ;
