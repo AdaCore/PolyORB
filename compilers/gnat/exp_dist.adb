@@ -4824,7 +4824,7 @@ package body Exp_Dist is
               Parameter_Type      =>
                 New_Occurrence_Of (RTE (RE_Request_Access), Loc))));
 
-      --  A exception raised during the execution of an incoming
+      --  An exception raised during the execution of an incoming
       --  remote subprogram call and that needs to be sent back
       --  to the caller is propagated by the receiving stubs, and
       --  will be handled by the caller (the distribution runtime).
