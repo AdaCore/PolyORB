@@ -153,9 +153,9 @@ package body PolyORB.Transport.Connected.Sockets is
       return Ev_Src;
    end Create_Event_Source;
 
-   -----------
+   ----------
    -- Read --
-   -----------
+   ----------
 
    procedure Read
      (TE     : in out Socket_Endpoint;
