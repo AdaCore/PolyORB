@@ -1,4 +1,4 @@
---  $Id: //droopi/main/src/corba/broca-exceptions-stack.adb#3 $
+--  $Id: //droopi/main/src/corba/broca-exceptions-stack.adb#4 $
 
 with Ada.Unchecked_Deallocation;
 

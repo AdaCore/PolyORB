@@ -320,7 +320,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
 
    procedure Request_Message_Unmarshall
      ( Buffer            : access Buffer_Type;
-       Request_Id        : out CORBA.Unisgned_Long;
+       Request_Id        : out CORBA.Unsigned_Long;
        Response_Expected : out Boolean;
        Target_Ref        : out Target_Address;
        Operation         : out Requests.Operation_Id)

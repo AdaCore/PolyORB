@@ -1,6 +1,6 @@
 --  Inter-process synchronisation objects.
 
---  $Id: //droopi/main/src/droopi-locks.adb#2 $
+--  $Id: //droopi/main/src/droopi-locks.adb#3 $
 
 with Ada.Unchecked_Deallocation;
 

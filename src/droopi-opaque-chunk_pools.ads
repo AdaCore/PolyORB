@@ -1,6 +1,6 @@
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/droopi-opaque-chunk_pools.ads#3 $
+--  $Id: //droopi/main/src/droopi-opaque-chunk_pools.ads#4 $
 
 with Ada.Finalization;
 

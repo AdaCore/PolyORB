@@ -6,10 +6,7 @@
 --                                                                          --
 --                               S p e c                                    --
 --                                                                          --
-----
---                                                                          --
 ------------------------------------------------------------------------------
-
 
 with Ada.Streams;   use Ada.Streams;
 
@@ -24,13 +21,12 @@ with Droopi.References.IOR;
 with Droopi.Protocols;
 with Droopi.Requests;
 
-package CORBA.GIOP_Session is
+package Droopi.Protocols.GIOP is
 
-
-   Message_Maximum_Size    : constant Integer;
-   Endianess_Bit: constant Integer;
-   Fragment_Bit: constant Integer;
-   Byte_Order_Offset : constant Integer;
+   Message_Maximum_Size  : constant Integer;
+   Endianess_Bit         : constant Integer;
+   Fragment_Bit          : constant Integer;
+   Byte_Order_Offset     : constant Integer;
 
    type GIOP_Session is new Session with private;
 
@@ -40,28 +36,25 @@ package CORBA.GIOP_Session is
 
    type Sync_Scope is (NONE, WITH_TRANSPORT, WITH_SERVER, WITH_TARGET);
 
-   type Bits_8 is CORBA.Octet;
+   subtype Bits_8 is CORBA.Octet;
 
-   type IOR_Addressing_Info is
-    record
-       Selected_Profile_Index : CORBA.Unsigned_Long;
-       Ior                    : References.IOR.IOR_Type;
-    end record;
+   type IOR_Addressing_Info is record
+      Selected_Profile_Index : CORBA.Unsigned_Long;
+      IOR                    : References.IOR.IOR_Type;
+   end record;
 
+   subtype Addressing_Disposition is Natural range 0 .. 2;
 
-   subtype Addressing_Disposition is range 0..2;
-
-   type Target_Address(Address_Type: Addressing_Diposition) is
-    record
-     case Address_Type is
-      when 0 =>
-        Object_Key : Objects.Object_Id;
-      when 1 =>
-        Profile : Binding_Data.IIOP.IIOP_Profile_Type;
-      when 2 =>
-        Ref : IOR_Addressing_Info;
-     end case;
-    end record;
+   type Target_Address (Address_Type : Addressing_Diposition) is record
+      case Address_Type is
+         when 0 =>
+            Object_Key : Objects.Object_Id;
+         when 1 =>
+            Profile : Binding_Data.IIOP.IIOP_Profile_Type;
+         when 2 =>
+            Ref : IOR_Addressing_Info;
+      end case;
+   end record;
 
 
    --  GIOP:: MsgType
@@ -113,7 +106,7 @@ package CORBA.GIOP_Session is
       Sr_Forward,
       Sr_Forward_Perm,
       Sr_Needs_Addressing_Mode
-     );
+      );
 
    type Locate_Request_Result_Type is
      (Sr_Unknown_Object,
@@ -122,38 +115,43 @@ package CORBA.GIOP_Session is
       Sr_Object_Forward_Perm,
       Sr_Loc_System_Exception,
       Sr_Loc_Needs_Addressing_Mode
-     );
+      );
 
 
-   -- type GIOP_Version is private;
+   --  type GIOP_Version is private;
 
-   package Octet_Sequences is new CORBA.Sequences.Unbounded(CORBA.Octet);
+   package Octet_Sequences is new CORBA.Sequences.Unbounded (CORBA.Octet);
    subtype CORBA_Octet_Array is Octet_Sequences.Sequence.Element_Array;
 
-   -- Define Types of Target Addresses used with Request Message
+   --  Define Types of Target Addresses used with Request Message
 
 
-   type ServiceId is (
-       Transaction_Service, CodeSets, ChainByPassCheck,
-       ChainByPassInfo, LogicalThreadId, Bi_Dir_IIOP,
-       SendingContextRunTime, Invocation_Policies,
-       Forwarded_Identity, UnknownExceptionInfo
-       );
+   type ServiceId is
+     (Transaction_Service,
+      CodeSets,
+      ChainByPassCheck,
+      ChainByPassInfo,
+      LogicalThreadId,
+      Bi_Dir_IIOP,
+      SendingContextRunTime,
+      Invocation_Policies,
+      Forwarded_Identity,
+      UnknownExceptionInfo);
 
 
-  -----------------------------------------------------------
-  -- Some common marshalling procedures for GIOP 1.0, 1.1, 1.2
-  ------------------------------------------------------------
+   -----------------------------------------------------------
+   --  Some common marshalling procedures for GIOP 1.0, 1.1, 1.2
+   ------------------------------------------------------------
 
    procedure Exception_Marshall
-    ( Buffer           : access Buffer_Type;
+     (Buffer           : access Buffer_Type;
       Request_Id       : in CORBA.Unsigned_Long;
       Exception_Type   : in ReplyStatusType;
       Occurence        : in CORBA.Exception_Occurrence);
 
 
    procedure Location_Forward_Marshall
-    ( Buffer           : access Buffer_Type;
+     (Buffer           : access Buffer_Type;
       Request_Id       : in  CORBA.Unsigned_Long;
       Forward_Ref      : in  Droopi.References.Ref);
 
@@ -166,7 +164,7 @@ package CORBA.GIOP_Session is
    procedure Locate_Request_Marshall
      (Buffer           : access Buffer_Type;
       Request_Id       : in CORBA.Unsigned_Long;
-      Profile_Ref      : in Binding_Data.Profile_Type );
+      Profile_Ref      : in Binding_Data.Profile_Type);
 
    procedure Locate_Reply_Marshall
      (Buffer         : access Buffer_Type;
@@ -174,7 +172,7 @@ package CORBA.GIOP_Session is
       Locate_Status  : in LocateReplyStatus);
 
    -----------------------------------
-   -- Unmarshall
+   --  Unmarshall
    ----------------------------------
 
    procedure Unmarshall_GIOP_Header
@@ -191,61 +189,61 @@ package CORBA.GIOP_Session is
 
 
 
-  ---------------------------------------
-  --- Marshalling switch  -----------
-  --------------------------------------
+   ---------------------------------------
+   ---  Marshalling switch  -----------
+   --------------------------------------
 
    procedure Request_Message
-    (Ses               : access GIOP_Session;
-     Response_Expected : in Boolean;
-     Message_Size      : in CORBA.Unsigned_Long;
-     Fragment_Next     : out boolean);
+     (Ses               : access GIOP_Session;
+      Response_Expected : in Boolean;
+      Message_Size      : in CORBA.Unsigned_Long;
+      Fragment_Next     : out boolean);
 
    procedure No_Exception_Reply
-    (Ses           : access GIOP_Session;
-     Request_Id    : in CORBA.Unsigned_Long;
-     Message_Size  : in CORBA.Unsignd_Long;
-     Fragment_Next : out boolean);
+     (Ses           : access GIOP_Session;
+      Request_Id    : in CORBA.Unsigned_Long;
+      Message_Size  : in CORBA.Unsignd_Long;
+      Fragment_Next : out boolean);
 
 
-    procedure Exception_Reply
-    (Ses             : access GIOP_Session;
-     Message_Size    : in Stream_Element_Offset ;
-     Exception_Type  : in Reply_Status_Type range User_Exception..System_Exception;
-     Occurence       : in CORBA.Exception_Occurrence);
+   procedure Exception_Reply
+     (Ses             : access GIOP_Session;
+      Message_Size    : in Stream_Element_Offset;
+      Exception_Type  : in Reply_Status_Type;
+      Occurence       : in CORBA.Exception_Occurrence);
 
 
-    procedure Location_Forward_Reply
-    (Ses             : access GIOP_Session;
-     Message_Size    : in Stream_Element_Offset ;
-     Exception_Type  : in Reply_Status_Type range Location_Forward .. Location_Forward_Perm;
-     Forward_Ref     : in Droopi.References.Ref;
-     Fragment_Next   : out Boolean);
+   procedure Location_Forward_Reply
+     (Ses             : access GIOP_Session;
+      Message_Size    : in Stream_Element_Offset;
+      Exception_Type  : in Reply_Status_Type;
+      Forward_Ref     : in Droopi.References.Ref;
+      Fragment_Next   : out Boolean);
 
-    procedure Need_Addressing_Mode_Message
-    (Ses             : access GIOP_Session;
-     Message_Size    : in Stream_Element_Offset;
-     Address_Type    : in Addressing_Disposition);
+   procedure Need_Addressing_Mode_Message
+     (Ses             : access GIOP_Session;
+      Message_Size    : in Stream_Element_Offset;
+      Address_Type    : in Addressing_Disposition);
 
-    procedure Cancel_Request_Message
-    (Ses             : access GIOP_Session;
-     Message_Size    : in Stream_Element_Offset);
+   procedure Cancel_Request_Message
+     (Ses             : access GIOP_Session;
+      Message_Size    : in Stream_Element_Offset);
 
-    procedure Locate_Request_Message
-    (Ses             : access GIOP_Session;
-     Message_Size    : in Stream_Element_Offset ;
-     Address_Type    : in Address_Disposition;
-     Target_Ref      : in Target_Address;
-     Fragment_Next   : out Boolean)
+   procedure Locate_Request_Message
+     (Ses             : access GIOP_Session;
+      Message_Size    : in Stream_Element_Offset;
+      Address_Type    : in Address_Disposition;
+      Target_Ref      : in Target_Address;
+      Fragment_Next   : out Boolean);
 
-    procedure Locate_Reply_Message
-    (Ses             : access GIOP_Session;
-     Message_Size    : in Stream_Element_Offset;
-     Locate_Status   : in Locate_Status_Type);
+   procedure Locate_Reply_Message
+     (Ses             : access GIOP_Session;
+      Message_Size    : in Stream_Element_Offset;
+      Locate_Status   : in Locate_Status_Type);
 
 
    -------------------------------------------
-   -- Session procedures
+   --  Session procedures
    ------------------------------------------
 
 
@@ -285,7 +283,7 @@ private
    type GIOP_Session is new Session with record
       Major_Version        : CORBA.Octet;
       Minor_Version        : CORBA.Octet;
-      Buffer_Out           : access Buffers.Buffer_Type;
+      Buffer_Out           : Buffers.Buffer_Access;
       Buffer_In            : Stream_Element_array;
       Role                 : Endpoint_Role;
       Object_Found         : Boolean := False;
@@ -297,9 +295,9 @@ private
    type GIOP_Protocol is new Protocol with null record;
 
    type Pending_Request is record
-     Req             : Requests.Request_Access := null;
-     Request_Id      : Corba.Unsigned_Long := 0;
-     Target_Profile  : Binding_Data.IIOP.IIOP_Profile_Type := null ;
+      Req             : Requests.Request_Access := null;
+      Request_Id      : Corba.Unsigned_Long := 0;
+      Target_Profile  : Binding_Data.IIOP.IIOP_Profile_Type := null;
    end record;
 
    procedure Expect_Data
@@ -307,18 +305,18 @@ private
       In_Buf        : Buffers.Buffer_Access;
       Expect_Max    : Ada.Streams.Stream_Element_Count);
 
-   Message_Header_Size : constant :=12;
+   Message_Header_Size : constant := 12;
 
-   Message_Body_Size : constant :=1000;
+   Message_Body_Size : constant := 1000;
 
    Max_Data_Received : constant := 1024;
 
-   Endianess_Bit: constant Integer:=1;
+   Endianess_Bit : constant Integer := 1;
 
-   Fragment_Bit: constant Integer:=2;
+   Fragment_Bit : constant Integer := 2;
 
-   Byte_Order_Offset : constant Integer:= 6;
+   Byte_Order_Offset : constant Integer := 6;
 
    Max_Nb_Tries : constant Integer := 100;
 
-end Corba.GIOP_Session;
+end Droopi.Protocols.GIOP;

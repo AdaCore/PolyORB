@@ -905,7 +905,7 @@ package body Droopi.Protocols.GIOP is
 
    is
       use Obj_Adapters.Simple;
-      Request_Id        :  CORBA.Unisgned_Long;
+      Request_Id        :  CORBA.Unsigned_Long;
       Response_Expected :  Boolean;
       Object_Key        :  String;
       Oid               :  Objects.Object_Id;

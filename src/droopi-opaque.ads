@@ -1,6 +1,6 @@
 --  Storage of opaque data.
 
---  $Id: //droopi/main/src/droopi-opaque.ads#2 $
+--  $Id: //droopi/main/src/droopi-opaque.ads#3 $
 
 with Ada.Streams; use Ada.Streams;
 with Ada.Unchecked_Deallocation;

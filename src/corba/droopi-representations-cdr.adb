@@ -10,27 +10,23 @@
 with Ada.Unchecked_Conversion;
 with Ada.Streams;
 with Ada.Exceptions;
+
 with Interfaces;
-
-
 
 with Droopi.Buffers ; use Broca.Buffers;
 with Droopi.Opaque; use Broca.Opaque;
 
 with CORBA;
 
-
 package body droopi.Representations.CDR is
 
-
    package L is new Droopi.Log.Facility_Log ("droopi.representations.cdr");
-   procedure O (Message : in String; Level : Log_Level := Debug)
+   procedure O
+     (Message : in String;
+      Level   : in Log_Level := Debug)
      renames L.Output;
 
-
-   Octet_Order: constant Integer:=256;
-
-
+   Octet_Order: constant Integer := 256;
 
    use CORBA;
 
@@ -38,17 +34,15 @@ package body droopi.Representations.CDR is
    -- Utility subprograms --
    -------------------------
 
-
    function Rev
      (Octets : Stream_Element_Array)
      return Stream_Element_Array;
    --  Reverse the order of an array of octets
 
-   --function Align_Octet
-   --  (Data:in F;
-   --   Order: Integer) return Stream_Element_Array;
-   -- Align Octets on Array of octets
-
+   --  function Align_Octet
+   --    (Data:in F;
+   --     Order: Integer) return Stream_Element_Array;
+   --  Align Octets on Array of octets
 
    function Sum_Octet
      (Octets: Stream_Element_Array;
@@ -87,8 +81,6 @@ package body droopi.Representations.CDR is
    --  The data in Octets shall be presented in the
    --  host's byte order.
 
-
-
    function Align_Unmarshall_Host_Endian_Copy
      (Buffer    : access Buffer_Type;
       Size      : Stream_Element_Count;
@@ -98,15 +90,12 @@ package body droopi.Representations.CDR is
    --  Size octets from it.
    --  The data is returned in the host's byte order
 
-
-
    procedure Align_Marshall_Copy
      (Buffer    : access Buffer_Type;
       Octets    : in Stream_Element_Array ;
       Alignment : Alignment_Type := 1);
    --  Align Buffer on Alignment, then marshall a copy
    --  of Octets into Buffer, as is.
-
 
    function Align_Unmarshall_Copy
      (Buffer    : access Buffer_Type;
@@ -123,55 +112,54 @@ package body droopi.Representations.CDR is
 
    function To_Long_Long is
       new Ada.Unchecked_Conversion
-     (CORBA.Unsigned_Long_Long, CORBA.Long_Long);
+        (CORBA.Unsigned_Long_Long, CORBA.Long_Long);
    function To_Unsigned_Long_Long is
       new Ada.Unchecked_Conversion
-     (CORBA.Long_Long, CORBA.Unsigned_Long_Long);
+        (CORBA.Long_Long, CORBA.Unsigned_Long_Long);
    function To_Long is
       new Ada.Unchecked_Conversion
-     (CORBA.Unsigned_Long, CORBA.Long);
+        (CORBA.Unsigned_Long, CORBA.Long);
    function To_Unsigned_Long is
       new Ada.Unchecked_Conversion
-     (CORBA.Long, CORBA.Unsigned_Long);
+        (CORBA.Long, CORBA.Unsigned_Long);
    function To_Short is
       new Ada.Unchecked_Conversion
-     (CORBA.Unsigned_Short, CORBA.Short);
+        (CORBA.Unsigned_Short, CORBA.Short);
    function To_Unsigned_Short is
       new Ada.Unchecked_Conversion
-     (CORBA.Short, CORBA.Unsigned_Short);
+        (CORBA.Short, CORBA.Unsigned_Short);
 
    -------------------------------------------
    --  Conversions for floating point types --
    -------------------------------------------
 
-   subtype Double_Buf is Stream_Element_Array(1 .. 8);
+   subtype Double_Buf is Stream_Element_Array (1 .. 8);
    --  FIXME LONG DOUBLE
    subtype Long_Double_Buf is Octet_Array (1 .. 12);
 
    function To_Unsigned_Long is
       new Ada.Unchecked_Conversion
-     (CORBA.Float, CORBA.Unsigned_Long);
+        (CORBA.Float, CORBA.Unsigned_Long);
    function To_Float is
       new Ada.Unchecked_Conversion
-     (CORBA.Unsigned_Long, CORBA.Float);
+        (CORBA.Unsigned_Long, CORBA.Float);
    function To_Double_Buf is
       new Ada.Unchecked_Conversion
-     (CORBA.Double, Double_Buf);
+        (CORBA.Double, Double_Buf);
    function To_Double is
       new Ada.Unchecked_Conversion
-     (Double_Buf, CORBA.Double);
+        (Double_Buf, CORBA.Double);
     function To_Long_Double_Buf is
        new Ada.Unchecked_Conversion
-      (CORBA.Long_Double, Long_Double_Buf);
+        (CORBA.Long_Double, Long_Double_Buf);
     function To_Long_Double is
        new Ada.Unchecked_Conversion
-      (Long_Double_Buf, CORBA.Long_Double);
+        (Long_Double_Buf, CORBA.Long_Double);
 
    ----------------------------------
    -- Marshall-by-copy subprograms --
    -- for all elementary types     --
    ----------------------------------
-
 
    -- Marshalling of a Boolean
    procedure Marshall
@@ -196,16 +184,12 @@ package body droopi.Representations.CDR is
    --  Marshalling of a wide character
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Wchar) is
-   procedure Align_Octet is new Align_Octet(CORBA.Wchar);
-
+      Data   : in CORBA.Wchar)
+   is
+      procedure Align_Octet is new Align_Octet (CORBA.Wchar);
    begin
       pragma Debug (O ("Marshall (WChar) : enter"));
-
-      Align_Marshall_Big_Endian_Copy
-        (Buffer,
-         Align_Octet(Data,2),
-         2);
+      Align_Marshall_Big_Endian_Copy (Buffer, Align_Octet (Data, 2), 2);
       pragma Debug (O ("Marshall (WChar) : end"));
    end Marshall;
 
@@ -222,47 +206,38 @@ package body droopi.Representations.CDR is
    --  Marshalling of an unsigned short
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Unsigned_Short) is
-     procedure Align_Octet is new Align_Octet(CORBA.Unsigned_Short);
+      Data   : in CORBA.Unsigned_Short)
+   is
+     procedure Align_Octet is new Align_Octet (CORBA.Unsigned_Short);
    begin
       pragma Debug (O ("Marshall (UShort) : enter"));
-
-      Align_Marshall_Big_Endian_Copy
-        (Buffer,
-         Align_Octet(Data,2),
-         2);
+      Align_Marshall_Big_Endian_Copy (Buffer, Align_Octet (Data, 2), 2);
       pragma Debug (O ("Marshall (UShort) : end"));
    end Marshall;
 
    -- Marshalling of an unsigned long
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Unsigned_Long) is
-    procedure Align_Octet is new Align_Octet(CORBA.Unsigned_Long);
+      Data   : in CORBA.Unsigned_Long)
+   is
+      procedure Align_Octet is new Align_Octet (CORBA.Unsigned_Long);
    begin
       pragma Debug (O ("Marshall (ULong) : enter"));
-
-      Align_Marshall_Big_Endian_Copy
-           (Buffer,
-            Align_Octet(Data,4),
-            4);
+      Align_Marshall_Big_Endian_Copy (Buffer, Align_Octet (Data, 4), 4);
       pragma Debug (O ("Marshall (ULong) : end"));
    end Marshall;
 
    --  Marshalling of an unsigned long long
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Unsigned_Long_Long) is
-   procedure Align_Octet is new Align_Octet(CORBA.Unsigned_Long_Long);
+      Data   : in CORBA.Unsigned_Long_Long)
+   is
+      procedure Align_Octet is new Align_Octet (CORBA.Unsigned_Long_Long);
    begin
       pragma Debug (O ("Marshall (ULongLong) : enter"));
-      Align_Marshall_Big_Endian_Copy
-           (Buffer,
-            Align_Octet(Data,8),
-            8);
+      Align_Marshall_Big_Endian_Copy (Buffer, Align_Octet (Data, 8), 8);
       pragma Debug (O ("Marshall (ULongLong) : end"));
    end Marshall;
-
 
    --  Marshalling of a long long
    procedure Marshall
@@ -274,7 +249,6 @@ package body droopi.Representations.CDR is
       pragma Debug (O ("Marshall (LongLong) : end"));
    end Marshall;
 
-
    --  Marshalling of a long
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -284,7 +258,6 @@ package body droopi.Representations.CDR is
       Marshall (Buffer, To_Unsigned_Long (Data));
       pragma Debug (O ("Marshall (Long) : end"));
    end Marshall;
-
 
    --  Marshalling of a short
    procedure Marshall
@@ -367,17 +340,19 @@ package body droopi.Representations.CDR is
       Data   : in CORBA.Wide_String)
    is
       Equiv : constant Wide_String
-        := CORBA.To_Wide_String (Data)
-        & Standard.Wide_Character'Val (0);
+        := CORBA.To_Wide_String (Data) & Standard.Wide_Character'Val (0);
 
+      --  XXXXX: Val (0) is suspicious ...
    begin
       pragma Debug (O ("Marshall (CORBA.Wide_String) : enter"));
       pragma Debug (O ("Marshall (CORBA.Wide_String) : length is " &
                        CORBA.Unsigned_Long'Image (Equiv'Length)));
+
       Marshall (Buffer, CORBA.Unsigned_Long'(Equiv'Length));
       for I in Equiv'Range loop
          Marshall (Buffer, CORBA.Wchar'Val (Wide_Character'Pos (Equiv (I))));
       end loop;
+
       pragma Debug (O ("Marshall (CORBA.Wide_String) : end"));
    end Marshall;
 
@@ -457,7 +432,7 @@ package body droopi.Representations.CDR is
       case CORBA.TypeCode.Kind (Data_Type) is
 
          when Tk_Null | Tk_Void =>
-            pragma Debug (O ("Marshall_From_Any : dealing with a void or a null"));
+            pragma Debug (O ("Marshall_From_Any : dealing with void or null"));
             null;
 
          when Tk_Short =>
@@ -516,16 +491,14 @@ package body droopi.Representations.CDR is
 
          when Tk_Struct =>
            declare
-               Nb : constant CORBA.Unsigned_Long :=
-                 CORBA.Get_Aggregate_Count (Data);
-               Value : CORBA.Any;
+              Nb : constant CORBA.Unsigned_Long
+                := CORBA.Get_Aggregate_Count (Data);
+              Value : CORBA.Any;
            begin
                pragma Debug (O ("Marshall_From_Any : dealing with a struct"));
                for I in 0 .. Nb - 1 loop
                   Value := CORBA.Get_Aggregate_Element
-                     (Data,
-                      CORBA.TypeCode.Member_Type (Data_Type, I),
-                      I);
+                     (Data, CORBA.TypeCode.Member_Type (Data_Type, I), I);
                   Marshall_From_Any (Buffer, Value);
                end loop;
            end;

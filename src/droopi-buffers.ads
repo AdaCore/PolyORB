@@ -1,6 +1,6 @@
 --  Buffer management
 
---  $Id: //droopi/main/src/droopi-buffers.ads#7 $
+--  $Id: //droopi/main/src/droopi-buffers.ads#8 $
 
 with System;
 --  For bit-order information.

@@ -1,6 +1,6 @@
 --  Inter-process synchronisation objects.
 
---  $Id: //droopi/main/src/droopi-locks.ads#1 $
+--  $Id: //droopi/main/src/droopi-locks.ads#2 $
 
 with Droopi.Soft_Links;
 

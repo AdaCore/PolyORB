@@ -4,14 +4,14 @@
 
 with Sequences.Unbounded;
 
-with Droopi.Binding_Data;
+with Droopi.Binding_Data; use Droopi.Binding_Data;
 
 package Droopi.References is
 
    pragma Elaborate_Body;
 
-   package Profile_Seqs is new Sequences.Unbounded
-     (Binding_Data.Profile_Access);
+   package Profile_Seqs is
+      new Sequences.Unbounded (Binding_Data.Profile_Access);
    subtype Profile_Array is Profile_Seqs.Element_Array;
 
    type Ref is private;

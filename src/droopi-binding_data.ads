@@ -1,7 +1,7 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/droopi-binding_data.ads#8 $
+--  $Id: //droopi/main/src/droopi-binding_data.ads#9 $
 
 with Ada.Finalization;
 

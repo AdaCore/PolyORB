@@ -245,7 +245,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
 
    procedure Request_Message_Unmarshall
      ( Buffer            : access Buffer_Type;
-       Request_Id        : out CORBA.Unisgned_Long;
+       Request_Id        : out CORBA.Unsigned_Long;
        Response_Expected : out Boolean;
        Object_Key        : out Objects.Object_Id;
        Operation         : out Requests.Operation_Id)
