@@ -1442,6 +1442,9 @@ package body Ada_Be.Expansion is
          when K_Octet =>
             return "octet";
 
+         when K_Any =>
+            return "any";
+
          when others =>
             --  Improper use: node N is not
             --  mapped to an Ada type.

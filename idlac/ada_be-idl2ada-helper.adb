@@ -207,6 +207,14 @@ package body Ada_Be.Idl2Ada.Helper is
 --          PL (CU, ";");
 --          DI (CU);
 
+            --  to fill in the typecode TC_<name of the type>
+            Add_Elaborate_Body (CU);
+            Add_With (CU, "CORBA");
+
+         when K_ValueType =>
+            PL (CU, "--  put here spec for valuetypes to/from_any");
+            PL (CU, "null;");
+
          when others =>
             null;
 
@@ -308,6 +316,10 @@ package body Ada_Be.Idl2Ada.Helper is
 --             PL (CU, "return To_Any (Member);");
 --             DI (CU);
 --             PL (CU, "end To_Any;");
+
+         when K_ValueType =>
+            PL (CU, "--  put here body for valuetypes to/from_any");
+            PL (CU, "null;");
 
          when others =>
             null;

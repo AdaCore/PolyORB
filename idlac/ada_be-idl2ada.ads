@@ -46,14 +46,14 @@ private
 
    function Ada_Type_Name (Node : Node_Id) return String;
    --  The name of the Ada type that maps Node.
-   --  this is the long name incuding the package name
+   --  This is the fully qualified name.
 
    function Ada_Type_Defining_Name
      (Node : Node_Id)
      return String;
    --  The defining name of the Ada type that maps Node
    --  (a K_Interface or K_ValueType).
-   --  This is the short name without the package name
+   --  This is not the fully qualified name.
 
    function Ada_Operation_Name
      (Node : Node_Id)
@@ -93,6 +93,14 @@ private
    --  Generate the profile for an K_Operation node,
    --  with the Self formal parameter mode and type taken
    --  from the Object_Type string.
+
+   procedure Gen_Initializer_Profile
+     (CU : in out Compilation_Unit;
+      Return_Type : in String;
+      Node : Node_Id);
+   --  Generate the profile for an K_Initializer node,
+   --  with the specified Return_Type
+
 
    procedure Gen_Node_Stubs_Spec
      (CU   : in out Compilation_Unit;

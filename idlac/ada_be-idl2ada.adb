@@ -37,6 +37,7 @@ with Ada_Be.Debug;
 
 with Ada_Be.Idl2Ada.Stream;
 with Ada_Be.Idl2Ada.Impl;
+with Ada_Be.Idl2Ada.Value_Impl;
 with Ada_Be.Idl2Ada.Helper;
 
 with Errors;                use Errors;
@@ -53,10 +54,6 @@ package body Ada_Be.Idl2Ada is
 
    Skel_Suffix : constant String
      := ".Skel";
-   Value_Impl_Suffix : constant String
-     := ".Value_Impl";
-   Helper_Suffix : constant String
-     := ".Helper";
 
    -------------------------------------------------
    -- General purpose code generation subprograms --
@@ -80,7 +77,7 @@ package body Ada_Be.Idl2Ada is
       Implement : Boolean;
       To_Stdout : Boolean);
 
-   procedure Gen_Operation_Stubs_Body_For_ValueTypes
+   procedure Gen_Stubs_Body_For_ValueTypes
      (CU : in out Compilation_Unit;
       Node : in Node_Id);
 
@@ -98,12 +95,6 @@ package body Ada_Be.Idl2Ada is
    ----------------------------------------
    -- Specialised generation subprograms --
    ----------------------------------------
-
-   procedure Gen_Value_Impl_Decl
-     (CU   : in out Compilation_Unit;
-      Node : in Node_Id);
-   --  Generate the declaration of a valuetype object
-   --  in the Value_Impl package
 
    procedure Gen_Object_Reference_Declaration
      (CU   : in out Compilation_Unit;
@@ -197,9 +188,9 @@ package body Ada_Be.Idl2Ada is
       Stream_Name : constant String
         := Stubs_Name & Stream.Suffix;
       Value_Impl_Name : constant String
-        := Stubs_Name & Value_Impl_Suffix;
+        := Stubs_Name & Value_Impl.Suffix;
       Helper_Name : constant String
-        := Stubs_Name & Helper_Suffix;
+        := Stubs_Name & Helper.Suffix;
 
       Stubs_Spec : Compilation_Unit
         := New_Package (Stubs_Name, Unit_Spec);
@@ -224,7 +215,16 @@ package body Ada_Be.Idl2Ada is
    begin
       --  the valuetype type
       Gen_Object_Reference_Declaration (Stubs_Spec, Node);
-      PL (Stubs_Spec, "Null_Value : constant Value_Ref;");
+
+      if not Abst (Node) then
+         PL (Stubs_Spec, "Null_Value : constant Value_Ref;");
+         Divert (Stubs_Spec, Private_Declarations);
+         PL (Stubs_Spec, "Null_Value : constant Value_ref");
+         II (Stubs_Spec);
+         PL (Stubs_Spec, ":= (Ptr => null);");
+         DI (Stubs_Spec);
+         Divert (Stubs_Spec, Visible_Declarations);
+      end if;
 
       --  Marshalling subprograms for the object
       --  reference type.
@@ -233,10 +233,12 @@ package body Ada_Be.Idl2Ada is
 
       --  Value_Impl type
       if not Abst (Node) then
-         Gen_Value_Impl_Decl (Value_Impl_Spec, Node);
+         Value_Impl.Gen_Node_Spec (Value_Impl_Spec, Node);
       end if;
 
       --  Helper package
+      Helper.Gen_Node_Spec (Helper_Spec, Node);
+      Helper.Gen_Node_Body (Helper_Body, Node);
 
       --  loop on node content
       declare
@@ -246,20 +248,23 @@ package body Ada_Be.Idl2Ada is
          Init (It, Contents (Node));
          while not Is_End (It) loop
             Get_Next_Node (It, Export_Node);
+
+            pragma Debug (O ("valuetype content node : "
+                             & Node_Kind'Image (Kind (Export_Node))));
+
             if Is_Gen_Scope (Export_Node) then
                Gen_Scope (Export_Node, Implement, To_Stdout);
             else
                Gen_Node_Stubs_Spec (Stubs_Spec, Export_Node);
-               if Kind (Export_Node) = K_Operation then
-                  Gen_Operation_Stubs_Body_For_ValueTypes (Stubs_Body,
-                                                           Export_Node);
-               end if;
+               Gen_Stubs_Body_For_ValueTypes (Stubs_Body,
+                                              Export_Node);
 
                Stream.Gen_Node_Spec (Stream_Spec, Export_Node);
                Stream.Gen_Node_Body (Stream_Body, Export_Node);
 
                if not Abst (Node) then
-                  Impl.Gen_Node_Spec (Value_Impl_Spec, Export_Node);
+                  Value_Impl.Gen_Node_Spec (Value_Impl_Spec, Export_Node);
+                  Value_Impl.Gen_Node_Body (Value_Impl_Body, Export_Node);
                end if;
 
                Helper.Gen_Node_Spec (Helper_Spec, Export_Node);
@@ -273,157 +278,115 @@ package body Ada_Be.Idl2Ada is
       end;
 
       if Implement then
-         if not Abst (Node) then
-            Generate (Value_Impl_Body, False, To_Stdout);
-         end if;
+         Generate (Value_Impl_Body, False, To_Stdout);
       else
          Generate (Value_Impl_Spec, False, To_Stdout);
          Generate (Stubs_Spec, False, To_Stdout);
          Generate (Stubs_Body, False, To_Stdout);
          Generate (Stream_Spec, False, To_Stdout);
          Generate (Stream_Body, False, To_Stdout);
+         Generate (Helper_Spec, False, To_Stdout);
+         Generate (Helper_Body, False, To_Stdout);
       end if;
 
    end Gen_Value_Scope;
 
-   ---------------------------------------------
-   -- Gen_Operation_Stubs_Body_For_ValueTypes --
-   ---------------------------------------------
+   -----------------------------------
+   -- Gen_Stubs_Body_For_ValueTypes --
+   -----------------------------------
 
-   procedure Gen_Operation_Stubs_Body_For_ValueTypes
+   procedure Gen_Stubs_Body_For_ValueTypes
      (CU : in out Compilation_Unit;
       Node : in Node_Id) is
-      Op_Name : constant String
-        := Ada_Operation_Name (Node);
-      Is_Function : constant Boolean
-        := Kind (Operation_Type (Node)) /= K_Void;
    begin
-      pragma Assert (Kind (Node) = K_Operation);
-      if not Is_Implicit_Inherited (Node) then
-         Gen_Operation_Profile
-           (CU,
-            Ada_Type_Defining_Name
-            (Parent_Scope (Node)),
-            Node);
-         PL (CU, " is");
-         PL (CU, "begin");
-         II (CU);
+      case Kind (Node) is
+         when K_Operation =>
+            declare
+               Op_Name : constant String
+                 := Ada_Operation_Name (Node);
+               Is_Function : constant Boolean
+                 := Kind (Operation_Type (Node)) /= K_Void;
+            begin
+               if not Is_Implicit_Inherited (Node) then
+                  Gen_Operation_Profile
+                    (CU,
+                     Ada_Type_Defining_Name
+                     (Parent_Scope (Node)),
+                     Node);
+                  PL (CU, " is");
+                  PL (CU, "begin");
+                  II (CU);
 
-         PL (CU, "if Is_Nil (Self) then");
-         II (CU);
-         PL (CU, "Broca.Exceptions.Raise_Inv_Objref;");
-         DI (CU);
-         PL (CU, "end if;");
+                  PL (CU, "if Is_Nil (Self) then");
+                  II (CU);
+                  Add_With (CU, "Broca.Exceptions");
+                  PL (CU, "Broca.Exceptions.Raise_Inv_Objref;");
+                  DI (CU);
+                  PL (CU, "end if;");
 
-         if Is_Function then
-            PL (CU, "return");
-            II (CU);
-         end if;
+                  if Is_Function then
+                     PL (CU, "return");
+                     II (CU);
+                  end if;
 
-         PL (CU, Ada_Full_Name (Parent_Scope (Node))
-              & ".Value_Impl."
-              & Op_Name);
-         II (CU);
+                  Add_With (CU,
+                            Ada_Full_Name (Parent_Scope (Node))
+                            & ".Value_Impl");
+                  PL (CU, Ada_Full_Name (Parent_Scope (Node))
+                      & ".Value_Impl."
+                      & Op_Name);
+                  II (CU);
 
-         --  The controlling formal parameter
+                  --  The controlling formal parameter
 
-         Put (CU, "(Self.Ptr.all");
+                  Put (CU, "(Self.Ptr.all");
 
-         --  The remaining formals
+                  --  The remaining formals
 
-         declare
-            It : Node_Iterator;
-            Param_Node : Node_Id;
-         begin
-            Init (It, Parameters (Node));
-            while not Is_End (It) loop
-               Get_Next_Node (It, Param_Node);
-
-               PL (CU, ";");
-               Put (CU, " " & Ada_Name (Declarator (Param_Node)));
-            end loop;
-         end;
-
-         PL (CU, ");");
-
-         DI (CU);
-         if  Is_Function then
-            DI (CU);
-         end if;
-
-         DI (CU);
-         PL (CU, "end " & Op_Name);
-      end if;
-
-   end Gen_Operation_Stubs_Body_For_ValueTypes;
-
-
-   --------------------------
-   --  Gen_Value_Impl_Decl --
-   --------------------------
-
-   --  generate the type declaration for the Value_Impl
-   --  package of a ValueType
-   procedure Gen_Value_Impl_Decl (CU : in out Compilation_Unit;
-                                  Node : in Node_Id) is
-   begin
-      pragma Assert (Kind (Node) = K_ValueType);
-
-      Put (CU, "type "
-           & Ada_Type_Defining_Name (Node)
-           & " is new ");
-
-      --  check parent
-      if Parents (Node) = Nil_List then
-         Put (CU, "CORBA.Value.Impl_Base");
-      else
-         declare
-            First_Parent : Node_Id := Head (Parents (Node));
-         begin
-            Add_With (CU, Ada_Full_Name (First_Parent));
-            Put (CU, Ada_Type_Name (First_Parent));
-         end;
-      end if;
-
-      --  write members
-      if Is_Empty (Contents (Node)) then
-         PL (CU, " with null record;");
-      else
-         PL (CU, " with record");
-         II (CU);
-         declare
-            It   : Node_Iterator;
-            Member_Node : Node_Id;
-         begin
-            Init (It, Contents (Node));
-            while not Is_End (It) loop
-               Get_Next_Node (It, Member_Node);
-               if Kind (Member_Node) = K_State_Member then
                   declare
-                     Decl_Iterator : Node_Iterator;
-                     Decl_Node : Node_Id;
+                     It : Node_Iterator;
+                     Param_Node : Node_Id;
                   begin
-                     Init (Decl_Iterator, State_Declarators (Member_Node));
-                     while not Is_End (Decl_Iterator) loop
-                        Get_Next_Node (Decl_Iterator, Decl_Node);
-                        if Kind (Decl_Node) = K_Declarator then
-                           Gen_Node_Stubs_Spec (CU, Decl_Node);
-                           Put (CU, " : ");
-                           Gen_Node_Stubs_Spec (CU, State_Type (Member_Node));
-                           PL (CU, ";");
-                        end if;
+                     Init (It, Parameters (Node));
+                     while not Is_End (It) loop
+                        Get_Next_Node (It, Param_Node);
+
+                        PL (CU, ",");
+                        Put (CU, " " & Ada_Name (Declarator (Param_Node)));
                      end loop;
                   end;
+
+                  PL (CU, ");");
+
+                  DI (CU);
+                  if  Is_Function then
+                     DI (CU);
+                  end if;
+
+                  DI (CU);
+                  PL (CU, "end " & Op_Name & ";");
                end if;
-            end loop;
-         end;
+            end;
 
-         DI (CU);
-         PL (CU, "end record;");
-         PL (CU, "type Object_Ptr is access all Object'Class;");
-      end if;
+            when K_Initializer =>
+               Gen_Initializer_Profile (CU,
+                                        "Value_Ref",
+                                        Node);
+               PL (CU, " is");
+               PL (CU, "begin");
+               II (CU);
+               PL (CU, "null;");
+               DI (CU);
+               PL (CU, "end "
+                   & Ada_Name (Node)
+                   & ";");
 
-   end Gen_Value_Impl_Decl;
+            when others =>
+               null;
+      end case;
+   end Gen_Stubs_Body_For_ValueTypes;
+
+
 
    ---------------------------------
    --  Gen_Interface_Module_Scope --
@@ -443,7 +406,7 @@ package body Ada_Be.Idl2Ada is
       Impl_Name : constant String
         := Stubs_Name & Impl.Suffix;
       Helper_Name : constant String
-        := Stubs_Name & Helper_Suffix;
+        := Stubs_Name & Helper.Suffix;
 
       Stubs_Spec : Compilation_Unit
         := New_Package (Stubs_Name, Unit_Spec);
@@ -811,8 +774,13 @@ package body Ada_Be.Idl2Ada is
       if Primary_Parent = No_Node then
          case (Kind (Node)) is
             when K_Interface =>
-               Add_With (CU, "CORBA.Object");
-               Put (CU, "CORBA.Object.Ref");
+               if Abst (Node) then
+                  Add_With (CU, "CORBA.AbstractBase");
+                  Put (CU, "CORBA.AbstractBase");
+               else
+                  Add_With (CU, "CORBA.Object");
+                  Put (CU, "CORBA.Object.Ref");
+               end if;
             when K_ValueType =>
                Add_With (CU, "CORBA.Value");
                Put (CU, "CORBA.Value.Base");
@@ -973,12 +941,16 @@ package body Ada_Be.Idl2Ada is
             null;
          when K_State_Member =>
             null;
-         when K_Initializer =>
-            null;
 
          ----------------
          -- Operations --
          ----------------
+         when K_Initializer =>
+            Gen_Initializer_Profile (CU,
+                                     "Value_Ref",
+                                     Node);
+            PL (CU, ";");
+
 
          when K_Operation =>
 
@@ -1196,6 +1168,7 @@ package body Ada_Be.Idl2Ada is
                B_Node : constant Node_Id
                  := Bound (S_Node);
             begin
+               Add_With_Entity (CU, Sequence_Type (S_Node));
                if B_Node /= No_Node then
                   Add_With (CU, "Sequences.Bounded",
                             Use_It => False,
@@ -1861,6 +1834,54 @@ package body Ada_Be.Idl2Ada is
       end case;
    end Gen_Node_Stubs_Body;
 
+
+   -------------------------------
+   --  Gen_Initializer_Profile  --
+   -------------------------------
+   procedure Gen_Initializer_Profile
+     (CU : in out Compilation_Unit;
+      Return_Type : in String;
+      Node : Node_Id) is
+   begin
+      pragma Assert (Kind (Node) = K_Initializer);
+      NL (CU);
+      Put (CU, "function ");
+      Put (CU, Ada_Name (Node));
+
+      --  parameters
+      declare
+         It   : Node_Iterator;
+         P_Node : Node_Id;
+      begin
+
+         Init (It, Param_Decls (Node));
+         if not Is_End (It) then
+            --  first parameter
+            Put (CU, "  (");
+            Get_Next_Node (It, P_Node);
+            Gen_Operation_Profile
+              (CU, "", P_Node);
+            II (CU);
+            --  next parameters
+            while not Is_End (It) loop
+               Get_Next_Node (It, P_Node);
+               PL (CU, ";");
+               Gen_Operation_Profile
+                 (CU, "", P_Node);
+            end loop;
+
+            Put (CU, ")");
+            DI (CU);
+         end if;
+         NL (CU);
+         II (CU);
+         Put (CU,
+              "return "
+              & Return_Type);
+         DI (CU);
+      end;
+   end Gen_Initializer_Profile;
+
    ---------------------------
    -- Gen_Operation_Profile --
    ---------------------------
@@ -1943,6 +1964,9 @@ package body Ada_Be.Idl2Ada is
                   end if;
                end if;
             end;
+
+
+
          when K_Param =>
 
             Gen_Operation_Profile
@@ -2252,6 +2276,7 @@ package body Ada_Be.Idl2Ada is
            K_Struct            |
            K_Declarator        |
            K_Forward_Interface |
+           K_Forward_ValueType |
            K_Exception         |
            K_Sequence_Instance |
            K_String_Instance   =>
