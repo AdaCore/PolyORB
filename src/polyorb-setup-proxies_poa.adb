@@ -33,6 +33,7 @@
 
 --  $Id$
 
+with PolyORB.Configuration;
 with PolyORB.POA_Manager;
 with PolyORB.POA_Config.Proxies;
 with PolyORB.POA.Basic_POA;
@@ -52,23 +53,26 @@ is
 
    Proxy_POA   : PolyORB.POA.Obj_Adapter_Access;
 begin
-   pragma Assert (Root_POA_Object /= null);
+   if PolyORB.Configuration.Get_Conf ("proxies", "enable_proxies", False) then
 
-   PolyORB.POA.Basic_POA.Create_POA
-     (Basic_Obj_Adapter (Root_POA_Object.all)'Access,
-      Types.To_PolyORB_String ("Proxies"),
-      POAManager_Access (Entity_Of (Root_POA_Object.POA_Manager)),
-      POA_Config.Default_Policies
-      (POA_Config.Configuration_Type'Class (Proxies_POA_Configuration)),
-      Proxy_POA,
-      Error);
+      pragma Assert (Root_POA_Object /= null);
 
-   if PolyORB.Exceptions.Found (Error) then
-      return;
+      PolyORB.POA.Basic_POA.Create_POA
+        (Basic_Obj_Adapter (Root_POA_Object.all)'Access,
+         Types.To_PolyORB_String ("Proxies"),
+         POAManager_Access (Entity_Of (Root_POA_Object.POA_Manager)),
+         POA_Config.Default_Policies
+         (POA_Config.Configuration_Type'Class (Proxies_POA_Configuration)),
+         Proxy_POA,
+         Error);
+
+      if PolyORB.Exceptions.Found (Error) then
+         return;
+      end if;
+
+      PolyORB.POA.Basic_POA.Set_Proxies_OA
+        (POA.Basic_POA.Basic_Obj_Adapter_Access (Root_POA_Object),
+         POA.Basic_POA.Basic_Obj_Adapter_Access (Proxy_POA));
    end if;
-
-   PolyORB.POA.Basic_POA.Set_Proxies_OA
-     (POA.Basic_POA.Basic_Obj_Adapter_Access (Root_POA_Object),
-      POA.Basic_POA.Basic_Obj_Adapter_Access (Proxy_POA));
 
 end PolyORB.Setup.Proxies_POA;

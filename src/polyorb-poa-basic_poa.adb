@@ -1599,21 +1599,31 @@ package body PolyORB.POA.Basic_POA is
    function Is_Proxy_Oid
      (OA  : access Basic_Obj_Adapter;
       Oid : access Objects.Object_Id)
-     return Boolean
-   is
-      U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Oid);
-
-      Obj_OA : Obj_Adapter_Access;
-      Error  : PolyORB.Exceptions.Error_Container;
+     return Boolean is
    begin
-      Find_POA (OA,
-                To_Standard_String (U_Oid.Creator),
-                False,
-                Obj_OA,
-                Error);
+      if OA.Proxies_OA = null then
+         return False;
+      end if;
 
-      return OA.Proxies_OA /= null
-        and then Basic_Obj_Adapter_Access (Obj_OA) = OA.Proxies_OA;
+      declare
+         U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Oid);
+
+         Obj_OA : Obj_Adapter_Access;
+         Error  : PolyORB.Exceptions.Error_Container;
+
+      begin
+         Find_POA (OA,
+                   To_Standard_String (U_Oid.Creator),
+                   False,
+                   Obj_OA,
+                   Error);
+
+         if Found (Error) then
+            Catch (Error);
+         end if;
+
+         return Basic_Obj_Adapter_Access (Obj_OA) = OA.Proxies_OA;
+      end;
    end Is_Proxy_Oid;
 
    ------------------
