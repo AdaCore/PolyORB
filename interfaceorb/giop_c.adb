@@ -205,7 +205,10 @@ package body Giop_C is
    begin
       -- transforms the arguments into a C type ...
       C_Objkeysize := Interfaces.C.Unsigned_Long (Objkeysize) ;
-      C_Opnamesize := Interfaces.C.Unsigned_Long (Opnamesize) ;
+      C_Opnamesize := Interfaces.C.Unsigned_Long (Opnamesize + 1 ) ;
+      -- THE "+1" is because the length of a C string
+      -- is a character longer than an Ada one,
+      -- with the \O at the end
       -- ... calls the C procedure ...
       C_Result := C_Request_Header_Size (Self, C_Objkeysize, C_Opnamesize) ;
       -- ... and transforms the result into an Ada type

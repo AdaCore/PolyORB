@@ -141,9 +141,6 @@ public:
   // this function is made a procedure because it takes
   // arguments passed by reference
 
-  virtual _CORBA_Boolean Ada_Is_A(const char* repoId) ;
-  // calls is_a on this omniobject
-  
   const char* getRepositoryID() ;
   // calls th NP_repositoryId of omniObject
   

@@ -176,18 +176,6 @@ package OmniObject is
    -- returns a hash value for this object
 
    -----------------------------------------------
-   --        dispatching operators              --
-   -----------------------------------------------
-
-   function Is_A(Self: in Implemented_Object ;
-                 Logical_Type_Id : in Corba.String)
-                 return Corba.Boolean ;
-   -- returns true if this object is of this Logical_Type_Id
-   -- ( where Logical_Type_Id is a Repository_Id )
-   -- or one of its descendants
-
-
-   -----------------------------------------------
    --      registering into the ORB             --
    -----------------------------------------------
 

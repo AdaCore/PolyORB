@@ -149,21 +149,6 @@ package body OmniObject is
       return Hash(Self.Omniobj.all, Maximum) ;
    end ;
 
-   -----------------------------------------------
-   --        dispatching operators              --
-   -----------------------------------------------
-
-
-   -- Is_A
-   -------
-   function Is_A(Self: in Implemented_Object ;
-                 Logical_Type_Id : in Corba.String)
-                 return Corba.Boolean is
-   begin
-      return (Repository_Id = Logical_Type_Id) ;
-      -- never called, never used
-   end ;
-
 
    -----------------------------------------------
    --      registering into the ORB             --
@@ -913,6 +898,8 @@ package body OmniObject is
               | Corba.No_Initialisation_Error
               | Corba.C_Out_Of_Range
               | Corba.OmniORB_Fatal_Error =>
+               pragma Debug(Output(Omniobject, "Omniobject.Dispatch : caught "
+                                   & Ada.Exceptions.Exception_Name(E))) ;
                Exbd := (0, Corba.COMPLETED_MAYBE) ;
                MarshallSystemException(Corba.Constants.Internal_Repoid, Exbd, Orls) ;
             when others =>
