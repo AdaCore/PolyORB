@@ -32,6 +32,8 @@
 
 --  $Id$
 
+with System.Address_To_Access_Conversions;
+
 package body CORBA.NVList is
 
    procedure Add_Item
@@ -51,13 +53,19 @@ package body CORBA.NVList is
      (Self : Ref;
       Item : in CORBA.NamedValue)
    is
-      PItem : PolyORB.Any.NamedValue;
-      for PItem'Address use Item'Address;
-      pragma Import (Ada, PItem);
+      --  PItem : PolyORB.Any.NamedValue;
+      --  for PItem'Address use Item'Address;
+      --  pragma Import (Ada, PItem);
+      package PAAC is new System.Address_To_Access_Conversions
+        (PolyORB.Any.NamedValue);
       --  Ugly but necessary; see comments in
       --  CORBA.Request.Create_Request.
    begin
-      PolyORB.Any.NVList.Add_Item (To_PolyORB_Ref (Self), PItem);
+      --  PolyORB.Any.NVList.Add_Item
+      --    (To_PolyORB_Ref (Self), PItem);
+      PolyORB.Any.NVList.Add_Item
+        (To_PolyORB_Ref (Self),
+         PAAC.To_Pointer (Item'Address).all);
    end Add_Item;
 
    function Get_Count (Self : Ref) return CORBA.Long is

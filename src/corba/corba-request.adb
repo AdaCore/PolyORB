@@ -34,6 +34,8 @@
 
 --  $Id$
 
+with System.Address_To_Access_Conversions;
+
 with PolyORB.Requests;
 
 with CORBA.Context;
@@ -41,6 +43,9 @@ with CORBA.NVList;
 with CORBA.Object;
 
 package body CORBA.Request is
+
+   package PAAC is new System.Address_To_Access_Conversions
+     (PolyORB.Any.NamedValue);
 
    procedure Create_Request
      (Self      : in     CORBA.AbstractBase.Ref;
@@ -51,19 +56,27 @@ package body CORBA.Request is
       Request   :    out Object;
       Req_Flags : in     Flags)
    is
-      PResult : PolyORB.Any.NamedValue;
-      for PResult'Address use Result'Address;
-      pragma Import (Ada, PResult);
+      --  PResult : PolyORB.Any.NamedValue;
+      --  for PResult'Address use Result'Address;
+      --  pragma Import (Ada, PResult);
+
       --  This is ugly but required because we want Result
       --  to be strictly passed by reference, with no intervening
       --  assignments.
+
+      --  Furthermore this version based on representation clause
+      --  and pragma Import fails due to a bug in GNAT, which causes
+      --  PResult to be erroneously finalized. Consequently, it
+      --  is now implemented using an Addess_To_Access conversion.
+
    begin
       PolyORB.Requests.Create_Request
         (Target    => CORBA.Object.To_PolyORB_Ref
          (CORBA.Object.Ref (CORBA.AbstractBase.Ref'Class (Self))),
          Operation => To_Standard_String (Operation),
          Arg_List  => CORBA.NVList.To_PolyORB_Ref (Arg_List),
-         Result    => PResult,
+         --  Result    => PResult,
+         Result    => PAAC.To_Pointer (Result'Address).all,
          Req       => Request.The_Request);
    end Create_Request;
 
@@ -78,9 +91,9 @@ package body CORBA.Request is
       Request   :    out CORBA.Request.Object;
       Req_Flags : in     Flags)
    is
-      PResult : PolyORB.Any.NamedValue;
-      for PResult'Address use Result'Address;
-      pragma Import (Ada, PResult);
+--       PResult : PolyORB.Any.NamedValue;
+--       for PResult'Address use Result'Address;
+--       pragma Import (Ada, PResult);
       --  This is ugly but required because we want Result
       --  to be strictly passed by reference, with no intervening
       --  assignments.
@@ -90,7 +103,8 @@ package body CORBA.Request is
          (CORBA.Object.Ref (CORBA.AbstractBase.Ref'Class (Self))),
          Operation => To_Standard_String (Operation),
          Arg_List  => CORBA.NVList.To_PolyORB_Ref (Arg_List),
-         Result    => PResult,
+         --  Result    => PResult,
+         Result    => PAAC.To_Pointer (Result'Address).all,
          Req       => Request.The_Request);
    end Create_Request;
 
