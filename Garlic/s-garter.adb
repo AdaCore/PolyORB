@@ -378,7 +378,7 @@ package body System.Garlic.Termination is
                PID      : Partition_ID;
                Info     : Partition_Info;
                Count    : Natural := 0;
-               Error    : Error_Type := No_Error;
+               Error    : Error_Type;
             begin
                --  First of all, check if there is any alive partition whose
                --  termination is local. If this is the case, that means

@@ -138,7 +138,7 @@ begin
 
             Initialize (Boot_Protocol, Self_Data, Boot_Data, True, Error);
             if Found (Error) then
-               Raise_Communication_Error (Error.all);
+               Raise_Communication_Error (Error);
             end if;
 
             --  Get the location used by the boot protocol for this
@@ -154,7 +154,7 @@ begin
          else
             Initialize (Config.Protocol_Table (I), null, null, False, Error);
             if Found (Error) then
-               Raise_Communication_Error (Error.all);
+               Raise_Communication_Error (Error);
             end if;
          end if;
       end loop;
@@ -180,7 +180,7 @@ begin
 
    Get_My_Partition_ID (PID, Error);
    if PID = Null_PID then
-      Raise_Communication_Error (Error.all);
+      Raise_Communication_Error (Error);
    end if;
 
    pragma Debug (D (D_Elaborate, "Startup phase terminated"));

@@ -298,13 +298,14 @@ package body System.RPC.Pool is
             declare
                Empty  : aliased Streams.Params_Stream_Type (0);
                Header : constant RPC_Header := (Abortion_Reply, RPC);
-               Error  : Error_Type := No_Error;
+               Error  : aliased Error_Type;
             begin
                pragma Debug (D (D_Debug, "Abortion queried by caller"));
                Insert_RPC_Header (Empty'Access, Header);
                Send (PID, Remote_Call, Empty'Access, Error);
                if Found (Error) then
-                  Raise_Exception (Communication_Error'Identity, Error.all);
+                  Raise_Exception (Communication_Error'Identity,
+                                   Content (Error'Access));
                end if;
                Cancelled := True;
             end;
@@ -331,13 +332,14 @@ package body System.RPC.Pool is
          else
             declare
                Header : constant RPC_Header := (RPC_Reply, RPC);
-               Error  : Error_Type := No_Error;
+               Error  : aliased Error_Type;
             begin
                pragma Debug (D (D_Debug, "Result will be sent"));
                Insert_RPC_Header (Result, Header);
                Send (PID, Remote_Call, Result, Error);
                if Found (Error) then
-                  Raise_Exception (Communication_Error'Identity, Error.all);
+                  Raise_Exception (Communication_Error'Identity,
+                                   Content (Error'Access));
                end if;
                Streams.Free (Result);
             end;

@@ -155,7 +155,7 @@ package body System.Garlic.Units is
      (List : Request_List)
    is
       Reply : aliased Params_Stream_Type (0);
-      Error : Error_Type := No_Error;
+      Error : Error_Type;
    begin
       for PID in List'Range loop
          if List (PID) then
@@ -425,7 +425,7 @@ package body System.Garlic.Units is
      (Partition : in Partition_ID)
    is
       Query : aliased Params_Stream_Type (0);
-      Error : Error_Type := No_Error;
+      Error : Error_Type;
    begin
       if Shutdown_In_Progress then
          return;
@@ -459,7 +459,7 @@ package body System.Garlic.Units is
       Unit         : Unit_Id;
       Info         : Unit_Info;
       Reconnection : Reconnection_Type;
-      Error        : Error_Type := No_Error;
+      Error        : Error_Type;
    begin
       if Shutdown_In_Progress then
          return;

@@ -92,7 +92,7 @@ package body System.RPC.Stream_IO is
    procedure Close
      (Stream : in out Partition_Stream_Type)
    is
-      Err : Error_Type;
+      Err : aliased Error_Type;
       Str : Partition_Stream_Access := Fetch (Stream.PID);
    begin
       pragma Debug (D (D_Debug, "Close stream" & Stream.PID'Img));
@@ -103,7 +103,8 @@ package body System.RPC.Stream_IO is
                Str.Outgoing'Access,
                Err);
          if Found (Err) then
-            Raise_Exception (Communication_Error'Identity, Err.all);
+            Raise_Exception (Communication_Error'Identity,
+                             Content (Err'Access));
          end if;
       end if;
 

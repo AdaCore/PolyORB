@@ -176,7 +176,7 @@ package body System.RPC is
       Params    : access Params_Stream_Type)
    is
       Header : constant RPC_Header := (Kind => APC_Query);
-      Error  : Error_Type := No_Error;
+      Error  : aliased Error_Type;
    begin
       pragma Debug
         (D (D_Debug, "Doing a APC for partition" & Partition'Img));
@@ -188,7 +188,8 @@ package body System.RPC is
             Params.X'Access,
             Error);
       if Found (Error) then
-         Raise_Exception (Communication_Error'Identity, Error.all);
+         Raise_Exception (Communication_Error'Identity,
+                          Content (Error'Access));
       end if;
    end Do_APC;
 
@@ -205,7 +206,7 @@ package body System.RPC is
       Header : RPC_Header (RPC_Query);
       Stream : Streams.Stream_Element_Access;
       Keeper : Abort_Keeper;
-      Error  : Error_Type;
+      Error  : aliased Error_Type;
    begin
       pragma Debug
         (D (D_Debug, "Doing a RPC for partition" & Partition'Img));
@@ -222,7 +223,8 @@ package body System.RPC is
                Params.X'Access,
                Error);
          if Found (Error) then
-            Raise_Exception (Communication_Error'Identity, Error.all);
+            Raise_Exception (Communication_Error'Identity,
+                             Content (Error'Access));
          end if;
          Keeper.RPC  := RPC;
          Keeper.PID  := Types.Partition_ID (Partition);
@@ -451,7 +453,7 @@ package body System.RPC is
    is
       Params : aliased Streams.Params_Stream_Type (0);
       Header : constant RPC_Header := (Abortion_Query, RPC);
-      Error  : Error_Type := No_Error;
+      Error  : Error_Type;
    begin
       pragma Debug (D (D_Debug, "Sending abortion message"));
       Insert_RPC_Header (Params'Access, Header);

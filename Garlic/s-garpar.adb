@@ -140,7 +140,7 @@ package body System.Garlic.Partitions is
 
    function Boot_Partition (Partition : Partition_ID) return Partition_ID
    is
-      Error : Error_Type := No_Error;
+      Error : Error_Type;
       Info  : Partition_Info;
    begin
       Get_Partition_Info (Partition, Info, Error);
@@ -544,7 +544,7 @@ package body System.Garlic.Partitions is
       Mirror : Partition_ID := Partitions.Table'First;
       Query  : aliased Params_Stream_Type (0);
       Info   : Partition_Info;
-      Error  : Error_Type := No_Error;
+      Error  : Error_Type;
    begin
       Partitions.Enter;
       Info := Partitions.Get_Component (Partition);

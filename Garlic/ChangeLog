@@ -1,3 +1,33 @@
+1998-12-11  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garuti.ads, s-garuti.adb: Made Error_Type a limited private
+	type to prevent misuses and copies.
+	Add a procedure Raise_Communication_Error that raises the
+	exception Communication_Error with the content of the error
+	string. This fixes a memory leak.
+
+	* s-gartcp.adb: No need to initialize Error_Type variables anymore.
+	Do not pass Stream_Element_Array on the stack for Physical_Receive
+	as it is likely to cause segmentation faults for large data.
+	
+	* s-garfil.adb: Likewise.
+
+	* s-garpar.adb: Likewise.
+
+	* s-garter.adb: Likewise.
+
+	* s-garuni.adb: Likewise.
+
+	* s-rpc.adb, s-rpcpoo.adb, s-rpstio.adb: Likewise.
+
+	* s-garhea.adb: Likewise.
+
+	* s-parint.adb: Recode the exception raising accordingly with
+	the new spec of Error_Type.
+
+	* s-stratt.adb: Optimize integer coding (the most frequent case)
+	on some kind of machines (Sun).
+
 1998-12-11  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-rpc.adb: Make a difference between a RPC receiver abortion due
@@ -7,13 +37,6 @@
 	* s-garuni.adb: If unit status is Defined and a request wants to
 	change it into Declared, just ignore. A partition is trying to
 	register an already registered unit (0004-G10).
-
-1998-12-11  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* s-stratt.adb: Optimize integer coding (the most frequent case)
-	on some kind of machines (Sun).
-
-1998-12-11  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garpar.adb: Fix a problem of boot on main partition.
 

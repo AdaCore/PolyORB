@@ -625,7 +625,7 @@ package body System.Garlic.Filters is
 
    function Name (P : Partition_ID) return String is
       N : String_Access;
-      E : Error_Type := No_Error;
+      E : Error_Type;
    begin
       Get_Name (P, N, E);
       if Found (E) then

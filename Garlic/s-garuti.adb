@@ -33,9 +33,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
-with System.Tasking_Soft_Links; use System.Tasking_Soft_Links;
-with System.Garlic.Debug;       use System.Garlic.Debug;
+with System.Tasking_Soft_Links;  use System.Tasking_Soft_Links;
+with System.Garlic.Debug;        use System.Garlic.Debug;
 
 package body System.Garlic.Utils is
 
@@ -100,6 +101,8 @@ package body System.Garlic.Utils is
      new Ada.Unchecked_Deallocation (Watcher_PO, Watcher_Type);
    procedure Free is
      new Ada.Unchecked_Deallocation (Barrier_PO, Barrier_Type);
+   procedure Free is
+     new Ada.Unchecked_Deallocation (String, Error_Type);
 
    ----------------------
    -- Access_To_String --
@@ -154,6 +157,18 @@ package body System.Garlic.Utils is
       end Wait;
 
    end Barrier_PO;
+
+   -------------
+   -- Content --
+   -------------
+
+   function Content (Error : access Error_Type) return String is
+      pragma Assert (Error.all /= null);
+      Error_Message : constant String := Error.all.all;
+   begin
+      Free (Error.all);
+      return Error_Message;
+   end Content;
 
    ------------
    -- Create --
@@ -328,6 +343,19 @@ package body System.Garlic.Utils is
       end Leave;
 
    end Mutex_PO;
+
+   -------------------------------
+   -- Raise_Communication_Error --
+   -------------------------------
+
+   procedure Raise_Communication_Error (Error : in out Error_Type) is
+      pragma Assert (Error /= null);
+      Error_Message : constant String := Error.all;
+   begin
+      Free (Error);
+      Ada.Exceptions.Raise_Exception
+        (Communication_Error'Identity, Error_Message);
+   end Raise_Communication_Error;
 
    ----------------------
    -- String_To_Access --

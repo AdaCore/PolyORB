@@ -148,7 +148,7 @@ package body System.Garlic.TCP is
 
    procedure Physical_Receive
      (Peer  : in C.int;
-      Data  : out Stream_Element_Array;
+      Data  : access Stream_Element_Array;
       Error : in out Error_Type);
    pragma Inline (Physical_Receive);
 
@@ -204,7 +204,7 @@ package body System.Garlic.TCP is
             Handler : Connection_Handler_Access;
             Banner  : Banner_Kind;
             Result  : C.int;
-            Error   : Error_Type := No_Error;
+            Error   : Error_Type;
          begin
             Sin.Sin_Family := Constants.Af_Inet;
             Add_Non_Terminating_Task;
@@ -255,6 +255,147 @@ package body System.Garlic.TCP is
                           Exception_Information (E)));
          raise;
    end Accept_Handler;
+
+   ------------------------
+   -- Connection_Handler --
+   ------------------------
+
+   task body Connection_Handler is
+      Old_PID    : Partition_ID := PID;
+      New_PID    : Partition_ID := PID;
+      Length     : Stream_Element_Count;
+      Filtered   : Stream_Element_Access;
+      Unfiltered : Stream_Element_Access;
+      Opcode     : Any_Opcode;
+      Banner     : Banner_Kind;
+      Error      : Error_Type;
+   begin
+      pragma Debug (D (D_Debug, "Task Connection Handler is running"));
+
+      loop
+         if New_PID /= Null_PID then
+            Add_Non_Terminating_Task;
+            Read_Banner (Peer, Banner, Error);
+            Sub_Non_Terminating_Task;
+            exit when Found (Error);
+
+            case Banner is
+               when Junk_Banner =>
+                  Throw (Error, "Connection_Handler: junk banner");
+                  exit;
+
+               when Data_Banner =>
+                  null;
+
+               when Quit_Banner =>
+                  Throw (Error, "Connection_Handler: quit banner");
+                  exit;
+
+            end case;
+         end if;
+
+         Read_SEC (Peer, Length, Error);
+         exit when Found (Error);
+
+         pragma Debug (D (D_Debug, "Receive a packet of length" & Length'Img));
+
+         Filtered := new Stream_Element_Array (1 .. Length);
+         Physical_Receive (Peer, Filtered, Error);
+         exit when Found (Error);
+
+         Old_PID := New_PID;
+         Analyze_Stream (New_PID, Opcode, Unfiltered, Filtered, 0, Error);
+         exit when Found (Error);
+
+         if Old_PID /= New_PID then
+            Activity_Detected;
+
+            if Old_PID = Null_PID then
+               pragma Debug
+                 (D (D_Warning, "Task handling partition" & New_PID'Img));
+               null;
+            else
+               pragma Debug
+                 (D (D_Warning,
+                     "Task handling partition" & New_PID'Img &
+                     " and no longer handling partition" & Old_PID'Img));
+               null;
+            end if;
+
+            if Old_PID = Null_PID then
+               Enter (New_PID);
+               Socket_Table (New_PID).Socket := Peer;
+               Leave (New_PID);
+            else
+               Enter (Old_PID);
+               Enter (New_PID);
+               Socket_Table (New_PID) := Socket_Table (Old_PID);
+               Socket_Table (Old_PID).Socket := Failure;
+               Leave (New_PID);
+               Leave (Old_PID);
+            end if;
+
+            Catch (Error);
+         end if;
+
+         Process_Stream (New_PID, Opcode, Unfiltered, Error);
+         exit when Found (Error);
+
+         Free (Filtered);
+         Free (Unfiltered);
+      end loop;
+
+      --  If this connection is broken before partition identification,
+      --  then try to rescue New_PID especially for the boot server.
+
+      if New_PID = Last_PID then
+         New_PID := Boot_PID;
+      end if;
+
+      --  Set the entry in the table correctly when we are not
+      --  executing a shutdown operation. If we are, then
+      --  it is likely that Partition_Map is already deallocated.
+
+      if New_PID /= Null_PID
+        and then not Shutdown_In_Progress
+      then
+         Enter (New_PID);
+         Socket_Table (New_PID).Socket := Failure;
+         Leave (New_PID);
+      end if;
+
+      --  The remote end has closed the socket or a communication error
+      --  occurred. In the case, the entry will be freed, except if we
+      --  are terminating since this is not worth freeing anything.
+
+      declare
+         Dummy : C.int;
+      begin
+         Dummy := Net.C_Close (Peer);
+      end;
+
+      --  Signal to the heart that we got an error on this partition
+
+      if New_PID = Null_PID then
+         pragma Debug
+           (D (D_Garlic,
+               "Task dying before determining remote Partition_ID"));
+         null;
+      elsif not Shutdown_In_Progress then
+         pragma Debug
+           (D (D_Garlic,
+               "Signaling that partition" & New_PID'Img &
+               " is now unavailable"));
+
+         Notify_Partition_Error (New_PID);
+
+      else
+         pragma Debug (D (D_Garlic,
+                          "Partition" & New_PID'Img &
+                          " is now unavailable (because of shutdown)"));
+            null;
+      end if;
+   end Connection_Handler;
 
    ------------
    -- Create --
@@ -400,147 +541,6 @@ package body System.Garlic.TCP is
       return "tcp";
    end Get_Name;
 
-   ------------------------
-   -- Connection_Handler --
-   ------------------------
-
-   task body Connection_Handler is
-      Old_PID    : Partition_ID := PID;
-      New_PID    : Partition_ID := PID;
-      Length     : Stream_Element_Count;
-      Filtered   : Stream_Element_Access;
-      Unfiltered : Stream_Element_Access;
-      Opcode     : Any_Opcode;
-      Banner     : Banner_Kind;
-      Error      : Error_Type := No_Error;
-   begin
-      pragma Debug (D (D_Debug, "Task Connection Handler is running"));
-
-      loop
-         if New_PID /= Null_PID then
-            Add_Non_Terminating_Task;
-            Read_Banner (Peer, Banner, Error);
-            Sub_Non_Terminating_Task;
-            exit when Found (Error);
-
-            case Banner is
-               when Junk_Banner =>
-                  Throw (Error, "Connection_Handler: junk banner");
-                  exit;
-
-               when Data_Banner =>
-                  null;
-
-               when Quit_Banner =>
-                  Throw (Error, "Connection_Handler: quit banner");
-                  exit;
-
-            end case;
-         end if;
-
-         Read_SEC (Peer, Length, Error);
-         exit when Found (Error);
-
-         pragma Debug (D (D_Debug, "Receive a packet of length" & Length'Img));
-
-         Filtered := new Stream_Element_Array (1 .. Length);
-         Physical_Receive (Peer, Filtered.all, Error);
-         exit when Found (Error);
-
-         Old_PID := New_PID;
-         Analyze_Stream (New_PID, Opcode, Unfiltered, Filtered, 0, Error);
-         exit when Found (Error);
-
-         if Old_PID /= New_PID then
-            Activity_Detected;
-
-            if Old_PID = Null_PID then
-               pragma Debug
-                 (D (D_Warning, "Task handling partition" & New_PID'Img));
-               null;
-            else
-               pragma Debug
-                 (D (D_Warning,
-                     "Task handling partition" & New_PID'Img &
-                     " and no longer handling partition" & Old_PID'Img));
-               null;
-            end if;
-
-            if Old_PID = Null_PID then
-               Enter (New_PID);
-               Socket_Table (New_PID).Socket := Peer;
-               Leave (New_PID);
-            else
-               Enter (Old_PID);
-               Enter (New_PID);
-               Socket_Table (New_PID) := Socket_Table (Old_PID);
-               Socket_Table (Old_PID).Socket := Failure;
-               Leave (New_PID);
-               Leave (Old_PID);
-            end if;
-
-            Catch (Error);
-         end if;
-
-         Process_Stream (New_PID, Opcode, Unfiltered, Error);
-         exit when Found (Error);
-
-         Free (Filtered);
-         Free (Unfiltered);
-      end loop;
-
-      --  If this connection is broken before partition identification,
-      --  then try to rescue New_PID especially for the boot server.
-
-      if New_PID = Last_PID then
-         New_PID := Boot_PID;
-      end if;
-
-      --  Set the entry in the table correctly when we are not
-      --  executing a shutdown operation. If we are, then
-      --  it is likely that Partition_Map is already deallocated.
-
-      if New_PID /= Null_PID
-        and then not Shutdown_In_Progress
-      then
-         Enter (New_PID);
-         Socket_Table (New_PID).Socket := Failure;
-         Leave (New_PID);
-      end if;
-
-      --  The remote end has closed the socket or a communication error
-      --  occurred. In the case, the entry will be freed, except if we
-      --  are terminating since this is not worth freeing anything.
-
-      declare
-         Dummy : C.int;
-      begin
-         Dummy := Net.C_Close (Peer);
-      end;
-
-      --  Signal to the heart that we got an error on this partition
-
-      if New_PID = Null_PID then
-         pragma Debug
-           (D (D_Garlic,
-               "Task dying before determining remote Partition_ID"));
-         null;
-      elsif not Shutdown_In_Progress then
-         pragma Debug
-           (D (D_Garlic,
-               "Signaling that partition" & New_PID'Img &
-               " is now unavailable"));
-
-         Notify_Partition_Error (New_PID);
-
-      else
-         pragma Debug (D (D_Garlic,
-                          "Partition" & New_PID'Img &
-                          " is now unavailable (because of shutdown)"));
-            null;
-      end if;
-   end Connection_Handler;
-
    ----------------
    -- Initialize --
    ----------------
@@ -639,10 +639,10 @@ package body System.Garlic.TCP is
 
    procedure Physical_Receive
      (Peer  : in C.int;
-      Data  : out Stream_Element_Array;
+      Data  : access Stream_Element_Array;
       Error : in out Error_Type)
    is
-      Addr : System.Address := Data'Address;
+      Addr : System.Address := Data.all'Address;
       Size : C.int          := Data'Length;
       Code : C.int;
    begin
@@ -695,11 +695,11 @@ package body System.Garlic.TCP is
       Banner : out Banner_Kind;
       Error  : in out Error_Type)
    is
-      Stream : Banner_Stream;
+      Stream : aliased Stream_Element_Array := (1 .. Banner_Size => 0);
       Result : Banner_Kind;
    begin
       pragma Debug (D (D_Debug, "Reading banner from peer" & Peer'Img));
-      Physical_Receive (Peer, Stream, Error);
+      Physical_Receive (Peer, Stream'Access, Error);
       if Found (Error) then
          return;
       end if;
@@ -729,9 +729,9 @@ package body System.Garlic.TCP is
       Count  : out Stream_Element_Count;
       Error  : in out Error_Type)
    is
-      Stream : SEC_Stream;
+      Stream : aliased Stream_Element_Array := (1 .. SEC_Size => 0);
    begin
-      Physical_Receive (Peer, Stream, Error);
+      Physical_Receive (Peer, Stream'Access, Error);
       if not Found (Error) then
          Count := Stream_Element_Count (Stream (1)) * 256 ** 3 +
            Stream_Element_Count (Stream (2)) * 256 ** 2 +
@@ -831,7 +831,7 @@ package body System.Garlic.TCP is
 
    procedure Shutdown (Protocol : access TCP_Protocol) is
       Peer  : C.int;
-      Error : Error_Type := No_Error;
+      Error : Error_Type;
    begin
 
       pragma Debug (D (D_Warning, "Remote connections shutdown"));

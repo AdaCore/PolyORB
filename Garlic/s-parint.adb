@@ -139,7 +139,10 @@ package body System.Partition_Interface is
 
    procedure Free is new Ada.Unchecked_Deallocation (Caller_Node, Caller_List);
 
-   procedure Raise_Communication_Error (S : String);
+   procedure Raise_Communication_Error (S : in String);
+   procedure Raise_Communication_Error (E : access Error_Type);
+   --  Raise System.RPC.Communication_Error with an explicit error message
+   --  or an Error_Type variable.
 
    -----------
    -- Check --
@@ -221,7 +224,7 @@ package body System.Partition_Interface is
       N : String := Name;
       U : Unit_Id;
       I : Unit_Info;
-      E : Error_Type;
+      E : aliased Error_Type;
    begin
       pragma Debug (D (D_Debug, "Request Get_Active_Partition_ID"));
 
@@ -230,7 +233,7 @@ package body System.Partition_Interface is
 
       Get_Unit_Info (U, I, E);
       if Found (E) then
-         Raise_Communication_Error (E.all);
+         Raise_Communication_Error (E'Access);
       end if;
 
       return RPC.Partition_ID (I.Partition);
@@ -247,7 +250,7 @@ package body System.Partition_Interface is
       N : String := Name;
       U : Unit_Id;
       I : Unit_Info;
-      E : Error_Type;
+      E : aliased Error_Type;
    begin
       pragma Debug (D (D_Debug, "Request Get_Active_Version"));
 
@@ -256,7 +259,7 @@ package body System.Partition_Interface is
 
       Get_Unit_Info (U, I, E);
       if Found (E) then
-         Raise_Communication_Error (E.all);
+         Raise_Communication_Error (E'Access);
       end if;
 
       return I.Version.all;
@@ -280,12 +283,12 @@ package body System.Partition_Interface is
      (Partition : Integer)
      return String is
       Name  : String_Access;
-      Error : Error_Type;
+      Error : aliased Error_Type;
    begin
       System.Garlic.Partitions.Get_Name
         (System.Garlic.Types.Partition_ID (Partition), Name, Error);
       if Found (Error) then
-         Raise_Communication_Error (Error.all);
+         Raise_Communication_Error (Error'Access);
       end if;
       return Name.all;
    end Get_Partition_Name;
@@ -321,7 +324,7 @@ package body System.Partition_Interface is
       N : String := Name;
       U : Unit_Id;
       I : Unit_Info;
-      E : Error_Type;
+      E : aliased Error_Type;
    begin
       pragma Debug (D (D_Debug, "Request Get_Package_Receiver"));
 
@@ -330,7 +333,7 @@ package body System.Partition_Interface is
 
       Get_Unit_Info (U, I, E);
       if Found (E) then
-         Raise_Communication_Error (E.all);
+         Raise_Communication_Error (E'Access);
       end if;
 
       return I.Receiver;
@@ -418,9 +421,18 @@ package body System.Partition_Interface is
    -- Raise_Communication_Error --
    -------------------------------
 
-   procedure Raise_Communication_Error (S : String) is
+   procedure Raise_Communication_Error (S : in String) is
    begin
       Ada.Exceptions.Raise_Exception (RPC.Communication_Error'Identity, S);
+   end Raise_Communication_Error;
+
+   -------------------------------
+   -- Raise_Communication_Error --
+   -------------------------------
+
+   procedure Raise_Communication_Error (E : access Error_Type) is
+   begin
+      Raise_Communication_Error (Content (E));
    end Raise_Communication_Error;
 
    ------------------------------
@@ -470,11 +482,11 @@ package body System.Partition_Interface is
       function Get_Active_Partition_ID return RPC.Partition_ID
       is
          Info  : Unit_Info;
-         Error : Error_Type;
+         Error : aliased Error_Type;
       begin
          Get_Unit_Info (Unit, Info, Error);
          if Found (Error) then
-            Raise_Communication_Error (Error.all);
+            Raise_Communication_Error (Error'Access);
          end if;
 
          if Info.Status = Invalid then
@@ -491,11 +503,11 @@ package body System.Partition_Interface is
       function Get_RCI_Package_Receiver return Interfaces.Unsigned_64
       is
          Info  : Unit_Info;
-         Error : Error_Type;
+         Error : aliased Error_Type;
       begin
          Get_Unit_Info (Unit, Info, Error);
          if Found (Error) then
-            Raise_Communication_Error (Error.all);
+            Raise_Communication_Error (Error'Access);
          end if;
 
          if Info.Status = Invalid then
@@ -519,14 +531,14 @@ package body System.Partition_Interface is
    is
       Caller  : Caller_List := Callers;
       Dummy   : Caller_List;
-      Error   : Error_Type := No_Error;
+      Error   : aliased Error_Type;
    begin
       pragma Debug (D (D_Debug, "Complete elaboration"));
       System.Garlic.Heart.Complete_Elaboration;
 
       Register_Units_On_Boot_Server (Error);
       if Found (Error) then
-         Raise_Exception (RPC.Communication_Error'Identity, Error.all);
+         Raise_Communication_Error (Error'Access);
       end if;
 
       pragma Debug (D (D_Debug, "Establish RPC Receiver"));

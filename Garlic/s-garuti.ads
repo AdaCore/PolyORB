@@ -59,11 +59,15 @@ package System.Garlic.Utils is
    --  In place transformation of a string with all the upper-case letters
    --  changed into corresponding lower-case ones.
 
-   subtype Error_Type is String_Access;
-   No_Error : constant Error_Type := null;
+   type Error_Type is limited private;
    function Found (Error : Error_Type) return Boolean;
    procedure Throw (Error : in out Error_Type; Message : in String);
    procedure Catch (Error : in out Error_Type);
+   procedure Raise_Communication_Error (Error : in out Error_Type);
+   function Content (Error : access Error_Type) return String;
+   --  Error type and associated primitives. By default, an Error_Type is
+   --  not considered as being an error until Throw has been called.
+   --  Catch, Raise_Communication_Error and Content cancel the error.
 
    type Barrier_Type is limited private;
 
@@ -161,5 +165,7 @@ private
    type Adv_Mutex_PO;
 
    type Adv_Mutex_Type is access Adv_Mutex_PO;
+
+   type Error_Type is access String;
 
 end System.Garlic.Utils;

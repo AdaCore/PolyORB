@@ -182,13 +182,13 @@ package body System.Garlic.Heart is
             "Received unexpected No_Operation opcode");
       end if;
 
-      --  Record the current packet content in the trace file if needed.
+      --  Record the current packet content in the trace file if needed
 
       if Options.Execution_Mode = Trace_Mode then
          Trace_Data (PID, Filtered, Offset);
       end if;
 
-      --  When the partition id is unknown, allocate a new one.
+      --  When the partition id is unknown, allocate a new one
 
       if PID = Null_PID
         and then Options.Is_Boot_Mirror
@@ -205,7 +205,7 @@ package body System.Garlic.Heart is
                "Received request " & Code'Img &
                " from partition" & PID'Img));
 
-         --  Unfilter the data and put it in a stream.
+         --  Unfilter the data and put it in a stream
 
          Filter_Incoming (PID, Code, Data, Unfiltered, Error);
       end if;
@@ -641,11 +641,10 @@ package body System.Garlic.Heart is
       Params : access Streams.Params_Stream_Type;
       Error  : in out Error_Type)
    is
-      Params_Copy : Params_Stream_Access
-        := new Params_Stream_Type (Params.Initial_Size);
+      Params_Copy : Params_Stream_Access :=
+        new Params_Stream_Type (Params.Initial_Size);
    begin
-
-      --  Preserve Params before any Send operation.
+      --  Preserve Params before any Send operation
 
       Copy (Params.all, Params_Copy.all);
       loop
@@ -797,7 +796,7 @@ package body System.Garlic.Heart is
             then
                declare
                   Empty : aliased Params_Stream_Type (0);
-                  Error : Error_Type := No_Error;
+                  Error : Error_Type;
                begin
                   Send (PID, Shutdown_Operation, Empty'Access, Error);
                   Catch (Error);
