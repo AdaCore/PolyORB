@@ -39,8 +39,6 @@ with Ada_Be.Idl2Ada.Value_Skel;
 with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
 
-pragma Warnings (Off);
-
 package body Ada_Be.Idl2Ada.Skel is
 
    Flag : constant Natural := Ada_Be.Debug.Is_Active
@@ -198,7 +196,6 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "Argument_Ü_Type_Id : CORBA.Any := CORBA.To_Any (Type_Id);");
       PL (CU, "");
       PL (CU, "Result_Ü           : CORBA.Boolean;");
-      PL (CU, "Argument_Ü_Result_Ü : CORBA.Any;");
       DI (CU);
       PL (CU, "begin");
       II (CU);
@@ -265,9 +262,6 @@ package body Ada_Be.Idl2Ada.Skel is
       Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
       --  CORBA.To_CORBA_String is used in skel elab.
 
-      PL (CU, "pragma Warnings (Off);");
-      PL (CU, "--  Some variables may be unused, and some style");
-      PL (CU, "--  checks may not pass.");
       NL (CU);
       PL (CU, "--  Skeleton subprograms");
       NL (CU);
@@ -317,9 +311,7 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "        (CORBA.ServerRequest.Operation");
       PL (CU, "         (Request.all));");
 
-      Add_With (CU, "CORBA.Context");
       Add_With (CU, "CORBA.NVList");
-      PL (CU, T_Ctx & " : CORBA.Context.Ref := CORBA.Context.Nil_Ref;");
       PL (CU, T_Arg_List & " : CORBA.NVList.Ref;");
 
       DI (CU);
@@ -499,13 +491,16 @@ package body Ada_Be.Idl2Ada.Skel is
 
                         Add_With (CU, Helper_Name);
 
-
+                        PL (CU, "pragma Warnings (Off);");
+                        --  Using Arg_Name before it has a value.
+                        --  We only need to build an Any here.
                         Put (CU, Justify (T_Argument & Arg_Name, Max_Len)
                             & " : CORBA.Any := " & Helper_Name & ".To_Any"
                             & " (");
                         Gen_Forward_Conversion
                           (CU, Param_Type (P_Node), "From_Forward",  Arg_Name);
                         PL (CU, ");");
+                        PL (CU, "pragma Warnings (On);");
                         NL (CU);
                      end;
                   end loop;
@@ -514,12 +509,6 @@ package body Ada_Be.Idl2Ada.Skel is
                if Is_Function then
                   PL (CU, Justify (T_Result, Max_Len)
                       & " : " & Ada_Type_Name (O_Type) & ";");
-               end if;
-
-               if Raise_Something then
-                  Add_With (CU, "CORBA.ExceptionList");
-                  PL (CU, Justify (T_Excp_List, Max_Len)
-                    & " : CORBA.ExceptionList.Ref;");
                end if;
 
                DI (CU);

@@ -1548,7 +1548,6 @@ package body Ada_Be.Idl2Ada.IR_Info is
       Add_With (CU, CRR, Use_It => True);
       Add_With (CU, "PolyORB.CORBA_P.IR_Tools", Use_It => True);
       NL (CU);
-      PL (CU, "pragma Warnings (Off);");
       Divert (CU, Registration);
       NL (CU);
       PL (CU, "procedure Register_IR_Info is");

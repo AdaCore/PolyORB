@@ -315,7 +315,7 @@ package body Ada_Be.Source_Streams is
          end if;
          Put_Line (File, "----------------------------------------------");
          --  XXXXX To be removed later on
-         Put_Line (File, "pragma Warnings (Off);");
+         Put_Line (File, "pragma Style_Checks (Off);");
          New_Line (File);
       end Emit_Standard_Header;
 

@@ -26,6 +26,8 @@
 
 --  all_types dynamic client.
 
+pragma Style_Checks (Off);
+
 with Ada.Command_Line;
 with Ada.Text_IO;
 
@@ -712,8 +714,8 @@ procedure DynClient is
 
    function EchoArrayStruct
      (Self : in CORBA.Object.Ref;
-      Arg : in all_types.Array_Struct)
-      return all_types.Array_Struct is
+      Arg : in all_types.array_struct)
+      return all_types.array_struct is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoArrayStruct");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
@@ -732,7 +734,7 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (all_types.Helper.TC_Array_Struct),
+                 Argument => Get_Empty_Any (all_types.Helper.TC_array_struct),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -849,7 +851,7 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (all_types.Helper.TC_U_Sequence),
+                 Argument => Get_Empty_Any (all_types.Helper.TC_U_sequence),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -888,7 +890,7 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (all_types.Helper.TC_B_Sequence),
+                 Argument => Get_Empty_Any (all_types.Helper.TC_B_sequence),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -1092,73 +1094,74 @@ begin
    end if;
 
    if Ada.Command_Line.Argument (1) = "-i" then
-      Myall_types := Locate ("all_types");
+      Myall_Types := Locate ("all_types");
    else
-      Myall_types := Locate (Ada.Command_Line.Argument (1));
+      Myall_Types := Locate (Ada.Command_Line.Argument (1));
    end if;
 
    loop
       --  boolean
-      Output ("test boolean", echoBoolean (Myall_types, True) = True);
+      Output ("test boolean", EchoBoolean (Myall_Types, True) = True);
 
       --  short
-      Output ("test short", echoShort (Myall_types, 123) = 123);
+      Output ("test short", EchoShort (Myall_Types, 123) = 123);
 
       --  long
-      Output ("test long",  echoLong (Myall_types, 456) = 456);
+      Output ("test long",  EchoLong (Myall_Types, 456) = 456);
 
       --  unsigned_short
-      Output ("test unsigned_short", echoUShort (Myall_types, 456) = 456);
+      Output ("test unsigned_short", EchoUShort (Myall_Types, 456) = 456);
 
       --  unsigned_long
-      Output ("test unsigned_long", echoULong (Myall_types, 123) = 123);
+      Output ("test unsigned_long", EchoULong (Myall_Types, 123) = 123);
 
       --  float
-      Output ("test float", echoFloat (Myall_types, 2.7) = 2.7);
+      Output ("test float", EchoFloat (Myall_Types, 2.7) = 2.7);
 
       --  double
-      Output ("test double", echoDouble (Myall_types, 3.14) = 3.14);
+      Output ("test double", EchoDouble (Myall_Types, 3.14) = 3.14);
 
       --  char
-      Output ("test char", echoChar (Myall_types, 'A') = 'A');
+      Output ("test char", EchoChar (Myall_Types, 'A') = 'A');
 
       --  octet
-      Output ("test octet", echoOctet (Myall_types, 5) = 5);
+      Output ("test octet", EchoOctet (Myall_Types, 5) = 5);
 
       --  string
       Output ("test string",
               To_Standard_String
-              (echoString (Myall_types, To_CORBA_String ("hello"))) = "hello");
+              (EchoString (Myall_Types, To_CORBA_String ("hello"))) = "hello");
 
       --  CORBA.Object.Ref
       declare
          X : CORBA.Object.Ref;
       begin
-         X := echoRef (Myall_types, Myall_types);
-         Output ("test self reference", echoLong (X, 31337) = 31337);
+         X := EchoRef (Myall_Types, Myall_Types);
+         Output ("test self reference", EchoLong (X, 31337) = 31337);
       end;
 
       --  enum
-      Output ("test enum", echoColor (Myall_types, all_types.Blue) =
+      Output ("test enum", EchoColor (Myall_Types, all_types.Blue) =
               all_types.Blue);
 
       --  fixed
       Output ("test fixed point",
-              echoMoney (Myall_Types, 6423.50) = 6423.50
-              and then echoMoney (Myall_Types, 0.0) = 0.0
-        and then echoMoney (Myall_Types, 3.14) = 3.14);
+              EchoMoney (Myall_Types, 6423.50) = 6423.50
+              and then EchoMoney (Myall_Types, 0.0) = 0.0
+        and then EchoMoney (Myall_Types, 3.14) = 3.14);
 
       --  array
       declare
          X : all_types.simple_array := (2, 3, 5, 7, 11);
       begin
-         Output ("test simple array", echoArray (Myall_types, X) = X);
+         Output ("test simple array", EchoArray (Myall_Types, X) = X);
       end;
       declare
-         M : all_types.Matrix := ((165, 252, 375), (377, 145, 222), (202, 477, 147));
+         M : all_types.matrix
+           := ((165, 252, 375), (377, 145, 222), (202, 477, 147));
       begin
          Output ("test multi-dimensional array",
-                 echoMatrix (Myall_types, M) = M);
+                 EchoMatrix (Myall_Types, M) = M);
       end;
 
       --  struct
@@ -1167,14 +1170,14 @@ begin
            := (123, To_CORBA_String ("Hello world!"));
       begin
          Output ("test struct",
-                 echoStruct (Myall_types, Test_Struct) = Test_Struct);
+                 EchoStruct (Myall_Types, Test_Struct) = Test_Struct);
       end;
       declare
          Test_Struct : constant array_struct
-           :=  (A => (0,1,2,3,4,5,6,7,8,9), B => 65533);
+           := (A => (0, 1, 2, 3, 4, 5, 6, 7, 8, 9), B => 65533);
       begin
          Output ("test array struct",
-                 echoArrayStruct (Myall_types, Test_Struct) = Test_Struct);
+                 EchoArrayStruct (Myall_Types, Test_Struct) = Test_Struct);
       end;
 
       --  union
@@ -1187,7 +1190,7 @@ begin
          Pass : Boolean := True;
       begin
          for I in Test_Unions'Range loop
-            Pass := Pass and then echoUnion (Myall_types, Test_Unions (I))
+            Pass := Pass and then EchoUnion (Myall_Types, Test_Unions (I))
               = Test_Unions (I);
             exit when not Pass;
          end loop;
@@ -1201,7 +1204,8 @@ begin
          Pass : Boolean := True;
       begin
          for I in Test_Unions'Range loop
-            Pass := Pass and then echoUnionEnumSwitch (Myall_types, Test_Unions (I))
+            Pass := Pass
+              and then EchoUnionEnumSwitch (Myall_Types, Test_Unions (I))
               = Test_Unions (I);
             exit when not Pass;
          end loop;
@@ -1210,28 +1214,28 @@ begin
 
       --  Unbounded sequences
       declare
-         X : U_Sequence := U_Sequence (IDL_SEQUENCE_Short.Null_Sequence);
+         X : U_sequence := U_sequence (IDL_SEQUENCE_Short.Null_sequence);
       begin
          X := X & 1 & 2 & 3 & 4 & 5;
-         Output ("test unbounded sequence",  echoUsequence (Myall_types, X) = X);
+         Output ("test unbounded sequence",  EchoUsequence (Myall_Types, X) = X);
       end;
 
       --  Bounded sequences
       declare
-         X : B_Sequence := B_Sequence (IDL_SEQUENCE_Short_10.Null_Sequence);
+         X : B_sequence := B_sequence (IDL_SEQUENCE_Short_10.Null_sequence);
       begin
          X := X & 1 & 2 & 3 & 4 & 5 & 6;
-         Output ("test bounded sequence",  echoBsequence (Myall_types, X) = X);
+         Output ("test bounded sequence",  EchoBsequence (Myall_Types, X) = X);
       end;
 
       --  Attributes
-      Set_MyColor (Myall_types, Green);
-      Output ("test attribute", Get_MyColor (Myall_types) = Green);
+      Set_MyColor (Myall_Types, Green);
+      Output ("test attribute", Get_MyColor (Myall_Types) = Green);
       declare
          Counter_First_Value : CORBA.Long
-           := get_Counter (Myall_types);
+           := get_Counter (Myall_Types);
          Counter_Second_Value : CORBA.Long
-           := get_Counter (Myall_types);
+           := get_Counter (Myall_Types);
       begin
          Output ("test read-only attribute",
                  Counter_Second_Value = Counter_First_Value + 1);
@@ -1246,7 +1250,7 @@ begin
             Member : UnknownUserException_Members;
             Actual_Member : My_Exception_Members;
          begin
-            testException (Myall_types, 2485);
+            testException (Myall_Types, 2485);
          exception
             when E : UnknownUserException =>
                Get_Members (E, Member);
@@ -1267,7 +1271,7 @@ begin
             Member : UnknownUserException_Members;
             Actual_Member : My_Exception_Members;
          begin
-            testUnknownException (Myall_types, 2485);
+            testUnknownException (Myall_Types, 2485);
          exception
             when CORBA.UNKNOWN =>
                Ok := True;

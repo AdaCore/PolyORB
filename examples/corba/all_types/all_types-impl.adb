@@ -127,7 +127,7 @@ package body all_types.Impl is
    begin
       Ada.Text_IO.Put_Line
         ("Thus spake my client unto me: « "
-         & CORBA.To_Standard_String (Arg)
+         & CORBA.To_Standard_String (arg)
          & " »");
       return arg;
    end echoString;
@@ -146,24 +146,24 @@ package body all_types.Impl is
       arg  : in CORBA.Object.Ref)
      return CORBA.Object.Ref is
    begin
-      return Arg;
-   end EchoObject;
+      return arg;
+   end echoObject;
 
    function echoOtherAllTypes
      (Self : access Object;
       arg  : in all_types.otherAllTypes)
-     return all_types.OtherAllTypes is
+     return all_types.otherAllTypes is
    begin
-      return Arg;
-   end EchootherAllTypes;
+      return arg;
+   end echoOtherAllTypes;
 
    function echoOtherObject
      (Self : access Object;
       arg  : in all_types.otherObject)
-     return all_types.OtherObject is
+     return all_types.otherObject is
    begin
-      return Arg;
-   end Echootherobject;
+      return arg;
+   end echoOtherObject;
 
    function echoColor
      (Self : access Object;
@@ -175,10 +175,10 @@ package body all_types.Impl is
 
    function echoMoney
      (Self : access Object;
-      arg  : in Money)
+      Arg  : in Money)
       return Money is
    begin
-      return arg;
+      return Arg;
    end echoMoney;
 
    function echoArray
@@ -213,11 +213,11 @@ package body all_types.Impl is
       arg : in CORBA.Long)
    is
       Members : IDL_Exception_Members_Ptr
-         := new My_Exception_Members'(info => arg);
+         := new my_exception_Members'(info => arg);
       --  FIXME: introducing potential memory leak in server.
    begin
       PolyORB.Exceptions.User_Raise_Exception
-        (My_Exception'Identity, Members.all);
+        (my_exception'Identity, Members.all);
    end testException;
 
    procedure testUnknownException
@@ -225,7 +225,7 @@ package body all_types.Impl is
       arg  : in CORBA.Long) is
    begin
       raise Constraint_Error;
-   end TestUnknownException;
+   end testUnknownException;
 
    function echoStruct
      (Self : access Object;
@@ -270,7 +270,7 @@ package body all_types.Impl is
    function echoUsequence
      (Self : access Object;
       arg : in U_sequence)
-     return U_Sequence
+     return U_sequence
    is
    begin
       return arg;
@@ -279,19 +279,19 @@ package body all_types.Impl is
    function echoBsequence
      (Self : access Object;
       arg : in B_sequence)
-     return B_Sequence
+     return B_sequence
    is
    begin
       return arg;
    end echoBsequence;
 
-   procedure set_myColor
+   procedure set_MyColor
      (Self : access Object;
       arg : in Color)
    is
    begin
       Self.Attr_My_Color := arg;
-   end set_myColor;
+   end set_MyColor;
 
    function get_myColor
      (Self : access Object)
