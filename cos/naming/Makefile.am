@@ -5,6 +5,8 @@ include $(srcdir)/../Makefile.common
 PROGS= ab_names test_naming
 
 COS_DIRS=../../idls/cos/naming
+COS_GNATMAKE_FLAGS=-I../../idls/cos/naming
+
 COS_IMPL=\
   cosnaming-bindingiterator-impl.adb \
   cosnaming-bindingiterator-impl.ads \
