@@ -256,7 +256,13 @@ package body Ada_Be.Idl2Ada.Skel is
                       & "."
                       & Ada_Operation_Name (Node)
                       & "_Store.Get_Operation");
-                  PL (CU, "  (Obj.Value.all'Tag);");
+                  Add_With (CU,
+                            Ada_Full_Name (I_Node)
+                            & Ada_Be.Idl2Ada.Helper.Suffix);
+                  PL (CU, "  ("
+                      & Ada_Full_Name (I_Node)
+                      & Ada_Be.Idl2Ada.Helper.Suffix
+                      & ".Servant_Ref (Obj).Value.all'Tag);");
                   NL (CU);
                end if;
 
@@ -268,7 +274,7 @@ package body Ada_Be.Idl2Ada.Skel is
 
                if Is_Supported then
                   PL (CU, Ada_Be.Temporaries.T_Value_Operation);
-                  Put (CU, "  (Obj");
+                  Put (CU, "  (CORBA.Impl.Object_Ptr (Obj)");
                else
                   PL (CU, Ada_Full_Name (I_Node) & Impl.Suffix
                       & "." & Ada_Name (Node));
@@ -599,7 +605,7 @@ package body Ada_Be.Idl2Ada.Skel is
       if NK = K_Interface then
          Put (CU, Ada_Full_Name (Node));
       else
-         Put (CU, Ada_Full_Name (Node) & Ada_Be.Idl2Ada.Helper.Suffix);
+         Put (CU, Ada_Full_Name (Node) & Ada_Be.Idl2Ada.Value_Skel.Suffix);
       end if;
       PL (CU, "." & T_Repository_Id &",");
       PL (CU, "   Servant_Is_A'Access,");

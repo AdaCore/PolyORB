@@ -146,7 +146,9 @@ package body Ada_Be.Idl2Ada.Value_Skel is
             begin
                Add_With (CU, V_Impl_Name);
                Gen_Operation_Profile
-                 (CU, "CORBA.Impl.Object_Ptr", Node);
+                 (CU,
+                  "CORBA.Impl.Object_Ptr",
+                  Node);
                PL (CU, " is");
                PL (CU, "begin");
                II (CU);

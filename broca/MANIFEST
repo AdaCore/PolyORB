@@ -166,8 +166,10 @@ idlac/ada_be-identifiers.adb
 idlac/ada_be-identifiers.ads
 idlac/ada_be-idl2ada-helper.adb
 idlac/ada_be-idl2ada-helper.ads
-idlac/ada_be-idl2ada-impl.adb
 idlac/ada_be-idl2ada-impl.ads
+idlac/ada_be-idl2ada-impl.adb
+idlac/ada_be-idl2ada-skel.ads
+idlac/ada_be-idl2ada-skel.adb
 idlac/ada_be-idl2ada-stream.adb
 idlac/ada_be-idl2ada-stream.ads
 idlac/ada_be-idl2ada-value_impl.adb
