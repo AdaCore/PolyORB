@@ -401,7 +401,7 @@ package body System.RPC.Pool is
                        Accepted   : out Boolean)
       is
       begin
-         if Total_Tasks_Count <= Max_Mark then
+         if Total_Tasks_Count <= High_Mark then
             Accepted         := True;
             Identifier.Next  := Free_Tasks_List;
             Free_Tasks_List  := Identifier;
@@ -440,7 +440,7 @@ package body System.RPC.Pool is
       ----------
 
       entry Wait (Shutdown : out Boolean)
-      when Shutdown_In_Progress or else Total_Tasks_Count < Max_Mark is
+      when Shutdown_In_Progress or else Total_Tasks_Count < High_Mark is
       begin
          Shutdown := Shutdown_In_Progress;
          if not Shutdown then
