@@ -170,7 +170,8 @@ package body PolyORB.Utils.HTables.Perfect is
 
    procedure Delete
      (T   : in out Hash_Table;
-      Key :        String);
+      Key :        String;
+      Index : out Natural);
    --  Delete key in hash table. In case of a non-existing Key, Delete
    --  ignores deletion. Key is the string to hash.
    --  When a Key is deleted, it's not physically. Indeed it puts just
@@ -814,7 +815,8 @@ package body PolyORB.Utils.HTables.Perfect is
 
    procedure Delete
      (T   : in out Hash_Table;
-      Key :        String)
+      Key :        String;
+      Index : out Natural)
    is
       Elements : Dynamic_Element_Array.Table_Ptr renames T.Elements.Table;
       Subtables : Dynamic_Subtable_Array.Table_Ptr renames T.Subtables.Table;
@@ -830,6 +832,12 @@ package body PolyORB.Utils.HTables.Perfect is
          T.Info.Count := T.Info.Count - 1;
          Subtables (ST_Index).Count := Subtables (ST_Index).Count - 1;
          Elements (Subtables (ST_Index).First + ST_Offset).Used := False;
+
+         Index :=
+           Elements (Subtables (ST_Index).First + ST_Offset).Item_Index;
+
+      else
+         Index := 0;
       end if;
    end Delete;
 
@@ -896,10 +904,7 @@ package body PolyORB.Utils.HTables.Perfect is
       --  Then insert the element.
 
       if To_Do /= Do_Nothing then
-
-         if Items (Index) /= null then
-            Free_Item (Items (Index));
-         end if;
+         pragma Assert (Items (Index) = null);
 
          Items (Index) := new Item'(Value);
       end if;
@@ -956,13 +961,15 @@ package body PolyORB.Utils.HTables.Perfect is
 
    procedure Delete
      (T   : Table_Instance;
-      Key : String) is
+      Key : String)
+   is
+      Index : Natural;
    begin
-      Delete (T.T.HTable, Key);
+      Delete (T.T.HTable, Key, Index);
 
-      --  Items are lazy deleted, i.e. the actual item will be freed
-      --  iff we need to reclaim the slot used by this element on the
-      --  next insertion.
+      if Index /= 0 then
+         Free_Item (T.T.Items.Table (Index));
+      end if;
 
    end Delete;
 
