@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                              T E S T 0 0 2                               --
+--    POLYORB.TASKING.PROFILES.FULL_TASKING.THREADS.DYNAMIC_PRIORITIES      --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,40 +31,75 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Condition variables testsuite.
-
---  $Id$
-
 with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
-with PolyORB.Tasking.Profiles.Full_Tasking.Threads;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.Full_Tasking.Threads);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.Full_Tasking.Threads);
+with PolyORB.Utils.Strings;
 
-with PolyORB.Tasking.Profiles.Full_Tasking.Threads.Dynamic_Priorities;
-pragma Elaborate_All
-  (PolyORB.Tasking.Profiles.Full_Tasking.Threads.Dynamic_Priorities);
-pragma Warnings
-  (Off, PolyORB.Tasking.Profiles.Full_Tasking.Threads.Dynamic_Priorities);
+package body PolyORB.Tasking.Profiles.Full_Tasking.Threads.Static_Priorities
+is
 
-with PolyORB.Tasking.Profiles.Full_Tasking.Mutexes;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.Full_Tasking.Mutexes);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.Full_Tasking.Mutexes);
+   ------------------
+   -- Set_Priority --
+   ------------------
 
-with PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables;
-pragma Elaborate_All
-  (PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables);
-pragma Warnings
-  (Off, PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables);
+   procedure Set_Priority
+     (TF : access Full_Tasking_Thread_Factory_Type;
+      T  :        PTT.Thread_Id;
+      P  :        System.Any_Priority)
+   is
+      pragma Unreferenced (TF);
+      pragma Unreferenced (T);
+      pragma Unreferenced (P);
 
-with Test002_Common;
+   begin
+      raise PolyORB.Tasking.Tasking_Profile_Error;
+   end Set_Priority;
 
-procedure Test002 is
-   use Test002_Common;
+   ------------------
+   -- Get_Priority --
+   ------------------
+
+   function Get_Priority
+     (TF : access Full_Tasking_Thread_Factory_Type;
+      T  :        PTT.Thread_Id)
+     return System.Any_Priority
+   is
+      pragma Unreferenced (TF);
+      pragma Unreferenced (T);
+
+   begin
+      raise PolyORB.Tasking.Tasking_Profile_Error;
+
+      return 0;
+   end Get_Priority;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      PolyORB.Tasking.Profiles.Full_Tasking.Threads.Set_Priority_P
+        := Set_Priority'Access;
+
+      PolyORB.Tasking.Profiles.Full_Tasking.Threads.Get_Priority_P
+        := Get_Priority'Access;
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
 
 begin
-   PolyORB.Initialization.Initialize_World;
-   Initialize_Test;
-   Test_CV;
-
-end Test002;
+   Register_Module
+     (Module_Info'
+      (Name      => +"tasking.profiles.full_tasking.thread.static_priorities",
+       Conflicts => Empty,
+       Depends   => Empty,
+       Provides  => +"full_tasking.threads.priorities",
+       Implicit  => False,
+       Init      => Initialize'Access));
+end PolyORB.Tasking.Profiles.Full_Tasking.Threads.Static_Priorities;

@@ -254,11 +254,8 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       T  :        PTT.Thread_Id;
       P  :        System.Any_Priority)
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (TF);
-      pragma Warnings (On);
    begin
-      raise PolyORB.Tasking.Tasking_Profile_Error;
+      Set_Priority_P.all (TF, T, P);
    end Set_Priority;
 
    ------------------
@@ -270,15 +267,8 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       T  :        PTT.Thread_Id)
      return System.Any_Priority
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (TF);
-      pragma Warnings (On);
    begin
-      --  XXX how to implement this function ???
-
-      raise PolyORB.Tasking.Tasking_Profile_Error;
-
-      return 0;
+      return Get_Priority_P.all (TF, T);
    end Get_Priority;
 
    ----------------
@@ -302,7 +292,7 @@ begin
      (Module_Info'
       (Name      => +"tasking.profiles.full_tasking.threads",
        Conflicts => Empty,
-       Depends   => Empty,
+       Depends   => +"full_tasking.threads.priorities",
        Provides  => +"tasking.threads",
        Implicit  => False,
        Init      => Initialize'Access));

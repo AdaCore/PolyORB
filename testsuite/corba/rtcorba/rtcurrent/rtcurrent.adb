@@ -42,16 +42,48 @@ with RTCORBA.PriorityMapping.Linear;
 
 with PolyORB.RTCORBA_P.Setup;
 
-with PolyORB.Setup.No_Tasking_Server;
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
-pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
+with PolyORB.ORB.Thread_Pool;
+pragma Elaborate_All (PolyORB.ORB.Thread_Pool);
+pragma Warnings (Off, PolyORB.ORB.Thread_Pool);
+
+with PolyORB.Setup.Server;
+pragma Elaborate_All (PolyORB.Setup.Server);
+pragma Warnings (Off, PolyORB.Setup.Server);
+
+with PolyORB.ORB_Controller.Basic;
+pragma Warnings (Off, PolyORB.ORB_Controller.Basic);
+pragma Elaborate_All (PolyORB.ORB_Controller.Basic);
+
+with PolyORB.Tasking.Profiles.Full_Tasking.Threads.Dynamic_Priorities;
+pragma Elaborate_All
+  (PolyORB.Tasking.Profiles.Full_Tasking.Threads.Dynamic_Priorities);
+pragma Warnings
+  (Off, PolyORB.Tasking.Profiles.Full_Tasking.Threads.Dynamic_Priorities);
+
+with PolyORB.Tasking.Profiles.Full_Tasking.Threads;
+pragma Elaborate_All (PolyORB.Tasking.Profiles.Full_Tasking.Threads);
+pragma Warnings (Off, PolyORB.Tasking.Profiles.Full_Tasking.Threads);
+
+with PolyORB.Tasking.Profiles.Full_Tasking.Mutexes;
+pragma Elaborate_All (PolyORB.Tasking.Profiles.Full_Tasking.Mutexes);
+pragma Warnings (Off, PolyORB.Tasking.Profiles.Full_Tasking.Mutexes);
+
+with PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables;
+pragma Elaborate_All
+  (PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables);
+pragma Warnings
+  (Off, PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables);
+
 
 with PolyORB.Utils.Report;
 
 procedure RTCurrent is
 
    use Ada.Text_IO;
+
    use CORBA.ORB;
+   use RTCORBA;
+
    use PolyORB.Utils.Report;
 
    Priority_Mapping : RTCORBA.PriorityMapping.Linear.Object;
@@ -91,8 +123,8 @@ begin
       RTCORBA.Current.Set_The_Priority (Current, 42);
       Output ("Set RTCurrent priority", True);
 
-      Put_Line ("New RTCurrent priority:"
-                & RTCORBA.Current.Get_The_Priority (Current)'Img);
+      Output ("New RTCurrent priority = 42 :",
+              RTCORBA.Current.Get_The_Priority (Current) = 42);
       End_Report;
    exception
       when E : others =>
@@ -103,4 +135,5 @@ begin
          End_Report;
    end;
 
+   CORBA.ORB.Shutdown (False);
 end RTCurrent;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                              T E S T 0 0 2                               --
+--    POLYORB.TASKING.PROFILES.FULL_TASKING.THREADS.DYNAMIC_PRIORITIES      --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,40 +31,19 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Condition variables testsuite.
+--  This packages provides a thread library for an Ada full tasking
+--  runtime, using Ada.Dynamic_Priorities.
 
---  $Id$
+package PolyORB.Tasking.Profiles.Full_Tasking.Threads.Static_Priorities is
 
-with PolyORB.Initialization;
+   procedure Set_Priority
+     (TF : access Full_Tasking_Thread_Factory_Type;
+      T  :        PTT.Thread_Id;
+      P  :        System.Any_Priority);
 
-with PolyORB.Tasking.Profiles.Full_Tasking.Threads;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.Full_Tasking.Threads);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.Full_Tasking.Threads);
+   function Get_Priority
+     (TF : access Full_Tasking_Thread_Factory_Type;
+      T  :        PTT.Thread_Id)
+     return System.Any_Priority;
 
-with PolyORB.Tasking.Profiles.Full_Tasking.Threads.Dynamic_Priorities;
-pragma Elaborate_All
-  (PolyORB.Tasking.Profiles.Full_Tasking.Threads.Dynamic_Priorities);
-pragma Warnings
-  (Off, PolyORB.Tasking.Profiles.Full_Tasking.Threads.Dynamic_Priorities);
-
-with PolyORB.Tasking.Profiles.Full_Tasking.Mutexes;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.Full_Tasking.Mutexes);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.Full_Tasking.Mutexes);
-
-with PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables;
-pragma Elaborate_All
-  (PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables);
-pragma Warnings
-  (Off, PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables);
-
-with Test002_Common;
-
-procedure Test002 is
-   use Test002_Common;
-
-begin
-   PolyORB.Initialization.Initialize_World;
-   Initialize_Test;
-   Test_CV;
-
-end Test002;
+end PolyORB.Tasking.Profiles.Full_Tasking.Threads.Static_Priorities;

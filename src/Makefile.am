@@ -131,7 +131,8 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-tasking-profiles-full_tasking-condition_variables.ads \
 		polyorb-tasking-profiles-full_tasking-mutexes.ads \
 		polyorb-tasking-profiles-full_tasking-threads.ads \
-		polyorb-tasking-profiles-full_tasking-threads_dynamic_priorities.ads \
+		polyorb-tasking-profiles-full_tasking-threads-dynamic_priorities.ads \
+		polyorb-tasking-profiles-full_tasking-threads-static_priorities.ads \
 		polyorb-tasking-profiles-no_tasking-condition_variables.ads \
 		polyorb-tasking-profiles-no_tasking-mutexes.ads \
 		polyorb-tasking-profiles-no_tasking-threads.ads \

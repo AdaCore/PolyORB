@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---    POLYORB.TASKING.PROFILES.FULL_TASKING.THREADS_DYNAMIC_PRIORITIES      --
+--    POLYORB.TASKING.PROFILES.FULL_TASKING.THREADS.DYNAMIC_PRIORITIES      --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,41 +31,72 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This packages provides a thread library for an Ada full tasking
---  runtime, using Ada.Dynamic_Priorities.
+with Ada.Dynamic_Priorities;
 
-with PolyORB.Tasking.Threads;
-with PolyORB.Tasking.Profiles.Full_Tasking.Threads;
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
-with System;
+with PolyORB.Utils.Strings;
 
-package PolyORB.Tasking.Profiles.Full_Tasking.Threads_Dynamic_Priorities is
+package body PolyORB.Tasking.Profiles.Full_Tasking.Threads.Dynamic_Priorities
+is
 
-   package PTPFT renames PolyORB.Tasking.Profiles.Full_Tasking.Threads;
-   package PTT   renames PolyORB.Tasking.Threads;
-
-   type Full_Tasking_DP_Thread_Factory_Type is
-     new PTPFT.Full_Tasking_Thread_Factory_Type with private;
-
-   type Full_Tasking_DP_Thread_Factory_Type_Access is
-     access all Full_Tasking_DP_Thread_Factory_Type'Class;
+   ------------------
+   -- Set_Priority --
+   ------------------
 
    procedure Set_Priority
-     (TF : access Full_Tasking_DP_Thread_Factory_Type;
+     (TF : access Full_Tasking_Thread_Factory_Type;
       T  :        PTT.Thread_Id;
-      P  :        System.Any_Priority);
+      P  :        System.Any_Priority)
+   is
+      pragma Unreferenced (TF);
+
+   begin
+      Ada.Dynamic_Priorities.Set_Priority (P, P_To_A_Task_Id (T));
+   end Set_Priority;
+
+   ------------------
+   -- Get_Priority --
+   ------------------
 
    function Get_Priority
-     (TF : access Full_Tasking_DP_Thread_Factory_Type;
+     (TF : access Full_Tasking_Thread_Factory_Type;
       T  :        PTT.Thread_Id)
-     return System.Any_Priority;
+     return System.Any_Priority
+   is
+      pragma Unreferenced (TF);
 
-private
+   begin
+      return Ada.Dynamic_Priorities.Get_Priority (P_To_A_Task_Id (T));
+   end Get_Priority;
 
-   type Full_Tasking_DP_Thread_Factory_Type is
-     new PTPFT.Full_Tasking_Thread_Factory_Type with null record;
+   ----------------
+   -- Initialize --
+   ----------------
 
-   The_Thread_Factory : constant Full_Tasking_DP_Thread_Factory_Type_Access
-     := new Full_Tasking_DP_Thread_Factory_Type;
+   procedure Initialize;
 
-end PolyORB.Tasking.Profiles.Full_Tasking.Threads_Dynamic_Priorities;
+   procedure Initialize is
+   begin
+      PolyORB.Tasking.Profiles.Full_Tasking.Threads.Set_Priority_P
+        := Set_Priority'Access;
+
+      PolyORB.Tasking.Profiles.Full_Tasking.Threads.Get_Priority_P
+        := Get_Priority'Access;
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"tasking.profiles.full_tasking.thread.dynamic_priorities",
+       Conflicts => Empty,
+       Depends   => Empty,
+       Provides  => +"full_tasking.threads.priorities",
+       Implicit  => False,
+       Init      => Initialize'Access));
+end PolyORB.Tasking.Profiles.Full_Tasking.Threads.Dynamic_Priorities;
