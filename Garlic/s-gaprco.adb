@@ -1,6 +1,3 @@
-with System.Garlic.TCP;
-pragma Elaborate_All (System.Garlic.TCP);
-
 with System.Garlic.Loopback;
 pragma Elaborate_All (System.Garlic.Loopback);
 
@@ -33,7 +30,6 @@ package body System.Garlic.Protocols.Config is
 
    procedure Create is
    begin
-      Register (System.Garlic.TCP.Create);
       Register (System.Garlic.Loopback.Create);
    end Create;
 

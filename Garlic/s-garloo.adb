@@ -3,6 +3,8 @@
 --
 
 with System.Garlic.Heart;
+with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
+with System.Garlic.Protocols; use System.Garlic.Protocols;
 
 package body System.Garlic.Loopback is
 
@@ -13,8 +15,10 @@ package body System.Garlic.Loopback is
    ------------
 
    function Create return System.Garlic.Protocols.Protocol_Access is
+      Self : Protocol_Access := new Loopback_Protocol;
    begin
-      return new Loopback_Protocol;
+      Register_Protocol (Self);
+      return Self;
    end Create;
 
    --------------
