@@ -138,7 +138,9 @@ examples/random/random.idl
 examples/random/server.adb
 examples/valuetypes/BinaryTree.idl
 examples/valuetypes/Makefile.am
+examples/valuetypes/Makefile.in
 examples/valuetypes/cycle/Makefile.am
+examples/valuetypes/cycle/Makefile.in
 examples/valuetypes/cycle/client.adb
 examples/valuetypes/cycle/cycle-node-value_impl.adb
 examples/valuetypes/cycle/cycle-node-value_impl.ads
@@ -147,6 +149,7 @@ examples/valuetypes/cycle/cycle-nodemanipulator-impl.ads
 examples/valuetypes/cycle/cycle.idl
 examples/valuetypes/cycle/server.adb
 examples/valuetypes/forward/Makefile.am
+examples/valuetypes/forward/Makefile.in
 examples/valuetypes/forward/client.adb
 examples/valuetypes/forward/server.adb
 examples/valuetypes/forward/tvtforward-first-value_impl.adb
