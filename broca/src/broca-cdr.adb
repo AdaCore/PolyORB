@@ -2334,23 +2334,38 @@ package body Broca.CDR is
      (Buffer : access Buffer_Type;
       Data : in CORBA.AbstractBase.Ref'Class) is
    begin
+      --  1. if Data is a valuetype, call the valuetype marshalling function
       if Data in CORBA.Value.Base'Class then
-         Broca.Value.Stream.Marshall
-           (Buffer, CORBA.Value.Base'Class (Data));
+         Broca.Value.Stream.Marshall (Buffer,
+                                      CORBA.Value.Base'Class (Data));
+
+         --  2. check if Data is a nil ref, raise marshall if true
       elsif CORBA.AbstractBase.Is_Nil (Data) then
-            Broca.Exceptions.Raise_Marshal;
+         Broca.Exceptions.Raise_Marshal;
+
+         --  3. If Data is an abstract interface and the referenced object is
+         --     a valuetype, then call the valuetype marshalling function.
+         --  In practice, just check if the referenced object is a valuetype.
+      elsif CORBA.AbstractBase.Object_Of (Data).all
+        in CORBA.Value.Impl_Base'Class then
+         --  Broca.Value.Stream.Marshall (Buffer,
+         --                             Data);
+         null;
+         --  Not implemented yet
+
+      --  4. Call the interface marshalling function
+      else
+         --  Make a redispatching call on the designated
+         --  object.
+         declare
+            P : constant CORBA.Impl.Object_Ptr
+              := CORBA.AbstractBase.Object_Of (Data);
+         begin
+            CORBA.Impl.Marshall
+              (Buffer,
+               CORBA.Impl.Object'Class (P.all));
+         end;
       end if;
-
-      --  Make a redispatching call on the designated object
-
-      declare
-         P : constant CORBA.Impl.Object_Ptr
-           := CORBA.AbstractBase.Object_Of (Data);
-      begin
-         CORBA.Impl.Marshall
-           (Buffer,
-            CORBA.Impl.Object'Class (P.all));
-      end;
    end Marshall;
 
    ----------------
