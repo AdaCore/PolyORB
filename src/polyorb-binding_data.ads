@@ -33,7 +33,7 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/polyorb-binding_data.ads#11 $
+--  $Id: //droopi/main/src/polyorb-binding_data.ads#12 $
 
 with Ada.Finalization;
 
@@ -88,16 +88,17 @@ package PolyORB.Binding_Data is
      return Objects.Object_Id_Access;
    --  Retrieve the opaque object key from Profile.
 
-   procedure Bind_Non_Local_Profile
+   function Bind_Profile
      (Profile : Profile_Type;
-      TE      : out Transport.Transport_Endpoint_Access;
-      Filter  : out Components.Component_Access)
+      The_ORB : Components.Component_Access)
+     return Components.Component_Access
       is abstract;
    --  Find or create a transport endpoint and an attached protocol
    --  stack instance (or create new ones) that match this profile,
    --  in order to send a message to the designated middleware.
-   --  The Transport_Endpoint at the bottom of the transport stack
-   --  and the Filter just above (ie the base of the protocol stack).
+   --  The Filter at the top of the protocol stack (i.e. the session)
+   --  is returned. Concrete implementations are responsible for
+   --  registering the TE with the ORB if necessary.
 
    function Get_Profile_Tag
      (Profile : Profile_Type)

@@ -41,6 +41,7 @@ with PolyORB.Filters;
 with PolyORB.Filters.Slicers;
 with PolyORB.Initialization;
 with PolyORB.Log;
+with PolyORB.ORB;
 with PolyORB.Protocols;
 with PolyORB.Protocols.GIOP;
 with PolyORB.Representations.CDR;
@@ -105,10 +106,10 @@ package body PolyORB.Binding_Data.IIOP is
       Free (P.Object_Id);
    end Finalize;
 
-   procedure Bind_Non_Local_Profile
+   function Bind_Profile
      (Profile : IIOP_Profile_Type;
-      TE      : out Transport.Transport_Endpoint_Access;
-      Filter  : out Components.Component_Access)
+      The_ORB : Components.Component_Access)
+     return Components.Component_Access
    is
       use PolyORB.Components;
       use PolyORB.Protocols;
@@ -119,11 +120,15 @@ package body PolyORB.Binding_Data.IIOP is
 
       Sock : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
+      TE : constant Transport.Transport_Endpoint_Access
+        := new Transport.Sockets.Socket_Endpoint;
       Pro  : aliased GIOP_Protocol;
       Sli  : aliased Slicer_Factory;
       Prof : constant Profile_Access := new IIOP_Profile_Type;
       --  This Profile_Access is stored in the created
       --  GIOP_Session, and free'd when the session is finalised.
+
+      Filter : Filters.Filter_Access;
 
       TProf : IIOP_Profile_Type
         renames IIOP_Profile_Type (Prof.all);
@@ -132,18 +137,22 @@ package body PolyORB.Binding_Data.IIOP is
       pragma Debug (O ("Bind IIOP profile: enter"));
       Create_Socket (Sock);
       Connect_Socket (Sock, Remote_Addr);
-      TE := new Transport.Sockets.Socket_Endpoint;
       Create (Socket_Endpoint (TE.all), Sock);
 
       Chain_Factories ((0 => Sli'Unchecked_Access,
                         1 => Pro'Unchecked_Access));
 
-      Filter := Component_Access
-        (Slicers.Create_Filter_Chain (Sli'Unchecked_Access));
+      Filter :=
+        Slicers.Create_Filter_Chain (Sli'Unchecked_Access);
       --  Filter must be an access to the lowest filter in
       --  the stack (the slicer in the case of GIOP).
       --  The call to CFC is qualified to work around a bug in
       --  the APEX compiler.
+
+      ORB.Register_Endpoint
+        (ORB.ORB_Access (The_ORB), TE,
+         Filter, ORB.Client);
+      --  Register the endpoint and lowest filter with the ORB.
 
       pragma Debug (O ("Preparing local copy of profile"));
       TProf.Address := Profile.Address;
@@ -154,19 +163,17 @@ package body PolyORB.Binding_Data.IIOP is
       declare
          S : GIOP_Session
            renames GIOP_Session
-           (Upper (Filter_Access (Filter)).all);
+           (Upper (Filter).all);
       begin
          Store_Profile (S'Access, Prof);
          Set_Version
            (S'Access,
             Profile.Major_Version,
             Profile.Minor_Version);
+         pragma Debug (O ("Bind IIOP profile: leave"));
+         return S'Access;
       end;
-
-      --  The caller will invoke Register_Endpoint on TE.
-
-      pragma Debug (O ("Bind IIOP profile: leave"));
-   end Bind_Non_Local_Profile;
+   end Bind_Profile;
 
    function Get_Profile_Tag
      (Profile : IIOP_Profile_Type)

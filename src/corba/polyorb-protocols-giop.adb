@@ -63,7 +63,6 @@ with PolyORB.Representations;     use PolyORB.Representations;
 with PolyORB.Representations.CDR;
 with PolyORB.Requests;
 with PolyORB.Soft_Links;
-with PolyORB.Transport;
 with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
@@ -82,7 +81,6 @@ package body PolyORB.Protocols.GIOP is
    use PolyORB.ORB.Interface;
    use PolyORB.Requests;
    use PolyORB.Representations.CDR;
-   use PolyORB.Transport;
    use PolyORB.Types;
    use PolyORB.Annotations;
    use PolyORB.Soft_Links;
@@ -1619,16 +1617,15 @@ package body PolyORB.Protocols.GIOP is
          when Location_Forward | Location_Forward_Perm =>
 
             declare
-               TE      : Transport_Endpoint_Access;
                New_Ses : Session_Access;
                Prof    : Profile_Access;
 
             begin
                Prof := Select_Profile (Ses.Buffer_In);
-               Binding_Data.IIOP.Bind_Non_Local_Profile
-                 (IIOP_Profile_Type (Prof.all),
-                  TE,
-                  Component_Access (New_Ses));
+               New_Ses := Session_Access
+                 (Binding_Data.IIOP.Bind_Profile
+                    (IIOP_Profile_Type (Prof.all),
+                     Component_Access (ORB)));
 
                --  Release the previous session buffers
                Release (Ses.Buffer_In);
@@ -1641,7 +1638,6 @@ package body PolyORB.Protocols.GIOP is
                   Current_Req.Req,
                   Prof);
             end;
-
       end case;
    end Reply_Received;
 
@@ -1915,8 +1911,8 @@ package body PolyORB.Protocols.GIOP is
    ----------------------------
 
    procedure Handle_Data_Indication
-     (S : access GIOP_Session;
-      Data_Amount : Stream_Element_Count)
+     (S           : access GIOP_Session;
+      Data_Amount :        Stream_Element_Count)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Data_Amount);
@@ -1933,6 +1929,7 @@ package body PolyORB.Protocols.GIOP is
       Mess_Size     : Types.Unsigned_Long;
       Fragment_Next : Boolean;
       Success       : Boolean;
+      ORB           : constant ORB_Access := ORB_Access (S.Server);
 
    begin
       pragma Debug (O ("Received data on transport endpoint..."));
@@ -2039,7 +2036,6 @@ package body PolyORB.Protocols.GIOP is
 
                      when Object_Forward | Object_Forward_Perm =>
                         declare
-                           TE          : Transport_Endpoint_Access;
                            New_Ses     : Session_Access;
                            Current_Req : Pending_Request;
                            Current_Note : Request_Note;
@@ -2057,10 +2053,11 @@ package body PolyORB.Protocols.GIOP is
                               raise GIOP_Error;
                            end loop;
 
-                           Binding_Data.IIOP.Bind_Non_Local_Profile
-                             (IIOP_Profile_Type
-                              (Current_Req.Target_Profile.all),
-                              TE, Component_Access (New_Ses));
+                           New_Ses := Session_Access
+                             (Binding_Data.IIOP.Bind_Profile
+                                (IIOP_Profile_Type
+                                   (Current_Req.Target_Profile.all),
+                                 Component_Access (ORB)));
 
                            --  Release the previous session buffers.
 

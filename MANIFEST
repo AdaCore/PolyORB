@@ -480,8 +480,6 @@ src/polyorb-binding_data-local.adb
 src/polyorb-binding_data-local.ads
 src/polyorb-binding_data-srp.adb
 src/polyorb-binding_data-srp.ads
-src/polyorb-binding_data-test.adb
-src/polyorb-binding_data-test.ads
 src/polyorb-binding_data.adb
 src/polyorb-binding_data.ads
 src/polyorb-buffers.adb

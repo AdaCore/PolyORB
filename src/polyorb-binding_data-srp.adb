@@ -35,13 +35,9 @@
 --  $Id$
 
 with PolyORB.Filters;
-
+with PolyORB.ORB;
 with PolyORB.Protocols.SRP;
---  The SRP profile is bound to the SRP invocation protocol.
-
 with PolyORB.Transport.Sockets;
---  The TEST profile denotes an SRP protocol stack instanciated
---  over a TCP socket.
 
 package body PolyORB.Binding_Data.SRP is
 
@@ -66,10 +62,10 @@ package body PolyORB.Binding_Data.SRP is
       Free (P.Object_Id);
    end Finalize;
 
-   procedure Bind_Non_Local_Profile
+   function Bind_Profile
      (Profile : SRP_Profile_Type;
-      TE      : out Transport.Transport_Endpoint_Access;
-      Session : out Components.Component_Access)
+      The_ORB : Components.Component_Access)
+     return Components.Component_Access
    is
       use PolyORB.Protocols.SRP;
       use PolyORB.Sockets;
@@ -78,14 +74,20 @@ package body PolyORB.Binding_Data.SRP is
       S : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
       P : aliased SRP_Protocol;
-
+      Session : Components.Component_Access;
+      TE : constant Transport.Transport_Endpoint_Access
+        := new Transport.Sockets.Socket_Endpoint;
    begin
       Create_Socket (S);
       Connect_Socket (S, Remote_Addr);
-      TE := new Transport.Sockets.Socket_Endpoint;
       Create (Socket_Endpoint (TE.all), S);
       Create (P'Access, Filters.Filter_Access (Session));
-   end Bind_Non_Local_Profile;
+
+      ORB.Register_Endpoint
+        (ORB.ORB_Access (The_ORB), TE,
+         Filters.Filter_Access (Session), ORB.Client);
+      return Session;
+   end Bind_Profile;
 
    function Get_Profile_Tag
      (Profile : SRP_Profile_Type)

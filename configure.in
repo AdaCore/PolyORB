@@ -64,6 +64,8 @@ AC_EXEEXT
 AC_CHECK_PROG(GNATMAKE, gnatmake, gnatmake)
 AC_CHECK_PROG(GNATCHOP, gnatchop, gnatchop)
 AC_CHECK_PROG(PYTHON, python, python)
+AM_ENABLE_SHARED(no)
+AM_ENABLE_STATIC(yes)
 AM_PROG_LIBTOOL
 #
 # Check that the GNAT version is recent enough for this version of GLADE

@@ -102,10 +102,10 @@ package body PolyORB.Binding_Data.SOAP is
       Free (P.Object_Id);
    end Finalize;
 
-   procedure Bind_Non_Local_Profile
+   function Bind_Profile
      (Profile : SOAP_Profile_Type;
-      TE      : out Transport.Transport_Endpoint_Access;
-      Filter  : out Components.Component_Access)
+      The_ORB : Components.Component_Access)
+     return Components.Component_Access
    is
       use PolyORB.Components;
       use PolyORB.Protocols;
@@ -116,34 +116,27 @@ package body PolyORB.Binding_Data.SOAP is
       Remote_Addr : Sock_Addr_Type := Profile.Address;
       Pro  : aliased SOAP_Protocol;
       Htt  : aliased HTTP_Filter_Factory;
-
-      Prof : constant Profile_Access := new SOAP_Profile_Type;
-      --  This Profile_Access is stored in the created
-      --  GIOP_Session, and free'd when the session is finalised.
-
-      TProf : SOAP_Profile_Type
-        renames SOAP_Profile_Type (Prof.all);
-
+      TE : constant Transport.Transport_Endpoint_Access
+        := new Transport.Sockets.Socket_Endpoint;
+      Filter : Filter_Access;
    begin
       Create_Socket (Sock);
       Connect_Socket (Sock, Remote_Addr);
-      TE := new Transport.Sockets.Socket_Endpoint;
       Create (Socket_Endpoint (TE.all), Sock);
 
       Chain_Factories ((0 => Htt'Unchecked_Access,
                         1 => Pro'Unchecked_Access));
 
-      Filter := Component_Access
-        (HTTP.Create_Filter_Chain (Htt'Unchecked_Access));
+      Filter := HTTP.Create_Filter_Chain (Htt'Unchecked_Access);
       --  Filter must be an access to the lowest filter in
       --  the stack (the HTTP filter in the case of SOAP/HTTP).
 
-      TProf.Address := Profile.Address;
-      TProf.Object_Id := Profile.Object_Id;
-      Adjust (TProf);
+      ORB.Register_Endpoint
+        (ORB.ORB_Access (The_ORB), TE, Filter, ORB.Client);
+      --  Register the endpoint and lowest filter with the ORB.
 
-      --  The caller will invoke Register_Endpoint on TE.
-   end Bind_Non_Local_Profile;
+      return Component_Access (Upper (Filter));
+   end Bind_Profile;
 
    function Get_Profile_Tag
      (Profile : SOAP_Profile_Type)
