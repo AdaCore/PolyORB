@@ -680,7 +680,7 @@ In RT or RCI package declarations, variables are forbidden and general
 access types are allowed as long as their marshaling subprograms are
 provided (see section @ref{Transmitting Dynamic Structure}).. 
 
-@node RPC Failures, , Variables and Non-Remote Access Types, More About Categorization Pragmas
+@node RPC Failures, Exceptions, Variables and Non-Remote Access Types, More About Categorization Pragmas
 @subsection RPC Failures
 
 Calls are made at most one time: they are made exactly one time or they
@@ -946,10 +946,10 @@ distributed programs.
 * The Configuration Language::  
 * Tracing Facilities::          
 * Remote Shell Notes::          
-* Heterogeneous Systems::       
 * Filtering::                   
 * Trace/Replay Debugging::      
 * Glade File Hierarchy::        
+* GLADE Internals::             
 @end menu
 
 @node Introduction to GLADE, How to Configure a Distributed Application with Gnatdist, Getting Started With GLADE, Getting Started With GLADE
@@ -1085,6 +1085,7 @@ will evolve, so will this configuration language.
 * Channel Declaration::         
 * Channel and Partition Filter::  
 * Version Consistency::         
+* Anonymous Tasks Pool::        
 * An Example with Most of the Configuration Language Features::  
 @end menu
 
@@ -1099,11 +1100,11 @@ purpose.
 
 @smallexample
 CONFIGURATION_UNIT ::= 
-   configuration IDENTIFIER is
+   @b{configuration} IDENTIFIER @b{is}
       DECLARATIVE_PART
-   [begin
+   [@b{begin}
       SEQUENCE_OF_STATEMENTS]
-   end [IDENTIFIER];
+   @b{end} [IDENTIFIER];
 @end smallexample
 
 @node Partition Declaration, Partition Main Procedure, Configuration Declaration, The Configuration Language
@@ -1176,9 +1177,9 @@ partitions will have a null body as a main procedure. But the user can
 also modify this behavior by providing an alternate main procedure.
 
 @smallexample
-procedure MAIN_PROCEDURE;
+@b{procedure} MAIN_PROCEDURE;
 
-for PARTITION'Main use MAIN_PROCEDURE;
+@b{for} PARTITION'Main @b{use} MAIN_PROCEDURE;
 @end smallexample
 
 In a non-distributed case, the user executes only one main executable
@@ -1195,9 +1196,9 @@ machines. But the user may ask for a full Ada starter procedure. The
 pragma Starter allows the user to ask for one starter or another.  
 
 @smallexample
-type Method_Type is (Ada, Shell, None);
+@b{type} Method_Type @b{is} (Ada, Shell, None);
 
-pragma Starter (Method => Method_Type);
+@b{pragma} Starter (Method => Method_Type);
 @end smallexample
 
 @node Physical Nodes, Boot Server, Partition Main Procedure, The Configuration Language
@@ -1220,10 +1221,10 @@ is returned.
 
 @smallexample
 REPRESENTATION_CLAUSE ::=
-   for IDENTIFIER'Host use STRING_LITERAL;
- | for IDENTIFIER'Host use SUBPROGRAM;
- | for Partition'Host use STRING_LITERAL;
- | for Partition'Host use SUBPROGRAM;
+   @b{for} IDENTIFIER'Host @b{use} STRING_LITERAL;
+ | @b{for} IDENTIFIER'Host @b{use} SUBPROGRAM;
+ | @b{for} Partition'Host @b{use} STRING_LITERAL;
+ | @b{for} Partition'Host @b{use} SUBPROGRAM;
 @end smallexample
 
 The signature of the function should be the following : it takes a
@@ -1242,7 +1243,7 @@ host from among a set of hosts.
 
 @smallexample
 PRAGMA ::=
-   pragma Boot_Server (Protocol_Name => String, Protocol_Data => String);
+   @b{pragma} Boot_Server (Protocol_Name => String, Protocol_Data => String);
 @end smallexample
 
 @node Executable Location, Partition Termination, Boot Server, The Configuration Language
@@ -1261,7 +1262,7 @@ full name is used.
 
 @smallexample
 REPRESENTATION_CLAUSE ::=
-   for IDENTIFIER'Storage_Dir use STRING_LITERAL;
+   @b{for} IDENTIFIER'Storage_Dir @b{use} STRING_LITERAL;
 @end smallexample
 
 @node Partition Termination, Partition Reconnection, Executable Location, The Configuration Language
@@ -1273,7 +1274,7 @@ TERMINATION_LITTERAL ::= Global_Termination |
                          Defered_Termination
 
 REPRESENTATION_CLAUSE ::=
-   for IDENTIFIER'Termination use TERMINATION_LITERAL;
+   @b{for} IDENTIFIER'Termination @b{use} TERMINATION_LITERAL;
 @end smallexample
 
 @node Partition Reconnection, Channel Declaration, Partition Termination, The Configuration Language
@@ -1285,7 +1286,7 @@ RECONNECTION_LITTERAL ::= Rejected_On_Restart  |
                           Wait_Until_Restart
 
 REPRESENTATION_CLAUSE ::=
-   for IDENTIFIER'Reconnection use RECONNECTION_LITTERAL;
+   @b{for} IDENTIFIER'Reconnection @b{use} RECONNECTION_LITTERAL;
 @end smallexample
 
 @node Channel Declaration, Channel and Partition Filter, Partition Reconnection, The Configuration Language
@@ -1304,20 +1305,30 @@ PARTITION_PEER ::= (IDENTIFIER, IDENTIFIER);
 
 @smallexample
 REPRESENTATION_CLAUSE ::=
-   for CHANNEL_IDENTIFIER'Filter use STRING_LITERAL;
- | for PARTITION_IDENTIFIER'Filter use STRING_LITERAL;
- | for Channel'Filter use STRING_LITERAL;
- | for Partition'Filter use STRING_LITERAL;
+   @b{for} CHANNEL_IDENTIFIER'Filter @b{use} STRING_LITERAL;
+ | @b{for} PARTITION_IDENTIFIER'Filter @b{use} STRING_LITERAL;
+ | @b{for} Channel'Filter @b{use} STRING_LITERAL;
+ | @b{for} Partition'Filter @b{use} STRING_LITERAL;
 @end smallexample
 
-@node Version Consistency, An Example with Most of the Configuration Language Features, Channel and Partition Filter, The Configuration Language
+@node Version Consistency, , Channel and Partition Filter, The Configuration Language
 @subsection Version Consistency
 
 @smallexample
 pragma Version (True | False);
 @end smallexample
 
-@node An Example with Most of the Configuration Language Features,  , Version Consistency, The Configuration Language
+@node Anonymous Tasks Pool, An Example with Most of the Configuration Language Features, Version Consistency, The Configuration Language
+@subsection Anonymous Tasks Pool
+
+@smallexample
+REPRESENTATION_CLAUSE ::=
+   @b{for} PARTITION_IDENTIFIER'Filter @b{use} TASK_POOL_SIZE_ARRAY;
+ | @b{for} Partition'Filter @b{use} TASK_POOL_SIZE_ARRAY;
+TASK_POOL_SIZE_ARRAY := (POOL_MIN_SIZE, POOL_HIGH_SIZE, POOL_MAX_SIZE);
+@end smallexample
+
+@node An Example with Most of the Configuration Language Features,  , Anonymous Tasks Pool, The Configuration Language
 @subsection An Example with Most of the Configuration Language Features
 
 Every keyword and construct defined in the configuration language have
@@ -1483,7 +1494,7 @@ S_RPC=true;    export S_RPC
 S_PARINT=true; export S_PARINT
 @end smallexample
 
-@node Remote Shell Notes, Heterogeneous Systems, Tracing Facilities, Getting Started With GLADE
+@node Remote Shell Notes, Filtering, Tracing Facilities, Getting Started With GLADE
 @section Remote Shell Notes
 
 To start a partition, the main partition executable executes a remote
@@ -1532,25 +1543,7 @@ kill MAIN_PART.
 
 @end itemize
 
-@node Heterogeneous Systems, Filtering, Remote Shell Notes, Getting Started With GLADE
-@section Heterogeneous Systems
-
-The GNAT environment provides default attributes except for non remote
-access types (see section @ref{Transmitting Dynamic Structure} and
-@ref{}). The implementation of the default attributes of predefined
-types can be found in @t{System.Stream_Attributes}.
-
-The GLADE installation overloads the GNAT default marshalling and
-unmarshalling subprograms by its own subprograms which format data
-according to a @i{XDR}-like protocol. Therefore, any GLADE application
-will work in an heterogeous environment.
-
-If the user wants to keep working with the GNAT default attributes for
-performance purposes or to use another protocol to marshall and
-unmarshall predefined types, he can replace @t{s-stratt.adb} by his own
-implementation.
-
-@node Filtering, Trace/Replay Debugging, Heterogeneous Systems, Getting Started With GLADE
+@node Filtering, Trace/Replay Debugging, Remote Shell Notes, Getting Started With GLADE
 @section Filtering
 
 GLADE contains a transparent extensible filtering mechanism allowing the
@@ -1718,6 +1711,58 @@ N.B. It is important that the same executable is used for replay as
 when the trace file was generated, otherwise strange behavior can be
 expected.
 
+@node Glade File Hierarchy, GLADE Internals, Trace/Replay Debugging, Getting Started With GLADE
+@section Glade File Hierarchy
+
+All GLADE intermediate files (object files, etc) are stored under a
+common directory named "dsa". You may remove this whole directory and
+its content when you do not intend to rebuild your distributed
+applications.
+
+@node GLADE Internals,  , Glade File Hierarchy, Getting Started With GLADE
+@section GLADE Internals
+
+The GLADE PCS is called GARLIC which stands for Generic Ada Reusable
+Library for Interpartition Communication. Most of the previous features
+like filtering, trace / replay, termination, reconnection, version
+consistency and remote launching are provided via GARLIC specific
+features. Some of these features are not configurable by the user.
+
+@menu
+* Heterogeneous Systems::       
+* Multiple Requests::           
+@end menu
+
+@node Heterogeneous Systems, , GLADE Internals, GLADE Internals
+@subsection Heterogeneous Systems
+
+The GNAT environment provides default attributes except for non remote
+access types (see section @ref{Transmitting Dynamic Structure} and
+@ref{}). The implementation of the default attributes of predefined
+types can be found in @t{System.Stream_Attributes}.
+
+The GLADE installation overloads the GNAT default marshalling and
+unmarshalling subprograms by its own subprograms which format data
+according to a @i{XDR}-like protocol. Therefore, any GLADE application
+will work in an heterogeous environment.
+
+If the user wants to keep working with the GNAT default attributes for
+performance purposes or to use another protocol to marshall and
+unmarshall predefined types, he can replace @t{s-stratt.adb} by his own
+implementation.
+
+@node Multiple Requests,  , Heterogeneous Systems, GLADE Internals
+@subsection Multiple Requests
+When multiple remote procedure calls occur on the same partition, they
+are handled by several anonymous tasks. The number of tasks in the
+anonymous tasks pool can be configured by three figures (see section
+@ref{Anonymous Tasks Pool}). Therefore, the user may have to synchronize 
+global data in the Remote_Call_Interface or Remote_Types unit to
+preserve concurrent access on data. If the user want to suppress the
+multiple requests features, he can force the configuration of the
+anonymous tasks pool to (0 | 1, 0 | 1, 1). That means that there is at
+most one anonymous task running at a time.
+
 
 @c @node
 @c @section Restrictions
@@ -1733,14 +1778,6 @@ expected.
 
 @c Language-defined exceptions propagate well through different
 @c partitions.
-
-@node Glade File Hierarchy,  , Trace/Replay Debugging, Getting Started With GLADE
-@section Glade File Hierarchy
-
-All GLADE intermediate files (object files, etc) are stored under a
-common directory named "dsa". You may remove this whole directory and
-its content when you do not intend to rebuild your distributed
-applications.
 
 @node DSA and CORBA,  , Getting Started With GLADE, Top
 @appendix DSA and CORBA
