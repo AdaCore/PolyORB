@@ -103,7 +103,7 @@ package body Exp_Dist is
    --  clause on subprogram specs:
    --  for Subp'Distribution_Identifier use "fooBar";
 
-   procedure Add_RAS_Proxy
+   procedure Add_RAS_Proxy_And_Analyze
      (Decls              :     List_Id;
       Vis_Decl           :     Node_Id;
       All_Calls_Remote_E :     Entity_Id;
@@ -2759,7 +2759,7 @@ package body Exp_Dist is
    -- Add_RAS_Proxy --
    -------------------
 
-   procedure Add_RAS_Proxy
+   procedure Add_RAS_Proxy_And_Analyze
      (Decls              :     List_Id;
       Vis_Decl           :     Node_Id;
       All_Calls_Remote_E :     Entity_Id;
@@ -2944,6 +2944,7 @@ package body Exp_Dist is
             Visible_Declarations => Vis_Decls,
             Private_Declarations => Pvt_Decls,
             End_Label            => Empty)));
+      Analyze (Last (Decls));
 
       Append_To (Decls,
         Make_Package_Body (Loc,
@@ -2958,8 +2959,9 @@ package body Exp_Dist is
               Handled_Statement_Sequence =>
                 Make_Handled_Sequence_Of_Statements (Loc,
                   Statements => New_List (Perform_Call))))));
+      Analyze (Last (Decls));
 
-   end Add_RAS_Proxy;
+   end Add_RAS_Proxy_And_Analyze;
 
    -----------------------------------------
    -- Add_Receiving_Stubs_To_Declarations --
@@ -3184,15 +3186,13 @@ package body Exp_Dist is
 
                --  Build RAS proxy
 
-               Add_RAS_Proxy (Decls,
+               Add_RAS_Proxy_And_Analyze (Decls,
                  Vis_Decl           =>
                    Current_Declaration,
                  All_Calls_Remote_E =>
                    All_Calls_Remote_E,
                  Proxy_Object_Addr  =>
                    Proxy_Object_Addr);
-               Analyze (Next (Current_Stubs));
-               Analyze (Next (Next (Current_Stubs)));
 
                --  Add subprogram descriptor (RCI_Subp_Info) to the
                --  subprograms table for this receiver. The aggregate
@@ -3570,24 +3570,6 @@ package body Exp_Dist is
       --  During the 2nd phase of analysis, the RPC receiver
       --  subprogram is constructed, and must be assigned into
       --  the Handler component of this object.
-
---        Make_Procedure_Specification (Loc,
---              Defining_Unit_Name       => Object_RPC_Receiver,
---              Parameter_Specifications => New_List (
---                Make_Parameter_Specification (Loc,
---                  Defining_Identifier => RPC_Receiver_Stream,
---                  Parameter_Type      =>
---                    Make_Access_Definition (Loc,
---                      Subtype_Mark =>
---                 New_Occurrence_Of (RTE (RE_Params_Stream_Type), Loc))),
-
---                Make_Parameter_Specification (Loc,
---                  Defining_Identifier => RPC_Receiver_Result,
---                  Parameter_Type      =>
---                    Make_Access_Definition (Loc,
---                      Subtype_Mark =>
---                        New_Occurrence_Of
---                          (RTE (RE_Params_Stream_Type), Loc))))));
 
       Append_To (Decls, Object_RPC_Receiver_Declaration);
    end Add_Stub_Type;
@@ -4253,21 +4235,6 @@ package body Exp_Dist is
               Parameter_Type      =>
                 New_Occurrence_Of (
                   RTE (RE_Request_Access), Loc))));
-
---          Make_Parameter_Specification (Loc,
---                Defining_Identifier => Stream_Parameter,
---                Parameter_Type      =>
---                  Make_Access_Definition (Loc,
---                    Subtype_Mark =>
---                      New_Occurrence_Of (RTE (RE_Params_Stream_Type), Loc))),
-
---              Make_Parameter_Specification (Loc,
---                Defining_Identifier => Result_Parameter,
---                Parameter_Type      =>
---                  Make_Access_Definition (Loc,
---                    Subtype_Mark =>
---                      New_Occurrence_Of
---                        (RTE (RE_Params_Stream_Type), Loc)))));
    end Build_RPC_Receiver_Specification;
 
    ------------------------------------
@@ -5799,6 +5766,10 @@ package body Exp_Dist is
       end if;
    end Remote_Types_Tagged_Full_View_Encountered;
 
+   ------------------------------------
+   -- Reserver_NamingContext_Methods --
+   ------------------------------------
+
    procedure Reserve_NamingContext_Methods is
       Str_Resolve : constant String := "resolve";
    begin
@@ -5821,6 +5792,10 @@ package body Exp_Dist is
 
       return Unit_Name;
    end Scope_Of_Spec;
+
+   ----------------------
+   -- Set_Renaming_TSS --
+   ----------------------
 
    procedure Set_Renaming_TSS
      (Typ     : Entity_Id;
@@ -5849,6 +5824,10 @@ package body Exp_Dist is
       end if;
       Set_TSS (Typ, Snam);
    end Set_Renaming_TSS;
+
+   --------------------------
+   -- Underlying_RACW_Type --
+   --------------------------
 
    function Underlying_RACW_Type
      (RAS_Typ : Entity_Id)
