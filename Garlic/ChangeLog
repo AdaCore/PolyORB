@@ -1,3 +1,7 @@
+Wed Feb 12 11:52:46 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-parint.ads: Reinstalled the kludge.
+
 Tue Feb 11 14:17:44 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-gartcp.adb: (Port_To_Network): New function.
