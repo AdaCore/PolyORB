@@ -156,6 +156,8 @@ package body PolyORB.References.Binding is
       end if;
 
       declare
+         use PolyORB.Objects;
+
          Selected_Profile : Profile_Access
            renames Profiles (Best_Profile_Index);
          OA : constant Obj_Adapter_Access
@@ -174,6 +176,11 @@ package body PolyORB.References.Binding is
             --  Local profile
 
             Object_Id := Get_Object_Key (Selected_Profile.all);
+
+            if Object_Id = null then
+               pragma Debug (O ("Unable to locate object"));
+               return;
+            end if;
 
             if not Is_Proxy_Oid (OA, Object_Id) then
                --  Real local object
