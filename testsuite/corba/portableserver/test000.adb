@@ -36,8 +36,6 @@
 
 --  XXX should test find_poa, POA self destruction
 
---  $Id$
-
 with Ada.Exceptions;
 with Ada.Text_IO;
 
