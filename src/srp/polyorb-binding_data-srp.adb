@@ -76,6 +76,7 @@ package body PolyORB.Binding_Data.SRP is
       BO_Ref  : out Smart_Pointers.Ref;
       Error   : out Exceptions.Error_Container)
    is
+      use PolyORB.Components;
       use PolyORB.Exceptions;
       use PolyORB.ORB;
       use PolyORB.Sockets;
