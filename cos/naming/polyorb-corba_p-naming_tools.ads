@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,18 +31,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  This package allows an object to be chosen either by its IOR or by
+--  its name in the naming service.
+
 --  $Id$
 
 with Ada.Finalization;
-with CORBA;
+
 with CORBA.Object;
-with CosNaming;
 with CosNaming.NamingContext;
 
 package PolyORB.CORBA_P.Naming_Tools is
-
-   --  This package allows an object to be chosen either by its IOR or by
-   --  its name in the naming service.
 
    function Locate
      (Name : CosNaming.Name)
