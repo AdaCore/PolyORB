@@ -129,7 +129,7 @@ package body System.PolyORB_Interface is
    pragma Warnings (Off, No_RCI_Info);
    --  Never assigned a value.
 
-   package Known_RCIs is new PolyORB.Dynamic_Dict (RCI_Info, No_RCI_Info);
+   package Known_RCIs is new PolyORB.Dynamic_Dict (RCI_Info);
    --  This list is keyed with the lowercased full names of the
    --  RCI units.
 
