@@ -149,14 +149,6 @@ AC_ARG_WITH(remsh,
 AC_SUBST(RSH)
 AC_MSG_RESULT($RSH)
 #
-# Checking whether s-gtplsp.adb exists for this platform
-#
-case ${PLATFORM_SPECIFIC} in
-  w) TCP_PLATFORM_SOURCE=s-gtplsp.adb;;
-  *) TCP_PLATFORM_SOURCE=s-gtplsp.ads;;
-esac
-AC_SUBST(TCP_PLATFORM_SOURCE)
-#
 # Protocol list
 #
 AC_ARG_WITH(protocols,
@@ -191,56 +183,48 @@ PROTOCOLSOBJECTS="\$(TCPOBJECTS)";
 TCP_INCLUDED=""
 AC_MSG_RESULT([tcp])
 ])
-if test "$TCP_INCLUDED" = ""; then
+if test -z "$TCP_INCLUDED"; then
   if test -f $srcdir/Garlic/5${PLATFORM_SPECIFIC}gtplsp.ads; then
-    cp $srcdir/Garlic/5${PLATFORM_SPECIFIC}gtplsp.ads \
-       $srcdir/Garlic/s-gtplsp.ads
+    S_GTPLSP_ADS="5${PLATFORM_SPECIFIC}gtplsp.ads";
   else
-    cp $srcdir/Garlic/5egtplsp.ads $srcdir/Garlic/s-gtplsp.ads
-  fi;
+    S_GTPLSP_ADS="5egtplsp.ads"
+  fi
   if test -f $srcdir/Garlic/5${PLATFORM_SPECIFIC}gtplsp.adb; then
-    cp $srcdir/Garlic/5${PLATFORM_SPECIFIC}gtplsp.adb \
-       $srcdir/Garlic/s-gtplsp.adb
+    S_GTPLSP_ADB="5${PLATFORM_SPECIFIC}gtplsp.adb"
+    TCP_PLATFORM_SOURCE="s-gtplsp.adb"
+  else
+    S_GTPLSP_ADB=""
+    TCP_PLATFORM_SOURCE="s-gtplsp.ads"
   fi;
-  AC_ARG_ENABLE(thread-blocking-io,
-  [  --enable-thread-blocking-io
-                          Turn on thread blocking io mode (default=test)],
+  AC_SUBST(S_GTPLSP_ADS)
+  AC_SUBST(S_GTPLSP_ADB)
+  AC_SUBST(TCP_PLATFORM_SOURCE)
+  AC_ARG_WITH(thread-blocking-io,
+  [  --with-thread-blocking-io
+                          Pretend that system has thread blocking I/Os],
   [
-   echo "with System.Garlic.Non_Blocking;"         >$srcdir/Garlic/s-gatcop.ads
-   echo "package System.Garlic.TCP.Operations"    >>$srcdir/Garlic/s-gatcop.ads
-   echo "   renames System.Garlic.Non_Blocking;"  >>$srcdir/Garlic/s-gatcop.ads
-   PROTOCOLSSOURCES="${PROTOCOLSSOURCES} \$(NOBLTCPSOURCES)"
-   PROTOCOLSOBJECTS="${PROTOCOLSOBJECTS} \$(NOBLTCPOBJECTS)"
+   if test "$withval" = "yes"; then
+     ISTHRBIO="yes"
+   elif test "$withval" = "no"; then
+     ISTHRBIO="no"
+   else
+     AC_MSG_ERROR([unknown value ${withval}])
+   fi
   ],
   [
-    ISTHRBIO="yes"
     if test "${PLATFORM_SPECIFIC}" = "w"; then
-      AC_MSG_CHECKING([for thread-blocking I/O])
-      echo "with System.Garlic.Thin;"              >$srcdir/Garlic/s-gatcop.ads
-      echo "package System.Garlic.TCP.Operations" >>$srcdir/Garlic/s-gatcop.ads
-      echo "   renames System.Garlic.Thin;"       >>$srcdir/Garlic/s-gatcop.ads
-   else
-      AC_MSG_CHECKING([for thread-blocking I/O (long)])
-      ${ADA} -c -gnatg $srcdir/Garlic/${TCP_PLATFORM_SOURCE} -I$srcdir/Garlic;
-      ${ADA} -c -gnatg $srcdir/Garlic/s-garlic.ads -I$srcdir/Garlic;
-      ${ADA} -c -gnatg $srcdir/Garlic/s-garthi.ads -I$srcdir/Garlic;
-      ${GNATMAKE} -q -m isthrbio.adb -I$srcdir/Garlic -bargs -t;
-      if ./isthrbio${EXEEXT} Garlic/s-gatcop.ads; then
-        ISTHRBIO="no"
-      fi
-    fi
-    if test "${ISTHRBIO}" = "no"; then
-	AC_MSG_RESULT([no])
-	PROTOCOLSSOURCES="${PROTOCOLSSOURCES} \$(NOBLTCPSOURCES)"
-	PROTOCOLSOBJECTS="${PROTOCOLSOBJECTS} \$(NOBLTCPOBJECTS)"
+      ISTHRBIO="yes"
     else
-	AC_MSG_RESULT([yes])
+      ISTHRBIO="test"
     fi
   ])
+ PROTOCOLSSOURCES="${PROTOCOLSSOURCES} \$(NOBLTCPSOURCES)"
+ PROTOCOLSOBJECTS="${PROTOCOLSOBJECTS} \$(NOBLTCPOBJECTS)"
 fi
 AC_SUBST(PROTOCOLSSOURCES)
 AC_SUBST(PROTOCOLSOBJECTS)
 AC_SUBST(TCP_INCLUDED)
+AC_SUBST(ISTHRBIO)
 #
 # Filter list
 #

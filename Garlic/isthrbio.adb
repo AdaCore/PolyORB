@@ -33,14 +33,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Command_Line;   use Ada.Command_Line;
-with Ada.Text_IO;        use Ada.Text_IO;
 with GNAT.OS_Lib;        use GNAT.OS_Lib;
 with Interfaces.C;       use Interfaces.C;
 with System.Garlic.Thin; use System.Garlic.Thin;
 
 with System.Garlic.TCP_Platform_Specific;
-use System.Garlic.TCP_Platform_Specific;
+pragma Warnings (Off, System.Garlic.TCP_Platform_Specific);
 
 --  Is Thread Blocking IO
 
@@ -56,7 +54,6 @@ procedure IsThrBIO is
    Result  : int;
    Input   : constant Fd_Set_Access  := new Fd_Set'(0);
    Timeout : constant Timeval_Access := new Timeval'(1, 0);
-   File    : File_Type;
 
    ------------
    -- A_Task --
@@ -84,19 +81,6 @@ begin
    A_Task.Start;
    Result := C_Select (1, Input, null, null, Timeout);
    A_Task.Stop;
-   Create (File, Out_File, Argument (1));
-   if Process_Blocking_IO then
-      Put_Line (File, "with System.Garlic.Non_Blocking;");
-   else
-      Put_Line (File, "with System.Garlic.Thin;");
-   end if;
-   Put (File, "package System.Garlic.TCP.Operations renames ");
-   if Process_Blocking_IO then
-      Put_Line (File, "System.Garlic.Non_Blocking;");
-   else
-      Put_Line (File, "System.Garlic.Thin;");
-   end if;
-   Close (File);
    if Process_Blocking_IO then
       OS_Exit (0);
    else

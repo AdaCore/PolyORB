@@ -1,3 +1,22 @@
+1998-10-20  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* isthrbio.adb: Do not require the package name to be created on
+	the command line, since no file is being created.
+
+	* Makefile.am: Do not explicitely substitute variables that will
+ 	be substituted by automake anyway. Copy s-gtplsp.ad[bs] from its
+	origin (see configure.in checkin).
+	Call isthrbio at build time rather than at configure time.
+	Remove Makefile.fil which was not removed at distclean time.
+	Add -I${srcdir} to linktest to fix another VPATH bug.
+
+1998-10-19  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* Makefile.am (DISTCLEANFILES): Add s-gatcop.ads.
+
+	* s-ganobl.adb: Set accepted socket to asynchronous and
+	non-blocking mode.
+
 1998-10-16  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garpar.adb: Implement a distributed PID allocator using the
@@ -25,8 +44,6 @@
 1998-10-16  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* All files: Update headers.
-
-	* Makefile.am (DISTCLEANFILES): Add s-gatcop.ads.
 
 1998-10-15  Laurent Pautet  <pautet@scapin.enst.fr>
 

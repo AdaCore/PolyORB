@@ -1,3 +1,12 @@
+1998-10-20  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Makefile.am: No need to clean isthrbio and friends anymore since 
+	this program is no more built here.
+
+	* configure.in: Do not create any file in the ${srcdir}. Fixes
+	several VPATH-related bugs.
+	Do not call isthrbio at build time (causes dependency problems).
+
 1998-10-16  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* MANIFEST: Add ada/stylesw.ad[bs] to the distribution.

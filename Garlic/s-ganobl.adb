@@ -446,14 +446,17 @@ package body System.Garlic.Non_Blocking is
       Addrlen : access int)
      return int
    is
-      Dummy    : int;
-      Dummy_CP : chars_ptr := Null_Ptr;
+      Dummy     : int;
+      Dummy_CP  : chars_ptr := Null_Ptr;
+      Return_FD : int;
    begin
       Set_Asynchronous_Non_Blocking (S);
       pragma Debug (D (D_Debug, "Blocking until something to accept"));
       Asynchronous.Recv (S) (Dummy_CP, 0, 0, Dummy);
       pragma Debug (D (D_Debug, "There is something to accept"));
-      return Thin.C_Accept (S, Addr, Addrlen);
+      Return_FD := Thin.C_Accept (S, Addr, Addrlen);
+      Set_Asynchronous_Non_Blocking (Return_FD);
+      return Return_FD;
    end C_Accept;
 
    -------------

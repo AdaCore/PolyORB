@@ -5,28 +5,19 @@
 AUTOMAKE_OPTIONS = no-dependencies foreign
 
 ADA_FOR_TARGET = @ADA_FOR_TARGET@
-SED            = @SED@
-RANLIB         = @RANLIB@
 
 CONSTANTS_SH = ${srcdir}/constants.sh
 CP           = cp
-CP_PRESERVE  = @CP_PRESERVE@
 GARLIC       = ${prefix}/lib/garlic
 GNATFLAGS    = -gnatg @GNATFLAGS@
 INCFLAGS     = -I. -I${srcdir}
-
-LINKTEST     = @LINKTEST@
 
 GNATMAKE     = gnatmake
 GNATBIND     = gnatbind
 
 PLATFORM            = @PLATFORM_SPECIFIC@
 
-TCP_PLATFORM_SOURCE = @TCP_PLATFORM_SOURCE@
-
 CONSTANTS_PLATFORM  = ${srcdir}/5${PLATFORM}garcon.ads
-
-EXTRA_LIBS = @EXTRA_LIBS@
 
 LAUNCHINGOBJECTS = \
 s-gaplsp.o\
@@ -96,7 +87,7 @@ s-rpstio.o\
 s-stratt.o
 
 COMMONSOURCES = \
-${srcdir}/s-galiop.ads \
+          s-galiop.ads                        \
 ${srcdir}/s-galite.ads ${srcdir}/s-galite.adb \
 ${srcdir}/s-ganeut.ads ${srcdir}/s-ganeut.adb \
 ${srcdir}/s-gaphlo.ads ${srcdir}/s-gaphlo.adb \
@@ -150,11 +141,17 @@ $(COMMONSOURCES)
 
 CLEANFILES = *.ali s-garcon.ads *.o s-gaprco.adb s-galiop.ads\
 	s-garser.adb s-gaplsp.ads $(FILTERSOBJECTS) split s-rpcdum.ads\
-	inlining gnatlib/* constants_nodef linktest
+	inlining gnatlib/* constants_nodef\
+	b_*.c isthrbio${EXEEXT}
 
-DISTCLEANFILES = config.h Garlic/s-gatcop.ads
+DISTCLEANFILES = config.h s-gtplsp.ads ${TCP_PLATFORM_SOURCE} s-gatcop.ads \
+	Makefile.fil
 
 SUFFIXES = .adb .ads .ali .o .xrb
+
+isthrbio${EXEEXT}: ${srcdir}/isthrbio.adb Makefile ${TCP_PLATFORM_SOURCE}
+	${GNATMAKE} -a ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} -I${srcdir} -I. \
+		${srcdir}/isthrbio.adb
 
 s-gtplsp.o: ${TCP_PLATFORM_SOURCE}
 	${ADA_FOR_TARGET} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} \
@@ -194,6 +191,42 @@ s-galiop.ads:
 	fi
 	@echo "" >>s-galiop.ads
 	@echo "end System.Garlic.Linker_Options;" >>s-galiop.ads
+
+# This one deserves some comment: the Makefile variable ISTHRBIO will
+# be used to set the shell variable of the same name, whose value will
+# in turn be used to create the s-gatcop.ads file. Modifying a shell
+# variable implies that the whole rule stays in a single shell
+# statement, hence the backslashed lines.
+
+s-gatcop.ads: Makefile
+	if test ${ISTHRBIO} = "test"; then \
+	  $(MAKE) isthrbio${EXEEXT}; \
+	  if ./isthrbio; then \
+	    ISTHRBIO="no"; \
+	  else \
+	    ISTHRBIO="yes"; \
+	  fi; \
+        else \
+	  ISTHRBIO=${ISTHRBIO}; \
+	fi; \
+	if test $$ISTHRBIO = "yes"; then \
+	  S_GATCOP_SUBST="System.Garlic.Thin"; \
+	else \
+	  S_GATCOP_SUBST="System.Garlic.Non_Blocking"; \
+	fi; \
+	echo "with $$S_GATCOP_SUBST;" > s-gatcop.ads; \
+	echo "package System.Garlic.TCP.Operations" >> s-gatcop.ads; \
+	echo "  renames $$S_GATCOP_SUBST;" >> s-gatcop.ads
+
+s-gatcop.o: ${srcdir}/s-garthi.ads ${srcdir}/s-ganobl.adb
+
+${TCP_PLATFORM_SOURCE}: ${S_GTPLSP_ADS} ${S_GTPLSP_ADB}
+	cp ${srcdir}/${S_GTPLSP_ADS} s-gtplsp.ads
+	@if test -n "${S_GTPLSP_ADB}"; then \
+	  cp ${srcdir}/${S_GTPLSP_ADB} s-gtplsp.adb; \
+	fi
+
+${S_GTPLSP_ADS}: ${S_GTPLSP_ADB}
 
 split: ${srcdir}/split.adb
 	$(GNATMAKE) -m -o split ${srcdir}/split.adb
@@ -250,7 +283,7 @@ inlining: all-local
 
 linktest: ${srcdir}/linktest.adb ${OBJECTS}
 	${GNATMAKE} -c -a -m -I${srcdir} -I. ${srcdir}/linktest.adb
-	${GNATBIND} ${srcdir}/linktest.ali -I.
+	${GNATBIND} ${srcdir}/linktest.ali -I. -I${srcdir}
 
 install-extra-libs: ${FILTERINSTALL} inlining
 
