@@ -12,3 +12,5 @@
 --  INCLUDE: polyorb-tasking-profiles-ravenscar-threads.adb
 
 pragma Profile (Ravenscar);
+--  WAG:3.4.1
+--  pragma Profile (Ravenscar);
