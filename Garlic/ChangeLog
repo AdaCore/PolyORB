@@ -1,3 +1,7 @@
+Thu Feb  6 16:45:34 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* constants.sh: Replaced gnatk8 by gnatkr.
+
 Wed Feb  5 18:58:18 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-gartcp.adb: Removed every ATC in the TCP module by using 4

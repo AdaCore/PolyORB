@@ -8,7 +8,7 @@
 # Name of package
 
 name=$1
-fname=`gnatk8 ${name}`.ads
+fname=`gnatkr ${name}`.ads
 
 # List of include files to look for (from /usr/include)
 
