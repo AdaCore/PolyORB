@@ -28,10 +28,56 @@ procedure Client is
    IOR : Corba.String ;
    MyAll_Types : All_Types.Ref ;
 
+   ----------------------------
+   -- Some display functions --
+   ----------------------------
+
+   procedure Put (Str : in Simple_Struct) is
+   begin
+      Put ("( a = (" & Corba.Long'Image(Str.A(0)));
+      for I in 1 .. 9 loop
+         Put ("," & Corba.Long'Image(Str.A(I))) ;
+      end loop ;
+      Put (" ) and b = " & Corba.Long'Image(Str.B)) ;
+      Put (" )") ;
+   end;
+
+   procedure Put (Ex : in Example) is
+   begin
+      Put ("( switch = " &
+           Corba.Long'Image(Ex.Switch) &
+           " and") ;
+      case Ex.Switch is
+         when 1 => Put (" Counter = " & Corba.Long'Image(Ex.Counter)) ;
+         when 2 => Put (" Flags = " & Corba.Boolean'Image(Ex.Flags)) ;
+         when others => Put (" Unknown = " & Corba.Long'Image(Ex.Unknown)) ;
+      end case ;
+      Put (" )") ;
+   end;
+
+   procedure Put (Seq : in U_Sequence) is
+   begin
+      for I in 1..Length(Seq) loop
+         Put (" " & Corba.Short'Image(Element_Of(Seq,I))) ;
+      end loop ;
+   end ;
+
+   procedure Put (Seq : in B_Sequence) is
+   begin
+      for I in 1..Length(Seq) loop
+         Put (" " & Corba.Long'Image(Element_Of(Seq,I))) ;
+      end loop ;
+   end ;
+
+   procedure Put (St : in Corba.String) is
+   begin
+      Put (Corba.To_Standard_String(St)) ;
+   end ;
+
+
 begin
 
    Put_Line("main : Starting client") ;
-
 
    if Ada.Command_Line.Argument_Count < 1 then
       Put_Line ("usage : client <IOR_string_from_server>") ;
@@ -60,8 +106,12 @@ begin
    Put_Line ("") ;
    Put_Line ("") ;
 
-   -- simple types
 
+   ------------------
+   -- simple types --
+   ------------------
+
+   -- Boolean
    declare
       Arg : Corba.Boolean := True ;
    begin
@@ -73,6 +123,7 @@ begin
    Put_Line("") ;
    end ;
 
+   -- Short
    declare
       Arg : Corba.Short := 123 ;
    begin
@@ -84,6 +135,7 @@ begin
    Put_Line("") ;
    end ;
 
+   -- Long
    declare
       Arg : Corba.Long := 456 ;
    begin
@@ -95,6 +147,7 @@ begin
    Put_Line("") ;
    end ;
 
+   -- unsigned_short
    declare
       Arg : Corba.Unsigned_Short := 123 ;
    begin
@@ -106,6 +159,7 @@ begin
    Put_Line("") ;
    end ;
 
+   -- unsigned_long
    declare
       Arg : Corba.Unsigned_Long := 123 ;
    begin
@@ -117,6 +171,7 @@ begin
    Put_Line("") ;
    end ;
 
+   -- float
    declare
       Arg : Corba.Float := 1.5 ;
    begin
@@ -128,6 +183,7 @@ begin
    Put_Line("") ;
    end ;
 
+   -- double
    declare
       Arg : Corba.Double := 3.14 ;
    begin
@@ -139,6 +195,7 @@ begin
    Put_Line("") ;
    end ;
 
+   -- char
    declare
       Arg : Corba.Char := 'A' ;
    begin
@@ -150,6 +207,7 @@ begin
    Put_Line("") ;
    end ;
 
+   -- octet
    declare
       Arg : Corba.Octet := Corba.Octet(5) ;
    begin
@@ -161,6 +219,7 @@ begin
    Put_Line("") ;
    end ;
 
+   -- string
    declare
       Arg : Corba.String := Corba.To_Corba_String("Hello world");
    begin
@@ -172,10 +231,13 @@ begin
    Put_Line("") ;
    end ;
 
-   -- complex types
 
 
-   -- Test of the simple exception
+   -------------------
+   -- complex types --
+   -------------------
+
+   -- simple exception
    declare
    begin
       Put_Line ("####### Test of exception #######") ;
@@ -189,7 +251,7 @@ begin
    Put_Line ("") ;
    Put_Line ("") ;
 
-   --  Test of the complexe exception
+   -- complexe exception
    declare
       Member : Complexe_Exception_Members ;
    begin
@@ -207,55 +269,41 @@ begin
    Put_Line ("") ;
    Put_Line ("") ;
 
-   -- Test of Union
+   -- Union
    declare
       Ex,Ex2 : Example := (Switch => 2, Flags => True) ;
    begin
       Put_Line ("####### Test of union #######") ;
-      Put ("I send the union switch = " &
-           Corba.Long'Image(Ex.Switch) &
-           " and") ;
-      case Ex.Switch is
-         when 1 => Put_Line (" Counter = " & Corba.Long'Image(Ex.Counter)) ;
-         when 2 => Put_Line (" Flags = " & Corba.Boolean'Image(Ex.Flags)) ;
-         when others => Put_Line (" Unknown = " & Corba.Long'Image(Ex.Unknown)) ;
-      end case ;
-      Ex2 := Echo1 (MyAll_Types,Ex);
-      Put ("I received the union switch = " &
-           Corba.Long'Image(Ex2.Switch) &
-           " and") ;
-      case Ex.Switch is
-         when 1 => Put_Line (" Counter = " & Corba.Long'Image(Ex2.Counter)) ;
-         when 2 => Put_Line (" Flags = " & Corba.Boolean'Image(Ex2.Flags)) ;
-         when others => Put_Line (" Unknown = " & Corba.Long'Image(Ex2.Unknown)) ;
-      end case ;
+      Put ("I send the union ");
+      Put (Ex) ;
+      Put_Line ("") ;
+      Ex2 := Echo1 (MyAll_Types,Ex) ;
+      Put ("I received the union ") ;
+      Put (Ex2) ;
+      Put_Line ("") ;
    end ;
 
    Put_Line ("") ;
    Put_Line ("") ;
 
-   -- Test of struct
+   -- struct
    declare
       Str,Str2 : Simple_Struct := (A => (0,1,2,3,4,5,6,7,8,9), B => 10) ;
    begin
       Put_Line ("####### Test of struct #######") ;
-      Put ("I send the simple_struct a = (" & Corba.Long'Image(Str.A(0)));
-      for I in 1 .. 9 loop
-         Put ("," & Corba.Long'Image(Str.A(I))) ;
-      end loop ;
-      Put_Line (" and b = " & Corba.Long'Image(Str.B)) ;
+      Put ("I send the simple_struct ");
+      Put (Str) ;
+      Put_Line ("") ;
       str2 := echo2 (MyAll_Types,str) ;
-      Put ("I received the simple_struct a = (" & Corba.Long'Image(Str2.A(0))) ;
-      for I in 1 .. 9 loop
-         Put ("," & Corba.Long'Image(Str2.A(I))) ;
-      end loop ;
-      Put_Line (" and b = " & Corba.Long'Image(Str2.B)) ;
+      Put ("I received the simple_struct ");
+      Put (Str2) ;
+      Put_Line ("") ;
    end ;
 
    Put_Line ("") ;
    Put_Line ("") ;
 
-   -- Test of enum
+   -- enum
    declare
       En,En2 : Color := Blue ;
    begin
@@ -268,7 +316,7 @@ begin
    Put_Line ("") ;
    Put_Line ("") ;
 
-   -- Test of unbounded strings
+   -- unbounded strings
    declare
       Str,Str2 : U_String := U_String(Corba.To_Corba_String("Hello Adabroker !!!")) ;
    begin
@@ -283,51 +331,43 @@ begin
    Put_Line ("") ;
    Put_Line ("") ;
 
-   -- Test of unbounded sequences
+   -- unbounded sequences
    declare
       Seq,Seq2 : U_Sequence := U_Sequence (IDL_SEQUENCE_Short.Null_Sequence) ;
    begin
       Seq := Seq & 1 & 2 & 3 & 4 & 5 ;
       Put_Line ("####### Test of the unbounded sequences #######") ;
       Put ("I send the unbounded sequence") ;
-      for I in 1..Length(Seq) loop
-         Put (" " & Corba.Short'Image(Element_Of(Seq,I))) ;
-      end loop ;
+      Put (Seq) ;
       Put_Line ("");
       Put ("I received the unbounded sequence") ;
       Seq2 := Echo6 (MyAll_Types,Seq) ;
-      for I in 1..Length(Seq2) loop
-         Put (" " & Corba.Short'Image(Element_Of(Seq2,I))) ;
-      end loop ;
+      Put (Seq2) ;
       Put_Line("") ;
    end;
 
    Put_Line ("") ;
    Put_Line ("") ;
 
-   -- Test of bounded sequences
+   -- bounded sequences
    declare
       Seq,Seq2 : B_Sequence := B_Sequence (IDL_SEQUENCE_Long_1.Null_Sequence) ;
    begin
       Seq := Seq & 1 & 2 & 3 & 4 & 5 ;
       Put_Line ("####### Test of the bounded sequences #######") ;
       Put ("I send the bounded sequence") ;
-      for I in 1..Length(Seq) loop
-         Put (" " & Corba.Long'Image(Element_Of(Seq,I))) ;
-      end loop ;
+      Put (Seq) ;
       Put_Line("") ;
       Put ("I received the unbounded sequence") ;
       Seq2 := Echo7 (MyAll_Types,Seq) ;
-      for I in 1..Length(Seq2) loop
-         Put (" " & Corba.Long'Image(Element_Of(Seq2,I))) ;
-      end Loop ;
+      Put (Seq2) ;
       Put_Line("") ;
    end ;
 
    Put_Line ("");
    Put_Line ("");
 
-   -- Test of readonly attributes
+   -- readonly attributes
    declare
    begin
       Put_Line ("####### Test of readonly attribute #######") ;
@@ -338,65 +378,37 @@ begin
    Put_Line ("");
    Put_Line ("");
 
-   -- Test of readonly attributes
-   declare
-   begin
-      Put_Line ("####### Test of readonly attribute #######") ;
-      Put_Line ("The value of this readonly attribute is " &
-                Color'Image(Get_R_Attribute(MyAll_Types))) ;
-   end ;
 
-   Put_Line ("");
-   Put_Line ("");
-
-   -- Test of attributes
+   -- attributes
    declare
       Ex,Ex2 : Example ;
       Ex3 : Example := (Switch => 2, Flags => True) ;
    begin
       Put_Line ("####### Test of attribute #######") ;
       Ex := Get_N_Attribute (MyAll_Types) ;
-      Put ("The value of this attribute is switch = "
-           & Corba.Long'Image(Ex.Switch) & " and") ;
-      case Ex.Switch is
-         when 1 => Put_Line (" Counter = " & Corba.Long'Image(Ex.Counter)) ;
-         when 2 => Put_Line (" Flags = " & Corba.Boolean'Image(Ex.Flags)) ;
-         when others => Put_Line (" Unknown = " & Corba.Long'Image(Ex.Unknown)) ;
-      end case ;
-      Put_Line ("I can force it to (Switch => 2, Flags => True)") ;
+      Put ("The value of this attribute is ");
+      Put (Ex) ;
+      Put_Line ("");
+      Put ("I can force it to ");
+      Put (Ex3) ;
+      Put_Line ("");
       Set_N_Attribute (MyAll_Types,Ex3) ;
       Ex2 := Get_N_Attribute (MyAll_Types) ;
-      Put ("Now, the value of this attribute is switch = "
-           & Corba.Long'Image(Ex2.Switch) & " and") ;
-      case Ex2.Switch is
-         when 1 => Put_Line (" Counter = " & Corba.Long'Image(Ex2.Counter)) ;
-         when 2 => Put_Line (" Flags = " & Corba.Boolean'Image(Ex2.Flags)) ;
-         when others => Put_Line (" Unknown = " & Corba.Long'Image(Ex2.Unknown)) ;
-      end case ;
+      Put ("Now, the value of this attribute is ") ;
+      Put(Ex2) ;
+      Put_Line ("");
    end ;
 
    Put_Line ("");
    Put_Line ("");
 
-   -- Test of arrays
+   -- arrays
    declare
       Ex1 : Example := (Switch => 1, Counter => 19) ;
       Ex2 : Example := (Switch => 2, Flags => True) ;
       Ex3 : Example := (Switch => 3, Unknown => 25) ;
       Ar1 : All_Types.Line := (Ex1, Ex2, Ex3) ;
       Ar2 : All_Types.Line ;
-
-      procedure Put (Ex : in Example) is
-      begin
-         Put ("switch = " &
-              Corba.Long'Image(Ex.Switch) &
-              " and") ;
-         case Ex.Switch is
-            when 1 => Put (" Counter = " & Corba.Long'Image(Ex.Counter)) ;
-            when 2 => Put (" Flags = " & Corba.Boolean'Image(Ex.Flags)) ;
-            when others => Put (" Unknown = " & Corba.Long'Image(Ex.Unknown)) ;
-         end case ;
-      end;
 
       procedure Put (Ar : in All_Types.Line) is
       begin
@@ -424,7 +436,7 @@ begin
    Put_Line ("");
    Put_Line ("");
 
-   -- Test of arrays (2)
+   -- arrays (2)
    declare
       S1 : Simple_struct := (A => (0,1,2,3,4,5,6,7,8,9), B=> 23) ;
       S2 : Simple_struct := (A => (9,8,7,6,5,4,3,2,1,0), B=> 17) ;
@@ -432,15 +444,6 @@ begin
       S4 : Simple_struct := (A => (9,8,7,6,5,4,3,2,1,0), B=> 17) ;
       Ar1 : Square := ((S1, S2), (S3, S4)) ;
       Ar2 : Square ;
-
-      procedure Put (Str : in Simple_Struct) is
-      begin
-         Put ("a = (" & Corba.Long'Image(Str.A(0)));
-         for I in 1 .. 9 loop
-            Put ("," & Corba.Long'Image(Str.A(I))) ;
-         end loop ;
-         Put (" and b = " & Corba.Long'Image(Str.B)) ;
-      end;
 
       procedure Put (Ar : in square) is
       begin
@@ -465,6 +468,61 @@ begin
       Put (Ar1) ;
 
       Ar2 := Echo9 (MyAll_Types,Ar1) ;
+      Put_Line ("I received the array :");
+      Put (Ar2) ;
+   end ;
+
+   Put_Line ("");
+   Put_Line ("");
+
+   -- arrays (3)
+   declare
+      S1 : Corba.string := Corba.To_Corba_String("case1") ;
+      S2 : Corba.string := Corba.To_Corba_String("case2") ;
+      S3 : Corba.string := Corba.To_Corba_String("case3") ;
+      S4 : Corba.string := Corba.To_Corba_String("case4") ;
+      S5 : Corba.string := Corba.To_Corba_String("case5") ;
+      S6 : Corba.string := Corba.To_Corba_String("case6") ;
+      S7 : Corba.string := Corba.To_Corba_String("case7") ;
+      S8 : Corba.string := Corba.To_Corba_String("case8") ;
+      Ar1 : cube := (((S1, S2), (S3, S4)), ((S5, S6), (S7, S8))) ;
+      Ar2 : cube ;
+
+      procedure Put (Ar : in cube) is
+      begin
+         Put ("   ( ");
+         Put ("(0,0,0) => ");
+         Put (Ar(0,0,0));
+         Put_Line (", ");
+         Put ("     (0,1,0) => ");
+         Put (Ar(0,1,0));
+         Put_Line (", ");
+         Put ("     (1,0,0) => ");
+         Put (Ar(1,0,0));
+         Put_Line (", ");
+         Put ("     (1,1,0) => ");
+         Put (Ar(1,1,0));
+         Put_Line (", ");
+         Put ("     (0,0,1) => ");
+         Put (Ar(0,0,1));
+         Put_Line (", ");
+         Put ("     (0,1,1) => ");
+         Put (Ar(0,1,1));
+         Put_Line (", ");
+         Put ("     (1,0,1) => ");
+         Put (Ar(1,0,1));
+         Put_Line (", ");
+         Put ("     (1,1,1) => ");
+         Put (Ar(1,1,1));
+         Put_Line (" )");
+      end ;
+
+   begin
+      Put_Line ("####### Test of arrays (3) #######") ;
+      Put_Line ("I send the array :");
+      Put (Ar1) ;
+
+      Ar2 := Echo10 (MyAll_Types,Ar1) ;
       Put_Line ("I received the array :");
       Put (Ar2) ;
    end ;
