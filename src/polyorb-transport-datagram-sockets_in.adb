@@ -229,9 +229,9 @@ package body PolyORB.Transport.Datagram.Sockets_In is
       TE.Socket := No_Socket;
    end Close;
 
-   ----------------------
-   -- Create_End_Point --
-   ----------------------
+   ---------------------
+   -- Create_Endpoint --
+   ---------------------
 
    function Create_Endpoint
      (TAP : access Socket_In_Access_Point)
