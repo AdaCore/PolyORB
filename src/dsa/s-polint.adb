@@ -80,6 +80,7 @@ with PolyORB.Utils.Strings.Lists;
 with PolyORB.POA.Basic_POA;
 with PolyORB.POA_Config.Minimum;
 with PolyORB.POA_Manager;
+with PolyORB.Setup.Proxies_POA;
 
 package body System.PolyORB_Interface is
 
@@ -619,6 +620,8 @@ package body System.PolyORB_Interface is
       POA_Manager.Activate
         (POA_Manager.POAManager_Access
            (POA_Manager.Entity_Of (Root_POA_Object.POA_Manager)));
+
+      PolyORB.Setup.Proxies_POA (Root_POA_Object);
 
       pragma Debug (O ("Initializing DSA library units"));
       It := First (All_Receiving_Stubs);

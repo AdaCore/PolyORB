@@ -4,7 +4,7 @@ EXAMPLE = bbs
 
 DSA_SRC=$(srcdir)/../../src/dsa
 
-ir_exe=ir_evolutedp
+ir_exe=ir_evolutedp ir_serverp
 corba_exe=evolutedp_corba
 #corba_exe=
 dsa_exe=simplep evolutedp serverp
@@ -14,6 +14,7 @@ EXAMPLE_GNATMAKE_FLAGS=-I$(srcdir) -I$(DSA_SRC) -O0
 simplep_FLAGS=		-Aclient.stubs
 evolutedp_FLAGS=	-Aclient.stubs
 serverp_FLAGS=		-Aserver.stubs
+ir_serverp_FLAGS=	-Aserver.stubs
 
 s-polint.ali: $(DSA_SRC)/s-polint.ads $(DSA_SRC)/s-polint.adb
 	$(GNATMAKE_FOR_TARGET) -a -c $(DSA_SRC)/s-polint.adb $(GNATMAKE_FLAGS)
