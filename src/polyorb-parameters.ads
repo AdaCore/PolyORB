@@ -39,14 +39,6 @@ package PolyORB.Parameters is
 
    pragma Elaborate_Body;
 
-   ---------------------------------------------
-   -- Operations related to the [environment] --
-   -- configuration section.                  --
-   ---------------------------------------------
-
-   Environment_Configuration_Section : constant String
-     := "environment";
-
    procedure Set_Hooks;
    --  Set Get_Conf hooks in units that need to access parameters
    --  but cannot depend on this package.
