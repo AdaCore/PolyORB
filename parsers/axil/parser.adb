@@ -1,9 +1,9 @@
+with ErrorMsg;   use ErrorMsg;
+with Errors;     use Errors;
 with Lexer;      use Lexer;
 with Locations;  use Locations;
-with Namet;      use Namet;
 with Nodes;      use Nodes;
 with Nutils;     use Nutils;
-with Output;     use Output;
 with Types;      use Types;
 
 package body Parser is
@@ -27,15 +27,10 @@ package body Parser is
    --  Add all package items of S into D (i.e. all items and properties)
    --  S and D are K_Package_Items type
 
-   procedure Display_Error_Current_Token (S : String);
-   procedure DECT (S : String) renames Display_Error_Current_Token;
-   --  Display output error message S and image of the current token
-   --  No processing of  meta-character !
-   --  This procedure takes some informations of current token to complete
-   --  the error message
-
    function P_AADL_Declaration return Node_Id;
    function P_AADL_Specification return Node_Id;
+
+   function P_Annex_Specification return Node_Id;
 
    function P_Component return Node_Id;
    --  Parse Component_Type, Component_Type_Extension
@@ -53,13 +48,20 @@ package body Parser is
                            return Boolean;
    --  Parse { Identifier Delimiter } * Identifier
    --  Parsed identifiers is added into list L
-   --  Retrun TRUE if no error
+   --  Return TRUE if no error
+
+   function P_None_Statement return Boolean;
+   --  Parse " none ; ", this function does NOT return a Node_Id because
+   --  no useful data will be retrieved
+   --  Return TRUE if the reserved word 'none' is followed by a ';'
 
    function P_Package_Items return Node_Id;
    function P_Package_Specification return Node_Id;
    function P_Port_Group return Node_Id;
+   function P_Property_Association return Node_Id;
    function P_Property_Set return Node_Id;
    function P_System_Instance return Node_Id;
+
 
    -----------------------
    -- Add_Package_Items --
@@ -71,20 +73,110 @@ package body Parser is
       Append_Node_To_List (First_Node (Properties (S)), Properties (D));
    end Add_Package_Items;
 
-   ---------------------------------
-   -- Display_Error_Current_Token --
-   ---------------------------------
+   ------------------------
+   -- P_AADL_Declaration --
+   ------------------------
 
-   procedure Display_Error_Current_Token (S : String) is
+   --  AADL_declaration ::= component_classifier | package_spec |
+   --                       port_group_type | port_group_type_extension |
+   --                       system_instance | property_set
+
+   --  component_classifier          begins with 'component'
+   --  package_spec                  begins with 'package'
+   --  port_group_type               begins with 'port type'
+   --  port_group_type_extension     begins with 'port type'
+   --  system_instance               begins with an identifier
+   --  property_set                  begins with 'property set'
+
+   function P_AADL_Declaration return Node_Id is
+      Declaration : Node_Id := No_Node;
+      Loc         : Location;
+
    begin
-      Set_Str_To_Name_Buffer (Image (Token_Location));
-      Add_Str_To_Name_Buffer (": ");
-      Add_Str_To_Name_Buffer (S);
-      Add_Str_To_Name_Buffer (Image_Current_Token);
-      Set_Standard_Error;
-      Write_Line (Name_Buffer (1 .. Name_Len));
-      Set_Standard_Output;
-   end Display_Error_Current_Token;
+      Save_Lexer (Loc);
+      Scan_Token;
+
+      case Token is
+         when T_Component =>
+            Declaration := P_Component;
+
+         when T_Package =>
+            Declaration := P_Package_Specification;
+
+         when T_Port =>
+            Scan_Token;
+            if Token = T_Group then
+               Declaration := P_Port_Group;
+            else
+               DPE (PC_Port_Group, T_Group);
+               Restore_Lexer (Loc);
+               return No_Node;  --  OPT: ignore ---> ';'
+            end if;
+
+         when T_Property =>
+            Scan_Token;
+            if Token = T_Set then
+               Declaration := P_Property_Set;
+            else
+               DPE (PC_Property_Set, T_Set);
+               Restore_Lexer (Loc);
+               return No_Node;  --  OPT: ignore ---> ';'
+            end if;
+
+         when T_Identifier =>
+            Declaration := P_System_Instance;
+
+         when others =>
+            DPE (PC_AADL_Declaration);
+      end case;
+
+      return Declaration;
+   end P_AADL_Declaration;
+
+   --------------------------
+   -- P_AADL_Specification --
+   --------------------------
+
+   --  AADL_specification ::= { AADL_declaration } +
+
+   function P_AADL_Specification return Node_Id is
+      Declarations    : List_Id;
+      Declaration     : Node_Id;
+
+   begin
+      Declarations := New_List (K_AADL_Declaration_List, Token_Location);
+
+      loop
+         exit when End_Of_File;
+         Declaration := P_AADL_Declaration;
+         if Present (Declaration) then
+            Append_Node_To_List (Declaration, Declarations);
+         end if;
+      end loop;
+
+      Specification := New_Node (K_AADL_Specification, Token_Location);
+      Set_Declarations (Specification, Declarations);
+
+      return Specification;
+   end P_AADL_Specification;
+
+   ---------------------------
+   -- P_Annex_Specification --
+   ---------------------------
+
+   function P_Annex_Specification return Node_Id is
+   begin
+      return No_Node;
+   end P_Annex_Specification;
+
+   -----------------
+   -- P_Component --
+   -----------------
+
+   function P_Component return Node_Id is
+   begin
+      return No_Node;
+   end P_Component;
 
    ----------------------------
    -- P_Expected_Identifiers --
@@ -110,16 +202,12 @@ package body Parser is
 
          if Token = T_Identifier then
             if Token_Name /= Current_Name then
-               DECT ("Parsing Defining_Name, identifier <" &
-                     Get_Name_String (Current_Name) &
-                     "> is expected, found another identifier ");
+               DPE (PC_Defining_Name, Current_Name);
                Restore_Lexer (Loc);
                return False;
             end if;
          else
-            DECT ("Parsing Defining_Name, identifier <" &
-                  Get_Name_String (Current_Name) &
-                  "> is expected, found ");
+            DPE (PC_Defining_Name, Current_Name);
             Restore_Lexer (Loc);
             return False;
          end if;
@@ -132,8 +220,7 @@ package body Parser is
             Scan_Token;
 
             if Token /= Delimiter then
-               DECT ("Parsing Defining_Name, identifier delimiter " &
-                     Image (Delimiter) & " is expected, found ");
+               DPE (PC_Defining_Name, Delimiter);
                Restore_Lexer (Loc);
                return False;
             end if;
@@ -161,7 +248,7 @@ package body Parser is
             Set_Name (Identifier, Token_Name);
             Append_Node_To_List (Identifier, Identifiers);
          else
-            DECT ("Parsing identifiers, unexpected token found ");
+            DPE (PC_Identifiers);
             Restore_Lexer (Loc);
             return False;
          end if;
@@ -175,96 +262,25 @@ package body Parser is
       end loop;
    end P_Identifiers;
 
-   ------------------------
-   -- P_AADL_Declaration --
-   ------------------------
+   ----------------------
+   -- P_None_Statement --
+   ----------------------
 
-   --  AADL_declaration ::= component_classifier | package_spec |
-   --                       port_group_type | port_group_type_extension |
-   --                       system_instance | property_set
+   --  none_statement ::= none ;
 
-   --  component_classifier          begins with 'component'
-   --  package_spec                  begins with 'package'
-   --  port_group_type               begins with 'port type'
-   --  port_group_type_extension     begins with 'port type'
-   --  system_instance               begins with an identifier
-   --  property_set                  begins with 'property set'
-
-   function P_AADL_Declaration return Node_Id is
-      Declaration : Node_Id := No_Node;
-
+   function P_None_Statement return Boolean is
+      Loc : Location;
    begin
+      Save_Lexer (Loc);
       Scan_Token;
-
-      case Token is
-         when T_Component =>
-            Declaration := P_Component;
-
-         when T_Package =>
-            Declaration := P_Package_Specification;
-
-         when T_Port =>
-            Scan_Token;
-            if Token = T_Group then
-               Declaration := P_Port_Group;
-            else
-               DECT ("Parsing Port_Group, reserved word 'group' is expected, "
-                     & "found ");
-            end if;
-
-         when T_Property =>
-            Scan_Token;
-            if Token = T_Set then
-               Declaration := P_Property_Set;
-            else
-               DECT ("Parsing Property_Set, reserved word 'set' is expected, "
-                   & "found ");
-            end if;
-
-         when T_Identifier =>
-            Declaration := P_System_Instance;
-
-         when others =>
-            DECT ("Parsing AADL_Declaration, unexpected token ");
-      end case;
-
-      return Declaration;
-   end P_AADL_Declaration;
-
-   --------------------------
-   -- P_AADL_Specification --
-   --------------------------
-
-   --  AADL_specification ::= { AADL_declaration } +
-
-   function P_AADL_Specification return Node_Id is
-      Declarations    : List_Id;
-      Declaration     : Node_Id;
-
-   begin
-      Specification := New_Node (K_AADL_Specification, Token_Location);
-      Declarations  := New_List (K_AADL_Declaration_List, Token_Location);
-
-      loop
-         exit when End_Of_File;
-         Declaration := P_AADL_Declaration;
-         if Present (Declaration) then
-            Append_Node_To_List (Declaration, Declarations);
-         end if;
-      end loop;
-
-      Set_Declarations (Specification, Declarations);
-      return Specification;
-   end P_AADL_Specification;
-
-   -----------------
-   -- P_Component --
-   -----------------
-
-   function P_Component return Node_Id is
-   begin
-      return No_Node;
-   end P_Component;
+      if Token = T_Semicolon then
+         return True;
+      else
+         DPE (PC_None_Statement, T_Semicolon);
+         Restore_Lexer (Loc);
+         return False;
+      end if;
+   end P_None_Statement;
 
    ---------------------
    -- P_Package_Items --
@@ -279,15 +295,92 @@ package body Parser is
    --     ( property_association { property_association } | none_statement ) ]
 
    function P_Package_Items return Node_Id is
-
       Package_Items : Node_Id;
       Items         : List_Id;
       Properties    : List_Id;
+      Item          : Node_Id;
+      Property      : Node_Id;
+      Loc           : Location;
 
    begin
+      --  Parse items
+
+      Items := New_List (K_List_Id, Token_Location);
+      loop
+         Save_Lexer (Loc);
+         Scan_Token;
+         case Token is
+            when T_Component =>
+               Item := P_Component;
+
+            when T_Group =>
+               Scan_Token;
+               if Token = T_Group then
+                  Item := P_Port_Group;
+               else
+                  DPE (PC_Port_Group, T_Group);
+                  Restore_Lexer (Loc);
+                  return No_Node;   --  OPT: ignore ----> ";"
+               end if;
+
+            when T_Annex =>
+               Item := P_Annex_Specification;
+
+            when others =>
+               Restore_Lexer (Loc);
+               exit;
+         end case;
+
+         if Present (Item) then
+            Append_Node_To_List (Item, Items);
+         else
+            --  Error when parsing package item, quit
+            return No_Node;  --  OPT: ignore ----> ";"
+         end if;
+      end loop;
+
+      --  Parse properties
+
+      Properties := New_List (K_List_Id, Token_Location);
+      Save_Lexer (Loc);
+      Scan_Token;
+
+      if Token = T_Properties then
+         Save_Lexer (Loc);
+         Scan_Token;
+         if Token = T_None then
+            if not P_None_Statement then
+               return No_Node;
+            end if;
+         else
+            Restore_Lexer (Loc);
+            loop
+               Save_Lexer (Loc);
+               Property := P_Property_Association;
+               if Present (Property) then
+                  Append_Node_To_List (Property, Properties);
+               else
+                  --  Error when parsing Property_Association, restore lexer
+                  Restore_Lexer (Loc);
+                  if Is_Empty (Properties) then
+                     --  Warning: Properties list must contain at least one
+                     --           element
+                     Error_Loc (1) := Token_Location;
+                     DE ("properties list is empty", K_Warning);
+                  end if;
+                  exit;
+               end if;
+            end loop;
+         end if;
+
+      else
+         --  No property declared
+         Restore_Lexer (Loc);
+      end if;
+
+      --  Return result
+
       Package_Items := New_Node (K_Package_Items, Token_Location);
-      Items         := New_List (K_List_Id, Token_Location);
-      Properties    := New_List (K_List_Id, Token_Location);
       Set_Items (Package_Items, Items);
       Set_Properties (Package_Items, Properties);
 
@@ -326,30 +419,41 @@ package body Parser is
       end if;
 
       loop
+         Save_Lexer (Loc);
          Scan_Token;
          if Token = T_Public then
-            if Present (Public_Items) then
-               Current_Items := P_Package_Items;
-               Add_Package_Items (Current_Items, Public_Items);
+            Current_Items := P_Package_Items;
+            if Present (Current_Items) then
+               if Present (Public_Items) then
+                  Add_Package_Items (Current_Items, Public_Items);
+               else
+                  Public_Items := Current_Items;
+               end if;
             else
-               Public_Items := P_Package_Items;
+               --  Error when parsing package items, quit
+               return No_Node;  --  OPT: ignore ----> ';'
             end if;
 
          elsif Token = T_Private then
-            if Present (Private_Items) then
-               Current_Items := P_Package_Items;
-               Add_Package_Items (Current_Items, Private_Items);
+            Current_Items := P_Package_Items;
+            if Present (Current_Items) then
+               if Present (Private_Items) then
+                  Add_Package_Items (Current_Items, Private_Items);
+               else
+                  Private_Items := Current_Items;
+               end if;
             else
-               Private_Items := P_Package_Items;
+               --  Error when parsing package items, quit
+               return No_Node;  --  OPT: ignore ----> ';'
             end if;
 
          elsif Token = T_End then
             exit;
 
          else
-            DECT ("Parsing Package_Specification, reserved word "
-                  & "'public' or 'private' or 'end' is expected, found ");
-            return No_Node;  --  OPT: ignore to next ';'
+            DPE (PC_Package_Specification);
+            Restore_Lexer (Loc);
+            return No_Node;  --  OPT: ignore ----> ';'
          end if;
       end loop;
 
@@ -365,11 +469,12 @@ package body Parser is
 
             return Package_Spec;
          else
-            DECT ("Parsing Package_Specification, ';' is expected, found ");
+            DPE (PC_Package_Specification, T_Semicolon);
             Restore_Lexer (Loc);
             return No_Node;
          end if;
       else
+         --  Error when parsing Defining_Name, quit
          return No_Node;
       end if;
    end P_Package_Specification;
@@ -382,6 +487,15 @@ package body Parser is
    begin
       return No_Node;
    end P_Port_Group;
+
+   ----------------------------
+   -- P_Property_Association --
+   ----------------------------
+
+   function P_Property_Association return Node_Id is
+   begin
+      return No_Node;
+   end P_Property_Association;
 
    --------------------
    -- P_Property_Set --

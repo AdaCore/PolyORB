@@ -10,8 +10,11 @@ all: axil
 axil: lexer parser
 	${CMD} axil
 
-parser: nodes
+parser: nodes errormsg
 	${CMD} parser
+
+errormsg:
+	${CMD} errormsg
 
 lexer:
 	${CMD} lexer
@@ -38,8 +41,8 @@ clean:
 	-rm -f *~
 	-rm -f b~axil.ad*
 	-rm -f *.tmp
-	-rm -f nodes.ads
-	-rm -f nodes.adb
 
 allclean: clean
 	-rm -f axil mknodes
+	-rm -f nodes.ads
+	-rm -f nodes.adb
