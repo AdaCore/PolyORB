@@ -36,14 +36,14 @@ with CORBA.Impl;
 
 with Broca.IOP;
 with Broca.Exceptions;
-with Broca.CDR;
 with Broca.Object;
 with Broca.Repository;
-with Broca.IIOP;
-with Broca.IOP;
 
 with Broca.Debug;
-pragma Elaborate_All (Broca.Debug);
+pragma Elaborate (Broca.Debug);
+
+with Broca.IIOP;
+pragma Warnings (Off, Broca.IIOP);
 
 package body Broca.ORB is
 
@@ -68,16 +68,14 @@ package body Broca.ORB is
      (IOR : access Broca.Buffers.Buffer_Type;
       Ref : out CORBA.Object.Ref'Class)
    is
-      use Broca.CDR;
-
-      Nbr_Profiles : CORBA.Unsigned_Long;
-      Tag : Broca.IOP.Profile_Tag;
       Type_Id : CORBA.String;
+      Profiles : Broca.IOP.Profile_Ptr_Array_Ptr;
+
    begin
       pragma Debug (O ("IOR_To_Object : enter"));
 
-      --  Unmarshall type id.
-      Type_Id := Unmarshall (IOR);
+      Broca.IOP.Decapsulate_IOR (IOR, Type_Id, Profiles);
+
       pragma Debug (O ("IOR_To_Object : Type_Id unmarshalled : "
                        & CORBA.To_Standard_String (Type_Id)));
 
@@ -98,8 +96,6 @@ package body Broca.ORB is
 
          pragma Assert (not CORBA.Object.Is_Nil (A_Ref));
 
-         Nbr_Profiles := Unmarshall (IOR);
-
          declare
             --  Get the access to the internal object.
             Obj : constant Broca.Object.Object_Ptr
@@ -107,17 +103,7 @@ package body Broca.ORB is
               (CORBA.Object.Object_Of (A_Ref));
          begin
             Obj.Type_Id  := Type_Id;
-            Obj.Profiles := new IOP.Profile_Ptr_Array (1 .. Nbr_Profiles);
-            for I in 1 .. Nbr_Profiles loop
-               Tag := Unmarshall (IOR);
-               case Tag is
-                  when Broca.IOP.Tag_Internet_IOP =>
-                     Broca.IIOP.Create_Profile
-                       (IOR, Obj.Profiles (I));
-                  when others =>
-                     Broca.Exceptions.Raise_Bad_Param;
-               end case;
-            end loop;
+            Obj.Profiles := Profiles;
          end;
 
          CORBA.Object.Set (Ref, CORBA.Object.Object_Of (A_Ref));

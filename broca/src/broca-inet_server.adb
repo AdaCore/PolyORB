@@ -46,7 +46,6 @@ pragma Elaborate_All (CORBA);
 
 with Broca.Buffers; use Broca.Buffers;
 with Broca.Opaque;
-with Broca.CDR;
 with Broca.Stream; use Broca.Stream;
 with Broca.IOP;
 with Broca.GIOP;
@@ -172,10 +171,6 @@ package body Broca.Inet_Server is
          return Natural (Val);
       end if;
    end Ntohs;
-
-   -------------------------------------------
-   --
-   -------------------------------------------
 
    subtype Pollfd_Array_Index is Integer range 0 .. Simultaneous_Streams;
 
@@ -711,11 +706,6 @@ package body Broca.Inet_Server is
      (Server : access Fd_Server_Type)
      return Boolean;
 
-   procedure Marshall_Profile
-     (Server     : access Fd_Server_Type;
-      IOR        : access Buffer_Type;
-      Object_Key : Encapsulation);
-
    function Make_Profile
      (Server     : access Fd_Server_Type;
       Object_Key : Encapsulation)
@@ -739,41 +729,13 @@ package body Broca.Inet_Server is
       --  profile to an object.
    end Can_Create_Profile;
 
-   ----------------------
-   -- Marshall_Profile --
-   ----------------------
-
-   --  Marshall a TAG_INTERNET_IOP TaggedProfile into buffer
-   --  IOR.
-
-   procedure Marshall_Profile
-     (Server     : access Fd_Server_Type;
-      IOR        : access Broca.Buffers.Buffer_Type;
-      Object_Key : Encapsulation)
-   is
-      use Broca.CDR;
-      use Broca.Sequences;
-
-      Server_Profile : aliased Broca.IIOP.Profile_IIOP_Type;
-   begin
-      Server_Profile.Version := Broca.IIOP.IIOP_Version;
-      Server_Profile.Host    := IIOP_Host;
-      Server_Profile.Port    := IIOP_Port;
-      Server_Profile.ObjKey
-        := Octet_Sequences.To_Sequence (To_CORBA_Octet_Array (Object_Key));
-
-      Marshall (IOR, Broca.IOP.Tag_Internet_IOP);
-      Broca.IOP.Callbacks (Broca.IOP.Tag_Internet_IOP).Marshall_Profile_Body
-        (IOR, Server_Profile'Access);
-   end Marshall_Profile;
-
    function Make_Profile
      (Server : access Fd_Server_Type;
       Object_Key : Encapsulation)
       return Broca.IOP.Profile_Ptr
    is
-      use Broca.IIOP;
       use Broca.Sequences;
+      use Broca.IIOP;
 
       Res : Profile_IIOP_Access
         := new Profile_IIOP_Type;

@@ -79,9 +79,14 @@ package Broca.IIOP is
      (Profile : Profile_IIOP_Type)
      return IOP.Profile_Tag;
 
+   procedure Marshall_Profile_Body
+     (Buffer  : access Buffers.Buffer_Type;
+      Profile : Profile_IIOP_Type);
+
    procedure Create_Profile
-     (Buffer : access Broca.Buffers.Buffer_Type;
+     (Buffer : access Buffers.Buffer_Type;
       Profile : out IOP.Profile_Ptr);
+   --  XXX What is the purpose of this procedure?
 
 private
 

@@ -83,13 +83,9 @@ package body Broca.IIOP is
    function Image (Profile : access Profile_IIOP_Type) return String;
    --  For debugging purpose ...
 
-   procedure Marshall_IIOP_Profile_Body
-     (IOR     : access Buffer_Type;
-      Profile : access Profile_Type'Class);
-
-   procedure Unmarshall_IIOP_Profile_Body
-     (Buffer   : access Buffer_Type;
-      Profile  : out Profile_Ptr);
+   function Unmarshall_IIOP_Profile_Body
+     (Buffer   : access Buffer_Type)
+     return Profile_Ptr;
 
    function Port_To_Network_Port
      (Port : CORBA.Unsigned_Short)
@@ -163,7 +159,7 @@ package body Broca.IIOP is
      (Buffer  : access Buffer_Type;
       Profile : out Profile_Ptr) is
    begin
-      Unmarshall_IIOP_Profile_Body (Buffer, Profile);
+      Profile := Unmarshall_IIOP_Profile_Body (Buffer);
    end Create_Profile;
 
    -------------------
@@ -353,37 +349,95 @@ package body Broca.IIOP is
       return To_Standard_String (Profile.Host) & Profile.Port'Img & " <...>";
    end Image;
 
-   --------------------------------
-   -- Marshall_IIOP_Profile_Body --
-   --------------------------------
+   ---------------------------
+   -- Marshall_Profile_Body --
+   ---------------------------
 
-   procedure Marshall_IIOP_Profile_Body
-     (IOR     : access Buffer_Type;
-      Profile : access Profile_Type'Class)
+   procedure Marshall_Profile_Body
+     (Buffer  : access Buffers.Buffer_Type;
+      Profile : Profile_IIOP_Type)
    is
       use Broca.CDR;
 
-      IIOP_Profile : Profile_IIOP_Type renames Profile_IIOP_Type (Profile.all);
-      Profile_Body : aliased Buffer_Type;
+      Profile_Body : Buffer_Access
+        := new Buffer_Type;
 
    begin
-
       --  A TAG_INTERNET_IOP Profile Body is an encapsulation.
-
-      Start_Encapsulation (Profile_Body'Access);
+      Start_Encapsulation (Profile_Body);
 
       --  Version
-      Marshall (Profile_Body'Access, IIOP_Version.Major);
-      Marshall (Profile_Body'Access, IIOP_Version.Minor);
+      Marshall (Profile_Body, IIOP_Version.Major);
+      Marshall (Profile_Body, IIOP_Version.Minor);
 
-      Marshall (Profile_Body'Access, IIOP_Profile.Host);
-      Marshall (Profile_Body'Access, IIOP_Profile.Port);
-      Marshall (Profile_Body'Access, IIOP_Profile.ObjKey);
+      Marshall (Profile_Body, Profile.Host);
+      Marshall (Profile_Body, Profile.Port);
+      Marshall (Profile_Body, Profile.ObjKey);
 
-      --  Marshall the Profile_Body into IOR.
-      Marshall (IOR, Encapsulate (Profile_Body'Access));
+      --  Marshall the Profile_Body into Buffer.
+      Marshall (Buffer, Encapsulate (Profile_Body));
       Release (Profile_Body);
-   end Marshall_IIOP_Profile_Body;
+   end Marshall_Profile_Body;
+
+   ----------------------------------
+   -- Unmarshall_IIOP_Profile_Body --
+   ----------------------------------
+
+   function Unmarshall_IIOP_Profile_Body
+     (Buffer   : access Buffer_Type)
+     return Profile_Ptr
+   is
+      Version : Version_Type;
+      Key     : Profile_Key;
+      Length  : CORBA.Long;
+
+      Profile_Body   : aliased Encapsulation := Unmarshall (Buffer);
+      Profile_Buffer : aliased Buffer_Type;
+
+      Result : Profile_IIOP_Access;
+
+   begin
+      Decapsulate (Profile_Body'Access, Profile_Buffer'Access);
+
+      Version.Major := Unmarshall (Profile_Buffer'Access);
+      Version.Minor := Unmarshall (Profile_Buffer'Access);
+
+      if Version.Major /= IIOP_Version.Major
+        or else Version.Minor > IIOP_Version.Minor
+      then
+         Broca.Exceptions.Raise_Bad_Param;
+      end if;
+
+      Key.Host   := Unmarshall (Profile_Buffer'Access);
+      Key.Port   := Unmarshall (Profile_Buffer'Access);
+      Key.ObjKey := Unmarshall (Profile_Buffer'Access);
+
+      if Version.Minor = 1 then
+         Length := Unmarshall (Profile_Buffer'Access);
+         if Length /= 0 then
+            --  FIXME: Multiple components are not yet handled.
+            Broca.Exceptions.Raise_Bad_Param;
+         end if;
+      end if;
+
+      --  Try to find an existing profile in the hash table.
+
+      Enter_Critical_Section;
+
+      Result := PHT.Get (Key);
+      if Result = null then
+         Result := new Profile_IIOP_Type;
+         Result.Version := Version;
+         Result.Host    := Key.Host;
+         Result.Port    := Key.Port;
+         Result.ObjKey  := Key.ObjKey;
+         PHT.Set (Key, Result);
+      end if;
+
+      Leave_Critical_Section;
+
+      return Profile_Ptr (Result);
+   end Unmarshall_IIOP_Profile_Body;
 
    --------------------------
    -- Port_To_Network_Port --
@@ -487,69 +541,10 @@ package body Broca.IIOP is
       pragma Debug (O ("message correctly sent"));
    end Send;
 
-   ----------------------------------
-   -- Unmarshall_IIOP_Profile_Body --
-   ----------------------------------
-
-   procedure Unmarshall_IIOP_Profile_Body
-     (Buffer   : access Buffer_Type;
-      Profile  : out Profile_Ptr)
-   is
-      Version : Version_Type;
-      Key     : Profile_Key;
-      Length  : CORBA.Long;
-
-      Profile_Body   : aliased Encapsulation := Unmarshall (Buffer);
-      Profile_Buffer : aliased Buffer_Type;
-
-      Result : Profile_IIOP_Access;
-
-   begin
-      Decapsulate (Profile_Body'Access, Profile_Buffer'Access);
-
-      Version.Major := Unmarshall (Profile_Buffer'Access);
-      Version.Minor := Unmarshall (Profile_Buffer'Access);
-
-      if Version.Major /= IIOP_Version.Major
-        or else Version.Minor > IIOP_Version.Minor
-      then
-         Broca.Exceptions.Raise_Bad_Param;
-      end if;
-
-      Key.Host   := Unmarshall (Profile_Buffer'Access);
-      Key.Port   := Unmarshall (Profile_Buffer'Access);
-      Key.ObjKey := Unmarshall (Profile_Buffer'Access);
-
-      if Version.Minor = 1 then
-         Length := Unmarshall (Profile_Buffer'Access);
-         if Length /= 0 then
-            --  FIXME: Multiple components are not yet handled.
-            Broca.Exceptions.Raise_Bad_Param;
-         end if;
-      end if;
-
-      --  Try to find an existing profile in the hash table.
-
-      Enter_Critical_Section;
-
-      Result := PHT.Get (Key);
-      if Result = null then
-         Result := new Profile_IIOP_Type;
-         Result.Version := Version;
-         Result.Host    := Key.Host;
-         Result.Port    := Key.Port;
-         Result.ObjKey  := Key.ObjKey;
-         PHT.Set (Key, Result);
-      end if;
-
-      Leave_Critical_Section;
-
-      Profile := Profile_Ptr (Result);
-   end Unmarshall_IIOP_Profile_Body;
-
 begin
-   Register
+
+   Broca.IOP.Register
      (Tag_Internet_IOP,
-      Marshall_IIOP_Profile_Body'Access,
       Unmarshall_IIOP_Profile_Body'Access);
+
 end Broca.IIOP;

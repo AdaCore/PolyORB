@@ -37,6 +37,7 @@ with CORBA;
 
 with Broca.IOP;
 with Broca.Buffers; use Broca.Buffers;
+with Broca.Exceptions;
 
 package body Broca.Object is
 
@@ -61,10 +62,8 @@ package body Broca.Object is
          --  FIXME: Should finalize the profile
          --    (eg close any associated connection
          --    that won't be reused.)
-         --    This can be done either by calling a close
-         --    subprogram explicitly or by making the
-         --    profile type controlled, and having its
-         --    Finalize do the job.
+         --    This job should be perform by the profile's
+         --    Finalize operation (profiles are controlled).
          Free (O.Profiles (I));
       end loop;
       Free (O.Profiles);
@@ -97,10 +96,30 @@ package body Broca.Object is
    -- Find_Profile --
    ------------------
 
-   function Find_Profile (Object : Object_Ptr) return IOP.Profile_Ptr is
+   function Find_Profile
+     (Object : Object_Ptr)
+     return IOP.Profile_Ptr
+   is
+      use CORBA;
+      use Broca.IOP;
+
    begin
       pragma Assert (Object /= null);
-      return Object.Profiles (Object.Profiles'First);
+
+      --  FIXME: Knowledge about what transport
+      --     protocols are supported should not
+      --     be embedded here. For now, only IIOP
+      --     is supported.
+
+      for I in Object.Profiles'Range loop
+         if Get_Profile_Tag (Object.Profiles (I).all)
+           = Tag_Internet_IOP then
+            return Object.Profiles (I);
+         end if;
+      end loop;
+
+      Broca.Exceptions.Raise_Bad_Param;
+      return null;
    end Find_Profile;
 
 end Broca.Object;

@@ -62,32 +62,10 @@ package Broca.Server is
      (Server : access Server_Type)
       is abstract;
 
-   --  During the building of an IOR, this procedure is called to know the
-   --  length of the profile for the object designed by INDEX.
-   --  Length can be null, if the server can't create a profile.
-   --  Need only to update IOR.POS.
-   --  OBJECT_KEY must be 4-aligned
-   --  procedure Marshall_Size_Profile
-   --    (Server : access Server_Type;
-   --     IOR : access Broca.Buffers.Buffer_Type;
-   --     Object_Key : access Broca.Buffers.Buffer_Type)
-   --   is abstract;
-
    --  True if, and only if, this server can create profiles.
    function Can_Create_Profile
      (Server : access Server_Type)
      return Boolean is abstract;
-
-   --  During the building of an IOR, the procedure is called to marshall a
-   --  profile.  The length of the profile (ie, the number added to IOR.POS)
-   --  must be the same as that of MARSHALL_SIZE_PROFILE.
-   --  In particular, it must be zero for no profile.
-   --  OBJECT_KEY must be 4-aligned
-   procedure Marshall_Profile
-     (Server     : access Server_Type;
-      IOR        : access Broca.Buffers.Buffer_Type;
-      Object_Key : Encapsulation)
-      is abstract;
 
    --  Return a profile that denotes Server's transport endpoint
    --  and the given object key.

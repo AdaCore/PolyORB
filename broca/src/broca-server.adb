@@ -628,11 +628,6 @@ package body Broca.Server is
         (Server : access Wait_Server_Type)
         return Boolean;
 
-      procedure Marshall_Profile
-        (Server : access Wait_Server_Type;
-         IOR    : access Buffer_Type;
-         Object_Key : Encapsulation);
-
       function Make_Profile
         (Server : access Wait_Server_Type;
          Object_Key : Encapsulation)
@@ -669,15 +664,6 @@ package body Broca.Server is
          --  by itself, and therefore cannot create a
          --  profile associated to an object.
       end Can_Create_Profile;
-
-      procedure Marshall_Profile
-        (Server : access Wait_Server_Type;
-         IOR    : access Buffer_Type;
-         Object_Key : Encapsulation)
-      is
-      begin
-         raise Program_Error;
-      end Marshall_Profile;
 
       function Make_Profile
         (Server : access Wait_Server_Type;

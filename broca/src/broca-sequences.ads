@@ -35,7 +35,6 @@ with CORBA;
 with CORBA.Sequences.Unbounded;
 with Broca.Opaque; use Broca.Opaque;
 with Broca.Buffers; use Broca.Buffers;
---  pragma Elaborate_All (CORBA.Sequences.Unbounded);
 
 package Broca.Sequences is
 
