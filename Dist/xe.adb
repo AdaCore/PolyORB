@@ -86,7 +86,7 @@ package body XE is
    --     value  : unused
    --  type
    --     node_1 : next declaration
-   --     node_2 : unused
+   --     node_2 : array element type when type is a list
    --     node_3 : component list | unused
    --     flag_1 : is structured
    --     value  : predefined_type'pos
@@ -1061,35 +1061,35 @@ package body XE is
       end if;
    end Add_Subprogram_Parameter;
 
-   -------------------------
-   -- Type_Is_A_Structure --
-   -------------------------
+   ----------------------------
+   -- Get_Array_Element_Type --
+   ----------------------------
 
-   procedure Type_Is_A_Structure
-     (Type_Node : in Type_Id;
-      Structure : in Boolean) is
-      Node : Node_Id := Node_Id (Type_Node);
+   function Get_Array_Element_Type
+     (Array_Type_Node   : in Type_Id)
+      return Type_Id is
+      Node : Node_Id := Node_Id (Array_Type_Node);
+   begin
+      pragma Assert (Is_Type (Node));
+      return Type_Id (Nodes.Table (Node).Node_2);
+   end Get_Array_Element_Type;
+
+   ----------------------------
+   -- Set_Array_Element_Type --
+   ----------------------------
+
+   procedure Set_Array_Element_Type
+     (Array_Type_Node   : in Type_Id;
+      Element_Type_Node : in Type_Id) is
+      Node : Node_Id := Node_Id (Array_Type_Node);
       List : Node_Id;
    begin
       pragma Assert (Is_Type (Node));
-      Nodes.Table (Node).Flag_1 := Structure;
-      Create_Node (List, Str_To_Id ("pragma__n__record"), K_List);
+      Nodes.Table (Node).Node_2 := Node_Id (Element_Type_Node);
+      Create_Node (List, Str_To_Id ("pragma__n__array"), K_List);
       Nodes.Table (List).Value := Convert (K_Component_List);
       Nodes.Table (Node).Node_3 := List;
-   end Type_Is_A_Structure;
-
-   -------------------------
-   -- Is_Type_A_Structure --
-   -------------------------
-
-   function Is_Type_A_Structure
-     (Type_Node : in Type_Id)
-     return Boolean is
-      Node : Node_Id := Node_Id (Type_Node);
-   begin
-      pragma Assert (Is_Type (Node));
-      return Nodes.Table (Node).Flag_1;
-   end Is_Type_A_Structure;
+   end Set_Array_Element_Type;
 
    -------------------
    -- Set_Type_Mark --
@@ -1167,36 +1167,6 @@ package body XE is
       end if;
    end Add_Type_Component;
 
-   -----------------------------
-   -- Variable_Is_A_Structure --
-   -----------------------------
-
-   procedure Variable_Is_A_Structure
-     (Variable_Node : in Variable_Id;
-      Structure     : in Boolean) is
-      Node : Node_Id := Node_Id (Variable_Node);
-      List : Node_Id;
-   begin
-      pragma Assert (Is_Variable (Node));
-      Nodes.Table (Node).Flag_1 := Structure;
-      Create_Node (List, Str_To_Id ("pragma__n__record"), K_List);
-      Nodes.Table (List).Value := Convert (K_Component_List);
-      Nodes.Table (Node).Node_3 := List;
-   end Variable_Is_A_Structure;
-
-   -----------------------------
-   -- Is_Variable_A_Structure --
-   -----------------------------
-
-   function Is_Variable_A_Structure
-     (Variable_Node : in Variable_Id)
-      return Boolean is
-      Node : Node_Id := Node_Id (Variable_Node);
-   begin
-      pragma Assert (Is_Variable (Node));
-      return Nodes.Table (Node).Flag_1;
-   end Is_Variable_A_Structure;
-
    -----------------------
    -- Set_Variable_Mark --
    -----------------------
@@ -1236,7 +1206,7 @@ package body XE is
       pragma Assert (Is_Variable (Node));
       pragma Assert (Is_Type (Node_Id (Variable_Type)));
       Nodes.Table (Node).Node_2 := Node_Id (Variable_Type);
-      if Is_Type_A_Structure (Variable_Type) then
+      if Get_Array_Element_Type (Variable_Type) /= Null_Type then
          Create_Node (List, Str_To_Id ("record"), K_List);
          Nodes.Table (List).Value := Convert (K_Component_List);
          Nodes.Table (Node).Node_3 := List;

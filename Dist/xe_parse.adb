@@ -175,8 +175,8 @@ package body XE_Parse is
 
    type Convention_Type is (Named, Positional);
    procedure Search_Matching_Parameter
-     (Subprogram_Node : Subprogram_Id;
-      Convention      : Convention_Type;
+     (Subprogram_Node : in Subprogram_Id;
+      Convention      : in Convention_Type;
       Formal_Name     : in out Name_Id;
       Parameter_Node  : in out Parameter_Id);
    --  Search for a formal parameter that has no actual associated parameter.
@@ -197,7 +197,7 @@ package body XE_Parse is
      renames XE.Append_Configuration_Declaration;
 
    procedure Unmark_Subprogram_Parameters
-     (Subprogram_Node : Subprogram_Id;
+     (Subprogram_Node : in Subprogram_Id;
       N_Parameter     : out Int);
    --  Unmark all subprogram parameter. Marking a formal parameter means
    --  that this parameter has a corresponding actual parameter.
@@ -215,7 +215,7 @@ package body XE_Parse is
      (Conf_Node : in  Configuration_Id;
       Type_Name : in  Name_Id;
       Type_Kind : in  Predefined_Type;
-      Structure : in  Boolean;
+      Elmt_Type : in  Type_Id;
       Type_Sloc : in  Location_Type;
       Type_Node : out Type_Id);
    --  Declare a new type into the configuration context. Provide the
@@ -305,7 +305,7 @@ package body XE_Parse is
    --  contains an entire copy of the subprogram node.
 
    procedure Assign_Variable
-     (Source, Target : Variable_Id);
+     (Source, Target : in Variable_Id);
    --  Mostly, assign a formal parameter to a given value in case
    --  of a procedure call.
 
@@ -1607,7 +1607,7 @@ package body XE_Parse is
         (Conf_Node    => Configuration_Node,
          Type_Name    => Str_To_Id ("boolean"),
          Type_Kind    => Pre_Type_Boolean,
-         Structure    => False,
+         Elmt_Type    => Null_Type,
          Type_Sloc    => Null_Location,
          Type_Node    => Boolean_Type_Node);
 
@@ -1639,7 +1639,7 @@ package body XE_Parse is
         (Conf_Node    => Configuration_Node,
          Type_Name    => Str_To_Id ("string"),
          Type_Kind    => Pre_Type_String,
-         Structure    => False,
+         Elmt_Type    => Null_Type,
          Type_Sloc    => Null_Location,
          Type_Node    => String_Type_Node);
 
@@ -1649,7 +1649,7 @@ package body XE_Parse is
         (Conf_Node    => Configuration_Node,
          Type_Name    => Str_To_Id ("integer"),
          Type_Kind    => Pre_Type_Integer,
-         Structure    => False,
+         Elmt_Type    => Null_Type,
          Type_Sloc    => Null_Location,
          Type_Node    => Integer_Type_Node);
 
@@ -1693,7 +1693,7 @@ package body XE_Parse is
         (Conf_Node    => Configuration_Node,
          Type_Name    => Type_Prefix & Str_To_Id ("host_function"),
          Type_Kind    => Pre_Type_Function,
-         Structure    => True,
+         Elmt_Type    => String_Type_Node,
          Type_Sloc    => Null_Location,
          Type_Node    => Host_Function_Type_Node);
 
@@ -1720,9 +1720,19 @@ package body XE_Parse is
         (Conf_Node    => Configuration_Node,
          Type_Name    => Type_Prefix & Str_To_Id ("main_procedure"),
          Type_Kind    => Pre_Type_Procedure,
-         Structure    => False,
+         Elmt_Type    => Null_Type,
          Type_Sloc    => Null_Location,
          Type_Node    => Main_Procedure_Type_Node);
+
+      --  type type__ada_unit (standard)
+
+      Declare_Type
+        (Conf_Node    => Configuration_Node,
+         Type_Name    => Type_Prefix & Str_To_Id ("ada_unit"),
+         Type_Kind    => Pre_Type_Ada_Unit,
+         Elmt_Type    => Null_Type,
+         Type_Sloc    => Null_Location,
+         Type_Node    => Ada_Unit_Type_Node);
 
       --  type Partition (standard)
 
@@ -1730,7 +1740,7 @@ package body XE_Parse is
         (Conf_Node    => Configuration_Node,
          Type_Name    => Str_To_Id ("partition"),
          Type_Kind    => Pre_Type_Partition,
-         Structure    => True,
+         Elmt_Type    => Ada_Unit_Type_Node,
          Type_Sloc    => Null_Location,
          Type_Node    => Partition_Type_Node);
 
@@ -1785,26 +1795,16 @@ package body XE_Parse is
         (Conf_Node    => Configuration_Node,
          Type_Name    => Str_To_Id ("channel"),
          Type_Kind    => Pre_Type_Channel,
-         Structure    => True,
+         Elmt_Type    => Partition_Type_Node,
          Type_Sloc    => Null_Location,
          Type_Node    => Channel_Type_Node);
-
-      --  type type__ada_unit (standard)
-
-      Declare_Type
-        (Conf_Node    => Configuration_Node,
-         Type_Name    => Type_Prefix & Str_To_Id ("ada_unit"),
-         Type_Kind    => Pre_Type_Ada_Unit,
-         Structure    => False,
-         Type_Sloc    => Null_Location,
-         Type_Node    => Ada_Unit_Type_Node);
 
       --  type Starter_Type is (Ada, Shell, None); (standard)
       Declare_Type
         (Conf_Node    => Configuration_Node,
          Type_Name    => Type_Prefix & Str_To_Id ("starter"),
          Type_Kind    => Pre_Type_Starter,
-         Structure    => False,
+         Elmt_Type    => Null_Type,
          Type_Sloc    => Null_Location,
          Type_Node    => Starter_Type_Node);
 
@@ -1848,7 +1848,7 @@ package body XE_Parse is
         (Conf_Node    => Configuration_Node,
          Type_Name    => Type_Prefix & Str_To_Id ("convention"),
          Type_Kind    => Pre_Type_Convention,
-         Structure    => False,
+         Elmt_Type    => Null_Type,
          Type_Sloc    => Null_Location,
          Type_Node    => Convention_Type_Node);
 
@@ -2072,7 +2072,7 @@ package body XE_Parse is
      (Conf_Node : in  Configuration_Id;
       Type_Name : in  Name_Id;
       Type_Kind : in  Predefined_Type;
-      Structure : in  Boolean;
+      Elmt_Type : in  Type_Id;
       Type_Sloc : in  Location_Type;
       Type_Node : out Type_Id) is
       T : Type_Id;
@@ -2080,7 +2080,9 @@ package body XE_Parse is
 
       Has_Not_Been_Already_Declared (Type_Name, Get_Token_Location);
       Create_Type         (T, Type_Name);
-      Type_Is_A_Structure (T, Structure);
+      if Elmt_Type /= Null_Type then
+         Set_Array_Element_Type (T, Elmt_Type);
+      end if;
       Set_Type_Mark       (T, Convert (Type_Kind));
       Append_Declaration  (Conf_Node, Node_Id (T));
       Set_Node_Location   (Node_Id (T), Type_Sloc);
@@ -2337,7 +2339,7 @@ package body XE_Parse is
 
       --  Do we need to assign a element list or a single element ?
 
-      if Is_Type_A_Structure (T) then
+      if Get_Array_Element_Type (T) /= Null_Type then
 
          --  Assign a list ...
 
@@ -2759,7 +2761,7 @@ package body XE_Parse is
       Write_Str  ("Mark : ");
       Write_Int (Get_Variable_Mark (Node));
       Write_Eol;
-      if Is_Type_A_Structure (T) then
+      if Get_Array_Element_Type (T) /= Null_Type then
          Write_Str  (Head);
          Write_Str  ("    Data :");
          Write_Eol;
@@ -2800,25 +2802,27 @@ package body XE_Parse is
       Write_Str  ("Mark : ");
       Write_Int (Get_Type_Mark (Node));
       Write_Eol;
-      First_Type_Component (Node, C);
-      if C /= Null_Component then
-         Write_Str  (Head);
-         Write_Str  ("   Attr : ");
-         Write_Eol;
-         while C /= Null_Component loop
-            Print (C, H, False);
-            Next_Type_Component (C);
-         end loop;
-      end if;
-      First_Type_Component (Node, C);
-      if C /= Null_Component then
-         Write_Str  (Head);
-         Write_Str  ("   Data : ");
-         Write_Eol;
-         while C /= Null_Component loop
-            Print (C, H, True);
-            Next_Type_Component (C);
-         end loop;
+      if Get_Array_Element_Type (Node) /= Null_Type then
+         First_Type_Component (Node, C);
+         if C /= Null_Component then
+            Write_Str  (Head);
+            Write_Str  ("   Attr : ");
+            Write_Eol;
+            while C /= Null_Component loop
+               Print (C, H, False);
+               Next_Type_Component (C);
+            end loop;
+         end if;
+         First_Type_Component (Node, C);
+         if C /= Null_Component then
+            Write_Str  (Head);
+            Write_Str  ("   Data : ");
+            Write_Eol;
+            while C /= Null_Component loop
+               Print (C, H, True);
+               Next_Type_Component (C);
+            end loop;
+         end if;
       end if;
    end Print;
 

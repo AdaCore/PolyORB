@@ -387,21 +387,21 @@ package XE is
    -- Type --
    ----------
 
-   procedure Type_Is_A_Structure
-     (Type_Node : in Type_Id;
-      Structure : in Boolean);
+   function Get_Array_Element_Type
+     (Array_Type_Node   : in Type_Id)
+     return Type_Id;
 
-   function  Is_Type_A_Structure
-     (Type_Node : in Type_Id)
-     return Boolean;
-
-   procedure Set_Type_Mark
-     (Type_Node : in Type_Id;
-      Type_Mark : in Int);
+   procedure Set_Array_Element_Type
+     (Array_Type_Node   : in Type_Id;
+      Element_Type_Node : in Type_Id);
 
    function  Get_Type_Mark
      (Type_Node : Type_Id)
       return Int;
+
+   procedure Set_Type_Mark
+     (Type_Node : in Type_Id;
+      Type_Mark : in Int);
 
    procedure First_Type_Component
      (Type_Node       : in Type_Id;
@@ -441,14 +441,6 @@ package XE is
    function  Get_Variable_Mark
      (Variable_Node : Variable_Id)
       return Int;
-
-   procedure Variable_Is_A_Structure
-     (Variable_Node : in Variable_Id;
-      Structure     : in Boolean);
-
-   function Is_Variable_A_Structure
-     (Variable_Node : in Variable_Id)
-     return Boolean;
 
    procedure First_Variable_Component
      (Variable_Node   : in Variable_Id;
