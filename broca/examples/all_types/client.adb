@@ -41,10 +41,12 @@ procedure Client is
    IOR : CORBA.String;
    Myall_types : all_types.Ref;
    Ok : Boolean;
-   One_Shot : Boolean := True;
+   One_Shot : Boolean := Ada.Command_Line.Argument_Count /= 2
+                 or else Boolean'Value (Ada.Command_Line.Argument (2));
 begin
    if Ada.Command_Line.Argument_Count < 1 then
-      Ada.Text_IO.Put_Line ("usage : client <IOR_string_from_server>");
+      Ada.Text_IO.Put_Line
+         ("usage : client <IOR_string_from_server> [oneshot]");
       return;
    end if;
 
