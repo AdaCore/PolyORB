@@ -32,6 +32,7 @@ with GNAT.OS_Lib; use GNAT.OS_Lib;
 with Namet;       use Namet;
 with Osint;       use Osint;
 with Prj.Attr;
+with Prj.Com;
 with Prj.Env;
 with Scans;       use Scans;
 with Scn;
@@ -87,7 +88,9 @@ package body Prj is
       Imported_Projects  => Empty_Project_List,
       Include_Path       => null,
       Objects_Path       => null,
-      Gnat_Adc_Generated => False,
+      Config_File_Name   => No_Name,
+      Config_File_Temp   => False,
+      Config_Checked     => False,
       Checked            => False);
 
    -------------------
@@ -158,6 +161,22 @@ package body Prj is
          Set_Name_Table_Byte (Name_External,  Token_Type'Pos (Tok_External));
       end if;
    end Initialize;
+
+   ------------
+   --  Reset --
+   ------------
+
+   procedure Reset is
+   begin
+      Projects.Init;
+      Project_Lists.Init;
+      Packages.Init;
+      Arrays.Init;
+      Variable_Elements.Init;
+      String_Elements.Init;
+      Prj.Com.Units.Init;
+      Prj.Com.Units_Htable.Reset;
+   end Reset;
 
    ------------------------
    -- Same_Naming_Scheme --

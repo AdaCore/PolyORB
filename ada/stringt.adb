@@ -329,6 +329,16 @@ package body Stringt is
       Strings.Tree_Write;
    end Tree_Write;
 
+   ------------
+   -- Unlock --
+   ------------
+
+   procedure Unlock is
+   begin
+      String_Chars.Locked := False;
+      Strings.Locked := False;
+   end Unlock;
+
    -------------------------
    -- Unstore_String_Char --
    -------------------------

@@ -150,6 +150,12 @@ begin
    Write_Switch_Char ("D");
    Write_Line ("Debug expanded generated code rather than source code");
 
+   --  Line for -gnatec switch
+
+   Write_Switch_Char ("ecfl");
+   Write_Line ("Specify configuration pragmas file <fl>");
+   Write_Line ("            example: -gnatec/configurations/conf1.adc");
+
    --  Line for -gnatE switch
 
    Write_Switch_Char ("E");

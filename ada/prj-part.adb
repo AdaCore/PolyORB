@@ -113,22 +113,21 @@ package body Prj.Part is
 
       for Index in reverse 1 .. Name_Len loop
          if Name_Buffer (Index) = '/'
-           or else
-           Name_Buffer (Index) = Directory_Separator
-
+           or else Name_Buffer (Index) = Directory_Separator
          then
             --  Remove from name all characters after the last
             --  directory separator.
+
             Name_Len := Index;
             return Name_Find;
          end if;
       end loop;
 
-      --  There is no directory separator in name. Return "./".
+      --  There is no directory separator in name. Return "./" or ".\".
       Name_Len := 2;
-      Name_Buffer (1 .. 2) := "./";
+      Name_Buffer (1) := '.';
+      Name_Buffer (2) := Directory_Separator;
       return Name_Find;
-
    end Immediate_Directory_Of;
 
    -----------
@@ -136,14 +135,13 @@ package body Prj.Part is
    -----------
 
    procedure Parse
-     (Project           : out Project_Node_Id;
-      Project_File_Name : String)
+     (Project                : out Project_Node_Id;
+      Project_File_Name      : String;
+      Always_Errout_Finalize : Boolean)
    is
       Current_Directory : constant String := Get_Current_Dir;
 
    begin
-
-      --
       Project := Empty_Node;
 
       if Current_Verbosity >= Medium then
@@ -160,8 +158,8 @@ package body Prj.Part is
       begin
          --  Initialize the tables
 
-         Project_Nodes.Set_Last (Empty_Node);
-         Projects_Htable.Reset;
+         Tree_Private_Part.Project_Nodes.Set_Last (Empty_Node);
+         Tree_Private_Part.Projects_Htable.Reset;
 
          Errout.Initialize;
 
@@ -176,10 +174,11 @@ package body Prj.Part is
             Path_Name       => Path_Name,
             Modified        => False);
 
-         if Project /= Empty_Node then
-            if Errout.Errors_Detected > 0 then
-               Project := Empty_Node;
-            end if;
+         if Errout.Errors_Detected > 0 then
+            Project := Empty_Node;
+         end if;
+
+         if Project = Empty_Node or else Always_Errout_Finalize then
             Errout.Finalize;
          end if;
 
@@ -202,25 +201,27 @@ package body Prj.Part is
 
    procedure Parse_Context_Clause
      (Context_Clause    : out Project_Node_Id;
-      Project_Directory : Name_Id) is
+      Project_Directory : Name_Id)
+   is
       Project_Directory_Path : constant String :=
-        Get_Name_String (Project_Directory);
-      Current_With_Clause : Project_Node_Id := Empty_Node;
-      Data : Project_Node_Record :=
-        Default_Project_Node (Of_Kind => N_With_Clause);
-   begin
+                                 Get_Name_String (Project_Directory);
+      Current_With_Clause    : Project_Node_Id := Empty_Node;
+      Next_With_Clause       : Project_Node_Id := Empty_Node;
 
+   begin
       --  Assume no context clause
+
       Context_Clause := Empty_Node;
       With_Loop :
 
-      --  if Token is not "with", there is no context clause,
+      --  If Token is not "with", there is no context clause,
       --  or we have exhausted the with clauses.
-      while Token = Tok_With loop
 
+      while Token = Tok_With loop
          Comma_Loop :
          loop
             --  Scan past "with" or ","
+
             Scan;
             Expect (Tok_String_Literal, "literal string");
 
@@ -228,59 +229,78 @@ package body Prj.Part is
                return;
             end if;
 
-            --  new with clause
-            Project_Nodes.Increment_Last;
+            --  New with clause
 
             if Current_With_Clause = Empty_Node then
-               --  first with clause of the context clause
-               Current_With_Clause := Project_Nodes.Last;
+
+               --  First with clause of the context clause
+
+               Current_With_Clause := Default_Project_Node
+                 (Of_Kind => N_With_Clause);
                Context_Clause := Current_With_Clause;
 
             else
-               Data.Field2 := Project_Nodes.Last;
-               Project_Nodes.Table (Current_With_Clause) := Data;
-               Current_With_Clause := Project_Nodes.Last;
-               Data := Default_Project_Node (Of_Kind => N_With_Clause);
+               Next_With_Clause := Default_Project_Node
+                 (Of_Kind => N_With_Clause);
+               Set_Next_With_Clause_Of (Current_With_Clause, Next_With_Clause);
+               Current_With_Clause := Next_With_Clause;
             end if;
 
-            Data.Value := Strval (Token_Node);
-            Data.Location := Token_Ptr;
-            String_To_Name_Buffer (Data.Value);
+            Set_String_Value_Of (Current_With_Clause, Strval (Token_Node));
+            Set_Location_Of     (Current_With_Clause, Token_Ptr);
+            String_To_Name_Buffer (String_Value_Of (Current_With_Clause));
 
             declare
                Original_Path : constant String :=
-                 Name_Buffer (1 .. Name_Len);
+                                 Name_Buffer (1 .. Name_Len);
+
                Imported_Path_Name : constant String :=
-                 Project_Path_Name_Of
-                 (Original_Path, Project_Directory_Path);
+                                      Project_Path_Name_Of
+                                        (Original_Path,
+                                         Project_Directory_Path);
+
+               Withed_Project : Project_Node_Id := Empty_Node;
 
             begin
                if Imported_Path_Name = "" then
+
                   --  The project file cannot be found
-                  Error_Msg ("unknown project file", Token_Ptr);
+
+                  Name_Len := Original_Path'Length;
+                  Name_Buffer (1 .. Name_Len) := Original_Path;
+                  Error_Msg_Name_1 := Name_Find;
+
+                  Error_Msg ("unknown project file: {", Token_Ptr);
 
                else
                   --  Parse the imported project
+
                   Parse_Single_Project
-                    (Project   => Data.Field1,
+                    (Project   => Withed_Project,
                      Path_Name => Imported_Path_Name,
                      Modified  => False);
 
-                  if Data.Field1 /= Empty_Node then
+                  if Withed_Project /= Empty_Node then
+
                      --  If parsing was successful, record project name
                      --  and path name in with clause
-                     Data.Name := Project_Nodes.Table (Data.Field1).Name;
+
+                     Set_Project_Node_Of (Current_With_Clause, Withed_Project);
+                     Set_Name_Of (Current_With_Clause,
+                                  Name_Of (Withed_Project));
                      Name_Len := Imported_Path_Name'Length;
                      Name_Buffer (1 .. Name_Len) := Imported_Path_Name;
-                     Data.Path_Name := Name_Find;
+                     Set_Path_Name_Of (Current_With_Clause, Name_Find);
                   end if;
                end if;
             end;
 
             Scan;
             if Token = Tok_Semicolon then
+
                --  End of (possibly multiple) with clause;
                --  Scan past the semicolon.
+
                Scan;
                exit Comma_Loop;
 
@@ -290,10 +310,6 @@ package body Prj.Part is
             end if;
          end loop Comma_Loop;
       end loop With_Loop;
-
-      if Current_With_Clause /= Empty_Node then
-         Project_Nodes.Table (Current_With_Clause) := Data;
-      end if;
 
    end Parse_Context_Clause;
 
@@ -307,18 +323,18 @@ package body Prj.Part is
       Modified        : Boolean)
    is
       Canonical_Path_Name : Name_Id;
-      Data                : Project_Node_Record :=
-        Default_Project_Node (Of_Kind => N_Project);
       Project_Directory   : Name_Id;
       Project_Scan_State  : Saved_Project_Scan_State;
       Source_Index        : Source_File_Index;
 
       Modified_Project    : Project_Node_Id := Empty_Node;
 
-      A_Project_Name_And_Node : Project_Name_And_Node :=
-        Projects_Htable.Get_First;
+      A_Project_Name_And_Node : Tree_Private_Part.Project_Name_And_Node :=
+        Tree_Private_Part.Projects_Htable.Get_First;
 
       Name_From_Path : constant Name_Id := Project_Name_From (Path_Name);
+
+      use Tree_Private_Part;
 
    begin
       Name_Len := Path_Name'Length;
@@ -328,11 +344,12 @@ package body Prj.Part is
 
       --  Check if the project file has already been parsed.
 
-      while A_Project_Name_And_Node /= No_Project_Name_And_Node loop
-
-         if Project_Nodes.Table (A_Project_Name_And_Node.Node).Path_Name =
-           Canonical_Path_Name then
-
+      while
+        A_Project_Name_And_Node /= Tree_Private_Part.No_Project_Name_And_Node
+      loop
+         if
+           Path_Name_Of (A_Project_Name_And_Node.Node) = Canonical_Path_Name
+         then
             if Modified then
 
                if A_Project_Name_And_Node.Modified then
@@ -356,7 +373,7 @@ package body Prj.Part is
             return;
          end if;
 
-         A_Project_Name_And_Node := Projects_Htable.Get_Next;
+         A_Project_Name_And_Node := Tree_Private_Part.Projects_Htable.Get_Next;
       end loop;
 
       --  We never encountered this project file
@@ -375,8 +392,10 @@ package body Prj.Part is
       Initialize_Scanner (Types.No_Unit, Source_Index);
 
       if Name_From_Path = No_Name then
+
          --  The project file name is not correct (no or bad extension,
          --  or not following Ada identifier's syntax).
+
          Error_Msg_Name_1 := Canonical_Path_Name;
          Error_Msg ("?{ is not a valid path name for a project file",
                     Token_Ptr);
@@ -390,34 +409,38 @@ package body Prj.Part is
       end if;
 
       Project_Directory := Immediate_Directory_Of (Canonical_Path_Name);
-      Data.Directory    := Project_Directory;
-
-      Project_Nodes.Increment_Last;
-      Project        := Project_Nodes.Last;
-      Data.Name      := Simple_File_Name_Of (Canonical_Path_Name);
-      Data.Path_Name := Canonical_Path_Name;
-      Data.Location  := Token_Ptr;
+      Project := Default_Project_Node (Of_Kind => N_Project);
+      Set_Directory_Of (Project, Project_Directory);
+      Set_Name_Of (Project, Simple_File_Name_Of (Canonical_Path_Name));
+      Set_Path_Name_Of (Project, Canonical_Path_Name);
+      Set_Location_Of (Project, Token_Ptr);
 
       --  Is there any imported project?
 
-      Parse_Context_Clause (Context_Clause    => Data.Field1,
-                            Project_Directory => Project_Directory);
+      declare
+         First_With_Clause : Project_Node_Id := Empty_Node;
+
+      begin
+         Parse_Context_Clause (Context_Clause    => First_With_Clause,
+                               Project_Directory => Project_Directory);
+         Set_First_With_Clause_Of (Project, First_With_Clause);
+      end;
 
       Expect (Tok_Project, "project");
 
       --  Scan past "project"
 
       if Token = Tok_Project then
-         Data.Location := Token_Ptr;
+         Set_Location_Of (Project, Token_Ptr);
          Scan;
       end if;
 
       Expect (Tok_Identifier, "identifier");
 
       if Token = Tok_Identifier then
-         Data.Name := Token_Name;
+         Set_Name_Of (Project, Token_Name);
 
-         Get_Name_String (Data.Name);
+         Get_Name_String (Token_Name);
          Canonical_Case_File_Name (Name_Buffer (1 .. Name_Len));
 
          declare
@@ -429,6 +452,7 @@ package body Prj.Part is
             then
                --  The project name is not the one that was expected from
                --  the file name. Report a warning.
+
                Error_Msg_Name_1 := Expected_Name;
                Error_Msg ("?file name does not match unit name, " &
                           "should be `{" & Project_File_Extension & "`",
@@ -438,25 +462,27 @@ package body Prj.Part is
          end;
 
          declare
-            Project_Name : Name_Id := Projects_Htable.Get_First.Name;
+            Project_Name : Name_Id :=
+                             Tree_Private_Part.Projects_Htable.Get_First.Name;
 
          begin
-            --  Check if we already have a project with this name.
+            --  Check if we already have a project with this name
+
             while Project_Name /= No_Name
-              and then
-              Project_Name /= Data.Name
+              and then Project_Name /= Token_Name
             loop
-               Project_Name := Projects_Htable.Get_Next.Name;
+               Project_Name := Tree_Private_Part.Projects_Htable.Get_Next.Name;
             end loop;
 
             if Project_Name /= No_Name then
                Error_Msg ("duplicate project name", Token_Ptr);
 
             else
-               Projects_Htable.Set (K => Data.Name,
-                                    E => (Name     => Data.Name,
-                                          Node     => Project,
-                                          Modified => Modified));
+               Tree_Private_Part.Projects_Htable.Set
+                 (K => Token_Name,
+                  E => (Name     => Token_Name,
+                        Node     => Project,
+                        Modified => Modified));
             end if;
          end;
 
@@ -477,21 +503,29 @@ package body Prj.Part is
          Expect (Tok_String_Literal, "literal string");
 
          if Token = Tok_String_Literal then
-            Data.Value := Strval (Token_Node);
-            String_To_Name_Buffer (Data.Value);
+            Set_Modified_Project_Path_Of (Project, Strval (Token_Node));
+            String_To_Name_Buffer (Modified_Project_Path_Of (Project));
 
             declare
                Original_Path_Name : constant String :=
-                 Name_Buffer (1 .. Name_Len);
+                                      Name_Buffer (1 .. Name_Len);
+
                Modified_Project_Path_Name : constant String :=
-                 Project_Path_Name_Of
-                  (Original_Path_Name,
-                   Get_Name_String (Project_Directory));
+                                              Project_Path_Name_Of
+                                                (Original_Path_Name,
+                                                   Get_Name_String
+                                                     (Project_Directory));
 
             begin
                if Modified_Project_Path_Name = "" then
+
                   --  We could not find the project file to modify
-                  Error_Msg ("unknown project file", Token_Ptr);
+
+                  Name_Len := Original_Path_Name'Length;
+                  Name_Buffer (1 .. Name_Len) := Original_Path_Name;
+                  Error_Msg_Name_1 := Name_Find;
+
+                  Error_Msg ("unknown project file: {", Token_Ptr);
 
                else
                   Parse_Single_Project
@@ -502,22 +536,25 @@ package body Prj.Part is
             end;
 
             --  Scan past the modified project path
+
             Scan;
          end if;
-
       end if;
 
       Expect (Tok_Is, "is");
 
-      --  We save the project data in the project table
+      declare
+         Project_Declaration : Project_Node_Id := Empty_Node;
 
-      Project_Nodes.Table (Project) := Data;
+      begin
+         --  No need to Scan past "is", Prj.Dect.Parse will do it.
 
-      --  No need to Scan past "is", Prj.Dect.Parse will do it.
-      Prj.Dect.Parse
-        (Declarations    => Project_Nodes.Table (Project).Field2,
-         Current_Project => Project,
-         Modifying       => Modified_Project);
+         Prj.Dect.Parse
+           (Declarations    => Project_Declaration,
+            Current_Project => Project,
+            Modifying       => Modified_Project);
+         Set_Project_Declaration_Of (Project, Project_Declaration);
+      end;
 
       Expect (Tok_End, "end");
 
@@ -530,11 +567,14 @@ package body Prj.Part is
       Expect (Tok_Identifier, "identifier");
 
       if Token = Tok_Identifier then
+
          --  We check if this is the project name
+
          if To_Lower (Get_Name_String (Token_Name)) /=
-                                              Get_Name_String (Data.Name)
+            Get_Name_String (Name_Of (Project))
          then
-            Error_Msg ("Expected """ & Get_Name_String (Data.Name) & """",
+            Error_Msg ("Expected """ &
+                       Get_Name_String (Name_Of (Project)) & """",
                        Token_Ptr);
          end if;
       end if;
@@ -601,15 +641,14 @@ package body Prj.Part is
 
       if Canonical (First) = '.' then
          if Canonical (First .. Last) = Project_File_Extension
-           and then
-           First /= 1
+           and then First /= 1
          then
             First := First - 1;
             Last := First;
 
             while First > 0
-              and then
-              Canonical (First) /= '/'
+              and then Canonical (First) /= '/'
+              and then Canonical (First) /= Directory_Separator
             loop
                First := First - 1;
             end loop;
@@ -622,7 +661,9 @@ package body Prj.Part is
          return No_Name;
       end if;
 
-      if Canonical (First) = '/' then
+      if Canonical (First) = '/'
+        or else Canonical (First) = Directory_Separator
+      then
          First := First + 1;
       end if;
 
@@ -653,7 +694,6 @@ package body Prj.Part is
          end if;
 
       end if;
-
    end Project_Name_From;
 
    --------------------------
@@ -663,12 +703,11 @@ package body Prj.Part is
    function Project_Path_Name_Of
      (Project_File_Name : String;
       Directory         : String)
-      return        String
+      return              String
    is
       Result : String_Access;
 
    begin
-
       --  First we try <file_name>.<extension>
 
       if Current_Verbosity = High then
@@ -755,9 +794,7 @@ package body Prj.Part is
 
       for Index in reverse 1 .. Name_Len loop
          if Name_Buffer (Index) = '/'
-           or else
-           Name_Buffer (Index) = Directory_Separator
-
+           or else Name_Buffer (Index) = Directory_Separator
          then
             exit when Index = Name_Len;
             Name_Buffer (1 .. Name_Len - Index) :=
@@ -772,7 +809,6 @@ package body Prj.Part is
    end Simple_File_Name_Of;
 
 begin
-
    Canonical_Case_File_Name (Project_File_Extension);
 
    if Prj_Path.all = "" then

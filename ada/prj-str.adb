@@ -786,3 +786,23 @@ package body Prj.Str is
    end Value_Of_Variable;
 
 end Prj.Str;
+
+
+----------------------
+-- REVISION HISTORY --
+----------------------
+
+--  ----------------------------
+--  revision 1.2
+--  date: 2001/01/24 16:14:57;  author: pautet;
+--  update gnat local copy for GLADE team
+--  ----------------------------
+--  revision 1.3
+--  date: 2001/02/27 16:50:01;  author: pautet;
+--  update gnat sources for glade developpers
+--  ----------------------------
+--  revision 1.4
+--  date: 2001/03/07 14:14:28;  author: tardieu;
+--  Add sinfo-cn.ad[bs] and update other sources for GLADE developers.
+--  ----------------------------
+--  New changes after this line.  Each line starts with: "--  "

@@ -246,27 +246,6 @@ package Lib is
    --  zero cost exception handling is active and there is at least one
    --  subprogram in the extended unit).
 
-   ---------------------------------
-   -- Compilation Arguments Table --
-   ---------------------------------
-
-   --  This table records the compilation switches used to compile the
-   --  main unit. The table includes only switches starting with a minus,
-   --  and excludes -quiet, -dumpbase, and -o switches, since the latter
-   --  are typically artifacts of the gcc/gnat1 interface.
-
-   --  This table is set as part of the processing in Lib.Writ. It can also
-   --  be reset in -gnatc mode from the data in an existing ali file, and is
-   --  read and written by the Tree_Read and Tree_Write routines for ASIS.
-
-   package Compilation_Arguments is new Table.Table (
-     Table_Component_Type => String_Ptr,
-     Table_Index_Type     => Nat,
-     Table_Low_Bound      => 1,
-     Table_Initial        => 30,
-     Table_Increment      => 100,
-     Table_Name           => "Compilation_Arguments");
-
    -----------------
    -- Units Table --
    -----------------
@@ -288,7 +267,6 @@ package Lib is
    --    Error_Location
    --      This is copied from the Sloc field of the Enode argument passed
    --      to Load_Unit. It refers to the enclosing construct which caused
-   --
    --      this unit to be loaded, e.g. most typically the with clause that
    --      referenced the unit, and is used for error handling in Par.Load.
 
@@ -510,6 +488,10 @@ package Lib is
    --  S2, and False otherwise. The result is undefined if S1 and S2 are
    --  not in the same extended unit.
 
+   function Get_Compilation_Switch (N : Pos) return String_Ptr;
+   --  Return the Nth stored compilation switch, or null if less than N
+   --  switches have been stored. Used by ASIS.
+
    function Get_Cunit_Unit_Number (N : Node_Id) return Unit_Number_Type;
    --  Return unit number of the unit whose N_Compilation_Unit node is the
    --  one passed as an argument. This must always succeed since the node
@@ -528,8 +510,12 @@ package Lib is
 
    procedure Replace_Linker_Option_String
      (S : String_Id; Match_String : String);
-   --  Relace an existing Linker_Option if the prefix Match_String
+   --  Replace an existing Linker_Option if the prefix Match_String
    --  matches, otherwise call Store_Linker_Option_String.
+
+   procedure Store_Compilation_Switch (Switch : String);
+   --  Called to register a compilation switch, either front-end or
+   --  back-end, which may influence the generated output file(s).
 
    procedure Store_Linker_Option_String (S : String_Id);
    --  This procedure is called to register the string from a pragma
@@ -646,6 +632,24 @@ private
      Table_Initial        => Alloc.Linker_Option_Lines_Initial,
      Table_Increment      => Alloc.Linker_Option_Lines_Increment,
      Table_Name           => "Linker_Option_Lines");
+
+   --  The following table records the compilation switches used to compile
+   --  the main unit. The table includes only switches and excludes -quiet,
+   --  -dumpbase, and -o switches, since the latter are typically artifacts
+   --  of the gcc/gnat1 interface.
+
+   --  This table is set as part of the compiler argument scanning in
+   --  Back_End. It can also be reset in -gnatc mode from the data in an
+   --  existing ali file, and is read and written by the Tree_Read and
+   --  Tree_Write routines for ASIS.
+
+   package Compilation_Switches is new Table.Table (
+     Table_Component_Type => String_Ptr,
+     Table_Index_Type     => Nat,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 30,
+     Table_Increment      => 100,
+     Table_Name           => "Compilation_Switches");
 
    Load_Msg_Sloc : Source_Ptr;
    --  Location for placing error messages (a token in the main source text)

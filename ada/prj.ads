@@ -179,7 +179,7 @@ package Prj is
       Table_Initial        => 100,
       Table_Increment      => 100,
       Table_Name           => "Prj.Packages");
-   --  The table that contains all arays.
+   --  The table that contains all packages.
 
    function Image (Casing : Casing_Type) return String;
    --  Similar to 'Image
@@ -191,16 +191,47 @@ package Prj is
 
    type Naming_Data is record
       Dot_Replacement      : Name_Id          := No_Name;
+      --  The string to replace '.' in the source file name.
+
       Dot_Repl_Loc         : Source_Ptr       := No_Location;
+      --  The position in the project file source where
+      --  Dot_Replacement is defined.
+
       Casing               : Casing_Type      := All_Lower_Case;
+      --  The casing of the source file name.
+
       Specification_Append : Name_Id          := No_Name;
+      --  The string to append to the unit name for the
+      --  source file name of a specification.
+
       Spec_Append_Loc      : Source_Ptr       := No_Location;
+      --  The position in the project file source where
+      --  Specification_Append is defined.
+
       Body_Append          : Name_Id          := No_Name;
+      --  The string to append to the unit name for the
+      --  source file name of a body.
+
       Body_Append_Loc      : Source_Ptr       := No_Location;
+      --  The position in the project file source where
+      --  Body_Append is defined.
+
       Separate_Append      : Name_Id          := No_Name;
+      --  The string to append to the unit name for the
+      --  source file name of a subunit.
+
       Sep_Append_Loc       : Source_Ptr       := No_Location;
+      --  The position in the project file source where
+      --  Separate_Append is defined.
+
       Specifications       : Array_Element_Id := No_Array_Element;
+      --  An associative array mapping individual specifications
+      --  to source file names.
+
       Bodies               : Array_Element_Id := No_Array_Element;
+      --  An associative array mapping individual bodies
+      --  to source file names.
+
    end record;
    --  A naming scheme.
 
@@ -240,27 +271,77 @@ package Prj is
 
    type Project_Data is record
       First_Referred_By  : Project_Id     := No_Project;
+      --  The project, if any, that was the first to be known
+      --  as importing or modifying this project.
+
       Name               : Name_Id        := No_Name;
+      --  The name of the project.
+
       Path_Name          : Name_Id        := No_Name;
+      --  The path name of the project file.
+
       Location           : Source_Ptr     := No_Location;
+      --  The location in the project file source of the
+      --  reserved word project.
+
       Directory          : Name_Id        := No_Name;
+      --  The directory where the project file resides.
+
       File_Name          : Name_Id        := No_Name;
+      --  The file name of the project file.
+
       Sources            : String_List_Id := Nil_String;
+      --  The list of all the source file names.
+
       Source_Dirs        : String_List_Id := Nil_String;
+      --  The list of all the source directories.
+
       Object_Directory   : Name_Id        := No_Name;
+      --  The object directory of this project file.
+
       Modifies           : Project_Id     := No_Project;
+      --  The reference of the project file, if any, that this
+      --  project file modifies.
+
       Modified_By        : Project_Id     := No_Project;
+      --  The reference of the project file, if any, that
+      --  modifies this project file.
+
       Naming             : Naming_Data    := Standard_Naming_Data;
+      --  The naming scheme of this project file.
+
       Decl               : Declarations   := No_Declarations;
+      --  The declarations (variables, attributes and packages)
+      --  of this project file.
+
       Imported_Projects  : Project_List   := Empty_Project_List;
+      --  The list of all directly imported projects, if any.
+
       Include_Path       : String_Access  := null;
+      --  The cached value of ADA_INCLUDE_PATH for this project file.
+
       Objects_Path       : String_Access  := null;
-      Gnat_Adc_Generated : Boolean        := False;
+      --  The cached value of ADA_OBJECTS_PATH for this project file.
+
+      Config_File_Name   : Name_Id        := No_Name;
+      --  The name of the configuration pragmas file, if any.
+
+      Config_File_Temp   : Boolean        := False;
+      --  An indication that the configuration pragmas file is
+      --  a temporary file that must be deleted at the end.
+
+      Config_Checked     : Boolean        := False;
+      --  A flag to avoid checking repetively the configuration pragmas file.
+
       Checked            : Boolean        := False;
+      --  A flag to avoid checking repetively the naming scheme of
+      --  this project file.
+
    end record;
    --  Project File representation.
 
    function Empty_Project return Project_Data;
+   --  Return the representation of an empty project.
 
    package Projects is new Table.Table (
      Table_Component_Type => Project_Data,
@@ -269,15 +350,19 @@ package Prj is
      Table_Initial        => 100,
      Table_Increment      => 100,
      Table_Name           => "Prj.Projects");
+   --  The set of all project files.
 
    procedure Expect (The_Token : Token_Type; Token_Image : String);
-   --  Check that the current token is The_Token.
-   --  If it is not, output an error message.
+   --  Check that the current token is The_Token. If it is not, then
+   --  output an error message.
 
    procedure Initialize;
-   --  This procedure must be called before using any services
-   --  from the Prj hierarchy.
-   --  Assumption: Namet.Initialize have already been called.
+   --  This procedure must be called before using any services from the Prj
+   --  hierarchy. Namet.Initialize must be called before Prj.Initialize.
+
+   procedure Reset;
+   --  This procedure resets all the tables that are used when processing a
+   --  project file tree. Initialize must be called before the call to Reset.
 
 private
 

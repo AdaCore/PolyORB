@@ -369,6 +369,13 @@ package body Prj.Nmsc is
                   Element.Value.Location);
 
             else
+
+               if Current_Verbosity = High then
+                  Write_Str ("   Body_Part (""");
+                  Write_Str (Get_Name_String (Unit_Name));
+                  Write_Line (""")");
+               end if;
+
                Element.Index := Unit_Name;
                Array_Elements.Table (Current) := Element;
             end if;
@@ -397,15 +404,25 @@ package body Prj.Nmsc is
          -------------------------
 
          procedure Recursive_Find_Dirs (Path : String_Id) is
-            Dir     : Dir_Type;
-            Name    : String (1 .. 250);
-            Last    : Natural;
-            The_Path : String := Get_Name_String (Path);
+            Dir      : Dir_Type;
+            Name     : String (1 .. 250);
+            Last     : Natural;
+            The_Path : String := Get_Name_String (Path) & Directory_Separator;
+
+            The_Path_Last : Positive := The_Path'Last;
 
          begin
+            if The_Path'Length > 1
+              and then
+                (The_Path (The_Path_Last - 1) = Directory_Separator
+                   or else The_Path (The_Path_Last - 1) = '/')
+            then
+               The_Path_Last := The_Path_Last - 1;
+            end if;
+
             if Current_Verbosity = High then
                Write_Str  ("   ");
-               Write_Line (The_Path);
+               Write_Line (The_Path (The_Path'First .. The_Path_Last));
             end if;
 
             String_Elements.Increment_Last;
@@ -435,7 +452,7 @@ package body Prj.Nmsc is
 
             --  Now look for subdirectories
 
-            Open (Dir, The_Path);
+            Open (Dir, The_Path (The_Path'First .. The_Path_Last));
 
             loop
                Read (Dir, Name, Last);
@@ -453,8 +470,7 @@ package body Prj.Nmsc is
 
                   declare
                      Path_Name : constant String :=
-                                   The_Path &
-                                   Directory_Separator &
+                                   The_Path (The_Path'First .. The_Path_Last) &
                                    Name (1 .. Last);
 
                   begin
@@ -650,17 +666,15 @@ package body Prj.Nmsc is
                         exit when Name_Len = 0;
 
                         declare
+                           Path_Access : constant GNAT.OS_Lib.String_Access :=
+                                           Locate_Regular_File
+                                             (Name_Buffer (1 .. Name_Len),
+                                              Source_Directory);
 
-                           Path_Access : constant
-                             GNAT.OS_Lib.String_Access :=
-                             Locate_Regular_File
-                             (Name_Buffer (1 .. Name_Len),
-                              Source_Directory);
                            File_Name : Name_Id;
                            Path_Name : Name_Id;
 
                         begin
-
                            --  If it is a regular file
 
                            if Path_Access /= null then
@@ -671,10 +685,10 @@ package body Prj.Nmsc is
 
                               --  We attempt to register it as a source.
                               --  However, there is no error if the file
-                              --  does not contain a valid source
-                              --  (as indicated by Error_If_Invalid => False).
-                              --  But there is an error if we have a duplicate
-                              --  unit name.
+                              --  does not contain a valid source (as
+                              --  indicated by Error_If_Invalid => False).
+                              --  But there is an error if we have a
+                              --  duplicate unit name.
 
                               Record_Source
                                 (File_Name        => File_Name,
@@ -727,14 +741,14 @@ package body Prj.Nmsc is
       procedure Get_Path_Name_And_Record_Source
         (File_Name        : String;
          Location         : Source_Ptr;
-         Current_Source   : in out String_List_Id) is
-
+         Current_Source   : in out String_List_Id)
+      is
          Source_Dir : String_List_Id := Data.Source_Dirs;
          Element    : String_Element;
          Path_Name  : GNAT.OS_Lib.String_Access;
          Found      : Boolean := False;
-
          File       : Name_Id;
+
       begin
          if Current_Verbosity = High then
             Write_Str  ("   Checking """);
@@ -746,6 +760,7 @@ package body Prj.Nmsc is
 
          while Source_Dir /= Nil_String loop
             Element := String_Elements.Table (Source_Dir);
+
             if Current_Verbosity = High then
                Write_Str ("      """);
                Write_Str (Get_Name_String (Element.Value));
@@ -825,8 +840,7 @@ package body Prj.Nmsc is
 
          --  We open the file
 
-         Prj.Util.Open
-           (File, Path);
+         Prj.Util.Open (File, Path);
 
          if not Prj.Util.Is_Valid (File) then
             Error_Msg ("file does not exist", Location);
@@ -838,8 +852,7 @@ package body Prj.Nmsc is
                --  then it must contains a file name.
 
                if Last /= 0
-                 and then
-                 (Last = 1 or else Line (1 .. 2) /= "--")
+                 and then (Last = 1 or else Line (1 .. 2) /= "--")
                then
                   Get_Path_Name_And_Record_Source
                     (File_Name => Line (1 .. Last),
@@ -864,7 +877,6 @@ package body Prj.Nmsc is
       --  Start of processing for Check_Naming_Scheme
 
    begin
-
       if Current_Verbosity = High then
          Write_Line ("Starting to look for directories");
       end if;
@@ -873,7 +885,7 @@ package body Prj.Nmsc is
 
       declare
          Object_Dir : Variable_Value :=
-           Util.Value_Of (Name_Object_Dir, Data.Decl.Attributes);
+                        Util.Value_Of (Name_Object_Dir, Data.Decl.Attributes);
 
       begin
          pragma Assert (Object_Dir.Kind = Single,
@@ -910,13 +922,9 @@ package body Prj.Nmsc is
                        ("the object directory { cannot be found",
                         Data.Location);
                   end if;
-
                end;
-
             end if;
-
          end if;
-
       end;
 
       if Current_Verbosity = High then
@@ -966,22 +974,22 @@ package body Prj.Nmsc is
             end if;
 
          elsif Source_Dirs.Values = Nil_String then
+
             --  If Source_Dirs is an empty string list, this means
             --  that this project contains no source.
 
             if Data.Object_Directory = Data.Directory then
                Data.Object_Directory := No_Name;
             end if;
+
             Data.Source_Dirs := Nil_String;
 
          else
-
             declare
                Source_Dir : String_List_Id := Source_Dirs.Values;
                Element    : String_Element;
 
             begin
-
                --  We will find the source directories for each
                --  element of the list
 
@@ -991,7 +999,6 @@ package body Prj.Nmsc is
                   Source_Dir := Element.Next;
                end loop;
             end;
-
          end if;
 
          if Current_Verbosity = High then
@@ -1026,6 +1033,7 @@ package body Prj.Nmsc is
       declare
          Naming_Id : constant Package_Id :=
                        Util.Value_Of (Name_Naming, Data.Decl.Packages);
+
          Naming : Package_Element;
 
       begin
@@ -1040,9 +1048,9 @@ package body Prj.Nmsc is
             end if;
 
             declare
-               Bodies         : constant Array_Element_Id :=
-                                  Util.Value_Of
-                                    (Name_Body_Part, Naming.Decl.Arrays);
+               Bodies : constant Array_Element_Id :=
+                          Util.Value_Of (Name_Body_Part, Naming.Decl.Arrays);
+
                Specifications : constant Array_Element_Id :=
                                   Util.Value_Of
                                     (Name_Specification, Naming.Decl.Arrays);
@@ -1138,10 +1146,10 @@ package body Prj.Nmsc is
 
                if not Casing_String.Default then
                   declare
-                     Casing_Image : constant String
-                          := Get_Name_String (Casing_String.Value);
-                  begin
+                     Casing_Image : constant String :=
+                                      Get_Name_String (Casing_String.Value);
 
+                  begin
                      declare
                         Casing : constant Casing_Type :=
                           Value (Casing_Image);
@@ -1155,6 +1163,7 @@ package body Prj.Nmsc is
                         if Casing_Image'Length = 0 then
                            Error_Msg ("Casing cannot be an empty string",
                                       Casing_String.Location);
+
                         else
                            Name_Len := Casing_Image'Length;
                            Name_Buffer (1 .. Name_Len) := Casing_Image;
@@ -1164,9 +1173,7 @@ package body Prj.Nmsc is
                               Casing_String.Location);
                         end if;
                   end;
-
                end if;
-
             end;
 
             if Current_Verbosity = High then
@@ -1180,17 +1187,17 @@ package body Prj.Nmsc is
 
             declare
                Specification_Append : constant Variable_Value :=
-                 Util.Value_Of
-                 (Name_Specification_Append,
-                  Naming.Decl.Attributes);
+                                        Util.Value_Of
+                                          (Name_Specification_Append,
+                                           Naming.Decl.Attributes);
 
             begin
                pragma Assert (Specification_Append.Kind = Single,
                               "Specification_Append is not a single string");
 
                if not Specification_Append.Default then
-
                   String_To_Name_Buffer (Specification_Append.Value);
+
                   if Name_Len = 0 then
                      Error_Msg ("Specification_Append cannot be empty",
                                 Specification_Append.Location);
@@ -1201,9 +1208,7 @@ package body Prj.Nmsc is
                      Data.Naming.Spec_Append_Loc :=
                        Specification_Append.Location;
                   end if;
-
                end if;
-
             end;
 
             if Current_Verbosity = High then
@@ -1216,7 +1221,8 @@ package body Prj.Nmsc is
 
             declare
                Body_Append : constant Variable_Value :=
-                 Util.Value_Of (Name_Body_Append, Naming.Decl.Attributes);
+                               Util.Value_Of
+                                 (Name_Body_Append, Naming.Decl.Attributes);
 
             begin
                pragma Assert (Body_Append.Kind = Single,
@@ -1241,9 +1247,7 @@ package body Prj.Nmsc is
                      Data.Naming.Separate_Append := Data.Naming.Body_Append;
                      Data.Naming.Sep_Append_Loc := Data.Naming.Body_Append_Loc;
                   end if;
-
                end if;
-
             end;
 
             if Current_Verbosity = High then
@@ -1256,14 +1260,15 @@ package body Prj.Nmsc is
 
             declare
                Separate_Append : constant Variable_Value :=
-                 Util.Value_Of (Name_Separate_Append, Naming.Decl.Attributes);
+                                   Util.Value_Of
+                                     (Name_Separate_Append,
+                                      Naming.Decl.Attributes);
 
             begin
                pragma Assert (Separate_Append.Kind = Single,
                              "Separate_Append is not a single string");
 
                if not Separate_Append.Default then
-
                   String_To_Name_Buffer (Separate_Append.Value);
 
                   if Name_Len = 0 then
@@ -1275,9 +1280,7 @@ package body Prj.Nmsc is
                      Data.Naming.Separate_Append := Name_Find;
                      Data.Naming.Sep_Append_Loc := Separate_Append.Location;
                   end if;
-
                end if;
-
             end;
 
             if Current_Verbosity = High then
@@ -1290,9 +1293,7 @@ package body Prj.Nmsc is
             --  Now, we check if Data.Naming is valid
 
             Check_Naming_Scheme (Data.Naming);
-
          end if;
-
       end;
 
       --  If we have source directories, then let's find the sources.
@@ -1300,9 +1301,14 @@ package body Prj.Nmsc is
       if Data.Source_Dirs /= Nil_String then
          declare
             Sources : constant Variable_Value :=
-              Util.Value_Of (Name_Source_Files, Data.Decl.Attributes);
+                        Util.Value_Of
+                          (Name_Source_Files,
+                           Data.Decl.Attributes);
+
             Source_List_File : constant Variable_Value :=
-              Util.Value_Of (Name_Source_List_File, Data.Decl.Attributes);
+                                 Util.Value_Of
+                                   (Name_Source_List_File,
+                                    Data.Decl.Attributes);
 
          begin
             pragma Assert (Sources.Kind = List,
@@ -1311,7 +1317,6 @@ package body Prj.Nmsc is
                            "Source_List_File is not a single string");
 
             if not Sources.Default then
-
                if not Source_List_File.Default then
                   Error_Msg
                     ("?both variables source_files and " &
@@ -1343,9 +1348,7 @@ package body Prj.Nmsc is
                         Current := Element.Next;
 
                      end;
-
                   end loop;
-
                end;
 
                --  No source_files specified.
@@ -1358,7 +1361,9 @@ package body Prj.Nmsc is
 
                declare
                   Source_File_Path_Name : constant String :=
-                    Path_Name_Of (Source_List_File.Value, Data.Directory);
+                                            Path_Name_Of
+                                              (Source_List_File.Value,
+                                               Data.Directory);
 
                begin
                   if Source_File_Path_Name'Length = 0 then
@@ -1373,26 +1378,20 @@ package body Prj.Nmsc is
                        (Source_File_Path_Name,
                         Source_List_File.Location);
                   end if;
-
                end;
 
             else
-
                --  Neither Source_Files nor Source_List_File has been
                --  specified.
                --  Find all the files that satisfy
                --  the naming scheme in all the source directories.
 
                Find_Sources;
-
             end if;
-
          end;
-
       end if;
 
       Projects.Table (Project) := Data;
-
    end Check_Naming_Scheme;
 
    ---------------------
@@ -1507,6 +1506,7 @@ package body Prj.Nmsc is
          --  Check if the end of the file name is Specification_Append
 
          Get_Name_String (Naming.Specification_Append);
+
          if File'Length > Name_Len
            and then File (Last - Name_Len + 1 .. Last) =
                                                 Name_Buffer (1 .. Name_Len)
@@ -1590,9 +1590,7 @@ package body Prj.Nmsc is
             --  then there should not be any dot in the name.
 
             for Index in First .. Last loop
-
                if File (Index) = '.' then
-
                   if Current_Verbosity = High then
                      Write_Line
                        ("   Not a valid file name (some dot not replaced).");
@@ -1706,8 +1704,18 @@ package body Prj.Nmsc is
      return   Name_Id
    is
       The_Name   : constant String := Get_Name_String (Name);
-      The_Parent : constant String := Get_Name_String (Parent);
+      The_Parent : constant String :=
+                     Get_Name_String (Parent) & Directory_Separator;
+
+      The_Parent_Last : Positive := The_Parent'Last;
+
    begin
+      if The_Parent'Length > 1
+        and then (The_Parent (The_Parent_Last - 1) = Directory_Separator
+                    or else The_Parent (The_Parent_Last - 1) = '/')
+      then
+         The_Parent_Last := The_Parent_Last - 1;
+      end if;
 
       if Current_Verbosity = High then
          Write_Str ("Locate_Directory (""");
@@ -1723,10 +1731,11 @@ package body Prj.Nmsc is
          end if;
 
       else
-
          declare
             Full_Path : constant String :=
-              The_Parent & Directory_Separator & The_Name;
+                          The_Parent (The_Parent'First .. The_Parent_Last) &
+                                                                     The_Name;
+
          begin
             if Is_Directory (Full_Path) then
                Name_Len := Full_Path'Length;
@@ -1738,7 +1747,6 @@ package body Prj.Nmsc is
       end if;
 
       return No_Name;
-
    end Locate_Directory;
 
    ------------------
@@ -1748,7 +1756,7 @@ package body Prj.Nmsc is
    function Path_Name_Of
      (File_Name : String_Id;
       Directory : String_Id)
-     return      String
+      return      String
    is
       Result : String_Access;
 
@@ -1901,14 +1909,18 @@ package body Prj.Nmsc is
                   --  and the same kind (spec or body).
 
                   Error_Msg_Name_1 := Unit_Name;
+                  Error_Msg_Name_2 :=
+                    Projects.Table
+                      (The_Unit_Data.File_Names (Unit_Kind).Project).Name;
+
                   if Location /= No_Location then
                      Error_Msg
-                       ("duplicate source {",
+                       ("duplicate source {, first found in {",
                         Location);
                   else
 
                      Error_Msg
-                       ("duplicate source {",
+                       ("duplicate source {, first found in {",
                         Projects.Table (Project).Location);
                   end if;
                end if;

@@ -37,42 +37,9 @@
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 with System;      use System;
-with Table;
 with Types;       use Types;
 
 package Osint is
-
-   --  ??? The following are only used in Make and by gnatdist and should
-   --  be moved to the SPEC of Make
-
-   --  The 3 following packages are used to store gcc, gnatbind and gnatbl
-   --  switches passed on the gnatmake command line. Note that the lower
-   --  bounds definitely need to be 1 to match the requirement that the
-   --  argument array prepared for Spawn must have a lower bound of 1.
-
-   package Gcc_Switches is new Table.Table (
-     Table_Component_Type => String_Access,
-     Table_Index_Type     => Integer,
-     Table_Low_Bound      => 1,
-     Table_Initial        => 20,
-     Table_Increment      => 100,
-     Table_Name           => "Osint.Gcc_Switches");
-
-   package Binder_Switches is new Table.Table (
-     Table_Component_Type => String_Access,
-     Table_Index_Type     => Integer,
-     Table_Low_Bound      => 1,
-     Table_Initial        => 20,
-     Table_Increment      => 100,
-     Table_Name           => "Osint.Binder_Switches");
-
-   package Linker_Switches is new Table.Table (
-     Table_Component_Type => String_Access,
-     Table_Index_Type     => Integer,
-     Table_Low_Bound      => 1,
-     Table_Initial        => 20,
-     Table_Increment      => 100,
-     Table_Name           => "Osint.Linker_Switches");
 
    procedure Set_Main_File_Name (Name : String);
    --  Set the main file name for Gnatmake.
@@ -127,6 +94,14 @@ package Osint is
    function Number_Of_Files return Int;
    --  gives the total number of filenames found on the command line.
 
+   procedure Add_File (File_Name : String);
+   --  Called by the subprogram processing the command line for each
+   --  file name found.
+
+   procedure Set_Output_Object_File_Name (Name : String);
+   --  Called by the subprogram processing the command line when an
+   --  output object file name is found.
+
    type Program_Type is (Compiler, Binder, Make);
    Program : Program_Type;
    --  Program currently running (set by Initialize below)
@@ -145,9 +120,6 @@ package Osint is
    --  the implementation and provide for opening only one file.
    --  The parameter P is the program (Compiler, Binder or Make) that is
    --  actually running.
-
-   procedure Scan_Compiler_Args;
-   --  Scans and processes the arguments passed to the compiler.
 
    procedure Find_Program_Name;
    --  Put simple name of current program being run (excluding the directory
@@ -629,18 +601,18 @@ package Osint is
    --  in the package Bindfmt.
 
    procedure Create_Binder_Output
-     (Output_Filename : String;
-      Typ             : Character;
-      Bfile           : out Name_Id);
+     (Output_File_Name : String;
+      Typ              : Character;
+      Bfile            : out Name_Id);
    --  Creates the binder output file. Typ is one of
    --
    --    'c'   create output file for case of generating C
    --    'b'   create body file for case of generating Ada
    --    's'   create spec file for case of generating Ada
    --
-   --  If Output_Filename is null, then a default name is used based on
+   --  If Output_File_Name is null, then a default name is used based on
    --  the name of the most recently accessed main source file name. If
-   --  Output_Filename is non-null then it is the full path name of the
+   --  Output_File_Name is non-null then it is the full path name of the
    --  file to be output (in the case of Ada, it must have an extension
    --  of adb, and the spec file is created by changing the last character
    --  from b to s. On return, Bfile also contains the Name_Id for the

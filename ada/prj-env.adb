@@ -84,7 +84,7 @@ package body Prj.Env is
    ----------------------
 
    function Ada_Include_Path (Project : Project_Id) return String_Access is
-      Seen   : Project_List := Empty_Project_List;
+      Seen : Project_List := Empty_Project_List;
 
       procedure Add (Project : Project_Id);
       --  Add all the source directories of a project to the path,
@@ -93,6 +93,10 @@ package body Prj.Env is
       --  and imported projects.
       --  Add the project to the list Seen if this is the first time
       --  we call Add for this project.
+
+      ---------
+      -- Add --
+      ---------
 
       procedure Add (Project : Project_Id) is
       begin
@@ -104,6 +108,7 @@ package body Prj.Env is
             Seen := Project_Lists.Last;
             Project_Lists.Table (Seen) :=
               (Project => Project, Next => Empty_Project_List);
+
          else
             declare
                Current : Project_Element := Project_Lists.Table (Seen);
@@ -148,12 +153,14 @@ package body Prj.Env is
 
                Source_Dir := String_Elements.Table (Current);
                String_To_Name_Buffer (Source_Dir.Value);
+
                declare
                   New_Path : constant String :=
                     Name_Buffer (1 .. Name_Len);
                begin
                   Add_To_Path (New_Path);
                end;
+
                Current := Source_Dir.Next;
             end loop;
 
@@ -193,7 +200,7 @@ package body Prj.Env is
    ----------------------
 
    function Ada_Objects_Path (Project : Project_Id) return String_Access is
-      Seen   : Project_List := Empty_Project_List;
+      Seen : Project_List := Empty_Project_List;
 
       procedure Add (Project : Project_Id);
       --  Add all the object directory of a project to the path,
@@ -203,10 +210,13 @@ package body Prj.Env is
       --  Add the project to the list Seen if this is the first time
       --  we call Add for this project.
 
+      ---------
+      -- Add --
+      ---------
+
       procedure Add (Project : Project_Id) is
       begin
-         --  If Seen is empty, then the project cannot have been
-         --  visited.
+         --  If Seen is empty, then the project cannot have been visited.
 
          if Seen = Empty_Project_List then
             Project_Lists.Increment_Last;
@@ -763,7 +773,6 @@ package body Prj.Env is
 
             Current_Unit := Current_Unit + 1;
          end;
-
       end loop;
 
       --  If we have created a gnat.adc, close it
@@ -859,12 +868,14 @@ package body Prj.Env is
                   --  If it has the name of the original name,
                   --  return the original name
 
-                  if Current_Name = The_Original_Name then
+                  if Unit.Name = The_Original_Name
+                    or else Current_Name = The_Original_Name
+                  then
                      if Current_Verbosity = High then
                         Write_Line ("   OK");
                      end if;
 
-                     return Original_Name;
+                     return Get_Name_String (Current_Name);
 
                   --  If it has the name of the extended body name,
                   --  return the extended body name
@@ -908,12 +919,14 @@ package body Prj.Env is
                   --  If it has the same name as the original name,
                   --  return the original name
 
-                  if Current_Name = The_Original_Name then
+                  if Unit.Name = The_Original_Name
+                    or else Current_Name = The_Original_Name
+                  then
                      if Current_Verbosity = High then
                         Write_Line ("   OK");
                      end if;
 
-                     return Original_Name;
+                     return Get_Name_String (Current_Name);
 
                   --  If it has the same name as the extended spec name,
                   --  return the extended spec name

@@ -33,10 +33,14 @@ with Prj.Tree;  use Prj.Tree;
 package Prj.Part is
 
    procedure Parse
-     (Project           : out Project_Node_Id;
-      Project_File_Name : String);
+     (Project                : out Project_Node_Id;
+      Project_File_Name      : String;
+      Always_Errout_Finalize : Boolean);
    --  Parse a project file and all its imported project files
    --  and create a tree.
    --  Return the node for the project (or Empty_Node if parsing failed).
+   --  If Always_Errout_Finalize is True, Errout.Finalize is called
+   --  in all cases; otherwise, Errout.Finalize is only called if there are
+   --  errors (but not if there are only warnings).
 
 end Prj.Part;

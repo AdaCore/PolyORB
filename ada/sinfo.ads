@@ -517,7 +517,7 @@ package Sinfo is
 
    --  Actions (List1-Sem)
    --    This field contains a sequence of actions that are associated
-   --    with the node holding the field. See the Insert_Actions subprogram
+   --    with the node holding the field. See the individual node types
    --    for details of how this field is used, as well as the description
    --    of the specific use for a particular node type.
 
@@ -679,6 +679,10 @@ package Sinfo is
    --    expansion of the proper body creates new declarative nodes, they are
    --    inserted at the point of the corresponding_stub.
 
+   --  Dcheck_Function (Node5-Sem)
+   --    This field is present in an N_Variant node, It references the entity
+   --    for the discriminant checking function for the variant.
+
    --  Debug_Statement (Node3)
    --    This field is present in an N_Pragma node. It is used only for
    --    a Debug pragma or pragma Assert with a second parameter. The
@@ -703,6 +707,11 @@ package Sinfo is
    --    finalization list is suppressed. This is used for functions that
    --    return controlled types without using the secondary stack, where
    --    it is the caller who must do the attachment.
+
+   --  Discr_Check_Funcs_Built (Flag11-Sem)
+   --    This flag is present in N_Full_Type_Declaration nodes. It is set when
+   --    discriminant checking functions are constructed. The purpose is to
+   --    avoid attempting to set these functions more than once.
 
    --  Do_Access_Check (Flag11-Sem)
    --    This flag is set on nodes with a Prefix field that can be an object
@@ -1058,14 +1067,6 @@ package Sinfo is
    --    This flag is set on in an expression that is a controlling argument
    --    in a dispatching call. It is off in all other cases. See Sem_Disp
    --    for details of its use.
-
-   --  Is_Lvalue (Flag18-Sem)
-   --    This flag appears in identifier, explicit deallocation, selected
-   --    component and indexed component nodes. It is set if the node is
-   --    a left-hand-side value, to which a value can be assigned. It is
-   --    set recursively. If the prefix of a selected or indexed component
-   --    is itself a variable (rather than an access value), it is also
-   --    flagged with this flag. Note: this flag is not set yet ???
 
    --  Is_Machine_Number (Flag11-Sem)
    --    This flag is set in an N_Real_Literal node to indicate that the
@@ -1543,7 +1544,6 @@ package Sinfo is
       --  Entity (Node4-Sem)
       --  Original_Discriminant (Node2-Sem)
       --  Redundant_Use (Flag13-Sem)
-      --  Is_Lvalue (Flag18-Sem)
       --  Has_Private_View (Flag11-Sem) (set in generic units)
       --  plus fields for expression
 
@@ -1761,6 +1761,7 @@ package Sinfo is
       --  Defining_Identifier (Node1)
       --  Discriminant_Specifications (List4) (set to No_List if none)
       --  Type_Definition (Node3)
+      --  Discr_Check_Funcs_Built (Flag11-Sem)
 
       ----------------------------
       -- 3.2.1  Type Definition --
@@ -2474,6 +2475,7 @@ package Sinfo is
       --  Component_List (Node1)
       --  Enclosing_Variant (Node2-Sem)
       --  Present_Expr (Uint3-Sem)
+      --  Dcheck_Function (Node5-Sem)
 
       ---------------------------------
       -- 3.8.1  Discrete Choice List --
@@ -2661,7 +2663,6 @@ package Sinfo is
       --  Sloc points to ALL
       --  Prefix (Node3)
       --  Do_Access_Check (Flag11-Sem)
-      --  Is_Lvalue (Flag18-Sem)
       --  plus fields for expression
 
       -------------------------------
@@ -2685,7 +2686,6 @@ package Sinfo is
       --  Prefix (Node3)
       --  Expressions (List1)
       --  Do_Access_Check (Flag11-Sem)
-      --  Is_Lvalue (Flag18-Sem)
       --  plus fields for expression
 
       --  Note: if any of the subscripts requires a range check, then the
@@ -2729,7 +2729,6 @@ package Sinfo is
       --  Selector_Name (Node2)
       --  Do_Access_Check (Flag11-Sem)
       --  Do_Discriminant_Check (Flag13-Sem)
-      --  Is_Lvalue (Flag18-Sem)
       --  plus fields for expression
 
       --------------------------
@@ -6828,6 +6827,9 @@ package Sinfo is
    function Corresponding_Stub
      (N : Node_Id) return Node_Id;    -- Node3
 
+   function Dcheck_Function
+     (N : Node_Id) return Entity_Id;  -- Node5
+
    function Debug_Statement
      (N : Node_Id) return Node_Id;    -- Node3
 
@@ -6860,6 +6862,9 @@ package Sinfo is
 
    function Digits_Expression
      (N : Node_Id) return Node_Id;    -- Node2
+
+   function Discr_Check_Funcs_Built
+     (N : Node_Id) return Boolean;    -- Flag11
 
    function Discrete_Choices
      (N : Node_Id) return List_Id;    -- List4
@@ -7097,9 +7102,6 @@ package Sinfo is
 
    function Is_Controlling_Actual
      (N : Node_Id) return Boolean;    -- Flag16
-
-   function Is_Lvalue
-     (N : Node_Id) return Boolean;    -- Flag18
 
    function Is_Machine_Number
      (N : Node_Id) return Boolean;    -- Flag11
@@ -7575,6 +7577,9 @@ package Sinfo is
    procedure Set_Corresponding_Stub
      (N : Node_Id; Val : Node_Id);            -- Node3
 
+   procedure Set_Dcheck_Function
+     (N : Node_Id; Val : Entity_Id);          -- Node5
+
    procedure Set_Debug_Statement
      (N : Node_Id; Val : Node_Id);            -- Node3
 
@@ -7607,6 +7612,9 @@ package Sinfo is
 
    procedure Set_Digits_Expression
      (N : Node_Id; Val : Node_Id);            -- Node2
+
+   procedure Set_Discr_Check_Funcs_Built
+     (N : Node_Id; Val : Boolean := True);    -- Flag11
 
    procedure Set_Discrete_Choices
      (N : Node_Id; Val : List_Id);            -- List4
@@ -7844,9 +7852,6 @@ package Sinfo is
 
    procedure Set_Is_Controlling_Actual
      (N : Node_Id; Val : Boolean := True);    -- Flag16
-
-   procedure Set_Is_Lvalue
-     (N : Node_Id; Val : Boolean := True);    -- Flag18
 
    procedure Set_Is_Machine_Number
      (N : Node_Id; Val : Boolean := True);    -- Flag11
@@ -8238,6 +8243,7 @@ package Sinfo is
    pragma Inline (Corresponding_Integer_Value);
    pragma Inline (Corresponding_Spec);
    pragma Inline (Corresponding_Stub);
+   pragma Inline (Dcheck_Function);
    pragma Inline (Debug_Statement);
    pragma Inline (Declarations);
    pragma Inline (Default_Expression);
@@ -8249,6 +8255,7 @@ package Sinfo is
    pragma Inline (Delay_Statement);
    pragma Inline (Delta_Expression);
    pragma Inline (Digits_Expression);
+   pragma Inline (Discr_Check_Funcs_Built);
    pragma Inline (Discrete_Choices);
    pragma Inline (Discrete_Range);
    pragma Inline (Discrete_Subtype_Definition);
@@ -8328,7 +8335,6 @@ package Sinfo is
    pragma Inline (Is_Component_Left_Opnd);
    pragma Inline (Is_Component_Right_Opnd);
    pragma Inline (Is_Controlling_Actual);
-   pragma Inline (Is_Lvalue);
    pragma Inline (Is_Machine_Number);
    pragma Inline (Is_Overloaded);
    pragma Inline (Is_Power_Of_2_For_Shift);
@@ -8484,6 +8490,7 @@ package Sinfo is
    pragma Inline (Set_Corresponding_Integer_Value);
    pragma Inline (Set_Corresponding_Spec);
    pragma Inline (Set_Corresponding_Stub);
+   pragma Inline (Set_Dcheck_Function);
    pragma Inline (Set_Debug_Statement);
    pragma Inline (Set_Declarations);
    pragma Inline (Set_Default_Expression);
@@ -8495,6 +8502,7 @@ package Sinfo is
    pragma Inline (Set_Delay_Statement);
    pragma Inline (Set_Delta_Expression);
    pragma Inline (Set_Digits_Expression);
+   pragma Inline (Set_Discr_Check_Funcs_Built);
    pragma Inline (Set_Discrete_Choices);
    pragma Inline (Set_Discrete_Range);
    pragma Inline (Set_Discrete_Subtype_Definition);
@@ -8574,7 +8582,6 @@ package Sinfo is
    pragma Inline (Set_Is_Component_Left_Opnd);
    pragma Inline (Set_Is_Component_Right_Opnd);
    pragma Inline (Set_Is_Controlling_Actual);
-   pragma Inline (Set_Is_Lvalue);
    pragma Inline (Set_Is_Machine_Number);
    pragma Inline (Set_Is_Overloaded);
    pragma Inline (Set_Is_Power_Of_2_For_Shift);

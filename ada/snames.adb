@@ -156,6 +156,7 @@ package body Snames is
      "extensions_allowed#" &
      "external_name_casing#" &
      "float_representation#" &
+     "initialize_scalars#" &
      "license#" &
      "locking_policy#" &
      "long_float#" &

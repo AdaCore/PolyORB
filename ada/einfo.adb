@@ -80,8 +80,10 @@ package body Einfo is
    --    Dependent_Instances             Elist8
    --    Hiding_Loop_Variable            Node8
    --    Mechanism                       Uint8 (but returns Mechanism_Type)
+   --    Normalized_First_Bit            Uint8
 
    --    Class_Wide_Type                 Node9
+   --    Normalized_Position             Uint9
    --    Size_Check_Code                 Node9
    --    Renaming_Map                    Uint9
 
@@ -178,6 +180,7 @@ package body Einfo is
    --    Discriminant_Constraint         Elist21
    --    Small_Value                     Ureal21
    --    Interface_Name                  Node21
+   --    Normalized_Position_Max         Uint21
 
    --    Associated_Storage_Pool         Node22
    --    Component_Size                  Uint22
@@ -386,9 +389,9 @@ package body Einfo is
    --    Has_Fully_Qualified_Name       Flag173
    --    Elaboration_Entity_Required    Flag174
    --    Has_Forward_Instantiation      Flag175
-
-   --    (unused)                       Flag176
-   --    (unused)                       Flag177
+   --    Is_Discrim_SO_Function         Flag176
+   --    Size_Depends_On_Discriminant   Flag177
+   --
    --    (unused)                       Flag178
    --    (unused)                       Flag179
    --    (unused)                       Flag180
@@ -1297,6 +1300,11 @@ package body Einfo is
       return Flag77 (Id);
    end Is_Destructor;
 
+   function Is_Discrim_SO_Function (Id : E) return B is
+   begin
+      return Flag176 (Id);
+   end Is_Discrim_SO_Function;
+
    function Is_Dispatching_Operation (Id : E) return B is
    begin
       pragma Assert (Nkind (Id) in N_Entity);
@@ -1662,6 +1670,27 @@ package body Einfo is
       return Flag162 (Base_Type (Id));
    end Nonzero_Is_True;
 
+   function Normalized_First_Bit (Id : E) return U is
+   begin
+      pragma Assert
+        (Ekind (Id) = E_Component or else Ekind (Id) = E_Discriminant);
+      return Uint8 (Id);
+   end Normalized_First_Bit;
+
+   function Normalized_Position (Id : E) return U is
+   begin
+      pragma Assert
+        (Ekind (Id) = E_Component or else Ekind (Id) = E_Discriminant);
+      return Uint9 (Id);
+   end Normalized_Position;
+
+   function Normalized_Position_Max (Id : E) return U is
+   begin
+      pragma Assert
+        (Ekind (Id) = E_Component or else Ekind (Id) = E_Discriminant);
+      return Uint21 (Id);
+   end Normalized_Position_Max;
+
    function Not_Source_Assigned (Id : E) return B is
    begin
       return Flag115 (Id);
@@ -1854,6 +1883,11 @@ package body Einfo is
       pragma Assert (Ekind (Id) = E_Constant or else Ekind (Id) = E_Variable);
       return Node9 (Id);
    end Size_Check_Code;
+
+   function Size_Depends_On_Discriminant (Id : E) return B is
+   begin
+      return Flag177 (Id);
+   end Size_Depends_On_Discriminant;
 
    function Size_Known_At_Compile_Time (Id : E) return B is
    begin
@@ -3102,6 +3136,11 @@ package body Einfo is
       Set_Flag77 (Id, V);
    end Set_Is_Destructor;
 
+   procedure Set_Is_Discrim_SO_Function (Id : E; V : B := True) is
+   begin
+      Set_Flag176 (Id, V);
+   end Set_Is_Discrim_SO_Function;
+
    procedure Set_Is_Dispatching_Operation (Id : E; V : B := True) is
    begin
       pragma Assert
@@ -3486,6 +3525,27 @@ package body Einfo is
       Set_Flag162 (Id, V);
    end Set_Nonzero_Is_True;
 
+   procedure Set_Normalized_First_Bit (Id : E; V : U) is
+   begin
+      pragma Assert
+        (Ekind (Id) = E_Component or else Ekind (Id) = E_Discriminant);
+      Set_Uint8 (Id, V);
+   end Set_Normalized_First_Bit;
+
+   procedure Set_Normalized_Position (Id : E; V : U) is
+   begin
+      pragma Assert
+        (Ekind (Id) = E_Component or else Ekind (Id) = E_Discriminant);
+      Set_Uint9 (Id, V);
+   end Set_Normalized_Position;
+
+   procedure Set_Normalized_Position_Max (Id : E; V : U) is
+   begin
+      pragma Assert
+        (Ekind (Id) = E_Component or else Ekind (Id) = E_Discriminant);
+      Set_Uint21 (Id, V);
+   end Set_Normalized_Position_Max;
+
    procedure Set_Not_Source_Assigned (Id : E; V : B := True) is
    begin
       Set_Flag115 (Id, V);
@@ -3681,6 +3741,11 @@ package body Einfo is
       Set_Node9 (Id, V);
    end Set_Size_Check_Code;
 
+   procedure Set_Size_Depends_On_Discriminant (Id : E; V : B := True) is
+   begin
+      Set_Flag177 (Id, V);
+   end Set_Size_Depends_On_Discriminant;
+
    procedure Set_Size_Known_At_Compile_Time (Id : E; V : B := True) is
    begin
       Set_Flag92 (Id, V);
@@ -3875,6 +3940,36 @@ package body Einfo is
       Set_Uint12 (Id, UI_From_Int (V));
    end Init_Esize;
 
+   procedure Init_Normalized_First_Bit (Id : E) is
+   begin
+      Set_Uint8 (Id, No_Uint);
+   end Init_Normalized_First_Bit;
+
+   procedure Init_Normalized_First_Bit (Id : E; V : Int) is
+   begin
+      Set_Uint8 (Id, UI_From_Int (V));
+   end Init_Normalized_First_Bit;
+
+   procedure Init_Normalized_Position (Id : E) is
+   begin
+      Set_Uint9 (Id, No_Uint);
+   end Init_Normalized_Position;
+
+   procedure Init_Normalized_Position (Id : E; V : Int) is
+   begin
+      Set_Uint9 (Id, UI_From_Int (V));
+   end Init_Normalized_Position;
+
+   procedure Init_Normalized_Position_Max (Id : E) is
+   begin
+      Set_Uint21 (Id, No_Uint);
+   end Init_Normalized_Position_Max;
+
+   procedure Init_Normalized_Position_Max (Id : E; V : Int) is
+   begin
+      Set_Uint21 (Id, UI_From_Int (V));
+   end Init_Normalized_Position_Max;
+
    procedure Init_RM_Size (Id : E) is
    begin
       Set_Uint13 (Id, Uint_0);
@@ -3885,92 +3980,155 @@ package body Einfo is
       Set_Uint13 (Id, UI_From_Int (V));
    end Init_RM_Size;
 
+   -----------------------------
+   -- Init_Component_Location --
+   -----------------------------
+
+   procedure Init_Component_Location (Id : E) is
+   begin
+      Set_Uint8  (Id, No_Uint);  -- Normalized_First_Bit
+      Set_Uint9  (Id, No_Uint);  -- Normalized_Position
+      Set_Uint11 (Id, No_Uint);  -- Component_First_Bit
+      Set_Uint12 (Id, Uint_0);   -- Esize
+      Set_Uint21 (Id, No_Uint);  -- Normalized_Position_Max
+   end Init_Component_Location;
+
+   ---------------
+   -- Init_Size --
+   ---------------
+
    procedure Init_Size (Id : E; V : Int) is
    begin
-      Set_Uint12 (Id, UI_From_Int (V));
-      Set_Uint13 (Id, UI_From_Int (V));
+      Set_Uint12 (Id, UI_From_Int (V));  -- Esize
+      Set_Uint13 (Id, UI_From_Int (V));  -- RM_Size
    end Init_Size;
+
+   ---------------------
+   -- Init_Size_Align --
+   ---------------------
 
    procedure Init_Size_Align (Id : E) is
    begin
-      Set_Uint12 (Id, Uint_0);
-      Set_Uint13 (Id, Uint_0);
-      Set_Uint14 (Id, Uint_0);
+      Set_Uint12 (Id, Uint_0);  -- Esize
+      Set_Uint13 (Id, Uint_0);  -- RM_Size
+      Set_Uint14 (Id, Uint_0);  -- Alignment
    end Init_Size_Align;
 
    ----------------------------------------------
    -- Type Representation Attribute Predicates --
    ----------------------------------------------
 
-   function Known_Alignment (E : Entity_Id) return B is
+   function Known_Alignment                       (E : Entity_Id) return B is
    begin
       return Uint14 (E) /= Uint_0;
    end Known_Alignment;
 
-   function Known_Component_Bit_Offset       (E : Entity_Id) return B is
+   function Known_Component_Bit_Offset            (E : Entity_Id) return B is
    begin
       return Uint11 (E) /= No_Uint;
    end Known_Component_Bit_Offset;
 
-   function Known_Component_Size             (E : Entity_Id) return B is
+   function Known_Component_Size                  (E : Entity_Id) return B is
    begin
       return Uint22 (Base_Type (E)) /= Uint_0;
    end Known_Component_Size;
 
-   function Known_Esize                      (E : Entity_Id) return B is
+   function Known_Esize                           (E : Entity_Id) return B is
    begin
       return Uint12 (E) /= Uint_0;
    end Known_Esize;
 
-   function Known_RM_Size                    (E : Entity_Id) return B is
+   function Known_Normalized_First_Bit            (E : Entity_Id) return B is
+   begin
+      return Uint8 (E) /= No_Uint;
+   end Known_Normalized_First_Bit;
+
+   function Known_Normalized_Position             (E : Entity_Id) return B is
+   begin
+      return Uint9 (E) /= No_Uint;
+   end Known_Normalized_Position;
+
+   function Known_Normalized_Position_Max         (E : Entity_Id) return B is
+   begin
+      return Uint21 (E) /= No_Uint;
+   end Known_Normalized_Position_Max;
+
+   function Known_RM_Size                         (E : Entity_Id) return B is
    begin
       return Uint13 (E) /= Uint_0
         or else Is_Discrete_Type (E);
    end Known_RM_Size;
 
-   function Known_Static_Component_Bit_Offset (E : Entity_Id) return B is
+   function Known_Static_Component_Bit_Offset     (E : Entity_Id) return B is
    begin
       return Uint11 (E) /= No_Uint
         and then Uint11 (E) >= Uint_0;
    end Known_Static_Component_Bit_Offset;
 
-   function Known_Static_Component_Size      (E : Entity_Id) return B is
+   function Known_Static_Component_Size           (E : Entity_Id) return B is
    begin
       return Uint22 (Base_Type (E)) > Uint_0;
    end Known_Static_Component_Size;
 
-   function Known_Static_Esize               (E : Entity_Id) return B is
+   function Known_Static_Esize                    (E : Entity_Id) return B is
    begin
       return Uint12 (E) > Uint_0;
    end Known_Static_Esize;
 
-   function Known_Static_RM_Size             (E : Entity_Id) return B is
+   function Known_Static_Normalized_Position      (E : Entity_Id) return B is
+   begin
+      return Uint9 (E) /= No_Uint
+        and then Uint9 (E) >= Uint_0;
+   end Known_Static_Normalized_Position;
+
+   function Known_Static_Normalized_Position_Max  (E : Entity_Id) return B is
+   begin
+      return Uint21 (E) /= No_Uint
+        and then Uint21 (E) >= Uint_0;
+   end Known_Static_Normalized_Position_Max;
+
+   function Known_Static_RM_Size                  (E : Entity_Id) return B is
    begin
       return Uint13 (E) > Uint_0
         or else Is_Discrete_Type (E);
    end Known_Static_RM_Size;
 
-   function Unknown_Alignment                (E : Entity_Id) return B is
+   function Unknown_Alignment                     (E : Entity_Id) return B is
    begin
       return Uint14 (E) = Uint_0;
    end Unknown_Alignment;
 
-   function Unknown_Component_Bit_Offset     (E : Entity_Id) return B is
+   function Unknown_Component_Bit_Offset          (E : Entity_Id) return B is
    begin
       return Uint11 (E) = No_Uint;
    end Unknown_Component_Bit_Offset;
 
-   function Unknown_Component_Size           (E : Entity_Id) return B is
+   function Unknown_Component_Size                (E : Entity_Id) return B is
    begin
       return Uint22 (Base_Type (E)) = Uint_0;
    end Unknown_Component_Size;
 
-   function Unknown_Esize                    (E : Entity_Id) return B is
+   function Unknown_Esize                         (E : Entity_Id) return B is
    begin
       return Uint12 (E) = Uint_0;
    end Unknown_Esize;
 
-   function Unknown_RM_Size                  (E : Entity_Id) return B is
+   function Unknown_Normalized_First_Bit          (E : Entity_Id) return B is
+   begin
+      return Uint8 (E) = No_Uint;
+   end Unknown_Normalized_First_Bit;
+
+   function Unknown_Normalized_Position           (E : Entity_Id) return B is
+   begin
+      return Uint9 (E) = No_Uint;
+   end Unknown_Normalized_Position;
+
+   function Unknown_Normalized_Position_Max       (E : Entity_Id) return B is
+   begin
+      return Uint21 (E) = No_Uint;
+   end Unknown_Normalized_Position_Max;
+
+   function Unknown_RM_Size                       (E : Entity_Id) return B is
    begin
       return Uint13 (E) = Uint_0
         and then not Is_Discrete_Type (E);
@@ -5666,6 +5824,7 @@ package body Einfo is
       W ("Is_Controlled",                 Flag42  (Id));
       W ("Is_Controlling_Formal",         Flag97  (Id));
       W ("Is_Destructor",                 Flag77  (Id));
+      W ("Is_Discrim_SO_Function",        Flag176 (Id));
       W ("Is_Dispatching_Operation",      Flag6   (Id));
       W ("Is_Eliminated",                 Flag124 (Id));
       W ("Is_Entry_Formal",               Flag52  (Id));
@@ -5731,6 +5890,7 @@ package body Einfo is
       W ("Returns_By_Ref",                Flag90  (Id));
       W ("Reverse_Bit_Order",             Flag164 (Id));
       W ("Sec_Stack_Needed_For_Return",   Flag167 (Id));
+      W ("Size_Depends_On_Discriminant",  Flag177 (Id));
       W ("Size_Known_At_Compile_Time",    Flag92  (Id));
       W ("Strict_Alignment",              Flag145 (Id));
       W ("Suppress_Access_Checks",        Flag31  (Id));
@@ -5899,6 +6059,10 @@ package body Einfo is
    procedure Write_Field8_Name (Id : Entity_Id) is
    begin
       case Ekind (Id) is
+         when E_Component                                |
+              E_Discriminant                             =>
+            Write_Str ("Normalized_First_Bit");
+
          when Formal_Kind                                |
               E_Function                                 =>
             Write_Str ("Mechanism");
@@ -5937,6 +6101,10 @@ package body Einfo is
               E_Package                                  |
               E_Procedure                                =>
             Write_Str ("Renaming_Map");
+
+         when E_Component                                |
+              E_Discriminant                             =>
+            Write_Str ("Normalized_Position");
 
          when others                                     =>
             Write_Str ("Field9??");
@@ -6452,6 +6620,10 @@ package body Einfo is
 
          when E_In_Parameter                             =>
             Write_Str ("Default_Expr_Function");
+
+         when E_Component                                |
+              E_Discriminant                             =>
+            Write_Str ("Normalized_Position_Max");
 
          when others                                     =>
             Write_Str ("Field21??");

@@ -2925,6 +2925,18 @@ package body Atree is
          end if;
       end Uint17;
 
+      function Uint21 (N : Node_Id) return Uint is
+         pragma Assert (Nkind (N) in N_Entity);
+         U : constant Union_Id := Nodes.Table (N + 3).Field8;
+
+      begin
+         if U = 0 then
+            return Uint_0;
+         else
+            return From_Union (U);
+         end if;
+      end Uint21;
+
       function Uint22 (N : Node_Id) return Uint is
          pragma Assert (Nkind (N) in N_Entity);
          U : constant Union_Id := Nodes.Table (N + 3).Field9;
@@ -4505,6 +4517,12 @@ package body Atree is
          pragma Assert (Nkind (N) in N_Entity);
          Nodes.Table (N + 2).Field10 := To_Union (Val);
       end Set_Uint17;
+
+      procedure Set_Uint21 (N : Node_Id; Val : Uint) is
+      begin
+         pragma Assert (Nkind (N) in N_Entity);
+         Nodes.Table (N + 3).Field8 := To_Union (Val);
+      end Set_Uint21;
 
       procedure Set_Uint22 (N : Node_Id; Val : Uint) is
       begin

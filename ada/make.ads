@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,9 +32,40 @@
 --  the routine gnatmake below that puts it all together.
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;  --  defines Argument_List
+with Table;
 with Types;       use Types;
 
 package Make is
+
+   --  The 3 following packages are used to store gcc, gnatbind and gnatbl
+   --  switches passed on the gnatmake or gnatdist command line.
+   --  Note that the lower bounds definitely need to be 1 to match the
+   --  requirement that the argument array prepared for Spawn must have
+   --  a lower bound of 1.
+
+   package Gcc_Switches is new Table.Table (
+     Table_Component_Type => String_Access,
+     Table_Index_Type     => Integer,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 20,
+     Table_Increment      => 100,
+     Table_Name           => "Make.Gcc_Switches");
+
+   package Binder_Switches is new Table.Table (
+     Table_Component_Type => String_Access,
+     Table_Index_Type     => Integer,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 20,
+     Table_Increment      => 100,
+     Table_Name           => "Make.Binder_Switches");
+
+   package Linker_Switches is new Table.Table (
+     Table_Component_Type => String_Access,
+     Table_Index_Type     => Integer,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 20,
+     Table_Increment      => 100,
+     Table_Name           => "Make.Linker_Switches");
 
    procedure Display_Commands (Display : Boolean := True);
    --  The default behavior of Make commands (Compile_Sources, Bind, Link)

@@ -73,3 +73,23 @@ private package Prj.Str is
    --  as different types.
 
 end Prj.Str;
+
+
+----------------------
+-- REVISION HISTORY --
+----------------------
+
+--  ----------------------------
+--  revision 1.1
+--  date: 2000/12/18 14:07:08;  author: pautet;  state: Exp;
+--  update GNAT sources for GLADE developpers
+--  ----------------------------
+--  revision 1.2
+--  date: 2001/01/24 16:14:57;  author: pautet;
+--  update gnat local copy for GLADE team
+--  ----------------------------
+--  revision 1.3
+--  date: 2001/03/07 14:14:28;  author: tardieu;
+--  Add sinfo-cn.ad[bs] and update other sources for GLADE developers.
+--  ----------------------------
+--  New changes after this line.  Each line starts with: "--  "

@@ -124,43 +124,47 @@ package body Prj.Strt is
      (Reference       : out Project_Node_Id;
       First_Attribute : Attribute_Node_Id;
       Current_Project : Project_Node_Id;
-      Current_Package : Project_Node_Id) is
-      Data : Project_Node_Record :=
-        Default_Project_Node (Of_Kind => N_Atribute_Reference);
+      Current_Package : Project_Node_Id)
+   is
       Current_Attribute : Attribute_Node_Id := First_Attribute;
-   begin
-      Reference := Empty_Node;
 
-      Data.Location := Token_Ptr;
+   begin
+      Reference :=  Default_Project_Node (Of_Kind => N_Attribute_Reference);
+      Set_Location_Of (Reference, To => Token_Ptr);
 
       --  Scan past apostrophe
+
       Scan;
 
       Expect (Tok_Identifier, "Identifier");
 
       if Token = Tok_Identifier then
-         Data.Name := Token_Name;
+         Set_Name_Of (Reference, To => Token_Name);
+
          while Current_Attribute /= Empty_Attribute
            and then
-           Attributes.Table (Current_Attribute).Name /= Data.Name
+             Attributes.Table (Current_Attribute).Name /= Token_Name
          loop
             Current_Attribute := Attributes.Table (Current_Attribute).Next;
          end loop;
+
          if Current_Attribute = Empty_Attribute then
             Error_Msg ("unknown attribute", Token_Ptr);
+            Reference := Empty_Node;
+
          elsif
            Attributes.Table (Current_Attribute).Kind_2 = Associative_Array
          then
             Error_Msg
               ("associative array attribute cannot be referenced",
                Token_Ptr);
+            Reference := Empty_Node;
+
          else
-            Project_Nodes.Increment_Last;
-            Reference := Project_Nodes.Last;
-            Data.Field1 := Current_Project;
-            Data.Field2 := Current_Package;
-            Data.Expr_Kind := Attributes.Table (Current_Attribute).Kind_1;
-            Project_Nodes.Table (Reference) := Data;
+            Set_Project_Node_Of (Reference, To => Current_Project);
+            Set_Package_Node_Of (Reference, To => Current_Package);
+            Set_Expression_Kind_Of
+              (Reference, To => Attributes.Table (Current_Attribute).Kind_1);
             Scan;
          end if;
       end if;
@@ -171,19 +175,13 @@ package body Prj.Strt is
    ------------------------
 
    procedure External_Reference (External_Value : out Project_Node_Id) is
-      Data : Project_Node_Record :=
-        Default_Project_Node (Of_Kind       => N_External_Value,
-                              And_Expr_Kind => Single);
-
-      Field_Data : Project_Node_Record :=
-        Default_Project_Node (Of_Kind       => N_Literal_String,
-                              And_Expr_Kind => Single);
+      Field_Id : Project_Node_Id := Empty_Node;
 
    begin
-
-      Project_Nodes.Increment_Last;
-      External_Value := Project_Nodes.Last;
-      Data.Location := Token_Ptr;
+      External_Value :=
+        Default_Project_Node (Of_Kind       => N_External_Value,
+                              And_Expr_Kind => Single);
+      Set_Location_Of (External_Value, To => Token_Ptr);
 
       --  The current token is External
 
@@ -203,18 +201,19 @@ package body Prj.Strt is
       Expect (Tok_String_Literal, "literal string");
 
       if Token = Tok_String_Literal then
-         Project_Nodes.Increment_Last;
-         Data.Field1 := Project_Nodes.Last;
-         Field_Data.Value := Strval (Token_Node);
-         Project_Nodes.Table (Data.Field1) := Field_Data;
+         Field_Id :=
+           Default_Project_Node (Of_Kind       => N_Literal_String,
+                                 And_Expr_Kind => Single);
+         Set_String_Value_Of (Field_Id, To => Strval (Token_Node));
+         Set_External_Reference_Of (External_Value, To => Field_Id);
 
          --  Scan past the first argument
+
          Scan;
 
          case Token is
 
             when Tok_Right_Paren =>
-               Project_Nodes.Table (External_Value) := Data;
 
                --  Scan past the right parenthesis
                Scan;
@@ -230,11 +229,11 @@ package body Prj.Strt is
                --  Get the default
 
                if Token = Tok_String_Literal then
-                  Project_Nodes.Increment_Last;
-                  Data.Field2 := Project_Nodes.Last;
-                  Field_Data.Value := Strval (Token_Node);
-                  Project_Nodes.Table (Data.Field2) := Field_Data;
-                  Project_Nodes.Table (External_Value) := Data;
+                  Field_Id :=
+                    Default_Project_Node (Of_Kind       => N_Literal_String,
+                                          And_Expr_Kind => Single);
+                  Set_String_Value_Of (Field_Id, To => Strval (Token_Node));
+                  Set_External_Default_Of (External_Value, To => Field_Id);
                   Scan;
                   Expect (Tok_Right_Paren, ")");
                end if;
@@ -246,7 +245,6 @@ package body Prj.Strt is
 
             when others =>
                Error_Msg ("',' or ')' expected", Token_Ptr);
-               Project_Nodes.Table (External_Value) := Data;
          end case;
       end if;
    end External_Reference;
@@ -257,46 +255,53 @@ package body Prj.Strt is
 
    procedure Parse_Choice_List (First_Choice : out Project_Node_Id) is
       Current_Choice : Project_Node_Id := Empty_Node;
-      Data : Project_Node_Record :=
+      Next_Choice    : Project_Node_Id := Empty_Node;
+      Choice_String  : String_Id := No_String;
+      Found          : Boolean := False;
+
+   begin
+      First_Choice :=
         Default_Project_Node (Of_Kind       => N_Literal_String,
                               And_Expr_Kind => Single);
-      Found : Boolean := False;
-   begin
-      Project_Nodes.Increment_Last;
-      First_Choice   := Project_Nodes.Last;
-      Current_Choice := Project_Nodes.Last;
+      Current_Choice := First_Choice;
+
       loop
          Expect (Tok_String_Literal, "literal string");
          exit when Token /= Tok_String_Literal;
-         Data.Location := Token_Ptr;
-         Data.Value := Strval (Token_Node);
+         Set_Location_Of (Current_Choice, To => Token_Ptr);
+         Choice_String := Strval (Token_Node);
+         Set_String_Value_Of (Current_Choice, To => Choice_String);
          Found := False;
          for Choice in Choice_First .. Choices.Last loop
             if String_Equal (Choices.Table (Choice).The_String,
-                             Data.Value)
+                             Choice_String)
             then
                Found := True;
+
                if Choices.Table (Choice).Already_Used then
                   Error_Msg ("duplicate case label", Token_Ptr);
                else
                   Choices.Table (Choice).Already_Used := True;
                end if;
+
                exit;
             end if;
          end loop;
+
          if not Found then
             Error_Msg ("illegal case label", Token_Ptr);
          end if;
+
          Scan;
+
          if Token = Tok_Vertical_Bar then
-            Project_Nodes.Increment_Last;
-            Data.Field1 := Project_Nodes.Last;
-            Project_Nodes.Table (Current_Choice) := Data;
-            Current_Choice := Data.Field1;
+            Next_Choice :=
+              Default_Project_Node (Of_Kind       => N_Literal_String,
+                                    And_Expr_Kind => Single);
+            Set_Next_Literal_String (Current_Choice, To => Next_Choice);
+            Current_Choice := Next_Choice;
             Scan;
          else
-            Data.Field1 := Empty_Node;
-            Project_Nodes.Table (Current_Choice) := Data;
             exit;
          end if;
       end loop;
@@ -309,18 +314,20 @@ package body Prj.Strt is
    procedure Parse_Expression
      (Expression      : out Project_Node_Id;
       Current_Project : Project_Node_Id;
-      Current_Package : Project_Node_Id) is
-      Data : Project_Node_Record :=
-        Default_Project_Node (Of_Kind => N_Expression);
+      Current_Package : Project_Node_Id)
+   is
+      First_Term      : Project_Node_Id := Empty_Node;
+      Expression_Kind : Variable_Kind := Undefined;
+
    begin
-      Data.Location := Token_Ptr;
-      Project_Nodes.Increment_Last;
-      Expression := Project_Nodes.Last;
-      Terms (Term            => Data.Field1,
-             Expr_Kind       => Data.Expr_Kind,
+      Expression := Default_Project_Node (Of_Kind => N_Expression);
+      Set_Location_Of (Expression, To => Token_Ptr);
+      Terms (Term            => First_Term,
+             Expr_Kind       => Expression_Kind,
              Current_Project => Current_Project,
              Current_Package => Current_Package);
-      Project_Nodes.Table (Expression) := Data;
+      Set_First_Term (Expression, To => First_Term);
+      Set_Expression_Kind_Of (Expression, To => Expression_Kind);
    end Parse_Expression;
 
    ----------------------------
@@ -328,42 +335,46 @@ package body Prj.Strt is
    ----------------------------
 
    procedure Parse_String_Type_List (First_String : out Project_Node_Id) is
-      Last_String : Project_Node_Id := Empty_Node;
-      Data : Project_Node_Record :=
+      Last_String  : Project_Node_Id := Empty_Node;
+      Next_String  : Project_Node_Id := Empty_Node;
+      String_Value : String_Id := No_String;
+
+   begin
+      First_String :=
         Default_Project_Node (Of_Kind       => N_Literal_String,
                               And_Expr_Kind => Single);
-   begin
-      Project_Nodes.Increment_Last;
-      First_String := Project_Nodes.Last;
-      Last_String := Project_Nodes.Last;
+      Last_String := First_String;
+
       loop
          Expect (Tok_String_Literal, "literal string");
          exit when Token /= Tok_String_Literal;
-         Data.Value := Strval (Token_Node);
-         Data.Location := Token_Ptr;
+         String_Value := Strval (Token_Node);
+         Set_String_Value_Of (Last_String, To => String_Value);
+         Set_Location_Of (Last_String, To => Token_Ptr);
+
          declare
             Current : Project_Node_Id := First_String;
+
          begin
             while Current /= Last_String loop
-               if String_Equal (Project_Nodes.Table (Current).Value,
-                                Data.Value)
-               then
+               if String_Equal (String_Value_Of (Current), String_Value) then
                   Error_Msg ("duplicate value in type", Token_Ptr);
                   exit;
                end if;
-               Current := Project_Nodes.Table (Current).Field1;
+               Current := Next_Literal_String (Current);
             end loop;
          end;
+
          Scan;
+
          if Token /= Tok_Comma then
-            Data.Field1 := Empty_Node;
-            Project_Nodes.Table (Last_String) := Data;
             exit;
          else
-            Project_Nodes.Increment_Last;
-            Data.Field1 := Project_Nodes.Last;
-            Project_Nodes.Table (Last_String) := Data;
-            Last_String := Data.Field1;
+            Next_String :=
+              Default_Project_Node (Of_Kind       => N_Literal_String,
+                                    And_Expr_Kind => Single);
+            Set_Next_Literal_String (Last_String, To => Next_String);
+            Last_String := Next_String;
             Scan;
          end if;
       end loop;
@@ -376,27 +387,30 @@ package body Prj.Strt is
    procedure Parse_Variable_Reference
      (Variable        : out Project_Node_Id;
       Current_Project : Project_Node_Id;
-      Current_Package : Project_Node_Id) is
-      The_Names       : Names;
-      Last_Name       : Name_Range := 0;
-      Data : Project_Node_Record :=
-        Default_Project_Node (Of_Kind => N_Variable_Reference);
+      Current_Package : Project_Node_Id)
+   is
+      The_Names        : Names;
+      Last_Name        : Name_Range := 0;
       Current_Variable : Project_Node_Id := Empty_Node;
+
       The_Package : Project_Node_Id := Current_Package;
       The_Project : Project_Node_Id := Current_Project;
+
       Specified_Project : Project_Node_Id := Empty_Node;
       Specified_Package : Project_Node_Id := Empty_Node;
       Look_For_Variable : Boolean := True;
       First_Attribute   : Attribute_Node_Id := Empty_Attribute;
-   begin
-      Data.Location := Token_Ptr;
+      Variable_Name     : Name_Id;
 
+   begin
       for Index in The_Names'Range loop
          Expect (Tok_Identifier, "identifier");
+
          if Token /= Tok_Identifier then
             Look_For_Variable := False;
             exit;
          end if;
+
          Last_Name := Last_Name + 1;
          The_Names (Last_Name) :=
            (Name     => Token_Name,
@@ -408,11 +422,16 @@ package body Prj.Strt is
 
       if Look_For_Variable then
          if Token = Tok_Apostrophe then
+
             --  Attribute reference
+
             case Last_Name is
                when 0 =>
+
                   --  Cannot happen
+
                   null;
+
                when 1 =>
                   for Index in Package_First .. Package_Attributes.Last loop
                      if Package_Attributes.Table (Index).Name =
@@ -423,31 +442,36 @@ package body Prj.Strt is
                         exit;
                      end if;
                   end loop;
+
                   if First_Attribute /= Empty_Attribute then
-                     The_Package :=
-                          Project_Nodes.Table (Current_Project).Packages;
+                     The_Package := First_Package_Of (Current_Project);
                      while The_Package /= Empty_Node
                        and then
-                       Project_Nodes.Table (The_Package).Name /=
-                       The_Names (1).Name
+                       Name_Of (The_Package) /= The_Names (1).Name
                      loop
-                        The_Package :=
-                          Project_Nodes.Table (The_Package).Field3;
+                        The_Package := Next_Package_In_Project (The_Package);
                      end loop;
+
                      if The_Package = Empty_Node then
                         Error_Msg ("package not yet defined",
                                    The_Names (1).Location);
                      end if;
+
                   else
                      First_Attribute := Attribute_First;
                      The_Package     := Empty_Node;
                      declare
                         The_Project_Name_And_Node :
-                          constant Project_Name_And_Node :=
-                          Projects_Htable.Get (The_Names (1).Name);
+                          constant Tree_Private_Part.Project_Name_And_Node :=
+                            Tree_Private_Part.Projects_Htable.Get
+                                                          (The_Names (1).Name);
+
+                        use Tree_Private_Part;
+
                      begin
                         if
-                          The_Project_Name_And_Node = No_Project_Name_And_Node
+                          The_Project_Name_And_Node =
+                                   Tree_Private_Part.No_Project_Name_And_Node
                         then
                            Error_Msg ("unknown project",
                                       The_Names (1).Location);
@@ -460,43 +484,41 @@ package body Prj.Strt is
                when 2 =>
                   declare
                      With_Clause : Project_Node_Id :=
-                       Project_Nodes.Table (Current_Project).Field1;
+                                     First_With_Clause_Of (Current_Project);
+
                   begin
                      while With_Clause /= Empty_Node loop
-                        The_Project :=
-                          Project_Nodes.Table (With_Clause).Field1;
-                        exit when Project_Nodes.Table (The_Project).Name =
-                          The_Names (1).Name;
-                        With_Clause :=
-                          Project_Nodes.Table (With_Clause).Field2;
+                        The_Project := Project_Node_Of (With_Clause);
+                        exit when Name_Of (The_Project) = The_Names (1).Name;
+                        With_Clause := Next_With_Clause_Of (With_Clause);
                      end loop;
+
                      if With_Clause = Empty_Node then
                         Error_Msg ("unknown project",
                                    The_Names (1).Location);
                         The_Project := Empty_Node;
                         The_Package := Empty_Node;
                         First_Attribute := Attribute_First;
+
                      else
-                        The_Package :=
-                          Project_Nodes.Table (The_Project).Packages;
+                        The_Package := First_Package_Of (The_Project);
                         while
                           The_Package /= Empty_Node
-                          and then
-                          Project_Nodes.Table (The_Package).Name /=
-                          The_Names (2).Name
+                          and then Name_Of (The_Package) /= The_Names (2).Name
                         loop
                            The_Package :=
-                             Project_Nodes.Table (The_Package).Field3;
+                             Next_Package_In_Project (The_Package);
                         end loop;
+
                         if The_Package = Empty_Node then
                            Error_Msg ("package not declared in project",
                                       The_Names (2).Location);
                            First_Attribute := Attribute_First;
+
                         else
                            First_Attribute :=
                              Package_Attributes.Table
-                               (Project_Nodes.Table (The_Package).Pkg_Id).
-                                   First_Attribute;
+                             (Package_Id_Of (The_Package)).First_Attribute;
                         end if;
                      end if;
                   end;
@@ -518,53 +540,57 @@ package body Prj.Strt is
          end if;
       end if;
 
-      Project_Nodes.Increment_Last;
-      Variable := Project_Nodes.Last;
+      Variable :=
+        Default_Project_Node (Of_Kind => N_Variable_Reference);
 
       if Look_For_Variable then
          case Last_Name is
             when 0 =>
+
                --  Cannot happen
+
                null;
+
             when 1 =>
-               Data.Name := The_Names (1).Name;
+               Set_Name_Of (Variable, To => The_Names (1).Name);
+
             when 2 =>
-               Data.Name := The_Names (2).Name;
-               The_Package := Project_Nodes.Table (Current_Project).Packages;
+               Set_Name_Of (Variable, To => The_Names (2).Name);
+               The_Package := First_Package_Of (Current_Project);
+
                while The_Package /= Empty_Node
-                 and then
-                 Project_Nodes.Table (The_Package).Name /= The_Names (1).Name
+                 and then Name_Of (The_Package) /= The_Names (1).Name
                loop
-                  The_Package := Project_Nodes.Table (The_Package).Field3;
+                  The_Package := Next_Package_In_Project (The_Package);
                end loop;
+
                if The_Package /= Empty_Node then
                   Specified_Package := The_Package;
                   The_Project := Empty_Node;
                else
                   declare
                      With_Clause : Project_Node_Id :=
-                       Project_Nodes.Table (Current_Project).Field1;
+                       First_With_Clause_Of (Current_Project);
                   begin
                      while With_Clause /= Empty_Node loop
-                        The_Project :=
-                          Project_Nodes.Table (With_Clause).Field1;
-                        exit when Project_Nodes.Table (The_Project).Name =
-                          The_Names (1).Name;
-                        With_Clause :=
-                          Project_Nodes.Table (With_Clause).Field2;
+                        The_Project := Project_Node_Of (With_Clause);
+                        exit when Name_Of (The_Project) = The_Names (1).Name;
+                        With_Clause := Next_With_Clause_Of (With_Clause);
                      end loop;
+
                      if With_Clause = Empty_Node then
                         The_Project :=
-                          Project_Nodes.Table
-                            (Project_Nodes.Table (Current_Project).Field2).
-                              Field2;
+                          Modified_Project_Of
+                                 (Project_Declaration_Of (Current_Project));
+
                         if The_Project /= Empty_Node
                           and then
-                          Project_Nodes.Table (The_Project).Name /=
-                          The_Names (1).Name then
+                            Name_Of (The_Project) /= The_Names (1).Name
+                        then
                            The_Project := Empty_Node;
                         end if;
                      end if;
+
                      if The_Project = Empty_Node then
                         Error_Msg ("unknown package or project",
                                    The_Names (1).Location);
@@ -574,51 +600,53 @@ package body Prj.Strt is
                      end if;
                   end;
                end if;
+
             when 3 =>
-               Data.Name := The_Names (3).Name;
+               Set_Name_Of (Variable, To => The_Names (3).Name);
+
                declare
                   With_Clause : Project_Node_Id :=
-                    Project_Nodes.Table (Current_Project).Field1;
+                                  First_With_Clause_Of (Current_Project);
+
                begin
                   while With_Clause /= Empty_Node loop
-                     The_Project :=
-                       Project_Nodes.Table (With_Clause).Field1;
-                     exit when Project_Nodes.Table (The_Project).Name =
-                       The_Names (1).Name;
-                     With_Clause :=
-                       Project_Nodes.Table (With_Clause).Field2;
+                     The_Project := Project_Node_Of (With_Clause);
+                     exit when Name_Of (The_Project) = The_Names (1).Name;
+                     With_Clause := Next_With_Clause_Of (With_Clause);
                   end loop;
+
                   if With_Clause = Empty_Node then
                      The_Project :=
-                       Project_Nodes.Table
-                       (Project_Nodes.Table (Current_Project).Field2).
-                       Field2;
+                       Modified_Project_Of
+                          (Project_Declaration_Of (Current_Project));
+
                      if The_Project /= Empty_Node
-                       and then
-                       Project_Nodes.Table (The_Project).Name /=
-                       The_Names (1).Name then
+                       and then Name_Of (The_Project) /= The_Names (1).Name
+                     then
                         The_Project := Empty_Node;
                      end if;
                   end if;
+
                   if The_Project = Empty_Node then
                      Error_Msg ("unknown package or project",
                                 The_Names (1).Location);
                      Look_For_Variable := False;
+
                   else
                      Specified_Project := The_Project;
-                     The_Package := Project_Nodes.Table (The_Project).Packages;
+                     The_Package := First_Package_Of (The_Project);
+
                      while The_Package /= Empty_Node
-                       and then
-                       Project_Nodes.Table (The_Package).Name /=
-                          The_Names (2).Name
+                       and then Name_Of (The_Package) /= The_Names (2).Name
                      loop
-                        The_Package :=
-                          Project_Nodes.Table (The_Package).Field3;
+                        The_Package := Next_Package_In_Project (The_Package);
                      end loop;
+
                      if The_Package = Empty_Node then
                         Error_Msg ("unknown package",
                                    The_Names (2).Location);
                         Look_For_Variable := False;
+
                      else
                         Specified_Package := The_Package;
                         The_Project := Empty_Node;
@@ -630,32 +658,29 @@ package body Prj.Strt is
       end if;
 
       if Look_For_Variable then
-         Data.Field1 := Specified_Project;
-         Data.Field2 := Specified_Package;
+         Variable_Name := Name_Of (Variable);
+         Set_Project_Node_Of (Variable, To => Specified_Project);
+         Set_Package_Node_Of (Variable, To => Specified_Package);
+
          if The_Package /= Empty_Node then
-            Current_Variable :=
-              Project_Nodes.Table (The_Package).Variables;
+            Current_Variable := First_Variable_Of (The_Package);
 
             while Current_Variable /= Empty_Node
               and then
-              Project_Nodes.Table (Current_Variable).Name /= Data.Name
+              Name_Of (Current_Variable) /= Variable_Name
             loop
-               Current_Variable :=
-                 Project_Nodes.Table (Current_Variable).Field3;
+               Current_Variable := Next_Variable (Current_Variable);
             end loop;
          end if;
 
          if Current_Variable = Empty_Node
            and then The_Project /= Empty_Node
          then
-            Current_Variable :=
-              Project_Nodes.Table (The_Project).Variables;
+            Current_Variable := First_Variable_Of (The_Project);
             while Current_Variable /= Empty_Node
-              and then
-              Project_Nodes.Table (Current_Variable).Name /= Data.Name
+              and then Name_Of (Current_Variable) /= Variable_Name
             loop
-               Current_Variable :=
-                 Project_Nodes.Table (Current_Variable).Field3;
+               Current_Variable := Next_Variable (Current_Variable);
             end loop;
          end if;
 
@@ -665,11 +690,14 @@ package body Prj.Strt is
       end if;
 
       if Current_Variable /= Empty_Node then
-         Data.Expr_Kind := Project_Nodes.Table (Current_Variable).Expr_Kind;
-         Data.Field3 := Project_Nodes.Table (Current_Variable).Field2;
-      end if;
+         Set_Expression_Kind_Of
+           (Variable, To => Expression_Kind_Of (Current_Variable));
 
-      Project_Nodes.Table (Variable) := Data;
+         if Kind_Of (Current_Variable) = N_Typed_Variable_Declaration then
+            Set_String_Type_Of
+              (Variable, To => String_Type_Of (Current_Variable));
+         end if;
+      end if;
 
    end Parse_Variable_Reference;
 
@@ -678,13 +706,20 @@ package body Prj.Strt is
    ---------------------------------
 
    procedure Start_New_Case_Construction (String_Type  : Project_Node_Id) is
-      Current_String : Project_Node_Id := String_Type;
+      Current_String : Project_Node_Id;
+
    begin
       Choices.Set_Last (First_Choice_Node_Id);
-      while Current_String /= Empty_Node loop
-         Add (This_String => Project_Nodes.Table (Current_String).Value);
-         Current_String := Project_Nodes.Table (Current_String).Field1;
-      end loop;
+
+      if String_Type /= Empty_Node then
+         Current_String := First_Literal_String (String_Type);
+
+         while Current_String /= Empty_Node loop
+            Add (This_String => String_Value_Of (Current_String));
+            Current_String := Next_Literal_String (Current_String);
+         end loop;
+      end if;
+
    end Start_New_Case_Construction;
 
    -----------
@@ -694,18 +729,18 @@ package body Prj.Strt is
    procedure Terms (Term            : out Project_Node_Id;
                     Expr_Kind       : in out Variable_Kind;
                     Current_Project : Project_Node_Id;
-                    Current_Package : Project_Node_Id) is
-      Data : Project_Node_Record :=
-        Default_Project_Node (Of_Kind => N_Term);
-      Term_Data : Project_Node_Record :=
-        Default_Project_Node (Of_Kind => N_Literal_String);
+                    Current_Package : Project_Node_Id)
+   is
+      Next_Term          : Project_Node_Id := Empty_Node;
+      Term_Id            : Project_Node_Id := Empty_Node;
       Current_Expression : Project_Node_Id := Empty_Node;
       Next_Expression    : Project_Node_Id := Empty_Node;
-      Current_Location : Source_Ptr;
+      Current_Location   : Source_Ptr      := No_Location;
+      Reference          : Project_Node_Id := Empty_Node;
+
    begin
-      Data.Location := Token_Ptr;
-      Project_Nodes.Increment_Last;
-      Term := Project_Nodes.Last;
+      Term := Default_Project_Node (Of_Kind => N_Term);
+      Set_Location_Of (Term, To => Token_Ptr);
 
       case Token is
 
@@ -722,55 +757,56 @@ package body Prj.Strt is
                      Token_Ptr);
             end case;
 
-            Project_Nodes.Increment_Last;
-            Data.Field1 := Project_Nodes.Last;
-            Data.Location := Token_Ptr;
-            Term_Data.Kind := N_Literal_String_List;
-            Term_Data.Expr_Kind := List;
+            Term_Id := Default_Project_Node
+              (Of_Kind => N_Literal_String_List,
+               And_Expr_Kind => List);
+            Set_Current_Term (Term, To => Term_Id);
+            Set_Location_Of (Term, To => Token_Ptr);
 
             Scan;
             if Token = Tok_Right_Paren then
                Scan;
+
             else
                loop
                   Current_Location := Token_Ptr;
                   Parse_Expression (Expression      => Next_Expression,
                                     Current_Project => Current_Project,
                                     Current_Package => Current_Package);
-                  if Project_Nodes.Table (Current_Expression).Expr_Kind
-                    = List
-                  then
+
+                  if Expression_Kind_Of (Next_Expression) = List then
                      Error_Msg ("single expression expected",
                                 Current_Location);
                   end if;
+
                   if Current_Expression = Empty_Node then
-                     Term_Data.Field1 := Next_Expression;
+                     Set_First_Expression_In_List
+                       (Term_Id, To => Next_Expression);
                   else
-                     Project_Nodes.Table (Current_Expression).Field2 :=
-                       Next_Expression;
+                     Set_Next_Expression_In_List
+                       (Current_Expression, To => Next_Expression);
                   end if;
+
                   Current_Expression := Next_Expression;
                   exit when Token /= Tok_Comma;
                   Scan; -- past the comma
                end loop;
+
                Expect (Tok_Right_Paren, "(");
+
                if Token = Tok_Right_Paren then
                   Scan;
                end if;
             end if;
 
-            Project_Nodes.Table (Data.Field1) := Term_Data;
-
          when Tok_String_Literal =>
             if Expr_Kind = Undefined then
                Expr_Kind := Single;
             end if;
-            Project_Nodes.Increment_Last;
-            Data.Field1 := Project_Nodes.Last;
-            Project_Nodes.Increment_Last;
-            Term_Data.Kind  := N_Literal_String;
-            Term_Data.Value := Strval (Token_Node);
-            Project_Nodes.Table (Data.Field1) := Term_Data;
+
+            Term_Id := Default_Project_Node (Of_Kind => N_Literal_String);
+            Set_Current_Term (Term, To => Term_Id);
+            Set_String_Value_Of (Term_Id, To => Strval (Token_Node));
 
             Scan;
 
@@ -778,20 +814,23 @@ package body Prj.Strt is
 
             Current_Location := Token_Ptr;
             Parse_Variable_Reference
-              (Variable        => Data.Field1,
+              (Variable        => Reference,
                Current_Project => Current_Project,
                Current_Package => Current_Package);
+            Set_Current_Term (Term, To => Reference);
 
-            if Expr_Kind = Undefined then
-               Expr_Kind := Project_Nodes.Table (Data.Field1).Expr_Kind;
-            elsif Expr_Kind = Single
-              and then
-              Project_Nodes.Table (Data.Field1).Expr_Kind = List
-            then
-               Expr_Kind := List;
-               Error_Msg
-                 ("list variable cannot appear in single string expression",
-                  Current_Location);
+            if Reference /= Empty_Node then
+               if Expr_Kind = Undefined then
+                  Expr_Kind := Expression_Kind_Of (Reference);
+
+               elsif Expr_Kind = Single
+                 and then Expression_Kind_Of (Reference) = List
+               then
+                  Expr_Kind := List;
+                  Error_Msg
+                    ("list variable cannot appear in single string expression",
+                     Current_Location);
+               end if;
             end if;
 
          when Tok_Project =>
@@ -799,19 +838,22 @@ package body Prj.Strt is
             Current_Location := Token_Ptr;
             Scan;
             Expect (Tok_Apostrophe, "'");
+
             if Token = Tok_Apostrophe then
                Attribute_Reference
-                 (Reference       => Data.Field1,
+                 (Reference       => Reference,
                   First_Attribute => Prj.Attr.Attribute_First,
                   Current_Project => Current_Project,
                   Current_Package => Empty_Node);
+               Set_Current_Term (Term, To => Reference);
             end if;
-            if Data.Field1 /= Empty_Node then
+
+            if Reference /= Empty_Node then
                if Expr_Kind = Undefined then
-                  Expr_Kind := Project_Nodes.Table (Data.Field1).Expr_Kind;
+                  Expr_Kind := Expression_Kind_Of (Reference);
+
                elsif Expr_Kind = Single
-                 and then
-                 Project_Nodes.Table (Data.Field1).Expr_Kind = List
+                 and then Expression_Kind_Of (Reference) = List
                then
                   Error_Msg
                     ("lists cannot appear in single string expression",
@@ -823,7 +865,9 @@ package body Prj.Strt is
             if Expr_Kind = Undefined then
                Expr_Kind := Single;
             end if;
-            External_Reference (External_Value => Data.Field1);
+
+            External_Reference (External_Value => Reference);
+            Set_Current_Term (Term, To => Reference);
 
          when others =>
             Error_Msg ("cannot be part of an expression", Token_Ptr);
@@ -832,16 +876,15 @@ package body Prj.Strt is
       end case;
 
       if Token = Tok_Ampersand then
-
          Scan;
-         Terms (Term            => Data.Field2,
+
+         Terms (Term            => Next_Term,
                 Expr_Kind       => Expr_Kind,
                 Current_Project => Current_Project,
                 Current_Package => Current_Package);
+         Set_Next_Term (Term, To => Next_Term);
 
       end if;
-
-      Project_Nodes.Table (Term) := Data;
 
    end Terms;
 

@@ -475,6 +475,13 @@ package Einfo is
 --       a value which is not known at compile time, and must be computed
 --       at run-time (this happens if fields of a record have variable
 --       lengths). See package Layout for details of these values.
+--
+--       Note: this field is obsolescent, to be eventually replaced entirely
+--       by Normalized_First_Bit and Normalized_Position, but for the moment,
+--       gigi is still using (and back annotating) this field, and gigi does
+--       not know about the new fields. For the front end layout case, the
+--       Component_Bit_Offset field is only set if it is static, and otherwise
+--       the new Normalized_First_Bit and Normalized_Position fields are used.
 
 --    Component_Clause (Node13)
 --       Present in record components and discriminants. If a record
@@ -1663,6 +1670,10 @@ package Einfo is
 --       Applies to all entities, true for all discrete types and subtypes
 --       and all fixed-point types and subtypes.
 
+--    Is_Discrim_SO_Function (Flag176)
+--       Present in all entities, set only in E_Function entities that Layout
+--       creates to compute discriminant-dependent dynamic size/offset values.
+
 --    Is_Dispatching_Operation (Flag6)
 --       Present in all entities. Set true for procedures, functions,
 --       generic procedures and generic functions if the corresponding
@@ -2339,6 +2350,28 @@ package Einfo is
 --       Present in procedure and generic procedure entries. Indicates that
 --       a pragma No_Return applies to the procedure.
 
+--    Normalized_First_Bit (Uint8)
+--       Present in components and discriminants. Indicates the normalized
+--       value of First_Bit for the component, i.e. the offset within the
+--       lowest addressed storage unit containing part or all of the field.
+
+--    Normalized_Position (Uint9)
+--       Present in components and discriminants. Indicates the normalized
+--       value of Position for the component, i.e. the offset in storage
+--       units from the start of the record to the lowest addressed storage
+--       unit containing part or all of the field.
+
+--    Normalized_Position_Max (Uint21)
+--       Present in components and discriminants. For almost all cases, this
+--       is the same as Normalized_Position. The one exception is for the case
+--       of a discriminated record containing one or more arrays whose length
+--       depends on discriminants. In this case, the Normalized_Position_Max
+--       field represents the maximum possible value of Normalized_Position
+--       assuming min/max values for discriminant subscripts in all fields.
+--       This is used by Layout in front end layout mode to properly computed
+--       the maximum size such records (needed for allocation purposes when
+--       there are default discriminants, and also for the 'Size value).
+
 --    Number_Dimensions (synthesized)
 --       Applies to array types and subtypes. Returns the number of dimensions
 --       of the array type or subtype as a value of type Pos.
@@ -2647,6 +2680,12 @@ package Einfo is
 --       chain is copied for a derived type, it can inherit a size clause that
 --       is not applicable to the entity.
 
+--    Size_Depends_On_Discriminant (Flag177)
+--       Present in all entities for types and subtypes. Indicates that the
+--       size of the type depends on the value of one or more discriminants.
+--       Currently, this flag is only set in front end layout mode for arrays
+--       which have one or more bounds depending on a discriminant value.
+
 --    Size_Known_At_Compile_Time (Flag92)
 --       Present in all entities for types and subtypes. Indicates that the
 --       size of objects of the type is known at compile time. This flag is
@@ -2814,7 +2853,7 @@ package Einfo is
 --       It is set to point to an identifier that represents a reference
 --       to the entity before any value has been set. Only the first such
 --       reference is identified. This field is used to generate a warning
---       message if necessary (see Sem_Eval.Check_Unset_Variables).
+--       message if necessary (see Sem_Warn.Check_Unset_Reference).
 
 --    Uses_Sec_Stack (Flag95)
 --       Present in scope entities (blocks,functions, procedures, tasks,
@@ -3592,6 +3631,7 @@ package Einfo is
    --    Is_Child_Unit                 (Flag73)
    --    Is_Compilation_Unit           (Flag149)
    --    Is_Completely_Hidden          (Flag103)
+   --    Is_Discrim_SO_Function        (Flag176)
    --    Is_Dispatching_Operation      (Flag6)
    --    Is_Exported                   (Flag99)
    --    Is_First_Subtype              (Flag70)
@@ -3692,6 +3732,7 @@ package Einfo is
    --    Is_Tagged_Type                (Flag55)
    --    Is_Unsigned_Type              (Flag144)
    --    Is_Volatile                   (Flag16)
+   --    Size_Depends_On_Discriminant  (Flag177)
    --    Size_Known_At_Compile_Time    (Flag92)
    --    Strict_Alignment              (Flag145)
    --    Suppress_Init_Proc            (Flag105)  (base type only)
@@ -3793,6 +3834,8 @@ package Einfo is
    --    (plus type attributes)
 
    --  E_Component
+   --    Normalized_First_Bit          (Uint8)
+   --    Normalized_Position           (Uint9)
    --    Component_Bit_Offset          (Uint11)
    --    Esize                         (Uint12)
    --    Component_Clause              (Node13)
@@ -3801,6 +3844,7 @@ package Einfo is
    --    Prival                        (Node17)
    --    Renamed_Object                (Node18)   (always Empty)
    --    Discriminant_Checking_Func    (Node20)
+   --    Normalized_Position_Max       (Uint21)
    --    Original_Record_Component     (Node22)
    --    Protected_Operation           (Node23)
    --    Has_Biased_Representation     (Flag139)
@@ -3851,6 +3895,8 @@ package Einfo is
    --    (plus type attributes)
 
    --  E_Discriminant
+   --    Normalized_First_Bit          (Uint8)
+   --    Normalized_Position           (Uint9)
    --    Component_Bit_Offset          (Uint11)
    --    Esize                         (Uint12)
    --    Component_Clause              (Node13)
@@ -3859,6 +3905,7 @@ package Einfo is
    --    Renamed_Object                (Node18)   (always Empty)
    --    Corresponding_Discriminant    (Node19)
    --    Discriminant_Default_Value    (Node20)
+   --    Normalized_Position_Max       (Uint21)
    --    Original_Record_Component     (Node22)
    --    CR_Discriminant               (Node23)
    --    Next_Discriminant             (synth)
@@ -3974,6 +4021,7 @@ package Einfo is
    --    Is_Called                     (Flag102)  (non-generic case only)
    --    Is_Constructor                (Flag76)
    --    Is_Destructor                 (Flag77)
+   --    Is_Discrim_SO_Function        (Flag176)
    --    Is_Eliminated                 (Flag124)
    --    Is_Instantiated               (Flag126)  (generic case only)
    --    Is_Intrinsic_Subprogram       (Flag64)
@@ -4785,6 +4833,7 @@ package Einfo is
    function Is_Controlled                      (Id : E) return B;
    function Is_Controlling_Formal              (Id : E) return B;
    function Is_Destructor                      (Id : E) return B;
+   function Is_Discrim_SO_Function             (Id : E) return B;
    function Is_Dispatching_Operation           (Id : E) return B;
    function Is_Eliminated                      (Id : E) return B;
    function Is_Entry_Formal                    (Id : E) return B;
@@ -4848,6 +4897,9 @@ package Einfo is
    function No_Return                          (Id : E) return B;
    function Non_Binary_Modulus                 (Id : E) return B;
    function Nonzero_Is_True                    (Id : E) return B;
+   function Normalized_First_Bit               (Id : E) return U;
+   function Normalized_Position                (Id : E) return U;
+   function Normalized_Position_Max            (Id : E) return U;
    function Not_Source_Assigned                (Id : E) return B;
    function Object_Ref                         (Id : E) return E;
    function Original_Record_Component          (Id : E) return E;
@@ -4883,6 +4935,7 @@ package Einfo is
    function Shared_Var_Read_Proc               (Id : E) return E;
    function Size_Check_Code                    (Id : E) return N;
    function Size_Known_At_Compile_Time         (Id : E) return B;
+   function Size_Depends_On_Discriminant       (Id : E) return B;
    function Small_Value                        (Id : E) return R;
    function Spec_Entity                        (Id : E) return E;
    function Storage_Size_Variable              (Id : E) return E;
@@ -5026,25 +5079,51 @@ package Einfo is
    --  If no value is set, then Known is False and Unknown is True. The
    --  Known_Static predicate is true only if the value is set (Known)
    --  and is set to a compile time known value. Note that in the case
-   --  of Alignment, dynamic values are not possible, so we do not
-   --  need a separate Known_Static call in this case.
+   --  of Alignment and Normalized_First_Bit, dynamic values are not
+   --  possible, so we do not need a separate Known_Static calls in
+   --  these cases. The not set (unknown values are as follows:
 
-   function Known_Esize                       (E : Entity_Id) return B;
-   function Known_RM_Size                     (E : Entity_Id) return B;
-   function Known_Alignment                   (E : Entity_Id) return B;
-   function Known_Component_Size              (E : Entity_Id) return B;
-   function Known_Component_Bit_Offset        (E : Entity_Id) return B;
+   --    Alignment               Uint_0
+   --    Component_Size          Uint_0
+   --    Component_Bit_Offset    No_Uint
+   --    Digits_Value            Uint_0
+   --    Esize                   Uint_0
+   --    Normalized_First_Bit    No_Uint
+   --    Normalized_Position     No_Uint
+   --    Normalized_Position_Max No_Uint
+   --    RM_Size                 Uint_0
 
-   function Known_Static_Esize                (E : Entity_Id) return B;
-   function Known_Static_RM_Size              (E : Entity_Id) return B;
-   function Known_Static_Component_Size       (E : Entity_Id) return B;
-   function Known_Static_Component_Bit_Offset (E : Entity_Id) return B;
+   --  It would be cleaner to use No_Uint in all these cases, but historically
+   --  we chose to use Uint_0 at first, and the change over will take time ???
+   --  This is particularly true for the RM_Size field, where a value of zero
+   --  is legitimate. We deal with this by a nasty kludge that knows that the
+   --  value is always known static for discrete types (and no other types can
+   --  have an RM_Size value of zero).
 
-   function Unknown_Esize                     (E : Entity_Id) return B;
-   function Unknown_RM_Size                   (E : Entity_Id) return B;
-   function Unknown_Alignment                 (E : Entity_Id) return B;
-   function Unknown_Component_Size            (E : Entity_Id) return B;
-   function Unknown_Component_Bit_Offset      (E : Entity_Id) return B;
+   function Known_Alignment                       (E : Entity_Id) return B;
+   function Known_Component_Bit_Offset            (E : Entity_Id) return B;
+   function Known_Component_Size                  (E : Entity_Id) return B;
+   function Known_Esize                           (E : Entity_Id) return B;
+   function Known_Normalized_First_Bit            (E : Entity_Id) return B;
+   function Known_Normalized_Position             (E : Entity_Id) return B;
+   function Known_Normalized_Position_Max         (E : Entity_Id) return B;
+   function Known_RM_Size                         (E : Entity_Id) return B;
+
+   function Known_Static_Component_Bit_Offset     (E : Entity_Id) return B;
+   function Known_Static_Component_Size           (E : Entity_Id) return B;
+   function Known_Static_Esize                    (E : Entity_Id) return B;
+   function Known_Static_Normalized_Position      (E : Entity_Id) return B;
+   function Known_Static_Normalized_Position_Max  (E : Entity_Id) return B;
+   function Known_Static_RM_Size                  (E : Entity_Id) return B;
+
+   function Unknown_Alignment                     (E : Entity_Id) return B;
+   function Unknown_Component_Bit_Offset          (E : Entity_Id) return B;
+   function Unknown_Component_Size                (E : Entity_Id) return B;
+   function Unknown_Esize                         (E : Entity_Id) return B;
+   function Unknown_Normalized_First_Bit          (E : Entity_Id) return B;
+   function Unknown_Normalized_Position           (E : Entity_Id) return B;
+   function Unknown_Normalized_Position_Max       (E : Entity_Id) return B;
+   function Unknown_RM_Size                       (E : Entity_Id) return B;
 
    ------------------------------
    -- Attribute Set Procedures --
@@ -5208,6 +5287,7 @@ package Einfo is
    procedure Set_Is_Controlled                 (Id : E; V : B := True);
    procedure Set_Is_Controlling_Formal         (Id : E; V : B := True);
    procedure Set_Is_Destructor                 (Id : E; V : B := True);
+   procedure Set_Is_Discrim_SO_Function        (Id : E; V : B := True);
    procedure Set_Is_Dispatching_Operation      (Id : E; V : B := True);
    procedure Set_Is_Eliminated                 (Id : E; V : B := True);
    procedure Set_Is_Entry_Formal               (Id : E; V : B := True);
@@ -5274,6 +5354,9 @@ package Einfo is
    procedure Set_No_Return                     (Id : E; V : B := True);
    procedure Set_Non_Binary_Modulus            (Id : E; V : B := True);
    procedure Set_Nonzero_Is_True               (Id : E; V : B := True);
+   procedure Set_Normalized_First_Bit          (Id : E; V : U);
+   procedure Set_Normalized_Position           (Id : E; V : U);
+   procedure Set_Normalized_Position_Max       (Id : E; V : U);
    procedure Set_Not_Source_Assigned           (Id : E; V : B := True);
    procedure Set_Object_Ref                    (Id : E; V : E);
    procedure Set_Original_Record_Component     (Id : E; V : E);
@@ -5308,6 +5391,7 @@ package Einfo is
    procedure Set_Shared_Var_Assign_Proc        (Id : E; V : E);
    procedure Set_Shared_Var_Read_Proc          (Id : E; V : E);
    procedure Set_Size_Check_Code               (Id : E; V : N);
+   procedure Set_Size_Depends_On_Discriminant  (Id : E; V : B := True);
    procedure Set_Size_Known_At_Compile_Time    (Id : E; V : B := True);
    procedure Set_Small_Value                   (Id : E; V : R);
    procedure Set_Spec_Entity                   (Id : E; V : E);
@@ -5343,28 +5427,54 @@ package Einfo is
    --  where the argument is normally a Uint. The overloadings take an Int
    --  parameter instead, and appropriately convert it. There are also
    --  versions that implicitly initialize to the appropriate "not set"
-   --  value (usually Uint_0, except for Component_Bit_Offset).
+   --  value. The not set (unknown) values are as follows:
 
-   procedure Init_Alignment            (Id : E; V : Int);
-   procedure Init_Component_Size       (Id : E; V : Int);
-   procedure Init_Component_Bit_Offset (Id : E; V : Int);
-   procedure Init_Digits_Value         (Id : E; V : Int);
-   procedure Init_Esize                (Id : E; V : Int);
-   procedure Init_RM_Size              (Id : E; V : Int);
+   --    Alignment                 Uint_0
+   --    Component_Size            Uint_0
+   --    Component_Bit_Offset      No_Uint
+   --    Digits_Value              Uint_0
+   --    Esize                     Uint_0
+   --    Normalized_First_Bit      No_Uint
+   --    Normalized_Position       No_Uint
+   --    Normalized_Position_Max   No_Uint
+   --    RM_Size                   Uint_0
 
-   procedure Init_Alignment            (Id : E);
-   procedure Init_Component_Size       (Id : E);
-   procedure Init_Component_Bit_Offset (Id : E);
-   procedure Init_Digits_Value         (Id : E);
-   procedure Init_Esize                (Id : E);
-   procedure Init_RM_Size              (Id : E);
+   --  It would be cleaner to use No_Uint in all these cases, but historically
+   --  we chose to use Uint_0 at first, and the change over will take time ???
+   --  This is particularly true for the RM_Size field, where a value of zero
+   --  is legitimate and causes some kludges around the code.
+
+   procedure Init_Alignment                (Id : E; V : Int);
+   procedure Init_Component_Size           (Id : E; V : Int);
+   procedure Init_Component_Bit_Offset     (Id : E; V : Int);
+   procedure Init_Digits_Value             (Id : E; V : Int);
+   procedure Init_Esize                    (Id : E; V : Int);
+   procedure Init_Normalized_First_Bit     (Id : E; V : Int);
+   procedure Init_Normalized_Position      (Id : E; V : Int);
+   procedure Init_Normalized_Position_Max  (Id : E; V : Int);
+   procedure Init_RM_Size                  (Id : E; V : Int);
+
+   procedure Init_Alignment                (Id : E);
+   procedure Init_Component_Size           (Id : E);
+   procedure Init_Component_Bit_Offset     (Id : E);
+   procedure Init_Digits_Value             (Id : E);
+   procedure Init_Esize                    (Id : E);
+   procedure Init_Normalized_First_Bit     (Id : E);
+   procedure Init_Normalized_Position      (Id : E);
+   procedure Init_Normalized_Position_Max  (Id : E);
+   procedure Init_RM_Size                  (Id : E);
 
    procedure Init_Size_Align (Id : E);
    --  This procedure initializes both size fields and the alignment
-   --  field to all contain Uint_0.
+   --  field to all be Unknown.
 
    procedure Init_Size (Id : E; V : Int);
    --  Initialize both the Esize and RM_Size fields of E to V
+
+   procedure Init_Component_Location (Id : E);
+   --  Initializes all fields describing the location of a component
+   --  (Normalized_Position, Component_Bit_Offset, Normalized_First_Bit,
+   --  Normalized_Position_Max, Esize) to all be Unknown.
 
    ---------------
    -- Iterators --
@@ -5649,6 +5759,7 @@ package Einfo is
    pragma Inline (Is_Controlling_Formal);
    pragma Inline (Is_Decimal_Fixed_Point_Type);
    pragma Inline (Is_Destructor);
+   pragma Inline (Is_Discrim_SO_Function);
    pragma Inline (Is_Digits_Type);
    pragma Inline (Is_Discrete_Or_Fixed_Point_Type);
    pragma Inline (Is_Discrete_Type);
@@ -5744,6 +5855,9 @@ package Einfo is
    pragma Inline (No_Return);
    pragma Inline (Non_Binary_Modulus);
    pragma Inline (Nonzero_Is_True);
+   pragma Inline (Normalized_First_Bit);
+   pragma Inline (Normalized_Position);
+   pragma Inline (Normalized_Position_Max);
    pragma Inline (Not_Source_Assigned);
    pragma Inline (Object_Ref);
    pragma Inline (Original_Record_Component);
@@ -5779,6 +5893,7 @@ package Einfo is
    pragma Inline (Shared_Var_Assign_Proc);
    pragma Inline (Shared_Var_Read_Proc);
    pragma Inline (Size_Check_Code);
+   pragma Inline (Size_Depends_On_Discriminant);
    pragma Inline (Size_Known_At_Compile_Time);
    pragma Inline (Small_Value);
    pragma Inline (Spec_Entity);
@@ -5980,6 +6095,7 @@ package Einfo is
    pragma Inline (Set_Is_Controlled);
    pragma Inline (Set_Is_Controlling_Formal);
    pragma Inline (Set_Is_Destructor);
+   pragma Inline (Set_Is_Discrim_SO_Function);
    pragma Inline (Set_Is_Dispatching_Operation);
    pragma Inline (Set_Is_Eliminated);
    pragma Inline (Set_Is_Entry_Formal);
@@ -6046,6 +6162,9 @@ package Einfo is
    pragma Inline (Set_No_Return);
    pragma Inline (Set_Non_Binary_Modulus);
    pragma Inline (Set_Nonzero_Is_True);
+   pragma Inline (Set_Normalized_First_Bit);
+   pragma Inline (Set_Normalized_Position);
+   pragma Inline (Set_Normalized_Position_Max);
    pragma Inline (Set_Not_Source_Assigned);
    pragma Inline (Set_Object_Ref);
    pragma Inline (Set_Original_Record_Component);
@@ -6080,6 +6199,7 @@ package Einfo is
    pragma Inline (Set_Shared_Var_Assign_Proc);
    pragma Inline (Set_Shared_Var_Read_Proc);
    pragma Inline (Set_Size_Check_Code);
+   pragma Inline (Set_Size_Depends_On_Discriminant);
    pragma Inline (Set_Size_Known_At_Compile_Time);
    pragma Inline (Set_Small_Value);
    pragma Inline (Set_Spec_Entity);

@@ -40,3 +40,15 @@ private package Prj.Decl is
    --    {declarative_item}
 
 end Prj.Decl;
+
+
+----------------------
+-- REVISION HISTORY --
+----------------------
+
+--  ----------------------------
+--  revision 1.1
+--  date: 2000/12/18 14:07:08;  author: pautet;  state: Exp;
+--  update GNAT sources for GLADE developpers
+--  ----------------------------
+--  New changes after this line.  Each line starts with: "--  "

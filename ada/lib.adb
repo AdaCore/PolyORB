@@ -479,6 +479,20 @@ package body Lib is
       return Get_Code_Unit (Sloc (N));
    end Get_Code_Unit;
 
+   ----------------------------
+   -- Get_Compilation_Switch --
+   ----------------------------
+
+   function Get_Compilation_Switch (N : Pos) return String_Ptr is
+   begin
+      if N >= Compilation_Switches.Last then
+         return Compilation_Switches.Table (N);
+
+      else
+         return null;
+      end if;
+   end Get_Compilation_Switch;
+
    ----------------------------------
    -- Get_Cunit_Entity_Unit_Number --
    ----------------------------------
@@ -687,7 +701,7 @@ package body Lib is
       Load_Stack.Init;
       Units.Init;
       Unit_Exception_Table_Present := False;
-      Compilation_Arguments.Init;
+      Compilation_Switches.Init;
    end Initialize;
 
    ---------------
@@ -771,6 +785,17 @@ package body Lib is
 
    procedure Sort (Tbl : in out Unit_Ref_Table) is separate;
 
+   ------------------------------
+   -- Store_Compilation_Switch --
+   ------------------------------
+
+   procedure Store_Compilation_Switch (Switch : String) is
+   begin
+      Compilation_Switches.Increment_Last;
+      Compilation_Switches.Table (Compilation_Switches.Last)
+        := new String'(Switch);
+   end Store_Compilation_Switch;
+
    --------------------------------
    -- Store_Linker_Option_String --
    --------------------------------
@@ -792,14 +817,14 @@ package body Lib is
    begin
       Units.Tree_Read;
 
-      --  Read Compilation_Arguments table
+      --  Read Compilation_Switches table
 
       Tree_Read_Int (N);
-      Compilation_Arguments.Set_Last (N);
+      Compilation_Switches.Set_Last (N);
 
       for J in 1 .. N loop
          Tree_Read_Str (S);
-         Compilation_Arguments.Table (J) := S;
+         Compilation_Switches.Table (J) := S;
       end loop;
    end Tree_Read;
 
@@ -811,12 +836,12 @@ package body Lib is
    begin
       Units.Tree_Write;
 
-      --  Write Compilation_Arguments table
+      --  Write Compilation_Switches table
 
-      Tree_Write_Int (Compilation_Arguments.Last);
+      Tree_Write_Int (Compilation_Switches.Last);
 
-      for J in 1 .. Compilation_Arguments.Last loop
-         Tree_Write_Str (Compilation_Arguments.Table (J));
+      for J in 1 .. Compilation_Switches.Last loop
+         Tree_Write_Str (Compilation_Switches.Table (J));
       end loop;
    end Tree_Write;
 

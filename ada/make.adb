@@ -176,9 +176,9 @@ package body Make is
    type Arg_List_Ref is access Argument_List;
    The_Saved_Gcc_Switches : Arg_List_Ref;
 
-   Project_File_Name : String_Access := null;
-   Current_Verbosity : Prj.Verbosity := Prj.Default;
-   Main_Project      : Prj.Project_Id;
+   Project_File_Name : String_Access  := null;
+   Current_Verbosity : Prj.Verbosity  := Prj.Default;
+   Main_Project      : Prj.Project_Id := No_Project;
 
    procedure Add_Source_Dir (N : String);
    --  Call Add_Src_Search_Dir.
@@ -377,7 +377,7 @@ package body Make is
    Display_Executed_Programs : Boolean := True;
    --  Set to True if name of commands should be output on stderr.
 
-   Output_Filename_Seen : Boolean := False;
+   Output_File_Name_Seen : Boolean := False;
    --  Set to True after having scanned the file_name for
    --  switch "-o file_name"
 
@@ -1197,7 +1197,7 @@ package body Make is
          end loop;
 
          --  The for loop exited because the end of the template
-         --  was reached. File contains the last possible filename
+         --  was reached. File contains the last possible file name
          --  for the library.
 
          if File = No_File and then Name_Len > 0 then
@@ -1263,7 +1263,7 @@ package body Make is
         return Process_Id;
       --  Compiles S using Args. If S is a GNAT predefined source
       --  "-gnatpg" is added to Args. Non blocking call. L corresponds to the
-      --  expected library filename. Process_Id of the process spawned to
+      --  expected library file name. Process_Id of the process spawned to
       --  execute the compile.
 
       type Compilation_Data is record
@@ -1539,11 +1539,23 @@ package body Make is
                   Set_Ada_Paths (Current_Project);
 
                   Data := Projects.Table (Current_Project);
-                  Object_File :=
-                    new String'
-                    (Get_Name_String (Data.Object_Directory) &
-                     Directory_Separator &
-                     Object_File_Name (Source_File_Name));
+                  Get_Name_String (Data.Object_Directory);
+
+                  if Name_Buffer (Name_Len) = '/'
+                    or else Name_Buffer (Name_Len) = Directory_Separator
+                  then
+                     Object_File :=
+                       new String'
+                        (Name_Buffer (1 .. Name_Len) &
+                         Object_File_Name (Source_File_Name));
+
+                  else
+                     Object_File :=
+                       new String'
+                        (Name_Buffer (1 .. Name_Len) &
+                         Directory_Separator &
+                         Object_File_Name (Source_File_Name));
+                  end if;
 
                   if Opt.Verbose_Mode then
                      Write_Str ("Project file is """);
@@ -1730,7 +1742,7 @@ package body Make is
             Comp_Args (Comp_Last) := GNAT_Flag;
          end if;
 
-         --  Now check if the filename has one of the suffixes familiar to
+         --  Now check if the file name has one of the suffixes familiar to
          --  the gcc driver. If this is not the case then add the ada flag
          --  "-x ada".
 
@@ -2345,42 +2357,7 @@ package body Make is
          Add_Switch ("-z", Binder, And_Save => True);
       end if;
 
-      if Project_File_Name /= null then
-
-         --  A project file was specified by a -P switch
-
-         if Opt.Verbose_Mode then
-            Write_Eol;
-            Write_Str ("Parsing Project File """);
-            Write_Str (Project_File_Name.all);
-            Write_Str (""".");
-            Write_Eol;
-         end if;
-
-         --  Set the project parsing verbosity to whatever was specified
-         --  by a possible -vP switch.
-
-         Prj.Pars.Set_Verbosity (To => Current_Verbosity);
-
-         --  Parse the project file.
-         --  If there is an error, Main_Project will still be No_Project.
-
-         Prj.Pars.Parse
-           (Project           => Main_Project,
-            Project_File_Name => Project_File_Name.all);
-
-         if Main_Project = No_Project then
-            Fail ("""" & Project_File_Name.all &
-                  """ processing failed");
-         end if;
-
-         if Opt.Verbose_Mode then
-            Write_Eol;
-            Write_Str ("Parsing of Project File """);
-            Write_Str (Project_File_Name.all);
-            Write_Str (""" is finished.");
-            Write_Eol;
-         end if;
+      if Main_Project /= No_Project then
 
          --  Find the file name of the main unit
 
@@ -2540,13 +2517,6 @@ package body Make is
          end loop;
 
       else
-
-         --  A project file is used.
-         --  We add the source directories and the object directories
-         --  to the search paths.
-
-         Add_Source_Directories (Main_Project);
-         Add_Object_Directories (Main_Project);
 
          --  And we put the command line gcc switches in the variable
          --  The_Saved_Gcc_Switches. They are going to be used later
@@ -2924,10 +2894,55 @@ package body Make is
 
       --  Test for trailing -o switch
 
-      if Opt.Output_Filename_Present
-        and then not Output_Filename_Seen
+      if Opt.Output_File_Name_Present
+        and then not Output_File_Name_Seen
       then
-         Fail ("Output filename missing after -o");
+         Fail ("Output file name missing after -o");
+      end if;
+
+      if Project_File_Name /= null then
+
+         --  A project file was specified by a -P switch
+
+         if Opt.Verbose_Mode then
+            Write_Eol;
+            Write_Str ("Parsing Project File """);
+            Write_Str (Project_File_Name.all);
+            Write_Str (""".");
+            Write_Eol;
+         end if;
+
+         --  Set the project parsing verbosity to whatever was specified
+         --  by a possible -vP switch.
+
+         Prj.Pars.Set_Verbosity (To => Current_Verbosity);
+
+         --  Parse the project file.
+         --  If there is an error, Main_Project will still be No_Project.
+
+         Prj.Pars.Parse
+           (Project           => Main_Project,
+            Project_File_Name => Project_File_Name.all);
+
+         if Main_Project = No_Project then
+            Fail ("""" & Project_File_Name.all &
+                  """ processing failed");
+         end if;
+
+         if Opt.Verbose_Mode then
+            Write_Eol;
+            Write_Str ("Parsing of Project File """);
+            Write_Str (Project_File_Name.all);
+            Write_Str (""" is finished.");
+            Write_Eol;
+         end if;
+
+         --  We add the source directories and the object directories
+         --  to the search paths.
+
+         Add_Source_Directories (Main_Project);
+         Add_Object_Directories (Main_Project);
+
       end if;
 
       Osint.Add_Default_Search_Dirs;
@@ -3227,15 +3242,15 @@ package body Make is
          return;
       end if;
 
-      --  If the previous switch has set the Output_Filename_Present
+      --  If the previous switch has set the Output_File_Name_Present
       --  flag (that is we have seen a -o), then the next argument is
       --  the name of the output executable.
 
-      if Opt.Output_Filename_Present and then not Output_Filename_Seen then
-         Output_Filename_Seen := True;
+      if Opt.Output_File_Name_Present and then not Output_File_Name_Seen then
+         Output_File_Name_Seen := True;
 
          if Argv (1) = Switch_Character or else Argv (1) = '-' then
-            Fail ("Output filename missing after -o");
+            Fail ("Output file name missing after -o");
          else
             Add_Switch ("-o", Linker, And_Save => And_Save);
 
@@ -3470,7 +3485,7 @@ package body Make is
          --  -j (need to save the result)
 
          elsif Argv (2) = 'j' then
-            Scan_Switches (Argv);
+            Scan_Make_Switches (Argv);
 
             if And_Save then
                Saved_Maximum_Processes := Maximum_Processes;
@@ -3544,7 +3559,7 @@ package body Make is
          --  -Wx (need to save the result)
 
          elsif Argv (2) = 'W' then
-            Scan_Switches (Argv);
+            Scan_Make_Switches (Argv);
 
             if And_Save then
                Saved_WC_Encoding_Method := Wide_Character_Encoding_Method;
@@ -3601,10 +3616,10 @@ package body Make is
          then
             Add_Switch (Argv, Compiler, And_Save => And_Save);
 
-         --  All other options are handled by Scan_Switches
+         --  All other options are handled by Scan_Make_Switches
 
          else
-            Scan_Switches (Argv);
+            Scan_Make_Switches (Argv);
          end if;
 
       --  If not a switch it must be a file name

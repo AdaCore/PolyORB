@@ -523,6 +523,14 @@ package body Sinfo is
       return Node3 (N);
    end Corresponding_Stub;
 
+   function Dcheck_Function
+      (N : Node_Id) return Entity_Id is
+   begin
+      pragma Assert (False
+        or else NT (N).Nkind = N_Variant);
+      return Node5 (N);
+   end Dcheck_Function;
+
    function Debug_Statement
       (N : Node_Id) return Node_Id is
    begin
@@ -661,6 +669,14 @@ package body Sinfo is
         or else NT (N).Nkind = N_Floating_Point_Definition);
       return Node2 (N);
    end Digits_Expression;
+
+   function Discr_Check_Funcs_Built
+      (N : Node_Id) return Boolean is
+   begin
+      pragma Assert (False
+        or else NT (N).Nkind = N_Full_Type_Declaration);
+      return Flag11 (N);
+   end Discr_Check_Funcs_Built;
 
    function Discrete_Choices
       (N : Node_Id) return List_Id is
@@ -1396,17 +1412,6 @@ package body Sinfo is
           or else NT (N).Nkind in N_Subexpr);
       return Flag16 (N);
    end Is_Controlling_Actual;
-
-   function Is_Lvalue
-      (N : Node_Id) return Boolean is
-   begin
-      pragma Assert (False
-        or else NT (N).Nkind = N_Explicit_Dereference
-        or else NT (N).Nkind = N_Identifier
-        or else NT (N).Nkind = N_Indexed_Component
-        or else NT (N).Nkind = N_Selected_Component);
-      return Flag18 (N);
-   end Is_Lvalue;
 
    function Is_Machine_Number
       (N : Node_Id) return Boolean is
@@ -2872,6 +2877,14 @@ package body Sinfo is
       Set_Node3 (N, Val);
    end Set_Corresponding_Stub;
 
+   procedure Set_Dcheck_Function
+      (N : Node_Id; Val : Entity_Id) is
+   begin
+      pragma Assert (False
+        or else NT (N).Nkind = N_Variant);
+      Set_Node5 (N, Val); -- semantic field, no parent set
+   end Set_Dcheck_Function;
+
    procedure Set_Debug_Statement
       (N : Node_Id; Val : Node_Id) is
    begin
@@ -3010,6 +3023,14 @@ package body Sinfo is
         or else NT (N).Nkind = N_Floating_Point_Definition);
       Set_Node2_With_Parent (N, Val);
    end Set_Digits_Expression;
+
+   procedure Set_Discr_Check_Funcs_Built
+      (N : Node_Id; Val : Boolean := True) is
+   begin
+      pragma Assert (False
+        or else NT (N).Nkind = N_Full_Type_Declaration);
+      Set_Flag11 (N, Val);
+   end Set_Discr_Check_Funcs_Built;
 
    procedure Set_Discrete_Choices
       (N : Node_Id; Val : List_Id) is
@@ -3745,17 +3766,6 @@ package body Sinfo is
           or else NT (N).Nkind in N_Subexpr);
       Set_Flag16 (N, Val);
    end Set_Is_Controlling_Actual;
-
-   procedure Set_Is_Lvalue
-      (N : Node_Id; Val : Boolean := True) is
-   begin
-      pragma Assert (False
-        or else NT (N).Nkind = N_Explicit_Dereference
-        or else NT (N).Nkind = N_Identifier
-        or else NT (N).Nkind = N_Indexed_Component
-        or else NT (N).Nkind = N_Selected_Component);
-      Set_Flag18 (N, Val);
-   end Set_Is_Lvalue;
 
    procedure Set_Is_Machine_Number
       (N : Node_Id; Val : Boolean := True) is

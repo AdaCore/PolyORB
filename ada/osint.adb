@@ -31,7 +31,7 @@ with Namet;    use Namet;
 with Opt;      use Opt;
 with Output;   use Output;
 with Sdefault; use Sdefault;
-with Switch;   use Switch;
+with Table;
 with Tree_IO;  use Tree_IO;
 
 with Unchecked_Conversion;
@@ -137,11 +137,11 @@ package body Osint is
    --  Number of arguments (excluding program name)
 
    File_Names : array (Int range 1 .. Int (Argument_Count)) of String_Ptr;
-   --  As arguments are scanned in Initialize, filenames are stored
+   --  As arguments are scanned in Initialize, file names are stored
    --  in this array. The string does not contain a terminating NUL.
 
    Number_File_Names : Int := 0;
-   --  The total number of filenames found on command line and placed in
+   --  The total number of file names found on command line and placed in
    --  File_Names.
 
    Current_File_Name_Index : Int := 0;
@@ -190,8 +190,9 @@ package body Osint is
    --  File_Name_Type for name of open file whose FD is in Output_FD, the name
    --  stored does not include the trailing NUL character.
 
-   Output_Filename : String_Ptr := null;
-   --  The name after the -o option
+   Output_Object_File_Name : String_Ptr;
+   --  Argument of -o compiler option, if given. This is needed to
+   --  verify consistency with the ALI file name.
 
    ------------------
    -- Search Paths --
@@ -470,6 +471,16 @@ package body Osint is
 
    end Add_Default_Search_Dirs;
 
+   --------------
+   -- Add_File --
+   --------------
+
+   procedure Add_File (File_Name : String) is
+   begin
+      Number_File_Names := Number_File_Names + 1;
+      File_Names (Number_File_Names) := new String'(File_Name);
+   end Add_File;
+
    ------------------------
    -- Add_Lib_Search_Dir --
    ------------------------
@@ -593,9 +604,9 @@ package body Osint is
    --------------------------
 
    procedure Create_Binder_Output
-     (Output_Filename : String;
-      Typ             : Character;
-      Bfile           : out Name_Id)
+     (Output_File_Name : String;
+      Typ              : Character;
+      Bfile            : out Name_Id)
    is
       File_Name : String_Ptr;
       Findex1   : Natural;
@@ -605,15 +616,15 @@ package body Osint is
    begin
       pragma Assert (In_Binder);
 
-      if Output_Filename /= "" then
-         Name_Buffer (Output_Filename'Range) := Output_Filename;
-         Name_Buffer (Output_Filename'Last + 1) := ASCII.NUL;
+      if Output_File_Name /= "" then
+         Name_Buffer (Output_File_Name'Range) := Output_File_Name;
+         Name_Buffer (Output_File_Name'Last + 1) := ASCII.NUL;
 
          if Typ = 's' then
-            Name_Buffer (Output_Filename'Last) := 's';
+            Name_Buffer (Output_File_Name'Last) := 's';
          end if;
 
-         Name_Len := Output_Filename'Last;
+         Name_Len := Output_File_Name'Last;
 
       else
          Name_Buffer (1) := 'b';
@@ -982,7 +993,6 @@ package body Osint is
       end;
    end Find_File;
 
-
    -----------------------
    -- Find_Program_Name --
    -----------------------
@@ -1061,7 +1071,6 @@ package body Osint is
    begin
       return Smart_Find_File (N, Source);
    end Full_Source_Name;
-
 
    -------------------
    -- Get_Directory --
@@ -1290,7 +1299,6 @@ package body Osint is
    begin
       return File_Stamp (Find_File (N, Library));
    end Library_File_Stamp;
-
 
    -----------------
    -- Locate_File --
@@ -2018,156 +2026,6 @@ package body Osint is
       Recording_Time_From_Last_Bind := True;
    end Record_Time_From_Last_Bind;
 
-   ------------------------
-   -- Scan_Compiler_Args --
-   ------------------------
-
-   procedure Scan_Compiler_Args is
-      Output_Filename_Seen : Boolean := False;
-      --  Set to True after having scanned the file_name for
-      --  switch "-gnatO file_name"
-
-      Next_Arg : Positive := 1;
-
-   begin
-      pragma Assert (In_Compiler);
-
-      --  Loop through command line arguments, storing them for later access
-
-      while Next_Arg <= Argument_Count loop
-
-         Look_At_Arg : declare
-            Next_Argv : String (1 .. Len_Arg (Next_Arg));
-
-         begin
-            Fill_Arg (Next_Argv'Address, Next_Arg);
-
-            if Next_Argv'Length = 0 then
-               Fail ("Empty argument");
-
-            --  Normalize the switch character to be '-' to make the tests
-            --  below more concise.
-
-            elsif Next_Argv (1) = Switch_Character then
-               Next_Argv (1) := '-';
-            end if;
-
-            --  If the previous switch has set the Output_Filename_Present
-            --  flag (that is we have seen a -gnatO), then the next argument
-            --  is the name of the output object file.
-
-            if Output_Filename_Present
-              and then not Output_Filename_Seen
-            then
-               if Next_Argv (1) = '-' then
-                  Fail ("Object file name missing after -gnatO");
-               else
-                  pragma Assert (Output_Filename = null);
-                  Output_Filename      := new String'(Next_Argv);
-                  Output_Filename_Seen := True;
-               end if;
-
-            --  Is it a file name ?
-
-            elsif Next_Argv (1) /= '-' then
-               Number_File_Names := Number_File_Names + 1;
-               File_Names (Number_File_Names) := new String'(Next_Argv);
-
-            --  Otherwise it must be a switch
-
-            else
-               pragma Assert (Next_Argv (1) = '-');
-
-               if Next_Argv = "-" then
-                  Fail ("missing switch character");
-
-               elsif Next_Argv = "-I-" then
-                  Opt.Look_In_Primary_Dir := False;
-
-               elsif Next_Argv (1 .. 2) = "-I" then
-                  Add_Src_Search_Dir (Next_Argv (3 .. Next_Argv'Last));
-
-               elsif Next_Argv (2 .. Next_Argv'Last) = "nostdinc" then
-                  Opt.No_Stdinc := True;
-
-               --  Just ignore -mabi=xxx and -mips[1234] switches here
-
-               elsif Next_Argv'Length >= 5
-                 and then (Next_Argv (2 .. 5) = "mabi"
-                           or else Next_Argv (2 .. 5) = "mips")
-               then
-                  null;
-
-               elsif not Hostparm.Java_VM then
-                  Scan_Switches (Next_Argv);
-
-               --  We need special switch treatment when compiling for the JVM.
-               --  In particular if we have a switch starting with "-gnat" we
-               --  must skip the "-gnat" prefix since the gcc driver is not
-               --  there to do it for us. In addition we must recognize
-               --  ourselves switches "-c", "-g" and "-O[0123]" for the same
-               --  reason. Switch "-c" is recognized but otherwise ignored.
-               --  This is done for compatibility with other GNAT compilers.
-
-               else
-                  if Next_Argv = "-gnat" then
-                     Fail ("missing switch character");
-
-                  elsif Next_Argv'Length > 5
-                    and then Next_Argv (1 .. 5) = "-gnat"
-                  then
-                     --  Must start at 5 so that Scan_Switches can skip to
-                     --  the next character which is the 1st switch character.
-
-                     Scan_Switches (Next_Argv (5 .. Next_Argv'Last));
-
-                  elsif Next_Argv = "-c" then
-                     null;
-
-                  elsif Next_Argv = "-g" then
-                     null;  --  ??? for now debugging is always on
-
-                  elsif Next_Argv = "-O0" then
-                     null;  --  no optimization, the default
-
-                  elsif Next_Argv = "-O" then
-                     null;  --  ??? for now ignore optimization
-
-                  elsif     Next_Argv = "-O1"
-                    or else Next_Argv = "-O2"
-                    or else Next_Argv = "-O3"
-                  then
-                     Write_Line ("Warning: Optimization not implemented yet");
-
-                  else
-                     Fail ("invalid switch: ", Next_Argv);
-                  end if;
-
-               end if;
-            end if;
-         end Look_At_Arg;
-
-         Next_Arg := Next_Arg + 1;
-      end loop;
-
-      --  Make sure that the object file has the expected extension.
-
-      if Output_Filename /= null then
-         declare
-            S1 : constant String := Object_Suffix;
-            S2 : String_Ptr      := Output_Filename;
-            L1 : Natural := S1'Length;
-            L2 : Natural := S2'Length;
-
-         begin
-            if L2 <= L1 or else S2 (L2 - L1 + 1 .. L2) /= S1 then
-               Fail ("incorrect object file extension");
-            end if;
-         end;
-      end if;
-
-   end Scan_Compiler_Args;
-
    ---------------------------
    -- Set_Library_Info_Name --
    ---------------------------
@@ -2192,22 +2050,27 @@ package body Osint is
       end loop;
 
       --  Make sure that the output file name matches the source file name.
-      --  To compare them, remove filename directories and extensions.
+      --  To compare them, remove file name directories and extensions.
 
-      if Output_Filename /= null then
+      if Output_Object_File_Name /= null then
          declare
-            Name : String  := Name_Buffer (1 .. Dot_Index);
-            Len  : Natural := Dot_Index;
+            Name : constant String  := Name_Buffer (1 .. Dot_Index);
+            Len  : constant Natural := Dot_Index;
 
          begin
-            Name_Buffer (1 .. Output_Filename'Length) := Output_Filename.all;
+            Name_Buffer (1 .. Output_Object_File_Name'Length)
+               := Output_Object_File_Name.all;
+            Dot_Index := 0;
 
-            for J in reverse Output_Filename'Range loop
+            for J in reverse Output_Object_File_Name'Range loop
                if Name_Buffer (J) = '.' then
                   Dot_Index := J;
                   exit;
                end if;
             end loop;
+
+            pragma Assert (Dot_Index /= 0);
+            --  We check for the extension elsewhere
 
             if Name /= Name_Buffer (Dot_Index - Len + 1 .. Dot_Index) then
                Fail ("incorrect object file name");
@@ -2220,6 +2083,27 @@ package body Osint is
       Name_Buffer (Dot_Index + 4) := ASCII.NUL;
       Name_Len := Dot_Index + 3;
    end Set_Library_Info_Name;
+
+   ---------------------------------
+   -- Set_Output_Object_File_Name --
+   ---------------------------------
+
+   procedure Set_Output_Object_File_Name (Name : String) is
+      Ext : constant String := Object_Suffix;
+      NL  : constant Natural := Name'Length;
+      EL  : constant Natural := Ext'Length;
+
+   begin
+      --  Make sure that the object file has the expected extension.
+
+      if NL <= EL
+         or else Name (NL - EL + Name'First .. Name'Last) /= Ext
+      then
+         Fail ("incorrect object file extension");
+      end if;
+
+      Output_Object_File_Name := new String'(Name);
+   end Set_Output_Object_File_Name;
 
    ------------------------
    -- Set_Main_File_Name --

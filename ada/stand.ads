@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -426,6 +426,9 @@ package Stand is
    --  These are signed integer types with the indicated sizes, They are
    --  used for the underlying implementation types for fixed-point and
    --  enumeration types.
+
+   Standard_Unsigned : Entity_Id;
+   --  An unsigned type of the same size as Standard_Integer
 
    Abort_Signal : Entity_Id;
    --  Entity for abort signal exception

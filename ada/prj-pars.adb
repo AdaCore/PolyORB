@@ -26,48 +26,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;             use Ada.Exceptions;
-with Errout;                     use Errout;
-with Output;                     use Output;
-with Prj.Com;                    use Prj.Com;
-with Prj.Nmsc;
+with Ada.Exceptions; use Ada.Exceptions;
+
+with Errout;   use Errout;
+with Output;   use Output;
+with Prj.Com;  use Prj.Com;
 with Prj.Part;
 with Prj.Proc;
-with Prj.Tree;                   use Prj.Tree;
-with Types;                      use Types;
+with Prj.Tree; use Prj.Tree;
 
 package body Prj.Pars is
-
-   procedure Check (Project : in out Project_Id);
-   --  Set all projects to not checked, then call Recursive_Check for
-   --  the main project Project.
-   --  Project is set to No_Project if errors occurred.
-
-   procedure Recursive_Check (Project : Project_Id);
-   --  If Project is marked as not checked, mark it as checked,
-   --  call Check_Naming_Scheme for the project, then call itself
-   --  for a possible modified project and all the imported projects
-   --  of Project.
-
-   -----------
-   -- Check --
-   -----------
-
-   procedure Check (Project : in out Project_Id) is
-   begin
-      --  Make sure that all projects are marked as not checked.
-
-      for Index in 1 .. Projects.Last loop
-         Projects.Table (Index).Checked := False;
-      end loop;
-
-      Recursive_Check (Project);
-
-      if Errout.Errors_Detected > 0 then
-         Project := No_Project;
-      end if;
-
-   end Check;
 
    -----------
    -- Parse --
@@ -81,38 +49,21 @@ package body Prj.Pars is
       The_Project       : Project_Id      := No_Project;
 
    begin
-
       --  Parse the main project file into a tree
 
       Prj.Part.Parse
-        (Project           => Project_Tree,
-         Project_File_Name => Project_File_Name);
+        (Project                => Project_Tree,
+         Project_File_Name      => Project_File_Name,
+         Always_Errout_Finalize => False);
 
       --  If there were no error, process the tree
 
       if Project_Tree /= Empty_Node then
-
-         Errout.Initialize;
-
          Prj.Proc.Process
            (Project           => The_Project,
             From_Project_Node => Project_Tree);
-
-         --  If there were no error, check the projects
-
-         if The_Project /= No_Project then
-            Check (The_Project);
-         end if;
-
-      end if;
-
-      begin
          Errout.Finalize;
-      exception
-         --  Any exception can be ignored
-         when others =>
-            null;
-      end;
+      end if;
 
       Project := The_Project;
 
@@ -120,48 +71,13 @@ package body Prj.Pars is
       when X : others =>
 
          --  Internal error
+
          Write_Line (Exception_Information (X));
          Write_Str  ("Exception ");
          Write_Str  (Exception_Name (X));
          Write_Line (" raised, while processing project file");
          Project := No_Project;
    end Parse;
-
-   procedure Recursive_Check (Project : Project_Id) is
-      Data : Project_Data;
-      Imported_Project_List : Project_List := Empty_Project_List;
-   begin
-      --  Do nothing if Project is No_Project, or Project has already
-      --  been marked as checked.
-
-      if Project /= No_Project
-        and then not Projects.Table (Project).Checked
-      then
-         --  Mark Project as checked
-
-         Projects.Table (Project).Checked := True;
-
-         Prj.Nmsc.Check_Naming_Scheme (Project);
-         Data := Projects.Table (Project);
-
-         --  Call itself for a possible modified project.
-         --  (if there is no modified project, then nothing happens).
-
-         Recursive_Check (Data.Modifies);
-
-         --  Call itself for all imported projects
-
-         Imported_Project_List := Data.Imported_Projects;
-         while Imported_Project_List /= Empty_Project_List loop
-            Recursive_Check
-              (Project_Lists.Table (Imported_Project_List).Project);
-            Imported_Project_List :=
-              Project_Lists.Table (Imported_Project_List).Next;
-         end loop;
-
-      end if;
-
-   end Recursive_Check;
 
    -------------------
    -- Set_Verbosity --

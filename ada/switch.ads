@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -47,8 +47,18 @@ package Switch is
    -- Subprograms --
    -----------------
 
-   procedure Scan_Switches (Switch_Chars : String);
-   --  Procedure to scan out switches stored in the given string. The first
+   function Is_Switch (Switch_Chars : String) return Boolean;
+   --  Returns True iff Switch_Chars is at least two characters long,
+   --  and the first character indicates it is a switch.
+
+   function Is_Front_End_Switch (Switch_Chars : String) return Boolean;
+   --  Returns True iff Switch_Chars represents a front-end switch,
+   --  ie. it starts with -I or -gnat.
+
+   procedure Scan_Front_End_Switches (Switch_Chars : String);
+   procedure Scan_Binder_Switches (Switch_Chars : String);
+   procedure Scan_Make_Switches (Switch_Chars : String);
+   --  Procedures to scan out switches stored in the given string. The first
    --  character is known to be a valid switch character, and there are no
    --  blanks or other switch terminator characters in the string, so the
    --  entire string should consist of valid switch characters, except that

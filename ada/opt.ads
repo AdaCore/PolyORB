@@ -198,6 +198,10 @@ package Opt is
    --  GNAT
    --  Set to False to inhibit reading and processing of gnat.adc file
 
+   Config_File_Name : String_Ptr := null;
+   --  GNAT
+   --  File name of configuration pragmas file (given by switch -gnatec)
+
    Constant_Condition_Warnings : Boolean := False;
    --  GNAT
    --  Set to True to activate warnings on constant conditions
@@ -363,6 +367,23 @@ package Opt is
    --  able to actually inline a particular call (or all calls). Can be
    --  controlled by use of -gnatwp/-gnatwP.
 
+   Initialize_Scalars : Boolean := False;
+   --  GNAT
+   --  Set True if a pragma Initialize_Scalars applies to the current unit.
+   --  Also set True if a pragma Normalize_Scalars applies (i.e. for the
+   --  case of Initialize_Scalars, Normalize_Scalars is False, for the case
+   --  of Normalize_Scalars, Normalize_Scalars is True, but this flag is
+   --  True in either case).
+
+   Initialize_Scalars_Mode : Character := ' ';
+   --  GNATBIND
+   --  Set to 'I' for -Sin, 'L' for -Slo, 'H' for -Shi, 'X' for -Sxx
+
+   Initialize_Scalars_Val : String (1 .. 2);
+   --  GNATBIND
+   --  Valid only if Initialize_Scalars_Mode is set to 'X' (-Shh). Contains
+   --  the two hex bytes from the -Shh switch.
+
    Inline_Active : Boolean := False;
    --  GNAT
    --  Set True to activate pragma Inline processing across modules. Default
@@ -455,7 +476,8 @@ package Opt is
 
    Normalize_Scalars : Boolean := False;
    --  GNAT
-   --  Set True if a pragma Normalize_Scalars applies to the current
+   --  Set True if a pragma Normalize_Scalars applies to the current unit.
+   --  Note that Initialize_Scalars is also set to True if this is True.
 
    No_Run_Time : Boolean := False;
    --  GNAT
@@ -473,11 +495,15 @@ package Opt is
    --  detected then this flag is reset from Generate_Code to Check_Semantics
    --  after generating an error message.
 
-   Output_Filename_Present : Boolean := False;
+   Output_File_Name_Present : Boolean := False;
    --  GNATBIND, GNAT
-   --  Set to True when the output C filename is given with option -o
-   --  for GNATBIND or when the object filename is given with option
+   --  Set to True when the output C file name is given with option -o
+   --  for GNATBIND or when the object file name is given with option
    --  -gnatO for GNAT.
+
+   Output_Linker_Option_List : Boolean := False;
+   --  GNATBIND
+   --  True if output of list of linker options is requested (-K switch set)
 
    Output_Object_List : Boolean := False;
    --  GNATBIND

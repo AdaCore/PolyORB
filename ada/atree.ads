@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2001, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -994,6 +994,9 @@ package Atree is
       function Uint17 (N : Node_Id) return Uint;
       pragma Inline (Uint17);
 
+      function Uint21 (N : Node_Id) return Uint;
+      pragma Inline (Uint21);
+
       function Uint22 (N : Node_Id) return Uint;
       pragma Inline (Uint22);
 
@@ -1787,6 +1790,9 @@ package Atree is
 
       procedure Set_Uint17 (N : Node_Id; Val : Uint);
       pragma Inline (Set_Uint17);
+
+      procedure Set_Uint21 (N : Node_Id; Val : Uint);
+      pragma Inline (Set_Uint21);
 
       procedure Set_Uint22 (N : Node_Id; Val : Uint);
       pragma Inline (Set_Uint22);
