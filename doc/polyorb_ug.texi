@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#25 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#26 $
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
@@ -448,8 +448,8 @@ GNAT and the @code{GNAT.Sockets} package are available.}
 @c -------------------------------------------------------------------
 
 @noindent
-Ada 95 compiler: GNAT 3.16a1 (or later), GNAT 5.02a (or later), GCC
-3.4.0 (or later).
+Ada 95 compiler: GNAT 3.16a1 (or later), GNAT 5.02a1 (or later), GCC
+3.4.1 (or later).
 
 Optional: 
 
@@ -1100,8 +1100,8 @@ NAME
        of PolyORB.
 
 SYNOPSIS
-       polyorb-config [--prefix] [--version|-v] [--config] [--libs] [--cflags]
-       [--idls] [--help]
+       polyorb-config [--prefix[=DIR]] [--exec-prefix[=DIR]] [--version|-v]
+       [--config] [--libs] [--cflags] [--idls] [--help]
 
 DESCRIPTION
        polyorb-config  is  a  tool  that is used to determine the compiler and
@@ -1111,8 +1111,13 @@ DESCRIPTION
 OPTIONS
        polyorb-config accepts the following options:
 
-       --prefix
-               Print PolyORB's installation prefix.
+       --prefix[=DIR]
+                Output the directory in which PolyORB architecture-independent
+               files are installed, or set this directory to DIR.
+
+       --exec-prefix[=DIR]
+                Output the directory in which  PolyORB  architecture-dependent
+               files are installed, or set this directory to DIR.
 
        --version
                Print  the  currently installed version of PolyORB on the stan-
