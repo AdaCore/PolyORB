@@ -102,6 +102,16 @@ package body Sequences.Unbounded is
       return Null_Contents;
    end Get_Null_Contents;
 
+   function Element_Array_Equal (Left, Right : Element_Array)
+     return Boolean;
+
+   function Element_Array_Equal (Left, Right : Element_Array)
+     return Boolean is
+   begin
+      return Left'Length = Right'Length
+        and then Left (Left'Range) = Right (Right'Range);
+   end Element_Array_Equal;
+
    ---------
    -- "=" --
    ---------
@@ -109,9 +119,9 @@ package body Sequences.Unbounded is
    function "=" (Left, Right : in Sequence)
      return Boolean is
    begin
-      return Left.Length = Right.Length
-        and then
-        Left.Content (1 .. Left.Length) = Right.Content (1 .. Right.Length);
+      return Element_Array_Equal
+        (Left.Content (1 .. Left.Length),
+         Right.Content (1 .. Right.Length));
    end "=";
 
    ---------
@@ -121,9 +131,9 @@ package body Sequences.Unbounded is
    function "=" (Left : in Element_Array; Right : in Sequence)
      return Boolean is
    begin
-      return Left'Length = Right.Length
-        and then
-        Left = Right.Content (1 .. Right.Length);
+      return Element_Array_Equal
+        (Left,
+         Right.Content (1 .. Right.Length));
    end "=";
 
    ---------
@@ -133,9 +143,9 @@ package body Sequences.Unbounded is
    function "=" (Left : in Sequence; Right : in Element_Array)
      return Boolean is
    begin
-      return Left.Length = Right'Length
-        and then
-        Left.Content (1 .. Left.Length) = Right;
+      return Element_Array_Equal
+        (Left.Content (1 .. Left.Length),
+         Right);
    end "=";
 
    ---------
@@ -145,15 +155,10 @@ package body Sequences.Unbounded is
    function "&" (Left, Right : in Sequence)
      return Sequence
    is
-      Result : Sequence;
-
    begin
-      Allocate (Result, Left.Length + Right.Length);
-      Result.Content (1 .. Left.Length)
-        := Left.Content (1 .. Left.Length);
-      Result.Content (Left.Length + 1 .. Result.Length)
-        := Right.Content (1 .. Right.Length);
-      return Result;
+      return To_Sequence
+        (Left.Content (1 .. Left.Length) &
+         Right.Content (1 .. Right.Length));
    end "&";
 
    ---------
@@ -163,15 +168,9 @@ package body Sequences.Unbounded is
    function "&" (Left : in Sequence; Right : in Element_Array)
      return Sequence
    is
-      Result : Sequence;
-
    begin
-      Allocate (Result, Left.Length + Right'Length);
-      Result.Content (1 .. Left.Length)
-        := Left.Content (1 .. Left.Length);
-      Result.Content (Left.Length + 1 .. Result.Length)
-        := Right;
-      return Result;
+      return To_Sequence
+        (Left.Content (1 .. Left.Length) & Right);
    end "&";
 
    ---------
@@ -181,15 +180,9 @@ package body Sequences.Unbounded is
    function "&" (Left : in Element_Array; Right : in Sequence)
      return Sequence
    is
-      Result : Sequence;
-
    begin
-      Allocate (Result, Left'Length + Right.Length);
-      Result.Content (1 .. Left'Length)
-        := Left;
-      Result.Content (Left'Length + 1 .. Result.Length) :=
-        Right.Content (1 .. Right.Length);
-      return Result;
+      return To_Sequence
+        (Left & Right.Content (1 .. Right.Length));
    end "&";
 
    ---------
@@ -199,14 +192,8 @@ package body Sequences.Unbounded is
    function "&" (Left : in Sequence; Right : in Element)
      return Sequence
    is
-      Result : Sequence;
-
    begin
-      Allocate (Result, Left.Length + 1);
-      Result.Content (1 .. Left.Length)
-        := Left.Content (1 .. Left.Length);
-      Result.Content (Result.Length) := Right;
-      return Result;
+      return Left & Element_Array'(1 => Right);
    end "&";
 
    ---------
@@ -216,14 +203,8 @@ package body Sequences.Unbounded is
    function "&" (Left : in Element; Right : in Sequence)
      return Sequence
    is
-      Result : Sequence;
-
    begin
-      Allocate (Result, Right.Length + 1);
-      Result.Content (1) := Left;
-      Result.Content (2 .. Result.Length)
-        := Right.Content (1 .. Right.Length);
-      return Result;
+      return Element_Array'(1 => Left) & Right;
    end "&";
 
    ---------
@@ -233,19 +214,8 @@ package body Sequences.Unbounded is
    function "*" (Left : in Natural; Right : in Element)
      return Sequence
    is
-      Result : Sequence;
-
    begin
-      if Left = 0 then
-         return Result;
-      end if;
-
-      Allocate (Result, Left);
-      for I in 1 .. Result.Length loop
-         Result.Content (I) := Right;
-      end loop;
-
-      return Result;
+      return Left * Element_Array'(1 => Right);
    end "*";
 
    ---------
@@ -260,11 +230,12 @@ package body Sequences.Unbounded is
       Result : Sequence;
 
    begin
-      if Left = 0 then
+      if Left = 0 or else Right'Length = 0 then
          return Result;
       end if;
 
       Allocate (Result, Left * Length);
+
       for I in 1 .. Left loop
          Result.Content (Index .. Index + Length - 1) := Right;
          Index := Index + Length;
@@ -280,24 +251,8 @@ package body Sequences.Unbounded is
    function "*" (Left : in Natural; Right : in Sequence)
      return Sequence
    is
-      Index  : Natural := 1;
-      Result : Sequence;
-
    begin
-      if Left = 0
-        or else Right.Length = 0
-      then
-         return Result;
-      end if;
-
-      Allocate (Result, Left * Right.Length);
-      for I in 1 .. Left loop
-         Result.Content (Index .. Index + Right.Length - 1)
-           := Right.Content (1 .. Right.Length);
-         Index := Index + Right.Length;
-      end loop;
-
-      return Result;
+      return Left * Right.Content.all;
    end "*";
 
    ------------
@@ -311,8 +266,9 @@ package body Sequences.Unbounded is
    begin
       if Object.Content /= Get_Null_Contents then
          Content := Object.Content;
-         Object.Content := new Element_Array (1 .. Content'Length);
-         Object.Content (1 .. Object.Length) := Content (1 .. Object.Length);
+         Allocate (Object, Object.Length);
+         Object.Content (1 .. Object.Length)
+           := Content (1 .. Object.Length);
       end if;
    end Adjust;
 
@@ -472,7 +428,7 @@ package body Sequences.Unbounded is
          return;
       end if;
 
-      Source.Length := Old_Length - Through + From - 1;
+      Source.Length := Old_Length - (Through - From + 1);
       Old_Content   := Source.Content;
       Reallocated   := (Source.Content'Length /= Round (Source.Length));
 
@@ -666,21 +622,9 @@ package body Sequences.Unbounded is
       New_Item : in Element_Array)
      return Sequence
    is
-      Length : constant Natural := New_Item'Length;
       Result : Sequence;
-
    begin
-      if Source.Length < Before then
-         raise Index_Error;
-      end if;
-
-      Allocate (Result, Source.Length + Length);
-      Result.Content (1 .. Before - 1)
-        := Source.Content (1 .. Before - 1);
-      Result.Content (Before .. Before + Length - 1) := New_Item;
-      Result.Content (Before + Length .. Result.Length)
-        := Source.Content (Before .. Source.Length);
-
+      Insert (Result, Before, New_Item);
       return Result;
    end Insert;
 
@@ -751,25 +695,10 @@ package body Sequences.Unbounded is
       New_Item : in Element_Array)
       return Sequence
    is
-      Length : constant Natural := New_Item'Length;
-      Result : Sequence;
+      Result : Sequence := Source;
 
    begin
-      if Position > Source.Length + 1 then
-         raise Index_Error;
-      end if;
-
-      if Position + Length > Source.Length then
-         Result.Length := Position + Length - 1;
-      else
-         Result.Length := Source.Length;
-      end if;
-
-      Allocate (Result, Result.Length);
-      Result.Content (1 .. Position - 1)
-        := Source.Content (1 .. Position - 1);
-      Result.Content (Position .. Result.Length) := New_Item;
-
+      Overwrite (Result, Position, New_Item);
       return Result;
    end Overwrite;
 
@@ -816,16 +745,17 @@ package body Sequences.Unbounded is
      (Source : in out Sequence;
       Length : in Natural)
    is
-      Real_Length : Natural := Round (Length);
       Old_Content : Element_Array_Access := Source.Content;
       Old_Length  : constant Natural := Source.Length;
+
       Min_Length  : Natural;
+      --  The number of elements in the new allocation that
+      --  need to be copied from the old one.
 
    begin
       if Length = 0 then
          Source := Null_Sequence;
          Free (Old_Content);
-
       else
          if Source.Length > Length then
             Min_Length := Length;
@@ -833,14 +763,14 @@ package body Sequences.Unbounded is
             Min_Length := Source.Length;
          end if;
 
-         if Real_Length /= Source.Content'Length then
-            Source.Content := new Element_Array (1 .. Real_Length);
+         if Source.Content'Length /= Round (Length) then
+            Allocate (Source, Length);
             Source.Content (1 .. Min_Length)
               := Old_Content (1 .. Min_Length);
             Free (Old_Content);
-
          else
-            --  Force finalization.
+            --  Force finalization (for the case where we have
+            --  shrunk then list).
 
             declare
                Null_Element : Element;
@@ -851,9 +781,9 @@ package body Sequences.Unbounded is
                   Source.Content (I) := Null_Element;
                end loop;
             end;
+            Source.Length := Length;
          end if;
       end if;
-      Source.Length := Length;
    end Reallocate;
 
    ---------------------
@@ -883,28 +813,10 @@ package body Sequences.Unbounded is
       By     : in Element_Array)
       return Sequence
    is
-      By_Length : constant Natural := By'Length;
-      Result    : Sequence;
+      Result    : Sequence := Source;
 
    begin
-      if Low > Source.Length + 1
-        or else High > Source.Length
-      then
-         raise Index_Error;
-      end if;
-
-      if High < Low then
-         return Insert (Source => Source, Before => Low, New_Item => By);
-      end if;
-
-      Allocate (Result, Low - 1 + By_Length + Source.Length - High);
-      Result.Content (1 .. Low - 1)
-        := Source.Content (1 .. Low - 1);
-      Result.Content (Low .. Low + By_Length - 1)
-        := By;
-      Result.Content (Low + By_Length .. Result.Length)
-        := Source.Content (High + 1 .. Source.Length);
-
+      Replace_Slice (Result, Low, High, By);
       return Result;
    end Replace_Slice;
 
