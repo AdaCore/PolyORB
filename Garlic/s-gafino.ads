@@ -51,13 +51,13 @@ private
      (Filter : in     No_Filter;
       Params : in     Filter_Params_Access;
       Stream : access System.RPC.Params_Stream_Type)
-      return Ada.Streams.Stream_Element_Array;
+      return Streams.Stream_Element_Access;
 
    function Filter_Incoming
      (Filter : in No_Filter;
       Params : in Filter_Params_Access;
       Stream : in Ada.Streams.Stream_Element_Array)
-      return Ada.Streams.Stream_Element_Array;
+      return Streams.Stream_Element_Access;
 
    procedure Generate_Params
      (Filter : in No_Filter;
@@ -73,7 +73,7 @@ private
    function Filter_Params_Write
      (Filter : No_Filter;
       P : Filter_Params_Access)
-      return Ada.Streams.Stream_Element_Array;
+      return Streams.Stream_Element_Access;
 
    function Get_Name
      (Filter : No_Filter)

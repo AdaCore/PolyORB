@@ -35,15 +35,14 @@
 
 with Ada.Unchecked_Deallocation;
 
+with System.Garlic.Debug;       use System.Garlic.Debug;
+with System.Garlic.Filters;     use System.Garlic.Filters;
 with System.Garlic.Options;
 with System.Garlic.Protocols;
+with System.Garlic.Streams;     use System.Garlic.Streams;
 with System.Garlic.Termination;
+with System.Garlic.Trace;       use System.Garlic.Trace;
 with System.Garlic.Utils;
-
-with System.Garlic.Debug;     use System.Garlic.Debug;
-with System.Garlic.Filters;   use System.Garlic.Filters;
-with System.Garlic.Trace;     use System.Garlic.Trace;
-
 with System.Standard_Library;
 
 package body System.Garlic.Heart is
@@ -733,13 +732,14 @@ package body System.Garlic.Heart is
             " from partition" & Partition_ID'Image (Partition)));
 
       declare
-         Filtered_Data   : Ada.Streams.Stream_Element_Array
-           := Filter_Incoming
-                (Partition, Operation,
-                 Data (Data'First + Opcode_Size .. Data'Last));
+         Filtered_Data   : Stream_Element_Access :=
+           Filter_Incoming
+             (Partition, Operation,
+              Data (Data'First + Opcode_Size .. Data'Last));
          Filtered_Params : aliased Params_Stream_Type (Filtered_Data'Length);
       begin
-         To_Params_Stream_Type (Filtered_Data, Filtered_Params'Access);
+         To_Params_Stream_Type (Filtered_Data.all, Filtered_Params'Access);
+         Free (Filtered_Data);
          if Operation in Internal_Opcode then
             if Options.Execution_Mode = Replay_Mode then
                Replay_Handle_Internal
@@ -1075,14 +1075,14 @@ package body System.Garlic.Heart is
       Opcode'Write (Op_Params'Access, Operation);
 
       declare
-         Filtered_Data : Ada.Streams.Stream_Element_Array
-           := Filter_Outgoing (Partition, Operation, Params);
-         Header : constant Ada.Streams.Stream_Element_Array
-           := To_Stream_Element_Array (Op_Params'Access);
-         Length : constant Ada.Streams.Stream_Element_Offset
-           := Protocols.Unused_Space + Header'Length + Filtered_Data'Length;
-         Packet : aliased Ada.Streams.Stream_Element_Array
-           := (1 .. Length => 0);
+         Filtered_Data : Stream_Element_Access :=
+           Filter_Outgoing (Partition, Operation, Params);
+         Header : constant Ada.Streams.Stream_Element_Array :=
+           To_Stream_Element_Array (Op_Params'Access);
+         Length : constant Ada.Streams.Stream_Element_Offset :=
+           Protocols.Unused_Space + Header'Length + Filtered_Data'Length;
+         Packet : aliased Ada.Streams.Stream_Element_Array :=
+           (1 .. Length => 0);
 
          --  We can't just declare 'Packet' with the correct size here:
          --  this would make Packet's type a constrained subtype, while
@@ -1096,12 +1096,13 @@ package body System.Garlic.Heart is
          --  Stuff the opcode (unfiltered) in front of the data.
          Packet
            (Packet'First + Protocols.Unused_Space ..
-            Packet'First + Protocols.Unused_Space + Header'Length - 1)
-           := Header;
+            Packet'First + Protocols.Unused_Space + Header'Length - 1) :=
+           Header;
          Packet
            (Packet'First + Protocols.Unused_Space + Header'Length ..
-            Packet'Last)
-           := Filtered_Data;
+            Packet'Last) :=
+           Filtered_Data.all;
+         Free (Filtered_Data);
          pragma Debug
            (D (D_Debug, "Sending an operation with opcode " & Operation'Img));
          Protocols.Send (Protocol, Partition, Packet'Access);

@@ -40,6 +40,7 @@
 with Ada.Streams;
 with System.RPC;
 with System.Garlic.Heart;
+with System.Garlic.Streams;
 
 package System.Garlic.Filters is
 
@@ -49,13 +50,13 @@ package System.Garlic.Filters is
       (To_Partition : in     System.RPC.Partition_ID;
        Operation    : in     System.Garlic.Heart.Opcode;
        Params       : access System.RPC.Params_Stream_Type)
-      return Ada.Streams.Stream_Element_Array;
+      return Streams.Stream_Element_Access;
 
    function Filter_Incoming
       (From_Partition : in System.RPC.Partition_ID;
        Operation      : in System.Garlic.Heart.Opcode;
        Params         : in Ada.Streams.Stream_Element_Array)
-      return Ada.Streams.Stream_Element_Array;
+      return Streams.Stream_Element_Access;
    --  The two functions above are called by Garlic.Heart for all
    --  communications.
    --     NOTE: I would have liked very much to have a symmetric interface
@@ -124,7 +125,7 @@ private
       (Filter : in     Filter_Type;
        Params : in     Filter_Params_Access;
        Stream : access System.RPC.Params_Stream_Type)
-      return Ada.Streams.Stream_Element_Array
+      return Streams.Stream_Element_Access
       is abstract;
    --  Run the unfiltered data in 'Stream' through the filter and return
    --  the result.
@@ -133,7 +134,7 @@ private
       (Filter : in Filter_Type;
        Params : in Filter_Params_Access;
        Stream : in Ada.Streams.Stream_Element_Array)
-      return Ada.Streams.Stream_Element_Array
+      return Streams.Stream_Element_Access
       is abstract;
    --  Run the filtered data in 'Stream' through the inverse filter and
    --  return the resulting unfiltered data.
@@ -147,7 +148,7 @@ private
    function Filter_Params_Write
       (Filter : Filter_Type;
        Params : Filter_Params_Access)
-      return Ada.Streams.Stream_Element_Array
+      return Streams.Stream_Element_Access
       is abstract;
 
    procedure Generate_Params

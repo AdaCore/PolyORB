@@ -2,11 +2,11 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---          S Y S T E M . G A R L I C . F I L T E R S . Z I P               --
+--       S Y S T E M . G A R L I C . S T O R A G E _ H A N D L I N G        --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                          --
+--                            $Revision$                             --
 --                                                                          --
 --         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
 --                                                                          --
@@ -33,53 +33,49 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
--- This  package  is part of  the  transparent data filtering  extension to --
--- GARLIC  developed at  the  Software Engineering Laboratory of the  Swiss --
--- Federal Institute of Technology in Lausanne (EPFL).                      --
-
 with Ada.Streams;
-with System.Garlic.Filters;
-with System.Garlic.Streams;
+with System.Garlic.Utils;
+with System.Storage_Elements;
+with System.Storage_Pools;
 
-package System.Garlic.Filters.Zip is
+generic
+   Max_Objects        : Positive;
+   Static_Object_Size : System.Storage_Elements.Storage_Count;
+package System.Garlic.Storage_Handling is
+
+   type Garlic_Storage_Pool is
+     new System.Storage_Pools.Root_Storage_Pool with private;
+
+   procedure Initialize (Pool : in out Garlic_Storage_Pool);
+   procedure Finalize   (Pool : in out Garlic_Storage_Pool);
+
+   procedure Allocate
+     (Pool                     : in out Garlic_Storage_Pool;
+      Storage_Address          : out Address;
+      Size_In_Storage_Elements : in System.Storage_Elements.Storage_Count;
+      Alignment                : in System.Storage_Elements.Storage_Count);
+
+   procedure Deallocate
+     (Pool                     : in out Garlic_Storage_Pool;
+      Storage_Address          : in Address;
+      Size_In_Storage_Elements : in System.Storage_Elements.Storage_Count;
+      Alignment                : in System.Storage_Elements.Storage_Count);
+
+   function Storage_Size (Pool : Garlic_Storage_Pool)
+      return System.Storage_Elements.Storage_Count;
 
 private
 
-   type Compress_Filter_Type is new Filter_Type with null record;
+   type Array_Of_Addresses is array (1 .. Max_Objects) of Address;
+   type Array_Of_Boolean   is array (1 .. Max_Objects) of Boolean;
 
-   type Compress_Filter_Params is new Filter_Params with null record;
+   type Garlic_Storage_Pool is
+     new System.Storage_Pools.Root_Storage_Pool with record
+        N_Objects : Natural;
+        pragma Atomic (N_Objects);
+        Addresses : Array_Of_Addresses;
+        Used      : Array_Of_Boolean;
+        Semaphore : Utils.Semaphore_Type;
+     end record;
 
-   function Filter_Outgoing
-     (Filter   : in     Compress_Filter_Type;
-      F_Params : in     Filter_Params_Access;
-      Stream   : access System.RPC.Params_Stream_Type)
-     return Streams.Stream_Element_Access;
-
-   function Filter_Incoming
-      (Filter   : in Compress_Filter_Type;
-       F_Params : in Filter_Params_Access;
-       Stream   : in Ada.Streams.Stream_Element_Array)
-      return Streams.Stream_Element_Access;
-
-   procedure Generate_Params
-      (Filter                : in  Compress_Filter_Type;
-       F_Params              : out Filter_Params_Access;
-       Private_F_Params      : out Filter_Params_Access;
-       Needs_Params_Exchange : out Boolean);
-
-   function Filter_Params_Read
-      (Filter : Compress_Filter_Type;
-       Stream : Ada.Streams.Stream_Element_Array)
-     return Filter_Params_Access;
-
-   function Filter_Params_Write
-      (Filter : Compress_Filter_Type;
-       P      : Filter_Params_Access)
-      return Streams.Stream_Element_Access;
-
-   function Get_Name (Filter : Compress_Filter_Type)
-      return String;
-
-   procedure Print_Params (P : Compress_Filter_Params);
-
-end System.Garlic.Filters.Zip;
+end System.Garlic.Storage_Handling;

@@ -107,7 +107,7 @@ package body System.RPC.Pool is
                      The_Asynchronous : in Boolean);
       entry Shutdown;
       pragma Priority (Default_Priority);
-      pragma Storage_Size (300_000);
+      pragma Storage_Size (3_000_000);
    end Anonymous_Task;
    type Anonymous_Task_Access is access Anonymous_Task;
    --  An anonymous task will serve a request.
@@ -170,7 +170,6 @@ package body System.RPC.Pool is
 
    task type Background_Creation is
       pragma Priority (Background_Creation_Priority);
-      pragma Storage_Size (300_000);
    end Background_Creation;
    --  This task will have a low priority and create tasks in the background
    --  when they are needed.

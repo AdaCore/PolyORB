@@ -2,11 +2,11 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---          S Y S T E M . G A R L I C . F I L T E R S . Z I P               --
+--                S Y S T E M . G A R L I C . S T R E A M S                 --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                          --
+--                            $Revision$                             --
 --                                                                          --
 --         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
 --                                                                          --
@@ -33,53 +33,46 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
--- This  package  is part of  the  transparent data filtering  extension to --
--- GARLIC  developed at  the  Software Engineering Laboratory of the  Swiss --
--- Federal Institute of Technology in Lausanne (EPFL).                      --
-
 with Ada.Streams;
-with System.Garlic.Filters;
-with System.Garlic.Streams;
+with Ada.Unchecked_Deallocation;
+with System.Garlic.Storage_Handling;
+pragma Elaborate_All (System.Garlic.Storage_Handling);
+with System.RPC;
 
-package System.Garlic.Filters.Zip is
+package System.Garlic.Streams is
 
-private
+   package Streams_Pools is new Storage_Handling
+     (Max_Objects        => 16,
+      Static_Object_Size => 16_384);
 
-   type Compress_Filter_Type is new Filter_Type with null record;
+   Streams_Pool : Streams_Pools.Garlic_Storage_Pool;
 
-   type Compress_Filter_Params is new Filter_Params with null record;
+   type Stream_Element_Access is access Ada.Streams.Stream_Element_Array;
+   for Stream_Element_Access'Storage_Pool use Streams_Pool;
 
-   function Filter_Outgoing
-     (Filter   : in     Compress_Filter_Type;
-      F_Params : in     Filter_Params_Access;
-      Stream   : access System.RPC.Params_Stream_Type)
-     return Streams.Stream_Element_Access;
+   procedure Free is
+      new Ada.Unchecked_Deallocation (Ada.Streams.Stream_Element_Array,
+                                      Stream_Element_Access);
 
-   function Filter_Incoming
-      (Filter   : in Compress_Filter_Type;
-       F_Params : in Filter_Params_Access;
-       Stream   : in Ada.Streams.Stream_Element_Array)
-      return Streams.Stream_Element_Access;
+   function To_Stream_Element_Array
+     (Params : access System.RPC.Params_Stream_Type;
+      Unused : Ada.Streams.Stream_Element_Count := 0)
+      return Ada.Streams.Stream_Element_Array;
+   pragma Inline (To_Stream_Element_Array);
+   --  This routine "looks" into the Params structure to extract the
+   --  Stream_Element_Array which will be sent accross the network. It
+   --  also let Unused places to sKtore extra information.
 
-   procedure Generate_Params
-      (Filter                : in  Compress_Filter_Type;
-       F_Params              : out Filter_Params_Access;
-       Private_F_Params      : out Filter_Params_Access;
-       Needs_Params_Exchange : out Boolean);
+   function To_Stream_Element_Access
+     (Params : access System.RPC.Params_Stream_Type;
+      Unused : Ada.Streams.Stream_Element_Count := 0)
+     return Stream_Element_Access;
+   --  Same thing, but return a dynamically allocated pointer.
 
-   function Filter_Params_Read
-      (Filter : Compress_Filter_Type;
-       Stream : Ada.Streams.Stream_Element_Array)
-     return Filter_Params_Access;
+   procedure To_Params_Stream_Type
+     (Content : Ada.Streams.Stream_Element_Array;
+      Params  : access System.RPC.Params_Stream_Type);
+   pragma Inline (To_Params_Stream_Type);
+   --  Other way.
 
-   function Filter_Params_Write
-      (Filter : Compress_Filter_Type;
-       P      : Filter_Params_Access)
-      return Streams.Stream_Element_Access;
-
-   function Get_Name (Filter : Compress_Filter_Type)
-      return String;
-
-   procedure Print_Params (P : Compress_Filter_Params);
-
-end System.Garlic.Filters.Zip;
+end System.Garlic.Streams;

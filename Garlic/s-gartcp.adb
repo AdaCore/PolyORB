@@ -33,23 +33,24 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions; use Ada.Exceptions;
+with Ada.Exceptions;                  use Ada.Exceptions;
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 with Interfaces.C.Strings;
-with System.Garlic.Constants; use System.Garlic.Constants;
-with System.Garlic.Debug; use System.Garlic.Debug;
-with System.Garlic.Heart;  use System.Garlic.Heart;
-with System.Garlic.Naming; use System.Garlic.Naming;
+with System.Garlic.Constants;         use System.Garlic.Constants;
+with System.Garlic.Debug;             use System.Garlic.Debug;
+with System.Garlic.Heart;             use System.Garlic.Heart;
+with System.Garlic.Naming;            use System.Garlic.Naming;
 pragma Elaborate_All (System.Garlic.Naming);
 with System.Garlic.Options;
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
 with System.Garlic.Priorities;
-with System.Garlic.Termination; use System.Garlic.Termination;
-with System.Garlic.Thin;   use System.Garlic.Thin;
+with System.Garlic.Streams;           use System.Garlic.Streams;
+with System.Garlic.Termination;       use System.Garlic.Termination;
+with System.Garlic.Thin;              use System.Garlic.Thin;
 with System.Garlic.TCP.Platform_Specific;
-with System.Garlic.Utils; use System.Garlic.Utils;
-with System.Storage_Elements; use System.Storage_Elements;
+with System.Garlic.Utils;             use System.Garlic.Utils;
+with System.Storage_Elements;         use System.Storage_Elements;
 
 package body System.Garlic.TCP is
 
@@ -183,13 +184,18 @@ package body System.Garlic.TCP is
    pragma Inline (Partition_ID_Length);
    --  Return the length in stream elements needed to store a Partition_ID.
 
+   procedure Receive_And_Send_To_Heart
+     (Length    : in Stream_Element_Count;
+      FD        : in C.int;
+      Partition : in Partition_ID);
+   --  Receive some data from FD and send it to Garlic heart.
+
    Stream_Element_Count_Length_Cache : Stream_Element_Count := 0;
    function Stream_Element_Count_Length return Stream_Element_Count;
    pragma Inline (Stream_Element_Count_Length);
    --  Idem for a stream element count.
 
    task Accept_Handler is
-      pragma Storage_Size (300_000);
       pragma Priority (Priorities.RPC_Priority);
       entry Start;
    end Accept_Handler;
@@ -198,7 +204,6 @@ package body System.Garlic.TCP is
    task type Incoming_Connection_Handler (FD        : C.Int;
                                           Receiving : Boolean;
                                           Remote    : Partition_ID) is
-      pragma Storage_Size (300_000);
       pragma Priority (Priorities.RPC_Priority);
    end Incoming_Connection_Handler;
    type Incoming_Connection_Handler_Access is
@@ -535,19 +540,15 @@ package body System.Garlic.TCP is
                pragma Debug (D (D_Debug, "Invalid length"));
                Raise_Exception (Constraint_Error'Identity, "Invalid length");
             end if;
+
             pragma Debug
               (D (D_Debug,
                   "Will receive a packet of length" & Length'Img));
 
-            declare
-               Request_P : Stream_Element_Array (1 .. Length);
-            begin
+            --  No Add_Non_Terminating_Task either (see above).
 
-               --  No Add_Non_Terminating_Task either (see above).
+            Receive_And_Send_To_Heart (Length, FD, Partition);
 
-               Physical_Receive (FD, Request_P);
-               Has_Arrived (Partition, Request_P);
-            end;
          end;
       end loop;
 
@@ -770,6 +771,23 @@ package body System.Garlic.TCP is
       Physical_Receive (FD, Code);
       return Convert (Code);
    end Read_Code;
+
+   -------------------------------
+   -- Receive_And_Send_To_Heart --
+   -------------------------------
+
+   procedure Receive_And_Send_To_Heart
+     (Length    : in Stream_Element_Count;
+      FD        : in C.int;
+      Partition : in Partition_ID)
+   is
+      Buffer : Stream_Element_Access;
+   begin
+      Buffer := new Stream_Element_Array (1 .. Length);
+      Physical_Receive (FD, Buffer.all);
+      Has_Arrived (Partition, Buffer.all);
+      Free (Buffer);
+   end Receive_And_Send_To_Heart;
 
    ----------
    -- Send --

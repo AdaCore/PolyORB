@@ -1,3 +1,27 @@
+Fri Oct 31 15:57:21 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-rpcpoo.adb: Increase task's storage size up to 3_000_000
+	  bytes.
+
+	* s-garuti.ads: Move To_Stream_Element_Array and
+	  To_Params_Stream_Type into System.Garlic.Streams.
+
+	* s-garuti.adb: Idem.
+
+	* s-garter.adb: Remove pragma Storage_Size on task.
+
+	* s-gartcp.adb: Use dynamic allocation of streams.
+
+	* s-garrep.adb: Remove pragma Storage_Size on task.
+
+	* s-garhea.adb: Use dynamic allocation of streams.
+
+	* s-garfil.ads, s-garfil.adb, s-gafizi.ads, s-gafizi.adb,
+	  s-gafino.ads, s-gafino.adb: Use dynamic allocation of streams.
+
+	* Makefile.am: Update dependencies. Add System.Garlic.Streams and
+	  System.Garlic.Storage_Handling.
+
 Wed Oct 29 19:59:40 1997  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garuti.adb, s-garuti.ads: Add new function Different to test

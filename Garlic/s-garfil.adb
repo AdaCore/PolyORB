@@ -38,12 +38,11 @@
 -- Federal Institute of Technology in Lausanne (EPFL).                      --
 
 with Ada.Streams;
-
 with System.Garlic;
 with System.Garlic.Debug;   use System.Garlic.Debug;
 with System.Garlic.Heart;   use System.Garlic.Heart;
 with System.Garlic.Options; use System.Garlic.Options;
-with System.Garlic.Utils;   use System.Garlic.Utils;
+with System.Garlic.Streams; use System.Garlic.Streams;
 with System.RPC;            use System.RPC;
 
 package body System.Garlic.Filters is
@@ -56,6 +55,8 @@ package body System.Garlic.Filters is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
+   use System.Garlic.Streams;
+
    type String_Access is access all String;
    --  Partition names are stored in dynamically allocated memory!
 
@@ -67,13 +68,13 @@ package body System.Garlic.Filters is
    --  Declarations of locally used subroutines.
 
    function Default_Filter_Params_Write
-      return Ada.Streams.Stream_Element_Array;
+      return Stream_Element_Access;
    --  Write this partition's public parameters for the default filter into
    --  a stream element array and return it.
 
    function Default_Filter_Params_Write
       (Partition : System.RPC.Partition_ID)
-      return Ada.Streams.Stream_Element_Array;
+      return Stream_Element_Access;
    --  Write 'Partition's public parameters for the default filter into
    --  a stream element array and return it. If the public parameters of
    --  'Partition' are still unknown, ask for them!
@@ -86,7 +87,7 @@ package body System.Garlic.Filters is
    function Filter_Params_Write
       (To_Partition : System.RPC.Partition_ID;
        F_Params     : Filter_Params_Access)
-      return Ada.Streams.Stream_Element_Array;
+      return Stream_Element_Access;
    --  Write some parameters for the filter to be used with 'From_Partition'.
 
    function Filter_Params_Read
@@ -101,24 +102,24 @@ package body System.Garlic.Filters is
    function Default_Filter_Incoming
       (From_Partition : in System.RPC.Partition_ID;
        Stream         : in Ada.Streams.Stream_Element_Array)
-      return Ada.Streams.Stream_Element_Array;
+      return Stream_Element_Access;
    --  Note: 'From_Partition' is not needed, but passing it all the same
    --  makes that function's type compatible with 'Filter_Proc' above!
 
    function Default_Filter_Outgoing
       (To_Partition : in     System.RPC.Partition_ID;
        Stream       : access System.RPC.Params_Stream_Type)
-      return Ada.Streams.Stream_Element_Array;
+      return Stream_Element_Access;
 
    function Filter_Incoming
       (From_Partition : in System.RPC.Partition_ID;
        Stream         : in Ada.Streams.Stream_Element_Array)
-      return Ada.Streams.Stream_Element_Array;
+      return Stream_Element_Access;
 
    function Filter_Outgoing
       (To_Partition : in     System.RPC.Partition_ID;
        Stream       : access System.RPC.Params_Stream_Type)
-      return Ada.Streams.Stream_Element_Array;
+      return Stream_Element_Access;
 
    --  The following types and the protected table are used to keep track
    --  of the different filtering methods and their registration. The
@@ -796,7 +797,7 @@ package body System.Garlic.Filters is
       Filter_Code'Write (Answer'Access, Tell_Name);
       String'Output (Answer'Access, My_Name.all);
       Ada.Streams.Stream_Element_Array'Output
-         (Answer'Access, Default_Filter_Params_Write);
+         (Answer'Access, Default_Filter_Params_Write.all);
       Send (Partition, Filtering, Answer'Access);
    end Tell_My_Name;
 
@@ -850,12 +851,14 @@ package body System.Garlic.Filters is
             declare
                Buffer          : Ada.Streams.Stream_Element_Array
                  := To_Stream_Element_Array (Params);
-               Filtered_Data   : Ada.Streams.Stream_Element_Array
+               Filtered_Data   : Stream_Element_Access
                  := Default_Filter_Incoming (Partition, Buffer);
                Filtered_Params : aliased Params_Stream_Type
                                             (Filtered_Data'Length);
             begin
-               To_Params_Stream_Type (Filtered_Data, Filtered_Params'Access);
+               To_Params_Stream_Type (Filtered_Data.all,
+                                      Filtered_Params'Access);
+               Free (Filtered_Data);
                declare
                   Name : String := String'Input (Filtered_Params'Access);
                begin
@@ -875,12 +878,14 @@ package body System.Garlic.Filters is
             declare
                Buffer          : Ada.Streams.Stream_Element_Array
                  := To_Stream_Element_Array (Params);
-               Filtered_Data   : Ada.Streams.Stream_Element_Array
+               Filtered_Data   : Stream_Element_Access
                  := Filter_Incoming (Partition, Buffer);
                Filtered_Params : aliased Params_Stream_Type
                                             (Filtered_Data'Length);
             begin
-               To_Params_Stream_Type (Filtered_Data, Filtered_Params'Access);
+               To_Params_Stream_Type (Filtered_Data.all,
+                                      Filtered_Params'Access);
+               Free (Filtered_Data);
                declare
                   Old_Partition : Partition_ID;
                begin
@@ -915,7 +920,7 @@ package body System.Garlic.Filters is
       (To_Partition : in     System.RPC.Partition_ID;
        Operation    : in     System.Garlic.Heart.Opcode;
        Params       : access System.RPC.Params_Stream_Type)
-      return Ada.Streams.Stream_Element_Array is
+      return Stream_Element_Access is
 
       Told : Boolean;
 
@@ -940,7 +945,7 @@ package body System.Garlic.Filters is
             raise Constraint_Error;
          end if;
       end if;
-      return To_Stream_Element_Array (Params);
+      return To_Stream_Element_Access (Params);
    end Filter_Outgoing;
 
    ---------------------
@@ -951,7 +956,7 @@ package body System.Garlic.Filters is
       (From_Partition : in System.RPC.Partition_ID;
        Operation      : in System.Garlic.Heart.Opcode;
        Params         : in Ada.Streams.Stream_Element_Array)
-      return Ada.Streams.Stream_Element_Array is
+      return Stream_Element_Access is
 
       use type Ada.Streams.Stream_Element_Offset;
 
@@ -966,7 +971,7 @@ package body System.Garlic.Filters is
             raise Constraint_Error;
          end if;
       end if;
-      return Params;
+      return new Ada.Streams.Stream_Element_Array'(Params);
    end Filter_Incoming;
 
    ---------
@@ -1016,22 +1021,22 @@ package body System.Garlic.Filters is
        Params    : in     Filter_Params_Access;
        Data      : access System.RPC.Params_Stream_Type;
        Msg       : in     String := "")
-      return Ada.Streams.Stream_Element_Array;
+      return Stream_Element_Access;
 
    function Filter_Data_Out
       (Method    : in     Filter_Access;
        Params    : in     Filter_Params_Access;
        Data      : access System.RPC.Params_Stream_Type;
        Msg       : in     String := "")
-      return Ada.Streams.Stream_Element_Array is
+      return Stream_Element_Access is
    begin
       pragma Debug (D (D_Debug, "Just before filtering..."));
       declare
-         Filtered_Data : aliased Ada.Streams.Stream_Element_Array
+         Filtered_Data : constant Stream_Element_Access
            := Filter_Outgoing (Method.all, Params, Data);
       begin
          pragma Debug (
-            Dbg (Filtered_Data,
+            Dbg (Filtered_Data.all,
                  "Data after filtering (OUTGOING, " & Msg & ")"));
          return Filtered_Data;
       end;
@@ -1042,24 +1047,24 @@ package body System.Garlic.Filters is
        Params    : in Filter_Params_Access;
        Data      : in Ada.Streams.Stream_Element_Array;
        Msg       : in String := "")
-      return Ada.Streams.Stream_Element_Array;
+      return Stream_Element_Access;
 
    function Filter_Data_In
       (Method    : in Filter_Access;
        Params    : in Filter_Params_Access;
        Data      : in Ada.Streams.Stream_Element_Array;
        Msg       : in String := "")
-      return Ada.Streams.Stream_Element_Array is
+      return Stream_Element_Access is
    begin
       pragma Debug (
             Dbg (Data,
                  "Data before filtering (INCOMING, " & Msg & ")"));
       declare
-         Filtered_Data : aliased Ada.Streams.Stream_Element_Array
+         Filtered_Data : constant Stream_Element_Access
            := Filter_Incoming (Method.all, Params, Data);
       begin
          pragma Debug (
-               Dbg (Filtered_Data,
+               Dbg (Filtered_Data.all,
                     "Data after filtering (INCOMING, " & Msg & ")"));
          return Filtered_Data;
       end;
@@ -1072,7 +1077,7 @@ package body System.Garlic.Filters is
    function Filter_Outgoing
       (To_Partition : in     System.RPC.Partition_ID;
        Stream       : access System.RPC.Params_Stream_Type)
-      return Ada.Streams.Stream_Element_Array is
+      return Stream_Element_Access is
 
       Filter_Method         : Filter_Access;
       Params                : Filter_Params_Access;
@@ -1096,24 +1101,25 @@ package body System.Garlic.Filters is
          if Needs_Params_Exchange = True then
             pragma Debug (D (D_Debug, "I have to exchange parameters"));
             declare
-               Buffer     : Ada.Streams.Stream_Element_Array :=
-                              Filter_Params_Write (To_Partition, Params);
+               Buffer     : Stream_Element_Access :=
+                 Filter_Params_Write (To_Partition, Params);
                Par_Stream : aliased Params_Stream_Type (0);
                My_Name    : String_Access;
             begin
                Partition_Name_Table.Get_My_Name (My_Name);
                String'Output (Par_Stream'Access, My_Name.all);
                Ada.Streams.Stream_Element_Array'Output
-                  (Par_Stream'Access, Buffer);
+                  (Par_Stream'Access, Buffer.all);
+               Free (Buffer);
                declare
-                  Code_Buffer : Ada.Streams.Stream_Element_Array
-                    := Default_Filter_Outgoing
-                          (To_Partition, Par_Stream'Access);
+                  Code_Buffer : Stream_Element_Access :=
+                    Default_Filter_Outgoing (To_Partition, Par_Stream'Access);
                   Code_Stream : aliased Params_Stream_Type (0);
                begin
                   Filter_Code'Write (Code_Stream'Access, Set_Session_Params);
                   Ada.Streams.Stream_Element_Array'Output
-                     (Code_Stream'Access, Code_Buffer);
+                     (Code_Stream'Access, Code_Buffer.all);
+                  Free (Code_Buffer);
                   Send (To_Partition, Filtering, Code_Stream'Access);
                end;
             end;
@@ -1134,7 +1140,7 @@ package body System.Garlic.Filters is
    function Filter_Incoming
       (From_Partition : in System.RPC.Partition_ID;
        Stream         : in Ada.Streams.Stream_Element_Array)
-      return Ada.Streams.Stream_Element_Array is
+      return Stream_Element_Access is
 
       Filter_Method            : Filter_Access;
       Params, Private_Params   : Filter_Params_Access;
@@ -1252,7 +1258,7 @@ package body System.Garlic.Filters is
    function Default_Filter_Outgoing
       (To_Partition : in     System.RPC.Partition_ID;
        Stream       : access System.RPC.Params_Stream_Type)
-      return Ada.Streams.Stream_Element_Array is
+      return Stream_Element_Access is
 
       Public_Params    : Filter_Params_Access;  --  of 'To_Partition'
       Default_Filter   : Filter_Access;
@@ -1284,7 +1290,7 @@ package body System.Garlic.Filters is
    function Default_Filter_Incoming
       (From_Partition : in System.RPC.Partition_ID;
        Stream         : in Ada.Streams.Stream_Element_Array)
-      return Ada.Streams.Stream_Element_Array is
+      return Stream_Element_Access is
 
       Public_Params,
       Private_Params   : Filter_Params_Access;  --  of myself
@@ -1307,7 +1313,7 @@ package body System.Garlic.Filters is
    ---------------------------------
 
    function Default_Filter_Params_Write
-      return Ada.Streams.Stream_Element_Array is
+      return Stream_Element_Access is
 
       Private_Params,
       Public_Params    : Filter_Params_Access;
@@ -1329,7 +1335,7 @@ package body System.Garlic.Filters is
 
    function Default_Filter_Params_Write
       (Partition : System.RPC.Partition_ID)
-      return Ada.Streams.Stream_Element_Array is
+      return Stream_Element_Access is
 
       Public_Params    : Filter_Params_Access;  --  of 'Partition'
       Default_Filter   : Filter_Access;
@@ -1352,7 +1358,7 @@ package body System.Garlic.Filters is
    function Filter_Params_Write
       (To_Partition : System.RPC.Partition_ID;
        F_Params     : Filter_Params_Access)
-      return Ada.Streams.Stream_Element_Array is
+      return Stream_Element_Access is
 
       Filter_Method : Filter_Access;
 

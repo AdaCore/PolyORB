@@ -67,7 +67,7 @@ package body System.Garlic.Replay is
    --  Where to read the traces.
 
    task Engine is
-      pragma Storage_Size (300_000);
+      pragma Storage_Size (3_000_000);
       entry Start;
    end Engine;
    --  Reads and delivers the messages from the trace file.

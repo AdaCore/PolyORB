@@ -1,3 +1,11 @@
+Fri Oct 31 16:01:02 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* NEWS: Notes about the new filtering interface and the streams
+	  pool.
+
+	* MANIFEST: Add System.Garlic.Streams and
+	  System.Garlic.Storage_Handling.
+
 Thu Oct 30 15:51:02 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* NEWS: Notes about the new compilation model, the bug fixes and

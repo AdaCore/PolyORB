@@ -42,9 +42,7 @@ with Ada.Streams; use Ada.Streams;
 with System.Garlic.Filters;
 pragma Elaborate (System.Garlic.Filters);
 
-with System.Garlic.Utils;
-
-use System.Garlic.Utils;
+with System.Garlic.Streams; use System.Garlic.Streams;
 
 package body System.Garlic.Filters.None is
 
@@ -65,9 +63,9 @@ package body System.Garlic.Filters.None is
      (Filter : in     No_Filter;
       Params : in     Filter_Params_Access;
       Stream : access System.RPC.Params_Stream_Type)
-      return Stream_Element_Array is
+      return Stream_Element_Access is
    begin
-      return To_Stream_Element_Array (Stream);
+      return To_Stream_Element_Access (Stream);
    end Filter_Outgoing;
 
    ---------------------
@@ -78,9 +76,9 @@ package body System.Garlic.Filters.None is
      (Filter : in No_Filter;
       Params : in Filter_Params_Access;
       Stream : in Ada.Streams.Stream_Element_Array)
-      return Ada.Streams.Stream_Element_Array is
+      return Stream_Element_Access is
    begin
-      return Stream;
+      return new Stream_Element_Array'(Stream);
    end Filter_Incoming;
 
    ---------------------
@@ -120,12 +118,12 @@ package body System.Garlic.Filters.None is
 
    function Filter_Params_Write
      (Filter : No_Filter;
-      P : Filter_Params_Access) return
-      Ada.Streams.Stream_Element_Array is
+      P : Filter_Params_Access) return Stream_Element_Access
+   is
       S : aliased System.RPC.Params_Stream_Type (32);
    begin
       No_Filter_Params'Write (S'Access, No_Filter_Params (P.all));
-      return To_Stream_Element_Array (S'Access);
+      return To_Stream_Element_Access (S'Access);
    end Filter_Params_Write;
 
    --------------

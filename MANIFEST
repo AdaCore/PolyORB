@@ -179,6 +179,8 @@ Garlic/s-garrem.ads
 Garlic/s-garser.adb.in
 Garlic/s-garser.ads
 Garlic/s-garsta.adb
+Garlic/s-garstr.ads
+Garlic/s-garstr.adb
 Garlic/s-garrep.adb
 Garlic/s-garrep.ads
 Garlic/s-garsta.ads
@@ -191,6 +193,8 @@ Garlic/s-gartra.adb
 Garlic/s-gartra.ads
 Garlic/s-garuti.adb
 Garlic/s-garuti.ads
+Garlic/s-gastha.ads
+Garlic/s-gastha.adb
 Garlic/s-parint.adb
 Garlic/s-parint.ads
 Garlic/s-rpc.adb

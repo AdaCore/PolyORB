@@ -63,6 +63,8 @@ package body System.Garlic.Filters.Zip is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
+   use System.Garlic.Streams;
+
    package C renames Interfaces.C;
 
    use C;
@@ -96,21 +98,23 @@ package body System.Garlic.Filters.Zip is
       (Filter   : in     Compress_Filter_Type;
        F_Params : in     Filter_Params_Access;
        Stream   : access System.RPC.Params_Stream_Type)
-      return Stream_Element_Array is
+      return Stream_Element_Access is
 
       dest_len   : Stream_Element_Offset;
       dest_bytes,
       src_bytes  : C.long;
-      Buf        : Stream_Element_Array := To_Stream_Element_Array (Stream);
+      Buf        : Stream_Element_Access := To_Stream_Element_Access (Stream);
 
    begin
       src_bytes  := Buf'Length;
       dest_bytes := ((src_bytes + 12) * 11) / 10;
       dest_len   := Stream_Element_Offset (dest_bytes);
       declare
-         Result : Stream_Element_Array (1 .. dest_len + 4);
+         Result : Stream_Element_Access :=
+           new Stream_Element_Array (1 .. dest_len + 4);
          res    : C.int;
          len    : Integer;
+         Ret    : Stream_Element_Access;
       begin
          D (D_Debug, "Compressing" & src_bytes'Img & " bytes");
          if src_bytes = 0 then
@@ -122,14 +126,17 @@ package body System.Garlic.Filters.Zip is
          dest_len := Stream_Element_Offset (dest_bytes);
          D (D_Debug, "Compressed to" & dest_bytes'Img & " bytes");
 
-         len := Buf'Length;
+         len := Buf.all'Length;
          D (D_Debug, "Stream length =" & dest_len'Img);
 
          for I in Stream_Element_Offset range 1 .. 4 loop
             Result (I) := Stream_Element (len mod 256);
             len        := len / 256;
          end loop;
-         return Result (1 .. dest_len + 4);
+         Ret := new Stream_Element_Array'(Result (1 .. dest_len + 4));
+         Free (Result);
+         Free (Buf);
+         return Ret;
       end;
    end Filter_Outgoing;
 
@@ -137,7 +144,7 @@ package body System.Garlic.Filters.Zip is
       (Filter   : in Compress_Filter_Type;
        F_Params : in Filter_Params_Access;
        Stream   : in Ada.Streams.Stream_Element_Array)
-      return Stream_Element_Array is
+      return Stream_Element_Access is
 
       Len : Stream_Element_Offset := 0;
 
@@ -150,7 +157,8 @@ package body System.Garlic.Filters.Zip is
       end loop;
       D (D_Debug, "Decompressing: stream length" & Len'Img);
       declare
-         Result    : Stream_Element_Array (1 .. Len);
+         Result    : constant Stream_Element_Access :=
+           new Stream_Element_Array (1 .. Len);
          res       : C.int;
          res_bytes : C.long := C.long (Len);
          src_bytes : C.long := Stream'Length;
@@ -194,12 +202,12 @@ package body System.Garlic.Filters.Zip is
    function Filter_Params_Write
       (Filter : Compress_Filter_Type;
        P      : Filter_Params_Access)
-     return Stream_Element_Array is
+     return Stream_Element_Access is
       S : aliased Params_Stream_Type (0);
    begin
       Compress_Filter_Params'Write (S'Access,
                                     Compress_Filter_Params (P.all));
-      return To_Stream_Element_Array (S'Access);
+      return To_Stream_Element_Access (S'Access);
    end Filter_Params_Write;
 
    function Get_Name (Filter : Compress_Filter_Type)

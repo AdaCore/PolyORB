@@ -20,9 +20,22 @@ New Functionnalities
     This support is not yet complete and is used only by the build of
     the non-distributed application.
 
-  * Bug fixes
-    Remote access to subprogram now work correctly.
-    Remote access to class-wide types holding a null value can now be
+  * Streams pool
+    The internal mechanism to allocate streams has been enhanced to
+    prevent stack blowups for large data. Dynamic allocation of small
+    streams is avoided using pre-allocated chunks of memory through
+    Ada95 storage pools.
+
+  * Filters interface change
+    The filtering interface uses access types rather than arrays to
+    avoid blowing-up the stack when using large data.
+
+Bug fixes
+---------
+
+  * Remote access to subprogram now work correctly
+
+  * Remote access to class-wide types holding a null value can now be
     compared to null successfully.
 
 Changes since GLADE 1.02

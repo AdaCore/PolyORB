@@ -35,8 +35,6 @@
 
 with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
-with Ada.Streams;
-with System.RPC;
 
 package System.Garlic.Utils is
 
@@ -75,21 +73,6 @@ package System.Garlic.Utils is
 
    procedure Free is
      new Ada.Unchecked_Deallocation (Semaphore_Type, Semaphore_Access);
-
-   function To_Stream_Element_Array
-     (Params : access System.RPC.Params_Stream_Type;
-      Unused : Ada.Streams.Stream_Element_Count := 0)
-      return Ada.Streams.Stream_Element_Array;
-   pragma Inline (To_Stream_Element_Array);
-   --  This routine "looks" into the Params structure to extract the
-   --  Stream_Element_Array which will be sent accross the network. It
-   --  also let Unused places to sKtore extra information.
-
-   procedure To_Params_Stream_Type
-     (Content : Ada.Streams.Stream_Element_Array;
-      Params  : access System.RPC.Params_Stream_Type);
-   pragma Inline (To_Params_Stream_Type);
-   --  Other way.
 
    procedure Raise_With_Errno (Id : in Ada.Exceptions.Exception_Id);
    pragma Inline (Raise_With_Errno);
