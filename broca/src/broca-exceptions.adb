@@ -74,7 +74,7 @@ package body Broca.Exceptions is
        Name => new String'("INITIALIZATION_FAILURE")),
       (Exc  => CORBA.No_Implement'Identity,
        Name => new String'("NO_IMPLEMENT")),
-      (Exc  => CORBA.Bad_Typecode'Identity,
+      (Exc  => CORBA.Bad_TypeCode'Identity,
        Name => new String'("BAD_TYPECODE")),
       (Exc  => CORBA.Bad_Operation'Identity,
        Name => new String'("BAD_OPERATION")),
@@ -327,6 +327,15 @@ package body Broca.Exceptions is
         (Bad_Inv_Order'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Bad_Inv_Order;
+
+   procedure Raise_Bad_TypeCode
+     (Minor : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No) is
+   begin
+      Raise_Exception
+        (Bad_TypeCode'Identity,
+         System_Exception_Members'(Minor => Minor, Completed => Status));
+   end Raise_Bad_TypeCode;
 
 
 

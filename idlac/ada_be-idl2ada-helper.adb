@@ -1590,6 +1590,16 @@ package body Ada_Be.Idl2Ada.Helper is
       DI (CU);
       PL (CU, "begin");
       II (CU);
+      if Bound (Sequence (Node)) /= No_Node then
+         Put (CU, "if Nb > ");
+         Gen_Constant_Value (CU, Bound (Sequence (Node)));
+         PL (CU, " then");
+         II (CU);
+         Add_With (CU, "Broca.Exceptions");
+         PL (CU, "Broca.Exceptions.Raise_Bad_TypeCode;");
+         DI (CU);
+         PL (CU, "end if;");
+      end if;
       PL (CU, "for I in 1 .. Nb loop");
       II (CU);
       PL (CU, "Index :=");

@@ -148,6 +148,9 @@ package Broca.Exceptions is
                                   Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Bad_Inv_Order);
 
+   procedure Raise_Bad_TypeCode  (Minor : CORBA.Unsigned_Long := 0;
+                                  Status : Completion_Status := Completed_No);
+   pragma No_Return (Raise_Bad_TypeCode);
 
 end Broca.Exceptions;
 

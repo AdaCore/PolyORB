@@ -161,7 +161,7 @@ package CORBA is
    Marshal       : exception;          --  error marshalling param/result
    Initialization_Failure : exception; --  ORB initialization failure
    No_Implement  : exception;          --  operation implementation unavailable
-   Bad_Typecode  : exception;          --  bad typecode
+   Bad_TypeCode  : exception;          --  bad typecode
    Bad_Operation : exception;          --  invalid operation
    No_Resources  : exception;          --  insufficient resources for req.
    No_Response   : exception;          --  response to request not available

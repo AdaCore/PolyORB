@@ -824,6 +824,104 @@ procedure DynClient is
         (CORBA.Request.Return_Value (Request).Argument);
    end EchoBsequence;
 
+   procedure Set_MyColor
+     (Self : in CORBA.Object.Ref;
+      Arg : in All_Types.Color) is
+      Operation_Name : CORBA.Identifier := To_CORBA_String ("_set_myColor");
+      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
+      Request : CORBA.Request.Object;
+      Ctx : CORBA.Context.Ref;
+      Argument : CORBA.Any;
+      Arg_List : CORBA.NVList.Ref;
+      Result : CORBA.NamedValue;
+      Result_Name : CORBA.String := To_CORBA_String ("Result");
+   begin
+      --  creating the argument list
+      Argument := All_Types.Helper.To_Any (Arg);
+      CORBA.NVList.Add_Item (Arg_List,
+                             Arg_Name,
+                             Argument,
+                             CORBA.ARG_IN);
+      --  setting the result type
+      Result := (Name => Identifier (Result_Name),
+                 Argument => Get_Empty_Any (CORBA.TC_Void),
+                 Arg_Modes => 0);
+      --  creating a request
+      CORBA.Object.Create_Request (Myall_Types,
+                                   Ctx,
+                                   Operation_Name,
+                                   Arg_List,
+                                   Result,
+                                   Request,
+                                   0);
+      --  sending message
+      CORBA.Request.Invoke (Request, 0);
+      --  FIXME : not logical
+      CORBA.NVList.Free (Arg_List);
+   end Set_MyColor;
+
+   function Get_MyColor (Self : in CORBA.Object.Ref)
+      return All_Types.Color is
+      Operation_Name : CORBA.Identifier := To_CORBA_String ("_get_myColor");
+      Request : CORBA.Request.Object;
+      Ctx : CORBA.Context.Ref;
+      Arg_List : CORBA.NVList.Ref;
+      Result : CORBA.NamedValue;
+      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Value : All_Types.Color := All_Types.Red;
+   begin
+      --  setting the result type
+      Result := (Name => Identifier (Result_Name),
+                 Argument => All_Types.Helper.To_Any (Result_Value),
+                 Arg_Modes => 0);
+      --  creating a request
+      CORBA.Object.Create_Request (Myall_Types,
+                                   Ctx,
+                                   Operation_Name,
+                                   Arg_List,
+                                   Result,
+                                   Request,
+                                   0);
+      --  sending message
+      CORBA.Request.Invoke (Request, 0);
+      --  FIXME : not logical
+      CORBA.NVList.Free (Arg_List);
+      --  getting the answer
+      return All_Types.Helper.From_Any
+        (CORBA.Request.Return_Value (Request).Argument);
+   end Get_MyColor;
+
+   function Get_Counter (Self : in CORBA.Object.Ref)
+      return CORBA.Long is
+      Operation_Name : CORBA.Identifier := To_CORBA_String ("_get_Counter");
+      Request : CORBA.Request.Object;
+      Ctx : CORBA.Context.Ref;
+      Arg_List : CORBA.NVList.Ref;
+      Result : CORBA.NamedValue;
+      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Value : CORBA.Long := 0;
+   begin
+      --  setting the result type
+      Result := (Name => Identifier (Result_Name),
+                 Argument => CORBA.To_Any (Result_Value),
+                 Arg_Modes => 0);
+      --  creating a request
+      CORBA.Object.Create_Request (Myall_Types,
+                                   Ctx,
+                                   Operation_Name,
+                                   Arg_List,
+                                   Result,
+                                   Request,
+                                   0);
+      --  sending message
+      CORBA.Request.Invoke (Request, 0);
+      --  FIXME : not logical
+      CORBA.NVList.Free (Arg_List);
+      --  getting the answer
+      return CORBA.From_Any
+        (CORBA.Request.Return_Value (Request).Argument);
+   end Get_Counter;
+
 begin
    if Ada.Command_Line.Argument_Count < 1 then
       Ada.Text_IO.Put_Line
@@ -840,26 +938,36 @@ begin
    loop
       --  boolean
       Output ("test boolean", echoBoolean (Myall_types, True) = True);
+
       --  short
       Output ("test short", echoShort (Myall_types, 123) = 123);
+
       --  long
       Output ("test long",  echoLong (Myall_types, 456) = 456);
+
       --  unsigned_short
       Output ("test unsigned_short", echoUShort (Myall_types, 456) = 456);
+
       --  unsigned_long
       Output ("test unsigned_long", echoULong (Myall_types, 123) = 123);
+
       --  float
       Output ("test float", echoFloat (Myall_types, 2.7) = 2.7);
+
       --  double
       Output ("test double", echoDouble (Myall_types, 3.14) = 3.14);
+
       --  char
       Output ("test char", echoChar (Myall_types, 'A') = 'A');
+
       --  octet
       Output ("test octet", echoOctet (Myall_types, 5) = 5);
+
       --  string
       Output ("test string",
               To_Standard_String
               (echoString (Myall_types, To_CORBA_String ("hello"))) = "hello");
+
       --  CORBA.Object.Ref
       declare
          X : CORBA.Object.Ref;
@@ -867,10 +975,12 @@ begin
          X := echoRef (Myall_types, Myall_types);
          Output ("test self reference", echoLong (X, 31337) = 31337);
       end;
+
       --  enum
       Output ("test enum", echoColor (Myall_types, All_Types.Blue) =
               All_Types.Blue);
       Output ("test fixed point", False);
+
       --  array
       declare
          X : All_Types.simple_array := (2, 3, 5, 7, 11);
@@ -883,6 +993,7 @@ begin
          Output ("test multi-dimensional array",
                  echoMatrix (Myall_types, M) = M);
       end;
+
       --  struct
       declare
          Test_Struct : constant All_Types.simple_struct
@@ -898,6 +1009,7 @@ begin
          Output ("test array struct",
                  echoArrayStruct (Myall_types, Test_Struct) = Test_Struct);
       end;
+
       --  union
       declare
          Test_Unions : constant array (0 .. 3) of myUnion
@@ -914,6 +1026,7 @@ begin
          end loop;
          Output ("test union", Pass);
       end;
+
       --  Unbounded sequences
       declare
          X : U_Sequence := U_Sequence (IDL_SEQUENCE_Short.Null_Sequence);
@@ -921,13 +1034,28 @@ begin
          X := X & 1 & 2 & 3 & 4 & 5;
          Output ("test unbounded sequence",  echoUsequence (Myall_types, X) = X);
       end;
+
       --  Bounded sequences
       declare
          X : B_Sequence := B_Sequence (IDL_SEQUENCE_Short_10.Null_Sequence);
       begin
-         X := X & 1 & 2 & 3 & 4 & 5;
+         X := X & 1 & 2 & 3 & 4 & 5 & 6;
          Output ("test bounded sequence",  echoBsequence (Myall_types, X) = X);
       end;
+
+      --  Attributes
+      Set_MyColor (Myall_types, Green);
+      Output ("test attribute", Get_MyColor (Myall_types) = Green);
+      declare
+         Counter_First_Value : CORBA.Long
+           := get_Counter (Myall_types);
+         Counter_Second_Value : CORBA.Long
+           := get_Counter (Myall_types);
+      begin
+         Output ("test read-only attribute",
+                 Counter_Second_Value = Counter_First_Value + 1);
+      end;
+
       exit when One_Shot;
    end loop;
 

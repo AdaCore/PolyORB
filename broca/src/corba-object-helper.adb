@@ -48,7 +48,7 @@ package body CORBA.Object.Helper is
    function From_Any (Item : in Any) return CORBA.Object.Ref is
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Objref) then
-         raise Bad_Typecode;
+         raise Bad_TypeCode;
       end if;
       return Content_ObjRef_Ptr (Item.The_Value).Value;
    end From_Any;

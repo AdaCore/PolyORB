@@ -82,6 +82,7 @@ begin
       --  and then echoMoney (Myall_Types, 0.0) = 0.0
       --  and then echoMoney (Myall_Types, 3.14) = 3.14);
 
+      --  Structs
       declare
          Test_Struct : constant simple_struct
            := (123, To_CORBA_String ("Hello world!"));
@@ -89,7 +90,6 @@ begin
          Output ("test struct",
                  echoStruct (Myall_types, Test_Struct) = Test_Struct);
       end;
-
       declare
          Test_Struct : constant array_struct
            :=  (A => (0,1,2,3,4,5,6,7,8,9), B => 65533);
@@ -98,6 +98,7 @@ begin
                  echoArrayStruct (Myall_types, Test_Struct) = Test_Struct);
       end;
 
+      --  Unions
       declare
          Test_Unions : constant array (0 .. 3) of myUnion
            := ((Switch => 0, Unknown => 987),
@@ -114,14 +115,7 @@ begin
          Output ("test union", Pass);
       end;
 
-      declare
-         X : U_sequence := U_sequence (IDL_SEQUENCE_short.Null_Sequence);
-      begin
-         X := X & 16 & 32 & 64 & 128 & 257;
-         Output ("test unbounded sequence",
-                 echoUsequence (Myall_types, X) = X);
-      end;
-
+      --  Exceptions
       Ok := False;
       declare
          Member : my_exception_Members;
@@ -134,12 +128,12 @@ begin
       end;
       Output ("test exception", Ok);
 
+      --  Arrays
       declare
          X : simple_array := (2, 3, 5, 7, 11);
       begin
          Output ("test simple array", echoArray (Myall_types, X) = X);
       end;
-
       declare
          M : matrix := ((165, 252, 375), (377, 145, 222), (202, 477, 147));
       begin
@@ -147,6 +141,7 @@ begin
                  echoMatrix (Myall_types, M) = M);
       end;
 
+      --  Attributes
       set_myColor (Myall_types, Green);
       Output ("test attribute", get_myColor (Myall_types) = Green);
       declare
@@ -175,16 +170,7 @@ begin
          Output ("test bounded sequence",  echoBsequence (Myall_types, X) = X);
       end;
 
-
---   declare
---      X : all_types.Ref;
---      Y : Example := (Switch => 2, Flags => False);
---   begin
---      Set_N_Attribute (Myall_Types, Y);
---      X := echo11 (Myall_types, Myall_Types);
---      Output ("test reference", Get_N_Attribute (X) = Y);
---   end;
-
+      --  Refs
       declare
          X : all_types.Ref;
       begin

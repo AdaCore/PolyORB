@@ -1494,7 +1494,7 @@ package body CORBA is
    function From_Any (Item : in Any) return Short is
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Short) then
-         raise Bad_Typecode;
+         raise Bad_TypeCode;
       end if;
       return Content_Short_Ptr (Item.The_Value).Value;
    end From_Any;
@@ -1502,7 +1502,7 @@ package body CORBA is
    function From_Any (Item : in Any) return Long is
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Long) then
-         raise Bad_Typecode;
+         raise Bad_TypeCode;
       end if;
       return Content_Long_Ptr (Item.The_Value).Value;
    end From_Any;
@@ -1510,7 +1510,7 @@ package body CORBA is
    function From_Any (Item : in Any) return Long_Long is
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Longlong) then
-         raise Bad_Typecode;
+         raise Bad_TypeCode;
       end if;
       return Content_Long_Long_Ptr (Item.The_Value).Value;
    end From_Any;
@@ -1518,7 +1518,7 @@ package body CORBA is
    function From_Any (Item : in Any) return Unsigned_Short is
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Ushort) then
-         raise Bad_Typecode;
+         raise Bad_TypeCode;
       end if;
       return Content_UShort_Ptr (Item.The_Value).Value;
    end From_Any;
@@ -1526,7 +1526,7 @@ package body CORBA is
    function From_Any (Item : in Any) return Unsigned_Long is
    begin
       if TypeCode.Kind (Item.The_Type) /= Tk_Ulong then
-         raise Bad_Typecode;
+         raise Bad_TypeCode;
       end if;
       pragma Debug (O ("any content type is "
                        & Ada.Tags.External_Tag (Item.The_Value'Tag)));
@@ -1536,7 +1536,7 @@ package body CORBA is
    function From_Any (Item : in Any) return Unsigned_Long_Long is
    begin
       if TypeCode.Kind (Item.The_Type) /= Tk_Ulonglong then
-         raise Bad_Typecode;
+         raise Bad_TypeCode;
       end if;
       return Content_ULong_Long_Ptr (Item.The_Value).Value;
    end From_Any;
@@ -1544,7 +1544,7 @@ package body CORBA is
    function From_Any (Item : in Any) return Float is
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Float) then
-         raise Bad_Typecode;
+         raise Bad_TypeCode;
       end if;
       return Content_Float_Ptr (Item.The_Value).Value;
    end From_Any;
@@ -1552,7 +1552,7 @@ package body CORBA is
    function From_Any (Item : in Any) return Double is
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Double) then
-         raise Bad_Typecode;
+         raise Bad_TypeCode;
       end if;
       return Content_Double_Ptr (Item.The_Value).Value;
    end From_Any;
@@ -1560,7 +1560,7 @@ package body CORBA is
    function From_Any (Item : in Any) return Long_Double is
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Longdouble) then
-         raise Bad_Typecode;
+         raise Bad_TypeCode;
       end if;
       return Content_Long_Double_Ptr (Item.The_Value).Value;
    end From_Any;
@@ -1568,7 +1568,7 @@ package body CORBA is
    function From_Any (Item : in Any) return Boolean is
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Boolean) then
-         raise Bad_Typecode;
+         raise Bad_TypeCode;
       end if;
       return Content_Boolean_Ptr (Item.The_Value).Value;
    end From_Any;
@@ -1576,7 +1576,7 @@ package body CORBA is
    function From_Any (Item : in Any) return Char is
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Char) then
-         raise Bad_Typecode;
+         raise Bad_TypeCode;
       end if;
       return Content_Char_Ptr (Item.The_Value).Value;
    end From_Any;
@@ -1584,7 +1584,7 @@ package body CORBA is
    function From_Any (Item : in Any) return Wchar is
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Widechar) then
-         raise Bad_Typecode;
+         raise Bad_TypeCode;
       end if;
       return Content_Wchar_Ptr (Item.The_Value).Value;
    end From_Any;
@@ -1592,7 +1592,7 @@ package body CORBA is
    function From_Any (Item : in Any) return Octet is
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Octet) then
-         raise Bad_Typecode;
+         raise Bad_TypeCode;
       end if;
       return Content_Octet_Ptr (Item.The_Value).Value;
    end From_Any;
@@ -1600,7 +1600,7 @@ package body CORBA is
    function From_Any (Item : in Any) return Any is
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Any) then
-         raise Bad_Typecode;
+         raise Bad_TypeCode;
       end if;
       return Content_Any_Ptr (Item.The_Value).Value;
    end From_Any;
@@ -1611,7 +1611,7 @@ package body CORBA is
       pragma Debug (O ("From_Any (typeCode) : Kind (Item) is "
                        & CORBA.TCKind'Image (TypeCode.Kind (Item.The_Type))));
       if (TypeCode.Kind (Item.The_Type) /= Tk_TypeCode) then
-         raise Bad_Typecode;
+         raise Bad_TypeCode;
       end if;
       return Content_TypeCode_Ptr (Item.The_Value).Value;
    end From_Any;
@@ -1619,7 +1619,7 @@ package body CORBA is
    function From_Any (Item : in Any) return CORBA.String is
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_String) then
-         raise Bad_Typecode;
+         raise Bad_TypeCode;
       end if;
       return Content_String_Ptr (Item.The_Value).Value;
    end From_Any;
@@ -1627,7 +1627,7 @@ package body CORBA is
    function From_Any (Item : in Any) return CORBA.Wide_String is
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Wstring) then
-         raise Bad_Typecode;
+         raise Bad_TypeCode;
       end if;
       return Content_Wide_String_Ptr (Item.The_Value).Value;
    end From_Any;
