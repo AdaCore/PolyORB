@@ -708,11 +708,11 @@ package body Analyzer is
                   Set_Reference (E, C);
                   Check_Identifier (N, Identifier (C));
 
-               else
-                  Error_Loc (1)  := Loc (N);
-                  Error_Name (1) := IDL_Name (N);
-                  Error_Name (2) := IDL_Name (Identifier (P));
-                  DE ("#not declared in#");
+--                 else
+--                    Error_Loc (1)  := Loc (N);
+--                    Error_Name (1) := IDL_Name (N);
+--                    Error_Name (2) := IDL_Name (Identifier (P));
+--                    DE ("#not declared in#");
                end if;
 
             else
