@@ -166,8 +166,8 @@ package PolyORB.POA_Types is
       Creator          : in Types.String)
      return Unmarshalled_Oid;
    pragma Inline (Create_Id);
-
    --  Create an Unmarshalled_Oid.
+
    function Create_Id
      (Name             : in Types.String;
       System_Generated : in Boolean;
