@@ -56,6 +56,8 @@ pragma Elaborate_All (Csets, Debug, Make, Namet, Opt, Osint, Output);
 
 package body XE_Utils is
 
+   Dir_Sep : Character renames GNAT.OS_Lib.Directory_Separator;
+
    GNAT_Verbose   : String_Access;
    Gcc            : String_Access;
    Link           : String_Access;
@@ -314,7 +316,7 @@ package body XE_Utils is
       Get_Name_String (To);
       Dir_Name := Name_Buffer (1 .. Name_Len);
       for Index in Dir_Name'Range loop
-         if Dir_Name (Index) = Directory_Separator and then Index > 1 and then
+         if Dir_Name (Index) = Dir_Sep and then Index > 1 and then
             not Is_Directory (Dir_Name (1 .. Index - 1))
          then
             Make_Dir (Dir_Name (1 .. Index - 1));
@@ -360,21 +362,21 @@ package body XE_Utils is
          return Name_Find;
       end if;
 
-      Add_Char_To_Name_Buffer (Directory_Separator);
+      Add_Char_To_Name_Buffer (Dir_Sep);
       Get_Name_String_And_Append (D2);
 
       if D3 = No_File then
          return Name_Find;
       end if;
 
-      Add_Char_To_Name_Buffer (Directory_Separator);
+      Add_Char_To_Name_Buffer (Dir_Sep);
       Get_Name_String_And_Append (D3);
 
       if D4 = No_File then
          return Name_Find;
       end if;
 
-      Add_Char_To_Name_Buffer (Directory_Separator);
+      Add_Char_To_Name_Buffer (Dir_Sep);
       Get_Name_String_And_Append (D4);
       return Name_Find;
    end Dir;
@@ -1069,7 +1071,7 @@ package body XE_Utils is
    begin
       Get_Name_String (File);
       return Name_Len = 0 or else
-        (Name_Buffer (1) /= Directory_Separator
+        (Name_Buffer (1) /= Dir_Sep
          and then Name_Buffer (1) /= '/');
    end Is_Relative_Dir;
 
