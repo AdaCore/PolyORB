@@ -436,7 +436,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       end case;
 
       S.State := Waiting_Unmarshalling;
-      Def_Args := Component_Access (S);
 
       case Target_Addr.Address_Type is
          when Key_Addr =>
@@ -459,7 +458,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
             else
                pragma Debug (O ("Unmarshalling of arguments deffered"));
-               null;
+               Def_Args := Component_Access (S);
+
             end if;
 
             declare
