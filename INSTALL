@@ -22,7 +22,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-NOTE: THIS FILE APPLIES ONLY TO GLADE @glade_version@. IF YOU HAVE ANY
+NOTE: THIS FILE APPLIES ONLY TO GLADE __glade_version__. IF YOU HAVE ANY
       OTHER VERSION OF GLADE, PLEASE GET THE APPROPRIATE INSTALL FILE.
 
 INSTALL for GLADE
@@ -35,7 +35,7 @@ in Doc/install_guide.txt.
 
 
 1. Check your environment
-   - verify that GNAT @gnat_version@ has been installed and is on your path
+   - verify that GNAT __gnat_version__ has been installed and is on your path
    - verify that GLADE has been ported to your system (see README)
    - GLADE is usually built with GNU make. It may or may not be built 
      with other versions of make. If you have problems building GLADE
@@ -77,9 +77,9 @@ in Doc/install_guide.txt.
 5.  Example of complete build (assuming csh syntax):
 
 % cd                             <--- go into your HOME directory
-% gunzip glade-@glade_version@.tar.gz       <--- uncompress the distribution
-% tar xf glade-@glade_version@.tar          <--- explode the distribution
-% cd glade-@glade_version@                  <--- go into the distribution dir.
+% gunzip glade-__glade_version__.tar.gz     <--- uncompress the distribution
+% tar xf glade-__glade_version__.tar        <--- explode the distribution
+% cd glade-__glade_version__                <--- go into the distribution dir.
 % ./configure --prefix=`pwd`     <--- configure the Makefiles using the current
                                       directory to install the binaries
 % make install                   <--- compile files and install them

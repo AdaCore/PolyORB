@@ -22,8 +22,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-This is release @glade_version@ of the Ada 95 distributed systems annex
-for GNAT @gnat_version@. New features are described in file NEWS.
+This is release __glade_version__ of the Ada 95 distributed systems annex
+for GNAT __gnat_version__. New features are described in file NEWS.
 
 Contents.
 ---------

@@ -24,7 +24,7 @@ fi
 #
 # files hold the list of files in which substitutions will occur
 #
-files="README INSTALL Dist/xe_usage.adb Doc/install_guide.txt"
+files="README INSTALL Dist/xe_usage.adb Doc/install_guide.txt Doc/glade_ug.texi"
 
 #
 # Do the job
@@ -32,8 +32,8 @@ files="README INSTALL Dist/xe_usage.adb Doc/install_guide.txt"
 for i in ${files}; do
   cp $i $i.orig.$$
   cat $i.orig.$$ | \
-   sed -e "s/@glade_version@/${glade_version}/g" | \
-   sed -e "s/@gnat_version@/${gnat_version}/g" | \
+   sed -e "s/__glade_version__/${glade_version}/g" | \
+   sed -e "s/__gnat_version__/${gnat_version}/g" | \
    cat > $i
   rm $i.orig.$$
 done

@@ -42,7 +42,7 @@ in separate directories:
      individual partitions are to execute on.
 
   3. Ada
-     A subset of GNAT @gnat_version@ sources necessary to build GLADE.
+     A subset of GNAT __gnat_version__ sources necessary to build GLADE.
 
   4. Examples
      A set of examples to demonstrate GLADE capabilities. Each example
@@ -86,7 +86,7 @@ Building GLADE with  a non standard GNAT distrib
 ------------------------------------------------
 
 We do not guarantee that this release will work with any other version
-than the official GNAT @gnat_version@ binary release.  However, if you
+than the official GNAT __gnat_version__ binary release.  However, if you
 are using another version of GNAT and want to try, you must have
 GNAT's sources around. Assuming that you do, you must directly link
 (using "ln -s" for instance) the directory "ada" that you received in

@@ -1,3 +1,9 @@
+2000-03-01  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* VERSION.INFO: Replace @gnat_version@ and @glade_version@ with
+ 	__gnat_version__ and __glade_version__ to apply substitution in
+ 	texi files.
+
 1999-04-14  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* make_distrib: Touch stamp-h.in and config.h.in as well to

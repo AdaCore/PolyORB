@@ -1,3 +1,8 @@
+2000-03-01  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* README, INSTALL: Replace @gnat_version@ and @glade_version@ with
+ 	__gnat_version__ and __glade_version__.
+
 2000-02-02  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* README: Update supported platforms (remove SGI and add HPUX with 
