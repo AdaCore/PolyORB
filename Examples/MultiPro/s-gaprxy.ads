@@ -36,10 +36,11 @@
 with Ada.Streams;
 
 with System.Garlic.Exceptions;
-with System.Garlic.Types;
 
 with GNAT.Sockets;
 with GNAT.Strings;
+
+with System.Garlic.Types;
 
 package System.Garlic.Protocols.Xyz is
 

@@ -21,7 +21,7 @@ package body System.Garlic.Filters.Double is
    is
       pragma Unreferenced (Filter);
       pragma Unreferenced (Params);
-      R : Stream_Element_Access  := To_Stream_Element_Access (Stream);
+      R : constant Stream_Element_Access  := To_Stream_Element_Access (Stream);
       D : Stream_Element_Access  := new Stream_Element_Array'(R.all & R.all);
    begin
       for I in R'Range loop
