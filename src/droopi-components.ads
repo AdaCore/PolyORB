@@ -6,6 +6,8 @@ with Sequences.Unbounded;
 
 package Droopi.Components is
 
+   pragma Elaborate_Body;
+
    -------------------------------------
    -- Abstract message and components --
    -------------------------------------
@@ -35,9 +37,15 @@ package Droopi.Components is
 
    function Emit
      (Port : Component_Access;
-      Msg    : Message'Class)
+      Msg  : Message'Class)
      return Message'Class;
-   --  Emit message Msg on Port.
+   --  Emit message Msg on Port. The reply is returned.
+
+   procedure Emit_No_Reply
+     (Port : Component_Access;
+      Msg  : Message'Class);
+   --  Emit message Msg on Port. The expected reply must be
+   --  Null_Message, and will be discarded.
 
    -------------------------
    -- Component factories --

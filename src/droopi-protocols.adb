@@ -42,16 +42,12 @@ package body Droopi.Protocols is
    procedure Expect_Data
      (S      : access Session;
       In_Buf : Buffers.Buffer_Access;
-      Max    : Ada.Streams.Stream_Element_Count)
-   is
-      Reply : constant Components.Message'Class
-        := Emit (Port   => Lower (S),
-                 Msg    => Data_Expected'
-                 (In_Buf => In_Buf, Max => 1024));
-      pragma Warnings (Off, Reply);
-      --  Reply is ignored.
+      Max    : Ada.Streams.Stream_Element_Count) is
    begin
-      null;
+      Emit_No_Reply
+        (Port   => Lower (S),
+         Msg    => Data_Expected'
+           (In_Buf => In_Buf, Max => 1024));
    end Expect_Data;
 
 end Droopi.Protocols;

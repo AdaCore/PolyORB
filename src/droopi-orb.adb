@@ -138,15 +138,11 @@ package body Droopi.ORB is
 
       procedure Set_Server (F : Filter_Access; S : Server_Access);
 
-      procedure Set_Server (F : Filter_Access; S : Server_Access)
-      is
-         Reply : constant Message'Class
-           := Emit (Component_Access (F),
-                    Filters.Interface.Set_Server'(Server => S));
-         pragma Warnings (Off, Reply);
-         --  Reply is ignored.
+      procedure Set_Server (F : Filter_Access; S : Server_Access) is
       begin
-         null;
+         Emit_No_Reply
+           (Component_Access (F),
+            Filters.Interface.Set_Server'(Server => S));
       end Set_Server;
 
    begin
@@ -192,17 +188,14 @@ package body Droopi.ORB is
 
          when A_TE_AES =>
             begin
-               declare
-                  Reply : constant Components.Message'Class
-                    := Emit (Component_Access (Note.D.TE),
-                             Filters.Interface.Data_Indication'
-                             (null record));
-                  pragma Warnings (Off, Reply);
-                  --  Reply is ignored.
-               begin
-                  Insert_Source (ORB, AES);
-                  --  Continue monitoring this source.
-               end;
+               Emit_No_Reply
+                 (Component_Access (Note.D.TE),
+                  Filters.Interface.Data_Indication'
+                    (null record));
+
+               Insert_Source (ORB, AES);
+               --  Continue monitoring this source.
+
             exception
                when E : others =>
                   O ("Got exception while sending Data_Indication");

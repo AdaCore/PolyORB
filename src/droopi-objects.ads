@@ -4,23 +4,28 @@
 
 with Ada.Streams; use Ada.Streams;
 
-with Droopi.Requests;
+with Droopi.Components;
 
 package Droopi.Objects is
 
    type Object_Id is new Stream_Element_Array;
    --  XXX ???
 
-   type Servant is abstract tagged limited private;
+   type Servant is abstract new Droopi.Components.Component
+     with private;
    --  XXX or: is new Droopi.Refs.Entity?
    type Servant_Access is access all Servant'Class;
+   --  A Servant is a Component that supports the messages
+   --  defined in Droopi.Objects.Interface.
 
-   procedure Execute
-     (S : access Servant;
-      R : in out Requests.Request) is abstract;
+   function Handle_Message
+     (S : Servant;
+      Msg : Components.Message'Class)
+     return Components.Message'Class is abstract;
 
 private
 
-   type Servant is abstract tagged limited null record;
+   type Servant is abstract new Droopi.Components.Component
+     with null record;
 
 end Droopi.Objects;

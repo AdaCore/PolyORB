@@ -2,15 +2,19 @@
 
 --  $Id$
 
+with Droopi.Objects;
+
 package Droopi.References is
 
-   pragma Preelaborate;
+   pragma Elaborate_Body;
 
    type Ref is private;
    --  An object reference of any kind.
 
    function Image (R : Ref) return String;
    --  For debugging purposes.
+
+   function Bind (R : Ref) return Objects.Servant_Access;
 
    Nil_Ref : constant Ref;
 

@@ -39,6 +39,19 @@ package body Droopi.Components is
       end if;
    end Emit;
 
+   procedure Emit_No_Reply
+     (Port : Component_Access;
+      Msg    : Message'Class)
+   is
+      Reply : constant Message'Class
+        := Emit (Port, Msg);
+      pragma Warnings (Off, Reply);
+      --  Reply must be a Null_Message, and is ignored.
+   begin
+      pragma Assert (Reply in Null_Message);
+      null;
+   end Emit_No_Reply;
+
    procedure Subscribe
      (G      : in out Group;
       Target : Component_Access) is
@@ -76,14 +89,8 @@ package body Droopi.Components is
    begin
       for I in Members'Range loop
          begin
-            declare
-               Reply : constant Message'Class
-                 := Handle_Message (Members (I), Msg);
-               pragma Warnings (Off, Reply);
-               --  Reply is ignored.
-            begin
-               Handled := True;
-            end;
+            Emit_No_Reply (Members (I), Msg);
+            Handled := True;
          exception
             when Unhandled_Message =>
                null;
