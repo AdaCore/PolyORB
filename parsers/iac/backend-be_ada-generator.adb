@@ -414,7 +414,6 @@ package body Backend.BE_Ada.Generator is
    begin
       T := Then_Statements (N);
       E := Else_Statements (N);
-      Write_Indentation;
       Write (Tok_If);
       Write_Space;
       Generate (Condition (N));
@@ -479,7 +478,6 @@ package body Backend.BE_Ada.Generator is
 
    procedure Generate_Object_Declaration (N : Node_Id) is
    begin
-      Write_Indentation;
       Generate (Defining_Identifier (N));
       Write_Space;
       Write (Tok_Colon);
@@ -747,6 +745,7 @@ package body Backend.BE_Ada.Generator is
          Increment_Indentation;
          M := First_Node (D);
          while Present (M) loop
+            Write_Indentation;
             Generate (M);
             Write (Tok_Semicolon);
             Write_Eol;
@@ -767,6 +766,7 @@ package body Backend.BE_Ada.Generator is
       else
          M := First_Node (S);
          while Present (M) loop
+            Write_Indentation;
             Generate (M);
             Write (Tok_Semicolon);
             Write_Eol;

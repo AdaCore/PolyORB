@@ -13,12 +13,14 @@ package Backend.BE_Ada.Runtime is
       RU_PolyORB_Any,
       RU_PolyORB_Any_NVList,
       RU_PolyORB_Requests,
+      RU_PolyORB_Types,
       RU_Standard);
 
    --  Runtime Entities
 
    type RE_Id is
      (RE_Ref_0,                     --  Ref
+      RE_Any,                       --  CORBA.Any
       RE_Float,                     --  CORBA.Float
       RE_Double,                    --  CORBA.Double
       RE_Long_Double,               --  CORBA.Long_Double
@@ -36,15 +38,21 @@ package Backend.BE_Ada.Runtime is
       RE_Octet,                     --  CORBA.Boolean
       RE_Object_Is_Nil,             --  CORBA.Object_Is_Nil
       RE_To_CORBA_String,           --  CORBA.To_CORBA_String
+      RE_Raise_Inv_Objref,          --  CORBA.Raise_Inv_Objref
       RE_Ref_1,                     --  CORBA.AbstractBase.Ref
       RE_Ref_2,                     --  CORBA.Object.Ref
-      RE_NamedValue,                --  PolyORB.Any
+      RE_Is_Nil,                    --  CORBA.Object.Is_Nil
+      RE_NamedValue,                --  PolyORB.Any.NamedValue
       RE_Ref_3,                     --  PolyORB.Any.NVList.Ref
+      RE_Create,                    --  PolyORB.Any.NVList.Create
       RE_Request_Access,            --  PolyORB.Requests.Request_Access
-      RE_String_2);                 --  Standard.String
+      RE_Identifier,                --  PolyORB.Types.Identifier
+      RE_To_PolyORB_String,         --  PolyORB.Types.To_PolyORB_String
+      RE_String_2);              --  Standard.String
 
    RE_Unit_Table : array (RE_Id) of RU_Id
      := (RE_Ref_0               => RU_Null,
+         RE_Any                 => RU_CORBA,
          RE_Float               => RU_CORBA,
          RE_Double              => RU_CORBA,
          RE_Long_Double         => RU_CORBA,
@@ -62,11 +70,16 @@ package Backend.BE_Ada.Runtime is
          RE_Octet               => RU_CORBA,
          RE_Object_Is_Nil       => RU_CORBA,
          RE_To_CORBA_String     => RU_CORBA,
+         RE_Raise_Inv_Objref    => RU_CORBA,
          RE_Ref_1               => RU_CORBA_AbstractBase,
          RE_Ref_2               => RU_CORBA_Object,
+         RE_Is_Nil              => RU_CORBA_Object,
          RE_NamedValue          => RU_PolyORB_Any,
          RE_Ref_3               => RU_PolyORB_Any_NVList,
+         RE_Create              => RU_PolyORB_Any_NVList,
          RE_Request_Access      => RU_PolyORB_Requests,
+         RE_Identifier          => RU_PolyORB_Types,
+         RE_To_PolyORB_String   => RU_PolyORB_Types,
          RE_String_2            => RU_Standard);
 
    procedure Initialize;

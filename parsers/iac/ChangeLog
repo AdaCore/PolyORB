@@ -1,4 +1,7 @@
-
+2004-06-28  Saber Souli  <souli@enst.fr>
+	* backend-be_ada.adb : Using backend-be_ada-rutime, and all the
+	useless variables are deleted.     
+	
 2004-06-28  Saber Souli   <souli@enst.fr>
 
 	* backend-be_ada.adb: Declare PolyORB and CORBA objects. Generate
