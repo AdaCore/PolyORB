@@ -156,8 +156,8 @@ package body Exceptions is
       -- creates a new exception member with parameters
       -- and raises the exception
       Corba.Raise_Corba_Exception (Corba.Unknown'Identity,
-                                   new Corba.Unknown_Members'(Minor => Pd_Minor ,
-                                                              Completed => Pd_Status)) ;
+                                   Corba.Unknown_Members'(Minor => Pd_Minor ,
+                                    Completed => Pd_Status)) ;
    end ;
 
 

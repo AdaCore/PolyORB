@@ -50,12 +50,12 @@
 package Corba.Exceptions is
 
    procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence ;
-                          To : out Ex_Body) ;
+                          To : out Idl_Exception_Members'Class) ;
    -- This method finds the member object associated to a given exception.
 
 
    procedure Raise_Corba_Exception(Excp : in Ada.Exceptions.Exception_Id ;
-                                   Excp_Memb: in Idl_Exception_Members_Ptr) ;
+                                   Excp_Memb: in Idl_Exception_Members'Class) ;
    -- This method raises a Corba exception associated to the member object
    -- Excp_Memb.
 

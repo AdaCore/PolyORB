@@ -128,7 +128,7 @@ package body omniProxyCallWrapper is
 --                  Giop_C.Request_Completed(Giop_Client, True) ;
 --                  Excpt_Members := (0, Corba.Completed_Maybe) ;
 --                  Corba.Raise_Corba_Exception(Corba.Unknown'Identity,
---                                              new Corba.Unknown_Members'(Excpt_Members)) ;
+--                                              Excpt_Members) ;
 --               end ;
 --
 --            end if ;
@@ -181,7 +181,7 @@ package body omniProxyCallWrapper is
 --                  -- omniORB's log info : omitted
 --                  Excpt_Members := (0, Corba.Completed_No) ;
 --                  Corba.Raise_Corba_Exception(Corba.Comm_Failure'Identity,
---                                              new Corba.Ex_Body'(Excpt_Members)) ;
+--                                              Excpt_Members) ;
 --               end if;
 --               Corba.Object.Get_Rope_And_Key(Obj, R, Unneeded_result) ;
 --               Corba.Object.Set_Rope_And_Key(The_Parameter_Obj, R) ;

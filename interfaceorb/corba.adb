@@ -71,7 +71,7 @@ package body Corba is
    -- Raise_Corba_Exception
    ------------------------
    procedure Raise_Corba_Exception(Excp : in Ada.Exceptions.Exception_Id ;
-                                   Excp_Memb: in Idl_Exception_Members_Ptr) is
+                                   Excp_Memb: in Idl_Exception_Members'Class) is
    begin
       -- calls the correponding procedure in Corba.Exception
       Corba.Exceptions.Raise_Corba_Exception(Excp, Excp_Memb) ;

@@ -237,7 +237,7 @@ package Corba is
     -----------------------------------------------------------
 
     procedure Raise_Corba_Exception(Excp : in Ada.Exceptions.Exception_Id ;
-                                    Excp_Memb: in Idl_Exception_Members_Ptr) ;
+                                    Excp_Memb: in Idl_Exception_Members'Class) ;
     -- raises the corresponding exception corba exception and stores
     -- its member so that it can be retrieved with Get_Members
 

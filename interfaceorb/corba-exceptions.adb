@@ -85,13 +85,13 @@ package body Corba.Exceptions is
 
    -- Put : add a member to the list
    ---------------------------------
-   procedure Put (V : in Idl_Exception_Members_Ptr ;
+   procedure Put (V : in Idl_Exception_Members'Class ;
                   ID_V : in Standard.String) is
       Temp : Cell_Ptr ;
    begin
       -- makes a new cell ...
       Temp := new Cell'(N => ID_V'Length,
-                        Value => V,
+                        Value => new Idl_Exception_Members'Class'(V),
                         ID => ID_V,
                         Next => Member_List) ;
       -- ... and add it in front of the list
@@ -102,35 +102,36 @@ package body Corba.Exceptions is
    -- Get : get a member from the list
    ------------------------------------
    function Get (From : in Ada.Exceptions.Exception_Occurrence)
-                 return Ex_Body is
+                 return Idl_Exception_Members'Class is
       Temp, Old_Temp : Cell_Ptr ;
       -- pointers on the cell which is beeing process and on the previous cell
       ID : Standard.String := Ada.Exceptions.Exception_Message (From) ;
       -- reference of the searched member
-      Member : Ex_Body ;
-      -- result
    begin
       Old_Temp := null ;
       Temp := Member_List ;
       loop
          if Temp.all.ID = ID
          then
-            -- we found the member associated to From
-            Member := Ex_Body (Temp.all.Value.all) ;
-            -- we can suppress the correponding cell
-            if Old_Temp = null
-            then
-               -- temp was the first cell
-               Member_List := Temp.all.Next ;
-            else
-               -- temp was not the first cell
-               Old_Temp.all.Next := Temp.all.Next ;
-            end if ;
-            -- and free the memory
-            Free (Ex_Body_Ptr (Temp.all.Value)) ;
-            Free (Temp) ;
-            -- at last, return the result
-            return Member ;
+            declare
+               -- we found the member associated to From
+               Member : Idl_Exception_Members'Class := Temp.all.Value.all ;
+            begin
+               -- we can suppress the correponding cell
+               if Old_Temp = null
+               then
+                  -- temp was the first cell
+                  Member_List := Temp.all.Next ;
+               else
+                  -- temp was not the first cell
+                  Old_Temp.all.Next := Temp.all.Next ;
+               end if ;
+               -- and free the memory
+               Free (Ex_Body_Ptr (Temp.all.Value)) ;
+               Free (Temp) ;
+               -- at last, return the result
+               return Member ;
+            end ;
          else
             -- if the end of list is reached
             if Temp.all.Next = null
@@ -155,7 +156,7 @@ package body Corba.Exceptions is
    -- Get_Members
    --------------
    procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence;
-                          To : out Ex_Body) is
+                          To : out Idl_Exception_Members'Class) is
    begin
       To := Get (From) ;
    end ;
@@ -164,7 +165,7 @@ package body Corba.Exceptions is
    -- Raise_Corba_exception
    ------------------------
    procedure Raise_Corba_Exception(Excp : in Ada.Exceptions.Exception_Id ;
-                                   Excp_Memb: in Idl_Exception_Members_Ptr) is
+                                   Excp_Memb: in Idl_Exception_Members'Class) is
       ID : Standard.String := ID_Num'Image(ID_Number) ;
    begin
       -- stores the member object
