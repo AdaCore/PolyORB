@@ -34,7 +34,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Command_Line; use Ada.Command_Line;
-with Ada.Text_IO;      use Ada.Text_IO;
+with System.IO;        use System.IO;
 
 procedure Split is
 
@@ -43,7 +43,7 @@ procedure Split is
 
 begin
    if Argument_Count /= 1 then
-      Put_Line (Current_Error, "Error, usage: split ""text""");
+      Put_Line ("Error, usage: split ""text""");
       Set_Exit_Status (1);
    else
       for I in 1 .. Argument (1) 'Length loop
