@@ -34,16 +34,16 @@
 --  $Id$
 
 with Ada.Tags;
+
 with PolyORB.Log;
-with PolyORB.Components;
-with PolyORB.Requests;
 with PolyORB.Objects.Interface;
+with PolyORB.Requests;
 
 package body PolyORB.Call_Back is
 
    use PolyORB.Log;
-   use PolyORB.Requests;
    use PolyORB.Objects.Interface;
+   use PolyORB.Requests;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.call_back");
    procedure O (Message : in String; Level : Log_Level := Debug)
