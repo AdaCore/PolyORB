@@ -148,7 +148,6 @@ package body PolyORB.GIOP_P.Tagged_Components is
                Start_Encapsulation (Temp_Buf);
                Marshall (C, Temp_Buf);
                Marshall (Buffer, Encapsulate (Temp_Buf));
-               Release_Contents (Temp_Buf.all);
                Release (Temp_Buf);
             end;
          end if;
