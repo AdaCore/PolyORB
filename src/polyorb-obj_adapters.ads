@@ -75,17 +75,29 @@ package PolyORB.Obj_Adapters is
 
    function Export
      (OA  : access Obj_Adapter;
-      Obj :        Objects.Servant_Access)
+      Obj :        Objects.Servant_Access;
+      Key :        Objects.Object_Id_Access := null)
       return Objects.Object_Id
       is abstract;
-   --  Create an identifier for Obj within OA.
+   --  Create an identifier for Obj within OA. If Key is
+   --  not null, use it as an application-level identifier
+   --  for the object (which will be used to construct the
+   --  local identifier).
 
    procedure Unexport
      (OA : access Obj_Adapter;
-      Id :        Objects.Object_Id)
+      Id :        Objects.Object_Id_Access)
       is abstract;
    --  Id is an object identifier attributed by OA.
    --  The corresponding association is suppressed.
+
+   function Object_Key
+     (OA : access Obj_Adapter;
+      Id :        Objects.Object_Id_Access)
+      return Objects.Object_Id
+      is abstract;
+   --  Return the application-level identifier associated
+   --  with Id.
 
    ----------------------------------------------------
    -- Interface to ORB (acting on behalf of clients) --

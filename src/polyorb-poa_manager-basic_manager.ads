@@ -36,7 +36,7 @@
 
 with Ada.Unchecked_Deallocation;
 
-with PolyORB.POA_Types; use PolyORB.POA_Types;
+with PolyORB.POA_Types;
 with PolyORB.Locks;
 with PolyORB.Components;
 with PolyORB.Locked_Queue;
@@ -44,6 +44,8 @@ with PolyORB.Locked_Queue;
 package PolyORB.POA_Manager.Basic_Manager is
 
    pragma Elaborate_Body;
+
+   use PolyORB.POA_Types;
 
    type Basic_POA_Manager is new POAManager with private;
    type Basic_POA_Manager_Access is access all Basic_POA_Manager;
@@ -83,7 +85,7 @@ package PolyORB.POA_Manager.Basic_Manager is
 
    procedure Register_POA
      (Self : access Basic_POA_Manager;
-      OA   : Obj_Adapter_Access);
+      OA   :        Obj_Adapter_Access);
 
    procedure Remove_POA
      (Self : access Basic_POA_Manager;

@@ -98,11 +98,19 @@ package body PolyORB.Obj_Adapters.Simple is
 
    function Export
      (OA  : access Simple_Obj_Adapter;
-      Obj : Objects.Servant_Access)
+      Obj :        Objects.Servant_Access;
+      Key :        Objects.Object_Id_Access := null)
       return Objects.Object_Id
    is
       use type Objects.Servant_Access;
+      use type Objects.Object_Id_Access;
    begin
+      if Key /= null then
+         raise Invalid_Object_Id;
+         --  The Simple Object Adapter does not support
+         --  user-defined object identifiers.
+      end if;
+
       Enter (OA.Lock);
       declare
          M : constant Element_Array := To_Element_Array (OA.Object_Map);
@@ -134,12 +142,12 @@ package body PolyORB.Obj_Adapters.Simple is
 
    procedure Unexport
      (OA : access Simple_Obj_Adapter;
-      Id : Objects.Object_Id)
+      Id : Objects.Object_Id_Access)
    is
       use type Objects.Servant_Access;
 
       Index : constant Integer
-        := Oid_To_Index (Simple_OA_Oid (Id));
+        := Oid_To_Index (Simple_OA_Oid (Id.all));
    begin
       Enter (OA.Lock);
 
@@ -160,6 +168,19 @@ package body PolyORB.Obj_Adapters.Simple is
 
       Leave (OA.Lock);
    end Unexport;
+
+   function Object_Key
+     (OA : access Simple_Obj_Adapter;
+      Id :        Objects.Object_Id_Access)
+      return Objects.Object_Id is
+   begin
+      raise Invalid_Object_Id;
+      pragma Warnings (Off);
+      return Object_Key (OA, Id);
+      pragma Warnings (On);
+      --  An SOA object identifier cannot contain a user-defined
+      --  object key.
+   end Object_Key;
 
    procedure Set_Interface_Description
      (OA      : in out Simple_Obj_Adapter;

@@ -50,12 +50,18 @@ package PolyORB.Obj_Adapters.Simple is
 
    function Export
      (OA  : access Simple_Obj_Adapter;
-      Obj :        Objects.Servant_Access)
-     return Objects.Object_Id;
+      Obj :        Objects.Servant_Access;
+      Key :        Objects.Object_Id_Access := null)
+      return Objects.Object_Id;
 
    procedure Unexport
      (OA : access Simple_Obj_Adapter;
-      Id :        Objects.Object_Id);
+      Id :        Objects.Object_Id_Access);
+
+   function Object_Key
+     (OA : access Simple_Obj_Adapter;
+      Id :        Objects.Object_Id_Access)
+      return Objects.Object_Id;
 
    --  In the Simple Object Adapter, the methods of an object
    --  are described using two factory functions (provided by

@@ -95,7 +95,8 @@ package PolyORB.POA is
          --  Parent POA.
 
          Children : POAList_Access;
-         --  Siblings list.
+         --  XXX should use a hash table instead.
+         --  All subPOAs of this POA.
 
          Children_Lock              : PolyORB.Locks.Rw_Lock_Access;
          Map_Lock                   : PolyORB.Locks.Rw_Lock_Access;
@@ -140,7 +141,7 @@ package PolyORB.POA is
 
    function Activate_Object
      (Self      : access Obj_Adapter;
-      P_Servant :        Objects.Servant_Access;
+      P_Servant :        Objects.Servant_Access := null;
       Hint      :        Object_Id_Access := null)
      return Object_Id
       is abstract;

@@ -47,7 +47,7 @@ package PolyORB.POA.Basic_POA is
 
    pragma Elaborate_Body;
 
-   type Basic_Obj_Adapter is new PolyORB.POA.Obj_Adapter
+   type Basic_Obj_Adapter is new POA.Obj_Adapter
      with private;
    type Basic_Obj_Adapter_Access is access all Basic_Obj_Adapter;
    --  The POA object
@@ -60,7 +60,7 @@ package PolyORB.POA.Basic_POA is
      (Self         : access Basic_Obj_Adapter;
       Adapter_Name :        Types.String;
       A_POAManager :        POA_Manager.POAManager_Access;
-      Policies     :        PolyORB.POA_Policies.PolicyList)
+      Policies     :        POA_Policies.PolicyList)
      return Obj_Adapter_Access;
    --  Create a POA given its name and a list of policies
    --  Policies are optionnal : defaults values are provided
@@ -107,34 +107,40 @@ package PolyORB.POA.Basic_POA is
 
    function Export
      (OA  : access Basic_Obj_Adapter;
-      Obj :        PolyORB.Objects.Servant_Access)
-     return PolyORB.Objects.Object_Id;
+      Obj :        Objects.Servant_Access;
+      Key : Objects.Object_Id_Access := null)
+     return Objects.Object_Id;
 
    procedure Unexport
      (OA : access Basic_Obj_Adapter;
-      Id :        PolyORB.Objects.Object_Id);
+      Id :        Objects.Object_Id_Access);
+
+   function Object_Key
+     (OA : access Basic_Obj_Adapter;
+      Id :        Objects.Object_Id_Access)
+      return Objects.Object_Id;
 
    function Get_Empty_Arg_List
      (OA     : access Basic_Obj_Adapter;
-      Oid    : access PolyORB.Objects.Object_Id;
-      Method : PolyORB.Requests.Operation_Id)
-     return PolyORB.Any.NVList.Ref;
+      Oid    : access Objects.Object_Id;
+      Method :        Requests.Operation_Id)
+     return Any.NVList.Ref;
 
    function Get_Empty_Result
      (OA     : access Basic_Obj_Adapter;
-      Oid    : access PolyORB.Objects.Object_Id;
-      Method : PolyORB.Requests.Operation_Id)
-     return PolyORB.Any.Any;
+      Oid    : access Objects.Object_Id;
+      Method :        Requests.Operation_Id)
+     return Any.Any;
 
    function Find_Servant
      (OA : access Basic_Obj_Adapter;
-      Id : access PolyORB.Objects.Object_Id)
-     return PolyORB.Objects.Servant_Access;
+      Id : access Objects.Object_Id)
+     return Objects.Servant_Access;
 
    procedure Release_Servant
      (OA      : access Basic_Obj_Adapter;
-      Id      : access PolyORB.Objects.Object_Id;
-      Servant : in out PolyORB.Objects.Servant_Access);
+      Id      : access Objects.Object_Id;
+      Servant : in out Objects.Servant_Access);
 
    -------------------------------------------------
    --  Utilities, neither in CORBA nor in PolyORB  --
@@ -175,7 +181,7 @@ package PolyORB.POA.Basic_POA is
 
 private
 
-   type Basic_Obj_Adapter is new PolyORB.POA.Obj_Adapter with record
+   type Basic_Obj_Adapter is new POA.Obj_Adapter with record
       Proxies_OA : Basic_Obj_Adapter_Access;
       --  The child POA used for management of the proxy objects
       --  namespace (used only in the Root POA instance.)
