@@ -51,37 +51,46 @@ package body Errors is
    function Full_Name (Loc : Location) return String;
    --  Return the full file name (i.e., a usable one)
 
-   ------------------------
-   --  Display_Location  --
-   ------------------------
+   --------------------------
+   --  Location_To_String  --
+   --------------------------
 
-   function Display_Location (Loc : in Location) return String is
-   begin
-      if Loc.Filename /= null then
-         if Loc.Dirname /= null then
-            return "line " &
-              Img (Loc.Line) &
-              ", column " &
-              Img (Loc.Col) &
-              " of file " &
-              Loc.Dirname.all &
+   function Location_To_String
+     (Loc   : in Location;
+      Short : in Boolean := False)
+     return String is
+
+      function Path return String;
+      --  Return the file name, or "<standard input>" if unknown
+
+      ----------
+      -- Path --
+      ----------
+
+      function Path return String is
+      begin
+         if Loc.Filename = null then
+            return "<standard input>";
+         elsif Loc.Dirname = null then
+            return Loc.Filename.all;
+         else
+            return Loc.Dirname.all &
               GNAT.OS_Lib.Directory_Separator &
               Loc.Filename.all;
-         else
-            return "line " &
-              Img (Loc.Line) &
-              ", column " &
-              Img (Loc.Col) &
-              " of file " &
-              Loc.Filename.all;
          end if;
+      end Path;
+
+      Line   : constant String := Img (Loc.Line);
+      Column : constant String := Img (Loc.Col);
+
+   begin
+      if Short then
+         return Path & ':' & Line & ':' & Column;
       else
-         return "line " &
-           Img (Loc.Line) &
-           ", column " &
-           Img (Loc.Col);
+         return
+           "line " & Line & ", column " & Column & " of file " & Path;
       end if;
-   end Display_Location;
+   end Location_To_String;
 
    ----------------------
    --  Error handling  --
@@ -260,8 +269,7 @@ package body Errors is
       else
          Put_Line
            (Current_Error,
-            Full_Name (Loc) & ":" & Img (Loc.Line) &
-            ":" & Img (Loc.Col) & " " & Message);
+            Location_To_String (Loc, Short => True) & ' ' & Message);
       end if;
    end Pinpoint_Error;
 

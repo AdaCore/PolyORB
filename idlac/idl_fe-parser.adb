@@ -675,7 +675,7 @@ package body Idl_Fe.Parser is
                                  Errors.Error
                                    ("This module name is already defined in" &
                                     " this scope : " &
-                                    Errors.Display_Location (Loc),
+                                    Errors.Location_To_String (Loc),
                                     Errors.Error,
                                     Get_Token_Location);
                               end;
@@ -814,7 +814,7 @@ package body Idl_Fe.Parser is
                           (Definition.Node);
                         Errors.Error
                           ("Forward declaration "
-                           & Errors.Display_Location (Loc)
+                           & Errors.Location_To_String (Loc)
                            & " has not the same abstract type",
                            Errors.Error,
                            Get_Previous_Token_Location);
@@ -838,7 +838,7 @@ package body Idl_Fe.Parser is
                   Errors.Error
                     ("This interface name is already declared in" &
                      " this scope : " &
-                     Errors.Display_Location (Loc),
+                     Errors.Location_To_String (Loc),
                      Errors.Error,
                      Get_Token_Location);
                   Success := False;
@@ -885,7 +885,7 @@ package body Idl_Fe.Parser is
                Errors.Error
                  ("interface already forward declared in" &
                   " this scope : " &
-                  Errors.Display_Location (Loc),
+                  Errors.Location_To_String (Loc),
                   Errors.Warning,
                   Get_Token_Location);
                --  This is only a warning: the OMG IDL grammar
@@ -1217,7 +1217,7 @@ package body Idl_Fe.Parser is
       if Get_Token = T_Colon_Colon then
          Scope := Get_Root_Scope;
          pragma Debug (O ("Parse_Scoped_Name : root scope is defined at " &
-                          Errors.Display_Location
+                          Errors.Location_To_String
                           (Get_Location (Scope))));
       else
          --  token should be an identifier
@@ -1761,7 +1761,7 @@ package body Idl_Fe.Parser is
             Errors.Error
             ("The identifier used for this valuetype is already "
              & "defined in the same scope : " &
-             Errors.Display_Location
+             Errors.Location_To_String
              (Get_Location (Definition.Node)),
              Errors.Error,
              Get_Token_Location);
@@ -1868,7 +1868,7 @@ package body Idl_Fe.Parser is
             --  nothing to do : this new forward declaration is useless
             Errors.Error
               ("This valuetype was already declared forward : " &
-               Errors.Display_Location
+               Errors.Location_To_String
                (Get_Location (Definition.Node)),
                Errors.Warning,
                Get_Token_Location);
@@ -1876,7 +1876,7 @@ package body Idl_Fe.Parser is
             Errors.Error
               ("The identifier used for this valuetype is already "
                & "defined in the same scope : " &
-             Errors.Display_Location
+             Errors.Location_To_String
                (Get_Location (Definition.Node)),
                Errors.Error,
                Get_Token_Location);
@@ -1915,7 +1915,7 @@ package body Idl_Fe.Parser is
             --  nothing to do : this new forward declaration is useless
             Errors.Error
               ("This valuetype was forward declared : " &
-               Errors.Display_Location
+               Errors.Location_To_String
                (Get_Location (Definition.Node)) &
                ". It can not be a boxed one.",
                Errors.Error,
@@ -1927,7 +1927,7 @@ package body Idl_Fe.Parser is
             Errors.Error
               ("The identifier used for this valuetype is already "
                & "defined in the same scope : " &
-               Errors.Display_Location
+               Errors.Location_To_String
                (Get_Location (Definition.Node)),
                Errors.Error,
                Get_Token_Location);
@@ -2461,7 +2461,7 @@ package body Idl_Fe.Parser is
             Errors.Error
               ("The identifier used for this initializer is already "
                & "defined in the same scope : " &
-               Errors.Display_Location
+               Errors.Location_To_String
                (Get_Location (Definition.Node)),
                Errors.Error,
                Get_Token_Location);
@@ -2692,7 +2692,7 @@ package body Idl_Fe.Parser is
             begin
                Errors.Error
                  ("This identifier is already defined in this scope : " &
-                  Errors.Display_Location
+                  Errors.Location_To_String
                   (Get_Location (Definition.Node)),
                   Errors.Error,
                   Get_Token_Location);
@@ -4800,7 +4800,7 @@ package body Idl_Fe.Parser is
                                 " after definition"));
                Errors.Error
                  ("This identifier is already defined in this scope : " &
-                  Errors.Display_Location
+                  Errors.Location_To_String
                   (Get_Location (Definition.Node)),
                   Errors.Error,
                   Get_Token_Location);
@@ -5096,7 +5096,7 @@ package body Idl_Fe.Parser is
          begin
             Errors.Error
               ("This identifier is already defined in this scope : " &
-               Errors.Display_Location
+               Errors.Location_To_String
                (Get_Location (Definition.Node)),
                Errors.Error,
                Get_Token_Location);
@@ -5281,7 +5281,7 @@ package body Idl_Fe.Parser is
          begin
             Errors.Error
               ("This identifier is already defined in this scope : " &
-               Errors.Display_Location
+               Errors.Location_To_String
                (Get_Location (Definition.Node)),
                Errors.Error,
                Get_Token_Location);
@@ -5737,7 +5737,7 @@ package body Idl_Fe.Parser is
          begin
             Errors.Error
               ("This identifier is already defined in this scope : " &
-               Errors.Display_Location
+               Errors.Location_To_String
                (Get_Location (Definition.Node)),
                Errors.Error,
                Get_Token_Location);
@@ -5881,7 +5881,7 @@ package body Idl_Fe.Parser is
             begin
                Errors.Error
                  ("This identifier is already defined in this scope : " &
-                  Errors.Display_Location
+                  Errors.Location_To_String
                   (Get_Location (Definition.Node)),
                   Errors.Error,
                   Get_Token_Location);
@@ -6083,7 +6083,7 @@ package body Idl_Fe.Parser is
          begin
             Errors.Error
               ("This identifier is already defined in this scope : " &
-               Errors.Display_Location
+               Errors.Location_To_String
                (Get_Location (Definition.Node)),
                Errors.Error,
                Get_Token_Location);
@@ -6266,7 +6266,7 @@ package body Idl_Fe.Parser is
          begin
             Errors.Error
               ("This identifier is already defined in this scope : " &
-               Errors.Display_Location
+               Errors.Location_To_String
                (Get_Location (Definition.Node)),
                Errors.Error,
                Get_Token_Location);
@@ -6356,7 +6356,7 @@ package body Idl_Fe.Parser is
             begin
                Errors.Error
                  ("This identifier is already defined in this scope : " &
-                  Errors.Display_Location
+                  Errors.Location_To_String
                   (Get_Location (Definition.Node)),
                   Errors.Error,
                   Get_Token_Location);

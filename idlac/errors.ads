@@ -65,10 +65,14 @@ package Errors is
    --  Location handling  --
    -------------------------
 
-   --  returns a string with the following format :
+   function Location_To_String
+     (Loc   : in Location;
+      Short : in Boolean := False)
+     return String;
+   --  Return a string with the following format if Short is False:
    --  file : name_of_file, line : line_nb, column : column_nb
-   function Display_Location (Loc : in Location) return String;
-
+   --  or, if Short is True,
+   --  name_of_file:line_nb:column_nb
 
 
    ----------------------

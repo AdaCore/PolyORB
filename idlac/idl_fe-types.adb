@@ -915,7 +915,7 @@ package body Idl_Fe.Types is
       if Current_Scope = null then
          pragma Debug (O ("Push_Scope : current_scope is null."));
          pragma Debug (O ("Push_Scope : root scope is defined at " &
-                          Errors.Display_Location
+                          Errors.Location_To_String
                           (Get_Location (Scope))));
          Root_Scope := Stack;
       end if;
@@ -999,7 +999,7 @@ package body Idl_Fe.Types is
 
             Errors.Error
               ("The forward declaration " &
-               Errors.Display_Location
+               Errors.Location_To_String
                (Get_Location (Forward_Def)) &
                " is not implemented.",
                Errors.Error,
