@@ -51,20 +51,6 @@ package body PortableServer is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   ---------------------------------------
-   -- Information about a skeleton unit --
-   ---------------------------------------
-
-   type Skeleton_Info is record
-      Type_Id    : CORBA.RepositoryId;
-      Is_A       : Servant_Class_Predicate;
-      Dispatcher : Request_Dispatcher;
-   end record;
-
-   function Find_Info
-     (For_Servant : Servant)
-     return Skeleton_Info;
-
    function Handle_Message
      (Self : access DynamicImplementation;
       Msg  : PolyORB.Components.Message'Class)
@@ -96,8 +82,7 @@ package body PortableServer is
      (Self    : access Servant_Base;
       Request : in CORBA.ServerRequest.Object_Ptr) is
    begin
-      Find_Info (Servant (Self)).Dispatcher
-        (Servant (Self), Request);
+      Find_Info (Servant (Self)).Dispatcher (Servant (Self), Request);
       --  Invoke primitive for static object implementations:
       --  look up the skeleton associated with Self's class,
       --  and delegate the dispatching of Request to one of
@@ -171,7 +156,7 @@ package body PortableServer is
    procedure Register_Skeleton
      (Type_Id    : in CORBA.RepositoryId;
       Is_A       : in Servant_Class_Predicate;
-      Dispatcher : in Request_Dispatcher)
+      Dispatcher : in Request_Dispatcher := null)
    is
       use Skeleton_Lists;
    begin

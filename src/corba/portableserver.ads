@@ -214,7 +214,14 @@ package PortableServer is
    procedure Register_Skeleton
      (Type_Id    : in CORBA.RepositoryId;
       Is_A       : in Servant_Class_Predicate;
-      Dispatcher : in Request_Dispatcher);
+      Dispatcher : in Request_Dispatcher := null);
+   --  Associate a type id with a class predicate.
+   --  A Dispatcher function can also be specified if the
+   --  class predicate corresponds to a class derived from
+   --  PortableServer.Servant_Base. For other classes derived
+   --  from PortableServer.DynamicImplementation, the user
+   --  must override the Invoke operation himself, and the
+   --  Dispatcher will be ignored and can be null.
 
 --    --  Calling ForwardRequest does not increase the usage counter of
 --    --  REFERENCE.  As a result, the user must ensure not to release
@@ -243,5 +250,19 @@ private
    procedure Invoke
      (Self    : access Servant_Base;
       Request : in CORBA.ServerRequest.Object_Ptr);
+
+   ---------------------------------------
+   -- Information about a skeleton unit --
+   ---------------------------------------
+
+   type Skeleton_Info is record
+      Type_Id    : CORBA.RepositoryId;
+      Is_A       : Servant_Class_Predicate;
+      Dispatcher : Request_Dispatcher;
+   end record;
+
+   function Find_Info
+     (For_Servant : Servant)
+     return Skeleton_Info;
 
 end PortableServer;

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#13 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#14 $
 
 with Ada.Exceptions;
 
@@ -39,7 +39,6 @@ pragma Elaborate_All (PolyORB.Log);
 with PolyORB.ORB;
 with PolyORB.POA;
 with PolyORB.POA_Manager;
-with PolyORB.POA_Types;
 with PolyORB.References;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
@@ -570,26 +569,17 @@ package body PortableServer.POA is
 --       return PolyORB.POA.Skeleton_To_Ref (Skel.all);
 
       declare
-         TID : constant CORBA.String
-           := PolyORB.POA_Types.Servant
-           (To_PolyORB_Servant (P_Servant).all).If_Desc.External_Name;
-         STID : constant Standard.String
-           := CORBA.To_Standard_String (TID);
+         TID : constant Standard.String
+           := CORBA.To_Standard_String (Get_Type_Id (P_Servant));
          Result : CORBA.Object.Ref;
       begin
          PolyORB.ORB.Create_Reference
-           (PolyORB.Setup.The_ORB, Oid'Access,
-            STID, The_Ref);
+           (PolyORB.Setup.The_ORB, Oid'Access, TID, The_Ref);
          --  Obtain object reference.
 
          CORBA.Object.Convert_To_CORBA_Ref (The_Ref, Result);
          return Result;
       end;
-      --  XXX Type_Id should be obtained by Servant.If_Desc.External_Name
-      --  *if* Servant was a PolyORB.POA_Types.Servant. Unfortunately, Servant
-      --  is a PortableServer.Servant_Base'Class, which has nothing in common
-      --  with PolyORB.POA_Types.Servant.
-      --  -> should use Servant.Neutral_View.If_Desc.External_Name.
    end Servant_To_Reference;
 
    ---------------------
