@@ -190,7 +190,7 @@ private
    type Obj_Adapter is abstract new Smart_Pointers.Entity with
       record
          ORB : Components.Component_Access;
-         --  The ORB the OA is attached to. Needs to be casted into an
+         --  The ORB the OA is attached to. Needs to be cast into an
          --  ORB_Access when used.
       end record;
 
