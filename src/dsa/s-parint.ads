@@ -153,13 +153,7 @@ package System.Partition_Interface is
 --       Version : in String := "");
 --    --  Register a passive package
 
---    generic
---       RCI_Name : String;
---    package RCI_Info is
---       function Get_RCI_Package_Receiver return Interfaces.Unsigned_64;
---       function Get_Active_Partition_ID return RPC.Partition_ID;
---    end RCI_Info;
---    --  RCI package information caching
+   generic package RCI_Locator renames System.PolyORB_Interface.RCI_Locator;
 
 --    procedure Run (Main : in Main_Subprogram_Type := null);
 --    --  Run the main subprogram
