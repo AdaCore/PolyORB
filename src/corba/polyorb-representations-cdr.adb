@@ -38,8 +38,6 @@ with Ada.Streams;
 with PolyORB.Any; use PolyORB.Any;
 with PolyORB.Any.ObjRef;
 with PolyORB.Buffers; use PolyORB.Buffers;
-with PolyORB.CORBA_P.Exceptions;
---  SOLELY for exception raising procedures Raise_*
 
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
@@ -1430,7 +1428,7 @@ package body PolyORB.Representations.CDR is
       if Character'Val (PolyORB.Types.Char'Pos (Unmarshall (Buffer)))
         /= ASCII.Nul
       then
-         PolyORB.CORBA_P.Exceptions.Raise_Marshal;
+         raise Constraint_Error;
       end if;
 
       pragma Debug (O ("Unmarshall (String): -> " & Equiv));
@@ -1712,7 +1710,7 @@ package body PolyORB.Representations.CDR is
                pragma Debug
                  (O ("Unmarshall_To_Any : dealing with a sequence"));
                if Max_Nb > 0 and then Nb > Max_Nb then
-                  PolyORB.CORBA_P.Exceptions.Raise_Marshal;
+                  raise Constraint_Error;
                end if;
 
                pragma Debug
@@ -2269,7 +2267,7 @@ package body PolyORB.Representations.CDR is
                  (Result, To_Any (Id));
             end;
          when others =>
-            PolyORB.CORBA_P.Exceptions.Raise_Marshal;
+            raise Constraint_Error;
       end case;
       pragma Debug (O ("Unmarshall (TypeCode) : end"));
       return Result;
@@ -2338,7 +2336,7 @@ package body PolyORB.Representations.CDR is
 
 --         --  2. check if Data is a nil ref, raise marshall if true
 --      elsif CORBA.AbstractBase.Is_Nil (Data) then
---         PolyORB.CORBA_P.Exceptions.Raise_Marshal;
+--         raise Constraint_Error;
 
 --         --  3. If Data is an abstract interface and the referenced object is
 --         --     a valuetype, then call the valuetype marshalling function.
@@ -2539,7 +2537,7 @@ package body PolyORB.Representations.CDR is
                  (O ("Octets_To_Fixed : exception raised, " &
                      "Octets (I) = " & Stream_Element'Image
                      (Octets (I))));
-               PolyORB.CORBA_P.Exceptions.Raise_Marshal;
+               raise Constraint_Error;
             end if;
             Result := Result * 10 + F (Octets (I) / 16) * F'Delta;
             if I < Octets'Last then
