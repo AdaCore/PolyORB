@@ -43,7 +43,7 @@ all:
 
 build: fix_distrib build_glade
 
-fix_distrib: fix_gartcp fix_dist_makefile fix_garlic_makefile
+fix_distrib: fix_gartcp
 
 #  under NT we must use Recv (instead of Read) and Send (instead of Write) on
 #  a socket.
@@ -51,26 +51,6 @@ fix_gartcp:
 	mv $(GARLIC_TCP) $(GARLIC_TCP).orig
 	sed 's/C_Read/C_Recv/g;s/C_Write/C_Send/g;s/, Rest);/, Rest, 0);/g' \
 		$(GARLIC_TCP).orig > $(GARLIC_TCP)
-
-# the -p option is not recognized by NT cp.
-fix_dist_makefile:
-	echo Fix $(DIST_MAKEFILE)
-	if [ -f $(DIST_MAKEFILE).orig ] ; then \
-		echo "		already done."; \
-	else \
-		mv $(DIST_MAKEFILE) $(DIST_MAKEFILE).orig; \
-		sed 's/ -p / -lf /g' $(DIST_MAKEFILE).orig > $(DIST_MAKEFILE); \
-	fi
-
-fix_garlic_makefile:
-	echo Fix $(GARLIC_MAKEFILE)
-	if [ -f $(GARLIC_MAKEFILE).orig ] ; then \
-		echo "		already done."; \
-	else \
-		mv $(GARLIC_MAKEFILE) $(GARLIC_MAKEFILE).orig; \
-		sed 's/ -p / -lf /g' $(GARLIC_MAKEFILE).orig > \
-			$(GARLIC_MAKEFILE); \
-	fi
 
 build_glade:
 	./configure --prefix=$(INSTALL_DIR)
