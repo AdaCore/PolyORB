@@ -107,7 +107,7 @@ package body PolyORB.Setup.Test_CORBA is
          Put_Line ("URI is           : "
                    & PolyORB.Types.To_Standard_String
                    (PolyORB.POA_Types.Oid_To_Rel_URI
-                    (Obj_Adapter, My_Id)));
+                    (Obj_Adapter, My_Id'Access)));
          begin
             Put_Line ("IOR is           : "
                       & CORBA.To_Standard_String

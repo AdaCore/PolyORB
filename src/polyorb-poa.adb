@@ -43,10 +43,10 @@ package body PolyORB.POA is
 
    function Oid_To_Rel_URI
      (OA : access Obj_Adapter;
-      Id : Object_Id)
+      Id : access Object_Id)
      return Types.String
    is
-      U_Oid : Unmarshalled_Oid_Access := Oid_To_U_Oid (Id);
+      U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Id);
       URI : Types.String := To_PolyORB_String ("/");
    begin
       if Length (U_Oid.Creator) /= 0 then
@@ -59,21 +59,52 @@ package body PolyORB.POA is
       --  Creator should be a list, and each of its components
       --  should be separately URLencoded.
 
+      if U_Oid.System_Generated then
+         URI := URI & ";sys";
+      end if;
+
       if U_Oid.Persistency_Flag /= 0 then
-         URI := URI & ";" & Trimmed_Image
+         URI := URI & ";pf=" & Trimmed_Image
            (Integer (U_Oid.Persistency_Flag));
       end if;
-      Free (U_Oid);
+
       return URI;
    end Oid_To_Rel_URI;
 
    function Rel_URI_To_Oid
      (OA  : access Obj_Adapter;
       URI : Types.String)
-     return Object_Id is
+     return Object_Id_Access
+   is
+      U_Oid : aliased Unmarshalled_Oid;
+      S : constant String := To_Standard_String (URI);
+
+      Colon : Integer := Find (S, S'First, ';');
+      Last_Slash : Integer := Colon - 1;
    begin
-      raise PolyORB.Not_Implemented;
-      return Rel_URI_To_Oid (OA, URI);
+      while S (Last_Slash) /= '/' and then Last_Slash >= S'First loop
+         Last_Slash := Last_Slash - 1;
+      end loop;
+      pragma Assert (Last_Slash >= S'First);
+      U_Oid.Creator := To_PolyORB_String (S (S'First .. Last_Slash - 1));
+      U_Oid.Id := To_PolyORB_String
+        (URI_Decode (S (Last_Slash + 1 .. Colon - 1)));
+      if Colon + 3 <= S'Last
+        and then S (Colon + 1 .. Colon + 3) = "sys"
+      then
+         U_Oid.System_Generated := True;
+         Colon := Find (S, Colon + 1, ';');
+      else
+         U_Oid.System_Generated := False;
+      end if;
+
+      if Colon + 3 <= S'Last
+        and then S (Colon + 1 .. Colon + 3) = "pf="
+      then
+         U_Oid.Persistency_Flag
+           := Time_Stamp'Value (S (Colon + 4 .. S'Last));
+      end if;
+      return U_Oid_To_Oid (U_Oid);
    end Rel_URI_To_Oid;
 
 

@@ -55,7 +55,7 @@ package PolyORB.POA_Policies.Lifespan_Policy.Transient is
    procedure Ensure_Lifespan
      (P     : Transient_Policy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid_Access);
+      U_Oid : Unmarshalled_Oid);
 
    procedure Free
      (P   : in     Transient_Policy;

@@ -39,7 +39,8 @@ with PolyORB.Types;
 
 package PolyORB.Protocols.SOAP_Pr is
 
-   pragma Elaborate_Body;
+   --  Elaboration: Protocols.SOAP_Pr (spec),
+   --  Binding_Data.SOAP (spec+body), Protocols.SOAP_Pr (body).
 
    type SOAP_Protocol is new Protocol with private;
 

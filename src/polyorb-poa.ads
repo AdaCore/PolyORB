@@ -193,13 +193,13 @@ package PolyORB.POA is
 
    function Oid_To_Rel_URI
      (OA : access Obj_Adapter;
-      Id : Object_Id)
+      Id : access Object_Id)
      return Types.String;
 
    function Rel_URI_To_Oid
      (OA  : access Obj_Adapter;
       URI : Types.String)
-     return Object_Id;
+     return Object_Id_Access;
 
    Invalid_Name : exception;
 

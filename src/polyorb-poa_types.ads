@@ -134,18 +134,20 @@ package PolyORB.POA_Types is
    --  Create an Unmarshalled_Oid, and then marshall it into an Object_Id
 
    function Oid_To_U_Oid
-     (Oid : Object_Id_Access)
-     return Unmarshalled_Oid_Access;
+     (Oid : access Object_Id)
+     return Unmarshalled_Oid;
 
-   function Oid_To_U_Oid
-     (Oid : Object_Id)
-     return Unmarshalled_Oid_Access;
-   --  Unmarshall an Object_Id into a Unmarshalled_Oid
+--    function Oid_To_U_Oid
+--      (Oid : Object_Id)
+--      return Unmarshalled_Oid_Access;
+--    --  Unmarshall an Object_Id into a Unmarshalled_Oid
 
    function U_Oid_To_Oid
-     (U_Oid : Unmarshalled_Oid_Access)
+     (U_Oid : Unmarshalled_Oid)
      return Object_Id_Access;
-   --  Marshall an Unmarshalled_Oid into an Object_Id
+   --  Marshall an Unmarshalled_Oid into an Object_Id. The caller
+   --  is responsible for deallocating the returned Object_Id_Access
+   --  after use.
 
    procedure Free (X : in out PolyORB.POA_Types.Object_Id_Access)
      renames PolyORB.Objects.Free;

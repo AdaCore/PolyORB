@@ -47,6 +47,7 @@ with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Binding_Data;
 with PolyORB.Binding_Data.Local;
+with PolyORB.Binding_Data.SOAP;
 with PolyORB.Filters.AWS_Interface;
 with PolyORB.Filters.Interface;
 with PolyORB.HTTP_Methods;
@@ -54,6 +55,7 @@ with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Objects;
 with PolyORB.Objects.Interface;
+with PolyORB.ORB.Interface;
 with PolyORB.References;
 with PolyORB.Utils.Text_Buffers;
 
@@ -71,23 +73,6 @@ package body PolyORB.Protocols.SOAP_Pr is
    type Request_Note is new Annotations.Note with record
       SOAP_Req : SOAP.Message.Payload.Object;
    end record;
-
-   --------------------------
-   -- Internal subprograms --
-   --------------------------
-
-   --  Simple Oid <-> URI translation (to be removed -- the object
-   --  adapter should be queried instead) (NO not so simple. There
-   --  is no object adapter on the client side!) (but on the other
-   --  end the SOAP profile could directly contain an URI, and
-   --  Get_Object_Key be changed instead.)
-   --  For now use /<hexdigits> as URI.
-
-   function URI_To_Oid (URI : Types.String)
-     return Objects.Object_Id;
-
-   function Oid_To_URI (Oid : access Objects.Object_Id)
-     return Types.String;
 
    --------------------
    -- Implementation --
@@ -111,6 +96,8 @@ package body PolyORB.Protocols.SOAP_Pr is
       Pro : access Binding_Data.Profile_Type'Class)
    is
       P : SOAP.Message.Payload.Object;
+      SPro : Binding_Data.SOAP.SOAP_Profile_Type'Class
+        renames Binding_Data.SOAP.SOAP_Profile_Type'Class (Pro.all);
    begin
       pragma Assert (S.Pending_Rq = null);
       S.Pending_Rq := R;
@@ -129,8 +116,7 @@ package body PolyORB.Protocols.SOAP_Pr is
         (Lower (S),
          Filters.AWS_Interface.AWS_Request_Out'
          (Request_Method => HTTP_Methods.POST,
-          Relative_URI => Oid_To_URI
-          (Binding_Data.Get_Object_Key (Pro.all)),
+          Relative_URI => Binding_Data.SOAP.Get_URI_Path (SPro),
           Data => Types.String
           (Ada.Strings.Unbounded.Unbounded_String'
            (SOAP.Message.XML.Image (P))),
@@ -197,22 +183,6 @@ package body PolyORB.Protocols.SOAP_Pr is
          end;
       end;
    end Send_Reply;
-
-   function URI_To_Oid (URI : Types.String)
-     return Objects.Object_Id
-   is
-      S : constant String := Types.To_Standard_String (URI);
-   begin
-      return Objects.To_Oid (S (S'First + 1 .. S'Last));
-   end URI_To_Oid;
-
-   function Oid_To_URI (Oid : access Objects.Object_Id)
-     return Types.String
-   is
-   begin
-      return Types.To_PolyORB_String
-        ("/" & Objects.To_String (Oid.all));
-   end Oid_To_URI;
 
    procedure Process_Reply
      (S : access SOAP_Session;
@@ -295,9 +265,30 @@ package body PolyORB.Protocols.SOAP_Pr is
               := new Local_Profile_Type;
             --  Should be free'd when Target is finalized.
 
+            function Path_To_Oid (Path : Types.String)
+              return Objects.Object_Id_Access;
+
+            function Path_To_Oid (Path : Types.String)
+              return Objects.Object_Id_Access
+            is
+               M : constant Components.Message'Class
+                 := Components.Emit
+                 (S.Server, PolyORB.ORB.Interface.URI_Translate'
+                  (Path => Path));
+               TM : PolyORB.ORB.Interface.Oid_Translate
+                 renames PolyORB.ORB.Interface.Oid_Translate (M);
+            begin
+               pragma Debug
+                 (O ("Path_To_Oid: " & To_Standard_String (Path)));
+               return TM.Oid;
+            end Path_To_Oid;
+
+            The_Oid : Objects.Object_Id_Access := Path_To_Oid (S.Target);
+
          begin
             Create_Local_Profile
-              (URI_To_Oid (S.Target), Local_Profile_Type (Target_Profile.all));
+              (The_Oid.all, Local_Profile_Type (Target_Profile.all));
+            Objects.Free (The_Oid);
             References.Create_Reference
               ((1 => Target_Profile),
                Type_Id => "", R => Target);

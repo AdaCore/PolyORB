@@ -88,7 +88,7 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
    procedure Ensure_Lifespan
      (P     : Transient_Policy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid_Access) is
+      U_Oid : Unmarshalled_Oid) is
    begin
       if U_Oid.Persistency_Flag
         /= PolyORB.POA.Obj_Adapter_Access (OA).Boot_Time

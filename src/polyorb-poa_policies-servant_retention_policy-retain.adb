@@ -113,9 +113,11 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
 
       POA       : constant PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
-      U_Oid     : Unmarshalled_Oid_Access
-        := Oid_To_U_Oid (Oid);
+
+      Oid_A : Object_Id_Access := new Object_Id'(Oid);
+      U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Oid_A);
    begin
+      Free (Oid_A);
       Ensure_Oid_Origin
         (POA.Id_Assignment_Policy.all, U_Oid);
 
@@ -130,8 +132,6 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
 
       Activate_Object_With_Id
         (POA.Id_Assignment_Policy.all, OA, P_Servant, Oid);
-
-      Free (U_Oid);
    end Activate_Object_With_Id;
 
    ----------------
@@ -149,9 +149,10 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       POA       : constant PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
 
-      U_Oid     : Unmarshalled_Oid_Access
-        := Oid_To_U_Oid (Oid);
+      Oid_A : Object_Id_Access := new Object_Id'(Oid);
+      U_Oid : Unmarshalled_Oid := Oid_To_U_Oid (Oid_A);
    begin
+      Free (Oid_A);
       Etherealize_All
         (POA.Request_Processing_Policy.all, OA, U_Oid);
 
@@ -195,7 +196,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
    function Id_To_Servant
      (Self  : Retain_Policy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid_Access)
+      U_Oid : Unmarshalled_Oid)
      return Servant_Access
    is
       use PolyORB.POA_Policies.Lifespan_Policy;

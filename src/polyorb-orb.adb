@@ -789,6 +789,15 @@ package body PolyORB.ORB is
             end if;
          end;
 
+      elsif Msg in Interface.Oid_Translate then
+         return Interface.URI_Translate'
+           (Path => Obj_Adapters.Oid_To_Rel_URI
+            (ORB.Obj_Adapter, Interface.Oid_Translate (Msg).Oid));
+      elsif Msg in Interface.URI_Translate then
+         return Interface.Oid_Translate'
+           (Oid => Obj_Adapters.Rel_URI_To_Oid
+            (ORB.Obj_Adapter, Interface.URI_Translate (Msg).Path));
+
       else
          pragma Debug (O ("ORB received unhandled message of type "
                           & Ada.Tags.External_Tag (Msg'Tag)));

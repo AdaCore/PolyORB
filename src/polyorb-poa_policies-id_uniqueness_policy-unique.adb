@@ -95,9 +95,11 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
    -- Servant_To_Id --
    -------------------
 
-   function Servant_To_Id (Self      : Unique_Id_Policy;
-                           OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-                           P_Servant : Servant_Access) return Object_Id_Access
+   function Servant_To_Id
+     (Self      : Unique_Id_Policy;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant : Servant_Access)
+     return Object_Id_Access
    is
       P_OA        : PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
@@ -107,7 +109,7 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
          Lock_R (P_OA.Map_Lock);
          An_Entry := Get_By_Servant (P_OA.Active_Object_Map.all, P_Servant);
          if An_Entry /= null then
-            return U_Oid_To_Oid (An_Entry.Oid);
+            return U_Oid_To_Oid (An_Entry.Oid.all);
          end if;
          Unlock_R (P_OA.Map_Lock);
       end if;

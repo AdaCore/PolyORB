@@ -90,13 +90,11 @@ package body PolyORB.POA_Types is
       Creator          : in Types.String)
      return Unmarshalled_Oid_Access
    is
-      U_Oid : Unmarshalled_Oid_Access;
    begin
-      U_Oid := new Unmarshalled_Oid'
+      return new Unmarshalled_Oid'
         (Creator => Creator, Id => Name,
          System_Generated => System_Generated,
          Persistency_Flag => Persistency_Flag);
-      return U_Oid;
    end Create_Id;
 
    ---------------
@@ -110,11 +108,13 @@ package body PolyORB.POA_Types is
       Creator          : in Types.String)
      return Object_Id_Access
    is
-      U_Oid : Unmarshalled_Oid_Access;
    begin
-      U_Oid := Create_Id
-        (Name, System_Generated, Persistency_Flag, Creator);
-      return U_Oid_To_Oid (U_Oid);
+      return U_Oid_To_Oid
+        (Unmarshalled_Oid'
+         (Id               => Name,
+          System_Generated => System_Generated,
+          Persistency_Flag => Persistency_Flag,
+          Creator          => Creator));
    end Create_Id;
 
    --  Object ids are represented as stream element arrays
@@ -254,11 +254,9 @@ package body PolyORB.POA_Types is
    ------------------
 
    function Oid_To_U_Oid
-     (Oid : Object_Id_Access)
-     return Unmarshalled_Oid_Access
+     (Oid : access Object_Id)
+     return Unmarshalled_Oid
    is
-      U_Oid            : Unmarshalled_Oid_Access;
-
       Index : Stream_Element_Offset;
 
       Creator          : PolyORB.Types.String;
@@ -277,39 +275,38 @@ package body PolyORB.POA_Types is
         (Stream_Element_Array (Oid.all), Index, Persistency_Flag);
       pragma Assert (Index = Oid'Last + 1);
 
-      U_Oid := new Unmarshalled_Oid'
+      return Unmarshalled_Oid'
         (Creator => Creator,
          Id => Id,
          System_Generated => System_Generated,
          Persistency_Flag => Time_Stamp (Persistency_Flag));
-      return U_Oid;
    end Oid_To_U_Oid;
 
-   ------------------
-   -- Oid_To_U_Oid --
-   ------------------
+--    ------------------
+--    -- Oid_To_U_Oid --
+--    ------------------
 
-   function Oid_To_U_Oid
-     (Oid : Object_Id)
-     return Unmarshalled_Oid_Access
-   is
-      Oid_Access : Object_Id_Access;
-      U_Oid      : Unmarshalled_Oid_Access;
-   begin
-      Oid_Access := new Object_Id'(Oid);
-      --  Oid_Access.all := Oid;
-      U_Oid := Oid_To_U_Oid (Oid_Access);
-      Free (Oid_Access);
-      return U_Oid;
-      --  ??? Does this work? Not tested yet.
-   end Oid_To_U_Oid;
+--    function Oid_To_U_Oid
+--      (Oid : Object_Id)
+--      return Unmarshalled_Oid_Access
+--    is
+--       Oid_Access : Object_Id_Access;
+--       U_Oid      : Unmarshalled_Oid_Access;
+--    begin
+--       Oid_Access := new Object_Id'(Oid);
+--       --  Oid_Access.all := Oid;
+--       U_Oid := Oid_To_U_Oid (Oid_Access);
+--       Free (Oid_Access);
+--       return U_Oid;
+--       --  ??? Does this work? Not tested yet.
+--    end Oid_To_U_Oid;
 
    ------------------
    -- U_Oid_To_Oid --
    ------------------
 
    function U_Oid_To_Oid
-     (U_Oid : Unmarshalled_Oid_Access)
+     (U_Oid : Unmarshalled_Oid)
      return Object_Id_Access
    is
       Oid                : Object_Id_Access;

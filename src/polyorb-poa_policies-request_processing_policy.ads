@@ -44,20 +44,24 @@ package PolyORB.POA_Policies.Request_Processing_Policy is
    --  The real creation function that has to be implemented for each
    --  possible Request Processing Policy
 
-   procedure Etherealize_All (Self  : RequestProcessingPolicy;
-                              OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-                              U_Oid : Unmarshalled_Oid_Access)
+   procedure Etherealize_All
+     (Self  : RequestProcessingPolicy;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid : Unmarshalled_Oid)
       is abstract;
    --  If a servant manager is used, etherealize the servant(s) associated
    --  with the given Object_Id.
 
-   procedure Free (P   : in     RequestProcessingPolicy;
-                   Ptr : in out Policy_Access)
+   procedure Free
+     (P   : in     RequestProcessingPolicy;
+      Ptr : in out Policy_Access)
       is abstract;
 
-   function Servant_To_Id (Self      : RequestProcessingPolicy;
-                           OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-                           P_Servant : Servant_Access) return Object_Id_Access
+   function Servant_To_Id
+     (Self      : RequestProcessingPolicy;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant : Servant_Access)
+     return Object_Id_Access
      is abstract;
    --  Case USE_ACTIVE_OBJECT_MAP_ONLY:
    --    Look for the given servant and returns its Id
@@ -68,9 +72,11 @@ package PolyORB.POA_Policies.Request_Processing_Policy is
    --  Case USE_SERVANT_MANAGER:
    --    Same than USE_ACTIVE_OBJECT_MAP_ONLY
 
-   function Id_To_Servant (Self : RequestProcessingPolicy;
-                           OA   : PolyORB.POA_Types.Obj_Adapter_Access;
-                           Oid  : Object_Id) return Servant_Access
+   function Id_To_Servant
+     (Self : RequestProcessingPolicy;
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access;
+      Oid  : Object_Id)
+     return Servant_Access
       is abstract;
    --  Case USE_OBJECT_MAP_ONLY:
    --    Asks the Servant Retention Policy to look for the given Oid.

@@ -62,22 +62,23 @@ package PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    procedure Ensure_Oid_Origin
      (Self  : System_Id_Policy;
-      U_Oid : Unmarshalled_Oid_Access);
+      U_Oid : Unmarshalled_Oid);
 
    procedure Ensure_Oid_Uniqueness
      (Self  : System_Id_Policy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid_Access);
+      U_Oid : Unmarshalled_Oid);
 
    procedure Remove_Entry
      (Self  : System_Id_Policy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid_Access);
+      U_Oid : Unmarshalled_Oid);
 
-   function Id_To_Servant (Self  : System_Id_Policy;
-                           OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-                           U_Oid : Unmarshalled_Oid_Access)
-                          return Servant_Access;
+   function Id_To_Servant
+     (Self  : System_Id_Policy;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid : Unmarshalled_Oid)
+     return Servant_Access;
 
    procedure Free
      (P   : in     System_Id_Policy;

@@ -980,8 +980,7 @@ package body PolyORB.POA.Basic_POA is
       Do_Check :        Check_State)
      return PolyORB.Objects.Servant_Access
    is
-      U_Oid  : Unmarshalled_Oid_Access
-        := Oid_To_U_Oid (Object_Id (Id.all));
+      U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Id);
    begin
       if Do_Check = CHECK then
          case Get_State (POA_Manager_Of (OA).all) is
