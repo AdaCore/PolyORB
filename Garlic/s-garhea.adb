@@ -416,9 +416,7 @@ package body System.Garlic.Heart is
       if Partition = Null_Partition_ID then
          declare
             Params : aliased Params_Stream_Type (0);
-
          begin
-
             --  We will send a Set_Public_Data to the server. This will cause
             --  a dialog to be established and a new Partition_ID to be
             --  allocated, and our location will be registered into
@@ -478,7 +476,6 @@ package body System.Garlic.Heart is
 
          declare
             Params : aliased Params_Stream_Type (0);
-
          begin
             pragma Debug
               (D (D_Garlic,
@@ -1221,10 +1218,10 @@ package body System.Garlic.Heart is
    ----------------
 
    procedure Set_Policy
-     (Shutdown     : Shutdown_Type     := Shutdown_On_Boot_Partition_Error)
+     (Shutdown : Shutdown_Type := Shutdown_On_Boot_Partition_Error)
    is
    begin
-      Shutdown_Policy     := Shutdown;
+      Shutdown_Policy := Shutdown;
    end Set_Policy;
 
    --------------

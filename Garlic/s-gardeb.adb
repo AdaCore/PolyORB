@@ -50,29 +50,21 @@ pragma Elaborate_All (System.Garlic.Platform_Specific);
 
 package body System.Garlic.Debug is
 
-   Max_Debugs : constant := 25;
-   --  If you have more than this number of package to debug, the program
-   --  will fail with an assertion error and you will have to increase this
-   --  number. Anyway, this is reserved to developpers, so recompiling a
-   --  body should not be much work.
-
    Not_Debugging : constant Debug_Key := 0;
    --  This value is used when we are not debugging
 
    Current : Debug_Key := 0;
    --  The current debug key
 
-   Flags_Map : array (Debug_Key range 1 .. Max_Debugs,
-                      Debug_Level) of Boolean :=
+   Flags_Map : array (Debug_Key, Debug_Level) of Boolean :=
      (others => (others => False));
    --  Map of flags
 
-   Banner_Map : array (Debug_Key range 1 .. Max_Debugs)
-     of String_Access;
+   Banner_Map : array (Debug_Key) of String_Access;
    --  Map of banners
 
-   Reverse_Character_Map : array (Character) of Debug_Level
-     := (others => No_Debug);
+   Reverse_Character_Map : array (Character) of Debug_Level :=
+     (others => No_Debug);
    --  Map characters on debug levels
 
    protected Semaphore is
@@ -91,18 +83,6 @@ package body System.Garlic.Debug is
    --  partition has cleanly terminated. This feature is used to detect
    --  incorrect termination.
 
-   ----------------
-   -- Debug_Mode --
-   ----------------
-
-   function Debug_Mode
-     (Level : Debug_Level;
-      Key   : Debug_Key)
-      return Boolean is
-   begin
-      return Key /= Not_Debugging and then Flags_Map (Key, Level);
-   end Debug_Mode;
-
    -------------------------------------
    --  Create_Termination_Sanity_File --
    -------------------------------------
@@ -111,23 +91,29 @@ package body System.Garlic.Debug is
    is
       Dir : String renames RTS_Sanity_Directory;
 
-      function Getpid return int;
-      pragma Import (C, Getpid, "getpid");
+      function Get_PID return int;
+      pragma Import (C, Get_PID, "getpid");
 
       Name : String (1 .. 32);
       Last : Natural := 0;
 
-      procedure Write_Pid (Pid : int);
-      procedure Write_Pid (Pid : int)
-      is
-      begin
-         if Pid > 9 then
-            Write_Pid (Pid / 10);
-         end if;
+      procedure Write_PID (PID : in int := Get_PID);
+      --  Store PID in Name
 
-         Last := Last + 1;
-         Name (Last) := Character'Val ((Pid mod 10) + Character'Pos ('0'));
-      end Write_Pid;
+      ---------------
+      -- Write_PID --
+      ---------------
+
+      procedure Write_PID (PID : in int := Get_PID) is
+      begin
+         if PID < 10 then
+            Last := Last + 1;
+            Name (Last) := Character'Val (PID + Character'Pos ('0'));
+         else
+            Write_PID (PID / 10);
+            Write_PID (PID mod 10);
+         end if;
+      end Write_PID;
 
    begin
       if Dir'Length /= 0 and then Dir (Dir'Last) /= Directory_Separator then
@@ -135,15 +121,10 @@ package body System.Garlic.Debug is
          Name (Last) := Directory_Separator;
       end if;
 
-      Write_Pid (Getpid);
+      Write_PID;
 
-      Last := Last + 4;
-      Name (Last - 3 .. Last) := ".dsa";
-
-      Last := Last + 1;
-      Name (Last) := Ascii.NUL;
-
-      Termination_Filename := new String'(Dir & Name (1 .. Last));
+      Termination_Filename :=
+       new String'(Dir & Name (1 .. Last) & ".dsa" & Ascii.NUL);
 
       Termination_Sanity_FD :=
         Create_New_File (Termination_Filename.all'Address, Binary);
@@ -165,7 +146,8 @@ package body System.Garlic.Debug is
    function Debug_Initialize
      (Variable : String;
       Banner   : String)
-      return Debug_Key is
+      return Debug_Key
+   is
       Value : constant String_Access := Getenv (Variable);
       C     : Character;
       L     : Debug_Level;
@@ -174,8 +156,10 @@ package body System.Garlic.Debug is
       if Value = null or else Value.all = "" then
          return Not_Debugging;
       end if;
-      if Current >= Max_Debugs then
-         GNAT.IO.Put_Line ("Increase Max_Debugs'value in s-gardeb.adb");
+      if Current >= Debug_Key'Last then
+         Semaphore.P;
+         GNAT.IO.Put_Line ("Change Debug_Key range in s-gardeb.ads");
+         Semaphore.V;
          raise Program_Error;
       end if;
       Current := Current + 1;
@@ -194,6 +178,19 @@ package body System.Garlic.Debug is
       return Current;
    end Debug_Initialize;
 
+   ----------------
+   -- Debug_Mode --
+   ----------------
+
+   function Debug_Mode
+     (Level : Debug_Level;
+      Key   : Debug_Key)
+      return Boolean
+   is
+   begin
+      return Key /= Not_Debugging and then Flags_Map (Key, Level);
+   end Debug_Mode;
+
    ------------------------------------
    -- Delete_Termination_Sanity_File --
    ------------------------------------
@@ -201,6 +198,7 @@ package body System.Garlic.Debug is
    procedure Delete_Termination_Sanity_File is
       Success : Boolean;
    begin
+      pragma Assert (Termination_Filename /= null);
       if Termination_Sanity_FD /= Invalid_FD then
          Delete_File (Termination_Filename.all'Address, Success);
       end if;
@@ -213,10 +211,10 @@ package body System.Garlic.Debug is
    procedure Print_Debug_Info
      (Level   : in Debug_Level;
       Message : in String;
-      Key     : in Debug_Key) is
+      Key     : in Debug_Key)
+   is
       Banner : String_Access;
       Flag   : Boolean;
-
    begin
       if Key /= Not_Debugging then
          Banner := Banner_Map (Key);
@@ -224,8 +222,7 @@ package body System.Garlic.Debug is
          if Flag then
             pragma Assert (Banner /= null);
             Semaphore.P;
-            GNAT.IO.Put (Banner.all);
-            GNAT.IO.Put_Line (Message);
+            GNAT.IO.Put_Line (Banner.all & Message);
             Semaphore.V;
          end if;
       end if;

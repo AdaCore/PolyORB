@@ -1,3 +1,7 @@
+1998-09-01  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garhea.adb, s-gardeb.ads, s-gardeb.adb: Minor reformatting.
+
 1998-09-01  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garfil.adb: Fix a warning.

@@ -50,11 +50,11 @@ package System.Garlic.Debug is
    --      renames Print_Debug_Info;
    --
    --  Then, later in the code, you can do:
-   --    D (D_Elaborate, "Elaboration terminated");
+   --    pragma Debug (D (D_Elaborate, "Elaboration terminated"));
 
    pragma Elaborate_Body;
    --  Since this package may be used during elaboration, the body must
-   --  be elaborated as soon as possible.
+   --  be elaborated right after the spec.
 
    type Debug_Level is
       (D_Communication,         --  Communication stuff,
@@ -76,7 +76,7 @@ package System.Garlic.Debug is
        D_Terminate,             --  Termination
        D_Warning,               --  Warning
        No_Debug);               --  Internal -- do NOT use
-   --  Debug levels.
+   --  Debug levels
 
    Debug_Letters : constant array (Debug_Level) of Character :=
      (D_Communication => 'C',
@@ -98,10 +98,10 @@ package System.Garlic.Debug is
       D_Terminate     => 'Z',
       D_Warning       => 'W',
       No_Debug        => ' ');
-   --  Letters used to turn debugging on for a given topic.
+   --  Letters used to turn debugging on for a given topic
 
    type Debug_Key is private;
-   --  The key used for further references to the variable.
+   --  The key used for further references to the variable
 
    function Debug_Initialize
      (Variable : String;
@@ -110,7 +110,7 @@ package System.Garlic.Debug is
    pragma Inline (Debug_Initialize);
    --  Debug_Initialize is called with two strings. The first one is the name
    --  of the environment variable to look for, the second one is the
-   --  banner to use when printing debugging information.
+   --  banner to use when printing debugging information
 
    procedure Print_Debug_Info
      (Level   : in Debug_Level;
@@ -118,14 +118,14 @@ package System.Garlic.Debug is
       Key     : in Debug_Key);
    pragma Inline (Print_Debug_Info);
    --  This procedure prints debugging information if the given flag was
-   --  set in the right environment variable.
+   --  set in the right environment variable
 
    function Debug_Mode
      (Level : Debug_Level;
       Key   : Debug_Key)
       return Boolean;
    pragma Inline (Debug_Mode);
-   --  Return true if this level is active.
+   --  Return true if this level is active
 
    procedure Create_Termination_Sanity_File;
    procedure Delete_Termination_Sanity_File;
@@ -134,6 +134,6 @@ package System.Garlic.Debug is
 
 private
 
-   type Debug_Key is new Natural;
+   type Debug_Key is range 0 .. 25;
 
 end System.Garlic.Debug;
