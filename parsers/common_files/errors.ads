@@ -3,6 +3,9 @@ with Types;     use Types;
 
 package Errors is
 
+   Not_Yet_Implemented : exception;
+   --  Raised when code is not ready yet
+
    Internal_Error : exception;
    --  Raised when idlac reaches an internal inconsistent state
 

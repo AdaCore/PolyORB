@@ -86,6 +86,15 @@ pragma Elaborate_Body (Output);
    --  Returns the number of the column about to be written (e.g. a value
    --  of 1 means the current line is empty).
 
+   Space_Increment : Natural := 2;
+   N_Space         : Natural := 0;
+
+   procedure Decrement_Indentation;
+   procedure Increment_Indentation;
+
+   procedure Write_Indentation;
+   procedure Write_Space;
+
    --------------------------
    -- Debugging Procedures --
    --------------------------

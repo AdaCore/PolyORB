@@ -113,6 +113,24 @@ package body Output is
       return Next_Column;
    end Column;
 
+   ---------------------------
+   -- Decrement_Indentation --
+   ---------------------------
+
+   procedure Decrement_Indentation is
+   begin
+      N_Space := N_Space - Space_Increment;
+   end Decrement_Indentation;
+
+   ---------------------------
+   -- Increment_Indentation --
+   ---------------------------
+
+   procedure Increment_Indentation is
+   begin
+      N_Space := N_Space + Space_Increment;
+   end Increment_Indentation;
+
    ------------------------
    -- Set_Standard_Error --
    ------------------------
@@ -219,6 +237,17 @@ package body Output is
       Flush_Buffer;
    end Write_Eol;
 
+   -----------------------
+   -- Write_Indentation --
+   -----------------------
+
+   procedure Write_Indentation is
+   begin
+      for I in 1 .. N_Space loop
+         Write_Char (' ');
+      end loop;
+   end Write_Indentation;
+
    ---------------
    -- Write_Int --
    ---------------
@@ -247,6 +276,15 @@ package body Output is
       Write_Str (S);
       Write_Eol;
    end Write_Line;
+
+   -----------------
+   -- Write_Space --
+   -----------------
+
+   procedure Write_Space is
+   begin
+      Write_Char (' ');
+   end Write_Space;
 
    ---------------
    -- Write_Str --
