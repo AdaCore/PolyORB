@@ -45,47 +45,7 @@ package System.Partition_Interface is
    subtype Unit_Name is String;
    --  Name of Ada units
 
-   function Get_Local_Partition_ID return RPC.Partition_ID;
-   --  Return the Partition_ID of the current partition
-
-   function Get_Active_Partition_ID
-     (Name : Unit_Name)
-      return RPC.Partition_ID;
-   --  Similar in some respects to RCI_Info.Get_Active_Partition_ID
-
-   function Get_Passive_Partition_ID
-     (Name : Unit_Name)
-     return RPC.Partition_ID;
-   --  Return the Partition_ID of the given shared passive partition
-
-   function Get_RCI_Package_Receiver
-     (Name : Unit_Name)
-      return RPC.RPC_Receiver;
-   --  Similar in some respects to RCI_Info.Get_RCI_Package_Receiver
-
-   function Get_Active_Version
-      (Name : Unit_Name)
-       return String;
-   --  Similar in some respects to Get_Active_Partition_ID
-
-   procedure Register_Receiving_Stub
-     (Name     : in Unit_Name;
-      Receiver : in RPC.RPC_Receiver;
-      Version  : in String := "");
-   --  Register the fact that the Name receiving stub is now elaborated.
-   --  Register the access value to the package RPC_Receiver procedure.
-
-   procedure Invalidate_Receiving_Stub
-     (Name     : in Unit_Name);
-   --  Declare this receiving stub as corrupted to the RCI Name Server
-
-   generic
-      RCI_Name : String;
-   package RCI_Info is
-      function Get_RCI_Package_Receiver return RPC.RPC_Receiver;
-      function Get_Active_Partition_ID return RPC.Partition_ID;
-   end RCI_Info;
-   --  RCI package information caching
+   type Main_Subprogram_Type is access procedure;
 
    type RACW_Stub_Type is tagged record
       Origin       : RPC.Partition_ID;
@@ -98,13 +58,70 @@ package System.Partition_Interface is
    --  Do not change its definition or its layout without updating
    --  exp_dist.adb.
 
+   procedure Check (Name : in Unit_Name; Version : in String);
+   --  Use by the main subprogram to check that a remote receiver
+   --  unit has has the same version than the caller's one.
+
+   function Get_Active_Partition_ID
+     (Name : Unit_Name)
+      return RPC.Partition_ID;
+   --  Similar in some respects to RCI_Info.Get_Active_Partition_ID
+
+   function Get_Active_Version
+      (Name : Unit_Name)
+       return String;
+   --  Similar in some respects to Get_Active_Partition_ID
+
+   function Get_Local_Partition_ID return RPC.Partition_ID;
+   --  Return the Partition_ID of the current partition
+
+   function Get_Passive_Partition_ID
+     (Name : Unit_Name)
+     return RPC.Partition_ID;
+   --  Return the Partition_ID of the given shared passive partition
+
+   function Get_RCI_Package_Receiver
+     (Name : Unit_Name)
+      return RPC.RPC_Receiver;
+   --  Similar in some respects to RCI_Info.Get_RCI_Package_Receiver
+
    procedure Get_Unique_Remote_Pointer
      (Handler : in out RACW_Stub_Type_Access);
    --  Get a unique pointer on a remote object
+
+   procedure Invalidate_Receiving_Stub
+     (Name     : in Unit_Name);
+   --  Declare this receiving stub as corrupted to the RCI Name Server
+
+   procedure Launch
+     (Rsh_Command  : in String;
+      Name_Is_Host : in Boolean;
+      General_Name : in String;
+      Command_Line : in String);
+   --  Part_Or_Host is either a partition name or a host name depending
+   --  on Name_Is_Host.
 
    procedure Raise_Program_Error_For_E_4_18;
    --  Raise Program_Error with an error message explaining why it has been
    --  raised. The rule in E.4 (18) is tricky and misleading for most users
    --  of the distributed systems annex.
+
+   generic
+      RCI_Name : String;
+   package RCI_Info is
+      function Get_RCI_Package_Receiver return RPC.RPC_Receiver;
+      function Get_Active_Partition_ID return RPC.Partition_ID;
+   end RCI_Info;
+   --  RCI package information caching
+
+   procedure Register_Receiving_Stub
+     (Name     : in Unit_Name;
+      Receiver : in RPC.RPC_Receiver;
+      Version  : in String := "");
+   --  Register the fact that the Name receiving stub is now elaborated.
+   --  Register the access value to the package RPC_Receiver procedure.
+
+   procedure Run (Main : in Main_Subprogram_Type);
+   --  Run the main subprogram.
 
 end System.Partition_Interface;

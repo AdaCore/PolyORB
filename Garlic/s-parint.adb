@@ -44,6 +44,9 @@ with System.Garlic.Debug;   use System.Garlic.Debug;
 with System.Garlic.Heart;   use System.Garlic.Heart;
 pragma Elaborate (System.Garlic.Heart);
 
+with System.Garlic.Options; use System.Garlic.Options;
+with System.Garlic.Remote;  use System.Garlic.Remote;
+
 pragma Warnings (Off);
 with System.Garlic.Startup;
 pragma Elaborate (System.Garlic.Startup);
@@ -131,6 +134,7 @@ package body System.Partition_Interface is
       return Left /= null and then Right /= null and then Left.all = Right.all;
    end Compare_Content;
 
+
    -----------------------------
    -- Get_Active_Partition_ID --
    -----------------------------
@@ -214,8 +218,7 @@ package body System.Partition_Interface is
    -------------------------------
 
    procedure Get_Unique_Remote_Pointer
-     (Handler : in out RACW_Stub_Type_Access)
-   is
+     (Handler : in out RACW_Stub_Type_Access) is
       Answer : constant RACW_Stub_Type_Access := Objects_HTable.Get (Handler);
    begin
       if Answer = null then
@@ -244,6 +247,25 @@ package body System.Partition_Interface is
    begin
       null;
    end Invalidate_Receiving_Stub;
+
+   ------------
+   -- Launch --
+   ------------
+
+   procedure Launch
+     (Rsh_Command  : in String;
+      Name_Is_Host : in Boolean;
+      General_Name : in String;
+      Command_Line : in String) is
+   begin
+      if not Nolaunch then
+         if Name_Is_Host then
+            Full_Launch (Rsh_Command, General_Name, Command_Line);
+         else
+            Full_Launch (Rsh_Command, Get_Host (General_Name), Command_Line);
+         end if;
+      end if;
+   end Launch;
 
    -------------
    -- Process --
@@ -481,6 +503,25 @@ package body System.Partition_Interface is
       Uname := Units.Get_Index (Name);
    end RCI_Info;
 
+   ---------
+   -- Run --
+   ---------
+
+   procedure Run (Main : in Main_Subprogram_Type) is
+      What    : Ada.Exceptions.Exception_Id;
+      Message : String_Access;
+
+   begin
+      select
+         Fatal_Error.Occurred (What, Message);
+         Soft_Shutdown;
+         Ada.Exceptions.Raise_Exception (What, Message.all);
+      then abort
+         Main.all;
+      end select;
+      Free (Message);
+   end Run;
+
    ----------
    -- Send --
    ----------
@@ -509,6 +550,21 @@ package body System.Partition_Interface is
 
       Send (Partition, Name_Service, Params'Access);
    end Send;
+
+   -----------
+   -- Check --
+   -----------
+
+   procedure Check (Name : in Unit_Name; Version : in String) is
+   begin
+      if Version /= Get_Active_Version (Name) then
+         Soft_Shutdown;
+         Ada.Exceptions.Raise_Exception
+           (Program_Error'Identity,
+            "Versions differ for RCI unit """ &
+            Name & """");
+      end if;
+   end Check;
 
 begin
    Receive (Name_Service, Public_Message_Receiver'Access);
