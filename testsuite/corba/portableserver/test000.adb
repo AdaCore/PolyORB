@@ -254,6 +254,9 @@ procedure Test000 is
    procedure Test_POA_Hierarchy;
    --  Tests on POA trees
 
+   procedure Test_OID;
+   --  Tests on OID
+
    -------------------
    -- Test_Root_POA --
    -------------------
@@ -1690,6 +1693,130 @@ procedure Test000 is
 
    end Test_POA_Hierarchy;
 
+   --------------
+   -- Test_OID --
+   --------------
+
+   procedure Test_OID is
+      use CORBA.Policy;
+      use CORBA.Policy.IDL_Sequence_Policy;
+
+      use PortableServer;
+      use PortableServer.POA;
+
+      use PolyORB.Utils.Report;
+
+      Root_POA  : PortableServer.POA.Ref;
+      My_POA    : PortableServer.POA.Ref;
+
+   begin
+      New_Test ("OID");
+
+      Root_POA :=
+        PortableServer.POA.To_Ref
+        (CORBA.ORB.Resolve_Initial_References
+         (CORBA.ORB.To_CORBA_String ("RootPOA")));
+      PortableServer.POAManager.Activate
+        (PortableServer.POA.Get_The_POAManager (Root_POA));
+
+      PolyORB.Tasking.Threads.Create_Task (CORBA.ORB.Run'Access);
+
+      declare
+         Policies : CORBA.Policy.PolicyList;
+
+         Lifespan_Policy : CORBA.Policy.Ref
+           := CORBA.Policy.Ref
+           (Create_Lifespan_Policy (PERSISTENT));
+
+         Id_Assignment_Policy : CORBA.Policy.Ref
+           := CORBA.Policy.Ref
+           (Create_Id_Assignment_Policy (USER_ID));
+
+         Implicit_Activation_Policy : CORBA.Policy.Ref
+           := CORBA.Policy.Ref
+           (Create_Implicit_Activation_Policy (NO_IMPLICIT_ACTIVATION));
+
+         Request_Processing_Policy : CORBA.Policy.Ref
+           := CORBA.Policy.Ref
+           (Create_Request_Processing_Policy (USE_SERVANT_MANAGER));
+
+      begin
+         Append (Policies, Lifespan_Policy);
+         Append (Policies, Id_Assignment_Policy);
+         Append (Policies, Implicit_Activation_Policy);
+         Append (Policies, Request_Processing_Policy);
+         My_POA :=
+           PortableServer.POA.Ref
+           (PortableServer.POA.Create_POA
+            (Root_POA,
+             CORBA.To_CORBA_String ("Child"),
+             PortableServer.POA.Get_The_POAManager (Root_POA),
+             Policies));
+         PortableServer.POAManager.Activate
+           (PortableServer.POA.Get_The_POAManager (My_POA));
+
+         Output ("Created POA Child_POA", True);
+
+         My_POA :=
+           PortableServer.POA.Ref
+           (PortableServer.POA.Create_POA
+            (My_POA,
+             CORBA.To_CORBA_String ("My_POA"),
+             PortableServer.POA.Get_The_POAManager (Root_POA),
+             Policies));
+         PortableServer.POAManager.Activate
+           (PortableServer.POA.Get_The_POAManager (My_POA));
+
+         Output ("Created POA Child_POA/My_POA", True);
+
+      end;
+
+      declare
+         Srv : constant Echo.Impl.Object_Acc := new Echo.Impl.Object;
+         Id  : constant PortableServer.ObjectId := (1, 2, 3);
+         Ref : CORBA.Object.Ref;
+      begin
+         PortableServer.POA.Activate_Object_With_Id
+           (My_POA, Id, PortableServer.Servant (Srv));
+         Ref := Servant_To_Reference (My_POA, PortableServer.Servant (Srv));
+
+         begin
+            declare
+               Id : constant PortableServer.ObjectId
+                 := Reference_To_Id (Root_POA, Ref);
+               pragma Unreferenced (Id);
+
+            begin
+               Output ("Reference_To_Id raised "
+                       & "PortableServer.POA.WrongAdapter",
+                       False);
+            end;
+         exception
+            when PortableServer.POA.WrongAdapter =>
+               Output ("Reference_To_Id raised "
+                       & "PortableServer.POA.WrongAdapter",
+                       True);
+         end;
+
+         begin
+            declare
+               Oid : constant PortableServer.ObjectId
+                 := Reference_To_Id (My_POA, Ref);
+            begin
+               Output ("Reference_To_Id raised no exception", True);
+               Ada.Text_IO.Put_Line
+                 ("OID:"
+                  & PortableServer.ObjectId_To_String (Oid));
+               Output ("OID is correct", Id = Oid);
+            end;
+         exception
+            when others =>
+               Output ("Reference_To_Id raised no exception", True);
+         end;
+
+      end;
+   end Test_OID;
+
    use Test_AdapterActivator;
    use Test_ServantActivator;
    use Test_MyPOA;
@@ -1707,7 +1834,7 @@ begin
    Run_Test_AdapterActivator;
    Run_Test_ServantActivator;
    Run_Test_MyPOA;
-
+   Test_OID;
    End_Report;
 
    CORBA.ORB.Shutdown (False);
