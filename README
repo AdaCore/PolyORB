@@ -72,9 +72,9 @@ Installation, Documentation & Examples.
 
 To see how to install the system please read file INSTALL in this
 directory. Please look under the "Doc" directory for documentation on
-how to use GLADE (user_guide.txt) and some more hints on installation
-possibilities (install_guide.txt) . Directory "Examples" contains
-some examples on how to program a distributed application in Ada 95.
+how to use GLADE and some more hints on installation possibilities.
+Directory "Examples" contains some examples on how to program a
+distributed application in Ada 95.
 
 If you have a problem making your partitions connect with each other,
 please check that:
@@ -97,6 +97,10 @@ This release is fully supported on:
   - HP/HP-UX
     * HPUX-11 with PThreads
     * HPUX-10 and above with DCEThreads using starters None and Shell
+
+It has been successfully ported on:
+  - SGI
+  - AIX
 
 Please contact ACT Europe (sales@act-europe.fr) for support
 information and future platforms availibility.
