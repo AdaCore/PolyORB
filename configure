@@ -32,7 +32,7 @@ ac_help="$ac_help
 ac_help="$ac_help
   --with-filters=list     Enumerate filter list (default=zip)"
 ac_help="$ac_help
-  --enable-glade-zlib     Force to install glade zip library"
+  --enable-glade-zlib     Force installation of glade zip library"
 ac_help="$ac_help
   --with-extra-libs=libs  Add extra libraries when building a program"
 
@@ -1363,7 +1363,7 @@ else
   if { (eval echo configure:1364: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
     for file in conftest.*; do
       case $file in
-      *.c | *.C | *.o | *.obj) ;;
+      *.c | *.o | *.obj) ;;
       *) ac_cv_exeext=`echo $file | sed -e s/conftest//` ;;
       esac
     done

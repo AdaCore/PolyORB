@@ -294,7 +294,7 @@ AC_MSG_RESULT([${FILTERSLIST}])
 # Force zip lib installation when zip filter included
 #
 AC_ARG_ENABLE(glade-zlib,
-[  --enable-glade-zlib     Force to install glade zip library],
+[  --enable-glade-zlib     Force installation of glade zip library],
 [INSTALLZIPLIB="yes"],
 [INSTALLZIPLIB="no"])
 #
