@@ -127,6 +127,7 @@ package body System.Garlic.Physical_Location is
       if Location.Data /= null then
          Destroy (Location.Data);
       end if;
+      Location := Null_Location;
    end Destroy;
 
    --------------
