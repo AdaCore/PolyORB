@@ -16,6 +16,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Derived_Type_Definition (N : Node_Id);
    procedure Generate_Designator (N : Node_Id);
    procedure Generate_Enumeration_Type_Definition (N : Node_Id);
+   procedure Generate_Exception_Declaration (N : Node_Id);
    procedure Generate_Full_Type_Declaration (N : Node_Id);
    procedure Generate_IDL_Unit_Packages (N : Node_Id);
    procedure Generate_If_Statement (N : Node_Id);
@@ -68,6 +69,9 @@ package body Backend.BE_Ada.Generator is
 
          when K_Enumeration_Type_Definition =>
             Generate_Enumeration_Type_Definition (N);
+
+         when K_Exception_Declaration =>
+            Generate_Exception_Declaration (N);
 
          when K_Full_Type_Declaration =>
             Generate_Full_Type_Declaration (N);
@@ -271,6 +275,19 @@ package body Backend.BE_Ada.Generator is
       end loop;
       Write (Tok_Right_Paren);
    end Generate_Enumeration_Type_Definition;
+
+   ------------------------------------
+   -- Generate_Exception_Declaration --
+   ------------------------------------
+
+   procedure Generate_Exception_Declaration (N : Node_Id) is
+   begin
+      Generate (Defining_Identifier (N));
+      Write_Space;
+      Write (Tok_Colon);
+      Write_Space;
+      Write (Tok_Exception);
+   end Generate_Exception_Declaration;
 
    ------------------------------------
    -- Generate_Full_Type_Declaration --

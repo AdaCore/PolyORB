@@ -128,6 +128,8 @@ module Backend::BE_Ada::Nodes {
   interface Enumeration_Type_Definition : Node_Id {
     List_Id    Enumeration_Literals;
   };
+
+
   /**************/
   /* Aggregates */
   /**************/
@@ -139,6 +141,7 @@ module Backend::BE_Ada::Nodes {
   interface Component_Association : Definition {
     Node_Id    Expression; 
   };
+
 
   /****************/
   /* Statetements */
@@ -153,6 +156,7 @@ module Backend::BE_Ada::Nodes {
   interface Assignment_Statement : Definition {
     Node_Id    Expression;  
   };
+
 
   /***************/
   /* Other nodes */
@@ -241,6 +245,8 @@ module Backend::BE_Ada::Nodes {
     Value_Id    Value;
   };
 
+  interface Exception_Declaration : Definition {
+  };
 
   /**************/
   /* Base types */

@@ -472,6 +472,22 @@ package body Backend.BE_Ada.Nutils is
    end Make_Enumeration_Type_Definition;
 
    --------------------------------
+   -- Make_Exception_Declaration --
+   --------------------------------
+
+   function Make_Exception_Declaration
+     (Defining_Identifier : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+
+   begin
+      N := New_Node (K_Exception_Declaration);
+      Set_Defining_Identifier (N, Defining_Identifier);
+      return N;
+   end Make_Exception_Declaration;
+
+   --------------------------------
    -- Make_Full_Type_Declaration --
    --------------------------------
 

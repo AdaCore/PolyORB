@@ -22,6 +22,7 @@ package body Backend.BE_Ada is
      (P_Returns,
       P_Self,
       P_To,
+      P_From,
       P_Name,
       P_Argument,
       P_Arg_Modes,
@@ -32,6 +33,7 @@ package body Backend.BE_Ada is
    type Variable_Id is
      (V_Handler,
       V_Returns,
+      V_Get_Members,
       V_Self_Ref,
       V_Send_Request_Result,
       V_Members,
@@ -65,6 +67,7 @@ package body Backend.BE_Ada is
    procedure Visit_Attribute_Declaration (E : Node_Id);
    procedure Visit_Constant_Declaration (E : Node_Id);
    procedure Visit_Enumeration_Type (E : Node_Id);
+   procedure Visit_Exception_Declaration (E : Node_Id);
    procedure Visit_Interface_Declaration (E : Node_Id);
    procedure Visit_Module (E : Node_Id);
    procedure Visit_Operation_Declaration (E : Node_Id);
@@ -75,6 +78,7 @@ package body Backend.BE_Ada is
    function Make_Accessor_Declaration
      (Accessor : Character; Attribute : Node_Id) return Node_Id;
    function Make_IDL_Unit (E : Node_Id) return Node_Id;
+   function Make_Member_Definition_List (Members : List_Id) return List_Id;
    function Make_Package_Declaration (E : Node_Id) return Node_Id;
    function Make_Repository_Declaration (E : Node_Id) return Node_Id;
 
@@ -259,6 +263,48 @@ package body Backend.BE_Ada is
 
       return P;
    end Make_IDL_Unit;
+
+   ---------------------------------
+   -- Make_Member_Definition_List --
+   ---------------------------------
+
+   function Make_Member_Definition_List (Members : List_Id) return List_Id is
+      L : List_Id;
+      M : Node_Id;
+      D : Node_Id;
+      T : Node_Id;
+      N : Node_Id;
+
+   begin
+      L := New_List (K_Component_List);
+      M := First_Entity (Members);
+      while Present (M) loop
+         D := First_Entity (Declarators (M));
+         while Present (D) loop
+            T := Make_Designator (Type_Spec (M));
+            if Kind (D) = K_Complex_Declarator then
+               Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (D))));
+               Add_Str_To_Name_Buffer ("_Array");
+               T := Make_Full_Type_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier (Name_Find),
+                  Type_Definition     => Make_Array_Type_Definition
+                    (Make_Range_Constraints (FEN.Array_Sizes (D)), T));
+               Append_Node_To_List (T, Visible_Part (Current_Package));
+               Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (D))));
+               Add_Str_To_Name_Buffer ("_Array");
+               T := New_Node (K_Designator);
+               Set_Defining_Identifier
+                 (T, Make_Defining_Identifier (Name_Find));
+            end if;
+            N := Make_Component_Declaration
+              (Make_Defining_Identifier (D), T);
+            Append_Node_To_List (N, L);
+            D := Next_Entity (D);
+         end loop;
+         M := Next_Entity (M);
+      end loop;
+      return L;
+   end Make_Member_Definition_List;
 
    ------------------------------
    -- Make_Package_Declaration --
@@ -612,6 +658,9 @@ package body Backend.BE_Ada is
          when K_Enumeration_Type =>
             Visit_Enumeration_Type (E);
 
+         when K_Exception_Declaration =>
+            Visit_Exception_Declaration (E);
+
          when K_Interface_Declaration =>
             Visit_Interface_Declaration (E);
 
@@ -732,6 +781,49 @@ package body Backend.BE_Ada is
         (Make_Repository_Declaration (E),
          Visible_Part (Current_Package));
    end Visit_Enumeration_Type;
+
+   ---------------------------------
+   -- Visit_Exception_Declaration --
+   ---------------------------------
+
+   procedure Visit_Exception_Declaration (E : Node_Id) is
+      Identifier : Node_Id;
+      Profile    : List_Id;
+      Parameter  : Node_Id;
+
+   begin
+      Set_Main_Spec;
+      Append_Node_To_List
+        (Make_Exception_Declaration (E),
+         Visible_Part (Current_Package));
+
+      Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
+      Add_Str_To_Name_Buffer ("_Members");
+      Identifier := Make_Defining_Identifier (Name_Find);
+
+      Append_Node_To_List
+        (Make_Full_Type_Declaration
+           (Defining_Identifier => Identifier,
+            Type_Definition     => Make_Record_Definition
+              (Make_Member_Definition_List (Members (E)))),
+         Visible_Part (Current_Package));
+
+      Profile  := New_List (K_Parameter_Profile);
+      Parameter := Make_Parameter_Specification
+        (Make_Defining_Identifier (PN (P_From)),
+         RE (RE_Exception_Occurrence));
+      Append_Node_To_List (Parameter, Profile);
+      Parameter := Make_Parameter_Specification
+        (Make_Defining_Identifier (PN (P_To)),
+         Identifier,
+         Mode_Out);
+      Append_Node_To_List (Parameter, Profile);
+
+      Append_Node_To_List
+        (Make_Subprogram_Specification
+           (Make_Defining_Identifier (VN (V_Get_Members)), Profile, No_Node),
+         Visible_Part (Current_Package));
+   end Visit_Exception_Declaration;
 
    ---------------------------------
    -- Visit_Interface_Declaration --
@@ -898,45 +990,14 @@ package body Backend.BE_Ada is
 
    procedure Visit_Structure_Type (E : Node_Id) is
       N : Node_Id;
-      M : Node_Id;
-      L : List_Id;
-      D : Node_Id;
-      T : Node_Id;
 
    begin
       Set_Main_Spec;
-      L := New_List (K_Component_List);
-      M := First_Entity (Members (E));
-      while Present (M) loop
-         D := First_Entity (Declarators (M));
-         while Present (D) loop
-            T := Make_Designator (Type_Spec (M));
-            if Kind (D) = K_Complex_Declarator then
-               Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (D))));
-               Add_Str_To_Name_Buffer ("_Array");
-               T := Make_Full_Type_Declaration
-                 (Defining_Identifier => Make_Defining_Identifier (Name_Find),
-                  Type_Definition     => Make_Array_Type_Definition
-                    (Make_Range_Constraints (FEN.Array_Sizes (D)), T));
-               Append_Node_To_List (T, Visible_Part (Current_Package));
-               Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (D))));
-               Add_Str_To_Name_Buffer ("_Array");
-               T := New_Node (K_Designator);
-               Set_Defining_Identifier
-                 (T, Make_Defining_Identifier (Name_Find));
-            end if;
-            N := Make_Component_Declaration
-              (Make_Defining_Identifier (D), T);
-            Append_Node_To_List (N, L);
-            D := Next_Entity (D);
-         end loop;
-         M := Next_Entity (M);
-      end loop;
-
       N := Make_Full_Type_Declaration
         (Make_Defining_Identifier (E),
          Make_Record_Type_Definition
-         (Make_Record_Definition (L)));
+         (Make_Record_Definition
+            (Make_Member_Definition_List (Members (E)))));
       Bind_FE_To_BE (E, N);
       Append_Node_To_List
         (N, Visible_Part (Current_Package));

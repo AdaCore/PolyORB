@@ -205,6 +205,10 @@ package Backend.BE_Ada.Nutils is
      (Enumeration_Literals : List_Id)
      return Node_Id;
 
+   function Make_Exception_Declaration
+     (Defining_Identifier : Node_Id)
+     return Node_Id;
+
    function Make_Full_Type_Declaration
      (Defining_Identifier : Node_Id;
       Type_Definition     : Node_Id)
@@ -234,7 +238,7 @@ package Backend.BE_Ada.Nutils is
       Constant_Present    : Boolean;
       Object_Definition   : Node_Id;
       Expression          : Node_Id)
-     return Node_Id;
+      return                Node_Id;
 
    function Make_Parameter_Specification
      (Defining_Identifier : Node_Id;
@@ -255,7 +259,7 @@ package Backend.BE_Ada.Nutils is
       Is_Abstract_Type  : Boolean := False;
       Is_Tagged_Type    : Boolean := False;
       Is_Limited_Type   : Boolean := False)
-     return Node_Id;
+      return              Node_Id;
 
    function Make_Subprogram_Call
      (Defining_Identifier : Node_Id;
@@ -266,12 +270,12 @@ package Backend.BE_Ada.Nutils is
      (Specification : Node_Id;
       Declarations  : List_Id;
       Statements    : List_Id)
-     return Node_Id;
+      return          Node_Id;
 
    function Make_Subprogram_Specification
      (Defining_Identifier : Node_Id;
       Parameter_Profile   : List_Id;
       Return_Type         : Node_Id := No_Node)
-     return Node_Id;
+      return                Node_Id;
 
 end Backend.BE_Ada.Nutils;
