@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2001, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1017,15 +1017,6 @@ package body Csets is
    end Initialize;
 
    --------------------------
-   -- Is_Upper_Case_Letter --
-   --------------------------
-
-   function Is_Upper_Case_Letter (C : Character) return Boolean is
-   begin
-      return C /= Fold_Lower (C);
-   end Is_Upper_Case_Letter;
-
-   --------------------------
    -- Is_Lower_Case_Letter --
    --------------------------
 
@@ -1033,5 +1024,14 @@ package body Csets is
    begin
       return C /= Fold_Upper (C);
    end Is_Lower_Case_Letter;
+
+   --------------------------
+   -- Is_Upper_Case_Letter --
+   --------------------------
+
+   function Is_Upper_Case_Letter (C : Character) return Boolean is
+   begin
+      return C /= Fold_Lower (C);
+   end Is_Upper_Case_Letter;
 
 end Csets;

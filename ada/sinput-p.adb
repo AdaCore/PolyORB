@@ -183,6 +183,7 @@ package body Sinput.P is
                Instantiation       => No_Location,
                Keyword_Casing      => Unknown,
                Last_Source_Line    => 1,
+               License             => Unknown,
                Lines_Table         => null,
                Lines_Table_Max     => 1,
                Logical_Lines_Table => null,

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -78,14 +78,14 @@ package body Debug is
    --  dH
    --  dI   Inhibit internal name numbering in gnatG listing
    --  dJ   Output debugging trace info for JGNAT (Java VM version of GNAT)
-   --  dK
+   --  dK   Kill all error messages
    --  dL   Output trace information on elaboration checking
    --  dM
    --  dN   Do not generate file/line exception messages
    --  dO   Output immediate error messages
    --  dP   Do not check for controlled objects in preelaborable packages
    --  dQ
-   --  dR   Bypass check for correct vesion of s-rpc
+   --  dR   Bypass check for correct version of s-rpc
    --  dS   Never convert numbers to machine numbers in Sem_Eval
    --  dT   Convert to machine numbers only for constant declarations
    --  dU   Enable garbage collection of unreachable entities
@@ -248,6 +248,10 @@ package body Debug is
    --       Comperr.Compiler_Abort), the GNATBUG message is not given if
    --       there is a previous error. This debug switch bypasses this test
    --       and gives the message unconditionally (useful for debugging).
+
+   --  dK   Kill all error messages. This debug flag suppresses the output
+   --       of all error messages. It is used in regression tests where the
+   --       error messages are target dependent and irrelevant.
 
    --  dl   Generate unit load trace messages. A line of traceback output is
    --       generated each time a request is made to the library manager to

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2001, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -237,107 +237,105 @@ package body Uname is
 
          --  Otherwise see what kind of node we have
 
-         elsif Kind = N_Identifier
-           or else Kind = N_Defining_Identifier
-           or else Kind = N_Defining_Operator_Symbol
-         then
-            --  Note: it is of course an error to have a defining operator
-            --  symbol at this point, but this is not where the error is
-            --  signalled, so we handle it nicely here!
-
-            Add_Name (Chars (Node));
-
-         elsif Kind = N_Defining_Program_Unit_Name then
-            Add_Node_Name (Name (Node));
-            Add_Char ('.');
-            Add_Node_Name (Defining_Identifier (Node));
-
-         elsif Kind = N_Selected_Component
-           or else Kind = N_Expanded_Name
-         then
-            Add_Node_Name (Prefix (Node));
-            Add_Char ('.');
-            Add_Node_Name (Selector_Name (Node));
-
-         elsif Kind in N_Subprogram_Specification
-           or else Kind = N_Package_Specification
-         then
-            Add_Node_Name (Defining_Unit_Name (Node));
-
-         elsif Kind = N_Subprogram_Body
-           or else Kind = N_Subprogram_Declaration
-           or else Nkind (Node) = N_Package_Declaration
-           or else Nkind (Node) in N_Generic_Declaration
-         then
-            Add_Node_Name (Specification (Node));
-
-         elsif Kind in N_Generic_Instantiation then
-            Add_Node_Name (Defining_Unit_Name (Node));
-
-         elsif Kind = N_Package_Body then
-            Add_Node_Name (Defining_Unit_Name (Node));
-
-         elsif Kind = N_Task_Body
-           or else Kind = N_Protected_Body
-         then
-            Add_Node_Name (Defining_Identifier (Node));
-
-         elsif Kind = N_Package_Renaming_Declaration then
-            Add_Node_Name (Defining_Unit_Name (Node));
-
-         elsif Kind = N_Subprogram_Renaming_Declaration then
-            Add_Node_Name (Specification (Node));
-
-         elsif Kind in N_Generic_Renaming_Declaration then
-            Add_Node_Name (Defining_Unit_Name (Node));
-
-         elsif Kind = N_Subprogram_Body_Stub then
-            Add_Node_Name (Get_Parent (Node));
-            Add_Char ('.');
-            Add_Node_Name (Specification (Node));
-
-         elsif Kind = N_Compilation_Unit then
-            Add_Node_Name (Unit (Node));
-
-         elsif Kind = N_Package_Body_Stub then
-            Add_Node_Name (Get_Parent (Node));
-            Add_Char ('.');
-            Add_Node_Name (Defining_Identifier (Node));
-
-         elsif Kind = N_Task_Body_Stub
-           or else Kind = N_Protected_Body_Stub
-         then
-            Add_Node_Name (Get_Parent (Node));
-            Add_Char ('.');
-            Add_Node_Name (Defining_Identifier (Node));
-
-         elsif Kind = N_Subunit then
-            Add_Node_Name (Name (Node));
-            Add_Char ('.');
-            Add_Node_Name (Proper_Body (Node));
-
-         elsif Kind = N_With_Clause then
-            Add_Node_Name (Name (Node));
-
-         elsif Kind = N_Pragma then
-            Add_Node_Name (Expression (First
-              (Pragma_Argument_Associations (Node))));
-
-         --  Tasks and protected stuff appear only in an error context, but
-         --  the error has been posted elsewhere, so we deal nicely with
-         --  these error situations here, and produce a reasonable unit name
-         --  using the defining identifier.
-
-         elsif Kind = N_Task_Type_Declaration
-           or else Kind = N_Single_Task_Declaration
-           or else Kind = N_Protected_Type_Declaration
-           or else Kind = N_Single_Protected_Declaration
-         then
-            Add_Node_Name (Defining_Identifier (Node));
-
          else
-            pragma Assert (False);
-            raise Program_Error;
+            case Kind is
+
+               when N_Identifier                      |
+                    N_Defining_Identifier             |
+                    N_Defining_Operator_Symbol        =>
+
+                  --  Note: it is of course an error to have a defining
+                  --  operator symbol at this point, but this is not where
+                  --  the error is signalled, so we handle it nicely here!
+
+                  Add_Name (Chars (Node));
+
+               when N_Defining_Program_Unit_Name      =>
+                  Add_Node_Name (Name (Node));
+                  Add_Char ('.');
+                  Add_Node_Name (Defining_Identifier (Node));
+
+               when N_Selected_Component              |
+                    N_Expanded_Name                   =>
+                  Add_Node_Name (Prefix (Node));
+                  Add_Char ('.');
+                  Add_Node_Name (Selector_Name (Node));
+
+               when N_Subprogram_Specification        |
+                    N_Package_Specification           =>
+                  Add_Node_Name (Defining_Unit_Name (Node));
+
+               when N_Subprogram_Body                 |
+                    N_Subprogram_Declaration          |
+                    N_Package_Declaration             |
+                    N_Generic_Declaration             =>
+                  Add_Node_Name (Specification (Node));
+
+               when N_Generic_Instantiation           =>
+                  Add_Node_Name (Defining_Unit_Name (Node));
+
+               when N_Package_Body                    =>
+                  Add_Node_Name (Defining_Unit_Name (Node));
+
+               when N_Task_Body                       |
+                    N_Protected_Body                  =>
+                  Add_Node_Name (Defining_Identifier (Node));
+
+               when N_Package_Renaming_Declaration    =>
+                  Add_Node_Name (Defining_Unit_Name (Node));
+
+               when N_Subprogram_Renaming_Declaration =>
+                  Add_Node_Name (Specification (Node));
+
+               when N_Generic_Renaming_Declaration   =>
+                  Add_Node_Name (Defining_Unit_Name (Node));
+
+               when N_Subprogram_Body_Stub            =>
+                  Add_Node_Name (Get_Parent (Node));
+                  Add_Char ('.');
+                  Add_Node_Name (Specification (Node));
+
+               when N_Compilation_Unit                =>
+                  Add_Node_Name (Unit (Node));
+
+               when N_Package_Body_Stub               =>
+                  Add_Node_Name (Get_Parent (Node));
+                  Add_Char ('.');
+                  Add_Node_Name (Defining_Identifier (Node));
+
+               when N_Task_Body_Stub                  |
+                    N_Protected_Body_Stub             =>
+                  Add_Node_Name (Get_Parent (Node));
+                  Add_Char ('.');
+                  Add_Node_Name (Defining_Identifier (Node));
+
+               when N_Subunit                         =>
+                  Add_Node_Name (Name (Node));
+                  Add_Char ('.');
+                  Add_Node_Name (Proper_Body (Node));
+
+               when N_With_Clause                     =>
+                  Add_Node_Name (Name (Node));
+
+               when N_Pragma                          =>
+                  Add_Node_Name (Expression (First
+                    (Pragma_Argument_Associations (Node))));
+
+               --  Tasks and protected stuff appear only in an error context,
+               --  but the error has been posted elsewhere, so we deal nicely
+               --  with these error situations here, and produce a reasonable
+               --  unit name using the defining identifier.
+
+               when N_Task_Type_Declaration           |
+                    N_Single_Task_Declaration         |
+                    N_Protected_Type_Declaration      |
+                    N_Single_Protected_Declaration    =>
+                  Add_Node_Name (Defining_Identifier (Node));
+
+               when others =>
+                  raise Program_Error;
+
+            end case;
          end if;
       end Add_Node_Name;
 
@@ -386,37 +384,37 @@ package body Uname is
       Add_Node_Name (Node);
       Add_Char ('%');
 
-      if Nkind (Node) in N_Generic_Declaration
-        or else Nkind (Node) = N_Subprogram_Declaration
-        or else Nkind (Node) = N_Package_Declaration
-        or else Nkind (Node) = N_With_Clause
-        or else Nkind (Node) = N_Pragma
-        or else Nkind (Node) in N_Generic_Instantiation
-        or else Nkind (Node) = N_Package_Renaming_Declaration
-        or else Nkind (Node) = N_Subprogram_Renaming_Declaration
-        or else Nkind (Node) in N_Generic_Renaming_Declaration
-        or else Nkind (Node) = N_Single_Task_Declaration
-        or else Nkind (Node) = N_Single_Protected_Declaration
-        or else Nkind (Node) = N_Task_Type_Declaration
-        or else Nkind (Node) = N_Protected_Type_Declaration
-      then
-         Add_Char ('s');
+      case Nkind (Node) is
+         when N_Generic_Declaration             |
+              N_Subprogram_Declaration          |
+              N_Package_Declaration             |
+              N_With_Clause                     |
+              N_Pragma                          |
+              N_Generic_Instantiation           |
+              N_Package_Renaming_Declaration    |
+              N_Subprogram_Renaming_Declaration |
+              N_Generic_Renaming_Declaration    |
+              N_Single_Task_Declaration         |
+              N_Single_Protected_Declaration    |
+              N_Task_Type_Declaration           |
+              N_Protected_Type_Declaration      =>
 
-      elsif Nkind (Node) = N_Subprogram_Body
-        or else Nkind (Node) = N_Package_Body
-        or else Nkind (Node) = N_Subunit
-        or else Nkind (Node) in N_Body_Stub
-        or else Nkind (Node) = N_Task_Body
-        or else Nkind (Node) = N_Protected_Body
-        or else Nkind (Node) = N_Identifier
-        or else Nkind (Node) = N_Selected_Component
-      then
-         Add_Char ('b');
+            Add_Char ('s');
 
-      else
-         pragma Assert (False);
-         raise Program_Error;
-      end if;
+         when N_Subprogram_Body                 |
+              N_Package_Body                    |
+              N_Subunit                         |
+              N_Body_Stub                       |
+              N_Task_Body                       |
+              N_Protected_Body                  |
+              N_Identifier                      |
+              N_Selected_Component              =>
+
+            Add_Char ('b');
+
+         when others =>
+            raise Program_Error;
+      end case;
 
       Name_Buffer (1 .. Unit_Name_Length) :=
         Unit_Name_Buffer (1 .. Unit_Name_Length);
@@ -562,6 +560,24 @@ package body Uname is
    end New_Child;
 
    --------------
+   -- Uname_Ge --
+   --------------
+
+   function Uname_Ge (Left, Right : Unit_Name_Type) return Boolean is
+   begin
+      return Left = Right or else Uname_Gt (Left, Right);
+   end Uname_Ge;
+
+   --------------
+   -- Uname_Gt --
+   --------------
+
+   function Uname_Gt (Left, Right : Unit_Name_Type) return Boolean is
+   begin
+      return Left /= Right and then not Uname_Lt (Left, Right);
+   end Uname_Gt;
+
+   --------------
    -- Uname_Le --
    --------------
 
@@ -623,24 +639,6 @@ package body Uname is
 
       return Left_Name (J + 1) = 's';
    end Uname_Lt;
-
-   --------------
-   -- Uname_Ge --
-   --------------
-
-   function Uname_Ge (Left, Right : Unit_Name_Type) return Boolean is
-   begin
-      return Left = Right or else Uname_Gt (Left, Right);
-   end Uname_Ge;
-
-   --------------
-   -- Uname_Gt --
-   --------------
-
-   function Uname_Gt (Left, Right : Unit_Name_Type) return Boolean is
-   begin
-      return Left /= Right and then not Uname_Lt (Left, Right);
-   end Uname_Gt;
 
    ---------------------
    -- Write_Unit_Name --

@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -125,20 +125,6 @@ package body Tree_IO is
    pragma Inline (Write_Byte);
    --  Write one byte to output buffer, checking for buffer-full condition
 
-   ---------------
-   -- Read_Byte --
-   ---------------
-
-   function Read_Byte return Byte is
-   begin
-      if Bufn = Buft then
-         Read_Buffer;
-      end if;
-
-      Bufn := Bufn + 1;
-      return Buf (Bufn);
-   end Read_Byte;
-
    -----------------
    -- Read_Buffer --
    -----------------
@@ -153,6 +139,20 @@ package body Tree_IO is
          Bufn := 0;
       end if;
    end Read_Buffer;
+
+   ---------------
+   -- Read_Byte --
+   ---------------
+
+   function Read_Byte return Byte is
+   begin
+      if Bufn = Buft then
+         Read_Buffer;
+      end if;
+
+      Bufn := Bufn + 1;
+      return Buf (Bufn);
+   end Read_Byte;
 
    --------------------
    -- Tree_Read_Bool --

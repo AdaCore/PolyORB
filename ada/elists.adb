@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -142,50 +142,6 @@ package body Elists is
       end if;
    end Append_Elmt;
 
-   ------------------
-   -- Prepend_Elmt --
-   ------------------
-
-   procedure Prepend_Elmt (Node : Node_Id; To : Elist_Id) is
-      F : constant Elmt_Id := Elists.Table (To).First;
-
-   begin
-      Elmts.Increment_Last;
-      Elmts.Table (Elmts.Last).Node := Node;
-
-      if F = No_Elmt then
-         Elists.Table (To).Last := Elmts.Last;
-         Elmts.Table (Elmts.Last).Next := Union_Id (To);
-      else
-         Elmts.Table (Elmts.Last).Next := Union_Id (F);
-      end if;
-
-      Elists.Table (To).First  := Elmts.Last;
-
-   end Prepend_Elmt;
-
-   -----------------------
-   -- Insert_Elmt_After --
-   -----------------------
-
-   procedure Insert_Elmt_After (Node : Node_Id; Elmt : Elmt_Id) is
-      N : constant Union_Id := Elmts.Table (Elmt).Next;
-
-   begin
-
-      pragma Assert (Elmt /= No_Elmt);
-
-      Elmts.Increment_Last;
-      Elmts.Table (Elmts.Last).Node := Node;
-      Elmts.Table (Elmts.Last).Next := N;
-
-      Elmts.Table (Elmt).Next := Union_Id (Elmts.Last);
-
-      if N in Elist_Range then
-         Elists.Table (Elist_Id (N)).Last := Elmts.Last;
-      end if;
-   end Insert_Elmt_After;
-
    --------------------
    -- Elists_Address --
    --------------------
@@ -223,6 +179,28 @@ package body Elists is
       Elists.Init;
       Elmts.Init;
    end Initialize;
+
+   -----------------------
+   -- Insert_Elmt_After --
+   -----------------------
+
+   procedure Insert_Elmt_After (Node : Node_Id; Elmt : Elmt_Id) is
+      N : constant Union_Id := Elmts.Table (Elmt).Next;
+
+   begin
+
+      pragma Assert (Elmt /= No_Elmt);
+
+      Elmts.Increment_Last;
+      Elmts.Table (Elmts.Last).Node := Node;
+      Elmts.Table (Elmts.Last).Next := N;
+
+      Elmts.Table (Elmt).Next := Union_Id (Elmts.Last);
+
+      if N in Elist_Range then
+         Elists.Table (Elist_Id (N)).Last := Elmts.Last;
+      end if;
+   end Insert_Elmt_After;
 
    ------------------------
    -- Is_Empty_Elmt_List --
@@ -346,6 +324,28 @@ package body Elists is
    begin
       return Int (Elmts.Last) - Int (Elmts.First) + 1;
    end Num_Elists;
+
+   ------------------
+   -- Prepend_Elmt --
+   ------------------
+
+   procedure Prepend_Elmt (Node : Node_Id; To : Elist_Id) is
+      F : constant Elmt_Id := Elists.Table (To).First;
+
+   begin
+      Elmts.Increment_Last;
+      Elmts.Table (Elmts.Last).Node := Node;
+
+      if F = No_Elmt then
+         Elists.Table (To).Last := Elmts.Last;
+         Elmts.Table (Elmts.Last).Next := Union_Id (To);
+      else
+         Elmts.Table (Elmts.Last).Next := Union_Id (F);
+      end if;
+
+      Elists.Table (To).First  := Elmts.Last;
+
+   end Prepend_Elmt;
 
    -------------
    -- Present --

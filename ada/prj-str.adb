@@ -107,11 +107,13 @@ package body Prj.Str is
       case The_Value.Kind is
          when Undefined | Single =>
             return The_Value;
+
          when List =>
             declare
                Result : Variable_Value (List);
                Origin : String_List_Id := The_Value.Values;
                Destin : String_List_Id;
+
             begin
                if Origin /= Nil_String then
                   String_Elements.Increment_Last;
@@ -121,6 +123,7 @@ package body Prj.Str is
                     (Value => String_Elements.Table (Origin).Value,
                      Location => Location,
                      Next => Nil_String);
+
                   loop
                      Origin := String_Elements.Table (Origin).Next;
                      exit when Origin = Nil_String;
@@ -146,7 +149,7 @@ package body Prj.Str is
    function External_Value
      (Project : Project_Data;
       Pkg     : Package_Id)
-      return     String_Id
+      return    String_Id
    is
    begin
       --  The current token is External
@@ -154,7 +157,6 @@ package body Prj.Str is
       --  Get the left parenthesis
 
       Scan;
-
       Expect (Tok_Left_Paren, "(");
 
       --  Scan past the left parenthesis
@@ -237,6 +239,33 @@ package body Prj.Str is
       return No_String;
    end Single_String_Term;
 
+   ----------------------------------
+   -- Single_String_Variable_Value --
+   ----------------------------------
+
+   function Single_String_Variable_Value
+     (Project : Project_Data;
+      Pkg     : Package_Id)
+      return    String_Id
+   is
+      The_Variable_Value : constant Variable_Value :=
+                             Value_Of_Variable (Project => Project,
+                                                Pkg => Pkg,
+                                                Do_Not_Skip => False);
+   begin
+      case The_Variable_Value.Kind is
+         when Undefined =>
+            return No_String;
+
+         when Single =>
+            return The_Variable_Value.Value;
+
+         when List =>
+            Error_Msg_BC ("variable cannot be list");
+            return No_String;
+      end case;
+   end Single_String_Variable_Value;
+
    -----------
    -- Value --
    -----------
@@ -245,12 +274,12 @@ package body Prj.Str is
      (Project     : Project_Data;
       Pkg         : Package_Id;
       Do_Not_Skip : Boolean)
-     return       Variable_Value
+      return        Variable_Value
    is
       Result : Variable_Value := Nil_Variable_Value;
       Last   : String_List_Id := Nil_String;
-   begin
 
+   begin
       loop
          case Token is
 
@@ -280,13 +309,12 @@ package body Prj.Str is
                   Values     : String_List_Id := Nil_String;
 
                begin
-
                   Scan;
 
                   if Token = Tok_Right_Paren then
                      Scan;
-                  else
 
+                  else
                      Location := Scan_Ptr;
                      The_String := Prj.Str.Value (Project, Pkg);
 
@@ -300,7 +328,6 @@ package body Prj.Str is
                      end if;
 
                      loop
-
                         case Token is
                            when Tok_Right_Paren =>
                               Scan;
@@ -351,30 +378,34 @@ package body Prj.Str is
             when Tok_String_Literal | Tok_External =>
                declare
                   The_String : String_Id;
-                  Location : Source_Ptr := Scan_Ptr;
+                  Location   : Source_Ptr := Scan_Ptr;
+
                begin
                   if Token = Tok_String_Literal then
                      The_String := Strval (Token_Node);
                   else
                      The_String := External_Value (Project, Pkg);
                   end if;
+
                   case Result.Kind is
                      when Undefined =>
                         Result := (Kind => Single,
                                    Location => No_Location,
                                    Value => The_String);
+
                      when Single =>
                         Add (Result.Value, The_String);
+
                      when List =>
                         if Do_Not_Skip then
                            String_Elements.Increment_Last;
                            String_Elements.Table (Last).Next :=
                              String_Elements.Last;
                            Last := String_Elements.Last;
-                           String_Elements.Table (Last)
-                             := (Value    => The_String,
-                                 Location => Location,
-                                 Next     => Nil_String);
+                           String_Elements.Table (Last) :=
+                             (Value    => The_String,
+                              Location => Location,
+                              Next     => Nil_String);
                         end if;
                   end case;
 
@@ -384,8 +415,10 @@ package body Prj.Str is
 
             when Tok_Identifier =>
                declare
-                  The_Variable_Value : constant Variable_Value
-                    := Value_Of_Variable (Project, Pkg, Do_Not_Skip);
+                  The_Variable_Value : constant Variable_Value :=
+                                         Value_Of_Variable
+                                           (Project, Pkg, Do_Not_Skip);
+
                begin
                   if The_Variable_Value.Kind /= Undefined then
                      case Result.Kind is
@@ -394,21 +427,25 @@ package body Prj.Str is
                            if The_Variable_Value.Kind = List then
                               Last := The_Variable_Value.Values;
                            end if;
+
                         when List =>
                            if Do_Not_Skip then
                               if The_Variable_Value.Kind = Single then
                                  String_Elements.Increment_Last;
+
                                  if Result.Values = Nil_String then
                                     Result.Values := String_Elements.Last;
                                  else
                                     String_Elements.Table (Last).Next :=
                                       String_Elements.Last;
                                  end if;
+
                                  Last := String_Elements.Last;
                                  String_Elements.Table (Last) :=
                                    (Value => The_Variable_Value.Value,
                                     Location => The_Variable_Value.Location,
                                     Next => Nil_String);
+
                               else -- It is a string list
                                  if Result.Values = Nil_String then
                                     Last := The_Variable_Value.Values;
@@ -419,6 +456,7 @@ package body Prj.Str is
                                  end if;
                               end if;
                            end if;
+
                         when Single =>
                            if The_Variable_Value.Kind = List then
                               Error_Msg_BC
@@ -428,6 +466,7 @@ package body Prj.Str is
                               Add (Result.Value, The_Variable_Value.Value);
                            end if;
                      end case;
+
                      if Do_Not_Skip
                        and then The_Variable_Value.Kind = List
                      then
@@ -450,11 +489,9 @@ package body Prj.Str is
          exit when Token /= Tok_Ampersand;
 
          Scan;
-
       end loop;
 
       return Result;
-
    end Value;
 
    function Value
@@ -472,13 +509,12 @@ package body Prj.Str is
          String_To_Name_Buffer (Result);
          return Name_Find;
       end if;
-
    end Value;
 
    function Value
-     (Project    : Project_Data;
-      Pkg        : Package_Id)
-      return       String
+     (Project : Project_Data;
+      Pkg     : Package_Id)
+      return    String
    is
       Result : String_Id := Value (Project, Pkg);
 
@@ -537,11 +573,15 @@ package body Prj.Str is
             if The_Variable.Name = Name then
                if not Do_Not_Skip or else The_Variable.Value.Kind = Single then
                   return The_Variable.Value;
-               else -- duplicate string list
+
+               --  Duplicate string list
+
+               else
                   declare
                      Result : Variable_Value (Kind => List);
                      Origin : String_List_Id := The_Variable.Value.Values;
                      Destin : String_List_Id;
+
                   begin
                      if Origin /= Nil_String then
                         String_Elements.Increment_Last;
@@ -551,6 +591,7 @@ package body Prj.Str is
                           (Value => String_Elements.Table (Origin).Value,
                            Location => Location,
                            Next => Nil_String);
+
                         loop
                            Origin := String_Elements.Table (Origin).Next;
                            exit when Origin = Nil_String;
@@ -564,6 +605,7 @@ package body Prj.Str is
                               Next => Nil_String);
                         end loop;
                      end if;
+
                      return Result;
                   end;
                end if;
@@ -617,16 +659,20 @@ package body Prj.Str is
 
       declare
          The_Scan_State : Saved_Scan_State;
+
       begin
          Save_Scan_State (The_Scan_State);
          Scan;
+
          if Token /= Tok_Dot then
             Restore_Scan_State (The_Scan_State);
+
          else
             declare
-               Current : Project_List := Project.Imported_Projects;
-               Element : Project_Element;
+               Current  : Project_List := Project.Imported_Projects;
+               Element  : Project_Element;
                Imported : Project_Id := No_Project;
+
             begin
                if Project.Modifies /= No_Project then
                   if Projects.Table (Project.Modifies).Name = Name then
@@ -668,33 +714,43 @@ package body Prj.Str is
                   Error_Msg_BC
                     ("not a project imported by this project");
                   return Nil_Variable_Value;
+
                else
                   declare
                      The_Package  : Package_Id := No_Package;
                      Current_Decl : Declarations;
                      The_Value    : Prj.Variable_Value;
+
                   begin
                      loop
                         Scan;
                         Expect (Tok_Identifier, "identifier");
+
                         if Token /= Tok_Identifier then
                            return Nil_Variable_Value;
+
                         else
                            Name := Token_Name;
+
                            if The_Package = No_Package then
                               Current_Decl :=
                                 Projects.Table (Imported).Decl;
+
                            else
                               Current_Decl :=
                                 Packages.Table (The_Package).Decl;
                            end if;
+
                            The_Value :=
                              Value_Of (Name, Current_Decl.Variables);
+
                            case The_Value.Kind is
                               when Undefined =>
                                  null;
+
                               when Single =>
                                  return The_Value;
+
                               when List =>
                                  if not Do_Not_Skip then
                                     return The_Value;
@@ -702,15 +758,19 @@ package body Prj.Str is
                                     return Duplicate (The_Value, Scan_Ptr);
                                  end if;
                            end case;
+
                            The_Package :=
                              Value_Of (Name, Current_Decl.Packages);
+
                            if The_Package = No_Package then
                               Error_Msg_BC
                                 ("package or variable name expected");
                               return Nil_Variable_Value;
                            end if;
+
                            Scan;
                            Expect (Tok_Dot, ".");
+
                            if Token /= Tok_Dot then
                               return Nil_Variable_Value;
                            end if;
@@ -725,30 +785,5 @@ package body Prj.Str is
       Error_Msg_BC ("unknown variable");
       return Nil_Variable_Value;
    end Value_Of_Variable;
-
-   ----------------------------------
-   -- Single_String_Variable_Value --
-   ----------------------------------
-
-   function Single_String_Variable_Value
-     (Project : Project_Data;
-      Pkg     : Package_Id)
-      return    String_Id
-   is
-      The_Variable_Value : constant Variable_Value :=
-        Value_Of_Variable (Project => Project,
-                           Pkg => Pkg,
-                           Do_Not_Skip => False);
-   begin
-      case The_Variable_Value.Kind is
-         when Undefined =>
-            return No_String;
-         when Single =>
-            return The_Variable_Value.Value;
-         when List =>
-            Error_Msg_BC ("variable cannot be list");
-            return No_String;
-      end case;
-   end Single_String_Variable_Value;
 
 end Prj.Str;

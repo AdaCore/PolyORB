@@ -384,29 +384,6 @@ package body Uintp is
       Uintp.Release (Marks);
    end Image_Out;
 
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize is
-   begin
-      Uints.Init;
-      Udigits.Init;
-
-      Uint_Int_First := UI_From_Int (Int'First);
-      Uint_Int_Last  := UI_From_Int (Int'Last);
-
-      UI_Power_2 (0) := Uint_1;
-      UI_Power_2_Set := 0;
-
-      UI_Power_10 (0) := Uint_1;
-      UI_Power_10_Set := 0;
-
-      Uints_Min := Uints.Last;
-      Udigits_Min := Udigits.Last;
-
-   end Initialize;
-
    -------------------
    -- Init_Operand --
    -------------------
@@ -431,6 +408,29 @@ package body Uintp is
          end loop;
       end if;
    end Init_Operand;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      Uints.Init;
+      Udigits.Init;
+
+      Uint_Int_First := UI_From_Int (Int'First);
+      Uint_Int_Last  := UI_From_Int (Int'Last);
+
+      UI_Power_2 (0) := Uint_1;
+      UI_Power_2_Set := 0;
+
+      UI_Power_10 (0) := Uint_1;
+      UI_Power_10_Set := 0;
+
+      Uints_Min := Uints.Last;
+      Udigits_Min := Udigits.Last;
+
+   end Initialize;
 
    ---------------------
    -- Least_Sig_Digit --
@@ -1765,92 +1765,6 @@ package body Uintp is
    begin
       return UI_Lt (Right, Left);
    end UI_Gt;
-
-   --------------
-   -- UI_Halve --
-   --------------
-
-   function UI_Halve (Arg : Uint) return Uint is
-      --  ???This still has bugs in it. Do not use yet.
-      --  In particular UI_Halve (-UI_From_Int (Base)) causes
-      --  segmentation violation on a pentium.
-
-   begin
-      pragma Assert (False); -- ???
-
-      if Int (Arg) <= Int (Uint_Direct_Last) then
-         return Uint (
-            (Int (Arg) - Int (Uint_Direct_Bias)) / Int_2 +
-               Int (Uint_Direct_Bias));
-
-      else
-         declare
-            Result : Uint := Uint (Uints.Last + Int_1);
-            Carry  : Int;
-            Length : Int;
-            Neg    : constant Boolean :=
-                       Udigits.Table (Uints.Table (Arg).Loc) < Int_0;
-
-         begin
-            Uints.Increment_Last;
-            Uints.Table (Result).Loc := Udigits.Last + 1;
-
-            Carry := 0;
-            for J in Int range 0 .. Uints.Table (Arg).Length - 1 loop
-               Udigits.Increment_Last;
-
-               declare
-                  Input : constant Int :=
-                            abs Int
-                              (Udigits.Table (Uints.Table (Arg).Loc + J));
-
-               begin
-                  Udigits.Table (Uints.Table (Result).Loc + J) :=
-                    Carry * (Base / 2) + Input / 2;
-                  Carry := Input mod 2;
-               end;
-            end loop;
-
-            --  Check result got one digit smaller. Note we leave an unused
-            --  digit in the Udigits table in this case, which does not matter
-
-            if Int (Udigits.Table (Uints.Table (Result).Loc)) = Int_0 then
-               Uints.Table (Result).Loc := Uints.Table (Result).Loc + 1;
-            end if;
-
-            Length := Udigits.Last + 1 - Uints.Table (Result).Loc;
-
-            --  Case of length got reduced to one digit
-
-            if Length = Int_1 then
-
-               declare
-                  Result_Int : constant Int := Udigits.Table (Udigits.Last);
-
-               begin
-                  Udigits.Set_Last (Uints.Table (Result).Loc - 1);
-                  Uints.Decrement_Last;
-
-                  if Neg then
-                     return Uint (Int (Uint_Direct_Bias) - Result_Int);
-                  else
-                     return Uint (Int (Uint_Direct_Bias) + Result_Int);
-                  end if;
-               end;
-
-            --  Normal case of result length > 1
-
-
-            else
-               if Neg then
-                  Udigits.Table (Uints.Table (Result).Loc) :=
-                     -Udigits.Table (Uints.Table (Result).Loc);
-               end if;
-               return Result;
-            end if;
-         end;
-      end if;
-   end UI_Halve;
 
    ---------------
    -- UI_Image --

@@ -160,10 +160,6 @@ package Uintp is
    pragma Inline (UI_Gt);
    --  Compares integer values for greater than.
 
-   function UI_Halve (Arg : Uint) return Uint;
-   --  Returns the Uint obtained by dividing the given value by 2. Same
-   --  result as Arg / 2, but computed with a much faster algorithm
-
    function UI_Is_In_Int_Range (Input : Uint) return Boolean;
    pragma Inline (UI_Is_In_Int_Range);
    --  Determines if universal integer is in Int range.

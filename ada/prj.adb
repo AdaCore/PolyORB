@@ -82,10 +82,9 @@ package body Prj is
       Objects_Path       => null,
       Gnat_Adc_Generated => False);
 
-   function Image (Casing : Casing_Type) return String is
-   begin
-      return The_Casing_Images (Casing).all;
-   end Image;
+   -------------------
+   -- Empty_Project --
+   -------------------
 
    function Empty_Project return Project_Data is
    begin
@@ -103,6 +102,15 @@ package body Prj is
          Error_Msg_BC ("""" & Token_Image & """ expected");
       end if;
    end Expect;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image (Casing : Casing_Type) return String is
+   begin
+      return The_Casing_Images (Casing).all;
+   end Image;
 
    ----------------
    -- Initialize --

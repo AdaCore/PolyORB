@@ -413,120 +413,6 @@ package body Prj.Env is
       procedure Put_Line (File : in File_Descriptor; S : in String);
       --  Put a string followed by end of line to a file
 
-      --------------------
-      -- Check_Gnat_Adc --
-      --------------------
-
-      procedure Check_Gnat_Adc is
-      begin
-         --  Nothing to do if gnat.adc has been created
-
-         if not Gnat_Adc_Created then
-            declare
-               Saved_File : File_Descriptor;
-               Buffer     : String (1 .. 1000);
-               Last_In    : Natural;
-               Last_Out   : Natural;
-               Dummy      : Boolean;
-
-            begin
-               --  Try to read an already existing gnat.adc
-
-               File := Open_Read (Gnat_Adc_File_Name'Address,
-                                  GNAT.OS_Lib.Text);
-
-               --  If there is an existing gnat.adc
-
-               if File /= Invalid_FD then
-
-                  --  Create a new file to save it
-
-                  loop
-                     Saved_File := Create_New_File
-                       (Saved_Gnat_Adc_File_Name'Address,
-                        GNAT.OS_Lib.Text);
-                     exit when Saved_File /= Invalid_FD;
-                     Saved_Gnat_Adc_File_Name (Digit_Pos) :=
-                       Character'Succ
-                       (Saved_Gnat_Adc_File_Name (Digit_Pos));
-                  end loop;
-
-                  if Current_Verbosity = High then
-                     Write_Str ("Saving existing gnat.adc in gnat");
-                     Write_Char (Saved_Gnat_Adc_File_Name (Digit_Pos));
-                     Write_Line (".adc");
-                  end if;
-
-                  --  And copy gnat.adc into this new file
-
-                  loop
-                     Last_In := Read (File, Buffer'Address, Buffer'Length);
-                     Last_Out := Write (Saved_File, Buffer'Address, Last_In);
-
-                     if Last_In /= Last_Out then
-                        Osint.Fail ("Disk full");
-                     end if;
-
-                     exit when Last_In /= Buffer'Length;
-                  end loop;
-
-                  --  Close the open files, and delete the existing gnat.adc
-
-                  Close (File);
-                  Close (Saved_File);
-                  Delete_File (Gnat_Adc_File_Name'Address, Dummy);
-                  Gnat_Adc_Saved := True;
-               end if;
-
-               --  Now, create a new gnat.adc
-
-               File := Create_New_File
-                 (Gnat_Adc_File_Name'Address,
-                  GNAT.OS_Lib.Text);
-
-               --  If we just saved an existing one
-
-               if Gnat_Adc_Saved then
-                  declare
-                     Saved_File : File_Descriptor;
-                     Buffer     : String (1 .. 1000);
-                     Last_In    : Natural;
-                     Last_Out   : Natural;
-
-                  begin
-                     --  Copy it in the new gnat.adc
-
-                     Saved_File :=
-                       Open_Read (Saved_Gnat_Adc_File_Name'Address,
-                                  GNAT.OS_Lib.Text);
-                     loop
-                        Last_In := Read
-                          (Saved_File, Buffer'Address, Buffer'Length);
-                        Last_Out := Write
-                          (File, Buffer'Address, Last_In);
-
-                        if Last_Out /= Last_In then
-                           Osint.Fail ("Disk full");
-                        end if;
-
-                        exit when Last_In /= Buffer'Length;
-                     end loop;
-
-                     --  Close the saved gnat.adc, but keep the new one
-                     --  open, of course.
-
-                     Close (Saved_File);
-                  end;
-               end if;
-
-               --  Indicate that gnat.adc has been create,
-               --  so that we don't do it again
-
-               Gnat_Adc_Created := True;
-            end;
-         end if;
-      end Check_Gnat_Adc;
-
       -----------
       -- Check --
       -----------
@@ -648,6 +534,120 @@ package body Prj.Env is
             end;
          end if;
       end Check;
+
+      --------------------
+      -- Check_Gnat_Adc --
+      --------------------
+
+      procedure Check_Gnat_Adc is
+      begin
+         --  Nothing to do if gnat.adc has been created
+
+         if not Gnat_Adc_Created then
+            declare
+               Saved_File : File_Descriptor;
+               Buffer     : String (1 .. 1000);
+               Last_In    : Natural;
+               Last_Out   : Natural;
+               Dummy      : Boolean;
+
+            begin
+               --  Try to read an already existing gnat.adc
+
+               File := Open_Read (Gnat_Adc_File_Name'Address,
+                                  GNAT.OS_Lib.Text);
+
+               --  If there is an existing gnat.adc
+
+               if File /= Invalid_FD then
+
+                  --  Create a new file to save it
+
+                  loop
+                     Saved_File := Create_New_File
+                       (Saved_Gnat_Adc_File_Name'Address,
+                        GNAT.OS_Lib.Text);
+                     exit when Saved_File /= Invalid_FD;
+                     Saved_Gnat_Adc_File_Name (Digit_Pos) :=
+                       Character'Succ
+                       (Saved_Gnat_Adc_File_Name (Digit_Pos));
+                  end loop;
+
+                  if Current_Verbosity = High then
+                     Write_Str ("Saving existing gnat.adc in gnat");
+                     Write_Char (Saved_Gnat_Adc_File_Name (Digit_Pos));
+                     Write_Line (".adc");
+                  end if;
+
+                  --  And copy gnat.adc into this new file
+
+                  loop
+                     Last_In := Read (File, Buffer'Address, Buffer'Length);
+                     Last_Out := Write (Saved_File, Buffer'Address, Last_In);
+
+                     if Last_In /= Last_Out then
+                        Osint.Fail ("Disk full");
+                     end if;
+
+                     exit when Last_In /= Buffer'Length;
+                  end loop;
+
+                  --  Close the open files, and delete the existing gnat.adc
+
+                  Close (File);
+                  Close (Saved_File);
+                  Delete_File (Gnat_Adc_File_Name'Address, Dummy);
+                  Gnat_Adc_Saved := True;
+               end if;
+
+               --  Now, create a new gnat.adc
+
+               File := Create_New_File
+                 (Gnat_Adc_File_Name'Address,
+                  GNAT.OS_Lib.Text);
+
+               --  If we just saved an existing one
+
+               if Gnat_Adc_Saved then
+                  declare
+                     Saved_File : File_Descriptor;
+                     Buffer     : String (1 .. 1000);
+                     Last_In    : Natural;
+                     Last_Out   : Natural;
+
+                  begin
+                     --  Copy it in the new gnat.adc
+
+                     Saved_File :=
+                       Open_Read (Saved_Gnat_Adc_File_Name'Address,
+                                  GNAT.OS_Lib.Text);
+                     loop
+                        Last_In := Read
+                          (Saved_File, Buffer'Address, Buffer'Length);
+                        Last_Out := Write
+                          (File, Buffer'Address, Last_In);
+
+                        if Last_Out /= Last_In then
+                           Osint.Fail ("Disk full");
+                        end if;
+
+                        exit when Last_In /= Buffer'Length;
+                     end loop;
+
+                     --  Close the saved gnat.adc, but keep the new one
+                     --  open, of course.
+
+                     Close (Saved_File);
+                  end;
+               end if;
+
+               --  Indicate that gnat.adc has been create,
+               --  so that we don't do it again
+
+               Gnat_Adc_Created := True;
+            end;
+         end if;
+      end Check_Gnat_Adc;
 
       ---------
       -- Put --

@@ -347,7 +347,7 @@ package Osint is
 
    procedure Read_Source_File
      (N   : File_Name_Type;
-      Lo  : in Source_Ptr;
+      Lo  : Source_Ptr;
       Hi  : out Source_Ptr;
       Src : out Source_Buffer_Ptr);
    --  Allocates a Source_Buffer of appropriate length and then reads the

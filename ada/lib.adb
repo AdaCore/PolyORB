@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,6 +32,10 @@
 -- It is now maintained by Ada Core Technologies Inc (http://www.gnat.com). --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+pragma Style_Checks (All_Checks);
+--  Subprogram ordering not enforced in this unit
+--  (because of some logical groupings).
 
 with Atree;   use Atree;
 with Einfo;   use Einfo;
@@ -449,6 +453,71 @@ package body Lib is
       end if;
    end Generic_Separately_Compiled;
 
+   -------------------
+   -- Get_Code_Unit --
+   -------------------
+
+   function Get_Code_Unit (S : Source_Ptr) return Unit_Number_Type is
+      Source_File : Source_File_Index :=
+                      Get_Source_File_Index (Top_Level_Location (S));
+
+   begin
+      for U in Units.First .. Units.Last loop
+         if Source_Index (U) = Source_File then
+            return U;
+         end if;
+      end loop;
+
+      --  If not in the table, must be the main source unit, and we just
+      --  have not got it put into the table yet.
+
+      return Main_Unit;
+   end Get_Code_Unit;
+
+   function Get_Code_Unit (N : Node_Id) return Unit_Number_Type is
+   begin
+      return Get_Code_Unit (Sloc (N));
+   end Get_Code_Unit;
+
+   ----------------------------------
+   -- Get_Cunit_Entity_Unit_Number --
+   ----------------------------------
+
+   function Get_Cunit_Entity_Unit_Number
+     (E    : Entity_Id)
+      return Unit_Number_Type
+   is
+   begin
+      for U in Units.First .. Units.Last loop
+         if Cunit_Entity (U) = E then
+            return U;
+         end if;
+      end loop;
+
+      --  If not in the table, must be the main source unit, and we just
+      --  have not got it put into the table yet.
+
+      return Main_Unit;
+   end Get_Cunit_Entity_Unit_Number;
+
+   ---------------------------
+   -- Get_Cunit_Unit_Number --
+   ---------------------------
+
+   function Get_Cunit_Unit_Number (N : Node_Id) return Unit_Number_Type is
+   begin
+      for U in Units.First .. Units.Last loop
+         if Cunit (U) = N then
+            return U;
+         end if;
+      end loop;
+
+      --  If not in the table, must be the main source unit, and we just
+      --  have not got it put into the table yet.
+
+      return Main_Unit;
+   end Get_Cunit_Unit_Number;
+
    ---------------------
    -- Get_Source_Unit --
    ---------------------
@@ -479,83 +548,6 @@ package body Lib is
    begin
       return Get_Source_Unit (Sloc (N));
    end Get_Source_Unit;
-
-   -------------------
-   -- Get_Code_Unit --
-   -------------------
-
-   function Get_Code_Unit (S : Source_Ptr) return Unit_Number_Type is
-      Source_File : Source_File_Index :=
-                      Get_Source_File_Index (Top_Level_Location (S));
-
-   begin
-      for U in Units.First .. Units.Last loop
-         if Source_Index (U) = Source_File then
-            return U;
-         end if;
-      end loop;
-
-      --  If not in the table, must be the main source unit, and we just
-      --  have not got it put into the table yet.
-
-      return Main_Unit;
-   end Get_Code_Unit;
-
-   function Get_Code_Unit (N : Node_Id) return Unit_Number_Type is
-   begin
-      return Get_Code_Unit (Sloc (N));
-   end Get_Code_Unit;
-
-   ---------------------------
-   -- Get_Cunit_Unit_Number --
-   ---------------------------
-
-   function Get_Cunit_Unit_Number (N : Node_Id) return Unit_Number_Type is
-   begin
-      for U in Units.First .. Units.Last loop
-         if Cunit (U) = N then
-            return U;
-         end if;
-      end loop;
-
-      --  If not in the table, must be the main source unit, and we just
-      --  have not got it put into the table yet.
-
-      return Main_Unit;
-   end Get_Cunit_Unit_Number;
-
-   ----------------------------------
-   -- Get_Cunit_Entity_Unit_Number --
-   ----------------------------------
-
-   function Get_Cunit_Entity_Unit_Number
-     (E    : Entity_Id)
-      return Unit_Number_Type
-   is
-   begin
-      for U in Units.First .. Units.Last loop
-         if Cunit_Entity (U) = E then
-            return U;
-         end if;
-      end loop;
-
-      --  If not in the table, must be the main source unit, and we just
-      --  have not got it put into the table yet.
-
-      return Main_Unit;
-   end Get_Cunit_Entity_Unit_Number;
-
-   -----------------------------
-   -- Increment_Serial_Number --
-   -----------------------------
-
-   function Increment_Serial_Number return Nat is
-      TSN : Int renames Units.Table (Current_Sem_Unit).Serial_Number;
-
-   begin
-      TSN := TSN + 1;
-      return TSN;
-   end Increment_Serial_Number;
 
    --------------------------------
    -- In_Extended_Main_Code_Unit --
@@ -620,19 +612,6 @@ package body Lib is
       end if;
    end In_Extended_Main_Source_Unit;
 
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize is
-   begin
-      Linker_Option_Lines.Init;
-      Load_Stack.Init;
-      Units.Init;
-      Unit_Exception_Table_Present := False;
-      Compilation_Arguments.Init;
-   end Initialize;
-
    -----------------------
    -- In_Same_Code_Unit --
    -----------------------
@@ -685,6 +664,31 @@ package body Lib is
 
       return Get_Source_Unit (N1) = Get_Source_Unit (N2);
    end In_Same_Source_Unit;
+
+   -----------------------------
+   -- Increment_Serial_Number --
+   -----------------------------
+
+   function Increment_Serial_Number return Nat is
+      TSN : Int renames Units.Table (Current_Sem_Unit).Serial_Number;
+
+   begin
+      TSN := TSN + 1;
+      return TSN;
+   end Increment_Serial_Number;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      Linker_Option_Lines.Init;
+      Load_Stack.Init;
+      Units.Init;
+      Unit_Exception_Table_Present := False;
+      Compilation_Arguments.Init;
+   end Initialize;
 
    ---------------
    -- Is_Loaded --

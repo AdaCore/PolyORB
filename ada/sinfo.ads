@@ -379,6 +379,7 @@ package Sinfo is
    --  within a wrapper package that contains the renamings for the actuals.
    --  Both of these entities have the Sloc of the defining entity in the
    --  instantiation node. This simplifies some ASIS queries.
+
    -----------------------
    -- Field Definitions --
    -----------------------
@@ -1435,11 +1436,11 @@ package Sinfo is
    --    needs to do for such a handler is simply to put the code in the
    --    handler somewhere. The front end has generated all necessary labels.
 
-   ------------------------------------
-   -- Note on Use of End_Label Field --
-   ------------------------------------
+   --------------------------------------------------
+   -- Note on Use of End_Label and End_Span Fields --
+   --------------------------------------------------
 
-   --  Several constructs have end lines with an optional label, as follows
+   --  Several constructs have end lines:
 
    --    Loop Statement             end loop [loop_IDENTIFIER];
    --    Package Specification      end [[PARENT_UNIT_NAME .] IDENTIFIER]
@@ -1454,21 +1455,48 @@ package Sinfo is
    --    Accept Statement           end [entry_IDENTIFIER]];
    --    Entry Body                 end [entry_IDENTIFIER];
 
-   --  For the corresponding nodes, the End_Label field is used to point to
-   --  the label construct. In the case where this is omitted in the source,
-   --  the parser supplies a dummy identifier (with Comes_From_Source set to
-   --  False). One function of this End_Label field is to provide the source
-   --  location for the end of the construct.
+   --    If Statement               end if;
+   --    Case Statement             end case;
 
-   --  Note that in the second group above (Block Statement through Entry
-   --  Body), the End_Label field is actually in the node for the Handled
-   --  Sequence of Statements (this is just because there is no room in the
-   --  parent node in several cases).
+   --    Record Definition          end record;
 
-   --  One final use of End_Label is for record definitions, which although
-   --  they never have a label, still need a source location to mark the
-   --  end of the record (so the referenced identifier in this case will
-   --  always have Comes_From_Source set to False).
+   --  The End_Label and End_Span fields are used to mark the locations
+   --  of these lines, and also keep track of the label in the case where
+   --  a label is present.
+
+   --  For the first group above, the End_Label field of the corresponding
+   --  node is used to point to the label identifier. In the case where
+   --  there is no label in the source, the parser supplies a dummy
+   --  identifier (with Comes_From_Source set to False), and the Sloc
+   --  of this dummy identifier marks the location of the token following
+   --  the END token.
+
+   --  For the second group, the use of End_Label is similar, but the
+   --  End_Label is found in the N_Handled_Sequence_Of_Statements node.
+   --  This is done simply because in some cases there is no room in
+   --  the parent node.
+
+   --  For the third group, there is never any label, and instead of
+   --  using End_Label, we use the End_Span field which gives the
+   --  location of the token following END, relative to the starting
+   --  Sloc of the construct, i.e. add Sloc (Node) + End_Span (Node)
+   --  to get the Sloc of the IF or CASE following the End_Label.
+
+   --  The record definition case is handled specially, we treat it
+   --  as though it required an optional label which is never present,
+   --  and so the parser always builds a dummy identifier with Comes
+   --  From Source set False. The reason we do this, rather than using
+   --  End_Span in this case, is that we want to generate a cross-ref
+   --  entry for the end of a record, since it represents a scope for
+   --  name declaration purposes.
+
+   --  Note: the reason we store the difference as a Uint, instead of
+   --  storing the Source_Ptr value directly, is that Source_Ptr values
+   --  cannot be distinguished from other types of values, and we count
+   --  on all general use fields being self describing. To make things
+   --  easier for clients, note that we provide function End_Location,
+   --  and procedure Set_End_Location to allow access to the logical
+   --  value (which is the Source_Ptr value for the end token).
 
    ---------------------
    -- Syntactic Nodes --
@@ -2346,7 +2374,7 @@ package Sinfo is
 
       --  N_Record_Definition
       --  Sloc points to RECORD or NULL
-      --  End_Label (Node4) (set to Empty for internally generated records)
+      --  End_Label (Node4) (set to Empty if internally generated record)
       --  Abstract_Present (Flag4)
       --  Tagged_Present (Flag15)
       --  Limited_Present (Flag17)
@@ -3458,6 +3486,7 @@ package Sinfo is
       --  Then_Statements (List2)
       --  Elsif_Parts (List3) (set to No_List if none present)
       --  Else_Statements (List4) (set to No_List if no else part present)
+      --  End_Span (Uint5) (set to No_Uint if expander generated)
 
       --  N_Elsif_Part
       --  Sloc points to ELSIF
@@ -3489,6 +3518,7 @@ package Sinfo is
       --  Sloc points to CASE
       --  Expression (Node3)
       --  Alternatives (List4)
+      --  End_Span (Uint5) (set to No_Uint if expander generated)
 
       -------------------------------------
       -- 5.4  Case Statement Alternative --
@@ -5099,7 +5129,7 @@ package Sinfo is
       --  N_Handled_Sequence_Of_Statements
       --  Sloc points to first token of first statement
       --  Statements (List3)
-      --  End_Label (Node4) (set to Empty if no label)
+      --  End_Label (Node4) (set to Empty if expander generated)
       --  Exception_Handlers (List5) (set to No_List if none present)
       --  At_End_Proc (Node1) (set to Empty if no clean up procedure)
       --  First_Real_Statement (Node2-Sem)
@@ -6704,11 +6734,11 @@ package Sinfo is
    function By_Ref
      (N : Node_Id) return Boolean;    -- Flag5
 
-   function Body_To_Inline
-     (N : Node_Id) return Node_Id;    -- Node3
-
    function Body_Required
      (N : Node_Id) return Boolean;    -- Flag13
+
+   function Body_To_Inline
+     (N : Node_Id) return Node_Id;    -- Node3
 
    function Box_Present
      (N : Node_Id) return Boolean;    -- Flag15
@@ -6863,11 +6893,11 @@ package Sinfo is
    function Do_Tag_Check
      (N : Node_Id) return Boolean;    -- Flag13
 
-   function Elaborate_Present
-     (N : Node_Id) return Boolean;    -- Flag4
-
    function Elaborate_All_Present
      (N : Node_Id) return Boolean;    -- Flag15
+
+   function Elaborate_Present
+     (N : Node_Id) return Boolean;    -- Flag4
 
    function Elaboration_Boolean
      (N : Node_Id) return Node_Id;    -- Node2
@@ -6886,6 +6916,9 @@ package Sinfo is
 
    function End_Label
      (N : Node_Id) return Node_Id;    -- Node4
+
+   function End_Span
+     (N : Node_Id) return Uint;       -- Uint5
 
    function Entity
      (N : Node_Id) return Node_Id;    -- Node4
@@ -6914,11 +6947,11 @@ package Sinfo is
    function Exception_Choices
      (N : Node_Id) return List_Id;    -- List4
 
-   function Exception_Junk
-     (N : Node_Id) return Boolean;    -- Flag11
-
    function Exception_Handlers
      (N : Node_Id) return List_Id;    -- List5
+
+   function Exception_Junk
+     (N : Node_Id) return Boolean;    -- Flag11
 
    function Explicit_Actual_Parameter
      (N : Node_Id) return Node_Id;    -- Node3
@@ -7028,11 +7061,11 @@ package Sinfo is
    function Implicit_With
      (N : Node_Id) return Boolean;    -- Flag17
 
-   function Includes_Infinities
-     (N : Node_Id) return Boolean;    -- Flag11
-
    function In_Present
      (N : Node_Id) return Boolean;    -- Flag15
+
+   function Includes_Infinities
+     (N : Node_Id) return Boolean;    -- Flag11
 
    function Instance_Spec
      (N : Node_Id) return Node_Id;    -- Node5
@@ -7103,11 +7136,11 @@ package Sinfo is
    function Library_Unit
      (N : Node_Id) return Node_Id;    -- Node4
 
-   function Literals
-     (N : Node_Id) return List_Id;    -- List1
-
    function Limited_Present
      (N : Node_Id) return Boolean;    -- Flag17
+
+   function Literals
+     (N : Node_Id) return List_Id;    -- List1
 
    function Loop_Parameter_Specification
      (N : Node_Id) return Node_Id;    -- Node4
@@ -7175,11 +7208,11 @@ package Sinfo is
    function Parameter_Associations
      (N : Node_Id) return List_Id;    -- List3
 
-   function Parameter_Specifications
-     (N : Node_Id) return List_Id;    -- List3
-
    function Parameter_List_Truncated
      (N : Node_Id) return Boolean;    -- Flag17
+
+   function Parameter_Specifications
+     (N : Node_Id) return List_Id;    -- List3
 
    function Parameter_Type
      (N : Node_Id) return Node_Id;    -- Node2
@@ -7238,11 +7271,11 @@ package Sinfo is
    function Range_Expression
      (N : Node_Id) return Node_Id;    -- Node4
 
-   function Realval
-     (N : Node_Id) return Ureal;      -- Ureal3
-
    function Real_Range_Specification
      (N : Node_Id) return Node_Id;    -- Node4
+
+   function Realval
+     (N : Node_Id) return Ureal;      -- Ureal3
 
    function Record_Extension_Part
      (N : Node_Id) return Node_Id;    -- Node3
@@ -7442,17 +7475,17 @@ package Sinfo is
    procedure Set_Bad_Is_Detected
      (N : Node_Id; Val : Boolean := True);    -- Flag15
 
-   procedure Set_Body_To_Inline
-     (N : Node_Id; Val : Node_Id);            -- Node3
-
    procedure Set_Body_Required
      (N : Node_Id; Val : Boolean := True);    -- Flag13
 
-   procedure Set_By_Ref
-     (N : Node_Id; Val : Boolean := True);    -- Flag5
+   procedure Set_Body_To_Inline
+     (N : Node_Id; Val : Node_Id);            -- Node3
 
    procedure Set_Box_Present
      (N : Node_Id; Val : Boolean := True);    -- Flag15
+
+   procedure Set_By_Ref
+     (N : Node_Id; Val : Boolean := True);    -- Flag5
 
    procedure Set_Char_Literal_Value
      (N : Node_Id; Val : Char_Code);          -- Char_Code2
@@ -7604,11 +7637,11 @@ package Sinfo is
    procedure Set_Do_Tag_Check
      (N : Node_Id; Val : Boolean := True);    -- Flag13
 
-   procedure Set_Elaborate_Present
-     (N : Node_Id; Val : Boolean := True);    -- Flag4
-
    procedure Set_Elaborate_All_Present
      (N : Node_Id; Val : Boolean := True);    -- Flag15
+
+   procedure Set_Elaborate_Present
+     (N : Node_Id; Val : Boolean := True);    -- Flag4
 
    procedure Set_Elaboration_Boolean
      (N : Node_Id; Val : Node_Id);            -- Node2
@@ -7627,6 +7660,9 @@ package Sinfo is
 
    procedure Set_End_Label
      (N : Node_Id; Val : Node_Id);            -- Node4
+
+   procedure Set_End_Span
+     (N : Node_Id; Val : Uint);               -- Uint5
 
    procedure Set_Entity
      (N : Node_Id; Val : Node_Id);            -- Node4
@@ -7655,11 +7691,11 @@ package Sinfo is
    procedure Set_Exception_Choices
      (N : Node_Id; Val : List_Id);            -- List4
 
-   procedure Set_Exception_Junk
-     (N : Node_Id; Val : Boolean := True);    -- Flag11
-
    procedure Set_Exception_Handlers
      (N : Node_Id; Val : List_Id);            -- List5
+
+   procedure Set_Exception_Junk
+     (N : Node_Id; Val : Boolean := True);    -- Flag11
 
    procedure Set_Expansion_Delayed
      (N : Node_Id; Val : Boolean := True);    -- Flag11
@@ -7769,11 +7805,11 @@ package Sinfo is
    procedure Set_Implicit_With
      (N : Node_Id; Val : Boolean := True);    -- Flag17
 
-   procedure Set_Includes_Infinities
-     (N : Node_Id; Val : Boolean := True);    -- Flag11
-
    procedure Set_In_Present
      (N : Node_Id; Val : Boolean := True);    -- Flag15
+
+   procedure Set_Includes_Infinities
+     (N : Node_Id; Val : Boolean := True);    -- Flag11
 
    procedure Set_Instance_Spec
      (N : Node_Id; Val : Node_Id);            -- Node5
@@ -7844,11 +7880,11 @@ package Sinfo is
    procedure Set_Left_Opnd
      (N : Node_Id; Val : Node_Id);            -- Node2
 
-   procedure Set_Literals
-     (N : Node_Id; Val : List_Id);            -- List1
-
    procedure Set_Limited_Present
      (N : Node_Id; Val : Boolean := True);    -- Flag17
+
+   procedure Set_Literals
+     (N : Node_Id; Val : List_Id);            -- List1
 
    procedure Set_Loop_Parameter_Specification
      (N : Node_Id; Val : Node_Id);            -- Node4
@@ -7916,11 +7952,11 @@ package Sinfo is
    procedure Set_Parameter_Associations
      (N : Node_Id; Val : List_Id);            -- List3
 
-   procedure Set_Parameter_Specifications
-     (N : Node_Id; Val : List_Id);            -- List3
-
    procedure Set_Parameter_List_Truncated
      (N : Node_Id; Val : Boolean := True);    -- Flag17
+
+   procedure Set_Parameter_Specifications
+     (N : Node_Id; Val : List_Id);            -- List3
 
    procedure Set_Parameter_Type
      (N : Node_Id; Val : Node_Id);            -- Node2
@@ -7979,11 +8015,11 @@ package Sinfo is
    procedure Set_Range_Expression
      (N : Node_Id; Val : Node_Id);            -- Node4
 
-   procedure Set_Realval
-     (N : Node_Id; Val : Ureal);              -- Ureal3
-
    procedure Set_Real_Range_Specification
      (N : Node_Id; Val : Node_Id);            -- Node4
+
+   procedure Set_Realval
+     (N : Node_Id; Val : Ureal);              -- Ureal3
 
    procedure Set_Record_Extension_Part
      (N : Node_Id; Val : Node_Id);            -- Node3
@@ -8113,6 +8149,21 @@ package Sinfo is
    procedure Next_Rep_Item     (N : in out Node_Id);
    procedure Next_Use_Clause   (N : in out Node_Id);
 
+   --------------------------------------
+   -- Logical Access to End_Span Field --
+   --------------------------------------
+
+   function End_Location (N : Node_Id) return Source_Ptr;
+   --  N is an N_If_Statement or N_Case_Statement node, and this
+   --  function returns the location of the IF token in the END IF
+   --  sequence by translating the value of the End_Span field.
+
+   procedure Set_End_Location (N : Node_Id; S : Source_Ptr);
+   --  N is an N_If_Statement or N_Case_Statement node. This procedure
+   --  sets the End_Span field to correspond to the given value S. In
+   --  other words, End_Span is set to the difference between S and
+   --  Sloc (N), the starting location.
+
    --------------------
    -- Inline Pragmas --
    --------------------
@@ -8202,6 +8253,7 @@ package Sinfo is
    pragma Inline (Elsif_Parts);
    pragma Inline (Enclosing_Variant);
    pragma Inline (End_Label);
+   pragma Inline (End_Span);
    pragma Inline (Entity);
    pragma Inline (Entry_Body_Formal_Part);
    pragma Inline (Entry_Call_Alternative);
@@ -8446,6 +8498,7 @@ package Sinfo is
    pragma Inline (Set_Elsif_Parts);
    pragma Inline (Set_Enclosing_Variant);
    pragma Inline (Set_End_Label);
+   pragma Inline (Set_End_Span);
    pragma Inline (Set_Entity);
    pragma Inline (Set_Entry_Body_Formal_Part);
    pragma Inline (Set_Entry_Call_Alternative);

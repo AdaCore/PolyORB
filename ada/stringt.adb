@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -262,15 +262,6 @@ package body Stringt is
       end if;
    end String_Equal;
 
-   -------------------
-   -- String_Length --
-   -------------------
-
-   function String_Length (Id : String_Id) return Nat is
-   begin
-      return Strings.Table (Id).Length;
-   end String_Length;
-
    -----------------------------
    -- String_From_Name_Buffer --
    -----------------------------
@@ -285,6 +276,15 @@ package body Stringt is
 
       return End_String;
    end String_From_Name_Buffer;
+
+   -------------------
+   -- String_Length --
+   -------------------
+
+   function String_Length (Id : String_Id) return Nat is
+   begin
+      return Strings.Table (Id).Length;
+   end String_Length;
 
    ---------------------------
    -- String_To_Name_Buffer --

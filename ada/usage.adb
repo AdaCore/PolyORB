@@ -210,6 +210,11 @@ begin
    Write_Switch_Char ("n");
    Write_Line ("Inlining of subprograms (apply pragma Inline across units)");
 
+   --  Line for -gnatN switch
+
+   Write_Switch_Char ("N");
+   Write_Line ("Full (frontend) inlining of subprograqms");
+
    --  Line for -gnato switch
 
    Write_Switch_Char ("o");

@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -35,25 +35,6 @@
 
 package body Scans is
 
-   ---------------------
-   -- Save_Scan_State --
-   ---------------------
-
-   procedure Save_Scan_State (Saved_State : out Saved_Scan_State) is
-   begin
-      Saved_State.Save_Scan_Ptr                 := Scan_Ptr;
-      Saved_State.Save_Token                    := Token;
-      Saved_State.Save_Token_Ptr                := Token_Ptr;
-      Saved_State.Save_Current_Line_Start       := Current_Line_Start;
-      Saved_State.Save_Start_Column             := Start_Column;
-      Saved_State.Save_Checksum                 := Checksum;
-      Saved_State.Save_First_Non_Blank_Location := First_Non_Blank_Location;
-      Saved_State.Save_Token_Node               := Token_Node;
-      Saved_State.Save_Token_Name               := Token_Name;
-      Saved_State.Save_Prev_Token               := Prev_Token;
-      Saved_State.Save_Prev_Token_Ptr           := Prev_Token_Ptr;
-   end Save_Scan_State;
-
    ------------------------
    -- Restore_Scan_State --
    ------------------------
@@ -72,5 +53,24 @@ package body Scans is
       Prev_Token               := Saved_State.Save_Prev_Token;
       Prev_Token_Ptr           := Saved_State.Save_Prev_Token_Ptr;
    end Restore_Scan_State;
+
+   ---------------------
+   -- Save_Scan_State --
+   ---------------------
+
+   procedure Save_Scan_State (Saved_State : out Saved_Scan_State) is
+   begin
+      Saved_State.Save_Scan_Ptr                 := Scan_Ptr;
+      Saved_State.Save_Token                    := Token;
+      Saved_State.Save_Token_Ptr                := Token_Ptr;
+      Saved_State.Save_Current_Line_Start       := Current_Line_Start;
+      Saved_State.Save_Start_Column             := Start_Column;
+      Saved_State.Save_Checksum                 := Checksum;
+      Saved_State.Save_First_Non_Blank_Location := First_Non_Blank_Location;
+      Saved_State.Save_Token_Node               := Token_Node;
+      Saved_State.Save_Token_Name               := Token_Name;
+      Saved_State.Save_Prev_Token               := Prev_Token;
+      Saved_State.Save_Prev_Token_Ptr           := Prev_Token_Ptr;
+   end Save_Scan_State;
 
 end Scans;

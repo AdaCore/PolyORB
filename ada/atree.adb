@@ -33,6 +33,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Style_Checks (All_Checks);
+--  Turn off subprogram ordering check for this package
+
 --  WARNING: There is a C version of this package. Any changes to this source
 --  file must be properly reflected in the C header a-atree.h (for inlined
 --  bodies) and the C file a-atree.c (for remaining non-inlined bodies).
@@ -463,15 +466,16 @@ package body Atree is
          New_Ent : Entity_Id;
 
       begin
-         if Nkind (E) = N_Defining_Identifier then
-            New_Ent := New_Entity (N_Defining_Identifier, Sloc (E));
+         case N_Entity (Nkind (E)) is
+            when N_Defining_Identifier =>
+               New_Ent := New_Entity (N_Defining_Identifier, Sloc (E));
 
-         elsif Nkind (E) = N_Defining_Character_Literal then
-            New_Ent := New_Entity (N_Defining_Character_Literal, Sloc (E));
+            when N_Defining_Character_Literal =>
+               New_Ent := New_Entity (N_Defining_Character_Literal, Sloc (E));
 
-         elsif Nkind (E) = N_Defining_Operator_Symbol then
-            New_Ent := New_Entity (N_Defining_Operator_Symbol, Sloc (E));
-         end if;
+            when N_Defining_Operator_Symbol =>
+               New_Ent := New_Entity (N_Defining_Operator_Symbol, Sloc (E));
+         end case;
 
          Set_Chars (New_Ent, Chars (E));
          return New_Ent;

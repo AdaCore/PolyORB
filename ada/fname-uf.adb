@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2001, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -397,9 +397,7 @@ package body Fname.UF is
          --  Something is wrong if search fails completely, since the
          --  default entries should catch all possibilities at this stage.
 
-         pragma Assert (False);
          raise Program_Error;
-
       end;
    end Get_File_Name;
 

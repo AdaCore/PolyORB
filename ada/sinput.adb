@@ -33,6 +33,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Style_Checks (All_Checks);
+--  Subprograms not all in alpha order
+
 with Debug;   use Debug;
 with Namet;   use Namet;
 with Opt;     use Opt;
@@ -392,7 +395,8 @@ package body Sinput is
          end loop;
       end if;
 
-      pragma Assert (False);
+      --  We must find a matching entry in the above loop!
+
       raise Program_Error;
    end Get_Source_File_Index;
 
@@ -1051,6 +1055,11 @@ package body Sinput is
       return Source_File.Table (S).Last_Source_Line;
    end Last_Source_Line;
 
+   function License (S : SFI) return License_Type is
+   begin
+      return Source_File.Table (S).License;
+   end License;
+
    function Num_SRef_Pragmas (S : SFI) return Nat is
    begin
       return Source_File.Table (S).Num_SRef_Pragmas;
@@ -1104,6 +1113,11 @@ package body Sinput is
    begin
       Source_File.Table (S).Keyword_Casing := C;
    end Set_Keyword_Casing;
+
+   procedure Set_License (S : SFI; L : License_Type) is
+   begin
+      Source_File.Table (S).License := L;
+   end Set_License;
 
    --------
    -- wl --

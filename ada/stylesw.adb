@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2001, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,6 +30,31 @@ with Hostparm; use Hostparm;
 with Opt;      use Opt;
 
 package body Stylesw is
+
+   -------------------------------
+   -- Reset_Style_Check_Options --
+   -------------------------------
+
+   procedure Reset_Style_Check_Options is
+   begin
+      Style_Check_Indentation      := 0;
+      Style_Check_Attribute_Casing := False;
+      Style_Check_Blanks_At_End    := False;
+      Style_Check_Comments         := False;
+      Style_Check_End_Labels       := False;
+      Style_Check_Form_Feeds       := False;
+      Style_Check_Horizontal_Tabs  := False;
+      Style_Check_If_Then_Layout   := False;
+      Style_Check_Keyword_Casing   := False;
+      Style_Check_Layout           := False;
+      Style_Check_Max_Line_Length  := False;
+      Style_Check_Pragma_Casing    := False;
+      Style_Check_References       := False;
+      Style_Check_Specs            := False;
+      Style_Check_Standard         := False;
+      Style_Check_Subprogram_Order := False;
+      Style_Check_Tokens           := False;
+   end Reset_Style_Check_Options;
 
    ------------------------------
    -- Save_Style_Check_Options --
@@ -100,31 +125,6 @@ package body Stylesw is
       Reset_Style_Check_Options;
       Set_Style_Check_Options ("3abcefhiklmnprst");
    end Set_Default_Style_Check_Options;
-
-   -------------------------------
-   -- Reset_Style_Check_Options --
-   -------------------------------
-
-   procedure Reset_Style_Check_Options is
-   begin
-      Style_Check_Indentation      := 0;
-      Style_Check_Attribute_Casing := False;
-      Style_Check_Blanks_At_End    := False;
-      Style_Check_Comments         := False;
-      Style_Check_End_Labels       := False;
-      Style_Check_Form_Feeds       := False;
-      Style_Check_Horizontal_Tabs  := False;
-      Style_Check_If_Then_Layout   := False;
-      Style_Check_Keyword_Casing   := False;
-      Style_Check_Layout           := False;
-      Style_Check_Max_Line_Length  := False;
-      Style_Check_Pragma_Casing    := False;
-      Style_Check_References       := False;
-      Style_Check_Specs            := False;
-      Style_Check_Standard         := False;
-      Style_Check_Subprogram_Order := False;
-      Style_Check_Tokens           := False;
-   end Reset_Style_Check_Options;
 
    -----------------------------
    -- Set_Style_Check_Options --

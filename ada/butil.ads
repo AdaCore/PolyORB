@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -43,8 +43,16 @@ package Butil is
    --  returns True if this is the name of an internal unit or a child of
    --  an internal. Similar in usage to Is_Predefined_Unit.
 
+   --  Note: the following functions duplicate functionality in Uname, but
+   --  we want to avoid bringing Uname into the binder since it generates
+   --  to many unnecessary dependencies, and makes the binder too large.
+
    function Uname_Less (U1, U2 : Unit_Name_Type) return Boolean;
    --  Determines if the unit name U1 is alphabetically before U2
+
+   procedure Get_Unit_Name_String (U : Unit_Name_Type);
+   --  Compute unit name with (body) or (spec) after as required. On return
+   --  the result is stored in Name_Buffer and Name_Len is the length.
 
    procedure Write_Unit_Name (U : Unit_Name_Type);
    --  Output unit name with (body) or (spec) after as required. On return

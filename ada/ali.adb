@@ -150,15 +150,6 @@ package body ALI is
       procedure Skip_Space;
       --  Skip past white space (blanks or horizontal tab)
 
-      ------------
-      -- At_Eol --
-      ------------
-
-      function At_Eol return Boolean is
-      begin
-         return Nextc = EOF or else Nextc = CR or else Nextc = LF;
-      end At_Eol;
-
       ---------------------
       -- At_End_Of_Field --
       ---------------------
@@ -167,6 +158,15 @@ package body ALI is
       begin
          return Nextc <= ' ';
       end At_End_Of_Field;
+
+      ------------
+      -- At_Eol --
+      ------------
+
+      function At_Eol return Boolean is
+      begin
+         return Nextc = EOF or else Nextc = CR or else Nextc = LF;
+      end At_Eol;
 
       ---------------------------
       -- Check_At_End_Of_Field --
@@ -288,20 +288,6 @@ package body ALI is
          Exit_Program (E_Fatal);
       end Fatal_Error;
 
-      ----------
-      -- Getc --
-      ----------
-
-      function Getc return Character is
-      begin
-         if P = T'Last then
-            return EOF;
-         else
-            P := P + 1;
-            return T (P - 1);
-         end if;
-      end Getc;
-
       --------------
       -- Get_Name --
       --------------
@@ -387,6 +373,20 @@ package body ALI is
 
          return T;
       end Get_Stamp;
+
+      ----------
+      -- Getc --
+      ----------
+
+      function Getc return Character is
+      begin
+         if P = T'Last then
+            return EOF;
+         else
+            P := P + 1;
+            return T (P - 1);
+         end if;
+      end Getc;
 
       -----------
       -- Nextc --
@@ -663,27 +663,28 @@ package body ALI is
             ALIs.Table (Id).First_Unit := Units.Last;
          end if;
 
-         Units.Table (Units.Last).Uname          := Get_Name;
-         Units.Table (Units.Last).Predefined     := Is_Predefined_Unit;
-         Units.Table (Units.Last).Internal       := Is_Internal_Unit;
-         Units.Table (Units.Last).My_ALI         := Id;
-         Units.Table (Units.Last).Sfile          := Get_Name (Lower => True);
-         Units.Table (Units.Last).Pure           := False;
-         Units.Table (Units.Last).Preelab        := False;
-         Units.Table (Units.Last).No_Elab        := False;
-         Units.Table (Units.Last).Shared_Passive := False;
-         Units.Table (Units.Last).RCI            := False;
-         Units.Table (Units.Last).Remote_Types   := False;
-         Units.Table (Units.Last).Has_RACW       := False;
-         Units.Table (Units.Last).Is_Generic     := False;
-         Units.Table (Units.Last).Icasing        := Mixed_Case;
-         Units.Table (Units.Last).Kcasing        := All_Lower_Case;
-         Units.Table (Units.Last).Dynamic_Elab   := False;
-         Units.Table (Units.Last).Elaborate_Body := False;
-         Units.Table (Units.Last).Version        := "00000000";
-         Units.Table (Units.Last).First_With     := Withs.Last + 1;
-         Units.Table (Units.Last).First_Arg      := First_Arg;
-         Units.Table (Units.Last).Elab_Position  := 0;
+         Units.Table (Units.Last).Uname           := Get_Name;
+         Units.Table (Units.Last).Predefined      := Is_Predefined_Unit;
+         Units.Table (Units.Last).Internal        := Is_Internal_Unit;
+         Units.Table (Units.Last).My_ALI          := Id;
+         Units.Table (Units.Last).Sfile           := Get_Name (Lower => True);
+         Units.Table (Units.Last).Pure            := False;
+         Units.Table (Units.Last).Preelab         := False;
+         Units.Table (Units.Last).No_Elab         := False;
+         Units.Table (Units.Last).Shared_Passive  := False;
+         Units.Table (Units.Last).RCI             := False;
+         Units.Table (Units.Last).Remote_Types    := False;
+         Units.Table (Units.Last).Has_RACW        := False;
+         Units.Table (Units.Last).Is_Generic      := False;
+         Units.Table (Units.Last).Icasing         := Mixed_Case;
+         Units.Table (Units.Last).Kcasing         := All_Lower_Case;
+         Units.Table (Units.Last).Dynamic_Elab    := False;
+         Units.Table (Units.Last).Elaborate_Body  := False;
+         Units.Table (Units.Last).Set_Elab_Entity := False;
+         Units.Table (Units.Last).Version         := "00000000";
+         Units.Table (Units.Last).First_With      := Withs.Last + 1;
+         Units.Table (Units.Last).First_Arg       := First_Arg;
+         Units.Table (Units.Last).Elab_Position   := 0;
 
          if Debug_Flag_U then
             Write_Str (" ----> reading unit ");
@@ -765,12 +766,22 @@ package body ALI is
                Units.Table (Units.Last).Dynamic_Elab := True;
                Dynamic_Elaboration_Checks_Specified := True;
 
-            --  EB parameter (elaborate body)
+            --  EB/EE parameters
 
             elsif C = 'E' then
-               Checkc ('B');
+               C := Getc;
+
+               if C = 'B' then
+                  Units.Table (Units.Last).Elaborate_Body := True;
+
+               elsif C = 'E' then
+                  Units.Table (Units.Last).Set_Elab_Entity := True;
+
+               else
+                  Fatal_Error;
+               end if;
+
                Check_At_End_Of_Field;
-               Units.Table (Units.Last).Elaborate_Body := True;
 
             --  GE parameter (generic)
 
@@ -813,20 +824,12 @@ package body ALI is
 
                Check_At_End_Of_Field;
 
-            --  NE/NO parameters
+            --  NE parameter
 
             elsif C = 'N' then
-               C := Getc;
-
-               --  NE parameter (no elaboration)
-
-               if C = 'E' then
-                  Check_At_End_Of_Field;
-                  Units.Table (Units.Last).No_Elab := True;
-
-               else
-                  Fatal_Error;
-               end if;
+               Checkc ('E');
+               Units.Table (Units.Last).No_Elab := True;
+               Check_At_End_Of_Field;
 
             --  PR/PU/PK parameters
 
@@ -836,24 +839,23 @@ package body ALI is
                --  PR parameter (preelaborate)
 
                if C = 'R' then
-                  Check_At_End_Of_Field;
                   Units.Table (Units.Last).Preelab := True;
 
                --  PU parameter (pure)
 
                elsif C = 'U' then
-                  Check_At_End_Of_Field;
                   Units.Table (Units.Last).Pure := True;
 
                --  PK indicates unit is package
 
                elsif C = 'K' then
                   Units.Table (Units.Last).Unit_Kind := 'p';
-                  Check_At_End_Of_Field;
 
                else
                   Fatal_Error;
                end if;
+
+               Check_At_End_Of_Field;
 
             --  RC/RT parameters
 
@@ -863,24 +865,23 @@ package body ALI is
                --  RC parameter (remote call interface)
 
                if C = 'C' then
-                  Check_At_End_Of_Field;
                   Units.Table (Units.Last).RCI := True;
 
                --  RT parameter (remote types)
 
                elsif C = 'T' then
-                  Check_At_End_Of_Field;
                   Units.Table (Units.Last).Remote_Types := True;
 
                --  RA parameter (remote access to class wide type)
 
                elsif C = 'A' then
-                  Check_At_End_Of_Field;
                   Units.Table (Units.Last).Has_RACW := True;
 
                else
                   Fatal_Error;
                end if;
+
+               Check_At_End_Of_Field;
 
             elsif C = 'S' then
                C := Getc;
@@ -888,18 +889,18 @@ package body ALI is
                --  SP parameter (shared passive)
 
                if C = 'P' then
-                  Check_At_End_Of_Field;
                   Units.Table (Units.Last).Shared_Passive := True;
 
                --  SU parameter indicates unit is subprogram
 
                elsif C = 'U' then
                   Units.Table (Units.Last).Unit_Kind := 's';
-                  Check_At_End_Of_Field;
 
                else
                   Fatal_Error;
                end if;
+
+               Check_At_End_Of_Field;
 
             else
                Fatal_Error;

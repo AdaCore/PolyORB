@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -78,6 +78,11 @@ package body Scn is
    --  Called when end of line encountered. Checks that line is not
    --  too long, and that other style checks for the end of line are met.
 
+   function Determine_License return License_Type;
+   --  Scan header of file and check that it has an appropriate GNAT-style
+   --  header with a proper license statement. Returns GPL, Unrestricted,
+   --  or Modified_GPL depending on header. If none of these, returns Unknown.
+
    function Double_Char_Token (C : Character) return Boolean;
    --  This function is used for double character tokens like := or <>. It
    --  checks if the character following Source (Scan_Ptr) is C, and if so
@@ -125,16 +130,6 @@ package body Scn is
    --  past the closing quote of the string literal, Token and Token_Node
    --  are set appropriately, and the checksum is upated.
 
-   --------------
-   -- Subunits --
-   --------------
-
-   procedure Nlit is separate;
-   --  Scan numeric literal.
-
-   procedure Slit is separate;
-   --  Scan source literal
-
    -------------------------
    -- Accumulate_Checksum --
    -------------------------
@@ -172,6 +167,125 @@ package body Scn is
          Style.Check_Line_Terminator (Len);
       end if;
    end Check_End_Of_Line;
+
+   -----------------------
+   -- Determine_License --
+   -----------------------
+
+   function Determine_License return License_Type is
+      GPL_Found : Boolean := False;
+
+      function Contains (S : String) return Boolean;
+      --  See if current comment contains successive non-blank characters
+      --  matching the contents of S. If so leave Scan_Ptr unchanged and
+      --  return True, otherwise leave Scan_Ptr unchanged and return False.
+
+      procedure Skip_EOL;
+      --  Skip to line terminator character
+
+      --------------
+      -- Contains --
+      --------------
+
+      function Contains (S : String) return Boolean is
+         CP : Natural;
+         SP : Source_Ptr;
+         SS : Source_Ptr;
+
+      begin
+         SP := Scan_Ptr;
+         while Source (SP) /= CR and then Source (SP) /= LF loop
+            if Source (SP) = S (S'First) then
+               SS := SP;
+               CP := S'First;
+
+               loop
+                  SS := SS + 1;
+                  CP := CP + 1;
+
+                  if CP > S'Last then
+                     return True;
+                  end if;
+
+                  while Source (SS) = ' ' loop
+                     SS := SS + 1;
+                  end loop;
+
+                  exit when Source (SS) /= S (CP);
+               end loop;
+            end if;
+
+            SP := SP + 1;
+         end loop;
+
+         return False;
+      end Contains;
+
+      --------------
+      -- Skip_EOL --
+      --------------
+
+      procedure Skip_EOL is
+      begin
+         while Source (Scan_Ptr) /= CR
+           and then Source (Scan_Ptr) /= LF
+         loop
+            Scan_Ptr := Scan_Ptr + 1;
+         end loop;
+      end Skip_EOL;
+
+   --  Start of processing for Determine_License
+
+   begin
+      loop
+         if Source (Scan_Ptr) /= '-'
+           or else Source (Scan_Ptr + 1) /= '-'
+         then
+            if GPL_Found then
+               return GPL;
+            else
+               return Unknown;
+            end if;
+
+         elsif Contains ("Asaspecialexception") then
+            if GPL_Found then
+               return Modified_GPL;
+            end if;
+
+         elsif Contains ("GNUGeneralPublicLicense") then
+            GPL_Found := True;
+
+         elsif
+             Contains
+               ("ThisspecificationisadaptedfromtheAdaSemanticInterface")
+           or else
+             Contains
+              ("ThisspecificationisderivedfromtheAdaReferenceManual")
+         then
+            return Unrestricted;
+         end if;
+
+         Skip_EOL;
+
+         Check_End_Of_Line;
+
+         declare
+            Physical : Boolean;
+
+         begin
+            Skip_Line_Terminators (Scan_Ptr, Physical);
+
+            --  If we are at start of physical line, update scan pointers
+            --  to reflect the start of the new line.
+
+            if Physical then
+               Current_Line_Start       := Scan_Ptr;
+               Start_Column             := Set_Start_Column;
+               First_Non_Blank_Location := Scan_Ptr;
+            end if;
+         end;
+      end loop;
+   end Determine_License;
 
    ----------------------------
    -- Determine_Token_Casing --
@@ -262,6 +376,8 @@ package body Scn is
      (Unit  : Unit_Number_Type;
       Index : Source_File_Index)
    is
+      GNAT_Hedr : constant Text_Buffer (1 .. 78) := (others => '-');
+
    begin
       --  Set up Token_Type values in Names Table entries for reserved keywords
       --  We use the Pos value of the Token_Type value. Note we are relying on
@@ -357,6 +473,14 @@ package body Scn is
 
       Set_Comes_From_Source_Default (True);
 
+      --  Check license if GNAT type header possibly present
+
+      if Source_Last (Index) - Scan_Ptr > 80
+        and then Source (Scan_Ptr .. Scan_Ptr + 77) = GNAT_Hedr
+      then
+         Set_License (Current_Source_File, Determine_License);
+      end if;
+
       --  Scan initial token (note this initializes Prev_Token, Prev_Token_Ptr)
 
       Scan;
@@ -368,6 +492,12 @@ package body Scn is
       end loop;
 
    end Initialize_Scanner;
+
+   ----------
+   -- Nlit --
+   ----------
+
+   procedure Nlit is separate;
 
    ----------
    -- Scan --
@@ -780,8 +910,9 @@ package body Scn is
             --  Here is where we make the test to distinguish the cases. Treat
             --  as apostrophe if previous token is an identifier, right paren
             --  or the reserved word "all" (latter case as in A.all'Address)
-            --  Also treat it as apostrophe after a literal (wrong anyway, but
-            --  that's probably the better choice).
+            --  Also treat it as apostrophe after a literal (this catches
+            --  some legitimate cases, like A."abs"'Address, and also gives
+            --  better error behavior for impossible cases like 123'xxx).
 
             if Prev_Token = Tok_Identifier
                or else Prev_Token = Tok_Right_Paren
@@ -1007,7 +1138,6 @@ package body Scn is
          --  Space (not possible, because we scanned past blanks)
 
          when ' ' =>
-            pragma Assert (False);
             raise Program_Error;
 
          --  Characters in top half of ASCII 8-bit chart
@@ -1431,5 +1561,11 @@ package body Scn is
 
       return Start_Column;
    end Set_Start_Column;
+
+   ----------
+   -- Slit --
+   ----------
+
+   procedure Slit is separate;
 
 end Scn;

@@ -156,6 +156,7 @@ package body Snames is
      "extensions_allowed#" &
      "external_name_casing#" &
      "float_representation#" &
+     "license#" &
      "locking_policy#" &
      "long_float#" &
      "no_run_time#" &
@@ -293,6 +294,7 @@ package body Snames is
      "g_float#" &
      "gcc#" &
      "gnat#" &
+     "gpl#" &
      "ieee_float#" &
      "internal#" &
      "link_name#" &
@@ -300,12 +302,14 @@ package body Snames is
      "max_size#" &
      "mechanism#" &
      "mixedcase#" &
+     "modified_gpl#" &
      "name#" &
      "nca#" &
      "no#" &
      "on#" &
      "parameter_types#" &
      "reference#" &
+     "restricted#" &
      "result_mechanism#" &
      "result_type#" &
      "sb#" &
@@ -323,6 +327,8 @@ package body Snames is
      "ubs#" &
      "ubsb#" &
      "unit_name#" &
+     "unknown#" &
+     "unrestricted#" &
      "uppercase#" &
      "vax_float#" &
      "vms#" &
@@ -665,7 +671,6 @@ package body Snames is
          when Name_Stubbed    => return Convention_Stubbed;
          when Name_Win32      => return Convention_Stdcall;
          when others          =>
-            pragma Assert (False);
             raise Program_Error;
       end case;
    end Get_Convention_Id;
@@ -762,6 +767,25 @@ package body Snames is
       return N in First_Attribute_Name .. Last_Attribute_Name;
    end Is_Attribute_Name;
 
+   -------------------
+   -- Is_Check_Name --
+   -------------------
+
+   function Is_Check_Name (N : Name_Id) return Boolean is
+   begin
+      return N in First_Check_Name .. Last_Check_Name;
+   end Is_Check_Name;
+
+   ------------------------
+   -- Is_Convention_Name --
+   ------------------------
+
+   function Is_Convention_Name (N : Name_Id) return Boolean is
+   begin
+      return N in First_Convention_Name .. Last_Convention_Name
+        or else N = Name_C;
+   end Is_Convention_Name;
+
    ------------------------------
    -- Is_Entity_Attribute_Name --
    ------------------------------
@@ -781,43 +805,6 @@ package body Snames is
         First_Renamable_Function_Attribute ..
           Last_Renamable_Function_Attribute;
    end Is_Function_Attribute_Name;
-
-   ---------------------------------
-   -- Is_Procedure_Attribute_Name --
-   ---------------------------------
-
-   function Is_Procedure_Attribute_Name (N : Name_Id) return Boolean is
-   begin
-      return N in First_Procedure_Attribute .. Last_Procedure_Attribute;
-   end Is_Procedure_Attribute_Name;
-
-   ----------------------------
-   -- Is_Type_Attribute_Name --
-   ----------------------------
-
-   function Is_Type_Attribute_Name (N : Name_Id) return Boolean is
-   begin
-      return N in First_Type_Attribute_Name .. Last_Type_Attribute_Name;
-   end Is_Type_Attribute_Name;
-
-   -------------------
-   -- Is_Check_Name --
-   -------------------
-
-   function Is_Check_Name (N : Name_Id) return Boolean is
-   begin
-      return N in First_Check_Name .. Last_Check_Name;
-   end Is_Check_Name;
-
-   ------------------------
-   -- Is_Convention_Name --
-   ------------------------
-
-   function Is_Convention_Name (N : Name_Id) return Boolean is
-   begin
-      return N in First_Convention_Name .. Last_Convention_Name
-        or else N = Name_C;
-   end Is_Convention_Name;
 
    ----------------------------
    -- Is_Locking_Policy_Name --
@@ -849,6 +836,15 @@ package body Snames is
         or else N = Name_Storage_Unit;
    end Is_Pragma_Name;
 
+   ---------------------------------
+   -- Is_Procedure_Attribute_Name --
+   ---------------------------------
+
+   function Is_Procedure_Attribute_Name (N : Name_Id) return Boolean is
+   begin
+      return N in First_Procedure_Attribute .. Last_Procedure_Attribute;
+   end Is_Procedure_Attribute_Name;
+
    ----------------------------
    -- Is_Queuing_Policy_Name --
    ----------------------------
@@ -867,5 +863,14 @@ package body Snames is
       return N in First_Task_Dispatching_Policy_Name ..
                   Last_Task_Dispatching_Policy_Name;
    end Is_Task_Dispatching_Policy_Name;
+
+   ----------------------------
+   -- Is_Type_Attribute_Name --
+   ----------------------------
+
+   function Is_Type_Attribute_Name (N : Name_Id) return Boolean is
+   begin
+      return N in First_Type_Attribute_Name .. Last_Type_Attribute_Name;
+   end Is_Type_Attribute_Name;
 
 end Snames;

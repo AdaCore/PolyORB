@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -41,6 +41,24 @@ package body Types is
 
    function V (T : Time_Stamp_Type; X : Time_Stamp_Index) return Nat;
    --  Extract two decimal digit value from time stamp
+
+   ---------
+   -- "<" --
+   ---------
+
+   function "<" (Left, Right : Time_Stamp_Type) return Boolean is
+   begin
+      return not (Left = Right) and then String (Left) < String (Right);
+   end "<";
+
+   ----------
+   -- "<=" --
+   ----------
+
+   function "<=" (Left, Right : Time_Stamp_Type) return Boolean is
+   begin
+      return not (Left > Right);
+   end "<=";
 
    ---------
    -- "=" --
@@ -80,15 +98,6 @@ package body Types is
    end "=";
 
    ---------
-   -- "<" --
-   ---------
-
-   function "<" (Left, Right : Time_Stamp_Type) return Boolean is
-   begin
-      return not (Left = Right) and then String (Left) < String (Right);
-   end "<";
-
-   ---------
    -- ">" --
    ---------
 
@@ -96,15 +105,6 @@ package body Types is
    begin
       return not (Left = Right) and then String (Left) > String (Right);
    end ">";
-
-   ----------
-   -- "<=" --
-   ----------
-
-   function "<=" (Left, Right : Time_Stamp_Type) return Boolean is
-   begin
-      return not (Left > Right);
-   end "<=";
 
    ----------
    -- ">=" --

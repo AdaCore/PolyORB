@@ -728,12 +728,32 @@ package Einfo is
 --       Elaborate_All conditions cannot be met.
 
 --    Elaboration_Entity (Node13)
---       Present in generic and non-generic package and subprogram body
---       entities. Used where the front end generates an elaboration check
---       to reference the entity for the corresponding Boolean flag. For
---       compilation units, this is generated unconditionally if it may
---       be needed. For internal entities, it is generated only if it is
---       actually needed (which is unusual).
+--       Present in generic and non-generic package and subprogram
+--       entities. This is a boolean entity associated with the unit that
+--       is initiallly set to False, and is set True when the unit is
+--       elaborated. This is used for two purposes. First, it is used to
+--       implement required access before elaboration checks (the flag
+--       must be true to call a subprogram at elaboration time). Second,
+--       it is used to guard against repeated execution of the generated
+--       elaboration code.
+--
+--       Note that we always allocate this flag, and set this field, but
+--       we do not always actually use it. It is only used if it is needed
+--       for access-before-elaboration use (see Elaboration_Entity_Required
+--       flag) or if either the spec or the body has elaboration code. If
+--       neither of these two conditions holds, then the entity is still
+--       allocated (since we don't know early enough whether or not there
+--       is elaboration code), but is simply not used for any purpose.
+
+--    Elaboration_Entity_Required (Flag174)
+--       Present in generics and non-generic package and subprogram
+--       entities. Set only if Elaboration_Entity is non-Empty to indicate
+--       that the boolean is required to be set even if there is no other
+--       elaboration code. This occurs when the Elaboration_Entity flag
+--       is used for required access-before-elaboration checking. If the
+--       flag is only for preventing multiple execution of the elaboration
+--       code, then if there is no other elaboration code, obviously there
+--       is no need to set the flag.
 
 --    Enclosing_Dynamic_Scope (synthesized)
 --      Appliesa to all entities. Returns the closest dynamic scope in which
@@ -3923,6 +3943,7 @@ package Einfo is
    --    Generic_Renamings             (Elist23)  (for an instance)
    --    Inner_Instances               (Elist23)  (for a generic function)
    --    Privals_Chain                 (Elist23)  (for a protected function)
+   --    Elaboration_Entity_Required   (Flag174)
    --    Function_Returns_With_DSP     (Flag169)
    --    Default_Expressions_Processed (Flag108)
    --    Delay_Cleanups                (Flag114)
@@ -4088,6 +4109,7 @@ package Einfo is
    --    Delay_Subprogram_Descriptors  (Flag50)
    --    Discard_Names                 (Flag88)
    --    Elaborate_All_Desirable       (Flag146)
+   --    Elaboration_Entity_Required   (Flag174)
    --    From_With_Type                (Flag159)
    --    Has_All_Calls_Remote          (Flag79)
    --    Has_Completion                (Flag26)
@@ -4150,6 +4172,7 @@ package Einfo is
    --    Generic_Renamings             (Elist23)  (for an instance)
    --    Inner_Instances               (Elist23)  (for a generic procedure)
    --    Privals_Chain                 (Elist23)  (for a protected procedure)
+   --    Elaboration_Entity_Required   (Flag174)
    --    Function_Returns_With_DSP     (Flag169)  (always False for procedure)
    --    Default_Expressions_Processed (Flag108)
    --    Delay_Cleanups                (Flag114)
@@ -4642,6 +4665,7 @@ package Einfo is
    function Discriminant_Number                (Id : E) return U;
    function Elaborate_All_Desirable            (Id : E) return B;
    function Elaboration_Entity                 (Id : E) return E;
+   function Elaboration_Entity_Required        (Id : E) return B;
    function Enclosing_Scope                    (Id : E) return E;
    function Entry_Accepted                     (Id : E) return B;
    function Entry_Bodies_Array                 (Id : E) return E;
@@ -5063,6 +5087,7 @@ package Einfo is
    procedure Set_Discriminant_Number           (Id : E; V : U);
    procedure Set_Elaborate_All_Desirable       (Id : E; V : B := True);
    procedure Set_Elaboration_Entity            (Id : E; V : E);
+   procedure Set_Elaboration_Entity_Required   (Id : E; V : B := True);
    procedure Set_Enclosing_Scope               (Id : E; V : E);
    procedure Set_Entry_Accepted                (Id : E; V : B := True);
    procedure Set_Entry_Bodies_Array            (Id : E; V : E);
@@ -5495,6 +5520,7 @@ package Einfo is
    pragma Inline (Discriminant_Number);
    pragma Inline (Elaborate_All_Desirable);
    pragma Inline (Elaboration_Entity);
+   pragma Inline (Elaboration_Entity_Required);
    pragma Inline (Enclosing_Scope);
    pragma Inline (Entry_Accepted);
    pragma Inline (Entry_Bodies_Array);
@@ -5833,6 +5859,7 @@ package Einfo is
    pragma Inline (Set_Discriminant_Number);
    pragma Inline (Set_Elaborate_All_Desirable);
    pragma Inline (Set_Elaboration_Entity);
+   pragma Inline (Set_Elaboration_Entity_Required);
    pragma Inline (Set_Enclosing_Scope);
    pragma Inline (Set_Entry_Accepted);
    pragma Inline (Set_Entry_Bodies_Array);

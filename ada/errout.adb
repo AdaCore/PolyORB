@@ -489,31 +489,6 @@ package body Errout is
       end if;
    end Change_Error_Text;
 
-   ------------------------
-   -- Compilation_Errors --
-   ------------------------
-
-   function Compilation_Errors return Boolean is
-   begin
-      return Errors_Detected /= 0
-        or else (Warnings_Detected /= 0
-                  and then Warning_Mode = Treat_As_Error);
-   end Compilation_Errors;
-
-   ------------------
-   -- Debug_Output --
-   ------------------
-
-   procedure Debug_Output (N : Node_Id) is
-   begin
-      if Debug_Flag_1 then
-         Write_Str ("*** following error message posted on node id = #");
-         Write_Int (Int (N));
-         Write_Str (" ***");
-         Write_Eol;
-      end if;
-   end Debug_Output;
-
    -----------------------------
    -- Check_Duplicate_Message --
    -----------------------------
@@ -620,6 +595,31 @@ package body Errout is
          end if;
       end loop;
    end Check_Duplicate_Message;
+
+   ------------------------
+   -- Compilation_Errors --
+   ------------------------
+
+   function Compilation_Errors return Boolean is
+   begin
+      return Errors_Detected /= 0
+        or else (Warnings_Detected /= 0
+                  and then Warning_Mode = Treat_As_Error);
+   end Compilation_Errors;
+
+   ------------------
+   -- Debug_Output --
+   ------------------
+
+   procedure Debug_Output (N : Node_Id) is
+   begin
+      if Debug_Flag_1 then
+         Write_Str ("*** following error message posted on node id = #");
+         Write_Int (Int (N));
+         Write_Str (" ***");
+         Write_Eol;
+      end if;
+   end Debug_Output;
 
    ----------
    -- dmsg --
@@ -786,14 +786,14 @@ package body Errout is
          --  proper Msg_Cont status.
 
       begin
-         X := Get_Source_File_Index (Flag_Location);
-
          --  Loop to find highest level instantiation, where all error
          --  messages will be placed.
 
-         while Instantiation (X) /= No_Location loop
+         X := Sindex;
+         loop
             Actual_Error_Loc := Instantiation (X);
             X := Get_Source_File_Index (Actual_Error_Loc);
+            exit when Instantiation (X) = No_Location;
          end loop;
 
          --  Since we are generating the messages at the instantiation
@@ -839,6 +839,112 @@ package body Errout is
          Error_Msg_Internal (Msg, Actual_Error_Loc, Msg_Cont_Status);
       end;
    end Error_Msg;
+
+   ------------------
+   -- Error_Msg_AP --
+   ------------------
+
+   procedure Error_Msg_AP (Msg : String) is
+      S1 : Source_Ptr;
+      C  : Character;
+
+   begin
+      --  If we had saved the Scan_Ptr value after scanning the previous
+      --  token, then we would have exactly the right place for putting
+      --  the flag immediately at hand. However, that would add at least
+      --  two instructions to a Scan call *just* to service the possibility
+      --  of an Error_Msg_AP call. So instead we reconstruct that value.
+
+      --  We have two possibilities, start with Prev_Token_Ptr and skip over
+      --  the current token, which is made harder by the possibility that this
+      --  token may be in error, or start with Token_Ptr and work backwards.
+      --  We used to take the second approach, but it's hard because of
+      --  comments, and harder still because things that look like comments
+      --  can appear inside strings. So now we take the first approach.
+
+      --  Note: in the case where there is no previous token, Prev_Token_Ptr
+      --  is set to Source_First, which is a reasonable position for the
+      --  error flag in this situation.
+
+      S1 := Prev_Token_Ptr;
+      C := Source (S1);
+
+      --  If the previous token is a string literal, we need a special approach
+      --  since there may be white space inside the literal and we don't want
+      --  to stop on that white space.
+
+      if Prev_Token = Tok_String_Literal then
+         loop
+            S1 := S1 + 1;
+
+            if Source (S1) = C then
+               S1 := S1 + 1;
+               exit when Source (S1) /= C;
+            elsif Source (S1) in Line_Terminator then
+               exit;
+            end if;
+         end loop;
+
+      --  Character literal also needs special handling
+
+      elsif Prev_Token = Tok_Char_Literal then
+         S1 := S1 + 3;
+
+      --  Otherwise we search forward for the end of the current token, marked
+      --  by a line terminator, white space, a comment symbol or if we bump
+      --  into the following token (i.e. the current token)
+
+      else
+         while Source (S1) not in Line_Terminator
+           and then Source (S1) /= ' '
+           and then Source (S1) /= ASCII.HT
+           and then (Source (S1) /= '-' or else Source (S1 + 1) /= '-')
+           and then S1 /= Token_Ptr
+         loop
+            S1 := S1 + 1;
+         end loop;
+      end if;
+
+      --  S1 is now set to the location for the flag
+
+      Error_Msg (Msg, S1);
+
+   end Error_Msg_AP;
+
+   ------------------
+   -- Error_Msg_BC --
+   ------------------
+
+   procedure Error_Msg_BC (Msg : String) is
+   begin
+      --  If we are at end of file, post the flag after the previous token
+
+      if Token = Tok_EOF then
+         Error_Msg_AP (Msg);
+
+      --  If we are at start of file, post the flag at the current token
+
+      elsif Token_Ptr = Source_First (Current_Source_File) then
+         Error_Msg_SC (Msg);
+
+      --  If the character before the current token is a space or a horizontal
+      --  tab, then we place the flag on this character (in the case of a tab
+      --  we would really like to place it in the "last" character of the tab
+      --  space, but that it too much trouble to worry about).
+
+      elsif Source (Token_Ptr - 1) = ' '
+         or else Source (Token_Ptr - 1) = ASCII.HT
+      then
+         Error_Msg (Msg, Token_Ptr - 1);
+
+      --  If there is no space or tab before the current token, then there is
+      --  no room to place the flag before the token, so we place it on the
+      --  token instead (this happens for example at the start of a line).
+
+      else
+         Error_Msg (Msg, Token_Ptr);
+      end if;
+   end Error_Msg_BC;
 
    ------------------------
    -- Error_Msg_Internal --
@@ -1077,153 +1183,6 @@ package body Errout is
    end Error_Msg_Internal;
 
    -----------------
-   -- Error_Msg_S --
-   -----------------
-
-   procedure Error_Msg_S (Msg : String) is
-   begin
-      Error_Msg (Msg, Scan_Ptr);
-   end Error_Msg_S;
-
-   ------------------
-   -- Error_Msg_AP --
-   ------------------
-
-   procedure Error_Msg_AP (Msg : String) is
-      S1 : Source_Ptr;
-      C  : Character;
-
-   begin
-      --  If we had saved the Scan_Ptr value after scanning the previous
-      --  token, then we would have exactly the right place for putting
-      --  the flag immediately at hand. However, that would add at least
-      --  two instructions to a Scan call *just* to service the possibility
-      --  of an Error_Msg_AP call. So instead we reconstruct that value.
-
-      --  We have two possibilities, start with Prev_Token_Ptr and skip over
-      --  the current token, which is made harder by the possibility that this
-      --  token may be in error, or start with Token_Ptr and work backwards.
-      --  We used to take the second approach, but it's hard because of
-      --  comments, and harder still because things that look like comments
-      --  can appear inside strings. So now we take the first approach.
-
-      --  Note: in the case where there is no previous token, Prev_Token_Ptr
-      --  is set to Source_First, which is a reasonable position for the
-      --  error flag in this situation.
-
-      S1 := Prev_Token_Ptr;
-      C := Source (S1);
-
-      --  If the previous token is a string literal, we need a special approach
-      --  since there may be white space inside the literal and we don't want
-      --  to stop on that white space.
-
-      if Prev_Token = Tok_String_Literal then
-         loop
-            S1 := S1 + 1;
-
-            if Source (S1) = C then
-               S1 := S1 + 1;
-               exit when Source (S1) /= C;
-            elsif Source (S1) in Line_Terminator then
-               exit;
-            end if;
-         end loop;
-
-      --  Character literal also needs special handling
-
-      elsif Prev_Token = Tok_Char_Literal then
-         S1 := S1 + 3;
-
-      --  Otherwise we search forward for the end of the current token, marked
-      --  by a line terminator, white space, a comment symbol or if we bump
-      --  into the following token (i.e. the current token)
-
-      else
-         while Source (S1) not in Line_Terminator
-           and then Source (S1) /= ' '
-           and then Source (S1) /= ASCII.HT
-           and then (Source (S1) /= '-' or else Source (S1 + 1) /= '-')
-           and then S1 /= Token_Ptr
-         loop
-            S1 := S1 + 1;
-         end loop;
-      end if;
-
-      --  S1 is now set to the location for the flag
-
-      Error_Msg (Msg, S1);
-
-   end Error_Msg_AP;
-
-   ------------------
-   -- Error_Msg_BC --
-   ------------------
-
-   procedure Error_Msg_BC (Msg : String) is
-   begin
-      --  If we are at end of file, post the flag after the previous token
-
-      if Token = Tok_EOF then
-         Error_Msg_AP (Msg);
-
-      --  If we are at start of file, post the flag at the current token
-
-      elsif Token_Ptr = Source_First (Current_Source_File) then
-         Error_Msg_SC (Msg);
-
-      --  If the character before the current token is a space or a horizontal
-      --  tab, then we place the flag on this character (in the case of a tab
-      --  we would really like to place it in the "last" character of the tab
-      --  space, but that it too much trouble to worry about).
-
-      elsif Source (Token_Ptr - 1) = ' '
-         or else Source (Token_Ptr - 1) = ASCII.HT
-      then
-         Error_Msg (Msg, Token_Ptr - 1);
-
-      --  If there is no space or tab before the current token, then there is
-      --  no room to place the flag before the token, so we place it on the
-      --  token instead (this happens for example at the start of a line).
-
-      else
-         Error_Msg (Msg, Token_Ptr);
-      end if;
-   end Error_Msg_BC;
-
-   ------------------
-   -- Error_Msg_SC --
-   ------------------
-
-   procedure Error_Msg_SC (Msg : String) is
-   begin
-      --  If we are at end of file, post the flag after the previous token
-
-      if Token = Tok_EOF then
-         Error_Msg_AP (Msg);
-
-      --  For all other cases the message is posted at the current token
-      --  pointer position
-
-      else
-         Error_Msg (Msg, Token_Ptr);
-      end if;
-   end Error_Msg_SC;
-
-   ------------------
-   -- Error_Msg_SP --
-   ------------------
-
-   procedure Error_Msg_SP (Msg : String) is
-   begin
-      --  Note: in the case where there is no previous token, Prev_Token_Ptr
-      --  is set to Source_First, which is a reasonable position for the
-      --  error flag in this situation
-
-      Error_Msg (Msg, Prev_Token_Ptr);
-   end Error_Msg_SP;
-
-   -----------------
    -- Error_Msg_N --
    -----------------
 
@@ -1291,6 +1250,47 @@ package body Errout is
       end if;
    end Error_Msg_NE;
 
+   -----------------
+   -- Error_Msg_S --
+   -----------------
+
+   procedure Error_Msg_S (Msg : String) is
+   begin
+      Error_Msg (Msg, Scan_Ptr);
+   end Error_Msg_S;
+
+   ------------------
+   -- Error_Msg_SC --
+   ------------------
+
+   procedure Error_Msg_SC (Msg : String) is
+   begin
+      --  If we are at end of file, post the flag after the previous token
+
+      if Token = Tok_EOF then
+         Error_Msg_AP (Msg);
+
+      --  For all other cases the message is posted at the current token
+      --  pointer position
+
+      else
+         Error_Msg (Msg, Token_Ptr);
+      end if;
+   end Error_Msg_SC;
+
+   ------------------
+   -- Error_Msg_SP --
+   ------------------
+
+   procedure Error_Msg_SP (Msg : String) is
+   begin
+      --  Note: in the case where there is no previous token, Prev_Token_Ptr
+      --  is set to Source_First, which is a reasonable position for the
+      --  error flag in this situation
+
+      Error_Msg (Msg, Prev_Token_Ptr);
+   end Error_Msg_SP;
+
    --------------
    -- Finalize --
    --------------
@@ -1335,7 +1335,7 @@ package body Errout is
          Set_Standard_Error;
 
          while E /= No_Error_Msg loop
-            if not Errors.Table (E).Deleted then
+            if not Errors.Table (E).Deleted and then not Debug_Flag_KK then
                Write_Name (Reference_Name (Errors.Table (E).Sfile));
                Write_Char (':');
                Write_Int (Int (Physical_To_Logical
@@ -1838,7 +1838,6 @@ package body Errout is
 
                   --  Ignore if on line with errors so that error flags
                   --  get properly listed with the error line .
-
 
                   if not Errs then
                      Write_Char (ASCII.FF);

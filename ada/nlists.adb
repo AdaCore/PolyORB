@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -128,177 +128,6 @@ package body Nlists is
    pragma Inline (Set_Prev);
    --  Sets the Prev_Node pointer for Node to reference To
 
-   -----------------
-   -- Delete_List --
-   -----------------
-
-   procedure Delete_List (L : List_Id) is
-      N : Node_Id;
-
-   begin
-      while Is_Non_Empty_List (L) loop
-         N := Remove_Head (L);
-         Delete_Tree (N);
-      end loop;
-
-      --  Should recycle list header???
-   end Delete_List;
-
-   -----------
-   -- First --
-   -----------
-
-   --  This subprogram is deliberately placed early on, out of alphabetical
-   --  order, so that it can be properly inlined from within this unit.
-
-   function First (List : List_Id) return Node_Id is
-   begin
-      if List = No_List then
-         return Empty;
-      else
-         pragma Assert (List in First_List_Id .. Lists.Last);
-         return Lists.Table (List).First;
-      end if;
-   end First;
-
-   ----------
-   -- Last --
-   ----------
-
-   --  This subprogram is deliberately placed early on, out of alphabetical
-   --  order, so that it can be properly inlined from within this unit.
-
-   function Last (List : List_Id) return Node_Id is
-   begin
-      pragma Assert (List in First_List_Id .. Lists.Last);
-      return Lists.Table (List).Last;
-   end Last;
-
-   ----------
-   -- Next --
-   ----------
-
-   --  This subprogram is deliberately placed early on, out of alphabetical
-   --  order, so that it can be properly inlined from within this unit.
-
-   function Next (Node : Node_Id) return Node_Id is
-   begin
-      pragma Assert (Is_List_Member (Node));
-      return Next_Node.Table (Node);
-   end Next;
-
-   procedure Next (Node : in out Node_Id) is
-   begin
-      Node := Next (Node);
-   end Next;
-
-   --------
-   -- No --
-   --------
-
-   --  This subprogram is deliberately placed early on, out of alphabetical
-   --  order, so that it can be properly inlined from within this unit.
-
-   function No (List : List_Id) return Boolean is
-   begin
-      return List = No_List;
-   end No;
-
-   -------
-   -- p --
-   -------
-
-   function p (U : Union_Id) return Node_Id is
-   begin
-      if U in Node_Range then
-         return Parent (Node_Id (U));
-
-      elsif U in List_Range then
-         return Parent (List_Id (U));
-
-      else
-         return 99_999_999;
-      end if;
-   end p;
-
-   ----------
-   -- Prev --
-   ----------
-
-   --  This subprogram is deliberately placed early on, out of alphabetical
-   --  order, so that it can be properly inlined from within this unit.
-
-   function Prev (Node : Node_Id) return Node_Id is
-   begin
-      pragma Assert (Is_List_Member (Node));
-      return Prev_Node.Table (Node);
-   end Prev;
-
-   procedure Prev (Node : in out Node_Id) is
-   begin
-      Node := Prev (Node);
-   end Prev;
-
-   ---------------
-   -- Set_First --
-   ---------------
-
-   --  This subprogram is deliberately placed early on, out of alphabetical
-   --  order, so that it can be properly inlined from within this unit.
-
-   procedure Set_First (List : List_Id; To : Node_Id) is
-   begin
-      Lists.Table (List).First := To;
-   end Set_First;
-
-   --------------
-   -- Set_Last --
-   --------------
-
-   --  This subprogram is deliberately placed early on, out of alphabetical
-   --  order, so that it can be properly inlined from within this unit.
-
-   procedure Set_Last (List : List_Id; To : Node_Id) is
-   begin
-      Lists.Table (List).Last := To;
-   end Set_Last;
-
-   -------------------
-   -- Set_List_Link --
-   -------------------
-
-   --  This subprogram is deliberately placed early on, out of alphabetical
-   --  order, so that it can be properly inlined from within this unit.
-
-   procedure Set_List_Link (Node : Node_Id; To : List_Id) is
-   begin
-      Nodes.Table (Node).Link := Union_Id (To);
-   end Set_List_Link;
-
-   --------------
-   -- Set_Next --
-   --------------
-
-   --  This subprogram is deliberately placed early on, out of alphabetical
-   --  order, so that it can be properly inlined from within this unit.
-
-   procedure Set_Next (Node : Node_Id; To : Node_Id) is
-   begin
-      Next_Node.Table (Node) := To;
-   end Set_Next;
-
-   --------------
-   -- Set_Prev --
-   --------------
-
-   --  This subprogram is deliberately placed early on, out of alphabetical
-   --  order, so that it can be properly inlined from within this unit.
-
-   procedure Set_Prev (Node : Node_Id; To : Node_Id) is
-   begin
-      Prev_Node.Table (Node) := To;
-   end Set_Prev;
-
    --------------------------
    -- Allocate_List_Tables --
    --------------------------
@@ -356,15 +185,6 @@ package body Nlists is
       Set_Prev      (Node, L);
       Set_List_Link (Node, To);
    end Append;
-
-   ---------------
-   -- Append_To --
-   ---------------
-
-   procedure Append_To (To : List_Id; Node : Node_Id) is
-   begin
-      Append (Node, To);
-   end Append_To;
 
    -----------------
    -- Append_List --
@@ -432,6 +252,48 @@ package body Nlists is
    begin
       Append_List (List, To);
    end Append_List_To;
+
+   ---------------
+   -- Append_To --
+   ---------------
+
+   procedure Append_To (To : List_Id; Node : Node_Id) is
+   begin
+      Append (Node, To);
+   end Append_To;
+
+   -----------------
+   -- Delete_List --
+   -----------------
+
+   procedure Delete_List (L : List_Id) is
+      N : Node_Id;
+
+   begin
+      while Is_Non_Empty_List (L) loop
+         N := Remove_Head (L);
+         Delete_Tree (N);
+      end loop;
+
+      --  Should recycle list header???
+   end Delete_List;
+
+   -----------
+   -- First --
+   -----------
+
+   --  This subprogram is deliberately placed early on, out of alphabetical
+   --  order, so that it can be properly inlined from within this unit.
+
+   function First (List : List_Id) return Node_Id is
+   begin
+      if List = No_List then
+         return Empty;
+      else
+         pragma Assert (List in First_List_Id .. Lists.Last);
+         return Lists.Table (List).First;
+      end if;
+   end First;
 
    ----------------------
    -- First_Non_Pragma --
@@ -732,6 +594,28 @@ package body Nlists is
       return List /= No_List and then First (List) /= Empty;
    end Is_Non_Empty_List;
 
+   ----------
+   -- Last --
+   ----------
+
+   --  This subprogram is deliberately placed early on, out of alphabetical
+   --  order, so that it can be properly inlined from within this unit.
+
+   function Last (List : List_Id) return Node_Id is
+   begin
+      pragma Assert (List in First_List_Id .. Lists.Last);
+      return Lists.Table (List).Last;
+   end Last;
+
+   ------------------
+   -- Last_List_Id --
+   ------------------
+
+   function Last_List_Id return List_Id is
+   begin
+      return Lists.Last;
+   end Last_List_Id;
+
    ---------------------
    -- Last_Non_Pragma --
    ---------------------
@@ -746,15 +630,6 @@ package body Nlists is
          return Prev_Non_Pragma (N);
       end if;
    end Last_Non_Pragma;
-
-   ------------------
-   -- Last_List_Id --
-   ------------------
-
-   function Last_List_Id return List_Id is
-   begin
-      return Lists.Last;
-   end Last_List_Id;
 
    ---------------------
    -- List_Containing --
@@ -810,14 +685,83 @@ package body Nlists is
       Next_Node.Release;
    end Lock;
 
-   -----------------------
-   -- Next_Node_Address --
-   -----------------------
+   -------------------
+   -- New_Copy_List --
+   -------------------
 
-   function Next_Node_Address return System.Address is
+   function New_Copy_List (List : List_Id) return List_Id is
+      NL : List_Id;
+      E  : Node_Id;
+
    begin
-      return Next_Node.Table (First_Node_Id)'Address;
-   end Next_Node_Address;
+      if List = No_List then
+         return No_List;
+
+      else
+         NL := New_List;
+         E := First (List);
+
+         while Present (E) loop
+            Append (New_Copy (E), NL);
+            E := Next (E);
+         end loop;
+
+         return NL;
+      end if;
+   end New_Copy_List;
+
+   ----------------------------
+   -- New_Copy_List_Original --
+   ----------------------------
+
+   function New_Copy_List_Original (List : List_Id) return List_Id is
+      NL : List_Id;
+      E  : Node_Id;
+
+   begin
+      if List = No_List then
+         return No_List;
+
+      else
+         NL := New_List;
+         E := First (List);
+
+         while Present (E) loop
+            if Comes_From_Source (E) then
+               Append (New_Copy (E), NL);
+            end if;
+
+            E := Next (E);
+         end loop;
+
+         return NL;
+      end if;
+   end New_Copy_List_Original;
+
+   ------------------------
+   -- New_Copy_List_Tree --
+   ------------------------
+
+   function New_Copy_List_Tree (List : List_Id) return List_Id is
+      NL : List_Id;
+      E  : Node_Id;
+
+   begin
+      if List = No_List then
+         return No_List;
+
+      else
+         NL := New_List;
+         E := First (List);
+
+         while Present (E) loop
+            Append (New_Copy_Tree (E), NL);
+            E := Next (E);
+         end loop;
+
+         return NL;
+      end if;
+   end New_Copy_List_Tree;
 
    --------------
    -- New_List --
@@ -969,83 +913,32 @@ package body Nlists is
       return L;
    end New_List;
 
-   -------------------
-   -- New_Copy_List --
-   -------------------
+   ----------
+   -- Next --
+   ----------
 
-   function New_Copy_List (List : List_Id) return List_Id is
-      NL : List_Id;
-      E  : Node_Id;
+   --  This subprogram is deliberately placed early on, out of alphabetical
+   --  order, so that it can be properly inlined from within this unit.
 
+   function Next (Node : Node_Id) return Node_Id is
    begin
-      if List = No_List then
-         return No_List;
+      pragma Assert (Is_List_Member (Node));
+      return Next_Node.Table (Node);
+   end Next;
 
-      else
-         NL := New_List;
-         E := First (List);
-
-         while Present (E) loop
-            Append (New_Copy (E), NL);
-            E := Next (E);
-         end loop;
-
-         return NL;
-      end if;
-   end New_Copy_List;
-
-   ----------------------------
-   -- New_Copy_List_Original --
-   ----------------------------
-
-   function New_Copy_List_Original (List : List_Id) return List_Id is
-      NL : List_Id;
-      E  : Node_Id;
-
+   procedure Next (Node : in out Node_Id) is
    begin
-      if List = No_List then
-         return No_List;
+      Node := Next (Node);
+   end Next;
 
-      else
-         NL := New_List;
-         E := First (List);
+   -----------------------
+   -- Next_Node_Address --
+   -----------------------
 
-         while Present (E) loop
-            if Comes_From_Source (E) then
-               Append (New_Copy (E), NL);
-            end if;
-
-            E := Next (E);
-         end loop;
-
-         return NL;
-      end if;
-   end New_Copy_List_Original;
-
-   ------------------------
-   -- New_Copy_List_Tree --
-   ------------------------
-
-   function New_Copy_List_Tree (List : List_Id) return List_Id is
-      NL : List_Id;
-      E  : Node_Id;
-
+   function Next_Node_Address return System.Address is
    begin
-      if List = No_List then
-         return No_List;
-
-      else
-         NL := New_List;
-         E := First (List);
-
-         while Present (E) loop
-            Append (New_Copy_Tree (E), NL);
-            E := Next (E);
-         end loop;
-
-         return NL;
-      end if;
-   end New_Copy_List_Tree;
+      return Next_Node.Table (First_Node_Id)'Address;
+   end Next_Node_Address;
 
    ---------------------
    -- Next_Non_Pragma --
@@ -1071,6 +964,18 @@ package body Nlists is
       Node := Next_Non_Pragma (Node);
    end Next_Non_Pragma;
 
+   --------
+   -- No --
+   --------
+
+   --  This subprogram is deliberately placed early on, out of alphabetical
+   --  order, so that it can be properly inlined from within this unit.
+
+   function No (List : List_Id) return Boolean is
+   begin
+      return List = No_List;
+   end No;
+
    ---------------
    -- Num_Lists --
    ---------------
@@ -1079,6 +984,23 @@ package body Nlists is
    begin
       return Int (Lists.Last) - Int (Lists.First) + 1;
    end Num_Lists;
+
+   -------
+   -- p --
+   -------
+
+   function p (U : Union_Id) return Node_Id is
+   begin
+      if U in Node_Range then
+         return Parent (Node_Id (U));
+
+      elsif U in List_Range then
+         return Parent (List_Id (U));
+
+      else
+         return 99_999_999;
+      end if;
+   end p;
 
    ------------
    -- Parent --
@@ -1106,7 +1028,6 @@ package body Nlists is
       return Elmt;
    end Pick;
 
-
    -------------
    -- Prepend --
    -------------
@@ -1130,7 +1051,6 @@ package body Nlists is
       end Prepend_Debug;
 
    --  Start of processing for Prepend
-
 
    begin
       pragma Assert (not Is_List_Member (Node));
@@ -1173,6 +1093,24 @@ package body Nlists is
    begin
       return List /= No_List;
    end Present;
+
+   ----------
+   -- Prev --
+   ----------
+
+   --  This subprogram is deliberately placed early on, out of alphabetical
+   --  order, so that it can be properly inlined from within this unit.
+
+   function Prev (Node : Node_Id) return Node_Id is
+   begin
+      pragma Assert (Is_List_Member (Node));
+      return Prev_Node.Table (Node);
+   end Prev;
+
+   procedure Prev (Node : in out Node_Id) is
+   begin
+      Node := Prev (Node);
+   end Prev;
 
    -----------------------
    -- Prev_Node_Address --
@@ -1342,6 +1280,54 @@ package body Nlists is
       return Nxt;
    end Remove_Next;
 
+   ---------------
+   -- Set_First --
+   ---------------
+
+   --  This subprogram is deliberately placed early on, out of alphabetical
+   --  order, so that it can be properly inlined from within this unit.
+
+   procedure Set_First (List : List_Id; To : Node_Id) is
+   begin
+      Lists.Table (List).First := To;
+   end Set_First;
+
+   --------------
+   -- Set_Last --
+   --------------
+
+   --  This subprogram is deliberately placed early on, out of alphabetical
+   --  order, so that it can be properly inlined from within this unit.
+
+   procedure Set_Last (List : List_Id; To : Node_Id) is
+   begin
+      Lists.Table (List).Last := To;
+   end Set_Last;
+
+   -------------------
+   -- Set_List_Link --
+   -------------------
+
+   --  This subprogram is deliberately placed early on, out of alphabetical
+   --  order, so that it can be properly inlined from within this unit.
+
+   procedure Set_List_Link (Node : Node_Id; To : List_Id) is
+   begin
+      Nodes.Table (Node).Link := Union_Id (To);
+   end Set_List_Link;
+
+   --------------
+   -- Set_Next --
+   --------------
+
+   --  This subprogram is deliberately placed early on, out of alphabetical
+   --  order, so that it can be properly inlined from within this unit.
+
+   procedure Set_Next (Node : Node_Id; To : Node_Id) is
+   begin
+      Next_Node.Table (Node) := To;
+   end Set_Next;
+
    ----------------
    -- Set_Parent --
    ----------------
@@ -1351,6 +1337,18 @@ package body Nlists is
       pragma Assert (List in First_List_Id .. Lists.Last);
       Lists.Table (List).Parent := Node;
    end Set_Parent;
+
+   --------------
+   -- Set_Prev --
+   --------------
+
+   --  This subprogram is deliberately placed early on, out of alphabetical
+   --  order, so that it can be properly inlined from within this unit.
+
+   procedure Set_Prev (Node : Node_Id; To : Node_Id) is
+   begin
+      Prev_Node.Table (Node) := To;
+   end Set_Prev;
 
    ---------------
    -- Tree_Read --

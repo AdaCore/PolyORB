@@ -49,6 +49,58 @@ with Types;  use Types;
 
 package Sinput is
 
+   ----------------------------
+   -- Source License Control --
+   ----------------------------
+
+   --  The following type indicates the license state of a source if it
+   --  is known.
+
+   type License_Type is
+     (Unknown,
+      --  Licensing status of this source unit is unknown
+
+      Restricted,
+      --  This is a non-GPL'ed unit that is restricted from depending
+      --  on GPL'ed units (e.g. proprietary code is in this category)
+
+      GPL,
+      --  This file is licensed under the unmodified GPL. It is not allowed
+      --  to depend on Non_GPL units, and Non_GPL units may not depend on
+      --  this source unit.
+
+      Modified_GPL,
+      --  This file is licensed under the GNAT modified GPL (see header of
+      --  This file for wording of the modification). It may depend on other
+      --  Modified_GPL units or on unrestricted units.
+
+      Unrestricted);
+      --  The license on this file is permitted to depend on any other
+      --  units, or have other units depend on it, without violating the
+      --  license of this unit. Examples are public domain units, and
+      --  units defined in the RM).
+
+   --  The above license status is checked when the appropriate check is
+   --  activated and one source depends on another, and the licensing state
+   --  of both files is known:
+
+   --  The prohibited combinations are:
+
+   --    Restricted file may not depend on GPL file
+
+   --    GPL file may not depend on Restricted file
+
+   --    Modified GPL file may not depend on Restricted file
+   --    Modified_GPL file may not depend on GPL file
+
+   --  The reason for the last restriction here is that a client depending
+   --  on a modified GPL file must be sure that the license condition is
+   --  correct considered transitively.
+
+   --  The licensing status is determined either by the presence of a
+   --  specific pragma License, or by scanning the header for a predefined
+   --  file, or any file if compiling in -gnatg mode.
+
    -----------------------
    -- Source File Table --
    -----------------------
@@ -101,6 +153,9 @@ package Sinput is
    --    Full_Ref_Name unless the -gnatD (debug source file) switch is used.
    --    Only processing in Sprint that generates this file is permitted to
    --    set this field.
+
+   --  License : License_Type;
+   --    License status of source file
 
    --  Num_SRef_Pragmas : Nat;
    --    Number of source reference pragmas present in source file
@@ -181,6 +236,7 @@ package Sinput is
    function Instantiation     (S : SFI) return Source_Ptr;
    function Keyword_Casing    (S : SFI) return Casing_Type;
    function Last_Source_Line  (S : SFI) return Physical_Line_Number;
+   function License           (S : SFI) return License_Type;
    function Num_SRef_Pragmas  (S : SFI) return Nat;
    function Reference_Name    (S : SFI) return File_Name_Type;
    function Source_Checksum   (S : SFI) return Word;
@@ -192,6 +248,7 @@ package Sinput is
 
    procedure Set_Keyword_Casing    (S : SFI; C : Casing_Type);
    procedure Set_Identifier_Casing (S : SFI; C : Casing_Type);
+   procedure Set_License           (S : SFI; L : License_Type);
 
    function Last_Source_File return Source_File_Index;
    --  Index of last source file table entry
@@ -468,6 +525,7 @@ private
    pragma Inline (Keyword_Casing);
    pragma Inline (Last_Source_Line);
    pragma Inline (Last_Source_File);
+   pragma Inline (License);
    pragma Inline (Num_SRef_Pragmas);
    pragma Inline (Num_Source_Files);
    pragma Inline (Num_Source_Lines);
@@ -519,6 +577,7 @@ private
       Debug_Source_Name : File_Name_Type;
       Full_File_Name    : File_Name_Type;
       Full_Ref_Name     : File_Name_Type;
+      License           : License_Type;
       Num_SRef_Pragmas  : Nat;
       First_Mapped_Line : Logical_Line_Number;
       Source_Text       : Source_Buffer_Ptr;

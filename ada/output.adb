@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2001, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -88,6 +88,67 @@ package body Output is
       Column := 1;
    end Set_Standard_Output;
 
+   -------
+   -- w --
+   -------
+
+   procedure w (C : Character) is
+   begin
+      Write_Char (''');
+      Write_Char (C);
+      Write_Char (''');
+      Write_Eol;
+   end w;
+
+   procedure w (S : String) is
+   begin
+      Write_Str (S);
+      Write_Eol;
+   end w;
+
+   procedure w (V : Int) is
+   begin
+      Write_Int (V);
+      Write_Eol;
+   end w;
+
+   procedure w (B : Boolean) is
+   begin
+      if B then
+         w ("True");
+      else
+         w ("False");
+      end if;
+   end w;
+
+   procedure w (L : String; C : Character) is
+   begin
+      Write_Str (L);
+      Write_Char (' ');
+      w (C);
+   end w;
+
+   procedure w (L : String; S : String) is
+   begin
+      Write_Str (L);
+      Write_Char (' ');
+      w (S);
+   end w;
+
+   procedure w (L : String; V : Int) is
+   begin
+      Write_Str (L);
+      Write_Char (' ');
+      w (V);
+   end w;
+
+   procedure w (L : String; B : Boolean) is
+   begin
+      Write_Str (L);
+      Write_Char (' ');
+      w (B);
+   end w;
+
    ----------------
    -- Write_Char --
    ----------------
@@ -150,66 +211,5 @@ package body Output is
          Write_Char (S (J));
       end loop;
    end Write_Str;
-
-   --------------------------
-   -- Debugging Procedures --
-   --------------------------
-
-   procedure w (C : Character) is
-   begin
-      Write_Char (''');
-      Write_Char (C);
-      Write_Char (''');
-      Write_Eol;
-   end w;
-
-   procedure w (S : String) is
-   begin
-      Write_Str (S);
-      Write_Eol;
-   end w;
-
-   procedure w (V : Int) is
-   begin
-      Write_Int (V);
-      Write_Eol;
-   end w;
-
-   procedure w (B : Boolean) is
-   begin
-      if B then
-         w ("True");
-      else
-         w ("False");
-      end if;
-   end w;
-
-   procedure w (L : String; C : Character) is
-   begin
-      Write_Str (L);
-      Write_Char (' ');
-      w (C);
-   end w;
-
-   procedure w (L : String; S : String) is
-   begin
-      Write_Str (L);
-      Write_Char (' ');
-      w (S);
-   end w;
-
-   procedure w (L : String; V : Int) is
-   begin
-      Write_Str (L);
-      Write_Char (' ');
-      w (V);
-   end w;
-
-   procedure w (L : String; B : Boolean) is
-   begin
-      Write_Str (L);
-      Write_Char (' ');
-      w (B);
-   end w;
 
 end Output;

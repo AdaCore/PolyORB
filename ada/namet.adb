@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -120,168 +120,6 @@ package body Namet is
          Add_Char_To_Name_Buffer (S (J));
       end loop;
    end Add_Str_To_Name_Buffer;
-
-   ----------
-   -- Hash --
-   ----------
-
-   function Hash return Hash_Index_Type is
-      subtype Int_1_12 is Int range 1 .. 12;
-      --  Used to avoid when others on case jump below
-
-      Even_Name_Len : Integer;
-      --  Last even numbered position (used for >12 case)
-
-   begin
-
-      --  Special test for 12 (rather than counting on a when others for the
-      --  case statement below) avoids some Ada compilers converting the case
-      --  statement into successive jumps.
-
-      --  The case of a name longer than 12 characters is handled by taking
-      --  the first 6 odd numbered characters and the last 6 even numbered
-      --  characters
-
-      if Name_Len > 12 then
-         Even_Name_Len := (Name_Len) / 2 * 2;
-
-         return ((((((((((((
-           Character'Pos (Name_Buffer (01))) * 2 +
-           Character'Pos (Name_Buffer (Even_Name_Len - 10))) * 2 +
-           Character'Pos (Name_Buffer (03))) * 2 +
-           Character'Pos (Name_Buffer (Even_Name_Len - 08))) * 2 +
-           Character'Pos (Name_Buffer (05))) * 2 +
-           Character'Pos (Name_Buffer (Even_Name_Len - 06))) * 2 +
-           Character'Pos (Name_Buffer (07))) * 2 +
-           Character'Pos (Name_Buffer (Even_Name_Len - 04))) * 2 +
-           Character'Pos (Name_Buffer (09))) * 2 +
-           Character'Pos (Name_Buffer (Even_Name_Len - 02))) * 2 +
-           Character'Pos (Name_Buffer (11))) * 2 +
-           Character'Pos (Name_Buffer (Even_Name_Len))) mod Hash_Num;
-      end if;
-
-      --  For the cases of 1-12 characters, all characters participate in the
-      --  hash. The positioning is randomized, with the bias that characters
-      --  later on participate fully (i.e. are added towards the right side).
-
-      case Int_1_12 (Name_Len) is
-
-         when 1 =>
-            return
-               Character'Pos (Name_Buffer (1));
-
-         when 2 =>
-            return ((
-              Character'Pos (Name_Buffer (1))) * 64 +
-              Character'Pos (Name_Buffer (2))) mod Hash_Num;
-
-         when 3 =>
-            return (((
-              Character'Pos (Name_Buffer (1))) * 16 +
-              Character'Pos (Name_Buffer (3))) * 16 +
-              Character'Pos (Name_Buffer (2))) mod Hash_Num;
-
-         when 4 =>
-            return ((((
-              Character'Pos (Name_Buffer (1))) * 8 +
-              Character'Pos (Name_Buffer (2))) * 8 +
-              Character'Pos (Name_Buffer (3))) * 8 +
-              Character'Pos (Name_Buffer (4))) mod Hash_Num;
-
-         when 5 =>
-            return (((((
-              Character'Pos (Name_Buffer (4))) * 8 +
-              Character'Pos (Name_Buffer (1))) * 4 +
-              Character'Pos (Name_Buffer (3))) * 4 +
-              Character'Pos (Name_Buffer (5))) * 8 +
-              Character'Pos (Name_Buffer (2))) mod Hash_Num;
-
-         when 6 =>
-            return ((((((
-              Character'Pos (Name_Buffer (5))) * 4 +
-              Character'Pos (Name_Buffer (1))) * 4 +
-              Character'Pos (Name_Buffer (4))) * 4 +
-              Character'Pos (Name_Buffer (2))) * 4 +
-              Character'Pos (Name_Buffer (6))) * 4 +
-              Character'Pos (Name_Buffer (3))) mod Hash_Num;
-
-         when 7 =>
-            return (((((((
-              Character'Pos (Name_Buffer (4))) * 4 +
-              Character'Pos (Name_Buffer (3))) * 4 +
-              Character'Pos (Name_Buffer (1))) * 4 +
-              Character'Pos (Name_Buffer (2))) * 2 +
-              Character'Pos (Name_Buffer (5))) * 2 +
-              Character'Pos (Name_Buffer (7))) * 2 +
-              Character'Pos (Name_Buffer (6))) mod Hash_Num;
-
-         when 8 =>
-            return ((((((((
-              Character'Pos (Name_Buffer (2))) * 4 +
-              Character'Pos (Name_Buffer (1))) * 4 +
-              Character'Pos (Name_Buffer (3))) * 2 +
-              Character'Pos (Name_Buffer (5))) * 2 +
-              Character'Pos (Name_Buffer (7))) * 2 +
-              Character'Pos (Name_Buffer (6))) * 2 +
-              Character'Pos (Name_Buffer (4))) * 2 +
-              Character'Pos (Name_Buffer (8))) mod Hash_Num;
-
-         when 9 =>
-            return (((((((((
-              Character'Pos (Name_Buffer (2))) * 4 +
-              Character'Pos (Name_Buffer (1))) * 4 +
-              Character'Pos (Name_Buffer (3))) * 4 +
-              Character'Pos (Name_Buffer (4))) * 2 +
-              Character'Pos (Name_Buffer (8))) * 2 +
-              Character'Pos (Name_Buffer (7))) * 2 +
-              Character'Pos (Name_Buffer (5))) * 2 +
-              Character'Pos (Name_Buffer (6))) * 2 +
-              Character'Pos (Name_Buffer (9))) mod Hash_Num;
-
-         when 10 =>
-            return ((((((((((
-              Character'Pos (Name_Buffer (01))) * 2 +
-              Character'Pos (Name_Buffer (02))) * 2 +
-              Character'Pos (Name_Buffer (08))) * 2 +
-              Character'Pos (Name_Buffer (03))) * 2 +
-              Character'Pos (Name_Buffer (04))) * 2 +
-              Character'Pos (Name_Buffer (09))) * 2 +
-              Character'Pos (Name_Buffer (06))) * 2 +
-              Character'Pos (Name_Buffer (05))) * 2 +
-              Character'Pos (Name_Buffer (07))) * 2 +
-              Character'Pos (Name_Buffer (10))) mod Hash_Num;
-
-         when 11 =>
-            return (((((((((((
-              Character'Pos (Name_Buffer (05))) * 2 +
-              Character'Pos (Name_Buffer (01))) * 2 +
-              Character'Pos (Name_Buffer (06))) * 2 +
-              Character'Pos (Name_Buffer (09))) * 2 +
-              Character'Pos (Name_Buffer (07))) * 2 +
-              Character'Pos (Name_Buffer (03))) * 2 +
-              Character'Pos (Name_Buffer (08))) * 2 +
-              Character'Pos (Name_Buffer (02))) * 2 +
-              Character'Pos (Name_Buffer (10))) * 2 +
-              Character'Pos (Name_Buffer (04))) * 2 +
-              Character'Pos (Name_Buffer (11))) mod Hash_Num;
-
-         when 12 =>
-            return ((((((((((((
-              Character'Pos (Name_Buffer (03))) * 2 +
-              Character'Pos (Name_Buffer (02))) * 2 +
-              Character'Pos (Name_Buffer (05))) * 2 +
-              Character'Pos (Name_Buffer (01))) * 2 +
-              Character'Pos (Name_Buffer (06))) * 2 +
-              Character'Pos (Name_Buffer (04))) * 2 +
-              Character'Pos (Name_Buffer (08))) * 2 +
-              Character'Pos (Name_Buffer (11))) * 2 +
-              Character'Pos (Name_Buffer (07))) * 2 +
-              Character'Pos (Name_Buffer (09))) * 2 +
-              Character'Pos (Name_Buffer (10))) * 2 +
-              Character'Pos (Name_Buffer (12))) mod Hash_Num;
-
-      end case;
-   end Hash;
 
    --------------
    -- Finalize --
@@ -396,61 +234,6 @@ package body Namet is
          Write_Eol;
       end if;
    end Finalize;
-
-   ---------------------
-   -- Get_Name_String --
-   ---------------------
-
-   procedure Get_Name_String (Id : Name_Id) is
-      S : Int;
-
-   begin
-      pragma Assert (Id in Name_Entries.First .. Name_Entries.Last);
-
-      S := Name_Entries.Table (Id).Name_Chars_Index;
-      Name_Len := Natural (Name_Entries.Table (Id).Name_Len);
-
-      for J in 1 .. Name_Len loop
-         Name_Buffer (J) := Name_Chars.Table (S + Int (J));
-      end loop;
-   end Get_Name_String;
-
-   function Get_Name_String (Id : Name_Id) return String is
-      S : Int;
-
-   begin
-      pragma Assert (Id in Name_Entries.First .. Name_Entries.Last);
-      S := Name_Entries.Table (Id).Name_Chars_Index;
-
-      declare
-         R : String (1 .. Natural (Name_Entries.Table (Id).Name_Len));
-
-      begin
-         for J in R'Range loop
-            R (J) := Name_Chars.Table (S + Int (J));
-         end loop;
-
-         return R;
-      end;
-   end Get_Name_String;
-
-   --------------------------------
-   -- Get_Name_String_And_Append --
-   --------------------------------
-
-   procedure Get_Name_String_And_Append (Id : Name_Id) is
-      S : Int;
-
-   begin
-      pragma Assert (Id in Name_Entries.First .. Name_Entries.Last);
-
-      S := Name_Entries.Table (Id).Name_Chars_Index;
-
-      for J in 1 .. Natural (Name_Entries.Table (Id).Name_Len) loop
-         Name_Len := Name_Len + 1;
-         Name_Buffer (Name_Len) := Name_Chars.Table (S + Int (J));
-      end loop;
-   end Get_Name_String_And_Append;
 
    -----------------------------
    -- Get_Decoded_Name_String --
@@ -724,6 +507,61 @@ package body Namet is
       end if;
    end Get_Decoded_Name_String_With_Brackets;
 
+   ---------------------
+   -- Get_Name_String --
+   ---------------------
+
+   procedure Get_Name_String (Id : Name_Id) is
+      S : Int;
+
+   begin
+      pragma Assert (Id in Name_Entries.First .. Name_Entries.Last);
+
+      S := Name_Entries.Table (Id).Name_Chars_Index;
+      Name_Len := Natural (Name_Entries.Table (Id).Name_Len);
+
+      for J in 1 .. Name_Len loop
+         Name_Buffer (J) := Name_Chars.Table (S + Int (J));
+      end loop;
+   end Get_Name_String;
+
+   function Get_Name_String (Id : Name_Id) return String is
+      S : Int;
+
+   begin
+      pragma Assert (Id in Name_Entries.First .. Name_Entries.Last);
+      S := Name_Entries.Table (Id).Name_Chars_Index;
+
+      declare
+         R : String (1 .. Natural (Name_Entries.Table (Id).Name_Len));
+
+      begin
+         for J in R'Range loop
+            R (J) := Name_Chars.Table (S + Int (J));
+         end loop;
+
+         return R;
+      end;
+   end Get_Name_String;
+
+   --------------------------------
+   -- Get_Name_String_And_Append --
+   --------------------------------
+
+   procedure Get_Name_String_And_Append (Id : Name_Id) is
+      S : Int;
+
+   begin
+      pragma Assert (Id in Name_Entries.First .. Name_Entries.Last);
+
+      S := Name_Entries.Table (Id).Name_Chars_Index;
+
+      for J in 1 .. Natural (Name_Entries.Table (Id).Name_Len) loop
+         Name_Len := Name_Len + 1;
+         Name_Buffer (Name_Len) := Name_Chars.Table (S + Int (J));
+      end loop;
+   end Get_Name_String_And_Append;
+
    -------------------------
    -- Get_Name_Table_Byte --
    -------------------------
@@ -763,6 +601,168 @@ package body Namet is
       Get_Name_String (Id);
       Strip_Qualification_And_Package_Body_Suffix;
    end Get_Unqualified_Name_String;
+
+   ----------
+   -- Hash --
+   ----------
+
+   function Hash return Hash_Index_Type is
+      subtype Int_1_12 is Int range 1 .. 12;
+      --  Used to avoid when others on case jump below
+
+      Even_Name_Len : Integer;
+      --  Last even numbered position (used for >12 case)
+
+   begin
+
+      --  Special test for 12 (rather than counting on a when others for the
+      --  case statement below) avoids some Ada compilers converting the case
+      --  statement into successive jumps.
+
+      --  The case of a name longer than 12 characters is handled by taking
+      --  the first 6 odd numbered characters and the last 6 even numbered
+      --  characters
+
+      if Name_Len > 12 then
+         Even_Name_Len := (Name_Len) / 2 * 2;
+
+         return ((((((((((((
+           Character'Pos (Name_Buffer (01))) * 2 +
+           Character'Pos (Name_Buffer (Even_Name_Len - 10))) * 2 +
+           Character'Pos (Name_Buffer (03))) * 2 +
+           Character'Pos (Name_Buffer (Even_Name_Len - 08))) * 2 +
+           Character'Pos (Name_Buffer (05))) * 2 +
+           Character'Pos (Name_Buffer (Even_Name_Len - 06))) * 2 +
+           Character'Pos (Name_Buffer (07))) * 2 +
+           Character'Pos (Name_Buffer (Even_Name_Len - 04))) * 2 +
+           Character'Pos (Name_Buffer (09))) * 2 +
+           Character'Pos (Name_Buffer (Even_Name_Len - 02))) * 2 +
+           Character'Pos (Name_Buffer (11))) * 2 +
+           Character'Pos (Name_Buffer (Even_Name_Len))) mod Hash_Num;
+      end if;
+
+      --  For the cases of 1-12 characters, all characters participate in the
+      --  hash. The positioning is randomized, with the bias that characters
+      --  later on participate fully (i.e. are added towards the right side).
+
+      case Int_1_12 (Name_Len) is
+
+         when 1 =>
+            return
+               Character'Pos (Name_Buffer (1));
+
+         when 2 =>
+            return ((
+              Character'Pos (Name_Buffer (1))) * 64 +
+              Character'Pos (Name_Buffer (2))) mod Hash_Num;
+
+         when 3 =>
+            return (((
+              Character'Pos (Name_Buffer (1))) * 16 +
+              Character'Pos (Name_Buffer (3))) * 16 +
+              Character'Pos (Name_Buffer (2))) mod Hash_Num;
+
+         when 4 =>
+            return ((((
+              Character'Pos (Name_Buffer (1))) * 8 +
+              Character'Pos (Name_Buffer (2))) * 8 +
+              Character'Pos (Name_Buffer (3))) * 8 +
+              Character'Pos (Name_Buffer (4))) mod Hash_Num;
+
+         when 5 =>
+            return (((((
+              Character'Pos (Name_Buffer (4))) * 8 +
+              Character'Pos (Name_Buffer (1))) * 4 +
+              Character'Pos (Name_Buffer (3))) * 4 +
+              Character'Pos (Name_Buffer (5))) * 8 +
+              Character'Pos (Name_Buffer (2))) mod Hash_Num;
+
+         when 6 =>
+            return ((((((
+              Character'Pos (Name_Buffer (5))) * 4 +
+              Character'Pos (Name_Buffer (1))) * 4 +
+              Character'Pos (Name_Buffer (4))) * 4 +
+              Character'Pos (Name_Buffer (2))) * 4 +
+              Character'Pos (Name_Buffer (6))) * 4 +
+              Character'Pos (Name_Buffer (3))) mod Hash_Num;
+
+         when 7 =>
+            return (((((((
+              Character'Pos (Name_Buffer (4))) * 4 +
+              Character'Pos (Name_Buffer (3))) * 4 +
+              Character'Pos (Name_Buffer (1))) * 4 +
+              Character'Pos (Name_Buffer (2))) * 2 +
+              Character'Pos (Name_Buffer (5))) * 2 +
+              Character'Pos (Name_Buffer (7))) * 2 +
+              Character'Pos (Name_Buffer (6))) mod Hash_Num;
+
+         when 8 =>
+            return ((((((((
+              Character'Pos (Name_Buffer (2))) * 4 +
+              Character'Pos (Name_Buffer (1))) * 4 +
+              Character'Pos (Name_Buffer (3))) * 2 +
+              Character'Pos (Name_Buffer (5))) * 2 +
+              Character'Pos (Name_Buffer (7))) * 2 +
+              Character'Pos (Name_Buffer (6))) * 2 +
+              Character'Pos (Name_Buffer (4))) * 2 +
+              Character'Pos (Name_Buffer (8))) mod Hash_Num;
+
+         when 9 =>
+            return (((((((((
+              Character'Pos (Name_Buffer (2))) * 4 +
+              Character'Pos (Name_Buffer (1))) * 4 +
+              Character'Pos (Name_Buffer (3))) * 4 +
+              Character'Pos (Name_Buffer (4))) * 2 +
+              Character'Pos (Name_Buffer (8))) * 2 +
+              Character'Pos (Name_Buffer (7))) * 2 +
+              Character'Pos (Name_Buffer (5))) * 2 +
+              Character'Pos (Name_Buffer (6))) * 2 +
+              Character'Pos (Name_Buffer (9))) mod Hash_Num;
+
+         when 10 =>
+            return ((((((((((
+              Character'Pos (Name_Buffer (01))) * 2 +
+              Character'Pos (Name_Buffer (02))) * 2 +
+              Character'Pos (Name_Buffer (08))) * 2 +
+              Character'Pos (Name_Buffer (03))) * 2 +
+              Character'Pos (Name_Buffer (04))) * 2 +
+              Character'Pos (Name_Buffer (09))) * 2 +
+              Character'Pos (Name_Buffer (06))) * 2 +
+              Character'Pos (Name_Buffer (05))) * 2 +
+              Character'Pos (Name_Buffer (07))) * 2 +
+              Character'Pos (Name_Buffer (10))) mod Hash_Num;
+
+         when 11 =>
+            return (((((((((((
+              Character'Pos (Name_Buffer (05))) * 2 +
+              Character'Pos (Name_Buffer (01))) * 2 +
+              Character'Pos (Name_Buffer (06))) * 2 +
+              Character'Pos (Name_Buffer (09))) * 2 +
+              Character'Pos (Name_Buffer (07))) * 2 +
+              Character'Pos (Name_Buffer (03))) * 2 +
+              Character'Pos (Name_Buffer (08))) * 2 +
+              Character'Pos (Name_Buffer (02))) * 2 +
+              Character'Pos (Name_Buffer (10))) * 2 +
+              Character'Pos (Name_Buffer (04))) * 2 +
+              Character'Pos (Name_Buffer (11))) mod Hash_Num;
+
+         when 12 =>
+            return ((((((((((((
+              Character'Pos (Name_Buffer (03))) * 2 +
+              Character'Pos (Name_Buffer (02))) * 2 +
+              Character'Pos (Name_Buffer (05))) * 2 +
+              Character'Pos (Name_Buffer (01))) * 2 +
+              Character'Pos (Name_Buffer (06))) * 2 +
+              Character'Pos (Name_Buffer (04))) * 2 +
+              Character'Pos (Name_Buffer (08))) * 2 +
+              Character'Pos (Name_Buffer (11))) * 2 +
+              Character'Pos (Name_Buffer (07))) * 2 +
+              Character'Pos (Name_Buffer (09))) * 2 +
+              Character'Pos (Name_Buffer (10))) * 2 +
+              Character'Pos (Name_Buffer (12))) mod Hash_Num;
+
+      end case;
+   end Hash;
 
    ----------------
    -- Initialize --
@@ -1042,16 +1042,6 @@ package body Namet is
    end Set_Character_Literal_Name;
 
    -------------------------
-   -- Set_Name_Table_Info --
-   -------------------------
-
-   procedure Set_Name_Table_Info (Id : Name_Id; Val : Int) is
-   begin
-      pragma Assert (Id in Name_Entries.First .. Name_Entries.Last);
-      Name_Entries.Table (Id).Int_Info := Val;
-   end Set_Name_Table_Info;
-
-   -------------------------
    -- Set_Name_Table_Byte --
    -------------------------
 
@@ -1060,6 +1050,16 @@ package body Namet is
       pragma Assert (Id in Name_Entries.First .. Name_Entries.Last);
       Name_Entries.Table (Id).Byte_Info := Val;
    end Set_Name_Table_Byte;
+
+   -------------------------
+   -- Set_Name_Table_Info --
+   -------------------------
+
+   procedure Set_Name_Table_Info (Id : Name_Id; Val : Int) is
+   begin
+      pragma Assert (Id in Name_Entries.First .. Name_Entries.Last);
+      Name_Entries.Table (Id).Int_Info := Val;
+   end Set_Name_Table_Info;
 
    -----------------------------
    -- Store_Encoded_Character --

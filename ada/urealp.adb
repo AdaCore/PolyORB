@@ -8,7 +8,7 @@
 --                                                                          --
 --                             $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -482,96 +482,6 @@ package body Urealp is
       Tree_Write_Int (Int (UR_2_128));
       Tree_Write_Int (Int (UR_2_M_128));
    end Tree_Write;
-
-   ----------------
-   -- Ureal_Half --
-   ----------------
-
-   function Ureal_Half return Ureal is
-   begin
-      return UR_Half;
-   end Ureal_Half;
-
-   -----------------
-   -- Ureal_Tenth --
-   -----------------
-
-   function Ureal_Tenth return Ureal is
-   begin
-      return UR_Tenth;
-   end Ureal_Tenth;
-
-   -------------
-   -- Ureal_0 --
-   -------------
-
-   function Ureal_0 return Ureal is
-   begin
-      return UR_0;
-   end Ureal_0;
-
-   -------------
-   -- Ureal_1 --
-   -------------
-
-   function Ureal_1 return Ureal is
-   begin
-      return UR_1;
-   end Ureal_1;
-
-   --------------
-   -- Ureal_10 --
-   --------------
-
-   function Ureal_10 return Ureal is
-   begin
-      return UR_10;
-   end Ureal_10;
-
-   ---------------
-   -- Ureal_100 --
-   ---------------
-
-   function Ureal_100 return Ureal is
-   begin
-      return UR_100;
-   end Ureal_100;
-
-   -------------
-   -- Ureal_2 --
-   -------------
-
-   function Ureal_2 return Ureal is
-   begin
-      return UR_2;
-   end Ureal_2;
-
-   -----------------
-   -- Ureal_2_128 --
-   -----------------
-
-   function Ureal_2_128 return Ureal is
-   begin
-      return UR_2_128;
-   end Ureal_2_128;
-
-   -------------------
-   -- Ureal_2_M_128 --
-   -------------------
-
-   function Ureal_2_M_128 return Ureal is
-   begin
-      return UR_2_M_128;
-   end Ureal_2_M_128;
-
-   ---------------
-   -- Ureal_M_0 --
-   ---------------
-
-   function Ureal_M_0 return Ureal is
-   begin
-      return UR_M_0;
-   end Ureal_M_0;
 
    ------------
    -- UR_Abs --
@@ -1217,7 +1127,6 @@ package body Urealp is
                       Rbase    => Lval.Rbase,
                       Negative => Rneg));
 
-
          elsif Lval.Den < 0 then
             return Store_Ureal (
                      Normalize (
@@ -1469,5 +1378,95 @@ package body Urealp is
       end if;
 
    end UR_Write;
+
+   -------------
+   -- Ureal_0 --
+   -------------
+
+   function Ureal_0 return Ureal is
+   begin
+      return UR_0;
+   end Ureal_0;
+
+   -------------
+   -- Ureal_1 --
+   -------------
+
+   function Ureal_1 return Ureal is
+   begin
+      return UR_1;
+   end Ureal_1;
+
+   -------------
+   -- Ureal_2 --
+   -------------
+
+   function Ureal_2 return Ureal is
+   begin
+      return UR_2;
+   end Ureal_2;
+
+   --------------
+   -- Ureal_10 --
+   --------------
+
+   function Ureal_10 return Ureal is
+   begin
+      return UR_10;
+   end Ureal_10;
+
+   ---------------
+   -- Ureal_100 --
+   ---------------
+
+   function Ureal_100 return Ureal is
+   begin
+      return UR_100;
+   end Ureal_100;
+
+   -----------------
+   -- Ureal_2_128 --
+   -----------------
+
+   function Ureal_2_128 return Ureal is
+   begin
+      return UR_2_128;
+   end Ureal_2_128;
+
+   -------------------
+   -- Ureal_2_M_128 --
+   -------------------
+
+   function Ureal_2_M_128 return Ureal is
+   begin
+      return UR_2_M_128;
+   end Ureal_2_M_128;
+
+   ----------------
+   -- Ureal_Half --
+   ----------------
+
+   function Ureal_Half return Ureal is
+   begin
+      return UR_Half;
+   end Ureal_Half;
+
+   ---------------
+   -- Ureal_M_0 --
+   ---------------
+
+   function Ureal_M_0 return Ureal is
+   begin
+      return UR_M_0;
+   end Ureal_M_0;
+
+   -----------------
+   -- Ureal_Tenth --
+   -----------------
+
+   function Ureal_Tenth return Ureal is
+   begin
+      return UR_Tenth;
+   end Ureal_Tenth;
 
 end Urealp;

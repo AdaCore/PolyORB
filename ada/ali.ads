@@ -238,6 +238,11 @@ package ALI is
       --  Indicates presence of EB parameter for a package which has a
       --  pragma Preelaborate_Body.
 
+      Set_Elab_Entity : Boolean;
+      --  Indicates presence of EE parameter for a unit which has an
+      --  elaboration entity which must be set true as part of the
+      --  elaboration of the entity.
+
       Has_RACW : Boolean;
       --  Indicates presence of RA parameter for a package that declares
       --  at least one Remote Access to Class_Wide (RACW) object.

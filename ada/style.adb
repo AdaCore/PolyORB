@@ -144,6 +144,21 @@ package body Style is
       end if;
    end Check_Attribute_Name;
 
+   ---------------------------
+   -- Check_Binary_Operator --
+   ---------------------------
+
+   --  In check token mode (-gnatyt), binary operators other than the special
+   --  case of exponentiation require surrounding space characters.
+
+   procedure Check_Binary_Operator is
+   begin
+      if Style_Check_Tokens then
+         Require_Preceding_Space;
+         Require_Following_Space;
+      end if;
+   end Check_Binary_Operator;
+
    ---------------
    -- Check_Box --
    ---------------
@@ -160,21 +175,6 @@ package body Style is
          end if;
       end if;
    end Check_Box;
-
-   ---------------------------
-   -- Check_Binary_Operator --
-   ---------------------------
-
-   --  In check token mode (-gnatyt), binary operators other than the special
-   --  case of exponentiation require surrounding space characters.
-
-   procedure Check_Binary_Operator is
-   begin
-      if Style_Check_Tokens then
-         Require_Preceding_Space;
-         Require_Following_Space;
-      end if;
-   end Check_Binary_Operator;
 
    -----------------
    -- Check_Colon --
@@ -827,7 +827,7 @@ package body Style is
    begin
       if Style_Check_Subprogram_Order then
          Error_Msg_N
-           ("(style) subprogram body not in alphabetical order", Name);
+           ("(style) subprogram body& not in alphabetical order", Name);
       end if;
    end Subprogram_Not_In_Alpha_Order;
 end Style;
