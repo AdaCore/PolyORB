@@ -79,7 +79,7 @@ package PolyORB.Protocols.HTTP is
 
    HTTP_Version : constant String := "HTTP/1.1";
 
-   Text_XML :  constant String := "text/html";
+   Text_XML :  constant String := "text/xml";
 
    type Request_Method is (GET, HEAD, POST, PUT);
    type Request_Range is (POST, NON_POST, EMPTY);
