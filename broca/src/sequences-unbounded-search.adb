@@ -72,11 +72,11 @@ package body Sequences.Unbounded.Search is
       if Going = Forward then
          Shift := 1;
          From  := 1;
-         To    := Haystack.Length;
+         To    := Haystack.Length + 1;
       else
          Shift := -1;
          From  := Haystack.Length;
-         To    := 1;
+         To    := 0;
       end if;
 
       while From /= To loop
