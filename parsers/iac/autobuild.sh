@@ -1,0 +1,4 @@
+#Autobuild
+make clean
+make
+
