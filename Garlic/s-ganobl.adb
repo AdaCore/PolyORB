@@ -39,11 +39,11 @@ with GNAT.OS_Lib;                         use GNAT.OS_Lib;
 with System.Garlic.Constants;             use System.Garlic.Constants;
 with System.Garlic.Debug;                 use System.Garlic.Debug;
 with System.Garlic.Priorities;
+with System.Garlic.Soft_Links;
 with System.Garlic.TCP;
 pragma Elaborate (System.Garlic.TCP);
 with System.Garlic.TCP.Platform_Specific;
 with System.Garlic.Thin;                  use System.Garlic.Thin;
-with System.Garlic.Termination;
 
 package body System.Garlic.Non_Blocking is
 
@@ -430,7 +430,7 @@ package body System.Garlic.Non_Blocking is
       Timeout      : Timeval_Access := new Timeval;
       Continue     : Boolean := True;
    begin
-      Termination.Add_Non_Terminating_Task;
+      Soft_Links.Add_Non_Terminating_Task;
       while Continue loop
          pragma Debug (D (D_Debug, "Before SIGIO"));
          Sigio.Wait;
@@ -509,13 +509,13 @@ package body System.Garlic.Non_Blocking is
          end if;
       end loop;
       pragma Debug (D (D_Debug, "Selection terminated"));
-      Termination.Sub_Non_Terminating_Task;
+      Soft_Links.Sub_Non_Terminating_Task;
 
    exception
       when E : others =>
          pragma Debug
            (D (D_Debug, Exception_Name (E) & " received in Selection"));
-         Termination.Sub_Non_Terminating_Task;
+         Soft_Links.Sub_Non_Terminating_Task;
    end Selection;
 
    ----------------------
@@ -582,19 +582,19 @@ package body System.Garlic.Non_Blocking is
 
    task body Sigio_Simulation is
    begin
-      Termination.Add_Non_Terminating_Task;
+      Soft_Links.Add_Non_Terminating_Task;
       while not Shutdown loop
          delay Safety_Delay;
          pragma Debug (D (D_Debug, "Simulate SIGIO"));
          Sigio.Signal;
       end loop;
-      Termination.Sub_Non_Terminating_Task;
+      Soft_Links.Sub_Non_Terminating_Task;
 
    exception
       when E : others =>
          pragma Debug
            (D (D_Debug, Exception_Name (E) & " received in Sigio_Simulation"));
-         Termination.Sub_Non_Terminating_Task;
+         Soft_Links.Sub_Non_Terminating_Task;
    end Sigio_Simulation;
 
 end System.Garlic.Non_Blocking;
