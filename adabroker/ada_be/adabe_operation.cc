@@ -216,6 +216,7 @@ adabe_operation::produce_impl_ads(dep_list& with,string &body, string &previous)
 	body += "; Result : out ";
 	AST_Decl *b = return_type();
 	body +=  dynamic_cast<adabe_name *>(b)->dump_name(with, previous) ;
+      }
     }
   body += " ) ;\n" ;
 }
