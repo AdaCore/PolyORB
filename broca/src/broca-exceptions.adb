@@ -39,6 +39,78 @@ with Broca.Exceptions.Stack;
 
 package body Broca.Exceptions is
 
+   -----------------------
+   -- Exception mapping --
+   -----------------------
+
+   type String_Access is access constant String;
+
+   type Exception_Mapping is record
+      Exc  : Ada.Exceptions.Exception_Id;
+      Name : String_Access;
+   end record;
+
+   Mapping : constant array (Positive range <>) of Exception_Mapping :=
+     ((Exc  => CORBA.Unknown'Identity,
+       Name => new String'("UNKNOWN")),
+      (Exc  => CORBA.Bad_Param'Identity,
+       Name => new String'("BAD_PARAM")),
+      (Exc  => CORBA.No_Memory'Identity,
+       Name => new String'("NO_MEMORY")),
+      (Exc  => CORBA.Imp_Limit'Identity,
+       Name => new String'("IMP_LIMIT")),
+      (Exc  => CORBA.Comm_Failure'Identity,
+       Name => new String'("COMM_FAILURE")),
+      (Exc  => CORBA.Inv_Objref'Identity,
+       Name => new String'("INV_OBJREF")),
+      (Exc  => CORBA.No_Permission'Identity,
+       Name => new String'("NO_PERMISSION")),
+      (Exc  => CORBA.Internal'Identity,
+       Name => new String'("INTERNAL")),
+      (Exc  => CORBA.Marshal'Identity,
+       Name => new String'("MARSHAL")),
+      (Exc  => CORBA.Initialization_Failure'Identity,
+       Name => new String'("INITIALIZATION_FAILURE")),
+      (Exc  => CORBA.No_Implement'Identity,
+       Name => new String'("NO_IMPLEMENT")),
+      (Exc  => CORBA.Bad_Typecode'Identity,
+       Name => new String'("BAD_TYPECODE")),
+      (Exc  => CORBA.Bad_Operation'Identity,
+       Name => new String'("BAD_OPERATION")),
+      (Exc  => CORBA.No_Resources'Identity,
+       Name => new String'("NO_RESOURCES")),
+      (Exc  => CORBA.No_Response'Identity,
+       Name => new String'("NO_RESPONSE")),
+      (Exc  => CORBA.Persist_Store'Identity,
+       Name => new String'("PERSIST_STORE")),
+      (Exc  => CORBA.Bad_Inv_Order'Identity,
+       Name => new String'("BAD_INV_ORDER")),
+      (Exc  => CORBA.Transient'Identity,
+       Name => new String'("TRANSIENT")),
+      (Exc  => CORBA.Free_Mem'Identity,
+       Name => new String'("FREE_MEM")),
+      (Exc  => CORBA.Inv_Ident'Identity,
+       Name => new String'("INV_IDENT")),
+      (Exc  => CORBA.Inv_Flag'Identity,
+       Name => new String'("INV_FLAG")),
+      (Exc  => CORBA.Intf_Repos'Identity,
+       Name => new String'("INTF_REPOS")),
+      (Exc  => CORBA.Bad_Context'Identity,
+       Name => new String'("BAD_CONTEXT")),
+      (Exc  => CORBA.Obj_Adapter'Identity,
+       Name => new String'("OBJ_ADAPTER")),
+      (Exc  => CORBA.Data_Conversion'Identity,
+       Name => new String'("DATA_CONVERSION")),
+      (Exc  => CORBA.Object_Not_Exist'Identity,
+       Name => new String'("OBJECT_NOT_EXIST")),
+      (Exc  => CORBA.Transaction_Required'Identity,
+       Name => new String'("TRANSACTION_REQUIRED")),
+      (Exc  => CORBA.Transaction_Rolledback'Identity,
+       Name => new String'("TRANSACTION_ROLLEDBACK")),
+      (Exc  => CORBA.Invalid_Transaction'Identity,
+       Name => new String'("INVALID_TRANSACTION")));
+
+
    ------------------------------------------------------------
    -- conversion between Unsigned_Long and Completion_Status --
    ------------------------------------------------------------
@@ -275,26 +347,20 @@ package body Broca.Exceptions is
         CORBA.RepositoryId (Ada.Strings.Unbounded.To_Unbounded_String (S));
    end To_RepositoryId;
 
-   Transient_Name : CORBA.RepositoryId :=
-     To_RepositoryId ("IDL:omg.org/CORBA/TRANSIENT:1.0");
-   Object_Not_Exist_Name : CORBA.RepositoryId :=
-     To_RepositoryId ("IDL:omg.org/CORBA/OBJECT_NOT_EXIST:1.0");
-
    function Occurrence_To_Name
      (Occurrence : CORBA.Exception_Occurrence)
      return CORBA.RepositoryId
    is
       use Ada.Exceptions;
-      Id : Exception_Id;
+      Id : constant Exception_Id := Exception_Identity (Occurrence);
    begin
-      Id := Exception_Identity (Occurrence);
-      if Id = CORBA.Transient'Identity then
-         return Transient_Name;
-      elsif Id = CORBA.Object_Not_Exist'Identity then
-         return Object_Not_Exist_Name;
-      else
-         raise Program_Error;
-      end if;
+      for I in Mapping'Range loop
+         if Id = Mapping (I) .Exc then
+            return To_RepositoryId
+              ("IDL:omg.org/CORBA/" & Mapping (I) .Name.all & ":1.0");
+         end if;
+      end loop;
+      raise Program_Error;
    end Occurrence_To_Name;
 
    --------------
@@ -343,12 +409,12 @@ package body Broca.Exceptions is
          F := F + Prefix'Length;
          L := L - Suffix'Length;
 
-         if R (F .. L) = "TRANSIENT" then
-            Identity := CORBA.Transient'Identity;
-
-         elsif R (F .. L) = "OBJECT_NOT_EXIST" then
-            Identity := CORBA.Object_Not_Exist'Identity;
-         end if;
+         for I in Mapping'Range loop
+            if R (F .. L) = Mapping (I) .Name.all then
+               Identity := Mapping (I) .Exc;
+               exit;
+            end if;
+         end loop;
       end;
 
       if Identity = Null_Id then
@@ -359,7 +425,7 @@ package body Broca.Exceptions is
       end if;
 
       Minor := Unmarshall (Buffer);
-      Minor := Unmarshall (Buffer);
+      Status := Unmarshall (Buffer);
 
       --  Raise the exception.
       Raise_Exception
