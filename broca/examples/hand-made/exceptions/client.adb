@@ -2,11 +2,11 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                            E C H O . I M P L                             --
+--                               C L I E N T                                --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.1 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -26,21 +26,54 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Echo.Skel;
-with CORBA;
+--   echo client.
+with Ada.Command_Line;
+with Text_IO; use Text_IO;
+with CORBA; use CORBA;
+with CORBA.ORB;
+with Echo;
 
-package Echo.Impl is
-   --  My own implementation of echo object.
-   --  This is simply used to define the operations.
+procedure Client is
+   Sent_Msg, Rcvd_Msg, IOR : CORBA.String;
+   myecho : Echo.Ref;
 
-   type Object is new Echo.Skel.Object with record
-      Msg : CORBA.String;
-   end record;
+begin
 
-   type Object_Acc is access Object;
+   if Ada.Command_Line.Argument_Count < 1 then
+      Put_Line ("usage : client <IOR_string_from_server>");
+      return;
+   end if;
 
-private
-   function EchoString (Self : access Object; Mesg : in CORBA.String)
-                        return CORBA.String;
+   --  transforms the Ada string into CORBA.String
+   IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
 
-end Echo.Impl;
+   --  getting the CORBA.Object
+   CORBA.ORB.String_To_Object (IOR, myecho);
+
+   -- checking if it worked
+   if Echo.Is_Nil (myecho) then
+      Put_Line ("main : cannot invoke on a nil reference");
+      return;
+   end if;
+
+   --  sending message
+   Sent_Msg := CORBA.To_CORBA_String (Standard.String'("Hello Ada !"));
+   --  Sent_Msg := CORBA.To_CORBA_String (Standard.String'("Hello!"));
+   Rcvd_Msg := Echo.echoString (myecho, Sent_Msg);
+
+   Echo.foo (Myecho);
+   --  printing result
+   Put_Line ("I said : " & CORBA.To_Standard_String (Sent_Msg));
+   Put_Line ("The object answered : " & CORBA.To_Standard_String (Rcvd_Msg));
+exception
+   when E : CORBA.Transient =>
+      declare
+         Memb : System_Exception_Members;
+      begin
+         Get_Members (E, Memb);
+         Put ("received exception transient, minor");
+         Put (Unsigned_Long'Image (Memb.Minor));
+         Put (", completion status: ");
+         Put_Line (Completion_Status'Image (Memb.Completed));
+      end;
+end Client;

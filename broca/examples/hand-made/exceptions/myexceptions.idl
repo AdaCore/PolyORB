@@ -1,0 +1,6 @@
+interface myexceptions {
+
+  exception toto {
+    long i;
+  };
+};

@@ -4,9 +4,9 @@
 --                                                                          --
 --                            E C H O . I M P L                             --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.1 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -26,21 +26,20 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Echo.Skel;
-with CORBA;
+with Text_Io ;
 
-package Echo.Impl is
-   --  My own implementation of echo object.
-   --  This is simply used to define the operations.
+package body Echo.Impl is
 
-   type Object is new Echo.Skel.Object with record
-      Msg : CORBA.String;
-   end record;
-
-   type Object_Acc is access Object;
-
-private
    function EchoString (Self : access Object; Mesg : in CORBA.String)
-                        return CORBA.String;
+                        return CORBA.String is
+   begin
+      return Mesg;
+   end EchoString;
+
+   procedure Foo(Self: access Object) is
+      begin
+         Text_IO.Put_Line("coucou");
+      end;
 
 end Echo.Impl;
+

@@ -1,5 +1,9 @@
 BROCA_FLAGS += -I../generic
 
+# for hand-made examples that are in the hand-made directory
+BROCA_FLAGS += -I../../generic
+
+
 all:: client server
 
 #client:: $(CORBA_LIB_DEPEND) $(GENERATED_FILES) client.adb

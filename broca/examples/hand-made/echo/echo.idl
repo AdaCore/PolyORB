@@ -1,0 +1,4 @@
+interface Echo {
+  string echoString (in string Mesg);
+  oneway void foo() ;
+};
