@@ -603,6 +603,13 @@ src/polyorb-representations-test.ads
 src/polyorb-representations.ads
 src/polyorb-requests.adb
 src/polyorb-requests.ads
+src/polyorb-sequences-bounded.adb
+src/polyorb-sequences-bounded.ads
+src/polyorb-sequences-unbounded-search.adb
+src/polyorb-sequences-unbounded-search.ads
+src/polyorb-sequences-unbounded.adb
+src/polyorb-sequences-unbounded.ads
+src/polyorb-sequences.ads
 src/polyorb-setup-corba_client.adb
 src/polyorb-setup-corba_client.ads
 src/polyorb-setup-no_tasking_server.adb
@@ -651,13 +658,6 @@ src/polyorb-utils.adb
 src/polyorb-utils.ads
 src/polyorb.ads
 src/polyorb.conf
-src/sequences-bounded.adb
-src/sequences-bounded.ads
-src/sequences-unbounded-search.adb
-src/sequences-unbounded-search.ads
-src/sequences-unbounded.adb
-src/sequences-unbounded.ads
-src/sequences.ads
 src/soap/Makefile.am
 src/soap/Makefile.in
 src/soap/aws-mime.adb
