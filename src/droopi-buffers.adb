@@ -172,13 +172,12 @@ package body Droopi.Buffers is
      (Buffer   : access Buffer_Type)
      return Encapsulation
    is
-      Contents : Opaque_Pointer := Iovec_Pools.Dump (Buffer.Contents);
-      Result   : constant Encapsulation
-        := Contents.Zone (Contents.Offset .. Contents.Zone'Last);
+      Contents : Zone_Access := Iovec_Pools.Dump (Buffer.Contents);
+      Result   : constant Encapsulation := Contents.all;
    begin
       pragma Assert (Buffer.Initial_CDR_Position = 0);
 
-      Free (Contents.Zone);
+      Free (Contents);
       return Result;
    end Encapsulate;
 
@@ -350,11 +349,11 @@ package body Droopi.Buffers is
    -- Utility subprograms --
    -------------------------
 
-   procedure Show (Octets : Opaque_Pointer);
+   procedure Show (Octets : Zone_Access);
    --  Display the contents of Octets for
    --  debugging purposes.
 
-   procedure Show (Octets : Opaque_Pointer)
+   procedure Show (Octets : Zone_Access)
    is
       Output : Output_Line;
       Index  : Natural := 1;
@@ -363,12 +362,12 @@ package body Droopi.Buffers is
       --  For operations on Unsigned_8.
 
    begin
-      for J in Octets.Offset .. Octets.Zone'Last loop
+      for J in Octets'Range loop
          Output (Index)     := ' ';
          Output (Index + 1) := Hex
-           (Natural (Octets.Zone (J) / 16) + 1);
+           (Natural (Octets (J) / 16) + 1);
          Output (Index + 2) := Hex
-           (Natural (Octets.Zone (J) mod 16) + 1);
+           (Natural (Octets (J) mod 16) + 1);
          Index := Index + 3;
 
          if Index > Output'Length then
@@ -396,11 +395,10 @@ package body Droopi.Buffers is
                        Buffer.Length'Img & ")"));
 
       declare
-         Dumped : Opaque_Pointer
-           := Iovec_Pools.Dump (Buffer.Contents);
+         Dumped : Zone_Access := Iovec_Pools.Dump (Buffer.Contents);
       begin
          Show (Dumped);
-         Free (Dumped.Zone);
+         Free (Dumped);
       end;
    end Show;
 
@@ -496,14 +494,10 @@ package body Droopi.Buffers is
       --  Require, then does nothing, else
       --  make it Allocate Iovecs long.
 
-      procedure Dump
-        (Iovecs : Iovec_Array;
-         Into   : Opaque_Pointer);
+      procedure Dump (Iovecs : Iovec_Array; Into : Opaque_Pointer);
       --  Dump the content of Iovecs into Into.
 
-      function Dump
-        (Iovecs : Iovec_Array)
-        return Opaque_Pointer;
+      function Dump (Iovecs : Iovec_Array) return Zone_Access;
       --  Dump the data designated by an Iovec_Array
       --  into an array of octets.
 
@@ -558,9 +552,7 @@ package body Droopi.Buffers is
          end if;
       end Extend;
 
-      procedure Dump
-        (Iovecs : Iovec_Array;
-         Into   : Opaque_Pointer)
+      procedure Dump (Iovecs : Iovec_Array; Into : Opaque_Pointer)
       is
          Offset : Stream_Element_Offset := Into.Offset;
       begin
@@ -576,19 +568,16 @@ package body Droopi.Buffers is
          end loop;
       end Dump;
 
-      function Dump
-        (Iovecs : Iovec_Array)
-        return Opaque_Pointer
+      function Dump (Iovecs : Iovec_Array) return Zone_Access
       is
-         Result : Opaque_Pointer;
+         Result : Zone_Access;
          Length : Stream_Element_Count := 0;
       begin
          for I in Iovecs'Range loop
             Length := Length + Iovecs (I).Iov_Len;
          end loop;
-         Result.Zone := new Stream_Element_Array (1 .. Length);
-         Result.Offset := Result.Zone'First;
-         Dump (Iovecs, Result);
+         Result := new Stream_Element_Array (1 .. Length);
+         Dump (Iovecs, Opaque_Pointer'(Zone => Result, Offset => Result'First));
          return Result;
       end Dump;
 
@@ -689,7 +678,7 @@ package body Droopi.Buffers is
 
       function Dump
         (Iovec_Pool : in Iovec_Pool_Type)
-        return Opaque_Pointer is
+        return Zone_Access is
       begin
          if Is_Dynamic (Iovec_Pool) then
             return Dump (Iovec_Pool.Dynamic_Array

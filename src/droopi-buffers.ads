@@ -1,6 +1,6 @@
 --  Buffer management
 
---  $Id: //droopi/main/src/droopi-buffers.ads#2 $
+--  $Id: //droopi/main/src/droopi-buffers.ads#3 $
 
 with System;
 --  For bit-order information.
@@ -350,14 +350,10 @@ private
       -- stream of an Iovec_Pool.          --
       ---------------------------------------
 
-      procedure Dump
-        (Iovec_Pool : Iovec_Pool_Type;
-         Into       : Opaque_Pointer);
+      procedure Dump (Iovec_Pool : Iovec_Pool_Type; Into : Opaque_Pointer);
       --  Dump the content of an Iovec_Pool into Into.
 
-      function Dump
-        (Iovec_Pool : Iovec_Pool_Type)
-        return Opaque_Pointer;
+      function Dump (Iovec_Pool : Iovec_Pool_Type) return Zone_Access;
       --  Dump the contents of Iovec_Pool into an array of octets. The result
       --  must be deallocated when not used anymore.
 
