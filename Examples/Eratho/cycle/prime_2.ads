@@ -3,5 +3,6 @@ package Prime_2 is
 
    procedure Test_Number
      (Number  : in  Natural);
+   pragma Asynchronous (Test_Number);
 
 end Prime_2;
