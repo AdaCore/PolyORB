@@ -120,5 +120,29 @@ private
    procedure When_Established;
    --  Wait for partition to be established
 
+   type Allocate_Task_Procedure is access procedure
+     (PID    : in System.Garlic.Types.Partition_ID;
+      RPC    : in System.RPC.RPC_Id;
+      Params : in System.Garlic.Streams.Params_Stream_Access;
+      Async  : in Boolean);
+
+   type Abort_Task_Procedure is access procedure
+     (PID : in System.Garlic.Types.Partition_ID;
+      RPC : in System.RPC.RPC_Id);
+
+   type Parameterless_Procedure is access procedure;
+
+   procedure Register_Task_Pool
+     (Allocate_Task : in Allocate_Task_Procedure;
+      Abort_Task    : in Abort_Task_Procedure;
+      Initialize    : in Parameterless_Procedure;
+      Shutdown      : in Parameterless_Procedure);
+
+   procedure Finalize
+     (PID  : in System.Garlic.Types.Partition_ID;
+      Wait : in Boolean;
+      Key  : in Natural);
+   --  Handle abortion from Do_RPC
+
 end System.RPC;
 

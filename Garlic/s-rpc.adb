@@ -33,11 +33,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Dynamic_Priorities;
 with Ada.Exceptions;             use Ada.Exceptions;
-with Ada.Finalization;
 with System.Garlic;              use System.Garlic;
 with System.Garlic.Debug;        use System.Garlic.Debug;
+with System.Garlic.Exceptions;   use System.Garlic.Exceptions;
 with System.Garlic.Heart;        use System.Garlic.Heart;
 with System.Garlic.Soft_Links;
 
@@ -48,9 +47,6 @@ pragma Warnings (Off, System.Garlic.Startup);
 with System.Garlic.Streams;
 with System.Garlic.Types;
 with System.Garlic.Units;        use System.Garlic.Units;
-with System.Garlic.Utils;        use System.Garlic.Utils;
-with System.RPC.Pool;            use System.RPC.Pool;
-with System.RPC.Stream_IO;
 
 package body System.RPC is
 
@@ -71,8 +67,13 @@ package body System.RPC is
      renames Print_Debug_Info;
 
    RPC_Allowed : Boolean := False;
-   RPC_Barrier : System.Garlic.Soft_Links.Barrier_Access;
+   Establish_RPC_Watcher : System.Garlic.Soft_Links.Watcher_Access;
    --  The current RPC receiver and its associated barrier
+
+   Allocate_Pool_Task   : Allocate_Task_Procedure;
+   Abort_Pool_Task      : Abort_Task_Procedure;
+   Initialize_Task_Pool : Parameterless_Procedure;
+   Shutdown_Task_Pool   : Parameterless_Procedure;
 
    type RPC_Status is (Unknown, Running, Aborted, Completed);
 
@@ -88,11 +89,8 @@ package body System.RPC is
    Callers : array (Valid_RPC_Id) of RPC_Info;
    Callers_Watcher : System.Garlic.Soft_Links.Watcher_Access;
 
-   type Abort_Keeper is new Ada.Finalization.Controlled with record
-      Sent : Boolean := False;
-      PID  : Types.Partition_ID;
-      RPC  : RPC_Id;
-   end record;
+   type Dummy_Abort_Handler_Type is
+     new Garlic.Soft_Links.Abort_Handler_Type with null record;
 
    procedure Allocate (RPC : out RPC_Id; PID : Types.Partition_ID);
    procedure Deallocate (RPC : in RPC_Id);
@@ -101,9 +99,6 @@ package body System.RPC is
    procedure Wait_For
      (RPC    : in  RPC_Id;
       Stream : out Streams.Stream_Element_Access);
-
-   procedure Finalize (Keeper : in out Abort_Keeper);
-   --  Handle abortion from Do_RPC
 
    procedure Send_Abort_Message
      (PID   : in Types.Partition_ID;
@@ -132,7 +127,7 @@ package body System.RPC is
 
    procedure Allocate (RPC : out RPC_Id; PID : in Types.Partition_ID)
    is
-      Version : Version_Id;
+      Version : Types.Version_Id;
    begin
       loop
          System.Garlic.Soft_Links.Enter_Critical_Section;
@@ -178,7 +173,7 @@ package body System.RPC is
    begin
       Insert_RPC_Header (Params.X'Access, Header);
       Types.Partition_ID'Write (Params, Types.Partition_ID (Partition));
-      Any_Priority'Write (Params, Ada.Dynamic_Priorities.Get_Priority);
+      Natural'Write (Params, System.Garlic.Soft_Links.Get_Priority);
       Send (Types.Partition_ID (Partition),
             Remote_Call,
             Params.X'Access,
@@ -200,11 +195,12 @@ package body System.RPC is
       Params     : access Params_Stream_Type;
       Result     : access Params_Stream_Type)
    is
-      RPC    : RPC_Id;
-      Header : RPC_Header (RPC_Query);
-      Stream : Streams.Stream_Element_Access;
-      Keeper : Abort_Keeper;
-      Error  : aliased Error_Type;
+      RPC     : RPC_Id;
+      Header  : RPC_Header (RPC_Query);
+      Stream  : Streams.Stream_Element_Access;
+      Handler : System.Garlic.Soft_Links.Abort_Handler_Type'Class
+        := System.Garlic.Soft_Links.Abort_Handler;
+      Error   : aliased Error_Type;
    begin
       begin
          pragma Abort_Defer;
@@ -212,7 +208,7 @@ package body System.RPC is
          Header.RPC := RPC;
          Insert_RPC_Header (Params.X'Access, Header);
          Types.Partition_ID'Write (Params, Types.Partition_ID (Partition));
-         Any_Priority'Write (Params, Ada.Dynamic_Priorities.Get_Priority);
+         Natural'Write (Params, System.Garlic.Soft_Links.Get_Priority);
          Send (Types.Partition_ID (Partition),
                Remote_Call,
                Params.X'Access,
@@ -221,9 +217,10 @@ package body System.RPC is
             Raise_Exception (Communication_Error'Identity,
                              Content (Error'Access));
          end if;
-         Keeper.RPC  := RPC;
-         Keeper.PID  := Types.Partition_ID (Partition);
-         Keeper.Sent := True;
+         Handler.Key  := Natural (RPC);
+         Handler.PID  := Types.Partition_ID (Partition);
+         Handler.Wait := True;
+         System.Garlic.Soft_Links.Adjust (Handler);
       end;
 
       D ("Execute RPC number" & RPC'Img & " on partition" & Partition'Img);
@@ -232,7 +229,8 @@ package body System.RPC is
 
       begin
          pragma Abort_Defer;
-         Keeper.Sent := False;
+         Handler.Wait := False;
+         System.Garlic.Soft_Links.Adjust (Handler);
          Streams.Write (Result.X, Stream.all);
          Streams.Free (Stream);
       end;
@@ -251,8 +249,11 @@ package body System.RPC is
    begin
       D ("Accept RPCs on this partition" & Partition'Img);
 
+      if Initialize_Task_Pool /= null then
+         Initialize_Task_Pool.all;
+      end if;
       RPC_Allowed := True;
-      System.Garlic.Soft_Links.Signal_All (RPC_Barrier);
+      System.Garlic.Soft_Links.Update (Establish_RPC_Watcher);
       Register_RPC_Error_Notifier (Notify_Partition_Error'Access);
    end Establish_RPC_Receiver;
 
@@ -260,35 +261,28 @@ package body System.RPC is
    -- Finalize --
    --------------
 
-   procedure Finalize (Keeper : in out Abort_Keeper)
+   procedure Finalize
+     (PID  : in Garlic.Types.Partition_ID;
+      Wait : in Boolean;
+      Key  : in Natural)
    is
+      RPC : RPC_Id := RPC_Id (Key);
    begin
-      if Keeper.Sent then
+      if Wait then
          System.Garlic.Soft_Links.Enter_Critical_Section;
-         if Callers (Keeper.RPC).Status = Running then
-            D ("Forward local abortion of RPC number" & Keeper.RPC'Img &
-               " to partition" & Keeper.PID'Img);
-            Send_Abort_Message (Keeper.PID, Keeper.RPC);
-            Callers (Keeper.RPC).Status := Aborted;
-         elsif Callers (Keeper.RPC).Status = Aborted then
-            Callers (Keeper.RPC).Status := Unknown;
+         if Callers (RPC).Status = Running then
+            pragma Debug
+              (D ("Forward local abortion of RPC number" & RPC'Img &
+                  " to partition" & PID'Img));
+            Send_Abort_Message (PID, RPC);
+            Callers (RPC).Status := Aborted;
+         elsif Callers (RPC).Status = Aborted then
+            Callers (RPC).Status := Unknown;
          end if;
          System.Garlic.Soft_Links.Update (Callers_Watcher);
          System.Garlic.Soft_Links.Leave_Critical_Section;
       end if;
    end Finalize;
-
-   ----------------------
-   -- When_Established --
-   ----------------------
-
-   procedure When_Established
-   is
-   begin
-      if not RPC_Allowed then
-         System.Garlic.Soft_Links.Wait (RPC_Barrier);
-      end if;
-   end When_Established;
 
    -----------------------
    -- Insert_RPC_Header --
@@ -347,7 +341,7 @@ package body System.RPC is
                else
                   D ("Execute APC from partition" & Partition'Img);
                end if;
-               Allocate_Task (Partition, RPC, Params_Copy, Asynchronous);
+               Allocate_Pool_Task (Partition, RPC, Params_Copy, Asynchronous);
             end;
 
          when RPC_Reply =>
@@ -363,7 +357,7 @@ package body System.RPC is
             System.Garlic.Soft_Links.Leave_Critical_Section;
 
          when Abortion_Query =>
-            Abort_Task (Partition, Header.RPC);
+            Abort_Pool_Task (Partition, Header.RPC);
 
          when Abortion_Reply =>
             System.Garlic.Soft_Links.Enter_Critical_Section;
@@ -416,6 +410,22 @@ package body System.RPC is
    end Read;
 
    ------------------------
+   -- Register_Task_Pool --
+   ------------------------
+
+   procedure Register_Task_Pool
+     (Allocate_Task : in Allocate_Task_Procedure;
+      Abort_Task    : in Abort_Task_Procedure;
+      Initialize    : in Parameterless_Procedure;
+      Shutdown      : in Parameterless_Procedure) is
+   begin
+      Allocate_Pool_Task   := Allocate_Task;
+      Abort_Pool_Task      := Abort_Task;
+      Initialize_Task_Pool := Initialize;
+      Shutdown_Task_Pool   := Shutdown;
+   end Register_Task_Pool;
+
+   ------------------------
    -- Send_Abort_Message --
    ------------------------
 
@@ -439,7 +449,9 @@ package body System.RPC is
    procedure Shutdown is
    begin
       pragma Debug (D ("Enter RPC shutdown"));
-      Pool.Shutdown;
+      if Shutdown_Task_Pool /= null then
+         Shutdown_Task_Pool.all;
+      end if;
       Units.Shutdown;
       pragma Debug (D ("Leave RPC shutdown"));
    end Shutdown;
@@ -452,7 +464,7 @@ package body System.RPC is
      (RPC    : in  RPC_Id;
       Stream : out Streams.Stream_Element_Access)
    is
-      Version : Version_Id;
+      Version : Types.Version_Id;
    begin
       loop
          System.Garlic.Soft_Links.Enter_Critical_Section;
@@ -483,6 +495,19 @@ package body System.RPC is
       end loop;
    end Wait_For;
 
+   ----------------------
+   -- When_Established --
+   ----------------------
+
+   procedure When_Established
+   is
+   begin
+      if not RPC_Allowed then
+         System.Garlic.Soft_Links.Differ
+           (Establish_RPC_Watcher, System.Garlic.Types.No_Version);
+      end if;
+   end When_Established;
+
    -----------
    -- Write --
    -----------
@@ -500,10 +525,11 @@ package body System.RPC is
    end Write;
 
 begin
-   System.Garlic.Soft_Links.Create (RPC_Barrier);
+   System.Garlic.Soft_Links.Create
+     (Establish_RPC_Watcher, System.Garlic.Types.No_Version);
    System.Garlic.Soft_Links.Create (Callers_Watcher);
    Register_Handler (Remote_Call, Handle_Request'Access);
-   Pool.Initialize;
-   Stream_IO.Initialize;
    System.Garlic.Soft_Links.Register_RPC_Shutdown (Shutdown'Access);
+   System.Garlic.Soft_Links.Register_Abort_Handler
+     (new Dummy_Abort_Handler_Type);
 end System.RPC;
