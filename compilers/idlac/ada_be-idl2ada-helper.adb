@@ -586,7 +586,8 @@ package body Ada_Be.Idl2Ada.Helper is
       DI (CU);
       PL (CU, "begin");
       II (CU);
-      PL (CU, "if CORBA.Value.Is_A (The_Ref, "
+      PL (CU, "if CORBA.Object.Is_Nil (The_Ref)");
+      PL (CU, "  or else CORBA.Value.Is_A (The_Ref, "
           & Repository_Id_Name (Node) & ") then");
       II (CU);
       PL (CU, "Set (Result, CORBA.Value.Object_Of (The_Ref));");
@@ -690,7 +691,8 @@ package body Ada_Be.Idl2Ada.Helper is
          DI (CU);
          PL (CU, "begin");
          II (CU);
-         PL (CU, "if CORBA.Object.Is_A (The_Ref, "
+         PL (CU, "if CORBA.Object.Is_Nil (The_Ref)");
+         PL (CU, "  or else CORBA.Object.Is_A (The_Ref, "
              & Repository_Id_Name (Node) & ") then");
          II (CU);
          PL (CU, "return Unchecked_To_"
@@ -816,7 +818,8 @@ package body Ada_Be.Idl2Ada.Helper is
          DI (CU);
          PL (CU, "begin");
          II (CU);
-         PL (CU, "if CORBA.Object.Is_A (The_Ref, """
+         PL (CU, "if CORBA.Object.Is_Nil (The_Ref)");
+         PL (CU, "  or else CORBA.Object.Is_A (The_Ref, """
              & Idl_Repository_Id (Forward (Node)) & """) then");
          II (CU);
          PL (CU, "return Unchecked_To_"
