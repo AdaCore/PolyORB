@@ -36,26 +36,32 @@
 --  $Id$
 
 with Ada.Streams;
+with Ada.Unchecked_Deallocation;
 
 package PolyORB.Objects is
 
    pragma Elaborate_Body;
 
    type Object_Id is new Ada.Streams.Stream_Element_Array;
+
    type Object_Id_Access is access all Object_Id;
 
-   procedure Free (X : in out Object_Id_Access);
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Object_Id, Object_Id_Access);
 
-   function To_String (Oid : Object_Id) return String;
-   function To_Oid (S : String) return Object_Id;
-   --  Generic helper functions: convert an oid from/to
-   --  a printable string representation.
+   function To_String
+     (Oid : Object_Id)
+     return String;
+   pragma Inline (To_String);
+   --  Convert an OID to a printable string representation.
+
+   function To_Oid
+     (S : String)
+     return Object_Id;
+   pragma Inline (To_Oid);
+   --  Convert an OID from a printable string representation.
 
    function Image (Oid : Object_Id) return String;
    --  For debugging purposes.
-
-   pragma Inline (Free);
-   pragma Inline (To_String);
-   pragma Inline (To_Oid);
 
 end PolyORB.Objects;
