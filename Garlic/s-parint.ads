@@ -87,4 +87,12 @@ package System.Partition_Interface is
    end RCI_Info;
    --  RCI package information caching.
 
+   type RACW_Stub_Type is record
+      Origin   : System.RPC.Partition_ID;
+      Receiver : System.RPC.RPC_Receiver;
+      Addr     : System.Address;
+   end record;
+
+   type RACW_Stub_Type_Access is access RACW_Stub_Type;
+
 end System.Partition_Interface;
