@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with CORBA.ORB;
 with CORBA.Policy;
 
@@ -180,6 +178,7 @@ package body Test_AdapterActivator is
           CORBA.To_CORBA_String ("Foo"),
           True));
 
+      PortableServer.POA.Destroy (Child_POA, False, False);
    end Run_Test_AdapterActivator;
 
 end Test_AdapterActivator;
