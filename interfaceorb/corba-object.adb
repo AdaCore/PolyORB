@@ -59,7 +59,7 @@ package body CORBA.Object is
       Logical_Type_Id : in CORBA.String)
       return CORBA.Boolean is
    begin
-      return (OMG_Repository = Logical_Type_Id);
+      return (Repository_Id = Logical_Type_Id);
    end Is_A;
 
    ----------
@@ -70,7 +70,7 @@ package body CORBA.Object is
      (Logical_Type_Id : in CORBA.String)
       return CORBA.Boolean is
    begin
-      return (OMG_Repository = Logical_Type_Id);
+      return (Repository_Id = Logical_Type_Id);
    end Is_A;
 
    ------------------
@@ -214,7 +214,7 @@ package body CORBA.Object is
    function Get_Repository_Id
      (Self : in Ref) return CORBA.String is
    begin
-      return OMG_Repository;
+      return Repository_Id;
    end Get_Repository_Id;
 
    ------------------------
@@ -557,7 +557,7 @@ package body CORBA.Object is
 
 begin
 
-   Register (OMG_Repository, Nil_Ref'Access);
+   Register (Repository_Id, Nil_Ref'Access);
    --  Registers the fact that a new IDL interface : the root of all the
    --  others can be used in the program
 

@@ -20,7 +20,7 @@ package CORBA.Object is
       Logical_Type_Id : in CORBA.String)
       return CORBA.Boolean;
    --  Returns True if this object is of this Logical_Type_Id (here
-   --  Logical_Type_Id is a OMG_Repository) or one of its descendants
+   --  Logical_Type_Id is a Repository_Id) or one of its descendants
 
    function Non_Existent
      (Self : in Ref)
@@ -50,7 +50,7 @@ package CORBA.Object is
       return CORBA.Boolean;
    --  Same, but non dispatching, must be called CORBA.Object.Is_A (...)
 
-   OMG_Repository : CORBA.String
+   Repository_Id : CORBA.String
      := CORBA.To_CORBA_String ("IDL:omg.org/CORBA/Object:1.0");
    --  Repository Id for CORBA.Object.Ref
 

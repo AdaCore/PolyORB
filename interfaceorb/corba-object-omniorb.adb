@@ -21,7 +21,7 @@ package body CORBA.Object.OmniORB is
      (From : in CORBA.String;
       To   : out CORBA.Object.Ref'Class)
    is
-      OMG_Repository     : CORBA.String;
+      Repository_Id     : CORBA.String;
       Most_Derived_Type : Constant_Ref_Ptr;
    begin
       --  Get the AdaBroker.OmniObject
@@ -31,14 +31,14 @@ package body CORBA.Object.OmniORB is
 
          --  Check if the omniobject we got can be put into To (type
          --  implied the repoId)
-         OMG_Repository :=
+         Repository_Id :=
            AdaBroker.OmniObject.Get_Repository_Id (To.OmniObj.all);
 
          pragma Debug (O ("String_To_Object : repoid = " &
-                          CORBA.To_Standard_String (OMG_Repository)));
+                          CORBA.To_Standard_String (Repository_Id)));
 
          Most_Derived_Type :=
-           Get_Dynamic_Type_From_Repository_Id (OMG_Repository);
+           Get_Dynamic_Type_From_Repository_Id (Repository_Id);
 
          --  Dyn_type is now an object of the most derived type of the new
          --  created object
