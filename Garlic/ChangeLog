@@ -1,3 +1,8 @@
+2003-08-19  Pascal Obry  <obry@gnat.com>
+
+	* 5wgarrem.adb:
+	(C): Removed unused renaming of Interfaces.C.
+
 2003-03-15  Pascal Obry  <obry@gnat.com>
 
 	* s-gaprtc.adb:
