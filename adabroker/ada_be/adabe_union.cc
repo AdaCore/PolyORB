@@ -29,6 +29,7 @@ adabe_union::produce_ads(dep_list& with, string &body, string &previous)
       AST_Decl *d = i.item();
       if (d->node_type() == AST_Decl::NT_union_branch)
 	adabe_union_branch::narrow_from_decl(d)->produce_ads(with, body, previous, disc_type());
+      //dynamic_cast<adabe_union_branch *>(d)->produce_ads(with, body, previous, disc_type()); 
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in union");
     }
   body += "      end case; \n";
@@ -61,11 +62,72 @@ adabe_union::produce_ads(dep_list& with, string &body, string &previous)
 void
 adabe_union::produce_marshal_ads(dep_list& with, string &body, string &previous)
 {
+  body += "   procedure Marshall (A : in ";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "      S : in out Giop_C.Object) ;\n\n";
+
+  body += "   procedure UnMarshall (A : out ";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "      S : in out Giop_C.Object) ;\n\n";
+
+  body += "   function Align_Size (A : in";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "               Initial_Offset : in Corba.Unsigned_Long ;\n";
+  body += "               N : in Corba.Unsigned_Long := 1)\n";
+  body += "               return Corba.Unsigned_Long ;\n\n\n";
+
 }
 
 void
 adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
+  string marshall = "";
+  string unmarshall = "";
+  string align_size = "";
+  marshall += "   procedure Marshall(A : in ";
+  marshall += get_ada_local_name();
+  marshall += " ;\n";
+  marshall += "      S : in out Giop_C.Object) is\n";
+  marshall += "   begin\n";
+  
+  unmarshall += "   procedure UnMarshall(A : out ";
+  unmarshall += get_ada_local_name();
+  unmarshall += " ;\n";
+  unmarshall += "      S : in out Giop_C.Object) is\n";
+  unmarshall += "   begin\n";
+  
+  align_size += "   function Align_Size (A : in";
+  align_size += get_ada_local_name();
+  align_size += " ;\n";
+  align_size += "               Initial_Offset : in Corba.Unsigned_Long ;\n";
+  align_size += "               N : in Corba.Unsigned_Long := 1)\n";
+  align_size += "               return Corba.Unsigned_Long is\n";
+  align_size += "      Tmp : Corba.Unsigned_Long := 0 ;\n";
+  align_size += "   begin\n";
+  
+  UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
+  while (!i.is_done())
+    {
+      AST_Decl *d = i.item();
+      if (d->node_type() == AST_Decl::NT_union_branch) {
+	dynamic_cast<adabe_union_branch *>(d)->produce_marshal_adb(with, marshall, unmarshall, align_size);
+      }
+      else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in union");
+      i.next();
+    }
+
+  marshall += "   end Marshall;\n\n";
+  unmarshall += "   end Unmarshall;\n\n";
+  align_size += "   end Align_Size;\n\n\n";
+
+  body += marshall;
+  body += unmarshall;
+  body += align_size;
+
+
 }
 
 string
