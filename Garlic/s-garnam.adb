@@ -423,7 +423,7 @@ package body System.Garlic.Naming is
    function Value (Add : String) return Address
    is
       function Convert is
-         new Unchecked_Conversion (Source => unsigned_long,
+         new Unchecked_Conversion (Source => Interfaces.Unsigned_32,
                                    Target => In_Addr);
       C_Add     : chars_ptr        := New_String (Add);
       Converted : constant In_Addr := Convert (C_Inet_Addr (C_Add));

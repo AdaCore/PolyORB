@@ -235,9 +235,11 @@ package System.Garlic.Thin is
       Optlen  : access C.int)
      return C.int;
 
-   function C_Inet_Addr (Cp : Strings.chars_ptr) return C.Unsigned_Long;
+   function C_Inet_Addr (Cp : Strings.chars_ptr)
+     return Interfaces.Unsigned_32;
 
-   function C_Inet_Network (Cp : Strings.chars_ptr) return C.Unsigned_Long;
+   function C_Inet_Network (Cp : Strings.chars_ptr)
+     return Interfaces.Unsigned_32;
 
    function C_Inet_Makeaddr
      (Net : C.int;
