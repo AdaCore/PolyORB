@@ -3,7 +3,8 @@ package body CORBA.Impl is
    -----------------
    --  Initialize --
    -----------------
-   procedure Initialize (Object : in out Object) is
+
+   procedure Initialize (This : in out Object) is
    begin
       null;
    end Initialize;
@@ -12,10 +13,10 @@ package body CORBA.Impl is
    -----------------
    --  Initialize --
    -----------------
-   procedure Finalize (Object : in out Object) is
+
+   procedure Finalize (This : in out Object) is
    begin
       null;
    end Finalize;
-
 
 end CORBA.Impl;
