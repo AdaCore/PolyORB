@@ -528,7 +528,7 @@ package body Backend.BE_Ada.Generator is
       if No (R_Expr) then
          if Op = Operator_Type'Pos (Op_Not) then
             Write (Tok_Not);
-         else
+         elsif Op /= Operator_Type'Pos (Op_None) then
             Write_Name (Operator_Image (Standard.Integer (Op)));
          end if;
 

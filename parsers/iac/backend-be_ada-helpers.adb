@@ -1,4 +1,4 @@
-with Namet;     use Namet;
+with Namet;      use Namet;
 with Values;     use Values;
 
 with Frontend.Nodes;   use Frontend.Nodes;
@@ -450,7 +450,7 @@ package body Backend.BE_Ada.Helpers is
       is
          function Add_Parameter
            (TC_Name  : Name_Id;
-            Var_Name : Name_Id)
+            Var_Node : Node_Id)
             return Node_Id;
 
          function Declare_Name
@@ -464,14 +464,14 @@ package body Backend.BE_Ada.Helpers is
 
          function Add_Parameter
            (TC_Name  : Name_Id;
-            Var_Name : Name_Id)
+            Var_Node : Node_Id)
             return Node_Id
          is
             N : Node_Id;
          begin
             N := Make_Subprogram_Call
               (RE (RE_To_Any_0),
-               Make_List_Id (Make_Designator (Var_Name)));
+               Make_List_Id (Var_Node));
             N := Make_Subprogram_Call
               (RE (RE_Add_Parameter),
                Make_List_Id
@@ -510,6 +510,8 @@ package body Backend.BE_Ada.Helpers is
          Entity_Rep_Id_V  : Value_Id;
          Declarative_Part : constant List_Id := New_List (K_List_Id);
          Statements       : constant List_Id := New_List (K_List_Id);
+         Param1           : Node_Id;
+         Param2           : Node_Id;
       begin
          Stub :=  Stub_Node (BE_Node (Identifier (E)));
          Entity_Rep_Id_V := BEN.Value (BEN.Expression (Next_Node (Stub)));
@@ -517,31 +519,78 @@ package body Backend.BE_Ada.Helpers is
 
          case FEN.Kind (E) is
             when K_Interface_Declaration =>
+
                Stub := Package_Declaration
                  (BEN.Parent (Stub));
                Helper := Next_Node (Next_Node (Helper));
 
+               --  Name_U declaration
+
+               Entity_Name_V := New_String_Value
+                 (BEN.Name (Defining_Identifier (Stub)), False);
+               N := Declare_Name (VN (V_Name), Entity_Name_V);
+               Append_Node_To_List (N, Declarative_Part);
+
+               --  Id_U declaration
+
+               N := Declare_Name (VN (V_Id), Entity_Rep_Id_V);
+               Append_Node_To_List (N, Declarative_Part);
+
+               Param1 := Make_Designator (VN (V_Name));
+               Param2 := Make_Designator (VN (V_Id));
+
+            when K_Complex_Declarator =>
+               declare
+                  V      : Value_Type;
+                  Sizes  : constant List_Id :=
+                    Range_Constraints
+                    (Type_Definition (Stub_Node (BE_Node (Identifier (E)))));
+               begin
+                  --  Need to see the correct Mapping of multiple dimention
+                  --  arrays helpers
+                  if Length (Sizes) > 1 then
+                     raise Program_Error;
+                  end if;
+
+                  V := Value (Last (First_Node (Sizes)));
+                  V.IVal := V.IVal + 1;
+                  Param1 := Make_Subprogram_Call
+                    (RE (RE_Unsigned_Long),
+                     Make_List_Id
+                     (Make_Literal (New_Value (V))));
+
+                  if Is_Base_Type (Type_Spec (Declaration (E))) then
+                     Param2 := Base_Type_TC
+                       (FEN.Kind (Type_Spec (Declaration (E))));
+                  else
+                     raise Program_Error;
+                  end if;
+               end;
+
+            when K_Enumeration_Type =>
+               --  Name_U declaration
+
+               Entity_Name_V := New_String_Value
+                 (BEN.Name (Defining_Identifier (Stub)), False);
+               N := Declare_Name (VN (V_Name), Entity_Name_V);
+               Append_Node_To_List (N, Declarative_Part);
+
+               --  Id_U declaration
+
+               N := Declare_Name (VN (V_Id), Entity_Rep_Id_V);
+               Append_Node_To_List (N, Declarative_Part);
+
+               Param1 := Make_Designator (VN (V_Name));
+               Param2 := Make_Designator (VN (V_Id));
+
             when others =>
-               null;
+               raise Program_Error;
          end case;
 
-         --  Name_U declaration
-
-
-         Entity_Name_V := New_String_Value
-           (BEN.Name (Defining_Identifier (Stub)), False);
          Entity_TC_Name := BEN.Name (Defining_Identifier (Helper));
-
-         N := Declare_Name (VN (V_Name), Entity_Name_V);
-         Append_Node_To_List (N, Declarative_Part);
-
-         --  Id_U declaration
-         N := Declare_Name (VN (V_Id), Entity_Rep_Id_V);
-         Append_Node_To_List (N, Declarative_Part);
-
-         N := Add_Parameter (Entity_TC_Name, VN (V_Name));
+         N := Add_Parameter (Entity_TC_Name, Param1);
          Append_Node_To_List (N, Statements);
-         N := Add_Parameter (Entity_TC_Name, VN (V_Id));
+         N := Add_Parameter (Entity_TC_Name, Param2);
          Append_Node_To_List (N, Statements);
 
          case FEN.Kind (E) is
@@ -556,12 +605,13 @@ package body Backend.BE_Ada.Helpers is
                   Enum_Item := First_Node (Enumerators);
                   loop
                      Var_Name := Add_Prefix_To_Name
-                        (Get_Name_String (BEN.Name (Enum_Item)), VN (V_Name));
+                       (Get_Name_String (BEN.Name (Enum_Item)), VN (V_Name));
+                     Param1 := Make_Designator (Var_Name);
                      N := Declare_Name
                        (Var_Name,
                         New_String_Value (BEN.Name (Enum_Item), False));
                      Append_Node_To_List (N, Declarative_Part);
-                     N := Add_Parameter (Entity_TC_Name, Var_Name);
+                     N := Add_Parameter (Entity_TC_Name, Param1);
                      Append_Node_To_List (N, Statements);
                      Enum_Item := Next_Node (Enum_Item);
                      exit when No (Enum_Item);
@@ -606,6 +656,7 @@ package body Backend.BE_Ada.Helpers is
          D           : constant List_Id := New_List (K_List_Id);
          S           : constant List_Id := New_List (K_List_Id);
          function Complex_Declarator_Body (E : Node_Id) return Node_Id;
+         function Enumeration_Type_Body (E : Node_Id) return Node_Id;
          function Interface_Declaration_Body (E : Node_Id) return Node_Id;
          function Simple_Declarator_Body (E : Node_Id) return Node_Id;
          function Structure_Type_Body (E : Node_Id) return Node_Id;
@@ -626,7 +677,10 @@ package body Backend.BE_Ada.Helpers is
             Index_List           : constant List_Id
               := New_List (K_List_Id);
             Item_Offset          : Node_Id;
-            pragma Unreferenced (Item_Offset);
+            Tmp_Expr             : Node_Id;
+            V                    : Value_Type;
+            Helper               : Node_Id;
+            TC                   : Node_Id;
          begin
             Spec := Helper_Node (BE_Node (Identifier (E)));
             Spec := Next_Node (Spec);
@@ -637,6 +691,7 @@ package body Backend.BE_Ada.Helpers is
                  Copy_Designator (Return_Type (Spec)));
             Append_Node_To_List (N, D);
 
+            Item_Offset := New_Node (K_Expression);
             Dim := First_Node (Sizes);
             loop
                Set_Str_To_Name_Buffer ("I");
@@ -655,19 +710,70 @@ package body Backend.BE_Ada.Helpers is
                   Append_Node_To_List (N, S);
                end if;
 
+               V := Value (Last (Dim));
+               V.IVal := V.IVal + 1;
                I := I + 1;
                Dim := Next_Node (Dim);
+
+               if I = 1 then
+                  BEN.Set_Left_Expr (Item_Offset, Copy_Node (M));
+
+                  if Present (Dim) then
+                     BEN.Set_Operator
+                       (Item_Offset, Operator_Type'Pos (Op_Asterisk));
+                     BEN.Set_Right_Expr
+                       (Item_Offset,
+                        Make_Literal (New_Value (V)));
+                  else
+                     BEN.Set_Operator
+                       (Item_Offset, Operator_Type'Pos (Op_None));
+                  end if;
+               else
+                  Tmp_Expr := New_Node (K_Expression);
+                  BEN.Set_Left_Expr (Tmp_Expr, Item_Offset);
+                  BEN.Set_Operator (Tmp_Expr, Operator_Type'Pos (Op_Plus));
+
+                  if Present (Dim) then
+                     Item_Offset := New_Node (K_Expression);
+                     BEN.Set_Left_Expr (Item_Offset, Copy_Node (M));
+                     BEN.Set_Operator
+                       (Item_Offset, Operator_Type'Pos (Op_Asterisk));
+                     BEN.Set_Right_Expr
+                       (Item_Offset,
+                        Make_Literal (New_Value (V)));
+                     BEN.Set_Right_Expr (Tmp_Expr, Item_Offset);
+                  else
+                     BEN.Set_Right_Expr (Tmp_Expr, Copy_Node (M));
+                  end if;
+                  Item_Offset := Tmp_Expr;
+               end if;
+
                exit when No (Dim);
             end loop;
+
+            if Is_Base_Type (Type_Spec (Declaration (E))) then
+               TC := Base_Type_TC (FEN.Kind (Type_Spec (Declaration (E))));
+               Helper := RE (RE_From_Any_0);
+            else
+               raise Program_Error;
+            end if;
+
             N := Make_Subprogram_Call
               (Make_Defining_Identifier (PN (P_Result)),
                Index_List);
             M := Make_Subprogram_Call
               (RE (RE_Get_Aggregate_Element),
                Make_List_Id
-               (Make_Defining_Identifier (PN (P_Item))));
-            --    TC,
-            --    Item_Offset));
+               (Make_Defining_Identifier (PN (P_Item)),
+                TC,
+                Make_Subprogram_Call
+                (RE (RE_Unsigned_Long),
+                 Make_List_Id (Item_Offset))));
+            M := Make_Subprogram_Call
+              (Helper,
+               Make_List_Id (M));
+            N := Make_Assignment_Statement
+              (N, M);
             Append_Node_To_List (N, Loop_Statements);
             N := Make_Return_Statement
               (Make_Defining_Identifier (PN (P_Result)));
@@ -676,6 +782,49 @@ package body Backend.BE_Ada.Helpers is
               (Spec, D, S);
             return N;
          end Complex_Declarator_Body;
+
+         ---------------------------
+         -- Enumeration_Type_Body --
+         ---------------------------
+
+         function Enumeration_Type_Body (E : Node_Id) return Node_Id is
+         begin
+            Spec := Helper_Node (BE_Node (Identifier (E)));
+            Spec := Next_Node (Spec);  --  Second in the list of helpers
+            N := Make_Subprogram_Call
+              (RE (RE_Get_Aggregate_Element),
+               Make_List_Id
+               (Make_Designator (PN (P_Item)),
+                RE (RE_TC_Unsigned_Long),
+                Make_Subprogram_Call
+                (RE (RE_Unsigned_Long),
+                 Make_List_Id (Make_Literal (Int0_Val)))));
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (VN (V_Index)),
+               Object_Definition   => RE (RE_Any),
+               Expression          => N);
+            Append_Node_To_List (N, D);
+
+            N := Make_Object_Declaration
+              (Make_Defining_Identifier (VN (V_Position)),
+               True,
+               RE (RE_Unsigned_Long),
+               Make_Subprogram_Call
+               (RE (RE_From_Any_0),
+                Make_List_Id (Make_Designator (VN (V_Index)))));
+            Append_Node_To_List (N, D);
+
+            N := Copy_Designator (Return_Type (Spec));
+            N := Make_Subprogram_Call
+              (Make_Type_Attribute (N, A_Val),
+               Make_List_Id (Make_Designator (VN (V_Position))));
+            N := Make_Return_Statement (N);
+            Append_Node_To_List (N, S);
+            N := Make_Subprogram_Implementation
+              (Spec, D, S);
+            return N;
+         end Enumeration_Type_Body;
 
          --------------------------------
          -- Interface_Declaration_Body --
@@ -735,7 +884,7 @@ package body Backend.BE_Ada.Helpers is
                N := Complex_Declarator_Body (E);
 
             when K_Enumeration_Type =>
-               N := No_Node;
+               N := Enumeration_Type_Body (E);
 
             when K_Interface_Declaration =>
                N := Interface_Declaration_Body (E);
@@ -855,14 +1004,15 @@ package body Backend.BE_Ada.Helpers is
          -----------------------------
 
          function Complex_Declarator_Body (E : Node_Id) return Node_Id is
-            I                : Integer := 0;
-            L                : List_Id;
-            Sizes            : constant List_Id :=
+            I                    : Integer := 0;
+            L                    : List_Id;
+            Sizes                : constant List_Id :=
               Range_Constraints
               (Type_Definition (Stub_Node (BE_Node (Identifier (E)))));
-            Dim              : Node_Id;
-            Loop_Statements  : List_Id := No_List;
+            Dim                  : Node_Id;
+            Loop_Statements      : List_Id := No_List;
             Enclosing_Statements : List_Id;
+            Helper               : Node_Id;
          begin
             Spec := Helper_Node (BE_Node (Identifier (E)));
             Spec := Next_Node (Next_Node (Spec));
@@ -902,8 +1052,18 @@ package body Backend.BE_Ada.Helpers is
                Dim := Next_Node (Dim);
                exit when No (Dim);
             end loop;
+
+            if Is_Base_Type (Type_Spec (Declaration (E))) then
+               Helper := RE (RE_To_Any_0);
+            else
+               raise Program_Error;
+            end if;
+
             N := Make_Subprogram_Call
-              (Make_Defining_Identifier (Helper_Name), L);
+              (Make_Defining_Identifier (PN (P_Item)), L);
+            N := Make_Subprogram_Call
+              (Helper,
+               Make_List_Id (N));
             N := Make_Subprogram_Call
               (RE (RE_Add_Aggregate_Element),
                Make_List_Id
@@ -944,7 +1104,7 @@ package body Backend.BE_Ada.Helpers is
               (RE (Convert (K_Unsigned_Long)),
                Make_List_Id (N));
             N := Make_Subprogram_Call
-              (RE (RE_Any),
+              (RE (RE_To_Any_0),
                Make_List_Id (N));
             N := Make_Subprogram_Call
               (RE (RE_Add_Aggregate_Element),
@@ -957,7 +1117,7 @@ package body Backend.BE_Ada.Helpers is
             N := Make_Subprogram_Implementation
               (Spec, D, S);
             return N;
-         end Enumeration_Type_Body;
+         end  Enumeration_Type_Body;
 
          --------------------------------
          -- Interface_Declaration_Body --
@@ -1304,14 +1464,14 @@ package body Backend.BE_Ada.Helpers is
          Append_Node_To_List
            (To_Any_Body (E), Statements (Current_Package));
 
+         N := Deferred_Initialization_Block (E);
+         Append_Node_To_List (N, Deferred_Initialization_Body);
+
          N := First_Entity (Interface_Body (E));
          while Present (N) loop
             Visit (N);
             N := Next_Entity (N);
          end loop;
-
-         N := Deferred_Initialization_Block (E);
-         Append_Node_To_List (N, Deferred_Initialization_Body);
 
          N := Make_Subprogram_Implementation
            (Make_Subprogram_Specification
@@ -1380,6 +1540,7 @@ package body Backend.BE_Ada.Helpers is
       procedure Visit_Type_Declaration (E : Node_Id) is
          L : List_Id;
          D : Node_Id;
+         N : Node_Id;
       begin
          Set_Helper_Body;
          L := Declarators (E);
@@ -1389,6 +1550,12 @@ package body Backend.BE_Ada.Helpers is
               (From_Any_Body (D), Statements (Current_Package));
             Append_Node_To_List
               (To_Any_Body (D), Statements (Current_Package));
+
+            if FEN.Kind (D) = K_Complex_Declarator then
+               N := Deferred_Initialization_Block (D);
+               Append_Node_To_List (N, Deferred_Initialization_Body);
+            end if;
+
             D := Next_Entity (D);
          end loop;
       end Visit_Type_Declaration;

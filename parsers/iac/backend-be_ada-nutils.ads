@@ -145,7 +145,8 @@ package Backend.BE_Ada.Nutils is
       Op_Less_Less,       -- <<
       Op_Semicolon,       -- ;
       Op_Arrow,           -- =>
-      Op_Vertical_Bar);   -- |
+      Op_Vertical_Bar,    -- |
+      Op_None);           -- No operation
 
    Operator_Image : array
      (Operator_Type'Pos (Op_And) ..  Operator_Type'Pos (Op_Vertical_Bar))
@@ -192,10 +193,12 @@ package Backend.BE_Ada.Nutils is
       V_Handler,
       V_Id,
       V_Impl_Object_Ptr,
+      V_Index,
       V_Members,
       V_Name,
       V_Operation_Name,
       V_Operation,
+      V_Position,
       V_Request,
       V_Result,
       V_Result_Name,
@@ -383,7 +386,7 @@ package Backend.BE_Ada.Nutils is
 
    function Make_Expression
      (Left_Expr : Node_Id;
-      Operator  : Operator_Type;
+      Operator  : Operator_Type := Op_None;
       Right_Expr : Node_Id := No_Node)
      return Node_Id;
 
@@ -409,7 +412,8 @@ package Backend.BE_Ada.Nutils is
 
    function Make_List_Id
      (N1 : Node_Id;
-      N2 : Node_Id := No_Node)
+      N2 : Node_Id := No_Node;
+      N3 : Node_Id := No_Node)
      return List_Id;
 
    function Make_Literal

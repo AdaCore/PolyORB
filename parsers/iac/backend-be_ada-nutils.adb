@@ -807,7 +807,7 @@ package body Backend.BE_Ada.Nutils is
 
    function Make_Expression
      (Left_Expr  : Node_Id;
-      Operator   : Operator_Type;
+      Operator   : Operator_Type := Op_None;
       Right_Expr : Node_Id := No_Node)
      return Node_Id
    is
@@ -892,7 +892,8 @@ package body Backend.BE_Ada.Nutils is
 
    function Make_List_Id
      (N1 : Node_Id;
-      N2 : Node_Id := No_Node)
+      N2 : Node_Id := No_Node;
+      N3 : Node_Id := No_Node)
      return List_Id
    is
       L : List_Id;
@@ -901,6 +902,10 @@ package body Backend.BE_Ada.Nutils is
       Append_Node_To_List (N1, L);
       if Present (N2) then
          Append_Node_To_List (N2, L);
+
+         if Present (N3) then
+            Append_Node_To_List (N3, L);
+         end if;
       end if;
       return L;
    end Make_List_Id;

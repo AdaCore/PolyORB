@@ -1,3 +1,17 @@
+2004-08-27  Saber Souli  <souli@localhost.localdomain>
+
+	* backend-be_ada-stubs.adb: Add underscore to operation name in the operation initialization.  
+
+	* backend-be_ada-helpers.adb: Generate From_Any body to Arrays types, and enumeration type. Add initialization of the arrays helpers in Deferred_Initialization body. 
+
+	* backend-be_ada-generator.adb: Do not generate operators in expression when the operator is Op_None. 
+
+	* backend-be_ada-skels.adb: Correct  minor bug in operations invokation (use To_Any convesion in place of From_Any).  use the appropriate helper when the returned type is not a base type.  
+
+	* backend-be_ada-nutils.ads: Add Variables Id (V_Index, V_Position) used in enumeration type helper (From_Any). Add Op_None to Operator_Type.  
+
+	* backend-be_ada-nutils.adb: Modify signature of Make_List_Id in to be able to create a list containing tree element. Modify signature of Make_Expression, to make Op_none the default operator_id. 
+
 2004-08-26  Saber Souli  <souli@loozy.rezel.enst.fr>
 
 	* backend-be_ada-runtime.ads: Add runtimes entities.

@@ -173,6 +173,9 @@ package body Backend.BE_Ada.Skels is
          P                : List_Id;
          Inv_Profile      : constant List_Id := New_List (K_List_Id);
          K                : FEN.Node_Kind := FEN.K_Operation_Declaration;
+         TC               : Node_Id;
+         From_Any_Helper  : Node_Id;
+         To_Any_Helper    : Node_Id;
 
       begin
          --  Implementation.Object'Class (Self.All)'Access
@@ -223,7 +226,7 @@ package body Backend.BE_Ada.Skels is
                Append_Node_To_List (N, Declarative_Part);
 
                if Is_Base_Type (BEN.FE_Node (Parameter_Type (Param))) then
-                  C := Base_Type_TC
+                  TC := Base_Type_TC
                     (FEN.Kind (BEN.FE_Node (Parameter_Type (Param))));
                else
                   C := Corresponding_Entity
@@ -236,13 +239,13 @@ package body Backend.BE_Ada.Skels is
                   C := Helper_Node
                     (BE_Node
                      (Identifier (C)));
-                  C := Expand_Designator (Next_Node (Next_Node (C)));
+                  TC := Expand_Designator (C);
                end if;
 
                C :=  Make_Subprogram_Call
                  (Defining_Identifier   => RE (RE_Get_Empty_Any),
                   Actual_Parameter_Part =>
-                    Make_List_Id (C));
+                    Make_List_Id (TC));
                New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
                Append_Node_To_List (Make_Designator (New_Name), P);
                N := Make_Object_Declaration
@@ -288,19 +291,21 @@ package body Backend.BE_Ada.Skels is
                   New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
 
                   if Is_Base_Type (BEN.FE_Node (Parameter_Type (Param))) then
-                     C := RE (RE_From_Any_0);
+                     From_Any_Helper := RE (RE_From_Any_0);
                   else
                      C := Identifier (FE_Node (Parameter_Type (Param)));
                      C := Helper_Node
                        (BE_Node
                         (Identifier (Reference (Corresponding_Entity (C)))));
-                     C := Expand_Designator (C);
+                     From_Any_Helper := Expand_Designator
+                       (Next_Node (C));
                   end if;
 
                   N := Make_Assignment_Statement
                     (Make_Defining_Identifier (Param_Name),
                      Make_Subprogram_Call
-                     (C, Make_List_Id (Make_Designator (New_Name))));
+                     (From_Any_Helper,
+                      Make_List_Id (Make_Designator (New_Name))));
                   Append_Node_To_List (N, Statements);
                end if;
 
@@ -341,9 +346,20 @@ package body Backend.BE_Ada.Skels is
 
          Append_Node_To_List (C, Statements);
 
+         --  Set Result
+
          if Present (Return_Type (S)) then
+            if Is_Base_Type (FE_Node (Return_Type (S))) then
+               To_Any_Helper := RE (RE_To_Any_0);
+            else
+               To_Any_Helper := Helper_Node
+                 (BE_Node (Identifier (FE_Node (Return_Type (S)))));
+               To_Any_Helper := Expand_Designator
+                 (Next_Node (Next_Node (To_Any_Helper)));
+            end if;
+
             C := Make_Subprogram_Call
-              (RE (RE_To_Any_0),
+              (To_Any_Helper,
                Make_List_Id (Make_Designator (VN (V_Result))));
             N := Make_Subprogram_Call
               (RE (RE_Set_Result),
@@ -353,6 +369,8 @@ package body Backend.BE_Ada.Skels is
             Append_Node_To_List (N, Statements);
          end if;
 
+         N := Make_Return_Statement (No_Node);
+         Append_Node_To_List (N, Statements);
          declare
             Operation_Name   : Name_Id := BEN.Name (Defining_Identifier (S));
          begin

@@ -921,6 +921,8 @@ package body Backend.BE_Ada.Stubs is
       R               : Name_Id;
       Operation_Name  : constant Name_Id
         := BEN.Name (Defining_Identifier (Subp_Spec));
+      FE              : constant Node_Id
+        := Corresponding_Entity (FE_Node (Subp_Spec));
 
    begin
       L := New_List (BEN.K_List_Id);
@@ -1007,7 +1009,19 @@ package body Backend.BE_Ada.Stubs is
 
       --  Operation_Name_U declaration
 
-      V := New_String_Value (R, False);
+      --  Add underscore to the operation name if the the subprogram is
+      --  an accessor funtion
+
+      if FEN.Kind (FE) = K_Simple_Declarator
+        or else
+        FEN.Kind (FE) = K_Complex_Declarator
+      then
+         V := New_String_Value
+           (Add_Prefix_To_Name ("_", Operation_Name), False);
+      else
+         V := New_String_Value (Operation_Name, False);
+      end if;
+
       Get_Name_String (Operation_Name);
       Add_Char_To_Name_Buffer ('_');
       Get_Name_String_And_Append (VN (V_Operation_Name));
