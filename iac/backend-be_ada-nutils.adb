@@ -3,13 +3,15 @@ with Locations; use Locations;
 --   with Debug; use Debug;
 with Backend.BE_Ada.Nodes; use Backend.BE_Ada.Nodes;
 with Namet; use Namet;
+with Backend.BE_Ada.Namet;
+
 
 
 package body Backend.BE_Ada.Nutils is
 
 
 
-
+   package BE_Namet renames Backend.BE_Ada.Namet;
 
 
    procedure Append_Node_To_List (E : Node_Id; L : List_Id) is
@@ -90,8 +92,6 @@ package body Backend.BE_Ada.Nutils is
 
 
    function Map_Id_Name_Idl2Ada (N : Name_Id) return Name_Id is
-      --   It's not implemented yet.
-
       Str : String := Get_Name_String (N);
       First : Integer := Str'First;
    begin
@@ -108,12 +108,12 @@ package body Backend.BE_Ada.Nutils is
          end if;
       end loop;
       if Str (Str'Last) = '_' then
-         Set_Str_To_Name_Buffer (Str (First .. Str'Last) & 'U');
+         BE_Namet.Set_Str_To_Name_Buffer (Str (First .. Str'Last) & 'U');
       else
-         Set_Str_To_Name_Buffer (Str (First .. Str'Last));
+         BE_Namet.Set_Str_To_Name_Buffer (Str (First .. Str'Last));
       end if;
 
-      return Name_Find;
+      return BE_Namet.Name_Find;
    end Map_Id_Name_Idl2Ada;
 
 end Backend.BE_Ada.Nutils;

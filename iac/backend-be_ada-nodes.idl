@@ -156,9 +156,13 @@ module Backend::BE_Ada::Nodes {
   /* Type nodes */
   /**************/
 
+  
   interface Type_Declaration : Definition {
     Node_Id     Type_Spec;
+    boolean     With_Null_Record; 
   };
+  
+  
 
 
   /***************/

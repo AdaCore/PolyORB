@@ -183,6 +183,7 @@ module Nodes {
   interface Interface_Body : List_Id {};
   interface Interface_Declaration : Scope_Definition {
     boolean     Is_Abstract;
+    boolean     Is_Local;
     List_Id     Interface_Spec;
     List_Id     Interface_Body;
   };
