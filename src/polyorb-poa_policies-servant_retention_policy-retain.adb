@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -119,6 +119,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       use PolyORB.Object_Maps.User;
       use PolyORB.POA_Policies.Id_Assignment_Policy;
       use PolyORB.POA_Policies.Id_Uniqueness_Policy;
+      use type PolyORB.Servants.Servant_Access;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access :=
         PolyORB.POA.Obj_Adapter_Access (OA);
@@ -193,8 +194,15 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
          else
             pragma Debug (O ("The entry is not null"));
 
-            The_Entry.Servant := P_Servant;
+            if The_Entry.Servant /= null then
+               Throw (Error,
+                      ObjectAlreadyActive_E,
+                      Null_Members'(Null_Member));
+               Leave (POA.Map_Lock);
+               return;
+            end if;
 
+            The_Entry.Servant := P_Servant;
          end if;
       end;
 
