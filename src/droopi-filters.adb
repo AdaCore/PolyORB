@@ -20,9 +20,8 @@ package body Droopi.Filters is
    begin
       pragma Assert (FChain /= null);
 
-      Create (Fact   => FChain.This,
-              Lower  => Lower,
-              Upper  => Lower.Upper);
+      Create (Fact => FChain.This,
+              Filt => Lower.Upper);
       Lower.Upper.Lower := Lower;
       --  Instanciate the upper layer and link.
 

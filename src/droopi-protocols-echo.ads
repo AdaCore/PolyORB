@@ -14,7 +14,6 @@ package Droopi.Protocols.Echo is
 
    procedure Create
      (Proto   : access Echo_Protocol;
-      Lower   : Filter_Access;
       Session : out Filter_Access);
 
    type Echo_Session is new Session with private;
@@ -35,6 +34,7 @@ package Droopi.Protocols.Echo is
 private
 
    type Echo_Protocol is new Protocol with null record;
+
    type Echo_Session is new Session with record
       Buffer : Buffers.Buffer_Access;
    end record;

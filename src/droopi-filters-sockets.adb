@@ -16,6 +16,9 @@ package body Droopi.Filters.Sockets is
 
    procedure Create (Sock : in out Active_Socket) is
    begin
+      pragma Assert (Sock.Channel = null);
+      --  Must not create a filter for a socket that already has one.
+
       Sock.Channel := new Socket_Filter;
       Socket_Filter (Sock.Channel.all).Sock := Sock;
    end Create;
@@ -41,8 +44,6 @@ package body Droopi.Filters.Sockets is
             if SF.In_Buf = null then
                O ("Unexpected data received on fd" & Image (SF.Sock.Socket));
 
-               Handle_SDU (SF.Upper, SDU'(Kind => Disconnect_Indication));
-
                raise Connection_Closed;
                --  Notify the ORB that the socket was disconnected.
             end if;
@@ -55,8 +56,6 @@ package body Droopi.Filters.Sockets is
 
                if Data_Received = 0 then
                   O ("Connection closed on fd " & Image (SF.Sock.Socket));
-
-                  Handle_SDU (SF.Upper, SDU'(Kind => Disconnect_Indication));
 
                   raise Connection_Closed;
                   --  Notify the ORB that the socket was disconnected.

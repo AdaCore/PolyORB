@@ -23,7 +23,6 @@ package body Droopi.Protocols.Echo is
 
    procedure Create
      (Proto   : access Echo_Protocol;
-      Lower   : Filter_Access;
       Session : out Filter_Access)
    is
    begin

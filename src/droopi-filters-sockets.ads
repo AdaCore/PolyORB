@@ -8,13 +8,10 @@ package Droopi.Filters.Sockets is
 
    pragma Elaborate_Body;
 
-   type Socket_Filter is new Filter with private;
-
    procedure Create (Sock : in out Active_Socket);
-
-   procedure Handle_SDU
-     (SF : access Socket_Filter;
-      S  :  SDU);
+   --  Create a Socket_Filter associated with Sock.
+   --  On output, Sock.Channel is set to the newly-created
+   --  filter.
 
    Connection_Closed : exception;
    --  Raised by Handle_SDU when a disconnect is detected.
@@ -27,6 +24,10 @@ private
       In_Buf : Buffer_Access;
       Max : Stream_Element_Count;
    end record;
+
+   procedure Handle_SDU
+     (SF : access Socket_Filter;
+      S  :  SDU);
 
 end Droopi.Filters.Sockets;
 

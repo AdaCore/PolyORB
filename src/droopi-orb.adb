@@ -11,7 +11,6 @@ package body Droopi.ORB is
    use Droopi.Filters;
    use Droopi.Jobs;
    use Droopi.Log;
-   --  use Droopi.Protocols;
    use Droopi.Requests;
    use Droopi.Sockets;
    use Droopi.Soft_Links;
@@ -136,10 +135,21 @@ package body Droopi.ORB is
             begin
                Filters.Handle_SDU (AS.Channel, SDU'(Kind => Data_Indication));
             exception
-               when Filters.Sockets.Connection_Closed =>
+               when E : others =>
+
+                  pragma Debug (O ("Handle_Event: Got "
+                                   & Ada.Exceptions.Exception_Information (E)));
+
+                  begin
+                     Close_Socket (AS.Socket);
+                     --  Make sure the socket is closed...
+                  exception
+                     when others =>
+                        null;
+                        --  Ignoring errors.
+                  end;
+
                   Result := Connection_Closed;
-               when others =>
-                  raise;
             end;
 
          when Invalid_Sk =>

@@ -23,8 +23,8 @@ package Droopi.Protocols is
 
    procedure Create
      (Proto   : access Protocol;
-      Lower   : Filter_Access;
-      Session : out Filter_Access) is abstract;
+      Session : out Filter_Access)
+      is abstract;
    --  Create a Session for protocol Proto using filter Lower.
 
    procedure Destroy_Session (S : in out Session_Access);

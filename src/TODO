@@ -11,6 +11,7 @@ Items still requiring attention
   (modifications to Droopi.Log).
 * Droopi.Buffers: remove mentions of CDR.
 * When a connection is closed, release all associated resources.
+* An object adapter.
 * A single-task client configuration.
 * A multi-tasking server configuration.
 * A multi-tasking client configuration.
@@ -26,10 +27,6 @@ Items still requiring attention
   (eg SysV IPC).
   A provision for polling multiple sources of asynchronous
   events.
-
-* A filter to gather a message of a given size from lower
-  layers before signalling to upper layers (as did the old
-  Channel type).
 
 Items processed
 ---------------
@@ -48,3 +45,6 @@ Items processed
   Jobs should be created for each event, which will be
   actually processed by ORB tasks (2770).
 
+* A filter to gather a message of a given size from lower
+  layers before signalling to upper layers (as did the old
+  Channel type) (2830).

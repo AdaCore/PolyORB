@@ -9,6 +9,8 @@ with Droopi.Servers;
 
 package Droopi.Filters is
 
+   pragma Elaborate_Body;
+
    -------------------------------------------------
    -- A Filter is a protocol entity that forwards --
    -- data units from a lower layer to an upper   --
@@ -85,9 +87,9 @@ package Droopi.Filters is
    type Factory_Access is access all Factory'Class;
 
    procedure Create
-     (Fact    : access Factory;
-      Lower   : Filter_Access;
-      Upper   : out Filter_Access) is abstract;
+     (Fact : access Factory;
+      Filt : out Filter_Access)
+      is abstract;
 
    type Factory_Chain;
    type Factory_Chain_Access is access all Factory_Chain;
