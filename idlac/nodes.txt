@@ -12,229 +12,224 @@
 --    if one wants to use the Node_Access.Manip package.
 --
 --    Accessors will have the name Field and Set_Field.
---
---  START
---
---  Root
---    Kind : Node_Kind
---    Original_Node : Node_Id
---    Loc : Location
---
---  Named
---    Definition : Identifier_Definition_Acc
---
---  Scope <-- Named
---    Identifier_List : Identifier_Definition_List
---    Identifier_Table : Storage
---
---  Forward <-- Scope
---    Unimplemented_Forwards : Node_List
---
---  Imports <-- Scope
---    Imported_Table : Storage
---
---  Repository <-- Forward
---    Contents : Node_List
---
---  Module <-- Forward
---    Contents : Node_List
---
---  Interface <-- Imports
---    Parents : Node_List
---    Contents : Node_List
---    Forward : Node_Id
---    Abst : Boolean
---
---  Forward_Interface <-- Named
---    Forward : Node_Id
---    Abst : Boolean
---
---  ValueType <-- Imports
---    Parents : Node_List
---    Contents : Node_List
---    Supports : Node_List
---    Forward : Node_Id
---    Abst : Boolean
---    Custom : Boolean
---    Truncatable : Boolean
---
---  Forward_ValueType <-- Named
---    Forward : Node_Id
---    Abst : Boolean
---
---  Boxed_ValueType <-- Named
---    Boxed_Type : Node_Id
---
---  Declarator <-- Named
---    Array_Bounds : Node_List
---    Parent : Node_Id
---
---  State_Member
---    State_Type : Node_Id
---    State_Declarators : Node_List
---    Is_Public : Boolean
---
---  Initializer <-- Scope
---    Param_Decls : Node_List
---
---  Scoped_Name
---    S_Type : Node_Id
---    Value : Node_Id
---
---  Operation <-- Scope
---    Is_Oneway : Boolean
---    Operation_Type : Node_Id
---    Parameters : Node_List
---    Raises : Node_List
---    Contexts : Node_List
---
---  Attribute <-- Named
---    Is_Readonly : Boolean
---    A_Type : Node_Id
---    Declarators : Node_List
---
---  Void
---
---  Float
---
---  Double
---
---  Long_Double
---
---  Short
---
---  Long
---
---  Long_Long
---
---  Unsigned_Short
---
---  Unsigned_Long
---
---  Unsigned_Long_Long
---
---  Char
---
---  Wide_Char
---
---  Boolean
---
---  Octet
---
---  Any
---
---  Object
---
---  Param
---    Mode : Param_Mode
---    Param_Type : Node_Id
---    Declarator : Node_Id
---
---  Exception <-- Scope
---    Members : Node_List
---
---  Member
---    M_Type : Node_Id
---    Decl : Node_List
---
---  Native
---    Declarator : Node_Id
---
---  Union <-- Scope
---    Switch_Type : Node_Id
---    Cases : Node_List
---
---  Case
---    Labels : Node_List
---    Case_Type : Node_Id
---    Case_Decl : Node_Id
---
---  Struct <-- Scope
---    Members : Node_List
---
---  Enum <-- Named
---    Enumerators : Node_List
---
---  Enumerator <-- Named
---
---  Type_Declarator
---    T_Type : Node_Id
---    Declarators : Node_List
---
---  Expr
---    Expr_Value : Idl_Value
---    Expr_Type : Const_Type_Ptr
---
---  Binary_Expr <-- Expr
---    Left : Node_Id
---    Right : Node_Id
---
---  Unary_Expr <-- Expr
---    Operand : Node_Id
---
---  Primary_Expr <-- Expr
---    Operand : Node_Id
---
---  Or_Expr <-- Binary_Expr
---
---  Xor_Expr <-- Binary_Expr
---
---  And_Expr <-- Binary_Expr
---
---  Shl_Expr <-- Binary_Expr
---
---  Shr_Expr <-- Binary_Expr
---
---  Add_Expr <-- Binary_Expr
---
---  Sub_Expr <-- Binary_Expr
---
---  Mul_Expr <-- Binary_Expr
---
---  Div_Expr <-- Binary_Expr
---
---  Mod_Expr <-- Binary_Expr
---
---  Neg_Expr <-- Unary_Expr
---
---  Id_Expr <-- Unary_Expr
---
---  Not_Expr <-- Unary_Expr
---
---  Literal
---
---  Lit_Boolean <-- Literal
---    Bool_Value : Boolean
---
---  Lit_String <-- Literal
---    String_Value : String_Cacc
---
---  Const_Dcl <-- Named
---    Constant_Type : Node_Id
---    Expression : Node_Id
---
---  Sequence
---    Sequence_Type : Node_Id
---    Bound : Node_Id
---
---  String
---    Bound : Node_Id
---
---  Wide_String
---    Bound : Node_Id
---
---  Fixed
---    Digits_Nb : Node_Id
---    Scale : Node_Id
---
---  ValueBase
---
---  Ben_Node_List
---    Contents : Node_List
---
---  Ben_Idl_File <-- Named
---    Contents : Node_List
---
---  END
---
+
+START
+
+Root
+  Kind : Node_Kind
+  Original_Node : Node_Id
+  Loc : Location
+
+Named
+  Definition : Identifier_Definition_Acc
+
+Scope <-- Named
+  Identifier_List : Identifier_Definition_List
+  Identifier_Table : Storage
+
+Forward <-- Scope
+  Unimplemented_Forwards : Node_List
+
+Imports <-- Scope
+  Imported_Table : Storage
+
+Repository <-- Forward
+  Contents : Node_List
+
+Module <-- Forward
+  Contents : Node_List
+
+Interface <-- Imports
+  Parents : Node_List
+  --  The ancestors of this interface.
+  Contents : Node_List
+  Forward : Node_Id
+  Abst : Boolean
+
+Forward_Interface <-- Named
+  Forward : Node_Id
+  Abst : Boolean
+
+ValueType <-- Imports
+  Parents : Node_List
+  Contents : Node_List
+  Supports : Node_List
+  Forward : Node_Id
+  Abst : Boolean
+  Custom : Boolean
+  Truncatable : Boolean
+
+Forward_ValueType <-- Named
+  Forward : Node_Id
+  Abst : Boolean
+
+Boxed_ValueType <-- Named
+  Boxed_Type : Node_Id
+
+Declarator <-- Named
+  Array_Bounds : Node_List
+  Parent : Node_Id
+
+State_Member
+  State_Type : Node_Id
+  State_Declarators : Node_List
+  Is_Public : Boolean
+
+Initializer <-- Scope
+  Param_Decls : Node_List
+
+Scoped_Name
+  S_Type : Node_Id
+  Value : Node_Id
+
+Operation <-- Scope
+  Is_Oneway : Boolean
+  Operation_Type : Node_Id
+  Parameters : Node_List
+  Raises : Node_List
+  Contexts : Node_List
+
+Attribute
+  Is_Readonly : Boolean
+  A_Type : Node_Id
+  Declarators : Node_List
+
+Void
+
+Float
+
+Double
+
+Long_Double
+
+Short
+
+Long
+
+Long_Long
+
+Unsigned_Short
+
+Unsigned_Long
+
+Unsigned_Long_Long
+
+Char
+
+Wide_Char
+
+Boolean
+
+Octet
+
+Any
+
+Object
+
+Param
+  Mode : Param_Mode
+  Param_Type : Node_Id
+  Declarator : Node_Id
+
+Exception <-- Scope
+  Members : Node_List
+
+Member
+  M_Type : Node_Id
+  Decl : Node_List
+
+Native
+  Declarator : Node_Id
+
+Union <-- Scope
+  Switch_Type : Node_Id
+  Cases : Node_List
+
+Case
+  Labels : Node_List
+  Case_Type : Node_Id
+  Case_Decl : Node_Id
+
+Struct <-- Scope
+  Members : Node_List
+
+Enum <-- Named
+  Enumerators : Node_List
+
+Enumerator <-- Named
+
+Type_Declarator
+  T_Type : Node_Id
+  Declarators : Node_List
+
+Expr
+  Expr_Value : Idl_Value
+  Expr_Type : Const_Type_Ptr
+
+Binary_Expr <-- Expr
+  Left : Node_Id
+  Right : Node_Id
+
+Unary_Expr <-- Expr
+  Operand : Node_Id
+
+Primary_Expr <-- Expr
+  Operand : Node_Id
+
+Or_Expr <-- Binary_Expr
+
+Xor_Expr <-- Binary_Expr
+
+And_Expr <-- Binary_Expr
+
+Shl_Expr <-- Binary_Expr
+
+Shr_Expr <-- Binary_Expr
+
+Add_Expr <-- Binary_Expr
+
+Sub_Expr <-- Binary_Expr
+
+Mul_Expr <-- Binary_Expr
+
+Div_Expr <-- Binary_Expr
+
+Mod_Expr <-- Binary_Expr
+
+Neg_Expr <-- Unary_Expr
+
+Id_Expr <-- Unary_Expr
+
+Not_Expr <-- Unary_Expr
+
+Literal
+
+Lit_Boolean <-- Literal
+  Bool_Value : Boolean
+
+Lit_String <-- Literal
+  String_Value : String_Cacc
+
+Const_Dcl <-- Named
+  Constant_Type : Node_Id
+  Expression : Node_Id
+
+Sequence
+  Sequence_Type : Node_Id
+  Bound : Node_Id
+
+String
+  Bound : Node_Id
+
+Wide_String
+  Bound : Node_Id
+
+Fixed
+  Digits_Nb : Node_Id
+  Scale : Node_Id
+
+ValueBase
+
+END
+
 

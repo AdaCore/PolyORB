@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 #
 
-import string, sys
+import string, sys, re
 
 class Node:
 
@@ -25,7 +25,7 @@ class Node:
         self.fields.append ((name, type))
 
 def get_words (l):
-    return string.split (l [2:-1])
+    return string.split (l [0:-1])
 
 def get_fields (n):
     if n.parent: return get_fields (Node.nodes [n.parent]) + n.fields
@@ -49,6 +49,8 @@ started = 0
 
 input = open ("nodes.txt", "r").readlines()
 for i in input:
+    if re.match ("^\s*--", i):
+        continue
     words = get_words (i)
     if not words: continue
     if not started:
