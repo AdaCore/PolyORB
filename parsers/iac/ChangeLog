@@ -1,3 +1,9 @@
+2004-08-13  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* mknodes.adb: Add an optimization flag which allows to remove the
+	tree output. The optimized files are half the size of the normal
+	ones.
+
 2004-08-13    Saber Souli <souli@enst.fr>
 
 	* backend-be_ada.ads: Generate Implementation package by default. Because skels body use implementations specs.   

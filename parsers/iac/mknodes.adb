@@ -12,7 +12,8 @@ with Types;     use Types;
 
 procedure Mknodes is
 
-   Debug : Boolean := False;
+   Debug     : Boolean := False;
+   Optimized : Boolean := False;
 
    function GNS (N : Name_Id) return String renames Get_Name_String;
 
@@ -1046,86 +1047,93 @@ procedure Mknodes is
       W_Subprogram_Definition
         (1, W ("Node"), 'N', "Node_Id");
       W_Indentation (2);
-      Write_Line ("case Kind (N) is");
-      Interface := First_Interface;
-      while Interface /= No_Node loop
-         if Type_Spec (Interface) /= No_Node then
-            W_Indentation (3);
-            Write_Str  ("when K_");
-            Write_Name (Identifier (Interface));
-            Write_Line (" =>");
-            Base_Type := Interface;
-            while Type_Spec (Base_Type) /= No_Node loop
-               Base_Type := Type_Spec (Base_Type);
-            end loop;
-            W_Subprogram_Call
-              (4, W (GNS (Identifier (Interface))),
-               GNS (Identifier (Base_Type)) & " (N)");
-         end if;
-         Interface := Next_Entity (Interface);
-      end loop;
-      W_Indentation (3);
-      Write_Line ("when others =>");
-      W_Indentation (4);
-      Write_Line ("null;");
-      W_Indentation (2);
-      Write_Line ("end case;");
+      if Optimized then
+         Write_Line ("null;");
+
+      else
+         Write_Line ("case Kind (N) is");
+         Interface := First_Interface;
+         while Interface /= No_Node loop
+            if Type_Spec (Interface) /= No_Node then
+               W_Indentation (3);
+               Write_Str  ("when K_");
+               Write_Name (Identifier (Interface));
+               Write_Line (" =>");
+               Base_Type := Interface;
+               while Type_Spec (Base_Type) /= No_Node loop
+                  Base_Type := Type_Spec (Base_Type);
+               end loop;
+               W_Subprogram_Call
+                 (4, W (GNS (Identifier (Interface))),
+                  GNS (Identifier (Base_Type)) & " (N)");
+            end if;
+            Interface := Next_Entity (Interface);
+         end loop;
+         W_Indentation (3);
+         Write_Line ("when others =>");
+         W_Indentation (4);
+         Write_Line ("null;");
+         W_Indentation (2);
+         Write_Line ("end case;");
+      end if;
       W_Subprogram_Definition_End (1, W ("Node"));
       Write_Eol;
 
-      Interface := First_Interface;
-      while Interface /= No_Node loop
-         if Type_Spec (Interface) /= No_Node then
-            Base_Type := Interface;
-            while Type_Spec (Base_Type) /= No_Node loop
-               Base_Type := Type_Spec (Base_Type);
-            end loop;
+      if not Optimized then
+         Interface := First_Interface;
+         while Interface /= No_Node loop
+            if Type_Spec (Interface) /= No_Node then
+               Base_Type := Interface;
+               while Type_Spec (Base_Type) /= No_Node loop
+                  Base_Type := Type_Spec (Base_Type);
+               end loop;
 
-            W_Subprogram_Definition
-              (1, W (GNS (Identifier (Interface))),
-               'N', GNS (Identifier (Base_Type)));
+               W_Subprogram_Definition
+                 (1, W (GNS (Identifier (Interface))),
+                  'N', GNS (Identifier (Base_Type)));
 
-            W_Subprogram_Call
-              (2, W ("Node_Header"), "Node_Id (N)");
+               W_Subprogram_Call
+                 (2, W ("Node_Header"), "Node_Id (N)");
 
 
-            Attribute := First_Attribute;
-            while Attribute /= No_Node loop
-               Set_Declaration (Attribute, Missing);
-               Attribute := Next_Entity (Attribute);
-            end loop;
+               Attribute := First_Attribute;
+               while Attribute /= No_Node loop
+                  Set_Declaration (Attribute, Missing);
+                  Attribute := Next_Entity (Attribute);
+               end loop;
 
-            Attribute := First_Attribute;
-            while Attribute /= No_Node loop
-               if Declaration (Attribute) = Missing
-                 and then Is_Attribute_In_Interface (Attribute, Interface)
-               then
-                  if Kind (Type_Spec (Attribute)) =
-                     K_Interface_Declaration
+               Attribute := First_Attribute;
+               while Attribute /= No_Node loop
+                  if Declaration (Attribute) = Missing
+                    and then Is_Attribute_In_Interface (Attribute, Interface)
                   then
-                     W_Subprogram_Call
-                       (2, W ("Node_Attribute"),
-                        Quote (GNS (Identifier (Attribute))),
-                        Quote (GNS (Identifier (Type_Spec (Attribute)))),
-                        "Image (" & GNS (Identifier (Attribute)) & " (N))",
-                        "Int (" & GNS (Identifier (Attribute)) & " (N))");
-                  else
-                     W_Subprogram_Call
-                       (2, W ("Node_Attribute"),
-                        Quote (GNS (Identifier (Attribute))),
-                        Quote (GNS (Identifier (Type_Spec (Attribute)))),
-                        "Image (" & GNS (Identifier (Attribute)) & " (N))");
+                     if Kind (Type_Spec (Attribute)) =
+                       K_Interface_Declaration
+                     then
+                        W_Subprogram_Call
+                          (2, W ("Node_Attribute"),
+                           Quote (GNS (Identifier (Attribute))),
+                           Quote (GNS (Identifier (Type_Spec (Attribute)))),
+                           "Image (" & GNS (Identifier (Attribute)) & " (N))",
+                           "Int (" & GNS (Identifier (Attribute)) & " (N))");
+                     else
+                        W_Subprogram_Call
+                          (2, W ("Node_Attribute"),
+                           Quote (GNS (Identifier (Attribute))),
+                           Quote (GNS (Identifier (Type_Spec (Attribute)))),
+                           "Image (" & GNS (Identifier (Attribute)) & " (N))");
+                     end if;
+                     Set_Declaration (Attribute, Present);
                   end if;
-                  Set_Declaration (Attribute, Present);
-               end if;
-               Attribute := Next_Entity (Attribute);
-            end loop;
-            W_Subprogram_Definition_End (1, W (GNS (Identifier (Interface))));
-            Write_Eol;
-         end if;
-         Interface := Next_Entity (Interface);
-      end loop;
-      Write_Eol;
+                  Attribute := Next_Entity (Attribute);
+               end loop;
+               W_Subprogram_Definition_End
+                 (1, W (GNS (Identifier (Interface))));
+               Write_Eol;
+            end if;
+            Interface := Next_Entity (Interface);
+         end loop;
+      end if;
 
       Write_Str  ("end ");
       Write_Name (Module_Name);
@@ -1208,11 +1216,13 @@ procedure Mknodes is
             --  Output signature of interface output when this is not
             --  a basic interface.
 
-            if Tree'Length > 1 then
-               W_Subprogram_Declaration
-                 (1, W (GNS (Identifier (Interface))),
-                  'N', GNS (Identifier (Tree (Tree'First))));
-               Write_Eol;
+            if not Optimized then
+               if Tree'Length > 1 then
+                  W_Subprogram_Declaration
+                    (1, W (GNS (Identifier (Interface))),
+                     'N', GNS (Identifier (Tree (Tree'First))));
+                  Write_Eol;
+               end if;
             end if;
          end;
          Interface := Next_Entity (Interface);
@@ -1524,9 +1534,12 @@ begin
    Namet.Initialize;
 
    loop
-      case Getopt ("d") is
+      case Getopt ("d O") is
          when 'd' =>
             Debug := True;
+
+         when 'O' =>
+            Optimized := True;
 
          when ASCII.NUL =>
             exit;
