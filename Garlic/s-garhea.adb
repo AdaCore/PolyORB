@@ -131,9 +131,16 @@ package body System.Garlic.Heart is
         (Partition : in Partition_ID;
          Data      : in Partition_Data);
       function Get_Data (Partition : Partition_ID) return Partition_Data;
-      entry Wait_For_Data (Partition_ID) (Data : out Partition_Data);
+      entry Wait_For_Data (Partition : in  Partition_ID;
+                           Data      : out Partition_Data);
+      
    private
       Map : Partition_Data_Array;
+      New_Data : Boolean := False;  -- Local barrier
+      
+      entry Queue (Partition : in  Partition_ID;
+                   Data      : out Partition_Data);
+      
    end Partition_Map_Type;
    --  Data available for a partition. When the data is not available for
    --  a given partition, Wait_For_Data will block, unless the caller *has*
@@ -314,7 +321,7 @@ package body System.Garlic.Heart is
    function Get_Boot_Server return String is
       Data : Partition_Data;
    begin
-      Partition_Map.Wait_For_Data (Server_Partition_ID) (Data);
+      Partition_Map.Wait_For_Data (Server_Partition_ID, Data);
       return Physical_Location.To_String
         (Data.Location);
    end Get_Boot_Server;
@@ -388,7 +395,7 @@ package body System.Garlic.Heart is
          return Partition_Map_Cache (Partition) .Location;
       end if;
 
-      Partition_Map.Wait_For_Data (Partition) (Data);
+      Partition_Map.Wait_For_Data (Partition, Data);
       if Data.Queried then
 
          --  We have to query the server for the location.
@@ -403,7 +410,7 @@ package body System.Garlic.Heart is
             Send (Server_Partition_ID, Query_Location, Params'Access);
          end;
 
-         Partition_Map.Wait_For_Data (Partition) (Data);
+         Partition_Map.Wait_For_Data (Partition, Data);
 
          pragma Debug
            (D (D_Table,
@@ -577,10 +584,8 @@ package body System.Garlic.Heart is
 
       declare
          Filtered_Data : Ada.Streams.Stream_Element_Array
-           := Filter_Incoming (Partition,
-                               Operation,
-                               To_Stream_Element_Array (Params'Access));
-         Filtered_Params : aliased Params_Stream_Type (Filtered_Data'Length);
+           := Filter_Incoming (Partition, Operation, Data);
+         Filtered_Params : aliased Params_Stream_Type (0);
       begin
          To_Params_Stream_Type (Filtered_Data, Filtered_Params'Access);
          if Operation in Internal_Opcode then
@@ -750,24 +755,43 @@ package body System.Garlic.Heart is
          Partition_Map_Cache (Partition) := Data;
          Protocols_Cache (Partition) :=
            Physical_Location.Get_Protocol (Data.Location);
+         if Queue'Count > 0 then
+            New_Data := True;
+         end if;
       end Set_Data;
 
       -------------------
       -- Wait_For_Data --
       -------------------
 
-      entry Wait_For_Data (for Partition in Partition_ID)
-        (Data : out Partition_Data)
-      when Map (Partition).Known or else not Map (Partition).Queried is
+      entry Wait_For_Data
+         (Partition : in Partition_ID;
+          Data      : out Partition_Data)
+         when not New_Data is
       begin
          if Map (Partition).Known then
             Data := Map (Partition);
+         elsif Map (Partition).Queried then
+            requeue Queue with abort;
          else
             Map (Partition).Queried := True;
             Data := Map (Partition);
          end if;
       end Wait_For_Data;
 
+      --  Local entries implementing wait queues below.
+      
+      entry Queue
+         (Partition : in Partition_ID;
+          Data      : out Partition_Data)
+         when New_Data is
+      begin
+         if Queue'Count = 0 then
+            New_Data := False;
+         end if;
+         requeue Wait_For_Data with abort;
+      end Queue;
+      
    end Partition_Map_Type;
 
    -------------
@@ -863,8 +887,8 @@ package body System.Garlic.Heart is
    ----------
 
    procedure Send
-     (Partition : in Partition_ID;
-      Operation : in Opcode;
+     (Partition : in     Partition_ID;
+      Operation : in     Opcode;
       Params    : access System.RPC.Params_Stream_Type) is
       Protocol  : constant Protocols.Protocol_Access :=
         Get_Protocol (Partition);
@@ -877,9 +901,7 @@ package body System.Garlic.Heart is
 
       declare
          Filtered_Data : Ada.Streams.Stream_Element_Array
-           := Filter_Outgoing (Partition,
-                               Operation,
-                               To_Stream_Element_Array (Params));
+           := Filter_Outgoing (Partition, Operation, Params);
          Header : constant Ada.Streams.Stream_Element_Array
            := To_Stream_Element_Array (Op_Params'Access);
          Length : constant Ada.Streams.Stream_Element_Offset
@@ -895,7 +917,7 @@ package body System.Garlic.Heart is
          --  error message in the call to 'Protocols.Send' below.
 
       begin
-         --  Stuff the opcode in front of it is unfiltered.
+         --  Stuff the opcode (unfiltered) in front of the data.
          Packet
            (Packet'First + Protocols.Unused_Space ..
             Packet'First + Protocols.Unused_Space + Header'Length - 1)

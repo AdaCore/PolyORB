@@ -1,3 +1,10 @@
+Fri Feb 21 17:35:34 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
+
+	* s-gafizi.adb, s-gafizi.ads: Add zip filtering.
+
+	* s-garhea.adb, s-garfil.adb, s-garfil.ads: Optimization of buffer
+ 	copies.
+
 Thu Feb 20 14:45:29 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
 	* s-garfil.ads, s-garfil.adb, s-gafino.ads, s-gafino.adb: Add
