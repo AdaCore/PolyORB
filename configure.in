@@ -281,15 +281,29 @@ done
 AC_MSG_RESULT([${FILTERLIST}])
 AC_SUBST_FILE(FILTERFILE)
 #
+# Force zip lib installation when zip filter included
+#
+AC_ARG_ENABLE(glade-zlib,
+[  --enable-glade-zlib     Force to install glade zip library],
+[INSTALLZIPLIB="yes"],
+[INSTALLZIPLIB="no"])
+#
 # Libraries used for filters
 #
 case ${FILTERLIST} in
   *zip*)
-    AC_CHECK_LIB(z,zlibVersion)
-    if test $ac_cv_lib_z_zlibVersion = no; then
+    if test $INSTALLZIPLIB = no; then
+      AC_CHECK_LIB(z,zlibVersion)
+      if test $ac_cv_lib_z_zlibVersion = no; then
+        INSTALLZIPLIB=yes
+      fi
+    fi
+    AC_MSG_CHECKING([whether zip lib installation is needed])
+    if test ${INSTALLZIPLIB} = yes; then
       ZIPLIBOBJSNEEDED='${ZIPLIBOBJS}'
       ZIPLIBINSTALLNEEDED='${ZIPLIBINSTALL}'
     fi
+    AC_MSG_RESULT([${INSTALLZIPLIB}])
     AC_SUBST(ZIPLIBOBJSNEEDED)
     AC_SUBST(ZIPLIBINSTALLNEEDED)
     ;;

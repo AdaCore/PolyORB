@@ -1,3 +1,10 @@
+1999-09-17  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in, configure: Add a flag to force zlib installation.
+  	First, we want to test this installation when the zip library is
+ 	already present on the system (skip this optimization). Second,
+ 	the system zip lib may be inconsistent with the glade one.
+
 1999-09-07  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* MANIFEST: Remove s-garloc.adb, s-garloc.ads, s-gartyp.adb and
