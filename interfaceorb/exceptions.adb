@@ -20,7 +20,6 @@
 -----------------------------------------------------------------------
 
 with Ada.Unchecked_Conversion ;
-with Text_Io ; use Text_Io ;
 
 package body Exceptions is
 
@@ -46,8 +45,6 @@ package body Exceptions is
       C_Status := Status_To_Int (Member.Completed) ;
       -- ... and calls the C procedure
       C_Raise_C_UNKNOWN_Exception (C_Minor, C_Status) ;
---   exception
---      when E : others => Put_Line (Ada.Exceptions.Exception_Message(E)) ;
    end ;
 
 

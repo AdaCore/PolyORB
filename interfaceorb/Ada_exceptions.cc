@@ -30,8 +30,8 @@ void Raise_C_UNKNOWN_Exception (CORBA::ULong pd_minor,
 				CORBA::CompletionStatus pd_status)
 {
   CORBA::UNKNOWN *e = new CORBA::UNKNOWN (pd_minor, pd_status);
-  Raise_Ada_UNKNOWN_Exception (pd_minor, pd_status) ;
-  //  e->_raise ();
+  printf ("Je suis la\n");
+  e->_raise ();
 };
 
 /*
