@@ -51,3 +51,13 @@ When necessary, tag the code with
 Whenever possible, do not add new exceptions and exception handlers to
 PolyORB's neutral core and protocol personalities. Instead, use error
 handling mechanisms provided by PolyORB.Exceptions.
+
+Header box should be up to date whenever necessary:
+
+- Copyright date information is either 
+  - x where x is year of file's creation
+  - y - z where y is year of file's creation and z is year of last modification
+
+- Some packages require specific adjustements to take into account
+  references to specifications (e.g. CORBA related packages) or other
+  projects (e.g. AWS)
