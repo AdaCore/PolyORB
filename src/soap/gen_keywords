@@ -69,7 +69,7 @@ package body $pkg is
    function C_In_Word_Set (S : chars_ptr) return Keyword_Info_Access;
    pragma Import (C, C_In_Word_Set, "$matchfun");
    pragma Linker_Options ("$ofile");
-   
+
    function In_Word_Set (S : String) return $ent
    is
       Chars : aliased char_array := To_C (S);

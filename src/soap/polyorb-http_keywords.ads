@@ -4,14 +4,14 @@ package PolyORB.HTTP_Keywords is
 
    type Methods is (
       --  <ENUM>
-      OPTIONS,	--  >> "OPTIONS"
-      GET,	--  >> "GET"
-      HEAD,	--  >> "HEAD"
-      POST,	--  >> "HOST"
-      PUT,	--  >> "PUT"
-      DELETE,	--  >> "DELETE"
-      TRACE,	--  >> "TRACE"
-      CONNECT	--  >> "CONNECT"
+      OPTIONS,  --  >> "OPTIONS"
+      GET,      --  >> "GET"
+      HEAD,     --  >> "HEAD"
+      POST,     --  >> "HOST"
+      PUT,      --  >> "PUT"
+      DELETE,   --  >> "DELETE"
+      TRACE,    --  >> "TRACE"
+      CONNECT   --  >> "CONNECT"
       --  </ENUM>
    );
    pragma Convention (C, Methods);
