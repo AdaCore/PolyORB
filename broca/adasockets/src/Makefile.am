@@ -16,6 +16,8 @@ ADA_SOURCES = \
 	sockets-multicast.adb \
 	sockets-naming.ads \
 	sockets-naming.adb \
+	sockets-stream_io.ads \
+	sockets_stream_io.adb \
 	sockets-thin.ads \
 	sockets-utils.ads \
 	sockets-utils.adb \
@@ -27,6 +29,7 @@ ADA_OBJECTS = \
 	sockets-link.o \
 	sockets-multicast.o \
 	sockets-naming.o \
+	sockets-stream_io.o \
 	sockets-thin.o \
 	sockets-utils.o \
 	sockets.o

@@ -9,15 +9,21 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 VERSION=@VERSION@
 
-case $1 in
-    --version)
+CFLAGS="-I$libdir/adasockets -L$libdir/adasockets"
+LIBS="-L$prefix/lib -ladasockets"
+
+case "x$1" in
+    x--version)
 	echo AdaSockets $VERSION
 	;;
-    --cflags)
-	echo -I$libdir/adasockets -L$libdir/adasockets
+    x--cflags)
+	echo $CFLAGS
 	;;
-    --libs)
-	echo -L$prefix/lib -ladasockets
+    x--libs)
+	echo $LIBS
+	;;
+    x)
+	echo $CFLAGS -largs $LIBS
 	;;
     *)
 	echo 'Usage: adasockets-config [--version | --cflags | --libs]' >&2

@@ -118,8 +118,15 @@ package Sockets is
 
    procedure Receive (Socket : in Socket_FD'Class;
                       Data   : out Ada.Streams.Stream_Element_Array);
-   --  Fill data from a socket. Raise Connection_Closed if the socket has
+   --  Get data from a socket. Raise Connection_Closed if the socket has
    --  been closed before the end of the array.
+
+   procedure Receive_Some
+     (Socket : in Socket_FD'Class;
+      Data   : out Ada.Streams.Stream_Element_Array;
+      Last   : out Ada.Streams.Stream_Element_Offset);
+   --  Get some data from a socket. The index of the last element will
+   --  be placed in Last.
 
    type Shutdown_Type is (Receive, Send, Both);
 
