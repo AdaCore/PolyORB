@@ -10,23 +10,25 @@ with Types;  use Types;
 
 package body Backend.BE_Ada.Generator is
 
-   procedure Generate_Package_Spec (E : Node_Id);
-   procedure Generate_Package_Body (E : Node_Id);
-   procedure Generate_Subprogram_Spec (E : Node_Id);
-   procedure Generate_Visible_Part (L : List_Id);
-   procedure Generate_Private_Part (L : List_Id);
-   procedure Generate_Parameter (E : Node_Id);
-   procedure Generate_Parameter_List (L : List_Id);
-   procedure Generate_Type_Extension (E : Node_Id);
    procedure Generate_Enumeration_Type (E : Node_Id);
    procedure Generate_Identifier (E : Node_Id);
    procedure Generate_Package (E : Node_Id);
+   procedure Generate_Package_Body (E : Node_Id);
+   procedure Generate_Package_Spec (E : Node_Id);
    procedure Generate_Package_With (L : List_Id);
+   procedure Generate_Parameter (E : Node_Id);
+   procedure Generate_Parameter_List (L : List_Id);
+   procedure Generate_Private_Part (L : List_Id);
    procedure Generate_Record_Type_Spec (E : Node_Id);
-   procedure Generate_Type_Declaration (E : Node_Id);
-   procedure Generate_Type_Spec (E : Node_Id);
    procedure Generate_Subprogram_Header (E : Node_Id);
+   procedure Generate_Subprogram_Spec (E : Node_Id);
+   procedure Generate_Type_Declaration (E : Node_Id);
+   procedure Generate_Type_Extension (E : Node_Id);
    procedure Generate_Type_Header  (E : Node_Id);
+   procedure Generate_Type_Spec (E : Node_Id);
+   procedure Generate_Visible_Part (L : List_Id);
+
+   procedure W_Small_Indent;
 
    --------------
    -- Generate --
@@ -35,6 +37,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate (E : List_Id) is
       N : Node_Id;
    begin
+      Set_Space_Increment (3);
       if E = No_List then
          return;
       end if;
@@ -73,8 +76,10 @@ package body Backend.BE_Ada.Generator is
       T := Type_Spec (E);
       if Present (T) then
          Write_Eol;
+         N_Space := N_Space - 1;
          Write_Indentation;
          Write_Str ("return ");
+         N_Space := N_Space + 1;
          Generate_Type_Spec (T);
       end if;
       Write_Line (";");
@@ -166,12 +171,21 @@ package body Backend.BE_Ada.Generator is
 
    procedure Generate_Type_Extension (E : Node_Id) is
       Ext : Node_Id;
+      Id : Node_Id;
    begin
       Write_Str ("new ");
       if Is_Abstract (E) then
          Write_Str ("abstract ");
       end if;
-      Generate_Identifier (Identifier (E));
+      Id := Identifier (E);
+      case Kind (Id) is
+         when K_Ada_Identifier =>
+            Generate_Identifier (Identifier (E));
+         when K_Float .. K_Octet =>
+            Write_Str (Image (Image (Base_Type (Identifier (E)))));
+         when others =>
+            null;
+      end case;
       Ext := Record_Extention_Part (E);
       if Present (Ext) then
          Write_Str (" with ");
@@ -186,7 +200,6 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Enumeration_Type (E : Node_Id) is
       D : Node_Id;
    begin
-      Write_Indentation;
       Write_Str ("(");
       D := First_Node (Enumerators (E));
       while Present (D) loop
@@ -194,6 +207,7 @@ package body Backend.BE_Ada.Generator is
          D := Next_Node (D);
          if D /= No_Node then
             Write_Str (",");
+            W_Eol;
             Write_Indentation;
          end if;
       end loop;
@@ -282,8 +296,11 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Type_Declaration (E : Node_Id) is
    begin
       Generate_Type_Header (Identifier (E));
+      Increment_Indentation;
+      W_Small_Indent;
       Generate_Type_Spec   (Type_Spec (E));
       Write_Line (";");
+      Decrement_Indentation;
    end Generate_Type_Declaration;
 
    ------------------------
@@ -338,7 +355,19 @@ package body Backend.BE_Ada.Generator is
       Write_Indentation;
       Write_Str  ("type ");
       Write_Name (Name (E));
-      Write_Str  (" is ");
+      Write_Str  (" is");
    end Generate_Type_Header;
+
+   --------------------
+   -- W_Small_Indent --
+   --------------------
+
+   procedure W_Small_Indent is
+   begin
+      W_Eol;
+      N_Space := N_Space - 1;
+      Write_Indentation;
+      N_Space := N_Space + 1;
+   end W_Small_Indent;
 
 end Backend.BE_Ada.Generator;

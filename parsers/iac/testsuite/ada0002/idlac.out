@@ -1,0 +1,1144 @@
+-------------------------------------------------
+--  This file has been generated automatically
+--  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--
+--  Do NOT hand-modify this file, as your
+--  changes will be lost when you re-run the
+--  IDL to Ada compiler.
+-------------------------------------------------
+pragma Style_Checks (Off);
+
+with CORBA;
+pragma Elaborate_All (CORBA);
+with CORBA.Object;
+
+package Inter2 is
+
+   type Ref is
+     new CORBA.Object.Ref with null record;
+
+   type New_Float is
+     new CORBA.Float;
+
+   New_Float_Repository_Id : constant Standard.String
+     := "IDL:Inter2/New_Float:1.0";
+
+   attr1_Repository_Id : constant Standard.String
+     := "IDL:Inter2/attr1:1.0";
+
+   function Get_attr1
+     (Self : in Ref)
+     return Inter2.New_Float;
+
+   procedure Set_attr1
+     (Self : in Ref;
+      To : in Inter2.New_Float);
+
+   function ConvertNew
+     (Self : in Ref;
+      N : in CORBA.Float)
+     return Inter2.New_Float;
+
+   ConvertNew_Repository_Id : constant Standard.String
+     := "IDL:Inter2/ConvertNew:1.0";
+
+   Repository_Id : constant Standard.String
+     := "IDL:Inter2:1.0";
+
+   function Is_A
+     (Self : Ref;
+      Logical_Type_Id : Standard.String)
+     return CORBA.Boolean;
+
+private
+
+   function Is_A
+     (Logical_Type_Id : Standard.String)
+     return CORBA.Boolean;
+
+end Inter2;
+-------------------------------------------------
+--  This file has been generated automatically
+--  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--
+--  Do NOT hand-modify this file, as your
+--  changes will be lost when you re-run the
+--  IDL to Ada compiler.
+-------------------------------------------------
+pragma Style_Checks (Off);
+
+with Inter2.Helper;
+with CORBA.Object;
+with PolyORB.Types;
+with PolyORB.Requests;
+with PolyORB.Any.NVList;
+with PolyORB.CORBA_P.Exceptions;
+with CORBA;
+ use CORBA;
+pragma Elaborate_All (CORBA);
+
+package body Inter2 is
+
+   function Get_attr1
+     (Self : Ref)
+     return Inter2.New_Float
+   is
+
+      Operation_Name_U : constant Standard.String
+        := "_get_attr1";
+      Self_Ref_U : CORBA.Object.Ref
+        := CORBA.Object.Ref (Self);
+
+      Request_U : PolyORB.Requests.Request_Access;
+      Arg_List_U : PolyORB.Any.NVList.Ref;
+      Result_U : PolyORB.Any.NamedValue;
+      Result_Name_U : CORBA.String := To_CORBA_String ("Result");
+   begin
+
+      if CORBA.Object.Is_Nil (Self_Ref_U) then
+         CORBA.Raise_Inv_Objref (Default_Sys_Member);
+      end if;
+
+      --  Create argument list
+      PolyORB.Any.NVList.Create
+        (Arg_List_U);
+      --  Set result type (maybe void)
+      Result_U
+        := (Name => PolyORB.Types.Identifier (Result_Name_U),
+            Argument => Get_Empty_Any
+        (Inter2.Helper.TC_New_Float),
+         Arg_Modes => 0);
+
+      PolyORB.Requests.Create_Request
+        (Target    => CORBA.Object.To_PolyORB_Ref
+         (CORBA.Object.Ref (Self)),
+         Operation => Operation_Name_U,
+         Arg_List  => Arg_List_U,
+         Result    => Result_U,
+         Req       => Request_U);
+
+      PolyORB.Requests.Invoke (Request_U);
+      if not Is_Empty (Request_U.Exception_Info) then
+         Result_U.Argument := Request_U.Exception_Info;
+         PolyORB.Requests.Destroy_Request
+           (Request_U);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Any
+           (Result_U.Argument);
+      end if;
+      PolyORB.Requests.Destroy_Request
+        (Request_U);
+
+      --  Request has been synchronously invoked.
+
+      --  Retrieve return value.
+      return Inter2.Helper.From_Any
+        (Result_U.Argument);
+   end Get_attr1;
+
+   procedure Set_attr1
+     (Self : Ref;
+      To : in Inter2.New_Float)
+   is
+      Arg_Name_U_To : PolyORB.Types.Identifier
+        := PolyORB.Types.To_PolyORB_String ("To");
+      Argument_U_To : CORBA.Any
+        := Inter2.Helper.To_Any
+        (To);
+
+      Operation_Name_U : constant Standard.String
+        := "_set_attr1";
+      Self_Ref_U : CORBA.Object.Ref
+        := CORBA.Object.Ref (Self);
+
+      Request_U : PolyORB.Requests.Request_Access;
+      Arg_List_U : PolyORB.Any.NVList.Ref;
+      Result_U : PolyORB.Any.NamedValue;
+      Result_Name_U : CORBA.String := To_CORBA_String ("Result");
+   begin
+
+      if CORBA.Object.Is_Nil (Self_Ref_U) then
+         CORBA.Raise_Inv_Objref (Default_Sys_Member);
+      end if;
+
+      --  Create argument list
+      PolyORB.Any.NVList.Create
+        (Arg_List_U);
+      PolyORB.Any.NVList.Add_Item
+        (Arg_List_U,
+         Arg_Name_U_To,
+         Argument_U_To,
+         PolyORB.Any.ARG_IN);
+      --  Set result type (maybe void)
+      Result_U
+        := (Name => PolyORB.Types.Identifier (Result_Name_U),
+            Argument => Get_Empty_Any
+        (CORBA.TC_Void),
+         Arg_Modes => 0);
+
+      PolyORB.Requests.Create_Request
+        (Target    => CORBA.Object.To_PolyORB_Ref
+         (CORBA.Object.Ref (Self)),
+         Operation => Operation_Name_U,
+         Arg_List  => Arg_List_U,
+         Result    => Result_U,
+         Req       => Request_U);
+
+      PolyORB.Requests.Invoke (Request_U);
+      if not Is_Empty (Request_U.Exception_Info) then
+         Result_U.Argument := Request_U.Exception_Info;
+         PolyORB.Requests.Destroy_Request
+           (Request_U);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Any
+           (Result_U.Argument);
+      end if;
+      PolyORB.Requests.Destroy_Request
+        (Request_U);
+
+      --  Request has been synchronously invoked.
+   end Set_attr1;
+
+   function ConvertNew
+     (Self : Ref;
+      N : in CORBA.Float)
+     return Inter2.New_Float
+   is
+      Arg_Name_U_N : PolyORB.Types.Identifier
+        := PolyORB.Types.To_PolyORB_String ("N");
+      Argument_U_N : CORBA.Any
+        := CORBA.To_Any
+        (N);
+
+      Operation_Name_U : constant Standard.String
+        := "ConvertNew";
+      Self_Ref_U : CORBA.Object.Ref
+        := CORBA.Object.Ref (Self);
+
+      Request_U : PolyORB.Requests.Request_Access;
+      Arg_List_U : PolyORB.Any.NVList.Ref;
+      Result_U : PolyORB.Any.NamedValue;
+      Result_Name_U : CORBA.String := To_CORBA_String ("Result");
+   begin
+
+      if CORBA.Object.Is_Nil (Self_Ref_U) then
+         CORBA.Raise_Inv_Objref (Default_Sys_Member);
+      end if;
+
+      --  Create argument list
+      PolyORB.Any.NVList.Create
+        (Arg_List_U);
+      PolyORB.Any.NVList.Add_Item
+        (Arg_List_U,
+         Arg_Name_U_N,
+         Argument_U_N,
+         PolyORB.Any.ARG_IN);
+      --  Set result type (maybe void)
+      Result_U
+        := (Name => PolyORB.Types.Identifier (Result_Name_U),
+            Argument => Get_Empty_Any
+        (Inter2.Helper.TC_New_Float),
+         Arg_Modes => 0);
+
+      PolyORB.Requests.Create_Request
+        (Target    => CORBA.Object.To_PolyORB_Ref
+         (CORBA.Object.Ref (Self)),
+         Operation => Operation_Name_U,
+         Arg_List  => Arg_List_U,
+         Result    => Result_U,
+         Req       => Request_U);
+
+      PolyORB.Requests.Invoke (Request_U);
+      if not Is_Empty (Request_U.Exception_Info) then
+         Result_U.Argument := Request_U.Exception_Info;
+         PolyORB.Requests.Destroy_Request
+           (Request_U);
+         PolyORB.CORBA_P.Exceptions.Raise_From_Any
+           (Result_U.Argument);
+      end if;
+      PolyORB.Requests.Destroy_Request
+        (Request_U);
+
+      --  Request has been synchronously invoked.
+
+      --  Retrieve return value.
+      return Inter2.Helper.From_Any
+        (Result_U.Argument);
+   end ConvertNew;
+
+   --  The visible Is_A object reference
+   --  operation (a dispatching operation
+   --  of all object reference types).
+
+   function Is_A
+     (Self : Ref;
+      Logical_Type_Id : Standard.String)
+     return CORBA.Boolean
+   is
+   begin
+      return False
+
+        or else Is_A (Logical_Type_Id)
+         --  Locally check class membership for this interface
+
+        or else CORBA.Object.Is_A
+                 (CORBA.Object.Ref (Self), Logical_Type_Id);
+         --  Fall back to a remote membership check (may involve
+         --  an actual request invocation on Self).
+
+   end Is_A;
+
+   --  The internal Is_A implementation for
+   --  this interface.
+
+   function Is_A
+     (Logical_Type_Id : Standard.String)
+     return CORBA.Boolean
+   is
+   begin
+      return CORBA.Is_Equivalent
+        (Logical_Type_Id,
+         Inter2.Repository_Id)
+        or else CORBA.Is_Equivalent
+          (Logical_Type_Id,
+           "IDL:omg.org/CORBA/Object:1.0")
+        or else False;
+
+   end Is_A;
+
+end Inter2;
+-------------------------------------------------
+--  This file has been generated automatically
+--  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--
+--  Do NOT hand-modify this file, as your
+--  changes will be lost when you re-run the
+--  IDL to Ada compiler.
+-------------------------------------------------
+pragma Style_Checks (Off);
+
+with CORBA;
+pragma Elaborate_All (CORBA);
+with CORBA.Object;
+with PolyORB.Any;
+pragma Elaborate_All (PolyORB.Any);
+pragma Warnings (Off, PolyORB.Any);
+
+package Inter2.Helper is
+
+   pragma Elaborate_Body;
+
+   function Unchecked_To_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return Inter2.Ref;
+   function To_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return Inter2.Ref;
+
+   TC_Inter2 : CORBA.TypeCode.Object
+     := PolyORB.Any.TypeCode.TC_Object;
+
+   function From_Any (Item : in CORBA.Any)
+      return Inter2.Ref;
+
+   function To_Any
+     (Item : in Inter2.Ref)
+     return CORBA.Any;
+
+   TC_New_Float : CORBA.TypeCode.Object := CORBA.TypeCode.TC_Alias;
+
+   function From_Any (Item : in CORBA.Any)
+      return Inter2.New_Float;
+
+   function To_Any
+     (Item : in Inter2.New_Float)
+     return CORBA.Any;
+
+end Inter2.Helper;
+-------------------------------------------------
+--  This file has been generated automatically
+--  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--
+--  Do NOT hand-modify this file, as your
+--  changes will be lost when you re-run the
+--  IDL to Ada compiler.
+-------------------------------------------------
+pragma Style_Checks (Off);
+
+with PolyORB.Utils.Strings;
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization);
+with CORBA;
+with CORBA.Object.Helper;
+with CORBA.Object;
+
+package body Inter2.Helper is
+
+   function Unchecked_To_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return Inter2.Ref
+   is
+      Result : Inter2.Ref;
+   begin
+      Set (Result,
+           CORBA.Object.Object_Of (The_Ref));
+      return Result;
+   end Unchecked_To_Ref;
+
+   function To_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return Inter2.Ref
+   is
+      use CORBA;
+   begin
+      if CORBA.Object.Is_Nil (The_Ref)
+        or else CORBA.Object.Is_A (The_Ref, Repository_Id) then
+         return Unchecked_To_Ref (The_Ref);
+      end if;
+      CORBA.Raise_Bad_Param (Default_Sys_Member);
+   end To_Ref;
+
+   function From_Any (Item : in CORBA.Any)
+      return Inter2.Ref is
+   begin
+      return To_Ref (CORBA.Object.Helper.From_Any (Item));
+   end From_Any;
+
+   function To_Any
+     (Item : in Inter2.Ref)
+     return CORBA.Any is
+      A : CORBA.Any := CORBA.Object.Helper.To_Any
+        (CORBA.Object.Ref (Item));
+   begin
+      CORBA.Set_Type (A, TC_Inter2);
+      return A;
+   end To_Any;
+
+   function From_Any (Item : in CORBA.Any)
+      return Inter2.New_Float is
+      Result : constant CORBA.Float := CORBA.From_Any (Item);
+   begin
+      return Inter2.New_Float (Result);
+   end From_Any;
+
+   function To_Any
+     (Item : in Inter2.New_Float)
+     return CORBA.Any is
+      Result : CORBA.Any := CORBA.To_Any (CORBA.Float (Item));
+   begin
+      CORBA.Set_Type (Result, TC_New_Float);
+      return Result;
+   end To_Any;
+   procedure Deferred_Initialization is
+   begin
+      null;
+   
+      declare
+         Name : CORBA.String := CORBA.To_CORBA_String ("Inter2");
+         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:Inter2:1.0");
+      begin
+         CORBA.TypeCode.Add_Parameter (TC_Inter2, CORBA.To_Any (Name));
+         CORBA.TypeCode.Add_Parameter (TC_Inter2, CORBA.To_Any (Id));
+      end;
+   
+      declare
+         Name : CORBA.String := CORBA.To_CORBA_String ("New_Float");
+         Id : CORBA.String := CORBA.To_CORBA_String ("IDL:Inter2/New_Float:1.0");
+      begin
+         CORBA.TypeCode.Add_Parameter (TC_New_Float, CORBA.To_Any (Name));
+         CORBA.TypeCode.Add_Parameter (TC_New_Float, CORBA.To_Any (Id));
+         CORBA.TypeCode.Add_Parameter (TC_New_Float, CORBA.To_Any (CORBA.TC_Float));
+      end;
+   end Deferred_Initialization;
+
+begin
+   declare
+      use PolyORB.Initialization;
+      use PolyORB.Initialization.String_Lists;
+      use PolyORB.Utils.Strings;
+   begin
+      Register_Module
+        (Module_Info'
+         (Name      => +"Inter2.Helper",
+          Conflicts => Empty,
+          Depends   =>
+                  Empty
+          ,
+          Provides  => Empty,
+          Implicit  => False,
+          Init      => Deferred_Initialization'Access));
+   end;
+
+end Inter2.Helper;
+-------------------------------------------------
+--  This file has been generated automatically
+--  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--
+--  Do NOT hand-modify this file, as your
+--  changes will be lost when you re-run the
+--  IDL to Ada compiler.
+-------------------------------------------------
+pragma Style_Checks (Off);
+
+with CORBA.Repository_Root.IRObject;
+
+package Inter2.IR_Info is
+
+   procedure Register_IR_Info;
+
+   function IR_New_Float
+     return CORBA.Repository_Root.IRObject.Ref;
+
+   function IR_attr1
+     return CORBA.Repository_Root.IRObject.Ref;
+
+   function IR_ConvertNew
+     return CORBA.Repository_Root.IRObject.Ref;
+
+   function IR_Inter2
+     return CORBA.Repository_Root.IRObject.Ref;
+
+end Inter2.IR_Info;
+-------------------------------------------------
+--  This file has been generated automatically
+--  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--
+--  Do NOT hand-modify this file, as your
+--  changes will be lost when you re-run the
+--  IDL to Ada compiler.
+-------------------------------------------------
+pragma Style_Checks (Off);
+
+with CORBA;
+with CORBA.Repository_Root.InterfaceDef.Helper;
+with CORBA.Repository_Root.Repository;
+with CORBA.Repository_Root.IDLType.Helper;
+with CORBA.Repository_Root.IDLType;
+with CORBA.Object;
+with CORBA.Repository_Root.Container.Helper;
+with CORBA.Repository_Root.IRObject.Helper;
+with PolyORB.CORBA_P.IR_Tools;
+ use PolyORB.CORBA_P.IR_Tools;
+with CORBA.Repository_Root;
+ use CORBA.Repository_Root;
+
+package body Inter2.IR_Info is
+
+
+   Cached_IR_New_Float :
+     CORBA.Repository_Root.IRObject.Ref;
+
+   function IR_New_Float
+     return CORBA.Repository_Root.IRObject.Ref
+   is
+      Container_Ref : constant CORBA.Repository_Root.Container.Ref
+        := CORBA.Repository_Root.Container.Helper.To_Ref
+        (Inter2.IR_Info.IR_Inter2);
+   begin
+      if not CORBA.Repository_Root.IRObject.Is_Nil
+        (Cached_IR_New_Float)
+      then
+         return Cached_IR_New_Float;
+      end if;
+
+      Cached_IR_New_Float :=
+        CORBA.Repository_Root.IRObject.Helper.To_Ref
+        (CORBA.Repository_Root.Container.Lookup
+         (Container_Ref,
+          CORBA.To_CORBA_String ("New_Float")));
+      if not CORBA.Repository_Root.IRObject.Is_Nil
+        (Cached_IR_New_Float)
+      then
+         return Cached_IR_New_Float;
+      end if;
+
+      Cached_IR_New_Float
+        := CORBA.Repository_Root.IRObject.Helper.To_Ref
+        (CORBA.Repository_Root.Container.Create_Alias
+         (Container_Ref,
+         id => CORBA.To_CORBA_String
+           (New_Float_Repository_Id),
+         name => CORBA.To_CORBA_String
+           ("New_Float"),
+         version => CORBA.Repository_Root.To_CORBA_String
+           ("1.0"),
+         original_type => IDLType.Convert_Forward.To_Forward
+           (IDLType.Helper.To_Ref
+            (CORBA.Repository_Root.Repository.Get_Primitive
+              (Get_IR_Root, CORBA.Repository_Root.pk_float)))));
+      return Cached_IR_New_Float;
+   end IR_New_Float;
+
+   Cached_IR_attr1 :
+     CORBA.Repository_Root.IRObject.Ref;
+
+   function IR_attr1
+     return CORBA.Repository_Root.IRObject.Ref
+   is
+      Container_Ref : constant CORBA.Repository_Root.Container.Ref
+        := CORBA.Repository_Root.Container.Helper.To_Ref
+        (Inter2.IR_Info.IR_Inter2);
+   begin
+      if not CORBA.Repository_Root.IRObject.Is_Nil
+        (Cached_IR_attr1)
+      then
+         return Cached_IR_attr1;
+      end if;
+
+      Cached_IR_attr1 :=
+        CORBA.Repository_Root.IRObject.Helper.To_Ref
+        (CORBA.Repository_Root.Container.Lookup
+         (Container_Ref,
+          CORBA.To_CORBA_String ("attr1")));
+      if not CORBA.Repository_Root.IRObject.Is_Nil
+        (Cached_IR_attr1)
+      then
+         return Cached_IR_attr1;
+      end if;
+      Cached_IR_attr1
+        := CORBA.Repository_Root.IRObject.Helper.To_Ref
+        (CORBA.Repository_Root.InterfaceDef.Create_Attribute
+        (CORBA.Repository_Root.InterfaceDef.Helper.To_Ref
+         (Container_Ref),
+         id => CORBA.To_CORBA_String
+           (attr1_Repository_Id),
+         name => CORBA.To_CORBA_String
+           ("attr1"),
+         version => CORBA.Repository_Root.To_CORBA_String
+           ("1.0"),
+         IDL_type =>
+         IDLType.Helper.To_Ref
+         (Inter2.IR_Info.IR_New_Float),
+         mode => ATTR_NORMAL));
+      return Cached_IR_attr1;
+   end IR_attr1;
+
+   Cached_IR_ConvertNew :
+     CORBA.Repository_Root.IRObject.Ref;
+
+   function IR_ConvertNew
+     return CORBA.Repository_Root.IRObject.Ref
+   is
+      Container_Ref : constant CORBA.Repository_Root.Container.Ref
+        := CORBA.Repository_Root.Container.Helper.To_Ref
+        (Inter2.IR_Info.IR_Inter2);
+   begin
+      if not CORBA.Repository_Root.IRObject.Is_Nil
+        (Cached_IR_ConvertNew)
+      then
+         return Cached_IR_ConvertNew;
+      end if;
+
+      Cached_IR_ConvertNew :=
+        CORBA.Repository_Root.IRObject.Helper.To_Ref
+        (CORBA.Repository_Root.Container.Lookup
+         (Container_Ref,
+          CORBA.To_CORBA_String ("ConvertNew")));
+      if not CORBA.Repository_Root.IRObject.Is_Nil
+        (Cached_IR_ConvertNew)
+      then
+         return Cached_IR_ConvertNew;
+      end if;
+
+      declare
+         Params : ParDescriptionSeq;
+         Exceptions : ExceptionDefSeq;
+         Contexts : ContextIdSeq;
+      begin
+         CORBA.Repository_Root.Append
+           (Params,
+            ParameterDescription'
+            (name => CORBA.To_CORBA_String ("N"),
+             IDL_type =>
+               CORBA.TC_Float,
+             type_def => IDLType.Convert_Forward.To_Forward
+               (IDLType.Helper.To_Ref
+               (CORBA.Repository_Root.Repository.Get_Primitive
+                 (Get_IR_Root, CORBA.Repository_Root.pk_float))),
+             mode => PARAM_IN));
+         Cached_IR_ConvertNew
+           := CORBA.Repository_Root.IRObject.Helper.To_Ref
+           (CORBA.Repository_Root.InterfaceDef.Create_Operation
+           (CORBA.Repository_Root.InterfaceDef.Helper.To_Ref
+            (Container_Ref),
+            id => CORBA.To_CORBA_String
+              (ConvertNew_Repository_Id),
+            name => CORBA.To_CORBA_String
+              ("ConvertNew"),
+            version => CORBA.Repository_Root.To_CORBA_String
+              ("1.0"),
+            IDL_result => IDLType.Helper.To_Ref
+              (Inter2.IR_Info.IR_New_Float),
+            mode => OP_NORMAL,
+            params => Params,
+            exceptions => Exceptions,
+            contexts => Contexts));
+      end;
+      return Cached_IR_ConvertNew;
+   end IR_ConvertNew;
+
+   Cached_IR_Inter2 :
+     CORBA.Repository_Root.IRObject.Ref;
+
+   function IR_Inter2
+     return CORBA.Repository_Root.IRObject.Ref
+   is
+      Container_Ref : constant CORBA.Repository_Root.Container.Ref
+        := CORBA.Repository_Root.Container.Helper.To_Ref (Get_IR_Root);
+   begin
+      if not CORBA.Repository_Root.IRObject.Is_Nil
+        (Cached_IR_Inter2)
+      then
+         return Cached_IR_Inter2;
+      end if;
+
+      Cached_IR_Inter2 :=
+        CORBA.Repository_Root.IRObject.Helper.To_Ref
+        (CORBA.Repository_Root.Container.Lookup
+         (Container_Ref,
+          CORBA.To_CORBA_String ("Inter2")));
+      if not CORBA.Repository_Root.IRObject.Is_Nil
+        (Cached_IR_Inter2)
+      then
+         return Cached_IR_Inter2;
+      end if;
+
+      declare
+         Base_Ifs : InterfaceDefSeq;
+      begin
+         Cached_IR_Inter2
+           := CORBA.Repository_Root.IRObject.Helper.To_Ref
+           (CORBA.Repository_Root.Container.Create_Interface
+           (Container_Ref,
+            CORBA.To_CORBA_String
+              (Repository_Id),
+            CORBA.To_CORBA_String
+              ("Inter2"),
+            To_CORBA_String ("1.0"),
+            Base_Ifs,
+            FALSE));
+
+         return Cached_IR_Inter2;
+      end;
+   end IR_Inter2;
+   
+   procedure Register_IR_Info is
+   begin
+      null;
+      declare
+         pragma Warnings (Off); --  WAG:3.15
+         Dummy : CORBA.Object.Ref'Class
+           := IR_New_Float;
+         pragma Warnings (On);  --  WAG:3.15
+         pragma Warnings (Off); --  WAG:3.14
+         pragma Unreferenced (Dummy);
+         pragma Warnings (On);  --  WAG:3.14
+      begin
+         null;
+      end;
+      declare
+         pragma Warnings (Off); --  WAG:3.15
+         Dummy : CORBA.Object.Ref'Class
+           := IR_attr1;
+         pragma Warnings (On);  --  WAG:3.15
+         pragma Warnings (Off); --  WAG:3.14
+         pragma Unreferenced (Dummy);
+         pragma Warnings (On);  --  WAG:3.14
+      begin
+         null;
+      end;
+      declare
+         pragma Warnings (Off); --  WAG:3.15
+         Dummy : CORBA.Object.Ref'Class
+           := IR_ConvertNew;
+         pragma Warnings (On);  --  WAG:3.15
+         pragma Warnings (Off); --  WAG:3.14
+         pragma Unreferenced (Dummy);
+         pragma Warnings (On);  --  WAG:3.14
+      begin
+         null;
+      end;
+      declare
+         pragma Warnings (Off); --  WAG:3.15
+         Dummy : CORBA.Object.Ref'Class
+           := IR_Inter2;
+         pragma Warnings (On);  --  WAG:3.15
+         pragma Warnings (Off); --  WAG:3.14
+         pragma Unreferenced (Dummy);
+         pragma Warnings (On);  --  WAG:3.14
+      begin
+         null;
+      end;
+   end Register_IR_Info;
+
+end Inter2.IR_Info;
+-------------------------------------------------
+--  This file has been generated automatically
+--  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--
+--  Do NOT hand-modify this file, as your
+--  changes will be lost when you re-run the
+--  IDL to Ada compiler.
+-------------------------------------------------
+pragma Style_Checks (Off);
+
+package Inter2.Skel is
+
+   pragma Elaborate_Body;
+
+end Inter2.Skel;
+-------------------------------------------------
+--  This file has been generated automatically
+--  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--
+--  Do NOT hand-modify this file, as your
+--  changes will be lost when you re-run the
+--  IDL to Ada compiler.
+-------------------------------------------------
+pragma Style_Checks (Off);
+
+with PolyORB.Utils.Strings;
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization);
+with Inter2.Helper;
+with CORBA.ORB;
+with CORBA.NVList;
+with CORBA.ServerRequest;
+with Inter2.Impl;
+with CORBA;
+pragma Elaborate_All (CORBA);
+with PortableServer;
+pragma Elaborate_All (PortableServer);
+with PolyORB.CORBA_P.Exceptions;
+
+package body Inter2.Skel is
+
+   --  Skeleton subprograms
+
+   function Servant_Is_A
+     (Obj : PortableServer.Servant)
+     return Boolean;
+
+   function Servant_Is_A
+     (Obj : PortableServer.Servant)
+     return Boolean is
+   begin
+      return Obj.all in Inter2.Impl.Object'Class;
+   end Servant_Is_A;
+
+   procedure Invoke
+     (Self : PortableServer.Servant;
+      Request : in CORBA.ServerRequest.Object_ptr)
+   is
+      Operation : constant Standard.String
+         := CORBA.To_Standard_String
+              (CORBA.ServerRequest.Operation
+               (Request.all));
+      Arg_List_U : CORBA.NVList.Ref;
+   begin
+      CORBA.ORB.Create_List (0, Arg_List_U);
+      if Operation = "_is_a" then
+         declare
+            Type_Id            : CORBA.String;
+            Arg_Name_U_Type_Id : constant CORBA.Identifier
+            := CORBA.To_CORBA_String ("Type_Id");
+            Argument_U_Type_Id : CORBA.Any := CORBA.To_Any (Type_Id);
+            
+            Result_U           : CORBA.Boolean;
+         begin
+            CORBA.NVList.Add_Item
+            (Arg_List_U,
+            Arg_Name_U_Type_Id,
+            Argument_U_Type_Id,
+            CORBA.ARG_IN);
+
+            CORBA.ServerRequest.Arguments (Request, Arg_List_U);
+
+            begin
+               --  Convert arguments from their Any
+
+               Type_Id :=
+                 CORBA.From_Any (Argument_U_Type_Id);
+
+               --  Call implementation
+               Result_U := Inter2.Is_A
+                 (CORBA.To_Standard_String (Type_Id));
+            end;
+
+            -- Set Result
+
+            CORBA.ServerRequest.Set_Result
+            (Request,
+            CORBA.To_Any (
+            Result_U));
+            return;
+         end;
+
+      elsif Operation = "_get_attr1" then
+
+         declare
+            Result_U      : Inter2.New_Float;
+         begin
+
+            CORBA.ServerRequest.Arguments (Request, Arg_List_U);
+
+            begin
+               --  Convert arguments from their Any
+
+
+               --  Call implementation
+               Result_U := Inter2.Impl.get_attr1
+                 (Inter2.Impl.Object'Class (Self.all)'Access);
+            end;
+
+            -- Set Result
+
+            CORBA.ServerRequest.Set_Result
+              (Request, 
+               Inter2.Helper.To_Any (
+               Result_U));
+            return;
+         end;
+
+      elsif Operation = "_set_attr1" then
+
+         declare
+            To            : Inter2.New_Float;
+            Arg_Name_U_To : constant CORBA.Identifier
+              := CORBA.To_CORBA_String ("To");
+            Argument_U_To : CORBA.Any := CORBA.Get_Empty_Any
+              (Inter2.Helper.TC_New_Float);
+
+         begin
+            CORBA.NVList.Add_Item
+              (Arg_List_U,
+               Arg_Name_U_To,
+               Argument_U_To,
+               CORBA.ARG_IN);
+
+            CORBA.ServerRequest.Arguments (Request, Arg_List_U);
+
+            begin
+               --  Convert arguments from their Any
+
+               To :=
+                 Inter2.Helper.From_Any (Argument_U_To);
+
+               --  Call implementation
+               Inter2.Impl.set_attr1
+                 (Inter2.Impl.Object'Class (Self.all)'Access,
+                  To);
+            end;
+            return;
+         end;
+
+      elsif Operation = "ConvertNew" then
+
+         declare
+            N             : CORBA.Float;
+            Arg_Name_U_N  : constant CORBA.Identifier
+              := CORBA.To_CORBA_String ("N");
+            Argument_U_N  : CORBA.Any := CORBA.Get_Empty_Any
+              (CORBA.TC_Float);
+
+            Result_U      : Inter2.New_Float;
+         begin
+            CORBA.NVList.Add_Item
+              (Arg_List_U,
+               Arg_Name_U_N,
+               Argument_U_N,
+               CORBA.ARG_IN);
+
+            CORBA.ServerRequest.Arguments (Request, Arg_List_U);
+
+            begin
+               --  Convert arguments from their Any
+
+               N :=
+                 CORBA.From_Any (Argument_U_N);
+
+               --  Call implementation
+               Result_U := Inter2.Impl.ConvertNew
+                 (Inter2.Impl.Object'Class (Self.all)'Access,
+                  N);
+            end;
+
+            -- Set Result
+
+            CORBA.ServerRequest.Set_Result
+              (Request, 
+               Inter2.Helper.To_Any (
+               Result_U));
+            return;
+         end;
+
+      else
+         CORBA.Raise_Bad_Operation (CORBA.Default_Sys_Member);
+      end if;
+   exception
+      when E : others =>
+         begin
+            CORBA.ServerRequest.Set_Exception
+              (Request,
+               PolyORB.CORBA_P.Exceptions.System_Exception_To_Any (E));
+            return;
+         end;
+   end Invoke;
+   procedure Deferred_Initialization is
+   begin
+      null;
+      PortableServer.Register_Skeleton
+        (CORBA.To_CORBA_String (Inter2.Repository_Id),
+         Servant_Is_A'Access,
+         Invoke'Access);
+   end Deferred_Initialization;
+
+begin
+   declare
+      use PolyORB.Initialization;
+      use PolyORB.Initialization.String_Lists;
+      use PolyORB.Utils.Strings;
+   begin
+      Register_Module
+        (Module_Info'
+         (Name      => +"Inter2.Skel",
+          Conflicts => Empty,
+          Depends   =>
+                  Empty
+          ,
+          Provides  => Empty,
+          Implicit  => False,
+          Init      => Deferred_Initialization'Access));
+   end;
+
+end Inter2.Skel;
+-------------------------------------------------
+--  This file has been generated automatically
+--  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--
+--  Do NOT hand-modify this file, as your
+--  changes will be lost when you re-run the
+--  IDL to Ada compiler.
+-------------------------------------------------
+pragma Style_Checks (Off);
+
+package tin_IDL_File is
+
+   --  Interface Inter2
+
+end tin_IDL_File;
+-------------------------------------------------
+--  This file has been generated automatically
+--  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--
+--  Do NOT hand-modify this file, as your
+--  changes will be lost when you re-run the
+--  IDL to Ada compiler.
+-------------------------------------------------
+pragma Style_Checks (Off);
+
+with PolyORB.Utils.Strings;
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization);
+
+package body tin_IDL_File.Helper is
+   procedure Deferred_Initialization is
+   begin
+      null;
+   end Deferred_Initialization;
+
+begin
+   declare
+      use PolyORB.Initialization;
+      use PolyORB.Initialization.String_Lists;
+      use PolyORB.Utils.Strings;
+   begin
+      Register_Module
+        (Module_Info'
+         (Name      => +"tin_IDL_File.Helper",
+          Conflicts => Empty,
+          Depends   =>
+                  Empty
+          ,
+          Provides  => Empty,
+          Implicit  => False,
+          Init      => Deferred_Initialization'Access));
+   end;
+
+end tin_IDL_File.Helper;
+-------------------------------------------------
+--  This file has been generated automatically
+--  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--
+--  Do NOT hand-modify this file, as your
+--  changes will be lost when you re-run the
+--  IDL to Ada compiler.
+-------------------------------------------------
+pragma Style_Checks (Off);
+
+package tin_IDL_File.IR_Info is
+
+   procedure Register_IR_Info;
+
+end tin_IDL_File.IR_Info;
+-------------------------------------------------
+--  This file has been generated automatically
+--  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--
+--  Do NOT hand-modify this file, as your
+--  changes will be lost when you re-run the
+--  IDL to Ada compiler.
+-------------------------------------------------
+pragma Style_Checks (Off);
+
+with PolyORB.CORBA_P.IR_Tools;
+ use PolyORB.CORBA_P.IR_Tools;
+with CORBA.Repository_Root;
+ use CORBA.Repository_Root;
+
+package body tin_IDL_File.IR_Info is
+
+   
+   procedure Register_IR_Info is
+   begin
+      null;
+   end Register_IR_Info;
+
+end tin_IDL_File.IR_Info;
+-------------------------------------------------
+--  This file has been generated automatically
+--  by IDLAC (http://libre.act-europe.fr/polyorb/)
+--
+--  Do NOT hand-modify this file, as your
+--  changes will be lost when you re-run the
+--  IDL to Ada compiler.
+-------------------------------------------------
+pragma Style_Checks (Off);
+
+with PolyORB.Utils.Strings;
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization);
+
+package body tin_IDL_File.Skel is
+   procedure Deferred_Initialization is
+   begin
+      null;
+   end Deferred_Initialization;
+
+begin
+   declare
+      use PolyORB.Initialization;
+      use PolyORB.Initialization.String_Lists;
+      use PolyORB.Utils.Strings;
+   begin
+      Register_Module
+        (Module_Info'
+         (Name      => +"tin_IDL_File.Skel",
+          Conflicts => Empty,
+          Depends   =>
+                  Empty
+          ,
+          Provides  => Empty,
+          Implicit  => False,
+          Init      => Deferred_Initialization'Access));
+   end;
+
+end tin_IDL_File.Skel;

@@ -7,7 +7,11 @@ with Locations; use Locations;
 with Namet;     use Namet;
 with Output;    use Output;
 with Types;     use Types;
+
+with Flags;     use Flags;
+
 with Utils;     use Utils;
+
 
 with Frontend.Nodes;           use Frontend.Nodes;
 
@@ -20,6 +24,7 @@ package body Backend.BE_Ada is
 
    Ada_Packages : List_Id;
    D_Tree       : Boolean := False;
+
 
    package BEN renames Backend.BE_Ada.Nodes;
 
@@ -37,6 +42,9 @@ package body Backend.BE_Ada is
 
    function Generate_Package (E : Node_Id) return Node_Id;
    --  XXX comments
+
+   function Generate_IDL_File (File_Name : Name_Id) return Node_Id;
+   --  Generate the package, implementing the IDL File.
 
    function Get_Mapped_Type (E : Node_Id) return Node_Id;
    --  XXX comments
@@ -239,6 +247,17 @@ package body Backend.BE_Ada is
       end loop;
    end Configure;
 
+   -----------------------
+   -- Generate_IDL_File --
+   -----------------------
+
+   function Generate_IDL_File (File_Name : Name_Id) return Node_Id is
+      pragma Unreferenced (File_Name);
+   begin
+      --   Write_Name (File_Name);
+      return No_Node;
+   end Generate_IDL_File;
+
    ----------------------
    -- Generate_Package --
    ----------------------
@@ -262,7 +281,26 @@ package body Backend.BE_Ada is
    ---------------
 
    procedure Generate (E : Node_Id) is
+      N : Node_Id;
    begin
+      Declare_CORBA_Type (BEN.K_Float);
+      Declare_CORBA_Type (BEN.K_Double);
+      Declare_CORBA_Type (BEN.K_Long_Double);
+      Declare_CORBA_Type (BEN.K_Short);
+      Declare_CORBA_Type (BEN.K_Long);
+      Declare_CORBA_Type (BEN.K_Long_Long);
+      Declare_CORBA_Type (BEN.K_Unsigned_Short);
+      Declare_CORBA_Type (BEN.K_Unsigned_Long);
+      Declare_CORBA_Type (BEN.K_Unsigned_Long_Long);
+      Declare_CORBA_Type (BEN.K_Char);
+      Declare_CORBA_Type (BEN.K_Wide_Char, "CORBA.WChar");
+      Declare_CORBA_Type (BEN.K_String);
+      Declare_CORBA_Type (BEN.K_Wide_String);
+      Declare_CORBA_Type (BEN.K_Boolean);
+      Declare_CORBA_Type (BEN.K_Octet);
+
+      N := Generate_IDL_File (Main_Source);
+      pragma Unreferenced (N);
       case Kind (E) is
          when K_Specification =>
             Visit_Specification (E);
@@ -584,24 +622,8 @@ package body Backend.BE_Ada is
       D : Node_Id;
       N : Node_Id;
    begin
-      Declare_CORBA_Type (BEN.K_Float);
-      Declare_CORBA_Type (BEN.K_Double);
-      Declare_CORBA_Type (BEN.K_Long_Double);
-      Declare_CORBA_Type (BEN.K_Short);
-      Declare_CORBA_Type (BEN.K_Long);
-      Declare_CORBA_Type (BEN.K_Long_Long);
-      Declare_CORBA_Type (BEN.K_Unsigned_Short);
-      Declare_CORBA_Type (BEN.K_Unsigned_Long);
-      Declare_CORBA_Type (BEN.K_Unsigned_Long_Long);
-      Declare_CORBA_Type (BEN.K_Char);
-      Declare_CORBA_Type (BEN.K_Wide_Char, "CORBA.WChar");
-      Declare_CORBA_Type (BEN.K_String);
-      Declare_CORBA_Type (BEN.K_Wide_String);
-      Declare_CORBA_Type (BEN.K_Boolean);
-      Declare_CORBA_Type (BEN.K_Octet);
 
       Ada_Packages := New_List (BEN.K_Declaration_List, No_Location);
-
       D := First_Node (Definitions (E));
       while Present (D) loop
          case Kind (D) is
