@@ -9,7 +9,7 @@ giop_dir  =
 soap_dir  =
 srp_dir   =
 
-SUBDIRS = cos local portableserver
+SUBDIRS = all_exceptions cos local portableserver
 
 CLEANFILES = config-stamp
 

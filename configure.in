@@ -516,6 +516,7 @@ AC_OUTPUT([
 	examples/polyorb/Makefile
 	testsuite/Makefile
 	testsuite/corba/Makefile
+	testsuite/corba/all_exceptions/Makefile
 	testsuite/corba/cos/Makefile
 	testsuite/corba/cos/naming/Makefile
 	testsuite/corba/cos/time/Makefile
