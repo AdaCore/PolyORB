@@ -142,7 +142,7 @@ begin
 
       Ref_Server_1 : CORBA.Object.Ref;
 
-      Default_Priority_1 : constant RTCORBA.Priority := 10000;
+      Default_Priority_1 : constant RTCORBA.Priority := 10_000;
 
       --  Variables for Child_POA #2
 
@@ -156,7 +156,24 @@ begin
 
       Ref_Server_2 : CORBA.Object.Ref;
 
-      Default_Priority_2 : constant RTCORBA.Priority := 20000;
+      Default_Priority_2 : constant RTCORBA.Priority := 20_000;
+
+      --  Variables for Child_POA #3
+
+      Obj_Server_3 : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
+
+      Lanes : RTCORBA.ThreadpoolLanes;
+      Priority_Model_Policy_Ref_3 : RTCORBA.PriorityModelPolicy.Ref;
+      Thread_Pool_Id_3 : RTCORBA.ThreadpoolId;
+      Thread_Pool_Policy_Ref_3 : RTCORBA.ThreadpoolPolicy.Ref;
+      Policies_3 : CORBA.Policy.PolicyList;
+      Child_POA_Server_3 : RTPortableServer.POA.Ref;
+
+      Ref_Server_3 : CORBA.Object.Ref;
+
+      Implicit_Activation_Policy : CORBA.Policy.Ref
+        := CORBA.Policy.Ref
+        (Create_Implicit_Activation_Policy (NO_IMPLICIT_ACTIVATION));
 
    begin
 
@@ -178,6 +195,8 @@ begin
         (PortableServer.POA.Get_The_POAManager (Root_POA));
 
       Output ("Retrieved and activated Root POA", True);
+
+      --  Test #1
 
       New_Test ("Setting up Child_POA #1");
 
@@ -252,6 +271,8 @@ begin
          & "'");
       New_Line;
 
+      --  Test #2
+
       New_Test ("Setting up Child_POA #2");
 
       --  Create SERVER_DECLARED PriorityModel policy
@@ -325,10 +346,111 @@ begin
          & "'");
       New_Line;
 
-      Output ("Server is running", True);
-      New_Line;
+      --  Test #3
 
-      CORBA.ORB.Run;
+      New_Test ("Setting up Child_POA #3");
+
+      --  Create SERVER_DECLARED PriorityModel policy
+
+      Priority_Model_Policy_Ref_3
+        := Create_Priority_Model_Policy
+        (RT_ORB,
+         SERVER_DECLARED,
+         Default_Priority_2);
+
+      Output ("SERVER_DECLARED policy declared", True);
+
+      --  Create Lanes
+
+      Append (Lanes,
+               RTCORBA.ThreadpoolLane'(Lane_Priority => Default_Priority_1,
+                                       Static_Threads => 2,
+                                       Dynamic_Threads => 0));
+
+      Append (Lanes,
+               RTCORBA.ThreadpoolLane'(Lane_Priority => Default_Priority_2,
+                                       Static_Threads => 2,
+                                       Dynamic_Threads => 0));
+
+      --  Create Threadpool
+
+      Thread_Pool_Id_3 := RTCORBA.RTORB.Create_Threadpool_With_Lanes
+        (RT_ORB,
+         Stacksize               => 262_144,
+         Lanes                   => Lanes,
+         Allow_Borrowing         => False,
+         Allow_Request_Buffering => False,
+         Max_Buffered_Requests   => 1,
+         Max_Request_Buffer_Size => 0);
+
+      Output ("Thread Pool created with id"
+              & RTCORBA.ThreadpoolId'Image (Thread_Pool_Id_3), True);
+
+      --  Construct Thread Pool policy from previous threadpool
+
+      Thread_Pool_Policy_Ref_3 := RTCORBA.RTORB.Create_Threadpool_Policy
+           (RT_ORB, Thread_Pool_Id_3);
+      Output ("Create Threadpool policy", True);
+
+      --  Create Child POA with SERVER_DECLARED priority model policy
+
+      Append (Policies_3,
+              CORBA.Policy.Ref (Priority_Model_Policy_Ref_3));
+
+      Append (Policies_3,
+              CORBA.Policy.Ref (Thread_Pool_Policy_Ref_3));
+
+      Append (Policies_3, Implicit_Activation_Policy);
+
+      Child_POA_Server_3 := RTPortableServer.POA.To_Ref
+        (PortableServer.POA.Create_POA
+         (Root_POA,
+          CORBA.To_CORBA_String ("Child_POA_Server_3"),
+          PortableServer.POA.Get_The_POAManager (Root_POA),
+          Policies_3));
+
+      Output ("Create Child POA with these policies", True);
+
+      --  Set up new object and attach it to Child_POA
+
+      Echo.Impl.Object (Obj_Server_3.all).Priority := Default_Priority_2;
+
+      declare
+         Oid : constant PortableServer.ObjectId
+           := RTPortableServer.POA.Activate_Object_With_Priority
+           (Child_POA_Server_3,
+            PortableServer.Servant (Obj_Server_3),
+            Default_Priority_2);
+
+      begin
+         Output ("Activate_Object_With_Priority did not raise exception",
+                 True);
+
+         --  Call Servant_To_Reference
+
+         Ref_Server_3 := PortableServer.POA.Id_To_Reference
+           (PortableServer.POA.Ref (Child_POA_Server_3), Oid);
+
+         --  Output object IOR
+
+         Put_Line ("IOR of object #3, at RTCORBA priority"
+                   & RTCORBA.Priority'Image (Default_Priority_2));
+
+         New_Line;
+         Put_Line
+           ("'"
+            & CORBA.To_Standard_String
+            (CORBA.Object.Object_To_String (Ref_Server_3))
+            & "'");
+         New_Line;
+
+         --  Run ORB
+
+         Output ("Server is running", True);
+         New_Line;
+
+         CORBA.ORB.Run;
+      end;
    end;
 
    End_Report;
