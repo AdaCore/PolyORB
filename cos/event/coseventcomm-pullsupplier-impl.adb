@@ -50,7 +50,8 @@ with CosEventChannelAdmin.ProxyPullConsumer;
 with PolyORB.CORBA_P.Server_Tools; use  PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Tasking.Soft_Links; use PolyORB.Tasking.Soft_Links;
 with PolyORB.Log;
-with PolyORB.Tasking.Watchers; use PolyORB.Tasking.Watchers;
+--  with PolyORB.Tasking.Watchers; use PolyORB.Tasking.Watchers;
+with PolyORB.Tasking.Semaphores; use PolyORB.Tasking.Semaphores;
 
 with PortableServer; use PortableServer;
 
@@ -70,7 +71,8 @@ package body CosEventComm.PullSupplier.Impl is
          Peer    : ProxyPullConsumer.Ref;
          Empty   : Boolean;
          Event   : CORBA.Any;
-         Watcher : Watcher_Access;
+         --  Watcher : Watcher_Access;
+         Semaphore : Semaphore_Access;
       end record;
 
    ---------------------------------
@@ -114,7 +116,8 @@ package body CosEventComm.PullSupplier.Impl is
       Supplier.X       := new Pull_Supplier_Record;
       Supplier.X.This  := Supplier;
       Supplier.X.Empty := True;
-      Create (Supplier.X.Watcher);
+      --  Create (Supplier.X.Watcher);
+      Create (Supplier.X.Semaphore);
       Initiate_Servant (Servant (Supplier), My_Ref);
       return Supplier;
    end Create;
@@ -135,7 +138,8 @@ package body CosEventComm.PullSupplier.Impl is
       Enter_Critical_Section;
       Peer        := Self.X.Peer;
       Self.X.Peer := Nil_Ref;
-      Update (Self.X.Watcher);
+      --  Update (Self.X.Watcher);
+      V (Self.X.Semaphore);
       Leave_Critical_Section;
 
       if not ProxyPullConsumer.Is_Nil (Peer) then
@@ -152,7 +156,7 @@ package body CosEventComm.PullSupplier.Impl is
      return CORBA.Any
    is
       Event   : CORBA.Any;
-      Version : Version_Id;
+      --  Version : Version_Id;
 
    begin
       loop
@@ -170,9 +174,10 @@ package body CosEventComm.PullSupplier.Impl is
             Leave_Critical_Section;
             exit;
          end if;
-         Lookup (Self.X.Watcher, Version);
+         --  Lookup (Self.X.Watcher, Version);
          Leave_Critical_Section;
-         Differ (Self.X.Watcher, Version);
+         --  Differ (Self.X.Watcher, Version);
+         P (Self.X.Semaphore);
       end loop;
 
       pragma Debug (O ("succeed to pull new data from pull supplier"));
@@ -194,7 +199,8 @@ package body CosEventComm.PullSupplier.Impl is
       Enter_Critical_Section;
       Self.X.Empty := False;
       Self.X.Event := Data;
-      Update (Self.X.Watcher);
+      --  Update (Self.X.Watcher);
+      V (Self.X.Semaphore);
       Leave_Critical_Section;
    end Push;
 

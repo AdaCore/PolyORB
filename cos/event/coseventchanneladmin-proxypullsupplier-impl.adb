@@ -50,7 +50,8 @@ with CosEventChannelAdmin.ConsumerAdmin.Impl;
 with PolyORB.CORBA_P.Server_Tools; use  PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Tasking.Soft_Links; use PolyORB.Tasking.Soft_Links;
 
-with PolyORB.Tasking.Watchers; use PolyORB.Tasking.Watchers;
+--  with PolyORB.Tasking.Watchers; use PolyORB.Tasking.Watchers;
+with PolyORB.Tasking.Semaphores; use PolyORB.Tasking.Semaphores;
 
 with PortableServer; use PortableServer;
 
@@ -73,7 +74,8 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
          Admin   : ConsumerAdmin.Impl.Object_Ptr;
          Event   : CORBA.Any;
          Empty   : Boolean;
-         Watcher : Watcher_Access;
+         --  Watcher : Watcher_Access;
+         Semaphore : Semaphore_Access;
       end record;
 
    ---------------------------
@@ -113,7 +115,8 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
       Supplier.X.This  := Supplier;
       Supplier.X.Admin := Admin;
       Supplier.X.Empty := True;
-      Create (Supplier.X.Watcher);
+      --  Create (Supplier.X.Watcher);
+      Create (Supplier.X.Semaphore);
       Initiate_Servant (Servant (Supplier), My_Ref);
       return Supplier;
    end Create;
@@ -134,7 +137,8 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
       Enter_Critical_Section;
       Peer        := Self.X.Peer;
       Self.X.Peer := Nil_Ref;
-      Update (Self.X.Watcher);
+      --  Update (Self.X.Watcher);
+      V (Self.X.Semaphore);
       Leave_Critical_Section;
 
       if not PullConsumer.Is_Nil (Peer) then
@@ -155,7 +159,8 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
       Enter_Critical_Section;
       Self.X.Event := Data;
       Self.X.Empty := False;
-      Update (Self.X.Watcher);
+      --  Update (Self.X.Watcher);
+      V (Self.X.Semaphore);
       Leave_Critical_Section;
    end Post;
 
@@ -167,7 +172,7 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
      (Self : access Object)
      return CORBA.Any
    is
-      Version : Version_Id;
+      --  Version : Version_Id;
       Event   : CORBA.Any;
 
    begin
@@ -187,9 +192,10 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
             Leave_Critical_Section;
             exit;
          end if;
-         Lookup (Self.X.Watcher, Version);
+         --  Lookup (Self.X.Watcher, Version);
          Leave_Critical_Section;
-         Differ (Self.X.Watcher, Version);
+         --  Differ (Self.X.Watcher, Version);
+         P (Self.X.Semaphore);
       end loop;
       pragma Debug (O ("succeed to pull new data from proxy pull supplier"));
 
