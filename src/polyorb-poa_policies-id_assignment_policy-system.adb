@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Unchecked_Conversion;
 
 with PolyORB.Object_Maps;
