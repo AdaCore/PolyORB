@@ -43,4 +43,4 @@ gzip --best ${dir}.tar
 mv ${dir}.tar.gz ${prev}
 cd ${prev}
 rm -rf ${tmp}
-pgp -sb ${dir}.tar.gz
+#pgp -sb ${dir}.tar.gz
