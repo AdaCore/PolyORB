@@ -20,7 +20,7 @@ if ! $s; then
   adabroker_version=`echo $1 | sed -e 's/^[^-]*-//'`
 else
   #gnat_version=`sed -n -e '/Gnat_Vers/s/[^"]*"\([^" ]*\).*/\1/p' ada/gnatvsn.ads`
-  adabroker_version=`sed -n -e '/New features/s/[^0-9]*\([0-9.]*\).*/\1/p' NEWS | head -1`
+  adabroker_version=`grep ^AM_INIT_AUTOMAKE configure.in | sed  's/AM_INIT_AUTOMAKE([^,]*,\(.*\))/\1/'`
 fi
 
 #
