@@ -17,6 +17,30 @@ package body Backend.BE_Ada.Runtime is
       Position   : Integer;
       Identifier : Name_Id;
       Length     : Natural;
+      procedure Special_Name (U : RU_Id; Str : String);
+      procedure Special_Name (E : RE_Id; Str : String);
+
+      ------------------
+      -- Special_Name --
+      ------------------
+
+      procedure Special_Name (U : RU_Id; Str : String) is
+      begin
+         Set_Str_To_Name_Buffer (Str);
+         Set_Name
+           (Defining_Identifier (RUD (U)), Name_Find);
+      end Special_Name;
+
+      ------------------
+      -- Special_Name --
+      ------------------
+
+      procedure Special_Name (E : RE_Id; Str : String) is
+      begin
+         Set_Str_To_Name_Buffer (Str);
+         Set_Name
+           (Defining_Identifier (RED (E)), Name_Find);
+      end Special_Name;
 
    begin
       for U in RU_Id loop
@@ -54,6 +78,11 @@ package body Backend.BE_Ada.Runtime is
          end if;
       end loop;
 
+      Special_Name (RU_CORBA, "CORBA");
+      Special_Name (RU_PolyORB, "PolyORB");
+      Special_Name (RU_PolyORB_Any_NVList, "NVList");
+      Special_Name (RU_CORBA_AbstractBase, "AbstractBase");
+
       for E in RE_Id loop
          Set_Str_To_Name_Buffer (RE_Id'Image (E));
          Set_Str_To_Name_Buffer (Name_Buffer (4 .. Name_Len));
@@ -69,6 +98,9 @@ package body Backend.BE_Ada.Runtime is
            (RED (E), Make_Defining_Identifier (Identifier));
          Set_Parent_Unit_Name (RED (E), RUD (RE_Unit_Table (E)));
       end loop;
+      Special_Name (RE_To_CORBA_String, "To_CORBA_String");
+      Special_Name (RE_To_PolyORB_String, "To_PolyORB_String");
+      Special_Name (RE_NamedValue, "NamedValue");
    end Initialize;
 
    --------

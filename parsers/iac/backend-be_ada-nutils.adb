@@ -275,6 +275,28 @@ package body Backend.BE_Ada.Nutils is
       return L = No_List or else No (First_Node (L));
    end Is_Empty;
 
+   ------------
+   -- Length --
+   ------------
+
+   function Length
+     (L : List_Id)
+     return Natural
+   is
+      N : Node_Id;
+      C : Natural := 0;
+   begin
+      if not Is_Empty (L) then
+
+         N := First_Node (L);
+         while Present (N) loop
+            C := C + 1;
+            N := Next_Node (N);
+         end loop;
+      end if;
+      return C;
+   end Length;
+
    --------------------------------
    -- Make_Array_Type_Definition --
    --------------------------------
@@ -292,6 +314,40 @@ package body Backend.BE_Ada.Nutils is
       Set_Component_Definition (N, Component_Definition);
       return N;
    end Make_Array_Type_Definition;
+
+   -------------------------------
+   -- Make_Assignment_Statement --
+   -------------------------------
+
+   function Make_Assignment_Statement
+     (Variable_Identifier : Node_Id;
+      Expression          : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Assignment_Statement);
+      Set_Defining_Identifier (N, Variable_Identifier);
+      Set_Expression (N, Expression);
+      return N;
+   end Make_Assignment_Statement;
+
+   --------------------------------
+   -- Make_Component_Association --
+   --------------------------------
+
+   function Make_Component_Association
+     (Selector_Name : Node_Id;
+      Expression    : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Component_Association);
+      Set_Defining_Identifier (N, Selector_Name);
+      Set_Expression (N, Expression);
+      return N;
+   end Make_Component_Association;
 
    --------------------------------
    -- Make_Component_Declaration --
@@ -480,6 +536,25 @@ package body Backend.BE_Ada.Nutils is
       Set_Else_Statements (N, Else_Statements);
       return N;
    end Make_If_Statement;
+
+   ------------------
+   -- Make_List_Id --
+   ------------------
+
+   function Make_List_Id
+     (N1 : Node_Id;
+      N2 : Node_Id := No_Node)
+     return List_Id
+   is
+      L : List_Id;
+   begin
+      L := New_List (K_List_Id);
+      Append_Node_To_List (N1, L);
+      if Present (N2) then
+         Append_Node_To_List (N2, L);
+      end if;
+      return L;
+   end Make_List_Id;
 
    ------------------
    -- Make_Literal --

@@ -140,6 +140,9 @@ package Backend.BE_Ada.Nutils is
    procedure Initialize;
    procedure New_Token (T : Token_Type; I : String := "");
 
+   function Length
+     (L : List_Id)
+     return Natural;
 
    procedure Remove_Node_From_List (E : Node_Id; L : List_Id);
    --  Remove node N to list L.
@@ -163,6 +166,16 @@ package Backend.BE_Ada.Nutils is
    function Make_Array_Type_Definition
      (Range_Constraints    : List_Id;
       Component_Definition : Node_Id)
+     return Node_Id;
+
+   function Make_Assignment_Statement
+     (Variable_Identifier : Node_Id;
+      Expression          : Node_Id)
+     return Node_Id;
+
+   function Make_Component_Association
+     (Selector_Name : Node_Id;
+      Expression    : Node_Id)
      return Node_Id;
 
    function Make_Component_Declaration
@@ -206,6 +219,11 @@ package Backend.BE_Ada.Nutils is
       Then_Statements : List_Id;
       Else_Statements : List_Id)
      return Node_Id;
+
+   function Make_List_Id
+     (N1 : Node_Id;
+      N2 : Node_Id := No_Node)
+     return List_Id;
 
    function Make_Literal
      (Value : Value_Id)

@@ -128,15 +128,30 @@ module Backend::BE_Ada::Nodes {
   interface Enumeration_Type_Definition : Node_Id {
     List_Id    Enumeration_Literals;
   };
+  /**************/
+  /* Aggregates */
+  /**************/
 
-  /******************/
-  /* IF Statetement */
-  /******************/
+  interface Record_Aggregate : Node_Id {
+    List_Id    Component_Association_List;
+  };
+
+  interface Component_Association : Definition {
+    Node_Id    Expression; 
+  };
+
+  /****************/
+  /* Statetements */
+  /****************/
 
   interface If_Statement : Node_Id {
     Node_Id    Condition;
     List_Id    Then_Statements; 
     List_Id    Else_Statements; 
+  };
+
+  interface Assignment_Statement : Definition {
+    Node_Id    Expression;  
   };
 
   /***************/

@@ -9,6 +9,8 @@ with Values;  use Values;
 package body Backend.BE_Ada.Generator is
 
    procedure Generate_Array_Type_Definition (N : Node_Id);
+   procedure Generate_Assignment_Statement (N : Node_Id);
+   procedure Generate_Component_Association (N : Node_Id);
    procedure Generate_Component_Declaration (N : Node_Id);
    procedure Generate_Defining_Identifier (N : Node_Id);
    procedure Generate_Derived_Type_Definition (N : Node_Id);
@@ -24,6 +26,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Package_Specification (N : Node_Id);
    procedure Generate_Parameter (N : Node_Id);
    procedure Generate_Parameter_List (L : List_Id);
+   procedure Generate_Record_Aggregate (N : Node_Id);
    procedure Generate_Record_Definition (N : Node_Id);
    procedure Generate_Record_Type_Definition (N : Node_Id);
    procedure Generate_Subprogram_Call (N : Node_Id);
@@ -44,6 +47,12 @@ package body Backend.BE_Ada.Generator is
       case Kind (N) is
          when K_Array_Type_Definition =>
             Generate_Array_Type_Definition (N);
+
+         when K_Assignment_Statement =>
+            Generate_Assignment_Statement (N);
+
+         when K_Component_Association =>
+            Generate_Component_Association (N);
 
          when K_Component_Declaration =>
             Generate_Component_Declaration (N);
@@ -83,6 +92,9 @@ package body Backend.BE_Ada.Generator is
 
          when K_Package_Specification =>
             Generate_Package_Specification (N);
+
+         when K_Record_Aggregate =>
+            Generate_Record_Aggregate (N);
 
          when K_Record_Definition =>
             Generate_Record_Definition (N);
@@ -140,6 +152,34 @@ package body Backend.BE_Ada.Generator is
       Write_Space;
       Generate (Component_Definition (N));
    end Generate_Array_Type_Definition;
+
+   -----------------------------------
+   -- Generate_Assignment_Statement --
+   -----------------------------------
+
+   procedure Generate_Assignment_Statement (N : Node_Id) is
+   begin
+      Generate (Defining_Identifier (N));
+      Write_Space;
+      Write (Tok_Colon);
+      Write (Tok_Equal);
+      Write_Space;
+      Generate (Expression (N));
+   end Generate_Assignment_Statement;
+
+
+   ------------------------------------
+   -- Generate_Component_Association --
+   ------------------------------------
+
+   procedure Generate_Component_Association (N : Node_Id) is
+   begin
+      Generate (Defining_Identifier (N));
+      Write_Space;
+      Write (Tok_Arrow);
+      Write_Space;
+      Generate (Expression (N));
+   end Generate_Component_Association;
 
    ------------------------------------
    -- Generate_Component_Declaration --
@@ -531,6 +571,31 @@ package body Backend.BE_Ada.Generator is
       Write (Tok_Right_Paren);
       Decrement_Indentation;
    end Generate_Parameter_List;
+
+   -------------------------------
+   -- Generate_Record_Aggregate --
+   -------------------------------
+
+   procedure Generate_Record_Aggregate (N : Node_Id) is
+      L : List_Id;
+      M : Node_Id;
+   begin
+      L := Component_Association_List (N);
+      Increment_Indentation;
+      Write (Tok_Left_Paren);
+      if not Is_Empty (L) then
+         M := First_Node (L);
+         loop
+            Generate (M);
+            M := Next_Node (M);
+            exit when No (M);
+            Write_Line (Tok_Comma);
+            Write_Indentation;
+         end loop;
+      end if;
+      Write (Tok_Right_Paren);
+      Decrement_Indentation;
+   end Generate_Record_Aggregate;
 
    --------------------------------
    -- Generate_Record_Definition --

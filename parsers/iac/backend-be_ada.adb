@@ -21,7 +21,11 @@ package body Backend.BE_Ada is
    type Parameter_Id is
      (P_Returns,
       P_Self,
-      P_To);
+      P_To,
+      P_Name,
+      P_Argument,
+      P_Arg_Modes,
+      P_Result);
 
    PN : array (Parameter_Id) of Name_Id;
 
@@ -42,7 +46,8 @@ package body Backend.BE_Ada is
       V_Result,
       V_Result_Name,
       V_Operation_Name,
-      V_Def_Sys_Member);
+      V_Def_Sys_Member,
+      V_Name);
 
    VN : array (Variable_Id) of Name_Id;
 
@@ -354,14 +359,16 @@ package body Backend.BE_Ada is
 
    function Marshaller_Body
      (Subp_Spec : Node_Id; Local_Variables : List_Id) return List_Id is
-      pragma Unreferenced (Subp_Spec, Local_Variables);
-      L : List_Id;
-      N : Node_Id;
-      C : Node_Id;
-      P : List_Id;
-      S : List_Id;
+      pragma Unreferenced (Local_Variables);
+      L     : List_Id;
+      N     : Node_Id;
+      C     : Node_Id;
+      P     : List_Id;
+      S     : List_Id;
+      Count : Natural;
    begin
       L := New_List (BEN.K_List_Id);
+
       --  Test if the Self_Ref_U is nil, if it's nil raise exception.
       C := New_Node (BEN.K_Subprogram_Call);
       Set_Defining_Identifier
@@ -392,6 +399,44 @@ package body Backend.BE_Ada is
       Set_Actual_Parameter_Part (C, P);
       Append_Node_To_List (C, L);
 
+      Count := Length (Parameter_Profile (Subp_Spec));
+      if Count > 1 then
+         null; --  Add variables to the parameter list
+      end if;
+
+      --  Set result type (maybe void)
+      --  --  PolyORB.Types.Identifier (Result_Name)
+      C := New_Node (K_Subprogram_Call);
+      Set_Defining_Identifier
+        (C, RE (RE_Identifier));
+      P := New_List (BEN.K_List_Id);
+      Append_Node_To_List
+        (Make_Defining_Identifier (VN (V_Result_Name)), P);
+      Set_Actual_Parameter_Part (C, P);
+      --  -- Name => PolyORB.Types.Identifier (Result_Name)
+      N := Make_Component_Association
+        (Selector_Name => Make_Defining_Identifier (PN (P_Name)),
+         Expression    => C);
+      P := New_List (K_List_Id);
+      Append_Node_To_List (N, P);
+
+      N := Make_Component_Association
+        (Selector_Name => Make_Defining_Identifier (PN (P_Argument)),
+         Expression    => Make_Literal (New_Integer_Value (0, 0, 10)));
+      Append_Node_To_List (N, P);
+
+      N := Make_Component_Association
+        (Selector_Name => Make_Defining_Identifier (PN (P_Arg_Modes)),
+         Expression    => Make_Literal (New_Integer_Value (0, 0, 10)));
+      Append_Node_To_List (N, P);
+
+      N := New_Node (K_Record_Aggregate);
+      Set_Component_Association_List (N, P);
+
+      N := Make_Assignment_Statement
+        (Variable_Identifier => Make_Defining_Identifier (VN (V_Result_Name)),
+         Expression => N);
+      Append_Node_To_List (N, L);
       return L;
    end Marshaller_Body;
 
@@ -431,13 +476,10 @@ package body Backend.BE_Ada is
          --    := PolyORB.Types.To_PolyORB_String ("X")
          --  ** where X is the parameter name.
          X := BEN.Name (Defining_Identifier (I));
-         C := New_Node (K_Subprogram_Call);
-         Set_Defining_Identifier
-           (C, RE (RE_To_PolyORB_String));
-         P := New_List (BEN.K_List_Id);
-         V := New_String_Value (X, False);
-         Append_Node_To_List (Make_Literal (V), P);
-         Set_Actual_Parameter_Part (C, P);
+         C := Make_Subprogram_Call
+           (Defining_Identifier   => RE (RE_To_PolyORB_String),
+            Actual_Parameter_Part =>
+              Make_List_Id (Make_Literal (New_String_Value (X, False))));
 
          Set_Str_To_Name_Buffer ("Arg_Name_U_");
          Get_Name_String_And_Append (X);
@@ -460,11 +502,10 @@ package body Backend.BE_Ada is
          Set_Parent_Unit_Name
            (D, Defining_Identifier (Helper_Package (Current_Entity)));
 
-         C := New_Node (K_Subprogram_Call);
-         Set_Defining_Identifier (C, D);
-         P := New_List (BEN.K_List_Id);
-         Append_Node_To_List (Make_Defining_Identifier (X), P);
-         Set_Actual_Parameter_Part (C, P);
+         C :=  Make_Subprogram_Call
+           (Defining_Identifier   => D,
+            Actual_Parameter_Part =>
+              Make_List_Id (Make_Defining_Identifier (X)));
 
          Set_Str_To_Name_Buffer ("Argument_U_");
          Get_Name_String_And_Append (X);
@@ -491,12 +532,10 @@ package body Backend.BE_Ada is
 
       --  Self_Ref_U declaration
       --  Self_Ref_U : CORBA.Object.Ref  := CORBA.Object.Ref (Self);
-      C := New_Node (K_Subprogram_Call);
-      Set_Defining_Identifier (C, RE (RE_Ref_2));
-      P := New_List (BEN.K_List_Id);
-      Append_Node_To_List
-        (Make_Defining_Identifier (PN (P_Self)), P);
-      Set_Actual_Parameter_Part (C, P);
+      C := Make_Subprogram_Call
+        (Defining_Identifier   => RE (RE_Ref_2),
+         Actual_Parameter_Part =>
+           Make_List_Id (Make_Defining_Identifier (PN (P_Self))));
 
       N := Make_Object_Declaration
         (Defining_Identifier =>
@@ -527,13 +566,12 @@ package body Backend.BE_Ada is
 
       --  Result_Name_U declaration :
       --  Result_Name_U : CORBA.String := CORBA.To_CORBA_String ("Result");
-      Set_Str_To_Name_Buffer ("Result");
-      V := New_String_Value (Name_Find, False);
-      P := New_List (BEN.K_List_Id);
-      Append_Node_To_List (Make_Literal (V), P);
+
+      V := New_String_Value (PN (P_Result), False);
       C := Make_Subprogram_Call
         (Defining_Identifier   => RE (RE_To_CORBA_String),
-         Actual_Parameter_Part => P);
+         Actual_Parameter_Part =>
+           Make_List_Id (Make_Literal (V)));
 
       N := Make_Object_Declaration
         (Defining_Identifier =>
