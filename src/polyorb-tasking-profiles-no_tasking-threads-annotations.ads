@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---          P O L Y O R B . P R O F I L E S . N O _ T A S K I N G           --
+--         POLYORB.TASKING.PROFILES.NO_TASKING.THREADS.ANNOTATIONS          --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,26 +31,27 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
+with PolyORB.Annotations;
+with PolyORB.Tasking.Threads.Annotations;
 
-with PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations);
+package PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations is
 
-with PolyORB.Tasking.Profiles.No_Tasking.Threads;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Threads);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Threads);
+   type No_Tasking_TAF is
+     new PolyORB.Tasking.Threads.Annotations.Thread_Annotations_Factory
+     with private;
 
-with PolyORB.Tasking.Profiles.No_Tasking.Mutexes;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Mutexes);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Mutexes);
+   type No_Tasking_TAF_Access is access all No_Tasking_TAF;
 
-with PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables;
-pragma Elaborate_All
-  (PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables);
-pragma Warnings
-  (Off, PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables);
+   function Get_Current_Thread_Notepad
+     (TAF : access No_Tasking_TAF)
+     return PolyORB.Annotations.Notepad_Access;
 
-package body PolyORB.Setup.Tasking.No_Tasking is
+private
+   type No_Tasking_TAF is
+     new PolyORB.Tasking.Threads.Annotations.Thread_Annotations_Factory
+     with record
+        TID     : PolyORB.Tasking.Threads.Thread_Id;
+        Notepad : PolyORB.Annotations.Notepad_Access;
+     end record;
 
-end PolyORB.Setup.Tasking.No_Tasking;
+end PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations;

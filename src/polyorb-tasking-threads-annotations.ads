@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---          P O L Y O R B . P R O F I L E S . N O _ T A S K I N G           --
+--  P O L Y O R B . T A S K I N G . T H R E A D S . A N N O T A T I O N S   --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,26 +31,27 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
+--  This package provides mechanisms to attach a PolyORB's Notepad to
+--  a thread.
 
-with PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations);
+with PolyORB.Annotations;
 
-with PolyORB.Tasking.Profiles.No_Tasking.Threads;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Threads);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Threads);
+package PolyORB.Tasking.Threads.Annotations is
 
-with PolyORB.Tasking.Profiles.No_Tasking.Mutexes;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Mutexes);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Mutexes);
+   type Thread_Annotations_Factory is abstract tagged limited null record;
 
-with PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables;
-pragma Elaborate_All
-  (PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables);
-pragma Warnings
-  (Off, PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables);
+   type TAF_Access is access all Thread_Annotations_Factory'Class;
 
-package body PolyORB.Setup.Tasking.No_Tasking is
+   procedure Register (TAF : TAF_Access);
 
-end PolyORB.Setup.Tasking.No_Tasking;
+   function Get_Current_Thread_Notepad
+     (TAF : access Thread_Annotations_Factory)
+     return PolyORB.Annotations.Notepad_Access
+      is abstract;
+   --  Return the annotation object associated with current thread. If no
+   --  object associated with current thread, allocate new object.
+
+   function Get_Current_Thread_Notepad
+     return PolyORB.Annotations.Notepad_Access;
+
+end PolyORB.Tasking.Threads.Annotations;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---          P O L Y O R B . P R O F I L E S . N O _ T A S K I N G           --
+--  P O L Y O R B . T A S K I N G . T H R E A D S . A N N O T A T I O N S   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,26 +31,31 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
+package body PolyORB.Tasking.Threads.Annotations is
 
-with PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations);
+   Current_TAF : TAF_Access;
 
-with PolyORB.Tasking.Profiles.No_Tasking.Threads;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Threads);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Threads);
+   --------------
+   -- Register --
+   --------------
 
-with PolyORB.Tasking.Profiles.No_Tasking.Mutexes;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Mutexes);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Mutexes);
+   procedure Register (TAF : TAF_Access) is
+   begin
+      pragma Assert (Current_TAF = null);
+      Current_TAF := TAF;
+   end Register;
 
-with PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables;
-pragma Elaborate_All
-  (PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables);
-pragma Warnings
-  (Off, PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables);
+   --------------------------------
+   -- Get_Current_Thread_Notepad --
+   --------------------------------
 
-package body PolyORB.Setup.Tasking.No_Tasking is
+   function Get_Current_Thread_Notepad
+     return PolyORB.Annotations.Notepad_Access
+   is
+   begin
+      return Get_Current_Thread_Notepad (Current_TAF);
+   end Get_Current_Thread_Notepad;
 
-end PolyORB.Setup.Tasking.No_Tasking;
+end PolyORB.Tasking.Threads.Annotations;
+
+

@@ -36,6 +36,9 @@
 --  $Id$
 
 with System;
+
+with PolyORB.Tasking.Profiles.Ravenscar.Threads.Annotations;
+
 with PolyORB.Tasking.Profiles.Ravenscar.Threads;
 with PolyORB.Tasking.Profiles.Ravenscar.Mutexes;
 with PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables;
@@ -63,6 +66,8 @@ package PolyORB.Setup.Tasking.Ravenscar is
      (Number_Of_Application_Tasks,
       Number_Of_System_Tasks,
       Task_Priority);
+
+   package Thread_Annotations_Package is new Threads_Package.Annotations;
 
    package Conditions_Package is
       new PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables

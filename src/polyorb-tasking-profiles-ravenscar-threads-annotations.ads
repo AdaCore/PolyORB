@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---          P O L Y O R B . P R O F I L E S . N O _ T A S K I N G           --
+--         POLYORB.TASKING.PROFILES.RAVENSCAR.THREADS.ANNOTATIONS           --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,26 +31,28 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
+with PolyORB.Annotations;
+with PolyORB.Tasking.Threads.Annotations;
 
-with PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations);
+generic
 
-with PolyORB.Tasking.Profiles.No_Tasking.Threads;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Threads);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Threads);
+package PolyORB.Tasking.Profiles.Ravenscar.Threads.Annotations is
 
-with PolyORB.Tasking.Profiles.No_Tasking.Mutexes;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Mutexes);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Mutexes);
+   type Ravenscar_TAF is
+     new PolyORB.Tasking.Threads.Annotations.Thread_Annotations_Factory
+     with private;
 
-with PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables;
-pragma Elaborate_All
-  (PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables);
-pragma Warnings
-  (Off, PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables);
+   type Ravenscar_TAF_Access is access all Ravenscar_TAF;
 
-package body PolyORB.Setup.Tasking.No_Tasking is
+   function Get_Current_Thread_Notepad
+     (TAF : access Ravenscar_TAF)
+     return PolyORB.Annotations.Notepad_Access;
 
-end PolyORB.Setup.Tasking.No_Tasking;
+private
+   type Ravenscar_TAF is
+     new PolyORB.Tasking.Threads.Annotations.Thread_Annotations_Factory
+     with null record;
+
+   procedure Initialize;
+
+end PolyORB.Tasking.Profiles.Ravenscar.Threads.Annotations;

@@ -131,18 +131,22 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-tasking-profiles-full_tasking-condition_variables.ads \
 		polyorb-tasking-profiles-full_tasking-mutexes.ads \
 		polyorb-tasking-profiles-full_tasking-threads.ads \
+		polyorb-tasking-profiles-full_tasking-threads-annotations.ads \
 		polyorb-tasking-profiles-full_tasking-threads-dynamic_priorities.ads \
 		polyorb-tasking-profiles-full_tasking-threads-static_priorities.ads \
 		polyorb-tasking-profiles-no_tasking-condition_variables.ads \
 		polyorb-tasking-profiles-no_tasking-mutexes.ads \
 		polyorb-tasking-profiles-no_tasking-threads.ads \
+		polyorb-tasking-profiles-no_tasking-threads-annotations.ads \
 		polyorb-tasking-profiles-ravenscar-condition_variables.ads \
 		polyorb-tasking-profiles-ravenscar-index_manager.ads \
 		polyorb-tasking-profiles-ravenscar-mutexes.ads \
 		polyorb-tasking-profiles-ravenscar-threads.ads \
+		polyorb-tasking-profiles-ravenscar-threads-annotations.ads \
 		polyorb-tasking-rw_locks.ads \
 		polyorb-tasking-semaphores.ads \
 		polyorb-tasking-threads.ads \
+		polyorb-tasking-threads-annotations.ads \
 		polyorb-tasking-watchers.ads \
 		polyorb-task_info.ads \
 		polyorb-transport.ads \

@@ -1019,6 +1019,8 @@ src/polyorb-tasking-profiles-full_tasking-mutexes.adb
 src/polyorb-tasking-profiles-full_tasking-mutexes.ads
 src/polyorb-tasking-profiles-full_tasking-threads.adb
 src/polyorb-tasking-profiles-full_tasking-threads.ads
+src/polyorb-tasking-profiles-full_tasking-threads-annotations.adb
+src/polyorb-tasking-profiles-full_tasking-threads-annotations.ads
 src/polyorb-tasking-profiles-full_tasking-threads-dynamic_priorities.adb
 src/polyorb-tasking-profiles-full_tasking-threads-dynamic_priorities.ads
 src/polyorb-tasking-profiles-full_tasking-threads-static_priorities.adb
@@ -1030,6 +1032,8 @@ src/polyorb-tasking-profiles-no_tasking-mutexes.adb
 src/polyorb-tasking-profiles-no_tasking-mutexes.ads
 src/polyorb-tasking-profiles-no_tasking-threads.adb
 src/polyorb-tasking-profiles-no_tasking-threads.ads
+src/polyorb-tasking-profiles-no_tasking-threads-annotations.adb
+src/polyorb-tasking-profiles-no_tasking-threads-annotations.ads
 src/polyorb-tasking-profiles-no_tasking.ads
 src/polyorb-tasking-profiles-ravenscar-condition_variables.adb
 src/polyorb-tasking-profiles-ravenscar-condition_variables.ads
@@ -1039,6 +1043,8 @@ src/polyorb-tasking-profiles-ravenscar-mutexes.adb
 src/polyorb-tasking-profiles-ravenscar-mutexes.ads
 src/polyorb-tasking-profiles-ravenscar-threads.adb
 src/polyorb-tasking-profiles-ravenscar-threads.ads
+src/polyorb-tasking-profiles-ravenscar-threads-annotations.adb
+src/polyorb-tasking-profiles-ravenscar-threads-annotations.ads
 src/polyorb-tasking-profiles-ravenscar.ads
 src/polyorb-tasking-profiles.ads
 src/polyorb-tasking-rw_locks.adb
@@ -1047,6 +1053,8 @@ src/polyorb-tasking-semaphores.adb
 src/polyorb-tasking-semaphores.ads
 src/polyorb-tasking-threads.adb
 src/polyorb-tasking-threads.ads
+src/polyorb-tasking-threads-annotations.adb
+src/polyorb-tasking-threads-annotations.ads
 src/polyorb-tasking-watchers.adb
 src/polyorb-tasking-watchers.ads
 src/polyorb-tasking.ads
