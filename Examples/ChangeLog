@@ -1,5 +1,8 @@
 Mon Sep 30 11:21:27 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* Prime/Makefile.am (all-local): Use ../check-stamp instead of
+	  calling check-config each time.
+
 	* check-config.in: don't use type anymore and make sure that the
 	  gnatdist which is first in PATH is the right one.
 
