@@ -121,6 +121,11 @@ package CORBA.Repository_Root.Contained.Impl is
                          Name : Identifier;
                          Limit_Type : DefinitionKind) return ContainedSeq;
 
+   --  A usefull function to transform a Contained_Seq.Sequence into a ContainedSeq
+   function To_ContainedSeq
+     (In_Seq : Contained_Seq.Sequence)
+      return  CORBA.Repository_Root.ContainedSeq;
+
 private
 
    type Object is

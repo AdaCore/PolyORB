@@ -222,10 +222,13 @@ package body CORBA.Repository_Root.Container.Impl is
    -- IR spec --
    -------------
 
+   --------------
+   --  Lookup  --
+   --------------
    function lookup
      (Self : access Object;
       search_name : in CORBA.ScopedName)
-     return CORBA.Repository_Root.Contained.Ref
+      return CORBA.Repository_Root.Contained.Ref
    is
       Result_Obj : Contained.Impl.Object_Ptr := null;
       Result : CORBA.Repository_Root.Contained.Ref;
@@ -266,7 +269,7 @@ package body CORBA.Repository_Root.Container.Impl is
      (Self : access Object;
       limit_type : in CORBA.Repository_Root.DefinitionKind;
       exclude_inherited : in CORBA.Boolean)
-     return CORBA.Repository_Root.ContainedSeq
+      return CORBA.Repository_Root.ContainedSeq
    is
       Result : CORBA.Repository_Root.ContainedSeq;
    begin
@@ -277,29 +280,35 @@ package body CORBA.Repository_Root.Container.Impl is
    end contents;
 
 
-   function lookup_name
+   -------------------
+   --  Lookup_Name  --
+   -------------------
+   function Lookup_Name
      (Self : access Object;
       search_name : in CORBA.Identifier;
       levels_to_search : in CORBA.Long;
       limit_type : in CORBA.Repository_Root.DefinitionKind;
       exclude_inherited : in CORBA.Boolean)
-     return CORBA.Repository_Root.ContainedSeq
+      return CORBA.Repository_Root.ContainedSeq
    is
       package Contained_For_Seq renames IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
+      package IDF renames IDL_SEQUENCE_CORBA_Repository_Root_InterfaceDef_Forward;
+      package VDF renames IDL_SEQUENCE_CORBA_Repository_Root_ValueDef_Forward;
       Result : CORBA.Repository_Root.ContainedSeq;
    begin
       Result := Contained.Impl.Lookup_Name (Self.Contents,
                                             Search_Name,
                                             Limit_Type);
 
+      --  Do we look into the inherited
       if not Exclude_Inherited then
          case Get_Def_Kind (Self) is
             when Dk_Interface =>
                declare
-                  package IDF renames IDL_SEQUENCE_CORBA_Repository_Root_InterfaceDef_Forward;
                   IntDefSeq : InterfaceDefSeq
                     := InterfaceDef.Impl.Get_Base_Interfaces
                     (InterfaceDef.Impl.Object_Ptr (Get_Real_Object (Self)));
+                  --  create the array of the parent interfaces
                   Int_Array : IDF.Element_Array
                     := IDF.To_Element_Array (IDF.Sequence (IntDefSeq));
                begin
@@ -315,6 +324,7 @@ package body CORBA.Repository_Root.Container.Impl is
                                             -1,
                                             Limit_Type,
                                             Exclude_Inherited);
+                        --  append the current result to the global one
                         Contained_For_Seq.Append
                           (Contained_For_Seq.Sequence (Result),
                            Contained_For_Seq.Sequence (Res));
@@ -322,14 +332,117 @@ package body CORBA.Repository_Root.Container.Impl is
                   end loop;
                end;
             when Dk_Value =>
+               --  check the supported interfaces
                declare
+                  IntDefSeq : InterfaceDefSeq
+                    := ValueDef.Impl.Get_Supported_Interfaces
+                    (ValueDef.Impl.Object_Ptr (Get_Real_Object (Self)));
+                  --  create the array of the supported interfaces
+                  Int_Array : IDF.Element_Array
+                    := IDF.To_Element_Array (IDF.Sequence (IntDefSeq));
                begin
-                  null;
+                  for I in Int_Array'Range loop
+                     declare
+                       Int : InterfaceDef.Impl.Object_Ptr
+                         := InterfaceDef.Impl.To_Object (Int_Array (I));
+                       Res : ContainedSeq;
+                     begin
+                        --  we will get all the definition of the inherited interface
+                        Res := Lookup_Name (Object_Ptr (Int),
+                                            Search_Name,
+                                            -1,
+                                            Limit_Type,
+                                            Exclude_Inherited);
+                        --  append the current result to the global one
+                        Contained_For_Seq.Append
+                          (Contained_For_Seq.Sequence (Result),
+                           Contained_For_Seq.Sequence (Res));
+                     end;
+                  end loop;
+               end;
+               --  check the abstract_base_value
+               declare
+                  ValDefSeq : ValueDefSeq
+                    := ValueDef.Impl.Get_Abstract_Base_Values
+                    (ValueDef.Impl.Object_Ptr (Get_Real_Object (Self)));
+                  --  create the array of the supported Values
+                  Val_Array : VDF.Element_Array
+                    := VDF.To_Element_Array (VDF.Sequence (ValDefSeq));
+               begin
+                  for I in Val_Array'Range loop
+                     declare
+                        Val : ValueDef.Impl.Object_Ptr
+                          := ValueDef.Impl.To_Object (Val_Array (I));
+                        Res : ContainedSeq;
+                     begin
+                        --  we will get all the definition of the inherited Value
+                        Res := Lookup_Name (Object_Ptr (Val),
+                                            Search_Name,
+                                            -1,
+                                            Limit_Type,
+                                            Exclude_Inherited);
+                        --  append the current result to the global one
+                        Contained_For_Seq.Append
+                          (Contained_For_Seq.Sequence (Result),
+                           Contained_For_Seq.Sequence (Res));
+                     end;
+                  end loop;
+               end;
+               --  check the base_value
+               declare
+                  Val : ValueDef.Impl.Object_Ptr
+                    := ValueDef.Impl.Object_Ptr
+                    (ValueDef.Object_Of
+                     (ValueDef.Impl.Get_Base_Value
+                      (ValueDef.Impl.Object_Ptr (Get_Real_Object (Self)))));
+                  Res : ContainedSeq;
+               begin
+                  --  we will get all the definition of the inherited Value
+                  Res := Lookup_Name (Object_Ptr (Val),
+                                      Search_Name,
+                                      -1,
+                                      Limit_Type,
+                                      Exclude_Inherited);
+                  --  append the current result to the global one
+                  Contained_For_Seq.Append
+                    (Contained_For_Seq.Sequence (Result),
+                     Contained_For_Seq.Sequence (Res));
                end;
             when others =>
                null;
          end case;
       end if;
+
+      --  check the different levels (if there is one)
+      if (Levels_To_Search > 0) and
+        Get_Def_Kind (Self) /= Dk_Repository then
+         declare
+            New_Level : Long;
+            Parent : Object_Ptr
+              := To_Object
+              (Contained.Impl.Get_Defined_In
+               (Contained.Impl.To_Contained
+                (Get_Real_Object (Self))));
+            Res : ContainedSeq;
+         begin
+            if Levels_To_Search = 1 then
+               New_Level := -1;
+            else
+               New_Level := Levels_To_Search - 1;
+            end if;
+            Res := Lookup_Name (Parent,
+                                Search_Name,
+                                New_Level,
+                                Limit_Type,
+                                Exclude_Inherited);
+            --  append the current result to the global one
+            Contained_For_Seq.Append
+              (Contained_For_Seq.Sequence (Result),
+               Contained_For_Seq.Sequence (Res));
+         end;
+      end if;
+
+      --  FIXME>>>>>>>>>  remove the TWINS
 
       return Result;
    end lookup_name;

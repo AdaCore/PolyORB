@@ -729,9 +729,21 @@ package body CORBA.Repository_Root.Contained.Impl is
    function Lookup_Name (In_Seq : Contained_Seq.Sequence;
                          Name : Identifier;
                          Limit_Type : DefinitionKind) return ContainedSeq is
-      Result : ContainedSeq;
+      Result : Contained_Seq.Sequence := Contained_Seq.Null_Sequence;
+      Cont_Array : Contained_Seq.Element_Array
+        := Contained_Seq.To_Element_Array (In_Seq);
    begin
-      return Result;
+      for I in Cont_Array'Range loop
+         if Cont_Array (I).Name = Name then
+            --  if limit_type is dk_all or if we get the right limit_type...
+            if (Limit_Type = Dk_All) or
+              (Limit_Type = Get_Def_Kind (Cont_Array (I))) then
+               --  ...we should ppend this contained to the list
+               Contained_Seq.Append (Result, Cont_Array (I));
+            end if;
+         end if;
+      end loop;
+      return To_ContainedSeq (Result);
    end;
 
    -----------------------
