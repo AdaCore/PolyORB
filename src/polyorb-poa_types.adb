@@ -33,12 +33,20 @@
 --  $Id$
 
 with Ada.Streams;
+
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Types;
 
 package body PolyORB.POA_Types is
 
    use Ada.Streams;
    use PolyORB.Types;
+   use PolyORB.Log;
+
+   package L is new PolyORB.Log.Facility_Log ("polyorb.poa_types");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    ----------
    -- Left --
@@ -306,6 +314,15 @@ package body PolyORB.POA_Types is
    is
       Oid                : Object_Id_Access;
    begin
+      pragma Debug (O ("Making oid for "
+                       & To_Standard_String (U_Oid.Creator)
+                       & "/"
+                       & To_Standard_String (U_Oid.Id)
+                       & ";"
+                       & Boolean'Image (U_Oid.System_Generated)
+                       & ";"
+                       & Unsigned_Long'Image
+                       (U_Oid.Persistency_Flag)));
       Oid := new Object_Id'
         (Object_Id
          (Put_String    (U_Oid.Creator)
@@ -313,6 +330,7 @@ package body PolyORB.POA_Types is
           & Put_Boolean (U_Oid.System_Generated)
           & Put_ULong   (U_Oid.Persistency_Flag)));
 
+      pragma Debug (O ("Oid is " & Image (Oid.all)));
       return Oid;
    end U_Oid_To_Oid;
 
