@@ -177,4 +177,11 @@ package Broca.Value.Stream is
       Nesting_Depth : in CORBA.Long;
       Closing_Tag_Read : out CORBA.Long);
 
+   procedure Append
+     (Buffer : access Buffer_Type;
+      Already_Unmarshalled : in out ISeq.Sequence;
+      Data : in CORBA.Value.Base'Class);
+   --  Appends a freshly unmarshalled object to the
+   --  Already_Unmarshalled list
+
 end Broca.Value.Stream;

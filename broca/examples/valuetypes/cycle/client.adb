@@ -29,7 +29,6 @@ begin
       Put_Line ("Sending:");
       Cycle.Node.Print (Noderef);
       Cycle.NodeManipulator.remoteManipulate (NMRef, Noderef);
-      Put_Line("");
       Put_Line ("Received:");
       Cycle.Node.Print (Noderef);
    end loop;

@@ -419,6 +419,8 @@ package body Ada_Be.Idl2Ada.Stream is
                    & Ada_Be.Idl2Ada.Value_Impl.Suffix
                    & ".Object;");
                PL (CU, "CORBA.Value.Set (Val, CORBA.Impl.Object_Ptr (Obj));");
+               PL (CU, "Broca.Value.Stream.Append");
+               PL (CU, "  (Buffer, Already_Unmarshalled, Val);");
                DI (CU);
                PL (CU, "else");
                II (CU);

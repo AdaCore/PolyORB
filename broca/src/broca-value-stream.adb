@@ -296,16 +296,11 @@ package body Broca.Value.Stream is
                   R : CORBA.AbstractBase.Ref;
                   P : CORBA.Impl.Object_Ptr;
                begin
-                  pragma Debug (O ("A"));
                   El := ISeq.Element_Of (Already_Unmarshalled, Index);
-                  pragma Debug (O ("B"));
                   R := El.Ref;
-                  pragma Debug (O ("C"));
                   P := CORBA.AbstractBase.Object_Of (R);
-                  pragma Debug (O ("D"));
                   CORBA.AbstractBase.Set
                     (CORBA.AbstractBase.Ref (Result), P);
-                  pragma Debug (O ("E"));
                end;
                --  To keep compiler happy
                --  (Closing_Tag_Read not implemented yet)
@@ -315,24 +310,6 @@ package body Broca.Value.Stream is
 
          --  standard marshalling
       else
-
-         --  Add the freshly unmarshalled object
-         --  to the Already_Unmarshalled sequence
-         declare
-            El : Indirection_Element;
-         begin
-            El.Offset := CDR_Position (Buffer) - 4;
-            --  because the tag has already been unmarshalled
-            El.Type_Id := Value_Ref;
-            El.Ref := CORBA.AbstractBase.Ref (Result);
-            ISeq.Append (Already_Unmarshalled, El);
-            pragma Debug (O ("Unmarshall: VT unmarshalled at offset = "
-                             & CORBA.Long'Image (El.Offset)));
-         end;
-         pragma Debug (O ("Unmarshall: Already_Unmarshalled'Length = "
-                          & Natural'Image
-                          (ISeq.Length (Already_Unmarshalled))));
-
 
          --  if there is a codebase URL, skip it
          --  we suppose there is no type information
@@ -351,6 +328,29 @@ package body Broca.Value.Stream is
          end;
       end if;
    end Unmarshall;
+
+   --------------
+   --  Append  --
+   --------------
+   procedure Append
+     (Buffer : access Buffer_Type;
+      Already_Unmarshalled : in out ISeq.Sequence;
+      Data : in CORBA.Value.Base'Class) is
+      El : Indirection_Element;
+   begin
+      --  Add the freshly unmarshalled object
+      --  to the Already_Unmarshalled sequence
+      El.Offset := CDR_Position (Buffer) - 4;
+      --  (-4) because the tag has already been unmarshalled
+      El.Type_Id := Value_Ref;
+      El.Ref := CORBA.AbstractBase.Ref (Data);
+      ISeq.Append (Already_Unmarshalled, El);
+      pragma Debug (O ("Append: VT unmarshalled at offset = "
+                       & CORBA.Long'Image (El.Offset)));
+      pragma Debug (O ("Append: Already_Unmarshalled'Length = "
+                       & Natural'Image
+                       (ISeq.Length (Already_Unmarshalled))));
+   end Append;
 
 end Broca.Value.Stream;
 

@@ -15,6 +15,7 @@ package cycle.Node.Value_Impl is
    type Object is new CORBA.Value.Impl_Base with record
       number : CORBA.Long;
       next : cycle.Node.Value_Ref;
+      previous : cycle.Node.Value_Ref;
    end record;
 
    type Object_Ptr is access all Object'Class;
@@ -35,6 +36,14 @@ package cycle.Node.Value_Impl is
      (Self : access Object;
       To : in cycle.Node.Value_Ref);
 
+   function get_previous
+     (Self : access Object)
+     return cycle.Node.Value_Ref;
+
+   procedure set_previous
+     (Self : access Object;
+      To : in cycle.Node.Value_Ref);
+
    function createElement
      (l : in CORBA.Long)
       return Object_Ptr;
@@ -44,15 +53,27 @@ package cycle.Node.Value_Impl is
       list : in cycle.Node.Value_Ref)
       return Object_Ptr;
 
-   function getPrevious
-     (Self : access Object)
-     return CORBA.Long;
-
    function cmdLineManipulate
      (Self : access Object)
-     return Cycle.Node.Value_Ref;
+     return cycle.Node.Value_Ref;
 
    procedure print
      (Self : access Object);
+
+   function moveForward
+     (Self : access Object)
+     return cycle.Node.Value_Ref;
+
+   function moveBackward
+     (Self : access Object)
+     return cycle.Node.Value_Ref;
+
+   function revert
+     (Self : access Object)
+     return cycle.Node.Value_Ref;
+
+   function removeNode
+     (Self : access Object)
+     return cycle.Node.Value_Ref;
 
 end cycle.Node.Value_Impl;

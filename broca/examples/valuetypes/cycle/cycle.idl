@@ -3,11 +3,15 @@ module cycle {
   valuetype Node {
 public long number;
 public Node next;
+public Node previous; 
  factory createElement (in long l);
  factory createList (in long l, in Node list);
- long getPrevious ();
  Node cmdLineManipulate();
  void print();
+ Node moveForward();
+ Node moveBackward();
+ Node revert();
+ Node removeNode();
   };
 
   interface NodeManipulator {
