@@ -44,7 +44,6 @@ with PolyORB.Binding_Data.Local;
 with PolyORB.Buffers;             use PolyORB.Buffers;
 with PolyORB.Components;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Filters;
 with PolyORB.Filters.Interface;
 with PolyORB.Log;

@@ -37,7 +37,6 @@ with Ada.Exceptions;
 with PolyORB.Components;
 with PolyORB.Configuration;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Filters.Interface;
 with PolyORB.Jobs;
 with PolyORB.Locked_Queue;

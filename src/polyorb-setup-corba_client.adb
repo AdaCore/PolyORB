@@ -41,7 +41,6 @@ with PolyORB.ORB.No_Tasking;
 with PolyORB.Binding_Data.IIOP;
 with PolyORB.Binding_Data.SOAP;
 
-pragma Elaborate_All (PolyORB.Initialization);
 pragma Elaborate_All (PolyORB.ORB);
 pragma Elaborate_All (PolyORB.ORB.No_Tasking);
 pragma Elaborate_All (PolyORB.Binding_Data.IIOP);

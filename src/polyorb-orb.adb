@@ -40,7 +40,6 @@ with Ada.Tags;
 
 with PolyORB.Annotations;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Constants;
 with PolyORB.Filters;
 with PolyORB.Filters.Interface;

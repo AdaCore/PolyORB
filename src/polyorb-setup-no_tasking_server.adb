@@ -38,7 +38,6 @@ with PolyORB.Initialization;
 with PolyORB.ORB.No_Tasking;
 with PolyORB.Setup.Server;
 
-pragma Elaborate_All (PolyORB.Initialization);
 pragma Elaborate_All (PolyORB.ORB.No_Tasking);
 pragma Elaborate_All (PolyORB.Setup.Server);
 

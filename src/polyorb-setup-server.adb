@@ -36,7 +36,6 @@
 --  $Id$
 
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Configuration;
 with PolyORB.Filters;
 with PolyORB.Filters.Slicers;

@@ -33,8 +33,6 @@
 --  $Id$
 
 with CORBA.AbstractBase;
-pragma Elaborate_All (CORBA.AbstractBase);
-
 with PolyORB.Any.NVList;
 
 package CORBA.NVList is

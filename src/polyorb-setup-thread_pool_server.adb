@@ -40,7 +40,6 @@ with PolyORB.ORB.Thread_Pool;
 with PolyORB.Protected_Objects;
 with PolyORB.Setup.Server;
 
-pragma Elaborate_All (PolyORB.Initialization);
 pragma Elaborate_All (PolyORB.ORB.Thread_Pool);
 pragma Elaborate_All (PolyORB.Protected_Objects);
 pragma Elaborate_All (PolyORB.Setup.Server);

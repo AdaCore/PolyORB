@@ -35,7 +35,6 @@
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Utils.Strings;
 
 package body PolyORB.No_Tasking is

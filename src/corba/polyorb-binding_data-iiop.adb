@@ -40,7 +40,6 @@ with PolyORB.Configuration;
 with PolyORB.Filters;
 with PolyORB.Filters.Slicers;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Log;
 with PolyORB.Protocols;
 with PolyORB.Protocols.GIOP;

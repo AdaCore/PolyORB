@@ -33,7 +33,6 @@
 --  $Id$
 
 with PolyORB.Smart_Pointers;
-pragma Elaborate_All (PolyORB.Smart_Pointers);
 
 with CORBA.Impl;
 

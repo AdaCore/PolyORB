@@ -39,7 +39,6 @@ with Ada.Streams; use Ada.Streams;
 with PolyORB.Any;
 with PolyORB.Configuration;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Filters;
 with PolyORB.Filters.HTTP;
 with PolyORB.ORB.Interface;
