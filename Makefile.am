@@ -1,5 +1,5 @@
 AUTOMAKE_OPTIONS = foreign no-dependencies
-SUBDIRS = Dist Garlic
+SUBDIRS = @GLADEDIRS@
 ACLOCAL_AMFLAGS = -I support
 
 make-check-stamp:

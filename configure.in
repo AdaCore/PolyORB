@@ -41,6 +41,42 @@ AC_SUBST(GNATFLAGS)
 AC_SUBST(CFLAGS)
 AC_SUBST(LINKTEST)
 #
+# Check for pcs name
+#
+AC_MSG_CHECKING(for pcs name)
+AC_ARG_WITH(pcs,
+[  --with-pcs=X            Use X as default pcs for gnatdist (garlic)],
+[PCSNAME="$withval"],
+[PCSNAME="garlic"])
+[
+  case ${PCSNAME} in
+    garlic)
+      PCSFLAGS="-I${prefix}/lib/garlic -largs -lgarlic";
+      GLADEDIRS="Dist Garlic";;
+    polyorb)
+      which polyorb-config 1>/dev/null 2>/dev/null;
+      if test "$?" = "0"; then
+        PCSFLAGS="`polyorb-config`";
+        GLADEDIRS="Dist";
+      else
+        PCSNAME="";
+      fi;;
+    *)
+      PCSNAME="garlic";
+      PCSFLAGS="-I${prefix}/lib/garlic -largs -lgarlic";
+      GLADEDIRS="Dist Garlic";;
+  esac;
+]
+if test "x${PCSNAME}" = "x"; then
+  AC_MSG_RESULT("unknown pcs")
+  exit 1;
+else
+  AC_MSG_RESULT(${PCSNAME})
+fi;
+AC_SUBST(PCSNAME)
+AC_SUBST(PCSFLAGS)
+AC_SUBST(GLADEDIRS)
+#
 # Check for optimization flags
 #
 AC_ARG_WITH(optimization,
@@ -96,7 +132,7 @@ AC_MSG_RESULT($PSNAME)
 # Select blocking IO policy (process or thread blocking IO)
 # WARNING : This does not work for cross environment
 #
-AC_MSG_CHECKING([need to emulate thread blocking I/O])
+AC_MSG_CHECKING([whether to emulate thread blocking I/O])
 AC_ARG_ENABLE(non-blocking-io,
 [  --enable-nonblockingio  Force emulation of thread blocking I/O],
 [
@@ -125,7 +161,7 @@ fi
 #
 # Flag to use to copy flags without time modification
 #
-AC_MSG_CHECKING(preserve the original file properties with)
+AC_MSG_CHECKING(for flag to preserve the original file properties)
 [
   case "${PLATFORM_SPECIFIC}" in
     w) CP_PRESERVE="-lf";;
@@ -147,7 +183,7 @@ AC_SUBST(SUPPORTS_LOCAL_LAUNCH)
 #
 # Remote shell command
 #
-AC_MSG_CHECKING(which remote shell command to use)
+AC_MSG_CHECKING(for remote shell command to use)
 AC_ARG_WITH(rshcmd,
 [  --with-rshcmd=command   Set alternate remote shell command],
 [
@@ -165,7 +201,7 @@ AC_MSG_RESULT([${RSH_CMD}])
 #
 # Remote shell flags
 #
-AC_MSG_CHECKING(which remote shell options to use)
+AC_MSG_CHECKING(for remote shell options to use)
 AC_ARG_WITH(rshopt,
 [  --with-rshopt=command   Set remote shell options],
 [
@@ -186,7 +222,7 @@ AC_MSG_RESULT([${RSH_OPT}])
 AC_ARG_WITH(protocols,
 [  --with-protocols=list   Enumerate protocol list],
 [
-  AC_MSG_CHECKING([default protocols])
+  AC_MSG_CHECKING([for default protocols])
   LIST="";
   PROTOCOLSSOURCES="";
   PROTOCOLSOBJECTS="";
@@ -212,7 +248,7 @@ AC_ARG_WITH(protocols,
   AC_MSG_RESULT([${LIST}])
 ],
 [
-  AC_MSG_CHECKING([default protocols])
+  AC_MSG_CHECKING([for default protocols])
   PROTOCOLSSOURCES="\$(TCPSOURCES)";
   PROTOCOLSOBJECTS="\$(TCPOBJECTS)";
   DEFPROTOCOLNAME="tcp";
@@ -234,7 +270,7 @@ AC_ARG_WITH(data-location,
   DEFSTORAGENAME="dfs"
   DEFSTORAGEDATA=""
 ])
-AC_MSG_CHECKING([for default data location])
+AC_MSG_CHECKING(for default data location])
 AC_MSG_RESULT([${DEFSTORAGENAME}://${DEFSTORAGEDATA}])
 AC_SUBST(DEFSTORAGENAME)
 AC_SUBST(DEFSTORAGEDATA)
@@ -250,7 +286,7 @@ AC_ARG_WITH(boot-location,
 [
   DEFPROTOCOLDATA=`echo 000$$ | ${SED} 's,^.*\(...\)$,localhost:5\1,'`
 ])
-AC_MSG_CHECKING([for default boot location])
+AC_MSG_CHECKING(for default boot location])
 AC_MSG_RESULT([${DEFPROTOCOLNAME}://${DEFPROTOCOLDATA}])
 AC_SUBST(DEFPROTOCOLNAME)
 AC_SUBST(DEFPROTOCOLDATA)
@@ -265,7 +301,7 @@ AC_ARG_WITH(filters,
 [
   FILTERSLIST="zip"
 ])
-AC_MSG_CHECKING([default filters])
+AC_MSG_CHECKING(for default filters])
 [
 if test -d Garlic; then
   :
@@ -343,7 +379,7 @@ if test $SUPPORT_RPC_ABORTION = "True"; then
 else
   AC_MSG_RESULT([false])
 fi
-AC_MSG_CHECKING(which exception model to use)
+AC_MSG_CHECKING(for exception model to use)
 AC_MSG_RESULT($EXCEPTION_MODEL)
 AC_SUBST(GNAT_RTS_FLAG)
 AC_SUBST(SUPPORT_RPC_ABORTION)
