@@ -207,6 +207,16 @@ package Corba is
    ----           not in spec  omniORB2 specific           ---
    -----------------------------------------------------------
 
+    Transaction_Required : exception;  -- data conversion error
+    Transaction_Rolledback : exception;  -- data conversion error
+    Invalid_Transaction : exception;  -- data conversion error
+    Wrong_Transaction : exception;  -- data conversion error
+
+    type Transaction_Required_Members is new System_Exception_Members with null record;
+    type Transaction_Rolledback_Members is new System_Exception_Members with null record;
+    type Invalid_Transaction_Members is new System_Exception_Members with null record;
+    type Wrong_Transaction_Members is new System_Exception_Members with null record;
+
     Object_Not_Exist : exception ;
 
     function Omni_CallTransientExceptionHandler return CORBA.Boolean;

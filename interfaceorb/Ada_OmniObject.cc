@@ -6,7 +6,7 @@
 ////     tors.                                                          ////
 ////     So, it provides the same functions as omniObject_C2Ada         ////
 ////     except that constructors are replaced by Init functions.       ////
-////     It has also a pointer on the underlining omniObject_C2Ada      ////
+////     It has also a pointer on the underlying omniObject_C2Ada       ////
 ////     object                                                         ////
 ////                                                                    ////
 ////                                                                    ////
@@ -38,7 +38,7 @@ Ada_OmniObject::Destructor(Ada_OmniObject* o) {
 void
 Ada_OmniObject::Init ()
 {
-  // Creation of the underlining omniobject_C2Ada object
+  // Creation of the underlying omniobject_C2Ada object
   C_OmniObject = new omniObject_C2Ada (this);
   // updating of Init_OK flag
   Init_Ok = true;
@@ -53,7 +53,7 @@ Ada_OmniObject::Init (const char *repoId,
 		      IOP::TaggedProfileList *profiles,
 		      _CORBA_Boolean release)
 {
-  // Creation of the underlining omniobject_C2Ada object
+  // Creation of the underlying omniobject_C2Ada object
   C_OmniObject = new omniObject_C2Ada (repoId,
 				       r,
 				       key,

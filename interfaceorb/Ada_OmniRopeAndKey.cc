@@ -6,7 +6,7 @@
 ////     tors.                                                          ////
 ////     So, it provides the same functions as omniRopeAndKey           ////
 ////     except that constructors are replaced by Init functions.       ////
-////     It has also a pointer on the underlining omniRopeAndKey        ////
+////     It has also a pointer on the underlying omniRopeAndKey         ////
 ////     object                                                         ////
 ////                                                                    ////
 ////                                                                    ////

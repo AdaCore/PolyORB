@@ -5,7 +5,7 @@
 ////     avoid the presence of non default constructors.                ////
 ////     So, it provides the same functions as GIOP_C except that       ////
 ////     constructors are replaced by Init functions.                   ////
-////     It has also a pointer on the underlining GIOP_C object.        ////
+////     It has also a pointer on the underlying GIOP_C object.         ////
 ////                                                                    ////
 ////                                                                    ////
 ////                Date : 02/28/99                                     ////

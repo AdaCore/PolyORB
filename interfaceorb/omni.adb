@@ -49,8 +49,11 @@ Package body Omni is
    begin
       -- transforms the arguments in a C type ...
       C_Str := Interfaces.C.Strings.New_String (Str) ;
+               -- desallocation in e few lines
       -- ... calls the C function ...
       C_Result := C_String_To_Object (C_Str) ;
+               -- desallocation of C_Str
+      Interfaces.C.Strings.Free (C_Str) ;
       -- ... and transforms the result in Ada type
       Ada_Result_Ptr :=  Address_To_OmniObject.To_Pointer (C_Result) ;
       return Ada_Result_Ptr.all ;

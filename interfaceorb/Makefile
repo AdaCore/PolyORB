@@ -51,9 +51,9 @@ c2ada : Ada_Sys_Dep sys_dep.o Ada_Rope.o rope.o Ada_OmniRopeAndKey.o \
 omniropeandkey.o omniobjectmanager.o omniObject_C2Ada.o Ada_OmniObject.o \
 omniobject.o giop.o Ada_Giop_s.o giop_s.o Ada_Giop_c.o giop_c.o \
 Ada_netBufferedStream.o netbufferedstream.o corba-object.o corba-boa.o \
-membufferedstream.o iop.o proxyObjectFactory_C2Ada.o #omni_C2Ada.o \
-#omni.o \
-Ada_exceptions.o
+membufferedstream.o iop.o proxyObjectFactory_C2Ada.o \
+Ada_exceptions.o exceptions.o
+#omni.o \#omni_C2Ada.o \
 
 Ada_Sys_Dep : Ada_Sys_Dep.cc
 	$(CPP_COMP) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_Sys_Dep.cc -o Ada_Sys_Dep
@@ -74,7 +74,7 @@ rope.o : rope.ads
 Ada_OmniRopeAndKey.o : Ada_OmniRopeAndKey.hh Ada_OmniRopeAndKey.cc
 	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_OmniRopeAndKey.cc
 
-omniropeandkey.o : omniropeandkey.ads omniropeandkey.adb
+omniropeandkey.o : omniropeandkey.ads omniropeandkey.adb corba.ali
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) omniropeandkey.adb
 
 omniobjectmanager.o : omniobjectmanager.ads omniobjectmanager.adb
@@ -86,7 +86,7 @@ omniObject_C2Ada.o : omniObject_C2Ada.hh omniObject_C2Ada.cc
 Ada_OmniObject.o : Ada_OmniObject.hh Ada_OmniObject.cc
 	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_OmniObject.cc
 
-omniobject.o : omniobject.ads omniobject.adb
+omniobject.o : omniobject.ads omniobject.adb corba.ali
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) omniobject.adb
 
 giop.o : giop.ads giop.adb
@@ -134,6 +134,9 @@ omni_C2Ada.o: omni_C2Ada.hh omni_C2Ada.cc
 Ada_exceptions.o : Ada_exceptions.cc Ada_exceptions.hh
 	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_exceptions.cc
 
+exceptions.o : exceptions.ads exceptions.adb
+	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) exceptions.adb
+
 
 ################################################
 # compilation of files that do not depend on C++
@@ -148,9 +151,9 @@ netbufferedstream.ali
 
 corba.ali: corba.ads corba.adb
 
-corba-object.ali: corba-object.ads corba-object.adb omniobject.ali
+corba-object.ali: corba-object.ads corba-object.adb omniobject.ali corba.ali
 
-giop_s.ali: giop_s.ads giop_s.adb
+giop_s.ali: giop_s.ads giop_s.adb corba.ali
 
 giop.ali: giop.ads
 

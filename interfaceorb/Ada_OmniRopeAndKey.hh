@@ -6,7 +6,7 @@
 ////     tors.                                                          ////
 ////     So, it provides the same functions as omniRopeAndKey           ////
 ////     except that constructors are replaced by Init functions.       ////
-////     It has also a pointer on the underlining omniRopeAndKey        ////
+////     It has also a pointer on the underlying omniRopeAndKey         ////
 ////     object                                                         ////
 ////                                                                    ////
 ////                                                                    ////
@@ -27,11 +27,11 @@ public:
   
   void Init (Rope *r,_CORBA_Octet *k, _CORBA_ULong ksize);
   // Initialisation of Ada_OmniRopeAndKey, calls the
-  // underlining omniRopeAndKey constructor
+  // underlying omniRopeAndKey constructor
   
   void Init ();
   // Initialisation of Ada_OmniRopeAndKey, calls the
-  // underlining omniRopeAndKey constructor
+  // underlying omniRopeAndKey constructor
   
   Rope* rope();
   // wrapper around inline Rope* rope() const
@@ -46,7 +46,7 @@ public:
 private:
 
   omniRopeAndKey *C_omniRopeAndKey;
-  // Pointer on the underlining Rope object
+  // Pointer on the underlying Rope object
 
   bool Init_Ok;
   // This flag tells whether an init function was called or not

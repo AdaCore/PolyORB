@@ -5,7 +5,7 @@
 ////     of non default constructors.                                   ////
 ////     So, it provides the same functions Rope except that cons-      ////
 ////     tructors are replaced by Init functions.                       ////
-////     It has also a pointer on the underlining Rope Object           ////
+////     It has also a pointer on the underlying Rope Object            ////
 ////                                                                    ////
 ////                                                                    ////
 ////                Date : 02/17/99                                     ////
@@ -30,7 +30,7 @@ public:
 private:
 
   Rope *C_Rope;
-  // Pointer on the underlining Rope object
+  // Pointer on the underlying Rope object
 
   bool Init_Ok;
   // This flag tells whether an init function was called or not

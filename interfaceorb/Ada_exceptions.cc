@@ -15,24 +15,26 @@
 ////                                                                    ////
 ////////////////////////////////////////////////////////////////////////////
 
-//#include "Ada_exceptions.hh"
 
-#define DEF_EXCEPTION(name) \
-void Raise_Corba_Exception (name e) \
-{ \
-  Ulong pd_minor = e.minor () ; \
-  CompletionStatus pd_status := e.completed () ; \
-  Raise_Ada_name_Exception (pd_minor, pd_status) \
-}; \
-\
-void Raise_C_name_Exception (Ulong pd_minor, \
-			     CompletionStatus pd_status) \
-{ \
-  name e = new name (pd_minor, pd_status); \
-  e->_raise (); \
-}; \
-\ 
+#include "Ada_exceptions.hh"
 
+//#define DEF_EXCEPTION(name)
+void Raise_Corba_Exception (CORBA::UNKNOWN e)
+{
+  CORBA::ULong pd_minor = e.minor () ;
+  CORBA::CompletionStatus pd_status = e.completed () ;
+  Raise_Ada_UNKNOWN_Exception (pd_minor, pd_status) ;
+};
+
+void Raise_C_UNKNOWN_Exception (CORBA::ULong pd_minor,
+				CORBA::CompletionStatus pd_status)
+{
+  CORBA::UNKNOWN *e = new CORBA::UNKNOWN (pd_minor, pd_status);
+  Raise_Ada_UNKNOWN_Exception (pd_minor, pd_status) ;
+  //  e->_raise ();
+};
+
+/*
 
 DEF_EXCEPTION (UNKNOWN);
 DEF_EXCEPTION (BAD_PARAM);
@@ -67,3 +69,4 @@ DEF_EXCEPTION (WRONG_TRANSACTION);
 
 
 #undef DEF_EXCEPTION
+*/

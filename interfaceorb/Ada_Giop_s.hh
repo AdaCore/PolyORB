@@ -5,7 +5,7 @@
 ////     avoid the presence of non default constructors.                ////
 ////     So, it provides the same functions as GIOP_S except that       ////
 ////     constructors are replaced by Init functions.                   ////
-////     It has also a pointer on the underlining GIOP_S object.        ////
+////     It has also a pointer on the underlying GIOP_S object.         ////
 ////                                                                    ////
 ////                                                                    ////
 ////                Date : 02/28/99                                     ////
@@ -26,7 +26,7 @@ public:
   
   void Init (Strand *s);
   // Initialisation of Ada_Giop_s, calls the
-  // underlining GIOP_S constructor
+  // underlying GIOP_S constructor
 
   void RequestReceived(_CORBA_Boolean skip);
   // wrapper around void RequestReceived(_CORBA_Boolean skip=0);
@@ -43,7 +43,7 @@ public:
 private:
 
   GIOP_S *C_Giop_s;
-  // Pointer on the underlining Giop_s object
+  // Pointer on the underlying Giop_s object
 
   bool Init_Ok;
   // This flag tells whether an init function was called or not

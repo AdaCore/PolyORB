@@ -6,7 +6,7 @@
 ////     constructors.                                                  ////
 ////     So, it provides the same functions as netBufferedStream        ////
 ////     except that constructors are replaced by Init functions.       ////
-////     It has also a pointer on the underlining netBufferedStream     ////
+////     It has also a pointer on the underlying netBufferedStream      ////
 ////     object                                                         ////
 ////                                                                    ////
 ////                                                                    ////
@@ -31,7 +31,7 @@ void
 Ada_netBufferedStream::Init (Strand *s, _CORBA_Boolean RdLock,
                              _CORBA_Boolean WrLock, size_t Bufsize)
 {
-  // Creation of the underlining omniobject_C2Ada object
+  // Creation of the underlying omniobject_C2Ada object
   C_netBufferedStream = new NetBufferedStream (s,RdLock,WrLock,Bufsize);
   // updating of Init_OK flag 
   Init_Ok = true;
@@ -43,7 +43,7 @@ void
 Ada_netBufferedStream::Init (Rope *r, _CORBA_Boolean RdLock,
                              _CORBA_Boolean WrLock, size_t Bufsize)
 {
-  // Creation of the underlining omniobject_C2Ada object
+  // Creation of the underlying omniobject_C2Ada object
   C_netBufferedStream = new NetBufferedStream (r,RdLock,WrLock,Bufsize);
   // updating of Init_OK flag
   Init_Ok = true;

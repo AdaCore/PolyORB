@@ -67,6 +67,7 @@ package body Giop_C is
       C_Objkey := Objkey'Address ;
       C_Objkeysize := Ada_To_C_Unsigned_Long (Objkeysize) ;
       C_Opname := Interfaces.C.Strings.New_String (Ada_Opname) ;
+                 -- desallocation in a few lines
       C_MsgSize := Ada_To_C_Unsigned_Long (MsgSize) ;
       C_Oneway := Sys_Dep.Boolean_Ada_To_C (Oneway) ;
       -- ... and calls the C procedure
@@ -76,6 +77,8 @@ package body Giop_C is
                             C_Opname,
                             C_MsgSize,
                             C_Oneway) ;
+                 -- desallocation of C_Opname
+      Interfaces.C.Strings.Free (C_Opname) ;
    end ;
 
 

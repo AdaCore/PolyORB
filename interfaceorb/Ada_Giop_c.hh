@@ -5,7 +5,7 @@
 ////     avoid the presence of non default constructors.                ////
 ////     So, it provides the same functions as GIOP_C except that       ////
 ////     constructors are replaced by Init functions.                   ////
-////     It has also a pointer on the underlining GIOP_C object.        ////
+////     It has also a pointer on the underlying GIOP_C object.         ////
 ////                                                                    ////
 ////                                                                    ////
 ////                Date : 02/28/99                                     ////
@@ -26,7 +26,7 @@ public:
   
   void Init (Rope *r);
   // Initialisation of Ada_Giop_c, calls the
-  // underlining GIOP_C constructor
+  // underlying GIOP_C constructor
 
 
   void InitialiseRequest(const void          *objkey,
@@ -52,7 +52,7 @@ public:
 private:
 
   GIOP_C *C_Giop_c;
-  // Pointer on the underlining Giop_s object
+  // Pointer on the underlying Giop_s object
 
   bool Init_Ok;
   // This flag tells whether an init function was called or not

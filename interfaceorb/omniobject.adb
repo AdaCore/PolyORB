@@ -119,9 +119,11 @@ package body OmniObject is
                                         & Corba.CRLF
                                         & "Cannot be called on proxy objects") ;
       end if ;
-      C_Repo_Id :=
-        Interfaces.C.Strings.New_String(Corba.To_Standard_String(Repo_Id)) ;
+      C_Repo_Id := Interfaces.C.Strings.New_String(Corba.To_Standard_String(Repo_Id)) ;
+                -- desallocation in 2 lines
       C_Set_Repository_Id(Self, C_Repo_Id) ;
+                -- desallocation of C_Repo_Id
+      Interfaces.C.Strings.Free (C_Repo_Id) ;
    end ;
 
 
@@ -214,6 +216,7 @@ package body OmniObject is
    begin
       -- transforms the arguments into a C type ...
       C_RepoId := Interfaces.C.Strings.New_String (RepoId) ;
+                 -- desallocation in a few lines
       C_R := R'Address ;
       C_Key := Key'Address ;
       C_Keysize := Ada_To_C_Unsigned_Long(Keysize) ;
@@ -227,6 +230,8 @@ package body OmniObject is
                C_Keysize,
                C_Profiles,
                C_Release) ;
+                 -- desallocation of C_RepoID
+      Interfaces.C.Strings.Free (C_RepoID) ;
    end;
 
 

@@ -15,23 +15,25 @@
 ////                                                                    ////
 ////////////////////////////////////////////////////////////////////////////
 
-//#include <omniORB2/CORBA.h>
 
-#define DEF_EXCEPTION(name) \
-void Raise_Corba_Exception (name e); \
-// These methods are called by C code for raising Corba exception \
-// in Ada code. They use Raise_Ada_Exception to handle the exceptions \
-\
-extern void Raise_Ada_name_Exception (Ulong pd_minor, \
-				      CompletionStatus pd_status) ; \
+#include <omniORB2/CORBA.h>
+
+//#define DEF_EXCEPTION(name)
+void Raise_Corba_Exception (CORBA::UNKNOWN e);
+// These methods are called by C code for raising Corba exception
+// in Ada code. They use Raise_Ada_Exception to handle the exceptions
+
+extern void Raise_Ada_UNKNOWN_Exception (CORBA::ULong pd_minor,
+					 CORBA::CompletionStatus pd_status) ;
 // called by C code (Raise_Corba_Exception to be exact).
 // Handles in Ada a Corba exception that was raised in C.
 
-void Raise_C_name_Exception (Ulong pd_minor, \
-			     CompletionStatus pd_status) ; \
+void Raise_C_UNKNOWN_Exception (CORBA::ULong pd_minor,
+				CORBA::CompletionStatus pd_status) ;
 // called by Ada code.
 // Handles in C a Corba exception that was raised in Ada.
 
+/*
 				 
 DEF_EXCEPTION (UNKNOWN);
 DEF_EXCEPTION (BAD_PARAM);
@@ -66,3 +68,4 @@ DEF_EXCEPTION (WRONG_TRANSACTION);
 
 
 #undef DEF_EXCEPTION
+*/

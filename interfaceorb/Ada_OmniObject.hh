@@ -6,7 +6,7 @@
 ////     tors.                                                          ////
 ////     So, it provides the same functions as omniObject_C2Ada         ////
 ////     except that constructors are replaced by Init functions.       ////
-////     It has also a pointer on the underlining omniObject_C2Ada      ////
+////     It has also a pointer on the underlying omniObject_C2Ada       ////
 ////     object                                                         ////
 ////                                                                    ////
 ////                                                                    ////

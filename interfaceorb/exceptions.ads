@@ -20,39 +20,43 @@
 -----------------------------------------------------------------------
 
 
+with Interfaces.C ;
+with Corba ;
+with Ada.Exceptions ;
 
 package Exceptions is
 
-   procedure C_Raise_C_UNKNOWN_Exception (Interfaces.C.Unsigned_Long Pd_Minor ;
-                                          Interfaces.C.Int Pd_Status) ;
-   pragma Import (Cpp,C_Raise_C_UNKNOWN_Exception,"");
+   procedure C_Raise_C_UNKNOWN_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                          Pd_Status : in Interfaces.C.Int) ;
+   pragma Import (Cpp,C_Raise_C_UNKNOWN_Exception,"Raise_C_UNKNOWN_Exception__FUlQ25CORBA16CompletionStatus");
    -- Wrapped around C function Raise_C_UNKNOWN_Exception
    -- declared in Ada_exceptions.hh
    -- Called by Ada code.
    -- Handles in C a Corba exception that was raised in Ada.
 
-   procedure Raise_C_UNKNOWN_Exception (Corba.Unsigned_Long Pd_Minor ;
-                                        Completion_Status Pd_Status) ;
+   procedure Raise_C_UNKNOWN_Exception (E : in Ada.Exceptions.Exception_Occurrence) ;
    -- Ada equivalent of C procedure C_Raise_C_Exception
 
-   procedure C_Raise_Ada_UNKNOWN_Exception (Interfaces.C.Unsigned_Long Pd_Minor ;
-                                            Interfaces.C.Int Pd_Status) ;
-   pragma Export (Cpp,C_Raise_Ada_Exception,"");
+   procedure C_Raise_Ada_UNKNOWN_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                            Pd_Status : in Interfaces.C.Int) ;
+   pragma Export (Cpp,C_Raise_Ada_UNKNOWN_Exception,"Raise_Ada_UNKNOWN_Exception__FUlQ25CORBA16CompletionStatus");
    -- Wrapped around C function Raise_Ada_UNKNOWN_Exception
    -- declared in Ada_exceptions.hh
    -- Called by C code.
    -- Handles in Ada a Corba exception that was raised in C.
 
-   procedure Raise_Ada_UNKNOWN_Exception (Unknown_Members Member) ;
+   procedure Raise_Ada_UNKNOWN_Exception (Pd_Minor : in Corba.Unsigned_Long ;
+                                          Pd_Status : in Corba.Completion_Status) ;
    -- Ada equivalent of C procedure C_Raise_Ada_Exception
+
 
 
 private
 
-   function Int_To_Status (Interfaces.C.Int N)
-                           return Completion_Status ;
+   function Int_To_Status (N : in Interfaces.C.Int)
+                           return Corba.Completion_Status ;
 
-   function Status_To_Int (Completion_Status Status)
+   function Status_To_Int (Status : in Corba.Completion_Status)
                            return Interfaces.C.Int ;
 
 end Exceptions ;

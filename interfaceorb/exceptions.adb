@@ -19,7 +19,8 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
-
+with Ada.Unchecked_Conversion ;
+with Text_Io ; use Text_Io ;
 
 package body Exceptions is
 
@@ -34,23 +35,26 @@ package body Exceptions is
 
    -- Raise_C_UNKNOWN_Exception
    ----------------------------
-   procedure Raise_C_UNKNOWN_Exception (Corba.Unsigned_Long Pd_Minor ;
-                                        Completion_Status Pd_Status) is
-      C_Pd_Minor : Interfaces.C.Unsigned_Long ;
-      C_Pd_Status : Interfaces.C.Int ;
+   procedure Raise_C_UNKNOWN_Exception (E : in Ada.Exceptions.Exception_Occurrence) is
+      Member : Corba.Unknown_Members ;
+      C_Minor : Interfaces.C.Unsigned_Long ;
+      C_Status : Interfaces.C.Int ;
    begin
       -- transforms the arguments in a C type ...
-      C_Pd_Minor := Ada_To_C_Unsigned_Long (Pd_Minor) ;
-      C_Pd_Status := Status_To_Int (Pd_Status) ;
+      Corba.Get_Members (E,Member) ;
+      C_Minor := Ada_To_C_Unsigned_Long (Member.Minor) ;
+      C_Status := Status_To_Int (Member.Completed) ;
       -- ... and calls the C procedure
-      C_Raise_C_UNKNOWN_Exception (C_Pd_Minor, C_Pd_Status) ;
+      C_Raise_C_UNKNOWN_Exception (C_Minor, C_Status) ;
+--   exception
+--      when E : others => Put_Line (Ada.Exceptions.Exception_Message(E)) ;
    end ;
 
 
    -- C_To_Ada_Unsigned_Long
    -------------------------
    function C_To_Ada_Unsigned_Long is
-     new Ada.Unchecked_Conversion (Interfaces.C.Unsigned_Long ;
+     new Ada.Unchecked_Conversion (Interfaces.C.Unsigned_Long ,
                                    Corba.Unsigned_Long) ;
    -- needed to change C type Interfaces.C.Unsigned_Long
    -- into Ada type Corba.Unsigned_Long
@@ -58,10 +62,10 @@ package body Exceptions is
 
    -- C_Raise_Ada_UNKNOWN_Exception
    --------------------------------
-   procedure C_Raise_Ada_UNKNOWN_Exception (Interfaces.C.Unsigned_Long Pd_Minor ;
-                                            Interfaces.C.Int Pd_Status) is
+   procedure C_Raise_Ada_UNKNOWN_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
+                                            Pd_Status : in Interfaces.C.Int) is
       Ada_Pd_Minor : Corba.Unsigned_Long ;
-      Ada_Pd_Status : Completion_Status ;
+      Ada_Pd_Status : Corba.Completion_Status ;
    begin
       -- transforms the arguments in a Ada type ...
       Ada_Pd_Minor := C_To_Ada_Unsigned_Long (Pd_Minor) ;
@@ -73,15 +77,15 @@ package body Exceptions is
 
    -- Raise_Ada_UNKNOWN_Exception
    ------------------------------
-   procedure Raise_Ada_UNKNOWN_Exception (Corba.Unsigned_Long Pd_Minor ;
-                                          Completion_Status Pd_Status) is
-      Member : Unknown_Members ;
+   procedure Raise_Ada_UNKNOWN_Exception (Pd_Minor : in Corba.Unsigned_Long ;
+                                          Pd_Status : in Corba.Completion_Status) is
+      Member : Corba.Unknown_Members ;
    begin
       -- creates a new exception member with parameters ...
       Member.Minor := Pd_Minor ;
-      Minor.Completed := Pd_Status ;
+      Member.Completed := Pd_Status ;
       -- ... and raise the exception
-      Raise_Corba_Exception (Unknown, Member) ;
+      Corba.Raise_Corba_Exception (Corba.Unknown'Identity, Member) ;
    end ;
 
 
@@ -97,7 +101,7 @@ package body Exceptions is
    -- C_To_Ada_Int
    ---------------
    function C_To_Ada_Int is
-     new Ada.Unchecked_Conversion (Interfaces.C.Int ;
+     new Ada.Unchecked_Conversion (Interfaces.C.Int ,
                                    Integer) ;
    -- needed to change ada type Interfaces.C.Int
    -- into C type Integer
@@ -105,22 +109,22 @@ package body Exceptions is
 
    -- Int_To_Status
    ----------------
-   function Int_To_Status (Interfaces.C.Int N)
-                           return Completion_Status is
+   function Int_To_Status (N : in Interfaces.C.Int)
+                           return Corba.Completion_Status is
       Ada_N : Integer ;
    begin
-      Ada_N :=  Completion_Status'Val(N) ;
-      return C_To_Ada_Int (Ada_N) ;
+      Ada_N := C_To_Ada_Int (N) ;
+      return Corba.Completion_Status'Val(Ada_N) ;
    end ;
 
 
    -- Status_To_Int
    ----------------
-   function Status_To_Int (Completion_Status Status)
+   function Status_To_Int (Status : in Corba.Completion_Status)
                            return Interfaces.C.Int is
       Ada_Result : Integer ;
    begin
-      Ada_Result := Completion_Status'Pos(Status) ;
+      Ada_Result := Corba.Completion_Status'Pos(Status) ;
       return Ada_To_C_Int (Ada_Result) ;
    end ;
 

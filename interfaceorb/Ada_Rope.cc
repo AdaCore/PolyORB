@@ -5,7 +5,7 @@
 ////     the presence of non default constructors.                      ////
 ////     So, it provides the same functions Rope except that cons-      ////
 ////     tructors are replaced by Init functions.                       ////
-////     It has also a pointer on the underlining Rope Object           ////
+////     It has also a pointer on the underlying Rope Object            ////
 ////                                                                    ////
 ////                                                                    ////
 ////                Date : 02/17/99                                     ////

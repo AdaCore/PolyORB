@@ -6,7 +6,7 @@
 ////     constructors.                                                  ////
 ////     So, it provides the same functions as netBufferedStream        ////
 ////     except that constructors are replaced by Init functions.       ////
-////     It has also a pointer on the underlining netBufferedStream     ////
+////     It has also a pointer on the underlying netBufferedStream      ////
 ////     object                                                         ////
 ////                                                                    ////
 ////                                                                    ////
@@ -28,12 +28,12 @@ public:
   void Init (Strand *s, _CORBA_Boolean RdLock,
              _CORBA_Boolean WrLock, size_t Bufsize);
   // Initialisation of Ada_netBufferedStream, calls the
-  // underlining netBufferedStream constructor
+  // underlying netBufferedStream constructor
 
   void Init (Rope *r, _CORBA_Boolean RdLock,
              _CORBA_Boolean WrLock, size_t Bufsize);
   // Initialisation of Ada_netBufferedStream, calls the
-  // underlining netBufferedStream constructor
+  // underlying netBufferedStream constructor
   
   
   void marshall (_CORBA_Char a, NetBufferedStream& s);
@@ -92,7 +92,7 @@ public:
 private:
 
   NetBufferedStream *C_netBufferedStream;
-  // Pointer on the underlining netBufferedStream object
+  // Pointer on the underlying netBufferedStream object
 
   bool Init_Ok;
   // This flag tells whether an init function was called or not
