@@ -11,17 +11,13 @@
 
 
 with Ada.Streams;                use Ada.Streams;
-with Ada.Unchecked_Deallocation;
-
-with CORBA;
-with CORBA.NVList; use CORBA.NVList;
-with CORBA.AbstractBase;
-with CORBA.Exceptions;
-
 
 with Sequences.Unbounded;
 
-with Broca.Exceptions;
+with CORBA;
+with CORBA.NVList;               use CORBA.NVList;
+
+with Droopi.Obj_Adapters;
 with Droopi.Opaque;              use Droopi.Opaque;
 with Droopi.Buffers;             use Droopi.Buffers;
 with Droopi.Binding_Data;        use Droopi.Binding_Data;
@@ -35,16 +31,13 @@ with Droopi.References;
 with Droopi.References.IOR;
 with Droopi.Representations;     use Droopi.Representations;
 with Droopi.Representations.CDR;
-with Droopi.Obj_Adapters.Simple;
 with Droopi.Transport;
-with Droopi.Transport.Sockets;
 with Droopi.ORB;
 with Droopi.ORB.Interface;
 with Droopi.Objects;
 with Droopi.Requests;
 with Droopi.Components;
 with Droopi.Filters;
-with Droopi.Filters.Slicers;
 with Droopi.Filters.Interface;
 with Droopi.Log;
 
@@ -59,7 +52,6 @@ package body Droopi.Protocols.GIOP is
    use ORB;
    use Droopi.ORB.Interface;
    use Droopi.Transport;
-   use Droopi.Transport.Sockets;
    use Droopi.Representations.CDR;
    use Droopi.Binding_Data.IIOP;
 
@@ -974,9 +966,6 @@ package body Droopi.Protocols.GIOP is
      (Ses : access GIOP_Session)
    is
       use CORBA;
-      use CORBA.Impl;
-      use CORBA.AbstractBase;
-      use Obj_Adapters.Simple;
       use Binding_Data.IIOP;
       use Binding_Data.Local;
       use Internals;
@@ -1095,18 +1084,17 @@ package body Droopi.Protocols.GIOP is
 
    procedure Reply_Received (Ses : access GIOP_Session) is
       use CORBA;
-      use CORBA.Exceptions;
       use References.IOR;
       use Binding_Data.IIOP;
       Reply_Status  : Reply_Status_Type;
-      Result : CORBA.NamedValue;
+      --  Result : CORBA.NamedValue;
       Request_Id : CORBA.Unsigned_Long;
 
-      Req    : Request_Access := null;
-      Args   : CORBA.NVList.Ref;
-      Target_Profile : Binding_Data.Profile_Access
-        := new IIOP_Profile_Type;
-      Target : References.Ref;
+      --  Req    : Request_Access := null;
+      --  Args   : CORBA.NVList.Ref;
+      --  Target_Profile : Binding_Data.Profile_Access
+      --    := new IIOP_Profile_Type;
+      --  Target : References.Ref;
       ORB : constant ORB_Access := ORB_Access (Ses.Server);
 
 
@@ -1164,7 +1152,8 @@ package body Droopi.Protocols.GIOP is
             Emit_No_Reply
               (Component_Access (ORB),
                Queue_Request'(Request   => Pend_Req.Req,
-                              Requestor => Component_Access (Ses)));
+                              Requestor => Component_Access (Ses),
+                              Requesting_Task => null));
 
 
          when User_Exception =>
@@ -1176,7 +1165,8 @@ package body Droopi.Protocols.GIOP is
          when Location_Forward | Location_Forward_Perm =>
 
             declare
-               Ref     : References.IOR.IOR_Type := Unmarshall (Ses.Buffer_In);
+               --  Ref     : References.IOR.IOR_Type
+               --    := Unmarshall (Ses.Buffer_In);
                TE      : Transport_Endpoint_Access;
                New_Ses : Session_Access;
             begin
@@ -1282,15 +1272,15 @@ package body Droopi.Protocols.GIOP is
    is
       use Buffers;
       use Binding_Data.IIOP;
-      use Droopi.Filters.Slicers;
       use Droopi.Filters.Interface;
       use Droopi.Objects;
+
       Buf            : Buffer_Access := new Buffer_Type;
       Fragment_Next  : Boolean := False;
-      Arg_Count      : CORBA.Long;
-      Arg            : CORBA.NamedValue;
+      --  Arg_Count      : CORBA.Long;
+      --  Arg            : CORBA.NamedValue;
       Data_Send      : Data_Out; --  Root_Data_Unit := new Data_Out;
-      Message_Size   : CORBA.Unsigned_Long;
+      --  Message_Size   : CORBA.Unsigned_Long;
    begin
 
       if S.Role  = Server then
@@ -1433,14 +1423,13 @@ package body Droopi.Protocols.GIOP is
    procedure Handle_Data_Indication (S : access GIOP_Session)
    is
       use CORBA;
-      use CORBA.NVList;
 
       use Binding_Data.IIOP;
       use Objects;
       use ORB;
       use References;
       use References.IOR;
-      Req           : Request_Access := null;
+      --  Req           : Request_Access := null;
       Mess_Type     : Msg_Type;
       Mess_Size     : CORBA.Unsigned_Long;
       Fragment_Next : Boolean;
@@ -1517,8 +1506,8 @@ package body Droopi.Protocols.GIOP is
 
                         when Object_Forward | Object_Forward_Perm =>
                            declare
-                              Ref     : References.IOR.IOR_Type
-                                           := Unmarshall (S.Buffer_In);
+                              --  Ref     : References.IOR.IOR_Type
+                              --               := Unmarshall (S.Buffer_In);
                               TE      : Transport_Endpoint_Access;
                               New_Ses : Session_Access;
                            begin

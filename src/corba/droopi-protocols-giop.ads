@@ -11,13 +11,9 @@
 with Ada.Streams;   use Ada.Streams;
 
 with CORBA;
-with CORBA.NVList;
-with CORBA.Impl;
 
-with Droopi.Opaque;
 with Droopi.Buffers;
 with Droopi.Binding_Data;
-with Droopi.Binding_Data.IIOP;
 with Droopi.References;
 with Droopi.References.IOR;
 with Droopi.Protocols;

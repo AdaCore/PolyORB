@@ -10,27 +10,20 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  $Id$
+
 with Ada.Streams; use Ada.Streams;
-with Ada.Unchecked_Deallocation;
 with Ada.Strings;
 with Ada.Strings.Unbounded;
 
 with CORBA; use CORBA;
-with CORBA.Exceptions;
-with CORBA.Exceptions.Stack;
 
-with Droopi.Opaque;              use Droopi.Opaque;
 with Droopi.Buffers;             use Droopi.Buffers;
 with Droopi.Binding_Data;        use Droopi.Binding_Data;
-
+with Droopi.Binding_Data.IIOP;
 with Droopi.Protocols;           use Droopi.Protocols;
 with Droopi.References;          use Droopi.References;
 with Droopi.Representations.CDR; use Droopi.Representations.CDR;
-with Droopi.Log;
-
-with Sequences.Unbounded;
-
-pragma Elaborate_All (Droopi.Log);
 
 package body Droopi.Protocols.GIOP.GIOP_1_1 is
 

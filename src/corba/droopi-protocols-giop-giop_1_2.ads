@@ -10,25 +10,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-
+--  $Id$
 
 with Ada.Streams; use Ada.Streams;
 
 with CORBA;
 
-with Droopi.Opaque;
 with Droopi.Buffers;
 with Droopi.References;
 with Droopi.References.IOR;
-with Droopi.Binding_Data;
-with Droopi.Binding_Data.IIOP;
-with Ada.Streams; use Ada.Streams;
-with Ada.Unchecked_Deallocation;
-with Ada.Strings;
-with Ada.Strings.Unbounded;
-
-
-
 
 package Droopi.Protocols.GIOP.GIOP_1_2 is
 

@@ -12,10 +12,8 @@ with Droopi.Protocols.GIOP;
 with Droopi.Protocols;
 with Droopi.Representations.CDR;
 with Droopi.Filters;
-with Droopi.Filters.Slicers;
 with Droopi.Sockets;
 with Droopi.Objects;
-with Droopi.ORB;
 
 --  The IIOP protocol is defined upon TCP/IP.
 
@@ -71,16 +69,14 @@ package body Droopi.Binding_Data.IIOP is
       use Droopi.Protocols.GIOP;
       use Droopi.Sockets;
       use Droopi.Filters;
-      use Droopi.Filters.Slicers;
-      use Droopi.ORB;
 
       Sock : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
       Pro : aliased GIOP_Protocol;
-      Slicer_Fact : Factory_Access  := new Slicer_Factory;
+      --  Slicer_Fact : Factory_Access  := new Slicer_Factory;
       Ses         : Session_Access;
-      Sli_Filter  : Filter_Access;
-      ORB         : ORB_Access;
+      --  Sli_Filter  : Filter_Access;
+      --  ORB         : ORB_Access;
 
    begin
 
@@ -99,6 +95,7 @@ package body Droopi.Binding_Data.IIOP is
       --  Connect_Lower (Session, Component_Access (Sli_Filter));
       --  Connect (Sli_Filter.Upper,  Component_Access (Session));
 
+      Session := Components.Component_Access (Ses);
    end Bind_Profile;
 
 
@@ -106,7 +103,7 @@ package body Droopi.Binding_Data.IIOP is
      (Profile : IIOP_Profile_Type)
      return Profile_Tag is
    begin
-      return Tag_Internet_Iop;
+      return Tag_Internet_IOP;
    end Get_Profile_Tag;
 
    function Get_Profile_Preference
@@ -198,7 +195,7 @@ package body Droopi.Binding_Data.IIOP is
       use CORBA;
       use CORBA.Exceptions;
       Profile_Body   : aliased Encapsulation := Unmarshall (Buffer);
-      Profile_Buffer : Buffer_Access;
+      Profile_Buffer : Buffer_Access := new Buffers.Buffer_Type;
       Major_Version  : CORBA.Octet;
       Minor_Version  : CORBA.Octet;
       Length         : CORBA.Long;
@@ -208,7 +205,6 @@ package body Droopi.Binding_Data.IIOP is
 
 
    begin
-
       Decapsulate (Profile_Body'Access, Profile_Buffer);
 
       Major_Version  := Unmarshall (Profile_Buffer);
@@ -217,6 +213,7 @@ package body Droopi.Binding_Data.IIOP is
       if Major_Version /=  IIOP_Major_Version
         or else Minor_Version > IIOP_Minor_Version
       then
+         Release (Profile_Buffer);
          CORBA.Exceptions.Raise_Bad_Param;
       end if;
 
@@ -231,11 +228,13 @@ package body Droopi.Binding_Data.IIOP is
             if Minor_Version /= 0 then
                Length := Unmarshall (Profile_Buffer);
                if Length /= 0 then
+                  Release (Profile_Buffer);
                   --  FIXME: Multiple components are not yet handled.
                   CORBA.Exceptions.Raise_Bad_Param;
                end if;
             end if;
       end;
+      Release (Profile_Buffer);
       return Result;
 
    end Unmarshall_IIOP_Profile_Body;
@@ -271,7 +270,7 @@ package body Droopi.Binding_Data.IIOP is
    begin
 
       --  Unmarshalling of the Host
-      Sock.Addr :=Inet_Addr (To_Standard_String (Str));
+      Sock.Addr := Inet_Addr (To_Standard_String (Str));
 
       --  Unmarshalling of the port
       Port := Unmarshall (Buffer);

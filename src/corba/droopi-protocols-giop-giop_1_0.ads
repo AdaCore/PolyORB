@@ -13,12 +13,10 @@ with Ada.Streams; use Ada.Streams;
 
 with CORBA;
 
-with Droopi.Opaque;
 with Droopi.Buffers;
 with Droopi.References;
 with Droopi.References.IOR;
 with Droopi.Binding_Data;
-with Droopi.Binding_Data.IIOP;
 
 package Droopi.Protocols.GIOP.GIOP_1_0 is
 
