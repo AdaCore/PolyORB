@@ -119,7 +119,12 @@ package body CORBA.ORB is
       New_List :    out CORBA.NVList.Ref)
    is
    begin
-      raise Droopi.Not_Implemented;
+      if Count /= 0 then
+         raise Droopi.Not_Implemented;
+         --  XXX How should the list be populated?
+      else
+         CORBA.NVList.Create (New_List);
+      end if;
    end Create_List;
 
    ----------------------

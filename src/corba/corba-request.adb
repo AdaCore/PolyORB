@@ -16,7 +16,13 @@ package body CORBA.Request is
       Request   :    out Object;
       Req_Flags : in     Flags) is
    begin
-      raise Droopi.Not_Implemented;
+      Droopi.Requests.Create_Request
+        (Target    => Self,
+         Operation => Operation,
+         Arg_List  => Arg_List,
+         Result    => Result,
+         Req       => Object.The_Request);
+      --  XXX Some arguments are not taken into account!
    end Create_Request;
 
    procedure Create_Request
@@ -42,7 +48,7 @@ package body CORBA.Request is
 
    procedure Delete (Self : in out Object) is
    begin
-      raise Droopi.Not_Implemented;
+      Droopi.Requests.Destroy_Request (Self.The_Request);
    end Delete;
 
    function Get_Droopi_Request
