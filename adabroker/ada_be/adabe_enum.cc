@@ -1,4 +1,4 @@
-//file adabe_array.cc
+//file adabe_enum.cc
 
 #include <adabe.h>
 
@@ -30,15 +30,27 @@ adabe_enum::produce_ads(dep_list with,string &String, string &previousdefinition
   
 }
 
-virtual void 
-produce_marshal_ads(dep_list with, string &body, string &previous) {
+void  
+adabe_enum::produce_marshal_ads(dep_list with, string &body, string &previous) {
+  string tmp="";
+
+  tmp+="procedure Marshall (A : in ";
+  tmp+= get_ada_local_name();         // question ...N' est-ce ada_global_name
+  tmp+=";S : in out Object'Class) ; \n"
+  //suggest also to  include a comment like:  Marshalls a enum  into a netbufferedstream object
   
-  
+  body+=tmp;
+
 }
 
-virtual void 
-produce_marshal_adb(dep_list with, string &body, string &previous) {
-  
+void 
+adabe_enum::produce_marshal_adb(dep_list with, string &body, string &previous) {
+  string tmp="";
+
+  tmp+="procedure UnMarshall (A : out ";
+  tmp+= get_ada_local_name();
+  tmp+=";S : in out Object'Class) ; \n";
+  body+=tmp;
   
 }
 
