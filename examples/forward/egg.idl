@@ -1,0 +1,12 @@
+#ifndef EGG
+#define EGG
+
+interface Egg ;
+
+#include "chicken.idl"
+
+interface Egg {
+  Chicken hatch() ;
+};
+
+#endif
