@@ -60,9 +60,9 @@ package body System.Garlic.TCP.Platform_Specific is
    pragma Convention (C, NT_Hostent_Access);
    --  Access to host entry
 
-   ------------
-   -- Accept --
-   ------------
+   --------------
+   -- C_Accept --
+   --------------
 
    function C_Accept
      (S       : C.int;
@@ -87,9 +87,9 @@ package body System.Garlic.TCP.Platform_Specific is
       return Std_Accept (S, Addr, Addrlen);
    end C_Accept;
 
-   -----------
-   --  Bind --
-   -----------
+   ------------
+   -- C_Bind --
+   ------------
 
    function C_Bind
      (S       : C.int;
@@ -114,9 +114,9 @@ package body System.Garlic.TCP.Platform_Specific is
       return Std_Bind (S, Name, Namelen);
    end C_Bind;
 
-   ------------
-   --  Close --
-   ------------
+   -------------
+   -- C_Close --
+   -------------
 
    function C_Close (Fildes : C.int) return C.int;
    pragma Export (C, C_Close, "close");
@@ -129,9 +129,9 @@ package body System.Garlic.TCP.Platform_Specific is
       return Std_Close (Fildes);
    end C_Close;
 
-   --------------
-   --  Connect --
-   --------------
+   ---------------
+   -- C_Connect --
+   ---------------
 
    function C_Connect
      (S       : C.int;
@@ -156,9 +156,9 @@ package body System.Garlic.TCP.Platform_Specific is
       return Std_Connect (S, Name, Namelen);
    end C_Connect;
 
-   --------------------
-   --  Gethostbyaddr --
-   --------------------
+   ---------------------
+   -- C_Gethostbyaddr --
+   ---------------------
 
    function C_Gethostbyaddr
      (Addr     : Strings.chars_ptr;
@@ -178,8 +178,7 @@ package body System.Garlic.TCP.Platform_Specific is
      (Addr     : Strings.chars_ptr;
       Length   : C.int;
       Typ      : C.int)
-      return Hostent_Access
-   is
+      return Hostent_Access is
       NT_H : NT_Hostent_Access;
    begin
       NT_H := Std_Gethostbyaddr (Addr, Length, Typ);
@@ -188,9 +187,9 @@ package body System.Garlic.TCP.Platform_Specific is
                           NT_H.H_Addr_List);
    end C_Gethostbyaddr;
 
-   --------------------
-   --  Gethostbyname --
-   --------------------
+   ---------------------
+   -- C_Gethostbyname --
+   ---------------------
 
    function C_Gethostbyname
      (Name : Strings.chars_ptr)
@@ -204,8 +203,7 @@ package body System.Garlic.TCP.Platform_Specific is
 
    function C_Gethostbyname
      (Name : Strings.chars_ptr)
-      return Hostent_Access
-   is
+      return Hostent_Access is
       NT_H : NT_Hostent_Access;
    begin
       NT_H := Std_Gethostbyname (Name);
@@ -214,9 +212,9 @@ package body System.Garlic.TCP.Platform_Specific is
                           NT_H.H_Addr_List);
    end C_Gethostbyname;
 
-   ------------------
-   --  Gethostname --
-   ------------------
+   -------------------
+   -- C_Gethostname --
+   -------------------
 
    function C_Gethostname
      (Name    : Strings.chars_ptr;
@@ -238,9 +236,9 @@ package body System.Garlic.TCP.Platform_Specific is
       return Std_Gethostname (Name, Namelen);
    end C_Gethostname;
 
-   ------------------
-   --  Getsockname --
-   ------------------
+   -------------------
+   -- C_Getsockname --
+   -------------------
 
    function C_Getsockname
      (S       : C.int;
@@ -265,9 +263,9 @@ package body System.Garlic.TCP.Platform_Specific is
       return Std_Getsockname (S, Name, Namelen);
    end C_Getsockname;
 
-   -----------------
-   --  Getsockopt --
-   -----------------
+   ------------------
+   -- C_Getsockopt --
+   ------------------
 
    function C_Getsockopt
      (S       : C.int;
@@ -298,9 +296,9 @@ package body System.Garlic.TCP.Platform_Specific is
       return Std_Getsockopt (S, Level, Optname, Optval, Optlen);
    end C_Getsockopt;
 
-   ----------------
-   --  Inet_Addr --
-   ----------------
+   -----------------
+   -- C_Inet_Addr --
+   -----------------
 
    function C_Inet_Addr
      (Cp : Strings.chars_ptr)
@@ -319,9 +317,9 @@ package body System.Garlic.TCP.Platform_Specific is
       return Std_Inet_Addr (Cp);
    end C_Inet_Addr;
 
-   -------------
-   --  Listen --
-   -------------
+   --------------
+   -- C_Listen --
+   --------------
 
    function C_Listen (S, Backlog : C.int) return C.int;
    pragma Export (C, C_Listen, "listen");
@@ -334,35 +332,44 @@ package body System.Garlic.TCP.Platform_Specific is
       return Std_Listen (S, Backlog);
    end C_Listen;
 
-   -----------
-   --  Recv --
-   -----------
+   ------------
+   -- C_Read --
+   ------------
 
-   function C_Recv (S : C.int; Buf : Strings.chars_ptr; Len, Flags : C.int)
-     return C.int;
-   pragma Export (C, C_Recv, "recv");
+   function C_Read
+     (S   : C.int;
+      Buf : Strings.chars_ptr;
+      Len : C.int)
+      return C.int;
+   pragma Export (C, C_Read, "read");
 
-   function Std_Recv (S : C.int; Buf : Strings.chars_ptr; Len, Flags : C.int)
-     return C.int;
-   pragma Import (Stdcall, Std_Recv, "recv");
-
-   function C_Recv (S : C.int; Buf : Strings.chars_ptr; Len, Flags : C.int)
-     return C.int is
-   begin
-      return Std_Recv (S, Buf, Len, Flags);
-   end C_Recv;
-
-   -----------
-   --  Send --
-   -----------
-
-   function C_Send
+   function Std_Recv
      (S     : C.int;
-      Msg   : Strings.chars_ptr;
+      Buf   : Strings.chars_ptr;
       Len   : C.int;
       Flags : C.int)
-     return C.int;
-   pragma Export (C, C_Send, "send");
+      return C.int;
+   pragma Import (Stdcall, Std_Recv, "recv");
+
+   function C_Read
+     (S   : C.int;
+      Buf : Strings.chars_ptr;
+      Len : C.int)
+      return C.int is
+   begin
+      return Std_Recv (S, Buf, Len, 0);
+   end C_Read;
+
+   -------------
+   -- C_Write --
+   -------------
+
+   function C_Write
+     (S     : C.int;
+      Msg   : Strings.chars_ptr;
+      Len   : C.int)
+      return C.int;
+   pragma Export (C, C_Write, "write");
 
    function Std_Send
      (S     : C.int;
@@ -372,19 +379,19 @@ package body System.Garlic.TCP.Platform_Specific is
      return C.int;
    pragma Import (Stdcall, Std_Send, "send");
 
-   function C_Send
+   function C_Write
      (S     : C.int;
       Msg   : Strings.chars_ptr;
       Len   : C.int;
       Flags : C.int)
      return C.int is
    begin
-      return Std_Send (S, Msg, Len, Flags);
-   end C_Send;
+      return Std_Send (S, Msg, Len, 0);
+   end C_Write;
 
-   -------------
-   --  Setsid --
-   -------------
+   --------------
+   -- C_Setsid --
+   --------------
 
    function Setsid return C.int;
    pragma Export (C, Setsid);
@@ -395,9 +402,9 @@ package body System.Garlic.TCP.Platform_Specific is
       return 1;
    end Setsid;
 
-   -----------------
-   --  Setsockopt --
-   -----------------
+   ------------------
+   -- C_Setsockopt --
+   ------------------
 
    function C_Setsockopt
      (S       : C.int;
@@ -405,7 +412,7 @@ package body System.Garlic.TCP.Platform_Specific is
       Optname : C.int;
       Optval  : Address;
       Optlen  : C.int)
-     return C.int;
+      return C.int;
    pragma Export (C, C_Setsockopt, "setsockopt");
 
    function Std_Setsockopt
@@ -414,7 +421,7 @@ package body System.Garlic.TCP.Platform_Specific is
       Optname : C.int;
       Optval  : Address;
       Optlen  : C.int)
-     return C.int;
+      return C.int;
    pragma Import (Stdcall, Std_Setsockopt, "setsockopt");
 
    function C_Setsockopt
@@ -428,9 +435,9 @@ package body System.Garlic.TCP.Platform_Specific is
       return Std_Setsockopt (S, Level, Optname, Optval, Optlen);
    end C_Setsockopt;
 
-   ---------------
-   --  Shutdown --
-   ---------------
+   ----------------
+   -- C_Shutdown --
+   ----------------
 
    function C_Shutdown
      (S   : C.int;
@@ -452,9 +459,9 @@ package body System.Garlic.TCP.Platform_Specific is
       return Std_Shutdown (S, How);
    end C_Shutdown;
 
-   -------------
-   --  Socket --
-   -------------
+   --------------
+   -- C_Socket --
+   --------------
 
    function C_Socket (Domain, Typ, Protocol : C.int) return C.int;
    pragma Export (C, C_Socket, "socket");

@@ -1,3 +1,9 @@
+1998-05-04  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* 5wgtplsp.adb: C_Read and C_Write are exported as "read" and
+	"write". In fact, they call C_Recv and C_Send with a fourth arg
+	equal to 0. This way, we don't have to change the code in s-gartcp.
+
 1998-04-29  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* Makefile.am, Makefile.in: Fix a glitch concerning target
