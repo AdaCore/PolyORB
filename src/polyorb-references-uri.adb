@@ -75,8 +75,8 @@ package body PolyORB.References.URI is
    procedure Free (SA : in out String_Array)
    is
    begin
-      for I in SA'First .. SA'Last loop
-         Free (SA (I));
+      for J in SA'Range loop
+         Free (SA (J));
       end loop;
    end Free;
 
@@ -184,7 +184,7 @@ package body PolyORB.References.URI is
             Ident : String renames To_String (Value (Iter).Proto_Ident);
          begin
             if Str'Length > Ident'Length
-              and then Str (Ident'First .. Ident'Last) = Ident then
+              and then Str (Ident'Range) = Ident then
                pragma Debug
                  (O ("Try to unmarshall profile with profile factory tag "
                      & Profile_Tag'Image (Value (Iter).Tag)));
@@ -233,10 +233,10 @@ package body PolyORB.References.URI is
                     := Get_Profile_Preference (Profs (J).all);
                begin
                   if P > Best_Preference then
-                     for I in 1 .. N loop
-                        if TL (I) = Get_Profile_Tag (Profs (J).all) then
+                     for K in 1 .. N loop
+                        if TL (K) = Get_Profile_Tag (Profs (J).all) then
                            Best_Preference := P;
-                           Best_Profile_Index := I;
+                           Best_Profile_Index := K;
                         end if;
                      end loop;
                   end if;
