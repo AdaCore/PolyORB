@@ -108,7 +108,7 @@ $(COMMONSOURCES)
 CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads s-gaosli.ads s-gaprco.adb \
 	s-garser.adb
 
-.SUFFIXES:	.adb .ads .ali .o .xrb
+SUFFIXES = .adb .ads .ali .o .xrb
 
 %.o: %.adb
 	${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<

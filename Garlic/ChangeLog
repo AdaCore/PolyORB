@@ -1,3 +1,7 @@
+Fri Mar 21 11:37:44 1997  Samuel Tardieu  <sam@zaphod.enst.fr>
+
+	* Makefile.am: Updated for automake 1.1m.
+
 Mon Mar 17 15:30:14 1997  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-stratt.adb: Incorrect check for W_*F. U was not always equal
