@@ -218,37 +218,12 @@ package body Parse is
    end Get_Next_Token_String;
 
 
-
-   ----------------------------------
-   --  Management of const values  --
-   ----------------------------------
+   ---------------------------------
+   --  Management of expressions  --
+   ---------------------------------
 
    --  the actual list of already used values
    Used_Values : Set_Ptr := null;
-
-   ---------
-   --  <  --
-   ---------
-   function "<" (X, Y : Value_Ptr) return Boolean is
-   begin
-      return X.all < Y.all;
-   end "<";
-
-   ---------
-   --  >  --
-   ---------
-   function ">" (X, Y : Value_Ptr) return Boolean is
-   begin
-      return X.all > Y.all;
-   end ">";
-
-   ---------------
-   --  Is_Prec  --
-   ---------------
-   function Is_Prec (Prec, Next : Value_Ptr) return Boolean is
-   begin
-      return Prec.all = Next.all - 1;
-   end Is_Prec;
 
    ----------------------
    --  Add_Used_Value  --
@@ -336,7 +311,6 @@ package body Parse is
       raise Errors.Internal_Error;
       return null;
    end Eval;
-
 
 
    --------------------------
@@ -1932,7 +1906,7 @@ package body Parse is
       Next_Token;
       Result := new N_Const_Dcl;
       Set_Location (Result.all, Get_Previous_Token_Location);
-      Parse_Const_Type (Result.Const_Type, Success);
+      Parse_Const_Type (Result.Constant_Type, Success);
       if not Success then
          return;
       end if;
@@ -2008,7 +1982,7 @@ package body Parse is
          Next_Token;
       end if;
       Parse_Const_Exp (Result.Expression,
-                       Result.Const_Type,
+                       Result.Constant_Type,
                        Success);
       return;
    end Parse_Const_Dcl;
@@ -2135,22 +2109,445 @@ package body Parse is
    --  Parse_Const_Exp  --
    -----------------------
    procedure Parse_Const_Exp (Result : out N_Expr_Acc;
-                              Const_Type : in N_Root_Acc;
+                              Constant_Type : in N_Root_Acc;
                               Success : out Boolean) is
+      Value_Type : Const_Type_Ptr;
+      Loc : Errors.Location;
    begin
-      Parse_Or_Expr (Result, Const_Type, Success);
+      Loc := Get_Token_Location;
+      Parse_Or_Expr (Result, Value_Type, Success);
+      --  check compatibility between the constant expression
+      --  and its supposed type
+      case Get_Kind (Constant_Type.all) is
+         when K_Short =>
+            case Value_Type.Kind is
+               when C_Short =>
+                  null;
+               when C_Unsigned_Short =>
+                  if Result.Value.all > Long_Long_Integer (Idl_Short'Last) then
+                     Errors.Parser_Error ("constraint error : this value is " &
+                                          "not in range of type short but " &
+                                          "unsigned short.",
+                                          Errors.Error,
+                                          Loc);
+                  end if;
+               when C_Long =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not in range of type short but long.",
+                                       Errors.Error,
+                                       Loc);
+               when C_Long_Long =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not in range of type short but " &
+                                       "long long.",
+                                       Errors.Error,
+                                       Loc);
+               when C_Unsigned_Long =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not in range of type short but " &
+                                       "unsigned long.",
+                                       Errors.Error,
+                                       Loc);
+               when C_Unsigned_Long_Long =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not in range of type short but " &
+                                       "unsigned long long.",
+                                       Errors.Error,
+                                       Loc);
+               when others =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not an integer.",
+                                       Errors.Error,
+                                       Loc);
+            end case;
+         when K_Long =>
+            case Value_Type.Kind is
+               when C_Short
+                 | C_Unsigned_Short
+                 | C_Long =>
+                  null;
+               when C_Unsigned_Long =>
+                  if Result.Value.all > Long_Long_Integer (Idl_Long'Last) then
+                     Errors.Parser_Error ("constraint error : this value is " &
+                                          "not in range of type long but " &
+                                          "unsigned long.",
+                                          Errors.Error,
+                                          Loc);
+                  end if;
+               when C_Long_Long =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not in range of type long but " &
+                                       "long long.",
+                                       Errors.Error,
+                                       Loc);
+               when C_Unsigned_Long_Long =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not in range of type long but " &
+                                       "unsigned long long.",
+                                       Errors.Error,
+                                       Loc);
+               when others =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not an integer.",
+                                       Errors.Error,
+                                       Loc);
+            end case;
+         when K_Long_Long =>
+            case Value_Type.Kind is
+               when C_Short
+                 | C_Unsigned_Short
+                 | C_Long
+                 | C_Unsigned_Long
+                 | C_Long_Long =>
+                  null;
+               when C_Unsigned_Long_Long =>
+                  if Result.Value.all >
+                    Long_Long_Integer (Idl_LongLong'Last) then
+                     Errors.Parser_Error ("constraint error : this value is " &
+                                          "not in range of type long long " &
+                                          "but unsigned long long.",
+                                          Errors.Error,
+                                          Loc);
+                  end if;
+               when others =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not an integer.",
+                                       Errors.Error,
+                                       Loc);
+            end case;
+         when K_Unsigned_Short =>
+            case Value_Type.Kind is
+               when C_Short =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not in range of type unsigned short " &
+                                       "but short.",
+                                       Errors.Error,
+                                       Loc);
+               when C_Long =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not in range of type unsigned short " &
+                                       "but long.",
+                                       Errors.Error,
+                                       Loc);
+               when C_Long_Long =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not in range of type unsigned short " &
+                                       "but long long.",
+                                       Errors.Error,
+                                       Loc);
+               when C_Unsigned_Short =>
+                  null;
+               when C_Unsigned_Long =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not in range of type unsigned short " &
+                                       "but unsigned long.",
+                                       Errors.Error,
+                                       Loc);
+               when C_Unsigned_Long_Long =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not in range of type unsigned short " &
+                                       "but unsigned long long.",
+                                       Errors.Error,
+                                       Loc);
+               when others =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not an integer.",
+                                       Errors.Error,
+                                       Loc);
+            end case;
+         when K_Unsigned_Long =>
+            case Value_Type.Kind is
+               when C_Short =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not in range of type unsigned long " &
+                                       "but short.",
+                                       Errors.Error,
+                                       Loc);
+
+               when C_Long =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not in range of type unsigned long " &
+                                       "but long.",
+                                       Errors.Error,
+                                       Loc);
+               when C_Long_Long =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not in range of type unsigned long " &
+                                       "but long long.",
+                                       Errors.Error,
+                                       Loc);
+               when C_Unsigned_Short
+                 | C_Unsigned_Long =>
+                  null;
+               when C_Unsigned_Long_Long =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not in range of type unsigned long " &
+                                       "but unsigned long long.",
+                                       Errors.Error,
+                                       Loc);
+               when others =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not an integer.",
+                                       Errors.Error,
+                                       Loc);
+            end case;
+         when K_Unsigned_Long_Long =>
+            case Value_Type.Kind is
+               when C_Short =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not in range of type unsigned long " &
+                                       "long but short.",
+                                       Errors.Error,
+                                       Loc);
+
+               when C_Long =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not in range of type unsigned long " &
+                                       "long but long.",
+                                       Errors.Error,
+                                       Loc);
+               when C_Long_Long =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not in range of type unsigned long " &
+                                       "long but long long.",
+                                       Errors.Error,
+                                       Loc);
+               when C_Unsigned_Short
+                 | C_Unsigned_Long
+                 | C_Unsigned_Long_Long =>
+                  null;
+               when others =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not an integer.",
+                                       Errors.Error,
+                                       Loc);
+            end case;
+         when K_Char =>
+            case Value_Type.Kind is
+               when C_Char =>
+                  null;
+               when C_Wide_Char =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not of type char but wide_char.",
+                                       Errors.Error,
+                                       Loc);
+               when others =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not a char.",
+                                       Errors.Error,
+                                       Loc);
+            end case;
+         when K_Wide_Char =>
+            case Value_Type.Kind is
+               when C_Wide_Char =>
+                  null;
+               when C_Char =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not of type wide_char but char.",
+                                       Errors.Error,
+                                       Loc);
+               when others =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not a char.",
+                                       Errors.Error,
+                                       Loc);
+            end case;
+         when K_Boolean =>
+            case Value_Type.Kind is
+               when C_Boolean =>
+                  null;
+               when others =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not a boolean.",
+                                       Errors.Error,
+                                       Loc);
+            end case;
+         when K_Float =>
+            case Value_Type.Kind is
+               when C_Float =>
+                  null;
+               when C_Double =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not in range of type float " &
+                                       "but double.",
+                                       Errors.Error,
+                                       Loc);
+               when C_Long_Double =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not in range of type float " &
+                                       "but long double.",
+                                       Errors.Error,
+                                       Loc);
+               when others =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not a floating point number.",
+                                       Errors.Error,
+                                       Loc);
+            end case;
+         when K_Double =>
+            case Value_Type.Kind is
+               when C_Float
+                 | C_Double =>
+                  null;
+               when C_Long_Double =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not in range of type double " &
+                                       "but long double.",
+                                       Errors.Error,
+                                       Loc);
+               when others =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not a floating point number.",
+                                       Errors.Error,
+                                       Loc);
+            end case;
+         when K_Long_Double =>
+            case Value_Type.Kind is
+               when C_Float
+                 | C_Double
+                 | C_Long_Double =>
+                  null;
+               when others =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not a floating point number.",
+                                       Errors.Error,
+                                       Loc);
+            end case;
+         when K_Fixed =>
+            case Value_Type.Kind is
+               when C_Fixed =>
+                  declare
+                     Sc_Node : Long_Long_Integer
+                       renames N_Fixed_Acc (Constant_Type).Scale.Value.all;
+                     Sc_Exp : Long_Long_Integer
+                       renames Value_Type.Scale;
+                     Dg_Node : Long_Long_Integer
+                       renames  N_Fixed_Acc
+                       (Constant_Type).Digits_Nb.Value.all;
+                     Dg_Exp : Long_Long_Integer
+                       renames Value_Type.Digits_Nb;
+                  begin
+                     if Sc_Node > Sc_Exp
+                       and then Dg_Node > Dg_Exp + (Sc_Node - Sc_Exp) then
+                        null;
+                     else
+                        Errors.Parser_Error ("constraint error : this value " &
+                                             "is more precise than the " &
+                                             "declared type",
+                                             Errors.Error,
+                                             Loc);
+                     end if;
+                  end;
+               when others =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not a fixed point number.",
+                                       Errors.Error,
+                                       Loc);
+            end case;
+         when K_String =>
+            case Value_Type.Kind is
+               when C_String =>
+                  null;
+               when C_Wide_String =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not of type string but wide_string.",
+                                       Errors.Error,
+                                       Loc);
+               when others =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not a string.",
+                                       Errors.Error,
+                                       Loc);
+            end case;
+         when K_Wide_String =>
+            case Value_Type.Kind is
+               when C_Wide_String =>
+                  null;
+               when C_String =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not of type wide_string but string.",
+                                       Errors.Error,
+                                       Loc);
+               when others =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not a string.",
+                                       Errors.Error,
+                                       Loc);
+            end case;
+         when K_Octet =>
+            case Value_Type.Kind is
+               when C_Octet =>
+                  null;
+               when others =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not an octet.",
+                                       Errors.Error,
+                                       Loc);
+            end case;
+         when K_Enum =>
+            case Value_Type.Kind is
+               when C_Enum =>
+                  null;
+               when others =>
+                  Errors.Parser_Error ("constraint error : this value is " &
+                                       "not an enumeration value.",
+                                       Errors.Error,
+                                       Loc);
+            end case;
+         when others =>
+            raise Errors.Internal_Error;
+      end case;
+      Free (Value_Type);
    end Parse_Const_Exp;
 
    --------------------
    --  Parse_Or_Exp  --
    --------------------
    procedure Parse_Or_Expr (Result : out N_Expr_Acc;
-                            Const_Type : in N_Root_Acc;
+                            Constant_Type : out Const_Type_Ptr;
                             Success : out Boolean) is
+      Xor_Exp : N_Expr_Acc;
+      Loc : Errors.Location;
+   begin
+      Loc := Get_Token_Location;
+      Parse_Xor_Expr (Xor_Exp, Constant_Type, Success);
+      if not Success then
+         return;
+      end if;
+      if Get_Token = T_Bar then
+         declare
+            Constant_Type2 : Const_Type_Ptr;
+            Res : N_Or_Expr_Acc;
+         begin
+            Next_Token;
+            Res := new N_Or_Expr;
+            Set_Location (Result.all, Loc);
+            Res.Left := N_Expr_Acc (Xor_Exp);
+            Parse_Or_Expr (Res.Right, Constant_Type2, Success);
+            if Success then
+               Constant_Type :=
+                 Check_Const_Type (Constant_Type,
+                                   Constant_Type2);
+            end if;
+            Result := N_Expr_Acc (Res);
+         end;
+      else
+         Result := Xor_Exp;
+      end if;
+      return;
+   end Parse_Or_Expr;
+
+   ---------------------
+   --  Parse_Xor_Exp  --
+   ---------------------
+   procedure Parse_Xor_Expr (Result : out N_Expr_Acc;
+                             Constant_Type : out Types.Const_Type_Ptr;
+                             Success : out Boolean) is
    begin
       Result := null;
+      Constant_Type := null;
       Success := False;
-   end Parse_Or_Expr;
+   end Parse_Xor_Expr;
 
    --------------------------------
    --  Parse_Positive_Int_Const  --
@@ -4200,7 +4597,6 @@ package body Parse is
    ---------------------------
    procedure Parse_Fixed_Pt_Type (Result : out N_Fixed_Acc;
                                   Success : out Boolean) is
-      Digits_Nb, Scale : Value_Ptr;
    begin
       Next_Token;
       Result := new N_Fixed;
@@ -4214,8 +4610,8 @@ package body Parse is
       end if;
       Next_Token;
       Parse_Positive_Int_Const (Result.Digits_Nb, Success);
-      Digits_Nb := Eval (Result.Digits_Nb);
-      if Digits_Nb.all < 0 or Digits_Nb.all > 31 then
+      if Result.Digits_Nb.Value.all < 0
+        or Result.Digits_Nb.Value.all > 31 then
          Errors.Parser_Error ("invalid number of digits in fixed point " &
                               "type definition : it should be in range " &
                               "0 .. 31.",
@@ -4234,13 +4630,12 @@ package body Parse is
       end if;
       Next_Token;
       Parse_Positive_Int_Const (Result.Scale, Success);
-      Scale := Eval (Result.Scale);
-      if Scale.all < 0 then
+      if Result.Scale.Value.all < 0 then
          Errors.Parser_Error ("invalid scale factor in fixed point " &
                               "type definition : it may not be negative.",
                               Errors.Error,
                               Get_Token_Location);
-      elsif Digits_Nb.all >= Scale.all then
+      elsif Result.Digits_Nb.Value.all >= Result.Scale.Value.all then
          Errors.Parser_Error ("invalid scale factor in fixed point " &
                               "type definition : it should not exceed" &
                               "the number of digits.",
@@ -4573,6 +4968,74 @@ package body Parse is
 
 
 
+   ---------------------------
+   --  Parsing of literals  --
+   ---------------------------
+
+   ----------------------------
+   --  Parse_String_Literal  --
+   ----------------------------
+   procedure Parse_String_Literal (Result : out N_Lit_String_Acc;
+                                   Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+   end Parse_String_Literal;
+
+   ----------------------------
+   --  Check_Context_String  --
+   ----------------------------
+   procedure Check_Context_String (S : in String) is
+      use GNAT.Case_Util;
+      use Ada.Characters.Latin_1;
+   begin
+      if To_Lower (S (S'First)) not in LC_A .. LC_Z then
+         Errors.Parser_Error ("invalid string for context " &
+                              "declaration : the first character " &
+                              "must be an alphabetic one.",
+                              Errors.Error,
+                              Get_Token_Location);
+         return;
+      end if;
+      for I in S'First + 1 .. S'Last - 1 loop
+         if To_Lower (S (I)) not in LC_A .. LC_Z
+           and S (I) not in '0' .. '9'
+           and S (I) /= '.'
+           and S (I) /= '_' then
+            Errors.Parser_Error ("invalid string for context " &
+                                 "declaration : it may only content " &
+                                 "alphabetic, digit, period, underscore " &
+                                 "characters plus an asterisk at the end.",
+                                 Errors.Error,
+                                 Get_Token_Location);
+            return;
+         end if;
+      end loop;
+      if To_Lower (S (S'Last)) not in LC_A .. LC_Z
+        and S (S'Last) not in '0' .. '9'
+        and S (S'Last) /= '.'
+        and S (S'Last) /= '_'
+        and S (S'Last) /= '*' then
+         Errors.Parser_Error ("invalid string for context " &
+                              "declaration : the last character may only " &
+                              "be an alphabetic, digit, period, " &
+                              "underscore or asterisk character.",
+                              Errors.Error,
+                              Get_Token_Location);
+         return;
+      end if;
+   end Check_Context_String;
+
+   ------------------------
+   --  Check_Const_Type  --
+   ------------------------
+   function Check_Const_Type (First : in Types.Const_Type_Ptr;
+                              Second : in Types.Const_Type_Ptr)
+                              return Types.Const_Type_Ptr is
+   begin
+      return null;
+   end Check_Const_Type;
+
    ------------------------------
    --  To resume after errors  --
    ------------------------------
@@ -4673,63 +5136,6 @@ package body Parse is
    end Go_To_End_Of_Case_Label;
 
 
-   ---------------------------
-   --  Parsing of literals  --
-   ---------------------------
-
-   ----------------------------
-   --  Parse_String_Literal  --
-   ----------------------------
-   procedure Parse_String_Literal (Result : out N_Lit_String_Acc;
-                                   Success : out Boolean) is
-   begin
-      Result := null;
-      Success := False;
-   end Parse_String_Literal;
-
-   ----------------------------
-   --  Check_Context_String  --
-   ----------------------------
-   procedure Check_Context_String (S : in String) is
-      use GNAT.Case_Util;
-      use Ada.Characters.Latin_1;
-   begin
-      if To_Lower (S (S'First)) not in LC_A .. LC_Z then
-         Errors.Parser_Error ("invalid string for context " &
-                              "declaration : the first character " &
-                              "must be an alphabetic one.",
-                              Errors.Error,
-                              Get_Token_Location);
-         return;
-      end if;
-      for I in S'First + 1 .. S'Last - 1 loop
-         if To_Lower (S (I)) not in LC_A .. LC_Z
-           and S (I) not in '0' .. '9'
-           and S (I) /= '.'
-           and S (I) /= '_' then
-            Errors.Parser_Error ("invalid string for context " &
-                                 "declaration : it may only content " &
-                                 "alphabetic, digit, period, underscore " &
-                                 "characters plus an asterisk at the end.",
-                                 Errors.Error,
-                                 Get_Token_Location);
-            return;
-         end if;
-      end loop;
-      if To_Lower (S (S'Last)) not in LC_A .. LC_Z
-        and S (S'Last) not in '0' .. '9'
-        and S (S'Last) /= '.'
-        and S (S'Last) /= '_'
-        and S (S'Last) /= '*' then
-         Errors.Parser_Error ("invalid string for context " &
-                              "declaration : the last character may only " &
-                              "be an alphabetic, digit, period, " &
-                              "underscore or asterisk character.",
-                              Errors.Error,
-                              Get_Token_Location);
-         return;
-      end if;
-   end Check_Context_String;
 
    --
    --  INUTILE ?????

@@ -18,6 +18,40 @@
 
 package body Tree is
 
+   ----------------------------------
+   --  Management of const values  --
+   ----------------------------------
+
+   ---------
+   --  <  --
+   ---------
+   function "<" (X, Y : Value_Ptr) return Boolean is
+   begin
+      return X.all < Y.all;
+   end "<";
+
+   ---------
+   --  >  --
+   ---------
+   function ">" (X, Y : Value_Ptr) return Boolean is
+   begin
+      return X.all > Y.all;
+   end ">";
+
+   ---------------
+   --  Is_Prec  --
+   ---------------
+   function Is_Prec (Prec, Next : Value_Ptr) return Boolean is
+   begin
+      return Prec.all = Next.all - 1;
+   end Is_Prec;
+
+
+
+   ------------------------------
+   --  Management of the tree  --
+   ------------------------------
+
    ----------------
    --  Get_Kind  --
    ----------------
@@ -309,18 +343,18 @@ package body Tree is
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Or_Expr) return Types.Node_Kind is
---    begin
---       return Types.K_Or;
---    end Get_Kind;
+   function Get_Kind (N : N_Or_Expr) return Types.Node_Kind is
+   begin
+      return Types.K_Or;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Xor_Expr) return Types.Node_Kind is
---    begin
---       return Types.K_Xor;
---    end Get_Kind;
+   function Get_Kind (N : N_Xor_Expr) return Types.Node_Kind is
+   begin
+      return Types.K_Xor;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --

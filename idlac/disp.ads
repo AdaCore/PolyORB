@@ -30,4 +30,10 @@ private
    --  display a node list
    procedure Disp_List (List : Node_List; Indent : Natural; Full : Boolean);
 
+   --  displays a binary operator
+   procedure Disp_Binary (N : N_Binary_Expr'Class;
+                          Indent : Natural;
+                          Full : Boolean;
+                          Op : String);
+
 end Disp;

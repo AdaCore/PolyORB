@@ -59,19 +59,17 @@ package body Disp is
       end loop;
    end Disp_List;
 
-   --  Disp tree procedure
-   procedure Disp_Tree (N : N_Root'Class; Indent : Natural; Full : Boolean) is
-      Offset : constant Natural := 2;
-      N_Indent : Natural := Indent + Offset;
-
---       procedure Disp_Binary (Op : String) is
---       begin
---          Put_Line ("binary operator " & Op);
---          Disp_Indent (N_Indent, "left:");
---          Disp_Tree (N_Binary_Expr (N).Left.all, N_Indent + Offset, Full);
---          Disp_Indent (N_Indent, "right:");
---          Disp_Tree (N_Binary_Expr (N).Right.all, N_Indent + Offset, Full);
---       end Disp_Binary;
+   procedure Disp_Binary (N : N_Binary_Expr'Class;
+                          Indent : Natural;
+                          Full : Boolean;
+                          Op : String) is
+   begin
+      Put_Line ("binary operator " & Op);
+      Disp_Indent (Indent, "left:");
+      Disp_Tree (N.Left.all, Indent, Full);
+      Disp_Indent (Indent, "right:");
+      Disp_Tree (N.Right.all, Indent, Full);
+   end Disp_Binary;
 
 --       procedure Disp_Unary (Op : String) is
 --       begin
@@ -80,6 +78,10 @@ package body Disp is
 --          Disp_Tree (N_Unary_Expr (N).Operand.all, N_Indent + Offset, Full);
 --       end Disp_Unary;
 
+   --  Disp tree procedure
+   procedure Disp_Tree (N : N_Root'Class; Indent : Natural; Full : Boolean) is
+      Offset : constant Natural := 2;
+      N_Indent : Natural := Indent + Offset;
    begin
       Disp_Indent (Indent);
 
@@ -323,11 +325,11 @@ package body Disp is
             Disp_Indent (N_Indent, "declarator:");
             Disp_Tree (N_Case (N).Case_Decl.all, N_Indent, Full);
 
---          when K_Or =>
---             Disp_Binary ("or");
+         when K_Or =>
+            Disp_Binary (N_Binary_Expr (N), N_Indent + Offset, Full, "or");
 
---          when K_Xor =>
---             Disp_Binary ("xor");
+         when K_Xor =>
+            Disp_Binary (N_Binary_Expr (N), N_Indent + Offset, Full, "xor");
 
 --          when K_And =>
 --             Disp_Binary ("and");
@@ -436,7 +438,7 @@ package body Disp is
          when K_Const_Dcl =>
             Put_Line ("const " & Get_Name (N_Const_Dcl (N)));
             Disp_Indent (N_Indent, "type:");
-            Disp_Tree (N_Const_Dcl (N).Const_Type.all,
+            Disp_Tree (N_Const_Dcl (N).Constant_Type.all,
                        N_Indent + Offset,
                        Full);
             Disp_Indent (N_Indent, "expr:");

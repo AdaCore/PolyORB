@@ -19,8 +19,51 @@
 --
 
 with Types;
+with Ada.Unchecked_Deallocation;
 
 package Tree is
+
+   ----------------------------------
+   --  Management of const values  --
+   ----------------------------------
+
+   --  all possible values for an idl const
+   type Idl_Short is new Long_Long_Integer range (-2 ** 15) .. (2 ** 15 - 1);
+   type Idl_Long is new Long_Long_Integer range (-2 ** 31) .. (2 ** 31 - 1);
+   type Idl_LongLong is new Long_Long_Integer range
+     (-2 ** 63) .. (2 ** 63 - 1);
+   type Idl_UShort is new Long_Long_Integer range 0 .. (2 ** 16 - 1);
+   type Idl_ULong is new Long_Long_Integer range 0 .. (2 ** 32 - 1);
+   type Idl_ULonglong is new Long_Long_Integer range
+     (-2 ** 63) .. (2 ** 63 - 1);
+   type Idl_Char is new Long_Long_Integer range 0 .. (2 ** 8 - 1);
+   type Idl_WideChar is new Long_Long_Integer range 0 .. (2 ** 16 - 1);
+   type Idl_Boolean is new Long_Long_Integer range 0 .. 1;
+   type Idl_Enum is new Long_Long_Integer range 0 .. (2 ** 32 - 1);
+   type Idl_Fixed_Digits_Nb is new Long_Long_Integer range 0 .. 31;
+   type Idl_Fixed_Scale is new Long_Long_Integer range 0 .. 31;
+
+   --  a pointer on an idl value
+   type Value_Ptr is access all Long_Long_Integer;
+
+   --  to deallocate a value_ptr
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Long_Long_Integer, Value_Ptr);
+
+   --  compare two value_ptr
+   --  actually compare the real values pointed by these pointers
+   --  assuming that they are from the same type
+   function "<" (X, Y : Value_Ptr) return Boolean;
+   function ">" (X, Y : Value_Ptr) return Boolean;
+
+   --  returns true if the value pointed by prec is the one pointed
+   --  by next - 1, false else.
+   function Is_Prec (Prec, Next : Value_Ptr) return Boolean;
+
+
+   ------------------------------
+   --  Management fo the tree  --
+   ------------------------------
 
    --  An idl is represented as a tree, which is inspired by the
    --  interface repository specification (CORBA 2.3 Chap 10)
@@ -275,15 +318,17 @@ package Tree is
    type N_Type_Declarator_Acc is access all N_Type_Declarator;
    function Get_Kind (N : N_Type_Declarator) return Types.Node_Kind;
 
-   type N_Expr is abstract new Types.N_Root with null record;
+   type N_Expr is abstract new Types.N_Root with record
+      Value : Value_Ptr;
+   end record;
    type N_Expr_Acc is access all N_Expr;
    function Get_Kind (N : N_Expr) return Types.Node_Kind is abstract;
 
---    type N_Binary_Expr is abstract new N_Expr with record
---       Left, Right : Types.N_Root_Acc;
---    end record;
---    type N_Binary_Expr_Acc is access all N_Binary_Expr'Class;
---    function Get_Kind (N : N_Binary_Expr) return Types.Node_Kind is abstract;
+   type N_Binary_Expr is abstract new N_Expr with record
+      Left, Right : N_Expr_Acc;
+   end record;
+   type N_Binary_Expr_Acc is access all N_Binary_Expr'Class;
+   function Get_Kind (N : N_Binary_Expr) return Types.Node_Kind is abstract;
 
 --    type N_Unary_Expr is abstract new N_Expr with record
 --       Operand : Types.N_Root_Acc;
@@ -291,13 +336,13 @@ package Tree is
 --    type N_Unary_Expr_Acc is access all N_Unary_Expr'Class;
 --    function Get_Kind (N : N_Unary_Expr) return Types.Node_Kind is abstract;
 
---    type N_Or_Expr is new N_Binary_Expr with null record;
---    type N_Or_Expr_Acc is access N_Or_Expr;
---    function Get_Kind (N : N_Or_Expr) return Types.Node_Kind;
+   type N_Or_Expr is new N_Binary_Expr with null record;
+   type N_Or_Expr_Acc is access N_Or_Expr;
+   function Get_Kind (N : N_Or_Expr) return Types.Node_Kind;
 
---    type N_Xor_Expr is new N_Binary_Expr with null record;
---    type N_Xor_Expr_Acc is access N_Xor_Expr;
---    function Get_Kind (N : N_Xor_Expr) return Types.Node_Kind;
+   type N_Xor_Expr is new N_Binary_Expr with null record;
+   type N_Xor_Expr_Acc is access N_Xor_Expr;
+   function Get_Kind (N : N_Xor_Expr) return Types.Node_Kind;
 
 --    type N_And_Expr is new N_Binary_Expr with null record;
 --    type N_And_Expr_Acc is access N_And_Expr;
@@ -362,7 +407,7 @@ package Tree is
 --    function Get_Kind (N : N_Lit_Floating_Point) return Types.Node_Kind;
 
    type N_Const_Dcl is new Types.N_Named with record
-      Const_Type : Types.N_Root_Acc;
+      Constant_Type : Types.N_Root_Acc;
       Expression : N_Expr_Acc;
    end record;
    type N_Const_Dcl_Acc is access all N_Const_Dcl;
@@ -402,7 +447,6 @@ package Tree is
    type N_ValueBase is new Types.N_Root with null record;
    type N_ValueBase_Acc is access all N_ValueBase;
    function Get_Kind (N : N_ValueBase) return Types.Node_Kind;
-
 
 --
 --  INUTILE ???

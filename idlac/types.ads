@@ -18,6 +18,7 @@
 
 with GNAT.Table;
 with Errors;
+with Ada.Unchecked_Deallocation;
 
 package Types is
 
@@ -31,8 +32,7 @@ package Types is
 
    --  all the possible kinds of node
    type Node_Kind is
-      (K_Repository,
-       K_Scoped_Name,
+      (K_Repository,                --  structuring nodes
        K_Module,
        K_Interface,
        K_Forward_Interface,
@@ -43,11 +43,25 @@ package Types is
        K_Initializer,
        K_Operation,
 --        K_Attribute,
+       K_Param,
+       K_Exception,
+       K_Member,
+       K_Declarator,
+       K_Type_Declarator,
+       K_Const_Dcl,
+       K_Union,
+       K_Case,
+       K_Sequence,
+       K_Struct,
+       K_ValueBase,
+       K_Enumerator,
+       K_Native,
+       K_Scoped_Name,
+       K_Object,
+       K_Any,
        K_Void,
-       K_Float,
-       K_Double,
-       K_Long_Double,
-       K_Short,
+       K_Fixed,
+       K_Short,                     --  type nodes
        K_Long,
        K_Long_Long,
        K_Unsigned_Short,
@@ -56,29 +70,16 @@ package Types is
        K_Char,
        K_Wide_Char,
        K_Boolean,
-       K_Octet,
-       K_Any,
-       K_Object,
+       K_Float,
+       K_Double,
+       K_Long_Double,
        K_String,
        K_Wide_String,
-       K_Native,
-       K_Param,
-       K_Exception,
-       K_Member,
-       K_Declarator,
-       K_Type_Declarator,
-       K_Const_Dcl,
-       K_Fixed,
-       K_Union,
-       K_Case,
-       K_Sequence,
-       K_Struct,
+       K_Octet,
        K_Enum,
-       K_ValueBase,
-       K_Enumerator,
---        K_Or,                   --  Binary operators.
+       K_Or,                   --  Binary operators.
+       K_Xor,
 --        K_And,
---        K_Xor,
 --        K_Sub,
 --        K_Add,
 --        K_Shr,
@@ -100,6 +101,42 @@ package Types is
 --        K_Lit_False
        );
 
+   --  all the possible kind of constants
+   type Const_Kind is
+     (C_Short,
+      C_Long,
+      C_Long_Long,
+      C_Unsigned_Short,
+      C_Unsigned_Long,
+      C_Unsigned_Long_Long,
+      C_Char,
+      C_Wide_Char,
+      C_Boolean,
+      C_Float,
+      C_Double,
+      C_Long_Double,
+      C_Fixed,
+      C_String,
+      C_Wide_String,
+      C_Octet,
+      C_Enum,
+      C_No_Type);
+
+   --  type of a constant
+   type Const_Type (Kind : Const_Kind) is record
+      case Kind is
+         when C_Fixed =>
+            Digits_Nb : Long_Long_Integer range 0 .. 31;
+            Scale : Long_Long_Integer range 0 .. 31;
+         when others =>
+            null;
+      end case;
+   end record;
+   type Const_Type_Ptr is access Const_Type;
+
+   --  to deallocate a const_type_ptr
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Const_Type, Const_Type_Ptr);
 
 
    --  Identifiers are numbered, in order to make comparaison

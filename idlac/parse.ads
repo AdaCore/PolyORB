@@ -19,8 +19,8 @@
 with Tree; use Tree;
 with Tokens; use Tokens;
 with Types; use Types;
-with Ada.Unchecked_Deallocation;
 with Errors;
+with Ada.Unchecked_Deallocation;
 
 package Parse is
 
@@ -100,40 +100,9 @@ private
    function Get_Next_Token_String return String;
 
 
-   ----------------------------------
-   --  Management of const values  --
-   ----------------------------------
-
-   --  all possible values for an idl const
-   type Idl_Short is new Long_Long_Integer range (-2 ** 15) .. (2 ** 15 - 1);
-   type Idl_Long is new Long_Long_Integer range (-2 ** 31) .. (2 ** 31 - 1);
-   type Idl_LongLong is new Long_Long_Integer range
-     (-2 ** 63) .. (2 ** 63 - 1);
-   type Idl_UShort is new Long_Long_Integer range 0 .. (2 ** 16 - 1);
-   type Idl_ULong is new Long_Long_Integer range 0 .. (2 ** 32 - 1);
-   type Idl_ULonglong is new Long_Long_Integer range
-     (-2 ** 63) .. (2 ** 63 - 1);
-   type Idl_Char is new Long_Long_Integer range 0 .. (2 ** 8 - 1);
-   type Idl_WideChar is new Long_Long_Integer range 0 .. (2 ** 16 - 1);
-   type Idl_Boolean is new Long_Long_Integer range 0 .. 1;
-   type Idl_Enum is new Long_Long_Integer range 0 .. (2 ** 32 - 1);
-
-   --  a pointer on an idl value
-   type Value_Ptr is access all Long_Long_Integer;
-
-   --  to deallocate a value_ptr
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Long_Long_Integer, Value_Ptr);
-
-   --  compare two value_ptr
-   --  actually compare the real values pointed by these pointers
-   --  assuming that they are from the same type
-   function "<" (X, Y : Value_Ptr) return Boolean;
-   function ">" (X, Y : Value_Ptr) return Boolean;
-
-   --  returns true if the value pointed by prec is the one pointed
-   --  bu next - 1, false else.
-   function Is_Prec (Prec, Next : Value_Ptr) return Boolean;
+   ---------------------------------
+   --  Management of expressions  --
+   ---------------------------------
 
    --  a generic interval of values
    type Interval_Type is record
@@ -161,6 +130,7 @@ private
 
    --  Evaluates the numeric value of an expression
    function Eval (C : N_Expr_Acc) return Value_Ptr;
+
 
    --------------------------
    --  Parsing of the idl  --
@@ -411,17 +381,30 @@ private
                                Success : out Boolean);
 
    --  Rule 29
-   --  <const_exp> ::= <or_exp>
+   --  <const_exp> ::= <or_expr>
    procedure Parse_Const_Exp (Result : out N_Expr_Acc;
-                              Const_Type : in N_Root_Acc;
+                              Constant_Type : in N_Root_Acc;
                               Success : out Boolean);
 
    --  Rule 30
    --  <or_expr> ::= <xor_expr>
    --            |   <or_expr> "^" <xor_expr>
+   --  actually, the implemented gramar is slightly different :
+   --  <or_expr> ::= <xor_expr>
+   --            |   <xor_expr> "^" <or_expr>
    procedure Parse_Or_Expr (Result : out N_Expr_Acc;
-                            Const_Type : in N_Root_Acc;
+                            Constant_Type : out Types.Const_Type_Ptr;
                             Success : out Boolean);
+
+   --  Rule 31
+   --  <xor_expr> ::= <and_expr>
+   --             |   <xor_expr> "^" <and_expr>
+   --  actually, the implemented gramar is slightly different :
+   --  <xor_expr> ::= <and_expr>
+   --             |   <and_expr> "^" <xor_expr>
+   procedure Parse_Xor_Expr (Result : out N_Expr_Acc;
+                             Constant_Type : out Types.Const_Type_Ptr;
+                             Success : out Boolean);
 
    --  Rule 41
    --  <positive_int_const> ::= <const_exp>
@@ -776,6 +759,20 @@ private
    --  constraints.
    procedure Check_Context_String (S : in String);
 
+   --  CORBA V2.3 - 3.9.2
+   --
+   --  "An infix operator can combine two integer, floats
+   --  or fixed but not mixtures of these."
+   --  "Infix operator are applicable only to integer, float
+   --  and fixed types."
+   --
+   --  this function raises an error if first and second are
+   --  not compatible and computes the type of the result. In case
+   --  of incompatibility, the type is C_No_Type
+   function Check_Const_Type (First : Types.Const_Type_Ptr;
+                              Second : Types.Const_Type_Ptr)
+                              return Types.Const_Type_Ptr;
+
    ------------------------------
    --  To resume after errors  --
    ------------------------------
@@ -875,10 +872,6 @@ private
 --    --             |   <and_expr> "&" <shift_expr>
 --    function Parse_And_Expr return N_Root_Acc is
 
---    --  Rule 16:
---    --  <xor_expr> ::= <and_expr>
---    --             |   <xor_expr> "^" <and_expr>
---    function Parse_Xor_Expr return N_Root_Acc is
 
 --    --
 --    --  Rule 70:
