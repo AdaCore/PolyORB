@@ -16,16 +16,10 @@
 --  MA 02111-1307, USA.
 --
 
+with Errors;
+
 package Types is
    type String_Cacc is access constant String;
-   Internal_Error : exception;
-   Fatal_Error : exception;
-
-   type Location is record
-      --  Filename: String_Cacc;
-      Line : Positive;
-      Col : Natural;
-   end record;
 
    type Node_Kind is
       (K_Repository, K_Scoped_Name,
@@ -67,8 +61,8 @@ package Types is
                            Be : access N_Back_End'Class);
    function Get_Back_End (N : N_Root'Class) return N_Back_End_Acc;
 
-   procedure Set_Loc (N : in out N_Root'Class; Loc : Location);
-   function Get_Loc (N : N_Root'Class) return Location;
+   procedure Set_Loc (N : in out N_Root'Class; Loc : Errors.Location);
+   function Get_Loc (N : N_Root'Class) return Errors.Location;
    function Get_Kind (N : N_Root) return Node_Kind is abstract;
 
    type Node_Acc is access all N_Root'Class;
@@ -164,7 +158,7 @@ private
    type N_Back_End is abstract tagged null record;
 
    type N_Root is abstract tagged record
-      Loc : Location;
+      Loc : Errors.Location;
       Back_End : N_Back_End_Acc := null;
    end record;
 

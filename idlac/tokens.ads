@@ -17,6 +17,7 @@
 --
 
 with Types; use Types;
+with Errors;
 
 package Tokens is
 
@@ -210,7 +211,7 @@ package Tokens is
    function Token return Idl_Token;
 
    --  Return the location of the current token.
-   function Get_Loc return Location;
+   function Get_Location return Errors.Location;
 
    --  If the current token is an identifier (t_identifier), then return
    --  its value as a string.

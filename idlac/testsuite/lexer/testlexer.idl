@@ -1,0 +1,91 @@
+interface echo {
+
+  /*** comment tests ***/
+
+  // conneries
+  /* encore
+  *** des ***
+  /// conneries ///
+  /* * / coucou */
+
+
+  /*** identifier test ***/
+
+  string echo_string(in string mesg);
+  string _string(in string mesg);
+
+
+  /*** numeric literal test ***/
+
+  const short 0;
+  const short 12;
+  const short 014;
+  const short 0xC;
+  const float 1.45;
+  const float 0.2;
+  const float .3;
+  const float 3.;
+  const float 5e3;
+  const float 3E4;
+  const float .3e4;
+  const float 2d;
+  const float 5D;
+  const float 3.4d;
+  const float .5d; 
+
+
+  /*** char literal test ***/
+
+  const char '';
+  const char 'r';
+  const char '\n';
+  const char '\'';
+  const char '\\';
+  const char '\1';
+  const char '\12';
+  const char '\123';
+  const char '\xa';
+  const char '\xab';
+  const char '\ua';
+  const char '\uab';
+  const char '\uabc';
+  const char '\uabcd';
+
+  const wchar L'';
+  const wchar L'r';
+  const wchar L'\n';
+  const wchar L'\'';
+  const wchar L'\\';
+  const wchar L'\1';
+  const wchar L'\12';
+  const wchar L'\123';
+  const wchar L'\xa';
+  const wchar L'\xab';
+  const wchar L'\ua';
+  const wchar L'\uab';
+  const wchar L'\uabc';
+  const wchar L'\uabcd';
+
+  /* bad ones */
+     const char ''';
+     const char '\';
+     const char '\8';
+     const char '\k';
+     const char '\1234';
+     const char '\xzfrt';
+     const char 'zfrtjhsu
+     const char '\xabc';
+     const char '\ux';
+     const char '\uabcde';
+
+     const wchar L''';
+     const wchar L'\';
+     const wchar L'\8';
+     const wchar L'\k';
+     const wchar L'\1234';
+     const wchar L'\xzfrt';
+     const wchar L'zfrtjhsu
+     const wchar L'\xabc';
+     const wchar L'\ux';
+     const wchar L'\uabcde';
+};

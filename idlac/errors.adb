@@ -1,6 +1,11 @@
 with Ada.Text_Io;
+with Tokens;
 
 package body Errors is
+
+   ----------------------------
+   --  some usefull methods  --
+   ----------------------------
 
    --  counters for errors and warnings
    Error_Count : Natural := 0;
@@ -13,31 +18,75 @@ package body Errors is
       return Res (2 .. Res'Last);
    end Nat_To_String;
 
-   --  adds a new error
+   --  displays an error
    procedure Display_Error (Message : in String;
-                            Line : in Natural;
-                            Column : in Positive;
-                            Kind : in Error_Kind) is
+                            Level : in Error_Kind) is
+      Loc : Location;
    begin
-      if Kind = Error then
-         Error_Count := Error_Count + 1;
-      else
-         Warning_Count := Warning_Count + 1;
-      end if;
-      if Kind = Error then
-         Ada.Text_Io.Put ("ERROR occured at line ");
-      elsif Kind = Error then
-         Ada.Text_Io.Put ("WARNING occured at line ");
-      end if;
-      Ada.Text_Io.Put (Nat_To_String (Line));
+      Loc := Tokens.Get_Location;
+      case Level is
+         when Fatal =>
+            Ada.Text_Io.Put ("FATAL ERROR occured at line ");
+         when Error =>
+            Ada.Text_Io.Put ("ERROR occured at line ");
+         when WARNING =>
+            Ada.Text_Io.Put ("WARNING occured at line ");
+      end case;
+      Ada.Text_Io.Put (Nat_To_String (Loc.Line));
       Ada.Text_Io.Put (", column ");
-      Ada.Text_Io.Put (Nat_To_String (Column));
-      Ada.Text_Io.Put_Line (" : ");
+      Ada.Text_Io.Put (Nat_To_String (Loc.Col));
+      Ada.Text_Io.Put (" of file ");
+      Ada.Text_Io.Put (Loc.Filename);
+      Ada.Text_Io.New_Line;
       Ada.Text_Io.Put ("    ");
       Ada.Text_Io.Put_Line (Message);
+      Ada.Text_Io.New_Line;
    end Display_Error;
 
-   --  was there any errors ?
+
+   --------------------------------------
+   --  functions of the specification  --
+   --------------------------------------
+
+   --  deals with a lexer error
+   --  displays the error and, depending of its level, raise it
+   procedure Lexer_Error (Message : in String;
+                          Level : in Error_Kind)is
+   begin
+      case Level is
+         when Fatal =>
+            null;
+         when Error =>
+            Error_Count := Error_Count + 1;
+         when Warning =>
+            Warning_Count := Warning_Count + 1;
+      end case;
+      Display_Error (Message, Level);
+      if Level = Fatal then
+         raise Fatal_Error;
+      end if;
+   end Lexer_Error;
+
+   --  deals with a parser error
+   --  displays the error and, depending of its level, raise it
+   procedure Parser_Error (Message : in String;
+                          Level : in Error_Kind)is
+   begin
+      case Level is
+         when Fatal =>
+            null;
+         when Error =>
+            Error_Count := Error_Count + 1;
+         when Warning =>
+            Warning_Count := Warning_Count + 1;
+      end case;
+      Display_Error (Message, Level);
+      if Level = Fatal then
+         raise Fatal_Error;
+      end if;
+   end Parser_Error;
+
+      --  was there any errors ?
    function Is_Error return Boolean is
    begin
       return Error_Count > 0;

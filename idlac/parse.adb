@@ -39,17 +39,13 @@ package body Parse is
       end if;
 
       if Token_Kind = T_Greater and then Token = T_Greater_Greater then
-         Errors.Display_Error
+         Errors.Parser_Error
            ("`>>' is a shift operator, use `> >' for a double `>'",
-            1,
-            1,
             Errors.Error);
          Set_Replacement_Token (T_Greater);
       else
-         Errors.Display_Error ("unexpected token " & Image (Token)
+         Errors.Parser_Error ("unexpected token " & Image (Token)
                      & ", " & Image (Token_Kind) & " expected",
-                              1,
-                               1,
                                Errors.Error);
          raise Parse_Error;
       end if;
@@ -72,7 +68,7 @@ package body Parse is
    begin
       Prev := null;
       Res := new N_Scoped_Name;
-      Set_Loc (Res.all, Get_Loc);
+      Set_Loc (Res.all, Get_Location);
       if Token = T_Colon_Colon then
          Scope := Get_Root_Scope;
       else
@@ -80,7 +76,7 @@ package body Parse is
          Next_Token;
          if Token /= T_Colon_Colon then
             if Name = null then
-               raise Internal_Error;
+               raise Errors.Internal_Error;
             end if;
             Res.Value := Name;
             return Res;
@@ -88,11 +84,9 @@ package body Parse is
       end if;
       loop
          if Name.all not in N_Scope'Class then
-            Errors.Display_Error ("identifier is not a scope",
-                                 1,
-                                  1,
+            Errors.Parser_Error ("identifier is not a scope",
                                   Errors.Error);
-            raise Internal_Error;
+            raise Errors.Internal_Error;
          end if;
          Next_Token;
          Scope := N_Scope_Acc (Name);
@@ -102,7 +96,7 @@ package body Parse is
          exit when Token /= T_Colon_Colon;
       end loop;
       if Name = null then
-         raise Internal_Error;
+         raise Errors.Internal_Error;
       end if;
       Res.Value := Name;
       return Res;
@@ -120,7 +114,7 @@ package body Parse is
    function Parse_Literal return Node_Acc is
    begin
       case Token is
-         when T_Lit_Integer =>
+         when T_Lit_Decimal_Integer =>
             declare
                Res : N_Lit_Integer_Acc;
             begin
@@ -129,7 +123,7 @@ package body Parse is
                Next_Token;
                return Node_Acc (Res);
             end;
-         when T_Lit_Floating_Point =>
+         when T_Lit_Simple_Floating_Point =>
             declare
                Res : N_Lit_Floating_Point_Acc;
             begin
@@ -139,7 +133,7 @@ package body Parse is
                return Node_Acc (Res);
             end;
          when others =>
-            raise Internal_Error;
+            raise Errors.Internal_Error;
       end case;
    end Parse_Literal;
 
@@ -151,7 +145,7 @@ package body Parse is
    begin
       if Token = T_Void then
          Res := Node_Acc'(new N_Void);
-         Set_Loc (Res.all, Get_Loc);
+         Set_Loc (Res.all, Get_Location);
          Next_Token;
          return Res;
       else
@@ -170,15 +164,13 @@ package body Parse is
       Res : N_Param_Acc;
    begin
       Res := new N_Param;
-      Set_Loc (Res.all, Get_Loc);
+      Set_Loc (Res.all, Get_Location);
       case Token is
          when T_In =>
             Res.Mode := Mode_In;
             Next_Token;
             if Token = T_Out then
-               Errors.Display_Error ("`in out' must be `inout'",
-                                    1,
-                                     1,
+               Errors.Parser_Error ("`in out' must be `inout'",
                                      Errors.Error);
                Res.Mode := Mode_Inout;
                Next_Token;
@@ -190,13 +182,9 @@ package body Parse is
             Res.Mode := Mode_Inout;
             Next_Token;
          when others =>
-            Errors.Display_Error ("mode `in', `out' or `inout' expected",
-                                 1,
-                                  1,
+            Errors.Parser_Error ("mode `in', `out' or `inout' expected",
                                   Errors.Error);
-            Errors.Display_Error ("assume `in'",
-                                 1,
-                                  1,
+            Errors.Parser_Error ("assume `in'",
                                   Errors.Error);
             Res.Mode := Mode_In;
       end case;
@@ -244,7 +232,7 @@ package body Parse is
       Res : N_Operation_Acc;
    begin
       Res := new N_Operation;
-      Set_Loc (Res.all, Get_Loc);
+      Set_Loc (Res.all, Get_Location);
 
       --  Rule 73
       --  <op_attribute> ::= "oneway"
@@ -304,14 +292,13 @@ package body Parse is
             Expect (T_Right_Paren);
             Next_Token;
             return Res;
-         when T_Lit_Integer | T_Lit_Char | T_Lit_Floating_Point |
-           T_Lit_String | T_Lit_Fixed_Point | T_True | T_False =>
+         when T_Lit_Decimal_Integer | T_Lit_Simple_Char
+           | T_Lit_Simple_Floating_Point | T_Lit_String
+           | T_Lit_Simple_Fixed_Point | T_True | T_False =>
             return Parse_Literal;
          when others =>
-            Errors.Display_Error ("bad token for a primary expression: "
+            Errors.Parser_Error ("bad token for a primary expression: "
                         & Image (Token),
-                                 1,
-                                  1,
                                   Errors.Error);
             raise Parse_Error;
       end case;
@@ -493,7 +480,7 @@ package body Parse is
       Res : N_String_Acc;
    begin
       Res := new N_String;
-      Set_Loc (Res.all, Get_Loc);
+      Set_Loc (Res.all, Get_Location);
       Expect (T_String);
       Next_Token;
       if Token = T_Less then
@@ -510,11 +497,9 @@ package body Parse is
    --                     |   "wstring"
    function Parse_Wide_String_Type return Node_Acc is
    begin
-      Errors.Display_Error ("can't parse wide string type",
-                           1,
-                            1,
+      Errors.Parser_Error ("can't parse wide string type",
                             Errors.Error);
-      raise Internal_Error;
+      raise Errors.Internal_Error;
       return null;
    end Parse_Wide_String_Type;
 
@@ -523,11 +508,9 @@ package body Parse is
    --                       <integer_literal> ">"
    function Parse_Fixed_Pt_Type return Node_Acc is
    begin
-      Errors.Display_Error ("can't parse fixed pt type",
-                           1,
-                            1,
+      Errors.Parser_Error ("can't parse fixed pt type",
                             Errors.Error);
-      raise Internal_Error;
+      raise Errors.Internal_Error;
       return null;
    end Parse_Fixed_Pt_Type;
 
@@ -634,15 +617,11 @@ package body Parse is
                      return Node_Acc'(new N_Unsigned_Long);
                   end if;
                when others =>
-                  Errors.Display_Error ("`unsigned' must be followed either "
-                              & "by `short' or `long'",
-                                       1,
-                                        1,
-                                        Errors.Error);
-                  Errors.Display_Error ("`unsigned long' assumed",
-                                       1,
-                                        1,
-                                        Errors.Error);
+                  Errors.Parser_Error ("`unsigned' must be followed either "
+                                       & "by `short' or `long'",
+                                       Errors.Error);
+                  Errors.Parser_Error ("`unsigned long' assumed",
+                                       Errors.Error);
                   return Node_Acc'(new N_Unsigned_Long);
             end case;
          when T_Char =>
@@ -664,11 +643,9 @@ package body Parse is
             Next_Token;
             return Node_Acc'(new N_Object);
          when others =>
-            Errors.Display_Error ("base type expected",
-                                 1,
-                                  1,
-                                  Errors.Error);
-            raise Internal_Error;
+            Errors.Parser_Error ("base type expected",
+                                 Errors.Error);
+            raise Errors.Internal_Error;
       end case;
    end Parse_Base_Type_Spec;
 
@@ -693,11 +670,9 @@ package body Parse is
            | T_Wchar | T_Boolean | T_Octet | T_Any | T_Object =>
             return Parse_Base_Type_Spec;
          when others =>
-            Errors.Display_Error ("param type specifier expected",
-                                 1,
-                                  1,
+            Errors.Parser_Error ("param type specifier expected",
                                   Errors.Error);
-            raise Internal_Error;
+            raise Errors.Internal_Error;
       end case;
    end Parse_Param_Type_Spec;
 
@@ -708,7 +683,7 @@ package body Parse is
       El : N_Attribute_Acc;
    begin
       El := new N_Attribute;
-      Set_Loc (El.all, Get_Loc);
+      Set_Loc (El.all, Get_Location);
       if Token = T_Readonly then
          El.Is_Readonly := True;
          Next_Token;
@@ -741,7 +716,7 @@ package body Parse is
          when T_Fixed =>
             return Node_Acc (Parse_Fixed_Pt_Type);
          when others =>
-            raise Internal_Error;
+            raise Errors.Internal_Error;
       end case;
    end Parse_Template_Type_Spec;
 
@@ -760,9 +735,7 @@ package body Parse is
            T_Char | T_Wchar | T_Octet | T_Boolean | T_Any | T_Object =>
             return Parse_Base_Type_Spec;
          when others =>
-            Errors.Display_Error ("simple type expected",
-                                 1,
-                                  1,
+            Errors.Parser_Error ("simple type expected",
                                   Errors.Error);
             raise Parse_Error;
       end case;
@@ -776,7 +749,7 @@ package body Parse is
       Res : N_Sequence_Acc;
    begin
       Res := new N_Sequence;
-      Set_Loc (Res.all, Get_Loc);
+      Set_Loc (Res.all, Get_Location);
       Expect (T_Sequence);
       Scan_Expect (T_Less);
       Next_Token;
@@ -806,9 +779,7 @@ package body Parse is
          when T_Enum | T_Struct | T_Union =>
             return Parse_Constr_Type_Spec;
          when others =>
-            Errors.Display_Error ("type specifier expected",
-                                 1,
-                                  1,
+            Errors.Parser_Error ("type specifier expected",
                                   Errors.Error);
             raise Parse_Error;
       end case;
@@ -833,7 +804,7 @@ package body Parse is
       Res : N_Declarator_Acc;
    begin
       Res := new N_Declarator;
-      Set_Loc (Res.all, Get_Loc);
+      Set_Loc (Res.all, Get_Location);
       Expect (T_Identifier);
       Add_Identifier (Res);
       Next_Token;
@@ -869,7 +840,7 @@ package body Parse is
    begin
       loop
          Res := new N_Member;
-         Set_Loc (Res.all, Get_Loc);
+         Set_Loc (Res.all, Get_Location);
          Res.M_Type := Parse_Type_Spec;
          Parse_Declarators (Res.Decl);
          Expect (T_Semi_Colon);
@@ -886,7 +857,7 @@ package body Parse is
    begin
       Expect (T_Exception);
       Res := new N_Exception;
-      Set_Loc (Res.all, Get_Loc);
+      Set_Loc (Res.all, Get_Location);
       Scan_Expect (T_Identifier);
       Add_Identifier (Res);
       Scan_Expect (T_Left_Cbracket);
@@ -908,7 +879,7 @@ package body Parse is
       Res : N_Case_Acc;
    begin
       Res := new N_Case;
-      Set_Loc (Res.all, Get_Loc);
+      Set_Loc (Res.all, Get_Location);
       Res.Labels := Nil_List;
       loop
          case Token is
@@ -925,9 +896,7 @@ package body Parse is
          Next_Token;
       end loop;
       if Res.Labels = Nil_List then
-         Errors.Display_Error ("`case' or `default' expected",
-                              1,
-                               1,
+         Errors.Parser_Error ("`case' or `default' expected",
                                Errors.Error);
          raise Parse_Error;
       end if;
@@ -956,7 +925,7 @@ package body Parse is
       Res : N_Union_Acc;
    begin
       Res := new N_Union;
-      Set_Loc (Res.all, Get_Loc);
+      Set_Loc (Res.all, Get_Location);
       Expect (T_Union);
       Scan_Expect (T_Identifier);
       Add_Identifier (Res);
@@ -975,14 +944,12 @@ package body Parse is
                Res.Switch_Type := new N_Long;
             end if;
          when T_Enum =>
-            raise Internal_Error;
+            raise Errors.Internal_Error;
          when T_Colon_Colon | T_Identifier =>
             Res.Switch_Type := Node_Acc (Parse_Scoped_Name);
          when others =>
-            Errors.Display_Error ("switch type expected",
-                                 1,
-                                  1,
-                                  Errors.Error);
+            Errors.Parser_Error ("switch type expected",
+                                 Errors.Error);
             raise Parse_Error;
       end case;
       Expect (T_Right_Paren);
@@ -1004,7 +971,7 @@ package body Parse is
       Res : N_Struct_Acc;
    begin
       Res := new N_Struct;
-      Set_Loc (Res.all, Get_Loc);
+      Set_Loc (Res.all, Get_Location);
       Scan_Expect (T_Identifier);
       Add_Identifier (Res);
       Scan_Expect (T_Left_Cbracket);
@@ -1027,7 +994,7 @@ package body Parse is
       El : N_Enumerator_Acc;
    begin
       Res := new N_Enum;
-      Set_Loc (Res.all, Get_Loc);
+      Set_Loc (Res.all, Get_Location);
       Expect (T_Enum);
       Scan_Expect (T_Identifier);
       Add_Identifier (Res);
@@ -1035,7 +1002,7 @@ package body Parse is
       loop
          Scan_Expect (T_Identifier);
          El := new N_Enumerator;
-         Set_Loc (El.all, Get_Loc);
+         Set_Loc (El.all, Get_Location);
          Add_Identifier (El);
          Append_Node (Res.Enumerators, Node_Acc (El));
          Next_Token;
@@ -1060,11 +1027,9 @@ package body Parse is
          when T_Enum =>
             return Node_Acc (Parse_Enum_Type);
          when others =>
-            Errors.Display_Error ("constructed type expected",
-                                 1,
-                                  1,
-                                  Errors.Error);
-            raise Internal_Error;
+            Errors.Parser_Error ("constructed type expected",
+                                 Errors.Error);
+            raise Errors.Internal_Error;
       end case;
    end Parse_Constr_Type_Spec;
 
@@ -1074,7 +1039,7 @@ package body Parse is
       Res : N_Type_Declarator_Acc;
    begin
       Res := new N_Type_Declarator;
-      Set_Loc (Res.all, Get_Loc);
+      Set_Loc (Res.all, Get_Location);
       Res.T_Type := Parse_Type_Spec;
       Parse_Declarators (Res.Declarators);
       return Res;
@@ -1103,23 +1068,19 @@ package body Parse is
                Res : N_Native_Acc;
             begin
                Res := new N_Native;
-               Set_Loc (Res.all, Get_Loc);
+               Set_Loc (Res.all, Get_Location);
                Expect (T_Native);
                Next_Token;
                Res.Decl := Parse_Declarator;
                if Res.Decl.Array_Bounds /= Nil_List then
-                  Errors.Display_Error ("simple declarator expected",
-                                       1,
-                                        1,
-                                        Errors.Error);
+                  Errors.Parser_Error ("simple declarator expected",
+                                       Errors.Error);
                end if;
                return Node_Acc (Res);
             end;
          when others =>
-            Errors.Display_Error ("type declarator expected",
-                                 1,
-                                  1,
-                                  Errors.Error);
+            Errors.Parser_Error ("type declarator expected",
+                                 Errors.Error);
             raise Parse_Error;
       end case;
    end Parse_Type_Dcl;
@@ -1153,18 +1114,14 @@ package body Parse is
          when T_Typedef =>
             Append_Node (List, Parse_Type_Dcl);
          when others =>
-            Errors.Display_Error ("declaration of an operation expected",
-                                 1,
-                                  1,
-                                  Errors.Error);
+            Errors.Parser_Error ("declaration of an operation expected",
+                                 Errors.Error);
             raise Parse_Error;
       end case;
       if Token /= T_Semi_Colon then
-         Errors.Display_Error ("`;' expected here, found "
-                               & Idl_Token'Image (Token),
-                              1,
-                               1,
-                               Errors.Error);
+         Errors.Parser_Error ("`;' expected here, found "
+                              & Idl_Token'Image (Token),
+                              Errors.Error);
       else
          Next_Token;
       end if;
@@ -1220,7 +1177,7 @@ package body Parse is
    begin
       --  interface header.
       Res := new N_Interface;
-      Set_Loc (Res.all, Get_Loc);
+      Set_Loc (Res.all, Get_Location);
       Next_Token;
       Expect (T_Identifier);
       Name := Find_Identifier;
@@ -1242,10 +1199,8 @@ package body Parse is
          --  Hups, this was just a forward declaration.
          if Fd_Res /= null then
             --  FIXME.
-            Errors.Display_Error
+            Errors.Parser_Error
               ("forward declaration after interface declaration",
-              1,
-               1,
                Errors.Error);
          end if;
          Fd_Res := new N_Forward_Interface;
@@ -1280,15 +1235,13 @@ package body Parse is
          when T_Wstring =>
             return Parse_Wide_String_Type;
          when T_Fixed =>
-            raise Internal_Error;
+            raise Errors.Internal_Error;
             --  return Parse_Fixed_Pt_Const_Type;
          when T_Colon_Colon | T_Identifier =>
             return Node_Acc (Parse_Scoped_Name);
          when others =>
-            Errors.Display_Error ("const type expected",
-                                 1,
-                                  1,
-                                  Errors.Error);
+            Errors.Parser_Error ("const type expected",
+                                 Errors.Error);
             raise Parse_Error;
       end case;
    end Parse_Const_Type;
@@ -1299,7 +1252,7 @@ package body Parse is
       Res : N_Const_Acc;
    begin
       Res := new N_Const;
-      Set_Loc (Res.all, Get_Loc);
+      Set_Loc (Res.all, Get_Location);
       Expect (T_Const);
       Next_Token;
       Res.C_Type := Parse_Const_Type;
@@ -1332,10 +1285,8 @@ package body Parse is
          when T_Module =>
             Res := Node_Acc (Parse_Module);
          when others =>
-            Errors.Display_Error ("definition expected",
-                                  1,
-                                  1,
-                                  Errors.Error);
+            Errors.Parser_Error ("definition expected",
+                                 Errors.Error);
             raise Parse_Error;
       end case;
       Expect (T_Semi_Colon);
@@ -1349,7 +1300,7 @@ package body Parse is
       Res : N_Module_Acc;
    begin
       Res := new N_Module;
-      Set_Loc (Res.all, Get_Loc);
+      Set_Loc (Res.all, Get_Location);
       Expect (T_Module);
       Scan_Expect (T_Identifier);
       Add_Identifier (Res);
@@ -1372,7 +1323,7 @@ package body Parse is
       Res : N_Repository_Acc;
    begin
       Res := new N_Repository;
-      Set_Loc (Res.all, Get_Loc);
+      Set_Loc (Res.all, Get_Location);
       --  The repository is the root scope.
       Push_Scope (Res);
       Next_Token;

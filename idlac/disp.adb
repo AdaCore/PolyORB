@@ -18,6 +18,7 @@
 
 with Ada.Text_IO; use Ada.Text_IO;
 with Tree; use Tree;
+with Errors;
 
 package body Disp is
    Blanks : constant String (1 .. 80) := (others => ' ');
@@ -295,10 +296,10 @@ package body Disp is
             Disp_Unary ("Id");
 
          when K_Lit_Char =>
-            raise Internal_Error;
+            raise Errors.Internal_Error;
 
          when K_Lit_String =>
-            raise Internal_Error;
+            raise Errors.Internal_Error;
 
          when K_Lit_Integer =>
             Put_Line ("integer literal: " & N_Lit_Integer (N).Lit.all);
@@ -307,7 +308,7 @@ package body Disp is
             Put_Line ("floating point: " & N_Lit_Floating_Point (N).Lit.all);
 
          when K_Lit_Fixed_Point =>
-            raise Internal_Error;
+            raise Errors.Internal_Error;
 
          when K_Lit_True =>
             Put_Line ("true");
@@ -316,10 +317,10 @@ package body Disp is
             Put_Line ("false");
 
          when K_Lit_Wchar =>
-            raise Internal_Error;
+            raise Errors.Internal_Error;
 
          when K_Lit_Wstring =>
-            raise Internal_Error;
+            raise Errors.Internal_Error;
 
          when K_Struct =>
             Put_Line ("struct " & Get_Name (N_Struct (N)));

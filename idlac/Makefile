@@ -1,8 +1,8 @@
 GNAT_STYLE=-gnaty3bcefhikmt
 GNATMAKE_FLAGS=-g $(GNAT_STYLE) -gnatf -gnatwu -gnatwe
-all: gidlac # idlac
+all: testlexer # gidlac # idlac
 
-gidlac idlac: force
+testlexer gidlac idlac: force
 	gnatmake $(GNATMAKE_FLAGS) $@
 
 TEST_FILES=\
@@ -16,6 +16,6 @@ test:
 .PHONY: clean force
 
 clean:
-	$(RM) *.o *.ali *.c *~ idlac gidlac b~*
+	$(RM) *.o *.ali *.c *~ idlac gidlac testlexer b~*
 
 force:

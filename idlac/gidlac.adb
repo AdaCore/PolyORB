@@ -23,7 +23,7 @@ with GNAT.OS_Lib; use GNAT.OS_Lib;
 with Tree;
 with Parse;
 with Disp;
-with Types;
+with Errors;
 with Be_Ada;
 
 procedure Gidlac is
@@ -157,7 +157,7 @@ exception
       Set_Exit_Status (Failure);
       return;
 
-   when Types.Fatal_Error =>
+   when Errors.Fatal_Error =>
       Set_Exit_Status (Failure);
       return;
 end Gidlac;

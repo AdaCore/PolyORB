@@ -1,13 +1,30 @@
 package Errors is
 
-   --  defines two levels of error
-   type Error_Kind is (Error, Warning);
+   --  defines a place in one of the parsed files
+   type Location is record
+      Filename : String (1 .. 50);
+      Line : Positive;
+      Col : Natural;
+   end record;
 
-   --  displays a new error
-   procedure Display_Error (Message : in String;
-                            Line : in Natural;
-                            Column : in Positive;
-                            Kind : in Error_Kind);
+   --  this exception is for internal use,
+   --  it is raised when idlac reaches an inconsistent state
+   Internal_Error : exception;
+
+   --  this exception is raised when the compiler cannot parse
+   --  its entry
+   Fatal_Error : exception;
+
+   --  defines three levels of error
+   type Error_Kind is (Fatal, Error, Warning);
+
+   --  deals with a Lexer error, raise it if level is fatal
+   procedure Lexer_Error (Message : in String;
+                          Level : in Error_Kind);
+
+   --  deals with a Parser error, raise it if level is fatal
+   procedure Parser_Error (Message : in String;
+                          Level : in Error_Kind);
 
    --  was there any errors ?
    function Is_Error return Boolean;

@@ -22,6 +22,7 @@ with Ada.Characters.Latin_1;
 with Ada.Text_Io;
 with Types; use Types;
 with Tokens;
+with Errors;
 
 package body Be_Ada is
    --  If set, Any functions and typecode are generated.
@@ -110,7 +111,7 @@ package body Be_Ada is
    begin
       Ada.Text_Io.Put_Line
         ("Cannot handle " & Node_Kind'Image (Kind) & " in subprg " & Msg);
-      raise Internal_Error;
+      raise Errors.Internal_Error;
    end Error;
 
    --  Append a with clause to a be_container, iff it doesn't exist yet.
@@ -482,7 +483,7 @@ package body Be_Ada is
    begin
       case Get_Kind (Node.all) is
          when K_Void =>
-            raise Internal_Error;
+            raise Errors.Internal_Error;
          when K_Float =>
             Add_Text (Unit, "CORBA.Float");
          when K_Double =>

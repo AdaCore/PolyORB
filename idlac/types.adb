@@ -21,15 +21,16 @@ with Ada.Text_IO;
 with Gnat.Table;
 with Gnat.Case_Util;
 with Tokens;
+with Errors;
 
 package body Types is
    --  Primitives of n_root.
-   procedure Set_Loc (N : in out N_Root'Class; Loc : Location) is
+   procedure Set_Loc (N : in out N_Root'Class; Loc : Errors.Location) is
    begin
       N.Loc := Loc;
    end Set_Loc;
 
-   function Get_Loc (N : N_Root'Class) return Location is
+   function Get_Loc (N : N_Root'Class) return Errors.Location is
    begin
       return N.Loc;
    end Get_Loc;
@@ -38,7 +39,7 @@ package body Types is
                            Be : access N_Back_End'Class) is
    begin
       if N.Back_End /= null then
-         raise Internal_Error;
+         raise Errors.Internal_Error;
       end if;
       N.Back_End := N_Back_End_Acc (Be);
    end Set_Back_End;
@@ -114,13 +115,13 @@ package body Types is
    begin
       if Current_Scope = null
         or else Current_Scope.Scope /= N_Scope_Acc (Scope) then
-         raise Internal_Error;
+         raise Errors.Internal_Error;
       end if;
       Old := Current_Scope;
       Current_Scope := Old.Parent;
       if Root_Scope = Old then
          if Current_Scope /= null then
-            raise Internal_Error;
+            raise Errors.Internal_Error;
          end if;
          Root_Scope := Old.Parent;
       end if;
@@ -130,7 +131,7 @@ package body Types is
       while Cell /= null loop
          --  Just a check.
          if Id_Table.Table (Cell.Identifier).Cell /= Cell then
-            raise Internal_Error;
+            raise Errors.Internal_Error;
          end if;
          Id_Table.Table (Cell.Identifier).Cell := Cell.Old;
          Cell := Cell.Next;
@@ -243,7 +244,7 @@ package body Types is
      (Cell : Scope_Cell_Acc; Node : access Named_Node'Class) is
    begin
       if Cell.Node = null or else Node.Cell /= null then
-         raise Internal_Error;
+         raise Errors.Internal_Error;
       end if;
       Cell.Node.Cell := null;
       Cell.Node := Named_Node_Acc (Node);
@@ -257,7 +258,7 @@ package body Types is
    begin
       --  There must be a current scope.
       if Current_Scope = null then
-         raise Internal_Error;
+         raise Errors.Internal_Error;
       end if;
       Cell := Id_Table.Table (Index).Cell;
       --  Check if the identifier is not being redefined in the same scope.
@@ -330,7 +331,7 @@ package body Types is
 
    procedure Import_Identifier (Node : Named_Node_Acc) is
    begin
-      raise Internal_Error;
+      raise Errors.Internal_Error;
    end Import_Identifier;
 
    procedure Disp_Id_Table is
