@@ -4,7 +4,7 @@
 SUFFIXES=	.c .adb .ads .lo .ali .idl
 ADACOMPILER=	$(top_builddir)/support/adacompiler
 LINKER=		$(top_builddir)/support/linker
-MOVEIFCHANGE=	$(top_builddir)/support/move-if-change
+MOVEIFCHANGE=	$(top_srcdir)/support/move-if-change
 IDLAC_dir=	$(top_builddir)/compilers/idlac
 IDLAC=		$(IDLAC_dir)/idlac
 
