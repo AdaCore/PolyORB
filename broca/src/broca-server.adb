@@ -899,7 +899,6 @@ package body Broca.Server is
       POA : Broca.POA.POA_Object_Ptr;
       POA_State : Broca.POA.Processing_State_Type;
       Key : Buffer_Descriptor;
-      Tmp : Buffer_Descriptor;
    begin
       Unmarshall_GIOP_Header (Buffer, Message_Type, Message_Size);
 
@@ -1067,7 +1066,8 @@ package body Broca.Server is
       end Server_Task_Type;
 
       type Server_Task_Array is array (Natural range <>) of Server_Task_Type;
-      Server_Task : Server_Task_Array (1 .. Broca.Flags.Nbr_Server_Tasks - 1);
+      Server_Tasks : Server_Task_Array (1 .. Broca.Flags.Nbr_Server_Tasks - 1);
+      pragma Warnings (Off, Server_Tasks);
    begin
       Serv;
    end Run;

@@ -336,7 +336,6 @@ package body Broca.GIOP is
       Service_Context : CORBA.Unsigned_Long;
       Reply_Status    : ReplyStatusType;
       Request_Id      : CORBA.Unsigned_Long;
-      Tmp : Buffer_Descriptor;
    begin
       --  1.3 Send request.
       IOP.Send (Handler.Connection, Handler.Buffer);

@@ -95,7 +95,6 @@ package body Portableserver.POA is
                                  return PortableServer.ServantManager.Ref
    is
       POA : Broca.POA.POA_Object_Ptr;
-      Res : PortableServer.ServantManager.Ref;
    begin
       POA := To_Poa (Self);
       if POA.Request_Policy /= USE_SERVANT_MANAGER then
