@@ -23,7 +23,7 @@ $(TREE_FILES): $(srcdir)/nodes.txt $(srcdir)/make_nodes.py
 
 CLEANFILES = *.o *.ali b~*.ads b~*.adb
 
-DISTCLEANFILES = $(TREE_FILES) testparser testlexer testgen idlac
+DISTCLEANFILES = testparser testlexer testgen idlac
 
 force::
 
