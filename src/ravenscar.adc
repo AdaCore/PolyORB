@@ -11,4 +11,4 @@
 --  INCLUDE: polyorb-tasking-profiles-ravenscar-mutexes.adb
 --  INCLUDE: polyorb-tasking-profiles-ravenscar-threads.adb
 
-pragma Ravenscar;
+pragma Profile (Ravenscar);
