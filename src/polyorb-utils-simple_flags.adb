@@ -53,10 +53,8 @@ package body PolyORB.Utils.Simple_Flags is
      return Flags_Type
    is
       Temp : Flags_Type := 1;
-      K    : Bit_Count := 0;
    begin
-      while K < N loop
-         K := K + 1;
+      for K in 0 .. (N - 1) loop
          Temp := Temp * 2;
       end loop;
       pragma Debug (O ("Max bit"
