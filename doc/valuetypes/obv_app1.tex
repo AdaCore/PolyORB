@@ -1,0 +1,99 @@
+\chapter{Why it is not necessary to register unmarshalling functions
+for valuetypes to return the precise type}
+
+\section{The issue}
+
+\paragraph{} According to the CORBA specification, when an object
+reference has to be unmarshalled from a GIOP stream, the precise type
+of the reference that has to be unmarshalled is known to the
+program. As a matter of fact, the object reference type to unmarshall
+is that of the formal parameter of the subprogram, as shown in this
+example.
+
+\begin{verbatim}
+// IDL
+interface Foo {
+    void myfunction(inout Foo param);
+}
+\end{verbatim}
+
+maps to
+
+\begin{verbatim}
+--  Ada
+package Foo is
+
+   type Ref is new CORBA.Value.Ref with null record;
+
+   procedure myfunction (Self : Ref; Param : in out Ref);
+\end{verbatim}
+
+Therefore, when invoking function Foo, we know that we have to
+marshall param as a Foo reference, and to unmarshall it as a Foo
+reference too.
+
+\paragraph{}However, this mapping may caues problems. As a matter of
+fact, the second parameter of the ada procedure will be dispatching,
+like the first one. Therefore, if interface Bar inherits Foo, then the
+IDL semantics specifies that Bar.myfunction can take as parameter any
+reference to a descendant of Foo, whereas the ada semantics of the
+mapped function will take care that the second paramter of myfunction
+is of the same type as the first one.
+
+\paragraph{}Therefore, an issue has been raised to the OMG to change
+the mapping in this case, and map the myfunction procedure to:
+
+\begin{verbatim}
+--  Ada
+package Foo is
+
+   type Ref is new CORBA.Object.Ref with null record;
+
+   procedure myfunction (Self : Ref; Param : in out Ref'Class);
+\end{verbatim}
+
+
+In this case, the unmarshalling code will not know what type has to be
+unmarshalled from the GIOP stream. The RepositoryId has to be read
+from the stream, and the right factory has to be called. This is why
+we will have to register unmarshalling factories for object
+references, depending on the repository id of the interface.
+
+\section{What about valuetypes}
+
+\paragraph{}This special mapping arises only when the parameter of the
+subprogram is the same as that of type defined by the scope where the
+subprogram is defined. The corresponding example for a valuetype would
+be:
+
+
+\begin{verbatim}
+// IDL
+valuetype VFoo {
+    void Vmyfunction(inout VFoo param);
+}
+\end{verbatim}
+
+that maps to
+
+\begin{verbatim}
+--  Ada
+package VFoo is
+
+   type Value_Ref is new CORBA.Value.Ref with null record;
+
+   procedure Vmyfunction (Self : Value_Ref; Param : in out Value_Ref);
+\end{verbatim}
+
+
+
+\paragraph{}In the case of valuetypes, subprogram calls are always
+local, and do not require any marshalling. Therefore, any call to
+Vmyfunction will not marshall parameter ``Param''. Therefore, it will
+not have to be unmarshalled, and the problem encountered with
+interfaces will not arise.
+
+\section{Conclusion}
+Therefore, specific unmarshalling factories do not have to be
+registered for valuetypes to address this issue.
+

@@ -1,11 +1,13 @@
-with AdaBroker.OmniORB;
 with CORBA; use CORBA;
+with PortableServer;
 
 package all_functions.Impl is
+   --  My own implementation of echo all_functions object.
+   --  This is simply used to define the operations.
 
-   type Object is new AdaBroker.OmniORB.ImplObject with private;
+   type Object is new PortableServer.Servant_Base with private;
 
-   type Object_Ptr is access all Object;
+   type Object_Acc is access all Object;
 
    function Get_the_attribute
      (Self : access Object)
@@ -127,17 +129,14 @@ package all_functions.Impl is
    procedure oneway_in_proc
      (Self : access Object;
       a : in CORBA.Short;
-      b : in CORBA.Short;
-      c : in CORBA.Short);
+      b : in CORBA.Short);
+
+   function oneway_checker (Self : access Object) return CORBA.Short;
 
 private
 
-   type Object is new AdaBroker.OmniORB.ImplObject with record
+   type Object is new PortableServer.Servant_Base with record
       Attribute : Corba.Short ;
    end record;
-
-   procedure Initialize (Self : in out Object);
-   procedure Adjust     (Self : in out Object);
-   procedure Finalize   (Self : in out Object);
 
 end all_functions.Impl;

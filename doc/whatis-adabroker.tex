@@ -1,0 +1,301 @@
+%%% AdaBroker boilerplate presentation slides
+%%% $Id$
+
+\documentclass[a4,slidesec]{seminar}
+
+\newif\ifpdf
+\ifx\pdfoutput\undefined\pdffalse\else\pdftrue\fi
+
+\usepackage{fancyhdr}
+\ifpdf\else
+\usepackage{epsfig}
+\fi
+\usepackage{amsmath}
+\usepackage[latin1]{inputenc}
+
+\newcommand{\nom}[1]{{#1}}
+%% \newcommand{\strong}[1]{\textbf{#1}}
+\newcommand{\dcl}{\textsc{dcl}}
+\newcommand{\unix}{\textsc{Unix}}
+\newcommand{\ab}{AdaBroker}
+\newcommand{\ada}{Ada~95}
+\newcommand{\strong}[1]{\textbf{#1}}
+\newcommand{\id}[1]{\texttt{#1}}
+\newcommand{\bibname}{}
+
+% Ada syntax
+\newcommand{\asynt}[1]{\mbox{\textsf{#1}}}
+% IDL syntax
+\newcommand{\isynt}[1]{\mbox{$<$\textsf{#1}$>$}}
+
+% Fonte Computer Roman Bold Caps-and-Small-Caps
+
+\DeclareFontShape{OT1}{cmr}{b}{sc}
+    {
+      <5><6><7><8><9><10><10.95><12>
+      <14.4><17.28><20.74><24.88> cmbcsc10
+      }{}
+\DeclareFontShape{OT1}{cmr}{bx}{sc}
+      {<->ssub * cmr/b/sc}{}
+
+
+\title{\large\sffamily
+\ab{}\\
+An open source CORBA suite\\
+for \ada{}}
+
+\author{Thomas \nom{Quinot}}
+\date{}
+
+\fancyhf{}
+\fancyfoot[L]{\small\sffamily\theslideheading}
+\fancyfoot[R]{\small\sffamily\thepage}
+\renewcommand{\footrulewidth}{\headrulewidth}
+\renewcommand{\headrule}{\hbox to \headwidth {%
+\kern 0pt%
+\leaders\hrule height 0.5ex depth -0.4ex\hfill\kern 0pt%
+\hspace{1ex}%
+\raisebox{-0.4cm}{
+\ifpdf\pdfimage height 0.8cm {telecom-nb.pdf}
+\else\epsfig{file=telecom-nb.eps,height=0.8cm}
+\fi
+}%
+\hspace{1ex}%
+\rule[0.4ex]{2em}{0.1ex}}}
+
+\pagestyle{fancy}
+
+\slidewidth 250mm
+\textwidth 270mm
+
+\begin{document}
+
+\input{seminar.bug}
+\headwidth=\textwidth
+\addtolength{\headheight}{0.8cm}
+\addtolength{\footheight}{24pt}
+\addtolength{\slideheight}{-\headheight}
+%\addtolength{\parskip}{0.5ex}
+\renewcommand{\slideleftmargin}{1cm}
+\renewcommand{\sliderightmargin}{1cm}
+
+\slideframe{none}
+
+\begin{slide}
+\maketitle
+\end{slide}
+
+%%%% Introduction
+
+\begin{slide}
+\slideheading{CORBA}
+
+Industry standard specification of platform for distributed object-oriented
+applications.
+
+Reference model:
+\begin{itemize}
+\item IDL and language mappings;
+\item stubs, skeletons, object adapters;
+\item ORB;
+\item protocols;
+\item services:
+  \begin{itemize}
+  \item Common Object Services, Common Facilities;
+  \item Domain Interfaces.
+  \end{itemize}
+\end{itemize}
+
+\end{slide}
+
+\begin{slide}
+\slideheading{CORBA overview}
+
+\begin{center}
+\ifpdf\pdfimage width 8cm {corbaglobal.pdf}
+\else\psfig{file=corbaglobal.eps,width=8cm}
+\fi
+\end{center}
+
+\end{slide}
+
+
+\begin{slide}
+
+\slidesubheading{CORBA development process}
+
+\begin{enumerate}
+\item Objects are described by an IDL contract.
+\item IDL compiler generates stubs and skeletons in
+  target languages.
+\item Object implementations are created by implementation
+  of skeleton's methods.
+\item Clients can use stubs to invoke operations on
+  (possibly remote) objects.
+\end{enumerate}
+
+\end{slide}
+
+\begin{slide}
+\slidesubheading{Why CORBA?}
+
+\begin{itemize}
+\item Distribution is a requirement
+\item Distributed OO middleware hides some of its complexity/tediousness
+\end{itemize}
+
+\slidesubheading{Applications examples}
+\begin{itemize}
+\item scientific data acquisition (IN2P3);
+\item telecoms (Iridium);
+\item desktop integration (GNOME).
+\end{itemize}
+\end{slide}
+
+\begin{slide}
+\slideheading{The Ada~95 standard mapping}
+
+
+\centering
+\begin{tabular}{l|l}
+\textbf{IDL} & \textbf{Ada} \\ \hline
+modules & packages \\
+types & types \\
+interfaces & tagged types \\
+interface inheritance & tagged type derivation \\ \hline
+multiple inheritance & copy of methods \\ \hline
+sequences & generics
+\end{tabular}
+
+\end{slide}
+
+\begin{slide}
+\slideheading{\ab}
+
+\begin{itemize}
+\item CORBA tool suite
+\item Free software (GPL)
+\item Written in \ada{}
+\item Targeted at \ada{}
+\end{itemize}
+\end{slide}
+
+\begin{slide}
+\slidesubheading{\ab{} features}
+
+\hfill
+\parbox[t]{0.45\textwidth}{%
+\begin{center}
+\textbf{Core ORB features}
+\end{center}
+
+\begin{itemize}
+\item CORBA 2.0 ORB
+\item GIOP 1.0
+\item IIOP 1.0
+\item Portable Object Adapter
+\item IDL $\rightarrow$ Ada compiler
+\end{itemize}
+}%
+\hfill%
+\parbox[t]{0.45\textwidth}{%
+\begin{center}
+\textbf{Services}
+\end{center}
+\begin{itemize}
+\item Interface Repository
+\item Dynamic Invocation
+\item COS Naming
+\item COS Events
+\item COS Time
+\item GNOME Applet Library
+\end{itemize}
+}
+
+\end{slide}
+
+\begin{slide}
+\slideheading{Project history}
+
+Development as a succession of student projects at ENST.
+
+\begin{tabular}{l|ll}
+\textbf{When} & \textbf{What} & \\ \hline
+1999Q1 & 0.8 & based on omniORB and Sun parser \\
+1999Q2 &  0.9 & new ORB, POA, still Sun parser \\
+1999Q3-present & 1.0 & New compiler, many new features \& services
+\end{tabular}
+
+\end{slide}
+
+\begin{slide}
+
+\slidesubheading{The first C++-based version}
+
+Ada binding to omniORB's communication library.
+
+CORBA Object management in Ada, compliant with standard
+binding.
+
+Problems encountered:
+\begin{itemize}
+\item Ada $\longleftrightarrow$ C++ interfacing.
+  Thread libraries incompatibilities.
+\item C++ IDL front-end from Sun: hardly maintainable.
+  Licensing issues.
+\end{itemize}
+
+\end{slide}
+
+\begin{slide}
+
+\slidesubheading{Second version: all-Ada ORB with a POA}
+
+CIAO (ENST research project: CORBA/DSA gatewat
+generator) required a POA.
+
+Reimplementation of a complete ORB in Ada.
+
+Still used Sun's front-end.
+\end{slide}
+
+\begin{slide}
+
+\slidesubheading{3rd version: an Ada front-end for new services}
+
+Development of new services and functionalities: objects-by-value (CORBA 2.3),
+interface repository, dynamic invocation.
+
+Required IDL compiler support; Sun front-end not suitable for extension.
+
+Reimplementation of the IDL-to-Ada compiler in Ada.
+
+\end{slide}
+
+\begin{slide}
+
+\slideheading{CIAO}
+
+An application developed with AdaBroker: CIAO.
+
+CORBA Interface for Ada~95 distributed Objects.
+
+Gateway generator for Ada DSA services.
+
+Based on AdaBroker and ASIS.
+
+\end{slide}
+
+\begin{slide}
+\slidesubheading{Current status}
+
+\begin{itemize}
+\item Students have completed ENST cursus.
+\item Maintained as a research testbed at ENST.
+\item Community has demonstrated interest in the product.
+\item Seeking further involvement of users with development.
+\end{itemize}
+
+\end{slide}
+
+\end{document}
