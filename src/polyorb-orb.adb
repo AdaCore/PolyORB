@@ -314,6 +314,8 @@ package body PolyORB.ORB is
         (Task_Kind_For_Exit_Condition
          (Exit_Condition.Condition = null));
 
+      Do_Idle : Boolean;
+
    begin
       Enter (ORB.ORB_Lock.all);
       if Exit_Condition.Task_Info /= null then
@@ -323,24 +325,31 @@ package body PolyORB.ORB is
       --  This pointer must be reset to null before exiting Run
       --  so as to not leave a dangling reference.
 
+      Main_Loop :
       loop
          pragma Debug (O ("Run: task " & Image (Current_Task)
                           & " entering main loop."));
 
-         exit when (Exit_Condition.Condition /= null
-                    and then Exit_Condition.Condition.all)
-           or else ORB.Shutdown;
+         Check_Condition :
+         loop
+            exit Main_Loop
+            when (Exit_Condition.Condition /= null
+                  and then Exit_Condition.Condition.all)
+              or else ORB.Shutdown;
+
+            exit Check_Condition
+            when not Try_Perform_Work (ORB, ORB.Job_Queue);
+
+            Enter (ORB.ORB_Lock.all);
+            --  Try_Perform_Work has released ORB_Lock and
+            --  executed a job from the queue. Reassert ORB_Lock.
+         end loop Check_Condition;
 
          --  ORB_Lock is held.
 
-         if Try_Perform_Work (ORB, ORB.Job_Queue) then
-            --  Try_Perform_Work has released ORB_Lock and
-            --  executed a job from the queue. Reassert ORB_Lock.
+         Do_Idle := True;
 
-            Enter (ORB.ORB_Lock.all);
-
-         elsif May_Poll then
-            pragma Debug (O ("About to poll external event sources."));
+         if May_Poll and then not ORB.Polling then
             declare
                Monitors : constant Monitor_Seqs.Element_Array
                  := Monitor_Seqs.To_Element_Array (ORB.Monitors);
@@ -349,8 +358,6 @@ package body PolyORB.ORB is
                --  XXX Poll_Interval should be configurable.
 
                Timeout : Duration;
-
-               Event_Happened : Boolean := False;
 
             begin
 
@@ -369,18 +376,19 @@ package body PolyORB.ORB is
 
                   Leave (ORB.ORB_Lock.all);
 
+                  pragma Debug (O ("Run: task " & Image (Current_Task)
+                                   & " about to Check_Sources."));
                   declare
                      Events : AES_Array
                        := Check_Sources (Monitors (I), Timeout);
                   begin
+                     pragma Debug (O ("Run: task " & Image (Current_Task)
+                                      & " returned from Check_Sources."));
                      Enter (ORB.ORB_Lock.all);
                      ORB.Polling := False;
                      ORB.Selector := null;
                      Set_Status_Running (This_Task);
 
-                     if Events'Length > 0 then
-                        Event_Happened := True;
-                     end if;
                      for I in Events'Range loop
                         Handle_Event (ORB, Events (I));
                      end loop;
@@ -389,14 +397,12 @@ package body PolyORB.ORB is
 
                --  ORB.ORB_Lock is held.
 
-               if Event_Happened then
-                  Update (ORB.Idle_Tasks);
-               end if;
+               Update (ORB.Idle_Tasks);
 
                --  Waiting for an event to happend when in polling
                --  situation: ORB.ORB_Lock is not held.
 
-               if not (Event_Happened or else Monitors'Length = 1) then
+               if Monitors'Length /= 1 then
                   declare
                      use Ada.Real_Time;
 
@@ -409,18 +415,26 @@ package body PolyORB.ORB is
                   end;
                end if;
             end;
+            Do_Idle := False;
+         end if;
 
-         else
+         if Do_Idle then
 
-            --  This task is going idle.
+            --  This task is going idle. We are still holding
+            --  ORB_Lock at this point.
 
-            Enter (ORB.ORB_Lock.all);
             Set_Status_Idle (This_Task, ORB.Idle_Tasks);
             Leave (ORB.ORB_Lock.all);
 
-            Idle (ORB.Tasking_Policy, ORB_Access (ORB));
-            --  XXX Dunno if this is the right interface
-            --  between ORB and TP for idling.
+            begin
+               Idle (ORB.Tasking_Policy, ORB_Access (ORB));
+               --  XXX Dunno if this is the right interface
+               --  between ORB and TP for idling.
+            exception
+               when others =>
+                  Enter (ORB.ORB_Lock.all);
+                  raise;
+            end;
 
             Enter (ORB.ORB_Lock.all);
             Set_Status_Running (This_Task);
@@ -433,7 +447,7 @@ package body PolyORB.ORB is
 
          --  Condition at end of loop: ORB_Lock is held.
 
-      end loop;
+      end loop Main_Loop;
       pragma Debug (O ("Run: leave."));
 
       if Exit_Condition.Task_Info /= null then
@@ -696,8 +710,9 @@ package body PolyORB.ORB is
          Surrogate : Components.Component_Access;
          Pro : PolyORB.Binding_Data.Profile_Access;
       begin
-         pragma Debug (O ("Executing: "
-                           & Requests.Image (J.Request.all)));
+         pragma Debug (O ("Task " & Image (Current_Task)
+                          & " executing: "
+                          & Requests.Image (J.Request.all)));
 
          References.Binding.Bind
            (J.Request.Target, J.ORB, Surrogate, Pro);
@@ -715,15 +730,17 @@ package body PolyORB.ORB is
             --  Unsetup_Environment ();
             --  Unbind (J.Req.Target, J.ORB, Servant);
             --  XXX Unbind must Release_Servant.
+
             --  XXX Actually cannot unbind here: if the binding
             --    object is destroyed that early, we won't
             --    have the opportunity to receive a reply...
-            if not (Result in Null_Message) then
+            pragma Debug
+              (O ("Run: got " & Ada.Tags.External_Tag (Result'Tag)));
+            if Result not in Null_Message then
                --  An answer was synchronously provided by the
-               --  servant:
+               --  servant: send it back to the requesting party.
 
                Emit_No_Reply (J.Requestor, Result);
-               --  send it back.
             end if;
 
 
@@ -792,6 +809,8 @@ package body PolyORB.ORB is
 
       Result : Components.Null_Message;
    begin
+      pragma Debug (O ("Handling message of type "
+                       & Ada.Tags.External_Tag (Msg'Tag)));
       if Msg in Interface.Queue_Job then
          Queue_Job (ORB.Job_Queue,
                     Interface.Queue_Job (Msg).Job);
@@ -833,13 +852,29 @@ package body PolyORB.ORB is
             --  XXX The correctness of the following is not
             --  completely determined.
             --  Is this mutitask-safe????
+            pragma Debug (O ("Request completed."));
             if Req.Requesting_Task /= null then
+               pragma Debug
+                 (O ("... requesting task is "
+                     & Task_Status'Image
+                     (Status (Req.Requesting_Task.all))));
+
                case Status (Req.Requesting_Task.all) is
                   when Running =>
                      null;
                   when Blocked =>
-                     Asynch_Ev.Abort_Check_Sources
-                       (Selector (Req.Requesting_Task.all).all);
+
+                     declare
+                        use Asynch_Ev;
+
+                        Sel : constant Asynch_Ev_Monitor_Access
+                          := Selector (Req.Requesting_Task.all);
+                     begin
+                        pragma Debug (O ("About to abort block"));
+                        pragma Assert (Sel /= null);
+                        Abort_Check_Sources (Sel.all);
+                        pragma Debug (O ("Aborted."));
+                     end;
                   when Idle =>
                      Update
                        (Watcher (Req.Requesting_Task.all));

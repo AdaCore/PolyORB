@@ -192,11 +192,19 @@ package body PolyORB.ORB.Thread_Pool is
      (P : access Thread_Pool_Policy;
       ORB : ORB_Access)
    is
+      use PolyORB.Soft_Links;
+      V : Version_Id;
    begin
-      pragma Debug (O ("Idle : going Idle (BAD BAD!)"));
-      raise Program_Error;
+      pragma Debug (O ("Going idle."));
+
+      Lookup (ORB.Idle_Tasks, V);
+      Differ (ORB.Idle_Tasks, V);
+
+      --  raise Program_Error;
       --  When in Thread_Pool mode, threads should not be allowed
-      --  to go idle, but should be blocked when the request queue is empty.
+      --  to go idle, but should be blocked when the request queue
+      --  is empty. XXX *But* application threads that are not part
+      --  of the thread pool may need to idle!
    end Idle;
 
    ------------------------------
