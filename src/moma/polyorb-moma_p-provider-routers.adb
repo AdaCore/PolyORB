@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -283,7 +283,7 @@ package body PolyORB.MOMA_P.Provider.Routers is
       use PolyORB.Exceptions;
 
       Args      : PolyORB.Any.NVList.Ref;
-      It        : Iterator := First (List_Of (Args).all);
+      It        : Iterator;
       Operation : constant String := To_Standard_String (Req.all.Operation);
       Error     : Error_Container;
    begin
@@ -301,6 +301,7 @@ package body PolyORB.MOMA_P.Provider.Routers is
 
       end if;
 
+      It := First (List_Of (Args).all);
 
       if Operation = "Publish" then
 
