@@ -1,3 +1,8 @@
+Tue Oct 14 23:50:59 1997  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* s-garser.adb, Makefile.in, Makefile.am: Makefile was not up to
+ 	date. So, s-garser.adb has escaped from the prvious update.
+
 Sat Oct 11 12:31:05 1997  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* s-gartra.adb, s-gartra.ads: Change some procedure names.  Open
