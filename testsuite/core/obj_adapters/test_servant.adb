@@ -116,10 +116,6 @@ package body Test_Servant is
          raise PolyORB.Components.Unhandled_Message;
       end if;
 
-   exception
-      when others =>
-         raise;
-
    end Execute_Servant;
 
    ---------------------------
