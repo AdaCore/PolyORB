@@ -10,7 +10,7 @@ adabe_field::produce_ads(dep_list with,string &String, string &previousdefinitio
     String +=  ada_name;
     String += " : ";
     cast le field_type en NT puis
-    String += NT.dump_name(dep_list with,string &String, string &previousdefinition);
+    String += NT.dump_name( with, &String, &previousdefinition);
   */
 }
 

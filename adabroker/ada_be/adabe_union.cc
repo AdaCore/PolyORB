@@ -20,15 +20,8 @@ adabe_union::produce_ads(dep_list with,string &String, string &previousdefinitio
   for each node in UTL_scope:    //this
   {
       cast of the item to the real adabe type, if it is a union branch do
-      temp += "when "
-      if (branche->label()->label_kind() != UL_default)
-           branche->label()->label_val().produce(with,&tmp,&previousdefinition)
-      else if (branche->label()->label_kind() == UL_default)
-           temp =+ "others "
-
-      temp =+ "=> "
-      cast branche into field
-      field.produce_ads(with,&temp,&previousdefinition)
+      branche.produce-ads(with,&temp,&previousdefinition)
+     
   }
   temp += "end case \n"
   temp += "end record \n";
@@ -38,9 +31,13 @@ adabe_union::produce_ads(dep_list with,string &String, string &previousdefinitio
 
 string
 adabe_union::dump_name(dep_list with,string &String, string &previousdefinition) {
-  /*  if (!is_already_defined())
-         produce_ads( with, String, &previousdefinition);
-      return get_ada_name();
+  /*
+      if (!is_imported(with))
+      {
+          if (!is_already_defined)
+                     &previousdefinition += produce_ads( with, String, previousdefinition);
+           return get_ada_name();}
+      return get_ada_full_name();	   
   */
 
 IMPL_NARROW_METHODS1(adabe_union, AST_Union);

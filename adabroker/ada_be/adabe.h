@@ -213,7 +213,7 @@ public:
 
   adabe_union_branch(AST_UnionLabel *lab, AST_Type *ft, UTL_ScopedName *n,
 		  UTL_StrList *p);
-
+  adabe_union-branch::produce_ads(dep_list with,string &String, string &previousdefinition);
   DEF_NARROW_METHODS1(adabe_union_branch, AST_UnionBranch);
   DEF_NARROW_FROM_DECL(adabe_union_branch);
 
@@ -313,10 +313,11 @@ public:
   adabe_argument(AST_Argument::Direction d, AST_Type *ft, UTL_ScopedName *n,
 		UTL_StrList *p);
 
+  adabe_argument::produce_ads(dep_list with,string &String, string &previousdefinition);
+
   DEF_NARROW_METHODS1(adabe_argument, AST_Argument);
   DEF_NARROW_FROM_DECL(adabe_argument);
-private:
-  adabe_argument();
+
 };
 
 
@@ -397,13 +398,11 @@ public:
   DEF_NARROW_FROM_DECL(adabe_interface);
   DEF_NARROW_FROM_SCOPE(adabe_interface);
 
-  void produce_ads(std::fstream& s);
-  void produce_adb(std::fstream& s);
-  void produce_impl_ads(std::fstream& s);
-  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
+  void produce_ads(dep_list with,string &String, string &previousdefinition);
+  //  void produce_adb(std::fstream& s);
+  //  void produce_impl_ads(std::fstream& s);
+  //  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
 
-private:
-  adabe_interface();
 };
 
 
@@ -418,14 +417,12 @@ public:
   DEF_NARROW_FROM_DECL(adabe_interface_fwd);
   DEF_NARROW_FROM_SCOPE(adabe_interface_fwd);
 
-  void produce_ads(std::fstream& s);
-  void produce_adb(std::fstream& s);
-  void produce_impl_ads(std::fstream& s);
-  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
+  void produce_ads(dep_list with,string &String, string &previousdefinition);
+  //  void produce_adb(std::fstream& s);
+  //  void produce_impl_ads(std::fstream& s);
+  //  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
 
 
-private:
-  adabe_interface_fwd();
 
 };
 

@@ -20,9 +20,13 @@ adabe_structure::produce_ads(dep_list with,string &String, string &previousdefin
 }
 string
 adabe_structure::dump_name(dep_list with,string &String, string &previousdefinition) {
-  /*  if (!is_already_defined())
-         &previousdefinition += produce_ads( with, String, previousdefinition);
-      return get_ada_name();
+  /*
+      if (!is_imported(with))
+      {
+          if (!is_already_defined)
+                     &previousdefinition += produce_ads( with, String, previousdefinition);
+           return get_ada_name();}
+      return get_ada_full_name();	   
   */
 }
 IMPL_NARROW_METHODS1(adabe_structure, AST_Structure);
