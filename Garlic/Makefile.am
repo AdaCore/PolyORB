@@ -41,7 +41,6 @@ s-garpro.o\
 s-garsta.o\
 s-garloo.o\
 s-gaprco.o\
-s-garela.o\
 s-garter.o\
 s-garuti.o\
 s-parint.o\
@@ -79,7 +78,7 @@ ${srcdir}/s-garpro.ads ${srcdir}/s-garpro.adb \
 ${srcdir}/s-garser.ads           s-garser.adb \
 ${srcdir}/s-garsta.ads ${srcdir}/s-garsta.adb \
 ${srcdir}/s-gaprco.ads           s-gaprco.adb \
-${srcdir}/s-garela.ads ${srcdir}/s-garela.adb \
+${srcdir}/s-garela.ads                        \
 ${srcdir}/s-garter.ads ${srcdir}/s-garter.adb \
 ${srcdir}/s-garuti.ads ${srcdir}/s-garuti.adb \
 ${srcdir}/s-parint.ads ${srcdir}/s-parint.adb \

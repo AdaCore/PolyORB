@@ -1,5 +1,7 @@
 Thu Nov 28 22:33:30 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* Makefile.am: Adapted for new elaboration packages.
+
 	* two.py: Serial-line connector simulator (connects two sockets).
 
 	* serial.c: Serial-line simulator using sockets. Changed procedure
