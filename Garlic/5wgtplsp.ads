@@ -45,4 +45,17 @@ private
 
    pragma Linker_Options ("-lwsock32");
 
+   WSAData_Dummy : array (1 .. 512) of Integer;
+
+   WS_Version : constant := 16#0101#;
+
+   function WSAStartup (WS_Version     : in Integer;
+                        WSADataAddress : in System.Address)
+                        return Integer;
+   pragma Import (Stdcall, WSAStartup);
+
+   --  start the winsock service
+   Retcode : Integer := WSAStartup (WS_Version, WSAData_Dummy'Address);
+   pragma Assert (Retcode = 0);
+
 end System.Garlic.TCP.Platform_Specific;

@@ -1,3 +1,7 @@
+1998-04-07  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* 5wgtplsp.ads: Add Winsock initialization provided by Pascal Obry.
+
 1998-04-05  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* 5wgarcon.ads: Install new version from Pascal Obry corresponding 
