@@ -1283,8 +1283,43 @@ package body CORBA is
 
    function Image (A : Any) return Standard.String is
    begin
-      --  XXX TODO!
-      return "<Any value>";
+      case TypeCode.Parameter_Count (A.The_Type) is
+         when 0 =>
+            return "<Any value>";
+         when others =>
+            case TypeCode.Kind (A.The_Type) is
+               when Tk_Short =>
+                  return Short'Image (From_Any (A));
+               when Tk_Long =>
+                  return Long'Image (From_Any (A));
+               when Tk_Ushort =>
+                  return Unsigned_Short'Image (From_Any (A));
+               when Tk_Ulong =>
+                  return Unsigned_Long'Image (From_Any (A));
+               when Tk_Float =>
+                  return Float'Image (From_Any (A));
+               when Tk_Double =>
+                  return Double'Image (From_Any (A));
+               when Tk_Boolean =>
+                  return Boolean'Image (From_Any (A));
+               when Tk_Char =>
+                  return Char'Image (From_Any (A));
+               when Tk_Octet =>
+                  return Octet'Image (From_Any (A));
+               when Tk_Any =>
+                  return "<Any value (Any)>";
+               when Tk_TypeCode =>
+                  return "<Any value (TypeCode)>";
+               when Tk_String =>
+                  return CORBA.To_Standard_String (From_Any (A));
+               when Tk_Longlong =>
+                  return Long_Long'Image (From_Any (A));
+               when Tk_Ulonglong =>
+                  return Unsigned_Long_Long'Image (From_Any (A));
+               when others =>
+                  return "<Any value>";
+            end case;
+      end case;
    end Image;
 
    -------------------
