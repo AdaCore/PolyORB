@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                         P O L Y O R B . T E S T                          --
+--            P O L Y O R B . T E S T . C O N F I G U R A T O R             --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --                Copyright (C) 2001 Free Software Fundation                --
 --                                                                          --
@@ -30,12 +30,71 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Root unit for all unit tests.
-
 --  $Id$
 
-package PolyORB.Test is
+with Ada.Text_IO;
 
-   pragma Pure;
+with PolyORB.Initialization;
+with PolyORB.Utils.Strings;
 
-end PolyORB.Test;
+with Report;
+
+procedure Test000 is
+
+   use Ada.Text_IO;
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+   generic
+      Name : String;
+   procedure Init;
+
+   procedure Init is
+   begin
+      Put_Line ("Initializing module " & Name);
+   end Init;
+
+   procedure Init_Foo is new Init ("foo");
+   procedure Init_Bar is new Init ("bar");
+   procedure Init_Bazooka is new Init ("bazooka");
+   procedure Init_Fred is new Init ("fred");
+
+   Empty_List : String_Lists.List;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name => +"foo",
+       Conflicts => Empty_List,
+       Depends => Empty_List,
+       Provides => Empty_List,
+       Init => Init_Foo'Unrestricted_Access));
+   Register_Module
+     (Module_Info'
+      (Name => +"bar",
+       Depends => Empty_List & "foo" & "baz",
+       Conflicts => Empty_List,
+       Provides => Empty_List,
+       Init => Init_Bar'Unrestricted_Access));
+   Register_Module
+     (Module_Info'
+      (Name => +"bazooka",
+       Depends => Empty_List,
+       Conflicts => Empty_List,
+       Provides => Empty_List & "baz",
+       Init => Init_Bazooka'Unrestricted_Access));
+
+   Register_Module
+     (Module_Info'
+      (Name => +"fred",
+       Depends => Empty_List & "bar" & "foo",
+       Conflicts => Empty_List & "bazaar",
+       Provides => Empty_List,
+       Init => Init_Fred'Unrestricted_Access));
+
+   Initialize_World;
+
+   Report.Output ("Test initialization #1", True);
+   Report.End_Report;
+end Test000;

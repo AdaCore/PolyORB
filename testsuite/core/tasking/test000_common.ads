@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . T E S T . C O N F I G U R A T O R             --
+--                 P O L Y O R B . T A S K I N G . T E S T                  --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,65 +30,47 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Main tests procedure for the tasking package.
+--  This package does NOT register the tasking profile,
+
 --  $Id$
 
-with Ada.Text_IO; use Ada.Text_IO;
-with PolyORB.Initialization; use PolyORB.Initialization;
-with PolyORB.Utils.Strings; use PolyORB.Utils.Strings;
+with PolyORB.Configuration;
 
-procedure PolyORB.Test.Initialization is
+package Test000_Common is
 
-   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Configuration;
 
-   generic
-      Name : String;
-   procedure Init;
+   Number_Of_Tasks : constant Integer :=
+     Get_Conf ("test", "tasking.number_of_tasks", 2);
+   --  Number of tasks used in the tests.
 
-   procedure Init is
-   begin
-      Put_Line ("Initializing module " & Name);
-   end Init;
+   Delay_Used      : constant Float :=
+     Float (Get_Conf ("test", "tasking.delay_used", 1));
+   --  Some delay are used in the test (between 1 and 4 per task per tests).
+   --  This constant is the time they wait, in seconds.
 
-   procedure Init_Foo is new Init ("foo");
-   procedure Init_Bar is new Init ("bar");
-   procedure Init_Bazooka is new Init ("bazooka");
-   procedure Init_Bazaar is new Init ("bazaar");
-   procedure Init_Fred is new Init ("fred");
-   procedure Init_Alf is new Init ("alf");
-   procedure Init_Grumpf is new Init ("grumpf");
+   ---------------------
+   -- Test procedures --
+   ---------------------
 
-   Empty_List : String_Lists.List;
+   procedure Initialize;
+   --  Initialize the package.
 
-begin
-   Register_Module
-     (Module_Info'
-      (Name => +"foo",
-       Conflicts => Empty_List,
-       Depends => Empty_List,
-       Provides => Empty_List,
-       Init => Init_Foo'Unrestricted_Access));
-   Register_Module
-     (Module_Info'
-      (Name => +"bar",
-       Depends => Empty_List & "foo" & "baz",
-       Conflicts => Empty_List,
-       Provides => Empty_List,
-       Init => Init_Bar'Unrestricted_Access));
-   Register_Module
-     (Module_Info'
-      (Name => +"bazooka",
-       Depends => Empty_List,
-       Conflicts => Empty_List,
-       Provides => Empty_List & "baz",
-       Init => Init_Bazooka'Unrestricted_Access));
+   procedure Test_Threads;
+   --  Test the thread fonctionnalities.
 
-   Register_Module
-     (Module_Info'
-      (Name => +"fred",
-       Depends => Empty_List & "bar" & "foo",
-       Conflicts => Empty_List & "bazaar",
-       Provides => Empty_List,
-       Init => Init_Fred'Unrestricted_Access));
+   procedure Test_Synchronisations;
+   --  Test the POSIX-like synchronisations objects.
+   --  Based on Test_Monitors.
 
-   Initialize_World;
-end PolyORB.Test.Initialization;
+   procedure Test_Watchers;
+   --  Test the watcher functionnalities.
+
+   procedure Test_Mutexes;
+   --  Test the mutexes functionnalities.
+
+   procedure End_Tests;
+   --  Signal  the end of the tests.
+
+end Test000_Common;

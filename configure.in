@@ -127,7 +127,7 @@ AC_SUBST(SERVICE_LIST)
 ##########################################
 
 APPLI_DIRS=""
-APPLI_EXES=""
+APPLI_EXES="\$(poly_exe) "
 APPLI_INCS=""
 APPLI_LIBS=""
 
@@ -299,6 +299,10 @@ AC_OUTPUT([Makefile
 	   examples/corba/random/Makefile
 	   examples/dsa/Makefile examples/bbs/Makefile
            examples/moma/Makefile examples/polyorb/Makefile
+	   testsuite/Makefile testsuite/core/Makefile
+	   testsuite/core/initialization/Makefile
+	   testsuite/core/poa/Makefile
+	   testsuite/core/tasking/Makefile
 	   support/adacompiler support/native-adacompiler
            support/linker polyorb-config])
 

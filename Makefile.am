@@ -9,7 +9,11 @@ giop_dir  =
 soap_dir  =
 srp_dir   =
 
+if DEBUG
+SUBDIRS = compilers idls src cos examples testsuite @APPLI_DIRS@ @PROTO_DIRS@
+else
 SUBDIRS = compilers idls src cos examples @APPLI_DIRS@ @PROTO_DIRS@
+endif
 
 CLEANFILES = config-stamp
 

@@ -3,10 +3,7 @@ TESTS=  polyorb-test-no_tasking \
         polyorb-test-no_tasking_poa \
         polyorb-test-thread_pool_poa
 
-corba_exe=$(TESTS)
-dsa_exe=
-moma_exe=
-
+poly_exe=$(TESTS)
 
 LINKER=	../../support/linker
 

@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                       C O R B A . T E S T _ P O A                        --
+--            P O L Y O R B . T E S T . C O N F I G U R A T O R             --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --                Copyright (C) 2001 Free Software Fundation                --
 --                                                                          --
@@ -32,32 +32,86 @@
 
 --  $Id$
 
-with PolyORB.POA_Types;
-with PolyORB.Components;
+with Ada.Text_IO;
 
-package CORBA.Test_POA is
+with PolyORB.Initialization;
+with PolyORB.Utils.Strings;
 
-   pragma Elaborate_Body;
+with Report;
 
-   Incorrect_Execution : exception;
-   Correct_Execution   : exception;
+procedure Test001 is
 
-   type My_Servant is new PolyORB.Servants.Servant with
-     record
-        Nb   : Integer;
-        Name : String;
-     end record;
-   type My_Servant_Access is access all My_Servant;
+   use Ada.Text_IO;
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
 
-   function Handle_Message
-     (S   : access My_Servant;
-      Msg : PolyORB.Components.Message'Class)
+   generic
+      Name : String;
+   procedure Init;
 
-     return PolyORB.Components.Message'Class;
+   procedure Init is
+   begin
+      Put_Line ("Initializing module " & Name);
+   end Init;
 
-   function "=" (Left, Right : My_Servant)
-     return Standard.Boolean;
+   procedure Init_Foo is new Init ("foo");
+   procedure Init_Bar is new Init ("bar");
+   procedure Init_Bazooka is new Init ("bazooka");
+   procedure Init_Fred is new Init ("fred");
 
-   procedure Test_The_POA;
+   Empty_List : String_Lists.List;
 
-end CORBA.Test_POA;
+begin
+   Register_Module
+     (Module_Info'
+      (Name => +"foo",
+       Conflicts => Empty_List,
+       Depends => Empty_List,
+       Provides => Empty_List,
+       Init => Init_Foo'Unrestricted_Access));
+
+   Register_Module
+     (Module_Info'
+      (Name => +"bazaar",
+       Conflicts => Empty_List,
+       Depends => Empty_List,
+       Provides => Empty_List,
+       Init => Init_Foo'Unrestricted_Access));
+
+   Register_Module
+     (Module_Info'
+      (Name => +"bar",
+       Depends => Empty_List & "foo" & "baz",
+       Conflicts => Empty_List,
+       Provides => Empty_List,
+       Init => Init_Bar'Unrestricted_Access));
+
+   Register_Module
+     (Module_Info'
+      (Name => +"bazooka",
+       Depends => Empty_List,
+       Conflicts => Empty_List,
+       Provides => Empty_List & "baz",
+       Init => Init_Bazooka'Unrestricted_Access));
+
+   Register_Module
+     (Module_Info'
+      (Name => +"fred",
+       Depends => Empty_List & "bar" & "foo",
+       Conflicts => Empty_List & "bazaar",
+       Provides => Empty_List,
+       Init => Init_Fred'Unrestricted_Access));
+
+   Initialize_World;
+   Report.Output ("Test initialization #2", False);
+
+exception
+   when PolyORB.Initialization.Conflict =>
+      Report.Output ("Test initialization #2", True);
+      Report.End_Report;
+
+   when others =>
+      Report.Output ("Test initialization #2", False);
+
+end Test001;

@@ -142,8 +142,7 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb-tasking-profiles-ravenscar.ads \
 		polyorb-tasking-profiles-ravenscar-configuration.ads \
 		polyorb-tasking-profiles-full_tasking.ads \
-		polyorb-tasking-profiles-no_tasking.ads \
-		polyorb-test.ads
+		polyorb-tasking-profiles-no_tasking.ads
 
 ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
 

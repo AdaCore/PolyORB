@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                           C O R B A . T E S T                            --
+--            P O L Y O R B . F U L L _ T A S K I N G . T E S T             --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,18 +30,27 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Run the tests for the Full_Tasking profile
+
 --  $Id$
 
-with Ada.Text_IO;    use Ada.Text_IO;
-with CORBA.Test_POA;
+with PolyORB.Initialization;
 
-procedure CORBA.Test is
+with PolyORB.Profiles.Full_Tasking;
+pragma Elaborate_All (PolyORB.Profiles.Full_Tasking);
+pragma Warnings (Off, PolyORB.Profiles.Full_Tasking);
+
+with Test000_Common;
+
+procedure Test000
+is
+   use Test000_Common;
+
 begin
-   CORBA.Test_POA.Test_The_POA;
-end CORBA.Test;
-
-
-
-
-
-
+   PolyORB.Initialization.Initialize_World;
+   Initialize;
+   Test_Threads;
+   Test_Synchronisations;
+   Test_Mutexes;
+   Test_Watchers;
+end Test000;
