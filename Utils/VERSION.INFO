@@ -18,7 +18,7 @@ gnat_version='3.07'
 #
 # files hold the list of files in which substitutions will occur
 #
-files="README INSTALL"
+files="README INSTALL Doc/install_guide.txt"
 
 #
 # Do the job
