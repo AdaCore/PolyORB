@@ -514,11 +514,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                   Ref  => Temp_Ref);
             end;
 
-         when others =>
-            pragma Debug (O ("Incorrect address type in request:"
-                             & Temp_Octet'Img));
-            raise GIOP_Error;
-
       end case;
 
       --  Operation
@@ -599,9 +594,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                     (Address_Type => Reference_Addr,
                      Ref  => Temp_Ref);
             end;
-
-         when others =>
-            raise GIOP_Error;
 
       end case;
 

@@ -1404,10 +1404,15 @@ package body Ada_Be.Idl2Ada is
      (CU : in out Compilation_Unit) is
    begin
       NL (CU);
+      PL (CU, "pragma Warnings (Off);");
+      --  All cases might already have been covered
+      --  by explicit when clauses.
+
       PL (CU, "when others =>");
       II (CU);
       PL (CU, "null;");
       DI (CU);
+      PL (CU, "pragma Warnings (On);");
    end Gen_When_Others_Clause;
 
    -------------------------

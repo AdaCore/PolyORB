@@ -546,8 +546,6 @@ package body Ada_Be.Idl2Ada.Skel is
                                  PL (CU, "CORBA.ARG_INOUT);");
                               when Mode_Out =>
                                  PL (CU, "CORBA.ARG_OUT);");
-                              when others =>
-                                 null;
                            end case;
                            DI (CU);
                         end;
