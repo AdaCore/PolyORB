@@ -111,6 +111,7 @@ package PolyORB.POA is
          --  XXX should use a hash table instead.
          --  All child-POAs of this POA.
 
+         POA_Lock                   : Tasking.Rw_Locks.Rw_Lock_Access;
          Children_Lock              : Tasking.Rw_Locks.Rw_Lock_Access;
          Map_Lock                   : Tasking.Rw_Locks.Rw_Lock_Access;
          --  Locks
@@ -146,7 +147,7 @@ package PolyORB.POA is
    --  name is Name. Returns null if not found.
 
    procedure Destroy
-     (Self                : in out Obj_Adapter_Access;
+     (Self                : access Obj_Adapter;
       Etherealize_Objects : in     Types.Boolean;
       Wait_For_Completion : in     Types.Boolean)
       is abstract;

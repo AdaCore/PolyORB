@@ -71,7 +71,7 @@ package PolyORB.POA.Basic_POA is
      return Obj_Adapter_Access;
 
    procedure Destroy
-     (Self                : in out Obj_Adapter_Access;
+     (Self                : access Basic_Obj_Adapter;
       Etherealize_Objects : in     Types.Boolean;
       Wait_For_Completion : in     Types.Boolean);
 

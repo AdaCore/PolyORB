@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#25 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#26 $
 
 with Ada.Exceptions;
 
@@ -385,19 +385,14 @@ package body PortableServer.POA is
       Etherealize_Objects : in CORBA.Boolean;
       Wait_For_Completion : in CORBA.Boolean)
    is
---      POA : PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Unreferenced (Etherealize_Objects);
-      pragma Unreferenced (Wait_For_Completion);
-      pragma Warnings (On);
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 
    begin
---      PolyORB.POA.Destroy
---        (POA,
---         PolyORB.Types.Boolean (Etherealize_Objects),
---         PolyORB.Types.Boolean (Wait_For_Completion));
---  XXX Ugly, seems a dispatching call is not possible at this stage.
+
+      PolyORB.POA.Destroy
+        (POA,
+         PolyORB.Types.Boolean (Etherealize_Objects),
+         PolyORB.Types.Boolean (Wait_For_Completion));
 
       --  FIXME: Huh, SELF is still a reference to an invalid POA.
       --    --> file an issue against the spec to have Ref converted
@@ -527,10 +522,8 @@ package body PortableServer.POA is
         := To_POA (Self);
 
    begin
-
-      --  return PolyORB.POA.Create_Reference (POA, Intf);
-
       raise PolyORB.Not_Implemented;
+
       pragma Warnings (Off);
       return Create_Reference (Self, Intf);
       pragma Warnings (On);

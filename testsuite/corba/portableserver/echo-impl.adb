@@ -30,7 +30,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/testsuite/corba/portableserver/echo-impl.adb#1 $
+--  $Id: //droopi/main/testsuite/corba/portableserver/echo-impl.adb#2 $
+
+with CORBA.ORB;
 
 with Echo.Skel;
 pragma Elaborate (Echo.Skel);
@@ -44,7 +46,8 @@ package body Echo.Impl is
    ----------------
 
    function EchoString
-     (Self : access Object; Mesg : in CORBA.String)
+     (Self : access Object;
+      Mesg : in CORBA.String)
      return CORBA.String
    is
       pragma Warnings (Off);
@@ -54,5 +57,36 @@ package body Echo.Impl is
       return Mesg;
    end EchoString;
 
-end Echo.Impl;
+   ---------------------
+   -- EchoString_Wait --
+   ---------------------
 
+   function EchoString_Wait
+     (Self : access Object;
+      Mesg : in CORBA.String)
+     return CORBA.String
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+   begin
+      delay 3.0;
+      return Mesg;
+   end EchoString_Wait;
+
+   --------------------------
+   -- EchoString_Reentrant --
+   --------------------------
+
+   function EchoString_Reentrant
+     (Self : access Object;
+      Mesg : in CORBA.String)
+     return CORBA.String
+   is
+      Ref : Echo.Ref;
+   begin
+      CORBA.ORB.String_To_Object (Mesg, Ref);
+      return Echo.echoString (Ref, Mesg);
+   end EchoString_Reentrant;
+
+end Echo.Impl;

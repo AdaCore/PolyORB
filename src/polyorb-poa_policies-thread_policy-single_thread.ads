@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---               POLYORB.POA_POLICIES.THREAD_POLICY.ORB_CTRL                --
+--            POLYORB.POA_POLICIES.THREAD_POLICY.SINGLE_THREAD              --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
@@ -30,83 +30,27 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Implementation of the 'ORB Control' POA Policy.
+--  Implementation of the 'Single thread' POA Policy.
 
---  Under this policy, the ORB is responsible for the creation, management,
---  and destruction of threads used with one or more POAs.
+package PolyORB.POA_Policies.Thread_Policy.Single_Thread is
 
-with PolyORB.Servants;
+   type Single_Thread_Policy is new ThreadPolicy with null record;
+   type Single_Thread_Policy_Access is access all Single_Thread_Policy;
 
-package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
-
-   ------------
-   -- Create --
-   ------------
-
-   function Create return ORB_Ctrl_Policy_Access is
-   begin
-      return new ORB_Ctrl_Policy;
-   end Create;
-
-   ---------------
-   -- Policy_Id --
-   ---------------
-
-   function Policy_Id
-     (Self : ORB_Ctrl_Policy)
-     return String
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-   begin
-      return "THREAD_POLICY.ORB_CTRL";
-   end Policy_Id;
-
-   -------------------------
-   -- Check_Compatibility --
-   -------------------------
+   function Create return Single_Thread_Policy_Access;
 
    procedure Check_Compatibility
-     (Self : ORB_Ctrl_Policy;
-      Other_Policies   : AllPolicies)
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Unreferenced (Other_Policies);
-      pragma Warnings (On);
+     (Self : Single_Thread_Policy;
+      Other_Policies : AllPolicies);
 
-   begin
-      null;
-      --  No rule to test.
-
-      --  XXX should we test that Father's POA thread policy is not
-      --  Single or Main thread ?
-   end Check_Compatibility;
-
-   ------------------------------
-   -- Handle_Request_Execution --
-   ------------------------------
+   function Policy_Id
+     (Self : Single_Thread_Policy)
+     return String;
 
    function Handle_Request_Execution
-     (Self      : access ORB_Ctrl_Policy;
+     (Self      : access Single_Thread_Policy;
       Msg       : PolyORB.Components.Message'Class;
       Requestor : PolyORB.Components.Component_Access)
-      return PolyORB.Components.Message'Class
-   is
-      use PolyORB.Servants;
+      return PolyORB.Components.Message'Class;
 
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-
-   begin
-      --  At this stage, PolyORB.ORB.Run has already affected a thread
-      --  to handle the request execution, in which this current call
-      --  is executed. Thus we just need to call the Execute_Servant
-      --  procedure to go on with the request execution.
-
-      return Execute_Servant (Servant_Access (Requestor), Msg);
-   end Handle_Request_Execution;
-
-end PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
+end PolyORB.POA_Policies.Thread_Policy.Single_Thread;

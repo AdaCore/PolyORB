@@ -50,6 +50,8 @@ with PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;
 with PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
 
 with PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
+with PolyORB.POA_Policies.Thread_Policy.Single_Thread;
+with PolyORB.POA_Policies.Thread_Policy.Main_Thread;
 
 package body PolyORB.CORBA_P.POA_Config is
 
@@ -71,6 +73,8 @@ package body PolyORB.CORBA_P.POA_Config is
    use PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
 
    use PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
+   use PolyORB.POA_Policies.Thread_Policy.Single_Thread;
+   use PolyORB.POA_Policies.Thread_Policy.Main_Thread;
 
    use PortableServer;
    use PolyORB.POA_Policies;
@@ -101,7 +105,12 @@ package body PolyORB.CORBA_P.POA_Config is
             Append (Result, Policy_Access (Thread_Policy.ORB_Ctrl.Create));
 
          when SINGLE_THREAD_MODEL =>
-            raise Not_Implemented;
+            Append (Result,
+                    Policy_Access (Thread_Policy.Single_Thread.Create));
+
+         when MAIN_THREAD_MODEL =>
+            Append (Result,
+                    Policy_Access (Thread_Policy.Main_Thread.Create));
       end case;
 
       --  Lifespan policy.

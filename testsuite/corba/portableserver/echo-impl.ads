@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/testsuite/corba/portableserver/echo-impl.ads#1 $
+--  $Id: //droopi/main/testsuite/corba/portableserver/echo-impl.ads#2 $
 
 with CORBA;
 with PortableServer;
@@ -46,6 +46,12 @@ package Echo.Impl is
    type Object_Acc is access Object;
 
    function EchoString (Self : access Object; Mesg : in CORBA.String)
-                        return CORBA.String;
+                       return CORBA.String;
+
+   function EchoString_Reentrant (Self : access Object; Mesg : in CORBA.String)
+                                 return CORBA.String;
+
+   function EchoString_Wait (Self : access Object; Mesg : in CORBA.String)
+                            return CORBA.String;
 
 end Echo.Impl;

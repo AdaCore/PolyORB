@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---               POLYORB.POA_POLICIES.THREAD_POLICY.ORB_CTRL                --
+--             POLYORB.POA_POLICIES.THREAD_POLICY.MAIN_THREAD               --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -30,22 +30,35 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Implementation of the 'ORB Control' POA Policy.
+--  Implementation of the 'Main thread' POA Policy.
 
---  Under this policy, the ORB is responsible for the creation, management,
---  and destruction of threads used with one or more POAs.
+--  Under this policy, requests to *all* main-thread POAs are
+--  processed sequentially.
 
+with PolyORB.Log;
 with PolyORB.Servants;
+with PolyORB.Tasking.Mutexes;
 
-package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
+package body PolyORB.POA_Policies.Thread_Policy.Main_Thread is
+
+   use PolyORB.Log;
+
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.poa_policies.thread_policy.main_thread");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
+
+
+   Main_Thread_Lock : PolyORB.Tasking.Mutexes.Mutex_Access;
+   Initialized : Boolean := False;
 
    ------------
    -- Create --
    ------------
 
-   function Create return ORB_Ctrl_Policy_Access is
+   function Create return Main_Thread_Policy_Access is
    begin
-      return new ORB_Ctrl_Policy;
+      return new Main_Thread_Policy;
    end Create;
 
    ---------------
@@ -53,14 +66,14 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
    ---------------
 
    function Policy_Id
-     (Self : ORB_Ctrl_Policy)
+     (Self : Main_Thread_Policy)
      return String
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
    begin
-      return "THREAD_POLICY.ORB_CTRL";
+      return "THREAD_POLICY.MAIN_THREAD";
    end Policy_Id;
 
    -------------------------
@@ -68,7 +81,7 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
    -------------------------
 
    procedure Check_Compatibility
-     (Self : ORB_Ctrl_Policy;
+     (Self : Main_Thread_Policy;
       Other_Policies   : AllPolicies)
    is
       pragma Warnings (Off);
@@ -80,8 +93,6 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
       null;
       --  No rule to test.
 
-      --  XXX should we test that Father's POA thread policy is not
-      --  Single or Main thread ?
    end Check_Compatibility;
 
    ------------------------------
@@ -89,24 +100,52 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
    ------------------------------
 
    function Handle_Request_Execution
-     (Self      : access ORB_Ctrl_Policy;
+     (Self      : access Main_Thread_Policy;
       Msg       : PolyORB.Components.Message'Class;
       Requestor : PolyORB.Components.Component_Access)
       return PolyORB.Components.Message'Class
    is
       use PolyORB.Servants;
+      use PolyORB.Tasking.Mutexes;
 
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
    begin
-      --  At this stage, PolyORB.ORB.Run has already affected a thread
-      --  to handle the request execution, in which this current call
-      --  is executed. Thus we just need to call the Execute_Servant
-      --  procedure to go on with the request execution.
+      --  This policy only prevents us to have to concurrent calls to
+      --  Main_Thread POAs.
 
-      return Execute_Servant (Servant_Access (Requestor), Msg);
+      --  XXX This dirty implementation associates a global lock to
+      --  all Main_Thread POA.
+
+      --  XXX However, this is a waste of ressources as a number of
+      --  threads would wait on a given and known lock.  We should try
+      --  to specialize threads, and have only one threads to handle
+      --  all upcalls made on all main_thread POAs ?  cf
+      --  PolyORB.ORB.Thread_Per_Session for a pattern.
+
+      pragma Debug (O ("Handle_Request_Execution: Enter"));
+
+      if not Initialized then
+         pragma Debug (O ("Initialize policy"));
+         Create (Main_Thread_Lock);
+         Initialized := True;
+      end if;
+
+      pragma Debug (O ("Waiting on Main Thread's lock"));
+      Enter (Main_Thread_Lock);
+      pragma Debug (O ("Waiting done"));
+
+      declare
+         Result : PolyORB.Components.Message'Class :=
+           Execute_Servant (Servant_Access (Requestor), Msg);
+      begin
+         Leave (Main_Thread_Lock);
+         pragma Debug (O ("Handle_Request_Execution: Leave"));
+         return Result;
+      end;
+
    end Handle_Request_Execution;
 
-end PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
+end PolyORB.POA_Policies.Thread_Policy.Main_Thread;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -132,7 +132,8 @@ package PortableServer is
 
    type ThreadPolicyValue is
      (ORB_CTRL_MODEL,
-      SINGLE_THREAD_MODEL);
+      SINGLE_THREAD_MODEL,
+      MAIN_THREAD_MODEL);
 
    type LifespanPolicyValue is
      (TRANSIENT,
