@@ -124,7 +124,7 @@ AC_MSG_RESULT($PSNAME)
 # Filter list
 #
 AC_ARG_WITH(filters,
-[  --with-filters          Enumerate filter list],
+[  --with-filters=list     Enumerate filter list],
 [
   AC_MSG_CHECKING([default filters])
   FILTERLIST="";
@@ -149,7 +149,7 @@ AC_SUBST_FILE(FILTERFILE)
 # Protocol list
 #
 AC_ARG_WITH(protocols,
-[  --with-protocols        Enumerate protocol list],
+[  --with-protocols=list   Enumerate protocol list],
 [
   AC_MSG_CHECKING([default protocols])
   LIST="";

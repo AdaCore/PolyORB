@@ -18,9 +18,9 @@ ac_help="$ac_help
 ac_help="$ac_help
   --with-platform=letter  Select another platform's specific files (debug)"
 ac_help="$ac_help
-  --with-filters          Enumerate filter list"
+  --with-filters=list     Enumerate filter list"
 ac_help="$ac_help
-  --with-protocols        Enumerate protocol list"
+  --with-protocols=list   Enumerate protocol list"
 ac_help="$ac_help
   --with-extra-libs=libs  Add extra libraries when building a program"
 
