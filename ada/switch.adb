@@ -198,7 +198,9 @@ package body Switch is
          when 'C' =>
             Ptr := Ptr + 1;
 
-            if Program = Binder then
+            if Program = Compiler then
+               Compress_Debug_Names := True;
+            elsif Program = Binder then
                Ada_Bind_File := False;
             else
                raise Bad_Switch;

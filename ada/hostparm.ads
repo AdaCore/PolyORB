@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -84,5 +84,10 @@ pragma Pure (Hostparm);
    Exclude_Missing_Objects : constant Boolean := True;
    --  If set to true, gnatbind will exclude from consideration all
    --  non-existent .o files.
+
+   Max_Debug_Name_Length : constant := 256;
+   --  If a generated qualified debug name exceeds this length, then it
+   --  is automatically compressed, regardless of the setting of the
+   --  Compress_Debug_Names switch controlled by -gnatC.
 
 end Hostparm;

@@ -33,11 +33,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package defines the association between source file names and
---  unit names as defined in package Uname.
+--  This package, together with its child package Fname.UF define the
+--  association between source file names and unit names as defined
+--  (see package Uname for definition of format of unit names).
 
-with Casing; use Casing;
-with Types;  use Types;
+with Types; use Types;
 
 package Fname is
 
@@ -77,25 +77,6 @@ package Fname is
    --  be determined with the file naming conventions in use, then the returned
    --  value is set to Unknown.
 
-   function Get_File_Name
-     (Uname   : Unit_Name_Type;
-      Subunit : Boolean)
-      return    File_Name_Type;
-   --  This function returns the file name that corresponds to a given unit
-   --  name, Uname. The Subunit parameter is set True for subunits, and
-   --  false for all other kinds of units. The caller is responsible for
-   --  ensuring that the unit name meets the requirements given in package
-   --  Uname and described above.
-
-   procedure Initialize;
-   --  Initialize internal tables. This is called automatically when the
-   --  package body is elaborated, so an explicit call to Initialize is
-   --  only required if it is necessary to reinitialize the source file
-   --  name pragma tables.
-
-   procedure Lock;
-   --  Lock tables before calling back end
-
    function Is_Predefined_File_Name
      (Fname              : File_Name_Type;
       Renamings_Included : Boolean := True)
@@ -116,38 +97,14 @@ package Fname is
    --  superset of the predefined file set including children of GNAT,
    --  and also children of DEC for the VMS case.
 
-   function File_Name_Of_Spec (Name : Name_Id) return File_Name_Type;
-   --  Returns the file name that corresponds to the spec of a given unit
-   --  name. The unit name here is not encoded as a Unit_Name_Type, but is
-   --  rather just a normal form name in lower case, e.g. "xyz.def".
-
-   function File_Name_Of_Body (Name : Name_Id) return File_Name_Type;
-   --  Returns the file name that corresponds to the body of a given unit
-   --  name. The unit name here is not encoded as a Unit_Name_Type, but is
-   --  rather just a normal form name in lower case, e.g. "xyz.def".
-
-   procedure Set_File_Name (U : Unit_Name_Type; F : File_Name_Type);
-   --  Make association between given unit name, U, and the given file name,
-   --  F. This is the routine called to process a Source_File_Name pragma.
-
-   procedure Set_File_Name_Pattern
-     (Pat : String_Ptr;
-      Typ : Character;
-      Dot : String_Ptr;
-      Cas : Casing_Type);
-   --  This is called to process a Source_File_Name pragma whose first
-   --  argument is the string "*". Pat is the pattern string, which
-   --  contains an asterisk to correspond to the unit. Typ is one of
-   --  'b'/'s'/'u' for body/spec/subunit, Dot is the separator string
-   --  for child/subunit names, and Cas is one of Lower/Upper/Mixed
-   --  indicating the required case for the file name.
-
    procedure Tree_Read;
-   --  Initializes internal tables from current tree file using Tree_Read.
-   --  Note that Initialize should not be called if Tree_Read is used.
-   --  Tree_Read includes all necessary initialization.
+   --  Dummy procedure (reads dummy table values from tree file)
 
    procedure Tree_Write;
    --  Writes out internal tables to current tree file using Tree_Write
+   --  This is actually a dummy routine, since the relevant table is
+   --  no longer used, but we retain it for now, to avoid a tree file
+   --  incompatibility with the 3.13 compiler. Should be removed for
+   --  the 3.14a release ???
 
 end Fname;

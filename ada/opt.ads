@@ -146,6 +146,10 @@ package Opt is
    --  GNATMAKE
    --  Set to True to skip bind and link step.
 
+   Compress_Debug_Names : Boolean := False;
+   --  GNATMAKE
+   --  Set to True if the option to compress debug information is set (-gnatC)
+
    Config_File : Boolean := True;
    --  GNAT
    --  Set to False to inhibit reading and processing of gnat.adc file

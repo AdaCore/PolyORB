@@ -34,6 +34,7 @@ with ALI.Util; use ALI.Util;
 with Csets;
 with Debug;
 with Fname;    use Fname;
+with Fname.UF; use Fname.UF;
 with Gnatvsn;  use Gnatvsn;
 with Hostparm; use Hostparm;
 with Makeusg;
