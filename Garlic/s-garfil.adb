@@ -218,6 +218,10 @@ package body System.Garlic.Filters is
             if Found (Error) then
                return;
             end if;
+
+            --  Channel has been updated in the meantime.
+
+            Channel := Channels.Get_Component (Partition);
          end if;
 
          --  Check whether stream management is needed
@@ -264,6 +268,10 @@ package body System.Garlic.Filters is
             if Found (Error) then
                return;
             end if;
+
+            --  Channel has been updated in the meantime.
+
+            Channel := Channels.Get_Component (Partition);
          end if;
 
          --  Check whether stream management is needed
