@@ -57,6 +57,8 @@ package body PolyORB.References.IOR is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   IOR_Prefix : constant String := "IOR:";
+
    type Profile_Record is record
       Tag                     : Binding_Data.Profile_Tag;
       Marshall_Profile_Body   : Marshall_Profile_Body_Type;
@@ -316,7 +318,8 @@ package body PolyORB.References.IOR is
    is
       use PolyORB.Types;
    begin
-      return IOR_Prefix & To_String (Object_To_Opaque (IOR));
+      return To_PolyORB_String (IOR_Prefix)
+        & To_String (Object_To_Opaque (IOR));
    end Object_To_String;
 
    ----------------------
@@ -331,16 +334,16 @@ package body PolyORB.References.IOR is
       use PolyORB.Buffers;
       use PolyORB.Utils.Strings;
 
-      Len    : constant Integer := Length (IOR_Prefix);
+      S : constant String := To_Standard_String (Str);
+
    begin
       pragma Debug (O ("Try to decode IOR"));
-      if Length (Str) > Len
-        and then To_String (Str) (1 .. Len) = IOR_Prefix then
+      if Has_Prefix (S, IOR_Prefix) then
          pragma Debug (O ("IOR Header ok"));
          declare
             Octets : aliased Stream_Element_Array
               := To_Stream_Element_Array
-              (To_Standard_String (Str) (Len + 1 .. Length (Str)));
+              (S (S'First + IOR_Prefix'Length .. S'Last));
          begin
             return Opaque_To_Object (Octets'Access);
          end;
@@ -372,7 +375,7 @@ package body PolyORB.References.IOR is
 
    procedure Initialize is
    begin
-      Register (IOR_Prefix, String_To_Object'Access);
+      Register (Types.To_PolyORB_String (IOR_Prefix), String_To_Object'Access);
    end Initialize;
 
    use PolyORB.Initialization;

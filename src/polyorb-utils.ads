@@ -114,6 +114,9 @@ package PolyORB.Utils is
      return Integer
      renames Find_Skip;
 
+   function Has_Prefix (S : String; Prefix : String) return Boolean;
+   --  True if, and only if, S starts with Prefix.
+
 private
 
    pragma Inline (Hex_Value, To_String, To_Stream_Element_Array,

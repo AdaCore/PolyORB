@@ -235,4 +235,14 @@ package body PolyORB.Utils is
       return I;
    end Find_Skip;
 
+   ----------------
+   -- Has_Prefix --
+   ----------------
+
+   function Has_Prefix (S : String; Prefix : String) return Boolean is
+   begin
+      return S'Length >= Prefix'Length
+        and then S (S'First .. S'First + Prefix'Length - 1) = Prefix;
+   end Has_Prefix;
+
 end PolyORB.Utils;
