@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#22 $
+--  $Id: //droopi/main/src/polyorb-any.adb#23 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -1127,7 +1127,7 @@ package body PolyORB.Any is
            Tk_Native             |
            Tk_Abstract_Interface |
            Tk_Except             =>
-            Result := To_PolyORB_String (Kind'Img & " ")
+            Result := To_PolyORB_String (TCKind'Image (Kind) & " ")
               & Types.String'(From_Any (Get_Parameter (TC, 0)))
               & To_PolyORB_String (" (")
               & Types.String'(From_Any (Get_Parameter (TC, 1)))
@@ -1160,10 +1160,10 @@ package body PolyORB.Any is
                   Result := Result & To_PolyORB_String ("}");
                   return To_Standard_String (Result);
                when others =>
-                  return "<aggregate:" & Kind'Img & ">";
+                  return "<aggregate:" & TCKind'Image (Kind) & ">";
             end case;
          when others =>
-            return Kind'Img;
+            return TCKind'Image (Kind);
       end case;
    end Image;
 
@@ -3079,7 +3079,7 @@ package body PolyORB.Any is
             when IN_COPY_VALUE =>
                return "in-copy";
             when others =>
-               return "(invalid flag" & F'Img & ")";
+               return "(invalid flag" & Flags'Image (F) & ")";
          end case;
       end Flag_Name;
 

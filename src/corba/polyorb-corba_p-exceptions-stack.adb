@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions-stack.adb#2 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions-stack.adb#3 $
 
 with Ada.Unchecked_Deallocation;
 
@@ -250,7 +250,7 @@ package body PolyORB.CORBA_P.Exceptions.Stack is
 
    function Image (V : Exc_Occ_Id_Type) return String is
    begin
-      return Magic & V'Img;
+      return Magic & Exc_Occ_Id_Type'Image (V);
    end Image;
 
    ---------------------

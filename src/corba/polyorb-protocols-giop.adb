@@ -1589,7 +1589,7 @@ package body PolyORB.Protocols.GIOP is
 
                Store_Request (Ses, Current_Req.Req, Prof, Current_Req);
 
-               Invoke_Request
+               GIOP.Invoke_Request
                  (GIOP_Session (New_Ses.all)'Access,
                   Current_Req.Req,
                   Prof);
@@ -1998,7 +1998,7 @@ package body PolyORB.Protocols.GIOP is
                            --  Release the previous session buffers
                            Release (S.Buffer_In);
                            Release (S.Buffer_Out);
-                           Invoke_Request
+                           GIOP.Invoke_Request
                              (GIOP_Session (New_Ses.all)'Access,
                               Current_Req.Req,
                               Current_Req.Target_Profile);

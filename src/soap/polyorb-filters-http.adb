@@ -349,7 +349,7 @@ package body PolyORB.Filters.HTTP is
                   exception
                      when E : others =>
                         O ("Received exception in "
-                           & F.State'Img & " state:", Error);
+                           & HTTP_State'Image (F.State) & " state:", Error);
                         O (Ada.Exceptions.Exception_Information (E),
                            Error);
                         Clear_Message_State (F.all);
@@ -970,7 +970,7 @@ package body PolyORB.Filters.HTTP is
          Image (F.Version)
          --  XXX Should we reply with that version?
          & Integer'Image (To_Integer (Status)) & " "
-         & Status'Img);
+         & HTTP_Status_Code'Image (Status));
    end Put_Status_Line;
 
    procedure Error (F : access HTTP_Filter; Status : HTTP_Status_Code) is
