@@ -1021,7 +1021,7 @@ package body PolyORB.Utils.HTables.Perfect is
 
       Result : Boolean := True;
    begin
-      for J in I.Position .. Last (Elements) loop
+      for J in I.Position + 1 .. Last (Elements) loop
          Result := Result and not Elements.Table (J).Used;
       end loop;
 
