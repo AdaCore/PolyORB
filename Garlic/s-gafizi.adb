@@ -48,6 +48,7 @@ package body System.Garlic.Filters.Zip is
      (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
+   pragma Unreferenced (D);
 
    package C renames Interfaces.C;
    use C;
@@ -77,7 +78,11 @@ package body System.Garlic.Filters.Zip is
        Params : in Filter_Params_Access;
        Stream : in Streams.Stream_Element_Access;
        Offset : in Ada.Streams.Stream_Element_Offset)
-      return Stream_Element_Access is
+     return Stream_Element_Access
+   is
+      pragma Unreferenced (Filter);
+      pragma Unreferenced (Params);
+
       Target_Length : Stream_Element_Offset := 0;
       Target_Buffer : Stream_Element_Access;
       target_bytes  : C.long;
@@ -110,7 +115,11 @@ package body System.Garlic.Filters.Zip is
       (Filter : in     Compress_Filter_Type;
        Params : in     Filter_Params_Access;
        Stream : access Streams.Params_Stream_Type)
-      return Stream_Element_Access is
+     return Stream_Element_Access
+   is
+      pragma Unreferenced (Filter);
+      pragma Unreferenced (Params);
+
       Source_Length : Stream_Element_Offset;
       Target_Length : Stream_Element_Offset;
       target_bytes,
@@ -155,7 +164,10 @@ package body System.Garlic.Filters.Zip is
    function Filter_Params_Read
       (Filter : Compress_Filter_Type;
        Stream : Stream_Element_Array)
-     return Filter_Params_Access is
+     return Filter_Params_Access
+   is
+      pragma Unreferenced (Filter);
+      pragma Unreferenced (Stream);
    begin
       return null;
    end Filter_Params_Read;
@@ -167,7 +179,10 @@ package body System.Garlic.Filters.Zip is
    function Filter_Params_Write
       (Filter : Compress_Filter_Type;
        Params : Filter_Params_Access)
-     return Stream_Element_Access is
+     return Stream_Element_Access
+   is
+      pragma Unreferenced (Filter);
+      pragma Unreferenced (Params);
    begin
       return null;
    end Filter_Params_Write;
@@ -180,7 +195,9 @@ package body System.Garlic.Filters.Zip is
       (Filter          : in  Compress_Filter_Type;
        Public_Params   : out Filter_Params_Access;
        Private_Params  : out Filter_Params_Access;
-       Exchange_Params : out Boolean) is
+       Exchange_Params : out Boolean)
+   is
+      pragma Unreferenced (Filter);
    begin
       Public_Params   := null;
       Private_Params  := null;

@@ -79,6 +79,8 @@ package body System.Garlic.Protocols.Replay is
      (Protocol : access Replay_Protocol;
       Error    : in out Error_Type)
    is
+      pragma Unreferenced (Protocol);
+      pragma Unreferenced (Error);
    begin
       if Options.Execution_Mode = Replay_Mode
         and then Engine = null
@@ -173,6 +175,8 @@ package body System.Garlic.Protocols.Replay is
      (Protocol : access Replay_Protocol)
      return String_Array_Access
    is
+      pragma Unreferenced (Protocol);
+
       Result : String_Array_Access;
 
    begin
@@ -192,7 +196,9 @@ package body System.Garlic.Protocols.Replay is
 
    function Get_Name
      (Protocol : access Replay_Protocol)
-     return String is
+     return String
+   is
+      pragma Unreferenced (Protocol);
    begin
       return "replay";
    end Get_Name;
@@ -208,6 +214,10 @@ package body System.Garlic.Protocols.Replay is
       Performed : out Boolean;
       Error     : in out Error_Type)
    is
+      pragma Unreferenced (Protocol);
+      pragma Unreferenced (Self_Data);
+      pragma Unreferenced (Required);
+      pragma Unreferenced (Error);
    begin
       Performed := False;
    end Initialize;
@@ -219,7 +229,10 @@ package body System.Garlic.Protocols.Replay is
    function Receive
      (Protocol  : access Replay_Protocol;
       Timeout   : Duration)
-     return Boolean is
+     return Boolean
+   is
+      pragma Unreferenced (Protocol);
+      pragma Unreferenced (Timeout);
    begin
       return True;
    end Receive;
@@ -234,6 +247,9 @@ package body System.Garlic.Protocols.Replay is
       Data      : access Ada.Streams.Stream_Element_Array;
       Error     : in out Error_Type)
    is
+      pragma Unreferenced (Protocol);
+      pragma Unreferenced (Partition);
+      pragma Unreferenced (Error);
    begin
       pragma Debug
          (D ("Send (but do nothing)" & Data'Length'Img & " bytes"));
@@ -253,6 +269,7 @@ package body System.Garlic.Protocols.Replay is
       Boot_Data : in String;
       Error     : in out Error_Type)
    is
+      pragma Unreferenced (Protocol);
    begin
       --  Replay protocol is always loaded because its initialization
       --  is decided at run-time. It should be initialized here when
@@ -279,7 +296,9 @@ package body System.Garlic.Protocols.Replay is
    -- Shutdown --
    --------------
 
-   procedure Shutdown (Protocol : access Replay_Protocol) is
+   procedure Shutdown (Protocol : access Replay_Protocol)
+   is
+      pragma Unreferenced (Protocol);
    begin
       if Execution_Mode = Replay_Mode
         and then Is_Open (Trace_File)

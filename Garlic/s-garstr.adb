@@ -282,7 +282,10 @@ package body System.Garlic.Streams is
    function To_Stream_Element_Array
      (Params : access Params_Stream_Type;
       Unused : Ada.Streams.Stream_Element_Count := 0)
-      return Stream_Element_Array is
+     return Stream_Element_Array
+   is
+      pragma Unreferenced (Unused);
+
       Data   : Stream_Element_Access := To_Stream_Element_Access (Params);
       Result : constant Stream_Element_Array := Data.all;
    begin

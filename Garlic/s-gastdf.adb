@@ -35,7 +35,6 @@
 
 with Ada.IO_Exceptions;
 with Ada.Unchecked_Conversion;
-with Ada.Unchecked_Deallocation;
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 
@@ -77,9 +76,6 @@ package body System.Garlic.Storages.Dfs is
    function To_AFCB_Ptr is
       new Ada.Unchecked_Conversion (SIO.File_Type, FCB.AFCB_Ptr);
 
-   procedure Free is
-      new Ada.Unchecked_Deallocation (DFS_Data_Type, DFS_Data_Access);
-
    Sep : Character renames OS.Directory_Separator;
 
    Root : DFS_Data_Access;
@@ -100,7 +96,6 @@ package body System.Garlic.Storages.Dfs is
    To_File_Mode : constant array (Read .. Write) of SIO.File_Mode
      := (Read => SIO.In_File, Write => SIO.Out_File);
 
-   function  File_Name (Var_Data : DFS_Data_Type) return String;
    function  Lock_Name (Var_Data : DFS_Data_Type) return String;
 
    ----------------------
@@ -153,6 +148,8 @@ package body System.Garlic.Storages.Dfs is
       Location : in     String;
       Storage  : out    Shared_Data_Access)
    is
+      pragma Unreferenced (Master);
+
       Result   : DFS_Data_Access;
 
    begin
@@ -196,15 +193,6 @@ package body System.Garlic.Storages.Dfs is
       Var.Lock  := SGL.Null_Lock;
       Var_Data  := Shared_Data_Access (Var);
    end Create_Variable;
-
-   ---------------
-   -- File_Name --
-   ---------------
-
-   function File_Name (Var_Data : DFS_Data_Type) return String is
-   begin
-      return Var_Data.Dir.all & Var_Data.Dir.all;
-   end File_Name;
 
    ----------------
    -- Initialize --

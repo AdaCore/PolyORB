@@ -74,7 +74,9 @@ package body System.Garlic.No_Tasking is
    -- Destroy --
    -------------
 
-   procedure Destroy (W : in out Unprotected_Watcher_Type) is
+   procedure Destroy (W : in out Unprotected_Watcher_Type)
+   is
+      pragma Unreferenced (W);
    begin
       null;
    end Destroy;
@@ -83,7 +85,9 @@ package body System.Garlic.No_Tasking is
    -- Destroy --
    -------------
 
-   procedure Destroy (M : in out Unprotected_Adv_Mutex_Type) is
+   procedure Destroy (M : in out Unprotected_Adv_Mutex_Type)
+   is
+      pragma Unreferenced (M);
    begin
       null;
    end Destroy;
@@ -92,7 +96,9 @@ package body System.Garlic.No_Tasking is
    -- Destroy --
    -------------
 
-   procedure Destroy (M : in out Unprotected_Mutex_Type) is
+   procedure Destroy (M : in out Unprotected_Mutex_Type)
+   is
+      pragma Unreferenced (M);
    begin
       null;
    end Destroy;
@@ -101,7 +107,12 @@ package body System.Garlic.No_Tasking is
    -- Differ --
    ------------
 
-   procedure Differ (W : in out Unprotected_Watcher_Type; V : in Version_Id) is
+   procedure Differ
+     (W : in out Unprotected_Watcher_Type;
+      V : in Version_Id)
+   is
+      pragma Unreferenced (W);
+      pragma Unreferenced (V);
    begin
       Receive_From_All_Protocols;
    end Differ;
@@ -110,7 +121,9 @@ package body System.Garlic.No_Tasking is
    -- Enter --
    -----------
 
-   procedure Enter (M : in Unprotected_Mutex_Type) is
+   procedure Enter (M : in Unprotected_Mutex_Type)
+   is
+      pragma Unreferenced (M);
    begin
       null;
    end Enter;
@@ -119,7 +132,9 @@ package body System.Garlic.No_Tasking is
    -- Enter --
    -----------
 
-   procedure Enter (M : in out Unprotected_Adv_Mutex_Type) is
+   procedure Enter (M : in out Unprotected_Adv_Mutex_Type)
+   is
+      pragma Unreferenced (M);
    begin
       null;
    end Enter;
@@ -202,7 +217,9 @@ package body System.Garlic.No_Tasking is
    -- Leave --
    -----------
 
-   procedure Leave (M : in out Unprotected_Adv_Mutex_Type) is
+   procedure Leave (M : in out Unprotected_Adv_Mutex_Type)
+   is
+      pragma Unreferenced (M);
    begin
       null;
    end Leave;
@@ -211,7 +228,9 @@ package body System.Garlic.No_Tasking is
    -- Leave --
    -----------
 
-   procedure Leave (M : in Unprotected_Mutex_Type) is
+   procedure Leave (M : in Unprotected_Mutex_Type)
+   is
+      pragma Unreferenced (M);
    begin
       null;
    end Leave;
@@ -239,7 +258,9 @@ package body System.Garlic.No_Tasking is
    -- Set_Priority --
    ------------------
 
-   procedure Set_Priority (P : in Natural) is
+   procedure Set_Priority (P : in Natural)
+   is
+      pragma Unreferenced (P);
    begin
       null;
    end Set_Priority;
@@ -248,7 +269,9 @@ package body System.Garlic.No_Tasking is
    -- Set_Task_Stamp --
    --------------------
 
-   procedure Set_Task_Stamp (S : in Float) is
+   procedure Set_Task_Stamp (S : in Float)
+   is
+      pragma Unreferenced (S);
    begin
       null;
    end Set_Task_Stamp;

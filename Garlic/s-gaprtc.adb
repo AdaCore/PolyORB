@@ -116,9 +116,6 @@ package body System.Garlic.Protocols.Tcp is
    Banner_Size : constant := 4;
    --  Size of a header when it is encoded as a stream
 
-   subtype Banner_Stream is Stream_Element_Array (1 .. Banner_Size);
-   --  Constrained subtype for headers
-
    procedure Read_Stamp
      (Peer   : in Socket_Type;
       Error  : in out Error_Type);
@@ -281,6 +278,8 @@ package body System.Garlic.Protocols.Tcp is
      (Protocol : access TCP_Protocol;
       Error    : in out Error_Type)
    is
+      pragma Unreferenced (Protocol);
+      pragma Unreferenced (Error);
    begin
       if Activated then
          return;
@@ -410,6 +409,7 @@ package body System.Garlic.Protocols.Tcp is
      (Protocol : access TCP_Protocol)
      return String_Array_Access
    is
+      pragma Unreferenced (Protocol);
       Result : String_Array_Access;
    begin
       if Options.Is_Pure_Client
@@ -430,7 +430,9 @@ package body System.Garlic.Protocols.Tcp is
 
    function Get_Name
      (Protocol : access TCP_Protocol)
-     return String is
+     return String
+   is
+      pragma Unreferenced (Protocol);
    begin
       return "tcp";
    end Get_Name;
@@ -446,6 +448,8 @@ package body System.Garlic.Protocols.Tcp is
       Performed : out Boolean;
       Error     : in out Error_Type)
    is
+      pragma Unreferenced (Protocol);
+
       Host  : constant Sock_Addr_Type := Value (Host_Name);
       Self  : Socket_Info := Null_Socket_Info;
       Index : Natural;
@@ -678,6 +682,8 @@ package body System.Garlic.Protocols.Tcp is
       Timeout   : Duration)
      return Boolean
    is
+      pragma Unreferenced (Protocol);
+
       RSet     : Socket_Set_Type;
       WSet     : Socket_Set_Type;
       Info     : Socket_Info;
@@ -937,6 +943,8 @@ package body System.Garlic.Protocols.Tcp is
       Data      : access Stream_Element_Array;
       Error     : in out Error_Type)
    is
+      pragma Unreferenced (Protocol);
+
       Info     : Socket_Info;
       Hits     : Natural := 1;
       First    : Stream_Element_Count := Data'First + Unused_Space;
@@ -1081,7 +1089,10 @@ package body System.Garlic.Protocols.Tcp is
    procedure Set_Boot_Data
      (Protocol  : access TCP_Protocol;
       Boot_Data : in String;
-      Error     : in out Error_Type) is
+      Error     : in out Error_Type)
+   is
+      pragma Unreferenced (Protocol);
+      pragma Unreferenced (Error);
    begin
       if not Initialized then
          pragma Debug (D ("Initialize protocol tcp"));
@@ -1120,6 +1131,8 @@ package body System.Garlic.Protocols.Tcp is
    procedure Shutdown
      (Protocol : access TCP_Protocol)
    is
+      pragma Unreferenced (Protocol);
+
       Count   : Natural;
       Socket  : Socket_Type;
       Info    : Socket_Info;

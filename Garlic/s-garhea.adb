@@ -35,8 +35,6 @@
 
 with Ada.Exceptions;                  use Ada.Exceptions;
 pragma Warnings (Off, Ada.Exceptions);
-with Ada.Unchecked_Conversion;
-with Interfaces;
 with System.Garlic.Debug;             use System.Garlic.Debug;
 pragma Elaborate_All (System.Garlic.Debug);
 with System.Garlic.Exceptions;        use System.Garlic.Exceptions;
@@ -109,15 +107,7 @@ package body System.Garlic.Heart is
    pragma Inline (Opcode_Write);
    --  Read and write opcode on one byte
 
-   procedure Partition_RPC_Receiver
-     (Params : access Streams.Params_Stream_Type;
-      Result : access Streams.Params_Stream_Type);
-   --  Global RPC receiver
-
    Shutdown_Activation : Status_Type := None;
-
-   function Convert is
-      new Ada.Unchecked_Conversion (System.Address, RPC_Receiver);
 
    -----------------------
    -- Activate_Shutdown --
@@ -518,20 +508,6 @@ package body System.Garlic.Heart is
    begin
       return Any_Opcode'Pos (Opcode);
    end Opcode_Write;
-
-   ----------------------------
-   -- Partition_RPC_Receiver --
-   ----------------------------
-
-   procedure Partition_RPC_Receiver
-     (Params : access Streams.Params_Stream_Type;
-      Result : access Streams.Params_Stream_Type)
-   is
-      Receiver : constant RPC_Receiver :=
-        Convert (System.Address (Interfaces.Unsigned_64'Input (Params)));
-   begin
-      Receiver (Params, Result);
-   end Partition_RPC_Receiver;
 
    --------------------
    -- Process_Stream --

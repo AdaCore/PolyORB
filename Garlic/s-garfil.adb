@@ -89,7 +89,6 @@ package body System.Garlic.Filters is
 
    Null_Half_Channel : constant Half_Channel_Type := (null, null, None);
 
-   type Channel_Id is new Partition_ID;
    type Channel_Type is record
       Partition : Partition_ID;
       Filter    : Filter_Access;
@@ -312,8 +311,9 @@ package body System.Garlic.Filters is
       Request   : in Request_Type;
       Error     : in out Error_Type)
    is
-      Channel : Channel_Type;
+      pragma Unreferenced (Request);
 
+      Channel : Channel_Type;
    begin
       pragma Debug
         (D ("Get params for partition" & Partition'Img &
@@ -363,6 +363,8 @@ package body System.Garlic.Filters is
       Request   : in Request_Type;
       Error     : in out Error_Type)
    is
+      pragma Unreferenced (Request);
+
       Channel : Channel_Type;
       Version : Version_Id;
       Waiting : Boolean;
@@ -449,6 +451,9 @@ package body System.Garlic.Filters is
       Reply     : access Params_Stream_Type;
       Error     : in out Error_Type)
    is
+      pragma Unreferenced (Opcode);
+      pragma Unreferenced (Reply);
+
       --  We may have to filter the original stream. We will interpret the
       --  message once the stream has been filtered. That's why the job is
       --  done in Internal_Receive.

@@ -1,3 +1,16 @@
+2002-01-04  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* s-gafizi.adb, s-ganata.adb, s-ganeut.adb, s-ganota.adb,
+	s-gaphlo.adb, s-gaprre.adb, s-gaprtc.adb, s-garfil.adb,
+	s-gargro.adb, s-garhea.adb, s-garpar.adb, s-garpro.adb,
+	s-garstr.adb, s-gartab.adb, s-gartas.adb, s-garter.adb,
+	s-garuni.adb, s-gasoli.adb, s-gastdf.adb, s-gastds.adb,
+	s-parint.adb, s-rpc.adb, s-rpcser.adb, s-rpstio.adb, s-stratt.adb:
+	Apply pragma Unreferenced when needed : unused dispatching
+	parameters, unused parameters of subprograms that have to follow a
+	given signature and unused subprograms defined for debugging
+	purposes. Remove some unused types (9704-003).
+
 2001-06-28  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* s-ganota.adb, s-ganota.ads, s-gartas.adb, s-gartas.adb,

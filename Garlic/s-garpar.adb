@@ -57,8 +57,6 @@ package body System.Garlic.Partitions is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   type String_Ptr is access String;
-
    type Partition_Info is record
       Allocated       : Boolean;
       Partition_Name  : String_Access;
@@ -1573,7 +1571,9 @@ package body System.Garlic.Partitions is
    procedure Write_Partition
      (Stream : access Params_Stream_Type;
       PID    : in Partition_ID;
-      Info   : in Partition_Info) is
+      Info   : in Partition_Info)
+   is
+      pragma Unreferenced (PID);
    begin
       Boolean'Write           (Stream, Info.Is_Active_Part);
       if Info.Status = Dead then

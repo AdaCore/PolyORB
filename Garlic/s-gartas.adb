@@ -70,14 +70,7 @@ package body System.Garlic.Tasking is
    --  The environment task. Self will be set to it at elaboration time.
 
    type Protected_Mutex_Access is access all Protected_Mutex_Type;
-   type Protected_Adv_Mutex_Access is access all Protected_Adv_Mutex_Type;
    type Protected_Watcher_Access is access all Protected_Watcher_Type;
-
-   type Adv_Mutex_PO is limited null record;
-   --  This is a classical critical section except that when a task try to
-   --  Enter a critical section several times without leaving it first it
-   --  is not blocked and can continue. Leave keeps track of the number of
-   --  times Enter has been successful.
 
    Critical_Section : Clever_Lock;
 
@@ -170,7 +163,9 @@ package body System.Garlic.Tasking is
    -- Destroy --
    -------------
 
-   procedure Destroy (W : in out Protected_Watcher_Type) is
+   procedure Destroy (W : in out Protected_Watcher_Type)
+   is
+      pragma Unreferenced (W);
    begin
       null;
    end Destroy;
@@ -179,7 +174,9 @@ package body System.Garlic.Tasking is
    -- Destroy --
    -------------
 
-   procedure Destroy (M : in out Protected_Adv_Mutex_Type) is
+   procedure Destroy (M : in out Protected_Adv_Mutex_Type)
+   is
+      pragma Unreferenced (M);
    begin
       null;
    end Destroy;

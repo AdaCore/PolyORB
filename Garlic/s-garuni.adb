@@ -176,8 +176,7 @@ package body System.Garlic.Units is
       Info : in Unit_Info);
 
    function Dump_Request_List
-     (List : Request_List;
-      Root : Boolean := True) return String;
+     (List : Request_List) return String;
 
    procedure Get_Unit_Info
      (Unit  : in Unit_Id;
@@ -306,14 +305,14 @@ package body System.Garlic.Units is
    -----------------------
 
    function Dump_Request_List
-     (List : Request_List;
-      Root : Boolean := True) return String
+     (List : Request_List) return String
    is
+
       Info : Request_Info;
    begin
       if List /= Null_Request_List then
          Info := Requests.Get_Component (List);
-         return Info.PID'Img & Dump_Request_List (Info.Next, False);
+         return Info.PID'Img & Dump_Request_List (Info.Next);
       end if;
       if True then
          return " no partition";
@@ -567,6 +566,8 @@ package body System.Garlic.Units is
       Reply     : access Params_Stream_Type;
       Error     : in out Error_Type)
    is
+      pragma Unreferenced (Opcode);
+
       To_All  : aliased Params_Stream_Type (0);
       Pending : Request_List := Null_Request_List;
       Request : Request_Type;

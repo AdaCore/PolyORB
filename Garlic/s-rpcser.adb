@@ -169,9 +169,6 @@ package body System.RPC.Server is
    procedure Show_Tasks_Pool;
    --  This procedure will print a tasks pool status in debug mode
 
-   procedure Stop_Tasks_Pool;
-   --  This procedure will be called upon shutdown
-
    ----------------
    -- Abort_Task --
    ----------------
@@ -546,17 +543,6 @@ package body System.RPC.Server is
       System.Garlic.Soft_Links.Update (Tasks_Pool_Watcher);
       System.Garlic.Soft_Links.Leave (Tasks_Pool_Mutex);
    end Shutdown;
-
-   ---------------------
-   -- Stop_Tasks_Pool --
-   ---------------------
-
-   procedure Stop_Tasks_Pool is
-   begin
-      pragma Debug (D ("Stop tasks pool"));
-      Terminated := True;
-      System.Garlic.Soft_Links.Update (Tasks_Pool_Watcher);
-   end Stop_Tasks_Pool;
 
 begin
    System.Garlic.Soft_Links.Create (Tasks_Pool_Mutex);

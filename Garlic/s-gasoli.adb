@@ -181,7 +181,9 @@ package body System.Garlic.Soft_Links is
    -- Adjust --
    ------------
 
-   procedure Adjust (Self : in out Abort_Handler_Type) is
+   procedure Adjust (Self : in out Abort_Handler_Type)
+   is
+      pragma Unreferenced (Self);
    begin
       null;
    end Adjust;

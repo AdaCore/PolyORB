@@ -46,6 +46,7 @@ package body System.Garlic.Name_Table is
      (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
+   pragma Unreferenced (D);
 
    use ASCII, Ada.Streams;
 

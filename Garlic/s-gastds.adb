@@ -117,6 +117,8 @@ package body System.Garlic.Storages.Dsm is
       Pkg_Name : in      String;
       Pkg_Data : out     Shared_Data_Access)
    is
+      pragma Unreferenced (Storage);
+
       Error : aliased Error_Type;
       Pkg   : DSM_Data_Access;
 
@@ -153,6 +155,8 @@ package body System.Garlic.Storages.Dsm is
       Location : in     String;
       Storage  : out    Shared_Data_Access)
    is
+      pragma Unreferenced (Master);
+
       Result   : DSM_Data_Access;
 
    begin
@@ -204,6 +208,9 @@ package body System.Garlic.Storages.Dsm is
       Reply     : access Params_Stream_Type;
       Error     : in out Error_Type)
    is
+      pragma Unreferenced (Opcode);
+      pragma Unreferenced (Reply);
+
       Var_Data  : DSM_Data_Access;
       Var_Name  : constant String := String'Input (Query);
       Request   : Request_Record  := Request_Record'Input (Query);

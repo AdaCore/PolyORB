@@ -178,7 +178,12 @@ package body System.RPC.Stream_IO is
       Opcode    : in External_Opcode;
       Query     : access Garlic.Streams.Params_Stream_Type;
       Reply     : access Garlic.Streams.Params_Stream_Type;
-      Error     : in out Error_Type) is
+      Error     : in out Error_Type)
+   is
+      pragma Unreferenced (Opcode);
+      pragma Unreferenced (Reply);
+      pragma Unreferenced (Error);
+
       SEA : Stream_Element_Array (1 .. Query.Count);
       Len : Stream_Element_Offset;
       Str : Partition_Stream_Access := Fetch (Partition_ID (Partition));

@@ -96,6 +96,9 @@ package body System.Garlic.Group is
       Reply     : access Streams.Params_Stream_Type;
       Error     : in out Error_Type)
    is
+      pragma Unreferenced (Partition);
+      pragma Unreferenced (Opcode);
+
       Inner_PID   : Partition_ID;
       Inner_Code  : Any_Opcode;
       Inner_Query : aliased Params_Stream_Type (Query.Count);

@@ -329,6 +329,9 @@ package body System.Garlic.Termination is
       Reply     : access Params_Stream_Type;
       Error     : in out Error_Type)
    is
+      pragma Unreferenced (Opcode);
+      pragma Unreferenced (Reply);
+
       Control : Control_Type;
       Stamp   : Stamp_Type;
       B       : Boolean;

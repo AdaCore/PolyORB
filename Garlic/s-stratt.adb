@@ -142,12 +142,6 @@ package body System.Stream_Attributes is
    subtype XDR_S_LI  is SEA (1 .. LI_L);
    subtype XDR_S_LLI is SEA (1 .. LLI_L);
 
-   type XDR_SSI is range -2 ** (SU * SSI_L - 1) .. 2 ** (SU * SSI_L - 1) - 1;
-   type XDR_SI  is range -2 ** (SU * SI_L  - 1) .. 2 ** (SU * SI_L  - 1) - 1;
-   type XDR_I   is range -2 ** (SU * I_L   - 1) .. 2 ** (SU * I_L   - 1) - 1;
-   type XDR_LI  is range -2 ** (SU * LI_L  - 1) .. 2 ** (SU * LI_L  - 1) - 1;
-   type XDR_LLI is range -2 ** (SU * LLI_L - 1) .. 2 ** (SU * LLI_L - 1) - 1;
-
    function Short_Short_Integer_To_XDR_S_SSI is
       new Ada.Unchecked_Conversion (Short_Short_Integer, XDR_S_SSI);
    function XDR_S_SSI_To_Short_Short_Integer is
@@ -202,8 +196,8 @@ package body System.Stream_Attributes is
    type XDR_SSU is mod BB ** SSU_L;
    type XDR_SU  is mod BB ** SU_L;
    type XDR_U   is mod BB ** U_L;
-   type XDR_LU  is mod BB ** LU_L;
-   type XDR_LLU is mod BB ** LLU_L;
+   --  type XDR_LU  is mod BB ** LU_L;  --  Computed using Unsigned
+   --  type XDR_LLU is mod BB ** LLU_L; --  Computed using Unsigned
 
    function Short_Unsigned_To_XDR_S_SU is
       new Ada.Unchecked_Conversion (Short_Unsigned, XDR_S_SU);
@@ -269,7 +263,6 @@ package body System.Stream_Attributes is
 
    C_L   : constant := 1;
    subtype XDR_S_C is SEA (1 .. C_L);
-   type XDR_C  is mod BB ** C_L;
 
    --  Consider Wide_Character as an enumeration type.
    WC_L  : constant := 4;

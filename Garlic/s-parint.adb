@@ -50,7 +50,6 @@ pragma Elaborate_All (System.Garlic.Startup);
 pragma Warnings (Off, System.Garlic.Startup);
 
 with System.Garlic.Storages;  use System.Garlic.Storages;
-with System.Garlic.Streams;   use System.Garlic.Streams;
 with System.Garlic.Types;     use System.Garlic.Types;
 with System.Garlic.Units;     use System.Garlic.Units;
 with System.Garlic.Utils;     use System.Garlic.Utils;
@@ -68,14 +67,6 @@ package body System.Partition_Interface is
      (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
-
-   function Convert is
-     new Ada.Unchecked_Conversion
-     (RPC_Receiver, RPC.RPC_Receiver);
-
-   function Convert is
-     new Ada.Unchecked_Conversion
-     (RPC.RPC_Receiver, RPC_Receiver);
 
    function Convert is
       new Ada.Unchecked_Conversion

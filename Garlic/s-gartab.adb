@@ -47,6 +47,7 @@ package body System.Garlic.Table is
      (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
+   pragma Unreferenced (D);
 
    -------------
    -- Complex --

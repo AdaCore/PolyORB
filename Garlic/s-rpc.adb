@@ -261,6 +261,7 @@ package body System.RPC is
      (Partition : in Partition_ID;
       Receiver  : in RPC_Receiver)
    is
+      pragma Unreferenced (Receiver);
    begin
       D ("Accept RPCs on this partition" & Partition'Img);
 
@@ -321,6 +322,10 @@ package body System.RPC is
       Reply     : access Streams.Params_Stream_Type;
       Error     : in out Error_Type)
    is
+      pragma Unreferenced (Opcode);
+      pragma Unreferenced (Reply);
+      pragma Unreferenced (Error);
+
       Header : constant RPC_Header := RPC_Header'Input (Query);
    begin
 
