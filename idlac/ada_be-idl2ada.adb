@@ -3529,7 +3529,7 @@ package body Ada_Be.Idl2Ada is
             --  TypeCode
             NL (Helper_Spec);
             PL (Helper_Spec, Ada_TC_Name (Node)
-                & " : constant CORBA.TypeCode.Object := ");
+                & " : CORBA.TypeCode.Object := ");
             II (Helper_Spec);
             PL (Helper_Spec, "CORBA.TypeCode.TC_Enum;");
             DI (Helper_Spec);
@@ -3592,30 +3592,43 @@ package body Ada_Be.Idl2Ada is
             PL (Helper_Body, "end To_Any;");
 
             --  to fill in the typecode TC_<name of the type>
---             PL (CU, "Add_Parameter ("
---                 & Ada_TC_Name (Node)
---                 & ", To_Any ("
---                 & Ada_Name (Node)
---                 & "));");
---             PL (CU, "Add_Parameter ("
---                 & Ada_TC_Name (Node)
---                 & ", To_Any ("
---                 & Idl_Repository_Id (Node)
---                 & "));");
---             declare
---                It   : Node_Iterator;
---                E_Node : Node_Id;
---             begin
---                Init (It, Enumerators (Node));
---                while not Is_End (It) loop
---                   Get_Next_Node (It, E_Node);
---                   PL (CU, "Add_Parameter ("
---                       & Ada_TC_Name (Node)
---                       & ", To_Any ("
---                       & Ada_Name (E_Node)
---                       & "));");
---                end loop;
---             end;
+            Add_Elaborate_Body (Helper_Spec);
+            Add_With (Helper_Spec, "CORBA");
+            Divert (Helper_Body, Elaboration);
+            PL (Helper_Body, "declare");
+            II (Helper_Body);
+            PL (Helper_Body, "Name : CORBA.String := CORBA.To_CORBA_String ("""
+                & Ada_Name (Node)
+                & """);");
+            PL (Helper_Body, "Id : CORBA.String := CORBA.To_CORBA_String ("""
+                & Idl_Repository_Id (Node)
+                & """);");
+            DI (Helper_Body);
+            PL (Helper_Body, "begin");
+            II (Helper_Body);
+            PL (Helper_Body, "CORBA.TypeCode.Add_Parameter ("
+                & Ada_TC_Name (Node)
+                & ", CORBA.To_Any (Name));");
+            PL (Helper_Body, "CORBA.TypeCode.Add_Parameter ("
+                & Ada_TC_Name (Node)
+                & ", CORBA.To_Any (Id));");
+            declare
+               It   : Node_Iterator;
+               E_Node : Node_Id;
+            begin
+               Init (It, Enumerators (Node));
+               while not Is_End (It) loop
+                  Get_Next_Node (It, E_Node);
+                  PL (Helper_Body, "CORBA.TypeCode.Add_Parameter ("
+                      & Ada_TC_Name (Node)
+                      & ", To_Any ("
+                      & Ada_Name (E_Node)
+                      & "));");
+               end loop;
+            end;
+            DI (Helper_Body);
+            PL (Helper_Body, "end;");
+            Divert (Helper_Body, Visible_Declarations);
 
 --          when K_Struct =>
 --             --  typecode generation
@@ -3786,16 +3799,19 @@ package body Ada_Be.Idl2Ada is
 --             PL (Helper_Body, "end To_Any;");
 
             --  to fill in the typecode TC_<name of the type>
---             PL (CU, "Add_Parameter ("
+--          Add_Elaborate_Body (Helper_Spec);
+--          Add_With (Helper_Spec, "CORBA");
+--          Divert (Helper_Body, Elaboration);
+--             PL (Helper_Body, "CORBA.TypeCode.Add_Parameter ("
 --                 & Ada_TC_Name (Node)
---                 & ", To_Any ("
+--                 & ", CORBA.To_Any ("""
 --                 & Ada_Name (Node)
---                 & "));");
---             PL (CU, "Add_Parameter ("
+--                 & """));");
+--             PL (Helper_Body, "CORBA.TypeCode.Add_Parameter ("
 --                 & Ada_TC_Name (Node)
---                 & ", To_Any ("
+--                 & ", CORBA.To_Any ("""
 --                 & Idl_Repository_Id (Node)
---                 & "));");
+--                 & """));");
 --             declare
 --                It   : Node_Iterator;
 --                Member_Node : Node_Id;
@@ -3803,18 +3819,19 @@ package body Ada_Be.Idl2Ada is
 --                Init (It, Members (Node));
 --                while not Is_End (It) loop
 --                   Get_Next_Node (It, Member_Node);
---                   PL (CU, "Add_Parameter ("
+--                   PL (Helper_Body, "CORBA.TypeCode.Add_Parameter ("
 --                       & Ada_TC_Name (Node)
---                       & ", To_Any ("
+--                       & ", CORBA.To_Any ("""
 --                       & Ada_TC_Name (Member_Node)
---                       & "));");
---                   PL (CU, "Add_Parameter ("
+--                       & """));");
+--                   PL (Helper_Body, "CORBA.TypeCode.Add_Parameter ("
 --                       & Ada_TC_Name (Node)
---                       & ", To_Any ("
+--                       & ", CORBA.To_Any ("""
 --                       & Ada_Name (Member_Node)
---                       & "));");
+--                       & """));");
 --                end loop;
 --             end;
+--          Divert (Helper_Body, Visible_Declarations);
 
          when others =>
             null;
