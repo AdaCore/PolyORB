@@ -52,25 +52,6 @@ package body Exp_Hlpr is
    -- Local Subprograms --
    -----------------------
 
-   procedure Compile_Stream_Body_In_Scope
-     (N     : Node_Id;
-      Decl  : Node_Id;
-      Arr   : Entity_Id;
-      Check : Boolean);
-   pragma Warnings (Off);
-   pragma Unreferenced (Compile_Stream_Body_In_Scope);
-   pragma Warnings (On);
-   --  The body for a stream subprogram may be generated outside of the scope
-   --  of the type. If the type is fully private, it may depend on the full
-   --  view of other types (e.g. indices) that are currently private as well.
-   --  We install the declarations of the package in which the type is declared
-   --  before compiling the body in what is its proper environment. The Check
-   --  parameter indicates if checks are to be suppressed for the stream body.
-   --  We suppress checks for array/record reads, since the rule is that these
-   --  are like assignments, out of range values due to uninitialized storage,
-   --  or other invalid values do NOT cause a Constraint_Error to be raised.
-   --  (copied from exp_attr.adb)
-
    function Find_Inherited_TSS
      (Typ : Entity_Id;
       Nam : Name_Id) return Entity_Id;
@@ -1452,7 +1433,9 @@ package body Exp_Hlpr is
                Counter : Entity_Id;
                Datum   : Node_Id)
             is
+               pragma Warnings (Off);
                pragma Unreferenced (Counter);
+               pragma Warnings (On);
 
                Element_Any : Node_Id;
             begin
@@ -1955,7 +1938,9 @@ package body Exp_Hlpr is
          Rec     : Entity_Id;
          Field   : Node_Id)
       is
+         pragma Warnings (Off);
          pragma Unreferenced (Any, Counter, Rec);
+         pragma Warnings (On);
       begin
          if Nkind (Field) = N_Defining_Identifier then
 
@@ -2252,53 +2237,6 @@ package body Exp_Hlpr is
             Make_Handled_Sequence_Of_Statements (Loc,
               Statements => Stms));
    end Build_TypeCode_Function;
-
-   ----------------------------------
-   -- Compile_Stream_Body_In_Scope --
-   ----------------------------------
-
-   procedure Compile_Stream_Body_In_Scope
-     (N     : Node_Id;
-      Decl  : Node_Id;
-      Arr   : Entity_Id;
-      Check : Boolean)
-   is
-      Installed : Boolean := False;
-      Scop      : constant Entity_Id := Scope (Arr);
-      Curr      : constant Entity_Id := Current_Scope;
-
-   begin
-      if Is_Hidden (Arr)
-        and then not In_Open_Scopes (Scop)
-        and then Ekind (Scop) = E_Package
-      then
-         New_Scope (Scop);
-         Install_Visible_Declarations (Scop);
-         Install_Private_Declarations (Scop);
-         Installed := True;
-
-         --  The entities in the package are now visible, but the generated
-         --  stream entity must appear in the current scope (usually an
-         --  enclosing stream function) so that itypes all have their proper
-         --  scopes.
-
-         New_Scope (Curr);
-      end if;
-
-      if Check then
-         Insert_Action (N, Decl);
-      else
-         Insert_Action (N, Decl, All_Checks);
-      end if;
-
-      if Installed then
-
-         --  Remove extra copy of current scope, and package itself
-
-         Pop_Scope;
-         End_Package_Scope (Scop);
-      end if;
-   end Compile_Stream_Body_In_Scope;
 
    ------------------------
    -- Find_Inherited_TSS --
