@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,17 +26,19 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with CORBA.Object;
 
+with PolyORB.Annotations;
+with PolyORB.Any;
+with PolyORB.Binding_Data;
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Interceptors_Hooks;
 with PolyORB.CORBA_P.Interceptors_Slots;
-
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
 with PolyORB.POA;
@@ -99,6 +101,13 @@ package body PolyORB.CORBA_P.Interceptors is
       Excp_Inf : in out PolyORB.Any.Any);
 
    --  Server interceptors
+
+   type Server_Interceptor_Note is new PolyORB.Annotations.Note with record
+      Profile             : PolyORB.Binding_Data.Profile_Access;
+      Last_Interceptor    : Natural;
+      Exception_Info      : PolyORB.Any.Any;
+      Intermediate_Called : Boolean;
+   end record;
 
    function "="
      (Left, Right : in PortableInterceptor.ServerRequestInterceptor.Local_Ref)
