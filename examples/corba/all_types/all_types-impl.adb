@@ -212,12 +212,11 @@ package body all_types.Impl is
      (Self : access Object;
       arg : in CORBA.Long)
    is
-      Members : IDL_Exception_Members_Ptr
-         := new my_exception_Members'(info => arg);
-      --  FIXME: introducing potential memory leak in server.
+      Members : CORBA.IDL_Exception_Members'Class
+         := my_exception_Members'(info => arg);
    begin
       PolyORB.Exceptions.User_Raise_Exception
-        (my_exception'Identity, Members.all);
+        (my_exception'Identity, Members);
    end testException;
 
    procedure testUnknownException
