@@ -1,3 +1,8 @@
+1998-10-12  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* support/ada.m4: Use AC_CHECK_PROGS when choosing between
+	alternatives. Correct bug reported by Pascal Obry.
+
 1998-10-10  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* NEWS: Remove old reference to 2.01 that is no longer justified.
