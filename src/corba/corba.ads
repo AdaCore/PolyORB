@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.ads#29 $
+--  $Id: //droopi/main/src/corba/corba.ads#30 $
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
@@ -246,7 +246,7 @@ package CORBA is
    No_Permission           : exception; --  no permission for attempted op.
    Internal                : exception; --  ORB internal error
    Marshal                 : exception; --  error marshalling param/result
-   Initialization_Failure  : exception; --  ORB initialization failure
+   Initialize              : exception; --  ORB initialization failure
    No_Implement            : exception; --  operation impleme. unavailable
    Bad_TypeCode            : exception; --  bad typecode
    Bad_Operation           : exception; --  invalid operation
@@ -273,6 +273,10 @@ package CORBA is
    Transaction_Unavailable : exception; --  no transaction
    Transaction_Mode        : exception; --  invalid transaction mode
    Bad_Qos                 : exception; --  bad quality of service
+
+   Initialization_Failure  : exception renames Initialize;
+   --  Note: this exception is defined in Ada mapping specification,
+   --  not in CORBA specification.
 
    type System_Exception_Members is new PolyORB.Exceptions.Exception_Members
      with record
@@ -329,9 +333,9 @@ package CORBA is
      (Excp_Memb : in System_Exception_Members);
    pragma No_Return (Raise_Marshal);
 
-   procedure Raise_Initialization_Failure
+   procedure Raise_Initialize
      (Excp_Memb : in System_Exception_Members);
-   pragma No_Return (Raise_Initialization_Failure);
+   pragma No_Return (Raise_Initialize);
 
    procedure Raise_No_Implement
      (Excp_Memb : in System_Exception_Members);
@@ -437,6 +441,10 @@ package CORBA is
         (Excp_Memb : in System_Exception_Members);
    pragma No_Return (Raise_Bad_Qos);
 
+   procedure Raise_Initialization_Failure
+     (Excp_Memb : in System_Exception_Members)
+     renames Raise_Initialize;
+
    Default_Sys_Member : constant System_Exception_Members
      := System_Exception_Members'(Minor => 0,
                                   Completed => CORBA.Completed_No);
@@ -459,7 +467,7 @@ package CORBA is
      with null record;
    type Marshal_Members                 is new System_Exception_Members
      with null record;
-   type Initialization_Failure_Members  is new System_Exception_Members
+   type Initialize_Members              is new System_Exception_Members
      with null record;
    type No_Implement_Members            is new System_Exception_Members
      with null record;
@@ -513,6 +521,8 @@ package CORBA is
      with null record;
    type Bad_Qos_Members                 is new System_Exception_Members
      with null record;
+
+   subtype Initialization_Failure_Members is Initialize_Members;
 
    ------------
    -- Policy --

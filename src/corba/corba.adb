@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.adb#23 $
+--  $Id: //droopi/main/src/corba/corba.adb#24 $
 
 with Ada.Characters.Handling;
 
@@ -339,16 +339,16 @@ package body CORBA is
         (Marshal'Identity, Excp_Memb);
    end Raise_Marshal;
 
-   ----------------------------------
-   -- Raise_Initialization_Failure --
-   ----------------------------------
+   ----------------------
+   -- Raise_Initialize --
+   ----------------------
 
-   procedure Raise_Initialization_Failure
+   procedure Raise_Initialize
      (Excp_Memb : in System_Exception_Members) is
    begin
       Raise_System_Exception
-        (Initialization_Failure'Identity, Excp_Memb);
-   end Raise_Initialization_Failure;
+        (Initialize'Identity, Excp_Memb);
+   end Raise_Initialize;
 
    ------------------------
    -- Raise_No_Implement --
@@ -1162,8 +1162,8 @@ package body CORBA is
             when Marshal_E =>
                Raise_Marshal (CORBA_Member);
 
-            when Initialization_Failure_E =>
-               Raise_Internal (CORBA_Member);
+            when Initialize_E =>
+               Raise_Initialize (CORBA_Member);
 
             when No_Implement_E =>
             Raise_No_Implement (CORBA_Member);
@@ -1250,17 +1250,17 @@ package body CORBA is
       end;
    end Raise_From_Error;
 
-   ----------------
-   -- Initialize --
-   ----------------
+   ------------------------
+   -- Initialize_Package --
+   ------------------------
 
-   procedure Initialize;
+   procedure Initialize_Package;
 
-   procedure Initialize is
+   procedure Initialize_Package is
    begin
       PolyORB.CORBA_P.Exceptions.CORBA_Raise_From_Error
         := Raise_From_Error'Access;
-   end Initialize;
+   end Initialize_Package;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
@@ -1273,6 +1273,6 @@ begin
        Conflicts => Empty,
        Depends => Empty,
        Provides => Empty,
-       Init => Initialize'Access));
+       Init => Initialize_Package'Access));
 
 end CORBA;

@@ -192,7 +192,7 @@ package PolyORB.Exceptions is
       No_Permission_E,            --  no permission for attempted op.
       Internal_E,                 --  ORB internal error
       Marshal_E,                  --  error marshalling param/result
-      Initialization_Failure_E,   --  ORB initialization failure
+      Initialize_E,               --  ORB initialization failure
       No_Implement_E,             --  operation impleme. unavailable
       Bad_TypeCode_E,             --  bad typecode
       Bad_Operation_E,            --  invalid operation
