@@ -153,6 +153,7 @@ package body Backend.BE_Ada.Debug is
         or else A = "Next_Node"
         or else A = "Package_Declaration"
 
+
       then
          return;
       end if;
@@ -179,7 +180,12 @@ package body Backend.BE_Ada.Debug is
       else
          Write_Line (V);
       end if;
-      if A /= "Node" then
+      if A /= "Node"
+        and then A /= "Corresponding_Node"
+        and then A /= "FE_Node"
+        and then A /= "Parent"
+        and then A /= "Parent_Unit_Name"
+      then
          if K = "Node_Id" then
             W_Node_Id (Node_Id (N));
          elsif K = "List_Id" then

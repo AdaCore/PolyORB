@@ -260,6 +260,7 @@ package body Backend.BE_Ada.Stubs is
          Append_Node_To_List
            (Map_Repository_Declaration (E), Visible_Part (Current_Package));
          Link_FE_To_BE (Identifier (E), N);
+         Link_BE_To_FE (N, Identifier (E));
          N := First_Entity (Interface_Body (E));
 
          while Present (N) loop
@@ -488,17 +489,80 @@ package body Backend.BE_Ada.Stubs is
 
    package body Package_Body is
 
+      procedure Visit_Interface_Declaration (E : Node_Id);
+      procedure Visit_Specification (E : Node_Id);
+      pragma Unreferenced (Visit_Specification);
       -----------
       -- Visit --
       -----------
 
       procedure Visit (E : Node_Id) is
+
+      begin
+         case FEN.Kind (E) is
+            when K_Specification =>
+               null;
+
+            when K_Constant_Declaration =>
+               null;
+
+            when K_Enumeration_Type =>
+               null;
+
+            when K_Exception_Declaration =>
+               null;
+
+            when K_Interface_Declaration =>
+               Visit_Interface_Declaration (E);
+
+            when K_Operation_Declaration =>
+               null;
+
+            when K_Structure_Type =>
+               null;
+
+            when K_Union_Type =>
+               null;
+
+            when K_Attribute_Declaration =>
+               null;
+
+            when K_Type_Declaration =>
+               null;
+
+            when K_Module =>
+               null;
+
+            when others =>
+               null;
+         end case;
+      end Visit;
+
+      ---------------------
+      -- Visit_Interface --
+      ---------------------
+
+      procedure Visit_Interface_Declaration (E : Node_Id) is
          pragma Unreferenced (E);
       begin
          null;
-      end Visit;
+      end Visit_Interface_Declaration;
+
+      -------------------------
+      -- Visit_Specification --
+      -------------------------
+
+      procedure Visit_Specification (E : Node_Id) is
+         pragma Unreferenced (E);
+      begin
+         null;
+      end Visit_Specification;
 
    end Package_Body;
+
+   ---------------------
+   -- Marshaller_Body --
+   ---------------------
 
    function Marshaller_Body
      (Subp_Spec       : Node_Id;

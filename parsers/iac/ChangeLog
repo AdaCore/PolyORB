@@ -1,5 +1,9 @@
 2004-07-16  Saber Souli  <souli@neraka.enst.fr>
 
+	* backend-be_ada-debug.adb: Do not dump the referenced nodes. 
+
+2004-07-16  Saber Souli  <souli@neraka.enst.fr>
+
 	* frontend-debug.adb: View BE_Node information in the
 	idl tree dump. 
 

@@ -290,6 +290,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
       M := Make_Package_Declaration (I);
       Set_Main_Package (P, M);
+      Set_Corresponding_Node (I, M);
       Append_Node_To_List (M, L);
 
       --  Helper package
@@ -298,6 +299,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
       N := Make_Defining_Identifier (Name_Find);
       Set_Parent_Unit_Name (N, I);
       D := Make_Package_Declaration (N);
+      Set_Corresponding_Node (N, D);
       Set_Parent (D, M);
       Set_Helper_Package (P, D);
       Append_Node_To_List (D, L);
@@ -310,6 +312,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
          N := Make_Defining_Identifier (Name_Find);
          Set_Parent_Unit_Name (N, I);
          D := Make_Package_Declaration (N);
+         Set_Corresponding_Node (N, D);
          Set_Parent (D, M);
          Set_Skeleton_Package (P, D);
          Append_Node_To_List (D, L);
@@ -320,6 +323,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
          N := Make_Defining_Identifier (Name_Find);
          Set_Parent_Unit_Name (N, I);
          D := Make_Package_Declaration (N);
+         Set_Corresponding_Node (N, D);
          Set_Parent (D, M);
          Set_Implementation_Package (P, D);
          Append_Node_To_List (D, L);
