@@ -2677,10 +2677,9 @@ package body Idl_Fe.Parser is
             when K_Long
               | K_Unsigned_Long =>
                C_Type := new Const_Type (Kind => C_Long);
-            when K_Long_Long =>
+            when K_Long_Long
+              | K_Unsigned_Long_Long =>
                C_Type := new Const_Type (Kind => C_LongLong);
-            when K_Unsigned_Long_Long =>
-               C_Type := new Const_Type (Kind => C_ULongLong);
             when K_Char =>
                C_Type := new Const_Type (Kind => C_Char);
             when K_Wide_Char =>
@@ -2713,10 +2712,9 @@ package body Idl_Fe.Parser is
                   when K_Long
                     | K_Unsigned_Long =>
                      C_Type := new Const_Type (Kind => C_Long);
-                  when K_Long_Long =>
+                  when K_Long_Long
+                    | K_Unsigned_Long_Long =>
                      C_Type := new Const_Type (Kind => C_LongLong);
-                  when K_Unsigned_Long_Long =>
-                     C_Type := new Const_Type (Kind => C_ULongLong);
                   when K_Char =>
                      C_Type := new Const_Type (Kind => C_Char);
                   when K_Wide_Char =>
@@ -6292,6 +6290,7 @@ package body Idl_Fe.Parser is
            ("pragma identifier expected",
             Idl_Fe.Errors.Error,
             Get_Token_Location);
+         Go_To_End_Of_Pragma;
          return;
       end if;
 
@@ -6308,6 +6307,7 @@ package body Idl_Fe.Parser is
                Next_Token;
                Parse_Scoped_Name (Name_Node, Res_Success);
                if not Res_Success then
+                  Go_To_End_Of_Pragma;
                   return;
                end if;
 
@@ -6317,28 +6317,45 @@ package body Idl_Fe.Parser is
                     ("Repository ID expected.",
                      Idl_Fe.Errors.Error,
                      Get_Token_Location);
+                  Go_To_End_Of_Pragma;
                   return;
                end if;
 
-               if Repository_Id (Value (Name_Node)) /= No_Node then
-                  Idl_Fe.Errors.Parser_Error
-                    ("Entity already has an explicit repository ID.",
-                     Idl_Fe.Errors.Error,
-                     Get_Token_Location);
-                  return;
+               if Name_Node /= No_Node then
+                  if Repository_Id (Value (Name_Node)) /= No_Node then
+                     Idl_Fe.Errors.Parser_Error
+                       ("Entity already has an explicit repository ID.",
+                        Idl_Fe.Errors.Error,
+                        Get_Token_Location);
+                     Go_To_End_Of_Pragma;
+                     return;
+                  end if;
+                  Set_Repository_Id (Value (Name_Node), String_Lit_Node);
                end if;
 
-               Set_Repository_Id (Value (Name_Node), String_Lit_Node);
                Result := No_Node;
                Success := True;
-               return;
             end;
          else
             Idl_Fe.Errors.Parser_Error
-                 ("Unknown pragma " & Pragma_Id,
-                  Idl_Fe.Errors.Warning,
-                  Get_Token_Location);
+            ("Unknown pragma : will be ignored." & Pragma_Id,
+             Idl_Fe.Errors.Warning,
+             Get_Token_Location);
+            Go_To_End_Of_Pragma;
+            return;
          end if;
+
+         if Get_Token /= T_End_Pragma then
+            Idl_Fe.Errors.Parser_Error
+              ("unexpected end of pragma line : the end will be ignored.",
+               Idl_Fe.Errors.Error,
+               Get_Token_Location);
+            Go_To_End_Of_Pragma;
+            return;
+         end if;
+         --  consumes the end_of_pragma token
+         Next_Token;
+         return;
       end;
 
       pragma Debug (O2 ("Parse_Pragma: leave"));
@@ -7343,5 +7360,16 @@ package body Idl_Fe.Parser is
          end if;
       end loop;
    end Go_To_End_Of_Scoped_Name;
+
+   --------------------------------
+   --  Go_To_End_Of_Scoped_Name  --
+   --------------------------------
+   procedure Go_To_End_Of_Pragma is
+   begin
+      while Get_Token /= T_End_Pragma loop
+         Next_Token;
+      end loop;
+      Next_Token;
+   end Go_To_End_Of_Pragma;
 
 end Idl_Fe.Parser;

@@ -21,6 +21,13 @@ package body Idl_Fe.Lexer is
    procedure O is new Idl_Fe.Debug.Output (Flag);
 
    -----------------------------------
+   --  A state for pragma scanning  --
+   -----------------------------------
+
+   --  True when the lexer is scanning a pragma line
+   Pragma_State : Boolean := False;
+
+   -----------------------------------
    --  low level string processing  --
    -----------------------------------
 
@@ -893,13 +900,14 @@ package body Idl_Fe.Lexer is
                   Get_Real_Location);
                Skip_Line;
             elsif To_Lower (Get_Marked_Text) = "pragma" then
-               Skip_Spaces;
-               Skip_Char;
-               Set_Mark;
-               while View_Next_Char /= LF loop
-                  Skip_Char;
-               end loop;
-               Set_End_Mark;
+--               Skip_Spaces;
+--               Skip_Char;
+--               Set_Mark;
+--               while View_Next_Char /= LF loop
+--                  Skip_Char;
+--               end loop;
+--               Set_End_Mark;
+               Pragma_State := True;
                return True;
             else
                Idl_Fe.Errors.Lexer_Error
@@ -1139,8 +1147,15 @@ package body Idl_Fe.Lexer is
    begin
       loop
          case Next_Char is
-            when Space | CR | VT | FF | LF =>
+            when Space | CR | VT | FF =>
                null;
+            when LF =>
+               if Pragma_State then
+                  Pragma_State := False;
+                  return T_End_Pragma;
+               else
+                  null;
+               end if;
             when HT =>
                Refresh_Offset;
             when ';' =>
