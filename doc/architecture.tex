@@ -20,25 +20,26 @@
 \section{Position du problème}
 
 \subsection{Contexte}
+\label{sec:contexte}
 % Les entités qu'on va être amenés à faire coopérer
 
-On s'intéresse à quatre classes d'entités~:
+On considère un ensemble d'objets (entités) que l'on souhaite faire interopérer,
+par exemple~:
 \begin{itemize}
-\item serveurs DSA~;
-\item clients DSA~;
-\item serveurs CORBA~;
-\item clients CORBA.
+\item des serveurs DSA~;
+\item des clients DSA~;
+\item des serveurs CORBA~;
+\item des clients CORBA.
 \end{itemize}
-qu'on se propose de faire interopérer.
 
 Toute entité est rattachée à un ORB qui est chargé d'assurer les fonctions
 liées à la répartition nécessaires aux besoins de l'entité.
 
-Une entité DSA (client ou serveur) peut être rattachée à un ORB GLADE
+Ainsi, une entité DSA (client ou serveur) peut être rattachée à un ORB GLADE
 (le code existant), ou bien à un ORB générique DROOPI (possédant une
 personnalité DSA).
 
-Une entité CORBA (client ou serveur) peut être rattachée à un ORB CORBA
+De même, une entité CORBA (client ou serveur) peut être rattachée à un ORB CORBA
 (AdaBroker par exemple), ou bien à un ORB générique DROOPI (possédant
 une personnalité CORBA).
 
@@ -50,14 +51,18 @@ Un ORB possède deux façades~:
   réseau de communication et des protocoles de communication inter-ORB.
 \end{itemize}
 
-Chacune de ces façades possède plusieurs variantes~; le choix d'une
-variante détermine une personnalité.
+Chacune de ces façades possède plusieurs variantes (par exemple DSA, CORBA)~;
+le choix d'une variante pour une façade détermine une personnalité sur cette façade.
 
 L'objectif de DROOPI est de découpler ces deux façades. D'une part, une entité
 peut se rattacher à un ORB DROOPI au moyen d'une des personnalités de cet ORB
-(paramétrant la façade «~entité~»). D'autre part, un ORB distants peut invoquer
-une méthode sur cette entité en transmettant une demande d'invocation à DROOPI
-au moyen d'une (autre) personnalité (paramétrant la façade «~ORB~»).
+(personnalité «~applicative~» paramétrant la façade présentée aux objets de
+l'application).
+
+D'autre part, un ORB distants peut invoquer une méthode sur cette entité en
+transmettant une demande d'invocation à DROOPI au moyen d'une (autre)
+personnalité (personnalité «~protocolaire~» paramétrant la façade présentée
+aux autres ORBs \emph{via} un réseau de communication).
 
 \subsection{Domaine}
 % Limitation du scope de l'étude
@@ -69,7 +74,7 @@ Nous identifions les cas d'interopérations possibles par une matrice~:
 {
 \newcommand{\RH}[1]{\raisebox{-1ex}[0pt][1em]{\makebox[1em][l]{\rotatebox{45}{#1}}}}
 \def\myrule{\relax}
-\vspace{1cm}
+\vspace{2cm}
 \begin{tabular}{l|*{4}{c!{\myrule}}@{\gdef\myrule{\vline}}}
 \backslashbox{Client}{Serveur}
 & \RH{DSA DROOPI}
@@ -150,91 +155,215 @@ Cette facette peut, dans un premier temps, être réalisée par traduction
 manuelle. On laisse l'automatisation de cette phase à des travaux
 annexes ou futurs.
 
-\subsection{Objets communs de l'ORB}
+\subsection{Objets de communication}
 
-\subsection{Communication objects}
-\subsubsection{Transport channel termination point}
+\subsubsection{Transport endpoint (TE)}
 
-$\leftrightarrow$ une socket de comm.
+Un point d'accès du service de transport.
 
-Primitives~: read/write/close
+$\leftrightarrow$ une socket de comm, un identificateur d'IPC.
+
+Primitives~: open/read/write/close
 
 Doit pourvoir participer à un poll (e/s asynchrones, liées au mécanisme
-de gestion des événements dans l'ORB).
+de gestion des événements dans l'ORB) en s'intégrant dans une source d'événements
+asynchrones.
 
-Un point de terminaison connecté est associé à un seul protocole.
+Un point de terminaison connecté est associé à un seul protocole~\ref{sec:protocoles}.
 
-\subsubsection{Transport service access point}
+Statut~: pas implémenté (utilisation directe des sockets). Il faut cacher les
+sockets sous une abstraction qui puisse également accueillir un autre mécanisme
+de communication (par ex. IPC SysV~: mémoire partagée, file de messages...)
 
-$\leftrightarrow$ une socket en écoute.
+\subsubsection{Transport service access point (TSAP)}
+
+$\leftrightarrow$ une socket en écoute, un identificateur d'IPC.
 
 Doit pouvoir participer à un poll.
 
-Fournit des primitives bind/accept.
+Primitives~: bind/accept.
 
-Agit comme une factory de transport channel termination points.
+Un TSAP est associé à un seul protocole. Le TSAP agit comme une factory de TE.
+Lorsqu'un TE est créé à partir d'un TSAP, le TE hérite du protocole de son TSAP
+(une session de ce protocole est créée et liée au TE).
 
-Un TSAP est rattaché à un seul protocole.
+\subsubsection{Filtres}
 
-\subsection{Appel de méthodes}
-\subsubsection{Protocoles de requêtes}
+Les TE produisent des données (reçues du réseau) et acceptent des données (à émettre
+vers le réseau). Les réifiant ces échanges de données sont les Data_Units.
 
-Les souches et les squelettes spécifiques d'une personnalité interagissent
-avec des composants génériques de l'ORB. Cette interaction consiste en
-des échanges de SDUs définies par le méta-modèle~:
+Il peut être nécessaire d'intercaler des traitements de mise en forme des Data_Unit entre
+TE et sessions. C'est le rôle des objets abstraits «~filtres~». À un TSAP est associée
+une pile de factories de filtres (dont la dernière, au sommet, définit le protocole
+du TSAP). Lorsqu'une connexion est acceptée et un TE créé, chaque factory est invoquée
+pour créer une pile d'instances de filtres qui sont chaînés. Ces filtres échangent
+ensuite des Data_Unit soit du bas de la pile (du TE) vers le haut (la session) (données
+reçues), soit du haut de la pile vers le bas (données émises).
+
+Un exemple typique de filtre est le délimiteur de messages~: lorsqu'un transport
+offre un service de flux continu de données (par exemple une socket TCP), il est
+nécessaire de délimiter les messages échangés à l'intérieur du flux (par exemple
+en connaissant à l'avance la taille des messages qui vont être reçus, ou bien
+au moyen de fanions placés aux extrémités des messages). Un filtre va recevoir
+les Data_Units issus du réseau (correspondant à des fragments de messages) et les
+rassembler pour reformer des messages complets (tels qu'attendus par les sessions).
+
+Un pseudo-filtre est associé à chaque type de TE (pour l'instant implémenté uniquement
+pour les sockets) qui produit des Data_Unit quand des données sont reçues sur le réseau,
+et émet sur le réseau les Data_Units acceptées.
+
+De même, les sessions sont des pseudo-filtres qui acceptent les Data_Units issues des couches
+inférieures, et agissent en fonction des messages reçues (au lieu de les transmettre
+comme Data_Units aux couches supérieures).
+
+Pour être honnête~: si on considère que le scheduler de l'ORB est la couche supérieure par
+rapport aux sessions, et que l'objet Request est une Data_Unit, alors la Session est juste un
+filtre qui convertit des messages en requests et des replys en messages. À explorer.
+
+Statut~: Droopi.Filters fournit l'abstraction des filtres et aussi les types concrets
+de Data_Units. Il faudrait séparer les deux et ne définir qu'un type Data_Unit abstrait. Ensuite,
+les Data_Units concrètes seraient définies dans d'autres unités, qui ne seraient visibles que
+là où c'est nécessaire (une Data_Unit échangée entre les couches A et B ne serait visible que
+par les unités implémentant A et B.)
+
+\subsection{Objets communs}
+
+\subsubsection{Synchronisation}
+
 \begin{description}
-\item[Primitive Method-invocation-REQUEST]
-\item[Événement Method-invocation-INDICATION]
-\item[Primitive Method-invocation-RESPONSE]
-\item[Événement Method-invocation-CONFIRMATION]
+\item[Droopi.Soft\_Links] Abstractions de toutes les constructions
+  susceptibles de tirer la runtime de tasking si l'on se trouve dans
+  un contexte multi-tâches.
+\item[Droopi.Protected\_Objects] Implémentation des soft-links utilisant
+  les objets protégés, pour le cas d'un ORB multi-tâches.
+\item[Droopi.No\_Tasking] Implémentation vide des soft-links pour
+  le cas d'un ORB mono-tâche.
+\item[Droopi.Locks] Objets de haut niveau implémentés par-dessus les Soft\_Links
+  et fournissant des abstractions plus évoluées.\\
+  Exemple~: verrou lecteur-écrivain.\\
+  Extension possible~: verrou avec priority ceiling.
 \end{description}
 
-Les points d'accès à ces SDUs posent la limite entre le comportement
-spécifique d'une personnalité (vue par l'utilisateur) et le comportement
-générique.
+\subsubsection{Découplage des facettes}
 
-La traduction de ces SDU en échange de PDUs pose la limite entre le comportement
-générique et le comportement spécifique d'une personnalité (vue par les autres ORBs).
+Comme exprimé en \ref{sec:contexte}, le middleware générique DROOPI lie des objets
+d'applications avec une architecture de transport de messages. À ce titre, il
+offre deux facettes de personnalitation~:
+\begin{itemize}
+\item l'interface avec les objets d'application («~personnalité applicative~»)~;
+\item l'interface avec d'autres middlewares à travers l'architecture de transport
+ («~personnalité protocolaire~»).
+\end{itemize}
 
-Question~: est-il pertinent de définir plusieurs personnalités pour le dialogue inter-ORB~?
-En ce qui concerne DSA, de toute façon on devra modifier le compilateur pour implémenter
-DSA/DROOPI. La nécessité de conserver le protocole GLADE existant n'est donc pas évidente.
-Par ailleurs, Java/RMI tend à converger vers l'utilisation de GIOP. On peut donc, à la limite,
-décider que la communication entre ORBs \emph{se fait en GIOP} et que toute la partie «~protocole
-inter-ORB~» relève du comportement générique.
+L'articulation entre ces deux facettes est l'objet Request. Cet objet représente, de manière
+indépendante à la fois de la personnalité applicative et de la personnalité protocolaire,
+une requête d'invocation d'une méthode sur un objet.
 
-Cela supprime une dimension de personnalisation, donc moins de souplesse \emph{mais} simplification
-de l'architecture, et évitement d'une explosion dans la combinatoire personnalités utilisateur/
-personnalités protocole (code généré pour chaque objet \emph{et} chaque protocole supporté).
-Une alternative à cette combinatoire est l'utilisation d'un référentiel d'interfaces générique
-contenant la description des méthodes dans un formalisme approprié, permettant à tout
-protocole de savoir comment sérialiser et désérialiser les appels à chaque méthode.
+L'implémentation d'une personnalité applicative doit~:
+\begin{itemize}
+\item transformer une invocation de méthode en un objet Request, et livrer cet objet
+  à l'ORB générique, puis prendre connaissance du résultat renvoyé par l'ORB générique
+  et de le retransformer en retour d'invocation \emph{(côté client)}~;
+\item recevoir de l'ORB générique des objets Request destiné à des objets locaux, effectuer
+  les appels de méthode locaux correspondants, et retourner les résultats à l'ORB générique
+  \emph{(côté serveur)}.
+\end{itemize}
 
-\subsubsection{Sérialisation}
+L'implémentation d'une personnalité protocolaire doit~:
+\begin{itemize}
+\item recevoir des Request de l'ORB générique, et les expédier sous forme de messages à
+  d'autres ORBs, puis recevoir les messages en réponse~;
+\item recevoir des messages d'invocation provenant d'autres ORBs, les transformer en Requests
+  et les transmettre à l'ORB générique pour exécution, puis récupérer le résultat et l'expédier
+  sous forme de message à l'ORB client.
+\end{itemize}
+
+\subsection{Objets des personnalités protocolaires}%
+\label{sec:protocoles}
+
+Cette section décrit les objets abstraits qui doivent être spécialisés pour offrir une personnalité
+protocolaire.
+
+\subsubsection{Sérialisation~: Droopi.Representations}
 
 Pour tout type de données (existant dans le contexte d'une personnalité utilisateur)
 il faut établir des fonctions de sérialisation (dans le contexte d'une personnalité protocole).
 
-\begin{itemize}
-\item Si on prend le parti de ne supporter que la représentation CDR, le problème est résolu
-  (on sait générer un encodeur CDR pour tout type de donnée de toute personnalité).
+On va donc générer dans chaque personnalité utilisateur des fonctions de conversion
+des données vers des types \emph{auto-descriptifs} de manière à ce que chaque encodeur
+(dans une personnalité protocole) implémente (différemment) un même comportement générique.
+Ces types auto-descriptifs seront similaires aux \emph{Any} de CORBA~; cette approche ressemble
+à l'idée qui consiste à construire un ORB CORBA en partant de l'invocation dynamique.
 
-\item Si on prend le parti de supporter plusieurs modèles de représentation,
-  \begin{itemize}
+Cela impose peut-être que le modèle de types de DROOPI (ie le modèle de description des types
+auto-descriptifs) soit aussi riche que celui de DSA ($>$ CORBA) (notion par exemple d'argument
+non-contraint pour lesquels une représentation particulière est nécessaire ??)
 
-  \item soit on doit faire face à une combinatoire quadratique (générer, pour chaque objet, autant
-    d'encodeurs que de protocoles supportés --- et alors où est la généricité de l'ORB ?),
+L'abstraction d'une méthode pour
+représenter des données sous une forme transmissible sur un
+réseau (i. e. la réification d'un algorithme de sérialisation).
 
-  \item soit on doit générer dans chaque personnalité utilisateur des fonctions de conversion
-    des données vers des types \emph{auto-descriptifs} de manière à ce que chaque encodeur
-    (dans une personnalité protocole) implémente (différemment) un même comportement générique.
-    Ces types auto-descriptifs seront similaires aux \emph{Any} de CORBA~; cette approche ressemble
-    à l'idée qui consiste à construire un ORB CORBA en partant de l'invocation dynamique.
+Primitives~: conversion d'un Any (une donnée quelconque) en
+un flot d'octets et vice-versa.
 
-    Cela impose peut-être que le modèle de types de DROOPI (ie le modèle de description des types
-    auto-descriptifs) soit aussi riche que celui de DSA ($>$ CORBA) (notion par exemple d'argument
-    non-contraint pour lesquels une représentation particulière est nécessaire ??)
-  \end{itemize}
-\end{itemize}
+Exemples de dérivations concrètes possibles~: CDR, XDR.
+
+\subsubsection{Protocole d'invocation~: Droopi.Protocols}
+
+Droopi.Session est l'abstraction d'une connexion ouverte avec un autre
+middleware, sur laquelle on peut émettre ou recevoir des requêtes d'invocation
+de méthodes. Une session se situe au sommet d'une pile de filtres
+liée à un TE.
+
+Étant donnée une requête d'invocation de méthode
+destinée à un objet (une instance de Request), la session
+construit un message et transmet ce message à un middleware distant
+afin que la requête soit exécutée.
+
+Étant donnée un message reçu, la session construit une requête et la fait
+exécuter par un servant local.
+
+Les sessions sont créées à partir de factories appelées Protocols. Un protocole
+est défini comme un moyen d'associer une session et une représentation à un TE.
+
+%%  ./droopi-jobs.ads
+%%  
+%%  A Job is anything that can keep a task busy (like a Runnable
+%%  in Java). This unit declares an abstract Job type, and a means
+%%  to queue jobs for execution.
+%%  
+%%  ./sequences.ads
+%%  ./sequences-bounded.ads
+%%  ./sequences-unbounded.ads
+%%  
+%%  {Bounded,unbounded} variable length arrays (cf. CORBA.Sequences.
+%%  Notionally based on Ada.Strings.Unbounded.)
+%%  
+%%  ----------
+%%  
+%%  Others are undocumented as of yet.
+%%  
+%%  ./droopi-representations-test.ads
+%%  ./droopi-transport\_endpoints.ads
+%%  ./droopi-protocols.ads
+%%  ./droopi-sockets.ads
+%%  ./droopi-setup.ads
+%%  ./droopi-transport.ads
+%%  ./droopi-requests.ads
+%%  ./droopi-buffers.ads
+%%  ./droopi-refs.ads
+%%  ./droopi-opaque-chunk\_pools.ads
+%%  ./droopi-opaque.ads
+%%  ./droopi-no\_tasking.ads
+%%  ./droopi-orb-task\_policies.ads
+%%  ./droopi-obj\_adapters.ads
+%%  ./droopi-surrogates.ads
+%%  ./droopi-binding\_data.ads
+%%  ./droopi-types.ads
+%%  ./droopi-servers.ads
+%%  ./droopi-protocols-echo.ads
+%%  ./droopi-layers.ads
+%%  ./broca-names.ads
+
 
 \end{document}
