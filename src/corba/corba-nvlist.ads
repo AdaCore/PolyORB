@@ -34,17 +34,24 @@ package CORBA.NVList is
 
    procedure Create (Self : out Ref);
    function To_Droopi_Ref (Self : Ref) return Droopi.Any.NVList.Ref;
+   function To_CORBA_Ref (Self : Droopi.Any.NVList.Ref) return Ref;
 
 private
 
    type Ref is new CORBA.AbstractBase.Ref with record
       Self : Droopi.Any.NVList.Ref;
    end record;
+   --  XXX Dubious, extending CORBA.AbstractBase.Ref
+   --  (which should be a smart pointer type.)
+   --  Normal use of C.AB.Ref would
+   --  be to define a new companion Entity type (limited) and
+   --  Set the Ref to designate that companion type.
 
    pragma Inline (Add_Item);
    pragma Inline (Get_Count);
    pragma Inline (Free);
    pragma Inline (To_Droopi_Ref);
+   pragma Inline (To_CORBA_Ref);
    pragma Inline (Create);
 
 end CORBA.NVList;

@@ -38,12 +38,15 @@ package body CORBA.NVList is
       return Self.Self;
    end To_Droopi_Ref;
 
+   function To_CORBA_Ref (Self : Droopi.Any.NVList.Ref) return Ref is
+   begin
+      return (CORBA.AbstractBase.Ref with Self => Self);
+   end To_CORBA_Ref;
+
    procedure Create (Self : out Ref)
    is
-      Res : Ref;
    begin
-      Droopi.Any.NVList.Create (Res.Self);
-      Self := Res;
+      Droopi.Any.NVList.Create (Self.Self);
    end Create;
 
 end CORBA.NVList;

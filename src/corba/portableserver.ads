@@ -37,14 +37,17 @@ with CORBA.Impl;
 with CORBA.Forward;
 pragma Elaborate_All (CORBA.Forward);
 
-with Broca.Buffers;
-with Broca.Sequences;
-
 package PortableServer is
 
    package POA_Forward is new CORBA.Forward;
 
    type Servant_Base is new CORBA.Impl.Object with private;
+
+   type DynamicImplementation is new Servant_Base with private;
+
+   procedure Invoke
+     (Self : DynamicImplementation;
+      Request : ServerRequest_Ptr);
 
    --  21.41.1
    --  Conforming implementations must provide a controlled (tagged)
@@ -74,12 +77,13 @@ package PortableServer is
    --       (For_Servant : Servant_Base)
    --       return Boolean;
 
-   package IDL_SEQUENCE_Octet renames Broca.Sequences.Octet_Sequences;
-   type ObjectId is new IDL_SEQUENCE_Octet.Sequence;
+--    package IDL_SEQUENCE_Octet renames Broca.Sequences.Octet_Sequences;
+--    type ObjectId is new IDL_SEQUENCE_Octet.Sequence;
+   type ObjectId is new Droopi.Objects.Object_Id;
 
-   -------------------------------
-   --  exception forwardRequest --
-   -------------------------------
+   ------------------------------
+   -- Exception ForwardRequest --
+   ------------------------------
 
    ForwardRequest : exception;
 
@@ -94,7 +98,7 @@ package PortableServer is
       To   : out ForwardRequest_Members);
 
    ---------------
-   -- constants --
+   -- Constants --
    ---------------
 
    THREAD_POLICY_ID              : constant CORBA.PolicyType := 16;
@@ -134,64 +138,66 @@ package PortableServer is
       USE_DEFAULT_SERVANT,
       USE_SERVANT_MANAGER);
 
+   --  XXX Old AdaBroker-specific spec, kept here for
+   --  now for easy reference. Please do not remove yet.
 
-   -----------------------
-   -- Specific to Broca --
-   -----------------------
+--    -----------------------
+--    -- Specific to Broca --
+--    -----------------------
 
-   procedure Marshall
-     (Buffer : access Broca.Buffers.Buffer_Type;
-      Data   : in ObjectId);
+--    procedure Marshall
+--      (Buffer : access Broca.Buffers.Buffer_Type;
+--       Data   : in ObjectId);
 
-   function Unmarshall
-     (Buffer : access Broca.Buffers.Buffer_Type)
-     return ObjectId;
+--    function Unmarshall
+--      (Buffer : access Broca.Buffers.Buffer_Type)
+--      return ObjectId;
 
-   function Get_Type_Id
-     (For_Servant : Servant) return CORBA.RepositoryId;
+--    function Get_Type_Id
+--      (For_Servant : Servant) return CORBA.RepositoryId;
 
-   procedure GIOP_Dispatch
-     (For_Servant       : in Servant;
-      Operation         : in String;
-      Request_Id        : in CORBA.Unsigned_Long;
-      Response_Expected : in CORBA.Boolean;
-      Request_Buffer    : access Broca.Buffers.Buffer_Type;
-      Reply_Buffer      : access Broca.Buffers.Buffer_Type);
-   --  Call an operation.
-   --  Only standard exceptions (defined in module CORBA) can be
-   --  caught outside of GIOP_DISPATCH, ie user defined exception must
-   --  be marshalled.
+--    procedure GIOP_Dispatch
+--      (For_Servant       : in Servant;
+--       Operation         : in String;
+--       Request_Id        : in CORBA.Unsigned_Long;
+--       Response_Expected : in CORBA.Boolean;
+--       Request_Buffer    : access Broca.Buffers.Buffer_Type;
+--       Reply_Buffer      : access Broca.Buffers.Buffer_Type);
+--    --  Call an operation.
+--    --  Only standard exceptions (defined in module CORBA) can be
+--    --  caught outside of GIOP_DISPATCH, ie user defined exception must
+--    --  be marshalled.
 
 
-   --  The data to be provided by the skeleton of an interface.
+--    --  The data to be provided by the skeleton of an interface.
 
-   type GIOP_Dispatcher is access procedure
-     (For_Servant      : in Servant;
-      Operation        : in String;
-      Request_Id       : in CORBA.Unsigned_Long;
-      Reponse_Expected : in CORBA.Boolean;
-      Request_Buffer   : access Broca.Buffers.Buffer_Type;
-      Reply_Buffer     : access Broca.Buffers.Buffer_Type);
+--    type GIOP_Dispatcher is access procedure
+--      (For_Servant      : in Servant;
+--       Operation        : in String;
+--       Request_Id       : in CORBA.Unsigned_Long;
+--       Reponse_Expected : in CORBA.Boolean;
+--       Request_Buffer   : access Broca.Buffers.Buffer_Type;
+--       Reply_Buffer     : access Broca.Buffers.Buffer_Type);
 
-   type Servant_Class_Predicate is access function
-     (For_Servant : Servant)
-     return Boolean;
+--    type Servant_Class_Predicate is access function
+--      (For_Servant : Servant)
+--      return Boolean;
 
-   procedure Register_Skeleton
-     (Type_Id    : in CORBA.RepositoryId;
-      Is_A       : in Servant_Class_Predicate;
-      Dispatcher : in GIOP_Dispatcher);
+--    procedure Register_Skeleton
+--      (Type_Id    : in CORBA.RepositoryId;
+--       Is_A       : in Servant_Class_Predicate;
+--       Dispatcher : in GIOP_Dispatcher);
 
-   --  Calling ForwardRequest does not increase the usage counter of
-   --  REFERENCE.  As a result, the user must ensure not to release
-   --  REFERENCE while the exception is processed.
-   --  There is a dilemna here:
-   --  - if we increase the counter, the usage counter will never
-   --    be decreased if get_members is not called
-   --  - if we do not increase it, the object may be deleted
-   --    before the exception is caught.
-   procedure Raise_Forward_Request (Reference : in CORBA.Object.Ref);
-   pragma No_Return (Raise_Forward_Request);
+--    --  Calling ForwardRequest does not increase the usage counter of
+--    --  REFERENCE.  As a result, the user must ensure not to release
+--    --  REFERENCE while the exception is processed.
+--    --  There is a dilemna here:
+--    --  - if we increase the counter, the usage counter will never
+--    --    be decreased if get_members is not called
+--    --  - if we do not increase it, the object may be deleted
+--    --    before the exception is caught.
+--    procedure Raise_Forward_Request (Reference : in CORBA.Object.Ref);
+--    pragma No_Return (Raise_Forward_Request);
 
 private
 
