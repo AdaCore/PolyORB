@@ -852,6 +852,8 @@ package body Ada_Be.Idl2Ada is
             DI (Stubs_Body);
             PL (Stubs_Body, "end Is_A;");
 
+            --  backward compatibility, will disappear
+            --  Gen_To_Ref (Stubs_Spec, Stubs_Body);
             --  CORBA 2.3
             Gen_Helper (Node, Helper_Spec, Helper_Body);
 
@@ -1194,7 +1196,7 @@ package body Ada_Be.Idl2Ada is
             end;
 
          when K_Enum =>
-
+            --  type declaration
             NL (CU);
             PL (CU, "type " & Ada_Name (Node) & " is");
 
@@ -1203,7 +1205,6 @@ package body Ada_Be.Idl2Ada is
                It   : Node_Iterator;
                E_Node : Node_Id;
             begin
-
                Init (It, Enumerators (Node));
                while not Is_End (It) loop
                   if First_Enumerator then
@@ -3418,21 +3419,15 @@ package body Ada_Be.Idl2Ada is
    procedure Gen_Helper
      (Node : in Node_Id;
       Helper_Spec : in out Compilation_Unit;
-      Helper_Body : in out Compilation_Unit)
-   is
-
+      Helper_Body : in out Compilation_Unit) is
       Short_Type_Name : constant String
         := Ada_Type_Defining_Name (Node);
       Type_Name : constant String
         := Ada_Type_Name (Node);
       NK : constant Node_Kind
         := Kind (Node);
-
    begin
       Add_With (Helper_Spec, "CORBA.Object");
-
-      --  Unchecked_To_<reference>
-
       NL (Helper_Spec);
       PL (Helper_Spec, "function Unchecked_To_" & Short_Type_Name);
       PL (Helper_Spec, "  (The_Ref : in CORBA.Object.Ref'Class)");
@@ -3461,9 +3456,6 @@ package body Ada_Be.Idl2Ada is
       DI (Helper_Body);
       PL (Helper_Body, "end Unchecked_To_" & Short_Type_Name & ";");
       NL (Helper_Body);
-
-      --  To_<reference>
-
       PL (Helper_Body, "function To_" & Short_Type_Name);
       PL (Helper_Body, "  (The_Ref : in CORBA.Object.Ref'Class)");
       PL (Helper_Body, "  return " & Type_Name);
@@ -3490,21 +3482,35 @@ package body Ada_Be.Idl2Ada is
       DI (Helper_Body);
       PL (Helper_Body, "end To_" & Short_Type_Name & ";");
 
-      --  From_Any
-
+      --  from_any functions
       case NK is
-         when
-           K_Interface |
-           K_ValueType =>
-
+         when K_Interface
+           | K_ValueType =>
             NL (Helper_Spec);
             Gen_From_Any_Profile (Helper_Spec, Node);
             NL (Helper_Spec);
             II (Helper_Spec);
             PL (Helper_Spec, "renames "
-                & Ada_Full_Name (Node)
-                & ".From_Any;");
+                & Ada_Name (Node)
+                & ".From_Any");
             DI (Helper_Spec);
+
+         when K_Enum =>
+--             --  typecode
+--             NL (Helper_Spec);
+--             PL (Helper_Spec, "TC_"
+--                 & Ada_Name (Node)
+--                 & " : constant CORBA.TypeCode.Object := ");
+--             II (CU);
+--             PL (CU, "CORBA.TypeCode.TC_Enum;");
+--             DI (CU);
+--             --  to and from_any functions
+--             NL (Helper_Spec);
+--             Gen_From_Any_Profile (Helper_Spec, Node);
+--             PL (CU, ";");
+--             Gen_To_Any_Profile (Helper_Spec, Node);
+--             PL (CU, ";");
+            null;
 
          when others =>
             null;

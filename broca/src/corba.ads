@@ -539,6 +539,7 @@ package CORBA is
       function TC_String             return TypeCode.Object;
       function TC_Wide_String        return TypeCode.Object;
 
+      --  more complex ones. Creates "empty" typecodes
       function TC_Principal          return TypeCode.Object;
       function TC_Struct             return TypeCode.Object;
       function TC_Union              return TypeCode.Object;

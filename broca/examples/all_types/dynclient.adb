@@ -40,6 +40,8 @@ with CORBA.ORB;
 
 with Report;    use Report;
 
+with All_Types;
+
 procedure DynClient is
    IOR : CORBA.String;
    Myall_types : CORBA.Object.Ref;
@@ -487,6 +489,47 @@ procedure DynClient is
       return Result_Value;
    end EchoRef;
 
+--    function EchoColor
+--      (Self : in CORBA.Object.Ref;
+--       Arg : in All_Types.Color)
+--       return Color is
+--       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoColor");
+--       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
+--       Request : CORBA.Request.Object;
+--       Ctx : CORBA.Context.Ref;
+--       Argument : CORBA.Any;
+--       Arg_List : CORBA.NVList.Ref;
+--       Result : CORBA.NamedValue;
+--       Result_Name : CORBA.String := To_CORBA_String ("Result");
+--       Result_Value : Color := Red;
+--    begin
+--       --  creating the argument list
+--       Argument := All_Types.Helper.To_Any (Arg);
+--       CORBA.NVList.Add_Item (Arg_List,
+--                              Arg_Name,
+--                              Argument,
+--                              CORBA.ARG_IN);
+--       --  setting the result type
+--       Result := (Name => Identifier (Result_Name),
+--                  Argument => To_Any (Result_Value),
+--                  Arg_Modes => 0);
+--       --  creating a request
+--       CORBA.Object.Create_Request (Myall_Types,
+--                                    Ctx,
+--                                    Operation_Name,
+--                                    Arg_List,
+--                                    Result,
+--                                    Request,
+--                                    0);
+--       --  sending message
+--       CORBA.Request.Invoke (Request, 0);
+--       --  FIXME : not logical
+--       CORBA.NVList.Free (Arg_List);
+--       --  getting the answer
+--       return All_Types.Helper.From_Any
+--         (CORBA.Request.Return_Value (Request).Argument);
+--    end EchoColor;
+
 begin
    if Ada.Command_Line.Argument_Count < 1 then
       Ada.Text_IO.Put_Line
@@ -519,6 +562,7 @@ begin
          X := echoRef (Myall_types, Myall_types);
          Output ("test self reference", echoLong (X, 31337) = 31337);
       end;
+--       Output ("test enum", echoColor (Myall_types, Blue) = Blue);
       exit when One_Shot;
    end loop;
 
