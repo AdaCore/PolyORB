@@ -50,10 +50,6 @@ with PolyORB.Utils.Strings;
 
 package body PolyORB.ORB.Thread_Per_Session is
 
-   ------------------------
-   -- Local declarations --
-   ------------------------
-
    use PolyORB.Annotations;
    use PolyORB.Asynch_Ev;
    use PolyORB.Components;
@@ -73,16 +69,6 @@ package body PolyORB.ORB.Thread_Per_Session is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   ----------------------
-   --  Free procedures --
-   ----------------------
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Notepad, Notepad_Access);
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Request_Queue, Request_Queue_Access);
-
    A_S   : Session_Access := null;
    --  This variable is used to initialize the threads local variable.
    --  it is used to replace the 'accept' statement.
@@ -92,8 +78,17 @@ package body PolyORB.ORB.Thread_Per_Session is
    --  Synchornisation of task initialization.
 
    procedure Session_Thread;
-   --  This procedure is a parameterless procedure used as
-   --  the body of the threads
+   --  Main loop executed by session threads.
+
+   ----------
+   -- Free --
+   ----------
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Notepad, Notepad_Access);
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Request_Queue, Request_Queue_Access);
 
    -----------------
    -- Add_Request --
@@ -101,11 +96,11 @@ package body PolyORB.ORB.Thread_Per_Session is
 
    procedure Add_Request
      (S : in Session_Thread_Info;
-      RI : Request_Info)
-   is
+      RI : Request_Info) is
    begin
       Request_Queues.Append (S.Request_List.all, RI);
       Up (S.Request_Semaphore);
+
       pragma Debug (O ("A job has been queued"));
    end Add_Request;
 
@@ -117,15 +112,14 @@ package body PolyORB.ORB.Thread_Per_Session is
      (P   : access Thread_Per_Session_Policy;
       TE  :        Transport_Endpoint_Access)
    is
-      use PolyORB.Components;
-      ET : End_Thread_Job_Access;
-      S  : Filters.Filter_Access := null;
-   begin
-
       pragma Warnings (Off);
       pragma Unreferenced (P);
       pragma Warnings (On);
 
+      use PolyORB.Components;
+      ET : End_Thread_Job_Access;
+      S  : Filters.Filter_Access := null;
+   begin
       --  Find an access to the session
       declare
          Temp : Filters.Filter_Access := Filters.Filter_Access (Upper (TE));
@@ -147,6 +141,7 @@ package body PolyORB.ORB.Thread_Per_Session is
            (STI,
             Request_Info'(Job => Jobs.Job_Access (ET)));
       end;
+
       pragma Debug (O ("A End_Thread_Job has been queued"));
    end Handle_Close_Server_Connection;
 
@@ -159,10 +154,11 @@ package body PolyORB.ORB.Thread_Per_Session is
       ORB : ORB_Access;
       C   : Active_Connection)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (P, ORB);
       pragma Warnings (On);
+
+   begin
       pragma Debug (O ("New client connection"));
 
       Components.Emit_No_Reply
@@ -179,34 +175,33 @@ package body PolyORB.ORB.Thread_Per_Session is
       ORB : ORB_Access;
       C   : Active_Connection)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (P, ORB);
       pragma Warnings (On);
-      pragma Debug (O ("New server connection. "));
 
-      declare
-         S  : Filters.Filter_Access := null;
-         Temp : Filters.Filter_Access := Filters.Filter_Access (Upper (C.TE));
-      begin
-         while Temp /= null loop
-            S := Temp;
-            Temp := Filters.Filter_Access (Upper (Temp));
-         end loop;
+      S    : Filters.Filter_Access := null;
+      Temp : Filters.Filter_Access := Filters.Filter_Access (Upper (C.TE));
+   begin
+      pragma Debug (O ("New server connection."));
 
-         pragma Debug (O ("find Session access"));
+      --  Determine ORB session attached to this connection.
+      while Temp /= null loop
+         S := Temp;
+         Temp := Filters.Filter_Access (Upper (Temp));
+      end loop;
 
-         if S = null then
-            null;
-            pragma Debug (O ("S isn't defined yet ....."));
-         end if;
+      pragma Debug (O ("Found Session access"));
 
-         Enter (Session_Mutex);
-         A_S := Session_Access (S);
-         Create_Task (Session_Thread'Access);
-         Wait (Session_Taken, Session_Mutex);
-         Leave (Session_Mutex);
-      end;
+      if S = null then
+         null;
+         pragma Debug (O ("Session access isn't defined yet .."));
+      end if;
+
+      Enter (Session_Mutex);
+      A_S := Session_Access (S);
+      Create_Task (Session_Thread'Access);
+      Wait (Session_Taken, Session_Mutex);
+      Leave (Session_Mutex);
 
       Components.Emit_No_Reply
         (Component_Access (C.TE),
@@ -222,23 +217,22 @@ package body PolyORB.ORB.Thread_Per_Session is
       ORB : ORB_Access;
       RJ  : access Request_Job'Class)
    is
-      S : constant Session_Access := Session_Access (RJ.Requestor);
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
       pragma Unreferenced (ORB);
       pragma Warnings (On);
+
+      S : constant Session_Access := Session_Access (RJ.Requestor);
+      N : constant Notepad_Access := Get_Task_Info (S);
+      STI : Session_Thread_Info;
+   begin
       pragma Debug (O ("Handle_Request_Execution : Queue Job"));
 
-      declare
-         N : constant Notepad_Access := Get_Task_Info (S);
-         STI : Session_Thread_Info;
-      begin
-         Get_Note (N.all, STI);
-         Add_Request
-           (STI,
-            Request_Info'(Job => PolyORB.ORB.Duplicate_Request_Job (RJ)));
-      end;
+      Get_Note (N.all, STI);
+      Add_Request
+        (STI,
+         Request_Info'(Job => PolyORB.ORB.Duplicate_Request_Job (RJ)));
+
    end Handle_Request_Execution;
 
    ----------
@@ -249,15 +243,18 @@ package body PolyORB.ORB.Thread_Per_Session is
      (P : access Thread_Per_Session_Policy;
       ORB : ORB_Access)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
       pragma Unreferenced (ORB);
       pragma Warnings (On);
+
+   begin
+
       raise Program_Error;
-      --  In Thread_Per_Session policy, only one task is executing ORB.Run.
-      --  So this task shouldn't go idle, since this would block the system
-      --  forever.
+
+      --  In Thread_Per_Session policy, only one task is executing
+      --  ORB.Run. Thus blocking the task is an erroneous execution.
+
    end Idle;
 
    ------------------------------
@@ -269,11 +266,11 @@ package body PolyORB.ORB.Thread_Per_Session is
       ORB : ORB_Access;
       Msg : Message'Class)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
       pragma Warnings (On);
 
+   begin
       if Msg in Interface.Queue_Request then
          begin
             Emit_No_Reply
@@ -295,10 +292,11 @@ package body PolyORB.ORB.Thread_Per_Session is
 
    procedure Run (J : access End_Thread_Job)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (J);
       pragma Warnings (On);
+
+   begin
       null;
    end Run;
 
@@ -314,57 +312,64 @@ package body PolyORB.ORB.Thread_Per_Session is
       N   : Notepad_Access       := null;
       Q   : Request_Info;
    begin
-         pragma Debug (O ("Session Thread number "
+      pragma Debug (O ("Session Thread number "
+                       & Image (Current_Task)
+                       & " is starting"));
+      --  Thread initialization.
+      S := A_S;
+      Create (Sem);
+      L := new Request_Queue;
+      N := new Notepad;
+      Set_Note (N.all,
+                Session_Thread_Info'(Note with Request_Semaphore => Sem,
+                                     Request_List => L));
+      Set_Task_Info (S, N);
+
+      --  Signal end of thread initialization.
+      Enter (Session_Mutex);
+      Signal (Session_Taken);
+      Leave (Session_Mutex);
+
+      --  Session thread main loop.
+      loop
+         pragma Debug (O ("Thread number"
                           & Image (Current_Task)
-                          & " is starting"));
-         --  initialisation of local variables of the thread
-         S := A_S;
-         Create (Sem);
-         L := new Request_Queue;
-         N := new Notepad;
-         Set_Note (N.all,
-                   Session_Thread_Info'(Note with Request_Semaphore => Sem,
-                                        Request_List => L));
-         Set_Task_Info (S, N);
-         --  release of the watcher at the end of initialisation
-         Enter (Session_Mutex);
-         Signal (Session_Taken);
-         Leave (Session_Mutex);
-         loop
-            pragma Debug (O ("Thread number"
-                             & Image (Current_Task)
-                             & " is waiting"));
+                          & " is waiting"));
 
-            Down (Sem);
-            Request_Queues.Extract_First (L.all, Q);
-            pragma Debug (O ("Thread number"
-                             & Image (Current_Task)
-                             & " is executing Job"));
-
-            if Q.Job.all in Request_Job'Class then
-               Run_Request (Request_Job (Q.Job.all)'Access);
-               Jobs.Free (Q.Job);
-            elsif Q.Job.all in End_Thread_Job'Class then
-               Jobs.Free (Q.Job);
-               exit;
-            end if;
-
-            pragma Debug (O ("Thread number"
-                             & Image (Current_Task)
-                             & " has executed Job"));
-         end loop;
-
-         Request_Queues.Deallocate (L.all);
-         Free (L);
-         Destroy (Sem);
-         Destroy (N.all);
-         Free (N);
-         pragma Debug (O ("Thread "
+         Down (Sem);
+         Request_Queues.Extract_First (L.all, Q);
+         pragma Debug (O ("Thread number"
                           & Image (Current_Task)
-                          & " stopped"));
+                          & " is executing Job"));
+
+         if Q.Job.all in Request_Job'Class then
+            Run_Request (Request_Job (Q.Job.all)'Access);
+            Jobs.Free (Q.Job);
+         elsif Q.Job.all in End_Thread_Job'Class then
+            pragma Debug (O ("Received an End_Thread_Message"));
+            Jobs.Free (Q.Job);
+            exit;
+         end if;
+
+         pragma Debug (O ("Thread number"
+                          & Image (Current_Task)
+                          & " has executed Job"));
+      end loop;
+
+      --  Thread finalization.
+      pragma Debug (O ("Finalizing thread " & Image (Current_Task)));
+      Request_Queues.Deallocate (L.all);
+      Free (L);
+      Destroy (Sem);
+      Destroy (N.all);
+      Free (N);
+
+      pragma Debug (O ("Thread "
+                       & Image (Current_Task)
+                       & " stopped"));
    exception
       when E : others =>
-         O ("Got exception in thread");
+         O ("Got exception in thread " & Image (Current_Task));
          O (Ada.Exceptions.Exception_Information (E));
    end Session_Thread;
 

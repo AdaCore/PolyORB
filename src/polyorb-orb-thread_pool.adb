@@ -45,10 +45,6 @@ with PolyORB.Utils.Strings;
 
 package body PolyORB.ORB.Thread_Pool is
 
-   ------------------------
-   -- Local declarations --
-   ------------------------
-
    use PolyORB.Components;
    use PolyORB.Configuration;
    use PolyORB.Components;
@@ -66,14 +62,13 @@ package body PolyORB.ORB.Thread_Pool is
    --  a number of threads ...
 
    procedure Main_Thread_Pool;
-   --  Main procedure for threads in the pool
+   --  Main loop for threads in the pool.
 
    ----------------------
    -- Main_Thread_Pool --
    ----------------------
 
-   procedure Main_Thread_Pool
-   is
+   procedure Main_Thread_Pool is
    begin
       pragma Debug (O ("Thread "
                        & Image (Current_Task)
@@ -92,11 +87,12 @@ package body PolyORB.ORB.Thread_Pool is
      (P   : access Thread_Pool_Policy;
       TE  :        Transport_Endpoint_Access)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
       pragma Unreferenced (TE);
       pragma Warnings (On);
+
+   begin
       null;
    end Handle_Close_Server_Connection;
 
@@ -109,10 +105,11 @@ package body PolyORB.ORB.Thread_Pool is
       ORB : ORB_Access;
       C   : Active_Connection)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (P, ORB);
       pragma Warnings (On);
+
+   begin
       pragma Debug (O ("Thread_Pool: new server connection"));
 
       Components.Emit_No_Reply
@@ -120,9 +117,9 @@ package body PolyORB.ORB.Thread_Pool is
          Connect_Indication'(null record));
 
       --  The newly-created channel will be monitored by
-      --  general-purpose ORB tasks when the binding object
-      --  sends a Data_Expected message to the endpoint
-      --  (which will in turn send Monitor_Endpoint to the ORB).
+      --  general-purpose ORB tasks when the binding object sends a
+      --  Data_Expected message to the endpoint (which will in turn
+      --  send Monitor_Endpoint to the ORB).
    end Handle_New_Server_Connection;
 
    ----------------------------------
@@ -134,11 +131,13 @@ package body PolyORB.ORB.Thread_Pool is
       ORB : ORB_Access;
       C   : Active_Connection)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (P, ORB);
       pragma Warnings (On);
+
+   begin
       pragma Debug (O ("Thread_Pool: new client connection"));
+
       Components.Emit_No_Reply
         (Component_Access (C.TE),
          Connect_Confirmation'(null record));
@@ -154,14 +153,16 @@ package body PolyORB.ORB.Thread_Pool is
       ORB : ORB_Access;
       RJ  : access Request_Job'Class)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
       pragma Unreferenced (ORB);
       pragma Warnings (On);
+
+   begin
       pragma Debug (O ("Thread "
                        & Image (Current_Task)
-                         & " handles request execution"));
+                       & " handles request execution"));
+
       Run_Request (RJ);
    end Handle_Request_Execution;
 
@@ -173,10 +174,11 @@ package body PolyORB.ORB.Thread_Pool is
      (P : access Thread_Pool_Policy;
       ORB : ORB_Access)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
       pragma Warnings (On);
+
+   begin
       pragma Debug (O ("Thread "
                        & Image (Current_Task)
                        & " is going idle."));
@@ -203,16 +205,18 @@ package body PolyORB.ORB.Thread_Pool is
       ORB : ORB_Access;
       Msg : Message'Class)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
       pragma Warnings (On);
+
+   begin
       Emit_No_Reply (Component_Access (ORB), Msg);
    end Queue_Request_To_Handler;
 
    --------------------------------------
    -- Initialize_Tasking_Policy_Thread --
    --------------------------------------
+
    procedure Initialize_Tasking_Policy_Access;
 
    procedure Initialize_Tasking_Policy_Access is
@@ -223,6 +227,7 @@ package body PolyORB.ORB.Thread_Pool is
    ------------------------
    -- Initialize_Threads --
    ------------------------
+
    procedure Initialize_Threads;
 
    procedure Initialize_Threads is
@@ -230,13 +235,16 @@ package body PolyORB.ORB.Thread_Pool is
       Number_Of_Threads : Positive;
    begin
       pragma Debug (O ("Initialize_threads : enter"));
+
       Number_Of_Threads := Get_Conf
         ("tasking",
          "polyorb.orb.thread_pool.threads",
          Default_Threads);
+
       for J in 1 .. Number_Of_Threads loop
          Create_Task (Main_Thread_Pool'Access);
       end loop;
+
       pragma Debug (O ("Initialize_threads : leave"));
    end Initialize_Threads;
 
@@ -261,10 +269,11 @@ begin
        Provides => +"orb.tasking_policy_init",
        Init => Initialize_Threads'Access));
 
-   --  two Register_Module are needed because, on one hand, the variable
-   --  Setup.The_Tasking_Policy must be initialized before ORB creation
-   --  and on the other hand, the variable Setup.The_ORB must be initialized
-   --  in order to run threads from the thread_pool. This breaks the
-   --  circular dependecy at initialisation
+   --  Two Register_Module are needed because, on one hand, the
+   --  variable Setup.The_Tasking_Policy must be initialized before
+   --  ORB creation and on the other hand, the variable Setup.The_ORB
+   --  must be initialized in order to run threads from the
+   --  thread_pool. This breaks the circular dependecy at
+   --  initialisation
 
 end PolyORB.ORB.Thread_Pool;
