@@ -167,8 +167,10 @@ package Lexer is
    subtype Reserved_Word_Type is Token_Type
      range T_Access .. T_Units;
 
-   First_Reserved_Word_Pos : constant := Reserved_Word_Type'Pos (Reserved_Word_Type'First);
-   Last_Reserved_Word_Pos  : constant := Reserved_Word_Type'Pos (Reserved_Word_Type'Last);
+   First_Reserved_Word_Pos :
+     constant := Reserved_Word_Type'Pos (Reserved_Word_Type'First);
+   Last_Reserved_Word_Pos  :
+     constant := Reserved_Word_Type'Pos (Reserved_Word_Type'Last);
 
    subtype Special_Character_Type is Token_Type
      range T_Quotation_Mark .. T_Right_Curly_Bracket;

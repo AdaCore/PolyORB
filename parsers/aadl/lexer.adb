@@ -15,7 +15,9 @@ package body Lexer is
    --  Once preprocessed, the idl file is loaded in Buffer and
    --  Token_Location.Scan is used to scan the source file.
 
-   Display_Error : Boolean := True;
+   Display_Error : constant Boolean := True;
+   pragma Unreferenced (Display_Error);
+
    Token_Image   : array (Token_Type) of Name_Id;
 
    procedure New_Line;
@@ -59,6 +61,7 @@ package body Lexer is
    --  Scan an integer in the given base notation.
    --  This procedure checks digits for validity.
    --  Example:  1234 is an invalid number in base 4
+   pragma Unreferenced (Scan_Based_Integer_Value);
 
    procedure Scan_Numeric_Literal_Value;
    --
@@ -366,7 +369,7 @@ package body Lexer is
 
          if Digit >= Base then
             Error_Loc (1) := Token_Location;
-            De ("digit '" & Ch & "' is invalid in base " &
+            DE ("digit '" & Ch & "' is invalid in base " &
                 Short_Short_Unsigned'Image (Base));
             Token := T_Error;
             Integer_Literal_Value := 0;
@@ -429,7 +432,6 @@ package body Lexer is
    procedure Scan_Numeric_Literal_Value is
    begin
       Scan_Decimal_Integer_Value;
-
    end Scan_Numeric_Literal_Value;
 
    -------------------------------

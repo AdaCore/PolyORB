@@ -1,6 +1,7 @@
 GNATFLAGS = -g -O2 -gnatfy -gnatwae -gnatoa -fstack-check
 GNATMAKE = gnatmake
-CMD = ${GNATMAKE} ${GNATFLAGS}
+INCLUDE = -I../lexer_files/
+CMD = ${GNATMAKE} ${GNATFLAGS} ${INCLUDE}
 
 all: aadl
 
@@ -8,7 +9,7 @@ aadl: lexer
 	${CMD} aadl
 
 lexer:
-	gnatmake lexer
+	${CMD} lexer
 
 clean:
 	-rm -f *.ali *.o
