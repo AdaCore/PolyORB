@@ -35,10 +35,13 @@
 
 with Ada.Command_Line;                use Ada.Command_Line;
 with Ada.Exceptions;                  use Ada.Exceptions;
+
+with GNAT.OS_Lib;
+with GNAT.Strings;                    use GNAT.Strings;
+
 with System.Garlic.Platform_Specific; use System.Garlic.Platform_Specific;
 with System.Garlic.Types;             use System.Garlic.Types;
 with System.Garlic.Utils;             use System.Garlic.Utils;
-with GNAT.OS_Lib;
 
 package body System.Garlic.Options is
 
@@ -302,14 +305,14 @@ package body System.Garlic.Options is
             Self_Location := Copy (Boot_Location);
          else
             Self_Location
-              := new String_Array'(1 .. 1 =>
+              := new String_List'(1 .. 1 =>
                                      new String'(Default_Protocol_Name));
          end if;
       end if;
 
       if Data_Location = null then
          Data_Location
-           := new String_Array'(1 .. 1 =>
+           := new String_List'(1 .. 1 =>
                                   new String'(Default_Storage_Name & "://" &
                                               Default_Storage_Data));
       end if;

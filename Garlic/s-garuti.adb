@@ -33,15 +33,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
+with GNAT.Strings; use GNAT.Strings;
 
 package body System.Garlic.Utils is
-
-   procedure Free is
-     new Ada.Unchecked_Deallocation (String, String_Access);
-
-   procedure Free is
-     new Ada.Unchecked_Deallocation (String_Array, String_Array_Access);
 
    procedure Next_Separator
      (S : in String;
@@ -66,11 +60,11 @@ package body System.Garlic.Utils is
    -- Copy --
    ----------
 
-   function Copy (S : String_Array_Access) return String_Array_Access is
-      R : String_Array_Access;
+   function Copy (S : String_List_Access) return String_List_Access is
+      R : String_List_Access;
    begin
       if S /= null then
-         R := new String_Array'(S.all);
+         R := new String_List'(S.all);
          for I in S'Range loop
             R (I) := new String'(S (I).all);
          end loop;
@@ -93,7 +87,7 @@ package body System.Garlic.Utils is
    -- Destroy --
    -------------
 
-   procedure Destroy (S : in out String_Array_Access) is
+   procedure Destroy (S : in out String_List_Access) is
    begin
       if S /= null then
          for I in S'Range loop
@@ -108,7 +102,7 @@ package body System.Garlic.Utils is
    ------------------
 
    function Merge_String
-     (S : String_Array_Access;
+     (S : String_List_Access;
       C : Character := Location_Separator)
      return String
    is
@@ -159,7 +153,7 @@ package body System.Garlic.Utils is
 
    function Missing
      (Elt : String;
-      Set : String_Array)
+      Set : String_List)
      return Boolean
    is
    begin
@@ -222,10 +216,10 @@ package body System.Garlic.Utils is
    function Split_String
      (S : String;
       C : Character := Location_Separator)
-     return String_Array_Access
+     return String_List_Access
    is
       N : Natural := 0;
-      A : String_Array_Access;
+      A : String_List_Access;
       F : Natural;
       L : Natural;
    begin
@@ -250,7 +244,7 @@ package body System.Garlic.Utils is
 
       --  Fill each slot of array.
 
-      A := new String_Array (1 .. N);
+      A := new String_List (1 .. N);
       F := S'First;
       for I in A'Range loop
          Skip_Separator (S, F, C);

@@ -47,7 +47,7 @@ package body System.Shared_Storage is
 
    begin
       VS := Shared_Data_Access (Var);
-      Complete_Request (VS.all);
+      Complete_Request (VS);
    end Shared_Var_Close;
 
    ---------------------
@@ -61,7 +61,7 @@ package body System.Shared_Storage is
 
    begin
       VS := Lookup_Variable (Var);
-      Initiate_Request (VS.all, Lock, Ok);
+      Initiate_Request (VS, Lock, Ok);
    end Shared_Var_Lock;
 
    ----------------------
@@ -75,7 +75,7 @@ package body System.Shared_Storage is
 
    begin
       VS := Lookup_Variable (Var);
-      Initiate_Request (VS.all, Read, Ok);
+      Initiate_Request (VS, Read, Ok);
       if Ok then
          return SIO.Stream_Access (VS);
       else
@@ -93,7 +93,7 @@ package body System.Shared_Storage is
 
    begin
       VS := Lookup_Variable (Var);
-      Complete_Request (VS.all);
+      Complete_Request (VS);
    end Shared_Var_Unlock;
 
    ----------------------
@@ -107,7 +107,7 @@ package body System.Shared_Storage is
 
    begin
       VS := Lookup_Variable (Var);
-      Initiate_Request (VS.all, Write, Ok);
+      Initiate_Request (VS, Write, Ok);
       return SIO.Stream_Access (VS);
    end Shared_Var_WOpen;
 

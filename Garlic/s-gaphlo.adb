@@ -33,7 +33,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Debug;    use System.Garlic.Debug;
+with GNAT.Strings;            use GNAT.Strings;
+
+with System.Garlic.Debug;     use System.Garlic.Debug;
+with System.Garlic.Protocols; use System.Garlic.Protocols;
+with System.Garlic.Utils;     use System.Garlic.Utils;
 
 package body System.Garlic.Physical_Location is
 
@@ -46,7 +50,6 @@ package body System.Garlic.Physical_Location is
      renames Print_Debug_Info;
    pragma Unreferenced (D);
 
-   use System.Garlic.Protocols, System.Garlic.Utils;
 
    function Lookup_Protocol (P : String) return Protocol_Access;
    --  Return a protocol or null if no protocol with this name was found
@@ -56,10 +59,10 @@ package body System.Garlic.Physical_Location is
    --------------------------
 
    procedure Add_First_Missing_Location
-     (List     : in String_Array_Access;
+     (List     : in String_List_Access;
       Current  : in out Natural;
       Protocol : in Protocol_Access;
-      Data     : in String_Array_Access) is
+      Data     : in String_List_Access) is
    begin
       if Data = null then
          return;
@@ -84,11 +87,11 @@ package body System.Garlic.Physical_Location is
    ---------------------------
 
    procedure Add_Missing_Locations
-     (List     : in String_Array_Access;
+     (List     : in String_List_Access;
       Current  : in out Natural;
       Protocol : in Protocol_Access)
    is
-      Data : String_Array_Access;
+      Data : String_List_Access;
    begin
       Data := Get_Data (Protocol);
       if Data = null then

@@ -36,6 +36,8 @@
 with Ada.Streams.Stream_IO;           use Ada.Streams.Stream_IO;
 with Ada.Calendar;                    use Ada.Calendar;
 
+with GNAT.Strings;                    use GNAT.Strings;
+
 with System.Garlic.Debug;             use System.Garlic.Debug;
 with System.Garlic.Exceptions;        use System.Garlic.Exceptions;
 with System.Garlic.Heart;             use System.Garlic.Heart;
@@ -45,7 +47,6 @@ with System.Garlic.Protocols;         use System.Garlic.Protocols;
 with System.Garlic.Streams;           use System.Garlic.Streams;
 with System.Garlic.Trace;             use System.Garlic.Trace;
 with System.Garlic.Types;             use System.Garlic.Types;
-with System.Garlic.Utils;             use System.Garlic.Utils;
 
 package body System.Garlic.Protocols.Replay is
 
@@ -173,18 +174,18 @@ package body System.Garlic.Protocols.Replay is
 
    function Get_Data
      (Protocol : access Replay_Protocol)
-     return String_Array_Access
+     return String_List_Access
    is
       pragma Unreferenced (Protocol);
 
-      Result : String_Array_Access;
+      Result : String_List_Access;
 
    begin
       if Options.Execution_Mode /= Replay_Mode then
          return null;
       end if;
 
-      Result := new String_Array (1 .. 1);
+      Result := new String_List (1 .. 1);
       Result (1) := new String'(Trace_File_Name.all);
 
       return Result;

@@ -50,7 +50,6 @@ with System.Garlic.Soft_Links;
 with System.Garlic.Streams;               use System.Garlic.Streams;
 with System.Garlic.Table;
 with System.Garlic.Types;                 use System.Garlic.Types;
-with System.Garlic.Utils;                 use System.Garlic.Utils;
 
 package body System.Garlic.Protocols.Tcp is
 
@@ -405,17 +404,17 @@ package body System.Garlic.Protocols.Tcp is
 
    function Get_Data
      (Protocol : access TCP_Protocol)
-     return String_Array_Access
+     return String_List_Access
    is
       pragma Unreferenced (Protocol);
-      Result : String_Array_Access;
+      Result : String_List_Access;
    begin
       if Options.Is_Pure_Client
         or else Last_Incoming = Null_Incoming
       then
          return null;
       end if;
-      Result := new String_Array (First_Incoming .. Last_Incoming);
+      Result := new String_List (First_Incoming .. Last_Incoming);
       for I in Result'Range loop
          Result (I) := new String'(Image (Incomings (I).Sock_Addr));
       end loop;

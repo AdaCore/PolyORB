@@ -33,6 +33,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with GNAT.Strings;                    use GNAT.Strings;
+
 with System.Garlic.Debug;             use System.Garlic.Debug;
 pragma Elaborate_All (System.Garlic.Debug);
 
@@ -107,17 +109,17 @@ package body System.Garlic.Startup is
 
    Self_Location : Location_Type;
    Self_Protocol : Protocol_Access;
-   Self_Data     : String_Array_Access;
+   Self_Data     : String_List_Access;
 
    Boot_Location : Location_Type;
    Boot_Protocol : Protocol_Access;
-   Boot_Data     : String_Array_Access;
+   Boot_Data     : String_List_Access;
 
    N_Boot_Location : Natural := 0;
    N_Self_Location : Natural := 0;
 
-   New_Boot_Location : String_Array_Access;
-   New_Self_Location : String_Array_Access;
+   New_Boot_Location : String_List_Access;
+   New_Self_Location : String_List_Access;
 
    Performed       : Boolean;
 
@@ -267,7 +269,7 @@ begin
    --      locations may be duplicated. It is not a problem
    --      because null location will be ignored.
 
-   New_Boot_Location := new String_Array (1 .. N_Boot_Location);
+   New_Boot_Location := new String_List (1 .. N_Boot_Location);
    N_Boot_Location := 0;
 
    for BL in Options.Boot_Location'Range loop
@@ -280,7 +282,7 @@ begin
          if Options.Is_Boot_Server then
             Boot_Data := Get_Data (Boot_Protocol);
          else
-            Boot_Data     := new String_Array (1 .. 1);
+            Boot_Data     := new String_List (1 .. 1);
             Boot_Data (1) := new String'(Get_Data (Boot_Location));
          end if;
 
@@ -303,7 +305,7 @@ begin
    --      ignored. We have to preserve the order specified by the user.
    --      Once this is done, add all the missing locations.
 
-   New_Self_Location := new String_Array (1 .. N_Self_Location);
+   New_Self_Location := new String_List (1 .. N_Self_Location);
    N_Self_Location := 0;
 
    if Options.Self_Location /= null then

@@ -1,3 +1,36 @@
+2002-10-14  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* all: Use GNAT.Strings instead of System.Garlic.Utils. 
+
+	* s-garstr.ads, s-garstr.adb: Add routines to un/marshall
+	Stream_Element_Access.
+	
+	* s-garsto.ads, s-garsto.adb: Maintain a list of the registered
+	storages and add primitives to storages in order to shutdown.
+
+	* s-gastdf.adb, s-gastdf.adb: Override shutdown routines.
+
+	* s-gastds.ads, s-gastds.adb: Check consistent configuration
+	(not using light PCS and not configuring DSM storage on a passive
+	partition). Li and Hudak's algorithm (dynamic distributed manager
+	with dynamic distributed copy set) is incomplete as some
+	synchronization points are missing. In particular, the
+	invalidation phase is supposed to be synchronous but the paper
+	does not say so. The original algorithm can incorrectly invalidate
+	copies when the invalidation phase is slower in the way that in
+	the meantime, several copies are exchanged. The algorithm is also
+	misleading on the copy set used to start the invalidation
+	phase. The copy set of the current partition and the copy set
+	provided by the previous owner of a shared object must not always
+	been merged. We can do so only when the partition starting the
+	invalidation phase is in the copy set of the previous
+	owner. Otherwise, we have to invalidate using the copy set of the
+	previous owner and to wait for an invalidation request to be
+	received locally in order to proceed to the invalidation of the
+	copy set of the current partition. Fix B930-014.
+ 	
+	* s-garhea.adb: Shutdown active storages like DSM.
+
 2002-09-29  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* s-gastds.adb, s-gastds.ads: Check that a passive partition is

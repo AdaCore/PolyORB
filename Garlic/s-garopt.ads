@@ -33,8 +33,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with GNAT.Strings;
+
 with System.Garlic.Types;
-with System.Garlic.Utils;
 
 package System.Garlic.Options is
 
@@ -52,9 +53,9 @@ package System.Garlic.Options is
 
    Has_A_Light_PCS  : Boolean;
    Mirror_Expected  : Boolean;
-   Self_Location    : Utils.String_Array_Access;
-   Boot_Location    : Utils.String_Array_Access;
-   Data_Location    : Utils.String_Array_Access;
+   Self_Location    : GNAT.Strings.String_List_Access;
+   Boot_Location    : GNAT.Strings.String_List_Access;
+   Data_Location    : GNAT.Strings.String_List_Access;
    Is_Boot_Mirror   : Boolean;
    Is_Boot_Server   : Boolean;
    Is_Pure_Client   : Boolean;
@@ -64,11 +65,11 @@ package System.Garlic.Options is
    Nolaunch         : Boolean;
    Reconnection     : Types.Reconnection_Type;
    Termination      : Types.Termination_Type;
-   Partition_Name   : Utils.String_Access;
-   Rsh_Command      : Utils.String_Access;
-   Rsh_Options      : Utils.String_Access;
+   Partition_Name   : GNAT.Strings.String_Access;
+   Rsh_Command      : GNAT.Strings.String_Access;
+   Rsh_Options      : GNAT.Strings.String_Access;
    Execution_Mode   : Types.Execution_Mode_Type;
-   Trace_File_Name  : Utils.String_Access;
+   Trace_File_Name  : GNAT.Strings.String_Access;
    Checksum         : Types.Word;
 
    procedure Initialize_Default_Options;

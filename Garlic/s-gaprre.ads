@@ -34,10 +34,12 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
+
+with GNAT.Strings;
+
 with System.Garlic.Exceptions;
 with System.Garlic.Protocols;
 with System.Garlic.Types;
-with System.Garlic.Utils;
 
 package System.Garlic.Protocols.Replay is
 
@@ -55,7 +57,7 @@ package System.Garlic.Protocols.Replay is
 
    function Get_Data
      (Protocol : access Replay_Protocol)
-     return Utils.String_Array_Access;
+     return GNAT.Strings.String_List_Access;
 
    function Get_Name
      (Protocol : access Replay_Protocol)

@@ -33,6 +33,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with GNAT.Strings;                    use GNAT.Strings;
+
 with System.Garlic.Debug;             use System.Garlic.Debug;
 with System.Garlic.Exceptions;        use System.Garlic.Exceptions;
 with System.Garlic.Group;             use System.Garlic.Group;
@@ -365,7 +367,7 @@ package body System.Garlic.Partitions is
       Info : in Partition_Info;
       Key  : in Debug_Key)
    is
-      Any : String_Array_Access;
+      Any : String_List_Access;
 
    begin
       D ("* Partition" & PID'Img, Key);
@@ -1192,7 +1194,7 @@ package body System.Garlic.Partitions is
             elsif Net_Locations /= "" then
                Info.Net_Locations := new String'(Net_Locations);
                declare
-                  SA : String_Array_Access
+                  SA : String_List_Access
                     := Split_String (Info.Net_Locations.all);
                   UL : Location_Type;
                begin

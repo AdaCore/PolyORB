@@ -34,8 +34,10 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
+
+with GNAT.Strings;
+
 with System.Garlic.Exceptions;
-with System.Garlic.Utils;
 with System.Garlic.Types;
 
 package System.Garlic.Protocols is
@@ -108,7 +110,7 @@ package System.Garlic.Protocols is
 
    function Get_Data
      (Protocol : access Protocol_Type)
-     return Utils.String_Array_Access;
+     return GNAT.Strings.String_List_Access;
    --  Return a string array which holds all the physical locations to
    --  be used by another partition to contact us.
 

@@ -33,8 +33,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with GNAT.Strings;
+
 with System.Garlic.Protocols;
-with System.Garlic.Utils;
 
 package System.Garlic.Physical_Location is
 
@@ -50,16 +51,16 @@ package System.Garlic.Physical_Location is
    No_Such_Location, Malformed_Location : exception;
 
    procedure Add_First_Missing_Location
-     (List     : in Utils.String_Array_Access;
+     (List     : in GNAT.Strings.String_List_Access;
       Current  : in out Natural;
       Protocol : in Protocols.Protocol_Access;
-      Data     : in Utils.String_Array_Access);
+      Data     : in GNAT.Strings.String_List_Access);
    --  Add in List the first missing location. Current indicates the
    --  last used slot in List. We may have to call several times
    --  this procedure to include all the location of a given protocol.
 
    procedure Add_Missing_Locations
-     (List     : in Utils.String_Array_Access;
+     (List     : in GNAT.Strings.String_List_Access;
       Current  : in out Natural;
       Protocol : in Protocols.Protocol_Access);
    --  Add in List all the missing location declared by
