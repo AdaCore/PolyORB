@@ -74,7 +74,9 @@ package PolyORB.Components is
      return Message'Class
       is abstract;
    --  Called internally when component C is to receive message M.
-   --  Return True if M has been handled, false otherwise.
+   --  Return a reply (possibly Null_Message if no specific contents
+   --  are to be returned to the sender) if M has been handled.
+   --  Ohterwise, exception Unhandled_Message is raised.
    --  Each component type overloads this primitive, and
    --  thus defines its behaviour in terms of replies to
    --  a set of external stimuli (messages).
