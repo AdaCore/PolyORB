@@ -1,3 +1,8 @@
+Tue Sep 30 15:52:59 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
+
+	* configure.in, configure: Add alpha-dec-osf and fix confusion
+	between a/l codes.
+
 Tue Sep 30 15:33:59 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* NEWS: Added note about Digital Unix port.
