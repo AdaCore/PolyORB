@@ -1,6 +1,14 @@
 Changes since GLADE 3.11b
 =========================
 
+New Functionnalities
+--------------------
+
+*   Tracing Facilities of what is going on inside GLADE during a
+    distributed execution.
+
+*   Add fault-tolerance features. Need for more documentation.
+
 Bug Fixes
 ---------
 
