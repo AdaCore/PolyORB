@@ -5,10 +5,15 @@ package CORBA.POA_Manager is
    type State is
      (HOLDING, ACTIVE, DISCARDING, INACTIVE);
 
-   type POAManager is abstract tagged private;
+   type POAManager is abstract tagged limited private;
    type POAManager_Access is access all POAManager'Class;
 
    Invalid_Obj_Adapter : exception;
+
+   type Hold_Servant_Base is abstract new CORBA.POA_Types.Servant
+     with null record;
+   type Hold_Servant_Base_Access is
+     access all Hold_Servant_Base'Class;
 
    ----------------------------------------------------------------------
    --  Procedures and functions to implement the POAManager interface  --
@@ -18,7 +23,7 @@ package CORBA.POA_Manager is
      (Self : access POAManager)
       is abstract;
 
-   procedure Hold_Request
+   procedure Hold_Requests
      (Self                : access POAManager;
       Wait_For_Completion :        Boolean)
      is abstract;
@@ -47,22 +52,24 @@ package CORBA.POA_Manager is
      (M : access POAManager)
       is abstract;
 
-   procedure Destroy
-     (M : access POAManager)
-     is abstract;
-
    procedure Register_POA
      (Self : access POAManager;
-      OA   : Obj_Adapter_Access)
+      OA   :        Obj_Adapter_Access)
       is abstract;
 
    procedure Remove_POA
      (Self : access POAManager;
-      OA   : Obj_Adapter_Access)
-     is abstract;
+      OA   :        Obj_Adapter_Access)
+      is abstract;
+
+   function Get_Hold_Servant
+     (Self : access POAManager;
+      OA   :        Obj_Adapter_Access)
+     return Hold_Servant_Base_Access
+      is abstract;
 
 private
-   type POAManager is abstract tagged record
+   type POAManager is abstract tagged limited record
       Current_State : State;
       Managed_POAs  : POAList_Access;
    end record;

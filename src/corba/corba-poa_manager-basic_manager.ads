@@ -2,6 +2,8 @@ with Ada.Unchecked_Deallocation;
 
 with CORBA.POA_Types; use CORBA.POA_Types;
 with Droopi.Locks;
+with Droopi.Components;
+with Locked_Queue;
 
 package CORBA.POA_Manager.Basic_Manager is
 
@@ -18,7 +20,7 @@ package CORBA.POA_Manager.Basic_Manager is
    procedure Activate
      (Self : access Basic_POA_Manager);
 
-   procedure Hold_Request
+   procedure Hold_Requests
      (Self                : access Basic_POA_Manager;
       Wait_For_Completion :        Boolean);
 
@@ -41,8 +43,6 @@ package CORBA.POA_Manager.Basic_Manager is
 
    procedure Create (M : access Basic_POA_Manager);
 
-   procedure Destroy (M : access Basic_POA_Manager);
-
    procedure Register_POA
      (Self : access Basic_POA_Manager;
       OA   : Obj_Adapter_Access);
@@ -51,23 +51,88 @@ package CORBA.POA_Manager.Basic_Manager is
      (Self : access Basic_POA_Manager;
       OA   : Obj_Adapter_Access);
 
+   function Get_Hold_Servant
+     (Self : access Basic_POA_Manager;
+      OA   :        Obj_Adapter_Access)
+     return Hold_Servant_Base_Access;
+
+   ---------------------------------------------------
+   --  Servant used to implement the holding state  --
+   ---------------------------------------------------
+
+   --  When the POAManager is in the HOLDING state:
+   --    A new entry to the queue is created, along with a Hold_Servant
+   --    that has access to this entry. The servant is returned to the POA,
+   --    which returns it as the requested servant.
+   --    When the Handle_Message method of the servant is called, the
+   --    Hold_Servant queues the request in the POAManager queue.
+   --  When the POAManager changes again to the ACTIVE state:
+   --    The requests in the queue are re-sent to the POA, that will send them
+   --    to the ORB to be executed again.
+   --    Beware that the requests are queued in the ORB queue, and are not
+   --    first.
+
+   type Queue_Element_Access is private;
+   type Hold_Servant is new Hold_Servant_Base with private;
+   type Hold_Servant_Access is access all Hold_Servant;
+
+   function "="
+     (Left, Right : Hold_Servant)
+     return Boolean;
+
+   function Handle_Message
+     (Obj : access Hold_Servant;
+      Msg :        Droopi.Components.Message'Class)
+     return Droopi.Components.Message'Class;
+
 private
-   type Basic_POA_Manager is new POAManager with record
-      Usage_Count : Integer := 0;
-      State_Lock  : Droopi.Locks.Rw_Lock_Access;
-      --  Lock the state
-      Count_Lock  : Droopi.Locks.Rw_Lock_Access;
-      --  Lock on the usage counter
-      POAs_Lock   : Droopi.Locks.Rw_Lock_Access;
-      --  Lock on the sequence of managed POAs
-   end record;
+   Queue_Size : constant Positive := 10;
+   --  The size max of the queue
+
+   type Queue_Element is
+      record
+         OA  : Obj_Adapter_Access;
+         --         Msg : Droopi.Components.Message;
+         --  ??? How do we queue de messages?
+      end record;
+   type Queue_Element_Access is access all Queue_Element;
+
+   package Requests_Queue_P is new Locked_Queue (Queue_Element_Access);
+   subtype Requests_Queue is Requests_Queue_P.Queue;
+
+   type Basic_POA_Manager is new POAManager with
+      record
+         Usage_Count     : Integer := 0;
+         Holded_Requests : Requests_Queue;
+
+         State_Lock      : Droopi.Locks.Rw_Lock_Access;
+         --  Lock the state
+         Count_Lock      : Droopi.Locks.Rw_Lock_Access;
+         --  Lock on the usage counter
+         POAs_Lock       : Droopi.Locks.Rw_Lock_Access;
+         --  Lock on the sequence of managed POAs
+         Queue_Lock      : Droopi.Locks.Rw_Lock_Access;
+         --  Lock on the queue of pending requests
+      end record;
 
    procedure Inc_Usage_Counter (Self : access Basic_POA_Manager);
 
    procedure Dec_Usage_Counter (Self : access Basic_POA_Manager);
 
+   type Hold_Servant is new Hold_Servant_Base with
+      record
+         Queue_Entry : Queue_Element_Access;
+      end record;
+
+   procedure Create
+     (HS  : in out Hold_Servant;
+      QEA : in Queue_Element_Access);
+
    procedure Free is new Ada.Unchecked_Deallocation
      (Basic_POA_Manager, Basic_POA_Manager_Access);
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Hold_Servant, Hold_Servant_Access);
 
 end CORBA.POA_Manager.Basic_Manager;
 

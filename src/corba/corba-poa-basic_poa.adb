@@ -57,9 +57,9 @@ package body CORBA.POA.Basic_POA is
    procedure Destroy_OA (OA : access Basic_Obj_Adapter);
 
    function Find_Servant
-     (OA    : access Basic_Obj_Adapter;
-      Id    :        Droopi.Objects.Object_Id;
-      Check :        Check_State)
+     (OA       : access Basic_Obj_Adapter;
+      Id       :        Droopi.Objects.Object_Id;
+      Do_Check :        Check_State)
      return Droopi.Objects.Servant_Access;
    --  The Find_Servant from Droopi, plus a parameter.
    --  If check is NO_CHECK, the POA doesn't check its state.
@@ -871,22 +871,41 @@ package body CORBA.POA.Basic_POA is
    ------------------
 
    function Find_Servant
-     (OA    : access Basic_Obj_Adapter;
-      Id    :        Droopi.Objects.Object_Id;
-      Check :        Check_State)
+     (OA       : access Basic_Obj_Adapter;
+      Id       :        Droopi.Objects.Object_Id;
+      Do_Check :        Check_State)
      return Droopi.Objects.Servant_Access
    is
       U_Oid  : Unmarshalled_Oid_Access
         := Oid_To_U_Oid (Object_Id (Id));
       The_OA : Basic_Obj_Adapter_Access;
    begin
+      if Do_Check = CHECK then
+         case Get_State (OA.POA_Manager.all) is
+            when DISCARDING | INACTIVE =>
+               Raise_Transient (1);
+               --  ??? Do we have to do something special for INACTIVE
+            when HOLDING =>
+               declare
+                  S : Droopi.Objects.Servant_Access;
+               begin
+                  S := Droopi.Objects.Servant_Access
+                    (Get_Hold_Servant
+                     (OA.POA_Manager.all'Access,
+                      CORBA.POA_Types.Obj_Adapter_Access (OA)));
+                  return S;
+               end;
+            when others =>
+               null;
+         end case;
+      end if;
       pragma Debug (O ("Look for OA with name #"
                        & To_Standard_String (U_Oid.Creator)
                        & "# starting from RootPOA"));
       The_OA := Find_POA_Recursively (OA, U_Oid.Creator);
       pragma Debug (O ("OA : "
                        & To_Standard_String (The_OA.Name)
-                       & " looks for servant associated to Id "
+                       & " looks for servant associated with Id "
                        & Droopi.Objects.To_String (Id)));
       if The_OA /= null then
          return Droopi.Objects.Servant_Access (Id_To_Servant (The_OA,

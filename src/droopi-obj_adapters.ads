@@ -8,6 +8,7 @@ with Droopi.Any.NVList;
 
 with Droopi.Objects; use Droopi.Objects;
 with Droopi.Requests;
+with Droopi.Components;
 
 package Droopi.Obj_Adapters is
 
@@ -26,6 +27,11 @@ package Droopi.Obj_Adapters is
 
    Invalid_Method : exception;
    --  A method was invoked on an object that does not implement it.
+
+   procedure Set_ORB
+     (OA      : access Obj_Adapter;
+      The_ORB :        Droopi.Components.Component_Access);
+   --  Set the ORB whose OA is attached to.
 
    --------------------------------------
    -- Interface to application objects --
@@ -80,6 +86,11 @@ package Droopi.Obj_Adapters is
 
 private
 
-   type Obj_Adapter is abstract tagged limited null record;
+   type Obj_Adapter is abstract tagged limited
+      record
+         ORB : Droopi.Components.Component_Access;
+         --  The ORB the OA is attached to. Needs to be casted into an
+         --  ORB_Access when used.
+      end record;
 
 end Droopi.Obj_Adapters;

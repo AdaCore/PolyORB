@@ -7,6 +7,7 @@ package body CORBA.POA_Manager.Basic_Manager is
    use Droopi.Locks;
    use Droopi.CORBA_P.Exceptions;
    use Droopi.Log;
+   use Requests_Queue_P;
 
    package L is new Droopi.Log.Facility_Log
      ("corba.poa_manager.basic_manager");
@@ -43,11 +44,11 @@ package body CORBA.POA_Manager.Basic_Manager is
       Unlock_W (Self.State_Lock);
    end Activate;
 
-   ------------------
-   -- Hold_Request --
-   ------------------
+   -------------------
+   -- Hold_Requests --
+   -------------------
 
-   procedure Hold_Request
+   procedure Hold_Requests
      (Self                : access Basic_POA_Manager;
       Wait_For_Completion :        Boolean)
    is
@@ -67,7 +68,7 @@ package body CORBA.POA_Manager.Basic_Manager is
       if Wait_For_Completion then
          Do_Wait_For_Completion (Self);
       end if;
-   end Hold_Request;
+   end Hold_Requests;
 
    ----------------------
    -- Discard_Requests --
@@ -134,6 +135,8 @@ package body CORBA.POA_Manager.Basic_Manager is
                       return State
    is
    begin
+      pragma Debug (O ("POAManager state is "
+                       & Self.Current_State'Img));
       return Self.Current_State;
    end Get_State;
 
@@ -149,6 +152,7 @@ package body CORBA.POA_Manager.Basic_Manager is
       Create (M.State_Lock);
       Create (M.Count_Lock);
       Create (M.POAs_Lock);
+      Create (M.Queue_Lock);
 
       Lock_W (M.POAs_Lock);
       M.Managed_POAs := new POAList;
@@ -157,19 +161,11 @@ package body CORBA.POA_Manager.Basic_Manager is
       Lock_W (M.State_Lock);
       M.Current_State := HOLDING;
       Unlock_W (M.State_Lock);
+
+      Lock_W (M.Queue_Lock);
+      Create (M.Holded_Requests, Queue_Size);
+      Unlock_W (M.Queue_Lock);
    end Create;
-
-   -------------
-   -- Destroy --
-   -------------
-
-   procedure Destroy (M : access Basic_POA_Manager)
-   is
-      To_Free : Basic_POA_Manager_Access := Basic_POA_Manager_Access (M);
-   begin
-      pragma Debug (O ("Destroy Basic_POA_Manager"));
-      Free (To_Free);
-   end Destroy;
 
    ------------------
    -- Register_POA --
@@ -223,6 +219,39 @@ package body CORBA.POA_Manager.Basic_Manager is
 
       raise Invalid_Obj_Adapter;
    end Remove_POA;
+
+   ----------------------
+   -- Get_Hold_Servant --
+   ----------------------
+
+   function Get_Hold_Servant
+     (Self : access Basic_POA_Manager;
+      OA   :        Obj_Adapter_Access)
+     return Hold_Servant_Base_Access
+   is
+      S         : Hold_Servant_Access;
+      New_Entry : Queue_Element_Access;
+   begin
+      pragma Debug (O ("Get a Hold_Servant"));
+      Lock_W (Self.Queue_Lock);
+
+      if Get_Count (Self.Holded_Requests) >=
+        Get_Max_Count (Self.Holded_Requests)
+      then
+         Unlock_W (Self.Queue_Lock);
+         Raise_Transient (1);
+      end if;
+
+      New_Entry     := new Queue_Element;
+      New_Entry.OA  := OA;
+      Add (Self.Holded_Requests, New_Entry);
+
+      S             := new Hold_Servant;
+      S.Queue_Entry := New_Entry;
+      Unlock_W (Self.Queue_Lock);
+
+      return Hold_Servant_Base_Access (S);
+   end Get_Hold_Servant;
 
    -----------------------
    -- Inc_Usage_Counter --
@@ -286,6 +315,8 @@ package body CORBA.POA_Manager.Basic_Manager is
    procedure Destroy_If_Unused
      (Self : access Basic_POA_Manager)
    is
+      BPM : Basic_POA_Manager_Access
+        := Basic_POA_Manager_Access (Self);
    begin
       Lock_R (Self.Count_Lock);
       if Self.Usage_Count = 0 then
@@ -294,10 +325,57 @@ package body CORBA.POA_Manager.Basic_Manager is
          Destroy (Self.State_Lock);
          Destroy (Self.Count_Lock);
          Destroy (Self.POAs_Lock);
-         Destroy (Self);
+         Destroy (Self.Queue_Lock);
+         Destroy (Self.Holded_Requests);
+         Free (BPM);
          return;
       end if;
       Unlock_R (Self.Count_Lock);
    end Destroy_If_Unused;
+
+   ------------
+   -- Create --
+   ------------
+
+   procedure Create
+     (HS  : in out Hold_Servant;
+      QEA : in     Queue_Element_Access)
+   is
+   begin
+      HS.Queue_Entry := QEA;
+   end Create;
+
+   ----------
+   -- Left --
+   ----------
+
+   function "="
+     (Left, Right : Hold_Servant)
+     return Boolean
+   is
+   begin
+      return Left.Queue_Entry = Right.Queue_Entry;
+   end "=";
+
+   --------------------
+   -- Handle_Message --
+   --------------------
+
+   function Handle_Message
+     (Obj : access Hold_Servant;
+      Msg :        Droopi.Components.Message'Class)
+     return Droopi.Components.Message'Class
+   is
+      S            : Hold_Servant_Access;
+      Null_Message : Droopi.Components.Null_Message;
+   begin
+      pragma Debug (O ("Hold Servant queues message"));
+      --      Obj.Queue_Entry.Msg := Msg;
+      --  ??? How do we queue the messages?
+
+      S := Hold_Servant_Access (Obj);
+      Free (S);
+      return Null_Message;
+   end Handle_Message;
 
 end CORBA.POA_Manager.Basic_Manager;
