@@ -86,7 +86,7 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
    is
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (Self);
+      pragma Unreferenced (Self, OA, P_Servant);
       pragma Warnings (On);
 
       null;
@@ -108,7 +108,7 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
         := PolyORB.POA.Obj_Adapter_Access (OA);
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (Self);
+      pragma Unreferenced (Self, Oid);
       pragma Warnings (On);
 
       return Implicit_Activate_Servant

@@ -221,7 +221,11 @@ package body CORBA.ORB.Typecode is
    function Create_Recursive_Sequence_Tc
      (Bound  : in CORBA.Unsigned_Long;
       Offset : in CORBA.Unsigned_Long)
-     return CORBA.TypeCode.Object is
+     return CORBA.TypeCode.Object
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Bound, Offset);
+      pragma Warnings (On);
    begin
       return TC_Null;
    end Create_Recursive_Sequence_Tc;
@@ -305,7 +309,11 @@ package body CORBA.ORB.Typecode is
 
    function Create_Recursive_Tc
      (Id   : in CORBA.RepositoryId)
-     return CORBA.TypeCode.Object is
+     return CORBA.TypeCode.Object
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Id);
+      pragma Warnings (On);
    begin
       return TC_Null;
    end Create_Recursive_Tc;

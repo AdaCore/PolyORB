@@ -38,9 +38,9 @@ package body CORBA.Repository_Root.Repository.Impl is
 
    use PolyORB.Log;
 
-   package L is new PolyORB.Log.Facility_Log ("repository.impl");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
-     renames L.Output;
+--    package L is new PolyORB.Log.Facility_Log ("repository.impl");
+--    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+--      renames L.Output;
 
    package L2 is new PolyORB.Log.Facility_Log ("repository.impl_method_trace");
    procedure O2 (Message : in Standard.String; Level : Log_Level := Debug)
@@ -64,8 +64,9 @@ package body CORBA.Repository_Root.Repository.Impl is
    --  To_Forward  --
    ------------------
 
-   function To_Forward (Obj : Object_Ptr)
-                        return Repository_Forward.Ref is
+   function To_Forward
+     (Obj : Object_Ptr)
+     return Repository_Forward.Ref is
       Ref : Repository.Ref;
    begin
       pragma Debug (O2 ("to_forward (repository)"));
@@ -106,6 +107,10 @@ package body CORBA.Repository_Root.Repository.Impl is
       tc : in CORBA.TypeCode.Object)
      return CORBA.TypeCode.Object
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self, tc);
+      pragma Warnings (On);
+
       Result : CORBA.TypeCode.Object;
    begin
 
@@ -123,8 +128,13 @@ package body CORBA.Repository_Root.Repository.Impl is
       kind : in CORBA.Repository_Root.PrimitiveKind)
      return CORBA.Repository_Root.PrimitiveDef.Ref
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+
       Result : CORBA.Repository_Root.PrimitiveDef.Ref;
-      Obj : PrimitiveDef.Impl.Object_Ptr := new PrimitiveDef.Impl.Object;
+      Obj : constant PrimitiveDef.Impl.Object_Ptr
+        := new PrimitiveDef.Impl.Object;
       IDL_Type : CORBA.TypeCode.Object;
    begin
       --  Create the appropriate TypeCode
@@ -197,8 +207,13 @@ package body CORBA.Repository_Root.Repository.Impl is
       bound : in CORBA.Unsigned_Long)
      return CORBA.Repository_Root.StringDef.Ref
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+
       Result : StringDef.Ref;
-      Obj : StringDef.Impl.Object_Ptr := new StringDef.Impl.Object;
+      Obj : constant StringDef.Impl.Object_Ptr
+        := new StringDef.Impl.Object;
    begin
       --  initialization of the string
       StringDef.Impl.Init (Obj,
@@ -219,8 +234,13 @@ package body CORBA.Repository_Root.Repository.Impl is
       bound : in CORBA.Unsigned_Long)
      return CORBA.Repository_Root.WstringDef.Ref
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+
       Result : CORBA.Repository_Root.WstringDef.Ref;
-      Obj : WstringDef.Impl.Object_Ptr := new WstringDef.Impl.Object;
+      Obj : constant WstringDef.Impl.Object_Ptr
+        := new WstringDef.Impl.Object;
    begin
       --  initialization of the wstring
       WstringDef.Impl.Init (Obj,
@@ -242,10 +262,15 @@ package body CORBA.Repository_Root.Repository.Impl is
       element_type : in CORBA.Repository_Root.IDLType.Ref)
      return CORBA.Repository_Root.SequenceDef.Ref
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+
       Result : CORBA.Repository_Root.SequenceDef.Ref;
       Elem_Obj : PortableServer.Servant;
       Element : CORBA.TypeCode.Object;
-      Obj : SequenceDef.Impl.Object_Ptr := new SequenceDef.Impl.Object;
+      Obj : constant SequenceDef.Impl.Object_Ptr
+        := new SequenceDef.Impl.Object;
    begin
       PolyORB.CORBA_P.Server_Tools.Reference_To_Servant (element_type,
                                                Elem_Obj);
@@ -273,8 +298,12 @@ package body CORBA.Repository_Root.Repository.Impl is
       element_type : in CORBA.Repository_Root.IDLType.Ref)
      return CORBA.Repository_Root.ArrayDef.Ref
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+
       Result : CORBA.Repository_Root.ArrayDef.Ref;
-      Obj : ArrayDef.Impl.Object_Ptr := new ArrayDef.Impl.Object;
+      Obj : constant ArrayDef.Impl.Object_Ptr := new ArrayDef.Impl.Object;
       Elem_Obj : PortableServer.Servant;
       Element : CORBA.TypeCode.Object;
    begin
@@ -305,8 +334,12 @@ package body CORBA.Repository_Root.Repository.Impl is
       scale : in CORBA.Short)
      return CORBA.Repository_Root.FixedDef.Ref
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+
       Result : CORBA.Repository_Root.FixedDef.Ref;
-      Obj : FixedDef.Impl.Object_Ptr := new FixedDef.Impl.Object;
+      Obj : constant FixedDef.Impl.Object_Ptr := new FixedDef.Impl.Object;
    begin
       --  initialization of the Fixed
       FixedDef.Impl.Init (Obj,

@@ -458,7 +458,7 @@ package body CORBA.ORB is
    is
       Result : PolyORB.References.Ref;
 
-      Oid    : PolyORB.Objects.Object_Id_Access
+      Oid    : constant PolyORB.Objects.Object_Id_Access
         := new PolyORB.Objects.Object_Id'
         (CORBA.Object.To_PolyORB_Object (Object));
    begin

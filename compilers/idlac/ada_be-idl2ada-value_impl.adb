@@ -62,7 +62,7 @@ package body Ada_Be.Idl2Ada.Value_Impl is
 
             --  check parent
             declare
-               Primary_Parent : Node_Id
+               Primary_Parent : constant Node_Id
                  := Idl_Fe.Tree.Synthetic.Primary_Parent (Node);
             begin
                if Primary_Parent = No_Node then

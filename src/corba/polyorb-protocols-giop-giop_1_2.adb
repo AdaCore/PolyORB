@@ -425,7 +425,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          when Key_Addr  =>
 
             declare
-               Obj : Stream_Element_Array :=  Unmarshall (Buffer);
+               Obj : constant Stream_Element_Array :=  Unmarshall (Buffer);
             begin
                Target_Ref := new Target_Address'
                  (Address_Type => Key_Addr,
@@ -533,7 +533,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       case  Temp_Octet  is
          when Key_Addr  =>
             declare
-               Obj : Stream_Element_Array := Unmarshall (Buffer);
+               Obj : constant Stream_Element_Array := Unmarshall (Buffer);
             begin
                Target_Ref := Target_Address'
                  (Address_Type => Key_Addr,
@@ -574,8 +574,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
    function Unmarshall
      (Buffer  : access Buffers.Buffer_Type)
-     return Addressing_Disposition is
-      Value : Types.Short := Unmarshall (Buffer);
+     return Addressing_Disposition
+   is
+      Value : constant Types.Short := Unmarshall (Buffer);
    begin
       return Addressing_Disposition'Val (Value);
    end Unmarshall;

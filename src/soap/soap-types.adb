@@ -161,6 +161,10 @@ package body SOAP.Types is
 --    end Finalize;
 
    function TCK (A : Any) return TCKind;
+   pragma Warnings (Off);
+   pragma Unreferenced (TCK);
+   pragma Warnings (On);
+
    function UTCK (A : Any) return TCKind;
    --  Return the typecode kind of A. UTCK returns the
    --  kind after unwinding all levels of typedef.

@@ -109,9 +109,6 @@ package body PolyORB.Obj_Adapters is
       Oid : access Objects.Object_Id)
      return References.Ref
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (R);
-      pragma Warnings (On);
    begin
       raise PolyORB.Not_Implemented;
       pragma Warnings (Off);

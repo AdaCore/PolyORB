@@ -101,7 +101,7 @@ package body PolyORB.Utils.SRP is
       use Objects;
 
       Result  : Split_SRP;
-      Args    : Arg_Info_Ptr := new Arg_Info;
+      Args    : constant Arg_Info_Ptr := new Arg_Info;
       Current : Arg_Info_Ptr := Args;
       Last    : Arg_Info_Ptr;
 
@@ -109,8 +109,8 @@ package body PolyORB.Utils.SRP is
       --  WARNING : we consider a restrictive form of the Object_Id
       --  Should be changed
       Matches         : Match_Array (1 .. 255);
-      Regexp_Req_OID  : Standard.String := "(\w+) (\d+)\?(.*)";
-      Regexp_Args     : Standard.String := "(\w+)=(\w+)&?(.*)";
+      Regexp_Req_OID  : constant Standard.String := "(\w+) (\d+)\?(.*)";
+      Regexp_Args     : constant Standard.String := "(\w+)=(\w+)&?(.*)";
 
       Args_Ptr : Types.String_Ptr;
    begin
@@ -192,18 +192,18 @@ package body PolyORB.Utils.SRP is
    function Join (Data : Split_SRP) return Any.Any
    is
       URL : Types.String;
-      Current_Arg : Arg_Info_Ptr := Data.Args;
+      --  Current_Arg : Arg_Info_Ptr := Data.Args;
    begin
       Append (URL, Data.Method.all & " " & To_String (Data.Oid.all) & "?");
-      while Current_Arg /= null loop
-         raise Not_Implemented;
+      raise Not_Implemented;
+--      while Current_Arg /= null loop
 --          Append (URL, Current_Arg.all.Name.all & "=" &
 --                  Current_Arg.all.Value.all);
 --          if Current_Arg.all.Next /= null then
 --             Append (URL, "&");
 --          end if;
---          Current_Arg := Current_Arg.Next;
-      end loop;
+--         Current_Arg := Current_Arg.Next;
+--      end loop;
       return Any.To_Any (Types.To_PolyORB_String (To_String (URL)));
    end Join;
 

@@ -196,7 +196,7 @@ package body PolyORB.Obj_Adapters.Simple is
 
       begin
          declare
-            OME : Object_Map_Entry
+            OME : constant Object_Map_Entry
               := Find_Entry (OA.all, Index);
          begin
             if OME.If_Desc.PP_Desc = null then
@@ -227,7 +227,7 @@ package body PolyORB.Obj_Adapters.Simple is
 
       begin
          declare
-            OME : Object_Map_Entry
+            OME : constant Object_Map_Entry
               := Find_Entry (OA.all, Index);
          begin
             if OME.If_Desc.PP_Desc = null then

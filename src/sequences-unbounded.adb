@@ -622,7 +622,7 @@ package body Sequences.Unbounded is
       New_Item : in Element_Array)
      return Sequence
    is
-      Result : Sequence;
+      Result : Sequence := Source;
    begin
       Insert (Result, Before, New_Item);
       return Result;

@@ -87,7 +87,7 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Persistent is
      return Time_Stamp is
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (Self);
+      pragma Unreferenced (Self, OA);
       pragma Warnings (On);
       return 0;
    end Get_Lifespan_Cookie;
@@ -102,7 +102,7 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Persistent is
       U_Oid : Unmarshalled_Oid) is
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (Self);
+      pragma Unreferenced (Self, OA);
       pragma Warnings (On);
       if U_Oid.Persistency_Flag /= 0 then
          raise PolyORB.POA.Object_Not_Exist;

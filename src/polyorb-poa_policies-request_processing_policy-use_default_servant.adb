@@ -51,10 +51,11 @@ is
 
    procedure Check_Compatibility
      (Self : Use_Default_Servant_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access) is
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
+   is
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (Self);
+      pragma Unreferenced (Self, OA);
       pragma Warnings (On);
 
       null;
@@ -106,7 +107,7 @@ is
    is
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (Self);
+      pragma Unreferenced (Self, U_Oid);
       pragma Warnings (On);
 
       return POA.Obj_Adapter_Access (OA).Default_Servant;

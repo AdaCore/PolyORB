@@ -54,7 +54,8 @@ package body Idl_Fe.Lexer is
 
    subtype Idl_Token_Keyword is Idl_Token range T_Abstract .. T_Wstring;
 
-   All_Idl_Keywords : array (Idl_Token_Keyword) of String_Cacc :=
+   All_Idl_Keywords : constant array (Idl_Token_Keyword)
+     of String_Cacc :=
      (T_Abstract    => new String'("abstract"),
       T_Any         => new String'("any"),
       T_Attribute   => new String'("attribute"),
@@ -489,28 +490,28 @@ package body Idl_Fe.Lexer is
                null;
             when Case_Differ =>
                if Is_Escaped then
-                  Is_A_Keyword := Idl_Keyword_State (Is_Identifier);
-                  Tok := Idl_Token (T_Error);
+                  Is_A_Keyword := Is_Identifier;
+                  Tok := T_Error;
                   return;
                else
-                  Is_A_Keyword := Idl_Keyword_State (Bad_Case);
+                  Is_A_Keyword := Bad_Case;
                   Tok := I;
                   return;
                end if;
             when Equal =>
                if Is_Escaped then
-                  Is_A_Keyword := Idl_Keyword_State (Is_Identifier);
-                  Tok := Idl_Token (T_Error);
+                  Is_A_Keyword := Is_Identifier;
+                  Tok := T_Error;
                   return;
                else
-                  Is_A_Keyword := Idl_Keyword_State (Is_Keyword);
+                  Is_A_Keyword := Is_Keyword;
                   Tok := I;
                   return;
                end if;
          end case;
       end loop;
-      Is_A_Keyword := Idl_Keyword_State (Is_Identifier);
-      Tok := Idl_Token (T_Error);
+      Is_A_Keyword := Is_Identifier;
+      Tok := T_Error;
       return;
    end Is_Idl_Keyword;
 
@@ -847,11 +848,11 @@ package body Idl_Fe.Lexer is
                          Is_A_Keyword,
                          Tok);
          case Is_A_Keyword is
-            when Idl_Keyword_State (Is_Keyword) =>
+            when Is_Keyword =>
                return Tok;
-            when Idl_Keyword_State (Is_Identifier) =>
+            when Is_Identifier =>
                return T_Identifier;
-            when Idl_Keyword_State (Bad_Case) =>
+            when Bad_Case =>
                Errors.Error
                  ("Bad identifier or bad case for IDL keyword."
                   & " I Supposed you meant the keyword.",
@@ -1039,7 +1040,7 @@ package body Idl_Fe.Lexer is
                         use Ada.Strings.Maps;
                         use Ada.Strings;
                         Separator : Natural;
-                        Text : String := Get_Marked_Text;
+                        Text : constant String := Get_Marked_Text;
                      begin
                         --  verifies the name ends with ".idl"
                         if Text'Length < 4

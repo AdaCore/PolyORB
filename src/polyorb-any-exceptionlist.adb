@@ -66,7 +66,7 @@ package body PolyORB.Any.ExceptionList is
    function Get_Count
      (Self : in Ref)
       return PolyORB.Types.Unsigned_Long is
-      Obj : Object_Ptr := Object_Ptr (Entity_Of (Self));
+      Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
    begin
       return PolyORB.Types.Unsigned_Long
         (Exception_Sequences.Length (Obj.List));
@@ -93,7 +93,7 @@ package body PolyORB.Any.ExceptionList is
       Index : in PolyORB.Types.Unsigned_Long)
       return PolyORB.Any.TypeCode.Object
    is
-      Obj : Object_Ptr := Object_Ptr (Entity_Of (Self));
+      Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
    begin
       return Exception_Sequences.Element_Of (Obj.List, Positive (Index));
    end Item;
@@ -137,8 +137,6 @@ package body PolyORB.Any.ExceptionList is
       Name : in PolyORB.Types.String)
      return PolyORB.Types.Unsigned_Long
    is
-      Obj : Object_Ptr := Object_Ptr (Entity_Of (Self));
-
       use PolyORB.Types;
 
       function Match
@@ -163,6 +161,8 @@ package body PolyORB.Any.ExceptionList is
 
       package Exception_Search is new Exception_Sequences.Search
         (PolyORB.Types.String, Match);
+
+      Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
 
    begin
       pragma Debug (O ("Search_Exception_Id : Obj.list length is " &

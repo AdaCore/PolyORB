@@ -114,7 +114,7 @@ package body PolyORB.Representations.SRP is
       E, Old : Stream_Element := 0;
 
       function Base64 (E : in Stream_Element) return Character is
-         V : Natural := Natural (E);
+         V : constant Natural := Natural (E);
       begin
          if V in 0 .. 25 then
             return Character'Val (V + Character'Pos ('A'));
@@ -550,7 +550,7 @@ package body PolyORB.Representations.SRP is
      (Buffer : access Buffer_Type)
      return PolyORB.Any.TypeCode.Object
    is
-      Nb : PolyORB.Types.Unsigned_Long := Unmarshall (Buffer);
+      Nb : constant PolyORB.Types.Unsigned_Long := Unmarshall (Buffer);
       Result : PolyORB.Any.TypeCode.Object;
    begin
       --  XXX The hardcoded values in this case should be replaced
@@ -1462,7 +1462,7 @@ package body PolyORB.Representations.SRP is
      (Buffer : access Buffer_Type;
       Data   :        PolyORB.Any.Any)
    is
-      Data_Type : PolyORB.Any.TypeCode.Object
+      Data_Type : constant PolyORB.Any.TypeCode.Object
         := PolyORB.Any.Get_Unwound_Type (Data);
    begin
       pragma Debug (O ("Marshall_From_Any : enter"));
@@ -1845,7 +1845,7 @@ package body PolyORB.Representations.SRP is
             null;
          when Tk_Short =>
             declare
-               S : Short := Unmarshall (Buffer);
+               S : constant Short := Unmarshall (Buffer);
             begin
                pragma Debug (O ("Unmarshall_To_Any : dealing with a short"));
                pragma Debug (O ("Unmarshall_To_Any : its value is "
@@ -1854,7 +1854,7 @@ package body PolyORB.Representations.SRP is
             end;
          when Tk_Long =>
             declare
-               L : Long := Unmarshall (Buffer);
+               L : constant Long := Unmarshall (Buffer);
             begin
                pragma Debug (O ("Unmarshall_To_Any : dealing with a long"));
                Set_Any_Value (Result, L);
@@ -1890,31 +1890,31 @@ package body PolyORB.Representations.SRP is
 --             end;
          when Tk_Boolean =>
             declare
-               B : PolyORB.Types.Boolean := Unmarshall (Buffer);
+               B : constant PolyORB.Types.Boolean := Unmarshall (Buffer);
             begin
                Set_Any_Value (Result, B);
             end;
          when Tk_Char =>
             declare
-               C : Char := Unmarshall (Buffer);
+               C : constant Char := Unmarshall (Buffer);
             begin
                Set_Any_Value (Result, C);
             end;
          when Tk_Octet =>
             declare
-               O : PolyORB.Types.Octet := Unmarshall (Buffer);
+               O : constant PolyORB.Types.Octet := Unmarshall (Buffer);
             begin
                Set_Any_Value (Result, O);
             end;
          when Tk_Any =>
             declare
-               A : Any.Any := Unmarshall (Buffer);
+               A : constant Any.Any := Unmarshall (Buffer);
             begin
                Set_Any_Value (Result, A);
             end;
          when Tk_TypeCode =>
             declare
-               T : TypeCode.Object := Unmarshall (Buffer);
+               T : constant TypeCode.Object := Unmarshall (Buffer);
             begin
                pragma Debug (O ("Unmarshall_To_Any : "
                                 & "dealing with a TypeCode"));
@@ -2404,7 +2404,7 @@ package body PolyORB.Representations.SRP is
    is
       use Any;
 
-      Local_SRP_Info : Split_SRP := SRP_Info;
+      Local_SRP_Info : constant Split_SRP := SRP_Info;
       Coded_URL : String_Ptr;
    begin
       pragma Warnings (Off);

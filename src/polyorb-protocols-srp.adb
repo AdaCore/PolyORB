@@ -149,8 +149,8 @@ package body PolyORB.Protocols.SRP is
       Request_String : String_Ptr;
       Req    : Request_Access;
 
-      Target_Profile :
-        Binding_Data.Profile_Access := new Local_Profile_Type;
+      Target_Profile : constant Binding_Data.Profile_Access
+        := new Local_Profile_Type;
       Target   : References.Ref;
    begin
       --  Get the entire request string
@@ -522,7 +522,7 @@ package body PolyORB.Protocols.SRP is
       Method.all := Unmarshall (Buffer);
 
       declare
-         Obj : Stream_Element_Array := Unmarshall (Buffer);
+         Obj : constant Stream_Element_Array := Unmarshall (Buffer);
       begin
          Oid.all := Object_Id (Obj);
       end;
@@ -565,7 +565,7 @@ package body PolyORB.Protocols.SRP is
    function To_SEA (S : Types.String) return Stream_Element_Array;
    function To_SEA (S : Types.String) return Stream_Element_Array
    is
-      Temp_S : Standard.String := To_Standard_String (S);
+      Temp_S : constant Standard.String := To_Standard_String (S);
       Value  : Stream_Element_Array (1 .. Temp_S'Length);
    begin
       for I in Value'Range loop

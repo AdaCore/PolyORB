@@ -61,7 +61,7 @@ package body PolyORB.Jobs is
      (Q : access Job_Queue;
       J : Job_Access)
    is
-      E : Queue_Element_Access
+      E : constant Queue_Element_Access
         := new Queue_Element'(Next => null, Job  => J);
    begin
       if Q.Last = null then

@@ -276,8 +276,10 @@ package body PolyORB.ORB.Thread_Pool is
       Setup.The_Tasking_Policy := new Thread_Pool_Policy;
 
       Initialize
-        (Get_Conf ("tasking", "polyorb.orb.thread_pool.threads", 4),
-         Get_Conf ("tasking", "polyorb.orb.thread_pool.queue_size", 10));
+        (Get_Conf ("tasking", "polyorb.orb.thread_pool.threads",
+                   Default_Threads),
+         Get_Conf ("tasking", "polyorb.orb.thread_pool.queue_size",
+                   Default_Queue_Size));
    end Auto_Initialize;
 
    use PolyORB.Initialization;

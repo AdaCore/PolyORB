@@ -513,7 +513,7 @@ package body PolyORB.Protected_Objects is
    type Generic_Task_Access is access Generic_Task;
 
    procedure Create_Task (Main : Parameterless_Procedure) is
-      T : Generic_Task_Access := new Generic_Task;
+      T : constant Generic_Task_Access := new Generic_Task;
    begin
       T.Start (Main);
    end Create_Task;

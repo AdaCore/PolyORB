@@ -3,7 +3,6 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
-with Ada.Unchecked_Deallocation;
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.Contained.Impl;
 with CORBA.Repository_Root.Container.Impl;
@@ -22,9 +21,9 @@ package body CORBA.Repository_Root.IRObject.Impl is
 
    use PolyORB.Log;
 
-   package L is new PolyORB.Log.Facility_Log ("irobject.impl");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
-     renames L.Output;
+--    package L is new PolyORB.Log.Facility_Log ("irobject.impl");
+--    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+--      renames L.Output;
 
    package L2 is new PolyORB.Log.Facility_Log ("irobject.impl_method_trace");
    procedure O2 (Message : in Standard.String; Level : Log_Level := Debug)
@@ -73,11 +72,6 @@ package body CORBA.Repository_Root.IRObject.Impl is
    -------------------------
    --  Remove_Object_Ptr  --
    -------------------------
-   type Simple_Object_Ptr is access all Object;
-
-   procedure Simple_Unchecked_Deallocation is
-     new Ada.Unchecked_Deallocation
-     (Object, Simple_Object_Ptr);
 
    procedure destroy
      (Self : access Object) is
@@ -99,7 +93,7 @@ package body CORBA.Repository_Root.IRObject.Impl is
             --  FIXME  memory leak, should be dispatched
             --  remove the contained from the previous container
             declare
-               Cont : Contained.Impl.Object_Ptr
+               Cont : constant Contained.Impl.Object_Ptr
                  := Contained.Impl.To_Contained (Get_Real_Object (Self));
             begin
                Container.Impl.Delete_From_Contents

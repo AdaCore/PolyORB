@@ -174,7 +174,7 @@ package body PolyORB.References.IOR is
       All_Profiles :
       for N in 1 .. N_Profiles loop
          declare
-            Temp_Tag : Types.Unsigned_Long := Unmarshall (Buffer);
+            Temp_Tag : constant Types.Unsigned_Long := Unmarshall (Buffer);
             Tag      : constant Profile_Tag := Profile_Tag (Temp_Tag);
             Known    : Boolean := False;
          begin
@@ -249,10 +249,10 @@ package body PolyORB.References.IOR is
      (Opaque : access Ada.Streams.Stream_Element_Array)
      return IOR_Type
    is
-      Buf : Buffer_Access := new Buffer_Type;
+      Buf : aliased Buffer_Type;
    begin
-      Decapsulate (Opaque, Buf);
-      return Unmarshall (Buf);
+      Decapsulate (Opaque, Buf'Access);
+      return Unmarshall (Buf'Access);
    end Opaque_To_Object;
 
    function Object_To_String (IOR : IOR_Type)

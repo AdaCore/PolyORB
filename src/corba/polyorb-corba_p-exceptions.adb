@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#5 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#6 $
 
 with Ada.Exceptions; use Ada.Exceptions;
 with Ada.Strings.Unbounded;
@@ -237,7 +237,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (From : in CORBA.Exception_Occurrence;
       To   : out System_Exception_Members)
    is
-      Str : String := Ada.Exceptions.Exception_Message (From);
+      Str : constant String := Ada.Exceptions.Exception_Message (From);
       Val : Unsigned_Long;
    begin
       --  Check length.

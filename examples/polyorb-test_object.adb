@@ -130,7 +130,8 @@ package body PolyORB.Test_Object is
          declare
             Req : Request_Access
               := Execute_Request (Msg).Req;
-            Args_Sequence : PolyORB.Any.NVList.Internals.NV_Sequence_Access
+            Args_Sequence :
+              constant PolyORB.Any.NVList.Internals.NV_Sequence_Access
               := PolyORB.Any.NVList.Internals.List_Of (Req.all.Args);
          begin
             pragma Debug (O ("The server is executing the request:"
@@ -154,7 +155,7 @@ package body PolyORB.Test_Object is
                   waitAndEchoString_Arg1 : Types.String :=
                     From_Any (NV_Sequence.Element_Of
                               (Args_Sequence.all, 1).Argument);
-                  waitAndEchoString_Arg2 : Types.Long :=
+                  waitAndEchoString_Arg2 : constant Types.Long :=
                     From_Any (NV_Sequence.Element_Of
                               (Args_Sequence.all, 2).Argument);
                begin
@@ -166,7 +167,7 @@ package body PolyORB.Test_Object is
                end;
             elsif Req.all.Operation = "echoInteger" then
                declare
-                  echoInteger_Arg : Types.Long :=
+                  echoInteger_Arg : constant Types.Long :=
                     From_Any (NV_Sequence.Element_Of
                               (Args_Sequence.all, 1).Argument);
                begin

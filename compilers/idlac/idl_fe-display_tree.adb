@@ -193,7 +193,7 @@ package body Idl_Fe.Display_Tree is
 
    --  Disp tree procedure
    procedure Disp_Tree (N : Node_Id; Indent : Natural; Full : Boolean) is
-      N_Indent : Natural := Indent + Offset;
+      N_Indent : constant Natural := Indent + Offset;
    begin
       Disp_Indent (Indent);
       if N = No_Node then

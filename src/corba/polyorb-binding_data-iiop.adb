@@ -125,7 +125,7 @@ package body PolyORB.Binding_Data.IIOP is
       Remote_Addr : Sock_Addr_Type := Profile.Address;
       Pro  : aliased GIOP_Protocol;
       Sli  : aliased Slicer_Factory;
-      Prof : Profile_Access := new IIOP_Profile_Type;
+      Prof : constant Profile_Access := new IIOP_Profile_Type;
       --  This Profile_Access is stored in the created
       --  GIOP_Session, and free'd when the session is finalised.
 
@@ -260,8 +260,8 @@ package body PolyORB.Binding_Data.IIOP is
       Start_Encapsulation (Profile_Body);
 
       --  Version
-      Marshall (Profile_Body, Types.Octet (IIOP_Major_Version));
-      Marshall (Profile_Body, Types.Octet (IIOP_Minor_Version));
+      Marshall (Profile_Body, IIOP_Major_Version);
+      Marshall (Profile_Body, IIOP_Minor_Version);
 
       --  Marshalling of a Socket
       Marshall_Socket (Profile_Body, IIOP_Profile.Address);
@@ -291,7 +291,7 @@ package body PolyORB.Binding_Data.IIOP is
       Profile_Body   : aliased Encapsulation := Unmarshall (Buffer);
       Profile_Buffer : Buffer_Access := new Buffers.Buffer_Type;
       --  Length         : CORBA.Long;
-      Result         : Profile_Access := new IIOP_Profile_Type;
+      Result         : constant Profile_Access := new IIOP_Profile_Type;
       TResult        : IIOP_Profile_Type
         renames IIOP_Profile_Type (Result.all);
 
@@ -309,7 +309,7 @@ package body PolyORB.Binding_Data.IIOP is
       Unmarshall_Socket (Profile_Buffer, TResult.Address);
       pragma Debug (O ("  Address = " & Sockets.Image (TResult.Address)));
       declare
-         Str  : aliased Stream_Element_Array :=
+         Str  : aliased constant Stream_Element_Array :=
            Unmarshall (Profile_Buffer);
       begin
          TResult.Object_Id := new Object_Id'(Object_Id (Str));

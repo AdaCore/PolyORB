@@ -632,8 +632,7 @@ package body Idl_Fe.Types is
    end Increment_Last;
 
    procedure Init (T : in out Table) is
-      Old_Length : Integer := T.Length;
-
+      Old_Length : constant Integer := T.Length;
    begin
       T.Last_Val := Min - 1;
       T.Max      := Min + Initial - 1;

@@ -2323,8 +2323,9 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Fixed_Spec
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id) is
-      Decl_Node : Node_Id := Head (Declarators (Node));
+      Node      : in     Node_Id)
+   is
+      Decl_Node : constant Node_Id := Head (Declarators (Node));
    begin
       if Generate_Dyn then
          --  TypeCode
@@ -2352,8 +2353,9 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Fixed_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id) is
-      Decl_Node : Node_Id := Head (Declarators (Node));
+      Node      : in     Node_Id)
+   is
+      Decl_Node : constant Node_Id := Head (Declarators (Node));
       Type_Name : constant String := Ada_Name (Decl_Node);
    begin
       if Generate_Dyn then

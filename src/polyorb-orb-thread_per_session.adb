@@ -180,8 +180,8 @@ package body PolyORB.ORB.Thread_Per_Session is
          declare
             QR : Interface.Queue_Request
               renames Interface.Queue_Request (Msg);
-            S : Session_Access := Session_Access (QR.Requestor);
-            W : Watcher_Access := Get_Request_Watcher (S);
+            S : constant Session_Access := Session_Access (QR.Requestor);
+            W : constant Watcher_Access := Get_Request_Watcher (S);
          begin
             if W = null then
                --  Session request watcher is null : create task to

@@ -107,6 +107,10 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       Hint   : Object_Id_Access)
      return Unmarshalled_Oid
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+
       POA : constant PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
       --  Object_Id_Info : Unmarshalled_Oid;

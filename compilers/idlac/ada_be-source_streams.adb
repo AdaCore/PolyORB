@@ -400,7 +400,7 @@ package body Ada_Be.Source_Streams is
          Emit_Source_Code (Current_Output);
       else
          declare
-            File_Name : String
+            File_Name : constant String
               := Ada_File_Name (Unit.Library_Unit_Name.all, Unit.Kind);
             File : File_Type;
          begin

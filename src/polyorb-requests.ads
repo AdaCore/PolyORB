@@ -178,11 +178,13 @@ package PolyORB.Requests is
         := Any.ExceptionList.Nil_Ref;
       --  Ctxt_List : in     ContextList.Ref;
       Req       :    out Request_Access;
-      --  Req_Flags : in     Flags;
+      Req_Flags : in     PolyORB.Any.Flags := 0;
       Deferred_Arguments_Session : in Components.Component_Access := null
      );
 
-   procedure Invoke (Self : Request_Access);
+   procedure Invoke
+     (Self         : Request_Access;
+      Invoke_Flags : PolyORB.Any.Flags := 0);
    --  Run Self.
 
    procedure Arguments

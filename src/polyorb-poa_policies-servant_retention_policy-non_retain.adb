@@ -91,6 +91,10 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
       P_Servant : Servant_Access;
       U_Oid     : Unmarshalled_Oid)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+
       use PolyORB.Locks;
       use PolyORB.Object_Maps;
       use PolyORB.POA_Policies.Id_Uniqueness_Policy;
@@ -202,7 +206,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
       use PolyORB.POA_Policies.Lifespan_Policy;
 
       An_Entry : Object_Map_Entry_Access;
-      POA      : PolyORB.POA.Obj_Adapter_Access
+      POA      : constant PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
 
    begin

@@ -118,7 +118,7 @@ package body PolyORB.Binding_Data.SOAP is
       Pro  : aliased SOAP_Protocol;
       Htt  : aliased HTTP_Filter_Factory;
 
-      Prof : Profile_Access := new SOAP_Profile_Type;
+      Prof : constant Profile_Access := new SOAP_Profile_Type;
       --  This Profile_Access is stored in the created
       --  GIOP_Session, and free'd when the session is finalised.
 
@@ -308,7 +308,7 @@ package body PolyORB.Binding_Data.SOAP is
       Profile_Body   : aliased Encapsulation := Unmarshall (Buffer);
       Profile_Buffer : Buffer_Access := new Buffers.Buffer_Type;
       --  Length         : CORBA.Long;
-      Result         : Profile_Access := new SOAP_Profile_Type;
+      Result         : constant Profile_Access := new SOAP_Profile_Type;
       TResult        : SOAP_Profile_Type
         renames SOAP_Profile_Type (Result.all);
 
@@ -318,7 +318,7 @@ package body PolyORB.Binding_Data.SOAP is
       Unmarshall_Socket (Profile_Buffer, TResult.Address);
 
       declare
-         Str  : aliased Stream_Element_Array :=
+         Str  : aliased constant Stream_Element_Array :=
            Unmarshall (Profile_Buffer);
       begin
          TResult.Object_Id := new Object_Id'(Object_Id (Str));

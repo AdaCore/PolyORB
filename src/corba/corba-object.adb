@@ -92,7 +92,8 @@ package body CORBA.Object is
         := CORBA.To_CORBA_String ("get_interface");
 
       Request          : CORBA.Request.Object;
-      Ctx              : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Ctx              : constant CORBA.Context.Ref
+        := CORBA.Context.Nil_Ref;
       Arg_List         : CORBA.NVList.Ref;
       Result           : CORBA.NamedValue;
       Result_Name      : CORBA.String := To_CORBA_String ("Result");
@@ -143,7 +144,8 @@ package body CORBA.Object is
       Arg_Name_Type_Id : CORBA.Identifier
         := To_CORBA_String ("Type_Id");
       Request          : CORBA.Request.Object;
-      Ctx              : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Ctx              : constant CORBA.Context.Ref
+        := CORBA.Context.Nil_Ref;
       Argument_Type_Id : CORBA.Any := CORBA.To_Any
         (To_CORBA_String (Logical_Type_Id));
       Arg_List         : CORBA.NVList.Ref;

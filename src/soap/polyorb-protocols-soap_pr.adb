@@ -275,7 +275,7 @@ package body PolyORB.Protocols.SOAP_Pr is
             ORB : constant ORB_Access := ORB_Access (S.Server);
 
             Target : References.Ref;
-            Target_Profile : Binding_Data.Profile_Access
+            Target_Profile : constant Binding_Data.Profile_Access
               := new Local_Profile_Type;
             --  Should be free'd when Target is finalized.
 

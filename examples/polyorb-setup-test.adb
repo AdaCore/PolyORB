@@ -85,7 +85,7 @@ package body PolyORB.Setup.Test is
       --  Create application server object.
 
       declare
-         My_Id : Object_Id_Access
+         My_Id : constant Object_Id_Access
            := new Object_Id'(Obj_Adapters.Export (Obj_Adapter, My_Servant));
          --  Register it with the SOA.
          My_CORBA_Ref : CORBA.Object.Ref;

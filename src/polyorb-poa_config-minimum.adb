@@ -86,10 +86,6 @@ package body PolyORB.POA_Config.Minimum is
      (C : Minimum_Configuration)
      return PolyORB.POA_Policies.PolicyList is
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (C);
-      pragma Warnings (On);
-
       if not Initialized then
          Initialize (C);
       end if;

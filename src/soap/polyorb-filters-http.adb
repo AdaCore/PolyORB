@@ -927,7 +927,7 @@ package body PolyORB.Filters.HTTP is
    is
       function Cvt is new Ada.Unchecked_Conversion
         (Integer, HTTP_Status_Code);
-      Res : HTTP_Status_Code := Cvt (Status);
+      Res : constant HTTP_Status_Code := Cvt (Status);
 
       Unknown_Codes : constant array (Integer range <>) of HTTP_Status_Code
         := (1 => S_1xx_Other_Informational,

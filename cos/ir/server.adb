@@ -47,7 +47,7 @@ pragma Elaborate (PolyORB.CORBA_P.Server_Tools);
 
 procedure Server is
    Ref : CORBA.Object.Ref;
-   Repo : Repository.Impl.Object_Ptr := new Repository.Impl.Object;
+   Repo : constant Repository.Impl.Object_Ptr := new Repository.Impl.Object;
 begin
    --  PolyORB.ORB.Thread_Pool.Initialize (4, 10);
    CORBA.ORB.Initialize ("ORB");

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#28 $
+--  $Id: //droopi/main/src/polyorb-any.adb#29 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -353,7 +353,7 @@ package body PolyORB.Any is
       --------------------
       function Member_Count (Self : in Object)
                              return Unsigned_Long is
-         Param_Nb : Unsigned_Long := Parameter_Count (Self);
+         Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
       begin
          --  See the big explanation after the declaration of
          --  typecode.object in the private part of corba.typecode
@@ -1216,88 +1216,88 @@ package body PolyORB.Any is
             return True;
          when Tk_Short =>
             declare
-               L : Short := From_Any (Left);
-               R : Short := From_Any (Right);
+               L : constant Short := From_Any (Left);
+               R : constant Short := From_Any (Right);
             begin
                pragma Debug (O ("Equal (Any, Short) : end"));
                return L = R;
             end;
          when Tk_Long =>
             declare
-               L : Long := From_Any (Left);
-               R : Long := From_Any (Right);
+               L : constant Long := From_Any (Left);
+               R : constant Long := From_Any (Right);
             begin
                pragma Debug (O ("Equal (Any, Long) : end"));
                return L = R;
             end;
          when Tk_Ushort =>
             declare
-               L : Unsigned_Short := From_Any (Left);
-               R : Unsigned_Short := From_Any (Right);
+               L : constant Unsigned_Short := From_Any (Left);
+               R : constant Unsigned_Short := From_Any (Right);
             begin
                pragma Debug (O ("Equal (Any, Ushort) : end"));
                return L = R;
             end;
          when Tk_Ulong =>
             declare
-               L : Unsigned_Long := From_Any (Left);
-               R : Unsigned_Long := From_Any (Right);
+               L : constant Unsigned_Long := From_Any (Left);
+               R : constant Unsigned_Long := From_Any (Right);
             begin
                pragma Debug (O ("Equal (Any, Ulong) : end"));
                return L = R;
             end;
          when Tk_Float =>
             declare
-               L : Types.Float := From_Any (Left);
-               R : Types.Float := From_Any (Right);
+               L : constant Types.Float := From_Any (Left);
+               R : constant Types.Float := From_Any (Right);
             begin
                pragma Debug (O ("Equal (Any, Float) : end"));
                return L = R;
             end;
          when Tk_Double =>
             declare
-               L : Double := From_Any (Left);
-               R : Double := From_Any (Right);
+               L : constant Double := From_Any (Left);
+               R : constant Double := From_Any (Right);
             begin
                pragma Debug (O ("Equal (Any, Double) : end"));
                return L = R;
             end;
          when Tk_Boolean =>
             declare
-               L : Boolean := From_Any (Left);
-               R : Boolean := From_Any (Right);
+               L : constant Boolean := From_Any (Left);
+               R : constant Boolean := From_Any (Right);
             begin
                pragma Debug (O ("Equal (Any, Boolean) : end"));
                return L = R;
             end;
          when Tk_Char =>
             declare
-               L : Char := From_Any (Left);
-               R : Char := From_Any (Right);
+               L : constant Char := From_Any (Left);
+               R : constant Char := From_Any (Right);
             begin
                pragma Debug (O ("Equal (Any, Char) : end"));
                return L = R;
             end;
          when Tk_Octet =>
             declare
-               L : Octet := From_Any (Left);
-               R : Octet := From_Any (Right);
+               L : constant Octet := From_Any (Left);
+               R : constant Octet := From_Any (Right);
             begin
                pragma Debug (O ("Equal (Any, Octet) : end"));
                return L = R;
             end;
          when Tk_Any =>
             declare
-               L : Any := From_Any (Left);
-               R : Any := From_Any (Right);
+               L : constant Any := From_Any (Left);
+               R : constant Any := From_Any (Right);
             begin
                pragma Debug (O ("Equal (Any, Any) : end"));
                return Equal (L, R);
             end;
          when Tk_TypeCode =>
             declare
-               L : TypeCode.Object := From_Any (Left);
-               R : TypeCode.Object := From_Any (Right);
+               L : constant TypeCode.Object := From_Any (Left);
+               R : constant TypeCode.Object := From_Any (Right);
             begin
                pragma Debug (O ("Equal (Any, TypeCode) : end"));
                return TypeCode.Equal (R, L);
@@ -1320,7 +1320,8 @@ package body PolyORB.Any is
          when Tk_Struct
            | Tk_Except =>
             declare
-               List_Type : TypeCode.Object := Get_Unwound_Type (Left);
+               List_Type : constant TypeCode.Object
+                 := Get_Unwound_Type (Left);
                Member_Type : TypeCode.Object;
             begin
                --  for each member in the aggregate, compare both values
@@ -1338,8 +1339,9 @@ package body PolyORB.Any is
             end;
          when Tk_Union =>
             declare
-               List_Type : TypeCode.Object := Get_Unwound_Type (Left);
-               Switch_Type : TypeCode.Object :=
+               List_Type : constant TypeCode.Object
+                 := Get_Unwound_Type (Left);
+               Switch_Type : constant TypeCode.Object :=
                  TypeCode.Discriminator_Type (List_Type);
                Member_Type : TypeCode.Object;
             begin
@@ -1353,9 +1355,9 @@ package body PolyORB.Any is
                   return False;
                end if;
                declare
-                  Switch_Label : Any :=
-                    Get_Aggregate_Element (Left, Switch_Type,
-                                           Unsigned_Long (0));
+                  Switch_Label : Any
+                    := Get_Aggregate_Element
+                    (Left, Switch_Type, Unsigned_Long (0));
                begin
                   --  then, for each member in the aggregate,
                   --  compares both values
@@ -1386,9 +1388,10 @@ package body PolyORB.Any is
          when Tk_Sequence
            | Tk_Array =>
             declare
-               List_Type : TypeCode.Object := Get_Unwound_Type (Left);
-               Member_Type : TypeCode.Object :=
-                 TypeCode.Content_Type (List_Type);
+               List_Type : constant TypeCode.Object
+                 := Get_Unwound_Type (Left);
+               Member_Type : constant TypeCode.Object
+                 := TypeCode.Content_Type (List_Type);
             begin
                --  for each member in the aggregate, compare both values
                for I in 0 .. TypeCode.Length (List_Type) - 1 loop
@@ -1426,40 +1429,40 @@ package body PolyORB.Any is
             raise Program_Error;
          when Tk_Longlong =>
             declare
-               L : Long_Long := From_Any (Left);
-               R : Long_Long := From_Any (Right);
+               L : constant Long_Long := From_Any (Left);
+               R : constant Long_Long := From_Any (Right);
             begin
                pragma Debug (O ("Equal (Any, Long_Long) : end"));
                return L = R;
             end;
          when Tk_Ulonglong =>
             declare
-               L : Unsigned_Long_Long := From_Any (Left);
-               R : Unsigned_Long_Long := From_Any (Right);
+               L : constant Unsigned_Long_Long := From_Any (Left);
+               R : constant Unsigned_Long_Long := From_Any (Right);
             begin
                pragma Debug (O ("Equal (Any, Unsigned_Long_Long) : end"));
                return L = R;
             end;
          when Tk_Longdouble =>
             declare
-               L : Long_Double := From_Any (Left);
-               R : Long_Double := From_Any (Right);
+               L : constant Long_Double := From_Any (Left);
+               R : constant Long_Double := From_Any (Right);
             begin
                pragma Debug (O ("Equal (Any, Long_Double) : end"));
                return L = R;
             end;
          when Tk_Widechar =>
             declare
-               L : Wchar := From_Any (Left);
-               R : Wchar := From_Any (Right);
+               L : constant Wchar := From_Any (Left);
+               R : constant Wchar := From_Any (Right);
             begin
                pragma Debug (O ("Equal (Any, Wchar) : end"));
                return L = R;
             end;
          when Tk_Wstring =>
             declare
-               L : Types.Wide_String := From_Any (Left);
-               R : Types.Wide_String := From_Any (Right);
+               L : constant Types.Wide_String := From_Any (Left);
+               R : constant Types.Wide_String := From_Any (Right);
             begin
                pragma Debug (O ("Equal (Any, Wide_String) : end"));
                return L = R;

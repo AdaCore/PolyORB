@@ -3,9 +3,11 @@ AUTOMAKE_OPTIONS = no-dependencies
 include $(srcdir)/../Makefile.common
 
 if ENABLE_IR
+FORCE_IR=		force-ir
 IR_AB_NAMES=		ir_ab_names
 IR_GNATMAKE_FLAGS=	-I../ir -I$(srcdir)/../ir
 endif
+FORCE=	force $(FORCE_IR)
 
 PROGS= ab_names test_naming $(IR_AB_NAMES)
 
@@ -42,8 +44,11 @@ stamp-gen: $(IDL) $(IDLAC)
 	touch stamp-gen
 	$(IDLAC) $(IDL)
 
-$(PROGS): force $(GEN)
+$(PROGS): $(FORCE) $(GEN)
 	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
+
+force-ir:
+	cd ../ir && $(MAKE)
 
 install-exec-local:
 	$(INSTALL) -d $(DESTDIR)$(exec_prefix)/bin

@@ -153,7 +153,7 @@ package body CosNaming.NamingContext.Impl is
    function Allocate return Key_Type;
    function Allocate return Key_Type is
       N : Natural  := Key_Size;
-      K : Key_Type := Seed;
+      K : constant Key_Type := Seed;
 
    begin
       while N > 0 loop
@@ -237,7 +237,7 @@ package body CosNaming.NamingContext.Impl is
 
       else
          declare
-            BON : String := Encode (Self.Self, Last);
+            BON : constant String := Encode (Self.Self, Last);
 
          begin
             Enter_Critical_Section;
@@ -276,7 +276,7 @@ package body CosNaming.NamingContext.Impl is
          NamingContext.bind_context (Ctx, To_Name (Last), NC);
       else
          declare
-            BON : String := Encode (Self.Self, Last);
+            BON : constant String := Encode (Self.Self, Last);
 
          begin
             Enter_Critical_Section;
@@ -384,8 +384,8 @@ package body CosNaming.NamingContext.Impl is
      return String
    is
       Len : Natural;
-      NI  : Natural := Length (N.id);
-      NK  : Natural := Length (N.kind);
+      NI  : constant Natural := Length (N.id);
+      NK  : constant Natural := Length (N.kind);
 
    begin
       Len := Key_Size + 1 + NI + 1 + NK + 1;
@@ -633,7 +633,7 @@ package body CosNaming.NamingContext.Impl is
 
       else
          declare
-            BON : String := Encode (Self.Self, Last);
+            BON : constant String := Encode (Self.Self, Last);
             BO  : Bound_Object_Ptr;
 
          begin
@@ -692,7 +692,7 @@ package body CosNaming.NamingContext.Impl is
 
       else
          declare
-            BON : String := Encode (Self.Self, Last);
+            BON : constant String := Encode (Self.Self, Last);
             BO  : Bound_Object_Ptr;
 
          begin
@@ -758,7 +758,7 @@ package body CosNaming.NamingContext.Impl is
       BO.Next := null;
 
       declare
-         BON : String := Encode (NC, BO.BN);
+         BON : constant String := Encode (NC, BO.BN);
       begin
          BOHT.Set (BON'Unrestricted_Access, null);
       end;
@@ -787,7 +787,7 @@ package body CosNaming.NamingContext.Impl is
 
       else
          declare
-            BON : String := Encode (Self.Self, Last);
+            BON : constant String := Encode (Self.Self, Last);
             BO  : Bound_Object_Ptr;
             Obj : CORBA.Object.Ref;
 
@@ -844,7 +844,7 @@ package body CosNaming.NamingContext.Impl is
 
       else
          declare
-            BON : String := Encode (Self.Self, Last);
+            BON : constant String := Encode (Self.Self, Last);
             BO  : Bound_Object_Ptr;
 
          begin

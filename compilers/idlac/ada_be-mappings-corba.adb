@@ -122,7 +122,11 @@ package body Ada_Be.Mappings.CORBA is
    function Self_For_Operation
      (Self : access CORBA_Mapping_Type;
       Node : Idl_Fe.Types.Node_Id)
-     return String is
+     return String
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self, Node);
+      pragma Warnings (On);
    begin
       return "Self";
       --  In CORBA stubs, the target objet is always passed
@@ -239,7 +243,11 @@ package body Ada_Be.Mappings.CORBA is
    function Calling_Stubs_Type
      (Self : access CORBA_Mapping_Type;
       Node : Idl_Fe.Types.Node_Id)
-     return String is
+     return String
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
    begin
       if Abst (Node) then
          return "Abstract_Ref";
@@ -251,7 +259,11 @@ package body Ada_Be.Mappings.CORBA is
    function Generate_Scope_In_Child_Package
      (Self : access CORBA_Mapping_Type;
       Node : Idl_Fe.Types.Node_Id)
-     return Boolean is
+     return Boolean
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
    begin
       pragma Assert (Is_Gen_Scope (Node));
       return True;

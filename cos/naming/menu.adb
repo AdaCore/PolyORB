@@ -85,7 +85,7 @@ package body Menu is
       Argc := 0;
       loop
          declare
-            Arg : String := Next;
+            Arg : constant String := Next;
          begin
             exit when Arg = "";
             Argc := Argc + 1;

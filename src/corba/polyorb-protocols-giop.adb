@@ -297,6 +297,9 @@ package body PolyORB.Protocols.GIOP is
      (Buffer        : access Buffer_Type;
       Request_Id    : out Types.Unsigned_Long;
       Object_Key    : out Objects.Object_Id);
+   pragma Warnings (Off);
+   pragma Unreferenced (Unmarshall_Locate_Request);
+   pragma Warnings (On);
 
    procedure Request_Received
      (Ses : access GIOP_Session);
@@ -1104,7 +1107,7 @@ package body PolyORB.Protocols.GIOP is
       use PolyORB.References.IOR;
 
       New_Ref    : IOR.IOR_Type := Representations.CDR.Unmarshall (Buffer);
-      Prof_Array : PolyORB.References.Profile_Array
+      Prof_Array : constant PolyORB.References.Profile_Array
         := Profiles_Of (New_Ref);
 
    begin
@@ -1393,7 +1396,7 @@ package body PolyORB.Protocols.GIOP is
          --  is finalised, else Target will reference a free'd profile.
       else
          declare
-            Target_Profile : Binding_Data.Profile_Access
+            Target_Profile : constant Binding_Data.Profile_Access
               := new Local_Profile_Type;
             --  Should be free'd when the Target_Reference
             --  is finalized.
@@ -1617,25 +1620,24 @@ package body PolyORB.Protocols.GIOP is
    procedure Locate_Request_Receive
      (Ses : access GIOP_Session)
    is
-      Request_Id    : Types.Unsigned_Long;
-      Object_Key    : Objects.Object_Id_Access := null;
-      Target_Ref    : Target_Address_Access := null;
+--      Request_Id    : Types.Unsigned_Long;
+--       Object_Key    : Objects.Object_Id_Access := null;
+--       Target_Ref    : Target_Address_Access := null;
    begin
-
-      if Ses.Minor_Version /= 2 then
-         GIOP.Unmarshall_Locate_Request
-           (Ses.Buffer_In,
-            Request_Id,
-            Object_Key.all);
-      else
-         GIOP.GIOP_1_2.Unmarshall_Locate_Request
-           (Ses.Buffer_In,
-            Request_Id,
-            Target_Ref.all);
-      end if;
-
       --   Processing of Incoming Locate Request not yet implemented
       raise Not_Implemented;
+
+--       if Ses.Minor_Version /= 2 then
+--          GIOP.Unmarshall_Locate_Request
+--            (Ses.Buffer_In,
+--             Request_Id,
+--             Object_Key.all);
+--       else
+--          GIOP.GIOP_1_2.Unmarshall_Locate_Request
+--            (Ses.Buffer_In,
+--             Request_Id,
+--             Target_Ref.all);
+--       end if;
 
    end Locate_Request_Receive;
 

@@ -815,7 +815,7 @@ package body PolyORB.Representations.CDR is
             Marshall (Complex_Buffer,
                       PolyORB.Any.TypeCode.Name (Data));
             declare
-               Nb : PolyORB.Types.Unsigned_Long :=
+               Nb : constant PolyORB.Types.Unsigned_Long :=
                  PolyORB.Any.TypeCode.Member_Count (Data);
             begin
                pragma Debug (O ("Marshall (TypeCode) : " &
@@ -862,7 +862,7 @@ package body PolyORB.Representations.CDR is
               (Complex_Buffer,
                PolyORB.Any.TypeCode.Default_Index (Data));
             declare
-               Nb : PolyORB.Types.Unsigned_Long :=
+               Nb : constant PolyORB.Types.Unsigned_Long :=
                  PolyORB.Any.TypeCode.Member_Count (Data);
             begin
                Marshall (Complex_Buffer, Nb);
@@ -891,7 +891,7 @@ package body PolyORB.Representations.CDR is
             Marshall (Complex_Buffer,
                       PolyORB.Any.TypeCode.Name (Data));
             declare
-               Nb : PolyORB.Types.Unsigned_Long :=
+               Nb : constant PolyORB.Types.Unsigned_Long :=
                  PolyORB.Any.TypeCode.Member_Count (Data);
             begin
                Marshall (Complex_Buffer, Nb);
@@ -954,7 +954,7 @@ package body PolyORB.Representations.CDR is
             Marshall (Complex_Buffer,
                       PolyORB.Any.TypeCode.Name (Data));
             declare
-               Nb : PolyORB.Types.Unsigned_Long :=
+               Nb : constant PolyORB.Types.Unsigned_Long :=
                  PolyORB.Any.TypeCode.Member_Count (Data);
             begin
                Marshall (Complex_Buffer, Nb);
@@ -1001,7 +1001,7 @@ package body PolyORB.Representations.CDR is
               (Complex_Buffer,
                PolyORB.Any.TypeCode.Concrete_Base_Type (Data));
             declare
-               Nb : PolyORB.Types.Unsigned_Long :=
+               Nb : constant PolyORB.Types.Unsigned_Long :=
                  PolyORB.Any.TypeCode.Member_Count (Data);
             begin
                Marshall (Complex_Buffer, Nb);
@@ -1712,8 +1712,9 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Sequence =>
             declare
-               Nb : PolyORB.Types.Unsigned_Long := Unmarshall (Buffer);
-               Max_Nb : Unsigned_Long := TypeCode.Length (Tc);
+               Nb : constant PolyORB.Types.Unsigned_Long
+                 := Unmarshall (Buffer);
+               Max_Nb : constant Unsigned_Long := TypeCode.Length (Tc);
                Arg : PolyORB.Any.Any
                  := Get_Empty_Any_Aggregate (Get_Type (Result));
                Val : PolyORB.Any.Any;
@@ -1920,7 +1921,7 @@ package body PolyORB.Representations.CDR is
      (Buffer : access Buffer_Type)
      return PolyORB.Any.TypeCode.Object
    is
-      Nb : PolyORB.Types.Unsigned_Long := Unmarshall (Buffer);
+      Nb : constant PolyORB.Types.Unsigned_Long := Unmarshall (Buffer);
       Result : PolyORB.Any.TypeCode.Object;
    begin
       --  XXX The hardcoded values in this case should be replaced
@@ -2522,10 +2523,10 @@ package body PolyORB.Representations.CDR is
             end loop;
             if Data >= 0.0 then
                Octets (Octets'Last) :=
-                 Octets (Octets'Last) + Stream_Element (Fixed_Positive_Zero);
+                 Octets (Octets'Last) + Fixed_Positive_Zero;
             else
                Octets (Octets'Last) :=
-                 Octets (Octets'Last) + Stream_Element (Fixed_Negative);
+                 Octets (Octets'Last) + Fixed_Negative;
             end if;
             return Octets;
          end;

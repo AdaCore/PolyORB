@@ -119,7 +119,8 @@ package body CORBA.Test_Object is
          declare
             Req : Request_Access
               := Execute_Request (Msg).Req;
-            Args_Sequence : PolyORB.Any.NVList.Internals.NV_Sequence_Access
+            Args_Sequence :
+              constant PolyORB.Any.NVList.Internals.NV_Sequence_Access
               := PolyORB.Any.NVList.Internals.List_Of (Req.all.Args);
          begin
             pragma Debug (Output ("The server is executing the request:"
@@ -136,7 +137,7 @@ package body CORBA.Test_Object is
                end;
             elsif Req.all.Operation = "echoInteger" then
                declare
-                  echoInteger_Arg : CORBA.Long :=
+                  echoInteger_Arg : constant CORBA.Long :=
                     From_Any (NV_Sequence.Element_Of
                               (Args_Sequence.all, 1).Argument);
                begin

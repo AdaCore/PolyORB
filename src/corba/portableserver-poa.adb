@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#19 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#20 $
 
 with Ada.Exceptions;
 
@@ -651,6 +651,10 @@ package body PortableServer.POA is
       Reference : CORBA.Object.Ref'Class)
      return Servant
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+
       The_Servant : PolyORB.Components.Component_Access;
       The_Profile : PolyORB.Binding_Data.Profile_Access;
    begin

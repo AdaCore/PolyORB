@@ -53,9 +53,7 @@ package body CORBA.Request is
       Req_Flags : in     Flags)
    is
       pragma Warnings (Off);
-      pragma Unreferenced
-        (Ctx,
-         Req_Flags);
+      pragma Unreferenced (Ctx);
       pragma Warnings (On);
       PResult : PolyORB.Any.NamedValue
         := (Name      => PolyORB.Types.Identifier (Result.Name),
@@ -68,7 +66,8 @@ package body CORBA.Request is
          Operation => To_Standard_String (Operation),
          Arg_List  => CORBA.NVList.To_PolyORB_Ref (Arg_List),
          Result    => PResult,
-         Req       => Request.The_Request);
+         Req       => Request.The_Request,
+         Req_Flags => Req_Flags);
    end Create_Request;
 
    procedure Create_Request
@@ -83,10 +82,7 @@ package body CORBA.Request is
       Req_Flags : in     Flags)
    is
       pragma Warnings (Off);
-      pragma Unreferenced
-        (Ctx,
-         Ctxt_List,
-         Req_Flags);
+      pragma Unreferenced (Ctx, Ctxt_List);
       pragma Warnings (On);
       PResult : PolyORB.Any.NamedValue
         := (Name      => PolyORB.Types.Identifier (Result.Name),
@@ -100,19 +96,18 @@ package body CORBA.Request is
          Arg_List  => CORBA.NVList.To_PolyORB_Ref (Arg_List),
          Result    => PResult,
          Exc_List  => CORBA.ExceptionList.To_PolyORB_Ref (Exc_List),
-         Req       => Request.The_Request);
+         Req       => Request.The_Request,
+         Req_Flags => Req_Flags);
    end Create_Request;
 
    procedure Invoke
      (Self         : in out Object;
       Invoke_Flags : in     Flags  := 0)
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (Invoke_Flags);
-      pragma Warnings (On);
    begin
-      --  XXX for now we do everything synchronously.
-      PolyORB.Requests.Invoke (Self.The_Request);
+      --  XXX for now we do everything synchronously; flags
+      --  are ignored by P.R.Invoke.
+      PolyORB.Requests.Invoke (Self.The_Request, Invoke_Flags);
 
       if not Is_Empty (Self.The_Request.Exception_Info) then
          PolyORB.CORBA_P.Exceptions.Raise_From_Any

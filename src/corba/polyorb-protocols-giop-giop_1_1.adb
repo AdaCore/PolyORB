@@ -282,8 +282,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Operation         : out Types.String)
    is
       use PolyORB.Objects;
-      Service_Context1  : Types.Unsigned_Long := Unmarshall (Buffer);
-      Service_Context2  : Types.Unsigned_Long := Unmarshall (Buffer);
+      Service_Context1  : constant Types.Unsigned_Long
+        := Unmarshall (Buffer);
+      Service_Context2  : constant Types.Unsigned_Long
+        := Unmarshall (Buffer);
       Reserved          : Types.Octet;
       Principal         : Types.String;
    begin
@@ -310,7 +312,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
       --  Object Key
       declare
-         Obj : Stream_Element_Array := Unmarshall (Buffer);
+         Obj : constant Stream_Element_Array := Unmarshall (Buffer);
       begin
          Object_Key := new Object_Id'(Object_Id (Obj));
       end;
@@ -334,8 +336,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
        Reply_Status : out Reply_Status_Type)
 
    is
-      Service_Context1  : Types.Unsigned_Long := Unmarshall (Buffer);
-      Service_Context2  : Types.Unsigned_Long := Unmarshall (Buffer);
+      Service_Context1  : constant Types.Unsigned_Long
+        := Unmarshall (Buffer);
+      Service_Context2  : constant Types.Unsigned_Long
+        := Unmarshall (Buffer);
    begin
 
       --  Service context

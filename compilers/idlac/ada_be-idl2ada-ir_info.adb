@@ -173,16 +173,6 @@ package body Ada_Be.Idl2Ada.IR_Info is
 --       Node      : in     Node_Id);
 --    --  Generate the body of the helper package for a sequence declaration
 
-   procedure Gen_Fixed_Spec
-     (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
-   --  Generate the spec of the helper package for a fixed type declaration
-
-   procedure Gen_Fixed_Body
-     (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
-   --  Generate the body of the helper package for a fixed type declaration
-
    procedure Gen_Array_IR
      (CU                : in out Compilation_Unit;
       Element_Type_Node : in     Node_Id;
@@ -201,10 +191,6 @@ package body Ada_Be.Idl2Ada.IR_Info is
       Node      : in     Node_Id);
    --  Generate code to create a SequenceDef IRObject
    --  (only used in the type_declarator part of gen_node_body).
-
-   function Raise_From_Any_Name (Node : in Node_Id) return String;
-   --  Return the name of a procedure that raises that exception
-   --  from an occurrence stored in an Any.
 
    ----------------------------------------------
    -- End of internal subprograms declarations --
@@ -386,16 +372,6 @@ package body Ada_Be.Idl2Ada.IR_Info is
    begin
       return Ada_IR_Info_Name (Node) & "." & Ada_IR_Name (Node);
    end Ada_Full_IR_Name;
-
-   -------------------------
-   -- Raise_From_Any_Name --
-   -------------------------
-
-   function Raise_From_Any_Name (Node : Node_Id) return String is
-   begin
-      pragma Assert (Kind (Node) = K_Exception);
-      return "Raise_" & Ada_Name (Node) & "_From_Any";
-   end Raise_From_Any_Name;
 
    --------------------
    -- Gen_Scope_Spec --
@@ -580,6 +556,9 @@ package body Ada_Be.Idl2Ada.IR_Info is
      (CU   : in out Compilation_Unit;
       Node : in Node_Id)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (CU, Node);
+      pragma Warnings (On);
    begin
       null;
    end Gen_ValueType_Spec;
@@ -592,6 +571,9 @@ package body Ada_Be.Idl2Ada.IR_Info is
      (CU   : in out Compilation_Unit;
       Node : in Node_Id)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (CU, Node);
+      pragma Warnings (On);
    begin
       null;
    end Gen_ValueType_Body;
@@ -1433,28 +1415,6 @@ package body Ada_Be.Idl2Ada.IR_Info is
 --       DI (CU);
 --       PL (CU, "end " & IRN & ";");
 --    end Gen_Sequence_Body;
-
-   --------------------
-   -- Gen_Fixed_Spec --
-   --------------------
-
-   procedure Gen_Fixed_Spec
-     (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id) is
-   begin
-      null;
-   end Gen_Fixed_Spec;
-
-   --------------------
-   -- Gen_Fixed_Body --
-   --------------------
-
-   procedure Gen_Fixed_Body
-     (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id) is
-   begin
-      null;
-   end Gen_Fixed_Body;
 
    ------------------
    -- Gen_Array_IR --

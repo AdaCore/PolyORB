@@ -137,7 +137,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    begin
 
       --  Service context
-      Marshall (Buffer, Types.Unsigned_Long (No_Context));
+      Marshall (Buffer, No_Context);
 
       --  Request id
       Marshall (Buffer, Request_Id);
@@ -169,7 +169,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 
 
       --  Service context
-      Marshall (Buffer, Types.Unsigned_Long (No_Context));
+      Marshall (Buffer, No_Context);
 
       --  Request id
       Marshall (Buffer, Request_Id);
@@ -190,7 +190,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       pragma Assert (Exception_Type in User_Exception  .. System_Exception);
 
       --  Service context
-      Marshall (Buffer, Types.Unsigned_Long (No_Context));
+      Marshall (Buffer, No_Context);
 
       --  Request id
       Marshall (Buffer, Request_Id);
@@ -216,7 +216,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    begin
 
       --  Service context
-      Marshall (Buffer, Types.Unsigned_Long (No_Context));
+      Marshall (Buffer, No_Context);
 
       --  Request id
       Marshall (Buffer, Request_Id);
@@ -240,7 +240,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Object_Key        : out Objects.Object_Id_Access;
       Operation         : out Types.String)
    is
-      Service_Context : Types.Unsigned_Long := Unmarshall (Buffer);
+      Service_Context : constant Types.Unsigned_Long
+        := Unmarshall (Buffer);
       Principal       : Types.String;
    begin
       --  Service context
@@ -258,7 +259,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 
       --  Object Key
       declare
-         Obj : Stream_Element_Array := Unmarshall (Buffer);
+         Obj : constant Stream_Element_Array := Unmarshall (Buffer);
       begin
          Object_Key := new Object_Id'(Object_Id (Obj));
       end;
@@ -274,7 +275,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Request_Id   : out Types.Unsigned_Long;
       Reply_Status : out Reply_Status_Type)
    is
-      Service_Context : Types.Unsigned_Long := Unmarshall (Buffer);
+      Service_Context : constant Types.Unsigned_Long
+        := Unmarshall (Buffer);
    begin
 
       --  Service context

@@ -97,6 +97,9 @@ package body PolyORB.POA.Basic_POA is
    --  The procedure doesn't take care of locking the list of children!
 
    procedure Destroy_Policies (OA : in out Basic_Obj_Adapter);
+   pragma Warnings (Off);
+   pragma Unreferenced (Destroy_Policies);
+   pragma Warnings (On);
    --  Destroys OA's policies
 
    procedure Destroy_Locks (OA : in out Basic_Obj_Adapter);
@@ -1150,6 +1153,10 @@ package body PolyORB.POA.Basic_POA is
       Oid : access Objects.Object_Id)
      return References.Ref
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (OA);
+      pragma Warnings (On);
+
       Oid_Data : aliased Object_Id := Objects.To_Oid
         (To_Standard_String (Oid_To_U_Oid (Oid).Id));
       type SEA_Access is access all Ada.Streams.Stream_Element_Array;

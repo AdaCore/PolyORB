@@ -1760,7 +1760,7 @@ package body Sequences.Bounded is
 
       Source_Length : constant Natural := Source.Length;
       Npad : constant Integer := Count - Source_Length;
-      Temp : Element_Array (1 .. Max_Length) := Source.Content;
+      Temp : constant Element_Array (1 .. Max_Length) := Source.Content;
 
    begin
 

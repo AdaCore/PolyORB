@@ -156,6 +156,10 @@ package body PolyORB.If_Descriptors.CORBA_IR is
       Method  :        Requests.Operation_Id)
      return Any.NVList.Ref
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (If_Desc);
+      pragma Warnings (On);
+
       Oper : constant OperationDescription
         := Find_Operation
         (Corresponding_InterfaceDef (Object),
@@ -181,6 +185,10 @@ package body PolyORB.If_Descriptors.CORBA_IR is
       Method  :        Requests.Operation_Id)
      return Any.Any
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (If_Desc);
+      pragma Warnings (On);
+
       Oper : constant OperationDescription
         := Find_Operation
         (Corresponding_InterfaceDef (Object),

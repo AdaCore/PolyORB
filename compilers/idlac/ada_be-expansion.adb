@@ -609,7 +609,7 @@ package body Ada_Be.Expansion is
       I_Node : Node_Id;
       Parents_Seen : Node_List
         := Nil_List;
-      Primary_Parent : Node_Id
+      Primary_Parent : constant Node_Id
         := Idl_Fe.Tree.Synthetic.Primary_Parent (Node);
    begin
       pragma Assert (Kind (Node) = K_Interface);
@@ -667,7 +667,7 @@ package body Ada_Be.Expansion is
         := Nil_List;
       Interfaces_Seen : Node_List
         := Nil_List;
-      Primary_Parent  : Node_Id
+      Primary_Parent  : constant Node_Id
         := Idl_Fe.Tree.Synthetic.Primary_Parent (Node);
    begin
       pragma Assert (Kind (Node) = K_ValueType);
@@ -775,7 +775,7 @@ package body Ada_Be.Expansion is
       while not Is_End (It) loop
          pragma Debug (O ("Expand_State_Member:"));
          declare
-            New_State_Member : Node_Id
+            New_State_Member : constant Node_Id
               := Make_State_Member (Get_Location (Current_Decl));
             Decls : Node_List := Nil_List;
          begin
@@ -905,8 +905,8 @@ package body Ada_Be.Expansion is
                Set_Operation_Type (Set_Method, Void_Node);
                --  parameters
                declare
-                  Param : Node_Id := Make_Param (Loc);
-                  Decl : Node_Id := Make_Declarator (Loc);
+                  Param : constant Node_Id := Make_Param (Loc);
+                  Decl  : constant Node_Id := Make_Declarator (Loc);
                   Params : Node_List := Nil_List;
                begin
                   --  new value parameter
@@ -1297,25 +1297,25 @@ package body Ada_Be.Expansion is
 
       declare
          Current_Gen_Scope : constant Node_Id := Get_Current_Gen_Scope;
-
-         Constr_Type_Node     : Node_Id := Node;
-         Constr_Type_Ref_Node : Node_Id := Make_Scoped_Name (Loc);
+         Constr_Type_Ref_Node : constant Node_Id := Make_Scoped_Name (Loc);
 
       begin
-         Insert_Before_Current (Constr_Type_Node);
+         Insert_Before_Current (Node);
+         --  Pull up the constructed type node into a declaration
+         --  by itself.
 
-         if Parent_Scope (Constr_Type_Node) /= Current_Gen_Scope then
+         if Parent_Scope (Node) /= Current_Gen_Scope then
             Add_Identifier_With_Renaming
-              (Constr_Type_Node, Name (Constr_Type_Node),
+              (Node, Name (Node),
                Current_Gen_Scope);
 
-            if Kind (Constr_Type_Node) = K_Enum then
+            if Kind (Node) = K_Enum then
                --  Also reparent all enumerators
                declare
                   It : Node_Iterator;
                   E_Node : Node_Id;
                begin
-                  Init (It, Enumerators (Constr_Type_Node));
+                  Init (It, Enumerators (Node));
 
                   while not Is_End (It) loop
                      Get_Next_Node (It, E_Node);
@@ -1327,7 +1327,7 @@ package body Ada_Be.Expansion is
             end if;
          end if;
 
-         Set_Value (Constr_Type_Ref_Node, Constr_Type_Node);
+         Set_Value (Constr_Type_Ref_Node, Node);
          Replacement_Node := Constr_Type_Ref_Node;
       end;
    end Expand_Constructed_Type;

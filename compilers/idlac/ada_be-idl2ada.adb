@@ -1192,7 +1192,7 @@ package body Ada_Be.Idl2Ada is
      (CU        : in out Compilation_Unit;
       Node      : Node_Id)
    is
-      Primary_Parent : Node_Id
+      Primary_Parent : constant Node_Id
         := Idl_Fe.Tree.Synthetic.Primary_Parent (Node);
       Unit, Typ : ASU.Unbounded_String;
    begin
@@ -1972,7 +1972,7 @@ package body Ada_Be.Idl2Ada is
 
                NL (CU);
                PL (CU, Justify (T_Operation_Name, Max_Len)
-                   & " : constant String");
+                   & " : constant Standard.String");
                PL (CU, "  := """ & Idl_Operation_Id (Node) & """;");
                PL (CU, Justify (T_Self_Ref, Max_Len) & " : CORBA.Object.Ref");
                PL (CU, "  := CORBA.Object.Ref ("
