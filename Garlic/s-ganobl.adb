@@ -38,7 +38,6 @@ with Ada.Interrupts.Names;
 with GNAT.OS_Lib;                         use GNAT.OS_Lib;
 with System.Garlic.Constants;             use System.Garlic.Constants;
 with System.Garlic.Debug;                 use System.Garlic.Debug;
-with System.Garlic.Heart;                 use System.Garlic.Heart;
 with System.Garlic.Priorities;
 with System.Garlic.TCP;
 pragma Elaborate (System.Garlic.TCP);

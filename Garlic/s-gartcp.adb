@@ -367,8 +367,6 @@ package body System.Garlic.TCP is
       declare
          One   : aliased C.int := 1;
          Dummy : C.int;
-         function To_Chars_Ptr is
-            new Ada.Unchecked_Conversion (Int_Access, Strings.chars_ptr);
       begin
          Dummy := C_Setsockopt (FD, Sol_Socket,
                                 So_Reuseaddr,
