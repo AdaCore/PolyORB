@@ -41,6 +41,7 @@ with System.Garlic.Heart;             use System.Garlic.Heart;
 with System.Garlic.Options;           use System.Garlic.Options;
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
 with System.Garlic.Protocols;         use System.Garlic.Protocols;
+with System.Garlic.Types;             use System.Garlic.Types;
 
 package body System.Garlic.Replay is
 
