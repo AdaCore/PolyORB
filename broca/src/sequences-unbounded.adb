@@ -935,8 +935,8 @@ package body Sequences.Unbounded is
          return Initial_Size;
       end if;
 
-      Times := (Length - Initial_Size) / Increment_Size;
-      return Initial_Size + (Times + 1) * Increment_Size;
+      Times := ((Length - Initial_Size) / Increment_Size) + 1;
+      return Initial_Size + (Increment_Size * Times);
    end Round;
 
    -----------
