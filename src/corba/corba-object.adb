@@ -37,13 +37,12 @@
 
 --  $Id$
 
-with GNAT.HTable;
-
 with PolyORB.CORBA_P.Local;
 with PolyORB.CORBA_P.Names;
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Smart_Pointers;
+with PolyORB.Utils.HFunctions.Mul;
 with PolyORB.Utils.Strings;
 
 with CORBA.AbstractBase;
@@ -76,11 +75,13 @@ package body CORBA.Object is
       Maximum : CORBA.Unsigned_Long)
       return CORBA.Unsigned_Long
    is
-      type My_Range is new Long range 0 .. Long (Maximum);
-      function My_Hash is new GNAT.HTable.Hash (My_Range);
+      use PolyORB.Utils.HFunctions.Mul;
+
    begin
       return CORBA.Unsigned_Long
-        (My_Hash (To_Standard_String (CORBA.ORB.Object_To_String (Self))));
+        (Hash (To_Standard_String (CORBA.ORB.Object_To_String (Self)),
+               Default_Hash_Parameters,
+               Natural (Maximum)));
    end Hash;
 
    -------------------
