@@ -19,8 +19,8 @@ with Text_IO ; use Text_IO ;
 
 procedure Client is
 
+   -- initialization of the ORB
    Orb : Corba.Orb.Object := Corba.Orb.Orb_Init("omniORB2");
-   Boa : Corba.Boa.Object := Corba.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
 
    O : Corba.Object.Ref;
    T : Tank.Ref ;
