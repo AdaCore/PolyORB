@@ -385,6 +385,7 @@ ada/fname-uf.ads
 ada/fname.adb
 ada/fname.ads
 ada/gnatvsn.ads
+ada/gnatvsn.adb
 ada/hostparm.ads
 ada/krunch.adb
 ada/krunch.ads
