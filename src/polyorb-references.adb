@@ -102,6 +102,10 @@ package body PolyORB.References is
             Set (R, RIP);
          end;
       end if;
+
+      --  Outputs created reference.
+      pragma Debug (O ("New " & Image (R)));
+
    end Create_Reference;
 
    -----------------
