@@ -1,3 +1,4 @@
+export LOOPBACK=D
 export NONBLOCKING=C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y
 export INTERFACE=C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y
 export STARTUP=C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y

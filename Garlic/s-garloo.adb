@@ -37,11 +37,20 @@ with Ada.Streams;
 with System.Garlic.Heart;
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
 with System.Garlic.Protocols; use System.Garlic.Protocols;
+with System.Garlic.Debug; use System.Garlic.Debug;
 
 package body System.Garlic.Loopback is
 
    use type System.RPC.Partition_ID;
    use type Ada.Streams.Stream_Element_Offset;
+
+   Private_Debug_Key : constant Debug_Key :=
+     Debug_Initialize ("LOOPBACK", "(s-garloo): ");
+   procedure D
+     (Level   : in Debug_Level;
+      Message : in String;
+      Key     : in Debug_Key := Private_Debug_Key)
+     renames Print_Debug_Info;
 
    ------------
    -- Create --
@@ -82,6 +91,8 @@ package body System.Garlic.Loopback is
       Data      : access Ada.Streams.Stream_Element_Array) is
    begin
       pragma Assert (Partition = System.Garlic.Heart.Get_My_Partition_ID);
+      pragma Debug
+         (D (D_Debug, "Send and receive " & Data'Length'Img & " bytes"));
       System.Garlic.Heart.Has_Arrived
         (Partition, Data (Data'First + Unused_Space .. Data'Last));
    end Send;
