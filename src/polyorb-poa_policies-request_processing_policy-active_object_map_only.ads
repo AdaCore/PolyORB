@@ -2,7 +2,8 @@
 --  with PolyORB.POA_Types;     use PolyORB.POA_Types;
 with Ada.Unchecked_Deallocation;
 
-package PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only is
+package
+  PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only is
 
    type Active_Map_Only_Policy is new RequestProcessingPolicy with null record;
    type Active_Map_Only_Policy_Access is access all Active_Map_Only_Policy;

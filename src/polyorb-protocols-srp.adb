@@ -401,7 +401,8 @@ package body PolyORB.Protocols.SRP is
 --                         null;
 --                   end case;
 --  --               while Current /= null loop
---  --                Arg_Any := To_Any (To_PolyORB_String (Current.Value.all));
+--  --                Arg_Any
+--  --                  := To_Any (To_PolyORB_String (Current.Value.all));
 
 --                   Simple_Arg
 --                     := (Name      => To_PolyORB_String (Current.Name.all),

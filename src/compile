@@ -52,7 +52,7 @@ case "$file" in
 esac
 
 case $file in
-  droopi-orb-thread_pool.adb|droopi-protected_objects.adb)
+  polyorb-orb-thread_pool.adb|polyorb-protected_objects.adb)
     echo " without gnat.adc"
     mv -f gnat.adc gnat.adc-
     $ADAGCC $STYLE "$@"

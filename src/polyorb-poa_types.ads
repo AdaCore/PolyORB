@@ -23,7 +23,8 @@ package PolyORB.POA_Types is
 
    pragma Elaborate_Body;
 
-   Invalid_Object_Id : exception renames PolyORB.Obj_Adapters.Invalid_Object_Id;
+   Invalid_Object_Id : exception
+     renames PolyORB.Obj_Adapters.Invalid_Object_Id;
    Invalid_Method    : exception renames PolyORB.Obj_Adapters.Invalid_Method;
 
    subtype Time_Stamp is Unsigned_Long;

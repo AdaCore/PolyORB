@@ -1,5 +1,5 @@
 #
-# Makefile for DROOPI.
+# Makefile for PolyORB.
 #
 # $Id$
 #
@@ -12,10 +12,10 @@ CFLAGS=		-O2 -gnatf -gnatwae -Icorba $(COPTS)
 # Development
 CFLAGS+=	-g -gnatao
 
-TESTS=	droopi-test-no_tasking \
-	droopi-test-thread_pool \
-	droopi-test-no_tasking_poa \
-	droopi-test-thread_pool_poa \
+TESTS=	polyorb-test-no_tasking \
+	polyorb-test-thread_pool \
+	polyorb-test-no_tasking_poa \
+	polyorb-test-thread_pool_poa \
 	dynclient \
 	server
 
@@ -25,8 +25,8 @@ all: $(TESTS)
 clean:
 	$(RM) *.ali *.o *.dot *.ps
 
-alldeps.dot: droopi-setup-test
-	cat droopi-*.ali | ali2dot > $@
+alldeps.dot: polyorb-setup-test
+	cat polyorb-*.ali | ali2dot > $@
 
 alldeps.ps: alldeps.dot
 	dot -Tps $< | epsffit -c -r 10 10 535 831 > $@

@@ -94,7 +94,8 @@ package body PolyORB.CORBA_P.Server_Tools is
         (new PolyORB.POA_Config.Minimum.Minimum_Configuration);
       pragma Debug (O ("Creating object adapter... "));
       Obj_Adapter := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
-      PolyORB.POA.Basic_POA.Create (Basic_Obj_Adapter (Obj_Adapter.all)'Access);
+      PolyORB.POA.Basic_POA.Create
+        (Basic_Obj_Adapter (Obj_Adapter.all)'Access);
       --  Create object adapter
 
       PolyORB.ORB.Set_Object_Adapter

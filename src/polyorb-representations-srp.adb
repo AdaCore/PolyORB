@@ -796,7 +796,8 @@ package body PolyORB.Representations.SRP is
 --                Complex_Buffer : Buffer_Access := null;
 --                Id, Name, Member_Name : PolyORB.Types.String;
 --                Nb, Default_Index : PolyORB.Types.Unsigned_Long;
---                Discriminator_Type, Member_Type : PolyORB.Any.TypeCode.Object;
+--                Discriminator_Type,
+--                  Member_Type : PolyORB.Any.TypeCode.Object;
 --                Member_Label : PolyORB.Any.Any;
 --             begin
 --                Decapsulate (Complex_Encap'Access, Complex_Buffer);
@@ -990,7 +991,8 @@ package body PolyORB.Representations.SRP is
 --                Id, Name, Member_Name : PolyORB.Types.String;
 --                Type_Modifier, Visibility : PolyORB.Types.Short;
 --                Nb : PolyORB.Types.Unsigned_Long;
---                Concrete_Base_Type, Member_Type : PolyORB.Any.TypeCode.Object;
+--                Concrete_Base_Type,
+--                  Member_Type : PolyORB.Any.TypeCode.Object;
 --             begin
 --                Decapsulate (Complex_Encap'Access, Complex_Buffer);
 --                Id := Unmarshall (Complex_Buffer);
@@ -1135,7 +1137,8 @@ package body PolyORB.Representations.SRP is
       Data   :        PolyORB.Types.Boolean) is
    begin
       pragma Debug (O ("Marshall (Boolean) : enter"));
-      Marshall (Buffer, PolyORB.Types.Octet'(PolyORB.Types.Boolean'Pos (Data)));
+      Marshall
+        (Buffer, PolyORB.Types.Octet'(PolyORB.Types.Boolean'Pos (Data)));
       pragma Debug (O ("Marshall (Boolean) : end"));
    end Marshall;
 
@@ -1784,7 +1787,8 @@ package body PolyORB.Representations.SRP is
 --             begin
 --              pragma Debug (O ("Marshall_From_Any : dealing with an array"));
 
---                while PolyORB.Any.TypeCode.Kind (Content_True_Type) = Tk_Array
+--                while PolyORB.Any.TypeCode.Kind
+--                        (Content_True_Type) = Tk_Array
 --                loop
 --                   Content_True_Type :=
 --                     PolyORB.Any.TypeCode.Content_Type (Content_True_Type);
@@ -2231,7 +2235,8 @@ package body PolyORB.Representations.SRP is
 --                  TypeCode.Content_Type (Tc);
 --                Arg : PolyORB.Any.Any;
 --             begin
---                while PolyORB.Any.TypeCode.Kind (Content_True_Type) = Tk_Array
+--                while PolyORB.Any.TypeCode.Kind
+--                        (Content_True_Type) = Tk_Array
 --                loop
 --                   Nb := Nb * TypeCode.Length (Content_True_Type);
 --                   Content_True_Type :=

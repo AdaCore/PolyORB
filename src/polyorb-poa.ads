@@ -68,7 +68,8 @@ package PolyORB.POA is
 
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
    --  XXX
-   --  for Obj_Adapter_Access'Storage_Pool use PolyORB.Storage_Pools.Debug_Pool;
+   --  for Obj_Adapter_Access'Storage_Pool
+   --    use PolyORB.Storage_Pools.Debug_Pool;
 
    subtype Obj_Adapter_Ptr is Obj_Adapter_Access;
    --  XXX for easier porting of legacy AdaBroker code.

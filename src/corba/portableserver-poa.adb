@@ -571,7 +571,8 @@ package body PortableServer.POA is
 
 --       return PolyORB.POA.Skeleton_To_Ref (Skel.all);
 
-      PolyORB.ORB.Create_Reference (PolyORB.Setup.The_ORB, Oid'Access, The_Ref);
+      PolyORB.ORB.Create_Reference
+        (PolyORB.Setup.The_ORB, Oid'Access, The_Ref);
       --  Obtain object reference.
 
       declare

@@ -213,7 +213,8 @@ package body PolyORB.Representations.CDR is
       Data   :        PolyORB.Types.Boolean) is
    begin
       pragma Debug (O ("Marshall (Boolean) : enter"));
-      Marshall (Buffer, PolyORB.Types.Octet'(PolyORB.Types.Boolean'Pos (Data)));
+      Marshall
+        (Buffer, PolyORB.Types.Octet'(PolyORB.Types.Boolean'Pos (Data)));
       pragma Debug (O ("Marshall (Boolean) : end"));
    end Marshall;
 
@@ -574,7 +575,8 @@ package body PolyORB.Representations.CDR is
                pragma Debug (O ("Marshall_From_Any : dealing with a struct"));
                for I in 0 .. Nb - 1 loop
                   Value := PolyORB.Any.Get_Aggregate_Element
-                     (Data, PolyORB.Any.TypeCode.Member_Type (Data_Type, I), I);
+                     (Data,
+                      PolyORB.Any.TypeCode.Member_Type (Data_Type, I), I);
                   Marshall_From_Any (Buffer, Value);
                end loop;
             end;
@@ -2391,7 +2393,8 @@ package body PolyORB.Representations.CDR is
    --   function Unmarshall (Buffer : access Buffer_Type)
    --     return Encapsulation
    --   is
-   --      Length : constant PolyORB.Types.Unsigned_Long := Unmarshall (Buffer);
+   --      Length : constant PolyORB.Types.Unsigned_Long
+   --        := Unmarshall (Buffer);
    --   begin
    --      pragma Debug (O ("Unmarshall (Encapsulation):
    --                length is" & Length'Img));

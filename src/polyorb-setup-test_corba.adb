@@ -41,8 +41,8 @@ package body PolyORB.Setup.Test_CORBA is
       PolyORB.POA_Config.Set_Configuration
         (new PolyORB.POA_Config.Minimum.Minimum_Configuration);
       Put ("Creating object adapter... ");
-      Obj_Adapter := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
-      PolyORB.POA.Basic_POA.Create (Basic_Obj_Adapter (Obj_Adapter.all)'Access);
+      Obj_Adapter := new POA.Basic_POA.Basic_Obj_Adapter;
+      POA.Basic_POA.Create (Basic_Obj_Adapter (Obj_Adapter.all)'Access);
       --  Create object adapter
 
       Set_Object_Adapter

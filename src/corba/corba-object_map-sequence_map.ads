@@ -1,6 +1,6 @@
 --  An implementation of the Active Object Map using the sequences from PolyORB
---  (PolyORB.Unbounded_Sequences). It uses the generic package PolyORB.Object_Map
---  to do so.
+--  (PolyORB.Unbounded_Sequences). It uses the generic package
+--  PolyORB.Object_Map to do so.
 
 with PolyORB.Object_Map;
 pragma Elaborate_All (PolyORB.Object_Map);

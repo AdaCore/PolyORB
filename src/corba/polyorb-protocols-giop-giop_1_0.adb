@@ -30,7 +30,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    use PolyORB.Objects;
    use PolyORB.Types;
 
-   package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.giop.giop_1_0");
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.protocols.giop.giop_1_0");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
