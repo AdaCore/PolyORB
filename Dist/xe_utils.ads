@@ -83,10 +83,6 @@ package XE_Utils is
    --  Generates on standard-out the command needed to compile
    --  a sub-tree from a given package.
 
-   procedure Compile_Regular_File
-     (Source    : in File_Name_Type);
-   --  Compile regular file.
-
    procedure Compile_RCI_Caller
      (Source    : in File_Name_Type);
    --  Compile the caller stubs (-gnatzC).

@@ -109,7 +109,7 @@ package body XE_Utils is
      := new String' ("-I../../private/caller/");
    I_DSA_Caller_Dir : constant String_Access
      := new String' ("-Idsa/private/caller/");
-   I_G_Parent_Dir   : constant String_Access
+   I_Original_Dir   : constant String_Access
      := new String' ("-I../../../");
 
    L_Current_Dir    : constant String_Access
@@ -118,7 +118,7 @@ package body XE_Utils is
      := new String' ("-L../../private/caller");
    L_DSA_Caller_Dir : constant String_Access
      := new String' ("-Ldsa/private/caller");
-   L_G_Parent_Dir   : constant String_Access
+   L_Original_Dir   : constant String_Access
      := new String' ("-L../../../");
 
    No_Args          : constant Argument_List (1 .. 0) := (others => null);
@@ -732,6 +732,24 @@ package body XE_Utils is
    begin
       Change_Dir (Cache_Dir);
 
+      Maybe_Most_Recent_Stamp
+        (Source_File_Stamp (Elaboration_Name & ADB_Suffix));
+
+      if Opt.Force_Compilations or else
+        More_Recent (Elaboration_Name & ADB_Suffix,
+                     Elaboration_Name & ALI_Suffix) then
+         Execute_Gcc
+           (Elaboration_Name & ADB_Suffix,
+            (GNATLib_Compile_Flag,
+             I_Original_Dir,
+             I_GARLIC_Dir)
+            );
+
+      end if;
+
+      Maybe_Most_Recent_Stamp
+        (Source_File_Stamp (Partition & ADB_Suffix));
+
       if Opt.Force_Compilations or else
         More_Recent (Partition & ADB_Suffix,
                      Partition & ALI_Suffix) then
@@ -740,7 +758,7 @@ package body XE_Utils is
            (Partition & ADB_Suffix,
             (I_Current_Dir,
              I_Caller_Dir,
-             I_G_Parent_Dir)
+             I_Original_Dir)
             );
 
       end if;
@@ -756,7 +774,7 @@ package body XE_Utils is
            (Partition & ALI_Suffix,
             (I_Current_Dir,
              I_Caller_Dir,
-             I_G_Parent_Dir)
+             I_Original_Dir)
             );
 
          Execute_Link
@@ -764,7 +782,7 @@ package body XE_Utils is
             Exec,
             (L_Current_Dir,
              L_Caller_Dir,
-             L_G_Parent_Dir,
+             L_Original_Dir,
              L_GARLIC_Dir)
             );
 
@@ -784,25 +802,10 @@ package body XE_Utils is
       Execute_Gcc
         (Source,
          (Caller_Compile_Flag,
-          I_G_Parent_Dir,
+          I_Original_Dir,
           I_GARLIC_Dir)
          );
    end Compile_RCI_Caller;
-
-   --------------------------
-   -- Compile_Regular_File --
-   --------------------------
-
-   procedure Compile_Regular_File (Source : File_Name_Type) is
-   begin
-      Maybe_Most_Recent_Stamp (Source_File_Stamp (Source));
-      Execute_Gcc
-        (Source,
-         (GNATLib_Compile_Flag,
-          I_G_Parent_Dir,
-          I_GARLIC_Dir)
-         );
-   end Compile_Regular_File;
 
    --------------------------
    -- Compile_RCI_Receiver --
@@ -814,7 +817,7 @@ package body XE_Utils is
       Execute_Gcc
         (Source,
          (Receiver_Compile_Flag,
-          I_G_Parent_Dir,
+          I_Original_Dir,
           I_GARLIC_Dir)
          );
    end Compile_RCI_Receiver;

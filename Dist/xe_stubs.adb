@@ -72,8 +72,8 @@ procedure XE_Stubs is
                          Spec_Only : in Boolean);
    --  Create the caller stub and the receiver stub for a RCI unit.
 
-   procedure Build_Elaboration_File (PID : in PID_Type);
-   --  Build the elaboration unit for the given partition.
+   procedure Create_Elaboration_File (PID : in PID_Type);
+   --  Create the elaboration unit for the given partition.
 
    procedure Update_Switch (S : in out String_Access);
    --  For a given '-I' switch (or equivalent -L -a*), update it
@@ -795,10 +795,10 @@ procedure XE_Stubs is
    end Build_Stub;
 
    -----------------------------
-   --  Build_Elaboration_File --
+   -- Create_Elaboration_File --
    -----------------------------
 
-   procedure Build_Elaboration_File (PID : in PID_Type) is
+   procedure Create_Elaboration_File (PID : in PID_Type) is
 
       PName : constant Partition_Name_Type := Partitions.Table (PID) .Name;
       FName : constant File_Name_Type      := Elaboration_Name & ADB_Suffix;
@@ -880,13 +880,15 @@ procedure XE_Stubs is
          Write_Eol (Standout);
       end if;
 
-      Compile_Regular_File (FName);
-
       Change_Dir (Original_Dir);
 
       Close (FD);
 
-   end Build_Elaboration_File;
+   end Create_Elaboration_File;
+
+   -------------------
+   -- Update_Switch --
+   -------------------
 
    procedure Update_Switch (S : in out String_Access) is
 
@@ -990,7 +992,7 @@ begin
 
          Create_Main_Unit (PID);
 
-         Build_Elaboration_File (PID);
+         Create_Elaboration_File (PID);
 
          --  Copy RCI receiver stubs when this unit has been assigned on
          --  PID partition. RCI caller stubs are not needed because GNATDIST
