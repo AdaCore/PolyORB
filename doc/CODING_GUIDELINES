@@ -61,7 +61,7 @@ Header box should be up to date whenever necessary:
 
 By code's creation, we mean the date the code was first created and
 checked in in PolyORB repository. If packages are renamed, merged,
-copyright years must remain coherent with package content.
+copyright years must remain consistent with package content.
 
 - Some packages require specific adjustements to take into account
   references to specifications (e.g. CORBA related packages) or other
