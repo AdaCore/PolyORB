@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.3 $
+//                            $Revision: 1.4 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -64,22 +64,59 @@ adabe_typedef::produce_ads (dep_list & with,
 	    c->produce_ads (with, body, previous);
 	    break;
 	  }
-	default:      
-	  body += "   type " + get_ada_local_name () + " is new ";
-	  string name = 
-	    dynamic_cast<adabe_name *>(b)->dump_name (with, previous);
-	  body += name;
-	  body += ";\n\n";
-	  break;
+        case AST_Decl::NT_interface:
+        case AST_Decl::NT_interface_fwd:
+          {
+	    body += "   subtype " + get_ada_local_name () + " is ";
+	    string name = 
+	      dynamic_cast<adabe_name *>(b)->dump_name (with, previous);
+	    body += name;
+	    body += ";\n\n";
+	    break;
+          }
+	default:
+          {
+            char c[2] = { ('a' + (unsigned) b->node_type ()), '\0' };
+            body += "   -- base type kind: ";
+            body += ((char*)&c);
+            body += "\n";
+	    body += "   type " + get_ada_local_name () + " is new ";
+	    string name = 
+	      dynamic_cast<adabe_name *>(b)->dump_name (with, previous);
+	    body += name;
+	    body += ";\n\n";
+	    break;
+          }
 	}
     }
   else
     {
-      body += "   type " + get_ada_local_name () + " is new ";
-      string name =
-	dynamic_cast<adabe_name *>(b)->dump_name (with, previous);
-      body += name;
-      body += ";\n\n";
+      switch (b->node_type ())
+        {
+        case AST_Decl::NT_interface:
+        case AST_Decl::NT_interface_fwd:
+          {
+	    body += "   subtype " + get_ada_local_name () + " is ";
+	    string name = 
+	      dynamic_cast<adabe_name *>(b)->dump_name (with, previous);
+	    body += name;
+	    body += ";\n\n";
+	    break;
+          }
+	default:
+          {
+            char c[2] = { ('a' + (unsigned) b->node_type ()), '\0' };
+            body += "   -- 2 base type kind: ";
+            body += ((char*)&c);
+            body += "\n";
+	    body += "   type " + get_ada_local_name () + " is new ";
+	    string name = 
+	      dynamic_cast<adabe_name *>(b)->dump_name (with, previous);
+	    body += name;
+	    body += ";\n\n";
+	    break;
+          }
+      }
     }
   if (!c->has_fixed_size ()) no_fixed_size ();
   switch (b->node_type ())

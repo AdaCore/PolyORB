@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.2 $
+//                            $Revision: 1.3 $
 //                                                                          //
 //         Copyright (C) 1999 ENST Paris University, France.                //
 //                                                                          //
@@ -504,8 +504,8 @@ adabe_interface::produce_adb (dep_list& with,
     "   end Is_A;\n\n";
 
   // Factory
-  string factory_type = get_ada_full_name () + "_Factory_Type";
-  string factory_name = get_ada_full_name () + "_Factory";
+  string factory_type = get_ada_local_name () + "_Factory_Type";
+  string factory_name = get_ada_local_name () + "_Factory";
   body +=
     "   type " + factory_type + " is new Broca.Repository.Object_Class_Type\n"
     "      with null record;\n"

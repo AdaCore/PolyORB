@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.3 $
+//                            $Revision: 1.4 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -187,11 +187,13 @@ adabe_module::produce_adb (dep_list & with,
 	    string interface_previous = "";
 	    string interface_body = "";
 	    string interface_with_string;
+	    string interface_use_string;
 	    dep_list interface_with;
 
 	    interface->produce_adb
 	      (interface_with, interface_body, interface_previous);
 	    interface_with_string = *interface_with.produce ("with ");
+	    interface_use_string = *interface_with.produce ("use ");
 	    
 	    string interface_file_name =
 	      remove_dot (interface->get_ada_full_name ()) + ".adb";
@@ -199,6 +201,7 @@ adabe_module::produce_adb (dep_list & with,
 	    ofstream interface_file (lower_case_name); 
 	    delete[] lower_case_name;
 	    interface_file << interface_with_string;
+	    interface_file << interface_use_string;
 	    interface_file << interface_previous;       
 	    interface_file << interface_body;
 	    interface_file.close ();
@@ -318,11 +321,13 @@ adabe_module::produce_impl_adb (dep_list & with,
 	    string interface_previous = "";
 	    string interface_body = "";
 	    string interface_with_string;
+	    string interface_use_string;
 	    dep_list interface_with;
 
 	    interface->produce_impl_adb
 	      (interface_with, interface_body, interface_previous);
 	    interface_with_string = *interface_with.produce ("with ");
+	    interface_use_string = *interface_with.produce ("use ");
 	    
 	    string interface_file_name =
 	      remove_dot (interface->get_ada_full_name ()) + "-impl.adb";
@@ -330,6 +335,7 @@ adabe_module::produce_impl_adb (dep_list & with,
 	    ofstream interface_file (lower_case_name); 
 	    delete[] lower_case_name;
 	    interface_file << interface_with_string;
+	    interface_file << interface_use_string;
 	    interface_file << interface_previous;       
 	    interface_file << interface_body;
 	    interface_file.close ();

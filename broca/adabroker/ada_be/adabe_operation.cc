@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.2 $
+//                            $Revision: 1.3 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -1028,7 +1028,7 @@ adabe_operation::produce_impl_adb (dep_list & with,
       body += marshall_size;
       if (!return_is_void ())
 	body +=
-	  "            --  return argument\n"
+	  "            --  return value\n"
 	  "            Marshall_Size (Stream, Returns);\n";
       body +=
 	"            Reply_Size := Stream.Pos - Broca.Giop.Message_Header_Size;\n"
@@ -1047,8 +1047,8 @@ adabe_operation::produce_impl_adb (dep_list & with,
       body += marshall;
       if (!return_is_void ())
 	body +=
-	  "            --  return arg\n"
-	  "            Marshall (Stream, Mesg);\n";
+	  "            --  return value\n"
+	  "            Marshall (Stream, Returns);\n";
     }
   body +=
     "            return;\n";
