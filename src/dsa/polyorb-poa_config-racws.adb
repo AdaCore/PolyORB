@@ -60,10 +60,10 @@ package body PolyORB.POA_Config.RACWs is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"poa_config.racws",
+      (Name      => +"poa_config.racws",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => Empty,
-       Init => Initialize'Access));
-
+       Depends   => Empty,
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PolyORB.POA_Config.RACWs;

@@ -60,6 +60,7 @@ depend-local-local: all
 polyorb-giop_p.lo:polyorb-giop_p.ads 
 polyorb-giop_p-exceptions.lo:polyorb-giop_p.ads polyorb-giop_p-exceptions.adb polyorb-giop_p-exceptions.ads 
 polyorb-giop_p-tagged_components.lo:polyorb-giop_p.ads polyorb-giop_p-tagged_components.adb polyorb-giop_p-tagged_components.ads 
+polyorb-giop_p-tagged_components-policies.lo:polyorb-giop_p.ads polyorb-giop_p-tagged_components.ads polyorb-giop_p-tagged_components-policies.adb polyorb-giop_p-tagged_components-policies.ads 
 polyorb-protocols-giop.lo:polyorb-giop_p.ads polyorb-giop_p-exceptions.ads polyorb-protocols-giop.adb polyorb-protocols-giop.ads 
 polyorb-protocols-giop-common.lo:polyorb-giop_p.ads polyorb-giop_p-exceptions.ads polyorb-protocols-giop.ads polyorb-protocols-giop-common.adb polyorb-protocols-giop-common.ads 
 polyorb-protocols-giop-giop_1_0.lo:polyorb-giop_p.ads polyorb-giop_p-exceptions.ads polyorb-protocols-giop.ads polyorb-protocols-giop-common.adb polyorb-protocols-giop-common.ads polyorb-protocols-giop-giop_1_0.adb polyorb-protocols-giop-giop_1_0.ads 

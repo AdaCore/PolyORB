@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-exceptions-stack.adb#8 $
+--  $Id: //droopi/main/src/polyorb-exceptions-stack.adb#9 $
 
 with Ada.Unchecked_Deallocation;
 
@@ -393,6 +393,6 @@ begin
        Conflicts => Empty,
        Depends   => Empty,
        Provides  => Empty,
+       Implicit  => False,
        Init      => Initialize'Access));
-
 end PolyORB.Exceptions.Stack;

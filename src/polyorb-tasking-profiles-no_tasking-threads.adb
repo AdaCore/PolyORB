@@ -184,9 +184,10 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"tasking.profiles.no_tasking.threads",
+      (Name      => +"tasking.profiles.no_tasking.threads",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => +"tasking.threads",
-       Init => Initialize'Access));
+       Depends   => Empty,
+       Provides  => +"tasking.threads",
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PolyORB.Tasking.Profiles.No_Tasking.Threads;

@@ -38,26 +38,6 @@
 
 @PROTO_SERVER_WITHS@
 
-with PolyORB.Parameters.File;
-pragma Elaborate_All (PolyORB.Parameters.File);
-
-with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization);
-
-with PolyORB.Utils.Strings;
-
 package body PolyORB.Setup.Server is
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
-
-begin
-   Register_Module
-     (Module_Info'
-      (Name      => +"parameters_file",
-       Conflicts => Empty,
-       Depends   => Empty,
-       Provides  => +"parameters",
-       Init      => PolyORB.Parameters.File.Initialize_Parameters'Access));
 
 end PolyORB.Setup.Server;

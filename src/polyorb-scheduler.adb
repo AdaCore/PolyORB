@@ -589,6 +589,6 @@ begin
        Conflicts => Empty,
        Depends   => +"tasking.condition_variables",
        Provides  => Empty,
+       Implicit  => False,
        Init      => Initialize'Access));
-
 end PolyORB.Scheduler;

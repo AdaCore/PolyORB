@@ -300,9 +300,10 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"tasking.profiles.full_tasking.threads",
+      (Name      => +"tasking.profiles.full_tasking.threads",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => +"tasking.threads",
-       Init => Initialize'Access));
+       Depends   => Empty,
+       Provides  => +"tasking.threads",
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PolyORB.Tasking.Profiles.Full_Tasking.Threads;

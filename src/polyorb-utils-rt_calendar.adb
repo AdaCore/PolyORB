@@ -543,5 +543,6 @@ begin
        Conflicts => Empty,
        Depends   => Empty,
        Provides  => +"calendar",
+       Implicit  => False,
        Init      => Initialize'Access));
 end PolyORB.Utils.RT_Calendar;

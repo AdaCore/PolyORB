@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.adb#25 $
+--  $Id: //droopi/main/src/corba/corba.adb#26 $
 
 with Ada.Characters.Handling;
 
@@ -1268,10 +1268,10 @@ package body CORBA is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"corba",
+      (Name      => +"corba",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => Empty,
-       Init => Initialize_Package'Access));
-
+       Depends   => Empty,
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize_Package'Access));
 end CORBA;

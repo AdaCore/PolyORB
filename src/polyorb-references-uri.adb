@@ -364,5 +364,6 @@ begin
        Conflicts => PolyORB.Initialization.String_Lists.Empty,
        Depends   => +"binding_factories",
        Provides  => PolyORB.Initialization.String_Lists.Empty,
+       Implicit  => False,
        Init      => Initialize'Access));
 end PolyORB.References.URI;

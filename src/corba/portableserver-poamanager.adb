@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poamanager.adb#15 $
+--  $Id: //droopi/main/src/corba/portableserver-poamanager.adb#16 $
 
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
@@ -237,10 +237,10 @@ package body PortableServer.POAManager is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"portableserver.poamanager",
+      (Name      => +"portableserver.poamanager",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => Empty,
-       Init => Initialize'Access));
-
+       Depends   => Empty,
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PortableServer.POAManager;

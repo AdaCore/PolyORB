@@ -70,6 +70,6 @@ begin
        &"protocols.giop.giop_1_1"
        &"protocols.giop.giop_1_0",
        Provides  => Empty,
+       Implicit  => False,
        Init      => Initialize'Access));
-
 end PolyORB.Setup.DIOP;

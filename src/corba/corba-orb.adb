@@ -625,6 +625,6 @@ begin
        Depends   => +"orb"
        & "corba.initial_references",
        Provides  => Empty,
+       Implicit  => False,
        Init      => Initialize'Access));
-
 end CORBA.ORB;

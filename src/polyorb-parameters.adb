@@ -306,9 +306,9 @@ package body PolyORB.Parameters is
    -- Initialize --
    ----------------
 
-   procedure Initialize is
+   procedure Set_Hooks is
    begin
       PolyORB.Log.Get_Conf_Hook := Get_Conf'Access;
-   end Initialize;
+   end Set_Hooks;
 
 end PolyORB.Parameters;

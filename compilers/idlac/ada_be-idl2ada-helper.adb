@@ -562,6 +562,7 @@ package body Ada_Be.Idl2Ada.Helper is
       --  to guard concurrent access to their internal structures.
       PL (CU, " ,");
       PL (CU, " Provides  => Empty,");
+      PL (CU, " Implicit  => False,");
       PL (CU, " Init      => Deferred_Initialization'Access));");
       DI (CU);
       DI (CU);

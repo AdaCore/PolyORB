@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#46 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#47 $
 
 with Ada.Exceptions;
 
@@ -1417,6 +1417,6 @@ begin
        Conflicts => Empty,
        Depends   => Empty,
        Provides  => Empty,
+       Implicit  => False,
        Init      => Initialize'Access));
-
 end PortableServer.POA;

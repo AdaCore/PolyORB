@@ -82,10 +82,11 @@ package body PolyORB.DSA_P.Partitions is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"dsa.partitions",
+      (Name      => +"dsa.partitions",
        Conflicts => Empty,
-       Depends => +"dsa"
+       Depends   => +"dsa"
          & "tasking.mutexes",
-       Provides => Empty,
-       Init => Initialize'Access));
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PolyORB.DSA_P.Partitions;

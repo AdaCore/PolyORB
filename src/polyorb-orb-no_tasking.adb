@@ -203,5 +203,6 @@ begin
        Conflicts => Empty,
        Depends   => Empty,
        Provides  => +"orb.tasking_policy",
+       Implicit  => False,
        Init      => Initialize'Access));
 end PolyORB.ORB.No_Tasking;

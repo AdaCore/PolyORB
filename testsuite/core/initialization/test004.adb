@@ -64,19 +64,21 @@ procedure Test004 is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"bar",
-       Depends => Empty_List,
+      (Name      => +"bar",
+       Depends   => Empty_List,
        Conflicts => Empty_List,
-       Provides => Empty_List,
-       Init => Init_Bar'Unrestricted_Access));
+       Provides  => Empty_List,
+       Implicit  => False,
+       Init      => Init_Bar'Unrestricted_Access));
 
    Register_Module
      (Module_Info'
-      (Name => +"bar",
-       Depends => Empty_List,
+      (Name      => +"bar",
+       Depends   => Empty_List,
        Conflicts => Empty_List,
-       Provides => Empty_List,
-       Init => Init_Bar'Unrestricted_Access));
+       Provides  => Empty_List,
+       Implicit  => False,
+       Init      => Init_Bar'Unrestricted_Access));
 
    Initialize_World;
 

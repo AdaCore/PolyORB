@@ -72,9 +72,15 @@ package PolyORB.Initialization is
       Init : Initializer;
       --  The initialization procedure for this module.
 
+      Implicit : Boolean;
+      --  If this flag is True, then the module is an implicit dependency:
+      --  it is added automatically to the dependency list of any module
+      --  that is not an implicit dependency itself.
+
    end record;
 
-   procedure Register_Module (Info : Module_Info);
+   procedure Register_Module
+     (Info                   : Module_Info);
    --  Register a module described by Info with
    --  the autoconfigurator.
 

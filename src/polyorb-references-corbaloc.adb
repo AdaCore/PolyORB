@@ -356,5 +356,6 @@ begin
        Conflicts => PolyORB.Initialization.String_Lists.Empty,
        Depends   => PolyORB.Initialization.String_Lists.Empty,
        Provides  => +"references",
+       Implicit  => False,
        Init      => Initialize'Access));
 end PolyORB.References.Corbaloc;

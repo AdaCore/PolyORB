@@ -850,6 +850,6 @@ begin
        Conflicts => Empty,
        Depends   => Empty,
        Provides  => Empty,
+       Implicit  => False,
        Init      => Initialize'Access));
-
 end PolyORB.Protocols.GIOP.GIOP_1_1;

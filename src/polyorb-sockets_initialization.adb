@@ -67,6 +67,6 @@ begin
        Conflicts => Empty,
        Depends   => Empty,
        Provides  => Empty,
+       Implicit  => False,
        Init      => Initialize'Access));
-
 end PolyORB.Sockets_Initialization;

@@ -67,27 +67,30 @@ procedure Test002 is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"bar",
-       Depends => Empty_List & "foo" & "baz",
+      (Name      => +"bar",
+       Depends   => Empty_List & "foo" & "baz",
        Conflicts => Empty_List,
-       Provides => Empty_List,
-       Init => Init_Bar'Unrestricted_Access));
+       Provides  => Empty_List,
+       Implicit  => False,
+       Init      => Init_Bar'Unrestricted_Access));
 
    Register_Module
      (Module_Info'
-      (Name => +"bazooka",
-       Depends => Empty_List,
+      (Name      => +"bazooka",
+       Depends   => Empty_List,
        Conflicts => Empty_List,
-       Provides => Empty_List & "baz",
-       Init => Init_Bazooka'Unrestricted_Access));
+       Provides  => Empty_List & "baz",
+       Implicit  => False,
+       Init      => Init_Bazooka'Unrestricted_Access));
 
    Register_Module
      (Module_Info'
-      (Name => +"fred",
-       Depends => Empty_List & "bar" & "foo",
+      (Name      => +"fred",
+       Depends   => Empty_List & "bar" & "foo",
        Conflicts => Empty_List & "bazaar",
-       Provides => Empty_List,
-       Init => Init_Fred'Unrestricted_Access));
+       Provides  => Empty_List,
+       Implicit  => False,
+       Init      => Init_Fred'Unrestricted_Access));
 
    Initialize_World;
 

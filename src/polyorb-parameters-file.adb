@@ -35,6 +35,7 @@
 
 with Ada.Text_IO;
 
+with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Utils.Strings;
 
@@ -179,4 +180,17 @@ package body PolyORB.Parameters.File is
 
    end Initialize_Parameters;
 
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"parameters.file",
+       Conflicts => Empty,
+       Depends   => Empty,
+       Provides  => +"parameters",
+       Implicit  => True,
+       Init      => Initialize_Parameters'Access));
 end PolyORB.Parameters.File;

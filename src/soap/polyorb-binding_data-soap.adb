@@ -564,6 +564,6 @@ begin
        Conflicts => Empty,
        Depends   => +"sockets",
        Provides  => +"binding_factories",
+       Implicit  => False,
        Init      => Initialize'Access));
-
 end PolyORB.Binding_Data.SOAP;

@@ -733,14 +733,12 @@ package body AWS.Server is
    use PolyORB.Utils.Strings;
 
 begin
-
    Register_Module
      (Module_Info'
-     (Name => +"aws",
+     (Name      => +"aws",
       Conflicts => Empty,
-      Depends => Empty,
-      Provides => Empty,
-      Init => Init_AWS'Access));
-   --  we register the aws personality
-
+      Depends   => Empty,
+      Provides  => Empty,
+      Implicit  => False,
+      Init      => Init_AWS'Access));
 end AWS.Server;

@@ -1658,9 +1658,9 @@ package body System.PolyORB_Interface is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"dsa",
+      (Name      => +"dsa",
        Conflicts => Empty,
-       Depends => +"orb"
+       Depends   => +"orb"
        & "poa_config.racws?"
        & "naming.Helper"
        & "naming.NamingContext.Helper"
@@ -1668,7 +1668,7 @@ begin
        & "access_points?"
        & "binding_factories"
        & "references",
-       Provides => Empty,
-       Init => Initialize'Access));
-
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access));
 end System.PolyORB_Interface;

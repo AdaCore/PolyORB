@@ -47,8 +47,9 @@ package PolyORB.Parameters is
    Environment_Configuration_Section : constant String
      := "environment";
 
-   procedure Initialize;
-   --  Initialize Configuration subsystem.
+   procedure Set_Hooks;
+   --  Set Get_Conf hooks in units that need to access parameters
+   --  but cannot depend on this package.
 
    procedure Set_Conf
      (Section, Key : String;

@@ -352,9 +352,10 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"tasking.profiles.ravenscar.mutexes",
+      (Name      => +"tasking.profiles.ravenscar.mutexes",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => +"tasking.mutexes",
-       Init => Initialize'Access));
+       Depends   => Empty,
+       Provides  => +"tasking.mutexes",
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PolyORB.Tasking.Profiles.Ravenscar.Mutexes;

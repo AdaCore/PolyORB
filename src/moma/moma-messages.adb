@@ -675,7 +675,7 @@ begin
           Conflicts => Empty,
           Depends   => +"MOMA.Destinations",
           Provides  => Empty,
+          Implicit  => False,
           Init      => Initialize'Access));
    end;
-
 end MOMA.Messages;

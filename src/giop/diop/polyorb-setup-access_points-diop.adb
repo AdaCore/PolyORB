@@ -103,6 +103,6 @@ begin
        Conflicts => String_Lists.Empty,
        Depends   => +"orb" & "sockets",
        Provides  => String_Lists.Empty,
+       Implicit  => False,
        Init      => Initialize_Access_Points'Access));
-
 end PolyORB.Setup.Access_Points.DIOP;

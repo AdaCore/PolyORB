@@ -243,9 +243,10 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Calendar is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"tasking.profiles.no_tasking.calendar",
+      (Name      => +"tasking.profiles.no_tasking.calendar",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => +"calendar",
-       Init => Initialize'Access));
+       Depends   => Empty,
+       Provides  => +"calendar",
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PolyORB.Tasking.Profiles.No_Tasking.Calendar;

@@ -79,6 +79,8 @@ package body PolyORB.Initialization is
    World : Dep_Lists.List;
    package World_Dict is new PolyORB.Dynamic_Dict (Value => Module_Access);
 
+   Implicit_Dependencies : Dep_Lists.List;
+
    --------------------------
    -- Internal subprograms --
    --------------------------
@@ -147,7 +149,14 @@ package body PolyORB.Initialization is
       end if;
 
       M.Info := Info;
-      Append (World, new Module'(M));
+      declare
+         New_M : constant Module_Access := new Module'(M);
+      begin
+         Append (World, New_M);
+         if Info.Implicit then
+            Append (Implicit_Dependencies, New_M);
+         end if;
+      end;
    end Register_Module;
 
    -----------------------
@@ -243,6 +252,7 @@ package body PolyORB.Initialization is
    procedure Resolve_Dependencies
    is
       MI : Dep_Lists.Iterator := First (World);
+      IDI : Dep_Lists.Iterator;
       SI : String_Lists.Iterator;
       Current : Module_Access;
    begin
@@ -272,6 +282,7 @@ package body PolyORB.Initialization is
 
                   if Dep_Module /= null then
                      Prepend (Current.Deps, Dep_Module);
+
                   elsif not Optional then
                      O ("Unresolved dependency: "
                         & Current.Info.Name.all & " -> "
@@ -279,6 +290,14 @@ package body PolyORB.Initialization is
                      raise Unresolved_Dependency;
                   end if;
                end;
+
+               if not Current.Info.Implicit then
+                  IDI := First (Implicit_Dependencies);
+                  while not Last (IDI) loop
+                     Prepend (Current.Deps, Value (IDI).all);
+                     Next (IDI);
+                  end loop;
+               end if;
 
                Next (SI);
             end loop;
@@ -382,7 +401,7 @@ package body PolyORB.Initialization is
 
       --  Initialize Configuration subsystem
 
-      PolyORB.Parameters.Initialize;
+      PolyORB.Parameters.Set_Hooks;
 
       --  Initialize registered packages:
       --  Recursive traversal of the dependency graph then initialize

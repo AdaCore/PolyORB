@@ -2,6 +2,6 @@
 libtoolize --copy --force
 aclocal -I support
 autoconf
-automake
+automake --add-missing
 (cd compilers/idlac && python make_nodes.py nodes.txt > xxx \
  && gnatchop -w xxx && rm -f xxx)

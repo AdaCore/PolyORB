@@ -254,5 +254,6 @@ begin
        Conflicts => +"no_tasking",
        Depends   => Empty,
        Provides  => +"orb.tasking_policy",
+       Implicit  => False,
        Init      => Initialize'Access));
 end PolyORB.ORB.Thread_Per_Request;

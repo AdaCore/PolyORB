@@ -217,6 +217,6 @@ begin
        Conflicts => Empty,
        Depends   => Empty,
        Provides  => +"corba.initial_references",
+       Implicit  => False,
        Init      => Initialize'Access));
-
 end PolyORB.CORBA_P.Initial_References;

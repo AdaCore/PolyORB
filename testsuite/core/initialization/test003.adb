@@ -65,19 +65,21 @@ procedure Test003 is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"bar",
-       Depends => Empty_List & "foo",
+      (Name      => +"bar",
+       Depends   => Empty_List & "foo",
        Conflicts => Empty_List,
-       Provides => Empty_List,
-       Init => Init_Bar'Unrestricted_Access));
+       Provides  => Empty_List,
+       Implicit  => False,
+       Init      => Init_Bar'Unrestricted_Access));
 
    Register_Module
      (Module_Info'
-      (Name => +"foo",
-       Depends => Empty_List & "bar",
+      (Name      => +"foo",
+       Depends   => Empty_List & "bar",
        Conflicts => Empty_List,
-       Provides => Empty_List,
-       Init => Init_Foo'Unrestricted_Access));
+       Provides  => Empty_List,
+       Implicit  => False,
+       Init      => Init_Foo'Unrestricted_Access));
 
    Initialize_World;
 

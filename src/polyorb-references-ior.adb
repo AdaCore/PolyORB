@@ -387,5 +387,6 @@ begin
        Conflicts => Empty,
        Depends   => Empty,
        Provides  => +"references",
+       Implicit  => False,
        Init      => Initialize'Access));
 end PolyORB.References.IOR;

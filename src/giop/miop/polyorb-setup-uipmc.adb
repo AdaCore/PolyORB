@@ -69,6 +69,6 @@ begin
        Conflicts => Empty,
        Depends   => +"protocols.giop.giop_1_2",
        Provides  => Empty,
+       Implicit  => False,
        Init      => Initialize'Access));
-
 end PolyORB.Setup.UIPMC;

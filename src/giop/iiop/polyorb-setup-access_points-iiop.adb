@@ -109,6 +109,6 @@ begin
                    & "orb"
                    & "protocols.giop.iiop",
        Provides  => +"access_points",
+       Implicit  => False,
        Init      => Initialize_Access_Points'Access));
-
 end PolyORB.Setup.Access_Points.IIOP;

@@ -263,6 +263,7 @@ begin
        Conflicts => +"no_tasking",
        Depends   => Empty,
        Provides  => +"orb.tasking_policy",
+       Implicit  => False,
        Init      => Initialize_Tasking_Policy_Access'Access));
 
    Register_Module
@@ -271,6 +272,7 @@ begin
        Conflicts => +"no_tasking",
        Depends   => +"orb",
        Provides  => +"orb.tasking_policy_init",
+       Implicit  => False,
        Init      => Initialize_Threads'Access));
 
    --  Two Register_Module are needed because, on one hand, the

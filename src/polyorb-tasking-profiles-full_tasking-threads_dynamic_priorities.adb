@@ -92,10 +92,10 @@ is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"tasking.profiles.full_tasking.thread_dynamic_priorities",
+      (Name      => +"tasking.profiles.full_tasking.thread_dynamic_priorities",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => +"tasking.threads",
-       Init => Initialize'Access));
-
+       Depends   => Empty,
+       Provides  => +"tasking.threads",
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PolyORB.Tasking.Profiles.Full_Tasking.Threads_Dynamic_Priorities;

@@ -115,9 +115,10 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Mutexes is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"tasking.profiles.no_tasking.mutexes",
+      (Name      => +"tasking.profiles.no_tasking.mutexes",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => +"tasking.mutexes",
-       Init => Initialize'Access));
+       Depends   => Empty,
+       Provides  => +"tasking.mutexes",
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PolyORB.Tasking.Profiles.No_Tasking.Mutexes;

@@ -195,7 +195,7 @@ begin
        Conflicts => Empty,
        Depends   => +"corba.initial_references",
        Provides  => Empty,
+       Implicit  => False,
        Init      => Initialize'Access));
-
 end RTCORBA.Current;
 

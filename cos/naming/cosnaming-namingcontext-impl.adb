@@ -918,5 +918,6 @@ begin
        Conflicts => Empty,
        Depends   => +"tasking.mutexes",
        Provides  => Empty,
+       Implicit  => False,
        Init      => Initialize'Access));
 end CosNaming.NamingContext.Impl;

@@ -102,6 +102,6 @@ begin
        Conflicts => Empty,
        Depends   => +"orb",
        Provides  => +"access_points",
+       Implicit  => False,
        Init      => Initialize_Access_Points'Access));
-
 end PolyORB.Setup.Access_Points.SRP;

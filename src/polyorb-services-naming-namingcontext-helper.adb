@@ -478,5 +478,6 @@ begin
        Conflicts => Empty,
        Depends   => +"exceptions" & "any",
        Provides  => Empty,
+       Implicit  => False,
        Init      => Initialize'Access));
 end PolyORB.Services.Naming.NamingContext.Helper;

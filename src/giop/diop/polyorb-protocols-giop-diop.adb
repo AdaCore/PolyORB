@@ -83,6 +83,6 @@ begin
        Conflicts => Empty,
        Depends   => +"setup.diop",
        Provides  => Empty,
+       Implicit  => False,
        Init      => Initialize'Access));
-
 end PolyORB.Protocols.GIOP.DIOP;

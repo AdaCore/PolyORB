@@ -135,5 +135,6 @@ begin
        Conflicts => PolyORB.Initialization.String_Lists.Empty,
        Depends   => PolyORB.Initialization.String_Lists.Empty,
        Provides  => PolyORB.Initialization.String_Lists.Empty,
+       Implicit  => False,
        Init      => Initialize'Access));
 end PolyORB.GIOP_P.Tagged_Components.Policies;

@@ -229,9 +229,10 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"tasking.profiles.full_tasking.condition_variables",
+      (Name      => +"tasking.profiles.full_tasking.condition_variables",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => +"tasking.condition_variables",
-       Init => Initialize'Access));
+       Depends   => Empty,
+       Provides  => +"tasking.condition_variables",
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables;

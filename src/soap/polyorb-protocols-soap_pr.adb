@@ -431,9 +431,10 @@ package body PolyORB.Protocols.SOAP_Pr is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"protocols.soap",
+      (Name      => +"protocols.soap",
        Conflicts => Empty,
-       Depends => +"http_methods" & "http_headers",
-       Provides => Empty,
-       Init => Initialize'Access));
+       Depends   => +"http_methods" & "http_headers",
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PolyORB.Protocols.SOAP_Pr;
