@@ -58,23 +58,28 @@ package System.Garlic.Utils is
    --  In place transformation of a string with all the upper-case letters
    --  changed into corresponding lower-case ones.
 
-   protected type Barrier_Type is
-      entry Wait;
-      procedure Signal (How_Many : Positive := 1);
-      procedure Signal_All (Permanent : Boolean);
-   private
-      Free : Natural := 0;
-      Perm : Boolean := False;
-   end Barrier_Type;
-   --  Any number of task may be waiting on Wait. Signal unblocks How_Many
-   --  tasks (the order depends on the queuing policy) and Signal_All unblocks
-   --  all the tasks (if Permanent is True, Wait will no longer be blocking).
-   --  If How_Many is more than the number of tasks waiting, new tasks will
-   --  be awakened as well.
+   type Barrier_Access is private;
 
-   type Barrier_Access is access Barrier_Type;
-   procedure Free is
-     new Ada.Unchecked_Deallocation (Barrier_Type, Barrier_Access);
+   function Create return Barrier_Access;
+   pragma Inline (Create);
+   --  Allocate a barrier.
+
+   procedure Destroy (B : in out Barrier_Access);
+   pragma Inline (Destroy);
+   --  Destroy a barrier.
+
+   procedure Signal (B : in Barrier_Access; N : in Positive := 1);
+   pragma Inline (Signal);
+   --  Release N processes waiting on the barrier.
+
+   procedure Signal_All (B : in Barrier_Access; P : in Boolean := True);
+   pragma Inline (Signal_All);
+   --  Release all processes waiting on the barrier. If P is true, this
+   --  barrier is no longer blocking.
+
+   procedure Wait (B : in Barrier_Access);
+   pragma Inline (Wait);
+   --  Wait on barrier.
 
    type Mutex_Access is private;
 
@@ -133,6 +138,10 @@ package System.Garlic.Utils is
    --  Leave one level of critical section
 
 private
+
+   type Barrier_Type;
+
+   type Barrier_Access is access Barrier_Type;
 
    type Watcher_Type;
 

@@ -1,3 +1,27 @@
+1998-10-16  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garpar.adb: Implement a distributed PID allocator using the
+	group communication.
+
+	* s-gargro.adb, s-rpc.adb, s-rpstio.adb: Adapt to new Garlic.Utils
+ 	specification.
+
+	* s-garpar.ads: Change field Boot_Server into Boot_Ability. Define
+ 	a new Boot_Server field that correponds to the PID of the boot
+ 	server used to boot a given partition. Add new Map_Partition_Info
+ 	request.
+	
+	* s-garhea.adb: Adapt to new Garlic.Utils specification. Fix a
+	bug in trace/replay: parameter Partition was uninitialized in some 
+	circunstances. Handle new Map_Partition_Info request. Adapt to new 
+	Garlic.Partitions spec.
+
+	* s-gartra.adb, s-gartra.adb: Take into account the offset of a
+ 	stream.
+
+	* s-garuti.adb, s-garuti.ads: Barrier_Access becomes a private
+	type. Change its primitives.
+
 1998-10-16  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* All files: Update headers.

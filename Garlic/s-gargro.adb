@@ -54,7 +54,7 @@ package body System.Garlic.Group is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   Barrier : Barrier_Access := new Barrier_Type;
+   Barrier : Barrier_Access := Create;
 
    procedure Handle_Request
      (Partition : in Partition_ID;
@@ -72,7 +72,7 @@ package body System.Garlic.Group is
      (Opcode : in Any_Opcode;
       Params : access Streams.Params_Stream_Type) is
    begin
-      Barrier.Wait;
+      Wait (Barrier);
       Insert (Params.all);
       Partition_ID'Write (Params, Self_PID);
       Any_Opcode'Write (Params, Opcode);
@@ -107,7 +107,7 @@ package body System.Garlic.Group is
         (Inner_PID, Inner_Code, Inner_Query'Access, Inner_Reply'Access);
 
       if Inner_PID = Self_PID then
-         Barrier.Signal;
+         Signal (Barrier);
 
       else
          if Empty (Inner_Reply'Access) then
@@ -134,7 +134,7 @@ package body System.Garlic.Group is
    procedure Initialize is
    begin
       Register_Handler (Group_Service, Handle_Request'Access);
-      Barrier.Signal;
+      Signal (Barrier);
    end Initialize;
 
    --------------
@@ -150,7 +150,7 @@ package body System.Garlic.Group is
          Next_Partition (PID, Right, True);
          exit when PID = Self_PID;
          Info := Partitions.Get_Component (PID);
-         exit when Info.Boot_Server;
+         exit when Info.Boot_Ability;
       end loop;
       return PID;
    end Neighbor;

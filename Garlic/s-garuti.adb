@@ -40,6 +40,20 @@ package body System.Garlic.Utils is
 
    use Ada.Task_Identification;
 
+   protected type Barrier_Type is
+      entry Wait;
+      procedure Signal (How_Many : Positive := 1);
+      procedure Signal_All (Permanent : Boolean);
+   private
+      Free : Natural := 0;
+      Perm : Boolean := False;
+   end Barrier_Type;
+   --  Any number of task may be waiting on Wait. Signal unblocks How_Many
+   --  tasks (the order depends on the queuing policy) and Signal_All
+   --  unblocks all the tasks and Wait will no longer be blocking. If
+   --  How_Many is more than the number of tasks waiting, new tasks will be
+   --  awakened as well.
+
    protected type Mutex_Type is
       entry Enter;
       procedure Leave;
@@ -75,6 +89,8 @@ package body System.Garlic.Utils is
      new Ada.Unchecked_Deallocation (Adv_Mutex_Type, Adv_Mutex_Access);
    procedure Free is
      new Ada.Unchecked_Deallocation (Watcher_Type, Watcher_Access);
+   procedure Free is
+     new Ada.Unchecked_Deallocation (Barrier_Type, Barrier_Access);
 
    ----------------------
    -- Access_To_String --
@@ -134,6 +150,15 @@ package body System.Garlic.Utils is
    -- Create --
    ------------
 
+   function Create return Barrier_Access is
+   begin
+      return new Barrier_Type;
+   end Create;
+
+   ------------
+   -- Create --
+   ------------
+
    function Create return Watcher_Access is
    begin
       return new Watcher_Type;
@@ -160,6 +185,15 @@ package body System.Garlic.Utils is
    begin
       return new Mutex_Type;
    end Create;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (B : in out Barrier_Access) is
+   begin
+      Free (B);
+   end Destroy;
 
    -------------
    -- Destroy --
@@ -295,6 +329,24 @@ package body System.Garlic.Utils is
       return new String'(S);
    end String_To_Access;
 
+   ------------
+   -- Signal --
+   ------------
+
+   procedure Signal (B : in Barrier_Access; N : in Positive := 1) is
+   begin
+      B.Signal (N);
+   end Signal;
+
+   ----------------
+   -- Signal_All --
+   ----------------
+
+   procedure Signal_All (B : in Barrier_Access; P : in Boolean := True) is
+   begin
+      B.Signal_All (P);
+   end Signal_All;
+
    --------------
    -- To_Lower --
    --------------
@@ -319,6 +371,15 @@ package body System.Garlic.Utils is
    begin
       W.Update;
    end Update;
+
+   ----------
+   -- Wait --
+   ----------
+
+   procedure Wait (B : in Barrier_Access) is
+   begin
+      B.Wait;
+   end Wait;
 
    ------------------
    -- Watcher_Type --

@@ -72,7 +72,7 @@ package body System.RPC is
      renames Print_Debug_Info;
 
    RPC_Allowed : Boolean := False;
-   RPC_Barrier : Barrier_Type;
+   RPC_Barrier : Barrier_Access := Create;
    --  The current RPC receiver and its associated barrier
 
    type RPC_Status is (Unknown, Running, Aborted, Completed);
@@ -245,7 +245,7 @@ package body System.RPC is
       pragma Debug
         (D (D_Debug, "Setting RPC receiver for partition" & Partition'Img));
       RPC_Allowed := True;
-      RPC_Barrier.Signal_All (Permanent => True);
+      Signal_All (RPC_Barrier);
       Register_Partition_Error_Notification
         (Partition_Error_Notification'Access);
    exception
@@ -281,7 +281,7 @@ package body System.RPC is
    is
    begin
       if not RPC_Allowed then
-         RPC_Barrier.Wait;
+         Wait (RPC_Barrier);
       end if;
    end When_Established;
 

@@ -58,7 +58,7 @@ package body System.RPC.Stream_IO is
          Mode      : Stream_Mode;
          Incoming  : aliased Streams.Params_Stream_Type (0);
          Outgoing  : aliased Streams.Params_Stream_Type (0);
-         Consumer  : Barrier_Type;
+         Consumer  : Barrier_Access;
          Available : Mutex_Access;
          Critical  : Mutex_Access;
       end record;
@@ -114,6 +114,7 @@ package body System.RPC.Stream_IO is
          Enter (Any.Critical);
          if Streams (Partition) = null then
             Streams (Partition) := new Partition_Stream_Record;
+            Streams (Partition).Consumer  := Create;
             Streams (Partition).Available := Create;
             Streams (Partition).Critical  := Create;
             if First_Partition = Partition_ID'Last
@@ -197,7 +198,7 @@ package body System.RPC.Stream_IO is
 
       while Len = 0 loop
          pragma Debug (D (D_Debug, "Read - Wait for stream" & Stream.PID'Img));
-         Str.Consumer.Wait;
+         Wait (Str.Consumer);
 
          if Stream.PID = Any_Partition then
             FID := First_Partition;
@@ -220,8 +221,8 @@ package body System.RPC.Stream_IO is
             if Len /= 0 then
                if Streams (P).Incoming.Count /= 0 then
                   pragma Debug (D (D_Debug, "Read - Signal stream" & P'Img));
-                  Streams (P).Consumer.Signal;
-                  Any.Consumer.Signal;
+                  Signal (Streams (P).Consumer);
+                  Signal (Any.Consumer);
                end if;
                exit;
             end if;
@@ -256,8 +257,8 @@ package body System.RPC.Stream_IO is
       Leave (Str.Critical);
 
       pragma Debug (D (D_Debug, "Signal to all streams"));
-      Str.Consumer.Signal;
-      Any.Consumer.Signal;
+      Signal (Str.Consumer);
+      Signal (Any.Consumer);
    end Handle_Request;
 
    -----------

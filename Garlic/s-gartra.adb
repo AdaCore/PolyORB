@@ -97,10 +97,13 @@ package body System.Garlic.Trace is
 
    procedure Trace_Data
      (Partition : in Types.Partition_ID;
-      Data      : access Ada.Streams.Stream_Element_Array) is
+      Filtered  : access Ada.Streams.Stream_Element_Array;
+      Offset    : in  Ada.Streams.Stream_Element_Count)
+   is
       Trace : Trace_Type;
       Date  : Time;
-
+      First : constant Stream_Element_Count := Filtered'First + Offset;
+      Last  : constant Stream_Element_Count := Filtered'Last;
    begin
       --  Compute the period between the arrival of this message and
       --  the arrival of the previous message.
@@ -109,8 +112,8 @@ package body System.Garlic.Trace is
       Trace.Time := Date - Trace_Time;
       Trace_Time := Date;
 
-      Trace.Data     := new Stream_Element_Array (Data'Range);
-      Trace.Data.all := Data.all;
+      Trace.Data     := new Stream_Element_Array (First .. Last);
+      Trace.Data.all := Filtered (First .. Last);
       Trace.PID      := Partition;
 
       pragma Debug

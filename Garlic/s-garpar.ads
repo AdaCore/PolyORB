@@ -48,7 +48,8 @@ private package System.Garlic.Partitions is
       Termination  : Types.Termination_Type;
       Reconnection : Types.Reconnection_Type;
       Light_RTS    : Boolean;
-      Boot_Server  : Boolean;
+      Boot_Ability : Boolean;
+      Boot_Server  : Types.Partition_ID;
       Status       : Types.Status_Type;
       Allocated    : Boolean;
    end record;
@@ -70,13 +71,15 @@ private package System.Garlic.Partitions is
       Termination  => Types.Global_Termination,
       Reconnection => Types.Rejected_On_Restart,
       Light_RTS    => False,
-      Boot_Server  => False,
+      Boot_Ability => False,
+      Boot_Server  => Types.Null_PID,
       Status       => Types.None);
 
    type Request_Kind is
       (Add_Partition_Info,
        All_Partition_Info,
        Get_Partition_Info,
+       Map_Partition_Info,
        New_Partition_Info,
        Set_Partition_Info);
 
@@ -93,13 +96,15 @@ private package System.Garlic.Partitions is
                  All_Partition_Info =>
                null;
             when Get_Partition_Info |
+                 Map_Partition_Info |
                  New_Partition_Info |
                  Set_Partition_Info =>
                Partition : Types.Partition_ID;
                case Kind is
                   when Add_Partition_Info |
                        All_Partition_Info |
-                       Get_Partition_Info =>
+                       Get_Partition_Info |
+                       Map_Partition_Info =>
                      null;
                   when New_Partition_Info |
                        Set_Partition_Info =>
@@ -119,6 +124,11 @@ private package System.Garlic.Partitions is
 
    function Allocate_PID return Types.Partition_ID;
    --  Allocate a new partition ID
+
+   procedure Validate_PID
+     (PID  : in out Types.Partition_ID;
+      From : in Types.Partition_ID);
+   --  Validation occurs when all the boot server agree for a given PID.
 
    procedure Dump_Partition_Info
      (PID  : in Types.Partition_ID;

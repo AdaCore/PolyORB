@@ -46,7 +46,8 @@ package System.Garlic.Trace is
 
    procedure Trace_Data
      (Partition : in Types.Partition_ID;
-      Data      : access Ada.Streams.Stream_Element_Array);
+      Filtered  : access Ada.Streams.Stream_Element_Array;
+      Offset    : in  Ada.Streams.Stream_Element_Count);
    --  Trace the message Data (and the time that has passed since the
    --  previous recording) and record it in the partition trace file.
 

@@ -77,11 +77,11 @@ package body System.Garlic.Heart is
    --  by more than one task (in fact, they should not be modified after
    --  the elaboration is terminated).
 
-   Elaboration_Barrier : Barrier_Type;
+   Elaboration_Barrier : Barrier_Access := Create;
    --  This barrier will be no longer blocking when the elaboration is
    --  terminated.
 
-   Self_PID_Barrier : Barrier_Access := new Barrier_Type;
+   Self_PID_Barrier : Barrier_Access := Create;
    --  Block any task until Self_PID is different from Null_PID
 
    Handlers : array (External_Opcode) of Request_Handler;
@@ -155,19 +155,13 @@ package body System.Garlic.Heart is
       --  do not allocate any partition id until boot pid is defined.
 
       if Options.Boot_Partition and then Self_PID = Null_PID then
-         Self_PID_Barrier.Wait;
+         Wait (Self_PID_Barrier);
       end if;
 
       --  Dump the stream for debugging purpose
 
       pragma Debug (D (D_Dump, "Dumping stream to analyze"));
       pragma Debug (Dump (D_Dump, Filtered, Private_Debug_Key));
-
-      --  Record the current packet content in the trace file if needed
-
-      if Options.Execution_Mode = Trace_Mode then
-         Trace_Data (Partition, Filtered);
-      end if;
 
       --  Read the partition id from the stream and check that it is valid
 
@@ -189,6 +183,14 @@ package body System.Garlic.Heart is
          Ada.Exceptions.Raise_Exception
            (Constraint_Error'Identity,
             "Received unexpected No_Operation opcode");
+      end if;
+
+      --  Record the current packet content in the trace file if needed.
+      --  We cannot depend on Partition value (unitialized) but we can
+      --  depend on PID.
+
+      if Options.Execution_Mode = Trace_Mode then
+         Trace_Data (PID, Filtered, Offset);
       end if;
 
       --  When the partition id is unknown, allocate a new one
@@ -254,7 +256,7 @@ package body System.Garlic.Heart is
       pragma Debug
         (D (D_Debug, "Complete termination"));
 
-      Elaboration_Barrier.Signal_All (Permanent => True);
+      Signal_All (Elaboration_Barrier);
    end Complete_Elaboration;
 
    -------------------------
@@ -320,7 +322,8 @@ package body System.Garlic.Heart is
                Termination   => Options.Termination,
                Reconnection  => Options.Reconnection,
                Light_RTS     => Can_Have_A_Light_Runtime,
-               Boot_Server   => False,
+               Boot_Ability  => False,
+               Boot_Server   => Null_PID,
                Status        => Done);
 
             --  This is step 1.
@@ -334,7 +337,7 @@ package body System.Garlic.Heart is
 
             --  This is step 6.
 
-            Self_PID_Barrier.Wait;
+            Wait (Self_PID_Barrier);
 
          end if;
 
@@ -466,7 +469,7 @@ package body System.Garlic.Heart is
             --  Add this partition in the list of potential boot servers.
 
             Info := Partitions.Get_Component (Partition);
-            Info.Boot_Server := True;
+            Info.Boot_Ability := True;
             Partitions.Set_Component (Partition, Info);
 
             --  Broadcast to any partition in the group. This is step 8.
@@ -510,12 +513,21 @@ package body System.Garlic.Heart is
                 Request.Partition,
                 Partitions.Get_Component (Request.Partition)));
 
+         when Map_Partition_Info =>
+            Validate_PID (Request.Partition, Partition);
+
+            Request_Type'Output
+              (Reply,
+               (Map_Partition_Info,
+                Request.Partition));
+
          when New_Partition_Info =>
             pragma Debug
               (D (D_Debug, "Set info on partition" & Partition'Img));
 
             --  This is step 2 for boot partition.
 
+            Request.Info.Boot_Server := Self_PID;
             if Options.Execution_Mode = Replay_Mode then
                Request.Info.Location := To_Location ("replay://");
             end if;
@@ -572,13 +584,14 @@ package body System.Garlic.Heart is
                Booted := True;
 
                Info := Partitions.Get_Component (Self_PID);
-               Info.Boot_Server := not Info.Light_RTS;
+               Info.Boot_Ability := not Info.Light_RTS;
+               Info.Boot_Server  := Partition;
                Partitions.Set_Component (Self_PID, Info);
 
                --  If this partition wants to join the boot server group,
                --  send an add partition info request. This is step 7.
 
-               if Info.Boot_Server then
+               if Info.Boot_Ability then
                   Request_Type'Output
                     (Reply, Request_Type'(Kind => Add_Partition_Info));
                end if;
@@ -693,13 +706,13 @@ package body System.Garlic.Heart is
 
       if Increment then
          pragma Debug (D (D_Debug,
-                          "Next partition of " & Partition'Img &
-                          " is partition" & Next'Img));
+                          "Partition next to" & Partition'Img &
+                          " is" & Next'Img));
          null;
       else
          pragma Debug (D (D_Debug,
-                          "Prev partition of " & Partition'Img &
-                          " is partition" & Next'Img));
+                          "Partition prev to" & Partition'Img &
+                          " is" & Next'Img));
          null;
       end if;
    end Next_Partition;
@@ -949,7 +962,8 @@ package body System.Garlic.Heart is
          Reconnection => Rejected_On_Restart,
          Termination  => Global_Termination,
          Light_RTS    => False,
-         Boot_Server  => True,
+         Boot_Ability => True,
+         Boot_Server  => Null_PID,
          Status       => Done);
    begin
       if Options.Boot_Partition then
@@ -984,7 +998,7 @@ package body System.Garlic.Heart is
 
       Initialize (Get_Protocol (Boot_PID));
 
-      Self_PID_Barrier.Signal_All (Permanent => True);
+      Signal_All (Self_PID_Barrier);
    end Set_My_Partition_ID;
 
    ----------------
@@ -1009,7 +1023,7 @@ package body System.Garlic.Heart is
       Soft_Links.Termination_Shutdown;
       Physical_Location.Shutdown;
       RPC_Shutdown;
-      Free (Self_PID_Barrier);
+      Destroy (Self_PID_Barrier);
       Delete_Termination_Sanity_File;
    end Shutdown;
 
@@ -1065,7 +1079,7 @@ package body System.Garlic.Heart is
 
    procedure Wait_For_Elaboration_Completion is
    begin
-      Elaboration_Barrier.Wait;
+      Wait (Elaboration_Barrier);
    end Wait_For_Elaboration_Completion;
 
 end System.Garlic.Heart;
