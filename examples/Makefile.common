@@ -1,0 +1,39 @@
+IDLAC = ../../idlac/idlac
+SOCK_CONS = ../../adasockets/src/sockets-constants.ads
+
+EXAMPLES_GNATMAKE_FLAGS = -I$(srcdir) \
+                          -I$(srcdir)/../generic \
+                          -I../../src \
+                          -I$(srcdir)/../../src \
+                          -I../../adasockets/src \
+                          -I$(srcdir)/../../adasockets/src \
+                          -g -O2 -m -gnata
+
+CLEANFILES = b~*.* \
+	$(EXAMPLE).o $(EXAMPLE).ali \
+	$(EXAMPLE)-*.o $(EXAMPLE)-*.ali \
+	$(EXAMPLE).ads $(EXAMPLE).adb \
+	$(EXAMPLE)-skel.ads $(EXAMPLE)-skel.adb \
+	$(EXAMPLE)-stream.ads $(EXAMPLE)-stream.adb \
+	$(EXAMPLE)-helper.ads $(EXAMPLE)-helper.adb \
+	genericserver.o genericserver.ali \
+	report.o report.ali
+
+DISTCLEANFILES = client server
+
+all-local: client server
+
+%.ads %.adb: %.idl $(IDLAC)
+	$(IDLAC) $<
+
+$(IDLAC): force
+	cd ../../idlac && $(MAKE) idlac
+
+$(SOCK_CONS):
+	cd ../../adasockets/src && $(MAKE) sockets-constants.ads
+
+client server: force $(EXAMPLE).ads
+	$(GNATMAKE) $@ $(EXAMPLES_GNATMAKE_FLAGS)
+
+force::
+	cd ../../src && $(MAKE)

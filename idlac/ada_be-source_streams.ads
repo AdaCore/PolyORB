@@ -76,7 +76,7 @@ package Ada_BE.Source_Streams is
    procedure Add_Elaborate_Body (Unit : in out Compilation_Unit);
    --  Add a pragma Elaborate_Body to the spec denoted by Unit.
 
-   procedure Add_No_Warning (Unit : in out Compilation_Unit);
+   procedure Suppress_Warning_Message (Unit : in out Compilation_Unit);
    --  Remove warning such as "Do not modify this file". Used for
    --  implementations.
 
