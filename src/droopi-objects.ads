@@ -16,7 +16,6 @@ package Droopi.Objects is
    procedure Free (X : in out Object_Id_Access);
    pragma Inline (Free);
 
-   --  XXX ???
    function To_String (Oid : Object_Id) return String;
    function To_Oid (S : String) return Object_Id;
    --  Generic helper functions: convert an oid from/to
@@ -38,6 +37,9 @@ package Droopi.Objects is
      return Components.Message'Class is abstract;
 
 private
+
+   pragma Inline (To_String);
+   pragma Inline (To_Oid);
 
    type Servant is abstract new Droopi.Components.Component
      with null record;

@@ -1,5 +1,7 @@
 package body Droopi.Utils is
 
+   use Ada.Streams;
+
    ------------------------
    -- Local declarations --
    ------------------------
