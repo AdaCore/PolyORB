@@ -107,7 +107,7 @@ package body %s is
 
    type Keyword_Info is record
       Name : Interfaces.C.Strings.chars_ptr;
-      Id   : $ent;
+      Id   : %s;
    end record;
    type Keyword_Info_Access is access all Keyword_Info;
    pragma Convention (C, Keyword_Info);
@@ -118,7 +118,7 @@ package body %s is
      return Keyword_Info_Access;
    pragma Import (C, C_In_Word_Set, "%s");
 
-   function In_Word_Set (S : String) return $ent
+   function In_Word_Set (S : String) return %s
    is
       Chars : aliased char_array := To_C (%s);
       Info : constant Keyword_Info_Access
@@ -128,13 +128,13 @@ package body %s is
       if Info /= null then
          return Info.Id;
       end if;
-      $unk_handler
+      %s
    end In_Word_Set;
 
-   function To_String (Id : $ent) return String is
+   function To_String (Id : %s) return String is
    begin
       case Id is
-""" % (pkg, matchfun, initval))
+""" % (pkg, ent, matchfun, ent, initval, unk_handler, ent))
 
 for v in values:
   hadb.write ("         when " + v[0] + " =>\n")
