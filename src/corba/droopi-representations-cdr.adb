@@ -1281,7 +1281,7 @@ package body Droopi.Representations.CDR is
      (Buffer : access Buffer_Type;
       Data   : access Droopi.Any.Any) is
    begin
-      Marshall (Buffer, Data.all);
+      Marshall_From_Any (Buffer, Data.all);
    end Marshall_From_Any;
 
    procedure Marshall
