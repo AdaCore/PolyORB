@@ -52,7 +52,7 @@ main: C_files Ada_adb_files Ada_ads_files Sys_Dep
 
 
 ##########################
-# compilation of Ada files
+# compilation of C++ files
 ##########################
 C_files : \
 Ada_exceptions.o Ada_Giop_c.o Ada_Giop_s.o Ada_memBufferedStream.o \

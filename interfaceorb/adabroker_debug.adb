@@ -86,7 +86,6 @@ package body Adabroker_Debug is
       Tmp.Flag := S ;
       Tmp.Next := Flaglist ;
       Flaglist := Tmp ;
-      Put_Line("adding " & Tmp.Flag) ;
    end ;
 
    -- Is_Active

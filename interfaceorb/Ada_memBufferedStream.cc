@@ -53,7 +53,7 @@
 
 // Ada_memBufferedStream
 //----------------------
-Ada_MemBufferedStream::Ada_MemBufferedStream ()
+Ada_memBufferedStream::Ada_memBufferedStream ()
 {
   Init_Ok = false;
 };
@@ -63,7 +63,7 @@ Ada_MemBufferedStream::Ada_MemBufferedStream ()
 // Init
 //-----
 void
-Ada_MemBufferedStream::Init (size_t Bufsize)
+Ada_memBufferedStream::Init (size_t Bufsize)
 {
   // Creation of the underlying omniobject_C2Ada object
   C_MemBufferedStream = new MemBufferedStream (Bufsize);
@@ -76,7 +76,7 @@ Ada_MemBufferedStream::Init (size_t Bufsize)
 // marshall
 //---------
 void
-Ada_MemBufferedStream::marshall (_CORBA_Char a, MemBufferedStream& s)
+Ada_memBufferedStream::marshall (_CORBA_Char a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
@@ -84,7 +84,7 @@ Ada_MemBufferedStream::marshall (_CORBA_Char a, MemBufferedStream& s)
     a >>= s;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_MemBufferedStream::operator>>= without initialising object.");
+    raise_ada_exception ("Call of Ada_memBufferedStream::operator>>= without initialising object.");
   }
 };
 
@@ -92,7 +92,7 @@ Ada_MemBufferedStream::marshall (_CORBA_Char a, MemBufferedStream& s)
 // unmarshall
 //-----------
 void
-Ada_MemBufferedStream::unmarshall (_CORBA_Char& a, MemBufferedStream& s)
+Ada_memBufferedStream::unmarshall (_CORBA_Char& a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
@@ -100,7 +100,7 @@ Ada_MemBufferedStream::unmarshall (_CORBA_Char& a, MemBufferedStream& s)
     a <<= s;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_MemBufferedStream::operator<<= without initialising object.");
+    raise_ada_exception ("Call of Ada_memBufferedStream::operator<<= without initialising object.");
   }
 };
 
@@ -108,7 +108,7 @@ Ada_MemBufferedStream::unmarshall (_CORBA_Char& a, MemBufferedStream& s)
 // marshall
 //---------
 void
-Ada_MemBufferedStream::marshall (_CORBA_Boolean b, MemBufferedStream& s)
+Ada_memBufferedStream::marshall (_CORBA_Boolean b, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
@@ -116,7 +116,7 @@ Ada_MemBufferedStream::marshall (_CORBA_Boolean b, MemBufferedStream& s)
     b >>= s;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_MemBufferedStream::operator>>= without initialising object.");
+    raise_ada_exception ("Call of Ada_memBufferedStream::operator>>= without initialising object.");
   }
 };
 
@@ -124,7 +124,7 @@ Ada_MemBufferedStream::marshall (_CORBA_Boolean b, MemBufferedStream& s)
 // unmarshall
 //-----------
 void
-Ada_MemBufferedStream::unmarshall (_CORBA_Boolean& b, MemBufferedStream& s)
+Ada_memBufferedStream::unmarshall (_CORBA_Boolean& b, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
@@ -132,7 +132,7 @@ Ada_MemBufferedStream::unmarshall (_CORBA_Boolean& b, MemBufferedStream& s)
     b <<= s;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_MemBufferedStream::operator<<= without initialising object.");
+    raise_ada_exception ("Call of Ada_memBufferedStream::operator<<= without initialising object.");
   }
 };
 
@@ -140,7 +140,7 @@ Ada_MemBufferedStream::unmarshall (_CORBA_Boolean& b, MemBufferedStream& s)
 // marshall
 //---------
 void
-Ada_MemBufferedStream::marshall (_CORBA_Short a, MemBufferedStream& s)
+Ada_memBufferedStream::marshall (_CORBA_Short a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
@@ -148,7 +148,7 @@ Ada_MemBufferedStream::marshall (_CORBA_Short a, MemBufferedStream& s)
     a >>= s;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_MemBufferedStream::operator>>= without initialising object.");
+    raise_ada_exception ("Call of Ada_memBufferedStream::operator>>= without initialising object.");
   }
 };
 
@@ -156,7 +156,7 @@ Ada_MemBufferedStream::marshall (_CORBA_Short a, MemBufferedStream& s)
 // unmarshall
 //-----------
 void
-Ada_MemBufferedStream::unmarshall (_CORBA_Short& a, MemBufferedStream& s)
+Ada_memBufferedStream::unmarshall (_CORBA_Short& a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
@@ -164,7 +164,7 @@ Ada_MemBufferedStream::unmarshall (_CORBA_Short& a, MemBufferedStream& s)
     a <<= s;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_MemBufferedStream::operator<<= without initialising object.");
+    raise_ada_exception ("Call of Ada_memBufferedStream::operator<<= without initialising object.");
   }
 };
 
@@ -172,7 +172,7 @@ Ada_MemBufferedStream::unmarshall (_CORBA_Short& a, MemBufferedStream& s)
 // marshall
 //---------
 void
-Ada_MemBufferedStream::marshall (_CORBA_UShort a, MemBufferedStream& s)
+Ada_memBufferedStream::marshall (_CORBA_UShort a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
@@ -180,7 +180,7 @@ Ada_MemBufferedStream::marshall (_CORBA_UShort a, MemBufferedStream& s)
     a >>= s;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_MemBufferedStream::operator>>= without initialising object.");
+    raise_ada_exception ("Call of Ada_memBufferedStream::operator>>= without initialising object.");
   }
 };
 
@@ -188,7 +188,7 @@ Ada_MemBufferedStream::marshall (_CORBA_UShort a, MemBufferedStream& s)
 // unmarshall
 //-----------
 void
-Ada_MemBufferedStream::unmarshall (_CORBA_UShort& a, MemBufferedStream& s)
+Ada_memBufferedStream::unmarshall (_CORBA_UShort& a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
@@ -196,7 +196,7 @@ Ada_MemBufferedStream::unmarshall (_CORBA_UShort& a, MemBufferedStream& s)
     a <<= s;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_MemBufferedStream::operator<<= without initialising object.");
+    raise_ada_exception ("Call of Ada_memBufferedStream::operator<<= without initialising object.");
   }
 };
 
@@ -204,7 +204,7 @@ Ada_MemBufferedStream::unmarshall (_CORBA_UShort& a, MemBufferedStream& s)
 // marshall
 //---------
 void
-Ada_MemBufferedStream::marshall (_CORBA_Long a, MemBufferedStream& s)
+Ada_memBufferedStream::marshall (_CORBA_Long a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
@@ -212,7 +212,7 @@ Ada_MemBufferedStream::marshall (_CORBA_Long a, MemBufferedStream& s)
     a >>= s;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_MemBufferedStream::operator>>= without initialising object.");
+    raise_ada_exception ("Call of Ada_memBufferedStream::operator>>= without initialising object.");
   }
 };
 
@@ -220,7 +220,7 @@ Ada_MemBufferedStream::marshall (_CORBA_Long a, MemBufferedStream& s)
 // unmarshall
 //-----------
 void
-Ada_MemBufferedStream::unmarshall (_CORBA_Long& a, MemBufferedStream& s)
+Ada_memBufferedStream::unmarshall (_CORBA_Long& a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
@@ -228,7 +228,7 @@ Ada_MemBufferedStream::unmarshall (_CORBA_Long& a, MemBufferedStream& s)
     a <<= s;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_MemBufferedStream::operator<<= without initialising object.");
+    raise_ada_exception ("Call of Ada_memBufferedStream::operator<<= without initialising object.");
   }
 };
 
@@ -236,7 +236,7 @@ Ada_MemBufferedStream::unmarshall (_CORBA_Long& a, MemBufferedStream& s)
 // marshall
 //---------
 void
-Ada_MemBufferedStream::marshall (_CORBA_ULong a, MemBufferedStream& s)
+Ada_memBufferedStream::marshall (_CORBA_ULong a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
@@ -244,7 +244,7 @@ Ada_MemBufferedStream::marshall (_CORBA_ULong a, MemBufferedStream& s)
     a >>= s;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_MemBufferedStream::operator>>= without initialising object.");
+    raise_ada_exception ("Call of Ada_memBufferedStream::operator>>= without initialising object.");
   }
 };
 
@@ -252,7 +252,7 @@ Ada_MemBufferedStream::marshall (_CORBA_ULong a, MemBufferedStream& s)
 // unmarshall
 //-----------
 void
-Ada_MemBufferedStream::unmarshall (_CORBA_ULong& a, MemBufferedStream& s)
+Ada_memBufferedStream::unmarshall (_CORBA_ULong& a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
@@ -260,7 +260,7 @@ Ada_MemBufferedStream::unmarshall (_CORBA_ULong& a, MemBufferedStream& s)
     a <<= s;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_MemBufferedStream::operator<<= without initialising object.");
+    raise_ada_exception ("Call of Ada_memBufferedStream::operator<<= without initialising object.");
   }
 };
 
@@ -268,7 +268,7 @@ Ada_MemBufferedStream::unmarshall (_CORBA_ULong& a, MemBufferedStream& s)
 // marshall
 //---------
 void
-Ada_MemBufferedStream::marshall (_CORBA_Float a, MemBufferedStream& s)
+Ada_memBufferedStream::marshall (_CORBA_Float a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
@@ -276,7 +276,7 @@ Ada_MemBufferedStream::marshall (_CORBA_Float a, MemBufferedStream& s)
     a >>= s;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_MemBufferedStream::operator>>= without initialising object.");
+    raise_ada_exception ("Call of Ada_memBufferedStream::operator>>= without initialising object.");
   }
 };
 
@@ -284,7 +284,7 @@ Ada_MemBufferedStream::marshall (_CORBA_Float a, MemBufferedStream& s)
 // unmarshall
 //-----------
 void
-Ada_MemBufferedStream::unmarshall (_CORBA_Float& a, MemBufferedStream& s)
+Ada_memBufferedStream::unmarshall (_CORBA_Float& a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
@@ -292,7 +292,7 @@ Ada_MemBufferedStream::unmarshall (_CORBA_Float& a, MemBufferedStream& s)
     a <<= s;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_MemBufferedStream::operator<<= without initialising object.");
+    raise_ada_exception ("Call of Ada_memBufferedStream::operator<<= without initialising object.");
   }
 };
 
@@ -300,7 +300,7 @@ Ada_MemBufferedStream::unmarshall (_CORBA_Float& a, MemBufferedStream& s)
 // marshall
 //---------
 void
-Ada_MemBufferedStream::marshall (_CORBA_Double a, MemBufferedStream& s)
+Ada_memBufferedStream::marshall (_CORBA_Double a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
@@ -308,7 +308,7 @@ Ada_MemBufferedStream::marshall (_CORBA_Double a, MemBufferedStream& s)
     a >>= s;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_MemBufferedStream::operator>>= without initialising object.");
+    raise_ada_exception ("Call of Ada_memBufferedStream::operator>>= without initialising object.");
   }
 };
 
@@ -316,7 +316,7 @@ Ada_MemBufferedStream::marshall (_CORBA_Double a, MemBufferedStream& s)
 // unmarshall
 //-----------
 void
-Ada_MemBufferedStream::unmarshall (_CORBA_Double& a, MemBufferedStream& s)
+Ada_memBufferedStream::unmarshall (_CORBA_Double& a, MemBufferedStream& s)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
@@ -324,7 +324,7 @@ Ada_MemBufferedStream::unmarshall (_CORBA_Double& a, MemBufferedStream& s)
     a <<= s;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_MemBufferedStream::operator<<= without initialising object.");
+    raise_ada_exception ("Call of Ada_memBufferedStream::operator<<= without initialising object.");
   }
 };
 

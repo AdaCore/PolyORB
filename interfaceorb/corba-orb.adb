@@ -81,15 +81,19 @@ package body Corba.Orb is
       function Conv is new Ada.Unchecked_Conversion(A2a.Object_Pointer, Object_Ptr);
    begin
 
-      pragma Debug(Output(Debug, "In Corba.Orb.Orb_Init"))  ;
+      pragma Debug(Output(Debug, "--- Corba.Orb.Orb_Init ---"))  ;
 
       C_Orb_Name := Interfaces.C.Strings.New_String(Orb_Name) ;
       -- Never deallocated, but it may be used by the ORB
       -- and this function is called only once
 
+      pragma Debug(Output(Debug, "Corba.Orb.Orb_Init : calling CORBA::ORB_init"))  ;
+
       C_Result :=  C_Orb_Init(Corba.Command_Line.Argc,
                               Corba.Command_Line.Argv,
                               C_Orb_Name) ;
+
+      pragma Debug(Output(Debug, "Corba.Orb.Orb_Init : ORB initialized !"))  ;
       return Conv(A2a.To_Pointer(C_Result)) ;
    end ;
 

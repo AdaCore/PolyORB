@@ -18,15 +18,15 @@
 
 #include "omniORB2/omniInternal.h"
 
-class Ada_MemBufferedStream {
+class Ada_memBufferedStream {
 
 public:
 
-  Ada_MemBufferedStream ();
+  Ada_memBufferedStream ();
   // Default Constructor
   
   void Init (size_t Bufsize);
-  // Initialisation of Ada_MemBufferedStream, calls the
+  // Initialisation of Ada_memBufferedStream, calls the
   // underlying MemBufferedStream constructor
   
   
