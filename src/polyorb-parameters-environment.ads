@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package PolyORB.Parameters.Environment is
 
    pragma Elaborate_Body;
