@@ -33,36 +33,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Interfaces.C;
 with System.Garlic.Non_Blocking;
 
 package System.Garlic.TCP.Platform_Specific is
 
-   pragma Elaborate_Body;
-
-   --  Windows NT version of this package
+   --  OpenNT version of this package.
 
    package Net renames System.Garlic.Non_Blocking;
 
    Use_Poll : constant Boolean := False;
-
-private
-
-   pragma Linker_Options ("-lwsock32");
-
-   WSAData_Dummy : array (1 .. 512) of Integer;
-
-   WS_Version : constant := 16#0101#;
-
-   function WSAStartup (WS_Version     : Interfaces.C.int;
-                        WSADataAddress : System.Address)
-     return Interfaces.C.int;
-   pragma Import (Stdcall, WSAStartup, "WSAStartup");
-
-   --  Start the winsock service
-
-   Return_Value : constant Interfaces.C.int :=
-     WSAStartup (WS_Version, WSAData_Dummy'Address);
-   pragma Assert (Interfaces.C."=" (Return_Value, 0));
 
 end System.Garlic.TCP.Platform_Specific;

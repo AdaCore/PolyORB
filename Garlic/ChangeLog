@@ -1,3 +1,7 @@
+1998-04-24  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* 5pgtplsp.ads: Use the same file as SunOS but do not use Poll.
+
 1998-04-22  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* 5pgtplsp.ads: Change casing for imported WSAStartup.
