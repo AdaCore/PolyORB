@@ -190,6 +190,67 @@ Les activités de l'ORB ne doivent être déclenchées qu'en tant que de
 besoin, lorsque l'application souhaite invoquer une méthode distante,
 ou lorsqu'un message est reçu sur un canal de communication.
 
+\subsection{Framework}
+
+DROOPI fournit un certain nombre de mécanismes de base pour le découpage
+de l'ORB en modules indépendants dont les responsabilités et les interfaces
+sont bien délimitées. Cette section présente ces mécanismes de base en
+tentant de les décrire comme des patterns.
+
+\subsubsection{Composants}
+
+\textbf{Contexte~:}
+  Un ORB est un système composé d'entités communiquant
+  ensemble par invocation de méthode selon des motifs
+  quelconques (graphe non orienté).
+
+\textbf{Problème~:}
+\begin{enumerate}
+\item vues croisées~: la spécification d'un composant décrit
+  les services offerts aux clients de ce composant, et
+  les autres composants avec lesquels il est en relative.
+
+  Pour décrire ces relations, le composant a besoin d'avoir
+  visibilité sur une vue des composants dont il est client.
+\item flexibilité du mécanisme de passage de messages~:
+  un composant doit pouvoir intercepter et manipuler des messages
+  sans nécessairement connaître le détail de l'interprétation du message
+  par le destinataire final, par exemple pour modifier la modalité de
+  communication sans modifier le sens du message.
+
+  Exemple~: communication de groupe.
+\end{enumerate}
+
+\textbf{Solution~:}
+
+L'introduction d'un niveau d'héritage supplémentaire permet à un composant
+de faire référence à une vue incomplète d'un autre composant.
+
+Ici, un object constitutif de la structure de l'ORB est dérivé de la
+classe abstraite \emph{Component}. Un objet peut contenir un certain
+nombre de «~ports~», des voies de communication vers d'autres composants.
+
+Une fonction est offerte pour connecter un port vers un composant.
+Des messages synchrones (équivalents à des appels de méthoes) peuvent
+alors être émis sur le port, et reçues par le composant destinataire.
+Lorsqu'un composant doit recevoir un message, sa méthode \emph{Handle\_Message}
+est exécutée.
+
+%%  XXX schéma UML ?
+
+\subsubsection{Annotations}
+
+\textbf{Contexte~:}
+\textbf{Problème~:}
+\textbf{Solution~:}
+
+%%  XXX schéma UML
+
+%  Il peut être nécessaire pour un client d'un objet d'associer des
+%  informations à cet objet. De plus, on souhaite pouvoir retrouver ces
+%  informations en temps constant relativement au nombre d'objects
+%  (par souci d'efficacité).
+
 \subsection{Ordonnancement}
 
 Un object \emph{Scheduler} (ordonnanceur) régit l'exécution des activités de l'ORB
