@@ -22,16 +22,16 @@ package body Frontend.Nutils is
    procedure Append_Node_To_List (E : Node_Id; L : List_Id) is
       Last : Node_Id;
    begin
-      Last := Last_Node (L);
+      Last := Last_Entity (L);
       if No (Last) then
-         Set_First_Node (L, E);
+         Set_First_Entity (L, E);
       else
-         Set_Next_Node (Last, E);
+         Set_Next_Entity (Last, E);
       end if;
       Last := E;
       while Present (Last) loop
-         Set_Last_Node (L, Last);
-         Last := Next_Node (Last);
+         Set_Last_Entity (L, Last);
+         Last := Next_Entity (Last);
       end loop;
    end Append_Node_To_List;
 
@@ -50,11 +50,11 @@ package body Frontend.Nutils is
 
    procedure Bind_Declarators_To_Entity (D : List_Id; E : Node_Id)
    is
-      N : Node_Id := First_Node (D);
+      N : Node_Id := First_Entity (D);
    begin
       while Present (N) loop
          Set_Declaration (N, E);
-         N := Next_Node (N);
+         N := Next_Entity (N);
       end loop;
    end Bind_Declarators_To_Entity;
 
@@ -102,10 +102,10 @@ package body Frontend.Nutils is
 
    procedure Insert_After_Node (E : Node_Id; N : Node_Id)
    is
-      Next : constant Node_Id := Next_Node (N);
+      Next : constant Node_Id := Next_Entity (N);
    begin
-      Set_Next_Node (N, E);
-      Set_Next_Node (E, Next);
+      Set_Next_Entity (N, E);
+      Set_Next_Entity (E, Next);
    end Insert_After_Node;
 
    ---------------------
@@ -136,15 +136,15 @@ package body Frontend.Nutils is
             if KX /= K_Value_Forward_Declaration then
                return False;
 
-            elsif Is_Abstract (X) then
+            elsif Is_Abstract_Interface (X) then
                return KY = K_Abstract_Value_Declaration
                  or else (KY = K_Value_Forward_Declaration
-                          and then Is_Abstract (Y));
+                          and then Is_Abstract_Interface (Y));
 
             else
                return KY /= K_Abstract_Value_Declaration
                  and then (KY /= K_Value_Forward_Declaration
-                           or else not Is_Abstract (Y));
+                           or else not Is_Abstract_Interface (Y));
             end if;
 
          when others =>
@@ -243,7 +243,7 @@ package body Frontend.Nutils is
 
    function Is_Empty (L : List_Id) return Boolean is
    begin
-      return L = No_List or else No (First_Node (L));
+      return L = No_List or else No (First_Entity (L));
    end Is_Empty;
 
    -------------------------------------
@@ -346,7 +346,7 @@ package body Frontend.Nutils is
       L := Entries.Last;
       Entries.Table (L) := Entries.Table (N);
       Set_Loc       (L, No_Location);
-      Set_Next_Node (L, No_Node);
+      Set_Next_Entity (L, No_Node);
       if Kind (L) = K_Identifier then
          Set_Homonym (L, No_Node);
       end if;
@@ -415,22 +415,22 @@ package body Frontend.Nutils is
    procedure Remove_Node_From_List (E : Node_Id; L : List_Id) is
       C : Node_Id;
    begin
-      C := First_Node (L);
+      C := First_Entity (L);
       if C = E then
-         Set_First_Node (L, Next_Node (E));
-         if Last_Node (L) = E then
-            Set_Last_Node (L, No_Node);
+         Set_First_Entity (L, Next_Entity (E));
+         if Last_Entity (L) = E then
+            Set_Last_Entity (L, No_Node);
          end if;
       else
          while Present (C) loop
-            if Next_Node (C) = E then
-               Set_Next_Node (C, Next_Node (E));
-               if Last_Node (L) = E then
-                  Set_Last_Node (L, C);
+            if Next_Entity (C) = E then
+               Set_Next_Entity (C, Next_Entity (E));
+               if Last_Entity (L) = E then
+                  Set_Last_Entity (L, C);
                end if;
                exit;
             end if;
-            C := Next_Node (C);
+            C := Next_Entity (C);
          end loop;
       end if;
    end Remove_Node_From_List;
