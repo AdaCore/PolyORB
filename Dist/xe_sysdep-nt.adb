@@ -29,28 +29,8 @@
 --  this is the NT version of this package.
 
 with GNAT.OS_Lib;  use GNAT.OS_Lib;
-with XE_Utils;     use XE_Utils;
 
 package body XE_Sysdep is
-
-   ---------------
-   -- Copy_File --
-   ---------------
-
-   procedure Copy_File (From_File, To_File : String) is
-
-      function System (C : String) return Integer;
-      pragma Import (C, System);
-
-      Command : constant String :=
-        "copy " & From_File & ' ' & To_File & " > nul" & ASCII.NUL;
-
-   begin
-      if System (Command) /= 0 then
-         Message ("cannot copy file " & From_File & " to " & To_File);
-         raise Fatal_Error;
-      end if;
-   end Copy_File;
 
    ------------------
    -- Force_Remove --

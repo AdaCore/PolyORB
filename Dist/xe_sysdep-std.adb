@@ -31,9 +31,6 @@
 --
 --  The requirements are :
 --
---  . cp tool must be found and support -p (preserve file attributes)
---    option.
---
 --  . chmod tool must be found and support "u+x" (add execute attribute for
 --    the user) to a file.
 
@@ -42,33 +39,7 @@ with XE_Utils;     use XE_Utils;
 
 package body XE_Sysdep is
 
-   Preserve : constant String_Access := new String' ("-p");
-
-   Copy     : String_Access;
-   Chmod    : String_Access;
-
-   ---------------
-   -- Copy_File --
-   ---------------
-
-   procedure Copy_File (From_File, To_File : String) is
-      L_From_File : aliased String := From_File;
-      L_To_File   : aliased String := To_File;
-   begin
-      if Copy = null then
-         --  looks for cp in the PATH
-         Copy  := Locate_Exec_On_Path ("cp");
-
-         if Copy = null then
-            Message ("cp is not in your path");
-            raise Fatal_Error;
-         end if;
-      end if;
-
-      Execute (Copy, (Preserve,
-                      L_From_File'Unchecked_Access,
-                      L_To_File'Unchecked_Access));
-   end Copy_File;
+   Chmod : String_Access;
 
    ------------------
    -- Force_Remove --

@@ -31,11 +31,6 @@
 
 package XE_Sysdep is
 
-   procedure Copy_File (From_File, To_File : String);
-   --  This function copy the file From_File to To_File and preserve the
-   --  time stamps and all other file attributes associated to From_File.
-   --  Raises XE_Utils.Fatal_Error if it fails.
-
    procedure Force_Remove (File : String);
    --  Remove file even if it is read-only. After this call File must have
    --  been removed from the file system.
