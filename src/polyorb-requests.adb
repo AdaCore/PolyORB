@@ -149,7 +149,8 @@ package body PolyORB.Requests is
      (Dst_Args        : in out Any.NVList.Ref;
       Src_Args        :        Any.NVList.Ref;
       Direction       :        Any.Flags;
-      Ignore_Src_Mode :        Boolean        := True)
+      Ignore_Src_Mode :        Boolean        := True;
+      Can_Extend      :        Boolean        := False)
    is
       use PolyORB.Components;
 
@@ -244,7 +245,7 @@ package body PolyORB.Requests is
          end;
       end loop;
 
-      if Is_Extensible (Dst_Args) then
+      if Can_Extend then
          pragma Debug (O ("Appending remaining arguments"));
 
          --  If dst_args is an extensible NV_List, then we append the
@@ -271,6 +272,20 @@ package body PolyORB.Requests is
    procedure Arguments
      (Self : Request_Access;
       Args : in out Any.NVList.Ref)
+   is
+   begin
+      Arguments (Self, Args, False);
+   end Arguments;
+
+
+   ---------------
+   -- Arguments --
+   ---------------
+
+   procedure Arguments
+     (Self :              Request_Access;
+      Args :       in out Any.NVList.Ref;
+      Can_Extend :        Boolean)
    is
       use Any.NVList;
       use Components;
@@ -308,9 +323,10 @@ package body PolyORB.Requests is
          pragma Debug (O ("in Arguments: " & Image (Self.Args)));
 
          Pump_Up_Arguments
-           (Dst_Args  => Args,
-            Src_Args  => Self.Args,
-            Direction => Any.ARG_IN);
+           (Dst_Args   => Args,
+            Src_Args   => Self.Args,
+            Direction  => Any.ARG_IN,
+            Can_Extend => Can_Extend);
       end if;
 
       Self.Out_Args := Args;

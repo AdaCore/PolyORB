@@ -211,6 +211,13 @@ package PolyORB.Requests is
    --  a servant's Invoke primitive. Args MUST be a correctly
    --  typed NVList for the signature of the method being invoked.
 
+   procedure Arguments
+     (Self       :        Request_Access;
+      Args       : in out Any.NVList.Ref;
+      Can_Extend :        Boolean);
+   --  If Can_Extend is set to True and Self contains extra arguments
+   --  that are not required by Args, they are appended.
+
    procedure Set_Result
      (Self : Request_Access;
       Val  : Any.Any);
@@ -228,10 +235,14 @@ package PolyORB.Requests is
      (Dst_Args        : in out Any.NVList.Ref;
       Src_Args        :        Any.NVList.Ref;
       Direction       :        Any.Flags;
-      Ignore_Src_Mode :        Boolean        := True);
+      Ignore_Src_Mode :        Boolean        := True;
+      Can_Extend      :        Boolean        := False);
    --  True arguments of direction Direction (or INOUT) from received
-   --  protocol arguments list P_Args (either from a request, on server
-   --  side, or for a reply, on client side) into A_Args.
+   --  protocol arguments list P_Args (either from a request, on
+   --  server side, or for a reply, on client side) into A_Args.  If
+   --  Can_Extend is set to True and Src_Args contains extra arguments
+   --  that are not required by Dst_Args, then they are appended.
+
 
    function Image
      (Req : Request)

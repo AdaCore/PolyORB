@@ -124,22 +124,10 @@ package body PolyORB.Any.NVList is
    -- Create --
    ------------
 
-   procedure Create
-     (NVList     : out Ref;
-      Extensible :     Boolean := False) is
+   procedure Create (NVList : out Ref) is
    begin
       Set (NVList, PolyORB.Smart_Pointers.Entity_Ptr'(new Object));
-      NVList.Extensible := Extensible;
    end Create;
-
-   -------------------
-   -- Is_Extensible --
-   -------------------
-
-   function Is_Extensible (Self : Ref) return Boolean is
-   begin
-      return Self.Extensible;
-   end Is_Extensible;
 
    -----------
    -- Image --
