@@ -292,33 +292,6 @@ package body System.RPC is
       end if;
    end Finalize;
 
-   -----------------------
-   -- Insert_RPC_Header --
-   -----------------------
-
-   procedure Insert_RPC_Header
-     (Params : access Streams.Params_Stream_Type;
-      Header : in RPC_Header)
-   is
-   begin
-      Streams.Insert (Params.all);
-      RPC_Header'Output (Params, Header);
-   end Insert_RPC_Header;
-
-   ----------------------------
-   -- Notify_Partition_Error --
-   ----------------------------
-
-   procedure Notify_Partition_Error
-     (Partition : in Types.Partition_ID)
-   is
-   begin
-      if not Shutdown_Activated then
-         Invalidate_Partition_Units (Partition);
-         Raise_Partition_Error (Partition);
-      end if;
-   end Notify_Partition_Error;
-
    --------------------
    -- Handle_Request --
    --------------------
@@ -376,6 +349,33 @@ package body System.RPC is
 
       end case;
    end Handle_Request;
+
+   -----------------------
+   -- Insert_RPC_Header --
+   -----------------------
+
+   procedure Insert_RPC_Header
+     (Params : access Streams.Params_Stream_Type;
+      Header : in RPC_Header)
+   is
+   begin
+      Streams.Insert (Params.all);
+      RPC_Header'Output (Params, Header);
+   end Insert_RPC_Header;
+
+   ----------------------------
+   -- Notify_Partition_Error --
+   ----------------------------
+
+   procedure Notify_Partition_Error
+     (Partition : in Types.Partition_ID)
+   is
+   begin
+      if not Shutdown_Activated then
+         Invalidate_Partition_Units (Partition);
+         Raise_Partition_Error (Partition);
+      end if;
+   end Notify_Partition_Error;
 
    ---------------------------
    -- Raise_Partition_Error --

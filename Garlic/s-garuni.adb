@@ -453,21 +453,6 @@ package body System.Garlic.Units is
       return Units.Get_Index (Name);
    end Get_Unit_Id;
 
-   -----------------
-   -- Get_Version --
-   -----------------
-
-   procedure Get_Version
-     (Unit    : in Types.Unit_Id;
-      Version : out Types.Version_Type;
-      Error   : in out Error_Type)
-   is
-      Info : Unit_Info;
-   begin
-      Get_Unit_Info (Unit, Info, Error);
-      Version := Info.Version;
-   end Get_Version;
-
    -------------------
    -- Get_Unit_Info --
    -------------------
@@ -479,6 +464,7 @@ package body System.Garlic.Units is
    is
       Version : Version_Id;
       Current : Unit_Info;
+
    begin
       pragma Assert (Unit /= Null_Unit_Id);
 
@@ -515,6 +501,11 @@ package body System.Garlic.Units is
 
          exit when Current.Status in Defined .. Invalid;
 
+         if Shutdown_Activated then
+            Throw (Error, "cannot get unit info during shutdown");
+            return;
+         end if;
+
          pragma Debug
            (D ("Looking for information on unit "&  Units.Get_Name (Unit)));
 
@@ -549,6 +540,21 @@ package body System.Garlic.Units is
 
       Info := Current;
    end Get_Unit_Info;
+
+   -----------------
+   -- Get_Version --
+   -----------------
+
+   procedure Get_Version
+     (Unit    : in Types.Unit_Id;
+      Version : out Types.Version_Type;
+      Error   : in out Error_Type)
+   is
+      Info : Unit_Info;
+   begin
+      Get_Unit_Info (Unit, Info, Error);
+      Version := Info.Version;
+   end Get_Version;
 
    --------------------
    -- Handle_Request --

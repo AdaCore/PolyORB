@@ -63,24 +63,6 @@ package body System.Garlic.Types is
       return P;
    end Read;
 
-   -----------
-   -- Write --
-   -----------
-
-   function Write (P : Partition_ID) return Partition_ID_SEA
-   is
-      S : Partition_ID_SEA;
-      X : Partition_ID := P;
-
-   begin
-      for N in reverse S'Range loop
-         S (N) := Ada.Streams.Stream_Element (X mod 256);
-         X := X / 256;
-      end loop;
-
-      return S;
-   end Write;
-
    ----------
    -- Read --
    ----------
@@ -99,6 +81,24 @@ package body System.Garlic.Types is
       end if;
       X := Read (SEA);
    end Read;
+
+   -----------
+   -- Write --
+   -----------
+
+   function Write (P : Partition_ID) return Partition_ID_SEA
+   is
+      S : Partition_ID_SEA;
+      X : Partition_ID := P;
+
+   begin
+      for N in reverse S'Range loop
+         S (N) := Ada.Streams.Stream_Element (X mod 256);
+         X := X / 256;
+      end loop;
+
+      return S;
+   end Write;
 
    -----------
    -- Write --

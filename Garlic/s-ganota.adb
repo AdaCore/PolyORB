@@ -33,9 +33,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Protocols;    use System.Garlic.Protocols;
-with System.Garlic.Soft_Links;   use System.Garlic.Soft_Links;
-with System.Garlic.Types;   use System.Garlic.Types;
+with System.Garlic.Protocols;  use System.Garlic.Protocols;
+with System.Garlic.Soft_Links; use System.Garlic.Soft_Links;
+with System.Garlic.Types;      use System.Garlic.Types;
 
 package body System.Garlic.No_Tasking is
 
@@ -129,6 +129,33 @@ package body System.Garlic.No_Tasking is
       null;
    end Enter_Critical_Section;
 
+   --------------------------
+   -- Env_Task_Awake_Count --
+   --------------------------
+
+   function Env_Task_Awake_Count return Natural is
+   begin
+      return 1;
+   end Env_Task_Awake_Count;
+
+   ------------------
+   -- Get_Priority --
+   ------------------
+
+   function Get_Priority return Natural is
+   begin
+      return Natural (System.Default_Priority);
+   end Get_Priority;
+
+   ----------------------------
+   -- Independent_Task_Count --
+   ----------------------------
+
+   function Independent_Task_Count return Natural is
+   begin
+      return 0;
+   end Independent_Task_Count;
+
    ----------------
    -- Initialize --
    ----------------
@@ -146,6 +173,15 @@ package body System.Garlic.No_Tasking is
       Register_Get_Priority (Get_Priority'Access);
       Register_Set_Priority (Set_Priority'Access);
    end Initialize;
+
+   -------------------------
+   -- Is_Environment_Task --
+   -------------------------
+
+   function Is_Environment_Task return Boolean is
+   begin
+      return True;
+   end Is_Environment_Task;
 
    -----------
    -- Leave --
@@ -183,6 +219,15 @@ package body System.Garlic.No_Tasking is
       V := W.Version;
    end Lookup;
 
+   ------------------
+   -- Set_Priority --
+   ------------------
+
+   procedure Set_Priority (P : in Natural) is
+   begin
+      null;
+   end Set_Priority;
+
    ------------
    -- Update --
    ------------
@@ -191,30 +236,5 @@ package body System.Garlic.No_Tasking is
    begin
       W.Version := W.Version + 1;
    end Update;
-
-   function Is_Environment_Task return Boolean is
-   begin
-      return True;
-   end Is_Environment_Task;
-
-   function Env_Task_Awake_Count return Natural is
-   begin
-      return 1;
-   end Env_Task_Awake_Count;
-
-   function Independent_Task_Count return Natural is
-   begin
-      return 0;
-   end Independent_Task_Count;
-
-   function Get_Priority return Natural is
-   begin
-      return Natural (System.Default_Priority);
-   end Get_Priority;
-
-   procedure Set_Priority (P : in Natural) is
-   begin
-      null;
-   end Set_Priority;
 
 end System.Garlic.No_Tasking;

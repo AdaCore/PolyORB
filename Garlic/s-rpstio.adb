@@ -169,6 +169,38 @@ package body System.RPC.Stream_IO is
       return Stream;
    end Fetch;
 
+   --------------------
+   -- Handle_Request --
+   --------------------
+
+   procedure Handle_Request
+     (Partition : in Types.Partition_ID;
+      Opcode    : in External_Opcode;
+      Query     : access Garlic.Streams.Params_Stream_Type;
+      Reply     : access Garlic.Streams.Params_Stream_Type;
+      Error     : in out Error_Type) is
+      SEA : Stream_Element_Array (1 .. Query.Count);
+      Len : Stream_Element_Offset;
+      Str : Partition_Stream_Access := Fetch (Partition_ID (Partition));
+   begin
+      pragma Debug (D ("Receive new message"));
+      pragma Debug (D ("Receive - Lock stream" & Partition'Img));
+      System.Garlic.Soft_Links.Enter (Str.Critical);
+
+      Garlic.Streams.Read (Query.all, SEA, Len);
+      Garlic.Streams.Write (Str.Incoming, SEA);
+
+      pragma Debug (D ("Receive - Unlock stream" & Partition'Img));
+      System.Garlic.Soft_Links.Leave (Str.Critical);
+
+      --  Signal to consumer connected to Partition and to
+      --  Any_Partition.
+
+      pragma Debug (D ("Signal to all streams"));
+      System.Garlic.Soft_Links.Update (Str.Consumer);
+      System.Garlic.Soft_Links.Update (Any.Consumer);
+   end Handle_Request;
+
    ----------------
    -- Initialize --
    ----------------
@@ -312,38 +344,6 @@ package body System.RPC.Stream_IO is
       pragma Debug (D ("exception raised in Read"));
       null;
    end Read;
-
-   --------------------
-   -- Handle_Request --
-   --------------------
-
-   procedure Handle_Request
-     (Partition : in Types.Partition_ID;
-      Opcode    : in External_Opcode;
-      Query     : access Garlic.Streams.Params_Stream_Type;
-      Reply     : access Garlic.Streams.Params_Stream_Type;
-      Error     : in out Error_Type) is
-      SEA : Stream_Element_Array (1 .. Query.Count);
-      Len : Stream_Element_Offset;
-      Str : Partition_Stream_Access := Fetch (Partition_ID (Partition));
-   begin
-      pragma Debug (D ("Receive new message"));
-      pragma Debug (D ("Receive - Lock stream" & Partition'Img));
-      System.Garlic.Soft_Links.Enter (Str.Critical);
-
-      Garlic.Streams.Read (Query.all, SEA, Len);
-      Garlic.Streams.Write (Str.Incoming, SEA);
-
-      pragma Debug (D ("Receive - Unlock stream" & Partition'Img));
-      System.Garlic.Soft_Links.Leave (Str.Critical);
-
-      --  Signal to consumer connected to Partition and to
-      --  Any_Partition.
-
-      pragma Debug (D ("Signal to all streams"));
-      System.Garlic.Soft_Links.Update (Str.Consumer);
-      System.Garlic.Soft_Links.Update (Any.Consumer);
-   end Handle_Request;
 
    -----------
    -- Write --

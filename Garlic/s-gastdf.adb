@@ -103,6 +103,47 @@ package body System.Garlic.Storages.Dfs is
    function  File_Name (Var_Data : DFS_Data_Type) return String;
    function  Lock_Name (Var_Data : DFS_Data_Type) return String;
 
+   ----------------------
+   -- Complete_Request --
+   ----------------------
+
+   procedure Complete_Request
+     (Var_Data : in out DFS_Data_Type) is
+   begin
+      if Var_Data.Count > 0 then
+         Var_Data.Count := Var_Data.Count - 1;
+
+         if Var_Data.Count = 0 then
+            SGL.Release_Lock (Var_Data.Lock);
+         end if;
+
+         pragma Debug (D ("lock count =" & Var_Data.Count'Img));
+      end if;
+
+      Leave (Var_Data.Mutex);
+   end Complete_Request;
+
+   --------------------
+   -- Create_Package --
+   --------------------
+
+   procedure Create_Package
+     (Storage  : in out DFS_Data_Type;
+      Pkg_Name : in     String;
+      Pkg_Data : out    Shared_Data_Access)
+   is
+      Result : DFS_Data_Access;
+
+   begin
+      pragma Debug (D ("create package file " & Pkg_Name &
+                       " on support " & Storage.Dir.all));
+
+      Result      := new DFS_Data_Type;
+      Result.Name := new String'(Pkg_Name);
+      Result.Dir  := Storage.Dir;
+      Pkg_Data    := Shared_Data_Access (Result);
+   end Create_Package;
+
    --------------------
    -- Create_Storage --
    --------------------
@@ -132,27 +173,6 @@ package body System.Garlic.Storages.Dfs is
       Storage := Shared_Data_Access (Result);
    end Create_Storage;
 
-   --------------------
-   -- Create_Package --
-   --------------------
-
-   procedure Create_Package
-     (Storage  : in out DFS_Data_Type;
-      Pkg_Name : in     String;
-      Pkg_Data : out    Shared_Data_Access)
-   is
-      Result : DFS_Data_Access;
-
-   begin
-      pragma Debug (D ("create package file " & Pkg_Name &
-                       " on support " & Storage.Dir.all));
-
-      Result      := new DFS_Data_Type;
-      Result.Name := new String'(Pkg_Name);
-      Result.Dir  := Storage.Dir;
-      Pkg_Data    := Shared_Data_Access (Result);
-   end Create_Package;
-
    ---------------------
    -- Create_Variable --
    ---------------------
@@ -176,6 +196,15 @@ package body System.Garlic.Storages.Dfs is
       Var.Lock  := SGL.Null_Lock;
       Var_Data  := Shared_Data_Access (Var);
    end Create_Variable;
+
+   ---------------
+   -- File_Name --
+   ---------------
+
+   function File_Name (Var_Data : DFS_Data_Type) return String is
+   begin
+      return Var_Data.Dir.all & Var_Data.Dir.all;
+   end File_Name;
 
    ----------------
    -- Initialize --
@@ -315,26 +344,6 @@ package body System.Garlic.Storages.Dfs is
       Success := Done;
    end Initiate_Request;
 
-   ----------------------
-   -- Complete_Request --
-   ----------------------
-
-   procedure Complete_Request
-     (Var_Data : in out DFS_Data_Type) is
-   begin
-      if Var_Data.Count > 0 then
-         Var_Data.Count := Var_Data.Count - 1;
-
-         if Var_Data.Count = 0 then
-            SGL.Release_Lock (Var_Data.Lock);
-         end if;
-
-         pragma Debug (D ("lock count =" & Var_Data.Count'Img));
-      end if;
-
-      Leave (Var_Data.Mutex);
-   end Complete_Request;
-
    ---------------
    -- Lock_Name --
    ---------------
@@ -343,15 +352,6 @@ package body System.Garlic.Storages.Dfs is
    begin
       return Var_Data.Dir.all & ".entry";
    end Lock_Name;
-
-   ---------------
-   -- File_Name --
-   ---------------
-
-   function File_Name (Var_Data : DFS_Data_Type) return String is
-   begin
-      return Var_Data.Dir.all & Var_Data.Dir.all;
-   end File_Name;
 
    ----------
    -- Read --

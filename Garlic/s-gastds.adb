@@ -97,6 +97,17 @@ package body System.Garlic.Storages.Dsm is
    --  Format a request to be processed by Handle_Request on the
    --  remote side. Send it to Partition.
 
+   ----------------------
+   -- Complete_Request --
+   ----------------------
+
+   procedure Complete_Request
+     (Var_Data : in out DSM_Data_Type) is
+   begin
+      pragma Debug (D ("complete request"));
+      Leave (Var_Data.Mutex);
+   end Complete_Request;
+
    --------------------
    -- Create_Package --
    --------------------
@@ -181,17 +192,6 @@ package body System.Garlic.Storages.Dsm is
 
       Var_Data   := Shared_Data_Access (Var);
    end Create_Variable;
-
-   ----------------------
-   -- Complete_Request --
-   ----------------------
-
-   procedure Complete_Request
-     (Var_Data : in out DSM_Data_Type) is
-   begin
-      pragma Debug (D ("complete request"));
-      Leave (Var_Data.Mutex);
-   end Complete_Request;
 
    --------------------
    -- Handle_Request --
@@ -427,6 +427,33 @@ package body System.Garlic.Storages.Dsm is
       end if;
    end Initiate_Request;
 
+   -----------
+   -- Input --
+   -----------
+
+   function Input
+     (S : access Ada.Streams.Root_Stream_Type'Class)
+     return Request_Record
+   is
+      Request : Request_Record (Request_Kind'Input (S));
+
+   begin
+      case Request.Kind is
+         when Write_Data .. Read_Data =>
+            Stream_Element_Access'Read (S, Request.Stream);
+            if Request.Kind = Write_Data then
+               Copy_Set_Access'Read (S, Request.Copies);
+            end if;
+
+         when Write_Rqst .. Read_Rqst =>
+            Partition_ID'Read (S, Request.Reply_To);
+
+         when Cancel_Rqst =>
+            Partition_ID'Read (S, Request.Owner);
+      end case;
+      return Request;
+   end Input;
+
    ----------------
    -- Invalidate --
    ----------------
@@ -492,6 +519,68 @@ package body System.Garlic.Storages.Dsm is
       end if;
    end Merge;
 
+   ------------
+   -- Output --
+   ------------
+
+   procedure Output
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      X : in Request_Record) is
+   begin
+      Request_Kind'Write (S, X.Kind);
+      case X.Kind is
+         when Write_Data .. Read_Data =>
+            Stream_Element_Access'Write (S, X.Stream);
+            if X.Kind = Write_Data then
+               Copy_Set_Access'Write (S, X.Copies);
+            end if;
+
+         when Write_Rqst .. Read_Rqst =>
+            Partition_ID'Write (S, X.Reply_To);
+
+         when Cancel_Rqst =>
+            Partition_ID'Write (S, X.Owner);
+      end case;
+   end Output;
+
+   ----------
+   -- Read --
+   ----------
+
+   procedure Read
+     (Data : in out DSM_Data_Type;
+      Item : out Ada.Streams.Stream_Element_Array;
+      Last : out Ada.Streams.Stream_Element_Offset)
+   is
+      Len : constant Stream_Element_Count := Item'Length;
+
+   begin
+      Item := Data.Stream (Data.Offset + 1 .. Data.Offset + Len);
+      Last := Item'Last;
+      Data.Offset := Data.Offset + Len;
+   end Read;
+
+   ----------
+   -- Read --
+   ----------
+
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      X : out Copy_Set_Access)
+   is
+      Len : Natural := Natural'Input (S);
+      Set : Copy_Set_Access;
+
+   begin
+      if Len /= 0 then
+         Set := new Copy_Set_Type (1 .. Len);
+         for I in Set'Range loop
+            Partition_ID'Read (S, Set (I));
+         end loop;
+      end if;
+      X := Set;
+   end Read;
+
    ------------------
    -- Send_Request --
    ------------------
@@ -513,23 +602,6 @@ package body System.Garlic.Storages.Dsm is
       pragma Debug (D ("send request " & Image (Request)));
       Send (Partition, DSM_Service, Stream'Access, Error);
    end Send_Request;
-
-   ----------
-   -- Read --
-   ----------
-
-   procedure Read
-     (Data : in out DSM_Data_Type;
-      Item : out Ada.Streams.Stream_Element_Array;
-      Last : out Ada.Streams.Stream_Element_Offset)
-   is
-      Len : constant Stream_Element_Count := Item'Length;
-
-   begin
-      Item := Data.Stream (Data.Offset + 1 .. Data.Offset + Len);
-      Last := Item'Last;
-      Data.Offset := Data.Offset + Len;
-   end Read;
 
    -----------
    -- Write --
@@ -559,27 +631,6 @@ package body System.Garlic.Storages.Dsm is
       end if;
    end Write;
 
-   ----------
-   -- Read --
-   ----------
-
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      X : out Copy_Set_Access)
-   is
-      Len : Natural := Natural'Input (S);
-      Set : Copy_Set_Access;
-
-   begin
-      if Len /= 0 then
-         Set := new Copy_Set_Type (1 .. Len);
-         for I in Set'Range loop
-            Partition_ID'Read (S, Set (I));
-         end loop;
-      end if;
-      X := Set;
-   end Read;
-
    -----------
    -- Write --
    -----------
@@ -597,56 +648,5 @@ package body System.Garlic.Storages.Dsm is
          end loop;
       end if;
    end Write;
-
-   -----------
-   -- Input --
-   -----------
-
-   function Input
-     (S : access Ada.Streams.Root_Stream_Type'Class)
-     return Request_Record
-   is
-      Request : Request_Record (Request_Kind'Input (S));
-
-   begin
-      case Request.Kind is
-         when Write_Data .. Read_Data =>
-            Stream_Element_Access'Read (S, Request.Stream);
-            if Request.Kind = Write_Data then
-               Copy_Set_Access'Read (S, Request.Copies);
-            end if;
-
-         when Write_Rqst .. Read_Rqst =>
-            Partition_ID'Read (S, Request.Reply_To);
-
-         when Cancel_Rqst =>
-            Partition_ID'Read (S, Request.Owner);
-      end case;
-      return Request;
-   end Input;
-
-   ------------
-   -- Output --
-   ------------
-
-   procedure Output
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      X : in Request_Record) is
-   begin
-      Request_Kind'Write (S, X.Kind);
-      case X.Kind is
-         when Write_Data .. Read_Data =>
-            Stream_Element_Access'Write (S, X.Stream);
-            if X.Kind = Write_Data then
-               Copy_Set_Access'Write (S, X.Copies);
-            end if;
-
-         when Write_Rqst .. Read_Rqst =>
-            Partition_ID'Write (S, X.Reply_To);
-
-         when Cancel_Rqst =>
-            Partition_ID'Write (S, X.Owner);
-      end case;
-   end Output;
 
 end System.Garlic.Storages.Dsm;

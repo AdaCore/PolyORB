@@ -126,6 +126,17 @@ package body System.Garlic.Physical_Location is
       return L.Data_Str (1 .. L.Data_Len);
    end Get_Data;
 
+   ------------------
+   -- Get_Protocol --
+   ------------------
+
+   function Get_Protocol
+     (L : Location_Type)
+      return Protocol_Access is
+   begin
+      return L.Protocol;
+   end Get_Protocol;
+
    ----------------------
    -- Get_Support_Data --
    ----------------------
@@ -177,17 +188,6 @@ package body System.Garlic.Physical_Location is
       end loop;
       return L;
    end Get_Support_Name;
-
-   ------------------
-   -- Get_Protocol --
-   ------------------
-
-   function Get_Protocol
-     (L : Location_Type)
-      return Protocol_Access is
-   begin
-      return L.Protocol;
-   end Get_Protocol;
 
    ---------------------
    -- Lookup_Protocol --

@@ -90,6 +90,20 @@ package body System.Garlic.Trace is
       Partition_ID'Read (S, T.PID);
    end Read;
 
+   --------------
+   -- Shutdown --
+   --------------
+
+   procedure Shutdown is
+   begin
+      if Execution_Mode = Trace_Mode
+        and then Is_Open (Trace_File)
+      then
+         pragma Debug (D ("Closing trace file"));
+         Close (Trace_File);
+      end if;
+   end Shutdown;
+
    ----------------
    -- Trace_Data --
    ----------------
@@ -136,20 +150,6 @@ package body System.Garlic.Trace is
 
       Types.Partition_ID'Write (Stream (Trace_File), Partition);
    end Trace_Partition_ID;
-
-   --------------
-   -- Shutdown --
-   --------------
-
-   procedure Shutdown is
-   begin
-      if Execution_Mode = Trace_Mode
-        and then Is_Open (Trace_File)
-      then
-         pragma Debug (D ("Closing trace file"));
-         Close (Trace_File);
-      end if;
-   end Shutdown;
 
    -----------
    -- Write --

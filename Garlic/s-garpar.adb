@@ -358,123 +358,6 @@ package body System.Garlic.Partitions is
       Partition := PID;
    end Allocate_PID;
 
-   --------------------------------
-   -- Register_Passive_Partition --
-   --------------------------------
-
-   procedure Register_Passive_Partition
-     (Partition      : out Partition_ID;
-      Partition_Name : in String;
-      Mem_Locations  : in String;
-      Error          : in out Error_Type)
-   is
-      PID     : Partition_ID;
-      Info    : Partition_Info;
-      Name    : String_Access;
-      Locs    : String_Access;
-      Query   : aliased Params_Stream_Type (0);
-      Version : Version_Id;
-
-   begin
-      if Options.Is_Boot_Mirror then
-
-         --  Use Partition_Name to compute a unique partition id for a
-         --  passive partition.
-
-         Allocate_PID (PID, Partition_Name, Error);
-         if Found (Error) then
-            return;
-         end if;
-
-         Info := Partitions.Get_Component (PID);
-         if Info.Status = None then
-
-            --  Passive partitions do not partipate to the global
-            --  termination and their termination mode is
-            --  local_termination. The reconnection mode is useless
-            --  and we set it at Reject_On_Restart because they are
-            --  not supposed to be invalidated (no communication error).
-
-            Info.Is_Active_Part := False;
-            Info.Net_Locations  := null;
-            Info.Mem_Locations  := new String'(Mem_Locations);
-            Info.Termination    := Local_Termination;
-            Info.Reconnection   := Reject_On_Restart;
-            Info.Is_Pure_Client := True;
-            Info.Is_Boot_Mirror := False;
-            Info.Status         := Done;
-            Partitions.Set_Component (PID, Info);
-         end if;
-
-         --  Broadcast the partition id of this partition.
-
-         if Boot_Mirrors > 1 then
-            Partitions.Enter;
-            Request_Type'Output (Query'Access, Copy_Table);
-            Write_Partitions    (Query'Access);
-            Partitions.Leave;
-            Broadcast (Partition_Operation, Query'Access);
-         end if;
-
-         pragma Debug (Dump_Partition_Table (Private_Debug_Key));
-
-      else
-         Name := new String'(Partition_Name);
-         Locs := new String'(Mem_Locations);
-
-         --  Delegate the partition id computation of a passive
-         --  partition to a boot mirror.
-
-         Send_Partition_Definition
-           (Partition      => Null_PID,
-            Partition_Name => Name,
-            Is_Active_Part => False,
-            Net_Locations  => null,
-            Mem_Locations  => Locs,
-            Termination    => Local_Termination,
-            Reconnection   => Reject_On_Restart,
-            Is_Pure_Client => True,
-            Is_Boot_Mirror => False,
-            Error          => Error);
-
-         if Found (Error) then
-            Destroy (Name);
-            Destroy (Locs);
-            return;
-         end if;
-
-         loop
-            --  Wait for this passive partition to be registered in
-            --  the local partition table. In this case, the passive
-            --  partition is elaborated.
-
-            PID := Null_PID;
-            Partitions.Enter;
-            for P in First_PID .. Partitions.Last loop
-               declare
-                  Info : Partition_Info := Partitions.Get_Component (P);
-
-               begin
-                  if Info.Status = Done
-                    and then not Info.Is_Active_Part
-                    and then Info.Partition_Name.all = Partition_Name
-                  then
-                     PID := P;
-                     exit;
-                  end if;
-               end;
-            end loop;
-            Partitions.Leave (Version);
-
-            exit when PID /= Null_PID;
-
-            Partitions.Differ (Version);
-         end loop;
-      end if;
-
-      Partition := PID;
-   end Register_Passive_Partition;
-
    -------------------------
    -- Dump_Partition_Info --
    -------------------------
@@ -702,7 +585,7 @@ package body System.Garlic.Partitions is
       Get_Partition_Info (Partition, Info, Error);
       Result := Get_Protocol (Info.Net_Loc_In_Use);
       if Result = null then
-         Throw (Error, "no protocol avaible");
+         Throw (Error, "no protocol available");
       else
          Protocol := Result;
       end if;
@@ -1381,6 +1264,123 @@ package body System.Garlic.Partitions is
       exception when others =>
       Throw (Error, "Data error in Partitions.Read_Partitions");
    end Read_Partitions;
+
+   --------------------------------
+   -- Register_Passive_Partition --
+   --------------------------------
+
+   procedure Register_Passive_Partition
+     (Partition      : out Partition_ID;
+      Partition_Name : in String;
+      Mem_Locations  : in String;
+      Error          : in out Error_Type)
+   is
+      PID     : Partition_ID;
+      Info    : Partition_Info;
+      Name    : String_Access;
+      Locs    : String_Access;
+      Query   : aliased Params_Stream_Type (0);
+      Version : Version_Id;
+
+   begin
+      if Options.Is_Boot_Mirror then
+
+         --  Use Partition_Name to compute a unique partition id for a
+         --  passive partition.
+
+         Allocate_PID (PID, Partition_Name, Error);
+         if Found (Error) then
+            return;
+         end if;
+
+         Info := Partitions.Get_Component (PID);
+         if Info.Status = None then
+
+            --  Passive partitions do not partipate to the global
+            --  termination and their termination mode is
+            --  local_termination. The reconnection mode is useless
+            --  and we set it at Reject_On_Restart because they are
+            --  not supposed to be invalidated (no communication error).
+
+            Info.Is_Active_Part := False;
+            Info.Net_Locations  := null;
+            Info.Mem_Locations  := new String'(Mem_Locations);
+            Info.Termination    := Local_Termination;
+            Info.Reconnection   := Reject_On_Restart;
+            Info.Is_Pure_Client := True;
+            Info.Is_Boot_Mirror := False;
+            Info.Status         := Done;
+            Partitions.Set_Component (PID, Info);
+         end if;
+
+         --  Broadcast the partition id of this partition.
+
+         if Boot_Mirrors > 1 then
+            Partitions.Enter;
+            Request_Type'Output (Query'Access, Copy_Table);
+            Write_Partitions    (Query'Access);
+            Partitions.Leave;
+            Broadcast (Partition_Operation, Query'Access);
+         end if;
+
+         pragma Debug (Dump_Partition_Table (Private_Debug_Key));
+
+      else
+         Name := new String'(Partition_Name);
+         Locs := new String'(Mem_Locations);
+
+         --  Delegate the partition id computation of a passive
+         --  partition to a boot mirror.
+
+         Send_Partition_Definition
+           (Partition      => Null_PID,
+            Partition_Name => Name,
+            Is_Active_Part => False,
+            Net_Locations  => null,
+            Mem_Locations  => Locs,
+            Termination    => Local_Termination,
+            Reconnection   => Reject_On_Restart,
+            Is_Pure_Client => True,
+            Is_Boot_Mirror => False,
+            Error          => Error);
+
+         if Found (Error) then
+            Destroy (Name);
+            Destroy (Locs);
+            return;
+         end if;
+
+         loop
+            --  Wait for this passive partition to be registered in
+            --  the local partition table. In this case, the passive
+            --  partition is elaborated.
+
+            PID := Null_PID;
+            Partitions.Enter;
+            for P in First_PID .. Partitions.Last loop
+               declare
+                  Info : Partition_Info := Partitions.Get_Component (P);
+
+               begin
+                  if Info.Status = Done
+                    and then not Info.Is_Active_Part
+                    and then Info.Partition_Name.all = Partition_Name
+                  then
+                     PID := P;
+                     exit;
+                  end if;
+               end;
+            end loop;
+            Partitions.Leave (Version);
+
+            exit when PID /= Null_PID;
+
+            Partitions.Differ (Version);
+         end loop;
+      end if;
+
+      Partition := PID;
+   end Register_Passive_Partition;
 
    -------------------------------
    -- Send_Partition_Definition --

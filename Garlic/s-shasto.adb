@@ -38,6 +38,33 @@ with System.Garlic.Storages; use System.Garlic.Storages;
 package body System.Shared_Storage is
 
    ----------------------
+   -- Shared_Var_Close --
+   ----------------------
+
+   procedure Shared_Var_Close (Var : in out SIO.Stream_Access)
+   is
+      VS : Shared_Data_Access;
+
+   begin
+      VS := Shared_Data_Access (Var);
+      Complete_Request (VS.all);
+   end Shared_Var_Close;
+
+   ---------------------
+   -- Shared_Var_Lock --
+   ---------------------
+
+   procedure Shared_Var_Lock (Var : in String)
+   is
+      VS : Shared_Data_Access;
+      Ok : Boolean;
+
+   begin
+      VS := Lookup_Variable (Var);
+      Initiate_Request (VS.all, Lock, Ok);
+   end Shared_Var_Lock;
+
+   ----------------------
    -- Shared_Var_ROpen --
    ----------------------
 
@@ -56,35 +83,6 @@ package body System.Shared_Storage is
       end if;
    end Shared_Var_ROpen;
 
-   ----------------------
-   -- Shared_Var_WOpen --
-   ----------------------
-
-   function Shared_Var_WOpen (Var : in String) return SIO.Stream_Access
-   is
-      VS : Shared_Data_Access;
-      Ok : Boolean;
-
-   begin
-      VS := Lookup_Variable (Var);
-      Initiate_Request (VS.all, Write, Ok);
-      return SIO.Stream_Access (VS);
-   end Shared_Var_WOpen;
-
-   ---------------------
-   -- Shared_Var_Lock --
-   ---------------------
-
-   procedure Shared_Var_Lock (Var : in String)
-   is
-      VS : Shared_Data_Access;
-      Ok : Boolean;
-
-   begin
-      VS := Lookup_Variable (Var);
-      Initiate_Request (VS.all, Lock, Ok);
-   end Shared_Var_Lock;
-
    -----------------------
    -- Shared_Var_Unlock --
    -----------------------
@@ -99,16 +97,18 @@ package body System.Shared_Storage is
    end Shared_Var_Unlock;
 
    ----------------------
-   -- Shared_Var_Close --
+   -- Shared_Var_WOpen --
    ----------------------
 
-   procedure Shared_Var_Close (Var : in out SIO.Stream_Access)
+   function Shared_Var_WOpen (Var : in String) return SIO.Stream_Access
    is
       VS : Shared_Data_Access;
+      Ok : Boolean;
 
    begin
-      VS := Shared_Data_Access (Var);
-      Complete_Request (VS.all);
-   end Shared_Var_Close;
+      VS := Lookup_Variable (Var);
+      Initiate_Request (VS.all, Write, Ok);
+      return SIO.Stream_Access (VS);
+   end Shared_Var_WOpen;
 
 end System.Shared_Storage;

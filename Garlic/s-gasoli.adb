@@ -43,9 +43,11 @@ package body System.Garlic.Soft_Links is
    Adv_Mutex_Create : Adv_Mutex_Creation_Function;
 
    procedure Free is
-     new Ada.Unchecked_Deallocation (Mutex_Type'Class, Mutex_Access);
+      new Ada.Unchecked_Deallocation (Mutex_Type'Class, Mutex_Access);
+
    procedure Free is
-     new Ada.Unchecked_Deallocation (Watcher_Type'Class, Watcher_Access);
+      new Ada.Unchecked_Deallocation (Watcher_Type'Class, Watcher_Access);
+
    procedure Free is
      new Ada.Unchecked_Deallocation (Adv_Mutex_Type'Class, Adv_Mutex_Access);
 
@@ -56,10 +58,6 @@ package body System.Garlic.Soft_Links is
       procedure Call;
       pragma Inline (Call);
    end Proc;
-
-   ----------
-   -- Proc --
-   ----------
 
    package body Proc is
 
@@ -86,10 +84,6 @@ package body System.Garlic.Soft_Links is
       end Register;
 
    end Proc;
-
-   --------------------------
-   -- Termination services --
-   --------------------------
 
    package P_Add_Non_Terminating_Task is new Proc ("Add_Non_Terminating_Task");
    procedure Register_Add_Non_Terminating_Task
@@ -126,10 +120,6 @@ package body System.Garlic.Soft_Links is
    procedure Global_Termination
      renames P_Global_Termination.Call;
 
-   -------------------------------
-   -- Critical section handling --
-   -------------------------------
-
    package P_Enter_Critical_Section is new Proc ("Enter_Critical_Section");
    procedure Register_Enter_Critical_Section
      (P : in Parameterless_Procedure)
@@ -144,126 +134,6 @@ package body System.Garlic.Soft_Links is
    procedure Leave_Critical_Section
      renames P_Leave_Critical_Section.Call;
 
-   -------------
-   -- Mutex --
-   -------------
-
-   procedure Register_Mutex_Creation_Function
-     (F : in Mutex_Creation_Function)
-   is
-   begin
-      Mutex_Create := F;
-   end Register_Mutex_Creation_Function;
-
-   procedure Create (M : out Mutex_Access) is
-   begin
-      M := Mutex_Create.all;
-   end Create;
-
-   procedure Enter (M : in Mutex_Access) is
-   begin
-      pragma Assert (M /= null);
-      Enter (M.all);
-   end Enter;
-
-   procedure Destroy (M : in out Mutex_Access) is
-   begin
-      if M /= null then
-         Destroy (M.all);
-         Free (M);
-      end if;
-   end Destroy;
-
-   procedure Leave (M : in Mutex_Access) is
-   begin
-      pragma Assert (M /= null);
-      Leave (M.all);
-   end Leave;
-
-   -------------
-   -- Watcher --
-   -------------
-
-   procedure Register_Watcher_Creation_Function
-     (F : in Watcher_Creation_Function)
-   is
-   begin
-      Watcher_Create := F;
-   end Register_Watcher_Creation_Function;
-
-   procedure Create
-     (W : out Watcher_Access;
-      V : in Version_Id := No_Version) is
-   begin
-      W := Watcher_Create (V);
-   end Create;
-
-   procedure Destroy (W : in out Watcher_Access) is
-   begin
-      if W /= null then
-         Destroy (W.all);
-         Free (W);
-      end if;
-   end Destroy;
-
-   procedure Differ (W : in Watcher_Access; V : in Types.Version_Id) is
-   begin
-      pragma Assert (W /= null);
-      Differ (W.all, V);
-   end Differ;
-
-   procedure Lookup (W : in Watcher_Access; V : out Types.Version_Id) is
-   begin
-      pragma Assert (W /= null);
-      Lookup (W.all, V);
-   end Lookup;
-
-   procedure Update (W : in Watcher_Access) is
-   begin
-      pragma Assert (W /= null);
-      Update (W.all);
-   end Update;
-
-   ---------------
-   -- Adv_Mutex --
-   ---------------
-
-   procedure Register_Adv_Mutex_Creation_Function
-     (F : in Adv_Mutex_Creation_Function)
-   is
-   begin
-      Adv_Mutex_Create := F;
-   end Register_Adv_Mutex_Creation_Function;
-
-   procedure Create (M :  out Adv_Mutex_Access) is
-   begin
-      M := Adv_Mutex_Create.all;
-   end Create;
-
-   procedure Enter (M : in Adv_Mutex_Access) is
-   begin
-      pragma Assert (M /= null);
-      Enter (M.all);
-   end Enter;
-
-   procedure Destroy (M : in out Adv_Mutex_Access) is
-   begin
-      if M /= null then
-         Destroy (M.all);
-         Free (M);
-      end if;
-   end Destroy;
-
-   procedure Leave (M : in Adv_Mutex_Access) is
-   begin
-      pragma Assert (M /= null);
-      Leave (M.all);
-   end Leave;
-
-   -------------------------
-   -- Shutdown mechanisms --
-   -------------------------
-
    package P_RPC_Shutdown is new Proc ("RPC_Shutdown");
    procedure Register_RPC_Shutdown
      (P : in Parameterless_Procedure)
@@ -271,50 +141,11 @@ package body System.Garlic.Soft_Links is
    procedure RPC_Shutdown
      renames P_RPC_Shutdown.Call;
 
-   -----------------------
-   -- Tasking Utilities --
-   -----------------------
-
    Is_Env_Task : Return_Boolean_Function;
-
-   procedure Register_Is_Environment_Task
-     (F : in Return_Boolean_Function)
-   is
-   begin
-      Is_Env_Task := F;
-   end Register_Is_Environment_Task;
-
-   function Is_Environment_Task return Boolean is
-   begin
-      return Is_Env_Task.all;
-   end Is_Environment_Task;
 
    Awake_Count : Return_Natural_Function;
 
-   procedure Register_Env_Task_Awake_Count
-     (F : in Return_Natural_Function) is
-   begin
-      Awake_Count := F;
-   end Register_Env_Task_Awake_Count;
-
-   function Env_Task_Awake_Count return Natural is
-   begin
-      return Awake_Count.all;
-   end Env_Task_Awake_Count;
-
-
    Ind_Task_Count : Return_Natural_Function;
-
-   procedure Register_Independent_Task_Count
-     (F : in Return_Natural_Function) is
-   begin
-      Ind_Task_Count := F;
-   end Register_Independent_Task_Count;
-
-   function Independent_Task_Count return Natural is
-   begin
-      return Ind_Task_Count.all;
-   end Independent_Task_Count;
 
    package P_List_Tasks is new Proc ("List_Tasks");
    procedure Register_List_Tasks
@@ -325,35 +156,196 @@ package body System.Garlic.Soft_Links is
 
    Get_Task_Priority : Return_Natural_Function;
 
-   procedure Register_Get_Priority
-     (F : in Return_Natural_Function) is
-   begin
-      Get_Task_Priority := F;
-   end Register_Get_Priority;
-
-   function Get_Priority return Natural is
-   begin
-      return Get_Task_Priority.all;
-   end Get_Priority;
-
    Set_Task_Priority : Natural_Parameter_Procedure;
-
-   procedure Register_Set_Priority
-     (P : in Natural_Parameter_Procedure) is
-   begin
-      Set_Task_Priority := P;
-   end Register_Set_Priority;
-
-   procedure Set_Priority (P : in Natural) is
-   begin
-      Set_Task_Priority (P);
-   end Set_Priority;
 
    procedure Free is
       new Ada.Unchecked_Deallocation
      (Abort_Handler_Type'Class, Abort_Handler_Access);
 
    Var_Abort_Handler : Abort_Handler_Access;
+
+   -------------------
+   -- Abort_Handler --
+   -------------------
+
+   function Abort_Handler return Abort_Handler_Type'Class is
+   begin
+      return Var_Abort_Handler.all;
+   end Abort_Handler;
+
+   ------------
+   -- Adjust --
+   ------------
+
+   procedure Adjust (Self : in out Abort_Handler_Type) is
+   begin
+      null;
+   end Adjust;
+
+   ------------
+   -- Create --
+   ------------
+
+   procedure Create (M : out Mutex_Access) is
+   begin
+      M := Mutex_Create.all;
+   end Create;
+
+   ------------
+   -- Create --
+   ------------
+
+   procedure Create
+     (W : out Watcher_Access;
+      V : in Version_Id := No_Version) is
+   begin
+      W := Watcher_Create (V);
+   end Create;
+
+   ------------
+   -- Create --
+   ------------
+
+   procedure Create (M :  out Adv_Mutex_Access) is
+   begin
+      M := Adv_Mutex_Create.all;
+   end Create;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (M : in out Mutex_Access) is
+   begin
+      if M /= null then
+         Destroy (M.all);
+         Free (M);
+      end if;
+   end Destroy;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (W : in out Watcher_Access) is
+   begin
+      if W /= null then
+         Destroy (W.all);
+         Free (W);
+      end if;
+   end Destroy;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (M : in out Adv_Mutex_Access) is
+   begin
+      if M /= null then
+         Destroy (M.all);
+         Free (M);
+      end if;
+   end Destroy;
+
+   ------------
+   -- Differ --
+   ------------
+
+   procedure Differ (W : in Watcher_Access; V : in Types.Version_Id) is
+   begin
+      pragma Assert (W /= null);
+      Differ (W.all, V);
+   end Differ;
+
+   -----------
+   -- Enter --
+   -----------
+
+   procedure Enter (M : in Mutex_Access) is
+   begin
+      pragma Assert (M /= null);
+      Enter (M.all);
+   end Enter;
+
+   -----------
+   -- Enter --
+   -----------
+
+   procedure Enter (M : in Adv_Mutex_Access) is
+   begin
+      pragma Assert (M /= null);
+      Enter (M.all);
+   end Enter;
+
+   --------------------------
+   -- Env_Task_Awake_Count --
+   --------------------------
+
+   function Env_Task_Awake_Count return Natural is
+   begin
+      return Awake_Count.all;
+   end Env_Task_Awake_Count;
+
+   ------------------
+   -- Get_Priority --
+   ------------------
+
+   function Get_Priority return Natural is
+   begin
+      return Get_Task_Priority.all;
+   end Get_Priority;
+
+   -----------------------------
+   -- Independent_Task_Count --
+   -----------------------------
+
+   function Independent_Task_Count return Natural is
+   begin
+      return Ind_Task_Count.all;
+   end Independent_Task_Count;
+
+   -------------------------
+   -- Is_Environment_Task --
+   -------------------------
+
+   function Is_Environment_Task return Boolean is
+   begin
+      return Is_Env_Task.all;
+   end Is_Environment_Task;
+
+   -----------
+   -- Leave --
+   -----------
+
+   procedure Leave (M : in Mutex_Access) is
+   begin
+      pragma Assert (M /= null);
+      Leave (M.all);
+   end Leave;
+
+   -----------
+   -- Leave --
+   -----------
+
+   procedure Leave (M : in Adv_Mutex_Access) is
+   begin
+      pragma Assert (M /= null);
+      Leave (M.all);
+   end Leave;
+
+   ------------
+   -- Lookup --
+   ------------
+
+   procedure Lookup (W : in Watcher_Access; V : out Types.Version_Id) is
+   begin
+      pragma Assert (W /= null);
+      Lookup (W.all, V);
+   end Lookup;
+
+   ----------------------------
+   -- Register_Abort_Handler --
+   ----------------------------
 
    procedure Register_Abort_Handler
      (Abort_Handler : in Abort_Handler_Access) is
@@ -364,15 +356,107 @@ package body System.Garlic.Soft_Links is
       Var_Abort_Handler := Abort_Handler;
    end Register_Abort_Handler;
 
-   function Abort_Handler return Abort_Handler_Type'Class is
-   begin
-      return Var_Abort_Handler.all;
-   end Abort_Handler;
+   ------------------------------------------
+   -- Register_Adv_Mutex_Creation_Function --
+   ------------------------------------------
 
-   procedure Adjust (Self : in out Abort_Handler_Type) is
+   procedure Register_Adv_Mutex_Creation_Function
+     (F : in Adv_Mutex_Creation_Function)
+   is
    begin
-      null;
-      null;
-   end Adjust;
+      Adv_Mutex_Create := F;
+   end Register_Adv_Mutex_Creation_Function;
+
+   -----------------------------------
+   -- Register_Env_Task_Awake_Count --
+   -----------------------------------
+
+   procedure Register_Env_Task_Awake_Count
+     (F : in Return_Natural_Function) is
+   begin
+      Awake_Count := F;
+   end Register_Env_Task_Awake_Count;
+
+   ---------------------------
+   -- Register_Get_Priority --
+   ---------------------------
+
+   procedure Register_Get_Priority
+     (F : in Return_Natural_Function) is
+   begin
+      Get_Task_Priority := F;
+   end Register_Get_Priority;
+
+   -------------------------------------
+   -- Register_Independent_Task_Count --
+   -------------------------------------
+
+   procedure Register_Independent_Task_Count
+     (F : in Return_Natural_Function) is
+   begin
+      Ind_Task_Count := F;
+   end Register_Independent_Task_Count;
+
+   ----------------------------------
+   -- Register_Is_Environment_Task --
+   ----------------------------------
+
+   procedure Register_Is_Environment_Task
+     (F : in Return_Boolean_Function)
+   is
+   begin
+      Is_Env_Task := F;
+   end Register_Is_Environment_Task;
+
+   --------------------------------------
+   -- Register_Mutex_Creation_Function --
+   --------------------------------------
+
+   procedure Register_Mutex_Creation_Function
+     (F : in Mutex_Creation_Function)
+   is
+   begin
+      Mutex_Create := F;
+   end Register_Mutex_Creation_Function;
+
+   ---------------------------
+   -- Register_Set_Priority --
+   ---------------------------
+
+   procedure Register_Set_Priority
+     (P : in Natural_Parameter_Procedure) is
+   begin
+      Set_Task_Priority := P;
+   end Register_Set_Priority;
+
+   ----------------------------------------
+   -- Register_Watcher_Creation_Function --
+   ----------------------------------------
+
+   procedure Register_Watcher_Creation_Function
+     (F : in Watcher_Creation_Function)
+   is
+   begin
+      Watcher_Create := F;
+   end Register_Watcher_Creation_Function;
+
+   ------------------
+   -- Set_Priority --
+   ------------------
+
+   procedure Set_Priority (P : in Natural) is
+   begin
+      Set_Task_Priority (P);
+   end Set_Priority;
+
+   ------------
+   -- Update --
+   ------------
+
+   procedure Update (W : in Watcher_Access) is
+   begin
+      pragma Assert (W /= null);
+      Update (W.all);
+   end Update;
 
 end System.Garlic.Soft_Links;
