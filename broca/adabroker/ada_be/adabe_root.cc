@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.10 $
+//                            $Revision: 1.11 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -131,7 +131,14 @@ void adabe_root::produce () {
 		    (module_withlist,
 		     module_maincode,
 		     module_prologue);
+
 		  module_withcode = *module_withlist.produce ("with ");
+
+                  if (module_withlist.check ("CORBA.Forward")) {
+                    module_prologue = 
+			"pragma Elaborate_All (CORBA.Forward);\n"
+			+ module_prologue;
+                  }
 
 		  produce_file
 		    (module->get_ada_full_name (),
@@ -157,6 +164,11 @@ void adabe_root::produce () {
 		     interface_maincode,
 		     interface_prologue);
 		  interface_withcode = *interface_withlist.produce ("with ");
+                  if (interface_withlist.check ("CORBA.Forward")) {
+                    interface_prologue =
+			"pragma Elaborate_All (CORBA.Forward);\n"
+			+ interface_prologue;
+                  }
 
 		  produce_file
 		    (interface->get_ada_full_name (),
@@ -194,6 +206,11 @@ void adabe_root::produce () {
       root_maincode += "end " + get_ada_full_name () + ";\n";
 
       root_withcode = *root_withlist.produce ("with ");
+      if (root_withlist.check ("CORBA.Forward")) {
+        root_prologue =
+	    "pragma Elaborate_All (CORBA.Forward);\n"
+	    + root_prologue;
+      }
 
       produce_file
 	(root_name,
