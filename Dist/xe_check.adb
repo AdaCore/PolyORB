@@ -113,7 +113,7 @@ package body XE_Check is
    procedure Recompile
      (Uname : in Unit_Name_Type;
       Fatal : in Boolean);
-   --  Recompile unit of name Unameand as many as its dependencies it is
+   --  Recompile unit of name Uname and as many as its dependencies it is
    --  possible. When Fatal is true, a compilation failure on file of
    --  unit name Uname raises a fatal error. Otherwise, on a compilation
    --  failure, try to compile the spec file instead.
@@ -688,8 +688,13 @@ package body XE_Check is
          end if;
       end loop;
 
+      Set_Tasking (A, 'N');
       for U in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
          for W in Units.Table (U).First_With .. Units.Table (U).Last_With loop
+
+            if System_Tasking_Child (Withs.Table (W).Uname) then
+               Set_Tasking (A, 'Y');
+            end if;
 
             --  If the withed unit is configured, then load it later.
 
@@ -762,8 +767,13 @@ package body XE_Check is
          end if;
       end loop;
 
+      Set_Tasking (A, 'N');
       for U in FU .. LU loop
          for W in Units.Table (U).First_With .. Units.Table (U).Last_With loop
+
+            if System_Tasking_Child (Withs.Table (W).Uname) then
+               Set_Tasking (A, 'Y');
+            end if;
 
             --  If the withed unit is configured, load it later.
 
