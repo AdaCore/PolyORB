@@ -6,16 +6,19 @@ with Types;        use Types;
 
 package body Parser.Errors is
 
-   Parsing_Str : constant array (PC_AADL_Declaration .. PC_System_Instance)
-     of String_Ptr :=
+   Parsing_Str : constant array
+     (PC_AADL_Declaration .. PC_Unique_Component_Type_Name) of String_Ptr :=
      (
       PC_AADL_Declaration         => new String'("AADL_Delcaration"),
       PC_AADL_Specification       => new String'("AADL_Specification"),
       PC_Annex_Specification      => new String'("Annex_Specification"),
       PC_Annex_Subclause          => new String'("Annex_Subclause"),
+      PC_Classifier_Reference     => new String'("Classifier_Reference"),
       PC_Component                => new String'("Component"),
       PC_Component_Category       => new String'("Component_Category"),
       PC_Component_Implementation => new String'("Component_Implementation"),
+      PC_Component_Implementation_Name =>
+        new String'("Component_Implementation_Name"),
       PC_Component_Type           => new String'("Component_Type"),
       PC_Component_Type_Extension => new String'("Component_Type_Extension"),
       PC_Defining_Identifier      => new String'("Defining_Identifier"),
@@ -35,7 +38,9 @@ package body Parser.Errors is
       PC_Property_Set             => new String'("Property_Set"),
       PC_Provides                 => new String'("Provides"),
       PC_Requires                 => new String'("Requires"),
-      PC_System_Instance          => new String'("System_Instance")
+      PC_System_Instance          => new String'("System_Instance"),
+      PC_Unique_Component_Type_Name =>
+        new String'("Unique_Component_Type_Name")
      );
 
    procedure Display_Parsing_Code (Code : Parsing_Code);
@@ -100,7 +105,7 @@ package body Parser.Errors is
 
       Write_Str ("token ");
       Write_Str (Image (Expected_Token));
-      Write_Str ("is expected, found ");
+      Write_Str (" is expected, found ");
       Write_Line (Image_Current_Token);
 
       Set_Standard_Output;

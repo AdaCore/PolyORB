@@ -177,6 +177,14 @@ package body Debug is
                Print_Node (Node);
             end if;
 
+         when K_Unique_Component_Type_Name =>
+            Node := Node_Id (Package_Name (N));
+            if Present (Node) then
+               Print_Node (Node);
+               Write_Str ("::");
+            end if;
+            Print_Node (Identifier (N));
+
          when K_Component_Type =>
             W_Indents;
             Write_Str ("Component_Type: ");
@@ -216,6 +224,18 @@ package body Debug is
                Print_Node (Node);
             end if;
 
+         when K_Classifier_Ref =>
+            Node := Component_Type_Name (N);
+            if Present (Node) then
+               Print_Node (Node);
+            end if;
+
+            Node := Component_Impl_Name (N);
+            if Present (Node) then
+               Write_Char ('.');
+               Print_Node (Node);
+            end if;
+
          when K_Port_Spec =>
             W_Indents;
             if Is_Refinement (N) then
@@ -244,8 +264,22 @@ package body Debug is
             if Is_Event (N) then
                Write_Str ("event ");
             end if;
-            if Present (Data_Ref (N)) then
+            Node := Data_Ref (N);
+            if Present (Node) then
                Write_Str ("data ");
+               Print_Node (Node);
+            end if;
+
+         when K_Component_Impl_Name =>
+            Node := Identifier (N);
+            if Present (Node) then
+               Print_Node (Node);
+            else
+               if Is_Binding (N) then
+                  Write_Str ("binding");
+               else
+                  Write_Str ("others");
+               end if;
             end if;
 
          when others =>

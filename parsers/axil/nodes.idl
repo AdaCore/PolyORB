@@ -177,6 +177,19 @@ module Nodes {
     List_Id  Properties;
   };
 
+    // defining_component_implementation_name ::= 
+    //     defining_component_implementation_identifier | others
+
+    // component_implementation_name ::= 
+    //     component_implementation_identifier | others | binding
+
+  interface Component_Impl_Name : Node_Id {
+    Node_Id Identifier;   // Identifier = No_Node ---> others or binding
+    boolean Is_Binding;   // significant only when Identifier = No_Node
+  };
+
+  interface Defining_Component_Impl_Name : Component_Impl_Name { };
+
     // component_implementation ::= 
     //    component_category implementation
     //    component_type_identifier . defining_component_implementation_name

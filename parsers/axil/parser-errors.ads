@@ -11,9 +11,11 @@ package Parser.Errors is
       PC_AADL_Specification,
       PC_Annex_Specification,
       PC_Annex_Subclause,
+      PC_Classifier_Reference,
       PC_Component,
       PC_Component_Category,
       PC_Component_Implementation,
+      PC_Component_Implementation_Name,
       PC_Component_Type,
       PC_Component_Type_Extension,
       PC_Defining_Identifier,
@@ -33,7 +35,8 @@ package Parser.Errors is
       PC_Property_Set,
       PC_Provides,
       PC_Requires,
-      PC_System_Instance
+      PC_System_Instance,
+      PC_Unique_Component_Type_Name
      );
 
    procedure Display_Parsing_Error (Code : Parsing_Code; Msg : String);

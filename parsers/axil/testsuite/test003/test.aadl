@@ -2,8 +2,8 @@ package toto.titi
   public
     process Application
       provides
-        result: out data port test1;
-	titi : in out event data port test2;
+        result: out data port toto.titi.tata::type1.impl1;
+	titi : in out event data port type2.others;
       requires
         --  Nothing now
     end Application;
