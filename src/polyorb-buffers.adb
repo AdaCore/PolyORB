@@ -524,8 +524,10 @@ package body PolyORB.Buffers is
          Data         : out Opaque_Pointer)
       is
 
-         function First_Address_After (An_Iovec : Iovec)
-           return Opaque_Pointer;
+         function First_Address_After
+           (An_Iovec : Iovec)
+            return Opaque_Pointer;
+         pragma Inline (First_Address_After);
          --  Return the address of the storage
          --  element immediately following the
          --  last element of An_Iovec.
@@ -539,12 +541,12 @@ package body PolyORB.Buffers is
          procedure Do_Grow
            (Last_Iovec : in out Iovec;
             Last_Chunk : Chunk_Access);
+         pragma Inline (Do_Grow);
 
          procedure Do_Grow
            (Last_Iovec : in out Iovec;
             Last_Chunk : Chunk_Access)
          is
-
          begin
             if Last_Chunk /= null then
                declare
@@ -566,7 +568,12 @@ package body PolyORB.Buffers is
                      Last_Iovec.Iov_Len := Last_Iovec.Iov_Len
                        + Storage_Offset (Size);
                   else
-                     pragma Assert (False);
+                     --  Cannot grow last chunk: leave Data
+                     --  unchanged.
+                     pragma Debug
+                       (O ("Cannot satisfy growth request "
+                             & "of size"
+                             & Stream_Element_Offset'Image (Size)));
                      null;
                   end if;
                end;
