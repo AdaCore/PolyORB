@@ -32,15 +32,13 @@
 
 --  $Id$
 
-with PolyORB.Representations.CDR; use PolyORB.Representations.CDR;
-with PolyORB.Buffers;             use PolyORB.Buffers;
-with PolyORB.Types;
 with Ada.Streams;
+with PolyORB.Types;
 
 package body PolyORB.POA_Types is
 
    use Ada.Streams;
-   use CORBA;
+   use PolyORB.Types;
 
    ----------
    -- Left --
@@ -79,17 +77,17 @@ package body PolyORB.POA_Types is
 
    function Create_Id
      (Name             : in Types.String;
-      System_Generated : in CORBA.Boolean;
+      System_Generated : in Types.Boolean;
       Persistency_Flag : in Time_Stamp;
       Creator          : in Types.String)
      return Unmarshalled_Oid_Access
    is
       U_Oid : Unmarshalled_Oid_Access;
    begin
-      U_Oid := new Unmarshalled_Oid'(Name,
-                                     System_Generated,
-                                     Persistency_Flag,
-                                     Creator);
+      U_Oid := new Unmarshalled_Oid'
+        (Creator => Creator, Id => Name,
+         System_Generated => System_Generated,
+         Persistency_Flag => Persistency_Flag);
       return U_Oid;
    end Create_Id;
 
@@ -99,16 +97,107 @@ package body PolyORB.POA_Types is
 
    function Create_Id
      (Name             : in Types.String;
-      System_Generated : in CORBA.Boolean;
+      System_Generated : in Types.Boolean;
       Persistency_Flag : in Time_Stamp;
       Creator          : in Types.String)
      return Object_Id_Access
    is
       U_Oid : Unmarshalled_Oid_Access;
    begin
-      U_Oid := Create_Id (Name, System_Generated, Persistency_Flag, Creator);
+      U_Oid := Create_Id
+        (Name, System_Generated, Persistency_Flag, Creator);
       return U_Oid_To_Oid (U_Oid);
    end Create_Id;
+
+   procedure Get_ULong
+     (SEA : in     Stream_Element_Array;
+      SEI : in out Stream_Element_Offset;
+      ULo :    out Types.Unsigned_Long)
+   is
+      R : Types.Unsigned_Long := 0;
+   begin
+      for I in 0 .. 3 loop
+         R := R * 256 + Types.Unsigned_Long
+           (SEA (SEI + Stream_Element_Offset (I)));
+      end loop;
+      ULo := R;
+      SEI := SEI + 4;
+   end Get_ULong;
+
+   function Put_ULong (ULo : Types.Unsigned_Long)
+     return Stream_Element_Array
+   is
+      R : Stream_Element_Array (0 .. 3);
+      U : Types.Unsigned_Long := ULo;
+   begin
+      for I in reverse R'Range loop
+         R (I) := Stream_Element (U mod 256);
+         U := U / 256;
+      end loop;
+      return R;
+   end Put_ULong;
+
+   procedure Get_Boolean
+     (SEA : in     Stream_Element_Array;
+      SEI : in out Stream_Element_Offset;
+      Boo :    out Types.Boolean)
+   is
+      R : Types.Unsigned_Long := 0;
+   begin
+      case SEA (SEI) is
+         when 0 =>
+            Boo := False;
+         when 1 =>
+            Boo := True;
+         when others =>
+            raise Constraint_Error;
+      end case;
+      SEI := SEI + 1;
+   end Get_Boolean;
+
+   function Put_Boolean (Boo : Types.Boolean)
+     return Stream_Element_Array
+   is
+      R : Stream_Element_Array (0 .. 0);
+   begin
+      if Boo then R (0) := 1; else R (0) := 0; end if;
+      return R;
+   end Put_Boolean;
+
+   procedure Get_String
+     (SEA : in     Stream_Element_Array;
+      SEI : in out Stream_Element_Offset;
+      Str :    out Types.String)
+   is
+      Len : Types.Unsigned_Long;
+   begin
+      Get_ULong (SEA, SEI, Len);
+      declare
+         S : Standard.String (0 .. Integer (Len) - 1);
+      begin
+         for I in S'Range loop
+            S (I) := Standard.Character'Val
+              (SEA (SEI + Stream_Element_Offset (I)));
+         end loop;
+         Str := To_PolyORB_String (S);
+      end;
+      SEI := SEI + Stream_Element_Offset (Len);
+   end Get_String;
+
+   function Put_String (Str : Types.String)
+     return Stream_Element_Array
+   is
+      S : constant Standard.String := To_Standard_String (Str);
+      R : Stream_Element_Array
+        (Stream_Element_Offset (S'First)
+         .. Stream_Element_Offset (S'Last));
+   begin
+      for I in S'Range loop
+         R (Stream_Element_Offset (I))
+           := Stream_Element (Standard.Character'Pos (S (I)));
+      end loop;
+      return Put_ULong (S'Length) & R;
+   end Put_String;
 
    ------------------
    -- Oid_To_U_Oid --
@@ -119,28 +208,30 @@ package body PolyORB.POA_Types is
      return Unmarshalled_Oid_Access
    is
       U_Oid            : Unmarshalled_Oid_Access;
-      Stream           : aliased Stream_Element_Array
-        := Stream_Element_Array (Oid.all);
-      Buffer           : aliased Buffer_Type;
 
+      Index : Stream_Element_Offset;
+
+      Creator          : PolyORB.Types.String;
       Id               : PolyORB.Types.String;
       System_Generated : PolyORB.Types.Boolean;
       Persistency_Flag : PolyORB.Types.Unsigned_Long;
-      Creator          : PolyORB.Types.String;
    begin
-
-      Decapsulate (Stream'Access, Buffer'Access);
-      Id               := Unmarshall (Buffer'Access);
-      System_Generated := Unmarshall (Buffer'Access);
-      Persistency_Flag := Unmarshall (Buffer'Access);
-      Creator          := Unmarshall (Buffer'Access);
-      Release_Contents (Buffer);
+      Index := Oid'First;
+      Get_String
+        (Stream_Element_Array (Oid.all), Index, Creator);
+      Get_String
+        (Stream_Element_Array (Oid.all), Index, Id);
+      Get_Boolean
+        (Stream_Element_Array (Oid.all), Index, System_Generated);
+      Get_ULong
+        (Stream_Element_Array (Oid.all), Index, Persistency_Flag);
+      pragma Assert (Index = Oid'Last + 1);
 
       U_Oid := new Unmarshalled_Oid'
-        (Id,
-         CORBA.Boolean (System_Generated),
-         Time_Stamp (Persistency_Flag),
-         Creator);
+        (Creator => Creator,
+         Id => Id,
+         System_Generated => Types.Boolean (System_Generated),
+         Persistency_Flag => Time_Stamp (Persistency_Flag));
       return U_Oid;
    end Oid_To_U_Oid;
 
@@ -171,18 +262,15 @@ package body PolyORB.POA_Types is
      (U_Oid : Unmarshalled_Oid_Access)
      return Object_Id_Access
    is
-      Buffer             : Buffer_Access := new Buffer_Type;
       Oid                : Object_Id_Access;
    begin
+      Oid := new Object_Id'
+        (Object_Id
+         (Put_String    (U_Oid.Creator)
+          & Put_String  (U_Oid.Id)
+          & Put_Boolean (U_Oid.System_Generated)
+          & Put_ULong   (U_Oid.Persistency_Flag)));
 
-      Start_Encapsulation (Buffer);
-      Marshall (Buffer, PolyORB.Types.String (U_Oid.Id));
-      Marshall (Buffer, PolyORB.Types.Boolean (U_Oid.System_Generated));
-      Marshall (Buffer, PolyORB.Types.Unsigned_Long (U_Oid.Persistency_Flag));
-      Marshall (Buffer, PolyORB.Types.String (U_Oid.Creator));
-
-      Oid := new Object_Id'(Object_Id (Encapsulate (Buffer)));
-      Release (Buffer);
       return Oid;
    end U_Oid_To_Oid;
 

@@ -36,15 +36,14 @@
 
 with Ada.Unchecked_Deallocation;
 
-with CORBA;
-
-with PolyORB.Obj_Adapters;
-with PolyORB.Objects;         use PolyORB.Objects;
 with PolyORB.Any;
 with PolyORB.Any.NVList;
+with PolyORB.Obj_Adapters;
+with PolyORB.Objects;         use PolyORB.Objects;
 with PolyORB.Requests;
 with PolyORB.Storage_Pools;
 with PolyORB.Types; use PolyORB.Types;
+
 with Sequences.Unbounded;
 
 package PolyORB.POA_Types is
@@ -57,7 +56,7 @@ package PolyORB.POA_Types is
 
    subtype Time_Stamp is Unsigned_Long;
 
-   --  Base types for CORBA
+   --  Base types for the PolyORB POA
 
    type Obj_Adapter is abstract new PolyORB.Obj_Adapters.Obj_Adapter
       with null record;
@@ -65,11 +64,11 @@ package PolyORB.POA_Types is
 
    type Parameter_Profile_Description is
      access function (Method : PolyORB.Requests.Operation_Id)
-                     return PolyORB.Any.NVList.Ref;
+     return PolyORB.Any.NVList.Ref;
 
    type Result_Profile_Description is
      access function (Method : PolyORB.Requests.Operation_Id)
-                     return PolyORB.Any.Any;
+     return PolyORB.Any.Any;
 
    type Interface_Description is record
       External_Name : Types.String;
@@ -101,10 +100,10 @@ package PolyORB.POA_Types is
 
    type Unmarshalled_Oid is
      record
+         Creator          : Types.String;
          Id               : Types.String;
          System_Generated : Boolean;
          Persistency_Flag : Time_Stamp;
-         Creator          : Types.String;
      end record;
    type Unmarshalled_Oid_Access is access Unmarshalled_Oid;
    for Unmarshalled_Oid_Access'Storage_Pool use Storage_Pools.Debug_Pool;
@@ -120,7 +119,7 @@ package PolyORB.POA_Types is
 
    function Create_Id
      (Name             : in Types.String;
-      System_Generated : in CORBA.Boolean;
+      System_Generated : in Boolean;
       Persistency_Flag : in Time_Stamp;
       Creator          : in Types.String)
      return Unmarshalled_Oid_Access;
@@ -128,7 +127,7 @@ package PolyORB.POA_Types is
 
    function Create_Id
      (Name             : in Types.String;
-      System_Generated : in CORBA.Boolean;
+      System_Generated : in Boolean;
       Persistency_Flag : in Time_Stamp;
       Creator          : in Types.String)
      return Object_Id_Access;
