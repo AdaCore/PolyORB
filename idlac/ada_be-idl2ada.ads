@@ -24,8 +24,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package contains one function per node of the parse tree
 with Idl_Fe.Types; use Idl_Fe.Types;
+with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
 
 package Ada_Be.Idl2Ada is
 
@@ -41,5 +41,68 @@ package Ada_Be.Idl2Ada is
    --  If To_Stdout is true, all produced source code
    --  is emitted on standard output (e. g. for use
    --  with GNATCHOP).
+
+private
+
+   function Ada_Type_Name (Node : Node_Id) return String;
+   --  The name of the Ada type that maps Node.
+
+   function Ada_Operation_Name
+     (Node : Node_Id)
+     return String;
+   --  The name of the Ada subprogram that maps
+   --  K_Operation Node.
+
+   procedure Add_With_Stream
+     (CU : in out Compilation_Unit;
+      Node : Node_Id);
+   --  Add a semantic dependency of CU on the
+   --  package that contains the marshalling and
+   --  unmarshalling subprograms for the type defined
+   --  by Node.
+
+   -------------
+   -- Helpers --
+   -------------
+
+   procedure Gen_When_Clause
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id;
+      Default_Case_Seen : in out Boolean);
+   --  Generate "when" clause for union K_Case Node.
+   --  If this K_Case has a "default:" label, then
+   --  Default_Case_Seen is set to True, else its
+   --  value is left unchanged.
+
+   procedure Gen_When_Others_Clause
+     (CU   : in out Compilation_Unit);
+   --  Generate a "when others => null;" clause.
+
+   procedure Gen_Operation_Profile
+     (CU : in out Compilation_Unit;
+      Object_Type : in String;
+      Node : Node_Id);
+   --  Generate the profile for an K_Operation node,
+   --  with the Self formal parameter mode and type taken
+   --  from the Object_Type string.
+
+   ---------------
+   -- Shortcuts --
+   ---------------
+
+   procedure NL
+     (CU : in out Compilation_Unit)
+     renames New_Line;
+   procedure PL
+     (CU   : in out Compilation_Unit;
+      Line : String)
+     renames Put_Line;
+
+   procedure II
+     (CU : in out Compilation_Unit)
+     renames Inc_Indent;
+   procedure DI
+     (CU : in out Compilation_Unit)
+     renames Dec_Indent;
 
 end Ada_Be.Idl2Ada;
