@@ -99,9 +99,10 @@ package body PolyORB.Protocols.GIOP is
    --  using a global counter.
 
    Current_Request_Id : Types.Unsigned_Long := 1;
-   Counter_Lock : Mutex_Access;
-   --  Global variable Current_Request_Id must be accessed
-   --  only with Counter_Lock locked.
+
+   GIOP_Lock : Mutex_Access;
+   --  Protects Current_Request_Id, as well as each session's pending
+   --  requests list.
 
    --  A note can be attached to a PolyORB request to augment
    --  it with personality-specific information. The GIOP stack
@@ -123,19 +124,62 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Initialize is
    begin
-      Create (Counter_Lock);
+      Create (GIOP_Lock);
    end Initialize;
 
    --  Other internal subprograms
 
    procedure Add_Pending_Request
-     (Ses     : access GIOP_Session;
-      R       :        Requests.Request_Access;
-      Profile :        Profile_Access;
-      Pending :    out Pending_Request);
-   --  Add R to the list of pending requests on S. Profile is the
-   --  profile of R's target reference that was used to bind that
-   --  reference to Ses.
+     (Ses      : access GIOP_Session;
+      Pend_Req : in out Pending_Request);
+   --  Add Pend_Req to the list of pending requests on S.
+   --  The Req and Target_Profile fields must be already
+   --  initialized; this procedure sets the Request_Id.
+
+   function Get_Pending_Request
+     (Ses    : access GIOP_Session;
+      Id     : Types.Unsigned_Long;
+      Delete : Boolean := True)
+     return Pending_Request;
+   --  Retrieve a pending request of Ses by its request id.
+   --  If Delete is True, the request is removed from the pending list.
+   --  If no pending request has that id, GIOP_Error is raised.
+
+   function Get_Pending_Request
+     (Ses    : access GIOP_Session;
+      Id     : Types.Unsigned_Long;
+      Delete : Boolean := True)
+     return Pending_Request
+   is
+      Found : Boolean := False;
+      Current_Req : Pending_Request;
+   begin
+      pragma Debug
+        (O ("Retrieveing pending request with id"
+              & Types.Unsigned_Long'Image (Id)));
+      Enter (GIOP_Lock);
+      declare
+         Pending_Reqs : constant Pend_Req_Seq.Element_Array
+           := Pend_Req_Seq.To_Element_Array (Ses.Pending_Rq);
+      begin
+         for J in Pending_Reqs'Range loop
+            if Pending_Reqs (J).Request_Id = Id then
+               Found := True;
+               if Delete then
+                  Pend_Req_Seq.Delete (Ses.Pending_Rq, J, 1);
+               end if;
+               Current_Req := Pending_Reqs (J);
+               exit;
+            end if;
+         end loop;
+      end;
+      Leave (GIOP_Lock);
+      if Found then
+         return Current_Req;
+      else
+         raise GIOP_Error;
+      end if;
+   end Get_Pending_Request;
 
    --------------------
    -- Get_Request_Id --
@@ -145,10 +189,10 @@ package body PolyORB.Protocols.GIOP is
    is
       R : Types.Unsigned_Long;
    begin
-      Enter (Counter_Lock);
+      Enter (GIOP_Lock);
       R := Current_Request_Id;
       Current_Request_Id := Current_Request_Id + 1;
-      Leave (Counter_Lock);
+      Leave (GIOP_Lock);
       return R;
    end Get_Request_Id;
 
@@ -532,7 +576,7 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Request_Message
      (Ses                    : access GIOP_Session;
-      Pend_Req               : access Pending_Request;
+      Pend_Req               : Pending_Request;
       Response_Expected      : in Boolean;
       Fragment_Next          : out Boolean;
       Sync_Type              : in Sync_Scope)
@@ -544,11 +588,11 @@ package body PolyORB.Protocols.GIOP is
       Header_Space  : constant Reservation
         := Reserve (Ses.Buffer_Out, Message_Header_Size);
       Header_Buffer : Buffer_Access := new Buffer_Type;
-      N : Request_Note;
-      Request_Id : Types.Unsigned_Long renames N.Id;
+
+      Request_Id : Types.Unsigned_Long
+        renames Pend_Req.Request_Id;
 
    begin
-      Get_Note (Pend_Req.Req.Notepad, N);
       Fragment_Next := False;
 
       --  Major version 1 is assumed.
@@ -1174,18 +1218,22 @@ package body PolyORB.Protocols.GIOP is
    -------------------------
 
    procedure Add_Pending_Request
-     (Ses     :  access GIOP_Session;
-      R       :  Requests.Request_Access;
-      Profile :  Profile_Access;
-      Pending :  out Pending_Request)
+     (Ses      :  access GIOP_Session;
+      Pend_Req : in out Pending_Request)
    is
       use Pend_Req_Seq;
+      Request_Id : constant Types.Unsigned_Long := Get_Request_Id;
    begin
+      pragma Debug
+        (O ("Adding pending request with id"
+              & Types.Unsigned_Long'Image (Request_Id)));
       Set_Note
-        (R.Notepad, Request_Note'
-         (Annotations.Note with Id => Get_Request_Id));
-      Pending  := Pending_Request'(Req => R, Target_Profile => Profile);
-      Append (Ses.Pending_Rq, Pending);
+        (Pend_Req.Req.Notepad, Request_Note'
+           (Annotations.Note with Id => Request_Id));
+      Pend_Req.Request_Id := Request_Id;
+      Enter (GIOP_Lock);
+      Append (Ses.Pending_Rq, Pend_Req);
+      Leave (GIOP_Lock);
    end Add_Pending_Request;
 
    -----------------
@@ -1377,7 +1425,8 @@ package body PolyORB.Protocols.GIOP is
             raise GIOP_Error;
       end case;
 
-      pragma Debug (O ("Request_Received: Unmarshalled request header"));
+      pragma Debug (O ("Request_Received: Unmarshalled request header,"
+        & " Request_Id: " & Types.Unsigned_Long'Image (Request_Id)));
 
       Args := Obj_Adapters.Get_Empty_Arg_List
         (Object_Adapter (ORB),
@@ -1485,7 +1534,6 @@ package body PolyORB.Protocols.GIOP is
       Reply_Status  : Reply_Status_Type;
       Request_Id    : Types.Unsigned_Long;
       Current_Req   : Pending_Request;
-      N             : Request_Note;
       ORB           : constant ORB_Access
         := ORB_Access (Ses.Server);
 
@@ -1524,27 +1572,12 @@ package body PolyORB.Protocols.GIOP is
          when others =>
             raise GIOP_Error;
       end case;
+      pragma Debug
+        (O ("Received reply: status = "
+              & Reply_Status_Type'Image (Reply_Status)
+              & ", id =" & Types.Unsigned_Long'Image (Request_Id)));
 
-      declare
-         Pending_Reqs : constant Pend_Req_Seq.Element_Array
-           := Pend_Req_Seq.To_Element_Array (Ses.Pending_Rq);
-      begin
-         for J in Pending_Reqs'Range loop
-            Get_Note (Pending_Reqs (J).Req.Notepad, N);
-            if N.Id  = Request_Id then
-               Delete (Ses.Pending_Rq, J, 1);
-               Current_Req := Pending_Reqs (J);
-               exit;
-            end if;
-         end loop;
-
-         if Current_Req.Req = null then
-            raise GIOP_Error;
-         end if;
-      end;
-
-      pragma Debug (O ("Received reply with status "
-                       & Reply_Status_Type'Image (Reply_Status)));
+      Current_Req := Get_Pending_Request (Ses, Request_Id);
 
       case Reply_Status is
 
@@ -1634,12 +1667,10 @@ package body PolyORB.Protocols.GIOP is
                Release (Ses.Buffer_In);
                Release (Ses.Buffer_Out);
 
-               Add_Pending_Request (Ses, Current_Req.Req, Prof, Current_Req);
-
-               GIOP.Invoke_Request
+               Current_Req.Target_Profile := Prof;
+               Invoke_Request
                  (GIOP_Session (New_Ses.all)'Access,
-                  Current_Req.Req,
-                  Prof);
+                  Current_Req.Req, Prof);
             end;
       end case;
    end Reply_Received;
@@ -1713,7 +1744,7 @@ package body PolyORB.Protocols.GIOP is
       use Pend_Req_Seq;
 
       Fragment_Next  : Boolean := False;
-      Current_Req    : aliased Pending_Request;
+      Current_Req    : Pending_Request;
    begin
 
       if S.Role  = Server then
@@ -1721,12 +1752,15 @@ package body PolyORB.Protocols.GIOP is
       end if;
 
       Release_Contents (S.Buffer_Out.all);
+
       declare
          Binding_Object : Components.Component_Access;
          Profile : Binding_Data.Profile_Access;
       begin
          References.Get_Binding_Info (R.Target, Binding_Object, Profile);
-         Add_Pending_Request (S, R, Profile, Current_Req);
+         Current_Req.Req := R;
+         Current_Req.Target_Profile := Profile;
+         Add_Pending_Request (S, Current_Req);
       end;
 
       --  fragmentation not yet implemented
@@ -1762,29 +1796,23 @@ package body PolyORB.Protocols.GIOP is
          end if;
       else
          if Is_Set (Sync_None, R.Req_Flags) then
-            Request_Message (S, Current_Req'Access,
+            Request_Message (S, Current_Req,
                              False, Fragment_Next, NONE);
 
-            Delete (S.Pending_Rq, Length (S.Pending_Rq), 1);
-            --  XXX Is it safe to destroy the pending request at this stage ?
-            --  Is anyone still referencing it at this point ?
-
          elsif Is_Set (Sync_With_Transport, R.Req_Flags) then
-            Request_Message (S, Current_Req'Access,
+            Request_Message (S, Current_Req,
                              False, Fragment_Next, WITH_TRANSPORT);
 
-            Delete (S.Pending_Rq, Length (S.Pending_Rq), 1);
-            --  XXX Is it safe to destroy the pending request at this stage ?
-            --  Is anyone still referencing it at this point ?
-
-         elsif Is_Set (Sync_With_Server, R.Req_Flags) then
-            Request_Message (S, Current_Req'Access,
-                             False, Fragment_Next, WITH_SERVER);
-
-         elsif Is_Set (Sync_With_Target, R.Req_Flags) or
-           Is_Set (Sync_Call_Back, R.Req_Flags) then
-            Request_Message (S, Current_Req'Access,
-                             True, Fragment_Next, WITH_TARGET);
+         else
+            if Is_Set (Sync_With_Server, R.Req_Flags) then
+               Request_Message
+                 (S, Current_Req, False, Fragment_Next, WITH_SERVER);
+            elsif Is_Set (Sync_With_Target, R.Req_Flags)
+              or else Is_Set (Sync_Call_Back, R.Req_Flags)
+            then
+               Request_Message
+                 (S, Current_Req, True, Fragment_Next, WITH_TARGET);
+            end if;
          end if;
 
          S.Object_Found := True;
@@ -1806,11 +1834,7 @@ package body PolyORB.Protocols.GIOP is
       use PolyORB.Filters.Interface;
       use Pend_Req_Seq;
       Current_Req   : aliased Pending_Request;
-      Pending_Note  : Request_Note;
       Current_Note  : Request_Note;
-      Pending : constant Pend_Req_Seq.Element_Array
-        := Pend_Req_Seq.To_Element_Array (S.Pending_Rq);
-
    begin
 
       if S.Role  = Server then
@@ -1819,15 +1843,7 @@ package body PolyORB.Protocols.GIOP is
 
       Get_Note (R.Notepad, Current_Note);
 
-      for I in Pending'Range loop
-         Get_Note (Pending (I).Req.Notepad, Pending_Note);
-         if Pending_Note.Id = Current_Note.Id then
-            Current_Req := Pending (I);
-            Delete (S.Pending_Rq, I - Pending'First + 1, 1);
-            exit;
-         end if;
-         raise GIOP_Error;
-      end loop;
+      Current_Req := Get_Pending_Request (S, Current_Note.Id);
 
       Release_Contents (S.Buffer_Out.all);
       Cancel_Request_Message (S, Current_Req.Req);
@@ -1946,7 +1962,8 @@ package body PolyORB.Protocols.GIOP is
       ORB           : constant ORB_Access := ORB_Access (S.Server);
 
    begin
-      pragma Debug (O ("Received data on transport endpoint..."));
+      pragma Debug
+        (O ("Received data in state " & GIOP_State'Image (S.State)));
       pragma Debug (Buffers.Show (S.Buffer_In.all));
 
       if S.State = Expect_Header then
@@ -2019,23 +2036,10 @@ package body PolyORB.Protocols.GIOP is
                      when Object_Here =>
 
                         declare
-                           Current_Req : Pending_Request;
-                           Current_Note : Request_Note;
-                           Pending : constant Pend_Req_Seq.Element_Array
-                             := Pend_Req_Seq.To_Element_Array (S.Pending_Rq);
+                           Current_Req : constant Pending_Request
+                             := Get_Pending_Request
+                                  (S, Req_Id, Delete => False);
                         begin
-                           S.Object_Found := False;
-                           for I in Pending'Range loop
-                              Current_Req := Pending (I);
-                              Get_Note (Current_Req.Req.Notepad, Current_Note);
-                              S.Object_Found := (Current_Note.Id = Req_Id);
-                              exit when S.Object_Found;
-                           end loop;
-
-                           if not S.Object_Found then
-                              raise GIOP_Error;
-                           end if;
-
                            Invoke_Request
                              (S,
                               Current_Req.Req,
@@ -2052,20 +2056,11 @@ package body PolyORB.Protocols.GIOP is
                         declare
                            New_Ses     : Session_Access;
                            Current_Req : Pending_Request;
-                           Current_Note : Request_Note;
                         begin
 
-                           for I in 1 .. Length (S.Pending_Rq) loop
-                              Current_Req := Element_Of (S.Pending_Rq, I);
-                              Get_Note (Current_Req.Req.Notepad, Current_Note);
-                              if Current_Note.Id = Req_Id then
-                                 Current_Req.Target_Profile :=
-                                    Select_Profile (S.Buffer_In);
-                                 Replace_Element (S.Pending_Rq,
-                                     I, Current_Req);
-                              end if;
-                              raise GIOP_Error;
-                           end loop;
+                           Current_Req := Get_Pending_Request (S, Req_Id);
+                           Current_Req.Target_Profile :=
+                              Select_Profile (S.Buffer_In);
 
                            New_Ses := Session_Access
                              (Binding_Data.IIOP.Bind_Profile
@@ -2077,7 +2072,8 @@ package body PolyORB.Protocols.GIOP is
 
                            Release (S.Buffer_In);
                            Release (S.Buffer_Out);
-                           GIOP.Invoke_Request
+
+                           Invoke_Request
                              (GIOP_Session (New_Ses.all)'Access,
                               Current_Req.Req,
                               Current_Req.Target_Profile);

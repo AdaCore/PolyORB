@@ -197,12 +197,22 @@ private
      (Target_Address, Target_Address_Access);
 
    type Pending_Request is record
-       Req             : Requests.Request_Access;
-       Target_Profile  : Binding_Data.Profile_Access;
+      Req            : Requests.Request_Access;
+      --  The pending request.
+
+      Request_Id     : Types.Unsigned_Long;
+      --  A copy of Req's request id on the client side.
+      --  The id is always also stored in a note in Req's notepad.
+      --  This allows to retrieve a request id from the request
+      --  itself (eg for Abort_Request on the client side, and
+      --  for Send_Reply on the server side).
+
+      Target_Profile : Binding_Data.Profile_Access;
+      --  XXX This attribute should be removed, and
+      --  Get_Reference_Info on Req.Target should be
+      --  used instead when it is necessary to access the target
+      --  profile.
    end record;
-   --  XXX This type should be removed, and Get_Reference_Info on Req.Target
-   --  should be used instead when it is necessary to access the target
-   --  profile.
    package Pend_Req_Seq is new Sequences.Unbounded (Pending_Request);
 
    -------------------------
@@ -288,10 +298,10 @@ private
 
    procedure Request_Message
      (Ses               : access GIOP_Session;
-      Pend_Req          : access Pending_Request;
-      Response_Expected : in Boolean;
+      Pend_Req          : Pending_Request;
+      Response_Expected : Boolean;
       Fragment_Next     : out Boolean;
-      Sync_Type         : in Sync_Scope);
+      Sync_Type         : Sync_Scope);
 
    procedure No_Exception_Reply
      (Ses           : access GIOP_Session;
