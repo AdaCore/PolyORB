@@ -1078,7 +1078,7 @@ package body Ada_Be.Idl2Ada is
          end;
 
          if Is_Function then
-            PL (CU, "Returns : "
+            PL (CU, T_Returns & " : "
                 & Ada_Type_Name (Operation_Type (Node))
                 & ";");
          end if;
@@ -1124,7 +1124,7 @@ package body Ada_Be.Idl2Ada is
          PL (CU, "--  Call implementation");
 
          if Is_Function then
-            Put (CU, "Returns := ");
+            Put (CU, T_Returns & " := ");
          end if;
          PL (CU, Ada_Name (Node));
          PL (CU, "  (Object_Ptr (Obj),");
@@ -1246,7 +1246,7 @@ package body Ada_Be.Idl2Ada is
             PL (CU, "--  Marshall return value");
             Add_With_Stream (CU, Operation_Type (Node));
 
-            PL (CU, "Marshall (Reply_Buffer, Returns);");
+            PL (CU, "Marshall (Reply_Buffer, " & T_Returns & ");");
          end if;
 
          declare
@@ -1412,7 +1412,7 @@ package body Ada_Be.Idl2Ada is
                if Kind (O_Type) /= K_Void then
                   NL (CU);
                   PL (CU, "--  Unmarshall return value.");
-                  PL (CU, "Returns := Unmarshall (" & T_Handler &
+                  PL (CU, T_Returns & " := Unmarshall (" & T_Handler &
                       ".Buffer'Access);");
                end if;
 
@@ -1851,7 +1851,7 @@ package body Ada_Be.Idl2Ada is
                NL (CU);
                PL (CU, "is");
                II (CU);
-               PL (CU, "Returns : " & S_Name & ";");
+               PL (CU, T_Returns & " : " & S_Name & ";");
                DI (CU);
                PL (CU, "begin");
                II (CU);
@@ -1874,7 +1874,7 @@ package body Ada_Be.Idl2Ada is
                            Decl_Node := Get_Node (DIt);
                            Next (DIt);
 
-                           PL (CU, "Returns."
+                           PL (CU, T_Returns & "."
                                      & Ada_Name (Decl_Node)
                                      & " := Unmarshall (Buffer);");
                         end loop;
@@ -1882,7 +1882,7 @@ package body Ada_Be.Idl2Ada is
 
                   end loop;
                end;
-               PL (CU, "return Returns;");
+               PL (CU, "return " & T_Returns & ";");
                DI (CU);
                PL (CU, "end Unmarshall;");
             end;
@@ -1950,7 +1950,7 @@ package body Ada_Be.Idl2Ada is
                NL (CU);
                PL (CU, "declare");
                II (CU);
-               PL (CU, "Returns : " & U_Name & " (Switch);");
+               PL (CU, T_Returns & " : " & U_Name & " (Switch);");
                DI (CU);
                PL (CU, "begin");
                II (CU);
@@ -1970,7 +1970,7 @@ package body Ada_Be.Idl2Ada is
                      NL (CU);
                      Gen_When_Clause (CU, Case_Node, Has_Default);
                      II (CU);
-                     PL (CU, "Returns."
+                     PL (CU, T_Returns & "."
                          & Ada_Name (Case_Decl (Case_Node))
                          & " := Unmarshall (Buffer);");
                      DI (CU);
@@ -1984,7 +1984,7 @@ package body Ada_Be.Idl2Ada is
                DI (CU);
                PL (CU, "end case;");
                NL (CU);
-               PL (CU, "return Returns;");
+               PL (CU, "return " & T_Returns & ";");
                DI (CU);
                PL (CU, "end;");
                DI (CU);
@@ -2087,16 +2087,16 @@ package body Ada_Be.Idl2Ada is
                               NL (CU);
                               PL (CU, "is");
                               II (CU);
-                              PL (CU, "Returns : " & Type_Name & ";");
+                              PL (CU, T_Returns & " : " & Type_Name & ";");
                               DI (CU);
                               PL (CU, "begin");
                               II (CU);
 
                               Gen_Array_Iterator
-                                (CU, "Returns", Array_Dimensions,
-                                 "Returns % := Unmarshall (Buffer);");
+                                (CU, T_Returns, Array_Dimensions,
+                                 T_Returns & " % := Unmarshall (Buffer);");
                            end if;
-                           PL (CU, "return Returns;");
+                           PL (CU, "return " & T_Returns & ";");
 
                            DI (CU);
                            PL (CU, "end Unmarshall;");
