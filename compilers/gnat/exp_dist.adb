@@ -2076,7 +2076,7 @@ package body Exp_Dist is
       --  Formal parameters
 
       Local_Address    : constant Entity_Id :=
-        Make_Defining_Identifier (Loc, Name_L);
+        Make_Defining_Identifier (Loc, Name_Address);
       --  Address of local subprogram (not used in this
       --  implementation, used for GLADE).
 
