@@ -236,8 +236,8 @@ package body XE_Stubs is
               and then Main_Partition /= PID
             then
                if Verbose_Mode then
-                  Message  ("local termination forced for ",
-                            Partitions.Table (PID).Name);
+                  Message ("local termination forced for ",
+                           Partitions.Table (PID).Name);
                end if;
                Set_Termination (PID, Local_Termination);
             end if;
@@ -595,7 +595,21 @@ package body XE_Stubs is
       Dwrite_With_Clause (FD, "System.Garlic.Heart", No_Name, False);
       Dwrite_With_Clause (FD, "System.Garlic.Startup", No_Name, False);
       Dwrite_Line (FD, 0, "pragma Elaborate_All (System.Garlic.Startup);");
-      Dwrite_With_Clause (FD, "System.Partition_Interface", No_Name, True);
+      Dwrite_With_Clause (FD, "System.Garlic.Soft_Links", No_Name, False);
+      Dwrite_With_Clause (FD, "System.Partition_Interface");
+
+      --  Add termination package and locking mechanisms if needed
+
+      if Get_Termination (PID) /= Local_Termination
+        or else Main_Partition = PID
+        or else True      --  ??? SHOULD BE SOMETHING LIKE "USE_TASKING(PID)"
+      then
+         Dwrite_With_Clause (FD, "System.Garlic.Termination");
+         Dwrite_With_Clause (FD, "System.Garlic.Locking");
+         Dwrite_Line (FD, 0, "pragma Elaborate_All (System.Garlic.Locking);");
+      else
+         Dwrite_With_Clause (FD, "System.Garlic.Light_Termination");
+      end if;
 
       Dwrite_Line (FD, 0, "procedure ", Partition_Main_Name, " is");
       Dwrite_Line (FD, 0, "begin");
@@ -637,9 +651,11 @@ package body XE_Stubs is
             --  partition closure and if the unit is configured
             --  on another partition.
 
-            if Unit.Table (CUnit.Table (U).My_Unit).RCI and then
-              CUnit.Table (U).Partition /= PID and then
-              Get_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname) = PID then
+            if Unit.Table (CUnit.Table (U).My_Unit).RCI
+              and then CUnit.Table (U).Partition /= PID
+              and then Get_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname)
+                = PID
+            then
                declare
                   Version : Name_Id;
                begin
