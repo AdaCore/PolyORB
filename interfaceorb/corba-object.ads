@@ -20,7 +20,9 @@ with Ada.Finalization ;
 
 package Corba.Object is
 
-   type Ref is tagged private;
+   type Ref is tagged private ;
+
+   type Ref_Access is access Ref ;
 
    --I boolean is_nil();
    function Is_Nil(Self: in Ref'Class) return Boolean;

@@ -10,11 +10,13 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
+with System;
 with Corba, Giop, Omni ;
+with NetBufferedStream;
 
 package Giop_S is
 
-   type Object is new Netbufferedstream.Object ;
+   type Object is new Netbufferedstream.Object with private;
 
    procedure Request_Received (Self : in Object);
    -- wrapper around void GIOP_S::RequestReceived(CORBA::Boolean skip_msg)
@@ -42,7 +44,7 @@ private
 
    type Object is new NetBufferedStream.Object with record
       CPP_Object : System.Address ;
-   end ;
+   end record;
 
 
 end Giop_S ;
