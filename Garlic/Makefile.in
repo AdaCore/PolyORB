@@ -441,7 +441,7 @@ install-data-local: all-local install-dirs-local install-extra-libs
 	@if test ! -f inlining; then\
 	   exit 1;\
 	fi
-	@for lib in libgnat.a libAtasking.a libPtasking.a; do \
+	@for lib in libgnat.a libgnarl.a libAtasking.a libPtasking.a; do \
 	  pathtolib=`$(srcdir)/../Dist/config.sdefault pathtolib`;\
 	  if test -f $$pathtolib$$lib; then \
 	    echo Replacing inlined subprograms in $$lib;\
