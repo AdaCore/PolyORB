@@ -294,6 +294,10 @@ package Broca.CDR is
    --  Prepare Buffer to receive marshalled data
    --  that will be turned into an Encapsulation.
 
+   --  Marshalling and unmashalling of object references
+   --  The two procedures are used for all object references
+   --  The function is only used for CORBA.Object.Ref and none of its
+   --  descendants.
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Object.Ref'Class);
@@ -304,7 +308,7 @@ package Broca.CDR is
 
    function Unmarshall
      (Buffer : access Buffer_Type)
-      return CORBA.Object.Ref'Class;
+      return CORBA.Object.Ref;
 
    generic
       type F is delta <> digits <>;

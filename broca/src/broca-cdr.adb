@@ -1737,7 +1737,7 @@ package body Broca.CDR is
    --  Unmarshall --
    -----------------
    function Unmarshall (Buffer : access Buffer_Type)
-                        return CORBA.Object.Ref'Class is
+                        return CORBA.Object.Ref is
       New_Ref : CORBA.Object.Ref;
    begin
       Unmarshall (Buffer, New_Ref);
