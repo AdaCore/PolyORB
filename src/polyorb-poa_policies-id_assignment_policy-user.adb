@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            POLYORB.POA_POLICIES.ID_ASSIGNMENT_POLICY.SYSTEM              --
+--             POLYORB.POA_POLICIES.ID_ASSIGNMENT_POLICY.USER               --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--                Copyright (C) 2002 Free Software Fundation                --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,25 +30,27 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Object_Maps;
+--  with PolyORB.Object_Maps;
+--  with PolyORB.Object_Maps.Seq;
 with PolyORB.POA;
-with PolyORB.POA_Policies.Lifespan_Policy;
-with PolyORB.Locks;
-with PolyORB.Types; use PolyORB.Types;
-with PolyORB.Utils;
+--  with PolyORB.POA_Policies.Lifespan_Policy;
+--  with PolyORB.Locks;
+--  with PolyORB.Types; use PolyORB.Types;
+--  with PolyORB.Utils;
 
-package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
+package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
 
-   use PolyORB.Locks;
-   use PolyORB.Object_Maps;
+--    use PolyORB.Locks;
+--    use PolyORB.Object_Maps;
+--    use PolyORB.Object_Maps.Seq;
 
    ------------
    -- Create --
    ------------
 
-   function Create return System_Id_Policy_Access is
+   function Create return User_Id_Policy_Access is
    begin
-      return new System_Id_Policy;
+      return new User_Id_Policy;
    end Create;
 
    -------------------------
@@ -56,7 +58,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
    -------------------------
 
    procedure Check_Compatibility
-     (Self : System_Id_Policy;
+     (Self : User_Id_Policy;
       OA   : PolyORB.POA_Types.Obj_Adapter_Access)
    is
    begin
@@ -64,7 +66,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       pragma Unreferenced (Self);
       pragma Unreferenced (OA);
       pragma Warnings (On);
-      null;
+      raise Not_Implemented;
    end Check_Compatibility;
 
    ---------------
@@ -72,106 +74,74 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
    ---------------
 
    function Policy_Id
-     (Self : System_Id_Policy)
+     (Self : User_Id_Policy)
      return String is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
-      return "ID_ASSIGNMENT_POLICY.SYSTEM_ID";
+      return "ID_ASSIGNMENT_POLICY.USER_ID";
    end Policy_Id;
-
-   ---------------
-   -- Is_System --
-   ---------------
-
-   function Is_System (Self : System_Id_Policy) return Boolean
-   is
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      return True;
-   end Is_System;
 
    ------------------------------
    -- Assign_Object_Identifier --
    ------------------------------
 
    function Assign_Object_Identifier
-     (Self   : System_Id_Policy;
+     (Self   : User_Id_Policy;
       OA     : PolyORB.POA_Types.Obj_Adapter_Access;
       Hint   : Object_Id_Access)
      return Unmarshalled_Oid
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Access
-        := PolyORB.POA.Obj_Adapter_Access (OA);
       Object_Id_Info : Unmarshalled_Oid;
-      The_Entry : Object_Map_Entry_Access;
-      Index : Integer;
-
-      use PolyORB.Object_Maps;
-
    begin
-      Lock_W (POA.Map_Lock);
-      if POA.Active_Object_Map = null then
-         POA.Active_Object_Map := new Object_Map;
+      if Hint = null then
+         raise PolyORB.POA.Bad_Param;
       end if;
-      pragma Assert (POA.Active_Object_Map /= null);
 
-      if Hint /= null then
-         Object_Id_Info := Oid_To_U_Oid (Hint);
-         if not Object_Id_Info.System_Generated then
-            raise PolyORB.POA.Invalid_Policy;
-         end if;
-         The_Entry := Get_By_Index
-           (POA.Active_Object_Map.all,
-            Integer'Value (Types.To_Standard_String
-                           (Object_Id_Info.Id)));
-         if The_Entry = null then
-            raise Not_Implemented;
-            --  Actually should bring the proper index
-            --  in the active object map into existence.
-         end if;
-      else
-
-         --  XXX possible memory leak, to investigate.
-         --  XXX If the servant retention policy is NON_RETAIN,
-         --   should we not get rid of the active object map
-         --   altogether? But in that case how does system id
-         --   attribution cooperate with id_uniqueness_policy?
-
-         The_Entry := new Object_Map_Entry;
-         Index := Add (POA.Active_Object_Map, The_Entry);
-
-         The_Entry.Oid := new Unmarshalled_Oid;
-         The_Entry.Oid.Id := To_PolyORB_String
-           (PolyORB.Utils.Trimmed_Image (Index));
-         The_Entry.Oid.System_Generated := True;
-         The_Entry.Oid.Persistency_Flag
-           := PolyORB.POA_Policies.Lifespan_Policy.Get_Lifespan_Cookie
-           (POA.Lifespan_Policy.all, OA);
-         The_Entry.Oid.Creator := POA.Absolute_Address;
+      Object_Id_Info := Oid_To_U_Oid (Hint);
+      if Object_Id_Info.System_Generated then
+         raise PolyORB.POA.Invalid_Policy;
       end if;
-      Unlock_W (POA.Map_Lock);
-      return The_Entry.Oid.all;
+
+      --  XXX this seems wrong; the Hint should be used
+      --  for the (sub) Id field un Object_Id_Info, *not*
+      --  as initialization for Object_Id_Info as a whole.
+      --  ... *but* this requires that all callers of
+      --  Assign_Object_Identifier (independent of the id_ass_pol)
+      --  agree on that.
+
+      return Object_Id_Info;
    end Assign_Object_Identifier;
+
+   ---------------
+   -- Is_System --
+   ---------------
+
+   function Is_System (Self : User_Id_Policy) return Boolean
+   is
+   begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+      return False;
+   end Is_System;
 
    -----------------------
    -- Ensure_Oid_Origin --
    -----------------------
 
    procedure Ensure_Oid_Origin
-     (Self  : System_Id_Policy;
+     (Self  : User_Id_Policy;
       U_Oid : Unmarshalled_Oid)
    is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
-      if U_Oid.System_Generated = False then
+      if U_Oid.System_Generated then
          raise PolyORB.POA.Bad_Param;
       end if;
    end Ensure_Oid_Origin;
 
-end PolyORB.POA_Policies.Id_Assignment_Policy.System;
+end PolyORB.POA_Policies.Id_Assignment_Policy.User;

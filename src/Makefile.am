@@ -50,6 +50,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-poa_config-minimum.ads \
 		polyorb-poa_manager-basic_manager.ads \
 		polyorb-poa_policies-id_assignment_policy-system.ads \
+		polyorb-poa_policies-id_assignment_policy-user.ads \
 		polyorb-poa_policies-id_uniqueness_policy-unique.ads \
 		polyorb-poa_policies-implicit_activation_policy-no_activation.ads \
 		polyorb-poa_policies-lifespan_policy-transient.ads \

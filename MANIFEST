@@ -481,6 +481,8 @@ src/polyorb-poa_manager-basic_manager.ads
 src/polyorb-poa_manager.ads
 src/polyorb-poa_policies-id_assignment_policy-system.adb
 src/polyorb-poa_policies-id_assignment_policy-system.ads
+src/polyorb-poa_policies-id_assignment_policy-user.adb
+src/polyorb-poa_policies-id_assignment_policy-user.ads
 src/polyorb-poa_policies-id_assignment_policy.ads
 src/polyorb-poa_policies-id_uniqueness_policy-unique.adb
 src/polyorb-poa_policies-id_uniqueness_policy-unique.ads
