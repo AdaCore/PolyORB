@@ -1,3 +1,12 @@
+2000-05-24  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* glade_ug.texi: Add info on new features (passive partitions,
+	multi protocols, multi storages).
+
+	* Makefile: Add glade_ug.texi to release.
+
+	* myconfig.cfg: Update configuration because of syntax changes.
+
 2000-03-01  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* glade_ug.texi, install_guide.txt: Replace @gnat_version@ and
