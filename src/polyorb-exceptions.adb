@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-exceptions.adb#5 $
+--  $Id: //droopi/main/src/polyorb-exceptions.adb#6 $
 
 with Ada.Unchecked_Conversion;
 
@@ -44,11 +44,13 @@ pragma Warnings (On);
 
 with PolyORB.Any;
 with PolyORB.Exceptions.Stack;
+with PolyORB.Initialization;
 with PolyORB.Log;
-with PolyORB.Tasking.Soft_Links;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Types;
 with PolyORB.Utils;
 with PolyORB.Utils.Chained_Lists;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.Exceptions is
 
@@ -56,6 +58,7 @@ package body PolyORB.Exceptions is
 
    use PolyORB.Any;
    use PolyORB.Log;
+   use PolyORB.Tasking.Mutexes;
    use PolyORB.Types;
    use PolyORB.Utils;
 
@@ -68,6 +71,9 @@ package body PolyORB.Exceptions is
 
    All_Exceptions : Exception_Lists.List;
    --  Exception list;
+
+   All_Exceptions_Lock : Mutex_Access;
+   --  Mutex used to safely access All_Exceptions list.
 
    function To_Internal_Name (Name : Standard.String)
                              return Standard.String;
@@ -99,15 +105,14 @@ package body PolyORB.Exceptions is
      (TC     : in PolyORB.Any.TypeCode.Object;
       Raiser : in Raise_From_Any_Procedure)
    is
-      use PolyORB.Tasking.Soft_Links;
       use Exception_Lists;
    begin
       pragma Debug
         (O ("Registering exception: "
             & Types.To_Standard_String (TypeCode.Id (TC))));
-      Enter_Critical_Section;
+      Enter (All_Exceptions_Lock);
       Append (All_Exceptions, (TC => TC, Raiser => Raiser));
-      Leave_Critical_Section;
+      Leave (All_Exceptions_Lock);
    end Register_Exception;
 
    ----------------------
@@ -171,7 +176,6 @@ package body PolyORB.Exceptions is
      (For_Exception : PolyORB.Types.RepositoryId)
      return Exception_Info
    is
-      use PolyORB.Tasking.Soft_Links;
       use PolyORB.Types;
       use Exception_Lists;
 
@@ -182,7 +186,7 @@ package body PolyORB.Exceptions is
    begin
       pragma Debug
         (O ("Looking up einfo for " & To_Standard_String (For_Exception)));
-      Enter_Critical_Section;
+      Enter (All_Exceptions_Lock);
       It := First (All_Exceptions);
 
       while not Last (It) loop
@@ -191,16 +195,14 @@ package body PolyORB.Exceptions is
       end loop;
 
       if Last (It) then
-         Leave_Critical_Section;
-         --  return Unknown_User_Exception_Info;
-         --  XXX actually should raise UnknownUserException
-         --  with members containing an Any.
+         Leave (All_Exceptions_Lock);
+
          pragma Debug (O ("Unknown exception"));
          Raise_Unknown;
       end if;
 
       Info := Value (It).all;
-      Leave_Critical_Section;
+      Leave (All_Exceptions_Lock);
 
       return Info;
    end Find_Exception_Info;
@@ -769,5 +771,29 @@ package body PolyORB.Exceptions is
 
       return Result;
    end System_Exception_To_Any;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      Create (All_Exceptions_Lock);
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+      Register_Module
+     (Module_Info'
+      (Name => +"exceptions",
+       Conflicts => Empty,
+       Depends => +"tasking.soft_links",
+       Provides => Empty,
+       Init => Initialize'Access));
 
 end PolyORB.Exceptions;

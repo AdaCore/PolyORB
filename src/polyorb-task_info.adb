@@ -58,7 +58,7 @@ package body PolyORB.Task_Info is
 
    procedure Set_Status_Idle
      (TI      : in out Task_Info;
-      Watcher : PolyORB.Tasking.Soft_Links.Watcher_Access) is
+      Watcher : PolyORB.Tasking.Watchers.Watcher_Access) is
    begin
       pragma Assert (TI.Status = Running);
       TI.Status  := Idle;
@@ -104,7 +104,7 @@ package body PolyORB.Task_Info is
    -------------
 
    function Watcher (TI : Task_Info)
-     return PolyORB.Tasking.Soft_Links.Watcher_Access is
+     return PolyORB.Tasking.Watchers.Watcher_Access is
    begin
       pragma Assert (TI.Status = Idle);
       return TI.Watcher;

@@ -43,6 +43,7 @@ with PolyORB.Log;
 with PolyORB.ORB.Interface;
 with PolyORB.Protocols;
 with PolyORB.Setup;
+with PolyORB.Tasking.Threads;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.ORB.Thread_Per_Session is
@@ -60,7 +61,8 @@ package body PolyORB.ORB.Thread_Per_Session is
    use PolyORB.ORB.Interface;
    use PolyORB.Protocols;
    use PolyORB.Tasking.Semaphores;
-   use PolyORB.Tasking.Soft_Links;
+   use PolyORB.Tasking.Threads;
+   use PolyORB.Tasking.Watchers;
    use PolyORB.Transport;
 
    package L is new PolyORB.Log.Facility_Log

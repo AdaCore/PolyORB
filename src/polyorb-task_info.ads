@@ -37,7 +37,7 @@
 --  $Id$
 
 with PolyORB.Asynch_Ev;
-with PolyORB.Tasking.Soft_Links;
+with PolyORB.Tasking.Watchers;
 
 package PolyORB.Task_Info is
 
@@ -70,7 +70,7 @@ package PolyORB.Task_Info is
 
    procedure Set_Status_Idle
      (TI      : in out Task_Info;
-      Watcher : PolyORB.Tasking.Soft_Links.Watcher_Access);
+      Watcher : PolyORB.Tasking.Watchers.Watcher_Access);
    pragma Inline (Set_Status_Idle);
 
    procedure Set_Status_Running
@@ -86,7 +86,7 @@ package PolyORB.Task_Info is
    pragma Inline (Selector);
 
    function Watcher (TI : Task_Info)
-     return PolyORB.Tasking.Soft_Links.Watcher_Access;
+     return PolyORB.Tasking.Watchers.Watcher_Access;
    pragma Inline (Watcher);
 
 private
@@ -96,8 +96,9 @@ private
 
       Selector : Asynch_Ev.Asynch_Ev_Monitor_Access;
       --  Meaningful only when Status = Blocked
+      --  XXX ???
 
-      Watcher  : PolyORB.Tasking.Soft_Links.Watcher_Access;
+      Watcher  : PolyORB.Tasking.Watchers.Watcher_Access;
       --  Meaningful only when Status = Idle
    end record;
 

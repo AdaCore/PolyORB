@@ -41,8 +41,73 @@ package body PolyORB.Tasking.Threads is
 
    Initialised       : Boolean := False;
 
+   ----------
+   -- Free --
+   ----------
+
    procedure Free is new Unchecked_Deallocation
      (Runnable'Class, Runnable_Access);
+
+   -----------------
+   -- Create_Task --
+   -----------------
+
+   procedure Create_Task
+     (Main : Parameterless_Procedure) is
+      T  : Thread_Access;
+   begin
+      T := Run_In_Task
+        (TF => My_Thread_Factory,
+         P  => Main);
+   end Create_Task;
+
+   ------------------
+   -- Current_Task --
+   ------------------
+
+   function Current_Task return Task_Id'Class is
+      X : Task_Id;
+   begin
+      X.X := new Thread_Id'Class'(Get_Current_Thread_Id (My_Thread_Factory));
+      return X;
+   end Current_Task;
+
+   ---------------
+   -- Null_Task --
+   ---------------
+
+   function Null_Task return Task_Id'Class is
+      X : Task_Id;
+   begin
+      --  Not implementable with PolyORB.Tasking.
+      raise Not_Implemented;
+      return X;
+   end Null_Task;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image (T : Task_Id) return String is
+      pragma Warnings (Off);
+      pragma Warnings (On);
+   begin
+      return Threads.Image (T.X.all);
+   end Image;
+
+   ----------------
+   -- To_Integer --
+   ----------------
+
+   function To_Integer (T : Task_Id) return Integer is
+      pragma Warnings (Off);
+      pragma Unreferenced (T);
+      pragma Warnings (On);
+   begin
+      --  Not implementable with PolyORB.Tasking.
+      raise Not_Implemented;
+      return -1;
+   end To_Integer;
 
    -------------------
    -- Free_Runnable --
@@ -57,7 +122,6 @@ package body PolyORB.Tasking.Threads is
    begin
       Free (R);
    end Free_Runnable;
-
 
    ------------------------
    -- Get_Thread_Factory --

@@ -64,7 +64,7 @@ with PolyORB.References.IOR;
 with PolyORB.Representations;
 with PolyORB.Representations.CDR;
 with PolyORB.Requests;
-with PolyORB.Tasking.Soft_Links;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
@@ -86,7 +86,7 @@ package body PolyORB.Protocols.GIOP is
    use PolyORB.Requests;
    use PolyORB.Representations;
    use PolyORB.Representations.CDR;
-   use PolyORB.Tasking.Soft_Links;
+   use PolyORB.Tasking.Mutexes;
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.giop");

@@ -38,6 +38,7 @@ with PolyORB.Initialization;
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
 with PolyORB.Setup;
+with PolyORB.Tasking.Threads;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.ORB.Thread_Pool is
@@ -51,7 +52,9 @@ package body PolyORB.ORB.Thread_Pool is
    use PolyORB.Components;
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
-   use PolyORB.Tasking.Soft_Links;
+   use PolyORB.Tasking.Mutexes;
+   use PolyORB.Tasking.Threads;
+   use PolyORB.Tasking.Watchers;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.orb.thread_pool");
    procedure O (Message : in String; Level : Log_Level := Debug)

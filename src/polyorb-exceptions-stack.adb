@@ -30,17 +30,19 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-exceptions-stack.adb#2 $
+--  $Id: //droopi/main/src/polyorb-exceptions-stack.adb#3 $
 
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
-with PolyORB.Tasking.Soft_Links;
+with PolyORB.Initialization;
+with PolyORB.Tasking.Mutexes;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.Exceptions.Stack is
 
    use PolyORB.Log;
-   use PolyORB.Tasking.Soft_Links;
+   use PolyORB.Tasking.Mutexes;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.exceptions.stack");
@@ -81,6 +83,9 @@ package body PolyORB.Exceptions.Stack is
 
    Exc_Occ_Head : Exc_Occ_List;
    Exc_Occ_Tail : Exc_Occ_List;
+
+   Exc_Occ_Lock : Mutex_Access;
+   --  Mutex used to safely access Exc_Occ list.
 
    Exc_Occ_List_Size     : Natural := 0;
    Max_Exc_Occ_List_Size : constant Natural := 100;
@@ -150,7 +155,7 @@ package body PolyORB.Exceptions.Stack is
       Previous   : Exc_Occ_List;
 
    begin
-      Enter_Critical_Section;
+      Enter (Exc_Occ_Lock);
       pragma Debug (O ("Get_Members: "
                        & Ada.Exceptions.Exception_Name (Exc_Occ)));
       pragma Debug (O ("    message: "
@@ -161,7 +166,7 @@ package body PolyORB.Exceptions.Stack is
 
       Exc_Occ_Id := Value (Ada.Exceptions.Exception_Message (Exc_Occ));
       if Exc_Occ_Id = Null_Id then
-         Leave_Critical_Section;
+         Leave (Exc_Occ_Lock);
          return;
       end if;
 
@@ -176,7 +181,7 @@ package body PolyORB.Exceptions.Stack is
       end loop;
 
       if Current = null then
-         Leave_Critical_Section;
+         Leave (Exc_Occ_Lock);
 
          --  Too many exceptions were raised and this member is no
          --  longer available.
@@ -207,7 +212,7 @@ package body PolyORB.Exceptions.Stack is
       Free (Current.Mbr);
       Free (Current);
       Exc_Occ_List_Size := Exc_Occ_List_Size - 1;
-      Leave_Critical_Section;
+      Leave (Exc_Occ_Lock);
 
    exception
       when others =>
@@ -218,7 +223,7 @@ package body PolyORB.Exceptions.Stack is
             Free (Current);
          end if;
          Exc_Occ_List_Size := Exc_Occ_List_Size - 1;
-         Leave_Critical_Section;
+         Leave (Exc_Occ_Lock);
          raise;
    end Get_Or_Purge_Members;
 
@@ -271,7 +276,7 @@ package body PolyORB.Exceptions.Stack is
       Exc_Occ_Id : Exc_Occ_Id_Type;
 
    begin
-      Enter_Critical_Section;
+      Enter (Exc_Occ_Lock);
 
       --  Keep the list size to a max size. Otherwise, remove the
       --  oldest member (first in the list).
@@ -317,7 +322,7 @@ package body PolyORB.Exceptions.Stack is
                        & Ada.Exceptions.Exception_Name (Exc_Id)
                        & ", " & Image (Exc_Occ_Id) & ")."));
       pragma Debug (Dump_All_Occurrences);
-      Leave_Critical_Section;
+      Leave (Exc_Occ_Lock);
 
       Ada.Exceptions.Raise_Exception (Exc_Id, Image (Exc_Occ_Id));
       raise Program_Error;
@@ -363,5 +368,29 @@ package body PolyORB.Exceptions.Stack is
 
       return V;
    end Value;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      Create (Exc_Occ_Lock);
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+      Register_Module
+     (Module_Info'
+      (Name => +"exceptions.stack",
+       Conflicts => Empty,
+       Depends => +"tasking.soft_links",
+       Provides => Empty,
+       Init => Initialize'Access));
 
 end PolyORB.Exceptions.Stack;

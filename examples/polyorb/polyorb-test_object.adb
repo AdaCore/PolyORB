@@ -47,7 +47,7 @@ with PolyORB.Obj_Adapters;
 with PolyORB.Obj_Adapters.Simple;
 with PolyORB.Objects.Interface;
 with PolyORB.Requests;
-with PolyORB.Tasking.Soft_Links;
+with PolyORB.Tasking.Threads;
 with PolyORB.Types;
 
 package body PolyORB.Test_Object is
@@ -143,8 +143,8 @@ package body PolyORB.Test_Object is
                               (Args_Sequence.all, 1).Argument);
                begin
                   pragma Debug (O ("Echoing in task "
-                    & PolyORB.Tasking.Soft_Links.Image
-                      (PolyORB.Tasking.Soft_Links.Current_Task)));
+                    & PolyORB.Tasking.Threads.Image
+                      (PolyORB.Tasking.Threads.Current_Task)));
                   Req.Result.Argument := To_Any
                     (echoString (Obj.all, echoString_Arg));
                   pragma Debug (O ("Result: " & Image (Req.Result)));

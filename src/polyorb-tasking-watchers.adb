@@ -34,6 +34,8 @@
 
 --  $Id$
 
+with Ada.Unchecked_Deallocation;
+
 with PolyORB.Log;
 
 package body PolyORB.Tasking.Watchers is
@@ -50,6 +52,16 @@ package body PolyORB.Tasking.Watchers is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   ---------
+   -- "<" --
+   ---------
+
+   function "<" (L, R : Version_Id) return Boolean is
+      Version_Id_Window : constant Version_Id := Version_Id'Last / 2;
+   begin
+      return Integer (R - L) < Integer (Version_Id_Window);
+   end "<";
+
    ------------
    -- Create --
    ------------
@@ -64,6 +76,12 @@ package body PolyORB.Tasking.Watchers is
       W.Await_Count := 0;
    end Create;
 
+   procedure Create (W : out Watcher_Access) is
+   begin
+      W := new Watcher_Type;
+      Create (W.all);
+   end Create;
+
    -------------
    -- Destroy --
    -------------
@@ -73,6 +91,18 @@ package body PolyORB.Tasking.Watchers is
       pragma Debug (O ("Destroy"));
       PTM.Destroy (W.WMutex);
       PTCV.Destroy (W.WCondition);
+   end Destroy;
+
+   procedure Destroy (W : in out Watcher_Access)
+   is
+      procedure Free is
+         new Ada.Unchecked_Deallocation (Watcher_Type, Watcher_Access);
+
+   begin
+      if W /= null then
+         Destroy (W.all);
+         Free (W);
+      end if;
    end Destroy;
 
    ------------
@@ -112,6 +142,12 @@ package body PolyORB.Tasking.Watchers is
       PTM.Leave (W.WMutex);
    end Differ;
 
+   procedure Differ (W : in Watcher_Access; V : in Version_Id) is
+   begin
+      pragma Assert (W /= null);
+      Differ (W.all, V);
+   end Differ;
+
    ------------
    -- Lookup --
    ------------
@@ -124,6 +160,12 @@ package body PolyORB.Tasking.Watchers is
       pragma Debug (O ("Lookup"));
       V := W.Version;
       Leave (W.WMutex);
+   end Lookup;
+
+   procedure Lookup (W : in Watcher_Access; V : out Version_Id) is
+   begin
+      pragma Assert (W /= null);
+      Lookup (W.all, V);
    end Lookup;
 
    ------------
@@ -145,6 +187,12 @@ package body PolyORB.Tasking.Watchers is
       end if;
 
       Leave (W.WMutex);
+   end Update;
+
+   procedure Update (W : in Watcher_Access) is
+   begin
+      pragma Assert (W /= null);
+      Update (W.all);
    end Update;
 
 end PolyORB.Tasking.Watchers;

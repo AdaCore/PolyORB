@@ -42,7 +42,7 @@ with PolyORB.POA_Config;
 with PolyORB.POA_Manager;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
-with PolyORB.Tasking.Soft_Links;
+with PolyORB.Tasking.Threads;
 with PolyORB.Types;
 
 with PolyORB.POA_Config.Minimum;
@@ -152,7 +152,7 @@ package body PolyORB.CORBA_P.Server_Tools is
       end if;
 
       if Start_New_Task then
-         PolyORB.Tasking.Soft_Links.Create_Task (CORBA.ORB.Run'Access);
+         PolyORB.Tasking.Threads.Create_Task (CORBA.ORB.Run'Access);
       else
          CORBA.ORB.Run;
       end if;

@@ -41,11 +41,14 @@ with Ada.Unchecked_Conversion;
 with PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
 with PolyORB.POA_Policies.Thread_Policy;
 
+with PolyORB.Tasking.Advanced_Mutexes;
+
 package body PolyORB.Obj_Adapters.Simple is
 
    use Ada.Streams;
 
-   use PolyORB.Tasking.Soft_Links;
+   use PolyORB.Tasking.Advanced_Mutexes;
+
    use PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
    use PolyORB.POA_Policies.Thread_Policy;
 

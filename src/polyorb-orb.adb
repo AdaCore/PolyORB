@@ -52,7 +52,7 @@ with PolyORB.ORB.Interface;
 with PolyORB.References;
 with PolyORB.References.Binding;
 with PolyORB.Setup;
-with PolyORB.Tasking.Soft_Links;
+with PolyORB.Tasking.Threads;
 with PolyORB.Task_Info;
 with PolyORB.Transport;
 with PolyORB.Types;
@@ -69,7 +69,10 @@ package body PolyORB.ORB is
    use PolyORB.Log;
    use PolyORB.References;
    use PolyORB.Requests;
-   use PolyORB.Tasking.Soft_Links;
+   use PolyORB.Tasking.Advanced_Mutexes;
+   use PolyORB.Tasking.Mutexes;
+   use PolyORB.Tasking.Threads;
+   use PolyORB.Tasking.Watchers;
    use PolyORB.Transport;
    use PolyORB.Types;
 
@@ -186,14 +189,14 @@ package body PolyORB.ORB is
       Create (ORB.ORB_Lock);
       --  From now on access to ORB state is protected by this mutex.
 
-      Enter (ORB.ORB_Lock.all);
+      Enter (ORB.ORB_Lock);
 
       Create (ORB.Idle_Tasks);
       ORB.Job_Queue := PolyORB.Jobs.Create_Queue;
       ORB.Shutdown := False;
       ORB.Polling  := False;
       Create (ORB.Polling_Watcher);
-      Leave (ORB.ORB_Lock.all);
+      Leave (ORB.ORB_Lock);
       Create (ORB.Idle_Lock);
       Enter (ORB.Idle_Lock);
       ORB.Idle_Counter := 0;
@@ -225,7 +228,7 @@ package body PolyORB.ORB is
          declare
             Job : Job_Access := Fetch_Job (Q);
          begin
-            Leave (ORB.ORB_Lock.all);
+            Leave (ORB.ORB_Lock);
 
             pragma Assert (Job /= null);
             Run_And_Free_Job (Job);
@@ -370,7 +373,7 @@ package body PolyORB.ORB is
       Do_Idle : Boolean;
 
    begin
-      Enter (ORB.ORB_Lock.all);
+      Enter (ORB.ORB_Lock);
       if Exit_Condition.Task_Info /= null then
          Exit_Condition.Task_Info.all
            := This_Task'Unchecked_Access;
@@ -393,7 +396,7 @@ package body PolyORB.ORB is
             exit Check_Condition
             when not Try_Perform_Work (ORB, ORB.Job_Queue);
 
-            Enter (ORB.ORB_Lock.all);
+            Enter (ORB.ORB_Lock);
             --  Try_Perform_Work has released ORB_Lock and
             --  executed a job from the queue. Reassert ORB_Lock.
          end loop Check_Condition;
@@ -429,7 +432,7 @@ package body PolyORB.ORB is
                   <<Retry>>
                   ORB.Source_Deleted := False;
                   Lookup (ORB.Polling_Watcher, ORB.Polling_Version);
-                  Leave (ORB.ORB_Lock.all);
+                  Leave (ORB.ORB_Lock);
 
                   pragma Debug (O ("Run: task " & Image (Current_Task)
                                         & " about to Check_Sources."));
@@ -439,7 +442,7 @@ package body PolyORB.ORB is
                   begin
                      pragma Debug (O ("Run: task " & Image (Current_Task)
                                         & " returned from Check_Sources."));
-                     Enter (ORB.ORB_Lock.all);
+                     Enter (ORB.ORB_Lock);
                      Update (ORB.Polling_Watcher);
                      if ORB.Source_Deleted then
                         --  An asynchronous event source was unregistered while
@@ -479,9 +482,9 @@ package body PolyORB.ORB is
                      Poll_Expire : constant Time
                        := Clock + To_Time_Span (Poll_Interval);
                   begin
-                     Leave (ORB.ORB_Lock.all);
+                     Leave (ORB.ORB_Lock);
                      delay until Poll_Expire;
-                     Enter (ORB.ORB_Lock.all);
+                     Enter (ORB.ORB_Lock);
                   end;
                end if;
             end;
@@ -494,7 +497,7 @@ package body PolyORB.ORB is
             --  ORB_Lock at this point.
 
             Set_Status_Idle (This_Task, ORB.Idle_Tasks);
-            Leave (ORB.ORB_Lock.all);
+            Leave (ORB.ORB_Lock);
 
             begin
                Idle (ORB.Tasking_Policy, ORB_Access (ORB));
@@ -502,11 +505,11 @@ package body PolyORB.ORB is
                --  between ORB and TP for idling.
             exception
                when others =>
-                  Enter (ORB.ORB_Lock.all);
+                  Enter (ORB.ORB_Lock);
                   raise;
             end;
 
-            Enter (ORB.ORB_Lock.all);
+            Enter (ORB.ORB_Lock);
             Set_Status_Running (This_Task);
 
             --  XXX memo for selves:
@@ -523,7 +526,7 @@ package body PolyORB.ORB is
       if Exit_Condition.Task_Info /= null then
          Exit_Condition.Task_Info.all := null;
       end if;
-      Leave (ORB.ORB_Lock.all);
+      Leave (ORB.ORB_Lock);
 
    exception
       when E : others =>
@@ -547,9 +550,9 @@ package body PolyORB.ORB is
    is
       Result : Boolean;
    begin
-      Enter (ORB.ORB_Lock.all);
+      Enter (ORB.ORB_Lock);
       Result := not Is_Empty (ORB.Job_Queue);
-      Leave (ORB.ORB_Lock.all);
+      Leave (ORB.ORB_Lock);
       return Result;
    end Work_Pending;
 
@@ -559,9 +562,9 @@ package body PolyORB.ORB is
 
    procedure Perform_Work (ORB : access ORB_Type) is
    begin
-      Enter (ORB.ORB_Lock.all);
+      Enter (ORB.ORB_Lock);
       if not Try_Perform_Work (ORB, ORB.Job_Queue) then
-         Leave (ORB.ORB_Lock.all);
+         Leave (ORB.ORB_Lock);
       end if;
    end Perform_Work;
 
@@ -582,9 +585,9 @@ package body PolyORB.ORB is
          raise Not_Implemented;
       end if;
 
-      Enter (ORB.ORB_Lock.all);
+      Enter (ORB.ORB_Lock);
       ORB.Shutdown := True;
-      Leave (ORB.ORB_Lock.all);
+      Leave (ORB.ORB_Lock);
 
    end Shutdown;
 
@@ -638,10 +641,10 @@ package body PolyORB.ORB is
                 TAP_Note'(Note with Profile_Factory => PF));
       --  Set link from TAP to PF.
 
-      Enter (ORB.ORB_Lock.all);
+      Enter (ORB.ORB_Lock);
       Insert_Source (ORB, New_AES);
       TAP_Seqs.Append (ORB.Transport_Access_Points, TAP);
-      Leave (ORB.ORB_Lock.all);
+      Leave (ORB.ORB_Lock);
    end Register_Access_Point;
 
    ----------------------
@@ -657,14 +660,14 @@ package body PolyORB.ORB is
          return True;
       end if;
 
-      Enter (ORB.ORB_Lock.all);
+      Enter (ORB.ORB_Lock);
       declare
          TAPs : constant TAP_Seqs.Element_Array
            := TAP_Seqs.To_Element_Array
            (ORB.Transport_Access_Points);
          Found : Boolean := False;
       begin
-         Leave (ORB.ORB_Lock.all);
+         Leave (ORB.ORB_Lock);
          for I in TAPs'Range loop
             if Binding_Data.Is_Local_Profile
               (Profile_Factory_Of (TAPs (I)), P)
@@ -769,7 +772,7 @@ package body PolyORB.ORB is
 
       pragma Assert (AES /= null);
 
-      Enter (ORB.ORB_Lock.all);
+      Enter (ORB.ORB_Lock);
 
       declare
          use Monitor_Seqs;
@@ -801,7 +804,7 @@ package body PolyORB.ORB is
          pragma Assert (ORB.Selector /= null);
          Abort_Check_Sources (ORB.Selector.all);
       end if;
-      Leave (ORB.ORB_Lock.all);
+      Leave (ORB.ORB_Lock);
    end Insert_Source;
 
    -------------------
@@ -813,9 +816,9 @@ package body PolyORB.ORB is
       AES : in out Asynch_Ev_Source_Access)
    is
       Polling : Boolean;
-      Polling_Version : PolyORB.Tasking.Soft_Links.Version_Id;
+      Polling_Version : Version_Id;
    begin
-      Enter (ORB.ORB_Lock.all);
+      Enter (ORB.ORB_Lock);
 
       Unregister_Source (AES);
 
@@ -844,7 +847,7 @@ package body PolyORB.ORB is
 
       end if;
 
-      Leave (ORB.ORB_Lock.all);
+      Leave (ORB.ORB_Lock);
       if Polling then
          Differ (ORB.Polling_Watcher.all, ORB.Polling_Version);
          --  Need to wait for the blocked task to complete its
@@ -971,7 +974,7 @@ package body PolyORB.ORB is
       Typ : in String;
       Ref : out References.Ref) is
    begin
-      Enter (ORB.ORB_Lock.all);
+      Enter (ORB.ORB_Lock);
       declare
          use PolyORB.Binding_Data;
          use TAP_Seqs;
@@ -982,7 +985,7 @@ package body PolyORB.ORB is
          Profiles : References.Profile_Array (TAPs'Range);
          Last_Profile : Integer := Profiles'First - 1;
       begin
-         Leave (ORB.ORB_Lock.all);
+         Leave (ORB.ORB_Lock);
          for I in TAPs'Range loop
             declare
                PF : constant Profile_Factory_Access
@@ -1040,7 +1043,7 @@ package body PolyORB.ORB is
             --  eventually loop in ORB.Run and process this job.
          end if;
 
-         Leave (ORB.ORB_Lock.all);
+         Leave (ORB.ORB_Lock);
 
       elsif Msg in Interface.Queue_Request then
          declare

@@ -39,6 +39,7 @@ with PolyORB.Filters.Interface;
 with PolyORB.Jobs;
 with PolyORB.Log;
 with PolyORB.Setup;
+with PolyORB.Tasking.Threads;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.ORB.Thread_Per_Request is
@@ -52,7 +53,8 @@ package body PolyORB.ORB.Thread_Per_Request is
    use PolyORB.Filters;
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
-   use PolyORB.Tasking.Soft_Links;
+   use PolyORB.Tasking.Threads;
+   use PolyORB.Tasking.Watchers;
    use PolyORB.Transport;
 
    package L is new PolyORB.Log.Facility_Log

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.adb#14 $
+--  $Id: //droopi/main/src/polyorb-smart_pointers.adb#15 $
 
 with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
@@ -38,13 +38,13 @@ with Ada.Tags;
 
 with PolyORB.Initialization;
 with PolyORB.Log;
-with PolyORB.Tasking.Soft_Links;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Smart_Pointers is
 
    use PolyORB.Log;
-   use PolyORB.Tasking.Soft_Links;
+   use PolyORB.Tasking.Mutexes;
 
    Counter_Lock : Mutex_Access;
 

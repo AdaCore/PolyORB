@@ -73,15 +73,6 @@ package PolyORB.Tasking.Advanced_Mutexes is
 
    type Adv_Mutex_Access is access all Adv_Mutex_Type;
 
-   procedure Enter (M : access Adv_Mutex_Type);
-   --  If the lock is free, or if the current task has it, get the
-   --  lock and continue, entering a new critical section; else, wait
-   --  until it is free.
-
-   procedure Leave (M : access Adv_Mutex_Type);
-   --  The current tasks exit of the current critical section. If it is
-   --  the first critical section opened by the task, free the lock.
-
    procedure Create (M : out Adv_Mutex_Access);
    --  Create an advanced mutex.  The object must have been allocated
    --  by the client of this package.
@@ -90,6 +81,15 @@ package PolyORB.Tasking.Advanced_Mutexes is
    --  Destroy the advanced mutex.  The deallocation, if needed, after
    --  "Destroy" and is the responsability of the client of this
    --  package.
+
+   procedure Enter (M : access Adv_Mutex_Type);
+   --  If the lock is free, or if the current task has it, get the
+   --  lock and continue, entering a new critical section; else, wait
+   --  until it is free.
+
+   procedure Leave (M : access Adv_Mutex_Type);
+   --  The current tasks exit of the current critical section. If it is
+   --  the first critical section opened by the task, free the lock.
 
 private
    package PTM renames PolyORB.Tasking.Mutexes;

@@ -51,43 +51,62 @@ package PolyORB.Tasking.Watchers is
 
    type Watcher_Access is access all Watcher_Type;
 
-   type Version_Id is mod 2 ** 8;
+   type Version_Id is private;
    --  Type of the version stored in the Watcher.
-   --  XXX This type is not private for the moment, but it
-   --      will as soon as PolyORB.Soft_Links will not be used anymore.
-   --      No computation is allowed on Version_Ids outside of implementations
-   --      of the Watcher interface.
+
+   function "<" (L, R : Version_Id) return Boolean;
+
+   procedure Create
+     (W : in out Watcher_Type);
+   --  The object must have been allocated by the client of this package.
+   --  XXX ????
+
+   procedure Create (W : out Watcher_Access);
+   --  Create a watcher.
+
+   procedure Destroy
+     (W : in out Watcher_Type);
+   --  The deallocation, if needed, after "Destroy" and is
+   --  the responsability of the client of this package.
+   --  XXX ???
+
+   procedure Destroy (W : in out Watcher_Access);
+   pragma Inline (Destroy);
+   --  Destroy the watcher.
 
    procedure Differ
      (W : in out Watcher_Type;
       V : in Version_Id);
+
+   procedure Differ (W : in Watcher_Access; V : in Version_Id);
+   pragma Inline (Differ);
+
    --  Await until W's version differs from V. V must be a Version
    --  value obtained from a previous call to Lookup on the same watcher.
 
    procedure Lookup
      (W : in Watcher_Type;
       V : out Version_Id);
+
+   procedure Lookup (W : in Watcher_Access; V : out Version_Id);
+   pragma Inline (Lookup);
    --  Fetch W's version.
 
    procedure Update
      (W : in out Watcher_Type);
+
+   procedure Update (W : in Watcher_Access);
+   pragma Inline (Update);
    --  Increment  version
-
-   procedure Create
-     (W : in out Watcher_Type);
-   --  Create a watcher.
-   --  The object must have been allocated by the client of this package.
-
-   procedure Destroy
-     (W : in out Watcher_Type);
-   --  Destroy the watcher.
-   --  The deallocation, if needed, after "Destroy" and is
-   --  the responsability of the client of this package.
 
 private
 
    use PolyORB.Tasking.Mutexes;
    use PolyORB.Tasking.Condition_Variables;
+
+   type Version_Id is mod 2 ** 8;
+   --  No computation is allowed on Version_Ids outside of implementations
+   --  of the Watcher interface.
 
    No_Version : constant Version_Id := 0;
 
