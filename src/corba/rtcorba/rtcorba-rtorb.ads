@@ -68,6 +68,17 @@ package RTCORBA.RTORB is
       Max_Buffered_Requests   : in CORBA.Unsigned_Long;
       Max_Request_Buffer_Size : in CORBA.Unsigned_Long)
      return RTCORBA.ThreadpoolId;
+   --  Implementation Note:
+   --  * the parameter Max_Request_Buffer_Size is currently not
+   --  handled. Setting it to a non-zero value will result in an
+   --  invalid Threadpool configuration, and raise the CORBA.BAD_PARAM
+   --  exception. The lane will buffer up to Max_Buffer_Requests
+   --  requests, diregarding memory used.
+   --
+   --  * actual deallocation of dynamic threads is left as an
+   --  implementation issue by the RT-CORBA specifications. PolyORB
+   --  destroys dynamically allocated threads once the Threadpool has
+   --  no queued job to process.
 
    function Create_Threadpool_With_Lanes
      (Self                    : in Ref;
@@ -78,10 +89,30 @@ package RTCORBA.RTORB is
       Max_Buffered_Requests   : in CORBA.Unsigned_Long;
       Max_Request_Buffer_Size : in CORBA.Unsigned_Long)
      return RTCORBA.ThreadpoolId;
+   --  Implementation Note:
+   --  * the parameter Max_Request_Buffer_Size is currently not
+   --  handled. Setting it to a non-zero value will result in an
+   --  invalid Threadpool configuration, and raise the CORBA.BAD_PARAM
+   --  exception. The lane will buffer up to Max_Buffer_Requests
+   --  requests, diregarding memory used.
+   --
+   --  * the parameter Allow_Borrowing is not handled. Setting it to
+   --  True will result in an invalid Threadpool configuration, and
+   --  raise the CORBA.BAD_PARAM exception.
+   --
+   --  * actual deallocation of dynamic threads is left as an
+   --  implementation issue by the RT-CORBA specifications. PolyORB
+   --  destroys dynamically allocated threads once the Threadpool has
+   --  no queued job to process.
 
    procedure Destroy_Threadpool
      (Self       : in Ref;
       Threadpool : in RTCORBA.ThreadpoolId);
+   --  Implementation Note: RT-CORBA specifications defines no return
+   --  exception for this function. However, the user has no control
+   --  on generated ThreadpoolIds, thus destroying a Threadpool_Policy
+   --  from an invalid ThreadpoolId shall be an error. This function
+   --  will raise InvalidThreadpool if Threadpool is not valid.
 
    function Create_Priority_Model_Policy
      (Self            : in Ref;
@@ -93,11 +124,11 @@ package RTCORBA.RTORB is
      (Self       : in Ref;
       Threadpool : in RTCORBA.ThreadpoolId)
      return RTCORBA.ThreadpoolPolicy.Ref;
-   --  Implementation Note: RT-CORBA specifications (formal/03-11-01)
-   --  defines no return exception for this function. However,
-   --  creating a Threadpool_Policy from an invalid ThreadpoolId shall
-   --  be an error, as the user has no control on generated
-   --  ThreadpoolIds.
+   --  Implementation Note: RT-CORBA specifications defines no return
+   --  exception for this function. However, the user has no control
+   --  on generated ThreadpoolIds, thus creating a Threadpool_Policy
+   --  from an invalid ThreadpoolId shall be an error. This function
+   --  will raise InvalidThreadpool if Threadpool is not valid.
 
    -----------------------------------------
    -- RTCORBA.RTORB Exceptions Management --
