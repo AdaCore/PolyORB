@@ -157,8 +157,36 @@ package PolyORB.GIOP_P.Tagged_Components is
    -- Tag List --
    --------------
 
-   Tag_Policies : constant Tag_Value;
-   Tag_Group    : constant Tag_Value;
+   Tag_ORB_Type                 : constant Tag_Value;
+   Tag_Code_Sets                : constant Tag_Value;
+   Tag_Policies                 : constant Tag_Value;
+   Tag_Alternate_IIOP_Address   : constant Tag_Value;
+   Tag_Association_Options      : constant Tag_Value;
+   Tag_Sec_Name                 : constant Tag_Value;
+   Tag_SPKM_1_Sec_Mech          : constant Tag_Value;
+   Tag_SPKM_2_Sec_Mech          : constant Tag_Value;
+   Tag_KerberosV5_Sec_Mech      : constant Tag_Value;
+   Tag_CSI_ECMA_Secret_Sec_Mech : constant Tag_Value;
+   Tag_CSI_ECMA_Hybrid_Sec_Mech : constant Tag_Value;
+   Tag_SSL_Sec_Trans            : constant Tag_Value;
+   Tag_CSI_ECMA_Public_Sec_Mech : constant Tag_Value;
+   Tag_Generic_Sec_Mech         : constant Tag_Value;
+   Tag_Firewall_Trans           : constant Tag_Value;
+   Tag_SCCP_Contact_Info        : constant Tag_Value;
+   Tag_Java_Codebase            : constant Tag_Value;
+   Tag_Transaction_Policy       : constant Tag_Value;
+   Tag_FT_Group                 : constant Tag_Value;
+   Tag_FT_Primary               : constant Tag_Value;
+   Tag_Message_Routers          : constant Tag_Value;
+   Tag_OTS_Policy               : constant Tag_Value;
+   Tag_INV_Policy               : constant Tag_Value;
+   Tag_CSI_Sec_Mech_List        : constant Tag_Value;
+   Tag_NULL_Tag                 : constant Tag_Value;
+   Tag_SECIOP_Sec_Trans         : constant Tag_Value;
+   Tag_TLS_Sec_Trans            : constant Tag_Value;
+   Tag_Activity_Policy          : constant Tag_Value;
+   Tag_Group                    : constant Tag_Value;
+   Tag_INET_Sec_Trans           : constant Tag_Value;
 
 private
 
@@ -184,9 +212,38 @@ private
    -- Tag List --
    --------------
 
-   Tag_Policies : constant Tag_Value := 2;
-   Tag_Group    : constant Tag_Value := 39;
+   Tag_ORB_Type                 : constant Tag_Value := 0;
+   Tag_Code_Sets                : constant Tag_Value := 1;
+   Tag_Policies                 : constant Tag_Value := 2;
+   Tag_Alternate_IIOP_Address   : constant Tag_Value := 3;
+   Tag_Association_Options      : constant Tag_Value := 13;
+   Tag_Sec_Name                 : constant Tag_Value := 14;
+   Tag_SPKM_1_Sec_Mech          : constant Tag_Value := 15;
+   Tag_SPKM_2_Sec_Mech          : constant Tag_Value := 16;
+   Tag_KerberosV5_Sec_Mech      : constant Tag_Value := 17;
+   Tag_CSI_ECMA_Secret_Sec_Mech : constant Tag_Value := 18;
+   Tag_CSI_ECMA_Hybrid_Sec_Mech : constant Tag_Value := 19;
+   Tag_SSL_Sec_Trans            : constant Tag_Value := 20;
+   Tag_CSI_ECMA_Public_Sec_Mech : constant Tag_Value := 21;
+   Tag_Generic_Sec_Mech         : constant Tag_Value := 22;
+   Tag_Firewall_Trans           : constant Tag_Value := 23;
+   Tag_SCCP_Contact_Info        : constant Tag_Value := 24;
+   Tag_Java_Codebase            : constant Tag_Value := 25;
+   Tag_Transaction_Policy       : constant Tag_Value := 26;
+   Tag_FT_Group                 : constant Tag_Value := 27;
+   Tag_FT_Primary               : constant Tag_Value := 28;
+   Tag_Message_Routers          : constant Tag_Value := 30;
+   Tag_OTS_Policy               : constant Tag_Value := 31;
+   Tag_INV_Policy               : constant Tag_Value := 32;
+   Tag_CSI_Sec_Mech_List        : constant Tag_Value := 33;
+   Tag_NULL_Tag                 : constant Tag_Value := 34;
+   Tag_SECIOP_Sec_Trans         : constant Tag_Value := 35;
+   Tag_TLS_Sec_Trans            : constant Tag_Value := 36;
+   Tag_Activity_Policy          : constant Tag_Value := 37;
+   Tag_Group                    : constant Tag_Value := 39;
    --  TAO Value
    --  Tag_Group : constant Tag_Value := 1413566211;
+
+   Tag_INET_Sec_Trans           : constant Tag_Value := 123;
 
 end PolyORB.GIOP_P.Tagged_Components;
