@@ -1,0 +1,22 @@
+#! /bin/sh
+
+# $Id$
+# Generate a context diff of snames.ads between the GNAT and PolyORB
+# branches, with normalized enumeration values.
+
+set -e
+dir="/tmp/difsnames.$$"
+mkdir $dir
+trap "rm -fr $dir" 0
+
+get_normalized() {
+  p4 print -q $1 | sed 's/N + [0-9]*;/N + 999;/'
+}
+
+eval `p4 diff2 -b polyorb_gnat -ds snames.ads | sed -e '\
+s/^.* \([^ ]*#[0-9]*\) .* \([^ ]*#[0-9]*\) .*$/f1=\1;f2=\2/
+q'`
+get_normalized "$f1" > $dir/snames.ads.gnat
+get_normalized "$f2" > $dir/snames.ads
+
+(cd $dir && diff -c snames.ads.gnat snames.ads)

@@ -1,0 +1,13 @@
+#! /bin/sh
+
+# $Id$
+# Normalize and patch snames.ads. Xsnames must be executed afterwards.
+
+set -e
+dir="/tmp/difsnames.$$"
+mkdir $dir
+trap "rm -fr $dir" 0
+
+sed -e 's/N + [0-9]*;/N + 999;/' -e 's/$//' snames.ads > $dir/snames.ads
+(cd $dir && patch snames.ads)
+cp $dir/snames.ads .
