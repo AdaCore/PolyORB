@@ -100,10 +100,6 @@ package body Ada_Be.Identifiers is
          end if;
       end loop;
 
-      --  FIXME: Check for collisions with Ada reserved
-      --  words and other name clashes (part of this task
-      --  should probably be done during expansion).
-
       if False
         or else Kind (Node) = K_Forward_Interface
         or else Kind (Node) = K_Forward_ValueType
