@@ -68,6 +68,8 @@ package System.Garlic.Serial_Line is
 private
 
    type Serial_Protocol is new System.Garlic.Protocols.Protocol_Type
-     with null record;
+     with record
+        Other : System.RPC.Partition_ID;
+     end record;
 
 end System.Garlic.Serial_Line;

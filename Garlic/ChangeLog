@@ -1,3 +1,7 @@
+Wed Nov 27 18:42:47 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-gaseli.adb: Changed the protocol to make it simpler.
+
 Tue Nov 26 15:52:33 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-ganobl.adb: Changed the safety delay to be 0.5 seconds.

@@ -42,14 +42,11 @@ with System.Garlic.Utils; use System.Garlic.Utils;
 package body System.Garlic.Serial_Line is
 
    --  This system implements serial communication. The connection is
-   --  established as follow: (C = caller, R = receiver)
-   --    - If the partition_ID is not known:
-   --      C->R : Null_Partition_ID
-   --      R->C : <new caller Partition_ID>
-   --    - After this, in any case: (C & R may be reversed)
-   --      C->R : <Length (Stream_Element_Count)> <Packet>
-   --  The boot partition never sends the first exchange since it is
-   --  not needed.
+   --  established as follow: nothing happens :-)
+   --
+   --  Since we have only two partitions and the link cannot be broken
+   --  (well, we hope so), the slave partition will get a partition
+   --  number very easily (coded in the object in fact).
 
    --  In this package, we make the assumption that we can access three
    --  external programs to control the serial line:
@@ -96,9 +93,6 @@ package body System.Garlic.Serial_Line is
    Opened : Boolean := False;
    --  State of the serial channel.
 
-   Other_Partition : System.RPC.Partition_ID;
-   --  Number of the other partition.
-
    Master : Boolean;
    --  True if I am the master.
 
@@ -118,6 +112,8 @@ package body System.Garlic.Serial_Line is
       entry Start;
    end Serial_Waiter;
    --  Task which will take care of receiving data.
+
+   Global_Protocol : aliased Serial_Protocol;
 
    --------------------------
    -- Ask_For_Partition_ID --
@@ -153,14 +149,14 @@ package body System.Garlic.Serial_Line is
    ------------
 
    function Create return Protocol_Access is
-      Self : constant Protocol_Access := new Serial_Protocol;
    begin
+      Global_Protocol.Other := Null_Partition_ID;
       Serial_Lock.Lock;
       Open_Connection;
       Serial_Waiter.Start;
       Serial_Lock.Unlock;
-      Register_Protocol (Self);
-      return Self;
+      Register_Protocol (Global_Protocol'Access);
+      return Global_Protocol'Access;
    end Create;
 
    --------------
@@ -285,36 +281,6 @@ package body System.Garlic.Serial_Line is
       Add_Non_Terminating_Task;
       accept Start;
 
-      if Get_My_Partition_ID_Immediately = Get_Boot_Server then
-         declare
-            Params    : aliased System.RPC.Params_Stream_Type (0);
-            Dummy     : aliased System.RPC.Params_Stream_Type (0);
-            Result    : aliased System.RPC.Params_Stream_Type (0);
-         begin
-            System.RPC.Partition_ID'Write (Dummy'Access, Null_Partition_ID);
-            declare
-               P : aliased Ada.Streams.Stream_Element_Array :=
-                 To_Stream_Element_Array (Dummy'Access);
-               R : System.RPC.Partition_ID;
-            begin
-               if Get_Packet (P'Access, P'Length) /= C_Success then
-                  raise System.RPC.Communication_Error;
-               end if;
-               To_Params_Stream_Type (P, Params'Access);
-               System.RPC.Partition_ID'Read (Params'Access, Other_Partition);
-               if Other_Partition = Null_Partition_ID then
-                  Other_Partition := Allocate_Partition_ID;
-                  System.RPC.Partition_ID'Write
-                    (Result'Access, Other_Partition);
-                  P := To_Stream_Element_Array (Result'Access);
-                  if Put_Packet (P'Access, P'Length) /= C_Success then
-                     raise System.RPC.Communication_Error;
-                  end if;
-               end if;
-            end;
-         end;
-      end if;
-
       loop
          declare
             Length_P : aliased Ada.Streams.Stream_Element_Array :=
@@ -334,10 +300,11 @@ package body System.Garlic.Serial_Line is
                if Get_Packet (Buffer_P'Access, Buffer_P'Size) /= C_Success then
                   raise System.RPC.Communication_Error;
                end if;
-               Has_Arrived (Other_Partition, Buffer_P);
+               Has_Arrived (Global_Protocol.Other, Buffer_P);
             end;
          end;
       end loop;
+
    end Serial_Waiter;
 
    -------------------
@@ -352,6 +319,11 @@ package body System.Garlic.Serial_Line is
    is
    begin
       Master := Is_Master;
+      if Master then
+         Protocol.Other := Allocate_Partition_ID;
+      else
+         Protocol.Other := Get_Boot_Server;
+      end if;
    end Set_Boot_Data;
 
    --------------
