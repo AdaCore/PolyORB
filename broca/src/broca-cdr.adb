@@ -310,6 +310,19 @@ package body Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
+      Data : in CORBA.Wide_String)
+   is
+      Equiv : constant Wide_String :=
+        CORBA.To_Wide_String (Data) & Standard.Wide_Character'Val (0);
+   begin
+      Marshall (Buffer, CORBA.Unsigned_Long'(Equiv'Length));
+      for I in Equiv'Range loop
+         Marshall (Buffer, CORBA.Wchar'Val (Wide_Character'Pos (Equiv (I))));
+      end loop;
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
       Data : in CORBA.Any) is
    begin
       null;
@@ -432,6 +445,13 @@ package body Broca.CDR is
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : access CORBA.String) is
+   begin
+      Marshall (Buffer, Data.all);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.Wide_String) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
@@ -584,6 +604,21 @@ package body Broca.CDR is
                                      (Unmarshall (Buffer)));
       end loop;
       return CORBA.To_CORBA_String
+        (Equiv (1 .. Equiv'Length - 1));
+   end Unmarshall;
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Wide_String
+   is
+      Length : constant CORBA.Unsigned_Long
+        := Unmarshall (Buffer);
+      Equiv  : Wide_String (1 .. Natural (Length));
+   begin
+      for I in Equiv'Range loop
+         Equiv (I) := Wide_Character'Val (CORBA.Wchar'Pos
+                                          (Unmarshall (Buffer)));
+      end loop;
+      return CORBA.To_CORBA_Wide_String
         (Equiv (1 .. Equiv'Length - 1));
    end Unmarshall;
 
