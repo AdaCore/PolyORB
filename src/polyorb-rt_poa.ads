@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -51,9 +51,16 @@ package PolyORB.RT_POA is
 
    use PolyORB.POA_Types;
    use PolyORB.RT_POA_Policies.Priority_Model_Policy;
+   use PolyORB.RT_POA_Policies.Thread_Pool_Policy;
    use PolyORB.Tasking.Priorities;
 
-   type RT_Obj_Adapter is abstract new PolyORB.POA.Obj_Adapter with private;
+   type RT_Obj_Adapter is abstract new PolyORB.POA.Obj_Adapter with record
+      --  Note: RT_POA may be used as a basic POA. Thus, RT-POA
+      --  specifications do not require these policies to be set.
+
+      Priority_Model_Policy : PriorityModelPolicy_Access;
+      Thread_Pool_Policy    : ThreadPoolPolicy_Access;
+   end record;
 
    type RT_Obj_Adapter_Access is access all RT_Obj_Adapter'Class;
 
@@ -92,18 +99,5 @@ package PolyORB.RT_POA is
       is abstract;
    --  Return scheduling parameters associated to servant P_Servant
    --  stored in Self.
-
-private
-
-   use PolyORB.RT_POA_Policies.Priority_Model_Policy;
-   use PolyORB.RT_POA_Policies.Thread_Pool_Policy;
-
-   type RT_Obj_Adapter is abstract new PolyORB.POA.Obj_Adapter with record
-      --  Note: RT_POA may be used as a basic POA. Thus, RT-POA
-      --  specifications do not require these policies to be set.
-
-      Priority_Model_Policy : PriorityModelPolicy_Access;
-      Thread_Pool_Policy    : ThreadPoolPolicy_Access;
-   end record;
 
 end PolyORB.RT_POA;

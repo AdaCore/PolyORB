@@ -26,6 +26,14 @@ ADA_SPECS_WITH_BODY = \
 		rtcorba-prioritytransform.ads \
 		rtcorba-threadpoolpolicy.ads \
 		rtcorba-threadpoolpolicy-helper.ads \
+		rtcosscheduling.ads \
+		rtcosscheduling-clientscheduler.ads \
+		rtcosscheduling-clientscheduler-helper.ads \
+		rtcosscheduling-clientscheduler-impl.ads \
+		rtcosscheduling-helper.ads \
+		rtcosscheduling-serverscheduler.ads \
+		rtcosscheduling-serverscheduler-helper.ads \
+		rtcosscheduling-serverscheduler-impl.ads \
 		rtportableserver-poa.ads \
 		rtportableserver-poa-helper.ads
 
