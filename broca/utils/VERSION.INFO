@@ -33,9 +33,8 @@ files="README"
 # Do the job
 #
 for i in ${files}; do
-  cp $i $i.orig.$$
-  cat $i.orig.$$ | \
-   sed -e "s/@adabroker_version@/${adabroker_version}/g" | \
-   cat > $i
+  mv $i $i.orig.$$
+  sed -e "s/@adabroker_version@/${adabroker_version}/g" < $i.orig.$$ \
+    > $i
   rm -f $i.orig.$$
 done
