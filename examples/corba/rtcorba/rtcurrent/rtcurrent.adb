@@ -60,7 +60,7 @@ begin
       Current : RTCORBA.Current.Ref
         := RTCORBA.Current.To_Ref
         (Resolve_Initial_References
-         (CORBA.ORB.ObjectId (To_CORBA_String ("RTCurrent"))));
+         (To_CORBA_String ("RTCurrent")));
 
    begin
       RTCORBA.Current.Set_The_Priority (Current, 42);
