@@ -37,6 +37,8 @@
 with Ada.Streams;
 with Ada.Streams.Stream_IO;
 
+with System;
+
 with PolyORB.Any;
 with PolyORB.Buffers;
 with PolyORB.Opaque;
@@ -112,9 +114,10 @@ package body MOMA.Provider.Warehouse is
          Ada.Streams.Stream_IO.Open (Stream_File, In_File, "message_" & K);
          Allocate_And_Insert_Cooked_Data (Buffer, 1024, Data);
          declare
-            subtype Z_Type is Stream_Element_Array (0 .. 1023);
-            Z : Z_Type;
-            for Z'Address use Data;
+            Z_Addr : constant System.Address := Data;
+            Z : Stream_Element_Array (0 .. 1023);
+            for Z'Address use Z_Addr;
+            pragma Import (Ada, Z);
          begin
             Ada.Streams.Stream_IO.Read (Stream_File, Z, Last);
          end;

@@ -36,6 +36,8 @@ with Ada.Characters.Handling;
 with Ada.Exceptions;
 with Ada.Unchecked_Conversion;
 
+with System;
+
 with AWS.MIME;
 with AWS.Response;
 
@@ -335,9 +337,10 @@ package body PolyORB.Filters.HTTP is
          --  Peek at the newly-received data.
 
          declare
-            subtype Z_Type is Stream_Element_Array (0 .. Data_Received - 1);
-            Z : Z_Type;
-            for Z'Address use New_Data;
+            Z_Addr : constant System.Address := New_Data;
+            Z : Stream_Element_Array (0 .. Data_Received - 1);
+            for Z'Address use Z_Addr;
+            pragma Import (Ada, Z);
          begin
             Scan_Line :
             for J in Z'Range loop

@@ -32,6 +32,8 @@
 
 --  $Id$
 
+with System;
+
 package body PolyORB.Utils.Buffers is
 
    ---------
@@ -137,9 +139,10 @@ package body PolyORB.Utils.Buffers is
          Data_Address);
 
       declare
-         subtype Z_Type is Stream_Element_Array (Octets'Range);
-         Z : Z_Type;
-         for Z'Address use Data_Address;
+         Z_Addr : constant System.Address := Data_Address;
+         Z : Stream_Element_Array (Octets'Range);
+         for Z'Address use Z_Addr;
+         pragma Import (Ada, Z);
       begin
          Z := Octets;
       end;
@@ -160,9 +163,10 @@ package body PolyORB.Utils.Buffers is
       Align_Position (Buffer, Alignment);
       Extract_Data (Buffer, Data_Address, Size);
       declare
-         subtype Z_Type is Stream_Element_Array (0 .. Size - 1);
-         Z : Z_Type;
-         for Z'Address use Data_Address;
+         Z_Addr : constant System.Address := Data_Address;
+         Z : Stream_Element_Array (0 .. Size - 1);
+         for Z'Address use Z_Addr;
+         pragma Import (Ada, Z);
       begin
          return Z;
       end;
