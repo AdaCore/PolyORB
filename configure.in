@@ -37,13 +37,6 @@ AM_ENABLE_SHARED(no)
 AM_ENABLE_STATIC(yes)
 
 ##########################################
-# Check that the GNAT version is recent 
-# enough for this version of PolyORB.
-##########################################
-
-AM_ADA_PREREQ(20010503, 3.14a1)
-
-##########################################
 # Protocol personalities list.
 ##########################################
 
