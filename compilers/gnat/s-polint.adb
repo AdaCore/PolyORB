@@ -11,7 +11,7 @@ with GNAT.HTable;
 
 with CORBA.Object;
 with PolyORB.CORBA_P.Naming_Tools;
-with CosNaming.NamingContext.Helper;
+with CosNaming.Helper;
 --  RCI package references are managed through the CORBA
 --  naming service. RCIs also act as naming contexts themselves
 --  for the purpose of providing access to each of their subprograms
@@ -172,7 +172,7 @@ package body System.PolyORB_Interface is
       Contents : Any_Array)
       return Any
    is
-     Result : Any := Get_Empty_Any_Aggregate (TypeCode);
+      Result : Any := Get_Empty_Any_Aggregate (TypeCode);
    begin
       for J in Contents'Range loop
          Add_Aggregate_Element (Result, Contents (J));
@@ -329,9 +329,86 @@ package body System.PolyORB_Interface is
               PolyORB.Types.To_Standard_String (EMsg.Req.Operation)
               = "resolve"
             then
-               null;
-               --  XXX TBD server side of handling NamingContext
-               --  methods for RCIs.
+
+               --  Code extracted from CosNaming::NamingContext
+               --  IDL skel.
+
+               declare
+                  use CosNaming;
+                  --  For exception names
+
+                  n             : CosNaming.Name;
+                  Arg_Name_n  : constant PolyORB.Types.Identifier :=
+                    To_PolyORB_String ("n");
+                  Argument_n  : Any :=
+                    CosNaming.Helper.To_Any (n);
+
+                  Result      : Object_Ref;
+                  Argument_Result : Any;
+                  Arg_List    : NVList_Ref;
+               begin
+                  --  Create argument list
+
+                  NVList_Create (Arg_List);
+                  NVList_Add_Item
+                    (Arg_List,
+                     Arg_Name_n,
+                     Argument_n,
+                     ARG_IN);
+
+                  Request_Arguments (EMsg.Req, Arg_List);
+
+                  begin
+                     --  Convert arguments from their Any
+
+                     n := CosNaming.Helper.From_Any (Argument_n);
+
+                     --  Call implementation
+                     Get_RAS_Ref
+                       (Receiving_Stub (Self.Impl_Info.all).Name.all,
+                        n.Name, Result);
+
+--                 exception
+--                    when E : NotFound =>
+--                       declare
+--                          Members : NotFound_Members;
+--                       begin
+--                          Get_Members (E, Members);
+--                          CORBA.ServerRequest.Set_Exception
+--                            (EMsg.Req,
+--                             CosNaming.NamingContext.Helper.To_Any (Members));
+--                          return;
+--                       end;
+--                    when E : CannotProceed =>
+--                       declare
+--                          Members : CannotProceed_Members;
+--                       begin
+--                          Get_Members (E, Members);
+--                          CORBA.ServerRequest.Set_Exception
+--                            (EMsg.Req,
+--                             CosNaming.NamingContext.Helper.To_Any (Members));
+--                          return;
+--                       end;
+--                    when E : InvalidName =>
+--                       declare
+--                          Members : InvalidName_Members;
+--                       begin
+--                          Get_Members (E, Members);
+--                          CORBA.ServerRequest.Set_Exception
+--                            (Request,
+--                             CosNaming.NamingContext.Helper.To_Any (Members));
+--                          return;
+--                       end;
+                  end;
+
+                  -- Set Result
+
+                  CORBA.ServerRequest.Set_Result
+                    (Request,
+                     CORBA.Object.Helper.To_Any (Result));
+                  return;
+               end;
+
             else
                pragma Assert (Self.Handler /= null);
                Self.Handler.all (EMsg.Req);
@@ -387,17 +464,30 @@ package body System.PolyORB_Interface is
             Stub : Receiving_Stub renames Value (It).all;
 
          begin
+            Setup_Object_RPC_Receiver
+              (Stub.Name.all, Stub.Receiver);
+            --  Establish a child POA for this stub. For RACWs,
+            --  this POA will serve all objects of the same type.
+            --  For RCIs, this POA will serve the base object
+            --  corresponding to the RCI, as well as the sub-objects
+            --  corresponding to each subprogram considered as
+            --  an object (for RAS).
+
             case Stub.Kind is
                when Obj_Stub =>
-                  Setup_Object_RPC_Receiver
-                    (Stub.Name.all, Stub.Receiver);
+                  null;
 
                when Pkg_Stub =>
                   declare
+                     Key : aliased PolyORB.Objects.Object_Id
+                       := To_Local_Oid (System.Null_Address);
+
                      Oid : aliased PolyORB.Objects.Object_Id
-                       := Export (Object_Adapter (The_ORB),
-                                  PolyORB.Objects.Servant_Access
-                                    (Stub.Receiver));
+                       := PolyORB.Obj_Adapters.Export
+                       (OA  => Servant_Access (Stub.Receiver).Object_Adapter,
+                        Obj => null,
+                        Key => Key'Unchecked_Access);
+
                      Ref : PolyORB.References.Ref;
                   begin
                      Create_Reference
@@ -472,7 +562,7 @@ package body System.PolyORB_Interface is
                   return;
                end;
             exception
-               when Invalid_Object_Id =>
+               when PolyORB.POA.Invalid_Object_Id =>
                   --  This object identifier does not have a
                   --  user-assigned object key.
                   null;
