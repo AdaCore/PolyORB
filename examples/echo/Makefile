@@ -15,6 +15,7 @@ CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_netBufferedStream.o
 CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_memBufferedStream.o
 CPP_LINK_FILES += $(ADABROKER_PATH)/proxyObjectFactory_C2Ada.o
 CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_Corba_Orb.o
+CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_Corba_Exceptions.o
 #CPP_LINK_FILES += $(ADABROKER_PATH)/toto.o
 
 

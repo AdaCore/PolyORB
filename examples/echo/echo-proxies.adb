@@ -66,7 +66,7 @@ package body Echo.Proxies is
    -- Marshal_Arguments
    -------------------
    procedure Marshal_Arguments(Self: in EchoString_Proxy ;
-                               Giop_Client: in Giop_C.Object ) is
+                               Giop_Client: in out Giop_C.Object ) is
    begin
       Marshall(Self.Arg_Msg.all,Giop_Client);
    end;
@@ -74,7 +74,7 @@ package body Echo.Proxies is
    -- UnMarshal_Return_Values
    ------------------------
    procedure Unmarshal_Returned_Values(Self: in out EchoString_proxy ;
-                                       Giop_Client: in Giop_C.Object) is
+                                       Giop_Client: in out Giop_C.Object) is
       Result : Corba.String ;
    begin
       Unmarshall(Result, Giop_Client) ;
