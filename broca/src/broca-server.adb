@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.30 $
+--                            $Revision: 1.31 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -36,6 +36,7 @@
 with Ada.Unchecked_Deallocation;
 with Ada.Exceptions;
 with Ada.Text_IO;
+with Ada.Task_Identification;
 with CORBA; use CORBA;
 with PortableServer;
 with Broca.Opaque;
@@ -62,7 +63,9 @@ package body Broca.Server is
       use Ada.Text_IO;
    begin
       if Broca.Flags.Log then
-         Put ("ORB log: ");
+         Put ("[" & Ada.Task_Identification.Image
+              (Ada.Task_Identification.Current_Task)
+              & "] ORB log: ");
          Put_Line (S);
       end if;
    end Log;

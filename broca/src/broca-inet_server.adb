@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.20 $
+--                            $Revision: 1.21 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -175,7 +175,6 @@ package body Broca.Inet_Server is
          when No_Event =>
             Poll_Set : aliased Pollfd_Array (1 .. Pollfd_Array_Size);
          when Fd_Event =>
-            Pos : Integer := -1;
             Fd : Interfaces.C.int := -1;
             Stream : Stream_Ptr := null;
       end case;
@@ -189,8 +188,7 @@ package body Broca.Inet_Server is
 
       entry Get_Job_And_Lock (A_Job : out Job);
       --  Obtain a pending job to perform. The scheduler is
-      --  then locked until a call to a _Unlock subprogram is
-      --  made.
+      --  then locked until Unlock is called.
 
       procedure Set_Pending_Jobs
         (Returned_Poll_Set : Pollfd_Array);
@@ -200,23 +198,25 @@ package body Broca.Inet_Server is
       --  Insert a descriptor for a newly-opened connection.
       --  Clear events on listening socket.
 
-      procedure Mask_Descriptor (Pos : Integer);
-      --  Mask descriptor and clear events. The descriptor
-      --  is now managed by a server task, until it calls
-      --  Delete_Descriptor or Unmask_Descriptor.
+      procedure Mask_Descriptor (Fd : Interfaces.C.int);
+      --  Mask descriptor Fd.
+      --  The descriptor is now managed by a server task,
+      --  until it calls Delete_Descriptor or Unmask_Descriptor.
+      --  This must be called with the scheduler locked.
 
       procedure Unlock;
       --  Unlock the scheduler.
 
-      procedure Delete_Descriptor (Pos : Integer);
-      --  Destroy a descriptor associated with a closed connection.
-
-      procedure Unmask_Descriptor (Pos : Integer);
+      procedure Delete_Descriptor (Fd : Interfaces.C.int);
+      --  Destroy a descriptor associated with a closed
+      --  connection.
+      procedure Unmask_Descriptor (Fd : Interfaces.C.int);
       --  Resume waitiong for events on descriptor.
 
    private
 
       Locked : Boolean := False;
+
       Polls : Pollfd_Array (1 .. Simultaneous_Streams)
         := (others => (Fd => Failure, Events => 0, Revents => 0));
       Streams : Stream_Ptr_Array (3 .. Simultaneous_Streams)
@@ -228,7 +228,6 @@ package body Broca.Inet_Server is
       --  Polls represents current tasks-to-perform.
       --  Fd_Pos is used to implement a round-robin scheme
       --  between all open connections.
-
 
    end Lock;
 
@@ -275,11 +274,10 @@ package body Broca.Inet_Server is
          end loop;
 
          Polls (Current_Fd_Pos).Revents := 0;
-         --  Clear pending job.
+         --  Clear pending events.
 
          A_Job := (Kind => Fd_Event,
                    Pollfd_Array_Size => 0,
-                   Pos => Current_Fd_Pos,
                    Fd => Polls (Current_Fd_Pos).Fd,
                    Stream => null);
          --  Prepare job structure for calling task.
@@ -323,9 +321,18 @@ package body Broca.Inet_Server is
          end if;
       end Insert_Descriptor;
 
-      procedure Mask_Descriptor (Pos : Integer) is
+      procedure Mask_Descriptor (Fd : Interfaces.C.int) is
       begin
-         Polls (Pos).Events := 0;
+         pragma Assert (Locked);
+
+         for I in Polls'Range loop
+            if Polls (I).Fd = Fd then
+               Polls (I).Events := 0;
+               return;
+            end if;
+         end loop;
+
+         pragma Assert (False);
       end Mask_Descriptor;
 
       procedure Unlock is
@@ -333,29 +340,51 @@ package body Broca.Inet_Server is
          Locked := False;
       end Unlock;
 
-      procedure Unmask_Descriptor (Pos : Integer) is
+      procedure Unmask_Descriptor (Fd : Interfaces.C.int) is
       begin
-         Polls (Pos).Events := Pollin;
+         for I in Polls'Range loop
+            if Polls (I).Fd = Fd then
+               pragma Assert (Polls (I).Events = 0);
+
+               Polls (I).Events := Pollin;
+
+               return;
+            end if;
+         end loop;
+
+         pragma Assert (False);
       end Unmask_Descriptor;
 
-      procedure Delete_Descriptor (Pos : Integer) is
+      procedure Delete_Descriptor (Fd : Interfaces.C.int) is
       begin
-         pragma Assert (Pos in 1 .. Nbr_Fd);
+         for I in Polls'Range loop
+            if Polls (I).Fd = Fd then
+               pragma Assert (Polls (I).Events = 0);
+               --  A descriptor can be deleted only when
+               --  masked.
 
-         --  FIXME: remove suspended requests.
-         Broca.Stream.Free (Streams (Pos));
-         Streams (Pos) := Streams (Nbr_Fd);
-         Streams (Nbr_Fd) := null;
-         Polls (Pos) := Polls (Nbr_Fd);
+               --  FIXME: remove suspended requests.
+               Broca.Stream.Free (Streams (I));
+               Streams (I) := Streams (Nbr_Fd);
+               Streams (Nbr_Fd) := null;
+               Polls (I) := Polls (Nbr_Fd);
 
-         Nbr_Fd := Nbr_Fd - 1;
-         if Fd_Pos > Nbr_Fd then
-            Fd_Pos := 1;
-         end if;
+               Nbr_Fd := Nbr_Fd - 1;
+               if Fd_Pos > Nbr_Fd then
+                  Fd_Pos := 1;
+               end if;
 
-         if Nbr_Fd < Polls'Last then
-            Polls (1).Events := Pollin;
-         end if;
+               if Nbr_Fd < Polls'Last then
+                  Polls (1).Events := Pollin;
+               end if;
+
+               return;
+            end if;
+         end loop;
+
+         pragma Assert (False);
+         --  Tried to delete an unknown fd.
+
       end Delete_Descriptor;
    end Lock;
 
@@ -495,7 +524,8 @@ package body Broca.Inet_Server is
                            & A_Job.Poll_Set'Length'Img & " fds:");
          for I in 1 .. A_Job.Poll_Set'Length loop
             if A_Job.Poll_Set (I).Events >= Pollin then
-               Broca.Server.Log (" waiting on " & I'Img);
+               Broca.Server.Log
+                 (" waiting on " & A_Job.Poll_Set (I).Fd'Img);
             end if;
          end loop;
 
@@ -513,7 +543,7 @@ package body Broca.Inet_Server is
          Lock.Set_Pending_Jobs (A_Job.Poll_Set);
          Lock.Unlock;
 
-      elsif A_Job.Pos = 1 then
+      elsif A_Job.Fd = Listening_Socket then
 
          --  Accepting a connection.
          Broca.Server.Log ("accepting");
@@ -534,22 +564,21 @@ package body Broca.Inet_Server is
          Lock.Insert_Descriptor (Sock);
          Lock.Unlock;
 
-      elsif A_Job.Pos = 2 then
+      elsif A_Job.Fd = Signal_Fd_Read then
          Broca.Server.Log ("poll set change");
 
          Accept_Poll_Set_Change;
          Lock.Unlock;
 
       else
-         Broca.Server.Log ("data at position " & A_Job.Pos'Img);
+         Broca.Server.Log ("data on fd" & A_Job.Fd'Img);
 
-         --  There is work to be done at position A_Job.Pos
          --  Prevent poll from accepting messages from this file
          --  descriptor, because the server is now in charge
          --  of conducting the dialog, until the incoming
          --  request is handled.
 
-         Lock.Mask_Descriptor (A_Job.Pos);
+         Lock.Mask_Descriptor (A_Job.Fd);
          Lock.Unlock;
 
          Sock := A_Job.Fd;
@@ -571,9 +600,8 @@ package body Broca.Inet_Server is
             --  The fd was closed
             C_Close (Sock);
 
-            Broca.Server.Log ("Deleting fd" & A_Job.Fd'Img
-                              & " at" & A_Job.Pos'Img);
-            Lock.Delete_Descriptor (A_Job.Pos);
+            Broca.Server.Log ("Deleting fd" & A_Job.Fd'Img);
+            Lock.Delete_Descriptor (A_Job.Fd);
             Signal_Poll_Set_Change;
 
          elsif Res /= Broca.GIOP.Message_Header_Size then
@@ -589,16 +617,15 @@ package body Broca.Inet_Server is
                0);
 
             Broca.Server.Log
-              ("message received from fd" & Interfaces.C.int'Image (Sock)
-               & " at" & A_Job.Pos'Img);
+              ("message received from fd" & Interfaces.C.int'Image (Sock));
             Broca.Stream.Lock_Receive (A_Job.Stream);
             Broca.Server.Handle_Message
               (A_Job.Stream, Buffer'Access);
             Release (Buffer);
 
-            Broca.Server.Log ("Request done for" & A_Job.Pos'Img);
-            Lock.Unmask_Descriptor (A_Job.Pos);
-            Broca.Server.Log ("Unmasked descriptor for" & A_Job.Pos'Img);
+            Broca.Server.Log ("Request done for" & A_Job.Fd'Img);
+            Lock.Unmask_Descriptor (A_Job.Fd);
+            Broca.Server.Log ("Unmasked fd" & A_Job.Fd'Img);
             Signal_Poll_Set_Change;
          end if;
       end if;
