@@ -87,23 +87,13 @@ INSTALL     : Detail PolyORB installation process.
 NEWS        : Detail updates between PolyORB's releases.
 README      : This file, first instructions.
 src/ROADMAP : Overview of PolyORB source code.
-doc/*       : Miscellaneous documents describing PolyORB internals.
+doc/*       : Documents describing PolyORB internals, including
+              PolyORB User's Guide.
 
 Usage of PolyORB
 ----------------
 
-See examples of simple CORBA clients and servers in subdirectory
-'examples/'.  Basically, a simple non-tasking CORBA client should have
-a dependency and a pragma Elaborate_All on PolyORB.Setup.Client. A
-CORBA server should have a dependency and pragma Elaborate_All on one of
-PolyORB.Setup.No_Tasking_Server, PolyORB.Setup.Thread_Pool_Server or
-PolyORB.Setup.Thread_Per_Session_Server.
-
-If you want anything different, you should create a package similar
-to one of these setup packages and use it instead. That package must
-have dependencies and pragmas Elaborate_All on all subsystems you need
-to use, and must contain a call to PolyORB.Configurator.Initialize_World
-in its own elaboration code.
+See the PolyORB User's Guide for more details on PolyORB usage.
 
 Bug reports
 -----------
