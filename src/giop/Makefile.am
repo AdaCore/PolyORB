@@ -2,6 +2,9 @@ SUBDIRS = . iiop diop miop
 
 include $(srcdir)/../Makefile.common
 
+.PHONY: force
+FORCE_GEN_CODESET=force
+
 alidir = $(includedir)/polyorb/giop
 
 ADA_SPECS_WITH_BODY = \
@@ -46,9 +49,11 @@ install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
 	for f in $(srcdir)/*.ad[bs] *.ali; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
 
-polyorb-giop_p-code_sets-data.ads: $(GEN_CODESETS) $(srcdir)/cs_registry1.2h
+all-gen_codeset:
 	$(GNATMAKE) gen_codeset -I$(srcdir) -cargs $(GNATFLAGS) 
-	./gen_codeset -c "PolyORB.GIOP_P.Code_Sets.Data" \
+
+polyorb-giop_p-code_sets-data.ads: $(GEN_CODESET) $(srcdir)/cs_registry1.2h Makefile
+	$(GEN_CODESET) -c "PolyORB.GIOP_P.Code_Sets.Data" \
 	  < $(srcdir)/cs_registry1.2h > polyorb-giop_p-code_sets-data.ads.new
 	$(MOVEIFCHANGE) polyorb-giop_p-code_sets-data.ads.new polyorb-giop_p-code_sets-data.ads
 

@@ -7,6 +7,8 @@ LINKER=		$(top_builddir)/support/linker
 MOVEIFCHANGE=	$(top_builddir)/support/move-if-change
 IDLAC_dir=	$(top_builddir)/compilers/idlac
 IDLAC=		$(IDLAC_dir)/idlac
+GEN_CODESET_dir=$(top_builddir)/src/giop
+GEN_CODESET=	$(GEN_CODESET_dir)/gen_codeset
 
 LINK=		$(LINKER) -o $(lib_LTLIBRARIES)
 
@@ -31,3 +33,6 @@ __default__:: all
 
 $(IDLAC): $(FORCE_IDLAC)
 	cd $(IDLAC_dir) && $(MAKE)
+
+$(GEN_CODESET): $(FORCE_GEN_CODESET)
+	cd $(GEN_CODESET_dir) && $(MAKE) all-gen_codeset

@@ -1251,6 +1251,8 @@ tools/po_catref/polyorb-binding_data-soap-print.adb
 tools/po_catref/polyorb-binding_data-soap-print.ads
 tools/po_catref/polyorb-binding_data-srp-print.adb
 tools/po_catref/polyorb-binding_data-srp-print.ads
+tools/po_catref/polyorb-giop_p-tagged_components-code_sets-print.adb
+tools/po_catref/polyorb-giop_p-tagged_components-code_sets-print.ads
 tools/po_catref/polyorb-giop_p-tagged_components-policies-print.adb
 tools/po_catref/polyorb-giop_p-tagged_components-policies-print.ads
 tools/po_catref/polyorb-giop_p-tagged_components-print.adb

@@ -273,7 +273,14 @@ procedure Gen_Codeset is
    procedure Generate_Description_Data_Module is
    begin
       Put_Line ("--  AUTOMATICALLY GENERATED, DO NOT EDIT!");
-      Put_Line ("private package " & Pkg_Name & " is");
+      Put_Line ("package " & Pkg_Name & " is");
+      New_Line;
+
+      Put_Line ("   type Info_Record is record");
+      Put_Line ("      Code_Set : Code_Set_Id;");
+      Put_Line ("      First    : Positive;");
+      Put_Line ("      Last     : Natural;");
+      Put_Line ("   end record;");
       New_Line;
 
       Put_Line ("   Info : constant array (Positive range <>) of Info_Record");
