@@ -178,14 +178,18 @@ package body SOAP.Types is
    end Get;
 
    function Get (O : in NamedValue) return Long_Float is
+      K : constant TCKind := TCK (O.Argument);
    begin
-      if TCK (O.Argument) = Tk_Double then
-         return Long_Float (Double'(From_Any (O.Argument)));
-      else
-         Exceptions.Raise_Exception
-           (Data_Error'Identity,
-            "Float expected, found " & TCKind'Image (TCK (O.Argument)));
-      end if;
+      case K is
+         when Tk_Float =>
+            return Long_Float (PolyORB.Types.Float'(From_Any (O.Argument)));
+         when Tk_Double =>
+            return Long_Float (PolyORB.Types.Double'(From_Any (O.Argument)));
+         when others =>
+            Exceptions.Raise_Exception
+              (Data_Error'Identity,
+               "Float expected, found " & TCKind'Image (TCK (O.Argument)));
+      end case;
    end Get;
 
    function Get (O : in NamedValue) return String is
@@ -265,7 +269,7 @@ package body SOAP.Types is
            Tk_Ushort =>
             return PolyORB.Utils.Trimmed_Image (Get (O));
 
-         when Tk_Double =>
+         when Tk_Float | Tk_Double =>
 
             declare
                use Ada;
@@ -611,6 +615,8 @@ package body SOAP.Types is
          when Tk_Ushort =>
             return XML_UShort;
 
+         when Tk_Float =>
+            return XML_Float;
          when Tk_Double =>
             return XML_Double;
          when Tk_String =>

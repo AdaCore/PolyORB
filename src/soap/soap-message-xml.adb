@@ -86,7 +86,7 @@ package body SOAP.Message.XML is
 
    type Array_State is
      (Void, A_Undefined, A_Int, A_Short, A_UInt, A_UShort,
-      A_Float, A_String,
+      A_Float, A_Double, A_String,
       A_Boolean, A_Time_Instant, A_Base64);
 
    type State is record
@@ -113,6 +113,8 @@ package body SOAP.Message.XML is
      return PolyORB.Any.NamedValue;
 
    function Parse_Float     (N : in DOM.Core.Node)
+     return PolyORB.Any.NamedValue;
+   function Parse_Double    (N : in DOM.Core.Node)
      return PolyORB.Any.NamedValue;
 
    function Parse_String    (N : in DOM.Core.Node)
@@ -437,7 +439,9 @@ package body SOAP.Message.XML is
    -- Parse_Float --
    -----------------
 
-   function Parse_Float (N : in DOM.Core.Node) return PolyORB.Any.NamedValue is
+   function Parse_Float (N : in DOM.Core.Node)
+     return PolyORB.Any.NamedValue
+   is
       Name  : constant PolyORB.Types.Identifier
         := To_PolyORB_String (Local_Name (N));
       Value : constant DOM.Core.Node := First_Child (N);
@@ -445,9 +449,23 @@ package body SOAP.Message.XML is
       return NamedValue'
         (Name => Name,
          Argument => To_Any
-         (Double (Long_Float'Value (Node_Value (Value)))),
+         (PolyORB.Types.Float'Value (Node_Value (Value))),
          Arg_Modes => ARG_IN);
    end Parse_Float;
+
+   function Parse_Double (N : in DOM.Core.Node)
+     return PolyORB.Any.NamedValue
+   is
+      Name  : constant PolyORB.Types.Identifier
+        := To_PolyORB_String (Local_Name (N));
+      Value : constant DOM.Core.Node := First_Child (N);
+   begin
+      return NamedValue'
+        (Name => Name,
+         Argument => To_Any
+         (PolyORB.Types.Double'Value (Node_Value (Value))),
+         Arg_Modes => ARG_IN);
+   end Parse_Double;
 
    ---------------
    -- Parse_Int --
@@ -538,6 +556,8 @@ package body SOAP.Message.XML is
 
                when A_Float =>
                   return Parse_Float (N);
+               when A_Double =>
+                  return Parse_Double (N);
 
                when A_String =>
                   return Parse_String (N);
@@ -588,6 +608,8 @@ package body SOAP.Message.XML is
 
                            elsif xsd = Types.XML_Float then
                               return Parse_Float (N);
+                           elsif xsd = Types.XML_Double then
+                              return Parse_Double (N);
 
                            elsif xsd = Types.XML_String then
                               return Parse_String (N);
