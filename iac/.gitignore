@@ -1,0 +1,5 @@
+*.o
+*.ali
+*~
+*.ada
+.cvsignore
