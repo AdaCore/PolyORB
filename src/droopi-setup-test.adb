@@ -20,6 +20,7 @@ with Droopi.Transport.Sockets;
 
 procedure Droopi.Setup.Test
 is
+   use Droopi.Binding_Data;
    use Droopi.Objects;
    use Droopi.ORB;
    use Droopi.Sockets;
@@ -35,6 +36,8 @@ is
 
    SAP : constant Transport_Access_Point_Access
      := new Socket_Access_Point;
+   SAP_PF : constant Binding_Data.Profile_Factory_Access
+     := new Binding_Data.Test.Test_Profile_Factory;
 
 begin
    -------------------------------
@@ -104,11 +107,12 @@ begin
    Listen_Socket (Server);
 
    Create (Socket_Access_Point (SAP.all), Server);
+   Create_Factory (SAP_PF.all, SAP);
    Register_Access_Point
      (ORB    => The_ORB,
       TAP    => SAP,
       Chain  => new Protocols.Echo.Echo_Protocol,
-      PF     => new Droopi.Binding_Data.Test.Test_Profile_Factory);
+      PF     => SAP_PF);
    --  Register socket with ORB object, associating a protocol
    --  to the transport service access point.
 

@@ -1,7 +1,7 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/droopi-binding_data.ads#7 $
+--  $Id: //droopi/main/src/droopi-binding_data.ads#8 $
 
 with Ada.Finalization;
 
@@ -79,6 +79,12 @@ package Droopi.Binding_Data is
    type Profile_Factory is abstract tagged limited private;
    type Profile_Factory_Access is access all Profile_Factory'Class;
 
+   procedure Create_Factory
+     (PF : out Profile_Factory;
+      TAP : Transport.Transport_Access_Point_Access)
+      is abstract;
+   --  Initialize PF to act as profile factory for TAP.
+
    function Create_Profile
      (PF  : access Profile_Factory;
       TAP : Transport.Transport_Access_Point_Access;
@@ -90,6 +96,13 @@ package Droopi.Binding_Data is
 
    procedure Destroy_Profile (P : in out Profile_Access);
    pragma Inline (Destroy_Profile);
+
+   function Is_Local_Profile
+     (PF : access Profile_Factory;
+      P : Profile_Access)
+     return Boolean is abstract;
+   --  True iff P designates an object that can be contacted
+   --  at the access point associated with PF.
 
 private
 

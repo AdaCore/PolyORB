@@ -14,6 +14,8 @@ with Droopi.Transport.Sockets;
 package body Droopi.Binding_Data.Test is
 
    use Droopi.Objects;
+   use Droopi.Sockets;
+   use Droopi.Transport.Sockets;
 
    procedure Initialize (P : in out Test_Profile_Type) is
    begin
@@ -74,14 +76,19 @@ package body Droopi.Binding_Data.Test is
       return Preference_Default;
    end Get_Profile_Preference;
 
+   procedure Create_Factory
+     (PF : out Test_Profile_Factory;
+      TAP : Transport.Transport_Access_Point_Access) is
+   begin
+      PF.Address := Address_Of (Socket_Access_Point (TAP.all));
+   end Create_Factory;
+
    function Create_Profile
      (PF  : access Test_Profile_Factory;
       TAP : Transport.Transport_Access_Point_Access;
       Oid : Objects.Object_Id)
      return Profile_Access
    is
-      use Droopi.Transport.Sockets;
-
       Result : constant Profile_Access
         := new Test_Profile_Type;
 
@@ -89,9 +96,16 @@ package body Droopi.Binding_Data.Test is
         renames Test_Profile_Type (Result.all);
    begin
       TResult.Object_Id := new Object_Id'(Oid);
-      TResult.Address   := Address_Of
-        (Socket_Access_Point (TAP.all));
+      TResult.Address   := PF.Address;
       return  Result;
    end Create_Profile;
+
+   function Is_Local_Profile
+     (PF : access Test_Profile_Factory;
+      P : Profile_Access) return Boolean is
+   begin
+      return P.all in Test_Profile_Type
+        and then Test_Profile_Type (P.all).Address = PF.Address;
+   end Is_Local_Profile;
 
 end Droopi.Binding_Data.Test;

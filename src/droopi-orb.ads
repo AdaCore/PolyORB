@@ -126,6 +126,12 @@ package Droopi.ORB is
    --  chain is instanciated using Chain, and associated
    --  to the corresponding transport endpoint.
 
+   function Is_Profile_Local
+     (ORB : access ORB_Type;
+      P   : Binding_Data.Profile_Access)
+     return Boolean;
+   --  True iff P designates an object managed by this ORB.
+
    type Endpoint_Role is (Client, Server);
 
    procedure Register_Endpoint

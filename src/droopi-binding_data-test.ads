@@ -33,11 +33,20 @@ package Droopi.Binding_Data.Test is
 
    type Test_Profile_Factory is new Profile_Factory with private;
 
+   procedure Create_Factory
+     (PF : out Test_Profile_Factory;
+      TAP : Transport.Transport_Access_Point_Access);
+
    function Create_Profile
      (PF  : access Test_Profile_Factory;
       TAP : Transport.Transport_Access_Point_Access;
       Oid : Objects.Object_Id)
      return Profile_Access;
+
+   function Is_Local_Profile
+     (PF : access Test_Profile_Factory;
+      P : Profile_Access)
+     return Boolean;
 
 private
 
@@ -47,6 +56,8 @@ private
    end record;
 
    type Test_Profile_Factory is new Profile_Factory
-      with null record;
+     with record
+        Address : Sockets.Sock_Addr_Type;
+     end record;
 
 end Droopi.Binding_Data.Test;

@@ -137,6 +137,10 @@ package body Droopi.ORB is
       D : AES_Note_Data;
    end record;
 
+   type TAP_Note is new Note with record
+      Profile_Factory : Binding_Data.Profile_Factory_Access;
+   end record;
+
    procedure Handle_Event
      (ORB : access ORB_Type;
       AES : Asynch_Ev_Source_Access);
@@ -323,6 +327,21 @@ package body Droopi.ORB is
 
    end Shutdown;
 
+   function Profile_Factory_Of
+     (TAP : Transport.Transport_Access_Point_Access)
+     return Binding_Data.Profile_Factory_Access;
+   pragma Inline (Profile_Factory_Of);
+
+   function Profile_Factory_Of
+     (TAP : Transport.Transport_Access_Point_Access)
+     return Binding_Data.Profile_Factory_Access
+   is
+      N : TAP_Note;
+   begin
+      Get_Note (Notepad_Of (TAP).all, N);
+      return N.Profile_Factory;
+   end Profile_Factory_Of;
+
    procedure Register_Access_Point
      (ORB   : access ORB_Type;
       TAP   : Transport_Access_Point_Access;
@@ -340,13 +359,43 @@ package body Droopi.ORB is
                              TAP    => TAP,
                              Filter_Factory_Chain => Chain,
                              Profile_Factory => PF)));
-      --  Set link from AES to TAP.
+      --  Set link from AES to TAP, Chain and PF.
+
+      Set_Note (Notepad_Of (TAP).all,
+                TAP_Note'(Note with Profile_Factory => PF));
+      --  Set link from TAP to PF.
 
       Enter (ORB.ORB_Lock.all);
       Insert_Source (ORB, New_AES);
       TAP_Seqs.Append (ORB.Transport_Access_Points, TAP);
       Leave (ORB.ORB_Lock.all);
    end Register_Access_Point;
+
+   function Is_Profile_Local
+     (ORB : access ORB_Type;
+      P   : Binding_Data.Profile_Access)
+     return Boolean is
+   begin
+      Enter (ORB.ORB_Lock.all);
+      declare
+         TAPs : constant TAP_Seqs.Element_Array
+           := TAP_Seqs.To_Element_Array
+           (ORB.Transport_Access_Points);
+         Found : Boolean := False;
+      begin
+         Leave (ORB.ORB_Lock.all);
+         for I in TAPs'Range loop
+            if Binding_Data.Is_Local_Profile
+              (Profile_Factory_Of (TAPs (I)), P)
+            then
+               Found := True;
+            end if;
+
+            exit when Found;
+         end loop;
+         return Found;
+      end;
+   end Is_Profile_Local;
 
    procedure Register_Endpoint
      (ORB   : access ORB_Type;
@@ -527,18 +576,6 @@ package body Droopi.ORB is
          raise;
 
    end Run;
-
-   function Profile_Factory_Of
-     (TAP : Transport.Transport_Access_Point_Access)
-     return Binding_Data.Profile_Factory_Access;
-
-   function Profile_Factory_Of
-     (TAP : Transport.Transport_Access_Point_Access)
-     return Binding_Data.Profile_Factory_Access is
-   begin
-      return null;
-      --  XXX not implemented!
-   end Profile_Factory_Of;
 
    procedure Create_Reference
      (ORB : access ORB_Type;

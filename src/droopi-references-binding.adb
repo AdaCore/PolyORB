@@ -43,6 +43,13 @@ package body Droopi.References.Binding is
            := Profile_Preference'First;
          Best_Profile_Index : Integer := Profiles'Last + 1;
       begin
+         --  XXX should probably rework the two-phase preference
+         --  -> bind mechanism, else we could have a case where
+         --  one non-local profile is preferred to a local, but
+         --  less preferred, profile. On the other hand, this
+         --  might be useful because it allows implementation
+         --  of All_Calls_Remote simply through prefs fiddling.
+
          for I in Profiles'Range loop
             declare
                P : constant Profile_Preference
@@ -63,50 +70,34 @@ package body Droopi.References.Binding is
          end if;
 
          declare
-            P : Profile_Type'Class
-              renames Profiles (Best_Profile_Index).all;
+            P : Profile_Access
+              renames Profiles (Best_Profile_Index);
          begin
             pragma Debug (O ("Found profile: "
                              & Ada.Tags.External_Tag (P'Tag)));
             null;
-            --  XXX implement!
 
-            --  The general idea is:
-
-            --  if P in Local_Profile then
-            --     return Local_Profile (P).Object;
-            --  else
-            --     S := Find_Session (P.Address);
-            --     return Make_Surrogate (S);
-            --  end if;
-
-            --  But actually more should be done here:
-            --  * if Local_Profile: OK, the requested
-            --    object statically exists.
-            --  * a Local_Profile may not have a servant
-            --    (if the servant needs to be incarnated).
-            --    In that case, resolve the local Oid wrt
-            --    the local object adapter, possibly incarnate,
-            --    and return the object provided by the OA.
-            --  * else if there is a network profile that
-            --    designates a local TSAP: resolve the object
-            --    likewise
-            --  * else establish a session.
-
-            --  ==> When binding a local reference, an OA
-            --      is needed. Where do we obtain it from?
-            --      Droopi.References cannot depend on Obj_Adapters!
-            --      ... but D.R.Binding can depend on anything.
-            --      We also need to know what profiles are local,
-            --      presumably by sending the ORB an Is_Local_Profile
-            --      query for each profile.
-
-            --  For now (testing/debugging) we use the following
-            --  placeholder:
-
-            if P in Local_Profile_Type then
+            if P.all in Local_Profile_Type
+              or else Is_Profile_Local (Local_ORB, P) then
+               --  Easy case: local profile.
+               --  Resolve object id within local object adapter.
                return Find_Servant
-                 (Object_Adapter (Local_ORB), Get_Object_Key (P));
+                 (Object_Adapter (Local_ORB), Get_Object_Key (P.all));
+
+               --  ==> When binding a local reference, an OA
+               --      is needed. Where do we obtain it from?
+               --      Droopi.References cannot depend on Obj_Adapters!
+               --      ... but D.R.Binding can depend on anything.
+
+               --      We also need to know what profiles are local,
+               --      presumably by sending the ORB an Is_Local_Profile
+               --      query for each profile (for the condition below).
+
+            else
+               null;
+               --  XXX TODO!
+               --     S := Find_Session (P.Address);
+               --     return Make_Surrogate (S);
             end if;
 
          end;

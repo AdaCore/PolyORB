@@ -5,6 +5,7 @@
 
 with Ada.Streams; use Ada.Streams;
 
+with Droopi.Annotations;
 with Droopi.Asynch_Ev; use Droopi.Asynch_Ev;
 with Droopi.Buffers; use Droopi.Buffers;
 with Droopi.Components; use Droopi.Components;
@@ -24,6 +25,13 @@ package Droopi.Transport is
    type Transport_Access_Point_Access is
      access all Transport_Access_Point'Class;
    --  A listening transport service access point.
+
+   function Notepad_Of (TAP : Transport_Access_Point_Access)
+     return Annotations.Notepad_Access;
+   pragma Inline (Notepad_Of);
+   --  A TAP is an annotable object (cf. Droopi.Annotations),
+   --  so clients can associate it with any information they see fit.
+   --  This functions returns an access to TAP's Notepad component.
 
    function Create_Event_Source
      (TAP : Transport_Access_Point)
@@ -105,7 +113,9 @@ package Droopi.Transport is
 private
 
    type Transport_Access_Point
-      is abstract new Components.Component with null record;
+      is abstract new Components.Component with record
+         Notepad : aliased Droopi.Annotations.Notepad;
+      end record;
 
    type Transport_Endpoint
       is abstract new Components.Component with record

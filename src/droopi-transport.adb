@@ -16,6 +16,12 @@ package body Droopi.Transport is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   function Notepad_Of (TAP : Transport_Access_Point_Access)
+     return Annotations.Notepad_Access is
+   begin
+      return TAP.Notepad'Access;
+   end Notepad_Of;
+
    function Handle_Message
      (TAP : access Transport_Access_Point;
       Msg : Components.Message'Class)
