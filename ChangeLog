@@ -3,6 +3,7 @@
 	* MANIFEST: Add missing Examples/Filters/Makefile.am.
 	Add Garlic/s-ganase.ad[bs] to the distribution.
 	Add Garlic/s-gapise.ad[bs] to the distribution.
+
 1998-09-02  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* configure.in: To build isthriob, don't compile s-stratt.adb
