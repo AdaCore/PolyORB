@@ -328,6 +328,7 @@ package body Broca.Server is
             if Tmp_POA_State /= Active then
                POA := Current_POA;
                POA_State := Tmp_POA_State;
+               Allocate_Buffer_And_Clear_Pos (Buffer, 0);
                goto Restore_Endianness_And_Return;
             end if;
             Dec_Usage (Get_The_POAManager (Current_POA).all);

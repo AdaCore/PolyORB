@@ -1,5 +1,8 @@
 1999-08-26  Laurent Pautet  <pautet@scapin.enst.fr>
 
+	* broca-server.adb: Deallocate Key in Unmarshall_Object_Key
+	(forgot to translate this from the previous version).
+
 	* broca-inet_server.adb: Reformat *_Acc in *_Ptr.
 
 1999-08-25  Laurent Pautet  <pautet@scapin.enst.fr>
