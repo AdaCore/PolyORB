@@ -71,6 +71,7 @@ cos/naming/File.idl
 cos/naming/Lname-library.idl
 cos/naming/Makefile.am
 cos/naming/Makefile.in
+cos/naming/ab_names.adb
 cos/naming/cosnaming-bindingiterator-impl.adb
 cos/naming/cosnaming-bindingiterator-impl.ads
 cos/naming/cosnaming-namingcontext-impl.adb
@@ -166,10 +167,10 @@ idlac/ada_be-identifiers.adb
 idlac/ada_be-identifiers.ads
 idlac/ada_be-idl2ada-helper.adb
 idlac/ada_be-idl2ada-helper.ads
-idlac/ada_be-idl2ada-impl.ads
 idlac/ada_be-idl2ada-impl.adb
-idlac/ada_be-idl2ada-skel.ads
+idlac/ada_be-idl2ada-impl.ads
 idlac/ada_be-idl2ada-skel.adb
+idlac/ada_be-idl2ada-skel.ads
 idlac/ada_be-idl2ada-stream.adb
 idlac/ada_be-idl2ada-stream.ads
 idlac/ada_be-idl2ada-value_impl.adb
@@ -320,7 +321,11 @@ src/corba-abstractbase.adb
 src/corba-abstractbase.ads
 src/corba-context.adb
 src/corba-context.ads
+src/corba-contextlist.adb
+src/corba-contextlist.ads
 src/corba-current.ads
+src/corba-exceptionlist.adb
+src/corba-exceptionlist.ads
 src/corba-forward.adb
 src/corba-forward.ads
 src/corba-impl.adb
@@ -328,10 +333,6 @@ src/corba-impl.ads
 src/corba-local.ads
 src/corba-nvlist.adb
 src/corba-nvlist.ads
-src/corba-contextlist.adb
-src/corba-contextlist.ads
-src/corba-exceptionlist.adb
-src/corba-exceptionlist.ads
 src/corba-object-helper.adb
 src/corba-object-helper.ads
 src/corba-object.adb
