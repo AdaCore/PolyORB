@@ -125,7 +125,7 @@ package body PolyORB.ORB is
      (ORB : access ORB_Type;
       AES : Asynch_Ev_Source_Access);
    --  Insert AES in the set of asynchronous event sources
-   --  monitored by ORB.
+   --  monitored by ORB. The caller must hold the ORB lock.
 
    procedure Delete_Source
      (ORB : access ORB_Type;
@@ -303,7 +303,9 @@ package body PolyORB.ORB is
          end;
 
          Insert_Source (ORB, AES);
-         --  Continue monitoring the TAP's AES.
+         --  Continue monitoring the TAP's AES. Note that this
+         --  event handler assumes that ORB_Lock is held.
+
       end Handle_Event;
 
       ------------------
@@ -497,6 +499,9 @@ package body PolyORB.ORB is
 
                      for J in Events'Range loop
                         Handle_Event (ORB, Events (J));
+                        --  Note: event handlers assume they are
+                        --  called with ORB_Lock held.
+
                         --  XXX here one task will do *all*
                         --  the I/O on events, this is not
                         --  optimal. Rather, I/O jobs should
@@ -517,15 +522,8 @@ package body PolyORB.ORB is
 
             Set_Status_Idle (This_Task, ORB.Idle_Tasks);
             Idle (ORB.Tasking_Policy, ORB_Access (ORB));
-            --  XXX Dunno if this is the right interface
-            --  between ORB and TP for idling.
-
             Set_Status_Running (This_Task);
 
-            --  XXX memo for selves:
-            --  How to idle with style:
-            --  Lookup (ORB.Idle_Tasks, V);
-            --  Differ (ORB.Idle_Tasks, V);
          end if;
 
          --  Condition at end of loop: ORB_Lock is held.
@@ -654,8 +652,8 @@ package body PolyORB.ORB is
       --  Set link from TAP to PF.
 
       Enter (ORB.ORB_Lock);
-      Insert_Source (ORB, New_AES);
       TAP_Seqs.Append (ORB.Transport_Access_Points, TAP);
+      Insert_Source (ORB, New_AES);
       Leave (ORB.ORB_Lock);
    end Register_Access_Point;
 
@@ -784,8 +782,6 @@ package body PolyORB.ORB is
    begin
       pragma Assert (AES /= null);
 
-      Enter (ORB.ORB_Lock);
-
       declare
          use Monitor_Seqs;
 
@@ -818,8 +814,6 @@ package body PolyORB.ORB is
       else
          Update (ORB.Idle_Tasks);
       end if;
-      Leave (ORB.ORB_Lock);
-
    end Insert_Source;
 
    -------------------
@@ -1161,7 +1155,17 @@ package body PolyORB.ORB is
             Note : TE_Note;
          begin
             Get_Note (Notepad_Of (TE).all, Note);
+
+            --  If we are currently processing an event that
+            --  happened on TE, the ORB_Lock is already held.
+            --  This can also be called from within the processing
+            --  of a request job, i.e. outside of ORB_Lock, so
+            --  for now we re-enter ORB_Lock.
+
+            Enter (ORB.ORB_Lock);
             Insert_Source (ORB, Note.AES);
+            Leave (ORB.ORB_Lock);
+
          end;
 
       elsif Msg in Interface.Unregister_Endpoint then
