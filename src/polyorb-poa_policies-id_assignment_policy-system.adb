@@ -176,6 +176,11 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
                return;
             end if;
 
+            --  Hint is a valid system generated oid. We reserve a
+            --  slot for this oid in POA's active object map. Servant
+            --  information is still null at this point. It will be
+            --  added later.
+
             Index := Integer'Value (To_Standard_String (U_Hint.Id));
             The_Entry := new Object_Map_Entry;
             The_Entry.Oid

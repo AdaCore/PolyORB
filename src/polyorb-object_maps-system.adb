@@ -89,6 +89,8 @@ package body PolyORB.Object_Maps.System is
       Obj   : in     Object_Map_Entry_Access;
       Index : in     Integer)
    is
+      use type PolyORB.Servants.Servant_Access;
+
       Elts  : constant Element_Array := To_Element_Array (O_Map.System_Map);
 
    begin
@@ -96,11 +98,34 @@ package body PolyORB.Object_Maps.System is
 
       if False
         or else not Obj.Oid.System_Generated
-        or else not Is_Null (Element_Of (O_Map.System_Map, Index)) then
+        or else (not Is_Null (Element_Of (O_Map.System_Map, Index))
+                 and then Element_Of (O_Map.System_Map, Index).Servant /= null)
+      then
+         --  We cannot add Obj at Index if it is not system generated,
+         --  or if a servant is already set for a non null entry at Index.
+
          raise Program_Error;
       end if;
 
+      if not Is_Null (Element_Of (O_Map.System_Map, Index)) then
+
+         --  An incomplete object map entry has been previously
+         --  created to reserve Index in this active object map.
+         --  We now free it.
+
+         declare
+            Incomplete_Obj : Object_Map_Entry_Access
+              := Element_Of (O_Map.System_Map, Index);
+         begin
+            Free (Incomplete_Obj);
+         end;
+      end if;
+
+      --  Add complete object map entry.
+
+      pragma Assert (Obj.Servant /= null);
       Replace_Element (O_Map.System_Map, 1 + Index - Elts'First, Obj);
+
       pragma Debug (O ("Add: leave"));
    end Add;
 
