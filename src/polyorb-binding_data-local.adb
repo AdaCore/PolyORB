@@ -52,18 +52,6 @@ package body PolyORB.Binding_Data.Local is
       P.Object_Id := null;
    end Initialize;
 
-   ------------
-   -- Adjust --
-   ------------
-
-   procedure Adjust
-     (P : in out Local_Profile_Type) is
-   begin
-      if P.Object_Id /= null then
-         P.Object_Id := new Object_Id'(P.Object_Id.all);
-      end if;
-   end Adjust;
-
    --------------
    -- Finalize --
    --------------
@@ -74,6 +62,21 @@ package body PolyORB.Binding_Data.Local is
       Free (P.Object_Id);
    end Finalize;
 
+   ---------------
+   -- Duplicate --
+   ---------------
+
+   procedure Duplicate
+     (P1 : Local_Profile_Type; P2 : out Local_Profile_Type) is
+   begin
+      P2.Continuation := P1.Continuation;
+      if P1.Object_Id /= null then
+         P2.Object_Id := new Object_Id'(P1.Object_Id.all);
+      else
+         P2.Object_Id := null;
+      end if;
+   end Duplicate;
+
    --------------------------
    -- Create_Local_Profile --
    --------------------------
@@ -82,6 +85,7 @@ package body PolyORB.Binding_Data.Local is
      (Oid : Objects.Object_Id;
       P   : out Local_Profile_Type) is
    begin
+      Initialize (P);
       P.Object_Id := new Object_Id'(Oid);
       pragma Assert (P.Object_Id /= null);
    end Create_Local_Profile;

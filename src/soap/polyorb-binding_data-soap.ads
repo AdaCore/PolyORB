@@ -48,8 +48,8 @@ package PolyORB.Binding_Data.SOAP is
    --  SOAP RPC over HTTP.
 
    procedure Initialize (P : in out SOAP_Profile_Type);
-   procedure Adjust     (P : in out SOAP_Profile_Type);
    procedure Finalize   (P : in out SOAP_Profile_Type);
+   procedure Duplicate (P1 : SOAP_Profile_Type; P2 : out SOAP_Profile_Type);
 
    ----------------------------------------------------
    -- Overloaded abstract operations of Profile_Type --

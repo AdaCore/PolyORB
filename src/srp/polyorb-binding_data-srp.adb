@@ -53,17 +53,21 @@ package body PolyORB.Binding_Data.SRP is
       P.Object_Id := null;
    end Initialize;
 
-   procedure Adjust (P : in out SRP_Profile_Type) is
-   begin
-      if P.Object_Id /= null then
-         P.Object_Id := new Object_Id'(P.Object_Id.all);
-      end if;
-   end Adjust;
-
    procedure Finalize (P : in out SRP_Profile_Type) is
    begin
       Free (P.Object_Id);
    end Finalize;
+
+   procedure Duplicate
+     (P1 : SRP_Profile_Type; P2 : out SRP_Profile_Type) is
+   begin
+      P2.Continuation := P1.Continuation;
+      if P1.Object_Id /= null then
+         P2.Object_Id := new Object_Id'(P1.Object_Id.all);
+      else
+         P2.Object_Id := null;
+      end if;
+   end Duplicate;
 
    function Bind_Profile
      (Profile : SRP_Profile_Type;

@@ -45,8 +45,8 @@ package PolyORB.Binding_Data.Local is
    type Local_Profile_Type is new Profile_Type with private;
 
    procedure Initialize (P : in out Local_Profile_Type);
-   procedure Adjust (P : in out Local_Profile_Type);
    procedure Finalize (P : in out Local_Profile_Type);
+   procedure Duplicate (P1 : Local_Profile_Type; P2 : out Local_Profile_Type);
 
    procedure Create_Local_Profile
      (Oid : Objects.Object_Id;

@@ -87,18 +87,6 @@ package body PolyORB.Binding_Data.DIOP is
       P.Object_Id := null;
    end Initialize;
 
-   ------------
-   -- Adjust --
-   ------------
-
-   procedure Adjust
-     (P : in out DIOP_Profile_Type) is
-   begin
-      if P.Object_Id /= null then
-         P.Object_Id := new Object_Id'(P.Object_Id.all);
-      end if;
-   end Adjust;
-
    --------------
    -- Finalize --
    --------------
@@ -109,6 +97,21 @@ package body PolyORB.Binding_Data.DIOP is
       Free (P.Object_Id);
       Release_Contents (P.Components);
    end Finalize;
+
+   ---------------
+   -- Duplicate --
+   ---------------
+
+   procedure Duplicate
+     (P1 : DIOP_Profile_Type; P2 : out DIOP_Profile_Type) is
+   begin
+      P2.Continuation := P1.Continuation;
+      if P1.Object_Id /= null then
+         P2.Object_Id := new Object_Id'(P1.Object_Id.all);
+      else
+         P2.Object_Id := null;
+      end if;
+   end Duplicate;
 
    ------------------
    -- Bind_Profile --
@@ -162,9 +165,7 @@ package body PolyORB.Binding_Data.DIOP is
       --  Register the endpoint and lowest filter with the ORB.
 
       pragma Debug (O ("Preparing local copy of profile"));
-      TProf.Address := Profile.Address;
-      TProf.Object_Id := Profile.Object_Id;
-      Adjust (TProf);
+      Duplicate (Profile, TProf);
       pragma Debug (O ("Adjusted local copy of profile"));
 
       declare

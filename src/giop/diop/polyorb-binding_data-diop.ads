@@ -47,8 +47,8 @@ package PolyORB.Binding_Data.DIOP is
    type DIOP_Profile_Factory is new Profile_Factory with private;
 
    procedure Initialize (P : in out DIOP_Profile_Type);
-   procedure Adjust     (P : in out DIOP_Profile_Type);
    procedure Finalize   (P : in out DIOP_Profile_Type);
+   procedure Duplicate  (P1 : DIOP_Profile_Type; P2 : out DIOP_Profile_Type);
 
    function Create_Profile
      (PF  : access DIOP_Profile_Factory;

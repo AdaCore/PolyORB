@@ -44,8 +44,8 @@ package PolyORB.Binding_Data.SRP is
    type SRP_Profile_Type is new Profile_Type with private;
 
    procedure Initialize (P : in out SRP_Profile_Type);
-   procedure Adjust (P : in out SRP_Profile_Type);
-   procedure Finalize (P : in out SRP_Profile_Type);
+   procedure Finalize   (P : in out SRP_Profile_Type);
+   procedure Duplicate  (P1 : SRP_Profile_Type; P2 : out SRP_Profile_Type);
 
    function Bind_Profile
      (Profile : SRP_Profile_Type;

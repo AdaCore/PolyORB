@@ -34,7 +34,7 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/polyorb-binding_data.ads#19 $
+--  $Id: //droopi/main/src/polyorb-binding_data.ads#20 $
 
 with Ada.Finalization;
 
@@ -68,6 +68,10 @@ package PolyORB.Binding_Data is
    --    - a priority, locally assigned, that denotes the preferrence
    --      expressed by the user for the choice of a profile type
    --      among a set of profiles.
+
+   procedure Duplicate
+     (P1 : Profile_Type; P2 : out Profile_Type) is abstract;
+   --  Replaces the ':=' operator, as we handle a limited type.
 
    subtype Profile_Tag is Types.Unsigned_Long;
 
