@@ -132,22 +132,17 @@ private
 
    type Basic_POA_Manager is new POAManager with record
       Current_State : State;
+
       Managed_POAs  : POAList;
 
-      State_Lock      : PolyORB.Tasking.Mutexes.Mutex_Access;
-      --  Lock the state
-
-      POAs_Lock       : PolyORB.Tasking.Mutexes.Mutex_Access;
-      --  Lock on the sequence of managed POAs
+      Lock : PolyORB.Tasking.Mutexes.Mutex_Access;
+      --  Lock the POA Manager
 
       PM_Hold_Servant : Hold_Servant_Access := null;
       --  Reference to the holding servant
 
       Held_Requests : Requests_Queue;
       --  List of requests held by the POAManager
-
-      Queue_Lock      : PolyORB.Tasking.Mutexes.Mutex_Access;
-      --  Lock on the queue of pending requests
    end record;
 
    procedure Finalize (Self : in out Basic_POA_Manager);
