@@ -715,6 +715,14 @@ package body PolyORB.POA is
       use PolyORB.POA_Types.POA_HTables;
 
    begin
+      --  We might be finalizing a POA (because of reference counting)
+      --  on which Destroy has already been called (with non-default
+      --  parameters), in which case there is nothing to do.
+
+      if Self.Name = null then
+         return;
+      end if;
+
       pragma Debug (O ("Start destroying POA: " & Self.Name.all));
 
       --  Remove Self from Global POA Table
@@ -735,18 +743,22 @@ package body PolyORB.POA is
 
          declare
             It : Iterator := First (Self.Children.all);
-            A_Child : Obj_Adapter_Access;
+            Child_Ref : Obj_Adapter_Ref;
+            Child_Ptr : Obj_Adapter_Access;
          begin
             while not Last (It) loop
-               A_Child
-                 := Obj_Adapter (Entity_Of (Value (It)).all)'Access;
+               --  Hold a ref on the child while we destroy it to ensure
+               --  that it does not get finalized early.
 
-               Destroy (A_Child,
+               Child_Ref := Value (It);
+               Child_Ptr := Obj_Adapter (Entity_Of (Child_Ref).all)'Access;
+
+               Destroy (Child_Ptr,
                         Etherealize_Objects,
                         Wait_For_Completion);
 
-               --  NOTE: there is no need to delete A_Child from
-               --  Self.Children, this will be done when finalizing it.
+               --  NOTE: The child is detach automatically from the children
+               --  map upon destruction.
 
                Next (It);
             end loop;
@@ -767,7 +779,8 @@ package body PolyORB.POA is
       --  Tell father to remove current POA from its list of children
 
       if Self.Father /= null then
-         pragma Debug (O ("Notify parent POA of POA destruction"));
+         pragma Debug (O ("Requesting parent to detach POA: "
+                          & Self.Name.all));
 
          POA.Remove_POA_By_Name
            (POA.Obj_Adapter_Access (Self.Father),
@@ -776,7 +789,7 @@ package body PolyORB.POA is
 
       --  Destroy self (also unregister from the POAManager)
 
-      pragma Debug (O ("About to destroy POA"));
+      pragma Debug (O ("About to destroy POA: " & Self.Name.all));
 
       Free (Self.Absolute_Address);
       Free (Self.Name);

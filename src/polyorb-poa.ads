@@ -83,11 +83,16 @@ package PolyORB.POA is
 
    type Obj_Adapter is abstract new PolyORB.POA_Types.Obj_Adapter with record
       Name                       : String_Ptr;
+      --  The POA's name. If this is null, the object has been destroyed
+
       Boot_Time                  : Time_Stamp;
+      --  Creation date of this POA
+
       Absolute_Address           : String_Ptr;
+      --  Absolute path of this POA relative to the root POA
 
       POA_Manager                : PolyORB.POA_Manager.Ref;
-      --  POA Manager attached to this POA.
+      --  POA Manager attached to this POA
 
       Adapter_Activator          : AdapterActivator_Access;
       --  Adapter Activator attached to this POA (null if not used).
