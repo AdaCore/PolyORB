@@ -120,7 +120,11 @@ package body Test_Suite.Output.File is
       pragma Unreferenced (Output);
       pragma Warnings (On); --  WAG:3.14
    begin
-      New_Line (Log_File);
+      if In_Test then
+         New_Line (Test_File);
+      else
+         New_Line (Log_File);
+      end if;
    end Separator;
 
    ------------------------------

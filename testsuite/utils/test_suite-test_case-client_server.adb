@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with GNAT.Expect;
 with GNAT.OS_Lib;
 with GNAT.Regpat;
@@ -82,6 +80,7 @@ package body Test_Suite.Test_Case.Client_Server is
          --  Setting environment.
          if Env = "" then
             Log (Output, "No environment to set.");
+            Setenv ("POLYORB_CONF", Env);
          else
             Log (Output, "Setting environment: " & Env);
             Setenv ("POLYORB_CONF", Env);
@@ -103,7 +102,6 @@ package body Test_Suite.Test_Case.Client_Server is
                IOR_String := To_Unbounded_String
                  (Expect_Out (Fd_Server)
                   (Match (0).First .. Match (0).Last));
-
             when others =>
                Log (Output, "Error when parsing server IOR");
                raise Program_Error;
@@ -127,6 +125,7 @@ package body Test_Suite.Test_Case.Client_Server is
          --  Setting environment.
          if Env = "" then
             Log (Output, "No environment to set.");
+            Setenv ("POLYORB_CONF", Env);
          else
             Log (Output, "Setting environment: " & Env);
             Setenv ("POLYORB_CONF", Env);
@@ -134,6 +133,10 @@ package body Test_Suite.Test_Case.Client_Server is
 
          --  Spawn Client.
          Log (Output, "Running client: " & Client_Command);
+         Log (Output, "  with timeout: "
+              & Integer'Image (Test_To_Run.Timeout));
+         Log (Output, "           IOR:");
+         Log (Output, "'" & To_String ((IOR_String) & "'"));
          Separator (Output);
 
          Non_Blocking_Spawn (Fd_Client,

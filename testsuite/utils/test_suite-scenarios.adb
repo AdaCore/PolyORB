@@ -68,7 +68,6 @@ package body Test_Suite.Scenarios is
               & ": "
               & Scenario_Name);
          Log (Output, "Description: " & Scenario_Id);
-         Separator (Output);
 
          return Scenario_Name;
       end;
@@ -102,12 +101,15 @@ package body Test_Suite.Scenarios is
 
             Result := Result and Run_Test (Extracted_Test, Output);
             Count := Count + 1;
+
+            delay 1.0;
          end;
       end loop;
 
       Log (Output, "All tests done in scenario: " & Scenario_Name);
-      Close_Scenario_Output_Context (Output, Result);
+      Separator (Output);
 
+      Close_Scenario_Output_Context (Output, Result);
    end Run_Scenario;
 
    -----------------------
@@ -137,6 +139,8 @@ package body Test_Suite.Scenarios is
 
    begin
       Log (Output, "Running all scenario from: " & Directory_Name);
+      Separator (Output);
+
       Run_Scenario_With_Pattern (Directory_Name, "(.*)\.conf");
    end Run_All_Scenarios;
 
