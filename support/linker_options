@@ -13,5 +13,5 @@ BOOL=`./boolsize`
 
 sed -e "s/@STDCPP@/$STDCPP/" -e "s/@POSIX4@/$POSIX4/" \
     -e "s/@SOCKET@/$SOCKET/" -e "s/@BOOL@/$BOOL/" \
-    < ../InterfaceORB/adabroker-sysdep.ads.in \
-    > ../InterfaceORB/adabroker-sysdep.ads
+    < ../interfaceorb/adabroker-sysdep.ads.in \
+    > ../interfaceorb/adabroker-sysdep.ads
