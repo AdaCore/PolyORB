@@ -68,4 +68,4 @@ Items processed
   layers before signalling to upper layers (as did the old
   Channel type) (2830).
 
-* An abstraction of transport endpoints (2866).
+* An abstraction of transport endpoints (2871).
