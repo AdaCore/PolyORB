@@ -460,7 +460,7 @@ package body PolyORB.Representations.CDR is
      (Buffer : access Buffer_Type;
       Data   :        PolyORB.Any.Any)
    is
-      Data_Type : PolyORB.Any.TypeCode.Object
+      Data_Type : constant PolyORB.Any.TypeCode.Object
         := PolyORB.Any.Get_Precise_Type (Data);
    begin
       pragma Debug (O ("Marshall_From_Any : enter"));
