@@ -1150,6 +1150,7 @@ distributed programs.
 * How to Use Gnatdist to Configure a Distributed Application::  
 * Gnatdist Command Line Options::  
 * Gnatdist Behind the Scenes::  
+* The Configuration Language::  
 * Tracing Facilities::          
 * Remote Shell Notes::          
 * Warnings::                    
@@ -1191,10 +1192,11 @@ arguments specific to each partition.
 @itemize @bullet
 
 @item
-Write a non-distributed Ada application. Use the categorization pragmas
-to specify the packages that can be called remotely. The Shared_Passive
-categorization pragma is not yet implemented. The Remote_Call_Interface
-and Remote_Types categorization pragmas are.
+Write a non-distributed Ada application to get familiar with the GLADE
+environment. Use the categorization pragmas to specify the packages that
+can be called remotely. The Shared_Passive categorization pragma is not
+yet implemented. The Remote_Call_Interface and Remote_Types
+categorization pragmas are.
 
 @item
 When this non-distributed application is working, write a configuration
@@ -1233,7 +1235,7 @@ If a list  of  partitions is provided  on the  command line,  only these
 partitions will be  build. In the  following  configuration example, you
 can type : gnatdist configuration partition_2 partition_3.
 
-@node Gnatdist Behind the Scenes, Tracing Facilities, Gnatdist Command Line Options, Getting Started With GLADE
+@node Gnatdist Behind the Scenes, The Configuration Language, Gnatdist Command Line Options, Getting Started With GLADE
 @section Gnatdist Behind the Scenes
 
 Here is what goes on behind the scenes in gnatdist when building a
@@ -1269,170 +1271,339 @@ the number of instances of the partition is unknown.
 
 @end itemize
 
+@node The Configuration Language, Tracing Facilities, Gnatdist Behind the Scenes, Getting Started With GLADE
 @section The Configuration Language
 
 The configuration language is "Ada-like". Because of its simplicity,
 it is described by means of an example. As the capabilities of GLADE
 will evolve, so will this configuration language.
 
+@menu
+* Configuration Declaration::   
+* Partition Declaration::       
+* Physical Nodes::              
+* Executable Location::         
+* Partition Main Procedure::    
+* An Example With Most Of The Configuration Language Features::  
+@end menu
+
+@node Configuration Declaration, Partition Declaration, The Configuration Language, The Configuration Language
+@subsection Configuration Declaration
+
+The distribution of an Ada program is described by a single
+configuration unit. This configuration unit has a specification part and
+an optional body part. A configuration unit is declared as an Ada
+procedure would be. The keyword @b{configuration} is reserved for this
+purpose.
+
+@smallexample
+CONFIGURATION_UNIT ::= 
+   configuration IDENTIFIER is
+      DECLARATIVE_PART
+   [begin
+      SEQUENCE_OF_STATEMENTS]
+   end [IDENTIFIER];
+@end smallexample
+
+@node Partition Declaration, Physical Nodes, Configuration Declaration, The Configuration Language
+@subsection Partition Declaration
+
+In the declarative part, the user declares his partitions and can change
+their default behavior. gnatdist provides a predefined type
+@b{Partition}. The user can declare a list of partitions and can also
+initialize these partitions with an initial list of Ada units.
+
+@smallexample
+DECLARATIVE_PART ::= @{DECLARATIVE_ITEM@}
+
+DECLARATIVE_ITEM ::= 
+   PARTITION_DECLARATION
+ | REPRESENTATION_CLAUSE
+ | SUBPROGRAM_DECLARATION
+
+PARTITION_DECLARATION ::= 
+   DEFINING_IDENTIFIER_LIST : Partition
+      [:= ENUMERATION_OF_ADA_UNITS];
+
+DEFINING_IDENTIFIER_LIST ::=
+   DEFINING_IDENTIFIER @{, DEFINING_IDENTIFIER@}
+
+STATEMENT ::=
+   IDENTIFIER := ENUMERATION_OF_ADA_UNITS;
+
+SEQUENCE_OF_STATEMENTS ::=
+   STATEMENT @{STATEMENT@}
+@end smallexample
+
+Once declared, a partition is an empty list of Ada units. The operator
+@b{":="} adds the Ada units list on the right side to the current list
+of Ada units that are already mapped to the partition. This is a
+non-destructive operation. Whether a unit is a relevant Ada unit or not
+is checked later on by the back-end of gnatdist. These assignments can
+occur in the declarative part as well as in the body part.
+
+@smallexample
+ENUMERATION_OF_ADA_UNITS ::= (@{ADA_UNIT @{, ADA_UNIT@}@});
+@end smallexample
+
+As gnatdist generates full Ada code in order to build the different
+executables, all the Ada keywords have been reserved even if they are
+not used in the configuration language.
+
+@node Physical Nodes, Executable Location, Partition Declaration, The Configuration Language
+@subsection Physical nodes
+
+Logical nodes (or partitions) can be mapped onto physical
+nodes. gnatdist default behavior is to ask for themi nteractively. It is
+possible to modify the default behavior of all the partitions via an
+attribute definition clause applied to the predefined type
+@b{Partition}. It is also possible to modify the default behavior of a
+given partition via an attribute definition clause applied to the
+partition itself.
+
+The host-name can be either a static or dynamic value. In case of a
+static value, the expression is a string literal. In case of a dynamic
+value, the representation clause argument is a function that accepts a
+string as parameter and that returns a string value. When the function
+is called, the partition name is passed as parameter and an host-name
+is returned.
+
+@smallexample
+REPRESENTATION_CLAUSE ::=
+   for IDENTIFIER'Host use STRING_LITERAL;
+ | for IDENTIFIER'Host use SUBPROGRAM;
+ | for Partition'Host use STRING_LITERAL;
+ | for Partition'Host use SUBPROGRAM;
+@end smallexample
+
+The signature of the function should be the following : it takes a
+string parameter which corresponds to a partition name. It also returns
+a string parameter which corresponds to an host-name. The function
+that returns the host-name can be an Ada function (default) or a shell
+script. A pragma Import is used to import a function defined in Ada or
+in Shell.  
+
+This function is called before launching the partition. Therefore, in
+case of load balancing, the function can return the most appropriate
+host from among a set of hosts.
+
+@node Executable Location, Partition Main Procedure, Physical Nodes, The Configuration Language
+@subsection Executable location
+
+There are several other attributes that can be applied to a
+partition. Storage_Dir allows the user to specify in which directory
+the partition executable is stored. This can be useful in heterogeneous
+systems when the user wants to store executables of the same target in
+a given directory. Specifying the directory is also useful if the
+partition executable is not directly visible from the user
+environment. For instance, when a remote command like @b{rsh} is
+invoked, the executable directory has to be present in the user
+path. If the Storage_Dir attribute has been specified, the executable
+full name is used.
+
+@smallexample
+REPRESENTATION_CLAUSE ::=
+   for IDENTIFIER'Storage_Dir use STRING_LITERAL;
+@end smallexample
+
+@node Partition Main Procedure, An Example With Most Of The Configuration Language Features, Executable Location, The Configuration Language
+@subsection Partition main procedure
+Basically, the distributed system annex helps a user in building a
+distributed application from a non-distributed application. The user
+can design, implement and test his application in a non-distributed
+environment, and then should be able to switch from his
+non-distributed case to a distributed case. This two-phase design
+approach has several advantages.
+
+For this reason, the configuration language provides a way to declare
+the main procedure of the non-distributed application.
+
+@smallexample
+procedure MAIN_UNIT is in PARTITION;
+@end smallexample
+
+In this case, the partition in which the main procedure has been
+mapped will include in its code a call to this main procedure. Other
+partitions will have a null body as a main procedure. But the user can
+also modify this behavior by providing an alternate main procedure.
+
+@smallexample
+procedure MAIN_PROCEDURE;
+
+for PARTITION'Main use MAIN_PROCEDURE;
+@end smallexample
+
+In a non-distributed case, the user executes only one main executable
+possibly with a name corresponding to the main unit name of his
+application. With gnatdist, in a distributed case, a main executable
+with a name corresponding to the main unit name is responsible for
+starting the entire distributed application. For this reason, the user
+can start his application the same way he used to do in the
+non-distributed case.
+
+As a default, the main executable is a shell script that starts
+one at a time the different partitions on the appropriate remote
+machines. But the user may ask for a full Ada starter procedure. The
+pragma Starter allows the user to ask for one starter or another.  
+
+@smallexample
+type Method_Type is (Ada, Shell, None);
+
+pragma Starter (Method => Method_Type);
+@end smallexample
+
+@node An Example With Most Of The Configuration Language Features,  , Partition Main Procedure, The Configuration Language
+@subsection An example with most of the configuration language features
+
 Every keyword and construct defined in the configuration language have
 been used in the following sample configuration file.
 
+@image{myconfig.cfg}
+
+@enumerate
+
+@item @b{Line 1}
+Typically after having created the following configuration file you
+would type:
+
 @smallexample
----------------------------
---  File `my_config.cfg' --
----------------------------
-
---  Typically after having created the following configuration file
---  you would type
---
---      gnatdist my_config.cfg
---
---  If you wish to build only certain partitions then list the partitions
---  to build on the gnatdist command line as follows:
---
---      gnatdist my_config.cfg   partition_2 partition_3
-
-configuration My_Config is
-  --  The name of the file prefix must be the same as the name of
-  --  the configuration unit, in this example `my_config'. The file
-  --  suffix must be `cfg'. For a given distributed application
-  --  you can have as many configuration files as you wish.
-
-  Partition_1 : Partition := ();
-  procedure Master_Procedure is in Partition_1;
-  --  Partition 1 contains no RCI package.
-  --  However, it will contain the main procedure of the distributed
-  --  application, called `Master_Procedure' in this example. If the
-  --  line `procedure Master_Procedure is in Partition_1;' was missing
-  --  Partition 1 would be completely empty. This is forbidden, a
-  --  partition has to contain at least one library unit.
-  --  
-  --  gnatdist produces an executable with the name of Master_Procedure
-  --  which will starts the various partitions on their host machines
-  --  in the background.  The main partition is launched in the foreground.
-  --  Note that by killing this main procedure the whole distributed
-  --  application is halted. 
-
-  Partition_2, Partition_3 : Partition;
-
-  for Partition_2'Host use "foo.bar.com";
-  --  Specify the host on which to run partition 2.
-
-  function Best_Node (Partition_Name : String) return String;
-  pragma Import (Shell, Best_Node, "best-node");
-  for Partition_3'Host use Best_Node;
-  --  Use the value returned by an a program to figure out at execution time
-  --  the name of the host on which partition 3 should execute.
-  --  For instance, execute the shell script `best-node' which takes
-  --  the partition name as parameter and returns a string giving the name of
-  --  the machine on which partition_3 should be launched.
-
-  Partition_4 : Partition := (RCI_B5);
-  --  Partition 4 contains one RCI package RCI_B5
-  --  No host is specified for this partition. The startup script
-  --  will ask for it interactively when it is executed.
-
-  for Partition_1'Storage_Dir use "/usr/you/test/bin";
-  --  Specify the directory in which the executables in each partition
-  --  will be stored.
-
-  for Partition'Storage_Dir use "bin";
-  --  Specify the directory in which all the partition executables
-  --  will be stored. Default is the current directory.
-
-  procedure Another_Main;
-  for Partition_3'Main use Another_Main;
-  --  Specify the partition main subprogram to use in a given
-  --  partition.
-
-  for Partition_3'Reconnection use Blocked_Until_Restart;
-  --  Specify a reconnection policy on Partition_3 crash. Any attempt
-  --  to reconnect to Partition_3 when this partition is dead will
-  --  be kept blocking until Partition_3 restart. As a default, any
-  --  restart is rejected (Rejected_ON_Restart). Another policy is to
-  --  raise Communication_Error on any reconnection attempt until
-  --  Partition_3 has been restarted.
-
-  for Partition_4'Command_Line use "-v";
-  --  Specify additional arguments to pass on the command line when a 
-  --  given partition is launched.
-
-  for Partition_4'Termination use Local_Termination;
-  --  Specify a termination mechanism for partition_4. The default is
-  --  to compute a global distributed termination. When Local_Termination
-  --  is specified then a partition terminates when the local termination
-  --  is detected (standard ada termination).
-
-  pragma Starter (Method => Ada);
-  --  Specify the kind of startup method you would like. There are 3
-  --  possibilities: Shell, Ada and None. Specifying `Shell' builds a shell
-  --  script. All the partitions will be launched from a shell script.
-  --  If `Ada' is chosen, then the main Ada procedure itself is used to launch
-  --  the various partitions. If method `None' is chosen, then
-  --  no launch method is used and you have to start each partition
-  --  manually. 
-  --
-  --  If no starter is given, then an Ada starter will be used.
-  --
-  --  In this example, Partition_2, Partitions_3 and Partition_4 will be
-  --  started from Partition_1 (ie from the Ada procedure Master_Procedure).
-
-  pragma Boot_Server
-    (Protocol_Name => "tcp", Protocol_Data => "`hostname`:`unused-port`");
-  --  Specify the use of a particular boot server. It is especially
-  --  useful when the default port 5555 used by GARLIC is already assigned.
-
-  pragma Version (False);
-  --  It is a bounded error to elaborate a partition of a distributed
-  --  program that contains a compilation unit that depends on a
-  --  different version of the declaration of RCI library unit than
-  --  that included in the partition to which the RCI library unit was
-  --  assigned. When the pragma Version is set to False, no
-  --  consistency check is performed.
-
-  Channel_1 : Channel := (Partition_1, Partition_4);
-  Channel_2 : Channel := (Partition_2, Partition_3);
-  --  Declare two channels. Other channels between partitions remain unknown.
-
-  for Channel_1'Filter use "ZIP";
-  --  Use transparent compression/decompression for the arguments and results
-  --  of any remote calls on channel "Channel_1", i.e. between "Partition_1"
-  --  and "Partition_4".
-
-  for Channel_2'Filter use "My_Own_Filter";
-  --  Use filter "My_Own_Filter" on "Channel_2". This filter must be imple-
-  --  mented in a package "System.Garlic.Filters.My_Own_Filter".
-
-  for Partition'Filter use "ZIP";
-  --  For all data exchanged between partitions, use the filter "ZIP". (I.e.
-  --  for both arriving remote calls as well as for calls made by a parti-
-  --  tion.)
-
-  pragma Registration_Filter ("Some_Filter");
-  --  "Some_Filter" will be used to exchange a filter's parameters between
-  --  two partitions. "Some_Filter" itself must be an algorithm that doesn't
-  --  need its own parameters to be filtered again!
-
-  --  On all other channels (i.e., for remote calls between partitions where
-  --  no channel was declared), filtering is not used.
-
-begin
-  --  The configuration body is optional. You may have fully described your
-  --  configuration in the declaration part.
-
-  Partition_2 := (RCI_B2, RCI_B4, Normal);
-  --  Partition 2 contains two RCI packages RCI_B2 and RCI_B4
-  --  and a normal package. A normal package is not categorized.
-
-  Partition_3 := (RCI_B3);
-  --  Partition 3 contains one RCI package RCI_B3
-
-end My_Config;
-
+gnatdist myconfig.cfg
 @end smallexample
 
-@node Tracing Facilities, Remote Shell Notes, Gnatdist Behind the Scenes, Getting Started With GLADE
+If you wish to build only certain partitions then list the partitions to
+build on the gnatdist command line as follows:
+
+@smallexample
+gnatdist myconfig.cfg   partition_2 partition_3
+@end smallexample
+
+@item @b{Line 2}
+The name of the file prefix must be the same as the name of the
+configuration unit, in this example `myconfig.cfg'. The file suffix must
+be `cfg'. For a given distributed application you can have as many
+configuration files as you wish.
+
+@item @b{Line 5}
+Partition 1 contains no RCI package. However, it will contain the main
+procedure of the distributed application, called `Master_Procedure' in
+this example. If the line `procedure Master_Procedure is in
+Partition_1;' was missing Partition 1 would be completely empty. This is
+forbidden, a partition has to contain at least one library unit.
+
+gnatdist produces an executable with the name of Master_Procedure
+which will starts the various partitions on their host machines in
+the background.  The main partition is launched in the foreground.
+Note that by killing this main procedure the whole distributed
+application is halted.
+
+@item @b{Line 9}
+Specify the host on which to run partition 2.
+
+@item @b{Line 13}
+Use the value returned by an a program to figure out at execution
+time the name of the host on which partition 3 should execute.  For
+instance, execute the shell script `best-node' which takes the
+partition name as parameter and returns a string giving the name of
+the machine on which partition_3 should be launched.
+
+@item @b{Line 15}
+Partition 4 contains one RCI package RCI_B5 No host is specified for
+this partition. The startup script will ask for it interactively when it
+is executed.
+
+@item @b{Line 17}
+Specify the directory in which the executables in each partition will be
+stored.
+
+@item @b{Line 18}
+Specify the directory in which all the partition executables will be
+stored. Default is the current directory.
+
+@item @b{Line 21}
+Specify the partition main subprogram to use in a given partition.
+
+@item @b{Line 23}
+Specify a reconnection policy on Partition_3 crash. Any attempt to
+reconnect to Partition_3 when this partition is dead will be kept
+blocking until Partition_3 restart. As a default, any restart is
+rejected (Rejected_ON_Restart). Another policy is to raise
+Communication_Error on any reconnection attempt until Partition_3 has
+been restarted.
+
+@item @b{Line 24}
+Specify additional arguments to pass on the command line when a given
+partition is launched.
+
+@item @b{Line 25}
+Specify a termination mechanism for partition_4. The default is to
+compute a global distributed termination. When Local_Termination is
+specified then a partition terminates when the local termination is
+detected (standard ada termination).
+
+@item @b{Line 27}
+Specify the kind of startup method you would like. There are 3
+possibilities: Shell, Ada and None. Specifying `Shell' builds a shell
+script. All the partitions will be launched from a shell script.  If
+`Ada' is chosen, then the main Ada procedure itself is used to launch
+the various partitions. If method `None' is chosen, then no launch
+method is used and you have to start each partition manually.
+
+If no starter is given, then an Ada starter will be used.
+
+In this example, Partition_2, Partitions_3 and Partition_4 will be
+started from Partition_1 (ie from the Ada procedure Master_Procedure).
+
+@item @b{Line 31}
+Specify the use of a particular boot server. It is especially useful
+when the default port 5555 used by GARLIC is already assigned.
+
+@item @b{Line 33}
+It is a bounded error to elaborate a partition of a distributed
+program that contains a compilation unit that depends on a different
+version of the declaration of RCI library unit than that included in
+the partition to which the RCI library unit was assigned. When the
+pragma Version is set to False, no consistency check is performed.
+
+@item Lien 36
+Declare two channels. Other channels between partitions remain
+unknown.
+
+@item @b{Line 38}
+Use transparent compression/decompression for the arguments and
+results of any remote calls on channel "Channel_1", i.e. between
+"Partition_1" and "Partition_4".
+ 
+@item @b{Line 39}
+Use filter "My_Own_Filter" on "Channel_2". This filter must be
+implemented in a package "System.Garlic.Filters.My_Own_Filter".
+
+@item @b{Line 40}
+For all data exchanged between partitions, use the filter "ZIP". (I.e.
+for both arriving remote calls as well as for calls made by a
+partition.)
+
+@item @b{Line 42}
+"Some_Filter" will be used to exchange a filter's parameters between two
+partitions. "Some_Filter" itself must be an algorithm that doesn't need
+its own parameters to be filtered again!
+
+On all other channels (i.e., for remote calls between partitions
+where no channel was declared), filtering is not used.
+
+@item @b{Line 44}
+The configuration body is optional. You may have fully described your
+configuration in the declaration part.
+
+@item @b{Line 45}
+Partition 2 contains two RCI packages RCI_B2 and RCI_B4 and a normal
+package. A normal package is not categorized.
+
+@item @b{Line 46}
+Partition 3 contains one RCI package RCI_B3
+
+@end enumerate
+
+@node Tracing Facilities, Remote Shell Notes, The Configuration Language, Getting Started With GLADE
 @section Tracing Facilities
 
 To trace your application, you can set two environment variables to
@@ -1479,7 +1650,8 @@ Then for each partition PART, start manually the corresponding
 executable on the corresponding host as follows
 
 @smallexample
-% PART [--nolaunch] [--slave] --boot_server tcp://MAIN_HOST:PORT_NUM
+% PART [--nolaunch] [--slave] \
+        --boot_server tcp://MAIN_HOST:PORT_NUM
 @end smallexample
 
 The --nolaunch parameter must be included for the main partition, it

@@ -2,6 +2,9 @@ CP = /bin/cp
 SED = sed
 A2PSFLAGS = -1 -B --border=no --font-size=9
 
+CONFIGS=\
+myconfig.cfg
+
 IMAGES=\
 xe-arch.fig\
 full-ex.fig\
@@ -61,14 +64,17 @@ html: $(GUIDE).html
 
 txtfiles: ${SOURCES}
 	make `echo $(SOURCES) | sed 's,\([^ ][^ ]*\),\1.txt,g'`;
+	make `echo $(CONFIGS) | sed 's,\([^ ][^ ]*\),\1.txt,g'`;
 
 jpegfiles: epsfiles
 	make `echo $(SOURCES) | sed 's,\([^ ][^ ]*\),\1.jpeg,g'`;
 	make `echo $(IMAGES)  | sed 's,\([^ ][^ ]*\),\1.jpeg,g'`;
+	make `echo $(CONFIGS)  | sed 's,\([^ ][^ ]*\),\1.jpeg,g'`;
 
 epsfiles: ${SOURCES}
 	make `echo $(SOURCES) | sed 's,\([^ ][^ ]*\),\1.eps,g'`;
 	make `echo $(IMAGES)  | sed 's,\([^ ][^ ]*\),\1.eps,g'`;
+	make `echo $(CONFIGS)  | sed 's,\([^ ][^ ]*\),\1.eps,g'`;
 
 allfiles: txtfiles epsfiles jpegfiles
 
@@ -93,8 +99,17 @@ ${SOURCES}: all-srcs.ada
 %.adb.txt: %.adb
 	${CP} -f $< $@
 
+%.cfg.txt: %.cfg
+	${CP} -f $< $@
+
 %.idl.txt: %.idl
 	${CP} -f $< $@
+
+%.cfg.eps: %.cfg
+	a2ps $(A2PSFLAGS) -Eada --line-numbers=1 $< -o $<.tmp.ps
+	ps2epsi $<.tmp.ps $@
+	./adjustbb $@
+	${RM} $<.tmp.ps
 
 %.ads.eps: %.ads
 	a2ps $(A2PSFLAGS) -Eada $< -o $<.tmp.ps
