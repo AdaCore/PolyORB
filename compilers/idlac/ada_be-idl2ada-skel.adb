@@ -199,15 +199,9 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "");
       PL (CU, "Result_Ü           : CORBA.Boolean;");
       PL (CU, "Argument_Ü_Result_Ü : CORBA.Any;");
-      PL (CU, "Ctx_Ü              : CORBA.Context.Ref");
-      PL (CU, "  := CORBA.Context.Nil_Ref;");
-      PL (CU, "Arg_List_Ü         : CORBA.NVList.Ref;");
       DI (CU);
       PL (CU, "begin");
       II (CU);
-      PL (CU, "--  Create argument list");
-      NL (CU);
-      PL (CU, "CORBA.ORB.Create_List (0, Arg_List_Ü);");
       PL (CU, "CORBA.NVList.Add_Item");
       PL (CU, "(Arg_List_Ü,");
       PL (CU, "Arg_Name_Ü_Type_Id,");
@@ -322,9 +316,19 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "   := CORBA.To_Standard_String");
       PL (CU, "        (CORBA.ServerRequest.Operation");
       PL (CU, "         (Request.all));");
+
+      Add_With (CU, "CORBA.Context");
+      Add_With (CU, "CORBA.NVList");
+      PL (CU, T_Ctx & " : CORBA.Context.Ref := CORBA.Context.Nil_Ref;");
+      PL (CU, T_Arg_List & " : CORBA.NVList.Ref;");
+
       DI (CU);
       PL (CU, "begin");
       II (CU);
+
+      Add_With (CU, "CORBA.ORB");
+      PL (CU, "CORBA.ORB.Create_List (0, " & T_Arg_List & ");");
+
    end Gen_Body_Common_Start;
 
    -------------------------
@@ -347,6 +351,22 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "PolyORB.Exceptions.Raise_Bad_Operation;");
       DI (CU);
       PL (CU, "end if;");
+      DI (CU);
+      PL (CU, "exception");
+      II (CU);
+      PL (CU, "when E : others =>");
+      II (CU);
+      PL (CU, "begin");
+      II (CU);
+      PL (CU, "CORBA.ServerRequest.Set_Exception");
+      PL (CU, "  (Request,");
+      II (CU);
+      PL (CU, "PolyORB.Exceptions.System_Exception_To_Any (E));");
+      DI (CU);
+      PL (CU, "return;");
+      DI (CU);
+      PL (CU, "end;");
+      DI (CU);
       DI (CU);
       PL (CU, "end Invoke;");
 
@@ -496,11 +516,6 @@ package body Ada_Be.Idl2Ada.Skel is
                       & " : " & Ada_Type_Name (O_Type) & ";");
                end if;
 
-               Add_With (CU, "CORBA.Context");
-               Add_With (CU, "CORBA.NVList");
-               PL (CU, Justify (T_Ctx, Max_Len)
-                   & " : CORBA.Context.Ref := CORBA.Context.Nil_Ref;");
-               PL (CU, Justify (T_Arg_List, Max_Len) & " : CORBA.NVList.Ref;");
                if Raise_Something then
                   Add_With (CU, "CORBA.ExceptionList");
                   PL (CU, Justify (T_Excp_List, Max_Len)
@@ -510,12 +525,6 @@ package body Ada_Be.Idl2Ada.Skel is
                DI (CU);
                PL (CU, "begin");
                II (CU);
-
-
-               PL (CU, "--  Create argument list");
-               NL (CU);
-               Add_With (CU, "CORBA.ORB");
-               PL (CU, "CORBA.ORB.Create_List (0, " & T_Arg_List & ");");
 
                declare
                   It   : Node_Iterator;
@@ -628,11 +637,11 @@ package body Ada_Be.Idl2Ada.Skel is
                end;
                PL (CU, ");");
 
-               DI (CU);
-               PL (CU, "exception");
-               II (CU);
-
                if Raise_Something then
+
+                  DI (CU);
+                  PL (CU, "exception");
+                  II (CU);
 
                   declare
                      It : Node_Iterator;
@@ -674,20 +683,6 @@ package body Ada_Be.Idl2Ada.Skel is
                      end loop;
                   end;
                end if;
-
-               PL (CU, "when E : others =>");
-               II (CU);
-               PL (CU, "begin");
-               II (CU);
-               PL (CU, "CORBA.ServerRequest.Set_Exception");
-               PL (CU, "  (Request,");
-               II (CU);
-               PL (CU, "PolyORB.Exceptions.System_Exception_To_Any (E));");
-               DI (CU);
-               PL (CU, "return;");
-               DI (CU);
-               PL (CU, "end;");
-               DI (CU);
 
                DI (CU);
                PL (CU, "end;");
