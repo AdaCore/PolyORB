@@ -3,11 +3,9 @@
 --
 
 with Ada.Unchecked_Deallocation;
-with System.Garlic.Constants;  --  XXXXX See procedure Shutdown
 with System.Garlic.Debug; use System.Garlic.Debug;
 with System.Garlic.Protocols;
 with System.Garlic.Termination;
-with System.Garlic.Thin;  --  XXXXX See procedure Shutdown
 with System.Garlic.Utils;
 with Unchecked_Deallocation;
 
@@ -874,28 +872,6 @@ package body System.Garlic.Heart is
 
    procedure Shutdown is
    begin
-
-      --  XXXXX Since everything should be terminated here if there
-      --  wasn't this GNAT bug which prevents system calls from being
-      --  aborted, we wouldn't need this part. Wait for 3 seconds, send
-      --  a TERM signal, then wait for another 3 seconds (if we're still
-      --  alive) and send a KILL signal. If we are still alive after these
-      --  two signals, there is nothing much to do...
-
-      Emergency_Stop : declare
-         use System.Garlic.Thin, System.Garlic.Constants;
-         Myself : constant pid_t := C_Getpid;
-         Dummy  : C.int;
-      begin
-         delay 3.0;
-         D (D_Debug, "Sending myself a TERM signal");
-         Dummy := C_Kill (Myself, Sigterm);
-         delay 3.0;
-         D (D_Debug, "Sending myself a KILL signal");
-         Dummy := C_Kill (Myself, Sigkill);
-         D (D_Debug, "Well... You may shoot yourself in the foot");
-      end Emergency_Stop;
-
       Termination.Shutdown;
       Physical_Location.Shutdown;
       Shutdown_Keeper.Signal;
@@ -903,7 +879,6 @@ package body System.Garlic.Heart is
       Free (Partition_Map);
       Free (Partition_ID_Allocation);
       Free (Receiver_Map);
-
    end Shutdown;
 
    ---------------------
