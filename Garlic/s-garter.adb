@@ -235,15 +235,17 @@ package body System.Garlic.Termination is
       Stamp : Stamp_Type := Termination_Watcher.Get_Stamp;
       Count : Natural    := 0;
       PID   : Partition_ID;
+      Next  : Partition_ID;
       Info  : Partition_Info;
    begin
-      PID := Null_PID;
+      Next := Null_PID;
       loop
-         Next_Partition (PID);
-         exit when PID = Null_PID;
-         Info := Partitions.Get_Component (PID);
+         PID := Next;
+         Next_Partition (Next);
+         exit when Next <= PID;
+         Info := Partitions.Get_Component (Next);
 
-         if PID /= Self_PID
+         if Next /= Self_PID
            and then Info.Status = Done
            and then Info.Termination /= Local_Termination
          then
@@ -251,10 +253,10 @@ package body System.Garlic.Termination is
                Query : aliased Params_Stream_Type (0);
             begin
                pragma Debug
-                 (D (D_Debug, "Send shutdown query to partition" & PID'Img));
+                 (D (D_Debug, "Send shutdown query to partition" & Next'Img));
                Termination_Code'Write (Query'Access, Set_Stamp);
                Stamp_Type'Write (Query'Access, Stamp);
-               Send (PID, Shutdown_Service, Query'Access);
+               Send (Next, Shutdown_Service, Query'Access);
                Count := Count + 1;
             exception
                when Communication_Error => null;
@@ -264,13 +266,14 @@ package body System.Garlic.Termination is
 
       Termination_Watcher.Messages_Sent (Count);
 
-      PID := Null_PID;
+      Next := Null_PID;
       loop
-         Next_Partition (PID);
-         exit when PID = Null_PID;
-         Info := Partitions.Get_Component (PID);
+         PID := Next;
+         Next_Partition (Next);
+         exit when Next <= PID;
+         Info := Partitions.Get_Component (Next);
 
-         if PID /= Self_PID
+         if Next /= Self_PID
            and then Info.Status = Done
            and then Info.Termination /= Local_Termination
          then
@@ -279,7 +282,7 @@ package body System.Garlic.Termination is
             begin
                Termination_Code'Write (Query'Access, Check_Stamp);
                Stamp_Type'Write (Query'Access, Stamp);
-               Send (PID, Shutdown_Service, Query'Access);
+               Send (Next, Shutdown_Service, Query'Access);
             exception
                when Communication_Error => null;
             end;
@@ -324,7 +327,7 @@ package body System.Garlic.Termination is
      (Partition : in Partition_ID;
       Opcode    : in External_Opcode;
       Query     : access Params_Stream_Type;
-      Reply     : access Params_Stream_Type)
+      Reply    : access Params_Stream_Type)
    is
       Code  : Termination_Code;
       Stamp : Stamp_Type;
@@ -351,7 +354,6 @@ package body System.Garlic.Termination is
          when Check_Stamp =>
             declare
                Ready : Boolean;
-               Reply : aliased Params_Stream_Type (0);
             begin
                Termination_Watcher.Termination_Accepted (Stamp, Ready);
 
@@ -364,13 +366,12 @@ package body System.Garlic.Termination is
                  and then Options.Termination /= Deferred_Termination
                then
                   pragma Debug (D (D_Debug, "Partition can terminate"));
-                  Termination_Code'Write (Reply'Access, Positive_Ack);
+                  Termination_Code'Write (Reply, Positive_Ack);
                else
                   pragma Debug (D (D_Debug, "Partition cannot terminate"));
-                  Termination_Code'Write (Reply'Access, Negative_Ack);
+                  Termination_Code'Write (Reply, Negative_Ack);
                end if;
-               Stamp_Type'Write (Reply'Access, Stamp);
-               Send (Partition, Shutdown_Service, Reply'Access);
+               Stamp_Type'Write (Reply, Stamp);
             end;
 
          when Positive_Ack =>
@@ -443,25 +444,27 @@ package body System.Garlic.Termination is
                Success  : Boolean;
                Deadline : Duration;
                PID      : Partition_ID;
+               Next     : Partition_ID;
                Info     : Partition_Info;
             begin
                --  First of all, check if there is any alive partition whose
                --  termination is local. If this is the case, that means
                --  that these partitions have not terminated yet.
 
-               PID := Null_PID;
+               Next := Null_PID;
                loop
-                  Next_Partition (PID);
-                  exit when PID = Null_PID;
-                  Info := Partitions.Get_Component (PID);
+                  PID := Next;
+                  Next_Partition (Next);
+                  exit when Next <= PID;
+                  Info := Partitions.Get_Component (Next);
 
-                  if PID /= Self_PID
+                  if Next /= Self_PID
                     and then Info.Status = Done
                     and then Info.Termination = Local_Termination
                   then
                      pragma Debug
                        (D (D_Debug,
-                           "Partition" & PID'Img & " still active"));
+                           "Partition" & Next'Img & " still active"));
                      Ready := False;
                      exit;
                   end if;

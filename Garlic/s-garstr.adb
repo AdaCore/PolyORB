@@ -76,11 +76,11 @@ package body System.Garlic.Streams is
       if Target.First /= null then
          Free (Target.First);
       end if;
-      Target.First         := Source.First;
-      Target.Current       := Source.Current;
-      Target.Special_First := Source.Special_First;
-      Target.Count         := Source.Count;
-      Source.First         := null;
+      Target.First   := Source.First;
+      Target.Current := Source.Current;
+      Target.Insert  := Source.Insert;
+      Target.Count   := Source.Count;
+      Source.First   := null;
    end Deep_Copy;
 
    ----------
@@ -122,6 +122,15 @@ package body System.Garlic.Streams is
    begin
       return Params.Count = 0;
    end Empty;
+
+   ------------
+   -- Insert --
+   ------------
+
+   procedure Insert (Params : in out Params_Stream_Type) is
+   begin
+      Params.Insert := True;
+   end Insert;
 
    ----------
    -- Read --
@@ -251,7 +260,7 @@ package body System.Garlic.Streams is
 
       Stream.Count := Stream.Count + Item'Length;
 
-      if Stream.Special_First then
+      if Stream.Insert then
 
          --  We make a special handling to add a header in front of
          --  the packet. Current points to the head, and new packets
@@ -259,19 +268,20 @@ package body System.Garlic.Streams is
          --  packets.
 
          declare
-            Special : Node_Ptr :=
+            Insert : Node_Ptr :=
              new Node (Stream_Element_Count'Max (Node_Size, Length));
          begin
-            Special.Next := Stream.First;
-            Stream.First := Special;
-            Current := Stream.First;
+            Insert.Next  := Stream.First;
+            Stream.First := Insert;
+            Current      := Stream.First;
             Current.Content (1 .. Length) := Item;
-            Current.Last := Length + 1;
-            Stream.Special_First := False;
-            Stream.Count := Stream.Count + Length;
+            Current.Last  := Length + 1;
+            Stream.Insert := False;
+            Stream.Count  := Stream.Count + Length;
             return;
          end;
       end if;
+
       if Length + Current.Last - 1 > Current.Size then
          declare
             Old_Next : constant Node_Ptr := Current.Next;

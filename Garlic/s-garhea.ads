@@ -71,9 +71,13 @@ package System.Garlic.Heart is
 
    procedure Next_Partition
      (Partition : in out Types.Partition_ID;
+      Increment : in Boolean := True;
       Allocated : in Boolean := True);
    --  Find next partition id after Partition which is Allocated (or
-   --  un-allocated when Allocated is False).
+   --  un-allocated when Allocated is False). If Partition is
+   --  Null_Partition, start from the first partition id. If there
+   --  is no candidate, keep Partition unmodified. If Increment is false,
+   --  then scan table by decrementing.
 
    function Reconnection_Policy (Partition : Types.Partition_ID)
      return Types.Reconnection_Type;
@@ -157,6 +161,7 @@ package System.Garlic.Heart is
        Shutdown_Operation,       -- Last Internal Opcode
        Remote_Call,              -- First Public Opcode
        User_Message,
+       Group_Service,
        Shutdown_Service,
        Unit_Name_Service,
        Filtering_Service);       -- Last Public Opcode
@@ -188,6 +193,12 @@ package System.Garlic.Heart is
    --  Called by a protocol to signal that something has arrived. Data has
    --  not been unfiltered yet. Offset represents the number of bytes that
    --  should not been considered.
+
+   procedure Handle_Any_Request
+     (Partition : in Types.Partition_ID;
+      Opcode    : in Any_Opcode;
+      Query     : access Streams.Params_Stream_Type;
+      Reply     : access Streams.Params_Stream_Type);
 
    procedure Process_Stream
      (Partition  : in Types.Partition_ID;

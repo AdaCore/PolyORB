@@ -363,7 +363,8 @@ package body System.Garlic.TCP is
    -- Get_Info --
    --------------
 
-   function Get_Info (P : access TCP_Protocol) return String is
+   function Get_Info (Protocol  : access TCP_Protocol) return String
+   is
       Location : Host_Location renames Self.Location;
       Port     : constant String := Location.Port'Img;
    begin
@@ -464,6 +465,13 @@ package body System.Garlic.TCP is
    exception
 
       when Communication_Error =>
+
+         --  If this connection is broken before partition identification,
+         --  then try to rescue New_PID especially for the boot server.
+
+         if New_PID = Last_PID then
+            New_PID := Boot_PID;
+         end if;
 
          if New_PID /= Null_PID
            and then not Shutdown_In_Progress

@@ -142,8 +142,9 @@ s-ganeut.o\
 s-gaphlo.o\
 s-garcon.o\
 s-gardeb.o\
-s-garfil.o\
 s-garexc.o\
+s-garfil.o\
+s-gargro.o\
 s-garhea.o\
 s-garlic.o\
 s-garloc.o\
@@ -180,6 +181,7 @@ ${srcdir}/s-gaphlo.ads ${srcdir}/s-gaphlo.adb \
           s-garcon.ads                        \
 ${srcdir}/s-gardeb.ads ${srcdir}/s-gardeb.adb \
 ${srcdir}/s-garfil.ads ${srcdir}/s-garfil.adb \
+${srcdir}/s-gargro.ads ${srcdir}/s-gargro.adb \
 ${srcdir}/s-garhea.ads ${srcdir}/s-garhea.adb \
 ${srcdir}/s-garlic.ads                        \
 ${srcdir}/s-garloc.ads ${srcdir}/s-garloc.adb \

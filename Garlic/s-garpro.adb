@@ -39,7 +39,7 @@ package body System.Garlic.Protocols is
    -- Get_Info --
    --------------
 
-   function Get_Info (P : access Protocol_Type) return String is
+   function Get_Info (Protocol  : access Protocol_Type) return String is
    begin
       return "";
    end Get_Info;

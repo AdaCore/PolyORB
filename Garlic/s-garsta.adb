@@ -37,6 +37,8 @@ with System.Garlic.Debug;             use System.Garlic.Debug;
 with System.Garlic.Elaboration;
 pragma Elaborate_All (System.Garlic.Elaboration);
 with System.Garlic.Filters;
+with System.Garlic.Group;             use System.Garlic.Group;
+pragma Elaborate_All (System.Garlic.Group);
 with System.Garlic.Heart;             use System.Garlic.Heart;
 pragma Elaborate_All (System.Garlic.Heart);
 with System.Garlic.Options;           use System.Garlic.Options;
@@ -80,6 +82,7 @@ begin
    --  Phase (2) (see s-garlic.ads)
 
    System.Garlic.Heart.Initialize;
+   System.Garlic.Group.Initialize;
 
    --  Phase (30 (see s-garlic.ads)
 

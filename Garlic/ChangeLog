@@ -1,3 +1,59 @@
+1998-10-14  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* DALL, UNDALL: Add S_GARGRO debugging env. var.
+
+	* Makefile.am, Makefile.in: Add System.Garlic.Group in source and
+	object lists.
+	
+	* s-gargro.adb, s-gargro.ads: New package to manage a group of
+ 	potential boot servers (token ring). Each member of this group has
+ 	a copy of the partition info list. When one of them dies, there is
+ 	always a copy in another member of the group. Procedure Broadcast
+ 	allows to send a request to the group. Handle_Request handles a
+ 	group request. It extracts the encapsulated request which is
+ 	handled like any other request. When there is a reply to this
+ 	encapsulated request, the reply is substituted to the broadcast
+ 	request. Otherwise, the broadcast request is kept
+ 	unmodified. Then, this request is sent to the next partition in
+ 	the boot server group until the sender receives its own
+ 	request. For now, a partition is a potential boot server when it
+ 	has not a light PCS configuration (not Has_RCI_Pkg_Or_RACW_Var).
+
+	* s-garpar.ads: Add new field Boot_Server in Partition_Info to
+	indicate whether a partition is a member of the boot server group.
+	
+	* s-garhea.adb: Rename Partition_Request_Handler into
+ 	Handle_Partition_Request. Add several steps in the boot sequence
+	(Handle_Partition_Request) in order to add a partition in the boot
+ 	server group and to broadcast the partition list to this
+ 	group. Add function Get_Self_Location to compute the location of
+ 	the current partition. Fix Next_Partition to wrap around the
+ 	partition table. Split Process_Stream into two procedures
+	Process_Stream and Handle_Any_Request in order to handle a
+	broadcast request as an encapsulated request to other
+	services. 
+
+	* s-garpro.ads, s-garpro.adb: Reformatting.
+
+	* s-garsta.adb: Add elaboration of Garlic.Group.
+
+	* s-garstr.adb, s-garstr.ads: Rename field Special_First into
+	Insert and add a new procedure Insert to activate insertion mode
+	in a stream (by default, we append new data in a stream).
+
+	* s-gartcp.adb, s-gartcp.ads: Reformatting. Fix a problem that can 
+	occur when a connection is broken and the boot partition not
+	really computed.
+
+	* s-garter.adb: Use new Next_Partition behaviour. Use Reply
+ 	parameter of Handle_Request to answer to a shutdown request.
+
+	* s-garuni.adb: Do not execute an invalidate partition request
+	when shutdown is in progress.
+
+	* s-stratt.adb: Change SSU and SSI size to marshal a stream
+	element (Stream_Element'Write) as it would be with RPC.Write.
+
 1998-10-08  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-parint.adb: Remove wrong code inserted during last merge.

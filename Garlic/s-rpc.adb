@@ -285,16 +285,16 @@ package body System.RPC is
       end if;
    end When_Established;
 
-   --------------------
+   -----------------------
    -- Insert_RPC_Header --
-   --------------------
+   -----------------------
 
    procedure Insert_RPC_Header
      (Params : access Streams.Params_Stream_Type;
       Header : in RPC_Header)
    is
    begin
-      Params.Special_First := True;
+      Streams.Insert (Params.all);
       RPC_Header'Output (Params, Header);
    end Insert_RPC_Header;
 

@@ -131,8 +131,8 @@ package body System.Stream_Attributes is
    --  XXXXX pragma Assert (Long_Long_Integer'Size <= 64);
    --  XXXXX pragma Assert (16 <= Integer'Size and Integer'Size <= 32);
 
-   SSI_L : constant := 4;
-   SI_L  : constant := 4;
+   SSI_L : constant := 1;
+   SI_L  : constant := 2;
    I_L   : constant := 4;
    LI_L  : constant := 8;
    LLI_L : constant := 8;
@@ -163,8 +163,8 @@ package body System.Stream_Attributes is
    --  XXXXX pragma Assert (Long_Long_Unsigned'Size <= 64);
    --  XXXXX pragma Assert (16 <= Unsigned'Size and Unsigned'Size <= 32);
 
-   SSU_L : constant := 4;
-   SU_L  : constant := 4;
+   SSU_L : constant := 1;
+   SU_L  : constant := 2;
    U_L   : constant := 4;
    LU_L  : constant := 8;
    LLU_L : constant := 8;
@@ -778,9 +778,10 @@ package body System.Stream_Attributes is
       if L /= S'Last then
          raise Err;
       else
-         for N in S'Range loop
-            U := U * BB + XDR_SSU (S (N));
-         end loop;
+         --  for N in S'Range loop
+         --     U := U * BB + XDR_SSU (S (N));
+         --  end loop;
+         U := XDR_SSU (S (1));
 
          --  Test sign and apply two complement's notation.
          if S (1) < BL then
@@ -941,9 +942,10 @@ package body System.Stream_Attributes is
       if L /= S'Last then
          raise Err;
       else
-         for N in S'Range loop
-            U := U * BB + XDR_SSU (S (N));
-         end loop;
+         --  for N in S'Range loop
+         --     U := U * BB + XDR_SSU (S (N));
+         --  end loop;
+         U := XDR_SSU (S (1));
 
          return Short_Short_Unsigned (U);
       end if;
@@ -1635,16 +1637,17 @@ package body System.Stream_Attributes is
          U := XDR_SSU (Item);
       end if;
 
-      for N in reverse S'Range loop
-         S (N) := SE (U mod BB);
-         U := U / BB;
-      end loop;
+      --  for N in reverse S'Range loop
+      --     S (N) := SE (U mod BB);
+      --     U := U / BB;
+      --  end loop;
+      S (1) := SE (U);
 
       Ada.Streams.Write (Stream.all, S);
 
-      if U /= 0 then
-         raise Err;
-      end if;
+      --  if U /= 0 then
+      --     raise Err;
+      --  end if;
    end W_SSI;
 
    ----------
@@ -1794,16 +1797,17 @@ package body System.Stream_Attributes is
       U : XDR_SSU := XDR_SSU (Item);
 
    begin
-      for N in reverse S'Range loop
-         S (N) := SE (U mod BB);
-         U := U / BB;
-      end loop;
+      --  for N in reverse S'Range loop
+      --     S (N) := SE (U mod BB);
+      --     U := U / BB;
+      --  end loop;
+      S (1) := SE (U);
 
       Ada.Streams.Write (Stream.all, S);
 
-      if U /= 0 then
-         raise Err;
-      end if;
+      --  if U /= 0 then
+      --     raise Err;
+      --  end if;
    end W_SSU;
 
    ----------

@@ -37,6 +37,7 @@ with Ada.Exceptions;                  use Ada.Exceptions;
 pragma Warnings (Off, Ada.Exceptions);
 with System.Garlic.Debug;             use System.Garlic.Debug;
 with System.Garlic.Filters;           use System.Garlic.Filters;
+with System.Garlic.Group;             use System.Garlic.Group;
 with System.Garlic.Name_Table;        use System.Garlic.Name_Table;
 with System.Garlic.Options;
 with System.Garlic.Partitions;        use System.Garlic.Partitions;
@@ -89,8 +90,6 @@ package body System.Garlic.Heart is
    Partition_Error_Notification : RPC_Error_Notifier_Type;
    --  Call this procedure when a partition dies
 
-   Request_Get : constant Request_Type := (Kind => Get_Partition_Info);
-
    function Allocate_PID return Types.Partition_ID;
    --  Allocate a new partition ID
 
@@ -112,6 +111,8 @@ package body System.Garlic.Heart is
    --  Same as above. But for boot partition, then get protocol from
    --  boot server option.
 
+   function Get_Self_Location return Location_Type;
+
    procedure Handle_External
      (Partition : in Partition_ID;
       Opcode    : in External_Opcode;
@@ -126,17 +127,17 @@ package body System.Garlic.Heart is
       Reply     : access Params_Stream_Type);
    --  Internal operations
 
+   procedure Handle_Partition_Request
+     (Partition : in Partition_ID;
+      Query     : access Params_Stream_Type;
+      Reply     : access Params_Stream_Type);
+   --  Handle Partition_Service operations
+
    function Opcode_Read (Opcode : Stream_Element) return Any_Opcode;
    pragma Inline (Opcode_Read);
    function Opcode_Write (Opcode : Any_Opcode) return Stream_Element;
    pragma Inline (Opcode_Write);
    --  Read and write opcode on one byte
-
-   procedure Partition_Request_Handler
-     (Partition : in Partition_ID;
-      Query     : access Params_Stream_Type;
-      Reply     : access Params_Stream_Type);
-   --  Handle Partition_Service operations
 
    procedure Partition_RPC_Receiver
      (Params : access Streams.Params_Stream_Type;
@@ -338,7 +339,7 @@ package body System.Garlic.Heart is
    function Get_My_Partition_ID return Partition_ID
    is
       Boot_Partition : Partition_Info;
-      Boot_Request   : Request_Type (Set_Partition_Info);
+      Boot_Request   : Request_Type (New_Partition_Info);
    begin
       if Self_PID = Null_PID then
 
@@ -368,38 +369,45 @@ package body System.Garlic.Heart is
             Set_My_Partition_ID (Boot_PID);
 
          else
-            --  We will send a Set_Partition_Info request to the boot
+            --  We will send a New_Partition_Info request to the boot
             --  partition. This is step 1. This will cause a dialog to be
-            --  established and a new Partition_ID to be allocated, and our
-            --  location will be registered into the boot partition's
-            --  repository. This is step 2. The boot partition sends this
-            --  partition info back to this partition. This is step 3. At
-            --  this point, Self_PID is known but startup is kept
-            --  blocking. The boot partition sends partition info on itself
-            --  to this partition. This is step 4. At this point, Boot_PID
-            --  is known. Therefore, startup can complete and
-            --  Self_PID_Barrier is open. This is step 5.
+            --  established and a new Partition_ID to be allocated. The
+            --  partition location will be registered into the boot
+            --  partition's repository. This is step 2. The boot partition
+            --  sends this partition info back to the partition. This is
+            --  step 3. At this point, Self_PID is known but startup is
+            --  kept blocking. The partition sends a request to get
+            --  partition info on the boot partition. This is step 4. The
+            --  boot partition replies on itself to this partition. This is
+            --  step 5. At this point, Boot_PID is known. Therefore,
+            --  startup can complete and Self_PID_Barrier is open. This is
+            --  step 6. When a partition is a potential boot server then it
+            --  also sends an add partition info request to the boot
+            --  partition. This is step 7. Then an all partition info
+            --  request will be broadcast. This is step 8.
 
-            Boot_Partition := Partitions.Get_Component (Boot_PID);
+            Boot_Request.Partition := Null_PID;
+            Boot_Request.Info :=
+              (Allocated     => True,
+               Location      => Get_Self_Location,
+               Protocol      => null,
+               Logical_Name  => Options.Partition_Name,
+               Termination   => Options.Termination,
+               Reconnection  => Options.Reconnection,
+               Light_RTS     => Can_Have_A_Light_Runtime,
+               Boot_Server   => False,
+               Status        => Done);
 
-            Boot_Request.Logical_Name := Options.Partition_Name;
-            Boot_Request.Reconnection := Options.Reconnection;
-            Boot_Request.Termination  := Options.Termination;
-            Boot_Request.Location     :=
-              To_Location (Boot_Partition.Protocol,
-                           Get_Info (Boot_Partition.Protocol));
-
-            --  This is step 1
+            --  This is step 1.
 
             declare
                Query : aliased Params_Stream_Type (0);
             begin
-               Partition_ID'Write  (Query'Access, Null_PID);
                Request_Type'Output (Query'Access, Boot_Request);
                Send (Boot_PID, Partition_Operation, Query'Access);
             end;
 
-            --  This is step 5
+            --  This is step 6.
 
             Self_PID_Barrier.Wait;
 
@@ -457,8 +465,9 @@ package body System.Garlic.Heart is
             declare
                Query : aliased Params_Stream_Type (0);
             begin
-               Partition_ID'Write  (Query'Access, PID);
-               Request_Type'Output (Query'Access, Request_Get);
+               Request_Type'Output
+                 (Query'Access,
+                  Request_Type'(Get_Partition_Info, PID));
                Send (Boot_PID, Partition_Operation, Query'Access);
             end;
          end if;
@@ -482,6 +491,39 @@ package body System.Garlic.Heart is
    begin
       return Get_Partition_Info (Partition).Protocol;
    end Get_Protocol;
+
+   -----------------------
+   -- Get_Self_Location --
+   -----------------------
+
+   function Get_Self_Location return Location_Type is
+      Boot_Protocol : constant Protocol_Access :=
+        Partitions.Get_Component (Boot_PID).Protocol;
+   begin
+      return To_Location (Boot_Protocol, Get_Info (Boot_Protocol));
+   end Get_Self_Location;
+
+   ------------------------
+   -- Handle_Any_Request --
+   ------------------------
+
+   procedure Handle_Any_Request
+     (Partition : in Partition_ID;
+      Opcode    : in Any_Opcode;
+      Query     : access Params_Stream_Type;
+      Reply     : access Params_Stream_Type) is
+   begin
+      --  Depending on the opcode, dispatch to the public or internal routines.
+
+      case Opcode is
+         when Internal_Opcode =>
+            Handle_Internal (Partition, Opcode, Query, Reply);
+         when External_Opcode   =>
+            Handle_External (Partition, Opcode, Query, Reply);
+         when Invalid_Operation =>
+            raise Program_Error;
+      end case;
+   end Handle_Any_Request;
 
    ---------------------
    -- Handle_External --
@@ -530,7 +572,7 @@ package body System.Garlic.Heart is
             null;
 
          when Partition_Operation =>
-            Partition_Request_Handler (Partition, Query, Reply);
+            Handle_Partition_Request (Partition, Query, Reply);
 
          when Shutdown_Operation =>
             Heart.Shutdown;
@@ -545,6 +587,179 @@ package body System.Garlic.Heart is
                "Handle_Internal: " & Exception_Information (E)));
          raise Communication_Error;
    end Handle_Internal;
+
+   ------------------------------
+   -- Handle_Partition_Request --
+   ------------------------------
+
+   procedure Handle_Partition_Request
+     (Partition : in Partition_ID;
+      Query     : access Params_Stream_Type;
+      Reply     : access Params_Stream_Type)
+   is
+      Request : Request_Type;
+      PID     : Partition_ID;
+      Booted  : Boolean := False;
+      Info    : Partition_Info;
+      To_All  : aliased Params_Stream_Type (0);
+   begin
+      Request := Request_Type'Input (Query);
+
+      pragma Debug
+        (D (D_Warning,
+            "Receive from partition" & Partition'Img &
+            " request " & Request.Kind'Img));
+
+      Partitions.Enter;
+      case Request.Kind is
+
+         when Add_Partition_Info =>
+            pragma Debug (D (D_Debug, "List all partitions"));
+
+            --  Add this partition in the list of potential boot servers.
+
+            Info := Partitions.Get_Component (Partition);
+            Info.Boot_Server := True;
+            Partitions.Set_Component (Partition, Info);
+
+            --  Broadcast to any partition in the group. This is step 8.
+
+            Request_Type'Output
+              (To_All'Access, Request_Type'(Kind => All_Partition_Info));
+            for P in Partitions.Table'Range loop
+               if Partitions.Table (P).Allocated then
+                  Info := Partitions.Get_Component (P);
+                  Boolean'Write (To_All'Access, True);
+                  Partition_ID'Write (To_All'Access, P);
+                  Partition_Info'Write (To_All'Access, Info);
+               end if;
+            end loop;
+            Boolean'Write (To_All'Access, False);
+
+         when All_Partition_Info =>
+            pragma Debug (D (D_Debug, "List all partitions"));
+
+            while Boolean'Input (Query) loop
+               Partition_ID'Read (Query, PID);
+               Partition_Info'Read (Query, Info);
+
+               if Options.Execution_Mode = Replay_Mode then
+                  Info.Location := To_Location ("replay://");
+               end if;
+               Info.Protocol := Get_Protocol (Info.Location);
+
+               Partitions.Set_Component (PID, Info);
+               Dump_Partition_Info (PID, Info);
+            end loop;
+
+         when Get_Partition_Info =>
+            pragma Debug
+              (D (D_Debug, "Reply to partition" & Partition'Img &
+                  " on partition " & Request.Partition'Img));
+
+            Request_Type'Output
+              (Reply,
+               (Set_Partition_Info,
+                Request.Partition,
+                Partitions.Get_Component (Request.Partition)));
+
+         when New_Partition_Info =>
+            pragma Debug
+              (D (D_Debug, "Set info on partition" & Partition'Img));
+
+            --  This is step 2 for boot partition.
+
+            if Options.Execution_Mode = Replay_Mode then
+               Request.Info.Location := To_Location ("replay://");
+            end if;
+            Request.Info.Protocol := Get_Protocol (Request.Info.Location);
+
+            Dump_Partition_Info (Partition, Request.Info);
+            Partitions.Set_Component (Partition, Request.Info);
+
+            --  Reply to a partition declaration with a set partition info
+            --  request. This is step 3 for boot partition.
+
+            Request_Type'Output
+              (Reply, (Set_Partition_Info, Partition, Request.Info));
+
+         when Set_Partition_Info =>
+            pragma Debug
+              (D (D_Debug, "Set info on partition" & Request.Partition'Img));
+
+            if Options.Execution_Mode = Replay_Mode then
+               Request.Info.Location := To_Location ("replay://");
+            end if;
+            Request.Info.Protocol := Get_Protocol (Request.Info.Location);
+
+            Dump_Partition_Info (Request.Partition, Request.Info);
+            Partitions.Set_Component (Request.Partition, Request.Info);
+
+            --  This is a set partition info request issued from a new
+            --  partition info request. This way we get the partition id of
+            --  the current partition. This is step 3 for booting
+            --  partition.
+
+            if Self_PID = Null_PID then
+               Self_PID := Request.Partition;
+
+               if Boot_PID /= Partition then
+                  Info := Partitions.Get_Component (Boot_PID);
+                  Partitions.Set_Component (Partition, Info);
+                  Info.Allocated := False;
+                  Info.Status    := None;
+                  Partitions.Set_Component (Boot_PID, Info);
+                  Boot_PID := Partition;
+               end if;
+
+               --  This is step 4 for booting partition.
+
+               Request_Type'Output (Reply, (Get_Partition_Info, Partition));
+            end if;
+
+            --  When a partition sends info on itself, this partition
+            --  is the boot partition. This is the last step before
+            --  elaboration completion. This is step 5.
+
+            if Request.Partition = Partition then
+               Booted := True;
+
+               Info := Partitions.Get_Component (Self_PID);
+               Info.Boot_Server := not Info.Light_RTS;
+               Partitions.Set_Component (Self_PID, Info);
+
+               --  If this partition wants to join the boot server group,
+               --  send an add partition info request. This is step 7.
+
+               if Info.Boot_Server then
+                  Request_Type'Output
+                    (Reply, Request_Type'(Kind => Add_Partition_Info));
+               end if;
+            end if;
+
+      end case;
+
+      Partitions.Leave;
+
+      if not Empty (To_All'Access) then
+         Broadcast (Partition_Operation, To_All'Access);
+      end if;
+
+      --  Release startup from step 6. We cannot resume elaboration
+      --  before this point because Boot_PID and Self_PID will not
+      --  be set if the main task tries to get info on them.
+
+      if Booted then
+         Set_My_Partition_ID (Self_PID);
+      end if;
+
+   exception
+      when E : others =>
+         pragma Warnings (Off, E);
+         pragma Debug (D (D_Exception, "Handle_Partition_Request: " &
+                          Exception_Information (E)));
+         raise;
+   end Handle_Partition_Request;
 
    ----------------
    -- Initialize --
@@ -589,37 +804,57 @@ package body System.Garlic.Heart is
 
    procedure Next_Partition
      (Partition : in out Types.Partition_ID;
+      Increment : in Boolean := True;
       Allocated : in Boolean := True)
    is
-      From : Partition_ID := Partitions.Table'First;
-      Last : constant Partition_ID := Partitions.Table'Last;
       Next : Partition_ID;
+      From : Partition_ID := Partition;
    begin
-      if Partition /= Null_PID then
-         if Partition < Partitions.Table'Last then
-            From := Partition + 1;
-         else
-            pragma Debug (D (D_Debug,
-                             "Partition" & Partition'Img &
-                             " ->" & Null_PID'Img));
-            Partition := Null_PID;
-            return;
+      if Increment then
+         if Partition = Null_PID then
+            From := Partitions.Table'Last;
+         end if;
+      else
+         if Partition = Null_PID then
+            From := Partitions.Table'First;
          end if;
       end if;
+      Next := From;
 
-      Next := Null_PID;
       Partitions.Enter;
-      for PID in From .. Last loop
-         if Partitions.Table (PID).Allocated = Allocated then
-            Next := PID;
+      loop
+         if Increment then
+            if Next = Partitions.Table'Last then
+               Next := Partitions.Table'First;
+            else
+               Next := Next + 1;
+            end if;
+         else
+            if Next = Partitions.Table'First then
+               Next := Partitions.Table'Last;
+            else
+               Next := Next - 1;
+            end if;
+         end if;
+         if Next = From
+           or else Partitions.Table (Next).Allocated = Allocated then
+            Partition := Next;
             exit;
          end if;
       end loop;
       Partitions.Leave;
-      pragma Debug (D (D_Debug,
-                       "Partition" & Partition'Img &
-                       " -> Partition" & Next'Img));
-      Partition := Next;
+
+      if Increment then
+         pragma Debug (D (D_Debug,
+                          "Next partition of " & Partition'Img &
+                          " is partition" & Next'Img));
+         null;
+      else
+         pragma Debug (D (D_Debug,
+                          "Prev partition of " & Partition'Img &
+                          " is partition" & Next'Img));
+         null;
+      end if;
    end Next_Partition;
 
    -----------------
@@ -639,152 +874,6 @@ package body System.Garlic.Heart is
    begin
       return Any_Opcode'Pos (Opcode);
    end Opcode_Write;
-
-   -------------------------------
-   -- Partition_Request_Handler --
-   -------------------------------
-
-   procedure Partition_Request_Handler
-     (Partition : in Partition_ID;
-      Query     : access Params_Stream_Type;
-      Reply     : access Params_Stream_Type)
-   is
-      Request : Request_Type;
-      PID     : Partition_ID;
-      Booted  : Boolean := False;
-      Info    : Partition_Info;
-   begin
-      Partition_ID'Read (Query, PID);
-      Request := Request_Type'Input (Query);
-
-      pragma Debug
-        (D (D_Warning,
-            "Receive from partition" & Partition'Img &
-            " request " & Request.Kind'Img &
-            " on partition " & PID'Img));
-
-      if Options.Execution_Mode = Replay_Mode
-        and then Request.Kind = Set_Partition_Info
-      then
-         Request.Location := To_Location ("replay://");
-      end if;
-
-      --  If we receive a Set_Partition_Info request although the partition
-      --  id of the current partition is unknown, the request concerns the
-      --  current partition. It provides its new partition id. We also ask
-      --  for the boot partition info as we know its pid. Note that we have
-      --  to send this request because the current boot partition info is
-      --  still incomplete.  We don't Set_My_Partition_ID to prevent this
-      --  partition from completing elaboration. But we preserve the
-      --  partition id in Self_PID.
-
-      if Request.Kind = Set_Partition_Info then
-         if Self_PID = Null_PID then
-            pragma Debug
-              (D (D_Warning, "Boot partition id is" & Partition'Img));
-
-            --  This is request from step 3. We receive partition info for
-            --  this partition. This info comes from the boot partition.
-            --  This is a way to get the boot partition id. Deallocate the
-            --  previous slot and allocate the new one.
-
-            if Boot_PID /= Partition then
-               Partitions.Enter;
-               Info := Partitions.Get_Component (Boot_PID);
-               Partitions.Set_Component (Partition, Info);
-               Info.Allocated := False;
-               Info.Status    := None;
-               Partitions.Set_Component (Boot_PID, Info);
-               Boot_PID := Partition;
-               Partitions.Leave;
-            end if;
-
-            Partition_ID'Write (Reply, Partition);
-            Request_Type'Output (Reply, Request_Get);
-
-            pragma Debug (D (D_Warning, "Self partition id is" & PID'Img));
-
-            --  This is request from step 4.
-
-            Self_PID := PID;
-         end if;
-
-         --  When a partition sends a set_partition_info on itself, then it
-         --  is the boot partition. That means that the current partition
-         --  has completed its boot.
-
-         Booted := (Partition = PID);
-
-      end if;
-
-      --  A request with a null pid is a request sent by a partition
-      --  during its elaboration. The partition has sent its info to the
-      --  boot partition and the boot partition is supposed to send it
-      --  back to it.
-
-      if PID = Null_PID then
-         PID := Partition;
-
-         pragma Debug
-           (D (D_Debug, "Reply to partition" & PID'Img &" with its info"));
-
-         Partition_ID'Write  (Reply, PID);
-         Request_Type'Output (Reply, Request);
-      end if;
-
-      Partitions.Enter;
-      Info := Partitions.Get_Component (PID);
-
-      if Request.Kind  = Get_Partition_Info then
-         if Info.Status = Done then
-            pragma Debug
-              (D (D_Debug, "Reply to partition" & Partition'Img &
-                  " on partition " & PID'Img));
-
-            Partition_ID'Write (Reply, PID);
-            Request_Type'Output
-              (Reply,
-               (Set_Partition_Info,
-                Info.Logical_Name,
-                Info.Location,
-                Info.Termination,
-                Info.Reconnection));
-         end if;
-
-      else
-         Info.Allocated    := True;
-         Info.Logical_Name := Request.Logical_Name;
-         Info.Location     := Request.Location;
-         Info.Termination  := Request.Termination;
-         Info.Reconnection := Request.Reconnection;
-         Info.Protocol     := Get_Protocol (Info.Location);
-         Info.Status       := Done;
-
-         pragma Debug
-           (D (D_Debug, "Set info on partition" & PID'Img));
-
-         Dump_Partition_Info (PID, Info);
-         Partitions.Set_Component (PID, Info);
-
-      end if;
-
-      Partitions.Leave;
-
-      --  Release startup from step 5. We cannot resume elaboration
-      --  before this point because Boot_PID and Self_PID will not
-      --  be set if the main task tries to get info on them.
-
-      if Booted then
-         Set_My_Partition_ID (Self_PID);
-      end if;
-
-   exception
-      when E : others =>
-         pragma Warnings (Off, E);
-         pragma Debug (D (D_Exception, "Partition_Request_Handler: " &
-                          Exception_Information (E)));
-         raise;
-   end Partition_Request_Handler;
 
    ----------------------------
    -- Partition_RPC_Receiver --
@@ -837,16 +926,7 @@ package body System.Garlic.Heart is
 
       To_Params_Stream_Type (Unfiltered.all, Query'Access);
 
-      --  Depending on the opcode, dispatch to the public or internal routines.
-
-      case Opcode is
-         when Internal_Opcode =>
-            Handle_Internal (Partition, Opcode, Query'Access, Reply'Access);
-         when External_Opcode   =>
-            Handle_External (Partition, Opcode, Query'Access, Reply'Access);
-         when Invalid_Operation =>
-            raise Program_Error;
-      end case;
+      Handle_Any_Request (Partition, Opcode, Query'Access, Reply'Access);
 
       if not Empty (Reply'Access) then
          pragma Debug (D (D_Debug, "Send reply to" & Partition'Img));
@@ -1021,6 +1101,8 @@ package body System.Garlic.Heart is
          Logical_Name => null,
          Reconnection => Rejected_On_Restart,
          Termination  => Global_Termination,
+         Light_RTS    => False,
+         Boot_Server  => True,
          Status       => Done);
    begin
       if Options.Boot_Partition then
@@ -1029,7 +1111,7 @@ package body System.Garlic.Heart is
 
       pragma Debug
         (D (D_Warning,
-            "Set boot location to " & To_String (Location)));
+            "Set boot location to " & To_String (Info.Location)));
 
       --  Use Last_PID to store boot partition info
 
@@ -1090,24 +1172,27 @@ package body System.Garlic.Heart is
 
    procedure Soft_Shutdown
    is
-      PID  : Partition_ID := Null_PID;
+      PID  : Partition_ID;
+      Next : Partition_ID;
       Info : Partition_Info;
    begin
       Shutdown_In_Progress := True;
       if Options.Boot_Partition then
+         Next := Null_PID;
          loop
-            Next_Partition (PID);
-            exit when PID = Null_PID;
-            Info := Partitions.Get_Component (PID);
+            PID := Next;
+            Next_Partition (Next);
+            exit when Next <= PID;
+            Info := Partitions.Get_Component (Next);
 
-            if PID /= Self_PID
+            if Next /= Self_PID
               and then Info.Status = Done
               and then Info.Termination /= Local_Termination
             then
                declare
                   Empty : aliased Params_Stream_Type (0);
                begin
-                  Send (PID, Shutdown_Operation, Empty'Access);
+                  Send (Next, Shutdown_Operation, Empty'Access);
                exception
                   when Communication_Error => null;
                end;

@@ -48,7 +48,7 @@ package System.Garlic.TCP is
 
    function Get_Name (P : access TCP_Protocol) return String;
 
-   function Get_Info (P : access TCP_Protocol) return String;
+   function Get_Info (Protocol  : access TCP_Protocol) return String;
 
    procedure Initialize
      (Protocol : access TCP_Protocol;

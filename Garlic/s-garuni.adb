@@ -211,7 +211,7 @@ package body System.Garlic.Units is
       else
          pragma Debug
            (D (D_Debug, "Receive request " & Request.Kind'Img &
-               " on partition" & Request.Partition'Img &
+               " on partition" & Request.Wrong_PID'Img &
                " from partition" & Partition'Img));
          null;
       end if;
@@ -353,6 +353,10 @@ package body System.Garlic.Units is
       Unit   : Unit_Id;
       Info   : Unit_Info;
    begin
+      if Shutdown_In_Progress then
+         return;
+      end if;
+
       if Reconnection_Policy (Partition) = Blocked_Until_Restart then
          Status := Unknown;
       else

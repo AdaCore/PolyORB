@@ -66,7 +66,7 @@ package System.Garlic.Protocols is
    --  boot protocol. Note that this procedure can be called again to reset
    --  the protocol in a normal mode once the partition has booted.
 
-   function Get_Info (P : access Protocol_Type) return String;
+   function Get_Info (Protocol : access Protocol_Type) return String;
    --  Return a string which holds enough information to be usable by
    --  another partition to contact us. Default is an empty string.
 
