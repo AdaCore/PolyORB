@@ -13,6 +13,8 @@ with Droopi.Components;
 with Droopi.Filters;
 with Droopi.Jobs;
 with Droopi.Obj_Adapters;
+with Droopi.Objects;
+with Droopi.References;
 with Droopi.Requests;
 with Droopi.Soft_Links;
 with Droopi.Transport;
@@ -145,6 +147,13 @@ package Droopi.ORB is
    function Object_Adapter (ORB : access ORB_Type)
      return Obj_Adapters.Obj_Adapter_Access;
    --  Return the object adapter associated with ORB.
+
+   procedure Create_Reference
+     (ORB : access ORB_Type;
+      Oid : Objects.Object_Id_Access;
+      Ref : out References.Ref);
+   --  Create an object reference that designates object Oid
+   --  within this ORB.
 
    function Handle_Message
      (ORB : access ORB_Type;

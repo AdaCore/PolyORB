@@ -34,6 +34,10 @@ package Droopi.Transport.Sockets is
    --  An opened transport endpoint as a connected
    --  stream-oriented socket.
 
+   procedure Create
+     (TE : in out Socket_Endpoint;
+      S  : Socket_Type);
+
    function Create_Event_Source
      (TE : Socket_Endpoint)
       return Asynch_Ev_Source_Access;

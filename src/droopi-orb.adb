@@ -100,7 +100,7 @@ package body Droopi.ORB is
       end if;
    end Try_Perform_Work;
 
-   type ORB_Note_Kind is
+   type AES_Note_Kind is
      (A_TAP_AES,
       --  Annotation for an asynchronous event source
       --  associated with a transport access point.
@@ -110,7 +110,7 @@ package body Droopi.ORB is
       --  associated with a transport endpoint.
       );
 
-   type ORB_Note_Data (Kind : ORB_Note_Kind := ORB_Note_Kind'First)
+   type AES_Note_Data (Kind : AES_Note_Kind := AES_Note_Kind'First)
    is record
       case Kind is
          when A_TAP_AES =>
@@ -133,8 +133,8 @@ package body Droopi.ORB is
       end case;
    end record;
 
-   type ORB_Note is new Note with record
-      D : ORB_Note_Data;
+   type AES_Note is new Note with record
+      D : AES_Note_Data;
    end record;
 
    procedure Handle_Event
@@ -146,7 +146,7 @@ package body Droopi.ORB is
      (ORB : access ORB_Type;
       AES : Asynch_Ev_Source_Access)
    is
-      Note : ORB_Note;
+      Note : AES_Note;
 
    begin
       Get_Note (Notepad_Of (AES).all, Note);
@@ -335,7 +335,7 @@ package body Droopi.ORB is
       --  Create associated asynchronous event source.
 
       Set_Note (Notepad_Of (New_AES).all,
-                ORB_Note'(Annotations.Note with D =>
+                AES_Note'(Annotations.Note with D =>
                             (Kind   => A_TAP_AES,
                              TAP    => TAP,
                              Filter_Factory_Chain => Chain,
@@ -374,7 +374,7 @@ package body Droopi.ORB is
 
       Set_Note
         (Notepad_Of (New_AES).all,
-         ORB_Note'(Annotations.Note with D =>
+         AES_Note'(Annotations.Note with D =>
                      (Kind   => A_TE_AES,
                       TE     => TE)));
       --  Register link from AES to TE.
@@ -527,6 +527,43 @@ package body Droopi.ORB is
          raise;
 
    end Run;
+
+   function Profile_Factory_Of
+     (TAP : Transport.Transport_Access_Point_Access)
+     return Binding_Data.Profile_Factory_Access;
+
+   function Profile_Factory_Of
+     (TAP : Transport.Transport_Access_Point_Access)
+     return Binding_Data.Profile_Factory_Access is
+   begin
+      return null;
+      --  XXX not implemented!
+   end Profile_Factory_Of;
+
+   procedure Create_Reference
+     (ORB : access ORB_Type;
+      Oid : Objects.Object_Id_Access;
+      Ref : out References.Ref) is
+   begin
+      Enter (ORB.ORB_Lock.all);
+      declare
+         use Droopi.Binding_Data;
+         use TAP_Seqs;
+
+         TAPs : constant Element_Array
+           := To_Element_Array (ORB.Transport_Access_Points);
+
+         Profiles : References.Profile_Array (TAPs'Range);
+      begin
+         Leave (ORB.ORB_Lock.all);
+         for I in TAPs'Range loop
+            Profiles (I) := Create_Profile
+              (Profile_Factory_Of (TAPs (I)), TAPs (I), Oid.all);
+         end loop;
+
+         References.Create_Reference (Profiles, Ref);
+      end;
+   end Create_Reference;
 
    function Handle_Message
      (ORB : access ORB_Type;

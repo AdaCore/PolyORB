@@ -2,8 +2,14 @@
 
 --  $Id$
 
+with Droopi.Filters;
+
+with Droopi.Protocols.Echo;
+--  The TEST profile is bound to the Echo invocation protocol.
+
 with Droopi.Transport.Sockets;
---  The TEST protocol is defined upon TCP/IP.
+--  The TEST profile denotes an Echo protocol stack instanciated
+--  over a TCP socket.
 
 package body Droopi.Binding_Data.Test is
 
@@ -36,9 +42,22 @@ package body Droopi.Binding_Data.Test is
    procedure Bind_Profile
      (Profile : Test_Profile_Type;
       TE      : out Transport.Transport_Endpoint_Access;
-      Session : out Components.Component_Access) is
+      Session : out Components.Component_Access)
+   is
+      use Droopi.Protocols.Echo;
+      use Droopi.Sockets;
+      use Droopi.Transport.Sockets;
+
+      S : Socket_Type;
+      Remote_Addr : Sock_Addr_Type := Profile.Address;
+      P : aliased Echo_Protocol;
+
    begin
-      raise Not_Implemented;
+      Create_Socket (S);
+      Connect_Socket (S, Remote_Addr);
+      TE := new Transport.Sockets.Socket_Endpoint;
+      Create (Socket_Endpoint (TE.all), S);
+      Create (P'Access, Filters.Filter_Access (Session));
    end Bind_Profile;
 
    function Get_Profile_Tag
