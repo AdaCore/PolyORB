@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/ada_be-expansion.adb#19 $
+--  $Id: //droopi/main/compilers/idlac/ada_be-expansion.adb#20 $
 
 with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
@@ -944,7 +944,7 @@ package body Ada_Be.Expansion is
                   Set_Mode (Param, Mode_In);
                   Set_Param_Type (Param, The_Type);
                   Success := Add_Identifier (Decl, "To");
-                  pragma Assert (Success = True);
+                  pragma Assert (Success);
                   Set_Array_Bounds (Decl, Nil_List);
                   Set_Parent (Decl, Param);
                   Set_Declarator (Param, Decl);
