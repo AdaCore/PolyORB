@@ -1,3 +1,8 @@
+1999-07-01  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Makefile: Do not assume that the current directory is in the
+	user's PATH.
+
 1999-01-07  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* glade_ug.texi: Add sections for gnatdist features.

@@ -99,16 +99,16 @@ $(ADAFILES): all-srcs.ada
 	gnatchop -w all-srcs.ada
 
 %.cfg.texi: %.cfg cfg.sed
-	gentexifile $<
+	./gentexifile $<
 
 %.idl.texi: %.idl idl.sed
-	gentexifile $<
+	./gentexifile $<
 
 %.ads.texi: %.ads ada.sed
-	gentexifile $<
+	./gentexifile $<
 
 %.adb.texi: %.adb ada.sed
-	gentexifile $<
+	./gentexifile $<
 
 %.fig.eps: %.fig
 	fig2dev -L ps $< $@
@@ -120,11 +120,11 @@ $(ADAFILES): all-srcs.ada
 	convert $< $@
 
 %.sed: %.kw
-	gensedfile $< $@
+	./gensedfile $< $@
 
 myconfig.cfg.texi: myconfig.cfg cfg.sed
 	@awk ' { printf "@b{%02d} %s\n", NR, $$0 } ' $< >myconfig.tmp.cfg
-	gentexifile myconfig.tmp.cfg $@
+	./gentexifile myconfig.tmp.cfg $@
 	@$(RM) myconfig.tmp.cfg
 
 clean:
