@@ -121,8 +121,8 @@ package body Echo is
 
    -- Init
    -------
-   procedure Init (Self : in out Ref ;
-                   K : in OmniORB.ObjectKey) is
+   procedure Adabroker_Init (Self : in out Ref ;
+                             K : in OmniORB.ObjectKey) is
       L : OmniRopeAndKey.Object;
    begin
       -- Init(L,Rope.Null_Rope,K,...);
@@ -133,11 +133,11 @@ package body Echo is
 
    -- Dipatch
    ----------
-   function Dispatch (Self : in Ref ;
-                      Orls : in out Giop_S ;
-                      Orl_Op : in Corba.String ;
-                      Orl_Response_Expected : Corba.Boolean)
-                      return Corba.Boolean is
+   function AdaBroker_Dispatch (Self : in Ref ;
+                                Orls : in out Giop_S ;
+                                Orl_Op : in Corba.String ;
+                                Orl_Response_Expected : Corba.Boolean)
+                                return Corba.Boolean is
    begin
       case To_Lower(Orl_Op) is
          when "echostring" =>

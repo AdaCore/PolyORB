@@ -170,3 +170,8 @@ private
    -- releases the underlying C pointer
 
 end Corba.Object ;
+
+
+
+
+
