@@ -307,9 +307,17 @@ package body PolyORB.References.Binding is
             if Tag = Get_Profile_Tag (Profiles (J).all) then
 
                if Delete then
-                  Profile_Seqs.Delete
-                    (Reference_Info (Entity_Of (R).all).Profiles,
-                     J, J);
+                  declare
+                     New_Array : Profile_Array_Access :=
+                       new Profile_Array (Profiles'First .. Profiles'Last - 1);
+                  begin
+                     New_Array (New_Array'First .. New_Array'First + J - 1)
+                       := Profiles (Profiles'First .. Profiles'First + J - 1);
+                     New_Array (New_Array'First + J .. New_Array'Last)
+                       := Profiles (Profiles'First + J + 1 .. Profiles'Last);
+                     Free (Reference_Info (Entity_Of (R).all).Profiles);
+                     Reference_Info (Entity_Of (R).all).Profiles := New_Array;
+                  end;
                end if;
 
                return Profiles (J);
@@ -378,9 +386,18 @@ package body PolyORB.References.Binding is
             end if;
 
             if Result /= null then
-               Profile_Seqs.Append
-                 (Reference_Info (Entity_Of (R).all).Profiles,
-                  Result);
+               declare
+                  Profiles : Profile_Array renames
+                    Reference_Info (Entity_Of (R).all).Profiles.all;
+                  New_Array : Profile_Array_Access :=
+                    new Profile_Array (Profiles'First .. Profiles'Last + 1);
+               begin
+                  New_Array (New_Array'First .. New_Array'Last - 1)
+                    := Profiles (Profiles'First .. Profiles'Last);
+                  New_Array (New_Array'Last) := Result;
+                  Free (Reference_Info (Entity_Of (R).all).Profiles);
+                  Reference_Info (Entity_Of (R).all).Profiles := New_Array;
+               end;
             else
                pragma Debug (O ("Could not create proxy."));
                null;

@@ -131,7 +131,11 @@ package body PolyORB.References is
             TRIP : Reference_Info renames Reference_Info (RIP.all);
          begin
             TRIP.Type_Id  := new String'(Type_Id);
-            TRIP.Profiles := Profile_Seqs.To_Sequence (Profiles);
+            if TRIP.Profiles /= null then
+               Free (TRIP.Profiles);
+            end if;
+
+            TRIP.Profiles := new Profile_Array'(Profiles);
             Set (R, RIP);
          end;
       end if;
@@ -144,23 +148,19 @@ package body PolyORB.References is
    -- Finalize --
    --------------
 
-   procedure Finalize
-     (RI : in out Reference_Info) is
+   procedure Finalize (RI : in out Reference_Info) is
    begin
       pragma Debug (O ("Finalize (Reference_Info): enter"));
 
-      declare
-         Profiles : Profile_Array
-           := Profile_Seqs.To_Element_Array (RI.Profiles);
-      begin
-         Free (RI.Type_Id);
-         for J in Profiles'Range loop
-            pragma Debug
-              (O ("Destroying profile of type "
-                  & Ada.Tags.External_Tag (Profiles (J)'Tag)));
-            Binding_Data.Destroy_Profile (Profiles (J));
-         end loop;
-      end;
+      Free (RI.Type_Id);
+      for J in RI.Profiles'Range loop
+         pragma Debug
+           (O ("Destroying profile of type "
+               & Ada.Tags.External_Tag (RI.Profiles (J)'Tag)));
+         Binding_Data.Destroy_Profile (RI.Profiles (J));
+      end loop;
+
+      Free (RI.Profiles);
 
       pragma Debug (O ("Finalize (Reference_Info): leave"));
    end Finalize;
@@ -252,18 +252,15 @@ package body PolyORB.References is
       Right_RI : constant Reference_Info_Access := Ref_Info_Of (Right);
 
       I_Result : constant Boolean := Left_RI.Type_Id.all = Right_RI.Type_Id.all
-        and then Length (Left_RI.Profiles) = Length (Right_RI.Profiles);
-
-      Left_Profiles : constant Profile_Array := Profiles_Of (Left);
-      Right_Profiles : constant Profile_Array := Profiles_Of (Right);
+        and then Left_RI.Profiles'Length = Right_RI.Profiles'Length;
 
       Result : Boolean := True;
    begin
       if I_Result then
-         for J in Left_Profiles'Range loop
+         for J in Left_RI.Profiles'Range loop
             Result := Result and
-              Get_Object_Key (Left_Profiles (J).all).all =
-              Get_Object_Key (Right_Profiles (J).all).all;
+              Get_Object_Key (Left_RI.Profiles (J).all).all =
+              Get_Object_Key (Right_RI.Profiles (J).all).all;
             --  XXX is this sufficient ??
 
             --  XXX We cannot compare directly profiles sequence as it
@@ -289,7 +286,7 @@ package body PolyORB.References is
 
    begin
       if RI /= null then
-         return Profile_Seqs.To_Element_Array (RI.Profiles);
+         return RI.Profiles.all;
       else
          declare
             Null_Profile_Array : Profile_Array (1 .. 0);

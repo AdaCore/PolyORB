@@ -51,6 +51,10 @@ package PolyORB.References is
       new PolyORB.Sequences.Unbounded (Binding_Data.Profile_Access);
    subtype Profile_Array is Profile_Seqs.Element_Array;
 
+   type Profile_Array_Access is access all Profile_Array;
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Profile_Array, Profile_Array_Access);
+
    type Ref is new PolyORB.Smart_Pointers.Ref with null record;
    --  An object reference of any kind.
 
@@ -111,13 +115,11 @@ private
 
    Nil_Ref : constant Ref := (PolyORB.Smart_Pointers.Ref with null record);
 
-   subtype Profile_Seq is Profile_Seqs.Sequence;
-
    type Reference_Info is
      new PolyORB.Smart_Pointers.Non_Controlled_Entity
      with record
          Type_Id  : Utils.Strings.String_Ptr;
-         Profiles : Profile_Seq;
+         Profiles : Profile_Array_Access;
          --  The collection of tagged profiles that designate
          --  transport access points where this object can be
          --  contacted, together with the object ids to be used.
