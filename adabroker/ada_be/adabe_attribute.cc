@@ -221,7 +221,7 @@ adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &priva
       body += "   end ;\n\n\n";
       body += "   -- Align_Size\n" ;
       body += "   -------------\n" ;
-       body += "   function Align_Size(Self : in Set_" + get_ada_local_name() + "_Proxy is\n";
+      body += "   function Align_Size(Self : in Set_" + get_ada_local_name() + "_Proxy is\n";
       body += "                       Size_In : in Corba.Unsigned_Long)\n";
       body += "                       return Corba.Unsigned_Long is\n";
       body += "   begin\n";
@@ -247,6 +247,84 @@ adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &priva
 void
 adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_definition)
 {
+  AST_Decl *d = field_type();
+  adabe_name *e = dynamic_cast<adabe_name *>(d);
+  string type_name = e->dump_name(with, private_definition);
+  string full_type_name = e->get_ada_local_name ();
+  string name = get_ada_local_name ();
+  string full_name = get_ada_full_name ();
+  string pack_name = full_name.substr(0,full_name.find_last_of('.')) ;
+
+  body += "      if Orl_Op = \"Get_";
+  body += name;
+  body += "\" then\n";
+  body += "         declare\n";
+  body += "            Result : ";
+  body += full_type_name;
+  body += " ;\n";
+  body += "            Mesg_Size : Corba.Unsigned_Long ;\n";
+  body += "         begin\n";
+
+  body += "            -- change state\n";
+  body += "            Request_Received(Orls) ;\n";
+
+  body += "            -- call the implementation\n";
+  body += "            Result := ";
+  body += pack_name;
+  body += ".Impl.Get_";
+  body += name;
+  body += "(Self) ;\n";
+
+  body += "            -- compute the size of the replied message\n";
+  body += "            Mesg_Size := Giop_S.Reply_Header_Size ;\n";
+  body += "            Mesg_Size := Align_Size (Result, Mesg_Size) ;\n";
+
+  body += "            -- Initialisation of the reply\n";
+  body += "            Giop_S.Initialize_Reply (Orls, Giop_NO_EXCEPTION, Mesg_Size) ;\n";
+
+  body += "            -- Marshall the raguments\n";
+  body += "            Marshall (Result, Orls) ;\n";
+
+  body += "            -- inform the orb\n";
+  body += "            Giop_S.Reply_Completed (Orls) ;\n";
+
+  body += "            Returns := True ;\n";
+  body += "            return ;\n";
+  body += "         end ;\n";
+  body += "      end if ;\n\n";
+
+  if (!readonly())
+    {
+      body += "      if Orl_Op = \"Set_";
+      body += name;
+      body += "\" then\n";
+      body += "         declare\n";
+      body += "            Mesg : ";
+      body += full_type_name;
+      body += " ;\n";
+      body += "         begin\n";
+      
+      body += "            -- unmarshalls arguments\n";
+      body += "            Unmarshall (Mesg,Orls) ;\n";
+      
+      body += "            -- change state\n";
+      body += "            Request_Received(Orls) ;\n";
+      
+      body += "            -- call the implementation\n";
+      body += "            ";
+      body += pack_name;
+      body += ".Impl.Set_";
+      body += name;
+      body += "(Self,Mesg) ;\n";
+      
+      body += "            -- inform the orb\n";
+      body += "            Giop_S.Reply_Completed (Orls) ;\n";
+      
+      body += "            Returns := True ;\n";
+      body += "            return ;\n";
+      body += "         end ;\n";
+      body += "      end if ;\n\n";
+    }
 }
 
 void

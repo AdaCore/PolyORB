@@ -464,7 +464,7 @@ adabe_root::produce() {
 		    string skel_header_interface_with_string;
 		    dep_list skel_header_interface_with;
 		    
-		    interface->produce_proxies_ads(skel_header_interface_with,skel_header_interface_body,skel_header_interface_previous);
+		    interface->produce_skel_ads(skel_header_interface_with,skel_header_interface_body,skel_header_interface_previous);
 		    skel_header_interface_with_string = *skel_header_interface_with.produce("with ");
 		    
 		    string skel_header_interface_file_name =
@@ -505,7 +505,7 @@ adabe_root::produce() {
 		    string skel_body_module_with_string;
 		    dep_list skel_body_module_with;
 		    
-		    module->produce_proxies_adb(skel_body_module_with,skel_body_module_body,skel_body_module_previous);
+		    module->produce_skel_adb(skel_body_module_with,skel_body_module_body,skel_body_module_previous);
 		  }
 		  break;
 		  
@@ -517,7 +517,7 @@ adabe_root::produce() {
 		    string skel_body_interface_with_string;
 		    dep_list skel_body_interface_with;
 		    
-		    interface->produce_proxies_adb(skel_body_interface_with,skel_body_interface_body,skel_body_interface_previous);
+		    interface->produce_skel_adb(skel_body_interface_with,skel_body_interface_body,skel_body_interface_previous);
 		    skel_body_interface_with_string = *skel_body_interface_with.produce("with ");
 		    
 		    string skel_body_interface_file_name =

@@ -478,15 +478,14 @@ void
 adabe_interface::produce_skel_ads(dep_list& with, string &body, string &previous)
 {
   adabe_global::set_adabe_current_file(this);
-  with.add("Omniorb");
+  with.add("Omniobject");
   with.add("Giop_S");
-  with.add(get_ada_full_name() + ".impl");
-  body += "package " + get_ada_full_name() + ".Skeleton is \n";
-  body += "   procedure Adabroker_Init (Self : in out ";
-  body += "   " + get_ada_full_name() + ".Impl.Object ; K : in OmniORB.ObjectKey); \n";
-  body += "   procedure Adabroker_Dispatch (Self : in out ";
-  body += get_ada_full_name();
-  body += ".Impl.Object ; Orls : in Giop_S.Object ; Orl_Op : in Corba.String ; Orl_Response_Expected : in Corba.Boolean ; Returns : out Corba.Boolean ); \n";
+  body += "package " + get_ada_full_name() + ".Skeleton is\n\n";
+  body += "   procedure Dispatch (Myself : in Omniobject.Implemented_Object_Ptr ;\n";
+  body += "                       Orls : in out Giop_S.Object ;\n";
+  body += "                       Orl_Op : in Standard.String ;\n";
+  body += "                       Orl_Response_Expected : in Corba.Boolean ;\n";
+  body += "                       Returns : out Corba.Boolean) ;\n\n";
   body += "end " + get_ada_full_name() + ".Skeleton  ;\n";
 }
 
@@ -532,7 +531,43 @@ adabe_interface::produce_proxies_ads(dep_list& with, string &body, string &previ
 void
 adabe_interface::produce_skel_adb(dep_list& with, string &body, string &previous)
 {
+  adabe_global::set_adabe_current_file(this);
+  body += "package body " + get_ada_full_name() + ".Skeleton is\n\n";
+  body += "   procedure Dispatch (Myself : in Omniobject.Implemented_Object_Ptr ;\n";
+  body += "                       Orls : in out Giop_S.Object ;\n";
+  body += "                       Orl_Op : in Standard.String ;\n";
+  body += "                       Orl_Response_Expected : in Corba.Boolean ;\n";
+  body += "                       Returns : out Corba.Boolean) is\n";
+  body += "      Self : ";
+  body += get_ada_local_name();
+  body += ".Impl.Object_Ptr := ";
+  body += get_ada_local_name();
+  body += ".Impl.Object_Ptr(Myself) ;\n";
+  body += "   begin\n";
 
+  UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
+  while (!i.is_done())
+    {
+      AST_Decl *d = i.item();
+      switch(d->node_type())
+	{
+	case AST_Decl::NT_attr:
+	case AST_Decl::NT_op:
+	  {
+	    string tmp1 = "";
+	    string tmp2 = "";	    
+	    dynamic_cast<adabe_name *>(d)->produce_skel_adb(with, tmp1, tmp2);
+	    body += tmp1;
+	  }
+	  break;
+	default:break;	
+	}
+      i.next();
+    } 
+  
+  body += "      Returns := false ;\n";
+  body += "   end ;\n\n";
+  body += "end " + get_ada_full_name() + ".Skeleton  ;\n";
 }
 
 void

@@ -412,6 +412,7 @@ public:
   void produce_proxies_ads(dep_list &with, string &in_decls, bool &no_in, bool &no_out, string &fields);
   void produce_proxies_adb(dep_list &with, string &in_decls, bool &no_in, bool &no_out, string &init,
 			   string &align_size, string &marshall, string &unmarshall_decls, string &unmarshall, string &finalize);
+  void produce_skel_adb(dep_list &with, string &in_decls , bool &no_in, bool no_out, string &unmarshall, string &call_args, string &marshall);
 };
 
 

@@ -136,6 +136,42 @@ adabe_argument::produce_proxies_adb(dep_list &with, string &in_decls, bool &no_i
   finalize += ") ;\n";
 }
 
+void
+adabe_argument::produce_skel_adb(dep_list &with, string &in_decls ,
+				 bool &no_in, bool no_out,
+				 string &unmarshall, string &call_args,
+				 string &marshall)
+{
+  string previous = "";
+  AST_Decl *d = field_type();
+  adabe_name *e = dynamic_cast<adabe_name *>(d);
+  string full_type_name = e->dump_name(with, previous);
+
+  in_decls += "            ";
+  in_decls += get_ada_local_name ();
+  in_decls += " : ";
+  in_decls += full_type_name;
+  in_decls += " ;\n";
+    
+  if ((direction() == dir_IN) | (direction() == dir_INOUT))
+    {
+      no_in = false;
+      unmarshall += "            UnMarshall(";
+      unmarshall += get_ada_local_name ();
+      unmarshall += ", Orls) ;\n";
+    }
+
+  call_args += ", ";
+  call_args += get_ada_local_name ();
+
+  if ((direction() == dir_OUT) | (direction() == dir_INOUT))
+    {
+      no_out = false;
+      marshall += "            Marshall(";
+      marshall += get_ada_local_name ();
+      marshall += ", Orls) ;\n";
+    }      
+}
 
 IMPL_NARROW_METHODS1(adabe_argument, AST_Argument)
 IMPL_NARROW_FROM_DECL(adabe_argument)

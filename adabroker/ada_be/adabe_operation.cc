@@ -272,7 +272,7 @@ adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &privat
   string in_decls = "";
   string fields = "";
   bool no_in = true;
-  bool no_out = false;
+  bool no_out = true;
   // first process each argument
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
@@ -340,7 +340,7 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body, string &privat
   string unmarshall = "";
   string finalize = "";
   bool no_in = true;
-  bool no_out = false;
+  bool no_out = true;
   // First process each argument
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
@@ -352,10 +352,6 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body, string &privat
       i.next();
     }
   in_decls += ") is\n";
-
-  // get the type of the result
-  AST_Decl *b = return_type();
-  string result_name =  dynamic_cast<adabe_name *>(b)->dump_name(with, private_definition); 
 
   // produce functions
   body += "   -----------------------------------------------------------\n" ;
@@ -418,6 +414,10 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body, string &privat
   }
   
   if (is_function()) {
+    // get the type of the result
+    AST_Decl *b = return_type();
+    string result_name =  dynamic_cast<adabe_name *>(b)->dump_name(with, private_definition); 
+
     body += "   -- Get_Result\n" ;
     body += "   -------------\n" ;
     body += "   function Get_Result (Self : in " + get_ada_local_name() + "_Proxy )\n";
@@ -443,6 +443,83 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body, string &privat
 void
 adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_definition)
 {
+  string full_name = get_ada_full_name();
+  string result_name = "";
+  string full_result_name = "";
+  string in_decls = "";
+  string unmarshall = "";
+  string call_args = "";
+  string marshall = "";
+  bool no_in = true;
+  bool no_out = true;
+  
+  // First process each argument
+  UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
+  while (!i.is_done())
+    {
+      AST_Decl *d = i.item();
+      if (d->node_type() == AST_Decl::NT_argument)
+	 dynamic_cast<adabe_argument *>(d)->produce_skel_adb(with, in_decls , no_in, no_out, unmarshall, call_args, marshall);
+      else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
+      i.next();
+    }
+
+  body += "      if Orl_Op = \"";
+  body += get_ada_local_name ();
+  body += "\" then\n";
+  body += "         declare\n";
+  body += in_decls;
+  if (is_function()) {
+    // get the type of the result
+    AST_Decl *b = return_type();
+    adabe_name *e = dynamic_cast<adabe_name *>(b);
+    result_name = e->dump_name(with, private_definition);
+    full_result_name = e->get_ada_full_name ();
+    body += "            Result : ";
+    body += full_result_name;
+    body += " ;\n";
+    body += "            Mesg_Size : Corba.Unsigned_Long ;\n";
+  }
+
+  body += "         begin\n";
+
+  if (!no_in) {
+    body += "            -- unmarshalls arguments\n";
+    body += unmarshall;
+  }
+
+  body += "            -- change state\n";
+  body += "            Request_Received(Orls) ;\n";
+
+  body += "            -- call the implementation\n";
+  body += "            ";
+  if (is_function()) body += "Result := ";
+  body += full_name;
+  body += "(Self";
+  body += call_args;
+  body += ") :\n";
+
+  if ((!no_out) || (is_function())) {
+    body += "            -- compute the size of the replied message\n";
+    body += "            Mesg_Size := Giop_S.Reply_Header_Size ;\n";
+    body += "            Mesg_Size := Align_Size (Result, Mesg_Size) ;\n";
+
+    body += "            -- Initialisation of the reply\n";
+    body += "            Giop_S.Initialize_Reply (Orls, Giop_NO_EXCEPTION, Mesg_Size) ;\n";
+
+    body += "            -- Marshall the raguments\n";
+
+    body += marshall;
+    if (is_function()) body += "            Marshall (Result, Orls) ;\n";
+  }
+
+  body += "            -- inform the orb\n";
+  body += "            Giop_S.Reply_Completed (Orls) ;\n";
+
+  body += "            Returns := True ;\n";
+  body += "            return ;\n";
+  body += "         end ;\n";
+  body += "      end if ;\n\n";
 }
 
 bool  
