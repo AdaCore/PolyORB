@@ -2,7 +2,6 @@ with Ada.IO_Exceptions;
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 
-with GNAT.Lock_Files;
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 
 with System;
@@ -29,7 +28,7 @@ package body System.Garlic.Dfs is
      renames Print_Debug_Info;
 
    use type SIO.File_Mode;
-   use type GSS.Access_Mode;
+   use type SGS.Access_Mode;
 
    package IOX renames Ada.IO_Exceptions;
 
@@ -58,10 +57,10 @@ package body System.Garlic.Dfs is
    Shared_Data_Files_Open : Natural := 0;
    --  Number of shared memory access files currently open
 
-   To_File_Mode : constant array (GSS.Read .. GSS.Write) of SIO.File_Mode
-     := (GSS.Read => SIO.In_File, GSS.Write => SIO.Out_File);
+   To_File_Mode : constant array (SGS.Read .. SGS.Write) of SIO.File_Mode
+     := (SGS.Read => SIO.In_File, SGS.Write => SIO.Out_File);
 
-   function  Lock_File_Name
+   function  Lock_Name
      (Var_Data : DFS_Data_Type)
      return String;
 
@@ -72,14 +71,14 @@ package body System.Garlic.Dfs is
    procedure Create_Storage
      (Master   : in out DFS_Data_Type;
       Location : in  String;
-      Storage  : out GSS.Shared_Data_Access)
+      Storage  : out SGS.Shared_Data_Access)
    is
       Result : DFS_Data_Access;
 
    begin
       Result := new DFS_Data_Type;
       Result.Data_Name := new String'(Location);
-      Storage := GSS.Shared_Data_Access (Result);
+      Storage := SGS.Shared_Data_Access (Result);
    end Create_Storage;
 
    --------------------
@@ -89,7 +88,7 @@ package body System.Garlic.Dfs is
    procedure Create_Package
      (Storage  : in  DFS_Data_Type;
       Pkg_Name : in  String;
-      Pkg_Data : out GSS.Shared_Data_Access)
+      Pkg_Data : out SGS.Shared_Data_Access)
    is
       Result : DFS_Data_Access;
 
@@ -99,7 +98,7 @@ package body System.Garlic.Dfs is
 
       Result := new DFS_Data_Type;
       Result.Data_Name := Storage.Data_Name;
-      Pkg_Data := GSS.Shared_Data_Access (Result);
+      Pkg_Data := SGS.Shared_Data_Access (Result);
    end Create_Package;
 
    ---------------------
@@ -109,15 +108,16 @@ package body System.Garlic.Dfs is
    procedure Create_Variable
      (Pkg_Data : in  DFS_Data_Type;
       Var_Name : in  String;
-      Var_Data : out GSS.Shared_Data_Access)
+      Var_Data : out SGS.Shared_Data_Access)
    is
       Var : DFS_Data_Access := new DFS_Data_Type;
 
    begin
       Var.Data_Name  := new String'(Pkg_Data.Data_Name.all & Var_Name);
       Var.Lock_Count := 0;
+      Var.Lock       := SGL.Null_Lock;
       Var.Self       := Var;
-      Var_Data       := GSS.Shared_Data_Access (Var);
+      Var_Data       := SGS.Shared_Data_Access (Var);
    end Create_Variable;
 
    --------------------
@@ -125,9 +125,11 @@ package body System.Garlic.Dfs is
    --------------------
 
    procedure Enter_Variable (Var_Data : in out DFS_Data_Type) is
+      use type SGL.Lock_Type;
+
    begin
       pragma Debug (D ("enter protected variable file " &
-                       Lock_File_Name (Var_Data)));
+                       Lock_Name (Var_Data)));
 
       Enter_Critical_Section;
       if Var_Data.Lock_Count /= 0 then
@@ -137,7 +139,10 @@ package body System.Garlic.Dfs is
       else
          Var_Data.Lock_Count := 1;
          Leave_Critical_Section;
-         GNAT.Lock_Files.Lock_File (Lock_File_Name (Var_Data), Wait => 0.1);
+         if Var_Data.Lock = SGL.Null_Lock then
+            SGL.Create_Lock (Var_Data.Lock, Lock_Name (Var_Data));
+         end if;
+         SGL.Acquire_Lock (Var_Data.Lock);
       end if;
 
       pragma Debug (D ("lock count =" & Var_Data.Lock_Count'Img));
@@ -167,9 +172,9 @@ package body System.Garlic.Dfs is
                Root.Data_Name := new String'(Default);
             end if;
          end if;
-         GSS.Register_Storage
+         SGS.Register_Storage
            (Dfs_Storage_Name,
-            GSS.Shared_Data_Access (Root));
+            SGS.Shared_Data_Access (Root));
       end if;
    end Initialize;
 
@@ -180,26 +185,26 @@ package body System.Garlic.Dfs is
    procedure Leave_Variable (Var_Data : in out DFS_Data_Type) is
    begin
       pragma Debug (D ("leave protected variable file " &
-                       Lock_File_Name (Var_Data)));
+                       Lock_Name (Var_Data)));
 
       Enter_Critical_Section;
       Var_Data.Lock_Count := Var_Data.Lock_Count - 1;
 
       if Var_Data.Lock_Count = 0 then
-         GNAT.Lock_Files.Unlock_File (Lock_File_Name (Var_Data));
+         SGL.Release_Lock (Var_Data.Lock);
       end if;
       pragma Debug (D ("lock count =" & Var_Data.Lock_Count'Img));
       Leave_Critical_Section;
    end Leave_Variable;
 
-   --------------------
-   -- Lock_File_Name --
-   --------------------
+   ---------------
+   -- Lock_Name --
+   ---------------
 
-   function Lock_File_Name (Var_Data : DFS_Data_Type) return String is
+   function Lock_Name (Var_Data : DFS_Data_Type) return String is
    begin
       return Var_Data.Data_Name.all & ".entry";
-   end Lock_File_Name;
+   end Lock_Name;
 
    ----------
    -- Read --
@@ -221,7 +226,7 @@ package body System.Garlic.Dfs is
 
    procedure Set_Access_Mode
      (Var_Data : in out DFS_Data_Type;
-      Var_Mode : in GSS.Access_Mode;
+      Var_Mode : in SGS.Access_Mode;
       Failure  : out Boolean)
    is
       Free : DFS_Data_Access;
@@ -230,7 +235,7 @@ package body System.Garlic.Dfs is
       Enter_Critical_Section;
       Failure := False;
 
-      if Var_Mode in GSS.Read .. GSS.Write then
+      if Var_Mode in SGS.Read .. SGS.Write then
          declare
             Fname : constant String := Var_Data.Data_Name.all;
             Fmode : SIO.File_Mode   := To_File_Mode (Var_Mode);
@@ -246,7 +251,7 @@ package body System.Garlic.Dfs is
                exception
                   when IOX.Name_Error =>
 
-                     if Var_Mode = GSS.Read then
+                     if Var_Mode = SGS.Read then
                         Failure := True;
 
                      else
