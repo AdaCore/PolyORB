@@ -81,8 +81,6 @@ package body XE_Utils is
    System_Tasking        : constant String  := "system.tasking";
    System_Tasking_Length : constant Natural := System_Tasking'Length;
 
-   --  GARLIC                : String_Access;
-
    function Locate
      (Exec_Name  : String;
       Show_Error : Boolean := True)
@@ -873,16 +871,6 @@ package body XE_Utils is
 
       PWD_Id         := Dir (Str_To_Id ("`pwd`"), No_File);
 
-      Build_Stamp_File     := Str_To_Id ("glade.sta");
-      Elaboration_File     := Str_To_Id ("s-garela");
-      Elaboration_Name     := Str_To_Id ("System.Garlic.Elaboration");
-      Partition_Main_File  := Str_To_Id ("partition");
-      Partition_Main_Name  := Str_To_Id ("Partition");
-      Protocol_Config_File := Str_To_Id ("s-gaprco");
-      Protocol_Config_Name := Str_To_Id ("System.Garlic.Protocols.Config");
-      Storage_Config_File  := Str_To_Id ("s-gastco");
-      Storage_Config_Name  := Str_To_Id ("System.Garlic.Storages.Config");
-
       I_Current_Dir := new String'("-I" & Normalized_CWD);
       L_Current_Dir := new String'("-L" & Normalized_CWD);
 
@@ -1180,115 +1168,6 @@ package body XE_Utils is
       end loop;
    end Remove_GNAT_Flag;
 
-   -------
-   -- S --
-   -------
-
-   function S (X : String) return Name_Id is
-   begin
-      return S (Str_To_Id (X));
-   end S;
-
-   -------
-   -- S --
-   -------
-
-   function S (N : Name_Id) return Name_Id is
-   begin
-      Name_Len := 0;
-      Add_Str_To_Name_Buffer ("System.");
-      Get_Name_String_And_Append (N);
-      return Name_Find;
-   end S;
-
-   --------
-   -- SG --
-   --------
-
-   function SG (X : String) return Name_Id is
-   begin
-      return SG (Str_To_Id (X));
-   end SG;
-
-   --------
-   -- SG --
-   --------
-
-   function SG (N : Name_Id) return Name_Id is
-      CN : Name_Id := C (N);
-   begin
-      Name_Len := 0;
-      Add_Str_To_Name_Buffer ("Garlic.");
-      Get_Name_String_And_Append (CN);
-      return S (Name_Find);
-   end SG;
-
-   ---------
-   -- SGF --
-   ---------
-
-   function SGF (X : String) return Name_Id is
-   begin
-      return SGF (Str_To_Id (X));
-   end SGF;
-
-   ---------
-   -- SGP --
-   ---------
-
-   function SGP (X : String) return Name_Id is
-   begin
-      return SGP (Str_To_Id (X));
-   end SGP;
-
-   ---------
-   -- SGP --
-   ---------
-
-   function SGP (N : Name_Id) return Name_Id is
-      CN : Name_Id := C (N);
-   begin
-      Name_Len := 0;
-      Add_Str_To_Name_Buffer ("Protocols.");
-      Get_Name_String_And_Append (CN);
-      return SG (Name_Find);
-   end SGP;
-
-   ---------
-   -- SGF --
-   ---------
-
-   function SGF (N : Name_Id) return Name_Id is
-      CN : Name_Id := C (N);
-   begin
-      Name_Len := 0;
-      Add_Str_To_Name_Buffer ("Filters.");
-      Get_Name_String_And_Append (CN);
-      return SG (Name_Find);
-   end SGF;
-
-   ---------
-   -- SGS --
-   ---------
-
-   function SGS (X : String) return Name_Id is
-   begin
-      return SGS (Str_To_Id (X));
-   end SGS;
-
-   ---------
-   -- SGS --
-   ---------
-
-   function SGS (N : Name_Id) return Name_Id is
-      CN : Name_Id := C (N);
-   begin
-      Name_Len := 0;
-      Add_Str_To_Name_Buffer ("Storages.");
-      Get_Name_String_And_Append (CN);
-      return SG (Name_Find);
-   end SGS;
-
    -----------------------
    -- Source_File_Error --
    -----------------------
@@ -1342,6 +1221,18 @@ package body XE_Utils is
       return System_Tasking_Length <= Name_Len
         and then System_Tasking = Name_Buffer (1 .. System_Tasking_Length);
    end System_Tasking_Child;
+
+   --------------
+   -- To_Lower --
+   --------------
+
+   function To_Lower (C : Character) return Character is
+   begin
+      if C in 'A' .. 'Z' then
+         return Character'Val (Character'Pos (C) - Up_To_Low);
+      end if;
+      return C;
+   end To_Lower;
 
    --------------
    -- To_Lower --

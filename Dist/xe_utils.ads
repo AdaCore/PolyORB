@@ -60,20 +60,6 @@ package XE_Utils is
 
    PWD_Id                : Types.File_Name_Type;
 
-   Build_Stamp_File      : Types.File_Name_Type;
-   Elaboration_File      : Types.File_Name_Type;
-   Elaboration_Name      : Types.File_Name_Type;
-   Partition_Main_File   : Types.File_Name_Type;
-   Partition_Main_Name   : Types.File_Name_Type;
-   Protocol_Config_File  : Types.File_Name_Type;
-   Protocol_Config_Name  : Types.File_Name_Type;
-   Storage_Config_File   : Types.File_Name_Type;
-   Storage_Config_Name   : Types.File_Name_Type;
-
-   A_GARLIC_Dir          : GNAT.OS_Lib.String_Access;
-   I_GARLIC_Dir          : GNAT.OS_Lib.String_Access;
-   L_GARLIC_Dir          : GNAT.OS_Lib.String_Access;
-
    No_Args : constant GNAT.OS_Lib.Argument_List (1 .. 0) := (others => null);
 
    -- Exceptions --
@@ -94,17 +80,6 @@ package XE_Utils is
 
    function C   (N : Types.Name_Id) return Types.Name_Id renames GNAT_Style;
    function C   (S : String) return Types.Name_Id;
-   function S   (X : String) return Types.Name_Id;
-   function SG  (X : String) return Types.Name_Id;
-   function SGF (X : String) return Types.Name_Id;
-   function SGP (X : String) return Types.Name_Id;
-   function SGS (X : String) return Types.Name_Id;
-   function S   (N : Types.Name_Id) return Types.Name_Id;
-   function SG  (N : Types.Name_Id) return Types.Name_Id;
-   function SGF (N : Types.Name_Id) return Types.Name_Id;
-   function SGP (N : Types.Name_Id) return Types.Name_Id;
-   function SGS (N : Types.Name_Id) return Types.Name_Id;
-
    procedure Change_Dir (To : in Types.File_Name_Type);
    --  Changes the working directory of the current execution environment
 
@@ -231,6 +206,7 @@ package XE_Utils is
 
    function Strlen (Name : in Types.Name_Id) return Natural;
 
+   function  To_Lower   (C : Character) return Character;
    procedure To_Lower   (S : in out String);
    procedure To_Lower   (N : in out Types.Name_Id);
    function  To_Lower   (N : Types.Name_Id) return Types.Name_Id;
