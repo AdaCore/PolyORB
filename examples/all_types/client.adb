@@ -100,6 +100,22 @@ begin
             Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
       end;
 
+      --  Unbounded sequences
+      declare
+         X : U_Sequence := U_Sequence (IDL_Sequence_Short.Null_Sequence);
+      begin
+         X := X & 1 & 2 & 3 & 4 & 5;
+         Output ("test unbounded sequence",  echoUsequence (Myall_types, X) = X);
+      end;
+
+      --  Bounded sequences
+      declare
+         X : B_Sequence := B_Sequence (IDL_SEQUENCE_Short_10.Null_Sequence);
+      begin
+         X := X & 1 & 2 & 3 & 4 & 5;
+         Output ("test bounded sequence",  echoBsequence (Myall_types, X) = X);
+      end;
+
       --  Refs
       declare
          X : all_types.Ref;
@@ -220,22 +236,6 @@ begin
       begin
          Output ("test read-only attribute",
                  Counter_Second_Value = Counter_First_Value + 1);
-      end;
-
-      --  Unbounded sequences
-      declare
-         X : U_Sequence := U_Sequence (IDL_Sequence_Short.Null_Sequence);
-      begin
-         X := X & 1 & 2 & 3 & 4 & 5;
-         Output ("test unbounded sequence",  echoUsequence (Myall_types, X) = X);
-      end;
-
-      --  Bounded sequences
-      declare
-         X : B_Sequence := B_Sequence (IDL_SEQUENCE_Short_10.Null_Sequence);
-      begin
-         X := X & 1 & 2 & 3 & 4 & 5;
-         Output ("test bounded sequence",  echoBsequence (Myall_types, X) = X);
       end;
 
       --  Exceptions

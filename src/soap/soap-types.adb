@@ -693,7 +693,11 @@ package body SOAP.Types is
          Nb : constant PolyORB.Types.Unsigned_Long
            := PolyORB.Any.Get_Aggregate_Count (O.Argument);
       begin
-         for I in 0 .. Nb - 1 loop
+         --  Note: element 0 in a Tk_Sequence aggregate holds the
+         --  length of the sequence, so we can assume that Nb > 0.
+         pragma Assert (Nb > 0);
+
+         for I in 1 .. Nb - 1 loop
             Append
               (Result, XML_Image
                (PolyORB.Any.NamedValue'
