@@ -80,6 +80,21 @@ package body CORBA.ORB is
 
    procedure Run renames Broca.ORB.Run;
 
+
+--    ----------------------------------
+--    --  Dynamic Invocation Related  --
+--    ----------------------------------
+
+--    -----------------
+--    -- Create_List --
+--    -----------------
+--    procedure Create_List
+--      (Count    : in     CORBA.Long;
+--       New_List :    out CORBA.NVList.Ref) is
+--    begin
+--       New_List := new (Ptr => new CORBA.Impl.Object);
+--    end Create_List;
+
 end CORBA.ORB;
 
 

@@ -47,8 +47,8 @@ procedure DynClient is
    Arg : CORBA.Any;
    Arg_List : CORBA.NVList.Ref;
    Result : CORBA.NamedValue;
-   Result_Name : CORBA.String;
-   Result_Value : CORBA.String;
+   Result_Name : CORBA.String := To_CORBA_String ("Result");
+   Result_Value : CORBA.String := To_CORBA_String ("Not Successfull");
    Recv_Msg : CORBA.String;
 begin
 
@@ -71,11 +71,9 @@ begin
                           CORBA.ARG_IN);
 
    --  setting the result type
-   Result_Name := To_CORBA_String ("Result");
-   Result_Value := To_CORBA_String ("Not Successfull");
    Result := (Name => Identifier (Result_Name),
-	      Argument => To_Any (Result_Value),
-	      Arg_Modes => 0);
+              Argument => To_Any (Result_Value),
+              Arg_Modes => 0);
 
    --  creating a request
    CORBA.Object.Create_Request (myecho,

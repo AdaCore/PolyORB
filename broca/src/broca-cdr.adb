@@ -157,49 +157,60 @@ package body Broca.CDR is
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Boolean) is
    begin
+      pragma Debug (O ("Marshall (Boolean) : enter"));
       Marshall (Buffer, CORBA.Octet'(CORBA.Boolean'Pos (Data)));
+      pragma Debug (O ("Marshall (Boolean) : end"));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Char) is
    begin
+      pragma Debug (O ("Marshall (Char) : enter"));
       Marshall (Buffer, CORBA.Octet'(CORBA.Char'Pos (Data)));
+      pragma Debug (O ("Marshall (Char) : end"));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Wchar) is
    begin
+      pragma Debug (O ("Marshall (WChar) : enter"));
       Align_Marshall_Big_Endian_Copy
         (Buffer,
          (BO_Octet (CORBA.Wchar'Pos (Data) / 256),
           BO_Octet (CORBA.Wchar'Pos (Data) mod 256)),
          2);
+      pragma Debug (O ("Marshall (WChar) : end"));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Octet) is
    begin
+      pragma Debug (O ("Marshall (Octet) : enter"));
       Align_Marshall_Copy (Buffer, (1 => BO_Octet (Data)), 1);
+      pragma Debug (O ("Marshall (Octet) : end"));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Unsigned_Short) is
    begin
+      pragma Debug (O ("Marshall (UShort) : enter"));
       Align_Marshall_Big_Endian_Copy
         (Buffer,
          (BO_Octet (Data / 256),
           BO_Octet (Data mod 256)),
          2);
+      pragma Debug (O ("Marshall (UShort) : end"));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Unsigned_Long) is
    begin
+      pragma Debug (O ("Marshall (ULong) : enter"));
       Align_Marshall_Big_Endian_Copy
         (Buffer,
          (BO_Octet (Data / 256**3),
@@ -207,12 +218,14 @@ package body Broca.CDR is
           BO_Octet ((Data / 256) mod 256),
           BO_Octet (Data mod 256)),
          4);
+      pragma Debug (O ("Marshall (ULong) : end"));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Unsigned_Long_Long) is
    begin
+      pragma Debug (O ("Marshall (ULongLong) : enter"));
       Align_Marshall_Big_Endian_Copy
         (Buffer,
          (BO_Octet (Data / 256**7),
@@ -224,34 +237,43 @@ package body Broca.CDR is
           BO_Octet ((Data / 256) mod 256),
           BO_Octet (Data mod 256)),
          8);
+      pragma Debug (O ("Marshall (ULongLong) : end"));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Long_Long) is
    begin
+      pragma Debug (O ("Marshall (LongLong) : enter"));
       Marshall (Buffer, To_Unsigned_Long_Long (Data));
+      pragma Debug (O ("Marshall (LongLong) : end"));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Long) is
    begin
+      pragma Debug (O ("Marshall (Long) : enter"));
       Marshall (Buffer, To_Unsigned_Long (Data));
+      pragma Debug (O ("Marshall (Long) : end"));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Short) is
    begin
+      pragma Debug (O ("Marshall (Short) : enter"));
       Marshall (Buffer, To_Unsigned_Short (Data));
+      pragma Debug (O ("Marshall (Short) : end"));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Float) is
    begin
+      pragma Debug (O ("Marshall (Float) : enter"));
       Marshall (Buffer, To_Unsigned_Long (Data));
+      pragma Debug (O ("Marshall (Float) : end"));
    end Marshall;
 
    procedure Marshall
@@ -260,7 +282,9 @@ package body Broca.CDR is
    is
       Buf : Double_Buf := To_Double_Buf (Data);
    begin
+      pragma Debug (O ("Marshall (Double) : enter"));
       Align_Marshall_Host_Endian_Copy (Buffer, Buf, 8);
+      pragma Debug (O ("Marshall (Double) : end"));
    end Marshall;
 
    procedure Marshall
@@ -270,8 +294,10 @@ package body Broca.CDR is
    --  FIXME LONG DOUBLE
 --      Buf : Long_Double_Buf := To_Long_Double_Buf (Data);
    begin
+      pragma Debug (O ("Marshall (LongDouble) : enter"));
 --      Align_Marshall_Host_Endian_Copy (Buffer, Buf, 8);
       null;
+      pragma Debug (O ("Marshall (LongDouble) : end"));
    end Marshall;
 
    procedure Marshall
@@ -286,8 +312,6 @@ package body Broca.CDR is
       Marshall (Buffer, CORBA.Unsigned_Long'(Equiv'Length));
       for I in Equiv'Range loop
          Marshall (Buffer, CORBA.Char'Val (Character'Pos (Equiv (I))));
-         pragma Debug (O ("Marshall (String) : I = " &
-                          Integer'Image (I)));
       end loop;
       pragma Debug (O ("Marshall (String) : end"));
    end Marshall;
@@ -300,38 +324,50 @@ package body Broca.CDR is
         CORBA.To_Wide_String (Data) & Standard.Wide_Character'Val (0);
 
    begin
+      pragma Debug (O ("Marshall (Wide_String) : enter"));
+      pragma Debug (O ("Marshall (Wide_String) : length is " &
+                       CORBA.Unsigned_Long'Image (Equiv'Length)));
       Marshall (Buffer, CORBA.Unsigned_Long'(Equiv'Length));
       for I in Equiv'Range loop
          Marshall (Buffer, CORBA.Wchar'Val (Wide_Character'Pos (Equiv (I))));
       end loop;
+      pragma Debug (O ("Marshall (Wide_String) : end"));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Identifier) is
    begin
+      pragma Debug (O ("Marshall (Identifier) : enter"));
       Marshall (Buffer, CORBA.String (Data));
+      pragma Debug (O ("Marshall (Identifier) : end"));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : in CORBA.RepositoryId) is
    begin
+      pragma Debug (O ("Marshall (RepositoryId) : enter"));
       Marshall (Buffer, CORBA.String (Data));
+      pragma Debug (O ("Marshall (RepositoryId) : end"));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : in CORBA.ValueModifier) is
    begin
+      pragma Debug (O ("Marshall (ValueModifier) : enter"));
       Marshall (Buffer, CORBA.Short (Data));
+      pragma Debug (O ("Marshall (ValueModifier) : end"));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Visibility) is
    begin
+      pragma Debug (O ("Marshall (Visibility) : enter"));
       Marshall (Buffer, CORBA.Short (Data));
+      pragma Debug (O ("Marshall (Visibility) : end"));
    end Marshall;
 
    procedure Marshall
@@ -825,10 +861,12 @@ package body Broca.CDR is
      (Buffer : access Buffer_Type;
       Data   : in Encapsulation) is
    begin
+      pragma Debug (O ("Marshall (Encapsulation) : enter"));
       Marshall (Buffer, CORBA.Unsigned_Long (Data'Length));
       for I in Data'Range loop
          Marshall (Buffer, CORBA.Octet (Data (I)));
       end loop;
+      pragma Debug (O ("Marshall (Encapsulation) : end"));
    end Marshall;
 
    ---------------------------------------------------
@@ -1013,12 +1051,14 @@ package body Broca.CDR is
    function Unmarshall (Buffer : access Buffer_Type)
      return CORBA.Boolean is
    begin
+      pragma Debug (O ("Unmarshall (Boolean) : enter & end"));
       return CORBA.Boolean'Val (CORBA.Octet'(Unmarshall (Buffer)));
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)
      return CORBA.Char is
    begin
+      pragma Debug (O ("Unmarshall (Char) : enter & end"));
       return CORBA.Char'Val (CORBA.Octet'(Unmarshall (Buffer)));
    end Unmarshall;
 
@@ -1027,6 +1067,7 @@ package body Broca.CDR is
       Octets : constant Octet_Array :=
         Align_Unmarshall_Big_Endian_Copy (Buffer, 2, 2);
    begin
+      pragma Debug (O ("Unmarshall (WChar) : enter & end"));
       return CORBA.Wchar'Val
         (CORBA.Unsigned_Long (Octets (Octets'First)) * 256 +
          CORBA.Unsigned_Long (Octets (Octets'First + 1)));
@@ -1037,6 +1078,7 @@ package body Broca.CDR is
       Result : constant Octet_Array
         := Align_Unmarshall_Copy (Buffer, 1, 1);
    begin
+      pragma Debug (O ("Unmarshall (Octet) : enter & end"));
       return CORBA.Octet (Result (Result'First));
    end Unmarshall;
 
@@ -1046,6 +1088,7 @@ package body Broca.CDR is
       Octets : constant Octet_Array :=
         Align_Unmarshall_Big_Endian_Copy (Buffer, 2, 2);
    begin
+      pragma Debug (O ("Unmarshall (UShort) : enter & end"));
       return CORBA.Unsigned_Short (Octets (Octets'First)) * 256 +
         CORBA.Unsigned_Short (Octets (Octets'First + 1));
    end Unmarshall;
@@ -1056,6 +1099,7 @@ package body Broca.CDR is
       Octets : constant Octet_Array :=
         Align_Unmarshall_Big_Endian_Copy (Buffer, 4, 4);
    begin
+      pragma Debug (O ("Unmarshall (ULong) : enter & end"));
       return CORBA.Unsigned_Long (Octets (Octets'First)) * 256**3
         + CORBA.Unsigned_Long (Octets (Octets'First + 1)) * 256**2
         + CORBA.Unsigned_Long (Octets (Octets'First + 2)) * 256
@@ -1067,6 +1111,7 @@ package body Broca.CDR is
       Octets : constant Octet_Array :=
         Align_Unmarshall_Big_Endian_Copy (Buffer, 8, 8);
    begin
+      pragma Debug (O ("Unmarshall (ULongLong) : enter & end"));
       return CORBA.Unsigned_Long_Long (Octets (Octets'First)) * 256**7
         + CORBA.Unsigned_Long_Long (Octets (Octets'First + 1)) * 256**6
         + CORBA.Unsigned_Long_Long (Octets (Octets'First + 2)) * 256**5
@@ -1080,6 +1125,7 @@ package body Broca.CDR is
    function Unmarshall (Buffer : access Buffer_Type)
      return CORBA.Long_Long is
    begin
+      pragma Debug (O ("Unmarshall (LongLong) : enter & end"));
       return To_Long_Long (Unmarshall (Buffer));
    end Unmarshall;
 
@@ -1087,6 +1133,7 @@ package body Broca.CDR is
      return CORBA.Long
    is
    begin
+      pragma Debug (O ("Unmarshall (Long) : enter & end"));
       return To_Long (Unmarshall (Buffer));
    end Unmarshall;
 
@@ -1094,6 +1141,7 @@ package body Broca.CDR is
      return CORBA.Short
    is
    begin
+      pragma Debug (O ("Unmarshall (Short) : enter & end"));
       return To_Short (Unmarshall (Buffer));
    end Unmarshall;
 
@@ -1101,6 +1149,7 @@ package body Broca.CDR is
      return CORBA.Float
    is
    begin
+      pragma Debug (O ("Unmarshall (Float) : enter & end"));
       return To_Float (Unmarshall (Buffer));
    end Unmarshall;
 
@@ -1109,6 +1158,7 @@ package body Broca.CDR is
       Octets : constant Octet_Array :=
         Align_Unmarshall_Host_Endian_Copy (Buffer, 8, 8);
    begin
+      pragma Debug (O ("Unmarshall (Double) : enter & end"));
       return To_Double (Double_Buf (Octets));
    end Unmarshall;
 
@@ -1118,6 +1168,7 @@ package body Broca.CDR is
 --      Octets : constant Octet_Array :=
 --        Align_Unmarshall_Host_Endian_Copy (Buffer, 12, 8);
    begin
+      pragma Debug (O ("Unmarshall (LongDouble) : enter & end"));
 --      return To_Long_Double (Long_Double_Buf (Octets));
       return CORBA.Long_Double (0);
    end Unmarshall;
@@ -1148,10 +1199,14 @@ package body Broca.CDR is
         := Unmarshall (Buffer);
       Equiv  : Wide_String (1 .. Natural (Length));
    begin
+      pragma Debug (O ("Unmarshall (Wide_String) : enter"));
+      pragma Debug (O ("Unmarshall (Wide_String) : length is " &
+                    CORBA.Unsigned_Long'Image (Length)));
       for I in Equiv'Range loop
          Equiv (I) := Wide_Character'Val (CORBA.Wchar'Pos
                                           (Unmarshall (Buffer)));
       end loop;
+      pragma Debug (O ("Unmarshall (Wide_String) : end"));
       return CORBA.To_CORBA_Wide_String
         (Equiv (1 .. Equiv'Length - 1));
    end Unmarshall;
@@ -1160,6 +1215,7 @@ package body Broca.CDR is
      return CORBA.Identifier is
       Result : CORBA.String := Unmarshall (Buffer);
    begin
+      pragma Debug (O ("Unmarshall (Identifier) : enter & end"));
       return CORBA.Identifier (Result);
    end Unmarshall;
 
@@ -1167,6 +1223,7 @@ package body Broca.CDR is
      return CORBA.RepositoryId is
       Result : CORBA.String := Unmarshall (Buffer);
    begin
+      pragma Debug (O ("Unmarshall (RepositoryId) : enter & end"));
       return CORBA.RepositoryId (Result);
    end Unmarshall;
 
@@ -1174,6 +1231,7 @@ package body Broca.CDR is
      return CORBA.ValueModifier is
       Result : CORBA.Short := Unmarshall (Buffer);
    begin
+      pragma Debug (O ("Unmarshall (ValueModifier) : enter & end"));
       return CORBA.ValueModifier (Result);
    end Unmarshall;
 
@@ -1181,6 +1239,7 @@ package body Broca.CDR is
      return CORBA.Visibility is
       Result : CORBA.Short := Unmarshall (Buffer);
    begin
+      pragma Debug (O ("Unmarshall (Visibility) : enter & end"));
       return CORBA.Visibility (Result);
    end Unmarshall;
 
@@ -1188,6 +1247,7 @@ package body Broca.CDR is
      return CORBA.Any is
       Tc : CORBA.TypeCode.Object := Unmarshall (Buffer);
    begin
+      pragma Debug (O ("Unmarshall (Any) : enter & end"));
       return Unmarshall_To_Any (Buffer, Tc);
    end Unmarshall;
 
@@ -1198,6 +1258,9 @@ package body Broca.CDR is
       Result : CORBA.Any;
       use CORBA;
    begin
+      pragma Debug (O ("Unmarshall_To_Any : enter"));
+      pragma Debug (O ("Unmarshall_To_Any : Any_Type is " &
+                       CORBA.TCKind'Image (TypeCode.Kind (Tc))));
       while TypeCode.Kind (Tc) = Tk_Alias loop
          Tc := TypeCode.Content_Type (Tc);
       end loop;
@@ -1447,6 +1510,7 @@ package body Broca.CDR is
             --  FIXME : to be done
             null;
       end case;
+      pragma Debug (O ("Unmarshall_To_Any : end"));
       return Result;
    end Unmarshall_To_Any;
 
@@ -1455,6 +1519,7 @@ package body Broca.CDR is
       Nb : CORBA.Unsigned_Long := Unmarshall (Buffer);
       Result : CORBA.TypeCode.Object;
    begin
+      pragma Debug (O ("Unmarshall (TypeCode) : enter"));
       case Nb is
          when 0 =>
             Result := CORBA.TypeCode.TC_Null;
@@ -1796,6 +1861,7 @@ package body Broca.CDR is
          when others =>
             Broca.Exceptions.Raise_Marshal;
       end case;
+      pragma Debug (O ("Unmarshall (TypeCode) : end"));
       return Result;
    end Unmarshall;
 
@@ -1808,9 +1874,11 @@ package body Broca.CDR is
    is
       Result : NamedValue;
    begin
+      pragma Debug (O ("Unmarshall (NamedValue) : enter"));
       Result.Name := Name;
       Result.Argument := Unmarshall_To_Any (Buffer, Arg_Type);
       Result.Arg_Modes := Flags;
+      pragma Debug (O ("Unmarshall (NamedValue) : end"));
       return Result;
    end Unmarshall;
 
@@ -1819,6 +1887,7 @@ package body Broca.CDR is
    is
       Length : CORBA.Unsigned_Long;
    begin
+      pragma Debug (O ("Unmarshall (Encapsulation) : enter"));
       Length := Unmarshall (Buffer);
       declare
          E : Encapsulation (1 .. Index_Type (Length));
@@ -1826,6 +1895,7 @@ package body Broca.CDR is
          for I in E'Range loop
             E (I) := BO_Octet (CORBA.Octet'(Unmarshall (Buffer)));
          end loop;
+         pragma Debug (O ("Unmarshall (Encapsulation) : end"));
          return E;
       end;
    end Unmarshall;

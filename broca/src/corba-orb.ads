@@ -94,4 +94,12 @@ package CORBA.ORB is
 --    --  Initializes the BOA with parameters of the command line and returns
 --    --  the BOA
 
+--    ----------------------------------
+--    --  Dynamic Invocation Related  --
+--    ----------------------------------
+
+--    procedure Create_List
+--      (Count    : in     CORBA.Long;
+--       New_List :    out CORBA.NVList.Ref);
+
 end CORBA.ORB;

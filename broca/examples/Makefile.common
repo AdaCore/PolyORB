@@ -36,7 +36,7 @@ client server: force $(EXAMPLE).ads
 	$(GNATMAKE) $@ $(EXAMPLES_GNATMAKE_FLAGS)
 
 dynclient: force
-	if test -a $@; then $(GNATMAKE) $@ $(EXAMPLES_GNATMAKE_FLAGS); fi;
+	if test -a $@.adb; then $(GNATMAKE) $@ $(EXAMPLES_GNATMAKE_FLAGS); fi;
 
 force::
 	cd ../../src && $(MAKE)
