@@ -33,10 +33,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
--- This  package  is part of  the  transparent data filtering  extension to --
--- GARLIC  developed at  the  Software Engineering Laboratory of the  Swiss --
--- Federal Institute of Technology in Lausanne (EPFL).                      --
-
 with Ada.Streams;
 with System.Garlic.Streams;
 
