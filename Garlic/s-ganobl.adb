@@ -61,7 +61,7 @@ package body System.Garlic.Non_Blocking is
    --  A SIGIO will be simulated every Safety_Delay seconds, to make
    --  sure we do not get stuned because we have missed one of them.
 
-   subtype Descriptors is int range 0 .. 127;
+   subtype Descriptors is int range 0 .. 63;
    --  At most 128 file descriptors are available. This is used to limit
    --  the size of entry families.
 

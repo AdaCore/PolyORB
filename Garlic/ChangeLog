@@ -1,3 +1,15 @@
+1998-02-19  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* Makefile.am, Makefile.in: Create System.Garlic.Linker_Options to
+ 	include various pragma Linker_Options. This file is built using
+ 	$(EXTRA_LIBS). Update dependencies.
+
+	* s-garhea.adb: With System.Garlic.Linker_Options.
+
+	* s-ganobl.adb: Change Descriptors range from 127 to 63
+ 	(workaround). GNAT-3.11w crashes on a packed array of boolean with
+ 	index Descriptors.
+
 1998-02-19  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garthi.ads: Capitalization fixes.
