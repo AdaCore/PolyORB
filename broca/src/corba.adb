@@ -1494,128 +1494,72 @@ package body CORBA is
       null;
    end Iterate_Over_Any_Elements;
 
-   ------------------
-   --  Named_Value --
-   ------------------
+   -----------
+   --  Any  --
+   -----------
 
---    --------------------------
---    --  Force_Any_TypeCode  --
---    --------------------------
-
---    procedure Force_Any_TypeCode
---      (A : in out CORBA.Any;
---       T : in     CORBA.TypeCode.Object)
---    is
---    begin
---       A.The_Type := T;
---    end Force_Any_TypeCode;
-
-
---    ------------------------------------
---    --  Prepare_Any_From_Agregate_Tc  --
---    ------------------------------------
-
---    function Prepare_Any_From_Agregate_Tc
---      (Tc : in TypeCode.Object)
---       return Any
---    is
---       A : Any;
---       Cl : Content_List;
---    begin
---       A.The_Type := Tc;
---       --  copy typecode
---       A.The_Value :=
---        new Content_Agregat' (Value => Cl);
---       --  this any will be an agregate
---       return A;
---    end Prepare_Any_From_Agregate_Tc;
-
-
---    -------------------------------
---    --  Add_Agregate_Any_Member  --
---    -------------------------------
-
---    procedure Add_Agregate_Any_Member
---      (A      : in out Any;
---       Member : in     Any)
---    is
---       Cl : Content_List;
---    begin
---       --  this append to a list a cell containing a pointer to the
---       --  value of the new member
---       Cl := Content_Agregat_Ptr (A.The_Value).Value;
---       if Cl = null then
---          Content_Agregat_Ptr (A.The_Value).Value
---            := new Content_Cell' (Member.The_Value, null);
---       else
---          while Cl.Next /= null loop
---             Cl := Cl.Next;
---          end loop;
---          Cl.Next := new Content_Cell' (Member.The_Value, null);
---       end if;
---    end Add_Agregate_Any_Member;
-
-
---    -------------------------------
---    --  Get_Any_Agregate_Member  --
---    -------------------------------
-
---    function Get_Any_Agregate_Member
---      (A      : in Any;
---       Tc     : in TypeCode.Object;
---       N      : in CORBA.Long)
---       return Any
---    is
---       Res : Any;
---       Ptr : Content_List := Content_Agregat_Ptr (A.The_Value).Value;
---    begin
---       pragma Debug (O ("entering Get_Any_Agregate_Member"));
---       for I in 0 .. N - 1 loop
---          if Ptr.Next = null then
---             raise Adabroker_DII_Any_Agregate_Error;
---          else
---             Ptr := Ptr.Next;
---          end if;
---       end loop;
---       pragma Debug (O ("before res update"));
---       Res := (Ptr.The_Value, Tc);
---       pragma Debug (O ("leaving Get_Any_Agregate_Member"));
---       return Res;
---    end Get_Any_Agregate_Member;
-
-
-
---    -------------------------
---    --  Any_Agregate_Size  --
---    -------------------------
-
---    function Any_Agregate_Size
---      (A : in Any)
---       return CORBA.Long
---    is
---       Cl : Content_List := Content_Agregat_Ptr (A.The_Value).Value;
---    begin
---       return Agregate_Count (Cl);
---    end Any_Agregate_Size;
-
-
-   ----------------------
-   --  Agregate_Count  --
-   ----------------------
-   function Agregate_Count
-     (Cl : in Content_List)
-      return CORBA.Long
-   is
+   ---------------------------
+   --  Get_Aggregate_Count  --
+   ---------------------------
+   function Get_Aggregate_Count (Value : Any) return CORBA.Long is
       N : CORBA.Long := 0;
-      Ptr : Content_List := Cl;
+      Ptr : Content_List := Content_Aggregate_Ptr (Value.The_Value).Value;
    begin
       while Ptr /= null loop
          N := N + 1;
          Ptr := Ptr.Next;
       end loop;
       return N;
-   end Agregate_Count;
+   end Get_Aggregate_Count;
 
+   -----------------------------
+   --  Add_Aggregate_Element  --
+   -----------------------------
+   procedure Add_Aggregate_Element (Value : in out Any;
+                                   Element : in Any) is
+      Cl : Content_List := Content_Aggregate_Ptr (Value.The_Value).Value;
+   begin
+      if Cl = Null_Content_List then
+         Content_Aggregate_Ptr (Value.The_Value).Value
+           := new Content_Cell' (Element.The_Value,
+                                 Null_Content_List);
+      else
+         while Cl.Next /= null loop
+            Cl := Cl.Next;
+         end loop;
+         Cl.Next := new Content_Cell' (Value.The_Value,
+                                       Null_Content_List);
+      end if;
+   end Add_Aggregate_Element;
+
+   -----------------------------
+   --  Get_Aggregate_Element  --
+   -----------------------------
+   function Get_Aggregate_Element (Value : Any;
+                                   Tc : CORBA.TypeCode.Object;
+                                   Index : CORBA.Long)
+                                   return Any is
+      Ptr : Content_List := Content_Aggregate_Ptr (Value.The_Value).Value;
+   begin
+      pragma Assert (Get_Aggregate_Count (Value) > Index);
+      for I in 0 .. Index - 1 loop
+         Ptr := Ptr.Next;
+      end loop;
+      return (The_Value => Ptr.The_Value, The_Type => Tc);
+   end Get_Aggregate_Element;
+
+   -------------------------------
+   --  Get_Empty_Any_Aggregate  --
+   -------------------------------
+   function Get_Empty_Any_Aggregate (Tc : CORBA.TypeCode.Object)
+                                     return Any is
+      Result : Any;
+   begin
+      Result.The_Value :=
+       new Content_Aggregate'(Value => Null_Content_List);
+      Result.The_Type := Tc;
+      return Result;
+   end Get_Empty_Any_Aggregate;
 
 end CORBA;
 

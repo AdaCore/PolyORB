@@ -326,14 +326,321 @@ package body Broca.CDR is
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Any) is
    begin
-      null;
+      Marshall (Buffer, Get_Type (Data));
+      Marshall_From_Any (Buffer, Data);
    end Marshall;
 
    procedure Marshall_From_Any
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Any) is
    begin
-      null;
+      case CORBA.TypeCode.Kind (Get_Type (Data)) is
+         when Tk_Null
+           | Tk_Void =>
+            null;
+         when Tk_Short =>
+            declare
+               S : CORBA.Short := From_Any (Data);
+            begin
+               Marshall (Buffer, S);
+            end;
+         when Tk_Long =>
+            declare
+               L : CORBA.Long := From_Any (Data);
+            begin
+               Marshall (Buffer, L);
+            end;
+         when Tk_Ushort =>
+            declare
+               Us : CORBA.Unsigned_Short := From_Any (Data);
+            begin
+               Marshall (Buffer, Us);
+            end;
+         when Tk_Ulong =>
+            declare
+               Ul : CORBA.Unsigned_Long := From_Any (Data);
+            begin
+               Marshall (Buffer, Ul);
+            end;
+         when Tk_Float =>
+            declare
+               F : CORBA.Float := From_Any (Data);
+            begin
+               Marshall (Buffer, F);
+            end;
+         when Tk_Double =>
+            declare
+               D : CORBA.Double := From_Any (Data);
+            begin
+               Marshall (Buffer, D);
+            end;
+         when Tk_Boolean =>
+            declare
+               B : CORBA.Boolean := From_Any (Data);
+            begin
+               Marshall (Buffer, B);
+            end;
+         when Tk_Char =>
+            declare
+               C : CORBA.Char := From_Any (Data);
+            begin
+               Marshall (Buffer, C);
+            end;
+         when Tk_Octet =>
+            declare
+               O : CORBA.Octet := From_Any (Data);
+            begin
+               Marshall (Buffer, O);
+            end;
+         when Tk_Any =>
+            declare
+               A : CORBA.Any := From_Any (Data);
+            begin
+               Marshall (Buffer, A);
+            end;
+         when Tk_TypeCode =>
+            declare
+               T : CORBA.Typecode.Object := From_Any (Data);
+            begin
+               Marshall (Buffer, T);
+            end;
+         when Tk_Principal =>
+            --  FIXME
+            null;
+         when Tk_Objref =>
+            --  FIXME : loop problem
+--          declare
+--             Ref : CORBA.Object.Ref := From_Any (Data);
+--          begin
+--             Marshall (Buffer, Ref);
+--          end;
+            null;
+         when Tk_Struct =>
+            null;
+--             Marshall (Buffer, CORBA.Unsigned_Long'(15));
+--             Start_Encapsulation (Complex_Buffer'Access);
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Id (Data));
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Name (Data));
+--             declare
+--                Nb : CORBA.Unsigned_Long :=
+--                  CORBA.TypeCode.Parameter_Count (Data);
+--             begin
+--                Marshall (Complex_Buffer'Access, Nb);
+--                for I in 0 .. Nb - 1 loop
+--                   Marshall (Complex_Buffer'Access,
+--                             CORBA.TypeCode.Member_Name (Data, I));
+--                   Marshall (Complex_Buffer'Access,
+--                             CORBA.TypeCode.Member_Type (Data, I));
+--                end loop;
+--             end;
+--             Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+--             Release (Complex_Buffer);
+         when Tk_Union =>
+            null;
+--             Marshall (Buffer, CORBA.Unsigned_Long'(16));
+--             Start_Encapsulation (Complex_Buffer'Access);
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Id (Data));
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Name (Data));
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Discriminator_Type (Data));
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Default_Index (Data));
+--             declare
+--                Nb : CORBA.Unsigned_Long :=
+--                  CORBA.TypeCode.Parameter_Count (Data);
+--             begin
+--                Marshall (Complex_Buffer'Access, Nb);
+--                for I in 0 .. Nb - 1 loop
+--                   Marshall_From_Any (Complex_Buffer'Access,
+--                                      CORBA.TypeCode.Member_Label (Data, I));
+--                   Marshall (Complex_Buffer'Access,
+--                             CORBA.TypeCode.Member_Name (Data, I));
+--                   Marshall (Complex_Buffer'Access,
+--                             CORBA.TypeCode.Member_Type (Data, I));
+--                end loop;
+--             end;
+--             Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+--             Release (Complex_Buffer);
+         when Tk_Enum =>
+            null;
+--             Marshall (Buffer, CORBA.Unsigned_Long'(17));
+--             Start_Encapsulation (Complex_Buffer'Access);
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Id (Data));
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Name (Data));
+--             declare
+--                Nb : CORBA.Unsigned_Long :=
+--                  CORBA.TypeCode.Parameter_Count (Data);
+--             begin
+--                Marshall (Complex_Buffer'Access, Nb);
+--                for I in 0 .. Nb - 1 loop
+--                   Marshall (Complex_Buffer'Access,
+--                             CORBA.TypeCode.Member_Name (Data, I));
+--                end loop;
+--             end;
+--             Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+--             Release (Complex_Buffer);
+         when Tk_String =>
+            declare
+               S : CORBA.String := From_Any (Data);
+            begin
+               Marshall (Buffer, S);
+            end;
+         when Tk_Sequence =>
+            null;
+--             Marshall (Buffer, CORBA.Unsigned_Long'(19));
+--             Start_Encapsulation (Complex_Buffer'Access);
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Content_Type (Data));
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Length (Data));
+--             Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+--             Release (Complex_Buffer);
+         when Tk_Array =>
+            null;
+--             Marshall (Buffer, CORBA.Unsigned_Long'(20));
+--             Start_Encapsulation (Complex_Buffer'Access);
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Content_Type (Data));
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Length (Data));
+--             Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+--             Release (Complex_Buffer);
+         when Tk_Alias =>
+            null;
+--             Marshall (Buffer, CORBA.Unsigned_Long'(21));
+--             Start_Encapsulation (Complex_Buffer'Access);
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Id (Data));
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Name (Data));
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Content_Type (Data));
+--             Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+--             Release (Complex_Buffer);
+         when Tk_Except =>
+            null;
+--             Marshall (Buffer, CORBA.Unsigned_Long'(22));
+--             Start_Encapsulation (Complex_Buffer'Access);
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Id (Data));
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Name (Data));
+--             declare
+--                Nb : CORBA.Unsigned_Long :=
+--                  CORBA.TypeCode.Parameter_Count (Data);
+--             begin
+--                Marshall (Complex_Buffer'Access, Nb);
+--                for I in 0 .. Nb - 1 loop
+--                   Marshall (Complex_Buffer'Access,
+--                             CORBA.TypeCode.Member_Name (Data, I));
+--                   Marshall (Complex_Buffer'Access,
+--                             CORBA.TypeCode.Member_Type (Data, I));
+--                end loop;
+--             end;
+--             Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+--             Release (Complex_Buffer);
+         when Tk_Longlong =>
+            declare
+               Ll : CORBA.Long_Long := From_Any (Data);
+            begin
+               Marshall (Buffer, Ll);
+            end;
+         when Tk_Ulonglong =>
+            declare
+               Ull : CORBA.Unsigned_Long_Long := From_Any (Data);
+            begin
+               Marshall (Buffer, Ull);
+            end;
+         when Tk_Longdouble =>
+            declare
+               Ld : CORBA.Long_Double := From_Any (Data);
+            begin
+               Marshall (Buffer, Ld);
+            end;
+         when Tk_Widechar =>
+            declare
+               Wc : CORBA.Wchar := From_Any (Data);
+            begin
+               Marshall (Buffer, Wc);
+            end;
+         when Tk_Wstring =>
+            declare
+               Ws : CORBA.Wide_String := From_Any (Data);
+            begin
+               Marshall (Buffer, Ws);
+            end;
+         when Tk_Fixed =>
+            null;
+--             Marshall (Buffer, CORBA.Unsigned_Long'(28));
+--             Marshall (Buffer, CORBA.TypeCode.Fixed_Digits (Data));
+--             Marshall (Buffer, CORBA.TypeCode.Fixed_Scale (Data));
+         when Tk_Value =>
+            null;
+--             Marshall (Buffer, CORBA.Unsigned_Long'(29));
+--             Start_Encapsulation (Complex_Buffer'Access);
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Id (Data));
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Name (Data));
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Type_Modifier (Data));
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Concrete_Base_Type (Data));
+--             declare
+--                Nb : CORBA.Unsigned_Long :=
+--                  CORBA.TypeCode.Parameter_Count (Data);
+--             begin
+--                Marshall (Complex_Buffer'Access, Nb);
+--                for I in 0 .. Nb - 1 loop
+--                   Marshall (Complex_Buffer'Access,
+--                             CORBA.TypeCode.Member_Name (Data, I));
+--                   Marshall (Complex_Buffer'Access,
+--                             CORBA.TypeCode.Member_Type (Data, I));
+--                   Marshall (Complex_Buffer'Access,
+--                             CORBA.TypeCode.Member_Visibility (Data, I));
+--                end loop;
+--             end;
+--             Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+--             Release (Complex_Buffer);
+         when Tk_Valuebox =>
+            null;
+--             Marshall (Buffer, CORBA.Unsigned_Long'(30));
+--             Start_Encapsulation (Complex_Buffer'Access);
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Id (Data));
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Name (Data));
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Content_Type (Data));
+--             Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+--             Release (Complex_Buffer);
+         when Tk_Native =>
+            null;
+--             Marshall (Buffer, CORBA.Unsigned_Long'(31));
+--             Start_Encapsulation (Complex_Buffer'Access);
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Id (Data));
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Name (Data));
+--             Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+--             Release (Complex_Buffer);
+         when Tk_Abstract_Interface =>
+            null;
+--             Marshall (Buffer, CORBA.Unsigned_Long'(32));
+--             Start_Encapsulation (Complex_Buffer'Access);
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Id (Data));
+--             Marshall (Complex_Buffer'Access,
+--                       CORBA.TypeCode.Name (Data));
+--             Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
+--             Release (Complex_Buffer);
+      end case;
    end Marshall_From_Any;
 
    procedure Marshall

@@ -834,7 +834,7 @@ private
    --  into an Any should be associated to a child of Content (Content_XXX)
    --  which contains a field of the XXX type.
    --  For complex types (with several values, like structures, arrays...),
-   --  we use a special child of Content, Content_Agregat, which has a field
+   --  we use a special child of Content, Content_Aggregate, which has a field
    --  pointing on a list of childs of Content; various methods are provided
    --  to manipulate this list.
 
@@ -951,12 +951,14 @@ private
       The_Value : Any_Content_Ptr := null;
       Next : Content_List := null;
    end record;
+   Null_Content_List : constant Content_List := null;
 
-   --  for complex types that could be defined in Idl, descendants of
-   --  content_agregat will be used.
+   --  for complex types that could be defined in Idl
+   --  content_aggregate will be used.
    --  complex types include Struct, Union, Enum, Sequence,
    --  Array, Except, Fixed, Value, Valuebox, Abstract_Interface.
-   --  Here is the way the content_list is used in each case :
+   --  Here is the way the content_list is used in each case
+   --  (See CORBA V2.3 - 15.3) :
    --     - for Struct, Except : the elements are the values of each
    --  field in the order of the declaration
    --     - for Union : the value of the switch element comes
@@ -969,48 +971,35 @@ private
    --     - for Value : FIXME
    --     - for Valuebox : FIXME
    --     - for Abstract_Interface : FIXME
-   type Content_Agregat is new Content with
+   type Content_Aggregate is new Content with
       record
          Value : Content_List := null;
       end record;
-   type Content_Agregat_Ptr is access all Content_Agregat;
+   type Content_Aggregate_Ptr is access all Content_Aggregate;
 
-   type Content_Struct is new Content_Agregat with null record;
-   type Content_Struct_Ptr is access all Content_Struct;
+   --  returns the number of elements in an any aggregate
+   function Get_Aggregate_Count (Value : Any) return CORBA.Long;
 
-   type Content_Except is new Content_Agregat with null record;
-   type Content_Except_Ptr is access all Content_Except;
+   --  Adds an element to an any aggregate
+   --  This element is given as a typecode but only its value is
+   --  added to the aggregate
+   procedure Add_Aggregate_Element (Value : in out Any;
+                                    Element : in Any);
 
-   type Content_Union is new Content_Agregat with null record;
-   type Content_Union_Ptr is access all Content_Union;
+   --  Gets an element in an any agregate
+   --  returns an any made of the typecode Tc and the value read in
+   --  the aggregate
+   function Get_Aggregate_Element (Value : Any;
+                                   Tc : CORBA.TypeCode.Object;
+                                   Index : CORBA.Long)
+                                   return Any;
 
-   type Content_Enum is new Content_Agregat with null record;
-   type Content_Enum_Ptr is access all Content_Enum;
+   --  returns an empty any aggregate
+   --  puts its type to Tc
+   function Get_Empty_Any_Aggregate (Tc : CORBA.TypeCode.Object)
+                                     return Any;
 
-   type Content_Sequence is new Content_Agregat with null record;
-   type Content_Sequence_Ptr is access all Content_Sequence;
-
-   type Content_Array is new Content_Agregat with null record;
-   type Content_Array_Ptr is access all Content_Array;
-
-   type Content_Fixed is new Content_Agregat with null record;
-   type Content_Fixed_Ptr is access all Content_Fixed;
-
-   type Content_Value is new Content_Agregat with null record;
-   type Content_Value_Ptr is access all Content_Value;
-
-   type Content_Valuebox is new Content_Agregat with null record;
-   type Content_Valuebox_Ptr is access all Content_Valuebox;
-
-   type Content_Abstract_Interface is new Content_Agregat with null record;
-   type Content_Abstract_Interface_Ptr is
-      access all Content_Abstract_Interface;
-
-   function Agregate_Count
-     (Cl : in Content_List)
-      return CORBA.Long;
-   --  returns the number of elements of the Content_List list
-
+   --  The actual Any type
    type Any is
      record
         The_Value : Any_Content_Ptr;
