@@ -14,6 +14,12 @@ if test -z "$ADA"; then
   ADA="$CC"
 fi])
 
+dnl Usage: AM_PROG_GNATCHOP
+dnl Look for GNATCHOP program
+
+AC_DEFUN([AM_PROG_GNATCHOP],
+[AC_CHECK_PROG(GNATCHOP, gnatchop, gnatchop)])
+
 dnl Usage: AM_TRY_ADA(gnatmake, filename, content, pragmas, success, failure)
 dnl Compile, bind and link an Ada program and report its success or failure
 
@@ -48,7 +54,9 @@ dnl Try to compile a simple Ada program to test the compiler installation
 dnl (especially the standard libraries such as Ada.Text_IO)
 
 AC_DEFUN([AM_PROG_WORKING_ADA],
-[AC_MSG_CHECKING([if the$crossflagmsg Ada compiler works])
+[AC_REQUIRE([AM_PROG_ADA])
+AC_REQUIRE([AM_PROG_GNATCHOP])
+AC_MSG_CHECKING([if the$crossflagmsg Ada compiler works])
 AM_TRY_ADA([$ADA -c],[check.adb],
 [with Ada.Text_IO;
 procedure Check is
@@ -117,7 +125,6 @@ if test -z "$GNATMAKE"; then
   AC_MSG_RESULT([  Tentatively using $ADA as a make])
   GNATMAKE="$ADA"
 fi])
-
 
 dnl Usage: AM_CROSS_PROG_GNATMAKE
 dnl Look for gnatmake for the target (same as the host one if host and
