@@ -18,7 +18,7 @@ use  System.Garlic.Platform_Specific;
 package body System.Garlic.Storages is
 
    Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("S_GASHSU", "(s-gashsu): ");
+     Debug_Initialize ("S_GARSTO", "(s-garsto): ");
 
    procedure D
      (Message : in String;
@@ -203,18 +203,7 @@ package body System.Garlic.Storages is
 
    function Minor (Location : String) return String is
    begin
-      for I in Location'Range loop
-         if Location (I) = ':' then
-            if I + 2 < Location'Last
-              and then Location (I .. I + 2) = "://"
-            then
-               return Location (I + 3 .. Location'Last);
-            else
-               return "";
-            end if;
-         end if;
-      end loop;
-      return "";
+      return System.Garlic.Physical_Location.Get_Support_Data (Location);
    end Minor;
 
    -----------
@@ -222,16 +211,14 @@ package body System.Garlic.Storages is
    -----------
 
    function Major (Location : String) return String is
+      Name : constant String
+        := System.Garlic.Physical_Location.Get_Support_Name (Location);
+
    begin
-      for I in Location'Range loop
-         if Location (I) = ':' then
-            if I = Location'First then
-               return Default_Storage_Name;
-            end if;
-            return Location (Location'First .. I - 1);
-         end if;
-      end loop;
-      return Location;
+      if Name'Length = 0 then
+         return Default_Storage_Name;
+      end if;
+      return Name;
    end Major;
 
    ----------------------
