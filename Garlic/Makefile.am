@@ -23,6 +23,7 @@ s-garrem.o
 
 TCP_OBJECTS = \
 s-ganobl.o\
+s-gtplsp.o\
 s-gartcp.o\
 s-garthi.o
 
@@ -40,7 +41,6 @@ s-garloo.o\
 s-gaprco.o\
 s-garter.o\
 s-garuti.o\
-s-gtplsp.o\
 s-parint.o\
 s-partyp.o\
 s-rpc.o\
@@ -54,6 +54,7 @@ ${srcdir}/s-garrem.ads ${srcdir}/s-garrem.adb
 
 TCP_SOURCES = \
 ${srcdir}/s-ganobl.ads ${srcdir}/s-ganobl.adb \
+        ./s-gtplsp.ads                        \
 ${srcdir}/s-gartcp.ads ${srcdir}/s-gartcp.adb \
 ${srcdir}/s-garthi.ads
 
@@ -74,7 +75,6 @@ ${srcdir}/s-garloo.ads ${srcdir}/s-garloo.adb \
 ${srcdir}/s-gaprco.ads ${srcdir}/s-gaprco.adb \
 ${srcdir}/s-garter.ads ${srcdir}/s-garter.adb \
 ${srcdir}/s-garuti.ads ${srcdir}/s-garuti.adb \
-        ./s-gtplsp.ads                        \
 ${srcdir}/s-parint.ads ${srcdir}/s-parint.adb \
 ${srcdir}/s-partyp.ads                        \
 ${srcdir}/s-rpc.ads    ${srcdir}/s-rpc.adb    \
