@@ -40,6 +40,7 @@ with Ada.Text_IO;      use Ada.Text_IO;
 with PolyORB.Setup.Client;
 pragma Warnings (Off, PolyORB.Setup.Client);
 
+with PolyORB.Initialization;
 with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Types;
@@ -62,9 +63,9 @@ procedure Test_Naming_Generic is
 
 begin
 
-   --
    --  Initialization
-   --
+
+   PolyORB.Initialization.Initialize_World;
 
    if Argument_Count < 1 then
       Put_Line ("usage : client <IOR_string_from_server>");

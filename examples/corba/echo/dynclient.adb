@@ -41,7 +41,6 @@ with CORBA.Context;
 with CORBA.Request;
 with CORBA.NVList;
 with CORBA.ORB;
---  with Broca.Naming_Tools; use Broca.Naming_Tools;
 
 with PolyORB.Setup.Client;
 pragma Warnings (Off, PolyORB.Setup.Client);
@@ -61,6 +60,7 @@ procedure DynClient is
    Iter : Natural := 1;
 
 begin
+   CORBA.ORB.Initialize ("ORB");
    if Ada.Command_Line.Argument_Count < 1 then
       Put_Line ("usage : client <IOR_string_from_server>|-i [niter]");
       return;

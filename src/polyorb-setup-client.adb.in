@@ -2,8 +2,6 @@
 --  The user must take care of also setting up a tasking policy.
 --  XXX inconsistent commentary !!
 
-with PolyORB.Initialization;
-
 with PolyORB.ORB;
 pragma Elaborate_All (PolyORB.ORB);
 pragma Warnings (Off, PolyORB.ORB);
@@ -22,6 +20,5 @@ pragma Elaborate_All (PolyORB.Tasking.Soft_Links);
 @PROTO_CLIENT_WITHS@
 
 package body PolyORB.Setup.Client is
-begin
-   PolyORB.Initialization.Initialize_World;
+
 end PolyORB.Setup.Client;

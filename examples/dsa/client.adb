@@ -3,10 +3,10 @@ with RCI;
 with RT;
 with SP;
 
-pragma Warnings (Off);
 with PolyORB.Initialization;
-with PolyORB.ORB.No_Tasking;
 
+pragma Warnings (Off);
+with PolyORB.ORB.No_Tasking;
 with PolyORB.ORB;
 with PolyORB.Setup;
 with PolyORB.Setup.Client;
@@ -33,6 +33,10 @@ procedure Client is
    Z : constant RCI.Complex := (Re => 2.0, Im => 3.0);
 
 begin
+   --  XXX BEGIN PolyORB INITIAL SETUP
+   PolyORB.Initialization.Initialize_World;
+   --  XXX END PolyORB INITIAL SETUP
+
    SP.Shared_Integer := 42;
    Put_Line ("I said: " & S);
    Put_Line ("The server replied: "

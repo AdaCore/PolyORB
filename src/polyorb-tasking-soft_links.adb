@@ -74,7 +74,7 @@ package body PolyORB.Tasking.Soft_Links is
    use PolyORB.Utils.Strings;
 
 begin
-      Register_Module
+   Register_Module
      (Module_Info'
       (Name => +"tasking.soft_links",
        Conflicts => Empty,

@@ -67,9 +67,9 @@ procedure Test_Naming_CORBA is
 
 begin
 
-   --
    --  Initialization
-   --
+
+   CORBA.ORB.Initialize ("ORB");
 
    if Argument_Count < 1 then
       Put_Line ("usage : client <IOR_string_from_server>");

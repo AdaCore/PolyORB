@@ -81,9 +81,14 @@ package PolyORB.Initialization is
    --  Initialize all modules, respecting the dependencies listed
    --  in each module descriptor.
 
+   function Is_Initialized return Boolean;
+   --  True if, and only if, Initialize_World has been called.
+
    Already_Initialized : exception;
    Unresolved_Dependency : exception;
    Circular_Dependency : exception;
    Conflict : exception;
 
+private
+   pragma Inline (Is_Initialized);
 end PolyORB.Initialization;

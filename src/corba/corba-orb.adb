@@ -461,8 +461,12 @@ package body CORBA.ORB is
       pragma Warnings (Off);
       pragma Unreferenced (ORB_Name);
       pragma Warnings (On);
+
+      use PolyORB.Initialization;
    begin
-      null;
+      if not Is_Initialized then
+         Initialize_World;
+      end if;
    end Initialize;
 
    ----------------------

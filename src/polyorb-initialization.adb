@@ -282,4 +282,9 @@ package body PolyORB.Initialization is
       Initialized := True;
    end Initialize_World;
 
+   function Is_Initialized return Boolean is
+   begin
+      return Initialized;
+   end Is_Initialized;
+
 end PolyORB.Initialization;

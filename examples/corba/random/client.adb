@@ -50,7 +50,7 @@ procedure Client is
    Result : CORBA.Long;
 
 begin
-
+   CORBA.ORB.Initialize ("ORB");
    if Ada.Command_Line.Argument_Count < 1 then
       Put_Line ("usage : client <IOR_string_from_server>");
       return;

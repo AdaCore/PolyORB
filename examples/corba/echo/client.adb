@@ -28,7 +28,6 @@
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Text_IO;      use Ada.Text_IO;
 with CORBA.ORB;
---  with Broca.Naming_Tools; use Broca.Naming_Tools;
 
 with Echo;
 
@@ -40,6 +39,7 @@ procedure Client is
    myecho : Echo.Ref;
 
 begin
+   CORBA.ORB.Initialize ("ORB");
    if Argument_Count < 1 then
       Put_Line ("usage : client <IOR_string_from_server>|-i");
       return;
