@@ -3,13 +3,11 @@ with Membufferedstream ;
 with Corba ;
 with Corba.Object ;
 with weapon.marshal ;
-with classes_IDL_FILE.marshal ;
 use Netbufferedstream ;
 use Membufferedstream ;
 use Corba ;
 use Corba.Object ;
 use weapon.marshal ;
-use classes_IDL_FILE.marshal ;
 package body weapon.Proxies is 
    -----------------------------------------------------------
    ---               shoot
@@ -18,10 +16,10 @@ package body weapon.Proxies is
    -- Init
    -------
    procedure Init(Self : in out shoot_Proxy ;
-                  ranges : in Corba.Long) is
+                  ranges : in dist) is
    begin
       Set_User_Exceptions(Self, False ) ;
-      Self.ranges := new Corba.Long'(ranges) ;
+      Self.ranges := new dist'(ranges) ;
    end ;
 
 

@@ -13,7 +13,7 @@ package body tank.Impl is
    -- inheritance from weapon
    -----------------------------
 
-   procedure shoot(Self : access Object; ranges : in Corba.Long) is
+   procedure shoot(Self : access Object; ranges : in Dist) is
    begin
       Put_Line(" #####BOOM##### tank");
    end;
@@ -26,7 +26,7 @@ package body tank.Impl is
    -- IDL definitions   --
    -----------------------
 
-   function move(Self : access Object; fast : in Corba.String) return Corba.String is
+   function move(Self : access Object; fast : in Weapon.dist) return Corba.String is
    begin
       Put_Line("I turn left !");
       return (Corba.To_Corba_String("I turn left !"));

@@ -26,6 +26,21 @@ package vehicle is
                       To : in Corba.String) ;
 
 
+   type longueur_Array is array ( 0..1 ) of Corba.Long ;
+   type longueur_Array_Ptr is access longueur_Array ;
+
+   procedure Free is new Ada.Unchecked_Deallocation(longueur_Array, longueur_Array_Ptr) ;
+
+
+   type dist1 is record
+      longueur : longueur_Array;
+      largeur : Corba.Long;
+   end record ;
+   type dist1_Ptr is access dist1 ;
+
+   procedure Free is new Ada.Unchecked_Deallocation(dist1, dist1_Ptr) ;
+
+
    function can_drive(Self : in Ref ;
                       age : in Corba.Unsigned_Short)
                       return Corba.Boolean ;

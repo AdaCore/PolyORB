@@ -12,7 +12,7 @@ package tank.Impl is
    -- inheritance from weapon
    -----------------------------
 
-   procedure shoot(Self : access Object; ranges : in Corba.Long ) ;
+   procedure shoot(Self : access Object; ranges : in dist ) ;
 
 
 
@@ -20,7 +20,7 @@ package tank.Impl is
    -- IDL definitions   --
    -----------------------
 
-   function move(Self : access Object; fast : in Corba.String) return Corba.String ;
+   function move(Self : access Object; fast : in Weapon.dist) return Corba.String ;
 
 
 

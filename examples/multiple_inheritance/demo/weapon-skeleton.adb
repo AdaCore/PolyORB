@@ -5,7 +5,6 @@ with Membufferedstream ;
 with Omniropeandkey ;
 with Giop ;
 with Corba ;
-with classes_IDL_FILE.marshal ;
 use weapon.Impl ;
 use weapon.Marshal ;
 use Netbufferedstream ;
@@ -13,7 +12,6 @@ use Membufferedstream ;
 use Omniropeandkey ;
 use Giop ;
 use Corba ;
-use classes_IDL_FILE.marshal ;
 use Netbufferedstream ;
 use Membufferedstream ;
 use type Corba.Unsigned_Long ;
@@ -33,7 +31,7 @@ package body weapon.Skeleton is
 
       if Orl_Op = "shoot" then
          declare
-            ranges : Corba.Long ;
+            ranges : dist ;
             Mesg_Size : Corba.Unsigned_Long ;
          begin
             -- unmarshalls arguments

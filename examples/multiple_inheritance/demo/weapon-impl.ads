@@ -9,7 +9,7 @@ package weapon.Impl is
    -- IDL definitions   --
    -----------------------
 
-   procedure shoot(Self : access Object; ranges : in Corba.Long ) ;
+   procedure shoot(Self : access Object; ranges : in dist ) ;
 
 
 

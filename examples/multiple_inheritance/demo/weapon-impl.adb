@@ -9,7 +9,7 @@ package body weapon.Impl is
    -- IDL definitions   --
    -----------------------
 
-   procedure shoot(Self : access Object; ranges : in Corba.Long) is
+   procedure shoot(Self : access Object; ranges : in Dist) is
    begin
       Put_Line(" #####BOOM##### weapon");
    end;

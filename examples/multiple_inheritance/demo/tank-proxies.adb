@@ -4,14 +4,14 @@ with Corba ;
 with Corba.Object ;
 with tank.marshal ;
 with weapon ;
-with classes_IDL_FILE.marshal ;
+with weapon.marshal ;
 use Netbufferedstream ;
 use Membufferedstream ;
 use Corba ;
 use Corba.Object ;
 use tank.marshal ;
 use weapon ;
-use classes_IDL_FILE.marshal ;
+use weapon.marshal ;
 package body tank.Proxies is 
    -----------------------------------------------------------
    ---               move
@@ -20,10 +20,10 @@ package body tank.Proxies is
    -- Init
    -------
    procedure Init(Self : in out move_Proxy ;
-                  fast : in Corba.String) is
+                  wide : in weapon.dist) is
    begin
       Set_User_Exceptions(Self, False ) ;
-      Self.fast := new Corba.String'(fast) ;
+      Self.wide := new weapon.dist'(wide) ;
    end ;
 
 
@@ -43,7 +43,7 @@ package body tank.Proxies is
                        return Corba.Unsigned_Long is
       Tmp : Corba.Unsigned_Long := Size_In ;
    begin
-      Tmp := Align_size(Self.fast.all, Tmp) ;
+      Tmp := Align_size(Self.wide.all, Tmp) ;
       return Tmp ;
    end ;
 
@@ -53,7 +53,7 @@ package body tank.Proxies is
    procedure Marshal_Arguments(Self : in move_Proxy ;
                                Giop_Client : in out Giop_C.Object) is
    begin
-      Marshall(Self.fast.all,Giop_Client) ;
+      Marshall(Self.wide.all,Giop_Client) ;
    end ;
 
 
@@ -81,7 +81,7 @@ package body tank.Proxies is
    -----------
    procedure Finalize(Self : in out move_Proxy) is
    begin
-      Free(Self.fast) ;
+      Free(Self.wide) ;
       Free(Self.Private_Result) ;
    end ;
 
@@ -97,10 +97,10 @@ package body tank.Proxies is
    -- Init
    -------
    procedure Init(Self : in out shoot_Proxy ;
-                  ranges : in Corba.Long) is
+                  ranges : in weapon.dist) is
    begin
       Set_User_Exceptions(Self, False ) ;
-      Self.ranges := new Corba.Long'(ranges) ;
+      Self.ranges := new weapon.dist'(ranges) ;
    end ;
 
 

@@ -2,8 +2,8 @@ with Giop_C ;
 with Omniproxycalldesc ;
 with Rope ;
 with Iop ;
-with Corba ;
 with weapon ;
+with Corba ;
 package tank.Proxies is 
    -----------------------------------------------------------
    ---               move
@@ -12,7 +12,7 @@ package tank.Proxies is
    type move_Proxy is new OmniProxyCallDesc.Object with private ;
 
    procedure Init(Self : in out move_Proxy ;
-                  fast : in Corba.String) ;
+                  wide : in weapon.dist) ;
 
    function Operation(Self : in move_Proxy )
                       return Corba.String ;
@@ -42,7 +42,7 @@ package tank.Proxies is
    type shoot_Proxy is new OmniProxyCallDesc.Object with private ;
 
    procedure Init(Self : in out shoot_Proxy ;
-                  ranges : in Corba.Long) ;
+                  ranges : in weapon.dist) ;
 
    function Operation(Self : in shoot_Proxy )
                       return Corba.String ;
@@ -58,13 +58,13 @@ package tank.Proxies is
 
 private 
    type move_Proxy is new OmniProxyCallDesc.Object with record 
-      fast : Corba.String_Ptr := null ;
+      wide : weapon.dist_Ptr := null ;
       Private_Result : Corba.String_Ptr := null;
    end record; 
    procedure Finalize(Self : in out move_Proxy) ;
 
    type shoot_Proxy is new OmniProxyCallDesc.Object with record 
-      ranges : Corba.Long_Ptr := null ;
+      ranges : weapon.dist_Ptr := null ;
    end record; 
    procedure Finalize(Self : in out shoot_Proxy) ;
 

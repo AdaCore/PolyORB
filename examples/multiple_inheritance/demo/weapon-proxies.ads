@@ -10,7 +10,7 @@ package weapon.Proxies is
    type shoot_Proxy is new OmniProxyCallDesc.Object with private ;
 
    procedure Init(Self : in out shoot_Proxy ;
-                  ranges : in Corba.Long) ;
+                  ranges : in dist) ;
 
    function Operation(Self : in shoot_Proxy )
                       return Corba.String ;
@@ -24,7 +24,7 @@ package weapon.Proxies is
 
 private 
    type shoot_Proxy is new OmniProxyCallDesc.Object with record 
-      ranges : Corba.Long_Ptr := null ;
+      ranges : dist_Ptr := null ;
    end record; 
    procedure Finalize(Self : in out shoot_Proxy) ;
 

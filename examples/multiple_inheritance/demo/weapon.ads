@@ -25,7 +25,22 @@ package weapon is
    procedure Free is new Ada.Unchecked_Deallocation(name, name_Ptr) ;
 
 
-   procedure shoot(Self : in Ref; ranges : in Corba.Long ) ;
+   type longueur_Array is array ( 0..2 ) of Corba.Long ;
+   type longueur_Array_Ptr is access longueur_Array ;
+
+   procedure Free is new Ada.Unchecked_Deallocation(longueur_Array, longueur_Array_Ptr) ;
+
+
+   type dist is record
+      longueur : longueur_Array;
+      largeur : Corba.Long;
+   end record ;
+   type dist_Ptr is access dist ;
+
+   procedure Free is new Ada.Unchecked_Deallocation(dist, dist_Ptr) ;
+
+
+   procedure shoot(Self : in Ref; ranges : in dist ) ;
 
 
 

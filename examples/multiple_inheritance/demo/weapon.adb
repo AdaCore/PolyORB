@@ -35,7 +35,7 @@ package body weapon is
    --------------------------------------------------
 
    procedure shoot(Self : in Ref;
-                   ranges : in Corba.Long) is
+                   ranges : in dist) is
       Opcd : weapon.Proxies.shoot_Proxy ;
    begin 
       weapon.Proxies.Init(Opcd, ranges) ;

@@ -2,6 +2,7 @@ with tank.Proxies ;
 with Ada.Exceptions ;
 with Corba.Object ;
 with weapon.Proxies ;
+with weapon ;
 with OmniProxyCallWrapper ;
 with Corba ;
 use Corba.Object ;
@@ -37,7 +38,7 @@ package body tank is
    --------------------------------------
 
    procedure shoot(Self : in Ref;
-                   ranges : in Corba.Long) is
+                   ranges : in weapon.dist) is
       Opcd : weapon.Proxies.shoot_Proxy ;
    begin 
       weapon.Proxies.Init(Opcd, ranges) ;
@@ -49,11 +50,11 @@ package body tank is
    --------------------------------------------------
 
    function move(Self : in Ref;
-                  fast : in Corba.String)
+                  wide : in weapon.dist)
                  return Corba.String is
       Opcd : tank.Proxies.move_Proxy ;
    begin 
-      tank.Proxies.Init(Opcd, fast) ;
+      tank.Proxies.Init(Opcd, wide) ;
       OmniProxyCallWrapper.Invoke(Self, Opcd) ;
       return tank.Proxies.Get_Result(Opcd) ;
    end ;

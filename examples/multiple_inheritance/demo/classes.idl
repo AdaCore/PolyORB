@@ -1,14 +1,24 @@
 interface vehicle {
   attribute string mark;
+  struct dist1{
+	long longueur[2];
+	long largeur;
+  };
   boolean can_drive(in unsigned short age) ;
   typedef string model;
 };
 
 interface weapon {
   typedef string name;
-void shoot (in long ranges);
+  struct dist{
+	long longueur[3];
+	long largeur;
+  };
+  void shoot (in dist ranges);
 };
 
 interface tank : vehicle, weapon {
-string move(in string fast); 
+string move(in dist wide); 
 };
+
+

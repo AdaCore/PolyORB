@@ -7,7 +7,7 @@ with Omniropeandkey ;
 with Giop ;
 with Corba ;
 with weapon ;
-with classes_IDL_FILE.marshal ;
+with weapon.marshal ;
 use vehicle.Skeleton ;
 use tank.Impl ;
 use tank.Marshal ;
@@ -17,7 +17,7 @@ use Omniropeandkey ;
 use Giop ;
 use Corba ;
 use weapon ;
-use classes_IDL_FILE.marshal ;
+use weapon.marshal ;
 use Netbufferedstream ;
 use Membufferedstream ;
 use type Corba.Unsigned_Long ;
@@ -37,16 +37,16 @@ package body tank.Skeleton is
 
       if Orl_Op = "move" then
          declare
-            fast : Corba.String ;
+            wide : weapon.dist ;
             Returns : Corba.String ;
             Mesg_Size : Corba.Unsigned_Long ;
          begin
             -- unmarshalls arguments
-            UnMarshall(fast, Orls) ;
+            UnMarshall(wide, Orls) ;
             -- change state
             Giop_S.Request_Received(Orls) ;
             -- call the implementation
-            Returns := tank.Impl.move(Self, fast) ;
+            Returns := tank.Impl.move(Self, wide) ;
             -- compute the size of the replied message
             Mesg_Size := Giop_S.Reply_Header_Size ;
             Mesg_Size := Align_Size (Returns, Mesg_Size) ;
@@ -69,7 +69,7 @@ package body tank.Skeleton is
 
       if Orl_Op = "shoot" then
          declare
-            ranges : Corba.Long ;
+            ranges : weapon.dist ;
             Mesg_Size : Corba.Unsigned_Long ;
          begin
             -- unmarshalls arguments

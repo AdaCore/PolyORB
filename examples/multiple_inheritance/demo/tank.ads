@@ -17,13 +17,15 @@ package tank is
    function To_Ref(The_Ref : in Corba.Object.Ref'Class) return Ref ;
 
 
+   subtype dist1 is vehicle.dist1 ;
    subtype model is vehicle.model ;
    -----------------------------
    -- inheritance from weapon
    -----------------------------
 
    subtype name is weapon.name ;
-   procedure shoot(Self : in Ref; ranges : in Corba.Long ) ;
+   subtype dist is weapon.dist ;
+   procedure shoot(Self : in Ref; ranges : in weapon.dist ) ;
 
 
 
@@ -34,7 +36,7 @@ package tank is
   --------------------------------
 
    function move(Self : in Ref ;
-                 fast : in Corba.String)
+                 wide : in weapon.dist)
                  return Corba.String ;
 
 
