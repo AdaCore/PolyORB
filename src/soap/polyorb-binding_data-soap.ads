@@ -78,7 +78,6 @@ package PolyORB.Binding_Data.SOAP is
 
    function Create_Profile
      (PF  : access SOAP_Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access;
       Oid : Objects.Object_Id)
      return Profile_Access;
 

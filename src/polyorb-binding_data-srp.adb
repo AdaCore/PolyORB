@@ -121,7 +121,6 @@ package body PolyORB.Binding_Data.SRP is
 
    function Create_Profile
      (PF  : access SRP_Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access;
       Oid : Objects.Object_Id)
      return Profile_Access
    is
@@ -131,10 +130,6 @@ package body PolyORB.Binding_Data.SRP is
       TResult : SRP_Profile_Type
         renames SRP_Profile_Type (Result.all);
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (TAP);
-      pragma Warnings (On);
-
       TResult.Object_Id := new Object_Id'(Oid);
       TResult.Address   := PF.Address;
       return  Result;

@@ -897,7 +897,7 @@ package body PolyORB.ORB is
                   --  data information.
                   Last_Profile := Last_Profile + 1;
                   Profiles (Last_Profile) := Create_Profile
-                    (Profile_Factory_Of (TAPs (I)), TAPs (I), Oid.all);
+                    (Profile_Factory_Of (TAPs (I)), Oid.all);
                   pragma Assert (Profiles (Last_Profile) /= null);
                end if;
             end;

@@ -126,7 +126,6 @@ package body PolyORB.Binding_Data.Test is
 
    function Create_Profile
      (PF  : access Test_Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access;
       Oid : Objects.Object_Id)
      return Profile_Access
    is
@@ -136,9 +135,6 @@ package body PolyORB.Binding_Data.Test is
       TResult : Test_Profile_Type
         renames Test_Profile_Type (Result.all);
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (TAP);
-      pragma Warnings (On);
       TResult.Object_Id := new Object_Id'(Oid);
       TResult.Address   := PF.Address;
       return  Result;

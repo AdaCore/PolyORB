@@ -70,7 +70,6 @@ package PolyORB.Binding_Data.SRP is
 
    function Create_Profile
      (PF  : access SRP_Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access;
       Oid : Objects.Object_Id)
      return Profile_Access;
 

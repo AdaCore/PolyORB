@@ -204,14 +204,9 @@ package body PolyORB.Binding_Data.IIOP is
 
    function Create_Profile
      (PF  : access IIOP_Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access;
       Oid : Objects.Object_Id)
      return Profile_Access
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (PF);
-      pragma Warnings (On);
-
       use PolyORB.Transport.Sockets;
       use Component_Seq;
 
@@ -222,8 +217,7 @@ package body PolyORB.Binding_Data.IIOP is
         renames IIOP_Profile_Type (Result.all);
    begin
       TResult.Object_Id := new Object_Id'(Oid);
-      TResult.Address   := Address_Of
-        (Socket_Access_Point (TAP.all));
+      TResult.Address   := PF.Address;
       TResult.Components := Null_Sequence;
       return  Result;
    end Create_Profile;

@@ -185,7 +185,6 @@ package body PolyORB.Binding_Data.SOAP is
 
    function Create_Profile
      (PF  : access SOAP_Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access;
       Oid : Objects.Object_Id)
      return Profile_Access
    is
@@ -199,8 +198,7 @@ package body PolyORB.Binding_Data.SOAP is
 
    begin
       TResult.Object_Id := new Object_Id'(Oid);
-      TResult.Address   := Address_Of
-        (Socket_Access_Point (TAP.all));
+      TResult.Address   := PF.Address;
 
       declare
          PF_ORB : PolyORB.Components.Component_Access renames PF.ORB;
