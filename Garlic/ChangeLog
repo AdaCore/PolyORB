@@ -1,3 +1,7 @@
+Mon Sep 30 16:13:29 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Makefile.am: Would look for s-gtplsp.ads in the bad place.
+
 Sun Sep 15 17:27:30 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garhea.adb: Added an Emergency_Stop in the Shutdown procedure
