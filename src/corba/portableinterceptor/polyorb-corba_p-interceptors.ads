@@ -35,6 +35,7 @@ with PolyORB.Annotations;
 with PolyORB.Any;
 with PolyORB.Binding_Data;
 with PortableInterceptor.ClientRequestInterceptor;
+with PortableInterceptor.IORInterceptor;
 with PortableInterceptor.ORBInitializer;
 with PortableInterceptor.ServerRequestInterceptor;
 
@@ -71,6 +72,15 @@ package PolyORB.CORBA_P.Interceptors is
 
    procedure Add_Server_Request_Interceptor
      (Interceptor : in PortableInterceptor.ServerRequestInterceptor.Local_Ref);
+
+   --  IOR interceptors
+
+   function Is_IOR_Interceptor_Exists
+     (Name : in String)
+      return Boolean;
+
+   procedure Add_IOR_Interceptor
+     (Interceptor : in PortableInterceptor.IORInterceptor.Local_Ref);
 
    --  ORB Initializers
 

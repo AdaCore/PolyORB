@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  PORTABLEINTERCEPTOR.ORBINITINFO.IMPL                    --
+--          P O R T A B L E I N T E R C E P T O R . I O R I N F O           --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -36,75 +36,69 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Local;
+with CORBA.Policy;
+with IOP;
+--  with PortableInterceptor.ObjectReferenceFactory;
+--  with PortableInterceptor.ObjectReferenceTemplate;
 
-package PortableInterceptor.ORBInitInfo.Impl is
+package PortableInterceptor.IORInfo is
 
-   pragma Elaborate_Body;
+   type Local_Ref is new CORBA.Object.Ref with null record;
 
-   type Object is new CORBA.Local.Object with private;
+   function Get_Effective_Policy
+     (Self     : in Local_Ref;
+      IDL_Type : in CORBA.PolicyType)
+      return CORBA.Policy.Ref;
 
-   type Object_Ptr is access all Object'Class;
+   procedure Add_IOR_Component
+     (Self        : in Local_Ref;
+      A_Component : in IOP.TaggedComponent);
 
-   procedure Init (Self : access Object);
+   procedure Add_IOR_Component_To_Profile
+     (Self        : in Local_Ref;
+      A_Component : in IOP.TaggedComponent;
+      Profile_Id  : in IOP.ProfileId);
 
-   procedure Post_Init_Done (Self : access Object);
-   --  Called once the initialization is complete. It is required for
-   --  raising exception in case of call object operations after
-   --  initialization complete. XXX reword this comment
+   function Get_Manager_Id (Self : in Local_Ref) return AdapterManagerId;
 
---   function Get_Arguments
---     (Self : access Object)
---      return CORBA.StringSeq;
+   function Get_State (Self : in Local_Ref) return AdapterState;
 
-   function Get_ORB_Id (Self : access Object) return CORBA.String;
+--   function Get_Adapter_Template
+--     (Self : in Local_Ref)
+--      return ObjectReferenceTemplate.Abstract_Value_Ref;
+--
+--   function Get_Current_Factory
+--     (Self : in Local_Ref)
+--      return ObjectReferenceFactory.Abstract_Value_Ref;
+--
+--   procedure Set_Current_Factory
+--     (Self : in Local_Ref;
+--      To   : in ObjectReferenceFactory.Abstract_Value_Ref);
 
-   function Get_Codec_Factory
-     (Self : access Object)
-      return IOP.CodecFactory.Local_Ref;
+   --  Repository Ids
 
-   procedure Register_Initial_Reference
-     (Self : access Object;
-      Id   : in     PortableInterceptor.ORBInitInfo.ObjectId;
-      Obj  : in     CORBA.Object.Ref);
+   Repository_Id                              : constant Standard.String
+     := "IDL:omg.org/PortableInterceptor/IORInfo:1.0";
 
-   function Resolve_Initial_References
-     (Self : access Object;
-      Id   : in     PortableInterceptor.ORBInitInfo.ObjectId)
-      return CORBA.Object.Ref;
+   Adapter_Template_Repository_Id             : constant Standard.String
+     := "IDL:PortableInterceptor/IORInfo/adapter_template:1.0";
 
-   procedure Add_Client_Request_Interceptor
-     (Self        : access Object;
-      Interceptor : in
-        PortableInterceptor.ClientRequestInterceptor.Local_Ref);
+   Add_IOR_Component_Repository_Id            : constant Standard.String
+     := "IDL:PortableInterceptor/IORInfo/add_ior_component:1.0";
 
-   procedure Add_Server_Request_Interceptor
-     (Self        : access Object;
-      Interceptor : in
-        PortableInterceptor.ServerRequestInterceptor.Local_Ref);
+   Add_IOR_Component_To_Profile_Repository_Id : constant Standard.String
+     := "IDL:PortableInterceptor/IORInfo/add_ior_component_to_profile:1.0";
 
-   procedure Add_IOR_Interceptor
-     (Self        : access Object;
-      Interceptor : in     PortableInterceptor.IORInterceptor.Local_Ref);
+   Current_Factory_Repository_Id              : constant Standard.String
+     := "IDL:PortableInterceptor/IORInfo/current_factory:1.0";
 
-   function Allocate_Slot_Id
-     (Self : access Object)
-     return PortableInterceptor.SlotId;
+   Get_Effective_Policy_Repository_Id         : constant Standard.String
+     := "IDL:PortableInterceptor/IORInfo/get_effective_policy:1.0";
 
---   procedure Register_Policy_Factory
---     (Self           : access Object;
---      IDL_type       : in     CORBA.PolicyType;
---      Policy_Factory : in     PortableInterceptor.PolicyFactory.Ref);
+   Manager_Id_Repository_Id                   : constant Standard.String
+     := "IDL:PortableInterceptor/IORInfo/manager_id:1.0";
 
-   function Is_A
-     (Self            : access Object;
-      Logical_Type_Id : in     String)
-      return Boolean;
+   State_Repository_Id                        : constant Standard.String
+     := "IDL:PortableInterceptor/IORInfo/state:1.0";
 
-private
-
-   type Object is new CORBA.Local.Object with record
-      Post_Init_Done : Boolean := False;
-   end record;
-
-end PortableInterceptor.ORBInitInfo.Impl;
+end PortableInterceptor.IORInfo;

@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#55 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#56 $
 
 with Ada.Exceptions;
 
@@ -60,6 +60,7 @@ with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
 with PolyORB.CORBA_P.AdapterActivator;
+with PolyORB.CORBA_P.Interceptors_Hooks;
 with PolyORB.CORBA_P.ServantActivator;
 with PolyORB.CORBA_P.ServantLocator;
 with PolyORB.CORBA_P.Exceptions;
@@ -159,6 +160,8 @@ package body PortableServer.POA is
       Policies     : CORBA.Policy.PolicyList)
      return Ref'Class
    is
+      use type PolyORB.CORBA_P.Interceptors_Hooks.POA_Create_Handler;
+
       Res : PolyORB.POA.Obj_Adapter_Access;
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 
@@ -181,6 +184,13 @@ package body PortableServer.POA is
          POA_Policies,
          Res,
          Error);
+
+      if not Found (Error) then
+         if PolyORB.CORBA_P.Interceptors_Hooks.POA_Create /= null then
+            PolyORB.CORBA_P.Interceptors_Hooks.POA_Create (Error);
+            --  XXX  if Error found, destroy POA
+         end if;
+      end if;
 
       PolyORB.POA_Policies.Policy_Lists.Deallocate (POA_Policies);
 

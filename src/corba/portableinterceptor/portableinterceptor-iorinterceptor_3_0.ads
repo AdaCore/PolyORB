@@ -2,11 +2,16 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---   P O L Y O R B . C O R B A _ P . I N T E R C E P T O R S _ H O O K S    --
+--                 PORTABLEINTERCEPTOR.IORINTERCEPTOR_3_0                   --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
 --            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--                                                                          --
+-- This specification is derived from the CORBA Specification, and adapted  --
+-- for use with PolyORB. The copyright notice above, and the license        --
+-- provisions that follow apply solely to the contents neither explicitely  --
+-- nor implicitely specified by the CORBA Specification defined by the OMG. --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,42 +36,44 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Hook to set up request's invoke method used by the CORBA personality.
+with PortableInterceptor.IORInfo;
+with PortableInterceptor.IORInterceptor;
 
-with PolyORB.Binding_Data;
-with PolyORB.Exceptions;
-with PolyORB.Requests;
-with PolyORB.Smart_Pointers;
+package PortableInterceptor.IORInterceptor_3_0 is
 
-package PolyORB.CORBA_P.Interceptors_Hooks is
+   type Local_Ref is
+      new PortableInterceptor.IORInterceptor.Local_Ref with null record;
 
-   type Client_Invoke_Handler is access procedure
-     (Self  : in PolyORB.Requests.Request_Access;
-      Flags : in PolyORB.Requests.Flags);
+   procedure Components_Established
+     (Self : in Local_Ref;
+      Info : in PortableInterceptor.IORInfo.Local_Ref);
 
-   type Server_Invoke_Handler is access procedure
-     (Self    : access PolyORB.Smart_Pointers.Entity'Class;
-      --  Actually must be PortableServer.DynamicImplementation'Class.
-      Request : in     PolyORB.Requests.Request_Access;
-      Profile : in     PolyORB.Binding_Data.Profile_Access);
+   procedure Adapter_Manager_State_Changed
+     (Self  : in Local_Ref;
+      Id    : in AdapterManagerId;
+      State : in AdapterState);
 
-   type Server_Intermediate_Handler is access procedure
-     (Self           : in PolyORB.Requests.Request_Access;
-      From_Agruments : in Boolean);
+--   procedure Adapter_State_Changed
+--     (Self      : in Local_Ref;
+--      Templates : in ObjectReferenceTemplateSeq;
+--      State     : in AdapterState);
 
-   type POA_Create_Handler is access procedure
-     (Error : in out PolyORB.Exceptions.Error_Container);
+   --  Repository Ids
 
-   Client_Invoke : Client_Invoke_Handler := null;
+   IORInterceptor_3_0_Repository_Root          : constant Standard.String
+     := "IDL:PortableInterceptor/IORInterceptor_3_0";
 
-   Server_Invoke : Server_Invoke_Handler := null;
-   --  Server side hook initialized in PortableServer module.
+   Repository_Id                               : constant Standard.String
+     := IORInterceptor_3_0_Repository_Root & ":1.0";
 
-   Server_Intermediate : Server_Intermediate_Handler := null;
-   --  This hook used for call intermediate interception point Receive_Request.
-   --  If program don't use PortableInterceptors this variable have null
-   --  value.
+   Adapter_Manager_State_Changed_Repository_Id : constant Standard.String
+     := IORInterceptor_3_0_Repository_Root
+          & "/adapter_manager_state_changed:1.0";
 
-   POA_Create : POA_Create_Handler := null;
+   Adapter_State_Changed_Repository_Id         : constant Standard.String
+     := IORInterceptor_3_0_Repository_Root & "/adapter_state_changed:1.0";
 
-end PolyORB.CORBA_P.Interceptors_Hooks;
+   Components_Established_Repository_Id        : constant Standard.String
+     := IORInterceptor_3_0_Repository_Root & "/components_established:1.0";
+
+end PortableInterceptor.IORInterceptor_3_0;

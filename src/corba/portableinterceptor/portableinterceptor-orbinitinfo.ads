@@ -42,6 +42,7 @@ with CORBA.Object;
 
 with IOP.CodecFactory;
 with PortableInterceptor.ClientRequestInterceptor;
+with PortableInterceptor.IORInterceptor;
 with PortableInterceptor.ServerRequestInterceptor;
 
 package PortableInterceptor.ORBInitInfo is
@@ -108,9 +109,9 @@ package PortableInterceptor.ORBInitInfo is
       Interceptor : in
         PortableInterceptor.ServerRequestInterceptor.Local_Ref);
 
---   procedure Add_IOR_Interceptor
---     (Self        : in Local_Ref;
---      Interceptor : in PortableInterceptor.IORInterceptor.Local_Ref);
+   procedure Add_IOR_Interceptor
+     (Self        : in Local_Ref;
+      Interceptor : in PortableInterceptor.IORInterceptor.Local_Ref);
 
    function Allocate_Slot_Id
      (Self : in Local_Ref)

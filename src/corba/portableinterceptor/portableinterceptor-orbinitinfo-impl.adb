@@ -76,17 +76,36 @@ package body PortableInterceptor.ORBInitInfo.Impl is
        (Interceptor);
    end Add_Client_Request_Interceptor;
 
---   -------------------------
---   -- Add_IOR_Interceptor --
---   -------------------------
---
---   procedure Add_IOR_Interceptor
---     (Self        : access Object;
---      Interceptor : in     PortableInterceptor.IORInterceptor.Local_Ref)
---   is
---   begin
---      raise PolyORB.Not_Implemented;
---   end Add_IOR_Interceptor;
+   -------------------------
+   -- Add_IOR_Interceptor --
+   -------------------------
+
+   procedure Add_IOR_Interceptor
+     (Self        : access Object;
+      Interceptor : in     PortableInterceptor.IORInterceptor.Local_Ref)
+   is
+   begin
+      if Self.Post_Init_Done then
+         CORBA.Raise_Object_Not_Exist (CORBA.Default_Sys_Member);
+      end if;
+
+      declare
+         Name : constant String
+           := CORBA.To_Standard_String
+                (PortableInterceptor.IORInterceptor.Get_Name (Interceptor));
+      begin
+         if Name /= "" then
+            if
+              PolyORB.CORBA_P.Interceptors.Is_IOR_Interceptor_Exists (Name)
+            then
+               Helper.Raise_DuplicateName
+                (DuplicateName_Members'(Name => CORBA.To_CORBA_String (Name)));
+            end if;
+         end if;
+      end;
+
+      PolyORB.CORBA_P.Interceptors.Add_IOR_Interceptor (Interceptor);
+   end Add_IOR_Interceptor;
 
    ------------------------------------
    -- Add_Server_Request_Interceptor --

@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---   P O L Y O R B . C O R B A _ P . I N T E R C E P T O R S _ H O O K S    --
+--              PORTABLEINTERCEPTOR.IORINTERCEPTOR_3_0.HELPER               --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
@@ -31,42 +31,38 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Hook to set up request's invoke method used by the CORBA personality.
+package body PortableInterceptor.IORInterceptor_3_0.Helper is
 
-with PolyORB.Binding_Data;
-with PolyORB.Exceptions;
-with PolyORB.Requests;
-with PolyORB.Smart_Pointers;
+   ------------------
+   -- To_Local_Ref --
+   ------------------
 
-package PolyORB.CORBA_P.Interceptors_Hooks is
+   function To_Local_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+      return Local_Ref
+   is
+   begin
+      if CORBA.Object.Is_Nil (The_Ref)
+        or else CORBA.Object.Is_A (The_Ref, Repository_Id)
+      then
+         return Unchecked_To_Local_Ref (The_Ref);
+      end if;
 
-   type Client_Invoke_Handler is access procedure
-     (Self  : in PolyORB.Requests.Request_Access;
-      Flags : in PolyORB.Requests.Flags);
+      CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+   end To_Local_Ref;
 
-   type Server_Invoke_Handler is access procedure
-     (Self    : access PolyORB.Smart_Pointers.Entity'Class;
-      --  Actually must be PortableServer.DynamicImplementation'Class.
-      Request : in     PolyORB.Requests.Request_Access;
-      Profile : in     PolyORB.Binding_Data.Profile_Access);
+   ----------------------------
+   -- Unchecked_To_Local_Ref --
+   ----------------------------
 
-   type Server_Intermediate_Handler is access procedure
-     (Self           : in PolyORB.Requests.Request_Access;
-      From_Agruments : in Boolean);
+   function Unchecked_To_Local_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+      return Local_Ref
+   is
+      Result : PortableInterceptor.IORInterceptor_3_0.Local_Ref;
+   begin
+      Set (Result, CORBA.Object.Object_Of (The_Ref));
+      return Result;
+   end Unchecked_To_Local_Ref;
 
-   type POA_Create_Handler is access procedure
-     (Error : in out PolyORB.Exceptions.Error_Container);
-
-   Client_Invoke : Client_Invoke_Handler := null;
-
-   Server_Invoke : Server_Invoke_Handler := null;
-   --  Server side hook initialized in PortableServer module.
-
-   Server_Intermediate : Server_Intermediate_Handler := null;
-   --  This hook used for call intermediate interception point Receive_Request.
-   --  If program don't use PortableInterceptors this variable have null
-   --  value.
-
-   POA_Create : POA_Create_Handler := null;
-
-end PolyORB.CORBA_P.Interceptors_Hooks;
+end PortableInterceptor.IORInterceptor_3_0.Helper;

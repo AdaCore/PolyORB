@@ -59,25 +59,25 @@ package body PortableInterceptor.ORBInitInfo is
          Interceptor);
    end Add_Client_Request_Interceptor;
 
---   -------------------------
---   -- Add_IOR_Interceptor --
---   -------------------------
---
---   procedure Add_IOR_Interceptor
---     (Self        : in Local_Ref;
---      Interceptor : in PortableInterceptor.IOR_Interceptor.Local_Ref)
---   is
---      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
---   begin
---
---      if CORBA.Object.Is_Nil (Self_Ref) then
---         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
---      end if;
---
---      PortableInterceptor.ORBInitInfo.Impl.Add_IOR_Interceptor
---        (PortableInterceptor.ORBInitInfo.Impl.Object_Ptr (Entity_Of (Self)),
---         Interceptor);
---   end Add_IOR_Interceptor;
+   -------------------------
+   -- Add_IOR_Interceptor --
+   -------------------------
+
+   procedure Add_IOR_Interceptor
+     (Self        : in Local_Ref;
+      Interceptor : in PortableInterceptor.IORInterceptor.Local_Ref)
+   is
+      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
+   begin
+
+      if CORBA.Object.Is_Nil (Self_Ref) then
+         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
+      end if;
+
+      PortableInterceptor.ORBInitInfo.Impl.Add_IOR_Interceptor
+        (PortableInterceptor.ORBInitInfo.Impl.Object_Ptr (Entity_Of (Self)),
+         Interceptor);
+   end Add_IOR_Interceptor;
 
    ------------------------------------
    -- Add_Server_Request_Interceptor --

@@ -52,11 +52,11 @@ with PortableServer;
 
 with PortableInterceptor.ClientRequestInfo;
 with PortableInterceptor.ClientRequestInfo.Impl;
-with PortableInterceptor.ClientRequestInterceptor;
+with PortableInterceptor.IORInfo;
+with PortableInterceptor.IORInterceptor_3_0.Helper;
 with PortableInterceptor.ORBInitInfo.Impl;
 with PortableInterceptor.ServerRequestInfo;
 with PortableInterceptor.ServerRequestInfo.Impl;
-with PortableInterceptor.ServerRequestInterceptor;
 
 package body PolyORB.CORBA_P.Interceptors is
 
@@ -136,6 +136,20 @@ package body PolyORB.CORBA_P.Interceptors is
       Forward  : in     Boolean;
       Excp_Inf : in out PolyORB.Any.Any);
 
+   --  IOR interceptors
+
+   function "="
+     (Left, Right : in PortableInterceptor.IORInterceptor.Local_Ref)
+      return Boolean;
+
+   package IORInterceptor_Lists is
+      new PolyORB.Utils.Chained_Lists
+           (PortableInterceptor.IORInterceptor.Local_Ref);
+
+   All_IOR_Interceptors : IORInterceptor_Lists.List;
+
+   procedure POA_Create (Error : in out PolyORB.Exceptions.Error_Container);
+
    --  ORB_Initializers
 
    function "=" (Left, Right : in PortableInterceptor.ORBInitializer.Local_Ref)
@@ -163,6 +177,17 @@ package body PolyORB.CORBA_P.Interceptors is
    function "="
      (Left, Right : in PortableInterceptor.ClientRequestInterceptor.Local_Ref)
       return Boolean
+   is
+   begin
+      return CORBA.Object.Is_Equivalent (CORBA.Object.Ref (Left), Right);
+   end "=";
+
+   ---------
+   -- "=" --
+   ---------
+
+   function "=" (Left, Right : in PortableInterceptor.IORInterceptor.Local_Ref)
+     return Boolean
    is
    begin
       return CORBA.Object.Is_Equivalent (CORBA.Object.Ref (Left), Right);
@@ -203,6 +228,17 @@ package body PolyORB.CORBA_P.Interceptors is
       ClientRequestInterceptor_Lists.Append
         (All_Client_Interceptors, Interceptor);
    end Add_Client_Request_Interceptor;
+
+   -------------------------
+   -- Add_IOR_Interceptor --
+   -------------------------
+
+   procedure Add_IOR_Interceptor
+     (Interceptor : in PortableInterceptor.IORInterceptor.Local_Ref)
+   is
+   begin
+      IORInterceptor_Lists.Append (All_IOR_Interceptors, Interceptor);
+   end Add_IOR_Interceptor;
 
    ------------------------------------
    -- Add_Server_Request_Interceptor --
@@ -667,6 +703,36 @@ package body PolyORB.CORBA_P.Interceptors is
       return False;
    end Is_Client_Request_Interceptor_Exists;
 
+   -------------------------------
+   -- Is_IOR_Interceptor_Exists --
+   -------------------------------
+
+   function Is_IOR_Interceptor_Exists
+     (Name : in String)
+      return Boolean
+   is
+      Iter : IORInterceptor_Lists.Iterator
+         := IORInterceptor_Lists.First (All_IOR_Interceptors);
+   begin
+      if Name = "" then
+         return False;
+      end if;
+
+      while not IORInterceptor_Lists.Last (Iter) loop
+         if CORBA.To_Standard_String
+              (PortableInterceptor.IORInterceptor.Get_Name
+                (IORInterceptor_Lists.Value (Iter).all))
+             = Name
+         then
+            return True;
+         end if;
+
+         IORInterceptor_Lists.Next (Iter);
+      end loop;
+
+      return False;
+   end Is_IOR_Interceptor_Exists;
+
    ------------------------------------------
    -- Is_Server_Request_Interceptor_Exists --
    ------------------------------------------
@@ -696,6 +762,55 @@ package body PolyORB.CORBA_P.Interceptors is
 
       return False;
    end Is_Server_Request_Interceptor_Exists;
+
+   ----------------
+   -- POA_Create --
+   ----------------
+
+   procedure POA_Create (Error : in out PolyORB.Exceptions.Error_Container) is
+      Iter : IORInterceptor_Lists.Iterator;
+      Info : PortableInterceptor.IORInfo.Local_Ref;
+   begin
+      --  XXX We must setup Info !!!
+
+      Iter := IORInterceptor_Lists.First (All_IOR_Interceptors);
+      while not IORInterceptor_Lists.Last (Iter) loop
+         begin
+            PortableInterceptor.IORInterceptor.Establish_Components
+              (IORInterceptor_Lists.Value (Iter).all,
+               Info);
+         exception
+            when others =>
+               null;
+         end;
+         IORInterceptor_Lists.Next (Iter);
+      end loop;
+
+      Iter := IORInterceptor_Lists.First (All_IOR_Interceptors);
+      while not IORInterceptor_Lists.Last (Iter) loop
+         if PortableInterceptor.IORInterceptor.Is_A
+             (IORInterceptor_Lists.Value (Iter).all,
+              PortableInterceptor.IORInterceptor_3_0.Repository_Id)
+         then
+            begin
+               PortableInterceptor.IORInterceptor_3_0.Components_Established
+                 (PortableInterceptor.IORInterceptor_3_0.Helper.To_Local_Ref
+                   (IORInterceptor_Lists.Value (Iter).all),
+                  Info);
+            exception
+               when others =>
+                  PolyORB.Exceptions.Throw
+                   (Error,
+                    PolyORB.Exceptions.Obj_Adapter_E,
+                    PolyORB.Exceptions.System_Exception_Members'
+                     (Minor     => 6,
+                      Completed => PolyORB.Exceptions.Completed_No));
+                  return;
+            end;
+         end if;
+         IORInterceptor_Lists.Next (Iter);
+      end loop;
+   end POA_Create;
 
    ------------------------------
    -- Register_ORB_Initializer --
@@ -936,6 +1051,7 @@ package body PolyORB.CORBA_P.Interceptors is
       PolyORB.CORBA_P.Interceptors_Hooks.Server_Invoke := Server_Invoke'Access;
       PolyORB.CORBA_P.Interceptors_Hooks.Server_Intermediate :=
         Server_Intermediate'Access;
+      PolyORB.CORBA_P.Interceptors_Hooks.POA_Create := POA_Create'Access;
    end Initialize;
 
    use PolyORB.Initialization;
