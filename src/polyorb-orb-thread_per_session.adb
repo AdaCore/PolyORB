@@ -186,6 +186,7 @@ package body PolyORB.ORB.Thread_Per_Session is
       Temp : Filters.Filter_Access := Filters.Filter_Access (Upper (C.TE));
       R    : constant Runnable_Access := new Session_Runnable;
       T : Thread_Access;
+      pragma Unreferenced (T); -- WAG:5.02
 
    begin
       pragma Debug (O ("New server connection."));

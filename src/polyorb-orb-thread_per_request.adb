@@ -151,6 +151,7 @@ package body PolyORB.ORB.Thread_Per_Request is
       R : constant Runnable_Access := new Request_Runnable;
 
       T : Thread_Access;
+      pragma Unreferenced (T); -- WAG:5.02
 
    begin
       pragma Debug (O ("Handle_Request_Execution : Run Job"));
