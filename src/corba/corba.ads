@@ -240,6 +240,7 @@ package CORBA is
    Object_Already_Active  : exception;
    Servant_Not_Active     : exception;
    Object_Not_Active      : exception;
+   Adapter_Inactive       : exception;
 
    type Unknown_Members         is new System_Exception_Members
      with null record;

@@ -177,4 +177,7 @@ package CORBA.POA.Basic_POA is
    procedure Free is new Ada.Unchecked_Deallocation (Basic_Obj_Adapter,
                                                      Basic_Obj_Adapter_Access);
 
+private
+   type Check_State is (CHECK, NO_CHECK);
+
 end CORBA.POA.Basic_POA;

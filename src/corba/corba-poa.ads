@@ -51,6 +51,8 @@ package CORBA.POA is
       end record;
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
    --  The POA object
+   --  ??? Part of this should be private (locks, active object map, father...)
+   --  The policies are used by all corba-policy-*, we can keep them public
 
    function Create_POA
      (Self         : access Obj_Adapter;

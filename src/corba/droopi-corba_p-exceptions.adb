@@ -123,7 +123,9 @@ package body Droopi.CORBA_P.Exceptions is
       (Exc  => CORBA.Servant_Not_Active'Identity,
        Name => new String'("CORBA/SERVANT_NOT_ACTIVE")),
       (Exc  => CORBA.Servant_Not_Active'Identity,
-       Name => new String'("CORBA/OBJECT_NOT_ACTIVE")));
+       Name => new String'("CORBA/OBJECT_NOT_ACTIVE")),
+      (Exc  => CORBA.Adapter_Inactive'Identity,
+       Name => new String'("CORBA/ADAPTER_INACTIVE")));
 
    ----------------------
    -- User_Get_Members --
@@ -431,6 +433,15 @@ package body Droopi.CORBA_P.Exceptions is
         (Object_Not_Active'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Object_Not_Active;
+
+   procedure Raise_Adapter_Inactive
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No) is
+   begin
+      Raise_Exception
+        (Adapter_Inactive'Identity,
+         System_Exception_Members'(Minor => Minor, Completed => Status));
+   end Raise_Adapter_Inactive;
 
    -----------------------------------------------------
    -- System exceptions                               --
