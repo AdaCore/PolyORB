@@ -203,17 +203,20 @@ package body Tokens is
       return;
    end Is_Idl_Keyword;
 
+
    --  Called when the current character is a letter.
-   --  This procedure sets TOKEN and return.
+   --  This procedure sets TOKEN and returns.
+   --  The get_marked_text function returns then the
+   --  name of the identifier
    function Scan_Identifier return Idl_Token is
       Is_A_Keyword : Idl_Keyword_State;
       Tok : Idl_Token;
    begin
       Set_Mark;
-      --  CORBA V2.2, 3.2.3:
-      --  An identifier is an arbritrarily long sequence of alphabetic, digit
-      --  and underscore characters.  The first character must be an
-      --  alphabetic character.  All characters are significant.
+      --  CORBA V2.3, 3.2.3:
+      --  An identifier is an arbritrarily long sequence of ASCII alphabetic,
+      --  digit and underscore characters.  The first character must be an
+      --  ASCII alphabetic character.  All characters are significant.
       while View_Next_Char in 'A' .. 'Z' or else View_Next_Char in 'a' .. 'z'
         or else View_Next_Char in '0' .. '9' or else View_Next_Char = '_'
       loop
@@ -222,7 +225,9 @@ package body Tokens is
       --  check if it is a reserved keyword or not :
       --  CORBA V2.3, 3.2.4 :
       --  keywords must be written exactly as in the above list. Identifiers
-      --  that collide with keywords (...) are illegal.
+      --  that collide with keywords (...) are illegal. For example,
+      --  "boolean" is a valid keyword, "Boolean" and "BOOLEAN" are
+      --  illegal identifiers.
       Is_Idl_Keyword (Get_Marked_Text,
                       Is_A_Keyword,
                       tok);
@@ -240,17 +245,32 @@ package body Tokens is
       end case;
    end Scan_Identifier;
 
+
    --  IDL Syntax and semantics, § 3.2.5
-   --  Integers Literals:
+   --  Integers Literals : (3.2.5.1)
    --  An integer literal consisting of a sequence of digits is taken to be
    --  decimal (base ten), unless it begins with 0 (digit zero).  A sequence
    --  of digits starting with 0 is taken to be an octal integer (base eight).
    --  The digits 8 and 9 are not octal digits.  A sequence of digits preceded
    --  by 0x or 0X is taken to be a hexadecimal integer (base sixteen).  The
    --  hexadecimal digits include a or A through f or F with decimal values
-   --  ten to through fifteen, repectively.
+   --  ten to through fifteen, repectively. For example, the number twelve can
+   --  be written 12, 014 or 0XC
    --
+   --  Floating-point literals : (3.2.5.3)
+   --  A floating-point literal consists of an integer part, a decimal point,
+   --  a fraction part, an e or E, and an optionnaly signed integer exponent.
+   --  The integer and fraction parts both consists of a sequence of decimal
+   --  (base ten) digits. Either the integer part or the fraction part (but not
+   --  both may be missing; either the decimal point or the letter e (or E) and
+   --  the exponent (but not both) may be missing.
    --
+   --  Fixed-point literals : (3.2.5.5)
+   --  A fixed-point decimal literal consists of an integer part, a decimal
+   --  point, a fraction part and a d or D. The integer and fraction part both
+   --  consist of a sequence of decimal (base ten) digits. Either the integer
+   --  part or the fraction part (but not both) may be missing; the decimal
+   --  point (but not the letter d (or D)) may be missing
    procedure Scan_Numeric is
    begin
       Set_Mark;
@@ -273,11 +293,15 @@ package body Tokens is
             Current_Token := T_Lit_Integer;
          end if;
       else
-         while View_Next_Char in '0' .. '9' loop
+         if Get_Current_Char /= '.' then
+            while View_Next_Char in '0' .. '9' loop
+               Skip_Char;
+            end loop;
+         end if;
+         if Get_Current_Char /= '.' and View_Next_Char = '.' then
             Skip_Char;
-         end loop;
-         if View_Next_Char = '.' then
-            Skip_Char;
+         end if;
+         if Get_Current_Char = '.' then
             while View_Next_Char in '0' .. '9' loop
                Skip_Char;
             end loop;
@@ -296,6 +320,18 @@ package body Tokens is
             else
                Current_Token := T_Lit_Floating_Point;
             end if;
+         elsif View_Next_Char = 'E' or else View_Next_Char = 'e' then
+            Skip_Char;
+            if View_Next_Char = '+' or else View_Next_Char = '-' then
+               Skip_Char;
+            end if;
+            while View_Next_Char in '0' .. '9' loop
+               Skip_Char;
+            end loop;
+            Current_Token := T_Lit_Floating_Point;
+         elsif View_Next_Char = 'D' or else View_Next_Char = 'd' then
+            Skip_Char;
+            Current_Token := T_Lit_Fixed_Point;
          else
             Current_Token := T_Lit_Integer;
          end if;
@@ -440,6 +476,9 @@ package body Tokens is
                Current_Token := T_Equal;
                return;
             when '0' .. '9' =>
+               Scan_Numeric;
+               return;
+            when '.' =>
                Scan_Numeric;
                return;
             when 'A' .. 'Z' | 'a' .. 'z' =>
