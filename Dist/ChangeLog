@@ -1,3 +1,9 @@
+Fri Aug 29 21:45:27 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
+
+	* xe_stubs.adb, xe_back.adb, xe_back.ads, xe_check.adb,
+	xe_stubs.ads: Move the code such a way that gnatdist output
+	indicates that a light PCS is used.
+
 Fri Aug 29 20:14:48 1997  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* xe_stubs.adb: Detect if a partition includes a RCI package or

@@ -26,8 +26,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with XE_Back;
+with XE_Utils;
+
 package XE_Stubs is
 
+   procedure Mark_RCI_Callers
+     (PID : in XE_Back.PID_Type;
+      ALI : in XE_Utils.ALI_Id);
+   --  Starting from an ali file, search though all the dependency
+   --  chain to mark RCI callers for a partition PID.
+
    procedure Build;
+   --  Main procedure to generate all stubs and partition executables.
 
 end XE_Stubs;

@@ -35,9 +35,50 @@ with Osint;            use Osint;
 with Output;           use Output;
 with XE;               use XE;
 with XE_Back;          use XE_Back;
+with XE_Stubs;         use XE_Stubs;
 with XE_Utils;         use XE_Utils;
 
 package body XE_Check is
+
+   function Has_RCI_Pkg_Or_RACW_Var (P : in PID_Type) return Boolean;
+   --  Return True if a partition can be remotely invoked by another one,
+   --  that means a RCI package has been configured on it or a remote
+   --  dispatching call can be invoked on a RACW present on this partition.
+
+   -----------------------------
+   -- Has_RCI_Pkg_Or_RACW_Var --
+   -----------------------------
+
+   function Has_RCI_Pkg_Or_RACW_Var (P : in PID_Type) return Boolean is
+
+      UID : CUID_Type;
+
+   begin
+
+      --  Mark all the RCI callers.
+      UID := Partitions.Table (P).First_Unit;
+      while UID /= Null_CUID loop
+         if Unit.Table (CUnit.Table (UID).My_Unit).RCI then
+            return True;
+         end if;
+         Mark_RCI_Callers (P, CUnit.Table (UID).My_ALI);
+         UID := CUnit.Table (UID).Next;
+      end loop;
+
+      for U in CUnit.First .. CUnit.Last loop
+         if Get_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname) = P
+           and then Unit.Table (CUnit.Table (U).My_Unit).Has_RACW_Type then
+            return True;
+         end if;
+      end loop;
+
+      return False;
+
+   end Has_RCI_Pkg_Or_RACW_Var;
+
+   ----------------
+   -- Initialize --
+   ----------------
 
    procedure Initialize is
    begin
@@ -375,6 +416,12 @@ package body XE_Check is
             Set_CID (Lower & Parent_Dir & Upper, C);
          end loop;
       end;
+
+      for P in Partitions.First + 1 .. Partitions.Last loop
+         if not Has_RCI_Pkg_Or_RACW_Var (P) then
+            Set_Light_PCS (P);
+         end if;
+      end loop;
 
       if Inconsistent then
          raise Partitioning_Error;

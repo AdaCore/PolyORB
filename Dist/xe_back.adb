@@ -460,6 +460,7 @@ package body XE_Back is
       Partitions.Table (Partition).To_Build        := True;
       Partitions.Table (Partition).Most_Recent     := Configuration_File;
       Partitions.Table (Partition).Task_Pool       := No_Task_Pool;
+      Partitions.Table (Partition).Light_PCS       := False;
       PID := Partition;
    end Create_Partition;
 
@@ -648,6 +649,15 @@ package body XE_Back is
       end if;
 
    end Get_Host;
+
+   -------------------
+   -- Get_Light_PCS --
+   -------------------
+
+   function Get_Light_PCS (P : PID_Type) return Boolean is
+   begin
+      return Partitions.Table (P).Light_PCS;
+   end Get_Light_PCS;
 
    -------------------------
    -- Get_Main_Subprogram --
@@ -1021,6 +1031,15 @@ package body XE_Back is
    begin
       Set_Name_Table_Info (N, Int (H));
    end Set_HID;
+
+   -------------------
+   -- Set_Light_PCS --
+   -------------------
+
+   procedure Set_Light_PCS (P : PID_Type) is
+   begin
+      Partitions.Table (P).Light_PCS := True;
+   end Set_Light_PCS;
 
    -----------------------------
    -- Set_Partition_Attribute --
@@ -1518,6 +1537,11 @@ package body XE_Back is
                   when Unknown_Termination =>
                      null;
                end case;
+               Write_Eol;
+            end if;
+
+            if Get_Light_PCS (P) then
+               Write_Str ("   Light PCS   : True");
                Write_Eol;
             end if;
 

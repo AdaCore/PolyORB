@@ -161,6 +161,7 @@ package XE_Back is
       Most_Recent     : File_Name_Type;
       Filter          : Filter_Name_Type;
       Task_Pool       : Task_Pool_Type;
+      Light_PCS       : Boolean;
    end record;
 
    -- Tables --
@@ -264,6 +265,9 @@ package XE_Back is
    function Get_Host            (P : PID_Type) return Name_Id;
    --  Look for host into partitions. If null, return default.
 
+   function Get_Light_PCS       (P : PID_Type) return Boolean;
+   --  Return true when a partition has neither RCI nor RACW.
+
    function Get_Main_Subprogram (P : PID_Type) return Main_Subprogram_Type;
    --  Look for main_subprogram into partitions. If null, return default.
 
@@ -312,6 +316,9 @@ package XE_Back is
    procedure Set_CID  (N : Name_Id; C : CID_Type);
 
    procedure Set_CUID  (N : Name_Id; U : CUID_Type);
+
+   procedure Set_Light_PCS (P : PID_Type);
+   --  Set when neither RCI nor RACW are present.
 
    procedure Set_HID  (N : Name_Id; H : HID_Type);
 
