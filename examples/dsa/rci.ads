@@ -37,4 +37,6 @@ package RCI is
 
    function Modulus2 (Z : Complex) return Float;
 
+   --  type Parameterless_RAS is access procedure;
+
 end RCI;
