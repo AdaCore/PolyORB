@@ -1,3 +1,9 @@
+2004-09-05  Pascal Obry  <obry@gnat.com>
+
+	* s-gaprtc.ads, s-gardeb.ads, s-garpar.adb, s-garpar.ads,
+	s-garpro.ads,s-garpro.adb, 5wgarrem.adb:
+	Minor reformatting.
+
 2004-08-11  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* Makefile.am, Makefile.in: install s-gastha source and object
