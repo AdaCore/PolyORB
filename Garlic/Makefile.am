@@ -135,16 +135,16 @@ DISTCLEANFILES = Makefile.fil s-garrem.adb
 SUFFIXES = .adb .ads .ali .o .xrb
 
 .adb.o:
-	$(ADA_FOR_TARGET) -c $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
+	$(ADA_FOR_TARGET) -u -a $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
 
 .ads.o:
-	$(ADA_FOR_TARGET) -c $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
+	$(ADA_FOR_TARGET) -u -a $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
 
 .adb.ali:
-	$(ADA_FOR_TARGET) -c $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
+	$(ADA_FOR_TARGET) -u -a $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
 
 .ads.ali:
-	$(ADA_FOR_TARGET) -c $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
+	$(ADA_FOR_TARGET) -u -a $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
 
 b_gaprco$(EXEEXT): $(srcdir)/b_gaprco.adb
 	@${GNATMAKE} b_gaprco -o b_gaprco$(EXEEXT)
