@@ -190,13 +190,13 @@ package Lexer is
    Token_Name            : Name_Id;   --  for Tokens : T_identifier
    String_Literal_Value  : Name_Id;   --  for Tokens : T_String
 
-   Integer_Literal_Value : Long_Long_Unsigned;
+   Integer_Literal_Value : Unsigned_Long_Long;
    --  for Tokens : T_Integer_Literal
 
    Float_Literal_Value   : Long_Long_Float;
    --  for Tokens : T_Real_Literal
 
-   Numeric_Literal_Base  : Short_Short_Unsigned;
+   Numeric_Literal_Base  : Unsigned_Short_Short;
    --  for Tokens : T_Integer_Literal, T_Real_Literal
 
    function Image (T : Token_Type) return String;

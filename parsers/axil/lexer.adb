@@ -47,12 +47,12 @@ package body Lexer is
    --
    --  NOTE: all characters will be converted to lower case (when possible)
 
-   procedure Scan_Based_Fraction_Value (Base : Short_Short_Unsigned);
+   procedure Scan_Based_Fraction_Value (Base : Unsigned_Short_Short);
    --
    --  Scan a fraction in the given base notation.
    --  This procedure checks digits for validity
 
-   procedure Scan_Based_Integer_Value (Base : Short_Short_Unsigned);
+   procedure Scan_Based_Integer_Value (Base : Unsigned_Short_Short);
    --
    --  Scan an integer in the given base notation.
    --  This procedure checks digits for validity.
@@ -126,7 +126,7 @@ package body Lexer is
             return "[" & Long_Long_Float'Image (Float_Literal_Value) & "]";
 
          when T_Integer_Literal =>
-            return "[" & Long_Long_Unsigned'Image (Integer_Literal_Value)
+            return "[" & Unsigned_Long_Long'Image (Integer_Literal_Value)
               & "]";
 
          when T_String_Literal =>
@@ -362,10 +362,10 @@ package body Lexer is
    -- Scan_Based_Fraction_Value --
    ------------------------------
 
-   procedure Scan_Based_Fraction_Value (Base : Short_Short_Unsigned) is
+   procedure Scan_Based_Fraction_Value (Base : Unsigned_Short_Short) is
       Ch     : Character;
       Size   : Integer := 0;  --  number of scanned digits
-      Digit  : Short_Short_Unsigned;
+      Digit  : Unsigned_Short_Short;
       Factor : Long_Long_Float;
    begin
       Float_Literal_Value := 0.0;
@@ -388,7 +388,7 @@ package body Lexer is
             if Digit >= Base then
                Error_Loc (1) := Token_Location;
                DE ("digit '|" & Ch & "' is invalid in base " &
-                   Short_Short_Unsigned'Image (Base));
+                   Unsigned_Short_Short'Image (Base));
                Token := T_Error;
                Float_Literal_Value := 0.0;
                return;
@@ -414,10 +414,10 @@ package body Lexer is
    -- Scan_Based_Integer_Value --
    ------------------------------
 
-   procedure Scan_Based_Integer_Value (Base : Short_Short_Unsigned) is
+   procedure Scan_Based_Integer_Value (Base : Unsigned_Short_Short) is
       Ch    : Character;
       Size  : Integer := 0;  --  number of scanned digits
-      Digit : Short_Short_Unsigned;
+      Digit : Unsigned_Short_Short;
    begin
       Integer_Literal_Value := 0;
       Token := T_Integer_Literal;
@@ -438,7 +438,7 @@ package body Lexer is
             if Digit >= Base then
                Error_Loc (1) := Token_Location;
                DE ("digit '|" & Ch & "' is invalid in base " &
-                   Short_Short_Unsigned'Image (Base));
+                   Unsigned_Short_Short'Image (Base));
                Token := T_Error;
                Integer_Literal_Value := 0;
                return;
@@ -448,7 +448,8 @@ package body Lexer is
             Token_Location.Scan := Token_Location.Scan + 1;
 
             Integer_Literal_Value :=
-              Integer_Literal_Value * LLU (Base) + LLU (Digit);
+              Integer_Literal_Value * Unsigned_Long_Long (Base) +
+              Unsigned_Long_Long (Digit);
          end if;
       end loop;
 
@@ -466,7 +467,7 @@ package body Lexer is
    procedure Scan_Decimal_Fraction_Value is
       Ch     : Character;
       Size   : Integer := 0;  --  number of scanned digits
-      Digit  : Short_Short_Unsigned;
+      Digit  : Unsigned_Short_Short;
       Factor : Long_Long_Float;
    begin
       Float_Literal_Value := 0.0;
@@ -573,7 +574,7 @@ package body Lexer is
    procedure Scan_Numeric_Literal_Value is
       Ch       : Character;
       Is_Real  : Boolean := False;   --  scanned number is a real number
-      Int_Save : Long_Long_Unsigned; --  temporary value
+      Int_Save : Unsigned_Long_Long; --  temporary value
       Exp_Sign : Boolean;            --  sign of exponent (True >0 / False <0)
    begin
       Scan_Decimal_Integer_Value;
@@ -587,18 +588,21 @@ package body Lexer is
 
             if Integer_Literal_Value < 2 then
                Error_Loc (1) := Token_Location;
-               DE ("numeric base " & LLU'Image (Integer_Literal_Value) &
+               DE ("numeric base " &
+                   Unsigned_Long_Long'Image (Integer_Literal_Value) &
                    " is too small, must be at least 2");
                Token := T_Error;
                return;
             elsif Integer_Literal_Value > 16 then
                Error_Loc (1) := Token_Location;
-               DE ("numeric base " & LLU'Image (Integer_Literal_Value) &
+               DE ("numeric base " &
+                   Unsigned_Long_Long'Image (Integer_Literal_Value) &
                    " is too big, must be at most 16");
                Token := T_Error;
                return;
             else            --  base is OK
-               Numeric_Literal_Base := SSU (Integer_Literal_Value);
+               Numeric_Literal_Base :=
+                 Unsigned_Short_Short (Integer_Literal_Value);
                --  scan for integer part
                Scan_Based_Integer_Value (Numeric_Literal_Base);
 
@@ -681,12 +685,12 @@ package body Lexer is
                else
                   if Exp_Sign then
                      Integer_Literal_Value := Int_Save *
-                       LLU (Integer (Numeric_Literal_Base) **
-                            Integer (Integer_Literal_Value));
+                       Unsigned_Long_Long (Integer (Numeric_Literal_Base) **
+                                           Integer (Integer_Literal_Value));
                   else
                      Integer_Literal_Value := Int_Save /
-                       LLU (Integer (Numeric_Literal_Base) **
-                            Integer (Integer_Literal_Value));
+                       Unsigned_Long_Long (Integer (Numeric_Literal_Base) **
+                                           Integer (Integer_Literal_Value));
                   end if;
                end if;
             else
