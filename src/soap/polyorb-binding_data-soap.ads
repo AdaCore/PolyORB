@@ -47,8 +47,6 @@ package PolyORB.Binding_Data.SOAP is
    --  A profile that designates an object accessible through
    --  SOAP RPC over HTTP.
 
-   procedure Initialize (P : in out SOAP_Profile_Type);
-   procedure Finalize   (P : in out SOAP_Profile_Type);
    procedure Duplicate  (P1 : SOAP_Profile_Type; P2 : out SOAP_Profile_Type);
    procedure Release    (P : in out SOAP_Profile_Type);
 

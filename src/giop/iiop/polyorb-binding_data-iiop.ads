@@ -45,8 +45,6 @@ package PolyORB.Binding_Data.IIOP is
    type IIOP_Profile_Type is new Profile_Type with private;
    type IIOP_Profile_Factory is new Profile_Factory with private;
 
-   procedure Initialize (P : in out IIOP_Profile_Type);
-   procedure Finalize   (P : in out IIOP_Profile_Type);
    procedure Duplicate  (P1 : IIOP_Profile_Type; P2 : out IIOP_Profile_Type);
    procedure Release    (P : in out IIOP_Profile_Type);
 

@@ -48,16 +48,6 @@ package body PolyORB.Binding_Data.SRP is
    use PolyORB.Transport;
    use PolyORB.Transport.Connected.Sockets;
 
-   procedure Initialize (P : in out SRP_Profile_Type) is
-   begin
-      P.Object_Id := null;
-   end Initialize;
-
-   procedure Finalize (P : in out SRP_Profile_Type) is
-   begin
-      Release (P);
-   end Finalize;
-
    procedure Duplicate
      (P1 : SRP_Profile_Type; P2 : out SRP_Profile_Type) is
    begin

@@ -50,8 +50,6 @@ package PolyORB.Binding_Data.UIPMC is
    type UIPMC_Profile_Type is new Profile_Type with private;
    type UIPMC_Profile_Factory is new Profile_Factory with private;
 
-   procedure Initialize (P : in out UIPMC_Profile_Type);
-   procedure Finalize   (P : in out UIPMC_Profile_Type);
    procedure Duplicate  (P1 : UIPMC_Profile_Type; P2 : out UIPMC_Profile_Type);
    procedure Release    (P : in out UIPMC_Profile_Type);
 
