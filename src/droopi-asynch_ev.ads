@@ -8,6 +8,19 @@ with Droopi.Annotations;
 
 package Droopi.Asynch_Ev is
 
+   --  Some environment components can produce events in an asynchronous
+   --  asynchronous fashion, i.e. independently of middleware actions
+   --  currently in progress. A typical example of such components is a
+   --  connection to the outside world.
+   --  outside world.)
+
+   --  Such components are represented within DROOPI as Asynch_Ev_Source
+   --  objects. These objects are registered in collections called
+   --  Asynch_Ev_Monitors.
+
+   --  Monitors provide an interface for the middleware to check whether
+   --  events have occured on any of their member Asynch_Ev_Sources.
+
    type Asynch_Ev_Monitor is abstract tagged limited private;
    type Asynch_Ev_Monitor_Access is
      access all Asynch_Ev_Monitor'Class;
@@ -23,7 +36,10 @@ package Droopi.Asynch_Ev is
    function Notepad_Of (AES : Asynch_Ev_Source_Access)
      return Annotations.Notepad_Access;
    pragma Inline (Notepad_Of);
-   --  Return the AES' Notepad.
+   --  An Asynch_Ev_Source is an annotable object (cf. Droopi.Annotations),
+   --  so clients can associate it with any information that is necessary
+   --  to process events that occur on it.
+   --  This functions returns an access to AES' Notepad component.
 
    function AEM_Factory_Of (AES : Asynch_Ev_Source)
      return AEM_Factory is abstract;
@@ -57,8 +73,6 @@ package Droopi.Asynch_Ev is
      (AES : Asynch_Ev_Source_Access);
    --  Remove AES from any AEM that it is currently in.
 
-   Forever : constant Duration;
-
    type AES_Array is array (Integer range <>)
      of Asynch_Ev_Source_Access;
 
@@ -72,6 +86,8 @@ package Droopi.Asynch_Ev is
    --  Return when one event source in AEM has had an event.
    --  If no event happened within Timeout, an empty array is returned.
    --  Note that a Timeout of 0.0 returns immediatly.
+   --  A Timeout of Droopi.Constants.Forever means to not return
+   --  until an event occurs.
 
    procedure Abort_Check_Sources
      (AEM : Asynch_Ev_Monitor)
@@ -92,7 +108,5 @@ private
    type Asynch_Ev_Monitor is abstract tagged limited record
       Sources : Source_Seq;
    end record;
-
-   Forever : constant Duration := Duration'Last;
 
 end Droopi.Asynch_Ev;

@@ -5,6 +5,7 @@ with Ada.Exceptions;
 
 with Droopi.Annotations;
 with Droopi.Components;
+with Droopi.Constants;
 with Droopi.Filters;
 with Droopi.Filters.Interface;
 with Droopi.Log;
@@ -239,7 +240,7 @@ package body Droopi.ORB is
             begin
 
                if Monitors'Length = 1 then
-                  Timeout := Droopi.Asynch_Ev.Forever;
+                  Timeout := Droopi.Constants.Forever;
                else
                   Timeout := 0.0;
                end if;

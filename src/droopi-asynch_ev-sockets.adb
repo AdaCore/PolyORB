@@ -2,6 +2,8 @@
 
 --  $Id$
 
+with Droopi.Constants;
+
 with Droopi.Log;
 
 package body Droopi.Asynch_Ev.Sockets is
@@ -86,7 +88,7 @@ package body Droopi.Asynch_Ev.Sockets is
 
       pragma Debug (O ("Checking selector..."));
 
-      if T = Asynch_Ev.Forever then
+      if T = Constants.Forever then
          --  Convert special value of Timeout.
          T := Droopi.Sockets.Forever;
       end if;
