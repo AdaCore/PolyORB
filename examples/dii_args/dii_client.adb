@@ -48,12 +48,6 @@ begin
    Ada.Text_IO.Put_Line ("Client building request");
 
    --  result is void by default
-
---   Result := (To_CORBA_String ("sum"),
---              To_Any (S),
---              0,
---              ARG_OUT);
-
    Object.Create_Request (MyArgs,
                           Ctx,
                           CORBA.To_CORBA_String ("Plus_Minus"),
