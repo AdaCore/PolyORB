@@ -26,6 +26,7 @@ with Broca.Debug;
 
 package body CORBA.Repository_Root.Contained.Impl is
 
+   Package Contained_For_Seq renames IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
 
    -----------
    -- Debug --
@@ -115,8 +116,6 @@ package body CORBA.Repository_Root.Contained.Impl is
          end if;
       end;
    end Change_Absolute_Name;
-
-   Package Contained_For_Seq renames IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
 
    -----------------
    --  To_Object  --
@@ -521,6 +520,9 @@ package body CORBA.Repository_Root.Contained.Impl is
       end case;
    end describe;
 
+   ------------
+   --  move  --
+   ------------
    procedure move
      (Self : access Object;
       new_container : in Container_Forward.Ref;
@@ -738,7 +740,7 @@ package body CORBA.Repository_Root.Contained.Impl is
             --  if limit_type is dk_all or if we get the right limit_type...
             if (Limit_Type = Dk_All) or
               (Limit_Type = Get_Def_Kind (Cont_Array (I))) then
-               --  ...we should ppend this contained to the list
+               --  ...we should append this contained to the list
                Contained_Seq.Append (Result, Cont_Array (I));
             end if;
          end if;
@@ -746,12 +748,38 @@ package body CORBA.Repository_Root.Contained.Impl is
       return To_ContainedSeq (Result);
    end;
 
+   ----------------
+   --  Contents  --
+   ----------------
+   function Contents (In_Seq : Contained_Seq.Sequence;
+                      Limit_Type : DefinitionKind) return ContainedSeq is
+   begin
+      if Limit_Type = Dk_All then
+         return To_ContainedSeq (In_Seq);
+      else
+         --  we can only select the containeds with the right def_kind
+         declare
+            Result : Contained_Seq.Sequence := Contained_Seq.Null_Sequence;
+            Cont_Array : Contained_Seq.Element_Array
+              := Contained_Seq.To_Element_Array (In_Seq);
+         begin
+            for I in Cont_Array'Range loop
+               --  if we get the right limit_type...
+               if Limit_Type = Get_Def_Kind (Cont_Array (I)) then
+                  --  ...we should append this contained to the list
+                  Contained_Seq.Append (Result, Cont_Array (I));
+               end if;
+            end loop;
+            return To_ContainedSeq (Result);
+         end;
+      end if;
+   end;
+
    -----------------------
-   --  To_containedSeq  --
+   --  To_ContainedSeq  --
    -----------------------
-   function To_ContainedSeq
-     (In_Seq : Contained_Seq.Sequence)
-      return  CORBA.Repository_Root.ContainedSeq is
+   function To_ContainedSeq (In_Seq : Contained_Seq.Sequence)
+                             return  CORBA.Repository_Root.ContainedSeq is
       Cont_Array : Contained_Seq.Element_Array
         := Contained_Seq.To_Element_Array (In_Seq);
       The_Ref : CORBA.Repository_Root.Contained.Ref;
@@ -771,8 +799,26 @@ package body CORBA.Repository_Root.Contained.Impl is
       return Result;
    end To_ContainedSeq;
 
+   -----------------------------
+   --  To_Contained_Sequence  --
+   -----------------------------
+   function To_Contained_Sequence (In_Seq : ContainedSeq)
+                                   return Contained_Seq.Sequence is
+      Cont_Array : Contained_For_Seq.Element_Array
+        := Contained_For_Seq.To_Element_Array
+        (Contained_For_Seq.Sequence (In_Seq));
+      Result : Contained_Seq.Sequence
+        := Contained_Seq.Null_Sequence;
+   begin
+      for I in Cont_Array'Range loop
+         Contained_Seq.Append (Result, To_Object (Cont_Array (I)));
+      end loop;
+      return Result;
+   end To_Contained_Sequence;
 
 end CORBA.Repository_Root.Contained.Impl;
+
+
 
 
 

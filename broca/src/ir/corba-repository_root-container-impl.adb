@@ -265,6 +265,9 @@ package body CORBA.Repository_Root.Container.Impl is
    end lookup;
 
 
+   ----------------
+   --  contents  --
+   ----------------
    function contents
      (Self : access Object;
       limit_type : in CORBA.Repository_Root.DefinitionKind;
@@ -272,9 +275,118 @@ package body CORBA.Repository_Root.Container.Impl is
       return CORBA.Repository_Root.ContainedSeq
    is
       Result : CORBA.Repository_Root.ContainedSeq;
+      package Contained_For_Seq renames IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
+      package IDF renames IDL_SEQUENCE_CORBA_Repository_Root_InterfaceDef_Forward;
+      package VDF renames IDL_SEQUENCE_CORBA_Repository_Root_ValueDef_Forward;
    begin
+      --  Get the direct contained
+      Result := Contained.Impl.Contents (Self.Contents,
+                                         Limit_Type);
 
-      --  Insert implementation of contents
+      --  Do we look into the inherited
+      if not Exclude_Inherited then
+         case Get_Def_Kind (Self) is
+            when Dk_Interface =>
+               declare
+                  IntDefSeq : InterfaceDefSeq
+                    := InterfaceDef.Impl.Get_Base_Interfaces
+                    (InterfaceDef.Impl.Object_Ptr (Get_Real_Object (Self)));
+                  --  create the array of the parent interfaces
+                  Int_Array : IDF.Element_Array
+                    := IDF.To_Element_Array (IDF.Sequence (IntDefSeq));
+               begin
+                  for I in Int_Array'Range loop
+                     declare
+                        Int : InterfaceDef.Impl.Object_Ptr
+                          := InterfaceDef.Impl.To_Object (Int_Array (I));
+                        Res : ContainedSeq;
+                     begin
+                        --  we will get all the contained of the inherited interface
+                        Res := contents (Object_Ptr (Int),
+                                         Limit_Type,
+                                         Exclude_Inherited);
+                        --  append the current result to the global one
+                        Contained_For_Seq.Append
+                          (Contained_For_Seq.Sequence (Result),
+                           Contained_For_Seq.Sequence (Res));
+                     end;
+                  end loop;
+               end;
+            when Dk_Value =>
+               --  check the supported interfaces
+               declare
+                  IntDefSeq : InterfaceDefSeq
+                    := ValueDef.Impl.Get_Supported_Interfaces
+                    (ValueDef.Impl.Object_Ptr (Get_Real_Object (Self)));
+                  --  create the array of the supported interfaces
+                  Int_Array : IDF.Element_Array
+                    := IDF.To_Element_Array (IDF.Sequence (IntDefSeq));
+               begin
+                  for I in Int_Array'Range loop
+                     declare
+                       Int : InterfaceDef.Impl.Object_Ptr
+                         := InterfaceDef.Impl.To_Object (Int_Array (I));
+                       Res : ContainedSeq;
+                     begin
+                        --  we will get all the definition of the inherited interface
+                        Res := Contents (Object_Ptr (Int),
+                                         Limit_Type,
+                                         Exclude_Inherited);
+                        --  append the current result to the global one
+                        Contained_For_Seq.Append
+                          (Contained_For_Seq.Sequence (Result),
+                           Contained_For_Seq.Sequence (Res));
+                     end;
+                  end loop;
+               end;
+               --  check the abstract_base_value
+               declare
+                  ValDefSeq : ValueDefSeq
+                    := ValueDef.Impl.Get_Abstract_Base_Values
+                    (ValueDef.Impl.Object_Ptr (Get_Real_Object (Self)));
+                  --  create the array of the supported Values
+                  Val_Array : VDF.Element_Array
+                    := VDF.To_Element_Array (VDF.Sequence (ValDefSeq));
+               begin
+                  for I in Val_Array'Range loop
+                     declare
+                        Val : ValueDef.Impl.Object_Ptr
+                          := ValueDef.Impl.To_Object (Val_Array (I));
+                        Res : ContainedSeq;
+                     begin
+                        --  we will get all the definition of the inherited Value
+                        Res := Contents (Object_Ptr (Val),
+                                         Limit_Type,
+                                         Exclude_Inherited);
+                        --  append the current result to the global one
+                        Contained_For_Seq.Append
+                          (Contained_For_Seq.Sequence (Result),
+                           Contained_For_Seq.Sequence (Res));
+                     end;
+                  end loop;
+               end;
+               --  check the base_value
+               declare
+                  Val : ValueDef.Impl.Object_Ptr
+                    := ValueDef.Impl.Object_Ptr
+                    (ValueDef.Object_Of
+                     (ValueDef.Impl.Get_Base_Value
+                      (ValueDef.Impl.Object_Ptr (Get_Real_Object (Self)))));
+                  Res : ContainedSeq;
+               begin
+                  --  we will get all the definition of the inherited Value
+                  Res := Contents (Object_Ptr (Val),
+                                   Limit_Type,
+                                   Exclude_Inherited);
+                  --  append the current result to the global one
+                  Contained_For_Seq.Append
+                    (Contained_For_Seq.Sequence (Result),
+                     Contained_For_Seq.Sequence (Res));
+               end;
+            when others =>
+               null;
+         end case;
+      end if;
 
       return Result;
    end contents;
@@ -448,6 +560,9 @@ package body CORBA.Repository_Root.Container.Impl is
    end lookup_name;
 
 
+   -------------------------
+   --  describe_contents  --
+   -------------------------
    function describe_contents
      (Self : access Object;
       limit_type : in CORBA.Repository_Root.DefinitionKind;
@@ -455,13 +570,50 @@ package body CORBA.Repository_Root.Container.Impl is
       max_returned_objs : in CORBA.Long)
      return CORBA.Repository_Root.Container.DescriptionSeq
    is
-      Result : CORBA.Repository_Root.Container.DescriptionSeq;
+      Content : Contained.Impl.Contained_Seq.Sequence;
+      package CD renames IDL_SEQUENCE_CORBA_Repository_Root_Container_Description;
+      Result : DescriptionSeq := DescriptionSeq (CD.Null_Sequence);
+      use Contained.Impl;
    begin
+      --  get the contents of the container
+      Content := Contained.Impl.To_Contained_Sequence
+        (Contents (Self,
+                   Limit_Type,
+                   Exclude_Inherited));
 
-      --  Insert implementation of describe_contents
+      --  reduce it to max_returned_objs
+      if Max_Returned_Objs > 0 then
+         if CORBA.Long (Contained_Seq.Length (Content)) > Max_Returned_Objs then
+            Contained_Seq.Head (Content,
+                                Natural (Max_Returned_Objs),
+                                null);
+         end if;
+      end if;
+
+      --  get the description and populate the result.
+      declare
+         Cont_Array : Contained_Seq.Element_Array
+           := Contained_Seq.To_Element_Array (Content);
+         Des : Contained.Description;
+         Ref : Contained.Ref;
+         Res_Des : Description;
+      begin
+         for I in Cont_Array'Range loop
+            Des := Contained.Impl.Describe (Cont_Array (I));
+            Contained.Set (Ref,
+                           CORBA.Impl.Object_Ptr (Cont_Array (I)));
+            --  Create the container.description ...
+            Res_Des := (Contained_Object => Ref,
+                        Kind => Des.Kind,
+                        Value => Des.Value);
+            --  end add it to the result.
+            CD.Append (CD.Sequence (Result), Res_Des);
+         end loop;
+      end;
 
       return Result;
    end describe_contents;
+
 
 
    function create_module

@@ -121,10 +121,20 @@ package CORBA.Repository_Root.Contained.Impl is
                          Name : Identifier;
                          Limit_Type : DefinitionKind) return ContainedSeq;
 
+   --  This function returns the In_Seq as containedSeq if limit_type is dk_all
+   --  else it returns the specific limit_type containeds within In_Seq.
+   function Contents (In_Seq : Contained_Seq.Sequence;
+                      Limit_Type : DefinitionKind) return ContainedSeq;
+
    --  A usefull function to transform a Contained_Seq.Sequence into a ContainedSeq
    function To_ContainedSeq
      (In_Seq : Contained_Seq.Sequence)
       return  CORBA.Repository_Root.ContainedSeq;
+
+   --  A usefull function to transform a Contained_Seq.Sequence into a ContainedSeq
+   function To_Contained_Sequence
+     (In_Seq : ContainedSeq)
+      return  Contained_Seq.Sequence;
 
 private
 
