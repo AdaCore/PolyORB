@@ -67,7 +67,7 @@ package body AWS.MIME is
    Dot_Tar  : aliased constant String := ".tar";
    Dot_Exe  : aliased constant String := ".exe";
 
-   Type_Table : constant array (Positive range <>) of Mapping :=
+   Type_Table : constant array (1 .. 19) of Mapping :=
      ((Dot_Html'Access, Text_HTML'Access),
       (Dot_Htm'Access,  Text_HTML'Access),
       (Dot_XML'Access,  Text_XML'Access),
