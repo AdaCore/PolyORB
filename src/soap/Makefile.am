@@ -44,7 +44,7 @@ CLEANFILES = *.ali $(GPERF_BODY)
 ADAFLAGS = -I. -I$(srcdir) -I.. -I$(srcdir)/.. \
 	$(XMLADA_INCS) -I$(srcdir)/../web_common $(GNATFLAGS)
 
-GNATPRFH = ../../compilers/gnatprfh/gnatprfh
+GNATPRFH = ${top_builddir}/compilers/gnatprfh/gnatprfh
 GEN_HTTP_BODY = $(srcdir)/gen_http_body
 
 polyorb-http_methods.adb: $(GEN_HTTP_BODY) $(srcdir)/polyorb-http_methods.ads
