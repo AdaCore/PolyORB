@@ -61,8 +61,7 @@ package body MOMA.Message_Producers.Queues is
      renames L.Output;
 
    procedure Send_To_MOM (Servant : PolyORB.References.Ref;
-                          Message : MOMA.Messages.Message'Class;
-                          Kind    : MOMA.Types.Destination_Type := Unknown);
+                          Message : MOMA.Messages.Message'Class);
    --  Send Message to a MOM object.
 
    procedure Send_To_ORB (Self    : Queue;
@@ -95,8 +94,7 @@ package body MOMA.Message_Producers.Queues is
                                      Get_Destination (Self));
       if Type_Id_S = MOMA.Types.MOMA_Type_Id then
          Send_To_MOM (Get_Ref (Self),
-                      Message,
-                      Get_Kind (Get_Destination (Self)));
+                      Message);
       else
          Send_To_ORB (Self, Message);
       end if;
@@ -107,8 +105,7 @@ package body MOMA.Message_Producers.Queues is
    -----------------
 
    procedure Send_To_MOM (Servant : PolyORB.References.Ref;
-                          Message : MOMA.Messages.Message'Class;
-                          Kind    : MOMA.Types.Destination_Type := Unknown)
+                          Message : MOMA.Messages.Message'Class)
    is
       Argument_Mesg : PolyORB.Any.Any := MOMA.Messages.To_Any (Message);
       Request       : PolyORB.Requests.Request_Access;
