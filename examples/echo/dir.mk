@@ -4,6 +4,9 @@ all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND) ada
 	gnatmake -gnatf -gnata -m -i client.adb $(FLAGS)
 	gnatmake -gnatf -gnata -m -i server.adb $(FLAGS)
 
+server:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND) ada
+	gnatmake -gnatf -gnata -m -i server.adb $(FLAGS)
+
 IDL_INTERFACE = echo
 
 GENERATED_FILES = $(IDL_INTERFACE).ad*
