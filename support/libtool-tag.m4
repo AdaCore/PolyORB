@@ -3,7 +3,7 @@ dnl $Id$
 
 AC_DEFUN([AC_LIBTOOL_HAS_TAG],[
 AC_MSG_CHECKING([whether libtool supports --tag])
-if grep -q -- --tag $srcdir/support/ltmain.sh; then
+if grep "[[-]]-tag" $srcdir/support/ltmain.sh > /dev/null; then
   AC_MSG_RESULT([yes])
   LIBTOOL_TAG=--tag=CC
 else
