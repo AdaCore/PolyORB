@@ -34,7 +34,7 @@
 ------------------------------------------------------------------------------
 
 with Interfaces.C;
-with System.Garlic.Non_Blocking;
+with System.Garlic.Thin;
 
 package System.Garlic.TCP.Platform_Specific is
 
@@ -42,9 +42,7 @@ package System.Garlic.TCP.Platform_Specific is
 
    --  Windows NT version of this package
 
-   package Net renames System.Garlic.Non_Blocking;
-
-   Use_Poll : constant Boolean := False;
+   package Net renames System.Garlic.Thin;
 
 private
 
