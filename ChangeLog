@@ -1,3 +1,7 @@
+
+Mon Apr  7 12:43:26 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Modified for automake 1.1n. Removed references to
 	  xe-gcc*.
 
 Wed Apr  2 18:47:27 1997  Laurent Pautet  <pautet@scapin.enst.fr>

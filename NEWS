@@ -1,0 +1,34 @@
+Changes since GLADE 1.01
+========================
+
+* Addition of filters. A filter is a set of subprograms which will be
+  called automatically before sending bytes on the communication
+  channel and after receiving them. An example (the ZIP filter) is
+  bundled and install along with GLADE, which uses the zlib
+  library. There are new pragmas and attributes in GNATDIST to use
+  this feature.
+
+* Copies of buffers have been suppressed wherever possible, thus
+  decreasing execution time.
+
+* The 'rsh' command can now be changed at installation time using the
+  --remsh parameter of configure.
+
+* Upgraded to automake 1.1n. If the user does modifies sensitive files 
+  (such as Makefile.am) and does not have automake, then print a
+  message instead of crashing with an unclear error.
+
+* Bug fixes for float transmissions between architectures with
+  different word sizes.
+
+* Bug fixes for pathological cases in GNATDIST.
+
+* Clearer error messages for GNATDIST.
+
+* New examples Bank and LightBank.
+
+* New file NEWS (this file).
+
+# Local Variables:
+# mode: text
+# End:
