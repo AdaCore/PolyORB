@@ -1,0 +1,3 @@
+ADABROKER_TOP=.
+ADABROKER_CURRENT=.
+include $(ADABROKER_TOP)/config/config.mk
