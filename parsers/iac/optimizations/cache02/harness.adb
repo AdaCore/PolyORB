@@ -12,11 +12,15 @@ with PolyORB.Utils.Strings;
 with PolyORB.Utils.Strings.Lists;
 with PolyORB.Initialization;
 with PolyORB.Any.ExceptionList;
-with PolyORB.Request_QOS;
+
 
 package body Harness is
 
+   type NamedValue_Ptr is access PolyORB.Any.NamedValue;
+
    procedure echoULong_Cache_Init;
+
+
 
    procedure echoULong_Get_Request
      (Ref      : in PolyORB.References.Ref;
@@ -30,6 +34,7 @@ package body Harness is
    pragma Inline (echoULong_Free_Request);
 
    procedure EchoULong_Update_Argument_List (Argument_U_Arg : in CORBA.Any);
+   pragma Inline (EchoULong_Update_Argument_List);
    echoULong_Operation_Name_ü : constant Standard.String :=
      "echoULong";
 
@@ -115,10 +120,8 @@ package body Harness is
       then
          Result_ü.Argument :=
            Request_ü.Exception_Info;
-         PolyORB.Requests.Destroy_Request
-           (Request_ü);
-         --  XXX Je doute que tu doives faire un Destroy_Request ici ...
 
+         EchoULong_Free_Request (Index);
 
          PolyORB.CORBA_P.Exceptions.Raise_From_Any
            (Result_ü.Argument);
@@ -158,10 +161,7 @@ package body Harness is
       Request_Cache_Tab (I).all.Target := Ref;
       Request_Cache_Tab (I).all.Args := EchoULong_Argument_List;
       Request_Cache_Tab (I).all.Result := Result;
-      --  Request_Cache_Tab_Free (I) := False;
-
-      --  XXX tu ne mets jamais a False cette valeur ????????? mais
-      --  c'est du delire ..
+      Request_Cache_Tab_Free (I) := False;
 
       --  Set returns values
 
@@ -231,16 +231,16 @@ package body Harness is
    procedure EchoULong_Update_Argument_List
      (Argument_U_Arg : in CORBA.Any)
    is
-      Obj : constant PolyORB.Any.NVList.Object_Ptr :=
-        Object_Ptr (PolyORB.Any.NVList.Entity_Of (Self));
-
+      List_Ptr : PolyORB.Any.NVList.Internals.NV_List_Access
+        := PolyORB.Any.NVList.Internals.List_Of
+        (echoULong_Argument_List);
+      Element : PolyORB.Any.NVList.Internals.NV_Lists.Element_Access;
    begin
-
       Element :=
-        PolyORB.Any.NVList.Internals.Element
-        (EchoULong_Argument_List_Ü, 1);
-      Element.all.Argument := Argument_U_Arg;
-
+        PolyORB.Any.NVList.Internals.NV_Lists.Element
+        (List_Ptr.all, 0);
+      Element.all.Argument := CORBA.Internals.To_PolyORB_Any
+        (Argument_U_Arg);
       --  XXX A quoi sert Obj ????? Ou est defini Element ????
 
    end EchoULong_Update_Argument_List;
