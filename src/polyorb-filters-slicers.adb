@@ -83,7 +83,7 @@ package body PolyORB.Filters.Slicers is
    is
       Res : Components.Null_Message;
    begin
-      if S in Data_Expected then
+      if S in Data_Expected'Class then
          declare
             DEM : Data_Expected renames Data_Expected (S);
          begin
