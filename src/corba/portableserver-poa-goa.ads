@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---              P O R T A B L E S E R V E R . P O A . G O A                 --
+--               P O R T A B L E S E R V E R . P O A . G O A                --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;
+--  $Id$
 
 with CORBA.Object;
 
@@ -48,23 +48,14 @@ package PortableServer.POA.GOA is
      (Self : CORBA.Object.Ref'Class)
      return Ref;
 
-   -----------------------
-   --  Group management --
-   -----------------------
-
-   NotAGroupObject : exception;
-
-   --  type sequence <ObjectId> IDs;
-   type ObjectId_Access is access ObjectId;
-   package Sequence_IDs
-     is new CORBA.Sequences.Unbounded (ObjectId_Access);
-
-   type IDs is new Sequence_IDs.Sequence;
+   ----------------------
+   -- Group management --
+   ----------------------
 
    function Create_Id_For_Reference
      (Self    : in Ref;
       The_Ref : in CORBA.Object.Ref)
-     return ObjectId;
+     return PortableServer.ObjectId;
    --  raises (NotAGroupObject);
    --  create a new objectid and associate it with group The_Ref
 
@@ -78,30 +69,13 @@ package PortableServer.POA.GOA is
    procedure Associate_Reference_With_Id
      (Self : in Ref;
       Ref  : in CORBA.Object.Ref;
-      Oid  : in ObjectId);
+      Oid  : in PortableServer.ObjectId);
    --  raises(NotAGroupObject);
 
    procedure Disassociate_Reference_With_Id
      (Self : in Ref;
       Ref  : in CORBA.Object.Ref;
-      Oid  : in ObjectId);
+      Oid  : in PortableServer.ObjectId);
    --  raises(NotAGroupObject);
-
-   --------------------------------------------------
-   -- PortableServer.POA.GOA Exceptions Management --
-   --------------------------------------------------
-
-   --  NotAGroupObjects
-
-   type NotAGroupObject_Members is new CORBA.IDL_Exception_Members
-     with null record;
-
-   procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
-      To   : out NotAGroupObject_Members);
-
-   procedure Raise_NotAGroupObject
-     (Excp_Memb : in NotAGroupObject_Members);
-   pragma No_Return (Raise_NotAGroupObject);
 
 end PortableServer.POA.GOA;

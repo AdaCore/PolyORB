@@ -286,6 +286,21 @@ package body PortableServer is
       PolyORB.Exceptions.User_Get_Members (From, To);
    end Get_Members;
 
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out NotAGroupObject_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= NotAGroupObject'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      To := NotAGroupObject_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
+
    --------------------------
    -- Raise_ForwardRequest --
    --------------------------
@@ -300,6 +315,21 @@ package body PortableServer is
    begin
       raise PolyORB.Not_Implemented;
    end Raise_ForwardRequest;
+
+   ---------------------------
+   -- Raise_NotAGroupObject --
+   ---------------------------
+
+   procedure Raise_NotAGroupObject
+     (Excp_Memb : in NotAGroupObject_Members)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Excp_Memb);
+      pragma Warnings (On); --  WAG:3.15
+
+   begin
+      raise NotAGroupObject;
+   end Raise_NotAGroupObject;
 
    --------------
    -- From_Any --

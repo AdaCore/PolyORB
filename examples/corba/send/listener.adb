@@ -53,12 +53,11 @@ with PolyORB.Setup;
 
 with Test.Printer.Impl;
 
-with PolyORB.Objects;
-
 procedure Listener is
    use CORBA.ORB;
    use PolyORB.CORBA_P.Server_Tools;
    use PortableServer.POA.GOA;
+   use PortableServer;
 
    procedure Print_List (List : IDs);
    pragma Warnings (Off, Print_List);
@@ -66,7 +65,6 @@ procedure Listener is
    procedure Print_List (List : IDs)
    is
       use Sequence_IDs;
-      use PolyORB.Objects;
 
    begin
       Ada.Text_IO.Put_Line ("Group length :" & Length (List)'Img);
@@ -74,7 +72,7 @@ procedure Listener is
          Ada.Text_IO.Put_Line
            (J'Img
             & " - "
-            & Image (Object_Id (Element_Of (List, J).all)));
+            & PortableServer.ObjectId_To_String (Element_Of (List, J).all));
       end loop;
    end Print_List;
 

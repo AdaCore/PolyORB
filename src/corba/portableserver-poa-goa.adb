@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---              P O R T A B L E S E R V E R . P O A . G O A                 --
+--               P O R T A B L E S E R V E R . P O A . G O A                --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,22 +31,20 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;
+--  $Id$
 
-with PolyORB.Binding_Data;
 with PolyORB.Binding_Data.Local;
 
-with PolyORB.Obj_Adapters;
 with PolyORB.Obj_Adapters.Group_Object_Adapter;
 
 with PolyORB.POA;
 with PolyORB.POA_Types;
 with PolyORB.POA_Manager;
 with PolyORB.References;
-with PolyORB.Servants;
 with PolyORB.Servants.Group_Servants;
 with PolyORB.Smart_Pointers;
 
+with PolyORB.CORBA_P.Exceptions;
 with PolyORB.Exceptions;
 
 package body PortableServer.POA.GOA is
@@ -56,6 +54,18 @@ package body PortableServer.POA.GOA is
    function To_POA
      (Self : Ref)
      return PolyORB.POA.Obj_Adapter_Access;
+
+   --  Group management
+
+   procedure Associate
+     (Group : PolyORB.Servants.Servant_Access;
+      Oid   : PolyORB.Objects.Object_Id);
+   --  Associate a group servant to an Oid
+
+   procedure Disassociate
+     (Group : PolyORB.Servants.Servant_Access;
+      Oid   : PolyORB.Objects.Object_Id);
+   --  Remove an Oid from a group servant
 
    ------------
    -- To_Ref --
@@ -125,28 +135,16 @@ package body PortableServer.POA.GOA is
          when NotAGroupObject_E =>
             declare
                Member : constant NotAGroupObject_Members
-              := NotAGroupObject_Members'
+                 := NotAGroupObject_Members'
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
                Raise_NotAGroupObject (Member);
             end;
          when others =>
-            raise Program_Error;
+            PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end case;
    end Raise_From_Error;
-
-   --  Group management
-
-   procedure Associate
-     (Group : PolyORB.Servants.Servant_Access;
-      Oid   : PolyORB.Objects.Object_Id);
-   --  wrapper to use group_servants function with Oids
-
-   procedure Disassociate
-     (Group : PolyORB.Servants.Servant_Access;
-      Oid   : PolyORB.Objects.Object_Id);
-   --  wrapper to use group_servants function with Oids
 
    ---------------
    -- Associate --
@@ -220,7 +218,7 @@ package body PortableServer.POA.GOA is
    function Create_Id_For_Reference
      (Self    : in Ref;
       The_Ref : in CORBA.Object.Ref)
-     return ObjectId
+     return PortableServer.ObjectId
    is
       use PolyORB.Exceptions;
       use PolyORB.POA;
@@ -333,7 +331,7 @@ package body PortableServer.POA.GOA is
    procedure Associate_Reference_With_Id
      (Self : in Ref;
       Ref  : in CORBA.Object.Ref;
-      Oid  : in ObjectId)
+      Oid  : in PortableServer.ObjectId)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -365,7 +363,7 @@ package body PortableServer.POA.GOA is
    procedure Disassociate_Reference_With_Id
      (Self : in Ref;
       Ref  : in CORBA.Object.Ref;
-      Oid  : in ObjectId)
+      Oid  : in PortableServer.ObjectId)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -389,38 +387,5 @@ package body PortableServer.POA.GOA is
       end if;
       Disassociate (GS, PolyORB.Objects.Object_Id (Oid));
    end Disassociate_Reference_With_Id;
-
-   -----------------
-   -- Get_Members --
-   -----------------
-
-   procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
-      To   : out NotAGroupObject_Members)
-   is
-      use Ada.Exceptions;
-
-   begin
-      if Exception_Identity (From) /= NotAGroupObject'Identity then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      To := NotAGroupObject_Members'
-        (CORBA.IDL_Exception_Members with null record);
-   end Get_Members;
-
-   ---------------------------
-   -- Raise_NotAGroupObject --
-   ---------------------------
-
-   procedure Raise_NotAGroupObject
-     (Excp_Memb : in NotAGroupObject_Members)
-   is
-      pragma Warnings (Off); --  WAG:3.15
-      pragma Unreferenced (Excp_Memb);
-      pragma Warnings (On); --  WAG:3.15
-   begin
-      raise NotAGroupObject;
-   end Raise_NotAGroupObject;
 
 end PortableServer.POA.GOA;
