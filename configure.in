@@ -371,8 +371,12 @@ AM_CONDITIONAL(WINDOWS, test x$windows = xtrue)
 
 PROTO_CLIENT_WITHS=${srcdir}/proto_client_withs.adb
 echo "" > ${PROTO_CLIENT_WITHS}
+
 PROTO_SERVER_WITHS=${srcdir}/proto_server_withs.adb
 echo "" > ${PROTO_SERVER_WITHS}
+
+PO_CATREF_WITHS=${srcdir}/po_catref_withs.adb
+echo "" > ${PO_CATREF_WITHS}
 
 for P in ${PROTO_LIST}
 do
@@ -428,10 +432,24 @@ EOF
 
 done
 
+for F in `${FIND} ${srcdir}/src/${P} -name 'polyorb-binding_data-*.ads'`
+do
+   U=`${AWK} '/^package/{print $2}' ${F}`
+   cat >>${PO_CATREF_WITHS} <<EOF
+with ${U}.Print;
+pragma Elaborate_All (${U}.Print);
+pragma Warnings (Off, ${U}.Print);
+
+EOF
+
+done
+
+
 done
 
 AC_SUBST_FILE(PROTO_CLIENT_WITHS)
 AC_SUBST_FILE(PROTO_SERVER_WITHS)
+AC_SUBST_FILE(PO_CATREF_WITHS)
 
 ##########################################
 # Output generated files
@@ -525,6 +543,7 @@ AC_OUTPUT([
 	testsuite/utils/Makefile
         tools/Makefile
         tools/po_catref/Makefile
+        tools/po_catref/po_catref_setup.adb
         tools/po_names/Makefile
 	support/adacompiler
 	support/linker

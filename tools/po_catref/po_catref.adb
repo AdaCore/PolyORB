@@ -49,14 +49,13 @@ pragma Elaborate_All (Polyorb.Setup.No_Tasking_Server);
 
 with PolyORB.Initialization;
 
-with PolyORB.Binding_Data.DIOP.Print;
-with PolyORB.Binding_Data.IIOP.Print;
-with PolyORB.Binding_Data.UIPMC.Print;
-with PolyORB.Binding_Data.SOAP.Print;
-with PolyORB.Binding_Data.SRP.Print;
+with PolyORB.Binding_Data.Print;
 
-with PolyORB.Types;
 with PolyORB.Utils;
+
+with PO_CatRef_Setup;
+pragma Warnings (Off, PO_CatRef_Setup);
+pragma Elaborate_All (PO_CatRef_Setup);
 
 procedure PO_CatRef is
 
@@ -67,15 +66,8 @@ procedure PO_CatRef is
    use PolyORB.References;
    use PolyORB.Binding_Data;
 
-   use PolyORB.Binding_Data.DIOP.Print;
-   use PolyORB.Binding_Data.IIOP.Print;
-   use PolyORB.Binding_Data.UIPMC.Print;
-   use PolyORB.Binding_Data.SOAP.Print;
-   use PolyORB.Binding_Data.SRP.Print;
-
+   use PolyORB.Binding_Data.Print;
    use PolyORB.Utils;
-
-   use type PolyORB.Types.Unsigned_Long;
 
    Obj_Ref : Ref;
 
@@ -97,7 +89,6 @@ begin
 
    declare
       Profiles : constant Profile_Array := Profiles_Of (Obj_Ref);
-      Tag : Profile_Tag;
 
    begin
       Put_Line ("Type Id", Type_Id_Of (Obj_Ref));
@@ -107,38 +98,9 @@ begin
       New_Line;
 
       for J in Profiles'Range loop
-         Tag := Get_Profile_Tag (Profiles (J).all);
-
-         if Tag = Tag_Internet_IOP then
-            Put_Line ("Profile number #" & Trimmed_Image (J), " (IIOP)");
-            Print_IIOP_Profile (Profiles (J));
-            New_Line;
-
-         elsif Tag = Tag_SOAP then
-            Put_Line ("Profile number #" & Trimmed_Image (J), " (SOAP)");
-            Print_SOAP_Profile (Profiles (J));
-            New_Line;
-
-         elsif Tag = Tag_SRP then
-            Put_Line ("Profile number #" & Trimmed_Image (J), " (SRP)");
-            Print_SRP_Profile (Profiles (J));
-            New_Line;
-
-         elsif Tag = Tag_DIOP then
-            Put_Line ("Profile number #" & Trimmed_Image (J), " (DIOP)");
-            Print_DIOP_Profile (Profiles (J));
-            New_Line;
-
-         elsif Tag = Tag_UIPMC then
-            Put_Line ("Profile number #" & Trimmed_Image (J), " (UIPMC)");
-            Print_UIPMC_Profile (Profiles (J));
-            New_Line;
-
-         else
-            Put_Line ("Profile number #" & Trimmed_Image (J),
-                      " (Tag UNKOWN" & Tag'Img & ")");
-            New_Line;
-         end if;
+         Put_Line ("Profile number", Trimmed_Image (J));
+         Print_Profile (Profiles (J));
+         New_Line;
       end loop;
    end;
 

@@ -34,9 +34,12 @@
 with Common;
 with Output;
 
-with PolyORB.Utils;
+with PolyORB.Binding_Data.Print;
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.GIOP_P.Tagged_Components.Print;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.Binding_Data.IIOP.Print is
 
@@ -70,4 +73,29 @@ package body PolyORB.Binding_Data.IIOP.Print is
       Dec_Indent;
    end Print_IIOP_Profile;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      PolyORB.Binding_Data.Print.Register
+        (Tag_Internet_IOP, Print_IIOP_Profile'Access);
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"polyorb.binding_data.iiop.print",
+       Conflicts => PolyORB.Initialization.String_Lists.Empty,
+       Depends   => PolyORB.Initialization.String_Lists.Empty,
+       Provides  => PolyORB.Initialization.String_Lists.Empty,
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PolyORB.Binding_Data.IIOP.Print;

@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      P O L Y O R B . B I N D I N G _ D A T A . S O A P . P R I N T       --
+--           P O L Y O R B . B I N D I N G _ D A T A . P R I N T            --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
@@ -31,64 +31,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Common;
-with Output;
+--  $Id$
 
-with PolyORB.Binding_Data.Print;
-with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+package PolyORB.Binding_Data.Print is
 
-with PolyORB.Utils.Strings;
+   type Print_Procedure is access procedure
+     (Profile : PolyORB.Binding_Data.Profile_Access);
 
-package body PolyORB.Binding_Data.SOAP.Print is
+   procedure Register
+     (Profile : in PolyORB.Binding_Data.Profile_Tag;
+      Print   : in Print_Procedure);
 
-   ------------------------
-   -- Print_SOAP_Profile --
-   ------------------------
+   procedure Print_Profile (Profile : Profile_Access);
 
-   procedure Print_SOAP_Profile (Prof : Profile_Access) is
-      use Common;
-      use Output;
-
-      SOAP_Prof : SOAP_Profile_Type renames SOAP_Profile_Type (Prof.all);
-
-   begin
-      Inc_Indent;
-
-      Put_Line ("SOAP", "(no version information)");
-
-      Output_Address_Information (SOAP_Prof.Address);
-
-      Put_Line ("SOAP URI", PolyORB.Types.To_String (SOAP_Prof.URI_Path));
-
-      Output_Object_Information (SOAP_Prof.Object_Id.all);
-
-      Dec_Indent;
-   end Print_SOAP_Profile;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize;
-
-   procedure Initialize is
-   begin
-      PolyORB.Binding_Data.Print.Register
-        (Tag_SOAP, Print_SOAP_Profile'Access);
-   end Initialize;
-
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
-
-begin
-   Register_Module
-     (Module_Info'
-      (Name      => +"polyorb.binding_data.soap.print",
-       Conflicts => PolyORB.Initialization.String_Lists.Empty,
-       Depends   => PolyORB.Initialization.String_Lists.Empty,
-       Provides  => PolyORB.Initialization.String_Lists.Empty,
-       Implicit  => False,
-       Init      => Initialize'Access));
-end PolyORB.Binding_Data.SOAP.Print;
+end PolyORB.Binding_Data.Print;

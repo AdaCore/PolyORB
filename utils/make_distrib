@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/sh -x
 #
-# $Id: //droopi/main/utils/make_distrib#11 $
+# $Id: //droopi/main/utils/make_distrib#12 $
 #
 # This script builds a compressed archive suitable for distribution.
 #

@@ -1076,10 +1076,14 @@ tools/po_catref/common.ads
 tools/po_catref/output.adb
 tools/po_catref/output.ads
 tools/po_catref/po_catref.adb
+tools/po_catref/po_catref_setup.adb.in
+tools/po_catref/po_catref_setup.ads
 tools/po_catref/polyorb-binding_data-diop-print.adb
 tools/po_catref/polyorb-binding_data-diop-print.ads
 tools/po_catref/polyorb-binding_data-iiop-print.adb
 tools/po_catref/polyorb-binding_data-iiop-print.ads
+tools/po_catref/polyorb-binding_data-print.adb
+tools/po_catref/polyorb-binding_data-print.ads
 tools/po_catref/polyorb-binding_data-soap-print.adb
 tools/po_catref/polyorb-binding_data-soap-print.ads
 tools/po_catref/polyorb-binding_data-srp-print.adb
