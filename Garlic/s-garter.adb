@@ -37,18 +37,16 @@ with Ada.Calendar;                use Ada.Calendar;
 with Ada.Exceptions;              use Ada.Exceptions;
 with System.Garlic.Debug;         use System.Garlic.Debug;
 pragma Elaborate_All (System.Garlic.Debug);
+with System.Garlic.Elaboration;
+pragma Warnings (Off, System.Garlic.Elaboration);
+pragma Elaborate_All (System.Garlic.Elaboration);
+with System.Garlic.Exceptions;    use System.Garlic.Exceptions;
 with System.Garlic.Heart;         use System.Garlic.Heart;
 with System.Garlic.Options;
 with System.Garlic.Partitions;    use System.Garlic.Partitions;
 with System.Garlic.Soft_Links;    use System.Garlic.Soft_Links;
 with System.Garlic.Streams;       use System.Garlic.Streams;
 with System.Garlic.Types;         use System.Garlic.Types;
-with System.Garlic.Utils;         use System.Garlic.Utils;
-
-with System.Tasking.Debug;        use System.Tasking, System.Tasking.Debug;
-with System.Tasking.Utilities;    use System.Tasking, System.Tasking.Utilities;
-pragma Elaborate_All (System.Tasking);
-pragma Elaborate_All (System.Tasking.Utilities);
 
 package body System.Garlic.Termination is
 
@@ -80,9 +78,6 @@ package body System.Garlic.Termination is
    Time_To_Synchronize : constant Duration := 5.0;
    Polling_Interval    : constant Duration := 0.5;
    --  Constants which change the behaviour of this package.
-
-   Environment_Task : constant System.Tasking.Task_ID := System.Tasking.Self;
-   --  The environment task. Self will be set to it at elaboration time.
 
    procedure Add_Non_Terminating_Task;
    --  Let Garlic know that a task is not going to terminate and that
@@ -200,10 +195,10 @@ package body System.Garlic.Termination is
    procedure Dump_Task_Table is
    begin
       if Debug_Mode (Private_Debug_Key) then
-         List_Tasks;
-         D ("awake =" & Environment_Task.Awake_Count'Img);
+         Soft_Links.List_Tasks;
+         D ("awake =" & Soft_Links.Env_Task_Awake_Count'Img);
          D ("count =" & Non_Terminating_Tasks'Img);
-         D ("indep =" & Independent_Task_Count'Img);
+         D ("indep =" & Soft_Links.Independent_Task_Count'Img);
       end if;
    end Dump_Task_Table;
 
@@ -214,9 +209,9 @@ package body System.Garlic.Termination is
    function Get_Active_Task_Count return Natural is
       Total : Integer;
    begin
-      Total := Environment_Task.Awake_Count
+      Total := Soft_Links.Env_Task_Awake_Count
         - Non_Terminating_Tasks
-        - Independent_Task_Count;
+        - Soft_Links.Independent_Task_Count;
       return Total;
    end Get_Active_Task_Count;
 
