@@ -36,8 +36,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with CORBA.Object;
 
 package RTCORBA.ThreadpoolPolicy.Helper is
