@@ -144,9 +144,9 @@ package body MOMA.Provider.Message_Pool is
             Behavior_Image : PolyORB.Types.String :=
               From_Any (NV_Sequence.Element_Of
                         (Args_Sequence.all, 2).Argument);
-            Behavior       : MOMA.Types.Call_Back_Behavior :=
-              MOMA.Types.Call_Back_Behavior'Value (
-                MOMA.Types.To_Standard_String (Behavior_Image));
+            Behavior       : constant MOMA.Types.Call_Back_Behavior :=
+              MOMA.Types.Call_Back_Behavior'Value
+                (MOMA.Types.To_Standard_String (Behavior_Image));
          begin
             Register_Handler (Self, Handler_Ref, Behavior);
          end;
