@@ -116,18 +116,6 @@ package body XE_Stubs is
          Create_Dir (Receiver_Dir);
       end if;
 
---       for S in Gcc_Switches.First .. Gcc_Switches.Last loop
---          Update_Switch (Gcc_Switches.Table (S));
---       end loop;
-
---       for S in Linker_Switches.First .. Linker_Switches.Last loop
---          Update_Switch (Linker_Switches.Table (S));
---       end loop;
-
---       for S in Binder_Switches.First .. Binder_Switches.Last loop
---          Update_Switch (Binder_Switches.Table (S));
---       end loop;
-
       --  Generate all the stubs (bodies, objects and alis). At this level,
       --  we ensure that all conf. units are ada units.
       for CUID in CUnit.First .. CUnit.Last loop
@@ -372,7 +360,7 @@ package body XE_Stubs is
 
       if Obsolete then
 
-         if Verbose_Mode then
+         if not Quiet_Output then
             Message
               ("building ", Unit_Name, " caller stubs from ", Full_RCI_Spec);
          end if;

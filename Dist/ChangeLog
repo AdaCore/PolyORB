@@ -1,4 +1,7 @@
-1997-11-17  Laurent Pautet  <pautet@dorine.enst.fr>
+Mon Nov 17 17:26:40 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
+
+	* xe_stubs.adb: Fix incorrect test which skipped a debugging
+ 	message.
 
 	* xe_check.adb: Search through unit U hierarchy to find a RCI
  	parent and check whether this unit is configured on its child

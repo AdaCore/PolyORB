@@ -280,15 +280,16 @@ package body XE_Check is
       end if;
 
       for U in Unit.First .. Unit.Last loop
-         if Unit.Table (U).RCI
-           and then not Unit.Table (U).Is_Generic
+         if Unit.Table (U).Is_Generic then
+            Message ("Generic unit """, U_To_N (Unit.Table (U).Uname),
+                     """ should not be assigned to a partition");
+            Inconsistent := True;
+
+         elsif Unit.Table (U).RCI
            and then Get_CUID (Unit.Table (U).Uname) = Null_CUID
          then
-            Write_Program_Name;
-            Write_Str (": RCI Ada unit """);
-            Write_Unit_Name (Unit.Table (U).Uname);
-            Write_Str (""" has not been assigned to a partition");
-            Write_Eol;
+            Message ("RCI Ada unit """, U_To_N (Unit.Table (U).Uname),
+                     """ has not been assigned to a partition");
             Inconsistent := True;
          end if;
       end loop;
