@@ -252,6 +252,10 @@ package body Exp_Hlpr is
                 New_Occurrence_Of (RTE (RE_Any), Loc))),
           Subtype_Mark => New_Occurrence_Of (Typ, Loc));
 
+      pragma Assert
+        (not (Is_Remote_Access_To_Class_Wide_Type (Typ)));
+      --  This is supposed to be taken care of by Exp_Dist.Add_RACW_From_Any.
+
       if Is_Derived_Type (Typ)
         and then not Is_Tagged_Type (Typ)
       then

@@ -271,6 +271,7 @@ package Snames is
    Name_Argument                       : constant Name_Id := N + 089;
    Name_Arg_Modes                      : constant Name_Id := N + 090;
    Name_Handler                        : constant Name_Id := N + 091;
+   Name_Target                         : constant Name_Id := N + 000;
    Name_Req                            : constant Name_Id := N + 092;
 
    --  Operator Symbol entries. The actual names have an upper case O at

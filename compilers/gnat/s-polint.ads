@@ -1,16 +1,41 @@
+with System.RPC;
+with Interfaces;
+
 with PolyORB.Any;
 with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
+with PolyORB.Any.ObjRef;
 with PolyORB.Components;
 with PolyORB.Objects;
 with PolyORB.Objects.Interface;
 with PolyORB.References;
 with PolyORB.Requests;
+with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 
 package System.PolyORB_Interface is
 
    pragma Elaborate_Body;
+
+   type RACW_Stub_Type is tagged record
+      Origin       : System.RPC.Partition_ID;
+      Receiver     : Interfaces.Unsigned_64;
+      Addr         : Interfaces.Unsigned_64;
+      --  XXX the fields above are placeholders and must not
+      --  be used.
+
+      Target       : PolyORB.References.Ref;
+
+      Asynchronous : Boolean;
+   end record;
+   type RACW_Stub_Type_Access is access RACW_Stub_Type;
+   --  This type is used by the expansion to implement distributed objects.
+   --  Do not change its definition or its layout without updating
+   --  exp_dist.adb.
+
+   procedure Get_Unique_Remote_Pointer
+     (Handler : in out RACW_Stub_Type_Access);
+   --  Get a unique pointer on a remote object
 
    function To_PolyORB_String (S : String)
      return PolyORB.Types.Identifier
@@ -31,6 +56,17 @@ package System.PolyORB_Interface is
       renames PolyORB.Any.Set_Type;
 
    subtype Object_Ref is PolyORB.References.Ref;
+
+   function Is_Nil (R : PolyORB.References.Ref) return Boolean
+     renames PolyORB.References.Is_Nil;
+
+   procedure Get_Local_Address
+     (Ref      : PolyORB.References.Ref;
+      Is_Local : out Boolean;
+      Addr     : out System.Address);
+   --  If Ref denotes a local object, Is_Local is set to True,
+   --  and Addr is set to the object's actual address, else
+   --  Is_Local is set to False and the state of Addr is undefined.
 
    function Get_Empty_Any
      (Tc : PolyORB.Any.TypeCode.Object)
@@ -100,6 +136,11 @@ package System.PolyORB_Interface is
 
    function FA_String (Item : PolyORB.Any.Any) return String;
 
+   function FA_ObjRef
+     (Item : PolyORB.Any.Any)
+      return PolyORB.References.Ref
+     renames PolyORB.Any.ObjRef.From_Any;
+
 --     function TA_AD (X) return PolyORB.Any.Any;
 --     function TA_AS (X) return PolyORB.Any.Any;
    function TA_B (Item : Boolean) return PolyORB.Any.Any;
@@ -121,6 +162,11 @@ package System.PolyORB_Interface is
    function TA_WC (Item : Wide_Character) return PolyORB.Any.Any;
 
    function TA_String (S : String) return PolyORB.Any.Any;
+
+   function TA_ObjRef (R : PolyORB.References.Ref)
+     return PolyORB.Any.any
+     renames PolyORB.Any.ObjRef.To_Any;
+
    function TA_TC (TC : PolyORB.Any.TypeCode.Object) return PolyORB.Any.Any
      renames PolyORB.Any.To_Any;
    --       function TC_AD return PolyORB.Any.TypeCode.Object

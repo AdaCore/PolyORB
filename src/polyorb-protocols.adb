@@ -156,16 +156,13 @@ package body PolyORB.Protocols is
 
       elsif S in Executed_Request then
          declare
-            Var_Req : Request_Access
+            Req : Request_Access
               := Executed_Request (S).Req;
          begin
-            Send_Reply
-              (Session_Access (Sess),
-               Executed_Request (S).Req);
-            pragma Debug (O ("Destroying request..."));
-            Destroy_Request (Var_Req);
-            pragma Debug (O ("... done."));
+            Send_Reply (Session_Access (Sess), Req);
+            Destroy_Request (Req);
          end;
+
       elsif S in Disconnect_Request then
          return Emit (Lower (Sess), S);
       else

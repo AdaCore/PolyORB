@@ -1002,9 +1002,6 @@ package Rtsfind is
      RE_Get_Passive_Partition_Id,        -- System.Partition_Interface
      RE_Get_Local_Partition_Id,          -- System.Partition_Interface
      RE_Get_RCI_Package_Receiver,        -- System.Partition_Interface
-     RE_Get_Unique_Remote_Pointer,       -- System.Partition_Interface
-     RE_RACW_Stub_Type,                  -- System.Partition_Interface
-     RE_RACW_Stub_Type_Access,           -- System.Partition_Interface
      RE_Raise_Program_Error_For_E_4_18,  -- System.Partition_Interface
      RE_Raise_Program_Error_Unknown_Tag, -- System.Partition_Interface
      RE_Register_Passive_Package,        -- System.Partition_Interface
@@ -1051,7 +1048,13 @@ package Rtsfind is
      RE_Copy_Any_Value,                  -- System.PolyORB_Interface
      RE_Set_Result,                      -- System.PolyORB_Interface
      RE_Register_Receiving_Stub,         -- System.PolyORB_Interface
+     RE_Is_Nil,                          -- System.PolyORB_Interface
+     RE_Get_Local_Address,               -- System.PolyORB_Interface
+     RE_Local_Oid_To_Address,            -- System.PolyORB_Interface
      RE_RCI_Info,                        -- System.PolyORB_Interface
+     RE_RACW_Stub_Type,                  -- System.PolyORB_Interface
+     RE_RACW_Stub_Type_Access,           -- System.PolyORB_Interface
+     RE_Get_Unique_Remote_Pointer,       -- System.PolyORB_Interface
 
      RE_FA_AD,                           -- System.PolyORB_Interface
      RE_FA_AS,                           -- System.PolyORB_Interface
@@ -1073,6 +1076,7 @@ package Rtsfind is
      RE_FA_U,                            -- System.PolyORB_Interface
      RE_FA_WC,                           -- System.PolyORB_Interface
      RE_FA_String,                       -- System.PolyORB_Interface
+     RE_FA_ObjRef,                       -- System.PolyORB_Interface
 
      RE_TA_AD,                           -- System.PolyORB_Interface
      RE_TA_AS,                           -- System.PolyORB_Interface
@@ -2022,9 +2026,6 @@ package Rtsfind is
      RE_Get_Passive_Partition_Id         => System_Partition_Interface,
      RE_Get_Local_Partition_Id           => System_Partition_Interface,
      RE_Get_RCI_Package_Receiver         => System_Partition_Interface,
-     RE_Get_Unique_Remote_Pointer        => System_Partition_Interface,
-     RE_RACW_Stub_Type                   => System_Partition_Interface,
-     RE_RACW_Stub_Type_Access            => System_Partition_Interface,
      RE_Raise_Program_Error_For_E_4_18   => System_Partition_Interface,
      RE_Raise_Program_Error_Unknown_Tag  => System_Partition_Interface,
      RE_Register_Passive_Package         => System_Partition_Interface,
@@ -2059,7 +2060,13 @@ package Rtsfind is
      RE_Copy_Any_Value                   => System_PolyORB_Interface,
      RE_Set_Result                       => System_PolyORB_Interface,
      RE_Register_Receiving_Stub          => System_PolyORB_Interface,
+     RE_Is_Nil                           => System_PolyORB_Interface,
+     RE_Get_Local_Address                => System_PolyORB_Interface,
+     RE_Local_Oid_To_Address             => System_PolyORB_Interface,
      RE_RCI_Info                         => System_PolyORB_Interface,
+     RE_RACW_Stub_Type                   => System_PolyORB_Interface,
+     RE_RACW_Stub_Type_Access            => System_PolyORB_Interface,
+     RE_Get_Unique_Remote_Pointer        => System_PolyORB_Interface,
 
      RE_FA_AD                            => System_PolyORB_Interface,
      RE_FA_AS                            => System_PolyORB_Interface,
@@ -2081,6 +2088,7 @@ package Rtsfind is
      RE_FA_U                             => System_PolyORB_Interface,
      RE_FA_WC                            => System_PolyORB_Interface,
      RE_FA_String                        => System_PolyORB_Interface,
+     RE_FA_ObjRef                        => System_PolyORB_Interface,
 
      RE_TA_AD                            => System_PolyORB_Interface,
      RE_TA_AS                            => System_PolyORB_Interface,

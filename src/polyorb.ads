@@ -40,4 +40,7 @@ package PolyORB is
    Not_Implemented : exception;
    --  Raised when a non-implemented feature is called.
 
+   Unknown : exception;
+   --  An exception that is not known on this partition.
+
 end PolyORB;

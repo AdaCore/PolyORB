@@ -43,7 +43,7 @@
 --   object from a derivation od IDL_Exception_Members
 
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.ads#4 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.ads#5 $
 
 with Ada.Exceptions;
 
@@ -59,12 +59,12 @@ package PolyORB.CORBA_P.Exceptions is
    -----------------------------------------
 
    procedure User_Get_Members
-     (Occurrence : in CORBA.Exception_Occurrence;
+     (Occurrence : in Ada.Exceptions.Exception_Occurrence;
       Members    : out CORBA.IDL_Exception_Members'Class);
    --  Extract members from an exception occurence
 
    procedure User_Purge_Members
-     (Occurrence : in CORBA.Exception_Occurrence);
+     (Occurrence : in Ada.Exceptions.Exception_Occurrence);
    --  Forget exception members associated with an exception occurrence
 
    procedure User_Raise_Exception
@@ -78,7 +78,7 @@ package PolyORB.CORBA_P.Exceptions is
    -------------------------------------------
 
    procedure Get_Members
-     (From : in CORBA.Exception_Occurrence;
+     (From : in Ada.Exceptions.Exception_Occurrence;
       To   : out System_Exception_Members);
 
    function Get_ExcepId_By_RepositoryId
@@ -88,8 +88,9 @@ package PolyORB.CORBA_P.Exceptions is
    --  an IDL repository. Returns Null_Id if RepoId
    --  is unknown.
 
-   function Occurrence_To_Name (Occurrence : CORBA.Exception_Occurrence)
-                                return CORBA.RepositoryId;
+   function Occurrence_To_Name
+     (Occurrence : Ada.Exceptions.Exception_Occurrence)
+      return CORBA.RepositoryId;
 
    ------------------------------------------------------------
    -- conversion between Unsigned_Long and Completion_Status --

@@ -30,15 +30,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#7 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#8 $
 
-with Ada.Exceptions; use Ada.Exceptions;
-with Ada.Strings.Unbounded;
+with Ada.Unchecked_Conversion;
+
+with System.Exception_Table;
+with System.Standard_Library;
+--  Mapping between exception names and exception ids.
 
 with CORBA; use CORBA;
 
 with PolyORB.CORBA_P.Exceptions.Stack;
-with PolyORB.CORBA_P.Names; use PolyORB.CORBA_P.Names;
 with PolyORB.Log;
 with PolyORB.Soft_Links;
 with PolyORB.Types;
@@ -46,111 +48,20 @@ with PolyORB.Utils.Chained_Lists;
 
 package body PolyORB.CORBA_P.Exceptions is
 
+   use Ada.Exceptions;
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.corba_p.exceptions");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   -------------------------------
-   -- System exceptions mapping --
-   -------------------------------
-
-   type String_Access is access constant String;
-
-   type Exception_Mapping is record
-      Exc  : Ada.Exceptions.Exception_Id;
-      Name : String_Access;
-   end record;
-
-   --  Explicit bounds are required in the nominal subtype
-   --  in order to comply with Ravenscar restriction
-   --  No_Implicit_Heap_Allocation.
-
-   Mapping : constant array (Positive range 1 .. 37)
-     of Exception_Mapping
-     := ((Exc  => CORBA.Unknown'Identity,
-          Name => new String'("CORBA/UNKNOWN")),
-         (Exc  => CORBA.Bad_Param'Identity,
-          Name => new String'("CORBA/BAD_PARAM")),
-         (Exc  => CORBA.No_Memory'Identity,
-          Name => new String'("CORBA/NO_MEMORY")),
-         (Exc  => CORBA.Imp_Limit'Identity,
-          Name => new String'("CORBA/IMP_LIMIT")),
-         (Exc  => CORBA.Comm_Failure'Identity,
-          Name => new String'("CORBA/COMM_FAILURE")),
-         (Exc  => CORBA.Inv_Objref'Identity,
-          Name => new String'("CORBA/INV_OBJREF")),
-         (Exc  => CORBA.No_Permission'Identity,
-          Name => new String'("CORBA/NO_PERMISSION")),
-         (Exc  => CORBA.Internal'Identity,
-          Name => new String'("CORBA/INTERNAL")),
-         (Exc  => CORBA.Marshal'Identity,
-          Name => new String'("CORBA/MARSHAL")),
-         (Exc  => CORBA.Initialization_Failure'Identity,
-          Name => new String'("CORBA/INITIALIZATION_FAILURE")),
-         (Exc  => CORBA.No_Implement'Identity,
-          Name => new String'("CORBA/NO_IMPLEMENT")),
-         (Exc  => CORBA.Bad_TypeCode'Identity,
-          Name => new String'("CORBA/BAD_TYPECODE")),
-         (Exc  => CORBA.Bad_Operation'Identity,
-          Name => new String'("CORBA/BAD_OPERATION")),
-         (Exc  => CORBA.No_Resources'Identity,
-          Name => new String'("CORBA/NO_RESOURCES")),
-         (Exc  => CORBA.No_Response'Identity,
-          Name => new String'("CORBA/NO_RESPONSE")),
-         (Exc  => CORBA.Persist_Store'Identity,
-          Name => new String'("CORBA/PERSIST_STORE")),
-         (Exc  => CORBA.Bad_Inv_Order'Identity,
-          Name => new String'("CORBA/BAD_INV_ORDER")),
-         (Exc  => CORBA.Transient'Identity,
-          Name => new String'("CORBA/TRANSIENT")),
-         (Exc  => CORBA.Free_Mem'Identity,
-          Name => new String'("CORBA/FREE_MEM")),
-         (Exc  => CORBA.Inv_Ident'Identity,
-          Name => new String'("CORBA/INV_IDENT")),
-         (Exc  => CORBA.Inv_Flag'Identity,
-          Name => new String'("CORBA/INV_FLAG")),
-         (Exc  => CORBA.Intf_Repos'Identity,
-          Name => new String'("CORBA/INTF_REPOS")),
-         (Exc  => CORBA.Bad_Context'Identity,
-          Name => new String'("CORBA/BAD_CONTEXT")),
-         (Exc  => CORBA.Obj_Adapter'Identity,
-          Name => new String'("CORBA/OBJ_ADAPTER")),
-         (Exc  => CORBA.Data_Conversion'Identity,
-          Name => new String'("CORBA/DATA_CONVERSION")),
-         (Exc  => CORBA.Object_Not_Exist'Identity,
-          Name => new String'("CORBA/OBJECT_NOT_EXIST")),
-         (Exc  => CORBA.Transaction_Required'Identity,
-          Name => new String'("CORBA/TRANSACTION_REQUIRED")),
-         (Exc  => CORBA.Transaction_Rolledback'Identity,
-          Name => new String'("CORBA/TRANSACTION_ROLLEDBACK")),
-         (Exc  => CORBA.Invalid_Transaction'Identity,
-          Name => new String'("CORBA/INVALID_TRANSACTION")),
-         (Exc  => CORBA.Adapter_Already_Exists'Identity,
-          Name => new String'("CORBA/ADAPTER_ALREADY_EXISTS")),
-         (Exc  => CORBA.Invalid_Policy'Identity,
-          Name => new String'("CORBA/INVALID_POLICY")),
-         (Exc  => CORBA.Wrong_Policy'Identity,
-          Name => new String'("CORBA/WRONG_POLICY")),
-         (Exc  => CORBA.Servant_Already_Active'Identity,
-          Name => new String'("CORBA/SERVANT_ALREADY_ACTIVE")),
-         (Exc  => CORBA.Object_Already_Active'Identity,
-          Name => new String'("CORBA/OBJECT_ALREADY_ACTIVE")),
-         (Exc  => CORBA.Servant_Not_Active'Identity,
-          Name => new String'("CORBA/SERVANT_NOT_ACTIVE")),
-         (Exc  => CORBA.Servant_Not_Active'Identity,
-          Name => new String'("CORBA/OBJECT_NOT_ACTIVE")),
-         (Exc  => CORBA.Adapter_Inactive'Identity,
-          Name => new String'("CORBA/ADAPTER_INACTIVE")));
-
    ----------------------
    -- User_Get_Members --
    ----------------------
 
    procedure User_Get_Members
-     (Occurrence : CORBA.Exception_Occurrence;
-      Members : out CORBA.IDL_Exception_Members'Class)
+     (Occurrence :     Ada.Exceptions.Exception_Occurrence;
+      Members    : out CORBA.IDL_Exception_Members'Class)
      renames PolyORB.CORBA_P.Exceptions.Stack.Get_Members;
    --  Extract members from a user exception occurence
 
@@ -159,7 +70,7 @@ package body PolyORB.CORBA_P.Exceptions is
    ------------------------
 
    procedure User_Purge_Members
-     (Occurrence : CORBA.Exception_Occurrence)
+     (Occurrence : Ada.Exceptions.Exception_Occurrence)
      renames PolyORB.CORBA_P.Exceptions.Stack.Purge_Members;
 
    --------------------------
@@ -178,15 +89,31 @@ package body PolyORB.CORBA_P.Exceptions is
 
    function Get_ExcepId_By_RepositoryId
      (RepoId : in Standard.String)
-     return Ada.Exceptions.Exception_Id is
+      return Ada.Exceptions.Exception_Id
+   is
+      function To_Exception_Id is new Ada.Unchecked_Conversion
+        (System.Standard_Library.Exception_Data_Ptr,
+         Ada.Exceptions.Exception_Id);
+      Internal_Name : String := RepoId;
+      Result : Ada.Exceptions.Exception_Id;
    begin
-      for I in Mapping'Range loop
-         if RepoId = OMG_RepositoryId (Mapping (I) .Name.all) then
-            return Mapping (I).Exc;
+      if RepoId = "" then
+         return Ada.Exceptions.Null_Id;
+      end if;
+
+      for J in Internal_Name'Range loop
+         if Internal_Name (J) = '/' then
+            Internal_Name (J) := '.';
          end if;
       end loop;
-
-      return Ada.Exceptions.Null_Id;
+      Result := To_Exception_Id
+        (System.Exception_Table.Internal_Exception
+           (Internal_Name));
+      if Result = Ada.Exceptions.Null_Id then
+         return PolyORB.Unknown'Identity;
+      else
+         return Result;
+      end if;
    end Get_ExcepId_By_RepositoryId;
 
    ---------------------
@@ -460,36 +387,18 @@ package body PolyORB.CORBA_P.Exceptions is
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Adapter_Inactive;
 
-   -----------------------------------------------------
-   -- System exceptions                               --
-   -- Same as CORBA.To_CORBA_String, but redefined to --
-   -- avoid a circular elaboration dependency.        --
-   -----------------------------------------------------
-
-   function To_RepositoryId
-     (S : in Standard.String) return CORBA.RepositoryId;
-
-   function To_RepositoryId
-     (S : in Standard.String)
-     return CORBA.RepositoryId is
-   begin
-      return CORBA.RepositoryId
-        (Ada.Strings.Unbounded.To_Unbounded_String (S));
-   end To_RepositoryId;
-
    function Occurrence_To_Name
-     (Occurrence : CORBA.Exception_Occurrence)
+     (Occurrence : Ada.Exceptions.Exception_Occurrence)
      return CORBA.RepositoryId
    is
-      use Ada.Exceptions;
-      Id : constant Exception_Id := Exception_Identity (Occurrence);
+      Name : String := Ada.Exceptions.Exception_Name (Occurrence);
    begin
-      for I in Mapping'Range loop
-         if Id = Mapping (I) .Exc then
-            return To_RepositoryId (OMG_RepositoryId (Mapping (I) .Name.all));
+      for J in Name'Range loop
+         if Name (J) = '.' then
+            Name (J) := '/';
          end if;
       end loop;
-      raise Program_Error;
+      return CORBA.To_CORBA_String (Name);
    end Occurrence_To_Name;
 
    -----------------------------

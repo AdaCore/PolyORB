@@ -258,6 +258,19 @@ package body System.PolyORB_Interface is
 
    end RCI_Info;
 
+   -----------------------
+   -- Get_Local_Address --
+   -----------------------
+
+   procedure Get_Local_Address
+     (Ref      : PolyORB.References.Ref;
+      Is_Local : out Boolean;
+      Addr     : out System.Address)
+   is
+   begin
+
+   end Get_Local_Address;
+
    -----------------------------
    -- Register_Receiving_Stub --
    -----------------------------
