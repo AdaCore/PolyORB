@@ -59,7 +59,10 @@ package System.Partition_Interface is
    --  Do not change its definition or its layout without updating
    --  exp_dist.adb.
 
-   procedure Check (Name : in Unit_Name; Version : in String);
+   procedure Check
+     (Name    : in Unit_Name;
+      Version : in String;
+      RCI     : in Boolean := True);
    --  Use by the main subprogram to check that a remote receiver
    --  unit has has the same version than the caller's one.
 

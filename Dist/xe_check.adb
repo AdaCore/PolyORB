@@ -89,7 +89,7 @@ package body XE_Check is
    procedure Load_Withed_Unit (W : in With_Id);
    --  Load ali file of unit W and call Load_Withed_Unit on the withed
    --  units. If its ali file does not exist, then raise a compilation
-   --  error. If W is a RCI unit and W is not marked, then call
+   --  error. If W is a RCI or SP unit and W is not marked, then call
    --  Load_Withed_Unit on the withed units of the spec unit only.
 
    function Marked (U : Unit_Name_Type) return Boolean;
@@ -225,7 +225,7 @@ package body XE_Check is
       Source.Init;
 
       --  Suppress object consistency because of Ada libraries and RCI
-      --  units compiled with spec only. We know that the application
+      --  or SP units compiled with spec only. We know that the application
       --  is consistent. Somehow, it is an optimization.
 
       --  Note that all the configured units have been marked because
@@ -306,18 +306,25 @@ package body XE_Check is
                               "cannot be assigned to a partition");
                      Error := True;
 
-                  elsif Unit.Table (I).RCI then
+                  elsif Is_RCI_Or_SP_Unit (I) then
 
                      --  If not null, we have already set this
-                     --  configured rci unit name to a partition.
+                     --  configured rci or sp unit name to a partition.
 
                      if Get_CUID (Uname) /= Null_CUID  then
-                        Message ("RCI Ada unit", To_String (CUname),
-                                 "has been assigned twice");
+                        if Unit.Table (I).RCI then
+                           Message ("RCI Ada unit",
+                                    To_String (CUname),
+                                    "has been assigned twice");
+                        else
+                           Message ("Shared passive Ada unit",
+                                    To_String (CUname),
+                                    "has been assigned twice");
+                        end if;
                         Error := True;
                      end if;
 
-                     --  This RCI has been assigned                  (5)
+                     --  This RCI or SP has been assigned              (5)
                      --  and it won't be assigned again.
 
                      Set_CUID (Uname, U);
@@ -351,20 +358,27 @@ package body XE_Check is
 
       if Build_Full_Configuration then
 
-         --  Use (5) and (2). To check all RCI units (except generics)
+         --  Use (5) and (2). To check all RCI or SP units (except generics)
          --  are configured.
 
          if Debug_Mode then
-            Message ("check all RCI units are configured");
+            Message ("check all RCI or SP units are configured");
          end if;
 
          for U in Unit.First .. Unit.Last loop
             Uname := Unit.Table (U).Uname;
-            if Unit.Table (U).RCI
+            if Is_RCI_Or_SP_Unit (U)
               and then not Unit.Table (U).Is_Generic
               and then Get_CUID (Uname) = Null_CUID then
-               Message ("RCI Ada unit", To_String (U_To_N (Uname)),
-                        "has not been assigned to a partition");
+               if Unit.Table (U).RCI then
+                  Message ("RCI Ada unit",
+                           To_String (U_To_N (Uname)),
+                           "has not been assigned to a partition");
+               else
+                  Message ("Shared passive Ada unit",
+                           To_String (U_To_N (Uname)),
+                           "has not been assigned to a partition");
+               end if;
                Error := True;
             end if;
          end loop;
@@ -387,8 +401,8 @@ package body XE_Check is
 
             if To_Build (U) then
 
-               --  This check applies to a RCI package
-               if Unit.Table (CUnit.Table (U).My_Unit).RCI then
+               --  This check applies to a RCI or SP package
+               if Is_RCI_Or_SP_Unit (CUnit.Table (U).My_Unit) then
                   Child := CUnit.Table (U).CUname;
                   CPID  := CUnit.Table (U).Partition;
 
@@ -556,7 +570,7 @@ package body XE_Check is
 
       R := No_Unit_Id;
       for U in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
-         if Unit.Table (U).RCI then
+         if Is_RCI_Or_SP_Unit (U) then
             R := U;
             exit;
          end if;
@@ -650,7 +664,7 @@ package body XE_Check is
       Set_Source_Table (A);
 
       for I in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
-         if Unit.Table (I).RCI then
+         if Is_RCI_Or_SP_Unit (I) then
 
             --  Load_Unit applies to explicitly configured units. For a
             --  RCI, it is a fatal error if we cannot load the whole unit,
@@ -728,7 +742,7 @@ package body XE_Check is
       FU := ALIs.Table (A).First_Unit;
       LU := ALIs.Table (A).Last_Unit;
       for I in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
-         if Unit.Table (I).RCI then
+         if Is_RCI_Or_SP_Unit (I) then
             FU := I;
             LU := I;
             exit;

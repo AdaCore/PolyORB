@@ -321,6 +321,8 @@ package XE_Back is
    function Is_Set (Partition : PID_Type) return Boolean;
    --  Some units have already been assigned to this partition.
 
+   function Is_RCI_Or_SP_Unit (U : in ALI.Unit_Id) return Boolean;
+
    procedure Most_Recent_Stamp
      (P : in PID_Type; F : in Types.File_Name_Type);
    --  The more recent stamp of files needed to build a partition is

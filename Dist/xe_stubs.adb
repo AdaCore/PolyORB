@@ -42,7 +42,7 @@ package body XE_Stubs is
    Stdout : Boolean;
 
    package Callers  is new Table.Table
-     (Table_Component_Type => Unit_Name_Type,
+     (Table_Component_Type => Unit_Id,
       Table_Index_Type     => Natural,
       Table_Low_Bound      => 1,
       Table_Initial        => 20,
@@ -66,7 +66,7 @@ package body XE_Stubs is
    --  Bind and link partition to create executable.
 
    procedure Create_Partition_Main_File (PID : in PID_Type);
-   --  Create a procedure which "withes" all the RCI receivers
+   --  Create a procedure which "withes" all the RCI or SP receivers
    --  of the partition and insert the main procedure if needed.
 
    procedure Create_Stamp_File (PID : in PID_Type);
@@ -74,7 +74,7 @@ package body XE_Stubs is
    --  configuration file stamp are stored.
 
    procedure Create_Stub (A : in ALI_Id; Both : in Boolean);
-   --  Create the caller stub and the receiver stub for a RCI unit.
+   --  Create the caller stub and the receiver stub for a RCI or SP unit.
 
    procedure Delete_Stub (Source_Dir, Base_Name : in File_Name_Type);
    --  Delete stub files (ali, object) from a source directory.
@@ -124,6 +124,9 @@ package body XE_Stubs is
       Use_Clause : in Boolean := True);
    --  Add a with clause and possibly a use clause as well.
 
+   function Name (U : Unit_Id) return Name_Id;
+   --  Take a unit id and return its name removing unit suffix.
+
    function Rebuild_Partition (PID : in PID_Type) return Boolean;
    --  Check various file stamps to decide whether the partition
    --  executable should be regenerated.
@@ -157,11 +160,13 @@ package body XE_Stubs is
 
       --  Create caller *and* receiver stubs only if we have
       --  to build the partition on which this unit is mapped.
-      --  Note that a RCI unit is not always configured when
+      --  Note that a RCI or SP unit is not always configured when
       --  we don't build the full configuration.
 
       for U in Unit.First .. Unit.Last loop
-         if Unit.Table (U).RCI and then not Unit.Table (U).Is_Generic then
+         if Is_RCI_Or_SP_Unit (U)
+           and then not Unit.Table (U).Is_Generic
+         then
             PID := Get_PID (U_To_N (Unit.Table (U).Uname));
             Both := PID /= Null_PID and then Partitions.Table (PID).To_Build;
             Create_Stub (Unit.Table (U).My_ALI, Both);
@@ -216,19 +221,19 @@ package body XE_Stubs is
                   ALI := Unit.Table (U).My_ALI;
 
                   --  Update stubs
-                  if not Unit.Table (U).RCI then
+                  if not Is_RCI_Or_SP_Unit (U) then
                      null;
 
                   elsif Get_PID (U_To_N (Unit.Table (U).Uname)) = P then
 
-                     --  Copy RCI receiver stubs when this unit has been
-                     --  assigned on P partition. RCI caller stubs are
+                     --  Copy RCI or SP receiver stubs when this unit has been
+                     --  assigned on P partition. RCI or SP caller stubs are
                      --  not needed because GNATDIST add the caller directory
                      --  in its include path.
 
                      Copy_Stub (Receiver_Dir, Directory, ALI);
 
-                     --  We have RCI units in this partition. So, we
+                     --  We have RCI or SP units in this partition. So, we
                      --  need all the PCS features in this partition.
 
                      Set_Light_PCS (P, False);
@@ -615,19 +620,18 @@ package body XE_Stubs is
       Stdout := Building_Script;
       Create (FD, Main_File);
 
-      --  First pass to map RCI receivers on the partition.
+      --  First pass to map RCI or SP receivers on the partition.
       CU := Partitions.Table (PID).First_Unit;
       while CU /= Null_CUID loop
          Dwrite_With_Clause (FD, No_Str, CUnit.Table (CU).CUname, False);
          CU := CUnit.Table (CU).Next;
       end loop;
 
-      --  Need the RCI callers to compare their version with the
+      --  Need the RCI or SP callers to compare their version with the
       --  receiver version.
 
       for C in Callers.First .. Callers.Last loop
-
-         Dwrite_With_Clause (FD, No_Str, Callers.Table (C), False);
+         Dwrite_With_Clause (FD, No_Str, Name (Callers.Table (C)), False);
       end loop;
 
       Dwrite_With_Clause (FD, "System.RPC", No_Name, False);
@@ -689,12 +693,13 @@ package body XE_Stubs is
             declare
                Version : Name_Id;
             begin
-               Get_Name_String (Callers.Table (C));
+               Get_Name_String (Name (Callers.Table (C)));
                Add_Str_To_Name_Buffer ("'Version");
                Version := Name_Find;
                Dwrite_Call (FD, 1, "Check",
-                            To_String (Callers.Table (C)),
-                            No_Str, Version);
+                            To_String (Name (Callers.Table (C))),
+                            No_Str, Version,
+                            Unit.Table (Callers.Table (C)).RCI'Img);
             end;
          end loop;
       end if;
@@ -1089,13 +1094,14 @@ package body XE_Stubs is
 
       for U in ALIs.Table (Lib).First_Unit ..
                ALIs.Table (Lib).Last_Unit loop
-         if Unit.Table (U).RCI
+         if Is_RCI_Or_SP_Unit (U)
            and then not Unit.Table (U).Is_Generic
-           and then Get_PID (U_To_N (Unit.Table (U).Uname)) /= PID then
+           and then Get_PID (U_To_N (Unit.Table (U).Uname)) /= PID
+         then
             First_Unit := U;
             Last_Unit  := U;
             Callers.Increment_Last;
-            Callers.Table (Callers.Last) := U_To_N (Unit.Table (U).Uname);
+            Callers.Table (Callers.Last) := U;
             if Debug_Mode then
                Message ("insert caller", U_To_N (Unit.Table (U).Uname));
             end if;
@@ -1152,6 +1158,15 @@ package body XE_Stubs is
       end loop;
 
    end Mark_Units_On_Partition;
+
+   ----------
+   -- Name --
+   ----------
+
+   function Name (U : Unit_Id) return Name_Id is
+   begin
+      return U_To_N (Unit.Table (U).Uname);
+   end Name;
 
    -----------------------
    -- Rebuild_Partition --

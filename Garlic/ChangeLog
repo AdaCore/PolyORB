@@ -1,3 +1,12 @@
+1998-10-07  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-parint.ads: Add a parameter RCI to procedure Check to handle
+ 	differently RCI version checks and SP version checks.
+
+	* s-parint.adb: Same as above. Add a new procedure
+	Get_Unit_Version which returns the correct version depending on
+	the unit categorization.
+
 1998-10-07  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garrem.adb: Use system to benefit from shell substitution for

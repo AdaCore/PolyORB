@@ -881,6 +881,15 @@ package body XE_Back is
 
    end Initialize;
 
+   -----------------------
+   -- Is_RCI_Or_SP_Unit --
+   -----------------------
+
+   function Is_RCI_Or_SP_Unit (U : ALI.Unit_Id) return Boolean is
+   begin
+      return Unit.Table (U).RCI or else Unit.Table (U).Shared_Passive;
+   end Is_RCI_Or_SP_Unit;
+
    ------------
    -- Is_Set --
    ------------
@@ -1091,11 +1100,6 @@ package body XE_Back is
 
       --  If this attribute applies to partition type itself, it may not
       --  have a value. No big deal, we use defaults.
-
---       if Partition = Null_PID and then
---         not Is_Component_Initialized (Component_Id (Attribute)) then
---          return;
---       end if;
 
       --  Apply attribute to a partition.
 

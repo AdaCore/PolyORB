@@ -87,6 +87,19 @@ package body System.Partition_Interface is
    --  Compare two version ids. If one of these version ids is a string
    --  of blank characters then they will be considered as identical.
 
+   function Get_Unit_Version (Name : String; RCI : Boolean) return String;
+   --  When RCI, get active version. Otherwise, get passive version.
+
+   procedure Public_Message_Receiver
+     (Partition : in Partition_ID;
+      Operation : in Public_Opcode;
+      Params    : access Params_Stream_Type);
+   --  Global message receiver
+
+   Local_Partition  : constant Partition_ID := Get_My_Partition_ID;
+   Get_Unit_Request : constant Request_Type :=
+     (Get_Unit, Local_Partition, 0, null, null);
+
    type Hash_Index is range 0 .. 100;
    function Hash (K : RACW_Stub_Type_Access) return Hash_Index;
 
@@ -129,6 +142,7 @@ package body System.Partition_Interface is
       record
          Name    : String_Access;
          Version : String_Access;
+         RCI     : Boolean;
          Next    : Caller_List;
       end record;
    Callers : Caller_List;
@@ -139,11 +153,16 @@ package body System.Partition_Interface is
    -- Check --
    -----------
 
-   procedure Check (Name : in Unit_Name; Version : in String) is
+   procedure Check
+     (Name    : in Unit_Name;
+      Version : in String;
+      RCI     : in Boolean := True)
+   is
       Caller : Caller_List := new Caller_Node;
    begin
       Caller.Name    := new String'(Name);
       Caller.Version := new String'(Version);
+      Caller.RCI     := RCI;
       Caller.Next    := Callers;
       Callers        := Caller;
    end Check;
@@ -315,6 +334,19 @@ package body System.Partition_Interface is
       end if;
    end Get_Unique_Remote_Pointer;
 
+   ----------------------
+   -- Get_Unit_Version --
+   ----------------------
+
+   function Get_Unit_Version (Name : String; RCI : Boolean) return String is
+   begin
+      if RCI then
+         return Get_Active_Version (Name);
+      else
+         return Get_Passive_Version (Name);
+      end if;
+   end Get_Unit_Version;
+
    ----------
    -- Hash --
    ----------
@@ -453,7 +485,8 @@ package body System.Partition_Interface is
    ---------
 
    procedure Run
-     (Main : in Main_Subprogram_Type := null) is
+     (Main : in Main_Subprogram_Type := null)
+   is
       Caller  : Caller_List := Callers;
       Dummy   : Caller_List;
    begin
@@ -468,9 +501,9 @@ package body System.Partition_Interface is
          pragma Debug (D (D_Debug, "Check " & Caller.Name.all &
                           " version consistency"));
          if Different (Caller.Version.all,
-                       Get_Active_Version (Caller.Name.all)) then
+                       Get_Unit_Version (Caller.Name.all, Caller.RCI)) then
 
-            pragma Debug (D (D_Debug, "Versions differ for RCI unit """ &
+            pragma Debug (D (D_Debug, "Versions differ for unit """ &
                              Caller.Name.all & """"));
 
             --  If not boot partition, then terminate without waiting for
@@ -482,7 +515,7 @@ package body System.Partition_Interface is
 
             Ada.Exceptions.Raise_Exception
               (Program_Error'Identity,
-               "Versions differ for RCI unit """ &
+               "Versions differ for unit """ &
                Caller.Name.all & """");
 
          end if;
