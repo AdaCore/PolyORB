@@ -6,6 +6,7 @@ with Ada.Streams; use Ada.Streams;
 
 with Droopi.Buffers; use Droopi.Buffers;
 with Droopi.Sockets;
+with Droopi.Storage_Pools;
 with Droopi.Types;
 
 with Sequences.Unbounded;
@@ -17,9 +18,10 @@ package Droopi.Binding_Data.IIOP is
    type IIOP_Profile_Type is new Profile_Type with private;
 
    type Octets_Access is access all Stream_Element_Array;
+   for Octets_Access'Storage_Pool use Droopi.Storage_Pools.Debug_Pool;
 
    type Tagged_Component is record
-      Tag         : Types.Unsigned_Long;
+      Tag            : Types.Unsigned_Long;
       Component_Data : Octets_Access;
    end record;
 
@@ -85,8 +87,6 @@ package Droopi.Binding_Data.IIOP is
    function Image (Prof : IIOP_Profile_Type) return String;
 
 private
-
-
 
    type IIOP_Profile_Type is new Profile_Type with record
       Address    : Sockets.Sock_Addr_Type;

@@ -22,6 +22,7 @@ with Droopi.References.IOR;
 with Droopi.Requests;
 with Droopi.Objects;
 with Droopi.ORB;
+with Droopi.Storage_Pools;
 with Droopi.Types;
 with Droopi.Representations.CDR;
 
@@ -55,6 +56,8 @@ package Droopi.Protocols.GIOP is
    end record;
 
    type IOR_Addressing_Info_Access is access all IOR_Addressing_Info;
+   for IOR_Addressing_Info_Access'Storage_Pool
+     use Droopi.Storage_Pools.Debug_Pool;
 
    type Addressing_Disposition is (Key_Addr, Profile_Addr, Reference_Addr);
 
@@ -70,6 +73,8 @@ package Droopi.Protocols.GIOP is
    end record;
 
    type Target_Address_Access is access all Target_Address;
+   for Target_Address_Access'Storage_Pool
+     use Droopi.Storage_Pools.Debug_Pool;
 
    --  GIOP:: MsgType
    type Msg_Type is

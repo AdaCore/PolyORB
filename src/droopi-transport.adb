@@ -86,6 +86,9 @@ package body Droopi.Transport is
          end;
       elsif Msg in Data_Out then
          Write (Transport_Endpoint'Class (TE.all), Data_Out (Msg).Out_Buf);
+      elsif Msg in Connect_Confirmation then
+         null;
+         --  Nothing to do.
       else
          --  Must not happen.
          raise Components.Unhandled_Message;

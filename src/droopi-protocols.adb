@@ -3,7 +3,6 @@
 --  $Id$
 
 with Ada.Unchecked_Deallocation;
-with Ada.Text_IO;
 
 with Droopi.Filters.Interface;
 with Droopi.Objects.Interface;
@@ -41,14 +40,28 @@ package body Droopi.Protocols is
          Handle_Data_Indication (Session_Access (Sess));
       elsif S in Set_Server then
          Sess.Server := Set_Server (S).Server;
+      elsif S in Execute_Request then
+         Invoke_Request
+           (Session_Access (Sess),
+            Execute_Request (S).Req);
       elsif S in Executed_Request then
          Send_Reply
            (Session_Access (Sess),
             Executed_Request (S).Req);
       elsif S in Queue_Request then
-         Ada.Text_IO.Put_Line ("message is queue request");
-         Sess.Pending_Request := Queue_Request (S);
-         Droopi.Soft_Links.Update (Sess.Request_Watcher);
+         --  XXX
+         --  This is very wrong:
+         --    * a session should not ever receive Queue_Request
+         --      (this is a message from the ORB interface!)
+         --    * Put_Line must NEVER EVER be used at all.
+         --      debugging messages MUST use the Droopi.Log mechanism.
+         --
+         --  Therefore disabling all the branch.
+         --  Thomas 20010823
+         raise Program_Error;
+--          Ada.Text_IO.Put_Line ("message is queue request");
+--          Sess.Pending_Request := Queue_Request (S);
+--          Droopi.Soft_Links.Update (Sess.Request_Watcher);
       else
          raise Components.Unhandled_Message;
       end if;

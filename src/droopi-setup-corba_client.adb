@@ -10,6 +10,9 @@ pragma Elaborate_All (Droopi.Log);
 with Droopi.Binding_Data.IIOP;
 pragma Elaborate_All (Droopi.Binding_Data.IIOP);
 
+with Droopi.Protocols.GIOP;
+pragma Elaborate_All (Droopi.Protocols.GIOP);
+
 with Droopi.Smart_Pointers;
 pragma Elaborate_All (Droopi.Smart_Pointers);
 
@@ -53,6 +56,9 @@ package body Droopi.Setup.CORBA_Client is
 
       Droopi.Binding_Data.IIOP.Initialize;
       Put (" binding-iiop");
+
+      Droopi.Protocols.GIOP.Initialize;
+      Put (" protocols-giop");
 
       --------------------------
       -- Create ORB singleton --

@@ -5,6 +5,7 @@
 with Ada.Streams; use Ada.Streams;
 
 with Droopi.Components;
+with Droopi.Storage_Pools;
 
 package Droopi.Objects is
 
@@ -12,6 +13,8 @@ package Droopi.Objects is
 
    type Object_Id is new Stream_Element_Array;
    type Object_Id_Access is access all Object_Id;
+   for Object_Id_Access'Storage_Pool
+     use Droopi.Storage_Pools.Debug_Pool;
 
    procedure Free (X : in out Object_Id_Access);
 
@@ -27,6 +30,8 @@ package Droopi.Objects is
      with private;
    --  XXX or: is new Droopi.Refs.Entity?
    type Servant_Access is access all Servant'Class;
+   for Servant_Access'Storage_Pool
+     use Droopi.Storage_Pools.Debug_Pool;
    --  A Servant is a Component that supports the messages
    --  defined in Droopi.Objects.Interface.
 

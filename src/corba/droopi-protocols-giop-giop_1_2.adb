@@ -1,8 +1,7 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                           G I O P . G I O P 1.2                          --
+--                         G I O P . G I O P _ 1 _ 2                        --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -11,8 +10,6 @@
 ------------------------------------------------------------------------------
 
 --  $Id$
-
-with Ada.Text_IO; use Ada.Text_IO;
 
 with Droopi.Binding_Data;        use Droopi.Binding_Data;
 with Droopi.Binding_Data.IIOP;
@@ -115,10 +112,11 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       Marshall (Buffer, Target_Ref.Address_Type);
 
       case Target_Ref.Address_Type is
-         when Key_Addr  =>
-            Marshall (Buffer, Stream_Element_Array
-                    (Target_Ref.Object_Key.all));
-            Put_Line ("1.2 : 1");
+         when Key_Addr =>
+            pragma Assert (Target_Ref.Object_Key /= null);
+            Marshall
+              (Buffer, Stream_Element_Array
+               (Target_Ref.Object_Key.all));
          when Profile_Addr  =>
             Marshall_IIOP_Profile_Body (Buffer, Target_Ref.Profile);
          when Reference_Addr  =>
@@ -294,19 +292,20 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       --  Request id
       Marshall (Buffer, Request_Id);
 
-
       --  Marshalling the Target Address
-
       Marshall (Buffer, Target_Ref.Address_Type);
 
       case Target_Ref.Address_Type is
          when Key_Addr =>
-            Marshall (Buffer,
-                     Stream_Element_Array (Binding_Data.Get_Object_Key
-                    (Target_Ref.Profile.all)));
+            Marshall
+              (Buffer,
+               Stream_Element_Array
+               (Target_Ref.Object_Key.all));
+
          when Profile_Addr =>
             Marshall_IIOP_Profile_Body
-               (Buffer, Target_Ref.Profile);
+              (Buffer, Target_Ref.Profile);
+
          when Reference_Addr =>
             Marshall (Buffer, Target_Ref.Ref.Selected_Profile_Index);
             References.IOR.Marshall (Buffer, Target_Ref.Ref.IOR);
@@ -317,7 +316,6 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
    -------------------------------
    -- Fragment Message Marshall --
    -------------------------------
-
 
    procedure Marshall_Fragment
     (Buffer       : access Buffers.Buffer_Type;
@@ -464,9 +462,9 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
    end Unmarshall_Reply_Message;
 
    procedure Unmarshall_Locate_Request
-     (Buffer        : access Buffer_Type;
-      Request_Id    : out Types.Unsigned_Long;
-      Target_Ref    : out Target_Address)
+     (Buffer     : access Buffer_Type;
+      Request_Id :    out Types.Unsigned_Long;
+      Target_Ref :    out Target_Address)
 
    is
       Temp_Octet : Addressing_Disposition;
@@ -482,25 +480,28 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       case  Temp_Octet  is
          when Key_Addr  =>
             declare
-                  Obj : Stream_Element_Array :=  Unmarshall (Buffer);
+               Obj : Stream_Element_Array := Unmarshall (Buffer);
             begin
-                  Target_Ref := Target_Address'(Address_Type => Key_Addr,
+               Target_Ref := Target_Address'
+                 (Address_Type => Key_Addr,
                   Object_Key => new Object_Id'(Object_Id (Obj)));
             end;
 
          when Profile_Addr =>
-            Target_Ref := Target_Address'(Address_Type => Profile_Addr,
-                   Profile  => Binding_Data.IIOP.Unmarshall_IIOP_Profile_Body
-                              (Buffer));
+            Target_Ref := Target_Address'
+              (Address_Type => Profile_Addr,
+               Profile      => Binding_Data.IIOP.Unmarshall_IIOP_Profile_Body
+               (Buffer));
          when Reference_Addr  =>
             declare
-                  Temp_Ref :  IOR_Addressing_Info_Access :=
-                              new IOR_Addressing_Info;
+                  Temp_Ref : IOR_Addressing_Info_Access
+                    := new IOR_Addressing_Info;
             begin
                   Temp_Ref.Selected_Profile_Index := Unmarshall (Buffer);
                   Temp_Ref.IOR := Unmarshall (Buffer);
-                  Target_Ref := Target_Address'(Address_Type => Reference_Addr,
-                              Ref  => Temp_Ref);
+                  Target_Ref := Target_Address'
+                    (Address_Type => Reference_Addr,
+                     Ref  => Temp_Ref);
             end;
 
          when others =>
@@ -525,10 +526,5 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
    begin
       return Addressing_Disposition'Val (Value);
    end Unmarshall;
-
-
-
-
-
 
 end Droopi.Protocols.GIOP.GIOP_1_2;

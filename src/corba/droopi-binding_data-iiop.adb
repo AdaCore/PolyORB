@@ -107,6 +107,7 @@ package body Droopi.Binding_Data.IIOP is
 
       TProf.Address := Profile.Address;
       TProf.Object_Id := Profile.Object_Id;
+      Adjust (TProf);
 
       Store_Profile (GIOP_Session (Upper (Filter_Access
              (Filter)).all)'Access, Prof);

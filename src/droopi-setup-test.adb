@@ -239,19 +239,19 @@ package body Droopi.Setup.Test is
       --  Create application server object.
 
       declare
-         My_Id : aliased Object_Id
-           := Obj_Adapters.Export (Obj_Adapter, My_Servant);
+         My_Id : Object_Id_Access
+           := new Object_Id'(Obj_Adapters.Export (Obj_Adapter, My_Servant));
          --  Register it with the SOA.
       begin
          Obj_Adapters.Simple.Set_Interface_Description
            (Obj_Adapters.Simple.Simple_Obj_Adapter (Obj_Adapter.all),
-            My_Id, Test_Object.If_Desc);
+            My_Id.all, Test_Object.If_Desc);
          --  Set object description.
 
-         Create_Reference (The_ORB, My_Id'Unchecked_Access, My_Ref);
+         Create_Reference (The_ORB, My_Id, My_Ref);
          --  Obtain object reference.
 
-         Put_Line ("Registered object: " & Image (My_Id));
+         Put_Line ("Registered object: " & Image (My_Id.all));
          Put_Line ("Reference is     : " & References.Image (My_Ref));
 
          begin

@@ -8,6 +8,7 @@ with Droopi.Annotations;
 with Droopi.Any;
 with Droopi.Any.NVList;
 with Droopi.References;
+with Droopi.Storage_Pools;
 with Droopi.Task_Info;
 with Droopi.Types;
 
@@ -57,6 +58,8 @@ package Droopi.Requests is
    end record;
 
    type Request_Access is access all Request;
+   for Request_Access'Storage_Pool
+     use Droopi.Storage_Pools.Debug_Pool;
 
    procedure Create_Request
      (Target    : in     References.Ref;
