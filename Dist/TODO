@@ -1,5 +1,25 @@
 CLADS : Configuration Language for Ada Distributed System
 
+* Change the way a configuration node is set.
+
+* Improve debugging messages.
+
+* There are still '/' characters to suppress (non-Unix stuff).
+
+* When marking ali, do not print multiple messages.
+
+* Improve tree output.
+
+* Improve error messages.
+
+* Move standard configuration creation outside parser.
+
+* Pragma Import should not accept None_Import (comes from Starter move into
+  Import).
+
+* Pragma Import generation should be changed (create a procedure with the 
+  name of the CLADS unit and invoke the external function).
+
 * Strip executables when not debugging.
 
 * Remove script when configuration has been modified.
@@ -24,16 +44,9 @@ CLADS : Configuration Language for Ada Distributed System
 
 * Don't start partition when they are permanent and allow this feature
 
-* Enable security features
-
 * Enable a list of protocols to be loaded in a partitionand provide the
   code to make the protocol choice
 
 * Enable an invocation mechanism that is not centralized
 
 * Replication features
-
-Bugs to fix :
-
-* Bug in SGI version : the time stamps seems to be wrongly interpreted
-  so stubs are generated too many times.

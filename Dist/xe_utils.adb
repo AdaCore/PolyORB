@@ -675,9 +675,11 @@ package body XE_Utils is
 
       PWD_Id         := Str_To_Id ("`pwd`") & Dir_Sep_Id;
 
-      Build_Stamp_File      := Str_To_Id ("glade.sta");
-      Elaboration_Name      := Str_To_Id ("s-garela");
-      Elaboration_Full_Name := Str_To_Id ("System.Garlic.Elaboration");
+      Build_Stamp_File    := Str_To_Id ("glade.sta");
+      Elaboration_File    := Str_To_Id ("s-garela");
+      Elaboration_Name    := Str_To_Id ("System.Garlic.Elaboration");
+      Partition_Main_File := Str_To_Id ("partition");
+      Partition_Main_Name := Str_To_Id ("Partition");
 
       declare
          Dir  : constant String_Access := Get_GARLIC_Dir;
@@ -815,14 +817,14 @@ package body XE_Utils is
    begin
 
       Execute_Gcc
-        (Elaboration_Name & ADB_Suffix,
+        (Elaboration_File & ADB_Suffix,
          (GNATLib_Compile_Flag,
           I_Original_Dir,
           I_GARLIC_Dir)
          );
 
       Execute_Gcc
-        (Partition & ADB_Suffix,
+        (Partition_Main_File & ADB_Suffix,
          (I_Current_Dir,
           I_Caller_Dir,
           I_Original_Dir)
@@ -833,14 +835,14 @@ package body XE_Utils is
 
 
       Execute_Bind
-        (Partition & ALI_Suffix,
+        (Partition_Main_File & ALI_Suffix,
          (I_Current_Dir,
           I_Caller_Dir,
           I_Original_Dir)
             );
 
       Execute_Link
-        (Partition & ALI_Suffix,
+        (Partition_Main_File & ALI_Suffix,
          Executable,
          (L_Current_Dir,
           L_Caller_Dir,
@@ -852,6 +854,17 @@ package body XE_Utils is
       Close  (FD);
 
    end Produce_Partition_Executable;
+
+   ---------------
+   -- Str_To_Id --
+   ---------------
+
+   function Str_To_Id (S : String) return Name_Id is
+   begin
+      Name_Buffer (1 .. S'Length) := S;
+      Name_Len := S'Length;
+      return Name_Find;
+   end Str_To_Id;
 
    ------------
    -- Strlen --

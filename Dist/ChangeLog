@@ -1,4 +1,35 @@
+Mon Feb 24 09:18:50 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
+
+	* xe_scan.adb: Fix a bug (string without end delimiter).
+
+	* xe.ads, xe.adb: Change xxx_Parameter_Mark into
+ 	xxx_Parameter_Initialized.
+
+	* xe.ads, xe.adb: Remove Starter_Method_Type and use
+ 	Import_Method_Type instead (Ada and Shell were both used).
+
+	* xe_parse.ads, xe_parse.adb, xe_stdcnf.ads, xe_stdcnf.adb: Export
+ 	xe_parse internal subprograms and move standard configuration into
+ 	xe_stdcnf. Reorganize code.
+
+	* xe_utils.ads: Fix a bug due to a typo (">" was "=")
+	
+	* xe_back.adb: Fix bugs (concerning 'host and 'main) due to the
+ 	new way subprograms are handled (pragma and ada subprogram). The
+ 	non dist. main procedure is converted into a P'main and
+ 	P'_leader. _leader is an internal attribute to signal a main
+ 	partition.
+
+	* xe_back.ads: Remove some unused stuff.
+	
+	* xe_lead.adb, xe_check.adb, xe_stubs.adb: Same as above
+ 	(concerning 'host and 'main).
+	
 Sat Feb 22 12:58:07 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
+
+	* xe_check.adb, xe_utils.ads, xe_utils.adb: Change partition
+ 	subprogram main name from partition name to "partition". Suppress
+ 	checks of conflicts.
 
 	* xe_utils.ads: Fix a bug due to a bad renaming.
 
@@ -10,7 +41,8 @@ Sat Feb 22 12:58:07 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
 Fri Feb 21 09:28:54 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
-	* xe_back.ads: Add SLOC in table items to report error messages.
+	* xe_back.ads: Add tree node in configuration table items to
+ 	report error messages.
 
 Thu Feb 20 14:49:39 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 

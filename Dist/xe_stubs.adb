@@ -62,7 +62,7 @@ package body XE_Stubs is
    procedure Create_Elaboration_File (PID : in PID_Type);
    --  Create the elaboration unit for the given partition.
 
-   procedure Create_Main_Unit (PID : in PID_Type);
+   procedure Create_Partition_Main_File (PID : in PID_Type);
    --  Create a procedure which "withes" all the RCI receivers
    --  of the partition and insert the main procedure if needed.
 
@@ -390,7 +390,7 @@ package body XE_Stubs is
    begin
 
       Partition   := Partitions.Table (PID) .Name;
-      Elaboration := Directory & Dir_Sep_Id & Elaboration_Name & ADB_Suffix;
+      Elaboration := Directory & Dir_Sep_Id & Elaboration_File & ADB_Suffix;
       Most_Recent := Partitions.Table (PID).Most_Recent;
 
       if not Is_Regular_File (Elaboration) then
@@ -431,7 +431,7 @@ package body XE_Stubs is
       Dwrite_Str  (FD, "use System.Garlic.Filters;");
       Dwrite_Eol  (FD);
       Dwrite_Str  (FD, "package body ");
-      Dwrite_Name (FD, Elaboration_Full_Name);
+      Dwrite_Name (FD, Elaboration_Name);
       Dwrite_Str  (FD, " is");
       Dwrite_Eol  (FD);
       Dwrite_Str  (FD, "begin");
@@ -507,7 +507,7 @@ package body XE_Stubs is
 
       --  Footer.
       Dwrite_Str  (FD, "end ");
-      Dwrite_Name (FD, Elaboration_Full_Name);
+      Dwrite_Name (FD, Elaboration_Name);
       Dwrite_Str  (FD, ";");
       Dwrite_Eol  (FD);
 
@@ -522,11 +522,11 @@ package body XE_Stubs is
 
    end Create_Elaboration_File;
 
-   ----------------------
-   -- Create_Main_Unit --
-   ----------------------
+   --------------------------------
+   -- Create_Partition_Main_File --
+   --------------------------------
 
-   procedure Create_Main_Unit (PID : in PID_Type) is
+   procedure Create_Partition_Main_File (PID : in PID_Type) is
 
       Partition   : Partition_Name_Type;
       Main_File   : File_Name_Type;
@@ -541,7 +541,7 @@ package body XE_Stubs is
    begin
 
       Partition   := Partitions.Table (PID).Name;
-      Main_File   := Directory & Dir_Sep_Id & Partition & ADB_Suffix;
+      Main_File   := Directory & Dir_Sep_Id & Partition_Main_File & ADB_Suffix;
       Most_Recent := Partitions.Table (PID).Most_Recent;
 
       if not Is_Regular_File (Main_File) then
@@ -620,7 +620,7 @@ package body XE_Stubs is
       Dwrite_Str (FD, "with system.io;");
       Dwrite_Eol (FD);
 
-      if PID = Main_Partition and then Default_Starter = Ada_Starter then
+      if PID = Main_Partition and then Default_Starter = Ada_Import then
          Dwrite_Str (FD, "with system.garlic.remote;");
          Dwrite_Eol (FD);
          Dwrite_Str (FD, "with system.garlic.options;");
@@ -628,7 +628,7 @@ package body XE_Stubs is
       end if;
 
       Dwrite_Str  (FD, "procedure ");
-      Dwrite_Name (FD, Partition);
+      Dwrite_Name (FD, Partition_Main_Name);
       Dwrite_Str  (FD, " is");
       Dwrite_Eol  (FD);
 
@@ -643,7 +643,7 @@ package body XE_Stubs is
       Dwrite_Eol  (FD);
 
       if PID = Main_Partition then
-         if Default_Starter = Ada_Starter and
+         if Default_Starter = Ada_Import and
             Partitions.First /= Partitions.Last then
             Dwrite_Str (FD, "   if not system.garlic.options");
             Dwrite_Str (FD, ".get_nolaunch then");
@@ -759,7 +759,7 @@ package body XE_Stubs is
       end if;
 
       Dwrite_Str  (FD, "end ");
-      Dwrite_Name (FD, Partition);
+      Dwrite_Name (FD, Partition_Main_Name);
       Dwrite_Str  (FD, ";");
       Dwrite_Eol  (FD);
 
@@ -772,7 +772,7 @@ package body XE_Stubs is
 
       More_Recent_Stamp (PID, Main_File);
 
-   end Create_Main_Unit;
+   end Create_Partition_Main_File;
 
    -----------------
    -- Delete_Stub --
@@ -916,7 +916,7 @@ package body XE_Stubs is
                end loop;
             end;
 
-            Create_Main_Unit (PID);
+            Create_Partition_Main_File (PID);
             Create_Elaboration_File (PID);
 
             --  Copy RCI receiver stubs when this unit has been assigned on

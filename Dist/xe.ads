@@ -77,7 +77,7 @@ package XE is
 
    -- Attribute_Type --
 
-   type Attribute_Type is new Int range 200 .. 206;
+   type Attribute_Type is new Int range 200 .. 207;
 
    Attribute_Unknown      : constant Attribute_Type := 200;
    Attribute_Host         : constant Attribute_Type := 201;
@@ -85,27 +85,20 @@ package XE is
    Attribute_Main         : constant Attribute_Type := 203;
    Attribute_Command_Line : constant Attribute_Type := 204;
    Attribute_Termination  : constant Attribute_Type := 205;
-   Attribute_Filter       : constant Attribute_Type := 206;
+   Attribute_Leader       : constant Attribute_Type := 206;
+   Attribute_Filter       : constant Attribute_Type := 207;
 
 
    -- Pragma_Type --
 
-   type Pragma_Type is new Int range 301 .. 305;
+   type Pragma_Type is new Int range 300 .. 305;
 
+   Pragma_Unknown         : constant Pragma_Type := 300;
    Pragma_Starter         : constant Pragma_Type := 301;
    Pragma_Import          : constant Pragma_Type := 302;
    Pragma_Boot_Server     : constant Pragma_Type := 303;
    Pragma_Version         : constant Pragma_Type := 304;
    Pragma_Filter          : constant Pragma_Type := 305;
-
-
-   -- Starter_Method_Type --
-
-   type Starter_Method_Type is new Int range 321 .. 323;
-
-   Ada_Starter            : constant Starter_Method_Type := 321;
-   Shell_Starter          : constant Starter_Method_Type := 322;
-   None_Starter           : constant Starter_Method_Type := 323;
 
 
    -- Import_Method_Type --
@@ -119,20 +112,18 @@ package XE is
 
    -- Predefined_Type --
 
-   type Predefined_Type is new Int range 401 .. 412;
+   type Predefined_Type is new Int range 401 .. 410;
 
    Pre_Type_Partition       : constant Predefined_Type := 401;
    Pre_Type_Channel         : constant Predefined_Type := 402;
    Pre_Type_Boolean         : constant Predefined_Type := 403;
    Pre_Type_Integer         : constant Predefined_Type := 404;
    Pre_Type_String          : constant Predefined_Type := 405;
-   Pre_Type_Starter         : constant Predefined_Type := 406;
-   Pre_Type_Entity          : constant Predefined_Type := 407;
-   Pre_Type_Convention      : constant Predefined_Type := 408;
-   Pre_Type_Ada_Unit        : constant Predefined_Type := 409;
-   Pre_Type_Subprogram      : constant Predefined_Type := 410;
-   Pre_Type_Function        : constant Predefined_Type := 411;
-   Pre_Type_Procedure       : constant Predefined_Type := 412;
+   Pre_Type_Entity          : constant Predefined_Type := 406;
+   Pre_Type_Convention      : constant Predefined_Type := 407;
+   Pre_Type_Ada_Unit        : constant Predefined_Type := 408;
+   Pre_Type_Function        : constant Predefined_Type := 409;
+   Pre_Type_Procedure       : constant Predefined_Type := 410;
 
 
    -- Termination_Type --
@@ -178,7 +169,6 @@ package XE is
    Boolean_Type_Node        : Type_Id;
    Integer_Type_Node        : Type_Id;
    String_Type_Node         : Type_Id;
-   Starter_Type_Node        : Type_Id;
    Convention_Type_Node     : Type_Id;
    Ada_Unit_Type_Node       : Type_Id;
    Subprogram_Type_Node     : Type_Id;
@@ -193,16 +183,16 @@ package XE is
 
    -- Internal System Names --
 
-   ISN_List_Comp  : Name_Id;
-   ISN_Array_Comp : Name_Id;
-   ISN_Proc_Main  : Name_Id;
-   ISN_Appl_Main  : Name_Id;
-   ISN_Return_Par : Name_Id;
-   ISN_Subpro_Par : Name_Id;
-   ISN_Proc_Call  : Name_Id;
+   ISN_List_Comp            : Name_Id;
+   ISN_Array_Comp           : Name_Id;
+   ISN_Proc_Main            : Name_Id;
+   ISN_Appl_Main            : Name_Id;
+   ISN_Return_Par           : Name_Id;
+   ISN_Subpro_Par           : Name_Id;
+   ISN_Proc_Call            : Name_Id;
 
 
-   Configuration_File  : File_Name_Type  := No_File;
+   Configuration_File       : File_Name_Type  := No_File;
 
 
    -- GNATDIST flags --
@@ -237,6 +227,7 @@ package XE is
    procedure Component_Is_Initialized
      (Component_Node : in Component_Id;
       Is_Initialized : in Boolean);
+   --  Has this component a value.
 
    function Convert (Item : Attribute_Type) return Int;
 
@@ -245,10 +236,6 @@ package XE is
    function Convert (Item : Pragma_Type) return Int;
 
    function Convert (Item : Int) return Pragma_Type;
-
-   function Convert (Item : Starter_Method_Type) return Int;
-
-   function Convert (Item : Int) return Starter_Method_Type;
 
    function Convert (Item : Import_Method_Type) return Int;
 
@@ -300,7 +287,7 @@ package XE is
    procedure First_Configuration_Declaration
      (Configuration_Node : in  Configuration_Id;
       Declaration_Node   : out Node_Id);
-   --  A configuration is a list. Set to the first one.
+   --  Set to the first declaration in the configuration list.
 
    procedure First_Subprogram_Parameter
      (Subprogram_Node : in Subprogram_Id;
@@ -310,43 +297,42 @@ package XE is
    procedure First_Type_Component
      (Type_Node       : in Type_Id;
       Component_Node  : out Component_Id);
-   --  Set to the first type component list.
+   --  Set to the first type component in the type component list.
 
    procedure First_Variable_Component
      (Variable_Node   : in Variable_Id;
       Component_Node  : out Component_Id);
-   --  Set to the first component of the varaible component list. This
-   --  could be different from the type component list (ex :
-   --  partition_type).
+   --  Set to the first component of the variable component list. This
+   --  could be different from the type component list (partition_type).
 
    function Get_Array_Component_Type
      (Type_Node : Type_Id)
      return Type_Id;
-   --  When the type is a component array, this function returns the type
-   --  of a component. Otherwise, it returns null_type.
-
-   function Get_Component_List_Size
-     (Type_Node : Type_Id)
-     return Int;
-   --  When the type is an array or a list, this function returns the size
-   --  of the array or the list. Otherwise, it returns 0 (neither a list
-   --  nor an array).
+   --  When the type is a component array type, this function returns the
+   --  type of a component. Otherwise, it returns null_type.
 
    function Get_Attribute_Kind
      (Component_Node : Component_Id)
      return Attribute_Type;
-   --  A type or a variable is a set of components and of attributes.
+   --  A type or a variable is a set of components and of attributes. This
+   --  function returns the attribute type, Attrbiute_Unknown when it is
+   --  not an attribute.
+
+   function Get_Component_List_Size
+     (Type_Node : Type_Id)
+     return Int;
+   --  When the type is an array type or a list type, this function returns
+   --  the size of the array or the list. Otherwise, it returns 0 (neither
+   --  a list nor an array).
 
    function Get_Component_Type
      (Component_Node : Component_Id)
      return Type_Id;
-   --  Return the type of the component.
 
    function  Get_Component_Value
      (Component_Node : Component_Id)
      return Node_Id;
-   --  Use to check valid aggregate. When this mark is set, the component
-   --  has been initialized. This value is in fact a variable itself.
+   --  Return the variable set as value for this component.
 
    function Get_Node_Name
      (Node : Node_Id)
@@ -359,50 +345,43 @@ package XE is
       Loc_Y : out Int);
    pragma Inline (Get_Node_SLOC);
 
-   function  Get_Parameter_Mark
-     (Parameter_Node : Parameter_Id)
-      return Int;
-   --  Parameter are marked to find what parameter is missing in a
-   --  subprogram call.
-
-   function Get_Parameter_Type
+   function  Get_Parameter_Type
      (Parameter_Node : Parameter_Id)
      return Type_Id;
-   --  Get parameter type.
-
-   function  Get_Subprogram_Call
-     (Statement_Node  : Statement_Id)
-      return Subprogram_Id;
-   --  Not use.
 
    function  Get_Pragma_Kind
      (Subprogram_Node : Subprogram_Id)
       return Pragma_Type;
-   --  The subprogram mark is used to easily retrieve a pragma kind, for
-   --  instance.
+   --  Subprograms are used to implement pragmas and ada units. This
+   --  function returns Pragma_Unknown when this subprogram does not
+   --  implement a pragma.
+
+   function  Get_Scalar_Value
+     (Variable_Node : Variable_Id)
+      return Int;
+   --  Return a scalar rather than a variable as a value.
+
+   function  Get_Subprogram_Call
+     (Statement_Node  : Statement_Id)
+      return Subprogram_Id;
+   --  This statement is a procedure call. This returns a copy of the
+   --  subprogram call with the initialized parameters in it.
 
    function  Get_Token (N : Name_Id) return Token_Type;
 
    function  Get_Type_Kind
      (Type_Node : Type_Id)
       return Predefined_Type;
-   --  The type mark is used to easily retrieve a predefined_type id, for
-   --  instance.
-
-   function  Get_Scalar_Value
-     (Variable_Node : Variable_Id)
-      return Int;
-   --  This mark is used when the variable is of scalar type.
+   --  This function is used to easily retrieve a predefined_type id.
 
    function Get_Variable_Type
      (Variable_Node : Variable_Id)
      return Type_Id;
-   --  Get variable type.
 
    function Get_Variable_Value
      (Variable_Node : Variable_Id)
      return Variable_Id;
-   --  This value is in fact a variable itself.
+   --  Return a variable rather than a scalar as a value.
 
    function  Is_Component
      (Node : Node_Id)
@@ -419,6 +398,12 @@ package XE is
       return Boolean;
    pragma Inline (Is_Configuration);
 
+   function  Is_Parameter_Initialized
+     (Parameter_Node : Parameter_Id)
+      return Boolean;
+   --  Has this parameter a value. Parameter are marked to find what
+   --  parameter is missing in a subprogram call.
+
    function  Is_Statement
      (Node : Node_Id)
       return Boolean;
@@ -432,7 +417,6 @@ package XE is
    function Is_Subprogram_A_Procedure
      (Subprogram_Node : Subprogram_Id)
      return Boolean;
-   --  Subprograms are either procedure or function.
 
    function  Is_Type
      (Node : Node_Id)
@@ -442,7 +426,9 @@ package XE is
    function Is_Type_Frozen
      (Type_Node : Type_Id)
      return Boolean;
-   --  Is it possible to add new litteral in an enumeration type.
+   --  Is it possible to add new litteral in an enumeration type. Ada Unit
+   --  Type is an extensible enumeration type. When parsing, a variable of
+   --  this type can be pushed automatically in the declaration.
 
    function  Is_Variable
      (Node : Node_Id)
@@ -451,7 +437,9 @@ package XE is
 
    procedure Next_Configuration_Declaration
      (Declaration_Node   : in out Node_Id);
-   --  There are two configurations : the user one and the standard one.
+   --  There are two configurations : the user one and the standard
+   --  one. When the next declaration is a configuration node, go into this
+   --  configuration and return the next declaration node.
 
    procedure Next_Subprogram_Parameter
      (Parameter_Node  : in out Parameter_Id);
@@ -465,11 +453,22 @@ package XE is
      (Component_Node  : in out Component_Id);
    --  Set to the next component in the variable component list.
 
+   procedure Parameter_Is_Initialized
+     (Parameter_Node : in Parameter_Id;
+      Is_Initialized : in Boolean);
+   --  Parameter are marked to find what parameter is missing in a
+   --  subprogram call.
+
    procedure Set_Array_Component_Type
      (Type_Node : in Type_Id;
       Comp_Type : in Type_Id);
    --  This type becomes an component list type. Each element is of type
    --  element_type.
+
+   procedure Set_Attribute_Kind
+     (Component_Node : in Component_Id;
+      Attribute_Kind : in Attribute_Type);
+   --  See Get_Attribute_Kind.
 
    procedure Set_Component_List_Size
      (Type_Node : in Type_Id;
@@ -477,20 +476,15 @@ package XE is
    --  This type becomes an component list type. List_size indicates
    --  whether it is a constrained array or not.
 
-   procedure Set_Attribute_Kind
-     (Component_Node : in Component_Id;
-      Attribute_Kind : in Attribute_Type);
-   --  A type or a variable is a set of components and of attributes.
-
    procedure Set_Component_Type
      (Component_Node : in Component_Id;
       Type_Node      : in Type_Id);
-   --  Set the component type.
+   --  See Get_Component_Type.
 
    procedure Set_Component_Value
      (Component_Node : in Component_Id;
       Value_Node     : in Node_Id);
-   --  This value is in fact a variable itself.
+   --  See Get_Component_Value.
 
    procedure Set_Node_SLOC
      (Node  : in Node_Id;
@@ -498,65 +492,52 @@ package XE is
       Loc_Y : in Int);
    pragma Inline (Set_Node_SLOC);
 
-   procedure Set_Parameter_Mark
-     (Parameter_Node : in Parameter_Id;
-      Parameter_Mark : in Int);
-   --  Parameter are marked to find what parameter is missing in a
-   --  subprogram call.
-
    procedure Set_Parameter_Type
      (Parameter_Node : in Parameter_Id;
       Parameter_Type : in Type_Id);
-   --  Set the parameter type.
-
-   procedure Set_Subprogram_Call
-     (Statement_Node  : in Statement_Id;
-      Subprogram_Node : in Subprogram_Id);
-   --  Duplicate subprogram node.
+   --  See Get_Parameter_Type.
 
    procedure Set_Pragma_Kind
      (Subprogram_Node : in Subprogram_Id;
       Pragma_Kind     : in Pragma_Type);
-   --  The subprogram mark is used to easily retrieve a pragma_type id, for
-   --  instance.
+   --  See Get_Pragam_Kind.
+
+   procedure Set_Scalar_Value
+     (Variable_Node : in Variable_Id;
+      Scalar_Value  : in Int);
+   --  See Get_Scalar_Value.
+
+   procedure Set_Subprogram_Call
+     (Statement_Node  : in Statement_Id;
+      Subprogram_Node : in Subprogram_Id);
+   --  Initiliaze this statement with a copy of the subprogram tree. This
+   --  tree contains the parameters with their associated values.
 
    procedure Set_Token (N : String; T : Token_Type);
 
    procedure Set_Type_Kind
      (Type_Node : in Type_Id;
       Type_Kind : in Predefined_Type);
-   --  The type mark is used to easily retrieve a predefined_type id, for
-   --  instance.
-
-   procedure Set_Scalar_Value
-     (Variable_Node : in Variable_Id;
-      Scalar_Value  : in Int);
-   --  This mark is used when the variable is of scalar type.
+   --  See Get_Type_Kind.
 
    procedure Set_Variable_Type
      (Variable_Node : in Variable_Id;
       Variable_Type : in Type_Id);
-   --  Set variable type when available (ex: identifier list).
+   --  See Get_Variable_Type.
 
    procedure Set_Variable_Value
      (Variable_Node : in Variable_Id;
       Value_Node    : in Variable_Id);
-   --  This value is in fact a variable itself.
-
-   function Str_To_Id           (S : String) return Name_Id;
-   --  Set into name table and return id.
+   --  See Get_Variable_Value.
 
    procedure Subprogram_Is_A_Procedure
      (Subprogram_Node : in Subprogram_Id;
       Procedure_Node  : in Boolean);
-   --  Subprograms are either procedure or function.
 
    procedure Type_Is_Frozen
      (Type_Node  : in Type_Id;
       Extensible : in Boolean);
-   --  Is it possible to add new litteral in an enumeration type. Ada Unit
-   --  Type is an extensible enumeration type. When parsing, a variable of
-   --  this type can be pushed automatically in the declaration.
+   --  See Is_Type_Frozen.
 
    procedure Write_SLOC (Node : Node_Id);
 

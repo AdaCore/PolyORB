@@ -103,7 +103,7 @@ procedure XE_Lead is
 
 begin
 
-   if Default_Starter /= None_Starter and then not Quiet_Output then
+   if Default_Starter /= None_Import and then not Quiet_Output then
       Write_Program_Name;
       Write_Str  (": generating starter ");
       Write_Name (Main_Subprogram);
@@ -112,7 +112,7 @@ begin
 
    case Default_Starter is
 
-      when Shell_Starter =>
+      when Shell_Import =>
 
          Unlink_File (Main_Subprogram);
 
@@ -152,7 +152,7 @@ begin
             Close (FD);
          end if;
 
-      when Ada_Starter =>
+      when Ada_Import =>
 
          for PID in Partitions.First .. Partitions.Last loop
             if PID = Main_Partition then
@@ -181,7 +181,7 @@ begin
             end if;
          end loop;
 
-      when None_Starter => null;
+      when None_Import => null;
 
    end case;
 

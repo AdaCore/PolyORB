@@ -247,6 +247,7 @@ package body XE_Scan is
 
             when '"' => -- "
 
+               Token    := Tok_String_Literal;
                Name_Len := 0;
                Scan_Ptr := Scan_Ptr + 1;
                loop
@@ -256,12 +257,12 @@ package body XE_Scan is
                      --  end of string literal
 
                      Scan_Ptr := Scan_Ptr + 1;
-                     exit when Buffer (Scan_Ptr) /= '"'; -- "
+                     exit when Buffer (Scan_Ptr) /= '"'; --  "
 
                   elsif Buffer (Scan_Ptr) = EOF then
 
                      Token := Tok_Unknown;
-                     raise Scanning_Error;
+                     exit;
 
                   end if;
 
@@ -271,8 +272,9 @@ package body XE_Scan is
 
                end loop;
 
-               Token_Name := Name_Find;
-               Token      := Tok_String_Literal;
+               if Token = Tok_String_Literal then
+                  Token_Name := Name_Find;
+               end if;
 
             when 'A' .. 'Z' | 'a' .. 'z' =>
 

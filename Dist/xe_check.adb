@@ -47,7 +47,7 @@ package body XE_Check is
    --    ie mapped unit index corresponding to ada unit Unit.Table (U).Uname
    --    if this unit has been mapped.
    --
-   --  * Key of Partitions.Table (P).Name correpsonds to its PID.
+   --  * Key of Partitions.Table (P).Name corresponds to its PID.
 
    procedure Check is
 
@@ -63,6 +63,7 @@ package body XE_Check is
       Stamp     : Time_Stamp_Type;
 
       procedure Recompile (Name : File_Name_Type);
+
       procedure Recompile (Name : File_Name_Type) is
       begin
          if not Already_Loaded (Name) then
@@ -208,34 +209,10 @@ package body XE_Check is
          Set_PID (Partitions.Table (P).Name, Null_PID);
       end loop;
 
-      --  GNATDIST needs some Ada unit names to build the partition
-      --  main subprogram, for instance. We check these names are not
-      --  already used.
-
-      if Get_Name_Table_Info (Configuration) /= 0 then
-         Write_SLOC (XE.Node_Id (Configuration_Node));
-         Write_Str  ("configuration name """);
-         Write_Name (Configuration);
-         Write_Str  (""" conflicts with an Ada unit name");
-         Write_Eol;
-         raise Parsing_Error;
-      end if;
-
       if not Quiet_Output then
          Write_Program_Name;
          Write_Str (": checking configuration consistency");
          Write_Eol;
-      end if;
-
-      --  Check that the main program is really a main program.
-
-      if ALIs.Table (Get_ALI_Id (Main_Subprogram)).Main_Program = None then
-         Write_Program_Name;
-         Write_Str (": """);
-         Write_Name (Main_Subprogram);
-         Write_Str (""" is not a main program");
-         Write_Eol;
-         raise Partitioning_Error;
       end if;
 
       --  Check conf. unit name key to detect non-Ada unit.
@@ -243,7 +220,7 @@ package body XE_Check is
 
       if Debug_Mode then
          Write_Message ("check conf. unit name key to detect non-Ada unit");
-         Write_Message ("conf. unit are not multiply configured");
+         Write_Message ("check conf. unit are not multiply configured");
       end if;
 
       for U in CUnit.First .. CUnit.Last loop
@@ -356,6 +333,18 @@ package body XE_Check is
       for U in CUnit.First .. CUnit.Last loop
          Set_ALI_Id (CUnit.Table (U).CUname, CUnit.Table (U).My_ALI);
       end loop;
+
+      --  Check that the main program is really a main program.
+
+      Main_Subprogram := Get_Main_Subprogram (Main_Partition);
+      if ALIs.Table (Get_ALI_Id (Main_Subprogram)).Main_Program = None then
+         Write_Program_Name;
+         Write_Str (": """);
+         Write_Name (Main_Subprogram);
+         Write_Str (""" is not a main program");
+         Write_Eol;
+         raise Partitioning_Error;
+      end if;
 
       if Inconsistent then
          raise Partitioning_Error;

@@ -107,7 +107,7 @@ package XE_Back is
    Default_Filter        : Filter_Name_Type      := No_Filter_Name;
    Default_Protocol_Name : Name_Id               := No_Name;
    Default_Protocol_Data : Name_Id               := No_Name;
-   Default_Starter       : Starter_Method_Type   := Ada_Starter;
+   Default_Starter       : Import_Method_Type    := Ada_Import;
    Default_Version_Check : Boolean               := True;
 
    -- Table element types --
@@ -191,9 +191,7 @@ package XE_Back is
    Main_Partition     : PID_Type  := Null_PID;
    --  Partition where the main procedure has been assigned.
 
-   Main_Subprogram    : Name_Id        := No_Name;
-   Main_Source_File   : File_Name_Type := No_Name;
-   Main_ALI           : ALI_Id;
+   Main_Subprogram    : Name_Id   := No_Name;
    --  Several variables related to the main procedure.
 
    procedure Add_Channel_Partition
@@ -237,14 +235,17 @@ package XE_Back is
    --  return No_ALI_Id.
 
    function Get_CID             (N : Name_Id) return CID_Type;
+
    function Get_Command_Line    (P : PID_Type) return Command_Line_Type;
    --  Look for conammd_line into partitions. If null, return default.
 
    function Get_CUID            (N : Name_Id) return CUID_Type;
+
    function Get_Filter          (C : CID_Type) return Name_Id;
    --  Look for filter in channels. If null, return default.
 
    function Get_HID             (N : Name_Id) return HID_Type;
+
    function Get_Host            (P : PID_Type) return Name_Id;
    --  Look for host into partitions. If null, return default.
 
@@ -255,6 +256,7 @@ package XE_Back is
    --  Look for partition_dir into partitions. If null, return default.
 
    function Get_PID             (N : Name_Id) return PID_Type;
+
    function Get_Relative_Exec   (P : PID_Type) return File_Name_Type;
    --  Look for storage_dir into partitions and compute relative executable
    --  name into partitions. If null, return default.

@@ -126,8 +126,10 @@ package XE_Utils is
    PWD_Id       : File_Name_Type;
 
    Build_Stamp_File      : File_Name_Type;
+   Elaboration_File      : File_Name_Type;
    Elaboration_Name      : File_Name_Type;
-   Elaboration_Full_Name : File_Name_Type;
+   Partition_Main_File   : File_Name_Type;
+   Partition_Main_Name   : File_Name_Type;
 
    procedure Copy_With_File_Stamp
      (Source, Target : in File_Name_Type;
@@ -173,6 +175,9 @@ package XE_Utils is
       Executable    : in File_Name_Type);
    --  Generates the partition ada main subprogram (compilation, bind and
    --  link).
+
+   function Str_To_Id           (S : String) return Name_Id;
+   --  Set into name table and return id.
 
    procedure Unlink_File
      (File : in File_Name_Type);
