@@ -1243,7 +1243,9 @@ host from among a set of hosts.
 
 @smallexample
 PRAGMA ::=
-   @b{pragma} Boot_Server (Protocol_Name => String, Protocol_Data => String);
+   @b{pragma} Boot_Server
+     (Protocol_Name => String,
+      Protocol_Data => String);
 @end smallexample
 
 @node Executable Location, Partition Termination, Boot Server, The Configuration Language
@@ -1277,6 +1279,33 @@ REPRESENTATION_CLAUSE ::=
    @b{for} IDENTIFIER'Termination @b{use} TERMINATION_LITERAL;
 @end smallexample
 
+As a default, a set of partitions terminates when each partition can
+terminate and when no message is waiting for being handled. This
+distributed algorithm is activated periodically by the main boot
+server.
+
+@itemize @bullet
+
+@item When the global termination policy is selected on a partition,
+it terminates as soon as the main boot server asks it to do so. The main
+boot server checks periodically whether this can terminate. When all
+partitions are ready to terminate, the main boot server sends to each
+partition a termination request.
+
+@item The deferred termination policy is very close to the global
+termination. The only difference is that when a partition with a
+deferred termination policy receives a termination request, it just
+ignores it. This policy allows a partition to run forever without
+preventing a set of partitions to terminate. This policy is not yet
+implemented.
+
+@item When the local termination policy is selected on a partition,
+it terminates as soon as the classical Ada termination is detected on
+the partition. It means that this partition does not wait for the
+termination request of the main boot server.
+
+@end itemize
+
 @node Partition Reconnection, Channel Declaration, Partition Termination, The Configuration Language
 @subsection Partition Reconnection
 
@@ -1288,6 +1317,44 @@ RECONNECTION_LITTERAL ::= Rejected_On_Restart  |
 REPRESENTATION_CLAUSE ::=
    @b{for} IDENTIFIER'Reconnection @b{use} RECONNECTION_LITTERAL;
 @end smallexample
+
+When no RCI package is configured on a partition, such a partition can
+be launched several times without any problem. When one or more RCI
+packages are configured on a partition, such a partition cannot be
+launched several times. If this partition was launched several times, it
+would not be possible to decide which partition instance should execute
+a remote procedure call. Note that this problem can occur in other
+circumstances - as soon as a RCI package is duplicated.
+
+When a partition crashes or is stopped, one can want to restart this
+partition and possibly to restore its state with Shared_Passive
+packages. In such a situation, the partition is already defined on other
+partitions and possibly defined as a dead partition. Several policies
+can be selected:
+
+@itemize @bullet
+
+@item When the reconnection policy of this partition is set to
+Reject_On_Restart, the dead partition is kept dead and any attempt to
+restart it fails. Any remote call to a subprogram located on this
+partition results in a Communication_Error exception.
+
+@item When the reconnection policy of this partition is set to
+Failed_Until_Restart, this partition can be restarted. Any remote call
+to a subprogram located on this partition results in an exception
+Communication_Error as long as this partition has not been restarted. As
+soon as the partition is restarted, remote calls to this partition are
+executed normally.
+
+@item When the reconnection policy of this partition is set to
+Wait_Until_Restart, this partition can be restarted. Any remote call to
+a subprogram located on this partition is suspended until this partition
+is restarted. As soon as the partition is restarted, remote calls to
+this partition are executed normally. The suspended remote procedure
+calls to this partition are resumed.
+
+
+@end itemize
 
 @node Channel Declaration, Channel and Partition Filter, Partition Reconnection, The Configuration Language
 @subsection Channel Declaration
@@ -1753,7 +1820,7 @@ performance purposes or to use another protocol to marshall and
 unmarshall predefined types, he can replace @t{s-stratt.adb} by his own
 implementation.
 
-@node Multiple Requests, , Heterogeneous Systems, GLADE Internals
+@node Multiple Requests, Priority Inheritance, Heterogeneous Systems, GLADE Internals
 @subsection Multiple Requests
 When multiple remote procedure calls occur on the same partition, they
 are handled by several anonymous tasks. The number of tasks in the
@@ -1765,7 +1832,7 @@ multiple requests features, he can force the configuration of the
 anonymous tasks pool to (0 | 1, 0 | 1, 1). That means that there is at
 most one anonymous task running at a time.
 
-@node Priority Inheritance, , Multiple Requests, GLADE Internals
+@node Priority Inheritance, Remote Procedure Call Abortion, Multiple Requests, GLADE Internals
 @subsection Priority Inheritance
 It is compiler-dependent to preserve the caller priority during a remote
 procedure call. In fact, it can be unsafe because two partitions may
@@ -1774,7 +1841,7 @@ the caller priority. This priority is marshalled and unmarshalled during
 the remote procedure call and the anonymous task is set to the caller
 priority. There is no way yet to suppress this feature.
 
-@node  Remote Procedure Call Abortion,  , Priority Inheritance, GLADE Internals
+@node Remote Procedure Call Abortion,  , Priority Inheritance, GLADE Internals
 @subsection Remote Procedure Call Abortion
 When a remote procedure call is aborted, GLADE will abort the calling
 task on the caller side. But it will also try to abort the remote
@@ -2229,6 +2296,7 @@ using ASIS. This would allow a DSA user to connect his DSA server to an
 ORB. This would also allow applications written in other languages to
 invoke DSA features. We are also seeking to use this approach to offer a
 DII mechanism for DSA.
+
 
 
 @c XXXXX Index is nonexistent
