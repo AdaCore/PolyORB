@@ -12,6 +12,10 @@ idl15031/tin.idl
 idl15032/tin.idl
 idl15033/tin.idl
 idl15034/tin.idl
+idl07040/tin.idl
+idl07051/tin.idl
+idl07052/tin.idl
+idl07053/tin.idl
 # Tests from IAC some are redundant with those above
 iac001/tin.idl
 iac002/tin.idl
