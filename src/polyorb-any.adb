@@ -33,14 +33,8 @@
 
 --  $Id$
 
-with Ada.Tags;
-
-with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
-
 with PolyORB.Log;
 with PolyORB.Utils.Chained_Lists;
-with PolyORB.Utils.Strings;
 
 with System.Address_Image;
 
@@ -3201,8 +3195,7 @@ package body PolyORB.Any is
 
       while not Last (I) loop
          pragma Debug (O2 ("Deep_Deallocate: object type is "
-                           & Ada.Tags.External_Tag
-                           (Value (I).all'Tag)));
+                           & Content_External_Tag (Value (I).all.all)));
          Deallocate (Value (I).all);
          Next (I);
       end loop;
@@ -3221,7 +3214,7 @@ package body PolyORB.Any is
 
       for J in List'Range loop
          pragma Debug (O2 ("Deep_Deallocate: object type is "
-                           & Ada.Tags.External_Tag (List (J)'Tag)));
+                           & Content_External_Tag (List (J).all)));
          Deallocate (List (J));
       end loop;
 
@@ -3730,8 +3723,8 @@ package body PolyORB.Any is
 
       if Self.The_Value /= null then
          pragma Debug (O2 (" * deallocation of a "
-                           & Ada.Tags.External_Tag
-                           (Self.The_Value'Tag)));
+                           & Content_External_Tag
+                           (Self.The_Value.all)));
          Deallocate (Self.The_Value);
       end if;
       pragma Debug (O2 (" * content released"));
@@ -3781,30 +3774,4 @@ package body PolyORB.Any is
         & " = " & Image (NV.Argument);
    end Image;
 
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize;
-
-   procedure Initialize is
-   begin
-
-      TypeCode.Initialize;
-
-   end Initialize;
-
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
-
-begin
-   Register_Module
-     (Module_Info'
-      (Name      => +"any",
-       Conflicts => Empty,
-       Depends   => +"smart_pointers",
-       Provides  => Empty,
-       Implicit  => False,
-       Init      => Initialize'Access));
 end PolyORB.Any;

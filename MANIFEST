@@ -662,6 +662,8 @@ src/polyorb-annotations.adb
 src/polyorb-annotations.ads
 src/polyorb-any-exceptionlist.adb
 src/polyorb-any-exceptionlist.ads
+src/polyorb-any-initialization.adb
+src/polyorb-any-initialization.ads
 src/polyorb-any-nvlist.adb
 src/polyorb-any-nvlist.ads
 src/polyorb-any-objref.adb
@@ -887,6 +889,8 @@ src/polyorb-setup-thread_per_session_server.ads
 src/polyorb-setup-thread_pool_server.adb
 src/polyorb-setup-thread_pool_server.ads
 src/polyorb-setup.ads
+src/polyorb-smart_pointers-initialization.adb
+src/polyorb-smart_pointers-initialization.ads
 src/polyorb-smart_pointers.adb
 src/polyorb-smart_pointers.ads
 src/polyorb-sockets.ads

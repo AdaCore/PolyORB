@@ -33,7 +33,7 @@
 
 --  Definition of the container type 'Any'
 
---  $Id: //droopi/main/src/polyorb-any.ads#40 $
+--  $Id$
 
 with Ada.Unchecked_Deallocation;
 
@@ -42,7 +42,7 @@ with PolyORB.Types;
 
 package PolyORB.Any is
 
-   pragma Elaborate_Body;
+   pragma Preelaborate;
 
    ---------
    -- Any --
@@ -932,5 +932,23 @@ private
    ARG_OUT       : constant Flags := 1;
    ARG_INOUT     : constant Flags := 2;
    IN_COPY_VALUE : constant Flags := 3;
+
+   ---------------------
+   -- Debugging hooks --
+   ---------------------
+
+   --  For debugging purposes, the body of this unit needs to call
+   --  Ada.Tags.External_Tag for any contents. However,
+   --  we do not want any dependence on Ada.Tags, because that would
+   --  prevent this unit from being preelaborate. Consequently, we
+   --  declare hooks to be initialized during elaboration.
+
+   type Content_External_Tag_Hook is access
+     function (X : Content'Class)
+     return String;
+
+   Content_External_Tag : Content_External_Tag_Hook := null;
+   --  Hooks to be set up by a child unit during PolyORB
+   --  initialization.
 
 end PolyORB.Any;

@@ -31,24 +31,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.adb#30 $
+--  $Id$
 
 with Ada.Unchecked_Deallocation;
-with Ada.Tags;
-
-with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
-with PolyORB.Tasking.Mutexes;
-with PolyORB.Utils.Strings;
 
 package body PolyORB.Smart_Pointers is
 
    use PolyORB.Log;
    use PolyORB.Tasking.Mutexes;
-
-   Counter_Lock : Mutex_Access;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.smart_pointers");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -64,7 +56,7 @@ package body PolyORB.Smart_Pointers is
       pragma Assert (Obj.Counter /= -1);
 
       pragma Debug (O ("Inc_Usage: Obj is a "
-                       & Ada.Tags.External_Tag (Obj.all'Tag)));
+                       & Entity_External_Tag (Obj.all)));
 
       pragma Assert (Counter_Lock /= null);
       Enter (Counter_Lock);
@@ -90,7 +82,7 @@ package body PolyORB.Smart_Pointers is
    begin
       pragma Assert (Obj.Counter /= -1);
       pragma Debug (O ("Dec_Usage: Obj is a "
-                       & Ada.Tags.External_Tag (Obj.all'Tag)));
+                       & Entity_External_Tag (Obj.all)));
 
       pragma Assert (Counter_Lock /= null);
       Enter (Counter_Lock);
@@ -103,7 +95,7 @@ package body PolyORB.Smart_Pointers is
       if Obj.Counter = 0 then
 
          pragma Debug (O ("Dec_Usage: deallocating "
-                          & Ada.Tags.External_Tag (Obj.all'Tag)));
+                          & Entity_External_Tag (Obj.all)));
 
          Leave (Counter_Lock);
          --  Releasing Counter_Lock at this stage is sufficient to
@@ -212,8 +204,7 @@ package body PolyORB.Smart_Pointers is
      (The_Ref : in out Ref) is
    begin
       pragma Debug (O ("Finalize: enter, The_Ref is a "
-                       & Ada.Tags.External_Tag
-                       (Ref'Class (The_Ref)'Tag)));
+                       & Ref_External_Tag (The_Ref)));
 
       if The_Ref.A_Ref /= null then
          Dec_Usage (The_Ref.A_Ref);
@@ -258,28 +249,4 @@ package body PolyORB.Smart_Pointers is
       return The_Ref.A_Ref;
    end Entity_Of;
 
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize;
-
-   procedure Initialize is
-   begin
-      Create (Counter_Lock);
-   end Initialize;
-
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
-
-begin
-   Register_Module
-     (Module_Info'
-      (Name      => +"smart_pointers",
-       Conflicts => Empty,
-       Depends   => +"tasking.mutexes",
-       Provides  => Empty,
-       Implicit  => False,
-       Init      => Initialize'Access));
 end PolyORB.Smart_Pointers;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,9 +35,11 @@
 
 with Ada.Finalization;
 
+with PolyORB.Tasking.Mutexes;
+
 package PolyORB.Smart_Pointers is
 
-   pragma Elaborate_Body;
+   pragma Preelaborate;
 
    ------------
    -- Entity --
@@ -117,8 +119,14 @@ package PolyORB.Smart_Pointers is
 
 private
 
+   Counter_Lock : Tasking.Mutexes.Mutex_Access;
+   --  Global mutex used to guarantee consistency of concurrent
+   --  accesses to entity reference counters. To be created by
+   --  a child unit during PolyORB initialization.
+
    type Non_Controlled_Entity is abstract tagged limited record
       Counter : Integer := 0;
+      --  Reference counter.
    end record;
 
    type Entity_Controller (E : access Entity'Class)
@@ -138,5 +146,28 @@ private
    type Ref is new Ada.Finalization.Controlled with record
       A_Ref : Entity_Ptr := null;
    end record;
+
+   ---------------------
+   -- Debugging hooks --
+   ---------------------
+
+   --  For debugging purposes, the body of this unit needs to call
+   --  Ada.Tags.External_Tag for entities and references. However,
+   --  we do not want any dependence on Ada.Tags, because that would
+   --  prevent this unit from being preelaborate. Consequently, we
+   --  declare hooks to be initialized during elaboration.
+
+   type Entity_External_Tag_Hook is access
+     function (X : Non_Controlled_Entity'Class)
+     return String;
+
+   type Ref_External_Tag_Hook is access
+     function (X : Ref'Class)
+     return String;
+
+   Entity_External_Tag : Entity_External_Tag_Hook := null;
+   Ref_External_Tag    : Ref_External_Tag_Hook := null;
+   --  Hooks to be set up by a child unit during PolyORB
+   --  initialization.
 
 end PolyORB.Smart_Pointers;
