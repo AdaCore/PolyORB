@@ -49,7 +49,7 @@ package body System.Garlic.Utils is
 
    use Ada.Task_Identification;
 
-   Window : constant Version_Id := Version_Id'Last / 2;
+   Version_Id_Window : constant Version_Id := Version_Id'Last / 2;
 
    protected type Barrier_PO is
       entry Wait;
@@ -111,7 +111,7 @@ package body System.Garlic.Utils is
 
    function "<" (L, R : Version_Id) return Boolean is
    begin
-      return R - L < Window;
+      return Integer (R - L) < Integer (Version_Id_Window);
    end "<";
 
    ----------------------
