@@ -61,6 +61,10 @@ package Make is
    --  Links Ali_File. Args are the arguments to pass to the linker.
    --  Args must have a lower bound of 1.
 
+   procedure Initialize;
+   --  Performs default and package initialization. Therefore,
+   --  Compile_Sources can be called by an external unit.
+
    procedure Compile_Sources
      (Main_Source           : File_Name_Type;
       Args                  : Argument_List;

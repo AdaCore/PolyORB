@@ -205,9 +205,45 @@ package body Make is
    Display_Executed_Programs : Boolean := True;
    --  Set to True if name of commands should be output on stderr.
 
-   procedure Display (Program : String; Args : Argument_List);
-   --  Displays Program followed by the arguments in Args if variable
-   --  Display_Executed_Programs is set. The lower bound of Args must be 1.
+   Output_Filename_Seen : Boolean := False;
+   --  Set to True after having scanned the file_name for
+   --  switch "-o file_name"
+
+   File_Name_Seen : Boolean := False;
+   --  Set to true after having seen at least one file name.
+   --  Used in Scan_Make_Arg only, but must be a global variable.
+
+   type Make_Program_Type is (None, Compiler, Binder, Linker);
+
+   Program_Args : Make_Program_Type := None;
+   --  Used to indicate if we are scanning gcc, gnatbind, or gnatbl
+   --  options within the gnatmake command line.
+   --  Used in Scan_Make_Arg only, but must be a global variable.
+
+   procedure Add_Switch
+     (S   : String;
+      T   : Make_Program_Type);
+   procedure Add_Switch
+     (S1  : String;
+      S2  : String;
+      T   : Make_Program_Type;
+      Pos : Integer);
+   procedure Add_Switch
+     (S1  : String;
+      S2  : String;
+      T   : Make_Program_Type);
+   --  Make invokes one of three programs (the compiler, the binder or the
+      --  linker). For the sake of convenience, some program specific switches
+   --  can be passed directly on the gnatmake commande line, hence they need
+   --  to be recorded so that gnamake can pass them to the right program.
+   --  In the above calls, S is a switch to be added, or S1 and S2 are two
+   --  separate switches to be added at the end of the command line for T.
+   --  If Pos is set then the switch is inserted in position Pos in the
+   --  command line (thus shifting the position of all other switches).
+   --  Pos must be a valid switch position).
+   --
+   --  Note from RBKD, it would be cleaner to have one procedure with some
+   --  default parameters (null for S2 and -1 for Pos for example) ???
 
    procedure Check
      (Lib_File  : File_Name_Type;
@@ -220,6 +256,13 @@ package body Make is
    --  saved in O_Stamp. Ali is the ALI_Id corresponding to Lib_File. If
    --  Lib_File in not up-to-date, then the coresponding source file needs
    --  to be recompiled. In this case Ali = No_ALI_Id.
+
+   procedure Display (Program : String; Args : Argument_List);
+   --  Displays Program followed by the arguments in Args if variable
+   --  Display_Executed_Programs is set. The lower bound of Args must be 1.
+
+   procedure Scan_Make_Arg (Argv : String);
+   --  Scan make arguments. Argv is a single argument to be processed.
 
    ------------------------
    -- Ada_Library_Lookup --
@@ -284,6 +327,88 @@ package body Make is
       Ada_Lib_Search_Directories.Table (Ada_Lib_Search_Directories.Last) :=
         Normalize_Directory_Name (Dir);
    end Add_Ada_Lib_Search_Dir;
+
+   ----------------
+   -- Add_Switch --
+   ----------------
+
+   procedure Add_Switch (S : String; T : Make_Program_Type) is
+   begin
+      case T is
+         when Compiler =>
+            Gcc_Switches.Increment_Last;
+            Gcc_Switches.Table (Gcc_Switches.Last) := new String'(S);
+
+         when Binder   =>
+            Binder_Switches.Increment_Last;
+            Binder_Switches.Table (Binder_Switches.Last) := new String'(S);
+
+         when Linker   =>
+            Linker_Switches.Increment_Last;
+            Linker_Switches.Table (Linker_Switches.Last) := new String'(S);
+
+         when None =>
+            pragma Assert (False);
+            null;
+      end case;
+   end Add_Switch;
+
+   ----------------
+   -- Add_Switch --
+   ----------------
+
+   procedure Add_Switch
+     (S1, S2 : String; T : Make_Program_Type; Pos : Integer) is
+      Tmp : String (1 .. S1'Length + S2'Length);
+   begin
+      Tmp (1 .. S1'Length) := S1;
+      Tmp (S1'Length + 1 .. S1'Length + S2'Length) := S2;
+      case T is
+         when Compiler =>
+            pragma Assert
+              (Gcc_Switches.First <= Pos and Pos <= Gcc_Switches.Last);
+
+            Gcc_Switches.Increment_Last;
+            for J in reverse Pos + 1 .. Gcc_Switches.Last loop
+               Gcc_Switches.Table (J) := Gcc_Switches.Table (J - 1);
+            end loop;
+
+            Gcc_Switches.Table (Pos) := new String'(Tmp);
+
+         when Binder   =>
+            pragma Assert
+              (Binder_Switches.First <= Pos
+               and Pos <= Binder_Switches.Last);
+
+            Binder_Switches.Increment_Last;
+            for J in reverse Pos + 1 .. Binder_Switches.Last loop
+               Binder_Switches.Table (J) := Binder_Switches.Table (J - 1);
+            end loop;
+
+            Binder_Switches.Table (Pos) := new String'(Tmp);
+
+            --  For the time being this facility is not available for the
+            --  linker but can be trivially implemented.
+
+         when others =>
+            pragma Assert (False);
+            null;
+      end case;
+
+   end Add_Switch;
+
+   ----------------
+   -- Add_Switch --
+   ----------------
+
+   procedure Add_Switch (S1, S2 : String; T : Make_Program_Type) is
+      Tmp : String (1 .. S1'Length + S2'Length);
+
+   begin
+      Tmp (1 .. S1'Length) := S1;
+      Tmp (S1'Length + 1 .. S1'Length + S2'Length) := S2;
+      Add_Switch (Tmp, T);
+   end Add_Switch;
 
    ------------
    -- Append --
@@ -1212,6 +1337,56 @@ package body Make is
       Write_Eol;
    end Inform;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+
+      Next_Arg : Positive;
+
+   begin
+
+      --  Default initialization of the flags affecting gnatmake
+
+      Opt.Check_Internal_Files     := False;
+      Opt.Check_Object_Consistency := True;
+      Opt.Compile_Only             := False;
+      Opt.Dont_Execute             := False;
+      Opt.Force_Compilations       := False;
+      Opt.Quiet_Output             := False;
+      Opt.Smart_Compilations       := False;
+      Opt.Verbose_Mode             := False;
+
+      --  Package initializations. The order of calls is important here.
+
+      Output.Set_Standard_Error;
+      Osint.Initialize (Osint.Make); --  Reads gnatmake switches
+
+      Gcc_Switches.Init;
+      Binder_Switches.Init;
+      Linker_Switches.Init;
+      Ada_Lib_Search_Directories.Init;
+
+      Next_Arg := 1;
+      Scan_Args : loop
+         exit when Next_Arg > Argument_Count;
+         Scan_Make_Arg (Argument (Next_Arg));
+         Next_Arg := Next_Arg + 1;
+      end loop Scan_Args;
+
+      Osint.Add_Default_Search_Dirs;
+
+      Csets.Initialize;
+      Namet.Initialize;
+
+      --  Source file lookups should be cached for efficiency.
+      --  Source files are not supposed to change.
+
+      Osint.Source_File_Data (Cache => True);
+
+   end Initialize;
+
    --------------
    -- Gnatmake --
    --------------
@@ -1230,148 +1405,21 @@ package body Make is
       Main_Ali_File : File_Name_Type;
       --  The ali file corresponding to Main_Source_File
 
-      File_Name_Seen : Boolean := False;
-      --  Set to true after having seen at least one file name.
-      --  Used in Scan_Make_Arg only, but must be a global variable.
-
       File_Name : String_Ptr;
       --  As arguments are scanned in Initialize, filenames are stored
       --  in this array. The string does not contain a terminating NUL.
-
-      Output_Filename_Seen : Boolean := False;
-      --  Set to True after having scanned the file_name for
-      --  switch "-o file_name"
-
-      type Make_Program_Type is (None, Compiler, Binder, Linker);
-
-      Program_Args : Make_Program_Type := None;
-      --  Used to indicate if we are scanning gcc, gnatbind, or gnatbl
-      --  options within the gnatmake command line.
-      --  Used in Scan_Make_Arg only, but must be a global variable.
-
-      Next_Arg : Positive;
 
       -----------------------
       -- Local Subprograms --
       -----------------------
 
-      procedure Add_Switch
-        (S   : String;
-         T   : Make_Program_Type);
-      procedure Add_Switch
-        (S1  : String;
-         S2  : String;
-         T   : Make_Program_Type;
-         Pos : Integer);
-      procedure Add_Switch
-        (S1  : String;
-         S2  : String;
-         T   : Make_Program_Type);
-      --  Make invokes one of three programs (the compiler, the binder or the
-      --  linker). For the sake of convenience, some program specific switches
-      --  can be passed directly on the gnatmake commande line, hence they need
-      --  to be recorded so that gnamake can pass them to the right program.
-      --  In the above calls, S is a switch to be added, or S1 and S2 are two
-      --  separate switches to be added at the end of the command line for T.
-      --  If Pos is set then the switch is inserted in position Pos in the
-      --  command line (thus shifting the position of all other switches).
-      --  Pos must be a valid switch position).
-      --
-      --  Note from RBKD, it would be cleaner to have one procedure with some
-      --  default parameters (null for S2 and -1 for Pos for example) ???
-
       procedure Makeusg;
       --  Outputs gnatmake usage information.
-
-      procedure Scan_Make_Arg (Argv : String);
-      --  Scan make arguments. Argv is a single argument to be processed.
 
       function To_Lower (Name : Name_Id) return Name_Id;
       --  If Name does not have upper case characters, Name is returned,
       --  otherwise this routine creates and returns a new lower case
       --  version of Name.
-
-      ----------------
-      -- Add_Switch --
-      ----------------
-
-      procedure Add_Switch (S : String; T : Make_Program_Type) is
-      begin
-         case T is
-            when Compiler =>
-               Gcc_Switches.Increment_Last;
-               Gcc_Switches.Table (Gcc_Switches.Last) := new String'(S);
-
-            when Binder   =>
-               Binder_Switches.Increment_Last;
-               Binder_Switches.Table (Binder_Switches.Last) := new String'(S);
-
-            when Linker   =>
-               Linker_Switches.Increment_Last;
-               Linker_Switches.Table (Linker_Switches.Last) := new String'(S);
-
-            when None =>
-               pragma Assert (False);
-               null;
-         end case;
-      end Add_Switch;
-
-      ----------------
-      -- Add_Switch --
-      ----------------
-
-      procedure Add_Switch
-        (S1, S2 : String; T : Make_Program_Type; Pos : Integer) is
-         Tmp : String (1 .. S1'Length + S2'Length);
-      begin
-         Tmp (1 .. S1'Length) := S1;
-         Tmp (S1'Length + 1 .. S1'Length + S2'Length) := S2;
-         case T is
-            when Compiler =>
-               pragma Assert
-                 (Gcc_Switches.First <= Pos and Pos <= Gcc_Switches.Last);
-
-               Gcc_Switches.Increment_Last;
-               for J in reverse Pos + 1 .. Gcc_Switches.Last loop
-                  Gcc_Switches.Table (J) := Gcc_Switches.Table (J - 1);
-               end loop;
-
-               Gcc_Switches.Table (Pos) := new String'(Tmp);
-
-            when Binder   =>
-               pragma Assert
-                 (Binder_Switches.First <= Pos
-                    and Pos <= Binder_Switches.Last);
-
-               Binder_Switches.Increment_Last;
-               for J in reverse Pos + 1 .. Binder_Switches.Last loop
-                  Binder_Switches.Table (J) := Binder_Switches.Table (J - 1);
-               end loop;
-
-               Binder_Switches.Table (Pos) := new String'(Tmp);
-
-            --  For the time being this facility is not available for the
-            --  linker but can be trivially implemented.
-
-            when others =>
-               pragma Assert (False);
-               null;
-         end case;
-
-      end Add_Switch;
-
-      ----------------
-      -- Add_Switch --
-      ----------------
-
-      procedure Add_Switch (S1, S2 : String; T : Make_Program_Type) is
-         Tmp : String (1 .. S1'Length + S2'Length);
-
-      begin
-         Tmp (1 .. S1'Length) := S1;
-         Tmp (S1'Length + 1 .. S1'Length + S2'Length) := S2;
-         Add_Switch (Tmp, T);
-      end Add_Switch;
 
       -------------
       -- Makeusg --
@@ -1568,206 +1616,11 @@ package body Make is
          return Name_Enter;
       end To_Lower;
 
-      -------------------
-      -- Scan_Make_Arg --
-      -------------------
-
-      procedure Scan_Make_Arg (Argv : String) is
-      begin
-         pragma Assert (Argv'First = 1);
-
-         if Argv'Length = 0 then
-            return;
-         end if;
-
-         --  If the previous switch has set the Output_Filename_Present
-         --  flag (that is we have seen a -o), then the next argument is
-         --  the name of the output executable.
-
-         if Opt.Output_Filename_Present and then not Output_Filename_Seen then
-            Output_Filename_Seen := True;
-
-            if Argv (1) = Switch_Character or else Argv (1) = '-' then
-               Fail ("Output filename missing after -o");
-            else
-               Add_Switch ("-o", Linker);
-               Add_Switch (Argv, Linker);
-            end if;
-
-         --  Then check if we are dealing with a -cargs, -bargs or -largs
-
-         elsif (Argv (1) = Switch_Character or else Argv (1) = '-')
-           and then (Argv (2 .. Argv'Last) = "cargs"
-                      or else Argv (2 .. Argv'Last) = "bargs"
-                      or else Argv (2 .. Argv'Last) = "largs")
-         then
-            if not File_Name_Seen then
-               Fail ("-cargs, -bargs, -largs ",
-                     "must appear after unit or file name");
-            end if;
-
-            case Argv (2) is
-               when 'c' => Program_Args := Compiler;
-               when 'b' => Program_Args := Binder;
-               when 'l' => Program_Args := Linker;
-
-               when others =>
-                  pragma Assert (False);
-                  null;
-            end case;
-
-         --  A special test is needed for the -o switch within a -largs
-         --  since that is another way to specify the name of the final
-         --  executable.
-
-         elsif Program_Args = Linker
-           and then (Argv (1) = Switch_Character or else Argv (1) = '-')
-           and then Argv (2 .. Argv'Last) = "o"
-         then
-            Fail ("Switch -o not allowed within a -largs. Use -o directly.");
-
-         --  Check to see if we are reading switches after a -cargs,
-         --  -bargs or -largs switch. If yes save it.
-
-         elsif Program_Args /= None then
-            Add_Switch (Argv, Program_Args);
-
-         --  If we have seen a regular switch process it
-
-         elsif Argv (1) = Switch_Character or else Argv (1) = '-' then
-
-            if Argv'Length = 1 then
-               Fail ("switch character cannot be followed by a blank");
-
-            --  -I-
-
-            elsif Argv (2 .. Argv'Last) = "I-" then
-               Opt.Look_In_Primary_Dir := False;
-
-            --  Forbid  -?-  or  -??-  where ? is any character
-
-            elsif (Argv'Length = 3 and then Argv (3) = '-')
-              or else (Argv'Length = 4 and then Argv (4) = '-')
-            then
-               Fail ("Trailing ""-"" at the end of ", Argv, " forbidden.");
-
-            --  -Idir
-
-            elsif Argv (2) = 'I' then
-               Add_Src_Search_Dir (Argv (3 .. Argv'Last));
-               Add_Lib_Search_Dir (Argv (3 .. Argv'Last));
-               Add_Switch (Argv, Compiler);
-               Add_Switch ("-aO", Argv (3 .. Argv'Last), Binder);
-               --  No need to pass any source dir to the binder
-               --  since gnatmake call it with the -x flag
-               --  (ie do not check source time stamp)
-
-            --  -aIdir (to gcc this is like a -I switch)
-
-            elsif Argv'Length >= 3 and then Argv (2 .. 3) = "aI" then
-               Add_Src_Search_Dir (Argv (4 .. Argv'Last));
-               Add_Switch ("-I", Argv (4 .. Argv'Last), Compiler);
-
-            --  -aOdir
-
-            elsif Argv'Length >= 3 and then Argv (2 .. 3) = "aO" then
-               Add_Lib_Search_Dir (Argv (4 .. Argv'Last));
-               Add_Switch (Argv, Binder);
-
-            --  -aLdir (to gnatbind this is like a -aO switch)
-
-            elsif Argv'Length >= 3 and then Argv (2 .. 3) = "aL" then
-               Add_Ada_Lib_Search_Dir (Argv (4 .. Argv'Last));
-               Add_Switch ("-aO", Argv (4 .. Argv'Last), Binder);
-
-            --  -Adir (to gnatbind this is like a -aO switch, to gcc like a -I)
-
-            elsif Argv (2) = 'A' then
-               Add_Src_Search_Dir (Argv (3 .. Argv'Last));
-               Add_Ada_Lib_Search_Dir (Argv (3 .. Argv'Last));
-               Add_Switch ("-I", Argv (3 .. Argv'Last), Compiler);
-               Add_Switch ("-aO", Argv (3 .. Argv'Last), Binder);
-
-            --  -Ldir
-
-            elsif Argv (2) = 'L' then
-               Add_Switch (Argv, Linker);
-
-            --  -g
-
-            elsif Argv (2) = 'g'
-              and then (Argv'Last = 2
-                        or else Argv (3) in '0' .. '3')
-            then
-               Add_Switch (Argv, Compiler);
-               Add_Switch (Argv, Linker);
-
-            --  By default all switches with more than one character
-            --  or one character switches which are not in 'a' .. 'z'
-            --  are passed to the compiler, unless we are dealing
-            --  with a -jnum switch or a debug switch (starts with 'd')
-
-            elsif Argv (2) /= 'j'
-              and then Argv (2) /= 'd'
-              and then Argv (2 .. Argv'Last) /= "M"
-              and then (Argv'Length > 2 or else Argv (2) not in 'a' .. 'z')
-            then
-               Add_Switch (Argv, Compiler);
-
-            --  All other options are handled by Scan_Switches.
-
-            else
-               Scan_Switches (Argv);
-            end if;
-
-         --  If not a switch it must be a file name
-
-         else
-            File_Name_Seen := True;
-            Set_Main_File_Name (Argv);
-         end if;
-      end Scan_Make_Arg;
-
    --  Start of processing for Gnatmake
 
    begin
-      --  Default initialization of the flags affecting gnatmake
 
-      Opt.Check_Internal_Files     := False;
-      Opt.Check_Object_Consistency := True;
-      Opt.Compile_Only             := False;
-      Opt.Dont_Execute             := False;
-      Opt.Force_Compilations       := False;
-      Opt.Quiet_Output             := False;
-      Opt.Smart_Compilations       := False;
-      Opt.Verbose_Mode             := False;
-
-      --  Package initializations. The order of calls is important here.
-
-      Output.Set_Standard_Error;
-      Osint.Initialize (Osint.Make); --  Reads gnatmake switches
-
-      Gcc_Switches.Init;
-      Binder_Switches.Init;
-      Linker_Switches.Init;
-      Ada_Lib_Search_Directories.Init;
-
-      Next_Arg := 1;
-      Scan_Args : loop
-         exit when Next_Arg > Argument_Count;
-         Scan_Make_Arg (Argument (Next_Arg));
-         Next_Arg := Next_Arg + 1;
-      end loop Scan_Args;
-
-      Osint.Add_Default_Search_Dirs;
-
-      Csets.Initialize;
-      Namet.Initialize;
-
-      --  Source file lookups should be cached for efficiency.
-      --  Source files are not supposed to change.
-
-      Osint.Source_File_Data (Cache => True);
+      Initialize;
 
       if Opt.Verbose_Mode then
          Write_Eol;
@@ -2147,6 +2000,166 @@ package body Make is
    begin
       Set_Name_Table_Byte (Source_File, 0);
    end Unmark;
+
+   -------------------
+   -- Scan_Make_Arg --
+   -------------------
+
+   procedure Scan_Make_Arg (Argv : String) is
+   begin
+      pragma Assert (Argv'First = 1);
+
+      if Argv'Length = 0 then
+         return;
+      end if;
+
+      --  If the previous switch has set the Output_Filename_Present
+      --  flag (that is we have seen a -o), then the next argument is
+      --  the name of the output executable.
+
+      if Opt.Output_Filename_Present and then not Output_Filename_Seen then
+         Output_Filename_Seen := True;
+
+         if Argv (1) = Switch_Character or else Argv (1) = '-' then
+            Fail ("Output filename missing after -o");
+         else
+            Add_Switch ("-o", Linker);
+            Add_Switch (Argv, Linker);
+         end if;
+
+         --  Then check if we are dealing with a -cargs, -bargs or -largs
+
+      elsif (Argv (1) = Switch_Character or else Argv (1) = '-')
+        and then (Argv (2 .. Argv'Last) = "cargs"
+                  or else Argv (2 .. Argv'Last) = "bargs"
+                  or else Argv (2 .. Argv'Last) = "largs")
+      then
+         if not File_Name_Seen then
+            Fail ("-cargs, -bargs, -largs ",
+                  "must appear after unit or file name");
+         end if;
+
+         case Argv (2) is
+            when 'c' => Program_Args := Compiler;
+            when 'b' => Program_Args := Binder;
+            when 'l' => Program_Args := Linker;
+
+            when others =>
+               pragma Assert (False);
+               null;
+         end case;
+
+         --  A special test is needed for the -o switch within a -largs
+         --  since that is another way to specify the name of the final
+         --  executable.
+
+      elsif Program_Args = Linker
+        and then (Argv (1) = Switch_Character or else Argv (1) = '-')
+        and then Argv (2 .. Argv'Last) = "o"
+      then
+         Fail ("Switch -o not allowed within a -largs. Use -o directly.");
+
+         --  Check to see if we are reading switches after a -cargs,
+         --  -bargs or -largs switch. If yes save it.
+
+      elsif Program_Args /= None then
+         Add_Switch (Argv, Program_Args);
+
+         --  If we have seen a regular switch process it
+
+      elsif Argv (1) = Switch_Character or else Argv (1) = '-' then
+
+         if Argv'Length = 1 then
+            Fail ("switch character cannot be followed by a blank");
+
+            --  -I-
+
+         elsif Argv (2 .. Argv'Last) = "I-" then
+            Opt.Look_In_Primary_Dir := False;
+
+            --  Forbid  -?-  or  -??-  where ? is any character
+
+         elsif (Argv'Length = 3 and then Argv (3) = '-')
+           or else (Argv'Length = 4 and then Argv (4) = '-')
+         then
+            Fail ("Trailing ""-"" at the end of ", Argv, " forbidden.");
+
+            --  -Idir
+
+         elsif Argv (2) = 'I' then
+            Add_Src_Search_Dir (Argv (3 .. Argv'Last));
+            Add_Lib_Search_Dir (Argv (3 .. Argv'Last));
+            Add_Switch (Argv, Compiler);
+            Add_Switch ("-aO", Argv (3 .. Argv'Last), Binder);
+            --  No need to pass any source dir to the binder
+            --  since gnatmake call it with the -x flag
+            --  (ie do not check source time stamp)
+
+            --  -aIdir (to gcc this is like a -I switch)
+
+         elsif Argv'Length >= 3 and then Argv (2 .. 3) = "aI" then
+            Add_Src_Search_Dir (Argv (4 .. Argv'Last));
+            Add_Switch ("-I", Argv (4 .. Argv'Last), Compiler);
+
+            --  -aOdir
+
+         elsif Argv'Length >= 3 and then Argv (2 .. 3) = "aO" then
+            Add_Lib_Search_Dir (Argv (4 .. Argv'Last));
+            Add_Switch (Argv, Binder);
+
+            --  -aLdir (to gnatbind this is like a -aO switch)
+
+         elsif Argv'Length >= 3 and then Argv (2 .. 3) = "aL" then
+            Add_Ada_Lib_Search_Dir (Argv (4 .. Argv'Last));
+            Add_Switch ("-aO", Argv (4 .. Argv'Last), Binder);
+
+            --  -Adir (to gnatbind this is like a -aO switch, to gcc like a -I)
+
+         elsif Argv (2) = 'A' then
+            Add_Src_Search_Dir (Argv (3 .. Argv'Last));
+            Add_Ada_Lib_Search_Dir (Argv (3 .. Argv'Last));
+            Add_Switch ("-I", Argv (3 .. Argv'Last), Compiler);
+            Add_Switch ("-aO", Argv (3 .. Argv'Last), Binder);
+
+            --  -Ldir
+
+         elsif Argv (2) = 'L' then
+            Add_Switch (Argv, Linker);
+
+            --  -g
+
+         elsif Argv (2) = 'g'
+           and then (Argv'Last = 2
+                     or else Argv (3) in '0' .. '3')
+         then
+            Add_Switch (Argv, Compiler);
+            Add_Switch (Argv, Linker);
+
+            --  By default all switches with more than one character
+            --  or one character switches which are not in 'a' .. 'z'
+            --  are passed to the compiler, unless we are dealing
+            --  with a -jnum switch or a debug switch (starts with 'd')
+
+         elsif Argv (2) /= 'j'
+           and then Argv (2) /= 'd'
+           and then Argv (2 .. Argv'Last) /= "M"
+           and then (Argv'Length > 2 or else Argv (2) not in 'a' .. 'z')
+         then
+            Add_Switch (Argv, Compiler);
+
+            --  All other options are handled by Scan_Switches.
+
+         else
+            Scan_Switches (Argv);
+         end if;
+
+         --  If not a switch it must be a file name
+
+      else
+         File_Name_Seen := True;
+         Set_Main_File_Name (Argv);
+      end if;
+   end Scan_Make_Arg;
 
    -----------------
    -- Verbose_Msg --
