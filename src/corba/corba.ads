@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.ads#15 $
+--  $Id: //droopi/main/src/corba/corba.ads#16 $
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
@@ -389,7 +389,6 @@ package CORBA is
 
    Security : constant ServiceType := 1;
 
-
    -----------
    --  Any  --
    -----------
@@ -643,6 +642,18 @@ package CORBA is
 
    function Image (NV : NamedValue) return Standard.String;
    --  For debugging purposes.
+
+   function To_Any (CS : Completion_Status) return Any;
+   function From_Any (Item : Any) return Completion_Status;
+
+   function System_Exception_To_Any
+     (E : Ada.Exceptions.Exception_Occurrence)
+     return Any;
+   --  Convert an exception occurrence to an Any. If the exception
+   --  occurrence is a CORBA system exception, it is converted
+   --  to an Any that represents that system exception, else
+   --  it is converted to an any that represents system exception
+   --  CORBA::Unknown.
 
 private
 
