@@ -33,10 +33,8 @@ package body Utils is
    ---------
 
    function Img (N : Character) return String is
-      S : String (1 .. 1);
    begin
-      S (1) := N;
-      return S;
+      return (1 => N);
    end Img;
 
    ---------
