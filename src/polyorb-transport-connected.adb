@@ -162,9 +162,21 @@ package body PolyORB.Transport.Connected is
             TE.Max    := DE.Max;
          end;
 
-         return Emit
-           (TE.Server, ORB.Interface.Monitor_Endpoint'
-              (TE => Transport_Endpoint_Access (TE)));
+         if Is_Data_Available (Connected_Transport_Endpoint'Class (TE.all),
+                               Natural (TE.Max))
+         then
+            pragma Debug (O ("TE has " & TE.Max'Img
+                             & " bytes waiting, will read data"));
+
+            return Handle_Message
+              (TE, Data_Indication'(Data_Amount => TE.Max));
+         else
+            pragma Debug (O ("No enough data on TE, ORB will monitor TE"));
+
+            return Emit
+              (TE.Server, ORB.Interface.Monitor_Endpoint'
+               (TE => Transport_Endpoint_Access (TE)));
+         end if;
 
       elsif Msg in Data_Indication then
          pragma Debug (O ("Data received"));

@@ -91,6 +91,14 @@ package PolyORB.Transport.Connected is
    procedure Handle_Event
      (H : access Connected_TE_AES_Event_Handler);
 
+   function Is_Data_Available
+     (TE : Connected_Transport_Endpoint;
+      N  : Natural)
+     return Boolean
+      is abstract;
+   --  Return True iff N bytes or more are available on TE for direct read.
+   --  Return False otherwise, or if TE does not support such a mechanism.
+
 private
 
    type Connected_Transport_Access_Point

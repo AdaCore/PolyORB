@@ -82,6 +82,11 @@ package PolyORB.Transport.Connected.Sockets is
      (TE : Socket_Endpoint)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
+   function Is_Data_Available
+     (TE : Socket_Endpoint;
+      N  : Natural)
+     return Boolean;
+
    procedure Read
      (TE     : in out Socket_Endpoint;
       Buffer : Buffers.Buffer_Access;
