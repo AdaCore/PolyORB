@@ -2,11 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                                B R O C A                                 --
---                                                                          --
---                                 S p e c                                  --
---                                                                          --
---                            $Revision: 1.2 $
+XXXXXX
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -32,7 +28,3 @@
 --                     (email: broker@inf.enst.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
-
-package Broca is
-   pragma Pure (Broca);
-end Broca;

@@ -1,0 +1,121 @@
+#!/bin/sh
+#
+# $Id: //depot/adabroker/main/broca/Utils/make_distrib#1 $
+#
+# This script builds a compressed archive suitable for distribution.
+#
+# Usage: make_distrib [-s] [-k?|-prcs|-n] tag dir
+#
+#   -s    : suppress automatic version numbering and get info from VERSION.INFO
+#   -k?   : override CVS keywords expansion
+#   -prcs : use prcs to extract files
+#   -n    : assume a checkout has already been done in dir
+#   tag   : CVS or prcs tag or branch
+#   dir   : the distribution will unpack in directory <dir> and will be
+#           named <dir>.tar.gz
+#
+# The VERSION.INFO file will be used to substitute some variables in files
+# such as README, etc.
+#
+# The file MANIFEST contains the list of files to be included in this
+# archive, one file per line.
+#
+
+if [ $# = 0 ]; then
+   echo "Usage: $0 [-k|-prcs|-n] tag dir";
+   exit 0;
+fi;
+
+prcs=false
+kk=
+nocheckout=false
+s=false
+
+if test "x$1" = -s; then
+    s=true
+    shift
+fi
+
+case $1 in
+  -k*)   kk=$1; shift;;
+  -prcs) prcs=true; shift;;
+  -n)    nocheckout=true; shift;;
+  *)     ;;
+esac
+tag=$1
+dir=$2
+prev=`pwd`
+tmp=/tmp/t$$
+mkdir ${tmp}
+if $prcs; then
+  name=`echo *.prj | sed -e 's/\.prj//'`
+  echo Extracting module ${name} from prcs using tag ${tag}
+  cd ${tmp}
+  mkdir ${dir}
+  cd ${dir}
+  prcs checkout -r${tag} ${name}
+elif $nocheckout; then
+  cd ${dir}
+else
+  root=`cat CVS/Root`
+  trunc_root=`echo ${root} | sed -e 's/^.*://'`
+  name=`sed -e "s,${trunc_root}/,," < CVS/Repository`
+  echo Extracting module ${name} from ${root} using tag ${tag}
+  cd ${tmp}
+  cvs -d ${root} co ${kk} -r ${tag} -d ${dir} ${name}
+  cd ${dir}
+fi
+if [ -f Utils/VERSION.INFO ]; then
+  echo "Sourcing version file, then deleting it"
+  if $s; then
+    echo "(with no implicit version information)"
+    . Utils/VERSION.INFO
+  else
+    echo "(with GNAT/GLADE version information derived from ${dir})"
+    . Utils/VERSION.INFO ${dir}
+  fi
+  rm -f Utils/VERSION.INFO
+else
+  echo "WARNING: unable to locate VERSION.INFO in directory Utils"
+fi
+#if [ -f Utils/mangle.sh ]; then
+#  chmod 755 Utils/mangle.sh
+#  tm=/tmp/man$$
+#  sed -ne '1,/BEGIN\]/p' < Dist/glade_version.txt > $tm.1
+#  sed -ne '/END\]/,$p' < Dist/glade_version.txt > $tm.3
+#  sed -e '1,/BEGIN\]/d' -e '/END\]/,$d' < Dist/glade_version.txt | \
+#    Utils/mangle.sh > $tm.2
+#  cat $tm.1 $tm.2 $tm.3 > Dist/glade_version.txt
+#  rm $tm.1 $tm.2 $tm.3
+#else
+#  echo "WARNING: unable to locate mangle.sh in directory Utils"
+#fi
+#if [ -f ${prev}/Utils/normalize.pl ]; then
+#    echo Recentering keywords
+#    ${prev}/Utils/normalize.pl `cat MANIFEST`
+#fi
+echo Doing the necessary date modifications
+find . -name configure.in -exec touch {} \;
+sleep 1
+find . -name aclocal.m4 -exec touch {} \;
+sleep 1
+find . -name Makefile.in -exec touch {} \;
+sleep 1
+find . -name configure -exec touch {} \;
+sleep 1
+find . -name stamp-h.in -exec touch {} \;
+sleep 1
+find . -name config.h.in -exec touch {} \;
+echo Adapting modes
+chmod -R og=u-w .
+flist=""
+echo Packaging
+for i in `cat MANIFEST`; do
+  flist="${flist} ${dir}/${i}"
+done
+cd ..
+tar cvf ${dir}.tar ${flist}
+gzip --best ${dir}.tar
+mv ${dir}.tar.gz ${prev}
+cd ${prev}
+rm -rf ${tmp}
