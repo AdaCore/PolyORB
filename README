@@ -114,7 +114,10 @@ Note that unified diff files (-u option of GNU diff) are also welcomed.
 Unsupported users may directly send their patches and bug report via
 e-mail at the address
 
-	polyorb-devel@lists.act-europe.fr
+	polyorb-bugs@lists.act-europe.fr
+
+
+Please, use the Problem Report Form in doc/PROBLEM-REPORT-FORM
 
 If you are interested in becoming a supported PolyORB user, you should
 send an email to sales@gnat.com or to sales@act-europe.fr, depending

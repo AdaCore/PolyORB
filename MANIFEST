@@ -239,6 +239,8 @@ cos/time/costime-uto-impl.ads
 cos/time/time_utils.adb
 cos/time/time_utils.ads
 doc/CODING_GUIDELINES
+doc/CONTRIBUTING
+doc/PROBLEM-REPORT-FORM
 examples/Makefile.am
 examples/Makefile.common
 examples/Makefile.in
