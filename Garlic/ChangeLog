@@ -1,5 +1,9 @@
 Mon Feb 10 15:11:20 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* 2xgtplsp.ads: New (untested) SNI version of this package.
+
+	* 2wgtplsp.ads: New (untested) Win32 version of this package.
+
 	* test_threads.adb: New file which tries to determine if 
 	  thread-blocking IOs are available on the current target.
 
