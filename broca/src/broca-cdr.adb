@@ -1437,115 +1437,63 @@ package body Broca.CDR is
                pragma Debug (O ("Unmarshall_To_Any : dealing with a short"));
                pragma Debug (O ("Unmarshall_To_Any : its value is "
                                 & CORBA.Short'Image (S)));
-               if Is_Empty then
-                  pragma Debug (O ("Unmarshall_To_Any : creating a node"));
-                  Result := To_Any (S);
-                  Set_Type (Result, Any_Type);
-               else
-                  pragma Debug (O ("Unmarshall_To_Any : using existing node"));
-                  Set_Any_Value (Result, S);
-               end if;
+               Set_Any_Value (Result, S);
             end;
          when Tk_Long =>
             declare
                L : Long := Unmarshall (Buffer);
             begin
                pragma Debug (O ("Unmarshall_To_Any : dealing with a long"));
-               if Is_Empty then
-                  Result := To_Any (L);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, L);
-               end if;
+               Set_Any_Value (Result, L);
             end;
          when Tk_Ushort =>
             declare
                Us : Unsigned_Short := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (Us);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, Us);
-               end if;
+               Set_Any_Value (Result, Us);
             end;
          when Tk_Ulong =>
             declare
                Ul : Unsigned_Long := Unmarshall (Buffer);
             begin
                pragma Debug (O ("Unmarshall_To_Any : dealing with an Ulong"));
-               if Is_Empty then
-                  Result := To_Any (Ul);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, Ul);
-               end if;
+               Set_Any_Value (Result, Ul);
             end;
          when Tk_Float =>
             declare
                F : CORBA.Float := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (F);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, F);
-               end if;
+               Set_Any_Value (Result, F);
             end;
          when Tk_Double =>
             declare
                D : Double := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (D);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, D);
-               end if;
+               Set_Any_Value (Result, D);
             end;
          when Tk_Boolean =>
             declare
                B : CORBA.Boolean := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (B);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, B);
-               end if;
+               Set_Any_Value (Result, B);
             end;
          when Tk_Char =>
             declare
                C : Char := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (C);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, C);
-               end if;
+               Set_Any_Value (Result, C);
             end;
          when Tk_Octet =>
             declare
                O : CORBA.Octet := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (O);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, O);
-               end if;
+               Set_Any_Value (Result, O);
             end;
          when Tk_Any =>
             declare
                A : Any := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (A);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, A);
-               end if;
+               Set_Any_Value (Result, A);
             end;
          when Tk_TypeCode =>
             declare
@@ -1553,12 +1501,7 @@ package body Broca.CDR is
             begin
                pragma Debug (O ("Unmarshall_To_Any : "
                                 & "dealing with a TypeCode"));
-               if Is_Empty then
-                  Result := To_Any (T);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, T);
-               end if;
+               Set_Any_Value (Result, T);
             end;
          when Tk_Principal =>
             --  FIXME : to be done
@@ -1567,12 +1510,7 @@ package body Broca.CDR is
             declare
                O : CORBA.Object.Ref := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := CORBA.Object.Helper.To_Any (O);
-                  Set_Type (Result, Any_Type);
-               else
-                  CORBA.Object.Helper.Set_Any_Value (Result, O);
-               end if;
+               CORBA.Object.Helper.Set_Any_Value (Result, O);
             end;
          when Tk_Struct =>
             declare
@@ -1581,9 +1519,7 @@ package body Broca.CDR is
                Arg : CORBA.Any;
             begin
                pragma Debug (O ("unmarshall_to_any : dealing with a struct"));
-               if Is_Empty then
-                  Result := Get_Empty_Any_Aggregate (Any_Type);
-               end if;
+               CORBA.Set_Any_Aggregate_Value (Result);
                pragma Debug (O ("unmarshall_to_any : about to "
                                 & "unmarshall parameters"));
                if Nb /= 0 then
@@ -1613,8 +1549,8 @@ package body Broca.CDR is
                Label, Arg : CORBA.Any;
             begin
                pragma Debug (O ("Unmarshall_To_Any : dealing with an union"));
+               Set_Any_Aggregate_Value (Result);
                if Is_Empty then
-                  Result := Get_Empty_Any_Aggregate (Any_Type);
                   Label := Get_Empty_Any (TypeCode.Discriminator_Type (Tc));
                else
                   Label := Get_Aggregate_Element
@@ -1653,8 +1589,8 @@ package body Broca.CDR is
             declare
                Arg : CORBA.Any;
             begin
+               Set_Any_Aggregate_Value (Result);
                if Is_Empty then
-                  Result := Get_Empty_Any_Aggregate (Any_Type);
                   Arg := Get_Empty_Any (TC_Unsigned_Long);
                else
                   Arg := Get_Aggregate_Element
@@ -1671,12 +1607,7 @@ package body Broca.CDR is
             declare
                S : CORBA.String := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (S);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, S);
-               end if;
+               Set_Any_Value (Result, S);
             end;
          when Tk_Sequence =>
             declare
@@ -1689,8 +1620,8 @@ package body Broca.CDR is
                if Max_Nb > 0 and then Nb > Max_Nb then
                   Broca.Exceptions.Raise_Marshal;
                end if;
+               Set_Any_Aggregate_Value (Result);
                if Is_Empty then
-                  Result := Get_Empty_Any_Aggregate (Any_Type);
                   Add_Aggregate_Element (Result, To_Any (Nb));
                else
                   Arg := Get_Aggregate_Element
@@ -1726,9 +1657,7 @@ package body Broca.CDR is
                   Content_True_Type :=
                     TypeCode.Content_Type (Content_True_Type);
                end loop;
-               if Is_Empty then
-                  Result := Get_Empty_Any_Aggregate (Any_Type);
-               end if;
+               Set_Any_Aggregate_Value (Result);
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
                      if Is_Empty then
@@ -1753,9 +1682,7 @@ package body Broca.CDR is
                  TypeCode.Member_Count (Tc);
                Arg : CORBA.Any;
             begin
-               if Is_Empty then
-                  Result := Get_Empty_Any_Aggregate (Any_Type);
-               end if;
+               Set_Any_Aggregate_Value (Result);
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
                      if Is_Empty then
@@ -1778,56 +1705,31 @@ package body Broca.CDR is
             declare
                Ll : Long_Long := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (Ll);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, Ll);
-               end if;
+               Set_Any_Value (Result, Ll);
             end;
          when Tk_Ulonglong =>
             declare
                Ull : Unsigned_Long_Long := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (Ull);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, Ull);
-               end if;
+               Set_Any_Value (Result, Ull);
             end;
          when Tk_Longdouble =>
             declare
                Ld : Long_Double := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (Ld);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, Ld);
-               end if;
+               Set_Any_Value (Result, Ld);
             end;
          when Tk_Widechar =>
             declare
                Wc : Wchar := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (Wc);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, Wc);
-               end if;
+               Set_Any_Value (Result, Wc);
             end;
          when Tk_Wstring =>
             declare
                Ws : CORBA.Wide_String := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (Ws);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, Ws);
-               end if;
+               Set_Any_Value (Result, Ws);
             end;
          when Tk_Fixed =>
             --  FIXME : to be done

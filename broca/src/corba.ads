@@ -792,6 +792,8 @@ package CORBA is
    --  These functions allows the user to set the value of an any
    --  directly if he knows its kind. It a function is called on a
    --  bad kind of any, a BAD_TYPECODE exception will be raised
+   --  Note that the Any can be empty. In this case, the value
+   --  will be created
    --  Should never be called outside the broca.cdr package
    procedure Set_Any_Value (Any_Value : in out CORBA.Any;
                             Value : in CORBA.Octet);
@@ -827,6 +829,10 @@ package CORBA is
                             Value : in CORBA.TypeCode.Object);
    procedure Set_Any_Value (Any_Value : in out CORBA.Any;
                             Value : in CORBA.Any);
+
+   --  This one is a bit special : it doesn't put any value but
+   --  create the aggregate value if it does not exist.
+   procedure Set_Any_Aggregate_Value (Any_Value : in out CORBA.Any);
 
    --  Not in spec : some methods to deal with any aggregates.
    --  What is called any aggregate is an any, made of an aggregate

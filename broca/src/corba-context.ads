@@ -36,6 +36,7 @@ with CORBA.NVList;
 package CORBA.Context is
 
    type Ref is private;
+   Nil_Ref : constant Ref;
 
    procedure Set_One_Value
      (Self      : in Ref;
@@ -69,5 +70,7 @@ package CORBA.Context is
 private
 
    type Ref is null record;
+   Nil_Ref : constant Ref := (null record);
+
 
 end CORBA.Context;

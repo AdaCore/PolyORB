@@ -59,7 +59,7 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoBoolean");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
@@ -74,7 +74,7 @@ procedure DynClient is
                              CORBA.ARG_IN);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
-                 Argument => Get_Empty_Any (CORBA.TC_Boolean),
+                 Argument => To_Any (CORBA.Boolean (True)),
                  Arg_Modes => 0);
       --  creating a request
       CORBA.Object.Create_Request (Myall_Types,
@@ -87,7 +87,7 @@ procedure DynClient is
       --  sending message
       CORBA.Request.Invoke (Request, 0);
       --  getting the answer
-      return From_Any (CORBA.Request.Return_Value (Request).Argument);
+      return From_Any (Result.Argument);
    end EchoBoolean;
 
    function EchoShort
@@ -97,7 +97,7 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoShort");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
@@ -135,7 +135,7 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoLong");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
@@ -173,7 +173,7 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoUShort");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
@@ -211,7 +211,7 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoULong");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
@@ -249,7 +249,7 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoFloat");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
@@ -287,7 +287,7 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoDouble");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
@@ -325,7 +325,7 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoChar");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
@@ -363,7 +363,7 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoOctet");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
@@ -401,7 +401,7 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoString");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
@@ -439,7 +439,7 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoRef");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
@@ -478,7 +478,7 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoColor");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
@@ -517,7 +517,7 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoArray");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
@@ -556,7 +556,7 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoMatrix");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
@@ -595,7 +595,7 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoBigMatrix");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
@@ -634,7 +634,7 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoStruct");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
@@ -673,7 +673,7 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoArrayStruct");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
@@ -712,7 +712,7 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoUnion");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
@@ -751,7 +751,7 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoUsequence");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
@@ -790,7 +790,7 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("echoBsequence");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
@@ -828,7 +828,7 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("_set_myColor");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
@@ -861,7 +861,7 @@ procedure DynClient is
       return All_Types.Color is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("_get_myColor");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
@@ -891,7 +891,7 @@ procedure DynClient is
       return CORBA.Long is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("_get_Counter");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Arg_List : CORBA.NVList.Ref;
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
@@ -923,7 +923,7 @@ procedure DynClient is
       Operation_Name : CORBA.Identifier := To_CORBA_String ("testException");
       Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
       Request : CORBA.Request.Object;
-      Ctx : CORBA.Context.Ref;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
       Argument : CORBA.Any;
       Arg_List : CORBA.NVList.Ref;
       Excp_List : CORBA.ExceptionList.Ref;

@@ -65,11 +65,15 @@ package body CORBA.Object.Helper is
                             Value : in CORBA.Object.Ref) is
       use CORBA.TypeCode;
    begin
-      if Get_Type (Any_Value) /= CORBA.TC_ObjRef then
+      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Objref then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
-      Content_ObjRef_Ptr (Any_Value.The_Value).Value := Value;
+      if Any_Value.The_Value /= null then
+         Content_ObjRef_Ptr (Any_Value.The_Value).Value := Value;
+      else
+         Any_Value.The_Value := new Content_ObjRef'(Value => Value);
+      end if;
       Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 

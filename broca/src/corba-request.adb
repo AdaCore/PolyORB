@@ -184,14 +184,15 @@ package body CORBA.Request is
       Request   :    out CORBA.Request.Object;
       Req_Flags : in     Flags) is
    begin
-      Request := (Ctx       => Ctx,
-                  Target    => Self,
-                  Operation => Operation,
-                  Args_List => Arg_List,
-                  Result => Result,
-                  Exc_List  => CORBA.ExceptionList.Nil_Ref,
-                  Ctxt_List => CORBA.ContextList.Nil_Ref,
-                  Req_Flags => Req_Flags);
+      Create_Request (Self,
+                      Ctx,
+                      Operation,
+                      Arg_List,
+                      Result,
+                      CORBA.ExceptionList.Nil_Ref,
+                      CORBA.ContextList.Nil_Ref,
+                      Request,
+                      Req_Flags);
    end Create_Request;
 
    procedure Create_Request
@@ -204,12 +205,28 @@ package body CORBA.Request is
       Ctxt_List : in     ContextList.Ref;
       Request   :    out CORBA.Request.Object;
       Req_Flags : in     Flags) is
+      Argument : CORBA.Any;
+      The_Value : Any_Content_Ptr;
+      The_Counter : Natural_Ptr;
    begin
+      Result.Argument.Any_Lock.Lock_W;
+      The_Value := Result.Argument.The_Value;
+      The_Counter := Result.Argument.Ref_Counter;
+      Result.Argument.Ref_Counter.all := Result.Argument.Ref_Counter.all + 1;
+      Result.Argument.Any_Lock.Unlock_W;
+      Argument := (Ada.Finalization.Controlled with
+                   The_Value => The_Value,
+                   The_Type => Result.Argument.The_Type,
+                   As_Reference => True,
+                   Ref_Counter => The_Counter,
+                   Any_Lock => Result.Argument.Any_Lock);
       Request := (Ctx => Ctx,
                   Target => Self,
                   Operation => Operation,
                   Args_List => Arg_List,
-                  Result => Result,
+                  Result => (Name => Result.Name,
+                             Argument => Argument,
+                             Arg_Modes => Result.Arg_Modes),
                   Exc_List  => Exc_List,
                   Ctxt_List => Ctxt_List,
                   Req_Flags => Req_Flags);
