@@ -610,8 +610,6 @@ src/corba/portableinterceptor/portableinterceptor.adb
 src/corba/portableinterceptor/portableinterceptor.ads
 src/corba/portableserver-adapteractivator.adb
 src/corba/portableserver-adapteractivator.ads
-src/corba/portableserver-current-helper.adb
-src/corba/portableserver-current-helper.ads
 src/corba/portableserver-current.adb
 src/corba/portableserver-current.ads
 src/corba/portableserver-idassignmentpolicy.adb
@@ -656,6 +654,8 @@ src/corba/rtcorba/polyorb-rtcorba_p-threadpoolmanager.ads
 src/corba/rtcorba/polyorb-rtcorba_p-to_orb_priority.adb
 src/corba/rtcorba/polyorb-rtcorba_p-to_orb_priority.ads
 src/corba/rtcorba/polyorb-rtcorba_p.ads
+src/corba/rtcorba/rtcorba-current-helper.adb
+src/corba/rtcorba/rtcorba-current-helper.ads
 src/corba/rtcorba/rtcorba-current.adb
 src/corba/rtcorba/rtcorba-current.ads
 src/corba/rtcorba/rtcorba-helper.adb
