@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#27 $
+--  $Id: //droopi/main/src/polyorb-any.adb#28 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -419,27 +419,26 @@ package body PolyORB.Any is
          end case;
       end Member_Name;
 
-      -------------------
-      --  Member_Type  --
-      -------------------
+      -----------------
+      -- Member_Type --
+      -----------------
 
       function Member_Type
         (Self  : in Object;
          Index : in Unsigned_Long)
         return Object
       is
-         Param_Nb : constant Unsigned_Long
-           := Parameter_Count (Self);
+         Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
+         K : constant TCKind := Kind (Self);
       begin
-         pragma Debug (O ("member_type : enter"));
+         pragma Debug (O ("member_type: enter, Kind is "
+                          & TCKind'Image (K)));
          --  See the big explanation after the declaration of
          --  typecode.object in the private part of corba.typecode
          --  to understand the magic numbers used here.
-         case Kind (Self) is
+         case K is
             when Tk_Struct
               |  Tk_Except =>
-               pragma Debug (O ("member_type : dealing with a struct "
-                                & "or an exception"));
                if Param_Nb < 2 * Index + 4 then
                   raise Bounds;
                end if;
@@ -459,9 +458,9 @@ package body PolyORB.Any is
          end case;
       end Member_Type;
 
-      --------------------
-      --  Member_Label  --
-      --------------------
+      ------------------
+      -- Member_Label --
+      ------------------
 
       function Member_Label
         (Self  : in Object;
@@ -1211,7 +1210,7 @@ package body PolyORB.Any is
          return False;
       end if;
       pragma Debug (O ("Equal (Any) : passed typecode test"));
-      case TypeCode.Kind (Get_Precise_Type (Left)) is
+      case TypeCode.Kind (Get_Unwound_Type (Left)) is
          when Tk_Null | Tk_Void =>
             pragma Debug (O ("Equal (Any, Null or Void) : end"));
             return True;
@@ -1321,7 +1320,7 @@ package body PolyORB.Any is
          when Tk_Struct
            | Tk_Except =>
             declare
-               List_Type : TypeCode.Object := Get_Precise_Type (Left);
+               List_Type : TypeCode.Object := Get_Unwound_Type (Left);
                Member_Type : TypeCode.Object;
             begin
                --  for each member in the aggregate, compare both values
@@ -1339,7 +1338,7 @@ package body PolyORB.Any is
             end;
          when Tk_Union =>
             declare
-               List_Type : TypeCode.Object := Get_Precise_Type (Left);
+               List_Type : TypeCode.Object := Get_Unwound_Type (Left);
                Switch_Type : TypeCode.Object :=
                  TypeCode.Discriminator_Type (List_Type);
                Member_Type : TypeCode.Object;
@@ -1387,7 +1386,7 @@ package body PolyORB.Any is
          when Tk_Sequence
            | Tk_Array =>
             declare
-               List_Type : TypeCode.Object := Get_Precise_Type (Left);
+               List_Type : TypeCode.Object := Get_Unwound_Type (Left);
                Member_Type : TypeCode.Object :=
                  TypeCode.Content_Type (List_Type);
             begin
@@ -1664,7 +1663,7 @@ package body PolyORB.Any is
    function From_Any (Item : in Any) return Short is
    begin
       pragma Debug (O ("From_Any (Short) : enter & end"));
-      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Short) then
+      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Short) then
          raise TypeCode.Bad_TypeCode;
       end if;
       pragma Debug (O ("From_Any (Short) : is_empty = "
@@ -1680,7 +1679,7 @@ package body PolyORB.Any is
    function From_Any (Item : in Any) return Long is
    begin
       pragma Debug (O ("From_Any (Long) : enter & end"));
-      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Long) then
+      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Long) then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Long_Ptr (Get_Value (Item)).Value.all;
@@ -1688,7 +1687,7 @@ package body PolyORB.Any is
 
    function From_Any (Item : in Any) return Long_Long is
    begin
-      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Longlong) then
+      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Longlong) then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Long_Long_Ptr (Get_Value (Item)).Value.all;
@@ -1696,7 +1695,7 @@ package body PolyORB.Any is
 
    function From_Any (Item : in Any) return Unsigned_Short is
    begin
-      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Ushort) then
+      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Ushort) then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_UShort_Ptr (Get_Value (Item)).Value.all;
@@ -1704,7 +1703,7 @@ package body PolyORB.Any is
 
    function From_Any (Item : in Any) return Unsigned_Long is
    begin
-      if TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Ulong then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Ulong then
          raise TypeCode.Bad_TypeCode;
       end if;
       pragma Assert (Get_Value (Item) /= null);
@@ -1715,7 +1714,7 @@ package body PolyORB.Any is
 
    function From_Any (Item : in Any) return Unsigned_Long_Long is
    begin
-      if TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Ulonglong then
+      if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Ulonglong then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_ULong_Long_Ptr (Get_Value (Item)).Value.all;
@@ -1723,7 +1722,7 @@ package body PolyORB.Any is
 
    function From_Any (Item : in Any) return Types.Float is
    begin
-      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Float) then
+      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Float) then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Float_Ptr (Get_Value (Item)).Value.all;
@@ -1731,7 +1730,7 @@ package body PolyORB.Any is
 
    function From_Any (Item : in Any) return Double is
    begin
-      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Double) then
+      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Double) then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Double_Ptr (Get_Value (Item)).Value.all;
@@ -1739,7 +1738,7 @@ package body PolyORB.Any is
 
    function From_Any (Item : in Any) return Long_Double is
    begin
-      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Longdouble) then
+      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Longdouble) then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Long_Double_Ptr (Get_Value (Item)).Value.all;
@@ -1747,7 +1746,7 @@ package body PolyORB.Any is
 
    function From_Any (Item : in Any) return Boolean is
    begin
-      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Boolean) then
+      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Boolean) then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Boolean_Ptr (Get_Value (Item)).Value.all;
@@ -1755,7 +1754,7 @@ package body PolyORB.Any is
 
    function From_Any (Item : in Any) return Char is
    begin
-      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Char) then
+      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Char) then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Char_Ptr (Get_Value (Item)).Value.all;
@@ -1763,7 +1762,7 @@ package body PolyORB.Any is
 
    function From_Any (Item : in Any) return Wchar is
    begin
-      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Widechar) then
+      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Widechar) then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Wchar_Ptr (Get_Value (Item)).Value.all;
@@ -1771,7 +1770,7 @@ package body PolyORB.Any is
 
    function From_Any (Item : in Any) return Octet is
    begin
-      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Octet) then
+      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Octet) then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Octet_Ptr (Get_Value (Item)).Value.all;
@@ -1779,7 +1778,7 @@ package body PolyORB.Any is
 
    function From_Any (Item : in Any) return Any is
    begin
-      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Any) then
+      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Any) then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Any_Ptr (Get_Value (Item)).Value.all;
@@ -1790,8 +1789,8 @@ package body PolyORB.Any is
       pragma Debug (O ("From_Any (typeCode) : enter & end"));
       pragma Debug
         (O ("From_Any (typeCode) : Kind (Item) is "
-            & TCKind'Image (TypeCode.Kind (Get_Precise_Type (Item)))));
-      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_TypeCode) then
+            & TCKind'Image (TypeCode.Kind (Get_Unwound_Type (Item)))));
+      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_TypeCode) then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_TypeCode_Ptr (Get_Value (Item)).Value.all;
@@ -1799,10 +1798,10 @@ package body PolyORB.Any is
 
    function From_Any (Item : in Any) return Types.String is
    begin
-      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_String) then
+      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_String) then
          pragma Debug (O ("From_Any (String) : type is supposed to be "
                           & TCKind'Image (TypeCode.Kind
-                                          (Get_Precise_Type (Item)))));
+                                          (Get_Unwound_Type (Item)))));
          pragma Debug (O ("From_Any (String) : actual type is "
                           & Ada.Tags.External_Tag (Get_Value (Item).all'Tag)));
          raise TypeCode.Bad_TypeCode;
@@ -1814,7 +1813,7 @@ package body PolyORB.Any is
 
    function From_Any (Item : in Any) return Types.Wide_String is
    begin
-      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Wstring) then
+      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Wstring) then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_Wide_String_Ptr (Get_Value (Item)).Value.all;
@@ -1830,16 +1829,25 @@ package body PolyORB.Any is
    end Get_Type;
 
    ------------------------
-   --  Get_Precise_Type  --
+   --  Get_Unwound_Type  --
    ------------------------
-   function Get_Precise_Type (The_Any : in Any) return  TypeCode.Object is
-      Result : TypeCode.Object := Get_Type (The_Any);
+
+   function Unwind_Typedefs
+     (TC : in TypeCode.Object)
+     return TypeCode.Object
+   is
+      Result : TypeCode.Object := TC;
    begin
       while TypeCode.Kind (Result) = Tk_Alias loop
          Result := TypeCode.Content_Type (Result);
       end loop;
       return Result;
-   end Get_Precise_Type;
+   end Unwind_Typedefs;
+
+   function Get_Unwound_Type (The_Any : in Any) return  TypeCode.Object is
+   begin
+      return Unwind_Typedefs (Get_Type (The_Any));
+   end Get_Unwound_Type;
 
    ----------------
    --  Set_Type  --
@@ -1892,7 +1900,7 @@ package body PolyORB.Any is
                             Value : Octet) is
       use TypeCode;
    begin
-      if TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Octet then
+      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Octet then
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
@@ -1912,7 +1920,7 @@ package body PolyORB.Any is
                             Value : in Short) is
       use TypeCode;
    begin
-      if TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Short then
+      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Short then
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
@@ -1935,8 +1943,12 @@ package body PolyORB.Any is
    procedure Set_Any_Value (Any_Value : in out Any;
                             Value : in Types.Long) is
       use TypeCode;
+      Kind : constant TCKind := TypeCode.Kind
+        (Get_Unwound_Type (Any_Value));
    begin
-      if TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Long then
+      if Kind /= Tk_Long then
+         pragma Debug (O ("Wrong TCKind: expect Tk_Long, found "
+                          & TCKind'Image (Kind)));
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
@@ -1956,7 +1968,7 @@ package body PolyORB.Any is
                             Value : in Types.Long_Long) is
       use TypeCode;
    begin
-      if TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Longlong then
+      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Longlong then
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
@@ -1976,7 +1988,7 @@ package body PolyORB.Any is
                             Value : in Unsigned_Short) is
       use TypeCode;
    begin
-      if TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Ushort then
+      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Ushort then
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
@@ -1996,7 +2008,7 @@ package body PolyORB.Any is
                             Value : in Unsigned_Long) is
       use TypeCode;
    begin
-      if TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Ulong then
+      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Ulong then
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
@@ -2016,7 +2028,7 @@ package body PolyORB.Any is
                             Value : in Unsigned_Long_Long) is
       use TypeCode;
    begin
-      if TypeCode.Kind (Get_Precise_Type (Any_Value)) /=
+      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /=
         Tk_Ulonglong then
          raise TypeCode.Bad_TypeCode;
       end if;
@@ -2038,7 +2050,7 @@ package body PolyORB.Any is
                             Value : in Boolean) is
       use TypeCode;
    begin
-      if TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Boolean then
+      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Boolean then
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
@@ -2058,7 +2070,7 @@ package body PolyORB.Any is
                             Value : in Char) is
       use TypeCode;
    begin
-      if TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Char then
+      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Char then
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
@@ -2078,7 +2090,7 @@ package body PolyORB.Any is
                             Value : in Wchar) is
       use TypeCode;
    begin
-      if TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Widechar then
+      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Widechar then
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
@@ -2098,7 +2110,7 @@ package body PolyORB.Any is
                             Value : in PolyORB.Types.String) is
       use TypeCode;
    begin
-      if TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_String then
+      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_String then
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
@@ -2118,7 +2130,7 @@ package body PolyORB.Any is
                             Value : in Types.Wide_String) is
       use TypeCode;
    begin
-      if TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Wstring then
+      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Wstring then
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
@@ -2138,7 +2150,7 @@ package body PolyORB.Any is
                             Value : in Types.Float) is
       use TypeCode;
    begin
-      if TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Float then
+      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Float then
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
@@ -2158,7 +2170,7 @@ package body PolyORB.Any is
                             Value : in Double) is
       use TypeCode;
    begin
-      if TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Double then
+      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Double then
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
@@ -2178,7 +2190,7 @@ package body PolyORB.Any is
                             Value : in Types.Long_Double) is
       use TypeCode;
    begin
-      if TypeCode.Kind (Get_Precise_Type (Any_Value)) /=
+      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /=
         Tk_Longdouble then
          raise TypeCode.Bad_TypeCode;
       end if;
@@ -2199,7 +2211,7 @@ package body PolyORB.Any is
                             Value : in TypeCode.Object) is
       use TypeCode;
    begin
-      if TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_TypeCode then
+      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_TypeCode then
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
@@ -2219,7 +2231,7 @@ package body PolyORB.Any is
                             Value : in Any) is
       use TypeCode;
    begin
-      if TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Any then
+      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Any then
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
@@ -2239,12 +2251,12 @@ package body PolyORB.Any is
       use TypeCode;
    begin
       pragma Debug (O ("Set_Any_Aggregate_Value: enter"));
-      if TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Struct
-        and then TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Union
-        and then TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Enum
-        and then TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Sequence
-        and then TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Array
-        and then TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Except
+      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Struct
+        and then TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Union
+        and then TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Enum
+        and then TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Sequence
+        and then TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Array
+        and then TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Except
       then
          raise TypeCode.Bad_TypeCode;
       end if;
@@ -2346,18 +2358,18 @@ package body PolyORB.Any is
    procedure Copy_Any_Value (Dest : Any; Src : Any)
    is
    begin
-      if TypeCode.Kind (Get_Precise_Type (Dest))
-        /= TypeCode.Kind (Get_Precise_Type (Src))
+      if TypeCode.Kind (Get_Unwound_Type (Dest))
+        /= TypeCode.Kind (Get_Unwound_Type (Src))
       then
          pragma Debug (O ("Copy Any value from: "
-                          & Image (Get_Precise_Type (Src))));
-         pragma Debug (O ("  to: " & Image (Get_Precise_Type (Dest))));
+                          & Image (Get_Unwound_Type (Src))));
+         pragma Debug (O ("  to: " & Image (Get_Unwound_Type (Dest))));
          raise TypeCode.Bad_TypeCode;
       end if;
 
       Lock_W (Dest.Any_Lock);
 
-      if TypeCode.Kind (Get_Precise_Type (Src)) /= Tk_Void
+      if TypeCode.Kind (Get_Unwound_Type (Src)) /= Tk_Void
         and then Dest.The_Value /= Src.The_Value
       then
 

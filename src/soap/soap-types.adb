@@ -277,7 +277,7 @@ package body SOAP.Types is
 
    function Image (O : NamedValue) return String is
       TC : constant TypeCode.Object
-        := Get_Precise_Type (O.Argument);
+        := Get_Unwound_Type (O.Argument);
       Kind : constant TCKind := TCK (O.Argument);
    begin
       case Kind is
@@ -545,7 +545,7 @@ package body SOAP.Types is
 
    function XML_Image (O : in NamedValue) return String is
       Kind : constant TCKind := TypeCode.Kind
-        (Get_Precise_Type (O.Argument));
+        (Get_Unwound_Type (O.Argument));
    begin
       pragma Debug
         (SOAP.Types.O ("XML_Image: arg """ & To_Standard_String (O.Name)
@@ -682,7 +682,7 @@ package body SOAP.Types is
 
       Result : Unbounded_String;
       Element_Type : constant PolyORB.Any.TypeCode.Object
-        := TypeCode.Content_Type (Get_Precise_Type (O.Argument));
+        := TypeCode.Content_Type (Get_Unwound_Type (O.Argument));
       New_Line : constant String := ASCII.CR & ASCII.LF;
    begin
       Append (Result, SOAP.Utils.Tag
@@ -722,7 +722,7 @@ package body SOAP.Types is
 
       Result : Unbounded_String;
       Data_Type : constant PolyORB.Any.TypeCode.Object
-        := Get_Precise_Type (O.Argument);
+        := Get_Unwound_Type (O.Argument);
       New_Line : constant String := ASCII.CR & ASCII.LF;
    begin
       pragma Debug (SOAP.Types.O ("XML_Record_Image: enter"));

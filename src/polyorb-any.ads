@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.ads#15 $
+--  $Id: //droopi/main/src/polyorb-any.ads#16 $
 
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
@@ -539,14 +539,20 @@ package PolyORB.Any is
 
    function Get_Type (The_Any : in Any) return TypeCode.Object;
 
-   --  not in spec : returns the most precise type of an Any. It
-   --  means that it removes any alias level
-   function Get_Precise_Type (The_Any : in Any) return TypeCode.Object;
+   function Unwind_Typedefs
+     (TC : in TypeCode.Object)
+     return TypeCode.Object;
+   --  Unwind any typedef (alias) from TC.
 
+   function Get_Unwound_Type (The_Any : in Any) return TypeCode.Object;
+   --  Return the actual type of The_Any, after resolution of
+   --  all typedef levels.
+
+   procedure Set_Type
+     (The_Any : in out Any;
+      The_Type : in TypeCode.Object);
    --  not in spec : change the type of an any without changing its
    --  value : to be used carefully
-   procedure Set_Type (The_Any : in out Any;
-                       The_Type : in TypeCode.Object);
 
    generic
       with procedure Process (The_Any : in Any;

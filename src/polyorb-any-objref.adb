@@ -66,7 +66,7 @@ package body PolyORB.Any.ObjRef is
    function From_Any (Item : in Any) return PolyORB.References.Ref
    is
    begin
-      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Objref) then
+      if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Objref) then
          raise TypeCode.Bad_TypeCode;
       end if;
 
@@ -84,7 +84,7 @@ package body PolyORB.Any.ObjRef is
    is
       use TypeCode;
    begin
-      if TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Objref then
+      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Objref then
          raise TypeCode.Bad_TypeCode;
       end if;
 

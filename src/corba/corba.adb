@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.adb#16 $
+--  $Id: //droopi/main/src/corba/corba.adb#17 $
 
 with Ada.Characters.Handling;
 
@@ -337,10 +337,10 @@ package body CORBA is
      renames PolyORB.Any.Get_Type;
 
    ------------------------
-   --  Get_Precise_Type  --
+   --  Get_Unwound_Type  --
    ------------------------
-   function Get_Precise_Type (The_Any : in Any) return  TypeCode.Object
-     renames PolyORB.Any.Get_Precise_Type;
+   function Get_Unwound_Type (The_Any : in Any) return  TypeCode.Object
+     renames PolyORB.Any.Get_Unwound_Type;
 
    ----------------
    --  Set_Type  --

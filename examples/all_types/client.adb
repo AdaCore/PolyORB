@@ -116,6 +116,29 @@ begin
          Output ("test bounded sequence",  echoBsequence (Myall_types, X) = X);
       end;
 
+      --  Fixed point
+--               echoMoney (Myall_types, 6423.50) = 6423.50
+--               and then echoMoney (Myall_types, 0.0) = 0.0
+--         and then echoMoney (Myall_types, 3.14) = 3.14);
+      Output ("test fixed point", False);
+      --  Fixed point types are not implemented yet.
+
+      --  Structs
+      declare
+         Test_Struct : constant simple_struct
+           := (123, To_CORBA_String ("Hello world!"));
+      begin
+         Output ("test struct",
+                 echoStruct (Myall_types, Test_Struct) = Test_Struct);
+      end;
+      declare
+         Test_Struct : constant array_struct
+           :=  (A => (0, 1, 2, 3, 4, 5, 6, 7, 8, 9),  B => 65533);
+      begin
+         Output ("test array struct",
+                 echoArrayStruct (Myall_types, Test_Struct) = Test_Struct);
+      end;
+
       --  Refs
       declare
          X : all_types.Ref;
@@ -141,29 +164,6 @@ begin
            (EchootherObject (X, CORBA.Object.Ref (X)));
          Output ("test object typedef", echoLong (X, 34563) = 34563);
 
-      end;
-
-      --  Fixed point
---               echoMoney (Myall_types, 6423.50) = 6423.50
---               and then echoMoney (Myall_types, 0.0) = 0.0
---         and then echoMoney (Myall_types, 3.14) = 3.14);
-      Output ("test fixed point", False);
-      --  Fixed point types are not implemented yet.
-
-      --  Structs
-      declare
-         Test_Struct : constant simple_struct
-           := (123, To_CORBA_String ("Hello world!"));
-      begin
-         Output ("test struct",
-                 echoStruct (Myall_types, Test_Struct) = Test_Struct);
-      end;
-      declare
-         Test_Struct : constant array_struct
-           :=  (A => (0, 1, 2, 3, 4, 5, 6, 7, 8, 9),  B => 65533);
-      begin
-         Output ("test array struct",
-                 echoArrayStruct (Myall_types, Test_Struct) = Test_Struct);
       end;
 
       --  Unions

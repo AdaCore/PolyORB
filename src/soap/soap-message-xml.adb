@@ -195,6 +195,12 @@ package body SOAP.Message.XML is
       Expected_Type : in PolyORB.Any.TypeCode.Object)
      return PolyORB.Any.NamedValue;
 
+   function Parse_Sequence
+     (N : in DOM.Core.Node;
+      S : in State;
+      Expected_Type : in PolyORB.Any.TypeCode.Object)
+     return PolyORB.Any.NamedValue;
+
    procedure Error (Node : in DOM.Core.Node; Message : in String);
    pragma No_Return (Error);
    --  Raises SOAP_Error with the Message as exception message.
@@ -433,7 +439,7 @@ package body SOAP.Message.XML is
    begin
       declare
          TC : constant PolyORB.Any.TypeCode.Object
-           := Get_Precise_Type (NV.Argument);
+           := Get_Unwound_Type (NV.Argument);
          A : PolyORB.Any.Any
            := Get_Empty_Any_Aggregate (Get_Type (NV.Argument));
 
@@ -466,6 +472,43 @@ package body SOAP.Message.XML is
          Copy_Any_Value (NV.Argument, A);
       end;
    end Parse_Enum;
+
+   --------------------
+   -- Parse_Sequence --
+   --------------------
+
+   function Parse_Sequence
+     (N : in DOM.Core.Node;
+      S : in State;
+      Expected_Type : in PolyORB.Any.TypeCode.Object)
+     return PolyORB.Any.NamedValue
+   is
+      use PolyORB.Any.TypeCode;
+      use type DOM.Core.Node;
+
+      Name  : constant PolyORB.Types.Identifier
+        := To_PolyORB_String (Local_Name (N));
+
+      A : PolyORB.Any.Any := Get_Empty_Any_Aggregate
+        (Expected_Type);
+
+      CT : constant PolyORB.Any.TypeCode.Object
+        := TypeCode.Content_Type (Unwind_Typedefs (Expected_Type));
+      Values : constant DOM.Core.Node_List := Child_Nodes (N);
+      Length : constant Unsigned_Long
+        := Unsigned_Long (DOM.Core.Nodes.Length (Values));
+
+      Child : DOM.Core.Node := First_Child (N);
+   begin
+      Add_Aggregate_Element (A, To_Any (Length));
+      for I in 1 .. Length loop
+         Add_Aggregate_Element
+           (A, Parse_Param (Child, S, CT).Argument);
+         Child := Next_Sibling (Child);
+      end loop;
+
+      return (Name => Name, Argument => A, Arg_Modes => ARG_IN);
+   end Parse_Sequence;
 
    --------------------
    -- Parse_Document --
@@ -672,13 +715,6 @@ package body SOAP.Message.XML is
          return NV;
       end if;
 
-      if Length (Atts) = 0 and then S.A_State = Void then
-         --  No attributes, this is a SOAP record since we are not parsing
-         --  arrays entries.
-
-         return Parse_Record (N, S, Expected_Type);
-      end if;
-
       case S.A_State is
             --  XXX PARSING ARRAYS: not implemened.
 --                when A_Int =>
@@ -720,22 +756,35 @@ package body SOAP.Message.XML is
             declare
                XSI_Type : constant DOM.Core.Node
                  := Get_Named_Item (Atts, "xsi:type");
+               Expected_TCKind : constant TCKind
+                 := PolyORB.Any.TypeCode.Kind
+                 (Unwind_Typedefs (Expected_Type));
             begin
                if XSI_Type = null then
 
                   if Get_Named_Item (Atts, "xsi:null") /= null then
                      NV.Name := To_PolyORB_String (Local_Name (N));
                      NV.Argument := Get_Empty_Any (TC_Void);
-                  elsif PolyORB.Any.TypeCode.Kind
-                    (Expected_Type) = Tk_Enum
-                  then
-                     NV.Name := To_PolyORB_String (Local_Name (N));
-                     NV.Argument := Get_Empty_Any (Expected_Type);
-                     Parse_Enum (N, NV);
                   else
-                     Error (N, "Wrong or not supported type");
-                     --  Error has raised an exception.
+                     case Expected_TCKind is
+                        when Tk_Enum =>
+                           NV.Name := To_PolyORB_String (Local_Name (N));
+                           NV.Argument := Get_Empty_Any (Expected_Type);
+                           Parse_Enum (N, NV);
+
+                        when Tk_Sequence =>
+                           return Parse_Sequence (N, S, Expected_Type);
+
+                        when Tk_Struct =>
+                           return Parse_Record (N, S, Expected_Type);
+
+                        when others =>
+                           Error (N, "Wrong or not supported type, expected "
+                                  & TCKind'Image (Expected_TCKind));
+                           --  Raises an exception.
+                     end case;
                   end if;
+
                   return NV;
 
                else
@@ -794,28 +843,32 @@ package body SOAP.Message.XML is
    function Parse_Record
      (N : in DOM.Core.Node;
       S : in State;
-      Expected_Type : in PolyORB.Any.TypeCode.Object)
+      Expected_Type : in TypeCode.Object)
      return PolyORB.Any.NamedValue
    is
       use type DOM.Core.Node;
       use SOAP.Types;
       use PolyORB.Any.TypeCode;
 
+      Unwound_Expected_Type : constant TypeCode.Object
+        := Unwind_Typedefs (Expected_Type);
+
       Name  : constant PolyORB.Types.Identifier
         := To_PolyORB_String (Local_Name (N));
 
-      Any_Record : Any
-        := Get_Empty_Any_Aggregate (Expected_Type);
+      Any_Record : Any := Get_Empty_Any_Aggregate (Expected_Type);
 
       Field : DOM.Core.Node;
-      I : Unsigned_Long := 1;
+      I : Unsigned_Long := 0;
    begin
+      pragma Debug (O ("Parse_Record: enter"));
       Field := First_Child (N);
 
       while Field /= null loop
+         pragma Debug (O ("Parsing field" & Unsigned_Long'Image (I)));
          declare
             Field_TC : constant PolyORB.Any.TypeCode.Object
-              := Member_Type (Expected_Type, I);
+              := Member_Type (Unwound_Expected_Type, I);
             Field_Value : constant NamedValue
               := Parse_Param (Field, S, Field_TC);
          begin
@@ -825,6 +878,7 @@ package body SOAP.Message.XML is
          Field := Next_Sibling (Field);
       end loop;
 
+      pragma Debug (O ("Parse_Record: leaver"));
       return NamedValue'
         (Name => Name,
          Argument => Any_Record,

@@ -94,13 +94,13 @@ package body CORBA.Fixed_Point is
    function From_Any (Item : in Any) return F is
    begin
 --       pragma Debug (O ("From_Any (Fixed) : enter"));
---       if (TypeCode.Kind (Get_Precise_Type (Item))
+--       if (TypeCode.Kind (Get_Unwound_Type (Item))
 --         /= PolyORB.Any.Tk_Fixed)
 --       then
 --          pragma Debug
 --            (O ("From_Any (Fixed) : Bad_TypeCode, type is " &
 --                CORBA.TCKind'Image
---                (TypeCode.Kind (Get_Precise_Type (Item)))));
+--                (TypeCode.Kind (Get_Unwound_Type (Item)))));
 --          raise Bad_TypeCode;
 --       end if;
 --       declare

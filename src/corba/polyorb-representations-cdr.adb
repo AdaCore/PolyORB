@@ -459,7 +459,7 @@ package body PolyORB.Representations.CDR is
       Data   :        PolyORB.Any.Any)
    is
       Data_Type : constant PolyORB.Any.TypeCode.Object
-        := PolyORB.Any.Get_Precise_Type (Data);
+        := PolyORB.Any.Get_Unwound_Type (Data);
    begin
       pragma Debug (O ("Marshall_From_Any : enter"));
       --  pragma Debug
@@ -1528,7 +1528,7 @@ package body PolyORB.Representations.CDR is
       Result : in out PolyORB.Any.Any)
    is
       Tc       : constant PolyORB.Any.TypeCode.Object
-        := Get_Precise_Type (Result);
+        := Get_Unwound_Type (Result);
    begin
       pragma Debug (O ("Unmarshall_To_Any : enter"));
       pragma Debug
