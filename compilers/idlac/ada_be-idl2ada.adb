@@ -183,9 +183,7 @@ package body Ada_Be.Idl2Ada is
      (CU   : in out Compilation_Unit;
       Node : Node_Id);
 
-   function TC_Name
-     (Node : Node_Id)
-      return String;
+   function TC_Name (Node : Node_Id) return String;
 
    procedure Gen_Convert_Forward_Declaration
      (CU : in out Compilation_Unit;
@@ -2868,12 +2866,8 @@ package body Ada_Be.Idl2Ada is
    -- TC_Name --
    -------------
 
-   function TC_Name
-     (Node : Node_Id)
-     return String
-   is
-      NK : constant Node_Kind
-        := Kind (Node);
+   function TC_Name (Node : Node_Id) return String is
+      NK : constant Node_Kind := Kind (Node);
    begin
 
       case NK is
@@ -2903,7 +2897,9 @@ package body Ada_Be.Idl2Ada is
             declare
                P : constant Node_Id := Parent (Node);
             begin
-               if Kind (P) = K_Type_Declarator then
+               if Kind (P) = K_Type_Declarator
+                    and then Is_Empty (Array_Bounds (Node))
+               then
                   declare
                      T_Node : constant Node_Id := T_Type (P);
                   begin
@@ -2916,15 +2912,12 @@ package body Ada_Be.Idl2Ada is
                           K_Forward_ValueType =>
                            return TC_Name (T_Node);
                         when others =>
-                           return Ada_Helper_Unit_Name (Mapping, Node) & ".TC_"
-                             & Ada_Name (Node);
+                           null;
                      end case;
                   end;
-               else
-                  return
-                    Ada_Helper_Unit_Name (Mapping, Node)
-                      & ".TC_" & Ada_Name (Node);
                end if;
+               return Ada_Helper_Unit_Name (Mapping, Node)
+                        & ".TC_" & Ada_Name (Node);
             end;
 
          when K_Scoped_Name =>
@@ -3196,10 +3189,7 @@ package body Ada_Be.Idl2Ada is
    -- Ada_TC_Name --
    -----------------
 
-   function Ada_TC_Name
-     (Node : Node_Id)
-     return String
-   is
+   function Ada_TC_Name (Node : Node_Id) return String is
       NK : constant Node_Kind := Kind (Node);
       Prefix : constant String := "TC_";
    begin
@@ -3290,9 +3280,7 @@ package body Ada_Be.Idl2Ada is
    -- Ada_Full_TC_Name --
    ----------------------
 
-   function Ada_Full_TC_Name
-     (Node : Node_Id)
-     return String renames TC_Name;
+   function Ada_Full_TC_Name (Node : Node_Id) return String renames TC_Name;
 
    -----------------------------
    -- Gen_Module_Init_Prelude --
