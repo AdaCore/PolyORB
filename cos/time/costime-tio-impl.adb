@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.CORBA_P.Server_Tools;
 
 with CosTime.UTO.Impl;

@@ -33,8 +33,6 @@
 
 --  Childs of this packages are tasking profile specific packages
 
---  $Id$
-
 package PolyORB.Tasking.Profiles is
 
    pragma Preelaborate;

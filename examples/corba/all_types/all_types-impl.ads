@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/examples/corba/all_types/all_types-impl.ads#5 $
-
 with CORBA;
 with CORBA.Object;
 with PortableServer;

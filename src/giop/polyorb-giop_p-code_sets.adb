@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.GIOP_P.Code_Sets.Converters;
 with PolyORB.GIOP_P.Code_Sets.Data;
 with PolyORB.Parameters;

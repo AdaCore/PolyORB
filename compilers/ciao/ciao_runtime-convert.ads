@@ -17,8 +17,6 @@
 ----------------------------------------
 
 --  The CIAO run-time library.
---  $Id: //depot/ciao/main/ciao_runtime-convert.ads#2 $
-
 with CORBA;
 
 package CIAO_Runtime.Convert is

@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Strings.Unbounded;
 
 package body SOAP.Utils is

@@ -33,8 +33,6 @@
 
 --  Set up SOAP TCP Access points.
 
---  $Id$
-
 package PolyORB.Setup.Access_Points.SOAP is
 
    pragma Elaborate_Body;

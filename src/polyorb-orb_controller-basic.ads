@@ -39,8 +39,6 @@
 --   * multi-tasking and mono-tasking ORB
 --   * one asynchronous event monitor
 
---  $Id$
-
 with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Idle_Tasks_Managers;
 with PolyORB.Tasking.Mutexes;

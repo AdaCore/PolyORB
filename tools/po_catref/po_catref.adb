@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 --  Utility tool to display information held in a stringified
 --  reference, e.g.  CORBA IOR, corbaloc or URI.
 

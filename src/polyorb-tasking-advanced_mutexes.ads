@@ -33,8 +33,6 @@
 
 --  This package provides advanced mutual exclusion objects (mutexes).
 
---  $Id$
-
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Threads;

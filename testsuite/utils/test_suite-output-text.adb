@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Text_IO;
 
 package body Test_Suite.Output.Text is

@@ -33,8 +33,6 @@
 
 --  References on object exported by the ORB.
 
---  $Id$
-
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Annotations;

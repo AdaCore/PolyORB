@@ -33,8 +33,6 @@
 
 --  This package provides utility functions to setup a MOMA server node.
 
---  $Id$
-
 with MOMA.Types;
 
 package MOMA.Configuration.Server is

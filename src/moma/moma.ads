@@ -34,8 +34,6 @@
 --  Base package for all packages related to the MOMA application personality,
 --  the Message Oriented Middleware for Ada API.
 
---  $Id$
-
 package MOMA is
 
    pragma Pure (MOMA);

@@ -54,8 +54,6 @@
 --  types: all declared type ids are prefixed by CORBA, not
 --  CORBA.Repository_Root.
 
---  $Id$
-
 with CORBA.Forward;
 pragma Elaborate_All (CORBA.Forward);
 with CORBA.Sequences.Unbounded;

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with MOMA.Types;
 
 package body MOMA.Messages.MExecutes is

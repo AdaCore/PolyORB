@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-display_tree.adb#5 $
-
 with Ada.Wide_Text_IO;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Characters.Latin_1;

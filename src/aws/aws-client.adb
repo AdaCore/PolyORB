@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Requests;
 with PolyORB.References.URI;
 with PolyORB.Any;

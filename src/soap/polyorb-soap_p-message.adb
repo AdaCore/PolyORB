@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Any;
 
 with PolyORB.SOAP_P.Types;

@@ -33,8 +33,6 @@
 
 --  A communication filter (a transport Data_Unit handler/forwarder).
 
---  $Id$
-
 with Ada.Tags;
 pragma Warnings (Off, Ada.Tags);
 --  Only used within pragma Debug.

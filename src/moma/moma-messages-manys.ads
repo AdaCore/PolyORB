@@ -37,8 +37,6 @@
 --  type designed to create ad hoc messages, from various data types such as
 --  arrays, records, user defined types ..
 
---  $Id$
-
 with MOMA.Types;
 
 package MOMA.Messages.MAnys is

@@ -33,8 +33,6 @@
 
 --  Global POA configuration.
 
---  $Id$
-
 package body PolyORB.POA_Config is
 
    The_Configuration : Configuration_Access;

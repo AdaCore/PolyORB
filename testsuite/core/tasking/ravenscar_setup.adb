@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with System;
 
 with PolyORB.Tasking.Profiles.Ravenscar.Threads;

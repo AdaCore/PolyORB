@@ -18,8 +18,6 @@
 
 --  Dummy top-level procedure for building
 --  the CIAO runtime library.
---  $Id: //depot/ciao/main/allruntime.adb#2 $
-
 with CIAO_Runtime.Encap_Streams;
 with CIAO_Runtime.Convert;
 

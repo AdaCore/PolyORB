@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package PolyORB.DSA_P.Partitions is
 
    pragma Remote_Call_Interface;

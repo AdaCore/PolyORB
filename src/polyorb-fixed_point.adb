@@ -34,8 +34,6 @@
 --  Generic representation for fixed point types as an array
 --  of BCD nibbles followed by a sign indication.
 
---  $Id: //droopi/main/src/polyorb-fixed_point.adb#3 $
-
 package body PolyORB.Fixed_Point is
 
    package body Fixed_Point_Conversion is

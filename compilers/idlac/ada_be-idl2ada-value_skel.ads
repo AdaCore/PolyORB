@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Idl_Fe.Types;          use Idl_Fe.Types;
 with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
 

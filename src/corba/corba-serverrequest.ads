@@ -38,8 +38,6 @@
 
 --  Mapping for the standard ServerRequest interface
 
---  $Id$
-
 with PolyORB.Requests;
 
 with CORBA.NVList;

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package body PolyORB.Utils.HFunctions.Mul is
 
    Default_Prime : constant := 1777771;

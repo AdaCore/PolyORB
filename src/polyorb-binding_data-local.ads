@@ -34,8 +34,6 @@
 --  Contact information for an object that exists
 --  within the local ORB.
 
---  $Id$
-
 with PolyORB.Objects;
 
 package PolyORB.Binding_Data.Local is

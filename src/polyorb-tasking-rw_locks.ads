@@ -33,8 +33,6 @@
 
 --  Inter-process synchronisation objects.
 
---  $Id: //droopi/main/src/polyorb-tasking-rw_locks.ads#6 $
-
 with PolyORB.Tasking.Condition_Variables;
 
 package PolyORB.Tasking.Rw_Locks is

@@ -33,8 +33,6 @@
 
 --  The CORBA personality IDL mapping.
 
---  $Id$
-
 with Errors; use Errors;
 
 with Idl_Fe.Tree; use Idl_Fe.Tree;

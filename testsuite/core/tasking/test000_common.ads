@@ -34,8 +34,6 @@
 --  Main tests procedure for the tasking package.
 --  This package does NOT register the tasking profile,
 
---  $Id$
-
 with PolyORB.Parameters;
 pragma Elaborate_All (PolyORB.Parameters); --  WAG:3.15
 

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 --  Any conversion subprograms for unbounded sequences.
 
 with PolyORB.Types;

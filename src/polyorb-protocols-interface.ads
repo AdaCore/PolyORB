@@ -33,8 +33,6 @@
 
 --  Interface for Sessions
 
---  $Id$
-
 with PolyORB.Any.NVList;
 with PolyORB.Components;
 

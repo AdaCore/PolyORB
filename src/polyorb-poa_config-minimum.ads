@@ -33,8 +33,6 @@
 
 --  A POA configuration corresponding to Minimum CORBA policies.
 
---  $Id$
-
 package PolyORB.POA_Config.Minimum is
 
    pragma Elaborate_Body;

@@ -35,8 +35,6 @@
 --  For each entity, we document whether it is shared with the
 --  default GNAT implementation, or with the GLADE implementation.
 
---  $Id$
-
 with Ada.Exceptions;
 --  with Interfaces;
 with System.RPC;

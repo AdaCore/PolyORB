@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-parser.ads#8 $
-
 with Idl_Fe.Lexer; use Idl_Fe.Lexer;
 with Idl_Fe.Types; use Idl_Fe.Types;
 with Errors;

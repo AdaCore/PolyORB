@@ -35,8 +35,6 @@
 --  objects, implemented as PolyORB servants using the Minimal_Servant
 --  construction; they also define internal constructs.
 
---  $Id$
-
 package PolyORB.MOMA_P.Provider is
 
    pragma Pure;

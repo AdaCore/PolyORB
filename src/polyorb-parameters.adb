@@ -33,8 +33,6 @@
 
 --  PolyORB runtime configuration facility.
 
---  $Id$
-
 with Ada.Characters.Handling;
 with Ada.Text_IO;
 

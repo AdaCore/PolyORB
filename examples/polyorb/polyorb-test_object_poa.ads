@@ -33,8 +33,6 @@
 
 --  A simple test server object that uses the POA.
 
---  $Id$
-
 with PolyORB.Components;
 with PolyORB.Servants;
 with PolyORB.Types;

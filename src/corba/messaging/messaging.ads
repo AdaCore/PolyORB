@@ -36,8 +36,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with CORBA.Sequences.Unbounded;
 
 package Messaging is

@@ -33,8 +33,6 @@
 
 --  Run the tests for the Full_Tasking profile
 
---  $Id$
-
 with PolyORB.Initialization;
 
 with PolyORB.Utils.Report;

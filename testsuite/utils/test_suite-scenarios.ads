@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Test_Suite.Output;
 
 package Test_Suite.Scenarios is

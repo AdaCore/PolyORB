@@ -33,8 +33,6 @@
 
 --  Automatic initialization of PolyORB subsystems.
 
---  $Id$
-
 with Ada.Exceptions;
 
 with PolyORB.Log;

@@ -17,8 +17,6 @@
 ----------------------------------------
 
 --  Generic template for ORB-specific matter.
---  $Id: //depot/ciao/main/ciao-generator-orb_deps_g.ads#3 $
-
 with CIAO.Types;
 
 generic

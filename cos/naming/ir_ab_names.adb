@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PO_COS_Naming;
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.If_Descriptors;

@@ -37,8 +37,6 @@
 --    Version 3.0", Open Management Group
 --    (http://www.omg.org/).
 
---  $Id$
-
 with PolyORB.Types;
 
 package PolyORB.Representations.CDR is

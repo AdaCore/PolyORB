@@ -33,8 +33,6 @@
 
 --  This package implements Watchers.
 
---  $Id$
-
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;

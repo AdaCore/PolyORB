@@ -33,8 +33,6 @@
 
 --  Wrapper to run shell scripts under Windows.
 
---  $Id$
-
 with Ada.Command_Line;
 with Ada.Text_IO;
 with GNAT.OS_Lib;

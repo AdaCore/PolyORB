@@ -33,8 +33,6 @@
 
 --  A POA configuration for RACW-objects-subPOAs.
 
---  $Id$
-
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Strings.Lists;

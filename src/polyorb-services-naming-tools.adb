@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Services.Naming.NamingContext.Client;
 with PolyORB.Services.Naming.NamingContext.Helper;
 

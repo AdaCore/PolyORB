@@ -40,8 +40,6 @@
 --  in case of a fixed point numeric value.
 --  It defines generic methods to manipulate this kind of any.
 
---  $Id$
-
 generic
    type F is delta <> digits <>;
 

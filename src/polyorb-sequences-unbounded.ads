@@ -57,8 +57,6 @@
 --  Sequences are automatically initialized to zero length, so users should
 --  not see Constraint_Error raised.
 
---  $Id$
-
 with Ada.Finalization;
 
 generic

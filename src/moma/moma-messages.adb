@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with MOMA.Destinations;
 with MOMA.Messages.MAnys;
 with MOMA.Messages.MBytes;

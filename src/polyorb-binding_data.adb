@@ -34,8 +34,6 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id$
-
 with Ada.Tags;
 with Ada.Unchecked_Deallocation;
 

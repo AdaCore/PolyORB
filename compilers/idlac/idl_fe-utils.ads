@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Idl_Fe.Types; use Idl_Fe.Types;
 
 package Idl_Fe.Utils is

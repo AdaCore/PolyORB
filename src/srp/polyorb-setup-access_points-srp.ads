@@ -33,8 +33,6 @@
 
 --  Set up SRP TCP Access points.
 
---  $Id$
-
 package PolyORB.Setup.Access_Points.SRP is
 
    pragma Elaborate_Body;

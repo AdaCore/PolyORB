@@ -37,8 +37,6 @@
 --  The latest code set registry file can be downloaded from the Open Group
 --  FTP server at ftp://ftp.opengroup.org/pub/code_set_registry/
 
---  $Id$
-
 with Ada.Command_Line;
 with Ada.Integer_Text_IO; use Ada.Integer_Text_IO;
 with Ada.Text_IO;         use Ada.Text_IO;

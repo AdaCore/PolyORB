@@ -49,8 +49,6 @@
 --  As a special exception, some allocation and initialization for
 --  these packages can be done at elaboration. They should be minimal.
 
---  $Id$
-
 package PolyORB.Tasking is
 
    pragma Pure;

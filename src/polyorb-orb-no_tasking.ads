@@ -33,8 +33,6 @@
 
 --  Tasking policy for the ORB core: 'No_Tasking'.
 
---  $Id$
-
 package PolyORB.ORB.No_Tasking is
 
    pragma Elaborate_Body;

@@ -34,8 +34,6 @@
 --  This package provides accessors to data contained in MOMA configuration
 --  files. See '*.conf' files for more details about their syntax.
 
---  $Id$
-
 with MOMA.Types;
 
 package MOMA.Configuration is

@@ -37,8 +37,6 @@
 --  XXX Also this package contains marshalling/unmarshalling subprogram
 --  for object references, which must be removed.
 
---  $Id$
-
 with Ada.Streams;
 
 with PolyORB.Any;

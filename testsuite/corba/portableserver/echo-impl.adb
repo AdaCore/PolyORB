@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/testsuite/corba/portableserver/echo-impl.adb#4 $
-
 with CORBA.ORB;
 
 with Echo.Skel;

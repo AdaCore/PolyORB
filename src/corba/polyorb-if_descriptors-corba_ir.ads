@@ -33,8 +33,6 @@
 
 --  An Interface Descriptor that uses the CORBA Interface Repository.
 
---  $Id$
-
 package PolyORB.If_Descriptors.CORBA_IR is
 
    type IR_If_Descriptor is new If_Descriptor with private;

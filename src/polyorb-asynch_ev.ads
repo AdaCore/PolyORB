@@ -33,8 +33,6 @@
 
 --  Abstract data type for an asynchrous event source.
 
---  $Id$
-
 with PolyORB.Annotations;
 with PolyORB.Jobs;
 

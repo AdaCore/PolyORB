@@ -50,8 +50,6 @@
 --  standard exceptions ad defined in the Ada Reference Manual. It
 --  should return a non null Error_Container.
 
---  $Id$
-
 with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 

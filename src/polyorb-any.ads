@@ -33,8 +33,6 @@
 
 --  Definition of the container type 'Any'
 
---  $Id$
-
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Smart_Pointers;

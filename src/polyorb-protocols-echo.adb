@@ -33,8 +33,6 @@
 
 --  A dummy protocol, just for testing.
 
---  $Id$
-
 with Ada.Exceptions;
 
 with PolyORB.Any.NVList;

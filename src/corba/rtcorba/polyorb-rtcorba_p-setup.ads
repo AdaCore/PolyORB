@@ -43,8 +43,6 @@
 --  * PriorityMapping
 --  * PriorityTransform
 
---  $Id$
-
 with RTCORBA.PriorityMapping;
 with RTCORBA.PriorityTransform;
 

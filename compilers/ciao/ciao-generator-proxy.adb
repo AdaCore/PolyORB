@@ -19,8 +19,6 @@
 --  The proxy package generator.
 --  Produces a CORBA servant implementation from an
 --  annotated IDL tree obtained as output of the translator.
---  $Id: //depot/ciao/main/ciao-generator-proxy.adb#22 $
-
 with Ada.Characters.Handling;    use Ada.Characters.Handling;
 with Ada.Unchecked_Deallocation;
 with Ada.Strings.Wide_Unbounded; use Ada.Strings.Wide_Unbounded;

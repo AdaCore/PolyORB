@@ -33,8 +33,6 @@
 
 --  This version is for PolyORB.
 
---  $Id$
-
 package body System.Partition_Interface is
 
 --    pragma Warnings (Off); -- supress warnings for unreferenced formals

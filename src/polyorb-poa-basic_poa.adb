@@ -33,8 +33,6 @@
 
 --  Basic POA implementation.
 
---  $Id$
-
 with Ada.Streams;
 with Ada.Unchecked_Conversion;
 

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Initialization;
 with PolyORB.Setup.Thread_Pool_Server;
 --  We have RACWs: better initialize some TSAPs!

@@ -33,8 +33,6 @@
 
 --  ORB Controller for PolyORB ORB main loop
 
---  $Id$
-
 with PolyORB.Asynch_Ev;
 with PolyORB.Jobs;
 with PolyORB.References;

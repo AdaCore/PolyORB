@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-tree-synthetic.adb#8 $
-
 with Idl_Fe.Types;
 with Idl_Fe.Tree; use Idl_Fe.Tree;
 with Idl_Fe.Debug;

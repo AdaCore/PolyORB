@@ -33,8 +33,6 @@
 
 --  Generic chained list.
 
---  $Id$
-
 generic
    type T is private;
    with function "=" (X, Y : T) return Boolean is <>;

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Utils.Random;
 
 package body PolyORB.Utils.HFunctions.Hyper is

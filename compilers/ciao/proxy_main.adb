@@ -17,8 +17,6 @@
 ----------------------------------------
 
 --  Main procedure for the proxy partition.
---  $Id$
-
 --  Portable Object Adapter
 
 with CORBA; use CORBA;

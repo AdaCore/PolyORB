@@ -36,8 +36,6 @@
 --        * to gateway asynchronous external events to the
 --          syncrhonous messaging architecture used within PolyORB.
 
---  $Id$
-
 with PolyORB.Annotations;
 with PolyORB.Asynch_Ev;
 with PolyORB.Binding_Data;

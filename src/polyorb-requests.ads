@@ -33,8 +33,6 @@
 
 --  The Request object.
 
---  $Id$
-
 with PolyORB.Annotations;
 with PolyORB.Any;
 with PolyORB.Any.ExceptionList;

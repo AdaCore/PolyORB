@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/examples/moma/client_call_back_procedures.adb
-
 with MOMA.Messages;
 with MOMA.Messages.MBytes;
 

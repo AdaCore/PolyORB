@@ -34,8 +34,6 @@
 --  This package defines procedures to register call backs functions
 --  to be called when initializing an ORB object.
 
---  $Id$
-
 package PolyORB.CORBA_P.ORB_Init is
 
    type ORB_Init_Suffix_Type is

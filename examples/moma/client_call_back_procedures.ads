@@ -33,8 +33,6 @@
 
 --  Procedures for call_back test client
 
---  $Id: //droopi/main/examples/moma/client_call_back_procedures.ads
-
 with MOMA.Messages;
 with MOMA.Message_Producers;
 with MOMA.Message_Consumers;

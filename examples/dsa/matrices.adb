@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package body Matrices is
 
    function Transpose (M : Matrix) return Matrix is

@@ -33,8 +33,6 @@
 
 --  Condition variables testsuite.
 
---  $Id$
-
 with PolyORB.Initialization;
 
 with PolyORB.Tasking.Profiles.Full_Tasking.Threads;

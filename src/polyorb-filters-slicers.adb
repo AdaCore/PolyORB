@@ -33,8 +33,6 @@
 
 --  A filter that slices a stream into a set of known-length messages.
 
---  $Id$
-
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
 

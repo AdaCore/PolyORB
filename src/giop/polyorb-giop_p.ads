@@ -34,8 +34,6 @@
 --  The root of all PolyORB packages that are specific to the
 --  GIOP personality.
 
---  $Id$
-
 package PolyORB.GIOP_P is
 
    pragma Pure;

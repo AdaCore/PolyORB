@@ -33,8 +33,6 @@
 
 --  Datagram Socket Access Point and End Point to recieve data from network
 
---  $Id$
-
 with PolyORB.Sockets;
 
 package PolyORB.Transport.Datagram.Sockets_In is

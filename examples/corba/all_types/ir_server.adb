@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.CORBA_P.Server_Tools;
 with Server;
 with all_types.IR_Info;

@@ -36,8 +36,6 @@
 --  A complete implementation of this package is provided for each
 --  tasking profile.
 
---  $Id$
-
 with PolyORB.Tasking.Mutexes;
 
 package PolyORB.Tasking.Condition_Variables is

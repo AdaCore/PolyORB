@@ -38,8 +38,6 @@
 
 --  The CORBA Dynamic Invocation Interface.
 
---  $Id$
-
 with Ada.Finalization;
 
 with CORBA.AbstractBase;

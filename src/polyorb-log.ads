@@ -33,8 +33,6 @@
 
 --  Logging support for PolyORB
 
---  $Id$
-
 package PolyORB.Log is
 
    pragma Preelaborate;

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/ada_be-debug.adb#2 $
-
 with Ada.Text_IO; use Ada.Text_IO;
 
 package body Ada_Be.Debug is

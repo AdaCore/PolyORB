@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.Request_QoS.Priority;

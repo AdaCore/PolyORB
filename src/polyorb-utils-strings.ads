@@ -33,8 +33,6 @@
 
 --  General-purpose string pointer and related functions
 
---  $Id$
-
 with Ada.Unchecked_Deallocation;
 
 package PolyORB.Utils.Strings is

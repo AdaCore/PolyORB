@@ -36,8 +36,6 @@
 --  and must avoid to use dynamic allocation. If dynamic allocation cannot
 --  be avoided, it must be done at initialisation time.
 
---  $Id$
-
 package PolyORB.Tasking.Profiles.Ravenscar is
 
    pragma Preelaborate;

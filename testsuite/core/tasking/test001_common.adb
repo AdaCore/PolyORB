@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Utils.Report;
 
 with PolyORB.Tasking.Threads;

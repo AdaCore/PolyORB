@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package body Delegated_Server is
 
    function Echo_With_Delegation

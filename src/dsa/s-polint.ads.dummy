@@ -34,8 +34,6 @@
 --  any PolyORB unit. This version is to be used when compiling
 --  Remote_Types units for use in a non-distributed application.
 
---  $Id$
-
 with System.RPC;
 with System.Unsigned_Types;
 with Interfaces;

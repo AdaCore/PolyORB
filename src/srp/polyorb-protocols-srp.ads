@@ -43,8 +43,6 @@
 --  Following types can be marshalled and unmarshalled :
 --   byte, boolean, short, long, unsigned short, unsigned long
 
---  $Id$
-
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Buffers;

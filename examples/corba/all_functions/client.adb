@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/examples/corba/all_functions/client.adb#4 $
-
 with Ada.Command_Line;
 with Ada.Text_IO;
 

@@ -33,8 +33,6 @@
 
 --  Inter-process synchronisation objects.
 
---  $Id: //droopi/main/src/polyorb-tasking-rw_locks.adb#6 $
-
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;

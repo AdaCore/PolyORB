@@ -38,8 +38,6 @@
 --  place of the emitter, and will bounce this message to another destination
 --  using its handler.
 
---  $Id$
-
 with PolyORB.Annotations;
 with PolyORB.Components;
 with PolyORB.Requests;

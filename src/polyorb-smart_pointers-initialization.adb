@@ -33,8 +33,6 @@
 
 --  Initialization code for PolyORB.Smart_Pointers
 
---  $Id$
-
 with Ada.Tags;
 
 with PolyORB.Initialization;

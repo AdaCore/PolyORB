@@ -33,8 +33,6 @@
 
 --  The CORBA Dynamic Invocation Interface.
 
---  $Id$
-
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Interceptors_Hooks;
 

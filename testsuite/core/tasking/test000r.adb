@@ -33,8 +33,6 @@
 
 --  Run the tests for the Ravenscar profile
 
---  $Id$
-
 with PolyORB.Initialization;
 with PolyORB.Utils.Report;
 

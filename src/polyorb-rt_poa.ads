@@ -37,8 +37,6 @@
 --  user to affect priorities to servants. It is notionnally
 --  equivalent to RTCORBA specification of the RT-POA.
 
---  $Id$
-
 with PolyORB.Exceptions;
 with PolyORB.POA;
 with PolyORB.POA_Types;

@@ -33,8 +33,6 @@
 
 --  Base data types for the whole middleware.
 
---  $Id$
-
 with Interfaces;
 
 with Ada.Strings.Unbounded;

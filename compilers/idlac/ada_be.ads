@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/ada_be.ads#2 $
-
 package Ada_Be is
 
    pragma Pure;

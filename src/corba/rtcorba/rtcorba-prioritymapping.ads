@@ -36,8 +36,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package RTCORBA.PriorityMapping is
 
    type Object is tagged private;

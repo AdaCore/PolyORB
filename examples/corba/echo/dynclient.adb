@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 --  echo dynamic client, using the Dynamic Invocation Interface (DII)
 
 with Ada.Command_Line;

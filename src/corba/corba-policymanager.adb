@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Annotations;
 with PolyORB.CORBA_P.Initial_References;
 with PolyORB.CORBA_P.Policy_Management;

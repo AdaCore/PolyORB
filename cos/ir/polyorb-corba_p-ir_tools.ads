@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with CORBA.Repository_Root.Repository;
 
 package PolyORB.CORBA_P.IR_Tools is

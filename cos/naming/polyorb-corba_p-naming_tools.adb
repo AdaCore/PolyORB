@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with CORBA.ORB;
 with CosNaming.NamingContext.Helper;
 use CosNaming, CosNaming.NamingContext, CosNaming.NamingContext.Helper;

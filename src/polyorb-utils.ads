@@ -33,8 +33,6 @@
 
 --  Miscellaneous utility subprograms.
 
---  $Id$
-
 with Ada.Streams;
 
 package PolyORB.Utils is

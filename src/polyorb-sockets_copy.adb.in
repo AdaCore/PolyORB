@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 @MISS_GNAT_SOCKETS_COPY@with Ada.Unchecked_Conversion;
 @MISS_GNAT_SOCKETS_COPY@with Ada.Unchecked_Deallocation;
 @MISS_GNAT_SOCKETS_COPY@with GNAT.Sockets.Thin;

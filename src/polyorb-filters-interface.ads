@@ -33,8 +33,6 @@
 
 --  Messages exchanged by Filter components.
 
---  $Id$
-
 with Ada.Streams; use Ada.Streams;
 
 with PolyORB.Binding_Objects;

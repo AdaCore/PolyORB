@@ -33,8 +33,6 @@
 
 --  Abstract datagram transport service access points and transport endpoints.
 
---  $Id$
-
 with PolyORB.Transport.Handlers;
 
 package PolyORB.Transport.Datagram is

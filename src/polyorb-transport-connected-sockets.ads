@@ -34,8 +34,6 @@
 --  Socket implementation of transport service access points
 --  and communication endpoints.
 
---  $Id$
-
 with PolyORB.Sockets; use PolyORB.Sockets;
 with PolyORB.Tasking.Mutexes;
 

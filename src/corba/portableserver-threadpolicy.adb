@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.CORBA_P.Policy;
 with PolyORB.CORBA_P.Policy_Management;
 with PolyORB.Initialization;

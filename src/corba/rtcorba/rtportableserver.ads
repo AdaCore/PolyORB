@@ -36,8 +36,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package RTPortableServer is
 
    pragma Pure (RTPortableServer);

@@ -34,8 +34,6 @@
 --  Event handlers associated with all transport access points and
 --  transport endpoints.
 
---  $Id$
-
 with PolyORB.Binding_Data;
 with PolyORB.Filters;
 with PolyORB.ORB;

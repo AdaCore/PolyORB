@@ -39,8 +39,6 @@
 --  that provides pseudo-random generator and that is compliant with
 --  'pragma Preelaobrate'.
 
---  $Id$
-
 with PolyORB.Types;
 
 package PolyORB.Utils.Random is

@@ -38,8 +38,6 @@
 --  CORBA-like POA API (defined in PolyORB.POA) and PolyORB Obj_Adapter
 --  (defined in PolyORB.Obj_Adapters) upon which the Basic POA depends.
 
---  $Id$
-
 with PolyORB.Exceptions;
 with PolyORB.Objects;
 with PolyORB.References;

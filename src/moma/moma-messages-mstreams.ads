@@ -33,8 +33,6 @@
 
 --  XXX should we keep it ?
 
---  $Id$
-
 package MOMA.Messages.MStreams is
 
    ---------------------

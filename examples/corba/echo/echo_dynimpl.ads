@@ -34,8 +34,6 @@
 --  Implementation of a dynamic servant, using the Dynamic Skeleton
 --  Interface (DSI).
 
---  $Id$
-
 with CORBA.ServerRequest;
 
 with PortableServer;

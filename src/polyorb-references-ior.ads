@@ -40,8 +40,6 @@
 --  representation by marshalling it according to CDR, and converting
 --  the resulting stream element array into a string of hexadecimal digits.
 
---  $Id$
-
 with Ada.Streams;
 
 with PolyORB.Buffers;

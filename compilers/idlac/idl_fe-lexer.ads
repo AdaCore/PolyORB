@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.ads#5 $
-
 with Errors;
 
 package Idl_Fe.Lexer is

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package Test_Suite.Output.File is
 
    type File_Output is new Test_Suite_Output with private;

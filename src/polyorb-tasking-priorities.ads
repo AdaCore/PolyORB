@@ -33,8 +33,6 @@
 
 --  This package defines priority ranges available within PolyORB
 
---  $Id$
-
 with System;
 with PolyORB.Types;
 

@@ -33,8 +33,6 @@
 
 --   echo client.
 
---  $Id: //droopi/main/examples/corba/echo/client.adb#7 $
-
 with Ada.Command_Line;
 with Ada.Text_IO;
 with CORBA.ORB;

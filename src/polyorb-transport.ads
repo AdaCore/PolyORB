@@ -33,8 +33,6 @@
 
 --  Abstract transport service access points and transport endpoints.
 
---  $Id$
-
 with Ada.Streams;
 
 with PolyORB.Annotations;

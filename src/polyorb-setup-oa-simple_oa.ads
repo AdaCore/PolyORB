@@ -33,8 +33,6 @@
 
 --  Set up a Simple Object Adapter
 
---  $Id$
-
 package PolyORB.Setup.OA.Simple_OA is
 
    pragma Elaborate_Body;

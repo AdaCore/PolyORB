@@ -33,8 +33,6 @@
 
 --  Utility subprograms for data representation methods and buffer access.
 
---  $Id$
-
 with Ada.Streams; use Ada.Streams;
 
 with PolyORB.Buffers; use PolyORB.Buffers;

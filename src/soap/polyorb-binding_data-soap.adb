@@ -33,8 +33,6 @@
 
 --  Binding data concrete implementation for SOAP over HTTP.
 
---  $Id$
-
 with Ada.Streams;
 
 with PolyORB.Binding_Objects;

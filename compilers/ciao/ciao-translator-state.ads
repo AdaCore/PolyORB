@@ -17,8 +17,6 @@
 ----------------------------------------
 
 --  The internal state of the translator.
---  $Id: //droopi/main/compilers/ciao/ciao-translator-state.ads#9 $
-
 with Asis;
 with CIAO.ASIS_Queries;
 

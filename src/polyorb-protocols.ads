@@ -33,8 +33,6 @@
 
 --  Support for object method invocation protocols.
 
---  $Id$
-
 with Ada.Streams;
 
 with PolyORB.Any.NVList;

@@ -33,8 +33,6 @@
 
 --  Testing MOMA client, interaction with ORB server 'all_types'.
 
---  $Id$
-
 with Ada.Command_Line;
 with Ada.Text_IO;
 

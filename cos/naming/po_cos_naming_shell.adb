@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Exceptions;              use Ada.Exceptions;
 with Ada.Text_IO;
 with GNAT.Command_Line;           use GNAT.Command_Line;

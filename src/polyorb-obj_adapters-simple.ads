@@ -33,8 +33,6 @@
 
 --  Simple implementation of a PolyORB's Object Adapter.
 
---  $Id$
-
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Dynamic_Tables;
 

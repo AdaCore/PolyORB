@@ -33,8 +33,6 @@
 
 --  Root package for the setup of the object adapters.
 
---  $Id$
-
 package PolyORB.Setup.OA is
 
 end PolyORB.Setup.OA;

@@ -36,8 +36,6 @@
 --  A MMap message contains a sequence of named value, similar to a bag
 --  container.
 
---  $Id$
-
 with MOMA.Types;
 
 package MOMA.Messages.MMaps is

@@ -33,8 +33,6 @@
 
 --  Automatic initialization of PolyORB subsystems.
 
---  $Id$
-
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Strings.Lists;
 

@@ -33,8 +33,6 @@
 
 --  Sample MOMA router
 
---  $Id$
-
 with Ada.Command_Line;
 with Ada.Text_IO;
 

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Exceptions;
 with PolyORB.Minimal_Servant;
 with PolyORB.References;

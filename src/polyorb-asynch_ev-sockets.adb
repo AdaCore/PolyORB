@@ -33,8 +33,6 @@
 
 --  An asynchrous event source that is a set of socket descriptors.
 
---  $Id$
-
 with PolyORB.Constants;
 with PolyORB.Log;
 with PolyORB.Sockets_Copy;

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package PolyORB.RT_POA_Policies is
 
    pragma Pure (PolyORB.RT_POA_Policies);

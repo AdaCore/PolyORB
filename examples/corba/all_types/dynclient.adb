@@ -33,8 +33,6 @@
 
 --  all_types dynamic client.
 
---  $Id$
-
 pragma Style_Checks (Off);
 
 with Ada.Command_Line;

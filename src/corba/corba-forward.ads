@@ -36,8 +36,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba-forward.ads#3 $
-
 with CORBA.Object;
 
 generic

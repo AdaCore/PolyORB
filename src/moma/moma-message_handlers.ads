@@ -39,8 +39,6 @@
 --  NOTE: A MOMA client must use only this package to get a callback for the
 --  messages it receives.
 
---  $Id: //droopi/main/src/moma/moma-message_handlers.ads
-
 with MOMA.Messages;
 with MOMA.Message_Consumers;
 with MOMA.Sessions;

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.adb#28 $
-
 with Ada.Characters.Handling;
 
 with PolyORB.CORBA_P.Exceptions;

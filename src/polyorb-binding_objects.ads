@@ -34,8 +34,6 @@
 --  Binding objects: protocol stacks seen globally as a reference-counted
 --  entity.
 
---  $Id$
-
 with PolyORB.Components;
 with PolyORB.Filters;
 with PolyORB.ORB;

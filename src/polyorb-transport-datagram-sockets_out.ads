@@ -33,8 +33,6 @@
 
 --  Datagram Socket End Point to send data to network
 
---  $Id$
-
 with PolyORB.Sockets;
 with PolyORB.Tasking.Mutexes;
 

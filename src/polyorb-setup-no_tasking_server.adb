@@ -33,8 +33,6 @@
 
 --  Elaborate a complete server with no tasking.
 
---  $Id$
-
 with PolyORB.ORB.No_Tasking;
 pragma Warnings (Off, PolyORB.ORB.No_Tasking);
 pragma Elaborate_All (PolyORB.ORB.No_Tasking);

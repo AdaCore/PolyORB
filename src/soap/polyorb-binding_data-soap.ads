@@ -33,8 +33,6 @@
 
 --  Binding data concrete implementation for SOAP over HTTP.
 
---  $Id$
-
 with PolyORB.Buffers;
 with PolyORB.Sockets;
 with PolyORB.Types;

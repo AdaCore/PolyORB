@@ -18,8 +18,6 @@
 
 --  A DSA stream based on a CORBA Encapsulation
 --  (sequence<octet>).
---  $Id: //depot/ciao/main/ciao_runtime-encap_streams.ads#2 $
-
 with Ada.Streams; use Ada.Streams;
 with CORBA.Sequences.Unbounded;
 

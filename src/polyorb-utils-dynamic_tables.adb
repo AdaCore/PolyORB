@@ -34,8 +34,6 @@
 --  This package provides one-dimensional, variable-size arrays support.
 --  See the package specification for more details.
 
---  $Id$
-
 with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Utils.Dynamic_Tables is

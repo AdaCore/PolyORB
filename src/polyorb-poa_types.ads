@@ -33,8 +33,6 @@
 
 --  Base types for the Portable Object Adapter.
 
---  $Id$
-
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Any;

@@ -34,8 +34,6 @@
 --  A complete implementation of this package is provided for all
 --  tasking profiles.
 
---  $Id$
-
 with PolyORB.Log;
 
 package body PolyORB.Tasking.Condition_Variables is

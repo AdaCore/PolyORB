@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Log;
 
 package body PolyORB.Tasking.Idle_Tasks_Managers is

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with GNAT.Directory_Operations.Iteration;
 with PolyORB.Parameters.File;
 

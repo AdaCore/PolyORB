@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Annotations;
 with PolyORB.Jobs;
 with PolyORB.Utils.Chained_Lists;

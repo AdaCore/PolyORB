@@ -33,8 +33,6 @@
 
 --  A dummy data representation method, just for show.
 
---  $Id$
-
 with Ada.Streams; use Ada.Streams;
 with PolyORB.Utils.Buffers; use PolyORB.Utils.Buffers;
 

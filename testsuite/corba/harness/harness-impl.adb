@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Harness.Skel;
 pragma Elaborate (Harness.Skel);
 pragma Warnings (Off, Harness.Skel);

@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package PolyORB.SOAP_P is
 
    pragma Linker_Options ("-lpolyorb-soap");

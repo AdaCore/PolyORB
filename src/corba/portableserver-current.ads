@@ -36,8 +36,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-current.ads#7 $
-
 with Ada.Exceptions;
 
 with CORBA.Current;

@@ -33,8 +33,6 @@
 
 --  Helper functions to manage CORBA corbaloc references
 
---  $Id$
-
 with CORBA.Object;
 
 package PolyORB.CORBA_P.CORBALOC is

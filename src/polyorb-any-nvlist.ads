@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Any;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;

@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with AWS.Translator;
 with AWS.Headers.Set;
 with AWS.Digest;

@@ -33,8 +33,6 @@
 
 --  A variant of the test setup that uses a POA instead of an SOA.
 
---  $Id$
-
 with Ada.Exceptions;
 with Ada.Text_IO;
 

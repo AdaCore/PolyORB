@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Numerics.Discrete_Random;
 pragma Elaborate (Ada.Numerics.Discrete_Random);
 

@@ -33,8 +33,6 @@
 
 --  Abstract data type for an asynchrous event source.
 
---  $Id$
-
 with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Asynch_Ev is

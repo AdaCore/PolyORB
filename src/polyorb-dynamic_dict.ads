@@ -33,8 +33,6 @@
 
 --  A dynamic dictionnary of objects, indexed by Strings.
 
---  $Id$
-
 generic
 
    type Value is private;

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.IO_Exceptions;
 with Ada.Text_IO;             use Ada.Text_IO;

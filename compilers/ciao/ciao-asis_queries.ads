@@ -17,8 +17,6 @@
 ----------------------------------------
 
 --  Various ASIS queries for CIAO.
---  $Id: //droopi/main/compilers/ciao/ciao-asis_queries.ads#4 $
-
 with Asis;
 with Asis.Exceptions;
 

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/examples/corba/all_functions/server.adb#3 $
-
 with all_functions.Impl;
 
 with CORBA;

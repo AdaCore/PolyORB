@@ -33,8 +33,6 @@
 
 --  Messages exchanged by Filter components.
 
---  $Id$
-
 package body PolyORB.Filters.Interface is
 
    procedure Expect_Data

@@ -34,8 +34,6 @@
 --  Elaborate a complete server with the ``thread pool'' ORB tasking
 --  policy and a full tasking runtime.
 
---  $Id$
-
 with PolyORB.ORB.Thread_Pool;
 pragma Elaborate_All (PolyORB.ORB.Thread_Pool);
 pragma Warnings (Off, PolyORB.ORB.Thread_Pool);

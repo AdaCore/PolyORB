@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package body Idl_Fe.Tree.Low_Level is
 
    procedure Replace_Node

@@ -33,8 +33,6 @@
 
 --  Implementations of the test procedures.
 
---  $Id$
-
 with Ada.Real_Time;
 with Ada.Exceptions;
 

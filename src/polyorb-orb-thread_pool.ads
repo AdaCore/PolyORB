@@ -33,8 +33,6 @@
 
 --  Implementation of thread pool architecture
 
---  $Id$
-
 package PolyORB.ORB.Thread_Pool is
 
    pragma Elaborate_Body;

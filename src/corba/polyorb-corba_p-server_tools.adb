@@ -33,8 +33,6 @@
 
 --  Helper functions for CORBA servers.
 
---  $Id$
-
 with CORBA.Object;
 with CORBA.ORB;
 

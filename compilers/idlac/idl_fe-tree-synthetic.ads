@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-tree-synthetic.ads#6 $
-
 with Idl_Fe.Types; use Idl_Fe.Types;
 
 --  Synthetised attributes of the IDL tree nodes.

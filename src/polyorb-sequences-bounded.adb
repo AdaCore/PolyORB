@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Sequences.Bounded is

@@ -33,8 +33,6 @@
 
 --  Set up a full tasking profile
 
---  $Id$
-
 package PolyORB.Setup.Tasking.Full_Tasking is
 
    pragma Elaborate_Body;

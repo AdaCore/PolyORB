@@ -33,8 +33,6 @@
 
 --  Test PolyORB COS event capabilities.
 
---  $Id$
-
 with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Text_IO;

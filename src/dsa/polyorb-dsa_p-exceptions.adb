@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package body PolyORB.DSA_P.Exceptions is
 
    use PolyORB.Exceptions;

@@ -43,8 +43,6 @@
 --  Note: A major hypothesis made by this algorithm is that the class
 --  of hashing functions provided during instanciation is universal.
 
---  $Id$
-
 with PolyORB.Utils.Dynamic_Tables;
 with PolyORB.Utils.Strings;
 

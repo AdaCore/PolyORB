@@ -36,8 +36,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with CORBA.Local;
 with CORBA.Policy;
 with CORBA.PolicyManager;

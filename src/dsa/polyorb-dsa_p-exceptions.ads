@@ -33,8 +33,6 @@
 
 --  Exceptions management for the DSA Application Personality of PolyORB.
 
---  $Id$
-
 with PolyORB.Exceptions;
 
 package PolyORB.DSA_P.Exceptions is

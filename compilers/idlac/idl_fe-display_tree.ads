@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-display_tree.ads#2 $
-
 with Idl_Fe.Types; use Idl_Fe.Types;
 
 package Idl_Fe.Display_Tree is

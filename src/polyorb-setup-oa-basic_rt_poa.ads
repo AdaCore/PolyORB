@@ -33,8 +33,6 @@
 
 --  Set up a Basic Portable Object Adapter
 
---  $Id$
-
 package PolyORB.Setup.OA.Basic_RT_POA is
 
    pragma Elaborate_Body;

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Initialization;
 with PolyORB.Tasking.Priorities;
 with PolyORB.Types;

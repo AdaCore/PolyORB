@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Log;
 with PolyORB.POA_Manager;
 with PolyORB.POA_Policies.Implicit_Activation_Policy;

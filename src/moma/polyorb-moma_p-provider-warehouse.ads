@@ -34,8 +34,6 @@
 --  A dynamic, protected  dictionary of Any, indexed by Strings. It is used
 --  as a placeholder for received messages.
 
---  $Id$
-
 with PolyORB.Any;
 with PolyORB.Tasking.Rw_Locks;
 with PolyORB.Utils.HFunctions.Hyper;

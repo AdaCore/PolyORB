@@ -33,8 +33,6 @@
 
 --  PolyORB runtime configuration facility.
 
---  $Id$
-
 package PolyORB.Parameters is
 
    pragma Elaborate_Body;

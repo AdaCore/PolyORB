@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package body CORBA.ORB.Typecode is
 
    function Create_Struct_Tc

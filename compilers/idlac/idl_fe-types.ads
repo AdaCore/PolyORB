@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-types.ads#5 $
-
 --  Base types for the IDL front-end (standard version).
 
 with Ada.Unchecked_Deallocation;

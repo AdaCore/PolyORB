@@ -36,8 +36,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with CORBA.Sequences.Unbounded;
 
 with PolyORB.RT_POA_Policies.Priority_Model_Policy;

@@ -19,8 +19,6 @@
 --  This package defines variables for storing CIAO options and parameters,
 --  as well as some internal parameters used by CIAO.
 
---  $Id: //droopi/main/compilers/ciao/ciao-options.ads#3 $
-
 with GNAT.OS_Lib;
 
 with CIAO.Types;  use CIAO.Types;

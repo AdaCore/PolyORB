@@ -49,8 +49,6 @@
 --    IEEE Transactions on Software Engineering,
 --    vol. 17, pp. 64--76, January 1991.
 
---  $Id$
-
 with PolyORB.Components;
 
 package PolyORB.Filters is

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/examples/corba/all_types/all_types-impl.adb#7 $
-
 with Ada.Text_IO;
 with CORBA.ORB;
 

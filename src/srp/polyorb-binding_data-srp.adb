@@ -33,8 +33,6 @@
 
 --  Binding data for the Simple Request Protocol over TCP.
 
---  $Id$
-
 with PolyORB.Binding_Objects;
 with PolyORB.Filters;
 with PolyORB.ORB;

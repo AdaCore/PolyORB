@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-parser.adb#20 $
-
 with Ada.Characters.Latin_1;
 with Ada.Unchecked_Deallocation;
 with Ada.Strings.Unbounded;

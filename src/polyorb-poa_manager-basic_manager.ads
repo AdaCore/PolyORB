@@ -33,8 +33,6 @@
 
 --  Base POA Manager concrete implementation.
 
---  $Id$
-
 with PolyORB.Components;
 with PolyORB.Exceptions;
 with PolyORB.POA_Types;

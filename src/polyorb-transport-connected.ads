@@ -34,8 +34,6 @@
 --  Abstract connected transport service access points and transport
 --  endpoints.
 
---  $Id$
-
 with PolyORB.Transport.Handlers;
 
 package PolyORB.Transport.Connected is

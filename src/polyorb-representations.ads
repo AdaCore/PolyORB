@@ -37,8 +37,6 @@
 --  of data (in the form of an 'Any' object) into a sequence of
 --  Stream_Elements, and back.
 
---  $Id$
-
 with PolyORB.Any;
 with PolyORB.Buffers;
 with PolyORB.Exceptions;

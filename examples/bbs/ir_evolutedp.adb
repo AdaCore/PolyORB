@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.CORBA_P.Server_Tools;
 with EvolutedP_CORBA;
 with DSA_Server.IR_Info;

@@ -19,8 +19,6 @@
 --  The interface description (IDL) generator.
 --  Produces an IDL specification from an IDL
 --  tree obtained as output of the translator.
---  $Id: //depot/ciao/main/ciao-generator-idl.ads#4 $
-
 with Ada.Text_Io;
 
 with CIAO.Types; use CIAO.Types;

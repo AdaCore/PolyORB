@@ -33,8 +33,6 @@
 
 --  Initialization code for PolyORB.Any
 
---  $Id$
-
 package PolyORB.Any.Initialization is
    pragma Elaborate_Body;
 end PolyORB.Any.Initialization;

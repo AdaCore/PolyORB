@@ -33,8 +33,6 @@
 
 --  Wrapper to launch PolyORB's testsuite.
 
---  $Id$
-
 with Ada.Exceptions;
 with Ada.Text_IO;
 

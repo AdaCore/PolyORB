@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/examples/corba/echo/echo-impl.adb#3 $
-
 with Ada.Text_IO;
 
 with Echo.Skel;

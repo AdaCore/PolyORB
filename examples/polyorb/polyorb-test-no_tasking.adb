@@ -33,8 +33,6 @@
 
 --  Setup a test server with no tasking at all.
 
---  $Id$
-
 with PolyORB.Initialization;
 with PolyORB.Setup.Test_SOA;
 

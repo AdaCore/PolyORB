@@ -33,8 +33,6 @@
 
 --  The messages supported by ORBs (middleware core module).
 
---  $Id$
-
 with PolyORB.Components;
 with PolyORB.Requests;
 with PolyORB.Transport;

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/ada_be-identifiers.ads#2 $
-
 with Idl_Fe.Types; use Idl_Fe.Types;
 
 package Ada_Be.Identifiers is

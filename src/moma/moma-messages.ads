@@ -33,8 +33,6 @@
 
 --  Root of all MOMA message types.
 
---  $Id$
-
 with Ada.Real_Time;
 with MOMA.Destinations;
 with MOMA.Types;

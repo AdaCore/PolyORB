@@ -33,8 +33,6 @@
 
 --  Set up a "no tasking" profile.
 
---  $Id$
-
 package PolyORB.Setup.Tasking.No_Tasking is
 
    pragma Elaborate_Body;

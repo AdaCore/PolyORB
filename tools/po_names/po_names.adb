@@ -36,8 +36,6 @@
 --  Provides an interface similar to CORBA COS Naming without dependencies
 --  on the CORBA application personality.
 
---  $Id$
-
 with Ada.Text_IO;
 
 with PolyORB.Exceptions;

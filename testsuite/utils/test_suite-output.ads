@@ -34,8 +34,6 @@
 --  This package provides support for different outputs during a test
 --  suite run.
 
---  $Id$
-
 with GNAT.Expect;
 with System;
 

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.MOMA_P.Provider.Message_Consumer;
 
 with PolyORB.Any.NVList;

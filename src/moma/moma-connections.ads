@@ -33,8 +33,6 @@
 
 --  A Connection provides access to the provider for the client.
 
---  $Id$
-
 with MOMA.Connection_Factories;
 with MOMA.Types;
 

@@ -33,8 +33,6 @@
 
 --  Abstract components communicating through synchronous messages.
 
---  $Id$
-
 package PolyORB.Components is
 
    pragma Elaborate_Body;

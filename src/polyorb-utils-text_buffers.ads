@@ -34,8 +34,6 @@
 --  Utility functions for storing strings into buffers and
 --  retrieving them.
 
---  $Id$
-
 with PolyORB.Buffers; use PolyORB.Buffers;
 
 package PolyORB.Utils.Text_Buffers is

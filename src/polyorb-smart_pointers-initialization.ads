@@ -33,8 +33,6 @@
 
 --  Initialization code for PolyORB.Smart_Pointers
 
---  $Id$
-
 package PolyORB.Smart_Pointers.Initialization is
    pragma Elaborate_Body;
 end PolyORB.Smart_Pointers.Initialization;

@@ -33,8 +33,6 @@
 
 --  Setup for SRP access point.
 
---  $Id$
-
 with PolyORB.Binding_Data.SRP;
 with PolyORB.Protocols.SRP;
 

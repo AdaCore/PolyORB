@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package body PolyORB.Object_Maps is
 
    use PolyORB.POA_Types;

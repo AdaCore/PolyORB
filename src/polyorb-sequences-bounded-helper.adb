@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 --  Any conversion subprograms for bounded sequences.
 
 with PolyORB.Types;

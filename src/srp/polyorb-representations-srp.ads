@@ -33,8 +33,6 @@
 
 --  A representation for our own Simple Request Protocol (SRP).
 
---  $Id$
-
 with Ada.Streams;
 
 with PolyORB.Any;

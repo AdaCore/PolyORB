@@ -34,8 +34,6 @@
 --  Socket implementation of transport service access points
 --  and communication endpoints.
 
---  $Id$
-
 with Ada.Exceptions;
 
 with PolyORB.Asynch_Ev.Sockets;

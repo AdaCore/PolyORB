@@ -34,8 +34,6 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/polyorb-binding_data.ads#30 $
-
 with PolyORB.Components;
 with PolyORB.Exceptions;
 with PolyORB.Objects;

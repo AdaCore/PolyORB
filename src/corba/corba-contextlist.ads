@@ -40,8 +40,6 @@
 --  the OMG issue #3706, that add new primitives to CORBA::Object.
 --  See CORBA.Object package specifications for more details.
 
---  $Id$
-
 with CORBA.AbstractBase;
 with CORBA.Impl;
 

@@ -33,8 +33,6 @@
 
 --  Abstract interface for the POA manager.
 
---  $Id$
-
 with PolyORB.Exceptions;
 with PolyORB.Servants;
 with PolyORB.POA_Types;

@@ -33,8 +33,6 @@
 
 --  A dynamic dictionnary of objects, indexed by Strings.
 
---  $Id$
-
 with PolyORB.Utils.HFunctions.Hyper;
 with PolyORB.Utils.HTables.Perfect;
 

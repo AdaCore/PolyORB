@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Parameters;
 with PolyORB.POA_Manager;
 with PolyORB.POA_Config.Proxies;

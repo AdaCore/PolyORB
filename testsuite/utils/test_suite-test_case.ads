@@ -34,8 +34,6 @@
 --  This package provides support for different test types and their
 --  associated execution process.
 
---  $Id$
-
 with Ada.Strings.Unbounded;
 with GNAT.OS_Lib;
 

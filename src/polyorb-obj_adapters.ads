@@ -34,8 +34,6 @@
 --  This package provides the root definition of all Object adapters.
 --  An Object Adapter manages the association of references to servants.
 
---  $Id$
-
 with PolyORB.Annotations;
 with PolyORB.Any;
 with PolyORB.Any.NVList;

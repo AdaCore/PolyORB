@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB;
 with PolyORB.Any;
 with PolyORB.Any.NVList;

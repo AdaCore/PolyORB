@@ -33,8 +33,6 @@
 
 --  The ORB core module.
 
---  $Id$
-
 with Ada.Exceptions;
 with Ada.Tags;
 

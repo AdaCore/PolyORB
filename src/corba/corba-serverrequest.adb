@@ -33,8 +33,6 @@
 
 --  Mapping for the standard ServerRequest interface
 
---  $Id$
-
 with PolyORB.Any.NVList;
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Interceptors_Hooks;

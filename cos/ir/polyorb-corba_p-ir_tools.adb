@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with CORBA.Repository_Root.Repository.Helper;
 with PolyORB.CORBA_P.Naming_Tools;
 

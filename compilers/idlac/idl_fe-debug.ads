@@ -46,8 +46,6 @@
 --  The output will be done if "idl_fe.opt" file contains
 --  a line with "specific_name"
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-debug.ads#3 $
-
 package Idl_Fe.Debug is
 
    pragma Elaborate_Body;

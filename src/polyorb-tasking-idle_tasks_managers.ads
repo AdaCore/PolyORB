@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Task_Info;
 with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Utils.Chained_Lists;

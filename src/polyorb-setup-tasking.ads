@@ -33,8 +33,6 @@
 
 --  Root package for the setup of the tasking profiles.
 
---  $Id$
-
 package PolyORB.Setup.Tasking is
 
 end PolyORB.Setup.Tasking;

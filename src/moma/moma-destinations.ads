@@ -34,8 +34,6 @@
 --  A Destination contains data to reference an object to which messages
 --  can be sent, or from which messages can be retrieved.
 
---  $Id$
-
 with MOMA.Types;
 
 with PolyORB.Any;

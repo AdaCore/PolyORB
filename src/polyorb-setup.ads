@@ -33,8 +33,6 @@
 
 --  Initialization of a complete PolyORB partition.
 
---  $Id$
-
 with PolyORB.ORB;
 
 package PolyORB.Setup is

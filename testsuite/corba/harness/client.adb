@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Setup.Client;
 pragma Warnings (Off, PolyORB.Setup.Client);
 

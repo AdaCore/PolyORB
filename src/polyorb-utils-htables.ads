@@ -33,8 +33,6 @@
 
 --  Parent package for Hash Tables.
 
---  $Id$
-
 package PolyORB.Utils.HTables is
 
    pragma Pure;

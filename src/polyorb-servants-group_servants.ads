@@ -34,8 +34,6 @@
 --  Servant which manage groups of servants
 --  Work as a proxy
 
---  $Id$
-
 with PolyORB.Any.NVList;
 with PolyORB.Components;
 with PolyORB.Exceptions;

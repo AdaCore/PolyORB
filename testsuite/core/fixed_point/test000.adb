@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Exceptions;
 with PolyORB.Fixed_Point; use PolyORB.Fixed_Point;
 with Ada.Text_IO; use Ada.Text_IO;

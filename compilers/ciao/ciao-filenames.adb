@@ -17,8 +17,6 @@
 ----------------------------------------
 
 --  Mapping of file names
---  $Id: //depot/ciao/main/ciao-filenames.adb#1 $
-
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 
 package body CIAO.Filenames is

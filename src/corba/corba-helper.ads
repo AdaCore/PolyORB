@@ -36,8 +36,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba-helper.ads#5 $
-
 package CORBA.Helper is
 
    function TC_RepositoryId return CORBA.TypeCode.Object;

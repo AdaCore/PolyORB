@@ -33,8 +33,6 @@
 
 --  Set up a test ORB.
 
---  $Id$
-
 with Ada.Exceptions;
 with Ada.Text_IO;
 

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.POA_Types;
 
 package PolyORB.POA_Policies.Lifespan_Policy is

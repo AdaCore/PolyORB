@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/moma/moma-message_handlers.adb
-
 with MOMA.Messages;
 with MOMA.Destinations;
 with PolyORB.MOMA_P.Provider.Message_Handler;

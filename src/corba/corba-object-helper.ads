@@ -36,8 +36,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package CORBA.Object.Helper is
 
    --  See comments of the corresponding methods in package CORBA

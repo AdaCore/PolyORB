@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/errors.adb#2 $
-
 with Ada.Strings.Fixed; use Ada.Strings, Ada.Strings.Fixed;
 with Ada.Text_IO;       use Ada.Text_IO;
 with GNAT.OS_Lib;

@@ -33,8 +33,6 @@
 
 --  All_Types client.
 
---  $Id: //droopi/main/examples/corba/all_types/client.adb#17 $
-
 with Ada.Characters.Handling;
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;

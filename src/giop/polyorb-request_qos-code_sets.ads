@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.GIOP_P.Code_Sets;
 
 package PolyORB.Request_QoS.Code_Sets is

@@ -36,8 +36,6 @@
 --  This package is used to store and retrieve information
 --  concerning the status of tasks that execute ORB functions.
 
---  $Id$
-
 package body PolyORB.Task_Info is
 
    -----------

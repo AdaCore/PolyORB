@@ -33,8 +33,6 @@
 
 --  Abstract interface for the POA.
 
---  $Id$
-
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Exceptions;

@@ -33,8 +33,6 @@
 
 --  Job management for ORB activities.
 
---  $Id$
-
 with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.Jobs is

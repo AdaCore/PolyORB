@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Servants;
 
 package PolyORB.POA_Policies.Thread_Policy is

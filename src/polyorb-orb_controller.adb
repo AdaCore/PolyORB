@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package body PolyORB.ORB_Controller is
 
    use PolyORB.Task_Info;

@@ -32,8 +32,6 @@
 ------------------------------------------------------------------------------
 
 --  Evoluted BBS client
---  $Id$
-
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Text_IO;      use Ada.Text_IO;

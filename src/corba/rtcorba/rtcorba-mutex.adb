@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Tasking.Mutexes;
 with PolyORB.RTCORBA_P.Mutex;
 

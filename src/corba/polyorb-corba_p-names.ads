@@ -33,8 +33,6 @@
 
 --  String constants defined by OMG specifications.
 
---  $Id$
-
 package PolyORB.CORBA_P.Names is
 
    pragma Pure;

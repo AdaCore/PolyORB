@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Text_IO; use Ada.Text_IO;
 with System.Address_Image;
 with Ada.Real_Time; use Ada.Real_Time;

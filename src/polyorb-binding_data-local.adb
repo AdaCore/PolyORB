@@ -33,8 +33,6 @@
 
 --  Contact information for an object that exists within the local ORB.
 
---  $Id$
-
 with PolyORB.ORB;
 with PolyORB.Setup;
 

@@ -34,8 +34,6 @@
 --  Base package for the implementation of PolyORB.Tasking
 --  with full Ada tasking.
 
---  $Id$
-
 package PolyORB.Tasking.Profiles.Full_Tasking is
    pragma Preelaborate;
 end PolyORB.Tasking.Profiles.Full_Tasking;

@@ -33,8 +33,6 @@
 
 --  Utilities for the Simple Request Protocol.
 
---  $Id$
-
 with GNAT.Regpat;
 
 with PolyORB.Any;

@@ -33,8 +33,6 @@
 
 --  Utility package to manipulate Policy list used to set up PolyORB's POA.
 
---  $Id$
-
 with CORBA.Policy;
 
 with PolyORB.POA_Policies;

@@ -35,8 +35,6 @@
 --  of the PolyORB Portable Object Adapter (libreally inspired from
 --  the POA specification in CORBA).
 
---  $Id$
-
 with PolyORB.Exceptions;
 with PolyORB.Utils.Chained_Lists;
 

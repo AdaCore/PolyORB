@@ -33,8 +33,6 @@
 
 --  A POA configuration corresponding to minimumCORBA policies.
 
---  $Id$
-
 with PolyORB.POA_Policies;
 with PolyORB.POA_Policies.Id_Assignment_Policy.System;
 with PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique;

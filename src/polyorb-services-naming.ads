@@ -33,8 +33,6 @@
 
 --  The PolyORB Naming Service is an adaptation from OMG COS Naming, v 1.0
 
---  $Id$
-
 --  with CORBA;
 --  with CORBA.Forward;
 --  pragma Elaborate_All (CORBA.Forward);

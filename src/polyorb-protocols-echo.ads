@@ -33,8 +33,6 @@
 
 --  A dummy protocol, just for testing.
 
---  $Id$
-
 with PolyORB.Buffers;
 
 package PolyORB.Protocols.Echo is

@@ -35,8 +35,6 @@
 --  Real implementations for the different profiles are given by extending
 --  Thread_Type and by registering the implementations of some procedures.
 
---  $Id$
-
 --  Some terminology issues:
 --  in this package, and in its profile-specific implementations,
 --  a task designate the common abstraction of processors as provided

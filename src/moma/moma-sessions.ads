@@ -40,8 +40,6 @@
 
 --  XXX Need to add functions to implement durable subscription to a topic.
 
---  $Id$
-
 with MOMA.Connections;
 with MOMA.Destinations;
 with MOMA.Types;

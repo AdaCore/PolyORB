@@ -33,8 +33,6 @@
 
 --  An Interface Descriptor that uses the CORBA Interface Repository.
 
---  $Id$
-
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.CORBA_P.IR_Tools;

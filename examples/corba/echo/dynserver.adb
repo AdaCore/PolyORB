@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 --  echo dynamic server, using the Dynamic Skeleton Interface (DSI)
 
 with Ada.Text_IO;

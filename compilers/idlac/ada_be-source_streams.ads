@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/ada_be-source_streams.ads#8 $
-
 with Ada.Finalization;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 

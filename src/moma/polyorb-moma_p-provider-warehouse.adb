@@ -33,8 +33,6 @@
 
 --  A dynamic, protected dictionary of Any, indexed by Strings.
 
---  $Id$
-
 with Ada.Streams.Stream_IO;
 
 --  with System;

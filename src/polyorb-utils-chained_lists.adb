@@ -33,8 +33,6 @@
 
 --  Generic chained list.
 
---  $Id$
-
 with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Utils.Chained_Lists is

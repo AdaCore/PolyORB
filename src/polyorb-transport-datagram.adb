@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Binding_Objects;
 with PolyORB.Log;
 with PolyORB.Filters;

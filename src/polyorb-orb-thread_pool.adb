@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Components;
 with PolyORB.Filters.Interface;
 with PolyORB.Initialization;

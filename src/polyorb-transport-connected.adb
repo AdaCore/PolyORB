@@ -34,8 +34,6 @@
 --  Abstract connected transport service access points and transport
 --  endpoints.
 
---  $Id$
-
 with PolyORB.Binding_Objects;
 with PolyORB.Components;
 with PolyORB.Log;

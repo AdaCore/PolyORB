@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/ada_be-identifiers.adb#2 $
-
 with Utils; use Utils;
 
 with Idl_Fe.Types; use Idl_Fe.Types;

@@ -46,8 +46,6 @@
 --  The output will be done if "adabroker.deb" file contains
 --  a line with "specific_name"
 
---  $Id: //droopi/main/compilers/idlac/ada_be-debug.ads#2 $
-
 package Ada_Be.Debug is
 
    pragma Elaborate_Body;

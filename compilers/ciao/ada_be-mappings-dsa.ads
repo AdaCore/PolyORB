@@ -26,8 +26,6 @@
 
 --  The DSA personality IDL mapping.
 
---  $Id$
-
 package Ada_Be.Mappings.DSA is
 
    pragma Elaborate_Body;

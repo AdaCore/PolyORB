@@ -36,8 +36,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.ads#36 $
-
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Unbounded;

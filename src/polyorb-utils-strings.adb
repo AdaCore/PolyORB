@@ -33,8 +33,6 @@
 
 --  General-purpose string pointer.
 
---  $Id$
-
 package body PolyORB.Utils.Strings is
 
    ---------

@@ -33,8 +33,6 @@
 
 --  Stand-alone server with a CORBA COS Naming's Root Context
 
---  $Id$
-
 with Ada.Text_IO;
 with CORBA.Object;
 with PortableServer;

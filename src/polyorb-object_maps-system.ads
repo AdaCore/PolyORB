@@ -38,8 +38,6 @@
 --  SYSTEM_ID POA policy as defined in the package
 --  PolyORB.POA_Policies.Id_Assignment_Policy.System
 
---  $Id$
-
 with PolyORB.Utils.Dynamic_Tables;
 
 package PolyORB.Object_Maps.System is

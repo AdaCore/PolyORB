@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package Test_Suite.Output.Text is
 
    type Text_Output is new Test_Suite_Output with private;

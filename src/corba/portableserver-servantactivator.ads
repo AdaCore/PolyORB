@@ -36,8 +36,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-servantactivator.ads#6 $
-
 with CORBA;
 with PortableServer.ServantManager;
 

@@ -17,8 +17,6 @@
 ----------------------------------------
 
 --  ORB-specific matter, Broca version.
---  $Id: //depot/ciao/main/ciao-generator-broca.ads#2 $
-
 with CIAO.Generator.ORB_Deps_G;
 with CIAO.Types;
 

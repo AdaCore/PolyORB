@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Exceptions;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Types;

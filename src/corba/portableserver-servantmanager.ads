@@ -36,8 +36,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-servantmanager.ads#4 $
-
 with CORBA.Object;
 
 package PortableServer.ServantManager is

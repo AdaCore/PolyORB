@@ -33,8 +33,6 @@
 
 --  A servant used for routing topic messages.
 
---  $Id$
-
 with MOMA.Destinations;
 with MOMA.Types;
 

@@ -33,8 +33,6 @@
 
 --  Messages exchanged by AWS-based filters and components.
 
---  $Id$
-
 with PolyORB.SOAP_P.Response;
 
 with PolyORB.Filters.Interface;

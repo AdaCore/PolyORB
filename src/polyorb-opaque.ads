@@ -33,8 +33,6 @@
 
 --  Utility declarations for low-level memory management.
 
---  $Id: //droopi/main/src/polyorb-opaque.ads#10 $
-
 with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 with System;

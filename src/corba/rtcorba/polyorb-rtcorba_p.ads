@@ -34,8 +34,6 @@
 --  The root of all PolyORB packages that are specific to the
 --  RTCORBA personality.
 
---  $Id$
-
 package PolyORB.RTCORBA_P is
 
    pragma Pure;

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/testlexer.adb#3 $
-
 with Ada.Text_IO;
 with GNAT.Command_Line;
 with Idl_Fe.Lexer; use Idl_Fe.Lexer;

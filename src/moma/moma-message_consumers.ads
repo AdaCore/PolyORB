@@ -39,8 +39,6 @@
 --  NOTE: A MOMA client must use only this package to receive messages from a
 --  message pool.
 
---  $Id$
-
 with Ada.Real_Time;
 
 with MOMA.Destinations;

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba-forward.adb#4 $
-
 package body CORBA.Forward is
 
    package body Convert is

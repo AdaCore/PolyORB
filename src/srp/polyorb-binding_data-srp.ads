@@ -33,8 +33,6 @@
 
 --  Binding data for the Simple Request Protocol over TCP.
 
---  $Id$
-
 with PolyORB.Sockets;
 
 package PolyORB.Binding_Data.SRP is

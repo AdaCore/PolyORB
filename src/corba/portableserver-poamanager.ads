@@ -36,8 +36,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poamanager.ads#8 $
-
 with Ada.Exceptions;
 
 with CORBA.Object;

@@ -33,8 +33,6 @@
 
 --  Initialization code for PolyORB.Any
 
---  $Id$
-
 with Ada.Tags;
 
 with PolyORB.Initialization;

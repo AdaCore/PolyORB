@@ -33,8 +33,6 @@
 
 --  The messages supported by Servants (object implementations).
 
---  $Id$
-
 with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Requests;

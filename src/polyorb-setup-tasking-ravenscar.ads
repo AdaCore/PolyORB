@@ -33,8 +33,6 @@
 
 --  You should instanciate this package to set up a ravenscar profile.
 
---  $Id$
-
 with System;
 
 with PolyORB.Tasking.Profiles.Ravenscar.Threads.Annotations;

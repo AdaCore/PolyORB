@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/testgen.adb#5 $
-
 with GNAT.Command_Line;
 
 with Idl_Fe.Lexer;

@@ -32,8 +32,6 @@
 ------------------------------------------------------------------------------
 
 --  The top of the PolyORB architecture.
---  $Id$
-
 package PolyORB is
 
    pragma Pure;

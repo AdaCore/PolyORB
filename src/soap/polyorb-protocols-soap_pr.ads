@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Buffers;
 with PolyORB.ORB;
 with PolyORB.Requests;

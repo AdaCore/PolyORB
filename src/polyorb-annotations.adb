@@ -36,8 +36,6 @@
 --  visibility on the client in order to allow itself to be annotated;
 --  it only needs to expose a Notepad attribute.
 
---  $Id$
-
 with Ada.Tags;
 with Ada.Unchecked_Deallocation;
 

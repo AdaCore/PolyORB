@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Buffers;
 with PolyORB.GIOP_P.Code_Sets;
 with PolyORB.Initialization;

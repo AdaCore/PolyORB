@@ -33,8 +33,6 @@
 
 --  Object references.
 
---  $Id$
-
 with Ada.Strings.Unbounded;
 with Ada.Tags;
 

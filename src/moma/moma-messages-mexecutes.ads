@@ -56,8 +56,6 @@
 --    ORB objects are objects created using a PolyORB ORB application
 --    personality (e.g. CORBA, DSA ..)
 
---  $Id$
-
 package MOMA.Messages.MExecutes is
 
    type MExecute is new Message with private;

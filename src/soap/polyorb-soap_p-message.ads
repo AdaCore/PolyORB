@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Strings.Unbounded;
 
 with PolyORB.SOAP_P.Parameters;

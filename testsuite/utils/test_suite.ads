@@ -33,8 +33,6 @@
 
 --  This package is the root package of PolyORB's testsuite.
 
---  $Id$
-
 package Test_Suite is
 
    pragma Pure (Test_Suite);

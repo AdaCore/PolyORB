@@ -38,8 +38,6 @@
 
 --  The CORBA personality IDL mapping.
 
---  $Id$
-
 package Ada_Be.Mappings.CORBA is
 
    pragma Elaborate_Body;

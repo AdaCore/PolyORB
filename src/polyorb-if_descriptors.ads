@@ -34,8 +34,6 @@
 --  Abstract interface for Interface Descriptors: services
 --  that provide meta-data regarding the signatures of methods.
 
---  $Id$
-
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.References;

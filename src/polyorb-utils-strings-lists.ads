@@ -33,8 +33,6 @@
 
 --  Generic chained list.
 
---  $Id$
-
 with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.Utils.Strings.Lists is

@@ -33,8 +33,6 @@
 
 --  Support package for GIOP Service Contexts
 
---  $Id$
-
 with PolyORB.Buffers;
 with PolyORB.Request_QoS.Service_Contexts;
 

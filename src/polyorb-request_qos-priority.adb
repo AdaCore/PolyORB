@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Buffers;
 with PolyORB.Initialization;
 with PolyORB.Representations.CDR.Common;

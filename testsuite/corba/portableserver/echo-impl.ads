@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/testsuite/corba/portableserver/echo-impl.ads#3 $
-
 with CORBA;
 with PortableServer;
 

@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Strings.Unbounded;
 
 with Table_Of_Strings_And_Static_Values_G;

@@ -35,8 +35,6 @@
 --     Get_Policy
 --     Non_Existent
 
---  $Id$
-
 with PolyORB.CORBA_P.Local;
 with PolyORB.CORBA_P.Names;
 with PolyORB.Initialization;

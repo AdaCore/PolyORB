@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.References.IOR;
 with PolyORB.Services.Naming.Tools;
 

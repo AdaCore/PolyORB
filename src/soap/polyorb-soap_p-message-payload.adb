@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package body PolyORB.SOAP_P.Message.Payload is
 
    -----------

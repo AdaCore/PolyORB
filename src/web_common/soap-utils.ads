@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package SOAP.Utils is
 
    function Tag (Name : in String; Start : in Boolean) return String;

@@ -39,8 +39,6 @@
 
 --  Note: this class of function is universal.
 
---  $Id$
-
 with PolyORB.Types;
 
 package PolyORB.Utils.HFunctions.Hyper is

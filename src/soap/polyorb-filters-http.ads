@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 --  HTTP protocol implementation (as a filter so higher-level protocol
 --  engines can be plugged on it.)
 

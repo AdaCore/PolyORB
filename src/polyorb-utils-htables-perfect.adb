@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Utils.HTables.Perfect is

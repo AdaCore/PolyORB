@@ -34,8 +34,6 @@
 --  Abstract transport service access points and
 --  communication endpoints.
 
---  $Id$
-
 with PolyORB.ORB.Interface;
 
 package body PolyORB.Transport is

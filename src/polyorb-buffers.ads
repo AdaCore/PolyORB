@@ -40,8 +40,6 @@
 
 --  Note: Buffers should only be read/written sequentially.
 
---  $Id: //droopi/main/src/polyorb-buffers.ads#28 $
-
 with Ada.Streams;
 
 with System.Storage_Elements;

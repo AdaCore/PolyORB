@@ -33,8 +33,6 @@
 
 --  Advanced mutexes testsuite.
 
---  $Id$
-
 with PolyORB.Initialization;
 
 with PolyORB.Tasking.Profiles.Full_Tasking.Threads;

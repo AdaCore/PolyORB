@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba-helper.adb#7 $
-
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 

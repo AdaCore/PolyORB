@@ -33,8 +33,6 @@
 
 --  Generic chained list.
 
---  $Id$
-
 package body PolyORB.Utils.Strings.Lists is
 
    function Empty return List is

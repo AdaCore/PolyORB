@@ -33,8 +33,6 @@
 
 --  Root type for concrete object implementations (servants).
 
---  $Id$
-
 with PolyORB.Annotations;
 with PolyORB.Components;
 

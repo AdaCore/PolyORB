@@ -33,8 +33,6 @@
 
 --  A dummy data representation method, just for show.
 
---  $Id$
-
 with PolyORB.Buffers; use PolyORB.Buffers;
 
 package PolyORB.Representations.Test is

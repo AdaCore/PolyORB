@@ -33,8 +33,6 @@
 
 --  This package provides definition of all MOMA types.
 
---  $Id$
-
 with Ada.Strings.Unbounded;
 
 with PolyORB.Any;

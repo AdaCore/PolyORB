@@ -34,8 +34,6 @@
 --  This package allows an object to be chosen either by its IOR or by
 --  its name in the naming service.
 
---  $Id$
-
 with Ada.Finalization;
 
 with CORBA.Object;

@@ -17,8 +17,6 @@
 ----------------------------------------
 
 --  The CIAO run-time library.
---  $Id: //depot/ciao/main/ciao_runtime.ads#5 $
-
 package CIAO_Runtime is
    pragma Pure (CIAO_Runtime);
 end CIAO_Runtime;

@@ -36,8 +36,6 @@
 --  This package is used to store and retrieve information
 --  concerning the status of tasks that execute ORB functions.
 
---  $Id$
-
 with PolyORB.Asynch_Ev;
 with PolyORB.Jobs;
 with PolyORB.Tasking.Condition_Variables;

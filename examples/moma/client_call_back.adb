@@ -33,8 +33,6 @@
 
 --  Sample MOMA client with Message_Handler call_backs
 
---  $Id: //droopi/main/examples/moma/client_call_back.adb
-
 with Ada.Command_Line;
 with Ada.Text_IO;
 

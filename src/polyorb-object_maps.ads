@@ -33,8 +33,6 @@
 
 --  Abstract model for the POA Active Object Map.
 
---  $Id$
-
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.POA_Types;

@@ -34,8 +34,6 @@
 --  Object identifier type. An Object_Id is an opaque data container
 --  identifying one concrete object whithin a specific namespace.
 
---  $Id$
-
 with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 

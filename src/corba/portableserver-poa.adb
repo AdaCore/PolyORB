@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#60 $
-
 with Ada.Exceptions;
 
 with CORBA.ORB;

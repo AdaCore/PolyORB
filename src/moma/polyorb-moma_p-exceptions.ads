@@ -33,8 +33,6 @@
 
 --  Exceptions management for the MOMA Application Personality of PolyORB.
 
---  $Id$
-
 with PolyORB.Exceptions;
 
 package PolyORB.MOMA_P.Exceptions is

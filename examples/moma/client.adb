@@ -33,8 +33,6 @@
 
 --  Sample MOMA client
 
---  $Id$
-
 with Ada.Command_Line;
 with Ada.Text_IO;
 

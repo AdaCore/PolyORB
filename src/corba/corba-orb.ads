@@ -38,8 +38,6 @@
 
 --  The standard CORBA ORB interface.
 
---  $Id$
-
 with CORBA.Context;
 with CORBA.ExceptionList;
 with CORBA.NVList;

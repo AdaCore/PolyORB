@@ -38,8 +38,6 @@
 --  XXX The latter should be moved away to a Ada_Be.Idl2Ada.Stubs
 --  child unit one day.
 
---  $Id$
-
 with Ada.Characters.Handling;
 with Ada.Strings.Unbounded;
 with Ada.Unchecked_Deallocation;

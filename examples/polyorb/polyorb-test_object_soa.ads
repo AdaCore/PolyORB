@@ -33,8 +33,6 @@
 
 --  A simple test server object that uses the SOA.
 
---  $Id$
-
 with PolyORB.Components;
 with PolyORB.Obj_Adapters.Simple;
 with PolyORB.Servants;

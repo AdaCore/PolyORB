@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 --  Utilities for the IDLAC compiler.
 
 with Ada.Unchecked_Conversion;

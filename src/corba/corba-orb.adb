@@ -38,8 +38,6 @@
 --  Create_Native_Tc --
 --  Create_Recursive_Sequence_Tc --
 
---  $Id$
-
 with Ada.Command_Line;
 with Ada.Exceptions;
 

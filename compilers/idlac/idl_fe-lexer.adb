@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.adb#17 $
-
 with Ada.Command_Line;
 with Ada.Text_IO;
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;

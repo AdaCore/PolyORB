@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 --  General purpose functions for using sockets with string and buffers
 
 with PolyORB.Buffers;

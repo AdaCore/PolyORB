@@ -33,8 +33,6 @@
 
 --  A POA configuration corresponding to CORBA RootPOA policies.
 
---  $Id$
-
 package PolyORB.POA_Config.Root_POA is
 
    pragma Elaborate_Body;

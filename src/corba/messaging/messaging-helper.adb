@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with CORBA.Helper;
 with PolyORB.Initialization;
 with PolyORB.Sequences.Unbounded.CORBA_Helper;

@@ -34,8 +34,6 @@
 --  Helper subprograms to set up access points based on TCP sockets
 --  for a PolyORB server.
 
---  $Id$
-
 with PolyORB.Binding_Data;
 with PolyORB.Sockets;
 with PolyORB.Transport;

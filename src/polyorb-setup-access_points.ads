@@ -34,8 +34,6 @@
 --  Root name space for protocol personality packages that create access
 --  points.
 
---  $Id$
-
 package PolyORB.Setup.Access_Points is
 
 end PolyORB.Setup.Access_Points;

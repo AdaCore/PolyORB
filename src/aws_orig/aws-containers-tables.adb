@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 --  Parameters name/value are put into the GNAT.Dynamic_Tables.Table_Type
 --  (Data field). The name as a key and the numeric index as a value is
 --  placing to the AVL Tree for the fast find all Name/Value pairs with the

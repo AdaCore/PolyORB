@@ -44,8 +44,6 @@
 --  Thus, an implementation of this interface must provide both the
 --  CORBA-like POA interface and the PolyORB Obj_Adapter interface.
 
---  $Id$
-
 with PolyORB.Any.NVList;
 with PolyORB.Exceptions;
 with PolyORB.Objects;

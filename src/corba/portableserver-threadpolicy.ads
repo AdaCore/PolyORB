@@ -36,8 +36,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-threadpolicy.ads#5 $
-
 with CORBA.Policy;
 
 package PortableServer.ThreadPolicy is

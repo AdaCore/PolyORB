@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with AWS.MIME;
 
 with PolyORB.SOAP_P.Message.XML;

@@ -18,8 +18,6 @@
 
 --  A DSA stream based on a CORBA Encapsulation
 --  (sequence<octet>).
---  $Id: //depot/ciao/main/ciao_runtime-encap_streams.adb#4 $
-
 package body CIAO_Runtime.Encap_Streams is
 
    use IDL_SEQUENCE_Octet;

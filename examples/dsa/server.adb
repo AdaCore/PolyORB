@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 pragma Warnings (Off);
 with RCI;
 with PolyORB.Setup.Thread_Pool_Server;

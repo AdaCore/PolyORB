@@ -33,8 +33,6 @@
 
 --  The Request object.
 
---  $Id$
-
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Exceptions;

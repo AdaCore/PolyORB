@@ -33,8 +33,6 @@
 
 --  Object references (binding operation).
 
---  $Id$
-
 with Ada.Exceptions;
 with Ada.Tags;
 

@@ -33,8 +33,6 @@
 
 --  Helper subprograms to set up access points based on UDP sockets
 
---  $Id$
-
 with PolyORB.Binding_Data;
 with PolyORB.Sockets;
 with PolyORB.Transport;

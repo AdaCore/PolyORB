@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-types.adb#11 $
-
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 with System;

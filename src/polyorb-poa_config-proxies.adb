@@ -33,8 +33,6 @@
 
 --  A POA configuration for the Proxy-objects-subPOA.
 
---  $Id$
-
 with PolyORB.POA_Policies;
 with PolyORB.POA_Policies.Id_Assignment_Policy.User;
 with PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple;

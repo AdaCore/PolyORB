@@ -33,8 +33,6 @@
 
 --  Global POA configuration.
 
---  $Id$
-
 with PolyORB.POA_Policies;
 
 package PolyORB.POA_Config is

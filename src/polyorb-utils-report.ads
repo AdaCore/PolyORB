@@ -34,8 +34,6 @@
 --  This package provides utility functions to display example and
 --  testsuite outputs.
 
---  $Id: //droopi/main/src/polyorb-utils-report.ads#2 $
-
 package PolyORB.Utils.Report is
 
    procedure New_Test (Test_Name : String);

@@ -35,8 +35,6 @@
 --
 --  A MText message's payload is a string.
 
---  $Id$
-
 with MOMA.Types;
 
 package MOMA.Messages.MTexts is

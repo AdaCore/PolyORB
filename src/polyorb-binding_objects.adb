@@ -34,8 +34,6 @@
 --  Binding objects: protocol stacks seen globally as a reference-counted
 --  entity.
 
---  $Id$
-
 with Ada.Exceptions;
 
 with PolyORB.Filters.Interface;

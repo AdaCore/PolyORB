@@ -17,9 +17,8 @@ have a comment that explains why.
 
 Each file should start with the standard PolyORB copyright header,
 then a blank line, then a comment that documents its purpose, followed
-by a blank line, followed by a comment containing the repository id
-(filled automatically by the SCM system). The PolyORB copyright header
-might be adapted for copyrighted specs or code from third party.
+by a blank line. The PolyORB copyright header might be adapted for
+copyrighted specs or code from third party.
 
 If a package body needs to explcitly execute some code for its
 initialization, this MUST NOT be done in the elaboration code.

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package body PolyORB.Utils.Random is
 
    use PolyORB.Types;

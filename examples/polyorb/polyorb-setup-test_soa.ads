@@ -33,8 +33,6 @@
 
 --  Set up a test ORB.
 
---  $Id$
-
 with PolyORB.References;
 pragma Elaborate_All (PolyORB.References);
 

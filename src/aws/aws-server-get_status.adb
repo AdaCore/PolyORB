@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with GNAT.Calendar.Time_IO;
 
 with AWS.Hotplug.Get_Status;

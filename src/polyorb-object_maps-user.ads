@@ -38,8 +38,6 @@
 --  USER_ID POA policy as defined in the package
 --  PolyORB.POA_Policies.Id_Assignment_Policy.User
 
---  $Id$
-
 with PolyORB.Utils.HFunctions.Hyper;
 with PolyORB.Utils.HTables.Perfect;
 

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with MOMA.Destinations;
 with MOMA.Messages;
 with PolyORB.MOMA_P.Provider.Topic_Datas;

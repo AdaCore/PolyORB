@@ -33,8 +33,6 @@
 
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id$
-
 
 with PolyORB.Utils.Chained_Lists;
 

@@ -35,8 +35,6 @@
 --  passed along with a PolyORB request, and the call-back functions
 --  used to retrieve them.
 
---  $Id$
-
 with PolyORB.References;
 with PolyORB.Requests;
 

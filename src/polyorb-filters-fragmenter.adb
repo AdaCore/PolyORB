@@ -35,8 +35,6 @@
 --  Fragment data which comes from endpoint whithout read length control
 --  For example UDP sockets
 
---  $Id$
-
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
 with PolyORB.Types;

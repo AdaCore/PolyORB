@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package PolyORB.Binding_Data.Print is
 
    type Print_Procedure is access procedure

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Binding_Data.Local;
 
 with PolyORB.Obj_Adapters.Group_Object_Adapter;

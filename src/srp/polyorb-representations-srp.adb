@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Ada.Characters.Handling;
 with Ada.Strings.Unbounded;
 with Ada.Unchecked_Conversion;

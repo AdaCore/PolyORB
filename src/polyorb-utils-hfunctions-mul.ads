@@ -38,8 +38,6 @@
 
 --  Note: this class of function is not universal.
 
---  $Id$
-
 package PolyORB.Utils.HFunctions.Mul is
 
    pragma Preelaborate;

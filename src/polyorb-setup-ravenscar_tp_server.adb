@@ -34,8 +34,6 @@
 --  Elaborate a complete server with the ``thread pool'' tasking
 --  policy and the Ravenscar tasking profile.
 
---  $Id$
-
 with System;
 
 with PolyORB.ORB.Thread_Pool;
