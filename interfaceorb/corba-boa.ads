@@ -2,7 +2,7 @@
 ----                                                               ----
 ----                  AdaBroker                                    ----
 ----                                                               ----
-----                  package CORBA.Object                         ----
+----                  package CORBA.Boa                            ----
 ----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
 ----   date    :                                                   ----
@@ -11,39 +11,22 @@
 -----------------------------------------------------------------------
 
 
-package Corba.Object is
 
-   type Ref is tagged private;
-
-   --I boolean is_nil();
-   function Is_Nil(Self: in Ref) return Boolean;
-   function Is_Null(Self: in Ref) return Boolean renames Is_Nil;
-
-   --I void release();
-   procedure Release (Self : in out Ref'class);
-   -- Not implemented in omniORB
-   -- neither here
-
-   --I Object duplicate();
-   -- use assignment
+package Corba.Boa is
 
 
    --------------------------------------------------
-   ---        omniORB specific                    ---
+   ---        not specified in CORBA2.2          ----
    --------------------------------------------------
 
-   procedure PR_Setobj(  ) ;
-   -- wrapper around void CORBA::Object::PR_setobj(omniObject *obj)
-   -- in corbaObject.cc L121
-
-   function PR_Getobj(  ) return ;
-   -- wrapper around omniObject* CORBA::Object::PR_getobj()
-   -- in corbaObject.cc L128
-
+   procedure Init(Orb_Name : in String) ;
+   -- wrapper around BOA_ptr CORBA::ORB::BOA_init(int& argc, char** argv,
+   --                               const char* boa_identifier);
+   -- in CORBA.h L 2092
 
 
 private
 
 
 
-end Corba.Object ;
+end Corba.Boa ;
