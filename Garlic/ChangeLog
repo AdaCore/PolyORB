@@ -1,3 +1,12 @@
+1998-06-02  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garhea.adb (Send): Detect calls for the local partition (in
+	presence of pragma All_Calls_Remote) and redirect them directly to
+	the Heart without consideration for protocols.
+
+	* Makefile.am (install-data-local): Correct typo (CP_PRESERVE was
+	spelled CPPRESERVE).
+
 1998-06-01  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-gartcp.adb: Remove instanciation (unused).
