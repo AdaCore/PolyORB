@@ -1,3 +1,10 @@
+Mon Feb  3 20:20:56 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-parint.ads: Removed the kludge about Unit_Name. Since we are
+	  not close yet to work with 3.09, it is not necessary. If we
+	  decide to make a release which works with 3.09, then this kludge
+	  will be added again.
+
 Wed Jan 29 19:52:13 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-parint.ads: Minor reformating.
