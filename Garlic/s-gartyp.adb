@@ -34,10 +34,16 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams; use Ada.Streams;
+with Ada.Unchecked_Conversion;
 
 package body System.Garlic.Types is
 
    Version_Id_Window : constant Version_Id := Version_Id'Last / 2;
+
+   function Convert is
+      new Ada.Unchecked_Conversion (Stamp_Type, Stamp_Stream_Element_Array);
+   function Convert is
+      new Ada.Unchecked_Conversion (Stamp_Stream_Element_Array, Stamp_Type);
 
    ---------
    -- "<" --
@@ -47,6 +53,15 @@ package body System.Garlic.Types is
    begin
       return Integer (R - L) < Integer (Version_Id_Window);
    end "<";
+
+   --------------
+   -- From_SEA --
+   --------------
+
+   function  From_SEA (S : Stamp_Stream_Element_Array) return Stamp_Type is
+   begin
+      return Convert (S);
+   end From_SEA;
 
    ----------
    -- Read --
@@ -81,6 +96,15 @@ package body System.Garlic.Types is
       end if;
       X := Read (SEA);
    end Read;
+
+   ------------
+   -- To_SEA --
+   ------------
+
+   function  To_SEA   (S : Stamp_Type) return Stamp_Stream_Element_Array is
+   begin
+      return Convert (S);
+   end To_SEA;
 
    -----------
    -- Write --

@@ -37,6 +37,8 @@ with Ada.Streams;
 
 package System.Garlic.Types is
 
+   Hex : constant String      := "0123456789ABCDEF";
+
    type Status_Type is (None, Busy, Done, Dead);
    --  General status type for automaton
 
@@ -121,5 +123,14 @@ package System.Garlic.Types is
    --  Trace_Mode will record all the traces in a file, Replay_Mode will
    --  replay a distributed execntion and Normal_Mode does nothing regarding
    --  tracing or replay.
+
+   subtype Stamp_Type is Float;
+   No_Stamp : constant Stamp_Type := 0.0;
+   Stamp_Size : constant := Float'Size / 8;
+   subtype Stamp_Stream_Element_Array is
+     Ada.Streams.Stream_Element_Array (1 .. Stamp_Size);
+
+   function To_SEA   (S : Stamp_Type) return Stamp_Stream_Element_Array;
+   function From_SEA (S : Stamp_Stream_Element_Array) return Stamp_Type;
 
 end System.Garlic.Types;
