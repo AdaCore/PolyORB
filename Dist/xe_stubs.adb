@@ -566,10 +566,12 @@ package body XE_Stubs is
          Dwrite_Eol  (FD);
          CID := Partitions.Table (PID).First_Channel;
          while CID /= Null_CID loop
-            Dwrite_Str  (FD, "with System.Garlic.Filters.");
-            Dwrite_Name (FD, Get_Filter (CID));
-            Dwrite_Str  (FD, ";");
-            Dwrite_Eol  (FD);
+            if Get_Filter (CID) /= No_Filter_Name then
+               Dwrite_Str  (FD, "with System.Garlic.Filters.");
+               Dwrite_Name (FD, Get_Filter (CID));
+               Dwrite_Str  (FD, ";");
+               Dwrite_Eol  (FD);
+            end if;
             if Channels.Table (CID).Lower.My_Partition = PID then
                CID := Channels.Table (CID).Lower.Next_Channel;
             else
@@ -664,12 +666,14 @@ package body XE_Stubs is
                   Peer := Channels.Table (CID).Lower.My_Partition;
                   CID  := Channels.Table (CID).Upper.Next_Channel;
                end if;
-               Dwrite_Str  (FD, "   Set_Channel_Filter (""");
-               Dwrite_Name (FD, Partitions.Table (Peer).Name);
-               Dwrite_Str  (FD, """, """);
-               Dwrite_Name (FD, Filter);
-               Dwrite_Str  (FD, """);");
-               Dwrite_Eol  (FD);
+               if Filter = No_Filter_Name then
+                  Dwrite_Str  (FD, "   Set_Channel_Filter (""");
+                  Dwrite_Name (FD, Partitions.Table (Peer).Name);
+                  Dwrite_Str  (FD, """, """);
+                  Dwrite_Name (FD, Filter);
+                  Dwrite_Str  (FD, """);");
+                  Dwrite_Eol  (FD);
+               end if;
             end loop;
          end;
       end if;
