@@ -37,9 +37,7 @@
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
-
 with PolyORB.References;
-with PolyORB.Requests;
 with PolyORB.Smart_Pointers;
 
 package PolyORB.If_Descriptors is
@@ -53,7 +51,7 @@ package PolyORB.If_Descriptors is
    function Get_Empty_Arg_List
      (If_Desc : access If_Descriptor;
       Object  :        PolyORB.References.Ref;
-      Method  :        Requests.Operation_Id)
+      Method  :        String)
      return Any.NVList.Ref is abstract;
    --  Return the paramter profile of the given method, so the
    --  protocol layer can unmarshall the message into a Request object.
@@ -61,7 +59,7 @@ package PolyORB.If_Descriptors is
    function Get_Empty_Result
      (If_Desc : access If_Descriptor;
       Object  :        PolyORB.References.Ref;
-      Method  :        Requests.Operation_Id)
+      Method  :        String)
      return Any.Any is abstract;
    --  Return the result profile of the given method.
 

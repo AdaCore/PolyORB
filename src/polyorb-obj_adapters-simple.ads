@@ -69,11 +69,11 @@ package PolyORB.Obj_Adapters.Simple is
    --  and a result Any for a given method.
 
    type Parameter_Profile_Description is
-     access function (Method : Requests.Operation_Id)
+     access function (Method : String)
      return Any.NVList.Ref;
 
    type Result_Profile_Description is
-     access function (Method : Requests.Operation_Id)
+     access function (Method : String)
      return Any.Any;
 
    type Interface_Description is record
@@ -89,13 +89,13 @@ package PolyORB.Obj_Adapters.Simple is
    function Get_Empty_Arg_List
      (OA     : access Simple_Obj_Adapter;
       Oid    : access Objects.Object_Id;
-      Method :        Requests.Operation_Id)
+      Method :        String)
      return Any.NVList.Ref;
 
    function Get_Empty_Result
      (OA     : access Simple_Obj_Adapter;
       Oid    : access Objects.Object_Id;
-      Method :        Requests.Operation_Id)
+      Method :        String)
      return Any.Any;
 
    function Find_Servant

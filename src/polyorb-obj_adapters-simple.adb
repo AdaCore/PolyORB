@@ -215,7 +215,7 @@ package body PolyORB.Obj_Adapters.Simple is
    function Get_Empty_Arg_List
      (OA     : access Simple_Obj_Adapter;
       Oid    : access Objects.Object_Id;
-      Method : Requests.Operation_Id)
+      Method :        String)
      return Any.NVList.Ref
    is
       Index : constant Integer := Oid_To_Index (Simple_OA_Oid (Oid.all));
@@ -246,7 +246,7 @@ package body PolyORB.Obj_Adapters.Simple is
    function Get_Empty_Result
      (OA     : access Simple_Obj_Adapter;
       Oid    : access Objects.Object_Id;
-      Method : Requests.Operation_Id)
+      Method :        String)
      return Any.Any
    is
       Index : constant Integer := Oid_To_Index (Simple_OA_Oid (Oid.all));

@@ -49,9 +49,6 @@ with PolyORB.Utils.Simple_Flags;
 
 package PolyORB.Requests is
 
-   subtype Operation_Id is String;
-   --  XXX or Types.Identifier??
-
    type Flags is new PolyORB.Utils.Simple_Flags.Flags;
 
    ------------------------------------------
@@ -176,7 +173,7 @@ package PolyORB.Requests is
      (Target    : in     References.Ref;
       --  May or may not be local!
       --  Ctx       : in     CORBA.Context.Ref;
-      Operation : in     Operation_Id;
+      Operation : in     String;
       Arg_List  : in     Any.NVList.Ref;
       Result    : in out Any.NamedValue;
       Exc_List  : in     Any.ExceptionList.Ref

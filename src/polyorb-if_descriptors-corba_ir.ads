@@ -41,13 +41,13 @@ package PolyORB.If_Descriptors.CORBA_IR is
    function Get_Empty_Arg_List
      (If_Desc : access IR_If_Descriptor;
       Object  :        PolyORB.References.Ref;
-      Method  :        Requests.Operation_Id)
+      Method  :        String)
      return Any.NVList.Ref;
 
    function Get_Empty_Result
      (If_Desc : access IR_If_Descriptor;
       Object  :        PolyORB.References.Ref;
-      Method  :        Requests.Operation_Id)
+      Method  :        String)
      return Any.Any;
 
 private

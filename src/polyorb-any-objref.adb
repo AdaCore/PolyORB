@@ -40,6 +40,38 @@ package body PolyORB.Any.ObjRef is
 
    use PolyORB.Locks;
 
+   type Content_ObjRef is new Content with record
+      Value : PolyORB.References.Ref_Ptr;
+   end record;
+   type Content_ObjRef_Ptr is access all Content_ObjRef;
+   procedure Deallocate (Object : access Content_ObjRef);
+   function Duplicate
+     (Object : access Content_ObjRef)
+     return Any_Content_Ptr;
+
+   ----------------
+   -- Deallocate --
+   ----------------
+
+   procedure Deallocate (Object : access Content_ObjRef) is
+      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
+   begin
+      PolyORB.References.Deallocate (Object.Value);
+      Deallocate_Any_Content (Obj);
+   end Deallocate;
+
+   ---------------
+   -- Duplicate --
+   ---------------
+
+   function Duplicate (Object : access Content_ObjRef)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_ObjRef'
+        (Value => new PolyORB.References.Ref'
+         (Content_ObjRef_Ptr (Object).Value.all));
+   end Duplicate;
+
    ------------
    -- To_Any --
    ------------

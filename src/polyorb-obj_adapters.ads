@@ -41,7 +41,6 @@ with PolyORB.Any.NVList;
 with PolyORB.Components;
 with PolyORB.Objects;
 with PolyORB.References;
-with PolyORB.Requests;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 
@@ -106,7 +105,7 @@ package PolyORB.Obj_Adapters is
    function Get_Empty_Arg_List
      (OA     : access Obj_Adapter;
       Oid    : access Objects.Object_Id;
-      Method : Requests.Operation_Id)
+      Method : String)
       return Any.NVList.Ref
       is abstract;
    --  Return the paramter profile of the given method, so the
@@ -115,7 +114,7 @@ package PolyORB.Obj_Adapters is
    function Get_Empty_Result
      (OA     : access Obj_Adapter;
       Oid    : access Objects.Object_Id;
-      Method : Requests.Operation_Id)
+      Method : String)
       return Any.Any
       is abstract;
    --  Return the result profile of the given method.

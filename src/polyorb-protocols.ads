@@ -63,8 +63,10 @@ package PolyORB.Protocols is
       Session : out Filter_Access)
       is abstract;
    --  Create a Session for protocol Proto using filter Lower.
+   --  Request_Watcher should not be created here, it will
+   --  be positioned by the thread policy, if necessary.
 
-   --  XXXXX: does not create request_watcher !
+   procedure Finalize (S : in out Session);
 
    procedure Destroy_Session (S : in out Session_Access);
    --  Destroy the session associated with S, return any associated

@@ -125,11 +125,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    ------------------------------
 
    procedure Marshall_Request_Message
-     (Buffer            : access Buffers.Buffer_Type;
-      Request_Id        : in Types.Unsigned_Long;
-      Target_Ref        : in Target_Address;
-      Sync_Type         : in Sync_Scope;
-      Operation         : in Requests.Operation_Id)
+     (Buffer     : access Buffers.Buffer_Type;
+      Request_Id : in     Types.Unsigned_Long;
+      Target_Ref : in     Target_Address;
+      Sync_Type  : in     Sync_Scope;
+      Operation  : in     String)
 
    is
       use Representations.CDR;

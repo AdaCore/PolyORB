@@ -57,7 +57,7 @@ package body PolyORB.Requests is
      (Target    : in     References.Ref;
       --  May or may not be local!
       --  Ctx       : in     Any.Context.Ref;
-      Operation : in     Operation_Id;
+      Operation : in     String;
       Arg_List  : in     Any.NVList.Ref;
       Result    : in out Any.NamedValue;
       Exc_List  : in     Any.ExceptionList.Ref

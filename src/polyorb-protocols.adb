@@ -69,6 +69,17 @@ package body PolyORB.Protocols is
       Free (S);
    end Destroy_Session;
 
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize (S : in out Session) is
+   begin
+      if S.Request_Watcher /= null then
+         Destroy (S.Request_Watcher);
+      end if;
+   end Finalize;
+
    ---------------------------------
    -- Handle_Unmarshall_Arguments --
    ---------------------------------

@@ -39,16 +39,18 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Obj_Adapters;
-with PolyORB.Objects;         use PolyORB.Objects;
-with PolyORB.Requests;
+with PolyORB.Objects;
 with PolyORB.Storage_Pools;
-with PolyORB.Types; use PolyORB.Types;
+with PolyORB.Types;
 
 with PolyORB.Sequences.Unbounded;
 
 package PolyORB.POA_Types is
 
    pragma Elaborate_Body;
+
+   use PolyORB.Objects;
+   use PolyORB.Types;
 
    Invalid_Object_Id : exception
      renames PolyORB.Obj_Adapters.Invalid_Object_Id;
@@ -68,11 +70,11 @@ package PolyORB.POA_Types is
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
 
    type Parameter_Profile_Description is
-     access function (Method : PolyORB.Requests.Operation_Id)
+     access function (Method : String)
      return PolyORB.Any.NVList.Ref;
 
    type Result_Profile_Description is
-     access function (Method : PolyORB.Requests.Operation_Id)
+     access function (Method : String)
      return PolyORB.Any.Any;
 
    type Interface_Description is record

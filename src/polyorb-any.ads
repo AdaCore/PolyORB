@@ -30,13 +30,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.ads#19 $
+--  $Id: //droopi/main/src/polyorb-any.ads#20 $
 
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Locks;
-with PolyORB.References;
 with PolyORB.Storage_Pools;
 with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
@@ -887,16 +886,6 @@ private
    function Duplicate
      (Object : access Content_Any)
      return Any_Content_Ptr;
-
-   type Content_ObjRef is new Content with record
-      Value : PolyORB.References.Ref_Ptr;
-   end record;
-   type Content_ObjRef_Ptr is access all Content_ObjRef;
-   procedure Deallocate (Object : access Content_ObjRef);
-   function Duplicate
-     (Object : access Content_ObjRef)
-     return Any_Content_Ptr;
-
 
    --  the content_TypeCode type is defined inside the TypeCode package
    --  However, the corresponding deallocate function is here

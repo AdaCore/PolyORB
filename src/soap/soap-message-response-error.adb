@@ -132,6 +132,10 @@ package body SOAP.Message.Response.Error is
       pragma Unreferenced (P);
       pragma Warnings (On);
       N : Object;
+      pragma Warnings (Off, N);
+      --  Not initialized.
+      --  XXX check whether any information from P should
+      --  be included in N.
    begin
       return N;
    end From;

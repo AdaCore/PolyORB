@@ -55,7 +55,7 @@ package PolyORB.Protocols.GIOP.GIOP_1_0 is
       Request_Id        : in Types.Unsigned_Long;
       Target_Profile    : in Binding_Data.Profile_Access;
       Response_Expected : in Boolean;
-      Operation         : in Requests.Operation_Id);
+      Operation         : in String);
 
    procedure Marshall_No_Exception
     (Buffer      : access Buffers.Buffer_Type;

@@ -41,7 +41,6 @@ with PolyORB.Any.NVList;
 with PolyORB.Objects;
 with PolyORB.POA_Policies;
 with PolyORB.References;
-with PolyORB.Requests;
 
 package PolyORB.POA.Basic_POA is
 
@@ -123,13 +122,13 @@ package PolyORB.POA.Basic_POA is
    function Get_Empty_Arg_List
      (OA     : access Basic_Obj_Adapter;
       Oid    : access Objects.Object_Id;
-      Method :        Requests.Operation_Id)
+      Method :        String)
      return Any.NVList.Ref;
 
    function Get_Empty_Result
      (OA     : access Basic_Obj_Adapter;
       Oid    : access Objects.Object_Id;
-      Method :        Requests.Operation_Id)
+      Method :        String)
      return Any.Any;
 
    function Find_Servant
