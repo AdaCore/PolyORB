@@ -2,8 +2,6 @@
 
 --  $Id$
 
-with System.Garlic.Sockets;
-
 with Sequences.Unbounded;
 
 with Droopi.Jobs;

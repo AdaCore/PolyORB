@@ -1,2 +1,2 @@
-with System.Garlic.Sockets;
-package Droopi.Sockets renames System.Garlic.Sockets;
+with GNAT.Sockets;
+package Droopi.Sockets renames GNAT.Sockets;

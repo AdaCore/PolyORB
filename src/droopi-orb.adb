@@ -131,7 +131,7 @@ package body Droopi.ORB is
                Clear (Write_Set);
 
                if O.Selector = null then
-                  O.Selector := Create_Selector;
+                  Create_Selector (O.Selector);
                end if;
                pragma Assert (O.Selector /= null);
 
@@ -214,7 +214,7 @@ package body Droopi.ORB is
          Active_Socket'(Kind => K, Socket => S));
 
       if O.Polling then
-         Abort_Select (O.Selector);
+         Abort_Selector (O.Selector);
       end if;
       Leave_Critical_Section;
    end Insert_Socket;
@@ -246,7 +246,7 @@ package body Droopi.ORB is
       end;
 
       if O.Polling then
-         Abort_Select (O.Selector);
+         Abort_Selector (O.Selector);
       end if;
       Leave_Critical_Section;
    end Delete_Socket;

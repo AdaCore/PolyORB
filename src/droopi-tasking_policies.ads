@@ -7,8 +7,6 @@ with Droopi.Requests;
 
 package Droopi.Tasking_Policies is
 
-   pragma Preelaborate;
-
    ----------------------------------
    -- Abstract tasking policy type --
    ----------------------------------
