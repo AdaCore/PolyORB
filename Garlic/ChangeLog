@@ -1,3 +1,7 @@
+Sun Sep  7 16:31:56 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garrem.adb: Cover still more cases for localhost.
+
 Sun Sep  7 16:14:40 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garrem.adb: If the remote host is the same as localhost, then

@@ -33,7 +33,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Characters.Handling; use Ada.Characters.Handling;
 with GNAT.IO;
 with Interfaces.C.Strings;
 with System.Garlic.Constants; use System.Garlic.Constants;
@@ -136,9 +135,10 @@ package body System.Garlic.Remote is
    -------------------
 
    function Is_Local_Host (Host : String) return Boolean is
+      Name_Of_Host : constant String := Name_Of (Host);
    begin
-      return Name_Of (Host) = Name_Of (Host_Name)
-        or else To_Lower (Host) = "localhost";
+      return Name_Of_Host = Name_Of (Host_Name)
+        or else Name_Of_Host = "localhost";
    end Is_Local_Host;
 
    ------------
