@@ -165,6 +165,7 @@ begin
          when E : others =>
             Put_Line (Ada.Exceptions.Exception_Information (E));
       end;
+      delay 5.0;
       GNAT.OS_Lib.OS_Exit (0);
    end;
 exception
