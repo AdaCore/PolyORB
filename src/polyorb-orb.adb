@@ -1173,7 +1173,7 @@ package body PolyORB.ORB is
             --  Notes.AES is null for write only Endpoint
 
             if Note.AES /= null then
-               pragma Debug (O ("Inserting source: Monitored Endpoint"));
+               pragma Debug (O ("Inserting source: Monitor_Endpoint"));
                Insert_Source (ORB, Note.AES);
             end if;
          end;
@@ -1186,7 +1186,7 @@ package body PolyORB.ORB is
          begin
             Get_Note (Notepad_Of (TAP).all, Note);
 
-            pragma Debug (O ("Inserting source: Monitored Endpoint"));
+            pragma Debug (O ("Inserting source: Monitor_Access_Point"));
             Insert_Source (ORB, Note.AES);
 
          end;
