@@ -11,7 +11,6 @@ with Values;      use Values;
 with Frontend.Nodes;
 
 with Backend.BE_Ada.Nodes;     use Backend.BE_Ada.Nodes;
---  with Backend.BE_Ada.Nutils;    use Backend.BE_Ada.Nutils;
 
 package body Backend.BE_Ada.Debug is
 
@@ -159,11 +158,10 @@ package body Backend.BE_Ada.Debug is
       if A = "Next_Entity"
         or else A = "Next_Node"
         or else A = "Package_Declaration"
-
-
       then
          return;
       end if;
+
       N_Indents := N_Indents + 1;
       W_Indents;
       Write_Str  (A);
@@ -171,9 +169,9 @@ package body Backend.BE_Ada.Debug is
       Write_Str  (K);
       Write_Char (' ');
       C := Node_Id (N);
+
       if K = "Name_Id" then
          Write_Line (Quoted (V));
-
       elsif K = "Node_Id"
         and then Present (C)
       then
@@ -183,15 +181,14 @@ package body Backend.BE_Ada.Debug is
             when others =>
                Write_Line (V);
          end case;
-
       else
          Write_Line (V);
       end if;
+
       if A /= "Node"
         and then A /= "Corresponding_Node"
         and then A /= "FE_Node"
         and then A /= "Parent"
-
         and then A /= "IDL_Unit"
         and then A /= "Designated_Node"
       then
@@ -228,6 +225,7 @@ package body Backend.BE_Ada.Debug is
       if N = No_Node then
          return;
       end if;
+
       W_Node (N);
    end W_Node_Id;
 

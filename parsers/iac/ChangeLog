@@ -1,4 +1,18 @@
-2004-07-30  souli  <souli@neraka.enst.fr>
+2004-08-03  Saber Souli  <souli@siloe.enst.fr>
+
+	* backend-be_ada-idl_to_ada.adb: Applied GNAT coding style. 
+
+	* backend-be_ada-helpers.adb: Applied GNAT coding style. 
+
+	* backend-be_ada-generator.adb: Applied GNAT coding style.
+
+	* backend-be_ada-expand.adb: Applied GNAT coding style.
+
+	* backend-be_ada-debug.adb: Applied GNAT coding style.
+
+	* backend-be_ada.adb: Applied GNAT coding style.  
+
+2004-07-30  Saber Souli  <souli@neraka.enst.fr>
 
 	* backend-be_ada-idl_to_ada.adb: Modified Map_Designator to
 	designate library entities. 

@@ -39,6 +39,7 @@ package body Backend.BE_Ada.Expand is
          when others =>
             raise Program_Error;
       end case;
+
       if No (P) then
                return No_Node;
       end if;
@@ -46,6 +47,7 @@ package body Backend.BE_Ada.Expand is
       if No (FE) then
          raise Program_Error;
       end if;
+
       D := New_Node (K_Designator);
       Set_Defining_Identifier
         (D, Make_Defining_Identifier
@@ -53,13 +55,14 @@ package body Backend.BE_Ada.Expand is
       Set_FE_Node (D, FE);
       Set_Parent_Unit_Name
         (D, Expand_Designator (P, False));
-
       P := Parent_Unit_Name (D);
+
       if Witheded then
          if Present (P) then
             Add_With_Package (P);
          end if;
       end if;
+
       return D;
    end Expand_Designator;
 
