@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.25 $
+//                            $Revision: 1.26 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -42,7 +42,6 @@ Ada_Giop_c::Ada_Giop_c () : Ada_netBufferedStream::Ada_netBufferedStream ()
   // everything is done in the parent constructor.
 }
 
-
 //------------------//
 // Ada_Giop_c::Init //
 //------------------//
@@ -59,8 +58,10 @@ Ada_Giop_c::Init (Rope *r)
     }
 
     else {
-      if (omniORB::traceLevel > 5) 
-        cerr << "Ada_Giop_c::Init : initializing new Giop_c" << endl;
+      if (omniORB::traceLevel > 5) {
+        omniORB::log << "Ada_Giop_c::Init: initializing new Giop_c\n";
+        omniORB::log.flush();
+      }
     }
 
   CPP_Object = new GIOP_C (r);
@@ -134,15 +135,17 @@ Ada_Giop_c::ReceiveReply(GIOP::ReplyStatusType &result)
       // Ifalready initialized, call corresponding function on
       // CPP_Object.
 
-      if (omniORB::traceLevel > 5) 
-	cerr << "Ada_Giop_c::ReceiveReply : call omniORB function"
-	     << endl;
+      if (omniORB::traceLevel > 5) {
+	omniORB::log << "Ada_Giop_c::ReceiveReply: enter\n";
+        omniORB::log.flush();
+      }
 
       result = ((GIOP_C *) CPP_Object)->ReceiveReply();
 
-      if (omniORB::traceLevel > 5)
-	cerr << "Ada_Giop_c::ReceiveReply: omniORB function successful"
-	     << endl;
+      if (omniORB::traceLevel > 5) {
+	omniORB::log << "Ada_Giop_c::ReceiveReply: leave\n";
+        omniORB::log.flush();
+      }
 
     } else {
       //  Raise an Ada exception.

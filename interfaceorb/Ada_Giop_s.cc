@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.19 $
+//                            $Revision: 1.20 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -30,6 +30,7 @@
 //                     (email: broker@inf.enst.fr)                          //
 //                                                                          //
 //--------------------------------------------------------------------------//
+
 #include "Ada_Giop_s.hh"
 #include "Ada_exceptions.hh"
 
@@ -155,8 +156,12 @@ Ada_Giop_s::ReplyHeaderSize()
 
     size_t result = GIOP_S::ReplyHeaderSize ();
 
-    if (omniORB::traceLevel > 5) 
-      cerr << "Ada_Giop_s::ReplyHeaderSize: return " << result << endl;
+    if (omniORB::traceLevel > 5) {
+      omniORB::log << "Ada_Giop_s::ReplyHeaderSize: result ";
+      omniORB::log << result;
+      omniORB::log << "\n";
+      omniORB::log.flush();
+    }
 
     return result;
 

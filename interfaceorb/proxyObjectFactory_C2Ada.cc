@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.15 $
+//                            $Revision: 1.16 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -33,7 +33,6 @@
 #include "proxyObjectFactory_C2Ada.hh"
 #include "omniObject_C2Ada.hh"
 #include "Ada_exceptions.hh"
-#include <iostream>
 
 //------------------------------------//
 // proxyObjectFactory_C2Ada::irRepoID //
@@ -42,7 +41,7 @@
 const char *
 proxyObjectFactory_C2Ada::irRepoId () const 
 { 
-  if (omniORB::traceLevel > 5) cerr << "(ada) ";
+  if (omniORB::traceLevel > 5) omniORB::log << "(ada) ";
   return pd_repoID;
 }
 
@@ -60,10 +59,12 @@ proxyObjectFactory_C2Ada::newProxyObject (Rope                   * r,
 {
   ADABROKER_TRY
 
-    if (omniORB::traceLevel > 5)
-      cerr << "proxyObjectFactory_C2Ada::newProxyObject : "
-           << pd_repoID
-           << endl;
+    if (omniORB::traceLevel > 5) {
+      omniORB::log << "proxyObjectFactory_C2Ada::newProxyObject: ";
+      omniORB::log << pd_repoID;
+      omniORB::log << "\n";
+      omniORB::log.flush ();
+    }
   
     omniObject_C2Ada * omniobj = new omniObject_C2Ada 
       (pd_repoID, r, key, keysize, profiles, release);
@@ -115,8 +116,12 @@ void createProxyObjectFactory (const char * repoID, int interface)
 {
   ADABROKER_TRY
     
-    if (omniORB::traceLevel > 5)
-      cerr << "createProxyObjectFactory for object : " << repoID << endl;
+    if (omniORB::traceLevel > 5) {
+      omniORB::log << "createProxyObjectFactory for object: ";
+      omniORB::log << repoID;
+      omniORB::log << "\n";
+      omniORB::log.flush();
+    }
 
     proxyObjectFactory_C2Ada * tmp = 
       new proxyObjectFactory_C2Ada (repoID, interface);

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.61 $
+//                            $Revision: 1.62 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -30,6 +30,7 @@
 //                     (email: broker@inf.enst.fr)                          //
 //                                                                          //
 //--------------------------------------------------------------------------//
+
 //  This class is both a C class and an Ada Class (see
 //  omniObject.ads). It is wrapped around omniObject_C2Ada in order to
 //  avoid the presence of non default constructors. It provides the
@@ -37,7 +38,6 @@
 //  replaced by Init functions.  It has also a pointer on the
 //  underlying omniObject_C2Ada object
 
-#include <iostream>
 #include "Ada_OmniObject.hh"
 #include "Ada_exceptions.hh"
 #include <omniORB2/CORBA.h>
@@ -113,22 +113,27 @@ Ada_OmniObject::Destructor (Ada_OmniObject * o)
   ADABROKER_TRY
     
     if (o->Init_Ok) {
-      if (omniORB::traceLevel > 5) 
+      if (omniORB::traceLevel > 5)  {
 	if (o->is_proxy()) {
-	  cerr << "Ada_OmniObject::Destructor (proxy) : Init_Ok true" << endl;
+	  omniORB::log << "Ada_OmniObject::Destructor (proxy): Init_Ok true\n";
 	} else {
-	  cerr << "Ada_OmniObject::Destructor (local) : Init_Ok true" << endl;
+	  omniORB::log << "Ada_OmniObject::Destructor (local): Init_Ok true\n";
 	}
+        omniORB::log.flush ();
+      }
       
       delete o;
       
-      if (omniORB::traceLevel > 5)
-	cerr << "Ada_OmniObject::Destructor : leave" << endl;
+      if (omniORB::traceLevel > 5) {
+	omniORB::log << "Ada_OmniObject::Destructor: leave\n";
+        omniORB::log.flush ();
+      }
       
     } else {
       if (omniORB::traceLevel > 5) {
-	cerr << "Ada_OmniObject::Destructor : Init_Ok false" << endl;
-	cerr << "   Raise a Fatal Error" << endl;
+	omniORB::log << "Ada_OmniObject::Destructor: Init_Ok false\n";
+	omniORB::log << "   Raise a Fatal Error\n";
+        omniORB::log.flush();
       }
 
       throw omniORB::fatalException
@@ -159,8 +164,9 @@ Ada_OmniObject::initLocalObject (const char * repoid)
 
     } catch (...) {
       if (omniORB::traceLevel > 5) {
-	cerr << "initLocalObject : cannot initialize";
-	cerr << " without initialized ORB and BOA" << endl;
+	omniORB::log << "Ada_OmniObject::initLocalObject: cannot initialize";
+	omniORB::log << " without initialized ORB and BOA\n";
+        omniORB::log.flush();
       }
     }
 
@@ -206,18 +212,20 @@ Ada_OmniObject::objectDuplicate (Ada_OmniObject * same)
 {
   ADABROKER_TRY
 
-    if (omniORB::traceLevel > 5)
-      cerr << "Ada_OmniObject::objectDuplicate : enter" << endl;
+    if (omniORB::traceLevel > 5) {
+      omniORB::log << "Ada_OmniObject::objectDuplicate: enter\n";
+      omniORB::log.flush();
+    }
 
     if (same->Init_Ok) {
-      if (omniORB::traceLevel > 5)
+      if (omniORB::traceLevel > 5) {
 	if (same->is_proxy()) {
-	  cerr << "Ada_OmniObject::objectDuplicate (proxy) : Init_Ok true"
-	       << endl;
+	  omniORB::log << "Ada_OmniObject::objectDuplicate (proxy): Init_Ok true\n";
 	} else {
-	  cerr << "Ada_OmniObject::objectDuplicate (local) : Init_Ok true"
-	       << endl;
+	  omniORB::log << "Ada_OmniObject::objectDuplicate (local): Init_Ok true\n";
 	}
+        omniORB::log.flush();
+      }
 
       // Register a new pointer to this object.
       omni::objectDuplicate (same->CPP_Object);
@@ -227,8 +235,9 @@ Ada_OmniObject::objectDuplicate (Ada_OmniObject * same)
     } else {
       
       if (omniORB::traceLevel > 5) {
-	cerr << "Ada_OmniObject::objectDuplicate : Init_Ok = false" << endl;
-	cerr << "   Raise Fatal_Exception" << endl;
+	omniORB::log << "Ada_OmniObject::objectDuplicate: Init_Ok false\n";
+	omniORB::log << "   Raise Fatal_Exception\n";
+        omniORB::log.flush();
       }
 
       throw omniORB::fatalException
@@ -277,13 +286,17 @@ Ada_OmniObject::disposeObject ()
   ADABROKER_TRY
 
     if (Init_Ok) {
-      if (omniORB::traceLevel > 5)
-	cerr << "Ada_OmniObject::disposeObject : enter" << endl;
+      if (omniORB::traceLevel > 5) {
+	omniORB::log << "Ada_OmniObject::disposeObject: enter\n";
+        omniORB::log.flush();
+      }
 
       omni::disposeObject (CPP_Object);
       
-      if (omniORB::traceLevel > 5)
-	cerr << "Ada_OmniObject::disposeObject : C++ dispose" << endl;
+      if (omniORB::traceLevel > 5) {
+	omniORB::log << "Ada_OmniObject::disposeObject: leave\n";
+        omniORB::log.flush();
+      }
 
     } else {
       throw omniORB::fatalException
@@ -553,8 +566,12 @@ Ada_OmniObject::getRepositoryID ()
       // If already initialized, call function on CPP_Object.
       const char * result = CPP_Object->NP_IRRepositoryId ();
 
-      if (omniORB::traceLevel > 5)
-        cerr << "Ada_OmniObject::getRepositoryID : " << result << endl;
+      if (omniORB::traceLevel > 5) {
+        omniORB::log << "Ada_OmniObject::getRepositoryID: ";
+        omniORB::log << result;
+        omniORB::log << "\n";
+        omniORB::log.flush();
+      }
 
       return result;
 
@@ -648,13 +665,17 @@ Ada_OmniObject::ada_object_to_string (Ada_OmniObject * objptr)
     } else {
       if (objptr->Init_Ok) {
 	
-	if (omniORB::traceLevel > 5)
-	  cerr << "invoke omni::objectToString" << endl;
+	if (omniORB::traceLevel > 5) {
+	  omniORB::log << "omni::objectToString: enter\n";
+          omniORB::log.flush();
+        }
 
 	result = omni::objectToString (objptr->CPP_Object);
 
-	if (omniORB::traceLevel > 5)
-	  cerr << "invoke omni::objectToString done" << endl;
+	if (omniORB::traceLevel > 5) {
+	  omniORB::log << "omni::objectToString: leave\n";
+          omniORB::log.flush();
+        }
 
 	return result;
       } else {
@@ -737,8 +758,10 @@ Ada_OmniObject::ada_create_objref (const char             * repoId,
 {
   ADABROKER_TRY
     
-    if (omniORB::traceLevel > 5) 
-      cerr << "Ada_OmniObject::createObject : enter" << endl;
+    if (omniORB::traceLevel > 5) {
+      omniORB::log << "Ada_OmniObject::createObject: enter\n";
+      omniORB::log.flush();
+    }
 
     // omniORB believes we just want to cast the result into a
     // CORBA::Object_ptr.
@@ -748,8 +771,10 @@ Ada_OmniObject::ada_create_objref (const char             * repoId,
     if (adaobj == 0) {
       return 0;
     } else {
-      if (omniORB::traceLevel > 5)
-	cerr << "Ada_OmniObject::createObject : leave" << endl;
+      if (omniORB::traceLevel > 5) {
+	omniORB::log << "Ada_OmniObject::createObject: leave\n";
+        omniORB::log.flush();
+      }
 
       // Create a new Ada_OmniObject that points to the same
       // omniObject_C2Ada.

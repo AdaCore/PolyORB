@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.11 $
+//                            $Revision: 1.12 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -30,6 +30,7 @@
 //                     (email: broker@inf.enst.fr)                          //
 //                                                                          //
 //--------------------------------------------------------------------------//
+
 #include "Ada_exceptions.hh"
 #include <omnithread.h>
 
@@ -37,14 +38,20 @@ omni_mutex * occurrence_table_mutex = new omni_mutex ();
 
 void Lock_Occurrence_Table ()
 {
-  if (omniORB::traceLevel > 5) cerr << "lock occurrence table" << endl;
+  if (omniORB::traceLevel > 5) {
+    omniORB::log << "lock occurrence table\n";
+    omniORB::log.flush();
+  }
 
   occurrence_table_mutex->lock ();
 }
 
 void Unlock_Occurrence_Table ()
 {
-  if (omniORB::traceLevel > 5) cerr << "unlock occurrence table" << endl;
+  if (omniORB::traceLevel > 5) {
+    omniORB::log << "unlock occurrence table\n";
+    omniORB::log.flush();
+  }
 
   occurrence_table_mutex->unlock ();
 }

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.30 $
+//                            $Revision: 1.31 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -30,6 +30,7 @@
 //                     (email: broker@inf.enst.fr)                          //
 //                                                                          //
 //--------------------------------------------------------------------------//
+
 #include "omniObject_C2Ada.hh"
 #include "Ada_exceptions.hh"
 
@@ -84,28 +85,33 @@ omniObject_C2Ada::dispatch (GIOP_S         & giop_s,
 {
   ADABROKER_TRY
 
-    if (omniORB::traceLevel > 5) 
-      cerr << "omniObject_C2Ada::dispatch : begin" << endl;
+    if (omniORB::traceLevel > 5) {
+      omniORB::log << "omniObject_C2Ada::dispatch: enter\n";
+      omniORB::log.flush();
+    }
   
     // Declare arguments for the Ada function.
     Ada_Giop_s ada_giop_s (& giop_s);
   
-    if (omniORB::traceLevel > 5)
-      cerr << "omniObject_C2Ada::dispatch : Ada_Giop_s created" << endl;
+    if (omniORB::traceLevel > 5) {
+      omniORB::log << "omniObject_C2Ada::dispatch: Ada_Giop_s created\n";
+      omniORB::log.flush();
+    }
   
     _CORBA_Boolean success;
   
     if (omniORB::traceLevel > 5) {
-      cerr << "omniObject_C2Ada::dispatch : call the Ada code" << endl;
+      omniORB::log << "omniObject_C2Ada::dispatch: call Ada code\n";
   
       if (To_Ada_OmniObject != 0) {
-        cerr << "omniObject_C2Ada::dispatch : To_Ada_OmniObject not null"
-	     << endl;
+        omniORB::log << "omniObject_C2Ada::dispatch: To_Ada_OmniObject not null\n";
       } else {
-        cerr << "omniObject_C2Ada::dispatch : To_Ada_OmniObject *IS* null"
-	     << endl;
+        omniORB::log << "omniObject_C2Ada::dispatch: To_Ada_OmniObject *IS* null\n";
       }
-      cerr << "omniObject_C2Ada::dispatch is_proxy ? " << is_proxy() << endl;
+      omniORB::log << "omniObject_C2Ada::dispatch is_proxy ? ";
+      omniORB::log << is_proxy();
+      omniORB::log << "\n";
+      omniORB::log.flush();
     }
   
     To_Ada_OmniObject->dispatch (ada_giop_s,
@@ -113,9 +119,11 @@ omniObject_C2Ada::dispatch (GIOP_S         & giop_s,
 				 response_expected,
 				 success);
   
-    if (omniORB::traceLevel > 5)
-      cerr << "omniObject_C2Ada::dispatch : return from Ada code" << endl;
-    
+    if (omniORB::traceLevel > 5) {
+      omniORB::log << "omniObject_C2Ada::dispatch: leave\n";
+      omniORB::log.flush();
+    }
+
     return success;
     // Call dispatch on the Ada_OmniObject pointed by
     // To_Ada_OmniObject. This function allows the C code to call the
