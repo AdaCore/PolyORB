@@ -91,6 +91,10 @@ package CORBA.Object is
       Result    : in out NamedValue;
       Request   :    out CORBA.Request.Object;
       Req_Flags : in     Flags);
+   --  Implementation Note: the CORBA specifications define one
+   --  possible value for Req_Flags: CORBA::OUT_LIST_MEMORY, which is
+   --  currently not supported. The only possible value for
+   --  Req_Flags is 0, all other values will be ignored for now.
 
    procedure Create_Request
      (Self      : in     Ref;
@@ -102,10 +106,13 @@ package CORBA.Object is
       Ctxt_List : in     ContextList.Ref;
       Request   :    out CORBA.Request.Object;
       Req_Flags : in     Flags);
-   --  Implementation Note: this procedure implements the
-   --  recommendation detailed in the OMG issue #3706, that add new
-   --  primitives to CORBA::Object. It adds the Exc_List and Ctxt_List
-   --  parameters, to provide more control on the request created.
+   --  Implementation Notes:
+   --  #1: see above
+   --
+   --  #2: this procedure implements the recommendation detailed in
+   --  the OMG issue #3706, that add new primitives to
+   --  CORBA::Object. It adds the Exc_List and Ctxt_List parameters,
+   --  to provide more control on the request created.
 
    function Hash
      (Self    : Ref;

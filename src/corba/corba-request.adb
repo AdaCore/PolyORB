@@ -68,13 +68,14 @@ package body CORBA.Request is
       Request   :    out Object;
       Req_Flags : in     Flags)
    is
-      pragma Warnings (Off);
       pragma Unreferenced (Ctx);
-      pragma Warnings (On);
+      pragma Unreferenced (Req_Flags);
+
       PResult : PolyORB.Any.NamedValue
         := (Name      => PolyORB.Types.Identifier (Result.Name),
             Argument  => Internals.To_PolyORB_Any (Result.Argument),
             Arg_Modes => PolyORB.Any.Flags (Result.Arg_Modes));
+
    begin
       PolyORB.Requests.Create_Request
         (Target    => CORBA.Object.To_PolyORB_Ref
@@ -83,7 +84,8 @@ package body CORBA.Request is
          Arg_List  => CORBA.NVList.To_PolyORB_Ref (Arg_List),
          Result    => PResult,
          Req       => Request.The_Request,
-         Req_Flags => PolyORB.Requests.Flags (Req_Flags));
+         Req_Flags => PolyORB.Requests.Default_Flags);
+      --  XX For now, we use the default flags
    end Create_Request;
 
    procedure Create_Request
@@ -97,13 +99,14 @@ package body CORBA.Request is
       Request   :    out CORBA.Request.Object;
       Req_Flags : in     Flags)
    is
-      pragma Warnings (Off);
       pragma Unreferenced (Ctx, Ctxt_List);
-      pragma Warnings (On);
+      pragma Unreferenced (Req_Flags);
+
       PResult : PolyORB.Any.NamedValue
         := (Name      => PolyORB.Types.Identifier (Result.Name),
             Argument  => Internals.To_PolyORB_Any (Result.Argument),
             Arg_Modes => PolyORB.Any.Flags (Result.Arg_Modes));
+
    begin
       PolyORB.Requests.Create_Request
         (Target    => CORBA.Object.To_PolyORB_Ref
@@ -113,7 +116,8 @@ package body CORBA.Request is
          Result    => PResult,
          Exc_List  => CORBA.ExceptionList.To_PolyORB_Ref (Exc_List),
          Req       => Request.The_Request,
-         Req_Flags => PolyORB.Requests.Flags (Req_Flags));
+         Req_Flags => PolyORB.Requests.Default_Flags);
+      --  XX For now, we use the default flags
    end Create_Request;
 
    --------------------
