@@ -217,7 +217,9 @@ package body Exp_Dist is
       Object : Node_Id;
       Etyp   : Entity_Id)
       return   Node_Id;
+   pragma Warnings (Off);
    pragma Unreferenced (Pack_Node_Into_Stream);
+   pragma Warnings (On);
    --  Similar to above, with an arbitrary node instead of an entity
 
    function Pack_Node_Into_Stream_Access
@@ -471,7 +473,9 @@ package body Exp_Dist is
       Var_Type : Entity_Id;
       Stream   : Entity_Id)
       return Node_Id;
+   pragma Warnings (Off);
    pragma Unreferenced (Input_With_Tag_Check);
+   pragma Warnings (On);
    --  Return a function with the following form:
    --    function R return Var_Type is
    --    begin

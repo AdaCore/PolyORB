@@ -58,7 +58,9 @@ package body Exp_Hlpr is
       Decl  : Node_Id;
       Arr   : Entity_Id;
       Check : Boolean);
+   pragma Warnings (Off);
    pragma Unreferenced (Compile_Stream_Body_In_Scope);
+   pragma Warnings (On);
    --  The body for a stream subprogram may be generated outside of the scope
    --  of the type. If the type is fully private, it may depend on the full
    --  view of other types (e.g. indices) that are currently private as well.
