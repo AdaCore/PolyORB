@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.RT_POA;
 
 package body RTPortableServer.POA.Helper is
