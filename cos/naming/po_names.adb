@@ -39,6 +39,7 @@
 
 with Ada.Text_IO;
 
+with PolyORB.Initialization;
 with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Types;
@@ -58,9 +59,12 @@ procedure PO_Names is
    package NC renames PolyORB.Services.Naming.NamingContext.Servant;
 
    NC_Ref  : PolyORB.References.Ref;
-   Root_NC : constant NC.Object_Ptr := NC.Create;
+   Root_NC : NC.Object_Ptr;
 
 begin
+   PolyORB.Initialization.Initialize_World;
+
+   Root_NC := NC.Create;
    Initiate_Servant (Root_NC,
                      NC.If_Desc,
                      To_PolyORB_String ("NAMING"),

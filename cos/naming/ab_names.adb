@@ -49,9 +49,7 @@ procedure AB_Names is
 
    subtype NamingContext_Ptr is CosNaming.NamingContext.Impl.Object_Ptr;
 
-   Root_NC  : constant NamingContext_Ptr :=
-     CosNaming.NamingContext.Impl.Create;
-
+   Root_NC  : NamingContext_Ptr;
    Ref      : CORBA.Object.Ref;
 
    --  Port_Str : constant String
@@ -61,6 +59,8 @@ procedure AB_Names is
 
 begin
    CORBA.ORB.Initialize ("ORB");
+
+   Root_NC := CosNaming.NamingContext.Impl.Create;
    Initiate_Servant (PortableServer.Servant (Root_NC), Ref);
 
    CORBA.ORB.Register_Initial_Reference
