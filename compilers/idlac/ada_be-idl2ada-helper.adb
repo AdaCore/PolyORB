@@ -74,6 +74,11 @@ package body Ada_Be.Idl2Ada.Helper is
    --  exception. The name of the procedure is
    --  Raise_From_Any_Name (Node).
 
+   procedure Gen_Raise_Profile
+     (CU   : in out Compilation_Unit;
+      Node : in     Node_Id);
+   --  Generate the Raise_<exception> procedure for an exception.
+
    procedure Gen_Interface_Spec
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id);
@@ -177,6 +182,10 @@ package body Ada_Be.Idl2Ada.Helper is
    --  Return the name of a procedure that raises that exception
    --  from an occurrence stored in an Any.
 
+   function Raise_Name (Node : in Node_Id) return String;
+   --  Return the name of a procedure that raises that exception
+   --  with specified members values.
+
    function Type_Modifier (Node : in Node_Id) return String;
    --  Return the type modifier associed with the ValueType Node
 
@@ -277,10 +286,10 @@ package body Ada_Be.Idl2Ada.Helper is
 
          when K_Exception =>
             Gen_Struct_Exception_Spec (CU, Node);
-            Gen_Raise_From_Any_Profile (CU, Node);
+            Gen_Raise_Profile (CU, Node);
             PL (CU, ";");
             PL (CU, "pragma No_Return ("
-                & Raise_From_Any_Name (Node) & ");");
+                & Raise_Name (Node) & ");");
 
          when others =>
             null;
@@ -341,6 +350,12 @@ package body Ada_Be.Idl2Ada.Helper is
 
          when K_Exception =>
             Gen_Struct_Exception_Body (CU, Node);
+
+            Gen_Raise_From_Any_Profile (CU, Node);
+            PL (CU, ";");
+            PL (CU, "pragma No_Return ("
+                & Raise_From_Any_Name (Node) & ");");
+
             Gen_Raise_From_Any_Profile (CU, Node);
             PL (CU, "");
             PL (CU, "is");
@@ -372,6 +387,19 @@ package body Ada_Be.Idl2Ada.Helper is
             Divert (CU, Initialization_Dependencies);
             PL (CU, "& ""exceptions""");
             Divert (CU, Visible_Declarations);
+
+            Gen_Raise_Profile (CU, Node);
+            PL (CU, "");
+            PL (CU, "is");
+            PL (CU, "begin");
+            II (CU);
+            PL (CU, "PolyORB.Exceptions.User_Raise_Exception");
+            PL (CU, "  (" & Ada_Name (Node) & "'Identity,");
+            II (CU);
+            PL (CU, "Members);");
+            DI (CU);
+            DI (CU);
+            PL (CU, "end " & Raise_Name (Node) & ";");
          when others =>
             null;
 
@@ -421,10 +449,25 @@ package body Ada_Be.Idl2Ada.Helper is
       Node : Node_Id)
    is
    begin
-      Add_With (CU, "CORBA");
+      Add_With (CU, "PolyORB.Any");
+      PL (CU, "");
       PL (CU, "procedure " & Raise_From_Any_Name (Node));
       Put (CU, "  (Item : in PolyORB.Any.Any)");
    end Gen_Raise_From_Any_Profile;
+
+   -----------------------
+   -- Gen_Raise_Profile --
+   -----------------------
+
+   procedure Gen_Raise_Profile
+     (CU   : in out Compilation_Unit;
+      Node : in     Node_Id)
+   is
+   begin
+      PL (CU, "");
+      PL (CU, "procedure " & Raise_Name (Node));
+      Put (CU, "  (Members : in " & Ada_Name (Members_Type (Node)) & ")");
+   end Gen_Raise_Profile;
 
    ------------------------
    -- Gen_Interface_Spec --
@@ -2880,6 +2923,16 @@ package body Ada_Be.Idl2Ada.Helper is
       pragma Assert (Kind (Node) = K_Exception);
       return "Raise_" & Ada_Name (Node) & "_From_Any";
    end Raise_From_Any_Name;
+
+   ----------------
+   -- Raise_Name --
+   ----------------
+
+   function Raise_Name (Node : Node_Id) return String is
+   begin
+      pragma Assert (Kind (Node) = K_Exception);
+      return "Raise_" & Ada_Name (Node);
+   end Raise_Name;
 
    -------------------
    -- Type_Modifier --
