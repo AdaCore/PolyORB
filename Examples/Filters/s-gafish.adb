@@ -6,6 +6,8 @@ with System.Garlic.Heart;   use System.Garlic.Heart;
 with System.Garlic.Filters;
 pragma Elaborate (System.Garlic.Filters);
 with System.Garlic.Streams; use System.Garlic.Streams;
+with System.Garlic.Types;   use System.Garlic.Types;
+with System.Garlic.Utils;   use System.Garlic.Utils;
 
 package body System.Garlic.Filters.Shuffling is
 
@@ -13,8 +15,7 @@ package body System.Garlic.Filters.Shuffling is
      Debug_Initialize ("SHUFFLING", "(s-gafish): ");
 
    procedure D
-     (Level   : in Debug_Level;
-      Message : in String;
+     (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
@@ -38,20 +39,20 @@ package body System.Garlic.Filters.Shuffling is
       Target_Buffer : Stream_Element_Access;
 
    begin
-      D (D_Debug, "Entering shuffling incoming filter");
+      D ("Entering shuffling incoming filter");
 
       Shuffling_Params  := Shuffling_Filter_Params_Type (Params.all);
-      D (D_Debug, "Use shuffling params" & Shuffling_Params.Times'Img);
+      D ("Use shuffling params" & Shuffling_Params.Times'Img);
 
       Target_Buffer := new Stream_Element_Array'(Stream);
-      Dump (D_Debug, Target_Buffer, Private_Debug_Key);
+      Dump (Target_Buffer, Private_Debug_Key);
 
       for I in Target_Buffer'Range loop
          Target_Buffer (I) := Target_Buffer (I) xor Shuffling_Params.Times;
       end loop;
 
-      D (D_Debug, "Leaving shuffling incoming filter");
-      Dump (D_Debug, Target_Buffer, Private_Debug_Key);
+      D ("Leaving shuffling incoming filter");
+      Dump (Target_Buffer, Private_Debug_Key);
 
       return Target_Buffer;
    end Filter_Incoming;
@@ -69,20 +70,20 @@ package body System.Garlic.Filters.Shuffling is
       Target_Buffer : Stream_Element_Access;
 
    begin
-      D (D_Debug, "Entering shuffling outgoing filter");
+      D ("Entering shuffling outgoing filter");
 
       Shuffling_Params  := Shuffling_Filter_Params_Type (Params.all);
-      D (D_Debug, "Use shuffling params" & Shuffling_Params.Times'Img);
+      D ("Use shuffling params" & Shuffling_Params.Times'Img);
 
       Target_Buffer := To_Stream_Element_Access (Stream);
-      Dump (D_Debug, Target_Buffer, Private_Debug_Key);
+      Dump (Target_Buffer, Private_Debug_Key);
 
       for I in Target_Buffer'Range loop
          Target_Buffer (I) := Target_Buffer (I) xor Shuffling_Params.Times;
       end loop;
 
-      D (D_Debug, "Leaving shuffling outgoing filter");
-      Dump (D_Debug, Target_Buffer, Private_Debug_Key);
+      D ("Leaving shuffling outgoing filter");
+      Dump (Target_Buffer, Private_Debug_Key);
 
       return Target_Buffer;
    end Filter_Outgoing;
@@ -96,7 +97,7 @@ package body System.Garlic.Filters.Shuffling is
       Stream : Ada.Streams.Stream_Element_Array)
       return Filter_Params_Access is
    begin
-      D (D_Debug, "Read filter params" & Stream (Stream'First)'Img);
+      D ("Read filter params" & Stream (Stream'First)'Img);
       return new Shuffling_Filter_Params_Type'(Times => Stream (Stream'First));
    end Filter_Params_Read;
 
@@ -112,7 +113,7 @@ package body System.Garlic.Filters.Shuffling is
 
    begin
       Shuffling_Filter_Params := Shuffling_Filter_Params_Type (Params.all);
-      D (D_Debug, "Write filter params" & Shuffling_Filter_Params.Times'Img);
+      D ("Write filter params" & Shuffling_Filter_Params.Times'Img);
       return
          new Stream_Element_Array'(1 .. 1 => Shuffling_Filter_Params.Times);
    end Filter_Params_Write;
@@ -127,12 +128,15 @@ package body System.Garlic.Filters.Shuffling is
       Private_Params  : out Filter_Params_Access;
       Exchange_Params : out Boolean) is
       Element : Stream_Element;
+      PID     : Partition_ID;
+      Error   : Error_Type;
 
    begin
-      for I in 1 .. Get_My_Partition_ID loop
+      Get_My_Partition_ID (PID, Error);
+      for I in 1 .. PID loop
          Element := Shuffling_Filter_Params.Random (Generator);
       end loop;
-      D (D_Debug, "Generate shuffling params" & Element'Img);
+      D ("Generate shuffling params" & Element'Img);
       Public_Params   := new Shuffling_Filter_Params_Type'(Times => Element);
       Private_Params  := new Shuffling_Filter_Params_Type'(Times => Element);
       Exchange_Params := True;
