@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.7 $
+--                            $Revision: 1.8 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -153,19 +153,19 @@ package body CORBA.Object.OmniORB is
    -- Resolve_Initial_References --
    --------------------------------
 
-   --  function Resolve_Initial_References
-   --    (Identifier : in CORBA.String)
-   --    return CORBA.Object.Ref
-   --  is
-   --     Result : CORBA.Object.Ref;
-   --     RepoID : CORBA.String;
-   --  begin
-   --     Result.OmniObj := Resolve_Initial_References (Identifier);
-   --     Set_Interface_Rep
-   --       (Result.OmniObj.all,
-   --        Get_Rep_From_ORB (Result.OmniObj.all));
-   --     return Result;
-   --  end Resolve_Initial_References;
+   function Resolve_Initial_References
+     (Identifier : in CORBA.String)
+     return CORBA.Object.Ref
+   is
+      Result : CORBA.Object.Ref;
+   begin
+      Result.OmniObj :=
+        AdaBroker.OmniORB.Resolve_Initial_References (Identifier);
+      Set_Interface_Rep
+        (Result.OmniObj.all,
+         Get_Rep_From_ORB (Result.OmniObj.all));
+      return Result;
+   end Resolve_Initial_References;
 
    ----------------------
    -- Object_To_String --

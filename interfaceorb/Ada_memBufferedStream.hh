@@ -1,21 +1,3 @@
-////////////////////////////////////////////////////////////////////////////
-////                                                                    ////
-////     This class is both a C class and an Ada Class (see             ////
-////     MemBufferedStream.ads). It is wrapped around MemBuffered-      ////
-////     Stream in order to avoid the presence of non default           ////
-////     constructors.                                                  ////
-////     So, it provides the same functions as MemBufferedStream        ////
-////     except that constructors are replaced by Init functions.       ////
-////     It has also a pointer on the underlying MemBufferedStream      ////
-////     object                                                         ////
-////                                                                    ////
-////                                                                    ////
-////                Date : 02/25/99                                     ////
-////                                                                    ////
-////                authors : Sebastien Ponce                           ////
-////                                                                    ////
-////////////////////////////////////////////////////////////////////////////
-
 #include "omniORB2/omniInternal.h"
 
 class Ada_memBufferedStream {

@@ -3,10 +3,10 @@
 #include "omniObject_C2Ada.hh"
 #endif
 #include "Ada_OmniRopeAndKey.hh"
+#include <omniORB2/CORBA.h>
 
 
 class omniObject_C2Ada;
-
 
 class Ada_OmniObject {
 
@@ -111,6 +111,10 @@ public:
   // this function executes omni::stringToObject,
   // and cast the result into an Ada_OmniObject.
   // it can only be called by Corba.Orb.String_To_Object
+
+  static Ada_OmniObject* Ada_resolve_initial_references(CORBA::ORB_ptr theORB,
+					                const char *identifier);
+
   
   static Ada_OmniObject* ada_create_objref(const char* repoId,
 					   IOP::TaggedProfileList* profiles,

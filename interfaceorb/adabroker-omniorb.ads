@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.5 $
+--                            $Revision: 1.6 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -302,9 +302,9 @@ package AdaBroker.OmniORB is
      (Self : in out OmniObject'Class;
       Rep  : in CORBA.String);
 
-   --  function Resolve_Initial_References
-   --    (Identifier : in CORBA.String)
-   --    return OmniObject_Ptr;
+   function Resolve_Initial_References
+     (Identifier : in CORBA.String)
+     return OmniObject_Ptr;
 
 private
 

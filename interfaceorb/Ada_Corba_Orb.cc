@@ -11,17 +11,21 @@
 //--------------//
 
 CORBA::ORB_ptr
-Ada_ORB_init(int argc, char **argv,const char *orb_identifier)
+Ada_ORB_init(int          argc,
+	     char      ** argv,
+	     const char * orb_identifier)
 {
-ADABROKER_TRY
+  ADABROKER_TRY
+
 #ifdef DEBUG
-  omniORB::traceLevel = 100;
+    omniORB::traceLevel = 100;
 #endif
-  return CORBA::ORB_init(argc, argv, orb_identifier) ;
-ADABROKER_CATCH
-  // never reach here just a default return for dummy compilers.
-  CORBA::ORB_ptr default_return = NULL;
-  return  default_return; 
+
+    return CORBA::ORB_init(argc, argv, orb_identifier) ;
+  ADABROKER_CATCH
+    // Never reach this. Just a default return for dummy compilers.
+    CORBA::ORB_ptr default_return = NULL;
+    return  default_return; 
 }
 
 //--------------//
@@ -34,10 +38,11 @@ Ada_BOA_init(CORBA::ORB_ptr orb,
 	     char **argv,
 	     const char *boa_identifier)
 {
-ADABROKER_TRY
-  return orb->BOA_init(argc, argv, boa_identifier) ;
-ADABROKER_CATCH
-  // never reach here just a default return for dummy compilers.
-  CORBA::BOA_ptr default_return = NULL;
-  return  default_return; 
+  ADABROKER_TRY
+    return orb->BOA_init(argc, argv, boa_identifier) ;
+  ADABROKER_CATCH
+    // Never reach this code. Just a default return for dummy
+    // compilers.
+    CORBA::BOA_ptr default_return = NULL;
+    return  default_return; 
 }

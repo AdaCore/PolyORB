@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.7 $
+--                            $Revision: 1.8 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -50,6 +50,7 @@ with System;
 with CORBA;                use CORBA;
 with CORBA.Object;         use CORBA.Object;
 with CORBA.Object.OmniORB; use CORBA.Object.OmniORB;
+with CORBA.ORB.OmniORB;
 
 with Interfaces.C;         use Interfaces.C;
 with Interfaces.C.Strings;
@@ -63,8 +64,6 @@ with AdaBroker.GIOP_S;
 
 with AdaBroker.Debug;
 pragma Elaborate_All (AdaBroker.Debug);
-
-use Interfaces.C.Strings;
 
 package body AdaBroker.OmniORB is
 
@@ -96,7 +95,7 @@ package body AdaBroker.OmniORB is
      (Self : in ImplObject)
    is
       RepoID   : CORBA.String;
-      C_RepoID : chars_ptr;
+      C_RepoID : Strings.chars_ptr;
    begin
       pragma Debug (O ("Initialize_Local_Object : enter"));
 
@@ -109,9 +108,9 @@ package body AdaBroker.OmniORB is
       end if;
 
       RepoID := Id_To_Rep (Self.OmniObj.Interface);
-      C_RepoID := New_String (To_Standard_String (RepoID));
+      C_RepoID := Strings.New_String (To_Standard_String (RepoID));
       C_Init_Local_Object (Self.OmniObj.all, C_RepoID);
-      Free (C_RepoID);
+      Strings.Free (C_RepoID);
 
       pragma Debug (O ("Initialize_Local_Object : enter"));
    end Initialize_Local_Object;
@@ -359,13 +358,13 @@ package body AdaBroker.OmniORB is
       Profiles : in IOP.Tagged_Profile_List)
       return OmniObject_Ptr
    is
-      C_RepoID   : chars_ptr;
+      C_RepoID   : Strings.chars_ptr;
       C_Release  : Sysdep.Bool;
       C_Profiles : System.Address;
       C_Result   : System.Address;
       Result     : OmniObject_Ptr;
    begin
-      C_RepoID := New_String (To_Standard_String (RepoID));
+      C_RepoID := Strings.New_String (To_Standard_String (RepoID));
 
       --  Never deallocated, stored in the object (to be checked).
 
@@ -1280,37 +1279,40 @@ package body AdaBroker.OmniORB is
    -- C_Resolve_Initial_References --
    ----------------------------------
 
-   --  function C_Resolve_Initial_References
-   --    (Identifier : in Strings.chars_ptr)
-   --     return System.Address;
-   --  pragma Import
-   --    (CPP, C_Resolve_Initial_References,
-   --     "string_to_ada_object__14Ada_OmniObjectPCc");
-   --  Corresponds to Ada_OmniObject::resolve_initial_references
+   function C_Resolve_Initial_References
+     (The_ORB    : in System.Address;
+      Identifier : in Strings.chars_ptr)
+     return System.Address;
+   pragma Import
+     (CPP, C_Resolve_Initial_References,
+        "Ada_resolve_initial_references__14Ada_OmniObjectPQ25CORBA3ORBPCc");
+   --  Correspond to Ada_OmniObject::resolve_initial_references
 
-   --  function Resolve_Initial_References
-   --    (Identifier : in CORBA.String)
-   --    return OmniObject_Ptr
-   --  is
-   --     C_Identifier : Strings.char_ptr;
-   --     C_Result     : System.Address;
-   --     Result       : OmniObject_Ptr;
-   --  begin
-   --     C_Identifier := Strings.New_String (To_Standard_String (Identifier));
+   --------------------------------
+   -- Resolve_Initial_References --
+   --------------------------------
 
-   --     C_Result := C_Resolve_Initial_References (C_Identifier);
+   function Resolve_Initial_References
+     (Identifier : in CORBA.String)
+     return OmniObject_Ptr
+   is
+      C_Identifier : Strings.chars_ptr;
+      C_Result     : System.Address;
+      Result       : OmniObject_Ptr;
+   begin
+      C_Identifier := Strings.New_String (To_Standard_String (Identifier));
+      C_Result := C_Resolve_Initial_References
+        (CORBA.ORB.OmniORB.The_ORB, C_Identifier);
 
-   --     Strings.Free (C_Identifier);
-
-   --     if C_Result = System.Null_Address then
-   --        return null;
-
-   --     else
-   --        Result := To_OmniObject_Ptr
-   --          (Address_To_OmniObject.To_Pointer (C_Result));
-   --        Result.ImplObj := null;
-   --        return Result;
-   --     end if;
-   --  end Resolve_Initial_References;
+      Strings.Free (C_Identifier);
+      if C_Result = System.Null_Address then
+         return null;
+      else
+         Result := To_OmniObject_Ptr
+           (Address_To_OmniObject.To_Pointer (C_Result));
+         Result.ImplObj := null;
+         return Result;
+      end if;
+   end Resolve_Initial_References;
 
 end AdaBroker.OmniORB;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.6 $
+--                            $Revision: 1.7 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -61,6 +61,10 @@ package CORBA.Object.OmniORB is
                 Orl_Response_Expected : in CORBA.Boolean;
                 Success               : out CORBA.Boolean);
    --  This type is made to handle dispatching calls from the ORB.
+
+   function Resolve_Initial_References
+     (Identifier : in CORBA.String)
+     return CORBA.Object.Ref;
 
    ----------------------------
    -- Marshalling Operations --

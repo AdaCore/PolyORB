@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.22 $
+--                            $Revision: 1.23 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -50,8 +50,8 @@ package CORBA.ORB is
    procedure Init (Identifier : in Standard.String);
    --  Initialize ORB with command line arguments.
 
---     function Resolve_Initial_References
---       (Identifier : in CORBA.String)
---       return CORBA.Object.Ref;
+   function Resolve_Initial_References
+     (Identifier : in CORBA.String)
+     return CORBA.Object.Ref;
 
 end CORBA.ORB;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.20 $
+--                            $Revision: 1.21 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -110,12 +110,12 @@ package body CORBA.ORB is
    -- Resolve_Initial_References --
    --------------------------------
 
-   --  function Resolve_Initial_References
-   --    (Identifier : in CORBA.String)
-   --    return CORBA.Object.Ref
-   --  is
-   --  begin
-   --     return CORBA.Object.OmniORB.Resolve_Initial_References (Identifier);
-   --  end Resolve_Initial_References;
+   function Resolve_Initial_References
+     (Identifier : in CORBA.String)
+     return CORBA.Object.Ref
+   is
+   begin
+      return CORBA.Object.OmniORB.Resolve_Initial_References (Identifier);
+   end Resolve_Initial_References;
 
 end CORBA.ORB;
