@@ -1,3 +1,8 @@
+1998-05-11  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_stubs.adb: Change Partition_Interface.Startup into
+ 	Partition_Interface. To get a fake PCS in GNAT.
+
 1998-04-20  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* config.sdefault: Fix some problems with NT (????)

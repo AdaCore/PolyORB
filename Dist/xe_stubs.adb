@@ -530,8 +530,6 @@ package body XE_Stubs is
       Dwrite_Line (FD, 0, "pragma Elaborate_All (System.Garlic.Startup);");
       Dwrite_With_Clause (FD, "System.Garlic.Termination", No_Name, False);
       Dwrite_With_Clause (FD, "System.Partition_Interface", No_Name, False);
-      Dwrite_With_Clause (FD, "System.Partition_Interface.Startup",
-                          No_Name, False);
 
       Dwrite_Line (FD, 0, "procedure ", Partition_Main_Name, " is");
       Dwrite_Line (FD, 0, "begin");
@@ -542,7 +540,7 @@ package body XE_Stubs is
             for Partition in Partitions.First + 1 .. Partitions.Last loop
                if Partition /= Main_Partition then
                   Dwrite_Line
-                    (FD, 1, "System.Partition_Interface.Startup.Launch");
+                    (FD, 1, "System.Partition_Interface.Launch");
                   Name_Len := 0;
                   Add_Str_To_Name_Buffer ("(""");
                   Add_Str_To_Name_Buffer (Get_Rsh_Command);
@@ -577,7 +575,7 @@ package body XE_Stubs is
               CUnit.Table (U).Partition /= PID and then
               Get_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname) = PID then
                Dwrite_Line
-                 (FD, 1, "System.Partition_Interface.Startup.Check (""",
+                 (FD, 1, "System.Partition_Interface.Check (""",
                   CUnit.Table (U).CUname, """, ",
                   CUnit.Table (U).CUname, "'Version);");
                Set_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname, Null_PID);
@@ -588,7 +586,7 @@ package body XE_Stubs is
       if PID = Main_Partition then
          Dwrite_Line
            (FD, 1,
-            "System.Partition_Interface.Startup.Run (",
+            "System.Partition_Interface.Run (",
             Main_Subprogram, "'access);");
       else
          Main := Partitions.Table (PID).Main_Subprogram;
