@@ -150,29 +150,32 @@ package body Broca.Inet_Server is
       procedure Initialize (Listening_Socket : Interfaces.C.int;
                             Signal_Fd_Read   : Interfaces.C.int);
 
+      entry Get_Job_And_Lock (A_Job : out Job);
       --  Obtain a pending job to perform. The scheduler is
       --  then locked until a call to a _Unlock subprogram is
       --  made.
-      entry Get_Job_And_Lock (A_Job : out Job);
 
-      --  Set new pending jobs array, and unlock the scheduler.
-      procedure Set_Pending_Jobs_And_Unlock
+      procedure Set_Pending_Jobs
         (Returned_Poll_Set : Pollfd_Array);
+      --  Set new pending jobs.
 
+      procedure Insert_Descriptor (Sock : Interfaces.C.int);
       --  Insert a descriptor for a newly-opened connection.
       --  Clear events on listening socket.
-      procedure Insert_Descriptor_And_Unlock (Sock : Interfaces.C.int);
 
+      procedure Mask_Descriptor (Pos : Integer);
       --  Mask descriptor and clear events. The descriptor
       --  is now managed by a server task, until it calls
       --  Delete_Descriptor or Unmask_Descriptor.
-      procedure Mask_Descriptor_And_Unlock (Pos : Integer);
 
-      --  Destroy a descriptor associated with a closed connection.
+      procedure Unlock;
+      --  Unlock the scheduler.
+
       procedure Delete_Descriptor (Pos : Integer);
+      --  Destroy a descriptor associated with a closed connection.
 
-      --  Resume waitiong for events on descriptor.
       procedure Unmask_Descriptor (Pos : Integer);
+      --  Resume waitiong for events on descriptor.
 
    private
 
@@ -230,11 +233,15 @@ package body Broca.Inet_Server is
             end if;
          end loop;
 
+         Polls (Current_Fd_Pos).Revents := 0;
+         --  Clear pending job.
+
          A_Job := (Kind => Fd_Event,
                    Pollfd_Array_Size => 0,
                    Pos => Current_Fd_Pos,
                    Fd => Polls (Current_Fd_Pos).Fd,
                    Stream => null);
+         --  Prepare job structure for calling task.
 
          if Current_Fd_Pos in Streams'First .. Nbr_Fd then
             A_Job.Stream := Streams (Current_Fd_Pos);
@@ -249,18 +256,16 @@ package body Broca.Inet_Server is
          return;
       end Get_Job_And_Lock;
 
-      procedure Set_Pending_Jobs_And_Unlock
+      procedure Set_Pending_Jobs
         (Returned_Poll_Set : Pollfd_Array) is
       begin
          for I in Returned_Poll_Set'Range loop
             Polls (I).Revents := Returned_Poll_Set (I).Revents;
          end loop;
          Fd_Pos := 1;
-         Locked := False;
-      end Set_Pending_Jobs_And_Unlock;
+      end Set_Pending_Jobs;
 
-
-      procedure Insert_Descriptor_And_Unlock (Sock : Interfaces.C.int) is
+      procedure Insert_Descriptor (Sock : Interfaces.C.int) is
       begin
          pragma Assert (Nbr_Fd < Polls'Last);
 
@@ -275,17 +280,17 @@ package body Broca.Inet_Server is
          if Nbr_Fd = Polls'Last then
             Polls (1).Events := 0;
          end if;
+      end Insert_Descriptor;
 
-         Locked := False;
-      end Insert_Descriptor_And_Unlock;
-
-      procedure Mask_Descriptor_And_Unlock (Pos : Integer) is
+      procedure Mask_Descriptor (Pos : Integer) is
       begin
          Polls (Pos).Events := 0;
-         Polls (Pos).Revents := 0;
+      end Mask_Descriptor;
 
+      procedure Unlock is
+      begin
          Locked := False;
-      end Mask_Descriptor_And_Unlock;
+      end Unlock;
 
       procedure Unmask_Descriptor (Pos : Integer) is
       begin
@@ -437,10 +442,11 @@ package body Broca.Inet_Server is
 
    begin
       Broca.Server.Log ("Enter Wait_Fd_Request");
+      Broca.Server.New_Request (Fd_Server_Id);
 
       --  Try to obtain some work to be done.
       Lock.Get_Job_And_Lock (A_Job);
-      Broca.Server.New_Request (Fd_Server_Id);
+
       --  The pending work repository is now locked.
 
       if A_Job.Kind = No_Event then
@@ -455,6 +461,7 @@ package body Broca.Inet_Server is
          end loop;
 
          Res := C_Poll (A_Job.Poll_Set'Address, A_Job.Poll_Set'Length, -1);
+         Broca.Server.Log ("poll returned " & Res'Img);
          if Res = 0 then
             --  This should never happen.
             pragma Assert (False);
@@ -464,7 +471,8 @@ package body Broca.Inet_Server is
             Broca.Exceptions.Raise_Comm_Failure;
          end if;
 
-         Lock.Set_Pending_Jobs_And_Unlock (A_Job.Poll_Set);
+         Lock.Set_Pending_Jobs (A_Job.Poll_Set);
+         Lock.Unlock;
 
       elsif A_Job.Pos = 1 then
 
@@ -484,14 +492,14 @@ package body Broca.Inet_Server is
             & " from " & In_Addr_To_Str (Sock_Name.Sin_Addr)
             & " port" & Natural'Image (Ntohs (Sock_Name.Sin_Port)));
 
-         Lock.Insert_Descriptor_And_Unlock (Sock);
+         Lock.Insert_Descriptor (Sock);
+         Lock.Unlock;
 
       elsif A_Job.Pos = 2 then
          Broca.Server.Log ("poll set change");
 
-         Lock.Mask_Descriptor_And_Unlock (A_Job.Pos);
          Accept_Poll_Set_Change;
-         Lock.Unmask_Descriptor (A_Job.Pos);
+         Lock.Unlock;
 
       else
          Broca.Server.Log ("data at position " & A_Job.Pos'Img);
@@ -502,7 +510,8 @@ package body Broca.Inet_Server is
          --  of conducting the dialog, until the incoming
          --  request is handled.
 
-         Lock.Mask_Descriptor_And_Unlock (A_Job.Pos);
+         Lock.Mask_Descriptor (A_Job.Pos);
+         Lock.Unlock;
 
          Sock := A_Job.Fd;
 

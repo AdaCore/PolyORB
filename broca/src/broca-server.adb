@@ -909,10 +909,6 @@ package body Broca.Server is
         (Buffer, Buffer_Index_Type (Message_Size) + Message_Header_Size);
 
       Skip_Bytes (Buffer, Message_Header_Size);
-      Log ("before Receive: Full_Size = "
-         & Buffer_Index_Type'Image (Full_Size (Buffer))
-         & ", Size_Left = "
-         & Buffer_Index_Type'Image (Size_Left (Buffer)));
       Receive (Stream, Buffer);
       Unlock_Receive (Stream);
 

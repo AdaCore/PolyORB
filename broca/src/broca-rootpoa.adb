@@ -919,14 +919,15 @@ package body Broca.Rootpoa is
             Sm := To_Internal_Skeleton (Self.Servant_Manager);
             A_Servant := Self.Object_Map (Slot).Skeleton.P_Servant;
             PortableServer.POA.Set (A_Poa, Broca.Refs.Ref_Ptr (Self));
+
+            --  Wait for completions on all outstanding requests before
+            --  etherealize the object.
+            Self.Object_Map (Slot).Requests_Lock.Lock_W;
+
+            --  Serialization of calls to incarnate/etherealize.
+            Self.Servant_Lock.Lock;
+
             begin
-               --  Wait for completions on all outstanding requests before
-               --  etherealize the object.
-               Self.Object_Map (Slot).Requests_Lock.Lock_W;
-
-               --  Serialization of calls to incarnate/etherealize.
-               Self.Servant_Lock.Lock;
-
                PortableServer.ServantActivator.Impl.Etherealize
                  (PortableServer.ServantActivator.Impl.Object'Class
                   (Sm.P_Servant.all),
@@ -1015,9 +1016,10 @@ package body Broca.Rootpoa is
       Oid : ObjectId;
       The_Cookie : PortableServer.ServantLocator.Cookie;
    begin
-      pragma Debug (O ("Giop_invoke : enter"));
+      pragma Debug (O ("Giop_Invoke: enter"));
       --  See 9.3.7
       Self.Requests_Lock.Lock_R;
+      pragma Debug (O ("Giop_Invoke: Got Read lock on request."));
 
       --  Find the ObjectId in the Activa Map if RETAIN Policy.
       if Self.Servant_Policy = RETAIN then
@@ -1032,9 +1034,10 @@ package body Broca.Rootpoa is
       end if;
 
       PortableServer.POA.Set (A_Poa, Broca.Refs.Ref_Ptr (Self));
+      pragma Debug (O ("Giop_Invoke: POA is set."));
 
       if A_Servant = null then
-         pragma Debug (O ("Giop_invoke : A_Servant is null"));
+         pragma Debug (O ("Giop_Invoke: A_Servant is null"));
          case Self.Request_Policy is
             when USE_ACTIVE_OBJECT_MAP_ONLY =>
                pragma Debug
@@ -1047,7 +1050,7 @@ package body Broca.Rootpoa is
 
             when USE_DEFAULT_SERVANT =>
                pragma Debug
-                 (O ("Giop_invoke : USE_DEFAULT_SERVANT policy"));
+                 (O ("Giop_Invoke: USE_DEFAULT_SERVANT policy"));
                if Self.Default_Servant = null then
                   Broca.Exceptions.Raise_Obj_Adapter;
                else
@@ -1061,7 +1064,7 @@ package body Broca.Rootpoa is
                end if;
 
             when USE_SERVANT_MANAGER =>
-               pragma Debug (O ("Giop_invoke : USE_SERVANT_MANAGER policy"));
+               pragma Debug (O ("Giop_Invoke: USE_SERVANT_MANAGER policy"));
                if Broca.Refs."="
                  (PortableServer.ServantManager.Get (Self.Servant_Manager),
                   null)
@@ -1071,8 +1074,8 @@ package body Broca.Rootpoa is
                   Skel := To_Internal_Skeleton (Self.Servant_Manager);
                end if;
                if Self.Servant_Policy = RETAIN then
+                  Self.Servant_Lock.Lock;
                   begin
-                     Self.Servant_Lock.Lock;
                      PortableServer.ServantActivator.Impl.Incarnate
                        (PortableServer.ServantActivator.Impl.Object'Class
                         (Skel.P_Servant.all),
@@ -1117,21 +1120,32 @@ package body Broca.Rootpoa is
                end if;
          end case;
       end if;
+
       begin
          if Self.Servant_Policy = RETAIN then
-            pragma Debug (O ("GIOP_Invoke : RETAIN policy"));
+            pragma Debug (O ("Giop_Invoke: RETAIN policy"));
             Self.Object_Map (Slot).Requests_Lock.Lock_R;
+            pragma Debug (O ("Giop_Invoke: Got Read lock on request (2)."));
          end if;
+
+         pragma Debug (O ("Giop_Invoke: Preparing POA_Task_Attributes."));
+         declare
+            My_Task_Attributes : constant POA_Task_Attribute
+              := (Oid, PortableServer.POA.Convert.To_Forward (A_Poa));
+         begin
+            pragma Debug (O ("Giop_Invoke: Setting POA_Task_Attributes."));
+            Attributes.Set_Value (My_Task_Attributes);
+            pragma Debug (O ("Giop_Invoke: Did set POA_Task_Attributes."));
+         end;
+
          pragma Debug
-           (O ("GIOP_Invoke : call giop_dispatch for " &
+           (O ("Giop_Invoke: call giop_dispatch for " &
                CORBA.To_Standard_String (Operation)));
-         Attributes.Set_Value
-           (POA_Task_Attribute'
-            (Oid, PortableServer.POA.Convert.To_Forward (A_Poa)));
          GIOP_Dispatch
            (A_Servant, CORBA.To_Standard_String (Operation), Request_Id,
             Reponse_Expected, Message);
-         pragma Debug (O ("GIOP_Invoke : giop_dispatch returned"));
+         pragma Debug (O ("Giop_Invoke: giop_dispatch returned"));
+
          if Self.Servant_Policy = RETAIN then
             Self.Object_Map (Slot).Requests_Lock.Unlock_R;
          end if;

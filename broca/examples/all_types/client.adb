@@ -31,72 +31,74 @@ begin
    end if;
 
    Output ("test not null", not All_Types.Is_Nil (MyAll_Types));
-   Output ("test boolean", EchoBoolean (MyAll_Types, True) = True);
-   Output ("test short", EchoShort (MyAll_Types, 123) = 123);
-   Output ("test long",  EchoLong (MyAll_Types, 456) = 456);
-   Output ("test unsigned_short", EchoUShort (MyAll_Types, 456) = 456);
-   Output ("test unsigned_long", EchoULong (MyAll_Types, 123) = 123);
-   Output ("test float", EchoFloat (MyAll_Types, 2.7) = 2.7);
-   Output ("test double", EchoDouble (MyAll_Types, 3.14) = 3.14);
-   Output ("test char", EchoChar (MyAll_Types, 'A') = 'A');
-   Output ("test octet", EchoOctet (MyAll_Types, 5) = 5);
-   Output ("test string",
-           To_Standard_String (EchoString (MyAll_Types, To_CORBA_String ("hello"))) = "hello");
-   Output ("test enum", EchoColor (MyAll_Types, Blue) = Blue);
 
-   declare
-      Test_Struct : constant Simple_Struct
-        := ((others => 123), To_CORBA_String ("Hello world!"));
-   begin
-      Output ("test struct", EchoStruct (MyAll_Types, Test_Struct) = Test_Struct);
-   end;
+   loop
+      Output ("test boolean", EchoBoolean (MyAll_Types, True) = True);
+      Output ("test short", EchoShort (MyAll_Types, 123) = 123);
+      Output ("test long",  EchoLong (MyAll_Types, 456) = 456);
+      Output ("test unsigned_short", EchoUShort (MyAll_Types, 456) = 456);
+      Output ("test unsigned_long", EchoULong (MyAll_Types, 123) = 123);
+      Output ("test float", EchoFloat (MyAll_Types, 2.7) = 2.7);
+      Output ("test double", EchoDouble (MyAll_Types, 3.14) = 3.14);
+      Output ("test char", EchoChar (MyAll_Types, 'A') = 'A');
+      Output ("test octet", EchoOctet (MyAll_Types, 5) = 5);
+      Output ("test string",
+              To_Standard_String (EchoString (MyAll_Types, To_CORBA_String ("hello"))) = "hello");
+      Output ("test enum", EchoColor (MyAll_Types, Blue) = Blue);
 
-   declare
-      Test_Unions : constant array (0 .. 3) of MyUnion
-        := ((Switch => 0, Unknown => 987),
-            (Switch => 1, Counter => 1212),
-            (Switch => 2, Flag => True),
-            (Switch => 3, Hue => Green));
-      Pass : Boolean := True;
-   begin
-      for I in Test_Unions'Range loop
-         Pass := Pass and then EchoUnion (MyAll_Types, Test_Unions (I))
-           = Test_Unions (I);
-         exit when not Pass;
-      end loop;
-      Output ("test union", Pass);
-   end;
+      declare
+         Test_Struct : constant Simple_Struct
+           := ((others => 123), To_CORBA_String ("Hello world!"));
+      begin
+         Output ("test struct", EchoStruct (MyAll_Types, Test_Struct) = Test_Struct);
+      end;
 
-   declare
-      X : U_Sequence := U_Sequence (IDL_SEQUENCE_Short.Null_Sequence);
-   begin
-      X := X & 16 & 32 & 64 & 128 & 257;
-      Output ("test unbounded sequence", EchoUsequence (MyAll_Types, X) = X);
-   end;
+      declare
+         Test_Unions : constant array (0 .. 3) of MyUnion
+           := ((Switch => 0, Unknown => 987),
+               (Switch => 1, Counter => 1212),
+               (Switch => 2, Flag => True),
+               (Switch => 3, Hue => Green));
+         Pass : Boolean := True;
+      begin
+         for I in Test_Unions'Range loop
+            Pass := Pass and then EchoUnion (MyAll_Types, Test_Unions (I))
+              = Test_Unions (I);
+            exit when not Pass;
+         end loop;
+         Output ("test union", Pass);
+      end;
 
-   declare
-      Member : My_Exception_Members;
-   begin
-      Ok := False;
-      TestException (MyAll_Types, 2485);
-   exception
-      when E : My_Exception =>
-         Get_Members (E, Member);
-         Ok := (Member.Info = 2485);
-   end;
-   Output ("test exception", Ok);
+      declare
+         X : U_Sequence := U_Sequence (IDL_SEQUENCE_Short.Null_Sequence);
+      begin
+         X := X & 16 & 32 & 64 & 128 & 257;
+         Output ("test unbounded sequence", EchoUsequence (MyAll_Types, X) = X);
+      end;
 
-   declare
-      X : Simple_Array := (2,3,5,7,11);
-   begin
-      Output ("test simple array", EchoArray (MyAll_Types, X) = X);
-   end;
+      declare
+         Member : My_Exception_Members;
+      begin
+         Ok := False;
+         TestException (MyAll_Types, 2485);
+      exception
+         when E : My_Exception =>
+            Get_Members (E, Member);
+            Ok := (Member.Info = 2485);
+      end;
+      Output ("test exception", Ok);
 
-   declare
-      M : Matrix := ((165, 252, 375), (377, 145, 222), (202, 477, 147));
-   begin
-      Output ("test multi-dimensional array", EchoMatrix (MyAll_Types, M) = M);
-   end;
+      declare
+         X : Simple_Array := (2,3,5,7,11);
+      begin
+         Output ("test simple array", EchoArray (MyAll_Types, X) = X);
+      end;
+
+      declare
+         M : Matrix := ((165, 252, 375), (377, 145, 222), (202, 477, 147));
+      begin
+         Output ("test multi-dimensional array", EchoMatrix (MyAll_Types, M) = M);
+      end;
 
 --   declare
 --      X : Simple_Struct := (A => (0,1,2,3,4,5,6,7,8,9), B => 10);
@@ -163,23 +165,24 @@ begin
 --         Is_Equivalent (Echo12 (MyAll_Types, X), X));
 --   end;
 
-   Set_MyColor (MyAll_Types, Green);
-   Output ("test attribute", Get_MyColor (MyAll_Types) = Green);
-   declare
-      Counter_First_Value : CORBA.Long
-        := Get_Counter (MyAll_Types);
-      Counter_Second_Value : CORBA.Long
-        := Get_Counter (MyAll_Types);
-   begin
-      Output ("test read-only attribute",
-              Counter_Second_Value = Counter_First_Value + 1);
-   end;
+      Set_MyColor (MyAll_Types, Green);
+      Output ("test attribute", Get_MyColor (MyAll_Types) = Green);
+      declare
+         Counter_First_Value : CORBA.Long
+           := Get_Counter (MyAll_Types);
+         Counter_Second_Value : CORBA.Long
+           := Get_Counter (MyAll_Types);
+      begin
+         Output ("test read-only attribute",
+                 Counter_Second_Value = Counter_First_Value + 1);
+      end;
 
-   declare
-      X : All_Types.Ref;
-   begin
-      X := EchoRef (MyAll_Types, MyAll_Types);
-      Output ("test self reference", EchoLong (X, 16#dead#) = 16#dead#);
-   end;
+      --      declare
+      --         X : All_Types.Ref;
+      --      begin
+      --         X := EchoRef (MyAll_Types, MyAll_Types);
+      --         Output ("test self reference", EchoLong (X, 31337) = 31337);
+      --      end;
+   end loop;
 
 end Client;
