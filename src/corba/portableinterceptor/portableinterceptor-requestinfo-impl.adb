@@ -38,6 +38,7 @@ with PolyORB.Annotations;
 with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
 with PolyORB.CORBA_P.Codec_Utils;
+with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Interceptors_Slots;
 with PolyORB.Exceptions;
 with PolyORB.References;
@@ -217,36 +218,25 @@ package body PortableInterceptor.RequestInfo.Impl is
       return PortableInterceptor.ReplyStatus
    is
    begin
---      case Self.Kind is
---         when Receive_Reply =>
---            return Successful;
---
---         when Receive_Exception =>
---            raise PolyORB.Not_Implemented;
---
---         when Receive_Other =>
---            raise PolyORB.Not_Implemented;
---
---         when Send_Reply =>
---            return Successful;
---
---         when Send_Exception =>
---            raise PolyORB.Not_Implemented;
---
---         when Send_Other =>
---            raise PolyORB.Not_Implemented;
---
---         when Send_Request |
---              Send_Poll |
---              Receive_Request_Service_Contexts |
---              Receive_Request =>
---
---            CORBA.Raise_Bad_Inv_Order
---             (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
---                                           Completed => CORBA.Completed_No));
---      end case;
-      raise PolyORB.Not_Implemented;
-      return Successful;
+      if PolyORB.Any.Is_Empty (Self.Request.Exception_Info) then
+         return Successful;
+
+      elsif
+        PolyORB.CORBA_P.Exceptions.Is_System_Exception
+          (Self.Request.Exception_Info)
+      then
+         return System_Exception;
+
+      elsif
+        PolyORB.CORBA_P.Exceptions.Is_Forward_Request
+          (Self.Request.Exception_Info)
+      then
+         return Location_Forward;
+
+      else
+         return User_Exception;
+
+      end if;
    end Get_Reply_Status;
 
    --------------------
