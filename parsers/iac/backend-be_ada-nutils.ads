@@ -113,6 +113,7 @@ package Backend.BE_Ada.Nutils is
       Tok_Arrow,           -- =>
       Tok_Vertical_Bar,    -- |
       Tok_Dot_Dot);        -- ..
+
    Token_Image : array (Token_Type) of Name_Id;
 
    subtype Keyword_Type is Token_Type
@@ -143,8 +144,6 @@ package Backend.BE_Ada.Nutils is
       Op_Semicolon,       -- ;
       Op_Arrow,           -- =>
       Op_Vertical_Bar);   -- |
-
-
 
    Operator_Image : array
      (Operator_Type'Pos (Op_And) ..  Operator_Type'Pos (Op_Vertical_Bar))
@@ -274,7 +273,6 @@ package Backend.BE_Ada.Nutils is
    function Is_Empty (L : List_Id) return Boolean;
    pragma Inline (Is_Empty);
    --  Return true when L is empty
-
 
    function Copy_Designator
      (Designator : Node_Id;
