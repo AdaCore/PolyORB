@@ -47,3 +47,7 @@ When necessary, tag the code with
 
 - 'Implementation note:' to indicate modifications to a 'should be'
   implementation to work around specific problems.
+
+Whenever possible, do not add new exceptions and exception handlers to
+PolyORB's neutral core and protocol personalities. Instead, use error
+handling mechanisms provided by PolyORB.Exceptions.

@@ -60,13 +60,15 @@ package body MOMA.Provider.Message_Producer is
 
    --  Actual function implemented by the servant.
 
-   procedure Publish (Self    : in PolyORB.References.Ref;
-                      Message : in PolyORB.Any.Any);
+   procedure Publish
+     (Self    : in PolyORB.References.Ref;
+      Message : in PolyORB.Any.Any);
    --  Publish a message.
 
    --  Accessors to servant interface.
 
-   function Get_Parameter_Profile (Method : String)
+   function Get_Parameter_Profile
+     (Method : String)
      return PolyORB.Any.NVList.Ref;
    --  Parameters part of the interface description.
 
@@ -109,9 +111,9 @@ package body MOMA.Provider.Message_Producer is
    -- Get_Remote_Ref --
    --------------------
 
-   function Get_Remote_Ref (Self : Object)
-      return PolyORB.References.Ref
-   is
+   function Get_Remote_Ref
+     (Self : Object)
+     return PolyORB.References.Ref is
    begin
       return Self.Remote_Ref;
    end Get_Remote_Ref;
@@ -188,8 +190,9 @@ package body MOMA.Provider.Message_Producer is
    -- Publish --
    -------------
 
-   procedure Publish (Self    : in PolyORB.References.Ref;
-                      Message : in PolyORB.Any.Any)
+   procedure Publish
+     (Self    : in PolyORB.References.Ref;
+      Message : in PolyORB.Any.Any)
    is
       Request     : PolyORB.Requests.Request_Access;
       Arg_List    : PolyORB.Any.NVList.Ref;
@@ -225,8 +228,9 @@ package body MOMA.Provider.Message_Producer is
    -- Set_Remote_Ref --
    --------------------
 
-   procedure Set_Remote_Ref (Self : in out Object;
-                             Ref  : PolyORB.References.Ref)
+   procedure Set_Remote_Ref
+     (Self : in out Object;
+      Ref  :        PolyORB.References.Ref)
    is
    begin
       Self.Remote_Ref := Ref;

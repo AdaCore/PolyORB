@@ -1034,6 +1034,7 @@ package Rtsfind is
      RE_Get_Aggregate_Element,           -- System.PolyORB_Interface
      RE_Content_Type,                    -- System.PolyORB_Interface
      RE_Member_Type,                     -- System.PolyORB_Interface
+     RE_Get_Nested_Sequence_Length,      -- System.PolyORB_Interface
      RE_NVList_Ref,                      -- System.PolyORB_Interface
      RE_NVList_Create,                   -- System.PolyORB_Interface
      RE_NVList_Add_Item,                 -- System.PolyORB_Interface
@@ -2072,6 +2073,7 @@ package Rtsfind is
      RE_Get_Aggregate_Element            => System_PolyORB_Interface,
      RE_Content_Type                     => System_PolyORB_Interface,
      RE_Member_Type                      => System_PolyORB_Interface,
+     RE_Get_Nested_Sequence_Length       => System_PolyORB_Interface,
      RE_NVList_Ref                       => System_PolyORB_Interface,
      RE_NVList_Create                    => System_PolyORB_Interface,
      RE_NVList_Add_Item                  => System_PolyORB_Interface,

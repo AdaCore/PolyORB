@@ -41,8 +41,7 @@ package body MOMA.Messages.MMaps is
    -- Get_Map --
    --------------
 
-   function Get_Map (Self : MMap)
-                    return MOMA.Types.Map is
+   function Get_Map (Self : MMap) return MOMA.Types.Map is
    begin
       return MOMA.Types.From_Any (Get_Payload (Self));
    end Get_Map;
@@ -51,8 +50,7 @@ package body MOMA.Messages.MMaps is
    -- Set_Map --
    --------------
 
-   procedure Set_Map (Self : in out MMap;
-                      Value : MOMA.Types.Map) is
+   procedure Set_Map (Self : in out MMap; Value : MOMA.Types.Map) is
    begin
       Set_Payload (Self, MOMA.Types.To_Any (Value));
    end Set_Map;
@@ -61,8 +59,7 @@ package body MOMA.Messages.MMaps is
    -- Create_Map_Message --
    -------------------------
 
-   function Create_Map_Message
-     return MMap
+   function Create_Map_Message return MMap
    is
       Result : MMap;
 
@@ -77,8 +74,7 @@ package body MOMA.Messages.MMaps is
    -- Image --
    -----------
 
-   function Image (Self : MMap)
-                  return String is
+   function Image (Self : MMap) return String is
    begin
       return Image (Get_Payload (Self));
    end Image;

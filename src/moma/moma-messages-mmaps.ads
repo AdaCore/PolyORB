@@ -52,13 +52,12 @@ package MOMA.Messages.MMaps is
 
    --  Accessors to MMap payload.
 
-   function Get_Map (Self : MMap)
-                     return MOMA.Types.Map;
+   function Get_Map (Self : MMap) return MOMA.Types.Map;
 
-   procedure Set_Map (Self : in out MMap;
-                      Value : MOMA.Types.Map);
+   procedure Set_Map (Self : in out MMap; Value : MOMA.Types.Map);
 
 private
+
    type MMap is new Message with null record;
 
 end MOMA.Messages.MMaps;

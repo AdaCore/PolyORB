@@ -59,11 +59,12 @@ package body MOMA.Configuration.Server is
    -- Create_Message_Pool --
    -------------------------
 
-   procedure Create_Message_Pool (Pool : MOMA.Types.Message_Pool;
-                                  Ref  : out PolyORB.References.Ref)
+   procedure Create_Message_Pool
+     (Pool :     MOMA.Types.Message_Pool;
+      Ref  : out PolyORB.References.Ref)
    is
-      MOMA_Obj : constant MOMA.Provider.Message_Pool.Object_Acc
-       := new MOMA.Provider.Message_Pool.Object;
+      MOMA_Obj : constant MOMA.Provider.Message_Pool.Object_Acc :=
+        new MOMA.Provider.Message_Pool.Object;
 
       Error : Error_Container;
 
@@ -88,10 +89,10 @@ package body MOMA.Configuration.Server is
    -- Create_Router --
    -------------------
 
-   procedure Create_Router (Id         : MOMA.Types.String;
-                            Ref        : out PolyORB.References.Ref;
-                            Router_Ref : PolyORB.References.Ref :=
-                                            PolyORB.References.Nil_Ref)
+   procedure Create_Router
+     (Id         :     MOMA.Types.String;
+      Ref        : out PolyORB.References.Ref;
+      Router_Ref :     PolyORB.References.Ref := PolyORB.References.Nil_Ref)
    is
       Router : constant MOMA.Provider.Routers.Router_Acc
        := new MOMA.Provider.Routers.Router;
@@ -100,7 +101,6 @@ package body MOMA.Configuration.Server is
 
    begin
       pragma Debug (O ("Creating Router"));
-
 
       Initiate_Servant (Router,
                         MOMA.Provider.Routers.If_Desc,

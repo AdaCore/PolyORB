@@ -21,6 +21,7 @@ $(TESTS): force
 	-I$(srcdir)/../../src \
 	-I$(srcdir)/../../src/corba \
 	-I$(srcdir)/../../src/giop \
+	-I$(srcdir)/../../src/giop/iiop \
 	-I$(srcdir)/../../src/soap \
 	-I$(srcdir)/../../src/srp \
 	-I../../src \

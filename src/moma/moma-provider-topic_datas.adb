@@ -124,8 +124,9 @@ package body MOMA.Provider.Topic_Datas is
    -- New_Topic --
    ---------------
 
-   function New_Topic (S : Destination_List.List)
-                      return Topic is
+   function New_Topic
+     (S : Destination_List.List)
+     return Topic is
    begin
       return Topic'(To_MOMA_String ("Unknown"), S);
    end New_Topic;

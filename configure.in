@@ -25,6 +25,7 @@ AC_PROG_CXXCPP
 AC_CHECK_PROG(RM, rm, rm)
 AC_CHECK_PROGS(AWK, [gnuawk gawk awk])
 AC_CHECK_PROG(SED, sed, sed)
+AC_CHECK_PROG(FIND, find, find)
 AC_CHECK_PROG(PYTHON, python, python)
 AM_PROG_WORKING_ADA
 AM_CROSS_PROG_WORKING_ADA
@@ -50,7 +51,7 @@ AC_ARG_WITH(proto-perso,
   newwithval=`echo ${withval} | tr "[A-Z]" "[a-z]"`
   for P in ${newwithval}
   do
-     if test -f ${srcdir}/src/${P}/polyorb-binding_data-*.ads
+     if ${FIND} ${srcdir}/src/${P} -name 'polyorb-binding_data-*.ads' > /dev/null;
      then
         PROTO_LIST="${PROTO_LIST} $P "
      else
@@ -326,9 +327,9 @@ EOF
 -- ${P} --
 EOF
 
-if test -f ${srcdir}/src/${P}/polyorb-setup-${P}.ads
-then
-   U=`${AWK} '/^package/{print $2}' ${srcdir}/src/${P}/polyorb-setup-${P}.ads`
+for F in `${FIND} ${srcdir}/src/${P} -regex '.*polyorb-setup-[[a-z]]*\.ads'`
+do
+   U=`${AWK} '/^package/{print $2}' ${F}`
    cat >>${PROTO_SERVER_WITHS} <<EOF
 with ${U};
 pragma Elaborate_All (${U});
@@ -342,9 +343,11 @@ pragma Warnings (Off, ${U});
 
 EOF
 
-fi
+done
 
-   U=`${AWK} '/^package/{print $2}' ${srcdir}/src/${P}/polyorb-binding_data-*.ads`
+for F in `${FIND} ${srcdir}/src/${P} -name 'polyorb-binding_data-*.ads'`
+do
+   U=`${AWK} '/^package/{print $2}' ${F}`
    cat >>${PROTO_CLIENT_WITHS} <<EOF
 with ${U};
 pragma Elaborate_All (${U});
@@ -352,13 +355,21 @@ pragma Warnings (Off, ${U});
 
 EOF
 
-   U=`${AWK} '/^package/{print $2}' ${srcdir}/src/${P}/polyorb-setup-tcp_access_points-*.ads`
+done
+
+
+for F in `${FIND} ${srcdir}/src/${P} -name 'polyorb-setup-*_access_points-*.ads'`
+do
+   U=`${AWK} '/^package/{print $2}' ${F}`
    cat >>${PROTO_SERVER_WITHS} <<EOF
 with ${U};
 pragma Elaborate_All (${U});
 pragma Warnings (Off, ${U});
 
 EOF
+
+done
+
 done
 
 AC_SUBST_FILE(PROTO_CLIENT_WITHS)
@@ -388,6 +399,7 @@ AC_OUTPUT([
 	src/corba/Makefile
 	src/dsa/Makefile
 	src/giop/Makefile
+	src/giop/iiop/Makefile
 	src/moma/Makefile
 	src/soap/Makefile
 	src/srp/Makefile

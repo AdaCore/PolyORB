@@ -77,7 +77,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
         (PolyORB.Configuration.Get_Conf
            ("tasking",
             "polyorb.tasking.threads.storage_size",
-            262144));
+            262_144));
    end Generic_Task;
 
    type Generic_Task_Access is access Generic_Task;

@@ -344,19 +344,24 @@ private
       Transport_Access_Points : TAP_List;
       --  The set of transport access points managed by this ORB.
 
+      Polling_Enabled : Boolean;
+      --  Signals whether tasks may poll.
+
       Polling : Boolean;
       --  True if, and only if, one task is blocked waiting
       --  for external events on ORB_Sockets.
 
-      Source_Deleted : Boolean;
-      --  Signals whether Delete_Source has been called while
-      --  another task was polling.
+      Polling_Abort_Requested : Boolean;
+      --  Signals whether a task requested abortion of polling
+
+      Polling_Abort_Counter : Natural;
+      --  Indicates number of tasks that requested abortion of polling
 
       Polling_Completed : PTCV.Condition_Access;
-      --  This condition is signalled after polling is completed.
-      --  It is used by tasks for the polling task to release any
-      --  reference to an AES that is to be destroyed (see
-      --  Delete_Source).
+      --  This condition is signalled after polling is completed. It
+      --  is used by tasks for the polling task to release any
+      --  reference to source list that is to be modified (see
+      --  Insert_Source or Delete_Source).
 
       Selector : PAE.Asynch_Ev_Monitor_Access;
       --  The asynchronous event monitor on which this ORB is

@@ -63,20 +63,22 @@ package body MOMA.Provider.Message_Consumer is
 
    --  Actual function implemented by the servant.
 
-   function Get (Self       : in PolyORB.References.Ref;
-                 Message_Id : in MOMA.Types.String)
-                return PolyORB.Any.Any;
+   function Get
+     (Self       : in PolyORB.References.Ref;
+      Message_Id : in MOMA.Types.String)
+     return PolyORB.Any.Any;
    --  Return Message_Id message.
 
-   procedure Register_Handler (Self : access Object;
-                               Handler_Ref : PolyORB.References.Ref;
-                               Behavior : MOMA.Types.Call_Back_Behavior);
+   procedure Register_Handler
+     (Self        : access Object;
+      Handler_Ref :        PolyORB.References.Ref;
+      Behavior    :        MOMA.Types.Call_Back_Behavior);
    --  Register a message handler.
-
 
    --  Accessors to servant interface.
 
-   function Get_Parameter_Profile (Method : String)
+   function Get_Parameter_Profile
+     (Method : String)
      return PolyORB.Any.NVList.Ref;
    --  Parameters part of the interface description.
 
@@ -89,12 +91,13 @@ package body MOMA.Provider.Message_Consumer is
    -- Get --
    ---------
 
-   function Get (Self       : in PolyORB.References.Ref;
-                 Message_Id : in PolyORB.Types.String)
-                return PolyORB.Any.Any
+   function Get
+     (Self       : in PolyORB.References.Ref;
+      Message_Id : in PolyORB.Types.String)
+     return PolyORB.Any.Any
    is
-      Arg_Name_Mesg : PolyORB.Types.Identifier
-        := PolyORB.Types.To_PolyORB_String ("Message");
+      Arg_Name_Mesg : PolyORB.Types.Identifier :=
+        PolyORB.Types.To_PolyORB_String ("Message");
 
       Argument_Mesg : PolyORB.Any.Any := PolyORB.Any.To_Any (Message_Id);
 
@@ -137,8 +140,9 @@ package body MOMA.Provider.Message_Consumer is
    -- Get_Parameter_Profile --
    ---------------------------
 
-   function Get_Parameter_Profile (Method : String)
-                                  return PolyORB.Any.NVList.Ref
+   function Get_Parameter_Profile
+     (Method : String)
+     return PolyORB.Any.NVList.Ref
    is
       use PolyORB.Any;
       use PolyORB.Any.NVList;
@@ -179,8 +183,9 @@ package body MOMA.Provider.Message_Consumer is
    -- Get_Remote_Ref --
    --------------------
 
-   function Get_Remote_Ref (Self : Object)
-                           return PolyORB.References.Ref is
+   function Get_Remote_Ref
+     (Self : Object)
+     return PolyORB.References.Ref is
    begin
       return Self.Remote_Ref;
    end Get_Remote_Ref;
@@ -293,9 +298,10 @@ package body MOMA.Provider.Message_Consumer is
    -- Register_Handler --
    ----------------------
 
-   procedure Register_Handler (Self : access Object;
-                               Handler_Ref : PolyORB.References.Ref;
-                               Behavior : MOMA.Types.Call_Back_Behavior)
+   procedure Register_Handler
+     (Self        : access Object;
+      Handler_Ref : PolyORB.References.Ref;
+      Behavior    : MOMA.Types.Call_Back_Behavior)
    is
       Request      : PolyORB.Requests.Request_Access;
       Arg_List     : PolyORB.Any.NVList.Ref;
@@ -344,8 +350,9 @@ package body MOMA.Provider.Message_Consumer is
    -- Set_Remote_Ref --
    --------------------
 
-   procedure Set_Remote_Ref (Self : in out Object;
-                             Ref  : PolyORB.References.Ref) is
+   procedure Set_Remote_Ref
+     (Self : in out Object;
+      Ref  :        PolyORB.References.Ref) is
    begin
       Self.Remote_Ref := Ref;
    end Set_Remote_Ref;

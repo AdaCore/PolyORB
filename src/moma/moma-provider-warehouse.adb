@@ -136,8 +136,8 @@ package body MOMA.Provider.Warehouse is
    end Lookup;
 
    function Lookup
-     (W : Warehouse;
-      K : String;
+     (W       : Warehouse;
+      K       : String;
       Default : PolyORB.Any.Any)
      return PolyORB.Any.Any
    is
@@ -159,8 +159,8 @@ package body MOMA.Provider.Warehouse is
 
    procedure Register
      (W : in out Warehouse;
-      K : String;
-      V : PolyORB.Any.Any)
+      K :        String;
+      V :        PolyORB.Any.Any)
    is
       Stream_File : Ada.Streams.Stream_IO.File_Type;
       Buffer      : constant Buffer_Access := new Buffer_Type;
@@ -189,7 +189,7 @@ package body MOMA.Provider.Warehouse is
 
    procedure Unregister
      (W : in out Warehouse;
-      K : String)
+      K :        String)
    is
       Stream_File : Ada.Streams.Stream_IO.File_Type;
    begin
@@ -211,8 +211,9 @@ package body MOMA.Provider.Warehouse is
    -- Set_Persistence --
    ---------------------
 
-   procedure Set_Persistence (W : in out Warehouse;
-                             Persistence : MOMA.Types.Persistence_Mode) is
+   procedure Set_Persistence
+     (W           : in out Warehouse;
+      Persistence :        MOMA.Types.Persistence_Mode) is
    begin
       W.T_Persistence := Persistence;
    end Set_Persistence;

@@ -115,7 +115,7 @@ package body Exp_Hlpr is
       Indices : List_Id;
       --  For the construction of the innermost element expression.
 
-      with procedure Append_Process_Element
+      with procedure Add_Process_Element
         (Stmts   : List_Id;
          Any     : Entity_Id;
          Counter : Entity_Id;
@@ -127,7 +127,7 @@ package body Exp_Hlpr is
       Counter : Entity_Id := Empty;
       Depth   : Pos       := 1);
    --  Build nested loop statements that iterate over the elements
-   --  of an array Arry. The statement(s) built by Append_Process_Element
+   --  of an array Arry. The statement(s) built by Add_Process_Element
    --  are executed for each element; Indices is the list of indices to be
    --  used in the construction of the indexed component that denotes
    --  the current element. Subprogram is the entity for the subprogram
@@ -506,7 +506,7 @@ package body Exp_Hlpr is
 
             Constrained : constant Boolean := Is_Constrained (Typ);
 
-            procedure From_Any_Append_Process_Element
+            procedure From_Any_Add_Process_Element
               (Stmts   : List_Id;
                Any     : Entity_Id;
                Counter : Entity_Id;
@@ -517,7 +517,7 @@ package body Exp_Hlpr is
             --  If Datum is not an Any, a call to From_Any for its type
             --  is inserted.
 
-            procedure From_Any_Append_Process_Element
+            procedure From_Any_Add_Process_Element
               (Stmts   : List_Id;
                Any     : Entity_Id;
                Counter : Entity_Id;
@@ -535,20 +535,11 @@ package body Exp_Hlpr is
                    Idx => New_Occurrence_Of (Counter, Loc));
 
             begin
-               if Nkind (Datum) = N_Indexed_Component then
-                  Append_To (Stmts, Assignment);
-                  if Etype (Datum) /= RTE (RE_Any) then
-                     Set_Expression (Assignment,
-                        Build_From_Any_Call (
-                          Component_Type (Typ),
-                          Element_Any,
-                          Decls));
-                  else
-                     Set_Expression (Assignment, Element_Any);
-                  end if;
-               end if;
 
-               Append_To (Stmts,
+               --  Note: here we *prepend* statements to Stmts, so
+               --  we must do it in reverse order.
+
+               Prepend_To (Stmts,
                  Make_Assignment_Statement (Loc,
                    Name =>
                      New_Occurrence_Of (Counter, Loc),
@@ -558,7 +549,25 @@ package body Exp_Hlpr is
                          New_Occurrence_Of (Counter, Loc),
                        Right_Opnd =>
                          Make_Integer_Literal (Loc, 1))));
-            end From_Any_Append_Process_Element;
+
+               if Nkind (Datum) /= N_Attribute_Reference then
+
+                  --  We ignore the value of the length of each
+                  --  dimension, since the target array has already
+                  --  been constrained anyway.
+
+                  if Etype (Datum) /= RTE (RE_Any) then
+                     Set_Expression (Assignment,
+                        Build_From_Any_Call (
+                          Component_Type (Typ),
+                          Element_Any,
+                          Decls));
+                  else
+                     Set_Expression (Assignment, Element_Any);
+                  end if;
+                  Prepend_To (Stmts, Assignment);
+               end if;
+            end From_Any_Add_Process_Element;
 
             Counter : constant Entity_Id
               := Make_Defining_Identifier (Loc, Name_J);
@@ -574,7 +583,7 @@ package body Exp_Hlpr is
                 Subprogram => Fnam,
                 Arry       => Res,
                 Indices    => New_List,
-                Append_Process_Element => From_Any_Append_Process_Element);
+                Add_Process_Element => From_Any_Add_Process_Element);
 
             Res_Subtype_Indication : Node_Id
               := New_Occurrence_Of (Typ, Loc);
@@ -620,29 +629,30 @@ package body Exp_Hlpr is
                              Prefix         => New_Occurrence_Of (Indt, Loc),
                              Attribute_Name => Name_Val,
                              Expressions    => New_List (
-                               Make_Op_Add (Loc,
+                               Make_Op_Subtract (Loc,
                                  Left_Opnd =>
-                                   Make_Attribute_Reference (Loc,
-                                     Prefix         =>
-                                       New_Occurrence_Of (Indt, Loc),
-                                     Attribute_Name =>
-                                       Name_Pos,
-                                     Expressions    => New_List (
-                                       Make_Identifier (Loc, Lnam))),
-                                 Right_Opnd =>
-                                   Make_Function_Call (Loc,
-                                     Name =>
-                                       New_Occurrence_Of (RTE (RE_FA_U), Loc),
-                                     Parameter_Associations => New_List (
-                                       Build_Get_Aggregate_Element (Loc,
-                                         Any =>
-                                           Any_Parameter,
-                                         Tc  =>
+                                   Make_Op_Add (Loc,
+                                     Left_Opnd =>
+                                       Make_Attribute_Reference (Loc,
+                                         Prefix         =>
+                                           New_Occurrence_Of (Indt, Loc),
+                                         Attribute_Name =>
+                                           Name_Pos,
+                                         Expressions    => New_List (
+                                           Make_Identifier (Loc, Lnam))),
+                                     Right_Opnd =>
+                                       Make_Function_Call (Loc,
+                                         Name =>
                                            New_Occurrence_Of (
-                                             RTE (RE_TC_U), Loc),
-                                         Idx =>
-                                           Make_Integer_Literal (Loc,
-                                             Ndim + J - 1)))))))));
+                                             RTE (
+                                               RE_Get_Nested_Sequence_Length),
+                                               Loc),
+                                         Parameter_Associations => New_List (
+                                           New_Occurrence_Of (
+                                             Any_Parameter, Loc),
+                                           Make_Integer_Literal (Loc, J)))),
+                                 Right_Opnd =>
+                                   Make_Integer_Literal (Loc, 1))))));
 
                      Append_To (Ranges,
                        Make_Range (Loc,
@@ -1085,13 +1095,13 @@ package body Exp_Hlpr is
 
             Constrained : constant Boolean := Is_Constrained (Typ);
 
-            procedure To_Any_Append_Process_Element
+            procedure To_Any_Add_Process_Element
               (Stmts   : List_Id;
                Any     : Entity_Id;
                Counter : Entity_Id;
                Datum   : Node_Id);
 
-            procedure To_Any_Append_Process_Element
+            procedure To_Any_Add_Process_Element
               (Stmts   : List_Id;
                Any     : Entity_Id;
                Counter : Entity_Id;
@@ -1114,14 +1124,14 @@ package body Exp_Hlpr is
                    Parameter_Associations => New_List (
                      New_Occurrence_Of (Any, Loc),
                      Element_Any)));
-            end To_Any_Append_Process_Element;
+            end To_Any_Add_Process_Element;
 
             procedure Append_To_Any_Array_Iterator is
               new Append_Array_Iterator (
                 Subprogram => Fnam,
                 Arry       => Expr_Parameter,
                 Indices    => New_List,
-                Append_Process_Element => To_Any_Append_Process_Element);
+                Add_Process_Element => To_Any_Add_Process_Element);
 
             Index : Node_Id;
          begin
@@ -1371,9 +1381,11 @@ package body Exp_Hlpr is
       Expr := Make_Function_Call (Loc,
                 Name => New_Occurrence_Of (Fnam, Loc),
                 Parameter_Associations => Args);
+
       Set_Etype (Expr, RTE (RE_TypeCode));
-      --  Allow Expr to be used as an argument to
+      --  Allows Expr to be used as an argument to
       --  Build_To_Any_Call immediately.
+
       return Expr;
    end Build_TypeCode_Call;
 
@@ -1464,15 +1476,19 @@ package body Exp_Hlpr is
       function Make_Constructed_TypeCode
         (Kind : Entity_Id;
          Parameters : List_Id)
-         return Node_Id is
+         return Node_Id
+      is
+         Constructed_TC : constant Node_Id :=
+           Make_Function_Call (Loc,
+             Name =>
+               New_Occurrence_Of (RTE (RE_TC_Build), Loc),
+             Parameter_Associations => New_List (
+               New_Occurrence_Of (Kind, Loc),
+               Make_Aggregate (Loc,
+                  Expressions => Parameters)));
       begin
-         return Make_Function_Call (Loc,
-                  Name =>
-                    New_Occurrence_Of (RTE (RE_TC_Build), Loc),
-                  Parameter_Associations => New_List (
-                    New_Occurrence_Of (Kind, Loc),
-                    Make_Aggregate (Loc,
-                       Expressions => Parameters)));
+         Set_Etype (Constructed_TC, RTE (RE_TypeCode));
+         return Constructed_TC;
       end Make_Constructed_TypeCode;
 
       procedure Return_Constructed_TypeCode (Kind : Entity_Id) is
@@ -1858,7 +1874,7 @@ package body Exp_Hlpr is
                    New_Occurrence_Of (Arry, Loc), Indices);
          begin
             Set_Etype (Element_Expr, Component_Type (Typ));
-            Append_Process_Element (Stmts,
+            Add_Process_Element (Stmts,
               Any     => Any,
               Counter => Counter,
               Datum   => Element_Expr);
@@ -1885,11 +1901,6 @@ package body Exp_Hlpr is
             Inner_Counter := Empty;
          end if;
 
-         Append_Process_Element (Inner_Stmts,
-           Any     => Any,
-           Counter => Counter,
-           Datum   => New_Occurrence_Of (Inner_Any, Loc));
-         --  Link outer and inner any.
       end if;
 
       Append_Array_Iterator (Inner_Stmts,
@@ -1942,7 +1953,7 @@ package body Exp_Hlpr is
                       New_Occurrence_Of (RTE (RE_Get_Type), Loc),
                     Parameter_Associations => New_List (
                       New_Occurrence_Of (Any, Loc))),
-                  Make_Integer_Literal (Loc, Ndim + 1)));
+                  Make_Integer_Literal (Loc, Ndim)));
          else
             Inner_Any_TypeCode_Expr :=
               Make_Function_Call (Loc,
@@ -1977,7 +1988,7 @@ package body Exp_Hlpr is
                 Object_Definition   =>
                   New_Occurrence_Of (RTE (RE_Long_Unsigned), Loc),
                 Expression          =>
-                  Make_Integer_Literal (Loc, 1)));
+                  Make_Integer_Literal (Loc, 0)));
          end if;
 
          Length_Node := Make_Attribute_Reference (Loc,
@@ -1987,7 +1998,7 @@ package body Exp_Hlpr is
                  New_List (Make_Integer_Literal (Loc, Depth)));
          Set_Etype (Length_Node, RTE (RE_Long_Unsigned));
 
-         Append_Process_Element (Dimen_Stmts,
+         Add_Process_Element (Dimen_Stmts,
            Datum   => Length_Node,
            Any     => Inner_Any,
            Counter => Inner_Counter);
@@ -1995,6 +2006,12 @@ package body Exp_Hlpr is
          Append_To (Dimen_Stmts, Loop_Stm);
          --  Loop_Stm does approrpriate processing for each element
          --  of Inner_Any.
+
+         Add_Process_Element (Dimen_Stmts,
+           Any     => Any,
+           Counter => Counter,
+           Datum   => New_Occurrence_Of (Inner_Any, Loc));
+         --  Link outer and inner any.
 
          Append_To (Stmts,
            Make_Block_Statement (Loc,

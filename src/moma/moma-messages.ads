@@ -63,98 +63,123 @@ package MOMA.Messages is
 
    procedure Set_Message_Header
      (Self            : in out Message;
-      Message_Id      : MOMA.Types.String;
-      Correlation_Id  : MOMA.Types.String;
-      Destination     : MOMA.Destinations.Destination;
-      Reply_To        : MOMA.Destinations.Destination;
-      Priority        : MOMA.Types.Priority;
-      Timestamp       : Ada.Real_Time.Time;
-      Expiration      : Ada.Real_Time.Time;
-      Is_Persistent   : MOMA.Types.Boolean;
-      Is_Redelivered  : MOMA.Types.Boolean);
+      Message_Id      :        MOMA.Types.String;
+      Correlation_Id  :        MOMA.Types.String;
+      Destination     :        MOMA.Destinations.Destination;
+      Reply_To        :        MOMA.Destinations.Destination;
+      Priority        :        MOMA.Types.Priority;
+      Timestamp       :        Ada.Real_Time.Time;
+      Expiration      :        Ada.Real_Time.Time;
+      Is_Persistent   :        MOMA.Types.Boolean;
+      Is_Redelivered  :        MOMA.Types.Boolean);
    --  Set the Message's header.
 
    --  Accessor to Message internal data.
 
-   function Get_Correlation_Id (Self : Message)
-                                return MOMA.Types.String;
+   function Get_Correlation_Id
+     (Self : Message)
+     return MOMA.Types.String;
 
-   function Get_Persistent (Self : Message)
-                            return MOMA.Types.Boolean;
+   function Get_Persistent
+     (Self : Message)
+     return MOMA.Types.Boolean;
 
-   function Get_Destination (Self : Message)
-                             return MOMA.Destinations.Destination;
+   function Get_Destination
+     (Self : Message)
+     return MOMA.Destinations.Destination;
 
-   function Get_Expiration (Self : Message)
-                            return Ada.Real_Time.Time;
+   function Get_Expiration
+     (Self : Message)
+     return Ada.Real_Time.Time;
 
-   function Get_Message_Id (Self : Message)
-                            return MOMA.Types.String;
+   function Get_Message_Id
+     (Self : Message)
+     return MOMA.Types.String;
 
-   function Get_Payload (Self : Message)
-                         return PolyORB.Any.Any;
+   function Get_Payload
+     (Self : Message)
+     return PolyORB.Any.Any;
 
-   function Get_Priority (Self : Message)
-                          return MOMA.Types.Priority;
+   function Get_Priority
+     (Self : Message)
+     return MOMA.Types.Priority;
 
-   function Get_Redelivered (Self : Message)
-                             return MOMA.Types.Boolean;
+   function Get_Redelivered
+     (Self : Message)
+     return MOMA.Types.Boolean;
 
-   function Get_Reply_To (Self : Message)
-                          return MOMA.Destinations.Destination;
+   function Get_Reply_To
+     (Self : Message)
+     return MOMA.Destinations.Destination;
 
-   function Get_Timestamp (Self : Message)
-                           return Ada.Real_Time.Time;
+   function Get_Timestamp
+     (Self : Message)
+     return Ada.Real_Time.Time;
 
-   function Get_Type (Self : Message)
-                      return MOMA.Types.Message_Type;
+   function Get_Type
+     (Self : Message)
+     return MOMA.Types.Message_Type;
 
-   procedure Set_Correlation_Id (Self : in out Message;
-                                 Correlation_Id : MOMA.Types.String);
+   procedure Set_Correlation_Id
+     (Self           : in out Message;
+      Correlation_Id :        MOMA.Types.String);
 
-   procedure Set_Persistent (Self : in out Message;
-                             Is_Persistent : MOMA.Types.Boolean);
+   procedure Set_Persistent
+     (Self          : in out Message;
+      Is_Persistent :        MOMA.Types.Boolean);
 
-   procedure Set_Destination (Self : in out Message;
-                              Destination : MOMA.Destinations.Destination);
+   procedure Set_Destination
+     (Self        : in out Message;
+      Destination :        MOMA.Destinations.Destination);
 
-   procedure Set_Expiration (Self : in out Message;
-                             Expiration : Ada.Real_Time.Time);
+   procedure Set_Expiration
+     (Self       : in out Message;
+      Expiration :        Ada.Real_Time.Time);
 
-   procedure Set_Message_Id (Self : in out Message;
-                             Id : MOMA.Types.String);
+   procedure Set_Message_Id
+     (Self : in out Message;
+      Id   :        MOMA.Types.String);
 
-   procedure Set_Payload (Self : in out Message;
-                          Payload : PolyORB.Any.Any);
+   procedure Set_Payload
+     (Self    : in out Message;
+      Payload :        PolyORB.Any.Any);
 
-   procedure Set_Priority (Self : in out Message;
-                           Priority : MOMA.Types.Priority);
+   procedure Set_Priority
+     (Self     : in out Message;
+      Priority :        MOMA.Types.Priority);
 
-   procedure Set_Redelivered (Self : in out Message;
-                              Redelivered : MOMA.Types.Boolean);
+   procedure Set_Redelivered
+     (Self        : in out Message;
+      Redelivered :        MOMA.Types.Boolean);
 
-   procedure Set_Reply_To (Self : in out Message;
-                           Reply_To : MOMA.Destinations.Destination);
+   procedure Set_Reply_To
+     (Self     : in out Message;
+      Reply_To :        MOMA.Destinations.Destination);
 
-   procedure Set_Timestamp (Self : in out Message;
-                            Timestamp : Ada.Real_Time.Time);
+   procedure Set_Timestamp
+     (Self      : in out Message;
+      Timestamp :        Ada.Real_Time.Time);
 
-   procedure Set_Type (Self : in out Message;
-                       Type_Of_Message : MOMA.Types.Message_Type);
+   procedure Set_Type
+     (Self            : in out Message;
+      Type_Of_Message :        MOMA.Types.Message_Type);
 
    --  XXX Are the following functions junk ?
    --  ??? return
    function Get_Property_Names
      return Integer;
 
-   function Property_Exists (Name : MOMA.Types.String)
-                             return MOMA.Types.Boolean;
+   function Property_Exists
+     (Name : MOMA.Types.String)
+     return MOMA.Types.Boolean;
 
-   procedure Set_Property (Name : MOMA.Types.String;
-                           Value : MOMA.Types.Property_Type);
+   procedure Set_Property
+     (Name  : MOMA.Types.String;
+      Value : MOMA.Types.Property_Type);
 
-   function Get_Property (Name : MOMA.Types.String)
-                          return MOMA.Types.Property_Type;
+   function Get_Property
+     (Name : MOMA.Types.String)
+     return MOMA.Types.Property_Type;
    pragma Inline (Get_Property);
 
    --  Marshalling support for Message type.

@@ -135,18 +135,40 @@ private
 
    Default_Locate_Then_Request : constant Boolean := True;
 
+   ------------------
+   -- GIOP Version --
+   ------------------
+
+   type GIOP_Version is record
+      Major : Types.Octet;
+      Minor : Types.Octet;
+   end record;
+
+   --  Default GIOP_Version
+   GIOP_Default_Version : constant GIOP_Version
+     := (Major => 1,
+         Minor => 2);
+
+   --  Get a GIOP_Implem from GIOP Version
+   procedure Get_GIOP_Implem
+     (Sess    : access GIOP_Session;
+      Version :        GIOP_Version);
+
+   --  number of GIOP Implem that system can handle
+   Max_GIOP_Implem : constant Natural := 3;
+
    -----------------
    -- GIOP_Implem --
    -----------------
 
-   --  List of supported GIOP_Version
-   type GIOP_Version_List is (GIOP_V_1_0, GIOP_V_1_1, GIOP_V_1_2);
-
    type GIOP_Implem is abstract tagged record
-      Version : GIOP_Version_List;
+      Version             : GIOP_Version;
       --  This values must be set at Implem initialization !
       Data_Alignment      : Opaque.Alignment_Type;
       Locate_Then_Request : Boolean;
+      --  Configuration values
+      Section          : Types.String;
+      Prefix           : Types.String;
    end record;
    type GIOP_Implem_Access is access all GIOP_Implem'Class;
 
@@ -254,36 +276,19 @@ private
       Buffer  : access PolyORB.Buffers.Buffer_Type)
       is abstract;
 
+   --  GIOP Implem management
+   type GIOP_Create_Implem_Func is access
+     function return GIOP_Implem_Access;
+
+   type GIOP_Implem_Array is array (1 .. Max_GIOP_Implem)
+     of GIOP_Implem_Access;
+
+   --  Register a GIOP Implem
+   procedure Global_Register_GIOP_Version
+     (Version : GIOP_Version;
+      Implem  : GIOP_Create_Implem_Func);
+
    ------------------------------------------------
-
-   ------------------
-   -- GIOP Version --
-   ------------------
-
-   --  GIOP_Send_Mode : constant GIOP_Send_Mode_Type := Direct;
-   type GIOP_Version is record
-      Major : Types.Octet;
-      Minor : Types.Octet;
-   end record;
-
-   --  Default GIOP_Version
-   GIOP_Default_Version : constant GIOP_Version
-     := (Major => 1,
-         Minor => 2);
-   Current_GIOP_Default_Version : GIOP_Version;
-
-   --  Bind between GIOP_Version_List and GIOP_Version
-   GIOP_Version_Bind :
-     constant array (GIOP_Version_List) of GIOP_Version
-     := (GIOP_V_1_0 => GIOP_Version'(Major => 1, Minor => 0),
-         GIOP_V_1_1 => GIOP_Version'(Major => 1, Minor => 1),
-         GIOP_V_1_2 => GIOP_Version'(Major => 1, Minor => 2)
-         );
-
-   --  Bind between GIOP_Version_List and GIOP_Implem
-   GIOP_Version_Access :
-     array (GIOP_Version_List) of GIOP_Implem_Access
-     := (others => null);
 
    --  Giop Context
    --  will be extended by each implem
@@ -293,16 +298,6 @@ private
       Message_Size       : Types.Unsigned_Long;
    end record;
    type GIOP_Ctx_Access is access all GIOP_Ctx'Class;
-
-   --  Register a GIOP Implem into GIOP_Version_Access
-   procedure Register_GIOP_Version
-     (Version : GIOP_Version_List;
-      Implem  : GIOP_Implem_Access);
-
-   --  Get a GIOP_Implem from GIOP Version
-   procedure Get_GIOP_Implem
-     (Sess    : access GIOP_Session;
-      Version :        GIOP_Version);
 
    ---------------------------------------------------
 
@@ -318,6 +313,10 @@ private
       Role         : ORB.Endpoint_Role;
       Pending_Reqs : Pend_Req_Seq.Sequence;
       Req_Index    : Types.Unsigned_Long := 1;
+      --  GIOP configuration
+      GIOP_Def_Ver     : GIOP_Version;
+      GIOP_Implem_List : GIOP_Implem_Array := (others => null);
+      Nb_Implem        : Natural range  0 .. Max_GIOP_Implem := 0;
    end record;
    type GIOP_Session_Access is access all GIOP_Session;
 
@@ -385,6 +384,14 @@ private
    function Select_Profile
      (Buffer  : access PolyORB.Buffers.Buffer_Type)
      return PolyORB.Binding_Data.Profile_Access;
+
+   --  Init a GIOP Session, read configuration
+   procedure Init_GIOP_Session
+     (Sess                : in out GIOP_Session;
+      Version             : GIOP_Version;
+      Locate_Then_Request : Boolean;
+      Section             : String;
+      Prefix              : String);
 
    --------------------------------
    -- Pending Request management --

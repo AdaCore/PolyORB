@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Any.ExceptionList;
-with PolyORB.Binding_Data.IIOP;
 with PolyORB.Buffers;
 with PolyORB.Exceptions;
 with PolyORB.GIOP_P.Exceptions;
@@ -162,9 +161,9 @@ package body PolyORB.Protocols.GIOP.Common is
       Data_Alignment  : Stream_Element_Offset
         := Sess.Implem.Data_Alignment;
    begin
-      pragma Assert ((Sess.Implem.Version = GIOP_V_1_0) or
-                     (Sess.Implem.Version = GIOP_V_1_1) or
-                     (Sess.Implem.Version = GIOP_V_1_2));
+      pragma Assert ((Sess.Implem.Version = GIOP_Version'(1, 0)) or
+                     (Sess.Implem.Version = GIOP_Version'(1, 1)) or
+                     (Sess.Implem.Version = GIOP_Version'(1, 2)));
 
       Get_Note (Request.Notepad, N);
 
@@ -271,9 +270,9 @@ package body PolyORB.Protocols.GIOP.Common is
 
       Buffer  : Buffer_Access := new Buffer_Type;
    begin
-      pragma Assert ((Sess.Implem.Version = GIOP_V_1_0) or
-                     (Sess.Implem.Version = GIOP_V_1_1) or
-                     (Sess.Implem.Version = GIOP_V_1_2));
+      pragma Assert ((Sess.Implem.Version = GIOP_Version'(1, 0)) or
+                     (Sess.Implem.Version = GIOP_Version'(1, 1)) or
+                     (Sess.Implem.Version = GIOP_Version'(1, 2)));
 
       pragma Debug (O ("Sending Locate Reply, Request Id :"
                        & Request_Id'Img
@@ -340,9 +339,9 @@ package body PolyORB.Protocols.GIOP.Common is
       Buffer        : Buffer_Access;
       Success       : Boolean;
    begin
-      pragma Assert ((Sess.Implem.Version = GIOP_V_1_0) or
-                     (Sess.Implem.Version = GIOP_V_1_1) or
-                     (Sess.Implem.Version = GIOP_V_1_2));
+      pragma Assert ((Sess.Implem.Version = GIOP_Version'(1, 0)) or
+                     (Sess.Implem.Version = GIOP_Version'(1, 1)) or
+                     (Sess.Implem.Version = GIOP_Version'(1, 2)));
 
       Get_Note (R.Notepad, Current_Note);
       Get_Pending_Request (Sess, Current_Note.Id, Current_Req, Success);
@@ -378,7 +377,6 @@ package body PolyORB.Protocols.GIOP.Common is
       use PolyORB.ORB;
       use PolyORB.Components;
       use PolyORB.Objects;
-      use PolyORB.Binding_Data.IIOP;
       use Pend_Req_Seq;
 
       Req          : Pending_Request_Access;
@@ -388,9 +386,9 @@ package body PolyORB.Protocols.GIOP.Common is
       Arguments_Alignment : Opaque.Alignment_Type
         := Sess.Implem.Data_Alignment;
    begin
-      pragma Assert ((Sess.Implem.Version = GIOP_V_1_0) or
-                     (Sess.Implem.Version = GIOP_V_1_1) or
-                     (Sess.Implem.Version = GIOP_V_1_2));
+      pragma Assert ((Sess.Implem.Version = GIOP_Version'(1, 0)) or
+                     (Sess.Implem.Version = GIOP_Version'(1, 1)) or
+                     (Sess.Implem.Version = GIOP_Version'(1, 2)));
 
       pragma Debug (O ("Reply received: status = "
                        & Reply_Status_Type'Image (Reply_Status)
@@ -523,9 +521,8 @@ package body PolyORB.Protocols.GIOP.Common is
             begin
                Prof := Select_Profile (Sess.Buffer_In);
                New_Sess := Session_Access
-                 (Binding_Data.IIOP.Bind_Profile
-                    (IIOP_Profile_Type (Prof.all),
-                     Component_Access (ORB)));
+                 (Binding_Data.Bind_Profile
+                    (Prof.all, Component_Access (ORB)));
 
                Release (Sess.Buffer_In);
 

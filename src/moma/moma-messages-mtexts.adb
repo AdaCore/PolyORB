@@ -41,8 +41,7 @@ package body MOMA.Messages.MTexts is
    -- Get_Text --
    --------------
 
-   function Get_Text (Self : MText)
-                     return MOMA.Types.String is
+   function Get_Text (Self : MText) return MOMA.Types.String is
    begin
       return PolyORB.Any.From_Any (Get_Payload (Self));
    end Get_Text;
@@ -51,8 +50,7 @@ package body MOMA.Messages.MTexts is
    -- Set_Text --
    --------------
 
-   procedure Set_Text (Self : in out MText;
-                       Value : MOMA.Types.String) is
+   procedure Set_Text (Self : in out MText; Value : MOMA.Types.String) is
    begin
       Set_Payload (Self, PolyORB.Any.To_Any (Value));
    end Set_Text;
@@ -61,8 +59,7 @@ package body MOMA.Messages.MTexts is
    -- Create_Text_Message --
    -------------------------
 
-   function Create_Text_Message
-     return MText
+   function Create_Text_Message return MText
    is
       Result : MText;
    begin
