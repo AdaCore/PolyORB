@@ -57,13 +57,13 @@ package body PolyORB.Components is
    --------------
 
    procedure Finalize (C : in out Component) is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (C);
       pragma Warnings (On);
+   begin
       pragma Debug (O ("finalizing component"));
       null;
-      --  Do nothing, as we actually always finalize types dervied
+      --  Do nothing, as we actually always finalize types derived
       --  from Component.
    end Finalize;
 

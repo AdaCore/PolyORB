@@ -35,8 +35,6 @@
 
 --  $Id$
 
---  with Ada.Finalization;
-
 with PolyORB.Sequences.Unbounded;
 
 package PolyORB.Components is
@@ -146,8 +144,6 @@ private
 
    type Null_Message is new Message with null record;
 
---   type Component is
---     abstract new Ada.Finalization.Limited_Controlled with record
    type Component is
      abstract tagged limited record
         Allocation_Class : Component_Allocation_Class := Auto;

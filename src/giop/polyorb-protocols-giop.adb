@@ -301,6 +301,7 @@ package body PolyORB.Protocols.GIOP is
 
       if Sess.Implem = null then
          --  Initialize session with default GIOP version
+
          Get_GIOP_Implem (Sess, Sess.Conf.GIOP_Def_Ver);
       end if;
 
