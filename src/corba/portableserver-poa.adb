@@ -815,7 +815,8 @@ package body PortableServer.POA is
             P_Result);
          --  Obtain object reference.
 
-         CORBA.Object.Convert_To_CORBA_Ref (P_Result, C_Result);
+         CORBA.Object.Internals.Convert_To_CORBA_Ref
+           (P_Result, C_Result);
          return C_Result;
       end;
    end Create_Reference;
@@ -863,7 +864,9 @@ package body PortableServer.POA is
             P_Result);
          --  Obtain object reference.
 
-         CORBA.Object.Convert_To_CORBA_Ref (P_Result, C_Result);
+         CORBA.Object.Internals.Convert_To_CORBA_Ref
+           (P_Result, C_Result);
+
          return C_Result;
       end;
    end Create_Reference_With_Id;
@@ -940,7 +943,9 @@ package body PortableServer.POA is
 
       PolyORB.POA_Types.Free (Oid);
 
-      CORBA.Object.Convert_To_CORBA_Ref (P_Result, C_Result);
+      CORBA.Object.Internals.Convert_To_CORBA_Ref
+        (P_Result, C_Result);
+
       return C_Result;
    end Servant_To_Reference;
 
@@ -960,7 +965,8 @@ package body PortableServer.POA is
 
    begin
       PolyORB.References.Binding.Bind
-        (CORBA.Object.To_PolyORB_Ref (Reference),
+        (CORBA.Object.Internals.To_PolyORB_Ref
+         (CORBA.Object.Ref (Reference)),
          PolyORB.Setup.The_ORB,
          The_Servant,
          The_Profile,

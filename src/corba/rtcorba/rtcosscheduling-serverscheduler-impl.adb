@@ -228,7 +228,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
       --  Retrieve servant from reference information
 
       PolyORB.References.Binding.Bind
-        (CORBA.Object.To_PolyORB_Ref (Obj),
+        (CORBA.Object.Internals.To_PolyORB_Ref (Obj),
          PolyORB.Setup.The_ORB,
          The_Servant,
          The_Profile,

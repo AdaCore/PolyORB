@@ -134,7 +134,7 @@ package body RTPortableServer.POA is
             P_Result);
          --  Obtain object reference
 
-         CORBA.Object.Convert_To_CORBA_Ref (P_Result, C_Result);
+         CORBA.Object.Internals.Convert_To_CORBA_Ref (P_Result, C_Result);
          return C_Result;
       end;
    end Create_Reference_With_Priority;
@@ -192,7 +192,8 @@ package body RTPortableServer.POA is
             P_Result);
          --  Obtain object reference
 
-         CORBA.Object.Convert_To_CORBA_Ref (P_Result, C_Result);
+         CORBA.Object.Internals.Convert_To_CORBA_Ref (P_Result, C_Result);
+
          return C_Result;
       end;
    end Create_Reference_With_Id_And_Priority;

@@ -2349,7 +2349,8 @@ package body Ada_Be.Idl2Ada is
                      NL (CU);
 
                      PL (CU, "PolyORB.Requests.Create_Request");
-                     PL (CU, "  (Target    => CORBA.Object.To_PolyORB_Ref");
+                     PL (CU, "  (Target    => CORBA.Object.Internals."
+                         & "To_PolyORB_Ref");
                      II (CU);
                      PL (CU, "  (CORBA.Object.Ref ("
                          & Self_For_Operation (Mapping, Node) & ")),");

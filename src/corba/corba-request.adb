@@ -76,7 +76,7 @@ package body CORBA.Request is
 
    begin
       PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.To_PolyORB_Ref
+        (Target    => CORBA.Object.Internals.To_PolyORB_Ref
          (CORBA.Object.Ref (CORBA.AbstractBase.Ref'Class (Self))),
          Operation => To_Standard_String (Operation),
          Arg_List  => CORBA.NVList.To_PolyORB_Ref (Arg_List),
@@ -107,7 +107,7 @@ package body CORBA.Request is
 
    begin
       PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.To_PolyORB_Ref
+        (Target    => CORBA.Object.Internals.To_PolyORB_Ref
          (CORBA.Object.Ref (CORBA.AbstractBase.Ref'Class (Self))),
          Operation => To_Standard_String (Operation),
          Arg_List  => CORBA.NVList.To_PolyORB_Ref (Arg_List),

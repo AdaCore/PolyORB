@@ -84,7 +84,8 @@ package body CORBA.DomainManager is
          Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.To_PolyORB_Ref (CORBA.Object.Ref (Self)),
+        (Target    => CORBA.Object.Internals.To_PolyORB_Ref
+         (CORBA.Object.Ref (Self)),
          Operation => Operation_Name,
          Arg_List  => Arg_List,
          Result    => Result,

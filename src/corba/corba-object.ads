@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -48,25 +48,17 @@ with CORBA.Request;
 
 package CORBA.Object is
 
-   --  pragma Elaborate_Body;
-
    type Ref is new CORBA.AbstractBase.Ref with private;
-
-   --  Requires CORBA.InterfaceDef to be implemented.
-
-   --  XXX what does this comment mean ? CORBA.InterfaceDef is
-   --  implemented as part of the CORBA IR, see
-   --  CORBA.Repository_Root.InterfaceDef
 
    function Get_Interface
      (Self : in Ref)
      return CORBA.Object.Ref'Class;
-   --  Return a reference to the InterfaceDef that describes
-   --  the designated object.
 
    function Is_Nil  (Self : in Ref) return CORBA.Boolean;
    function Is_Null (Self : in Ref) return CORBA.Boolean
      renames Is_Nil;
+
+   procedure Duplicate (Self : in out Ref);
 
    procedure Release (Self : in out Ref);
 
@@ -117,15 +109,10 @@ package CORBA.Object is
       Maximum : CORBA.Unsigned_Long)
      return CORBA.Unsigned_Long;
 
---    --  ??? The following subprogram is declared a function in
---    --  the Ada Language Mapping specification.
-
---    procedure Set_Policy_Overrides
---      (Self : in Ref;
---       Policies : CORBA.Policy.PolicyList;
---       Set_Add : SetOverrideType);
-
-   --  Requires CORBA.DomainManager to be implemented.
+   --    procedure Set_Policy_Overrides
+   --      (Self : in Ref;
+   --       Policies : CORBA.Policy.PolicyList;
+   --       Set_Add : SetOverrideType);
 
    --     function Get_Domain_Managers
    --       (Self : Ref)
@@ -137,23 +124,27 @@ package CORBA.Object is
      (Obj : in CORBA.Object.Ref'Class)
      return CORBA.String;
 
-   --  Implementation Note: The following procedures are specific to
-   --  PolyORB. You should not use them.
+   package Internals is
 
-   function To_PolyORB_Object
-     (R : in Ref)
-     return PolyORB.Objects.Object_Id;
-   --  XXX What is this supposed to do?
-   --   It is not possible in general to associate a PolyORB Object_Id
-   --   with a CORBA.Object.Ref. This can be done only when R designates
-   --   an object located on this middleware instance.
+      --  Implementation Note: This package defines internal subprograms
+      --  specific to PolyORB. You must not use them.
 
-   function To_PolyORB_Ref (R : in Ref)
-     return PolyORB.References.Ref;
-   procedure Convert_To_CORBA_Ref
-     (Neutral_Ref : in     PolyORB.References.Ref;
-      CORBA_Ref   : in out CORBA.Object.Ref'Class);
-   --  Conversion functions between CORBA and neutral references.
+      function To_PolyORB_Object
+        (R : in Ref)
+        return PolyORB.Objects.Object_Id;
+      --  XXX What is this supposed to do?
+      --   It is not possible in general to associate a PolyORB Object_Id
+      --   with a CORBA.Object.Ref. This can be done only when R designates
+      --   an object located on this middleware instance.
+
+      function To_PolyORB_Ref (R : in Ref)
+                              return PolyORB.References.Ref;
+      procedure Convert_To_CORBA_Ref
+        (Neutral_Ref : in     PolyORB.References.Ref;
+         CORBA_Ref   : in out CORBA.Object.Ref'Class);
+      --  Conversion functions between CORBA and neutral references.
+
+   end Internals;
 
 private
 

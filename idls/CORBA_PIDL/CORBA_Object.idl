@@ -17,7 +17,7 @@
 
         boolean is_nil();
 
-//PolyORB:NI:        Object duplicate ();
+        Object duplicate ();
 
         void release ();
 

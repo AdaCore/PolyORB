@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -235,7 +235,7 @@ package body CORBA.Object is
       if Is_Equivalent
         (Logical_Type_Id,
          PolyORB.References.Type_Id_Of
-         (To_PolyORB_Ref (Self)))
+         (Internals.To_PolyORB_Ref (Self)))
       --  Any object is of the class of its actual (i. e. most derived) type.
 
       then
@@ -378,6 +378,15 @@ package body CORBA.Object is
          Req_Flags);
    end Create_Request;
 
+   ---------------
+   -- Duplicate --
+   ---------------
+
+   procedure Duplicate (Self : in out Ref) is
+   begin
+      Duplicate (PolyORB.Smart_Pointers.Ref (Self));
+   end Duplicate;
+
    -------------
    -- Release --
    -------------
@@ -434,46 +443,49 @@ package body CORBA.Object is
 --       return Result;
 --    end To_CORBA_Object;
 
-   -----------------------
-   -- To_PolyORB_Object --
-   -----------------------
+   package body Internals is
 
-   function To_PolyORB_Object
-     (R : in Ref)
-     return PolyORB.Objects.Object_Id
-   is
-   begin
-      return Internal_Object_Access (Entity_Of (R)).The_Object.all;
-   end To_PolyORB_Object;
+      -----------------------
+      -- To_PolyORB_Object --
+      -----------------------
 
-   --------------------
-   -- To_PolyORB_Ref --
-   --------------------
+      function To_PolyORB_Object
+        (R : in Ref)
+        return PolyORB.Objects.Object_Id
+      is
+      begin
+         return Internal_Object_Access (Entity_Of (R)).The_Object.all;
+      end To_PolyORB_Object;
 
-   function To_PolyORB_Ref (R : in Ref)
-     return PolyORB.References.Ref
-   is
-      E : constant PolyORB.Smart_Pointers.Entity_Ptr
-        := Entity_Of (R);
-      Result : PolyORB.References.Ref;
-   begin
-      PolyORB.References.Set (Result, E);
-      return Result;
-   end To_PolyORB_Ref;
+      --------------------
+      -- To_PolyORB_Ref --
+      --------------------
 
-   --------------------------
-   -- Convert_To_CORBA_Ref --
-   --------------------------
+      function To_PolyORB_Ref (R : in Ref)
+                              return PolyORB.References.Ref
+      is
+         E : constant PolyORB.Smart_Pointers.Entity_Ptr
+           := Entity_Of (R);
+         Result : PolyORB.References.Ref;
+      begin
+         PolyORB.References.Set (Result, E);
+         return Result;
+      end To_PolyORB_Ref;
 
-   procedure Convert_To_CORBA_Ref
-     (Neutral_Ref : in     PolyORB.References.Ref;
-      CORBA_Ref   : in out CORBA.Object.Ref'Class)
-   is
-      E : constant PolyORB.Smart_Pointers.Entity_Ptr
-        := PolyORB.References.Entity_Of (Neutral_Ref);
-   begin
-      Set (CORBA_Ref, E);
-   end Convert_To_CORBA_Ref;
+      --------------------------
+      -- Convert_To_CORBA_Ref --
+      --------------------------
+
+      procedure Convert_To_CORBA_Ref
+        (Neutral_Ref : in     PolyORB.References.Ref;
+         CORBA_Ref   : in out CORBA.Object.Ref'Class)
+      is
+         E : constant PolyORB.Smart_Pointers.Entity_Ptr
+           := PolyORB.References.Entity_Of (Neutral_Ref);
+      begin
+         Set (CORBA_Ref, E);
+      end Convert_To_CORBA_Ref;
+   end Internals;
 
    ---------------
    -- TC_Object --

@@ -56,7 +56,8 @@ package body CORBA.Object.Helper is
       declare
          A : Any;
       begin
-         A.The_Any := PolyORB.Any.ObjRef.To_Any (To_PolyORB_Ref (Item));
+         A.The_Any := PolyORB.Any.ObjRef.To_Any
+           (CORBA.Object.Internals.To_PolyORB_Ref (Item));
          Set_Type (A, CORBA.Object.TC_Object);
 
          return A;
@@ -70,7 +71,7 @@ package body CORBA.Object.Helper is
    function From_Any (Item : in Any) return CORBA.Object.Ref is
       Result : CORBA.Object.Ref;
    begin
-      Convert_To_CORBA_Ref
+      CORBA.Object.Internals.Convert_To_CORBA_Ref
         (PolyORB.Any.ObjRef.From_Any (Item.The_Any),
          Result);
 

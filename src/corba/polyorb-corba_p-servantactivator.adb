@@ -112,7 +112,7 @@ package body PolyORB.CORBA_P.ServantActivator is
                  new PolyORB.Errors.ForwardRequest_Members'
                  (Forward_Reference =>
                     PolyORB.Smart_Pointers.Ref
-                  (CORBA.Object.To_PolyORB_Ref
+                  (CORBA.Object.Internals.To_PolyORB_Ref
                    (Members.Forward_Reference)));
             end;
       end;

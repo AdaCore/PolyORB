@@ -228,7 +228,8 @@ package body PortableServer.POA.GOA is
       U_Oid : Unmarshalled_Oid;
       Error : Error_Container;
       GS    : constant Servant_Access
-        := Get_Group (CORBA.Object.To_PolyORB_Ref (The_Ref), True);
+        := Get_Group (CORBA.Object.Internals.To_PolyORB_Ref (The_Ref),
+                      True);
    begin
       if GS = null then
          declare
@@ -274,7 +275,7 @@ package body PortableServer.POA.GOA is
       use PolyORB.Obj_Adapters.Group_Object_Adapter;
 
       GS : constant Servant_Access
-        := Get_Group (CORBA.Object.To_PolyORB_Ref (The_Ref));
+        := Get_Group (CORBA.Object.Internals.To_PolyORB_Ref (The_Ref));
    begin
       if GS = null then
          declare
@@ -340,7 +341,7 @@ package body PortableServer.POA.GOA is
       use PolyORB.Obj_Adapters.Group_Object_Adapter;
 
       GS : constant Servant_Access
-        := Get_Group (CORBA.Object.To_PolyORB_Ref (Ref), True);
+        := Get_Group (CORBA.Object.Internals.To_PolyORB_Ref (Ref), True);
    begin
       if GS = null then
          declare
@@ -372,7 +373,7 @@ package body PortableServer.POA.GOA is
       use PolyORB.Obj_Adapters.Group_Object_Adapter;
 
       GS : constant Servant_Access
-        := Get_Group (CORBA.Object.To_PolyORB_Ref (Ref));
+        := Get_Group (CORBA.Object.Internals.To_PolyORB_Ref (Ref));
    begin
       if GS = null then
          declare

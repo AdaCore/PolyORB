@@ -525,7 +525,7 @@ package body PolyORB.CORBA_P.Interceptors is
       Cur_Req : PolyORB.Requests.Request_Access := Request;
 
    begin
-      CORBA.Object.Convert_To_CORBA_Ref (Request.Target, Target);
+      CORBA.Object.Internals.Convert_To_CORBA_Ref (Request.Target, Target);
 
       --  Getting thread scope slots information (allocating thread scope
       --  slots if it is not allocated), and make "logical copy" and place it
@@ -1125,7 +1125,7 @@ package body PolyORB.CORBA_P.Interceptors is
         (PolyORB.Errors.ForwardRequest_Members'
          (Forward_Reference =>
             PolyORB.Smart_Pointers.Ref
-          (CORBA.Object.To_PolyORB_Ref (Members.Forward))));
+          (CORBA.Object.Internals.To_PolyORB_Ref (Members.Forward))));
    end To_PolyORB_ForwardRequest_Members_Any;
 
    ----------------

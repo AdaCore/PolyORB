@@ -202,7 +202,8 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
       Result : CORBA.Object.Ref;
 
    begin
-      CORBA.Object.Convert_To_CORBA_Ref (Self.Request.Target, Result);
+      CORBA.Object.Internals.Convert_To_CORBA_Ref
+        (Self.Request.Target, Result);
 
       return Result;
    end Get_Effective_Target;

@@ -618,7 +618,8 @@ package body CORBA.ORB is
 
       return To_CORBA_String
         (Object_To_String
-         (CORBA.Object.To_PolyORB_Ref (CORBA.Object.Ref (Obj))));
+         (CORBA.Object.Internals.To_PolyORB_Ref
+          (CORBA.Object.Ref (Obj))));
    end Object_To_String;
 
    ----------------------
@@ -687,7 +688,7 @@ package body CORBA.ORB is
 
          Oid : constant PolyORB.Objects.Object_Id_Access :=
            new PolyORB.Objects.Object_Id'
-           (CORBA.Object.To_PolyORB_Object (Object));
+           (CORBA.Object.Internals.To_PolyORB_Object (Object));
       begin
          PolyORB.ORB.Create_Reference (The_ORB, Oid, Typ, Result);
 

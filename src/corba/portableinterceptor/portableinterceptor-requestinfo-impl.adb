@@ -147,7 +147,7 @@ package body PortableInterceptor.RequestInfo.Impl is
            (Ref,
             PolyORB.Smart_Pointers.Entity_Of (Members.Forward_Reference));
 
-         CORBA.Object.Convert_To_CORBA_Ref (Ref, Result);
+         CORBA.Object.Internals.Convert_To_CORBA_Ref (Ref, Result);
 
          return Result;
       end;
