@@ -19,7 +19,7 @@ GENERATED_FILES += $(IDL_INTERFACE)_idl_file.ad*
 GENERATED_FILES += $(IDL_INTERFACE)_idl_file-stream.ad*
 
 clean::
-	-rm -f *.o *.ali *~ server client $(GENERATED_FILES)
+	-rm -f b_*.c *.o *.ali *~ server client $(GENERATED_FILES)
 
 ada:: all_types.ads
 

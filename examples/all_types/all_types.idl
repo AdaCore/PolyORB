@@ -43,6 +43,13 @@ interface all_types {
 
   simple_struct echo2 (in simple_struct arg);
 
+  struct manu_struct {
+    boolean a;
+    long b;
+  };
+
+  manu_struct inverseStruct (in manu_struct arg);
+
 
   // Enum
   //-----

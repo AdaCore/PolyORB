@@ -73,6 +73,12 @@ package all_types.Impl is
       arg : in simple_struct)
       return simple_struct;
 
+   function InverseStruct
+     (Self : access Object;
+      Arg : in Manu_Struct)
+      return Manu_Struct;
+
+
    function echo3
      (Self : access Object;
       arg : in Color)

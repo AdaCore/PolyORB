@@ -1,16 +1,16 @@
 with CORBA.Object.OmniORB;
 with AdaBroker.Exceptions;
 with all_types.Skel;
-with CORBA;
+with CORBA; use CORBA;
 with CORBA.Object;
-package body all_types.Impl is 
+package body all_types.Impl is
 
    function echoBoolean
      (Self : access Object;
       arg : in CORBA.Boolean)
       return CORBA.Boolean
    is
-   begin 
+   begin
       return arg;
    end echoBoolean;
 
@@ -19,7 +19,7 @@ package body all_types.Impl is
       arg : in CORBA.Short)
       return CORBA.Short
    is
-   begin 
+   begin
       return arg;
    end echoShort;
 
@@ -28,7 +28,7 @@ package body all_types.Impl is
       arg : in CORBA.Long)
       return CORBA.Long
    is
-   begin 
+   begin
       return arg;
    end echoLong;
 
@@ -37,7 +37,7 @@ package body all_types.Impl is
       arg : in CORBA.Unsigned_Short)
       return CORBA.Unsigned_Short
    is
-   begin 
+   begin
       return arg;
    end echoUShort;
 
@@ -46,7 +46,7 @@ package body all_types.Impl is
       arg : in CORBA.Unsigned_Long)
       return CORBA.Unsigned_Long
    is
-   begin 
+   begin
       return arg;
    end echoULong;
 
@@ -55,7 +55,7 @@ package body all_types.Impl is
       arg : in CORBA.Float)
       return CORBA.Float
    is
-   begin 
+   begin
       return arg;
    end echoFloat;
 
@@ -64,7 +64,7 @@ package body all_types.Impl is
       arg : in CORBA.Double)
       return CORBA.Double
    is
-   begin 
+   begin
       return arg;
    end echoDouble;
 
@@ -73,7 +73,7 @@ package body all_types.Impl is
       arg : in CORBA.Char)
       return CORBA.Char
    is
-   begin 
+   begin
       return arg;
    end echoChar;
 
@@ -82,7 +82,7 @@ package body all_types.Impl is
       arg : in CORBA.Octet)
       return CORBA.Octet
    is
-   begin 
+   begin
       return arg;
    end echoOctet;
 
@@ -91,14 +91,14 @@ package body all_types.Impl is
       arg : in CORBA.String)
       return CORBA.String
    is
-   begin 
+   begin
       return arg;
    end echoString;
 
    procedure simple_exception_test
      (Self : access Object)
    is
-   begin 
+   begin
       raise simple_exception;
    end simple_exception_test;
 
@@ -117,7 +117,7 @@ package body all_types.Impl is
       arg : in example)
       return example
    is
-   begin 
+   begin
       return arg;
    end echo1;
 
@@ -126,16 +126,28 @@ package body all_types.Impl is
       arg : in simple_struct)
       return simple_struct
    is
-   begin 
+   begin
       return arg;
    end echo2;
+
+   function InverseStruct
+     (Self : access Object;
+      Arg : in Manu_Struct)
+      return Manu_Struct
+   is
+      Res : Manu_Struct;
+   begin
+      Res.A := not Arg.A;
+      Res.B := - Arg.B;
+      return Res;
+   end InverseStruct;
 
    function echo3
      (Self : access Object;
       arg : in Color)
       return Color
    is
-   begin 
+   begin
       return arg;
    end echo3;
 
@@ -144,7 +156,7 @@ package body all_types.Impl is
       arg : in U_string)
       return U_string
    is
-   begin 
+   begin
       return arg;
    end echo4;
 
@@ -153,7 +165,7 @@ package body all_types.Impl is
       arg : in U_sequence)
       return U_sequence
    is
-   begin 
+   begin
       return arg;
    end echo6;
 
@@ -162,7 +174,7 @@ package body all_types.Impl is
       arg : in B_sequence)
       return B_sequence
    is
-   begin 
+   begin
       return arg;
    end echo7;
 
@@ -195,7 +207,7 @@ package body all_types.Impl is
       arg : in line)
       return line
    is
-   begin 
+   begin
       return arg;
    end echo8;
 
@@ -204,7 +216,7 @@ package body all_types.Impl is
       arg : in square)
       return square
    is
-   begin 
+   begin
       return arg;
    end echo9;
 
@@ -213,7 +225,7 @@ package body all_types.Impl is
       arg : in cube)
       return cube
    is
-   begin 
+   begin
       return arg;
    end echo10;
 
@@ -222,7 +234,7 @@ package body all_types.Impl is
       arg : in Ref)
       return Ref
    is
-   begin 
+   begin
       return arg;
    end echo11;
 
@@ -231,7 +243,7 @@ package body all_types.Impl is
       arg : in CORBA.Object.Ref)
       return CORBA.Object.Ref
    is
-   begin 
+   begin
       return arg;
    end echo12;
 
@@ -240,7 +252,7 @@ package body all_types.Impl is
       return Ref
    is
       Result : Ref;
-   begin 
+   begin
       CORBA.Object.Ref (Result) :=
          CORBA.Object.OmniORB.To_Ref (Self.all, Repository_Id);
       return Result;

@@ -7,18 +7,24 @@ with CORBA.Object; use CORBA.Object;
 with CORBA.ORB;
 with CORBA.Object.OmniORB;
 
+with Helper; use Helper;
+with Invoker;
+
+
 with Report;    use Report;
+
 
 procedure Dii_Client is
    Repository_Id : CORBA.String;
    IOR           : CORBA.String;
-   Server        : Ref;
+   Server        : Ref := Object.Nil_Ref;
    Ctx           : Context.Object;
    Nvl           : NVList.Object := NVList.Null_Object;
    Result        : NamedValue;
    Returns       : Status;
    Rq            : Request.Object;
    Argument      : NamedValue;
+   X_Any, Y_Any  : Any;
 
 begin
 
@@ -40,275 +46,291 @@ begin
 
    --  boolean
    declare
-      Rcvd_Msg : Boolean := False;
+      X : CORBA.Boolean := True;
+      Y : CORBA.Boolean := False;
    begin
-      Result := (To_CORBA_String ("res"),
-                 To_Any (Rcvd_Msg),
-                 0,
-                 ARG_OUT);
-      Create_Request (Server,
-                      Ctx,
-                      To_CORBA_String ("echoBoolean"),
-                   Nvl,
-                      Result,
-                      Rq,
-                      0,
-                      Returns);
-      Argument := (To_CORBA_String ("arg"),
-                   To_Any (True), 0, ARG_IN);
-      Request.Add_Arg (Rq, Argument);
-      Request.Invoke (Rq, 0);
-      Result := Request.Return_Value (Rq);
-      Rcvd_Msg := From_Any (Result.Argument);
-      Output ("test boolean", Rcvd_Msg = True);
+      X_Any := To_Any (X);
+      Y_Any := To_Any (Y);
+      Invoker.Run ("echoBoolean", Server, Ctx, X_Any, Y_Any);
+      Y := From_Any (Y_Any);
+      Output ("test boolean", X = Y);
    end;
 
    --  short
    declare
-      Rcvd_Msg : Short := 0;
+      X : Short := 123;
+      Y : Short := 0;
    begin
-      Result := (To_CORBA_String ("res"),
-                 To_Any (Rcvd_Msg),
-                 0,
-                 ARG_OUT);
-      Create_Request (Server,
-                      Ctx,
-                      To_CORBA_String ("echoShort"),
-                      Nvl,
-                      Result,
-                      Rq,
-                      0,
-                      Returns);
-      Argument := (To_CORBA_String ("arg"),
-                   To_Any (CORBA.Short (123)), 0, ARG_IN);
-      Request.Add_Arg (Rq, Argument);
-      Request.Invoke (Rq, 0);
-      Result := Request.Return_Value (Rq);
-      Rcvd_Msg := From_Any (Result.Argument);
-      Output ("test short", Rcvd_Msg = 123);
+      X_Any := To_Any (X);
+      Y_Any := To_Any (Y);
+      Invoker.Run ("echoShort", Server, Ctx, X_Any, Y_Any);
+      Y := From_Any (Y_Any);
+      Output ("test short", X = Y);
    end;
 
    --  long
    declare
-      Rcvd_Msg : Long := 0;
+      X : Long := 456;
+      Y : Long := 0;
    begin
-      Result := (To_CORBA_String ("res"),
-                 To_Any (Rcvd_Msg),
-                 0,
-                 ARG_OUT);
-      Create_Request (Server,
-                      Ctx,
-                      To_CORBA_String ("echoLong"),
-                      Nvl,
-                      Result,
-                      Rq,
-                      0,
-                      Returns);
-      Argument := (To_CORBA_String ("arg"),
-                   To_Any (CORBA.Long (456)), 0, ARG_IN);
-      Request.Add_Arg (Rq, Argument);
-      Request.Invoke (Rq, 0);
-      Result := Request.Return_Value (Rq);
-      Rcvd_Msg := From_Any (Result.Argument);
-      Output ("test long", Rcvd_Msg = 456);
+      X_Any := To_Any (X);
+      Y_Any := To_Any (Y);
+      Invoker.Run ("echoLong", Server, Ctx, X_Any, Y_Any);
+      Y := From_Any (Y_Any);
+      Output ("test long", X = Y);
    end;
 
    --  unsigned short
    declare
-      Rcvd_Msg : Unsigned_Short := 0;
+      X : Unsigned_Short := 456;
+      Y : Unsigned_Short := 0;
    begin
-      Result := (To_CORBA_String ("res"),
-                 To_Any (Rcvd_Msg),
-                 0,
-                 ARG_OUT);
-      Create_Request (Server,
-                      Ctx,
-                      To_CORBA_String ("echoUShort"),
-                      Nvl,
-                      Result,
-                      Rq,
-                      0,
-                      Returns);
-      Argument := (To_CORBA_String ("arg"),
-                   To_Any (CORBA.Unsigned_Short (456)), 0, ARG_IN);
-      Request.Add_Arg (Rq, Argument);
-      Request.Invoke (Rq, 0);
-      Result := Request.Return_Value (Rq);
-      Rcvd_Msg := From_Any (Result.Argument);
-      Output ("test unsigned_short", Rcvd_Msg = 456);
+      X_Any := To_Any (X);
+      Y_Any := To_Any (Y);
+      Invoker.Run ("echoUShort", Server, Ctx, X_Any, Y_Any);
+      Y := From_Any (Y_Any);
+      Output ("test unsigned_short", X = Y);
    end;
 
    --  unsigned long
    declare
-      Rcvd_Msg : Unsigned_Long := 0;
+      X : Unsigned_Long := 123;
+      Y : Unsigned_Long := 0;
    begin
-      Result := (To_CORBA_String ("res"),
-                 To_Any (Rcvd_Msg),
-                 0,
-                 ARG_OUT);
-      Create_Request (Server,
-                      Ctx,
-                      To_CORBA_String ("echoULong"),
-                      Nvl,
-                      Result,
-                      Rq,
-                      0,
-                      Returns);
-      Argument := (To_CORBA_String ("arg"),
-                   To_Any (CORBA.Unsigned_Long (123)), 0, ARG_IN);
-      Request.Add_Arg (Rq, Argument);
-      Request.Invoke (Rq, 0);
-      Result := Request.Return_Value (Rq);
-      Rcvd_Msg := From_Any (Result.Argument);
-      Output ("test unsigned_long", Rcvd_Msg = 123);
+      X_Any := To_Any (X);
+      Y_Any := To_Any (Y);
+      Invoker.Run ("echoULong", Server, Ctx, X_Any, Y_Any);
+      Y := From_Any (Y_Any);
+      Output ("test unsigned_long", X = Y);
    end;
 
    --  float
    declare
-      Rcvd_Msg : CORBA.Float := 0.0;
+      X : CORBA.Float := 2.7;
+      Y : CORBA.Float := 0.0;
    begin
-      Result := (To_CORBA_String ("res"),
-                 To_Any (Rcvd_Msg),
-                 0,
-                 ARG_OUT);
-      Create_Request (Server,
-                      Ctx,
-                      To_CORBA_String ("echoFloat"),
-                      Nvl,
-                      Result,
-                      Rq,
-                      0,
-                      Returns);
-      Argument := (To_CORBA_String ("arg"),
-                   To_Any (CORBA.Float (2.7)), 0, ARG_IN);
-      Request.Add_Arg (Rq, Argument);
-      Request.Invoke (Rq, 0);
-      Result := Request.Return_Value (Rq);
-      Rcvd_Msg := From_Any (Result.Argument);
-      Output ("test float", Rcvd_Msg = 2.7);
+      X_Any := To_Any (X);
+      Y_Any := To_Any (Y);
+      Invoker.Run ("echoFloat", Server, Ctx, X_Any, Y_Any);
+      Y := From_Any (Y_Any);
+      Output ("test float", X = Y);
    end;
 
    --  double
    declare
-      Rcvd_Msg : CORBA.Double := 0.0;
+      X : CORBA.Double := 3.14;
+      Y : CORBA.Double := 0.0;
    begin
-      Result := (To_CORBA_String ("res"),
-                 To_Any (Rcvd_Msg),
-                 0,
-                 ARG_OUT);
-      Create_Request (Server,
-                      Ctx,
-                      To_CORBA_String ("echoDouble"),
-                      Nvl,
-                      Result,
-                      Rq,
-                      0,
-                      Returns);
-      Argument := (To_CORBA_String ("arg"),
-                   To_Any (CORBA.Double (3.14)), 0, ARG_IN);
-      Request.Add_Arg (Rq, Argument);
-      Request.Invoke (Rq, 0);
-      Result := Request.Return_Value (Rq);
-      Rcvd_Msg := From_Any (Result.Argument);
-      Output ("test double", Rcvd_Msg = 3.14);
+      X_Any := To_Any (X);
+      Y_Any := To_Any (Y);
+      Invoker.Run ("echoDouble", Server, Ctx, X_Any, Y_Any);
+      Y := From_Any (Y_Any);
+      Output ("test double", X = Y);
    end;
 
    --  char
    declare
-      Rcvd_Msg : CORBA.Char := 'Z';
+      X : CORBA.Char := 'A';
+      Y : CORBA.Char := 'Z';
    begin
-      Result := (To_CORBA_String ("res"),
-                 To_Any (Rcvd_Msg),
-                 0,
-                 ARG_OUT);
-      Create_Request (Server,
-                      Ctx,
-                      To_CORBA_String ("echoChar"),
-                      Nvl,
-                      Result,
-                      Rq,
-                      0,
-                      Returns);
-      Argument := (To_CORBA_String ("arg"),
-                   To_Any ('A'), 0, ARG_IN);
-      Request.Add_Arg (Rq, Argument);
-      Request.Invoke (Rq, 0);
-      Result := Request.Return_Value (Rq);
-      Rcvd_Msg := From_Any (Result.Argument);
-      Output ("test char", Rcvd_Msg = 'A');
+      X_Any := To_Any (X);
+      Y_Any := To_Any (Y);
+      Invoker.Run ("echoChar", Server, Ctx, X_Any, Y_Any);
+      Y := From_Any (Y_Any);
+      Output ("test char", X = Y);
    end;
 
    --  octet
    declare
-      Rcvd_Msg : CORBA.Octet := 0;
+      X : CORBA.Octet := 5;
+      Y : CORBA.Octet := 0;
    begin
-      Result := (To_CORBA_String ("res"),
-                 To_Any (Rcvd_Msg),
-                 0,
-                 ARG_OUT);
-      Create_Request (Server,
-                      Ctx,
-                      To_CORBA_String ("echoOctet"),
-                      Nvl,
-                      Result,
-                      Rq,
-                      0,
-                      Returns);
-      Argument := (To_CORBA_String ("arg"),
-                   To_Any (CORBA.Octet (5)), 0, ARG_IN);
-      Request.Add_Arg (Rq, Argument);
-      Request.Invoke (Rq, 0);
-      Result := Request.Return_Value (Rq);
-      Rcvd_Msg := From_Any (Result.Argument);
-      Output ("test octet", Rcvd_Msg = 5);
+      X_Any := To_Any (X);
+      Y_Any := To_Any (Y);
+      Invoker.Run ("echoOctet", Server, Ctx, X_Any, Y_Any);
+      Y := From_Any (Y_Any);
+      Output ("test octet", X = Y);
    end;
 
    --  string
    declare
-      Rcvd_Msg : CORBA.String := To_CORBA_String ("");
-      Sent_Msg : CORBA.String;
+      Y : CORBA.String := To_CORBA_String ("");
+      X : CORBA.String := To_CORBA_String ("hello");
    begin
-      Result := (To_CORBA_String ("res"),
-                 To_Any (Rcvd_Msg),
-                 0,
-                 ARG_OUT);
-      Create_Request (Server,
-                      Ctx,
-                      To_CORBA_String ("echoString"),
-                      Nvl,
-                      Result,
-                      Rq,
-                      0,
-                      Returns);
-      Sent_Msg := To_CORBA_String ("hello");
-      Argument := (To_CORBA_String ("arg"),
-                   To_Any (Sent_Msg),
-                   0, ARG_IN);
-      Request.Add_Arg (Rq, Argument);
-      Request.Invoke (Rq, 0);
-      Result := Request.Return_Value (Rq);
-      Rcvd_Msg := From_Any (Result.Argument);
-      Output ("test string", Rcvd_Msg = To_CORBA_String ("hello"));
+      X_Any := To_Any (X);
+      Y_Any := To_Any (Y);
+      Invoker.Run ("echoString", Server, Ctx, X_Any, Y_Any);
+      Y := From_Any (Y_Any);
+      Output ("test string", X = Y);
    end;
 
    --  EXCEPTIONS TESTS TO DO HERE
 
    --  union
    declare
-      type example(Switch : CORBA.Long := CORBA.Long'First) is
-         record
-            case Switch is
-               when 1 =>
-                  Counter : CORBA.Long;
-               when 2 =>
-                  Flags : CORBA.Boolean;
-               when others =>
-                  Unknown : CORBA.Long;
-            end case;
-         end record;
-      X : Example := (Switch => 2, Flags => True);
+      X : Helper.Example := (Switch => 2, Flags => True);
+      Y : Helper.Example := (Switch => 2, Flags => False);
+      Tc : TypeCode.Object;
+      The_Any : Any;
+      Res_Any : Any;
    begin
-      null;
+      X_Any := Helper.To_Any (X);
+      Y_Any := Helper.To_Any (Y);
+      Invoker.Run ("echo1", Server, Ctx, X_Any, Y_Any);
+      Y := Helper.From_Any (Y_Any);
+      Output ("test union", X = Y);
+   end;
+
+   --  simple structure
+   declare
+      X : Helper.Simple_Struct := (A => (0,1,2,3,4,5,6,7,8,9), B => 15);
+      Y : Helper.Simple_Struct := (A => (0,0,0,0,0,0,0,0,0,0), B => 0);
+   begin
+      X_Any := Helper.To_Any (X);
+      Y_Any := Helper.To_Any (Y);
+      Invoker.Run ("echo2", Server, Ctx, X_Any, Y_Any);
+      Y := Helper.From_Any (Y_Any);
+      Output ("test simple structure", Y = X);
+   end;
+
+   --  enumeration
+   declare
+      X : Helper.Color := Blue;
+      Y : Helper.Color := Red;
+   begin
+      X_Any := Helper.To_Any (X);
+      Y_Any := Helper.To_Any (Y);
+      Invoker.Run ("echo3", Server, Ctx, X_Any, Y_Any);
+      Y := Helper.From_Any (Y_Any);
+      Output ("test enumeration", X = Y);
+   end;
+
+   --  sequences
+   declare
+      Tc : TypeCode.Object;
+      Len : Unsigned_Long;
+      The_Any : Any;
+   begin
+      --  build the argument
+      TypeCode.Set (Tc, Tk_Sequence);
+      Len := Unsigned_Long (10);
+      for I in reverse 1 .. Len loop
+         TypeCode.Add_Parameter (Tc, To_Any (Short (I)));
+      end loop;
+      TypeCode.Add_Parameter (Tc, To_Any (Len));
+      SetAny (The_Any, Tc);
+      Argument := (To_CORBA_String ("arg"), The_Any, 0, ARG_IN);
+      --  build shell for the returned value
+      Result := Argument;
+      Result.Name := To_CORBA_String ("res");
+      Result.Arg_Modes := ARG_OUT;
+      --  build an invoke request
+      Create_Request (Server,
+                      Ctx,
+                      To_CORBA_String ("echo6"),
+                      Nvl,
+                      Result,
+                      Rq,
+                      0,
+                      Returns);
+      Request.Add_Arg (Rq, Argument);
+      Request.Invoke (Rq, 0);
+      Result :=  Request.Return_Value (Rq);
+      --  check result
+      declare
+         Any_Res : Any := Result.Argument;
+         Tc_Res : TypeCode.Object := Get_Type (Any_Res);
+         Len_Res : CORBA.Unsigned_Long :=
+           From_Any (TypeCode.Parameter (Tc_Res, 0));
+         Ok_Res : CORBA.Boolean := True;
+      begin
+         for I in 1 .. Len_Res loop
+            Ok_Res := Ok_Res
+              and Short (I) = From_Any (TypeCode.Parameter (Tc_Res,
+                                                            CORBA.Long (I)));
+         end loop;
+         Output ("test sequence",
+                 TypeCode.Kind (Tc_Res) = Tk_Sequence
+                 and Ok_Res = True);
+      end;
+   end;
+
+   --  arrays (1)
+   declare
+      X : Line
+        := ((Switch => 1, Counter => 19),
+            (Switch => 2, Flags => True),
+            (Switch => 3, Unknown => 25));
+      Y : Line
+        := ((Switch => 1, Counter => 0),
+            (Switch => 2, Flags => False),
+            (Switch => 3, Unknown => 0));
+   begin
+      X_Any := Helper.To_Any (X);
+      Y_Any := Helper.To_Any (Y);
+      Invoker.Run ("echo8", Server, Ctx, X_Any, Y_Any);
+      Y := Helper.From_Any (Y_Any);
+      Output ("test array (1)", X = Y);
+   end;
+
+   --  array (2)
+   declare
+      X : Helper.Square
+        := (((A => (0,1,2,3,4,5,6,7,8,9), B=> 23),
+             (A => (9,8,7,6,5,4,3,2,1,0), B=> 17)),
+            ((A => (0,1,2,3,4,5,6,7,8,9), B=> 23),
+             (A => (9,8,7,6,5,4,3,2,1,0), B=> 17)));
+      Y : Helper.Square
+        := (((A => (0,0,0,0,0,0,0,0,0,0), B=> 0),
+             (A => (0,0,0,0,0,0,0,0,0,0), B=> 0)),
+            ((A => (0,0,0,0,0,0,0,0,0,0), B=> 0),
+             (A => (0,0,0,0,0,0,0,0,0,0), B=> 0)));
+   begin
+      X_Any := Helper.To_Any (X);
+      Y_Any := Helper.To_Any (Y);
+      Invoker.Run ("echo9", Server, Ctx, X_Any, Y_Any);
+      Y := Helper.From_Any (Y_Any);
+      Output ("test array (2)", X = Y);
+   end;
+
+   --  array (3)
+   declare
+      X : Helper.Cube
+        := (((To_CORBA_String (Standard.String'("case1")),
+              To_CORBA_String (Standard.String'("case2"))),
+             (To_CORBA_String (Standard.String'("case3")),
+              To_CORBA_String (Standard.String'("case4")))),
+            ((To_CORBA_String (Standard.String'("case5")),
+              To_CORBA_String (Standard.String'("case6"))),
+             (To_CORBA_String (Standard.String'("case7")),
+              To_CORBA_String (Standard.String'("case8")))));
+      Y : Helper.Cube
+        := (((To_CORBA_String (Standard.String'("gloups1")),
+              To_CORBA_String (Standard.String'("gloups2"))),
+             (To_CORBA_String (Standard.String'("gloups3")),
+              To_CORBA_String (Standard.String'("gloups4")))),
+            ((To_CORBA_String (Standard.String'("gloups5")),
+              To_CORBA_String (Standard.String'("gloups6"))),
+             (To_CORBA_String (Standard.String'("gloups7")),
+              To_CORBA_String (Standard.String'("gloups8")))));
+   begin
+      X_Any := Helper.To_Any (X);
+      Y_Any := Helper.To_Any (Y);
+      Invoker.Run ("echo10", Server, Ctx, X_Any, Y_Any);
+      Y := Helper.From_Any (Y_Any);
+      Output ("test array (3)", X = Y);
+   end;
+
+   --  reference
+   declare
+      X : Ref := Server;
+      Y : Ref := CORBA.Object.Nil_Ref;
+   begin
+      X_Any := Object.To_Any (X);
+      Y_Any := Object.To_Any (Y);
+      Invoker.Run ("echo11", Server, Ctx, X_Any, Y_Any);
+      Y := Object.From_Any (Y_Any);
+      Output ("test reference", Is_Equivalent (X, Y));
    end;
 
 
