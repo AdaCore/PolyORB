@@ -1,3 +1,11 @@
+1998-03-08  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* Makefile.am: Fix problem with binary release. We build a first 
+	subprogram using GLADE library and when it fails, we rebuild all
+	the library units depending on System.Stream_Attributes.
+
+	* Makefile.in: Ditto.
+
 1998-03-03  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-ganobl.adb: Fix a termination problem. Task Selection was

@@ -134,7 +134,8 @@ $(FILTERSSOURCES) \
 $(COMMONSOURCES)
 
 CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads s-gaprco.adb s-galiop.ads\
-	s-garser.adb s-gaplsp.ads $(FILTERSOBJECTS) split s-rpcdum.ads
+	s-garser.adb s-gaplsp.ads $(FILTERSOBJECTS) split s-rpcdum.ads\
+	inlining gnatlib/*
 
 SUFFIXES = .adb .ads .ali .o .xrb
 
@@ -192,14 +193,45 @@ install-dirs-local:
 	-rm -rf ${GARLIC}
 	${top_srcdir}/mkinstalldirs ${GARLIC}
 
-install-extra-libs: ${FILTERINSTALL}
+inlining: all-local
+	-${RM} -r gnatlib;
+	@echo "with Text_IO; use Text_IO;"  >inlining.adb
+	@echo "procedure Inlining is"      >>inlining.adb
+	@echo "begin Put_Line ("a"); end;" >>inlining.adb
+	-@${GNATMAKE} -I. inlining.adb
+	@if test -f inlining; then\
+	   echo "Run-time compiled without inlining flags";\
+	   echo no  >inlining;\
+	else\
+	   echo "Run-time compiled with inlining flags";\
+	   mkdir gnatlib;\
+	   grep s-stratt `${srcdir}/../Dist/config.sdefault pathtolib`*.ali |\
+	      ${SED} 's,^.*[/]\(.*\)\.ali:.*$$,\1.o,g' >gnatlib/tocheck;\
+	   for object in `cat gnatlib/tocheck`; do\
+	      if [ ! -f $$object ]; then\
+	         (cd gnatlib;\
+	          echo $$object >>rebuild;\
+	          ${CC} -c ${CFLAGS} -I- ${GNATFLAGS}\
+	            `gnatls -a -s $$object`);\
+	      fi;\
+	   done;\
+	   echo yes >inlining;\
+	fi
 
-install-data-local: all-local install-dirs-local install-extra-libs
-	${INSTALL} `${srcdir}/../Dist/config.sdefault pathtolib` ${GARLIC}
+install-extra-libs: ${FILTERINSTALL} inlining
+
+install-data-local: all-local install-dirs-local install-extra-libs 
+	${INSTALL}\
+	   `${srcdir}/../Dist/config.sdefault pathtolib`libgnat.a ${GARLIC}
 	${AR} d ${GARLIC}/libgnat.a s-stratt.o s-rpc.o s-parint.o
+	if test -d gnatlib; then\
+	   (cd gnatlib;\
+	    ${AR} cq ${GARLIC}/libgnat.a `cat rebuild`;\
+            ${CP} -p `${SED} 's/\.o/.ali/g' rebuild` ${GARLIC});\
+	fi
 	${RANLIB} ${GARLIC}/libgnat.a
-	for i in ${SOURCES} \
-		`echo ${OBJECTS} | ${SED} -e 's/\.o/.ali/g'` ${GARLIC}; do \
+	for i in ${GARLIC} ${SOURCES} \
+		`echo ${OBJECTS} | ${SED} -e 's/\.o/.ali/g'`; do \
 		if test -f $$i; then \
 			${CP} -p $$i ${GARLIC}/; \
 		fi; \
