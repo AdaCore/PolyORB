@@ -282,6 +282,7 @@ package body XE_Check is
       for U in Unit.First .. Unit.Last loop
          --  and then not Unit.Table (U).Is_Generic
          if Unit.Table (U).RCI
+           and then not Unit.Table (U).Is_Generic
            and then Get_CUID (Unit.Table (U).Uname) = Null_CUID
          then
             Write_Program_Name;
