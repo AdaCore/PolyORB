@@ -1,6 +1,4 @@
-with System;
 with Ada.Unchecked_Deallocation;
-with Ada.Strings.Unbounded;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with CORBA; use CORBA;
@@ -12,7 +10,6 @@ with Broca.Giop;
 with Broca.Orb;
 with Broca.Stream;
 with Broca.Flags;
-with Broca.Locks;
 pragma Elaborate_All (Broca.Orb);
 
 with Broca.Debug;
@@ -161,22 +158,22 @@ package body Broca.Server is
       Current : Broca.Poa.POA_Object_Access;
    begin
       --  Boot date
-      Marshall_Size_Unsigned_Long (Buffer);
+      Compute_New_Size (Buffer, UL_Size, UL_Size);
 
       --  POA index
-      Marshall_Size_Unsigned_Long (Buffer);
+      Compute_New_Size (Buffer, UL_Size, UL_Size);
 
       --  Date
-      Marshall_Size_Unsigned_Long (Buffer);
+      Compute_New_Size (Buffer, UL_Size, UL_Size);
 
       --  Number of poas
-      Marshall_Size_Unsigned_Long (Buffer);
+      Compute_New_Size (Buffer, UL_Size, UL_Size);
 
       if Poa.Lifespan_Policy = PortableServer.PERSISTENT then
          --  Due to the alignment, the order of POA name is not important.
          Current := Poa;
          while Current.Parent /= null loop
-            Marshall_Size (Buffer, Current.Name);
+            Compute_New_Size (Buffer, Current.Name);
             Current := Current.Parent;
          end loop;
          Align_Size (Buffer, 4);
@@ -870,8 +867,6 @@ package body Broca.Server is
       Message_Type : CORBA.Octet;
       Message_Size : CORBA.Unsigned_Long;
       Request_Id : CORBA.Unsigned_Long;
-      Operation : CORBA.String;
-      Principal : CORBA.String;
       Poa : Broca.Poa.POA_Object_Access;
       Poa_State : Broca.Poa.Processing_State_Type;
       Key : Buffer_Descriptor;
@@ -969,9 +964,9 @@ package body Broca.Server is
       Poa.Link_Lock.Lock_R;
 
       --  Create Object_Key.
-      Marshall_Size_Unsigned_Long (Object_Key);
+      Compute_New_Size (Object_Key, UL_Size, UL_Size);
       Marshall_Size_Object_Key (Object_Key, Poa);
-      Compute_Size (Object_Key, Key);
+      Compute_New_Size (Object_Key, Key);
       Length := CORBA.Unsigned_Long (Object_Key.Pos - 4);
       Allocate_Buffer (Object_Key);
       Marshall (Object_Key, Length);
@@ -981,11 +976,11 @@ package body Broca.Server is
 
       Ior.Pos := 0;
       --  An ior is an encapsulation.
-      Marshall_Size_Octet (Ior);
+      Compute_New_Size (IOR, O_Size, O_Size);
       --  The type_id
-      Marshall_Size (Ior, CORBA.String (Type_Id));
+      Compute_New_Size (IOR, CORBA.String (Type_Id));
       --  nbr of profiles
-      Marshall_Size_Unsigned_Long (Ior);
+      Compute_New_Size (IOR, UL_Size, UL_Size);
 
       Nbr_Profiles := 0;
       for N in Server_Id_Type loop
@@ -1055,7 +1050,7 @@ package body Broca.Server is
       end Server_Task_Type;
 
       type Server_Task_Array is array (Natural range <>) of Server_Task_Type;
-      Server_Taks : Server_Task_Array (1 .. Broca.Flags.Nbr_Server_Tasks - 1);
+      Server_Task : Server_Task_Array (1 .. Broca.Flags.Nbr_Server_Tasks - 1);
    begin
       Serv;
    end Run;

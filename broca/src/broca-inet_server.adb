@@ -1,6 +1,3 @@
-with System;
-with Ada.Strings.Unbounded;
-with Ada.Exceptions;
 with Broca.Buffers; use Broca.Buffers;
 with CORBA; use CORBA;
 with CORBA.Iop;
@@ -352,59 +349,70 @@ package body Broca.Inet_Server is
       Wait_Fd_Request (Buffer);
    end Perform_Work;
 
-   procedure Marshall_Size_Profile (Server : access Fd_Server_Type;
-                                    Ior : in out Broca.Buffers.Buffer_Descriptor;
-                                    Object_Key : Broca.Buffers.Buffer_Descriptor)
+   procedure Marshall_Size_Profile
+     (Server     : access Fd_Server_Type;
+      IOR        : in out Broca.Buffers.Buffer_Descriptor;
+      Object_Key : in Broca.Buffers.Buffer_Descriptor)
    is
       use Broca.Marshalling;
    begin
-      --  tag
-      Marshall_Size_Unsigned_Long (Ior);
-      --  profile_data length
-      Marshall_Size_Unsigned_Long (Ior);
-      --  flag
-      Marshall_Size_Octet (Ior);
+      --  Tag
+      Compute_New_Size (IOR, UL_Size, UL_Size);
 
-      --  Version is 2 bytes.
-      Marshall_Size_Octet (Ior);
-      Marshall_Size_Octet (Ior);
+      --  Profile_Data length
+      Compute_New_Size (IOR, UL_Size, UL_Size);
+
+      --  Flag
+      Compute_New_Size (IOR, O_Size, O_Size);
+
+      --  Version
+      Compute_New_Size (IOR, O_Size, O_Size);
+      Compute_New_Size (IOR, O_Size, O_Size);
+
       --  Host string.
-      Marshall_Size (Ior, Iiop_Host);
+      Compute_New_Size (IOR, Iiop_Host);
+
       --  Port
-      Marshall_Size_Unsigned_Short (Ior);
-      Align_Size (Ior, 4);
-      --  key.
-      Compute_Size (Ior, Object_Key);
+      Compute_New_Size (IOR, US_Size, US_Size);
+      Align_Size       (IOR, UL_Size);
+
+      --  Key.
+      Compute_New_Size (IOR, Object_Key);
    end Marshall_Size_Profile;
 
-   procedure Marshall_Profile (Server : access Fd_Server_Type;
-                               Ior : in out Broca.Buffers.Buffer_Descriptor;
-                               Object_Key : Broca.Buffers.Buffer_Descriptor)
+   procedure Marshall_Profile
+     (Server     : access Fd_Server_Type;
+      IOR        : in out Broca.Buffers.Buffer_Descriptor;
+      Object_Key : in Broca.Buffers.Buffer_Descriptor)
    is
       use Broca.Marshalling;
       Length_Pos : Buffer_Index_Type;
       Pos : Buffer_Index_Type;
    begin
-      Marshall (Ior, CORBA.Iop.Tag_Internet_Iop);
-      Length_Pos := Ior.Pos;
-      Marshall_Size_Unsigned_Long (Ior);
-      Marshall (Ior, Is_Little_Endian);
+      Marshall (IOR, CORBA.Iop.Tag_Internet_Iop);
+      Length_Pos := IOR.Pos;
+      Compute_New_Size (IOR, UL_Size, UL_Size);
+      Marshall (IOR, Is_Little_Endian);
 
-      --  Version 1.0
-      Marshall (Ior, CORBA.Octet'(1));
-      Marshall (Ior, CORBA.Octet'(0));
+      --  Version
+      Marshall (IOR, CORBA.Octet'(1));
+      Marshall (IOR, CORBA.Octet'(0));
+
       --  Host
-      Marshall (Ior, Iiop_Host);
-      --  Port
-      Marshall (Ior, Iiop_Port);
-      Align_Size (Ior, 4);
-      --  object key
-      Append_Buffer (Ior, Object_Key);
+      Marshall (IOR, Iiop_Host);
 
-      Pos := Ior.Pos;
-      Ior.Pos := Length_Pos;
-      Marshall (Ior, CORBA.Unsigned_Long (Pos - Length_Pos - 4));
-      Ior.Pos := Pos;
+      --  Port
+      Marshall (IOR, Iiop_Port);
+
+      Align_Size (IOR, UL_Size);
+
+      --  Object key
+      Append_Buffer (IOR, Object_Key);
+
+      Pos := IOR.Pos;
+      IOR.Pos := Length_Pos;
+      Marshall (IOR, CORBA.Unsigned_Long (Pos - Length_Pos - 4));
+      IOR.Pos := Pos;
    end Marshall_Profile;
 
    type Fd_Server_Acc is access Fd_Server_Type;

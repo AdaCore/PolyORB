@@ -455,10 +455,18 @@ package body Broca.Rootpoa is
       return Bad_Slot_Index;
    end Slot_By_Skeleton;
 
-   function Reserve_A_Slot (Self : access Object) return Slot_Index_Type is
+   -------------------
+   -- Reserve_A_Slot --
+   -------------------
+
+   function Reserve_A_Slot
+     (Self : access Object)
+     return Slot_Index_Type
+   is
       New_Object_Map : Servant_Cell_Acc_Array_Acc;
       Old_Object_Map : Servant_Cell_Acc_Array_Acc;
-      Slot : Slot_Index_Type;
+      Slot           : Slot_Index_Type;
+      Found          : Boolean;
    begin
       Self.Map_Lock.Lock;
 
@@ -473,24 +481,27 @@ package body Broca.Rootpoa is
                Self.Object_Map := new Servant_Cell_Acc_Array'(1 .. 8 => null);
                Slot := 1;
             else
+               Found := False;
                for I in Self.Object_Map.all'Range loop
                   if Self.Object_Map (I) = null
                     or else Self.Object_Map (I).State = Free
                   then
-                     Slot := I;
-                     goto Found;
+                     Slot  := I;
+                     Found := True;
+                     exit;
                   end if;
                end loop;
-               New_Object_Map := new Servant_Cell_Acc_Array'
-                 (1 .. 2 * Self.Object_Map.all'Last => null);
-               Slot := Self.Object_Map.all'Last + 1;
-               New_Object_Map (Self.Object_Map.all'Range) :=
-                 Self.Object_Map.all;
-               Old_Object_Map := Self.Object_Map;
-               Self.Object_Map := New_Object_Map;
-               Unchecked_Deallocation (Old_Object_Map);
+               if not Found then
+                  New_Object_Map := new Servant_Cell_Acc_Array'
+                    (1 .. 2 * Self.Object_Map.all'Last => null);
+                  Slot := Self.Object_Map.all'Last + 1;
+                  New_Object_Map (Self.Object_Map.all'Range) :=
+                    Self.Object_Map.all;
+                  Old_Object_Map := Self.Object_Map;
+                  Self.Object_Map := New_Object_Map;
+                  Unchecked_Deallocation (Old_Object_Map);
+               end if;
             end if;
-            << Found >> null;
             if Self.Object_Map (Slot) = null then
                Self.Object_Map (Slot) := new Servant_Cell_Type;
             end if;
@@ -685,7 +696,6 @@ package body Broca.Rootpoa is
      (Self : access Object; Oid : ObjectId; P_Servant : PortableServer.Servant)
    is
       Slot : Slot_Index_Type;
-      Key : Broca.Buffers.Buffer_Descriptor;
       Obj : Broca.Poa.Skeleton_Access;
    begin
       Slot := Slot_By_Object_Id (Self, Oid);
@@ -715,7 +725,6 @@ package body Broca.Rootpoa is
    is
       Res : CORBA.Object.Ref;
       Slot : Slot_Index_Type;
-      Key : Broca.Buffers.Buffer_Descriptor;
       Obj : Broca.Poa.Skeleton_Access;
       Oid : ObjectId;
    begin
@@ -882,7 +891,6 @@ package body Broca.Rootpoa is
    procedure Cleanup (Self : access Object)
    is
       Slot : Slot_Index_Type;
-      Oid : ObjectId;
       Sm : Broca.Poa.Internal_Skeleton_Access;
       A_Servant : PortableServer.Servant;
       A_Poa : PortableServer.POA.Ref;

@@ -30,42 +30,62 @@ package Broca.Buffers is
      (Buffer    : in out Buffer_Descriptor;
       Alignment : in Alignment_Type);
    pragma Inline (Align_Size);
-   --  Align Buffer size
-
-   procedure Append_Buffer (Target : in out Buffer_Descriptor;
-                            Source : in Buffer_Descriptor);
-   --  Append Source in Target
-
-   procedure Compute_Size (Target : in out Buffer_Descriptor;
-                           Source : in Buffer_Descriptor);
-   --  Compute size for Target to append Source
-
-   procedure Dump (Buffer : in Buffer_Type);
-   --  Display buffer
-
-   procedure Free is
-      new Ada.Unchecked_Deallocation (Buffer_Type, Buffer_Access);
+   --  Align Buffer size to Alignment
 
    procedure Allocate_Buffer (Buffer : in out Buffer_Descriptor);
-   --  Allocate the buffer using pos and clear pos.
+   --  Allocate the buffer using pos and clear pos. Use local endianess.
 
    procedure Allocate_Buffer_And_Set_Pos
      (Buffer : in out Buffer_Descriptor;
       Size   : in Buffer_Index_Type);
    --  Be sure Buffer.Buffer is at least of length Size.  Set
-   --  Buffer.Pos to Size.
+   --  Buffer.Pos to Size. Endianess is already set.
 
    procedure Allocate_Buffer_And_Clear_Pos
      (Buffer : in out Buffer_Descriptor;
       Size   : in Buffer_Index_Type);
    --  Be sure Buffer.Buffer is at least of length Size.  Set
-   --  Buffer.Pos to 0.
+   --  Buffer.Pos to 0. Endianess is already set.
 
-   procedure Extract_buffer (Target : in out Buffer_Descriptor;
-                             Source : in out Buffer_Descriptor;
-                             Length : in Buffer_Index_Type);
+   procedure Append_Buffer
+     (Target : in out Buffer_Descriptor;
+      Source : in Buffer_Descriptor);
+   --  Append Source into Target
+
+   procedure Compute_New_Size
+     (Target : in out Buffer_Descriptor;
+      Source : in Buffer_Descriptor);
+   --  Compute new size of Target when Source appended
+
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Align  : in Alignment_Type;
+      Size   : in Buffer_Index_Type);
+
+   procedure Dump (Buffer : in Buffer_Type);
+   --  Display Buffer
+
+   procedure Extract_Buffer
+     (Target : in out Buffer_Descriptor;
+      Source : in out Buffer_Descriptor;
+      Length : in Buffer_Index_Type);
    --  Extract Length bytes from Source, update position of Source and
    --  copy it to Target. Pos is reset before copying and not updated,
    --  and Little_Endian flag is copied from Source.
+
+   procedure Free is
+      new Ada.Unchecked_Deallocation (Buffer_Type, Buffer_Access);
+
+   procedure Read
+     (Buffer  : in out Buffer_Descriptor;
+      Bytes   : out Buffer_Type);
+   pragma Inline (Read);
+   --  Read from Buffer an array of bytes
+
+   procedure Write
+     (Buffer  : in out Buffer_Descriptor;
+      Bytes   : in Buffer_Type);
+   pragma Inline (Write);
+   --  Write into Buffer an array of bytes
 
 end Broca.Buffers;

@@ -28,7 +28,7 @@ package body Broca.Marshalling.Refs is
       IOR_Buffer : Buffer_Descriptor
         :=  Broca.Refs.Object_To_IOR (CORBA.Object.Get (Value).all);
    begin
-      Compute_Size (Stream, IOR_Buffer);
+      Compute_New_Size (Stream, IOR_Buffer);
    end Marshall_Size;
 
    ----------------

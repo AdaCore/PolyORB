@@ -208,17 +208,17 @@ package body Broca.Exceptions is
       end if;
    end Occurrence_To_Name;
 
-   procedure Marshall_Size (Buffer : in out Buffer_Descriptor;
+   procedure Compute_New_Size (Buffer : in out Buffer_Descriptor;
                             Excpt : CORBA.Exception_Occurrence)
    is
       use Broca.Marshalling;
    begin
-      Marshall_Size (Buffer, CORBA.String (Occurrence_To_Name (Excpt)));
+      Compute_New_Size (Buffer, CORBA.String (Occurrence_To_Name (Excpt)));
       --  Minor.
-      Marshall_Size_Unsigned_Long (Buffer);
+      Compute_New_Size (Buffer, UL_Size, UL_Size);
       --  Completion status.
-      Marshall_Size_Unsigned_Long (Buffer);
-   end Marshall_Size;
+      Compute_New_Size (Buffer, UL_Size, UL_Size);
+   end Compute_New_Size;
 
    procedure Marshall (Buffer : in out Buffer_Descriptor;
                        Excpt : CORBA.Exception_Occurrence)

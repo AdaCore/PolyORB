@@ -3,68 +3,113 @@ with Broca.Buffers; use Broca.Buffers;
 
 package Broca.Marshalling is
 
-   --  Unmarshall procedure
-   --  Extract a type from BUFFER starting at POS, which maybe aligned before,
-   --  and update the position POS.
-   procedure Unmarshall
-     (Stream : in out Buffer_Descriptor; Res : out CORBA.Octet);
-   procedure Unmarshall
-     (Stream : in out Buffer_Descriptor; Res : out CORBA.Char);
-   procedure Unmarshall
-     (Stream : in out Buffer_Descriptor; Res : out CORBA.Boolean);
-   procedure Unmarshall
-     (Stream : in out Buffer_Descriptor; Res : out CORBA.Unsigned_Short);
-   procedure Unmarshall
-     (Stream : in out Buffer_Descriptor; Res : out CORBA.Unsigned_Long);
-   procedure Unmarshall
-     (Stream : in out Buffer_Descriptor; Res : out CORBA.Short);
-   procedure Unmarshall
-     (Stream : in out Buffer_Descriptor; Res : out CORBA.Long);
-   procedure Unmarshall
-     (Stream : in out Buffer_Descriptor; Res : out CORBA.String);
-   procedure Unmarshall
-     (Stream : in out Buffer_Descriptor; Res : out CORBA.Float);
-   procedure Unmarshall
-     (Stream : in out Buffer_Descriptor; Res : out CORBA.Double);
+   O_Size  : constant Buffer_Index_Type := 1;
+   C_Size  : constant Buffer_Index_Type := 1;
+   B_Size  : constant Buffer_Index_Type := 1;
+   S_Size  : constant Buffer_Index_Type := 2;
+   US_Size : constant Buffer_Index_Type := 2;
+   L_Size  : constant Buffer_Index_Type := 4;
+   UL_Size : constant Buffer_Index_Type := 4;
+   F_Size  : constant Buffer_Index_Type := 4;
+   D_Size  : constant Buffer_Index_Type := 8;
 
-   --  Size procedure
-   --  Only adjust stream.pos according to alignment.
+   -- Compute_Size, Marshall and Unmarshall predefined types.
 
-   --  For a sequence of a primitive type.
-   procedure Marshall_Size_Primitive_Sequence
-     (Stream : in out Buffer_Descriptor;
-      Element_Size : Natural;
-      Nbr_Elements : Natural);
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out CORBA.Octet);
 
-   procedure Marshall_Size_Octet (Stream : in out Buffer_Descriptor);
-   procedure Marshall_Size_Unsigned_Short (Stream : in out Buffer_Descriptor);
-   procedure Marshall_Size_Unsigned_Long (Stream : in out Buffer_Descriptor);
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out CORBA.Char);
 
-   procedure Marshall_Size
-     (Stream : in out Buffer_Descriptor; Val : CORBA.String);
-   procedure Marshall_Size
-     (Stream : in out Buffer_Descriptor; Val : String);
-   procedure Marshall_Size
-     (Stream : in out Buffer_Descriptor; Val : CORBA.Octet);
-   procedure Marshall_Size
-     (Stream : in out Buffer_Descriptor; Val : CORBA.Char);
-   procedure Marshall_Size
-     (Stream : in out Buffer_Descriptor; Val : CORBA.Boolean);
-   procedure Marshall_Size
-     (Stream : in out Buffer_Descriptor; Val : CORBA.Unsigned_Long);
-   procedure Marshall_Size
-     (Stream : in out Buffer_Descriptor; Val : CORBA.Unsigned_Short);
-   procedure Marshall_Size
-     (Stream : in out Buffer_Descriptor; Val : CORBA.Long);
-   procedure Marshall_Size
-     (Stream : in out Buffer_Descriptor; Val : CORBA.Short);
-   procedure Marshall_Size
-     (Stream : in out Buffer_Descriptor; Val : CORBA.Float);
-   procedure Marshall_Size
-     (Stream : in out Buffer_Descriptor; Val : CORBA.Double);
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out CORBA.Boolean);
 
-   function Compare (Buffer  : in Buffer_Descriptor;
-                     Pattern : in String) return Boolean;
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out CORBA.Unsigned_Short);
+
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out CORBA.Short);
+
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out CORBA.Unsigned_Long);
+
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out CORBA.Long);
+
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out CORBA.String);
+
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out CORBA.Float);
+
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out CORBA.Double);
+
+
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in CORBA.String);
+
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in CORBA.Octet);
+
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in CORBA.Char);
+
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in CORBA.Boolean);
+
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in CORBA.Unsigned_Short);
+
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in CORBA.Short);
+
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in CORBA.Unsigned_Long);
+
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in CORBA.Long);
+
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in CORBA.Float);
+
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in CORBA.Double);
+
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in String);
+
+   procedure Compute_New_Size
+     (Buffer        : in out Buffer_Descriptor;
+      Length_Size   : in Buffer_Index_Type;
+      Element_Size  : in Buffer_Index_Type;
+      Array_Length  : in Natural);
+
+   function Compare
+     (Buffer  : in Buffer_Descriptor;
+      Pattern : in String)
+     return Boolean;
    --  Return true if Buffer can be interpreted as Pattern.  The
    --  string is not unmarshalled.
 
@@ -73,26 +118,47 @@ package Broca.Marshalling is
 
    --  Marshall
    procedure Marshall
-     (Stream : in out Buffer_Descriptor; Val : CORBA.Octet);
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in CORBA.Octet);
+
    procedure Marshall
-     (Stream : in out Buffer_Descriptor; Val : CORBA.Char);
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in CORBA.Char);
+
    procedure Marshall
-     (Stream : in out Buffer_Descriptor; Val : CORBA.Boolean);
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in CORBA.Boolean);
+
    procedure Marshall
-     (Stream : in out Buffer_Descriptor; Val : CORBA.Unsigned_Short);
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in CORBA.Unsigned_Short);
+
    procedure Marshall
-     (Stream : in out Buffer_Descriptor; Val : CORBA.Unsigned_Long);
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in CORBA.Short);
+
    procedure Marshall
-     (Stream : in out Buffer_Descriptor; Val : CORBA.Short);
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in CORBA.Unsigned_Long);
+
    procedure Marshall
-     (Stream : in out Buffer_Descriptor; Val : CORBA.Long);
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in CORBA.Long);
+
    procedure Marshall
-     (Stream : in out Buffer_Descriptor; Val : CORBA.String);
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in CORBA.Float);
+
    procedure Marshall
-     (Stream : in out Buffer_Descriptor; Val : CORBA.Float);
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in CORBA.Double);
+
    procedure Marshall
-     (Stream : in out Buffer_Descriptor; Val : CORBA.Double);
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in String);
+
    procedure Marshall
-     (Stream : in out Buffer_Descriptor; Val : String);
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in CORBA.String);
 
 end Broca.Marshalling;

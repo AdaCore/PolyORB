@@ -75,10 +75,13 @@ package Broca.Exceptions is
       To   : out System_Exception_Members);
 
    --  Only for a system exception.
-   procedure Marshall_Size (Buffer : in out Buffer_Descriptor;
-                            Excpt : CORBA.Exception_Occurrence);
-   procedure Marshall (Buffer : in out Buffer_Descriptor;
-                       Excpt : CORBA.Exception_Occurrence);
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Excpt  : in CORBA.Exception_Occurrence);
+
+   procedure Marshall
+     (Buffer : in out Buffer_Descriptor;
+      Excpt  : in CORBA.Exception_Occurrence);
 
    procedure Unmarshall_And_Raise (Buffer : in out Buffer_Descriptor);
    pragma No_Return (Unmarshall_And_Raise);

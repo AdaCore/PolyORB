@@ -1,3 +1,16 @@
+1999-08-23  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* broca-buffers.adb, broca-buffers.ads, broca-exceptions.adb,
+ 	broca-exceptions.ads, broca-giop.adb, broca-iiop.adb,
+ 	broca-inet_server.adb, broca-marshalling-refs.adb,
+ 	broca-marshalling.adb, broca-marshalling.ads, broca-object.adb,
+ 	broca-repository.adb, broca-rootpoa.adb, broca-sequences.adb,
+ 	broca-server.adb: First attempt to reduce use of Buffer.Pos and
+ 	Buffer.Buffer.
+	
+	* broca-flags.ads: race condition detected. Set N_Server_Task to
+ 	1.
+	
 1999-08-23  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* broca-buffers.ad[bs]: New unit to handle buffers.

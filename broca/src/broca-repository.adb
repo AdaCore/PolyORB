@@ -1,5 +1,4 @@
 with CORBA; use CORBA;
-with Ada.Tags;
 
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
@@ -16,19 +15,11 @@ package body Broca.Repository is
    begin
       pragma Debug (O ("Register : enter"));
       pragma Debug (O ("Create_Ref : Repository_Id = " &
-		       CORBA.To_Standard_String(Corba.String(Class.all.Type_Id))));
+                       CORBA.To_Standard_String(Corba.String(Class.all.Type_Id))));
       --  Simply add it to the list.
       Class.Next := Classes;
       Classes := Class;
    end Register;
-
---    function Create_Object (Class: access Object_Class_Type)
---                            return CORBA.Object.Ref'Class is
---    begin
---       Ada.Text_Io.Put_Line ("bad create_object called");
---       raise Program_Error;
---       return CORBA.Object.Ref'(Object => null);
---    end Create_Object;
 
    --  Create an object from a type_id
    function Create_Ref (Type_Id : CORBA.RepositoryId)
@@ -39,7 +30,7 @@ package body Broca.Repository is
    begin
       pragma Debug (O ("Create_Ref : enter"));
       pragma Debug (O ("Create_Ref : Repository_Id = " &
-		       CORBA.To_Standard_String(Corba.String(Type_Id))));
+                       CORBA.To_Standard_String(Corba.String(Type_Id))));
       El := Classes;
       while El /= null loop
          if El.Type_Id = Type_Id then

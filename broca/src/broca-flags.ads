@@ -19,7 +19,7 @@ package Broca.Flags is
    --  If 1, it use the main task (ie, the task that has called run) to do all
    --  the work.  If greather than 1, it creates tasks.
    --  -ORBserver-tasks N
-   Nbr_Server_Tasks : Positive := 4;
+   Nbr_Server_Tasks : Positive := 1;
 
    --  Maximum number of consecutive location forward.
    Max_Tries : Natural := 2;

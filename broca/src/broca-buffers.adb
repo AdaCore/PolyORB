@@ -75,16 +75,29 @@ package body Broca.Buffers is
       Target.Pos := Target.Pos + Source.Pos;
    end Append_Buffer;
 
-   ------------------
-   -- Compute_Size --
-   ------------------
+   ----------------------
+   -- Compute_New_Size --
+   ----------------------
 
-   procedure Compute_Size
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Align  : in Alignment_Type;
+      Size   : in Buffer_Index_Type) is
+   begin
+      Align_Size (Buffer, Align);
+      Buffer.Pos := Buffer.Pos + Size;
+   end Compute_New_Size;
+
+   ----------------------
+   -- Compute_New_Size --
+   ----------------------
+
+   procedure Compute_New_Size
      (Target : in out Buffer_Descriptor;
       Source : in Buffer_Descriptor) is
    begin
       Target.Pos := Target.Pos + Source.Pos;
-   end Compute_Size;
+   end Compute_New_Size;
 
    ----------
    -- Dump --
@@ -141,11 +154,43 @@ package body Broca.Buffers is
      (Buffer : in out Buffer_Descriptor;
       Size   : in Buffer_Index_Type) is
    begin
-      if Buffer.Buffer = null or else Buffer.Buffer.all'Last < Size - 1 then
+      if Buffer.Buffer = null
+        or else Buffer.Buffer'Last < Size - 1
+      then
          Free (Buffer.Buffer);
          Buffer.Buffer := new Buffer_Type (0 .. Size - 1);
       end if;
    end Fix_Buffer_Size;
+
+   ----------
+   -- Read --
+   ----------
+
+   procedure Read
+     (Buffer  : in out Buffer_Descriptor;
+      Bytes   : out Buffer_Type)
+   is
+      Length : constant Buffer_Index_Type := Buffer_Index_Type (Bytes'Length);
+   begin
+      pragma Assert (Buffer.Pos + Length - 1 <= Buffer.Buffer'Last);
+      Bytes := Buffer.Buffer (Buffer.Pos .. Buffer.Pos + Length - 1);
+      Buffer.Pos := Buffer.Pos + Length;
+   end Read;
+
+   -----------
+   -- Write --
+   -----------
+
+   procedure Write
+     (Buffer  : in out Buffer_Descriptor;
+      Bytes   : in Buffer_Type)
+   is
+      Length : constant Buffer_Index_Type := Buffer_Index_Type (Bytes'Length);
+   begin
+      pragma Assert (Buffer.Pos + Length - 1 <= Buffer.Buffer'Last);
+      Buffer.Buffer (Buffer.Pos .. Buffer.Pos + Length - 1) := Bytes;
+      Buffer.Pos := Buffer.Pos + Length;
+   end Write;
 
 begin
    Is_Little_Endian := (Default_Bit_Order /= High_Order_First);

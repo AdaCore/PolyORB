@@ -1,5 +1,6 @@
 ADA_FULL = \
 	   broca-debug.ads \
+	   broca-buffers.ads \
            broca-exceptions.ads \
            broca-flags.ads \
            broca-giop.ads \
@@ -45,7 +46,6 @@ ADA_IMPLS = $(ADA_FULL:.ads=.adb)
 
 ADA_SPECS += $(ADA_FULL) \
            broca.ads \
-           broca-types.ads \
            corba-sequences.ads \
            portableserver-servantactivator-impl.ads \
            portableserver-servantlocator-impl.ads \

@@ -56,27 +56,35 @@ package body Broca.Giop is
       use Broca.Marshalling;
    begin
       Stream.Pos := Message_Header_Size;
-      --  service context.
-      Marshall_Size_Unsigned_Long (Stream);
-      --  request_id
-      Marshall_Size_Unsigned_Long (Stream);
-      --  reply_status
-      Marshall_Size_Unsigned_Long (Stream);
+
+      --  Service Context
+      Compute_New_Size (Stream, UL_Size, UL_Size);
+
+      --  Request_Id
+      Compute_New_Size (Stream, UL_Size, UL_Size);
+
+      --  Reply_Status
+      Compute_New_Size (Stream, UL_Size, UL_Size);
+
       --  Exception
-      Broca.Exceptions.Marshall_Size (Stream, Occurence);
+      Broca.Exceptions.Compute_New_Size (Stream, Occurence);
 
       Allocate_Buffer_And_Set_Pos (Stream, Stream.Pos);
 
       Broca.Giop.Create_Giop_Header
         (Stream, Broca.Giop.Reply,
          CORBA.Unsigned_Long (Stream.Pos));
-      --  service context.
+
+      --  Service Context
       Marshall (Stream, CORBA.Unsigned_Long (No_Context));
-      --  Request_id
+
+      --  Request_Id
       Marshall (Stream, Request_Id);
-      --  reply_status
+
+      --  Reply_Status
       Marshall (Stream, Broca.Giop.System_Exception);
-      --  exception.
+
+      --  Exception
       Broca.Exceptions.Marshall (Stream, Occurence);
    end Create_Reply_System_Exception;
 
@@ -91,14 +99,17 @@ package body Broca.Giop is
       N_Ref := Broca.Refs.Object_To_IOR (CORBA.Object.Get (Reference).all);
       Stream.Pos := Message_Header_Size;
 
-      --  service context.
-      Marshall_Size_Unsigned_Long (Stream);
-      --  request_id
-      Marshall_Size_Unsigned_Long (Stream);
-      --  reply_status
-      Marshall_Size_Unsigned_Long (Stream);
+      --  Service Context
+      Compute_New_Size (Stream, UL_Size, UL_Size);
+
+      --  Request_Id
+      Compute_New_Size (Stream, UL_Size, UL_Size);
+
+      --  Reply_Status
+      Compute_New_Size (Stream, UL_Size, UL_Size);
+
       --  IOR
-      Compute_Size (Stream, N_Ref);
+      Compute_New_Size (Stream, N_Ref);
 
       Allocate_Buffer_And_Set_Pos (Stream, Stream.Pos);
 
@@ -145,15 +156,19 @@ package body Broca.Giop is
         + 4 --  request_id
         + 4; --  reponse_expected + reserved
       --  Size of object_key.
-      Marshall_Size_Primitive_Sequence
-        (Handler.Buffer, 1,
-         Broca.Sequences.IDL_SEQUENCE_Octet.Length
+      Compute_New_Size
+        (Buffer       => Handler.Buffer,
+         Length_Size  => UL_Size,
+         Element_Size => 1,
+         Array_Length => Broca.Sequences.IDL_SEQUENCE_Octet.Length
          (Broca.Object.Get_Object_Key (Handler.Profile.all)));
+
       --  Size of operation
-      Marshall_Size (Handler.Buffer, CORBA.String (Operation));
+      Compute_New_Size (Handler.Buffer, CORBA.String (Operation));
+
       --  Size of Principal
       --  See 13.3.4: encoded as sequence <octet>
-      Marshall_Size (Handler.Buffer, Nobody_Principal);
+      Compute_New_Size (Handler.Buffer, Nobody_Principal);
    end Send_Request_Size;
 
    procedure Send_Request_Marshall (Handler : in out Request_Handler;
@@ -222,8 +237,10 @@ package body Broca.Giop is
       --  1.4 Receive reply
       --  1.4.1 the message header
       Allocate_Buffer_And_Set_Pos
-         (Handler.Buffer, Broca.Giop.Message_Header_Size);
+        (Handler.Buffer, Broca.Giop.Message_Header_Size);
+      pragma Debug (O ("Receive answer ..."));
       Broca.Object.Receive (Handler.Connection, Handler.Buffer);
+      pragma Debug (O ("Receive answer done"));
       if Handler.Buffer.Pos /= Broca.Giop.Message_Header_Size then
          Broca.Exceptions.Raise_Comm_Failure;
       end if;

@@ -45,7 +45,7 @@ package body Broca.Sequences is
       Length : Natural;
    begin
       Length := IDL_SEQUENCE_Octet.Length (Seq_Octet);
-      Marshall_Size_Unsigned_Long (Stream);
+      Compute_New_Size (Stream, UL_Size, UL_Size);
       Stream.Pos := Stream.Pos + Buffer_Index_Type (Length);
    end Marshall_Size;
 

@@ -171,10 +171,12 @@ package body Broca.Iiop is
       then
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
+      pragma Debug (O ("Message correctly sent"));
    end Send;
 
-   procedure Receive (Connection : access Strand_Connection_Type;
-                      Stream : in out Buffer_Descriptor)
+   procedure Receive
+     (Connection : access Strand_Connection_Type;
+      Stream : in out Buffer_Descriptor)
    is
       use Sockets.Thin;
       use Interfaces.C;
