@@ -144,7 +144,7 @@ package body System.Garlic.Remote is
 
    procedure Spawn (Command : in String)
    is
-      C_Command : aliased String := Command & ASCII.Nul;
+      C_Command : aliased String := Command & ASCII.NUL;
    begin
       if C_System (C_Command'Address) / 256 /= 0 then
          raise Program_Error;

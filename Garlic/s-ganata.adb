@@ -144,7 +144,7 @@ package body System.Garlic.Name_Table is
             Max := Max + Size;
             Table := new String (Min .. Max);
             Table (Min .. Last) := Old (Min .. Last);
-            Table (Last + 1 .. Max) := (others => ASCII.Nul);
+            Table (Last + 1 .. Max) := (others => ASCII.NUL);
             Destroy (Old);
          end;
       end if;
