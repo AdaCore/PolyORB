@@ -11,7 +11,7 @@ begin
 
    loop
       Token := Get_Next_Token;
-      Ada.Text_Io.Put (Idl_Token'Image (Token));
+      Ada.Text_IO.Put (Idl_Token'Image (Token));
       case Token is
          when T_Lit_Decimal_Integer |
            T_Lit_Octal_Integer |
@@ -35,11 +35,11 @@ begin
            T_Lit_Floating_Fixed_Point |
            T_Identifier |
            T_Pragma =>
-            Ada.Text_Io.Put (" : " & Get_Lexer_String & ".");
+            Ada.Text_IO.Put (" : " & Get_Lexer_String & ".");
          when others =>
             null;
       end case;
-      Ada.Text_Io.Put_Line ("");
+      Ada.Text_IO.Put_Line ("");
       exit when Token = T_Eof;
    end loop;
 end testlexer;

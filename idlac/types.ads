@@ -152,8 +152,8 @@ package Types is
    ---------------------------
 
    --  To manipulate the location of a node
-   procedure Set_location (N : in out N_Root'Class; Loc : Errors.Location);
-   function Get_location (N : N_Root'Class) return Errors.Location;
+   procedure Set_Location (N : in out N_Root'Class; Loc : Errors.Location);
+   function Get_Location (N : N_Root'Class) return Errors.Location;
 
    --  To get the name of a named node
    function Get_Name (Node : in N_Named'Class) return String;

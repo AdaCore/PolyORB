@@ -34,7 +34,7 @@ package body Types is
    --  scope handling  --
    ----------------------
 
-   --  Definiion of a stack of scopes.
+   --  Definition of a stack of scopes.
    type Scope_Stack;
    type Scope_Stack_Acc is access Scope_Stack;
    type Scope_Stack is record

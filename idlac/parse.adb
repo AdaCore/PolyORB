@@ -61,7 +61,7 @@ package body Parse is
    --  the buffers themself
    Token_Buffer : array (Buffer_Index) of Idl_Token
      := (others => T_Error);
-   Location_Buffer : array (Buffer_Index) of Errors.location
+   Location_Buffer : array (Buffer_Index) of Errors.Location
      := (others => (Filename => null, Line => 0, Col => 0));
    String_Buffer : array (Buffer_Index) of String_Ptr
      := (others => null);
@@ -119,7 +119,7 @@ package body Parse is
          when others =>
             null;
       end case;
-   end Get_Token_From_lexer;
+   end Get_Token_From_Lexer;
 
    --  This procedure consumes a token. If the token was already
    --  in the buffer, it just increases the index. Else, it gets
@@ -130,7 +130,7 @@ package body Parse is
          Get_Token_From_Lexer;
       end if;
       Current_Index := Current_Index + 1;
-   end Next_token;
+   end Next_Token;
 
    --  Returns the next token in the token stream coming from the
    --  lexer without consuming it. It places it in the buffer
@@ -1510,7 +1510,7 @@ package body Parse is
                      declare
                         Loc : Errors.Location;
                      begin
-                        loc := Types.Get_Location (Find_Identifier_Node.all);
+                        Loc := Types.Get_Location (Find_Identifier_Node.all);
                         Errors.Parser_Error
                           ("This module name is already defined in" &
                            " this scope : " &

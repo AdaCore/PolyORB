@@ -1,5 +1,5 @@
 GNAT_STYLE=-gnaty3bcefhikmt
-GNATMAKE_FLAGS=-g $(GNAT_STYLE) -gnatf -gnatwu -gnatwe
+GNATMAKE_FLAGS= $(GNAT_STYLE) -gnatf -gnatwu -gnatwe -gnatg
 all: testlexer testparser # gidlac # idlac
 
 testparser testlexer gidlac idlac: force

@@ -16,12 +16,12 @@
 --  MA 02111-1307, USA.
 --
 
-with Ada.Text_Io;
+with Ada.Text_IO;
 with Ada.Command_Line;
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
 with Ada.Characters.Handling;
-with Gnat.Case_Util;
-with Gnat.OS_Lib;
+with GNAT.Case_Util;
+with GNAT.OS_Lib;
 with Types; use Types;
 with Errors;
 
@@ -55,19 +55,19 @@ package body Tokens is
    --  example.
    Mark_Pos : Natural;
 
-
-   --  sets the location of the current token
-   --  actually only sets the line and column number
+   -------------------------
+   --  Set_Token_Location --
+   -------------------------
    procedure Set_Token_Location is
    begin
       Current_Token_Location.Filename := Current_Location.Filename;
       Current_Token_Location.Line := Current_Location.Line;
       Current_Token_Location.Col := Current_Location.Col + Offset - Line'First;
-   end set_token_location;
+   end Set_Token_Location;
 
-   --  returns the real location in the parsed file. The word real
-   --  means that the column number was changed to take the
-   --  tabulations into account
+   ------------------------
+   --  Get_Real_Location --
+   ------------------------
    function Get_Real_Location return Errors.Location is
    begin
       return (Filename => Current_Location.Filename,
@@ -75,86 +75,98 @@ package body Tokens is
               Col => Current_Location.Col + Offset - Line'First);
    end Get_Real_Location;
 
-   --  Reads the next line
+   ----------------
+   --  Read_Line --
+   ----------------
    procedure Read_Line is
    begin
       --  Get next line and append a LF at the end.
-      Ada.Text_Io.Get_Line (Line, Current_Line_Len);
+      Ada.Text_IO.Get_Line (Line, Current_Line_Len);
       Current_Line_Len := Current_Line_Len + 1;
-      Line (Current_Line_Len) := Lf;
+      Line (Current_Line_Len) := LF;
       Current_Location.Line := Current_Location.Line + 1;
-      current_location.Col := Line'First;
+      Current_Location.Col := Line'First;
       Offset := 0;
-      Mark_Pos := current_location.col;
+      Mark_Pos := Current_Location.Col;
    end Read_Line;
 
-   --  skips current char
+   -----------------
+   --  Skip_Char  --
+   -----------------
    procedure Skip_Char is
    begin
-      current_location.col := current_location.col + 1;
-      if current_location.col > Current_Line_Len then
+      Current_Location.Col := Current_Location.Col + 1;
+      if Current_Location.Col > Current_Line_Len then
          Read_Line;
       end if;
    end Skip_Char;
 
-   --  skips the current line
+   ----------------
+   --  Skip_Line --
+   ----------------
    procedure Skip_Line is
    begin
       Read_Line;
-      current_location.col := current_location.col - 1;
+      Current_Location.Col := Current_Location.Col - 1;
    end Skip_Line;
 
-   --  Gets the next char and consume it
+   -----------------
+   --  Next_Char  --
+   -----------------
    function Next_Char return Character is
    begin
       Skip_Char;
-      return Line (current_location.col);
+      return Line (Current_Location.Col);
    end Next_Char;
 
-   --  returns the next char without consuming it
-   --  warning : if it is the end of a line, returns
-   --  LF and not the first char of the next line
+   ----------------------
+   --  View_Next_Char  --
+   ----------------------
    function View_Next_Char return Character is
    begin
-      if current_location.col = Current_Line_Len then
-         return Lf;
+      if Current_Location.Col = Current_Line_Len then
+         return LF;
       else
-         return Line (current_location.col + 1);
+         return Line (Current_Location.Col + 1);
       end if;
    end View_Next_Char;
 
-   --  returns the next next char without consuming it
-   --  warning : if it is the end of a line, returns
-   --  LF and not the first or second char of the next line
+   ---------------------------
+   --  View_Next_Next_Char  --
+   ---------------------------
    function View_Next_Next_Char return Character is
    begin
-      if current_location.col > Current_Line_Len - 2 then
-         return Lf;
+      if Current_Location.Col > Current_Line_Len - 2 then
+         return LF;
       else
-         return Line (current_location.col + 2);
+         return Line (Current_Location.Col + 2);
       end if;
    end View_Next_Next_Char;
 
-   --  returns the current char
+   ------------------------
+   --  Get_Current_Char  --
+   ------------------------
    function Get_Current_Char return Character is
    begin
-      return Line (current_location.col);
+      return Line (Current_Location.Col);
    end Get_Current_Char;
 
-   --  calculates the new offset of the column when a tabulation
-   --  occurs.
+   ----------------------
+   --  Refresh_Offset  --
+   ----------------------
    procedure Refresh_Offset is
    begin
-      Offset := Offset + 8 - (current_location.col + Offset) mod 8;
+      Offset := Offset + 8 - (Current_Location.Col + Offset) mod 8;
    end Refresh_Offset;
 
-   --  Skips all spaces.
-   --  Actually, only used in scan_preprocessor
+   -------------------
+   --  Skip_Spaces  --
+   -------------------
    procedure Skip_Spaces is
    begin
       loop
          case View_Next_Char is
-            when Space | Cr | Vt | Ff | Ht =>
+            when Space | CR | VT | FF | HT =>
                Skip_Char;
             when others =>
                return;
@@ -162,7 +174,9 @@ package body Tokens is
       end loop;
    end Skip_Spaces;
 
-   --  Skips a /* ... */ comment
+   -------------------
+   --  Skip_Comment --
+   -------------------
    procedure Skip_Comment is
    begin
       loop
@@ -175,30 +189,36 @@ package body Tokens is
       end loop;
    end Skip_Comment;
 
-   --  Sets a mark in the text.
-   --  If the line changes, the mark is replaced at the beginning
-   --  of the new line
+   ----------------
+   --  Set_Mark  --
+   ----------------
    procedure Set_Mark is
    begin
-      Mark_Pos := current_location.col;
+      Mark_Pos := Current_Location.Col;
    end Set_Mark;
 
-   --  gets the text from the mark to the current position
+   -----------------------
+   --  Get_Marked_Text  --
+   -----------------------
    function Get_Marked_Text return String is
    begin
-      return Line (Mark_Pos .. current_location.col);
+      return Line (Mark_Pos .. Current_Location.Col);
    end Get_Marked_Text;
 
-   --  skips the characters until the next ' or the end of the line
+   -------------------------
+   --  Go_To_End_Of_Char  --
+   -------------------------
    procedure Go_To_End_Of_Char is
    begin
       while View_Next_Char /= '''
-        and View_Next_Char /= Lf loop
+        and View_Next_Char /= LF loop
          Skip_Char;
       end loop;
    end Go_To_End_Of_Char;
 
-   --  skips the characters until the next " or the end of the file
+   ---------------------------
+   --  Go_To_End_Of_String  --
+   ---------------------------
    procedure Go_To_End_Of_String is
    begin
       while View_Next_Char /= Quotation loop
@@ -212,7 +232,9 @@ package body Tokens is
    --  low level char processing  --
    ---------------------------------
 
-   --  returns true if C is an idl alphabetic character
+   -------------------------------
+   --  Is_Alphabetic_Character  --
+   -------------------------------
    function Is_Alphabetic_Character (C : Standard.Character) return Boolean is
    begin
       case C is
@@ -232,7 +254,9 @@ package body Tokens is
       end case;
    end Is_Alphabetic_Character;
 
-   --  returns true if C is a digit
+   --------------------------
+   --  Is_Digit_Character  --
+   --------------------------
    function Is_Digit_Character (C : Standard.Character) return Boolean is
    begin
       case C is
@@ -243,7 +267,9 @@ package body Tokens is
       end case;
    end Is_Digit_Character;
 
-   --  returns true if C is an octal digit
+   --------------------------------
+   --  Is_Octal_Digit_Character  --
+   --------------------------------
    function Is_Octal_Digit_Character (C : Standard.Character) return Boolean is
    begin
       case C is
@@ -254,7 +280,9 @@ package body Tokens is
       end case;
    end Is_Octal_Digit_Character;
 
-   --  returns true if C is an hexadecimal digit
+   -------------------------------
+   --  Is_Hexa_Digit_Character  --
+   -------------------------------
    function Is_Hexa_Digit_Character (C : Standard.Character) return Boolean is
    begin
       case C is
@@ -265,8 +293,9 @@ package body Tokens is
       end case;
    end Is_Hexa_Digit_Character;
 
-   --  returns true if C is an idl identifier character, ie either an
-   --  alphabetic character or a digit or the character '_'
+   -------------------------------
+   --  Is_Identifier_Character  --
+   -------------------------------
    function Is_Identifier_Character (C : Standard.Character) return Boolean is
    begin
       case C is
@@ -293,18 +322,12 @@ package body Tokens is
    --  idl string processing  --
    -----------------------------
 
-   --  compares two idl identifiers. The result is either DIFFER, if they
-   --  are different identifiers, or CASE_DIFFER if it is the same identifier
-   --  but with a different case on some letters, or at last EQUAL if it is
-   --  the same word.
-   --
-   --  CORVA V2.3, 3.2.3
-   --  When comparing two identifiers to see if they collide :
-   --    - Upper- and lower-case letters are treated as the same letter. (...)
-   --    - all characters are significant
+   ----------------------------
+   --  Idl_Identifier_Equal  --
+   ----------------------------
    function Idl_Identifier_Equal (Left, Right : String)
                                   return Ident_Equality is
-      use Gnat.Case_Util;
+      use GNAT.Case_Util;
    begin
       if Left'Length /= Right'Length then
          return Differ;
@@ -323,20 +346,9 @@ package body Tokens is
       end if;
    end Idl_Identifier_Equal;
 
-   --  the three kinds of identifiers : keywords, true
-   --  identifiers or miscased keywords.
-   type Idl_Keyword_State is
-     (Is_Keyword, Is_Identifier, Bad_Case);
-
-   --  checks whether s is an Idl keyword or not
-   --  the result can be Is_Keyword if it is,
-   --  Is_Identifier if it is not and Bad_Case if
-   --  it is one but with bad case
-   --
-   --  IDL Syntax and semantics, CORBA V2.3 § 3.2.4
-   --
-   --  keywords must be written exactly as in the above list. Identifiers
-   --  that collide with keywords (...) are illegal.
+   ----------------------
+   --  Is_Idl_Keyword  --
+   ----------------------
    procedure Is_Idl_Keyword (S : in String;
                              Is_A_Keyword : out Idl_Keyword_State;
                              Tok : out Idl_Token) is
@@ -371,28 +383,9 @@ package body Tokens is
    --      preprocessor directives.      --
    ----------------------------------------
 
-   --  Called when the current character is a '.
-   --  This procedure sets Current_Token and returns.
-   --  The get_marked_text function returns then the
-   --  character
-   --
-   --  IDL Syntax and semantics, CORBA V2.3 § 3.2.5
-   --
-   --  Char Literals : (3.2.5.2)
-   --  A character literal is one or more characters enclosed in single
-   --  quotes, as in 'x'.
-   --  Nongraphic characters must be represented using escape sequences as
-   --  defined in Table 3-9. (escape sequences are \n, \t, \v, \b, \r, \f,
-   --  \a, \\, \?, \', \", \ooo, \xhh and \uhhhh)
-   --
-   --  The escape \ooo consists of the backslash followed by one, two or
-   --  three octal digits that are taken to specify the value of the desired
-   --  character. The escape \xhh consists of the backslash followed by x
-   --  followed by one or two hexadecimal digits that are taken to specify
-   --  the value of the desired character.
-   --
-   --  The escape \uhhhh consist of a backslash followed by the character
-   --  'u', followed by one, two, three or four hexadecimal digits.
+   -----------------
+   --  Scan_Char  --
+   -----------------
    function Scan_Char return Idl_Token is
    begin
       if Next_Char = '\' then
@@ -504,7 +497,7 @@ package body Tokens is
                   Skip_Char;
                   return T_Error;
                end if;
-            when '8' | '9' | 'A' .. 'F' | LC_C .. LC_e =>
+            when '8' | '9' | 'A' .. 'F' | LC_C .. LC_E =>
                Go_To_End_Of_Char;
                Errors.Lexer_Error ("Invalid octal character code : "
                                    & Get_Marked_Text
@@ -553,22 +546,9 @@ package body Tokens is
    end Scan_Char;
 
 
-   --  Called when the current character is a ".
-   --  This procedure sets Current_Token and returns.
-   --  The get_marked_text function returns then the
-   --  string literal
-   --
-   --  IDL Syntax and semantics, CORBA V2.3 § 3.2.5
-   --
-   --  String Literals : (3.2.5.1)
-   --  A string literal is a sequence of characters (...) surrounded
-   --  by double quotes, as in "...".
-   --
-   --  Adjacent string literals are concatenated.
-   --  (...)
-   --  Within a string, the double quote character " must be preceded
-   --  by a \.
-   --  A string literal may not contain the character '\0'.
+   -------------------
+   --  Scan_String  --
+   -------------------
    function Scan_String return Idl_Token is
       Several_Lines : Boolean := False;
    begin
@@ -584,7 +564,7 @@ package body Tokens is
             when '\' =>
                case View_Next_Char is
                   when LC_N | LC_T | LC_V | LC_B | LC_R
-                    | LC_F | LC_A | '\' | '?' | ''' | QUOTATION =>
+                    | LC_F | LC_A | '\' | '?' | ''' | Quotation =>
                      Skip_Char;
                   when '0' =>
                      if Is_Octal_Digit_Character
@@ -633,7 +613,7 @@ package body Tokens is
                         Get_Real_Location);
                      return T_Error;
                end case;
-            when Lf =>
+            when LF =>
                if Several_Lines = False then
                   Errors.Lexer_Error
                     ("This String goes over several lines",
@@ -646,7 +626,7 @@ package body Tokens is
          end case;
       end loop;
    exception
-      when Ada.Text_Io.End_Error =>
+      when Ada.Text_IO.End_Error =>
          Errors.Lexer_Error ("unexpected end of file in the middle "
                              & "of a string, you probably forgot the "
                              & Quotation
@@ -658,32 +638,9 @@ package body Tokens is
    end Scan_String;
 
 
-   --  Called when the current character is a letter.
-   --  This procedure sets TOKEN and returns.
-   --  The get_marked_text function returns then the
-   --  name of the identifier
-   --
-   --  IDL Syntax and semantics, CORBA V2.3, 3.2.5
-   --
-   --  Wide Chars : 3.5.2.2
-   --  Wide characters litterals have an L prefix, for example :
-   --      const wchar C1 = L'X';
-   --
-   --  Wide Strings : 3.5.2.4
-   --  Wide string literals have an L prefix, for example :
-   --      const wstring S1 = L"Hello";
-   --
-   --  Identifiers : 3.2.3
-   --  An identifier is an arbritrarily long sequence of ASCII
-   --  alphabetic, digit and underscore characters.  The first
-   --  character must be an ASCII alphabetic character. All
-   --  characters are significant.
-   --
-   --  Keywords : 3.2.4
-   --  keywords must be written exactly as in the above list. Identifiers
-   --  that collide with keywords (...) are illegal. For example,
-   --  "boolean" is a valid keyword, "Boolean" and "BOOLEAN" are
-   --  illegal identifiers.
+   -----------------------
+   --  Scan_Identifier  --
+   -----------------------
    function Scan_Identifier return Idl_Token is
       Is_A_Keyword : Idl_Keyword_State;
       Tok : Idl_Token;
@@ -726,7 +683,7 @@ package body Tokens is
          end loop;
          Is_Idl_Keyword (Get_Marked_Text,
                          Is_A_Keyword,
-                         tok);
+                         Tok);
          case Is_A_Keyword is
             when Idl_Keyword_State (Is_Keyword) =>
                return Tok;
@@ -744,37 +701,9 @@ package body Tokens is
    end Scan_Identifier;
 
 
-   --  Called when the current character is a digit.
-   --  This procedure sets Current_Token and returns.
-   --  The get_marked_text function returns then the
-   --  numeric literal
-   --
-   --  IDL Syntax and semantics, CORBA V2.3 § 3.2.5
-   --
-   --  Integers Literals : (3.2.5.1)
-   --  An integer literal consisting of a sequence of digits is taken to be
-   --  decimal (base ten), unless it begins with 0 (digit zero).  A sequence
-   --  of digits starting with 0 is taken to be an octal integer (base eight).
-   --  The digits 8 and 9 are not octal digits.  A sequence of digits preceded
-   --  by 0x or 0X is taken to be a hexadecimal integer (base sixteen).  The
-   --  hexadecimal digits include a or A through f or F with decimal values
-   --  ten to through fifteen, repectively. For example, the number twelve can
-   --  be written 12, 014 or 0XC
-   --
-   --  Floating-point literals : (3.2.5.3)
-   --  A floating-point literal consists of an integer part, a decimal point,
-   --  a fraction part, an e or E, and an optionnaly signed integer exponent.
-   --  The integer and fraction parts both consists of a sequence of decimal
-   --  (base ten) digits. Either the integer part or the fraction part (but not
-   --  both may be missing; either the decimal point or the letter e (or E) and
-   --  the exponent (but not both) may be missing.
-   --
-   --  Fixed-point literals : (3.2.5.5)
-   --  A fixed-point decimal literal consists of an integer part, a decimal
-   --  point, a fraction part and a d or D. The integer and fraction part both
-   --  consist of a sequence of decimal (base ten) digits. Either the integer
-   --  part or the fraction part (but not both) may be missing; the decimal
-   --  point (but not the letter d (or D)) may be missing
+   --------------------
+   --  Scan_Numeric  --
+   --------------------
    function Scan_Numeric return Idl_Token is
    begin
       Set_Mark;
@@ -841,15 +770,9 @@ package body Tokens is
    end Scan_Numeric;
 
 
-   --  Called when the current character is a _.
-   --  This procedure sets Current_Token and returns.
-   --  The get_marked_text function returns then the
-   --  identifier
-   --
-   --  IDL Syntax and semantics, CORBA V2.3 § 3.2.3.1
-   --
-   --  "users may lexically "escape" identifiers by prepending an
-   --  underscore (_) to an identifier.
+   -----------------------
+   --  Scan_Underscore  --
+   -----------------------
    function Scan_Underscore return Idl_Token is
    begin
       if Is_Alphabetic_Character (View_Next_Char) then
@@ -874,14 +797,9 @@ package body Tokens is
    end Scan_Underscore;
 
 
-   --  Called when the current character is a #.
-   --  Deals with the preprocessor directives.
-   --  Actually, most of these are processed by gcc in a former
-   --  step; this function only deals with #PRAGMA and
-   --  #LINE directives.
-   --  it returns true if it produced a token, false else
-   --
-   --  IDL Syntax and semantics, CORBA V2.3 § 3.3
+   -------------------------
+   --  Scan_Preprocessor  --
+   -------------------------
    function Scan_Preprocessor return Boolean is
       use Ada.Characters.Handling;
    begin
@@ -924,7 +842,7 @@ package body Tokens is
                Skip_Spaces;
                Skip_Char;
                Set_Mark;
-               while View_Next_Char /= Lf loop
+               while View_Next_Char /= LF loop
                   Skip_Char;
                end loop;
                return True;
@@ -943,10 +861,10 @@ package body Tokens is
                Last : Positive;
                package Natural_IO is new Ada.Text_IO.Integer_IO (Natural);
             begin
-               Natural_IO.Get (Line (current_location.col .. Line'Last),
+               Natural_IO.Get (Line (Current_Location.Col .. Line'Last),
                                New_Line_Number,
                                Last);
-               current_location.col := Last;
+               Current_Location.Col := Last;
                Current_Location.Line := New_Line_Number - 1;
                Skip_Spaces;
                case View_Next_Char is
@@ -959,7 +877,7 @@ package body Tokens is
                      Current_Location.Filename
                        := new String'(Get_Marked_Text);
                      Skip_Spaces;
-                     while View_Next_Char /= Lf loop
+                     while View_Next_Char /= LF loop
                         --  there is a flag
                         case Next_Char is
                            when '1' | '2' | '3' | '4' =>
@@ -972,7 +890,7 @@ package body Tokens is
                         end case;
                         Skip_Spaces;
                      end loop;
-                  when Lf =>
+                  when LF =>
                      --  end of preprocessor directive
                      null;
                   when others =>
@@ -980,7 +898,7 @@ package body Tokens is
                      raise Errors.Internal_Error;
                end case;
             end;
-         when Lf =>
+         when LF =>
             --  This is an end of line.
             return False;
          when others =>
@@ -1009,6 +927,11 @@ package body Tokens is
    --  the arguments to be given to the preprocessor
    Args : GNAT.OS_Lib.Argument_List (1 .. 64);
    Arg_Count : Positive := 1;
+
+
+   --------------------
+   --  Add_Argument  --
+   --------------------
    procedure Add_Argument (Str : String) is
    begin
       Args (Arg_Count) := new String'(Str);
@@ -1020,12 +943,13 @@ package body Tokens is
    --  The main methods : initialize and next_token  --
    ----------------------------------------------------
 
-   --  initializes the lexer by opening the file to process
-   --  and by preprocessing it if necessary
+   ------------------
+   --  Initialize  --
+   ------------------
    procedure Initialize (Filename : in String;
                          Preprocess : in Boolean;
                          Keep_Temporary_Files : in Boolean) is
-      Idl_File : Ada.Text_Io.File_Type;
+      Idl_File : Ada.Text_IO.File_Type;
    begin
       if Filename'Length = 0 then
          Errors.Lexer_Error ("Missing idl file as argument",
@@ -1070,26 +994,28 @@ package body Tokens is
                                    Errors.Fatal,
                                    Get_Real_Location);
             end if;
-            Ada.Text_Io.Open (Idl_File,
-                              Ada.Text_Io.In_File,
+            Ada.Text_IO.Open (Idl_File,
+                              Ada.Text_IO.In_File,
                               Tmp_File_Name);
          end;
       else
-         Ada.Text_Io.Open (Idl_File,
-                           Ada.Text_Io.In_File,
+         Ada.Text_IO.Open (Idl_File,
+                           Ada.Text_IO.In_File,
                            Filename);
       end if;
-      Ada.Text_Io.Set_Input (Idl_File);
-   end initialize;
+      Ada.Text_IO.Set_Input (Idl_File);
+   end Initialize;
 
-   --  Gets the next token and puts it in current_token
+   ----------------------
+   --  Get_Next_Token  --
+   ----------------------
    function Get_Next_Token return Idl_Token is
    begin
       loop
          case Next_Char is
-            when Space | Cr | Vt | Ff | Lf =>
+            when Space | CR | VT | FF | LF =>
                null;
-            when Ht =>
+            when HT =>
                Refresh_Offset;
             when ';' =>
                Set_Token_Location;
@@ -1102,7 +1028,7 @@ package body Tokens is
                return T_Right_Cbracket;
             when ':' =>
                Set_Token_Location;
-               if view_next_char = ':' then
+               if View_Next_Char = ':' then
                   Skip_Char;
                   return T_Colon_Colon;
                else
@@ -1227,7 +1153,7 @@ package body Tokens is
          end case;
       end loop;
       exception
-         when Ada.Text_Io.End_Error =>
+         when Ada.Text_IO.End_Error =>
             if not Keep_Temporary_Files then
                declare
                   use GNAT.OS_Lib;
@@ -1244,14 +1170,19 @@ package body Tokens is
    --  methods useful for the parser  --
    -------------------------------------
 
-   --  returns the location of the current token
+   --------------------------
+   --  Get_Lexer_Location  --
+   --------------------------
    function Get_Lexer_Location return Errors.Location is
    begin
       return Current_Token_Location;
    end Get_Lexer_Location;
 
-   --  returns the name of the current identifier
+   ------------------------
+   --  Get_Lexer_String  --
+   ------------------------
    function Get_Lexer_String return String renames Get_Marked_Text;
+
 
    -------------------------
    --  Maybe useless ???  --

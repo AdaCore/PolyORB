@@ -4,5 +4,5 @@ module
 module toto
 module toto {}
 module toto {};
-
+module titi {};
 
