@@ -42,6 +42,7 @@ with GNAT.Command_Line;
 with GNAT.Directory_Operations;
 with GNAT.Expect;
 with GNAT.OS_Lib;
+with GNAT.Regpat;
 
 with PolyORB.Configuration;
 with PolyORB.Log;
@@ -52,8 +53,9 @@ procedure Test_Driver is
    use Ada.Text_IO;
 
    use GNAT.Command_Line;
-   use GNAT.OS_Lib;
    use GNAT.Directory_Operations;
+   use GNAT.OS_Lib;
+   use GNAT.Regpat;
 
    use PolyORB.Configuration;
    use PolyORB.Log;
@@ -66,26 +68,39 @@ procedure Test_Driver is
      (Local,
       Client_Server);
 
-   Default_Timeout : constant Integer := 10_000;
+   type Executable is record
+      Command  : Unbounded_String;
+      --  Command to run.
+
+      Conf     : Unbounded_String;
+      --  Associated configuration file if required.
+   end record;
+
+   Null_Executable : constant Executable :=
+     (Command => To_Unbounded_String (""),
+      Conf    => To_Unbounded_String (""));
+
+   type Exec_List is array (Positive range <>) of Executable;
 
    type Test_Case is record
       Id         : Ada.Strings.Unbounded.Unbounded_String;
       Test_Type  : Test_Kind := Local;
-      Executable : Ada.Strings.Unbounded.Unbounded_String;
       Timeout    : Integer := 0;
+      Exe_To_Run : Exec_List (1 .. 2);
    end record;
 
    Null_Test : constant Test_Case :=
-     (Id => To_Unbounded_String (""),
-      Test_Type => Local,
-      Executable => To_Unbounded_String (""),
-      Timeout => 0);
+     (Id         => To_Unbounded_String (""),
+      Test_Type  => Local,
+      Timeout    => 0,
+      Exe_To_Run => (others => Null_Executable));
 
    function Extract_Test
      (Scenario : String;
       Number   : Natural)
      return Test_Case;
    --  Extract test case #Number from scenario file.
+   --  XXX Ugly, need to define an adapted configuration file.
 
    procedure Launch_Test (Test_To_Run : Test_Case);
    --  Launch test.
@@ -108,6 +123,8 @@ procedure Test_Driver is
       Number   : Natural)
      return Test_Case
    is
+      Default_Timeout : constant Integer := 10_000;
+
       Test_Id : constant String := Natural'Image (Number);
       Section : constant String
         := "test " & Scenario & "_"
@@ -117,18 +134,15 @@ procedure Test_Driver is
 
       Id_S         : constant String := Get_Conf (Section, "id");
       Test_Type_S  : constant String := Get_Conf (Section, "type");
-      Executable_S : constant String := Get_Conf (Section, "command");
    begin
-
       --  Is there a test to extract ?
-      if Id_S = "" and then Test_Type_S = "" and then Executable_S = "" then
+      if Id_S = "" and then Test_Type_S = "" then
          return Null_Test;
       end if;
 
       O ("Read     : " & Section);
       O (" Id      : " & Id_S);
       O (" Type    : " & Test_Type_S);
-      O (" Command : " & Executable_S);
 
       --  Test Id.
       Result.Id := To_Unbounded_String (Id_S);
@@ -136,7 +150,10 @@ procedure Test_Driver is
       --  Test type.
       if Test_Type_S = "local" then
          Result.Test_Type := Local;
+      elsif Test_Type_S = "client_server" then
+         Result.Test_Type := Client_Server;
       else
+         Put_Line ("Syntax error in scenario file.");
          raise Program_Error;
       end if;
 
@@ -145,15 +162,46 @@ procedure Test_Driver is
          Timeout_S : constant String := Get_Conf (Section, "timeout");
       begin
          Result.Timeout := Integer'Value (Timeout_S);
-         pragma Debug (O ("timeout is " & Integer'Image (Result.Timeout)));
+         O (" Timeout :" & Integer'Image (Result.Timeout));
       exception
          when others =>
             Result.Timeout := Default_Timeout;
       end;
 
-      --  Test executable.
-      Result.Executable := To_Unbounded_String (Executable_S);
+      --  Test executable(s) to run.
+      case Result.Test_Type is
+         when Local =>
+            declare
+               Command_S : constant String := Get_Conf (Section, "command");
+            begin
+               Result.Exe_To_Run (1).Command
+                 := To_Unbounded_String (Command_S);
+            end;
 
+         when Client_Server =>
+            declare
+               Client_Section : constant String
+                 := "client " & Scenario & "_"
+                 & Test_Id (Test_Id'First + 1 .. Test_Id'Last);
+
+               Client_S : constant String :=
+                 Get_Conf (Client_Section, "command");
+
+               Server_Section : constant String
+                 := "server " & Scenario & "_"
+                 & Test_Id (Test_Id'First + 1 .. Test_Id'Last);
+
+               Server_S : constant String :=
+                 Get_Conf (Server_Section, "command");
+            begin
+               Result.Exe_To_Run (1).Command
+                 := To_Unbounded_String (Server_S);
+
+               Result.Exe_To_Run (2).Command
+                 := To_Unbounded_String (Client_S);
+
+            end;
+      end case;
       return Result;
    end Extract_Test;
 
@@ -165,48 +213,156 @@ procedure Test_Driver is
    is
       use GNAT.Expect;
 
-      Result   : Expect_Match;
-      Fd       : Process_Descriptor;
-      Null_Argument_List : Argument_List := (1 => new String'(""));
+      Null_Argument_List : constant Argument_List := (1 => new String'(""));
+
       Item_To_Match : constant Regexp_Array
         := Regexp_Array'(+"FAILED",
                          +"END TESTS(.*)PASSED");
 
+      -----------------------
+      -- Launch_Local_Test --
+      -----------------------
+
+      procedure Launch_Local_Test (Test_To_Run : Test_Case);
+
+      procedure Launch_Local_Test (Test_To_Run : Test_Case)
+      is
+         Result   : Expect_Match;
+         Fd       : Process_Descriptor;
+         Command  : constant String
+           := "./" & To_String (Test_To_Run.Exe_To_Run (1).Command);
+
+      begin
+         --  Launch Test.
+         Put_Line ("Running: " & Command);
+         Non_Blocking_Spawn (Fd, Command, Null_Argument_List);
+
+         --  Redirect Output.
+         Add_Filter (Fd, Trace_Filter'Access, Output);
+
+         --  Parse output.
+         Expect (Fd, Result, Item_To_Match, Test_To_Run.Timeout);
+         case Result is
+            when 1 =>
+               Put_Line ("==> Test failed <==");
+
+            when 2 =>
+               Put_Line ("==> Test finished <==");
+
+            when Expect_Timeout =>
+               Put_Line ("==> Time Out ! <==");
+
+            when others =>
+               null;
+
+         end case;
+
+         New_Line;
+         Close (Fd);
+      end Launch_Local_Test;
+
+      -------------------------------
+      -- Launch_Client_Server_Test --
+      -------------------------------
+
+      procedure Launch_Client_Server_Test (Test_To_Run : Test_Case);
+
+      procedure Launch_Client_Server_Test (Test_To_Run : Test_Case)
+      is
+         Result    : Expect_Match;
+         Fd_Server : Process_Descriptor;
+         Fd_Client : Process_Descriptor;
+
+         Match : Match_Array (0 .. 2);
+         Server_Command : constant String
+           := "./" & To_String (Test_To_Run.Exe_To_Run (1).Command);
+
+         Client_Command : constant String
+           := "./" & To_String (Test_To_Run.Exe_To_Run (2).Command);
+
+         IOR_String : Unbounded_String;
+
+      begin
+         --  Launch Server.
+         Put_Line ("Running server: " & Server_Command);
+         Non_Blocking_Spawn (Fd_Server, Server_Command, Null_Argument_List);
+
+         --  Match Server IOR.
+         Add_Filter (Fd_Server, Trace_Filter'Access, Output);
+         Expect (Fd_Server, Result, "IOR:(.*)", Match, -1);
+         case Result is
+            when 1 =>
+               IOR_String := To_Unbounded_String
+                 (Expect_Out (Fd_Server)
+                  (Match (0).First .. Match (0).Last - 1));
+
+            when others =>
+               raise Program_Error;
+
+         end case;
+
+         --  Launch Client.
+         New_Line;
+         Put_Line ("Running client: " & Client_Command);
+         declare
+            Client_Argument_List : constant Argument_List
+              := (1 => new String'(To_String (IOR_String)));
+         begin
+            Non_Blocking_Spawn (Fd_Client,
+                                Client_Command,
+                                Client_Argument_List);
+
+            --  Redirect Output.
+            Add_Filter (Fd_Client, Trace_Filter'Access, Output);
+
+            --  Parse output.
+            Expect (Fd_Client, Result, Item_To_Match, Test_To_Run.Timeout);
+            case Result is
+               when 1 =>
+                  Put_Line ("==> Test failed <==");
+
+               when 2 =>
+                  Put_Line ("==> Test finished <==");
+
+               when Expect_Timeout =>
+                  Put_Line ("==> Time Out ! <==");
+
+               when others =>
+                  null;
+
+            end case;
+
+            New_Line;
+            Close (Fd_Client);
+         end;
+
+         New_Line;
+         Close (Fd_Server);
+      exception
+         when others =>
+            Close (Fd_Server);
+      end Launch_Client_Server_Test;
+
    begin
       Put_Line ("Launching test: " & To_String (Test_To_Run.Id));
 
-      Non_Blocking_Spawn (Fd,
-                          "./" & To_String (Test_To_Run.Executable),
-                          Null_Argument_List);
-      Add_Filter (Fd, Trace_Filter'Access, Output);
-      Expect (Fd, Result, Item_To_Match, Test_To_Run.Timeout);
-      case Result is
-         when 1 =>
-            Put_Line ("==> Test failed <==");
+      if Test_To_Run.Test_Type = Local then
+         Launch_Local_Test (Test_To_Run);
 
-         when 2 =>
-            Put_Line ("==> Test finished <==");
-
-         when Expect_Timeout =>
-            Put_Line ("==> Time Out ! <==");
-
-         when others =>
-            null;
-
-      end case;
-
-      New_Line;
-      Close (Fd);
+      elsif Test_To_Run.Test_Type = Client_Server then
+         Launch_Client_Server_Test (Test_To_Run);
+      end if;
 
    exception
-      when E : others =>
-         Put_Line ("==> Test failure <==");
-         Put_Line (" Got exception: "
-                   & Ada.Exceptions.Exception_Name (E)
-                   & ", "
-                   & Ada.Exceptions.Exception_Message (E));
+      when GNAT.Expect.Process_Died =>
+         --  The process may normally exit or die because of an internal
+         --  error. We cannot judge at this stage.
+
+         Put_Line ("==> Process Terminated <==");
          New_Line;
-         Close (Fd);
+
+      when others =>
+         raise;
 
    end Launch_Test;
 
@@ -331,5 +487,12 @@ exception
    when Invalid_Parameter =>
       Put_Line ("No parameter for " & Full_Switch);
       Usage;
+
+   when E : others =>
+      Put_Line ("==> Internal Error <==");
+      Put_Line (" Got exception: "
+                & Ada.Exceptions.Exception_Name (E)
+                & ", "
+                & Ada.Exceptions.Exception_Message (E));
 
 end Test_Driver;
