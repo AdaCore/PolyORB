@@ -407,7 +407,10 @@ extern _CORBA_Boolean dispatch(GIOP_S &,
 			       const char *operation,
 			       _CORBA_Boolean response_expected);
 // See implementation in omniobject.adb
-  
+
+// Ada_Is_A
+//----------
+extern _CORBA_Boolean Ada_Is_A(const char *repoid) ;
 
 // setRepositoryID
 //----------------

@@ -141,6 +141,11 @@ public:
   // this function is made a procedure because it takes
   // arguments passed by reference
 
+  _CORBA_Boolean Ada_Is_A(const char *repoid) ;
+  // it is implemented in omniobject.ads
+  // returns true if this object can be
+  // widened/narrow into this interface
+  
   const char* getRepositoryID() ;
   // calls th NP_repositoryId of omniObject
   
