@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---          POLYORB.POA_POLICIES.ID_MULTIPLENESS_POLICY.MULTIPLE            --
+--           POLYORB.POA_POLICIES.ID_UNIQUENESS_POLICY.MULTIPLE             --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
