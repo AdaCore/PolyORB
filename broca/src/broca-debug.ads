@@ -36,7 +36,6 @@
 --  Usage is as follows:
 --
 --  with Broca.Debug;
---  pragma Elaborate(Broca.Debug);
 --
 --  package Broca.Foo is
 --     Flag : constant Natural := Broca.Debug.Is_Active ("specific_name");
