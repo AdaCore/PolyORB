@@ -33,7 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Utils;
+with System.Garlic.Types;
 
 package System.Garlic.Soft_Links is
 
@@ -88,57 +88,6 @@ package System.Garlic.Soft_Links is
      (P : in Parameterless_Procedure);
    procedure Leave_Critical_Section;
 
-   -------------
-   -- Barrier --
-   -------------
-
-   type Barrier_Type is abstract tagged null record;
-
-   procedure Destroy (B : in out Barrier_Type) is abstract;
-
-   procedure Signal
-     (B : in Barrier_Type;
-      N : in Positive := 1) is abstract;
-   --  Release N processes waiting on the barrier.
-
-   procedure Signal_All
-     (B : in Barrier_Type;
-      P : in Boolean := True) is abstract;
-   --  Release all processes waiting on the barrier. If P is true,
-   --  this barrier is no longer blocking.
-
-   procedure Wait (B : in Barrier_Type) is abstract;
-
-   type Barrier_Access is access all Barrier_Type'Class;
-
-   type Barrier_Creation_Function is
-     access function return Barrier_Access;
-
-   procedure Register_Barrier_Creation_Function
-     (F : in Barrier_Creation_Function);
-
-   procedure Create (B : out Barrier_Access);
-   pragma Inline (Create);
-
-   procedure Destroy (B : in out Barrier_Access);
-   pragma Inline (Destroy);
-
-   procedure Signal
-     (B : in Barrier_Access;
-      N : in Positive := 1);
-   pragma Inline (Signal);
-   --  Release N processes waiting on the barrier.
-
-   procedure Signal_All
-     (B : in Barrier_Access;
-      P : in Boolean := True);
-   pragma Inline (Signal_All);
-   --  Release all processes waiting on the barrier. If P is true,
-   --  this barrier is no longer blocking.
-
-   procedure Wait (B : in Barrier_Access);
-   pragma Inline (Wait);
-
    -----------
    -- Mutex --
    -----------
@@ -181,36 +130,38 @@ package System.Garlic.Soft_Links is
 
    procedure Differ
      (W : in Watcher_Type;
-      V : in Utils.Version_Id) is abstract;
+      V : in Types.Version_Id) is abstract;
    --  Await until W version differs from V
 
    procedure Lookup
      (W : in Watcher_Type;
-      V : out Utils.Version_Id) is abstract;
+      V : out Types.Version_Id) is abstract;
    --  Fetch W version
 
-   procedure Update (W : in Watcher_Type) is abstract;
+   procedure Update (W : in out Watcher_Type) is abstract;
    --  Increment W version
 
    type Watcher_Access is access all Watcher_Type'Class;
 
    type Watcher_Creation_Function is
-     access function return Watcher_Access;
+     access function (V : in Types.Version_Id) return Watcher_Access;
 
    procedure Register_Watcher_Creation_Function
      (F : in Watcher_Creation_Function);
 
-   procedure Create (W : out Watcher_Access);
+   procedure Create
+     (W : out Watcher_Access;
+      V : in  Types.Version_Id := Types.No_Version);
    pragma Inline (Create);
 
    procedure Destroy (W : in out Watcher_Access);
    pragma Inline (Destroy);
 
-   procedure Differ (W : in Watcher_Access; V : in Utils.Version_Id);
+   procedure Differ (W : in Watcher_Access; V : in Types.Version_Id);
    pragma Inline (Differ);
    --  Await until W version differs from V
 
-   procedure Lookup (W : in Watcher_Access; V : out Utils.Version_Id);
+   procedure Lookup (W : in Watcher_Access; V : out Types.Version_Id);
    pragma Inline (Lookup);
    --  Fetch W version
 
@@ -235,7 +186,7 @@ package System.Garlic.Soft_Links is
 
    procedure Leave (M : in Adv_Mutex_Type) is abstract;
 
-   type Adv_Mutex_Access is access all Adv_Mutex_Type'Class;
+   type Adv_Mutex_Access is access Adv_Mutex_Type'Class;
 
    type Adv_Mutex_Creation_Function is
      access function return Adv_Mutex_Access;
@@ -262,5 +213,54 @@ package System.Garlic.Soft_Links is
    procedure Register_RPC_Shutdown
      (P : in Parameterless_Procedure);
    procedure RPC_Shutdown;
+
+   -----------------------
+   -- Tasking Utilities --
+   -----------------------
+
+   type Return_Boolean_Function is access function return Boolean;
+
+   procedure Register_Is_Environment_Task
+     (F : in Return_Boolean_Function);
+   function Is_Environment_Task return Boolean;
+
+   type Return_Natural_Function is access function return Natural;
+
+   procedure Register_Env_Task_Awake_Count
+     (F : in Return_Natural_Function);
+   function Env_Task_Awake_Count return Natural;
+
+   procedure Register_Independent_Task_Count
+     (F : in Return_Natural_Function);
+   function Independent_Task_Count return Natural;
+
+   procedure Register_List_Tasks
+     (P : in Parameterless_Procedure);
+   procedure List_Tasks;
+
+   procedure Register_Get_Priority
+     (F : in Return_Natural_Function);
+   function Get_Priority return Natural;
+
+   type Natural_Parameter_Procedure is access procedure (N : in Natural);
+   procedure Register_Set_Priority
+     (P : in Natural_Parameter_Procedure);
+   procedure Set_Priority (P : in Natural);
+
+   type Abort_Handler_Type is tagged
+      record
+         PID  : Types.Partition_ID;
+         Wait : Boolean;
+         Key  : Natural;
+      end record;
+
+   procedure Adjust (Self : in out Abort_Handler_Type);
+
+   type Abort_Handler_Access is access all Abort_Handler_Type'Class;
+
+   procedure Register_Abort_Handler
+     (Abort_Handler : in Abort_Handler_Access);
+
+   function Abort_Handler return Abort_Handler_Type'Class;
 
 end System.Garlic.Soft_Links;
