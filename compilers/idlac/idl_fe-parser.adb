@@ -564,6 +564,12 @@ package body Idl_Fe.Parser is
       loop
          exit when Get_Token /= T_Import;
          Parse_Import (Repository, Definition_Result);
+         if not Definition_Result then
+            while Get_Token /= T_Semi_Colon loop
+               Next_Token;
+            end loop;
+            Next_Token;
+         end if;
       end loop;
 
       while Get_Token /= T_Eof loop
@@ -7280,6 +7286,7 @@ package body Idl_Fe.Parser is
          Success := False;
       end if;
       Next_Token;
+      Success := True;
    end Parse_Import;
 
    ---------------------------
