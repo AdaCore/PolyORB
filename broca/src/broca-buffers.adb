@@ -711,7 +711,7 @@ package body Broca.Buffers is
          use Sockets.Thin;
          use Interfaces.C;
 
-         Vecs : constant Iovec_Array
+         Vecs : Iovec_Array
            := Iovecs (Iovec_Pool.all);
 
          Index : Index_Type := Vecs'First;
