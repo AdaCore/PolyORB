@@ -1107,6 +1107,14 @@ package body PolyORB.ORB is
             Req : Requests.Request
               renames Executed_Request (Msg).Req.all;
          begin
+
+            --  The processing of Executed_Request must be done
+            --  in the ORB critical section, because it must not
+            --  take place between the time an ORB task checks its
+            --  exit condition and the moment the task goes idle.
+
+            Enter (ORB.ORB_Lock);
+
             Req.Completed := True;
 
             --  XXX The correctness of the following is not
@@ -1149,6 +1157,7 @@ package body PolyORB.ORB is
                --  the completion of the request: nothing to do.
                null;
             end if;
+            Leave (ORB.ORB_Lock);
          end;
 
       elsif Msg in Interface.Oid_Translate then
