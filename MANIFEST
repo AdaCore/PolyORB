@@ -365,5 +365,7 @@ ada/tree_io.adb
 ada/tree_io.ads
 ada/types.adb
 ada/types.ads
+ada/usage.adb
+ada/usage.ads
 ada/widechar.adb
 ada/widechar.ads
