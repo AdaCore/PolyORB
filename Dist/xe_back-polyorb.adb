@@ -1101,7 +1101,7 @@ package body XE_Back is
             return;
          end if;
          F := F + 1;
-         for J in 1 .. (P'Length - 1) / Max_String_Length loop
+         for J in 1 .. (P'Length - 2) / Max_String_Length loop
             L := F + Max_String_Length - 1;
             Write_Char ('"'); --  "
             Write_Str  (P (F .. L));
