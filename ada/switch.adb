@@ -310,7 +310,6 @@ package body Switch is
 
             if Program = Compiler then
                GNAT_Mode                := True;
-               Style_Check              := True;
                Identifier_Character_Set := 'n';
                Warning_Mode             := Treat_As_Error;
                Check_Unreferenced       := True;
@@ -583,13 +582,7 @@ package body Switch is
             --  to be removed for 3.13 ???
 
             if Program = Compiler then
-               Style_Check := True;
-
-               declare
-                  Discard : Boolean;
-               begin
-                  Set_Style_Check_Option ('l', Discard);
-               end;
+               Set_Style_Check_Options ("l");
             else
                raise Bad_Switch;
             end if;
@@ -690,8 +683,24 @@ package body Switch is
             if Program = Compiler or else Program = Binder then
 
                case Switch_Chars (Ptr) is
-                  when 's' =>
-                     Warning_Mode  := Suppress;
+
+                  when 'a' =>
+                     Constant_Condition_Warnings := True;
+                     Elab_Warnings               := True;
+                     Check_Unreferenced          := True;
+                     Check_Withs                 := True;
+
+                  when 'A' =>
+                     Constant_Condition_Warnings := False;
+                     Elab_Warnings               := False;
+                     Check_Unreferenced          := False;
+                     Check_Withs                 := False;
+
+                  when 'c' =>
+                     Constant_Condition_Warnings := True;
+
+                  when 'C' =>
+                     Constant_Condition_Warnings := False;
 
                   when 'e' =>
                      Warning_Mode  := Treat_As_Error;
@@ -701,6 +710,9 @@ package body Switch is
 
                   when 'L' =>
                      Elab_Warnings := False;
+
+                  when 's' =>
+                     Warning_Mode  := Suppress;
 
                   when 'u' =>
                      Check_Unreferenced := True;
@@ -777,35 +789,26 @@ package body Switch is
                raise Bad_Switch;
             end if;
 
+         --  Processing for y switch
+
          elsif C = 'y' then
             if Program = Compiler then
                Ptr := Ptr + 1;
-               Style_Check := True;
 
                if Ptr > Max then
                   Set_Default_Style_Check_Options;
 
                else
                   declare
-                     OK : Boolean;
+                     OK  : Boolean;
 
                   begin
-                     while Ptr <= Max loop
-                        C := Switch_Chars (Ptr);
+                     Set_Style_Check_Options
+                       (Switch_Chars (Ptr .. Max), OK, Ptr);
 
-                        if C = 'M' then
-                           Ptr := Ptr + 1;
-                           Set_Max_Line_Length (Scan_Pos);
-                        else
-                           Set_Style_Check_Option (C, OK);
-
-                           if not OK then
-                              raise Bad_Switch;
-                           else
-                              Ptr := Ptr + 1;
-                           end if;
-                        end if;
-                     end loop;
+                     if not OK then
+                        raise Bad_Switch;
+                     end if;
                   end;
                end if;
 

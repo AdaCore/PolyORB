@@ -27,91 +27,217 @@
 ------------------------------------------------------------------------------
 
 with Hostparm; use Hostparm;
+with Opt;      use Opt;
 
 package body Stylesw is
+
+   ------------------------------
+   -- Save_Style_Check_Options --
+   ------------------------------
+
+   procedure Save_Style_Check_Options (Options : out Style_Check_Options) is
+      P : Natural := 0;
+      J : Natural;
+
+      procedure Add (C : Character; S : Boolean);
+      --  Add given character C to string if switch S is true
+
+      procedure Add (C : Character; S : Boolean) is
+      begin
+         if S then
+            P := P + 1;
+            Options (P) := C;
+         end if;
+      end Add;
+
+   begin
+      for K in Options'Range loop
+         Options (K) := ' ';
+      end loop;
+
+      Add (Character'Val (Style_Check_Indentation + Character'Pos ('0')),
+           Style_Check_Indentation /= 0);
+
+      Add ('a', Style_Check_Attribute_Casing);
+      Add ('b', Style_Check_Blanks_At_End);
+      Add ('c', Style_Check_Comments);
+      Add ('e', Style_Check_End_Labels);
+      Add ('f', Style_Check_Form_Feeds);
+      Add ('h', Style_Check_Horizontal_Tabs);
+      Add ('i', Style_Check_If_Then_Layout);
+      Add ('k', Style_Check_Keyword_Casing);
+      Add ('l', Style_Check_Layout);
+      Add ('m', Style_Check_Max_Line_Length);
+      Add ('p', Style_Check_Pragma_Casing);
+      Add ('r', Style_Check_References);
+      Add ('s', Style_Check_Specs);
+      Add ('t', Style_Check_Tokens);
+
+      if Style_Check_Max_Line_Length then
+         P := Options'Last;
+         J := Natural (Style_Max_Line_Length);
+
+         loop
+            Options (P) := Character'Val (J mod 10 + Character'Pos ('0'));
+            P := P - 1;
+            J := J / 10;
+            exit when J = 0;
+         end loop;
+
+         Options (P) := 'M';
+      end if;
+
+   end Save_Style_Check_Options;
 
    -------------------------------------
    -- Set_Default_Style_Check_Options --
    -------------------------------------
 
    procedure Set_Default_Style_Check_Options is
-      Checks : constant String := "3abcefhiklmprst";
-      Discard : Boolean;
-
    begin
-      for J in Checks'Range loop
-         Set_Style_Check_Option (Checks (J), Discard);
-      end loop;
+      Reset_Style_Check_Options;
+      Set_Style_Check_Options ("3abcefhiklmprst");
    end Set_Default_Style_Check_Options;
 
-   -------------------------
-   -- Set_Max_Line_Length --
-   -------------------------
+   -------------------------------
+   -- Reset_Style_Check_Options --
+   -------------------------------
 
-   procedure Set_Max_Line_Length (Max : Nat) is
+   procedure Reset_Style_Check_Options is
    begin
-      Style_Max_Line_Length := Int'Min (Max, Hostparm.Max_Line_Length);
-      Style_Check_Max_Line_Length := True;
-   end Set_Max_Line_Length;
+      Style_Check_Indentation      := 0;
+      Style_Check_Attribute_Casing := False;
+      Style_Check_Blanks_At_End    := False;
+      Style_Check_Comments         := False;
+      Style_Check_End_Labels       := False;
+      Style_Check_Form_Feeds       := False;
+      Style_Check_Horizontal_Tabs  := False;
+      Style_Check_If_Then_Layout   := False;
+      Style_Check_Keyword_Casing   := False;
+      Style_Check_Layout           := False;
+      Style_Check_Max_Line_Length  := False;
+      Style_Check_Pragma_Casing    := False;
+      Style_Check_References       := False;
+      Style_Check_Specs            := False;
+      Style_Check_Tokens           := False;
+   end Reset_Style_Check_Options;
 
-   ----------------------------
-   -- Set_Style_Check_Option --
-   ----------------------------
+   -----------------------------
+   -- Set_Style_Check_Options --
+   -----------------------------
 
-   procedure Set_Style_Check_Option (C : Character; OK : out Boolean) is
+   --  Version used when no error checking is required
+
+   procedure Set_Style_Check_Options (Options : String) is
+      OK : Boolean;
+      EC : Natural;
+
    begin
+      Set_Style_Check_Options (Options, OK, EC);
+   end Set_Style_Check_Options;
+
+   --  Normal version with error checking
+
+   procedure Set_Style_Check_Options
+     (Options  : String;
+      OK       : out Boolean;
+      Err_Col  : out Natural)
+   is
+      J : Natural;
+      C : Character;
+
+   begin
+      J := Options'First;
+      while J <= Options'Last loop
+         C := Options (J);
+         J := J + 1;
+
+         case C is
+            when '1' .. '9' =>
+               Style_Check_Indentation
+                  := Character'Pos (C) - Character'Pos ('0');
+
+            when 'a' =>
+               Style_Check_Attribute_Casing := True;
+
+            when 'b' =>
+               Style_Check_Blanks_At_End    := True;
+
+            when 'c' =>
+               Style_Check_Comments         := True;
+
+            when 'e' =>
+               Style_Check_End_Labels       := True;
+
+            when 'f' =>
+               Style_Check_Form_Feeds       := True;
+
+            when 'h' =>
+               Style_Check_Horizontal_Tabs  := True;
+
+            when 'i' =>
+               Style_Check_If_Then_Layout   := True;
+
+            when 'k' =>
+               Style_Check_Keyword_Casing   := True;
+
+            when 'l' =>
+               Style_Check_Layout           := True;
+
+            when 'm' =>
+               Style_Check_Max_Line_Length  := True;
+               Style_Max_Line_Length        := 79;
+
+            when 'M' =>
+               Style_Max_Line_Length := 0;
+
+               if J > Options'Last
+                 or else Options (J) not in '0' .. '9'
+               then
+                  OK := False;
+                  Err_Col := J;
+                  return;
+               end if;
+
+               loop
+                  Style_Max_Line_Length :=
+                    Style_Max_Line_Length * 10 +
+                      Character'Pos (Options (J)) - Character'Pos ('0');
+                  J := J + 1;
+                  exit when J > Options'Last
+                    or else Options (J) not in '0' .. '9';
+               end loop;
+
+               Style_Max_Line_Length :=
+                  Int'Min (Style_Max_Line_Length, Hostparm.Max_Line_Length);
+
+               Style_Check_Max_Line_Length := Style_Max_Line_Length /= 0;
+
+            when 'p' =>
+               Style_Check_Pragma_Casing    := True;
+
+            when 'r' =>
+               Style_Check_References       := True;
+
+            when 's' =>
+               Style_Check_Specs            := True;
+
+            when 't' =>
+               Style_Check_Tokens           := True;
+
+            when ' ' =>
+               null;
+
+            when others =>
+               OK      := False;
+               Err_Col := J - 1;
+               return;
+         end case;
+      end loop;
+
+      Style_Check := True;
       OK := True;
-
-      case C is
-         when '1' .. '9' =>
-            Style_Check_Indentation := Character'Pos (C) - Character'Pos ('0');
-
-         when 'a' =>
-            Style_Check_Attribute_Casing := True;
-
-         when 'b' =>
-            Style_Check_Blanks_At_End    := True;
-
-         when 'c' =>
-            Style_Check_Comments         := True;
-
-         when 'e' =>
-            Style_Check_End_Labels       := True;
-
-         when 'f' =>
-            Style_Check_Form_Feeds       := True;
-
-         when 'h' =>
-            Style_Check_Horizontal_Tabs  := True;
-
-         when 'i' =>
-            Style_Check_If_Then_Layout   := True;
-
-         when 'k' =>
-            Style_Check_Keyword_Casing   := True;
-
-         when 'l' =>
-            Style_Check_Layout           := True;
-
-         when 'm' =>
-            Style_Check_Max_Line_Length  := True;
-
-         when 'p' =>
-            Style_Check_Pragma_Casing    := True;
-
-         when 'r' =>
-            Style_Check_References       := True;
-
-         when 's' =>
-            Style_Check_Specs            := True;
-
-         when 't' =>
-            Style_Check_Tokens           := True;
-
-         when others =>
-            OK := False;
-
-      end case;
-   end Set_Style_Check_Option;
+      Err_Col := Options'Last + 1;
+   end Set_Style_Check_Options;
 
 end Stylesw;

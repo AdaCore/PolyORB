@@ -51,7 +51,7 @@ package body Butil is
              and then Name_Len > 3
              and then (Name_Buffer (1 .. 4) = "dec%"
                          or else
-                       Name_Buffer (1 .. 5) = "dec."));
+                       Name_Buffer (1 .. 4) = "dec."));
 
    end Is_Internal_Unit;
 

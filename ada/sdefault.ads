@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                              --
 --                                                                          --
---          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,9 +30,11 @@ with Types; use Types;
 package Sdefault is
 
    --  This package contains functions that return the default values for
-   --  the include and object file directories.
+   --  the include and object file directories, target name, and the default
+   --  library subdirectory (libsubdir) prefix.
 
    function Include_Dir_Default_Name return String_Ptr;
    function Object_Dir_Default_Name return String_Ptr;
    function Target_Name return String_Ptr;
+   function Search_Dir_Prefix return String_Ptr;
 end Sdefault;

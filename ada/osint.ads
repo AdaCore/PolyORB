@@ -312,6 +312,23 @@ package Osint is
    function Dir_In_Obj_Search_Path (Position : Natural) return String_Ptr;
    --  Functions to access the directory names in the Object search path
 
+   Include_Search_File : constant String_Access
+     := new String'("STD_ADA_INCLUDE_DIRS");
+   Objects_Search_File : constant String_Access
+     := new String'("STD_ADA_OBJECTS_DIRS");
+
+   --  Files containg the default include or objects search directories.
+
+   function Read_Default_Search_Dirs
+     (Search_Dir_Prefix : String_Access;
+      Search_File : String_Access;
+      Search_Dir_Default_Name : String_Access)
+     return String_Access;
+   --  Read and return the default search directories from the file located
+   --  in Search_Dir_Prefix (as modified by update_path) and named Search_File.
+   --  If no such file exists or an error occurs then instead return the
+   --  Search_Dir_Default_Name (as modified by update_path).
+
    -----------------------
    -- Source File Input --
    -----------------------

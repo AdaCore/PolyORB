@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                              --
+--                            $Revision$
 --                                                                          --
 --          Copyright (C) 1992-1999, Free Software Foundation, Inc.         --
 --                                                                          --
@@ -20,13 +20,6 @@
 -- Public License  distributed with GNAT;  see file COPYING.  If not, write --
 -- to  the Free Software Foundation,  59 Temple Place - Suite 330,  Boston, --
 -- MA 02111-1307, USA.                                                      --
---                                                                          --
--- As a special exception,  if other files  instantiate  generics from this --
--- unit, or you link  this unit with other files  to produce an executable, --
--- this  unit  does not  by itself cause  the resulting  executable  to  be --
--- covered  by the  GNU  General  Public  License.  This exception does not --
--- however invalidate  any other reasons why  the executable file  might be --
--- covered by the  GNU Public License.                                      --
 --                                                                          --
 -- GNAT was originally developed  by the GNAT team at  New York University. --
 -- It is now maintained by Ada Core Technologies Inc (http://www.gnat.com). --
@@ -228,17 +221,34 @@ package Stylesw is
    --  This procedure is called to set the default style checking options
    --  in response to a -gnatg switch or -gnaty with no suboptions.
 
-   procedure Set_Style_Check_Option (C : Character; OK : out Boolean);
-   --  This procedure is called to set the style checking option that
-   --  corresponds to a single character in the -gnatyxxx string. If
-   --  the option character is valid, then the appropriate internal
-   --  checking switch is set, and OK is set True on return. If the
-   --  option character is invalid, then OK is set False on return.
+   procedure Set_Style_Check_Options
+     (Options  : String;
+      OK       : out Boolean;
+      Err_Col  : out Natural);
+   --  This procedure is called to set the style check options that
+   --  correspond to the characters in the given Options string. If
+   --  all options are valid, they are set in an additive manner:
+   --  any previous options are retained unless overridden. If any
+   --  invalid character is found, then OK is False on exit, and
+   --  Err_Col is the index in options of the bad character. If all
+   --  options are valid, OK is True on return, and Err_Col is set
+   --  to Options'Last + 1.
 
-   procedure Set_Max_Line_Length (Max : Nat);
-   --  This procedure has the opportunity of setting a new value for the
-   --  maximum line length which is different from the standard default
-   --  value of 79 used for this check. This call also implies setting
-   --  the max line length check active.
+   procedure Set_Style_Check_Options (Options : String);
+   --  Like the above procedure, except that the call is simply ignored if
+   --  there are any error conditionsw, this is for example appopriate for
+   --  calls where the string is known to be valid, e.g. because it was
+   --  obtained by Save_Style_Check_Options.
+
+   procedure Reset_Style_Check_Options;
+   --  Sets all style check options to off
+
+   subtype Style_Check_Options is String (1 .. 32);
+   --  Long enough string to hold all options from Save call below
+
+   procedure Save_Style_Check_Options (Options : out Style_Check_Options);
+   --  Sets Options to represent current selection of options. This
+   --  set can be restored by first calling Reset_Style_Check_Options,
+   --  and then calling Set_Style_Check_Options with the Optionsl string.
 
 end Stylesw;

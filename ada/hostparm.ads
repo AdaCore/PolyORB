@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
 --          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
@@ -49,29 +49,13 @@ pragma Pure (Hostparm);
    Java_VM : constant Boolean := False;
    --  Set true when compiling the JGNAT tool chain (compiler, gnatmake, etc)
 
-   OpenVMS : constant Boolean := False;
-   --  ??? WARNING this flag is really used both as a HOST flag (e.g. see
-   --  Osint) and a target flag, so it should really be split into two
-   --  separate flags, Hostparm.OpenVMS and Target.OpenVMS. Perhaps it is
-   --  not worth bothering since there are no cross compilers with VMS as a
-   --  host, unless we want to have JGNAT on VMS.
-   --
-   --  Set true for compilers for OpenVMS systems. This is really a target
-   --  flag, which should be sorted out some time??? For now we have no cross
-   --  compilers with OpenVMS as the target so there is no confusion.
-
-   Long_Integer_Size : constant := 0;
-   --  This is the length of the long integer type in bits. A value of
-   --  zero means that the length is to be taken from the C type long.
-   --  Otherwise a non-zero length overrides the C length. This is used
-   --  for the Alpha VMS port, where Long_Integer is 64 bits, even though
-   --  the C long type remains at 32 bits. This is really a target flag,
-   --  which should be sorted out some time??? For now we have no cross
-   --  compilers with OpenVMS as the target, so there is no confusion
-
    ---------------------
    -- HOST Parameters --
    ---------------------
+
+   OpenVMS : constant Boolean := False;
+   --  Set True for OpenVMS host. See also OpenVMS target boolean in
+   --  5vsystem.ads and OpenVMS_On_Target boolean in Targparm.
 
    Normalized_CWD : constant String := "./";
    --  Normalized string to access current directory

@@ -1111,6 +1111,14 @@ package body Osint is
                elsif Next_Argv (2 .. Next_Argv'Last) = "nostdinc" then
                   Opt.No_Stdinc := True;
 
+               --  Just ignore -mabi=xxx and -mips[1234] switches here
+
+               elsif Next_Argv'Length >= 5
+                 and then (Next_Argv (2 .. 5) = "mabi"
+                           or else Next_Argv (2 .. 5) = "mips")
+               then
+                  null;
+
                elsif not Hostparm.Java_VM then
                   Scan_Switches (Next_Argv);
 
@@ -1340,11 +1348,19 @@ package body Osint is
       for Additional_Source_Dir in False .. True loop
 
          if Additional_Source_Dir then
-            Search_Path := To_Canonical_Path_Spec
-              (Getenv ("ADA_INCLUDE_PATH").all);
+            if Hostparm.OpenVMS then
+               Search_Path := To_Canonical_Path_Spec ("ADA_INCLUDE_PATH:");
+            else
+               Search_Path := To_Canonical_Path_Spec
+                 (Getenv ("ADA_INCLUDE_PATH").all);
+            end if;
          else
-            Search_Path := To_Canonical_Path_Spec
-              (Getenv ("ADA_OBJECTS_PATH").all);
+            if Hostparm.OpenVMS then
+               Search_Path := To_Canonical_Path_Spec ("ADA_OBJECTS_PATH:");
+            else
+               Search_Path := To_Canonical_Path_Spec
+                 (Getenv ("ADA_OBJECTS_PATH").all);
+            end if;
          end if;
 
          Get_Next_Dir_In_Path_Init (Search_Path);
@@ -1371,7 +1387,11 @@ package body Osint is
       --  The last place to look are the defaults
 
       if not Opt.No_Stdinc then
-         Search_Path := String_Access (Update_Path (Include_Dir_Default_Name));
+         Search_Path := Read_Default_Search_Dirs
+           (String_Access (Update_Path (Search_Dir_Prefix)),
+            Include_Search_File,
+            String_Access (Update_Path (Include_Dir_Default_Name)));
+
          Get_Next_Dir_In_Path_Init (Search_Path);
          loop
             Search_Dir := Get_Next_Dir_In_Path (Search_Path);
@@ -1381,7 +1401,11 @@ package body Osint is
       end if;
 
       if not Opt.No_Stdlib then
-         Search_Path := String_Access (Update_Path (Object_Dir_Default_Name));
+         Search_Path := Read_Default_Search_Dirs
+           (String_Access (Update_Path (Search_Dir_Prefix)),
+            Objects_Search_File,
+            String_Access (Update_Path (Object_Dir_Default_Name)));
+
          Get_Next_Dir_In_Path_Init (Search_Path);
          loop
             Search_Dir := Get_Next_Dir_In_Path (Search_Path);
@@ -1445,6 +1469,70 @@ package body Osint is
          return Lib_Search_Directories.Table (Primary_Directory + Position);
       end if;
    end Dir_In_Obj_Search_Path;
+
+   ------------------------------
+   -- Read_Default_Search_Dirs --
+   ------------------------------
+
+   function Read_Default_Search_Dirs
+     (Search_Dir_Prefix : String_Access;
+      Search_File : String_Access;
+      Search_Dir_Default_Name : String_Access)
+     return String_Access
+   is
+      Buffer : String (1 .. Search_Dir_Prefix.all'Length +
+                             Search_File.all'Length + 1);
+      File_FD : File_Descriptor;
+      S : String_Access;
+      Hi, Lo : Integer;
+      Len, Actual_Len : Integer;
+   begin
+
+      --  Construct a C compatible character string buffer.
+
+      Buffer (1 .. Search_Dir_Prefix.all'Length)
+        := Search_Dir_Prefix.all;
+      Buffer (Search_Dir_Prefix.all'Length + 1 .. Buffer'Last - 1)
+        := Search_File.all;
+      Buffer (Buffer'Last) := ASCII.NUL;
+
+      File_FD := Open_Read (Buffer'Address, Binary);
+      if File_FD = Invalid_FD then
+         return Search_Dir_Default_Name;
+      end if;
+
+      Len := Integer (File_Length (File_FD));
+
+      --  An extra character for a trailing Path_Separator is allocated
+
+      S := new String (1 .. Len + 1);
+
+      --  Read and process the file, translating line and file ending
+      --  control characters to a path separator character.
+
+      Hi := 1;
+      Lo := Hi;
+      loop
+         Actual_Len := Read (File_FD, S (Hi)'Address, Len);
+         Hi := Hi + Actual_Len;
+         exit when Actual_Len = 0;
+         if Actual_Len < 0 then
+            return Search_Dir_Default_Name;
+         end if;
+         while Hi > Lo and then
+           (S (Hi - 1) in ASCII.NUL .. ASCII.US
+            or else S (Hi - 1) = Path_Separator)
+         loop
+            Hi := Hi - 1;
+         end loop;
+         S (Hi) := Path_Separator;
+         Hi := Hi + 1;
+      end loop;
+
+      --  Hi always points to the first unused character, so return one less
+
+      return new String'(S (1 .. Hi - 1));
+   end Read_Default_Search_Dirs;
 
    -------------------
    -- Lib_File_Name --

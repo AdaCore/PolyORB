@@ -50,6 +50,15 @@ package Alloc is
    All_Interp_Initial               : constant := 1_000;   -- Sem_Type
    All_Interp_Increment             : constant := 100;
 
+   Branches_Initial                 : constant := 1_000;   -- Sem_Warn
+   Branches_Increment               : constant := 100;
+
+   Conditionals_Initial             : constant := 1_000;   -- Sem_Warn
+   Conditionals_Increment           : constant := 100;
+
+   Conditional_Stack_Initial        : constant := 50;      -- Sem_Warn
+   Conditional_Stack_Increment      : constant := 100;
+
    Elists_Initial                   : constant := 200;     -- Elists
    Elists_Increment                 : constant := 100;
 
@@ -130,6 +139,9 @@ package Alloc is
 
    Ureals_Initial                   : constant := 200;     -- Urealp
    Ureals_Increment                 : constant := 100;
+
+   Unreferenced_Entities_Initial    : constant := 1_000;   -- Sem_Warn
+   Unreferenced_Entities_Increment  : constant := 100;
 
    With_List_Initial                : constant := 10;      -- Features
    With_List_Increment              : constant := 300;

@@ -142,6 +142,10 @@ package Opt is
    --  GNAT
    --  Set to False to inhibit reading and processing of gnat.adc file
 
+   Constant_Condition_Warnings : Boolean := False;
+   --  GNAT
+   --  Set to True to activate warnings on constant conditions
+
    subtype Debug_Level_Value is Nat range 0 .. 3;
    Debugger_Level : Debug_Level_Value := 0;
    --  GNATBIND
@@ -706,6 +710,7 @@ package Opt is
    --  Writes out switch settings to current tree file using Tree_Write
 
 private
+
    type Config_Switches_Type is record
       Ada_83                   : Boolean;
       Extensions_Allowed       : Boolean;

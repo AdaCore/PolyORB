@@ -68,6 +68,7 @@ package body Opt is
    procedure Restore_Opt_Config_Switches (Save : Config_Switches_Type) is
    begin
       Ada_83                   := Save.Ada_83;
+      Ada_95                   := not Ada_83;
       Extensions_Allowed       := Save.Extensions_Allowed;
       External_Name_Exp_Casing := Save.External_Name_Exp_Casing;
       External_Name_Imp_Casing := Save.External_Name_Imp_Casing;
@@ -150,8 +151,7 @@ package body Opt is
         or else Tree_Version_String /= Gnat_Version_String
       then
          Raise_Exception
-           (Program_Error'Identity,
-            "Inconsistent versions of GNAT and ASIS, contact ACT");
+           (Program_Error'Identity, "Inconsistent versions of GNAT and ASIS");
       end if;
 
       Tree_Read_Data (Distribution_Stub_Mode'Address,
