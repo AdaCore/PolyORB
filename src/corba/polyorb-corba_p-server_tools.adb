@@ -66,7 +66,6 @@ with PortableServer.POAManager;
 pragma Elaborate_All (PortableServer.POA);
 
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 
 package body PolyORB.CORBA_P.Server_Tools is
 

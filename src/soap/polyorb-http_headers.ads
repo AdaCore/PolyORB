@@ -34,6 +34,8 @@
 
 package PolyORB.HTTP_Headers is
 
+   pragma Preelaborate;
+
    type Header is
      (
       --  <ENUM>

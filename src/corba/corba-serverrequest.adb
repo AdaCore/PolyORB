@@ -37,7 +37,6 @@
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 
 package body CORBA.ServerRequest is
 

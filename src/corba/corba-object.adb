@@ -40,7 +40,6 @@ with GNAT.HTable;
 
 with PolyORB.CORBA_P.Names;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Smart_Pointers;
 
 with CORBA.AbstractBase;

@@ -41,7 +41,6 @@ with Interfaces.C.Strings; use Interfaces.C, Interfaces.C.Strings;
 with System;
 
 with PolyORB.Dynamic_Dict;
-pragma Elaborate_All (PolyORB.Dynamic_Dict);
 with PolyORB.Log;
 with PolyORB.Utils;
 with PolyORB.Utils.Strings;
@@ -68,7 +67,7 @@ package body PolyORB.Configuration is
    --------------------------------------------
 
    package Variables is
-      new PolyORB.Dynamic_Dict (String_Ptr);
+      new PolyORB.Dynamic_Dict (Value => String_Ptr, No_Value => null);
 
    procedure Load_Configuration_File;
    --  Load the configuration file.

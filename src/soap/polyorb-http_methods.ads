@@ -34,6 +34,8 @@
 
 package PolyORB.HTTP_Methods is
 
+   pragma Preelaborate;
+
    type Method is
      (
       --  <ENUM>

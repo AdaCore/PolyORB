@@ -53,7 +53,6 @@ with PolyORB.Filters.AWS_Interface;
 with PolyORB.Filters.Interface;
 with PolyORB.HTTP_Methods;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Objects;
 with PolyORB.Objects.Interface;
 with PolyORB.ORB.Interface;

@@ -35,7 +35,6 @@
 with Ada.Streams;
 
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 
 with PolyORB.Representations.CDR;
 

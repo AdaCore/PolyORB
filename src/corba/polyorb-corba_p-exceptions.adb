@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#6 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#7 $
 
 with Ada.Exceptions; use Ada.Exceptions;
 with Ada.Strings.Unbounded;
@@ -40,11 +40,9 @@ with CORBA; use CORBA;
 with PolyORB.CORBA_P.Exceptions.Stack;
 with PolyORB.CORBA_P.Names; use PolyORB.CORBA_P.Names;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Soft_Links;
 with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
-pragma Elaborate_All (PolyORB.Utils.Chained_Lists);
 
 package body PolyORB.CORBA_P.Exceptions is
 

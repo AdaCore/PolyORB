@@ -48,7 +48,6 @@ pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Filters;
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.Objects.Interface;

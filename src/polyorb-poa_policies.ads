@@ -40,7 +40,6 @@ with PolyORB.Sequences.Unbounded;
 
 with PolyORB.POA_Types;
 with PolyORB.Dynamic_Dict;
-pragma Elaborate_All (PolyORB.Dynamic_Dict);
 
 package PolyORB.POA_Policies is
 
@@ -53,8 +52,8 @@ package PolyORB.POA_Policies is
    subtype PolicyList is Policy_Sequences.Sequence;
    --  type PolicyList_Access is access all PolicyList;
 
-   package Policy_Repository is
-      new PolyORB.Dynamic_Dict (PolyORB.POA_Policies.Policy_Access);
+   package Policy_Repository is new PolyORB.Dynamic_Dict
+     (Value => PolyORB.POA_Policies.Policy_Access, No_Value => null);
 
    function Policy_Id (Self : Policy) return String is abstract;
 

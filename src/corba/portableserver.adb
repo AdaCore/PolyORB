@@ -39,12 +39,10 @@ with CORBA;
 with PolyORB.Any;
 with PolyORB.CORBA_P.Names;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Requests;
 with PolyORB.Objects.Interface;
 with PolyORB.Soft_Links;
 with PolyORB.Utils.Chained_Lists;
-pragma Elaborate_All (PolyORB.Utils.Chained_Lists);
 
 package body PortableServer is
 

@@ -46,9 +46,7 @@ with Ada.Exceptions;
 with PolyORB.Configuration;
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.Dynamic_Dict;
-pragma Elaborate_All (PolyORB.Dynamic_Dict);
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.ORB;
 with PolyORB.Objects;
 with PolyORB.References.IOR;
@@ -65,12 +63,13 @@ package body CORBA.ORB is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   package Referenced_Objects is
-      new PolyORB.Dynamic_Dict (CORBA.Object.Ref);
+   Nil_Ref : CORBA.Object.Ref;
+   package Referenced_Objects is new PolyORB.Dynamic_Dict
+     (Value => CORBA.Object.Ref, No_Value => Nil_Ref);
    --  For initial references.
 
    ---------------------
-   -- create_alias_tc --
+   -- Create_Alias_TC --
    ---------------------
 
    function Create_Alias_Tc

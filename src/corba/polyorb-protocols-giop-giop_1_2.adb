@@ -36,7 +36,6 @@ with PolyORB.Any;
 with PolyORB.Binding_Data;        use PolyORB.Binding_Data;
 with PolyORB.Binding_Data.IIOP;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Protocols;           use PolyORB.Protocols;
 with PolyORB.Representations.CDR; use PolyORB.Representations.CDR;
 

@@ -41,7 +41,6 @@ with PolyORB.Any.ObjRef;
 with PolyORB.Binding_Data;
 with PolyORB.Binding_Data.SOAP;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.References;
 with PolyORB.Types;
 

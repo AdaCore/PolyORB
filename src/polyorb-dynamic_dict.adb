@@ -70,15 +70,10 @@ package body PolyORB.Dynamic_Dict is
       The_Value : Value;
    end record;
 
-   pragma Warnings (Off);
-   Null_Dict_Entry : Dict_Entry;
-   pragma Warnings (On);
-   --  No explicit initialisation.
-
    package HT is new GNAT.HTable.Simple_HTable
      (Header_Num => Hash_Val,
       Element    => Dict_Entry,
-      No_Element => Null_Dict_Entry,
+      No_Element => (null, No_Value),
       Key        => String_Ptr,
       Hash       => Hash,
       Equal      => Equal);

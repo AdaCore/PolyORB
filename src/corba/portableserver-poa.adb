@@ -30,14 +30,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#20 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#21 $
 
 with Ada.Exceptions;
 
 with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.ORB;
 with PolyORB.POA;
 with PolyORB.POA_Manager;

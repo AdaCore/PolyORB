@@ -40,7 +40,6 @@ with PolyORB.References;
 with PolyORB.References.Binding;
 with PolyORB.Binding_Data.SOAP;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Types;
 with PolyORB.Utils;
 

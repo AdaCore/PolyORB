@@ -36,7 +36,6 @@
 
 with PolyORB.Configuration;
 with PolyORB.Dynamic_Dict;
-pragma Elaborate_All (PolyORB.Dynamic_Dict);
 with PolyORB.Log;
 with PolyORB.Utils.Chained_Lists;
 
@@ -74,7 +73,8 @@ package body PolyORB.Initialization is
 
    Initialized : Boolean := False;
    World : Dep_Lists.List;
-   package World_Dict is new PolyORB.Dynamic_Dict (Module_Access);
+   package World_Dict is new PolyORB.Dynamic_Dict
+     (Value => Module_Access, No_Value => null);
 
    function Lookup_Module (Name : String) return Module_Access;
 

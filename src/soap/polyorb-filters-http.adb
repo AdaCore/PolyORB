@@ -44,7 +44,6 @@ with PolyORB.Filters.AWS_Interface;
 with PolyORB.Filters.Interface;
 with PolyORB.HTTP_Headers;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Opaque;
 with PolyORB.Protocols;
 --  For exception Protocol_Error.
