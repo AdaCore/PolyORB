@@ -51,7 +51,6 @@ package body XE_Reg is
    type REGSAM      is new ACCESS_MASK;
 
    KEY_QUERY_VALUE    : constant := 1;
-   KEY_SET_VALUE      : constant := 2;
 
    HKEY_LOCAL_MACHINE : constant HKEY := 16#80000002#;
 
@@ -101,7 +100,7 @@ package body XE_Reg is
         (From_Key,
          C_Name'Address,
          0,
-         KEY_QUERY_VALUE + KEY_SET_VALUE,
+         KEY_QUERY_VALUE,
          New_Key'Unchecked_Access);
 
       if Result /= ERROR_SUCCESS then
