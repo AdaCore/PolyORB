@@ -27,12 +27,39 @@ package body Ada_Be.Expansion is
       Expand_Repository (N_Root_Acc (Node));
    end Expand_Repository;
 
+   -----------------
+   --  Expand_Node --
+   ------------------
+
+   procedure Expand_Node (Node : in out N_Root_Acc) is
+   begin
+      case (Get_Kind (Node.all)) is
+         when K_Repository =>
+            Expand_Repository (Node);
+         when K_Unknown =>
+            declare
+               Br : Ben_Root'Class := Ben_Root'Class (Node.all);
+            begin
+               case (Get_Be_Kind (Br)) is
+                  when others =>
+                     null;
+               end case;
+            end;
+         when others =>
+            null;
+      end case;
+   end Expand_Node;
+
+
+   -------------------------------------------
+   --  and now one procedure per node type  --
+   -------------------------------------------
+
    ------------------------
    --  Expand_Repository --
    ------------------------
 
    procedure  Expand_Repository (Node : in out N_Root_Acc) is
-      Named_Nodes_In_Scope : Node_List;
       Result : N_Repository_Acc;
       Iterator : Node_Iterator;
       Temp_Node_List : Node_List;
@@ -98,7 +125,7 @@ package body Ada_Be.Expansion is
             Temp_Node : N_Root_Acc;
          begin
             Temp_Node := Get_Node (Iterator);
-            Expand_Node (Temp_Node, Named_Nodes_In_Scope);
+            Expand_Node (Temp_Node);
             Append_Node (Result.Contents, Temp_Node);
             Next (Iterator);
          end;
@@ -109,29 +136,26 @@ package body Ada_Be.Expansion is
    end Expand_Repository;
 
 
-   -----------------
-   --  Expand_Node --
-   ------------------
-
-   procedure Expand_Node (Node : in out N_Root_Acc;
-                          Named_Nodes_In_Scope : in Node_List) is
+   --------------------
+   --  Expand_Module --
+   --------------------
+   procedure Expand_Module (Node : in out N_Root_Acc) is
+      Precise_Node : N_Module_Acc := N_Module_Acc (Node);
    begin
-      case (Get_Kind (Node.all)) is
-         when K_Repository =>
-            Expand_Repository (Node);
-         when K_Unknown =>
-            declare
-               Br : Ben_Root'Class := Ben_Root'Class (Node.all);
-            begin
-               case (Get_Be_Kind (Br)) is
-                  when others =>
-                     null;
-               end case;
-            end;
-         when others =>
-            null;
-      end case;
-   end Expand_Node;
+      Expand_Node_List (Precise_Node.Contents);
+   end Expand_Module;
 
+
+   -----------------------
+   --  Expand_Node_List --
+   -----------------------
+
+   procedure Expand_Node_List (List : in out Node_List) is
+   begin
+      if List /= Nil_List then
+         Expand_Node (List.Car);
+         Expand_Node_List (List.Cdr);
+      end if;
+   end Expand_Node_List;
 
 end Ada_Be.Expansion;

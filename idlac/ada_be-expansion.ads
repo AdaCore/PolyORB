@@ -9,16 +9,14 @@ private
 
    --  generic function that calls the most specific one
    --  according to the type of the node
-   --  Named_Nodes_In_Scope accumulates all the named nodes
-   --  that could create an identifier conflict in ada
-   procedure Expand_Node (Node : in out N_Root_Acc;
-                          Named_Nodes_In_Scope : in Node_List);
+   procedure Expand_Node (Node : in out N_Root_Acc);
 
 
    procedure Expand_Repository (Node : in out N_Root_Acc);
+   procedure Expand_Module (Node : in out N_Root_Acc);
 
+   --  useful function to expand a whole list of nodes
+   procedure Expand_Node_List (List : in out Node_List);
 
-   --  function Expand_Module (Node : in N_Root_Acc)
-   --                        return N_Root_Acc;
 
 end Ada_Be.Expansion;

@@ -176,10 +176,19 @@ package Idl_Fe.Types is
    -- A useful list of root nodes --
    ---------------------------------
 
-   --  Simple list type for a node list.
-   --  The Nil atom is Nil_List.
-   type Node_List is private;
-   Nil_List : constant Node_List;
+   --  Definition in a lisp like style of a node list
+   type Node_List_Cell;
+   type Node_List is access Node_List_Cell;
+   type Node_List_Cell is record
+      Car : N_Root_Acc;
+      Cdr : Node_List;
+   end record;
+
+   --  Definition of the iterator on a node list
+   type Node_Iterator is new Node_List;
+
+   --  the empty list
+   Nil_List : constant Node_List := null;
 
    --  Simple way to iterate over a node_list.
    --  NODE_ITERATOR is a type representing an iterator, which must
@@ -198,7 +207,6 @@ package Idl_Fe.Types is
    --      ...
    --      next (it);
    --    end loop;
-   type Node_Iterator is limited private;
    procedure Init (It : out Node_Iterator; List : Node_List);
    function Get_Node (It : Node_Iterator) return N_Root_Acc;
    procedure Next (It : in out Node_Iterator);
@@ -589,24 +597,6 @@ private
    end record;
 
    Nil_Node : constant N_Root_Acc := null;
-
-   ------------------------------------
-   --  A usefull list of root nodes  --
-   ------------------------------------
-
-   --  Definition in a lisp like style of a node list
-   type Node_List_Cell;
-   type Node_List is access Node_List_Cell;
-   type Node_List_Cell is record
-      Car : N_Root_Acc;
-      Cdr : Node_List;
-   end record;
-
-   --  Definition of the iterator on a node list
-   type Node_Iterator is new Node_List;
-
-   --  the empty list
-   Nil_List : constant Node_List := null;
 
    ---------------------------------------------------
    --  Named nodes in the tree parsed from the idl  --
