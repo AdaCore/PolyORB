@@ -7,6 +7,8 @@ set -e
 NATIVE_ADA="@ADA@"
 CROSS_ADA="@ADA_FOR_TARGET@"
 SED="@SED@"
+GREP="@GREP@"
+RM="@RM@"
 
 case "`basename "$0"`" in
   native-*)
@@ -46,7 +48,7 @@ while [ $# -gt 1 ]; do
 done
 
 tmp="tmp$$"
-trap "rm -rf $tmp" 0 1 2 3 15
+trap "${RM} -rf $tmp" 0 1 2 3 15
 mkdir $tmp
 newname=$tmp/`echo $1 | ${SED} -e 's,^\.libs/\(.*\).lo$,\1.o,'`
 
@@ -72,19 +74,19 @@ for srcdir in `echo $include_path`; do
        continue
     fi
 
-    if grep -q INCLUDE: ${cfg_pragma_file} 2> /dev/null; then
+    if ${GREP} -q INCLUDE: ${cfg_pragma_file} 2> /dev/null; then
       default_include=false
     else
       default_include=true
     fi
 
-    if grep -q "EXCLUDE: `basename $src`" ${cfg_pragma_file} 2> /dev/null; then
+    if ${GREP} -q "EXCLUDE: `basename $src`" ${cfg_pragma_file} 2> /dev/null; then
       no_specific_exclude=false
     else
       no_specific_exclude=true
     fi
 
-    if grep -q "INCLUDE: `basename $src`" $cfg_pragma_file ||
+    if ${GREP} -q "INCLUDE: `basename $src`" $cfg_pragma_file ||
        (${default_include} && ${no_specific_exclude})
     then
       # If unit included explicitly, or (unit not excluded explicitly,
