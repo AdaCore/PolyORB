@@ -279,7 +279,11 @@ package body Backend.BE_IDL is
       else
          Write (T_Case);
          Write_Space;
-         Write_Str (Image (Value (E)));
+         if Kind (X) = K_Scoped_Name then
+            Generate (X);
+         else
+            Generate (Value (E));
+         end if;
       end if;
       Write_Space;
       Write (T_Colon);
@@ -333,11 +337,12 @@ package body Backend.BE_IDL is
    ----------------------
 
    procedure Generate_Element (E : Node_Id) is
-      pragma Unreferenced (E);
    begin
       Write_Indentation;
-      Write_Str ("xxx");
-      Write (T_Colon);
+      Generate (Type_Spec (E));
+      Write_Space;
+      Generate (Identifier (Declarator (E)));
+      Write (T_Semi_Colon);
       Write_Eol;
    end Generate_Element;
 
@@ -735,10 +740,16 @@ package body Backend.BE_IDL is
       end Generate_Reference_Name;
 
       R : constant Node_Id := Reference (E);
+      V : Value_Id;
 
    begin
       if Kind (R) = K_Constant_Declaration then
-         Generate (Value (R));
+         V := Value (R);
+         if Value (V).K = K_Enumerator then
+            Generate_Reference_Name (Identifier (R));
+         else
+            Generate (V);
+         end if;
 
       else
          Generate_Reference_Name (Identifier (R));
@@ -835,18 +846,14 @@ package body Backend.BE_IDL is
    procedure Generate_Switch_Alternative (E : Node_Id)
    is
       L : Node_Id := First_Entity (Labels (E));
-      C : constant Node_Id := Element (E);
    begin
       while Present (L) loop
          Generate (L);
          L := Next_Entity (L);
       end loop;
-      Write_Indentation;
-      Generate (Type_Spec (C));
-      Write_Space;
-      Generate (Identifier (Declarator (C)));
-      Write (T_Semi_Colon);
-      Write_Eol;
+      Increment_Indentation;
+      Generate (Element (E));
+      Decrement_Indentation;
    end Generate_Switch_Alternative;
 
    ------------------------------

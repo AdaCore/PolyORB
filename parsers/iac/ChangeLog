@@ -1,5 +1,13 @@
 2004-07-02  Laurent Pautet  <pautet@dorine.enst.fr>
 
+	* backend-be_idl.adb: Generate fully qualified name for
+	enumerators. Fix indentation for elements.
+
+	* analyzer.adb: Minor reformatting.
+
+	* values.adb: Fix Image for non printable characters (use \xxx
+	representation).
+
 	* backend-be_ada-generator.adb: Generate sequence size in sequence
 	type when needed.
 

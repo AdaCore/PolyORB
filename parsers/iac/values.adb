@@ -12,7 +12,7 @@ package body Values is
 
    subtype ULL is Unsigned_Long_Long;
 
-   procedure Add_ULL_To_Name_Buffer (U : ULL; B : ULL);
+   procedure Add_ULL_To_Name_Buffer (U : ULL; B : ULL; S : Integer := 1);
 
    LULL_Div_10 : constant Unsigned_Long_Long := LULL / 10;
 
@@ -378,13 +378,13 @@ package body Values is
    -- Add_ULL_To_Name_Buffer --
    ----------------------------
 
-   procedure Add_ULL_To_Name_Buffer (U : ULL; B : ULL)
+   procedure Add_ULL_To_Name_Buffer (U : ULL; B : ULL; S : Integer := 1)
    is
       Q : constant ULL := U / B;
       R : constant ULL := U mod B;
    begin
-      if Q /= 0 then
-         Add_ULL_To_Name_Buffer (Q, B);
+      if Q /= 0 or else S > 1 then
+         Add_ULL_To_Name_Buffer (Q, B, S - 1);
       end if;
       Add_Char_To_Name_Buffer (Hex (Natural (R + 1)));
    end Add_ULL_To_Name_Buffer;
@@ -527,7 +527,16 @@ package body Values is
             end if;
             Add_Char_To_Name_Buffer (''');
             if V.CVal <= 127 then
-               Add_Char_To_Name_Buffer (Character'Val (Natural (V.CVal)));
+               declare
+                  C : constant Character := Character'Val (Natural (V.CVal));
+               begin
+                  if C in '!' .. '~' then
+                     Add_Char_To_Name_Buffer (C);
+                  else
+                     Add_Char_To_Name_Buffer ('\');
+                     Add_ULL_To_Name_Buffer (ULL (V.CVal), 8, 3);
+                  end if;
+               end;
             else
                Add_Str_To_Name_Buffer ("\u");
                Add_ULL_To_Name_Buffer (ULL (V.CVal), 16);

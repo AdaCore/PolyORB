@@ -311,9 +311,6 @@ package body Analyzer is
            (Loc (E), N, I, C);
          Bind_Identifier_To_Entity (I, N);
 
-         --  This declaration is already analyzed as reference is set
-
-         --  Enter_Name_In_Scope (I);
          Analyze (N);
          C := Next_Entity (C);
       end loop;
