@@ -109,7 +109,9 @@ package body PolyORB.Transport.Connected is
          --  Both the Endpoint and the associated AES must
          --  now be destroyed.
          Handle_Close_Server_Connection
-           (ORB_Access (H.ORB).Tasking_Policy, H.TE);
+           (ORB_Access (H.ORB).all.Tasking_Policy, H.TE);
+         --  XXX explicit dereference required to work around
+         --  C725-007
 
          Destroy (H.TE);
          --  Destroy the transport endpoint and the associated
