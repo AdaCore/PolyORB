@@ -75,6 +75,11 @@ with PolyORB.Services.Naming.NamingContext.Client;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Strings.Lists;
 
+--  XXX the following are dependant on configuration options
+--  and should be moved to a generated unit (a la s-garela).
+--  (an OA is required only on server units; any OA is OK
+--  for RCIs without RACWs, but RACWs require a POA).
+
 package body System.PolyORB_Interface is
 
    use Ada.Characters.Handling;
@@ -1622,7 +1627,7 @@ begin
       (Name      => +"dsa",
        Conflicts => Empty,
        Depends   => +"orb"
-       & "poa"
+       & "poa?" --  XXX see note in the header concerning OAs
        & "poa_config.racws?"
        & "naming.Helper"
        & "naming.NamingContext.Helper"
