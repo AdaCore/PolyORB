@@ -11,12 +11,12 @@ adabe_union_branch::adabe_union_branch(AST_UnionLabel *lab, AST_Type *ft, UTL_Sc
                       AST_Field(AST_Decl::NT_union_branch, ft, n, p),
                       AST_UnionBranch(lab, ft, n, p),
 		      adabe_field(ft,n,p),
-		      adabe_name()
+		      adabe_name(AST_Decl::NT_union_branch, n, p)
 {
 }
 
 void
-adabe_union_branch::produce_ads(dep_list with, string &body, string &previous, AST_ConcreteType *concrete)
+adabe_union_branch::produce_ads(dep_list& with, string &body, string &previous, AST_ConcreteType *concrete)
 {
   body += "      when ";
   if (label()->label_kind() != AST_UnionLabel::UL_default)
@@ -35,14 +35,14 @@ adabe_union_branch::produce_ads(dep_list with, string &body, string &previous, A
 /*
   /////////////////////// peut etre inutile ///////////////////////
   void
-  adabe_union_branch::produce_impl_ads(dep_list with,string &body, string &previous, AST_ConcreteType *concrete)
+  adabe_union_branch::produce_impl_ads(dep_list& with,string &body, string &previous, AST_ConcreteType *concrete)
   {
   produce_ads(with, body, previous, concrete);
   }
 */ 
 
 void
-adabe_union_branch::produce_marshal_adb(dep_list with, string &body, string &previous)
+adabe_union_branch::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
 }
 

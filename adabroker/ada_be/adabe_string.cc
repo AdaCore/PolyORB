@@ -1,5 +1,6 @@
 // File string.cc
 #include <adabe.h>
+#include <strstream>
 
 IMPL_NARROW_METHODS1(adabe_string, AST_String);
 IMPL_NARROW_FROM_DECL(adabe_string);
@@ -7,37 +8,53 @@ IMPL_NARROW_FROM_DECL(adabe_string);
 
 adabe_string::adabe_string(AST_Expression *v):
   AST_String(v),
-  adabe_name()
+  AST_Decl(AST_Decl::NT_string, new UTL_ScopedName(new Identifier("string", 1, 0, I_FALSE), NULL), NULL),
+  adabe_name(AST_Decl::NT_string,new UTL_ScopedName(new Identifier("string",1,0,I_FALSE), NULL), NULL)
 {
 }
 adabe_string::adabe_string(AST_Expression *v, long wide):
   AST_String(v,wide),
-  adabe_name()
+  AST_Decl(AST_Decl::NT_string, new UTL_ScopedName(new Identifier("string", 1, 0, I_FALSE), NULL), NULL),
+  adabe_name(AST_Decl::NT_string,new UTL_ScopedName(new Identifier("string",1,0,I_FALSE),NULL),NULL)
 {
 }
 
-void adabe_string::produce_ads (dep_list with,string &String, string &previousdefinition) {
+void adabe_string::produce_ads (dep_list &with,string &body, string &previous) {
     compute_ada_name();
-    string is_bouded;
-    string temp;
 
     //look if the string is bounded or not;
     
     if (max_size()->ev()==0)
-      temp = "unbouded";
+      {
+	    body+= "type " + get_ada_local_name() + " is new CORBA.String";
+      }
     else
-      temp = "bounded";
-    
-    temp+= "type " + get_ada_local_name() + " is new CORBA."+is_bouded;
-    previousdefinition +=temp;
+      {
+	ostrstream size;
+	size << "package CORBA.Bounded_String_" ;//<< max_size()->ev();
+	body +=  size.str();
+	body += "is_new CORBA.Bounded_String(";
+	body += size.str();
+	body += ")\n";
+	body += "type "+ get_ada_local_name() + " is new CORBA.Bounded_String_";
+	body += size.str();
+	body += ".Bounded_String\n";
+      }
+    set_already_defined();
 }
 
-string adabe_string::dump_name (dep_list with,string &String, string &previousdefinition) {
-  if (!is_already_defined()) {
-    string temp;
-    produce_ads (with, String, temp);
-    previousdefinition += temp;
-  }
-  return get_ada_local_name();
+string adabe_string::dump_name (dep_list &with,string &body, string &previous)
+{
+  if (!is_imported(with))
+    {
+      if (!is_already_defined())
+	{
+	  string tmp = "";
+	  produce_ads(with, tmp, previous);
+	  previous += tmp;
+	}
+      return get_ada_local_name();
+    }
+  return get_ada_full_name();	   
 }
 

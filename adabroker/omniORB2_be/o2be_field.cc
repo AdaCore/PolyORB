@@ -25,6 +25,9 @@
 
 /*
   $Log: o2be_field.cc,v $
+  Revision 1.2  1999/03/19 02:09:39  niebel
+  debugging and first successfull compilation of idl file
+
   Revision 1.1  1999/02/14 17:45:24  niebel
   Ajout des sources d'omniidl2 en vue de l'ajout de notre back end.
 
@@ -46,6 +49,7 @@
 
 #ifdef HAS_pch
 #pragma hdrstop
+    AST_Decl(AST_Decl::NT_array, n, NULL),
 #endif
 
 o2be_field::o2be_field(AST_Type *ft, UTL_ScopedName *n, UTL_StrList *p)

@@ -3,18 +3,18 @@
 adabe_typedef::adabe_typedef(AST_Type *bt, UTL_ScopedName *n, UTL_StrList *p)
 	  : AST_Typedef(bt, n, p),
 	    AST_Decl(AST_Decl::NT_typedef, n, p),
-	    adabe_name()
+	    adabe_name(AST_Decl::NT_typedef, n, p)
 
 {
 }
 
 void
-adabe_typedef::produce_ads(dep_list with, string &body, string &previous)
+adabe_typedef::produce_ads(dep_list& with, string &body, string &previous)
 {
   compute_ada_name();
   body += "   type " + get_ada_local_name() + " is new ";
   AST_Decl *b = base_type();
-  string name =  adabe_name::narrow_from_decl(b)->dump_name(with, body, previous); //virtual method
+  string name =  dynamic_cast<adabe_name *>(b)->dump_name(with, body, previous); //virtual method
   body += name;
   body += ";\n";
   body += "   type" + get_ada_local_name() + "_Ptr is access all " + get_ada_local_name() + ";\n";
@@ -25,25 +25,25 @@ adabe_typedef::produce_ads(dep_list with, string &body, string &previous)
 
 /*
   void
-  adabe_typedef::produce_adb(dep_list with,string &body, string &previous)
+  adabe_typedef::produce_adb(dep_list& with,string &body, string &previous)
   {
   if (!is_imported(with)) return get_ada_local_name();
   return get_ada_full_name();	   
   }
   
   void
-  adabe_typedef::produce_impl_ads(dep_list with,string &body, string &previous)
+  adabe_typedef::produce_impl_ads(dep_list& with,string &body, string &previous)
   {
   INDENTATION(body);
   body += "type" + get_ada_local_name() + "is new ";
   AST_Decl *b  base_type();
-  string name =  adabe_name::narrow_from_decl(b)->dump_name(with, &body, &previous); //virtual method
+  string name =  dynamic_cast<adabe_name *>(b)->dump_name(with, &body, &previous); //virtual method
   body += name;
   body += ";\n";
   }
   
   void
-  adabe_typedef::produce_impl_adb(dep_list with,string &body, string &previous)
+  adabe_typedef::produce_impl_adb(dep_list& with,string &body, string &previous)
   {
   if (!is_imported(with)) return get_ada_local_name();
   return get_ada_full_name();
@@ -51,18 +51,18 @@ adabe_typedef::produce_ads(dep_list with, string &body, string &previous)
 */
 
 void
-adabe_typedef::produce_marshal_ads(dep_list with, string &body, string &previous)
+adabe_typedef::produce_marshal_ads(dep_list& with, string &body, string &previous)
 {
 }
 void
-adabe_typedef::produce_marshal_adb(dep_list with, string &body, string &previous)
+adabe_typedef::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
 }
 
 
 
 string
-adabe_typedef::dump_name(dep_list with, string &body, string &previous)
+adabe_typedef::dump_name(dep_list& with, string &body, string &previous)
 {
   if (!is_imported(with))
     {

@@ -12,12 +12,12 @@ adabe_enum::adabe_enum(UTL_ScopedName *n, UTL_StrList *p)
        : AST_Enum(n, p),
 	 AST_Decl(AST_Decl::NT_enum, n, p),
 	 UTL_Scope(AST_Decl::NT_enum),
-	 adabe_name()
+	 adabe_name(AST_Decl::NT_enum, n, p)
 {
 }
 
 void
-adabe_enum::produce_ads(dep_list with,string &body, string &previous) {
+adabe_enum::produce_ads(dep_list& with,string &body, string &previous) {
   
   body += "type " + get_ada_local_name() + "is (\n";
   UTL_ScopeActiveIterator activator(this,UTL_Scope::IK_decls);
@@ -40,7 +40,7 @@ adabe_enum::produce_ads(dep_list with,string &body, string &previous) {
 }
 
 void  
-adabe_enum::produce_marshal_ads(dep_list with, string &body, string &previous)
+adabe_enum::produce_marshal_ads(dep_list& with, string &body, string &previous)
 {
   string tmp = "";
 
@@ -54,7 +54,7 @@ adabe_enum::produce_marshal_ads(dep_list with, string &body, string &previous)
 
 
 void 
-adabe_enum::produce_marshal_adb(dep_list with, string &body, string &previous)
+adabe_enum::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
   string tmp="";
 
@@ -66,7 +66,7 @@ adabe_enum::produce_marshal_adb(dep_list with, string &body, string &previous)
 }
 
 string
-adabe_enum::dump_name(dep_list with,string &body, string &previous) 
+adabe_enum::dump_name(dep_list& with,string &body, string &previous) 
 {
    if (!is_imported(with))
     {

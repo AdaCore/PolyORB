@@ -6,7 +6,7 @@ IMPL_NARROW_FROM_DECL(adabe_exception);
 IMPL_NARROW_FROM_SCOPE(adabe_exception);
 
 void
-adabe_exception::produce_ads (dep_list with,string &body, string &previous)
+adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
 {
   bool first = true;
   compute_ada_name ();
@@ -33,8 +33,8 @@ adabe_exception::produce_ads (dep_list with,string &body, string &previous)
 	case AST_Decl::NT_struct:
 	case AST_Decl::NT_enum:
 	  {
-	    adabe_name *adabe_field =  adabe_name::narrow_from_decl (d);
-	    //	    adabe_name *adabe_type  =  adabe_name::narrow_from_decl (adabe_field->base_type);
+	    adabe_name *adabe_field =  dynamic_cast<adabe_name *> (d);
+	    //	    adabe_name *adabe_type  =  dynamic_cast<adabe_name *> (adabe_field->base_type);
 	    if (first)
 	      {
 		first = false;
@@ -62,17 +62,17 @@ adabe_exception::produce_ads (dep_list with,string &body, string &previous)
 }
 
 void
-adabe_exception::produce_marshal_ads (dep_list with,string &body, string &previous)
+adabe_exception::produce_marshal_ads (dep_list& with,string &body, string &previous)
 {
 }
 
 void
-adabe_exception::produce_marshal_adb (dep_list with,string &body, string &previous)
+adabe_exception::produce_marshal_adb (dep_list& with,string &body, string &previous)
 {
 }
 
 string
-adabe_exception::dump_name(dep_list with,string &body, string &previous) 
+adabe_exception::dump_name(dep_list& with,string &body, string &previous) 
 {
     if (!is_imported(with))
     {
@@ -91,7 +91,7 @@ adabe_exception::adabe_exception(UTL_ScopedName *n, UTL_StrList *p)
   : AST_Decl(AST_Decl::NT_except, n, p),
     AST_Structure(AST_Decl::NT_except, n, p),
     UTL_Scope(AST_Decl::NT_except),
-    adabe_name()
+    adabe_name(AST_Decl::NT_except, n, p)
 {
 }
 

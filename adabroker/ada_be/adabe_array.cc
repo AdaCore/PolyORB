@@ -8,12 +8,13 @@ IMPL_NARROW_FROM_DECL(adabe_array);
 
 adabe_array::adabe_array(UTL_ScopedName *n, unsigned long ndims, UTL_ExprList *dims):
   AST_Array(n,ndims,dims),
-  adabe_name()
+  AST_Decl(AST_Decl::NT_array, n, NULL),
+  adabe_name(AST_Decl::NT_array,n,NULL)
 {
 }
 
 void
-adabe_array::produce_ads(dep_list with,string &body, string &previous) {
+adabe_array::produce_ads(dep_list& with,string &body, string &previous) {
   char number[256];
   int i;
 
@@ -42,22 +43,22 @@ adabe_array::produce_ads(dep_list with,string &body, string &previous) {
     body +=number;
     body +=")";
   }
-  body+="of\n"+ (adabe_name::narrow_from_decl(base_type())->dump_name(with, body, previous));
+  body+="of\n"+ (dynamic_cast<adabe_name *>(base_type())->dump_name(with, body, previous));
   set_already_defined();
 }
 
 
 void
-adabe_array::produce_marshal_ads(dep_list with,string &body, string &previous)
+adabe_array::produce_marshal_ads(dep_list& with,string &body, string &previous)
 {
 }
 
 void
-adabe_array::produce_marshal_adb(dep_list with,string &body, string &previous)
+adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
 {
 }
 
-string adabe_array::dump_name(dep_list with,string &body, string &previous) 
+string adabe_array::dump_name(dep_list& with,string &body, string &previous) 
 {
   if (!is_imported(with))
     {

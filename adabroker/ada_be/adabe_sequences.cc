@@ -2,7 +2,7 @@
 #include <adabe.h>
 
 void
-adabe_sequence::produce_ads(dep_list with, string &body,
+adabe_sequence::produce_ads(dep_list& with, string &body,
 			    string &previous){
   string is_bounded;
   adabe_name *adabe_base_type;
@@ -22,7 +22,7 @@ adabe_sequence::produce_ads(dep_list with, string &body,
 
   // Writing the header :
 
-  adabe_base_type =  adabe_name::narrow_from_decl (base_type());
+  adabe_base_type =  dynamic_cast<adabe_name *> (base_type());
   type_name =  adabe_base_type->dump_name(with, body, previous);
     
   body += "type IDL_SEQUENCE_" + type_name +"_Array is\n";
@@ -36,16 +36,16 @@ adabe_sequence::produce_ads(dep_list with, string &body,
 
 }
 void
-adabe_sequence::produce_marshal_ads(dep_list with, string &body,string &previous)
+adabe_sequence::produce_marshal_ads(dep_list& with, string &body,string &previous)
 {
 }
 
 void
-adabe_sequence::produce_marshal_adb(dep_list with, string &body, string &previous)
+adabe_sequence::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
 }
 string
-adabe_sequence::dump_name(dep_list with,string &body, string &previous) 
+adabe_sequence::dump_name(dep_list& with,string &body, string &previous) 
 {
   if (!is_imported(with))
     {
@@ -66,7 +66,20 @@ IMPL_NARROW_FROM_SCOPE(adabe_sequence)
 
 adabe_sequence::adabe_sequence(AST_Expression *v, AST_Type *t)
   : AST_Sequence(v, t),
-    AST_Decl(AST_Decl::NT_sequence,NULL,NULL), //...
-    adabe_name()
+    AST_Decl(AST_Decl::NT_sequence,new UTL_ScopedName(new Identifier("sequence",1,0,I_FALSE),NULL),NULL), //...
+    adabe_name(AST_Decl::NT_sequence,new UTL_ScopedName(new Identifier("sequence",1,0,I_FALSE),NULL),NULL)
 {
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

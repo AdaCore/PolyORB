@@ -1,3 +1,6 @@
 #define DEBUG_CFE
 #define DEBUG_ROOT
+#define DEBUG_INTERFACE
+#define DEBUG_NAME
+#define DEBUG_OPERATION
 

@@ -5,21 +5,30 @@ adabe_interface::adabe_interface(UTL_ScopedName *n, AST_Interface **ih, long nih
             : AST_Interface(n, ih, nih, p),
 	      AST_Decl(AST_Decl::NT_interface, n, p),
 	      UTL_Scope(AST_Decl::NT_interface),
-	      adabe_name()
+	      adabe_name(AST_Decl::NT_interface, n, p)
 {
   if (nih == -1) pd_is_forwarded = true;
   else pd_is_forwarded = false;
 }
 
 void
-adabe_interface::produce_ads(dep_list with, string &body, string &previous)
+adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
 {
+#ifdef DEBUG_INTERFACE
+  cout << "beginning of produce_ads of the interface" << endl;
+#endif
   string tmp = "";
   string corps = "";
   adabe_interface *inher;
   with.add("Corba.Object");
   with.add("Corba");
+#ifdef DEBUG_INTERFACE
+  cout << "befor compute_ada_name of the interface" << endl;
+#endif
   if (!pd_is_forwarded) compute_ada_name();  // forwarded then defined
+#ifdef DEBUG_INTERFACE
+  cout << "after compute_ada_name of the interface" << endl;
+#endif
   body += "package " + get_ada_full_name() + " is /n";
   body += "\n   -----------------------------\n";
   body += "   --         The Spec        --\n";
@@ -53,7 +62,7 @@ adabe_interface::produce_ads(dep_list with, string &body, string &previous)
 	while (!j.is_done())
 	  {
 	    AST_Decl *d = j.item();
-	    adabe_name *e = adabe_name::narrow_from_decl(d);
+	    adabe_name *e = dynamic_cast<adabe_name *>(d);
 	    switch(d->node_type())
 	      {
 	      case AST_Decl::NT_const:
@@ -95,7 +104,7 @@ adabe_interface::produce_ads(dep_list with, string &body, string &previous)
 		while (!j.is_done())
 		  {
 		    AST_Decl *d = j.item();
-		    adabe_name *e = adabe_name::narrow_from_decl(d);
+		    adabe_name *e = dynamic_cast<adabe_name *>(d);
 		    switch(d->node_type())
 		      {
 		      case AST_Decl::NT_const:
@@ -131,7 +140,7 @@ adabe_interface::produce_ads(dep_list with, string &body, string &previous)
   body += "   Nil_Ref : aliased constant Ref ;\n";
   body += "   function To_Ref(The_Ref : in Corba.Object.Ref'CLASS) return Ref ;\n";
   body += tmp;
-  
+
   // instructions
   body += "\n   --   Instructions          --\n";
   body += "--------------------------------\n";
@@ -142,7 +151,17 @@ adabe_interface::produce_ads(dep_list with, string &body, string &previous)
 	AST_Decl *d = i.item();
 	string tmp1 = "";
 	string tmp2 = "";
-	adabe_name::narrow_from_decl(d)->produce_ads(with, tmp1, tmp2);
+#ifdef DEBUG_INTERFACE
+	cout << "interface instruction node type:" << d->node_type() << endl;
+#endif
+	adabe_name *e = dynamic_cast<adabe_name *>(d);
+
+#ifdef DEBUG_INTERFACE
+	cout << "interface instruction node type:" << e->node_type() << endl;
+	//	adabe_operation *f = (adabe_operation *) e;
+	//	cout << "interface instruction node type:" << f->node_type() << endl;
+#endif
+	e->produce_ads(with, tmp1, tmp2);
 	body += tmp2 + tmp1;
 	i.next();
       }
@@ -164,7 +183,7 @@ adabe_interface::produce_ads(dep_list with, string &body, string &previous)
 }
   
 void
-adabe_interface::produce_adb(dep_list with, string &body, string &previous)
+adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
 {
   string tmp = "";
   adabe_interface *inher;
@@ -205,7 +224,7 @@ adabe_interface::produce_adb(dep_list with, string &body, string &previous)
 	while (!j.is_done())
 	  {
 	    AST_Decl *d = j.item();
-	    adabe_name *e = adabe_name::narrow_from_decl(d);
+	    adabe_name *e = dynamic_cast<adabe_name *>(d);
 	    switch(d->node_type())
 	      {
 	      case AST_Decl::NT_op:
@@ -239,7 +258,7 @@ adabe_interface::produce_adb(dep_list with, string &body, string &previous)
 	    {
 	      string tmp1 = "";
 	      string tmp2 = "";
-	      adabe_name::narrow_from_decl(d)->produce_adb(with, tmp1, tmp2);
+	      dynamic_cast<adabe_name *>(d)->produce_adb(with, tmp1, tmp2);
 	      body += tmp2 + tmp1;
 	    }
 	    break;	    
@@ -286,7 +305,7 @@ adabe_interface::produce_adb(dep_list with, string &body, string &previous)
 }
 
 void
-adabe_interface::produce_impl_ads(dep_list with, string &body, string &previous)
+adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous)
 {
   string prev = "";
   string tmp = "";
@@ -321,7 +340,7 @@ adabe_interface::produce_impl_ads(dep_list with, string &body, string &previous)
 	  case AST_Decl::NT_string:
 	  case AST_Decl::NT_array:
 	    {
-	      adabe_name *e = adabe_name::narrow_from_decl(d);
+	      adabe_name *e = dynamic_cast<adabe_name *>(d);
 	      tmp += "   subtype" +  e->get_ada_local_name() + " is " + e->get_ada_full_name() + ";\n";
 	    }
 	    break;
@@ -352,7 +371,7 @@ adabe_interface::produce_impl_ads(dep_list with, string &body, string &previous)
 		  case AST_Decl::NT_string:
 		  case AST_Decl::NT_array:
 		    {
-		      adabe_name *e = adabe_name::narrow_from_decl(d);
+		      adabe_name *e = dynamic_cast<adabe_name *>(d);
 		      tmp += "   subtype" +  e->get_ada_local_name() + " is " + e->get_ada_full_name();
 		    }
 		    break;
@@ -374,7 +393,7 @@ adabe_interface::produce_impl_ads(dep_list with, string &body, string &previous)
       AST_Decl *d = i.item();
       string tmp1 = "";
       string tmp2 = "";
-      adabe_name::narrow_from_decl(d)->produce_ads(with, tmp1, tmp2);
+      dynamic_cast<adabe_name *>(d)->produce_ads(with, tmp1, tmp2);
       body += tmp2 + tmp1;
       i.next();
     }
@@ -383,7 +402,7 @@ adabe_interface::produce_impl_ads(dep_list with, string &body, string &previous)
 }
 
 void
-adabe_interface::produce_impl_adb(dep_list with, string &body, string &previous)
+adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous)
 {
   /*
     with.add("Ada.Tags");
@@ -404,7 +423,7 @@ adabe_interface::produce_impl_adb(dep_list with, string &body, string &previous)
 	  {
 	    string tmp1 = "";
 	    string tmp2 = "";
-	    adabe_name::narrow_from_decl(d)->produce_adb(with, tmp1, tmp2);
+	    dynamic_cast<adabe_name *>(d)->produce_adb(with, tmp1, tmp2);
 	    body += tmp2 + tmp1;
 	  }
 	  break;
@@ -416,7 +435,7 @@ adabe_interface::produce_impl_adb(dep_list with, string &body, string &previous)
 }
 
 void
-adabe_interface::produce_skel_ads(dep_list with, string &body, string &previous)
+adabe_interface::produce_skel_ads(dep_list& with, string &body, string &previous)
 {
   with.add("Omniorb");
   with.add("Giop_S");
@@ -431,7 +450,7 @@ adabe_interface::produce_skel_ads(dep_list with, string &body, string &previous)
 }
 
 void
-adabe_interface::produce_proxies_ads(dep_list with, string &body, string &previous)
+adabe_interface::produce_proxies_ads(dep_list& with, string &body, string &previous)
 {
   with.add("Giop_C");
   with.add("Omniproxycalldesc");
@@ -454,7 +473,7 @@ adabe_interface::produce_proxies_ads(dep_list with, string &body, string &previo
 	  {
 	    string tmp1 = "";
 	    string tmp2 = "";	    
-	    adabe_name::narrow_from_decl(d)->produce_proxies_ads(with, tmp1, tmp2);
+	    dynamic_cast<adabe_name *>(d)->produce_proxies_ads(with, tmp1, tmp2);
 	    body += tmp1;
 	    Sprivate += tmp2;	
 	  }
@@ -465,11 +484,11 @@ adabe_interface::produce_proxies_ads(dep_list with, string &body, string &previo
     }
   body += "private \n";
   body += Sprivate;
-  body += "end " + get_ada_full_name() + ".Skeleton ;\n";
+  body += "end " + get_ada_full_name() + ".Proxies ;\n";
 }
 
 void
-adabe_interface::produce_skel_adb(dep_list with, string &body, string &previous)
+adabe_interface::produce_skel_adb(dep_list& with, string &body, string &previous)
 {
   
 
@@ -478,12 +497,12 @@ adabe_interface::produce_skel_adb(dep_list with, string &body, string &previous)
 }
 
 void
-adabe_interface::produce_proxies_adb(dep_list with, string &body, string &previous)
+adabe_interface::produce_proxies_adb(dep_list& with, string &body, string &previous)
 {
 }
 
 void
-adabe_interface::produce_marshal_ads(dep_list with, string &body, string &previous)
+adabe_interface::produce_marshal_ads(dep_list& with, string &body, string &previous)
 {
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
@@ -502,7 +521,7 @@ adabe_interface::produce_marshal_ads(dep_list with, string &body, string &previo
 	  {
 	    string tmp1 = "";
 	    string tmp2 = "";	    
-	    adabe_name::narrow_from_decl(d)->produce_marshal_ads(with, tmp1, tmp2);
+	    dynamic_cast<adabe_name *>(d)->produce_marshal_ads(with, tmp1, tmp2);
 	    body += tmp1;
 	  }
 	  break;
@@ -513,7 +532,7 @@ adabe_interface::produce_marshal_ads(dep_list with, string &body, string &previo
 }
 
 void
-adabe_interface::produce_marshal_adb(dep_list with, string &body, string &previous)
+adabe_interface::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
@@ -532,7 +551,7 @@ adabe_interface::produce_marshal_adb(dep_list with, string &body, string &previo
 	  {
 	    string tmp1 = "";
 	    string tmp2 = "";	    
-	    adabe_name::narrow_from_decl(d)->produce_marshal_ads(with, tmp1, tmp2);
+	    dynamic_cast<adabe_name *>(d)->produce_marshal_ads(with, tmp1, tmp2);
 	    body += tmp1;
 	  }
 	  break;

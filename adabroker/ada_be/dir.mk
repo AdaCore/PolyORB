@@ -49,7 +49,7 @@ OBJS         = \
 		adabe_interface_fwd.o\
 		adabe_generator.o
 
-DIR_CPPFLAGS = -I. -I../include $(patsubst %,-I%/../include,$(VPATH)) -I../omniORB2_be
+DIR_CPPFLAGS = -I. -I../include $(patsubst %,-I%/../include,$(VPATH)) -I../omniORB2_be -g
 
 ifdef Win32Platform
 CXXOPTIONS += -Zm200

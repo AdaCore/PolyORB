@@ -4,11 +4,11 @@
 adabe_module::adabe_module(UTL_ScopedName *n, UTL_StrList *p)
                  : AST_Decl(AST_Decl::NT_module, n, p),
 		   UTL_Scope(AST_Decl::NT_module),
-                   adabe_name() 
+                   adabe_name(AST_Decl::NT_module, n, p) 
 {
 }
 void
-adabe_module::produce_ads(dep_list with,string &body, string &previousdefinition)
+adabe_module::produce_ads(dep_list& with,string &body, string &previousdefinition)
 {
   
   // before doing anything compute the ada name
@@ -39,7 +39,7 @@ adabe_module::produce_ads(dep_list with,string &body, string &previousdefinition
 	  }
 	  previousdefinition += body;
 	  body ="";
-	  adabe_name::narrow_from_decl(d)->produce_ads(with, body, previousdefinition);
+	  dynamic_cast<adabe_name *>(d)->produce_ads(with, body, previousdefinition);
 	  break;
 	case AST_Decl::NT_module:
 	  {
@@ -93,7 +93,7 @@ adabe_module::produce_ads(dep_list with,string &body, string &previousdefinition
 }
 
 void
-adabe_module::produce_adb(dep_list with,string &body, string &previousdefinition)
+adabe_module::produce_adb(dep_list& with,string &body, string &previousdefinition)
   // does nothing except lauching produce adb for the interfaces
 {
    UTL_ScopeActiveIterator module_activator(this,UTL_Scope::IK_decls);
@@ -151,7 +151,7 @@ adabe_module::produce_adb(dep_list with,string &body, string &previousdefinition
 }
 
 void
-adabe_module::produce_impl_ads(dep_list with,string &body, string &previousdefinition)
+adabe_module::produce_impl_ads(dep_list& with,string &body, string &previousdefinition)
   // does nothing except lauching produce imp_ads for the interfaces
 {
    UTL_ScopeActiveIterator module_activator(this,UTL_Scope::IK_decls);
@@ -207,7 +207,7 @@ adabe_module::produce_impl_ads(dep_list with,string &body, string &previousdefin
     }
 }
 void
-adabe_module::produce_impl_adb(dep_list with,string &body, string &previousdefinition)
+adabe_module::produce_impl_adb(dep_list& with,string &body, string &previousdefinition)
   // does nothing except lauching produce adb for the interfaces
 {
    UTL_ScopeActiveIterator module_activator(this,UTL_Scope::IK_decls);
@@ -265,7 +265,7 @@ adabe_module::produce_impl_adb(dep_list with,string &body, string &previousdefin
 
 
 void
-adabe_module::produce_proxies_ads(dep_list with,string &body, string &previousdefinition)
+adabe_module::produce_proxies_ads(dep_list& with,string &body, string &previousdefinition)
   // does nothing except lauching produce imp_ads for the interfaces
 {
    UTL_ScopeActiveIterator module_activator(this,UTL_Scope::IK_decls);
@@ -322,7 +322,7 @@ adabe_module::produce_proxies_ads(dep_list with,string &body, string &previousde
 }
 
 void
-adabe_module::produce_proxies_adb(dep_list with,string &body, string &previousdefinition)
+adabe_module::produce_proxies_adb(dep_list& with,string &body, string &previousdefinition)
   // does nothing except lauching produce adb for the interfaces
 {
    UTL_ScopeActiveIterator module_activator(this,UTL_Scope::IK_decls);
@@ -378,7 +378,7 @@ adabe_module::produce_proxies_adb(dep_list with,string &body, string &previousde
 }
 
 void
-adabe_module::produce_skel_ads(dep_list with,string &body, string &previousdefinition)
+adabe_module::produce_skel_ads(dep_list& with,string &body, string &previousdefinition)
   // does nothing except lauching produce imp_ads for the interfaces
 {
    UTL_ScopeActiveIterator module_activator(this,UTL_Scope::IK_decls);
@@ -438,7 +438,7 @@ adabe_module::produce_skel_ads(dep_list with,string &body, string &previousdefin
 }
 
 void
-adabe_module::produce_skel_adb(dep_list with,string &body, string &previousdefinition)
+adabe_module::produce_skel_adb(dep_list& with,string &body, string &previousdefinition)
   // does nothing except lauching produce adb for the interfaces
 {
    UTL_ScopeActiveIterator module_activator(this,UTL_Scope::IK_decls);
@@ -497,7 +497,7 @@ adabe_module::produce_skel_adb(dep_list with,string &body, string &previousdefin
 }
 
 void
-adabe_module::produce_marshal_ads(dep_list with,string &body, string &previousdefinition)
+adabe_module::produce_marshal_ads(dep_list& with,string &body, string &previousdefinition)
 {
   
   bool first = true;
@@ -521,7 +521,7 @@ adabe_module::produce_marshal_ads(dep_list with,string &body, string &previousde
 	    body = "Package " + get_ada_full_name() + "-marshal is";
 	    first = false;
 	  }
-	  adabe_name::narrow_from_decl(d)->produce_marshal_ads(with, body, previousdefinition);
+	  dynamic_cast<adabe_name *>(d)->produce_marshal_ads(with, body, previousdefinition);
 	  break;
 	case AST_Decl::NT_module:
 	  {
@@ -574,7 +574,7 @@ adabe_module::produce_marshal_ads(dep_list with,string &body, string &previousde
 }
 
 void
-adabe_module::produce_marshal_adb(dep_list with,string &body, string &previousdefinition)
+adabe_module::produce_marshal_adb(dep_list& with,string &body, string &previousdefinition)
   // does nothing except lauching produce adb for the interfaces
 {
 
@@ -600,7 +600,7 @@ adabe_module::produce_marshal_adb(dep_list with,string &body, string &previousde
 	    }
 	  previousdefinition += body;
 	  body = "";
-	  adabe_name::narrow_from_decl(d)->produce_marshal_adb(with, body, previousdefinition);
+	  dynamic_cast<adabe_name *>(d)->produce_marshal_adb(with, body, previousdefinition);
 	  break;
 	    
 	case AST_Decl::NT_module:
@@ -653,7 +653,7 @@ adabe_module::produce_marshal_adb(dep_list with,string &body, string &previousde
 }
 
 string
-adabe_module::dump_name(dep_list with,string &String, string &previousdefinition)
+adabe_module::dump_name(dep_list& with,string &String, string &previousdefinition)
 {
   if (!is_imported(with))
     {
@@ -668,7 +668,7 @@ adabe_module::dump_name(dep_list with,string &String, string &previousdefinition
   return get_ada_full_name();	   
 }
 
-IMPL_NARROW_METHODS1(adabe_module, AST_Module);
+IMPL_NARROW_METHODS3(adabe_module, AST_Module, adabe_name, UTL_Scope);
 IMPL_NARROW_FROM_DECL(adabe_module);
 IMPL_NARROW_FROM_SCOPE(adabe_module);
 

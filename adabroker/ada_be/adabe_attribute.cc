@@ -5,17 +5,17 @@ adabe_attribute::adabe_attribute(idl_bool ro, AST_Type *ft, UTL_ScopedName *n, U
   : AST_Attribute(ro,ft,n,p),
     AST_Field(AST_Decl::NT_attr,ft,n,p),
     AST_Decl(AST_Decl::NT_attr,n,p),
-    adabe_name()
+    adabe_name(AST_Decl::NT_attr,n,p)
 {  
 }
 
 void
-adabe_attribute::produce_ads(dep_list with, string &body, string &previous)
+adabe_attribute::produce_ads(dep_list& with, string &body, string &previous)
 {
   compute_ada_name();
   body += "   function get_" + get_ada_local_name() +"(Self : in Ref) return "; 
   AST_Decl *d = field_type();
-  string name = adabe_name::narrow_from_decl(d)->dump_name(with, body, previous);
+  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, body, previous);
   body += name + ";\n";
   if (!readonly())
     {
@@ -27,13 +27,13 @@ adabe_attribute::produce_ads(dep_list with, string &body, string &previous)
 }
 
 void
-adabe_attribute::produce_adb(dep_list with, string &body, string &previous)
+adabe_attribute::produce_adb(dep_list& with, string &body, string &previous)
 {
   body += "   function get_" + get_ada_local_name() +"(Self : in Ref) return "; 
   AST_Decl *d = field_type();  
-  string name = adabe_name::narrow_from_decl(d)->dump_name(with, body, previous);
+  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, body, previous);
   body += name + ";\n";  
-  string name_of_the_package = adabe_name::narrow_from_decl(ScopeAsDecl(defined_in()))->get_ada_full_name();
+  string name_of_the_package = dynamic_cast<adabe_name *>(ScopeAsDecl(defined_in()))->get_ada_full_name();
   body += "   Opcd : " + name_of_the_package + ".Proxies.Get_" + get_ada_local_name() + "_Proxy ;\n";
   body += "   Result : " + name +";\n";
   body += "   begin \n";
@@ -60,11 +60,11 @@ adabe_attribute::produce_adb(dep_list with, string &body, string &previous)
 }
 
 void
-adabe_attribute::produce_impl_ads(dep_list with, string &body, string &previous)
+adabe_attribute::produce_impl_ads(dep_list& with, string &body, string &previous)
 {
   body += "   function get_" + get_ada_local_name() +"(Self : access Object) return "; 
   AST_Decl *d = field_type();
-  string name = adabe_name::narrow_from_decl(d)->dump_name(with, body, previous);
+  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, body, previous);
   body += name + ";\n";
   if (!readonly())
     {
@@ -75,11 +75,11 @@ adabe_attribute::produce_impl_ads(dep_list with, string &body, string &previous)
 }
 
 void
-adabe_attribute::produce_impl_adb(dep_list with, string &body, string &previous)
+adabe_attribute::produce_impl_adb(dep_list& with, string &body, string &previous)
 {
   body += "   function get_" + get_ada_local_name() +"(Self : access Object) return ";
   AST_Decl *d = field_type();
-  string name = adabe_name::narrow_from_decl(d)->dump_name(with, body, previous);
+  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, body, previous);
   body += name + ";\n";
   body += "   begin\n\n";
   body += "   end; \n"; 
@@ -94,10 +94,10 @@ adabe_attribute::produce_impl_adb(dep_list with, string &body, string &previous)
 }
 
 void
-adabe_attribute::produce_proxies_ads(dep_list with, string &body, string &private_definition)
+adabe_attribute::produce_proxies_ads(dep_list& with, string &body, string &private_definition)
 {  
   AST_Decl *d = field_type();
-  string name = adabe_name::narrow_from_decl(d)->dump_name(with, body, private_definition);
+  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, body, private_definition);
   body += "   type get_" + get_ada_local_name() +"_Proxy is new OmniProxyCallDesc.Object with private;\n";
   body += "   function Create() return get_" + get_ada_local_name() +"_Proxy ;\n";
   body += "   procedure Free(Self : in out get_" + get_ada_local_name() + "_Proxy);\n";
@@ -128,12 +128,12 @@ adabe_attribute::produce_proxies_ads(dep_list with, string &body, string &privat
 }
 
 void
-adabe_attribute::produce_proxies_adb(dep_list with, string &body, string &private_definition)
+adabe_attribute::produce_proxies_adb(dep_list& with, string &body, string &private_definition)
 {
 }
 
 void
-adabe_attribute::produce_skeleton_adb(dep_list with, string &body, string &private_definition)
+adabe_attribute::produce_skeleton_adb(dep_list& with, string &body, string &private_definition)
 {
 }
 

@@ -8,12 +8,12 @@ adabe_constant::adabe_constant(AST_Expression::ExprType et,
 			 UTL_StrList *p)
 	   : AST_Constant(et, v, n, p),
 	     AST_Decl(AST_Decl::NT_const, n, p),
-	     adabe_name()
+	     adabe_name(AST_Decl::NT_const, n, p)
 {
 }
 
 void
-adabe_constant::produce_ads(dep_list with, string & String, string &previousdefinition)
+adabe_constant::produce_ads(dep_list& with, string & String, string &previousdefinition)
 {
   idl_bool intfconst = 0;
   bool initialized = true;
@@ -125,7 +125,7 @@ void adabe_constant::write_string_to_ada(string &c_string, string &output) {
 }
 
 string
-adabe_constant::dump_name(dep_list with, string &body, string &previous)
+adabe_constant::dump_name(dep_list& with, string &body, string &previous)
 {
   if (!is_imported(with))
     {

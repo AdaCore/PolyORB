@@ -5,19 +5,19 @@ adabe_union::adabe_union(AST_ConcreteType *dt, UTL_ScopedName *n, UTL_StrList *p
 	  AST_Decl(AST_Decl::NT_union, n, p),
           AST_Structure(AST_Decl::NT_union, n, p),
 	  UTL_Scope(AST_Decl::NT_union),
-	  adabe_name()
+	  adabe_name(AST_Decl::NT_union, n, p)
 {
 }
 
 void
-adabe_union::produce_ads(dep_list with, string &body, string &previous)
+adabe_union::produce_ads(dep_list& with, string &body, string &previous)
 {
   ///////////WARNING//////////////
   //  the type of the discriminant should be check. From this type result a specific solution  
 
   compute_ada_name();
   body += "   type " + get_ada_local_name();
-  adabe_name *b = adabe_name::narrow_from_decl(disc_type());
+  adabe_name *b = dynamic_cast<adabe_name *>(disc_type());
   b->compute_ada_name();
   string name = get_ada_local_name();
   body += "(Switch : "  + b->dump_name(with, body, previous);
@@ -38,20 +38,20 @@ adabe_union::produce_ads(dep_list with, string &body, string &previous)
 
 /*
   void
-  adabe_union::produce_adb(dep_list with,string &body, string &previous)
+  adabe_union::produce_adb(dep_list& with,string &body, string &previous)
   {
   if (!is_imported(with)) return get_ada_local_name();
   return get_ada_full_name();	   
   }
   
   void
-  adabe_union::produce_impl_ads(dep_list with,string &body, string &previous)
+  adabe_union::produce_impl_ads(dep_list& with,string &body, string &previous)
   {
   produce_ads(with, body, previous);
   }
   
   void
-  adabe_union::produce_impl_adb(dep_list with,string &body, string &previous)
+  adabe_union::produce_impl_adb(dep_list& with,string &body, string &previous)
   {
   if (!is_imported(with)) return get_ada_local_name();
   return get_ada_full_name();	   
@@ -59,17 +59,17 @@ adabe_union::produce_ads(dep_list with, string &body, string &previous)
 */
 
 void
-adabe_union::produce_marshal_ads(dep_list with, string &body, string &previous)
+adabe_union::produce_marshal_ads(dep_list& with, string &body, string &previous)
 {
 }
 
 void
-adabe_union::produce_marshal_adb(dep_list with, string &body, string &previous)
+adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
 }
 
 string
-adabe_union::dump_name(dep_list with, string &body, string &previous)
+adabe_union::dump_name(dep_list& with, string &body, string &previous)
 {
   if (!is_imported(with))
     {

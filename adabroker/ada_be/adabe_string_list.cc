@@ -5,34 +5,36 @@
 string_list::string_list() {
   nb_item_in_list = 0;
   max_item_in_list = DEFAULT_SIZE;
-  list = new string[max_item_in_list];
+  str_list = new str_ptr[max_item_in_list];
 }
 
 string_list::~string_list() {
-  delete[] list;
+  /*  for (int i=0; i < nb_item_in_list; i++)
+    delete str_list[i];
+    delete str_list;*/
 }
 
 bool string_list::check (string str) {
   int i;
   for (i=0; i < nb_item_in_list; i++) 
-    if ( str == list[i])
+    if ( str == *(str_list[i]))
       return true;
   return false;
 }
 
 void string_list::add (string str) {
   if (nb_item_in_list == max_item_in_list) {
-    int i;
-    string *temp_list;
-    max_item_in_list *=2;
-    temp_list = new string[max_item_in_list];
-    for (i=0; i<max_item_in_list / 2; i++){
-      temp_list[i] = list[i];
+    int i=0;
+    string **temp_list;
+    temp_list = new str_ptr[max_item_in_list*2];
+    for (i=0; i<max_item_in_list ; i++){
+      temp_list[i] = str_list[i];
     }
-    delete list;
-    list = temp_list;
+    max_item_in_list *=2;
+    delete str_list; 
+    str_list = temp_list;
   }
-  list[nb_item_in_list] = str;
+  str_list[nb_item_in_list] = new string(str);
   nb_item_in_list++;
 }
 
@@ -41,7 +43,7 @@ string *string_list::produce () {
   string *output;
   output =new string("");
   for (i = 0; i<nb_item_in_list; i++) {
-    (*output) += list[i] +"\n";
+    (*output) += *str_list[i] +"\n";
   }
   return output;
 }
@@ -51,7 +53,7 @@ string *string_list::produce (string repeat) {
   string *output;
   output = new string("");
   for (i = 0; i < nb_item_in_list; i++) {
-    (*output) += repeat + list[i] +"\n";
+    (*output) += repeat + *str_list[i] +"\n";
   }
   return output;
 }

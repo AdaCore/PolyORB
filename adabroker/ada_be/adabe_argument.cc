@@ -4,12 +4,12 @@ adabe_argument::adabe_argument(AST_Argument::Direction d, AST_Type *ft, UTL_Scop
 	   : AST_Argument(d, ft, n, p),
 	     AST_Field(AST_Decl::NT_argument, ft, n, p),
 	     AST_Decl(AST_Decl::NT_argument, n, p),
-             adabe_name()
+             adabe_name(AST_Decl::NT_argument, n, p)
 {
 }
 
 void
-adabe_argument::produce_ads(dep_list with, string &body, string &previous)
+adabe_argument::produce_ads(dep_list& with, string &body, string &previous)
 {
   compute_ada_name();
   body += get_ada_local_name() + " :";
@@ -26,32 +26,32 @@ adabe_argument::produce_ads(dep_list with, string &body, string &previous)
       break;
     }
   AST_Decl *d = field_type();
-  body += adabe_name::narrow_from_decl(d)->dump_name(with, body, previous); // virtual method
+  body +=  dynamic_cast<adabe_name *>(d)->dump_name(with, body, previous); // virtual method
 }
 
 
 /*
   void
-  adabe_argument::produce_adb(dep_list with,string &body, string &previous)
+  adabe_argument::produce_adb(dep_list& with,string &body, string &previous)
   {
   produce_ads(with, body, previous);
   }
 
   void
-  adabe_argument::produce_impl_ads(dep_list with,string &body, string &previous)
+  adabe_argument::produce_impl_ads(dep_list& with,string &body, string &previous)
   {
   produce_ads( with, body, previous); 
   }
   
   ///////////////perhaps useless////////////////////////
   void
-  adabe_argument::produce_impl_adb(dep_list with,string &body, string &previous)
+  adabe_argument::produce_impl_adb(dep_list& with,string &body, string &previous)
   {
   produce_ads(with, body, previous);
   }
 */
 void
-adabe_argument::produce_proxies_ads(dep_list with, string &body, string &input)
+adabe_argument::produce_proxies_ads(dep_list& with, string &body, string &input)
 {
   if (input == "IN")
     {
@@ -70,7 +70,7 @@ adabe_argument::produce_proxies_ads(dep_list with, string &body, string &input)
 	  break;
 	}
       AST_Decl *d = field_type();
-      tmp += adabe_name::narrow_from_decl(d)->dump_name(with, body, previous); // virtual method
+      tmp +=  dynamic_cast<adabe_name *>(d)->dump_name(with, body, previous); // virtual method
       if (verif) body += tmp + ", ";
     }
   if (input == "OUT")
@@ -90,17 +90,17 @@ adabe_argument::produce_proxies_ads(dep_list with, string &body, string &input)
 	  break;
 	}
       AST_Decl *d = field_type();
-      tmp += adabe_name::narrow_from_decl(d)->dump_name(with, body, previous); // virtual method
+      tmp +=  dynamic_cast<adabe_name *>(d)->dump_name(with, body, previous); // virtual method
       if (verif) body += tmp + ", ";
     }
 }
 
 void
-adabe_argument::produce_proxies_adb(dep_list with, string &body, string &previous)
+adabe_argument::produce_proxies_adb(dep_list& with, string &body, string &previous)
 {
   body += "      Arg_" + get_ada_local_name() + " :";
   AST_Decl *d = field_type();
-  body += adabe_name::narrow_from_decl(d)->dump_name(with, body, previous); // virtual method
+  body +=  dynamic_cast<adabe_name *>(d)->dump_name(with, body, previous); // virtual method
   body += "_Ptr := null ;\n";
 }
 

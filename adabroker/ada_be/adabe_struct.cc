@@ -3,12 +3,12 @@
 adabe_structure::adabe_structure(UTL_ScopedName *n, UTL_StrList *p)
 	    : AST_Decl(AST_Decl::NT_struct, n, p),
 	      UTL_Scope(AST_Decl::NT_struct),
-	      adabe_name()
+	      adabe_name(AST_Decl::NT_struct, n, p)
 {
 }
 
 void
-adabe_structure::produce_ads(dep_list with, string &body, string &previous)
+adabe_structure::produce_ads(dep_list& with, string &body, string &previous)
 {
   compute_ada_name();
   body += "   type " + get_ada_local_name() + "is record\n";
@@ -17,7 +17,7 @@ adabe_structure::produce_ads(dep_list with, string &body, string &previous)
     {
       AST_Decl *d = i.item();
       if (d->node_type() == AST_Decl::NT_field)
-	adabe_name::narrow_from_decl(d)->produce_ads(with, body, previous);
+	dynamic_cast<adabe_name *>(d)->produce_ads(with, body, previous);
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in structure");
       i.next();
     }
@@ -30,13 +30,13 @@ adabe_structure::produce_ads(dep_list with, string &body, string &previous)
 
 /*
   void
-  adabe_structure::produce_adb(dep_list with,string &body, string &previous)
+  adabe_structure::produce_adb(dep_list& with,string &body, string &previous)
   {
   if (!is_imported(with)) return get_ada_local_name();
   else return get_ada_full_name();
   }
   void
-  adabe_structure::produce_impl_ads(dep_list with,string &body, string &previous)
+  adabe_structure::produce_impl_ads(dep_list& with,string &body, string &previous)
   {
   INDENT(body);
   body += "type " + get_ada_local_name() + "is record\n";
@@ -47,7 +47,7 @@ adabe_structure::produce_ads(dep_list with, string &body, string &previous)
   INDENT(body);
   AST_Decl *d = i.item();
   if (d->node_type() == AST_Decl::NT_field)
-  adabe_name::narrow_from_decl(d)->produce_impl_ads(with, body, previous);
+  dynamic_cast<adabe_name *>(d)->produce_impl_ads(with, body, previous);
   else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in structure");
   i.next();
   }
@@ -59,7 +59,7 @@ adabe_structure::produce_ads(dep_list with, string &body, string &previous)
 
 
   void  
-  adabe_structure::produce_impl_adb(dep_list with,string &body, string &previous)
+  adabe_structure::produce_impl_adb(dep_list& with,string &body, string &previous)
   {
   if (!is_imported(with)) return get_ada_local_name();
   else return get_ada_full_name();
@@ -67,16 +67,16 @@ adabe_structure::produce_ads(dep_list with, string &body, string &previous)
 */
 
 void
-adabe_structure::produce_marshal_ads(dep_list with, string &body, string &previous)
+adabe_structure::produce_marshal_ads(dep_list& with, string &body, string &previous)
 {
 }
 void
-adabe_structure::produce_marshal_adb(dep_list with, string &body, string &previous)
+adabe_structure::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
 }
 
 string
-adabe_structure::dump_name(dep_list with, string &body, string &previous)
+adabe_structure::dump_name(dep_list& with, string &body, string &previous)
 {
   if (!is_imported(with))
     {
