@@ -14,20 +14,19 @@
 ////                                                                    ////
 ////////////////////////////////////////////////////////////////////////////
 
-#include "omniORB2/rope.h"
+#include <omnithread.h>
+#include <omniORB2/CORBA_sysdep.h>
+#include <omniORB2/CORBA_basetypes.h>
+
+#include <omniORB2/rope.h>
 
 class Ada_Rope {
 
 public:
 
-  void Init (Anchor *a,
-	     unsigned int maxStrands,
-	     _CORBA_Boolean heapAllocated);
-  // Initialisation : calls the Rope constructor
-
   Ada_Rope ();
   // Default constructor
-
+  
 private:
 
   Rope *C_Rope;
