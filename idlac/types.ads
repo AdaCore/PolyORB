@@ -107,7 +107,6 @@ package Types is
    --  FIXME : bizarre ce commentaire...
    type N_Named is abstract new N_Root with private;
    type N_Named_Acc is access all N_Named'Class;
-   function Get_Name (Node : in N_Named'Class) return String;
 
 
    --  Basic type for nodes that define a scope
@@ -115,32 +114,38 @@ package Types is
    type N_Scope_Acc is access all N_Scope'Class;
 
 
-   --  An identifier refers to a scope_cell.
-   --  A scope cells is directly linked to Node, to the node that has
-   --  created the scope and the the previous scope cell (if the identifier
-   --  has been redefined inside an enclosed scope).
-   type Scope_Cell is private;
-   type Scope_Cell_Acc is access Scope_Cell;
+   --  this type represents an identifier definition
+   type Identifier_Definition is private;
+   type Identifier_Definition_Acc is access Identifier_Definition;
 
 
 
-   ----------------------------
-   --  operations on N_Root  --
-   ----------------------------
+   ---------------------------
+   --  operations on Nodes  --
+   ---------------------------
 
-   procedure Set_Loc (N : in out N_Root'Class; Loc : Errors.Location);
-   function Get_Loc (N : N_Root'Class) return Errors.Location;
+   --  To manipulate the location of a node
+   procedure Set_location (N : in out N_Root'Class; Loc : Errors.Location);
+   function Get_location (N : N_Root'Class) return Errors.Location;
+
+   --  To get the name of a named node
+   function Get_Name (Node : in N_Named'Class) return String;
+
+   --  To get the kind of a node. Each node type has to redifine
+   --  this method, returning the right type.
+   --  For a N_root, this method is abstract
    function Get_Kind (N : N_Root) return Node_Kind is abstract;
 
 
 
-   --------------------------
-   --  operations on Cell  --
-   --------------------------
+   --------------------------------------------
+   --  operations on identifier definitions  --
+   --------------------------------------------
 
-   --  Return the named node from an identifier.
-   --  CELL must not be null.
-   function Get_Node (Cell : Scope_Cell_Acc) return N_Named_Acc;
+   --  Return the named node corresponding to the identifier
+   --  definition.
+   --  Raises fatal_error if Cell is a null pointer
+   function Get_Node (Cell : Identifier_Definition_Acc) return N_Named_Acc;
 
 
 
@@ -148,12 +153,12 @@ package Types is
    --  scope handling  --
    ----------------------
 
-   --  Scope handling.
-   --  Scopes are stacked and create an identifiers space.
-   --  In a scope, an identifier has at most one meaning, a node.
+   --  Scopes are stacked and create an identifier space.
+   --  In a scope, an identifier has at most one meaning : a node.
    --  Therefore, there is no overload.
-   --  For the research, the current scope is considered, and if an identifier
-   --  has no meaning in the scope, the parent scope is looked for.
+   --  For the research, the current scope is considered, and if an
+   --  identifier has no meaning in the scope, the parent scope is
+   --  looked for.
 
    --  Get the root (the oldest) and current (the newest) scope.
    function Get_Root_Scope return N_Scope_Acc;
@@ -185,14 +190,14 @@ package Types is
    --  Change the definition (associed node) of CELL.
    --  Must be called with care.
    procedure Redefine_Identifier
-     (Cell : Scope_Cell_Acc; Node : access N_Named'Class);
+     (Cell : Identifier_Definition_Acc; Node : access N_Named'Class);
 
    --  Find the current identifier (this that was just scaned) and returns
    --  the node that defined it.
    --  Return null if no node defines it.
    function Find_Identifier return N_Named_Acc;
 
-   function Find_Identifier return Scope_Cell_Acc;
+   function Find_Identifier return Identifier_Definition_Acc;
 
    --  Find the current identifier in a scope.
    function Find_Identifier_In_Scope (Scope : N_Scope_Acc)
@@ -219,8 +224,8 @@ package Types is
    --  Return TRUE in case of success.
    function Import_Uniq_Identifier (Node : N_Named_Acc) return Boolean;
 
+
 private
-   type N_Back_End is abstract tagged null record;
 
    type N_Root is abstract tagged record
       Loc : Errors.Location;
@@ -230,12 +235,39 @@ private
    Nil_Node : constant N_Root_Acc := null;
 
    type N_Named is abstract new N_Root with record
-      Cell : Scope_Cell_Acc;
+      Cell : Identifier_Definition_Acc;
    end record;
 
    type N_Scope is abstract new N_Named with record
-      Identifier_List : Scope_Cell_Acc;
+      Identifier_List : Identifier_Definition_Acc;
    end record;
+
+   --  A scope cells is directly linked to Node, to the node that has
+   --  created the scope and the the previous scope cell (if the identifier
+   --  has been redefined inside an enclosed scope).
+   type Identifier_Definition is record
+      --  Index of the identifier.
+      --  This is mainly used to restore the previous meaning of the
+      --  identifier, when the scope is exited.
+      Identifier : Uniq_Id;
+
+      --  The node refered by the identifier.
+      Node : N_Named_Acc;
+
+      --  The previous scope_cell, ie OLD is the previous meaning of the
+      --  identifier.
+      Old : Identifier_Definition_Acc;
+
+      --  scope_cell of a scope are linked.
+      Next : Identifier_Definition_Acc;
+
+      --  cells with the same identifier are linked.
+      Link : Identifier_Definition_Acc;
+
+      --  Node that has created the scope.
+      Parent : N_Scope_Acc;
+   end record;
+
 
    --  Identifiers are looked for throught an hash table.
    --  Currently, the number of entries in the hash table is fixed, and
@@ -265,29 +297,6 @@ private
    --                    |     |
    --                    V     +----------------------> Node
    --                   null
-   type Scope_Cell is record
-      --  Index of the identifier.
-      --  This is mainly used to restore the previous meaning of the
-      --  identifier, when the scope is exited.
-      Identifier : Uniq_Id;
-
-      --  The node refered by the identifier.
-      Node : N_Named_Acc;
-
-      --  The previous scope_cell, ie OLD is the previous meaning of the
-      --  identifier.
-      Old : Scope_Cell_Acc;
-
-      --  scope_cell of a scope are linked.
-      Next : Scope_Cell_Acc;
-
-      --  cells with the same identifier are linked.
-      Link : Scope_Cell_Acc;
-
-      --  Node that has created the scope.
-      Parent : N_Scope_Acc;
-   end record;
-
 --
 --   INUTILE ???
 --
@@ -304,6 +313,10 @@ private
 --    procedure Set_Back_End (N : in out N_Root'Class;
 --                            Be : access N_Back_End'Class);
 --    function Get_Back_End (N : N_Root'Class) return N_Back_End_Acc;
+--
+--  private
+--
+--    type N_Back_End is abstract tagged null record;
 
 
 end Types;

@@ -24,16 +24,25 @@ with Tokens;
 with Errors;
 
 package body Types is
-   --  Primitives of n_root.
-   procedure Set_Loc (N : in out N_Root'Class; Loc : Errors.Location) is
-   begin
-      N.Loc := Loc;
-   end Set_Loc;
 
-   function Get_Loc (N : N_Root'Class) return Errors.Location is
+   --------------------------
+   --  operations on Cell  --
+   --------------------------
+
+   function Get_Node (Cell : Identifier_Definition_Acc) return N_Named_Acc is
    begin
-      return N.Loc;
-   end Get_Loc;
+      if Cell /= null then
+         return Cell.Node;
+      else
+         raise Errors.Fatal_Error;
+      end if;
+   end Get_Node;
+
+
+
+   ----------------------
+   --  scope handling  --
+   ----------------------
 
    --  These define the stack of the scopes.
    --  The top of the stack is keep in CURRENT_SCOPE.
@@ -72,8 +81,8 @@ package body Types is
    type Hash_Entry is record
       Str : String_Cacc := null;
       Next : Uniq_Id;
-      Cell : Scope_Cell_Acc := null;
-      List : Scope_Cell_Acc := null;
+      Cell : Identifier_Definition_Acc := null;
+      List : Identifier_Definition_Acc := null;
    end record;
 
    package Id_Table is new Gnat.Table
@@ -97,7 +106,7 @@ package body Types is
 
    procedure Pop_Scope (Scope : access N_Scope'Class) is
       Old : Scope_Slot_Acc;
-      Cell : Scope_Cell_Acc;
+      Cell : Identifier_Definition_Acc;
    begin
       if Current_Scope = null
         or else Current_Scope.Scope /= N_Scope_Acc (Scope) then
@@ -124,6 +133,12 @@ package body Types is
       end loop;
       Unchecked_Deallocation (Old);
    end Pop_Scope;
+
+
+
+   ----------------------------
+   --  identifiers handling  --
+   ----------------------------
 
    function Hash (Str : in String) return Hash_Value_Type is
       Res : Hash_Value_Type := 0;
@@ -202,7 +217,7 @@ package body Types is
    end Get_Identifier;
 
    function Find_Identifier return N_Named_Acc is
-      Cell : Scope_Cell_Acc;
+      Cell : Identifier_Definition_Acc;
       Index : Uniq_Id;
    begin
       Index := Get_Identifier (Tokens.Get_Identifier);
@@ -214,20 +229,15 @@ package body Types is
       end if;
    end Find_Identifier;
 
-   function Find_Identifier return Scope_Cell_Acc is
+   function Find_Identifier return Identifier_Definition_Acc is
       Index : Uniq_Id;
    begin
       Index := Get_Identifier (Tokens.Get_Identifier);
       return Id_Table.Table (Index).Cell;
    end Find_Identifier;
 
-   function Get_Node (Cell : Scope_Cell_Acc) return N_Named_Acc is
-   begin
-      return Cell.Node;
-   end Get_Node;
-
    procedure Redefine_Identifier
-     (Cell : Scope_Cell_Acc; Node : access N_Named'Class) is
+     (Cell : Identifier_Definition_Acc; Node : access N_Named'Class) is
    begin
       if Cell.Node = null or else Node.Cell /= null then
          raise Errors.Internal_Error;
@@ -239,8 +249,8 @@ package body Types is
 
    function Add_Identifier (Index : Uniq_Id;
                             Node : access N_Named'Class)
-                            return Scope_Cell_Acc is
-      Cell : Scope_Cell_Acc;
+                            return Identifier_Definition_Acc is
+      Cell : Identifier_Definition_Acc;
    begin
       --  There must be a current scope.
       if Current_Scope = null then
@@ -252,7 +262,7 @@ package body Types is
          return null;
       end if;
       --  Create a cell.
-      Cell := new Scope_Cell;
+      Cell := new Identifier_Definition;
       Cell.Identifier := Index;
       Cell.Node := N_Named_Acc (Node);
       Cell.Old := Id_Table.Table (Index).Cell;
@@ -265,18 +275,9 @@ package body Types is
       return Cell;
    end Add_Identifier;
 
-   function Get_Name (Node : in N_Named'Class) return String is
-   begin
-      if Node.Cell /= null then
-         return Id_Table.Table (Node.Cell.Identifier).Str.all;
-      else
-         return "*nil*";
-      end if;
-   end Get_Name;
-
    procedure Add_Identifier (Node : access N_Named'Class) is
       Index : Uniq_Id;
-      Cell : Scope_Cell_Acc;
+      Cell : Identifier_Definition_Acc;
    begin
       Index := Get_Identifier (Tokens.Get_Identifier);
       Cell := Add_Identifier (Index, Node);
@@ -288,7 +289,7 @@ package body Types is
 
    function Find_Identifier_In_Scope (Scope : N_Scope_Acc)
                                       return N_Named_Acc is
-      Cell : Scope_Cell_Acc;
+      Cell : Identifier_Definition_Acc;
       Index : Uniq_Id;
    begin
       Index := Get_Identifier (Tokens.Get_Identifier);
@@ -310,7 +311,8 @@ package body Types is
       return Add_Identifier (Node.Cell.Identifier, Node) /= null;
    end Import_Uniq_Identifier;
 
-   function Is_Identifier_Imported (Cell : Scope_Cell_Acc) return Boolean is
+   function Is_Identifier_Imported (Cell : Identifier_Definition_Acc)
+                                    return Boolean is
    begin
       return Cell.Parent = Current_Scope.Scope;
    end Is_Identifier_Imported;
@@ -328,6 +330,32 @@ package body Types is
                    & "', next: " & Uniq_Id'Image (Id_Table.Table (I).Next));
       end loop;
    end Disp_Id_Table;
+
+
+
+   ---------------------------
+   --  operations on Nodes  --
+   ---------------------------
+
+   procedure Set_Location (N : in out N_Root'Class; Loc : Errors.Location) is
+   begin
+      N.Loc := Loc;
+   end Set_Location;
+
+   function Get_Location (N : N_Root'Class) return Errors.Location is
+   begin
+      return N.Loc;
+   end Get_Location;
+
+   function Get_Name (Node : in N_Named'Class) return String is
+   begin
+      if Node.Cell /= null then
+         return Id_Table.Table (Node.Cell.Identifier).Str.all;
+      else
+         return "*nil*";
+      end if;
+   end Get_Name;
+
 
 
 --  INUTILE ???

@@ -68,7 +68,7 @@ package body Parse is
    begin
       Prev := null;
       Res := new N_Scoped_Name;
-      Set_Loc (Res.all, Get_Location);
+      Set_Location (Res.all, Get_Location);
       if Token = T_Colon_Colon then
          Scope := Get_Root_Scope;
       else
@@ -145,7 +145,7 @@ package body Parse is
    begin
       if Token = T_Void then
          Res := N_Root_Acc'(new N_Void);
-         Set_Loc (Res.all, Get_Location);
+         Set_Location (Res.all, Get_Location);
          Next_Token;
          return Res;
       else
@@ -164,7 +164,7 @@ package body Parse is
       Res : N_Param_Acc;
    begin
       Res := new N_Param;
-      Set_Loc (Res.all, Get_Location);
+      Set_Location (Res.all, Get_Location);
       case Token is
          when T_In =>
             Res.Mode := Mode_In;
@@ -232,7 +232,7 @@ package body Parse is
       Res : N_Operation_Acc;
    begin
       Res := new N_Operation;
-      Set_Loc (Res.all, Get_Location);
+      Set_Location (Res.all, Get_Location);
 
       --  Rule 73
       --  <op_attribute> ::= "oneway"
@@ -480,7 +480,7 @@ package body Parse is
       Res : N_String_Acc;
    begin
       Res := new N_String;
-      Set_Loc (Res.all, Get_Location);
+      Set_Location (Res.all, Get_Location);
       Expect (T_String);
       Next_Token;
       if Token = T_Less then
@@ -683,7 +683,7 @@ package body Parse is
       El : N_Attribute_Acc;
    begin
       El := new N_Attribute;
-      Set_Loc (El.all, Get_Location);
+      Set_Location (El.all, Get_Location);
       if Token = T_Readonly then
          El.Is_Readonly := True;
          Next_Token;
@@ -749,7 +749,7 @@ package body Parse is
       Res : N_Sequence_Acc;
    begin
       Res := new N_Sequence;
-      Set_Loc (Res.all, Get_Location);
+      Set_Location (Res.all, Get_Location);
       Expect (T_Sequence);
       Scan_Expect (T_Less);
       Next_Token;
@@ -804,7 +804,7 @@ package body Parse is
       Res : N_Declarator_Acc;
    begin
       Res := new N_Declarator;
-      Set_Loc (Res.all, Get_Location);
+      Set_Location (Res.all, Get_Location);
       Expect (T_Identifier);
       Add_Identifier (Res);
       Next_Token;
@@ -840,7 +840,7 @@ package body Parse is
    begin
       loop
          Res := new N_Member;
-         Set_Loc (Res.all, Get_Location);
+         Set_Location (Res.all, Get_Location);
          Res.M_Type := Parse_Type_Spec;
          Parse_Declarators (Res.Decl);
          Expect (T_Semi_Colon);
@@ -857,7 +857,7 @@ package body Parse is
    begin
       Expect (T_Exception);
       Res := new N_Exception;
-      Set_Loc (Res.all, Get_Location);
+      Set_Location (Res.all, Get_Location);
       Scan_Expect (T_Identifier);
       Add_Identifier (Res);
       Scan_Expect (T_Left_Cbracket);
@@ -879,7 +879,7 @@ package body Parse is
       Res : N_Case_Acc;
    begin
       Res := new N_Case;
-      Set_Loc (Res.all, Get_Location);
+      Set_Location (Res.all, Get_Location);
       Res.Labels := Nil_List;
       loop
          case Token is
@@ -925,7 +925,7 @@ package body Parse is
       Res : N_Union_Acc;
    begin
       Res := new N_Union;
-      Set_Loc (Res.all, Get_Location);
+      Set_Location (Res.all, Get_Location);
       Expect (T_Union);
       Scan_Expect (T_Identifier);
       Add_Identifier (Res);
@@ -971,7 +971,7 @@ package body Parse is
       Res : N_Struct_Acc;
    begin
       Res := new N_Struct;
-      Set_Loc (Res.all, Get_Location);
+      Set_Location (Res.all, Get_Location);
       Scan_Expect (T_Identifier);
       Add_Identifier (Res);
       Scan_Expect (T_Left_Cbracket);
@@ -994,7 +994,7 @@ package body Parse is
       El : N_Enumerator_Acc;
    begin
       Res := new N_Enum;
-      Set_Loc (Res.all, Get_Location);
+      Set_Location (Res.all, Get_Location);
       Expect (T_Enum);
       Scan_Expect (T_Identifier);
       Add_Identifier (Res);
@@ -1002,7 +1002,7 @@ package body Parse is
       loop
          Scan_Expect (T_Identifier);
          El := new N_Enumerator;
-         Set_Loc (El.all, Get_Location);
+         Set_Location (El.all, Get_Location);
          Add_Identifier (El);
          Append_Node (Res.Enumerators, N_Root_Acc (El));
          Next_Token;
@@ -1039,7 +1039,7 @@ package body Parse is
       Res : N_Type_Declarator_Acc;
    begin
       Res := new N_Type_Declarator;
-      Set_Loc (Res.all, Get_Location);
+      Set_Location (Res.all, Get_Location);
       Res.T_Type := Parse_Type_Spec;
       Parse_Declarators (Res.Declarators);
       return Res;
@@ -1068,7 +1068,7 @@ package body Parse is
                Res : N_Native_Acc;
             begin
                Res := new N_Native;
-               Set_Loc (Res.all, Get_Location);
+               Set_Location (Res.all, Get_Location);
                Expect (T_Native);
                Next_Token;
                Res.Decl := Parse_Declarator;
@@ -1173,11 +1173,11 @@ package body Parse is
    function Parse_Interface return N_Root_Acc is
       Res : N_Interface_Acc;
       Fd_Res : N_Forward_Interface_Acc;
-      Name : Scope_Cell_Acc;
+      Name : Identifier_Definition_Acc;
    begin
       --  interface header.
       Res := new N_Interface;
-      Set_Loc (Res.all, Get_Location);
+      Set_Location (Res.all, Get_Location);
       Next_Token;
       Expect (T_Identifier);
       Name := Find_Identifier;
@@ -1204,7 +1204,7 @@ package body Parse is
                Errors.Error);
          end if;
          Fd_Res := new N_Forward_Interface;
-         Set_Loc (Fd_Res.all, Get_Loc (Res.all));
+         Set_Location (Fd_Res.all, Get_Location (Res.all));
          Fd_Res.Forward := null;
          Redefine_Identifier (Name, Fd_Res);
          --  Free (Res);
@@ -1252,7 +1252,7 @@ package body Parse is
       Res : N_Const_Acc;
    begin
       Res := new N_Const;
-      Set_Loc (Res.all, Get_Location);
+      Set_Location (Res.all, Get_Location);
       Expect (T_Const);
       Next_Token;
       Res.C_Type := Parse_Const_Type;
@@ -1300,7 +1300,7 @@ package body Parse is
       Res : N_Module_Acc;
    begin
       Res := new N_Module;
-      Set_Loc (Res.all, Get_Location);
+      Set_Location (Res.all, Get_Location);
       Expect (T_Module);
       Scan_Expect (T_Identifier);
       Add_Identifier (Res);
@@ -1323,7 +1323,7 @@ package body Parse is
       Res : N_Repository_Acc;
    begin
       Res := new N_Repository;
-      Set_Loc (Res.all, Get_Location);
+      Set_Location (Res.all, Get_Location);
       --  The repository is the root scope.
       Push_Scope (Res);
       Next_Token;
