@@ -480,8 +480,8 @@ package body Sem_Dist is
               Abstract_Present => True,
               Tagged_Present   => True,
               Limited_Present  => True,
-              Component_List   => Empty,
-              Null_Present     => True));
+              Null_Present     => True,
+              Component_List   => Empty));
 
       Prim_Decl := Make_Abstract_Subprogram_Declaration (Loc,
         Specification => Build_RAS_Primitive_Specification (
