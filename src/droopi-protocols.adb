@@ -14,7 +14,7 @@ package body Droopi.Protocols is
       Free (S);
    end Destroy_Session;
 
-   procedure Handle_SDU (Sess : access Session; S : SDU) is
+   procedure Handle_Data_Unit (Sess : access Session; S : Data_Unit) is
    begin
       case S.Kind is
          when Connect_Indication =>
@@ -28,15 +28,15 @@ package body Droopi.Protocols is
             pragma Assert (False);
             null;
       end case;
-   end Handle_SDU;
+   end Handle_Data_Unit;
 
    procedure Expect_Data
      (S      : access Session;
       In_Buf : Buffers.Buffer_Access;
       Max    : Ada.Streams.Stream_Element_Count) is
    begin
-      Filters.Handle_SDU
-        (Lower (S), SDU'(Kind => Data_Expected,
+      Filters.Handle_Data_Unit
+        (Lower (S), Data_Unit'(Kind => Data_Expected,
                          In_Buf => In_Buf, Max => 1024));
    end Expect_Data;
 

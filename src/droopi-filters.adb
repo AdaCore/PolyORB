@@ -1,4 +1,4 @@
---  A communication filter (a transport SDU handler/forwarder).
+--  A communication filter (a transport Data_Unit handler/forwarder).
 
 --  $Id$
 

@@ -14,7 +14,7 @@ package Droopi.Filters.Sockets is
    --  filter.
 
    Connection_Closed : exception;
-   --  Raised by Handle_SDU when a disconnect is detected.
+   --  Raised by Handle_Data_Unit when a disconnect is detected.
 
 private
 
@@ -25,9 +25,9 @@ private
       Max : Stream_Element_Count;
    end record;
 
-   procedure Handle_SDU
+   procedure Handle_Data_Unit
      (SF : access Socket_Filter;
-      S  :  SDU);
+      S  :  Data_Unit);
 
 end Droopi.Filters.Sockets;
 

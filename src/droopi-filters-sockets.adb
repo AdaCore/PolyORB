@@ -23,15 +23,15 @@ package body Droopi.Filters.Sockets is
       Socket_Filter (Sock.Channel.all).Sock := Sock;
    end Create;
 
-   procedure Handle_SDU
+   procedure Handle_Data_Unit
      (SF : access Socket_Filter;
-      S  :  SDU) is
+      S  :  Data_Unit) is
    begin
       pragma Assert (SF.Upper /= null);
 
       case S.Kind is
          when Connect_Indication =>
-            Handle_SDU (SF.Upper, S);
+            Handle_Data_Unit (SF.Upper, S);
 
          when Data_Expected =>
             SF.In_Buf := S.In_Buf;
@@ -61,7 +61,7 @@ package body Droopi.Filters.Sockets is
                   --  Notify the ORB that the socket was disconnected.
                end if;
 
-               Handle_SDU (SF.Upper, S);
+               Handle_Data_Unit (SF.Upper, S);
             end;
 
          when Data_Out =>
@@ -73,6 +73,6 @@ package body Droopi.Filters.Sockets is
             null;
 
       end case;
-   end Handle_SDU;
+   end Handle_Data_Unit;
 
 end Droopi.Filters.Sockets;

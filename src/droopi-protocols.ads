@@ -75,8 +75,8 @@ package Droopi.Protocols is
    -- Callback point (interface to lower layers) --
    ------------------------------------------------
 
-   procedure Handle_SDU (Sess : access Session; S : SDU);
-   --  Demultiplex SDUs to specialized operations.
+   procedure Handle_Data_Unit (Sess : access Session; S : Data_Unit);
+   --  Demultiplex Data_Units to specialized operations.
 
    procedure Handle_Connect (S : access Session) is abstract;
    --  Invoked when a new incoming connection has been accepted

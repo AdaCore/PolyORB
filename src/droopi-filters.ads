@@ -1,4 +1,4 @@
---  A communication filter (a transport SDU handler/forwarder).
+--  A communication filter (a transport Data_Unit handler/forwarder).
 
 --  $Id$
 
@@ -24,10 +24,10 @@ package Droopi.Filters is
    function Server_Of (F : access Filter) return Servers.Server_Access;
 
    -------------------------------------------------
-   -- Filters exchange service data units (SDUs). --
+   -- Filters exchange service data units (Data_Units). --
    -------------------------------------------------
 
-   type SDU_Kind is
+   type Data_Unit_Kind is
      (Connect_Indication,
       --  Direction: from lower to upper.
       --  Semantics: a new incoming transport connection is
@@ -51,7 +51,7 @@ package Droopi.Filters is
       --  Semantics: send data out.
       );
 
-   type SDU (Kind : SDU_Kind) is record
+   type Data_Unit (Kind : Data_Unit_Kind) is record
       case Kind is
          when Data_Expected =>
             In_Buf : Buffer_Access;
@@ -73,10 +73,10 @@ package Droopi.Filters is
    -- Filter primitives (interface to upper layer) --
    ---------------------------------------------------
 
-   procedure Handle_SDU
+   procedure Handle_Data_Unit
      (F : access Filter;
-      S : SDU) is abstract;
-   --  Ask the filter to forward SDU S appropriately.
+      S : Data_Unit) is abstract;
+   --  Ask the filter to forward Data_Unit S appropriately.
 
    ---------------------------------------------------
    -- Filters can be chained. A chain of filters is --

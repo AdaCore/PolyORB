@@ -133,7 +133,7 @@ package body Droopi.ORB is
             --  received.
 
             begin
-               Filters.Handle_SDU (AS.Channel, SDU'(Kind => Data_Indication));
+               Filters.Handle_Data_Unit (AS.Channel, Data_Unit'(Kind => Data_Indication));
             exception
                when E : others =>
 
