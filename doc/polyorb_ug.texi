@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#33 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#34 $
 
 @include version.texi
 
@@ -117,11 +117,14 @@ entitled ``GNU Free Documentation License''.
 * Building an application with PolyORB::
 * CORBA::
 * RT-CORBA::
+* DSA::
+* MOMA::
+* AWS::
 * GIOP::
 * SOAP::
 * Tools::
-* References::
 * Conformance to standards::
+* References::
 * GNU Free Documentation License::
 * Index::
 
@@ -186,6 +189,12 @@ RT-CORBA
 * Installing RT-CORBA::
 * Configuring RT-CORBA::
 * RTCORBA.PriorityMapping::
+
+MOMA
+
+* What you should know before Reading this section3::
+* Installing MOMA application personality::
+* Package hierarchy::
 
 GIOP
 
@@ -261,6 +270,15 @@ different steps to build a distributed application using PolyORB.
 
 @item @ref{RT-CORBA} describes PolyORB's implementation of RT-CORBA,
 the real-time extenstions of OMG's CORBA.
+
+@item @ref{DSA} describes PolyORB's implementation of the Ada
+Distributed System Annex.
+
+@item @ref{MOMA} describes POlyORB's implementation of MOMA, the
+Message Oriented Middleware for Ada.
+
+@item @ref{AWS} describes the integration of the Ada Web Server (AWS)
+framework into PolyORB.
 
 @item @ref{GIOP} describes PolyORB's implementation of GIOP, the
 protocol defined as part of CORBA.
@@ -1750,6 +1768,75 @@ complete CORBA priority range is used up for the mapping. See
 @file{rtcorba-prioritymapping-linear.adb} for more details.
 
 @end itemize
+
+@c -------------------------------------------------------------------
+@node DSA
+@chapter Ada Distributed System Annex (DSA)
+@cindex DSA, Distributed System Annex 
+@c -------------------------------------------------------------------
+
+@b{XXX TO BE WRITTEN}
+
+@c -------------------------------------------------------------------
+@node MOMA
+@chapter MOMA
+@cindex MOMA, Message Oriented Middleware for Ada
+@c -------------------------------------------------------------------
+
+@menu
+* What you should know before Reading this section3::
+* Installing MOMA application personality::
+* Package hierarchy::
+@end menu
+
+@c -------------------------------------------------------------------
+@node What you should know before Reading this section3
+@section What you should know before Reading this section
+@c -------------------------------------------------------------------
+
+@noindent
+This section assumes that the reader is familiar with the JMS
+specifications described in @cite{[SUN99]}. MOMA is a thick adaptation
+of the JMS specification to the Ada programming language. It preserves
+most of its concepts.
+
+@c -------------------------------------------------------------------
+@node Installing MOMA application personality
+@section Installing MOMA application personality
+@c -------------------------------------------------------------------
+
+@noindent
+Ensure PolyORB has been configured and then compiled with MOMA
+application personality. See @ref{Building an application with PolyORB}
+for more details on how to check installed personalities.
+
+To build the MOMA application personality, @pxref{Installation}.
+
+@c -------------------------------------------------------------------
+@node Package hierarchy
+@section Package hierarchy
+@c -------------------------------------------------------------------
+
+@noindent 
+Packages installed in @file{$INSTALL_DIR/include/polyorb/moma} hold
+the MOMA API. MOMA is built around two distinct set of packages:
+
+@enumerate
+@item @file{MOMA.*} hold the public MOMA library, all the constructs
+the user may use.
+
+@item @file{POLYORB.MOMA_P.*} hold the private MOMA library, these
+packages shall not be used when building your application.
+
+@end enumerate
+
+@c -------------------------------------------------------------------
+@node AWS
+@chapter Ada Web Server (AWS)
+@cindex AWS, Ada Web Server
+@c -------------------------------------------------------------------
+
+@b{XXX TO BE WRITTEN}
 
 @c -------------------------------------------------------------------
 @node GIOP
