@@ -1,6 +1,6 @@
 SHELL           = /bin/sh
 GNATFLAGS       = -g -gnatwA  
-GNATINCLUDE     = -I`gnatls -v | grep adainclude | sed 's/ *//g`  
+GNATINCLUDE     = -I`gnatls -v | grep adainclude | sed 's/ *//g'`  
 FLAGS           = -I. $(GNATINCLUDE)
 
 
