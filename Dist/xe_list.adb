@@ -821,7 +821,12 @@ package body XE_List is
    -------------------------------
 
    procedure Load_All_Registered_Units is
-      Flags      : constant Argument_List := (1 => GLADE_List_Flag);
+      Comp_Flags : constant Argument_List :=
+        (1 => Semantic_Only_Flag);
+      List_Flags : constant Argument_List :=
+        (1 => GLADE_List_Flag);
+      Make_Flags : constant Argument_List :=
+        (Compile_Only_Flag, Keep_Going_Flag);
       Sfile      : File_Name_Type;
       Afile      : File_Name_Type;
       ALI        : ALI_Id;
@@ -840,10 +845,14 @@ package body XE_List is
 
       Sfile := Part_Main_Src_Name;
       Afile := To_Afile (Sfile);
-      Build (Sfile, (Compile_Only_Flag, Keep_Going_Flag), False);
-      List ((1 => Afile), Flags, Output);
+      Build (Sfile, Make_Flags, Fatal => False, Silent => False);
+      List ((1 => Afile), List_Flags, Output);
       Load_ALIs (Output);
       ALI := Get_ALI_Id (Afile);
+
+      Remove_Temp_File (Part_Main_Src_Name);
+      Remove_Temp_File (Part_Main_ALI_Name);
+      Remove_Temp_File (Part_Main_Obj_Name);
 
       --  The compilation of partition.adb failed. There is no way to
       --  rescue this situation.
@@ -896,7 +905,7 @@ package body XE_List is
             end loop;
             Sources.Init;
 
-            List (Afiles (1 .. Last), Flags, Output);
+            List (Afiles (1 .. Last), List_Flags, Output);
             Load_ALIs (Output);
 
             for J in 1 .. Last loop
@@ -915,8 +924,8 @@ package body XE_List is
                --  unit is not assigned to a partition to build.
 
                if ALI = No_ALI_Id then
-                  Compile (Sfile, (1 => Semantic_Only_Flag), False);
-                  List ((1 => Afile), Flags, Output);
+                  Compile (Sfile, Comp_Flags, Fatal => False, Silent => True);
+                  List ((1 => Afile), List_Flags, Output);
                   Load_ALIs (Output);
 
                   --  If the ALI file is still missing, then we have a
