@@ -38,6 +38,9 @@ with PolyORB.Annotations;
 with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
 with PolyORB.CORBA_P.Interceptors_Slots;
+with PolyORB.Exceptions;
+with PolyORB.References;
+with PolyORB.Smart_Pointers;
 
 package body PortableInterceptor.RequestInfo.Impl is
 
@@ -120,7 +123,6 @@ package body PortableInterceptor.RequestInfo.Impl is
      (Self : access Object)
       return CORBA.Object.Ref
    is
-      Result : CORBA.Object.Ref;
    begin
       if Get_Reply_Status (Object_Ptr (Self)) /= Location_Forward then
          CORBA.Raise_Bad_Inv_Order
@@ -128,8 +130,20 @@ package body PortableInterceptor.RequestInfo.Impl is
                                         Completed => CORBA.Completed_No));
       end if;
 
-      raise PolyORB.Not_Implemented;
-      return Result;
+      declare
+         Members : PolyORB.Exceptions.ForwardRequest_Members
+           := PolyORB.Exceptions.From_Any (Self.Request.Exception_Info);
+         Ref     : PolyORB.References.Ref;
+         Result  : CORBA.Object.Ref;
+      begin
+         PolyORB.References.Set
+           (Ref,
+            PolyORB.Smart_Pointers.Entity_Of (Members.Forward_Reference));
+
+         CORBA.Object.Convert_To_CORBA_Ref (Ref, Result);
+
+         return Result;
+      end;
    end Get_Forward_Reference;
 
    -------------------
