@@ -1834,6 +1834,27 @@ package body XE_Parse is
          Pragma_Boot_Server_Node,
          Parameter_Node);
 
+      --  pragma boot_server ... or
+      --  procedure pragma__starter
+      --    (method : starter__type);
+
+      Declare_Subprogram
+        (Pragma_Prefix & Str_To_Id ("version"),
+         True,
+         Null_Location,
+         Pragma_Version_Node);
+
+      --  To easily retrieve the enumeration literal.
+      Set_Subprogram_Mark
+        (Pragma_Version_Node,
+         Convert (Pragma_Version));
+
+      Declare_Subprogram_Parameter
+        (Str_To_Id ("check"),
+         Boolean_Type_Node,
+         Pragma_Version_Node,
+         Parameter_Node);
+
       Print_Configuration;
 
    end Initialize;

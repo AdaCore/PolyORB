@@ -333,37 +333,41 @@ procedure XE_Stubs is
       Write_Str (FD, "   system.garlic.heart.elaboration_is_terminated;");
       Write_Eol (FD);
 
-      --  Version consistency between receiver and caller.
-      --  Checks perform on all the rci caller stubs.
-      for U in CUnit.First .. CUnit.Last loop
-         if Unit.Table (CUnit.Table (U).My_Unit).RCI and then
-           CUnit.Table (U).Partition /= PID and then
-           Get_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname) = PID then
-            Write_Str  (FD, "   if ");
-            Write_Name (FD, CUnit.Table (U).CUname);
-            Write_Str  (FD, "'version /= ");
-            Write_Str  (FD, "system.partition_interface.");
-            Write_Eol  (FD);
-            Write_Str  (FD, "      ");
-            Write_Str  (FD, "get_active_version (""");
-            Write_Name (FD, CUnit.Table (U).CUname);
-            Write_Str  (FD, """) then");
-            Write_Eol  (FD);
-            Write_Str  (FD, "      system.garlic.heart.soft_shutdown;");
-            Write_Eol  (FD);
-            Write_Str  (FD, "      ada.exceptions.raise_exception");
-            Write_Eol  (FD);
-            Write_Str  (FD, "         (program_error'identity,");
-            Write_Eol  (FD);
-            Write_Str  (FD, "          ""Versions differ for partition """"");
-            Write_Name (FD, CUnit.Table (U).CUname);
-            Write_Str  (FD, """"""");");
-            Write_Eol  (FD);
-            Write_Str  (FD, "   end if;");
-            Write_Eol  (FD);
-            Set_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname, Null_PID);
-         end if;
-      end loop;
+      if Version_Checks then
+
+         --  Version consistency between receiver and caller.
+         --  Checks perform on all the rci caller stubs.
+         for U in CUnit.First .. CUnit.Last loop
+            if Unit.Table (CUnit.Table (U).My_Unit).RCI and then
+              CUnit.Table (U).Partition /= PID and then
+              Get_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname) = PID then
+               Write_Str  (FD, "   if ");
+               Write_Name (FD, CUnit.Table (U).CUname);
+               Write_Str  (FD, "'version /= ");
+               Write_Str  (FD, "system.partition_interface.");
+               Write_Eol  (FD);
+               Write_Str  (FD, "      ");
+               Write_Str  (FD, "get_active_version (""");
+               Write_Name (FD, CUnit.Table (U).CUname);
+               Write_Str  (FD, """) then");
+               Write_Eol  (FD);
+               Write_Str  (FD, "      system.garlic.heart.soft_shutdown;");
+               Write_Eol  (FD);
+               Write_Str  (FD, "      ada.exceptions.raise_exception");
+               Write_Eol  (FD);
+               Write_Str  (FD, "         (program_error'identity,");
+               Write_Eol  (FD);
+               Write_Str
+                 (FD, "          ""Versions differ for partition """"");
+               Write_Name (FD, CUnit.Table (U).CUname);
+               Write_Str  (FD, """"""");");
+               Write_Eol  (FD);
+               Write_Str  (FD, "   end if;");
+               Write_Eol  (FD);
+               Set_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname, Null_PID);
+            end if;
+         end loop;
+      end if;
 
       if PID = Main_Partition then
          Write_Str  (FD, "   select");

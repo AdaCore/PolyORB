@@ -1,3 +1,8 @@
+Fri Oct 18 14:09:23 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
+
+	* xe.ads, xe_stubs.adb, xe_back.adb, xe_parse.adb: Add pragma
+ 	Version (Checks => [False | True])
+
 Mon Oct  7 13:30:30 1996  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* xe_stubs.adb, xe.adb, xe.ads: Fix some problems with child units

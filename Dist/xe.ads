@@ -122,12 +122,13 @@ package XE is
       (Pragma_Unknown,
        Pragma_Starter,            --  (1) Starter
        Pragma_Import,             --  (2) Import
-       Pragma_Boot_Server         --  (3) Boot_Server
+       Pragma_Boot_Server,        --  (3) Boot_Server
+       Pragma_Version             --  (4) Version
        );
 
    Prag_Wrong : constant Int := 300;
    Prag_First : constant Int := Prag_Wrong + 1;
-   Prag_Last  : constant Int := Prag_Wrong + 3;
+   Prag_Last  : constant Int := Prag_Wrong + 4;
    --  Should match Pragma_Type length
 
    type Pragma_Id is new Int range Prag_Wrong .. Prag_Last;
@@ -153,7 +154,7 @@ package XE is
    function Convert (Item : Int) return Boolean;
 
    Starter_Method    : Starter_Method_Type := Shell_Starter;
-   Cross_Elaboration : Boolean             := False;
+   Version_Checks    : Boolean             := True;
 
    ---------------------
    -- Predefined_Type --
@@ -224,9 +225,10 @@ package XE is
    Main_Procedure_Type_Node : Type_Id;
    Host_Function_Type_Node  : Type_Id;
 
-   Pragma_Starter_Node       : Subprogram_Id;
-   Pragma_Import_Node        : Subprogram_Id;
-   Pragma_Boot_Server_Node   : Subprogram_Id;
+   Pragma_Starter_Node     : Subprogram_Id;
+   Pragma_Import_Node      : Subprogram_Id;
+   Pragma_Boot_Server_Node : Subprogram_Id;
+   Pragma_Version_Node     : Subprogram_Id;
 
    function Get_Node_Name
      (Node : in Node_Id)
