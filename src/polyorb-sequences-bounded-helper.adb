@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,6 +44,10 @@ package body PolyORB.Sequences.Bounded.Helper is
    The_Element_TC, The_Sequence_TC : Any.TypeCode.Object;
    Initialized : Boolean := False;
 
+   --------------
+   -- From_Any --
+   --------------
+
    function From_Any (Item : Any.Any) return Sequence is
       Len : constant Integer
         := Integer
@@ -51,6 +55,7 @@ package body PolyORB.Sequences.Bounded.Helper is
          (From_Any (Get_Aggregate_Element (Item, TC_Unsigned_Long, 0))));
 
       Result : Sequence;
+
    begin
       if Len > Max then
          raise Constraint_Error;
@@ -64,6 +69,10 @@ package body PolyORB.Sequences.Bounded.Helper is
       end loop;
       return Result;
    end From_Any;
+
+   ----------------
+   -- Initialize --
+   ----------------
 
    procedure Initialize (Element_TC : Any.TypeCode.Object) is
    begin
@@ -79,10 +88,14 @@ package body PolyORB.Sequences.Bounded.Helper is
 
       TypeCode.Add_Parameter
         (The_Sequence_TC, To_Any (The_Element_TC));
-      --  Element type.
+      --  Element type
 
       Initialized := True;
    end Initialize;
+
+   -----------------
+   -- Sequence_TC --
+   -----------------
 
    function Sequence_TC return Any.TypeCode.Object is
    begin
@@ -90,8 +103,13 @@ package body PolyORB.Sequences.Bounded.Helper is
       return The_Sequence_TC;
    end Sequence_TC;
 
+   ------------
+   -- To_Any --
+   ------------
+
    function To_Any   (Item : Sequence) return Any.Any is
       Result : Any.Any := Get_Empty_Any_Aggregate (Sequence_TC);
+
    begin
       Add_Aggregate_Element
         (Result, To_Any (Types.Unsigned_Long (Item.Length)));

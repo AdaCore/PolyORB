@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,7 +34,7 @@
 --  Generic representation for fixed point types as an array
 --  of BCD nibbles followed by a sign indication.
 
---  $Id: //droopi/main/src/polyorb-fixed_point.adb#2 $
+--  $Id: //droopi/main/src/polyorb-fixed_point.adb#3 $
 
 package body PolyORB.Fixed_Point is
 
@@ -43,6 +43,10 @@ package body PolyORB.Fixed_Point is
       Max_Nibbles : constant Integer := 2 * ((F'Digits + 2) / 2);
       --  F'Digits + sign indication, rounded up towards an even
       --  number.
+
+      ----------------------
+      -- Fixed_To_Nibbles --
+      ----------------------
 
       function Fixed_To_Nibbles (Data : in F) return Nibbles is
          Result : Nibbles (1 .. Max_Nibbles) := (others => 0);
@@ -72,15 +76,20 @@ package body PolyORB.Fixed_Point is
          return Result (First_Digit .. Result'Last);
       end Fixed_To_Nibbles;
 
+      ----------------------
+      -- Nibbles_To_Fixed --
+      ----------------------
+
       function Nibbles_To_Fixed (Data : in Nibbles) return F is
          Result : F := 0.0;
+
       begin
-         for I in Data'First .. Data'Last - 1 loop
-            if Data (I) not in Decimal_Nibble then
+         for J in Data'First .. Data'Last - 1 loop
+            if Data (J) not in Decimal_Nibble then
                raise Constraint_Error;
             end if;
             Result := (Result * 10.0)
-              + (Integer (Data (I)) * F'Small);
+              + (Integer (Data (J)) * F'Small);
          end loop;
 
          case Data (Data'Last) is
