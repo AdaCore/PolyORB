@@ -91,11 +91,9 @@ package body Test001_Server_Interceptor.Impl is
       if Forward_Location then
          Forward_Location := False;
 
-         PortableInterceptor.Helper.Raise_ForwardRequest_From_Any
-           (CORBA.Internals.To_PolyORB_Any
-            (PortableInterceptor.Helper.To_Any
-             (PortableInterceptor.ForwardRequest_Members'
-              (Forward => CORBA.Object.Ref (Test_Forward_Object)))));
+         PortableInterceptor.Helper.Raise_ForwardRequest
+           (PortableInterceptor.ForwardRequest_Members'
+            (Forward => CORBA.Object.Ref (Test_Forward_Object)));
       end if;
    end Receive_Request;
 

@@ -54,8 +54,8 @@ package PortableInterceptor.Helper is
 
    function To_Any (Item : in ForwardRequest_Members) return CORBA.Any;
 
-   procedure Raise_ForwardRequest_From_Any (Item : in PolyORB.Any.Any);
-   pragma No_Return (Raise_ForwardRequest_From_Any);
+   procedure Raise_ForwardRequest (Members : in ForwardRequest_Members);
+   pragma No_Return (Raise_ForwardRequest);
 
    --  ReplyStatus type
 
@@ -87,8 +87,8 @@ package PortableInterceptor.Helper is
 
    function To_Any (Item : in InvalidSlot_Members) return CORBA.Any;
 
-   procedure Raise_InvalidSlot_From_Any (Item : in PolyORB.Any.Any);
-   pragma No_Return (Raise_InvalidSlot_From_Any);
+   procedure Raise_InvalidSlot (Members : in InvalidSlot_Members);
+   pragma No_Return (Raise_InvalidSlot);
 
    --  ServerId type
 

@@ -31,16 +31,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Exceptions;
+with PortableInterceptor.Helper;
 
 package body PolyORB.CORBA_P.Interceptors_Slots is
 
    use Any_Sequences;
    use PortableInterceptor;
+   use PortableInterceptor.Helper;
 
    Last_Allocated_Slot_Id : PortableInterceptor.SlotId := 0;
-
-   procedure Raise_InvalidSlot;
 
    ----------------------
    -- Allocate_Slot_Id --
@@ -86,7 +85,7 @@ package body PolyORB.CORBA_P.Interceptors_Slots is
       pragma Assert (Note.Allocated);
 
       if Id not in 1 .. SlotId (Length (Note.Slots)) then
-         Raise_InvalidSlot;
+         Raise_InvalidSlot ((null record));
       end if;
 
       return Get_Element (Note.Slots, Integer (Id));
@@ -112,18 +111,6 @@ package body PolyORB.CORBA_P.Interceptors_Slots is
       return Note.Allocated;
    end Is_Allocated;
 
-   -----------------------
-   -- Raise_InvalidSlot --
-   -----------------------
-
-   procedure Raise_InvalidSlot is
-      Members : InvalidSlot_Members;
-   begin
-      PolyORB.Exceptions.User_Raise_Exception
-        (InvalidSlot'Identity,
-         Members);
-   end Raise_InvalidSlot;
-
    --------------
    -- Set_Slot --
    --------------
@@ -137,7 +124,7 @@ package body PolyORB.CORBA_P.Interceptors_Slots is
       pragma Assert (Note.Allocated);
 
       if Id not in 1 .. SlotId (Length (Note.Slots)) then
-         Raise_InvalidSlot;
+         Raise_InvalidSlot ((null record));
       end if;
 
       Replace_Element (Note.Slots, Integer (Id), Data);

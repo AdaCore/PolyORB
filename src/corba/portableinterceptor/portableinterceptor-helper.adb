@@ -39,6 +39,12 @@ with PolyORB.Utils.Strings;
 
 package body PortableInterceptor.Helper is
 
+   procedure Raise_ForwardRequest_From_Any (Item : in PolyORB.Any.Any);
+   pragma No_Return (Raise_ForwardRequest_From_Any);
+
+   procedure Raise_InvalidSlot_From_Any (Item : in PolyORB.Any.Any);
+   pragma No_Return (Raise_InvalidSlot_From_Any);
+
    procedure Deferred_Initialization;
 
    -----------------------------
@@ -249,6 +255,17 @@ package body PortableInterceptor.Helper is
       return SlotId (Result);
    end From_Any;
 
+   --------------------------
+   -- Raise_ForwardRequest --
+   --------------------------
+
+   procedure Raise_ForwardRequest (Members : in ForwardRequest_Members) is
+   begin
+      PolyORB.Exceptions.User_Raise_Exception
+        (ForwardRequest'Identity,
+         Members);
+   end Raise_ForwardRequest;
+
    -----------------------------------
    -- Raise_ForwardRequest_From_Any --
    -----------------------------------
@@ -261,6 +278,17 @@ package body PortableInterceptor.Helper is
         (ForwardRequest'Identity,
          Members);
    end Raise_ForwardRequest_From_Any;
+
+   -----------------------
+   -- Raise_InvalidSlot --
+   -----------------------
+
+   procedure Raise_InvalidSlot (Members : in InvalidSlot_Members) is
+   begin
+      PolyORB.Exceptions.User_Raise_Exception
+        (InvalidSlot'Identity,
+         Members);
+   end Raise_InvalidSlot;
 
    --------------------------------
    -- Raise_InvalidSlot_From_Any --
