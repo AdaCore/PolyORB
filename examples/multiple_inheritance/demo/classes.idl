@@ -6,9 +6,9 @@ interface vehicle {
 
 interface weapon {
   typedef string name;
-  void shoot (in long range);
+void shoot (in long ranges);
 };
 
 interface tank : vehicle, weapon {
-  void refill() ;
+string move(in string fast); 
 };
