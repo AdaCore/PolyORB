@@ -585,9 +585,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 
       Sess : GIOP_Session renames GIOP_Session (S.all);
       Ctx  : GIOP_Ctx_1_0 renames GIOP_Ctx_1_0 (Sess.Ctx.all);
-      Endian : constant Boolean := Ctx.Message_Endianness = Little_Endian;
+
    begin
-      Marshall (Buffer, Endian);
+      Marshall (Buffer, Endianness (Buffer.all) = Little_Endian);
       Marshall (Buffer, Ctx.Message_Type);
       Marshall (Buffer, Ctx.Message_Size);
    end Marshall_GIOP_Header;

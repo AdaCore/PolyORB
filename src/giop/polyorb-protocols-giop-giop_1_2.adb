@@ -1143,7 +1143,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Ctx  : GIOP_Ctx_1_2 renames GIOP_Ctx_1_2 (Sess.Ctx.all);
       Flags : Types.Octet := 0;
    begin
-      Set (Flags, Bit_Little_Endian, Ctx.Message_Endianness = Little_Endian);
+      Set (Flags, Bit_Little_Endian, Endianness (Buffer.all) = Little_Endian);
       Set (Flags, Bit_Fragment, Ctx.Fragmented);
 
       Marshall (Buffer, Flags);
