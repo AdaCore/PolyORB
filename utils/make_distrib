@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //droopi/main/utils/make_distrib#22 $
+# $Id: //droopi/main/utils/make_distrib#23 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
@@ -198,7 +198,9 @@ for f in `cat ${dir}/MANIFEST`; do
   fi
   echo ${dir}/${f} >> MANIFEST.local
 done
-tar -cf ${dir}.tar -T MANIFEST.local
+tar --version 2> /dev/null | grep "GNU tar" > /dev/null && \
+  GTAR_OPTS=--portability
+tar ${GTAR_OPTS} -cf ${dir}.tar -T MANIFEST.local
 gzip --best ${dir}.tar
 ls -l ${dir}.tar.gz
 mv ${dir}.tar.gz ${prev}
