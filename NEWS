@@ -1,6 +1,11 @@
 Changes since GLADE 1.01
 ========================
 
+* New examples Bank and LightBank. LightBank is an example of 
+  client / server application written in Ada 95 and Annex E. 
+  Bank is a more sophisticated example with distributed objects 
+  and filtering.
+
 * Addition of filters. A filter is a set of subprograms which will be
   called automatically before sending bytes on the communication
   channel and after receiving them. An example (the ZIP filter) is
@@ -26,8 +31,6 @@ Changes since GLADE 1.01
 * Reorganisation of GNATDIST directory hierarchy.
 
 * Clearer error messages for GNATDIST.
-
-* New examples Bank and LightBank.
 
 * New file NEWS (this file).
 
