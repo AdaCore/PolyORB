@@ -28,8 +28,8 @@
 #platform = sun4_sosV_5.5
 #platform = sun4_sosV_5.6
 #platform = i586_linux_2.0
-#platform = i586_linux_2.0_egcs2.95
-platform = i586_freebsd_4.0_egcs2.95
+platform = i586_linux_2.0_egcs2.95
+#platform = i586_freebsd_4.0_egcs2.95
 #platform = alpha_osf1_3.2
 #platform = alpha_osf1_4.0
 #platform = powerpc_aix_4.2
