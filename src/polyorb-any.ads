@@ -31,12 +31,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.ads#31 $
+--  Definition of the container type 'Any'
 
-with Ada.Finalization;
+--  $Id: //droopi/main/src/polyorb-any.ads#32 $
+
 with Ada.Unchecked_Deallocation;
 
-with PolyORB.Tasking.Mutexes;
+with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 
 package PolyORB.Any is
@@ -47,26 +48,12 @@ package PolyORB.Any is
    -- Any --
    ---------
 
-   type Any is private;
+   type Any is new PolyORB.Smart_Pointers.Ref with private;
+
+   procedure Initialize (Self : in out Any);
 
    type Any_Ptr is access all Any;
    --  The end of this part is after the typecode part;
-
-   type Content is abstract tagged null record;
-
-   type Any_Content_Ptr is access all Content'Class;
-
-   function Duplicate
-     (Object : access Content)
-     return Any_Content_Ptr
-      is abstract;
-   --  Duplicate the data pointed by Object, making a deep copy.
-
-   procedure Deallocate
-     (Object : access Content);
-   --  Deallocate an Any_Content_Ptr.
-   --  Overridden for aggregates, since those have to
-   --  deallocate all the list of their elements.
 
    function Image
      (A : Any)
@@ -209,9 +196,9 @@ package PolyORB.Any is
       --  If there is not enough members, Raise 'Bounds'.
 
       function Member_Label
-          (Self  : in Object;
-           Index : in Types.Unsigned_Long)
-          return Any;
+        (Self  : in Object;
+         Index : in Types.Unsigned_Long)
+        return Any;
       --  Return the label of a given member associated with a typecode
       --  in case its kind is union.
       --  Raise 'BadKind' else.
@@ -658,8 +645,8 @@ package PolyORB.Any is
    procedure Set_Volatile
      (Obj         : in out Any;
       Is_Volatile : in    Boolean);
-   --  Not in spec : mark the 'Obj' 's TypeCode as 'volatile', see Set_Volatile
-   --  in package PolyORB.Any.TypeCode for more details.
+   --  Not in spec : mark the 'Obj' 's TypeCode as 'volatile', see
+   --  Set_Volatile in package PolyORB.Any.TypeCode for more details.
 
    generic
       with procedure Process
@@ -680,13 +667,13 @@ package PolyORB.Any is
    --  if it has a value.
 
    --  These functions allows the user to set the value of an any
-   --  directly if he knows its kind. It a function is called on a
-   --  bad kind of any, a BAD_TYPECODE exception will be raised
-   --  Note that the Any can be empty. In this case, the value
-   --  will be created
+   --  directly if he knows its kind. If a function is called on a bad
+   --  kind of any, a BAD_TYPECODE exception will be raised Note that
+   --  the Any can be empty. In this case, the value will be
+   --  created.
 
-   --  Should never be called outside a package achieving the
-   --  PolyORB's 'Representation' service.
+   --  These functions should never be called outside a package
+   --  achieving the PolyORB's 'Representation' service.
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
@@ -794,8 +781,8 @@ package PolyORB.Any is
    --  puts its type to Tc
 
    procedure Copy_Any_Value
-     (Dest : Any;
-      Src  : Any);
+     (Dest : in out Any;
+      Src  :        Any);
    --  Set the value of Dest from the value of Src (as
    --  Set_Any_Value would do, but without the need to
    --  know the precise type of Src). Dest and Src must be Any's
@@ -832,9 +819,6 @@ package PolyORB.Any is
 
 private
 
-   --  Null_String : constant CORBA.String :=
-   --  CORBA.String (Ada.Strings.Unbounded.Null_Unbounded_String);
-
    VTM_NONE        : constant ValueModifier := 0;
    VTM_CUSTOM      : constant ValueModifier := 1;
    VTM_ABSTRACT    : constant ValueModifier := 2;
@@ -861,13 +845,27 @@ private
    --  pointing on a list of childs of Content; various methods are provided
    --  to manipulate this list.
 
-   type Any_Content_Ptr_Ptr is access all Any_Content_Ptr;
+   type Content is abstract tagged null record;
 
-   Null_Content_Ptr_Ptr : constant Any_Content_Ptr_Ptr := null;
+   type Any_Content_Ptr is access all Content'Class;
+
+   procedure Deallocate
+     (Object : access Content);
+   --  Deallocate an Any_Content_Ptr.
+   --  Overridden for aggregates, since those have to
+   --  deallocate all the list of their elements.
+
+   function Duplicate
+     (Object : access Content)
+     return Any_Content_Ptr
+      is abstract;
+   --  Duplicate the data pointed by Object, making a deep copy
 
    --  Frees an Any_Content_Ptr
    procedure Deallocate_Any_Content is new Ada.Unchecked_Deallocation
      (Content'Class, Any_Content_Ptr);
+
+   type Any_Content_Ptr_Ptr is access all Any_Content_Ptr;
 
    --  Free an Any_Content_Ptr_Ptr
    procedure Deallocate_Any_Content_Ptr is new Ada.Unchecked_Deallocation
@@ -881,64 +879,46 @@ private
    procedure Deallocate is new Ada.Unchecked_Deallocation
      (TypeCode.Object, TypeCode.Object_Ptr);
 
-   type Natural_Ptr is access Natural;
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (Natural, Natural_Ptr);
-
    ------------------
    -- The Any type --
    ------------------
 
-   type Any is new Ada.Finalization.Controlled with record
-      The_Type     : TypeCode.Object;
-      --  TypeCode describing the data.
+   type Any is new PolyORB.Smart_Pointers.Ref with null record;
 
-      The_Value    : Any_Content_Ptr_Ptr;
-      --  Pointer to the actual value contained.
+   type Any_Container is new PolyORB.Smart_Pointers.Non_Controlled_Entity with
+      record
+         The_Type     : TypeCode.Object;
+         --  TypeCode describing the data
 
-      Ref_Counter  : Natural_Ptr;
-      --  Reference counter associated with the
-      --  designated container.
+         The_Value    : Any_Content_Ptr_Ptr;
+         --  Pointer to the actual value contained
 
-      Any_Lock     : Tasking.Mutexes.Mutex_Access;
-      --  Lock to guarantee consistent concurrent access
-      --  to Ref_Counter.
+         Is_Finalized : Boolean := False;
+         --  Set to True in Finalize, used to detect double
+         --  finalization.
 
-      Is_Finalized : Boolean := False;
-      --  Set to True in Finalize, used to detect double
-      --  finalization.
-   end record;
+      end record;
+
+   type Any_Container_Ptr is access all Any_Container;
+
+   procedure Finalize   (Self : in out Any_Container);
 
    --  Some methods to deal with the Any fields.
-
-   --  These are the only way to deal with the fields if you want to
-   --  stay thread safe. Apart from the management of locks, these
-   --  methods do not make any test. So use them carefully
 
    procedure Set_Value
      (Obj       : in out Any;
       The_Value : in     Any_Content_Ptr);
+   pragma Inline (Set_Value);
 
    function Get_Value
      (Obj : Any)
      return Any_Content_Ptr;
+   pragma Inline (Get_Value);
 
    function Get_Value_Ptr
      (Obj : Any)
      return Any_Content_Ptr_Ptr;
-
-   function Get_Counter
-     (Obj : Any)
-     return Natural;
-
-   --  The control procedures to the Any type.
-   procedure Initialize (Object : in out Any);
-   procedure Adjust     (Object : in out Any);
-   procedure Finalize   (Object : in out Any);
-
-   --  Management of the counter associated to an Any.
-   procedure Inc_Usage (Obj : in Any);
-   procedure Dec_Usage (Obj : in out Any);
+   pragma Inline (Get_Value_Ptr);
 
    --  Deallocation of Any pointers.
    procedure Deallocate is new Ada.Unchecked_Deallocation (Any, Any_Ptr);

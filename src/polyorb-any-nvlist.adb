@@ -58,19 +58,11 @@ package body PolyORB.Any.NVList is
       Item_Flags : in Flags) is
    begin
       pragma Debug (O ("Add_Item (4 params) : enter"));
-      --  pragma Debug (O ("Add_Item (4 params) : Item type is "
-      --    & Ada.Tags.External_Tag (Get_Value (Item).all'Tag)));
-      --  Item may be an empty any, in which case Get_Value (Item) is
-      --  a null pointer.
-      pragma Debug (O ("Add_Item (4 params) : ref_counter = "
-                       & Positive'Image (Get_Counter (Item))));
 
       Add_Item (Self, (Name      => Item_Name,
                        Argument  => Item,
                        Arg_Modes => Item_Flags));
 
-      pragma Debug (O ("Add_Item (4 params) : ref_counter = "
-                       & Positive'Image (Get_Counter (Item))));
       pragma Debug (O ("Add_Item (4 params) : end"));
    end Add_Item;
 
@@ -81,11 +73,9 @@ package body PolyORB.Any.NVList is
       Obj : Object_Ptr := Object_Ptr (Entity_Of (Self));
    begin
       pragma Debug (O ("Add_Item (2 params) : enter"));
-      pragma Debug (O ("Add_Item (2 params) : ref_counter = "
-                       & Positive'Image (Item.Argument.Ref_Counter.all)));
+
       NV_Lists.Append (Obj.List, Item);
-      pragma Debug (O ("Add_Item (2 params) : ref_counter = "
-                       & Positive'Image (Item.Argument.Ref_Counter.all)));
+
       pragma Debug (O ("Add_Item (2 params) : end"));
    end Add_Item;
 
