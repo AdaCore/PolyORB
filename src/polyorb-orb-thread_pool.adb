@@ -54,20 +54,24 @@ package body PolyORB.ORB.Thread_Pool is
    use PolyORB.Components;
    use PolyORB.Configuration;
 
-   package L is new PolyORB.Log.Facility_Log
-     ("polyorb.orb.tasking_policies");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.orb.thread_pool");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
    A_ORB : ORB_Access := null;
    --  global variables for thread initialisation
+
    Thread_Init_Watcher    : Watcher_Access := null;
    Thread_Init_Version_Id : Version_Id;
    --  used at thread initialisation
+
    Initialized : Boolean := False;
    --  indicates if initialisation has been done yet
+
    Default_Threads : constant := 4;
    --  default number of threads in thread pool
+   --  XXX should check compatibility with ravenscar, which also defines
+   --  a number of threads ...
 
    procedure Main_Thread_Pool;
    --  Main procedure for threads in the pool
@@ -185,8 +189,9 @@ package body PolyORB.ORB.Thread_Pool is
       pragma Debug (O ("Going idle."));
 
       Lookup (ORB.Idle_Tasks, V);
+      pragma Debug (O ("Version_Id :" & Integer'Image (Integer (V))));
       Differ (ORB.Idle_Tasks, V);
-
+      pragma Debug (O ("Stopping idle."));
       --  XXXXX ???
       --  raise Program_Error;
       --  When in Thread_Pool mode, threads should not be allowed
