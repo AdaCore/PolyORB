@@ -390,14 +390,23 @@ package body System.Partition_Interface is
      (Rsh_Command  : in String;
       Name_Is_Host : in Boolean;
       General_Name : in String;
+      Rsh_Options  : in String;
       Command_Line : in String)
    is
    begin
       if not Nolaunch then
          if Name_Is_Host then
-            Full_Launch (Rsh_Command, General_Name, Command_Line);
+            Full_Launch
+              (Rsh_Command,
+               General_Name,
+               Rsh_Options,
+               Command_Line);
          else
-            Full_Launch (Rsh_Command, Get_Host (General_Name), Command_Line);
+            Full_Launch
+              (Rsh_Command,
+               Get_Host (General_Name),
+               Rsh_Options,
+               Command_Line);
          end if;
       end if;
    end Launch;

@@ -85,7 +85,8 @@ PROTOCOLSOBJECTS = @PROTOCOLSOBJECTS@
 PROTOCOLSSOURCES = @PROTOCOLSSOURCES@
 PSNAME = @PSNAME@
 RANLIB = @RANLIB@
-RSH = @RSH@
+RSH_CMD = @RSH_CMD@
+RSH_OPT = @RSH_OPT@
 SED = @SED@
 SUPPORTS_LOCAL_LAUNCH = @SUPPORTS_LOCAL_LAUNCH@
 S_GTPLSP_ADB = @S_GTPLSP_ADB@
@@ -218,7 +219,7 @@ distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$d/$$file $(distdir)/$$file; \
+	    cp -pr $$/$$file $(distdir)/$$file; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \

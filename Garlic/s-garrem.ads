@@ -39,9 +39,10 @@ package System.Garlic.Remote is
    --  launch other partitions.
 
    procedure Full_Launch
-     (Launcher        : in String;
-      Host            : in String;
-      Executable_Name : in String);
+     (Rsh_Command : in String;
+      Host        : in String;
+      Rsh_Options : in String;
+      Command     : in String);
    --  Launch the given partition with the correct parameters on the
    --  command line.
 

@@ -1,3 +1,11 @@
+2000-01-24  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-parint.ads, s-parint.adb: Add a new parameter Rsh_Options in
+	Launch which is used in System.Garlic.Remote.Full_Launch.
+
+	* s-garrem.ads, s-garrem.adb: Add a new parameter Rsh_Options to
+	the whole set of launching procedures.
+
 2000-01-24  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-gardeb.adb: Fix an impossible condition bug. Suggested by

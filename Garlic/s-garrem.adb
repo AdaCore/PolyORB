@@ -64,18 +64,20 @@ package body System.Garlic.Remote is
    --  Local launcher
 
    procedure Rsh_Launcher
-     (Launcher : in String;
-      Host     : in String;
-      Command  : in String);
+     (Rsh_Command : in String;
+      Host        : in String;
+      Rsh_Options : in String;
+      Command     : in String);
    --  RSH launcher
 
    function System (Command : C.Strings.chars_ptr) return int;
    pragma Import (C, System);
 
    procedure Launch
-     (Launcher : in String;
-      Host     : in String;
-      Command  : in String);
+     (Rsh_Command : in String;
+      Host        : in String;
+      Rsh_Options : in String;
+      Command     : in String);
    --  Launch Command on Host using Launcher
 
    function Strip_Pwd (Command : String) return String;
@@ -126,17 +128,18 @@ package body System.Garlic.Remote is
    -----------------
 
    procedure Full_Launch
-     (Launcher        : in String;
-      Host            : in String;
-      Executable_Name : in String)
+     (Rsh_Command : in String;
+      Host        : in String;
+      Rsh_Options : in String;
+      Command     : in String)
    is
       Full_Command : constant String :=
-        Executable_Name & " " & "--detach --boot_location """ &
+        Command & " " & "--detach --boot_location """ &
         Get_Boot_Locations & """";
    begin
       pragma Debug (D ("Launch Command: " & Full_Command));
 
-      Launch (Launcher, Host, Full_Command);
+      Launch (Rsh_Command, Host, Rsh_Options, Full_Command);
    end Full_Launch;
 
    --------------
@@ -175,9 +178,10 @@ package body System.Garlic.Remote is
    ------------
 
    procedure Launch
-     (Launcher : in String;
-      Host     : in String;
-      Command  : in String) is
+     (Rsh_Command : in String;
+      Host        : in String;
+      Rsh_Options : in String;
+      Command     : in String) is
    begin
       if Supports_Local_Launch
         and then Host (Host'First) /= '`'
@@ -187,7 +191,7 @@ package body System.Garlic.Remote is
 
          Local_Launcher (Command);
       else
-         Rsh_Launcher (Launcher, Host, Command);
+         Rsh_Launcher (Rsh_Command, Host, Rsh_Options, Command);
       end if;
    end Launch;
 
@@ -214,16 +218,19 @@ package body System.Garlic.Remote is
    ------------------
 
    procedure Rsh_Launcher
-     (Launcher : in String;
-      Host     : in String;
-      Command  : in String)
+     (Rsh_Command : in String;
+      Host        : in String;
+      Rsh_Options : in String;
+      Command     : in String)
    is
       function C_System (Command : Address) return int;
       pragma Import (C, C_System, "system");
 
       Rsh_Full_Command : constant String     :=
-        Launcher & " " & Host & " """ & Command &
-        " &"" < /dev/null > /dev/null";
+        Rsh_Command & " " &
+        Host        & " " &
+        Rsh_Options & " """ &
+        Command     & " &"" < /dev/null > /dev/null";
       C_Command        : aliased char_array := To_C (Rsh_Full_Command);
    begin
       pragma Debug (D ("Run System: " & Rsh_Full_Command));
