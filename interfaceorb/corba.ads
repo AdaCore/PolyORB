@@ -130,15 +130,16 @@ package Corba is
     -- type pointer on the Idl_Exception_Members type
 
 
-    procedure Free (Pointer : in out Idl_Exception_Members_Ptr) is abstract ;
-    -- free method associated to the type Idl_Exception_Members_Ptr
-
-
     procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence ;
                            To : out Idl_Exception_Members) is abstract ;
     -- This method return the member corresponding to an exception occurence
     -- This methos must be redefined for each new member type. That's why
     -- it is declared abstract.
+
+
+    procedure Free is new Ada.Unchecked_Deallocation (Idl_Exception_Members'Class,
+                                                      Idl_Exception_Members_Ptr);
+    -- free method associated to the type Idl_Exception_Members_Ptr
 
 
     type Exception_Type is (No_Exception, System_Exception, User_Exception) ;
@@ -168,10 +169,6 @@ package Corba is
                            To : out Ex_Body) ;
     -- This method return the member corresponding to a system exception
     -- occurence.
-
-
-    procedure Free is new Ada.Unchecked_Deallocation(Ex_Body, Ex_Body_Ptr) ;
-    -- free method associated to the type Ex_Body_Ptr
 
     -- Specification defined system exceptions :
     --------------------------------------------

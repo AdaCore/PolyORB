@@ -51,6 +51,8 @@ with Ada.Unchecked_Conversion ;
 with Interfaces.C ;
 with System ;
 
+with Text_IO ; use Text_IO ;
+
 package body Corba.Exceptions is
 
    type ID_Num is mod 65000 ;
@@ -151,7 +153,7 @@ package body Corba.Exceptions is
                         Old_Temp.all.Next := Temp.all.Next ;
                      end if ;
                      -- and free the memory
-                     Free (Ex_Body_Ptr (Temp.all.Value)) ;
+                     Free (Temp.all.Value) ;
                      Free (Temp) ;
                      -- at last, return the result
                      Result := Member ;

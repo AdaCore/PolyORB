@@ -140,7 +140,13 @@ ADABROKER_TRY
     if (Init_Ok) {
       // if Initialisation was made then call the corresponding
       // function on C_Object
-      result = ((GIOP_C *) C_Object)->ReceiveReply();
+#ifdef DEBUG
+    cerr << "Ada_Giop_c::ReceiveReply : call the omniORB function" << endl ;
+#endif
+    result = ((GIOP_C *) C_Object)->ReceiveReply();
+#ifdef DEBUG
+    cerr << "Ada_Giop_c::ReceiveReply : the omniORB function returned successfull" << endl ;
+#endif
     } else {
       // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,

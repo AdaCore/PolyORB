@@ -220,6 +220,7 @@ package body omniProxyCallWrapper is
                      declare
                         Excpt_Members : Corba.Unknown_Members ;
                   begin
+                    pragma Debug(Output(Debug,"Corba.omniproxycallwrapper.invoke : No user exception declared "));
                      -- inform the ORB that the message was skiped
                      Giop_C.Request_Completed(Giop_Client.Real,True) ;
                      -- raise an Unknown exception

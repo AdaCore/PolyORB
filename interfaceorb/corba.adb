@@ -52,6 +52,8 @@
 
 with Corba.Exceptions ;
 
+with Text_Io ; use Text_Io ;
+
 package body Corba is
 
    -----------------------------------------------------------

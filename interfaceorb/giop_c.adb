@@ -150,7 +150,9 @@ package body Giop_C is
       C_Result : Interfaces.C.Int ;
    begin
       -- calls the C function ...
+      pragma Debug(Output(Debug, "Giop_c.Receive_Reply : call of the C_function"))  ;
       C_Receive_Reply (Self,C_Result) ;
+      pragma Debug(Output(Debug, "Giop_c.Receive_Reply : C_function returned successfull"))  ;
       -- ... and transforms the result into an Ada type
       Result := Giop.C_Int_To_Reply_Status_Type (C_Result) ;
    end;
