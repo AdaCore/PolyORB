@@ -10,7 +10,7 @@
 ***   This is free software; you can redistribute it and/or modify it under terms of the GNU   ***
 ***   General Public License, as published by the Free Software Foundation.                    ***
 ***                                                                                            ***
-***  This back-end is distributed in the hoe thaht it will be usefull, but WITHOUT ANY         ***
+***  This back-end is distributed in the hope that it will be usefull, but WITHOUT ANY         ***
 ***  WARRANTY; without even the implied waranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR ***
 ***  PURPOSE.                                                                                  ***
 ***                                                                                            ***
@@ -55,14 +55,22 @@ typedef string_list dep_list;
 
 class adabe_name : public virtual AST_Decl
 // Abstract class, root from the adabe classes
+// contains the ada names, and some adabe-specific attributes 
 {
 public:
   adabe_name(void);
-
+  // the constructor of this class
+  
   string get_ada_local_name(void); 
   // give the local ADA name of the AST node
   
   string get_ada_full_name(void);
+  // give the complete ADA name of the AST node
+
+  void set_ada_local_name(string); 
+  // give the local ADA name of the AST node
+  
+  void set_ada_full_name(string);
   // give the complete ADA name of the AST node
 
   void compute_ada_name(void);
@@ -83,29 +91,34 @@ public:
   bool is_imported(dep_list with);
   // if the node is imported; 
   
-  virtual void produce_ads(dep_list, string, string);//         = 0;  
-  virtual void produce_adb(dep_list, string, string);//         = 0;
+  virtual void produce_ads(dep_list, string, string);  
+  virtual void produce_adb(dep_list, string, string);
   // functions used to produce the body and specification for the main files
+  // the dep-list contains the dependencies from other packages
+  // the first string is the body of the produce
+  // the second contains the part that should be mapped before the body
   
-  virtual void produce_impl_ads(dep_list, string, string);//    = 0;
-  virtual void produce_impl_adb(dep_list, string, string);//    = 0;
+  virtual void produce_impl_ads(dep_list, string, string);
+  virtual void produce_impl_adb(dep_list, string, string);
   // functions used to produce the body and specification for the
-  // serverside specific files
+  
 
-  virtual void produce_proxies_ads(dep_list, string, string);// = 0;
-  virtual void produce_proxies_adb(dep_list, string, string);// = 0;
+  virtual void produce_proxies_ads(dep_list, string, string);
+  virtual void produce_proxies_adb(dep_list, string, string);
   // functions used to produce the body and specification for the
-  // proxy calls 
+  // proxy calls
+  // the second string is here not used for previous addition
+  // it is used to get only the IN or only the OUT argument of an operation
   
-  virtual void produce_skel_ads(dep_list, string, string);//    = 0;
-  virtual void produce_skel_adb(dep_list, string, string);//    = 0;
+  virtual void produce_skel_ads(dep_list, string, string);
+  virtual void produce_skel_adb(dep_list, string, string);
   // functions used to produce the body and specification for the
-  // package used to select the right function called
+  // package used to select the right function called (dispatch)
   
-  virtual void produce_marshal_ads(dep_list, string, string);// = 0;
-  virtual void produce_marshal_adb(dep_list, string, string);// = 0;
+  virtual void produce_marshal_ads(dep_list, string, string);
+  virtual void produce_marshal_adb(dep_list, string, string);
   // function used to produce the body and specification for the
-  // marshalling functions
+  // marshalling functions of the non predefined types
 
   virtual string dump_name(dep_list, string, string){};
   // this function drops the name in the return string,
@@ -219,6 +232,8 @@ public:
   DEF_NARROW_FROM_DECL(adabe_string);
 
   virtual void produce_ads(dep_list with, string &body, string &previous);
+  virtual void produce_marshal_ads(dep_list with, string &body, string &previous);
+  virtual void produce_marshal_adb(dep_list with, string &body, string &previous);
   virtual string dump_name(dep_list with, string &body, string &previous);
   
 };
@@ -506,7 +521,7 @@ public:
 
 
 class adabe_root : public virtual AST_Root,
-		  public virtual adabe_module
+		   public virtual adabe_name
 {
 public:
 

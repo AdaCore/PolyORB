@@ -3,19 +3,24 @@
 #include <adabe.h>
 #include <stdio.h>
   
-IMPL_NARROW_METHODS1(adabe_enum, AST_Enum);
-IMPL_NARROW_FROM_DECL(adabe_enum);
-IMPL_NARROW_FROM_SCOPE(adabe_enum);
+IMPL_NARROW_METHODS1(adabe_array, AST_Array);
+IMPL_NARROW_FROM_DECL(adabe_array);
 
-void adabe_array::produce_ads(dep_list with,string &String, string &previousdefinition) {
-  string temp;
+adabe_array::adabe_array(UTL_ScopedName *n, unsigned long ndims, UTL_ExprList *dims):
+  AST_Array(n,ndims,dims),
+  adabe_name()
+{
+}
+
+void
+adabe_array::produce_ads(dep_list with,string &body, string &previous) {
   char number[256];
   int i;
 
   compute_ada_name();
-  temp += "type " + get_ada_local_name() + "is array ";
+  body += "type " + get_ada_local_name() + "is array ";
   for (i=0; i < n_dims(); i++) {
-    temp += "( 0 ...";  
+    body += "( 0 ...";  
     AST_Expression::AST_ExprValue* v = dims()[i]->ev();
     switch (v->et) 
     {
@@ -34,21 +39,37 @@ void adabe_array::produce_ads(dep_list with,string &String, string &previousdefi
       default:
       throw adabe_internal_error(__FILE__,__LINE__,"unexpected type in array expression");
     }
-    temp +=number;
-    temp +=")";
+    body +=number;
+    body +=")";
   }
-  temp+="of\n"+ (adabe_name::narrow_from_decl(base_type())->dump_name(with, String, previousdefinition));
+  body+="of\n"+ (adabe_name::narrow_from_decl(base_type())->dump_name(with, body, previous));
   set_already_defined();
-  previousdefinition += temp;
 }
 
-string adabe_array::dump_name(dep_list with,string &String, string &previousdefinition) {
-  if (!is_already_defined()) {
-    string temp;
-    produce_ads( with, String, temp);
-    previousdefinition += temp;
-  }
-  return get_ada_full_name();
+
+void
+adabe_array::produce_marshal_ads(dep_list with,string &body, string &previous)
+{
+}
+
+void
+adabe_array::produce_marshal_adb(dep_list with,string &body, string &previous)
+{
+}
+
+string adabe_array::dump_name(dep_list with,string &body, string &previous) 
+{
+  if (!is_imported(with))
+    {
+      if (!is_already_defined())
+	{
+	  string tmp = "";
+	  produce_ads(with, tmp, previous);
+	  previous += tmp;
+	}
+      return get_ada_local_name();
+    }
+  return get_ada_full_name();	   
 }
 
     

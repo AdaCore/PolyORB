@@ -1,8 +1,21 @@
 // File adabe_root.cc
 
-#include "strings.h"
-#include "adabe.h"
-#include <idl_extern.hh>
+#include <adabe.h>
+
+
+adabe_root::adabe_root(UTL_ScopedName *n, UTL_StrList *p)
+  : AST_Root(n,p),
+    AST_Module(n,p),
+    AST_Decl(AST_Decl::NT_module,n,p),
+    UTL_Scope(AST_Decl::NT_module),
+    adabe_name() 
+{
+  adabe_global::set_root(this);
+  set_in_main_file(I_TRUE);
+  return;
+}
+
+
 
 void
 adabe_root::produce() {
@@ -10,190 +23,589 @@ adabe_root::produce() {
   try {
     string name      = idl_global->stripped_filename()->get_string();
     string idl_file_name = "";
-    string includes      = "";
-    string previous      = "";
-    string next          = "";
-    dep_list with;
     idl_file_name =  name + "IDL_FILE";
     
-    
+    // **************************
     // CREATION OF THE MAIN FILES
+    // **************************
 
     // main header file
-    
-    string ada_file_name = idl_file_name+".ads";
-    ofstream header(ada_file_name.c_str());
-    UTL_ScopeActiveIterator head_activator(this,UTL_Scope::IK_decls);
-    while (!head_activator.is_done()) {
-      AST_Decl *d = head_activator.item();
-      switch(d->node_type()) {
-      case AST_Decl::NT_sequence:
-      case AST_Decl::NT_string:
-      case AST_Decl::NT_array:
-      case AST_Decl::NT_const:
-      case AST_Decl::NT_except:
-      case AST_Decl::NT_union:
-      case AST_Decl::NT_struct:
-      case AST_Decl::NT_enum:
-      case AST_Decl::NT_typedef:
-      case AST_Decl::NT_interface_fwd:
-	adabe_name::narrow_from_decl(d)->produce_ads(with, previous, next);
-	break;
-      case AST_Decl::NT_module: {
-	adabe_module *module = adabe_module::narrow_from_decl(d);
-	string P = "";
-	string S = "";
-	string W_string;
-	dep_list W;
-	string module_file_name = module->get_ada_full_name();
-	ofstream module_file(module_file_name.c_str());
-	module->produce_ads(W,S,P);
-	W_string = *W.produce("with ");
-	
-	module_file << W_string;
-	module_file << P;            //... Question to ask !!!
-	module_file << S;
-	module_file.close();
-      }
-      case AST_Decl::NT_interface: {
-	adabe_interface *interface = adabe_interface::narrow_from_decl(d);
-	string P = "";
-	string N = "";
-	string W_string;
-	dep_list W;
-	string interface_file_name = interface->get_ada_full_name();
-	ofstream interface_file(interface_file_name.c_str());
-	interface->produce_ads(W,P,N);
-	W_string = *W.produce("with ");
-	
-	interface_file << W_string;
-	interface_file << P;            //... Question to ask !!!
-	interface_file << N;
-	interface_file.close();
-      }
-	
-	break;
-      default:
-	throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope");
-	break;
-      }
+    {
+      string header_includes      = "";
+      string header_previous      = "";
+      string header_body          = "";
+      dep_list header_with;
+      UTL_ScopeActiveIterator header_activator(this,UTL_Scope::IK_decls);
+      while (!header_activator.is_done())
+	{
+	  AST_Decl *d = header_activator.item();
+	  switch(d->node_type()) {
+	  case AST_Decl::NT_sequence:
+	  case AST_Decl::NT_string:
+	  case AST_Decl::NT_array:
+	  case AST_Decl::NT_const:
+	  case AST_Decl::NT_except:
+	  case AST_Decl::NT_union:
+	  case AST_Decl::NT_struct:
+	  case AST_Decl::NT_enum:
+	  case AST_Decl::NT_typedef:
+	  case AST_Decl::NT_interface_fwd:
+	    adabe_name::narrow_from_decl(d)->produce_ads(header_with, header_body, header_previous);
+	    break;
+	    
+	  case AST_Decl::NT_module:	    
+	    {
+	      adabe_module *module = adabe_module::narrow_from_decl(d);
+	      string module_previous = "";
+	      string module_body = "";
+	      string module_with_string;
+	      dep_list module_with;
+	      
+	      module->produce_ads(module_with,module_body,module_previous);
+	      module_with_string = *module_with.produce("with ");
+	      
+	      string module_file_name = module->get_ada_full_name()+".ads";
+	      ofstream module_file(module_file_name.c_str()); 	// Open the ads module file	
+	      module_file << module_with_string;
+	      module_file << module_previous; 
+	      module_file << module_body;
+	      module_file.close();
+	    }
+	    
+	  case AST_Decl::NT_interface:	    
+	    {
+	      adabe_interface *interface = adabe_interface::narrow_from_decl(d);
+	      string interface_previous = "";
+	      string interface_body = "";
+	      string interface_with_string;
+	      dep_list interface_with;
+	      
+	      interface->produce_ads(interface_with,interface_body,interface_previous);
+	      interface_with_string = *interface_with.produce("with ");
+	      
+	      string interface_file_name = interface->get_ada_full_name()+".ads";
+	      ofstream interface_file(interface_file_name.c_str());	
+	      interface_file << interface_with_string;
+	      interface_file << interface_previous;    
+	      interface_file << interface_body;
+	      interface_file.close();
+	    }
+	  
+	  break;
+	  default:
+	    throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope");
+	    break;
+	  }
+	}
+
+      // Opening of the header file
+      
+      string ada_file_name = idl_file_name+".ads";
+      ofstream header(ada_file_name.c_str());
+      header_includes = *header_with.produce ("with ");
+      header << header_includes;
+      header << header_previous;
+      header << header_body;
+      header.close();
     }
-    includes = *with.produce ("with ");
-    header << includes;
-    header << previous;
-    header << next;
-    header.close();
     
+
+
     // main body file
     
-    ada_file_name = idl_file_name+".adb";
-    ofstream body(ada_file_name.c_str());
-    UTL_ScopeActiveIterator body_activator(this,UTL_Scope::IK_decls);
+    {
+      UTL_ScopeActiveIterator body_activator(this,UTL_Scope::IK_decls);
+      
+      while (!body_activator.is_done())
+	{
+	  AST_Decl *d = body_activator.item();
+	  switch(d->node_type())
+	    {
+	    case AST_Decl::NT_module:
+	      {
+		adabe_module *module = adabe_module::narrow_from_decl(d);
+		string body_module_previous = "";
+		string body_module_body = "";
+		dep_list body_module_with;
+		
+		module->produce_adb(body_module_with,body_module_body,body_module_previous);
+		
+		string body_module_file_name = module->get_ada_full_name()+".adb";
 
-    while (!body_activator.is_done()) {
-      AST_Decl *d = head_activator.item();
-      switch(d->node_type()) {
-      case AST_Decl::NT_sequence:
-      case AST_Decl::NT_string:
-      case AST_Decl::NT_array:
-      case AST_Decl::NT_pre_defined:
-      case AST_Decl::NT_module:
-      case AST_Decl::NT_const:
-      case AST_Decl::NT_except:
-      case AST_Decl::NT_union:
-      case AST_Decl::NT_struct:
-      case AST_Decl::NT_enum:
-      case AST_Decl::NT_typedef:
-	adabe_name::narrow_from_decl(d)->produce_adb(with, previous, next);
-	break;
-      default:
-	throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope");
-	break;
-      }
+	      }
+
+	    case AST_Decl::NT_interface:
+	      {
+		adabe_interface *interface = adabe_interface::narrow_from_decl(d);
+		string interface_previous = "";
+		string interface_body = "";
+		string interface_with_string;
+		dep_list interface_with;
+		
+		interface->produce_adb(interface_with,interface_body,interface_previous);
+		interface_with_string = *interface_with.produce("with ");
+		
+		string interface_file_name = interface->get_ada_full_name()+".adb";
+		ofstream interface_file(interface_file_name.c_str());	
+		interface_file << interface_with_string;
+		interface_file << interface_previous;    
+		interface_file << interface_body;
+		interface_file.close();
+	      }
+	    default:
+	      break;
+	    }
+	}
     }
-    body << includes;
-    body << previous;
-    body << next;
-    body.close();
     
     // Preparing for a second scan
     
     set_undefined();
-    
-    // CREATION OF THE IMPLEMENTATION FILES
-    
-    // header of the implementation file
 
-    ada_file_name = idl_file_name+"-impl.ads";
-    ofstream impl_header(ada_file_name.c_str());
-    UTL_ScopeActiveIterator impl_head_activator(this,UTL_Scope::IK_decls);
-    while (!impl_head_activator.is_done()) {
-      AST_Decl *d = impl_head_activator.item();
-      switch(d->node_type()) {
-      case AST_Decl::NT_sequence:
-      case AST_Decl::NT_string:
-      case AST_Decl::NT_array:
-      case AST_Decl::NT_pre_defined:
-      case AST_Decl::NT_module:
-      case AST_Decl::NT_const:
-      case AST_Decl::NT_except:
-      case AST_Decl::NT_union:
-      case AST_Decl::NT_struct:
-      case AST_Decl::NT_enum:
-      case AST_Decl::NT_typedef:
-	adabe_name::narrow_from_decl(d)->produce_impl_ads(with, previous, next);
-	break;
-      default:
-	throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope");
-	break;
-      }
+    // ************************************
+    // CREATION OF THE IMPLEMENTATION FILES
+    // ************************************
+    
+
+    // header of the implementation file
+    {
+      UTL_ScopeActiveIterator impl_head_activator(this,UTL_Scope::IK_decls);
+      while (!impl_head_activator.is_done())
+	{
+	  AST_Decl *d = impl_head_activator.item();
+	  switch(d->node_type())
+	    {
+	
+	    case AST_Decl::NT_module:                       // there's nothing to be done in the module (it's just here to write the implementation
+	      {                                             // of the interfaces in the modules
+		string impl_header_module_previous = ""; 
+		string impl_header_module_body     = "";
+		string impl_header_module_with_string;
+		dep_list impl_header_module_with;
+		
+		adabe_module *module = adabe_module::narrow_from_decl(d);
+		module->produce_impl_ads(impl_header_module_with,impl_header_module_body,impl_header_module_previous);
+	      }
+	    case AST_Decl::NT_interface:
+	      {
+		adabe_interface *interface = adabe_interface::narrow_from_decl(d);
+		string impl_header_interface_previous = "";
+		string impl_header_interface_body = "";
+		string impl_header_interface_with_string;
+		dep_list impl_header_interface_with;
+		
+		interface->produce_impl_ads(impl_header_interface_with,impl_header_interface_body,impl_header_interface_previous);
+		impl_header_interface_with_string = *impl_header_interface_with.produce("with ");
+		
+		string impl_header_interface_file_name = interface->get_ada_full_name()+"-impl.ads";
+		ofstream impl_header_interface_file(impl_header_interface_file_name.c_str());	
+		impl_header_interface_file << impl_header_interface_with_string;
+		impl_header_interface_file << impl_header_interface_previous;    
+		impl_header_interface_file << impl_header_interface_body;
+		impl_header_interface_file.close();
+	      }
+	      
+	    default:
+	      break;
+	    }
+	}
     }
-    impl_header << includes;
-    impl_header << previous;
-    impl_header << next;
-    impl_header.close();
 
     // body of the implementation file
     
-    ada_file_name = idl_file_name+"-impl.adb";
-    ofstream impl_body(ada_file_name.c_str());
-    UTL_ScopeActiveIterator impl_body_activator(this,UTL_Scope::IK_decls);
-
-    while (!impl_body_activator.is_done()) {
-      AST_Decl *d = head_activator.item();
-      switch(d->node_type()) {
-      case AST_Decl::NT_sequence:
-      case AST_Decl::NT_string:
-      case AST_Decl::NT_array:
-      case AST_Decl::NT_pre_defined:
-      case AST_Decl::NT_module:
-      case AST_Decl::NT_const:
-      case AST_Decl::NT_except:
-      case AST_Decl::NT_union:
-      case AST_Decl::NT_struct:
-      case AST_Decl::NT_enum:
-      case AST_Decl::NT_typedef:
-	adabe_name::narrow_from_decl(d)->produce_impl_adb(with, previous, next);
-	break;
-	
-      default:
-	throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope");
-	break;
-      }
-    }
-    impl_body << includes;
-    impl_body << previous;
-    impl_body << next;
-    impl_body.close();
-   
-
-   /*
-      openning of the files (ads,adb, impl.ads impl.adb...)
+    {
+      UTL_ScopeActiveIterator impl_body_activator(this,UTL_Scope::IK_decls);
       
-      for each file lauch adabe_module::produce...
-    */
+      while (!impl_body_activator.is_done())
+	{
+	  AST_Decl *d = impl_body_activator.item();
+	  switch(d->node_type())
+	    {
+	    case AST_Decl::NT_module:
+	      {
+		adabe_module *module = adabe_module::narrow_from_decl(d);
+		string impl_body_module_previous = "";
+		string impl_body_module_body     = "";
+		string impl_body_module_with_string;
+		dep_list impl_body_module_with;
+		
+		module->produce_impl_adb(impl_body_module_with,impl_body_module_body,impl_body_module_previous);
+	      }
+	      
+	    case AST_Decl::NT_interface:
+	      {
+		adabe_interface *interface = adabe_interface::narrow_from_decl(d);
+		string impl_body_interface_previous = "";
+		string impl_body_interface_body = "";
+		string impl_body_interface_with_string;
+		dep_list impl_body_interface_with;
+		
+		interface->produce_impl_adb(impl_body_interface_with,impl_body_interface_body,impl_body_interface_previous);
+		impl_body_interface_with_string = *impl_body_interface_with.produce("with ");
+		
+		string impl_body_interface_file_name = interface->get_ada_full_name()+"-impl.adb";
+		ofstream impl_body_interface_file(impl_body_interface_file_name.c_str());	
+		impl_body_interface_file << impl_body_interface_with_string;
+		impl_body_interface_file << impl_body_interface_previous;    
+		impl_body_interface_file << impl_body_interface_body;
+		impl_body_interface_file.close();
+	      }
+	    default:
+	      break;
+	    }
+	}
+    }
+
+    // *****************************
+    // CREATION OF THE PROXIES FILES
+    // *****************************
+    
+
+    // header of the proxies files
+    {
+      UTL_ScopeActiveIterator proxy_head_activator(this,UTL_Scope::IK_decls);
+      while (!proxy_head_activator.is_done())
+	{
+	  AST_Decl *d = proxy_head_activator.item();
+	  switch(d->node_type())
+	    {
+	
+	    case AST_Decl::NT_module:                       // there's nothing to be done in the module (it's just here to write the implementation
+	      {                                             // of the interfaces in the modules
+		string proxy_header_module_previous = ""; 
+		string proxy_header_module_body     = "";
+		string proxy_header_module_with_string;
+		dep_list proxy_header_module_with;
+		
+		adabe_module *module = adabe_module::narrow_from_decl(d);
+		module->produce_ads(proxy_header_module_with,proxy_header_module_body,proxy_header_module_previous);
+	      }
+	    case AST_Decl::NT_interface:
+	      {
+		adabe_interface *interface = adabe_interface::narrow_from_decl(d);
+		string proxy_header_interface_previous = "";
+		string proxy_header_interface_body = "";
+		string proxy_header_interface_with_string;
+		dep_list proxy_header_interface_with;
+		
+		interface->produce_proxies_ads(proxy_header_interface_with,proxy_header_interface_body,proxy_header_interface_previous);
+		proxy_header_interface_with_string = *proxy_header_interface_with.produce("with ");
+		
+		string proxy_header_interface_file_name = interface->get_ada_full_name()+"-proxies.ads";
+		ofstream proxy_header_interface_file(proxy_header_interface_file_name.c_str());	
+		proxy_header_interface_file << proxy_header_interface_with_string;
+		proxy_header_interface_file << proxy_header_interface_previous;    
+		proxy_header_interface_file << proxy_header_interface_body;
+		proxy_header_interface_file.close();
+	      }
+	      
+	    default:
+	      break;
+	    }
+	}
+    }
+
+    // body of the proxies files
+    
+    {
+      UTL_ScopeActiveIterator proxy_body_activator(this,UTL_Scope::IK_decls);
+      
+      while (!proxy_body_activator.is_done())
+	{
+	  AST_Decl *d = proxy_body_activator.item();
+	  switch(d->node_type())
+	    {
+	    case AST_Decl::NT_module:
+	      {
+		adabe_module *module = adabe_module::narrow_from_decl(d);
+		string proxy_body_module_previous = "";
+		string proxy_body_module_body     = "";
+		string proxy_body_module_with_string;
+		dep_list proxy_body_module_with;
+		
+		module->produce_proxies_adb(proxy_body_module_with,proxy_body_module_body,proxy_body_module_previous);
+	      }
+	      
+	    case AST_Decl::NT_interface:
+	      {
+		adabe_interface *interface = adabe_interface::narrow_from_decl(d);
+		string proxy_body_interface_previous = "";
+		string proxy_body_interface_body = "";
+		string proxy_body_interface_with_string;
+		dep_list proxy_body_interface_with;
+		
+		interface->produce_proxies_adb(proxy_body_interface_with,proxy_body_interface_body,proxy_body_interface_previous);
+		proxy_body_interface_with_string = *proxy_body_interface_with.produce("with ");
+		
+		string proxy_body_interface_file_name = interface->get_ada_full_name()+"-proxies.adb";
+		ofstream proxy_body_interface_file(proxy_body_interface_file_name.c_str());	
+		proxy_body_interface_file << proxy_body_interface_with_string;
+		proxy_body_interface_file << proxy_body_interface_previous;    
+		proxy_body_interface_file << proxy_body_interface_body;
+		proxy_body_interface_file.close();
+	      }
+	    default:
+	      break;
+	    }
+	}
+    }
+    
+    // ******************************
+    // CREATION OF THE SKELETON FILES
+    // ******************************
+    
+
+    // header of the skeleton files
+    {
+      UTL_ScopeActiveIterator skel_head_activator(this,UTL_Scope::IK_decls);
+      while (!skel_head_activator.is_done())
+	{
+	  AST_Decl *d = skel_head_activator.item();
+	  switch(d->node_type())
+	    {
+	
+	    case AST_Decl::NT_module:                       // there's nothing to be done in the module (it's just here to write the implementation
+	      {                                             // of the interfaces in the modules
+		string skel_header_module_previous = ""; 
+		string skel_header_module_body     = "";
+		string skel_header_module_with_string;
+		dep_list skel_header_module_with;
+		
+		adabe_module *module = adabe_module::narrow_from_decl(d);
+		module->produce_ads(skel_header_module_with,skel_header_module_body,skel_header_module_previous);
+	      }
+	    case AST_Decl::NT_interface:
+	      {
+		adabe_interface *interface = adabe_interface::narrow_from_decl(d);
+		string skel_header_interface_previous = "";
+		string skel_header_interface_body = "";
+		string skel_header_interface_with_string;
+		dep_list skel_header_interface_with;
+		
+		interface->produce_proxies_ads(skel_header_interface_with,skel_header_interface_body,skel_header_interface_previous);
+		skel_header_interface_with_string = *skel_header_interface_with.produce("with ");
+		
+		string skel_header_interface_file_name = interface->get_ada_full_name()+"-skel.ads";
+		ofstream skel_header_interface_file(skel_header_interface_file_name.c_str());	
+		skel_header_interface_file << skel_header_interface_with_string;
+		skel_header_interface_file << skel_header_interface_previous;    
+		skel_header_interface_file << skel_header_interface_body;
+		skel_header_interface_file.close();
+	      }
+	      
+	    default:
+	      break;
+	    }
+	}
+    }
+
+    // body of the skeleton files
+    
+    {
+      UTL_ScopeActiveIterator skel_body_activator(this,UTL_Scope::IK_decls);
+      
+      while (!skel_body_activator.is_done())
+	{
+	  AST_Decl *d = skel_body_activator.item();
+	  switch(d->node_type())
+	    {
+	    case AST_Decl::NT_module:
+	      {
+		adabe_module *module = adabe_module::narrow_from_decl(d);
+		string skel_body_module_previous = "";
+		string skel_body_module_body     = "";
+		string skel_body_module_with_string;
+		dep_list skel_body_module_with;
+		
+		module->produce_proxies_adb(skel_body_module_with,skel_body_module_body,skel_body_module_previous);
+	      }
+	      
+	    case AST_Decl::NT_interface:
+	      {
+		adabe_interface *interface = adabe_interface::narrow_from_decl(d);
+		string skel_body_interface_previous = "";
+		string skel_body_interface_body = "";
+		string skel_body_interface_with_string;
+		dep_list skel_body_interface_with;
+		
+		interface->produce_proxies_adb(skel_body_interface_with,skel_body_interface_body,skel_body_interface_previous);
+		skel_body_interface_with_string = *skel_body_interface_with.produce("with ");
+		
+		string skel_body_interface_file_name = interface->get_ada_full_name()+"-skel.adb";
+		ofstream skel_body_interface_file(skel_body_interface_file_name.c_str());	
+		skel_body_interface_file << skel_body_interface_with_string;
+		skel_body_interface_file << skel_body_interface_previous;    
+		skel_body_interface_file << skel_body_interface_body;
+		skel_body_interface_file.close();
+	      }
+	    default:
+	      break;
+	    }
+	}
+    }
+    
+    // ******************************
+    // CREATION OF THE MARSHALL FILES
+    // ******************************
+
+    // marshall header file
+    {
+      string marshal_header_includes      = "";
+      string marshal_header_previous      = "";
+      string marshal_header_body          = "";
+      dep_list marshal_header_with;
+      UTL_ScopeActiveIterator marshal_header_activator(this,UTL_Scope::IK_decls);
+      while (!marshal_header_activator.is_done())
+	{
+	  AST_Decl *d = marshal_header_activator.item();
+	  switch(d->node_type()) {
+	  case AST_Decl::NT_sequence:
+	  case AST_Decl::NT_string:
+	  case AST_Decl::NT_array:
+	  case AST_Decl::NT_const:
+	  case AST_Decl::NT_except:
+	  case AST_Decl::NT_union:
+	  case AST_Decl::NT_struct:
+	  case AST_Decl::NT_enum:
+	  case AST_Decl::NT_typedef:
+	  case AST_Decl::NT_interface_fwd:
+	    adabe_name::narrow_from_decl(d)->produce_marshal_ads(marshal_header_with, marshal_header_body, marshal_header_previous);
+	    break;
+	    
+	  case AST_Decl::NT_module:	    
+	    {
+	      adabe_module *module = adabe_module::narrow_from_decl(d);
+	      string marshal_module_previous = "";
+	      string marshal_module_body = "";
+	      string marshal_module_with_string;
+	      dep_list marshal_module_with;
+	      
+	      module->produce_marshal_ads(marshal_module_with,marshal_module_body,marshal_module_previous);
+	      marshal_module_with_string = *marshal_module_with.produce("with ");
+	      
+	      string marshal_module_file_name = module->get_ada_full_name()+"-marshal.ads";  //...
+	      ofstream marshal_module_file(marshal_module_file_name.c_str()); 	// Open the ads module file	
+	      marshal_module_file << marshal_module_with_string;
+	      marshal_module_file << marshal_module_previous; 
+	      marshal_module_file << marshal_module_body;
+	      marshal_module_file.close();
+	    }
+	    
+	  case AST_Decl::NT_interface:	    
+	    {
+	      adabe_interface *interface = adabe_interface::narrow_from_decl(d);
+	      string marshal_interface_previous = "";
+	      string marshal_interface_body = "";
+	      string marshal_interface_with_string;
+	      dep_list marshal_interface_with;
+	      
+	      interface->produce_marshal_ads(marshal_interface_with,marshal_interface_body,marshal_interface_previous);
+	      marshal_interface_with_string = *marshal_interface_with.produce("with ");
+	      
+	      string marshal_interface_file_name = interface->get_ada_full_name()+"-marshal.ads";
+	      ofstream marshal_interface_file(marshal_interface_file_name.c_str());	
+	      marshal_interface_file << marshal_interface_with_string;
+	      marshal_interface_file << marshal_interface_previous;    
+	      marshal_interface_file << marshal_interface_body;
+	      marshal_interface_file.close();
+	    }
+	  
+	  break;
+	  default:
+	    throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope");
+	    break;
+	  }
+	}
+
+      // Opening of the header file
+      
+      string marshal_ada_file_name = idl_file_name+"-marshal.ads";
+      ofstream marshal_header(marshal_ada_file_name.c_str());
+      marshal_header_includes = *marshal_header_with.produce ("with ");
+      marshal_header << marshal_header_includes;
+      marshal_header << marshal_header_previous;
+      marshal_header << marshal_header_body;
+      marshal_header.close();
+    }
+
+    // marshal body file
+    
+    {
+      UTL_ScopeActiveIterator marshal_body_activator(this,UTL_Scope::IK_decls);
+      string marshal_body_includes      = "";
+      string marshal_body_previous      = "";
+      string marshal_body_body          = "";
+      dep_list marshal_body_with;
+    
+      while (!marshal_body_activator.is_done())
+	{
+	  AST_Decl *d = marshal_body_activator.item();
+	  switch(d->node_type())
+	    {
+	    case AST_Decl::NT_sequence:
+	    case AST_Decl::NT_string:
+	    case AST_Decl::NT_array:
+	    case AST_Decl::NT_const:
+	    case AST_Decl::NT_except:
+	    case AST_Decl::NT_union:
+	    case AST_Decl::NT_struct:
+	    case AST_Decl::NT_enum:
+	    case AST_Decl::NT_typedef:
+	    case AST_Decl::NT_interface_fwd:
+	      adabe_name::narrow_from_decl(d)->produce_marshal_adb(marshal_body_with, marshal_body_body, marshal_body_previous);
+	      break;
+	    case AST_Decl::NT_module:
+	      {
+		adabe_module *module = adabe_module::narrow_from_decl(d);
+		string marshal_body_module_previous    = "";
+		string marshal_body_module_body        = "";
+		string marshal_body_module_with_string = "";
+		dep_list marshal_body_module_with;
+
+		module->produce_marshal_adb(marshal_body_module_with,marshal_body_module_body,marshal_body_module_previous);
+		marshal_body_module_with_string = *marshal_body_module_with.produce("with ");
+		
+		string marshal_body_module_file_name = module->get_ada_full_name()+"-marshal.adb";
+
+	      }
+
+	    case AST_Decl::NT_interface:
+	      {
+		adabe_interface *interface = adabe_interface::narrow_from_decl(d);
+		string marshal_interface_previous = "";
+		string marshal_interface_body = "";
+		string marshal_interface_with_string;
+		dep_list marshal_interface_with;
+		
+		interface->produce_marshal_adb(marshal_interface_with,marshal_interface_body,marshal_interface_previous);
+		marshal_interface_with_string = *marshal_interface_with.produce("with ");
+		
+		string marshal_interface_file_name = interface->get_ada_full_name()+"-marshal.adb";
+		ofstream marshal_interface_file(marshal_interface_file_name.c_str());	
+		marshal_interface_file << marshal_interface_with_string;
+		marshal_interface_file << marshal_interface_previous;    
+		marshal_interface_file << marshal_interface_body;
+		marshal_interface_file.close();
+	      }
+	    default:
+	      break;
+	    }
+	}
+      
+      // Opening of the marshal body file
+      
+      string marshal_ada_file_name = idl_file_name+"-marshal.ads";
+      ofstream marshal_body(marshal_ada_file_name.c_str());
+      marshal_body_includes = *marshal_body_with.produce ("with ");
+      marshal_body << marshal_body_includes;
+      marshal_body << marshal_body_previous;
+      marshal_body << marshal_body_body;
+      marshal_body.close();
+    }
+
   }
-  catch (adabe_internal_error) {
+  catch (adabe_internal_error)
+    {
     };
 }
 

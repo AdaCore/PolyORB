@@ -17,9 +17,14 @@ adabe_interface::produce_ads(dep_list with, string &body, string &previous)
   string tmp = "";
   adabe_interface *inher;
   with.add("Corba.Object");
-  if (!is_imported(with)) compute_ada_name();  // forwarded then defined
+  with.add("Corba");
+  if (!pd_is_forwarded) compute_ada_name();  // forwarded then defined
   body += "package " + get_ada_full_name() + " is /n";
-  if (n_inherits() == 0) body += "   type Ref is new Corba.Object.Ref ";
+  body += "\n   -----------------------------\n";
+  body += "   --         The Spec        --\n";
+  body += "   -----------------------------\n\n";
+
+  if (n_inherits() == 0) body += "   type Ref is new Corba.Object.Ref with null record;\n";
 
  // forward declarated
 
@@ -28,85 +33,125 @@ adabe_interface::produce_ads(dep_list with, string &body, string &previous)
       with.add(get_ada_full_name()+"_Forward");
       tmp += "   package Convert is new " + get_ada_full_name() + "_Forward.Convert(Ref);\n";
     }
+
+  //inheritance
+
   if (n_inherits() > 0)
     {
-      inher = adabe_interface::narrow_from_decl(inherits()[0]);      
-      body += "   type Ref is new " + inher->get_ada_full_name() + ".Ref ";
-      UTL_ScopeActiveIterator j(inher,UTL_Scope::IK_decls);
-      while (!j.is_done())
-	{
-	  AST_Decl *d = j.item();
-	  switch(d->node_type()) {
-	  case AST_Decl::NT_const:
-	  case AST_Decl::NT_enum:
-	  case AST_Decl::NT_except:
-	  case AST_Decl::NT_struct:
-	  case AST_Decl::NT_typedef:
-	  case AST_Decl::NT_union:
-	  case AST_Decl::NT_sequence:
-	  case AST_Decl::NT_string:
-	  case AST_Decl::NT_array:
-	    {
-	      adabe_name *e = adabe_name::narrow_from_decl(d);
-	      tmp += "   subtype" +  e->get_ada_local_name() + " is " + e->get_ada_full_name() + ";\n";
-	    }
-	    break;
-	  default:break;
+      inher = adabe_interface::narrow_from_decl(inherits()[0]);
+      with.add(inher->get_ada_full_name());
+      body += "   type Ref is new " + inher->get_ada_full_name() + ".Ref with null record;\n";
+      tmp += "\n -- inheritance from " + inher->get_ada_full_name();
+      tmp += "\n --------------------------------------------------";
+      {
+	UTL_ScopeActiveIterator j(inher,UTL_Scope::IK_decls);
+	while (!j.is_done())
+	  {
+	    AST_Decl *d = j.item();
+	    adabe_name *e = adabe_name::narrow_from_decl(d);
+	    switch(d->node_type())
+	      {
+	      case AST_Decl::NT_const:
+	      case AST_Decl::NT_enum:
+	      case AST_Decl::NT_except:
+	      case AST_Decl::NT_struct:
+	      case AST_Decl::NT_typedef:
+	      case AST_Decl::NT_union:
+	      case AST_Decl::NT_sequence:
+	      case AST_Decl::NT_string:
+	      case AST_Decl::NT_array:	    
+		tmp += "   subtype" +  e->get_ada_local_name();
+		tmp += " is " + e->get_ada_full_name() + ";\n";	      
+		break;
+	      case AST_Decl::NT_op:
+	      case AST_Decl::NT_attr:
+		{
+		  string tempo1 = "";
+		  string tempo2 = "";
+		  e->produce_ads(with, tempo1, tempo2);
+		  tmp += tempo2 + tempo1;
+		}
+		break;
+	      default:break;
+	      }
+	    j.next();
 	  }
-	  j.next();
-	}
-      if (n_inherits() == 1)  body += "with NULL record; \n";
-      else
+      }
+      if (n_inherits() > 1)
 	{
-	  body += "with record \n";
 	  for(int i = 1; i < n_inherits(); i++)
 	    {
 	      inher = adabe_interface::narrow_from_decl(inherits()[i]);
-	      body += "      Adabroker_father : access " + inher->get_ada_full_name() + ".Ref; \n"; //...
+	      with.add(inher->get_ada_full_name());
+	      tmp += "\n -- inheritance from " + inher->get_ada_full_name();
+	      tmp += "\n --------------------------------------------------";
 	      {
 		UTL_ScopeActiveIterator j(inher,UTL_Scope::IK_decls);
 		while (!j.is_done())
 		  {
 		    AST_Decl *d = j.item();
-		    switch(d->node_type()) {
-		    case AST_Decl::NT_const:
-		    case AST_Decl::NT_enum:
-		    case AST_Decl::NT_except:
-		    case AST_Decl::NT_struct:
-		    case AST_Decl::NT_typedef:
-		    case AST_Decl::NT_union:
-		    case AST_Decl::NT_sequence:
-		    case AST_Decl::NT_string:
-		    case AST_Decl::NT_array:
+		    adabe_name *e = adabe_name::narrow_from_decl(d);
+		    switch(d->node_type())
 		      {
-			adabe_name *e = adabe_name::narrow_from_decl(d);
-			tmp += "      subtype" +  e->get_ada_local_name() + " is " + e->get_ada_full_name();
+		      case AST_Decl::NT_const:
+		      case AST_Decl::NT_enum:
+		      case AST_Decl::NT_except:
+		      case AST_Decl::NT_struct:
+		      case AST_Decl::NT_typedef:
+		      case AST_Decl::NT_union:
+		      case AST_Decl::NT_sequence:
+		      case AST_Decl::NT_string:
+		      case AST_Decl::NT_array:			
+			tmp += "      subtype" +  e->get_ada_local_name();
+			tmp += " is " + e->get_ada_full_name() + ";\n";			
+			break;
+		      case AST_Decl::NT_op:
+		      case AST_Decl::NT_attr:
+			{
+			  string tempo1 = "";
+			  string tempo2 = "";
+			  e->produce_ads(with, tempo1, tempo2);
+			  tmp += tempo2 + tempo1;
+			}
+			break;
+		      default:break;
 		      }
-		    break;
-		    default:break;
-		    }
 		    j.next();
 		  }
 	      }
 	    }
-	  body += "   end record; \n";
 	}
     }
+  body += "   type Ref_Ptr is access all Ref'Class;\n\n";
+  body += "   Nil_Ref : aliased constant Ref;\n";
+  body += "   function To_Ref(The_Ref : in Corba.Object.Ref'CLASS) return Ref;\n";
   body += tmp;
-  body += "   function To_Ref(The_Ref : in Corba.Object.ref'CLASS) return Ref; \n";
   
   // instructions
+  body += "\n   --   Instructions          --\n";
+  body += "--------------------------------\n";
+  {
+    UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
+    while (!i.is_done())
+      {
+	AST_Decl *d = i.item();
+	string tmp1 = "";
+	string tmp2 = "";
+	adabe_name::narrow_from_decl(d)->produce_ads(with, tmp1, tmp2);
+	body += tmp2 + tmp1;
+	i.next();
+      }
+  }
+  body += "\n   -----------------------------\n";
+  body += "   --       Not in Spec       --\n";
+  body += "   -----------------------------\n\n";
   
-  UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
-  while (!i.is_done())
-    {
-      AST_Decl *d = i.item();
-      string tmp1 = "";
-      string tmp2 = "";
-      adabe_name::narrow_from_decl(d)->produce_ads(with, tmp1, tmp2);
-      body += tmp2 + tmp1;
-      i.next();
-    }
+  body += "   Repository_Id : Corba.String := Corba.To_Corba_String(";//... repositoryID()
+  body += "   function Get_Repository_Id(Self : in Ref) return Corba.String;\n";
+  body += "   function Is_A(The_Ref : in Ref; Repo_Id : in Corba.String) return Corba.Boolean;\n";
+  body += "   function Is_A(Repo_Id : in Corba.String) return Corba.Boolean;\n";
+  body += "   Get_Nil_Ref(Self : in Ref) return Ref;\n"; 
+  
   body += "end " + get_ada_full_name() + "\n";    
   set_already_defined();
 }
@@ -115,14 +160,23 @@ void
 adabe_interface::produce_adb(dep_list with, string &body, string &previous)
 {
   string tmp = "";
-  with.add("Ada.Tags");
-  with.add("Ada.exceptions");
-  with.add("Ada.Omniproxycallwrapper");
-  with.add("Ada.Proxies");
-  with.add("Ada.Object");
-  body += "pakage body" + get_ada_full_name() + " is /n";
-  body += "   function To_Ref(The_Ref : in Corba.Object.ref'CLASS) return Ref \n";
-
+  with.add("Ada.Exceptions");
+  with.add("Corba.Object");
+  body += "use Corba.Object ;\n";
+  body += "use type Corba.String ;\n";
+  body += "pakage body" + get_ada_full_name() + " is \n";
+  body += "   function To_Ref(The_Ref : in Corba.Object.ref'Class) return Ref is\n";
+  body += "      Dynamic_Type : Corba.Oject.Ref'Class := Get_Dynamic_Type(The_Ref) ;\n";
+  body += "      Result : Ref ;\n";
+  body += "      Repo_Id : Corba.String := Get_Repository_Id(Result) ;\n";
+  body += "   begin\n";
+  body += "      if Is_A(Dynamic_Type, Repo_Id) then\n";
+  body += "         return (Corba.Object.Ref(The_Ref) with null record) ;\n"; 
+  body += "      end if ;\n\n";
+  body += "      Ada.Exceptions.Raise_Exception(Constraint_Error'Identity, \"Cannot cast \"
+  body +=
+  body +=
+  body +=
 
 //////////////////////////// a completer /////////////////////////////////////
 
@@ -336,6 +390,10 @@ adabe_interface::produce_proxies_ads(dep_list with, string &body, string &previo
 void
 adabe_interface::produce_skel_adb(dep_list with, string &body, string &previous)
 {
+  
+
+
+  
 }
 
 void
@@ -346,11 +404,61 @@ adabe_interface::produce_proxies_adb(dep_list with, string &body, string &previo
 void
 adabe_interface::produce_marshal_ads(dep_list with, string &body, string &previous)
 {
+  UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
+  while (!i.is_done())
+    {
+      AST_Decl *d = i.item();
+      switch(d->node_type())
+	{
+	case AST_Decl::NT_except:
+	case AST_Decl::NT_union:
+	case AST_Decl::NT_struct:
+	case AST_Decl::NT_enum:
+	case AST_Decl::NT_string:
+	case AST_Decl::NT_array:
+	case AST_Decl::NT_sequence:
+	case AST_Decl::NT_typedef:
+	  {
+	    string tmp1 = "";
+	    string tmp2 = "";	    
+	    adabe_name::narrow_from_decl(d)->produce_marshal_ads(with, tmp1, tmp2);
+	    body += tmp1;
+	  }
+	  break;
+	default:break;	
+	}
+      i.next();
+    }
 }
 
 void
 adabe_interface::produce_marshal_adb(dep_list with, string &body, string &previous)
 {
+  UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
+  while (!i.is_done())
+    {
+      AST_Decl *d = i.item();
+      switch(d->node_type())
+	{
+	case AST_Decl::NT_except:
+	case AST_Decl::NT_union:
+	case AST_Decl::NT_struct:
+	case AST_Decl::NT_enum:
+	case AST_Decl::NT_string:
+	case AST_Decl::NT_array:
+	case AST_Decl::NT_sequence:
+	case AST_Decl::NT_typedef:
+	  {
+	    string tmp1 = "";
+	    string tmp2 = "";	    
+	    adabe_name::narrow_from_decl(d)->produce_marshal_ads(with, tmp1, tmp2);
+	    body += tmp1;
+	  }
+	  break;
+	default:break;	
+	}
+      i.next();
+    }
 }
 
 
@@ -358,8 +466,8 @@ adabe_interface::produce_marshal_adb(dep_list with, string &body, string &previo
 IMPL_NARROW_METHODS1(adabe_interface, AST_Interface)
 IMPL_NARROW_FROM_DECL(adabe_interface)
 IMPL_NARROW_FROM_SCOPE(adabe_interface)
-
-
+  
+  
 
 
 
