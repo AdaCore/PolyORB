@@ -56,24 +56,15 @@ interface all_types {
 
   simple_struct echoStruct (in simple_struct arg);
 
-  // Strings
-  //--------
-  //typedef string<30> B_string;
-
-  //B_string echoBstring (in B_string arg);
-
 
   // Sequences
   //----------
   typedef sequence<short> U_sequence;
-//  typedef sequence<long,512> B_sequence;
 
   U_sequence echoUsequence (in U_sequence arg);
-//  B_sequence echo7 (in B_sequence arg);
-
 
   // Attributes
   //-----------
-//  readonly attribute Color R_attribute;
+  readonly attribute long Counter;
   attribute Color myColor;
 };

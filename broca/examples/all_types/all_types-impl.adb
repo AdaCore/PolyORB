@@ -180,6 +180,16 @@ package body all_types.Impl is
       return Self.Attr_My_Color;
    end Get_MyColor;
 
+   function Get_Counter
+     (Self : access Object)
+     return CORBA.Long
+   is
+      use CORBA;
+   begin
+      Self.Attr_Counter := Self.Attr_Counter + 1;
+      return Self.Attr_Counter;
+   end Get_Counter;
+
 --   procedure simple_exception_test
 --     (Self : access Object)
 --   is

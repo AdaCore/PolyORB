@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.7 $
+//                            $Revision: 1.8 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -128,14 +128,58 @@ adabe_attribute::produce_adb (dep_list & with,
   with.add ("Broca.Refs");
 
   // Create a CORBA string containing the name of the attribute ops.
-  string set_attr_name = get_ada_local_name () + "_Set_Attribute";
-  body += "   ";
-  body += set_attr_name;
-  body += 
-    " : constant CORBA.Identifier :=\n"
-    "     CORBA.To_CORBA_String (\"Set_";
-  body += get_ada_local_name ();
-  body += "\");\n\n";
+  if (!readonly ()) {
+    string set_attr_name = get_ada_local_name () + "_Set_Attribute";
+    body += "   ";
+    body += set_attr_name;
+    body += 
+      " : constant CORBA.Identifier :=\n"
+      "     CORBA.To_CORBA_String (\"Set_" + get_ada_local_name () + "\");\n\n"
+      "   procedure Set_" + get_ada_local_name () + "\n"
+      "     (Self : in Ref; " + in_decls + ")\n   is\n";
+
+  // Produce now the body of the operation
+    adabe_name  *c = dynamic_cast<adabe_name *>(ScopeAsDecl (defined_in ()));
+
+    // This string contains the name of the package in which the
+    // operation is defined.
+    string name_of_the_package = c->get_ada_local_name ();
+
+  // Then, produce the necessary fields to call the operation.
+  // FIXME: name conflict
+    body +=
+      "      use Broca.Marshalling;\n"
+      "      use Broca.Refs;\n"
+      "      Handler : Broca.Giop.Request_Handler;\n"
+      "      Sr_Res : Broca.Giop.Send_Request_Result_Type;\n"
+      "   begin\n"
+      "      loop\n"
+      "         Broca.Giop.Send_Request_Size\n"
+      "           (Handler, Broca.Object.Object_Ptr (Get (Self)),\n"
+      "           " + set_attr_name + ");\n"
+      "\n"
+      "         --  In and inout parameter.\n"
+      "         Compute_New_Size (Handler.Buffer, To);\n"
+      "\n"
+      "         Broca.Giop.Send_Request_Marshall\n"
+      "           (Handler, True, " + set_attr_name + ");\n"
+      "         Marshall (Handler.Buffer, To);\n"
+      "         Broca.Giop.Send_Request_Send\n"
+      "           (Handler, Broca.Object.Object_Ptr (Get (Self)),"
+      " True, Sr_Res);\n"
+      "         case Sr_Res is\n"
+      "            when Broca.Giop.Sr_Reply =>\n"
+      "               return;\n"
+      "            when Broca.Giop.Sr_No_Reply |\n"
+      "                 Broca.Giop.Sr_User_Exception =>\n"
+      "               raise Program_Error;\n"
+      "            when Broca.Giop.Sr_Forward =>\n"
+      "               null;\n"
+      "         end case;\n"
+      "      end loop;\n";
+    body += "   end Set_" + get_ada_local_name () + ";\n\n";
+
+  }
 
   string get_attr_name = get_ada_local_name () + "_Get_Attribute";
   body +=
@@ -144,54 +188,6 @@ adabe_attribute::produce_adb (dep_list & with,
     "     CORBA.To_CORBA_String (\"Get_";
   body += get_ada_local_name ();
   body += "\");\n\n";
-
-  body +=
-    "   procedure Set_" + get_ada_local_name () + "\n"
-    "     (Self : in Ref; " + in_decls + ")\n   is\n";
-
-  // Produce now the body of the operation
-  adabe_name  *c = dynamic_cast<adabe_name *>(ScopeAsDecl (defined_in ()));
-
-  // This string contains the name of the package in which the
-  // operation is defined.
-  string name_of_the_package = c->get_ada_local_name ();
-
-  // Then, produce the necessary fields to call the operation.
-  // FIXME: name conflict
-  body +=
-    "      use Broca.Marshalling;\n"
-    "      use Broca.Refs;\n"
-    "      Handler : Broca.Giop.Request_Handler;\n"
-    "      Sr_Res : Broca.Giop.Send_Request_Result_Type;\n"
-    "   begin\n"
-    "      loop\n"
-    "         Broca.Giop.Send_Request_Size\n"
-    "           (Handler, Broca.Object.Object_Ptr (Get (Self)),\n"
-    "           " + set_attr_name + ");\n"
-    "\n"
-    "         --  In and inout parameter.\n"
-    "         Compute_New_Size (Handler.Buffer, To);\n"
-    "\n"
-    "         Broca.Giop.Send_Request_Marshall\n"
-    "           (Handler, True, " + set_attr_name + ");\n"
-    "         Marshall (Handler.Buffer, To);\n"
-    "         Broca.Giop.Send_Request_Send\n"
-    "           (Handler, Broca.Object.Object_Ptr (Get (Self)),"
-    " True, Sr_Res);\n"
-    "         case Sr_Res is\n"
-    "            when Broca.Giop.Sr_Reply =>\n"
-    "               return;\n"
-    "            when Broca.Giop.Sr_No_Reply |\n"
-    "                 Broca.Giop.Sr_User_Exception =>\n"
-    "               raise Program_Error;\n"
-    "            when Broca.Giop.Sr_Forward =>\n"
-    "               null;\n"
-    "         end case;\n"
-    "      end loop;\n";
-  body += "   end Set_" + get_ada_local_name () + ";\n\n";
-
-
-
 
   body += "   function Get_" + get_ada_local_name () + "\n";
   body += "     (Self : in Ref) return " + type_name;
@@ -299,39 +295,41 @@ adabe_attribute::produce_skel_adb (dep_list & with,
   unmarshall += "            Unmarshall (Stream, "
     + get_ada_local_name () + ");\n";
 
-  // Set value
-  body +=
-    "      if Operation = \"Set_" + get_ada_local_name () + "\" then\n"
-    "         declare\n" + 
-    in_decls +
-    "         begin\n" +
-    "            --  Unmarshalls arguments\n" +
-    unmarshall +
-    "            --  Call implementation\n"
-    "            Set_" + get_ada_local_name () +
-    " (Object_Ptr (Obj), " + get_ada_local_name () + ");\n";
+  if (!readonly ()) {
+    // Set value
+    body +=
+      "      if Operation = \"Set_" + get_ada_local_name () + "\" then\n"
+      "         declare\n" + 
+      in_decls +
+      "         begin\n" +
+      "            --  Unmarshalls arguments\n" +
+      unmarshall +
+      "            --  Call implementation\n"
+      "            Set_" + get_ada_local_name () +
+      " (Object_Ptr (Obj), " + get_ada_local_name () + ");\n";
   
-  body +=
-    "            Broca.GIOP.Compute_GIOP_Header_Size (Stream);\n"
-    "            --  service context\n"
-    "            Compute_New_Size (Stream, UL_Size, UL_Size);\n"
-    "            --  Request_id\n"
-    "            Compute_New_Size (Stream, UL_Size, UL_Size);\n"
-    "            --  reply_status\n"
-    "            Compute_New_Size (Stream, UL_Size, UL_Size);\n"
-    "            Broca.Giop.Marshall_GIOP_Header\n"
-    "              (Stream, Broca.Giop.Reply);\n"
-    "\n"
-    "            --  service context\n"
-    "            Marshall (Stream, CORBA.Unsigned_Long (Broca.Giop.No_Context));\n"
-    "            --  request id\n"
-    "            Marshall (Stream, Request_Id);\n"
-    "            --  reply status\n"
-    "            Broca.Giop.Marshall (Stream, Broca.Giop.No_Exception);\n"
-    "            return;\n"
-    "         end;\n"
-    "      end if;\n"
-    "\n";
+    body +=
+      "            Broca.GIOP.Compute_GIOP_Header_Size (Stream);\n"
+      "            --  service context\n"
+      "            Compute_New_Size (Stream, UL_Size, UL_Size);\n"
+      "            --  Request_id\n"
+      "            Compute_New_Size (Stream, UL_Size, UL_Size);\n"
+      "            --  reply_status\n"
+      "            Compute_New_Size (Stream, UL_Size, UL_Size);\n"
+      "            Broca.Giop.Marshall_GIOP_Header\n"
+      "              (Stream, Broca.Giop.Reply);\n"
+      "\n"
+      "            --  service context\n"
+      "            Marshall (Stream, CORBA.Unsigned_Long (Broca.Giop.No_Context));\n"
+      "            --  request id\n"
+      "            Marshall (Stream, Request_Id);\n"
+      "            --  reply status\n"
+      "            Broca.Giop.Marshall (Stream, Broca.Giop.No_Exception);\n"
+      "            return;\n"
+      "         end;\n"
+      "      end if;\n"
+      "\n";
+  }
 
   // Get value
   body +=

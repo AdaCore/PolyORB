@@ -14,6 +14,7 @@ private
 
    type Object is new All_Types.Skel.Object with record
       Attr_My_Color : Color := Blue;
+      Attr_Counter  : CORBA.Long := 0;
    end record;
 
    function echoBoolean
@@ -113,6 +114,10 @@ private
    function Get_MyColor
      (Self : access Object)
      return Color;
+
+   function Get_Counter
+     (Self : access Object)
+     return CORBA.Long;
 
 --   procedure simple_exception_test
 --     (Self : access Object);

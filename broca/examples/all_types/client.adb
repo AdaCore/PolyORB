@@ -114,24 +114,6 @@ begin
 --      Output ("test bounded sequence",  Echo7 (MyAll_Types, X) = X);
 --   end;
 
---   Output ("test readonly attribute",
---           Get_R_Attribute (MyAll_Types) = Blue);
-
---   declare
---      X : Example := (Switch => 1, Counter => 23);
---   begin
---      Output ("test default attribute",
---              Get_N_Attribute (MyAll_Types) = X);
---   end;
-
---   declare
---      X : Example := (Switch => 2, Flags => True);
---   begin
---      Set_N_Attribute (MyAll_Types, X);
---      Output ("test updated attribute",
---              Get_N_Attribute (MyAll_Types) = X);
---   end;
-
 --   declare
 --      X : All_Types.Line
 --        := ((Switch => 1, Counter => 19),
@@ -183,6 +165,8 @@ begin
 
    Set_MyColor (MyAll_Types, Green);
    Output ("test attribute", Get_MyColor (MyAll_Types) = Green);
+   Output ("test read-only attribute", Get_Counter (MyAll_Types) = 1
+           and then Get_Counter (MyAll_Types) = 2);
 
    declare
       X : All_Types.Ref;
