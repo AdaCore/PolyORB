@@ -64,7 +64,7 @@ fi
 rm -f aclocal.m4 support/libtool.m4
 
 echo "Libtoolizing"
-# If libtoolize adises us to get a particular version of libtool.m4,
+# If libtoolize advises us to get a particular version of libtool.m4,
 # copy it locally.
 libtool_m4=`libtoolize --copy --force | sed -n -e '/You should add the contents of \`\([^'\'']*\)'\''.*$/s//\1/p'`
 if [ -n "$libtool_m4" ]; then
