@@ -567,8 +567,8 @@ Allow dynamically bound remote calls (remote access type)
 @item
 Allow general access type (with marshalling subprograms)
 
-@item
-Allow unit duplication (like normal units)
+@c @item
+@c Allow unit duplication (like normal units)
 
 @item
 Prevent specification from depending on normal units
@@ -587,11 +587,11 @@ Prevent specification from depending on normal units
 @subsection Overview of Pragma Shared_Passive
 
 The entities declared in such categorized unit library are to be mapped
-on a shared address space (file, memory, database). When two partitions
+on a virtual shared address space (file, memory, database). When two partitions
 use such a library unit, they can communicate by reading or writing the
-same variable. This supports the shared variables paradigm. Entry-less
+same variable. This supports the shared variables paradigm. Entryless
 protected objects declared in these units provide an atomic access to
-some shared data, somehow like in a transaction.
+some shared data, thus implementing a transaction mechanism.
 
 @subsection Shared and Protected Objects
 
@@ -636,18 +636,18 @@ Prevent specification from depending on normal units
 @node Variables, Pragma Asynchronous, More About Pragmas, More About Pragmas
 @subsection Variables, Non-Remote Access Types, RPC Failures and Exceptions
 
-In RT or RCI units, variables are forbidden and general access types are
-allowed as long as their marshaling subprograms are provided. Calls are
-made at most one time. They are made exactly one time or they fail with
-an exception.  Any exception raised in remote method or subprogram call
-is propagated to the caller. Exceptions semantics are preserved in the
-regular Ada way.
+In RT or RCI package declarations, variables are forbidden and general
+access types are allowed as long as their marshaling subprograms are
+provided. Calls are made at most one time: they are made exactly one
+time or they fail with an exception.  Any exception raised in a remote
+method or subprogram call is propagated back to the caller. Exceptions
+semantics are preserved in the regular Ada way.
 
 @image{internal.ads}
 @image{rempkg2.ads}
 @image{rempkg1.ads}
 
-Let's say that RemPkg2, Internal and RemExcMain packages are on the same
+Let us say that RemPkg2, Internal and RemExcMain packages are on the same
 partition Partition_1 and that RemPkg1 is on partition Partition_2.
 
 @image{rempkg2.adb}
@@ -655,13 +655,15 @@ partition Partition_1 and that RemPkg1 is on partition Partition_2.
 @image{remexcmain.adb}
 
 When RemPkg1.Subprogram on Partition_1 raises Internal.Exc, this
-exception is propagated on Partition_2. As Internal.Exc is not defined
+exception is propagated back to Partition_2. As Internal.Exc is not defined
 on Partition_2, it is not possible to catch this exception without an
 exception handler @b{when others}. When we reraise this exception in
 RemPkg1.Subprogram, it is propagated on Partition_1. But this time,
 Internal.Exc is defined and can be handled as we would in a regular Ada
 program. Of course, the exception message is also preserved.
   
+@c XXXX Schema Sam exceptions
+
 @node Pragma Asynchronous, Pragma All_Calls_Remote, Variables, More About Pragmas
 @subsection Pragma Asynchronous
 
@@ -682,9 +684,10 @@ example.
 @image{asynchronousrci.ads}
 @image{asynchronousrt.ads}
 
+@c XXXXX Check this
 A pragma Asynchronous applies to a RAS. An asynchronous RAS can be both
 asynchronous and synchronous depending on the designated subprogram. For
-install, in the code above, remote call (1) is asynchronous but remote
+install, in the code below, remote call (1) is asynchronous but remote
 call (2) is synchronous.
 
 A pragma Asynchronous applies to a RACW as well. In this case, the
@@ -707,14 +710,14 @@ Violate original (remote) procedure semantics
 Allow some kind of remote GOTO mechanism
 
 @item
-Prevent development and debugging in a non-distributed context
+Prevent easy development and debugging in a non-distributed context
 
 @item
 Introduce potential race conditions
 
 @end itemize
 
-To illustrate this, let's take the following example:
+To illustrate the latter, let us take the following example:
 
 @image{node2.ads}
 @image{node2.adb}
@@ -722,14 +725,14 @@ To illustrate this, let's take the following example:
 @image{node1.adb}
 @image{nondeterministic.adb}
 
-Let's say that Main is configured on Partition_0, Node1 on Partition_1
+Let us say that Main is configured on Partition_0, Node1 on Partition_1
 and Node2 on Partition_2. If Node1.Send and Node2.Send procedures were
 synchronous or if no latency was introduced during network
 communication, we would have the following RPC order: Main remotely
 calls Node1.Send which remotely calls Node2.Send which sets V to
 1. Then, Main remotely calls Node2.Send and sets V to 2.
 
-Now, let's assume that both Send procedures are asynchronous and that
+Now, let us assume that both Send procedures are asynchronous and that
 the connection between Partition_1 and Partition_2 is very slow. The
 following scenario can very well occur. Main remotely calls Node1.Send
 and is unblocked. Immediatly after this call, Main remotely calls
@@ -740,9 +743,9 @@ which sets V to 1.
 @node Pragma All_Calls_Remote, Generic Categorized Units  , Pragma Asynchronous, More About Pragmas
 @subsection Pragma All_Calls_Remote
 
-A pragma All_Calls_Remote in a RCI unit can force a remote procedure
-call to be routed through the communication subsystem even for a local
-call. This allows to debug an application in a non-distributed
+A pragma All_Calls_Remote in a RCI unit forces remote procedure
+calls to be routed through the communication subsystem even for a local
+call. This eases the debugging an application in a non-distributed
 situation that is very close to the distributed one.
 
 @node Generic Categorized Units  , Categorization Unit Dependencies, Pragma All_Calls_Remote, More About Pragmas
@@ -889,7 +892,7 @@ and server implementation skeletons.
 An IDL file can start by defining a module. This provides a name-space
 to gather a set of interfaces. This is a way to introduce a level of
 hierarchy (<@i{module}>::<@i{interface}>::<@i{operation}>). The Ada95
-binding maps this element into a (child) package. @t{\#include}
+binding maps this element into a (child) package. @t{#include}
 will make any other namespaces visible.
 
 A module can define interfaces. An interface defines a set of
@@ -1156,7 +1159,6 @@ distributed programs.
 * Warnings::                    
 * Filtering::                   
 * Trace/Replay Debugging::      
-* Restrictions::                
 @end menu
 
 @node Introduction To GLADE, How to Use Gnatdist to Configure a Distributed Application, Getting Started With GLADE, Getting Started With GLADE
@@ -1791,7 +1793,7 @@ distribution. You might also want to look at the example in the
 'Filtering' directory of the GLADE distribution.
 
 
-@node Trace/Replay Debugging, Restrictions, Filtering, Getting Started With GLADE
+@node Trace/Replay Debugging,  , Filtering, Getting Started With GLADE
 @section Trace/Replay Debugging
 
 GLADE has a facility for trace/replay based debugging. If trace mode
@@ -1845,20 +1847,20 @@ when the trace file was generated, otherwise strange behavior can be
 expected.
 
 
-@node Restrictions,  , Trace/Replay Debugging, Getting Started With GLADE
-@section Restrictions
+@c @node Restrictions,  , Trace/Replay Debugging, Getting Started With GLADE
+@c @section Restrictions
 
-Static remote procedures, asynchronous remote procedures, remote
-access to class wide types, remote access to subprogram and
-asynchronous transfer of control with remote procedures are
-implemented. Remote types packages are implemented.
+@c Static remote procedures, asynchronous remote procedures, remote
+@c access to class wide types, remote access to subprogram and
+@c asynchronous transfer of control with remote procedures are
+@c implemented. Remote types packages are implemented.
 
-Pragma All_Calls_Remote has been implemented.
+@c Pragma All_Calls_Remote has been implemented.
 
-Shared passive packages are unimplemented.
+@c Shared passive packages are unimplemented.
 
-Language-defined exceptions propagate well through different
-partitions.
+@c Language-defined exceptions propagate well through different
+@c partitions.
 
 
 @node Index,  , Getting Started With GLADE, Top

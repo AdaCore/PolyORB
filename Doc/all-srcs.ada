@@ -180,7 +180,7 @@ private
    type String_Access is access String;
 
    type Node;
-   type List is access Node;
+   type Node_Access is access Node;
 
    type Node is record
       Content : String_Access;
@@ -434,10 +434,10 @@ procedure AsynchronousMain is
 begin
    --  Asynchronous Dynamically Bound Remote Call (1)
    RAS := Asynchronous'Access;
-   RAS.all (0);
+   RAS (0);  --  Abbrev for RAS.all (0)
    --  Synchronous Dynamically Bound Remote Call (2)
    RAS := Synchronous'Access;
-   RAS.all (0);
+   RAS (0);
    --  Asynchronous Dynamically Bound Remote Call (3)
    Asynchronous (RACW.all);
    --  Synchronous Dynamically Bound Remote Call (4)
