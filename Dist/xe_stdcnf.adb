@@ -137,7 +137,7 @@ package body XE_Stdcnf is
       --     function F (...: String) return String;
 
       Declare_Type
-        (Type_Name    => Join (Type_Prefix, Str_To_Id ("host_function")),
+        (Type_Name    => Type_Prefix & "host_function",
          Type_Kind    => Pre_Type_Function,
          Comp_Type    => String_Type_Node,
          List_Size    => 0,
@@ -163,7 +163,7 @@ package body XE_Stdcnf is
       --     procedure P
 
       Declare_Type
-        (Type_Name    => Join (Type_Prefix, Str_To_Id ("main_procedure")),
+        (Type_Name    => Type_Prefix & "main_procedure",
          Type_Kind    => Pre_Type_Procedure,
          Comp_Type    => Null_Type,
          List_Size    => 0,
@@ -174,7 +174,7 @@ package body XE_Stdcnf is
       --  type type__ada_unit (standard)
 
       Declare_Type
-        (Type_Name    => Join (Type_Prefix, Str_To_Id ("ada_unit")),
+        (Type_Name    => Type_Prefix & "ada_unit",
          Type_Kind    => Pre_Type_Ada_Unit,
          Comp_Type    => Null_Type,
          List_Size    => 0,
@@ -330,7 +330,7 @@ package body XE_Stdcnf is
       --  type Convention_Type is (Ada, Shell, None); (standard)
 
       Declare_Type
-        (Type_Name    => Join (Type_Prefix, Str_To_Id ("convention")),
+        (Type_Name    => Type_Prefix & "convention",
          Type_Kind    => Pre_Type_Convention,
          Comp_Type    => Null_Type,
          List_Size    => 0,
@@ -370,7 +370,7 @@ package body XE_Stdcnf is
       --    (method : starter__type);
 
       Declare_Subprogram
-        (Join (Pragma_Prefix, Str_To_Id ("starter")),
+        (Pragma_Prefix & "starter",
          Pragma_Starter,
          True,
          Null_Location,
@@ -390,7 +390,7 @@ package body XE_Stdcnf is
       --     link_name  : string);
 
       Declare_Subprogram
-        (Join (Pragma_Prefix, Str_To_Id ("import")),
+        (Pragma_Prefix & "import",
          Pragma_Import,
          True,
          Null_Location,
@@ -422,7 +422,7 @@ package body XE_Stdcnf is
       --    (method : starter__type);
 
       Declare_Subprogram
-        (Join (Pragma_Prefix, Str_To_Id ("boot_server")),
+        (Pragma_Prefix & "boot_server",
          Pragma_Boot_Server,
          True,
          Null_Location,
@@ -447,7 +447,7 @@ package body XE_Stdcnf is
       --    (check : starter__type);
 
       Declare_Subprogram
-        (Join (Pragma_Prefix, Str_To_Id ("version")),
+        (Pragma_Prefix & "version",
          Pragma_Version,
          True,
          Null_Location,
@@ -465,7 +465,7 @@ package body XE_Stdcnf is
       --    (check : starter__type);
 
       Declare_Subprogram
-        (Join (Pragma_Prefix, Str_To_Id ("registration_filter")),
+        (Pragma_Prefix & "registration_filter",
          Pragma_Reg_Filter,
          True,
          Null_Location,

@@ -42,28 +42,15 @@ package XE_Utils is
    Spec_Suffix   : Types.File_Name_Type;
    Body_Suffix   : Types.File_Name_Type;
 
-   Com_Sep_Id    : Types.File_Name_Type;
-   Dir_Sep_Id    : Types.File_Name_Type;
-   Dot_Sep_Id    : Types.File_Name_Type;
-
    DSA_Dir       : Types.File_Name_Type;
    Caller_Dir    : Types.File_Name_Type;
    Receiver_Dir  : Types.File_Name_Type;
-   Parent_Dir    : Types.File_Name_Type;
-   Original_Dir  : Types.File_Name_Type;
 
-   Inc_Path_Flag : Types.Name_Id;
-   Lib_Path_Flag : Types.Name_Id;
+   I_Current_Dir : GNAT.OS_Lib.String_Access;
+   I_Caller_Dir  : GNAT.OS_Lib.String_Access;
 
-   I_Current_Dir    : GNAT.OS_Lib.String_Access;
-   I_Caller_Dir     : GNAT.OS_Lib.String_Access;
-   I_DSA_Caller_Dir : GNAT.OS_Lib.String_Access;
-   I_Original_Dir   : GNAT.OS_Lib.String_Access;
-
-   L_Current_Dir    : GNAT.OS_Lib.String_Access;
-   L_Caller_Dir     : GNAT.OS_Lib.String_Access;
-   L_DSA_Caller_Dir : GNAT.OS_Lib.String_Access;
-   L_Original_Dir   : GNAT.OS_Lib.String_Access;
+   L_Current_Dir : GNAT.OS_Lib.String_Access;
+   L_Caller_Dir  : GNAT.OS_Lib.String_Access;
 
    GNATLib_Compile_Flag  : GNAT.OS_Lib.String_Access;
 
@@ -88,15 +75,18 @@ package XE_Utils is
    Usage_Error         : exception;   --  Command line error
    Not_Yet_Implemented : exception;
 
-   function Join
-     (N1 : Types.File_Name_Type;
-      N2 : Types.File_Name_Type;
-      N3 : Types.File_Name_Type := Types.No_File;
-      N4 : Types.File_Name_Type := Types.No_File;
-      N5 : Types.File_Name_Type := Types.No_File;
-      N6 : Types.File_Name_Type := Types.No_File;
-      N7 : Types.File_Name_Type := Types.No_File)
+   function "&" (N1, N2 : Types.File_Name_Type)
+                 return Types.File_Name_Type;
+   function "&" (N1 : Types.File_Name_Type; N2 : String)
+                 return Types.File_Name_Type;
+
+   function Dir
+     (D1 : Types.File_Name_Type;
+      D2 : Types.File_Name_Type := Types.No_File;
+      D3 : Types.File_Name_Type := Types.No_File;
+      D4 : Types.File_Name_Type := Types.No_File)
       return Types.File_Name_Type;
+   --  Concatenate several names and insert a directory separator between them.
 
    procedure Change_Dir (To : in Types.File_Name_Type);
 
@@ -146,10 +136,13 @@ package XE_Utils is
       Args : in GNAT.OS_Lib.Argument_List);
    --  Execute gnatlink and add gnatdist flags
 
+   function Find_Source (U : Types.Name_Id) return Types.File_Name_Type;
+   --  Retrieve main source file of unit U.
+
    procedure Free is
      new Unchecked_Deallocation (String, GNAT.OS_Lib.String_Access);
 
-   function  GNAT_Style (N : Types.Name_Id) return String;
+   function  GNAT_Style (N : Types.Name_Id) return Types.Name_Id;
    --  Return a string that approx. follows GNAT style.
 
    procedure Initialize;

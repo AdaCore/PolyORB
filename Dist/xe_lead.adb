@@ -170,22 +170,21 @@ begin
          for PID in Partitions.First + 1 .. Partitions.Last loop
             if PID = Main_Partition then
                declare
-                  PName : constant Partition_Name_Type :=
-                    Partitions.Table (PID).Name;
-                  Dir   : Storage_Dir_Name_Type;
+                  P : Partition_Name_Type := Partitions.Table (PID).Name;
+                  D : Storage_Dir_Name_Type;
                begin
-                  Dir := Partitions.Table (PID).Storage_Dir;
-                  if Dir = No_Storage_Dir then
-                     Dir := Partitions.Table (Default_Partition).Storage_Dir;
+                  D := Partitions.Table (PID).Storage_Dir;
+                  if D = No_Storage_Dir then
+                     D := Partitions.Table (Default_Partition).Storage_Dir;
                   end if;
-                  if Dir = No_Storage_Dir then
+                  if D = No_Storage_Dir then
                      Copy_With_File_Stamp
-                       (Source         => PName,
+                       (Source         => P,
                         Target         => Main_Subprogram,
                         Maybe_Symbolic => True);
                   else
                      Copy_With_File_Stamp
-                       (Source         => Join (Dir, Dir_Sep_Id, PName),
+                       (Source         => Dir (D, P),
                         Target         => Main_Subprogram,
                         Maybe_Symbolic => True);
                   end if;

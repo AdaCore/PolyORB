@@ -1,7 +1,25 @@
-1998-03-16  Laurent Pautet  <pautet@scapin.enst.fr>
+1998-03-20  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* xe_stubs.adb, ...: Change way of handling time stamps. Store
-	configuration and executable file stamps into glade.sta.
+	* xe_utils.ads, xe_utils.adb: Add Dir to build concatenate several
+ 	strings and name_ids with directory separator in between. Change
+ 	way of handling time stamps. Remove some variables that were not
+	very usefull.
+
+	* xe_stubs.adb: Store configuration and executable file stamps
+ 	into glade.sta. Use XE_Utils.Dir. Add several procedures to help
+ 	the partition main subprogram generation. Same for elaboration
+ 	package body. Use of new unit System.Partition_Interface.Startup.
+
+	* xe_back.ads, xe_back.adb: Remove Load_All_Units (no longer
+	used).
+
+	* xe_check.adb: Improve recompilation mode especially to handle
+ 	non regular filenames (from gnat.adc). Use the fact that u%[bs]
+ 	info contains the index into Unit table. Load distributed
+ 	application main subprogram first to take into account gnat.adc
+ 	informations using main subprogram ali. Use XE_Utils.Dir.
+
+	* xe_parse.adb, xe_stdcnf.adb: Use XE_Utils.Dir.
 
 1998-03-11  Laurent Pautet  <pautet@scapin.enst.fr>
 

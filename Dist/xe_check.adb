@@ -73,6 +73,7 @@ package body XE_Check is
       Compiled    : Name_Id;
       Args        : Argument_List (Gcc_Switches.First .. Gcc_Switches.Last);
       Main        : Boolean;
+      Dummy       : File_Name_Type;
 
       procedure Recompile
         (Unit        : in Name_Id;
@@ -91,22 +92,16 @@ package body XE_Check is
          ALI           : ALI_Id;
 
       begin
-
-         File_Name := File_Name_Of_Body (Unit);
-         if Full_Source_Name (File_Name) = No_File then
-            File_Name := File_Name_Of_Spec (Unit);
-            if Full_Source_Name (File_Name) = No_File then
-               Message ("""", Unit, """ cannot be found");
-               Exit_Program (E_Fatal);
-            end if;
-         end if;
+         File_Name := Find_Source (Unit);
 
          --  This file has to be explicitly loaded. If the library
          --  is a readonly library, it won't be loaded by gnatmake
          --  but we need to load this library in the ALI table.
+
          Lib_File := Lib_File_Name (File_Name);
          Full_Lib_File := Full_Lib_File_Name (Lib_File);
          if Full_Lib_File /= No_File and then
+           not Opt.Check_Readonly_Files and then
            Is_Readonly_Library (Full_Lib_File) then
             Text := Read_Library_Info (Lib_File);
             ALI := Scan_ALI (Lib_File, Text);
@@ -182,17 +177,18 @@ package body XE_Check is
          Message ("load dist. app. units");
       end if;
 
-      for U in CUnit.First .. CUnit.Last loop
+      --  Recompile all the configured units to check that
+      --  they are read Ada units. It is also a way to load the ali
+      --  files in the ALIs table and to get the most recent file to
+      --  which depends a unit. Load the main subprogram first because
+      --  this unit has to match GNAT source file convention. When
+      --  this unit is loaded, gnat.adc has been taken into account
+      --  and the next units will be allowed to have special naming.
 
-         --  Recompile all the configured units to check that
-         --  they are present. It is also a way to load the ali files
-         --  in the ALIs table.
+      Main_Subprogram := Get_Main_Subprogram (Main_Partition);
+      Recompile (Main_Subprogram, Dummy);
+      for U in CUnit.First .. CUnit.Last loop
          Recompile (CUnit.Table (U).CUname, CUnit.Table (U).Most_Recent);
-         if Verbose_Mode then
-            Message ("Unit ", CUnit.Table (U).CUname,
-                     " has ", CUnit.Table (U).Most_Recent,
-                     " as the most recent file");
-         end if;
       end loop;
 
       if Debug_Mode then
@@ -362,7 +358,7 @@ package body XE_Check is
                   Parent := Get_Parent (Child);
                   exit when Parent = No_Name;
 
-                  CUID := Get_CUID (Join (Parent, Spec_Suffix));
+                  CUID := Get_CUID (Parent & Spec_Suffix);
                   if CUID /= Null_CUID then
 
                      --  The child has to be on its parent partition.
@@ -410,7 +406,6 @@ package body XE_Check is
 
       --  Check that the main program is really a main program.
 
-      Main_Subprogram := Get_Main_Subprogram (Main_Partition);
       if ALIs.Table (Get_ALI_Id (Main_Subprogram)).Main_Program = None then
          Message ("""", Main_Subprogram, """ is not a main program");
          Inconsistent := True;
@@ -432,19 +427,19 @@ package body XE_Check is
               Partitions.Table (Channels.Table (C).Lower.My_Partition).Name;
             Upper :=
               Partitions.Table (Channels.Table (C).Upper.My_Partition).Name;
-            Set_CID (Join (Lower, Parent_Dir, Upper), Null_CID);
+            Set_CID (Dir (Lower, Upper), Null_CID);
          end loop;
          for C in Channels.First + 1 .. Channels.Last loop
             Lower :=
               Partitions.Table (Channels.Table (C).Lower.My_Partition).Name;
             Upper :=
               Partitions.Table (Channels.Table (C).Upper.My_Partition).Name;
-            if Get_CID (Join (Lower, Parent_Dir, Upper)) /= Null_CID then
+            if Get_CID (Dir (Lower, Upper)) /= Null_CID then
                Message ("two channels define """, Lower,
                         """ and """, Upper, """ pair");
                Inconsistent := True;
             end if;
-            Set_CID (Join (Lower, Parent_Dir, Upper), C);
+            Set_CID (Dir (Lower, Upper), C);
          end loop;
       end;
 

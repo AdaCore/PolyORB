@@ -29,9 +29,11 @@
 with System;
 with Unchecked_Deallocation;
 
+with ALI;            use ALI;
 with GNAT.OS_Lib;    use GNAT.OS_Lib;
 with Csets;          use Csets;
 with Debug;          use Debug;
+with Fname;          use Fname;
 with Make;           use Make;
 with Namet;          use Namet;
 with Opt;
@@ -79,19 +81,46 @@ package body XE_Utils is
    Object_Suffix         : String_Access;
    Executable_Suffix     : String_Access;
 
-   Private_Id            : Name_Id;
-   Caller_Id             : Name_Id;
-   Receiver_Id           : Name_Id;
-
-   Sem_Only_Flag    : constant String_Access := new String' ("-gnatc");
-   --  Workaround : bad object file generated during stub generation
-
+   Garlic           : constant String_Access := Get_GARLIC_Dir;
    No_Args          : constant Argument_List (1 .. 0) := (others => null);
 
    function Locate
      (Exec_Name  : String;
       Show_Error : Boolean := True)
      return String_Access;
+
+   ---------
+   -- "&" --
+   ---------
+
+   function "&"
+     (N1 : Types.File_Name_Type;
+      N2 : Types.File_Name_Type)
+      return Types.File_Name_Type is
+   begin
+      pragma Assert (N1 /= No_File);
+      if N2 = No_File then
+         return N1;
+      end if;
+      Get_Name_String (N1);
+      Get_Name_String_And_Append (N2);
+      return Name_Find;
+   end "&";
+
+   ---------
+   -- "&" --
+   ---------
+
+   function "&"
+     (N1 : Types.File_Name_Type;
+      N2 : String)
+      return Types.File_Name_Type is
+   begin
+      pragma Assert (N1 /= No_File);
+      Get_Name_String (N1);
+      Add_Str_To_Name_Buffer (N2);
+      return Name_Find;
+   end "&";
 
    ----------------
    -- Change_Dir --
@@ -265,6 +294,38 @@ package body XE_Utils is
       Name_Buffer (Name_Len) := Ascii.Nul;
       Delete_File (Name_Buffer'Address, Error);
    end Delete;
+
+   ---------
+   -- Dir --
+   ---------
+
+   function Dir
+     (D1 : Types.File_Name_Type;
+      D2 : Types.File_Name_Type := No_File;
+      D3 : Types.File_Name_Type := No_File;
+      D4 : Types.File_Name_Type := No_File)
+      return Types.File_Name_Type is
+   begin
+      pragma Assert (D1 /= No_File);
+
+      Get_Name_String (D1);
+      if D2 = No_File then
+         return Name_Find;
+      end if;
+      Add_Char_To_Name_Buffer (Directory_Separator);
+      Get_Name_String_And_Append (D2);
+      if D3 = No_File then
+         return Name_Find;
+      end if;
+      Add_Char_To_Name_Buffer (Directory_Separator);
+      Get_Name_String_And_Append (D3);
+      if D4 = No_File then
+         return Name_Find;
+      end if;
+      Add_Char_To_Name_Buffer (Directory_Separator);
+      Get_Name_String_And_Append (D4);
+      return Name_Find;
+   end Dir;
 
    -------------
    -- Execute --
@@ -483,7 +544,7 @@ package body XE_Utils is
    -- GNAT_Style --
    ----------------
 
-   function GNAT_Style (N : Name_Id) return String is
+   function GNAT_Style (N : Name_Id) return Name_Id is
       Capitalized : Boolean := True;
    begin
       Get_Name_String (N);
@@ -498,7 +559,7 @@ package body XE_Utils is
             Capitalized := True;
          end if;
       end loop;
-      return Name_Buffer (1 .. Name_Len);
+      return Name_Find;
    end GNAT_Style;
 
    ----------------
@@ -506,9 +567,6 @@ package body XE_Utils is
    ----------------
 
    procedure Initialize is
-      Dir_Sep    : String (1 .. 1) := (others => Directory_Separator);
-      Name       : Name_Id;
-
    begin
 
       --  Default initialization of the flags affecting gnatdist
@@ -548,13 +606,6 @@ package body XE_Utils is
       Object_Suffix        := Get_Object_Suffix;
       Executable_Suffix    := Get_Executable_Suffix;
 
-      Inc_Path_Flag  := Str_To_Id ("-I");
-      Lib_Path_Flag  := Str_To_Id ("-L");
-      Private_Id     := Str_To_Id ("private");
-      Caller_Id      := Str_To_Id ("caller");
-      Receiver_Id    := Str_To_Id ("receiver");
-      Parent_Dir     := Str_To_Id ("..");
-
       Obj_Suffix     := Str_To_Id (Object_Suffix.all);
       Exe_Suffix     := Str_To_Id (Executable_Suffix.all);
 
@@ -565,21 +616,19 @@ package body XE_Utils is
       Spec_Suffix    := Str_To_Id ("%s");
       Body_Suffix    := Str_To_Id ("%b");
 
-      Dir_Sep_Id     := Str_To_Id (Dir_Sep);
-      Dot_Sep_Id     := Str_To_Id (".");
-
       DSA_Dir        := Str_To_Id ("dsa");
 
-      Caller_Dir     := Join (DSA_Dir, Dir_Sep_Id, Private_Id,
-                              Dir_Sep_Id, Caller_Id);
-      Receiver_Dir   := Join (DSA_Dir, Dir_Sep_Id, Private_Id,
-                              Dir_Sep_Id, Receiver_Id);
+      Name_Len := 18;
+      Name_Buffer (1 .. 18) := "dsa/private/caller";
+      Name_Buffer (4)  := Directory_Separator;
+      Name_Buffer (12) := Directory_Separator;
+      Caller_Dir := Name_Find;
 
-      Original_Dir   := Join (Parent_Dir, Dir_Sep_Id,
-                              Parent_Dir, Dir_Sep_Id,
-                              Parent_Dir);
+      Name_Len := 20;
+      Name_Buffer (13 .. 20) := "receiver";
+      Receiver_Dir := Name_Find;
 
-      PWD_Id         := Join (Str_To_Id ("`pwd`"), Dir_Sep_Id);
+      PWD_Id         := Dir (Str_To_Id ("`pwd`"), No_File);
 
       Build_Stamp_File    := Str_To_Id ("glade.sta");
       Elaboration_File    := Str_To_Id ("s-garela");
@@ -587,105 +636,69 @@ package body XE_Utils is
       Partition_Main_File := Str_To_Id ("partition");
       Partition_Main_Name := Str_To_Id ("Partition");
 
-      declare
-         Dir  : constant String_Access := Get_GARLIC_Dir;
-         Len  : Natural;
-      begin
-         Len := Dir'Length;
+      Name_Len := 2;
+      Name_Buffer (1) := '-';
+      Name_Buffer (2) := 'I';
+      Add_Str_To_Name_Buffer (Garlic.all);
+      I_GARLIC_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
-         Get_Name_String (Inc_Path_Flag);
-         Name_Buffer (Name_Len + 1 .. Name_Len + Len) := Dir.all;
-         I_GARLIC_Dir := new String'(Name_Buffer (1 .. Name_Len + Len));
+      Name_Buffer (2) := 'L';
+      L_GARLIC_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
-         Get_Name_String (Lib_Path_Flag);
-         Name_Buffer (Name_Len + 1 .. Name_Len + Len) := Dir.all;
-         L_GARLIC_Dir := new String'(Name_Buffer (1 .. Name_Len + Len));
+      Name_Buffer (2) := 'A';
+      A_GARLIC_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
-         Name := Join (Inc_Path_Flag, Dot_Sep_Id);
-         Get_Name_String (Name);
-         I_Current_Dir := new String'(Name_Buffer (1 .. Name_Len));
+      I_Current_Dir := new String'("-I.");
+      L_Current_Dir := new String'("-L.");
 
-         Name := Join (Lib_Path_Flag, Dot_Sep_Id);
-         L_Current_Dir := new String'(Name_Buffer (1 .. Name_Len));
+      Name_Buffer (1 .. 22) := "-Idsa/private/caller";
+      Name_Buffer (6)  := Directory_Separator;
+      Name_Buffer (14) := Directory_Separator;
+      I_Caller_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
-         Name := Join (Parent_Dir, Dir_Sep_Id,
-                       Parent_Dir, Dir_Sep_Id,
-                       Private_Id, Dir_Sep_Id,
-                       Caller_Id);
-         Get_Name_String (Join (Inc_Path_Flag, Name));
-         I_Caller_Dir  := new String'(Name_Buffer (1 .. Name_Len));
+      Name_Buffer (2) := 'L';
+      L_Caller_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
-         Get_Name_String (Join (Lib_Path_Flag, Name));
-         L_Caller_Dir  := new String'(Name_Buffer (1 .. Name_Len));
+      for Next_Arg in 1 .. Argument_Count loop
+         Scan_Make_Arg (Argument (Next_Arg));
+      end loop;
 
-         Name := Join (DSA_Dir, Dir_Sep_Id,
-                       Private_Id, Dir_Sep_Id,
-                       Caller_Id);
-         Get_Name_String (Join (Inc_Path_Flag, Name));
-         I_DSA_Caller_Dir := new String'(Name_Buffer (1 .. Name_Len));
+      Scan_Make_Arg (A_GARLIC_Dir.all);
 
-         Get_Name_String (Join (Lib_Path_Flag, Name));
-         L_DSA_Caller_Dir := new String'(Name_Buffer (1 .. Name_Len));
+      Osint.Add_Default_Search_Dirs;
 
-         Name := Join (Parent_Dir, Dir_Sep_Id,
-                       Parent_Dir, Dir_Sep_Id,
-                       Parent_Dir);
-         Get_Name_String (Join (Inc_Path_Flag, Name));
-         I_Original_Dir := new String'(Name_Buffer (1 .. Name_Len));
+      --  Source file lookups should be cached for efficiency.
+      --  Source files are not supposed to change.
 
-         Get_Name_String (Join (Lib_Path_Flag, Name));
-         L_Original_Dir := new String'(Name_Buffer (1 .. Name_Len));
+      --  Osint.Source_File_Data (Cache => True);
 
-         for Next_Arg in 1 .. Argument_Count loop
-            Scan_Make_Arg (Argument (Next_Arg));
-         end loop;
+      Linker_Switches.Increment_Last;
+      Linker_Switches.Table (Linker_Switches.Last) := new String'("-lgarlic");
 
-         declare
-            GARLIC_Flag : String (1 .. Len + 2);
-         begin
-            GARLIC_Flag (1 .. 2) := "-A";
-            GARLIC_Flag (3 .. Len + 2) := Dir.all;
-            Scan_Make_Arg (GARLIC_Flag);
-         end;
+      --  Use Gnatmake already defined switches.
+      Verbose_Mode       := Opt.Verbose_Mode;
+      Debug_Mode         := Debug.Debug_Flag_Q;
+      Quiet_Output       := Opt.Quiet_Output;
+      No_Recompilation   := Opt.Dont_Execute;
+      Building_Script    := Opt.List_Dependencies;
 
-         Osint.Add_Default_Search_Dirs;
+      --  Use -dq for Gnatdist internal debugging.
+      Debug.Debug_Flag_Q := False;
 
-         --  Source file lookups should be cached for efficiency.
-         --  Source files are not supposed to change.
+      --  Don't want log messages that would corrupt scripts.
+      if Building_Script then
+         Verbose_Mode := False;
+         Quiet_Output := True;
+      end if;
 
-         --  Osint.Source_File_Data (Cache => True);
+      Opt.Check_Source_Files := False;
+      Opt.All_Sources        := False;
 
-         Linker_Switches.Increment_Last;
-         Linker_Switches.Table (Linker_Switches.Last)
-           :=  new String'("-lgarlic");
-
-         --  Use Gnatmake already defined switches.
-         Verbose_Mode       := Opt.Verbose_Mode;
-         Debug_Mode         := Debug.Debug_Flag_Q;
-         Quiet_Output       := Opt.Quiet_Output;
-         No_Recompilation   := Opt.Dont_Execute;
-         Building_Script    := Opt.List_Dependencies;
-
-         --  Use -dq for Gnatdist internal debugging.
-         Debug.Debug_Flag_Q := False;
-
-         --  Don't want log messages that would corrupt scripts.
-         if Building_Script then
-            Verbose_Mode := False;
-            Quiet_Output := True;
-         end if;
-
-         Opt.Check_Source_Files := False;
-         Opt.All_Sources        := False;
-
-         if Verbose_Mode then
-            GNAT_Verbose := new String' ("-v");
-         else
-            GNAT_Verbose := new String' ("-q");
-         end if;
-
-      end;
-
+      if Verbose_Mode then
+         GNAT_Verbose := new String' ("-v");
+      else
+         GNAT_Verbose := new String' ("-q");
+      end if;
    end Initialize;
 
    ------------------
@@ -720,51 +733,51 @@ package body XE_Utils is
          and then Name_Buffer (1) /= '/');
    end Is_Relative_Dir;
 
-   ----------
-   -- Join --
-   ----------
+   -----------------
+   -- Find_Source --
+   -----------------
 
-   function Join
-     (N1 : Types.File_Name_Type;
-      N2 : Types.File_Name_Type;
-      N3 : Types.File_Name_Type := No_File;
-      N4 : Types.File_Name_Type := No_File;
-      N5 : Types.File_Name_Type := No_File;
-      N6 : Types.File_Name_Type := No_File;
-      N7 : Types.File_Name_Type := No_File)
-      return Types.File_Name_Type is
+   function Find_Source (U : Name_Id) return File_Name_Type is
+      Info : Int;
+      File : File_Name_Type;
+
    begin
-      Name_Len := 0;
-      if N1 = No_File then
-         return Name_Find;
+      Get_Name_String (U);
+      Name_Len := Name_Len + 1;
+      Name_Buffer (Name_Len) := '%';
+      Name_Len := Name_Len + 1;
+      Name_Buffer (Name_Len) := 'b';
+
+      --  If Info /= 0, then this unit is already in table Unit. Info
+      --  corresponds to the index in this table. Check body first.
+      --  When the unit source file does not follow GNAT convention,
+      --  we shall find it anyway as long as this unit is already loaded.
+
+      Info := Get_Name_Table_Info (Name_Find);
+      if Info /= 0 then
+         return Unit.Table (Unit_Id (Info)).Sfile;
+      else
+         --  If Info /= 0, then this unit is already in table Unit. Info
+         --  corresponds to the index in this table. Then check spec.
+
+         Name_Buffer (Name_Len) := 's';
+         Info := Get_Name_Table_Info (Name_Find);
+         if Info /= 0 then
+            return Unit.Table (Unit_Id (Info)).Sfile;
+         end if;
+
+         --  Find a regular
+         File := File_Name_Of_Body (U);
+         if Full_Source_Name (File) = No_File then
+            File := File_Name_Of_Spec (U);
+            if Full_Source_Name (File) = No_File then
+               Message ("no source file for unit """, U, """");
+               Exit_Program (E_Fatal);
+            end if;
+         end if;
+         return File;
       end if;
-      Get_Name_String_And_Append (N1);
-      if N2 = No_File then
-         return Name_Find;
-      end if;
-      Get_Name_String_And_Append (N2);
-      if N3 = No_File then
-         return Name_Find;
-      end if;
-      Get_Name_String_And_Append (N3);
-      if N4 = No_File then
-         return Name_Find;
-      end if;
-      Get_Name_String_And_Append (N4);
-      if N5 = No_File then
-         return Name_Find;
-      end if;
-      Get_Name_String_And_Append (N5);
-      if N6 = No_File then
-         return Name_Find;
-      end if;
-      Get_Name_String_And_Append (N6);
-      if N7 = No_File then
-         return Name_Find;
-      end if;
-      Get_Name_String_And_Append (N7);
-      return Name_Find;
-   end Join;
+   end Find_Source;
 
    ------------
    -- Locate --

@@ -457,34 +457,33 @@ package body XE_Back is
    -----------------------
 
    function Get_Absolute_Exec (P : in PID_Type) return Name_Id is
-      Dir  : Name_Id := Partitions.Table (P).Storage_Dir;
-      Name : Name_Id renames Partitions.Table (P).Name;
+      S : Name_Id := Partitions.Table (P).Storage_Dir;
+      N : Name_Id renames Partitions.Table (P).Name;
    begin
 
-      if Dir = No_Storage_Dir then
-         Dir := Partitions.Table (Default_Partition).Storage_Dir;
+      if S = No_Storage_Dir then
+         S := Partitions.Table (Default_Partition).Storage_Dir;
       end if;
 
-      if Dir = No_Storage_Dir then
+      if S = No_Storage_Dir then
 
-         --  No storage dir means current directory
-
-         return Join (PWD_Id, Name);
+         --  No storage directory means current directory.
+         return Dir (PWD_Id, N & Exe_Suffix);
 
       else
-         Get_Name_String (Dir);
+         Get_Name_String (S);
          if Name_Buffer (1) /= Directory_Separator and then
            Name_Buffer (1) /= '/' then
 
-            --  The storage dir is relative
+            --  The storage directory is relative.
 
-            return Join (PWD_Id, Dir, Dir_Sep_Id, Name);
+            return Dir (PWD_Id, S, N & Exe_Suffix);
 
          end if;
 
-         --  Write the dir as it has been written
+         --  Write the directory as is.
 
-         return Join (Dir, Dir_Sep_Id, Name);
+         return Dir (S, N & Exe_Suffix);
 
       end if;
 
@@ -613,22 +612,29 @@ package body XE_Back is
       if H /= Null_HID then
          if not Hosts.Table (H).Static then
             if Hosts.Table (H).Import = Shell_Import then
-               return  Join (Str_To_Id ("""`"),
-                             Hosts.Table (H).External,
-                             Str_To_Id (" "),
-                             Partitions.Table (P).Name,
-                             Str_To_Id ("`"""));
+               Name_Len := 0;
+               Add_Str_To_Name_Buffer ("""`");
+               Get_Name_String_And_Append (Hosts.Table (H).External);
+               Add_Char_To_Name_Buffer (' ');
+               Get_Name_String_And_Append (Partitions.Table (P).Name);
+               Add_Str_To_Name_Buffer ("`""");
+               return Name_Find;
+
             elsif Hosts.Table (H).Import = Ada_Import then
-               return  Join (Hosts.Table (H).External,
-                             Str_To_Id ("("),
-                             Partitions.Table (P).Name,
-                             Str_To_Id (")"));
+               Get_Name_String (Hosts.Table (H).External);
+               Add_Char_To_Name_Buffer ('(');
+               Get_Name_String_And_Append (Partitions.Table (P).Name);
+               Add_Char_To_Name_Buffer (')');
+               return Name_Find;
             end if;
             raise Parsing_Error;
+
          else
-            return Join (Str_To_Id (""""),
-                         Hosts.Table (H).Name,
-                         Str_To_Id (""""));
+            Name_Len := 0;
+            Add_Char_To_Name_Buffer ('"'); -- "
+            Get_Name_String_And_Append (Hosts.Table (H).Name);
+            Add_Char_To_Name_Buffer ('"'); -- "
+            return Name_Find;
          end if;
 
       else
@@ -656,13 +662,10 @@ package body XE_Back is
       return Main_Subprogram_Type is
       Main : Main_Subprogram_Type := Partitions.Table (P).Main_Subprogram;
    begin
-
       if Main = No_Main_Subprogram then
          Main := Partitions.Table (Default_Partition).Main_Subprogram;
       end if;
-
       return Main;
-
    end Get_Main_Subprogram;
 
    ----------------
@@ -688,11 +691,7 @@ package body XE_Back is
 
    function Get_Partition_Dir (P : in PID_Type) return File_Name_Type is
    begin
-      return Join (DSA_Dir,
-                   Dir_Sep_Id,
-                   Configuration,
-                   Dir_Sep_Id,
-                   Partitions.Table (P).Name);
+      return Dir (DSA_Dir, Configuration, Partitions.Table (P).Name);
    end Get_Partition_Dir;
 
    -------------
@@ -715,28 +714,17 @@ package body XE_Back is
    -----------------------
 
    function Get_Relative_Exec (P : in PID_Type) return Name_Id is
-      Dir  : Name_Id := Partitions.Table (P).Storage_Dir;
-      Name : Name_Id renames Partitions.Table (P).Name;
+      D : Name_Id := Partitions.Table (P).Storage_Dir;
+      N : Name_Id renames Partitions.Table (P).Name;
    begin
-
-      if Dir = No_Storage_Dir then
-         Dir := Partitions.Table (Default_Partition).Storage_Dir;
+      if D = No_Storage_Dir then
+         D := Partitions.Table (Default_Partition).Storage_Dir;
       end if;
-
-      if Dir = No_Storage_Dir then
-
-         --  No storage dir means current directory
-
-         return Name;
-
+      if D = No_Storage_Dir then
+         return N & Exe_Suffix;
       else
-
-         --  The storage dir is relative
-
-         return Join (Dir, Dir_Sep_Id, Name);
-
+         return Dir (D, N & Exe_Suffix);
       end if;
-
    end Get_Relative_Exec;
 
    ---------------------
@@ -744,15 +732,13 @@ package body XE_Back is
    ---------------------
 
    function Get_Storage_Dir (P : in PID_Type) return Storage_Dir_Name_Type is
-      Storage_Dir : Storage_Dir_Name_Type := Partitions.Table (P).Storage_Dir;
+      S : Storage_Dir_Name_Type := Partitions.Table (P).Storage_Dir;
+
    begin
-
-      if Storage_Dir = No_Storage_Dir then
-         Storage_Dir := Partitions.Table (Default_Partition).Storage_Dir;
+      if S = No_Storage_Dir then
+         S := Partitions.Table (Default_Partition).Storage_Dir;
       end if;
-
-      return Storage_Dir;
-
+      return S;
    end Get_Storage_Dir;
 
    -------------------
@@ -762,13 +748,10 @@ package body XE_Back is
    function Get_Task_Pool (P : PID_Type) return Task_Pool_Type is
       Task_Pool : Task_Pool_Type := Partitions.Table (P).Task_Pool;
    begin
-
       if Task_Pool = No_Task_Pool then
          Task_Pool := Partitions.Table (Default_Partition).Task_Pool;
       end if;
-
       return Task_Pool;
-
    end Get_Task_Pool;
 
    ---------------------
@@ -854,38 +837,6 @@ package body XE_Back is
    begin
       return Partitions.Table (Partition).Last_Unit /= Null_CUID;
    end Is_Set;
-
-   --------------------
-   -- Load_All_Units --
-   --------------------
-
-   procedure Load_All_Units (From : Unit_Name_Type) is
-      File : File_Name_Type;
-      Lib  : File_Name_Type;
-      Text : Text_Buffer_Ptr;
-   begin
-      if Verbose_Mode then
-         Message ("loading all units from ", From);
-      end if;
-      if Already_Loaded (From) then
-         return;
-      end if;
-      File := Join (From, ADB_Suffix);
-      if Full_Source_Name (File) = No_Name then
-         File := Join (From, ADS_Suffix);
-         if Full_Source_Name (File) = No_Name then
-            Message ("no spec or body found for unit ", From);
-            raise Fatal_Error;
-         end if;
-      end if;
-      Lib  := Lib_File_Name (File);
-      Text := Read_Library_Info (Lib);
-      if Text = null then
-         Write_Missing_File (Lib);
-         raise Fatal_Error;
-      end if;
-      Read_ALI (Scan_ALI (Lib, Text));
-   end Load_All_Units;
 
    -----------------------
    -- Most_Recent_Stamp --

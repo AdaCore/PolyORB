@@ -291,7 +291,7 @@ package body XE_Parse is
 
       Declare_Type_Component
         (Type_Node,
-         Join (Attribute_Prefix, Attribute_Name),
+         Attribute_Prefix & Attribute_Name,
          Attr_Type_Node,
          Attribute_Sloc,
          Component_Id (A));
@@ -850,7 +850,10 @@ package body XE_Parse is
 
          if Token = Tok_Dot then
             T_Identifier;
-            Identifier := Join (Identifier, Dot_Sep_Id, Token_Name);
+            Get_Name_String (Identifier);
+            Add_Char_To_Name_Buffer ('.');
+            Get_Name_String_And_Append (Token_Name);
+            Identifier := Name_Find;
 
          --  If not, then this is the identifier end.
 
@@ -980,7 +983,7 @@ package body XE_Parse is
 
       --  Known pragmas are prefixed by Pragma_Prefix.
 
-      Pragma_Name := Join (Pragma_Prefix, Token_Name);
+      Pragma_Name := Pragma_Prefix & Token_Name;
 
       --  Is this pragma a legal pragma.
 
@@ -1062,8 +1065,7 @@ package body XE_Parse is
 
          Declare_Variable_Component
            (Variable_Node      => Partition_Node,
-            Component_Name     => Join (Attribute_Prefix,
-                                        Str_To_Id ("main")),
+            Component_Name     => Attribute_Prefix & "main",
             Component_Type     => Ada_Unit_Type_Node,
             Component_Value    => Ada_Unit_Node,
             Attribute_Kind     => Attribute_Main,
@@ -1074,8 +1076,7 @@ package body XE_Parse is
 
          Declare_Variable_Component
            (Variable_Node      => Partition_Node,
-            Component_Name     => Join (Attribute_Prefix,
-                                        Str_To_Id ("_leader")),
+            Component_Name     => Attribute_Prefix & "_leader",
             Component_Type     => Boolean_Type_Node,
             Component_Value    => Constant_True,
             Attribute_Kind     => Attribute_Leader,
@@ -1150,7 +1151,7 @@ package body XE_Parse is
       --  Attributes are always prefixed by Attribute_Prefix.
 
       Search_Component
-        (Join (Attribute_Prefix, Attr_Name), Direct_Type, Attr_Node);
+        (Attribute_Prefix & Attr_Name, Direct_Type, Attr_Node);
 
       --  Check that this attribute is a legal attribute for the given type.
 
@@ -1160,7 +1161,7 @@ package body XE_Parse is
            (Get_Token_Location, "unrecognized attribute """, Attr_Name, """");
       end if;
 
-      Attr_Name := Join (Attribute_Prefix, Attr_Name);
+      Attr_Name := Attribute_Prefix & Attr_Name;
 
       T_Use;
       Take_Token ((Tok_Identifier, Tok_String_Literal, Tok_Left_Paren));
