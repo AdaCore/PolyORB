@@ -1,0 +1,311 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                          ADABROKER COMPONENTS                            --
+--                                                                          --
+--                               C L I E N T                                --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--                            $LastChangedRevision$
+--                                                                          --
+--            Copyright (C) 1999 ENST Paris University, France.             --
+--                                                                          --
+-- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+--             AdaBroker is maintained by ENST Paris University.            --
+--                     (email: broker@inf.enst.fr)                          --
+--                                                                          --
+------------------------------------------------------------------------------
+
+--  Calculator adaptative client
+
+with Ada.Command_Line;
+with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Io_Exceptions;
+
+with CORBA; use CORBA;
+with CORBA.Object;
+with CORBA.Object.Helper;
+with CORBA.Context;
+with CORBA.Request;
+with CORBA.NVList;
+with CORBA.ContextList;
+with CORBA.ExceptionList;
+with CORBA.ORB;
+
+with StringSeq;
+with LongSeq;
+
+with CORBA.Repository_Root; use CORBA.Repository_Root;
+with CORBA.Repository_Root.Repository;
+with CORBA.Repository_Root.InterfaceDef;
+with CORBA.Repository_Root.ModuleDef;
+with CORBA.Repository_Root.ModuleDef.Helper;
+with CORBA.Repository_Root.Contained;
+with CORBA.Repository_Root.InterfaceDef.Helper;
+with CORBA.Repository_Root.Helper;
+
+
+procedure Client is
+   IOR_RepId : CORBA.String;
+   IOR_Server : CORBA.String;
+   RepId : Repository.Ref;
+   Server : CORBA.Object.Ref;
+   package Long_IO is new Integer_IO (CORBA.Long);
+   End_Of_Game : exception;
+   Prefix : CORBA.String := To_Corba_String ("IDL:");
+   Postfix : CORBA.String := To_Corba_String (":1.0");
+   Separator : CORBA.String := To_Corba_String ("/");
+   Module_name : CORBA.String := To_Corba_String ("calculators");
+
+   function Generic_Function
+     (Server : in CORBA.Object.Ref;
+      Operation_Name : in CORBA.Identifier;
+      Operands : in LongSeq.Sequence;
+      Operand_Names : in StringSeq.Sequence)
+     return CORBA.Long is
+      Request : CORBA.Request.Object;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument : CORBA.Any;
+      Arg_List : CORBA.NVList.Ref;
+      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result : CORBA.NamedValue;
+   begin
+      --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
+      for I in 1 .. StringSeq.Length (Operand_Names) loop
+         Argument := CORBA.To_Any (LongSeq.Element_Of (Operands, I));
+         CORBA.NVList.Add_Item (Arg_List,
+                                Identifier (StringSeq.Element_Of (Operand_Names, I)),
+                                Argument,
+                                CORBA.ARG_IN);
+      end loop;
+      --  setting the result type
+      Result := (Name => Identifier (Result_Name),
+                 Argument => Get_Empty_Any (CORBA.TC_Long),
+                 Arg_Modes => 0);
+      --  creating a request
+      CORBA.Object.Create_Request (Server,
+                                   Ctx,
+                                   Operation_Name,
+                                   Arg_List,
+                                   Result,
+                                   Request,
+                                   0);
+      --  sending message
+      CORBA.Request.Invoke (Request, 0);
+      --  getting the answer
+      return From_Any (Result.Argument);
+   end Generic_Function;
+
+   function Get_Integer (Prompt : in String) return CORBA.Long is
+      Line : String (1..50);
+      End_Of_String : Natural;
+      Last : Positive;
+      Op : CORBA.Long;
+      Bad_Arg : Boolean := True;
+   begin
+      while Bad_Arg loop
+         Put (Prompt & " : ");
+         Get_Line (Line, End_Of_String);
+         if Line (1..End_Of_String) = "quit" then
+            raise End_Of_Game;
+         end if;
+         begin
+            Long_IO.Get (Line (1..End_Of_String), Op, Last);
+            Bad_Arg := False;
+         exception
+            when ADA.IO_EXCEPTIONS.DATA_ERROR =>
+               Put_Line ("Type an integer please");
+               Bad_Arg := True;
+         end;
+      end loop;
+      return Op;
+   end Get_Integer;
+
+   function Get_Name (Prompt : in String;
+                      Name_List : in StringSeq.Sequence) return CORBA.String is
+      Line : String (1..100);
+      End_Of_String : Natural;
+      String_Array : StringSeq.Element_Array := StringSeq.To_Element_Array (NAme_List);
+      Bad_Arg : Boolean := True;
+      Index : Natural;
+   begin
+      while Bad_Arg loop
+         Put_Line (Prompt & " :");
+         for I in String_Array'Range loop
+            Put_line ("     " & To_Standard_String (String_Array (I)));
+         end loop;
+         Put_Line ("");
+         Put ("Give your choice : ");
+         Get_Line (Line, End_Of_String);
+         if Line (1 .. End_Of_String) = "quit" then
+            raise End_Of_Game;
+         end if;
+         declare
+            Ar : StringSeq.Element_Array (1 .. 1);
+         begin
+            Ar (1) := To_Corba_String (Line (1 .. End_Of_String));
+            Index := StringSeq.Index (Name_List,
+                                     Ar);
+            if Index = 0 then
+               Put_Line ("This is not a valid entry.");
+            else
+               Bad_Arg := False;
+            end if;
+         end;
+      end loop;
+      return String_Array (Index);
+   end Get_Name;
+
+   function Get_Operation_List (Int : InterfaceDef.Ref) return StringSeq.Sequence is
+      Result : StringSeq.Sequence := StringSeq.Null_Sequence;
+      --  select all the available operations
+      Content : ContainedSeq := InterfaceDef.Contents (Int,
+                                                       Dk_Operation,
+                                                       True);
+      Package CFS renames IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
+      Cont_Array : CFS.Element_Array := CFS.To_Element_Array (CFS.Sequence (Content));
+   begin
+      for I in Cont_Array'Range loop
+         declare
+            The_Ref : Contained.Ref := Contained.Convert_Forward.To_Ref (Cont_Array (I));
+         begin
+            StringSeq.Append (Result, CORBA.String (Contained.Get_Name (The_Ref)));
+         end;
+      end loop;
+      return Result;
+   end Get_Operation_List;
+
+   function Get_Parameter_Seq (Op : Contained.Ref) return StringSeq.Sequence is
+      Result : StringSeq.Sequence := StringSeq.Null_Sequence;
+      --  select all the available operations
+      Cont_Desc : Contained.Description := Contained.Describe (Op);
+      D : OperationDescription := Helper.From_Any (Cont_Desc.Value);
+      DescSeq : ParDescriptionSeq := D.Parameters;
+      package PDS renames
+        IDL_SEQUENCE_CORBA_Repository_Root_ParameterDescription;
+      A : PDS.Element_Array
+        := PDS.To_Element_Array (PDS.Sequence (DescSeq));
+   begin
+      for I in A'Range loop
+         StringSeq.Append (Result, CORBA.String (A (I).Name));
+      end loop;
+      return Result;
+   end Get_Parameter_Seq;
+
+   function Choose_Server return CORBA.String is
+      Servers : StringSeq.Sequence := StringSeq.Null_Sequence;
+      Module : Contained.Ref :=  Repository.Lookup_Id
+        (RepId, CORBA.RepositoryId (Prefix & Module_Name & Postfix));
+      Content : ContainedSeq := ModuleDef.Contents (ModuleDef.Helper.To_Ref (Module),
+                                                    Dk_Interface,
+                                                    True);
+      Package CFS renames IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
+      Cont_Array : CFS.Element_Array := CFS.To_Element_Array (CFS.Sequence (Content));
+   begin
+      for I in Cont_Array'Range loop
+         declare
+            The_Ref : Contained.Ref := Contained.Convert_Forward.To_Ref (Cont_Array (I));
+         begin
+            StringSeq.Append (Servers, CORBA.String (Contained.Get_Name (The_Ref)));
+         end;
+      end loop;
+      return Get_Name ("The available servers are",
+                       Servers);
+   end Choose_Server;
+
+   procedure Server_Loop (Serv_Ref : InterfaceDef.Ref;
+                          Server_Name : CORBA.String) is
+      Operations : StringSeq.Sequence := Get_Operation_List (Serv_Ref);
+      Operation_Name : CORBA.String;
+      Operation_Ref : Contained.Ref;
+      Parameter_Names : StringSeq.Sequence := StringSeq.Null_Sequence;
+      Parameters : LongSeq.Sequence := LongSeq.Null_Sequence;
+   begin
+      Operation_Name := Get_Name ("The available operations are", Operations);
+      Operation_Ref := Repository.Lookup_Id
+        (RepId,
+         CORBA.RepositoryId
+         (Prefix & Module_Name & Separator &
+          Server_Name & Separator & Operation_Name & Postfix));
+      Parameter_Names := Get_Parameter_Seq (Operation_Ref);
+      declare
+         Param_Array : StringSeq.Element_Array
+           := StringSeq.To_Element_Array (Parameter_Names);
+      begin
+         for I in Param_Array'Range loop
+            LongSeq.Append (Parameters,
+                            Get_Integer ("Please give " &
+                                         To_Standard_String (Param_Array (I))));
+         end loop;
+         Put_Line ("The result of this operation is : " &
+                   CORBA.Long'Image (Generic_Function
+                                     (Server,
+                                      Identifier (Operation_Name),
+                                      Parameters,
+                                      Parameter_Names)));
+      end;
+   end Server_Loop;
+
+   procedure Main_Loop is
+      Server_Name : CORBA.String;
+      Serv_Ref : InterfaceDef.Ref;
+   begin
+      Server_Name := Choose_Server;
+      Serv_Ref := InterfaceDef.Helper.To_Ref
+        (Repository.Lookup_Id (RepId,
+                               CORBA.RepositoryId
+                               (Prefix & Module_Name & Separator
+                                & Server_Name & Postfix)));
+      begin
+         while True loop
+            Server_Loop (Serv_Ref, Server_Name);
+         end loop;
+      exception
+         when End_Of_Game =>
+            null;
+      end;
+   end Main_Loop;
+
+begin
+   if Ada.Command_Line.Argument_Count /= 2 then
+      Ada.Text_IO.Put_Line ("Bad Usage");
+      return;
+   end if;
+
+   --  transforms the Ada string into CORBA.String
+   IOR_RepId := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
+   IOR_Server := CORBA.To_CORBA_String (Ada.Command_Line.Argument (2));
+
+   --  getting the CORBA.Object
+   CORBA.ORB.String_To_Object (IOR_RepId, RepId);
+   CORBA.ORB.String_To_Object (IOR_Server, Server);
+
+   --  Enter the main loop
+   Put_Line ("This is The Calculator Example");
+   Put_Line ("You can quit every time by typing ""quit"".");
+   Put_Line("");
+   Put_Line("############################################");
+   Put_Line("");
+   while true loop
+      Main_Loop;
+   end loop;
+
+exception
+   when End_Of_Game =>
+      --  End of the game
+      Put_Line ("Thank you for using our adaptative calculator...");
+end Client;
+
+
+
