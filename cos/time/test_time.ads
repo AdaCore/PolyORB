@@ -32,7 +32,7 @@
 ------------------------------------------------------------------------------
 
 package Test_Time is
-   
+
    pragma Elaborate_Body;
-   
+
 end Test_Time;

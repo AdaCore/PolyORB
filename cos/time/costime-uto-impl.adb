@@ -31,18 +31,23 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Broca.Server_Tools;
-with CosTime.TIO.Helper;
-with CosTime.TIO.Impl;
-with CosTime.UTO.Helper;
-with CosTime.UTO.Skel;
-with Interfaces.C;
 with PortableServer;
-with System;
-with TimeBase;           use TimeBase;
-with Time_Utils;         use Time_Utils;
+
+with CosTime.TIO.Impl;
+
+with CosTime.UTO.Skel;
+pragma Elaborate (CosTime.UTO.Skel);
+pragma Warnings (Off, CosTime.UTO.Skel);
+
+with TimeBase;
+with Time_Utils;
+
+with PolyORB.CORBA_P.Server_Tools;
 
 package body CosTime.UTO.Impl is
+
+   use TimeBase;
+   use Time_Utils;
 
    type UTO_Ptr is access Object;
    type TIO_Ptr is access CosTime.TIO.Impl.Object;
@@ -61,7 +66,7 @@ package body CosTime.UTO.Impl is
       Result.Time := Self.Time + Current_Time;
       Result.Inaccuracy := Self.Inaccuracy + Current_Inaccuracy;
       Result.Tdf := Self.Tdf + Current_Tdf;
-      Broca.Server_Tools.Initiate_Servant
+      PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Result), R);
       return R;
    end absolute_time;
@@ -71,15 +76,15 @@ package body CosTime.UTO.Impl is
    ------------------
 
    function compare_time
-     (Self : access Object;
+     (Self            : access Object;
       comparison_type : in ComparisonType;
-      uto : in Ref)
+      uto             : in Ref)
      return TimeComparison
    is
       Other_Time : constant TimeT := get_time (uto);
       Other_Tdf  : constant TdfT  := get_tdf (uto);
    begin
-      if Comparison_Type = MidC then
+      if comparison_type = MidC then
          return Compare (Self.Time + Self.Tdf, Other_Time + Other_Tdf);
       else
          declare
@@ -162,9 +167,9 @@ package body CosTime.UTO.Impl is
       Result : constant TIO_Ptr := new CosTime.TIO.Impl.Object;
       R      : TIO_Forward.Ref;
    begin
-      Result.Interval.Lower_Bound := Self.Time - Self.Tdf;
-      Result.Interval.Upper_Bound := Self.Time + Self.Tdf;
-      Broca.Server_Tools.Initiate_Servant
+      Result.Interval.lower_bound := Self.Time - Self.Tdf;
+      Result.Interval.upper_bound := Self.Time + Self.Tdf;
+      PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Result), R);
       return R;
    end interval;
@@ -175,16 +180,16 @@ package body CosTime.UTO.Impl is
 
    function time_to_interval
      (Self : access Object;
-      uto : in Ref)
+      uto  : in     Ref)
      return TIO_Forward.Ref
    is
       Other_Time : constant TimeT   := get_time (uto);
       Result     : constant TIO_Ptr := new CosTime.TIO.Impl.Object;
       R          : TIO_Forward.Ref;
    begin
-      Result.Interval.Lower_Bound := TimeT'Min (Self.Time, Other_Time);
-      Result.Interval.Upper_Bound := TimeT'Max (Self.Time, Other_Time);
-      Broca.Server_Tools.Initiate_Servant
+      Result.Interval.lower_bound := TimeT'Min (Self.Time, Other_Time);
+      Result.Interval.upper_bound := TimeT'Max (Self.Time, Other_Time);
+      PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Result), R);
       return R;
    end time_to_interval;

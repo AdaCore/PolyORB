@@ -31,15 +31,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA;
 with CosTime.UTO;
+
 with TimeBase;
+
 with PortableServer;
 
 package CosTime.TIO.Impl is
 
    type Object is new PortableServer.Servant_Base with record
-      Interval : Timebase.IntervalT;
+      Interval : TimeBase.IntervalT;
    end record;
 
    function get_time_interval

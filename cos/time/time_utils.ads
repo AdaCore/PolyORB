@@ -32,7 +32,8 @@
 ------------------------------------------------------------------------------
 
 with CosTime;
-with Timebase;
+
+with TimeBase;
 
 package Time_Utils is
 

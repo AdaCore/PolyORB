@@ -31,17 +31,24 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Broca.Server_Tools;
-with Costime.TIO.Helper;
-with CosTime.TIO.Impl;
-with CosTime.TimeService.Skel;
-with Costime.UTO.Helper;
-with CosTime.UTO.Impl;
+with PolyORB.CORBA_P.Server_Tools;
+
 with PortableServer;
-with TimeBase;                  use Timebase;
-with Time_Utils;                use Time_Utils;
+
+with CosTime.TIO.Impl;
+with CosTime.UTO.Impl;
+
+with CosTime.TimeService.Skel;
+pragma Elaborate (CosTime.TimeService.Skel);
+pragma Warnings (Off, CosTime.TimeService.Skel);
+
+with TimeBase;
+with Time_Utils;
 
 package body CosTime.TimeService.Impl is
+
+   use TimeBase;
+   use Time_Utils;
 
    type UTO_Ptr is access UTO.Impl.Object;
    type TIO_Ptr is access TIO.Impl.Object;
@@ -51,16 +58,20 @@ package body CosTime.TimeService.Impl is
    ------------------
 
    function new_interval
-     (Self : access Object;
-      lower : in TimeBase.TimeT;
-      upper : in TimeBase.TimeT)
+     (Self  : access Object;
+      lower : in     TimeBase.TimeT;
+      upper : in     TimeBase.TimeT)
      return CosTime.TIO.Ref
    is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Self);
+      pragma Warnings (On); --  WAG:3.15
+
       Result : constant TIO_Ptr := new TIO.Impl.Object;
       R      : CosTime.TIO.Ref;
    begin
       Result.Interval := (lower_bound => lower, upper_bound => upper);
-      Broca.Server_Tools.Initiate_Servant
+      PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Result), R);
       return R;
    end new_interval;
@@ -70,19 +81,23 @@ package body CosTime.TimeService.Impl is
    ------------------------
 
    function new_universal_time
-     (Self : access Object;
-      time : in TimeBase.TimeT;
-      inaccuracy : in TimeBase.InaccuracyT;
-      tdf : in TimeBase.TdfT)
+     (Self       : access Object;
+      time       : in     TimeBase.TimeT;
+      inaccuracy : in     TimeBase.InaccuracyT;
+      tdf        : in     TimeBase.TdfT)
      return CosTime.UTO.Ref
    is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Self);
+      pragma Warnings (On); --  WAG:3.15
+
       Result : constant UTO_Ptr := new UTO.Impl.Object;
       R      : CosTime.UTO.Ref;
    begin
       Result.Time := time;
       Result.Inaccuracy := inaccuracy;
       Result.Tdf := tdf;
-      Broca.Server_Tools.Initiate_Servant
+      PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Result), R);
       return R;
    end new_universal_time;
@@ -93,8 +108,7 @@ package body CosTime.TimeService.Impl is
 
    function secure_universal_time
      (Self : access Object)
-     return CosTime.UTO.Ref
-   is
+     return CosTime.UTO.Ref is
    begin
       raise TimeUnavailable;
       return universal_time (Self);
@@ -106,8 +120,7 @@ package body CosTime.TimeService.Impl is
 
    function universal_time
      (Self : access Object)
-     return CosTime.UTO.Ref
-   is
+     return CosTime.UTO.Ref is
    begin
       return new_universal_time
         (Self       => Self,

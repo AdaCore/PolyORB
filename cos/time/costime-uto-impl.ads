@@ -31,8 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Calendar;
 with TimeBase;
+
 with PortableServer;
 
 package CosTime.UTO.Impl is
@@ -40,7 +40,7 @@ package CosTime.UTO.Impl is
    type Object is new PortableServer.Servant_Base with record
       Time       : TimeBase.TimeT := 0;
       Inaccuracy : TimeBase.InaccuracyT := 0;
-      Tdf        : Timebase.TdfT := 0;
+      Tdf        : TimeBase.TdfT := 0;
    end record;
 
    function get_time

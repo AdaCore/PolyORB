@@ -36,7 +36,7 @@ with System;
 
 package body Time_Utils is
 
-   use Timebase;
+   use TimeBase;
 
    Time_Offset : constant TimeT := 141_427 * 86_400 * 10_000_000;
    --  Time offset between 15 october 1582 and 1 january 1970.
