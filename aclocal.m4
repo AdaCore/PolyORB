@@ -1,4 +1,14 @@
-dnl aclocal.m4 generated automatically by aclocal 1.2
+dnl aclocal.m4 generated automatically by aclocal 1.3
+
+dnl Copyright (C) 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
+dnl This Makefile.in is free software; the Free Software Foundation
+dnl gives unlimited permission to copy and/or distribute it,
+dnl with or without modifications, as long as this notice is preserved.
+
+dnl This program is distributed in the hope that it will be useful,
+dnl but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+dnl even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+dnl PARTICULAR PURPOSE.
 
 # Do all the work for Automake.  This macro actually does too much --
 # some checks are only needed if your package does certain things.
@@ -22,8 +32,8 @@ fi
 ifelse([$3],,
 AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE")
 AC_DEFINE_UNQUOTED(VERSION, "$VERSION"))
-AM_SANITY_CHECK
-AC_ARG_PROGRAM
+AC_REQUIRE([AM_SANITY_CHECK])
+AC_REQUIRE([AC_ARG_PROGRAM])
 dnl FIXME This is truly gross.
 missing_dir=`cd $ac_aux_dir && pwd`
 AM_MISSING_PROG(ACLOCAL, aclocal, $missing_dir)
@@ -31,7 +41,7 @@ AM_MISSING_PROG(AUTOCONF, autoconf, $missing_dir)
 AM_MISSING_PROG(AUTOMAKE, automake, $missing_dir)
 AM_MISSING_PROG(AUTOHEADER, autoheader, $missing_dir)
 AM_MISSING_PROG(MAKEINFO, makeinfo, $missing_dir)
-AC_PROG_MAKE_SET])
+AC_REQUIRE([AC_PROG_MAKE_SET])])
 
 
 # serial 1
@@ -58,10 +68,21 @@ echo timestamp > conftestfile
 # directory).
 if (
    set X `ls -Lt $srcdir/configure conftestfile 2> /dev/null`
-   if test "$@" = "X"; then
+   if test "[$]*" = "X"; then
       # -L didn't work.
       set X `ls -t $srcdir/configure conftestfile`
    fi
+   if test "[$]*" != "X $srcdir/configure conftestfile" \
+      && test "[$]*" != "X conftestfile $srcdir/configure"; then
+
+      # If neither matched, then we have a broken ls.  This can happen
+      # if, for instance, CONFIG_SHELL is bash and it inherits a
+      # broken ls alias from the environment.  This has actually
+      # happened.  Such a system could not be considered "sane".
+      AC_MSG_ERROR([ls -t appears to fail.  Make sure there is not a broken
+alias in your environment])
+   fi
+
    test "[$]2" = conftestfile
    )
 then
@@ -90,28 +111,67 @@ else
 fi
 AC_SUBST($1)])
 
-# Check to see if we're running under Cygwin32, without using
+# Check to see if we're running under Win32, without using
 # AC_CANONICAL_*.  If so, set output variable EXEEXT to ".exe".
 # Otherwise set it to "".
 
+dnl AM_EXEEXT()
+dnl This knows we add .exe if we're building in the Cygwin32
+dnl environment. But if we're not, then it compiles a test program
+dnl to see if there is a suffix for executables.
+AC_DEFUN(AM_EXEEXT,
+[AC_REQUIRE([AM_CYGWIN32])
+AC_REQUIRE([AM_MINGW32])
+AC_MSG_CHECKING([for executable suffix])
+AC_CACHE_VAL(am_cv_exeext,
+[if test "$CYGWIN32" = yes || test "$MINGW32" = yes; then
+am_cv_exeext=.exe
+else
+cat > am_c_test.c << 'EOF'
+int main() {
+/* Nothing needed here */
+}
+EOF
+${CC-cc} -o am_c_test $CFLAGS $CPPFLAGS $LDFLAGS am_c_test.c $LIBS 1>&5
+am_cv_exeext=
+for file in am_c_test.*; do
+   case $file in
+    *.c) ;;
+    *.o) ;;
+    *) am_cv_exeext=`echo $file | sed -e s/am_c_test//` ;;
+   esac
+done
+rm -f am_c_test*])
+test x"${am_cv_exeext}" = x && am_cv_exeext=no
+fi
+EXEEXT=""
+test x"${am_cv_exeext}" != xno && EXEEXT=${am_cv_exeext}
+AC_MSG_RESULT(${am_cv_exeext})
+AC_SUBST(EXEEXT)])
+
+# Check to see if we're running under Cygwin32, without using
+# AC_CANONICAL_*.  If so, set output variable CYGWIN32 to "yes".
+# Otherwise set it to "no".
+
 dnl AM_CYGWIN32()
-dnl You might think we can do this by checking for a cygwin32-specific
-dnl cpp define.  We can't, because cross-compilers that target
-dnl cygwin32 don't use the .exe suffix.  I don't know why.
 AC_DEFUN(AM_CYGWIN32,
 [AC_CACHE_CHECK(for Cygwin32 environment, am_cv_cygwin32,
-[cat > conftest.$ac_ext << 'EOF'
-int main () {
-/* Nothing.  */
-return 0; }
-EOF
-if AC_TRY_EVAL(ac_link) && test -s conftest.exe; then
-   am_cv_cygwin32=yes
-else
-   am_cv_cygwin32=no
-fi
+[AC_TRY_COMPILE(,[return __CYGWIN32__;],
+am_cv_cygwin32=yes, am_cv_cygwin32=no)
 rm -f conftest*])
-EXEEXT=
-test "$am_cv_cygwin32" = yes && EXEEXT=.exe
-AC_SUBST(EXEEXT)])
+CYGWIN32=
+test "$am_cv_cygwin32" = yes && CYGWIN32=yes])
+
+# Check to see if we're running under Mingw, without using
+# AC_CANONICAL_*.  If so, set output variable MINGW32 to "yes".
+# Otherwise set it to "no".
+
+dnl AM_MINGW32()
+AC_DEFUN(AM_MINGW32,
+[AC_CACHE_CHECK(for Mingw32 environment, am_cv_mingw32,
+[AC_TRY_COMPILE(,[return __MINGW32__;],
+am_cv_mingw32=yes, am_cv_mingw32=no)
+rm -f conftest*])
+MINGW32=
+test "$am_cv_mingw32" = yes && MINGW32=yes])
 
