@@ -183,11 +183,9 @@ package body PolyORB.Tasking.Soft_Links is
 
    function Image (T : Tasking_Task_Id) return String is
       pragma Warnings (Off);
-      pragma Unreferenced (T);
       pragma Warnings (On);
    begin
-      --  Not implementable with PolyORB.Tasking.
-      return "";
+      return Threads.Image (T.X.all);
    end Image;
 
    ----------------

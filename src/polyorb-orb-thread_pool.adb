@@ -58,14 +58,16 @@ package body PolyORB.ORB.Thread_Pool is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   A_ORB : ORB_Access := null;
+   --  A_ORB : ORB_Access := null;
    --  global variables for thread initialisation
 
-   Thread_Init_Watcher    : Watcher_Access := null;
-   Thread_Init_Version_Id : Version_Id;
+   --  Thread_Init_Watcher    : Watcher_Access := null;
+   --  Thread_Init_Version_Id : Version_Id;
    --  used at thread initialisation
 
-   Initialized : Boolean := False;
+   Thread_Idle_Mutex      : Mutex_Access := null;
+
+   --  Initialized : Boolean := False;
    --  indicates if initialisation has been done yet
 
    Default_Threads : constant := 4;
@@ -82,11 +84,17 @@ package body PolyORB.ORB.Thread_Pool is
 
    procedure Main_Thread_Pool
    is
-      ORB : ORB_Access := null;
+      --  ORB : ORB_Access := null;
    begin
-      ORB := A_ORB;
-      Update (Thread_Init_Watcher);
-      Run (ORB);
+      --  ORB := A_ORB;
+      --  Update (Thread_Init_Watcher);
+      pragma Debug (O ("Thread "
+                       & Image (Current_Task)
+                       & " is initialized"));
+      PolyORB.ORB.Run (Setup.The_ORB, May_Poll => True);
+      pragma Debug (O ("Thread "
+                       & Image (Current_Task)
+                       & " is released"));
    end Main_Thread_Pool;
 
    ----------------------------------
@@ -103,12 +111,6 @@ package body PolyORB.ORB.Thread_Pool is
       pragma Unreferenced (P);
       pragma Warnings (On);
       pragma Debug (O ("Thread_Pool: new server connection"));
-      if Initialized = False then
-         Initialize
-           (Get_Conf ("tasking", "polyorb.orb.thread_pool.threads",
-                      Default_Threads),
-            ORB);
-      end if;
       Insert_Source (ORB, C.AES);
       Components.Emit_No_Reply
         (Component_Access (C.TE),
@@ -132,12 +134,6 @@ package body PolyORB.ORB.Thread_Pool is
       pragma Unreferenced (P);
       pragma Warnings (On);
       pragma Debug (O ("Thread_Pool: new client connection"));
-      if Initialized = False then
-         Initialize
-           (Get_Conf ("tasking", "polyorb.orb.thread_pool.threads",
-                      Default_Threads),
-            ORB);
-      end if;
       Insert_Source (ORB, C.AES);
       Components.Emit_No_Reply
         (Component_Access (C.TE),
@@ -159,16 +155,11 @@ package body PolyORB.ORB.Thread_Pool is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
+      pragma Unreferenced (ORB);
       pragma Warnings (On);
-      pragma Debug (O ("Thread_Pool: thread "
+      pragma Debug (O ("Thread "
                        & Image (Current_Task)
-                       & "handle request execution"));
-      if Initialized = False then
-         Initialize
-           (Get_Conf ("tasking", "polyorb.orb.thread_pool.threads",
-                      Default_Threads),
-            ORB);
-      end if;
+                       & " handles request execution"));
       Jobs.Run (RJ);
    end Handle_Request_Execution;
 
@@ -186,18 +177,18 @@ package body PolyORB.ORB.Thread_Pool is
       pragma Warnings (Off);
       pragma Unreferenced (P);
       pragma Warnings (On);
-      pragma Debug (O ("Going idle."));
+      pragma Debug (O ("Thread "
+                       & Image (Current_Task)
+                       & " is going idle."));
 
+      Enter (Thread_Idle_Mutex);
       Lookup (ORB.Idle_Tasks, V);
-      pragma Debug (O ("Version_Id :" & Integer'Image (Integer (V))));
       Differ (ORB.Idle_Tasks, V);
-      pragma Debug (O ("Stopping idle."));
-      --  XXXXX ???
-      --  raise Program_Error;
-      --  When in Thread_Pool mode, threads should not be allowed
-      --  to go idle, but should be blocked when the request queue
-      --  is empty. XXX *But* application threads that are not part
-      --  of the thread pool may need to idle!
+      Leave (Thread_Idle_Mutex);
+
+      pragma Debug (O ("Thread "
+                       & Image (Current_Task)
+                       & " left idle state."));
    end Idle;
 
    ------------------------------
@@ -213,46 +204,43 @@ package body PolyORB.ORB.Thread_Pool is
       pragma Warnings (Off);
       pragma Unreferenced (P);
       pragma Warnings (On);
-      if Initialized = False then
-         Initialize
-           (Get_Conf ("tasking", "polyorb.orb.thread_pool.threads",
-                      Default_Threads),
-            ORB);
-      end if;
       Emit_No_Reply (Component_Access (ORB), Msg);
    end Queue_Request_To_Handler;
 
-   ----------------
-   -- Initialize --
-   ----------------
+   --------------------------------------
+   -- Initialize_Tasking_Policy_Thread --
+   --------------------------------------
+   procedure Initialize_Tasking_Policy_Access;
 
-   procedure Initialize
-     (Number_Of_Threads : Positive;
-      ORB               : ORB_Access)
-   is
-   begin
-      pragma Debug (O ("Initialize : enter"));
-      Initialized := True;
-      A_ORB := ORB;
-      for J in 1 .. Number_Of_Threads loop
-         Create_Task (Main_Thread_Pool'Access);
-         Differ (Thread_Init_Watcher, Thread_Init_Version_Id);
-         Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
-      end loop;
-   end Initialize;
-
-   ---------------------
-   -- Auto_Initialize --
-   ---------------------
-   procedure Auto_Initialize;
-
-   procedure Auto_Initialize is
-      use PolyORB.Configuration;
+   procedure Initialize_Tasking_Policy_Access is
    begin
       Setup.The_Tasking_Policy := new Thread_Pool_Policy;
-      Create (Thread_Init_Watcher);
-      Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
-   end Auto_Initialize;
+   end Initialize_Tasking_Policy_Access;
+
+   ------------------------
+   -- Initialize_Threads --
+   ------------------------
+   procedure Initialize_Threads;
+
+   procedure Initialize_Threads is
+      use PolyORB.Configuration;
+      Number_Of_Threads : Positive;
+   begin
+      pragma Debug (O ("Initialize_threads : enter"));
+      --  Create (Thread_Init_Watcher);
+      --  Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
+      Create (Thread_Idle_Mutex);
+      Number_Of_Threads = Get_Conf
+        ("tasking",
+         "polyorb.orb.thread_pool.threads",
+         Default_Threads),
+      for J in 1 .. Number_Of_Threads loop
+         Create_Task (Main_Thread_Pool'Access);
+         --  Differ (Thread_Init_Watcher, Thread_Init_Version_Id);
+         --  Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
+      end loop;
+      pragma Debug (O ("Initialize_threads : leave"));
+   end Initialize_Threads;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
@@ -265,5 +253,14 @@ begin
        Conflicts => +"no_tasking",
        Depends => +"soft_links",
        Provides => +"orb.tasking_policy",
-       Init => Auto_Initialize'Access));
+       Init => Initialize_Tasking_Policy_Access'Access));
+
+   Register_Module
+     (Module_Info'
+      (Name => +"orb.thread_pool2",
+       Conflicts => +"no_tasking",
+       Depends => +"orb",
+       Provides => +"orb.tasking_policy_init",
+       Init => Initialize_Threads'Access));
+
 end PolyORB.ORB.Thread_Pool;
