@@ -1,0 +1,5 @@
+// IDL-Spec for testgroup: valuetype
+// Purpose: basic features of valuetype
+
+typedef  long LongArray[2][3];
+valuetype ArrayValue LongArray;

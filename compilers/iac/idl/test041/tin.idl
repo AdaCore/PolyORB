@@ -1,0 +1,46 @@
+//
+// Copyright (c) 1997 X/Open Company Ltd., A member of The Open Group.
+//
+// All rights reserved. No part of this source code may be reproduced,
+// stored in a retrieval system, or transmitted, in any form or by any
+// means, electronic, mechanical, photocopying, recording or otherwise,
+// except as stated in the end-user licence agreement, without the prior
+// permission of the copyright owners.
+//
+// Developed for X/Open by ApTest Ireland Limited.
+//
+// Project: CORVAL2
+//
+
+
+typedef sequence<float>  YellowPepper;
+
+typedef sequence<float>  CoxPippin[4];
+
+interface idlServer {
+
+  exception YellowPepperExcpt{
+    ::YellowPepper ex1;
+  };
+
+  attribute ::YellowPepper YellowPepperAttr;
+
+  ::YellowPepper YellowPepperOp(
+    in    ::YellowPepper p1,
+    out   ::YellowPepper p2,
+    inout ::YellowPepper p3
+  ) raises (YellowPepperExcpt);
+
+  exception CoxPippinExcpt{
+    ::CoxPippin ex1;
+  };
+
+  attribute ::CoxPippin CoxPippinAttr;
+
+  ::CoxPippin CoxPippinOp(
+    in    ::CoxPippin p1,
+    out   ::CoxPippin p2,
+    inout ::CoxPippin p3
+  ) raises (CoxPippinExcpt);
+};
+
