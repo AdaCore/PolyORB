@@ -454,7 +454,7 @@ package Idl_Fe.Types is
    --  a hash table is used to store the mapping of identifier names
    --  to unique identifiers: the Hash_Table.
 
-   --  The Has_Table retains the position in the Id_Table of the first
+   --  The Hash_Table retains the position in the Id_Table of the first
    --  identifier defined for each possible hash value. All the
    --  identifiers having the same hash value are then linked: each one
    --  has a pointer on the next defined: Next.
