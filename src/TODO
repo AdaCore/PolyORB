@@ -43,6 +43,10 @@ Items still requiring attention
 
 * Architecture documentation.
 
+* Profile type registration system (for References.IOR).
+  For a profile to be used when creating and parsing IORs,
+  its tag must be registered.
+
 Items processed
 ---------------
 
