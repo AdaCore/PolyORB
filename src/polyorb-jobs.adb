@@ -82,7 +82,7 @@ package body PolyORB.Jobs is
       Result : Job_Access := null;
    begin
       while This /= null loop
-         if Selector (This.Job) then
+         if Selector = null or else Selector (This.Job) then
             if Prev /= null then
                Prev.Next := This.Next;
             else

@@ -64,7 +64,7 @@ package PolyORB.Jobs is
    --  A predicate on jobs, used by clients of Job_Queue
    --  to select a job that matches some criterion.
 
-   function Any_Job (J : access Job'Class) return Boolean;
+   Any_Job : constant Job_Selector;
    --  A job selector that is always true.
 
    type Job_Queue is limited private;
@@ -84,7 +84,7 @@ package PolyORB.Jobs is
 
    function Fetch_Job
      (Q        : access Job_Queue;
-      Selector :        Job_Selector := Any_Job'Access)
+      Selector :        Job_Selector := Any_Job)
       return Job_Access;
    --  Returns a pending Job that matches Selector (i.e.
    --  such that Selector.all (Job) is true), and remove
@@ -95,6 +95,8 @@ package PolyORB.Jobs is
    --  section.
 
 private
+
+   pragma Inline (Fetch_Job);
 
    ---------
    -- Job --
@@ -120,5 +122,11 @@ private
    type Job_Queue is limited record
       First, Last : Queue_Element_Access;
    end record;
+
+   ------------------
+   -- Job_Selector --
+   ------------------
+
+   Any_Job : constant Job_Selector := null;
 
 end PolyORB.Jobs;

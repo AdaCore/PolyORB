@@ -229,19 +229,16 @@ package body PolyORB.ORB is
    is
       Prefix : constant String
         := "TPF " & Image (Current_Task) & ": ";
+      Job : constant Job_Access := Fetch_Job (Q);
    begin
       pragma Debug (O (Prefix & "enter"));
-      if not Is_Empty (Q) then
-         declare
-            Job : constant Job_Access := Fetch_Job (Q);
-         begin
-            Leave (ORB.ORB_Lock);
+      if Job /= null then
+         Leave (ORB.ORB_Lock);
 
-            pragma Debug (O (Prefix & "working"));
-            pragma Assert (Job /= null);
-            Run (Job);
-            return True;
-         end;
+         pragma Debug (O (Prefix & "working"));
+         pragma Assert (Job /= null);
+         Run (Job);
+         return True;
       else
          pragma Debug (O (Prefix & "nothing to do."));
          return False;
@@ -1115,12 +1112,15 @@ package body PolyORB.ORB is
                         Abort_Check_Sources (Sel.all);
                         pragma Debug (O ("Aborted."));
                      end;
+
                   when Idle =>
                      Broadcast
                        (Condition (Req.Requesting_Task.all));
                      --  Cannot use Signal here, because it wakes
                      --  up only one task, which may or may not be
                      --  the Requesting_Task.
+                     --  XXX This is inefficient. Each task should
+                     --  have its own CV used as suspension object.
                end case;
             else
                --  The requesting task has already taken note of
