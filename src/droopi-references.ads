@@ -9,6 +9,9 @@ package Droopi.References is
    type Ref is private;
    --  An object reference of any kind.
 
+   function Image (R : Ref) return String;
+   --  For debugging purposes.
+
 private
 
    type Ref is tagged null record;

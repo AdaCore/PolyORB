@@ -351,6 +351,8 @@ package CORBA is
    type Any_Ptr is access all Any;
    --  The end of this part is after the typecode part;
 
+   function Image (A : Any) return Standard.String;
+   --  For debugging purposes.
 
    ---------------
    -- TypeCodes --
@@ -931,6 +933,9 @@ package CORBA is
       Argument :  CORBA.Any;
       Arg_Modes : CORBA.Flags;
    end record;
+
+   function Image (NV : NamedValue) return Standard.String;
+   --  For debugging purposes.
 
 private
 

@@ -96,7 +96,7 @@ package body CORBA.NVList is
 
    function Get_Count (Self : Ref) return CORBA.Long
    is
-      Obj : Object_Ptr := Object_Ptr (Object_Of (Self));
+      Obj : constant Object_Ptr := Object_Ptr (Object_Of (Self));
    begin
       return CORBA.Long (NV_Sequence.Length (Obj.List));
    end Get_Count;
@@ -111,6 +111,21 @@ package body CORBA.NVList is
    begin
       Set (NVList, Droopi.Smart_Pointers.Entity_Ptr (Object));
    end Create;
+
+   function Image (NVList : Ref) return Standard.String
+   is
+      use NV_Sequence;
+
+      Obj : constant Object_Ptr := Object_Ptr (Object_Of (NVList));
+      NVs : constant Element_Array := To_Element_Array (Obj.List);
+      Result : Ada.Strings.Unbounded.Unbounded_String;
+   begin
+      for I in NVs'Range loop
+         Ada.Strings.Unbounded.Append (Result, Image (NVs (I)));
+      end loop;
+
+      return Ada.Strings.Unbounded.To_String (Result);
+   end Image;
 
 --     --------------
 --     -- Marshall --

@@ -48,11 +48,9 @@ package body Droopi.Requests is
      (Req : in out Request)
    is
       The_Result : constant String_Ptr := new String'
-        ("Your request " & Req.Operation.all
-         & " was executed"
-         --  & " on object " & Req.Target.all
-         --  & " with arguments " & Req.Args.all
-         & "." & ASCII.CR & ASCII.LF);
+        ("Your request " & Image (Req)
+         & " was executed."
+         & ASCII.CR & ASCII.LF);
    begin
       pragma Debug (O ("Execute: enter"));
       pragma Debug
@@ -63,5 +61,12 @@ package body Droopi.Requests is
       --  Request.Res := The_Result;
       null;
    end Execute_Request;
+
+   function Image (Req : Request) return String is
+   begin
+      return "Request: " & Req.Operation.all
+        & " on object " & References.Image (Req.Target)
+        & " with arguments " & CORBA.NVList.Image (Req.Args);
+   end Image;
 
 end Droopi.Requests;

@@ -179,14 +179,16 @@ package body Droopi.ORB is
             --  Continue monitoring this source.
 
          when A_TE_AES =>
-            declare
-               Reply : constant Components.Message'Class
-                 := Emit (Component_Access (Note.D.TE),
-                         Filters.Data_Units.Data_Indication'
-                         (null record));
             begin
-               Insert_Source (ORB, AES);
-               --  Continue monitoring this source.
+               declare
+                  Reply : constant Components.Message'Class
+                    := Emit (Component_Access (Note.D.TE),
+                             Filters.Data_Units.Data_Indication'
+                             (null record));
+               begin
+                  Insert_Source (ORB, AES);
+                  --  Continue monitoring this source.
+               end;
             exception
                when E : others =>
                   O ("Got exception while sending Data_Indication");

@@ -45,6 +45,9 @@ package Droopi.Requests is
 
    procedure Execute_Request (Req : in out Request);
 
+   function Image (Req : Request) return String;
+   --  For debugging purposes.
+
 private
 
    type Request is tagged limited record

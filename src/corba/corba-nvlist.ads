@@ -36,6 +36,9 @@ package CORBA.NVList is
    procedure Create (NVList : out Ref);
    --  Create a new NVList object and return a reference to it.
 
+   function Image (NVList : Ref) return Standard.String;
+   --  For debugging purposes.
+
 private
 
    --  The actual implementation of an NVList:

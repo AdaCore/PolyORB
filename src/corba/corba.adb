@@ -1280,6 +1280,12 @@ package body CORBA is
    --  Any  --
    -----------
 
+   function Image (A : Any) return Standard.String is
+   begin
+      --  XXX TODO!
+      return "<Any value>";
+   end Image;
+
    -------------------
    --  Get_Members  --
    -------------------
@@ -3067,6 +3073,33 @@ package body CORBA is
       end if;
       pragma Debug (O2 ("Dec_Usage : end"));
    end Dec_Usage;
+
+   function Image (NV : NamedValue) return Standard.String
+   is
+      function Flag_Name (F : CORBA.Flags) return Standard.String;
+      pragma Inline (Flag_Name);
+
+      function Flag_Name (F : CORBA.Flags) return Standard.String is
+      begin
+         case F is
+            when ARG_IN =>
+               return "in";
+            when ARG_OUT =>
+               return "out";
+            when ARG_INOUT =>
+               return "in out";
+            when IN_COPY_VALUE =>
+               return "in-copy";
+            when others =>
+               return "(invalid flag" & F'Img & ")";
+         end case;
+      end Flag_Name;
+
+   begin
+      return Flag_Name (NV.Arg_Modes) & " "
+        & To_Standard_String (NV.Name)
+        & " = " & Image (NV.Argument);
+   end Image;
 
 end CORBA;
 
