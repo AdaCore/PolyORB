@@ -1,4 +1,4 @@
 #Autobuild
 make clean
-make
+make tests
 
