@@ -226,7 +226,7 @@ define(DEBUG_OPTIONS, [dnl
   BARGS=-E
   debug=true])
 define(NODEBUG_OPTIONS, [dnl
-  GNATFLAGS="-pipe -g -O3 -gnatfy -gnatwae -Wall -gnatp"
+  GNATFLAGS="-pipe -g -O2 -gnatfy -gnatwae -Wall -gnatpn"
   BARGS=
   debug=false])
 
