@@ -31,7 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB;
+with PolyORB.Annotations;
+with PolyORB.CORBA_P.Policy_Management;
 
 package body PortableInterceptor.IORInfo.Impl is
 
@@ -102,12 +103,21 @@ package body PortableInterceptor.IORInfo.Impl is
       IDL_Type : in     CORBA.PolicyType)
       return CORBA.Policy.Ref
    is
-      pragma Unreferenced (Self);
-      pragma Unreferenced (IDL_Type);
+      use PolyORB.CORBA_P.Policy_Management;
 
-      Result : CORBA.Policy.Ref;
+      Note : Policy_Manager_Note;
    begin
-      return Result;
+      if not Is_Registered (IDL_Type) then
+         CORBA.Raise_Inv_Policy
+          (CORBA.System_Exception_Members'(3, CORBA.Completed_No));
+      end if;
+
+      PolyORB.Annotations.Get_Note
+       (PolyORB.POA.Notepad_Of (Self.POA).all,
+        Note,
+        Empty_Policy_Manager_Note);
+
+      return Note.Overrides (IDL_Type);
    end Get_Effective_Policy;
 
    --------------------
@@ -133,6 +143,18 @@ package body PortableInterceptor.IORInfo.Impl is
       raise PolyORB.Not_Implemented;
       return Result;
    end Get_State;
+
+   ----------
+   -- Init --
+   ----------
+
+   procedure Init
+     (Self : access Object;
+      POA  : in     PolyORB.POA.Obj_Adapter_Access)
+   is
+   begin
+      Self.POA := POA;
+   end Init;
 
    ----------
    -- Is_A --

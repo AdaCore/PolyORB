@@ -37,6 +37,7 @@
 ------------------------------------------------------------------------------
 
 with CORBA.Local;
+with PolyORB.POA;
 
 package PortableInterceptor.IORInfo.Impl is
 
@@ -74,10 +75,15 @@ package PortableInterceptor.IORInfo.Impl is
 --     (Self : access Object;
 --      To   : in     ObjectReferenceFactory.Abstract_Value_Ref);
 
+   procedure Init
+     (Self : access Object;
+      POA  : in     PolyORB.POA.Obj_Adapter_Access);
+   --  Internal subprogram for initial initialization.
+
 private
 
    type Object is new CORBA.Local.Object with record
-      null;
+      POA : PolyORB.POA.Obj_Adapter_Access;
    end record;
 
    function Is_A

@@ -53,7 +53,7 @@ with PortableServer;
 
 with PortableInterceptor.ClientRequestInfo;
 with PortableInterceptor.ClientRequestInfo.Impl;
-with PortableInterceptor.IORInfo;
+with PortableInterceptor.IORInfo.Impl;
 with PortableInterceptor.IORInterceptor_3_0.Helper;
 with PortableInterceptor.ORBInitInfo.Impl;
 with PortableInterceptor.ServerRequestInfo;
@@ -774,12 +774,19 @@ package body PolyORB.CORBA_P.Interceptors is
      (POA   : in     PolyORB.POA.Obj_Adapter_Access;
       Error : in out PolyORB.Exceptions.Error_Container)
    is
-      pragma Unreferenced (POA);
+      Iter     : IORInterceptor_Lists.Iterator;
+      Info     : PortableInterceptor.IORInfo.Local_Ref;
+      Info_Obj : constant PortableInterceptor.IORInfo.Impl.Object_Ptr
+        := new PortableInterceptor.IORInfo.Impl.Object;
 
-      Iter : IORInterceptor_Lists.Iterator;
-      Info : PortableInterceptor.IORInfo.Local_Ref;
    begin
-      --  XXX We must setup Info !!!
+      --  Creating and initializing IOR Info object.
+
+      PortableInterceptor.IORInfo.Impl.Init (Info_Obj, POA);
+      PortableInterceptor.IORInfo.Set
+        (Info, PolyORB.Smart_Pointers.Entity_Ptr (Info_Obj));
+
+      --  Call Establish_Components on all registered IOR interceptors.
 
       Iter := IORInterceptor_Lists.First (All_IOR_Interceptors);
       while not IORInterceptor_Lists.Last (Iter) loop
@@ -793,6 +800,9 @@ package body PolyORB.CORBA_P.Interceptors is
          end;
          IORInterceptor_Lists.Next (Iter);
       end loop;
+
+      --  Call Components_Established on all registered IOR interceptors
+      --  with version 3.0.
 
       Iter := IORInterceptor_Lists.First (All_IOR_Interceptors);
       while not IORInterceptor_Lists.Last (Iter) loop
