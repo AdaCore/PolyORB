@@ -6,6 +6,14 @@ New features in version 1.0pre5
 
 Fixed-point types are now supported.
 
+Bugs fixed include:
+  A stack corruption issue.
+  (Problem reported by Jean-François Rousseau of Eurocontrol, PR #47).
+
+  A missing dependency of generated skeletons on Broca.GIOP when
+  an interface has no user-defined operations.
+  (Problem reported by Jean-François Rousseau of Eurocontrol, PR #58).
+
 New features in version 1.0pre4
 ===============================
 

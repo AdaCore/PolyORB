@@ -511,6 +511,9 @@ package body Ada_Be.Idl2Ada.Skel is
                      or else (NK = K_ValueType));
       --  FIXME: Hard-coded string constant.
 
+      Add_With (CU, "Broca.GIOP");
+      Add_With (CU, "Broca.CDR", Use_It => True);
+
       PL (CU, "if Operation = ""_is_a"" then");
       II (CU);
       PL (CU, "declare");
@@ -551,7 +554,6 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "   Broca.GIOP.No_Exception);");
       NL (CU);
       PL (CU, "--  Marshall return value");
-      Add_With (CU, "Broca.CDR");
       PL (CU, "Marshall (Reply_Buffer, " & T_Returns & ");");
       DI (CU);
       PL (CU, "end;");
