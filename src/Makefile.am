@@ -67,7 +67,6 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-soft_links.ads \
 		polyorb-static_dict.ads \
 		polyorb-task_info.ads \
-		polyorb-test_object.ads \
 		polyorb-transport.ads \
 		polyorb-transport-sockets.ads \
 		polyorb-types.ads \
@@ -145,23 +144,6 @@ depend:
 
 depend-local: all
 	$(srcdir)/../support/mkdep $(srcdir)
-
-TESTS=  polyorb-test-no_tasking \
-        polyorb-test-thread_pool \
-        polyorb-test-no_tasking_poa \
-        polyorb-test-thread_pool_poa \
-        dynclient \
-        server
-
-tests: $(TESTS)
-
-$(TESTS): all
-	$(GNATMAKE) -c -I. -Icorba -Isoap $(XMLADA_INCLUDE) echo-impl.adb \
-	-cargs -g -O2 -Wall -gnatfa -gnatwu -gnatwe -gnatwl -bargs $(BARGS) \
-	-largs $(XMLADA_LIBS)
-	$(GNATMAKE) -I. -Icorba -Isoap $(XMLADA_INCLUDE) $@ \
-	-cargs $(GNATFLAGS) -largs -Lsoap/.libs -lpolyorb-soap -Lcorba/.libs \
-	-lpolyorb-corba $(LDFLAGS) -bargs $(BARGS) -largs $(XMLADA_LIBS)
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
 corba-test_object.lo:corba-test_object.adb corba-test_object.ads polyorb-annotations.ads polyorb-any-nvlist.ads polyorb-any.ads polyorb-asynch_ev.ads polyorb-binding_data.ads polyorb-buffers.ads polyorb-components.ads polyorb-dynamic_dict.ads polyorb-locks.ads polyorb-log.adb polyorb-log.ads polyorb-obj_adapters.ads polyorb-objects-interface.ads polyorb-objects.ads polyorb-opaque-chunk_pools.ads polyorb-opaque.ads polyorb-poa_types.ads polyorb-references.ads polyorb-requests.ads polyorb-smart_pointers.ads polyorb-sockets.ads polyorb-soft_links.ads polyorb-storage_pools.ads polyorb-task_info.ads polyorb-transport.ads polyorb-types.ads polyorb-utils-strings.ads polyorb-utils.ads polyorb.ads sequences-unbounded.ads sequences.ads 

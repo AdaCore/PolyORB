@@ -116,10 +116,14 @@ examples/dynclient.adb
 examples/echo-impl.adb
 examples/echo-impl.ads
 examples/echo.ads
+examples/polyorb-setup-test.adb
+examples/polyorb-setup-test.ads
 examples/polyorb-test-no_tasking.adb
 examples/polyorb-test-no_tasking_poa.adb
 examples/polyorb-test-thread_pool.adb
 examples/polyorb-test-thread_pool_poa.adb
+examples/polyorb-test_object.adb
+examples/polyorb-test_object.ads
 examples/server.adb
 src/Makefile.am
 src/Makefile.in
@@ -322,8 +326,6 @@ src/polyorb-requests.adb
 src/polyorb-requests.ads
 src/polyorb-setup-corba_client.adb
 src/polyorb-setup-corba_client.ads
-src/polyorb-setup-test.adb
-src/polyorb-setup-test.ads
 src/polyorb-setup.ads
 src/polyorb-smart_pointers.adb
 src/polyorb-smart_pointers.ads
@@ -335,14 +337,8 @@ src/polyorb-static_dict.ads
 src/polyorb-storage_pools.ads
 src/polyorb-task_info.adb
 src/polyorb-task_info.ads
-src/polyorb-test-no_tasking.adb
-src/polyorb-test-no_tasking_poa.adb
 src/polyorb-test-task_attributes.adb
-src/polyorb-test-thread_pool.adb
-src/polyorb-test-thread_pool_poa.adb
 src/polyorb-test.ads
-src/polyorb-test_object.adb
-src/polyorb-test_object.ads
 src/polyorb-transport-sockets.adb
 src/polyorb-transport-sockets.ads
 src/polyorb-transport.adb
@@ -370,7 +366,6 @@ src/sequences-unbounded-search.ads
 src/sequences-unbounded.adb
 src/sequences-unbounded.ads
 src/sequences.ads
-src/server.adb
 src/soap/Makefile.am
 src/soap/Makefile.in
 src/soap/aws-mime.adb
