@@ -19,9 +19,9 @@ package body Harness.Skel is
          in Harness.Impl.Object'Class;
    end Servant_Is_A;
 
-   Arg_Name_U_Arg : CORBA.Identifier;
-   Argument_U_arg : CORBA.Any;
-
+   Arg_Name_U_Arg : constant CORBA.Identifier
+     := CORBA.To_CORBA_String
+     ("arg");
 
    procedure Invoke
      (Self : in PortableServer.Servant;
@@ -31,8 +31,15 @@ package body Harness.Skel is
         CORBA.To_Standard_String
            (CORBA.ServerRequest.Operation
               (Request.all));
+
       Argument_List_ü : CORBA.NVList.Ref;
+
+      Argument_U_arg : CORBA.Any;
+
    begin
+      Argument_U_arg := CORBA.Get_Empty_Any
+        (CORBA.TC_Unsigned_Long);
+
       CORBA.ORB.Create_List
         (0,
          Argument_List_ü);
@@ -115,10 +122,6 @@ package body Harness.Skel is
            (Harness.Repository_Id),
          Servant_Is_A'Access,
          Invoke'Access);
-      Arg_Name_U_Arg := CORBA.To_CORBA_String
-        ("arg");
-      Argument_U_arg := CORBA.Get_Empty_Any
-        (CORBA.TC_Unsigned_Long);
    end Deferred_Initialization;
 
 begin
