@@ -139,6 +139,18 @@ valuetype value47 {
   factory factory4 (out long l, out l ll);
 };
 
+/* Test of rule 27 */
+const boolean;
+const boolean const1 = TRUE;
+const boolean const1 = TRUE;
+const boolean const2 TRUE;
+const boolean const3;
+
+/* Test of rule 28 */
+typedef any any1;
+const any1 const4 = TRUE;
+const error;
+
 /* Test of rule 44 */
 valuetype value48 {
   private Error;

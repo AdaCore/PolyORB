@@ -253,7 +253,7 @@ package body Parse is
    ----------------------
    --  Add_Used_Value  --
    ----------------------
-   function Add_Used_Value (C : N_Const_Acc) return Boolean is
+   function Add_Used_Value (C : N_Expr_Acc) return Boolean is
       Val : Value_Ptr;
       Old_Used : Set_Ptr := null;
       Used : Set_Ptr := Used_Values;
@@ -331,7 +331,7 @@ package body Parse is
    ------------
    --  Eval  --
    ------------
-   function Eval (C : N_Const_Acc) return Value_Ptr is
+   function Eval (C : N_Expr_Acc) return Value_Ptr is
    begin
       raise Errors.Internal_Error;
       return null;
@@ -391,7 +391,7 @@ package body Parse is
             end if;
          when T_Const =>
             declare
-               Res : N_Const_Acc;
+               Res : N_Const_Dcl_Acc;
             begin
                Parse_Const_Dcl (Res, Success);
                Result := N_Root_Acc (Res);
@@ -1925,49 +1925,237 @@ package body Parse is
    -----------------------
    --  Parse_Const_Dcl  --
    -----------------------
-   procedure Parse_Const_Dcl (Result : out N_Const_Acc;
+   procedure Parse_Const_Dcl (Result : out N_Const_Dcl_Acc;
                               Success : out Boolean) is
+      Definition : Identifier_Definition_Acc;
    begin
-      Result := null;
-      Success := False;
---    function Parse_Const_Dcl return N_Const_Acc is
---       Res : N_Const_Acc;
---    begin
---       Res := new N_Const;
---       Set_Location (Res.all, Get_Location);
---       Expect (T_Const);
---       Next_Token;
---       Res.C_Type := Parse_Const_Type;
---       Expect (T_Identifier);
---       Add_Identifier (Res);
---       Scan_Expect (T_Equal);
---       Next_Token;
---       Res.Expr := Parse_Const_Exp;
---       return Res;
---    end Parse_Const_Dcl;
+      Next_Token;
+      Result := new N_Const_Dcl;
+      Set_Location (Result.all, Get_Previous_Token_Location);
+      Parse_Const_Type (Result.Const_Type, Success);
+      if not Success then
+         return;
+      end if;
+      if Get_Token /= T_Identifier then
+         Errors.Parser_Error ("Identifier expected.",
+                              Errors.Error,
+                              Get_Token_Location);
+         Success := False;
+         return;
+      else
+         --  try to find a previous definition
+         Definition := Find_Identifier_Definition (Get_Token_String);
+         --  Is there a previous definition and in the same scope ?
+         if Definition /= null
+           and then Definition.Parent_Scope = Get_Current_Scope then
+            Errors.Parser_Error
+              ("This identifier is already used in this scope : " &
+               Errors.Display_Location (Get_Location (Definition.Node.all)),
+               Errors.Error,
+               Get_Token_Location);
+         else
+            --  no previous definition
+            if not Add_Identifier (Result,
+                                   Get_Token_String) then
+               raise Errors.Internal_Error;
+            end if;
+         end if;
+      end if;
+      Next_Token;
+      if Get_Token /= T_Equal then
+         declare
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Previous_Token_Location;
+            Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
+            Errors.Parser_Error ("'=' expected in const declaration.",
+                                 Errors.Error,
+                                 Loc);
+         end;
+         case Get_Token is
+            when T_Minus
+              | T_Plus
+              | T_Tilde
+              | T_Colon_Colon
+              | T_Identifier
+              | T_Lit_Decimal_Integer
+              | T_Lit_Octal_Integer
+              | T_Lit_Hexa_Integer
+              | T_Lit_Simple_Char
+              | T_Lit_Escape_Char
+              | T_Lit_Octal_Char
+              | T_Lit_Hexa_Char
+              | T_Lit_Unicode_Char
+              | T_Lit_Wide_Simple_Char
+              | T_Lit_Wide_Escape_Char
+              | T_Lit_Wide_Octal_Char
+              | T_Lit_Wide_Hexa_Char
+              | T_Lit_Wide_Unicode_Char
+              | T_Lit_Simple_Floating_Point
+              | T_Lit_Exponent_Floating_Point
+              | T_Lit_Pure_Exponent_Floating_Point
+              | T_Lit_String
+              | T_Lit_Wide_String
+              | T_Lit_Simple_Fixed_Point
+              | T_Lit_Floating_Fixed_Point
+              | T_Left_Paren =>
+               null;
+            when others =>
+               Success := False;
+               return;
+         end case;
+      else
+         Next_Token;
+      end if;
+      Parse_Const_Exp (Result.Expression,
+                       Result.Const_Type,
+                       Success);
+      return;
    end Parse_Const_Dcl;
+
+   ------------------------
+   --  Parse_Const_Type  --
+   ------------------------
+   procedure Parse_Const_Type (Result : out N_Root_Acc;
+                               Success : out Boolean) is
+   begin
+
+      case Get_Token is
+         when T_Long =>
+            if View_Next_Token = T_Double then
+               Parse_Floating_Pt_Type (Result, Success);
+            else
+               Parse_Integer_Type (Result, Success);
+            end if;
+         when T_Short
+           | T_Unsigned =>
+            Parse_Integer_Type (Result, Success);
+         when T_Char =>
+            declare
+               Res : N_Char_Acc;
+            begin
+               Parse_Char_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_Wchar =>
+            declare
+               Res : N_Wide_Char_Acc;
+            begin
+               Parse_Wide_Char_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_Boolean =>
+            declare
+               Res : N_Boolean_Acc;
+            begin
+               Parse_Boolean_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_Float
+           | T_Double =>
+            Parse_Floating_Pt_Type (Result, Success);
+         when T_String =>
+            declare
+               Res : N_String_Acc;
+            begin
+               Parse_String_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_Wstring =>
+            declare
+               Res : N_Wide_String_Acc;
+            begin
+               Parse_Wide_String_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_Fixed =>
+            declare
+               Res : N_Fixed_Acc;
+            begin
+               Parse_Fixed_Pt_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_Colon_Colon
+           | T_Identifier =>
+            declare
+               Res : N_Scoped_Name_Acc;
+            begin
+               Parse_Scoped_Name (Res, Success);
+               --  The <scoped_name> in the <const_type> production
+               --  must be a previously defined integer, char, wide_char,
+               --  boolean, floating_pt, string, wide_string, octet or
+               --  enum type.
+               case Get_Kind (Res.Value.all) is
+                  when K_Short
+                    | K_Long
+                    | K_Long_Long
+                    | K_Unsigned_Short
+                    | K_Unsigned_Long
+                    | K_Unsigned_Long_Long
+                    | K_Char
+                    | K_Wide_Char
+                    | K_Boolean
+                    | K_Float
+                    | K_Double
+                    | K_Long_Double
+                    | K_String
+                    | K_Wide_String
+                    | K_Octet
+                    | K_Enum =>
+                     null;
+                  when others =>
+                     Errors.Parser_Error ("Invalid type in constant. The " &
+                                          "scoped name should refer to " &
+                                          "an integer, char, wide_cahr, " &
+                                          "boolean, floating_pt, string, " &
+                                          "wide_string, octet or enum type.",
+                                          Errors.Error,
+                                          Get_Token_Location);
+               end case;
+               Result := N_Root_Acc (Res);
+            end;
+         when T_Octet =>
+            declare
+               Res : N_Octet_Acc;
+            begin
+               Parse_Octet_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when others =>
+            Errors.Parser_Error ("constant type expected.",
+                                 Errors.Error,
+                                 Get_Token_Location);
+            Success := False;
+            Result := null;
+      end case;
+      return;
+   end Parse_Const_Type;
 
    -----------------------
    --  Parse_Const_Exp  --
    -----------------------
-   procedure Parse_Const_Exp (Result : out N_Const_Acc;
-                              Switch_Type : in N_Root_Acc;
+   procedure Parse_Const_Exp (Result : out N_Expr_Acc;
+                              Const_Type : in N_Root_Acc;
                               Success : out Boolean) is
+   begin
+      Parse_Or_Expr (Result, Const_Type, Success);
+   end Parse_Const_Exp;
+
+   --------------------
+   --  Parse_Or_Exp  --
+   --------------------
+   procedure Parse_Or_Expr (Result : out N_Expr_Acc;
+                            Const_Type : in N_Root_Acc;
+                            Success : out Boolean) is
    begin
       Result := null;
       Success := False;
---    --  Rule 14:
---    --  <const_expr> ::= <or_expr>
---    function Parse_Const_Exp return N_Root_Acc is
---    begin
---       return Parse_Or_Expr;
---    end Parse_Const_Exp;
-   end Parse_Const_Exp;
+   end Parse_Or_Expr;
 
    --------------------------------
    --  Parse_Positive_Int_Const  --
    --------------------------------
-   procedure Parse_Positive_Int_Const (Result : out N_Const_Acc;
+   procedure Parse_Positive_Int_Const (Result : out N_Expr_Acc;
                                        Success : out Boolean) is
    begin
       Result := null;
@@ -3139,7 +3327,7 @@ package body Parse is
       Result.Labels := Nil_List;
       while Get_Token = T_Case or Get_Token = T_Default loop
          declare
-            Case_Label : N_Const_Acc;
+            Case_Label : N_Expr_Acc;
             Case_Success : Boolean;
          begin
             Parse_Case_Label (Case_Label, Switch_Type, Case_Success);
@@ -3171,7 +3359,7 @@ package body Parse is
    ------------------------
    --  Parse_Case_Label  --
    ------------------------
-   procedure Parse_Case_Label (Result : out N_Const_Acc;
+   procedure Parse_Case_Label (Result : out N_Expr_Acc;
                                Switch_Type : in N_Root_Acc;
                                Success : out Boolean) is
    begin
@@ -3525,13 +3713,13 @@ package body Parse is
       Result.Array_Bounds := Nil_List;
       while Get_Next_Token = T_Left_Sbracket loop
          declare
-            Const : N_Const_Acc;
+            Expr : N_Expr_Acc;
          begin
-            Parse_Fixed_Array_Size (Const, Success);
+            Parse_Fixed_Array_Size (Expr, Success);
             if not Success then
                return;
             end if;
-            Append_Node (Result.Array_Bounds, N_Root_Acc (Const));
+            Append_Node (Result.Array_Bounds, N_Root_Acc (Expr));
          end;
       end loop;
       return;
@@ -3540,7 +3728,7 @@ package body Parse is
    ------------------------------
    --  Parse_Fixed_Array_Size  --
    ------------------------------
-   procedure Parse_Fixed_Array_Size (Result : out N_Const_Acc;
+   procedure Parse_Fixed_Array_Size (Result : out N_Expr_Acc;
                                      Success : out Boolean) is
    begin
       Next_Token;
@@ -4382,41 +4570,6 @@ package body Parse is
 --          exit when Token = T_Right_Cbracket;
 --       end loop;
 --    end Parse_Member_List;
-
---    --  Rule 13:
---    --  <const_type> ::= <integer_type>
---    --               |   <char_type>
---    --               |   <wide_char_type>
---    --               |   <boolean_type>
---    --               |   <floating_pt_type>
---    --               |   <string_type>
---    --               |   <wide_string_type>
---    --               |   <fixed_pt_const_type>
---    --               |   <scoped_name>
---    function Parse_Const_Type return N_Root_Acc is
---    begin
---       case Token is
---          when T_Short | T_Long | T_Float | T_Double | T_Unsigned |
---            T_Char | T_Wchar | T_Boolean =>
---             return Parse_Base_Type_Spec;
---          when T_String =>
---             return N_Root_Acc (Parse_String_Type);
---          when T_Wstring =>
---             return Parse_Wide_String_Type;
---          when T_Fixed =>
---             raise Errors.Internal_Error;
---             --  return Parse_Fixed_Pt_Const_Type;
---          when T_Colon_Colon | T_Identifier =>
---             return N_Root_Acc (Parse_Scoped_Name);
---          when others =>
---             Errors.Parser_Error ("const type expected",
---                                  Errors.Error);
---             raise Parse_Error;
---       end case;
---    end Parse_Const_Type;
-
-
-
 
 
 

@@ -474,9 +474,9 @@ package body Tree is
    ----------------
    --  Get_Kind  --
    ----------------
-   function Get_Kind (N : N_Const) return Types.Node_Kind is
+   function Get_Kind (N : N_Const_Dcl) return Types.Node_Kind is
    begin
-      return Types.K_Const;
+      return Types.K_Const_Dcl;
    end Get_Kind;
 
    ----------------

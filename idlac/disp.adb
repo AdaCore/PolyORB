@@ -433,12 +433,16 @@ package body Disp is
                          N_Indent + Offset, Full);
             end if;
 
-         when K_Const =>
-            Put_Line ("const " & Get_Name (N_Const (N)));
+         when K_Const_Dcl =>
+            Put_Line ("const " & Get_Name (N_Const_Dcl (N)));
             Disp_Indent (N_Indent, "type:");
-            Disp_Tree (N_Const (N).Const_Type.all, N_Indent + Offset, Full);
+            Disp_Tree (N_Const_Dcl (N).Const_Type.all,
+                       N_Indent + Offset,
+                       Full);
             Disp_Indent (N_Indent, "expr:");
-            Disp_Tree (N_Const (N).Expression.all, N_Indent + Offset, Full);
+            Disp_Tree (N_Const_Dcl (N).Expression.all,
+                       N_Indent + Offset,
+                       Full);
 
          when K_Fixed =>
             Put_Line ("fixed");
@@ -446,7 +450,8 @@ package body Disp is
             Disp_Tree (N_Fixed (N).Scale.all, N_Indent + Offset, Full);
 
          when K_Native =>
-            Put_Line ("native:" & Get_Name (N_Const (N)));
+            Put_Line ("native:");
+            Disp_Tree (N_Native (N).Declarator.all, N_Indent + Offset, Full);
 
       end case;
    end Disp_Tree;

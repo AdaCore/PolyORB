@@ -154,13 +154,13 @@ private
 
    --  try to add a value to the set of already used values.
    --  if this value was already there, it return false, else true
-   function Add_Used_Value (C : N_Const_Acc) return Boolean;
+   function Add_Used_Value (C : N_Expr_Acc) return Boolean;
 
    --  Frees all the set of already used values
    procedure Release_All_Used_Values;
 
-   --  Evaluates the numeric value of a constant
-   function Eval (C : N_Const_Acc) return Value_Ptr;
+   --  Evaluates the numeric value of an expression
+   function Eval (C : N_Expr_Acc) return Value_Ptr;
 
    --------------------------
    --  Parsing of the idl  --
@@ -393,18 +393,39 @@ private
 
    --  Rule 27
    --  <const_dcl> ::= "const" <const_type> <identifier> "=" <const_exp>
-   procedure Parse_Const_Dcl (Result : out N_Const_Acc;
+   procedure Parse_Const_Dcl (Result : out N_Const_Dcl_Acc;
                               Success : out Boolean);
 
+   --  Rule 28
+   --  <const_type> ::= <integer_type>
+   --               |   <char_type>
+   --               |   <wide_char_type>
+   --               |   <boolean_type>
+   --               |   <floating_pt_type>
+   --               |   <string_type>
+   --               |   <wide_string_type>
+   --               |   <fixed_pt_const_type>
+   --               |   <scoped_name>
+   --               |   <octet_type>
+   procedure Parse_Const_Type (Result : out N_Root_Acc;
+                               Success : out Boolean);
+
    --  Rule 29
-   --  <const_expr> ::= <or_expr>
-   procedure Parse_Const_Exp (Result : out N_Const_Acc;
-                              Switch_Type : in N_Root_Acc;
+   --  <const_exp> ::= <or_exp>
+   procedure Parse_Const_Exp (Result : out N_Expr_Acc;
+                              Const_Type : in N_Root_Acc;
                               Success : out Boolean);
+
+   --  Rule 30
+   --  <or_expr> ::= <xor_expr>
+   --            |   <or_expr> "^" <xor_expr>
+   procedure Parse_Or_Expr (Result : out N_Expr_Acc;
+                            Const_Type : in N_Root_Acc;
+                            Success : out Boolean);
 
    --  Rule 41
    --  <positive_int_const> ::= <const_exp>
-   procedure Parse_Positive_Int_Const (Result : out N_Const_Acc;
+   procedure Parse_Positive_Int_Const (Result : out N_Expr_Acc;
                                        Success : out Boolean);
 
    --  Rule 42
@@ -615,7 +636,7 @@ private
    --  Rule 76
    --  <case_label> ::= "case" <const_exp> ":"
    --                 | "default ":"
-   procedure Parse_Case_Label (Result : out N_Const_Acc;
+   procedure Parse_Case_Label (Result : out N_Expr_Acc;
                                Switch_Type : in N_Root_Acc;
                                Success : out Boolean);
 
@@ -661,7 +682,7 @@ private
 
    --  Rule 84
    --  <fixed_array_size> ::= "[" <positive_int_const> "]"
-   procedure Parse_Fixed_Array_Size (Result : out N_Const_Acc;
+   procedure Parse_Fixed_Array_Size (Result : out N_Expr_Acc;
                                      Success : out Boolean);
 
    --  Rule 86
@@ -859,11 +880,6 @@ private
 --    --             |   <xor_expr> "^" <and_expr>
 --    function Parse_Xor_Expr return N_Root_Acc is
 
---    --  Rule 15:
---    --  <or_expr> ::= <xor_expr>
---    --            |   <or_expr> "^" <xor_expr>
---    function Parse_Or_Expr return N_Root_Acc is
-
 --    --
 --    --  Rule 70:
 --    --  <attr_dcl> ::= [ "readonly" ] "attribute" <param_type_spec>
@@ -871,22 +887,5 @@ private
 --    procedure Parse_Attr_Dcl (List : in out Node_List) is
 
 --    --
-
-
---    --  Rule 13:
---    --  <const_type> ::= <integer_type>
---    --               |   <char_type>
---    --               |   <wide_char_type>
---    --               |   <boolean_type>
---    --               |   <floating_pt_type>
---    --               |   <string_type>
---    --               |   <wide_string_type>
---    --               |   <fixed_pt_const_type>
---    --               |   <scoped_name>
---    function Parse_Const_Type return N_Root_Acc is
-
-
-
-
 
 end Parse;

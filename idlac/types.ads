@@ -67,7 +67,7 @@ package Types is
        K_Member,
        K_Declarator,
        K_Type_Declarator,
-       K_Const,
+       K_Const_Dcl,
        K_Fixed,
        K_Union,
        K_Case,

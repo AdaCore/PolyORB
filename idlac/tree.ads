@@ -275,9 +275,9 @@ package Tree is
    type N_Type_Declarator_Acc is access all N_Type_Declarator;
    function Get_Kind (N : N_Type_Declarator) return Types.Node_Kind;
 
---    type N_Expr is abstract new Types.N_Root with null record;
---    type N_Expr_Acc is access all N_Expr;
---    function Get_Kind (N : N_Expr) return Types.Node_Kind is abstract;
+   type N_Expr is abstract new Types.N_Root with null record;
+   type N_Expr_Acc is access all N_Expr;
+   function Get_Kind (N : N_Expr) return Types.Node_Kind is abstract;
 
 --    type N_Binary_Expr is abstract new N_Expr with record
 --       Left, Right : Types.N_Root_Acc;
@@ -361,39 +361,39 @@ package Tree is
 --    type N_Lit_Floating_Point_Acc is access all N_Lit_Floating_Point;
 --    function Get_Kind (N : N_Lit_Floating_Point) return Types.Node_Kind;
 
-   type N_Const is new Types.N_Named with record
+   type N_Const_Dcl is new Types.N_Named with record
       Const_Type : Types.N_Root_Acc;
-      Expression : Types.N_Root_Acc;
+      Expression : N_Expr_Acc;
    end record;
-   type N_Const_Acc is access all N_Const;
-   function Get_Kind (N : N_Const) return Types.Node_Kind;
+   type N_Const_Dcl_Acc is access all N_Const_Dcl;
+   function Get_Kind (N : N_Const_Dcl) return Types.Node_Kind;
 
    --  If BOUND is null, then this is an unbounded sequence.
    type N_Sequence is new Types.N_Root with record
       Sequence_Type : Types.N_Root_Acc;
-      Bound : N_Const_Acc;
+      Bound : N_Expr_Acc;
    end record;
    type N_Sequence_Acc is access all N_Sequence;
    function Get_Kind (N : N_Sequence) return Types.Node_Kind;
 
    --  If BOUND = null, then this is an unbounded string.
    type N_String is new Types.N_Root with record
-      Bound : N_Const_Acc;
+      Bound : N_Expr_Acc;
    end record;
    type N_String_Acc is access all N_String;
    function Get_Kind (N : N_String) return Types.Node_Kind;
 
    --  If BOUND = null, then this is an unbounded string.
    type N_Wide_String is new Types.N_Root with record
-      Bound : N_Const_Acc;
+      Bound : N_Expr_Acc;
    end record;
    type N_Wide_String_Acc is access all N_Wide_String;
    function Get_Kind (N : N_Wide_String) return Types.Node_Kind;
 
 --   type Fixed_Digits is new Natural range 1 .. 31;
    type N_Fixed is new Types.N_Root with record
-      Digits_Nb : N_Const_Acc;
-      Scale : N_Const_Acc;
+      Digits_Nb : N_Expr_Acc;
+      Scale : N_Expr_Acc;
    end record;
    type N_Fixed_Acc is access all N_Fixed;
    function Get_Kind (N : N_Fixed) return Types.Node_Kind;
