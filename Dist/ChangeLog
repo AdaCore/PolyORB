@@ -1,3 +1,8 @@
+2000-01-27  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_lead.adb: Run remote command in background (a '&' was missing 
+	in the generated shell script).
+
 2000-01-26  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* xe_lead.adb: Use the same scheme for starter Shell as for
