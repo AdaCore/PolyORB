@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  P O L Y O R B . U T I L S . S O C K E T S               --
+--                P O L Y O R B . U T I L S . S O C K E T S                 --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,6 +30,8 @@
 --                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  $Id$
 
 with PolyORB.Types;
 with PolyORB.Representations.CDR;
@@ -78,13 +80,16 @@ package body PolyORB.Utils.Sockets is
      (Buffer : access Buffer_Type;
       Sock   : in     Sock_Addr_Type)
    is
-      Str  : constant Types.String
-        := PolyORB.Types.To_PolyORB_String (Image (Sock.Addr));
+      Str : constant Types.String :=
+        PolyORB.Types.To_PolyORB_String (Image (Sock.Addr));
    begin
-      --  Marshalling of the Host as a string
+
+      --  Marshalling the host name as a string
+
       Marshall (Buffer, Str);
 
-      --  Marshalling of the port
+      --  Marshalling the port
+
       Marshall (Buffer, Types.Unsigned_Short (Sock.Port));
 
    end Marshall_Socket;
@@ -97,8 +102,7 @@ package body PolyORB.Utils.Sockets is
     (Buffer : access Buffer_Type;
      Sock   :    out Sock_Addr_Type)
    is
-      Addr_Image : constant Types.String
-        := Unmarshall (Buffer);
+      Addr_Image : constant Types.String := Unmarshall (Buffer);
       Port : constant Types.Unsigned_Short := Unmarshall (Buffer);
    begin
       Sock.Addr := String_To_Addr (Addr_Image);

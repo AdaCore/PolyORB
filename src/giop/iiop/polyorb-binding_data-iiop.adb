@@ -31,9 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Example binding data concrete implementation.
+--  Binding data concrete implementation for IIOP.
 
-with Ada.Streams; use Ada.Streams;
+with Ada.Streams;
 
 with PolyORB.Configuration;
 with PolyORB.Filters;
@@ -52,6 +52,8 @@ with PolyORB.Utils.Sockets;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Binding_Data.IIOP is
+
+   use Ada.Streams;
 
    use PolyORB.Log;
    use PolyORB.Objects;
@@ -121,8 +123,8 @@ package body PolyORB.Binding_Data.IIOP is
 
       Sock        : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
-      TE          : constant Transport.Transport_Endpoint_Access
-        := new Socket_Endpoint;
+      TE          : constant Transport.Transport_Endpoint_Access :=
+        new Socket_Endpoint;
       Pro         : aliased GIOP_Protocol;
       Sli         : aliased Slicer_Factory;
       Prof        : constant Profile_Access := new IIOP_Profile_Type;
@@ -275,30 +277,36 @@ package body PolyORB.Binding_Data.IIOP is
    begin
       pragma Debug (O ("Marshall_IIOP_Profile_body: enter"));
 
-      --  A TAG_INTERNET_IOP Profile Body is an encapsulation.
+      --  A TAG_INTERNET_IOP Profile Body is an encapsulation
+
       Start_Encapsulation (Profile_Body);
 
-      --  Version
+      --  Marshalling the version
+
       Marshall (Profile_Body, IIOP_Profile.Major_Version);
       Marshall (Profile_Body, IIOP_Profile.Minor_Version);
 
       pragma Debug
         (O ("  Version = " & IIOP_Profile.Major_Version'Img & "."
             & IIOP_Profile.Minor_Version'Img));
-      --  Marshalling of a Socket
-      Marshall_Socket (Profile_Body, IIOP_Profile.Address);
 
+      --  Marshalling the socket
+
+      Marshall_Socket (Profile_Body, IIOP_Profile.Address);
       pragma Debug (O ("  Address = " & Sockets.Image (IIOP_Profile.Address)));
 
-      --  Marshalling of the Object Id
+      --  Marshalling the object id
+
       Marshall
         (Profile_Body, Stream_Element_Array
          (IIOP_Profile.Object_Id.all));
 
-      --  Marshall the tagged components.
+      --  Marshalling the tagged components
+
       Marshall_Tagged_Component (Profile_Body, IIOP_Profile.Components);
 
-      --  Marshall the Profile_Body into IOR.
+      --  Marshalling the Profile_Body into IOR
+
       Marshall (Buf, Encapsulate (Profile_Body));
       Release (Profile_Body);
 
@@ -324,7 +332,12 @@ package body PolyORB.Binding_Data.IIOP is
 
    begin
       pragma Debug (O ("Unmarshall_IIOP_Profile_body: enter"));
+
+      --  A TAG_INTERNET_IOP Profile Body is an encapsulation
+
       Decapsulate (Profile_Body'Access, Profile_Buffer);
+
+      --  Unmarshalling the version
 
       TResult.Major_Version := Unmarshall (Profile_Buffer);
       TResult.Minor_Version := Unmarshall (Profile_Buffer);
@@ -333,9 +346,13 @@ package body PolyORB.Binding_Data.IIOP is
         (O ("  Version = " & TResult.Major_Version'Img & "."
             & TResult.Minor_Version'Img));
 
+      --  Unmarshalling the socket
+
       Unmarshall_Socket (Profile_Buffer, TResult.Address);
 
       pragma Debug (O ("  Address = " & Sockets.Image (TResult.Address)));
+
+      --  Unarshalling the object id
 
       declare
          Str : aliased constant Stream_Element_Array :=
@@ -384,6 +401,7 @@ package body PolyORB.Binding_Data.IIOP is
         (Section => "corba",
          Key     => "polyorb.binding_data.iiop.preference",
          Default => "0");
+
    begin
       Preference := Preference_Default + Profile_Preference'Value
         (Preference_Offset);
@@ -400,9 +418,10 @@ package body PolyORB.Binding_Data.IIOP is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"binding_data.iiop",
+      (Name      => +"binding_data.iiop",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => Empty,
-       Init => Initialize'Access));
+       Depends   => Empty,
+       Provides  => Empty,
+       Init      => Initialize'Access));
+
 end PolyORB.Binding_Data.IIOP;
