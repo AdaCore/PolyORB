@@ -448,6 +448,19 @@ partitions whose executions are to be replayed. When the application
 has been built, starting it using the starter, as usual, will then
 result in the trace files being generated.
 
+By default, the file name of the trace file is the name of the
+partition's executable (i.e. the string returned by the standard
+procedure Ada.Command_Line.Command_Name) with a trailing
+".trace". This can be changed with the "--trace_file othername"
+command line argument. Note that since the remote partitions are
+launched with rsh under Unix, the current directory during execution
+will be the user's home directory. This is no problem when using the
+default trace file name, because the executable's name will include
+the absolute path. When using the "--trace_file" option, on the other
+hand, if you don't want the trace file to be created/read in the home
+directory, the absolute path will have to be included in the desired
+name.
+
 In order to replay a partition whose execution has been previously
 traced, the command line argument "--replay" is required. In addition,
 the special boot server location "replay://" has to be specified,
