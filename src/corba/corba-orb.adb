@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,6 +43,7 @@
 with Ada.Exceptions;
 
 with PolyORB.CORBA_P.Initial_References;
+with PolyORB.CORBA_P.Local;
 with PolyORB.CORBA_P.Policy;
 
 with PolyORB.Initialization;
@@ -437,6 +438,15 @@ package body CORBA.ORB is
    is
       use PolyORB.References.IOR;
    begin
+      if CORBA.Object.Is_Nil (Obj) then
+         CORBA.Raise_Inv_Objref (Default_Sys_Member);
+      end if;
+
+      if PolyORB.CORBA_P.Local.Is_Local (Obj) then
+         Raise_Marshal (Marshal_Members'(Minor     => 4,
+                                         Completed => Completed_No));
+      end if;
+
       return To_CORBA_String
         (Object_To_String
          (CORBA.Object.To_PolyORB_Ref (CORBA.Object.Ref (Obj))));

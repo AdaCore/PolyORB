@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -211,6 +211,19 @@ package body PolyORB.References is
 
       return To_String (Res);
    end Image;
+
+   ---------------------------
+   -- Is_Exported_Reference --
+   ---------------------------
+
+   function Is_Exported_Reference (The_Ref : in Ref) return Boolean is
+   begin
+      if not Is_Nil (The_Ref) then
+         return Entity_Of (The_Ref).all in Reference_Info'Class;
+      else
+         return False;
+      end if;
+   end Is_Exported_Reference;
 
    --------------------
    -- Is_Same_Object --

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,6 +38,7 @@ with PolyORB.CORBA_P.Initial_References;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
+with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings.Lists;
 
 package body PortableServer.Current is
@@ -63,6 +64,25 @@ package body PortableServer.Current is
 
       return CORBA.Object.Ref (Result);
    end Create;
+
+   ----------
+   -- Is_A --
+   ----------
+
+   function Is_A
+     (Obj             : access Current_Object;
+      Logical_Type_Id : in     Standard.String)
+     return Boolean
+   is
+      pragma Unreferenced (Obj);
+   begin
+      return CORBA.Is_Equivalent
+          (Logical_Type_Id,
+           "IDL:omg.org/PortableServer/Current:1.0")
+        or else CORBA.Is_Equivalent
+          (Logical_Type_Id,
+           "IDL:omg.org/CORBA/Object:1.0");
+   end Is_A;
 
    ------------
    -- To_Ref --

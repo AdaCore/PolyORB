@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,6 +34,7 @@
 --  $Id$
 
 with PolyORB.Any.ObjRef;
+with PolyORB.CORBA_P.Local;
 
 package body CORBA.Object.Helper is
 
@@ -47,12 +48,22 @@ package body CORBA.Object.Helper is
      (Item : in CORBA.Object.Ref)
      return Any
    is
-      A : Any := PolyORB.Any.ObjRef.To_Any (To_PolyORB_Ref (Item));
    begin
-      Set_Type (A, CORBA.Object.TC_Object);
-      PolyORB.Any.Set_Volatile (A, True);
+      --  To_Any operation not defined on local objects.
 
-      return A;
+      if PolyORB.CORBA_P.Local.Is_Local (Item) then
+         Raise_Marshal (Marshal_Members'(Minor     => 4,
+                                         Completed => Completed_No));
+      end if;
+
+      declare
+         A : Any := PolyORB.Any.ObjRef.To_Any (To_PolyORB_Ref (Item));
+      begin
+         Set_Type (A, CORBA.Object.TC_Object);
+         PolyORB.Any.Set_Volatile (A, True);
+
+         return A;
+      end;
    end To_Any;
 
    --------------

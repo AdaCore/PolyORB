@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -36,13 +36,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-current.ads#6 $
+--  $Id: //droopi/main/src/corba/portableserver-current.ads#7 $
 
 with Ada.Exceptions;
 
 with CORBA.Current;
+with CORBA.Local;
 
-with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Threads;
 
 package PortableServer.Current is
@@ -84,8 +84,13 @@ private
 
    type Ref is new CORBA.Current.Ref with null record;
 
-   type Current_Object is new PolyORB.Smart_Pointers.Entity with record
+   type Current_Object is new CORBA.Local.Object with record
       Thread : PolyORB.Tasking.Threads.Thread_Id;
    end record;
+
+   function Is_A
+     (Obj             : access Current_Object;
+      Logical_Type_Id : in     Standard.String)
+     return Boolean;
 
 end PortableServer.Current;
