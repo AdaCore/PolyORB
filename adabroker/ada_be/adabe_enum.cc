@@ -42,14 +42,23 @@ adabe_enum::produce_ads(dep_list& with,string &body, string &previous) {
 void  
 adabe_enum::produce_marshal_ads(dep_list& with, string &body, string &previous)
 {
-  string tmp = "";
+  body += "   procedure Marshall (A : in ";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "      S : in out Giop_C.Object) ;\n\n";
 
-  tmp += "procedure Marshall (A : in ";
-  tmp += get_ada_local_name();         // question ...N' est-ce ada_global_name
-  tmp += "; S : in out Object'Class) ; \n";
-  //suggest also to include a comment like:  Marshalls a enum  into a netbufferedstream object
-  
-  body += tmp;
+  body += "   procedure UnMarshall (A : out ";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "      S : in out Giop_C.Object) ;\n\n";
+
+  body += "   function Align_Size (A : in";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "               Initial_Offset : in Corba.Unsigned_Long ;\n";
+  body += "               N : in Corba.Unsigned_Long := 1)\n";
+  body += "               return Corba.Unsigned_Long ;\n\n\n";
+
 }
 
 
@@ -58,13 +67,31 @@ adabe_enum::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
   string tmp="";
 
-  tmp +="procedure Marshall (A : in ";
-  tmp += get_ada_local_name();
-  tmp +="; S : in out Object'Class) is \n";
-  tmp +="begin \n";
-  tmp +=" Marshall ("+get_ada_local_name()+"'Pos(A); S);";
-  tmp += "end Marshall;";
-  body+=tmp;
+  body += "   procedure Marshall (A : in ";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "      S : in out Giop_C.Object) is\n";
+  body += "   begin\n";
+  body += "      Marshall (Corba.Unsigned_Long("+get_ada_local_name()+"'Pos(A)); S);";
+  body += "   end Marshall\n";
+
+  body += "   procedure UnMarshall (A : out ";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "      S : in out Giop_C.Object) is \n\n";
+  body += "   begin\n";
+  body += "      Marshall (Corba.Unsigned_Long("+get_ada_local_name()+"'Pos(A)); S);";
+  body += "   end UnMarshall\n";
+
+  body += "   function Align_Size (A : in";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "               Initial_Offset : in Corba.Unsigned_Long ;\n";
+  body += "               N : in Corba.Unsigned_Long := 1)\n";
+  body += "               return Corba.Unsigned_Long ;\n\n\n"; /*"Align_Size("+ get_ada_local_name ()+ ", Tmp) ;\n";*/
+  body += "   begin\n";
+  body += "      return Align_Size (Corba.Unsigned_Long("+get_ada_local_name()+"'Pos(A));Initial_Offset;N);
+  body += "   end Align_Size\n";
 
 }
 

@@ -38,35 +38,29 @@ adabe_sequence::produce_ads(dep_list& with, string &body,
 void
 adabe_sequence::produce_marshal_ads(dep_list& with, string &body,string &previous)
 {
-  string tmp="";
+  body += "   procedure Marshall (A : in ";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "      S : in out Giop_C.Object) ;\n\n";
 
-  tmp +="procedure Marshall (A : in ";
-  tmp += get_ada_local_name();
-  tmp +="; S : in out Object'Class); \n";
-  body += tmp;
+  body += "   procedure UnMarshall (A : out ";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "      S : in out Giop_C.Object) ;\n\n";
+
+  body += "   function Align_Size (A : in";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "               Initial_Offset : in Corba.Unsigned_Long ;\n";
+  body += "               N : in Corba.Unsigned_Long := 1)\n";
+  body += "               return Corba.Unsigned_Long ;\n\n\n";
 
 }
 
 void
 adabe_sequence::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
-  string tmp="";
-  adabe_name *adabe_base_type;
-  string type_name;
-
-  adabe_base_type =  dynamic_cast<adabe_name *> (base_type());
-  type_name =  adabe_base_type->dump_name(with, body, previous);
-
-  tmp +="procedure Marshall (A : in ";
-  tmp += get_ada_local_name();
-  tmp +="; S : in out Object'Class) is \n";
-  tmp +="begin \n";
-  tmp +="   Marshall (\"+\"; S);";
-  tmp +="";   
-  tmp += "end Marshall;";
-
-  body+=tmp;
-
+  // probleme des sequences imbriquees a traiter...
 }
 string
 adabe_sequence::dump_name(dep_list& with,string &body, string &previous) 

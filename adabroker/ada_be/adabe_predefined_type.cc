@@ -40,48 +40,20 @@ adabe_predefined_type::dump_name(dep_list& with, string &body, string &previous)
   return get_ada_predefined_type();
 }
 
-string
-adabe_predefined_type::get_ada_predefined_type()
-{
-  string name = "";
-  switch(pt())
-    {
-    case AST_PredefinedType::PT_long:
-      name = "Corba.Long";
-      break;
-    case AST_PredefinedType::PT_ulong:
-      name = "Corba.Unsigned_Long";
-      break;
-    case AST_PredefinedType::PT_short:
-      name = "Corba.Short";
-      break;
-    case AST_PredefinedType::PT_ushort:
-      name = "Corba.Unsigned_Short";
-      break;
-    case AST_PredefinedType::PT_float:
-      name = "Corba.Float";
-     break;
-    case AST_PredefinedType::PT_double:
-      name = "Corba.Double";
-      break;
-    case AST_PredefinedType::PT_char:
-      name = "Corba.Char";
-      break;
-    case AST_PredefinedType::PT_boolean:
-      name = "Corba.Boolean";
-      break;
-    case AST_PredefinedType::PT_octet:
-      name = "Corba.Octet";
-      break;
-    case AST_PredefinedType::PT_void:
-      name = "<void>";
-      break;
-    default:
-      throw adabe_internal_error(__FILE__,__LINE__,"Unexpected predefined type");
-      break;
-    }
-  return name;  
-}
+string adabe_predefined_type::get_ada_predefined_type() { string name
+= ""; switch(pt()) { case AST_PredefinedType::PT_long: name =
+"Corba.Long"; break; case AST_PredefinedType::PT_ulong: name =
+"Corba.Unsigned_Long"; break; case AST_PredefinedType::PT_short: name
+= "Corba.Short"; break; case AST_PredefinedType::PT_ushort: name =
+"Corba.Unsigned_Short"; break; case AST_PredefinedType::PT_float: name
+= "Corba.Float"; break; case AST_PredefinedType::PT_double: name =
+"Corba.Double"; break; case AST_PredefinedType::PT_char: name =
+"Corba.Char"; break; case AST_PredefinedType::PT_boolean: name =
+"Corba.Boolean"; break; case AST_PredefinedType::PT_octet: name =
+"Corba.Octet"; break; case AST_PredefinedType::PT_void: name =
+"<void>"; break; default: throw
+adabe_internal_error(__FILE__,__LINE__,"Unexpected predefined type");
+break; } return name; }
 
 IMPL_NARROW_METHODS1(adabe_predefined_type, AST_PredefinedType)
 IMPL_NARROW_FROM_DECL(adabe_predefined_type)
