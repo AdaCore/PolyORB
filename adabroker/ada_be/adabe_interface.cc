@@ -57,8 +57,8 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
       with.add(inher->get_ada_full_name());
       corps = inher->get_ada_full_name();
       body += "   type Ref is new " + corps + ".Ref with null record ;\n";
-      tmp += "\n -- inheritance from " + inher->get_ada_full_name();
-      tmp += "\n --------------------------------------------------\n";
+      tmp += "   --  inheritance from " + inher->get_ada_full_name() + "\n" ;
+      tmp += "   --------------------------------------------------\n";
       {
 	UTL_ScopeActiveIterator j(inher,UTL_Scope::IK_decls);
 	while (!j.is_done())
@@ -79,15 +79,6 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
 		tmp += "   subtype" +  e->get_ada_local_name();
 		tmp += " is " + e->get_ada_full_name() + " ;\n";	      
 		break;
-	      case AST_Decl::NT_op:
-	      case AST_Decl::NT_attr:
-		{
-		  string tempo1 = "";
-		  string tempo2 = "";
-		  e->produce_ads(with, tempo1, tempo2);
-		  tmp += tempo2 + tempo1;
-		}
-		break;
 	      default:break;
 	      }
 	    j.next();
@@ -99,8 +90,8 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
 	    {
 	      inher = adabe_interface::narrow_from_decl(inherits()[i]);
 	      with.add(inher->get_ada_full_name());
-	      tmp += "\n -- inheritance from " + inher->get_ada_full_name();
-	      tmp += "\n --------------------------------------------------\n";
+	      tmp += "   -- inheritance from " + inher->get_ada_full_name() + "\n";
+	      tmp += "   --------------------------------------------------\n";
 	      {
 		UTL_ScopeActiveIterator j(inher,UTL_Scope::IK_decls);
 		while (!j.is_done())
@@ -118,7 +109,7 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
 		      case AST_Decl::NT_sequence:
 		      case AST_Decl::NT_string:
 		      case AST_Decl::NT_array:			
-			tmp += "      subtype" +  e->get_ada_local_name();
+			tmp += "   subtype" +  e->get_ada_local_name();
 			tmp += " is " + e->get_ada_full_name() + " ;\n";			
 			break;
 		      case AST_Decl::NT_op:
@@ -135,6 +126,7 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
 		    j.next();
 		  }
 	      }
+	      tmp += "\n\n" ;
 	    }
 	}
     }
@@ -189,8 +181,7 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
   body += "   function Get_Nil_Ref(Self : in Ref)\n";
   body += "                        return Ref ;\n"; 
   body += "\nprivate\n";
-  body += "   Nil_Ref : aliased constant Ref := (" + corps;
-  body += ".Nil_Ref with null record) ;\n";
+  body += "   Nil_Ref : aliased constant Ref := ( Corba.Object.Nil_Ref with null record) ;\n";
   body += "end " + get_ada_full_name() + " ;\n";    
   set_already_defined();
 }
@@ -226,7 +217,7 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
   body += "                                     & Corba.To_Standard_String(Get_Repository_Id(The_Ref))\n"; 
   body += "                                     & Corba.CRLF\n";
   body += "                                     & Corba.To_Standard_String(Repo_Id)) ;\n";
-  body += "   end ;\n"; 
+  body += "   end ;\n\n\n"; 
 
   //multiple inheritance definition
 
@@ -234,8 +225,8 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
     {
       inher = adabe_interface::narrow_from_decl(inherits()[i]);
       with.add(inher->get_ada_full_name() + ".Proxies");
-      body += "\n -- inheritance from " + inher->get_ada_full_name();
-      body += "\n --------------------------------------------------\n";
+      body += "   -- inheritance from " + inher->get_ada_full_name() + "\n";
+      body += "   --------------------------------------------------\n";
       {
 	UTL_ScopeActiveIterator j(inher,UTL_Scope::IK_decls);
 	while (!j.is_done())
@@ -619,6 +610,8 @@ void
 adabe_interface::produce_proxies_adb(dep_list& with, string &body, string &previous)
 {
   adabe_global::set_adabe_current_file(this);
+
+  with.add( get_ada_full_name() + ".marshal") ;
   body += "package body " + get_ada_full_name() + ".Proxies is \n";
  
   ////////////////////////////// Mapping the object factory ////////////////////////
