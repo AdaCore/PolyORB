@@ -194,6 +194,7 @@ package body System.Garlic.Partitions is
       D ("  Reconnection   " & Info.Reconnection'Img);
       D ("  Is_Boot_Mirror " & Info.Is_Boot_Mirror'Img);
       D ("  Boot_Partition"  & Info.Boot_Partition'Img);
+      D ("  Remote_Units  "  & Info.Remote_Units'Img);
       D ("  Status:        " & Status_Type'Image (Info.Status));
    end Dump_Partition_Info;
 
@@ -822,6 +823,7 @@ package body System.Garlic.Partitions is
          Has_Light_PCS  => Can_Have_A_Light_Runtime,
          Is_Boot_Mirror => False,
          Boot_Partition => Null_PID,
+         Remote_Units   => Null_Unit_Id,
          Status         => Done);
 
       --  This is step 1.

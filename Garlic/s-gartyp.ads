@@ -58,6 +58,11 @@ package System.Garlic.Types is
 
    Partition_ID_Increment : constant Valid_Partition_ID := 10;
 
+   type Unit_Id is new Natural;
+   Null_Unit_Id  : constant Unit_Id := 0;
+   First_Unit_Id : constant Unit_Id := 1_000_000;
+   Unit_Id_Increment : constant := 10;
+
    type Version_Type is new String (1 .. 8);
    Null_Version : constant Version_Type := (others => ' ');
 

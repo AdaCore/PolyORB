@@ -663,6 +663,7 @@ package body System.Garlic.Heart is
          Has_Light_PCS  => False,
          Is_Boot_Mirror => True,
          Boot_Partition => Null_PID,
+         Remote_Units   => Null_Unit_Id,
          Status         => Done);
    begin
       if Options.Is_Boot_Server then

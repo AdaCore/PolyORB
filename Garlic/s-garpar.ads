@@ -52,6 +52,7 @@ package System.Garlic.Partitions is
       Has_Light_PCS  : Boolean;
       Is_Boot_Mirror : Boolean;
       Boot_Partition : Types.Partition_ID;
+      Remote_Units   : Types.Unit_Id;
       Status         : Types.Status_Type;
       Allocated      : Boolean;
    end record;
@@ -65,6 +66,7 @@ package System.Garlic.Partitions is
    --  Has_Light_PCS  : true for a partition which does not receive request
    --  Is_Boot_Mirror : true for a partition which has a copy of PID table
    --  Boot_Partition : pid of the partition used to boot a partition
+   --  Remote_Units   : root of the remote unit list
    --  Status         : partition info status
 
    Null_Partition : constant Partition_Info :=
@@ -77,6 +79,7 @@ package System.Garlic.Partitions is
       Has_Light_PCS  => False,
       Is_Boot_Mirror => False,
       Boot_Partition => Types.Null_PID,
+      Remote_Units   => Types.Null_Unit_Id,
       Status         => Types.None);
 
    type Request_Kind is

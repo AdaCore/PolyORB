@@ -52,6 +52,8 @@ package body System.Garlic.Units is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARUNI", "(s-garuni): ");
 
+   package Partitions renames System.Garlic.Partitions.Partitions;
+
    procedure D
      (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
@@ -136,10 +138,6 @@ package body System.Garlic.Units is
    --  par partition seq1 = (True, Partition_ID, seq2). Then, we
    --  marshal each unit of this partition. seq2 = (True, Name, Receiver,
    --  Partition, Status).
-
-   Units_Per_Partition : array (Valid_Partition_ID) of Unit_Id;
-   --  Units on a same partition are chained together. This is the root of
-   --  the list.
 
    type Receiver_Node;
    type Receiver_List is access Receiver_Node;
@@ -253,10 +251,11 @@ package body System.Garlic.Units is
       Unit : Unit_Id;
       Info : Unit_Info;
    begin
+      Partitions.Enter;
       D ("Unit Info Table");
       D ("---------------");
-      for P in Units_Per_Partition'Range loop
-         Unit := Units_Per_Partition (P);
+      for P in First_PID .. Partitions.Last loop
+         Unit := Partitions.Get_Component (P).Remote_Units;
          if Unit /= Null_Unit_Id then
             D ("** Partition" & P'Img);
          end if;
@@ -273,6 +272,7 @@ package body System.Garlic.Units is
             Dump_Unit_Info (U, Info);
          end if;
       end loop;
+      Partitions.Leave;
    end Dump_Unit_Table;
 
    -------------------
@@ -558,7 +558,7 @@ package body System.Garlic.Units is
          Status := Invalid;
       end if;
 
-      Unit := Units_Per_Partition (Partition);
+      Unit := Partitions.Get_Component (Partition).Remote_Units;
       while Unit /= Null_Unit_Id loop
          Info := Units.Get_Component (Unit);
          Info.Status := Status;
@@ -828,11 +828,14 @@ package body System.Garlic.Units is
          declare
             Previous_Unit : Unit_Id;
             Previous_Info : Unit_Info;
+            The_Part_Info : Partition_Info;
          begin
-            Previous_Unit := Units_Per_Partition (Current_Partition);
+            Partitions.Enter;
+            The_Part_Info := Partitions.Get_Component (Current_Partition);
+            Previous_Unit := The_Part_Info.Remote_Units;
             if Previous_Unit = Unit then
-               Units_Per_Partition (Current_Partition) :=
-                 Current_Info.Next_Unit;
+               The_Part_Info.Remote_Units := Current_Info.Next_Unit;
+               Partitions.Set_Component (Current_Partition, The_Part_Info);
             else
                loop
                   Previous_Info := Units.Get_Component (Previous_Unit);
@@ -843,6 +846,7 @@ package body System.Garlic.Units is
                Previous_Info.Next_Unit := Current_Info.Next_Unit;
                Units.Set_Component (Previous_Unit, Previous_Info);
             end if;
+            Partitions.Leave;
 
             pragma Debug (D ("Dequeuing unit " & Units.Get_Name (Unit) &
                              " from partition" &
@@ -909,8 +913,16 @@ package body System.Garlic.Units is
               (D ("Add new unit " & Units.Get_Name (Unit) &
                   " to partition" & Partition'Img));
 
-            Current_Info.Next_Unit := Units_Per_Partition (Partition);
-            Units_Per_Partition (Partition) := Unit;
+            declare
+               The_Part_Info : Partition_Info;
+            begin
+               Partitions.Enter;
+               The_Part_Info := Partitions.Get_Component (Partition);
+               Current_Info.Next_Unit := The_Part_Info.Remote_Units;
+               The_Part_Info.Remote_Units := Unit;
+               Partitions.Set_Component (Partition, The_Part_Info);
+               Partitions.Leave;
+            end;
             In_Queue := True;
          end if;
       end if;
@@ -939,8 +951,9 @@ package body System.Garlic.Units is
       Unit : Unit_Id;
       Info : Unit_Info;
    begin
-      for P in Units_Per_Partition'Range loop
-         Unit := Units_Per_Partition (P);
+      Partitions.Enter;
+      for P in First_PID .. Partitions.Last loop
+         Unit := Partitions.Get_Component (P).Remote_Units;
          if Unit /= Null_Unit_Id then
             Boolean'Write      (Stream, True);
             Partition_ID'Write (Stream, P);
@@ -959,6 +972,7 @@ package body System.Garlic.Units is
          end if;
       end loop;
       Boolean'Write      (Stream, False);
+      Partitions.Leave;
    end Write_Units;
 
 end System.Garlic.Units;

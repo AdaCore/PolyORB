@@ -44,11 +44,6 @@ package System.Garlic.Units is
 
    --  This package needs comments ???
 
-   type Unit_Id is new Natural;
-   Null_Unit_Id  : constant Unit_Id := 0;
-   First_Unit_Id : constant Unit_Id := 2_000_000;
-   Unit_Id_Increment : constant := 10;
-
    type Request_Id is new Natural;
    Null_Request_Id  : constant Request_Id := 0;
    First_Request_Id : constant Request_Id := 3_000_000;
@@ -77,7 +72,7 @@ package System.Garlic.Units is
 
    type Unit_Info is
       record
-         Next_Unit : Unit_Id;
+         Next_Unit : Types.Unit_Id;
          Partition : Types.Partition_ID;
          Receiver  : Interfaces.Unsigned_64;
          Version   : Types.Version_Type;
@@ -86,7 +81,7 @@ package System.Garlic.Units is
       end record;
 
    Null_Unit : constant Unit_Info :=
-     (Next_Unit => Null_Unit_Id,
+     (Next_Unit => Types.Null_Unit_Id,
       Partition => Types.Null_PID,
       Receiver  => 0,
       Version   => Types.Null_Version,
@@ -117,18 +112,18 @@ package System.Garlic.Units is
       end record;
 
    package Units is new System.Garlic.Table.Complex
-     (Index_Type     => Unit_Id,
-      Null_Index     => Null_Unit_Id,
-      First_Index    => First_Unit_Id,
-      Initial_Size   => Unit_Id_Increment,
-      Increment_Size => Unit_Id_Increment,
+     (Index_Type     => Types.Unit_Id,
+      Null_Index     => Types.Null_Unit_Id,
+      First_Index    => Types.First_Unit_Id,
+      Initial_Size   => Types.Unit_Id_Increment,
+      Increment_Size => Types.Unit_Id_Increment,
       Component_Type => Unit_Info,
       Null_Component => Null_Unit);
 
    procedure Dump_Unit_Table;
 
    procedure Get_Unit_Info
-     (Unit  : in Unit_Id;
+     (Unit  : in Types.Unit_Id;
       Info  : out Unit_Info;
       Error : in out Utils.Error_Type);
    --  Return unit info on these unit. If status is unknown, then ask a

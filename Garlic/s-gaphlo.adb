@@ -34,8 +34,6 @@
 ------------------------------------------------------------------------------
 
 with System.Garlic.Debug;    use System.Garlic.Debug;
-with System.Garlic.Types;    use System.Garlic.Types;
-with Unchecked_Deallocation;
 
 package body System.Garlic.Physical_Location is
 
@@ -48,30 +46,8 @@ package body System.Garlic.Physical_Location is
 
    use Ada.Finalization, System.Garlic.Protocols, System.Garlic.Utils;
 
-   type Node;
-   type Node_Ptr is access Node;
-   type Node is record
-      Content : Location_Type;
-      Next    : Node_Ptr;
-   end record;
-
-   type List is record
-      First : Node_Ptr;
-      Count : Natural := 0;
-   end record;
-
-   Partition_ID_To_Location : array (Types.Partition_ID) of List;
-
    Protocols_List : array (1 .. 10) of Protocol_Access;
    --  This should be enough but may be increased in the future if needed
-
-   procedure Free is
-     new Unchecked_Deallocation (Node, Node_Ptr);
-
-   procedure Register_Partition
-     (P : in Types.Partition_ID;
-      L : in Location_Type);
-   --  Add a partition into the base
 
    function Lookup_Protocol (P : String) return Protocol_Access;
    --  Return a protocol or null if no protocol with this name was found
@@ -119,35 +95,6 @@ package body System.Garlic.Physical_Location is
       return L.Data;
    end Get_Data;
 
-   -------------------
-   -- Get_Partition --
-   -------------------
-
-   function Get_Partition
-     (P : Types.Partition_ID)
-      return Location_Type
-   is
-      First : Node_Ptr renames Partition_ID_To_Location (P) .First;
-   begin
-      if First = null then
-         raise No_Such_Location;
-      else
-         return First.Content;
-      end if;
-   end Get_Partition;
-
-   -------------------
-   -- Get_Partition --
-   -------------------
-
-   function Get_Partition
-     (P : Types.Partition_ID)
-      return String
-   is
-   begin
-      return To_String (Location_Type'(Get_Partition (P)));
-   end Get_Partition;
-
    ------------------
    -- Get_Protocol --
    ------------------
@@ -177,55 +124,6 @@ package body System.Garlic.Physical_Location is
       end loop;
       return null;
    end Lookup_Protocol;
-
-   ------------------------
-   -- Register_Partition --
-   ------------------------
-
-   procedure Register_Partition
-     (P : in Types.Partition_ID;
-      L : in Location_Type)
-   is
-      Current  : List renames Partition_ID_To_Location (P);
-      N        : Node_Ptr := Current.First;
-      New_Node : Node_Ptr := new Node'(Content => L, Next => null);
-   begin
-      if Current.Count = 0 then
-         Current.First := New_Node;
-      else
-         while N.Next /= null loop
-            N := N.Next;
-         end loop;
-         N.Next := New_Node;
-      end if;
-      Current.Count := Current.Count + 1;
-   end Register_Partition;
-
-   ------------------------
-   -- Register_Partition --
-   ------------------------
-
-   procedure Register_Partition
-     (P : in Types.Partition_ID;
-      L : in String)
-   is
-   begin
-      Register_Partition (P, To_Location (L));
-   end Register_Partition;
-
-   ------------------------
-   -- Register_Partition --
-   ------------------------
-
-   procedure Register_Partition
-     (P : in Types.Partition_ID;
-      L : in Locations)
-   is
-   begin
-      for I in L'Range loop
-         Register_Partition (P, L (I));
-      end loop;
-   end Register_Partition;
 
    -----------------------
    -- Register_Protocol --
@@ -309,38 +207,5 @@ package body System.Garlic.Physical_Location is
    begin
       return Get_Name (Get_Protocol (L)) & "://" & Get_Data (L).all;
    end To_String;
-
-   --------------------------
-   -- Unregister_Partition --
-   --------------------------
-
-   procedure Unregister_Partition
-     (P : in Types.Partition_ID;
-      L : in String := "")
-   is
-      Current  : List renames Partition_ID_To_Location (P);
-      New_Node : Node_Ptr;
-      Old_Node : Node_Ptr;
-   begin
-      if Current.First /= null and then
-        (L = "" or else L = To_String (Current.First.Content)) then
-         New_Node := Current.First.Next;
-         Free (Current.First);
-         Current.First := New_Node;
-         Current.Count := Current.Count - 1;
-      end if;
-      Old_Node := Current.First;
-      for I in 1 .. Current.Count - 1 loop
-         New_Node := Old_Node;
-         Old_Node := Old_Node.Next;
-         if L = To_String (Old_Node.Content) then
-            New_Node.Next := Old_Node.Next;
-            Free (Old_Node);
-            Current.Count := Current.Count - 1;
-            return;
-         end if;
-      end loop;
-      raise No_Such_Location;
-   end Unregister_Partition;
 
 end System.Garlic.Physical_Location;

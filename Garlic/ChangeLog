@@ -1,8 +1,16 @@
 1999-07-14  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garuni.adb: As there is no second pass when there is no boot
- 	mirrors, reply to pending requests immediatly. Redefine pending
- 	requests not to be a array of boolean with Partition_ID as index.
+        * s-gaphlo.adb, s-gaphlo.ads: Remove a lot of unused tables and
+        subprograms.
+
+        * s-garuni.adb: As there is no second pass when there is no boot
+        mirrors, reply to pending requests immediatly. Redefine pending
+        requests not to be a array of boolean with Partition_ID as
+        index.
+
+        * s-garuni.ads, s-garuni.adb, s-garpar.ads, s-garpar.adb,
+        s-gartyp.ads, s-garhea.adb: Redefine units per partition table and
+        use partition table from System.Garlic.Partitions instead.
 
 1999-07-14  Laurent Pautet  <pautet@dorine.enst.fr>
 

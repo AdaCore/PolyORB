@@ -35,7 +35,6 @@
 
 with Ada.Finalization;
 with System.Garlic.Protocols;
-with System.Garlic.Types;
 with System.Garlic.Utils;
 
 package System.Garlic.Physical_Location is
@@ -49,45 +48,12 @@ package System.Garlic.Physical_Location is
 
    Null_Location : constant Location_Type;
 
-   type Locations is array (Positive range <>) of Location_Type;
-   --  This represents the whole set of locations for a given partition
-
    No_Such_Location, Malformed_Location : exception;
 
    procedure Free (Location : in out Location_Type);
 
    procedure Register_Protocol (P : in Protocols.Protocol_Access);
    --  Register a protocol to be able to use it later
-
-   procedure Register_Partition
-     (P : in Types.Partition_ID;
-      L : in String);
-   --  Set the location of a partition. This may be called several times
-   --  in case of replication and recovery on error (fault tolerance).
-
-   procedure Register_Partition
-     (P : in Types.Partition_ID;
-      L : in Locations);
-   --  Idem, but for the whole set
-
-   procedure Unregister_Partition
-     (P : in Types.Partition_ID;
-      L : in String := "");
-   --  Unregister a given location. If no string is given, this means that
-   --  the first occurrence of a partition must be unregistered (the one
-   --  which was used). This will raise No_Such_Location if there is no
-   --  corresponding location for this partition.
-
-   function Get_Partition
-     (P : Types.Partition_ID)
-     return String;
-   --  Get the first occurrence of a partition localization or raise
-   --  No_Such_Location.
-
-   function Get_Partition
-     (P : Types.Partition_ID)
-     return Location_Type;
-   --  Get a partition location or raise No_Such_Location
 
    function Get_Protocol
      (L : Location_Type)
