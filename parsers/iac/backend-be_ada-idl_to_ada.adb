@@ -107,6 +107,35 @@ package body Backend.BE_Ada.IDL_To_Ada is
       end if;
    end Is_Base_Type;
 
+   ----------------------
+   -- Is_N_Parent_Of_M --
+   ----------------------
+
+   function Is_N_Parent_Of_M
+     (N : Node_Id;
+      M : Node_Id)
+     return Boolean
+   is
+      X : Node_Id := N;
+      Y : Node_Id := M;
+   begin
+      if No (Y) then
+         return False;
+      else
+         if FEN.Kind (X) = K_Identifier then
+            X := Corresponding_Entity (X);
+         end if;
+         if FEN.Kind (Y) = K_Identifier then
+            Y := Corresponding_Entity (Y);
+         end if;
+         if X = Y then
+            return True;
+         else
+            return Is_N_Parent_Of_M (X, Scope_Entity (Identifier (Y)));
+         end if;
+      end if;
+   end Is_N_Parent_Of_M;
+
    ------------------------------
    -- Map_Accessor_Declaration --
    ------------------------------
@@ -132,10 +161,6 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
       Param_Type := Map_Designator
         (Type_Spec (Declaration (Attribute)));
-
-      --  Link_BE_To_FE
-      --  (Defining_Identifier (Param_Type),
-      --   Type_Spec (Declaration (Attribute)));
 
       --  For the setter subprogram, add the second parameter To.
 
@@ -214,7 +239,11 @@ package body Backend.BE_Ada.IDL_To_Ada is
    -- Map_Designator --
    --------------------
 
-   function Map_Designator (Entity : Node_Id) return Node_Id is
+   function Map_Designator
+     (Entity : Node_Id;
+      Witheded : Boolean := True)
+     return Node_Id
+   is
       use FEN;
       P : Node_Id;
       N : Node_Id;
@@ -230,9 +259,10 @@ package body Backend.BE_Ada.IDL_To_Ada is
          end if;
          N := New_Node (K_Designator);
          Set_Defining_Identifier (N, Map_Defining_Identifier (R));
+         Set_FE_Node (N, R);
          P := Scope_Entity (Identifier (R));
          if Present (P) then
-            Set_Parent_Unit_Name (N, Map_Designator (P));
+            Set_Parent_Unit_Name (N, Map_Designator (P, False));
          end if;
 
       elsif K in FEN.K_Float .. FEN.K_Value_Base then
@@ -241,13 +271,23 @@ package body Backend.BE_Ada.IDL_To_Ada is
       else
          N := New_Node (K_Designator);
          Set_Defining_Identifier (N, Map_Defining_Identifier (Entity));
+         if K = FEN.K_Interface_Declaration
+           or else K = FEN.K_Module then
+
+            P := Scope_Entity (Identifier (Entity));
+            Set_FE_Node (N, Entity);
+            Set_Parent_Unit_Name (N, Map_Designator (P, False));
+         elsif K = FEN.K_Specification then
+            return No_Node;
+         end if;
       end if;
 
       P := Parent_Unit_Name (N);
-      if Present (P) then
-         Add_With_Package (P);
+      if Witheded then
+         if Present (P) then
+            Add_With_Package (P);
+         end if;
       end if;
-
       return N;
    end Map_Designator;
 
@@ -472,7 +512,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
       return Make_Object_Declaration
         (Defining_Identifier => Make_Defining_Identifier (I),
          Constant_Present    => True,
-         Object_Definition   => RE (RE_String_2),
+         Object_Definition   => RE (RE_String_2, False),
          Expression          => Make_Literal (V));
    end Map_Repository_Declaration;
 

@@ -231,11 +231,12 @@ package body Backend.BE_Ada.Stubs is
       ---------------------------------
 
       procedure Visit_Interface_Declaration (E : Node_Id) is
-         P : Node_Id;
-         N : Node_Id;
-         L : List_Id;
-         I : Node_Id;
-
+         P       : Node_Id;
+         N       : Node_Id;
+         L       : List_Id;
+         I       : Node_Id;
+         Profile : List_Id;
+         Param   : Node_Id;
       begin
          P := Map_IDL_Unit (E);
          Append_Node_To_List (P, Packages (Current_Entity));
@@ -261,12 +262,32 @@ package body Backend.BE_Ada.Stubs is
          Append_Node_To_List
            (Map_Repository_Declaration (E), Visible_Part (Current_Package));
          Bind_FE_To_Stub (Identifier (E), N);
-         N := First_Entity (Interface_Body (E));
 
+         N := First_Entity (Interface_Body (E));
          while Present (N) loop
             Visit (N);
             N := Next_Entity (N);
          end loop;
+         Profile := New_List (K_Parameter_Profile);
+         Param := Make_Parameter_Specification
+           (Make_Defining_Identifier (PN (P_Self)), I);
+         Append_Node_To_List (Param, Profile);
+         Param := Make_Parameter_Specification
+           (Make_Defining_Identifier (PN (P_Logical_Type_Id)),
+            RE (RE_String_2, False));
+         Append_Node_To_List (Param, Profile);
+         N := Make_Subprogram_Specification
+           (Make_Defining_Identifier (SN (S_Is_A)),
+            Profile,
+            RE (RE_Boolean));
+         Append_Node_To_List (N, Visible_Part (Current_Package));
+         Profile := New_List (K_Parameter_Profile);
+         Append_Node_To_List (Param, Profile);
+         N := Make_Subprogram_Specification
+           (Make_Defining_Identifier (SN (S_Is_A)),
+            Profile,
+            RE (RE_Boolean));
+         Append_Node_To_List (N, Private_Part (Current_Package));
          Pop_Entity;
       end Visit_Interface_Declaration;
 
@@ -282,6 +303,7 @@ package body Backend.BE_Ada.Stubs is
          S := Map_IDL_Unit (E);
          Append_Node_To_List (S, Packages (Current_Entity));
          Push_Entity (S);
+         Set_Main_Spec;
          D := First_Entity (Definitions (E));
          while Present (D) loop
             Visit (D);
@@ -295,15 +317,13 @@ package body Backend.BE_Ada.Stubs is
       ---------------------------------
 
       procedure Visit_Operation_Declaration (E : Node_Id) is
-         --  Subp_Body : Node_Id;
+
          Subp_Spec : Node_Id;
          Profile   : List_Id;
          IDL_Param : Node_Id;
          Ada_Param : Node_Id;
          Mode      : Mode_Id := Mode_In;
          Returns   : Node_Id := No_Node;
-         --  Declarative_Part : List_Id;
-         --  Body_Part  : List_Id;
          Type_Designator : Node_Id;
 
       begin
@@ -323,9 +343,6 @@ package body Backend.BE_Ada.Stubs is
          while Present (IDL_Param) loop
             Type_Designator := Map_Designator
               (Type_Spec (IDL_Param));
-            --  Link_BE_To_FE
-            --  (Defining_Identifier (Type_Designator),
-            --   Type_Spec (IDL_Param));
             Ada_Param := Make_Parameter_Specification
               (Map_Defining_Identifier (Declarator (IDL_Param)),
                Type_Designator,
@@ -358,9 +375,6 @@ package body Backend.BE_Ada.Stubs is
                Append_Node_To_List (Ada_Param, Profile);
             end if;
          end if;
-         --  Link_BE_To_FE
-         --  (Defining_Identifier (Type_Designator),
-         --   Type_Spec (E));
 
          --  Add subprogram to main specification
 
@@ -368,7 +382,6 @@ package body Backend.BE_Ada.Stubs is
          Subp_Spec := Make_Subprogram_Specification
            (Map_Defining_Identifier (E), Profile, Returns);
          Append_Node_To_List (Subp_Spec, Visible_Part (Current_Package));
-         --  Link_BE_To_FE (Subp_Spec, E);
 
          --  Add subprogram to main implementation
 
@@ -781,7 +794,7 @@ package body Backend.BE_Ada.Stubs is
         (Defining_Identifier =>
            Make_Defining_Identifier (VN (V_Operation_Name)),
          Constant_Present    => True,
-         Object_Definition   => RE (RE_String_2),
+         Object_Definition   => RE (RE_String_2, False),
          Expression          => Make_Literal (V));
       Append_Node_To_List (N, L);
 

@@ -161,7 +161,8 @@ package Backend.BE_Ada.Nutils is
       P_Item,
       P_Repository_Id,
       P_Default_Sys_Member,
-      P_A);
+      P_A,
+      P_Logical_Type_Id);
 
    PN : array (Parameter_Id) of Name_Id;
 
@@ -193,7 +194,8 @@ package Backend.BE_Ada.Nutils is
       S_To_Ref,
       S_From_Any,
       S_To_Any,
-      S_Set);
+      S_Set,
+      S_Is_A);
 
    SN : array (Subprogram_Id) of Name_Id;
 
@@ -256,7 +258,8 @@ package Backend.BE_Ada.Nutils is
 
 
    function Copy_Designator
-     (Designator : Node_Id)
+     (Designator : Node_Id;
+      Witheded   : Boolean := True)
      return Node_Id;
 
    function Make_Array_Type_Definition

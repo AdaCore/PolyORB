@@ -19,7 +19,6 @@ package Backend.BE_Ada.Runtime is
       RU_PolyORB,
       RU_PolyORB_Any,
       RU_PolyORB_Any_NVList,
-      RU_PolyORB_Any_TypeCode,
       RU_PolyORB_Requests,
       RU_PolyORB_Types,
       RU_Standard);
@@ -120,16 +119,16 @@ package Backend.BE_Ada.Runtime is
          RE_To_Any_3              => RU_CORBA_Object_Helper,
          RE_From_Any              => RU_CORBA_Object_Helper,
          RE_Is_Nil                => RU_CORBA_Object,
-         RE_Object                => RU_CORBA_TypeCode,
-         RE_To_CORBA_Object       => RU_CORBA_TypeCode_Internals,
+         RE_Object                => RU_CORBA,
+         RE_To_CORBA_Object       => RU_CORBA,
          RE_NamedValue            => RU_PolyORB_Any,
          RE_Ref_3                 => RU_PolyORB_Any_NVList,
          RE_Create                => RU_PolyORB_Any_NVList,
-         RE_TC_Object             => RU_PolyORB_Any_TypeCode,
-         RE_TC_Alias              => RU_PolyORB_Any_TypeCode,
-         RE_TC_Enum               => RU_PolyORB_Any_TypeCode,
-         RE_TC_Struct             => RU_PolyORB_Any_TypeCode,
-         RE_TC_Array              => RU_PolyORB_Any_TypeCode,
+         RE_TC_Object             => RU_PolyORB_Any,
+         RE_TC_Alias              => RU_PolyORB_Any,
+         RE_TC_Enum               => RU_PolyORB_Any,
+         RE_TC_Struct             => RU_PolyORB_Any,
+         RE_TC_Array              => RU_PolyORB_Any,
          RE_Request_Access        => RU_PolyORB_Requests,
          RE_Identifier            => RU_PolyORB_Types,
          RE_To_PolyORB_String     => RU_PolyORB_Types,
@@ -139,7 +138,7 @@ package Backend.BE_Ada.Runtime is
 
    procedure Initialize;
 
-   function RE (Id : RE_Id) return Node_Id;
+   function RE (Id : RE_Id; Witheded : Boolean := True) return Node_Id;
    --  Return a designator for entity Id
    function RU (Id : RU_Id) return Node_Id;
    --  Return a node for Unit id.

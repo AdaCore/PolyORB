@@ -60,6 +60,7 @@ module Backend::BE_Ada::Nodes {
   };
 
   interface Package_Specification : Node_Id {
+    boolean    Is_Generated; 
     Node_Id    Package_Declaration;
     List_Id    Withed_Packages;
     List_Id    Visible_Part;
@@ -67,6 +68,7 @@ module Backend::BE_Ada::Nodes {
   };
 
   interface Package_Implementation : Node_Id {
+    boolean    Is_Generated; 
     Node_Id    Package_Declaration;
     List_Id    Withed_Packages;
     List_Id    Declarations;

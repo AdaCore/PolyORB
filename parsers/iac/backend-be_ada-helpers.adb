@@ -2,12 +2,14 @@ with Namet;     use Namet;
 with Values;     use Values;
 
 with Frontend.Nodes;   use Frontend.Nodes;
+with Frontend.Debug;
 
 with Backend.BE_Ada.Expand;  use Backend.BE_Ada.Expand;
 with Backend.BE_Ada.IDL_To_Ada;  use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Nodes;   use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;  use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime; use Backend.BE_Ada.Runtime;
+with Backend.BE_Ada.Debug;
 
 package body Backend.BE_Ada.Helpers is
 
@@ -65,6 +67,7 @@ package body Backend.BE_Ada.Helpers is
            (Make_Defining_Identifier (SN (S_From_Any)),
             Profile,
             Expand_Designator (Stub_Node (BE_Node (Identifier (E)))));
+         Set_FE_Node (N, Identifier (E));
          return N;
       end From_Any_Spec;
 
@@ -92,6 +95,7 @@ package body Backend.BE_Ada.Helpers is
            (Make_Defining_Identifier (SN (S_Unchecked_To_Ref)),
             Profile, Expand_Designator
             (Stub_Node (BE_Node (Identifier (E)))));
+         Set_FE_Node (N, Identifier (E));
          return N;
       end Narrowing_Ref_Spec;
 
@@ -115,6 +119,7 @@ package body Backend.BE_Ada.Helpers is
          N := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_To_Any)),
             Profile, RE (RE_Any));
+         Set_FE_Node (N, Identifier (E));
          return N;
       end To_Any_Spec;
 
@@ -183,6 +188,7 @@ package body Backend.BE_Ada.Helpers is
             Constant_Present    => False,
             Object_Definition   => RE (RE_Object),
             Expression          => C);
+         Set_FE_Node (N, Identifier (E));
          return N;
       end TypeCode_Spec;
 
@@ -277,6 +283,8 @@ package body Backend.BE_Ada.Helpers is
          D : Node_Id;
       begin
          Push_Entity (Stub_Node (BE_Node (Identifier (E))));
+         Set_Helper_Spec;
+
          D := First_Entity (Definitions (E));
          while Present (D) loop
             Visit (D);
@@ -371,14 +379,18 @@ package body Backend.BE_Ada.Helpers is
          Parameter : Node_Id;
          N         : Node_Id;
       begin
+         N := Subtype_Indication
+           (Type_Definition (Stub_Node (BE_Node (Identifier (E)))));
          Profile  := New_List (K_Parameter_Profile);
          Parameter := Make_Parameter_Specification
-           (Make_Defining_Identifier (PN (P_Self)),
-            Expand_Designator
-            (Stub_Node (BE_Node (Identifier (E)))));
+           (Make_Defining_Identifier (PN (P_The_Ref)),
+            Make_Type_Attribute
+            (Copy_Designator (N), A_CLASS));
          Append_Node_To_List (Parameter, Profile);
          N := Make_Subprogram_Specification
-           (Make_Defining_Identifier (SN (S_To_Ref)), Profile, RE (RE_Any));
+           (Make_Defining_Identifier (SN (S_To_Ref)), Profile,
+            Expand_Designator
+            (Stub_Node (BE_Node (Identifier (E)))));
          return N;
       end Widening_Ref_Spec;
 
@@ -712,6 +724,9 @@ package body Backend.BE_Ada.Helpers is
                M := RE (RE_To_Any_0);
             elsif Kind (Type_Spec (Declaration (E))) = K_Scoped_Name then
                N := Identifier (Reference (Type_Spec (Declaration (E))));
+               Frontend.Debug.W_Node_Id (N);
+               Backend.BE_Ada.Debug.W_Node_Id
+                 (Next_Node (Next_Node (Helper_Node (BE_Node (N)))));
                M := Expand_Designator
                  (Next_Node (Next_Node (Helper_Node (BE_Node (N)))));
                N := Map_Designator (N);
@@ -1016,8 +1031,11 @@ package body Backend.BE_Ada.Helpers is
 
       procedure Visit_Module (E : Node_Id) is
          D : Node_Id;
+
       begin
-         Push_Entity (Stub_Node (BE_Node (Identifier (E))));
+         D := Stub_Node (BE_Node (Identifier (E)));
+         Push_Entity (D);
+         Set_Helper_Body;
          D := First_Entity (Definitions (E));
          while Present (D) loop
             Visit (D);

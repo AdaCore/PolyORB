@@ -7,8 +7,8 @@ with Utils;     use Utils;
 
 with Frontend.Nodes;
 
-with Backend.BE_Ada.Nodes;   use Backend.BE_Ada.Nodes;
-
+with Backend.BE_Ada.Nodes;      use Backend.BE_Ada.Nodes;
+with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
 
 package body Backend.BE_Ada.Nutils is
 
@@ -56,7 +56,7 @@ package body Backend.BE_Ada.Nutils is
       W : Node_Id;
       N : Name_Id;
       B : Byte;
-
+      D : Node_Id;
    begin
 
       --  Build a string "<current_entity>%[s,b] <withed_entity>" that
@@ -64,6 +64,14 @@ package body Backend.BE_Ada.Nutils is
       --  indicate that we consider the spec (resp. body) of the
       --  current entity and the withed entity name.
 
+      D := FE_Node (P);
+      if Present (D) then
+         if Is_N_Parent_Of_M
+           (D, FE_Node (Current_Entity))
+         then
+            return;
+         end if;
+      end if;
       Name_Len := 0;
       Get_Defining_Identifier_Name
         (Defining_Identifier (Package_Declaration (Current_Package)));
@@ -122,7 +130,8 @@ package body Backend.BE_Ada.Nutils is
    ---------------------
 
    function Copy_Designator
-     (Designator : Node_Id)
+     (Designator : Node_Id;
+      Witheded   : Boolean := True)
      return Node_Id
    is
       D : Node_Id;
@@ -131,9 +140,11 @@ package body Backend.BE_Ada.Nutils is
    begin
       D := Copy_Node (Designator);
       if Present (P) then
-         P := Copy_Designator (P);
+         P := Copy_Designator (P, False);
          Set_Parent_Unit_Name (D, P);
-         Add_With_Package (P);
+         if Witheded then
+            Add_With_Package (P);
+         end if;
       end if;
       return D;
    end Copy_Designator;
@@ -692,12 +703,14 @@ package body Backend.BE_Ada.Nutils is
          Set_Parent (Unit, Main_Package (Current_Entity));
       end if;
       Pkg := New_Node (K_Package_Specification);
+      Set_Is_Generated (Pkg, False);
       Set_Withed_Packages (Pkg, New_List (K_Withed_Packages));
       Set_Visible_Part (Pkg, New_List (K_Declaration_List));
       Set_Private_Part (Pkg, New_List (K_Declaration_List));
       Set_Package_Declaration (Pkg, Unit);
       Set_Package_Specification (Unit, Pkg);
       Pkg := New_Node (K_Package_Implementation);
+      Set_Is_Generated (Pkg, False);
       Set_Withed_Packages (Pkg, New_List (K_Withed_Packages));
       Set_Declarations (Pkg, New_List (K_Declaration_List));
       Set_Statements (Pkg, New_List (K_Statement_List));
@@ -1074,6 +1087,8 @@ package body Backend.BE_Ada.Nutils is
       end if;
       Table (Last).Current_Package :=
         Package_Implementation (Helper_Package (X));
+      Set_Is_Generated
+        (Package_Implementation (Helper_Package (X)), True);
    end Set_Helper_Body;
 
    ---------------------
@@ -1088,6 +1103,8 @@ package body Backend.BE_Ada.Nutils is
       end if;
       Table (Last).Current_Package :=
         Package_Specification (Helper_Package (X));
+      Set_Is_Generated
+        (Package_Specification (Helper_Package (X)), True);
    end Set_Helper_Spec;
 
    -------------------
@@ -1102,6 +1119,8 @@ package body Backend.BE_Ada.Nutils is
       end if;
       Table (Last).Current_Package :=
         Package_Implementation (Implementation_Package (X));
+      Set_Is_Generated
+        (Package_Implementation (Implementation_Package (X)), True);
    end Set_Impl_Body;
 
    -------------------
@@ -1116,6 +1135,8 @@ package body Backend.BE_Ada.Nutils is
       end if;
       Table (Last).Current_Package :=
         Package_Specification (Implementation_Package (X));
+      Set_Is_Generated
+        (Package_Specification (Implementation_Package (X)), True);
    end Set_Impl_Spec;
 
    -------------------
@@ -1130,6 +1151,8 @@ package body Backend.BE_Ada.Nutils is
       end if;
       Table (Last).Current_Package :=
         Package_Implementation (Main_Package (X));
+      Set_Is_Generated
+        (Package_Implementation (Main_Package (X)), True);
    end Set_Main_Body;
 
    -------------------
@@ -1144,6 +1167,8 @@ package body Backend.BE_Ada.Nutils is
       end if;
       Table (Last).Current_Package :=
         Package_Specification (Main_Package (X));
+      Set_Is_Generated
+        (Package_Specification (Main_Package (X)), True);
    end Set_Main_Spec;
 
    -----------------

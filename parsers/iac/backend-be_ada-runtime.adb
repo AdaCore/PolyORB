@@ -112,7 +112,6 @@ package body Backend.BE_Ada.Runtime is
       Special_Name (RU_PolyORB, "PolyORB");
       Special_Name (RU_PolyORB_Any_NVList, "NVList");
       Special_Name (RU_CORBA_AbstractBase, "AbstractBase");
-      Special_Name (RU_PolyORB_Any_TypeCode, "TypeCode");
       Special_Name (RU_CORBA_TypeCode, "TypeCode");
 
       for E in RE_Id loop
@@ -133,20 +132,25 @@ package body Backend.BE_Ada.Runtime is
       Special_Name (RE_To_CORBA_String, "To_CORBA_String");
       Special_Name (RE_To_PolyORB_String, "To_PolyORB_String");
       Special_Name (RE_NamedValue, "NamedValue");
-      Special_Name (RE_TC_Object, "TC_Object");
-      Special_Name (RE_TC_Alias, "TC_Alias");
-      Special_Name (RE_TC_Enum, "TC_Enum");
-      Special_Name (RE_TC_Struct, "TC_Struct");
-      Special_Name (RE_To_CORBA_Object, "To_CORBA_Object");
+      Special_Name (RE_TC_Object, "TypeCode.TC_Object");
+      Special_Name (RE_TC_Alias, "TypeCode.TC_Alias");
+      Special_Name (RE_TC_Enum, "TypeCode.TC_Enum");
+      Special_Name (RE_TC_Struct, "TypeCode.TC_Struct");
+      Special_Name (RE_Object, "TypeCode.Object");
+      Special_Name (RE_To_CORBA_Object, "TypeCode.Internals.To_CORBA_Object");
    end Initialize;
 
    --------
    -- RE --
    --------
 
-   function RE (Id : RE_Id) return Node_Id is
+   function RE (Id : RE_Id; Witheded : Boolean := True) return Node_Id is
    begin
-      return Copy_Designator (RED (Id));
+      if Witheded then
+         return Copy_Designator (RED (Id));
+      else
+         return Copy_Node (RED (Id));
+      end if;
    end RE;
 
    --------

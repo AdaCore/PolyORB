@@ -365,6 +365,7 @@ $(PROG): force mknodes $(PROG_FILES)
 
 tests: $(PROG)
 	@for i in `cat testsuite/MANIFEST | grep -v '^#'`; do \
+	  echo $$i; \
 	  testsuite/run-test testsuite/$$i; \
 	done
 

@@ -1,4 +1,25 @@
-2004-07-27  souli  <souli@neraka.enst.fr>
+2004-07-29  Saber Souli  <souli@neraka.enst.fr>
+
+	* backend-be_ada-helpers.adb: Link helpers  nodes to the
+	corresponding idl entity. 
+
+	* backend-be_ada-nutils.adb: Add_With_Package do not add ancestors
+	packages in the with list.
+
+
+2004-07-28  Saber Souli  <souli@neraka.enst.fr>
+
+	* backend-be_ada.adb: Add two flags, '-b' generate only bodies and
+	'-h' generate only specs (headers). 
+
+	* backend-be_ada-stubs.adb: Removing useless withs. Add Is_A
+	specs. 
+
+	* backend-be_ada-helpers.adb: Removing useless withs. 
+
+	* Adding automatique test script. 
+
+2004-07-27  Saber Souli  <souli@neraka.enst.fr>
 
 	* backend-be_ada-nodes.idl: Add case_statement node.
 

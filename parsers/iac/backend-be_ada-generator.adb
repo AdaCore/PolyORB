@@ -1,3 +1,4 @@
+with Backend.BE_Ada;        use Backend.BE_Ada;
 with Backend.BE_Ada.Nodes;  use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils; use Backend.BE_Ada.Nutils;
 
@@ -573,8 +574,12 @@ package body Backend.BE_Ada.Generator is
 
    procedure Generate_Package_Declaration (N : Node_Id) is
    begin
-      Generate (Package_Specification (N));
-      Generate (Package_Implementation (N));
+      if Generate_Specs then
+         Generate (Package_Specification (N));
+      end if;
+      if Generate_Bodies then
+         Generate (Package_Implementation (N));
+      end if;
    end Generate_Package_Declaration;
 
    -------------------------------------
@@ -584,6 +589,9 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Package_Implementation (N : Node_Id) is
       P : Node_Id;
    begin
+      if not Is_Generated (N) then
+         return;
+      end if;
       P := First_Node (Withed_Packages (N));
       while Present (P) loop
          Write_Indentation;
@@ -629,6 +637,9 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Package_Specification (N : Node_Id) is
       P : Node_Id;
    begin
+      if not Is_Generated (N) then
+         return;
+      end if;
       P := First_Node (Withed_Packages (N));
       while Present (P) loop
          Write_Indentation;
@@ -660,7 +671,7 @@ package body Backend.BE_Ada.Generator is
       if not Is_Empty (Private_Part (N)) then
          Write_Indentation;
          Write (Tok_Private);
-         Write_Space;
+         Write_Eol;
 
          Increment_Indentation;
          P := First_Node (Private_Part (N));

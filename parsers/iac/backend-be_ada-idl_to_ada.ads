@@ -22,6 +22,11 @@ package Backend.BE_Ada.IDL_To_Ada is
      (N : Node_Id)
      return Boolean;
 
+   function Is_N_Parent_Of_M
+     (N : Node_Id;
+      M : Node_Id)
+     return Boolean;
+
    function Map_Accessor_Declaration
      (Accessor  : Character;
       Attribute : Node_Id)
@@ -37,7 +42,8 @@ package Backend.BE_Ada.IDL_To_Ada is
      return Node_Id;
 
    function Map_Designator
-     (Entity : Node_Id)
+     (Entity   : Node_Id;
+      Witheded : Boolean := True)
      return Node_Id;
 
    function Map_Fully_Qualified_Identifier

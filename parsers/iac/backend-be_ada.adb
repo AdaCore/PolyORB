@@ -25,7 +25,7 @@ package body Backend.BE_Ada is
    Print_IDL_Tree : Boolean := False;
    Build_Impls    : constant Boolean := False;
 
-   package BE renames Backend.BE_Ada.Nodes;
+   package BEN renames Backend.BE_Ada.Nodes;
 
    procedure Initialize;
 
@@ -39,18 +39,26 @@ package body Backend.BE_Ada is
    procedure Configure is
    begin
       loop
-         case Getopt ("t i l:") is
+         case Getopt ("t i l h b :") is
             when ASCII.NUL =>
                exit;
 
-            when 't' =>
-               Print_Ada_Tree := True;
+            when 'b' =>
+               Generate_Bodies := True;
+               Generate_Specs := False;
+
+            when 'h' =>
+               Generate_Specs := True;
+               Generate_Bodies := False;
+
+            when 'i' =>
+               Print_IDL_Tree := True;
 
             when 'l' =>
                Var_Name_Len := Natural'Value (Parameter);
 
-            when 'i' =>
-               Print_IDL_Tree := True;
+            when 't' =>
+               Print_Ada_Tree := True;
 
             when others =>
                raise Program_Error;
@@ -71,9 +79,9 @@ package body Backend.BE_Ada is
       end if;
 
       if Print_Ada_Tree then
-         W_Node_Id (BE.Stub_Node (BE_Node (Identifier (E))));
+         W_Node_Id (BEN.Stub_Node (BE_Node (Identifier (E))));
       else
-         Generator.Generate (BE.Stub_Node (BE_Node (Identifier (E))));
+         Generator.Generate (BEN.Stub_Node (BE_Node (Identifier (E))));
       end if;
    end Generate;
 
@@ -97,6 +105,9 @@ package body Backend.BE_Ada is
       Hdr : constant String (1 .. Indent - 1) := (others => ' ');
    begin
       Write_Str (Hdr);
+      Write_Str ("-b       Generate only bodies");
+      Write_Str ("-h       Generate only headers");
+      Write_Str ("-i       Generate Implementation files");
       Write_Str ("-t       Dump Ada tree");
       Write_Eol;
    end Usage;
@@ -109,10 +120,10 @@ package body Backend.BE_Ada is
    begin
       Set_Main_Spec;
       Stubs.Package_Spec.Visit (E);
-      Set_Main_Body;
-      Stubs.Package_Body.Visit (E);
       Set_Helper_Spec;
       Helpers.Package_Spec.Visit (E);
+      Set_Main_Body;
+      Stubs.Package_Body.Visit (E);
       Set_Helper_Body;
       Helpers.Package_Body.Visit (E);
       if Build_Impls then
