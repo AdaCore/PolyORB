@@ -47,5 +47,6 @@ depend-local-local: all
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
 polyorb-binding_data-iiop.lo:polyorb-binding_data-iiop.adb polyorb-binding_data-iiop.ads ./../polyorb-giop_p.ads ./../polyorb-giop_p-tagged_components.ads ./../polyorb-protocols-giop.ads 
+polyorb-setup-giop.lo:./../polyorb-protocols-giop.ads ./../polyorb-protocols-giop-common.ads ./../polyorb-protocols-giop-giop_1_0.ads ./../polyorb-protocols-giop-giop_1_1.ads ./../polyorb-protocols-giop-giop_1_2.ads 
 polyorb-setup-iiop.lo:./../polyorb-protocols-giop.ads ./../polyorb-protocols-giop-common.ads ./../polyorb-protocols-giop-giop_1_0.ads ./../polyorb-protocols-giop-giop_1_1.ads ./../polyorb-protocols-giop-giop_1_2.ads polyorb-setup-iiop.adb polyorb-setup-iiop.ads 
 polyorb-setup-tcp_access_points-iiop.lo:polyorb-binding_data-iiop.ads ./../polyorb-giop_p.ads ./../polyorb-giop_p-tagged_components.ads ./../polyorb-protocols-giop.ads polyorb-setup-tcp_access_points-iiop.adb polyorb-setup-tcp_access_points-iiop.ads 
