@@ -685,7 +685,7 @@ package body Backend.BE_IDL is
 
    procedure Generate_Parameter_Declaration (E : Node_Id) is
    begin
-      Write (Token_Type'Val (Parameter_Mode (E)));
+      Write (Parameter_Mode (Parameter_Mode (E)));
       Write_Space;
       Generate (Type_Spec (E));
       Write_Space;

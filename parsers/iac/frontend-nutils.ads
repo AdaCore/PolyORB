@@ -45,6 +45,7 @@ package Frontend.Nutils is
    procedure Set_Operator (E : Node_Id; O : Operator_Type);
 
    function Parameter_Mode (T : Token_Type) return Mode_Id;
+   function Parameter_Mode (M : Mode_Id) return Token_Type;
 
    function Make_Scoped_Name
      (Loc        : Location;

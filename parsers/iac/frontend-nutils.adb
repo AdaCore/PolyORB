@@ -406,6 +406,15 @@ package body Frontend.Nutils is
       return Token_Type'Pos (T) - Token_Type'Pos (T_In);
    end Parameter_Mode;
 
+   --------------------
+   -- Parameter_Mode --
+   --------------------
+
+   function Parameter_Mode (M : Mode_Id) return Token_Type is
+   begin
+      return Token_Type'Val (M + Token_Type'Pos (T_In));
+   end Parameter_Mode;
+
    ---------------------------
    -- Remove_Node_From_List --
    ---------------------------
