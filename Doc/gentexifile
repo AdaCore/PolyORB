@@ -1,0 +1,26 @@
+#!/bin/sh
+if [ $# != 2 ]; then
+  echo "Usage: $0 <file to translate>"
+  exit 0
+fi
+
+SOURCE=$1
+TARGET=${SOURCE}.texi
+case ${SOURCE} in
+  *.idl)
+    SEDFILE=idl.sed;;
+  *.cfg)
+    SEDFILE=cfg.sed;;
+  *.adb)
+    SEDFILE=ada.sed;;
+  *.ads)
+    SEDFILE=ada.sed;;
+  *)
+    echo "Cannot translate file";
+    exit 1;;
+esac
+echo "@smallexample"         >${TARGET}
+echo ""                     >>${TARGET}
+sed -f ${SEDFILE} ${SOURCE} >>${TARGET}
+echo ""                     >>${TARGET}
+echo "@end smallexample"    >>${TARGET}

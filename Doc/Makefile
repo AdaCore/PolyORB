@@ -1,17 +1,18 @@
 CP = /bin/cp
 SED = sed
-A2PSFLAGS = -1 -B --border=no --font-size=9
 
-CONFIGS=\
-myconfig.cfg\
+CFGFILES=\
+myconfig.cfg
+
+IDLFILES=\
 naming.idl
 
-IMAGES=\
+FIGFILES=\
 xe-arch.fig\
 full-ex.fig\
 corba-arch.fig
 
-SOURCES=\
+ADAFILES=\
 rcibank.ads\
 terminal.ads\
 types.ads\
@@ -53,112 +54,63 @@ rciinstantiation.ads\
 rciclient.adb\
 normalinstantiation.ads
 
+TEXIFILES = $(ADAFILES:=.texi) $(CFGFILES:=.texi) $(IDLFILES:=.texi)
+
+JPEGFILES = $(FIGFILES:=.jpeg)
+PDFFILES  = $(FIGFILES:=.pdf)
+EPSFILES  = $(FIGFILES:=.eps)
+
 GUIDE=glade_ug
 
-GRAPHS=$(SOURCES) $(CONFIGS) $(IMAGES)
+GRAPHS=$(CONFIGS) $(IMAGES)
 
-default:
-	$(MAKE) $(GUIDE).ps $(GUIDE).info
+default: $(GUIDE).ps
 
-all:
-	$(MAKE) $(GUIDE).ps $(GUIDE).info $(GUIDE).html $(GUIDE).pdf
+all: $(GUIDE).ps $(GUIDE).info $(GUIDE).html $(GUIDE).pdf
 
-ps: $(GUIDE).ps
+$(GUIDE).html: $(GUIDE).texi $(JPEGFILES)
+	texi2html -menu -monolithic $(GUIDE).texi
 
-info: $(GUIDE).info
-
-html: $(GUIDE).html
-
-pdf: $(GUIDE).pdf
-
-txtfiles: ${SOURCES} ${CONFIGS}
-	make `echo $(SOURCES) $(CONFIGS) | sed 's,\([^ ][^ ]*\),\1.txt,g'`
-	touch txtfiles
-
-jpegfiles: epsfiles
-	make `echo $(GRAPHS) | sed 's,\([^ ][^ ]*\),\1.jpeg,g'`
-	touch jpegfiles
-
-epsfiles: ${GRAPHS}
-	make `echo $(GRAPHS) | sed 's,\([^ ][^ ]*\),\1.eps,g'`
-	touch epsfiles
-
-pdffiles: epsfiles
-	make `echo $(GRAPHS) | sed 's,\([^ ][^ ]*\),\1.pdf,g'`
-	touch pdffiles
-
-allfiles: txtfiles epsfiles jpegfiles
-
-$(GUIDE).html: $(GUIDE).texi jpegfiles
-	makeinfo --html $(GUIDE).texi
-
-$(GUIDE).info: $(GUIDE).texi txtfiles
-	makeinfo $<
+$(GUIDE).info: $(GUIDE).texi
+	makeinfo $(GUIDE).texi
 
 $(GUIDE).ps: $(GUIDE).dvi
 	dvips -o $(GUIDE).ps $(GUIDE).dvi
 
-$(GUIDE).dvi: $(GUIDE).texi epsfiles txtfiles
+$(GUIDE).dvi: $(GUIDE).texi $(TEXIFILES) $(EPSFILES)
 	texi2dvi $(GUIDE).texi
 
-$(GUIDE).pdf: $(GUIDE).texi pdffiles
+$(GUIDE).pdf: $(GUIDE).texi $(PDFFILES)
 	texi2pdf $(GUIDE).texi
 
-${SOURCES}: all-srcs.ada
-	gnatchop -w $<
+$(ADAFILES): all-srcs.ada
+	gnatchop -w all-srcs.ada
 
-%.pdf: %.eps
-	epstopdf $<
+%.cfg.texi: %.cfg cfg.sed
+	@gentexifile $< $@
 
-%.ads.txt: %.ads
-	${CP} -f $< $@
+%.idl.texi: %.idl idl.sed
+	@gentexifile $< $@
 
-%.adb.txt: %.adb
-	${CP} -f $< $@
+%.ads.texi: %.ads ada.sed
+	@gentexifile $< $@
 
-%.cfg.txt: %.cfg
-	${CP} -f $< $@
+%.adb.texi: %.adb ada.sed
+	@gentexifile $< $@
 
-%.idl.txt: %.idl
-	${CP} -f $< $@
+%.fig.eps: %.fig
+	fig2dev -L ps $< $@
 
-%.cfg.eps: %.cfg
-	a2ps $(A2PSFLAGS) -Eada --line-numbers=1 $< -o $<.tmp.ps
-	ps2epsi $<.tmp.ps $@
-	./adjustbb $@
-	${RM} $<.tmp.ps
-
-%.ads.eps: %.ads
-	a2ps $(A2PSFLAGS) -Eada $< -o $<.tmp.ps
-	ps2epsi $<.tmp.ps $@
-	./adjustbb $@
-	${RM} $<.tmp.ps
-
-%.adb.eps: %.adb
-	a2ps $(A2PSFLAGS) -Eada $< -o $<.tmp.ps
-	ps2epsi $<.tmp.ps $@
-	./adjustbb $@
-	${RM} $<.tmp.ps
-
-%.idl.eps: %.idl
-	a2ps $(A2PSFLAGS) -Ecorba.ssh $< -o $<.tmp.ps
-	ps2epsi $<.tmp.ps $@
-	./adjustbb $@
-	${RM} $<.tmp.ps
-
-%.ads.jpeg: %.ads.eps
-	convert $< $@
-
-%.adb.jpeg: %.adb.eps
+%.pdf: %.pdf
 	convert $< $@
 
 %.jpeg:	%.eps
 	convert $< $@
 
-%.fig.eps: %.fig
-	fig2dev -L ps $< $@
+%.sed: %.kw
+	@gensedfile $< $@
 
 clean:
-	rm -f *.aux *.log *.ads *.adb *.dvi *.ps *.eps *.ad?.txt *.html *.pdf
-	rm -f *.jpeg *.cp *.info *.pg *.toc *.vr *.fn *.ky *.tp *~ *.idl.txt
-	rm -f txtfiles epsfiles jpegfiles pdffiles
+	rm -f *.aux *.log *.ads *.adb *.dvi *.ps *.eps *.html *.pdf
+	rm -f *.jpeg *.cp *.info *.pg *.toc *.vr *.fn *.ky *.tp *~
+	rm -f *.*.texi

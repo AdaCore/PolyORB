@@ -100,6 +100,15 @@ some form of message-passing abstraction.
 @node Using OS Network Services, Using a Middleware Environment, Introduction to Distributed Systems, Introduction to Distributed Systems
 @section Using OS Network Services
 
+@example
+@b{procedure} P @b{is}
+   V : Integer;
+@b{begin}
+   V := V + 1;
+@b{end} P;
+@end example
+
+
 There are several programming techniques for developing distributed
 applications. These applications have traditionally been developed using
 network programming interfaces such as sockets. Programmers explicitly
@@ -429,9 +438,9 @@ client will use the stub files of unit RCIBank. On the receiver side,
 the bank receiver will use the skeleton files of unit RCIBank including
 the body of this package.
 
-@image{types.ads}
-@image{rcibank.ads}
-@image{rciclient.adb}
+@include types.ads.texi
+@include rcibank.ads.texi
+@include rciclient.adb.texi
 
 @node Remote Access To Subprograms (RAS), Remote Access To Class Wide Types (RACW), Regular Remote Subprograms (RCI), Pragma Remote_Call_Interface
 @subsection Remote Access to Subprograms (RAS)
@@ -447,19 +456,19 @@ class wide type.
 Note that to get a remote access to subprogram the subprogram has to be
 remote itself. Therefore, MirrorBank is a RCI library unit.
 
-@image{rasbank.ads}
+@include rasbank.ads.texi
 
 In the code below, a mirroring bank registers its services to the
 central bank.
 
-@image{mirrorbank.ads}
-@image{mirrorbank.adb}
+@include mirrorbank.ads.texi
+@include mirrorbank.adb.texi
 
 In the code below, a central bank client asks for a mirroring bank and
 calls the Balance service of this bank by dereferencing a remote access
 type.
 
-@image{bankclient.adb}
+@include bankclient.adb.texi
 
 
 @node Remote Access To Class Wide Types (RACW), Summary on Pragma Remote_Call_Interface, Remote Access To Subprograms (RAS), Pragma Remote_Call_Interface
@@ -469,7 +478,7 @@ A bank client is now connected to a bank through a terminal. The bank
 wants to notify a connected client with a message on its terminal when
 another client grants him with a given amount of money.
 
-@image{terminal.ads}
+@include terminal.ads.texi
 
 In the code below, the RCI unit RACWBank defines Term_Access, a remote
 access to class wide type. Term_Access becomes a reference to a
@@ -477,7 +486,7 @@ distributed object. In the next section, we will see how to derive
 Term_Type, how to create a distributed object and how to use a reference
 to it.
 
-@image{racwbank.ads}
+@include racwbank.ads.texi
 
 @node Summary on Pragma Remote_Call_Interface,  , Remote Access To Class Wide Types (RACW), Pragma Remote_Call_Interface
 @subsection Summary on Pragma Remote_Call_Interface
@@ -535,18 +544,18 @@ possible in a remote types unit, NewTerminal. Any object of type
 New_Term_Type becomes a distributed object and any reference to such an
 object becomes a fat pointer or a reference to a distributed object.
 
-@image{newterminal.ads}
+@include newterminal.ads.texi
 
 In the code below, a client registers his terminal to
 RACWBank. Therefore, when any donator grants him with a given amount of
 money, RACWBank is able to notify this client of the granting operation.
 
-@image{term2client.adb}
+@include term2client.adb.texi
 
 In the code below, a second client, the donator, registers his terminal
 to the bank and executes a transfer to the first client.
 
-@image{term1client.adb}
+@include term1client.adb.texi
 
 In the code below, we describe the general design of Transfer. Classical
 operations of Withdraw and Deposit are performed. Then, RACWBank
@@ -555,12 +564,12 @@ operation by dereferencing a distributed object Term. The reference is
 analyzed and the execution of this operation occurs on the partition to
 which the distributed object belongs.
 
-@image{racwbank.adb}
+@include racwbank.adb.texi
 
 @node Transmitting Dynamic Structure, Summary on Remote Types Units, Distributed Object, Pragma Remote_Types
 @subsection Transmitting Dynamic Structure
 
-@image{stringarraystream.ads}
+@include stringarraystream.ads.texi
 
 General access types are forbidden in public part of a remote types
 unit. But this would be too restrictive. It is possible to define
@@ -571,7 +580,7 @@ linked structure.
 The code below provides an implementation of the marshalling operations
 defined above:
 
-@image{stringarraystream.adb}
+@include stringarraystream.adb.texi
 
 
 @node Summary on Remote Types Units,  , Transmitting Dynamic Structure, Pragma Remote_Types
@@ -626,7 +635,7 @@ objects. Internal_Synchronization provides a way to get an atomic
 operation on shared objects. Note that only entry-less subprograms are
 allowed in a shared passive unit.
 
-@image{sharedobjects.ads}
+@include sharedobjects.ads.texi
 
 @node Summary on Pragma Shared_Passive,  , Overview of Pragma Shared_Passive, Pragma Shared_Passive
 @subsection Summary on Pragma Shared_Passive
@@ -680,16 +689,16 @@ time or they fail with an exception.  Any exception raised in a remote
 method or subprogram call is propagated back to the caller. Exceptions
 semantics are preserved in the regular Ada way.
 
-@image{internal.ads}
-@image{rempkg2.ads}
-@image{rempkg1.ads}
+@include internal.ads.texi
+@include rempkg2.ads.texi
+@include rempkg1.ads.texi
 
 Let us say that RemPkg2, Internal and RemExcMain packages are on the same
 partition Partition_1 and that RemPkg1 is on partition Partition_2.
 
-@image{rempkg2.adb}
-@image{rempkg1.adb}
-@image{remexcmain.adb}
+@include rempkg2.adb.texi
+@include rempkg1.adb.texi
+@include remexcmain.adb.texi
 
 When RemPkg1.Subprogram on Partition_1 raises Internal.Exc, this
 exception is propagated back to Partition_2. As Internal.Exc is not defined
@@ -718,8 +727,8 @@ parameters, any call to this subprogram will be executed
 asynchronously. Declaration of AsynchronousRCI.Asynchronous gives an
 example.
 
-@image{asynchronousrci.ads}
-@image{asynchronousrt.ads}
+@include asynchronousrci.ads.texi
+@include asynchronousrt.ads.texi
 
 @c XXXXX Check this
 A pragma Asynchronous applies to a RAS. An asynchronous RAS can be both
@@ -732,7 +741,7 @@ invocation of @b{any} method with in parameters is @b{always} performed
 asynchronously. Remote method invocation (3) is asynchronous when remote
 method invocation (4) is synchronous.
 
-@image{asynchronousmain.adb}
+@include asynchronousmain.adb.texi
 
 This feature allows message passing programming. But the user has to
 realize that message passing programming, and asynchronous remote calls
@@ -756,11 +765,11 @@ Introduce potential race conditions
 
 To illustrate the latter, let us take the following example:
 
-@image{node2.ads}
-@image{node2.adb}
-@image{node1.ads}
-@image{node1.adb}
-@image{nondeterministic.adb}
+@include node2.ads.texi
+@include node2.adb.texi
+@include node1.ads.texi
+@include node1.adb.texi
+@include nondeterministic.adb.texi
 
 Let us say that Main is configured on Partition_0, Node1 on Partition_1
 and Node2 on Partition_2. If Node1.Send and Node2.Send procedures were
@@ -788,9 +797,9 @@ situation that is very close to the distributed one.
 @node Generic Categorized Units  , Categorization Unit Dependencies, Pragma All_Calls_Remote, More About Categorization Pragmas
 @subsection Generic Categorized Units  
 
-@image{genericrci.ads}
-@image{rciinstantiation.ads}
-@image{normalinstantiation.ads}
+@include genericrci.ads.texi
+@include rciinstantiation.ads.texi
+@include normalinstantiation.ads.texi
 
 Any of these categorized units can be generic. Instances of these
 generic packages can be either categorized or not. In the latter, such a
@@ -819,21 +828,21 @@ result (reply - 3) in a storage common to all the factories.  The
 worker notifies the factory of the end of his job (notify - 4).
 
 @image{full-ex.fig}
-@image{storage.ads}
+@include storage.ads.texi
 
 When a worker has achieved his job, the result should be saved in a
 common storage. To do this, we define a protected area in SP package
 Storage (see sample above). Two entry-less protected objects
 ensure atomic access on this area.
 
-@image{common.ads}
+@include common.ads.texi
 
 Types is a Remote_Types package that defines most of the remote services
 of the above system (see sample above). First, we define a way for the
 workers to notify the end of his job.  This callback mechanism is
 implemented using RAS Notify.
 
-@image{newworkers.ads}
+@include newworkers.ads.texi
 
 We define an abstract tagged type Worker which is intended to be the
 root type of the whole distributed objects hierarchy. Assign allows a
@@ -842,7 +851,7 @@ the end of this job. Any_Worker is a remote access to class wide type
 (RACW). In other words, it is a reference to a distributed object of any
 derived type from Worker class.
 
-@image{newnewworkers.ads}
+@include newnewworkers.ads.texi
 
 NewWorker is derived from type Worker and Assign is overridden. Sample
 above shows how to derive a second generation of workers NewNewWorker
@@ -850,15 +859,15 @@ from the first generation NewWorker. As mentioned above, this RT package
 can be duplicate on several partitions to produce several types of
 workers and also several remote workers.
 
-@image{workercity.ads}
+@include workercity.ads.texi
 
 In sample above, we define an unique place where workers wait for
 jobs. Workers is a Remote_Call_Interface package with services to hire
 and free workers. Unlike Remote_Types packages, Remote_Call_Interface
 packages cannot be duplicated.
 
-@image{workercity.ads}
-@image{newfactory.ads}
+@include workercity.ads.texi
+@include newfactory.ads.texi
 
 In order to use even more DSA features, Factory is defined as a generic
 RCI package (see sample above). Any instantiation defines a new factory
@@ -1257,7 +1266,7 @@ pragma Version (True | False);
 Every keyword and construct defined in the configuration language have
 been used in the following sample configuration file.
 
-@image{myconfig.cfg}
+@include myconfig.cfg.texi
 
 @enumerate
 
@@ -1770,7 +1779,7 @@ Object (which is derived from an implementation defined private tagged
 type Object) in a package named Impl, which is a child package of a
 package named after the interface name (<@i{interface}>.Impl).
 
-@image{naming.idl}
+@include naming.idl.texi
 
 A method is defined by a unique name (no overloading is allowed) and its
 signature (the types of its formal parameters). Each parameter can be of

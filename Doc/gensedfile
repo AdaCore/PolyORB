@@ -1,0 +1,26 @@
+#!/bin/sh
+if [ $# != 2 ]; then
+  echo "Usage: $0 <keyword file> <keyword substitution file>"
+  exit 0
+fi
+SOURCE=$1
+TARGET=$2
+/bin/rm -f ${TARGET}
+case ${SOURCE} in
+  idl*)
+    cat <<EOF >>${TARGET}
+s/\{/\@\{/g
+s/\}/\@\}/g
+EOF
+    ;;
+  *)
+    ;;
+esac
+for k in `cat ${SOURCE}`; do
+   cat <<EOF >>${TARGET}
+s/\([^\{\}a-zA-Z0-9_]\)${k}\([^\{\}a-zA-Z0-9_]\)/\1\@b\{${k}\}\2/g
+s/^${k}\([^\{\}a-zA-Z0-9_]\)/\@b\{${k}\}\1/g
+s/\([^\{\}a-zA-Z0-9_]\)${k}$/\1\@b\{${k}\}/g
+s/^${k}$/\@b\{${k}\}/g
+EOF
+done
