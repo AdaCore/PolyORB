@@ -462,6 +462,13 @@ package body XE_Stubs is
          Dwrite_Call (FD, 2, "Set_Boot_Server", To_String (Name_Find));
       end if;
 
+      --  If we have no Ada starter (None or Shell), then it is equivalent
+      --  to having --nolaunch on the command line.
+
+      if Default_Starter /= Ada_Import then
+         Dwrite_Call (FD, 2, "Set_Nolaunch", No_Name, "True");
+      end if;
+
       --  Do we want to control the number of anonymous tasks
       Task_Pool := Get_Task_Pool (PID);
       if Task_Pool /= No_Task_Pool then
