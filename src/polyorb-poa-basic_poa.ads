@@ -79,10 +79,11 @@ package PolyORB.POA.Basic_POA is
       Oid   :    out Object_Id_Access;
       Error : in out PolyORB.Exceptions.Error_Container);
 
-   function Proxy_To_Ref
-     (OA  : access Basic_Obj_Adapter;
-      Oid : access Objects.Object_Id)
-     return References.Ref;
+   procedure Proxy_To_Ref
+     (OA    : access Basic_Obj_Adapter;
+      Oid   : access Objects.Object_Id;
+      Ref   : out References.Ref;
+      Error : in out PolyORB.Exceptions.Error_Container);
 
 private
 

@@ -102,20 +102,26 @@ package body PolyORB.POA.Basic_POA is
       end if;
 
       declare
-         U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Oid);
+         U_Oid : Unmarshalled_Oid;
 
          Obj_OA : Obj_Adapter_Access;
          Error  : PolyORB.Exceptions.Error_Container;
 
       begin
+         Oid_To_U_Oid (Oid.all, U_Oid, Error);
+         if Found (Error) then
+            Catch (Error);
+            return False;
+         end if;
+
          Find_POA (OA,
                    To_Standard_String (U_Oid.Creator),
                    False,
                    Obj_OA,
                    Error);
-
          if Found (Error) then
             Catch (Error);
+            return False;
          end if;
 
          return Basic_Obj_Adapter_Access (Obj_OA) = OA.Proxies_OA;
@@ -171,29 +177,36 @@ package body PolyORB.POA.Basic_POA is
    -- Proxy_To_Ref --
    ------------------
 
-   function Proxy_To_Ref
-     (OA  : access Basic_Obj_Adapter;
-      Oid : access Objects.Object_Id)
-     return References.Ref
+   procedure Proxy_To_Ref
+     (OA    : access Basic_Obj_Adapter;
+      Oid   : access Objects.Object_Id;
+      Ref   : out References.Ref;
+      Error : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (OA);
       pragma Warnings (On);
 
-      Oid_Data : aliased Object_Id := Objects.To_Oid
-        (To_Standard_String (Oid_To_U_Oid (Oid).Id));
-
-      type SEA_Access is access all Ada.Streams.Stream_Element_Array;
-
-      function As_SEA_Access is new Ada.Unchecked_Conversion
-        (Object_Id_Access, SEA_Access);
+      U_Oid : Unmarshalled_Oid;
 
    begin
-      pragma Debug (O ("PTR: Oid data length:"
-                       & Integer'Image (Oid_Data'Length)));
+      Oid_To_U_Oid (Oid.all, U_Oid, Error);
+      if Found (Error) then
+         return;
+      end if;
 
-      return References.IOR.Opaque_To_Object
-        (As_SEA_Access (Oid_Data'Unchecked_Access));
+      declare
+         Oid_Data : aliased Object_Id :=
+                      Objects.To_Oid (To_Standard_String (U_Oid.Id));
+         type SEA_Access is access all Ada.Streams.Stream_Element_Array;
+         function As_SEA_Access is new Ada.Unchecked_Conversion
+           (Object_Id_Access, SEA_Access);
+      begin
+         pragma Debug (O ("PTR: Oid data length:"
+                          & Integer'Image (Oid_Data'Length)));
+         Ref := References.IOR.Opaque_To_Object
+           (As_SEA_Access (Oid_Data'Unchecked_Access));
+      end;
    end Proxy_To_Ref;
 
 end PolyORB.POA.Basic_POA;

@@ -213,18 +213,20 @@ package body PolyORB.References.Binding is
 
             begin
                declare
-                  Continuation : constant PolyORB.References.Ref
-                    := Proxy_To_Ref (OA, Object_Id);
+                  Continuation : PolyORB.References.Ref;
                begin
+                  Proxy_To_Ref (OA, Object_Id, Continuation, Error);
+                  if Found (Error) then
+                     return;
+                  end if;
                   if not Is_Nil (Continuation) then
                      Binding_Data.Set_Continuation
                        (Selected_Profile,
                         Smart_Pointers.Ref (Continuation));
-                     --  This is necessary in order to prevent the
-                     --  profiles in Continuation (a ref to the
-                     --  actual object) from being finalised before
-                     --  Selected_Profile (a local profile with a
-                     --  proxy oid) is finalized itself.
+                     --  This is necessary in order to prevent the profiles in
+                     --  Continuation (a ref to the actual object) from being
+                     --  finalised before Selected_Profile (a local profile
+                     --  with proxy oid) is finalized itself.
                      pragma Debug (O ("Bind: recursing on proxy ref"));
                      Bind (Continuation,
                            Local_ORB,
@@ -232,7 +234,6 @@ package body PolyORB.References.Binding is
                            Pro,
                            Local_Only,
                            Error);
-
                      if Found (Error) then
                         return;
                      end if;

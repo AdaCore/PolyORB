@@ -127,28 +127,34 @@ package body PolyORB.Obj_Adapters is
       Oid   :    out Objects.Object_Id_Access;
       Error : in out PolyORB.Exceptions.Error_Container)
    is
+      use PolyORB.Exceptions;
       pragma Warnings (Off);
-      pragma Unreferenced (OA, R, Oid, Error);
+      pragma Unreferenced (OA, R, Oid);
       pragma Warnings (On);
    begin
-      raise Not_Implemented;
+      Throw (Error, No_Implement_E,
+             System_Exception_Members'
+               (Minor => 0, Completed => Completed_Maybe));
    end To_Proxy_Oid;
 
    ------------------
    -- Proxy_To_Ref --
    ------------------
 
-   function Proxy_To_Ref
-     (OA  : access Obj_Adapter;
-      Oid : access Objects.Object_Id)
-     return References.Ref
+   procedure Proxy_To_Ref
+     (OA    : access Obj_Adapter;
+      Oid   : access Objects.Object_Id;
+      Ref   : out References.Ref;
+      Error : in out PolyORB.Exceptions.Error_Container)
    is
-   begin
-      raise Not_Implemented;
-
+      use PolyORB.Exceptions;
       pragma Warnings (Off);
-      return Proxy_To_Ref (OA, Oid);
+      pragma Unreferenced (OA, Ref, Oid);
       pragma Warnings (On);
+   begin
+      Throw (Error, No_Implement_E,
+             System_Exception_Members'
+               (Minor => 0, Completed => Completed_Maybe));
    end Proxy_To_Ref;
 
    ----------------

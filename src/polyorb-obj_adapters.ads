@@ -49,20 +49,19 @@ with PolyORB.Types;
 
 package PolyORB.Obj_Adapters is
 
-   type Obj_Adapter is abstract new Smart_Pointers.Entity
-     with private;
+   type Obj_Adapter is abstract new Smart_Pointers.Entity with private;
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
 
    procedure Create (OA : access Obj_Adapter) is abstract;
-   --  Initialize.
+   --  Initialize OA
 
    procedure Destroy (OA : access Obj_Adapter);
-   --  Finalize.
+   --  Finalize OA
 
    procedure Set_ORB
      (OA      : access Obj_Adapter;
       The_ORB :        Components.Component_Access);
-   --  Set the ORB whose OA is attached to.
+   --  Set the ORB whose OA is attached to
 
    --------------------------------------
    -- Interface to application objects --
@@ -75,18 +74,17 @@ package PolyORB.Obj_Adapters is
       Oid   :    out Objects.Object_Id_Access;
       Error : in out PolyORB.Exceptions.Error_Container)
       is abstract;
-   --  Create an identifier for Obj within OA. If Key is
-   --  not null, use it as an application-level identifier
-   --  for the object (which will be used to construct the
-   --  local identifier).
+   --  Create an identifier for Obj within OA. If Key is not null, use it as an
+   --  application-level identifier for the object (which will be used to
+   --  construct the local identifier).
 
    procedure Unexport
      (OA    : access Obj_Adapter;
       Id    :        Objects.Object_Id_Access;
       Error : in out PolyORB.Exceptions.Error_Container)
       is abstract;
-   --  Id is an object identifier attributed by OA.
-   --  The corresponding association is suppressed.
+   --  Id is an object identifier attributed by OA. The corresponding
+   --  association is suppressed.
 
    procedure Object_Key
      (OA      : access Obj_Adapter;
@@ -94,8 +92,8 @@ package PolyORB.Obj_Adapters is
       User_Id :    out Objects.Object_Id_Access;
       Error   : in out PolyORB.Exceptions.Error_Container)
       is abstract;
-   --  If Id is user defined associated with Id, return user
-   --  identifier component of Id,  else raise an error.
+   --  If Id is user defined associated with Id, return user identifier
+   --  component of Id, else raise an error.
 
    ----------------------------------------------------
    -- Interface to ORB (acting on behalf of clients) --
@@ -107,8 +105,8 @@ package PolyORB.Obj_Adapters is
       Method : String)
       return Any.NVList.Ref
       is abstract;
-   --  Return the parameter profile of the given method, so the
-   --  protocol layer can unmarshall the message into a Request object.
+   --  Return the parameter profile of the given method, so the protocol layer
+   --  can unmarshall the message into a Request object.
 
    function Get_Empty_Result
      (OA     : access Obj_Adapter;
@@ -116,7 +114,7 @@ package PolyORB.Obj_Adapters is
       Method : String)
       return Any.Any
       is abstract;
-   --  Return the result profile of the given method.
+   --  Return the result profile of the given method
 
    procedure Find_Servant
      (OA      : access Obj_Adapter;
@@ -124,18 +122,17 @@ package PolyORB.Obj_Adapters is
       Servant :    out Servants.Servant_Access;
       Error   : in out PolyORB.Exceptions.Error_Container)
       is abstract;
-   --  Retrieve the servant managed by OA for logical object Id.
-   --  The servant that incarnates the object is returned.
+   --  Retrieve the servant managed by OA for logical object Id. The servant
+   --  that incarnates the object is returned.
 
    procedure Release_Servant
      (OA      : access Obj_Adapter;
       Id      : access Objects.Object_Id;
       Servant : in out Servants.Servant_Access)
       is abstract;
-   --  Signal to OA that a Servant previously obtained using
-   --  Find_Servant won't be used by the client anymore. This
-   --  may cause the servant to be destroyed if so is OA's
-   --  policy.
+   --  Signal to OA that a Servant previously obtained using Find_Servant won't
+   --  be used by the client anymore. This may cause the servant to be
+   --  destroyed if so is OA's policy.
 
    ----------------------------------
    -- Export of object identifiers --
@@ -151,40 +148,41 @@ package PolyORB.Obj_Adapters is
       URI : Types.String)
      return Objects.Object_Id_Access;
 
-   --  Convert an object id from/to its representation as
-   --  a relative URI. A default implementation of these
-   --  functions is provided; actual object adapters may
-   --  overload them if desired.
+   --  Convert an object id from/to its representation as a relative URI. A
+   --  default implementation of these functions is provided; actual object
+   --  adapters may overload them if desired.
 
    --------------------------------
    -- Proxy namespace management --
    --------------------------------
 
-   --  The object id name space is managed entirely by the
-   --  object adapter. Consequently, the OA is also responsible
-   --  for assigning object IDs to virtual proxy objects
-   --  corresponding to object references for which we act as
-   --  a proxy.
+   --  The object id name space is managed entirely by the object adapter.
+   --  Consequently, the OA is also responsible for assigning object IDs to
+   --  virtual proxy objects corresponding to object references for which we
+   --  act as a proxy.
 
    function Is_Proxy_Oid
      (OA  : access Obj_Adapter;
       Oid : access Objects.Object_Id)
      return Boolean;
+   --  Determine whether Oid is the identifier for a proxy object. Always
+   --  False if OA does not support proxy objects.
 
    procedure To_Proxy_Oid
      (OA    : access Obj_Adapter;
-      R     :        References.Ref;
-      Oid   :    out Objects.Object_Id_Access;
+      R     : References.Ref;
+      Oid   : out Objects.Object_Id_Access;
       Error : in out PolyORB.Exceptions.Error_Container);
+   --  Create a proxy oid for reference R. No_Implement_E is thrown if OA
+   --  does not support proxy objects.
 
-   function Proxy_To_Ref
-     (OA  : access Obj_Adapter;
-      Oid : access Objects.Object_Id)
-     return References.Ref;
-
-   --  These operations may be left unimplemented by some object
-   --  adapter types, in which case the above two operations
-   --  shall raise PolyORB.Not_Implemented.
+   procedure Proxy_To_Ref
+     (OA    : access Obj_Adapter;
+      Oid   : access Objects.Object_Id;
+      Ref   : out References.Ref;
+      Error : in out PolyORB.Exceptions.Error_Container);
+   --  Retrieve the reference for which Oid is a proxy oid into Ref.
+   --   No_Implement_E is thrown if OA does not support proxy objects.
 
    ----------------------------
    -- Annotations management --
@@ -199,12 +197,12 @@ private
    type Obj_Adapter is abstract new Smart_Pointers.Entity with
       record
          ORB     : Components.Component_Access;
-         --  The ORB the OA is attached to. Needs to be cast into an
-         --  ORB_Access when used.
+         --  The ORB the OA is attached to. Needs to be cast into an ORB_Access
+         --  when used.
 
          Notepad : aliased Annotations.Notepad;
-         --  OA's notepad. The user must ensure there is no race
-         --  condition when accessing it.
+         --  OA's notepad. The user must ensure there is no race condition when
+         --  accessing it.
       end record;
 
 end PolyORB.Obj_Adapters;
