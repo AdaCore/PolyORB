@@ -1073,7 +1073,7 @@ package body Exp_Hlpr is
             end;
          end if;
 
-      elsif (Is_Array_Type (Typ) and then Is_Constrained (Typ)) then
+      elsif Is_Array_Type (Typ) then
 
          declare
 
@@ -1131,6 +1131,26 @@ package body Exp_Hlpr is
               Prefix => New_Occurrence_Of (Expr_Parameter, Loc),
               Expressions => Indices);
             Set_Etype (Component, Component_Type (Typ));
+
+            if not Constrained then
+               for J in 1 .. Number_Dimensions (Typ) loop
+                  Append_To (Stms,
+                    Make_Procedure_Call_Statement (Loc,
+                      Name =>
+                        New_Occurrence_Of (
+                          RTE (RE_Add_Aggregate_Element), Loc),
+                      Parameter_Associations => New_List (
+                        New_Occurrence_Of (Any, Loc),
+                        Build_To_Any_Call (
+                          Make_Attribute_Reference (Loc,
+                            Prefix         =>
+                              New_Occurrence_Of (Expr_Parameter, Loc),
+                            Attribute_Name => Name_First,
+                            Expressions    => New_List (
+                              Make_Integer_Literal (Loc, J))),
+                          Decls))));
+               end loop;
+            end if;
 
             Append_To (Stms,
               Make_To_Any_Array_Iterator (Fnam,
