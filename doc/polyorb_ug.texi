@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#15 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#16 $
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
@@ -198,7 +198,7 @@ SOAP
 This guide describes the use of PolyORB, a middleware that enables
 the constriction of Ada 95 distributed applications.
 
-It describes the features of the middleware and related APIS and
+It describes the features of the middleware and related APIs and
 tools, and details how to use them to build Ada 95 applications.
 
 @menu
@@ -491,14 +491,14 @@ Available options for the 'configure' script include:
       Available personalities: AWS, CORBA, DSA, MOMA
       
       e.g.   @option{--with-appli-perso="corba moma"} to build both the CORBA 
-             and MOMA personnalities
+             and MOMA personalities
 
 @item  @option{--with-proto-perso="..."}: personalities to build
       
       Available personalities: GIOP, SOAP, SRP
       
       e.g.   @option{--with-proto-perso="giop soap"} to build both the GIOP 
-             and SOAP personnalities
+             and SOAP personalities
 
 @item  @option{--with-services="..."}: CORBA COS services to build
       
@@ -544,7 +544,7 @@ indicate what compiler should be used with the following syntax:
   % ADA=/path/to/good/compiler/gcc ./configure [options]
 @end smallexample
 
-PolyORB will be compiled with GNAT build host's configration,
+PolyORB will be compiled with GNAT build host's configuration,
 including run-time library. You may override this setting using
 @code{ADA_INCLUDE_PATH} and @code{ADA_OBJECTS_PATH} environment
 variables. See GNAT User's Guide for more details.
@@ -583,7 +583,7 @@ Solaris 2.8:
 @c -------------------------------------------------------------------
 
 @noindent
-A personality is an instanciation of specific PolyORB components. It
+A personality is an instantiation of specific PolyORB components. It
 provides the mechanisms specified by a distribution model, e.g. an
 API, a code generator or a protocol stack.
 
@@ -780,7 +780,7 @@ run-time, middleware is mono-task.
 middleware can be configured for multi-tasking.
 
 @item @code{Ravenscar} : Middleware uses Ada 
-tasking constructs, with the limitaions of the Ravenscar profile
+tasking constructs, with the limitations of the Ravenscar profile
 @cite{[DB98]}.  Middleware can be configured for multi-tasking.
 @cindex Ravenscar profile
 @end itemize
@@ -798,14 +798,14 @@ how threads are used by the middleware to process incoming requests.
 @item @code{No_Tasking}: There is only one task in middleware,
 processing all requests.
 
-@item @code{Thread_Per_Sessions}: One thask monitors communication
+@item @code{Thread_Per_Sessions}: One task monitors communication
 entities. One task is spawned for each active connection. This task
 handles all incoming requests on this connection.
 
-@item @code{Thread_Per_Sessions}: One thask monitors communication
+@item @code{Thread_Per_Sessions}: One task monitors communication
 entities. One task is spawned for each incoming requests.
 
-@item @code{Thread_Pool}: A set of threads cooperate to handle all
+@item @code{Thread_Pool}: A set of tasks cooperate to handle all
 incoming requests.
 
 @end itemize
@@ -923,7 +923,7 @@ PolyORB's configuration file allows the user to
 
 @noindent
 The configuration file is read once when running a node, during
-elaboration. Then, propers configuration parameters are selected.
+elaboration. Then, proper configuration parameters are selected.
 
 @c -------------------------------------------------------------------
 @node Setting up protocol personalities
@@ -1271,7 +1271,7 @@ To build this application, you need the following pieces of code:
 
 @enumerate
 @item IDL definition of an @code{echo} object
-@item Implentation code for the @code{echo} object
+@item Implementation code for the @code{echo} object
 @item Code for client and server nodes
 @end enumerate
 
@@ -1286,7 +1286,7 @@ This interface defines an @code{echo} object with a unique method
 @include echo.texi
 
 @c -------------------------------------------------------------------
-@subsubsection Implentation code for the @code{echo} object
+@subsubsection Implementation code for the @code{echo} object
 @c -------------------------------------------------------------------
 
 @noindent 
@@ -1307,7 +1307,7 @@ correct setup of PolyORB's internals.}
 
 @noindent
 Client and server code demonstrate how to make a remote invocation on
-a CORBA object, and how to setup an objet on a server node.
+a CORBA object, and how to setup an object on a server node.
 
 @emph{Note: the dependency on @code{PolyORB.Setup.Client} or
 @code{PolyORB.Setup.No_Tasking_Server} enforces compile-time
@@ -1445,7 +1445,7 @@ information on GIOP's configuration.
 @end menu
 
 @noindent
-PolyORB defines packages to help in the developpment of CORBA programs.
+PolyORB defines packages to help in the development of CORBA programs.
 
 @itemize @bullet
 
