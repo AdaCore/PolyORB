@@ -660,6 +660,22 @@ package body XE_Back is
 
    end Get_Main_Subprogram;
 
+   ----------------
+   -- Get_Parent --
+   ----------------
+
+   function Get_Parent (N : Name_Id) return Name_Id is
+   begin
+      Get_Name_String (N);
+      for Index in 1 .. Name_Len loop
+         if Name_Buffer (Index) = '.' then
+            Name_Len := Index - 1;
+            return Name_Find;
+         end if;
+      end loop;
+      return N;
+   end Get_Parent;
+
    -----------------------
    -- Get_Partition_Dir --
    -----------------------

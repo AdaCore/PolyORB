@@ -293,6 +293,44 @@ package body XE_Check is
          end if;
       end loop;
 
+      if Debug_Mode then
+         Message ("check child and parent are configured on same partition");
+      end if;
+
+      declare
+         Parent : Name_Id;
+         Child  : Name_Id;
+         PPID   : PID_Type;
+         CPID   : PID_Type;
+
+      begin
+         for U in CUnit.First .. CUnit.Last loop
+
+            --  First, this check applies to a RCI package
+            if Unit.Table (CUnit.Table (U).My_Unit).RCI then
+               Child  := CUnit.Table (U).CUname;
+               Parent := Get_Parent (Child);
+
+               --  Second, this ckeck applies to a child.
+               if Parent /= Child then
+                  PPID :=
+                    CUnit.Table (Get_CUID (Parent & Spec_Suffix)).Partition;
+                  CPID :=
+                    CUnit.Table (U).Partition;
+
+                  --  Then the child has to be on its parent partition.
+                  if PPID /= CPID then
+                     Message ("""", Parent, """ and """, Child,
+                              """ are not on the same partition");
+                     Inconsistent := True;
+                  end if;
+
+               end if;
+
+            end if;
+         end loop;
+      end;
+
       --  Use (7). Check that no partition is empty.
 
       if Debug_Mode then
@@ -326,6 +364,8 @@ package body XE_Check is
          Message ("""", Main_Subprogram, """ is not a main program");
          Inconsistent := True;
       end if;
+
+      --  Check channel configuration (duplication, inconsistency, ...)
 
       declare
          Upper, Lower : Name_Id;

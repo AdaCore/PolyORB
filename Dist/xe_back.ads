@@ -271,6 +271,9 @@ package XE_Back is
    function Get_Main_Subprogram (P : PID_Type) return Main_Subprogram_Type;
    --  Look for main_subprogram into partitions. If null, return default.
 
+   function Get_Parent          (N : Name_Id) return Name_Id;
+   --  Extract any parent from this name.
+
    function Get_Partition_Dir   (P : PID_Type) return File_Name_Type;
    --  Look for partition_dir into partitions. If null, return default.
 

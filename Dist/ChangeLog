@@ -1,3 +1,11 @@
+1997-10-20  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* xe_back.adb, xe_back.ads: Add new procedure Get_Parent
+	which extracts the root parent from a unit name.
+
+	* xe_check.adb: Check that a RCI package and its children are on
+ 	the same partition. Fix 0002-G09.
+
 Fri Oct 17 18:37:08 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
 
 	* xe_stubs.adb: Change s-garela.adb generation. Move s-garela
