@@ -11,7 +11,7 @@ $VERSION = 'v1.0';
 $error_mail = 'gnats-admin';
 
 $query_pr = '/usr/bin/query-pr --restricted -d adabroker';
-$file_pr  = '/usr/bin/file-pr -d adabroker';
+$file_pr  = '/usr/lib/gnats/file-pr -d adabroker';
 
 ################################################################
 #
