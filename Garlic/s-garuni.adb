@@ -35,7 +35,6 @@
 
 with System.Garlic.Debug; use System.Garlic.Debug;
 with System.Garlic.Heart; use System.Garlic.Heart;
-with System.Garlic.Streams; use System.Garlic.Streams;
 with System.Garlic.Types; use System.Garlic.Types;
 
 package body System.Garlic.Units is
@@ -60,7 +59,7 @@ package body System.Garlic.Units is
       ------------------
 
       procedure Get_RCI_Data
-        (Receiver  : out Streams.RPC_Receiver;
+        (Receiver  : out RPC_Receiver;
          Partition : out Types.Partition_ID;
          Done      : out Boolean) is
       begin
@@ -80,7 +79,7 @@ package body System.Garlic.Units is
       ------------------
 
       procedure Set_RCI_Data
-        (Receiver  : in Streams.RPC_Receiver;
+        (Receiver  : in RPC_Receiver;
          Partition : in Types.Partition_ID) is
       begin
          Cache_Consistent := True;

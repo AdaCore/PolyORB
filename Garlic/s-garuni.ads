@@ -35,7 +35,6 @@
 
 with System.Garlic.Table;
 with System.Garlic.Heart;
-with System.Garlic.Streams;
 with System.Garlic.Types;
 with System.Garlic.Utils;
 
@@ -53,19 +52,19 @@ package System.Garlic.Units is
    protected type Cache_Type is
 
       procedure Get_RCI_Data
-        (Receiver  : out Streams.RPC_Receiver;
+        (Receiver  : out Types.RPC_Receiver;
          Partition : out Types.Partition_ID;
          Done      : out Boolean);
 
       procedure Set_RCI_Data
-        (Receiver  : in Streams.RPC_Receiver;
+        (Receiver  : in Types.RPC_Receiver;
          Partition : in Types.Partition_ID);
 
    private
 
       Cache_Consistent : Boolean := False;
       Active_Partition : Types.Partition_ID;
-      Package_Receiver : Streams.RPC_Receiver;
+      Package_Receiver : Types.RPC_Receiver;
 
    end Cache_Type;
 
@@ -76,7 +75,7 @@ package System.Garlic.Units is
    type Unit_Type is
       record
          Partition : Types.Partition_ID;
-         Receiver  : Streams.RPC_Receiver;
+         Receiver  : Types.RPC_Receiver;
          Version   : Utils.String_Access;
          Cache     : Cache_Access;
          Status    : Unit_Status;
@@ -97,7 +96,7 @@ package System.Garlic.Units is
       record
          Command   : Request_Id;
          Partition : Types.Partition_ID;
-         Receiver  : Streams.RPC_Receiver;
+         Receiver  : Types.RPC_Receiver;
          Version   : Utils.String_Access;
          Cache     : Cache_Access;
       end record;

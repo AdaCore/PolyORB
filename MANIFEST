@@ -164,11 +164,14 @@ Garlic/UNDALL
 Garlic/config.h.in
 Garlic/constants.c
 Garlic/constants.sh
+Garlic/linktest.adb
 Garlic/s-gafizi.adb
 Garlic/s-ganobl.adb
 Garlic/rfc1832.txt
 Garlic/s-gadiob.adb
 Garlic/s-gadiob.ads
+Garlic/s-galite.adb
+Garlic/s-galite.ads
 Garlic/s-ganobl.ads
 Garlic/s-gafizi.ads
 Garlic/s-ganata.adb
@@ -223,6 +226,8 @@ Garlic/s-garuni.adb
 Garlic/s-garuni.ads
 Garlic/s-garuti.adb
 Garlic/s-garuti.ads
+Garlic/s-gasoli.adb
+Garlic/s-gasoli.ads
 Garlic/s-gastha.ads
 Garlic/s-gastha.adb
 Garlic/s-parint.adb

@@ -43,7 +43,7 @@ package XE_Parse is
    procedure Check_Not_Declared
      (Declaration_Name : in Types.Name_Id;
       Declaration_Sloc : in XE_Scan.Location_Type);
-   --  Check that such a declaration has not already been done.
+   --  Check that such a declaration has not already been done
 
    procedure Declare_Literal
      (Literal_Name : in  Types.Name_Id;
@@ -137,13 +137,13 @@ package XE_Parse is
 
    procedure Duplicate_Variable
      (Source, Target : in XE.Variable_Id);
-   --  Duplicate all the content except attributes.
+   --  Duplicate all the content except attributes
 
    procedure Exit_On_Parsing_Error;
-   --  Print configuration if verbose_mode and then raise Parsing_Error.
+   --  Print configuration if verbose_mode and then raise Parsing_Error
 
    procedure Initialize;
-   --  Elaboration code.
+   --  Elaboration code
 
    procedure Match_Actual_With_Formal
      (Subprogram_Node : in XE.Subprogram_Id);
@@ -152,7 +152,7 @@ package XE_Parse is
 
    procedure P_Aggregate_Assignement
      (Variable_Node   : in XE.Variable_Id);
-   --  Parse an aggregat assignement.
+   --  Parse an aggregate assignement
 
    procedure P_Configuration_Body;
 
@@ -173,10 +173,10 @@ package XE_Parse is
    procedure P_Variable_List_Declaration
      (Previous_Name   : in Types.Name_Id;
       Previous_Sloc   : in XE_Scan.Location_Type);
-   --  Parse a list of identifiers.
+   --  Parse a list of identifiers
 
    procedure Parse;
-   --  Main procedure.
+   --  Main procedure
 
    procedure Print;
    --  Print node tree for debugging purpose. The global variable
@@ -210,7 +210,7 @@ package XE_Parse is
      (Actual_Name : in  Types.Name_Id;
       Actual_Type : in  XE.Type_Id;
       Actual_Node : out XE.Variable_Id);
-   --  Similar to Search_Variable but check name *and* type.
+   --  Similar to Search_Variable but check name *and* type
 
    procedure Search_Component
      (Component_Name : in  Types.Name_Id;
@@ -298,7 +298,7 @@ package XE_Parse is
    procedure Set_Node_Location
      (Node     : in XE.Node_Id;
       Location : in XE_Scan.Location_Type);
-   --  Set SLOC node to Location.
+   --  Set SLOC node to Location
 
    procedure T_Apostrophe;
 

@@ -1247,8 +1247,8 @@ package body XE_Back is
             --  Check that it has not already been assigned.
 
             if Partitions.Table (PID).Termination = Unknown_Termination then
-               Partitions.Table (PID).Termination :=
-                 Termination_Type (Get_Scalar_Value (Variable_Id (Attr_Item)));
+               Set_Termination (PID, Termination_Type
+                                (Get_Scalar_Value (Variable_Id (Attr_Item))));
             else
                Write_Error_Message
                  (XE.Node_Id (Attribute), PID, "termination");
@@ -1353,6 +1353,16 @@ package body XE_Back is
       end case;
 
    end Set_Pragma_Statement;
+
+   ---------------------
+   -- Set_Termination --
+   ---------------------
+
+   procedure Set_Termination
+     (P : PID_Type; T : Termination_Type) is
+   begin
+      Partitions.Table (P).Termination := T;
+   end Set_Termination;
 
    ------------------------
    -- Set_Type_Attribute --

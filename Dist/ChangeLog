@@ -1,3 +1,24 @@
+1998-07-02  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_stubs.adb: Check for RACW even on non-RCI units.
+
+1998-06-16  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_stubs.adb: Choose the right termination package depending on
+	the context.
+
+1998-06-16  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* xe_stubs.adb: Force termination to local when light PCS, termination
+	not already defined and not main partition.
+
+	* xe_back.adb, xe_back.ads: Add new procedure Set_Termination.
+
+1998-06-16  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_stubs.adb: Write a with clause for System.Garlic.Types to get 
+	the termination types.
+
 1998-06-12  Laurent Pautet <pautet@dorine.enst.fr>
 
 	* xe_stubs.ads, xe_stubs.adb: Spec *and* body of a RCI are now

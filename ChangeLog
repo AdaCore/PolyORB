@@ -1,3 +1,10 @@
+1998-06-16  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Include Garlic/linktest.adb into the distribution.
+
+	* configure.in: Set linktest depending on the presence of
+	--enable-debug.
+
 1998-06-04  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* MANIFEST: Remove s-rpcini.ad[bs].

@@ -342,6 +342,9 @@ package XE_Back is
    procedure Set_PID
      (N : in Types.Name_Id; P : in PID_Type);
 
+   procedure Set_Termination
+     (P : in PID_Type; T : in XE.Termination_Type);
+
    procedure Set_Unit_Id
      (N : in Types.Name_Id; U : in ALI.Unit_Id);
    --  Set U into N key.

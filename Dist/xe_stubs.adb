@@ -184,10 +184,10 @@ package body XE_Stubs is
 
                   else
                      Delete_Stub (Directory, Unit.Table (U).Sfile);
-                     if Unit.Table (U).Has_RACW_Type then
-                        Set_Light_PCS (PID, False);
-                     end if;
+                  end if;
 
+                  if Unit.Table (U).Has_RACW_Type then
+                     Set_Light_PCS (PID, False);
                   end if;
 
                   Most_Recent_Stamp (PID, ALIs.Table (ALI).Afile);
@@ -196,6 +196,16 @@ package body XE_Stubs is
                end if;
 
             end loop;
+
+            --  Check whether the partition should have a local termination
+            if Get_Termination (PID) = Unknown_Termination
+              and then Get_Light_PCS (PID)
+              and then Main_Partition /= PID
+            then
+               Message ("local termination forced for ",
+                        Partitions.Table (PID).Name);
+               Set_Termination (PID, Local_Termination);
+            end if;
 
             if Rebuild_Partition (PID) then
                if not Quiet_Output then
@@ -277,11 +287,12 @@ package body XE_Stubs is
 
       Stdout := Building_Script;
 
-      --  Header.
+      --  Header
 
       Dwrite_With_Clause (FD, "System.Garlic.Filters");
       Dwrite_With_Clause (FD, "System.Garlic.Heart");
       Dwrite_With_Clause (FD, "System.Garlic.Options");
+      Dwrite_With_Clause (FD, "System.Garlic.Types");
 
       if Default_Registration_Filter /= No_Filter_Name then
          Dwrite_With_Clause
@@ -527,8 +538,19 @@ package body XE_Stubs is
       Dwrite_With_Clause (FD, "System.Garlic.Heart", No_Name, False);
       Dwrite_With_Clause (FD, "System.Garlic.Startup", No_Name, False);
       Dwrite_Line (FD, 0, "pragma Elaborate_All (System.Garlic.Startup);");
-      Dwrite_With_Clause (FD, "System.Garlic.Termination", No_Name, False);
+      Dwrite_With_Clause (FD, "System.Garlic.Soft_Links", No_Name, False);
       Dwrite_With_Clause (FD, "System.Partition_Interface", No_Name, False);
+
+      --  Add termination package if needed
+
+      if Get_Termination (PID) /= Local_Termination
+        or else Main_Partition = PID
+        or else True      --  ??? SHOULD BE SOMETHING LIKE "USE_TASKING(PID)"
+      then
+         Dwrite_With_Clause (FD, "System.Garlic.Termination");
+      else
+         Dwrite_With_Clause (FD, "System.Garlic.Light_Termination");
+      end if;
 
       Dwrite_Line (FD, 0, "procedure ", Partition_Main_Name, " is");
       Dwrite_Line (FD, 0, "begin");
@@ -605,7 +627,7 @@ package body XE_Stubs is
       --  When we exit main subprogram, just terminate.
       if Get_Termination (PID) = Local_Termination then
          Dwrite_Line
-           (FD, 1, "System.Garlic.Termination.Local_Termination;");
+           (FD, 1, "System.Garlic.Soft_Links.Local_Termination;");
       end if;
 
       Dwrite_Line (FD, 0, "end ", Partition_Main_Name, ";");

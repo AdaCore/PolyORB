@@ -33,31 +33,54 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Streams;
+
 package System.Garlic.Name_Table is
 
-   subtype Name_Id is Natural;
+   --  Name table used by Garlic. A value of type Name_Id can be safely
+   --  exchanged between partitions. When a new Name_Id is read from a
+   --  stream, its new information will be set to Empty_Info.
+
+   type Name_Id is private;
    Null_Name  : constant Name_Id;
    First_Name : constant Name_Id;
 
    function  Get (S : String)  return Name_Id;
-   --  Save this string in name table and return its name id.
-   --  Create a new entry if this string is not already in name table.
-   --  Otherwise, return the old entry.
+   --  Save this string in name table and return its name id. Create a new
+   --  entry if this string is not already in name table Otherwise, return
+   --  the old entry.
 
    function  Get (N : Name_Id) return String;
-   --  Return the string corresponding to N.
+   --  Return the string corresponding to N
 
    function  Get_Info (N : Name_Id) return Integer;
    procedure Set_Info (N : Name_Id; I : Integer);
-   --  To each entry in the name table corresponds a field Info.
-   --  The previous procedures allow to get and set this field.
+   --  To each entry in the name table corresponds a field Info. The
+   --  previous procedures allow to get and set this field.
 
-   Empty_Info : constant Integer := 0;
+   Empty_Info : constant Integer;
    --  Empty info slot
+
+   function To_Natural (N : Name_Id) return Natural;
+   function To_Name_Id (N : Natural) return Name_Id;
+   --  Conversion routines from Name_Id to Natural and vice-versa
 
 private
 
+   type Name_Id is new Natural;
+   procedure Write (S : access Ada.Streams.Root_Stream_Type'Class;
+                    N : in Name_Id);
+   for Name_Id'Write use Write;
+   procedure Read (S : access Ada.Streams.Root_Stream_Type'Class;
+                   N : out Name_Id);
+   for Name_Id'Read use Read;
+
    Null_Name  : constant Name_Id := 0;
    First_Name : constant Name_Id := 1_000_000;
+
+   Empty_Info : constant Integer := 0;
+
+   pragma Inline (To_Natural);
+   pragma Inline (To_Name_Id);
 
 end System.Garlic.Name_Table;

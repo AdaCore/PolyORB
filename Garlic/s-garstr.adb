@@ -48,24 +48,6 @@ package body System.Garlic.Streams is
    procedure Free is
       new Ada.Unchecked_Deallocation (Node, Node_Ptr);
 
-   ----------
-   -- Copy --
-   ----------
-
-   procedure Copy
-     (Source : in out Params_Stream_Type;
-      Target : access Params_Stream_Type) is
-   begin
-      if Target.First /= null then
-         Free (Target.First);
-      end if;
-      Target.First         := Source.First;
-      Target.Current       := Source.Current;
-      Target.Special_First := Source.Special_First;
-      Target.Count         := Source.Count;
-      Source.First         := null;
-   end Copy;
-
    ----------------
    -- Deallocate --
    ----------------
@@ -83,6 +65,24 @@ package body System.Garlic.Streams is
       end loop;
       Free (Stream);
    end Deallocate;
+
+   ---------------
+   -- Deep_Copy --
+   ---------------
+
+   procedure Deep_Copy
+     (Source : in out Params_Stream_Type;
+      Target : access Params_Stream_Type) is
+   begin
+      if Target.First /= null then
+         Free (Target.First);
+      end if;
+      Target.First         := Source.First;
+      Target.Current       := Source.Current;
+      Target.Special_First := Source.Special_First;
+      Target.Count         := Source.Count;
+      Source.First         := null;
+   end Deep_Copy;
 
    ----------
    -- Dump --

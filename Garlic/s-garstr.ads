@@ -41,6 +41,10 @@ pragma Elaborate_All (System.Garlic.Storage_Handling);
 
 package System.Garlic.Streams is
 
+   --  This package defines types and utilities related to Stream handling.
+   --  These types are not defined in System.Garlic.Types because they are
+   --  way too large to be considered as basic types.
+
    type Node (<>);
    type Node_Ptr is access Node;
 
@@ -82,10 +86,10 @@ package System.Garlic.Streams is
    type Stream_Element_Access is access Ada.Streams.Stream_Element_Array;
    for Stream_Element_Access'Storage_Pool use Streams_Pool;
 
-   procedure Copy
+   procedure Deep_Copy
      (Source : in out Params_Stream_Type;
       Target : access Params_Stream_Type);
-   pragma Inline (Copy);
+   pragma Inline (Deep_Copy);
    --  Deep copy Source into Target and read the original packet. This is
    --  needed to be able to drop the Params_Stream_Type without losing its
    --  content.
@@ -123,15 +127,10 @@ package System.Garlic.Streams is
    pragma Inline (To_Stream_Element_Array);
    --  This routine "looks" into the Params structure to extract the
    --  Stream_Element_Array which will be sent accross the network. It
-   --  also let Unused places to sKtore extra information.
+   --  also let Unused places to store extra information.
 
    procedure Free is
      new Ada.Unchecked_Deallocation
      (Params_Stream_Type, Params_Stream_Access);
-
-   type RPC_Receiver is
-     access procedure
-       (Params     : access Params_Stream_Type;
-        Result     : access Params_Stream_Type);
 
 end System.Garlic.Streams;

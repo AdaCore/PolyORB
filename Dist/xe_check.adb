@@ -213,8 +213,8 @@ package body XE_Check is
       end Recompile;
 
    begin
+      --  Configure units configured on partition type on every partition
 
-      --  Configure units configured on partition type on every partition.
       declare
          U : CUID_Type := Partitions.Table (Default_Partition).First_Unit;
       begin
@@ -236,9 +236,10 @@ package body XE_Check is
 
       --  Set future Ada names to null. Compile (or load) all Ada units and
       --  check later on that these are not already used.
+
       Set_Name_Table_Info (Configuration, 0);
 
-      --  Recompile the non-distributed application.
+      --  Recompile the non-distributed application
 
       if not No_Recompilation then
 
@@ -313,7 +314,7 @@ package body XE_Check is
          Opt.Check_Object_Consistency := Old_Check_Object_Consistency;
       end;
 
-      --  Set configured unit name key to No_Ali_Id.       (1)
+      --  Set configured unit name key to No_Ali_Id       (1)
 
       if Debug_Mode then
          Message ("set configured unit name key to No_Ali_Id");
@@ -323,8 +324,8 @@ package body XE_Check is
          Set_ALI_Id (CUnit.Table (U).CUname, No_ALI_Id);
       end loop;
 
-      --  Set ada unit name key to null.                   (2)
-      --  Set configured unit name key to the ali file id. (3)
+      --  Set ada unit name key to null                   (2)
+      --  Set configured unit name key to the ali file id (3)
 
       if Debug_Mode then
          Message ("set ada unit name key to null");
@@ -338,7 +339,7 @@ package body XE_Check is
          Set_ALI_Id (Name_Find, Unit.Table (U).My_ALI);
       end loop;
 
-      --  Set partition name key to Null_PID.              (4)
+      --  Set partition name key to Null_PID              (4)
 
       if Debug_Mode then
          Message ("set partition name key to Null_PID");
@@ -403,7 +404,7 @@ package body XE_Check is
 
                end if;
 
-               --  If there is no body, reference the spec.
+               --  If there is no body, reference the spec
 
                if Unit.Table (I).Utype /= Is_Body then
                   CUnit.Table (U).My_Unit := I;
@@ -460,7 +461,7 @@ package body XE_Check is
               (CUnit.Table (U).Partition,
                ALIs.Table (CUnit.Table (U).My_ALI).Ofile_Full_Name);
 
-            --  This check applies to a RCI package.
+            --  This check applies to a RCI package
             if Unit.Table (CUnit.Table (U).My_Unit).RCI then
                Child := CUnit.Table (U).CUname;
                CPID  := CUnit.Table (U).Partition;
@@ -472,7 +473,7 @@ package body XE_Check is
                   CUID := Get_CUID (Parent & Spec_Suffix);
                   if CUID /= Null_CUID then
 
-                     --  The child has to be on its parent partition.
+                     --  The child has to be on its parent partition
                      PPID := CUnit.Table (CUID).Partition;
                      if PPID /= CPID then
                         Message ("""", Parent, """ and """, Child,
@@ -489,7 +490,7 @@ package body XE_Check is
          end loop;
       end;
 
-      --  Use (7). Check that no partition is empty.
+      --  Use (7). Check that no partition is empty
 
       if Debug_Mode then
          Message ("check that no partition is empty");
@@ -509,13 +510,13 @@ package body XE_Check is
          Set_PID (Unit.Table (U).Uname, Null_PID);
       end loop;
 
-      --  Is it still used ?
+      --  Is it still used ???
 
       for U in CUnit.First .. CUnit.Last loop
          Set_ALI_Id (CUnit.Table (U).CUname, CUnit.Table (U).My_ALI);
       end loop;
 
-      --  Check that the main program is really a main program.
+      --  Check that the main program is really a main program
 
       if ALIs.Table (Get_ALI_Id (Main_Subprogram)).Main_Program = None then
          Message ("""", Main_Subprogram, """ is not a main program");

@@ -38,7 +38,7 @@ with System.Garlic.Utils; use System.Garlic.Utils;
 
 package body System.Garlic.Name_Table is
 
-   use Ascii;
+   use Ascii, Ada.Streams;
 
    Size  : constant := 2 ** 9;
    --  Size of actual string names table
@@ -90,27 +90,12 @@ package body System.Garlic.Name_Table is
      (Index_Type     => Name_Id,
       Null_Index     => Null_Name,
       First_Index    => First_Name,
-      Initial_Size   => Hash_Max,
-      Increment_Size => Hash_Max,
+      Initial_Size   => Natural (Hash_Max),
+      Increment_Size => Natural (Hash_Max),
       Component_Type => Node_Type,
       Null_Component => Null_Node);
    --  This is the table that is referenced by Name_Id entries. It
    --  contains one entry for each unique name in the table.
-
-   ----------
-   -- Hash --
-   ----------
-
-   function Hash (Name : String) return Hash_Id is
-      type T is mod 2 ** 8;
-      X : T := 0;
-   begin
-      for J in Name'Range loop
-         X := 2 * X + Character'Pos (Name (J));
-      end loop;
-
-      return Hash_Id (X) + 1;
-   end Hash;
 
    ---------
    -- Get --
@@ -132,7 +117,10 @@ package body System.Garlic.Name_Table is
 
          --  Check whether the string of this entry matches with S
 
-         if N.Length = L and then Table (N.First .. N.First + L - 1) = S then
+         if N.Length = L
+           and then
+           Table (Natural (N.First) .. Natural (N.First) + L - 1) = S
+         then
             return I;
          end if;
 
@@ -160,7 +148,7 @@ package body System.Garlic.Name_Table is
       Hash_Nodes (H)         := I;
 
       Nodes.Table (I).Length := L;
-      Nodes.Table (I).First  := Last + 1;
+      Nodes.Table (I).First  := Name_Id (Last + 1);
       Table (Last + 1 .. Last + L) := S;
       Last := Last + L;
 
@@ -172,7 +160,7 @@ package body System.Garlic.Name_Table is
    ---------
 
    function Get (N : Name_Id) return String is
-      F : constant Natural := Nodes.Table (N).First;
+      F : constant Natural := Natural (Nodes.Table (N).First);
       L : constant Natural := Nodes.Table (N).Length;
 
    begin
@@ -188,6 +176,30 @@ package body System.Garlic.Name_Table is
       return Nodes.Table (N).Info;
    end Get_Info;
 
+   ----------
+   -- Hash --
+   ----------
+
+   function Hash (Name : String) return Hash_Id is
+      type T is mod 2 ** 8;
+      X : T := 0;
+   begin
+      for J in Name'Range loop
+         X := 2 * X + Character'Pos (Name (J));
+      end loop;
+
+      return Hash_Id (X) + 1;
+   end Hash;
+
+   ----------
+   -- Read --
+   ----------
+
+   procedure Read (S : access Root_Stream_Type'Class; N : out Name_Id) is
+   begin
+      N := Get (String'Input (S));
+   end Read;
+
    --------------
    -- Set_Info --
    --------------
@@ -196,5 +208,32 @@ package body System.Garlic.Name_Table is
    begin
       Nodes.Table (N).Info := I;
    end Set_Info;
+
+   ----------------
+   -- To_Name_Id --
+   ----------------
+
+   function To_Name_Id (N : Natural) return Name_Id is
+   begin
+      return Name_Id (N);
+   end To_Name_Id;
+
+   ----------------
+   -- To_Natural --
+   ----------------
+
+   function To_Natural (N : Name_Id) return Natural is
+   begin
+      return Natural (N);
+   end To_Natural;
+
+   -----------
+   -- Write --
+   -----------
+
+   procedure Write (S : access Root_Stream_Type'Class; N : in Name_Id) is
+   begin
+      String'Output (S, Get (N));
+   end Write;
 
 end System.Garlic.Name_Table;

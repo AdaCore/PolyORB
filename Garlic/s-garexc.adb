@@ -34,7 +34,6 @@
 ------------------------------------------------------------------------------
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
-with System.Garlic.Types;
 
 package body System.Garlic.Exceptions is
 
@@ -72,9 +71,9 @@ package body System.Garlic.Exceptions is
    procedure Raise_Communication_Error (Msg : in String := "") is
    begin
       if Msg = "" then
-         Raise_With_Errno (Types.Communication_Error'Identity);
+         Raise_With_Errno (Communication_Error'Identity);
       else
-         Raise_Exception (Types.Communication_Error'Identity, Msg);
+         Raise_Exception (Communication_Error'Identity, Msg);
       end if;
    end Raise_Communication_Error;
 

@@ -46,10 +46,10 @@ package XE_Scan is
    function  Get_Token_Location return Location_Type;
 
    procedure Initialize;
-   --  Load all kind of keyworks.
+   --  Load all kind of keywords
 
    procedure Load_File (File : in Types.File_Name_Type);
-   --  Load this file in a memory buffer.
+   --  Load this file in a memory buffer
 
    procedure Location_To_XY
      (Where : in  Location_Type;
@@ -57,12 +57,12 @@ package XE_Scan is
       Loc_Y : out Types.Int);
 
    procedure Next_Token;
-   --  Find next token and update internal variables.
+   --  Find next token and update internal variables
 
    procedure Set_Token_Location (Where : in Location_Type);
 
    procedure Write_Location (Where : in Location_Type);
-   --  Display line and column where the error occured.
+   --  Display line and column where the error occured
 
    procedure Write_Token (T : in XE.Token_Type);
 

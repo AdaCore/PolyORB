@@ -40,7 +40,7 @@ package body XE_Scan is
    Scan_Ptr : Source_Ptr;
 
    procedure New_Line;
-   --  Update SLOC.
+   --  Update SLOC
 
    ------------------------
    -- Get_Token_Location --
@@ -126,7 +126,6 @@ package body XE_Scan is
       Set_Token ("private",       Tok_Reserved);
       Set_Token ("with",          Tok_Reserved);
       Set_Token ("separate",      Tok_Reserved);
-
    end Initialize;
 
    ---------------

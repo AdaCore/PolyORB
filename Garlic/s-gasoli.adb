@@ -2,9 +2,9 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---                  S Y S T E M . G A R L I C . T Y P E S                   --
+--             S Y S T E M . G A R L I C . S O F T _ L I N K S              --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
@@ -33,61 +33,89 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Streams;
+package body System.Garlic.Soft_Links is
 
-package System.Garlic.Types is
+   generic
+   package Proc is
+      procedure Register (P : in Parameterless_Procedure);
+      procedure Call;
+      pragma Inline (Call);
+   private
+      Var : Parameterless_Procedure;
+   end Proc;
 
-   pragma Elaborate_Body;
+   ----------
+   -- Proc --
+   ----------
 
-   type Partition_ID is range 0 .. 63;
+   package body Proc is
 
-   type Shutdown_Access is access procedure;
+      ----------
+      -- Call --
+      ----------
 
-   --  This package defines basic types that are used throughout Garlic
-   --  as well as commonly used deallocation and conversion subprograms.
+      procedure Call is
+      begin
+         if Var /= null then
+            Var.all;
+         end if;
+      end Call;
 
-   type Word is mod 2 ** 32;
-   --  Unsigned 32-bit integer
+      --------------
+      -- Register --
+      --------------
 
-   type Portable_Address is mod 2 ** 64;
-   --  This type can contain an object of type System.Address on any platform
-   --  where GNAT is supported. It is made public on purpose so that it is
-   --  possible to take a 'Image of it.
+      procedure Register (P : in Parameterless_Procedure) is
+      begin
+         Var := P;
+      end Register;
 
-   function To_Address (Addr : Portable_Address) return Address;
-   function To_Portable_Address (Addr : Address) return Portable_Address;
-   --  Conversion routines
+   end Proc;
 
-   type Reconnection_Type is (Immediately,
-                              When_Needed);
-   --  Immediately reconnects as soon as a connection is broken (default).
-   --  When_Needed waits for this connection to be necessary.
+   --------------------------
+   -- Termination services --
+   --------------------------
 
-   type Shutdown_Type is (Shutdown_On_Any_Partition_Error,
-                          Shutdown_On_Boot_Partition_Error,
-                          Never_Shutdown_On_Partition_Error);
-   --  Three ways of terminating Garlic
+   package P_Add_Non_Terminating_Task is new Proc;
+   procedure Register_Add_Non_Terminating_Task
+     (P : in Parameterless_Procedure)
+     renames P_Add_Non_Terminating_Task.Register;
+   procedure Add_Non_Terminating_Task
+     renames P_Add_Non_Terminating_Task.Call;
 
-   type Termination_Type is (Local_Termination,
-                             Global_Termination,
-                             Deferred_Termination);
-   --  Three ways of terminating a partition
+   package P_Sub_Non_Terminating_Task is new Proc;
+   procedure Register_Sub_Non_Terminating_Task
+     (P : in Parameterless_Procedure)
+     renames P_Sub_Non_Terminating_Task.Register;
+   procedure Sub_Non_Terminating_Task
+     renames P_Sub_Non_Terminating_Task.Call;
 
-   type Execution_Mode_Type is (Trace_Mode,
-                                Replay_Mode,
-                                Normal_Mode);
-   --  Trace_Mode will record all the traces in a file, Replay_Mode will
-   --  replay a distributed execntion and Normal_Mode does nothing regarding
-   --  tracing or replay.
+   package P_Termination_Shutdown is new Proc;
+   procedure Register_Termination_Shutdown
+     (P : in Parameterless_Procedure)
+     renames P_Termination_Shutdown.Register;
+   procedure Termination_Shutdown
+     renames P_Termination_Shutdown.Call;
 
-   type RPC_Receiver is
-      access procedure (Params : access Streams.Params_Stream_Type;
-                        Result : access Streams.Params_Stream_Type);
-   --  Similar to System.RPC.RPC_Receiver
+   package P_Termination_Initialize is new Proc;
+   procedure Register_Termination_Initialize
+     (P : in Parameterless_Procedure)
+     renames P_Termination_Initialize.Register;
+   procedure Termination_Initialize
+     renames P_Termination_Initialize.Call;
 
-private
+   package P_Activity_Detected is new Proc;
+   procedure Register_Activity_Detected
+     (P : in Parameterless_Procedure)
+     renames P_Activity_Detected.Register;
+   procedure Activity_Detected
+     renames P_Activity_Detected.Call;
 
-   pragma Inline (To_Address);
-   pragma Inline (To_Portable_Address);
+   package P_Local_Termination is new Proc;
+   procedure Register_Local_Termination
+     (P : in Parameterless_Procedure)
+     renames P_Local_Termination.Register;
+   procedure Local_Termination
+     renames P_Local_Termination.Call;
 
-end System.Garlic.Types;
+end System.Garlic.Soft_Links;

@@ -2,7 +2,7 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---                  S Y S T E M . G A R L I C . T Y P E S                   --
+--      S Y S T E M . G A R L I C . L I G H T _ T E R M I N A T I O N       --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -33,61 +33,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Streams;
-
-package System.Garlic.Types is
+package System.Garlic.Light_Termination is
 
    pragma Elaborate_Body;
 
-   type Partition_ID is range 0 .. 63;
+   --  This is a soft links package, everything is located in the body
 
-   type Shutdown_Access is access procedure;
-
-   --  This package defines basic types that are used throughout Garlic
-   --  as well as commonly used deallocation and conversion subprograms.
-
-   type Word is mod 2 ** 32;
-   --  Unsigned 32-bit integer
-
-   type Portable_Address is mod 2 ** 64;
-   --  This type can contain an object of type System.Address on any platform
-   --  where GNAT is supported. It is made public on purpose so that it is
-   --  possible to take a 'Image of it.
-
-   function To_Address (Addr : Portable_Address) return Address;
-   function To_Portable_Address (Addr : Address) return Portable_Address;
-   --  Conversion routines
-
-   type Reconnection_Type is (Immediately,
-                              When_Needed);
-   --  Immediately reconnects as soon as a connection is broken (default).
-   --  When_Needed waits for this connection to be necessary.
-
-   type Shutdown_Type is (Shutdown_On_Any_Partition_Error,
-                          Shutdown_On_Boot_Partition_Error,
-                          Never_Shutdown_On_Partition_Error);
-   --  Three ways of terminating Garlic
-
-   type Termination_Type is (Local_Termination,
-                             Global_Termination,
-                             Deferred_Termination);
-   --  Three ways of terminating a partition
-
-   type Execution_Mode_Type is (Trace_Mode,
-                                Replay_Mode,
-                                Normal_Mode);
-   --  Trace_Mode will record all the traces in a file, Replay_Mode will
-   --  replay a distributed execntion and Normal_Mode does nothing regarding
-   --  tracing or replay.
-
-   type RPC_Receiver is
-      access procedure (Params : access Streams.Params_Stream_Type;
-                        Result : access Streams.Params_Stream_Type);
-   --  Similar to System.RPC.RPC_Receiver
-
-private
-
-   pragma Inline (To_Address);
-   pragma Inline (To_Portable_Address);
-
-end System.Garlic.Types;
+end System.Garlic.Light_Termination;
