@@ -399,8 +399,8 @@ begin
    --  Create Message Consumer associated to the Session
    MOMA_Consumer := Create_Receiver (MOMA_Session, MOMA_Destination);
 
-   --  Initialisation is completed.
-   Output ("Initilisation", True);
+   --  Initialization is completed.
+   Output ("Initialization", True);
 
    --  Testing MAny messages.
    Test_MAny;
