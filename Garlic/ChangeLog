@@ -1,3 +1,9 @@
+Thu Feb 13 09:02:25 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* 2wgarcon.ads: New file containing precomputed Windows constants
+	  (due to a bug in Cygnus' <sys/socket.h>, this file cannot be
+	  generated automatically without patching this file).
+
 Wed Feb 12 11:52:46 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-parint.ads: Reinstalled the kludge.
