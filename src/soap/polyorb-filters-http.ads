@@ -262,7 +262,7 @@ private
       Request_Method : PolyORB.HTTP_Methods.Method;
       Request_URI    : String_Ptr;
 
-      Content_Length    : Integer;
+      Content_Length    : Ada.Streams.Stream_Element_Offset;
       Transfer_Encoding : String_Lists.List;
       --  Values of the corresponding HTTP headers.
 
@@ -272,7 +272,7 @@ private
       --    First (Tranfer_Encoding) MUST have the value "chunked"
       --  (RFC 2616 3.6), and in this case Chunked is True).
 
-      Transfer_Length : Integer;
+      Transfer_Length : Ada.Streams.Stream_Element_Offset;
       --  The size of the currently expected chunk of data.
       --  -1 means expect data of unspecified length;
       --  0 means that all the expected data for this message

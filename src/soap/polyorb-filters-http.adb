@@ -421,6 +421,11 @@ package body PolyORB.Filters.HTTP is
                   New_Data_Position := CDR_Position (F.In_Buf);
                   Data_Received := Length (F.In_Buf) - New_Data_Position;
                   if Data_Received > 0 then
+                     pragma Debug (O ("Restarting HTTP processing"));
+                     pragma Debug
+                       (O ("Transfer length:" & F.Transfer_Length'Img));
+                     pragma Debug
+                       (O ("Pending data:" & Data_Received'Img));
                      goto Process_Received_Data;
                   end if;
                   --  Update state, and restart data processing if
@@ -445,18 +450,21 @@ package body PolyORB.Filters.HTTP is
          -- Not in a line-by-line state: transferring entity --
          ------------------------------------------------------
 
-         pragma Assert
-           (Data_Received <= Stream_Element_Count (F.Transfer_Length));
-
          declare
             use PolyORB.Types;
+
             Data : PolyORB.Opaque.Opaque_Pointer;
+            Data_Processed : Stream_Element_Count := Data_Received;
          begin
+            if Data_Processed > F.Transfer_Length then
+               Data_Processed := F.Transfer_Length;
+            end if;
+
             PolyORB.Buffers.Extract_Data
-              (F.In_Buf, Data, Data_Received, Use_Current => True);
+              (F.In_Buf, Data, Data_Processed, Use_Current => True);
 
             declare
-               S : String (1 .. Integer (Data_Received));
+               S : String (1 .. Integer (Data_Processed));
                --  XXX BAD BAD do not allocate that on the stack!
             begin
                for I in S'Range loop
@@ -469,8 +477,7 @@ package body PolyORB.Filters.HTTP is
                Append (F.Entity, S);
             end;
 
-            F.Transfer_Length
-              := F.Transfer_Length - Integer (Data_Received);
+            F.Transfer_Length := F.Transfer_Length - Data_Processed;
 
             if F.Transfer_Length = 0 then
                if F.Chunked then
@@ -492,6 +499,13 @@ package body PolyORB.Filters.HTTP is
                else
                   Message_Complete (F);
                end if;
+            end if;
+
+            New_Data_Position := CDR_Position (F.In_Buf);
+            Data_Received := Data_Received - Data_Processed;
+            if Data_Received > 0 then
+               pragma Debug (O ("Restarting HTTP processing"));
+               goto Process_Received_Data;
             end if;
          end;
       end if;
@@ -520,7 +534,7 @@ package body PolyORB.Filters.HTTP is
 
          when others =>
             Expect_Data
-              (F, F.In_Buf, Stream_Element_Offset (F.Transfer_Length));
+              (F, F.In_Buf, F.Transfer_Length);
 
       end case;
    end Handle_Data_Indication;
@@ -587,7 +601,8 @@ package body PolyORB.Filters.HTTP is
                      F.State := Chunk_Size;
                   end if;
                elsif F.Content_Length > 0 then
-                  F.Transfer_Length := F.Content_Length + 2;
+                  F.Transfer_Length := F.Content_Length;
+                  --  Expect content-length octets, NO trailing CRLF.
                   F.State := Entity;
 --             elsif Media-Type is multipart/byteranges
 --                ... use that to determine the transfer-length
@@ -816,7 +831,8 @@ package body PolyORB.Filters.HTTP is
             if Pos > Tok_Last then
                raise Protocol_Error;
             end if;
-            F.Content_Length := Natural'Value (S (Pos .. Tok_Last));
+            F.Content_Length := Stream_Element_Count'Value
+              (S (Pos .. Tok_Last));
 
          when H_Transfer_Encoding =>
             Pos := Colon + 1;
@@ -866,12 +882,13 @@ package body PolyORB.Filters.HTTP is
      (F : access HTTP_Filter;
       S : String)
    is
-      Chunk_Size : Integer;
+      Chunk_Size : Stream_Element_Count;
       Semicolon : constant Integer
         := Find (S, S'First, ';');
       --  Optional: chunk-extensions
    begin
-      Chunk_Size := Parse_Hex (S (S'First .. Semicolon - 1));
+      Chunk_Size := Stream_Element_Count
+        (Parse_Hex (S (S'First .. Semicolon - 1)));
 
       if Chunk_Size > 0 then
          F.Transfer_Length := Chunk_Size + 2;
@@ -970,6 +987,7 @@ package body PolyORB.Filters.HTTP is
    -- Preparation of outgoing messages --
    --------------------------------------
 
+   procedure Put (F : access HTTP_Filter; S : String);
    procedure New_Line (F : access HTTP_Filter);
    procedure Put_Line (F : access HTTP_Filter; S : String);
 
@@ -1006,6 +1024,11 @@ package body PolyORB.Filters.HTTP is
       Emit_No_Reply (Lower (F), Data_Out'(Out_Buf => F.Out_Buf));
    end Error;
 
+   procedure Put (F : access HTTP_Filter; S : String) is
+   begin
+      PolyORB.Utils.Text_Buffers.Marshall_String (F.Out_Buf, S);
+   end Put;
+
    procedure New_Line (F : access HTTP_Filter)
    is
       use PolyORB.Utils.Text_Buffers;
@@ -1016,7 +1039,7 @@ package body PolyORB.Filters.HTTP is
 
    procedure Put_Line (F : access HTTP_Filter; S : String) is
    begin
-      PolyORB.Utils.Text_Buffers.Marshall_String (F.Out_Buf, S);
+      Put (F, S);
       New_Line (F);
    end Put_Line;
 
@@ -1080,7 +1103,7 @@ package body PolyORB.Filters.HTTP is
             Put_Line
               (F, Header (H_Content_Length, Image (Length (RO.Data))));
             New_Line (F);
-            Put_Line (F, To_Standard_String (RO.Data));
+            Put (F, To_Standard_String (RO.Data));
             --  XXX bad bad passing complete SOAP request
             --  on the stack!! Would be better off inserting
             --  it directly as a chunk!! (Marshall-by-address
@@ -1172,7 +1195,7 @@ package body PolyORB.Filters.HTTP is
 
       New_Line (F);
 
-      Put_Line (F, AWS.Response.Message_Body (RD));
+      Put (F, AWS.Response.Message_Body (RD));
       --  XXX could be more clever and send it chunked...
    end Prepare_Message;
 
