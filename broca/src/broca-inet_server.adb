@@ -45,6 +45,7 @@ with CORBA; use CORBA;
 pragma Elaborate_All (CORBA);
 
 with Broca.Buffers; use Broca.Buffers;
+with Broca.Opaque;
 with Broca.CDR;
 with Broca.Stream; use Broca.Stream;
 with Broca.IOP;

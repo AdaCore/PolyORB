@@ -468,6 +468,7 @@ package body Broca.RootPOA is
      (Object => Object_Map_Type, Name => Object_Map_Ptr);
 
    Null_Object : Object;
+   pragma Warnings (Off, Null_Object);
    --  Freeze type 'Objects' to keep the compiler happy about
    --  the following operations, which are not intended to be
    --  primitive operations of Object.
@@ -1221,6 +1222,8 @@ package body Broca.RootPOA is
                end if;
 
                Skel := To_Internal_Skeleton (Self.Servant_Manager);
+               Oid := Key_To_ObjectId (Key_Buffer'Access);
+               Release (Key_Buffer);
                if Self.Servant_Policy = RETAIN then
                   Release (Key_Buffer);
                   Self.Servant_Lock.Lock;
@@ -1249,8 +1252,6 @@ package body Broca.RootPOA is
 
                   Self.Object_Map (Slot).Skeleton.P_Servant := A_Servant;
                else
-                  Oid := Key_To_ObjectId (Key_Buffer'Access);
-                  Release (Key_Buffer);
                   PortableServer.ServantLocator.Impl.Preinvoke
                     (PortableServer.ServantLocator.Impl.Object'Class
                      (Skel.P_Servant.all),
