@@ -6,7 +6,8 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--                      Copyright (C) 2004 ACT Europe                       --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,6 +33,12 @@
 ------------------------------------------------------------------------------
 
 --  $Id$
+
+--  This package implements the basic operations of ada.calendar,
+--  using ada.real_time. To do so, a part of the code comes from
+--  the Linux-x86 GNAT implementation of ada.calendar, and thus is
+--  likely to have the same limitations and compatibility issues with
+--  others platforms. See the GNAT Reference Manual for details.
 
 with Ada.Real_Time;
 with Ada.Unchecked_Conversion;
