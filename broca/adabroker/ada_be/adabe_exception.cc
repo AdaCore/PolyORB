@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.3 $
+//                            $Revision: 1.4 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -217,29 +217,6 @@ adabe_exception::produce_skel_adb (dep_list & with,
   body += 
     "                  return;\n"
     "               end;\n";
-}
-
-////////////////////////////////////////////////////////////////
-//////////////       produce_proxy_adb         ///////////////    
-////////////////////////////////////////////////////////////////
-void
-adabe_exception::produce_proxy_adb (dep_list & with,
-				    string   & body)
-{
-  string full_name = get_ada_full_name ();
-  string pack = full_name.substr (0, full_name.find_last_of ('.'));
-
-  with.add (pack + ".Stream");
-
-  // Prepare the dispatch of the exception.
-  body +=
-    "               if Marshall_Compare\n"
-    "                   (Handler.Buffer, \"";
-  body += repositoryID ();
-  body += "\")\n"
-    "               then\n"
-    "                  " + pack + ".Stream.Unmarshall_And_Raise_" + get_ada_local_name () + " (Handler.Buffer);\n"
-    "               end if;\n";
 }
 
 ////////////////////////////////////////////////////////////////

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.8 $
+//                            $Revision: 1.9 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -143,26 +143,6 @@ adabe_name::produce_skel_adb (dep_list&, string&, string&)
        << endl;
   throw adabe_internal_error
     (__FILE__,__LINE__,"produce_skel_adb called in adabe_name");
-}
-
-void 
-adabe_name::produce_proxy_ads (dep_list&, string&, string&)
-{
-  cerr << "node type is : "
-       << (dynamic_cast<AST_Decl *>(this))->node_type ()
-       << endl;
-  throw adabe_internal_error
-    (__FILE__,__LINE__,"produce_proxy_ads called in adabe_name");
-}
-
-void 
-adabe_name::produce_proxy_adb (dep_list&, string&, string&)
-{
-  cerr << "node type is : "
-       << (dynamic_cast<AST_Decl *>(this))->node_type ()
-       << endl;
-  throw adabe_internal_error
-    (__FILE__,__LINE__,"produce_proxy_adb called in adabe_name");
 }
 
 void 

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.5 $
+//                            $Revision: 1.6 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -95,21 +95,34 @@ adabe_argument::produce_adb (dep_list & with,
 			     string     space,
 			     string   & in_decls,
 			     string   & in_args,
-			     string   & out_args)
-  // Produce code for the .adb file
+			     string   & out_args,
+			     string   & marshall_size,
+			     string   & marshall,
+			     string   & unmarshall)
   // Actually, it produces several pieces of code and booleans
   //    - the boolean no_out is put to false if the argument is in
-  // out or inout mode
+  //      out or inout mode
   //    - in_decls contains the field declarations to put in the object
-  // declaration at the end of .adb file
+  //      declaration at the end of .adb file
   //    - in_args contains the list of arguments to pass to the Init
-  // function corresponding to the operation
+  //      function corresponding to the operation
   //    - out_args contains the list of arguments to pass to the Get_Result
-  // function corresponding to the operation
-  // at least space is used for indentation
+  //      function corresponding to the operation
+  //    -  space is used for indentation
+  //    - align_size contains the code to put in the align_size function
+  //    - marshall contains the code to put in the marshall function
+  //    - unmarshall_decls contains the list of declarations to put in
+  //     the header of the unmarshal_returned_values function
+  //    - unmarshall contains the code to put in the
+  //      unmarshall_returned_values function
+  //    - finalize contains the code to put in the finalize function
+  //    - out_args contains the list of arguments to put in the declaration
+  //      of the Get_Result function corresponding to the operation
+  //    - result_decls contains the code to put in the get_result function
 {
   // get the direction of the argument (in, out or inout)
   AST_Argument::Direction dir = direction ();
+
   string dir_st = "";
   switch (dir)
     {
@@ -124,21 +137,21 @@ adabe_argument::produce_adb (dep_list & with,
       break;
     }
 
-  // get the type of the argument as an AST_Decl object
+  // Get the type of the argument as an AST_Decl object
   AST_Decl *d = field_type ();
+  string junk = "";
   
-  string previous = "";  // temporary string. unused
-
-  // get the name of the argument via dump_name function
-  string name = dynamic_cast<adabe_name *>(d)->dump_name (with, previous);
-
+  // Get the name of the argument via dump_name function
+  string type_name = dynamic_cast<adabe_name *>(d)->dump_name (with, junk);
+  
   // computation of in_decls string
-  in_decls += ";\n      " + get_ada_local_name () + " : " + dir_st +  name;
-
+  in_decls += ";\n      " + get_ada_local_name ();
+  in_decls += " : " + dir_st +  type_name;
+  
   // computation of in_args string if the argument is in in or inout mode
   if ((dir == AST_Argument::dir_IN) || (dir == AST_Argument::dir_INOUT))
     in_args += ",\n         " + get_ada_local_name ();
-
+    
   // computation of out_args string if the argument is in out or inout mode
   // in this case, put no_out to false
   if ((dir == AST_Argument::dir_OUT) || (dir == AST_Argument::dir_INOUT))
@@ -146,103 +159,9 @@ adabe_argument::produce_adb (dep_list & with,
       no_out = false;
       out_args += ",          " + get_ada_local_name ();
     }
-}
 
-////////////////////////////////////////////////////////////////////////
-////////////////     produce_proxy_ads     ///////////////////////////
-////////////////////////////////////////////////////////////////////////
-void 
-adabe_argument::produce_proxy_ads (dep_list & with,
-				   string   & in_decls,
-				   bool     & no_in,
-				   bool     & no_out,
-				   string   & fields,
-				   string   & out_args)
-  // This methods produces code for the proxy.ads file
-  // Actually, it produces several pieces of code and booleans
-  //    - in_decls contains the list of arguments to put in the declaration
-  // of the Init function corresponding to the operation
-  //    - the boolean no_in is put to false if the argument is in
-  // in or inout mode
-  //    - the boolean no_out is put to false if the argument is in
-  // out or inout mode
-  //    - fields contains the list of declarations to put in the private part,
-  // at the end of the proxy.ads file
-  //    - out_args contains the list of arguments to put in the declaration
-  // of the Get_Result function corresponding to the operation
-{
-  string previous = "";  // temporary unused string
-
-  // get the argument type as an adabe_name object
-  AST_Decl *d = field_type ();
-  adabe_name *type_adabe_name = dynamic_cast<adabe_name *>(d);
-
-  // get the name o the argument via the dump_name function
-  string type_name = type_adabe_name->dump_name (with, previous);
-
-  // get the full name of the argument
-  string full_type_name = type_adabe_name->get_ada_full_name ();
-
-  // computation of in_decls if the argument is in in or inout mode
-  // in this case, put no_in to false
-  if ((direction () == AST_Argument::dir_IN) ||
-      (direction () == AST_Argument::dir_INOUT)) {
-    no_in = false;
-    in_decls += ";\n      ";
-    in_decls += get_ada_local_name ();
-    in_decls += " : in ";
-    in_decls += type_name;
-  }
-
-  // computation of out_args if the argument is in out or inout mode
-  // in this case, put no_out to false
-  if ((direction () == AST_Argument::dir_OUT) ||
-      (direction () == AST_Argument::dir_INOUT)) {
-    no_out = false;
-    out_args += ";\n      ";
-    out_args += get_ada_local_name ();
-    out_args += " : out " + type_name;
-  }
-
-  // computation of fields for all arguments 
-  fields += "      ";
-  fields += get_ada_local_name ();
-  fields += " : ";
-  fields += type_name;
-  fields += ";\n";
-}
-
-
-////////////////////////////////////////////////////////////////////////
-////////////////     produce_proxy_adb     ///////////////////////////
-////////////////////////////////////////////////////////////////////////
-void 
-adabe_argument::produce_proxy_adb (dep_list & with,
-				   string   & marshall_size,
-				   string   & marshall,
-				   string   & unmarshall)
-
-  // This methods produces code for the proxy.adb file
-  // Actually, it produces several pieces of code and booleans
-  //    - align_size contains the code to put in the align_size function
-  //    - marshall contains the code to put in the marshall function
-  //    - unmarshall_decls contains the list of declarations to put in the header
-  // of the unmarshal_returned_values function
-  //    - unmarshall contains the code to put in the unmarshall_returned_values function
-  //    - finalize contains the code to put in the finalize function
-  //    - out_args contains the list of arguments to put in the declaration
-  // of the Get_Result function corresponding to the operation
-  //    - result_decls contains the code to put in the get_result function
-{
-  string body, previous = "";
-  AST_Decl *d = field_type ();
-  string type_name = 
-    dynamic_cast<adabe_name *>(d)->dump_name (with, previous);
   string marshal_pkg =
     dynamic_cast<adabe_name *>(d)->new_is_marshal_imported (with);
-  // dynamic_cast<adabe_name *>(d)->is_marshal_imported (with);
-  // in order to include the marshal files
-
 
   string full_type_name = dynamic_cast<adabe_name *>(d)->get_ada_full_name ();
   
@@ -273,7 +192,6 @@ adabe_argument::produce_proxy_adb (dep_list & with,
     unmarshall += ");\n";
   }
 }
-
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////     produce_skel_adb     //////////////////////////////
