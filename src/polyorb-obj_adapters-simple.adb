@@ -221,7 +221,7 @@ package body PolyORB.Obj_Adapters.Simple is
       Error   : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off); --  WAG:3.15
-      pragma Unreferenced (OA, Id, User_Id);
+      pragma Unreferenced (OA, Id);
       pragma Warnings (On); --  WAG:3.15
 
       use PolyORB.Exceptions;
@@ -233,6 +233,7 @@ package body PolyORB.Obj_Adapters.Simple is
       --  An SOA object identifier cannot contain a user-defined
       --  object key.
 
+      User_Id := null;
    end Object_Key;
 
    -------------------------------
