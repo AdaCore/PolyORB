@@ -28,7 +28,7 @@
 
 This is the README file for PolyORB version @polyorb_version@.
 
-The home page of the project is located at http://www.polyorb.eu.org/.
+The home page of the project is located at http://libre.act-europe.fr/polyorb/
 This is where you can find news about the project, new releases, and
 pointers to several documents and papers related to PolyORB.
 
@@ -147,7 +147,7 @@ PolyORB.orig, and use the following command:
 
 and send us the patch_file via e-mail at the address 
 
-	polyorb-devel@polyorb.eu.org
+	polyorb-devel@lists.act-europe.fr
 
 If your diff version do not understand the --recursive or --context
 option, please use the GNU diffutils package which may be found on any
