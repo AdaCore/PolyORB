@@ -56,6 +56,7 @@ with PolyORB.POA_Policies.Lifespan_Policy.Transient;
 
 with PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only;
 with PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
+with PolyORB.POA_Policies.Request_Processing_Policy.Use_Servant_Manager;
 
 with PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;
 with PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
@@ -93,6 +94,7 @@ package body PolyORB.CORBA_P.POA_Config is
 
    use PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only;
    use PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
+   use PolyORB.POA_Policies.Request_Processing_Policy.Use_Servant_Manager;
    package RPP renames PolyORB.POA_Policies.Request_Processing_Policy;
 
    use PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;
@@ -110,8 +112,8 @@ package body PolyORB.CORBA_P.POA_Config is
      (List : CORBA.Policy.PolicyList)
      return PolyORB.POA_Policies.PolicyList
    is
-
       package PS renames PolyORB.POA_Policies.Policy_Sequences;
+
       package ISP renames CORBA.Policy.IDL_Sequence_Policy;
 
       CORBA_Policy_Array : constant
@@ -270,7 +272,9 @@ package body PolyORB.CORBA_P.POA_Config is
                            Policy_Access (RPP.Use_Default_Servant.Create));
 
                      when USE_SERVANT_MANAGER =>
-                        raise Not_Implemented;
+                        PS.Append
+                          (Result,
+                           Policy_Access (RPP.Use_Servant_Manager.Create));
                   end case;
                end;
 
