@@ -7,6 +7,8 @@ with Droopi.References;
 
 package Droopi.Setup.Test is
 
+   pragma Elaborate_Body;
+
    type Parameterless_Procedure is access procedure;
 
    procedure Initialize_Test_Server

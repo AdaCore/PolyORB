@@ -8,6 +8,9 @@ with Droopi.Objects;
 with Droopi.Types;
 
 package Droopi.Test_Object is
+
+   pragma Elaborate_Body;
+
    use Droopi.Types;
 
    type My_Object is new Droopi.Objects.Servant with null record;

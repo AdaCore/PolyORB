@@ -7,6 +7,9 @@ with Droopi.POA_Types;
 with CORBA;
 
 package CORBA.Test_Object is
+
+   pragma Elaborate_Body;
+
    use CORBA;
 
    type My_Object is new Droopi.POA_Types.Servant with null record;

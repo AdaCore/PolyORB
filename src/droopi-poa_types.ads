@@ -20,6 +20,8 @@ with Sequences.Unbounded;
 
 package Droopi.POA_Types is
 
+   pragma Elaborate_Body;
+
    Invalid_Object_Id : exception renames Droopi.Obj_Adapters.Invalid_Object_Id;
    Invalid_Method    : exception renames Droopi.Obj_Adapters.Invalid_Method;
 

@@ -1,3 +1,7 @@
+--  Base POA Manager concrete implementation.
+
+--  $Id$
+
 with Ada.Unchecked_Deallocation;
 
 with Droopi.POA_Types; use Droopi.POA_Types;
@@ -7,6 +11,8 @@ with Locked_Queue;
 pragma Elaborate_All (Locked_Queue);
 
 package Droopi.POA_Manager.Basic_Manager is
+
+   pragma Elaborate_Body;
 
    type Basic_POA_Manager is new POAManager with private;
    type Basic_POA_Manager_Access is access all Basic_POA_Manager;

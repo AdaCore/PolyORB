@@ -1,6 +1,12 @@
+--  Abstract interface for the POA manager.
+
+--  $Id$
+
 with Droopi.POA_Types; use Droopi.POA_Types;
 
 package Droopi.POA_Manager is
+
+   --  Unit has no proper body: no elab control necessary.
 
    type State is
      (HOLDING, ACTIVE, DISCARDING, INACTIVE);

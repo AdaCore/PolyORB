@@ -1,3 +1,7 @@
+--  Basic POA implementation.
+
+--  $Id$
+
 with Ada.Unchecked_Deallocation;
 
 with Droopi.Objects;
@@ -24,6 +28,8 @@ use CORBA.Policy.Lifespan_Policy;
 use CORBA.Policy.Implicit_Activation_Policy;
 
 package Droopi.POA.Basic_POA is
+
+   pragma Elaborate_Body;
 
    use CORBA;
 

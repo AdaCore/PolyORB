@@ -3,6 +3,8 @@ with Droopi.Components;
 
 package CORBA.Test_POA is
 
+   pragma Elaborate_Body;
+
    Incorrect_Execution : exception;
    Correct_Execution   : exception;
 

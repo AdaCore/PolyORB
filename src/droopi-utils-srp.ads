@@ -11,6 +11,8 @@ with Droopi.Types; use Droopi.Types;
 
 package Droopi.Utils.SRP is
 
+   pragma Elaborate_Body;
+
    Unmarshall_Error : exception;
    Deprecated       : exception;
 

@@ -1,3 +1,7 @@
+--  Abstract interface for the POA.
+
+--  $Id$
+
 with Droopi.Locks;
 
 with Droopi.POA_Types;     use Droopi.POA_Types;
@@ -23,6 +27,8 @@ use CORBA.Policy.Lifespan_Policy;
 use CORBA.Policy.Implicit_Activation_Policy;
 
 package Droopi.POA is
+
+   --  Unit has no proper body: no elab control necessary.
 
    Invalid_Object_Id : exception renames Droopi.POA_Types.Invalid_Object_Id;
    Invalid_Method    : exception renames Droopi.POA_Types.Invalid_Method;
