@@ -271,7 +271,9 @@ package body Ada_Be.Idl2Ada.Helper is
             PL (CU, " is");
             PL (CU, "begin");
             II (CU);
-            PL (CU, "return To_Ref (CORBA.Object.Helper."
+            PL (CU, "return To_"
+                & Ada_Type_Defining_Name (Node)
+                & " (CORBA.Object.Helper."
                 & "From_Any (Item));");
             DI (CU);
             PL (CU, "end From_Any;");

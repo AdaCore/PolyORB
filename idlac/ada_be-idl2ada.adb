@@ -237,7 +237,9 @@ package body Ada_Be.Idl2Ada is
       Stream.Gen_Node_Body (Stream_Body, Node);
 
       --  Value_Impl type
-      Gen_Value_Impl_Decl (Value_Impl_Spec, Node);
+      if not Abst (Node) then
+         Gen_Value_Impl_Decl (Value_Impl_Spec, Node);
+      end if;
 
       --  Helper package
 
@@ -261,7 +263,9 @@ package body Ada_Be.Idl2Ada is
                Stream.Gen_Node_Spec (Stream_Spec, Export_Node);
                Stream.Gen_Node_Body (Stream_Body, Export_Node);
 
-               Impl.Gen_Node_Spec (Value_Impl_Spec, Export_Node);
+               if not Abst (Node) then
+                  Impl.Gen_Node_Spec (Value_Impl_Spec, Export_Node);
+               end if;
 
                Helper.Gen_Node_Spec (Helper_Spec, Export_Node);
                Helper.Gen_Node_Body (Helper_Body, Export_Node);
@@ -274,7 +278,9 @@ package body Ada_Be.Idl2Ada is
       end;
 
       if Implement then
-         Generate (Value_Impl_Body, False, To_Stdout);
+         if not Abst (Node) then
+            Generate (Value_Impl_Body, False, To_Stdout);
+         end if;
       else
          Generate (Value_Impl_Spec, False, To_Stdout);
          Generate (Stubs_Spec, False, To_Stdout);
@@ -534,26 +540,30 @@ package body Ada_Be.Idl2Ada is
             Gen_Object_Reference_Declaration (Stubs_Spec, Node);
             --  The object reference type.
 
-            Add_Elaborate_Body (Skel_Spec);
+            if not Abst (Node) then
+               --  no skel and impl packages generated for abstract interfaces
 
-            Add_With (Skel_Body, "Broca.Buffers");
-            Add_With (Skel_Body, "Broca.Exceptions");
-            Add_With (Skel_Body, "PortableServer",
-                      Use_It => False,
-                      Elab_Control => Elaborate_All);
-            Add_With (Skel_Body, Impl_Name);
+               Add_Elaborate_Body (Skel_Spec);
 
-            if Implement then
-               Gen_Object_Servant_Declaration
-                 (Impl_Spec, Node);
-               --  The object implementation type.
-
-               Suppress_Warning_Message (Impl_Spec);
-               Suppress_Warning_Message (Impl_Body);
-
-               Add_With (Impl_Body, Skel_Name,
+               Add_With (Skel_Body, "Broca.Buffers");
+               Add_With (Skel_Body, "Broca.Exceptions");
+               Add_With (Skel_Body, "PortableServer",
                          Use_It => False,
-                         Elab_Control => None);
+                         Elab_Control => Elaborate_All);
+               Add_With (Skel_Body, Impl_Name);
+
+               if Implement then
+                  Gen_Object_Servant_Declaration
+                    (Impl_Spec, Node);
+                  --  The object implementation type.
+
+                  Suppress_Warning_Message (Impl_Spec);
+                  Suppress_Warning_Message (Impl_Body);
+
+                  Add_With (Impl_Body, Skel_Name,
+                            Use_It => False,
+                            Elab_Control => None);
+               end if;
             end if;
 
             Stream.Gen_Node_Spec
@@ -563,50 +573,52 @@ package body Ada_Be.Idl2Ada is
             --  Marshalling subprograms for the object
             --  reference type.
 
-            NL (Skel_Body);
-            PL (Skel_Body, "type Object_Ptr is access all "
-                & Impl_Name & ".Object'Class;");
-            NL (Skel_Body);
-            PL (Skel_Body, "--  Skeleton subprograms");
-            NL (Skel_Body);
-            PL (Skel_Body, "function Servant_Is_A");
-            PL (Skel_Body, "  (Obj : PortableServer.Servant)");
-            PL (Skel_Body, "  return Boolean;");
-            PL (Skel_Body, "procedure GIOP_Dispatch");
-            PL (Skel_Body, "  (Obj : PortableServer.Servant;");
-            II (Skel_Body);
-            PL (Skel_Body, "Operation : String;");
-            PL (Skel_Body, "Request_Id : CORBA.Unsigned_Long;");
-            PL (Skel_Body, "Response_Expected : CORBA.Boolean;");
-            PL (Skel_Body,
-                "Request_Buffer : access Broca.Buffers.Buffer_Type;");
-            PL (Skel_Body,
-                "Reply_Buffer   : access Broca.Buffers.Buffer_Type);");
-            DI (Skel_Body);
-            NL (Skel_Body);
-            PL (Skel_Body, "function Servant_Is_A");
-            PL (Skel_Body, "  (Obj : PortableServer.Servant)");
-            PL (Skel_Body, "  return Boolean is");
-            PL (Skel_Body, "begin");
-            II (Skel_Body);
-            PL (Skel_Body, "return Obj.all in "
-                & Impl_Name & ".Object'Class;");
-            DI (Skel_Body);
-            PL (Skel_Body, "end Servant_Is_A;");
-            NL (Skel_Body);
-            PL (Skel_Body, "procedure GIOP_Dispatch");
-            PL (Skel_Body, "  (Obj : PortableServer.Servant;");
-            II (Skel_Body);
-            PL (Skel_Body, "Operation : String;");
-            PL (Skel_Body, "Request_Id : CORBA.Unsigned_Long;");
-            PL (Skel_Body, "Response_Expected : CORBA.Boolean;");
-            PL (Skel_Body,
-                "Request_Buffer : access Broca.Buffers.Buffer_Type;");
-            PL (Skel_Body,
-                "Reply_Buffer   : access Broca.Buffers.Buffer_Type) is");
-            DI (Skel_Body);
-            PL (Skel_Body, "begin");
-            II (Skel_Body);
+            if not Abst (Node) then
+               NL (Skel_Body);
+               PL (Skel_Body, "type Object_Ptr is access all "
+                   & Impl_Name & ".Object'Class;");
+               NL (Skel_Body);
+               PL (Skel_Body, "--  Skeleton subprograms");
+               NL (Skel_Body);
+               PL (Skel_Body, "function Servant_Is_A");
+               PL (Skel_Body, "  (Obj : PortableServer.Servant)");
+               PL (Skel_Body, "  return Boolean;");
+               PL (Skel_Body, "procedure GIOP_Dispatch");
+               PL (Skel_Body, "  (Obj : PortableServer.Servant;");
+               II (Skel_Body);
+               PL (Skel_Body, "Operation : String;");
+               PL (Skel_Body, "Request_Id : CORBA.Unsigned_Long;");
+               PL (Skel_Body, "Response_Expected : CORBA.Boolean;");
+               PL (Skel_Body,
+                   "Request_Buffer : access Broca.Buffers.Buffer_Type;");
+               PL (Skel_Body,
+                   "Reply_Buffer   : access Broca.Buffers.Buffer_Type);");
+               DI (Skel_Body);
+               NL (Skel_Body);
+               PL (Skel_Body, "function Servant_Is_A");
+               PL (Skel_Body, "  (Obj : PortableServer.Servant)");
+               PL (Skel_Body, "  return Boolean is");
+               PL (Skel_Body, "begin");
+               II (Skel_Body);
+               PL (Skel_Body, "return Obj.all in "
+                   & Impl_Name & ".Object'Class;");
+               DI (Skel_Body);
+               PL (Skel_Body, "end Servant_Is_A;");
+               NL (Skel_Body);
+               PL (Skel_Body, "procedure GIOP_Dispatch");
+               PL (Skel_Body, "  (Obj : PortableServer.Servant;");
+               II (Skel_Body);
+               PL (Skel_Body, "Operation : String;");
+               PL (Skel_Body, "Request_Id : CORBA.Unsigned_Long;");
+               PL (Skel_Body, "Response_Expected : CORBA.Boolean;");
+               PL (Skel_Body,
+                   "Request_Buffer : access Broca.Buffers.Buffer_Type;");
+               PL (Skel_Body,
+                   "Reply_Buffer   : access Broca.Buffers.Buffer_Type) is");
+               DI (Skel_Body);
+               PL (Skel_Body, "begin");
+               II (Skel_Body);
+            end if;
 
             declare
                It   : Node_Iterator;
@@ -630,14 +642,16 @@ package body Ada_Be.Idl2Ada is
 
                      --  No code produced per-node
                      --  in skeleton spec.
-                     Gen_Node_Skel_Body
-                       (Skel_Body, Export_Node);
+                     if not Abst (Node) then
+                        Gen_Node_Skel_Body
+                          (Skel_Body, Export_Node);
 
-                     if Implement then
-                        Impl.Gen_Node_Spec
-                          (Impl_Spec, Export_Node);
-                        Impl.Gen_Node_Body
-                          (Impl_Body, Export_Node);
+                        if Implement then
+                           Impl.Gen_Node_Spec
+                             (Impl_Spec, Export_Node);
+                           Impl.Gen_Node_Body
+                             (Impl_Body, Export_Node);
+                        end if;
                      end if;
 
                      Helper.Gen_Node_Spec (Helper_Spec, Export_Node);
@@ -661,13 +675,17 @@ package body Ada_Be.Idl2Ada is
                 & Idl_Repository_Id (Node) & """);");
             NL (Stubs_Spec);
             PL (Stubs_Spec, "function Is_A");
-            PL (Stubs_Spec, "  (Self : Ref;");
+            PL (Stubs_Spec, "  (Self : "
+                & Ada_Type_Defining_Name (Node)
+                & ";");
             PL (Stubs_Spec, "   Type_Id : CORBA.RepositoryId)");
             PL (Stubs_Spec, "  return CORBA.Boolean;");
 
             NL (Stubs_Body);
             PL (Stubs_Body, "function Is_A");
-            PL (Stubs_Body, "  (Self : Ref;");
+            PL (Stubs_Body, "  (Self : "
+                & Ada_Type_Defining_Name (Node)
+                & ";");
             PL (Stubs_Body, "   Type_Id : CORBA.RepositoryId)");
             PL (Stubs_Body, "  return CORBA.Boolean");
             PL (Stubs_Body, "is");
@@ -722,18 +740,20 @@ package body Ada_Be.Idl2Ada is
                end if;
             end;
 
-            NL (Skel_Body);
-            PL (Skel_Body, "Broca.Exceptions.Raise_Bad_Operation;");
-            DI (Skel_Body);
-            PL (Skel_Body, "end GIOP_Dispatch;");
+            if not Abst (Node) then
+               NL (Skel_Body);
+               PL (Skel_Body, "Broca.Exceptions.Raise_Bad_Operation;");
+               DI (Skel_Body);
+               PL (Skel_Body, "end GIOP_Dispatch;");
 
-            Divert (Skel_Body, Elaboration);
+               Divert (Skel_Body, Elaboration);
 
-            PL (Skel_Body, "PortableServer.Register_Skeleton");
-            PL (Skel_Body, "  (" & Stubs_Name
-                & "." & T_Repository_Id &",");
-            PL (Skel_Body, "   Servant_Is_A'Access,");
-            PL (Skel_Body, "   GIOP_Dispatch'Access);");
+               PL (Skel_Body, "PortableServer.Register_Skeleton");
+               PL (Skel_Body, "  (" & Stubs_Name
+                   & "." & T_Repository_Id &",");
+               PL (Skel_Body, "   Servant_Is_A'Access,");
+               PL (Skel_Body, "   GIOP_Dispatch'Access);");
+            end if;
 
          when others =>
             pragma Assert (False);
@@ -742,19 +762,33 @@ package body Ada_Be.Idl2Ada is
             null;
       end case;
 
-      if Implement then
-         Generate (Impl_Spec, False, To_Stdout);
-         Generate (Impl_Body, False, To_Stdout);
-      else
-         Generate (Stubs_Spec, False, To_Stdout);
-         Generate (Stubs_Body, False, To_Stdout);
-         Generate (Helper_Spec, False, To_Stdout);
-         Generate (Helper_Body, False, To_Stdout);
-         Generate (Stream_Spec, False, To_Stdout);
-         Generate (Stream_Body, False, To_Stdout);
-         Generate (Skel_Spec, False, To_Stdout);
-         Generate (Skel_Body, False, To_Stdout);
-      end if;
+      --  no skel and impl packages generated for abstract
+      --  interfaces
+      declare
+         Is_Abstract_Node : Boolean := False;
+      begin
+         if Kind (Node) = K_Interface then
+            Is_Abstract_Node := Abst (Node);
+         end if;
+
+         if Implement then
+            if not Is_Abstract_Node then
+               Generate (Impl_Spec, False, To_Stdout);
+               Generate (Impl_Body, False, To_Stdout);
+            end if;
+         else
+            Generate (Stubs_Spec, False, To_Stdout);
+            Generate (Stubs_Body, False, To_Stdout);
+            Generate (Helper_Spec, False, To_Stdout);
+            Generate (Helper_Body, False, To_Stdout);
+            Generate (Stream_Spec, False, To_Stdout);
+            Generate (Stream_Body, False, To_Stdout);
+            if not Is_Abstract_Node then
+               Generate (Skel_Spec, False, To_Stdout);
+               Generate (Skel_Body, False, To_Stdout);
+            end if;
+         end if;
+      end;
    end Gen_Interface_Module_Scope;
 
    ---------------------------------------
@@ -767,6 +801,8 @@ package body Ada_Be.Idl2Ada is
    procedure Gen_Object_Reference_Declaration
      (CU   : in out Compilation_Unit;
       Node : Node_Id) is
+      Primary_Parent : Node_Id
+        := Idl_Fe.Tree.Synthetic.Primary_Parent (Node);
    begin
       pragma Assert (False
          or else Kind (Node) = K_Interface
@@ -776,7 +812,8 @@ package body Ada_Be.Idl2Ada is
       Put (CU, "type "
            & Ada_Type_Defining_Name (Node)
            & " is new ");
-      if Parents (Node) = Nil_List then
+
+      if Primary_Parent = No_Node then
          case (Kind (Node)) is
             when K_Interface =>
                Add_With (CU, "CORBA.Object");
@@ -789,73 +826,61 @@ package body Ada_Be.Idl2Ada is
                --  should not be called on another node
          end case;
       else
-         declare
-            First_Parent : Node_Id := Head (Parents (Node));
-         begin
-            Add_With (CU, Ada_Full_Name (First_Parent));
-            Put (CU, Ada_Type_Name (First_Parent));
-         end;
+         Add_With (CU, Ada_Full_Name (Primary_Parent));
+         Put (CU, Ada_Type_Name (Primary_Parent));
       end if;
       PL (CU, " with null record;");
       NL (CU);
    end Gen_Object_Reference_Declaration;
 
+   -------------------------------------
+   --  Gen_Object_Servant_Declaration --
+   -------------------------------------
+
    procedure Gen_Object_Servant_Declaration
      (CU   : in out Compilation_Unit;
       Node : Node_Id) is
+      Primary_Parent : Node_Id;
    begin
-      case Kind (Node) is
+      pragma Assert (Kind (Node) = K_Interface);
+      Primary_Parent := Idl_Fe.Tree.Synthetic.Primary_Parent (Node);
+      pragma Assert (not Abst (Node));
+      --  no skel package generated for abstract interfaces
 
-         when K_Interface =>
+      NL (CU);
+      PL (CU, "type Object is");
+      if Primary_Parent = No_Node then
+         Add_With (CU, "PortableServer");
+         Put (CU, "  ");
+         Put (CU, "new PortableServer.Servant_Base");
+      else
+         declare
+            It : Node_Iterator;
+            P_Node : Node_Id;
+         begin
+            Put (CU, "  new "
+                 & Ada_Full_Name (Primary_Parent)
+                 & Impl.Suffix & ".Object");
 
-            NL (CU);
-            PL (CU, "type Object is");
-            if Parents (Node) = Nil_List then
-               Add_With (CU, "PortableServer");
-               Put (CU, "  ");
-               if Abst (Node) then
-                  Put (CU, "abstract ");
+            Init (It, Parents (Node));
+            while not Is_End (It) loop
+               Get_Next_Node (It, P_Node);
+
+               if not Abst (Value (P_Node)) then
+                  Add_With (CU, Ada_Full_Name (P_Node)
+                            & Impl.Suffix,
+                            Use_It => False,
+                            Elab_Control => Elaborate_All);
+                  --  Make it so that the skeleton unit for
+                  --  an interface is elaborated after those
+                  --  of all its parents.
                end if;
-               Put (CU, "new PortableServer.Servant_Base");
-            else
-               declare
-                  It : Node_Iterator;
-                  P_Node : Node_Id;
-                  First : Boolean := True;
-               begin
-                  Init (It, Parents (Node));
+            end loop;
+         end;
+      end if;
 
-                  while not Is_End (It) loop
-                     Get_Next_Node (It, P_Node);
+      PL (CU, " with null record;");
 
-                     Add_With (CU, Ada_Full_Name (P_Node)
-                               & Impl.Suffix,
-                               Use_It => False,
-                               Elab_Control => Elaborate_All);
-                     --  Make it so that the skeleton unit for
-                     --  an interface is elaborated after those
-                     --  of all its parents.
-
-                     if First then
-                        Put (CU, "  ");
-                        if Abst (Node) then
-                           Put (CU, "abstract ");
-                        end if;
-                        Put (CU, "new "
-                             & Ada_Full_Name (P_Node)
-                             & Impl.Suffix & ".Object");
-                        First := False;
-                     end if;
-                  end loop;
-               end;
-            end if;
-
-            PL (CU, " with null record;");
-
-         when others =>
-            raise Program_Error;
-
-      end case;
    end Gen_Object_Servant_Declaration;
 
    procedure Gen_When_Clause

@@ -529,10 +529,10 @@ package body Ada_Be.Expansion is
 
       It : Node_Iterator;
       I_Node : Node_Id;
-      First : Boolean := True;
-
       Parents_Seen : Node_List
         := Nil_List;
+      Primary_Parent : Node_Id
+        := Idl_Fe.Tree.Synthetic.Primary_Parent (Node);
    begin
       pragma Assert (Kind (Node) = K_Interface);
       Push_Scope (Node);
@@ -542,6 +542,16 @@ package body Ada_Be.Expansion is
       --  First expand the interface's exports
       --  (eg, attributes are expanded into operations.)
 
+      --  copy the operations of the primary parent
+      if  Primary_Parent /= No_Node then
+         Recursive_Copy_Operations
+           (Into => Export_List,
+            Parent => Node,
+            From => Value (Primary_Parent),
+            Implicit_Inherited => True,
+            Parents_Seen => Parents_Seen);
+      end if;
+
       Init (It, Parents (Node));
       while not Is_End (It) loop
          Get_Next_Node (It, I_Node);
@@ -550,10 +560,8 @@ package body Ada_Be.Expansion is
            (Into => Export_List,
             Parent => Node,
             From => Value (I_Node),
-            Implicit_Inherited => First,
+            Implicit_Inherited => False,
             Parents_Seen => Parents_Seen);
-
-         First := False;
       end loop;
 
       Set_Contents (Node, Export_List);
@@ -568,9 +576,10 @@ package body Ada_Be.Expansion is
       Export_List : Node_List;
       It : Node_Iterator;
       I_Node : Node_Id;
-      First : Boolean := True;
       Parents_Seen : Node_List := Nil_List;
       Interfaces_Seen : Node_List := Nil_List;
+      Primary_Parent : Node_Id
+        := Idl_Fe.Tree.Synthetic.Primary_Parent (Node);
    begin
       pragma Assert (Kind (Node) = K_ValueType);
       Push_Scope (Node);
@@ -580,34 +589,38 @@ package body Ada_Be.Expansion is
       Export_List := Contents (Node);
       Expand_Node_List (Export_List, True);
 
+      --  copy the operations of the primary parent
+      if  Primary_Parent /= No_Node then
+         Recursive_Copy_Operations
+           (Into => Export_List,
+            Parent => Node,
+            From => Value (Primary_Parent),
+            Implicit_Inherited => True,
+            Parents_Seen => Parents_Seen);
+      end if;
+
       --  copy all the parents' operations
       Init (It, Parents (Node));
       while not Is_End (It) loop
          Get_Next_Node (It, I_Node);
-
          Recursive_Copy_Operations
            (Into => Export_List,
             Parent => Node,
             From => Value (I_Node),
-            Implicit_Inherited => First,
+            Implicit_Inherited => False,
             Parents_Seen => Parents_Seen);
-
-         First := False;
       end loop;
 
       --  copy all the supported interfaces' operations
       Init (It, Supports (Node));
       while not Is_End (It) loop
          Get_Next_Node (It, I_Node);
-
          Recursive_Copy_Operations
            (Into => Export_List,
             Parent => Node,
             From => Value (I_Node),
             Implicit_Inherited => False,
             Parents_Seen => Interfaces_Seen);
-
-         First := False;
       end loop;
 
       Set_Contents (Node, Export_List);
