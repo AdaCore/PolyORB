@@ -46,14 +46,21 @@ with Ada.Streams;
 
 with PolyORB.Buffers;
 with PolyORB.Types;
+with PolyORB.Binding_Data;
 
 package PolyORB.References.IOR is
 
    use PolyORB.Buffers;
 
-   --  An object reference (whose supported interface is not
-   --  reflected by its Ada type) and the associated type information
-   --  (within the PolyORB typing model).
+   procedure Marshall_Profile
+     (Buffer  : access Buffer_Type;
+      P       :        Binding_Data.Profile_Access;
+      Success :    out Boolean);
+
+   function Unmarshall_Profile
+     (Buffer : access Buffer_Type)
+     return Binding_Data.Profile_Access;
+   --  return null if failed
 
    subtype IOR_Type is PolyORB.References.Ref;
 

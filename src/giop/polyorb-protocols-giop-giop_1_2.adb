@@ -43,7 +43,6 @@ with PolyORB.Objects;
 with PolyORB.Obj_Adapters;
 with PolyORB.Binding_Data;
 with PolyORB.Binding_Data.Local;
-with PolyORB.Binding_Data.IIOP;
 with PolyORB.ORB.Interface;
 with PolyORB.Filters;
 with PolyORB.Initialization;
@@ -387,30 +386,29 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             null;
       end case;
 
-      pragma Assert (Object_Key /= null);
-      pragma Debug (O ("Object Key : "
-                       & To_String (Object_Key.all)));
-
-      Args := Get_Empty_Arg_List
-        (Object_Adapter (ORB),
-         Object_Key,
-         To_Standard_String (Operation));
-
-      if not Is_Nil (Args) then
-         pragma Debug (O ("Immediate arguments unmarshalling"));
-         S.State := Waiting_Unmarshalling;
-         --  XXX change state name. We are not waiting for
-         --  unmarshalling: we do it now. See next line.
-
-         Handle_Unmarshall_Arguments (S, Args);
-      else
-         pragma Debug (O ("Unmarshalling of arguments deffered"));
-         S.State := Waiting_Unmarshalling;
-         Def_Args := Component_Access (S);
-      end if;
+      S.State := Waiting_Unmarshalling;
+      Def_Args := Component_Access (S);
 
       case Target_Addr.Address_Type is
          when Key_Addr =>
+            pragma Debug (O ("Object Key : "
+                             & To_String (Object_Key.all)));
+            Args := Get_Empty_Arg_List
+              (Object_Adapter (ORB),
+               Object_Key,
+               To_Standard_String (Operation));
+
+            if not Is_Nil (Args) then
+               pragma Debug (O ("Immediate arguments unmarshalling"));
+               S.State := Waiting_Unmarshalling;
+               --  XXX change state name. We are not waiting for
+               --  unmarshalling: we do it now. See next line.
+
+               Handle_Unmarshall_Arguments (S, Args);
+            else
+               pragma Debug (O ("Unmarshalling of arguments deffered"));
+               null;
+            end if;
             declare
                Target_Profile : constant Binding_Data.Profile_Access
                  := new Local_Profile_Type;
@@ -681,10 +679,21 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             end;
 
          when Profile_Addr  =>
-            Target_Ref := new Target_Address'
-              (Address_Type => Profile_Addr,
-               Profile  =>  Binding_Data.IIOP.
-               Unmarshall_IIOP_Profile_Body (Buffer));
+            declare
+               use PolyORB.Binding_Data;
+               use PolyORB.References.IOR;
+
+               Pro : Binding_Data.Profile_Access;
+            begin
+               Pro := Unmarshall_Profile (Buffer);
+               if Pro = null then
+                  pragma Debug (O ("Incorrect profile"));
+                  raise GIOP_Error;
+               end if;
+               Target_Ref := new Target_Address'
+                 (Address_Type => Profile_Addr,
+                  Profile  => Pro);
+            end;
 
          when Reference_Addr  =>
             declare
@@ -830,11 +839,26 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          Marshall (Buffer, Sink);
       end loop;
 
-      Marshall (Buffer, Key_Addr);
-      Marshall
-        (Buffer,
-         Stream_Element_Array
-         (Target_Ref.Object_Key.all));
+      if Target_Ref.Object_Key /= null then
+         Marshall (Buffer, Key_Addr);
+         Marshall
+           (Buffer,
+            Stream_Element_Array
+            (Target_Ref.Object_Key.all));
+      else
+         declare
+            use PolyORB.References.IOR;
+
+            Success : Boolean;
+         begin
+            Marshall (Buffer, Profile_Addr);
+            Marshall_Profile (Buffer, R.Target_Profile, Success);
+            if not Success then
+               pragma Debug (O ("Incorrect profile"));
+               raise GIOP_Error;
+            end if;
+         end;
+      end if;
 
       pragma Debug (O ("Operation : "
                        & To_Standard_String (R.Req.Operation)));
@@ -1041,10 +1065,21 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             end;
 
          when Profile_Addr  =>
-            Target_Ref := new Target_Address'
-              (Address_Type => Profile_Addr,
-               Profile  =>  Binding_Data.IIOP.
-               Unmarshall_IIOP_Profile_Body (Buffer));
+            declare
+               use PolyORB.Binding_Data;
+               use PolyORB.References.IOR;
+
+               Pro : Binding_Data.Profile_Access;
+            begin
+               Pro := Unmarshall_Profile (Buffer);
+               if Pro = null then
+                  pragma Debug (O ("Incorrect profile"));
+                  raise GIOP_Error;
+               end if;
+               Target_Ref := new Target_Address'
+                 (Address_Type => Profile_Addr,
+                  Profile  => Pro);
+            end;
 
          when Reference_Addr  =>
             declare
@@ -1101,8 +1136,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Target_Ref : in     Target_Address)
    is
       use Representations.CDR;
-      use Binding_Data.IIOP;
-
    begin
 
       --  Request id
@@ -1119,8 +1152,18 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                (Target_Ref.Object_Key.all));
 
          when Profile_Addr =>
-            Marshall_IIOP_Profile_Body
-              (Buffer, Target_Ref.Profile);
+            declare
+               use PolyORB.References.IOR;
+
+               Success : Boolean;
+            begin
+               Marshall (Buffer, Profile_Addr);
+               Marshall_Profile (Buffer, Target_Ref.Profile, Success);
+               if not Success then
+                  pragma Debug (O ("Incorrect profile"));
+                  raise GIOP_Error;
+               end if;
+            end;
 
          when Reference_Addr =>
             Marshall (Buffer, Target_Ref.Ref.Selected_Profile_Index);
