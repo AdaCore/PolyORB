@@ -1,3 +1,9 @@
+Sun Oct  6 15:17:18 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-gsmasp.ads: New file.
+
+	* s-garser.ads: New file.
+
 Mon Sep 30 16:13:29 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* Makefile.am: Would look for s-gtplsp.ads in the bad place.
