@@ -92,7 +92,18 @@ package body Exp_Hlpr is
    --  Return the name to be assigned for stream subprogram Nam of Typ.
    --  (copied from exp_strm.adb)
 
-   --  Common subprograms for building record helpers
+   ------------------------------------------------------------
+   -- Common subprograms for building various tree fragments --
+   ------------------------------------------------------------
+
+   function Build_Get_Aggregate_Element
+     (Loc : Source_Ptr;
+      Any : Entity_Id;
+      TC  : Node_Id;
+      Idx : Node_Id)
+     return Node_Id;
+   --  Build a call to Get_Aggregate_Element on Any
+   --  for typecode TC, returning the Idx'th element.
 
    generic
       with function Build_Start_Dimen
@@ -406,15 +417,11 @@ package body Exp_Hlpr is
                is
                   Res : constant Node_Id :=
                     Build_From_Any_Call (Typ,
-                      Make_Function_Call (Loc,
-                        Name =>
-                          New_Occurrence_Of (
-                            RTE (RE_Get_Aggregate_Element), Loc),
-                        Parameter_Associations => New_List (
-                          New_Occurrence_Of (Any_Parameter, Loc),
-                          Build_TypeCode_Call (Loc, Typ, Decls),
-                          Make_Integer_Literal (Loc,
-                            Element_Count))), Decls);
+                      Build_Get_Aggregate_Element (Loc,
+                        Any_Parameter,
+                        Build_TypeCode_Call (Loc, Typ, Decls),
+                        Make_Integer_Literal (Loc, Element_Count)),
+                      Decls);
                begin
                   Element_Count := Element_Count + 1;
                   return Res;
@@ -503,6 +510,7 @@ package body Exp_Hlpr is
 
             Counter : constant Entity_Id
               := Make_Defining_Identifier (Loc, Name_J);
+            Initial_Counter_Value : Int := 0;
 
             function Build_Increment_Counter return Node_Id is
             begin
@@ -540,22 +548,100 @@ package body Exp_Hlpr is
 
             Res : constant Entity_Id
               := Make_Defining_Identifier (Loc, Name_R);
+            Res_Subtype_Indication : Node_Id
+              := New_Occurrence_Of (Typ, Loc);
+
             Component_TC : constant Entity_Id
               := Make_Defining_Identifier (Loc, Name_T);
          begin
+            if not Constrained then
+               declare
+                  Ndim : constant Int := Number_Dimensions (Typ);
+                  Lnam : Name_Id;
+                  Hnam : Name_Id;
+                  Indx : Node_Id := First_Index (Typ);
+                  Indt : Entity_Id;
+                  Ranges : constant List_Id := New_List;
+               begin
+                  for J in 1 .. Ndim loop
+
+                     Lnam := New_External_Name ('L', J);
+                     Hnam := New_External_Name ('H', J);
+                     Indt := Etype (Indx);
+
+                     Append_To (Decls,
+                       Make_Object_Declaration (Loc,
+                         Defining_Identifier =>
+                           Make_Defining_Identifier (Loc, Lnam),
+                         Constant_Present    => True,
+                         Object_Definition   => New_Occurrence_Of (Indt, Loc),
+                         Expression          => Build_From_Any_Call (
+                           Indt,
+                           Build_Get_Aggregate_Element (Loc,
+                             Any_Parameter,
+                             Build_TypeCode_Call (Loc, Indt, Decls),
+                             Make_Integer_Literal (Loc, J - 1)),
+                           Decls)));
+
+                     Append_To (Decls,
+                       Make_Object_Declaration (Loc,
+                         Defining_Identifier =>
+                           Make_Defining_Identifier (Loc, Hnam),
+                         Constant_Present    => True,
+                         Object_Definition   => New_Occurrence_Of (Indt, Loc),
+                         Expression =>
+                           Make_Attribute_Reference (Loc,
+                             Prefix         => New_Occurrence_Of (Indt, Loc),
+                             Attribute_Name => Name_Val,
+                             Expressions    => New_List (
+                               Make_Op_Add (Loc,
+                                 Left_Opnd =>
+                                   Make_Attribute_Reference (Loc,
+                                     Prefix         =>
+                                       New_Occurrence_Of (Indt, Loc),
+                                     Attribute_Name =>
+                                       Name_Pos,
+                                     Expressions    => New_List (
+                                       Make_Identifier (Loc, Lnam))),
+                                 Right_Opnd =>
+                                   Make_Function_Call (Loc,
+                                     Name =>
+                                       New_Occurrence_Of (RTE (RE_FA_U), Loc),
+                                     Parameter_Associations => New_List (
+                                       Build_Get_Aggregate_Element (Loc,
+                                         Any_Parameter,
+                                         New_Occurrence_Of (
+                                           RTE (RE_TC_U), Loc),
+                                         Make_Integer_Literal (Loc,
+                                           Ndim + J - 1)))))))));
+
+                     Append_To (Ranges,
+                       Make_Range (Loc,
+                         Low_Bound  => Make_Identifier (Loc, Lnam),
+                         High_Bound => Make_Identifier (Loc, Hnam)));
+
+                     Next_Index (Indx);
+                  end loop;
+
+                  --  Now we have all the necessary bound information:
+                  --  apply the set of range constraints to the (unconstrained)
+                  --  nominal subtype of Res.
+
+                  Initial_Counter_Value := Ndim;
+                  Res_Subtype_Indication := Make_Subtype_Indication (Loc,
+                    Subtype_Mark =>
+                      Res_Subtype_Indication,
+                    Constraint   =>
+                      Make_Index_Or_Discriminant_Constraint (Loc,
+                        Constraints => Ranges));
+               end;
+            end if;
+
             Append_To (Decls,
               Make_Object_Declaration (Loc,
                 Defining_Identifier => Res,
-                Object_Definition =>
-                  New_Occurrence_Of (Typ, Loc)));
+                Object_Definition => Res_Subtype_Indication));
             Set_Etype (Res, Typ);
-            --  XXX for unconstrained subtype, need to constrain each of the
-            --  n dimensions of the array with the nth element of the any
-            --  aggregate.
-
-            --  if Constrained then
-            --     Add constraint...
-            --  end if;
 
             Append_To (Decls,
               Make_Object_Declaration (Loc,
@@ -563,7 +649,7 @@ package body Exp_Hlpr is
                 Object_Definition =>
                   New_Occurrence_Of (RTE (RE_Long_Unsigned), Loc),
                 Expression =>
-                  Make_Integer_Literal (Loc, 0)));
+                  Make_Integer_Literal (Loc, Initial_Counter_Value)));
 
             Append_To (Decls,
               Make_Object_Declaration (Loc,
@@ -586,14 +672,10 @@ package body Exp_Hlpr is
                       Expression =>
                         Build_From_Any_Call (
                           Component_Type (Typ),
-                          Make_Function_Call (Loc,
-                            Name =>
-                              New_Occurrence_Of (
-                                RTE (RE_Get_Aggregate_Element), Loc),
-                            Parameter_Associations => New_List (
-                              New_Occurrence_Of (Any_Parameter, Loc),
-                              New_Occurrence_Of (Component_TC, Loc),
-                              New_Occurrence_Of (Counter, Loc))),
+                          Build_Get_Aggregate_Element (Loc,
+                            Any_Parameter,
+                            New_Occurrence_Of (Component_TC, Loc),
+                            New_Occurrence_Of (Counter, Loc)),
                           Decls)),
                    Build_Increment_Counter)));
 
@@ -647,6 +729,28 @@ package body Exp_Hlpr is
             Make_Handled_Sequence_Of_Statements (Loc,
               Statements => Stms));
    end Build_From_Any_Function;
+
+   ---------------------------------
+   -- Build_Get_Aggregate_Element --
+   ---------------------------------
+
+   function Build_Get_Aggregate_Element
+     (Loc : Source_Ptr;
+      Any : Entity_Id;
+      TC  : Node_Id;
+      Idx : Node_Id)
+      return Node_Id
+   is
+   begin
+      return Make_Function_Call (Loc,
+        Name =>
+          New_Occurrence_Of (
+            RTE (RE_Get_Aggregate_Element), Loc),
+        Parameter_Associations => New_List (
+          New_Occurrence_Of (Any, Loc),
+          TC,
+          Idx));
+   end Build_Get_Aggregate_Element;
 
    -----------------------
    -- Build_To_Any_Call --
@@ -1501,6 +1605,8 @@ package body Exp_Hlpr is
             if Constrained then
                Return_Alias_TypeCode (Inner_TypeCode);
             else
+               --  XXX for each dimen: store low bound
+               --  (sequence contains length).
                Start_String;
                Store_String_Char ('V');
                Add_String_Parameter (End_String);
@@ -1733,7 +1839,7 @@ package body Exp_Hlpr is
 
                      Discrete_Subtype_Definition =>
                        Make_Attribute_Reference (Loc,
-                         Prefix => New_Occurrence_Of (Arry, Loc),
+                         Prefix         => New_Occurrence_Of (Arry, Loc),
                          Attribute_Name => Name_Range,
 
                          Expressions => New_List (
