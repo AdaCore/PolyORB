@@ -13,6 +13,13 @@ Changes since GLADE 1.01
   library. There are new pragmas and attributes in GNATDIST to use
   this feature.
 
+* It is possible to pass two new predefined arguments --trace and --replay
+  to a partition. In tracing mode, network inputs and outputs are logged
+  such a way that when the partition executable is invoked with arguments
+  --replay, inputs and outputs are read from the log files. Therefore,
+  you can easily debug your distributed application without any
+  non-deterministic side effects.
+
 * Copies of buffers have been suppressed wherever possible, thus
   decreasing execution time.
 
