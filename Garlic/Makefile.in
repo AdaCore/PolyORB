@@ -356,9 +356,9 @@ install-dirs-local:
 
 inlining: all-local
 	-${RM} -r gnatlib;
-	@echo "with Text_IO; use Text_IO;"  >inlining.adb
-	@echo "procedure Inlining is"      >>inlining.adb
-	@echo "begin Put_Line ("a"); end;" >>inlining.adb
+	@echo 'with Text_IO; use Text_IO;'  >inlining.adb
+	@echo 'procedure Inlining is'      >>inlining.adb
+	@echo 'begin Put_Line ("a"); end;' >>inlining.adb
 	-@${GNATMAKE} -I. inlining.adb
 	@if test -f inlining; then\
 	   echo "Run-time compiled without inlining flags";\
