@@ -968,11 +968,11 @@ package body Test000_Common is
             Id_R (J).P := Task_Test_Synchronisations'Access;
             RA := Id_R (J)'Access;
             declare
+               pragma Warnings (Off);
                T : constant Thread_Access := Run_In_Task
                  (TF => My_Thread_Factory,
                   R  => RA,
                   C  => C);
-               pragma Warnings (Off);
                pragma Unreferenced (T);
                pragma Warnings (On);
             begin
@@ -1072,11 +1072,11 @@ package body Test000_Common is
             Id_R (J).P := Task_Test_Mutexes'Access;
             RA := Id_R (J)'Access;
             declare
+               pragma Warnings (Off);
                T : constant Thread_Access := Run_In_Task
                  (TF => My_Thread_Factory,
                   R  => RA,
                   C  => C);
-               pragma Warnings (Off);
                pragma Unreferenced (T);
                pragma Warnings (On);
             begin
@@ -1176,11 +1176,11 @@ package body Test000_Common is
             R (J).P := Test_1'Access;
             RA := R (J)'Access;
             declare
+               pragma Warnings (Off);
                T : constant Thread_Access := Run_In_Task
                  (TF => My_Thread_Factory,
                   R  => RA,
                   C  => C);
-               pragma Warnings (Off);
                pragma Unreferenced (T);
                pragma Warnings (On);
             begin
@@ -1212,11 +1212,11 @@ package body Test000_Common is
             R (J).P := Test_2'Access;
             RA := R (J)'Access;
             declare
+               pragma Warnings (Off);
                T : constant Thread_Access := Run_In_Task
                  (TF => My_Thread_Factory,
                   R  => RA,
                   C  => C);
-               pragma Warnings (Off);
                pragma Unreferenced (T);
                pragma Warnings (On);
             begin
@@ -1258,11 +1258,11 @@ package body Test000_Common is
             Id_R (J).P := Task_Test_Watchers'Access;
             RA := Id_R (J)'Access;
             declare
+               pragma Warnings (Off);
                T : constant Thread_Access := Run_In_Task
                  (TF => My_Thread_Factory,
                   R  => RA,
                   C  => C);
-               pragma Warnings (Off);
                pragma Unreferenced (T);
                pragma Warnings (On);
             begin

@@ -206,6 +206,7 @@ procedure Test000 is
             (PolyORB.POA.Basic_POA.Basic_Obj_Adapter (Root_POA.all)'Access);
 
          declare
+            pragma Warnings (Off);
             Id1 : constant PolyORB.POA_Types.Object_Id :=
               Activate_Object (Basic_Obj_Adapter (Root_POA.all)'Access,
                                PolyORB.Servants.Servant_Access (S1));
@@ -213,12 +214,11 @@ procedure Test000 is
             Id2 : constant PolyORB.POA_Types.Object_Id :=
               Activate_Object (Basic_Obj_Adapter (Root_POA.all)'Access,
                                PolyORB.Servants.Servant_Access (S1));
-         begin
-            pragma Warnings (Off);
             pragma Unreferenced (Id1);
             pragma Unreferenced (Id2);
-	    pragma Warnings (On);
+            pragma Warnings (On);
 
+         begin
             Destroy (Root_POA, True, True);
          end;
 
@@ -366,14 +366,14 @@ procedure Test000 is
            (PolyORB.POA.Basic_POA.Basic_Obj_Adapter (Root_POA.all)'Access);
 
          declare
+            pragma Warnings (Off);
             Id2 : constant PolyORB.POA_Types.Object_Id
               := Servant_To_Id (Basic_Obj_Adapter (Root_POA.all)'Access,
                                 PolyORB.Servants.Servant_Access (S1));
-         begin
-            pragma Warnings (Off);
+
             pragma Unreferenced (Id2);
             pragma Warnings (On);
-
+         begin
             Destroy (Root_POA, True, True);
          end;
       end;
