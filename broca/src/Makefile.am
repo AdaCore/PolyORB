@@ -1,3 +1,5 @@
+SUBDIRS = . ir
+
 alidir = $(libdir)/adabroker
 
 ADA_SPECS_WITH_BODY = \

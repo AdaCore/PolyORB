@@ -1,5 +1,4 @@
-SHELL=/bin/sh
-SOURCE = corba-repository_root-container-impl.adb \
+SOURCE= corba-repository_root-container-impl.adb \
 corba-repository_root-irobject-impl.adb \
 corba-repository_root-contained-impl.adb \
 corba-repository_root-moduledef-impl.adb \
@@ -26,7 +25,7 @@ corba-repository_root-valuememberdef-impl.adb \
 corba-repository_root-nativedef-impl.adb 
 
 
-DEP = corba-repository_root-irobject.adb \
+DEP= corba-repository_root-irobject.adb \
 corba-repository_root-contained.adb \
 corba-repository_root-container.adb \
 corba-repository_root-moduledef.adb \
@@ -52,33 +51,32 @@ corba-repository_root-operationdef.adb \
 corba-repository_root-valuememberdef.adb \
 corba-repository_root-nativedef.adb 
 
+GNATMAKE_FLAGS=	-I${srcdir} -I.. -I${srcdir}/.. ${ADASOCKETS_INCLUDE} \
+                -m -g -O -largs ${ADASOCKETS_LIBS}
 
-CC = gnatmake
-FLAGS = -c -g -gnata -gnatf 
-LIB = -I. -I/home/niebel/adabroker/example/generic -I/home/niebel/adabroker/src -I/home/niebel/adabroker/adasockets/src
+IDLAC= ../../idlac/idlac
 
-first: all server client print
+all-local: server client print
 
-all: ${SOURCE} ${DEP}
-	for file in ${SOURCE}; do ${CC} ${FLAGS} ${LIB} $$file; done
+${DEP}: ir.idl ${IDLAC}
+	${IDLAC} ${srcdir}/ir.idl
+	${SH} ${srcdir}/typecode.sh ${SED} ${RM}
 
-%.adb: ir.idl
-	idlac ir.idl; typecode.sh
+CLEANFILES=	*.o *.ali
+DISTCLEANFILES=	client server print ${DEP}
 
-impl:
-	idlac ir.idl; idlac -i ir.idl; typecode.sh
+server: server.adb ${SOURCE} ${DEP} force
+	${GNATMAKE} $@ ${GNATMAKE_FLAGS} 
 
-clean :
-	rm -f *.o *.ali client server
+client: client.adb ${SOURCE} ${DEP} force
+	${GNATMAKE} $@ ${GNATMAKE_FLAGS} 
 
-server: server.adb ${SOURCE}
-	${CC}  -g -gnata -gnatf  ${LIB} server.adb
+print: print.adb ${SOURCE} ${DEP} force
+	${GNATMAKE} $@ ${GNATMAKE_FLAGS} 
 
-client: client.adb ${SOURCE}
-	${CC}  -g -gnata -gnatf  ${LIB} client.adb
+.PHONY: force
 
-print: print.adb ${SOURCE}
-	${CC}  -g -gnata -gnatf  ${LIB} print.adb
+force:
 
 
 

@@ -1,15 +1,18 @@
 #!/bin/sh
 
-for file in `ls *.ad?`; do
-sed '/with CORBA.TypeCode;/ D' $file > ${file}.old
-sed '/use CORBA.TypeCode;/ D' ${file}.old > $file
-sed 's/with CORBA.TypeCode.Stream; use CORBA.TypeCode.Stream;/with Broca.CDR; use Broca.CDR;/g'  $file > ${file}.old
-sed 's/CORBA.TypeCode.Ref/CORBA.TypeCode.Object/g'  ${file}.old > $file
-sed '/with CORBA.Stream; use CORBA.Stream;/ D' $file > ${file}.old
-sed '/with CORBA.TypeCode.Helper;/ D' ${file}.old > $file
-sed 's/TypeCode.Helper.//g'  $file > ${file}.old
-mv  ${file}.old $file 
+SED=$1
+RM=$2
+
+for file in *.ad?; do
+  ${SED} -e '/with CORBA.TypeCode;/ D' \
+         -e '/use CORBA.TypeCode;/ D' \
+         -e 's/with CORBA.TypeCode.Stream; use CORBA.TypeCode.Stream;/with Broca.CDR; use Broca.CDR;/' \
+         -e 's/CORBA.TypeCode.Ref/CORBA.TypeCode.Object/g' \
+         -e '/with CORBA.Stream; use CORBA.Stream;/ D' \
+         -e '/with CORBA.TypeCode.Helper;/ D' \
+         -e 's/TypeCode.Helper.//g' < $file > $file.new
+  mv $file.new $file
 done
-rm corba.ads corba-typecode*
-rm corba-stream.ad?
+${RM} -f corba.ads corba-typecode*
+${RM} corba-stream.ad?
 
