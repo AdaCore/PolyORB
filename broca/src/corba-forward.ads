@@ -1,3 +1,4 @@
+//depot/adabroker/main/broca/src/corba-forward.ads#6 - edit change 1403 (ktext)
 ------------------------------------------------------------------------------
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
