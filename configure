@@ -1055,7 +1055,7 @@ else
   case "${target}" in
   sparc-sun-solaris2*) PLATFORM_SPECIFIC=s;;
   sparc-sun-sunos4*)   PLATFORM_SPECIFIC=u;;
-  linux-*)             PLATFORM_SPECIFIC=a;;
+  i?86-*-linux)        PLATFORM_SPECIFIC=a;;
   mips-sgi-irix*)      PLATFORM_SPECIFIC=g;;
   *)                   { echo "configure: error: Unsupported platform "${target}"" 1>&2; exit 1; };;
 esac

@@ -1,3 +1,7 @@
+
+	* COPYING: Added to the distribution.
+
+	* configure.in: Minor reformating.
 	Changed help message "--with-launching" into "--without-launching".
 
 Mon Oct 21 18:16:54 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
