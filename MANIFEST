@@ -5,6 +5,7 @@ Makefile.in
 README
 aclocal.m4
 compilers/Makefile.am
+compilers/Makefile.common
 compilers/Makefile.in
 compilers/idlac/Makefile.am
 compilers/idlac/Makefile.in
@@ -123,8 +124,11 @@ examples/all_types/dynclient.adb
 examples/all_types/interop/client.cc
 examples/all_types/interop/server.cc
 examples/all_types/server.adb
+examples/corba-test_object.adb
+examples/corba-test_object.ads
 examples/echo.ads
 examples/echo/Makefile.am
+examples/echo/Makefile.in
 examples/echo/client.adb
 examples/echo/delegated_server.adb
 examples/echo/delegated_server.ads
@@ -137,8 +141,6 @@ examples/generic/genericserver.adb
 examples/generic/genericserver.ads
 examples/generic/report.adb
 examples/generic/report.ads
-examples/corba-test_object.adb
-examples/corba-test_object.ads
 examples/polyorb-setup-test.adb
 examples/polyorb-setup-test.ads
 examples/polyorb-setup-test_corba.adb
@@ -150,6 +152,7 @@ examples/polyorb-test-thread_pool_poa.adb
 examples/polyorb-test_object.adb
 examples/polyorb-test_object.ads
 src/Makefile.am
+src/Makefile.common
 src/Makefile.in
 src/ROADMAP
 src/TODO
@@ -400,6 +403,7 @@ src/sequences-unbounded-search.ads
 src/sequences-unbounded.adb
 src/sequences-unbounded.ads
 src/sequences.ads
+src/soap.old/Makefile.am
 src/soap/Makefile.am
 src/soap/Makefile.in
 src/soap/aws-mime.adb
