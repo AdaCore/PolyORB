@@ -121,22 +121,28 @@ package Broca.GIOP is
       Message_Endianness : out Buffers.Endianness_Type;
       Success            : out Boolean);
 
-   type Request_Handler is
+   type Request_Handler_Data is limited private;
+
+   type Request_Handler is limited
       record
          Buffer     : aliased Buffers.Buffer_Type;
          Request_Id : CORBA.Unsigned_Long;
          Profile    : IOP.Profile_Ptr;
          Connection : IOP.Connection_Ptr;
          Nbr_Tries  : Natural := 0;
+         Data       : Request_Handler_Data;
       end record;
 
-   --  Send a request.
+   procedure Release (H : in out Request_Handler);
+   --  Free the resources associated with a request
+   --  handler after use.
 
    procedure Send_Request_Marshall
      (Handler           : in out Request_Handler;
       Target            : in Object.Object_Ptr;
       Response_Expected : in Boolean;
       Operation         : in CORBA.Identifier);
+   --  Send a request.
 
    type Send_Request_Result_Type is
      (Sr_No_Reply,
@@ -149,5 +155,13 @@ package Broca.GIOP is
       Target           : in Object.Object_Ptr;
       Reponse_Expected : in Boolean;
       Result           : out Send_Request_Result_Type);
+
+private
+
+   type Octet_Array_Ptr is access Broca.Opaque.Octet_Array;
+
+   type Request_Handler_Data is limited record
+     Message_Body : Octet_Array_Ptr := null;
+   end record;
 
 end Broca.GIOP;

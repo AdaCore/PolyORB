@@ -31,10 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Unchecked_Deallocation;
+
 with Broca.Refs;
 with Broca.CDR; use Broca.CDR;
 with Broca.Exceptions;
---  with Broca.Flags;
 with Broca.Sequences;
 with Broca.Opaque; use Broca.Opaque;
 with Broca.Buffers;      use Broca.Buffers;
@@ -266,6 +267,19 @@ package body Broca.GIOP is
         (Buffer, Broca.Refs.Ref (Reference));
    end Marshall;
 
+   ---------------------------------
+   -- Request_Handler subprograms --
+   ---------------------------------
+
+   procedure Free is new
+     Ada.Unchecked_Deallocation (Broca.Opaque.Octet_Array, Octet_Array_Ptr);
+
+   procedure Release (H : in out Request_Handler) is
+   begin
+      Release (H.Buffer);
+      Free (H.Data.Message_Body);
+   end Release;
+
    ---------------------------
    -- Send_Request_Marshall --
    ---------------------------
@@ -389,10 +403,11 @@ package body Broca.GIOP is
       end if;
 
       --  1.4.5 Receive the reply header and body.
+      Handler.Data.Message_Body := new Broca.Opaque.Octet_Array'
+        (IOP.Receive (Handler.Connection,
+                      Broca.Opaque.Index_Type (Message_Size)));
       declare
-         Message_Body : aliased Broca.Opaque.Octet_Array
-           := IOP.Receive (Handler.Connection,
-                           Broca.Opaque.Index_Type (Message_Size));
+         Message_Body : Octet_Array_Ptr := Handler.Data.Message_Body;
          Message_Body_Buffer : Buffer_Type
            renames Handler.Buffer;
 
@@ -400,7 +415,7 @@ package body Broca.GIOP is
          Broca.Buffers.Initialize_Buffer
            (Message_Body_Buffer'Access,
             Broca.Opaque.Index_Type (Message_Size),
-            Message_Body'Address,
+            Message_Body.all'Address,
             Message_Endianness,
             GIOP.Message_Header_Size);
 
@@ -448,7 +463,7 @@ package body Broca.GIOP is
                     Object.Object_Ptr (CORBA.Object.Get (New_Ref)).Profiles;
                end;
                Result := Sr_Forward;
-               Release (Handler.Buffer);
+               Release (Handler);
                --  The caller is going to retry the call
                --  with the new location, so we have to
                --  supply him with a virgin buffer.
@@ -462,7 +477,7 @@ package body Broca.GIOP is
                raise Program_Error;
          end case;
 
-         Release (Message_Body_Buffer);
+         Release (Handler);
       end;
 
    end Send_Request_Send;

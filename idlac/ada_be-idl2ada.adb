@@ -1547,6 +1547,7 @@ package body Ada_Be.Idl2Ada is
                   end loop;
                end;
 
+               PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
                if Kind (O_Type) /= K_Void then
                   PL (CU, "return " & T_Returns & ";");
                else
@@ -1557,6 +1558,7 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "when Broca.GIOP.Sr_No_Reply =>");
                II (CU);
                --  XXX ??? What's this ? FIXME.
+               PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
                PL (CU, "raise Program_Error;");
                DI (CU);
                PL (CU, "when Broca.GIOP.Sr_User_Exception =>");
@@ -1611,6 +1613,7 @@ package body Ada_Be.Idl2Ada is
                      DI (CU);
                      PL (CU, "begin");
                      II (CU);
+                     PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
                      PL (CU, "Broca.Exceptions.User_Raise_Exception");
                      PL (CU, "  (" & Ada_Full_Name (E_Node)
                          & "'Identity,");
@@ -1621,6 +1624,7 @@ package body Ada_Be.Idl2Ada is
                      PL (CU, "end if;");
                   end loop;
                end;
+               PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
                PL (CU, "raise Program_Error;");
 
                if not Is_Empty (Raises (Node)) then
