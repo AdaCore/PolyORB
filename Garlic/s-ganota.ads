@@ -75,11 +75,11 @@ package System.Garlic.No_Tasking is
    procedure Destroy (W : in out Unprotected_Watcher_Type);
 
    procedure Differ
-     (W : in Unprotected_Watcher_Type;
+     (W : in out Unprotected_Watcher_Type;
       V : in Types.Version_Id);
 
    procedure Lookup
-     (W : in Unprotected_Watcher_Type;
+     (W : in out Unprotected_Watcher_Type;
       V : out Types.Version_Id);
 
    procedure Update (W : in out Unprotected_Watcher_Type);
@@ -93,11 +93,11 @@ package System.Garlic.No_Tasking is
 
    function Create return Soft_Links.Adv_Mutex_Access;
 
-   procedure Enter (M : in Unprotected_Adv_Mutex_Type);
+   procedure Enter (M : in out Unprotected_Adv_Mutex_Type);
 
    procedure Destroy (M : in out Unprotected_Adv_Mutex_Type);
 
-   procedure Leave (M : in Unprotected_Adv_Mutex_Type);
+   procedure Leave (M : in out Unprotected_Adv_Mutex_Type);
 
    function Is_Environment_Task return Boolean;
 

@@ -39,13 +39,17 @@ with System.Garlic.Types;      use System.Garlic.Types;
 
 package body System.Garlic.No_Tasking is
 
+   type Unprotected_Watcher_Access is access all Unprotected_Watcher_Type;
+
    ------------
    -- Create --
    ------------
 
    function Create (V : in Version_Id) return Watcher_Access is
+      W : constant Unprotected_Watcher_Access := new Unprotected_Watcher_Type;
    begin
-      return new Unprotected_Watcher_Type'(Version => V);
+      W.Version := V;
+      return Watcher_Access (W);
    end Create;
 
    ------------
@@ -97,7 +101,7 @@ package body System.Garlic.No_Tasking is
    -- Differ --
    ------------
 
-   procedure Differ (W : in Unprotected_Watcher_Type; V : in Version_Id) is
+   procedure Differ (W : in out Unprotected_Watcher_Type; V : in Version_Id) is
    begin
       Receive_From_All_Protocols;
    end Differ;
@@ -115,7 +119,7 @@ package body System.Garlic.No_Tasking is
    -- Enter --
    -----------
 
-   procedure Enter (M : in Unprotected_Adv_Mutex_Type) is
+   procedure Enter (M : in out Unprotected_Adv_Mutex_Type) is
    begin
       null;
    end Enter;
@@ -187,7 +191,7 @@ package body System.Garlic.No_Tasking is
    -- Leave --
    -----------
 
-   procedure Leave (M : in Unprotected_Adv_Mutex_Type) is
+   procedure Leave (M : in out Unprotected_Adv_Mutex_Type) is
    begin
       null;
    end Leave;
@@ -214,7 +218,8 @@ package body System.Garlic.No_Tasking is
    -- Lookup --
    ------------
 
-   procedure Lookup (W : in Unprotected_Watcher_Type; V : out Version_Id) is
+   procedure Lookup (W : in out Unprotected_Watcher_Type; V : out Version_Id)
+     is
    begin
       V := W.Version;
    end Lookup;

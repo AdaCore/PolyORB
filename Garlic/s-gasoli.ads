@@ -124,17 +124,17 @@ package System.Garlic.Soft_Links is
    -- Watcher --
    -------------
 
-   type Watcher_Type is abstract tagged null record;
+   type Watcher_Type is abstract tagged limited null record;
 
    procedure Destroy (W : in out Watcher_Type) is abstract;
 
    procedure Differ
-     (W : in Watcher_Type;
+     (W : in out Watcher_Type;
       V : in Types.Version_Id) is abstract;
    --  Await until W version differs from V
 
    procedure Lookup
-     (W : in Watcher_Type;
+     (W : in out Watcher_Type;
       V : out Types.Version_Id) is abstract;
    --  Fetch W version
 
@@ -178,15 +178,15 @@ package System.Garlic.Soft_Links is
    --  first it is not blocked and can continue. Leave keeps track of
    --  the number of times Enter has been successful.
 
-   type Adv_Mutex_Type is abstract tagged null record;
+   type Adv_Mutex_Type is abstract tagged limited null record;
 
-   procedure Enter (M : in Adv_Mutex_Type) is abstract;
+   procedure Enter (M : in out Adv_Mutex_Type) is abstract;
 
    procedure Destroy (M : in out Adv_Mutex_Type) is abstract;
 
-   procedure Leave (M : in Adv_Mutex_Type) is abstract;
+   procedure Leave (M : in out Adv_Mutex_Type) is abstract;
 
-   type Adv_Mutex_Access is access Adv_Mutex_Type'Class;
+   type Adv_Mutex_Access is access all Adv_Mutex_Type'Class;
 
    type Adv_Mutex_Creation_Function is
      access function return Adv_Mutex_Access;
