@@ -82,7 +82,7 @@ AUTOMAKE_OPTIONS = no-dependencies foreign
 
 SED = @SED@
 
-GNATDIST = ${exec_prefix}/bin/gnatdist
+GNATDIST = gnatdist
 
 EXTRA_PROGS = mainloop
 CFGFILE = simcity.cfg
@@ -176,11 +176,11 @@ distclean-generic clean-generic maintainer-clean-generic clean \
 mostlyclean distclean maintainer-clean
 
 
-all-local: ../../check-stamp ${EXTRA_PROGS}
+all-local: ${top_srcdir}/Examples/check-stamp ${EXTRA_PROGS}
 
-../../check-stamp:
-	IN_MAKE=yes ${SHELL} ../../check-config
-	echo "It worked on `date`" > ../../check-stamp
+${top_srcdir}/Examples/check-stamp:
+	IN_MAKE=yes ${SHELL} ${top_srcdir}/Examples/check-config
+	echo "It worked on `date`" > ${top_srcdir}/Examples/check-stamp
 
 $(PARTITIONS):
 	${GNATDIST} -I${srcdir} $(CFGFILE)

@@ -1,3 +1,12 @@
+Mon Apr  7 16:14:20 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* check-config.in: Take cygwin32 extension (.exe) into account.
+
+	* Bank/Makefile.am: Remove gnatdist's full path. Code check-config
+	  path as relative to ${top_srcdir}.
+
+	* LightBank/Makefile.am: Ditto.
+
 Thu Mar 13 17:19:15 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
 
 	* Makefile.am: Add LightBank.

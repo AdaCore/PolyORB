@@ -8,6 +8,7 @@
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
+EXEEXT = @EXEEXT@
 
 #
 # Utilities
@@ -23,7 +24,7 @@ error_make_install() {
 # Check that gnatdist is installed at the right place
 #
 
-if test ! -f $exec_prefix/bin/gnatdist; then
+if test ! -f $exec_prefix/bin/gnatdist${EXEEXT}; then
   echo "Error: I cannot find gnatdist in $exec_prefix/bin" >&2
   error_make_install
 fi
@@ -47,7 +48,7 @@ set $PATH
 IFS="$OIFS"
 where="NOTFOUND"
 for i in "$@"; do
-  if [ -x $i/gnatdist ]; then
+  if [ -x $i/gnatdist${EXEEXT} ]; then
     where="$i/gnatdist"
     break
   fi
@@ -81,7 +82,7 @@ esac
 
 #
 # Issue a simple check to make sure that the user is allowed to execute
-# remote commands on the same machine
+# remote commands on the same machine.
 #
 
 machine=`uname -n`
