@@ -48,6 +48,8 @@ with System.Garlic.Soft_Links;    use System.Garlic.Soft_Links;
 with System.Garlic.Streams;       use System.Garlic.Streams;
 with System.Garlic.Types;         use System.Garlic.Types;
 
+with System.Tasking;              use System.Tasking;
+
 package body System.Garlic.Termination is
 
    Private_Debug_Key : constant Debug_Key :=
@@ -61,14 +63,26 @@ package body System.Garlic.Termination is
 
    Non_Terminating_Tasks : Natural := 0;
    pragma Atomic (Non_Terminating_Tasks);
-   --  Count non-terminating tasks. Counter is an Integer instead of a
-   --  Natural because it may well go below 0 in case of termination
-   --  (some select then abort statements may be protected by calling
-   --  Sub_Non_Terminating_Task inconditionnally after the end select).
+   --  Count non-terminating tasks. These tasks are runnable when
+   --  blocked on system calls (recv() or select() for instance). They
+   --  should be removed from the active task count.
+
+   Serialized_Replies         : Mutex_Access;
+   Last_Task_To_Process_Reply : Task_ID := Null_Task;
+   --  When we ask N neighbors whether they can terminate, we shall
+   --  receive N positive replies in case of distributed
+   --  termination. During the Nth reply processing, we check whether
+   --  the number of active tasks corresponds to 2 (env. task and task
+   --  processing result). But it is possible that the tasks
+   --  processing the previous replies did not yet declare themselves
+   --  as non-terminating tasks. In this case, Get_Active_Task_Count
+   --  will return an incorrect result. Therefore, Serialized_Replies
+   --  ensures that a new reply is not processed before that previous
+   --  task processing the previous result has not declare itself as
+   --  non-terminating task.
 
    type Stamp_Type is mod 2 ** 8;
-   --  A Stamp value is assigned at each round of the termination protocol
-   --  to distinguish between different rounds.
+   --  A new stamp value is assigned to each termination detection wave.
 
    function ">" (S1, S2 : Stamp_Type) return Boolean;
    --  Compare two stamps. S1 > S2 means that S1 is very likely to have been
@@ -77,22 +91,38 @@ package body System.Garlic.Termination is
    Time_Between_Checks : constant Duration := 1.0;
    Time_To_Synchronize : constant Duration := 5.0;
    Polling_Interval    : constant Duration := 0.5;
-   --  Constants which change the behaviour of this package.
+   --  Constants which affect the algorithm temporal behaviour.
+
+   Minimum_Active_Tasks : constant := 2;
+   --  When we receive the result of a termination detection wave and
+   --  when we get the result from the last neighbor, there are only
+   --  two active tasks, the environment task and the task processing
+   --  the result. Termination is detected when the number of active
+   --  tasks is equal to this value.
 
    procedure Add_Non_Terminating_Task;
    --  Let Garlic know that a task is not going to terminate and that
    --  it should not be taken into account during distributed termination.
 
    function Get_Active_Task_Count return Natural;
-   --  Active task count (i.e. tasks in a non-terminating state -
-   --  non-terminating tasks).
+   --  Return the active task count (i.e. tasks in a non-terminating
+   --  state - non-terminating tasks).
 
    procedure Activity_Detected;
-   --  Some activity has been detected. This means that the current
-   --  shutdown procedure (if any) must be terminated.
+   --  A message activity has been detected. This means that the
+   --  current termination procedure (if any) must be aborted.
 
    procedure Global_Termination;
-   --  Terminate when global termination detected (on main partition)
+   --  Process global termination detection (on main partition). When
+   --  the main partition detects task activity, it sends a
+   --  termination detection wave to all its neighbors (with a
+   --  stamp). Each neighbor checks whether it has any activity and if
+   --  not propagate the wave to its neighbors. This propagation stops
+   --  when the partition has already received the wave (checking the
+   --  stamp) [result = true], when there is any activity [result =
+   --  false], when a neighbor sends a negative reply [result = false]
+   --  or when all neighbors have positively replied [result = true].
+   --  Channels must be FIFO.
 
    procedure Handle_Request
      (Partition : in Partition_ID;
@@ -114,39 +144,41 @@ package body System.Garlic.Termination is
    Current_Stamp  : Stamp_Type := 0;
    --  The stamp of the current request
 
-   Neighbours_Contacted : Natural;
-   --  Number of neighbours that have been contacted so far and have not
-   --  sent any answer. This number is brought back to zero as soon as
-   --  we have answered our father, which may happen in case of a negative
-   --  answer from a neighbour.
+   Partition_Neighbors : Natural;
+   --  Number of neighbors which this partition is connected to and
+   --  which have not replied to the current wave. This number is
+   --  brought back to zero. This can occur before receiving all the
+   --  replies when we receive a negative reply.
 
-   Messages_Sent : Boolean := False;
+   Message_Activity : Boolean := False;
    --  Record the fact that messages have been sent since the last wave
 
-   Termination_Activated : constant Boolean := False;
-   --  Will be set to True when the termination will be activated
-
    Termination_Detected : Boolean := False;
-   --  Will be set to True when the termination will be detected
+   --  Set to True when termination is detected
 
-   Shutdown_Rejected : Boolean;
-   --  Will be set when termination is rejected early
+   Termination_Rejected : Boolean;
+   --  Set to True when termination is rejected
 
-   type Control_Type is (Query, Answer, Perform_Shutdown);
+   type Control_Type is (Detection_Request,
+                         Detection_Result,
+                         Termination_Validation);
 
-   function Send_Wave return Natural;
-   --  Send a wave to all our neighbours but our father and return the
-   --  number of partitions that have been contacted.
+   function Send_Termination_Detection_Wave
+     return Natural;
+   --  Send a wave to all partition neighbors but our father and
+   --  return the number of partitions involved in the procedure ie
+   --  the excepted replies.
 
-   procedure Send_Answer (Recipient : in Partition_ID; Ready : in Boolean);
-   --  Send an answer to Recipient saying whether we are ready or not to
-   --  terminate. As a special case, if the Recipient is equal to our own
-   --  Partition_ID, then it means that we are on the initiator of the
-   --  termination algorithm. In this case, the result will be stored
-   --  in Termination_Detected.
+   procedure Send_Termination_Detection_Result
+     (Recipient : in Partition_ID; Ready : in Boolean);
+   --  Send a termination detection result to Recipient saying whether
+   --  we are ready or not to terminate. As a special case, if the
+   --  Recipient is the partition itself, then it means that we
+   --  initiated the termination algorithm. In this case, the result
+   --  is stored in Termination_Detected.
 
-   procedure Send_Shutdown;
-   --  Send a shutdown wave to have all the neighbours terminate.
+   procedure Send_Termination_Validation_Wave;
+   --  Send a termination validation wave to have all the neighbors.
 
    procedure Sub_Non_Terminating_Task;
    --  Let Garlic know that a task is no longer a non terminating task.
@@ -156,15 +188,15 @@ package body System.Garlic.Termination is
    ---------
 
    function ">" (S1, S2 : Stamp_Type) return Boolean is
-      Signed_Diff : Integer;
+      D : Integer;
    begin
-      Signed_Diff := Integer (S1) - Integer (S2);
-      if Signed_Diff > Integer (Stamp_Type'Last) / 2 then
+      D := Integer (S1) - Integer (S2);
+      if D > Integer (Stamp_Type'Last) / 2 then
          return False;
-      elsif Signed_Diff < -Integer (Stamp_Type'Last / 2) then
+      elsif D < -Integer (Stamp_Type'Last / 2) then
          return True;
       else
-         return Signed_Diff > 0;
+         return D > 0;
       end if;
    end ">";
 
@@ -174,7 +206,7 @@ package body System.Garlic.Termination is
 
    procedure Activity_Detected is
    begin
-      Messages_Sent := True;
+      Message_Activity := True;
    end Activity_Detected;
 
    ------------------------------
@@ -183,9 +215,15 @@ package body System.Garlic.Termination is
 
    procedure Add_Non_Terminating_Task is
    begin
-      Enter (Mutex);
+      Enter_Critical_Section;
       Non_Terminating_Tasks := Non_Terminating_Tasks + 1;
-      Leave (Mutex);
+      if Last_Task_To_Process_Reply /= Null_Task
+        and then Last_Task_To_Process_Reply = Self
+      then
+         Last_Task_To_Process_Reply := Null_Task;
+         Leave (Serialized_Replies);
+      end if;
+      Leave_Critical_Section;
    end Add_Non_Terminating_Task;
 
    ----------------------
@@ -196,9 +234,12 @@ package body System.Garlic.Termination is
    begin
       if Debug_Mode (Private_Debug_Key) then
          Soft_Links.List_Tasks;
-         D ("awake =" & Soft_Links.Env_Task_Awake_Count'Img);
-         D ("count =" & Non_Terminating_Tasks'Img);
-         D ("indep =" & Soft_Links.Independent_Task_Count'Img);
+         D ("env task awaken tasks count =" &
+            Soft_Links.Env_Task_Awake_Count'Img);
+         D ("non terminating task count  =" &
+            Non_Terminating_Tasks'Img);
+         D ("independent task count      =" &
+            Soft_Links.Independent_Task_Count'Img);
       end if;
    end Dump_Task_Table;
 
@@ -220,82 +261,77 @@ package body System.Garlic.Termination is
    ------------------------
 
    procedure Global_Termination is
-      Flip_Flop  : Boolean := False;
-      Deadline   : Time;
-      Neighbours : Natural;
+      Deadline  : Time;
+      Neighbors : Natural;
 
    begin
       pragma Debug (D ("Global termination"));
 
-      --  This partition is involved in the global termination
-      --  algorithm. But only the main partition will have something
-      --  to do.
+      --  Only the main partition initiates the global termination
+      --  algorithm.
 
       if Options.Is_Boot_Server then
-         --  Wait some time for other partitions to connect
+         --  Wait for others to connect to this partition. Do not
+         --  terminate immediatly since partition elaboration and
+         --  first connections may not be immediate.
 
          for I in 1 .. 10 loop
             exit when Known_Partitions'Length > 1;
             delay Time_Between_Checks;
          end loop;
 
-         --  We have no father. This special case will be recognized
-         --  by Send_Answer.
+         --  We have no father. This special case is identified in
+         --  Send_Termination_Detection_Result.
 
          Current_Father := Self_PID;
 
          Main_Loop : loop
 
-            --  The following block may cause an additionnal delay of
-            --  Time_Between_Checks before the shutdown, but it will
-            --  only occur whenever an error has been signaled causing
-            --  the regular shutdown algorithm to be unused.
-
-            if Flip_Flop then
-               pragma Debug (D ("Waiting for some time"));
-
-               delay Time_Between_Checks;
-            end if;
-
-            exit Main_Loop when Termination_Activated;
-
-            Flip_Flop := not Flip_Flop;
-
-            --  To terminate, Get_Active_Task_Count should be 1
-            --  because the env. task is still active because it is
-            --  executing this code.
+            --  Termination wave can be activated when
+            --  Get_Active_Task_Count = 1 (no active task except
+            --  env. task) and when local termination partitions are
+            --  not running (because they do not response to the
+            --  termination detection algorithm and can re-activate
+            --  the distributed system).
 
             if Get_Active_Task_Count <= 1
               and then Local_Termination_Partitions'Length = 0
             then
-               --  Update termination stamp to start a new vote
+               --  Increment termination stamp to start a new wave
 
                Enter (Mutex);
-               Current_Stamp     := Current_Stamp + 1;
-               Messages_Sent     := False;
-               Shutdown_Rejected := False;
+               Current_Stamp        := Current_Stamp + 1;
+               Message_Activity     := False;
+               Termination_Rejected := False;
 
                pragma Debug
-                 (D ("Starting round" & Stamp_Type'Image (Current_Stamp)));
+                 (D ("Start new wave" & Stamp_Type'Image (Current_Stamp)));
 
                pragma Debug (Dump_Task_Table);
 
-               --  Send a wave. If we have no neighbour, then we can
-               --  safely terminate
+               --  Send a new wave. Without neighbou, we terminate safely
 
-               Neighbours := Send_Wave;
+               Neighbors := Send_Termination_Detection_Wave;
                Leave (Mutex);
 
-               exit Main_Loop when Neighbours = 0;
+               exit Main_Loop when Neighbors = 0;
 
-               --  Wait until we get all the answers
+               --  Wait for all the replies but do not wait forever
+               --  since some partitions may die without replying to
+               --  our request.
 
                Deadline := Clock + Time_To_Synchronize;
 
-               while Clock < Deadline and then not Shutdown_Rejected loop
+               while Clock < Deadline loop
                   delay Polling_Interval;
 
+                  exit when Termination_Rejected;
+                  --  The termination detection algorithm has been
+                  --  aborted. Try later.
+
                   exit Main_Loop when Termination_Detected;
+                  --  The termination detection has been
+                  --  detected. Process to the termination validation.
                end loop;
             end if;
          end loop Main_Loop;
@@ -310,8 +346,8 @@ package body System.Garlic.Termination is
       end if;
 
       Enter (Mutex);
-      pragma Debug (D ("Shutdown neighbours"));
-      Send_Shutdown;
+      pragma Debug (D ("Shutdown neighbors"));
+      Send_Termination_Validation_Wave;
       Leave (Mutex);
 
       pragma Debug (D ("Shutdown myself"));
@@ -334,7 +370,8 @@ package body System.Garlic.Termination is
 
       Control : Control_Type;
       Stamp   : Stamp_Type;
-      B       : Boolean;
+      Ready   : Boolean;
+
    begin
       Stamp_Type'Read (Query, Stamp);
       if not Stamp'Valid then
@@ -348,78 +385,90 @@ package body System.Garlic.Termination is
          Raise_Exception (Constraint_Error'Identity, "Invalid control");
       end if;
 
-      pragma Debug (D ("receive query " & Control'Img &
-                       " stamp " & Stamp'Img));
+
+      pragma Debug (D ("Request from" & Partition'Img &
+                       " about " & Control'Img &
+                       " stamp" & Stamp'Img));
+      pragma Debug (D ("Status father" & Current_Father'Img &
+                       " stamp" & Current_Stamp'Img));
 
       case Control is
-         when Termination.Query =>
+         when Detection_Request =>
             Enter (Mutex);
             if Stamp > Current_Stamp then
+               pragma Debug (D ("Propagate new wave"));
+
                Current_Stamp  := Stamp;
                Current_Father := Partition;
 
-               pragma Debug
-                 (D ("New round" & Current_Stamp'Img & Current_Father'Img));
-
                pragma Debug (Dump_Task_Table);
 
-               --  If we have no neighbour, then we can answer the
-               --  father right now.
+               --  If we have no neighbor, we just reply to the father.
 
-               if Send_Wave = 0 then
-                  B := Get_Active_Task_Count = 2 and then not Messages_Sent;
-                  Send_Answer (Current_Father, B);
+               if Send_Termination_Detection_Wave = 0 then
+                  pragma Debug (D ("Reply immediately (no neighbor)"));
+
+                  Ready := Get_Active_Task_Count = Minimum_Active_Tasks
+                    and then not Message_Activity;
+                  Send_Termination_Detection_Result (Current_Father, Ready);
                end if;
 
             elsif Stamp = Current_Stamp then
-               pragma Debug
-                 (D ("Got slave message" & Current_Stamp'Img & Partition'Img));
-               Send_Answer (Partition, True);
+               pragma Debug (D ("Always reply true"));
+               Send_Termination_Detection_Result (Partition, True);
 
             else
-               pragma Debug (D ("Got obsolete stamp" & Stamp'Img));
+               pragma Debug (D ("Ignore obsolete stamp"));
                null;
             end if;
             Leave (Mutex);
 
-         when Answer =>
-            Boolean'Read (Query, B);
-            if not B'Valid then
-               pragma Debug (D ("Invalid boolean received for answer"));
+         when Detection_Result =>
+            Boolean'Read (Query, Ready);
+
+            if not Ready'Valid then
+               pragma Debug (D ("Invalid boolean"));
                Raise_Exception (Constraint_Error'Identity, "Invalid control");
             end if;
 
             Enter (Mutex);
-            pragma Debug (D ("Got answer " &
-                             B'Img & Current_Stamp'Img & Partition'Img));
-
             if Stamp = Current_Stamp
-              and then Neighbours_Contacted > 0
+              and then Partition_Neighbors > 0
             then
-               Neighbours_Contacted := Neighbours_Contacted - 1;
-               if not B then
-                  --  pragma Debug
-                  --    (D ("Sending a negative answer back to father" &
-                  --        Partition_ID'Image (Current_Father) &
-                  --        Stamp_Type'Image (Current_Stamp)));
-                  Send_Answer (Current_Father, False);
+               pragma Debug (D ("Receive termination detection " & Ready'Img));
 
-               elsif Neighbours_Contacted = 0 then
-                  --  pragma Debug
-                  --    (D ("Answering neighbour" &
-                  --        Partition_ID'Image (Partition) &
-                  --        Stamp_Type'Image (Current_Stamp)));
-                  B := Get_Active_Task_Count = 2 and then not Messages_Sent;
-                  Send_Answer (Current_Father, B);
+               Partition_Neighbors := Partition_Neighbors - 1;
+               if not Ready then
+                  pragma Debug
+                    (D ("Forward result to father" & Current_Father'Img &
+                        " stamp" & Current_Stamp'Img));
+                  Send_Termination_Detection_Result (Current_Father, False);
+
+               else
+                  --  Wait for the previous task that processed a
+                  --  termination reply to become a non-terminating
+                  --  task. Otherwise, when the last neighbor replies,
+                  --  Get_Active_Task_Count may return an inaccurate
+                  --  result.
+
+                  Enter (Serialized_Replies);
+                  Last_Task_To_Process_Reply := Self;
+
+                  if Partition_Neighbors = 0 then
+                     pragma Debug (D ("Check whether we can terminate"));
+                     Ready := Get_Active_Task_Count = Minimum_Active_Tasks
+                       and then not Message_Activity;
+                     Send_Termination_Detection_Result (Current_Father, Ready);
+                  end if;
                end if;
 
             else
                null;
-               pragma Debug (D ("Ignoring answer with bad stamp"));
+               pragma Debug (D ("Ignore request with bad stamp"));
             end if;
             Leave (Mutex);
 
-         when Perform_Shutdown =>
+         when Termination_Validation =>
             Termination_Detected := True;
             Activate_Shutdown;
 
@@ -435,6 +484,7 @@ package body System.Garlic.Termination is
    procedure Initialize is
    begin
       Create (Mutex);
+      Create (Serialized_Replies);
       Register_Add_Non_Terminating_Task (Add_Non_Terminating_Task'Access);
       Register_Sub_Non_Terminating_Task (Sub_Non_Terminating_Task'Access);
       Register_Activity_Detected (Activity_Detected'Access);
@@ -462,41 +512,50 @@ package body System.Garlic.Termination is
 
          delay Time_Between_Checks;
       end loop;
+
       pragma Debug (D ("Local termination detected"));
       Activate_Shutdown;
    end Local_Termination;
 
-   -----------------
-   -- Send_Answer --
-   -----------------
+   ---------------------------------------
+   -- Send_Termination_Detection_Result --
+   ---------------------------------------
 
-   procedure Send_Answer
+   procedure Send_Termination_Detection_Result
      (Recipient : in Partition_ID;
       Ready     : in Boolean)
    is
       Message : aliased Params_Stream_Type (0);
       Error   : Error_Type;
+
    begin
+
+      --  ???
       if Recipient = Current_Father then
-         Messages_Sent := False;
+         Message_Activity := False;
       end if;
+
+      --  Do not send a message to the partition itself. Just
+      --  acknowledge the termination detection.
+
       if Recipient = Self_PID then
          Termination_Detected := Ready;
-         Shutdown_Rejected    := not Ready;
+         Termination_Rejected := not Ready;
          return;
       end if;
+
       Stamp_Type'Write (Message'Access, Current_Stamp);
-      Control_Type'Write (Message'Access, Answer);
+      Control_Type'Write (Message'Access, Detection_Result);
       Boolean'Write (Message'Access, Ready);
       Send (Recipient, Shutdown_Service, Message'Access, Error);
-   end Send_Answer;
+   end Send_Termination_Detection_Result;
 
-   -------------------
-   -- Send_Shutdown --
-   -------------------
+   --------------------------------------
+   -- Send_Termination_Validation_Wave --
+   --------------------------------------
 
-   procedure Send_Shutdown is
-      Neighbours   : constant Partition_List := Online_Partitions;
+   procedure Send_Termination_Validation_Wave is
+      Neighbors   : constant Partition_List := Online_Partitions;
       Message      : aliased Params_Stream_Type (0);
       Message_Copy : aliased Params_Stream_Type (0);
       Error        : Error_Type;
@@ -504,55 +563,56 @@ package body System.Garlic.Termination is
 
    begin
       Stamp_Type'Write (Message'Access, Current_Stamp);
-      Control_Type'Write (Message'Access, Perform_Shutdown);
-      for I in Neighbours'Range loop
-         Partition := Neighbours (I);
+      Control_Type'Write (Message'Access, Termination_Validation);
+
+      for I in Neighbors'Range loop
+         Partition := Neighbors (I);
          if Partition /= Self_PID then
             Copy (Message, Message_Copy);
             Send (Partition, Shutdown_Service, Message'Access, Error);
          end if;
       end loop;
       Deallocate (Message);
-   end Send_Shutdown;
+   end Send_Termination_Validation_Wave;
 
-   ---------------
-   -- Send_Wave --
-   ---------------
+   -------------------------------------
+   -- Send_Termination_Detection_Wave --
+   -------------------------------------
 
-   function Send_Wave return Natural is
-      Neighbours   : constant Partition_List := Online_Partitions;
+   function Send_Termination_Detection_Wave return Natural is
+      Neighbors    : constant Partition_List := Online_Partitions;
       Message      : aliased Params_Stream_Type (0);
       Message_Copy : aliased Params_Stream_Type (0);
       Error        : Error_Type;
       Partition    : Partition_ID;
-      N_Neighbours : Natural;
+      N_Neighbors : Natural;
 
    begin
       Stamp_Type'Write (Message'Access, Current_Stamp);
-      Control_Type'Write (Message'Access, Query);
-      N_Neighbours := 0;
-      for I in Neighbours'Range loop
-         Partition := Neighbours (I);
+      Control_Type'Write (Message'Access, Detection_Request);
+      N_Neighbors := 0;
+
+      for I in Neighbors'Range loop
+         Partition := Neighbors (I);
          if Partition /= Self_PID
            and then Partition /= Current_Father
            and then not Has_Local_Termination (Partition)
          then
             Copy (Message, Message_Copy);
-            Send
-              (Neighbours (I), Shutdown_Service, Message_Copy'Access, Error);
+            Send (Neighbors (I), Shutdown_Service, Message_Copy'Access, Error);
             if Found (Error) then
                Catch (Error);
             else
-               N_Neighbours := N_Neighbours + 1;
+               N_Neighbors := N_Neighbors + 1;
             end if;
          end if;
       end loop;
       Deallocate (Message);
       --  pragma Debug
-      --    (D ("Send request to" & N_Neighbours'Img & " neighbours"));
-      Neighbours_Contacted := N_Neighbours;
-      return N_Neighbours;
-   end Send_Wave;
+      --    (D ("Send request to" & N_Neighbors'Img & " neighbors"));
+      Partition_Neighbors := N_Neighbors;
+      return N_Neighbors;
+   end Send_Termination_Detection_Wave;
 
    ------------------------------
    -- Sub_Non_Terminating_Task --
@@ -560,9 +620,9 @@ package body System.Garlic.Termination is
 
    procedure Sub_Non_Terminating_Task is
    begin
-      Enter (Mutex);
+      Enter_Critical_Section;
       Non_Terminating_Tasks := Non_Terminating_Tasks - 1;
-      Leave (Mutex);
+      Leave_Critical_Section;
    end Sub_Non_Terminating_Task;
 
 end System.Garlic.Termination;
