@@ -218,6 +218,10 @@ package Tokens is
    --  string.
    function Get_Literal return String;
 
+   --  If the current token is a pragma, returns its value as a
+   --  string.
+   function Get_Pragma return String;
+
 
 
    -----------------------------
@@ -236,16 +240,6 @@ package Tokens is
    -------------------------
    --  Maybe useless ???  --
    -------------------------
-
---    --  Make function TOKEN returns TOK at it next call, without performing
---    --  any other action.
---    --  The purpose is to handle some errors, such as '>>' instead of '> >'.
---    --  TOK cannot be t_error.
---    --  This procedure can stack only one token, ie, it must be called after
---    --  next_token.
---    procedure Set_Replacement_Token (Tok : Idl_Token);
-
-
 
 --    subtype Idl_Keywords is Idl_Token range T_Any .. T_Wstring;
 

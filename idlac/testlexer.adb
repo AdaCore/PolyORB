@@ -35,6 +35,8 @@ begin
             Ada.Text_Io.Put (" : " & Get_Literal);
          when T_Identifier =>
             Ada.Text_Io.Put (" : " & Get_Identifier);
+         when T_Pragma =>
+            Ada.Text_Io.Put (" : " & Get_Pragma);
          when others =>
             null;
       end case;

@@ -866,9 +866,14 @@ package body Tokens is
                   Errors.Error);
                Skip_Line;
             elsif To_Lower (Get_Marked_Text) = "pragma" then
-               --  Currently ignored.
-               --  FIXME
-               Skip_Line;
+               Skip_Spaces;
+               Skip_Char;
+               Set_Mark;
+               while View_Next_Char /= Lf loop
+                  Skip_Char;
+               end loop;
+               Current_Token := T_Pragma;
+               return True;
             else
                Errors.Lexer_Error
                  ("unknow preprocessor directive : "
@@ -1243,6 +1248,17 @@ package body Tokens is
             raise Errors.Internal_Error;
       end case;
    end Get_Literal;
+
+   --  returns the value of the current pragma  in case the current
+   --  token is T_Pragma. Else, raises an internal_error exception
+   function Get_Pragma return String is
+   begin
+      if Current_Token = T_Pragma then
+         return Get_Marked_Text;
+      else
+         raise Errors.Internal_Error;
+      end if;
+   end Get_Pragma;
 
 
    -------------------------
