@@ -1,3 +1,15 @@
+2004-10-30  Laurent Pautet  <pautet@enst.fr>
+
+	* xe_sem.adb: Change selection of tasking policy for a
+	partition. The units collocated to a unit explicitely configured
+	on a partition were found by a recursive algorithm. We use now a
+	stack on which we push the units implicitely assigned to a
+	partition. Once the closure is computed, we can select the tasking
+	policy (full PCS / tasking, light PCS / tasking, no tasking).
+	Fixes DA30-001.
+	The previous approach was erroneous since it was possible to loop
+	forever since two units may have cross references to each other.
+
 2004-10-18  Laurent Pautet  <pautet@enst.fr>
 
 	* xe_back-polyorb.adb, xe_back-garlic.adb: Do not build partitions
