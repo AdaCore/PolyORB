@@ -37,7 +37,6 @@
 
 with Ada.Exceptions;
 
-with PolyORB.Dynamic_Dict;
 with PolyORB.Log;
 with PolyORB.Parameters;
 with PolyORB.Utils.Chained_Lists;
@@ -92,9 +91,19 @@ package body PolyORB.Initialization is
 
    Initialized : Boolean := False;
    World : Module_Lists.List;
-   package World_Dict is new PolyORB.Dynamic_Dict (Value => Module_Access);
 
    Implicit_Dependencies : Dep_Lists.List;
+
+   type Dictionnary_Entry is record
+      Name : Utils.Strings.String_Ptr;
+      Module : Module_Access;
+   end record;
+
+   package Dictionnaries is
+      new PolyORB.Utils.Chained_Lists (Dictionnary_Entry);
+   use Dictionnaries;
+
+   Dictionnary : Dictionnaries.List;
 
    --------------------------
    -- Internal subprograms --
@@ -142,8 +151,18 @@ package body PolyORB.Initialization is
    -------------------
 
    function Lookup_Module (Name : String) return Module_Access is
+      It : Dictionnaries.Iterator := First (Dictionnary);
+
    begin
-      return World_Dict.Lookup (Name, Default => null);
+      while not Last (It) loop
+         if Value (It).all.Name.all = Name then
+            return Value (It).all.Module;
+         end if;
+
+         Next (It);
+      end loop;
+
+      return null;
    end Lookup_Module;
 
    ---------------------
@@ -191,7 +210,7 @@ package body PolyORB.Initialization is
       pragma Assert (Module_Name (Module).all = Name);
       --  XXX at some point, remove the Name argument!
 
-      World_Dict.Register (Name, Module);
+      Append (Dictionnary, Dictionnary_Entry'(new String'(Name), Module));
    end Enter_Module_Name;
 
    ---------------------
