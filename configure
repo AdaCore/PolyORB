@@ -2503,6 +2503,8 @@ trap 'rm -fr `echo "Makefile
            Examples/Eratho/spiral/Makefile
            Examples/Filters/Makefile
            Examples/Messages/Makefile
+           Examples/MultiPro/Makefile
+           Examples/MultiSto/Makefile
            Examples/Reconnection/Makefile
            Examples/LightBank/Makefile Garlic/config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
@@ -2662,6 +2664,8 @@ CONFIG_FILES=\${CONFIG_FILES-"Makefile
            Examples/Eratho/spiral/Makefile
            Examples/Filters/Makefile
            Examples/Messages/Makefile
+           Examples/MultiPro/Makefile
+           Examples/MultiSto/Makefile
            Examples/Reconnection/Makefile
            Examples/LightBank/Makefile"}
 EOF

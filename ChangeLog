@@ -1,5 +1,7 @@
 2000-05-24  Laurent Pautet  <pautet@inf.enst.fr>
 
+	* MANIFEST, configure.in: Add examples MultiSto and MultiPro.
+
 	* NEWS: Add info on new features (passive partitions, multi
 	protocols, multi storage).
 
