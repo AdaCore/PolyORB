@@ -47,14 +47,6 @@ package body System.Garlic.Network_Utilities is
    use Interfaces.C;
 
    ---------------------
-   -- Network_To_Port --
-   ---------------------
-
-   function Network_To_Port (Net_Port : unsigned_short)
-     return unsigned_short
-     renames Port_To_Network;
-
-   ---------------------
    -- Port_To_Network --
    ---------------------
 
