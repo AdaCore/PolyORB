@@ -135,25 +135,25 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       --  Marshall a dummy Service_Context_List built after the one
       --  sent by omniorb.
-      Marshall (Buffer, Types.Unsigned_Long (1));
+      Marshall (Buffer, Types.Unsigned_Long (0));
       --  One element in the sequence
 
-      Marshall (Buffer, Types.Unsigned_Long (1));
+--        Marshall (Buffer, Types.Unsigned_Long (1));
       --  Id = 0x01
 
-      Marshall (Buffer, Types.Unsigned_Long (12));
-      Marshall (Buffer, Types.Octet (1));
-      Marshall (Buffer, Types.Octet (0));
-      Marshall (Buffer, Types.Octet (0));
-      Marshall (Buffer, Types.Octet (0));
-      Marshall (Buffer, Types.Octet (1));
-      Marshall (Buffer, Types.Octet (0));
-      Marshall (Buffer, Types.Octet (1));
-      Marshall (Buffer, Types.Octet (0));
-      Marshall (Buffer, Types.Octet (9));
-      Marshall (Buffer, Types.Octet (1));
-      Marshall (Buffer, Types.Octet (1));
-      Marshall (Buffer, Types.Octet (0));
+--        Marshall (Buffer, Types.Unsigned_Long (12));
+--        Marshall (Buffer, Types.Octet (1));
+--        Marshall (Buffer, Types.Octet (0));
+--        Marshall (Buffer, Types.Octet (0));
+--        Marshall (Buffer, Types.Octet (0));
+--        Marshall (Buffer, Types.Octet (1));
+--        Marshall (Buffer, Types.Octet (0));
+--        Marshall (Buffer, Types.Octet (1));
+--        Marshall (Buffer, Types.Octet (0));
+--        Marshall (Buffer, Types.Octet (9));
+--        Marshall (Buffer, Types.Octet (1));
+--        Marshall (Buffer, Types.Octet (1));
+--        Marshall (Buffer, Types.Octet (0));
 
       pragma Debug (O ("Leave: Marshall_Service_Context_List"));
    end Marshall_Service_Context_List;
