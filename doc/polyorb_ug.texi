@@ -56,7 +56,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#6 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#7 $
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
@@ -69,16 +69,21 @@
 @titlepage
 
 @title PolyORB User's Guide
-@author XXXX
+@author J@'er@^ome Hugues
 
 @page
 @vskip 0pt plus 1filll
 
-Copyright @copyright{} 2003, XXX
-This document may be copied, in whole or in part, in any form or by any
-means, as is or with alterations, provided that (1) alterations are clearly
-marked as alterations and (2) this copyright notice is included
-unmodified in any copy.
+Copyright @copyright{} 2003, 2004, Free Software Foundation
+
+@noindent
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with the
+Invariant Sections being ``GNU Free Documentation License'', with the
+Front-Cover Texts being ``PolyORB User's Guide'', and with no
+Back-Cover Texts.  A copy of the license is included in the section
+entitled ``GNU Free Documentation License''.
 
 @end titlepage
 
@@ -88,11 +93,18 @@ unmodified in any copy.
 
 PolyORB User's Guide
 
-Copyright @copyright{} 2003, XXX
-This document may be copied, in whole or in part, in any form or by any
-means, as is or with alterations, provided that (1) alterations are clearly
-marked as alterations and (2) this copyright notice is included
-unmodified in any copy.
+J@'er@^ome Hugues
+
+Copyright @copyright{} 2003, 2004, Free Software Foundation
+
+@noindent
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with the
+Invariant Sections being ``GNU Free Documentation License'', with the
+Front-Cover Texts being ``PolyORB User's Guide'', and with no
+Back-Cover Texts.  A copy of the license is included in the section
+entitled ``GNU Free Documentation License''.
 
 @menu
 * Introduction to PolyORB::
@@ -101,6 +113,7 @@ unmodified in any copy.
 * Building an application with PolyORB::
 * CORBA::
 * References::
+* GNU Free Documentation License::
 * Index::
 
 @detailmenu
@@ -727,6 +740,11 @@ in CORBA IDL specification.
 @include polyorb_ug_ref.texi
 
 @end enumerate
+
+@c -------------------------------------------------------------------
+@c GNU's FDL
+
+@include gfdl.texi
 
 @c -------------------------------------------------------------------
 @node Index
