@@ -92,7 +92,7 @@ package body MOMA.Message_Handlers is
 
       use PolyORB.Exceptions;
 
-      Self    : MOMA.Message_Handlers.Message_Handler_Acc
+      Self    : constant MOMA.Message_Handlers.Message_Handler_Acc
         := new MOMA.Message_Handlers.Message_Handler;
 
       Servant : constant PolyORB.MOMA_P.Provider.Message_Handler.Object_Acc
