@@ -33,18 +33,41 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with GNAT.OS_Lib;        use GNAT.OS_Lib;
-with Interfaces.C;       use Interfaces.C;
-with System.Garlic.Thin; use System.Garlic.Thin;
-
-with System.Garlic.TCP_Platform_Specific;
-pragma Warnings (Off, System.Garlic.TCP_Platform_Specific);
+with GNAT.OS_Lib;                use GNAT.OS_Lib;
+with Interfaces.C;               use Interfaces.C;
 
 --  Is Thread Blocking IO
 
 procedure IsThrBIO is
 
    Process_Blocking_IO : Boolean;
+
+   type Fd_Set is mod 2 ** 32;
+   pragma Convention (C, Fd_Set);
+
+   type Fd_Set_Access is access all Fd_Set;
+   pragma Convention (C, Fd_Set_Access);
+
+   type Timeval_Unit is new int;
+   pragma Convention (C, Timeval_Unit);
+
+   type Timeval is record
+      Tv_Sec  : Timeval_Unit;
+      Tv_Usec : Timeval_Unit;
+   end record;
+   pragma Convention (C, Timeval);
+
+   type Timeval_Access is access all Timeval;
+   pragma Convention (C, Timeval_Access);
+
+   function C_Select
+     (Nfds      : int;
+      Readfds   : Fd_Set_Access;
+      Writefds  : Fd_Set_Access;
+      Exceptfds : Fd_Set_Access;
+      Timeout   : Timeval_Access)
+     return int;
+   pragma Import (C, C_Select, "select");
 
    task A_Task is
       entry Start;
@@ -78,7 +101,7 @@ procedure IsThrBIO is
    end A_Task;
 
 begin
-   Clear (Input.all);
+   Input.all := 0;
    A_Task.Start;
    Result := C_Select (1, Input, null, null, Timeout);
    A_Task.Stop;
