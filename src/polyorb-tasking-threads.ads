@@ -97,6 +97,16 @@ package PolyORB.Tasking.Threads is
 
    function Image (T : Thread_Id) return String is abstract;
 
+   function Image (T : Thread_Id_Access) return String;
+   pragma Inline (Image);
+   --  Image function, for debugging purpose.
+
+   function Current_Task return Thread_Id_Access;
+   --  Return the Thread associated to the current task.
+
+   function Null_Task return Thread_Id_Access;
+   --  XXX not implemented.
+
    -----------------
    -- Thread Type --
    -----------------
@@ -134,16 +144,8 @@ package PolyORB.Tasking.Threads is
       is abstract;
    --  Copy Source into Target.all, which must be of the same concrete type.
 
-   type Task_Id is tagged private;
-
    procedure Create_Task
      (Main : Parameterless_Procedure);
-
-   function Current_Task return Task_Id'Class;
-   function Null_Task return Task_Id'Class;
-
-   function Image (T : Task_Id) return String;
-   pragma Inline (Image);
 
    function Run_In_Task
      (TF               : access Thread_Factory_Type;
@@ -209,11 +211,5 @@ package PolyORB.Tasking.Threads is
    procedure Register_Thread_Factory
      (TF : Thread_Factory_Access);
    --  Register the factory corresponding to the chosen tasking profile.
-
-private
-
-   type Task_Id is tagged record
-      X : PolyORB.Tasking.Threads.Thread_Id_Access;
-   end record;
 
 end PolyORB.Tasking.Threads;
