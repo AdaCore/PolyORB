@@ -23,6 +23,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-binding_data.ads \
 		polyorb-binding_data-local.ads \
 		polyorb-buffers.ads \
+		polyorb-calendar.ads \
 		polyorb-call_back.ads \
 		polyorb-components.ads \
 		polyorb-dynamic_dict.ads \
@@ -111,14 +112,17 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-tasking-profiles-full_tasking-condition_variables.ads \
 		polyorb-tasking-profiles-full_tasking-mutexes.ads \
 		polyorb-tasking-profiles-full_tasking-threads.ads \
+		polyorb-tasking-profiles-full_tasking-calendar.ads \
 		polyorb-tasking-profiles-full_tasking-threads_dynamic_priorities.ads \
 		polyorb-tasking-profiles-no_tasking-condition_variables.ads \
 		polyorb-tasking-profiles-no_tasking-mutexes.ads \
 		polyorb-tasking-profiles-no_tasking-threads.ads \
+		polyorb-tasking-profiles-no_tasking-calendar.ads \
 		polyorb-tasking-profiles-ravenscar-condition_variables.ads \
 		polyorb-tasking-profiles-ravenscar-index_manager.ads \
 		polyorb-tasking-profiles-ravenscar-mutexes.ads \
 		polyorb-tasking-profiles-ravenscar-threads.ads \
+		polyorb-tasking-profiles-ravenscar-calendar.ads \
 		polyorb-tasking-rw_locks.ads \
 		polyorb-tasking-semaphores.ads \
 		polyorb-tasking-threads.ads \

@@ -47,6 +47,12 @@ pragma Elaborate_All
 pragma Warnings
   (Off, PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables);
 
+with PolyORB.Tasking.Profiles.Full_Tasking.Calendar;
+pragma Elaborate_All
+  (PolyORB.Tasking.Profiles.Full_Tasking.Calendar);
+pragma Warnings
+  (Off, PolyORB.Tasking.Profiles.Full_Tasking.Calendar);
+
 package body PolyORB.Setup.Tasking.Full_Tasking is
 
 end PolyORB.Setup.Tasking.Full_Tasking;

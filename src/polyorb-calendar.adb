@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---          P O L Y O R B . P R O F I L E S . N O _ T A S K I N G           --
+--                    P O L Y O R B . C A L E N D A R                       --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -31,26 +31,61 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
+with PolyORB.Log;
 
-with PolyORB.Tasking.Profiles.No_Tasking.Threads;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Threads);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Threads);
+package body PolyORB.Calendar is
 
-with PolyORB.Tasking.Profiles.No_Tasking.Mutexes;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Mutexes);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Mutexes);
+   use PolyORB.Log;
 
-with PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables;
-pragma Elaborate_All
-  (PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables);
-pragma Warnings
-  (Off, PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables);
+   package L is new PolyORB.Log.Facility_Log ("polyorb.calendar");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
-with PolyORB.Tasking.Profiles.No_Tasking.Calendar;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Calendar);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Calendar);
+   The_Clock_Factory : Clock_Factory_Access := null;
 
-package body PolyORB.Setup.Tasking.No_Tasking is
+   ------------
+   -- Create --
+   ------------
 
-end PolyORB.Setup.Tasking.No_Tasking;
+   function Create return Time_Type_Access
+   is
+   begin
+      pragma Assert (The_Clock_Factory /= null);
+      return Create (The_Clock_Factory);
+   end Create;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (Clock : in out Time_Type_Access)
+   is
+   begin
+      pragma Assert (The_Clock_Factory /= null);
+      Destroy (The_Clock_Factory, Clock);
+   end Destroy;
+
+   -----------
+   -- Clock --
+   -----------
+
+   function Clock return Time_Type'Class
+   is
+   begin
+      pragma Assert (The_Clock_Factory /= null);
+      return Clock (The_Clock_Factory);
+   end Clock;
+
+   ----------------------------
+   -- Register_Clock_Factory --
+   ----------------------------
+
+   procedure Register_Clock_Factory (CF : Clock_Factory_Access)
+   is
+   begin
+      pragma Assert (The_Clock_Factory = null);
+      pragma Debug (O ("register clock factory"));
+      The_Clock_Factory := CF;
+   end Register_Clock_Factory;
+
+end PolyORB.Calendar;

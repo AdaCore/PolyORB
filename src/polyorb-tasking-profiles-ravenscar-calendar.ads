@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      P O L Y O R B . S E T U P . T A S K I N G . R A V E N S C A R       --
+--              POLYORB.TASKING.PROFILES.RAVENSCAR.CALENDAR                 --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -31,50 +31,69 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  You should instanciate this package to set up a ravenscar profile.
+with PolyORB.Calendar; use PolyORB.Calendar;
+with Ada.Real_Time;
 
---  $Id$
+package PolyORB.Tasking.Profiles.Ravenscar.Calendar is
 
-with System;
-with PolyORB.Tasking.Profiles.Ravenscar.Threads;
-with PolyORB.Tasking.Profiles.Ravenscar.Mutexes;
-with PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables;
-with PolyORB.Tasking.Profiles.Ravenscar.Calendar;
-pragma Elaborate_All (PolyORB.Tasking.Profiles.Ravenscar.Calendar);
-pragma Warnings (Off, PolyORB.Tasking.Profiles.Ravenscar.Calendar);
+   procedure Initialize;
+   --  Initializes this package
 
-generic
-   Number_Of_Application_Tasks    : Integer;
-   --  Number of tasks created by the user.
+   type Ravenscar_Time_Type is new Time_Type with private;
+   type Ravenscar_Time_Type_Access is access all Ravenscar_Time_Type;
 
-   Number_Of_System_Tasks         : Integer;
-   --  Number of tasks created by the PolyORB run-time library.
+   type Ravenscar_Clock_Factory is new Clock_Factory_Type with null record;
 
-   Number_Of_Conditions           : Integer;
-   --  Number of preallocated conditions.
+   function Create (CF : access Ravenscar_Clock_Factory)
+                   return Time_Type_Access;
 
-   Number_Of_Mutexes              : Integer;
-   --  Number of preallocated mutexes.
+   function Clock (CF : access Ravenscar_Clock_Factory)
+                     return Time_Type'Class;
 
-   Task_Priority                  : System.Priority;
-   --  Priority affected  to the tasks of the pool.
+   procedure Destroy (CF : access Ravenscar_Clock_Factory;
+                      Clock : in out Time_Type_Access);
 
-package PolyORB.Setup.Tasking.Ravenscar is
+   procedure Split
+     (Date    : Ravenscar_Time_Type;
+      Year    : out Year_Number;
+      Month   : out Month_Number;
+      Day     : out Day_Number;
+      Seconds : out Day_Duration);
 
-   package Threads_Package is
-      new PolyORB.Tasking.Profiles.Ravenscar.Threads
-     (Number_Of_Application_Tasks,
-      Number_Of_System_Tasks,
-      Task_Priority);
+   function Year    (Date : Ravenscar_Time_Type) return Year_Number;
+   function Month   (Date : Ravenscar_Time_Type) return Month_Number;
+   function Day     (Date : Ravenscar_Time_Type) return Day_Number;
+   function Seconds (Date : Ravenscar_Time_Type) return Day_Duration;
 
-   package Conditions_Package is
-      new PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables
-     (Threads_Package,
-      Number_Of_Conditions);
+   function Time_Of
+     (Year    : Year_Number;
+      Month   : Month_Number;
+      Day     : Day_Number;
+      Seconds : Day_Duration := 0.0)
+      return    Ravenscar_Time_Type;
 
-   package Mutexes_Package is
-      new PolyORB.Tasking.Profiles.Ravenscar.Mutexes
-     (Threads_Package,
-      Number_Of_Mutexes);
+   function "+" (Left : Ravenscar_Time_Type; Right : Duration)
+                return Ravenscar_Time_Type;
+   function "+" (Left : Duration; Right : Ravenscar_Time_Type)
+                return Ravenscar_Time_Type;
+   function "-" (Left : Ravenscar_Time_Type; Right : Duration)
+                return Ravenscar_Time_Type;
+   function "-" (Left : Ravenscar_Time_Type; Right : Ravenscar_Time_Type)
+                return Duration;
 
-end PolyORB.Setup.Tasking.Ravenscar;
+   function "<"  (Left, Right : Ravenscar_Time_Type) return Boolean;
+   function "<=" (Left, Right : Ravenscar_Time_Type) return Boolean;
+   function ">"  (Left, Right : Ravenscar_Time_Type) return Boolean;
+   function ">=" (Left, Right : Ravenscar_Time_Type) return Boolean;
+
+   type Ravenscar_Clock_Factory_Access is access all Ravenscar_Clock_Factory;
+
+   The_Ravenscar_Clock_Factory : aliased Ravenscar_Clock_Factory;
+
+private
+
+   type Ravenscar_Time_Type is new Time_Type with record
+      Time : Ada.Real_Time.Time;
+   end record;
+
+end PolyORB.Tasking.Profiles.Ravenscar.Calendar;
