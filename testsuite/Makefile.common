@@ -2,7 +2,7 @@ IDLAC = $(top_builddir)/compilers/idlac/idlac
 LINKER = $(top_builddir)/support/linker
 
 corba_lib=-I$(top_builddir)/src/corba/libpolyorb-corba.la
-giop_lib=-I$(top_builddir)/src/giop/libpolyorb-giop.la -I$(top_builddir)/src/giop/iiop/libpolyorb-iiop.la -I$(top_builddir)/src/giop/diop/libpolyorb-diop.la -I$(top_builddir)/src/giop/miop/libpolyorb-miop.la
+giop_lib=-I$(top_builddir)/src/giop/libpolyorb-giop.la -I$(top_builddir)/src/giop/iiop/libpolyorb-giop-iiop.la -I$(top_builddir)/src/giop/diop/libpolyorb-giop-diop.la -I$(top_builddir)/src/giop/miop/libpolyorb-giop-miop.la
 moma_lib=-I$(top_builddir)/src/moma/libpolyorb-moma.la
 soap_lib=-I$(top_builddir)/src/soap/libpolyorb-soap.la 
 srp_lib=-I$(top_builddir)/src/srp/libpolyorb-srp.la
