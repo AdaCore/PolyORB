@@ -744,6 +744,7 @@ src/polyorb-tasking-condition_variables.adb
 src/polyorb-tasking-condition_variables.ads
 src/polyorb-tasking-mutexes.adb
 src/polyorb-tasking-mutexes.ads
+src/polyorb-tasking-priorities.ads
 src/polyorb-tasking-profiles.ads
 src/polyorb-tasking-profiles-full_tasking-condition_variables.adb
 src/polyorb-tasking-profiles-full_tasking-condition_variables.ads
