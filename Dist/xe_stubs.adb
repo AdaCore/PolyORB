@@ -318,9 +318,13 @@ package body XE_Stubs is
       Full_RCI_Body   := Full_Source_Name (RCI_Body);
       Full_ALI_File   := ALIs.Table (A).Ofile_Full_Name;
 
-      Caller_Object   := Strip_Suffix (Dir_Sep_Id & RCI_Body) & Obj_Suffix;
-      Receiver_Object := Receiver_Dir & Caller_Object;
-      Caller_Object   := Caller_Dir & Caller_Object;
+      --  Caller and receiver object filenames can be different because
+      --  of gnat.adc.
+
+      Caller_Object   :=
+        Caller_Dir & Strip_Suffix (Dir_Sep_Id & RCI_Spec) & Obj_Suffix;
+      Receiver_Object :=
+        Receiver_Dir & Strip_Suffix (Dir_Sep_Id & RCI_Body) & Obj_Suffix;
 
       Caller_ALI      := Strip_Suffix (Caller_Object) & ALI_Suffix;
       Receiver_ALI    := Strip_Suffix (Receiver_Object) & ALI_Suffix;

@@ -234,7 +234,12 @@ package body XE_Check is
             for I in ALIs.Table (Ali).First_Unit ..
                      ALIs.Table (Ali).Last_Unit loop
 
-               if Unit.Table (I).RCI then
+               if Unit.Table (I).Is_Generic then
+                  Message ("Generic unit """, U_To_N (Unit.Table (I).Uname),
+                           """ cannot be assigned to a partition");
+                  Inconsistent := True;
+
+               elsif Unit.Table (I).RCI then
 
                   --  If not null, we have already set this
                   --  configured rci unit name to a partition.
@@ -280,14 +285,9 @@ package body XE_Check is
       end if;
 
       for U in Unit.First .. Unit.Last loop
-         if Unit.Table (U).Is_Generic then
-            Message ("Generic unit """, U_To_N (Unit.Table (U).Uname),
-                     """ should not be assigned to a partition");
-            Inconsistent := True;
-
-         elsif Unit.Table (U).RCI
-           and then Get_CUID (Unit.Table (U).Uname) = Null_CUID
-         then
+         if Unit.Table (U).RCI
+           and then not Unit.Table (U).Is_Generic
+           and then Get_CUID (Unit.Table (U).Uname) = Null_CUID then
             Message ("RCI Ada unit """, U_To_N (Unit.Table (U).Uname),
                      """ has not been assigned to a partition");
             Inconsistent := True;

@@ -3,9 +3,8 @@ with Ada.Streams; use Ada.Streams;
 with System.Garlic.Filters;
 pragma Elaborate (System.Garlic.Filters);
 
-with System.Garlic.Utils;
-
-use System.Garlic.Utils;
+with System.Garlic.Utils;   use System.Garlic.Utils;
+with System.Garlic.Streams; use System.Garlic.Streams;
 
 package body System.Garlic.Filters.Shuffling is
 
@@ -26,8 +25,8 @@ package body System.Garlic.Filters.Shuffling is
      (Filter : in     No_Filter;
       Params : in     Filter_Params_Access;
       Stream : access System.RPC.Params_Stream_Type)
-      return Stream_Element_Array is
-      Result  : Stream_Element_Array  := To_Stream_Element_Array (Stream);
+      return Stream_Element_Access is
+      Result  : Stream_Element_Access  := To_Stream_Element_Access (Stream);
       Middle  : Stream_Element_Offset := (Result'Last + Result'First) / 2;
       Element : Stream_Element;
    begin
@@ -47,8 +46,8 @@ package body System.Garlic.Filters.Shuffling is
      (Filter : in No_Filter;
       Params : in Filter_Params_Access;
       Stream : in Ada.Streams.Stream_Element_Array)
-      return Stream_Element_Array is
-      Result  : Stream_Element_Array  := Stream;
+      return Stream_Element_Access is
+      Result  : Stream_Element_Access := new Stream_Element_Array'(Stream);
       Middle  : Stream_Element_Offset := (Result'Last + Result'First) / 2;
       Element : Stream_Element;
    begin
@@ -98,11 +97,11 @@ package body System.Garlic.Filters.Shuffling is
    function Filter_Params_Write
      (Filter : No_Filter;
       P : Filter_Params_Access) return
-      Ada.Streams.Stream_Element_Array is
+      Streams.Stream_Element_Access is
       S : aliased System.RPC.Params_Stream_Type (32);
    begin
       No_Filter_Params'Write (S'Access, No_Filter_Params (P.all));
-      return To_Stream_Element_Array (S'Access);
+      return To_Stream_Element_Access (S'Access);
    end Filter_Params_Write;
 
    --------------

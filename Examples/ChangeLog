@@ -1,3 +1,8 @@
+Wed Nov 19 23:19:01 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
+
+	* Filters: Rescue Filters example due to new stream storage pool
+ 	features.
+
 Sun Sep  7 16:20:05 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* check-config.in: Do not check for rsh to localhost anymore since 
