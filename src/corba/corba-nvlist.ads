@@ -62,17 +62,12 @@ package CORBA.NVList is
 
    procedure Free (Self : Ref);
    procedure Free_Memory (Self : Ref) renames Free;
-   --  Free and Free_Memory are no-ops in Ada
+   --  Implementation Note: As per the IDL-to-Ada mapping, Free and
+   --  Free_Memory are no-ops.
 
    ------------------------------------------
    -- The following is specific to PolyORB --
    ------------------------------------------
-
-   procedure Create (Self : out Ref);
-   --  XXX THIS MUST BE REPLACED BY AN OVERRIDING OF
-   --  Initialize!
-   --  Requiring users to call Create is in violation of the
-   --  standard CORBA API.
 
    function Item (Self : Ref; Index : CORBA.Long) return CORBA.NamedValue;
 
@@ -82,12 +77,12 @@ package CORBA.NVList is
 private
 
    type Ref is new CORBA.AbstractBase.Ref with null record;
+   procedure Initialize (Self : in out Ref);
 
    pragma Inline (Add_Item);
    pragma Inline (Get_Count);
    pragma Inline (Free);
    pragma Inline (To_PolyORB_Ref);
    pragma Inline (To_CORBA_Ref);
-   pragma Inline (Create);
 
 end CORBA.NVList;

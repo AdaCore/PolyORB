@@ -335,14 +335,12 @@ package body CORBA.ORB is
      (Count    : in     CORBA.Long;
       New_List :    out CORBA.NVList.Ref)
    is
-      pragma Warnings (Off);
-      --  Parameter 'Count' below is only a hint.
-      --  In this implementation, it is ignored.
       pragma Unreferenced (Count);
-      pragma Warnings (On);
+
+      Result : CORBA.NVList.Ref;
 
    begin
-      CORBA.NVList.Create (New_List);
+      New_List := Result;
    end Create_List;
 
    procedure Create_List (New_List : out CORBA.ExceptionList.Ref)

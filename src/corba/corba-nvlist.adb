@@ -106,17 +106,19 @@ package body CORBA.NVList is
       return Res;
    end To_CORBA_Ref;
 
-   ------------
-   -- Create --
-   ------------
+   ----------------
+   -- Initialize --
+   ----------------
 
-   procedure Create (Self : out Ref) is
+   procedure Initialize (Self : in out Ref) is
       Res : PolyORB.Any.NVList.Ref;
 
    begin
+      CORBA.AbstractBase.Initialize (CORBA.AbstractBase.Ref (Self));
+
       PolyORB.Any.NVList.Create (Res);
-      Self := To_CORBA_Ref (Res);
-   end Create;
+      Set (Self, PolyORB.Any.NVList.Entity_Of (Res));
+   end Initialize;
 
    ----------
    -- Item --
