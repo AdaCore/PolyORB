@@ -1,4 +1,4 @@
-\input texiplus   @c -*-texinfo-*-
+\input texinfo @c -*-texinfo-*-
 
 @c %**start of header
 
@@ -48,17 +48,14 @@
 @c     This command inhibits page breaks, so long examples in a @cartouche can
 @c     lead to large, ugly patches of empty space on a page.
 @c
-@c  NOTE: This file should be submitted to xgnatugn with either the vms flag
-@c        or the unw flag set.  The unw flag covers topics for both Unix and
-@c        Windows.
-@c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#1 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#2 $
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
-@set PolyORBVersion X.Y
+
+@include version.texi
 
 @setchapternewpage odd
 @syncodeindex fn cp
@@ -68,9 +65,9 @@
 @titlepage
 
 @title PolyORB User's Guide
-@subtitle Version @value{PolyORBVersion}
-@subtitle Document revision level $Revision: 1.3 $
-@subtitle Date: $Date: 2001/10/30 15:01:17 $
+@subtitle Version @value{VERSION}
+@subtitle Document revision level @value{EDITION}
+@subtitle Date: @value{UPDATED}
 @author XXXX
 
 @page
@@ -85,14 +82,14 @@ unmodified in any copy.
 @end titlepage
 
 @ifinfo
-@node Top, Introduction, (dir), (dir)
+@node Top, Introduction to PolyORB, (dir), (dir)
 @top PolyORB User's Guide
 
 PolyORB User's Guide
 
-Version @value{PolyORBVersion}
+Version @value{VERSION}
 
-Date: $Date: 2001/10/30 15:01:17 $
+Date: @value{UPDATED}
 
 Copyright @copyright{} 2003, XXX
 This document may be copied, in whole or in part, in any form or by any
@@ -101,7 +98,7 @@ marked as alterations and (2) this copyright notice is included
 unmodified in any copy.
 
 @menu
-* Introduction::
+* Introduction to PolyORB::
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -112,51 +109,90 @@ unmodified in any copy.
 @end ifinfo
 
 @c -------------------------------------------------------------------
-@node Introduction
-@chapter Introduction
+@node Introduction to PolyORB
+@chapter Introduction to PolyORB
+@cindex PolyORB
 @c -------------------------------------------------------------------
 
+
+@section Distributed applications and middleware
+
 @noindent
+PolyORB aims at providing a uniform solution to build distributed
+applications; relying either on industrial-strength middleware
+standards such as CORBA, the Distributed System Annex of Ada 95,
+distribution programming paradigms such as Web Services, Message
+Oriented Middleware (MOM), or to implement application-specific
+middleware.
 
-PolyORB is a polymorphic, reusable infrastructure for building
-object-oriented distributed systems.  Middleware environments are
-software libraries that hide the complex issues of distribution
-and provide the programmer with high-level abstractions that allow
-easy and transparent construction of distributed applications.
+Middleware provides a framework that hides the complex issues of
+distribution, and offers the programmer high-level abstractions that
+allow easy and transparent construction of distributed applications.
 A number of different standards exist for creating object-oriented
-distributed applications.  These standards define two things:
+distributed applications. These standards define two subsystems that
+enable interaction between application partitions:
 
-    * the interface seen by the developer's applicative objects;
-    * the protocol used by the middleware environment to talk to other
-      nodes in the distributed application.
+    * the API seen by the developer's applicative objects;
 
-Usually, middleware for one platform supports only one set of
-such interfaces, and cannot interoperate with other platforms.
+    * the protocol used by the middleware environment to interact with
+      other nodes in the distributed application.
 
-A polymorphic middleware allows the existence of several different
-implementations of each of these aspects to be used within the same
-middleware framework.  In addition, PolyORB allows such different
-personalities to coexist in the same instance of the running middleware;
-it decouples the personality presented to applications on one side
-("application personality"), and the personality presented
-to other middleware on the other side ("protocol personality").
-Multiple implementations of each personalisable aspect can
-coexist within the same instance of the running middleware:
-unlike previous generic middleware, PolyORB is actually schizophrenic.
+Middleware implementations also offer programming guidelines as well as
+development tools to ease the construction of large heterogeneous
+distributed systems. Many issues typical to distributed programming may
+still arise: application architectural choice, configuration
+or deployment. Since there is no "one size fits all" architecture,
+choosing the adequate distribution middleware in its most appropriate
+configuration is a key design point that dramatically impacts the
+design and performance of an application.
 
-The decoupling of application and protocol personalities, and the support
-for multiple simultaneous personalities within the same running middleware
-are key features required for the construction of interoperable
-distributed applications.  This allows PolyORB to communicate
-with middleware that implement different distribution standards:
-PolyORB provides middleware-to-middleware interoperability.
-
-The PolyORB architecture also permits the automatic,
-just-in-time creation of proxies between incompatible environments
-(although this feature is not implemented yet).
+Consequently, applications need to rapidly tailor middleware to the
+specific distribution model they require. A distribution model is
+defined by the combination of distribution mechanisms made available
+to the application. Common examples of such mechanisms are Remote
+Procedure Call (RPC), Distributed Objects or Message Passing. A
+distribution infrastructure or middleware refers to software that
+supports one (or several) distribution model, e.g.: OMG CORBA, Java
+Remote Method Invocation (RMI), the Distributed System Annex of Ada
+95, Java Message Service (MOM).
 
 
+@section PolyORB: a generic middleware with an instance per distribution model
 
+Typical middleware implementations for one platform support only one
+set of such interfaces, pre-defined configuration capabilities and
+cannot interoperate with other platforms. In addition to traditional
+middleware implementations, PolyORB proposes an original architecture
+to enable support for multiple interoperating distribution models in a
+uniform canvas.
+
+PolyORB is a polymorphic, reusable infrastructure for building or
+prototyping new middleware adapted to specific application needs. It
+provides a set of components on top of which various instances can be
+elaborated. These instances (or personalities) are views on PolyORB
+facilities that are compliant to existing standards, either at the API
+level (application personality) or at the protocol level (protocol
+personality). These personalities are mutually exclusive views of the
+same architecture.
+
+The decoupling of application and protocol personalities, and the
+support for multiple simultaneous personalities within the same
+running middleware, are key features required for the construction of
+interoperable distributed applications. This allows PolyORB to
+communicate with middleware that implement different distribution
+standards: PolyORB provides middleware-to-middleware interoperability
+(M2M).
+
+PolyORB's modularity allows for easy extension and replacement of its
+core and personality components, in order to meet specific requirements.
+In this way, standard or application-specific personalities can be
+created in a streamlined process, from early stage prototyping to
+full-featured implementation. The PolyORB architecture also allows
+the automatic, just-in-time creation of proxies between incompatible
+environments.
+
+@i{Note: PolyORB is the project formerly known as DROOPI, a Distributed
+Reusable Object-Oriented Polymorphic Infrastructure}
 
 @contents
 @bye
