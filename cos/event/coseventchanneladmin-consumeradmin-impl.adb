@@ -53,7 +53,7 @@ pragma Warnings (Off, CosEventChannelAdmin.ConsumerAdmin.Skel);
 with PolyORB.CORBA_P.Server_Tools; use  PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Tasking.Soft_Links; use PolyORB.Tasking.Soft_Links;
 
-with PolyORB.Sequences.Unbounded;
+with CORBA.Sequences.Unbounded;
 
 with CORBA.Impl;
 pragma Warnings (Off, CORBA.Impl);
@@ -69,10 +69,10 @@ package body CosEventChannelAdmin.ConsumerAdmin.Impl is
      renames L.Output;
 
    package PushSuppliers is
-      new PolyORB.Sequences.Unbounded (ProxyPushSupplier.Impl.Object_Ptr);
+      new CORBA.Sequences.Unbounded (ProxyPushSupplier.Impl.Object_Ptr);
 
    package PullSuppliers is
-      new PolyORB.Sequences.Unbounded (ProxyPullSupplier.Impl.Object_Ptr);
+      new CORBA.Sequences.Unbounded (ProxyPullSupplier.Impl.Object_Ptr);
 
    type Consumer_Admin_Record is
       record
