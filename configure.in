@@ -80,6 +80,25 @@ AC_DEFUN([AC_GNAT_SOURCE],
 ])
 AC_GNAT_SOURCE
 #
+# Check that the GNAT version is recent enough for this version of GLADE
+#
+AC_DEFUN([AC_GNAT_VERSION],
+[
+  AC_MSG_CHECKING([that your GNAT is recent enough])
+  gnatvers=`gnatls -v | head -2 | tail -1 | ${AWK} '{print $[3]}' | \
+    ${SED} -e 's/^.//' -e 's/.$//'`
+  prereq=`cat $srcdir/prereq | ${AWK} '{print $[8]}' | \
+    ${SED} -e 's/^.//' -e 's/.$//'`
+  if test $gnatvers -ge $prereq; then
+    AC_MSG_RESULT([yes])
+  else
+    AC_MSG_RESULT([no])
+    cat $srcdir/prereq 1>&2
+    AC_MSG_ERROR([Stopping])
+  fi
+])
+AC_GNAT_VERSION
+#
 # Platform specific
 #
 AC_MSG_CHECKING(which platform-specific variant to use)
