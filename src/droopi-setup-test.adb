@@ -2,11 +2,14 @@
 
 --  $Id$
 
+with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Text_IO; use Ada.Text_IO;
 
 with CORBA;
 --  For To_CORBA_String, used in References.IOR.
+with CORBA.NVList;
+--  In order to create a request
 
 with Droopi.Filters;
 with Droopi.Filters.Slicers;
@@ -15,10 +18,13 @@ with Droopi.No_Tasking;
 with Droopi.Obj_Adapters.Simple;
 with Droopi.Objects;
 with Droopi.ORB.Task_Policies;
+with Droopi.ORB.Interface;
 
 with Droopi.Binding_Data.Test;
 with Droopi.Binding_Data.IIOP;
 with Droopi.Binding_Data.SRP;
+
+with Droopi.Components;
 
 with Droopi.Protocols;
 with Droopi.Protocols.Echo;
@@ -27,6 +33,8 @@ with Droopi.Protocols.SRP;
 
 with Droopi.References;
 with Droopi.References.IOR;
+
+with Droopi.Requests;
 
 with Droopi.Smart_Pointers;
 with Droopi.Sockets;
@@ -244,8 +252,61 @@ begin
             Put_Line (Ada.Exceptions.Exception_Information (E));
       end;
 
-      Run (The_ORB, May_Poll => True);
-      --  Execute the ORB.
+
+
+      --  Check if we simply run the ORB to accept remote acccess
+      --  or if we run a local request to the ORB
+      if Ada.Command_Line.Argument_Count = 1
+        and then Ada.Command_Line.Argument (1) = "local" then
+
+         ---------------------------------------
+         -- Create a local request to the ORB --
+         ---------------------------------------
+
+         declare
+            use CORBA.NVList;
+            use Droopi.Components;
+            use Droopi.ORB.Interface;
+            use Droopi.Requests;
+            Req : Request_Access;
+            Args : CORBA.NVList.Ref;
+            Result : CORBA.NamedValue;
+
+         begin
+            Create (Args);
+            Add_Item (Args,
+                      CORBA.To_CORBA_String ("Echo_String"),
+                      CORBA.To_Any (CORBA.To_CORBA_String ("Test")),
+                      CORBA.ARG_IN);
+
+            Put ("Creating servant request...  ");
+            Create_Request (My_Ref,
+                            "Echo_String",
+                            Args,
+                            Result,
+                            Req);
+            Put_Line ("Done...");
+
+            Emit_No_Reply
+              (Component_Access (The_ORB),
+               Queue_Request'(Request   => Req,
+                              Requestor => null,
+                              Requesting_Task => null));
+
+            Run (The_ORB, (Condition =>
+                             Req.Completed'Access,
+                           Task_Info => Req.Requesting_Task'Access),
+                 May_Poll => False);
+            --  Execute the ORB.
+         end;
+
+      else
+
+         Run (The_ORB, May_Poll => True);
+         --  Execute the ORB.
+
+      end if;
+
    end;
 
 end Droopi.Setup.Test;
