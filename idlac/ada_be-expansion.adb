@@ -138,6 +138,7 @@ package body Ada_Be.Expansion is
       end loop;
 
       Expand_Node_List (Contents (New_Repository));
+      --  Pop_Scope;
    end Expand_Repository;
 
 
@@ -147,7 +148,9 @@ package body Ada_Be.Expansion is
    procedure Expand_Module (Node : in Node_Id) is
    begin
       pragma Assert (Kind (Node) = K_Module);
+      Push_Scope (Node);
       Expand_Node_List (Contents (Node));
+      --  Pop_Scope;
    end Expand_Module;
 
    --------------------------
@@ -156,7 +159,9 @@ package body Ada_Be.Expansion is
    procedure Expand_Ben_Idl_File (Node : in Node_Id) is
    begin
       pragma Assert (Kind (Node) = K_Ben_Idl_File);
+      Push_Scope (Node);
       Expand_Node_List (Contents (Node));
+      --  Pop_Scope;
    end Expand_Ben_Idl_File;
 
    -----------------------
@@ -165,7 +170,9 @@ package body Ada_Be.Expansion is
    procedure Expand_Interface (Node : in Node_Id) is
    begin
       pragma Assert (Kind (Node) = K_Interface);
+      Push_Scope (Node);
       Expand_Node_List (Contents (Node));
+      --  Pop_Scope;
    end Expand_Interface;
 
    -----------------------
@@ -190,11 +197,15 @@ package body Ada_Be.Expansion is
 
          Current_Declarator := Get_Node (Iterator);
 
+         pragma Debug (O ("Expanding attribute declarator "
+                          & Get_Name (Current_Declarator)));
+
          --  create the get_method
          declare
             Get_Method : Node_Id := Make_Operation;
             Success : Boolean;
          begin
+            Push_Scope (Get_Method);
             Success := Add_Identifier (Get_Method, "Get_"
                                        & Get_Name (Current_Declarator));
             pragma Assert (Success = True);
@@ -223,19 +234,23 @@ package body Ada_Be.Expansion is
 
             --  add the node to the node list
             Append_Node_To_Contents (New_Node, Get_Method);
+            Pop_Scope;
          end;
+
 
          --  create the Set method
          if not Is_Readonly (Old_Node) then
             declare
                Set_Method : Node_Id := Make_Operation;
                Success : Boolean;
+               Void_Node : Node_Id := Make_Void;
             begin
+               Push_Scope (Set_Method);
                Success := Add_Identifier (Set_Method, "Set_"
                                           & Get_Name (Current_Declarator));
                pragma Assert (Success = True);
                Set_Is_Oneway (Set_Method, False);
-               Set_Operation_Type (Set_Method, No_Node);
+               Set_Operation_Type (Set_Method, Void_Node);
                --  parameters
                declare
                   Param1 : Node_Id := Make_Param;
@@ -273,6 +288,7 @@ package body Ada_Be.Expansion is
 
                --  add the node to the node list
                Append_Node_To_Contents (New_Node, Set_Method);
+               Pop_Scope;
             end;
          end if;
 

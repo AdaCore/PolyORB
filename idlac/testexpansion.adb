@@ -17,7 +17,9 @@ begin
    Rep := Idl_Fe.Parser.Parse_Specification;
    Put_Line ("Testexpansion : Expanding ");
    Ada_Be.Expansion.Expand_Repository (Rep);
+   Put_Line ("Testexpansion : Displaying ");
    Idl_Fe.Display_Tree.Disp_Tree (Rep);
+   Put_Line ("Testexpansion : Finished ");
    if Idl_Fe.Errors.Is_Error then
       Ada.Text_IO.Put ("there was " &
                        Natural'Image (Idl_Fe.Errors.Error_Number) &

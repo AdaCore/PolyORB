@@ -304,8 +304,14 @@ package body Idl_Fe.Display_Tree is
             end case;
             Disp_Indent (N_Indent, "name :");
             Disp_Tree (Declarator (N), N_Indent + Offset, False);
-            Disp_Indent (N_Indent, "type :");
-            Disp_Tree (Param_Type (N), N_Indent + Offset, False);
+            case (Kind (Param_Type (N))) is
+               when K_Interface | K_ValueType =>
+                  Disp_Indent (N_Indent, "type : "
+                               & Get_Name (Param_Type (N)));
+               when others =>
+                  Disp_Indent (N_Indent, "type : ");
+                  Disp_Tree (Param_Type (N), N_Indent, Full);
+            end case;
 
          when K_Exception =>
             Put ("exception ");
@@ -504,6 +510,9 @@ package body Idl_Fe.Display_Tree is
          when K_Ben_Idl_File =>
             Put_Line ("ben_idl_file " & Get_Name (N));
             Disp_List (Contents (N), N_Indent, Full);
+
+         when K_Ben_Node_List =>
+            Disp_List (Contents (N), Indent, Full);
 
             --  ************************** --
          when others =>
