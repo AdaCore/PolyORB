@@ -2,7 +2,7 @@
 
 # cobuild: Build AdaBroker from a checked-out wavefront.
 
-# $Id: //depot/adabroker/main/broca/utils/cobuild#2 $
+# $Id: //depot/adabroker/main/broca/utils/cobuild#3 $
 
 usage () {
   echo "Usage: $0 -m EMAIL_ADDRESS -C CLIENT_WORKSPACE_TOP -o OUTPUT_DIR [ -c CHANGELIST ]"
@@ -117,8 +117,7 @@ if [ $RC = 0 ]
 then
   STATUS="completed"
   OUTPATH=`echo $OUTDIR | sed 's,/usr/home,/infres,'`
-  MSG="Build completed successfully.
-See details at $OUTPATH/build.log"
+  MSG="Build completed successfully.\\nSee details at $OUTPATH/build.log"
   SUCCESS=true
 elif [ $RC -ge 128 ]
 then
@@ -131,7 +130,7 @@ fi
 
 if $SUCCESS
 then
-  echo $MSG | Mail -s "AdaBroker build $CHANGE $STATUS" $MAILTO
+  echo -e "$MSG" | Mail -s "AdaBroker build $CHANGE $STATUS" $MAILTO
 else
   cat $OUTDIR/build.log | Mail -s "AdaBroker BUILD $CHANGE FAILED" $MAILTO
 fi
