@@ -44,6 +44,12 @@ private
    --  the next token from the lexer.
    procedure Next_Token;
 
+   --  Returns the previous token in the token stream.
+   function View_Previous_Token return Idl_Token;
+
+   --  Returns the previous token in the token stream.
+   function View_Previous_Previous_Token return Idl_Token;
+
    --  Returns the next token in the token stream without consuming
    --  it. If necessary get it from the lexer and put it in the buffer
    function View_Next_Token return Idl_Token;
@@ -79,6 +85,10 @@ private
    --  Returns the string of the current_token
    function Get_Next_Token_String return String;
 
+   --  Divides T_Greater_Greater in two T_Greater
+   --  usefull for the parsing of sequences
+
+   procedure Divide_T_Greater_Greater;
 
    ---------------------------------
    --  Management of expressions  --
