@@ -30,11 +30,11 @@ package Weapon is
    ----    not in  spec AdaBroker specific       ----
    --------------------------------------------------
 
+   Repository_Id : Corba.String := Corba.To_Corba_String("IDL:Weapon:1.0")  ;
    function Get_Repository_Id(Self : in Ref) return Corba.String ;
 
-   function Is_A(The_Ref: in Ref;
-                 Repo_Id: in Corba.String)
-                 return Corba.Boolean ;
+   function Is_A(The_Ref: in Ref; Repo_Id: in Corba.String) return Corba.Boolean ;
+   function Is_A(Repo_Id: in Corba.String) return Corba.Boolean ;
 
 private
 

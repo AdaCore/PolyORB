@@ -14,6 +14,12 @@ CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_OmniRopeAndKey.o
 CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_Rope.o
 CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_netBufferedStream.o
 
+
+main:
+	make -C ../../InterfaceORB main
+	make client
+
+
 client: vehicle.o weapon.o tank.o client.o 
 	$(BIND) -I$(ADABROKER_PATH) client.ali
 	$(LINK)  \

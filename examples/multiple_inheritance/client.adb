@@ -25,7 +25,7 @@ procedure Client is
    -----------------------------------------------
    procedure Global_Test is
       W : Weapon.Ref ;
-      V : Vehicle.Ref ;
+      V, vv : Vehicle.Ref ;
       T : Tank.Ref ;
       O : Corba.Object.Ref ;
    begin
@@ -53,8 +53,23 @@ procedure Client is
       Put_Line(">>> cast succeeded") ;
       Put_Line("") ;
 
+      Put_Line("--- Trying to cast Vehicle.Ref (which is a Tank.Ref) into Weapon.Ref") ;
+      W := Weapon.To_Ref(V) ;
+      Put_Line(">>> cast succeeded") ;
+      Put_Line("") ;
 
-      Put_Line("Everything works all right !!") ;
+      begin
+      Put_Line("--- Trying to cast Vehicle.Ref into Weapon.Ref") ;
+      W := Weapon.To_Ref(Vv) ;
+      Put_Line("**** cast succeeded : PROBLEM !!!!!") ;
+      Put_Line("") ;
+      exception
+         when Constraint_Error =>
+           Put_Line(">>> Cast did not succeed : ok !") ;
+           Put_Line("") ;
+           Put_Line("Everything works all right !!") ;
+      end ;
+
 
    end Global_Test ;
 

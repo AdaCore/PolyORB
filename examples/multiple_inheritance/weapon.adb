@@ -9,9 +9,8 @@
 ----                                                                    ----
 ----------------------------------------------------------------------------
 
-with Text_IO ;
 
-with Ada.Tags, Ada.exceptions ;
+with Ada.exceptions ;
 
 with Corba.Object ; use Corba.Object ;
 use type Corba.String ;
@@ -53,7 +52,7 @@ package body Weapon is
    --------------------
    function Get_Repository_Id(Self : in Ref) return Corba.String is
    begin
-      return  Corba.To_Corba_String("IDL:Weapon:1.0") ;
+      return  Repository_Id ;
    end ;
 
 
@@ -62,10 +61,18 @@ package body Weapon is
    function Is_A(The_Ref: in Ref;
                  Repo_Id: in Corba.String )
                  return Corba.Boolean is
-      Parent1 : Corba.Object.Ref ;
    begin
-      return (Get_Repository_Id(The_Ref) = Repo_Id
-              or Get_Repository_Id(Parent1) = Repo_Id) ;
+      return (Repository_Id = Repo_Id
+              or Corba.Object.Is_A(Repo_Id) ) ;
+   end ;
+
+   -- Is_A
+   -------
+   function Is_A(Repo_Id: in Corba.String )
+                 return Corba.Boolean is
+   begin
+      return (Repository_Id = Repo_Id
+              or Corba.Object.Is_A(Repo_Id) ) ;
    end ;
 
    --------------------------------------------------
@@ -75,9 +82,8 @@ package body Weapon is
    -- Initialize
    -------------
    procedure Initialize(Self : in out Ref) is
-   Nil_Ref_Ptr : Corba.Object.Ref_Ptr := Corba.Object.Ref(Nil_Ref)'Access ;
    begin
-      Corba.Object.AdaBroker_Set_Dynamic_Type(Self,Nil_Ref_Ptr) ;
+      Corba.Object.AdaBroker_Set_Dynamic_Type(Self,Weapon.Nil_Ref'Access) ;
    end ;
 
 

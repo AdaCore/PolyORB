@@ -28,15 +28,6 @@ package Tank is
 
    -- Inheritance from Weapon
    --------------------------
-   -- Weapon Ref is the same object as Ref, but viewed as
-   -- a descendant of Weapon.Ref
-   -- To get such a view, use the following To_Ref function
-   -- with an object of type Ref
-   -- type Weapon_Ref is new Weapon.Ref with private ;
-   -- type Weapon_Ref_Ptr is access all Weapon_Ref ;
-
-   -- function To_Ref(The_Ref: in Corba.Object.Ref'Class) return Weapon_Ref ;
-
    subtype Name is Weapon.Name ;
 
 
@@ -47,17 +38,13 @@ package Tank is
    ----    not in  spec AdaBroker specific       ----
    --------------------------------------------------
 
+   Repository_Id : Corba.String := Corba.To_Corba_String("IDL:Tank:1.0") ;
    function Get_Repository_Id(Self : in Ref) return Corba.String ;
 
-   function Is_A(The_Ref: in Ref;
-                 Repo_Id: in Corba.String)
-                 return Corba.Boolean ;
+   function Is_A(The_Ref: in Ref; Repo_Id: in Corba.String) return Corba.Boolean ;
+   function Is_A(Repo_Id: in Corba.String) return Corba.Boolean ;
 
-   -- function Get_Repository_Id(Self : in Weapon_Ref) return Corba.String ;
 
-   -- function Widen_From_The_Most_Derived_Intf(The_Ref: in Weapon_Ref;
-   --                                          Repo_Id: in Corba.String)
-   --                                          return Corba.Object'Class ;
 
 
 private
