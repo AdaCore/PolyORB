@@ -4,6 +4,7 @@
 
 with Ada.Streams;
 
+with Droopi.Binding_Data;
 with Droopi.Buffers;
 with Droopi.Components;
 with Droopi.Filters; use Droopi.Filters;
@@ -37,6 +38,8 @@ package Droopi.Protocols is
    -- Protocol primitives (interface to upper layers) --
    -----------------------------------------------------
 
+   procedure Connect (S : access Session; P : Binding_Data.Profile_Access)
+      is abstract;
    procedure Invoke_Request (S : access Session; R : Request)
       is abstract;
    procedure Abort_Request (S : access Session; R : Request)

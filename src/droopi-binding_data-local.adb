@@ -53,7 +53,7 @@ package body Droopi.Binding_Data.Local is
       return null;
       --  May not happen (no such a profile does not support
       --  connections).
-   end;
+   end Find_Connection;
 
    function Get_Profile_Tag
      (Profile : Local_Profile_Type)
