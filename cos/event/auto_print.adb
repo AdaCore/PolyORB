@@ -54,6 +54,7 @@ package body Auto_Print is
          Leave (Session_Mutex);
          loop
             exit when EndDisplay = True;
+            delay 0.1;
             Try_Pull (Ptr, B, A);
             if B then
                Ada.Text_IO.Put_Line (

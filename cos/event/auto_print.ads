@@ -1,9 +1,5 @@
 with CosEventComm; use CosEventComm;
 
-with PolyORB.Setup.Thread_Pool_Server;
-pragma Elaborate_All (PolyORB.Setup.Thread_Pool_Server);
-pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
-
 with CORBA;
 
 with CORBA.Impl;
