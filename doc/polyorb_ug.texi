@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#49 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#50 $
 
 @include version.texi
 
@@ -1439,6 +1439,7 @@ parameters.
 * Installing CORBA application personality::
 * Usage of idlac::
 * Resolving names in a CORBA application::
+* The CORBA Interface Repository::
 * Building a CORBA application with PolyORB::
 * Configuring a CORBA application::
 * Implementation Notes::
@@ -1584,6 +1585,45 @@ personality preferences} for more details.
 @noindent
 PolyORB provides a helper package to manipulate the COS Naming in your
 applications. See @ref{PolyORB specific APIs} for more details.
+
+@c -------------------------------------------------------------------
+@node The CORBA Interface Repository 
+@section The CORBA Interface Repository
+@c -------------------------------------------------------------------
+
+@noindent
+PolyORB implements the CORBA Interface Repository.
+
+@menu
+* po_ir::
+* Using the Interface Repository::
+@end menu
+
+@c -------------------------------------------------------------------
+@node po_ir
+@subsection @command{po_ir}
+@cindex @command{po_ir}
+@c -------------------------------------------------------------------
+
+@noindent
+@command{po_ir} is a stand alone server that supports the CORBA
+Interface Repository. When launched, it returns its @code{IOR} and
+@code{corbaloc} that can then be used by other CORBA applications.
+
+If you want @command{po_ir} to return the same @code{IOR} or
+@code{corbaloc} at each startup, you must set a default listen port
+for the protocol personalities you use. See @ref{Configuring protocol
+personality preferences} for more details.
+
+@c -------------------------------------------------------------------
+@node Using the Interface Repository
+@subsection Using the Interface Repository
+@c -------------------------------------------------------------------
+
+@noindent
+@code{idlac} generates a helper package that allows you to register
+all entities defined in your IDL specification in the Interface
+Repository.
 
 @c -------------------------------------------------------------------
 @node Building a CORBA application with PolyORB
@@ -2684,9 +2724,8 @@ PolyORB does not support this chapter.
 @item Chapter 10 describes The Interface Repository
 
 @noindent 
-PolyORB supports this chapter. 
-
-@b{XXX Should discuss with T. Quinot conformance issue with this spec.}
+PolyORB supports this chapter, except for the @code{ExtValueDef}
+interface, and all CORBA CCM related interfaces.
 
 @item Chapter 11 describes The Portable Object Adapter
 
