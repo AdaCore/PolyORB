@@ -81,19 +81,11 @@ LINK = $(LIBTOOL) $(ADA) -o $(lib_LTLIBRARIES)
 
 CLEANFILES = b~*.* *.o *.ali
 
-DISTCLEANFILES = $(PROGS)
-
-#
-# Executables to be compiled
-#
-
-PROGS= @APPLI_EXES@ @SERVICE_EXES@
-
 #
 # Local targets
 #
 
-all-local:: $(PROGS) $(EXTRA)
+all-local:: $(EXTRA)
 
 #
 # How to compile the various files
@@ -106,16 +98,6 @@ all-local:: $(PROGS) $(EXTRA)
 
 FORCE_IDLAC=force
 
-$(PROGS): $(FORCE) $(GEN)
-	$(GNATMAKE_FOR_TARGET) $@ \
-        -m \
-        $(ADAFLAGS) \
-	-bargs $(BARGS) \
-	-largs $(LDFLAGS) \
-	--LINK=$(LINKER) \
-        $(POLYORB_LIBS) $(XMLADA_LIBS) 
-
-
 force::
 	cd $(top_builddir)/src && $(MAKE)
 
@@ -124,12 +106,6 @@ gen: $(GEN)
 #
 # Files to be installed
 #
-
-install-exec-local:
-	$(INSTALL) -d $(DESTDIR)$(bindir)
-	for p in $(PROGS); do \
-	    $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/$$p; \
-	done
 
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
