@@ -116,6 +116,10 @@ package all_types.Impl is
      (Self : access Object;
       arg  : in Color) return Color;
 
+   function echoRainbow
+     (Self : access Object;
+      arg  : in Rainbow) return Rainbow;
+
    function echoArray
      (Self : access Object;
       Arg : in simple_array) return simple_array;

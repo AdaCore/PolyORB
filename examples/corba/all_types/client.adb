@@ -187,6 +187,15 @@ begin
             Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
       end;
 
+      declare
+         X : Rainbow;
+      begin
+         for J in X'Range loop
+            X (J) := Color'Val (J mod Color'Pos (Color'Last) + 1);
+         end loop;
+         Output ("test array of enum", echoRainbow (Myall_types, X) = X);
+      end;
+
       --  Bounded sequences
       declare
          X : B_sequence := B_sequence (IDL_SEQUENCE_short_10.Null_Sequence);

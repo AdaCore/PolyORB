@@ -28,6 +28,10 @@ interface all_types {
   enum Color { Red, Green, Blue };
   Color echoColor (in Color arg);
 
+  // Array of enum
+  typedef Color Rainbow[7];
+  Rainbow echoRainbow (in Rainbow arg);
+
   // Exceptions
   // ----------
   exception my_exception {long info;};

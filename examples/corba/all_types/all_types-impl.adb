@@ -208,6 +208,14 @@ package body all_types.Impl is
       return arg;
    end echoColor;
 
+   function echoRainbow
+     (Self : access Object;
+      arg  : in Rainbow)
+      return Rainbow is
+   begin
+      return arg;
+   end echoRainbow;
+
    function echoMoney
      (Self : access Object;
       Arg  : in Money)
