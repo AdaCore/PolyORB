@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -154,7 +154,7 @@ begin
 
       when Shell_Import =>
 
-         Unlink_File (Main_Subprogram);
+         Delete (Main_Subprogram);
 
          if Building_Script then
             FD := Standout;
