@@ -1,3 +1,17 @@
+2004-02-13  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* Makefile.am, Makefile.in (clean): Add b_xe_defs$(EXEEXT) to the
+	list of files to clean.
+	Part of work for D211-003.
+
+	* Makefile.am, Makefile.in (xe_defs.adb): Fix typo (incorrect
+	leading character '=') and pass PSNAME like the other parameters.
+	Part of work for D211-003.
+
+	* b_xe_defs.adb: Parse parameter PSNAME like the other parameters
+	otherwise on Unix it is incorreclty interpreted.
+	Part of work for D211-003.
+
 2004-02-12  Pascal Obry  <obry@gnat.com>
 
 	* Makefile.in, Makefile.am:
