@@ -30,6 +30,7 @@ with Atree;       use Atree;
 with Einfo;       use Einfo;
 with Elists;      use Elists;
 with Exp_Hlpr;    use Exp_Hlpr;
+with Exp_Strm;    use Exp_Strm;
 with Exp_Tss;     use Exp_Tss;
 with Exp_Util;    use Exp_Util;
 with GNAT.HTable; use GNAT.HTable;
@@ -201,7 +202,7 @@ package body Exp_Dist is
 
    function Pack_Entity_Into_Stream_Access
      (Loc    : Source_Ptr;
-      Stream : Entity_Id;
+      Stream : Node_Id;
       Object : Entity_Id;
       Etyp   : Entity_Id := Empty)
       return   Node_Id;
@@ -221,7 +222,7 @@ package body Exp_Dist is
 
    function Pack_Node_Into_Stream_Access
      (Loc    : Source_Ptr;
-      Stream : Entity_Id;
+      Stream : Node_Id;
       Object : Node_Id;
       Etyp   : Entity_Id)
       return   Node_Id;
@@ -1081,11 +1082,6 @@ package body Exp_Dist is
    is
       Loc : constant Source_Ptr := Sloc (RACW_Type);
 
-      Proc_Spec : Node_Id;
-      --  Specification and body of the currently built procedure
-
-      Proc_Body_Spec : Node_Id;
-
       Proc_Decl : Node_Id;
       Attr_Decl : Node_Id;
 
@@ -1108,12 +1104,6 @@ package body Exp_Dist is
       Source_Address    : constant Entity_Id :=
                             Make_Defining_Identifier
                               (Loc, New_Internal_Name ('P'));
-      Stream_Parameter  : constant Entity_Id :=
-                            Make_Defining_Identifier
-                              (Loc, New_Internal_Name ('S'));
-      Result            : constant Entity_Id  :=
-                            Make_Defining_Identifier
-                              (Loc, New_Internal_Name ('P'));
       Stubbed_Result    : constant Entity_Id  :=
                             Make_Defining_Identifier
                               (Loc, New_Internal_Name ('S'));
@@ -1121,6 +1111,22 @@ package body Exp_Dist is
                             Make_Defining_Identifier
                               (Loc, New_Internal_Name ('S'));
       Asynchronous_Node : Node_Id;
+
+      --  Functions to create occurrences of the formal
+      --  parameter names.
+
+      function Stream_Parameter return Node_Id;
+      function Result return Node_Id;
+
+      function Stream_Parameter return Node_Id is
+      begin
+         return Make_Identifier (Loc, Name_S);
+      end Stream_Parameter;
+
+      function Result return Node_Id is
+      begin
+         return Make_Identifier (Loc, Name_V);
+      end Result;
 
    begin
       --  Declare the asynchronous flag. This flag will be changed to True
@@ -1169,7 +1175,7 @@ package body Exp_Dist is
             New_Occurrence_Of (RTE (RE_Partition_ID), Loc),
           Attribute_Name => Name_Read,
           Expressions    => New_List (
-            New_Occurrence_Of (Stream_Parameter, Loc),
+            Stream_Parameter,
             New_Occurrence_Of (Source_Partition, Loc))),
 
         Make_Attribute_Reference (Loc,
@@ -1178,7 +1184,7 @@ package body Exp_Dist is
           Attribute_Name =>
             Name_Read,
           Expressions    => New_List (
-            New_Occurrence_Of (Stream_Parameter, Loc),
+            Stream_Parameter,
             New_Occurrence_Of (Source_Receiver, Loc))),
 
         Make_Attribute_Reference (Loc,
@@ -1187,7 +1193,7 @@ package body Exp_Dist is
           Attribute_Name =>
             Name_Read,
           Expressions    => New_List (
-            New_Occurrence_Of (Stream_Parameter, Loc),
+            Stream_Parameter,
             New_Occurrence_Of (Source_Address, Loc))));
 
       --  If the Address is Null_Address, then return a null object
@@ -1200,7 +1206,7 @@ package body Exp_Dist is
               Right_Opnd => Make_Integer_Literal (Loc, Uint_0)),
           Then_Statements => New_List (
             Make_Assignment_Statement (Loc,
-              Name       => New_Occurrence_Of (Result, Loc),
+              Name       => Result,
               Expression => Make_Null (Loc)),
             Make_Return_Statement (Loc))));
 
@@ -1209,7 +1215,7 @@ package body Exp_Dist is
 
       Local_Statements := New_List (
         Make_Assignment_Statement (Loc,
-          Name       => New_Occurrence_Of (Result, Loc),
+          Name       => Result,
           Expression =>
             Unchecked_Convert_To (RACW_Type,
               OK_Convert_To (RTE (RE_Address),
@@ -1266,7 +1272,7 @@ package body Exp_Dist is
 
       Append_To (Remote_Statements,
         Make_Assignment_Statement (Loc,
-          Name       => New_Occurrence_Of (Result, Loc),
+          Name       => Result,
           Expression => Unchecked_Convert_To (RACW_Type,
             New_Occurrence_Of (Stubbed_Result, Loc))));
 
@@ -1285,71 +1291,22 @@ package body Exp_Dist is
           Then_Statements => Local_Statements,
           Else_Statements => Remote_Statements));
 
-      Proc_Spec :=
-        Make_Procedure_Specification (Loc,
-          Defining_Unit_Name       =>
-            Make_Defining_Identifier (Loc, Procedure_Name),
+      Build_Stream_Procedure
+        (Loc, RACW_Type, Body_Node,
+         Make_Defining_Identifier (Loc, Procedure_Name),
+         Statements, Outp => True);
+      Set_Declarations (Body_Node, Decls);
 
-          Parameter_Specifications => New_List (
-            Make_Parameter_Specification (Loc,
-              Defining_Identifier => Stream_Parameter,
-              Parameter_Type      =>
-                Make_Access_Definition (Loc,
-                  Subtype_Mark =>
-                    Make_Attribute_Reference (Loc,
-                      Prefix         =>
-                        New_Occurrence_Of (RTE (RE_Root_Stream_Type), Loc),
-                      Attribute_Name =>
-                        Name_Class))),
-
-            Make_Parameter_Specification (Loc,
-              Defining_Identifier => Result,
-              Out_Present         => True,
-              Parameter_Type      =>
-                New_Occurrence_Of (RACW_Type, Loc))));
-
-      Proc_Body_Spec :=
-        Make_Procedure_Specification (Loc,
-          Defining_Unit_Name       =>
-            Make_Defining_Identifier (Loc, Procedure_Name),
-
-          Parameter_Specifications => New_List (
-            Make_Parameter_Specification (Loc,
-              Defining_Identifier =>
-                Make_Defining_Identifier (Loc, Chars (Stream_Parameter)),
-              Parameter_Type      =>
-                Make_Access_Definition (Loc,
-                  Subtype_Mark =>
-                    Make_Attribute_Reference (Loc,
-                      Prefix         =>
-                        New_Occurrence_Of (RTE (RE_Root_Stream_Type), Loc),
-                      Attribute_Name =>
-                        Name_Class))),
-
-            Make_Parameter_Specification (Loc,
-              Defining_Identifier =>
-                Make_Defining_Identifier (Loc, Chars (Result)),
-              Out_Present         => True,
-              Parameter_Type      =>
-                New_Occurrence_Of (RACW_Type, Loc))));
-
-      Body_Node :=
-        Make_Subprogram_Body (Loc,
-          Specification              => Proc_Body_Spec,
-          Declarations               => Decls,
-          Handled_Statement_Sequence =>
-            Make_Handled_Sequence_Of_Statements (Loc,
-              Statements => Statements));
-
-      Proc_Decl :=
-        Make_Subprogram_Declaration (Loc, Specification => Proc_Spec);
+      Proc_Decl := Make_Subprogram_Declaration (Loc,
+        Copy_Specification (Loc, Specification (Body_Node)));
 
       Attr_Decl :=
         Make_Attribute_Definition_Clause (Loc,
           Name       => New_Occurrence_Of (RACW_Type, Loc),
           Chars      => Name_Read,
           Expression =>
-            New_Occurrence_Of (Defining_Unit_Name (Proc_Spec), Loc));
+            New_Occurrence_Of (
+              Defining_Unit_Name (Specification (Proc_Decl)), Loc));
 
       Insert_After (Declaration_Node (RACW_Type), Proc_Decl);
       Insert_After (Proc_Decl, Attr_Decl);
@@ -1395,10 +1352,6 @@ package body Exp_Dist is
    is
       Loc  : constant Source_Ptr := Sloc (RACW_Type);
 
-      Proc_Spec      : Node_Id;
-
-      Proc_Body_Spec : Node_Id;
-
       Body_Node      : Node_Id;
 
       Proc_Decl      : Node_Id;
@@ -1411,12 +1364,21 @@ package body Exp_Dist is
 
       Procedure_Name    : constant Name_Id := New_Internal_Name ('R');
 
-      Stream_Parameter : constant Entity_Id  :=
-                           Make_Defining_Identifier
-                             (Loc, New_Internal_Name ('S'));
+      --  Functions to create occurrences of the formal
+      --  parameter names.
 
-      Object : constant Entity_Id   :=
-                 Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
+      function Stream_Parameter return Node_Id;
+      function Object return Node_Id;
+
+      function Stream_Parameter return Node_Id is
+      begin
+         return Make_Identifier (Loc, Name_S);
+      end Stream_Parameter;
+
+      function Object return Node_Id is
+      begin
+         return Make_Identifier (Loc, Name_V);
+      end Object;
 
    begin
       --  Build the code fragment corresponding to the marshalling of a
@@ -1442,7 +1404,7 @@ package body Exp_Dist is
             Make_Attribute_Reference (Loc,
               Prefix         =>
                 Make_Explicit_Dereference (Loc,
-                  Prefix => New_Occurrence_Of (Object, Loc)),
+                  Prefix => Object),
               Attribute_Name => Name_Address)),
           Etyp   => RTE (RE_Unsigned_64)));
 
@@ -1456,7 +1418,7 @@ package body Exp_Dist is
          Object =>
             Make_Selected_Component (Loc,
               Prefix        => Unchecked_Convert_To (Stub_Type_Access,
-                New_Occurrence_Of (Object, Loc)),
+                Object),
               Selector_Name =>
                 Make_Identifier (Loc, Name_Origin)),
          Etyp   => RTE (RE_Partition_ID)),
@@ -1466,7 +1428,7 @@ package body Exp_Dist is
          Object =>
             Make_Selected_Component (Loc,
               Prefix        => Unchecked_Convert_To (Stub_Type_Access,
-                New_Occurrence_Of (Object, Loc)),
+                Object),
               Selector_Name =>
                 Make_Identifier (Loc, Name_Receiver)),
          Etyp   => RTE (RE_Unsigned_64)),
@@ -1476,7 +1438,7 @@ package body Exp_Dist is
          Object =>
             Make_Selected_Component (Loc,
               Prefix        => Unchecked_Convert_To (Stub_Type_Access,
-                New_Occurrence_Of (Object, Loc)),
+                Object),
               Selector_Name =>
                 Make_Identifier (Loc, Name_Addr)),
          Etyp   => RTE (RE_Unsigned_64)));
@@ -1507,7 +1469,7 @@ package body Exp_Dist is
         Make_Implicit_If_Statement (RACW_Type,
           Condition       =>
             Make_Op_Eq (Loc,
-              Left_Opnd  => New_Occurrence_Of (Object, Loc),
+              Left_Opnd  => Object,
               Right_Opnd => Make_Null (Loc)),
           Then_Statements => Null_Statements,
           Elsif_Parts     => New_List (
@@ -1516,7 +1478,7 @@ package body Exp_Dist is
                 Make_Op_Eq (Loc,
                   Left_Opnd  =>
                     Make_Attribute_Reference (Loc,
-                      Prefix         => New_Occurrence_Of (Object, Loc),
+                      Prefix         => Object,
                       Attribute_Name => Name_Tag),
                   Right_Opnd =>
                     Make_Attribute_Reference (Loc,
@@ -1525,71 +1487,21 @@ package body Exp_Dist is
               Then_Statements => Remote_Statements)),
           Else_Statements => Local_Statements));
 
-      Proc_Spec :=
-        Make_Procedure_Specification (Loc,
-          Defining_Unit_Name       =>
-            Make_Defining_Identifier (Loc, Procedure_Name),
+      Build_Stream_Procedure
+        (Loc, RACW_Type, Body_Node,
+         Make_Defining_Identifier (Loc, Procedure_Name),
+         Statements, Outp => False);
 
-          Parameter_Specifications => New_List (
-            Make_Parameter_Specification (Loc,
-              Defining_Identifier => Stream_Parameter,
-              Parameter_Type      =>
-                Make_Access_Definition (Loc,
-                  Subtype_Mark =>
-                    Make_Attribute_Reference (Loc,
-                      Prefix         =>
-                        New_Occurrence_Of (RTE (RE_Root_Stream_Type), Loc),
-                      Attribute_Name =>
-                        Name_Class))),
-
-            Make_Parameter_Specification (Loc,
-              Defining_Identifier => Object,
-              In_Present          => True,
-              Parameter_Type      =>
-                New_Occurrence_Of (RACW_Type, Loc))));
-
-      Proc_Decl :=
-        Make_Subprogram_Declaration (Loc, Specification => Proc_Spec);
+      Proc_Decl := Make_Subprogram_Declaration (Loc,
+        Copy_Specification (Loc, Specification (Body_Node)));
 
       Attr_Decl :=
         Make_Attribute_Definition_Clause (Loc,
           Name       => New_Occurrence_Of (RACW_Type, Loc),
           Chars      => Name_Write,
           Expression =>
-            New_Occurrence_Of (Defining_Unit_Name (Proc_Spec), Loc));
-
-      Proc_Body_Spec :=
-        Make_Procedure_Specification (Loc,
-          Defining_Unit_Name       =>
-            Make_Defining_Identifier (Loc, Procedure_Name),
-
-          Parameter_Specifications => New_List (
-            Make_Parameter_Specification (Loc,
-              Defining_Identifier =>
-                Make_Defining_Identifier (Loc, Chars (Stream_Parameter)),
-              Parameter_Type      =>
-                Make_Access_Definition (Loc,
-                  Subtype_Mark =>
-                    Make_Attribute_Reference (Loc,
-                      Prefix         =>
-                        New_Occurrence_Of (RTE (RE_Root_Stream_Type), Loc),
-                      Attribute_Name =>
-                        Name_Class))),
-
-            Make_Parameter_Specification (Loc,
-              Defining_Identifier =>
-                Make_Defining_Identifier (Loc, Chars (Object)),
-              In_Present          => True,
-              Parameter_Type      =>
-                New_Occurrence_Of (RACW_Type, Loc))));
-
-      Body_Node :=
-        Make_Subprogram_Body (Loc,
-          Specification              => Proc_Body_Spec,
-          Declarations               => No_List,
-          Handled_Statement_Sequence =>
-            Make_Handled_Sequence_Of_Statements (Loc,
-              Statements => Statements));
+            New_Occurrence_Of (
+              Defining_Unit_Name (Specification (Proc_Decl)), Loc));
 
       Insert_After (Declaration_Node (RACW_Type), Proc_Decl);
       Insert_After (Proc_Decl, Attr_Decl);
@@ -4027,6 +3939,7 @@ package body Exp_Dist is
 
       Current_Parameter : Node_Id;
       Current_Type      : Node_Id;
+      Current_Etype     : Entity_Id;
 
       Name_For_New_Spec : Name_Id;
 
@@ -4049,28 +3962,31 @@ package body Exp_Dist is
             Current_Type := Parameter_Type (Current_Parameter);
 
             if Nkind (Current_Type) = N_Access_Definition then
+               Current_Etype := Entity (Subtype_Mark (Current_Type));
+
                if Object_Type = Empty then
                   Current_Type :=
                     Make_Access_Definition (Loc,
                       Subtype_Mark =>
-                        New_Occurrence_Of (Etype (
-                          Subtype_Mark (Current_Type)), Loc));
+                        New_Occurrence_Of (Current_Etype, Loc));
                else
                   pragma Assert
-                    (Root_Type (Etype (Subtype_Mark (Current_Type)))
-                       = Root_Type (Object_Type));
+                    (Root_Type (Current_Etype) = Root_Type (Object_Type));
                   Current_Type :=
                     Make_Access_Definition (Loc,
                       Subtype_Mark => New_Occurrence_Of (Stub_Type, Loc));
                end if;
 
-            elsif Object_Type /= Empty
-              and then Etype (Current_Type) = Object_Type
-            then
-               Current_Type := New_Occurrence_Of (Stub_Type, Loc);
-
             else
-               Current_Type := New_Occurrence_Of (Etype (Current_Type), Loc);
+               Current_Etype := Entity (Current_Type);
+
+               if Object_Type /= Empty
+                 and then Current_Etype = Object_Type
+               then
+                  Current_Type := New_Occurrence_Of (Stub_Type, Loc);
+               else
+                  Current_Type := New_Occurrence_Of (Current_Etype, Loc);
+               end if;
             end if;
 
             New_Identifier := Make_Defining_Identifier (Loc,
@@ -4097,7 +4013,7 @@ package body Exp_Dist is
                  Chars => Name_For_New_Spec),
              Parameter_Specifications => Parameters,
              Subtype_Mark             =>
-               New_Occurrence_Of (Etype (Subtype_Mark (Spec)), Loc));
+               New_Occurrence_Of (Entity (Subtype_Mark (Spec)), Loc));
 
       else
          return
@@ -4442,7 +4358,7 @@ package body Exp_Dist is
 
    function Pack_Entity_Into_Stream_Access
      (Loc    : Source_Ptr;
-      Stream : Entity_Id;
+      Stream : Node_Id;
       Object : Entity_Id;
       Etyp   : Entity_Id := Empty)
       return   Node_Id
@@ -4498,7 +4414,7 @@ package body Exp_Dist is
 
    function Pack_Node_Into_Stream_Access
      (Loc    : Source_Ptr;
-      Stream : Entity_Id;
+      Stream : Node_Id;
       Object : Node_Id;
       Etyp   : Entity_Id)
       return   Node_Id
@@ -4515,7 +4431,7 @@ package body Exp_Dist is
           Prefix         => New_Occurrence_Of (Etyp, Loc),
           Attribute_Name => Write_Attribute,
           Expressions    => New_List (
-            New_Occurrence_Of (Stream, Loc),
+            Stream,
             Object));
    end Pack_Node_Into_Stream_Access;
 
