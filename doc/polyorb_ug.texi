@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#27 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#28 $
 
 @include version.texi
 
@@ -662,6 +662,8 @@ remote entities.
 @node CORBAoverview
 @subsection CORBA
 @cindex CORBA
+@cindex RT-CORBA
+@cindex CORBA, COS Services
 @c -------------------------------------------------------------------
 
 @noindent
@@ -672,12 +674,14 @@ applications.
 
 PolyORB provides a CORBA-compatible implementation based on mapping of
 the IDL language version 1.2 described in @cite{[OMG01]} and CORBA
-core specifications.
+core specifications. PolyORB also proposes an implementation of
+various additionnal specifications described by the OMG, including
+@code{COS Services : COS Naming, Event, Time}, additionnal
+specifications; @code{RT-CORBA} or @code{PortableInterceptors}.
 
 @c -------------------------------------------------------------------
 @node DSAoverview
 @subsection Distributed System Annex of Ada (DSA)
-@cindex Distributed System Annex (DSA)
 @cindex DSA, Distributed System Annex
 @c -------------------------------------------------------------------
 
@@ -689,7 +693,6 @@ schemes applied to most language constructs.
 @c -------------------------------------------------------------------
 @node MOMAoverview
 @subsection Message Oriented Middleware for Ada (MOMA)
-@cindex Message Oriented Middleware for Ada (MOMA)
 @cindex MOMA, Message Oriented Middleware for Ada
 @c -------------------------------------------------------------------
 
@@ -822,7 +825,7 @@ middleware can be configured for multi-tasking.
 @item @code{Ravenscar} : Middleware uses Ada 
 tasking constructs, with the limitations of the Ravenscar profile
 @cite{[DB98]}.  Middleware can be configured for multi-tasking.
-@cindex Ravenscar profile
+@cindex Ravenscar
 @end itemize
 
 @c -------------------------------------------------------------------
