@@ -56,10 +56,10 @@ private
    --  Default max MIOP packet size used to fragment
    Default_Max_MIOP_Message_Size : constant Integer := 1000;
 
-   --  Place of endianess in a giop packet
-   Flags_Index      : constant Stream_Element_Offset := 3;
-   Bit_Endianness   : constant Octet_Flags.Bit_Count := 0;
-   Bit_Collect_Mode : constant Octet_Flags.Bit_Count := 1;
+   --  Location of flags in MIOP packet
+   Flags_Index       : constant Stream_Element_Offset := 3;
+   Bit_Little_Endian : constant Octet_Flags.Bit_Count := 0;
+   Bit_Collect_Mode  : constant Octet_Flags.Bit_Count := 1;
 
    --  MIOP header size (with only the size of Unique Id)
    MIOP_Header_Size : constant Stream_Element_Count := 20;

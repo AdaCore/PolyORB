@@ -192,8 +192,6 @@ package body PolyORB.Components is
          exception
             when Unhandled_Message =>
                null;
-            when others =>
-               raise;
          end;
       end loop;
 
@@ -227,8 +225,6 @@ package body PolyORB.Components is
          exception
             when Unhandled_Message =>
                null;
-            when others =>
-               raise;
          end;
       end loop;
       raise Unhandled_Message;

@@ -98,6 +98,11 @@ package PolyORB.Binding_Data.DIOP is
 
    function Image (Prof : DIOP_Profile_Type) return String;
 
+   function Get_OA
+     (Profile : DIOP_Profile_Type)
+     return PolyORB.Smart_Pointers.Entity_Ptr;
+   pragma Inline (Get_OA);
+
 private
 
    --  DIOP version

@@ -70,8 +70,8 @@ package body PolyORB.GIOP_P.Tagged_Components is
    begin
       for J in 1 .. Length (List) loop
          declare
-            C : constant Tagged_Component_Access
-              := Element_Of (List, J);
+            C : constant Tagged_Component_Access := Element_Of (List, J);
+
          begin
             Release_Contents (C);
          end;
@@ -89,17 +89,21 @@ package body PolyORB.GIOP_P.Tagged_Components is
       use type PolyORB.Types.Unsigned_Long;
 
    begin
+
+      --  Check if this Tag has already been registered.
+
       for J in 1 .. Bind_Index loop
          if Binding_List (J).Tag = Tag then
-            raise Tagged_Components_Error;
+
+            --  FATAL ERROR: This tag has already been registered.
+
+            raise Program_Error;
          end if;
       end loop;
 
       Bind_Index := Bind_Index + 1;
 
-      if Bind_Index > Binding_List'Last then
-         raise Tagged_Components_Error;
-      end if;
+      --  Register tag.
 
       Binding_List (Bind_Index) := Bind_Tag'(Tag => Tag, Func => F);
    end Register;
@@ -114,29 +118,33 @@ package body PolyORB.GIOP_P.Tagged_Components is
    is
       use Component_Seq;
 
-      Temp_Buf : Buffer_Access := new Buffer_Type;
       C        : Tagged_Component_Access;
    begin
       pragma Debug (O ("Marshall"
-                       & Length (Components)'Img
+                       & Integer'Image (Length (Components))
                        & " component()s"));
 
-      Marshall (Buffer,  Types.Unsigned_Long (Length (Components)));
+      Marshall (Buffer, Types.Unsigned_Long (Length (Components)));
 
       for J in 1 .. Length (Components) loop
          C := Element_Of (Components, J);
+
          if C.all in TC_Unknown_Component then
             Marshall (C, Buffer);
+
          else
-            Marshall (Buffer, Types.Unsigned_Long (C.all.Tag));
-            Start_Encapsulation (Temp_Buf);
-            Marshall (C, Temp_Buf);
-            Marshall (Buffer, Encapsulate (Temp_Buf));
-            Release_Contents (Temp_Buf.all);
+            declare
+               Temp_Buf : Buffer_Access := new Buffer_Type;
+            begin
+               Marshall (Buffer, Types.Unsigned_Long (C.all.Tag));
+               Start_Encapsulation (Temp_Buf);
+               Marshall (C, Temp_Buf);
+               Marshall (Buffer, Encapsulate (Temp_Buf));
+               Release_Contents (Temp_Buf.all);
+               Release (Temp_Buf);
+            end;
          end if;
       end loop;
-
-      Release (Temp_Buf);
    end Marshall_Tagged_Component;
 
    -----------------------
@@ -162,7 +170,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
          end if;
       end loop;
 
-      pragma Debug (O ("Tag not found, use unknown component"));
+      pragma Debug (O ("Tag not found, return unknown component"));
 
       return new TC_Unknown_Component;
    end Get_New_Component;
@@ -229,9 +237,12 @@ package body PolyORB.GIOP_P.Tagged_Components is
       use Component_Seq;
 
    begin
+      if Tag = Tag_Value'Last then
+         return null;
+      end if;
+
       for J in 1 .. Length (List) loop
-         if Element_Of (List, J).Tag = Tag
-           and Tag /= Tag_Value'Last then
+         if Element_Of (List, J).Tag = Tag then
             return Element_Of (List, J);
          end if;
       end loop;
@@ -245,12 +256,12 @@ package body PolyORB.GIOP_P.Tagged_Components is
 
    procedure Add
      (List : in out Tagged_Component_List;
-      C    :        Tagged_Component_Access)
-   is
-      use type PolyORB.Types.Unsigned_Long;
-
+      C    :        Tagged_Component_Access) is
    begin
-      pragma Debug (O ("Add component to list with tag :" & C.Tag'Img));
+      pragma Debug (O ("Add component to list with tag :"
+                       & PolyORB.Types.Unsigned_Long'Image
+                       (PolyORB.Types.Unsigned_Long (C.Tag))));
+
       Append (List, C);
    end Add;
 
@@ -267,7 +278,9 @@ package body PolyORB.GIOP_P.Tagged_Components is
       Buffer : access Buffer_Type) is
    begin
       pragma Debug (O ("Marshall unknown component, tag = "
-                       & C.Unknown_Tag'Img));
+                       & PolyORB.Types.Unsigned_Long'Image
+                       (PolyORB.Types.Unsigned_Long (C.Unknown_Tag))));
+
       Marshall (Buffer, Types.Unsigned_Long (C.Unknown_Tag));
       Marshall (Buffer, C.Data.all);
    end Marshall;
@@ -281,6 +294,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
       Buffer : access Buffer_Type) is
    begin
       pragma Debug (O ("Unmarshall unknown component"));
+
       C.Data := new Stream_Element_Array'(Unmarshall (Buffer));
    end Unmarshall;
 

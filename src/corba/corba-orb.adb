@@ -45,13 +45,13 @@ with Ada.Exceptions;
 with PolyORB.CORBA_P.Initial_References;
 with PolyORB.CORBA_P.Policy;
 
-with PolyORB.Configuration;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.Objects;
+with PolyORB.Parameters;
 with PolyORB.References.IOR;
 with PolyORB.References.Corbaloc;
 with PolyORB.Setup;
@@ -598,7 +598,7 @@ package body CORBA.ORB is
    procedure Initialize
    is
       Naming_IOR : constant Standard.String :=
-        PolyORB.Configuration.Get_Conf
+        PolyORB.Parameters.Get_Conf
         (Section => "corba", Key => "naming_ior", Default => "");
 
    begin

@@ -33,11 +33,13 @@
 with Ada.Streams;
 with Ada.Strings.Unbounded;
 
-with AWS.Net;
+--  with AWS.Net;
 with AWS.Response;
 with AWS.URL;
 
 package AWS.Client is
+
+   use Ada.Strings.Unbounded;
 
    Connection_Error : exception;
    --  Raised if the connection with the server cannot be established
@@ -293,6 +295,12 @@ package AWS.Client is
    --  Set debug mode on/off. If debug is activated the request header and the
    --  server response header will be displayed.
 
+   function Host (Connection : in HTTP_Connection) return Unbounded_String;
+   --  returns the host name
+
+   function Host_URL (Connection : in HTTP_Connection) return AWS.URL.Object;
+   --  returns the URL of the host
+
 private
 
    use Ada.Strings.Unbounded;
@@ -309,17 +317,17 @@ private
    --  at some point. Right now there is no cross-platforms implementation of
    --  a Socket timeout.
 
-   task type Cleaner_Task is
+--     task type Cleaner_Task is
 
-      entry Start (Connection : in HTTP_Connection_Access);
-      --  Task initialization, pass the HTTP_Connection to monitor.
+--        entry Start (Connection : in HTTP_Connection_Access);
+--        --  Task initialization, pass the HTTP_Connection to monitor.
 
-      entry Next_Phase;
-      --  Change the client phase.
+--        entry Next_Phase;
+--        --  Change the client phase.
 
-   end Cleaner_Task;
+--     end Cleaner_Task;
 
-   type Cleaner_Access is access Cleaner_Task;
+--     type Cleaner_Access is access Cleaner_Task;
 
    type Authentication_Level is (WWW, Proxy);
 
@@ -357,11 +365,11 @@ private
       Server_Push   : Boolean;
       SOAPAction    : Unbounded_String;
       Cookie        : Unbounded_String;
-      Socket        : Net.Socket_Access;
+--      Socket        : Net.Socket_Access;
       Retry         : Natural;
       Current_Phase : Client_Phase;
       Timeouts      : Timeouts_Values;
-      Cleaner       : Cleaner_Access;
+--      Cleaner       : Cleaner_Access;
    end record;
 
 end AWS.Client;

@@ -283,50 +283,62 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
         := Profiles_Of (The_Ref);
       Error : Error_Container;
       GS : PolyORB.Servants.Servant_Access;
+
    begin
       pragma Debug (O ("Get group from ref"));
+
       for J in Profs'Range loop
-         if not Is_Nil (Get_OA (Profs (J).all))
-           and then Entity_Of (Get_OA (Profs (J).all)).all
-           in Group_Object_Adapter'Class then
-            pragma Debug (O ("Searching group using a group profile"));
-            Find_Servant
-              (Group_Object_Adapter_Access
-               (Entity_Of (Get_OA (Profs (J).all))),
-               Get_Object_Key (Profs (J).all),
-               GS,
-               Error);
-            if not Found (Error) then
-               pragma Debug (O ("Group found"));
-               return GS;
-            end if;
-            if Allow_Group_Creation then
-               pragma Debug (O ("Create a new group"));
-               GS := PolyORB.Servants.Group_Servants.Create_Group_Servant
-                 (Get_Object_Key (Profs (J).all));
-               declare
-                  Oid   : Object_Id_Access;
-                  Error : Error_Container;
-               begin
-                  Export
-                    (Group_Object_Adapter_Access
-                     (Entity_Of (Get_OA (Profs (J).all))),
-                     GS,
-                     null,
-                     Oid,
-                     Error);
-                  if Found (Error)
-                    or else Oid.all /=
-                    Get_Object_Key (Profs (J).all).all then
-                     pragma Debug (O ("Exporting group error"));
-                     return null;
-                  end if;
-                  pragma Debug (O ("Group Exported"));
+         declare
+            OA_Entity : constant PolyORB.Smart_Pointers.Entity_Ptr
+              := Get_OA (Profs (J).all);
+         begin
+            if OA_Entity /= null
+              and then OA_Entity.all in Group_Object_Adapter'Class
+            then
+               pragma Debug (O ("Searching group using a group profile"));
+
+               Find_Servant
+                 (Group_Object_Adapter (OA_Entity.all)'Access,
+                  Get_Object_Key (Profs (J).all),
+                  GS,
+                  Error);
+
+               if not Found (Error) then
+                  pragma Debug (O ("Group found"));
                   return GS;
-               end;
+               end if;
+
+               if Allow_Group_Creation then
+                  pragma Debug (O ("Create a new group"));
+                  GS := PolyORB.Servants.Group_Servants.Create_Group_Servant
+                    (Get_Object_Key (Profs (J).all));
+
+                  declare
+                     Oid   : Object_Id_Access;
+                     Error : Error_Container;
+                  begin
+                     Export
+                       (Group_Object_Adapter (OA_Entity.all)'Access,
+                        GS,
+                        null,
+                        Oid,
+                        Error);
+
+                     if Found (Error)
+                       or else Oid.all /= Get_Object_Key (Profs (J).all).all
+                     then
+                        pragma Debug (O ("Exporting group error"));
+                        return null;
+                     end if;
+
+                     pragma Debug (O ("Group Exported"));
+                     return GS;
+                  end;
+               end if;
             end if;
-         end if;
+         end;
       end loop;
+
       pragma Debug (O ("Group not found"));
       return null;
    end Get_Group;

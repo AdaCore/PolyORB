@@ -46,6 +46,7 @@ package PolyORB.Binding_Data.UIPMC is
    MIOP_Error : exception;
 
    --  UIPMC Profile
+
    type UIPMC_Profile_Type is new Profile_Type with private;
    type UIPMC_Profile_Factory is new Profile_Factory with private;
 
@@ -100,6 +101,11 @@ package PolyORB.Binding_Data.UIPMC is
      return Profile_Access;
 
    function Image (Prof : UIPMC_Profile_Type) return String;
+
+   function Get_OA
+     (Profile : UIPMC_Profile_Type)
+     return PolyORB.Smart_Pointers.Entity_Ptr;
+   pragma Inline (Get_OA);
 
 private
 

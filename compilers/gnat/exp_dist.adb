@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1992-2002 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2003 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -457,7 +457,8 @@ package body Exp_Dist is
    --  already used in the overload table, so no clashes
    --  occur with user code (RCIs implement the NamingContext
    --  interface to allow their methods to be accessed as
-   --  objects (RAS)).
+   --  objects, for the implementation of remote access-to-subprogram
+   --  types).
 
    function RCI_Package_Locator
      (Loc          : Source_Ptr;
@@ -1093,10 +1094,10 @@ package body Exp_Dist is
       RPC_Receiver : constant Entity_Id
         := Make_Defining_Identifier (Loc, New_Internal_Name ('H'));
 
-      RPC_Receiver_Statements        : List_Id;
+      RPC_Receiver_Statements        : List_Id          := No_List;
       RPC_Receiver_Case_Alternatives : constant List_Id := New_List;
-      RPC_Receiver_Request           : Entity_Id;
-      RPC_Receiver_Subp_Id           : Entity_Id;
+      RPC_Receiver_Request           : Entity_Id        := Empty;
+      RPC_Receiver_Subp_Id           : Entity_Id        := Empty;
 
       Subp_Str : String_Id;
 
@@ -1112,7 +1113,7 @@ package body Exp_Dist is
       Current_Receiver      : Entity_Id;
       Current_Receiver_Body : Node_Id;
 
-      RPC_Receiver_Decl : Node_Id;
+      RPC_Receiver_Decl : Node_Id := Empty;
 
       Possibly_Asynchronous : Boolean;
 
@@ -1149,7 +1150,7 @@ package body Exp_Dist is
 
             if Chars (Current_Primitive) /= Name_uSize
               and then Chars (Current_Primitive) /= Name_uAlignment
-              and then Chars (Current_Primitive) /= Name_uDeep_Finalize
+              and then not Is_TSS (Current_Primitive, TSS_Deep_Finalize)
             then
                --  The first thing to do is build an up-to-date copy of
                --  the spec with all the formals referencing Designated_Type
@@ -2250,7 +2251,9 @@ package body Exp_Dist is
           Expression =>
             New_Occurrence_Of (Return_Value, Loc)));
 
-      Proc := Make_Defining_Identifier (Loc, Name_uRAS_Access);
+      Proc :=
+        Make_Defining_Identifier (Loc,
+          Chars => Make_TSS_Name (Ras_Type, TSS_RAS_Access));
 
       Proc_Spec :=
         Make_Function_Specification (Loc,
@@ -2464,7 +2467,9 @@ package body Exp_Dist is
 
       --  Build the complete subprogram.
 
-      Proc := Make_Defining_Identifier (Loc, Name_uRAS_Dereference);
+      Proc :=
+        Make_Defining_Identifier (Loc,
+          Chars => Make_TSS_Name (RAS_Type, TSS_RAS_Dereference));
 
       if Is_Function then
          Proc_Spec :=
@@ -2794,7 +2799,7 @@ package body Exp_Dist is
       Decls : List_Id := Private_Declarations (Spec);
 
    begin
-      pragma Assert (No (TSS (RAS_Type, Name_uRAS_Access)));
+      pragma Assert (No (TSS (RAS_Type, TSS_RAS_Access)));
 
       Add_RAS_Dereference_TSS (Vis_Decl);
       Add_RAS_Access_TSS (Vis_Decl);
@@ -4506,9 +4511,9 @@ package body Exp_Dist is
          declare
             Etyp        : Entity_Id;
             Constrained : Boolean;
-            Any         : Entity_Id;
-            Object      : Entity_Id;
-            Expr        : Node_Id := Empty;
+            Any         : Entity_Id := Empty;
+            Object      : Entity_Id := Empty;
+            Expr        : Node_Id   := Empty;
 
             Is_Controlling_Formal : constant Boolean
               := Is_RACW_Controlling_Formal

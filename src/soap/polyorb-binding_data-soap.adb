@@ -35,21 +35,20 @@
 
 --  $Id$
 
-with Ada.Streams; use Ada.Streams;
+with Ada.Streams;
 
-with PolyORB.Any;
-with PolyORB.Configuration;
-with PolyORB.Filters;
 with PolyORB.Filters.HTTP;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.ORB.Interface;
+with PolyORB.Parameters;
 with PolyORB.Protocols;
 with PolyORB.Protocols.SOAP_Pr;
 with PolyORB.Setup;
 
 with PolyORB.References.IOR;
+with PolyORB.References.URI;
 with PolyORB.Representations.CDR;
 --  XXX Unfortunate dependency on CDR code. Should provide
 --  To_Any methods instead!!!!!! (but actually the Any in question
@@ -59,11 +58,15 @@ with PolyORB.Representations.CDR;
 with PolyORB.Transport.Connected.Sockets;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Sockets;
+with PolyORB.Log;
 
 with AWS.URL;
 
 package body PolyORB.Binding_Data.SOAP is
 
+   use Ada.Streams;
+
+   use PolyORB.Log;
    use PolyORB.Buffers;
    use PolyORB.Filters.HTTP;
    use PolyORB.Objects;
@@ -72,6 +75,11 @@ package body PolyORB.Binding_Data.SOAP is
    use PolyORB.Transport;
    use PolyORB.Transport.Connected.Sockets;
    use PolyORB.Types;
+
+   package L is new PolyORB.Log.Facility_Log ("polyorb.binding_data.soap");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
+
 
    Preference : Profile_Preference;
    --  Global variable: the preference to be returned
@@ -392,6 +400,84 @@ package body PolyORB.Binding_Data.SOAP is
       return Result;
    end Unmarshall_SOAP_Profile_Body;
 
+   --------------------
+   -- Profile_To_URI --
+   --------------------
+
+   function Profile_To_URI
+     (P : Profile_Access)
+     return Types.String
+   is
+      use PolyORB.Types;
+      use PolyORB.Sockets;
+      use PolyORB.Utils;
+      use PolyORB.Utils.Strings;
+
+      SOAP_Profile : SOAP_Profile_Type renames SOAP_Profile_Type (P.all);
+   begin
+      pragma Debug (O ("SOAP Profile to URI"));
+      return SOAP_URI_Prefix
+        & Image (SOAP_Profile.Address.Addr) & ":"
+        & Trimmed_Image (Integer (SOAP_Profile.Address.Port))
+        & SOAP_Profile.URI_Path;
+   end Profile_To_URI;
+
+   --------------------
+   -- URI_To_Profile --
+   --------------------
+
+   function URI_To_Profile
+     (Str : Types.String)
+     return Profile_Access
+   is
+      use PolyORB.Types;
+      use PolyORB.Utils;
+      use PolyORB.Utils.Strings;
+      use PolyORB.Utils.Sockets;
+
+      Len    : constant Integer := Length (SOAP_URI_Prefix);
+   begin
+      if Length (Str) > Len
+        and then To_String (Str) (1 .. Len) = SOAP_URI_Prefix then
+         declare
+            Result  : constant Profile_Access := new SOAP_Profile_Type;
+            TResult : SOAP_Profile_Type renames SOAP_Profile_Type (Result.all);
+            S       : constant String
+              := To_Standard_String (Str) (Len + 1 .. Length (Str));
+            Index   : Integer := S'First;
+            Index2  : Integer;
+         begin
+            pragma Debug (O ("SOAP URI to profile: enter"));
+
+            Index2 := Find (S, Index, ':');
+            if Index2 = S'Last + 1 then
+               return null;
+            end if;
+            pragma Debug (O ("Address = " & S (Index .. Index2 - 1)));
+            TResult.Address.Addr := String_To_Addr
+              (To_PolyORB_String (S (Index .. Index2 - 1)));
+            Index := Index2 + 1;
+
+            Index2 := Find (S, Index, '/');
+            if Index2 = S'Last + 1 then
+               return null;
+            end if;
+            pragma Debug (O ("Port = " & S (Index .. Index2 - 1)));
+            TResult.Address.Port :=
+              PolyORB.Sockets.Port_Type'Value (S (Index .. Index2 - 1));
+            Index := Index2;
+            TResult.URI_Path := To_PolyORB_String (S (Index .. S'Last));
+
+            pragma Debug (O ("URI_Path is " & S (Index .. S'Last)));
+            pragma Debug (O ("SOAP URI to profile: leave"));
+            return Result;
+         end;
+      else
+         return null;
+      end if;
+   end URI_To_Profile;
+
+
    -----------
    -- Image --
    -----------
@@ -422,18 +508,34 @@ package body PolyORB.Binding_Data.SOAP is
         & To_Standard_String (Prof.URI_Path);
    end To_URI;
 
+   ------------
+   -- Get_OA --
+   ------------
+
+   function Get_OA
+     (Profile : SOAP_Profile_Type)
+     return PolyORB.Smart_Pointers.Entity_Ptr
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Profile);
+      pragma Warnings (On); --  WAG:3.15
+   begin
+      return PolyORB.Smart_Pointers.Entity_Ptr
+        (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));
+   end Get_OA;
+
    ----------------
    -- Initialize --
    ----------------
 
    procedure Initialize;
 
-   procedure Initialize is
-      use PolyORB.Any;
-      use PolyORB.Any.TypeCode;
+   procedure Initialize
+   is
+      use PolyORB.References.URI;
 
       Preference_Offset : constant String :=
-        PolyORB.Configuration.Get_Conf
+        PolyORB.Parameters.Get_Conf
         (Section => "soap",
          Key     => "polyorb.binding_data.soap.preference",
          Default => "0");
@@ -444,6 +546,11 @@ package body PolyORB.Binding_Data.SOAP is
         (Tag_SOAP,
          Marshall_SOAP_Profile_Body'Access,
          Unmarshall_SOAP_Profile_Body'Access);
+      References.URI.Register
+        (Tag_SOAP,
+         SOAP_URI_Prefix,
+         Profile_To_URI'Access,
+         URI_To_Profile'Access);
    end Initialize;
 
    use PolyORB.Initialization;

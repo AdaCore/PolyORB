@@ -1301,8 +1301,6 @@ procedure Test000 is
             when PortableServer.POA.NoServant =>
                null;
 
-            when others =>
-               raise;
          end;
 
          --  Test Set_Sevant
@@ -1444,75 +1442,75 @@ procedure Test000 is
          return False;
       end if;
 
-      if (Result.Implicit_Activation
-          and then (Sp /= RETAIN
-                    or Ip /= IMPLICIT_ACTIVATION))
+      if Result.Implicit_Activation
+        and then (Sp /= RETAIN
+                  or Ip /= IMPLICIT_ACTIVATION)
       then
          Output ("Result.Implicit_Activation", True);
          return False;
       end if;
 
-      if (not Result.Get_Type_Id) then
+      if not Result.Get_Type_Id then
          Output ("Result.Get_Type_Id", True);
          return False;
       end if;
 
-      if (Result.Activation_No_Id
-          and then Ap /= SYSTEM_ID
-          and then Sp /= RETAIN)
+      if Result.Activation_No_Id
+        and then Ap /= SYSTEM_ID
+        and then Sp /= RETAIN
       then
          Output ("Resuilt.Activation_No_Id", True);
          return False;
       end if;
 
-      if (Result.Unique_Activation_No_Id
-          and then Up /= UNIQUE_ID)
+      if Result.Unique_Activation_No_Id
+        and then Up /= UNIQUE_ID
       then
          Output ("Result.Unique_Activation_No_Id", True);
          return False;
       end if;
 
-      if (Result.Deactivation_No_Id
-          and then not Result.Activation_No_Id
-          and then Sp /= RETAIN)
+      if Result.Deactivation_No_Id
+        and then not Result.Activation_No_Id
+        and then Sp /= RETAIN
       then
          Output ("Result.Deactivation_No_Id", True);
          return False;
       end if;
 
-      if (Result.Activation_Id
-          and then Sp /= RETAIN)
+      if Result.Activation_Id
+        and then Sp /= RETAIN
       then
          Output ("Result.Activation_Id", True);
          return False;
       end if;
 
-      if (Result.Unique_Activation_Id
-          and then Up /= UNIQUE_ID)
+      if Result.Unique_Activation_Id
+        and then Up /= UNIQUE_ID
       then
          Output ("Result.Unique_Activation_Id", True);
          return False;
       end if;
 
-      if (Result.Deactivation_Id
-          and then not Result.Activation_Id
-          and then Sp /= RETAIN)
+      if Result.Deactivation_Id
+        and then not Result.Activation_Id
+        and then Sp /= RETAIN
       then
          Output ("Result.Deactivation_Id", True);
          return False;
       end if;
 
-      if (Result.Default_Servant_No_Id
-          and then Rp /= USE_DEFAULT_SERVANT
-          and then Ap /= SYSTEM_ID)
+      if Result.Default_Servant_No_Id
+        and then Rp /= USE_DEFAULT_SERVANT
+        and then Ap /= SYSTEM_ID
       then
          Output ("Result.Use_Default_Servant_No_Id", True);
          return False;
       end if;
 
-      if (Result.Default_Servant_Id
-          and then Rp /= USE_DEFAULT_SERVANT
-          and then Ap /= USER_ID)
+      if Result.Default_Servant_Id
+        and then Rp /= USE_DEFAULT_SERVANT
+        and then Ap /= USER_ID
       then
          Output ("Result.Use_Default_Servant_Id", True);
          return False;

@@ -40,15 +40,19 @@ with Ada.Streams;
 with Ada.Strings.Unbounded;
 
 with AWS.Headers;
-with AWS.Net;
+--  with AWS.Net
 with AWS.Parameters;
 with AWS.Session;
 with AWS.URL;
 with AWS.Utils;
 
+with SOAP.Message.Payload;
+
 package AWS.Status is
 
    type Data is private;
+
+   type Data_Access is access all Data;
 
    type Request_Method is (GET, HEAD, POST, PUT);
 
@@ -157,8 +161,8 @@ package AWS.Status is
    --  Returns True if session was just created and is going to be sent to
    --  client.
 
-   function Socket                 (D : in Data) return Net.Socket_Type'Class;
-   pragma Inline (Socket);
+--     function Socket            (D : in Data) return Net.Socket_Type'Class;
+--     pragma Inline (Socket);
    --  Returns the socket used to transfert data between the client and
    --  server.
 
@@ -192,6 +196,11 @@ package AWS.Status is
    pragma Inline (Payload);
    --  Returns the XML Payload message. XML payload is the actual SOAP request
 
+   function Payload (D : in Data) return SOAP.Message.Payload.Object;
+   --  Returns the AWS_SOAP structure of the payload. This is meant for
+   --  PolyORB/AWS, as we have to decode the payload before creating the
+   --  status, while original AWS does it afterwards.
+
    subtype Stream_Element_Array is Ada.Streams.Stream_Element_Array;
 
    function Binary_Data (D : in Data) return Stream_Element_Array;
@@ -218,7 +227,7 @@ private
       Keep_Alive        : Boolean;
       File_Up_To_Date   : Boolean            := False;
       SOAP_Action       : Boolean            := False;
-      Socket            : Net.Socket_Access;
+--      Socket            : Net.Socket_Access;
       Auth_Mode         : Authorization_Type := None;
       Auth_Name         : Unbounded_String; -- for Basic and Digest
       Auth_Password     : Unbounded_String; -- for Basic
@@ -230,7 +239,8 @@ private
       Auth_Response     : Unbounded_String; -- for Digest
       Session_ID        : AWS.Session.ID     := AWS.Session.No_Session;
       Session_Created   : Boolean            := False;
-      Payload           : Unbounded_String;
+--      Payload           : Unbounded_String;
+      SOAP_Payload      : SOAP.Message.Payload.Object;
    end record;
 
 end AWS.Status;

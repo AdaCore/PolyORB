@@ -33,6 +33,8 @@
 --  This package is used when parsing the HTTP protocol from the client. It is
 --  used to keep the values for the currently handled HTTP parameters.
 
+with SOAP.Message.Payload;
+
 package AWS.Status.Set is
 
    procedure Reset (D : in out Data);
@@ -40,10 +42,6 @@ package AWS.Status.Set is
 
    procedure Free (D : in out Data);
    --  Free all allocated memory.
-
-   procedure Read_Header (Socket : in Net.Socket_Type'Class; D : in out Data);
-   --  Read all header data from the socket and fill the appropriate
-   --  data's fields.
 
    procedure Keep_Alive
      (D    : in out Data;
@@ -79,16 +77,9 @@ package AWS.Status.Set is
    --  request. For example this will be used by the PUT method if a binary
    --  file is sent to the server.
 
-   procedure Socket
-     (D    : in out Data;
-      Sock : in     Net.Socket_Access);
-   --  Set the Socket for the status. User callback can then retreive the
-   --  Socket for whatever it want. For example for passing it to the 'push'
-   --  server.
-
    procedure Payload
      (D       : in out Data;
-      Payload : in     String);
-   --  Set the XML Payload message.
+      Payload : in     SOAP.Message.Payload.Object);
+   --  Set the Payload message.
 
 end AWS.Status.Set;

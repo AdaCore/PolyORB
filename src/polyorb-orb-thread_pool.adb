@@ -34,12 +34,12 @@
 --  $Id$
 
 with PolyORB.Components;
-with PolyORB.Configuration;
 with PolyORB.Filters.Interface;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
+with PolyORB.Parameters;
 with PolyORB.Setup;
 with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Threads;
@@ -48,9 +48,9 @@ with PolyORB.Utils.Strings;
 package body PolyORB.ORB.Thread_Pool is
 
    use PolyORB.Components;
-   use PolyORB.Configuration;
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
+   use PolyORB.Parameters;
    use PolyORB.Tasking.Threads;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.orb.thread_pool");
@@ -235,9 +235,8 @@ package body PolyORB.ORB.Thread_Pool is
 
    procedure Initialize_Threads
    is
-      use PolyORB.Configuration;
-
       Number_Of_Threads : Positive;
+
    begin
       pragma Debug (O ("Initialize_threads : enter"));
 

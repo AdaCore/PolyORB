@@ -33,8 +33,6 @@
 --  This package is to be used to build answer to be sent to the client
 --  browser.
 
---  to be changed, as we use aws.net
-
 with Ada.Strings.Unbounded;
 with Ada.Streams;
 with Ada.Finalization;
@@ -43,9 +41,11 @@ with AWS.Headers;
 with AWS.Status;
 with AWS.Messages;
 with AWS.MIME;
-with AWS.Net;
+--  with AWS.Net;
 with AWS.Resources.Streams;
 with AWS.Utils;
+
+with SOAP.Message.Response;
 
 package AWS.Response is
 
@@ -54,7 +54,10 @@ package AWS.Response is
    type Data is private;
    --  Note that this type use a reference counter which is not thread safe.
 
-   type Data_Mode is (Header, Message, File, Stream, Socket_Taken, No_Data);
+   type Data_Access is access all Data;
+
+   type Data_Mode is (Header, Message, File, Stream, Socket_Taken, No_Data,
+                      SOAP_Message);
 
    type Authentication_Mode is (Any, Basic, Digest);
    --  The authentication mode.
@@ -105,6 +108,11 @@ package AWS.Response is
       Cache_Control : in Messages.Cache_Option        := Messages.Unspecified)
       return Data;
    --  Idem above, but the message body is a stream element array.
+
+   function Build
+     (SOAP_Body : in SOAP.Message.Response.Object)
+      return Data;
+   --  new function to build a soap response
 
    function URL (Location : in String) return Data;
    --  This ask the server for a redirection to the specified URL.
@@ -186,8 +194,8 @@ package AWS.Response is
    --  Return all values as a comma-separated string for header Name.
    --  See [RFC 2616 - 4.2] last paragraph.
 
-   procedure Send_Header (Socket : in Net.Socket_Type'Class; D : in Data);
-   pragma Inline (Send_Header);
+--     procedure Send_Header (Socket : in Net.Socket_Type'Class; D : in Data);
+--     pragma Inline (Send_Header);
    --  Send all header lines to the socket.
 
    function Mode (D : in Data) return Data_Mode;
@@ -242,6 +250,10 @@ package AWS.Response is
    pragma Inline (Message_Body);
    --  Returns message body as a binary content.
 
+   function SOAP_Message (D : in Data) return SOAP.Message.Response.Object;
+   pragma Inline (SOAP_Message);
+   --  returns the soap objects carried by D
+
    procedure Create_Resource
      (File :    out AWS.Resources.File_Type;
       D    : in     Data);
@@ -274,6 +286,7 @@ private
       Filename       : Unbounded_String;
       Stream         : Resources.Streams.Stream_Access;
       Message_Body   : Utils.Stream_Element_Array_Access;
+      SOAP_Message   : SOAP.Message.Response.Object;  --  new field
       Header         : AWS.Headers.List;
    end record;
 

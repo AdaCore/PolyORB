@@ -40,7 +40,7 @@ with Ada.Unchecked_Conversion;
 with System;
 
 with AWS.MIME;
-with AWS.Response;
+with PolyORB.SOAP_P.Response;
 
 with PolyORB.Filters.AWS_Interface;
 with PolyORB.Filters.Interface;
@@ -107,16 +107,16 @@ package body PolyORB.Filters.HTTP is
    procedure Prepare_Header_Only
      (Buf : access Buffer_Type;
       Version : HTTP_Version;
-      RD : AWS.Response.Data);
+      RD : PolyORB.SOAP_P.Response.Data);
 
    procedure Prepare_General_Header
      (Buf : access Buffer_Type;
-      RD : AWS.Response.Data);
+      RD : PolyORB.SOAP_P.Response.Data);
 
    procedure Prepare_Message
      (Buf  : access Buffer_Type;
       Version : HTTP_Version;
-      RD : AWS.Response.Data);
+      RD : PolyORB.SOAP_P.Response.Data);
 
    procedure Error
      (F      : access HTTP_Filter;
@@ -220,13 +220,13 @@ package body PolyORB.Filters.HTTP is
 
          declare
             Buf : Buffer_Access := new Buffer_Type;
-            RD : constant AWS.Response.Data
+            RD : constant PolyORB.SOAP_P.Response.Data
               := AWS_Response_Out (S).Data;
          begin
-            case AWS.Response.Mode (RD) is
-               when AWS.Response.Header =>
+            case PolyORB.SOAP_P.Response.Mode (RD) is
+               when PolyORB.SOAP_P.Response.Header =>
                   Prepare_Header_Only (Buf, F.Version, RD);
-               when AWS.Response.Message =>
+               when PolyORB.SOAP_P.Response.Message =>
                   Prepare_Message (Buf, F.Version, RD);
             end case;
             Emit_No_Reply
@@ -767,6 +767,8 @@ package body PolyORB.Filters.HTTP is
    is
       use PolyORB.HTTP_Headers;
 
+      pragma Debug (O ("Parse_Header_Line: S=" & S));
+
       Colon : constant Integer := Find (S, S'First, ':');
       Header_Kind : PolyORB.HTTP_Headers.Header;
       Pos : Integer;
@@ -1114,7 +1116,7 @@ package body PolyORB.Filters.HTTP is
 
    procedure Prepare_General_Header
      (Buf : access Buffer_Type;
-      RD : AWS.Response.Data)
+      RD : PolyORB.SOAP_P.Response.Data)
    is
       pragma Warnings (Off);
       pragma Unreferenced (RD);
@@ -1141,10 +1143,10 @@ package body PolyORB.Filters.HTTP is
    procedure Prepare_Header_Only
      (Buf : access Buffer_Type;
       Version : HTTP_Version;
-      RD : AWS.Response.Data)
+      RD : PolyORB.SOAP_P.Response.Data)
    is
       Status : constant HTTP_Status_Code
-        := AWS.Response.Status_Code (RD);
+        := PolyORB.SOAP_P.Response.Status_Code (RD);
    begin
       Put_Status_Line (Buf, Version, Status);
       Prepare_General_Header (Buf, RD);
@@ -1156,7 +1158,7 @@ package body PolyORB.Filters.HTTP is
          Put_Line
            (Buf, Header (H_WWW_Authenticate,
                        "Basic realm="""
-                       & AWS.Response.Realm (RD) & """"));
+                       & PolyORB.SOAP_P.Response.Realm (RD) & """"));
       end if;
 
       --  End of header
@@ -1166,38 +1168,38 @@ package body PolyORB.Filters.HTTP is
    procedure Prepare_Message
      (Buf : access Buffer_Type;
       Version : HTTP_Version;
-      RD : AWS.Response.Data)
+      RD : PolyORB.SOAP_P.Response.Data)
    is
       Status : constant HTTP_Status_Code
-        := AWS.Response.Status_Code (RD);
+        := PolyORB.SOAP_P.Response.Status_Code (RD);
    begin
       Put_Status_Line (Buf, Version, Status);
       if Status = S_301_Moved_Permanently then
          Put_Line
-           (Buf, Header (H_Location, AWS.Response.Location (RD)));
+           (Buf, Header (H_Location, PolyORB.SOAP_P.Response.Location (RD)));
       end if;
       Prepare_General_Header (Buf, RD);
 
       Put_Line (Buf, Header
                   (H_Content_Length,
-                   Image (AWS.Response.Content_Length (RD))));
+                   Image (PolyORB.SOAP_P.Response.Content_Length (RD))));
 
       Put_Line (Buf, Header
                   (H_Content_Type,
-                   AWS.Response.Content_Type (RD)));
+                   PolyORB.SOAP_P.Response.Content_Type (RD)));
 
       if Status = S_401_Unauthorized then
          Put_Line
            (Buf, Header (H_WWW_Authenticate,
                        "Basic realm="""
-                       & AWS.Response.Realm (RD) & """"));
+                       & PolyORB.SOAP_P.Response.Realm (RD) & """"));
       end if;
 
       --  End of headers.
 
       New_Line (Buf);
 
-      Put (Buf, AWS.Response.Message_Body (RD));
+      Put (Buf, PolyORB.SOAP_P.Response.Message_Body (RD));
       --  XXX could be more clever and send it chunked...
    end Prepare_Message;
 

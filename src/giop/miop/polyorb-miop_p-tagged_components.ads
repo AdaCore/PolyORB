@@ -66,10 +66,13 @@ package PolyORB.MIOP_P.Tagged_Components is
    function To_String
      (C : access TC_Group_Info)
      return String;
+   --  Convert C into an element of a corbaloc
 
    function From_String
      (S : String)
      return TC_Group_Info_Access;
+   --  Convert S into a TC_Group_Info_Access.
+   --  S must follow corbaloc syntax.
 
 private
 

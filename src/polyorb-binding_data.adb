@@ -89,26 +89,4 @@ package body PolyORB.Binding_Data is
       Prof.Continuation := Continuation;
    end Set_Continuation;
 
-   ------------
-   -- Set_OA --
-   ------------
-
-   procedure Set_OA
-     (Profile : in out Profile_Type;
-      OA      :        PolyORB.Smart_Pointers.Ref) is
-   begin
-      Profile.OA := OA;
-   end Set_OA;
-
-   ------------
-   -- Get_OA --
-   ------------
-
-   function Get_OA
-     (Profile : Profile_Type)
-     return PolyORB.Smart_Pointers.Ref is
-   begin
-      return Profile.OA;
-   end Get_OA;
-
 end PolyORB.Binding_Data;

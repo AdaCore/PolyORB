@@ -35,9 +35,9 @@
 
 --  $Id$
 
-with PolyORB.Configuration;
 with PolyORB.Dynamic_Dict;
 with PolyORB.Log;
+with PolyORB.Parameters;
 with PolyORB.Utils.Chained_Lists;
 
 package body PolyORB.Initialization is
@@ -141,7 +141,7 @@ package body PolyORB.Initialization is
          --  then there is a deep problem.
       end if;
 
-      if not Configuration.Get_Conf ("modules", Info.Name.all, True) then
+      if not Parameters.Get_Conf ("modules", Info.Name.all, True) then
          pragma Debug (O (Info.Name.all & " is disabled."));
          return;
       end if;
@@ -373,17 +373,17 @@ package body PolyORB.Initialization is
 
    procedure Initialize_World
    is
-      use PolyORB.Configuration;
+      use PolyORB.Parameters;
 
    begin
       if Initialized then
          raise Already_Initialized;
       end if;
 
-      PolyORB.Configuration.Initialize;
+      PolyORB.Parameters.Initialize;
       --  Initialize Configuration subsystem.
 
-      Load_Configuration_File (PolyORB_Configuration_File);
+      Load_Configuration_File (Configuration_File_Name);
       --  Load PolyORB's configuration file.
 
       --  Initialize registered packages:

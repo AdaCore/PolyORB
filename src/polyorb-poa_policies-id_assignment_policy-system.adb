@@ -108,8 +108,11 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
+      Result : constant PolyORB.Object_Maps.Object_Map_Access
+        := new PolyORB.Object_Maps.System.System_Object_Map;
    begin
-      return new PolyORB.Object_Maps.System.System_Object_Map;
+      PolyORB.Object_Maps.Initialize (Result.all);
+      return Result;
    end Create_Object_Map;
 
    ------------------------------

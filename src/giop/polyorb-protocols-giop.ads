@@ -374,9 +374,9 @@ private
    --  Header size of GIOP_packet (non version specific header)
    GIOP_Header_Size : constant Stream_Element_Offset := 12;
 
-   --  Place of endianess in a giop packet
-   Flags_Index    : constant Stream_Element_Offset := 7;
-   Bit_Endianness : constant Octet_Flags.Bit_Count := 0;
+   --  Location of flags in GIOP packet
+   Flags_Index       : constant Stream_Element_Offset := 7;
+   Bit_Little_Endian : constant Octet_Flags.Bit_Count := 0;
 
    ---------------------------------------------------
 

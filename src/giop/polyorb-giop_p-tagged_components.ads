@@ -43,8 +43,6 @@ package PolyORB.GIOP_P.Tagged_Components is
 
    use PolyORB.Buffers;
 
-   Tagged_Components_Error : exception;
-
    type Tag_Value is new Types.Unsigned_Long;
 
    ----------------------
@@ -52,6 +50,7 @@ package PolyORB.GIOP_P.Tagged_Components is
    ----------------------
 
    type Tagged_Component (Tag : Tag_Value) is abstract tagged private;
+
    type Tagged_Component_Access is access all Tagged_Component'Class;
 
    procedure Marshall
@@ -69,7 +68,7 @@ package PolyORB.GIOP_P.Tagged_Components is
    procedure Release_Contents
      (C : access Tagged_Component)
       is abstract;
-   --  Free memory associate with component
+   --  Free memory associated with component
 
    ---------------------------
    -- Tagged_Component_List --
@@ -167,8 +166,8 @@ private
 
    type Tagged_Component_List is new Component_Seq.Sequence;
 
-   Null_Tagged_Component_List : constant Tagged_Component_List :=
-     Tagged_Component_List (Component_Seq.Null_Sequence);
+   Null_Tagged_Component_List : constant Tagged_Component_List
+     := Tagged_Component_List (Component_Seq.Null_Sequence);
 
    --------------
    -- Tag List --

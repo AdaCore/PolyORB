@@ -89,6 +89,11 @@ package PolyORB.Binding_Data.IIOP is
 
    function Image (Prof : IIOP_Profile_Type) return String;
 
+   function Get_OA
+     (Profile : IIOP_Profile_Type)
+     return PolyORB.Smart_Pointers.Entity_Ptr;
+   pragma Inline (Get_OA);
+
    function Profile_To_Corbaloc
      (P : Profile_Access)
      return Types.String;

@@ -423,7 +423,13 @@ package body PolyORB.POA.Basic_POA is
    ----------------
 
    procedure Destroy_OA
-     (OA : in out Basic_Obj_Adapter_Access) is
+     (OA : in out Basic_Obj_Adapter_Access)
+   is
+      use PolyORB.Object_Maps;
+
+      procedure Free is new Ada.Unchecked_Deallocation
+        (Object_Map'Class, Object_Map_Access);
+
    begin
       pragma Debug (O ("Destroy_OA: enter"));
 
@@ -433,6 +439,7 @@ package body PolyORB.POA.Basic_POA is
             POA_Types.Obj_Adapter_Access (OA));
          Set (OA.POA_Manager, null);
       end if;
+
       --  Destroy_Policies (OA.all);
       --  XXX Cannot destroy_policies here because another
       --  POA initialised from the default configuration could
@@ -459,6 +466,11 @@ package body PolyORB.POA.Basic_POA is
       end if;
 
       --  These members may be null, test before freeing
+
+      if OA.Active_Object_Map /= null then
+         PolyORB.Object_Maps.Finalize (OA.Active_Object_Map.all);
+         Free (OA.Active_Object_Map);
+      end if;
 
       if OA.Adapter_Activator /= null then
          Free (OA.Adapter_Activator);
@@ -1599,21 +1611,31 @@ package body PolyORB.POA.Basic_POA is
    function Is_Proxy_Oid
      (OA  : access Basic_Obj_Adapter;
       Oid : access Objects.Object_Id)
-     return Boolean
-   is
-      U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Oid);
-
-      Obj_OA : Obj_Adapter_Access;
-      Error  : PolyORB.Exceptions.Error_Container;
+     return Boolean is
    begin
-      Find_POA (OA,
-                To_Standard_String (U_Oid.Creator),
-                False,
-                Obj_OA,
-                Error);
+      if OA.Proxies_OA = null then
+         return False;
+      end if;
 
-      return OA.Proxies_OA /= null
-        and then Basic_Obj_Adapter_Access (Obj_OA) = OA.Proxies_OA;
+      declare
+         U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Oid);
+
+         Obj_OA : Obj_Adapter_Access;
+         Error  : PolyORB.Exceptions.Error_Container;
+
+      begin
+         Find_POA (OA,
+                   To_Standard_String (U_Oid.Creator),
+                   False,
+                   Obj_OA,
+                   Error);
+
+         if Found (Error) then
+            Catch (Error);
+         end if;
+
+         return Basic_Obj_Adapter_Access (Obj_OA) = OA.Proxies_OA;
+      end;
    end Is_Proxy_Oid;
 
    ------------------

@@ -30,45 +30,66 @@
 
 --  $Id$
 
---  @@@ uses ada.calendar
-
-with Ada.Calendar;
-with Ada.Characters.Handling;
-with Ada.Exceptions;
-with Ada.Text_IO;
+with PolyORB.Requests;
+with PolyORB.References.URI;
+with PolyORB.Any;
+with PolyORB.Any.NVList;
+with PolyORB.Types;
+with PolyORB.Log;
+--  with Ada.Calendar;
+--  with Ada.Characters.Handling;
+--  with Ada.Exceptions;
+--  with Ada.Text_IO;
 with Ada.Strings.Unbounded;
 with Ada.Strings.Fixed;
 with Ada.Streams.Stream_IO;
-with Ada.Unchecked_Deallocation;
+--  with Ada.Unchecked_Deallocation;
 
-with GNAT.Calendar.Time_IO;
+--  with GNAT.Calendar.Time_IO;
 with GNAT.Table;
 
-with AWS.Digest;
+--  with AWS.Digest;
 with AWS.Headers.Set;
-with AWS.Headers.Values;
+--  with AWS.Headers.Values;
 with AWS.Messages;
-with AWS.MIME;
-with AWS.Net.Buffered;
-with AWS.OS_Lib;
+--  with AWS.MIME;
+--  with AWS.Net.Buffered;
+--  with AWS.OS_Lib;
 with AWS.Response.Set;
 with AWS.Translator;
 with AWS.Utils;
+with AWS.URL;
 
 package body AWS.Client is
 
    use Ada;
    use Ada.Strings.Unbounded;
 
+   use PolyORB.Log;
+   package L is
+     new PolyORB.Log.Facility_Log ("aws.web_client");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
+   --  the polyorb logging facility
+
    type Auth_Attempts_Count is
      array (Authentication_Level) of Natural range 0 .. 2;
 
    Debug_On : Boolean := False;
 
-   procedure Debug_Message (Prefix, Message : in String);
-   pragma Inline (Debug_Message);
+--    procedure Debug_Message (Prefix, Message : in String);
+--    pragma Inline (Debug_Message);
    --  Output Message prefixed with Prefix if Debug_On is True and does
    --  nothing otherwise.
+
+   procedure Handle_Request
+     (Connection : in out HTTP_Connection;
+      Method     : in     String;
+      Parameters : in     Unbounded_String;
+      Result     :    out Response.Data);
+   --  creates a PolyORB neutral request from parameters, sends it and
+   --  fill in Result with the response
+
 
    procedure Get_Response
      (Connection : in out HTTP_Connection;
@@ -91,10 +112,10 @@ package body AWS.Client is
       Mode       : in     Authentication_Mode);
    --  Internal procedure to set authentication parameters.
 
-   procedure Parse_Header
-     (Connection        : in out HTTP_Connection;
-      Answer            :    out Response.Data;
-      Keep_Alive        :    out Boolean);
+--   procedure Parse_Header
+--     (Connection        : in out HTTP_Connection;
+--      Answer            :    out Response.Data;
+--      Keep_Alive        :    out Boolean);
    --  Read server answer and set corresponding variable with the value
    --  read. Most of the fields are ignored right now.
 
@@ -120,77 +141,77 @@ package body AWS.Client is
    --  Set the phase for the connection. This will activate the Send and
    --  Receive timeouts of the cleaner task if needed.
 
-   procedure Send_Header
-     (Sock : in Net.Socket_Type'Class;
-      Data : in String);
-   pragma Inline (Send_Header);
+--     procedure Send_Header
+--       (Sock : in Net.Socket_Type'Class;
+--        Data : in String);
+--     pragma Inline (Send_Header);
    --  Send header Data to socket and call Debug_Message.
 
    ------------------
    -- Cleaner_Task --
    ------------------
 
-   task body Cleaner_Task is
-      Connection : HTTP_Connection_Access;
-      Forever    : constant Duration := Duration'Last;
-      P          : Client_Phase      := Not_Monitored;
-      W          : Duration;
-      Timeout    : Boolean;
-   begin
-      accept Start (Connection : in HTTP_Connection_Access) do
-         Cleaner_Task.Connection := Connection;
-      end Start;
+--     task body Cleaner_Task is
+--        Connection : HTTP_Connection_Access;
+--        Forever    : constant Duration := Duration'Last;
+--        P          : Client_Phase      := Not_Monitored;
+--        W          : Duration;
+--        Timeout    : Boolean;
+--     begin
+--        accept Start (Connection : in HTTP_Connection_Access) do
+--           Cleaner_Task.Connection := Connection;
+--        end Start;
 
-      Phase_Loop : loop
+--        Phase_Loop : loop
 
-         --  Wait for the job to be done
+--           --  Wait for the job to be done
 
-         case P is
-            when Stopped =>
-               exit Phase_Loop;
+--           case P is
+--              when Stopped =>
+--                 exit Phase_Loop;
 
-            when Not_Monitored =>
-               W := Forever;
+--              when Not_Monitored =>
+--                 W := Forever;
 
-            when Receive =>
-               W := Duration (Connection.Timeouts.Receive);
+--              when Receive =>
+--                 W := Duration (Connection.Timeouts.Receive);
 
-            when Send =>
-               W := Duration (Connection.Timeouts.Send);
-         end case;
+--              when Send =>
+--                 W := Duration (Connection.Timeouts.Send);
+--           end case;
 
-         if W = 0.0 then
-            P := Not_Monitored;
-            W := Forever;
-         end if;
+--           if W = 0.0 then
+--              P := Not_Monitored;
+--              W := Forever;
+--           end if;
 
-         select
-            accept Next_Phase do
-               P       := Connection.Current_Phase;
-               Timeout := False;
-            end Next_Phase;
-         or
-            delay W;
+--           select
+--              accept Next_Phase do
+--                 P       := Connection.Current_Phase;
+--                 Timeout := False;
+--              end Next_Phase;
+--           or
+--              delay W;
 
-            Timeout := True;
-         end select;
+--              Timeout := True;
+--           end select;
 
-         --  Still in the same phase after the delay, just close the socket
-         --  now.
+--           --  Still in the same phase after the delay, just close the socket
+--           --  now.
 
-         if Timeout
-           and then P /= Not_Monitored
-           and then Connection.Opened
-         then
-            Disconnect (Connection.all);
-         end if;
+--           if Timeout
+--             and then P /= Not_Monitored
+--             and then Connection.Opened
+--           then
+--              Disconnect (Connection.all);
+--           end if;
 
-      end loop Phase_Loop;
+--        end loop Phase_Loop;
 
-   exception
-      when E : others =>
-         Text_IO.Put_Line (Exceptions.Exception_Information (E));
-   end Cleaner_Task;
+--     exception
+--        when E : others =>
+--           Text_IO.Put_Line (Exceptions.Exception_Information (E));
+--     end Cleaner_Task;
 
    -----------
    -- Close --
@@ -198,35 +219,35 @@ package body AWS.Client is
 
    procedure Close (Connection : in out HTTP_Connection) is
 
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Cleaner_Task, Cleaner_Access);
+--      procedure Free is new Ada.Unchecked_Deallocation
+--        (Cleaner_Task, Cleaner_Access);
 
    begin
       Connection.Current_Phase := Stopped;
 
-      if Connection.Cleaner /= null then
+--        if Connection.Cleaner /= null then
 
-         begin
-            --  We don't want to fail here, we really want to free the cleaner
-            --  object.
-            if not Connection.Cleaner'Terminated then
-               Connection.Cleaner.Next_Phase;
-            end if;
-         exception
-            when others =>
-               null;
-         end;
+--           begin
+--        --  We don't want to fail here, we really want to free the cleaner
+--              --  object.
+--              if not Connection.Cleaner'Terminated then
+--                 Connection.Cleaner.Next_Phase;
+--              end if;
+--           exception
+--              when others =>
+--                 null;
+--           end;
 
-         while not Connection.Cleaner'Terminated loop
-            delay 0.01;
-         end loop;
+--           while not Connection.Cleaner'Terminated loop
+--              delay 0.01;
+--           end loop;
 
-         Free (Connection.Cleaner);
+--           Free (Connection.Cleaner);
 
-      end if;
+--        end if;
 
       Disconnect (Connection);
-      Net.Free (Connection.Socket);
+--      Net.Free (Connection.Socket);
    end Close;
 
    -------------
@@ -234,34 +255,35 @@ package body AWS.Client is
    -------------
 
    procedure Connect (Connection : in out HTTP_Connection) is
-      use type Net.Socket_Access;
-      Connect_URL : AWS.URL.Object renames Connection.Connect_URL;
+--        use type Net.Socket_Access;
+--        Connect_URL : AWS.URL.Object renames Connection.Connect_URL;
    begin
-      pragma Assert (not Connection.Opened);
-      --  This should never be called with an open connection.
+      null;
+      --        pragma Assert (not Connection.Opened);
+      --        --  This should never be called with an open connection.
 
-      --  Keep-alive reconnection will be with old socket. We cannot reuse it,
-      --  and have to free it.
+--    --  Keep-alive reconnection will be with old socket. We cannot reuse it,
+--        --  and have to free it.
 
-      if Connection.Socket /= null then
-         Net.Free (Connection.Socket);
-      end if;
+--        if Connection.Socket /= null then
+--           Net.Free (Connection.Socket);
+--        end if;
 
-      Connection.Socket := Net.Socket (AWS.URL.Security (Connect_URL));
+--        Connection.Socket := Net.Socket (AWS.URL.Security (Connect_URL));
 
-      Net.Connect (Connection.Socket.all,
-                   AWS.URL.Host (Connect_URL),
-                   AWS.URL.Port (Connect_URL));
+--        Net.Connect (Connection.Socket.all,
+--                     AWS.URL.Host (Connect_URL),
+--                     AWS.URL.Port (Connect_URL));
 
       Connection.Opened := True;
-   exception
-      when E : Net.Socket_Error =>
-         Connection.Opened := False;
+--     exception
+--        when E : Net.Socket_Error =>
+--           Connection.Opened := False;
 
-         Exceptions.Raise_Exception
-           (Connection_Error'Identity,
-            "can't connect to " & AWS.URL.URL (Connect_URL)
-              & " -> " & Exceptions.Exception_Information (E));
+--           Exceptions.Raise_Exception
+--             (Connection_Error'Identity,
+--              "can't connect to " & AWS.URL.URL (Connect_URL)
+--                & " -> " & Exceptions.Exception_Information (E));
    end Connect;
 
    -----------------
@@ -355,9 +377,10 @@ package body AWS.Client is
       end if;
 
       if Connection.Timeouts /= No_Timeout then
+         null;
          --  If we have some timeouts, initialize the cleaner task.
-         Connection.Cleaner := new Cleaner_Task;
-         Connection.Cleaner.Start (Connection.Self);
+--         Connection.Cleaner := new Cleaner_Task;
+--         Connection.Cleaner.Start (Connection.Self);
       end if;
    end Create;
 
@@ -365,12 +388,12 @@ package body AWS.Client is
    -- Debug_Message --
    -------------------
 
-   procedure Debug_Message (Prefix, Message : in String) is
-   begin
-      if Debug_On then
-         Text_IO.Put_Line (Prefix & Message);
-      end if;
-   end Debug_Message;
+--    procedure Debug_Message (Prefix, Message : in String) is
+--    begin
+--       if Debug_On then
+--          Text_IO.Put_Line (Prefix & Message);
+--       end if;
+--    end Debug_Message;
 
    --------------------------------------
    -- Decrement_Authentication_Attempt --
@@ -401,16 +424,186 @@ package body AWS.Client is
    ----------------
 
    procedure Disconnect (Connection : in out HTTP_Connection) is
-      use type Net.Socket_Access;
+--      use type Net.Socket_Access;
    begin
       if Connection.Opened then
          Connection.Opened := False;
 
-         if Connection.Socket /= null then
-            Net.Shutdown (Connection.Socket.all);
-         end if;
+--         if Connection.Socket /= null then
+--            Net.Shutdown (Connection.Socket.all);
+--         end if;
       end if;
    end Disconnect;
+
+
+   --------------------
+   -- Handle_Request --
+   --------------------
+
+   procedure Handle_Request
+     (Connection : in out HTTP_Connection;
+      Method     : in     String;
+      Parameters : in     Unbounded_String;
+      Result     :    out Response.Data)
+   is
+      use PolyORB.Any.NVList;
+      use PolyORB.Any;
+      use PolyORB.Any.TypeCode;
+      use PolyORB.Types;
+      use PolyORB.References;
+      use PolyORB.Requests;
+      use AWS.URL;
+
+      use Ada.Strings.Unbounded;
+
+      Args : PolyORB.Any.NVList.Ref;
+      PolyORB_Request : PolyORB.Requests.Request_Access;
+      PolyORB_Response : PolyORB.Any.NamedValue;
+      Reference : constant String :=
+        Protocol (Connection.Host_URL)
+        & "://"
+        & Host (Connection.Host_URL)
+        & ":" & Port (Connection.Host_URL)
+        & Path (Connection.Host_URL)
+        & File (Connection.Host_URL);
+   begin
+
+      pragma Debug (O ("Handle_Request: building a " & Method & " request"));
+      pragma Debug (O ("Handle_Request: Reference is " & Reference));
+
+      Create (Args);
+      declare
+         use Ada.Strings.Unbounded;
+         use AWS.Translator;
+         use AWS.URL;
+         use PolyORB.Types;
+         use PolyORB.Any.TypeCode;
+
+         Eq_Idx, Amp_Idx : Natural;
+         Params : Unbounded_String := Parameters;
+      begin
+         --  Params is supposed to be like this :
+         --  param=value&param=value...
+
+         Append (Params, "&");
+         --  here we add an extra ampersand at then of the parameters
+         --  string in order to handle uniform pattern for parameters:
+         --  name=value&
+
+         pragma Debug (O ("Handle_Request: parameter string is <"
+                          & To_String (Params) & ">"));
+
+         while (Length (Params) > 1) loop
+            Eq_Idx := Ada.Strings.Unbounded.Index (Params, "=");
+            Amp_Idx := Ada.Strings.Unbounded.Index (Params, "&");
+
+            pragma Debug (O ("Handle_Request: parameter name: "
+                             & (Slice (Params, 1, Eq_Idx - 1))));
+            pragma Debug (O ("Handle_Request: parameter val.: "
+                             & (Slice (Params, Eq_Idx + 1, Amp_Idx - 1))));
+
+            Add_Item (Args,
+                      (Name => To_PolyORB_String
+                       (Slice (Params, 1, Eq_Idx - 1)),
+                       Argument =>
+                         To_Any (To_PolyORB_String
+                                 (Slice (Params, Eq_Idx + 1, Amp_Idx - 1))),
+                       Arg_Modes => PolyORB.Any.ARG_IN));
+
+            Delete (Params, 1, Amp_Idx);
+            --  we purge the parameter that has just been read
+
+            if Amp_Idx = 0 then
+               raise URL_Error;
+               --  this is not supposed to happen, as we added an
+               --  extra '&' at the end of the parameters. But then we
+               --  would get an infinite loop, since Delete (Params,
+               --  1, 0) does not delete anything
+            end if;
+
+         end loop;
+         --  we parse each parameter line to retreive the name
+         --  and the content of the parameters, and then we
+         --  create an any of typecode string
+
+         pragma Debug (O ("Handle_Request: parameter string is now <"
+                          & To_String (Params) & ">"));
+
+      end;
+
+      Create_Request (Target => PolyORB.References.URI.String_To_Object
+                      (Reference),
+                      Operation => Method,
+                      Arg_List => Args,
+                      Result => PolyORB_Response,
+                      Req => PolyORB_Request);
+
+      Invoke (PolyORB_Request);
+
+      pragma Debug (O ("Type of response is " & Image
+                       (Get_Unwound_Type
+                        (PolyORB_Request.Result.Argument))));
+
+      declare
+         Kind_Of_Result : constant PolyORB.Any.TCKind :=
+           Kind (Get_Unwound_Type (PolyORB_Request.Result.Argument));
+      begin
+         if Kind_Of_Result = Tk_String then
+
+            --  Typical situation: we get an html page, or any kind of
+            --  text.
+
+            Response.Set.Message_Body
+              (Result, To_Standard_String
+               (From_Any (PolyORB_Request.Result.Argument)));
+
+         elsif Kind_Of_Result = Tk_Sequence
+           and then  PolyORB.Any.TypeCode.Kind
+           (PolyORB.Any.TypeCode.Content_Type
+            (PolyORB.Any.Get_Type (PolyORB_Request.Result.Argument)))
+           /= Tk_Octet
+         then
+
+            --  If we get a binary file, e.g. an image.  That is to
+            --  say a sequence of octets.
+
+            declare
+               use Ada.Streams;
+               use PolyORB.Types;
+
+               Number_Of_Elements : constant Unsigned_Long :=
+                 PolyORB.Any.Get_Aggregate_Count
+                 (PolyORB_Request.Result.Argument);
+               Byte_Stream : Stream_Element_Array
+                 (0 .. Stream_Element_Offset (Number_Of_Elements) - 1);
+
+            begin
+               pragma Debug (O ("Handle_Request: Tk_Sequence: "
+                                & "attempting to retrieve"
+                                & Unsigned_Long'Image (Number_Of_Elements)
+                                & " bytes"));
+
+               for Index in 0 .. Number_Of_Elements - 1 loop
+                  declare
+                     Element : constant PolyORB.Types.Octet
+                       := PolyORB.Any.From_Any
+                       (PolyORB.Any.Get_Aggregate_Element
+                        (PolyORB_Request.Result.Argument,
+                         PolyORB.Any.TypeCode.TC_Octet,
+                         Unsigned_Long (Index)));
+                  begin
+                     Byte_Stream (Stream_Element_Offset (Index))
+                       := Stream_Element (Element);
+                  end;
+               end loop;
+               Response.Set.Message_Body (Result, Byte_Stream);
+            end;
+         else
+            raise Program_Error;
+            --  If we get an unhandled type, we fail.
+         end if;
+      end;
+   end Handle_Request;
 
    ---------
    -- Get --
@@ -482,43 +675,33 @@ package body AWS.Client is
       Result     :    out Response.Data;
       URI        : in     String          := No_Data)
    is
-      Try_Count     : Natural := Connection.Retry;
+      --  this is the main 'get' function. All other get functions call
+      --  this one
 
-      Auth_Attempts : Auth_Attempts_Count := (others => 2);
-      Auth_Is_Over  : Boolean;
+      use AWS.URL;
 
    begin
-      Retry : loop
+
+      if URI /= No_Data then
+         declare
+            Overriding_URI : URL.Object := Parse (URI);
+            Parameters : Unbounded_String :=
+              To_Unbounded_String (URL.Query (Overriding_URI));
          begin
-            Open_Send_Common_Header (Connection, "GET", URI);
+            Connection.Host_URL := Overriding_URI;
+            Connection.Host := To_Unbounded_String (Host (Overriding_URI));
 
-            Net.Buffered.New_Line (Connection.Socket.all);
-
-            Get_Response (Connection, Result, not Connection.Server_Push);
-
-            Decrement_Authentication_Attempt
-              (Connection, Auth_Attempts, Auth_Is_Over);
-
-            if Auth_Is_Over then
-               return;
-            end if;
-
-         exception
-            when Net.Socket_Error =>
-
-               Disconnect (Connection);
-
-               if Try_Count = 0 then
-                  Result := Response.Build
-                    (MIME.Text_HTML, "Get Timeout", Messages.S408);
-
-                  Set_Phase (Connection, Not_Monitored);
-                  exit Retry;
-               end if;
-
-               Try_Count := Try_Count - 1;
+            Handle_Request (Connection, "GET", Parameters, Result);
          end;
-      end loop Retry;
+      else
+         declare
+            Parameters : Unbounded_String :=
+              To_Unbounded_String (URL.Query (Connection.Host_URL));
+         begin
+            Handle_Request (Connection, "GET", Parameters, Result);
+         end;
+      end if;
+
    end Get;
 
    ------------------
@@ -545,9 +728,9 @@ package body AWS.Client is
       procedure Disconnect;
       --  close connection socket.
 
-      Sock       : Net.Socket_Type'Class renames Connection.Socket.all;
+--      Sock       : Net.Socket_Type'Class renames Connection.Socket.all;
 
-      Keep_Alive : Boolean;
+      Keep_Alive : constant Boolean := False;
 
       ----------------
       -- Disconnect --
@@ -582,7 +765,7 @@ package body AWS.Client is
             E := Stream_Element_Offset'Min
               (Stream_Element_Offset (Len), S + 10_239);
 
-            Net.Buffered.Read (Sock, Elements (S .. E));
+--            Net.Buffered.Read (Sock, Elements (S .. E));
 
             S := E + 1;
 
@@ -592,7 +775,8 @@ package body AWS.Client is
          return Elements;
 
       exception
-         when Net.Socket_Error =>
+--         when Net.Socket_Error =>
+         when others =>
             --  Could have been killed by a timeout.
             Utils.Free (Elements);
             raise;
@@ -622,7 +806,8 @@ package body AWS.Client is
          ---------------
 
          procedure Skip_Line is
-            D : constant String := Net.Buffered.Get_Line (Sock);
+--            D : constant String := Net.Buffered.Get_Line (Sock);
+            D : constant String := "toto";
             pragma Warnings (Off, D);
          begin
             null;
@@ -635,7 +820,8 @@ package body AWS.Client is
          loop
             --  Read the chunk size that is an hex number
             declare
-               L : constant String := Net.Buffered.Get_Line (Sock);
+--               L : constant String := Net.Buffered.Get_Line (Sock);
+               L : constant String := "toto";
             begin
                Size := Stream_Element_Offset
                  (Utils.Hex_Value (Strings.Fixed.Trim (L, Strings.Both)));
@@ -658,8 +844,8 @@ package body AWS.Client is
                   Data := Tmp;
                end if;
 
-               Net.Buffered.Read
-                 (Sock, Data (Data_Last + 1 .. Data_Last + Size));
+--                 Net.Buffered.Read
+--                   (Sock, Data (Data_Last + 1 .. Data_Last + Size));
 
                Skip_Line;
                Data_Last := Data_Last + Size;
@@ -688,8 +874,8 @@ package body AWS.Client is
    begin
       Set_Phase (Connection, Receive);
 
-      Parse_Header
-        (Connection, Result, Keep_Alive);
+--       Parse_Header
+--         (Connection, Result, Keep_Alive);
 
       if not Get_Body then
          Disconnect;
@@ -697,7 +883,7 @@ package body AWS.Client is
          return;
       end if;
 
-      --  Read the message body
+--       --  Read the message body
 
       declare
          TE     : constant String
@@ -706,17 +892,17 @@ package body AWS.Client is
       begin
          if TE = "chunked" then
 
-            --  A chuncked message is written on the stream as list of data
-            --  chunk. Each chunk has the following format:
-            --
-            --  <N : the chunk size in hexadecimal> CRLF
-            --  <N * BYTES : the data> CRLF
-            --
-            --  The termination chunk is:
-            --
-            --  0 CRLF
-            --  CRLF
-            --
+--             --  A chuncked message is written on the stream as list of data
+--             --  chunk. Each chunk has the following format:
+--             --
+--             --  <N : the chunk size in hexadecimal> CRLF
+--             --  <N * BYTES : the data> CRLF
+--             --
+--             --  The termination chunk is:
+--             --
+--             --  0 CRLF
+--             --  CRLF
+--             --
 
             Response.Set.Message_Body (Result, Read_Chunk);
 
@@ -758,13 +944,16 @@ package body AWS.Client is
                      loop
                         declare
                            Data : constant Streams.Stream_Element_Array
-                             := Net.Buffered.Read (Sock);
+                             := (45, 56);
+--                             Data : constant Streams.Stream_Element_Array
+--                               := Net.Buffered.Read (Sock);
                         begin
                            Add (Data);
                         end;
                      end loop;
                   exception
-                     when Net.Socket_Error =>
+--                     when Net.Socket_Error =>
+                     when others =>
                         null;
                   end Read_Until_Close;
 
@@ -845,41 +1034,34 @@ package body AWS.Client is
       Result     :    out Response.Data;
       URI        : in     String := No_Data)
    is
-      Try_Count : Natural := Connection.Retry;
+      --  this is the main 'head' function. HEAD is like GET, but
+      --  without message body in the response
 
-      Auth_Attempts : Auth_Attempts_Count := (others => 2);
-      Auth_Is_Over  : Boolean;
+      use AWS.URL;
+
    begin
-      Retry : loop
+
+      if URI /= No_Data then
+         declare
+            Overriding_URI : URL.Object := Parse (URI);
+            Parameters : Unbounded_String :=
+              To_Unbounded_String (URL.Query (Overriding_URI));
          begin
-            Open_Send_Common_Header (Connection, "HEAD", URI);
+            Connection.Host_URL := Overriding_URI;
+            Connection.Host := To_Unbounded_String (Host (Overriding_URI));
 
-            Net.Buffered.New_Line (Connection.Socket.all);
-
-            Get_Response (Connection, Result, Get_Body => False);
-
-            Decrement_Authentication_Attempt
-              (Connection, Auth_Attempts, Auth_Is_Over);
-
-            if Auth_Is_Over then
-               return;
-            end if;
-
-         exception
-            when Net.Socket_Error =>
-
-               Disconnect (Connection);
-
-               if Try_Count = 0 then
-                  Result := Response.Build
-                    (MIME.Text_HTML, "Head Timeout", Messages.S408);
-                  Set_Phase (Connection, Not_Monitored);
-                  exit Retry;
-               end if;
-
-               Try_Count := Try_Count - 1;
+            Handle_Request (Connection, "HEAD", Parameters, Result);
          end;
-      end loop Retry;
+      else
+         declare
+            Parameters : Unbounded_String :=
+              To_Unbounded_String (URL.Query (Connection.Host_URL));
+         begin
+            Handle_Request (Connection, "HEAD", Parameters, Result);
+         end;
+      end if;
+
+
    end Head;
 
    -----------------------------
@@ -891,7 +1073,10 @@ package body AWS.Client is
       Method     : in     String;
       URI        : in     String)
    is
-      Sock    : Net.Socket_Access renames Connection.Socket;
+      pragma Warnings (Off);
+      pragma Unreferenced (Method);
+      pragma Warnings (On);
+--      Sock    : Net.Socket_Access renames Connection.Socket;
       No_Data : Unbounded_String renames Null_Unbounded_String;
 
       procedure Send_Authentication_Header
@@ -899,14 +1084,14 @@ package body AWS.Client is
          Data        : in out Authentication_Type);
       --  Send the authentication header for proxy or for server.
 
-      function HTTP_Prefix (Security : in Boolean) return String;
+--      function HTTP_Prefix (Security : in Boolean) return String;
       --  Returns "http://" or "https://" if Security is set to True.
 
-      function Persistence return String;
+--      function Persistence return String;
       --  Returns "Keep-Alive" is we have a persistent connection and "Close"
       --  otherwise.
 
-      function Port_Not_Default (Port : in Positive) return String;
+--      function Port_Not_Default (Port : in Positive) return String;
       --  Returns the port image (preceded by character ':') if it is not the
       --  default port.
 
@@ -914,44 +1099,44 @@ package body AWS.Client is
       -- HTTP_Prefix --
       -----------------
 
-      function HTTP_Prefix (Security : in Boolean) return String is
-      begin
-         if Security then
-            return "https://";
-         else
-            return "http://";
-         end if;
-      end HTTP_Prefix;
+--        function HTTP_Prefix (Security : in Boolean) return String is
+--        begin
+--           if Security then
+--              return "https://";
+--           else
+--              return "http://";
+--           end if;
+--        end HTTP_Prefix;
 
       -----------------
       -- Persistence --
       -----------------
 
-      function Persistence return String is
-      begin
-         if Connection.Persistent then
-            return "Keep-Alive";
-         else
-            return "Close";
-         end if;
-      end Persistence;
+--        function Persistence return String is
+--        begin
+--           if Connection.Persistent then
+--              return "Keep-Alive";
+--           else
+--              return "Close";
+--           end if;
+--        end Persistence;
 
       ----------------------
       -- Port_Not_Default --
       ----------------------
 
-      function Port_Not_Default (Port : in Positive) return String is
-      begin
-         if Port = 80 then
-            return "";
-         else
-            declare
-               Port_Image : constant String := Positive'Image (Port);
-            begin
-               return ':' & Port_Image (2 .. Port_Image'Last);
-            end;
-         end if;
-      end Port_Not_Default;
+--        function Port_Not_Default (Port : in Positive) return String is
+--        begin
+--           if Port = 80 then
+--              return "";
+--           else
+--              declare
+--                 Port_Image : constant String := Positive'Image (Port);
+--              begin
+--                 return ':' & Port_Image (2 .. Port_Image'Last);
+--              end;
+--           end if;
+--        end Port_Not_Default;
 
       --------------------------------
       -- Send_Authentication_Header --
@@ -961,129 +1146,134 @@ package body AWS.Client is
         (Token : in     String;
          Data  : in out Authentication_Type)
       is
-
-         Username : constant String := To_String (Data.User);
+         pragma Warnings (Off);
+         pragma Unreferenced (Token);
+         pragma Warnings (On);
+--         Username : constant String := To_String (Data.User);
 
       begin
          if Data.User /= No_Data
            and then Data.Pwd /= No_Data
          then
             if Data.Work_Mode = Basic then
-               Send_Header
-                 (Sock.all,
-                  Token & ": Basic "
-                    & AWS.Translator.Base64_Encode
-                    (Username
-                       & ':' & To_String (Data.Pwd)));
+               null;
+--                 Send_Header
+--                   (Sock.all,
+--                    Token & ": Basic "
+--                      & AWS.Translator.Base64_Encode
+--                      (Username
+--                         & ':' & To_String (Data.Pwd)));
 
             elsif Data.Work_Mode = Digest then
 
                declare
 
-                  Nonce    : constant String := To_String (Data.Nonce);
-                  Realm    : constant String := To_String (Data.Realm);
-                  QOP      : constant String := To_String (Data.QOP);
+--                  Nonce    : constant String := To_String (Data.Nonce);
+--                  Realm    : constant String := To_String (Data.Realm);
+--                  QOP      : constant String := To_String (Data.QOP);
 
-                  function Get_URI return String;
+--                  function Get_URI return String;
                   --  Returns the real URI where the request is going to be
                   --  sent. It is either Open_Send_Common_Header.URI parameter
                   --  if it exists (without the HTTP parameters part), or URI
                   --  part of the Connection.Connect_URL field.
 
-                  function QOP_Data return String;
+--                  function QOP_Data return String;
                   --  Returns string with qop, cnonce and nc parameters
                   --  if qop parameter exists in the server auth request,
                   --  or empty string if not [RFC 2617 - 3.2.2].
 
-                  Response : AWS.Digest.Digest_String;
+--                  Response : AWS.Digest.Digest_String;
+--                  Response : constant AWS.Digest.Digest_String := "t";
 
                   -------------
                   -- Get_URI --
                   -------------
 
-                  function Get_URI return String is
-                     URI_Last : Natural;
-                  begin
-                     if URI = "" then
-                        return URL.Path (Connection.Connect_URL)
-                          & URL.File (Connection.Connect_URL);
-                     else
-                        URI_Last := Strings.Fixed.Index (URI, "?");
+--                    function Get_URI return String is
+--                       URI_Last : Natural;
+--                    begin
+--                       if URI = "" then
+--                          return URL.Path (Connection.Connect_URL)
+--                            & URL.File (Connection.Connect_URL);
+--                       else
+--                          URI_Last := Strings.Fixed.Index (URI, "?");
 
-                        if URI_Last = 0 then
-                           URI_Last := URI'Last;
-                        else
-                           URI_Last := URI_Last - 1;
-                        end if;
+--                          if URI_Last = 0 then
+--                             URI_Last := URI'Last;
+--                          else
+--                             URI_Last := URI_Last - 1;
+--                          end if;
 
-                        return URI (URI'First .. URI_Last);
-                     end if;
-                  end Get_URI;
+--                          return URI (URI'First .. URI_Last);
+--                       end if;
+--                    end Get_URI;
 
-                  URI : constant String := Get_URI;
+--                  URI : constant String := Get_URI;
 
                   --------------
                   -- QOP_Data --
                   --------------
 
-                  function QOP_Data return String is
-                     CNonce : constant String := AWS.Digest.Create_Nonce;
-                  begin
-                     if QOP = No_Data then
-                        Response := AWS.Digest.Create_Digest
-                          (Username => Username,
-                           Realm    => Realm,
-                           Password => To_String (Data.Pwd),
-                           Nonce    => Nonce,
-                           Method   => Method,
-                           URI      => URI);
-                        return "";
+--                    function QOP_Data return String is
+--                       CNonce : constant String := AWS.Digest.Create_Nonce;
+--                    begin
+--                       if QOP = No_Data then
+--                          Response := AWS.Digest.Create_Digest
+--                            (Username => Username,
+--                             Realm    => Realm,
+--                             Password => To_String (Data.Pwd),
+--                             Nonce    => Nonce,
+--                             Method   => Method,
+--                             URI      => URI);
+--                          return "";
 
-                     else
-                        Data.NC := Data.NC + 1;
+--                       else
+--                          Data.NC := Data.NC + 1;
 
-                        declare
-                           NC : constant String := Utils.Hex (Data.NC, 8);
-                        begin
-                           Response := AWS.Digest.Create_Digest
-                             (Username => Username,
-                              Realm    => Realm,
-                              Password => To_String (Data.Pwd),
-                              Nonce    => Nonce,
-                              CNonce   => CNonce,
-                              NC       => NC,
-                              QOP      => QOP,
-                              Method   => Method,
-                              URI      => URI);
+--                          declare
+--                             NC : constant String := Utils.Hex (Data.NC, 8);
+--                          begin
+--                             Response := AWS.Digest.Create_Digest
+--                               (Username => Username,
+--                                Realm    => Realm,
+--                                Password => To_String (Data.Pwd),
+--                                Nonce    => Nonce,
+--                                CNonce   => CNonce,
+--                                NC       => NC,
+--                                QOP      => QOP,
+--                                Method   => Method,
+--                                URI      => URI);
 
-                           return "qop=""" & QOP
-                             & """, cnonce=""" & CNonce
-                             & """, nc=" & NC
-                             & ", ";
-                        end;
-                     end if;
-                  end QOP_Data;
+--                             return "qop=""" & QOP
+--                               & """, cnonce=""" & CNonce
+--                               & """, nc=" & NC
+--                               & ", ";
+--                          end;
+--                       end if;
+--                    end QOP_Data;
 
                begin
-                  Send_Header
-                    (Sock.all,
-                     Token & ": Digest "
-                       & QOP_Data
-                       & "nonce=""" & Nonce
-                       & """, username=""" & Username
-                       & """, realm=""" & Realm
-                       & """, uri=""" & URI
-                       & """, response=""" & Response
-                       & """");
+                  null;
+--                    Send_Header
+--                      (Sock.all,
+--                       Token & ": Digest "
+--                         & QOP_Data
+--                         & "nonce=""" & Nonce
+--                         & """, username=""" & Username
+--                         & """, realm=""" & Realm
+--                         & """, uri=""" & URI
+--                         & """, response=""" & Response
+--                         & """");
                end;
 
             end if;
          end if;
       end Send_Authentication_Header;
 
-      Host_Address : constant String
-        := AWS.URL.Host (Connection.Host_URL)
-        & Port_Not_Default (AWS.URL.Port (Connection.Host_URL));
+--        Host_Address : constant String
+--          := AWS.URL.Host (Connection.Host_URL)
+--          & Port_Not_Default (AWS.URL.Port (Connection.Host_URL));
 
    begin
       --  Open connection if needed.
@@ -1099,11 +1289,12 @@ package body AWS.Client is
       if Connection.Proxy = No_Data then
 
          if URI = "" then
-            Send_Header
-              (Sock.all,
-               Method & ' '
-                 & AWS.URL.Pathname_And_Parameters (Connection.Host_URL, False)
-                 & ' ' & HTTP_Version);
+            null;
+--              Send_Header
+--                (Sock.all,
+--                 Method & ' '
+--             & AWS.URL.Pathname_And_Parameters (Connection.Host_URL, False)
+--                   & ' ' & HTTP_Version);
          else
             --  URI should already be encoded, but to help a bit Windows
             --  systems who tend to have spaces into URL we encode them here.
@@ -1117,53 +1308,56 @@ package body AWS.Client is
                   end if;
                end loop;
 
-               Send_Header
-                 (Sock.all,
-                  Method & ' ' & E_URI & ' ' & HTTP_Version);
+--                 Send_Header
+--                   (Sock.all,
+--                    Method & ' ' & E_URI & ' ' & HTTP_Version);
             end;
          end if;
 
-         Send_Header
-           (Sock.all, Messages.Connection (Persistence));
+--           Send_Header
+--             (Sock.all, Messages.Connection (Persistence));
 
       else
          if URI = "" then
-            Send_Header (Sock.all,
-                         Method & ' '
-                           & To_String (Connection.Host)
-                           & ' ' & HTTP_Version);
+            null;
+--              Send_Header (Sock.all,
+--                           Method & ' '
+--                             & To_String (Connection.Host)
+--                             & ' ' & HTTP_Version);
          else
-            Send_Header
-              (Sock.all,
-               Method & ' '
-                 & HTTP_Prefix (AWS.URL.Security (Connection.Host_URL))
-                 & Host_Address & URI
-                 & ' ' & HTTP_Version);
+            null;
+--              Send_Header
+--                (Sock.all,
+--                 Method & ' '
+--                   & HTTP_Prefix (AWS.URL.Security (Connection.Host_URL))
+--                   & Host_Address & URI
+--                   & ' ' & HTTP_Version);
          end if;
 
-         Send_Header
-           (Sock.all, Messages.Proxy_Connection (Persistence));
+--           Send_Header
+--             (Sock.all, Messages.Proxy_Connection (Persistence));
 
       end if;
 
       --  Cookie
 
       if Connection.Cookie /= No_Data then
-         Send_Header
-           (Sock.all, Messages.Cookie (To_String (Connection.Cookie)));
+         null;
+--           Send_Header
+--             (Sock.all, Messages.Cookie (To_String (Connection.Cookie)));
       end if;
 
-      Send_Header (Sock.all,
-                   Messages.Host (Host_Address));
+--        Send_Header (Sock.all,
+--                     Messages.Host (Host_Address));
 
-      Send_Header (Sock.all,
-                   Messages.Accept_Type ("text/html, */*"));
+--        Send_Header (Sock.all,
+--                     Messages.Accept_Type ("text/html, */*"));
 
-      Send_Header (Sock.all,
-                   Messages.Accept_Language ("fr, us"));
+--        Send_Header (Sock.all,
+--                     Messages.Accept_Language ("fr, us"));
 
-      Send_Header (Sock.all,
-                   Messages.User_Agent ("AWS (Ada Web Server) v" & Version));
+--        Send_Header (Sock.all,
+--                  Messages.User_Agent ("AWS (Ada Web Server) v" & Version));
 
       --  User Authentification
 
@@ -1178,9 +1372,10 @@ package body AWS.Client is
       --  SOAP header
 
       if Connection.SOAPAction /= No_Data then
-         Send_Header
-           (Sock.all,
-            Messages.SOAPAction (To_String (Connection.SOAPAction)));
+         null;
+--           Send_Header
+--             (Sock.all,
+--              Messages.SOAPAction (To_String (Connection.SOAPAction)));
       end if;
 
       Set_Phase (Connection, Not_Monitored);
@@ -1190,265 +1385,267 @@ package body AWS.Client is
    -- Parse_Header --
    ------------------
 
-   procedure Parse_Header
-     (Connection        : in out HTTP_Connection;
-      Answer            :    out Response.Data;
-      Keep_Alive        :    out Boolean)
-   is
-      Sock : Net.Socket_Type'Class renames Connection.Socket.all;
+--    procedure Parse_Header
+--      (Connection        : in out HTTP_Connection;
+--       Answer            :    out Response.Data;
+--       Keep_Alive        :    out Boolean)
+--    is
+--  --      Sock : Net.Socket_Type'Class renames Connection.Socket.all;
 
-      Status : Messages.Status_Code;
+--       Status : Messages.Status_Code;
 
-      Request_Auth_Mode : array (Authentication_Level) of Authentication_Mode
-        := (others => Any);
+--    Request_Auth_Mode : array (Authentication_Level) of Authentication_Mode
+--         := (others => Any);
 
-      procedure Parse_Authenticate_Line
-        (Level     : in Authentication_Level;
-         Auth_Line : in String);
-      --  Parses Authentication request line and fill Connection.Auth (Level)
-      --  field with the information read on the line. Handle WWW and Proxy
-      --  authentication.
+--       procedure Parse_Authenticate_Line
+--         (Level     : in Authentication_Level;
+--          Auth_Line : in String);
+--     --  Parses Authentication request line and fill Connection.Auth (Level)
+--       --  field with the information read on the line. Handle WWW and Proxy
+--       --  authentication.
 
-      procedure Read_Status_Line;
-      --  Read the status line.
+--       procedure Read_Status_Line;
+--       --  Read the status line.
 
-      procedure Set_Keep_Alive (Data : in String);
-      --  Set the Parse_Header.Keep_Alive depending on data from the
-      --  Proxy-Connection or Connection header line.
+--       procedure Set_Keep_Alive (Data : in String);
+--       --  Set the Parse_Header.Keep_Alive depending on data from the
+--       --  Proxy-Connection or Connection header line.
 
-      function "+" (S : in String) return Unbounded_String
-             renames To_Unbounded_String;
+--       function "+" (S : in String) return Unbounded_String
+--              renames To_Unbounded_String;
 
-      -----------------------------
-      -- Parse_Authenticate_Line --
-      -----------------------------
+--       -----------------------------
+--       -- Parse_Authenticate_Line --
+--       -----------------------------
 
-      procedure Parse_Authenticate_Line
-        (Level     : in Authentication_Level;
-         Auth_Line : in     String)
-      is
-         use Ada.Characters.Handling;
+--       procedure Parse_Authenticate_Line
+--         (Level     : in Authentication_Level;
+--          Auth_Line : in     String)
+--       is
+--          use Ada.Characters.Handling;
 
-         Basic_Token  : constant String := "BASIC";
-         Digest_Token : constant String := "DIGEST";
+--          Basic_Token  : constant String := "BASIC";
+--          Digest_Token : constant String := "DIGEST";
 
-         Auth         : Authentication_Type renames Connection.Auth (Level);
+--          Auth         : Authentication_Type renames Connection.Auth (Level);
 
-         Request_Mode : Authentication_Mode;
+--          Request_Mode : Authentication_Mode;
 
-         Read_Params  : Boolean := False;
-         --  Set it to true when the authentication
-         --  mode is stronger then before.
+--          Read_Params  : Boolean := False;
+--          --  Set it to true when the authentication
+--          --  mode is stronger then before.
 
-         procedure Value
-           (Item : in     String;
-            Quit : in out Boolean);
-         --  Routine receiving unnamed value during parsing of
-         --  authentication line.
+--          procedure Value
+--            (Item : in     String;
+--             Quit : in out Boolean);
+--          --  Routine receiving unnamed value during parsing of
+--          --  authentication line.
 
-         procedure Named_Value
-           (Name  : in     String;
-            Value : in     String;
-            Quit  : in out Boolean);
-         --  Routine receiving name/value pairs during parsing of
-         --  authentication line.
+--          procedure Named_Value
+--            (Name  : in     String;
+--             Value : in     String;
+--             Quit  : in out Boolean);
+--          --  Routine receiving name/value pairs during parsing of
+--          --  authentication line.
 
-         -----------------
-         -- Named_Value --
-         -----------------
+--          -----------------
+--          -- Named_Value --
+--          -----------------
 
-         procedure Named_Value
-           (Name  : in     String;
-            Value : in     String;
-            Quit  : in out Boolean)
-         is
-            pragma Warnings (Off, Quit);
-            U_Name : constant String := To_Upper (Name);
-         begin
-            if not Read_Params then
-               return;
-            end if;
+--          procedure Named_Value
+--            (Name  : in     String;
+--             Value : in     String;
+--             Quit  : in out Boolean)
+--          is
+--             pragma Warnings (Off, Quit);
+--             U_Name : constant String := To_Upper (Name);
+--          begin
+--             if not Read_Params then
+--                return;
+--             end if;
 
-            if U_Name = "REALM" then
-               Auth.Realm := +Value;
+--             if U_Name = "REALM" then
+--                Auth.Realm := +Value;
 
-            elsif U_Name = "NONCE" then
-               Auth.Nonce := +Value;
+--             elsif U_Name = "NONCE" then
+--                Auth.Nonce := +Value;
 
-            elsif U_Name = "QOP" then
-               Auth.QOP   := +Value;
+--             elsif U_Name = "QOP" then
+--                Auth.QOP   := +Value;
 
-            elsif U_Name = "ALGORITHM" then
-               if Value /= "MD5" then
-                  Ada.Exceptions.Raise_Exception
-                    (Constraint_Error'Identity,
-                     "Only MD5 algorithm is supported.");
-               end if;
+--             elsif U_Name = "ALGORITHM" then
+--                if Value /= "MD5" then
+--                   Ada.Exceptions.Raise_Exception
+--                     (Constraint_Error'Identity,
+--                      "Only MD5 algorithm is supported.");
+--                end if;
 
-            --  The parameter Stale is true when the Digest value is correct
-            --  but the nonce value is too old or incorrect.
-            --
-            --  This mean that an interactive HTTP client should not ask
-            --  name/password from the user, and try to use name/password from
-            --  the previous successful authentication attempt.
-            --  We do not need to check Stale authentication parameter
-            --  for now, because our client is not interactive, so we are not
-            --  going to ask user to input the name/password anyway. We could
-            --  uncomment it later, when we would provide some interactive
-            --  behavior to AWS.Client or interface to the interactive
-            --  programs by callback to the AWS.Client.
-            --
-            --  elsif U_Name = "STALE" then
-            --     null;
-            end if;
-         end Named_Value;
+--             --  The parameter Stale is true when the Digest value is correct
+--             --  but the nonce value is too old or incorrect.
+--             --
+--             --  This mean that an interactive HTTP client should not ask
+--          --  name/password from the user, and try to use name/password from
+--             --  the previous successful authentication attempt.
+--             --  We do not need to check Stale authentication parameter
+--           --  for now, because our client is not interactive, so we are not
+--           --  going to ask user to input the name/password anyway. We could
+--             --  uncomment it later, when we would provide some interactive
+--             --  behavior to AWS.Client or interface to the interactive
+--             --  programs by callback to the AWS.Client.
+--             --
+--             --  elsif U_Name = "STALE" then
+--             --     null;
+--             end if;
+--          end Named_Value;
 
-         -----------
-         -- Value --
-         -----------
+--          -----------
+--          -- Value --
+--          -----------
 
-         procedure Value
-           (Item : in     String;
-            Quit : in out Boolean)
-         is
-            pragma Warnings (Off, Quit);
-            Mode_Image : constant String := To_Upper (Item);
-         begin
-            if Mode_Image = Digest_Token then
-               Request_Mode := Digest;
-            elsif Mode_Image = Basic_Token then
-               Request_Mode := Basic;
-            end if;
+--          procedure Value
+--            (Item : in     String;
+--             Quit : in out Boolean)
+--          is
+--             pragma Warnings (Off, Quit);
+--             Mode_Image : constant String := To_Upper (Item);
+--          begin
+--             if Mode_Image = Digest_Token then
+--                Request_Mode := Digest;
+--             elsif Mode_Image = Basic_Token then
+--                Request_Mode := Basic;
+--             end if;
 
-            Read_Params := Request_Mode > Request_Auth_Mode (Level);
+--             Read_Params := Request_Mode > Request_Auth_Mode (Level);
 
-            if Read_Params then
-               Request_Auth_Mode (Level) := Request_Mode;
-               Auth.Requested := True;
-               Auth.Work_Mode := Request_Mode;
-               Auth.NC        := 0;
-            end if;
-         end Value;
+--             if Read_Params then
+--                Request_Auth_Mode (Level) := Request_Mode;
+--                Auth.Requested := True;
+--                Auth.Work_Mode := Request_Mode;
+--                Auth.NC        := 0;
+--             end if;
+--          end Value;
 
-         -----------
-         -- Parse --
-         -----------
+--          -----------
+--          -- Parse --
+--          -----------
 
-         procedure Parse is new Headers.Values.Parse (Value, Named_Value);
+--          procedure Parse is new Headers.Values.Parse (Value, Named_Value);
 
-      begin
-         Parse (Auth_Line);
-      end Parse_Authenticate_Line;
+--       begin
+--          Parse (Auth_Line);
+--       end Parse_Authenticate_Line;
 
-      -----------------------
-      --  Read_Status_Line --
-      -----------------------
+--       -----------------------
+--       --  Read_Status_Line --
+--       -----------------------
 
-      procedure Read_Status_Line is
+--       procedure Read_Status_Line is
 
-         function Get_Full_Line return String;
-         --  Returns a full HTTP line (handle continuation line)
-         --
-         --  ??? This is non-standard and as been implemented because some
-         --  Lotus Domino servers do send a Reason-Phrase with continuation
-         --  line. This is clearly not valid see [RFC 2616 - 6.1].
+--          function Get_Full_Line return String;
+--          --  Returns a full HTTP line (handle continuation line)
+--          --
+--          --  ??? This is non-standard and as been implemented because some
+--          --  Lotus Domino servers do send a Reason-Phrase with continuation
+--          --  line. This is clearly not valid see [RFC 2616 - 6.1].
 
-         -------------------
-         -- Get_Full_Line --
-         -------------------
+--          -------------------
+--          -- Get_Full_Line --
+--          -------------------
 
-         function Get_Full_Line return String is
-            Line   : constant String    := Net.Buffered.Get_Line (Sock);
-            N_Char : constant Character := Net.Buffered.Peek_Char (Sock);
-         begin
-            if N_Char = ' ' or else N_Char = ASCII.HT then
-               --  Next line is a continuation line [RFC 2616 - 2.2], but
-               --  again this is non standard here, see comment above.
-               return Line & Get_Full_Line;
-            else
-               return Line;
-            end if;
-         end Get_Full_Line;
+--          function Get_Full_Line return String is
+--  --            Line   : constant String    := Net.Buffered.Get_Line (Sock);
+--  --            N_Char : constant Character := Net.Buffered.Peek_Char (Sock);
+--             Line : constant String := "toto";
+--  --            N_Char : constant Character := 'T';
+--          begin
+--  --            if N_Char = ' ' or else N_Char = ASCII.HT then
+--                --  Next line is a continuation line [RFC 2616 - 2.2], but
+--                --  again this is non standard here, see comment above.
+--  --               return Line & Get_Full_Line;
+--  --            else
+--                 return Line;
+--  --            end if;
+--          end Get_Full_Line;
 
-         Line : constant String := Get_Full_Line;
+--          Line : constant String := Get_Full_Line;
 
-      begin
-         Debug_Message ("< ", Line);
+--       begin
+--          Debug_Message ("< ", Line);
 
-         --  Checking the first line in the HTTP header.
-         --  It must match Messages.HTTP_Token.
+--          --  Checking the first line in the HTTP header.
+--          --  It must match Messages.HTTP_Token.
 
-         if Messages.Match (Line, Messages.HTTP_Token) then
-            Status := Messages.Status_Code'Value
-                 ('S' & Line (Messages.HTTP_Token'Last + 5
-                                .. Messages.HTTP_Token'Last + 7));
-            Response.Set.Status_Code (Answer, Status);
+--          if Messages.Match (Line, Messages.HTTP_Token) then
+--             Status := Messages.Status_Code'Value
+--                  ('S' & Line (Messages.HTTP_Token'Last + 5
+--                                 .. Messages.HTTP_Token'Last + 7));
+--             Response.Set.Status_Code (Answer, Status);
 
-            --  By default HTTP/1.0 connection is not keep-alive but
-            --  HTTP/1.1 is keep-alive
+--             --  By default HTTP/1.0 connection is not keep-alive but
+--             --  HTTP/1.1 is keep-alive
 
-            Keep_Alive
-              := Line (Messages.HTTP_Token'Last + 1
-                         .. Messages.HTTP_Token'Last + 3) >= "1.1";
-         else
-            --  or else it is wrong answer from server.
-            Ada.Exceptions.Raise_Exception (Protocol_Error'Identity, Line);
-         end if;
-      end Read_Status_Line;
+--             Keep_Alive
+--               := Line (Messages.HTTP_Token'Last + 1
+--                          .. Messages.HTTP_Token'Last + 3) >= "1.1";
+--          else
+--             --  or else it is wrong answer from server.
+--             Ada.Exceptions.Raise_Exception (Protocol_Error'Identity, Line);
+--          end if;
+--       end Read_Status_Line;
 
-      --------------------
-      -- Set_Keep_Alive --
-      --------------------
+--       --------------------
+--       -- Set_Keep_Alive --
+--       --------------------
 
-      procedure Set_Keep_Alive (Data : in String) is
-      begin
-         if Messages.Match (Data, "Close") then
-            Keep_Alive := False;
+--       procedure Set_Keep_Alive (Data : in String) is
+--       begin
+--          if Messages.Match (Data, "Close") then
+--             Keep_Alive := False;
 
-         elsif Messages.Match (Data, "Keep-Alive") then
-            Keep_Alive := True;
-         end if;
-      end Set_Keep_Alive;
+--          elsif Messages.Match (Data, "Keep-Alive") then
+--             Keep_Alive := True;
+--          end if;
+--       end Set_Keep_Alive;
 
-      use type Messages.Status_Code;
+--       use type Messages.Status_Code;
 
-   begin
-      for Level in Authentication_Level'Range loop
-         Connection.Auth (Level).Requested := False;
-      end loop;
+--    begin
+--       for Level in Authentication_Level'Range loop
+--          Connection.Auth (Level).Requested := False;
+--       end loop;
 
-      Read_Status_Line;
-      Response.Set.Read_Header (Sock, Answer);
+--       Read_Status_Line;
+--  --      Response.Set.Read_Header (Sock, Answer);
 
-      --  ??? we should not expect 100 response message after the body sent.
-      --  This code needs to be fixed.
-      --  We should expect 100 status line only before sending the message
-      --  body to server.
-      --  And we should send Expect: header line in the header if we could
-      --  deal with 100 status code.
-      --  See [RFC 2616 - 8.2.3] use of the 100 (Continue) Status.
+--       --  ??? we should not expect 100 response message after the body sent.
+--       --  This code needs to be fixed.
+--       --  We should expect 100 status line only before sending the message
+--       --  body to server.
+--       --  And we should send Expect: header line in the header if we could
+--       --  deal with 100 status code.
+--       --  See [RFC 2616 - 8.2.3] use of the 100 (Continue) Status.
 
-      if Status = Messages.S100 then
-         Read_Status_Line;
-         Response.Set.Read_Header (Sock, Answer);
-      end if;
+--       if Status = Messages.S100 then
+--          Read_Status_Line;
+--  --         Response.Set.Read_Header (Sock, Answer);
+--       end if;
 
-      Set_Keep_Alive (Response.Header (Answer, Messages.Connection_Token));
+--       Set_Keep_Alive (Response.Header (Answer, Messages.Connection_Token));
 
-      Set_Keep_Alive (Response.Header
-        (Answer, Messages.Proxy_Connection_Token));
+--       Set_Keep_Alive (Response.Header
+--         (Answer, Messages.Proxy_Connection_Token));
 
-      Connection.Cookie := +Response.Header
-        (Answer, Messages.Set_Cookie_Token);
+--       Connection.Cookie := +Response.Header
+--         (Answer, Messages.Set_Cookie_Token);
 
-      Parse_Authenticate_Line
-        (WWW,
-         Response.Header (Answer, Messages.WWW_Authenticate_Token));
+--       Parse_Authenticate_Line
+--         (WWW,
+--          Response.Header (Answer, Messages.WWW_Authenticate_Token));
 
-      Parse_Authenticate_Line
-        (Proxy,
-         Response.Header (Answer, Messages.Proxy_Authenticate_Token));
-   end Parse_Header;
+--       Parse_Authenticate_Line
+--         (Proxy,
+--          Response.Header (Answer, Messages.Proxy_Authenticate_Token));
+--    end Parse_Header;
 
    ----------
    -- Post --
@@ -1515,70 +1712,94 @@ package body AWS.Client is
       Data       : in     Streams.Stream_Element_Array;
       URI        : in     String := No_Data)
    is
-      No_Data   : Unbounded_String renames Null_Unbounded_String;
-      Try_Count : Natural := Connection.Retry;
 
-      Auth_Attempts : Auth_Attempts_Count := (others => 2);
-      Auth_Is_Over  : Boolean;
+      --  this is the main 'post' function, as all other 'post'
+      --  functions call this one
+
+
+--      No_Data   : Unbounded_String renames Null_Unbounded_String;
+--      Try_Count : Natural := Connection.Retry;
+
+--      Auth_Attempts : Auth_Attempts_Count := (others => 2);
+--      Auth_Is_Over  : Boolean;
+
+      use AWS.URL;
 
    begin
-      Retry : loop
+
+      if URI /= No_Data then
+         declare
+            Overriding_URI : URL.Object := Parse (URI);
          begin
-            Open_Send_Common_Header (Connection, "POST", URI);
-
-            declare
-               Sock : Net.Socket_Type'Class renames Connection.Socket.all;
-            begin
-
-               if Connection.SOAPAction = No_Data then
-                  Send_Header
-                    (Sock,
-                     Messages.Content_Type (MIME.Appl_Form_Data));
-
-               else
-                  Send_Header
-                    (Sock,
-                     Messages.Content_Type (MIME.Text_XML));
-               end if;
-
-               --  Send message Content_Length
-
-               Send_Header (Sock, Messages.Content_Length (Data'Length));
-
-               Net.Buffered.New_Line (Sock);
-
-               --  Send message body
-
-               Net.Buffered.Write (Sock, Data);
-            end;
-
-            --  Get answer from server
-
-            Get_Response (Connection, Result, not Connection.Server_Push);
-
-            Decrement_Authentication_Attempt
-              (Connection, Auth_Attempts, Auth_Is_Over);
-
-            if Auth_Is_Over then
-               return;
-            end if;
-
-         exception
-
-            when Net.Socket_Error =>
-
-               Disconnect (Connection);
-
-               if Try_Count = 0 then
-                  Result := Response.Build
-                    (MIME.Text_HTML, "Post Timeout", Messages.S408);
-                  Set_Phase (Connection, Not_Monitored);
-                  exit Retry;
-               end if;
-
-               Try_Count := Try_Count - 1;
+            Connection.Host_URL := Overriding_URI;
+            Connection.Host := To_Unbounded_String (Host (Overriding_URI));
          end;
-      end loop Retry;
+         --  the parameter URI overrides the host set in
+         --  Connection. This is not meant for parameters
+      end if;
+
+      Handle_Request (Connection, "POST",
+                      AWS.Translator.To_Unbounded_String (Data), Result);
+
+--       Retry : loop
+--          begin
+--             Open_Send_Common_Header (Connection, "POST", URI);
+
+--             declare
+--  --              Sock : Net.Socket_Type'Class renames Connection.Socket.all;
+--             begin
+
+--                if Connection.SOAPAction = No_Data then
+--                   null;
+--  --                    Send_Header
+--  --                      (Sock,
+--  --                       Messages.Content_Type (MIME.Appl_Form_Data));
+
+--                else
+--                   null;
+--  --                    Send_Header
+--  --                      (Sock,
+--  --                       Messages.Content_Type (MIME.Text_XML));
+--                end if;
+
+--                --  Send message Content_Length
+
+--  --               Send_Header (Sock, Messages.Content_Length (Data'Length));
+
+--  --               Net.Buffered.New_Line (Sock);
+
+--                --  Send message body
+
+--  --               Net.Buffered.Write (Sock, Data);
+--             end;
+
+--             --  Get answer from server
+
+--             Get_Response (Connection, Result, not Connection.Server_Push);
+
+--             Decrement_Authentication_Attempt
+--               (Connection, Auth_Attempts, Auth_Is_Over);
+
+--             if Auth_Is_Over then
+--                return;
+--             end if;
+
+--          exception
+--             when others => raise;
+--  --              when Net.Socket_Error =>
+
+--  --                 Disconnect (Connection);
+
+--  --                 if Try_Count = 0 then
+--  --                    Result := Response.Build
+--  --                      (MIME.Text_HTML, "Post Timeout", Messages.S408);
+--  --                    Set_Phase (Connection, Not_Monitored);
+--  --                    exit Retry;
+--  --                 end if;
+
+--  --                 Try_Count := Try_Count - 1;
+--          end;
+--       end loop Retry;
    end Post;
 
    ----------
@@ -1639,61 +1860,80 @@ package body AWS.Client is
       Data       : in     String;
       URI        : in     String          := No_Data)
    is
-      Keep_Alive : Boolean;
+      --  this is the main 'put' function
 
-      Try_Count  : Natural := Connection.Retry;
+--        Keep_Alive : Boolean;
 
-      Auth_Attempts : Auth_Attempts_Count := (others => 2);
-      Auth_Is_Over  : Boolean;
+      --      Try_Count  : Natural := Connection.Retry;
+
+--      Auth_Attempts : Auth_Attempts_Count := (others => 2);
+--      Auth_Is_Over  : Boolean;
+
+      use AWS.URL;
 
    begin
-      Retry : loop
 
+      if URI /= No_Data then
+         declare
+            Overriding_URI : URL.Object := Parse (URI);
          begin
-            Open_Send_Common_Header (Connection, "PUT", URI);
-
-            --  Send message Content_Length
-
-            Send_Header
-              (Connection.Socket.all, Messages.Content_Length (Data'Length));
-
-            Net.Buffered.New_Line (Connection.Socket.all);
-
-            --  Send message body
-
-            Net.Buffered.Put_Line (Connection.Socket.all, Data);
-
-            --  Get answer from server
-
-            Parse_Header
-              (Connection, Result, Keep_Alive);
-
-            if not Keep_Alive then
-               Disconnect (Connection);
-            end if;
-
-            Decrement_Authentication_Attempt
-              (Connection, Auth_Attempts, Auth_Is_Over);
-
-            if Auth_Is_Over then
-               return;
-            end if;
-
-         exception
-            when Net.Socket_Error =>
-
-               Disconnect (Connection);
-
-               if Try_Count = 0 then
-                  Result := Response.Build
-                    (MIME.Text_HTML, "Put Timeout", Messages.S408);
-                  Set_Phase (Connection, Not_Monitored);
-                  exit Retry;
-               end if;
-
-               Try_Count := Try_Count - 1;
+            Connection.Host_URL := Overriding_URI;
+            Connection.Host := To_Unbounded_String (Host (Overriding_URI));
          end;
-      end loop Retry;
+         --  the parameter URI overrides the host set in
+         --  Connection. This is not meant for parameters
+      end if;
+
+      Handle_Request (Connection, "PUT", To_Unbounded_String (Data), Result);
+
+--       Retry : loop
+
+--          begin
+--             Open_Send_Common_Header (Connection, "PUT", URI);
+
+--             --  Send message Content_Length
+
+--             --              Send_Header
+--         --  (Connection.Socket.all, Messages.Content_Length (Data'Length));
+
+--             --            Net.Buffered.New_Line (Connection.Socket.all);
+
+--             --  Send message body
+
+--          --            Net.Buffered.Put_Line (Connection.Socket.all, Data);
+
+--             --  Get answer from server
+
+--             Parse_Header
+--               (Connection, Result, Keep_Alive);
+
+--             if not Keep_Alive then
+--                Disconnect (Connection);
+--             end if;
+
+--             Decrement_Authentication_Attempt
+--               (Connection, Auth_Attempts, Auth_Is_Over);
+
+--             if Auth_Is_Over then
+--                return;
+--             end if;
+
+--          exception
+--             when others => raise;
+--             --      when Net.Socket_Error =>
+
+--             --         Disconnect (Connection);
+
+--             --         if Try_Count = 0 then
+--             --            Result := Response.Build
+--             --              (MIME.Text_HTML, "Put Timeout", Messages.S408);
+--             --            Set_Phase (Connection, Not_Monitored);
+--             --            exit Retry;
+--             --         end if;
+
+--             --         Try_Count := Try_Count - 1;
+--          end;
+--       end loop Retry;
    end Put;
 
    ----------------
@@ -1725,10 +1965,12 @@ package body AWS.Client is
       Main : loop
          for I in Buffer'Range loop
             begin
-               Buffer (I) := Net.Buffered.Get_Char (Connection.Socket.all);
+--               Buffer (I) := Net.Buffered.Get_Char (Connection.Socket.all);
+               Buffer (I) := 'T';
             exception
-               when Net.Socket_Error =>
-                  Append (Result, Buffer (Buffer'First .. I - 1));
+               when others =>
+--                 when Net.Socket_Error =>
+--                    Append (Result, Buffer (Buffer'First .. I - 1));
                   exit Main;
             end;
 
@@ -1756,13 +1998,13 @@ package body AWS.Client is
    -- Send_Header --
    -----------------
 
-   procedure Send_Header
-     (Sock : in Net.Socket_Type'Class;
-      Data : in String) is
-   begin
-      Net.Buffered.Put_Line (Sock, Data);
-      Debug_Message ("> ", Data);
-   end Send_Header;
+--     procedure Send_Header
+--       (Sock : in Net.Socket_Type'Class;
+--        Data : in String) is
+--     begin
+--        Net.Buffered.Put_Line (Sock, Data);
+--        Debug_Message ("> ", Data);
+--     end Send_Header;
 
    ------------------------
    -- Set_Authentication --
@@ -1798,6 +2040,7 @@ package body AWS.Client is
 
    procedure Set_Debug (On : in Boolean) is
    begin
+      Debug_On := not Debug_On;
       Debug_On := On;
       AWS.Headers.Set.Debug (On);
    end Set_Debug;
@@ -1812,9 +2055,9 @@ package body AWS.Client is
    begin
       Connection.Current_Phase := Phase;
 
-      if Connection.Cleaner /= null then
-         Connection.Cleaner.Next_Phase;
-      end if;
+--      if Connection.Cleaner /= null then
+--         Connection.Cleaner.Next_Phase;
+--      end if;
    end Set_Phase;
 
    ------------------------------
@@ -1893,6 +2136,20 @@ package body AWS.Client is
       return Result;
    end SOAP_Post;
 
+   function Host (Connection : in HTTP_Connection) return Unbounded_String
+   is
+   begin
+      return Connection.Host;
+   end Host;
+
+
+   function Host_URL (Connection : in HTTP_Connection) return AWS.URL.Object
+   is
+   begin
+      return Connection.Host_URL;
+   end Host_URL;
+
+
    ------------
    -- Upload --
    ------------
@@ -1903,23 +2160,23 @@ package body AWS.Client is
       Filename   : in     String;
       URI        : in     String := No_Data)
    is
-      Pref_Suf  : constant String        := "--";
-      Now       : constant Calendar.Time := Calendar.Clock;
-      Boundary  : constant String
-        := "AWS_File_Upload-" & GNAT.Calendar.Time_IO.Image (Now, "%s");
+--      Pref_Suf  : constant String        := "--";
+--      Now       : constant Calendar.Time := Calendar.Clock;
+--      Boundary  : constant String
+--        := "AWS_File_Upload-" & GNAT.Calendar.Time_IO.Image (Now, "%s");
 
-      CT        : constant String
-        := Messages.Content_Type (MIME.Content_Type (Filename));
+--        CT        : constant String
+--          := Messages.Content_Type (MIME.Content_Type (Filename));
 
-      CD        : constant String
-        := Messages.Content_Disposition ("form-data", "filename", Filename);
+--        CD        : constant String
+--         := Messages.Content_Disposition ("form-data", "filename", Filename);
 
-      Try_Count : Natural := Connection.Retry;
+--      Try_Count :  Natural := Connection.Retry;
 
       Auth_Attempts : Auth_Attempts_Count := (others => 2);
       Auth_Is_Over  : Boolean;
 
-      function Content_Length return Integer;
+--      function Content_Length return Integer;
       --  Returns the total message content length.
 
       procedure Send_File;
@@ -1929,40 +2186,40 @@ package body AWS.Client is
       -- Content_Length --
       --------------------
 
-      function Content_Length return Integer is
-      begin
-         return 2 * Boundary'Length                -- 2 boundaries
-           + 2                                     -- second one end with "--"
-           + 10                                    -- 5 lines with CR+LF
-           + CT'Length                             -- content length header
-           + CD'Length                             -- content disposition head
-           + Integer (OS_Lib.File_Size (Filename)) -- file size
-           + 2;                                    -- CR+LF after file data
-      end Content_Length;
+--        function Content_Length return Integer is
+--        begin
+--           return 2 * Boundary'Length                -- 2 boundaries
+--         + 2                                     -- second one end with "--"
+--             + 10                                    -- 5 lines with CR+LF
+--             + CT'Length                             -- content length header
+--         + CD'Length                             -- content disposition head
+--             + Integer (OS_Lib.File_Size (Filename)) -- file size
+--           + 2;                                    -- CR+LF after file data
+--        end Content_Length;
 
       ---------------
       -- Send_File --
       ---------------
 
       procedure Send_File is
-         Sock     : Net.Socket_Type'Class renames Connection.Socket.all;
+--         Sock     : Net.Socket_Type'Class renames Connection.Socket.all;
          Buffer   : Streams.Stream_Element_Array (1 .. 4_096);
          Last     : Streams.Stream_Element_Offset;
          File     : Streams.Stream_IO.File_Type;
       begin
          --  Send multipart message start boundary
 
-         Net.Buffered.Put_Line (Sock, Pref_Suf & Boundary);
+--         Net.Buffered.Put_Line (Sock, Pref_Suf & Boundary);
 
          --  Send Content-Disposition header
 
-         Net.Buffered.Put_Line (Sock, CD);
+--         Net.Buffered.Put_Line (Sock, CD);
 
          --  Send Content-Type: header
 
-         Net.Buffered.Put_Line (Sock, CT);
+--         Net.Buffered.Put_Line (Sock, CT);
 
-         Net.Buffered.New_Line (Sock);
+--         Net.Buffered.New_Line (Sock);
 
          --  Send file content
 
@@ -1970,23 +2227,24 @@ package body AWS.Client is
 
          while not Streams.Stream_IO.End_Of_File (File) loop
             Streams.Stream_IO.Read (File, Buffer, Last);
-            Net.Buffered.Write (Sock, Buffer (1 .. Last));
+--            Net.Buffered.Write (Sock, Buffer (1 .. Last));
          end loop;
 
          Streams.Stream_IO.Close (File);
 
-         Net.Buffered.New_Line (Sock);
+--         Net.Buffered.New_Line (Sock);
 
          --  Send multipart message end boundary
 
-         Net.Buffered.Put_Line (Sock, Pref_Suf & Boundary & Pref_Suf);
+--         Net.Buffered.Put_Line (Sock, Pref_Suf & Boundary & Pref_Suf);
 
       exception
-         when Net.Socket_Error =>
-            --  Properly close the file if needed
-            if Streams.Stream_IO.Is_Open (File) then
-               Streams.Stream_IO.Close (File);
-            end if;
+         when others =>
+--           when Net.Socket_Error =>
+--              --  Properly close the file if needed
+--              if Streams.Stream_IO.Is_Open (File) then
+--                 Streams.Stream_IO.Close (File);
+--              end if;
             raise;
       end Send_File;
 
@@ -1996,19 +2254,19 @@ package body AWS.Client is
             Open_Send_Common_Header (Connection, "POST", URI);
 
             declare
-               Sock : Net.Socket_Type'Class renames Connection.Socket.all;
+--               Sock : Net.Socket_Type'Class renames Connection.Socket.all;
             begin
                --  Send message Content-Type (Multipart/form-data)
 
-               Send_Header
-                 (Sock,
-                  Messages.Content_Type (MIME.Multipart_Form_Data, Boundary));
+--                 Send_Header
+--                   (Sock,
+--               Messages.Content_Type (MIME.Multipart_Form_Data, Boundary));
 
                --  Send message Content-Length
 
-               Send_Header (Sock, Messages.Content_Length (Content_Length));
+--               Send_Header (Sock, Messages.Content_Length (Content_Length));
 
-               Net.Buffered.New_Line (Sock);
+--               Net.Buffered.New_Line (Sock);
 
                --  Send message body
 
@@ -2028,18 +2286,19 @@ package body AWS.Client is
 
          exception
 
-            when Net.Socket_Error =>
+            when others => raise;
+--              when Net.Socket_Error =>
 
-               Disconnect (Connection);
+--                 Disconnect (Connection);
 
-               if Try_Count = 0 then
-                  Result := Response.Build
-                    (MIME.Text_HTML, "Upload Timeout", Messages.S408);
-                  Set_Phase (Connection, Not_Monitored);
-                  exit Retry;
-               end if;
+--                 if Try_Count = 0 then
+--                    Result := Response.Build
+--                      (MIME.Text_HTML, "Upload Timeout", Messages.S408);
+--                    Set_Phase (Connection, Not_Monitored);
+--                    exit Retry;
+--                 end if;
 
-               Try_Count := Try_Count - 1;
+--                 Try_Count := Try_Count - 1;
          end;
       end loop Retry;
    end Upload;

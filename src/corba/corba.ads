@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.ads#30 $
+--  $Id: //droopi/main/src/corba/corba.ads#32 $
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
@@ -155,9 +155,9 @@ package CORBA is
    Null_Wide_String : constant CORBA.Wide_String := CORBA.Wide_String
      (Ada.Strings.Wide_Unbounded.To_Unbounded_Wide_String (""));
 
-   -------------
-   --  Types  --
-   -------------
+   -----------
+   -- Types --
+   -----------
 
    --  type Identifier is new CORBA.String;
    type Identifier is new PolyORB.Types.Identifier;
@@ -602,6 +602,43 @@ package CORBA is
 
    subtype TCKind is PolyORB.Any.TCKind;
 
+   --  Accessors functions on TCKind values
+
+   function Tk_Null return TCKind renames PolyORB.Any.Tk_Null;
+   function Tk_Void return TCKind renames PolyORB.Any.Tk_Void;
+   function Tk_Short return TCKind renames PolyORB.Any.Tk_Short;
+   function Tk_Long return TCKind renames PolyORB.Any.Tk_Long;
+   function Tk_Ushort return TCKind renames PolyORB.Any.Tk_Ushort;
+   function Tk_Ulong return TCKind renames PolyORB.Any.Tk_Ulong;
+   function Tk_Float return TCKind renames PolyORB.Any.Tk_Float;
+   function Tk_Double return TCKind renames PolyORB.Any.Tk_Double;
+   function Tk_Boolean return TCKind renames PolyORB.Any.Tk_Boolean;
+   function Tk_Char return TCKind renames PolyORB.Any.Tk_Char;
+   function Tk_Octet return TCKind renames PolyORB.Any.Tk_Octet;
+   function Tk_Any return TCKind renames PolyORB.Any.Tk_Any;
+   function Tk_TypeCode return TCKind renames PolyORB.Any.Tk_TypeCode;
+   function Tk_Principal return TCKind renames PolyORB.Any.Tk_Principal;
+   function Tk_Objref return TCKind renames PolyORB.Any.Tk_Objref;
+   function Tk_Struct return TCKind renames PolyORB.Any.Tk_Struct;
+   function Tk_Union return TCKind renames PolyORB.Any.Tk_Union;
+   function Tk_Enum return TCKind renames PolyORB.Any.Tk_Enum;
+   function Tk_String return TCKind renames PolyORB.Any.Tk_String;
+   function Tk_Sequence return TCKind renames PolyORB.Any.Tk_Sequence;
+   function Tk_Array return TCKind renames PolyORB.Any.Tk_Array;
+   function Tk_Alias return TCKind renames PolyORB.Any.Tk_Alias;
+   function Tk_Except return TCKind renames PolyORB.Any.Tk_Except;
+   function Tk_Longlong return TCKind renames PolyORB.Any.Tk_Longlong;
+   function Tk_Ulonglong return TCKind renames PolyORB.Any.Tk_Ulonglong;
+   function Tk_Longdouble return TCKind renames PolyORB.Any.Tk_Longdouble;
+   function Tk_Widechar return TCKind renames PolyORB.Any.Tk_Widechar;
+   function Tk_Wstring return TCKind renames PolyORB.Any.Tk_Wstring;
+   function Tk_Fixed return TCKind renames PolyORB.Any.Tk_Fixed;
+   function Tk_Value return TCKind renames PolyORB.Any.Tk_Value;
+   function Tk_Valuebox return TCKind renames PolyORB.Any.Tk_Valuebox;
+   function Tk_Native return TCKind renames PolyORB.Any.Tk_Native;
+   function Tk_Abstract_Interface return TCKind
+     renames PolyORB.Any.Tk_Abstract_Interface;
+
    subtype ValueModifier is PolyORB.Any.ValueModifier;
    VTM_NONE        : constant ValueModifier;
    VTM_CUSTOM      : constant ValueModifier;
@@ -719,15 +756,17 @@ package CORBA is
 
    --  not in spec : change the type of an any without changing its
    --  value : to be used carefully
-   procedure Set_Type (The_Any : in out Any;
-                       The_Type : in TypeCode.Object);
+   procedure Set_Type
+     (The_Any  : in out Any;
+      The_Type : in     TypeCode.Object);
 
    generic
-      with procedure Process (The_Any : in Any;
-                              Continue : out Boolean);
+      with procedure Process
+        (The_Any  : in  Any;
+         Continue : out Boolean);
    procedure Iterate_Over_Any_Elements (In_Any : in Any);
 
-   --  returns  an empty Any (with no value but a type)
+   --  returns an empty Any (with no value but a type)
    function Get_Empty_Any (Tc : TypeCode.Object) return Any;
 
    --  Not in spec : return true if the Any has a value, false

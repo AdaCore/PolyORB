@@ -163,7 +163,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
 
       procedure Leave is
       begin
-         pragma Assert (Locked = True);
+         pragma Assert (Locked);
          pragma Debug (O ("Leave mutex"));
          Locked := False;
       end Leave;

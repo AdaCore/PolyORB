@@ -79,9 +79,10 @@ package body PolyORB.References is
      (Prefix : String;
       Func   : String_To_Object_Func) is
    begin
-      Prefix_Info_Lists.Append (Prefixes, Prefix_Info'(
-        Prefix => new String'(Prefix),
-        Func   => Func));
+      Prefix_Info_Lists.Append (Prefixes,
+                                Prefix_Info'(Prefix => new String'(Prefix),
+                                             Func   => Func));
+      pragma Debug (O ("register prefix: " & Prefix));
    end Register_String_To_Object;
 
    ------------------------

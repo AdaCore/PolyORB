@@ -31,25 +31,22 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Elaborate a complete server with the ``thread-per-session''
---  tasking policy.
+--  Elaborate a complete server with the ``thread-per-session'' ORB
+--  tasking policy and a full tasking runtime.
 
 --  $Id$
 
-with PolyORB.Initialization;
-
 with PolyORB.ORB.Thread_Per_Session;
-with PolyORB.Profiles.Full_Tasking;
-with PolyORB.Setup.Server;
-
 pragma Elaborate_All (PolyORB.ORB.Thread_Per_Session);
-pragma Elaborate_All (PolyORB.Profiles.Full_Tasking);
-pragma Elaborate_All (PolyORB.Setup.Server);
-
-pragma Warnings (Off, PolyORB.Initialization);
 pragma Warnings (Off, PolyORB.ORB.Thread_Per_Session);
-pragma Warnings (Off, PolyORB.Profiles.Full_Tasking);
+
+with PolyORB.Setup.Server;
+pragma Elaborate_All (PolyORB.Setup.Server);
 pragma Warnings (Off, PolyORB.Setup.Server);
+
+with PolyORB.Setup.Tasking.Full_Tasking;
+pragma Elaborate_All (PolyORB.Setup.Tasking.Full_Tasking);
+pragma Warnings (Off, PolyORB.Setup.Tasking.Full_Tasking);
 
 package body PolyORB.Setup.Thread_Per_Session_Server is
 

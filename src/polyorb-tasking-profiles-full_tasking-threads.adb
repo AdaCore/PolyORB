@@ -38,10 +38,10 @@ with System.Tasking;
 with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 
-with PolyORB.Configuration;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
+with PolyORB.Parameters;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
@@ -74,7 +74,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       --  Start the task.
 
       pragma Storage_Size
-        (PolyORB.Configuration.Get_Conf
+        (PolyORB.Parameters.Get_Conf
            ("tasking",
             "polyorb.tasking.threads.storage_size",
             262_144));
@@ -150,7 +150,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       GT : Generic_Task_Access;
    begin
       T.Priority := System.Priority
-        (PolyORB.Configuration.Get_Conf
+        (PolyORB.Parameters.Get_Conf
            ("tasking", "polyorb.tasking.threads." & Name & ".priority",
             Default_Priority));
 

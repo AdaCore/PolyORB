@@ -37,10 +37,10 @@ with PolyORB.Annotations;
 with PolyORB.Binding_Data;
 with PolyORB.Buffers;
 with PolyORB.Components;
-with PolyORB.Configuration;
 with PolyORB.GIOP_P.Exceptions;
 with PolyORB.Log;
 with PolyORB.ORB;
+with PolyORB.Parameters;
 with PolyORB.References;
 with PolyORB.Representations.CDR;
 with PolyORB.Types;
@@ -98,7 +98,7 @@ package body PolyORB.Protocols.GIOP is
       Section               : in     String;
       Prefix                : in     String)
    is
-      use PolyORB.Configuration;
+      use PolyORB.Parameters;
       use PolyORB.Utils;
 
    begin
@@ -502,7 +502,7 @@ package body PolyORB.Protocols.GIOP is
       Flags := Types.Octet (Peek (Buffer, Flags_Index - 1));
       pragma Debug (O ("Flags : " & Flags'Img));
 
-      if (Is_Set (Bit_Endianness, Flags)) then
+      if Is_Set (Bit_Little_Endian, Flags) then
          Set_Endianness (Buffer, Little_Endian);
       else
          Set_Endianness (Buffer, Big_Endian);

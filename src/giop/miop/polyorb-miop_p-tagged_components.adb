@@ -38,6 +38,7 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.Buffers;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Log;
 with PolyORB.Representations.CDR;
 with PolyORB.Utils.Strings;
@@ -82,6 +83,7 @@ package body PolyORB.MIOP_P.Tagged_Components is
    begin
       pragma Debug (O ("Marshall Group_Info"));
       pragma Debug (O ("Group : " & Image (C.G_I)));
+
       Marshall (Buffer, TC_Group_Info_Version_Major);
       Marshall (Buffer, TC_Group_Info_Version_Minor);
       Marshall (Buffer, C.G_I.Group_Domain_Id);
@@ -104,8 +106,10 @@ package body PolyORB.MIOP_P.Tagged_Components is
       pragma Debug (O ("Unmarshall Group_Info"));
       Temp := Unmarshall (Buffer);
       pragma Assert (Temp = TC_Group_Info_Version_Major);
+
       Temp := Unmarshall (Buffer);
       pragma Assert (Temp = TC_Group_Info_Version_Minor);
+
       C.G_I.Group_Domain_Id := Unmarshall (Buffer);
       C.G_I.Object_Group_Id := Unmarshall (Buffer);
       C.G_I.Object_Group_Ref_Version := Unmarshall (Buffer);
@@ -140,15 +144,15 @@ package body PolyORB.MIOP_P.Tagged_Components is
       pragma Debug (O ("Group : " & Image (C.G_I)));
       declare
          S : constant String :=
-           Trimmed_Image (Integer (TC_Group_Info_Version_Major)) & "." &
-           Trimmed_Image (Integer (TC_Group_Info_Version_Minor)) & "-" &
-           To_Standard_String (C.G_I.Group_Domain_Id) & "-" &
-           Trimmed_Image (Integer (C.G_I.Object_Group_Id));
+           Trimmed_Image (Integer (TC_Group_Info_Version_Major)) & "."
+           & Trimmed_Image (Integer (TC_Group_Info_Version_Minor)) & "-"
+           & To_Standard_String (C.G_I.Group_Domain_Id) & "-"
+           & Trimmed_Image (Integer (C.G_I.Object_Group_Id));
          --  XXX not a long long conversion
       begin
          if C.G_I.Object_Group_Ref_Version /= 0 then
-            return S & "-" &
-              Trimmed_Image (Integer (C.G_I.Object_Group_Ref_Version));
+            return S & "-"
+              & Trimmed_Image (Integer (C.G_I.Object_Group_Ref_Version));
          else
             return S;
          end if;
@@ -167,17 +171,20 @@ package body PolyORB.MIOP_P.Tagged_Components is
       use PolyORB.Utils;
       use PolyORB.Utils.Strings;
 
-      Index   : Integer := S'First;
-      Index2  : Integer;
-      G_I : TC_Group_Info_Access;
+      Index  : Integer := S'First;
+      Index2 : Integer;
+      G_I    : TC_Group_Info_Access;
    begin
       pragma Debug (O ("Extract Group_Info from string"));
+
       Index2 := Find (S, Index, '.');
       if Index2 = S'Last + 1 then
          return null;
       end if;
+
       if Types.Octet'Value (S (Index .. Index2 - 1))
-        /= TC_Group_Info_Version_Major then
+        /= TC_Group_Info_Version_Major
+      then
          return null;
       end if;
       Index := Index2 + 1;
@@ -186,30 +193,35 @@ package body PolyORB.MIOP_P.Tagged_Components is
       if Index2 = S'Last + 1 then
          return null;
       end if;
+
       if Types.Octet'Value (S (Index .. Index2 - 1))
-        /= TC_Group_Info_Version_Minor then
+        /= TC_Group_Info_Version_Minor
+      then
          return null;
       end if;
       Index := Index2 + 1;
+
+      Index2 := Find (S, Index, '-');
+      if Index2 = S'Last + 1 then
+         return null;
+      end if;
 
       G_I := new TC_Group_Info;
-      Index2 := Find (S, Index, '-');
-      if Index2 = S'Last + 1 then
-         return null;
-      end if;
       G_I.G_I.Group_Domain_Id := To_PolyORB_String (S (Index .. Index2 - 1));
       Index := Index2 + 1;
 
       Index2 := Find (S, Index, '-');
       if Index2 = S'Last + 1 then
-         G_I.G_I.Object_Group_Id :=
-           Types.Unsigned_Long_Long'Value (S (Index .. S'Last));
+         G_I.G_I.Object_Group_Id
+           := Types.Unsigned_Long_Long'Value (S (Index .. S'Last));
+
       else
-         G_I.G_I.Object_Group_Id :=
-           Types.Unsigned_Long_Long'Value (S (Index .. Index2 - 1));
+         G_I.G_I.Object_Group_Id
+           := Types.Unsigned_Long_Long'Value (S (Index .. Index2 - 1));
          G_I.G_I.Object_Group_Ref_Version
            := Types.Unsigned_Long'Value (S (Index2 + 1 .. S'Last));
       end if;
+
       pragma Debug (O ("Group Info : " & Image (G_I.G_I)));
       return G_I;
    end From_String;
@@ -232,10 +244,10 @@ package body PolyORB.MIOP_P.Tagged_Components is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"tagged_components.miop",
+      (Name      => +"tagged_components.miop",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => Empty,
-       Init => Initialize'Access));
+       Depends   => Empty,
+       Provides  => Empty,
+       Init      => Initialize'Access));
 
 end PolyORB.MIOP_P.Tagged_Components;

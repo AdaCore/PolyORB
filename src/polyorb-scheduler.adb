@@ -413,9 +413,8 @@ package body PolyORB.Scheduler is
 
       --  Recompute TI status
 
-      if Exit_Condition (TI.all)
-        or else Shutdown
-      then
+      if Exit_Condition (TI.all) or else Shutdown then
+
          pragma Debug (O ("Task is now terminated"));
          pragma Debug (O2 (Status));
 
@@ -430,10 +429,10 @@ package body PolyORB.Scheduler is
 
          return PTI.Running;
 
-      elsif (May_Poll (TI.all)
-             and then Number_Of_AES > 0
-             and then Polling_Abort_Counter = 0
-             and then Blocked_Tasks = 0)
+      elsif May_Poll (TI.all)
+        and then Number_Of_AES > 0
+        and then Polling_Abort_Counter = 0
+        and then Blocked_Tasks = 0
       then
 
          Blocked_Tasks := Blocked_Tasks + 1;
