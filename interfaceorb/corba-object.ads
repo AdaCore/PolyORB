@@ -247,16 +247,16 @@ package Corba.Object is
    ---       Marshalling operators                ---
    --------------------------------------------------
 
-   function Align_Size (Obj : in Ref_Ptr ;
+   function Align_Size (Obj : in Ref'Class ;
                         Initial_Offset : in Corba.Unsigned_Long)
                         return Corba.Unsigned_Long ;
    -- This function computes the size needed to marshall the object obj
 
-   procedure Marshall (Obj : in Ref_Ptr ;
+   procedure Marshall (Obj : in Ref'Class ;
                        S : in out NetBufferedStream.Object'Class) ;
    -- This procedure marshalls the object Obj into the stream S
 
-   procedure Marshall (Obj : in Ref_Ptr ;
+   procedure Marshall (Obj : in Ref'Class ;
                        S : in out MemBufferedStream.Object'Class) ;
    -- This procedure marshalls the object Obj into the stream S
 

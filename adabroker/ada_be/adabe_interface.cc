@@ -9,6 +9,11 @@ adabe_interface::adabe_interface(UTL_ScopedName *n, AST_Interface **ih, long nih
 {
   if (nih == -1) pd_is_forwarded = true;
   else pd_is_forwarded = false;  
+  if ((string) local_name()->get_string() == "Object") 
+    {
+      set_ada_local_name ("Object");
+      set_ada_full_name ("Corba.Object");
+    }
 }
 
 void
@@ -508,7 +513,7 @@ adabe_interface::produce_proxies_ads(dep_list& with, string &body, string &previ
 	case AST_Decl::NT_op:
 	  {
 	    string tmp1 = "";
-	    string tmp2 = "";	    
+	    string tmp2 = "";
 	    dynamic_cast<adabe_name *>(d)->produce_proxies_ads(with, tmp1, tmp2);
 	    body += tmp1;
 	    Sprivate += tmp2;	
@@ -578,8 +583,11 @@ adabe_interface::produce_skel_adb(dep_list& with, string &body, string &previous
 void
 adabe_interface::produce_proxies_adb(dep_list& with, string &body, string &previous)
 {
+  bool empty = true;
   adabe_global::set_adabe_current_file(this);
-
+  with.add("Netbufferedstream ; use Netbufferedstream");
+  with.add("Membufferedstream ; use Membufferedstream");
+  with.add("Corba ; use Corba");
   with.add( get_ada_full_name() + ".marshal") ;
   body += "package body " + get_ada_full_name() + ".Proxies is \n";
  
@@ -596,7 +604,8 @@ adabe_interface::produce_proxies_adb(dep_list& with, string &body, string &previ
 	case AST_Decl::NT_op:
 	  {
 	    string tmp1 = "";
-	    string tmp2 = "";	    
+	    string tmp2 = "";
+	    empty = false;
 	    dynamic_cast<adabe_name *>(d)->produce_proxies_adb(with, tmp1, tmp2);
 	    body += tmp1;
 	  }
@@ -606,6 +615,7 @@ adabe_interface::produce_proxies_adb(dep_list& with, string &body, string &previ
       i.next();
     }
   body += "end " + get_ada_full_name() + ".Proxies ;\n";
+  if (empty) body = "";
 }
 
 
@@ -652,6 +662,7 @@ adabe_interface::produce_marshal_ads(dep_list& with, string &body, string &previ
 void
 adabe_interface::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
+  bool empty = true;
   adabe_global::set_adabe_current_file(this);
   body += "package body ";
   body += get_ada_full_name();
@@ -671,6 +682,7 @@ adabe_interface::produce_marshal_adb(dep_list& with, string &body, string &previ
 	case AST_Decl::NT_sequence:
 	case AST_Decl::NT_typedef:
 	  {
+	    empty = false;
 	    string tmp1 = "";
 	    string tmp2 = "";	    
 	    dynamic_cast<adabe_name *>(d)->produce_marshal_adb(with, tmp1, tmp2);
@@ -681,7 +693,8 @@ adabe_interface::produce_marshal_adb(dep_list& with, string &body, string &previ
 	}
       i.next();
     }
-  body += "end " + get_ada_full_name() + ".Marshal ;\n";  
+  body += "end " + get_ada_full_name() + ".Marshal ;\n";
+  if (empty) body = "";
 }
 
 string

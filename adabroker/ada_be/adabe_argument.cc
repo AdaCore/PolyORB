@@ -49,14 +49,15 @@ adabe_argument::produce_adb(dep_list& with, bool &no_out, string space,
       break;
     }
   AST_Decl *d = field_type();
-  string name = dynamic_cast<adabe_name *>(d)->get_ada_full_name (); // virtual method
+  string previous = "";
+  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, previous); // virtual method
 
   in_decls += ";\n              " + space + get_ada_local_name() + " : " + dir_st +  name;
   
-  if ((dir = dir_IN) || (dir = dir_INOUT))
+  if ((dir == AST_Argument::dir_IN) || (dir == AST_Argument::dir_INOUT))
     in_args += ", " + get_ada_local_name ();
 
-  if ((dir = dir_OUT) || (dir = dir_INOUT))
+  if ((dir == AST_Argument::dir_OUT) || (dir == AST_Argument::dir_INOUT))
     no_out = false;
     out_args += ", " + get_ada_local_name ();
 }
@@ -93,17 +94,16 @@ adabe_argument::produce_proxies_ads(dep_list &with, string &in_decls, bool &no_i
   string type_name = type_adabe_name->dump_name(with, previous);
   string full_type_name = type_adabe_name->get_ada_full_name() ;
 
-  if ((direction() == dir_IN) || (direction() == dir_INOUT)) {
+  if ((direction() == AST_Argument::dir_IN) || (direction() == AST_Argument::dir_INOUT)) {
     no_in = false;
     in_decls += " ;\n                  ";
     in_decls += get_ada_local_name ();
     in_decls += " : in ";
     in_decls += type_name;
   }
-  if ((direction() == dir_OUT) || (direction() == dir_INOUT)) {
-    is_marshal_imported(with);
+  if ((direction() == AST_Argument::dir_OUT) || (direction() == AST_Argument::dir_INOUT)) {
     no_out = false;
-    out_args += "; my" + get_ada_local_name () + " : out " + type_name;
+    out_args += "; " + get_ada_local_name () + " : out " + type_name;
   }
   fields += "      ";
   fields += get_ada_local_name ();
@@ -122,7 +122,7 @@ adabe_argument::produce_proxies_adb(dep_list &with, string &in_decls, bool &no_i
   string type_name =  dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
   string full_type_name = dynamic_cast<adabe_name *>(d)->get_ada_full_name() ;
   
-  if ((direction() == dir_IN) || (direction() == dir_INOUT)) {
+  if ((direction() == AST_Argument::dir_IN) || (direction() == AST_Argument::dir_INOUT)) {
     no_in = false;
     in_decls += " ;\n                  ";
     in_decls += get_ada_local_name ();
@@ -145,7 +145,8 @@ adabe_argument::produce_proxies_adb(dep_list &with, string &in_decls, bool &no_i
     marshall += get_ada_local_name ();
     marshall += ".all,Giop_Client) ;\n";
   }
-  if ((direction() == dir_OUT) || (direction() == dir_INOUT)) {
+  if ((direction() == AST_Argument::dir_OUT) || (direction() == AST_Argument::dir_INOUT)) {
+    dynamic_cast<adabe_name *>(d)->is_marshal_imported(with);
     no_out = false;
     unmarshall_decls += "      ";
     unmarshall_decls += get_ada_local_name ();
@@ -169,10 +170,10 @@ adabe_argument::produce_proxies_adb(dep_list &with, string &in_decls, bool &no_i
     unmarshall += get_ada_local_name ();
     unmarshall += ") ;\n";
     
-    out_args += "; my" + get_ada_local_name () + " : out " + type_name;
+    out_args += "; " + get_ada_local_name () + " : out " + type_name;
     
-    result_decls += "      my" + get_ada_local_name ();
-    result_decls += " := " + get_ada_local_name () + " ;\n";
+    result_decls += "      " + get_ada_local_name ();
+    result_decls += " := Self." + get_ada_local_name () + ".all ;\n";
   }
   
   finalize += "      Free(Self.";
@@ -197,7 +198,7 @@ adabe_argument::produce_skel_adb(dep_list &with, string &in_decls ,
   in_decls += type_name;
   in_decls += " ;\n";
     
-  if ((direction() == dir_IN) || (direction() == dir_INOUT))
+  if ((direction() == AST_Argument::dir_IN) || (direction() == AST_Argument::dir_INOUT))
     {
       no_in = false;
       unmarshall += "            UnMarshall(";
@@ -208,7 +209,7 @@ adabe_argument::produce_skel_adb(dep_list &with, string &in_decls ,
   call_args += ", ";
   call_args += get_ada_local_name ();
 
-  if ((direction() == dir_OUT) || (direction() == dir_INOUT))
+  if ((direction() == AST_Argument::dir_OUT) || (direction() == AST_Argument::dir_INOUT))
     {
       no_out = false;
       marshall += "            Marshall(";

@@ -403,7 +403,8 @@ adabe_module::produce_proxies_adb(dep_list& with,string &body, string &previousd
 
 	    interface->produce_proxies_adb(interface_with,interface_body,interface_previous);
 	    interface_with_string = *interface_with.produce("with ");
-	    
+
+	    if (interface_body == "") break;
 	    string interface_file_name =
 	      remove_dot(interface->get_ada_full_name()) + "-proxies.adb";
 	    char *lower_case_name = lower(interface_file_name.c_str());
@@ -708,6 +709,7 @@ adabe_module::produce_marshal_adb(dep_list& with,string &body, string &previousd
 	    interface->produce_marshal_adb(interface_with,interface_body,interface_previous);
 	    interface_with_string = *interface_with.produce("with ");
 	    
+	    if (interface_body == "") break;
 	    string interface_file_name =
 	      remove_dot(interface->get_ada_full_name()) +"-marshal.adb";
 	    char *lower_case_name = lower(interface_file_name.c_str());
@@ -727,6 +729,7 @@ adabe_module::produce_marshal_adb(dep_list& with,string &body, string &previousd
   if (!first) {
     body += "end " + get_ada_full_name() + ".marshal ;";
   }
+  else body = "";
 }
 
 IMPL_NARROW_METHODS3(adabe_module, AST_Module, adabe_name, UTL_Scope);

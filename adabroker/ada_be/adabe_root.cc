@@ -50,6 +50,7 @@ adabe_root::produce() {
       bool   first = true;
       dep_list header_with;
       UTL_ScopeActiveIterator header_activator(this,UTL_Scope::IK_decls);
+      header_body = "Package " + get_ada_full_name()+" is\n";
       while (!header_activator.is_done())
 	{
 	  AST_Decl *d = header_activator.item();
@@ -72,10 +73,6 @@ adabe_root::produce() {
 	      case AST_Decl::NT_typedef:
 	      case AST_Decl::NT_interface_fwd:
 		{
-		  if (first) {
-		    header_body = "Package " + get_ada_full_name()+" is\n";
-		    first = false;    
-		  }
 		  header_previous += header_body;
 		  header_body ="";
 		  dynamic_cast<adabe_name *>(d)->produce_ads(header_with, header_body, header_previous);
@@ -147,19 +144,17 @@ adabe_root::produce() {
 #ifdef DEBUG_ROOT
       cout << "In root, main ads file : " << ada_file_name.c_str() << endl;
 #endif
-      if (!first)
-	{
-	  char *lower_case_name = lower(ada_file_name.c_str());
-	  ofstream header(lower_case_name); 
-	  delete[] lower_case_name;
-	  
-	  header_includes = *header_with.produce ("with ");
-	  header << header_includes;
-	  header << header_previous;
-	  header << header_body;
-	  header << "end " << get_ada_full_name() << " ;" << endl;
-	  header.close();
-	}
+      char *lower_case_name = lower(ada_file_name.c_str());
+      ofstream header(lower_case_name); 
+      delete[] lower_case_name;
+      
+      header_includes = *header_with.produce ("with ");
+      header << header_includes;
+      header << header_previous;
+      header << header_body;
+      header << "end " << get_ada_full_name() << " ;" << endl;
+      header.close();
+	
     }
     
 
@@ -428,6 +423,7 @@ adabe_root::produce() {
 		    interface->produce_proxies_adb(proxy_body_interface_with,proxy_body_interface_body,proxy_body_interface_previous);
 		    proxy_body_interface_with_string = *proxy_body_interface_with.produce("with ");
 		    
+		    if (proxy_body_interface_body == "") break;
 		    string proxy_body_interface_file_name =
 		      remove_dot(interface->get_ada_full_name())+"-proxies.adb";
 		    char *lower_case_name = lower(proxy_body_interface_file_name.c_str());
@@ -569,8 +565,15 @@ adabe_root::produce() {
       string marshal_header_includes      = "";
       string marshal_header_previous      = "";
       string marshal_header_body          = "";
-      bool   first = true;
       dep_list marshal_header_with;
+
+      marshal_header_previous += "use type Corba.Unsigned_Long; \n";
+      marshal_header_previous += "with NetbufferedStream ; use NetbufferedStream ;\n";
+      marshal_header_previous += "with MembufferedStream ; use MembufferedStream ;\n";
+      marshal_header_with.add ("Giop_C");
+      marshal_header_with.add ("Corba");
+      marshal_header_previous += "Package " + get_ada_full_name() + ".marshal is\n";
+		  
       UTL_ScopeActiveIterator marshal_header_activator(this,UTL_Scope::IK_decls);
       while (!marshal_header_activator.is_done())
 	{
@@ -590,16 +593,7 @@ adabe_root::produce() {
 		case AST_Decl::NT_enum:
 		case AST_Decl::NT_typedef:
 		  {
-		    if (first) {
-		      marshal_header_previous += "use type Corba.Unsigned_Long; \n";
-		      marshal_header_previous += "with NetbufferedStream ; use NetbufferedStream ;\n";
-		      marshal_header_previous += "with MembufferedStream ; use MembufferedStream ;\n";
-		      marshal_header_with.add ("Giop_C");
-		      marshal_header_with.add ("Corba");
-		      marshal_header_previous += "Package " + get_ada_full_name() + ".marshal is\n";
-		      first = false;    
-		    }
-		    marshal_header_previous += marshal_header_body ="";
+		  marshal_header_previous += marshal_header_body ="";
 		    dynamic_cast<adabe_name *>(d)->produce_marshal_ads(marshal_header_with, marshal_header_body, marshal_header_previous);
 		  }
 		  break;
@@ -657,20 +651,18 @@ adabe_root::produce() {
 	}
 
       // Opening of the header file
-      if (!first)
-	{
-	  string marshal_ada_file_name = idl_file_name+"-marshal.ads";
-	  char *lower_case_name = lower(marshal_ada_file_name.c_str());
-	  ofstream marshal_header(lower_case_name); 
-	  delete[] lower_case_name;
-	  marshal_header_includes = *marshal_header_with.produce ("with ");
-	  marshal_header << marshal_header_includes;
-	  marshal_header << marshal_header_previous;
-	  marshal_header << marshal_header_body;
-	  marshal_header << "end " << get_ada_full_name() << ".marshal ;" << endl;
-	  marshal_header.close();
-	}
+      string marshal_ada_file_name = idl_file_name+"-marshal.ads";
+      char *lower_case_name = lower(marshal_ada_file_name.c_str());
+      ofstream marshal_header(lower_case_name); 
+      delete[] lower_case_name;
+      marshal_header_includes = *marshal_header_with.produce ("with ");
+      marshal_header << marshal_header_includes;
+      marshal_header << marshal_header_previous;
+      marshal_header << marshal_header_body;
+      marshal_header << "end " << get_ada_full_name() << ".marshal ;" << endl;
+      marshal_header.close();
     }
+    
 
     set_undefined();
 
@@ -722,6 +714,7 @@ adabe_root::produce() {
 		    module->produce_marshal_adb(marshal_body_module_with,marshal_body_module_body,marshal_body_module_previous);
 		    marshal_body_module_with_string = *marshal_body_module_with.produce("with ");
 		    
+		    if (marshal_body_module_body == "") break;
 		    string marshal_module_file_name =
 		      remove_dot(module->get_ada_full_name())+"-marshal.adb";
 		    char *lower_case_name = lower(marshal_module_file_name.c_str());
@@ -745,7 +738,8 @@ adabe_root::produce() {
 		    
 		    interface->produce_marshal_adb(marshal_interface_with,marshal_interface_body,marshal_interface_previous);
 		    marshal_interface_with_string = *marshal_interface_with.produce("with ");
-		    
+
+		    if (marshal_interface_body == "") break;
 		    string marshal_interface_file_name =
 		      remove_dot(interface->get_ada_full_name())+"-marshal.adb";
 		    char *lower_case_name = lower(marshal_interface_file_name.c_str());

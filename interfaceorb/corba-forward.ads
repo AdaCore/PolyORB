@@ -54,6 +54,7 @@ package Corba.Forward is
    Forward : constant Boolean := Adabroker_Debug.Is_Active("corba.forward") ;
 
    type Ref is new Corba.Object.Ref with null record;
+   type Ref_Ptr is access all Ref'Class ;
 
    function To_Ref(The_Ref: in Corba.Object.Ref'Class) return Ref ;
 

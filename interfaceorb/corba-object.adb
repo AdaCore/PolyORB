@@ -425,50 +425,32 @@ package body Corba.Object is
 
    -- Align_Size
    -------------
-   function Align_Size (Obj : in Ref_Ptr ;
+   function Align_Size (Obj : in Ref'Class ;
                         Initial_Offset : in Corba.Unsigned_Long)
                         return Corba.Unsigned_Long is
    begin
-      if Obj = null then
-         -- never reached normally
-         Ada.Exceptions.Raise_Exception (AdaBroker_Fatal_Error'Identity ,
-                                     "Null pointer argument in function Align_Size in corba-object.") ;
-      else
-         -- calls the corresponding function on the underlying omniobject
-         return Omniobject.Align_Size (Obj.all.Omniobj, Initial_Offset) ;
-      end if ;
+      -- calls the corresponding function on the underlying omniobject
+      return Omniobject.Align_Size (Obj.Omniobj, Initial_Offset) ;
    end ;
 
 
    -- Marshall
    -----------
-   procedure Marshall (Obj : in Ref_Ptr ;
+   procedure Marshall (Obj : in Ref'Class ;
                        S : in out NetBufferedStream.Object'Class) is
    begin
-      if Obj = null then
-         -- never reached normally
-         Ada.Exceptions.Raise_Exception (AdaBroker_Fatal_Error'Identity ,
-                                     "Null pointer argument in procedure Marshall in corba-object.") ;
-      else
-         -- calls the corresponding function on the underlying omniobject
-         Omniobject.Marshall (Obj.all.Omniobj,S) ;
-      end if ;
+      -- calls the corresponding function on the underlying omniobject
+      Omniobject.Marshall (Obj.Omniobj,S) ;
    end ;
 
 
    -- Marshall
    -----------
-   procedure Marshall (Obj : in Ref_Ptr ;
+   procedure Marshall (Obj : in Ref'Class ;
                        S : in out MemBufferedStream.Object'Class) is
    begin
-      if Obj = null then
-         -- never reached normally
-         Ada.Exceptions.Raise_Exception (AdaBroker_Fatal_Error'Identity ,
-                                     "Null pointer argument in procedure Marshall in corba-object.") ;
-      else
-         -- calls the corresponding function on the underlying omniobject
-         Omniobject.Marshall (Obj.all.Omniobj,S) ;
-      end if ;
+      -- calls the corresponding function on the underlying omniobject
+      Omniobject.Marshall (Obj.Omniobj,S) ;
    end ;
 
 
