@@ -53,7 +53,7 @@ package PolyORB.Annotations is
    --  expose one Notepad component to their clients.
 
    procedure Set_Note (NP : in out Notepad; N : Note'Class);
-   --  Add note N to notepad NP. If of the same type already
+   --  Add note N to notepad NP. If a note with the same tag as N
    --  exists, it is replaced by N.
 
    procedure Get_Note (NP : Notepad; N : out Note'Class);
