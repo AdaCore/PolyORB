@@ -40,7 +40,7 @@ with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
-with PolyORB.Storage_Pools;
+--  with PolyORB.Storage_Pools;
 with PolyORB.Types;
 
 with PolyORB.Sequences.Unbounded;
@@ -103,7 +103,7 @@ package PolyORB.POA_Types is
          Persistency_Flag : Lifespan_Cookie;
      end record;
    type Unmarshalled_Oid_Access is access Unmarshalled_Oid;
-   for Unmarshalled_Oid_Access'Storage_Pool use Storage_Pools.Debug_Pool;
+   --  for Unmarshalled_Oid_Access'Storage_Pool use Storage_Pools.Debug_Pool;
 
    function "=" (Left, Right : in Unmarshalled_Oid) return Standard.Boolean;
 
