@@ -63,6 +63,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    procedure Free is new
      Ada.Unchecked_Deallocation (GIOP_Ctx_1_1, GIOP_Ctx_1_1_Access);
 
+   --  In GIOP 1.1, one way is not allowed
+   Req_Flags_Mask : constant PolyORB.Requests.Flags :=
+     Sync_With_Server +
+     Sync_With_Target;
+
    --  Msg_Type
 
    function Unmarshall is new Generic_Unmarshall
@@ -118,6 +123,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Implem.Max_GIOP_Message_Size := Max - (Max mod 8);
       Implem.Max_Body := Implem.Max_GIOP_Message_Size -
         Types.Unsigned_Long (GIOP_Header_Size);
+      Implem.Req_Flags_Mask := Req_Flags_Mask;
    end Initialize_Implem;
 
    ------------------------
@@ -316,6 +322,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
          Req_Flags := Sync_With_Target;
       else
          Req_Flags := Sync_None;
+      end if;
+
+      if (S.Req_Flags_Mask and Req_Flags) = 0 then
+         pragma Debug (O ("Request not allowed"));
+         raise GIOP_Error;
       end if;
 
       pragma Debug (O ("Object Key : "

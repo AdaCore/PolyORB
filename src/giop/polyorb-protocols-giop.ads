@@ -175,6 +175,8 @@ private
       --  Configuration values
       Section             : Types.String;
       Prefix              : Types.String;
+      --  Allowed Req Flags
+      Req_Flags_Mask      : PolyORB.Requests.Flags;
    end record;
 
    type GIOP_Implem_Access is access all GIOP_Implem'Class;
@@ -315,17 +317,31 @@ private
    ------------------
 
    type GIOP_Session is new Session with record
+      --  access to current implem
       Implem       : GIOP_Implem_Access;
+      --  GIOP state
       State        : GIOP_State := Not_Initialized;
+      --  current GIOP context, implem dependant
       Ctx          : GIOP_Ctx_Access;
+      --  GIOP Buffer in
       Buffer_In    : Buffers.Buffer_Access;
+      --  Role of session for ORB
       Role         : ORB.Endpoint_Role;
+      --  List of pendings request
       Pending_Reqs : Pend_Req_Seq.Sequence;
+      --  Counter to have new Request Index
       Req_Index    : Types.Unsigned_Long := 1;
+
       --  GIOP configuration
+
+      --  Default GIOP Version
       GIOP_Def_Ver     : GIOP_Version;
+      --  List of activated GIOP Implem
       GIOP_Implem_List : GIOP_Implem_Array := (others => null);
+      --  Nb of activated GIOP Implem
       Nb_Implem        : Natural range  0 .. Max_GIOP_Implem := 0;
+      --  Allowed Req Flags
+      Req_Flags_Mask   : PolyORB.Requests.Flags;
    end record;
 
    type GIOP_Session_Access is access all GIOP_Session;
@@ -398,10 +414,11 @@ private
    --  Initialize a GIOP Session, reading PolyORB configuration
    procedure Initialize
      (Sess                : in out GIOP_Session;
-      Version             :        GIOP_Version;
-      Locate_Then_Request :        Boolean;
-      Section             :        String;
-      Prefix              :        String);
+      Version             : in     GIOP_Version;
+      Req_Flags_Mask      : in     PolyORB.Requests.Flags;
+      Locate_Then_Request : in     Boolean;
+      Section             : in     String;
+      Prefix              : in     String);
 
    --------------------------------
    -- Pending Request management --

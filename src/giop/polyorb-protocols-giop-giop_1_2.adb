@@ -64,6 +64,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   Req_Flags_Mask : constant PolyORB.Requests.Flags :=
+     Sync_With_Transport +
+     Sync_With_Server +
+     Sync_With_Target;
+
    procedure Free is new Ada.Unchecked_Deallocation
      (GIOP_Ctx_1_2, GIOP_Ctx_1_2_Access);
 
@@ -132,6 +137,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Implem.Max_GIOP_Message_Size := Max - (Max mod 8);
       Implem.Max_Body := Implem.Max_GIOP_Message_Size -
         Types.Unsigned_Long (GIOP_Header_Size);
+      Implem.Req_Flags_Mask := Req_Flags_Mask;
    end Initialize_Implem;
 
    ------------------------
@@ -420,6 +426,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          when others =>
             null;
       end case;
+
+      if (S.Req_Flags_Mask and Req_Flags) = 0 then
+         pragma Debug (O ("Request not allowed"));
+         raise GIOP_Error;
+      end if;
 
       S.State := Waiting_Unmarshalling;
       Def_Args := Component_Access (S);

@@ -82,14 +82,21 @@ package body PolyORB.Protocols.GIOP is
      (Proto   : access GIOP_Protocol;
       Session : out   Filter_Access)
    is
+      use PolyORB.Requests;
+
       pragma Warnings (Off);
       pragma Unreferenced (Proto);
       pragma Warnings (On);
 
+      F : constant Flags :=
+        Sync_With_Transport +
+        Sync_With_Server +
+        Sync_With_Target;
    begin
       Session := new GIOP_Session;
       Initialize (GIOP_Session (Session.all),
                   GIOP_Default_Version,
+                  F,
                   Default_Locate_Then_Request,
                   "giop",
                   "polyorb.protocols.giop");
@@ -273,13 +280,22 @@ package body PolyORB.Protocols.GIOP is
       use PolyORB.Binding_Data;
       use Unsigned_Long_Flags;
 
-      Current_Req    : Pending_Request_Access := new Pending_Request;
+      Current_Req    : Pending_Request_Access;
       Binding_Object : Components.Component_Access;
       Profile        : Binding_Data.Profile_Access;
    begin
+      if ((Sess.Req_Flags_Mask and R.Req_Flags) = 0)
+        or ((Sess.Implem.Req_Flags_Mask and R.Req_Flags)) = 0 then
+         pragma Debug (O ("Request not allowed"));
+         raise GIOP_Error;
+      end if;
+
+      Current_Req := new Pending_Request;
+
       References.Get_Binding_Info (R.Target, Binding_Object, Profile);
       Current_Req.Req := R;
       Current_Req.Target_Profile := Profile;
+
 
       if Profile = null then
          Current_Req.Target_Profile := Profile_Access (Pro);
@@ -656,10 +672,11 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Initialize
      (Sess                : in out GIOP_Session;
-      Version             :        GIOP_Version;
-      Locate_Then_Request :        Boolean;
-      Section             :        String;
-      Prefix              :        String)
+      Version             : in     GIOP_Version;
+      Req_Flags_Mask      : in     PolyORB.Requests.Flags;
+      Locate_Then_Request : in     Boolean;
+      Section             : in     String;
+      Prefix              : in     String)
    is
       use PolyORB.Configuration;
       use PolyORB.Utils;
@@ -670,6 +687,9 @@ package body PolyORB.Protocols.GIOP is
       pragma Debug (O ("Conf Prefix : " & Prefix));
 
       Protocols.Initialize (Protocols.Session (Sess));
+
+      pragma Debug (O ("Requests Flags Mask" & Req_Flags_Mask'Img));
+      Sess.Req_Flags_Mask := Req_Flags_Mask;
 
       Sess.GIOP_Def_Ver.Minor :=
         Types.Octet
