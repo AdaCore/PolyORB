@@ -1,5 +1,5 @@
 ;;;
-;;; $Id: //droopi/main/utils/update-headers.el#8 $
+;;; $Id: //droopi/main/utils/update-headers.el#9 $
 ;;;
 ;;; Emacs macros to update Ada source files headers.
 ;;;
@@ -105,7 +105,9 @@
 (defun insert-secondary-header(spec)
   ; add OMG notice for CORBA.* and PortableServer.* spec files
   (if (and (or (string-match "^corba" (buffer-name))
-	       (string-match "^portableserver" (buffer-name)))
+	       (string-match "^portableserver" (buffer-name))
+	       (string-match "^rtcorba" (buffer-name))	   
+	       (string-match "^rtportableserver" (buffer-name)))
 	   spec)
       (insert (header-omg))))
 
