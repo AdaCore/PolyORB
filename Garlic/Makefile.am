@@ -137,7 +137,7 @@ $(COMMONSOURCES)
 
 CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads s-gaprco.adb s-galiop.ads\
 	s-garser.adb s-gaplsp.ads $(FILTERSOBJECTS) split s-rpcdum.ads\
-	inlining gnatlib/* constants_nodef ${TCP_PLATFORM_SOURCE}
+	inlining inline* gnatlib/* constants_nodef ${TCP_PLATFORM_SOURCE}
 
 SUFFIXES = .adb .ads .ali .o .xrb
 
@@ -206,17 +206,23 @@ install-dirs-local:
 	${mkinstalldirs} ${GARLIC}
 
 inlining: all-local
-	@echo 'with Text_IO; use Text_IO;'  >inline.adb
-	@echo 'procedure Inline is'        >>inline.adb
-	@echo 'begin Put_Line ("a"); end;' >>inline.adb
-	-@${GNATMAKE} -I. inline.adb
-	@if test -f inline; then\
-	   echo no >inlining;\
-	   echo "Run-time compiled without inlining flags";\
-	else\
-	   echo "Run-time compiled with inlining flags";\
+	-@if test ! -f inline; then\
+	   echo 'with Text_IO; use Text_IO;'  >inline.adb;\
+	   echo 'procedure Inline is'        >>inline.adb;\
+	   echo 'begin Put_Line ("a"); end;' >>inline.adb;\
+	   ${GNATMAKE} -q -I. inline.adb;\
+	   if test -f inline; then\
+	      echo no >inlining;\
+	   else\
+	      touch inline;\
+	      ${RM} inlining;\
+	   fi;\
 	fi;
-	${RM} -f inline.adb inline.o inline.ali inline
+	@if test ! -f inlining; then\
+	   echo "Run-time compiled with inlining flags: yes";\
+	else\
+	   echo "Run-time compiled with inlining flags:" `cat inlining`;\
+	fi;
 	@if test ! -f inlining; then\
 	   mkdir gnatlib;\
 	   gnatlibdir=`${srcdir}/../Dist/config.sdefault pathtolib`;\
@@ -247,13 +253,13 @@ inlining: all-local
 install-extra-libs: ${FILTERINSTALL} inlining
 
 install-data-local: all-local install-dirs-local install-extra-libs 
-	if test ! -f inlining; then\
+	@if test ! -f inlining; then\
 	   exit 1;\
 	fi
 	${INSTALL}\
 	   `${srcdir}/../Dist/config.sdefault pathtolib`libgnat.a ${GARLIC}
 	${AR} d ${GARLIC}/libgnat.a s-stratt.o s-rpc.o s-parint.o
-	if test `cat inlining` = "yes"; then\
+	@if test `cat inlining` = "yes"; then\
 	   (cd gnatlib;\
 	    ${AR} cq ${GARLIC}/libgnat.a `cat rebuild`;\
             ${CP} ${CPPRESERVE} `${SED} 's/\.o/.ali/g' rebuild` ${GARLIC});\
