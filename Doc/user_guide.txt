@@ -177,7 +177,7 @@ configuration My_Config is
 
   Partition_2, Partition_3 : Partition;
 
-  for Partition_2'Host use foo.bar.com;
+  for Partition_2'Host use "foo.bar.com";
   --  Specify the host on which to run partition 2.
 
   function Best_Node (Partition_Name : String) return String;
@@ -195,9 +195,21 @@ configuration My_Config is
   --  will ask for it interactively when it is executed.
 
   for Partition_1'Storage_Dir use "/usr/you/test/bin";
-  for Partition_2'Storage_Dir use "/usr/you/test/bin";
   --  Specify the directory in which the executables in each partition
+  --  will be stored.
+
+  for Partition'Storage_Dir use "bin";
+  --  Specify the directory in which all the partition executables
   --  will be stored. Default is the current directory.
+
+  procedure Another_Main;
+  for Partition_3'Main use Another_Main;
+  --  Specify the partition main subprogram to use in a given
+  --  partition.
+
+  for Partition_4'Command_Line use "-v";
+  --  Specify additionnal arguments to pass on the command line when a 
+  --  given partition is launched.
 
   pragma Starter (Method => Ada);
   --  Specify the kind of startup method you would like. There are 3
@@ -210,13 +222,19 @@ configuration My_Config is
   --
   --  In this example, Partition_2, Partitions_3 and Partition_4 will be
   --  started from Partition_1 (ie from the ada procedure Master_Procedure).
-  --
-  --  Note that you can specify a shell function to dynamically choose a host
-  --  as in
-  --
-  --    `for Partition_3'Host use Best_Node";'
-  --
-  --  only if you use the Shell starter.
+
+  pragma Boot_Server
+    (Protocol_Name => "tcp", Protocol_Data => "`hostname`:`unused-port`");
+  --  Specify the use of a particular boot server. It is especially
+  --  usefull when the default port 5555 used by GARLIC is already assigned.
+
+  pragma Version (False);
+  --  It is a bounded error to elaborate a partition of a distributed
+  --  program that contains a compilation unit that depends on a
+  --  different version of the declaration of RCI library unit than
+  --  that included in the partition to which the RCI library unit was
+  --  assigned. When the pragma Version is set to False, no
+  --  consistency check is performed.
 
 begin
   --  The configuration body is optional. You may have fully described your
@@ -307,5 +325,6 @@ changed into System.RPC.Communication_Error, but the right exception
 message (if any) is propagated correctly.
 
 For the time being, gnatdist is only able to build distributed
-applications for a pool of homogeneous machines using TCP/IP as a
-common network protocol.
+applications for a pool of homogeneous or heterogeneours machines
+using TCP/IP as a common network protocol.
+

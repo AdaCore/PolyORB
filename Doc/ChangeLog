@@ -1,3 +1,16 @@
+Sat Nov 23 17:07:41 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
+
+	* user_guide.txt: Description of :
+	Partition'<Attribute>    ... (apply to all partitions)
+	procedure <Main>         ... (declare a main subprorgam; see below)
+	<Partition>'Main         ... (use specific partition main subprogr.)
+	<Partition>'Command_Line ... (add arg. on command line)
+	pragma Version           ... (don't check consistency version)
+	pragma Boot_Server       ... (use specific invocation key)
+
+	Mention possible execution in heterogeneous sys.
+	Remove shell restrictions when Ada starter was requested.
+
 Thu Nov  7 14:08:40 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* user_guide.txt: Description of --nolaunch and addition of
