@@ -166,7 +166,4 @@ exception
       Exit_Program (E_Fatal);
    when Compilation_Error =>
       Exit_Program (E_Fatal);
-   when others =>
-      Message ("*** unknown error");
-      Exit_Program (E_Fatal);
 end XE_Main;
