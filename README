@@ -6,34 +6,35 @@
 --                                                                          --
 --                            $Revision$                              --
 --                                                                          --
--- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
+-- GLADE is  free software;  you  can  redistribute  it  and/or  modify  it --
 -- under terms of the  GNU General Public License  as published by the Free --
 -- Software  Foundation;  either version 2,  or  (at your option) any later --
--- version. GNATDIST is distributed in the hope that it will be useful, but --
+-- version. GLADE is distributed in the  hope that  it will  be useful, but --
 -- WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHANTABI- --
 -- LITY or FITNESS  FOR A PARTICULAR PURPOSE.  See the  GNU General  Public --
 -- License  for more details.  You should  have received a copy of the  GNU --
--- General Public License distributed with  GNATDIST; see file COPYING.  If --
+-- General  Public  License distributed with  GLADE; see  file COPYING.  If --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
---              GNATDIST is maintained by ACT Europe.                       --
+--                GLADE is maintained by ACT Europe.                        --
 --            (email:distribution@act-europe.gnat.com).                     --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-This is release @dsa_version@ of the Ada 95 distributed systems annex for GNAT @gnat_version@.
+This is release @glade_version@ of the Ada 95 distributed systems annex
+for GNAT @gnat_version@.
 
 Contents.
 ---------
    Introduction: Ada 95 & Distributed Systems.
    Installation, Documentation & Examples.
    What Does It Run on.
-   Downloading the DSA.
+   Downloading Glade.
    Commercial Support.
    Bug Reports & Technical Questions.
    Submitting Bug Fixes.
-   The DSA Development Team.
+   Glade Development Team.
    Thanks.
 ------------------------------------------------------------------------------ 
 
@@ -49,7 +50,7 @@ layer.  Likewise, by combining the distributed and real-time
 capabilities of Ada 95, it is possible to design applications which
 meet real-time constraints in a distributed environment.
 
-The Distributed Systems Annex (or DSA) for GNAT is an environment for
+The Distributed Systems Annex (called Glade) for GNAT is an environment for
 developing distributed applications based on Annex E of the Ada 95
 Reference Manual. This environment comprises:
 
@@ -66,7 +67,7 @@ Installation, Documentation & Examples.
 
 To see how to install the system please read file INSTALL in this
 directory. Please look under the "Doc" directory for documentation on
-how to use the DSA (user_guide.txt). Directory "Examples" contains
+how to use Glade (user_guide.txt). Directory "Examples" contains
 several examples on how to program a distributed application in Ada 95.
 
 What Does It Run on.
@@ -87,16 +88,16 @@ This release also works on the following machines although less efficiently:
 Versions on SGI/Irix, DEC/OSF, HP/HP-UX, Windows NT will be available
 in the near future.
 
-Downloading the DSA.
---------------------
+Downloading Glade.
+------------------
 
-You can download the DSA by anonymous ftp from cs.nyu.edu (cd
+You can download Glade by anonymous ftp from cs.nyu.edu (cd
 pub/gnat/dsa) and the usual GNAT mirror sites around the world.
 
 Commercial Support.
 -------------------
 
-Commercial support for the DSA will be available from Ada Core
+Commercial support for Glade will be available from Ada Core
 Technologies and ACT-Europe. Contact support@gnat.com or
 support@act-europe.gnat.com for further details.
 
@@ -183,10 +184,10 @@ If your diff version do not understand the --recursive or --context
 option, please use the GNU diffutils package which may be found on any
 GNU archive (e.g. ftp://ftp.ibp.fr/pub/gnu/).
 
-The DSA Development Team.
--------------------------
+Glade Development Team.
+-----------------------
 
-The DSA has been jointly developed by Ada Core Technologies and a
+Glade has been jointly developed by Ada Core Technologies and a
 research team from the Ecole Nat. Sup. de Telecommunication (Paris &
 Brittany). The ENST team comprises:
   Yvon Kermarrec (yvon.kermarrec@enst-bretagne.fr),

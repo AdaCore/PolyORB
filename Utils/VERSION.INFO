@@ -12,7 +12,7 @@
 #
 # Current version
 #
-dsa_version='1.05'
+glade_version='0.90'
 gnat_version='3.07'
 
 #
@@ -26,7 +26,7 @@ files="README INSTALL"
 for i in ${files}; do
   cp $i $i.orig.$$
   cat $i.orig.$$ | \
-   sed -e "s/@dsa_version@/${dsa_version}/g" | \
+   sed -e "s/@glade_version@/${glade_version}/g" | \
    sed -e "s/@gnat_version@/${gnat_version}/g" | \
    cat > $i
   rm $i.orig.$$
