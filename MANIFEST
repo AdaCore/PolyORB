@@ -340,6 +340,8 @@ src/polyorb-types.adb
 src/polyorb-types.ads
 src/polyorb-utils.adb
 src/polyorb-utils.ads
+src/polyorb-utils-chained_lists.adb
+src/polyorb-utils-chained_lists.ads
 src/polyorb-utils-srp.adb
 src/polyorb-utils-srp.ads
 src/ROADMAP

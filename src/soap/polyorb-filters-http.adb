@@ -34,6 +34,7 @@
 
 with PolyORB.Components;
 with PolyORB.Filters.Interface;
+with PolyORB.HTTP_Headers;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Opaque;
@@ -45,7 +46,6 @@ package body PolyORB.Filters.HTTP is
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
    use PolyORB.ORB;
-   use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.filters.http");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -65,6 +65,13 @@ package body PolyORB.Filters.HTTP is
    begin
       Filt := Res;
    end Create;
+
+   procedure Finalize (F : in out HTTP_Filter) is
+   begin
+      Finalize (Filter (F));
+      Deallocate (F.Request_URI);
+      String_Lists.Deallocate (F.Transfer_Encoding);
+   end Finalize;
 
    function Handle_Message
      (F : access HTTP_Filter;
@@ -226,6 +233,19 @@ package body PolyORB.Filters.HTTP is
       return I;
    end Find_Skip;
 
+   --  HTTP-Version strings.
+   HTTP_Slash : constant String := "HTTP/";
+
+   function Image (V : HTTP_Version) return String is
+      Major_Image : constant String := V.Major'Img;
+      Minor_Image : constant String := V.Minor'Img;
+   begin
+      return HTTP_Slash
+        & Major_Image (Major_Image'First + 1 .. Major_Image'Last)
+        & "."
+        & Minor_Image (Minor_Image'First + 1 .. Minor_Image'Last);
+   end Image;
+
    -----------------------------------------
    -- HTTP protocol non-terminals parsing --
    -----------------------------------------
@@ -239,9 +259,79 @@ package body PolyORB.Filters.HTTP is
    procedure Parse_Status_Line (F : access HTTP_Filter; S : String);
    --  Status-Line
 
+   procedure Parse_Header_Line (F : access HTTP_Filter; S : String);
+   --  {general,request,response,entity}-header
+
+   function Is_LWS (C : Character) return Boolean;
+   pragma Inline (Is_LWS);
+   --  True iff C is a linear whitespace character (space or tab).
+
+   procedure Parse_CSL_Item
+     (S     : String;
+      Pos   : in out Integer;
+      First : out Integer;
+      Last  : out Integer);
+   --  Get one item from a comma-separated list, starting at Pos.
+   --  On return, First and Last are the indices of the start and
+   --  end of the parsed token (possibly empty), and Pos is
+   --  the position at which parsing should proceed for the next
+   --  token. If Pos > S'Last on return then the string has been
+   --  completely parsed.
+
+   procedure Parse_CSL_Item
+     (S     : String;
+      Pos   : in out Integer;
+      First : out Integer;
+      Last  : out Integer)
+   is
+      Item_First : Integer := Pos;
+      Item_Last : Integer;
+      --  Start and end of current item.
+
+      Separator : Integer;
+      --  Position of separator after current token.
+
+   begin
+      pragma Assert (Pos in S'Range);
+
+      --  Skip initial linear white space
+
+      while Item_First <= S'Last and then Is_LWS (S (Item_First))
+      loop
+         Item_First := Item_First + 1;
+      end loop;
+
+      First := Item_First;
+
+      if Item_First > S'Last then
+         --  There was only LWS from Pos to the end of the string.
+         Pos := S'Last + 1;
+         return;
+      end if;
+
+      Separator := Item_First;
+      loop
+         exit when Separator > S'Last or else S (Separator) = ',';
+         Separator := Separator + 1;
+      end loop;
+      Item_Last := Separator - 1;
+      Pos := Separator + 1;
+
+      while Item_Last > Item_First and then Is_LWS (S (Item_Last))
+      loop
+         Item_Last := Item_Last - 1;
+      end loop;
+      Last := Item_Last;
+      Pos := Separator + 1;
+   end Parse_CSL_Item;
+
+   function Is_LWS (C : Character) return Boolean is
+   begin
+      return C = ' ' or else C = ASCII.HT;
+   end Is_LWS;
+
    function Parse_HTTP_Version (S : String) return HTTP_Version
    is
-      HTTP_Slash : constant String := "HTTP/";
       Version : constant Integer := S'First + HTTP_Slash'Length;
       Dot : Integer;
       Result : HTTP_Version;
@@ -267,18 +357,10 @@ package body PolyORB.Filters.HTTP is
       Version : Integer;
    begin
       Space := Find_Whitespace (S, S'First);
-      begin
-         pragma Debug
-           (O ("Looking up request method: ``"
-               & S (S'First .. Space - 1) & "''"));
-         F.Request_Method
-           := PolyORB.HTTP_Methods.In_Word_Set
-           (S (S'First .. Space - 1));
-      exception
-         when Constraint_Error =>
-            --  XXX MUST handle unknown_request_method case.
-            raise Protocol_Error;
-      end;
+
+      F.Request_Method
+        := PolyORB.HTTP_Methods.In_Word_Set
+        (S (S'First .. Space - 1));
 
       URI     := Skip_Whitespace (S, Space);
       Space   := Find_Whitespace (S, URI);
@@ -289,10 +371,54 @@ package body PolyORB.Filters.HTTP is
          raise Protocol_Error;
       end if;
 
-      F.Request_URI := To_PolyORB_String (S (URI .. Space - 1));
+      Deallocate (F.Request_URI);
+      F.Request_URI := new String'(S (URI .. Space - 1));
       F.Version     := Parse_HTTP_Version (S (Version .. S'Last - 2));
       --  Last two characters are CR/LF.
+
+      pragma Debug (O ("Parsed request-line:"));
+      pragma Debug
+        (O (F.Request_Method'Img & " " & F.Request_URI.all
+            & " " & Image (F.Version)));
    end Parse_Request_Line;
+
+   procedure Parse_Header_Line
+     (F : access HTTP_Filter;
+      S : String)
+   is
+      use PolyORB.HTTP_Headers;
+
+      Colon : constant Integer := Find (S, S'First, ':');
+      Header_Kind : PolyORB.HTTP_Headers.Header;
+      Pos : Integer;
+      First, Last : Integer;
+   begin
+      if Colon > S'Last then
+         raise Protocol_Error;
+      end if;
+      Header_Kind := PolyORB.HTTP_Headers.In_Word_Set
+        (S (S'First .. Colon - 1));
+      if (F.Role = Client and then Header_Kind in Request_Header)
+        or else (F.Role = Server and then Header_Kind in Response_Header)
+      then
+         raise Protocol_Error;
+      end if;
+
+      case Header_Kind is
+         when H_Transfer_Encoding =>
+            Pos := Colon + 1;
+            String_Lists.Deallocate (F.Transfer_Encoding);
+            while Pos <= S'Last loop
+               Parse_CSL_Item (S, Pos, First, Last);
+               String_Lists.Append
+                 (F.Transfer_Encoding, S (First .. Last));
+            end loop;
+
+         when others =>
+            null;
+            --  Ignore non-recognised headers.
+      end case;
+   end Parse_Header_Line;
 
    procedure Parse_Status_Line
      (F : access HTTP_Filter;
@@ -321,8 +447,11 @@ package body PolyORB.Filters.HTTP is
 
       --  The remainder of the line is the response-phrase
       --  and is ignored.
-   end Parse_Status_Line;
 
+      pragma Debug (O ("Parsed status-line:"));
+      pragma Debug (O (Image (F.Version) & Status'Img
+                       & S (Space .. S'Last)));
+   end Parse_Status_Line;
 
    procedure Process_Line
      (F : access HTTP_Filter;
@@ -339,8 +468,9 @@ package body PolyORB.Filters.HTTP is
             (Data.Offset + Stream_Element_Offset (I - S'First)));
       end loop;
 
+      pragma Assert (S (S'Last - 1 .. S'Last) = ASCII.CR & ASCII.LF);
       pragma Debug (O ("HTTP line received:"));
-      pragma Debug (O (S));
+      pragma Debug (O (S (S'First .. S'Last - 2)));
 
       case F.State is
          when Start_Line =>
@@ -349,30 +479,9 @@ package body PolyORB.Filters.HTTP is
             else
                Parse_Status_Line (F, S);
             end if;
---             declare
---                Dig : Integer := 0;
---             begin
---                      for I in First_Word'Range loop
---                         if First_Word (I) in '0' .. '9' then
---                            Dig := Dig + 1;
---                         end if;
---                      end loop;
-
---                      if Dig /= 3 or else First_Word'Length /= 3 then
---                         --  XXX MUST handle unknown_status case.
---                         raise PolyORB.Not_Implemented;
---                      end if;
---                      F.Status := Integer'Value (First_Word);
---                   end;
-
---                   --  Parse_Response_Start_Line (F, S);
---                   raise PolyORB.Not_Implemented;
---                end if;
---             end;
 
          when Header =>
-            --  Parse_Header_Line (F, S);
-            raise PolyORB.Not_Implemented;
+            Parse_Header_Line (F, S);
 
          when others =>
             raise Program_Error;

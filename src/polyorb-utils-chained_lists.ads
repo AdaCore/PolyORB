@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . H T T P _ M E T H O D S                  --
+--          P O L Y O R B . U T I L S . C H A I N E D _ L I S T S           --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -30,27 +30,50 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Generic chained list.
+
 --  $Id$
 
-package PolyORB.HTTP_Methods is
+generic
+   type T (<>) is private;
+package PolyORB.Utils.Chained_Lists is
 
-   type Method is
-     (
-      --  <ENUM>
-      OPTIONS,  --  >> "OPTIONS"
-      GET,      --  >> "GET"
-      HEAD,     --  >> "HEAD"
-      POST,     --  >> "POST"
-      PUT,      --  >> "PUT"
-      DELETE,   --  >> "DELETE"
-      TRACE,    --  >> "TRACE"
-      CONNECT,  --  >> "CONNECT"
-      Extension_Method
-      --  </ENUM>
-      );
-   pragma Convention (C, Method);
+   pragma Elaborate_Body;
 
-   function To_String (Id : Method) return String;
-   function In_Word_Set (S : String) return Method;
+   type List is private;
+   type Iterator is private;
+   type Element_Access is access T;
 
-end PolyORB.HTTP_Methods;
+   function First (L : List) return Iterator;
+   function Element (I : Iterator) return Element_Access;
+   function Last (I : Iterator) return Boolean;
+   procedure Next (I : in out Iterator);
+
+   procedure Prepend
+     (L : in out List;
+      I : T);
+   procedure Append
+     (L : in out List;
+      I : T);
+
+   procedure Deallocate (L : in out List);
+
+   pragma Inline (First);
+   pragma Inline (Element);
+   pragma Inline (Last);
+   pragma Inline (Next);
+   pragma Inline (Prepend);
+   pragma Inline (Append);
+
+private
+
+   type Node;
+   type List is access all Node;
+   type Node is record
+      Value : Element_Access;
+      Next  : List;
+   end record;
+
+   type Iterator is new List;
+
+end PolyORB.Utils.Chained_Lists;

@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . H T T P _ M E T H O D S                  --
+--          P O L Y O R B . U T I L S . C H A I N E D _ L I S T S           --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --                Copyright (C) 2001 Free Software Fundation                --
 --                                                                          --
@@ -30,27 +30,71 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Generic chained list.
+
 --  $Id$
 
-package PolyORB.HTTP_Methods is
+with Ada.Unchecked_Deallocation;
 
-   type Method is
-     (
-      --  <ENUM>
-      OPTIONS,  --  >> "OPTIONS"
-      GET,      --  >> "GET"
-      HEAD,     --  >> "HEAD"
-      POST,     --  >> "POST"
-      PUT,      --  >> "PUT"
-      DELETE,   --  >> "DELETE"
-      TRACE,    --  >> "TRACE"
-      CONNECT,  --  >> "CONNECT"
-      Extension_Method
-      --  </ENUM>
-      );
-   pragma Convention (C, Method);
+package body PolyORB.Utils.Chained_Lists is
 
-   function To_String (Id : Method) return String;
-   function In_Word_Set (S : String) return Method;
+   function First (L : List) return Iterator is
+   begin
+      return Iterator (L);
+   end First;
 
-end PolyORB.HTTP_Methods;
+   function Element (I : Iterator) return Element_Access is
+   begin
+      return I.Value;
+   end Element;
+
+   function Last (I : Iterator) return Boolean is
+   begin
+      return I = null;
+   end Last;
+
+   procedure Next (I : in out Iterator) is
+   begin
+      I := Iterator (I.Next);
+   end Next;
+
+   procedure Prepend
+     (L : in out List;
+      I : T) is
+   begin
+      L := new Node'(Next => L, Value => new T'(I));
+   end Prepend;
+
+   procedure Append
+     (L : in out List;
+      I : T)
+   is
+      N : constant List
+        := new Node'(Next => null, Value => new T'(I));
+      Prev : List := L;
+   begin
+      if L = null then
+         L := N;
+      else
+         while Prev.Next /= null loop
+            Prev := Prev.Next;
+         end loop;
+         Prev.Next := N;
+      end if;
+   end Append;
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (T, Element_Access);
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Node, List);
+
+   procedure Deallocate (L : in out List) is
+   begin
+      if L /= null then
+         Deallocate (L.Next);
+         Free (L.Value);
+         Free (L);
+      end if;
+   end Deallocate;
+
+end PolyORB.Utils.Chained_Lists;

@@ -36,10 +36,13 @@
 --  engines can be plugged on it.)
 
 with Ada.Streams;
+with Ada.Unchecked_Deallocation;
+
 with PolyORB.Buffers;
+with PolyORB.Utils.Chained_Lists;
+pragma Elaborate_All (PolyORB.Utils.Chained_Lists);
 with PolyORB.HTTP_Methods;
 with PolyORB.ORB;
-with PolyORB.Types;
 
 package PolyORB.Filters.HTTP is
 
@@ -67,6 +70,13 @@ private
      Minor : Natural;
    end record;
 
+   function Image (V : HTTP_Version) return String;
+
+   type String_Ptr is access all Standard.String;
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Standard.String, String_Ptr);
+   package String_Lists is new PolyORB.Utils.Chained_Lists (String);
+
    type HTTP_Filter is new Filter with record
       Role : PolyORB.ORB.Endpoint_Role;
       --  The role associated with this protocol engine.
@@ -83,13 +93,19 @@ private
       --  Data received in In_Buf and not processed yet
       --  (reset when changing states).
 
-      --  Protocol parameters
+      --------------------------------------------
+      -- Parameters concerning the HTTP message --
+      -- currently being processed              --
+      --------------------------------------------
 
       Version : HTTP_Version;
       Request_Method : PolyORB.HTTP_Methods.Method;
-      Request_URI : PolyORB.Types.String;
+      Request_URI : String_Ptr;
       Status : Natural;
+      Transfer_Encoding : String_Lists.List;
    end record;
+
+   procedure Finalize (F : in out HTTP_Filter);
 
    function Handle_Message
      (F : access HTTP_Filter;
