@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                    P O L Y O R B . S E T U P . G I O P                   --
+--                    P O L Y O R B . S E T U P . I I O P                   --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
@@ -31,14 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Warnings (Off);
---  No entities referenced.
+package PolyORB.Setup.IIOP is
 
-with PolyORB.Protocols.GIOP.GIOP_1_0;
-with PolyORB.Protocols.GIOP.GIOP_1_1;
-with PolyORB.Protocols.GIOP.GIOP_1_2;
-pragma Warnings (On);
+   pragma Elaborate_Body;
 
-package body PolyORB.Setup.GIOP is
-
-end PolyORB.Setup.GIOP;
+end PolyORB.Setup.IIOP;
