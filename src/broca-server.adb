@@ -834,8 +834,9 @@ package body Broca.Server is
                         Request_Id, Response_Expected, Buffer,
                         Reply_Buffer'Access);
 
-                     Broca.GIOP.Prepend_GIOP_Header (Reply_Buffer'Access,
-                                                     Broca.GIOP.Reply);
+                     Broca.GIOP.Prepend_GIOP_Header
+                       (Reply_Buffer'Access,
+                        Broca.GIOP.Reply);
                   end;
 
                exception
@@ -845,8 +846,9 @@ package body Broca.Server is
                         Broca.GIOP.Marshall
                           (Reply_Buffer'Access, Request_Id, E);
 
-                        Broca.GIOP.Prepend_GIOP_Header (Reply_Buffer'Access,
-                                                        Broca.GIOP.Reply);
+                        Broca.GIOP.Prepend_GIOP_Header
+                          (Reply_Buffer'Access,
+                           Broca.GIOP.Reply);
                      end;
 
                   when E : PortableServer.ForwardRequest =>
@@ -858,8 +860,9 @@ package body Broca.Server is
                           (Reply_Buffer'Access,
                            Request_Id, FRM.Forward_Reference);
 
-                        Broca.GIOP.Prepend_GIOP_Header (Reply_Buffer'Access,
-                                                        Broca.GIOP.Reply);
+                        Broca.GIOP.Prepend_GIOP_Header
+                          (Reply_Buffer'Access,
+                           Broca.GIOP.Reply);
                      end;
                end;
 
@@ -897,8 +900,9 @@ package body Broca.Server is
                   when E : CORBA.Transient =>
                      Broca.GIOP.Marshall (Reply_Buffer'Access, Request_Id, E);
 
-                     Broca.GIOP.Prepend_GIOP_Header (Reply_Buffer'Access,
-                                                     Broca.GIOP.Reply);
+                     Broca.GIOP.Prepend_GIOP_Header
+                       (Reply_Buffer'Access,
+                        Broca.GIOP.Reply);
                end;
                Lock_Send (Stream);
                Send (Stream, Buffer);
@@ -927,8 +931,9 @@ package body Broca.Server is
                      Broca.GIOP.Marshall
                        (Reply_Buffer'Access, Request_Id, E);
 
-                     Broca.GIOP.Prepend_GIOP_Header (Reply_Buffer'Access,
-                                                     Broca.GIOP.Reply);
+                     Broca.GIOP.Prepend_GIOP_Header
+                       (Reply_Buffer'Access,
+                        Broca.GIOP.Reply);
                end;
                Lock_Send (Stream);
                Send (Stream, Buffer);
