@@ -2,8 +2,8 @@
 
 --  $Id$
 
+with Droopi.Sockets;
 with Droopi.Requests;
-with Droopi.Transport;
 
 package Droopi.Tasking_Policies is
 
@@ -26,7 +26,7 @@ package Droopi.Tasking_Policies is
 
    procedure Handle_New_Connection
      (P : access Tasking_Policy;
-      C : Droopi.Transport.Channel)
+      C : Droopi.Sockets.Socket_Type)
      is abstract;
    --  Create the necessary processing resources for newly-created
    --  communication channel C, and start dialog.
@@ -51,7 +51,7 @@ package Droopi.Tasking_Policies is
 
    procedure Handle_New_Connection
      (P : access No_Tasking;
-      C : Droopi.Transport.Channel);
+      C : Droopi.Sockets.Socket_Type);
 
    procedure Handle_Request
      (P : access No_Tasking;

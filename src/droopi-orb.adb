@@ -5,32 +5,18 @@ with Droopi.Soft_Links;
 package body Droopi.ORB is
 
    use Droopi.Jobs;
+   use Droopi.Sockets;
    use Droopi.Soft_Links;
-
-   use Sk;
+   use Droopi.Tasking_Policies;
 
    ------------------------------
    -- Server object operations --
    ------------------------------
 
-   -------------------------
-   -- Internal operations --
-   -------------------------
-
-   procedure Insert_Socket (O : access ORB; S : Socket_Type; K : Socket_Kind);
-   --  Insert socket S with kind K in the set of sockets monitored by O.
-
-   procedure Delete_Socket (O : access ORB; S : Socket_Type);
-   --  Delete socket S from the set of sockets monitored by O.
-
-   ------------------------
-   -- Visible operations --
-   ------------------------
-
    procedure Handle_Event (O : access ORB; AS : Active_Socket) is
    begin
       case AS.Kind is
-         when Listening_Sk =>
+         when Listening_SK =>
 
             --  A new connection.
 
@@ -43,7 +29,7 @@ package body Droopi.ORB is
             --  is inserted in the set of channels that are monitored
             --  through select() by general-purpose ORB tasks.
 
-         when Communication_Sk =>
+         when Communication_SK =>
 
             --  Data arrived on a communication channel.
 
@@ -54,7 +40,7 @@ package body Droopi.ORB is
             --  are delegated to the upstream protocol, since they may depend
             --  upon the particular messages received.
 
-         when Invalid_Sk =>
+         when Invalid_SK =>
 
             --  An error condition (AS is not a valid active socket descriptor).
 
@@ -128,10 +114,8 @@ package body Droopi.ORB is
          elsif May_Poll then
 
             declare
-               use Sk;
-
-               Monitored_Set : constant Sk_Seqs.Element_Array
-                 := Sk_Seqs.To_Element_Array (O.Sockets);
+               Monitored_Set : constant Sock_Seqs.Element_Array
+                 := Sock_Seqs.To_Element_Array (O.ORB_Sockets);
 
                R_Set : Socket_Set_Type;
                W_Set : Socket_Set_Type;
@@ -217,10 +201,17 @@ package body Droopi.ORB is
 
    end Shutdown;
 
-   procedure Insert_Socket (O : access ORB; S : Socket_Type; K : Socket_Kind) is
+   procedure Insert_Socket
+     (O : access ORB;
+      S : Socket_Type;
+      K : Socket_Kind) is
    begin
+      pragma Assert (K /= Invalid_SK);
+
       Enter_Critical_Section;
-      Sk_Seqs.Append (O.Sockets, Active_Socket'(Kind => K, Socket => S));
+      Sock_Seqs.Append
+        (O.ORB_Sockets,
+         Active_Socket'(Kind => K, Socket => S));
 
       if O.Polling then
          Abort_Select (O.Selector);
@@ -233,14 +224,14 @@ package body Droopi.ORB is
       Enter_Critical_Section;
 
       declare
-         Sockets : constant Sk_Seqs.Element_Array
-           := Sk_Seqs.To_Element_Array (O.Sockets);
+         Sockets : constant Sock_Seqs.Element_Array
+           := Sock_Seqs.To_Element_Array (O.ORB_Sockets);
       begin
      All_Sockets:
          for I in Sockets'Range loop
             if Sockets (I).Socket = S then
-               Sk_Seqs.Delete
-                 (Source  => O.Sockets,
+               Sock_Seqs.Delete
+                 (Source  => O.ORB_Sockets,
                   From    => 1 + I - Sockets'First,
                   Through => 1 + I - Sockets'First);
 

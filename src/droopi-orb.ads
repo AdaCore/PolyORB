@@ -8,12 +8,12 @@ with Sequences.Unbounded;
 
 with Droopi.Jobs;
 with Droopi.Soft_Links;
+with Droopi.Sockets;
+with Droopi.Tasking_Policies;
 
 package Droopi.ORB is
 
    pragma Elaborate_Body;
-
-   package Sk renames System.Garlic.Sockets;
 
    ---------------------
    -- A server object --
@@ -27,12 +27,12 @@ package Droopi.ORB is
    ------------------------
 
    type Socket_Kind is
-     (Invalid_Sk,
-      Listening_Sk,
-      Communication_Sk);
+     (Invalid_SK,
+      Listening_SK,
+      Communication_SK);
 
-   type Active_Socket (Kind : Socket_Kind := Invalid_Sk) is record
-      Socket   : Sk.Socket_Type;
+   type Active_Socket (Kind : Socket_Kind := Invalid_SK) is record
+      Socket   : Sockets.Socket_Type;
       --  Protocol : Protocol_Access;
    end record;
 
@@ -40,8 +40,8 @@ package Droopi.ORB is
    --  Process events that have occurred on active socket AS, managed
    --  by server O.
 
-   package Sk_Seqs is new Sequences.Unbounded (Active_Socket);
-   subtype Sk_Seq is Sk_Seqs.Sequence;
+   package Sock_Seqs is new Sequences.Unbounded (Active_Socket);
+   subtype Sock_Seq is Sock_Seqs.Sequence;
 
    ------------------------------
    -- Server object operations --
@@ -82,19 +82,41 @@ package Droopi.ORB is
    --  Shut down ORB O. If Wait_For_Completion is True, do
    --  not return before the shutdown is completed.
 
+   procedure Insert_Socket
+     (O : access ORB;
+      S : Sockets.Socket_Type;
+      K : Socket_Kind);
+   --  Insert socket S with kind K in the set of sockets monitored by O.
+
+   procedure Delete_Socket
+     (O : access ORB;
+      S : Sockets.Socket_Type);
+   --  Delete socket S from the set of sockets monitored by O.
+
 private
 
    type ORB is limited record
+
+      -----------------------
+      -- Server parameters --
+      -----------------------
+
+      Tasking_Policy : Tasking_Policies.Tasking_Policy_Access;
+
+      ------------------
+      -- Server state --
+      ------------------
+
       Shutdown   : Boolean := False;
       --  Set to True when ORB shutdown has been requested.
 
-      Job_Queue  : Droopi.Jobs.Job_Queue_Access;
+      Job_Queue  : Jobs.Job_Queue_Access;
       --  The queue of jobs to be processed by ORB tasks.
 
-      Idle_Tasks : Droopi.Soft_Links.Barrier_Access;
+      Idle_Tasks : Soft_Links.Barrier_Access;
       --  Idle ORB task wait on this barrier.
 
-      Sockets : Sk_Seq;
+      ORB_Sockets : Sock_Seq;
       --  The set of transport endpoints to be monitored
       --  by ORB tasks.
 
@@ -102,7 +124,7 @@ private
       --  True if, and only if, one task is blocked waiting
       --  for external events on Monitored_Sockets.
 
-      Selector : Sk.Selector_Access;
+      Selector : Sockets.Selector_Access;
       --  The selector object used to wait for an external event.
 
    end record;
