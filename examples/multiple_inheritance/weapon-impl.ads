@@ -1,46 +1,30 @@
-----------------------------------------------------------------------------
-----                                                                    ----
-----     This in an example which is hand-written                       ----
-----     for the Weapon object                                          ----
-----                                                                    ----
-----                package Waepon_impl                                 ----
-----                                                                    ----
-----                author : Sebastien Ponce                            ----
-----                                                                    ----
-----------------------------------------------------------------------------
+with Omniobject ;
+package weapon.Impl is
 
-with Giop_S, Corba.Object, OmniORB ;
-
-package Weapon.Impl is
-
-   --------------------------------------------------
-   ----                spec                      ----
-   --------------------------------------------------
-
-   type Object is new Corba.Implementation_Defined.Object with private;
-
-   procedure Shoot (Self: in access Object; Weapon_Name: in Name) ;
+   type Object is new Omniobject.Implemented_Object with private ;
+   type Object_Ptr is access all Object ;
 
 
-   --------------------------------------------------
-   ----              not in  spec                ----
-   --------------------------------------------------
+   -----------------------
+   -- IDL definitions   --
+   -----------------------
 
-   procedure Init (Self : in out Object; K : in OmniORB.ObjectKey);
-   -- initializer
+   procedure shoot(Self : access Object; ranges : in dist ) ;
 
-   function Dispatch (Self : in Object;
-                      Orls : in out Giop_S;
-                      Orl_Op : in Corba.String;
-                      Orl_Response_Expected : in Corba.Boolean)
-                      return Corba.Boolean;
-   -- called by the ORB's dispatch function in omniObject.ads
-   -- calls the function whose name is Orl_OP
-   -- returns true on success, false on failure
 
 
 private
 
-   type Object is new Corba.Object.Ref with null record;
+   -- You may add fields to this record
+   type Object is new Omniobject.Implemented_Object with record
+      Null ;
+   end record ;
 
-End Weapon.Impl ;
+   --------------------------------------------------
+   ----          finalization operators          ----
+   --------------------------------------------------
+   procedure Initialize(Self : in out Object) ;
+   procedure Adjust(Self : in out Object) ;
+   procedure Finalize(Self : in out Object) ;
+
+end weapon.Impl ;

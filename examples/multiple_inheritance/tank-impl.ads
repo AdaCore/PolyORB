@@ -1,51 +1,42 @@
-----------------------------------------------------------------------------
-----                                                                    ----
-----     This in an example which is hand-written                       ----
-----     for the Tank object                                            ----
-----                                                                    ----
-----                package Tank.Impl                                   ----
-----                                                                    ----
-----                author : Sebastien Ponce                            ----
-----                                                                    ----
-----------------------------------------------------------------------------
+with Omniobject ;
+with vehicle.Impl ;
+with weapon.Impl ;
+with Corba ;
+package tank.Impl is
 
-with Giop_S, Corba.Object, OmniORB, Vehicle.Impl, Weapon.Impl ;
-
-package Tank.Impl is
-
-   --------------------------------------------------
-   ----                spec                      ----
-   --------------------------------------------------
-
-   -- Inheritance from vehicle
-   type Object is new Vehicle.Impl.Object with private;
+   type Object is new vehicle.Impl.Object with private ;
+   type Object_Ptr is access all Object ;
 
 
-   -- Added from weapon for multiple inheritance
-   procedure Shoot (Self: in access Object ;
-                    Weapon_Name: in Name) ;
+   -----------------------------
+   -- inheritance from weapon
+   -----------------------------
+
+   procedure shoot(Self : access Object; ranges : in dist ) ;
 
 
 
-   --------------------------------------------------
-   ----    not in  spec omniORB specific         ----
-   --------------------------------------------------
+   -----------------------
+   -- IDL definitions   --
+   -----------------------
 
-   procedure Init (Self : in out Object; K : in OmniORB.ObjectKey);
-   -- initializer
+   function move(Self : access Object; fast : in Weapon.dist) return Corba.String ;
 
-   function Dispatch (Self : in Object;
-                      Orls : in out Giop_S;
-                      Orl_Op : in Corba.String;
-                      Orl_Response_Expected : in Corba.Boolean)
-                      return Corba.Boolean;
-   -- called by the ORB's dispatch function in omniObject.ads
-   -- calls the function whose name is Orl_OP
-   -- returns true on success, false on failure
+
 
 
 private
 
-   type Object is new Vehicle.Impl.Object with null record;
+   -- You may add fields to this record
+   type Object is new vehicle.Impl.Object with record
+      Null;
+   end record;
 
-End Tank.Impl ;
+   --------------------------------------------------
+   ----          finalization operators          ----
+   --------------------------------------------------
+   procedure Initialize(Self : in out Object) ;
+   procedure Adjust(Self : in out Object) ;
+   procedure Finalize(Self : in out Object) ;
+
+end tank.Impl ;
