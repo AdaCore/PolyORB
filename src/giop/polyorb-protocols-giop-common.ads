@@ -173,6 +173,6 @@ package PolyORB.Protocols.GIOP.Common is
      (Buf_In  : PolyORB.Buffers.Buffer_Access;
       Buf_Out : PolyORB.Buffers.Buffer_Access;
       Count   : Types.Unsigned_Long);
-   --  copy Count bytes from a buffer to another one
+   --  Copy Count bytes from a buffer to another one
 
 end PolyORB.Protocols.GIOP.Common;
