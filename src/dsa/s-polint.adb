@@ -44,6 +44,7 @@ with System.RPC;
 with GNAT.HTable;
 
 with PolyORB.Binding_Data;
+with PolyORB.Configuration;
 with PolyORB.DSA_P.Exceptions;
 with PolyORB.DSA_P.Partitions;
 with PolyORB.Dynamic_Dict;
@@ -59,7 +60,6 @@ pragma Warnings (Off);
 with PolyORB.Opaque;
 pragma Warnings (On);
 with PolyORB.ORB;
-with PolyORB.Parameters;
 with PolyORB.POA;
 with PolyORB.POA_Config;
 with PolyORB.POA_Types;
@@ -211,7 +211,7 @@ package body System.PolyORB_Interface is
    begin
       if PSNNC.Is_Nil (Naming_Context_Cache) then
          PolyORB.References.String_To_Object
-           (PolyORB.Parameters.Get_Conf ("dsa", "naming_ior"),
+           (PolyORB.Configuration.Get_Conf ("dsa", "naming_ior"),
             R);
          PSNNC.Set (Naming_Context_Cache, Entity_Of (R));
       end if;
@@ -1546,37 +1546,6 @@ package body System.PolyORB_Interface is
    begin
       PolyORB.Buffers.Release (Stream.Buf);
    end Release_Buffer;
-
-   --------------------
-   -- Request_Create --
-   --------------------
-
-   procedure Request_Create
-     (Target    : in     PolyORB.References.Ref;
-      Operation : in     String;
-      Arg_List  : in     PolyORB.Any.NVList.Ref;
-      Result    : in out PolyORB.Any.NamedValue;
-      Exc_List  : in     PolyORB.Any.ExceptionList.Ref
-        := PolyORB.Any.ExceptionList.Nil_Ref;
-      Req       :    out PolyORB.Requests.Request_Access;
-      Req_Flags : in     PolyORB.Requests.Flags := 0;
-      Deferred_Arguments_Session :
-        in PolyORB.Components.Component_Access := null
-     )
-   is
-   begin
-      PolyORB.Requests.Create_Request
-        (Target         => Target,
-         Operation      => Operation,
-         Arg_List       => Arg_List,
-         Result         => Result,
-         Exc_List       => Exc_List,
-         Req            => Req,
-         Req_Flags      => Req_Flags,
-         Deferred_Arguments_Session => Deferred_Arguments_Session,
-         Identification => PolyORB.Requests.Ident_By_Position);
-   end Request_Create;
-
 
    -----------------------
    -- Request_Arguments --

@@ -529,8 +529,10 @@ package System.PolyORB_Interface is
       Req       :    out PolyORB.Requests.Request_Access;
       Req_Flags : in     PolyORB.Requests.Flags := 0;
       Deferred_Arguments_Session :
-        in PolyORB.Components.Component_Access := null
-     );
+        in PolyORB.Components.Component_Access := null;
+      Identification : in PolyORB.Requests.Arguments_Identification
+        := PolyORB.Requests.Ident_By_Position
+     ) renames PolyORB.Requests.Create_Request;
 
    procedure Request_Invoke
      (R            : PolyORB.Requests.Request_Access;
