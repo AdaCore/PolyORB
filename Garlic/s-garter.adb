@@ -412,7 +412,7 @@ package body System.Garlic.Termination is
       --  shutdown is already in progress, we do not have anything to
       --  negotiate.
 
-      if Is_Shutdown_In_Progress or else not Options.Boot_Partition then
+      if Shutdown_In_Progress or else not Options.Boot_Partition then
          return;
       end if;
 
