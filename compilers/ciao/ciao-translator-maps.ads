@@ -17,7 +17,7 @@
 ----------------------------------------
 
 --  Various mapping functions for CIAO.Translator.
---  $Id: //droopi/main/compilers/ciao/ciao-translator-maps.ads#6 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator-maps.ads#7 $
 
 with Asis;       use Asis;
 
@@ -26,14 +26,14 @@ with Idl_Fe.Types; use Idl_Fe.Types;
 
 package CIAO.Translator.Maps is
 
-   -------------------------------------------
-   -- IDL_Module_Name                       --
-   -- The name of the IDL module that maps  --
-   -- the given library unit.               --
-   -------------------------------------------
+--    -------------------------------------------
+--    -- IDL_Module_Name                       --
+--    -- The name of the IDL module that maps  --
+--    -- the given library unit.               --
+--    -------------------------------------------
 
-   function IDL_Module_Name (Library_Unit : Compilation_Unit)
-     return String;
+--    function IDL_Module_Name (Library_Unit : Compilation_Unit)
+--      return String;
 
    --------------------------------------------------------
    -- Map_Loc                                            --
@@ -41,7 +41,7 @@ package CIAO.Translator.Maps is
    -- to Errors.Location.                                --
    --------------------------------------------------------
 
-   function Map_Loc (Element : ASIS.Element)
+   function Map_Loc (Element : Asis.Element)
      return Errors.Location;
 
    ----------------------------------------------

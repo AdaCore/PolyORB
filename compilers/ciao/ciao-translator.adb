@@ -19,7 +19,7 @@
 --  This unit generates a decorated IDL tree
 --  by traversing the ASIS tree of a DSA package
 --  specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#16 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#17 $
 
 with Ada.Exceptions;
 with Ada.Wide_Text_IO;  use Ada.Wide_Text_IO;
@@ -1861,36 +1861,26 @@ package body CIAO.Translator is
      (Name : in Asis.Defining_Name)
      return String
    is
-      Name_Image : constant Program_Text
-        := Declarations.Defining_Name_Image (Name);
    begin
-      if Is_Identical
-        (Enclosing_Element (Name),
-         Unit_Declaration (Enclosing_Compilation_Unit (Name)))
-      then
-         return IDL_Module_Name (Enclosing_Compilation_Unit (Name));
-      else
-         case Defining_Name_Kind (Name) is
-            when Not_A_Defining_Name =>
-               Raise_Translation_Error
-                 (Name, "Unexpected element (Not_A_Defining_Name).");
-            when
-              A_Defining_Identifier |
-              A_Defining_Enumeration_Literal =>
-               return To_String (Name_Image);
+      case Defining_Name_Kind (Name) is
+         when Not_A_Defining_Name =>
+            Raise_Translation_Error
+              (Name, "Unexpected element (Not_A_Defining_Name).");
+         when
+           A_Defining_Identifier |
+           A_Defining_Enumeration_Literal |
+           A_Defining_Expanded_Name =>
+            return To_String
+              (Declarations.Defining_Name_Image (Name));
 
-            when A_Defining_Character_Literal =>
-               return Maps.Character_Literal_Identifier (Name_Image);
+         when A_Defining_Character_Literal =>
+            return Maps.Character_Literal_Identifier
+              (Declarations.Defining_Name_Image (Name));
 
-            when A_Defining_Operator_Symbol =>
-               return Maps.Operator_Symbol_Identifier (Name);
+         when A_Defining_Operator_Symbol =>
+            return Maps.Operator_Symbol_Identifier (Name);
 
-            when A_Defining_Expanded_Name =>
-               --  Cannot happen (this is a defining_program_unit_name,
-               --  taken care of by "if" above.)
-               raise ASIS_Failed;
-         end case;
-      end if;
+      end case;
    end Map_Defining_Name;
 
    function Translate_Subtype_Mark

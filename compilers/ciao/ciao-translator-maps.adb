@@ -17,7 +17,7 @@
 ----------------------------------------
 
 --  Various mapping functions for CIAO.Translator.
---  $Id: //droopi/main/compilers/ciao/ciao-translator-maps.adb#4 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator-maps.adb#5 $
 
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
 with Ada.Characters.Handling; use Ada.Characters.Handling;
@@ -30,56 +30,56 @@ with Idl_Fe.Tree;            use Idl_Fe.Tree;
 
 package body CIAO.Translator.Maps is
 
-   function Internal_IDL_Module_Name
-     (Library_Unit_Name : String)
-     return String;
+--    function Internal_IDL_Module_Name
+--      (Library_Unit_Name : String)
+--      return String;
 
-   function IDL_Module_Name (Library_Unit : Compilation_Unit)
-     return String is
-      Full_Name : constant String :=
-        To_String
-        (Asis.Compilation_Units.Unit_Full_Name (Library_Unit));
-   begin
-      return Internal_IDL_Module_Name (Full_Name);
-   end IDL_Module_Name;
+--    function IDL_Module_Name (Library_Unit : Compilation_Unit)
+--      return String is
+--       Full_Name : constant String :=
+--         To_String
+--         (Asis.Compilation_Units.Unit_Full_Name (Library_Unit));
+--    begin
+--       return Internal_IDL_Module_Name (Full_Name);
+--    end IDL_Module_Name;
 
-   function Internal_IDL_Module_Name
-     (Library_Unit_Name : String)
-     return String
-   is
-      Total_Dot_Count : Natural := 0;
-   begin
-      for I in Library_Unit_Name'Range loop
-         if Library_Unit_Name (I) = '.' then
-            Total_Dot_Count := Total_Dot_Count + 1;
-         end if;
-      end loop;
+--    function Internal_IDL_Module_Name
+--      (Library_Unit_Name : String)
+--      return String
+--    is
+--       Total_Dot_Count : Natural := 0;
+--    begin
+--       for I in Library_Unit_Name'Range loop
+--          if Library_Unit_Name (I) = '.' then
+--             Total_Dot_Count := Total_Dot_Count + 1;
+--          end if;
+--       end loop;
 
-      declare
-         IDL_Name  : String (1 .. Library_Unit_Name'Length + Total_Dot_Count);
-         Dot_Count : Natural := 0;
-      begin
-         for I in Library_Unit_Name'Range loop
-            declare
-               II : constant Integer := I - Library_Unit_Name'First;
-            begin
-               if Library_Unit_Name (I) /= '.' then
-                  IDL_Name
-                    (IDL_Name'First + Dot_Count + II)
-                    := Library_Unit_Name (I);
-               else
-                  IDL_Name
-                    (IDL_Name'First + Dot_Count + II ..
-                     IDL_Name'First + Dot_Count + II + 1)
-                    := "__";
-                  Dot_Count := Dot_Count + 1;
-               end if;
-            end;
-         end loop;
+--       declare
+--    IDL_Name  : String (1 .. Library_Unit_Name'Length + Total_Dot_Count);
+--          Dot_Count : Natural := 0;
+--       begin
+--          for I in Library_Unit_Name'Range loop
+--             declare
+--                II : constant Integer := I - Library_Unit_Name'First;
+--             begin
+--                if Library_Unit_Name (I) /= '.' then
+--                   IDL_Name
+--                     (IDL_Name'First + Dot_Count + II)
+--                     := Library_Unit_Name (I);
+--                else
+--                   IDL_Name
+--                     (IDL_Name'First + Dot_Count + II ..
+--                      IDL_Name'First + Dot_Count + II + 1)
+--                     := "__";
+--                   Dot_Count := Dot_Count + 1;
+--                end if;
+--             end;
+--          end loop;
 
-         return "DSA_" & IDL_Name;
-      end;
-   end Internal_IDL_Module_Name;
+--          return "DSA_" & IDL_Name;
+--       end;
+--    end Internal_IDL_Module_Name;
 
    function Map_Loc (Element : Asis.Element)
      return Errors.Location
