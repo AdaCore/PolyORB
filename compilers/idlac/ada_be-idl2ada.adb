@@ -1657,6 +1657,7 @@ package body Ada_Be.Idl2Ada is
                               Put (CU, " - 1");
                            end loop;
                            PL (CU, ") of");
+                           II (CU);
                         else
                            Put (CU, "  ");
                            if not (Is_Ref or else Is_Fixed) then
@@ -1666,6 +1667,10 @@ package body Ada_Be.Idl2Ada is
 
                         Gen_Node_Stubs_Spec (CU, T_Type (Node));
                         PL (CU, ";");
+
+                        if Is_Array then
+                           DI (CU);
+                        end if;
                      end;
 
                      if Original_Node (Decl_Node) = No_Node then
