@@ -63,7 +63,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
       Message_Type : in Msg_Type;
       Message_Size : in Stream_Element_Offset)
    is
-    use Representations.CDR;
+      use Representations.CDR;
    begin
 
       if Message_Type = Fragment then
@@ -116,8 +116,9 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
       Marshall (Buffer, Response_Expected);
 
       --  Object key
-      Marshall (Buffer, Stream_Element_Array(
-         Binding_Data.IIOP.Get_Object_Key(IIOP.IIOP_Profile_Type(Target_Profile.all))));
+      Marshall (Buffer, Stream_Element_Array
+                (Binding_Data.IIOP.Get_Object_Key
+                (IIOP.IIOP_Profile_Type (Target_Profile.all))));
 
       --  Operation
       Marshall (Buffer, Operation);
@@ -154,7 +155,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
 
    procedure Marshall_Exception
      (Buffer           : access Buffer_Type;
-      Request_Id       : in CORBA.Unsigned_long;
+      Request_Id       : in CORBA.Unsigned_Long;
       Exception_Type   : in Reply_Status_Type;
       Occurence        : in CORBA.Exception_Occurrence) is
    begin
@@ -184,7 +185,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
       Request_Id       : in  CORBA.Unsigned_Long;
       Forward_Ref      : in  Droopi.References.IOR.IOR_Type)
    is
-     use References.IOR;
+      use References.IOR;
    begin
 
       --  Service context
@@ -197,7 +198,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
       Marshall (Buffer, GIOP.Location_Forward);
 
       --  Object reference
-      References.IOR.Marshall(Buffer, Forward_Ref);
+      References.IOR.Marshall (Buffer, Forward_Ref);
 
    end  Marshall_Location_Forward;
 
@@ -209,7 +210,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
      (Buffer            : access Buffer_Type;
       Request_Id        : out CORBA.Unsigned_Long;
       Response_Expected : out Boolean;
-      Object_Key        : out Objects.Object_id;
+      Object_Key        : out Objects.Object_Id;
       Operation         : out CORBA.String)
    is
       use CORBA;
@@ -231,9 +232,9 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
 
       --  Object Key
       declare
-         Obj : Stream_Element_Array := Unmarshall(Buffer);
+         Obj : Stream_Element_Array := Unmarshall (Buffer);
       begin
-         Object_Key := Object_Id(Obj);
+         Object_Key := Object_Id (Obj);
       end;
       --  Operation
       Operation :=  Unmarshall (Buffer);
@@ -255,7 +256,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
       Reply_Status : out Reply_Status_Type)
    is
       use CORBA;
-      Service_Context : CORBA.Unsigned_Long := Unmarshall(Buffer);
+      Service_Context : CORBA.Unsigned_Long := Unmarshall (Buffer);
    begin
 
       --  Service context
@@ -269,7 +270,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
       Request_Id := Unmarshall (Buffer);
 
       --  Reply Status
-      Reply_Status := Unmarshall(Buffer);
+      Reply_Status := Unmarshall (Buffer);
 
    end Unmarshall_Reply_Message;
 

@@ -46,8 +46,8 @@ package Droopi.Protocols.GIOP.GIOP_1_1  is
 
 
    procedure Marshall_Fragment
-    ( Buffer      : access Buffers.Buffer_Type;
-      Request_Id  : in CORBA.Unsigned_Long);
+    (Buffer      : access Buffers.Buffer_Type;
+     Request_Id  : in CORBA.Unsigned_Long);
 
 
    procedure Marshall_No_Exception
@@ -69,22 +69,22 @@ package Droopi.Protocols.GIOP.GIOP_1_1  is
 
 
    procedure Unmarshall_Request_Message
-     ( Buffer            : access Buffers.Buffer_Type;
-       Request_Id        : out CORBA.Unsigned_Long;
-       Response_Expected : out Boolean;
-       Object_Key        : out Objects.Object_Id;
-       Operation         : out CORBA.String);
+     (Buffer            : access Buffers.Buffer_Type;
+      Request_Id        : out CORBA.Unsigned_Long;
+      Response_Expected : out Boolean;
+      Object_Key        : out Objects.Object_Id;
+      Operation         : out CORBA.String);
 
-    procedure Unmarshall_Reply_Message
-      (Buffer       : access Buffers.Buffer_Type;
-       Request_Id   : out CORBA.Unsigned_Long;
-       Reply_Status : out Reply_Status_Type);
+   procedure Unmarshall_Reply_Message
+     (Buffer       : access Buffers.Buffer_Type;
+      Request_Id   : out CORBA.Unsigned_Long;
+      Reply_Status : out Reply_Status_Type);
 
 
 private
 
    Service_Context_List_1_1 : constant Service_Id_Array
-                := (0=> Transaction_Service, 1=> Code_Sets);
+                 := (0 => Transaction_Service, 1 => Code_Sets);
 
    Major_Version : constant CORBA.Octet
      := 1;

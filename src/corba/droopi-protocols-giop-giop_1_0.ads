@@ -39,7 +39,7 @@ package Droopi.Protocols.GIOP.GIOP_1_0 is
 
 
    procedure Marshall_No_Exception
-    (Buffer      :Access Buffers.Buffer_Type;
+    (Buffer      : access Buffers.Buffer_Type;
      Request_Id  : in CORBA.Unsigned_Long);
 
 

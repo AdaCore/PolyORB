@@ -46,7 +46,7 @@ package Droopi.Protocols.GIOP.GIOP_1_2 is
       Fragment_Next : in Boolean);
 
 
-    procedure Marshall_Request_Message
+   procedure Marshall_Request_Message
      (Buffer             : access Buffers.Buffer_Type;
       Request_Id         : in CORBA.Unsigned_Long;
       Target_Ref         : in Target_Address;
@@ -54,57 +54,57 @@ package Droopi.Protocols.GIOP.GIOP_1_2 is
       Operation          : in Requests.Operation_Id);
 
 
-    procedure Marshall_No_Exception
+   procedure Marshall_No_Exception
     (Buffer      : access Buffers.Buffer_Type;
      Request_Id  : in CORBA.Unsigned_Long);
 
 
-    procedure Marshall_Exception
-    ( Buffer      : access Buffers.Buffer_Type;
-      Request_Id  : CORBA.Unsigned_Long;
-      Reply_Type  : in Reply_Status_Type;
-      Occurence   : in CORBA.Exception_Occurrence);
+   procedure Marshall_Exception
+    (Buffer      : access Buffers.Buffer_Type;
+     Request_Id  : CORBA.Unsigned_Long;
+     Reply_Type  : in Reply_Status_Type;
+     Occurence   : in CORBA.Exception_Occurrence);
 
 
-    procedure Marshall_Location_Forward
-    ( Buffer        : access Buffers.Buffer_Type;
-      Request_Id    : CORBA.Unsigned_Long;
-      Reply_Type    : in Reply_Status_Type;
-      Target_Ref    : in  Droopi.References.IOR.IOR_Type);
+   procedure Marshall_Location_Forward
+    (Buffer        : access Buffers.Buffer_Type;
+     Request_Id    : CORBA.Unsigned_Long;
+     Reply_Type    : in Reply_Status_Type;
+     Target_Ref    : in  Droopi.References.IOR.IOR_Type);
 
-    procedure Marshall_Needs_Addressing_Mode
-    ( Buffer              : access Buffers.Buffer_Type;
-      Request_Id          : in CORBA.Unsigned_Long;
-      Address_Type        : in Addressing_Disposition);
+   procedure Marshall_Needs_Addressing_Mode
+    (Buffer              : access Buffers.Buffer_Type;
+     Request_Id          : in CORBA.Unsigned_Long;
+     Address_Type        : in Addressing_Disposition);
 
 
-    procedure Marshall_Locate_Request
+   procedure Marshall_Locate_Request
     (Buffer            : access Buffers.Buffer_Type;
      Request_Id        : in CORBA.Unsigned_Long;
      Target_Ref        : in Target_Address);
 
 
-    procedure Marshall_Fragment
-    ( Buffer   : access Buffers.Buffer_Type;
-      Request_Id   : in CORBA.Unsigned_Long);
+   procedure Marshall_Fragment
+    (Buffer   : access Buffers.Buffer_Type;
+     Request_Id   : in CORBA.Unsigned_Long);
 
-    -------------------------------------
-    --  Unmarshall procedures
-    --------------------------------------
+   -------------------------------------
+   --  Unmarshall procedures
+   --------------------------------------
 
-    procedure Unmarshall_Request_Message
-     ( Buffer            : access Buffers.Buffer_Type;
-       Request_Id        : out CORBA.Unsigned_Long;
-       Response_Expected : out Boolean;
-       Target_Ref        : out Target_Address;
-       Operation         : out CORBA.String);
+   procedure Unmarshall_Request_Message
+     (Buffer            : access Buffers.Buffer_Type;
+      Request_Id        : out CORBA.Unsigned_Long;
+      Response_Expected : out Boolean;
+      Target_Ref        : out Target_Address;
+      Operation         : out CORBA.String);
 
-    procedure Unmarshall_Reply_Message
+   procedure Unmarshall_Reply_Message
       (Buffer       : access Buffers.Buffer_Type;
        Request_Id   : out CORBA.Unsigned_Long;
        Reply_Status : out Reply_Status_Type);
 
-    procedure Unmarshall_Locate_Request
+   procedure Unmarshall_Locate_Request
      (Buffer        : access Buffers.Buffer_Type;
       Request_Id    : out CORBA.Unsigned_Long;
       Target_Ref    : out Target_Address);
@@ -113,10 +113,10 @@ private
 
 
    Service_Context_List_1_2 : constant Service_Id_Array
-       := ( 0 => Transaction_Service, 1=>Code_Sets, 2=>Chain_By_Pass_Check,
-           3=>Chain_By_Pass_Info, 4=>Logical_Thread_Id, 5=>Bi_Dir_Iiop,
-           6=>Sending_Context_Run_Time, 7=>Invocation_Policies,
-           8=>Forwarded_Identity, 9=>Unknown_Exception_Info);
+       := (0 => Transaction_Service, 1 => Code_Sets, 2 => Chain_By_Pass_Check,
+           3 => Chain_By_Pass_Info, 4 => Logical_Thread_Id, 5 => Bi_Dir_IIOP,
+           6 => Sending_Context_Run_Time, 7 => Invocation_Policies,
+           8 => Forwarded_Identity, 9 => Unknown_Exception_Info);
 
    Major_Version : constant CORBA.Octet
      := 1;

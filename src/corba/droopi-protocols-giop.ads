@@ -278,7 +278,7 @@ package Droopi.Protocols.GIOP is
 
    procedure Unmarshall_Locate_Reply
      (Buffer        : access Buffers.Buffer_Type;
-      Request_Id    : out Corba.Unsigned_Long;
+      Request_Id    : out CORBA.Unsigned_Long;
       Locate_Status : out Locate_Status_Type);
 
 
@@ -290,12 +290,12 @@ package Droopi.Protocols.GIOP is
    procedure Request_Message
      (Ses               : access GIOP_Session;
       Response_Expected : in Boolean;
-      Fragment_Next     : out boolean);
+      Fragment_Next     : out Boolean);
 
    procedure No_Exception_Reply
      (Ses           : access GIOP_Session;
       Request_Id    : in CORBA.Unsigned_Long;
-      Fragment_Next : out boolean);
+      Fragment_Next : out Boolean);
 
 
    procedure Exception_Reply
@@ -306,7 +306,7 @@ package Droopi.Protocols.GIOP is
 
    procedure Location_Forward_Reply
      (Ses             : access GIOP_Session;
-      Forward_Ref     : in Droopi.References.IOR.Ior_Type;
+      Forward_Ref     : in Droopi.References.IOR.IOR_Type;
       Fragment_Next   : out Boolean);
 
    procedure Need_Addressing_Mode_Message
@@ -344,7 +344,7 @@ package Droopi.Protocols.GIOP is
      (Proto   : access GIOP_Protocol;
       Session : out Filter_Access);
 
-    procedure Initialise_Session
+   procedure Initialise_Session
       (S       : access GIOP_Session;
        Role    : ORB.Endpoint_Role);
 
