@@ -25,7 +25,7 @@ procedure Client is
    Egg_Ior : Corba.String ;
    Tmp_Chicken : Chicken_Forward.Ref ;
 begin
-   Put_Line("main : Starting client") ;
+   Put_Line("MAIN : Starting client") ;
 
    if Ada.Command_Line.Argument_Count < 1 then
       Put_Line ("usage : client <egg_IOR>") ;
@@ -36,14 +36,15 @@ begin
 
    Corba.Orb.String_To_Object(Egg_IOR, My_Egg) ;
 
-   Put_Line("main : Got the Egg") ;
+   Put_Line("MAIN : Got the Egg") ;
 
    Tmp_Chicken := Egg.Hatch(My_Egg) ;
 
-   Put_Line("main : Got the chicken_forward !!!!!!!!!!!") ;
+   Put_Line("MAIN : Got the chicken_forward !!!!!!!!!!!") ;
 
    My_Chicken := Chicken.Convert_Forward.From_Forward(Tmp_Chicken) ;
 
-   Put_Line("main : Got the chicken") ;
+   Put_Line("MAIN : Got the chicken") ;
 
 end ;
+

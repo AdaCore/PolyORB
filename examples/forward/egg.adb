@@ -29,7 +29,8 @@ package body Egg is
       Repo_id : Corba.String := Get_Repository_Id(Result) ;
    begin
       if Is_A(Dynamic_Type, Repo_Id) then
-         return  (Corba.Object.Ref(The_Ref) with null record)  ;
+         Corba.Object.Internal_Copy(The_Ref, Result) ;
+         return Result ;
       end if ;
 
       Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,
