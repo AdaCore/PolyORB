@@ -1,0 +1,25 @@
+#! /bin/sh
+
+# Usage: run_examples <$TOPDIR>
+# $Id: //depot/adabroker/release-1/utils/run_examples#1 $
+
+TOP=$1
+EXAMPLES="all_types all_functions"
+
+set -e
+
+OUT=srv.out.$$
+
+for ex in $EXAMPLES
+do (
+  cd $TOP/examples/$ex
+  ./server > $OUT &
+  server_pid=$!
+
+  sleep 1
+  IOR=`grep IOR $OUT | sed "s/^.*\(IOR:.*\)'.*$/\1/"`
+
+  ./client $IOR
+  kill -9 $server_pid
+  rm -f $OUT
+) done

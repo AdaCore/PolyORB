@@ -73,13 +73,6 @@ package Ada_BE.Source_Streams is
    --  Additionnally, an elaboration control pragma may
    --  be inserted according to Elab_Control.
 
-   procedure Add_Elaborate_Body (Unit : in out Compilation_Unit);
-   --  Add a pragma Elaborate_Body to the spec denoted by Unit.
-
-   procedure Suppress_Warning_Message (Unit : in out Compilation_Unit);
-   --  Remove warning such as "Do not modify this file". Used for
-   --  implementations.
-
    type String_Ptr is access String;
    procedure Free is
       new Ada.Unchecked_Deallocation (String, String_Ptr);
@@ -119,8 +112,6 @@ private
 
       Library_Unit_Name : String_Ptr;
       Kind              : Unit_Kind;
-      Elaborate_Body    : Boolean := False;
-      No_Warning        : Boolean := False;
 
       Context_Clause : Dependency
         := null;

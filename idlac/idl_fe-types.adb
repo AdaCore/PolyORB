@@ -32,6 +32,7 @@ with Idl_Fe.Lexer;
 with Idl_Fe.Tree; use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 with Idl_Fe.Debug;
+pragma Elaborate (Idl_Fe.Debug);
 
 with Utils; use Utils;
 

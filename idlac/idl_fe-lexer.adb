@@ -37,6 +37,7 @@ with GNAT.Case_Util;
 with GNAT.OS_Lib;
 
 with Idl_Fe.Debug;
+pragma Elaborate_All (Idl_Fe.Debug);
 
 with Platform;
 
@@ -1169,11 +1170,6 @@ package body Idl_Fe.Lexer is
                --  Pass user options to the preprocessor.
                Add_Argument (Full_Switch);
             end loop;
-
-            --  Always add the current directory at the end of the
-            --  include list.
-            Add_Argument ("-I");
-            Add_Argument (".");
 
             Create_Temp_File (Fd, Tmp_File_Name);
             if Fd = Invalid_FD then

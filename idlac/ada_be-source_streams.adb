@@ -30,6 +30,7 @@ with Ada.Unchecked_Deallocation;
 with Ada.Text_IO;
 
 with Ada_Be.Debug;
+pragma Elaborate (Ada_Be.Debug);
 
 package body Ada_Be.Source_Streams is
 
@@ -104,17 +105,6 @@ package body Ada_Be.Source_Streams is
         and then LU1 = LU2
         (LU2'First .. LU2'First + LU1'Length - 1);
    end Is_Ancestor;
-
-   procedure Add_Elaborate_Body (Unit : in out Compilation_Unit) is
-   begin
-      pragma Assert (Unit.Kind = Unit_Spec);
-      Unit.Elaborate_Body := True;
-   end Add_Elaborate_Body;
-
-   procedure Suppress_Warning_Message (Unit : in out Compilation_Unit) is
-   begin
-      Unit.No_Warning := True;
-   end Suppress_Warning_Message;
 
    procedure Add_With
      (Unit   : in out Compilation_Unit;
@@ -223,30 +213,8 @@ package body Ada_Be.Source_Streams is
 
       use Ada.Text_IO;
 
-      procedure Emit_Standard_Header
-        (File        : in File_Type;
-         User_Edited : in Boolean := False);
-
       procedure Emit_Source_Code
         (File : in File_Type);
-
-      procedure Emit_Standard_Header
-        (File        : in File_Type;
-         User_Edited : in Boolean := False)
-      is
-      begin
-         Put_Line (File, "----------------------------------------------");
-         Put_Line (File, "--  This file has been generated automatically");
-         Put_Line (File, "--  by AdaBroker (http://adabroker.eu.org/)");
-         if not User_Edited then
-            Put_Line (File, "--");
-            Put_Line (File, "--  Do NOT hand-modify this file, as your");
-            Put_Line (File, "--  changes will be lost when you re-run the");
-            Put_Line (File, "--  IDL to Ada compiler.");
-         end if;
-         Put_Line (File, "----------------------------------------------");
-         New_Line (File);
-      end Emit_Standard_Header;
 
       procedure Emit_Source_Code
         (File : in File_Type)
@@ -282,12 +250,6 @@ package body Ada_Be.Source_Streams is
             Put (File, "body ");
          end if;
          Put_Line (File, Unit.Library_Unit_Name.all & " is");
-
-         if Unit.Elaborate_Body then
-            New_Line (File);
-            Put_Line ("   pragma Elaborate_Body;");
-         end if;
-
          Put (File, To_String (Unit.Library_Item));
 
          if not Is_Generic_Instanciation then
@@ -301,7 +263,6 @@ package body Ada_Be.Source_Streams is
       end if;
 
       if To_Stdout then
-         Emit_Standard_Header (Current_Output, Unit.No_Warning);
          Emit_Source_Code (Current_Output);
       else
          declare
@@ -310,7 +271,6 @@ package body Ada_Be.Source_Streams is
             File : File_Type;
          begin
             Create (File, Out_File, File_Name);
-            Emit_Standard_Header (File, Unit.No_Warning);
             Emit_Source_Code (File);
             Close (File);
          end;
