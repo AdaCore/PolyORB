@@ -35,11 +35,13 @@ with PolyORB.Exceptions;
 with PolyORB.Lanes;
 with PolyORB.POA_Policies;
 with PolyORB.Servants;
+with PolyORB.Tasking.Priorities;
 
 package PolyORB.RT_POA_Policies.Thread_Pool_Policy is
 
    use PolyORB.Lanes;
    use PolyORB.POA_Policies;
+   use PolyORB.Tasking.Priorities;
 
    type ThreadPoolPolicy is new PolyORB.POA_Policies.Policy with private;
 
@@ -64,6 +66,11 @@ package PolyORB.RT_POA_Policies.Thread_Pool_Policy is
      (Self    : ThreadPoolPolicy;
       Servant : PolyORB.Servants.Servant_Access);
    --  Cache Self information into Servant
+
+   function Is_Valid_Priority
+     (Self     : ThreadPoolPolicy;
+      Priority : External_Priority)
+     return Boolean;
 
 private
 

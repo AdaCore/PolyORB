@@ -71,6 +71,14 @@ package PolyORB.Lanes is
    --  Queue job J in lane L, Hint_Priority defines a base priority to
    --  be used by the lane to queue J.
 
+   function Is_Valid_Priority
+     (L        : access Lane_Root;
+      Priority :        External_Priority)
+     return Boolean
+     is abstract;
+   --  Return True if a request at priority Priority can be handled by
+   --  lane L.
+
    procedure Destroy (L : access Lane_Root) is abstract;
 
    ----------
@@ -111,6 +119,11 @@ package PolyORB.Lanes is
       J             :        Job_Access;
       Hint_Priority :        External_Priority := Invalid_Priority);
 
+   function Is_Valid_Priority
+     (L        : access Lane;
+      Priority :        External_Priority)
+     return Boolean;
+
    procedure Destroy (L : access Lane);
 
    ---------------------
@@ -143,6 +156,11 @@ package PolyORB.Lanes is
      (L             : access Lanes_Set;
       J             :        Job_Access;
       Hint_Priority :        External_Priority := Invalid_Priority);
+
+   function Is_Valid_Priority
+     (L        : access Lanes_Set;
+      Priority :        External_Priority)
+     return Boolean;
 
    procedure Destroy (L : access Lanes_Set);
 

@@ -376,6 +376,34 @@ package body PolyORB.Lanes is
       end;
    end Queue_Job;
 
+   -----------------------
+   -- Is_Valid_Priority --
+   -----------------------
+
+   function Is_Valid_Priority
+     (L        : access Lane;
+      Priority :        External_Priority)
+     return Boolean
+   is
+   begin
+      return L.Ext_Priority = Priority;
+   end Is_Valid_Priority;
+
+   function Is_Valid_Priority
+     (L        : access Lanes_Set;
+      Priority :        External_Priority)
+     return Boolean
+   is
+   begin
+      for J in L.Set'Range loop
+         if L.Set (J).all.Ext_Priority = Priority then
+            return True;
+         end if;
+      end loop;
+
+      return False;
+   end Is_Valid_Priority;
+
    ----------
    -- Idle --
    ----------

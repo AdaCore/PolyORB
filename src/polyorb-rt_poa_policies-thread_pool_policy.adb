@@ -134,4 +134,17 @@ package body PolyORB.RT_POA_Policies.Thread_Pool_Policy is
       end if;
    end Set_Servant_Lane;
 
+   -----------------------
+   -- Is_Valid_Priority --
+   -----------------------
+
+   function Is_Valid_Priority
+     (Self     : ThreadPoolPolicy;
+      Priority : External_Priority)
+     return Boolean
+   is
+   begin
+      return Is_Valid_Priority (Self.Lanes, Priority);
+   end Is_Valid_Priority;
+
 end PolyORB.RT_POA_Policies.Thread_Pool_Policy;

@@ -630,6 +630,19 @@ package body PolyORB.RT_POA.Basic_RT_POA is
          return;
       end if;
 
+      --  Check Server_External_Priority is correct
+
+      if Self.Thread_Pool_Policy = null
+        or else not Is_Valid_Priority (Self.Thread_Pool_Policy.all,
+                                       Server_External_Priority)
+      then
+         Throw (Error,
+                Bad_Param_E,
+                System_Exception_Members'(Minor     => 0,
+                                          Completed => Completed_No));
+         return;
+      end if;
+
       Create_Object_Identification (To_Non_RT_POA (Self), Hint, U_Oid, Error);
 
       Append
@@ -673,6 +686,19 @@ package body PolyORB.RT_POA.Basic_RT_POA is
         or else Self.Priority_Model_Policy.Model /= SERVER_DECLARED
       then
          Throw (Error, WrongPolicy_E, Null_Members'(Null_Member));
+         return;
+      end if;
+
+      --  Check Server_External_Priority is correct
+
+      if Self.Thread_Pool_Policy = null
+        or else not Is_Valid_Priority (Self.Thread_Pool_Policy.all,
+                                       Server_External_Priority)
+      then
+         Throw (Error,
+                Bad_Param_E,
+                System_Exception_Members'(Minor     => 0,
+                                          Completed => Completed_No));
          return;
       end if;
 

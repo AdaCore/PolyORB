@@ -45,6 +45,8 @@ with PortableServer.POAManager;
 with RTCORBA.RTORB;
 with RTCORBA.PriorityMapping.Linear;
 with RTCORBA.PriorityModelPolicy;
+with RTCORBA.ThreadpoolPolicy;
+
 with RTPortableServer.POA;
 
 with PolyORB.RTCORBA_P.Setup;
@@ -55,9 +57,9 @@ with PolyORB.Utils.Report;
 
 --  Begin of PolyORB's setup
 
-with PolyORB.ORB.No_Tasking;
-pragma Warnings (Off, PolyORB.ORB.No_Tasking);
-pragma Elaborate_All (PolyORB.ORB.No_Tasking);
+with PolyORB.ORB.Thread_Pool;
+pragma Warnings (Off, PolyORB.ORB.Thread_Pool);
+pragma Elaborate_All (PolyORB.ORB.Thread_Pool);
 
 with PolyORB.ORB_Controller.Basic;
 pragma Warnings (Off, PolyORB.ORB_Controller.Basic);
@@ -67,9 +69,9 @@ with PolyORB.Request_Scheduler.Servant_Lane;
 pragma Warnings (Off, PolyORB.Request_Scheduler.Servant_Lane);
 pragma Elaborate_All (PolyORB.Request_Scheduler.Servant_Lane);
 
-with PolyORB.Setup.Tasking.No_Tasking;
-pragma Warnings (Off, PolyORB.Setup.Tasking.No_Tasking);
-pragma Elaborate_All (PolyORB.Setup.Tasking.No_Tasking);
+with PolyORB.Setup.Tasking.Full_Tasking;
+pragma Warnings (Off, PolyORB.Setup.Tasking.Full_Tasking);
+pragma Elaborate_All (PolyORB.Setup.Tasking.Full_Tasking);
 
 with PolyORB.Parameters.File;
 pragma Warnings (Off, PolyORB.Parameters.File);
@@ -193,7 +195,7 @@ begin
                  RTPortableServer.POA.Create_Reference_With_Priority
                  (Child_POA_Server,
                   CORBA.To_CORBA_String (Echo.Repository_Id),
-                  7);
+                  10000);
                pragma Unreferenced (Obj_Ref2);
             begin
                Output ("Create_Reference_With_Priority raised an exception",
@@ -204,6 +206,7 @@ begin
                Output ("Create_Reference_With_Priority raised an exception",
                        True);
          end;
+
 
          --  Create reference with id and priority
 
@@ -217,7 +220,7 @@ begin
                  (Child_POA_Server,
                   Oid,
                   CORBA.To_CORBA_String (Echo.Repository_Id),
-                  7);
+                  10000);
                pragma Unreferenced (Obj_Ref2);
             begin
                Output
@@ -241,7 +244,7 @@ begin
                  := RTPortableServer.POA.Activate_Object_With_Priority
                  (Child_POA_Server,
                   PortableServer.Servant (Obj2),
-                  11000);
+                  10000);
                pragma Unreferenced (Oid);
             begin
                Output ("Activate_Object_With_Priority raised no exception",
@@ -266,7 +269,7 @@ begin
                  (Child_POA_Server,
                   Oid,
                   PortableServer.Servant (Obj2),
-                  11000);
+                  10000);
 
                Output
                  ("Activate_Object_With_Id_And_Priority raised no exception",
@@ -293,6 +296,8 @@ begin
          Child_POA_Server : RTPortableServer.POA.Ref;
          Policies_Server : CORBA.Policy.PolicyList;
          Ref_Server : CORBA.Object.Ref;
+         Thread_Pool_Id : RTCORBA.ThreadpoolId;
+         Thread_Pool_Policy_Ref : RTCORBA.ThreadpoolPolicy.Ref;
 
          No_Implicit_Activation_Policy : CORBA.Policy.Ref
            := CORBA.Policy.Ref
@@ -311,11 +316,35 @@ begin
 
          Output ("SERVER_DECLARED policy declared", True);
 
+         --  Create Threadpool
+
+         Thread_Pool_Id := RTCORBA.RTORB.Create_Threadpool
+           (RT_ORB,
+            Stacksize               => 262_144,
+            Static_Threads          => 2,
+            Dynamic_Threads         => 0,
+            Default_Priority        => 12000,
+            Allow_Request_Buffering => False,
+            Max_Buffered_Requests   => 1,
+            Max_Request_Buffer_Size => 0);
+
+         Output ("Thread Pool created with id"
+                 & RTCORBA.ThreadpoolId'Image (Thread_Pool_Id), True);
+
+         --  Construct Thread Pool policy from previous threadpool
+
+         Thread_Pool_Policy_Ref := RTCORBA.RTORB.Create_Threadpool_Policy
+           (RT_ORB, Thread_Pool_Id);
+
+         Output ("Create Threadpool policy", True);
+
          --  Create Child POA with SERVER_DECLARED priority model policy
          --  and NO_IMPLICIT_ACTIVATION activation policy
 
          Append (Policies_Server,
                  CORBA.Policy.Ref (Priority_Model_Policy_Ref_Server));
+
+         Append (Policies_Server, CORBA.Policy.Ref (Thread_Pool_Policy_Ref));
 
          Append (Policies_Server, No_Implicit_Activation_Policy);
 
@@ -345,7 +374,7 @@ begin
                        & "raised PortableServer.POA.ServantNotActive", True);
          end;
 
-         --  Create reference
+         --  Create reference with priority
 
          begin
             declare
@@ -354,6 +383,26 @@ begin
                  (Child_POA_Server,
                   CORBA.To_CORBA_String (Echo.Repository_Id),
                   7);
+               pragma Unreferenced (Obj_Ref2);
+            begin
+               Output ("Create_Reference_With_Priority raised an exception",
+                       False);
+            end;
+         exception
+            when CORBA.Bad_Param =>
+               Output ("Create_Reference_With_Priority raised an exception",
+                       True);
+         end;
+
+         --  Create reference
+
+         begin
+            declare
+               Obj_Ref2 : constant CORBA.Object.Ref :=
+                 RTPortableServer.POA.Create_Reference_With_Priority
+                 (Child_POA_Server,
+                  CORBA.To_CORBA_String (Echo.Repository_Id),
+                  12000);
 
             begin
                Output ("Create_Reference_With_Priority raised no exception",
@@ -387,7 +436,7 @@ begin
                  := RTPortableServer.POA.Activate_Object_With_Priority
                  (Child_POA_Server,
                   PortableServer.Servant (Obj2),
-                  13000);
+                  12000);
 
             begin
                Output ("Activate_Object_With_Priority did not raise exception",
