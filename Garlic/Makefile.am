@@ -214,7 +214,7 @@ inlining: all-local
 	      if [ ! -f gnatlib/$$o ]; then\
 	          s=`gnatls -a -s $$o | sed 's/\013//g'`;\
 	          (cd gnatlib;\
-	           $(ADA_FOR_TARGET) $(CFLAGS) $(GNATFLAGS) -I.. -I- $$s;\
+	           $(ADA_FOR_TARGET) $(CFLAGS) $(GNATFLAGS) -I. -I.. -I- $$s;\
 	           if test $$? = 0; then\
 	              echo $$o >>rebuild;\
 	           else\
