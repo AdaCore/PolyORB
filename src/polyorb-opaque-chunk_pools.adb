@@ -33,7 +33,7 @@
 
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.adb#12 $
+--  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.adb#13 $
 
 with Ada.Unchecked_Deallocation;
 with System;
@@ -42,6 +42,11 @@ package body PolyORB.Opaque.Chunk_Pools is
 
    use Ada.Streams;
    use Chunk_Lists;
+
+   procedure Allocate_Chunk (X : in out Chunk);
+   --  Initialize data for the chunk.
+   procedure Deallocate_Chunk (X : in out Chunk);
+   --  Free the memory allocated for the chunk.
 
    --------------------
    -- Allocate_Chunk --
@@ -133,7 +138,6 @@ package body PolyORB.Opaque.Chunk_Pools is
             Deallocate_Chunk (This.all);
             if This.all'Address /= Pool.Prealloc'Address then
                Free (This);
-               null;
             end if;
          end;
          Next (It);

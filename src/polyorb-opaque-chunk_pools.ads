@@ -33,7 +33,7 @@
 
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.ads#11 $
+--  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.ads#12 $
 
 
 with PolyORB.Utils.Chained_Lists;
@@ -90,11 +90,6 @@ package PolyORB.Opaque.Chunk_Pools is
    --  package.
 
 private
-
-   procedure Allocate_Chunk (X : in out Chunk);
-   --  Initialize data for the chunk.
-   procedure Deallocate_Chunk (X : in out Chunk);
-   --  Free the memory allocated for the chunk.
 
    pragma Inline (Metadata);
 
