@@ -50,24 +50,27 @@ package body PolyORB.GIOP_P.Exceptions is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   CORBA_Exc_Root : constant String := "IDL:omg.org/CORBA/";
-   CORBA_Exc_Version   : constant String := ":1.0";
+   CORBA_Exc_Root    : constant String := "IDL:omg.org/CORBA/";
+   CORBA_Exc_Version : constant String := ":1.0";
    --  CORBA exceptions root and version.
 
    -----------------------------------
    -- Extract_System_Exception_Name --
    -----------------------------------
 
-   function Extract_System_Exception_Name (Name : Standard.String)
-                                          return Standard.String
+   function Extract_System_Exception_Name
+     (Name : Standard.String)
+     return Standard.String
    is
       CER_Length : constant Natural :=  CORBA_Exc_Root'Length;
       CEV_Length : constant Natural :=  CORBA_Exc_Version'Length;
+
    begin
       if Name (Name'First .. Name'First + CER_Length - 1) /=
         CORBA_Exc_Root then
          raise Program_Error;
       end if;
+
       pragma Debug (O ("System exception name:"
                        & Name (Name'First + CER_Length
                                .. Name'Last - CEV_Length)));
