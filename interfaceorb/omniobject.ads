@@ -10,7 +10,7 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
-with System, Interfaces.C.Strings ;
+with System, Interfaces, Interfaces.C.Strings ;
 with Corba, OmniObjectManager, Omniropeandkey ;
 
 package OmniObject is

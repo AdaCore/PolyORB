@@ -16,6 +16,8 @@ package Rope is
 
   type Object is limited private ;
 
+  type Object_Access is access Object ;
+
   function Null_Rope return Object ;
 
 private
