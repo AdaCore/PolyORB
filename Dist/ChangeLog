@@ -1,3 +1,8 @@
+Fri Mar 21 14:20:39 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
+
+	* xe_check.adb: Always load internal files. Otherwise, a partition
+	containing explicitly only predefined units are detected as empty.
+
 Fri Mar 21 11:44:08 1997  Samuel Tardieu  <sam@zaphod.enst.fr>
 
 	* Makefile.am: Make xe_defs.adb and sdefault.adb depend from the
