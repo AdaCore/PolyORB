@@ -44,10 +44,14 @@ with System.Garlic.Debug;        use System.Garlic.Debug;
 with System.Garlic.Heart;        use System.Garlic.Heart;
 with System.Garlic.Options;
 with System.Garlic.Priorities;   use System.Garlic.Priorities;
-with System.Garlic.Soft_Links;   use System.Garlic.Soft_Links;
+with System.Garlic.Soft_Links;
 with System.Garlic.Streams;
 with System.Garlic.Types;
 with System.Garlic.Utils;        use System.Garlic.Utils;
+
+with System.Garlic.Startup;
+pragma Elaborate_All (System.Garlic.Startup);
+pragma Warnings (Off, System.Garlic.Startup);
 
 package body System.RPC.Pool is
 
@@ -68,46 +72,52 @@ package body System.RPC.Pool is
 
    function Convert is
       new Ada.Unchecked_Conversion
-     (System.Address, Types.RPC_Receiver);
+     (System.Address, Streams.RPC_Receiver);
 
    type Cancel_Type is record
-      Partition : Types.Partition_ID;
-      Id        : RPC_Id;
-      Valid     : Boolean := False;
+      PID  : Types.Partition_ID;
+      RPC  : RPC_Id;
+      Free : Boolean := True;
    end record;
 
    type Cancel_Array is array (1 .. Max_Tasks) of Cancel_Type;
 
-   protected type Task_Manager_Type is
+   protected Task_Manager is
       entry Get_One;
+
       procedure Free_One;
+
       procedure Abort_One
-        (Partition : in Types.Partition_ID;
-         Id        : in RPC_Id);
+        (PID : in Types.Partition_ID;
+         RPC : in RPC_Id);
+
       procedure Unabort_One
-        (Partition : in Types.Partition_ID;
-         Id        : in RPC_Id);
-      entry Is_Aborted (Partition : in Types.Partition_ID; Id : in RPC_Id);
+        (PID : in Types.Partition_ID;
+         RPC : in RPC_Id);
+
+      entry Is_Aborted
+        (PID : in Types.Partition_ID;
+         RPC : in RPC_Id);
+
+      procedure Shutdown;
+
    private
+
       entry Is_Aborted_Waiting
-        (Partition : in Types.Partition_ID; Id : in RPC_Id);
+        (PID : in Types.Partition_ID;
+         RPC : in RPC_Id);
+
       Cancel_Map  : Cancel_Array;
       In_Progress : Boolean := False;
       Count       : Natural := 0;
       Count_Abort : Natural := 0;
-   end Task_Manager_Type;
+      Terminated  : Boolean := False;
+   end Task_Manager;
    --  This protected object requeues on Is_Aborted_Waiting; this may look
    --  inefficient, but we hope that remote abortion won't occur too much
    --  (or at least that remote abortion won't occur too often when there is
    --  a lot of other remote calls in progress). Count_Abort contains the
    --  number of abortion in progress.
-
-   type Task_Manager_Access is access Task_Manager_Type;
-   procedure Free is
-     new Ada.Unchecked_Deallocation
-     (Task_Manager_Type, Task_Manager_Access);
-
-   Task_Manager : Task_Manager_Access := new Task_Manager_Type;
 
    type Task_Identifier;
    type Task_Identifier_Access is access Task_Identifier;
@@ -147,7 +157,9 @@ package body System.RPC.Pool is
 
    protected Free_Tasks is
 
-      entry Get_Task (Identifier : out Task_Identifier_Access);
+      entry Get_Task
+        (Identifier : out Task_Identifier_Access;
+         Shutdown   : out Boolean);
       --  Call this to create a task. If Identifier is Null, then you have
       --  to create the task yourself before using it (calling the
       --  Create_New_Task function).
@@ -177,13 +189,14 @@ package body System.RPC.Pool is
       --  traces are potentially blocking operations.
 
    private
-      Shutdown_In_Progress : Boolean := False;
-      Free_Tasks_List      : Task_Identifier_Access;
-      Free_Tasks_Count     : Natural := 0;
-      Total_Tasks_Count    : Natural := 0;
+      Terminated        : Boolean := False;
+      Free_Tasks_List   : Task_Identifier_Access;
+      Free_Tasks_Count  : Natural := 0;
+      Total_Tasks_Count : Natural := 0;
    end Free_Tasks;
 
    task type Background_Creation is
+      entry Shutdown;
       pragma Priority (Background_Creation_Priority);
    end Background_Creation;
    --  This task will have a low priority and create tasks in the background
@@ -214,8 +227,12 @@ package body System.RPC.Pool is
       Async  : in Boolean)
    is
       Identifier : Task_Identifier_Access;
+      Terminated : Boolean;
    begin
-      Free_Tasks.Get_Task (Identifier);
+      Free_Tasks.Get_Task (Identifier, Terminated);
+      if Terminated then
+         raise System.RPC.Communication_Error;
+      end if;
       if Identifier = null then
          Identifier := Create_New_Task;
       end if;
@@ -228,7 +245,7 @@ package body System.RPC.Pool is
 
    task body Anonymous_Task is
       Dest      : Types.Partition_ID;
-      Receiver  : Types.RPC_Receiver;
+      Receiver  : Streams.RPC_Receiver;
       Result    : Streams.Params_Stream_Access;
       Cancelled : Boolean;
       Prio      : Any_Priority;
@@ -355,7 +372,6 @@ package body System.RPC.Pool is
             end if;
          end;
       end loop;
-      Free (Self);
       pragma Debug (D ("Anonymous task finishing"));
 
    exception
@@ -372,24 +388,22 @@ package body System.RPC.Pool is
    -------------------------
 
    task body Background_Creation is
-      Shutdown_In_Progress : Boolean;
-      Accepted             : Boolean;
-      Identifier           : Task_Identifier_Access;
+      Terminated : Boolean;
+      Accepted   : Boolean;
+      Identifier : Task_Identifier_Access;
    begin
-      Add_Non_Terminating_Task;
+      System.Garlic.Soft_Links.Add_Non_Terminating_Task;
       loop
-         Free_Tasks.Wait (Shutdown_In_Progress);
-         exit when Shutdown_In_Progress;
+         Free_Tasks.Wait (Terminated);
+         exit when Terminated;
          Identifier := Create_New_Task;
          Free_Tasks.Queue (Identifier, Accepted);
          if not Accepted then
             Identifier.Task_Pointer.Shutdown;
          end if;
       end loop;
-      Sub_Non_Terminating_Task;
-   exception when others =>
-      Sub_Non_Terminating_Task;
-      raise;
+      System.Garlic.Soft_Links.Sub_Non_Terminating_Task;
+      accept Shutdown;
    end Background_Creation;
 
    ---------------------
@@ -415,18 +429,25 @@ package body System.RPC.Pool is
       -- Get_Task --
       --------------
 
-      entry Get_Task (Identifier : out Task_Identifier_Access)
-      when Free_Tasks_Count > 0 or else Total_Tasks_Count < Max_Mark is
+      entry Get_Task
+        (Identifier : out Task_Identifier_Access;
+         Shutdown   : out Boolean)
+      when Terminated
+        or else Free_Tasks_Count > 0
+        or else Total_Tasks_Count < Max_Mark
+      is
       begin
-         if Shutdown_In_Progress then
-            Identifier := null;
-         elsif Free_Tasks_Count > 0 then
+         Shutdown := Terminated;
+         if Free_Tasks_Count > 0 then
             Identifier       := Free_Tasks_List;
             Free_Tasks_List  := Identifier.Next;
             Free_Tasks_Count := Free_Tasks_Count - 1;
+
          else
             Identifier := null;
-            Total_Tasks_Count := Total_Tasks_Count + 1;
+            if not Terminated then
+               Total_Tasks_Count := Total_Tasks_Count + 1;
+            end if;
          end if;
          Status;
       end Get_Task;
@@ -435,17 +456,19 @@ package body System.RPC.Pool is
       -- Queue --
       -----------
 
-      procedure Queue (Identifier : in Task_Identifier_Access;
-                       Accepted   : out Boolean)
-      is
+      procedure Queue
+        (Identifier : in Task_Identifier_Access;
+         Accepted   : out Boolean) is
       begin
-         if Shutdown_In_Progress then
+         if Terminated then
             Accepted := False;
+
          elsif Total_Tasks_Count <= High_Mark then
             Accepted         := True;
             Identifier.Next  := Free_Tasks_List;
             Free_Tasks_List  := Identifier;
             Free_Tasks_Count := Free_Tasks_Count + 1;
+
          else
             Accepted          := False;
             Total_Tasks_Count := Total_Tasks_Count - 1;
@@ -471,18 +494,20 @@ package body System.RPC.Pool is
       procedure Shutdown is
       begin
          pragma Debug (D ("Free_Tasks.Shutdown called"));
-         Shutdown_In_Progress := True;
+         Terminated := True;
       end Shutdown;
 
       ----------
       -- Wait --
       ----------
 
-      entry Wait (Shutdown : out Boolean)
-      when Shutdown_In_Progress or else Total_Tasks_Count < High_Mark is
+      entry Wait
+        (Shutdown : out Boolean)
+      when Terminated or
+        else Total_Tasks_Count < High_Mark is
       begin
-         Shutdown := Shutdown_In_Progress;
-         if not Shutdown_In_Progress then
+         Shutdown := Terminated;
+         if not Terminated then
             Total_Tasks_Count := Total_Tasks_Count + 1;
          end if;
          Status;
@@ -506,32 +531,39 @@ package body System.RPC.Pool is
    --------------
 
    procedure Shutdown is
+      Identifier : Task_Identifier_Access;
+      Terminated : Boolean;
    begin
       pragma Debug (D ("Shutdown called"));
-      Free (Task_Manager);
       Free_Tasks.Shutdown;
+      Task_Manager.Shutdown;
+      if Background_Task /= null then
+         Background_Task.Shutdown;
+      end if;
+      loop
+         Free_Tasks.Get_Task (Identifier, Terminated);
+         exit when Identifier = null;
+         Identifier.Task_Pointer.Shutdown;
+      end loop;
    end Shutdown;
 
-   -----------------------
-   -- Task_Manager_Type --
-   -----------------------
+   ------------------
+   -- Task_Manager --
+   ------------------
 
-   protected body Task_Manager_Type is
+   protected body Task_Manager is
 
       ---------------
       -- Abort_One --
       ---------------
 
       procedure Abort_One
-        (Partition : in Types.Partition_ID;
-         Id        : in RPC_Id)
-      is
+        (PID : in Types.Partition_ID;
+         RPC : in RPC_Id) is
       begin
          for I in Cancel_Map'Range loop
-            if not Cancel_Map (I) .Valid then
-               Cancel_Map (I) := (Partition => Partition,
-                                  Id        => Id,
-                                  Valid     => True);
+            if Cancel_Map (I).Free then
+               Cancel_Map (I) := (PID, RPC, False);
                Count_Abort := Count_Abort + 1;
                if Is_Aborted_Waiting'Count > 0 then
                   In_Progress := True;
@@ -564,17 +596,26 @@ package body System.RPC.Pool is
       -- Is_Aborted --
       ----------------
 
-      entry Is_Aborted (Partition : in Types.Partition_ID; Id : in RPC_Id)
-      when Count_Abort > 0 and then not In_Progress is
+      entry Is_Aborted
+        (PID : in Types.Partition_ID;
+         RPC : in RPC_Id)
+      when Terminated
+        or else (Count_Abort > 0 and then not In_Progress)
+      is
       begin
+         if Terminated then
+            return;
+         end if;
          for I in Cancel_Map'Range loop
             declare
                Ent : Cancel_Type renames Cancel_Map (I);
             begin
-               if Ent.Valid and then Ent.Id = Id and then
-                 Ent.Partition = Partition then
+               if not Ent.Free
+                 and then Ent.RPC = RPC
+                 and then Ent.PID = PID
+               then
                   Count_Abort := Count_Abort - 1;
-                  Ent.Valid := False;
+                  Ent.Free    := True;
                   return;
                end if;
             end;
@@ -587,7 +628,8 @@ package body System.RPC.Pool is
       ------------------------
 
       entry Is_Aborted_Waiting
-        (Partition : in Types.Partition_ID; Id : in RPC_Id)
+        (PID : in Types.Partition_ID;
+         RPC : in RPC_Id)
       when In_Progress is
       begin
          if Is_Aborted_Waiting'Count = 0 then
@@ -596,28 +638,38 @@ package body System.RPC.Pool is
          requeue Is_Aborted with abort;
       end Is_Aborted_Waiting;
 
+      --------------
+      -- Shutdown --
+      --------------
+
+      procedure Shutdown is
+      begin
+         Terminated := True;
+      end Shutdown;
+
       -----------------
       -- Unabort_One --
       -----------------
 
       procedure Unabort_One
-        (Partition : in Types.Partition_ID;
-         Id        : in RPC_Id)
-      is
+        (PID : in Types.Partition_ID;
+         RPC : in RPC_Id) is
       begin
          for I in Cancel_Map'Range loop
             declare
                Ent : Cancel_Type renames Cancel_Map (I);
             begin
-               if Ent.Valid and then Ent.Id = Id and then
-                 Ent.Partition = Partition then
-                  Ent.Valid := False;
+               if not Ent.Free
+                 and then Ent.RPC = RPC
+                 and then Ent.PID = PID
+               then
+                  Ent.Free    := True;
                   Count_Abort := Count_Abort - 1;
                end if;
             end;
          end loop;
       end Unabort_One;
 
-   end Task_Manager_Type;
+   end Task_Manager;
 
 end System.RPC.Pool;

@@ -145,7 +145,7 @@ package body System.Garlic.Name_Table is
             Table := new String (Min .. Max);
             Table (Min .. Last) := Old (Min .. Last);
             Table (Last + 1 .. Max) := (others => Ascii.Nul);
-            Free (Old);
+            Destroy (Old);
          end;
       end if;
 
@@ -198,6 +198,15 @@ package body System.Garlic.Name_Table is
 
       return Hash_Id (X) + 1;
    end Hash;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      Nodes.Initialize;
+   end Initialize;
 
    ----------
    -- Read --

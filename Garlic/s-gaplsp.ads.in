@@ -44,7 +44,10 @@ package System.Garlic.Platform_Specific is
 
    Platform_Name         : constant String  := "@PSNAME@";
 
-   Default_Boot_Server   : constant String  :=
-   "@BOOT_SERVER@";
+   Default_Protocol_Name : constant String  :=
+   "@DEFPROTOCOLNAME@";
+
+   Default_Protocol_Data : constant String  :=
+   "@DEFPROTOCOLDATA@";
 
 end System.Garlic.Platform_Specific;

@@ -48,48 +48,63 @@ package System.Garlic.Non_Blocking is
    package Strings renames C.Strings;
 
    function C_Accept
-     (S       : C.int;
+     (Socket  : C.int;
       Addr    : Thin.Sockaddr_Access;
       Addrlen : access C.int)
      return C.int;
    --  Thread blocking accept
 
-   function C_Close (Fildes : C.int) return C.int;
+   function C_Close
+     (Socket : C.int)
+     return C.int;
 
    function C_Connect
-     (S       : C.int;
+     (Socket  : C.int;
       Name    : Thin.Sockaddr_Access;
       Namelen : C.int)
      return C.int;
    --  Thread blocking connect
 
    function C_Recv
-     (S      : C.int;
-      Buf    : Strings.chars_ptr;
-      Len    : C.int;
+     (Socket : C.int;
+      Buffer : Strings.chars_ptr;
+      Length : C.int;
       Flags  : C.int)
      return C.int;
    --  Thread blocking read
 
    function C_Send
-     (S     : C.int;
-      Buf   : Strings.chars_ptr;
-      Len   : C.int;
-      Flags : C.int)
+     (Socket : C.int;
+      Buffer : Strings.chars_ptr;
+      Length : C.int;
+      Flags  : C.int)
      return C.int;
    --  Thread blocking write
 
+   function C_Socket (Domain, Typ, Protocol : C.int) return C.int;
+
    protected Sigio is
-      procedure Stats (S, T : out Natural);
+      procedure Shutdown;
+
+      --  We handle two signals. SIGIO to deal with normal IO and
+      --  SIGPIPE to deal with any access to a closed or incorrect
+      --  file descriptor.
+
       procedure Signal;
-      procedure Timeout;
-      entry Wait;
       pragma Attach_Handler (Signal, Ada.Interrupts.Names.SIGIO);
+      pragma Attach_Handler (Signal, Ada.Interrupts.Names.SIGPIPE);
+      procedure Stats (S, T : out Natural);
+      procedure Timeout (Stop : out Boolean);
+      entry Wait (Stop : out Boolean);
    private
-      Signals  : Natural := 0;
-      Timeouts : Natural := 0;
-      Occurred : Boolean := False;
+      Signals    : Natural := 0;
+      Timeouts   : Natural := 0;
+      Occurred   : Boolean := False;
+      Terminated : Boolean := False;
    end Sigio;
+
+   procedure Initialize;
+   procedure Shutdown;
 
 end System.Garlic.Non_Blocking;
 

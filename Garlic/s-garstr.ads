@@ -121,6 +121,8 @@ package System.Garlic.Streams is
      new Ada.Unchecked_Deallocation
      (Ada.Streams.Stream_Element_Array, Stream_Element_Access);
 
+   procedure Initialize;
+
    procedure Insert (Params : in out Params_Stream_Type);
    pragma Inline (Insert);
 
@@ -146,5 +148,10 @@ package System.Garlic.Streams is
    procedure Free is
      new Ada.Unchecked_Deallocation
      (Params_Stream_Type, Params_Stream_Access);
+
+   type RPC_Receiver is
+      access procedure (Params : access Streams.Params_Stream_Type;
+                        Result : access Streams.Params_Stream_Type);
+   --  Similar to System.RPC.RPC_Receiver
 
 end System.Garlic.Streams;

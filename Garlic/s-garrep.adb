@@ -63,16 +63,19 @@ package body System.Garlic.Replay is
    Engine : Engine_Type_Access;
    --  Reads and delivers the messages from the trace file
 
+   Self_Reference : Protocol_Access;
+
    ------------
    -- Create --
    ------------
 
-   function Create return Protocols.Protocol_Access is
-      Self : Protocol_Access := new Replay_Protocol;
-
+   function Create return Protocol_Access is
    begin
-      Register_Protocol (Self);
-      return Self;
+      if Self_Reference /= null then
+         return null;
+      end if;
+      Self_Reference := new Replay_Protocol;
+      return Self_Reference;
    end Create;
 
    -----------------
@@ -112,7 +115,8 @@ package body System.Garlic.Replay is
 
             --  Deliver message
 
-            Analyze_Stream (PID, Code, Data, Trace.Data, 0, Error);
+            Analyze_Stream
+              (PID, Self_Reference, Code, Data, Trace.Data, 0, Error);
             Free (Trace.Data);
             exit when Found (Error);
 
@@ -131,15 +135,35 @@ package body System.Garlic.Replay is
       --  initiate the shutdown itself.
 
       if Is_Boot_Server then
-         Soft_Shutdown;
+         Activate_Shutdown;
       end if;
    end Engine_Type;
+
+   --------------
+   -- Get_Data --
+   --------------
+
+   function Get_Data
+     (Protocol : access Replay_Protocol)
+     return String_Array_Access
+   is
+      Result : String_Array_Access;
+   begin
+      if Options.Execution_Mode /= Replay_Mode then
+         return null;
+      end if;
+      Result := new String_Array (1 .. 1);
+      Result (1) := new String'(Trace_File_Name.all);
+      return Result;
+   end Get_Data;
 
    --------------
    -- Get_Name --
    --------------
 
-   function Get_Name (P : access Replay_Protocol) return String is
+   function Get_Name
+     (Protocol : access Replay_Protocol)
+     return String is
    begin
       return "replay";
    end Get_Name;
@@ -150,40 +174,12 @@ package body System.Garlic.Replay is
 
    procedure Initialize
      (Protocol  : access Replay_Protocol;
-      Self_Data : in Utils.String_Access := null;
-      Boot_Data : in Utils.String_Access := null;
-      Boot_Mode : in Boolean := False;
-      Error     : in out Error_Type)
-   is
+      Self_Data : in Utils.String_Access;
+      Required  : in Boolean;
+      Performed : out Boolean;
+      Error     : in out Error_Type) is
    begin
-      --  Replay protocol is always loaded because its activation
-      --  is determined at run-time. It should be activated here when
-      --  we are sure that the boot server is replay.
-
-      if Options.Execution_Mode = Replay_Mode
-        and then Engine = null
-      then
-
-         --  Boot data provides a way to give an alternate trace file name
-
-         if Boot_Data /= null and then Boot_Data'Length /= 0 then
-            Set_Trace_File_Name (Boot_Data.all);
-         end if;
-
-         begin
-            Open (Trace_File, In_File, Trace_File_Name.all);
-         exception when others =>
-            Throw (Error, "Cannot open " & Trace_File_Name.all);
-         end;
-
-         if not Found (Error) then
-            --  We create an unnamed task on which we keep no reference
-
-            Engine := new Engine_Type;
-         end if;
-
-      end if;
-
+      Performed := False;
    end Initialize;
 
    ----------
@@ -199,11 +195,53 @@ package body System.Garlic.Replay is
       pragma Debug
          (D ("Send (but do nothing)" & Data'Length'Img & " bytes"));
 
+      if Options.Execution_Mode = Replay_Mode
+        and then Engine = null
+      then
+         Engine := new Engine_Type;
+      end if;
+
       --  Send is a no-op since every partition gets its messages from
       --  the trace file.
 
       null;
    end Send;
+
+   -------------------
+   -- Set_Boot_Data --
+   -------------------
+
+   procedure Set_Boot_Data
+     (Protocol  : access Replay_Protocol;
+      Boot_Data : in Utils.String_Access;
+      Error     : in out Error_Type)
+   is
+   begin
+      --  Replay protocol is always loaded because its initialization
+      --  is decided at run-time. It should be initialized here when
+      --  we are sure that the boot server is replay.
+
+      if Options.Boot_Location'Length /= 1 then
+         return;
+      end if;
+
+      if Boot_Data /= null
+        and then Boot_Data.all /= ""
+      then
+         Set_Trace_File_Name (Boot_Data.all);
+      end if;
+
+      begin
+         Open (Trace_File, In_File, Trace_File_Name.all);
+         Set_Execution_Mode (Replay_Mode);
+         Set_Boot_Location (To_Location (Self_Reference, Trace_File_Name.all));
+         if Options.Is_Boot_Server then
+            Engine := new Engine_Type;
+         end if;
+      exception when others =>
+         Throw (Error, "Cannot open " & Trace_File_Name.all);
+      end;
+   end Set_Boot_Data;
 
    --------------
    -- Shutdown --
@@ -211,7 +249,9 @@ package body System.Garlic.Replay is
 
    procedure Shutdown (Protocol : access Replay_Protocol) is
    begin
-      if Execution_Mode = Replay_Mode then
+      if Execution_Mode = Replay_Mode
+        and then Is_Open (Trace_File)
+      then
          pragma Debug (D ("Closing trace file"));
          Close (Trace_File);
       end if;

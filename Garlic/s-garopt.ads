@@ -40,19 +40,22 @@ package System.Garlic.Options is
 
    pragma Elaborate_Body;
 
-   --  This package needs comments ???
+   Def_Task_Pool_Low_Bound  : constant := 1;
+   Def_Task_Pool_High_Bound : constant := 5;
+   Def_Task_Pool_Max_Bound  : constant := 512;
+   Def_Connection_Hits      : constant := 5;
 
-   Task_Pool_Low_Bound  : Positive := 1;
-   Task_Pool_High_Bound : Positive := 5;
-   Task_Pool_Max_Bound  : Positive range 1 .. 512 := 512;
+   Task_Pool_Low_Bound  : Natural;
+   Task_Pool_High_Bound : Natural;
+   Task_Pool_Max_Bound  : Natural;
    --  This one must match the definition of Max_Tasks from s-rpcpoo.adb
 
    Has_RCI_Pkg_Or_RACW_Var : Boolean := True;
 
    Has_Light_PCS   : Boolean;
    Mirror_Expected : Boolean;
-   Self_Location   : Utils.String_Access;
-   Boot_Location   : Utils.String_Access;
+   Self_Location   : Utils.String_Array_Access;
+   Boot_Location   : Utils.String_Array_Access;
    Is_Boot_Mirror  : Boolean;
    Is_Boot_Server  : Boolean;
    Connection_Hits : Natural;
@@ -71,7 +74,7 @@ package System.Garlic.Options is
 
    procedure Set_Boot_Mirror (Default : in Boolean);
 
-   procedure Set_Boot_Server (Default : in String);
+   procedure Set_Boot_Location (Default : in String);
 
    procedure Set_Connection_Hits (Default : in Natural);
 

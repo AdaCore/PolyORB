@@ -46,11 +46,66 @@ package body System.Garlic.Physical_Location is
 
    use Ada.Finalization, System.Garlic.Protocols, System.Garlic.Utils;
 
-   Protocols_List : array (1 .. 10) of Protocol_Access;
-   --  This should be enough but may be increased in the future if needed
-
    function Lookup_Protocol (P : String) return Protocol_Access;
    --  Return a protocol or null if no protocol with this name was found
+
+   --------------------------
+   -- Add_Missing_Location --
+   --------------------------
+
+   procedure Add_First_Missing_Location
+     (List     : in String_Array_Access;
+      Current  : in out Natural;
+      Protocol : in Protocol_Access;
+      Data     : in String_Array_Access) is
+   begin
+      if Data = null then
+         return;
+      end if;
+      for D in Data'Range loop
+         declare
+            L : constant String := To_Location (Protocol, Data (D).all);
+         begin
+            --  Look for L in Location. If not already there, then add it.
+
+            if Missing (L, List (1 .. Current)) then
+               Current := Current + 1;
+               List (Current) := new String'(L);
+               exit;
+            end if;
+         end;
+      end loop;
+   end Add_First_Missing_Location;
+
+   ---------------------------
+   -- Add_Missing_Locations --
+   ---------------------------
+
+   procedure Add_Missing_Locations
+     (List     : in String_Array_Access;
+      Current  : in out Natural;
+      Protocol : in Protocol_Access)
+   is
+      Data : String_Array_Access;
+   begin
+      Data := Get_Data (Protocol);
+      if Data = null then
+         return;
+      end if;
+      for D in Data'Range loop
+         declare
+            L : constant String := To_Location (Protocol, Data (D).all);
+         begin
+            --  Look for L in Location. If not already there, then add it.
+
+            if Missing (L, List (1 .. Current)) then
+               Current := Current + 1;
+               List (Current) := new String'(L);
+            end if;
+         end;
+      end loop;
+      Destroy (Data);
+   end Add_Missing_Locations;
 
    ------------
    -- Adjust --
@@ -63,25 +118,25 @@ package body System.Garlic.Physical_Location is
       end if;
    end Adjust;
 
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (Location : in out Location_Type) is
+   begin
+      if Location.Data /= null then
+         Destroy (Location.Data);
+      end if;
+   end Destroy;
+
    --------------
    -- Finalize --
    --------------
 
    procedure Finalize (O : in out Location_Type) is
    begin
-      Free (O.Data);
+      Destroy (O.Data);
    end Finalize;
-
-   ----------
-   -- Free --
-   ----------
-
-   procedure Free (Location : in out Location_Type) is
-   begin
-      if Location.Data /= null then
-         Free (Location.Data);
-      end if;
-   end Free;
 
    --------------
    -- Get_Data --
@@ -89,8 +144,7 @@ package body System.Garlic.Physical_Location is
 
    function Get_Data
      (L : Location_Type)
-     return String_Access
-   is
+     return String_Access is
    begin
       return L.Data;
    end Get_Data;
@@ -101,8 +155,7 @@ package body System.Garlic.Physical_Location is
 
    function Get_Protocol
      (L : Location_Type)
-      return Protocol_Access
-   is
+      return Protocol_Access is
    begin
       return L.Protocol;
    end Get_Protocol;
@@ -113,47 +166,13 @@ package body System.Garlic.Physical_Location is
 
    function Lookup_Protocol (P : String) return Protocol_Access is
    begin
-      for I in Protocols_List'Range loop
-         declare
-            Current : Protocol_Access renames Protocols_List (I);
-         begin
-            if Current /= null and then P = Get_Name (Current) then
-               return Current;
-            end if;
-         end;
+      for I in First_Protocol .. Last_Protocol loop
+         if Get_Name (Protocol_Table (I)) = P then
+            return Protocol_Table (I);
+         end if;
       end loop;
       return null;
    end Lookup_Protocol;
-
-   -----------------------
-   -- Register_Protocol --
-   -----------------------
-
-   procedure Register_Protocol (P : in Protocol_Access) is
-   begin
-      for I in Protocols_List'Range loop
-         if Protocols_List (I) = null then
-            Protocols_List (I) := P;
-            return;
-         end if;
-      end loop;
-      raise Constraint_Error;
-   end Register_Protocol;
-
-   --------------
-   -- Shutdown --
-   --------------
-
-   procedure Shutdown is
-   begin
-      pragma Debug (D ("Initiating protocols shutdown"));
-      for I in Protocols_List'Range loop
-         if Protocols_List (I) /= null then
-            Shutdown (Protocols_List (I));
-         end if;
-      end loop;
-      pragma Debug (D ("Protocols shutdown completed"));
-   end Shutdown;
 
    -----------------
    -- To_Location --
@@ -191,12 +210,23 @@ package body System.Garlic.Physical_Location is
    function To_Location
      (P : Protocols.Protocol_Access;
       D : String)
-     return Location_Type
-   is
+     return Location_Type is
    begin
       return (Controlled with
               Protocol => P,
               Data => new String'(D));
+   end To_Location;
+
+   -----------------
+   -- To_Location --
+   -----------------
+
+   function To_Location
+     (P : Protocols.Protocol_Access;
+      D : String)
+     return String is
+   begin
+      return Get_Name (P) & "://" & D;
    end To_Location;
 
    ---------------

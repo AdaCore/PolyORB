@@ -35,8 +35,6 @@
 
 package System.Garlic.Remote is
 
-   pragma Elaborate_Body;
-
    --  This package implements calls to the 'rsh' Unix command to
    --  launch other partitions.
 

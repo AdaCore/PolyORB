@@ -408,6 +408,9 @@ package System.Garlic.Thin is
       Iovcnt : C.int)
      return C.int;
 
+   procedure Initialize;
+   procedure Shutdown;
+
 private
 
    pragma Import (C, C_Accept, "accept");

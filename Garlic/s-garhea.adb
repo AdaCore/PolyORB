@@ -38,17 +38,20 @@ pragma Warnings (Off, Ada.Exceptions);
 with Ada.Unchecked_Conversion;
 with Interfaces;
 with System.Garlic.Debug;             use System.Garlic.Debug;
+pragma Elaborate_All (System.Garlic.Debug);
 with System.Garlic.Filters;           use System.Garlic.Filters;
 with System.Garlic.Options;           use System.Garlic.Options;
 with System.Garlic.Partitions;        use System.Garlic.Partitions;
-with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
 with System.Garlic.Protocols;         use System.Garlic.Protocols;
-with System.Garlic.Soft_Links;        use System.Garlic.Soft_Links;
+with System.Garlic.Soft_Links;
 with System.Garlic.Streams;           use System.Garlic.Streams;
 with System.Garlic.Trace;             use System.Garlic.Trace;
 with System.Garlic.Types;             use System.Garlic.Types;
 with System.Garlic.Utils;             use System.Garlic.Utils;
 with System.Standard_Library;
+
+with System.Tasking;
+pragma Elaborate_All (System.Tasking);
 
 with System.Garlic.Linker_Options;
 pragma Warnings (Off, System.Garlic.Linker_Options);
@@ -56,6 +59,8 @@ pragma Warnings (Off, System.Garlic.Linker_Options);
 package body System.Garlic.Heart is
 
    use Ada.Streams;
+
+   use type System.Tasking.Task_ID;
 
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARHEA", "(s-garhea): ");
@@ -71,11 +76,11 @@ package body System.Garlic.Heart is
    --  by more than one task (in fact, they should not be modified after
    --  the elaboration is terminated).
 
-   Elaboration_Barrier : Barrier_Access;
+   Elaboration_Barrier : Soft_Links.Barrier_Access;
    --  This barrier will be no longer blocking when the elaboration is
    --  terminated.
 
-   Self_PID_Barrier : Barrier_Access;
+   Self_PID_Barrier : Soft_Links.Barrier_Access;
    --  Block any task until Self_PID is different from Null_PID
 
    Handlers : array (External_Opcode) of Request_Handler;
@@ -83,6 +88,9 @@ package body System.Garlic.Heart is
 
    Notify_Partition_RPC_Error : RPC_Error_Notifier_Type;
    --  Call this procedure when a partition dies.
+
+   Environment_Task : constant System.Tasking.Task_ID := System.Tasking.Self;
+   --  The environment task. Self will be set to it at elaboration time.
 
    procedure Handle_External
      (Partition : in Partition_ID;
@@ -117,11 +125,82 @@ package body System.Garlic.Heart is
    pragma Inline (PID_Write);
    --  Read and write partition id on one byte
 
-   procedure Shutdown;
-   --  Generates a local shutdown
+   Shutdown_Activation : Status_Type := None;
 
    function Convert is
       new Ada.Unchecked_Conversion (System.Address, RPC_Receiver);
+
+   -----------------------
+   -- Activate_Shutdown --
+   -----------------------
+
+   procedure Activate_Shutdown is
+      Self : constant System.Tasking.Task_ID := System.Tasking.Self;
+   begin
+      pragma Debug (D ("Activate partition shutdown"));
+
+      --  Only the environment task can activate the shutdown process.
+
+      if Self /= Environment_Task then
+         Soft_Links.Enter_Critical_Section;
+         if Shutdown_Activation = None then
+            Shutdown_Activation := Busy;
+         end if;
+         Soft_Links.Leave_Critical_Section;
+         pragma Debug (D ("Non env. task cannot run shutdown process"));
+         return;
+      end if;
+
+      --  The environment task can activate shutdown several times but
+      --  do it for real only once.
+
+      Soft_Links.Enter_Critical_Section;
+      if Shutdown_Activation = Done then
+         Soft_Links.Leave_Critical_Section;
+         pragma Debug (D ("Env. task is already running shutdown process"));
+         return;
+      end if;
+      Shutdown_Activation := Done;
+      Soft_Links.Leave_Critical_Section;
+
+      pragma Debug (D ("Env. task is running shutdown process"));
+
+      if Options.Is_Boot_Server then
+
+         --  Global shutdown has been detected. Send shutdown operation to
+         --  any alive partition interested by a global termination. Ignore
+         --  any communication error as this is a shutdown.
+
+         declare
+            PIDs  : Partition_List := Global_Termination_Partitions;
+            Error : Error_Type;
+         begin
+            for I in PIDs'Range loop
+               declare
+                  Empty : aliased Params_Stream_Type (0);
+               begin
+                  if PIDs (I) /= Self_PID then
+                     Send (PIDs (I), Shutdown_Operation, Empty'Access, Error);
+                     Catch (Error);
+                  end if;
+               end;
+            end loop;
+         end;
+      end if;
+
+      --  Set connection hits back to normal.
+
+      Set_Connection_Hits (Options.Def_Connection_Hits);
+      pragma Debug (D ("Activate protocols shutdown"));
+      Protocols.Shutdown;
+      pragma Debug (D ("Activate trace shutdown"));
+      Trace.Shutdown;
+      pragma Debug (D ("Activate RPC shutdown"));
+      Soft_Links.RPC_Shutdown;
+      Soft_Links.Destroy (Self_PID_Barrier);
+
+      pragma Debug (D ("Partition shutdown completed"));
+   end Activate_Shutdown;
 
    --------------------
    -- Analyze_Stream --
@@ -129,6 +208,7 @@ package body System.Garlic.Heart is
 
    procedure Analyze_Stream
      (Partition  : out Partition_ID;
+      Protocol   : in Protocol_Access;
       Opcode     : out Any_Opcode;
       Unfiltered : out Stream_Element_Access;
       Filtered   : in  Stream_Element_Access;
@@ -191,6 +271,11 @@ package body System.Garlic.Heart is
          if Found (Error) then
             return;
          end if;
+
+         --  This partition was unknown. We save how to communicate with
+         --  this partition as it may have no self location itself.
+
+         Set_Used_Protocol (PID, Protocol);
       end if;
 
       if PID /= Null_PID then
@@ -243,7 +328,7 @@ package body System.Garlic.Heart is
    begin
       pragma Debug (D ("Complete termination"));
 
-      Signal_All (Elaboration_Barrier);
+      Soft_Links.Signal_All (Elaboration_Barrier);
    end Complete_Elaboration;
 
    -------------------------
@@ -263,7 +348,6 @@ package body System.Garlic.Heart is
          pragma Debug (D ("Looking for my partition id"));
 
          if Options.Is_Boot_Server then
-
             Self_PID := Boot_PID;
             Set_My_Partition_ID (Error);
             if Found (Error) then
@@ -271,7 +355,7 @@ package body System.Garlic.Heart is
             end if;
 
          else
-            Send_Boot_Request (Get_Self_Location, Error);
+            Send_Boot_Request (Error);
             if Found (Error) then
                return;
             end if;
@@ -353,7 +437,7 @@ package body System.Garlic.Heart is
             Handle_Partition_Request (Partition, Query, Reply, Error);
 
          when Shutdown_Operation =>
-            Heart.Shutdown;
+            Activate_Shutdown;
 
       end case;
    end Handle_Internal;
@@ -364,8 +448,8 @@ package body System.Garlic.Heart is
 
    procedure Initialize is
    begin
-      Create (Elaboration_Barrier);
-      Create (Self_PID_Barrier);
+      Soft_Links.Create (Elaboration_Barrier);
+      Soft_Links.Create (Self_PID_Barrier);
    end Initialize;
 
    ----------------------------
@@ -376,7 +460,7 @@ package body System.Garlic.Heart is
      (Partition : in Partition_ID)
    is
    begin
-      if Shutdown_In_Progress then
+      if Shutdown_Activated then
          return;
       end if;
 
@@ -386,13 +470,14 @@ package body System.Garlic.Heart is
 
       if Shutdown_Policy = Shutdown_On_Any_Partition_Error then
          pragma Debug (D ("Due to the policy, I will shutdown"));
-         Soft_Shutdown;
+         Activate_Shutdown;
       end if;
 
-      if Partition = Boot_PID and then
-        Shutdown_Policy = Shutdown_On_Boot_Partition_Error then
+      if Partition = Boot_PID
+        and then Shutdown_Policy = Shutdown_On_Boot_Partition_Error
+      then
          pragma Debug (D ("I cannot live without a boot partition"));
-         Soft_Shutdown;
+         Activate_Shutdown;
       end if;
 
       --  First, shutdown Garlic then shutdown upper layers.
@@ -569,7 +654,8 @@ package body System.Garlic.Heart is
             Unfiltered : Stream_Element_Access;
             Unused     : constant Stream_Element_Count := Unused_Space;
          begin
-            Analyze_Stream (PID, Code, Unfiltered, Stream, Unused, Error);
+            Analyze_Stream
+              (PID, null, Code, Unfiltered, Stream, Unused, Error);
             if not Found (Error) then
                Process_Stream (PID, Code, Unfiltered, Error);
             end if;
@@ -589,7 +675,7 @@ package body System.Garlic.Heart is
       --  fact that we sent a message.
 
       if Opcode = Remote_Call then
-         Activity_Detected;
+         Soft_Links.Activity_Detected;
       end if;
 
       Free (Stream);
@@ -614,7 +700,7 @@ package body System.Garlic.Heart is
       --  While shutdown is not in progress, we have a boot partition to
       --  talk to.
 
-      while not Shutdown_In_Progress loop
+      while not Shutdown_Activated loop
          Send (Boot_PID, Opcode, Params, Error);
 
          --  Exit when the message has been sent correctly. When an
@@ -658,15 +744,9 @@ package body System.Garlic.Heart is
          return;
       end if;
 
-      --  Set boot protocol back to normal mode
+      Soft_Links.Signal_All (Self_PID_Barrier);
 
-      Initialize (Protocol, null, null, False, Error);
-
-      --  Resume any task blocked on Wait_For_My_Partition_ID
-
-      if not Found (Error) then
-         Signal_All (Self_PID_Barrier);
-      end if;
+      pragma Debug (Dump_Partition_Table);
    end Set_My_Partition_ID;
 
    ----------------
@@ -680,54 +760,14 @@ package body System.Garlic.Heart is
       Shutdown_Policy := Shutdown;
    end Set_Policy;
 
-   --------------
-   -- Shutdown --
-   --------------
+   ------------------------
+   -- Shutdown_Activated --
+   ------------------------
 
-   procedure Shutdown is
+   function Shutdown_Activated return Boolean is
    begin
-      Shutdown_In_Progress := True;
-
-      Set_Connection_Hits (0);
-      Trace.Shutdown;
-      Physical_Location.Shutdown;
-      RPC_Shutdown;
-
-      Destroy (Self_PID_Barrier);
-   end Shutdown;
-
-   -------------------
-   -- Soft_Shutdown --
-   -------------------
-
-   procedure Soft_Shutdown
-   is
-   begin
-      Shutdown_In_Progress := True;
-      if Options.Is_Boot_Server then
-
-         --  Global shutdown has been detected. Send shutdown operation to
-         --  any alive partition interested by a global termination. Ignore
-         --  any communication error as this is a shutdown.
-
-         declare
-            PIDs  : Partition_List := Global_Termination_Partitions;
-            Error : Error_Type;
-         begin
-            for I in PIDs'Range loop
-               declare
-                  Empty : aliased Params_Stream_Type (0);
-               begin
-                  if PIDs (I) /= Self_PID then
-                     Send (PIDs (I), Shutdown_Operation, Empty'Access, Error);
-                     Catch (Error);
-                  end if;
-               end;
-            end loop;
-         end;
-      end if;
-      Heart.Shutdown;
-   end Soft_Shutdown;
+      return Shutdown_Activation /= None;
+   end Shutdown_Activated;
 
    -------------------------------------
    -- Wait_For_Elaboration_Completion --
@@ -735,7 +775,7 @@ package body System.Garlic.Heart is
 
    procedure Wait_For_Elaboration_Completion is
    begin
-      Wait (Elaboration_Barrier);
+      Soft_Links.Wait (Elaboration_Barrier);
    end Wait_For_Elaboration_Completion;
 
    ------------------------------
@@ -744,9 +784,10 @@ package body System.Garlic.Heart is
 
    procedure Wait_For_My_Partition_ID is
    begin
-      Wait (Self_PID_Barrier);
+      Soft_Links.Wait (Self_PID_Barrier);
+      pragma Debug (Dump_Partition_Table);
       if Self_PID = Null_PID then
-         Soft_Shutdown;
+         Activate_Shutdown;
       end if;
    end Wait_For_My_Partition_ID;
 

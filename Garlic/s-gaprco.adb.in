@@ -36,8 +36,8 @@
 with System.Garlic.Replay;
 pragma Elaborate_All (System.Garlic.Replay);
 
-@TCP_INCLUDED@with System.Garlic.TCP;
-@TCP_INCLUDED@pragma Elaborate_All (System.Garlic.TCP);
+@TCP_INCLUDED@with System.Garlic.Tcp;
+@TCP_INCLUDED@pragma Elaborate_All (System.Garlic.Tcp);
 
 package body System.Garlic.Protocols.Config is
 
@@ -54,7 +54,7 @@ package body System.Garlic.Protocols.Config is
    procedure Initialize is
    begin
       Register (System.Garlic.Replay.Create);
-      @TCP_INCLUDED@Register (System.Garlic.TCP.Create);
+      @TCP_INCLUDED@Register (System.Garlic.Tcp.Create);
    end Initialize;
 
    --------------
@@ -63,13 +63,8 @@ package body System.Garlic.Protocols.Config is
 
    procedure Register (P : in Protocol_Access) is
    begin
-      for I in Protocol_Table'Range loop
-         if Protocol_Table (I) = null then
-            Protocol_Table (I) := P;
-            return;
-         end if;
-      end loop;
-      raise Constraint_Error;
+      Last_Protocol := Last_Protocol + 1;
+      Protocol_Table (Last_Protocol) := P;
    end Register;
 
 end System.Garlic.Protocols.Config;

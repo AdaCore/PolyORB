@@ -50,9 +50,9 @@ package body System.Garlic.Protected_Objects is
      (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
-   
+
    Critical_Section : Protected_Adv_Mutex_Type;
-   
+
    protected type Barrier_PO is
       entry Wait;
       procedure Signal (How_Many : Positive := 1);
@@ -105,33 +105,15 @@ package body System.Garlic.Protected_Objects is
    procedure Free is
      new Ada.Unchecked_Deallocation (Barrier_PO, Barrier_PO_Access);
 
-   ----------------------------
-   -- Enter_Critical_Section --
-   ----------------------------
-
-   procedure Enter_Critical_Section is
-   begin
-      Enter (Critical_Section);
-   end Enter_Critical_Section;
-
-   ----------------------------
-   -- Leave_Critical_Section --
-   ----------------------------
-
-   procedure Leave_Critical_Section is
-   begin
-      Leave (Critical_Section);
-   end Leave_Critical_Section;
-
    ------------------
    -- Barrier_PO --
    ------------------
 
    protected body Barrier_PO is
 
-      ------------
-      -- Signal --
-      ------------
+      -----------------------
+      -- Barrier_PO.Signal --
+      -----------------------
 
       procedure Signal (How_Many : Positive := 1) is
       begin
@@ -140,9 +122,9 @@ package body System.Garlic.Protected_Objects is
          end if;
       end Signal;
 
-      ----------------
-      -- Signal_All --
-      ----------------
+      ---------------------------
+      -- Barrier_PO.Signal_All --
+      ---------------------------
 
       procedure Signal_All (Permanent : Boolean) is
       begin
@@ -155,9 +137,9 @@ package body System.Garlic.Protected_Objects is
          end if;
       end Signal_All;
 
-      ----------
-      -- Wait --
-      ----------
+      ---------------------
+      -- Barrier_PO.Wait --
+      ---------------------
 
       entry Wait when Perm or else Free > 0 is
       begin
@@ -178,7 +160,7 @@ package body System.Garlic.Protected_Objects is
       B.X := new Barrier_PO;
       return new Protected_Barrier_Type'(B);
    end Create;
-   
+
    ------------
    -- Create --
    ------------
@@ -291,6 +273,33 @@ package body System.Garlic.Protected_Objects is
       M.X.Level := M.X.Level + 1;
    end Enter;
 
+   ----------------------------
+   -- Enter_Critical_Section --
+   ----------------------------
+
+   procedure Enter_Critical_Section is
+   begin
+      Enter (Critical_Section);
+   end Enter_Critical_Section;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      Critical_Section.X         := new Adv_Mutex_PO;
+      Critical_Section.X.Mutex   := new Mutex_PO;
+      Critical_Section.X.Current := Null_Task_Id;
+      Critical_Section.X.Level   := 0;
+      Register_Enter_Critical_Section (Enter_Critical_Section'Access);
+      Register_Leave_Critical_Section (Leave_Critical_Section'Access);
+      Register_Barrier_Creation_Function (Create'Access);
+      Register_Watcher_Creation_Function (Create'Access);
+      Register_Mutex_Creation_Function (Create'Access);
+      Register_Adv_Mutex_Creation_Function (Create'Access);
+   end Initialize;
+
    -----------
    -- Leave --
    -----------
@@ -319,6 +328,15 @@ package body System.Garlic.Protected_Objects is
       M.X.Leave;
    end Leave;
 
+   ----------------------------
+   -- Leave_Critical_Section --
+   ----------------------------
+
+   procedure Leave_Critical_Section is
+   begin
+      Leave (Critical_Section);
+   end Leave_Critical_Section;
+
    ------------
    -- Lookup --
    ------------
@@ -335,18 +353,18 @@ package body System.Garlic.Protected_Objects is
 
    protected body Mutex_PO is
 
-      -----------
-      -- Enter --
-      -----------
+      --------------------
+      -- Mutex_PO.Enter --
+      --------------------
 
       entry Enter when not Locked is
       begin
          Locked := True;
       end Enter;
 
-      ------------
-      -- Leave --
-      ------------
+      --------------------
+      -- Mutex_PO.Leave --
+      --------------------
 
       procedure Leave is
       begin
@@ -405,9 +423,9 @@ package body System.Garlic.Protected_Objects is
 
    protected body Watcher_PO is
 
-      -----------
-      -- Await --
-      -----------
+      ----------------------
+      -- Watcher_PO.Await --
+      ----------------------
 
       entry Await (V : in Version_Id) when not Passing is
       begin
@@ -417,18 +435,9 @@ package body System.Garlic.Protected_Objects is
          requeue Differ with abort;
       end Await;
 
-      ------------
-      -- Lookup --
-      ------------
-
-      function Lookup return Version_Id is
-      begin
-         return Current;
-      end Lookup;
-
-      ------------
-      -- Differ --
-      ------------
+      -----------------------
+      -- Watcher_PO.Differ --
+      -----------------------
 
       entry Differ (V : in Version_Id) when Passing is
       begin
@@ -437,9 +446,18 @@ package body System.Garlic.Protected_Objects is
          end if;
       end Differ;
 
-      ------------
-      -- Update --
-      ------------
+      -----------------------
+      -- Watcher_PO.Lookup --
+      -----------------------
+
+      function Lookup return Version_Id is
+      begin
+         return Current;
+      end Lookup;
+
+      -----------------------
+      -- Watcher_PO.Update --
+      -----------------------
 
       procedure Update is
       begin
@@ -453,16 +471,5 @@ package body System.Garlic.Protected_Objects is
       end Update;
 
    end Watcher_PO;
-   
-begin
-   Critical_Section.X         := new Adv_Mutex_PO;
-   Critical_Section.X.Mutex   := new Mutex_PO;
-   Critical_Section.X.Current := Null_Task_Id;
-   Critical_Section.X.Level   := 0;
-   Register_Enter_Critical_Section (Enter_Critical_Section'Access);
-   Register_Leave_Critical_Section (Leave_Critical_Section'Access);
-   Register_Barrier_Creation_Function (Create'Access);
-   Register_Watcher_Creation_Function (Create'Access);
-   Register_Mutex_Creation_Function (Create'Access);
-   Register_Adv_Mutex_Creation_Function (Create'Access);
+
 end System.Garlic.Protected_Objects;

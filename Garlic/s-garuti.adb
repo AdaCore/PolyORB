@@ -51,6 +51,22 @@ package body System.Garlic.Utils is
    procedure Free is
      new Ada.Unchecked_Deallocation (String, Error_Type);
 
+   procedure Free is
+     new Ada.Unchecked_Deallocation (String, String_Access);
+
+   procedure Free is
+     new Ada.Unchecked_Deallocation (String_Array, String_Array_Access);
+
+   procedure Next_Separator
+     (S : in String;
+      I : in out Natural;
+      C : in Character);
+
+   procedure Skip_Separator
+     (S : in String;
+      I : in out Natural;
+      C : in Character);
+
    ---------
    -- "<" --
    ---------
@@ -94,6 +110,47 @@ package body System.Garlic.Utils is
       return Error_Message;
    end Content;
 
+   ----------
+   -- Copy --
+   ----------
+
+   function Copy (S : String_Array_Access) return String_Array_Access is
+      R : String_Array_Access;
+   begin
+      if S /= null then
+         R := new String_Array'(S.all);
+         for I in S'Range loop
+            R (I) := new String'(S (I).all);
+         end loop;
+      end if;
+      return R;
+   end Copy;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (S : in out String_Access) is
+   begin
+      if S /= null then
+         Free (S);
+      end if;
+   end Destroy;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (S : in out String_Array_Access) is
+   begin
+      if S /= null then
+         for I in S'Range loop
+            Destroy (S (I));
+         end loop;
+         Free (S);
+      end if;
+   end Destroy;
+
    -----------
    -- Found --
    -----------
@@ -102,6 +159,92 @@ package body System.Garlic.Utils is
    begin
       return Error /= null;
    end Found;
+
+   ------------------
+   -- Merge_String --
+   ------------------
+
+   function Merge_String
+     (S : String_Array_Access;
+      C : Character := Location_Separator)
+     return String
+   is
+      N_Separator : Natural := 0;
+      Full_Length : Natural := 0;
+   begin
+      if S'Length = 0 then
+         return "";
+      end if;
+
+      --  Count number of separators needed and the size of all the
+      --  string concatenated.
+
+      for I in S'Range loop
+         if S (I) /= null then
+            N_Separator := N_Separator + 1;
+            Full_Length := Full_Length + S (I)'Length;
+         end if;
+      end loop;
+      if N_Separator = 0 then
+         return "";
+      end if;
+      N_Separator := N_Separator - 1;
+
+      --  Concatenate and add separators.
+
+      declare
+         R : String (1 .. Full_Length + N_Separator);
+         F : Natural := 1;
+      begin
+         for I in S'Range loop
+            if S (I) /= null then
+               R (F .. F + S (I)'Length - 1) := S (I).all;
+               if N_Separator /= 0 then
+                  R (F + S (I)'Length) := C;
+                  N_Separator := N_Separator - 1;
+               end if;
+               F := F + S (I)'Length + 1;
+            end if;
+         end loop;
+         return R;
+      end;
+   end Merge_String;
+
+   -------------
+   -- Missing --
+   -------------
+
+   function Missing
+     (Elt : String;
+      Set : String_Array)
+     return Boolean
+   is
+   begin
+      for N in Set'Range loop
+         if Set (N) /= null
+           and then Elt = Set (N).all
+         then
+            return False;
+         end if;
+      end loop;
+      return True;
+   end Missing;
+
+   --------------------
+   -- Next_Seperator --
+   --------------------
+
+   procedure Next_Separator
+     (S : in String;
+      I : in out Natural;
+      C : in Character) is
+   begin
+      while I <= S'Last
+        and then S (I) /= C
+      loop
+         I := I + 1;
+      end loop;
+   end Next_Separator;
 
    -------------------------------
    -- Raise_Communication_Error --
@@ -115,6 +258,69 @@ package body System.Garlic.Utils is
       Ada.Exceptions.Raise_Exception
         (Communication_Error'Identity, Error_Message);
    end Raise_Communication_Error;
+
+   --------------------
+   -- Skip_Separator --
+   --------------------
+
+   procedure Skip_Separator
+     (S : in String;
+      I : in out Natural;
+      C : in Character) is
+   begin
+      while I <= S'Last
+        and then S (I) = C
+      loop
+         I := I + 1;
+      end loop;
+   end Skip_Separator;
+
+   ------------------
+   -- Split_String --
+   ------------------
+
+   function Split_String
+     (S : String;
+      C : Character := Location_Separator)
+     return String_Array_Access
+   is
+      N : Natural := 0;
+      A : String_Array_Access;
+      F : Natural;
+      L : Natural;
+   begin
+      if S'Length = 0 then
+         return null;
+      end if;
+
+      --  Count number of substrings.
+
+      F := S'First;
+      L := S'Last;
+      loop
+         Skip_Separator (S, F, C);
+         exit when F > L;
+         N := N + 1;
+         Next_Separator (S, F, C);
+         exit when F > L;
+      end loop;
+      if N = 0 then
+         return null;
+      end if;
+
+      --  Fill each slot of array.
+
+      A := new String_Array (1 .. N);
+      F := S'First;
+      for I in A'Range loop
+         Skip_Separator (S, F, C);
+         L := F;
+         Next_Separator (S, L, C);
+         A (I) := new String'(S (F .. L - 1));
+         F := L;
+      end loop;
+      return A;
+   end Split_String;
 
    ----------------------
    -- String_To_Access --
@@ -176,5 +382,20 @@ package body System.Garlic.Utils is
    begin
       return Portable_Address (Addr);
    end To_Portable_Address;
+
+   -------------
+   -- Unquote --
+   -------------
+
+   function Unquote (S : String) return String is
+   begin
+      if S (S'First) = '"' and then S (S'Last) = '"' then
+         return S (S'First + 1 .. S'Last - 1);
+      elsif S (S'First) = ''' and then S (S'Last) = ''' then
+         return S (S'First + 1 .. S'Last - 1);
+      else
+         return S;
+      end if;
+   end Unquote;
 
 end System.Garlic.Utils;

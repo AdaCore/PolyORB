@@ -50,15 +50,28 @@ package System.Garlic.Physical_Location is
 
    No_Such_Location, Malformed_Location : exception;
 
-   procedure Free (Location : in out Location_Type);
+   procedure Add_First_Missing_Location
+     (List     : in Utils.String_Array_Access;
+      Current  : in out Natural;
+      Protocol : in Protocols.Protocol_Access;
+      Data     : in Utils.String_Array_Access);
+   --  Add in List the first missing location. Current indicates the
+   --  last used slot in List. We may have to call several times
+   --  this procedure to include all the location of a given protocol.
 
-   procedure Register_Protocol (P : in Protocols.Protocol_Access);
-   --  Register a protocol to be able to use it later
+   procedure Add_Missing_Locations
+     (List     : in Utils.String_Array_Access;
+      Current  : in out Natural;
+      Protocol : in Protocols.Protocol_Access);
+   --  Add in List all the missing location declared by
+   --  Protocol. Current indicates the last used slot in List.
+
+   procedure Destroy (Location : in out Location_Type);
 
    function Get_Protocol
      (L : Location_Type)
      return Protocols.Protocol_Access;
-   --  Get the protocol type of a given location
+   --  Return the protocol type of a given location
 
    function Get_Data
      (L : Location_Type)
@@ -83,13 +96,16 @@ package System.Garlic.Physical_Location is
      return Location_Type;
    --  From a protocol and a data string, build a whole location
 
+   function To_Location
+     (P : Protocols.Protocol_Access;
+      D : String)
+     return String;
+   --  From a protocol and a data string, build a whole location string
+
    function To_String
      (L : Location_Type)
       return String;
    --  Conversion function
-
-   procedure Shutdown;
-   --  Shutdown every protocol
 
    function String_To_Location (S : String) return Location_Type
      renames To_Location;

@@ -39,7 +39,8 @@ with Interfaces.C;             use Interfaces.C;
 with Interfaces.C.Strings;     use Interfaces.C.Strings;
 with System.Garlic.Constants;  use System.Garlic.Constants;
 with System.Garlic.Debug;      use System.Garlic.Debug;
-with System.Garlic.Soft_Links; use System.Garlic.Soft_Links;
+pragma Elaborate_All (System.Garlic.Debug);
+with System.Garlic.Soft_Links;
 with System.Garlic.Utils;      use System.Garlic.Utils;
 with Unchecked_Conversion;
 with Unchecked_Deallocation;
@@ -113,9 +114,9 @@ package body System.Garlic.Naming is
    is
       Aliases : String_Array renames Object.Aliases;
    begin
-      Free (Object.Name);
+      Destroy (Object.Name);
       for I in Aliases'Range loop
-         Free (Aliases (I));
+         Destroy (Aliases (I));
       end loop;
    end Finalize;
 
@@ -169,19 +170,20 @@ package body System.Garlic.Naming is
    function Info_Of (Name : String)
      return Host_Entry
    is
-      Res : Hostent_Access;
+      RA : Hostent_Access;
+      HN : char_array := To_C (Name);
    begin
-      Enter_Critical_Section;
-      Res := C_Gethostbyname (To_C (Name));
-      if Res = null then
-         Leave_Critical_Section;
+      Soft_Links.Enter_Critical_Section;
+      RA := C_Gethostbyname (HN);
+      if RA = null then
+         Soft_Links.Leave_Critical_Section;
          Raise_Naming_Error (Errno, Name);
       end if;
       declare
-         Result : constant Host_Entry := Parse_Entry (Res.all);
+         HE : constant Host_Entry := Parse_Entry (RA.all);
       begin
-         Leave_Critical_Section;
-         return Result;
+         Soft_Links.Leave_Critical_Section;
+         return HE;
       end;
    end Info_Of;
 
@@ -195,18 +197,18 @@ package body System.Garlic.Naming is
       Add : aliased In_Addr := To_In_Addr (Addr);
       Res : Hostent_Access;
    begin
-      Enter_Critical_Section;
+      Soft_Links.Enter_Critical_Section;
       Res := C_Gethostbyaddr (Add'Address,
                               C.int (Add'Size / CHAR_BIT),
                               Af_Inet);
       if Res = null then
-         Leave_Critical_Section;
+         Soft_Links.Leave_Critical_Section;
          Raise_Naming_Error (Errno, Image (Addr));
       end if;
       declare
          Result : constant Host_Entry := Parse_Entry (Res.all);
       begin
-         Leave_Critical_Section;
+         Soft_Links.Leave_Critical_Section;
          return Result;
       end;
    end Info_Of;

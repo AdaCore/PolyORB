@@ -41,13 +41,16 @@ with GNAT.Table;
 with Interfaces;               use Interfaces;
 with System.Garlic.Debug;      use System.Garlic.Debug;
 with System.Garlic.Heart;      use System.Garlic.Heart;
-pragma Elaborate_All (System.Garlic.Heart);
 with System.Garlic.Options;    use System.Garlic.Options;
 with System.Garlic.Partitions; use System.Garlic.Partitions;
 with System.Garlic.Remote;     use System.Garlic.Remote;
 with System.Garlic.Soft_Links;
+
 with System.Garlic.Startup;
+pragma Elaborate_All (System.Garlic.Startup);
 pragma Warnings (Off, System.Garlic.Startup);
+
+with System.Garlic.Streams;    use System.Garlic.Streams;
 with System.Garlic.Types;      use System.Garlic.Types;
 with System.Garlic.Units;      use System.Garlic.Units;
 with System.Garlic.Utils;      use System.Garlic.Utils;
@@ -510,9 +513,9 @@ package body System.Partition_Interface is
    procedure Run
      (Main : in Main_Subprogram_Type := null)
    is
-      Caller  : Caller_List := Callers;
-      Dummy   : Caller_List;
-      Error   : aliased Error_Type;
+      Caller : Caller_List := Callers;
+      Dummy  : Caller_List;
+      Error  : aliased Error_Type;
    begin
       System.Garlic.Heart.Complete_Elaboration;
       D ("Complete elaboration");
@@ -542,8 +545,8 @@ package body System.Partition_Interface is
                Caller.Name.all & """");
 
          end if;
-         Free (Caller.Version);
-         Free (Caller.Name);
+         Destroy (Caller.Version);
+         Destroy (Caller.Name);
          Dummy  := Caller;
          Caller := Caller.Next;
          Free (Dummy);
@@ -556,14 +559,12 @@ package body System.Partition_Interface is
 
       D ("Watch for termination");
       Complete_Termination (System.Garlic.Options.Termination);
-
    exception
-      when E : others =>
-         D ("Handle exception " & Exception_Name (E) &
+      when Occurrence : others =>
+         D ("Handle exception " & Exception_Name (Occurrence) &
             " in partition main subprogram");
-         D ("Watch for termination");
-         Complete_Termination (System.Garlic.Options.Termination);
-         raise;
+      Complete_Termination (System.Garlic.Options.Termination);
+      raise;
    end Run;
 
 end System.Partition_Interface;

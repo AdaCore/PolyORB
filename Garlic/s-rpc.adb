@@ -39,10 +39,12 @@ with Ada.Finalization;
 with System.Garlic;              use System.Garlic;
 with System.Garlic.Debug;        use System.Garlic.Debug;
 with System.Garlic.Heart;        use System.Garlic.Heart;
-pragma Elaborate_All (System.Garlic.Heart);
-with System.Garlic.Soft_Links;   use System.Garlic.Soft_Links;
+with System.Garlic.Soft_Links;
+
 with System.Garlic.Startup;
+pragma Elaborate_All (System.Garlic.Startup);
 pragma Warnings (Off, System.Garlic.Startup);
+
 with System.Garlic.Streams;
 with System.Garlic.Types;
 with System.Garlic.Units;        use System.Garlic.Units;
@@ -69,7 +71,7 @@ package body System.RPC is
      renames Print_Debug_Info;
 
    RPC_Allowed : Boolean := False;
-   RPC_Barrier : Barrier_Access;
+   RPC_Barrier : System.Garlic.Soft_Links.Barrier_Access;
    --  The current RPC receiver and its associated barrier
 
    type RPC_Status is (Unknown, Running, Aborted, Completed);
@@ -84,7 +86,7 @@ package body System.RPC is
    subtype Valid_RPC_Id is RPC_Id range APC + 1 .. RPC_Id'Last;
 
    Callers : array (Valid_RPC_Id) of RPC_Info;
-   Callers_Watcher : Watcher_Access;
+   Callers_Watcher : System.Garlic.Soft_Links.Watcher_Access;
 
    type Abort_Keeper is new Ada.Finalization.Controlled with record
       Sent : Boolean := False;
@@ -133,19 +135,19 @@ package body System.RPC is
       Version : Version_Id;
    begin
       loop
-         Enter_Critical_Section;
+         System.Garlic.Soft_Links.Enter_Critical_Section;
          for I in Callers'Range loop
             if Callers (I).Status = Unknown then
                Callers (I).Status := Running;
                Callers (I).PID    := PID;
                RPC := I;
-               Leave_Critical_Section;
+               System.Garlic.Soft_Links.Leave_Critical_Section;
                return;
             end if;
          end loop;
-         Lookup (Callers_Watcher, Version);
-         Leave_Critical_Section;
-         Differ (Callers_Watcher, Version);
+         System.Garlic.Soft_Links.Lookup (Callers_Watcher, Version);
+         System.Garlic.Soft_Links.Leave_Critical_Section;
+         System.Garlic.Soft_Links.Differ (Callers_Watcher, Version);
       end loop;
    end Allocate;
 
@@ -156,11 +158,11 @@ package body System.RPC is
    procedure Deallocate (RPC : in RPC_Id)
    is
    begin
-      Enter_Critical_Section;
+      System.Garlic.Soft_Links.Enter_Critical_Section;
       Callers (RPC).Status := Unknown;
       Callers (RPC).PID    := Types.Null_PID;
-      Update (Callers_Watcher);
-      Leave_Critical_Section;
+      System.Garlic.Soft_Links.Update (Callers_Watcher);
+      System.Garlic.Soft_Links.Leave_Critical_Section;
    end Deallocate;
 
    ------------
@@ -250,7 +252,7 @@ package body System.RPC is
       D ("Accept RPCs on this partition" & Partition'Img);
 
       RPC_Allowed := True;
-      Signal_All (RPC_Barrier);
+      System.Garlic.Soft_Links.Signal_All (RPC_Barrier);
       Register_RPC_Error_Notifier (Notify_Partition_Error'Access);
    end Establish_RPC_Receiver;
 
@@ -262,7 +264,7 @@ package body System.RPC is
    is
    begin
       if Keeper.Sent then
-         Enter_Critical_Section;
+         System.Garlic.Soft_Links.Enter_Critical_Section;
          if Callers (Keeper.RPC).Status = Running then
             D ("Forward local abortion of RPC number" & Keeper.RPC'Img &
                " to partition" & Keeper.PID'Img);
@@ -271,8 +273,8 @@ package body System.RPC is
          elsif Callers (Keeper.RPC).Status = Aborted then
             Callers (Keeper.RPC).Status := Unknown;
          end if;
-         Update (Callers_Watcher);
-         Leave_Critical_Section;
+         System.Garlic.Soft_Links.Update (Callers_Watcher);
+         System.Garlic.Soft_Links.Leave_Critical_Section;
       end if;
    end Finalize;
 
@@ -284,7 +286,7 @@ package body System.RPC is
    is
    begin
       if not RPC_Allowed then
-         Wait (RPC_Barrier);
+         System.Garlic.Soft_Links.Wait (RPC_Barrier);
       end if;
    end When_Established;
 
@@ -309,7 +311,7 @@ package body System.RPC is
      (Partition : in Types.Partition_ID)
    is
    begin
-      if not Shutdown_In_Progress then
+      if not Shutdown_Activated then
          Invalidate_Partition_Units (Partition);
          Raise_Partition_Error (Partition);
       end if;
@@ -349,7 +351,7 @@ package body System.RPC is
             end;
 
          when RPC_Reply =>
-            Enter_Critical_Section;
+            System.Garlic.Soft_Links.Enter_Critical_Section;
             if Callers (Header.RPC).Status = Aborted then
                Callers (Header.RPC).Status := Unknown;
             else
@@ -357,18 +359,18 @@ package body System.RPC is
                Callers (Header.RPC).Result :=
                  Streams.To_Stream_Element_Access (Query);
             end if;
-            Update (Callers_Watcher);
-            Leave_Critical_Section;
+            System.Garlic.Soft_Links.Update (Callers_Watcher);
+            System.Garlic.Soft_Links.Leave_Critical_Section;
 
          when Abortion_Query =>
             Abort_Task (Partition, Header.RPC);
 
          when Abortion_Reply =>
-            Enter_Critical_Section;
+            System.Garlic.Soft_Links.Enter_Critical_Section;
             Callers (Header.RPC).Status := Unknown;
             Callers (Header.RPC).PID    := Types.Null_PID;
-            Update (Callers_Watcher);
-            Leave_Critical_Section;
+            System.Garlic.Soft_Links.Update (Callers_Watcher);
+            System.Garlic.Soft_Links.Leave_Critical_Section;
 
       end case;
    end Handle_Request;
@@ -381,7 +383,7 @@ package body System.RPC is
    is
       Modified : Boolean := False;
    begin
-      Enter_Critical_Section;
+      System.Garlic.Soft_Links.Enter_Critical_Section;
       for I in Callers'Range loop
          if Callers (I).PID = PID
            and then Callers (I).Status = Running
@@ -391,9 +393,9 @@ package body System.RPC is
          end if;
       end loop;
       if Modified then
-         Update (Callers_Watcher);
+         System.Garlic.Soft_Links.Update (Callers_Watcher);
       end if;
-      Leave_Critical_Section;
+      System.Garlic.Soft_Links.Leave_Critical_Section;
    end Raise_Partition_Error;
 
    ----------
@@ -434,11 +436,12 @@ package body System.RPC is
    -- Shutdown --
    --------------
 
-   procedure Shutdown
-   is
+   procedure Shutdown is
    begin
+      pragma Debug (D ("Enter RPC shutdown"));
       Pool.Shutdown;
       Units.Shutdown;
+      pragma Debug (D ("Leave RPC shutdown"));
    end Shutdown;
 
    --------------
@@ -452,31 +455,31 @@ package body System.RPC is
       Version : Version_Id;
    begin
       loop
-         Enter_Critical_Section;
+         System.Garlic.Soft_Links.Enter_Critical_Section;
          case Callers (RPC).Status is
             when Completed =>
                Stream := Callers (RPC).Result;
                Callers (RPC).Status := Unknown;
                Callers (RPC).PID    := Types.Null_PID;
                Callers (RPC).Result := null;
-               Update (Callers_Watcher);
-               Leave_Critical_Section;
+               System.Garlic.Soft_Links.Update (Callers_Watcher);
+               System.Garlic.Soft_Links.Leave_Critical_Section;
                return;
 
             when Aborted =>
                Callers (RPC).Status := Unknown;
                Callers (RPC).PID    := Types.Null_PID;
                Callers (RPC).Result := null;
-               Update (Callers_Watcher);
-               Leave_Critical_Section;
+               System.Garlic.Soft_Links.Update (Callers_Watcher);
+               System.Garlic.Soft_Links.Leave_Critical_Section;
                Raise_Exception (Communication_Error'Identity,
                                 "remote procedure call aborted");
             when others =>
-               Lookup (Callers_Watcher, Version);
-               Leave_Critical_Section;
+               System.Garlic.Soft_Links.Lookup (Callers_Watcher, Version);
+               System.Garlic.Soft_Links.Leave_Critical_Section;
 
          end case;
-         Differ (Callers_Watcher, Version);
+         System.Garlic.Soft_Links.Differ (Callers_Watcher, Version);
       end loop;
    end Wait_For;
 
@@ -497,10 +500,10 @@ package body System.RPC is
    end Write;
 
 begin
-   Create (RPC_Barrier);
-   Create (Callers_Watcher);
+   System.Garlic.Soft_Links.Create (RPC_Barrier);
+   System.Garlic.Soft_Links.Create (Callers_Watcher);
    Register_Handler (Remote_Call, Handle_Request'Access);
    Pool.Initialize;
    Stream_IO.Initialize;
-   Register_RPC_Shutdown (Shutdown'Access);
+   System.Garlic.Soft_Links.Register_RPC_Shutdown (Shutdown'Access);
 end System.RPC;

@@ -58,6 +58,8 @@ package System.Garlic.Debug is
    type Debug_Key is private;
    --  The key used for further references to the variable
 
+   Always : constant Debug_Key;
+
    function Debug_Initialize
      (Variable : String;
       Banner   : String)
@@ -88,5 +90,6 @@ package System.Garlic.Debug is
 private
 
    type Debug_Key is range 0 .. 50;
+   Always : constant Debug_Key := 1;
 
 end System.Garlic.Debug;

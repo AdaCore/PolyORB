@@ -39,10 +39,9 @@ with Unchecked_Deallocation;
 with System.Garlic.Debug;       use System.Garlic.Debug;
 with System.Garlic.Group;       use System.Garlic.Group;
 with System.Garlic.Heart;       use System.Garlic.Heart;
-pragma Elaborate_All (System.Garlic.Heart);
 with System.Garlic.Options;     use System.Garlic.Options;
 with System.Garlic.Partitions;  use System.Garlic.Partitions;
-with System.Garlic.Soft_Links;  use System.Garlic.Soft_Links;
+with System.Garlic.Soft_Links;
 with System.Garlic.Streams;     use System.Garlic.Streams;
 with System.Garlic.Table;
 with System.Garlic.Types;       use System.Garlic.Types;
@@ -146,8 +145,7 @@ package body System.Garlic.Units is
    end record;
    Null_Request_Info : constant Request_Info := (Null_PID, Null_Request_Id);
 
-   package Requests is
-     new System.Garlic.Table.Complex
+   package Requests is new System.Garlic.Table.Complex
        (Request_Id,
         Null_Request_Id,
         First_Request_Id,
@@ -477,7 +475,7 @@ package body System.Garlic.Units is
          --  for unit in the local unit list. Otherwise, we will have
          --  to wait for info from other partitions.
 
-         Enter_Critical_Section;
+         Soft_Links.Enter_Critical_Section;
          declare
             Name : String := Units.Get_Name (Unit);
             List : Receiver_List := Receivers;
@@ -490,13 +488,13 @@ package body System.Garlic.Units is
                   Info.Version   := List.Version;
                   Info.Status    := Declared;
                   Info.Requests  := Null_Request_List;
-                  Leave_Critical_Section;
+                  Soft_Links.Leave_Critical_Section;
                   return;
                end if;
                List := List.Next;
             end loop;
          end;
-         Leave_Critical_Section;
+         Soft_Links.Leave_Critical_Section;
       end if;
 
       loop
@@ -698,6 +696,8 @@ package body System.Garlic.Units is
 
    procedure Initialize is
    begin
+      Units.Initialize;
+      Requests.Initialize;
       Register_Handler (Unit_Name_Service, Handle_Request'Access);
    end Initialize;
 
@@ -747,7 +747,7 @@ package body System.Garlic.Units is
       To_All : aliased Params_Stream_Type (0);
       Error  : Error_Type;
    begin
-      if Shutdown_In_Progress then
+      if Shutdown_Activated then
          return;
       end if;
 
@@ -788,7 +788,7 @@ package body System.Garlic.Units is
       Reconnection : Reconnection_Type;
       Error        : Error_Type;
    begin
-      if Shutdown_In_Progress then
+      if Shutdown_Activated then
          return;
       end if;
 
@@ -885,13 +885,13 @@ package body System.Garlic.Units is
       --  already elaborated and one of its tasks can ask for the
       --  partition id of a local rci unit.
 
-      Enter_Critical_Section;
+      Soft_Links.Enter_Critical_Section;
       Node.Name     := new String'(Name);
       Node.Version  := Version;
       Node.Receiver := Receiver;
       Node.Next     := Receivers;
       Receivers     := Node;
-      Leave_Critical_Section;
+      Soft_Links.Leave_Critical_Section;
    end Register_Unit;
 
    -----------------------------------
@@ -952,7 +952,9 @@ package body System.Garlic.Units is
          if Info.Status /= Defined
            or else Info.Partition /= Self_PID
          then
-            Soft_Shutdown;
+            pragma Debug (D ("RCI unit " & List.Name.all &
+                             " is already declared"));
+            Activate_Shutdown;
             Ada.Exceptions.Raise_Exception
               (Program_Error'Identity,
                "RCI unit " & List.Name.all & " is already declared");
@@ -961,7 +963,7 @@ package body System.Garlic.Units is
          Node := List;
          List := List.Next;
 
-         Free (Node.Name);
+         Destroy (Node.Name);
          Free (Node);
       end loop;
    end Register_Units_On_Boot_Server;

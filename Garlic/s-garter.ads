@@ -53,4 +53,6 @@ package System.Garlic.Termination is
    --  All the subprograms have been embedded into the body, because a
    --  soft-links mechanism is used to reference them.
 
+   procedure Initialize;
+
 end System.Garlic.Termination;

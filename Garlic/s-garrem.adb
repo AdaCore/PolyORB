@@ -131,8 +131,8 @@ package body System.Garlic.Remote is
       Executable_Name : in String)
    is
       Full_Command : constant String :=
-        Executable_Name & " " & "--detach --boot_server " &
-        Get_Boot_Server;
+        Executable_Name & " " & "--detach --boot_location """ &
+        Get_Boot_Locations & """";
    begin
       pragma Debug (D ("Launch Command: " & Full_Command));
 
@@ -143,7 +143,10 @@ package body System.Garlic.Remote is
    -- Get_Host --
    --------------
 
-   function Get_Host (Partition : String) return String is
+   function Get_Host
+     (Partition : String)
+     return String
+   is
       Buffer : String (1 .. 64);
       Last   : Natural;
    begin
@@ -156,7 +159,10 @@ package body System.Garlic.Remote is
    -- Is_Local_Host --
    -------------------
 
-   function Is_Local_Host (Host : String) return Boolean is
+   function Is_Local_Host
+     (Host : String)
+     return Boolean
+   is
       Name_Of_Host : constant String := Name_Of (Host);
    begin
       return Host = "localhost"
@@ -171,8 +177,7 @@ package body System.Garlic.Remote is
    procedure Launch
      (Launcher : in String;
       Host     : in String;
-      Command  : in String)
-   is
+      Command  : in String) is
    begin
       if Supports_Local_Launch
         and then Host (Host'First) /= '`'
@@ -232,7 +237,10 @@ package body System.Garlic.Remote is
    -- Split --
    -----------
 
-   function Split (Command : String) return Argument_List is
+   function Split
+     (Command : String)
+     return Argument_List
+   is
       Result   : Argument_List (1 .. 50);
       Last     : Natural := 0;
       Current  : String_Access;

@@ -39,8 +39,6 @@ with System.Garlic.Utils;
 
 package System.Garlic.Naming is
 
-   type String_Array is array (Positive range <>) of Utils.String_Access;
-
    subtype Address_Component is Natural range 0 .. 255;
 
    type Address is record
@@ -53,7 +51,7 @@ package System.Garlic.Naming is
    type Host_Entry (N_Aliases, N_Addresses : Natural) is
       new Ada.Finalization.Controlled with record
          Name      : Utils.String_Access;
-         Aliases   : String_Array  (1 .. N_Aliases);
+         Aliases   : Utils.String_Array  (1 .. N_Aliases);
          Addresses : Address_Array (1 .. N_Addresses);
       end record;
    --  A complete host structure. A host may have several IP addresses as

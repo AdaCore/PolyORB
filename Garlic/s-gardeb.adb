@@ -40,13 +40,15 @@
 with GNAT.IO;
 with GNAT.OS_Lib;                     use GNAT.OS_Lib;
 with Interfaces.C;                    use Interfaces.C;
+with System.Tasking.Debug;
+pragma Elaborate_All (System.Tasking.Debug);
 
 package body System.Garlic.Debug is
 
    Not_Debugging : constant Debug_Key := 0;
    --  This value is used when we are not debugging
 
-   Current : Debug_Key := 0;
+   Current : Debug_Key := Always;
    --  The current debug key
 
    Banner_Map : array (Debug_Key) of String_Access;
@@ -68,6 +70,9 @@ package body System.Garlic.Debug is
    --  This file is created at elaboration time and deleted once the
    --  partition has cleanly terminated. This feature is used to detect
    --  incorrect termination.
+
+   Tasking_Flag : Boolean := False;
+   --  Do we output tasking info in debugging messages.
 
    -------------------------------------
    --  Create_Termination_Sanity_File --
@@ -184,11 +189,18 @@ package body System.Garlic.Debug is
 
    procedure Print_Debug_Info
      (Message : in String;
-      Key     : in Debug_Key)
-   is
+      Key     : in Debug_Key) is
+      use System.Tasking.Debug;
    begin
       if Key /= Not_Debugging then
          Semaphore.P;
+         if Tasking_Flag then
+            declare
+               B : String := Image (Self);
+            begin
+               GNAT.IO.Put ("[" & B (11 .. B'Last) & "] ");
+            end;
+         end if;
          GNAT.IO.Put_Line (Banner_Map (Key).all & Message);
          Semaphore.V;
       end if;
@@ -225,4 +237,14 @@ begin
    if Termination_Directory.all /= "" then
       Create_Termination_Sanity_File;
    end if;
+   Banner_Map (Always) := new String'("");
+   declare
+      Debug_Option : String_Access := Getenv ("S_GARDEB");
+   begin
+      if Debug_Option'Length /= 0 then
+         if Debug_Option.all = "tasking" then
+            Tasking_Flag := True;
+         end if;
+      end if;
+   end;
 end System.Garlic.Debug;

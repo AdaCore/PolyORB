@@ -34,6 +34,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
+with System.Garlic.Protocols;
 with System.Garlic.Streams;
 with System.Garlic.Types;
 with System.Garlic.Utils;
@@ -77,12 +78,12 @@ package System.Garlic.Heart is
    procedure Wait_For_Elaboration_Completion;
    --  This procedure blocks until elaboration is terminated
 
-   procedure Soft_Shutdown;
+   function Shutdown_Activated return Boolean;
+   pragma Inline (Shutdown_Activated);
+
+   procedure Activate_Shutdown;
    --  Shutdown everything after signaling to all known reachable
    --  partitions to shutdown also.
-
-   Shutdown_In_Progress : Boolean := False;
-   pragma Atomic (Shutdown_In_Progress);
 
    ---------------------
    -- Local partition --
@@ -162,16 +163,22 @@ package System.Garlic.Heart is
 
    procedure Analyze_Stream
      (Partition  : out Types.Partition_ID;
+      Protocol   : in Protocols.Protocol_Access;
       Opcode     : out Any_Opcode;
       Unfiltered : out Streams.Stream_Element_Access;
       Filtered   : in  Streams.Stream_Element_Access;
       Offset     : in Ada.Streams.Stream_Element_Offset;
       Error      : in out Utils.Error_Type);
-   --  Called by a protocol to signal that something has arrived. Filtered
-   --  has not been unfiltered yet. Offset represents the number of bytes
-   --  that should not been considered. Extract the beginning of the
-   --  stream: PID, Opcode and Unfiltered. This way, the protocol task
-   --  knows the partition it has in charge.
+   --  Called by a protocol to signal that something has
+   --  arrived. Filtered has not been unfiltered yet. Offset
+   --  represents the number of bytes that should not been
+   --  considered. Extract the beginning of the stream: PID, Opcode
+   --  and Unfiltered. This way, the protocol task knows the partition
+   --  it has in charge. The protocol used to communicate with this
+   --  partition is preserved on the first connection to this
+   --  partition. This partition may have no self location. By
+   --  preserving the protocol, we will be able to contact the
+   --  partition back.
 
    procedure Handle_Any_Request
      (Partition : in Types.Partition_ID;

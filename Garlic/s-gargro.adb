@@ -34,26 +34,28 @@
 ------------------------------------------------------------------------------
 
 with System.Garlic.Debug;      use System.Garlic.Debug;
+pragma Elaborate_All (System.Garlic.Debug);
 with System.Garlic.Heart;      use System.Garlic.Heart;
-with System.Garlic.Options;
-pragma Warnings (Off, System.Garlic.Options);
 with System.Garlic.Partitions; use System.Garlic.Partitions;
-with System.Garlic.Soft_Links; use System.Garlic.Soft_Links;
+with System.Garlic.Soft_Links;
 with System.Garlic.Streams;    use System.Garlic.Streams;
 with System.Garlic.Types;      use System.Garlic.Types;
 with System.Garlic.Utils;      use System.Garlic.Utils;
+
+--  Used when debug on.
+with System.Garlic.Options;
+pragma Warnings (Off, System.Garlic.Options);
 
 package body System.Garlic.Group is
 
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARGRO", "(s-gargro): ");
-
    procedure D
      (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   Group_Mutex : Mutex_Access;
+   Group_Mutex : Soft_Links.Mutex_Access;
 
    procedure Handle_Request
      (Partition : in Partition_ID;
@@ -75,7 +77,7 @@ package body System.Garlic.Group is
       Params : access Streams.Params_Stream_Type)
    is
    begin
-      Enter (Group_Mutex);
+      Soft_Links.Enter (Group_Mutex);
       pragma Debug (D ("Broadcast facility is locked"));
       Insert (Params.all);
       Partition_ID'Write (Params, Self_PID);
@@ -127,7 +129,7 @@ package body System.Garlic.Group is
       if Inner_PID = Self_PID then
          if Empty (Reply) then
             pragma Debug (D ("Broadcast facility is unlocked"));
-            Leave (Group_Mutex);
+            Soft_Links.Leave (Group_Mutex);
 
          else
             pragma Debug (D ("Continue broacast for a second time"));
@@ -158,7 +160,7 @@ package body System.Garlic.Group is
 
    procedure Initialize is
    begin
-      Create (Group_Mutex);
+      Soft_Links.Create (Group_Mutex);
       Register_Handler (Group_Service, Handle_Request'Access);
    end Initialize;
 

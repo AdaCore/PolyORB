@@ -34,12 +34,13 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;              use Ada.Streams;
+with Ada.Unchecked_Deallocation;
 with System.Garlic.Debug;      use System.Garlic.Debug;
 with System.Garlic.Heart;      use System.Garlic.Heart;
 with System.Garlic.Name_Table; use System.Garlic.Name_Table;
 with System.Garlic.Partitions; use System.Garlic.Partitions;
 with System.Garlic.Streams;    use System.Garlic.Streams;
-with System.Garlic.Table;      use System.Garlic.Table;
+with System.Garlic.Table;
 with System.Garlic.Types;      use System.Garlic.Types;
 with System.Garlic.Utils;      use System.Garlic.Utils;
 
@@ -119,7 +120,21 @@ package body System.Garlic.Filters is
 
    Init : constant Request_Type := (Get_Params, null);
 
-   package Filters is new Complex
+   type Registered_Filter_Type;
+   type Registered_Filter_Access is access Registered_Filter_Type;
+   type Registered_Filter_Type is
+     record
+        Name   : String_Access;
+        Filter : Filter_Access;
+        Next   : Registered_Filter_Access;
+     end record;
+   Registered_Filter_List : Registered_Filter_Access;
+
+   procedure Free is
+     new Ada.Unchecked_Deallocation
+       (Registered_Filter_Type, Registered_Filter_Access);
+
+   package Filters is new System.Garlic.Table.Complex
      (Index_Type     => Filter_Id,
       Null_Index     => Null_Filter,
       First_Index    => First_Filter,
@@ -128,7 +143,7 @@ package body System.Garlic.Filters is
       Component_Type => Filter_Access,
       Null_Component => null);
 
-   package Channels is new Complex
+   package Channels is new System.Garlic.Table.Complex
      (Index_Type     => Partition_ID,
       Null_Index     => Types.Null_PID,
       First_Index    => Types.First_PID,
@@ -559,7 +574,27 @@ package body System.Garlic.Filters is
 
    procedure Initialize is
       F : Name_Id;
+      L : Registered_Filter_Access;
    begin
+      Filters.Initialize;
+      Channels.Initialize;
+
+      --  We have postponed the filter registrations because this unit
+      --  was not yet initialized and in particular, Filters and
+      --  Channels were not initialized.
+
+      --  We cannot Initialize this unit before having all the filter
+      --  registration because the default filter and the registration
+      --  filter would be installed without being registered.
+
+      while Registered_Filter_List /= null loop
+         L := Registered_Filter_List;
+         Registered_Filter_List := L.Next;
+         Filters.Set_Component (Filters.Get_Index (L.Name.all), L.Filter);
+         Destroy (L.Name);
+         Free (L);
+      end loop;
+
       --  Initialize default filter
 
       F := To_Name_Id (Get_Info (Get (Default_Filter_Name)));
@@ -644,9 +679,18 @@ package body System.Garlic.Filters is
 
    procedure Register_Filter
      (Filter : in Filter_Access;
-      Name   : in String) is
+      Name   : in String)
+   is
+      Registered_Filter : Registered_Filter_Access;
    begin
-      Filters.Set_Component (Filters.Get_Index (Name), Filter);
+      --  We cannot yet register filters because this unit has not
+      --  been initialized yet. Queue the registration request.
+
+      Registered_Filter := new Registered_Filter_Type;
+      Registered_Filter.Name   := new String'(Name);
+      Registered_Filter.Filter := Filter;
+      Registered_Filter.Next   := Registered_Filter_List;
+      Registered_Filter_List   := Registered_Filter;
    end Register_Filter;
 
    ----------

@@ -36,13 +36,39 @@
 package body System.Garlic.Protocols is
 
    --------------
-   -- Get_Info --
+   -- Get_Data --
    --------------
 
-   function Get_Info (Protocol  : access Protocol_Type) return String is
+   function Get_Data
+     (Protocol  : access Protocol_Type)
+     return Utils.String_Array_Access is
    begin
-      return "";
-   end Get_Info;
+      return null;
+   end Get_Data;
+
+   --------------
+   -- Register --
+   --------------
+
+   procedure Register (Protocol : in Protocol_Access) is
+   begin
+      if Protocol = null then
+         return;
+      end if;
+      Last_Protocol := Last_Protocol + 1;
+      Protocol_Table (Last_Protocol) := Protocol;
+   end Register;
+
+   --------------
+   -- Shutdown --
+   --------------
+
+   procedure Shutdown is
+   begin
+      for I in First_Protocol .. Last_Protocol loop
+         Shutdown (Protocol_Table (I));
+      end loop;
+   end Shutdown;
 
 end System.Garlic.Protocols;
 

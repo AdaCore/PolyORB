@@ -64,8 +64,12 @@ package body System.Garlic.Options is
 
    procedure Initialize_Default_Options is
    begin
+      Task_Pool_Low_Bound  := Def_Task_Pool_Low_Bound;
+      Task_Pool_High_Bound := Def_Task_Pool_High_Bound;
+      Task_Pool_Max_Bound  := Def_Task_Pool_Max_Bound;
+
       Execution_Mode  := Normal_Mode;
-      Connection_Hits := 128;
+      Connection_Hits := Def_Connection_Hits;
       Detach          := False;
       Mirror_Expected := False;
       Has_Light_PCS   := not Has_RCI_Pkg_Or_RACW_Var;
@@ -86,7 +90,13 @@ package body System.Garlic.Options is
    begin
       EV := GNAT.OS_Lib.Getenv ("BOOT_SERVER");
       if EV.all /= "" then
-         Set_Boot_Server (EV.all);
+         Set_Boot_Location (Unquote (EV.all));
+      end if;
+      GNAT.OS_Lib.Free (EV);
+
+      EV := GNAT.OS_Lib.Getenv ("BOOT_LOCATION");
+      if EV.all /= "" then
+         Set_Boot_Location (Unquote (EV.all));
       end if;
       GNAT.OS_Lib.Free (EV);
 
@@ -104,7 +114,7 @@ package body System.Garlic.Options is
 
       EV := GNAT.OS_Lib.Getenv ("SELF_LOCATION");
       if EV.all /= "" then
-         Set_Self_Location (EV.all);
+         Set_Self_Location (Unquote (EV.all));
       end if;
       GNAT.OS_Lib.Free (EV);
 
@@ -151,7 +161,14 @@ package body System.Garlic.Options is
             pragma Debug (D ("--boot_server available on command line"));
 
             Next_Argument (Index);
-            Set_Boot_Server (Argument (Index));
+            Set_Boot_Location (Unquote (Argument (Index)));
+
+         elsif Argument (Index) = "--boot_location" then
+
+            pragma Debug (D ("--boot_location available on command line"));
+
+            Next_Argument (Index);
+            Set_Boot_Location (Unquote (Argument (Index)));
 
          elsif Argument (Index) = "--boot_mirror" then
 
@@ -170,7 +187,7 @@ package body System.Garlic.Options is
             pragma Debug (D ("--self_location available on command line"));
 
             Next_Argument (Index);
-            Set_Self_Location (Argument (Index));
+            Set_Self_Location (Unquote (Argument (Index)));
 
          elsif Argument (Index) = "--connection_hits" then
 
@@ -227,21 +244,46 @@ package body System.Garlic.Options is
          Is_Boot_Mirror := True;
       end if;
 
+      if Is_Boot_Server
+        and then Self_Location /= null
+      then
+         if Boot_Location = null then
+            Boot_Location := Copy (Self_Location);
+
+         else
+            --  For the boot partition, boot locations are also self
+            --  locations. They have to be appended to the current
+            --  self locations because they are not the prefered
+            --  locations.
+
+            declare
+               All_Locations : constant String
+                 := Merge_String (Self_Location) & " " &
+                    Merge_String (Boot_Location);
+            begin
+               Set_Self_Location (All_Locations);
+            end;
+         end if;
+      end if;
+
       if Boot_Location = null then
          if (Is_Boot_Server and then not Nolaunch)
-           or else Default_Boot_Server = ""
+           or else Default_Protocol_Name = ""
          then
-            Set_Boot_Server ("tcp");
+            Set_Boot_Location ("tcp");
          else
-            Set_Boot_Server (Default_Boot_Server);
+            Set_Boot_Location (Default_Protocol_Name & "://" &
+                               Default_Protocol_Data);
          end if;
       end if;
 
       if Self_Location = null then
          if Is_Boot_Server then
-            Self_Location := Boot_Location;
+            Self_Location := Copy (Boot_Location);
          else
-            Self_Location := new String'("");
+            Self_Location
+              := new String_Array'(1 .. 1 =>
+                                     new String'(Default_Protocol_Name));
          end if;
       end if;
 
@@ -264,6 +306,16 @@ package body System.Garlic.Options is
       Index := Index + 1;
    end Next_Argument;
 
+   -----------------------
+   -- Set_Boot_Location --
+   -----------------------
+
+   procedure Set_Boot_Location (Default : in String) is
+   begin
+      Destroy (Boot_Location);
+      Boot_Location := Split_String (Default);
+   end Set_Boot_Location;
+
    ---------------------
    -- Set_Boot_Mirror --
    ---------------------
@@ -277,18 +329,6 @@ package body System.Garlic.Options is
       end if;
       Is_Boot_Mirror := True;
    end Set_Boot_Mirror;
-
-   ---------------------
-   -- Set_Boot_Server --
-   ---------------------
-
-   procedure Set_Boot_Server (Default : in String) is
-   begin
-      if Boot_Location /= null then
-         Free (Boot_Location);
-      end if;
-      Boot_Location := new String'(Default);
-   end Set_Boot_Server;
 
    -------------------------
    -- Set_Connection_Hits --
@@ -314,11 +354,6 @@ package body System.Garlic.Options is
 
    procedure Set_Execution_Mode (Default : in Execution_Mode_Type) is
    begin
-      if Execution_Mode /= Normal_Mode then
-         Ada.Exceptions.Raise_Exception
-           (Program_Error'Identity,
-            "Partition has already set its execution mode");
-      end if;
       Execution_Mode := Default;
    end Set_Execution_Mode;
 
@@ -361,7 +396,7 @@ package body System.Garlic.Options is
    procedure Set_Partition_Name (Name : in String) is
    begin
       if Partition_Name /= null then
-         Free (Partition_Name);
+         Destroy (Partition_Name);
       end if;
       Partition_Name := new String'(Name);
       Set_Trace_File_Name (Name & ".ptf");
@@ -382,10 +417,8 @@ package body System.Garlic.Options is
 
    procedure Set_Self_Location (Default : in String) is
    begin
-      if Self_Location /= null then
-         Free (Self_Location);
-      end if;
-      Self_Location := new String'(Default);
+      Destroy (Self_Location);
+      Self_Location := Split_String (Default);
    end Set_Self_Location;
 
    ---------------
@@ -424,7 +457,7 @@ package body System.Garlic.Options is
    procedure Set_Trace_File_Name (Name : in String) is
    begin
       if Trace_File_Name /= null then
-         Free (Trace_File_Name);
+         Destroy (Trace_File_Name);
       end if;
       Trace_File_Name := new String'(Name);
    end Set_Trace_File_Name;

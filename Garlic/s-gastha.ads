@@ -65,6 +65,8 @@ package System.Garlic.Storage_Handling is
    function Storage_Size (Pool : Garlic_Storage_Pool)
       return System.Storage_Elements.Storage_Count;
 
+   procedure Initialize;
+
 private
 
    type Array_Of_Addresses is array (1 .. Max_Objects) of Address;
@@ -77,6 +79,9 @@ private
         Addresses : Array_Of_Addresses;
         Used      : Array_Of_Boolean;
         Mutex     : Soft_Links.Mutex_Access;
+        Ready     : Boolean;
      end record;
+
+   --  Ready denotes that Mutex has been created.
 
 end System.Garlic.Storage_Handling;

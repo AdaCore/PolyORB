@@ -38,7 +38,7 @@ with Ada.Streams;              use Ada.Streams;
 with System.Garlic;            use System.Garlic;
 with System.Garlic.Debug;      use System.Garlic.Debug;
 with System.Garlic.Heart;      use System.Garlic.Heart;
-with System.Garlic.Soft_Links; use System.Garlic.Soft_Links;
+with System.Garlic.Soft_Links;
 with System.Garlic.Streams;
 with System.Garlic.Table;
 with System.Garlic.Types;
@@ -62,9 +62,9 @@ package body System.RPC.Stream_IO is
          Mode      : Stream_Mode;
          Incoming  : aliased Streams.Params_Stream_Type (0);
          Outgoing  : aliased Streams.Params_Stream_Type (0);
-         Consumer  : Barrier_Access;
-         Available : Mutex_Access;
-         Critical  : Mutex_Access;
+         Consumer  : System.Garlic.Soft_Links.Barrier_Access;
+         Available : System.Garlic.Soft_Links.Mutex_Access;
+         Critical  : System.Garlic.Soft_Links.Mutex_Access;
       end record;
    type Partition_Stream_Access is access Partition_Stream_Record;
 
@@ -127,7 +127,7 @@ package body System.RPC.Stream_IO is
 
       pragma Debug (D ("Close - Unlock stream" & Stream.PID'Img));
       Stream.Open := False;
-      Leave (Str.Available);
+      System.Garlic.Soft_Links.Leave (Str.Available);
 
       if Found (Err) then
          Raise_Exception
@@ -155,9 +155,9 @@ package body System.RPC.Stream_IO is
          if Stream = null then
             pragma Debug (D ("Allocate stream" & Partition'Img));
             Stream := new Partition_Stream_Record;
-            Create (Stream.Consumer);
-            Create (Stream.Available);
-            Create (Stream.Critical);
+            System.Garlic.Soft_Links.Create (Stream.Consumer);
+            System.Garlic.Soft_Links.Create (Stream.Available);
+            System.Garlic.Soft_Links.Create (Stream.Critical);
             Streams.Set_Component (Partition, Stream);
          end if;
          Streams.Leave;
@@ -171,10 +171,11 @@ package body System.RPC.Stream_IO is
 
    procedure Initialize is
    begin
+      Streams.Initialize;
       Any := new Partition_Stream_Record;
-      Create (Any.Consumer);
-      Create (Any.Available);
-      Create (Any.Critical);
+      System.Garlic.Soft_Links.Create (Any.Consumer);
+      System.Garlic.Soft_Links.Create (Any.Available);
+      System.Garlic.Soft_Links.Create (Any.Critical);
       Streams.Set_Component (Any_Partition, Any);
       Register_Handler (Msgcode, Handle_Request'Access);
    end Initialize;
@@ -211,7 +212,7 @@ package body System.RPC.Stream_IO is
       --  Only one task at a time
 
       pragma Debug (D ("Open - Lock stream" & Partition'Img));
-      Enter (Str.Available);
+      System.Garlic.Soft_Links.Enter (Str.Available);
       Str.Mode := Mode;
 
       pragma Debug (D ("Open - Resume stream" & Partition'Img));
@@ -251,7 +252,7 @@ package body System.RPC.Stream_IO is
          --  Is there something to read ?
 
          pragma Debug (D ("Read - Wait for stream" & Stream.PID'Img));
-         Wait (Str.Consumer);
+         System.Garlic.Soft_Links.Wait (Str.Consumer);
 
          --  For Any_Partition, look at all the partitions.
 
@@ -268,13 +269,13 @@ package body System.RPC.Stream_IO is
             if From /= null then
 
                pragma Debug (D ("Read - Lock stream" & P'Img));
-               Enter (From.Critical);
+               System.Garlic.Soft_Links.Enter (From.Critical);
 
                pragma Debug (D ("Read from stream" & P'Img));
                System.Garlic.Streams.Read (From.Incoming, Item, Len);
 
                pragma Debug (D ("Read - Unlock stream" & P'Img));
-               Leave (From.Critical);
+               System.Garlic.Soft_Links.Leave (From.Critical);
 
                if Len /= 0 then
 
@@ -286,8 +287,8 @@ package body System.RPC.Stream_IO is
 
                   if From.Incoming.Count /= 0 then
                      pragma Debug (D ("Read - Signal stream" & P'Img));
-                     Signal (From.Consumer);
-                     Signal (Any.Consumer);
+                     System.Garlic.Soft_Links.Signal (From.Consumer);
+                     System.Garlic.Soft_Links.Signal (Any.Consumer);
                   end if;
                   exit;
                end if;
@@ -318,20 +319,20 @@ package body System.RPC.Stream_IO is
    begin
       pragma Debug (D ("Receive new message"));
       pragma Debug (D ("Receive - Lock stream" & Partition'Img));
-      Enter (Str.Critical);
+      System.Garlic.Soft_Links.Enter (Str.Critical);
 
       Garlic.Streams.Read (Query.all, SEA, Len);
       Garlic.Streams.Write (Str.Incoming, SEA);
 
       pragma Debug (D ("Receive - Unlock stream" & Partition'Img));
-      Leave (Str.Critical);
+      System.Garlic.Soft_Links.Leave (Str.Critical);
 
       --  Signal to consumer connected to Partition and to
       --  Any_Partition.
 
       pragma Debug (D ("Signal to all streams"));
-      Signal (Str.Consumer);
-      Signal (Any.Consumer);
+      System.Garlic.Soft_Links.Signal (Str.Consumer);
+      System.Garlic.Soft_Links.Signal (Any.Consumer);
    end Handle_Request;
 
    -----------
@@ -358,13 +359,13 @@ package body System.RPC.Stream_IO is
       end if;
 
       pragma Debug (D ("Write - Lock stream" & Stream.PID'Img));
-      Enter (Str.Critical);
+      System.Garlic.Soft_Links.Enter (Str.Critical);
 
       pragma Debug (D ("Write to stream" & Stream.PID'Img));
       Garlic.Streams.Write (Str.Outgoing, Item);
 
       pragma Debug (D ("Write - Unlock stream" & Stream.PID'Img));
-      Leave (Str.Critical);
+      System.Garlic.Soft_Links.Leave (Str.Critical);
    exception when others =>
       pragma Debug (D ("exception raised in Write"));
       null;

@@ -48,8 +48,8 @@ package System.Garlic.Partitions is
    --  Allocate a new partition ID. This can need the agreement of the boot
    --  mirrors group.
 
-   function Get_Boot_Server return String;
-   --  This function returns the coordinates of the boot server
+   function Get_Boot_Locations return String;
+   --  This function returns all the coordinates of the boot server
 
    procedure Get_Boot_Partition
      (Partition      : in Types.Partition_ID;
@@ -67,6 +67,7 @@ package System.Garlic.Partitions is
      (Partition : in Types.Partition_ID;
       Name      : out Name_Table.Name_Id;
       Error     : in out Utils.Error_Type);
+
    procedure Get_Name
      (Partition : in Types.Partition_ID;
       Name      : out Utils.String_Access;
@@ -87,12 +88,17 @@ package System.Garlic.Partitions is
       Error        : in out Utils.Error_Type);
    --  Return policy to use when reconnecting to Partition
 
-   function Get_Self_Location return Physical_Location.Location_Type;
-
    function Global_Termination_Partitions return Types.Partition_List;
+   --  Return list of partitions using global termination
+
    function Known_Partitions return Types.Partition_List;
+   --  Return list of partitions dead or alive
+
    function Local_Termination_Partitions return Types.Partition_List;
+   --  Return list of partitions using local termination
+
    function Online_Partitions return Types.Partition_List;
+   --  Return list of partitions alive
 
    function Has_Local_Termination (Partition : Types.Partition_ID)
      return Boolean;
@@ -104,6 +110,8 @@ package System.Garlic.Partitions is
       Reply     : access Streams.Params_Stream_Type;
       Error     : in out Utils.Error_Type);
    --  Handle Partition_Service operations
+
+   procedure Initialize;
 
    procedure Invalidate_Partition
      (Partition : in Types.Partition_ID);
@@ -121,8 +129,7 @@ package System.Garlic.Partitions is
    --  Null_PID.
 
    procedure Send_Boot_Request
-     (Location : in Physical_Location.Location_Type;
-      Error    : in out Utils.Error_Type);
+     (Error    : in out Utils.Error_Type);
    --  Send a boot registration to boot server.  We will send a
    --  Define_New_Partition request to the boot partition. This is step
    --  1. This will cause a dialog to be established and a new Partition_ID
@@ -139,8 +146,8 @@ package System.Garlic.Partitions is
    --  info request will be broadcast. This is step 8.
 
    procedure Set_Boot_Location
-     (Location : in System.Garlic.Physical_Location.Location_Type);
-   --  Set boot server coordinates
+     (Location  : in Physical_Location.Location_Type);
+   --  Set effective boot server coordinates
 
    procedure Set_Online
      (Partition : in Types.Partition_ID;
@@ -148,11 +155,17 @@ package System.Garlic.Partitions is
    --  Indicates whether a communication link has been initialized
    --  with this partition.
 
+   procedure Set_Used_Protocol
+     (Partition : in Types.Partition_ID;
+      Protocol  : in Protocols.Protocol_Access);
+   --  Define the protocol to use to contact a partition when there is
+   --  already info on this.
+
    procedure Shutdown;
    --  Resume tasks waiting for an update of partition info table to
    --  ensure shutdown.
 
-   procedure Dump_Partition_Table;
+   procedure Dump_Partition_Table (Force : Boolean := False);
    --  Dump partition table on standard output for debugging purpose
 
 end System.Garlic.Partitions;

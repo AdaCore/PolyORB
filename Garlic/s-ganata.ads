@@ -60,6 +60,8 @@ package System.Garlic.Name_Table is
    --  To each entry in the name table corresponds a field Info. The
    --  previous procedures allow to get and set this field.
 
+   procedure Initialize;
+
    Empty_Info : constant Integer;
    --  Empty info slot
 

@@ -33,11 +33,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Heart;
-with System.Garlic.Soft_Links; use System.Garlic.Soft_Links;
-
 package body System.Garlic.Light_Termination is
 
 begin
-   Register_Local_Termination (Heart.Soft_Shutdown'Access);
+   null;
 end System.Garlic.Light_Termination;

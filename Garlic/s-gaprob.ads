@@ -38,6 +38,8 @@ with System.Garlic.Utils;
 
 package System.Garlic.Protected_Objects is
 
+   procedure Initialize;
+
    -------------------------------------------
    -- Critical Section for PCS with Tasking --
    -------------------------------------------

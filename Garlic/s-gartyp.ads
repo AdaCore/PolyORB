@@ -33,8 +33,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Streams;
-
 package System.Garlic.Types is
 
    type Status_Type is (None, Busy, Done, Dead);
@@ -99,10 +97,5 @@ package System.Garlic.Types is
    --  Trace_Mode will record all the traces in a file, Replay_Mode will
    --  replay a distributed execntion and Normal_Mode does nothing regarding
    --  tracing or replay.
-
-   type RPC_Receiver is
-      access procedure (Params : access Streams.Params_Stream_Type;
-                        Result : access Streams.Params_Stream_Type);
-   --  Similar to System.RPC.RPC_Receiver
 
 end System.Garlic.Types;

@@ -39,8 +39,6 @@ with System.Garlic.Utils;
 
 package System.Garlic.Protocols is
 
-   pragma Elaborate_Body;
-
    type Protocol_Type is abstract tagged limited null record;
    --  New protocols must derivate from this tagged type. They must
    --  implement versions of the procedures below which are marked as
@@ -52,27 +50,49 @@ package System.Garlic.Protocols is
    type Protocol_Access is access all Protocol_Type'Class;
    --  Pointer on Protocol_Type and any child
 
-   function Get_Name (P : access Protocol_Type) return String
+   Null_Protocol  : constant := 0;
+   First_Protocol : constant := 1;
+   Last_Protocol  : Natural := Null_Protocol;
+   Max_Protocols  : constant := 10;
+   Protocol_Table : array (First_Protocol .. Max_Protocols) of Protocol_Access;
+
+   function Get_Name (Protocol : access Protocol_Type) return String
      is abstract;
    --  Return a string containing the name of the protocol
 
    procedure Initialize
      (Protocol  : access Protocol_Type;
-      Self_Data : in Utils.String_Access := null;
-      Boot_Data : in Utils.String_Access := null;
-      Boot_Mode : in Boolean := False;
+      Self_Data : in Utils.String_Access;
+      Required  : in Boolean;
+      Performed : out Boolean;
       Error     : in out Utils.Error_Type)
      is abstract;
-   --  Initialize protocol. When Boot_Data is non-null, use this location
-   --  to contact boot partition. When Boot_Mode is true, initialize this
-   --  protocol as a boot protocol. Note that this procedure can be called
-   --  again to reset the protocol in a normal mode once the partition has
-   --  booted. When Self_Data is non-null, use this location to receive
-   --  messages. When Data are null, compute an internal location.
+   --  Initialize protocol. When Self_Data is non-null, use this
+   --  location to receive messages. Required means that this
+   --  initialization has to be done. When Required is false, this
+   --  initialization has to be performed only when the protocol was
+   --  not previously initialized. This occurs when the current
+   --  partition has no self location depending on this protocol. We
+   --  have to initialize this protocol anyway, because it may be
+   --  needed to contact other partitions.
 
-   function Get_Info (Protocol : access Protocol_Type) return String;
-   --  Return a string which holds enough information to be usable by
-   --  another partition to contact us. Default is an empty string.
+
+   procedure Set_Boot_Data
+     (Protocol  : access Protocol_Type;
+      Boot_Data : in Utils.String_Access;
+      Error     : in out Utils.Error_Type)
+     is abstract;
+   --  When Boot_Data is non-null, use this location to contact boot
+   --  partition.
+
+   function Get_Data
+     (Protocol : access Protocol_Type)
+     return Utils.String_Array_Access;
+   --  Return a string array which holds all the physical locations to
+   --  be used by another partition to contact us.
+
+   procedure Register (Protocol : in Protocol_Access);
+   --  Register the protocol as a present protocol
 
    Unused_Space : constant Ada.Streams.Stream_Element_Count := 32;
    --  The number of unused slots that are stored whenever Send is called.
@@ -88,8 +108,11 @@ package System.Garlic.Protocols is
    --  above.
 
    procedure Shutdown (Protocol : access Protocol_Type) is abstract;
-   --  When this procedure gets called, the protocol must terminate
-   --  as soon as possible and terminate cleanly.
+   --  The protocol must ensure that all its active tasks are
+   --  terminated once the subprogram returns.
+
+   procedure Shutdown;
+   --  Shutdown every protocol
 
 end System.Garlic.Protocols;
 

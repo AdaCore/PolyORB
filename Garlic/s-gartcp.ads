@@ -38,7 +38,7 @@ with System.Garlic.Protocols;
 with System.Garlic.Types;
 with System.Garlic.Utils;
 
-package System.Garlic.TCP is
+package System.Garlic.Tcp is
 
    --  This package needs documentation ???
 
@@ -46,21 +46,30 @@ package System.Garlic.TCP is
 
    function Create return System.Garlic.Protocols.Protocol_Access;
 
-   function Get_Name (P : access TCP_Protocol) return String;
+   function Get_Data
+     (Protocol  : access TCP_Protocol)
+     return Utils.String_Array_Access;
 
-   function Get_Info (Protocol  : access TCP_Protocol) return String;
+   function Get_Name
+     (Protocol : access TCP_Protocol)
+     return String;
 
    procedure Initialize
      (Protocol  : access TCP_Protocol;
-      Self_Data : in Utils.String_Access := null;
-      Boot_Data : in Utils.String_Access := null;
-      Boot_Mode : in Boolean := False;
+      Self_Data : in Utils.String_Access;
+      Required  : in Boolean;
+      Performed : out Boolean;
       Error     : in out Utils.Error_Type);
 
    procedure Send
      (Protocol  : access TCP_Protocol;
       Partition : in Types.Partition_ID;
       Data      : access Ada.Streams.Stream_Element_Array;
+      Error     : in out Utils.Error_Type);
+
+   procedure Set_Boot_Data
+     (Protocol  : access TCP_Protocol;
+      Boot_Data : in Utils.String_Access;
       Error     : in out Utils.Error_Type);
 
    procedure Shutdown (Protocol : access TCP_Protocol);
@@ -72,4 +81,4 @@ private
    type TCP_Protocol is new System.Garlic.Protocols.Protocol_Type
      with null record;
 
-end System.Garlic.TCP;
+end System.Garlic.Tcp;

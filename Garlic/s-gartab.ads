@@ -73,6 +73,8 @@ package System.Garlic.Table is
       --  empty string when this index corresponds to a non-allocated
       --  component.
 
+      procedure Initialize;
+
       function Last return Index_Type;
       --  Return last index used.
 
@@ -133,6 +135,8 @@ package System.Garlic.Table is
       --  empty string when this index corresponds to a non-allocated
       --  component.
 
+      procedure Initialize;
+
       procedure Set_Component (N : Index_Type; C : Component_Type);
       --  Set component of index N to C. When N is not allocated, allocate
       --  it. Raise Constraint_Error when N is not in range of current table.
@@ -164,6 +168,8 @@ package System.Garlic.Table is
       Table : Component_Table_Access;
 
       function  Allocate return Index_Type;
+
+      procedure Initialize;
 
    end Simple;
 

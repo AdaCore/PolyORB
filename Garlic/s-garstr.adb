@@ -151,6 +151,15 @@ package body System.Garlic.Streams is
       return Params.Count = 0;
    end Empty;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      Streams_Pools.Initialize;
+   end Initialize;
+
    ------------
    -- Insert --
    ------------

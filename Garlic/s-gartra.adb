@@ -141,7 +141,9 @@ package body System.Garlic.Trace is
 
    procedure Shutdown is
    begin
-      if Execution_Mode = Trace_Mode then
+      if Execution_Mode = Trace_Mode
+        and then Is_Open (Trace_File)
+      then
          pragma Debug (D ("Closing trace file"));
          Close (Trace_File);
       end if;

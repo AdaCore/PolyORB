@@ -1,3 +1,194 @@
+1999-12-13  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* Makefile.am, Makefile.in: Rebuild because of configure.in
+ 	changes. Renames generated System.Garlic.TCP.Operations into
+ 	System.Garlic.TCP_Operations. A clone of System.Garlic.TCP using
+ 	subprograms from Operations should not depend on
+ 	System.Garlic.TCP. Save the elaboration order in file
+ 	"elaboration" for debugging purpose. Adapt Makefile to work for
+ 	other Make and not only GNUMake.
+
+	* s-ganata.adb, s-ganata.ads: Substitute Free by Destroy. Remove
+ 	elaboration code and add procedure Initialize.
+
+	* s-ganobl.adb, s-ganobl.ads: Add procedures Initialize and
+ 	Shutdown. Move elaboration code in Initialize. Shutdown ensures a
+ 	synchronous termination of this unit. When we close a socket, we
+ 	dequeue all the send and recv operations. This fixes several race
+ 	conditions. One example was when a file descriptor was closed and
+ 	then reused in another connection. Receive operations were not
+ 	resumed by the close operation but were consuming the data from
+ 	the newly created connection. Update protected types due to
+ 	changes above. Substitute TCP by Tcp.
+
+	* s-gaphlo.adb, s-gaphlo.ads: New procedures Add_Missing_Locations
+ 	Add_First_Missing_Location and To_Location. Remove protocol
+ 	registration procedure and shutdown procedure (redundant with
+ 	System.Garlic.Protocols procedures). Substitute Free by Destroy.
+
+	* s-gaplsp.ads.in: Split Default_Boot_Server into a
+ 	Default_Protocol_Name and a Default_Protocol_Data.
+
+	* s-gaprco.adb.in: Substitute TCP by Tcp. Rewrite protocol
+	registration.
+
+	* s-gaprco.ads: Move protocol table and bounds into
+ 	System.Garlic.Protocols.
+
+	* s-gaprob.adb, s-gaprob.ads: New procedure Initialize which
+ 	includes the elaboration code.
+
+	* s-gardeb.adb: Add the opportunity to have the task image in
+	the debugging output. To do so, set S_GARDEB to "tasking".
+	
+	* s-garfil.adb: Improve Register_Filter procedure to enable filter
+ 	registration (done by System.Garlic.Elaboration) although
+ 	System.Garlic.Filters has not been initialized. The real
+	registration is done now in Filter.Initialize. This supposes that
+	Garlic.Elaboration.Initialize is executed before Filter.Initialize.
+
+	* s-gargro.adb: Minor reformating.
+
+	* s-garhea.adb, s-garhea.ads: Substitute Soft_Shutdown by
+ 	Activate_Shutdown. Only the environment task can shutdown the
+ 	partition. Any other task will set Shutdown_Activated to true and
+ 	the environment will wake up to do its job. All Shutdown
+ 	procedures are supposed to be synchronous. That means they should
+ 	not return without having stopped all their activities (which was
+ 	not the case previously). Add a new parameter Protocol in
+ 	Analyze_Stream to save the protocol used by a newly connected
+ 	partition. This info was missing previously because TCP was the
+ 	default protocol.
+
+	* s-garnam.adb: Substitute Free by Destroy. Minor reformating.
+	Move type String_Array to Garlic.Utils.
+
+	* s-garopt.adb, s-garopt.ads: Substitute Boot_Server by
+ 	Boot_Location. Boot_Server becomes obsolete but is still
+ 	supported. Handle the case where both a boot location and a self
+ 	location are specified on the boot partition. Boot locations are
+ 	appended to the self location of the boot partition. Substitute
+ 	Free by Destroy. Self_Location and Boot_Location are now
+ 	String_Array_Access instead of String_Access. This enables
+ 	multiple locations.
+
+	* s-garpar.adb, s-garpar.adb: Change fields Location and Protocol
+ 	of Partition_Info into Used_Location and
+ 	All_Locations. Used_Location is the location (Location_Type) used
+ 	by the current partition to communicate with the other partition
+ 	and All_Locations is a string containing all the possible
+ 	locations to communicate with the other partition. When partitions
+ 	exchange partition info, only All_Locations is used. When a new
+ 	partition P1 is declared on a partition P2, P2 chooses a possible
+ 	Used_Location among All_Locations to communicate. Add procedure
+ 	Set_Used_Protocol. It may be possible that P1 provides no location
+ 	(pure client partition). In this case, P2 is supposed to reuse the
+ 	current communication channel. Therefore, Set_Used_Protocol keeps
+ 	track of this location in Used_Location (in this case, only the
+ 	protocol is needed and not the data) and later on, if P1 provides
+ 	other locations to contact it, P2 will update Used_Location using
+ 	All_Locations as described above. Update some procedures which
+ 	were supposed to return only one location but which now return an
+ 	array of locations.
+
+	* s-garpro.adb, s-garpro.ads: Substitute Get_Info into Get_Data to
+ 	have consistent notations. Add Register and Shutdown
+ 	procedures. Remove redundant code from other units and locate
+ 	these procedures in a more appropriate unit. Revisit the
+ 	Initialize and Set_Boot_Data primitives for an abstract
+ 	protocol. Set_Boot_Data is now entirely dedicated to declare the
+ 	boot protocol data and Initialize is now entirely dedicated to
+ 	declare and activate all the self protocol data. These procedures
+ 	have to be called in this order because on the boot partition,
+ 	boot locations and self locations may interfere.
+
+	* s-garrem.adb, s-garrem.ads: Minor reformating.
+
+	* s-garrep.adb: Update due to changes above. Substitute Get_Info
+	by Get_Data. Update Initialize (see s-garpro.ads). Revisit
+	Shutdown to ensure synchronous shutdown.
+
+	* s-garser.adb.in: Add System.Garlic.Protected_Objects elaboration 
+	and initialization (soft link). In general, the light run-time
+	will be now easier to implement.
+
+	* s-garsta.adb: Reorganize initialization. First, we initialize
+	non-configurable units. Then, we initialize the configuration
+	units. At last, we initialize the configurable units. Rewrite self 
+	and boot location declarations and protocol initializations.
+
+	* s-garuti.ads: Move RPC_Receiver in s-garstr.ads to avoid a
+	dependency on System.Garlic.Streams.
+
+	* s-garstr.adb, s-garstr.ads: Add RPC_Receiver type. Add
+ 	Initialize procedure. This unit is particulary difficult to
+ 	elaborate because it uses a storage pool object which is
+ 	initialized at elaboration time and not when Initialize is
+ 	invoked. The storage pool object is partially initialized at
+ 	elaboration time and the initialization is completed by
+ 	Initialize.
+
+	* s-gartab.adb, s-gartab.ads: Add Initialize procedure for each
+	generic package.
+
+	* s-gartcp.adb, s-gartcp.ads: Substitute TCP by Tcp. Substitute
+ 	Get_Info by Get_Data and return an array of locations. Revisit
+ 	Set_Boot_Data and Initialize to accept several self locations and
+ 	several boot locations. Initialize TCP_Operations - because when
+ 	IOs are process-blocking we have to initialize a specific unit
+ 	(Garlic.Non_Blocking). Revisit Shutdown to have a synchronous
+ 	shutdown. When we return from shutdown, we are sure that all the
+ 	active tasks are really terminated - and not on the way of being
+ 	terminated (to avoid possible race conditions). Declare incoming
+ 	and outgoing connections. Because each partition may provide
+ 	different location preferences, a partition P1 may communicate
+ 	with partition P2 using a given protocol when P2 communicates with
+ 	P1 using another protocol. This is also true with locations for a
+ 	given protocol. Fix a very nasty race condition which occurred
+ 	when a socket was closed twice. The socket with file descriptor fd
+ 	was closed - for instance, because of termination - then a
+ 	connection was open to shutdown the acceptor Unfortunatly, this
+ 	new connection was getting the same file descriptor fd. Then, the
+ 	socket was closed a second time for the same reason but by another
+ 	task. The connection was closed accidentally. There is now only
+ 	one task closing a socket and we no longer cache file descriptors.
+  	
+	* s-garter.adb: Wait to activate global termination for a timeout
+ 	occurred or for at least one partition declaration. Add Initialize
+ 	procedure. As the environment task executes the termination
+ 	callback, it is in charge of executing shutdown process.
+
+	* s-garthi.adb, s-garthi.ads: There is a need for procedures
+ 	Initialize and Shutdown in System.Garlic.Non_Blocking (process
+ 	blocking IOs). As TCP uses either Thin or Non_Blocking depending
+ 	on the IOs behaviour, add these two dummy procedures here.
+
+	* s-garuni.adb, s-garuni.ads: Minor reformating due to changes
+ 	above.
+
+	* s-garuti.adb, s-garuti.ads: Add procedures to deal with location
+ 	strings. Add procedures Split_String and Merge_String. For
+ 	instance, Split_String splits a string containing several
+ 	locations into an array of location strings (containing only one
+ 	location). Add a function Unquoted to unquote a string - when it
+ 	contains several locations separated by spaces. Add Destroy and
+ 	Free procedures to deallocate a pointer on array of strings.
+
+	* s-gasoli.adb, s-gasoli.ads: Remove
+	Register_Termination_Initialize which is no longer needed.
+
+	* s-gastha.adb, s-gastha.ads: Postpone full initialization of
+ 	storage pool (controlled type) until Initialize of this unit is
+ 	invoked. This to resolve elaboration problems.
+
+	* s-rpc.adb, s-rpstio.adb: Minor reformating.
+
+	* s-rpcpoo.adb: Ensure synchronous shutdown. When we return from
+	Shutdown, all the tasks are terminated - and not on the way of
+	being terminated. Revisit implementation of protected objects.
+	
+	* s-galite.adb: Minor reformating.
+	
 1999-11-03  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garpoi.ads, s-garpoi.adb, s-garadd.ads, s-garadd.adb: Initial

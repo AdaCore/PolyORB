@@ -34,7 +34,6 @@
 ------------------------------------------------------------------------------
 
 with Interfaces.C;
-with System.Garlic.Soft_Links; use System.Garlic.Soft_Links;
 
 package body System.Garlic.Storage_Handling is
 
@@ -51,6 +50,8 @@ package body System.Garlic.Storage_Handling is
    procedure free (P : in Address);
    pragma Import (C, free, "free");
 
+   Initialized : Boolean := False;
+
    --------------
    -- Allocate --
    --------------
@@ -61,6 +62,19 @@ package body System.Garlic.Storage_Handling is
       Size_In_Storage_Elements : in SSE.Storage_Count;
       Alignment                : in SSE.Storage_Count) is
    begin
+      pragma Assert (Initialized);
+
+      --  Garlic_Storage_Pool is a controlled type. It is initialized
+      --  before invoking the Initialize procedure of this
+      --  unit. Soft_Links may not be registered when the storage pool
+      --  is initialized. We have to initialize the mutexes of the
+      --  storage pool outside from its initialization subprogram.
+
+      if not Pool.Ready then
+         Soft_Links.Create (Pool.Mutex);
+         Pool.Ready := True;
+      end if;
+
       if Size_In_Storage_Elements > Static_Object_Size
         or else Pool.N_Objects = Max_Objects
       then
@@ -71,17 +85,17 @@ package body System.Garlic.Storage_Handling is
          return;
       end if;
 
-      Enter (Pool.Mutex);
+      Soft_Links.Enter (Pool.Mutex);
       for I in 1 .. Max_Objects loop
          if not Pool.Used (I) then
             Pool.Used (I)   := True;
             Storage_Address := Pool.Addresses (I);
             Pool.N_Objects := Pool.N_Objects + 1;
-            Leave (Pool.Mutex);
+            Soft_Links.Leave (Pool.Mutex);
             return;
          end if;
       end loop;
-      Leave (Pool.Mutex);
+      Soft_Links.Leave (Pool.Mutex);
       Storage_Address := malloc (IC.int (Size_In_Storage_Elements));
       if Storage_Address = Null_Address then
          raise Storage_Error;
@@ -99,6 +113,17 @@ package body System.Garlic.Storage_Handling is
       Alignment                : in SSE.Storage_Count)
    is
    begin
+
+      --  Garlic_Storage_Pool is a controlled type. It is initialized
+      --  before invoking the Initialize procedure of this
+      --  unit. Soft_Links may not be registered when the storage pool
+      --  is initialized. We have to initialize the mutexes of the
+      --  storage pool outside from its initialization subprogram.
+
+      if not Pool.Ready then
+         Soft_Links.Create (Pool.Mutex);
+         Pool.Ready := True;
+      end if;
 
       --  Shortcut: if the object is too big to have been allocated from
       --  the pool, that means that it has been allocated on the heap.
@@ -129,8 +154,30 @@ package body System.Garlic.Storage_Handling is
       for I in 1 .. Max_Objects loop
          free (Pool.Addresses (I));
       end loop;
-      Destroy (Pool.Mutex);
+      if Pool.Ready then
+         Soft_Links.Destroy (Pool.Mutex);
+      end if;
    end Finalize;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+
+      --  Garlic_Storage_Pool is a controlled type. It is initialized
+      --  before invoking the Initialize procedure of this
+      --  unit. Soft_Links may not be registered when the storage pool
+      --  is initialized. We have to initialize the mutexes of the
+      --  storage pool outside from its initialization subprogram.
+
+      --  When this boolean is set to true, we indicate that the soft
+      --  links are available. Therefore, the storage pool can safely
+      --  create the mutexes needed.
+
+      Initialized := True;
+   end Initialize;
 
    ----------------
    -- Initialize --
@@ -143,7 +190,12 @@ package body System.Garlic.Storage_Handling is
       for I in 1 .. Max_Objects loop
          Pool.Addresses (I) := malloc (IC.int (Static_Object_Size));
       end loop;
-      Create (Pool.Mutex);
+      if Initialized then
+         Soft_Links.Create (Pool.Mutex);
+         Pool.Ready := True;
+      else
+         Pool.Ready := False;
+      end if;
    end Initialize;
 
    ------------------

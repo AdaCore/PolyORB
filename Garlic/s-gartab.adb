@@ -238,6 +238,18 @@ package body System.Garlic.Table is
          return Get (Name);
       end Get_Name;
 
+      ----------------
+      -- Initialize --
+      ----------------
+
+      procedure Initialize is
+      begin
+         Create (Mutex);
+         Create (Watcher);
+         Table := new Component_Table_Type'(Min .. Max => Null_Component);
+         Usage := new Usage_Table_Type    '(Min .. Max => Null_Usage);
+      end Initialize;
+
       ----------
       -- Last --
       ----------
@@ -270,8 +282,9 @@ package body System.Garlic.Table is
       -- Set_Component --
       -------------------
 
-      procedure Set_Component (N : Index_Type; C : Component_Type)
-      is
+      procedure Set_Component
+        (N : in Index_Type;
+         C : in Component_Type) is
       begin
          Enter_Critical_Section;
          Validate (N);
@@ -319,11 +332,6 @@ package body System.Garlic.Table is
          end if;
       end Validate;
 
-   begin
-      Create (Mutex);
-      Create (Watcher);
-      Table := new Component_Table_Type'(Min .. Max => Null_Component);
-      Usage := new Usage_Table_Type    '(Min .. Max => Null_Usage);
    end Complex;
 
    ------------
@@ -488,6 +496,16 @@ package body System.Garlic.Table is
          return Get (Name);
       end Get_Name;
 
+      ----------------
+      -- Initialize --
+      ----------------
+
+      procedure Initialize is
+      begin
+         Table := new Component_Table_Type'(Min .. Max => Null_Component);
+         Usage := new Usage_Table_Type    '(Min .. Max => Null_Usage);
+      end Initialize;
+
       -------------------
       -- Set_Component --
       -------------------
@@ -528,9 +546,6 @@ package body System.Garlic.Table is
          return Min <= N and then N <= Max;
       end Valid;
 
-   begin
-      Table := new Component_Table_Type'(Min .. Max => Null_Component);
-      Usage := new Usage_Table_Type    '(Min .. Max => Null_Usage);
    end Medium;
 
    ------------
@@ -574,8 +589,15 @@ package body System.Garlic.Table is
          return Last;
       end Allocate;
 
-   begin
-      Table := new Component_Table_Type'(Min .. Max => Null_Component);
+      ----------------
+      -- Initialize --
+      ----------------
+
+      procedure Initialize is
+      begin
+         Table := new Component_Table_Type'(Min .. Max => Null_Component);
+      end Initialize;
+
    end Simple;
 
 end System.Garlic.Table;

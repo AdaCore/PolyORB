@@ -33,25 +33,51 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
-
 package System.Garlic.Utils is
 
    pragma Elaborate_Body;
 
    type String_Access is access String;
+   type String_Array is array (Natural range <>) of String_Access;
+   type String_Array_Access is access String_Array;
+   Location_Separator : constant Character := ' ';
+
+   function Merge_String
+     (S : String_Array_Access;
+      C : Character := Location_Separator)
+     return String;
+   --  Concatenate S in a string and separate them with C.
+
+   function Split_String
+     (S : String;
+      C : Character := Location_Separator)
+     return String_Array_Access;
+   --  Return an array of substrings sperated by C in S.
+
+   function Unquote      (S : String) return String;
+   --  If S is quoted, return the content.
 
    function String_To_Access (S : String) return String_Access;
    function Access_To_String (S : String_Access) return String;
-   pragma Stream_Convert (Entity => String_Access,
-                          Read   => String_To_Access,
-                          Write  => Access_To_String);
-   --  Stream attributes
+   --     pragma Stream_Convert (Entity => String_Access,
+   --                            Read   => String_To_Access,
+   --                            Write  => Access_To_String);
 
-   procedure Free is
-      new Ada.Unchecked_Deallocation (String, String_Access);
-   --  Access on string and deallocation procedure. This access type can
-   --  be transmitted accross partitions.
+   --  Stream attributes Access on string and deallocation
+   --  procedure. This access type can be transmitted accross
+   --  partitions.
+
+   procedure Destroy (S : in out String_Access);
+   procedure Destroy (S : in out String_Array_Access);
+
+   function Copy  (S : String_Array_Access) return String_Array_Access;
+   --  Duplicate array and elements
+
+   function Missing
+     (Elt : String;
+      Set : String_Array)
+     return Boolean;
+   --  Is Elt missing in array Set.
 
    procedure To_Lower (Item : in out String);
    pragma Inline (To_Lower);

@@ -34,7 +34,7 @@
 ------------------------------------------------------------------------------
 
 with System.Garlic.Options;
-
+with System.Garlic.Protected_Objects;
 @LAUNCHING_INCLUDED@with System.Garlic.Remote;
 
 package body System.Garlic.Services is
@@ -45,6 +45,7 @@ package body System.Garlic.Services is
 
    procedure Initialize is
    begin
+      Protected_Objects.Initialize;
       if Options.Detach then
          @LAUNCHING_INCLUDED@Remote.Detach;
          null;

@@ -40,20 +40,27 @@ with System.Garlic.Utils;
 
 package System.Garlic.Replay is
 
-   --  This package needs comments ???
+   --  See System.Garlic.Protocols.
 
    type Replay_Protocol is
       new System.Garlic.Protocols.Protocol_Type with private;
 
    function Create return System.Garlic.Protocols.Protocol_Access;
+   --  Return always the same self reference.
 
-   function Get_Name (P : access Replay_Protocol) return String;
+   function Get_Data
+     (Protocol : access Replay_Protocol)
+     return Utils.String_Array_Access;
+
+   function Get_Name
+     (Protocol : access Replay_Protocol)
+     return String;
 
    procedure Initialize
      (Protocol  : access Replay_Protocol;
-      Self_Data : in Utils.String_Access := null;
-      Boot_Data : in Utils.String_Access := null;
-      Boot_Mode : in Boolean := False;
+      Self_Data : in Utils.String_Access;
+      Required  : in Boolean;
+      Performed : out Boolean;
       Error     : in out Utils.Error_Type);
 
    procedure Send
@@ -61,6 +68,11 @@ package System.Garlic.Replay is
        Partition : in Types.Partition_ID;
        Data      : access Ada.Streams.Stream_Element_Array;
        Error     : in out Utils.Error_Type);
+
+   procedure Set_Boot_Data
+     (Protocol  : access Replay_Protocol;
+      Boot_Data : in Utils.String_Access;
+      Error     : in out Utils.Error_Type);
 
    procedure Shutdown (Protocol : access Replay_Protocol);
 

@@ -33,14 +33,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Protocols;
 package System.Garlic.Protocols.Config is
 
    pragma Elaborate_Body;
-
-   Max_Protocols  : constant := 10;
-   subtype Protocol_Access is System.Garlic.Protocols.Protocol_Access;
-   Protocol_Table : array (1 .. Max_Protocols) of Protocol_Access;
 
    procedure Initialize;
 

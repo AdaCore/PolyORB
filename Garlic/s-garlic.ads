@@ -44,7 +44,7 @@ package System.Garlic is
    --    System.Garlic.Protocols
    --       This package defines the Protocol_Type type and its primitive
    --       operations. An instance of Protocol_Type'Class defines a
-   --       communication mean (e.g. TCP) and performs some basic operations.
+   --       communication mean (e.g. Tcp) and performs some basic operations.
    --    System.Garlic.Options
    --       This package gets the Boot_Location and other informations from
    --       the command line.
@@ -70,39 +70,6 @@ package System.Garlic is
    --       replay the execution of a distributed program.
    --    System.Garlic.Filters
    --       This package implements data filtering.
-   --
-   --  At system startup, the operations occur in this order:
-   --
-   --  (0) The elaboration code of System.Garlic.Startup initializes
-   --      all the run-time options (command line and environment
-   --      variables).
-   --
-   --  (1) The elaboration code of System.Garlic.Startup detaches the
-   --      processus if needed.
-   --
-   --  (2) The elaboration code of System.Garlic.Startup executes
-   --      and registers all the protocols the user wants to use. This
-   --      package body contains elaboration directives to make sure that
-   --      the protocols are elaborated. Thus protocols are not allowed to
-   --      do anything during their elaboration phase (well, almost nothing).
-   --
-   --  (3) The elaboration code of System.Garlic.Startup sets
-   --      System.Garlic.Heart.Is_Boot_Partition.
-   --
-   --  (4) The elaboration code of System.Garlic.Startup initializes the
-   --      Boot_Location data and call the default protocol to get a usable
-   --      Boot_Location string in case where we are on the default partition.
-   --      It also calls the various protocols in an arbitrary order to
-   --      to give them the Boot_Location data as well as a flag to indicate
-   --      whether we are on the boot server or not.
-   --
-   --  (5) It initializes the filtering system.
-   --
-   --  (6) Initialize the tracing system.
-   --
-   --  (7) Initialize the Termination code.
-   --
-   --  (8) It asks for a partition ID.
 
    Communication_Error : exception;
 
