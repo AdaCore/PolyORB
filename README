@@ -178,7 +178,7 @@ and send us the patch_file via E-mail at the address above.
 
 If your diff version do not understand the --recursive or --context
 option, please use the GNU diffutils package which may be found on any
-GNU archive (e.g. ftp://ftp.ibp.fr/pub/gnu/).
+GNU archive (e.g. ftp://ftp.lip6.fr/pub/gnu/).
 
 GLADE History.
 --------------
