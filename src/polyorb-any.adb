@@ -2137,11 +2137,6 @@ package body PolyORB.Any is
       C_Left := Get_Value (Left);
       C_Right := Get_Value (Right);
 
-      pragma Debug (O ("Compare: "
-                       & System.Address_Image (C_Left.all'Address)
-                       & " = "
-                       & System.Address_Image (C_Right.all'Address)));
-
       return C_Left = C_Right;
    end Compare_Any_Contents;
 
