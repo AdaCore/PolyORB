@@ -154,10 +154,10 @@ AC_MSG_RESULT($PSNAME)
 #
 # Find get_errno or __get_errno
 #
-AC_CHECK_LIB(gnat, is_regular_file)
-AC_CHECK_FUNCS(get_errno, [CERRNO=get_errno],
-[AC_CHECK_FUNCS(__get_errno, [CERRNO=__get_errno])])
-AC_SUBST(CERRNO)
+AC_CHECK_LIB(gnat, get_errno, [CERRNO=get_errno],
+[AC_CHECK_LIB(gnat, __get_errno, [CERRNO=__get_errno],
+AC_ERROR("Cannot find get_errno or __get_errno in GNAT library"))])
+AC_SUBST([CERRNO])
 #
 # Extra libraries
 #
