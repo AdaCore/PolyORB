@@ -51,11 +51,20 @@ package body PolyORB.References.Corbaloc is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   --  A descriptor is kept for each profile kind that is supported within
+   --  the corbaloc: scheme.
+
    type Profile_Record is record
       Tag                    : PolyORB.Binding_Data.Profile_Tag;
+      --  Profile tag
+
       Proto_Ident            : Types.String;
+      --  Protocol token
+
       Profile_To_String_Body : Profile_To_String_Body_Type;
       String_To_Profile_Body : String_To_Profile_Body_Type;
+      --  String <-> profile conversion functions
+
    end record;
 
    package Profile_Record_List is
@@ -64,13 +73,12 @@ package body PolyORB.References.Corbaloc is
 
    Callbacks : Profile_Record_List.List;
 
-   Null_String : constant Types.String
-     := PolyORB.Types.To_PolyORB_String ("");
+   Null_String : constant Types.String := PolyORB.Types.To_PolyORB_String ("");
 
    type Tag_Array is array (Natural range <>) of Profile_Tag;
 
    -----------------------
-   -- Get_Corbaloc_List --
+   -- Local subprograms --
    -----------------------
 
    procedure Get_Corbaloc_List
@@ -78,7 +86,11 @@ package body PolyORB.References.Corbaloc is
       Corbaloc_List : out String_Array;
       Tag_List      : out Tag_Array;
       N             : out Natural);
-   --  Return the list of all corbaloc found in Corbaloc
+   --  Return the list of all corbaloc obj_addrs found in Corbaloc
+
+   -----------------------
+   -- Get_Corbaloc_List --
+   -----------------------
 
    procedure Get_Corbaloc_List
      (Corbaloc      :     Corbaloc_Type;
@@ -110,8 +122,7 @@ package body PolyORB.References.Corbaloc is
    -----------------------
 
    function Profile_To_String
-     (P : Binding_Data.Profile_Access)
-     return Types.String
+     (P : Binding_Data.Profile_Access) return Types.String
    is
       use PolyORB.Types;
       use Profile_Record_List;
@@ -131,8 +142,8 @@ package body PolyORB.References.Corbaloc is
          begin
             if T = Info.Tag then
                declare
-                  Str : constant Types.String
-                    := Info.Profile_To_String_Body (P);
+                  Str : constant Types.String :=
+                          Info.Profile_To_String_Body (P);
                begin
                   if Length (Str) /= 0 then
                      pragma Debug (O ("Profile ok"));
@@ -156,8 +167,7 @@ package body PolyORB.References.Corbaloc is
    -----------------------
 
    function String_To_Profile
-     (Str : Types.String)
-     return Binding_Data.Profile_Access
+     (Str : Types.String) return Binding_Data.Profile_Access
    is
       use PolyORB.Types;
       use Profile_Record_List;
@@ -172,7 +182,8 @@ package body PolyORB.References.Corbaloc is
             Ident : Types.String renames Value (Iter).Proto_Ident;
          begin
             if Length (Str) > Length (Ident)
-              and then To_String (Str) (1 .. Length (Ident)) = Ident then
+              and then To_String (Str) (1 .. Length (Ident)) = Ident
+            then
                pragma Debug
                  (O ("Try to unmarshall profile with profile factory tag "
                      & Profile_Tag'Image (Value (Iter).Tag)));
@@ -182,7 +193,7 @@ package body PolyORB.References.Corbaloc is
          Next (Iter);
       end loop;
 
-      pragma Debug (O ("Profile not found for : "
+      pragma Debug (O ("Profile not found for "
                        & To_Standard_String (Str)));
       return null;
    end String_To_Profile;
@@ -192,8 +203,7 @@ package body PolyORB.References.Corbaloc is
    ----------------------------------------
 
    function Object_To_String_With_Best_Profile
-     (Corbaloc : Corbaloc_Type)
-     return Types.String is
+     (Corbaloc : Corbaloc_Type) return Types.String is
    begin
       pragma Debug (O ("Create corbaloc with best profile: Enter"));
 
@@ -314,11 +324,10 @@ package body PolyORB.References.Corbaloc is
       Profile_To_String_Body : in Profile_To_String_Body_Type;
       String_To_Profile_Body : in String_To_Profile_Body_Type)
    is
-      Elt : constant Profile_Record
-        := (Tag,
-            Proto_Ident,
-            Profile_To_String_Body,
-            String_To_Profile_Body);
+      Elt : constant Profile_Record := (Tag,
+                                        Proto_Ident,
+                                        Profile_To_String_Body,
+                                        String_To_Profile_Body);
    begin
       Append (Callbacks, Elt);
    end Register;
@@ -331,8 +340,7 @@ package body PolyORB.References.Corbaloc is
 
    procedure Initialize is
    begin
-      Register_String_To_Object
-        (Corbaloc_Prefix, String_To_Object'Access);
+      Register_String_To_Object (Corbaloc_Prefix, String_To_Object'Access);
    end Initialize;
 
    use PolyORB.Initialization;
