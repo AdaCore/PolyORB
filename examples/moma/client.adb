@@ -44,8 +44,6 @@ pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 --  XXX do not change Tasking model for now, otherwise there is a risk
 --  of a race condition between producer and consumer ...
 
-with PolyORB.Services.Naming.Tools;
-
 with MOMA.Connection_Factories;
 with MOMA.Connections;
 with MOMA.Sessions;
@@ -60,10 +58,11 @@ with MOMA.Messages.MBytes;
 with MOMA.Messages.MMaps;
 with MOMA.Messages.MTexts;
 
+with MOMA.References;
+with MOMA.Runtime;
+
 with MOMA.Types;
 
-with PolyORB.Initialization;
-with PolyORB.References;
 with PolyORB.Types;
 with PolyORB.Utils.Report;
 
@@ -81,7 +80,6 @@ procedure Client is
    use MOMA.Messages;
    use MOMA.Types;
 
-   use PolyORB.Services.Naming.Tools;
    use PolyORB.Types;
    use PolyORB.Utils.Report;
 
@@ -460,33 +458,28 @@ begin
       return;
    end if;
 
-   --  Initialize World
+   --  Initialize MOMA
 
-   PolyORB.Initialization.Initialize_World;
+   MOMA.Runtime.Initialize;
 
    --  Get a reference on the message pool to use
 
    case Kind is
       when Pool =>
-         PolyORB.References.String_To_Object (Arg3, Pool_Ref);
+         MOMA.References.String_To_Reference (Arg3, Pool_Ref);
 
       when Naming =>
-         declare
-            Naming_Ref : MOMA.Types.Ref;
-         begin
-            PolyORB.References.String_To_Object (Arg3, Naming_Ref);
-            Init (Naming_Ref);
-         end;
-         Pool_Ref := Locate ("Pool_1");
+         MOMA.References.Initialize_Naming_Service (Arg3);
+         Pool_Ref := MOMA.References.Locate ("Pool_1");
          Kind := Pool;
 
       when Topic =>
-         PolyORB.References.String_To_Object (Arg3, Router_Ref);
+         MOMA.References.String_To_Reference (Arg3, Router_Ref);
 
          if Scenario = Sub
            or else Scenario = Unsub
          then
-            PolyORB.References.String_To_Object (Arg2, Pool_Ref);
+            MOMA.References.String_To_Reference (Arg2, Pool_Ref);
          end if;
    end case;
 

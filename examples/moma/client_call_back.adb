@@ -52,10 +52,11 @@ with MOMA.Message_Producers;
 with MOMA.Message_Consumers;
 with MOMA.Message_Handlers;
 
+with MOMA.References;
+with MOMA.Runtime;
+
 with MOMA.Types;
 
-with PolyORB.Initialization;
-with PolyORB.References;
 with PolyORB.Types;
 with PolyORB.Utils.Report;
 
@@ -75,7 +76,6 @@ procedure Client_Call_Back is
    use MOMA.Message_Handlers;
    use MOMA.Types;
 
-   use PolyORB.References;
    use PolyORB.Types;
    use PolyORB.Utils.Report;
 
@@ -124,13 +124,13 @@ begin
 
    Put_Line ("Initialize");
 
-   --  Initialize World
+   --  Initialize MOMA
 
-   PolyORB.Initialization.Initialize_World;
+   MOMA.Runtime.Initialize;
 
    --  Get a reference on the message pool to use.
 
-   PolyORB.References.String_To_Object
+   MOMA.References.String_To_Reference
      (Ada.Command_Line.Argument (1), Pool_Ref);
 
    --  Initialize the connection factory

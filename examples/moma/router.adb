@@ -38,24 +38,19 @@
 with Ada.Command_Line;
 with Ada.Text_IO;
 
-with PolyORB.Initialization;
-with PolyORB.Minimal_Servant.Tools;
-with PolyORB.References;
-with PolyORB.References.IOR;
-
 with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
 with MOMA.Configuration.Server;
+with MOMA.References;
+with MOMA.Runtime;
 with MOMA.Types;
 
 procedure Router is
 
    use Ada.Command_Line;
    use Ada.Text_IO;
-
-   use PolyORB.Minimal_Servant.Tools;
 
    use MOMA.Configuration;
    use MOMA.Configuration.Server;
@@ -78,14 +73,14 @@ begin
       return;
    end if;
 
-   --  Initialize World
+   --  Initialize MOMA
 
-   PolyORB.Initialization.Initialize_World;
+   MOMA.Runtime.Initialize;
 
    --  Find reference to other router if needed
 
    if Argument_Count = 2 then
-      PolyORB.References.String_To_Object
+      MOMA.References.String_To_Reference
         (Ada.Command_Line.Argument (2), Other_Router);
    end if;
 
@@ -97,10 +92,10 @@ begin
        Other_Router);
 
    Put_Line ("Router IOR :");
-   Put_Line (PolyORB.References.IOR.Object_To_String (Router));
+   Put_Line (MOMA.References.Reference_To_IOR_String (Router));
 
    --  Run the server
 
-   Run_Server;
+   MOMA.Runtime.Start;
 
 end Router;

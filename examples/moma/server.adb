@@ -38,27 +38,19 @@
 with Ada.Command_Line;
 with Ada.Text_IO;
 
-with PolyORB.Initialization;
-with PolyORB.Minimal_Servant.Tools;
-with PolyORB.References;
-with PolyORB.References.IOR;
-
 with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
-with PolyORB.Services.Naming.Tools;
-
 with MOMA.Configuration.Server;
+with MOMA.References;
+with MOMA.Runtime;
 with MOMA.Types;
 
 procedure Server is
 
    use Ada.Command_Line;
    use Ada.Text_IO;
-
-   use PolyORB.Minimal_Servant.Tools;
-   use PolyORB.Services.Naming.Tools;
 
    use MOMA.Configuration;
    use MOMA.Configuration.Server;
@@ -69,9 +61,9 @@ procedure Server is
 
 begin
 
-   --  Initialize World
+   --  Initialize MOMA
 
-   PolyORB.Initialization.Initialize_World;
+   MOMA.Runtime.Initialize;
 
    --  Argument check
 
@@ -94,24 +86,19 @@ begin
 
    --  Outputs its reference
 
-   Put_Line (PolyORB.References.IOR.Object_To_String (MOMA_Ref));
+   Put_Line (MOMA.References.Reference_To_IOR_String (MOMA_Ref));
 
    --  Register reference to naming service
 
    if Argument_Count = 1 then
-      declare
-         R : MOMA.Types.Ref;
-      begin
-         PolyORB.References.String_To_Object
-           (Ada.Command_Line.Argument (1), R);
-         Init (R);
-      end;
+      MOMA.References.Initialize_Naming_Service
+        (Ada.Command_Line.Argument (1));
 
-      Register ("Pool_1", MOMA_Ref);
+      MOMA.References.Register_Name ("Pool_1", MOMA_Ref);
    end if;
 
    --  Run the server
 
-   Run_Server;
+   MOMA.Runtime.Start;
 
 end Server;

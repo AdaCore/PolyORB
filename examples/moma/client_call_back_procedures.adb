@@ -36,7 +36,6 @@
 with MOMA.Messages;
 with MOMA.Messages.MBytes;
 
-with PolyORB.Annotations;
 with PolyORB.Types;
 with PolyORB.Utils.Report;
 
