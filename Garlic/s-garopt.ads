@@ -34,7 +34,7 @@
 ------------------------------------------------------------------------------
 package System.Garlic.Options is
 
-   function Get_Boot_Server (Default : String := "tcp") return  String;
+   function Get_Boot_Server (Default : String := "tcp") return String;
    --  Return value specified by --boot_server command line arg or else
    --         value specified by "BOOT_SERVER" environment var or else
    --         Default if no such environment variable.
