@@ -59,10 +59,10 @@ package SOAP.Message.XML is
    --  XXX warning, return value vs. out args? Does the return
    --  value need to be the first OUT element of the Args list?
 
-   function Image (O : in Object'Class) return String;
+   function Image (Obj : in Object'Class) return String;
    --  Returns XML representation of object O.
 
-   function Image (O : in Object'Class) return Unbounded_String;
+   function Image (Obj : in Object'Class) return Unbounded_String;
    --  Idem as above but returns an Unbounded_String instead of a String.
 
 end SOAP.Message.XML;

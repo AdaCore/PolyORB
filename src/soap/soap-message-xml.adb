@@ -40,6 +40,8 @@ with PolyORB.Any;
 with PolyORB.Any.ObjRef;
 with PolyORB.Binding_Data;
 with PolyORB.Binding_Data.SOAP;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 with PolyORB.References;
 with PolyORB.Types;
 
@@ -52,8 +54,14 @@ package body SOAP.Message.XML is
    use Ada.Strings.Unbounded;
    use DOM.Core.Nodes;
    use SOAP.Message.Reader;
+
    use PolyORB.Any;
+   use PolyORB.Log;
    use PolyORB.Types;
+
+   package L is new PolyORB.Log.Facility_Log ("soap.message.xml");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    NL         : constant String := ASCII.CR & ASCII.LF;
 
@@ -195,16 +203,19 @@ package body SOAP.Message.XML is
    -- Image --
    -----------
 
-   function Image (O : in Object'Class) return String is
+   function Image (Obj : in Object'Class) return String is
    begin
-      return To_String (XML.Image (O));
+      return To_String (XML.Image (Obj));
    end Image;
 
    -----------
    -- Image --
    -----------
 
-   function Image (O : in Object'Class) return Unbounded_String is
+   function Image
+     (Obj : in Object'Class)
+     return Unbounded_String
+   is
       Message_Body : Unbounded_String;
    begin
       --  Header
@@ -218,7 +229,7 @@ package body SOAP.Message.XML is
 
       --  Wrapper
 
-      Append (Message_Body, Message.XML_Image (O));
+      Append (Message_Body, Message.XML_Image (Obj));
 
       --  End of Body and Envelope
 
