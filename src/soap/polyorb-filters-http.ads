@@ -259,7 +259,7 @@ private
       Transfer_Encoding : String_Lists.List;
       --  Values of the corresponding HTTP headers.
 
-      Chunked : Boolean;
+      Chunked : Boolean := False;
       --  Applied transfer encodings, in REVERSE order
       --  (consequence: if Length (Transfer_Encoding) > 0 then
       --    First (Tranfer_Encoding) MUST have the value "chunked"
