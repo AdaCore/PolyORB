@@ -190,7 +190,7 @@ package body PolyORB.POA.Basic_POA is
 
    function Get_Boot_Time return Time_Stamp is
    begin
-      return Time_Stamp (16#deadbeef#);
+      return Time_Stamp (16#0deadc0d#);
       --  XXX should compute a real time stamp! But:
       --  Cannot depend on Ada.Real_Time (which pulls the tasking runtime)
       --  Cannot depend on Ada.Calendar (not permitter by Ravenscar).
