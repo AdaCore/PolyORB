@@ -299,25 +299,20 @@ package body PolyORB.Any is
      (Object : access Content_Any)
      return Any_Content_Ptr;
 
+   --  'Agregate' content
+
+   --  While an aggregate is constructed, its contents are stored as a
+   --  chained list.
+   --  Once the construction is completed (i.e. the length of the list won't
+   --  grow anymore), the list is converted to an array (to speed up access
+   --  to random elements) and the aggegate is frozen (i.e. no elements can
+   --  be added to it). Actually the freeze occurs the first time an element
+   --  is retrieved through Get_Aggregate_Element.
+
    --  A list of Any contents (for construction of aggregates)
 
    package Content_Lists is new PolyORB.Utils.Chained_Lists (Any_Content_Ptr);
-
    subtype Content_List is Content_Lists.List;
-
-   procedure Deep_Deallocate
-     (List : in out Content_List);
-
-   function Duplicate
-     (List : in Content_List)
-     return Content_List;
-
-   function Get_Content_List_Length
-     (List : in Content_List)
-     return Types.Unsigned_Long;
-   --  Return the length of the aggregate contents List.
-
-   --  'Agregate' content
 
    --  For complex types that could be defined in Idl a content_aggregate
    --  will be used.
@@ -340,8 +335,27 @@ package body PolyORB.Any is
    --     - for Valuebox : XXX
    --     - for Abstract_Interface : XXX
 
+   type Content_Array is array (Natural range <>) of Any_Content_Ptr;
+   type Content_Array_Access is access all Content_Array;
+
+   function Duplicate (Contents : Content_Array_Access)
+     return Content_Array_Access;
+
+   procedure Deep_Deallocate (List : in out Content_List);
+   procedure Deep_Deallocate (List : in out Content_Array_Access);
+
+   type Aggregate_Value (Frozen : Boolean := False) is record
+      case Frozen is
+         when False =>
+            Mutable_Value : Content_List := Content_Lists.Empty;
+         when True =>
+            Value : Content_Array_Access;
+      end case;
+   end record;
+   procedure Freeze (Object : in out Aggregate_Value);
+
    type Content_Aggregate is new Content with record
-      Value : Content_List := Content_Lists.Empty;
+      V : Aggregate_Value;
    end record;
 
    type Content_Aggregate_Ptr is access all Content_Aggregate;
@@ -3057,12 +3071,17 @@ package body PolyORB.Any is
    -- Get_Aggregate_Count --
    -------------------------
 
-   function Get_Aggregate_Count
-     (Value : Any)
-     return Unsigned_Long is
+   function Get_Aggregate_Count (Value : Any) return Unsigned_Long
+   is
+      CA_Ptr : constant Content_Aggregate_Ptr
+        := Content_Aggregate_Ptr (Get_Value (Value));
    begin
-      return Get_Content_List_Length
-        (Content_Aggregate_Ptr (Get_Value (Value)).Value);
+      if CA_Ptr.V.Frozen then
+         return CA_Ptr.V.Value'Length;
+      else
+         return Unsigned_Long
+           (Content_Lists.Length (CA_Ptr.V.Mutable_Value));
+      end if;
    end Get_Aggregate_Count;
 
    ---------------------------
@@ -3079,6 +3098,8 @@ package body PolyORB.Any is
       Element_Container : constant Any_Container_Ptr
         := Any_Container_Ptr (Entity_Of (Element));
 
+      CA_Ptr : constant Content_Aggregate_Ptr
+        := Content_Aggregate_Ptr (Value_Container.The_Value.all);
    begin
       pragma Debug (O ("Add_Aggregate_Element : enter"));
       pragma Debug (O ("Add_Aggregate_Element : element kind is "
@@ -3086,8 +3107,12 @@ package body PolyORB.Any is
                        (TypeCode.Kind
                         (Get_Type (Element)))));
 
+      if CA_Ptr.V.Frozen then
+         raise Program_Error;
+      end if;
+
       Content_Lists.Append
-        (Content_Aggregate_Ptr (Value_Container.The_Value.all).Value,
+        (CA_Ptr.V.Mutable_Value,
          Duplicate (Element_Container.The_Value.all));
 
       pragma Debug (O ("Add_Aggregate_Element : end"));
@@ -3105,14 +3130,17 @@ package body PolyORB.Any is
    is
       Value_Container : constant Any_Container_Ptr
         := Any_Container_Ptr (Entity_Of (Value));
-
+      CA_Ptr : constant Content_Aggregate_Ptr
+        := Content_Aggregate_Ptr (Value_Container.The_Value.all);
       Result : Any;
-      Ptr : Content_List;
    begin
       pragma Debug (O ("Get_Aggregate_Element : enter"));
 
       pragma Assert (Value_Container.The_Value /= null);
-      Ptr := Content_Aggregate_Ptr (Value_Container.The_Value.all).Value;
+      if not CA_Ptr.V.Frozen then
+         Freeze (CA_Ptr.V);
+      end if;
+      pragma Assert (CA_Ptr.V.Frozen);
 
       pragma Debug (O ("Get_Aggregate_Element : Index = "
                        & Unsigned_Long'Image (Index)
@@ -3120,9 +3148,7 @@ package body PolyORB.Any is
                        & Unsigned_Long'Image
                        (Get_Aggregate_Count (Value))));
 
-      Set_Value (Result, Duplicate
-                 (Content_Lists.Element (Ptr, Integer (Index)).all));
-
+      Set_Value (Result, Duplicate (CA_Ptr.V.Value (Integer (Index))));
       Set_Type (Result, Tc);
 
       pragma Debug (O ("Get_Aggregate_Element : end"));
@@ -3183,8 +3209,7 @@ package body PolyORB.Any is
    -- Deep_Deallocate --
    ---------------------
 
-   procedure Deep_Deallocate
-     (List : in out Content_List)
+   procedure Deep_Deallocate (List : in out Content_List)
    is
       use Content_Lists;
 
@@ -3205,16 +3230,23 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Deep_Deallocate : end"));
    end Deep_Deallocate;
 
-   -----------------------------
-   -- Get_Content_List_Length --
-   -----------------------------
-
-   function Get_Content_List_Length
-     (List : in Content_List)
-     return Unsigned_Long is
+   procedure Deep_Deallocate (List : in out Content_Array_Access)
+   is
+      procedure Deallocate is new Ada.Unchecked_Deallocation
+        (Content_Array, Content_Array_Access);
    begin
-      return Unsigned_Long (Content_Lists.Length (List));
-   end Get_Content_List_Length;
+      pragma Debug (O2 ("Deep_Deallocate(A): enter"));
+
+      for J in List'Range loop
+         pragma Debug (O2 ("Deep_Deallocate: object type is "
+                           & Ada.Tags.External_Tag (List (J)'Tag)));
+         Deallocate (List (J));
+      end loop;
+
+      Deallocate (List);
+
+      pragma Debug (O2 ("Deep_Deallocate(A): end"));
+   end Deep_Deallocate;
 
    ----------------
    -- Deallocate --
@@ -3430,8 +3462,11 @@ package body PolyORB.Any is
    begin
       pragma Debug (O2 ("Deallocate (Aggregate) : enter"));
 
-      --  first deallocate every element of the list of values
-      Deep_Deallocate (Object.Value);
+      if Object.V.Frozen then
+         Deep_Deallocate (Object.V.Value);
+      else
+         Deep_Deallocate (Object.V.Mutable_Value);
+      end if;
 
       --  then deallocate the object itself
       Deallocate_Any_Content (Obj);
@@ -3442,22 +3477,18 @@ package body PolyORB.Any is
    -- Duplicate --
    ---------------
 
-   function Duplicate
-     (List : in Content_List)
-     return Content_List
+   function Duplicate (Contents : Content_Array_Access)
+     return Content_Array_Access
    is
-      use Content_Lists;
-
-      R : Content_List;
-      I : Iterator := First (List);
+      Result : constant Content_Array_Access
+        := new Content_Array (Contents'Range);
    begin
       pragma Debug (O ("Duplicate (Content_List): enter"));
-      while not Last (I) loop
-         Append (R, Duplicate (Value (I).all));
-         Next (I);
+      for J in Contents'Range loop
+         Result (J) := Duplicate (Contents (J));
       end loop;
       pragma Debug (O ("Duplicate (Content_List): leave"));
-      return R;
+      return Result;
    end Duplicate;
 
    function Duplicate
@@ -3612,12 +3643,16 @@ package body PolyORB.Any is
 
    function Duplicate
      (Object : access Content_Aggregate)
-     return Any_Content_Ptr is
+     return Any_Content_Ptr
+   is
    begin
       pragma Debug (O ("Duplicate (Content_Aggregate) : enter & end"));
+      if not Object.V.Frozen then
+         Freeze (Object.V);
+      end if;
       return new Content_Aggregate'
-        (Value => Duplicate
-         (Content_Aggregate_Ptr (Object).Value));
+        (V => (Frozen => True,
+               Value => Duplicate (Object.V.Value)));
    end Duplicate;
 
    ------------------
@@ -3670,6 +3705,29 @@ package body PolyORB.Any is
 
       Container.The_Value.all := The_Value;
    end Set_Value;
+
+   ------------
+   -- Freeze --
+   ------------
+
+   procedure Freeze (Object : in out Aggregate_Value)
+   is
+      pragma Assert (not Object.Frozen);
+      use Content_Lists;
+
+      Elements : constant Content_Array_Access
+        := new Content_Array (0 .. Length (Object.Mutable_Value) - 1);
+      J : Natural := Elements'First;
+      It : Iterator := First (Object.Mutable_Value);
+   begin
+      while not Last (It) loop
+         Elements (J) := Value (It).all;
+         J := J + 1;
+         Next (It);
+      end loop;
+      Deallocate (Object.Mutable_Value);
+      Object := (Frozen => True, Value => Elements);
+   end Freeze;
 
    -------------------
    -- Get_Value_Ptr --
