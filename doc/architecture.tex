@@ -32,8 +32,9 @@ ses ressources sur l'application proprement dite. En revanche, l'existence
 de plusieurs plates-formes de répartition différentes introduit
 un nouveau point d'incompatibilité potentiel. En effet, les
 divers systèmes existants, tels que CORBA, l'annexe des systèmes
-répartis d'\ada{} et Java/RMI utilisent des variantes distinctes
-du modèle ``objets répartis'', et des protocoles différents pour
+répartis d'\ada{} (\dsa{}, \emph{Distributed Systems Annex}) et
+Java/RMI utilisent des variantes distinctes
+du modèle «~objets répartis~», et des protocoles différents pour
 la communication entre n{\oe}uds. D'autres intergiciels, tels
 que les MOM, ne sont pas basés sur les objets répartis, mais sur
 le passage de message
@@ -200,8 +201,10 @@ Un ORB possède deux façades~:
   réseau de communication et des protocoles de communication inter-ORB.
 \end{itemize}
 
-Chacune de ces façades possède plusieurs variantes (par exemple DSA, CORBA)~;
-le choix d'une variante pour une façade détermine une personnalité sur cette façade.
+Chacune de ces façades possède plusieurs variantes, correspondant
+chacune à un type de plate-forme de répartition (par exemple \dsa{},
+CORBA ou Java/RMI)~; le choix d'une variante pour une façade détermine
+une personnalité sur cette façade.
 
 L'objectif de \droopi{} est de découpler ces deux façades. D'une part, une entité
 peut se rattacher à un ORB \droopi{} au moyen d'une des personnalités de cet ORB
@@ -480,7 +483,7 @@ les divers environnements de répartition existants~:
 
 \ifexamples
   \item[Exemple]
-  Il est nécessaire de trouver un point d'équilibre entre les
+  Il est nécessaire de trouver un équilibre entre les
   contraintes de représentation imposées par le matériel et
   l'environnement de chaque n{\oe}ud et celles imposées par
   l'application (nécessité de faire interopérer des n{\oe}uds
@@ -525,8 +528,10 @@ les divers environnements de répartition existants~:
   l'intergiciel.
 \ifexamples
   \item[Exemple]
-  CORBA définit GIOP (Generic Inter-ORB Protocol) pour l'échange
-  de messages entre intergiciels.
+  CORBA définit GIOP (\emph{Generic Inter-ORB Protocol}), un
+  protocole permettant l'échange de messages entre intergiciels,
+  fournissant les primitives nécessaires au modèle
+  «~objets répartis~».
 \fi
   \end{description}
 
@@ -849,8 +854,8 @@ section~\ref{sec:recurring-svcs}~:
 \item protection de l'accès concurrent aux données partagées par
   plusieurs composants (si situation multitâches)~;
 \item ordonnancement d'activités concurrentes~;
-\item gestion de collections d'entités (séquences, ensembles,
-  tableaux dynamiques...)~;
+\item gestion de collections d'entités telles que séquences,
+  ensembles non ordonnés, tableaux de taille variable, etc~;
 \item gestion de répertoires d'entités (catalogues,
   \emph{Naming\_Contexts}...)
 \end{itemize}
@@ -876,7 +881,7 @@ niveaux~:
 
 \begin{description}
 \item[Couche applicative] \emph{(en haut)}
-  Les éléments de l'ORB permettant aux objets de l'application
+  Les modules de l'intergiciel permettant aux objets de l'application
   de s'intégrer à l'environnement réparti. Ces entités fournissent
   des services permettant notamment aux objets de l'application
   de s'enregistrer auprès de l'ORB pour recevoir des requêtes
@@ -1000,8 +1005,8 @@ Cf. figure \ref{fig:func-transport}.}
 
 Le service de transport consiste à transférer une information d'un point à un
 autre~: il correspond au niveau le plus bas du système de communication.
-
-Ce service est réalisé en concrétisant un certain nombre de classes abstraites~:
+Ce service est réalisé en concrétisant un certain nombre de classes
+abstraites~:
 \begin{description}
 \item[Transport\_Access\_Point]
 \item[Transport\_Endpoint]
@@ -1856,11 +1861,11 @@ Les résultats sont donnés en secondes.
 \vspace{2cm}
 \begin{tabular}{l|*{3}{c!{\myrule}}@{\gdef\myrule{\vline}}}
 \backslashbox{Client}{Serveur}
-& \RH{Serveur \droopi{} no tasking, BOA}
-& \RH{Serveur \droopi{} tasking, POA}
-& \RH{Server \adabroker{}}      \\ \hline\hline
-Client \droopi{}    & 13,36 & 31,66 & 8,64 \\ \hline
-Client \adabroker{} & 18,23 & 36,27 & 26,20 \\ \hline
+& \RH{\droopi{} no tasking, BOA}
+& \RH{\droopi{} tasking, POA}
+& \RH{\adabroker{}}      \\ \hline\hline
+\droopi{}    & 13,36 & 31,66 & 8,64 \\ \hline
+\adabroker{} & 18,23 & 36,27 & 26,20 \\ \hline
 \end{tabular}
 }
 
