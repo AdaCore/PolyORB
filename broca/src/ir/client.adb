@@ -32,11 +32,66 @@ with Text_IO; use Text_IO;
 with CORBA; use CORBA;
 with CORBA.ORB;
 with CORBA.Repository_Root; use CORBA.Repository_Root;
-with CORBA.Repository_Root.Repository.Impl;
+with CORBA.Repository_Root.Repository;
 with CORBA.Repository_Root.Container;
+with CORBA.Repository_Root.Contained;
 --  with CORBA.Repository_Root.Moduledef;
 
 procedure Client is
+
+   procedure Print_Content (In_Seq : ContainedSeq;
+                            Inc : Standard.String) is
+
+      Package Contained_For_Seq renames
+        CORBA.Repository_Root.IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
+      Cont_Array : Contained_For_Seq.Element_Array
+        := Contained_For_Seq.To_Element_Array
+        (Contained_For_Seq.Sequence (In_Seq));
+      use Contained;
+   begin
+      for I in Cont_Array'Range loop
+         declare
+            The_Ref : Contained.Ref := Convert_Forward.To_Ref (Cont_Array (I));
+         begin
+            Put_Line ("Ok2");
+
+            Put_Line ("Node : " &
+                      DefinitionKind'Image
+                      (Get_Def_Kind (The_Ref)));
+
+            Put_Line ("Ok3");
+
+            Put_Line ("Name : " &
+                      CORBA.To_Standard_String
+                      (CORBA.String (Get_Name (The_Ref))));
+
+            Put_Line ("Ok4");
+
+            Put_Line ("Id : " &
+                      CORBA.To_Standard_String
+                      (CORBA.String (Get_Id (The_Ref))));
+
+            Put_Line ("Ok5");
+
+            Put_Line ("Vers : " &
+                      CORBA.To_Standard_String
+                      (CORBA.String (Get_Version (The_Ref))));
+
+            Put_Line ("Ok6");
+
+            Put_Line ("Abs-Name : " &
+                      CORBA.To_Standard_String
+                      (CORBA.String
+                       (Get_Absolute_Name (The_Ref))));
+
+            Put_Line ("Ok7");
+
+            --  FIXME : make it recusrsive
+         end;
+      end loop;
+
+   end;
+
    Sent_Msg, Rcvd_Msg, IOR : CORBA.String;
    Myrep : Repository.Ref;
 
@@ -74,6 +129,12 @@ begin
                                         Name,
                                         Version);
    end;
+
+   Put_Line ("Ok1");
+   Print_Content (Repository.Contents (Myrep,
+                                       Dk_All,
+                                       True),
+                  " ");
 
 exception
    when E : CORBA.Transient =>

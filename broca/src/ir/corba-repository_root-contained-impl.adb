@@ -3,6 +3,7 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
+with Text_IO;
 with Ada.Unchecked_Deallocation;
 with Ada.Strings.Unbounded;
 
@@ -740,6 +741,52 @@ package body CORBA.Repository_Root.Contained.Impl is
       end loop;
       return Result;
    end To_Contained_Sequence;
+
+   ---------------------
+   --  Print_content  --
+   ---------------------
+   procedure Print_Content (In_Seq : Contained_Seq.Sequence;
+                            Inc : Standard.String) is
+      Cont_Array : Contained_Seq.Element_Array
+        := Contained_Seq.To_Element_Array (In_Seq);
+      use Text_IO;
+   begin
+      for I in Cont_Array'Range loop
+         declare
+            Success : Boolean;
+            Container_Object : Container.Impl.Object_Ptr;
+         begin
+            Put_Line (Inc & "Node : " &
+                      DefinitionKind'Image
+                      (Get_Def_Kind (Cont_Array (I))));
+            Put_Line (Inc & "Name : " &
+                      CORBA.To_Standard_String
+                      (CORBA.String (Get_Name (Cont_Array (I)))));
+            Put_Line (Inc & "Id : " &
+                      CORBA.To_Standard_String
+                      (CORBA.String (Get_Id (Cont_Array (I)))));
+            Put_Line (Inc & "Vers : " &
+                      CORBA.To_Standard_String
+                      (CORBA.String (Get_Version (Cont_Array (I)))));
+            Put_Line (Inc & "Abs-Name : " &
+                      CORBA.To_Standard_String
+                      (CORBA.String
+                       (Get_Absolute_Name (Cont_Array (I)))));
+
+            Container.Impl.To_Container (Get_Real_Object (Cont_Array (I)),
+                                         Success,
+                                         Container_Object);
+            if Success then
+               Print_Content (Container.Impl.Get_Contents
+                              (Container_Object),
+                              Inc & "     ");
+            end if;
+         end;
+
+      end loop;
+
+   end;
+
 
 end CORBA.Repository_Root.Contained.Impl;
 

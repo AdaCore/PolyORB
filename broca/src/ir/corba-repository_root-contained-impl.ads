@@ -139,6 +139,10 @@ package CORBA.Repository_Root.Contained.Impl is
      (In_Seq : ContainedSeq)
       return  Contained_Seq.Sequence;
 
+   --   simple procedure to dump recursively a contained_seq.sequence
+   procedure Print_Content (In_Seq : Contained_Seq.Sequence;
+                            Inc : Standard.String);
+
 private
 
    type Object is

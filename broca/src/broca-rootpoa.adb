@@ -35,6 +35,7 @@ with Ada.Exceptions;
 with Ada.Task_Attributes;
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
+with Ada.Tags;
 
 with CORBA;
 with CORBA.Object;
@@ -1359,6 +1360,9 @@ package body Broca.RootPOA is
             pragma Debug
               (O ("GIOP_Invoke: call giop_dispatch for " &
                   CORBA.To_Standard_String (Operation)));
+            pragma Debug
+              (O ("GIOP_Invoke: call giop_dispatch with A_Servant " &
+                  Ada.Tags.External_Tag (A_Servant.all'Tag)));
             GIOP_Dispatch
               (A_Servant, CORBA.To_Standard_String (Operation), Request_Id,
                Response_Expected, Message, Reply);

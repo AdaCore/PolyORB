@@ -44,10 +44,20 @@ with Broca.Soft_Links; use Broca.Soft_Links;
 with Broca.Configuration;
 pragma Warnings (Off, Broca.Configuration);
 pragma Elaborate (Broca.Configuration);
+with Broca.Debug;
 
 with PortableServer.POA;
 
 package body PortableServer is
+
+   -----------
+   -- Debug --
+   -----------
+
+   Flag : constant Natural
+     := Broca.Debug.Is_Active ("portableserver");
+   procedure O is new Broca.Debug.Output (Flag);
+
 
    ---------------------------------------
    -- Information about a skeleton unit --
@@ -210,6 +220,7 @@ package body PortableServer is
       Info : Skeleton_Info;
 
    begin
+      pragma Debug (O ("GIOP_Dispatch"));
       Info := Find_Info (For_Servant);
       Info.Dispatcher
         (For_Servant,
@@ -220,6 +231,7 @@ package body PortableServer is
          Reply_Buffer);
    exception
       when Skeleton_Unknown =>
+         pragma Debug (O ("Skeleton is unknown"));
          Broca.Exceptions.Raise_Bad_Operation;
       when others =>
          raise;

@@ -26,8 +26,31 @@ corba-repository_root-valuememberdef-impl.adb \
 corba-repository_root-nativedef-impl.adb 
 
 
-
-
+DEP = corba-repository_root-irobject.adb \
+corba-repository_root-contained.adb \
+corba-repository_root-container.adb \
+corba-repository_root-moduledef.adb \
+corba-repository_root-interfacedef.adb \
+corba-repository_root-valuedef.adb \
+corba-repository_root-exceptiondef.adb \
+corba-repository_root-typedefdef.adb \
+corba-repository_root-uniondef.adb \
+corba-repository_root-structdef.adb \
+corba-repository_root-repository.adb \
+corba-repository_root-idltype.adb \
+corba-repository_root-primitivedef.adb \
+corba-repository_root-stringdef.adb \
+corba-repository_root-wstringdef.adb \
+corba-repository_root-sequencedef.adb \
+corba-repository_root-fixeddef.adb \
+corba-repository_root-arraydef.adb \
+corba-repository_root-enumdef.adb \
+corba-repository_root-aliasdef.adb \
+corba-repository_root-constantdef.adb \
+corba-repository_root-attributedef.adb \
+corba-repository_root-operationdef.adb \
+corba-repository_root-valuememberdef.adb \
+corba-repository_root-nativedef.adb 
 
 
 CC = gnatmake
@@ -36,7 +59,7 @@ LIB = -I. -I/home/niebel/adabroker/example/generic -I/home/niebel/adabroker/src 
 
 first: all server client
 
-all: ${SOURCE}
+all: ${SOURCE} ${DEP}
 	for file in ${SOURCE}; do ${CC} ${FLAGS} ${LIB} $$file; done
 
 %.ad?: ir.idl
@@ -46,7 +69,7 @@ impl:
 	idlac ir.idl; idlac -i ir.idl; typecode.sh
 
 clean :
-	rm -f *.ads *.adb *.o *.ali
+	rm -f *.o *.ali client server
 
 server: server.adb ${SOURCE}
 	${CC}  -g -gnata -gnatf  ${LIB} server.adb
