@@ -1,5 +1,7 @@
 Frontend
 
+* Fix empty module
+
 * Implement incomplete modules
 
 * Complete unions
@@ -14,3 +16,5 @@ Frontend
 Backend Ada
 
 * Implement complex declarators
+
+* Fix designators and defining identifiers

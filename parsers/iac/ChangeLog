@@ -1,3 +1,12 @@
+2004-06-24  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* backend-be_ada-generator.adb: Do invoke specific Generate, use
+	dispatching one instead. Remove Generate_Qualified_Identifier
+	since Generate_Defining_Identifier does the job.
+
+	* backend-be_ada-nutils.adb, backend-be_ada.adb: Fix
+	Make_Fully_Qualified_Identifier in order not to have specification
+	identifier as a prefix.
 
 2004-06-23  Saber Souli   <souli@enst.fr>
 	* backend-be_ada.adb : Fixed void operation handling bug.
