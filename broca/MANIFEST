@@ -153,6 +153,16 @@ idlac/ada_be-expansion.adb
 idlac/ada_be-expansion.ads
 idlac/ada_be-identifiers.adb
 idlac/ada_be-identifiers.ads
+idlac/ada_be-idl2ada-helper.adb
+idlac/ada_be-idl2ada-helper.ads
+idlac/ada_be-idl2ada-impl.adb
+idlac/ada_be-idl2ada-impl.ads
+idlac/ada_be-idl2ada-stream.adb
+idlac/ada_be-idl2ada-stream.ads
+idlac/ada_be-idl2ada-value_impl.adb
+idlac/ada_be-idl2ada-value_impl.ads
+idlac/ada_be-idl2ada-value_skel.adb
+idlac/ada_be-idl2ada-value_skel.ads
 idlac/ada_be-idl2ada.adb
 idlac/ada_be-idl2ada.ads
 idlac/ada_be-source_streams.adb
@@ -212,6 +222,8 @@ idlac/testsuite/omg/egg.idl
 idlac/testsuite/parser/alldefinitions.idl
 idlac/testsuite/parser/testparser.idl
 idlac/utils.adb
+idlac/utils.adb
+idlac/utils.ads
 idlac/utils.ads
 src/ChangeLog
 src/Makefile.am

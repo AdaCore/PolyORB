@@ -37,5 +37,5 @@ for i in ${files}; do
   cat $i.orig.$$ | \
    sed -e "s/@adabroker_version@/${adabroker_version}/g" | \
    cat > $i
-  rm $i.orig.$$
+  rm -f $i.orig.$$
 done
