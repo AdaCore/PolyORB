@@ -53,8 +53,7 @@ package body Droopi.Protocols.Echo is
 
    end Create;
 
-   procedure Connect (S : access Echo_Session; P : Binding_Data.Profile_Access)
-   is
+   procedure Connect (S : access Echo_Session) is
    begin
       null;
    end Connect;

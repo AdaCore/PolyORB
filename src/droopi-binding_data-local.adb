@@ -45,15 +45,22 @@ package body Droopi.Binding_Data.Local is
       return Profile.Object_Id.all;
    end Get_Object_Key;
 
-   function Find_Connection
-     (Profile : Local_Profile_Type)
-     return Components.Component_Access is
+   pragma Warnings (Off);
+   --  Out parameters are not assigned a value.
+
+   procedure Bind_Profile
+     (Profile : Local_Profile_Type;
+      TE      : out Transport.Transport_Endpoint_Access;
+      Session : out Components.Component_Access) is
    begin
       pragma Assert (False);
-      return null;
+
+      raise Program_Error;
       --  May not happen (no such a profile does not support
       --  connections).
-   end Find_Connection;
+   end Bind_Profile;
+
+   pragma Warnings (On);
 
    function Get_Profile_Tag
      (Profile : Local_Profile_Type)

@@ -2,7 +2,6 @@
 
 --  $Id$
 
-with Droopi.Binding_Data;
 with Droopi.Buffers;
 
 package Droopi.Protocols.Echo is
@@ -19,8 +18,7 @@ package Droopi.Protocols.Echo is
 
    type Echo_Session is new Session with private;
 
-   procedure Connect
-     (S : access Echo_Session; P : Binding_Data.Profile_Access);
+   procedure Connect (S : access Echo_Session);
    procedure Invoke_Request (S : access Echo_Session; R : Request);
    procedure Abort_Request (S : access Echo_Session; R : Request);
    --  These are just for show and do nothing.

@@ -1,12 +1,13 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/droopi-binding_data.ads#4 $
+--  $Id: //droopi/main/src/droopi-binding_data.ads#5 $
 
 with Ada.Finalization;
 
 with Droopi.Components;
 with Droopi.Objects;
+with Droopi.Transport;
 with Droopi.Types;
 
 package Droopi.Binding_Data is
@@ -42,25 +43,32 @@ package Droopi.Binding_Data is
 
    function Get_Object_Key
      (Profile : Profile_Type)
-     return Objects.Object_Id is abstract;
+     return Objects.Object_Id
+      is abstract;
    --  Retrieve the opaque object key from Profile.
 
-   function Find_Connection
-     (Profile : Profile_Type)
-     return Components.Component_Access is abstract;
-   --  Find or create a session component (or create a new one) that matches
-   --  this profile in order to send a message to the designated
-   --  transport endpoint.
+   procedure Bind_Profile
+     (Profile : Profile_Type;
+      TE      : out Transport.Transport_Endpoint_Access;
+      Session : out Components.Component_Access)
+      is abstract;
+   --  Find or create a transport endpoint and an attached protocol
+   --  stack instance (or create new ones) that match this profile,
+   --  in order to send a message to the designated middleware.
+   --  The Transport_Endpoint at the bottom of the transport stack
+   --  and the Session at the top are returned.
 
    function Get_Profile_Tag
      (Profile : Profile_Type)
-     return Profile_Tag is abstract;
+     return Profile_Tag
+      is abstract;
    pragma Inline (Get_Profile_Tag);
    --  Return the profile tag associated with this profile type.
 
    function Get_Profile_Preference
      (Profile : Profile_Type)
-     return Profile_Preference is abstract;
+     return Profile_Preference
+      is abstract;
    pragma Inline (Get_Profile_Preference);
    --  Return the profile priority associated with this profile type.
 

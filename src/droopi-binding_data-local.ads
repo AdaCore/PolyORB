@@ -23,9 +23,10 @@ package Droopi.Binding_Data.Local is
      (Profile : Local_Profile_Type)
      return Objects.Object_Id;
 
-   function Find_Connection
-     (Profile : Local_Profile_Type)
-     return Components.Component_Access;
+   procedure Bind_Profile
+     (Profile : Local_Profile_Type;
+      TE      : out Transport.Transport_Endpoint_Access;
+      Session : out Components.Component_Access);
 
    function Get_Profile_Tag
      (Profile : Local_Profile_Type)
