@@ -1,3 +1,5 @@
+pragma Style_Checks (Off);
+
 ------------------------------------------------------------------------------
 --                                                                          --
 --                           ADABROKER SERVICES                             --
@@ -454,7 +456,7 @@ procedure Test_Event is
             Ada.Text_IO.Put (ASCII.HT & "<kind> in");
             for E in Entity_Kind'Range loop
                declare
-                  I : String := E'Img;
+                  I : constant String := E'Img;
                begin
                   Ada.Text_IO.Put (' ' & I (3 .. I'Last));
                end;
@@ -590,7 +592,7 @@ begin
                   end if;
 
                   declare
-                     N : Natural := Natural'Value (Argument (2).all);
+                     N : constant Natural := Natural'Value (Argument (2).all);
                   begin
                      delay Duration (N);
                   end;

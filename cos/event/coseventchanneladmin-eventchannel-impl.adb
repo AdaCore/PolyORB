@@ -109,7 +109,11 @@ package body CosEventChannelAdmin.EventChannel.Impl is
    -------------
 
    procedure Destroy
-     (Self : access Object) is
+     (Self : access Object)
+   is
+      pragma Warnings (Off); --  WAG:3.14
+      pragma Unreferenced (Self);
+      pragma Warnings (On);  --  WAG:3.14
    begin
       null;
    end Destroy;

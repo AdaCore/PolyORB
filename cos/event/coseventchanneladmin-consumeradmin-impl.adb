@@ -157,9 +157,9 @@ package body CosEventChannelAdmin.ConsumerAdmin.Impl is
    begin
       Enter_Critical_Section;
       declare
-         Pulls : PullSuppliers.Element_Array
+         Pulls : constant PullSuppliers.Element_Array
            := PullSuppliers.To_Element_Array (Self.X.Pulls);
-         Pushs : PushSuppliers.Element_Array
+         Pushs : constant PushSuppliers.Element_Array
            := PushSuppliers.To_Element_Array (Self.X.Pushs);
       begin
          Leave_Critical_Section;
