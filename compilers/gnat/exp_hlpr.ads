@@ -2,13 +2,11 @@
 --                                                                          --
 --                         GNAT COMPILER COMPONENTS                         --
 --                                                                          --
---                             E X P _ S T R M                              --
+--                             E X P _ H L P R                              --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $LastChangedRevision$
---                                                                          --
---          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2004 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -46,7 +44,7 @@ package Exp_Hlpr is
       Typ  :     Entity_Id;
       Decl : out Node_Id;
       Fnam : out Entity_Id);
-   --  Build From_Any attribute function for Typ.
+   --  Build From_Any attribute function for Typ
 
    function Build_To_Any_Call
      (N     : Node_Id;
@@ -61,7 +59,7 @@ package Exp_Hlpr is
       Typ  :     Entity_Id;
       Decl : out Node_Id;
       Fnam : out Entity_Id);
-   --  Build To_Any attribute function for Typ.
+   --  Build To_Any attribute function for Typ
 
    function Build_TypeCode_Call
      (Loc   : Source_Ptr;
@@ -76,6 +74,13 @@ package Exp_Hlpr is
       Typ  :     Entity_Id;
       Decl : out Node_Id;
       Fnam : out Entity_Id);
-   --  Build TypeCode attribute function for Typ.
+   --  Build TypeCode attribute function for Typ
+
+   procedure Build_Name_And_Repository_Id
+     (E           :     Entity_Id;
+      Name_Str    : out String_Id;
+      Repo_Id_Str : out String_Id);
+   --  Return a string denoting the name of E, and a second string
+   --  denoting its repository id.
 
 end Exp_Hlpr;

@@ -33,7 +33,6 @@ with Exp_Tss;     use Exp_Tss;
 with Exp_Util;    use Exp_Util;
 with GNAT.HTable; use GNAT.HTable;
 with Lib;         use Lib;
-with Namet;       use Namet;
 with Nlists;      use Nlists;
 with Nmake;       use Nmake;
 with Opt;         use Opt;
@@ -48,7 +47,6 @@ with Snames;      use Snames;
 with Stand;       use Stand;
 with Stringt;     use Stringt;
 with Tbuild;      use Tbuild;
-with Uname;       use Uname;
 
 package body Exp_Dist is
 
@@ -247,10 +245,6 @@ package body Exp_Dist is
    function Could_Be_Asynchronous (Spec : Node_Id) return Boolean;
    --  Return True if nothing prevents the program whose specification is
    --  given to be asynchronous (i.e. no out parameter).
-
-   procedure Get_Pkg_Name_String (Decl_Node : Node_Id);
-   --  Retrieve the fully expanded name of the library unit declared by decl
-   --  into the name buffer.
 
    function Pack_Entity_Into_Stream_Access
      (Loc    : Source_Ptr;
@@ -2461,22 +2455,8 @@ package body Exp_Dist is
       --  refer to the entity in the declaration spec, not those
       --  of the body spec.
 
-      --  XXX the following is heavily borrowed from Exp_Hlpr
-      --  and should be factored out.
-
-      Start_String;
-      Store_String_Chars ("DSA:");
-      Get_Pkg_Name_String (Scope (RAS_Type));
-      Store_String_Chars (
-        Name_Buffer (Name_Buffer'First .. Name_Buffer'First + Name_Len - 1));
-      Store_String_Char ('.');
-      Get_Name_String (Chars
-        (Defining_Identifier (Declaration_Node (RAS_Type))));
-      Store_String_Chars (
-        Name_Buffer (Name_Buffer'First .. Name_Buffer'First + Name_Len - 1));
-      Store_String_Chars (":1.0");
-      Repo_Id_String := End_String;
-      Name_String := String_From_Name_Buffer;
+      Build_Name_And_Repository_Id
+        (RAS_Type, Name_Str => Name_String, Repo_Id_Str => Repo_Id_String);
 
       Func_Body :=
         Make_Subprogram_Body (Loc,
@@ -3146,7 +3126,7 @@ package body Exp_Dist is
       Append_To (Decls, Dummy_Register_Decl);
       Analyze (Dummy_Register_Decl);
 
-      Get_Pkg_Name_String (Pkg_Spec);
+      Get_Library_Unit_Name_String (Pkg_Spec);
       Append_To (Register_Pkg_Actuals,
          --  Name
         Make_String_Literal (Loc,
@@ -3979,7 +3959,7 @@ package body Exp_Dist is
          L := Declarations (U);
       end if;
 
-      Get_Pkg_Name_String (Pkg_Spec);
+      Get_Library_Unit_Name_String (Pkg_Spec);
       Pkg_Name := String_From_Name_Buffer;
       Reg :=
         Make_Procedure_Call_Statement (Loc,
@@ -5158,22 +5138,6 @@ package body Exp_Dist is
       Pop_Scope;
    end Expand_Receiving_Stubs_Bodies;
 
-   -------------------------
-   -- Get_Pkg_Name_string --
-   -------------------------
-
-   procedure Get_Pkg_Name_String (Decl_Node : Node_Id) is
-      Unit_Name_Id : constant Unit_Name_Type := Get_Unit_Name (Decl_Node);
-
-   begin
-      Get_Unit_Name_String (Unit_Name_Id);
-
-      --  Remove seven last character (" (spec)" or " (body)").
-
-      Name_Len := Name_Len - 7;
-      pragma Assert (Name_Buffer (Name_Len + 1) = ' ');
-   end Get_Pkg_Name_String;
-
    -----------------------
    -- Get_Subprogram_Id --
    -----------------------
@@ -5479,7 +5443,7 @@ package body Exp_Dist is
       Pkg_Name : String_Id;
 
    begin
-      Get_Pkg_Name_String (Package_Spec);
+      Get_Library_Unit_Name_String (Package_Spec);
       Pkg_Name := String_From_Name_Buffer;
       Inst :=
         Make_Package_Instantiation (Loc,

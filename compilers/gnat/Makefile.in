@@ -2781,12 +2781,12 @@ exp_dist.o : ada.ads a-except.ads a-uncdea.ads alloc.ads atree.ads \
    lib-sort.adb namet.ads nlists.ads nlists.adb nmake.ads nmake.adb \
    opt.ads output.ads restrict.ads rident.ads rtsfind.ads sem.ads \
    sem_ch3.ads sem_ch8.ads sem_dist.ads sem_util.ads sinfo.ads sinfo.adb \
-   sinput.ads snames.ads stand.ads stringt.ads stringt.adb system.ads \
-   s-exctab.ads s-htable.ads s-htable.adb s-imgenu.ads s-memory.ads \
-   s-rident.ads s-secsta.ads s-soflin.ads s-stache.ads s-stalib.ads \
-   s-stoele.ads s-stoele.adb s-traent.ads s-unstyp.ads s-wchcon.ads \
-   table.ads table.adb tbuild.ads tbuild.adb tree_io.ads types.ads \
-   uintp.ads uintp.adb uname.ads unchconv.ads unchdeal.ads urealp.ads 
+   sinput.ads snames.ads stand.ads stringt.ads system.ads s-exctab.ads \
+   s-htable.ads s-htable.adb s-imgenu.ads s-memory.ads s-rident.ads \
+   s-secsta.ads s-soflin.ads s-stache.ads s-stalib.ads s-stoele.ads \
+   s-stoele.adb s-traent.ads s-unstyp.ads s-wchcon.ads table.ads table.adb \
+   tbuild.ads tbuild.adb tree_io.ads types.ads uintp.ads uintp.adb \
+   uname.ads unchconv.ads unchdeal.ads urealp.ads 
 
 exp_fixd.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
    checks.ads debug.ads einfo.ads einfo.adb elists.ads err_vars.ads \

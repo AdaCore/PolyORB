@@ -920,6 +920,29 @@ package body Exp_Hlpr is
           Idx));
    end Build_Get_Aggregate_Element;
 
+   -------------------------
+   -- Build_Reposiroty_Id --
+   -------------------------
+
+   procedure Build_Name_And_Repository_Id
+     (E           :     Entity_Id;
+      Name_Str    : out String_Id;
+      Repo_Id_Str : out String_Id) is
+   begin
+      Start_String;
+      Store_String_Chars ("DSA:");
+      Get_Pkg_Name_String (Scope (E));
+      Store_String_Chars (
+        Name_Buffer (Name_Buffer'First .. Name_Buffer'First + Name_Len - 1));
+      Store_String_Char ('.');
+      Get_Name_String (Chars (E));
+      Store_String_Chars (
+        Name_Buffer (Name_Buffer'First .. Name_Buffer'First + Name_Len - 1));
+      Store_String_Chars (":1.0");
+      Repo_Id_Str := End_String;
+      Name_Str    := String_From_Name_Buffer;
+   end Build_Name_And_Repository_Id;
+
    -----------------------
    -- Build_To_Any_Call --
    -----------------------
@@ -2067,7 +2090,8 @@ package body Exp_Hlpr is
          end if;
       end TC_Rec_Add_Process_Element;
 
-      Type_Name_Str : String_Id;
+      Type_Name_Str    : String_Id;
+      Type_Repo_Id_Str : String_Id;
    begin
       pragma Assert (not Is_Itype (Typ));
       Fnam := TCNam;
@@ -2078,11 +2102,10 @@ package body Exp_Hlpr is
           Parameter_Specifications => Empty_List,
           Subtype_Mark => New_Occurrence_Of (RTE (RE_TypeCode), Loc));
 
-      Get_Name_String (Chars
-        (Defining_Identifier (Declaration_Node (Typ))));
-      Type_Name_Str := String_From_Name_Buffer;
-      Initialize_Parameter_List (Type_Name_Str, Type_Name_Str, Parameters);
-      --  XXX should compute a proper repository id!
+      Build_Name_And_Repository_Id
+        (Typ, Name_Str => Type_Name_Str, Repo_Id_Str => Type_Repo_Id_Str);
+      Initialize_Parameter_List
+        (Type_Name_Str, Type_Repo_Id_Str, Parameters);
 
       if Is_Derived_Type (Typ)
         and then not Is_Tagged_Type (Typ)
