@@ -65,9 +65,9 @@ package body System.Partition_Interface is
       Id       : Partition_ID;
       Version  : String_Access;
       Receiver : RPC_Receiver;
+      Cache    : Elaboration_Access;
       Known    : Boolean := False;
       Queried  : Boolean := False;
-      Empty    : Boolean := False;
    end record;
    type Unit_Info_Access is access Unit_Info;
    --  Information on a unit.
@@ -78,12 +78,13 @@ package body System.Partition_Interface is
    function Hash_Function (F : Unit_Name_Access) return Hash_Index;
    function Equal (F1, F2 : Unit_Name_Access) return Boolean;
    package Unit_Htable is
-      new GNAT.Htable.Simple_Htable (Header_Num => Hash_Index,
-                                     Element    => Unit_Info_Access,
-                                     No_Element => No_Unit_Info,
-                                     Key        => Unit_Name_Access,
-                                     Hash       => Hash_Function,
-                                     Equal      => Equal);
+     new GNAT.Htable.Simple_Htable
+     (Header_Num => Hash_Index,
+      Element    => Unit_Info_Access,
+      No_Element => No_Unit_Info,
+      Key        => Unit_Name_Access,
+      Hash       => Hash_Function,
+      Equal      => Equal);
    use Unit_Htable;
    --  This Htable is used to store and retrieve quickly unit information.
 
@@ -117,7 +118,7 @@ package body System.Partition_Interface is
       return Unit_Info;
    --  Get unit info (and retrieve it if needed).
 
-   type Name_Opcode is (Get_Unit_Info, Set_Unit_Info);
+   type Name_Opcode is (Get_Unit_Info, Set_Unit_Info, Delete_Unit_Info);
    --  Opcode to discuss.
 
    Public_Receiver_Is_Installed : Boolean := False;
@@ -142,12 +143,15 @@ package body System.Partition_Interface is
    --  packages elaboration, that is sequentially.
 
    procedure Send_Unit_Info
-     (Partition : in Partition_ID; Info : in Unit_Info);
+     (Partition : in Partition_ID;
+      Info      : in Unit_Info;
+      Opcode    : in Name_Opcode := Set_Unit_Info);
    --  Send a Set_Unit_Info to this partition.
 
-   procedure Read_Unit_Info
-     (Params : access Params_Stream_Type; Info : access Unit_Info);
-   --  Read unit information from this stream.
+   procedure Recv_Unit_Info
+     (Params : access Params_Stream_Type;
+      Info   : access Unit_Info);
+   --  Receive unit information from this stream.
 
    task Shutdown_Waiter;
    --  This task waits for Shutdown_Keeper from being unblocked.
@@ -166,26 +170,26 @@ package body System.Partition_Interface is
 
    protected body Elaboration_Type is
 
-      ---------------------------
-      -- Complete_Invalidation --
-      ---------------------------
+      ---------------------
+      -- Delete_RCI_Data --
+      ---------------------
 
-      procedure Complete_Invalidation is
+      procedure Delete_RCI_Data is
       begin
-         raise Program_Error; --  XXXXX Not implemented
-      end Complete_Invalidation;
+         Free (RCI_Package_Name);
+      end Delete_RCI_Data;
 
       ------------------
       -- Get_RCI_Data --
       ------------------
 
-      entry Get_RCI_Data
+      procedure Get_RCI_Data
         (Receiver  : out System.RPC.RPC_Receiver;
          Partition : out System.RPC.Partition_ID;
          Done      : out Boolean)
-      when True is
+      is
       begin
-         if RCI_Unit = null then
+         if RCI_Package_Name = null then
             Done      := False;
 
             --  Those two initializations are needed to not raise
@@ -202,22 +206,13 @@ package body System.Partition_Interface is
       end Get_RCI_Data;
 
       ------------------
-      -- Get_RCI_Unit --
+      -- Get_RCI_Name --
       ------------------
 
-      function Get_RCI_Unit return Unit_Name_Access is
+      function Get_RCI_Name return Unit_Name_Access is
       begin
-         return RCI_Unit;
-      end Get_RCI_Unit;
-
-      ---------------------------
-      -- Initiate_Invalidation --
-      ---------------------------
-
-      procedure Initiate_Invalidation is
-      begin
-         raise Program_Error; --  XXXXX Not implemented
-      end Initiate_Invalidation;
+         return RCI_Package_Name;
+      end Get_RCI_Name;
 
       ------------------
       -- Set_RCI_Data --
@@ -229,7 +224,7 @@ package body System.Partition_Interface is
          Partition : System.RPC.Partition_ID)
       is
       begin
-         RCI_Unit         := RCI_Name;
+         RCI_Package_Name := RCI_Name;
          Package_Receiver := Receiver;
          Active_Partition := Partition;
       end Set_RCI_Data;
@@ -267,20 +262,8 @@ package body System.Partition_Interface is
    -- Get_Active_Partition_ID --
    -----------------------------
 
-   function Get_Active_Partition_ID (RCI_Unit : Unit_Name)
-     return Partition_ID is
-      Partition : Partition_ID;
-   begin
-      Partition := Get_Unit_Info (RCI_Unit).Id;
-      return Partition;
-   end Get_Active_Partition_ID;
-
-   -----------------------------
-   -- Get_Active_Partition_ID --
-   -----------------------------
-
    function Get_Active_Partition_ID
-     (RCI_Unit    : in Unit_Name_Access;
+     (RCI_Name    : in Unit_Name_Access;
       Elaboration : in Elaboration_Access)
      return Partition_ID is
       Receiver  : RPC_Receiver;
@@ -291,18 +274,9 @@ package body System.Partition_Interface is
       if Done then
          return Partition;
       else
-         return Get_Unit_Info (RCI_Unit.all, Elaboration) .Id;
+         return Get_Unit_Info (RCI_Name.all, Elaboration).Id;
       end if;
    end Get_Active_Partition_ID;
-
-   ------------------------
-   -- Get_Active_Version --
-   ------------------------
-
-   function Get_Active_Version (RCI_Unit : Unit_Name) return String is
-   begin
-      return Get_Unit_Info (RCI_Unit).Version.all;
-   end Get_Active_Version;
 
    ----------------------------
    -- Get_Local_Partition_ID --
@@ -318,29 +292,19 @@ package body System.Partition_Interface is
    ------------------------------
 
    function Get_Passive_Partition_ID
-     (RCI_Unit : Unit_Name)
+     (RCI_Name : Unit_Name)
       return Partition_ID is
    begin
       raise Program_Error; --  XXXXX Not implemented
-      return Get_Passive_Partition_ID (RCI_Unit);
+      return Get_Passive_Partition_ID (RCI_Name);
    end Get_Passive_Partition_ID;
 
    ------------------------------
    -- Get_RCI_package_Receiver --
    ------------------------------
 
-   function Get_RCI_Package_Receiver (RCI_Unit : in Unit_Name)
-     return RPC_Receiver is
-   begin
-      return Get_Unit_Info (RCI_Unit).Receiver;
-   end Get_RCI_Package_Receiver;
-
-   ------------------------------
-   -- Get_RCI_package_Receiver --
-   ------------------------------
-
    function Get_RCI_Package_Receiver
-     (RCI_Unit    : in Unit_Name_Access;
+     (RCI_Name    : in Unit_Name_Access;
       Elaboration : in Elaboration_Access)
      return RPC_Receiver is
       Receiver  : RPC_Receiver;
@@ -351,7 +315,7 @@ package body System.Partition_Interface is
       if Done then
          return Receiver;
       else
-         return Get_Unit_Info (RCI_Unit.all, Elaboration) .Receiver;
+         return Get_Unit_Info (RCI_Name.all, Elaboration) .Receiver;
       end if;
    end Get_RCI_Package_Receiver;
 
@@ -401,6 +365,7 @@ package body System.Partition_Interface is
          Elaboration.Set_RCI_Data (Result_P.Name,
                                    Result_P.Receiver,
                                    Result_P.Id);
+         Result_P.Cache := Elaboration;
       end if;
       return Result_P.all;
    end Get_Unit_Info;
@@ -415,18 +380,6 @@ package body System.Partition_Interface is
    begin
       return Hash_Unit_Name (F.all);
    end Hash_Function;
-
-   -------------------------------
-   -- Invalidate_Receiving_Stub --
-   -------------------------------
-
-   procedure Invalidate_Receiving_Stub
-     (RCI_Unit  : in Unit_Name_Access;
-      Partition : in RPC.Partition_ID)
-   is
-   begin
-      raise Program_Error; --  XXXXX Not implemented
-   end Invalidate_Receiving_Stub;
 
    ----------------------------
    -- Partition_RPC_Receiver --
@@ -508,12 +461,31 @@ package body System.Partition_Interface is
                  (D (D_RNS, "Got unit info for package " & Name.all));
                Unit_Map.Lock;
                Info := Unit_Map.Get_Immediate (Name.all);
-               Read_Unit_Info (Params, Info);
+               Recv_Unit_Info (Params, Info);
                Info.Known := True;
                Info.Queried := False;
                Unit_Map.Unlock;
                pragma Debug
                  (D (D_RNS, "Registered unit info for package " & Name.all));
+               Free (Name);
+            end;
+
+         when Delete_Unit_Info =>
+            declare
+               Name : Unit_Name_Access;
+               Info : Unit_Info_Access;
+            begin
+               Name := new Unit_Name'(Unit_Name'Input (Params));
+               pragma Debug
+                 (D (D_RNS, "Delete unit info for package " & Name.all));
+               Unit_Map.Lock;
+               Info := Unit_Map.Get_Immediate (Name.all);
+               Recv_Unit_Info (Params, Info);
+               Info.Known := True;
+               Info.Queried := False;
+               Unit_Map.Unlock;
+               pragma Debug
+                 (D (D_RNS, "Deleted unit info for package " & Name.all));
                Free (Name);
             end;
 
@@ -526,44 +498,42 @@ package body System.Partition_Interface is
 
    package body RCI_Info is
 
-      Elaboration : System.Partition_Interface.Elaboration_Access;
-      RCI_Access  : System.Partition_Interface.Unit_Name_Access;
+      Elaboration : Elaboration_Access;
+      RCI_Access  : Unit_Name_Access;
 
       -----------------------------
       -- Get_Active_Partition_ID --
       -----------------------------
 
-      function Get_Active_Partition_ID return System.Rpc.Partition_ID is
+      function Get_Active_Partition_ID return System.RPC.Partition_ID is
       begin
          if Elaboration = null then
-            Elaboration := new System.Partition_Interface.Elaboration_Type;
-            RCI_Access  := new System.Partition_Interface.Unit_Name'(RCI_Name);
+            Elaboration := new Elaboration_Type;
+            RCI_Access  := new Unit_Name'(RCI_Name);
          end if;
-         return System.Partition_Interface.Get_Active_Partition_ID
-           (RCI_Access, Elaboration);
+         return Get_Active_Partition_ID (RCI_Access, Elaboration);
       end Get_Active_Partition_ID;
 
       ------------------------------
       -- Get_RCI_Package_Receiver --
       ------------------------------
 
-      function Get_RCI_Package_Receiver return System.Rpc.Rpc_Receiver is
+      function Get_RCI_Package_Receiver return System.RPC.RPC_Receiver is
       begin
          if Elaboration = null then
-            Elaboration := new System.Partition_Interface.Elaboration_Type;
-            RCI_Access  := new System.partition_interface.unit_name'(RCI_Name);
+            Elaboration := new Elaboration_Type;
+            RCI_Access  := new Unit_Name'(RCI_Name);
          end if;
-         return System.Partition_Interface.Get_Rci_Package_Receiver
-           (RCI_Access, Elaboration);
+         return Get_RCI_Package_Receiver (RCI_Access, Elaboration);
       end Get_RCI_Package_Receiver;
 
    end RCI_Info;
 
    --------------------
-   -- Read_Unit_Info --
+   -- Recv_Unit_Info --
    --------------------
 
-   procedure Read_Unit_Info
+   procedure Recv_Unit_Info
      (Params : access Params_Stream_Type;
       Info   : access Unit_Info)
    is
@@ -575,18 +545,24 @@ package body System.Partition_Interface is
       end if;
       Info.Version := new String'(String'Input (Params));
       RPC_Receiver'Read (Params, Info.Receiver);
-   end Read_Unit_Info;
+   end Recv_Unit_Info;
 
    ---------------------------
    -- Register_Calling_Stub --
    ---------------------------
 
    procedure Register_Calling_Stub
-     (Partition   : in Partition_ID;
+     (RCI_Name    : in Unit_Name;
+      Partition   : in Partition_ID;
       Elaboration : in Elaboration_Access)
    is
+      Info : Unit_Info_Access;
    begin
-      raise Program_Error; --  XXXXX Not implemented
+      Unit_Map.Lock;
+      Info := Unit_Map.Get_Immediate (To_Lower (RCI_Name));
+      Info.Cache := Elaboration;
+      pragma Debug (D (D_RNS, "Register client cache of package " & RCI_Name));
+      Unit_Map.Unlock;
    end Register_Calling_Stub;
 
    -----------------------------
@@ -594,7 +570,7 @@ package body System.Partition_Interface is
    -----------------------------
 
    procedure Register_Receiving_Stub
-     (RCI_Unit : in Unit_Name;
+     (RCI_Name : in Unit_Name;
       Receiver : in RPC_Receiver;
       Version  : in String := "")
    is
@@ -606,7 +582,7 @@ package body System.Partition_Interface is
          Partition_RPC_Receiver_Installed := True;
       end if;
       Unit_Map.Lock;
-      Info := Unit_Map.Get_Immediate (To_Lower (RCI_Unit));
+      Info := Unit_Map.Get_Immediate (To_Lower (RCI_Name));
       Info.Id       := Get_My_Partition_ID;
       Info.Receiver := Receiver;
       Info.Version := new String'(Version);
@@ -618,16 +594,45 @@ package body System.Partition_Interface is
       end if;
    end Register_Receiving_Stub;
 
+   -------------------------------
+   -- Invalidate_Receiving_Stub --
+   -------------------------------
+
+   procedure Invalidate_Receiving_Stub
+     (RCI_Name  : in Unit_Name;
+      Partition : in RPC.Partition_ID)
+   is
+      Info : Unit_Info_Access;
+   begin
+      Unit_Map.Lock;
+      Info := Unit_Map.Get_Immediate (To_Lower (RCI_Name));
+      Info.Known := False;
+      Info.Queried := True;
+      Unit_Map.Unlock;
+      pragma Debug (D (D_RNS, "Invalidate locally package " & RCI_Name));
+      if not Is_Boot_Partition then
+         Send_Unit_Info (Get_Boot_Server, Info.all, Delete_Unit_Info);
+         pragma Debug (D (D_RNS,
+                          "Send RNS invalidation of package " & RCI_Name));
+      end if;
+      Info.Cache.Delete_RCI_Data;
+      pragma Debug
+        (D (D_RNS,
+            "Notify client cache of invalidation of package " & RCI_Name));
+   end Invalidate_Receiving_Stub;
+
    --------------------
    -- Send_Unit_Info --
    --------------------
 
    procedure Send_Unit_Info
-     (Partition : in Partition_ID; Info : in Unit_Info)
+     (Partition : in Partition_ID;
+      Info      : in Unit_Info;
+      Opcode    : in Name_Opcode := Set_Unit_Info)
    is
       Params : aliased Params_Stream_Type (0);
    begin
-      Name_Opcode'Write (Params'Access, Set_Unit_Info);
+      Name_Opcode'Write (Params'Access, Opcode);
       Unit_Name'Output (Params'Access, Info.Name.all);
       Partition_ID'Write (Params'Access, Info.Id);
       String'Output (Params'Access, Info.Version.all);
@@ -736,6 +741,43 @@ package body System.Partition_Interface is
 
    end Unit_Map_Type;
 
+   -----------------------------
+   -- Get_Active_Partition_ID --
+   -----------------------------
+
+   function Get_Active_Partition_ID (RCI_Name : Unit_Name)
+     return Partition_ID is
+   begin
+      return Get_Unit_Info (RCI_Name).Id;
+   end Get_Active_Partition_ID;
+
+   ------------------------
+   -- Get_Active_Version --
+   ------------------------
+
+   function Get_Active_Version (RCI_Name : Unit_Name) return String is
+   begin
+      return Get_Unit_Info (RCI_Name).Version.all;
+   end Get_Active_Version;
+
+   ------------------------------
+   -- Get_RCI_package_Receiver --
+   ------------------------------
+
+   function Get_RCI_Package_Receiver (RCI_Name : in Unit_Name)
+     return RPC_Receiver is
+   begin
+      return Get_Unit_Info (RCI_Name).Receiver;
+   end Get_RCI_Package_Receiver;
+
 begin
    Public_Receiver_Installed.Check;
 end System.Partition_Interface;
+
+
+
+
+
+
+
+

@@ -99,15 +99,16 @@ package body System.RPC is
       end case;
    end record;
 
-   type Request_Array is array (Request_Id) of Boolean;
+   type Request_Array is array (Request_Id) of System.RPC.Partition_Id;
 
    protected type Request_Id_Server_Type is
-      entry Get  (Id : out Request_Id);
+      entry Get  (Id : out Request_Id; Partition : in System.RPC.Partition_ID);
       procedure Free (Id : in Request_Id);
+      procedure Raise_Partition_Error (Partition : in System.RPC.Partition_ID);
    private
-      Latest : Request_Id := Request_Id'First;
-      In_Use : Request_Array := (others => False);
-      Count  : Request_Id := 0;
+      Latest      : Request_Id := Request_Id'First;
+      Destination : Request_Array := (others => Null_Partition_ID);
+      Count       : Request_Id := 0;
    end Request_Id_Server_Type;
 
    type Request_Id_Server_Access is access Request_Id_Server_Type;
@@ -140,6 +141,7 @@ package body System.RPC is
       procedure Set (Id : in Request_Id; Result : in Result_Type);
       procedure Get (Id : in Request_Id; Result : out Result_Type);
       procedure Invalidate (Id : in Request_Id);
+      procedure Raise_Error (Id : in Request_Id);
       entry Wait (Request_Id);
    private
       Valid       : Valid_Result_Array := (others => False);
@@ -237,6 +239,11 @@ package body System.RPC is
    procedure Shutdown;
    task Shutdown_Waiter;
    --  Shutdown mechanism.
+
+   procedure Partition_Error_Notification
+     (Partition : in System.RPC.Partition_ID);
+   --  Call this procedure to unblock tasks waiting for RPC results from
+   --  a dead partition.
 
    --------------------
    -- Anonymous_Task --
@@ -414,7 +421,7 @@ package body System.RPC is
       end if;
       begin
          pragma Abort_Defer;
-         Request_Id_Server.Get (Id);
+         Request_Id_Server.Get (Id, Partition);
          Header.Id := Id;
          Insert_Request (Params, Header);
          Partition_ID'Write (Params, Partition);
@@ -458,6 +465,8 @@ package body System.RPC is
       pragma Debug
         (D (D_Debug, "Setting RPC receiver for partition" & Partition'Img));
       Receiver_Map.Set (Partition, Receiver);
+      Register_Partition_Error_Notification
+        (Partition_Error_Notification'Access);
    end Establish_RPC_Receiver;
 
    --------------
@@ -487,6 +496,16 @@ package body System.RPC is
       Params.Special_First := True;
       Request_Header'Output (Params, Header);
    end Insert_Request;
+
+   ----------------------------------
+   -- Partition_Error_Notification --
+   ----------------------------------
+
+   procedure Partition_Error_Notification
+     (Partition : in System.RPC.Partition_ID) is
+   begin
+      Request_Id_Server.Raise_Partition_Error (Partition);
+   end Partition_Error_Notification;
 
    -------------------------------
    -- Public_Receiver_Installed --
@@ -644,14 +663,29 @@ package body System.RPC is
 
    protected body Request_Id_Server_Type is
 
+      ---------------------------
+      -- Raise_Partition_Error --
+      ---------------------------
+
+      procedure Raise_Partition_Error
+        (Partition : in System.RPC.Partition_ID) is
+      begin
+         for Id in Request_Id'First .. Latest loop
+            if Destination (Id) = Partition then
+               Result_Watcher.Raise_Error (Id);
+               Free (Id);
+            end if;
+         end loop;
+      end Raise_Partition_Error;
+
       ----------
       -- Free --
       ----------
 
       procedure Free (Id : in Request_Id) is
       begin
-         if In_Use (Id) then
-            In_Use (Id) := False;
+         if Destination (Id) /= Null_Partition_ID then
+            Destination (Id) := Null_Partition_ID;
             Count := Count - 1;
          end if;
       end Free;
@@ -660,14 +694,14 @@ package body System.RPC is
       -- Get --
       ---------
 
-      entry Get (Id : out Request_Id)
+      entry Get (Id : out Request_Id; Partition : in Partition_ID)
       when Count < Request_Id'Last is
       begin
-         while In_Use (Latest) loop
+         while Destination (Latest) /= Null_Partition_ID loop
             Latest := Latest + 1;
          end loop;
          Id := Latest;
-         In_Use (Id) := True;
+         Destination (Id) := Partition;
          Count  := Count + 1;
          Latest := Latest + 1;
       end Get;
@@ -679,6 +713,18 @@ package body System.RPC is
    -------------------------
 
    protected body Result_Watcher_Type is
+
+      -----------------
+      -- Raise_Error --
+      -----------------
+
+      procedure Raise_Error (Id : in Request_Id) is
+      begin
+         if not Valid (Id) then
+            Cancelled (Id) := True;
+            Valid (Id) := True;
+         end if;
+      end Raise_Error;
 
       ----------
       -- Free --
@@ -696,9 +742,14 @@ package body System.RPC is
       -- Get --
       ---------
 
-      procedure Get (Id : in Request_Id; Result : out Result_Type) is
+      procedure Get
+        (Id     : in Request_Id;
+         Result : out Result_Type) is
       begin
          pragma Assert (Valid (Id));
+         if Cancelled (Id) then
+            raise Communication_Error;
+         end if;
          Result := Results (Id);
          Valid (Id) := False;
          Results (Id) .Result := null;

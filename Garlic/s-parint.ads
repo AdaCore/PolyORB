@@ -48,81 +48,79 @@ package System.Partition_Interface is
    --  Return the Partition_ID of the current partition.
 
    function Get_Active_Partition_ID
-     (RCI_Unit : Unit_Name)
+     (RCI_Name : Unit_Name)
       return RPC.Partition_ID;
    --  Similar in some respects to RCI_Info.Get_Active_Partition_ID.
 
    function Get_Passive_Partition_ID
-     (RCI_Unit : Unit_Name)
+     (RCI_Name : Unit_Name)
      return RPC.Partition_ID;
    --  Return the Partition_ID of the given shared passive partition.
 
    function Get_RCI_Package_Receiver
-     (RCI_Unit : in Unit_Name)
+     (RCI_Name : in Unit_Name)
       return RPC.RPC_Receiver;
    --  Similar in some respects to RCI_Info.Get_RCI_Package_Receiver.
 
    function Get_Active_Version
-      (RCI_Unit : in Unit_Name)
+      (RCI_Name : in Unit_Name)
        return String;
    --  Similar in some respects to Get_Active_Partition_ID.
 
    protected type Elaboration_Type is
-      entry Get_RCI_Data
+      procedure Get_RCI_Data
         (Receiver  : out System.RPC.RPC_Receiver;
          Partition : out System.RPC.Partition_ID;
          Done      : out Boolean);
       procedure Set_RCI_Data
-        (RCI_Name  : Unit_Name_Access;
-         Receiver  : System.RPC.RPC_Receiver;
-         Partition : System.RPC.Partition_ID);
-      procedure Initiate_Invalidation;
-      procedure Complete_Invalidation;
-      function  Get_RCI_Unit return Unit_Name_Access;
+        (RCI_Name  : in Unit_Name_Access;
+         Receiver  : in System.RPC.RPC_Receiver;
+         Partition : in System.RPC.Partition_ID);
+      procedure Delete_RCI_Data;
+      function  Get_RCI_Name return Unit_Name_Access;
    private
-      Elaborated       : Boolean := False;
-      In_Progress      : Boolean := False;
       Active_Partition : System.Rpc.Partition_ID;
       Package_Receiver : System.Rpc.Rpc_Receiver;
-      RCI_Unit         : Unit_Name_Access;
+      RCI_Package_Name : Unit_Name_Access;
    end Elaboration_Type;
    type Elaboration_Access is access Elaboration_Type;
    --  Protected type provided for future implementation of restartable
    --  partitions.
 
    procedure Register_Receiving_Stub
-     (RCI_Unit : in Unit_Name;
+     (RCI_Name : in Unit_Name;
       Receiver : in RPC.RPC_Receiver;
       Version  : in String := "");
-   --  Register the fact that the RCI_Unit receiving stub is now
+   --  Register the fact that the RCI_Name receiving stub is now
    --  elaborated.  Register the access value to the package RPC_Receiver
    --  procedure.
 
    procedure Register_Calling_Stub
-     (Partition    : in RPC.Partition_ID;
+     (RCI_Name     : in Unit_Name;
+      Partition    : in RPC.Partition_ID;
       Elaboration  : in Elaboration_Access);
    --  Set an access-to-subprogram that is called as soon as the
    --  connection is detected as broken.
 
+   procedure Invalidate_Receiving_Stub
+     (RCI_Name  : in Unit_Name;
+      Partition : in RPC.Partition_ID);
+   --  Declare this receiving stub as corrupted on this partition to
+   --  the RCI Name Server.
+
    function Get_Active_Partition_ID
-     (RCI_Unit    : in Unit_Name_Access;
+     (RCI_Name    : in Unit_Name_Access;
       Elaboration : in Elaboration_Access)
       return System.Rpc.Partition_ID;
    --  Similar to previous Get_Active_Partition_ID,
    --  but uses a protected type.
 
    function Get_RCI_Package_Receiver
-     (RCI_Unit    : in Unit_Name_Access;
+     (RCI_Name    : in Unit_Name_Access;
       Elaboration : in Elaboration_Access)
       return System.RPC.RPC_Receiver;
    --  Similar to previous Get_RCI_Package_Receiver,
    --  but uses a protected type.
-
-   procedure Invalidate_Receiving_Stub
-     (RCI_Unit  : in Unit_Name_Access;
-      Partition : in RPC.Partition_ID);
-   --  Declare this receiving stub as corrupted on this partition to
-   --  the RCI Name Server.
 
    generic
       RCI_Name : String;

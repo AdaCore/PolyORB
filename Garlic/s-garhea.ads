@@ -155,6 +155,13 @@ package System.Garlic.Heart is
      (Partition : in System.RPC.Partition_ID);
    --  Signal that a partition is dead.
 
+   type RPC_Error_Notifier_Type is
+      access procedure (Partition : in System.RPC.Partition_ID);
+
+   procedure Register_Partition_Error_Notification
+     (Callback : in RPC_Error_Notifier_Type);
+   --  Signal that Communication_Error on pending RPCs
+
    function Get_Partition_Location (Partition : System.RPC.Partition_ID)
      return System.Garlic.Physical_Location.Location;
    --  Return a partition's location.

@@ -1,3 +1,20 @@
+Thu Jan  9 14:24:40 1997  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* s-parint.adb: Implementation of partition restarting. Add a new
+	procedure Invalidate_Receiving_Stub used by the programmer to
+	signal to GARLIC to invalidate RNS info on a given partition and
+	to the client cache to invalidate the old value and to query a new
+	one.
+
+	* s-garhea.ads, s-garhea.adb: Add a callback fonction to notify a
+ 	partition error to System.RPC. Add a registration procedure to
+	enable System.RPC to register its callback.
+
+	* s-rpc.adb: Provide a callback to be notified of partition
+	error. This procedure unblocks pending RPCs with the dead
+	partition. Requests table contains the partition id used for the
+	associated RPC.
+
 Fri Dec 20 12:10:08 1996  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-stratt.adb: Raise Data_Error if an integer cannot be mapped

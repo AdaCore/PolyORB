@@ -218,6 +218,9 @@ package body System.Garlic.Heart is
    procedure Shutdown;
    --  Generates a local shutdown.
 
+   Partition_Error_Notification : RPC_Error_Notifier_Type;
+   --  Call this procedure when a partition dies.
+
    --------------------------
    -- Add_New_Partition_ID --
    --------------------------
@@ -805,6 +808,16 @@ package body System.Garlic.Heart is
       Partition_Map.Set_Data (Partition, Data);
    end Register;
 
+   -------------------------------------------
+   -- Register_Partition_Error_Notification --
+   -------------------------------------------
+
+   procedure Register_Partition_Error_Notification
+     (Callback : in RPC_Error_Notifier_Type) is
+   begin
+      Partition_Error_Notification := Callback;
+   end Register_Partition_Error_Notification;
+
    ----------------------------
    -- Remote_Partition_Error --
    ----------------------------
@@ -826,6 +839,7 @@ package body System.Garlic.Heart is
            (D (D_Communication, "I cannot live without a boot partition"));
          Soft_Shutdown;
       end if;
+      Partition_Error_Notification (Partition);
    end Remote_Partition_Error;
 
    ----------
