@@ -11,7 +11,9 @@ package body MOMA.Message_Pool.Impl is
    package L is new PolyORB.Log.Facility_Log ("moma.message_pool.impl");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+   pragma Warnings (Off);
    pragma Unreferenced (O);
+   pragma Warnings (On);
 
    W : MOMA.Message_Pool.Warehouse.Warehouse;
    --  XXX up to now, one and only one Warehouse,
