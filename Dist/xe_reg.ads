@@ -33,8 +33,8 @@ package XE_Reg is
    function Get_GARLIC_Dir return String_Access;
    --  look in the registry for the GNAT/GARLIC installation directory.
    --  The key to be read is
-   --  "HKEY_LOCAL_MACHINE\SOFTWARE\Free Software Foundation\GCC"
-   --  If the key value can't be retreived (key does not exist, error opening
+   --  "HKEY_LOCAL_MACHINE\SOFTWARE\Free Software Foundation\GNAT\<version>"
+   --  If the key value can't be retrieved (key does not exist, error opening
    --  it, can't fetch value...) Get_GARLIC_Dir return null.
 
 end XE_Reg;
