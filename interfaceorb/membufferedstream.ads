@@ -14,7 +14,7 @@
 
 package MemBufferedStream is
 
-   type Object is limited private ;
+   type Object is new BufferedStream.Object with null record;
 
 
 private

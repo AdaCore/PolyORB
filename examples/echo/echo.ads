@@ -43,12 +43,13 @@ package Echo is
    procedure UnmarshalReturnedValues(Self: in OmniProxyCallDesc_Echo;
                                        Giop_Client: in out Giop_C) ;
 
+   function Result (Self : in Object) return CORBA.String;
 
 private
 
    type OmniProxyCallDesc_Echo is new OmniProxyCallDesc with record
-      Arg : String ;
-      Result : String ;
+      Arg : Corba.String ;
+      Result : Corba.String ;
    end record ;
 
 

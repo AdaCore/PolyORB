@@ -14,24 +14,30 @@
 
 package Giop_C is
 
-   type Object is limited private ;
+   type Object new NetBufferedStream.Object with null record;
 
    procedure Init (Self : in out Object, R Rope.Object) ;
    -- wrapper around GIOP_C::GIOP_C(Rope *r)
    -- in giopClient.cc L54
 
-   procedure Put_Char_Array (Self : in out Object'class
-                               ...
-                            );
-   -- wrapper around NetBufferedStream::put_char_array(const CORBA::Char* b, int size,
+   procedure Put_Char_Array (Self: in Object;
+                               B: in Corba.String;
+                               Size: in Integer;
+                               Align: in Alignment_T := Omni.ALIGN_1;
+                               StartMTU: in Corba.Boolean := False;
+                               At_Most_One: in Corba.Boolean := False);
+   -- wrapper around NetBufferedStream::put_char_array(const CORBA::Char* b,
+   --                             int size,
    --                             omni::alignment_t align,
    --                             CORBA::Boolean startMTU,
    --                             CORBA::Boolean at_most_once)
    -- in nbufferedStream.cc L 154
 
-   procedure Get_Char_Array (Self : in out Object'class
-                               ...
-                            );
+   procedure Get_Char_Array (Self : in Object,
+                               B: in Corba.String;
+                               Size: in Integer;
+                               Align: in Alignment_T := Omni.ALIGN_1;
+                               StartMTU: in Corba.Boolean := False);
    -- wrapper around void NetBufferedStream::get_char_array(CORBA::Char* b,
    --                                               int size,
    --                                               omni::alignment_t align,

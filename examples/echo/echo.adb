@@ -22,13 +22,14 @@ package body Echo is
       -- cf to_ref.txt
    end ;
 
-   function EchoString(Self: in Ref; message: in Corba.String) return Corba.String is
+   function EchoString(Self: in Ref; message: in Corba.String)
+                       return Corba.String is
 
       Opcd : OmniProxyCallDesc_Echo ;
    begin
       OmniProxyCallDesc.Init(Opcd, "echoString", Message) ;
       OmniProxyCallWrapper.Invoke(Self, Opcd) ;
-      return Result(Opcd) ;
+      return Echo.Result(Opcd) ;
    end ;
 
 
@@ -50,12 +51,19 @@ package body Echo is
       Len : CORBA.Unsigned_Long;
    begin
       Len := Arg'Length + 1;
-
-   end ;
+      Marshall(Len,Giop_Client);
+      if (Len > 1) then
+         Put_Char_Array (Giop_Client,Arg,Len);
+      else
+         Marshall(Nul,Giop_Client);
+      end if;
+   end;
 
    procedure UnmarshalReturnedValues(Self: in OmniProxyCallDesc_Echo;
-                                       Giop_Client: in out Giop_C) ;
-
+                                     Giop_Client: in out Giop_C) is
+   begin
+      Result :=  UnMarshall(Giop_Client);
+   end
 
 
 End Echo ;

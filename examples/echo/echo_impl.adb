@@ -20,6 +20,23 @@ package body Echo.impl is
       -- PROBLEME sur K : le type n'est pas le bon. En C, on trouve ici
       -- un cast plus que sauvage...
       -- To Be continued
+   end;
+
+   function Dispatch (Self : in Object;
+                      Orls : in out Giop_S;
+                      Orl_Op : in Corba.String;
+                      Orl_Response_Expected : Corba.Boolean)
+                      return Corba.Boolean is
+   begin
+      case Orl_Op is
+         when "echoString" =>
+            begin
+
+            end;
+         when others =>
+            begin
+            end;
+      end case;
    end
 
 
