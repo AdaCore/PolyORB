@@ -1,3 +1,4 @@
+with Ada.Finalization;
 with CORBA.Object;
 with CosNaming;
 
@@ -34,5 +35,25 @@ package Naming_Tools is
 
    procedure Unregister (Name : in String);
    --  Unregister an object by its name by unbinding it.
+
+   type Server_Guard is limited private;
+   procedure Register
+     (Guard  : in out Server_Guard;
+      Name   : in String;
+      Ref    : in CORBA.Object.Ref;
+      Rebind : in Boolean := False);
+   --  A Server_Guard object is an object which is able to register a
+   --  server reference in a naming service (see Register above), and
+   --  destroy this name using Unregister when the object disappears
+   --  (the program terminates or the Server_Guard object lifetime has
+   --  expired).
+
+private
+
+   type Server_Guard is new Ada.Finalization.Limited_Controlled with record
+      Name : CORBA.String := CORBA.To_CORBA_String ("");
+   end record;
+
+   procedure Finalize (Guard : in out Server_Guard);
 
 end Naming_Tools;

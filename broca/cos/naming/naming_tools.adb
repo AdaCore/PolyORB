@@ -13,6 +13,18 @@ package body Naming_Tools is
    --  Split a name component specification of the form ID '.' KIND
    --  (where KIND contains no periods) into a NameComponent.
 
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize (Guard : in out Server_Guard) is
+      Name : constant String := CORBA.To_Standard_String (Guard.Name);
+   begin
+      if Name /= "" then
+         Unregister (Name);
+      end if;
+   end Finalize;
+
    ------------
    -- Locate --
    ------------
@@ -76,6 +88,21 @@ package body Naming_Tools is
          else
             raise;
          end if;
+   end Register;
+
+   --------------
+   -- Register --
+   --------------
+
+   procedure Register
+     (Guard  : in out Server_Guard;
+      Name   : in String;
+      Ref    : in CORBA.Object.Ref;
+      Rebind : in Boolean := False)
+   is
+   begin
+      Register (Name, Ref, Rebind);
+      Guard.Name := CORBA.To_CORBA_String (Name);
    end Register;
 
    ----------------
