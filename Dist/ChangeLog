@@ -1,3 +1,9 @@
+1998-07-29  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_stubs.adb: Handle exception in the partition main subprogram
+	in order to start termination. We should clean up this part of the 
+	code.
+
 1998-07-28  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_utils.adb, xe_utils.ads: Add a new procedure Execute_Strip to

@@ -642,6 +642,18 @@ package body XE_Stubs is
          Dwrite_Line (FD, 1, "System.Garlic.Soft_Links.Global_Termination;");
       end if;
 
+      Dwrite_Line (FD, 0, "exception when others =>");
+
+      if Get_Termination (PID) = Local_Termination then
+         Dwrite_Line (FD, 1, "System.Garlic.Soft_Links.Local_Termination;");
+      end if;
+
+      if PID = Main_Partition
+        and then Get_Termination (PID) /= Local_Termination then
+         Dwrite_Line (FD, 1, "System.Garlic.Soft_Links.Global_Termination;");
+      end if;
+
+      Dwrite_Line (FD, 1, "raise;");
       Dwrite_Line (FD, 0, "end ", Partition_Main_Name, ";");
 
       if Building_Script then
