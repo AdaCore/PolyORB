@@ -1542,8 +1542,10 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Spec_Prelude (CU : in out Compilation_Unit) is
    begin
+      Set_Template_Mode (CU, True);
       NL (CU);
       PL (CU, "procedure Register_IR_Info;");
+      Set_Template_Mode (CU, False);
    end Gen_Spec_Prelude;
 
    ----------------------
@@ -1552,6 +1554,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Body_Prelude (CU : in out Compilation_Unit) is
    begin
+      Set_Template_Mode (CU, True);
       Add_With (CU, CRR, Use_It => True);
       Add_With (CU, "PolyORB.CORBA_P.IR_Tools", Use_It => True);
       NL (CU);
@@ -1562,6 +1565,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
       II (CU);
       PL (CU, "null;");
       Divert (CU, Visible_Declarations);
+      Set_Template_Mode (CU, False);
    end Gen_Body_Prelude;
 
    -----------------------
@@ -1570,12 +1574,14 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Body_Postlude (CU : in out Compilation_Unit) is
    begin
+      Set_Template_Mode (CU, True);
       Divert (CU, Registration);
       DI (CU);
       PL (CU, "end Register_IR_Info;");
 
       Divert (CU, Visible_Declarations);
       Undivert (CU, Registration);
+      Set_Template_Mode (CU, False);
    end Gen_Body_Postlude;
 
 end Ada_Be.Idl2Ada.IR_Info;

@@ -512,9 +512,6 @@ package body Ada_Be.Idl2Ada.Helper is
          NL (CU);
          Gen_To_Any_Profile (CU, Node);
          PL (CU, ";");
-
-         --  Fill in typecode TC_<name of the type>
-         Add_Elaborate_Body (CU);
       end if;
    end Gen_Interface_Spec;
 
@@ -562,9 +559,6 @@ package body Ada_Be.Idl2Ada.Helper is
          NL (CU);
          Gen_To_Any_Profile (CU,  Node);
          PL (CU, ";");
-
-         --  Fill in typecode TC_<name of the type>
-         Add_Elaborate_Body (CU);
       end if;
    end Gen_Forward_Interface_Spec;
 
@@ -653,8 +647,6 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, " Marshalled_List : in out RefAny_Seq.Sequence);");
          DI (CU);
          NL (CU);
-
-         Add_Elaborate_Body (CU);
       end if;
 
    end Gen_ValueType_Spec;
@@ -1477,9 +1469,6 @@ package body Ada_Be.Idl2Ada.Helper is
          NL (CU);
          Gen_To_Any_Profile (CU, Node);
          PL (CU, ";");
-
-         --  Fill in typecode TC_<name of the type>
-         Add_Elaborate_Body (CU);
       end if;
    end Gen_Enum_Spec;
 
@@ -1643,9 +1632,6 @@ package body Ada_Be.Idl2Ada.Helper is
          NL (CU);
          Gen_To_Any_Profile (CU, Struct_Node);
          PL (CU, ";");
-
-         --  Fill in typecode TC_<name of the type>
-         Add_Elaborate_Body (CU);
       end if;
    end Gen_Struct_Exception_Spec;
 
@@ -1958,9 +1944,6 @@ package body Ada_Be.Idl2Ada.Helper is
          NL (CU);
          Gen_To_Any_Profile (CU, Node);
          PL (CU, ";");
-
-         --  Fill in typecode TC_<name of the type>
-         Add_Elaborate_Body (CU);
       end if;
    end Gen_String_Instance_Spec;
 
@@ -2058,10 +2041,6 @@ package body Ada_Be.Idl2Ada.Helper is
          NL (CU);
          Gen_To_Any_Profile (CU, Node);
          PL (CU, ";");
-
-         --  Fill in typecode TC_<name of the type>
-
-         Add_Elaborate_Body (CU);
       end if;
    end Gen_Union_Spec;
 
@@ -2406,10 +2385,6 @@ package body Ada_Be.Idl2Ada.Helper is
             PL (CU, "PolyORB.Any.TypeCode.TC_Alias);");
          end if;
 
-         if Is_Array then
-            Add_Elaborate_Body (CU);
-         end if;
-
          if not Is_Interface_Type (Node) then
             --  From_Any
 
@@ -2681,10 +2656,6 @@ package body Ada_Be.Idl2Ada.Helper is
          NL (CU);
          Gen_To_Any_Profile (CU, Node);
          PL (CU, ";");
-
-         --  Fill in typecode TC_<name of the type>
-
-         Add_Elaborate_Body (CU);
       end if;
    end Gen_Sequence_Spec;
 
@@ -2771,8 +2742,6 @@ package body Ada_Be.Idl2Ada.Helper is
          NL (CU);
          Gen_To_Any_Profile (CU, Decl_Node);
          PL (CU, ";");
-         --  Fill in typecode TC_<name of the type>
-         Add_Elaborate_Body (CU);
       end if;
    end Gen_Fixed_Spec;
 

@@ -74,40 +74,6 @@ package body Ada_Be.Idl2Ada.Skel is
    --  Generate a static dispatcher fragment for operation Node.
 
    -------------------
-   -- Gen_Node_Spec --
-   -------------------
-
-   procedure Gen_Node_Spec
-     (CU          : in out Compilation_Unit;
-      Node        : in     Node_Id;
-      Is_Delegate : in     Boolean)
-   is
-      NK : constant Node_Kind := Kind (Node);
-   begin
-      case NK is
-         when K_ValueType =>
-            --  ValueTypes cannot have delegates
-            pragma Assert (not Is_Delegate);
-
-            if Supports (Node) /= Nil_List then
-               Add_Elaborate_Body (CU);
-            end if;
-
-         when K_Interface =>
-            if not Abst (Node) then
-               --  No skel or impl packages are generated for
-               --  abstract interfaces.
-               if not Is_Delegate then
-                  Add_Elaborate_Body (CU);
-               end if;
-            end if;
-
-         when others =>
-            null;
-      end case;
-   end Gen_Node_Spec;
-
-   -------------------
    -- Gen_Node_Body --
    -------------------
 
@@ -788,5 +754,19 @@ package body Ada_Be.Idl2Ada.Skel is
       end case;
 
    end Gen_Invoke;
+
+   -------------------
+   -- Gen_Node_Spec --
+   -------------------
+
+   procedure Gen_Node_Spec
+     (CU          : in out Compilation_Unit;
+      Node        : Node_Id;
+      Is_Delegate : Boolean)
+   is
+      pragma Unreferenced (CU, Node, Is_Delegate);
+   begin
+      null;
+   end Gen_Node_Spec;
 
 end Ada_Be.Idl2Ada.Skel;

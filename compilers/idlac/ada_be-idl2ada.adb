@@ -464,11 +464,11 @@ package body Ada_Be.Idl2Ada is
          return;
       end if;
 
-      Add_Elaborate_Body (S.Helper (Unit_Spec));
       Gen_Module_Init_Postlude (S.Helper (Unit_Body));
+      Add_Elaborate_Body (S.Helper (Unit_Spec), S.Helper (Unit_Body));
 
-      Add_Elaborate_Body (S.Skel (Unit_Spec));
       Gen_Module_Init_Postlude (S.Skel (Unit_Body));
+      Add_Elaborate_Body (S.Skel (Unit_Spec), S.Skel (Unit_Body));
 
       if Intf_Repo then
          IR_Info.Gen_Body_Postlude (S.IR_Info (Unit_Body));
@@ -686,6 +686,9 @@ package body Ada_Be.Idl2Ada is
 
       Skel_Name     : constant String
         := Server_Skel_Unit_Name (Mapping, Node);
+      Skel_Required : constant Boolean :=
+        not ((Kind (Node) = K_Interface and then Local (Node))
+              or else Kind (Node) = K_Ben_Idl_File);
 
       Impl_Name     : constant String := Stubs_Name & Impl.Suffix;
       Helper_Name   : constant String := Stubs_Name & Helper.Suffix;
@@ -717,10 +720,7 @@ package body Ada_Be.Idl2Ada is
          --  Really starting a new gen scope
 
          Gen_Module_Init_Prelude (S.Helper (Unit_Body));
-
-         --  Local objects can't have skeleton
-
-         if not (Kind (Node) = K_Interface and then Local (Node)) then
+         if Skel_Required then
             Gen_Module_Init_Prelude (S.Skel (Unit_Body));
          end if;
 
@@ -748,9 +748,13 @@ package body Ada_Be.Idl2Ada is
                   Get_Next_Node (It, Decl_Node);
 
                   if Is_Gen_Scope (Decl_Node) then
-                     --  Ensure current unit has a non-empty
-                     --  spec, if it has child packages.
-                     if Kind (Node) /= K_Repository then
+
+                     --  Ensure current unit has a non-empty spec, if the
+                     --  mapping prescribes that it has a child package.
+
+                     if Kind (Node) /= K_Repository
+                       and then Kind (Node) /= K_Ben_Idl_File
+                     then
                         NL (S.Stubs (Unit_Spec));
                         Put (S.Stubs (Unit_Spec), "--  ");
                         case Kind (Decl_Node) is
@@ -761,7 +765,7 @@ package body Ada_Be.Idl2Ada is
                            when K_ValueType =>
                               Put (S.Stubs (Unit_Spec), "ValueType ");
                            when others =>
-                              --  Does not happen.
+                              --  Never happens
                               raise Program_Error;
                         end case;
                         PL (S.Stubs (Unit_Spec), Name (Decl_Node));
@@ -772,20 +776,17 @@ package body Ada_Be.Idl2Ada is
                         Current_Scope => S);
                   else
                      if Kind (Decl_Node) = K_Forward_Interface then
-                        --  in case of a forward declaration
                         Helper.Gen_Forward_Interface_Spec
                           (S.Helper (Unit_Spec), Decl_Node);
                         Helper.Gen_Forward_Interface_Body
                           (S.Helper (Unit_Body), Decl_Node);
                      end if;
 
-                     Gen_Node_Stubs_Spec
-                       (S.Stubs (Unit_Spec), Decl_Node);
-                     Gen_Node_Stubs_Body_Dyn
-                       (S.Stubs (Unit_Body), Decl_Node);
+                     Gen_Node_Stubs_Spec     (S.Stubs (Unit_Spec), Decl_Node);
+                     Gen_Node_Stubs_Body_Dyn (S.Stubs (Unit_Body), Decl_Node);
 
-                     --  Exception declarations cause
-                     --  generation of a Get_Members procedure.
+                     --  Exception declarations cause generation of Get_Members
+                     --  procedure.
 
                      Helper.Gen_Node_Spec (S.Helper (Unit_Spec), Decl_Node);
                      Helper.Gen_Node_Body (S.Helper (Unit_Body), Decl_Node);
@@ -832,6 +833,7 @@ package body Ada_Be.Idl2Ada is
                end if;
 
                --  Delegate package
+
                if Generate_Delegate then
                   NL (S.Delegate (Unit_Body));
                   PL (S.Delegate (Unit_Body),
@@ -923,8 +925,8 @@ package body Ada_Be.Idl2Ada is
                      Gen_Node_Stubs_Body_Dyn
                        (S.Stubs (Unit_Body), Export_Node);
 
-                     --  No code produced per-node
-                     --  in skeleton spec.
+                     --  No code produced per-node in skeleton spec
+
                      if not Abst (Node) then
 
                         if not Local (Node) then
@@ -965,9 +967,9 @@ package body Ada_Be.Idl2Ada is
                      end if;
                   end if;
 
-                  --  Methods inherited from parents other that
-                  --  the first one are added to the interface's
-                  --  exports list by the expander.
+                  --  Methods inherited from parents other that the first one
+                  --  are added to the interface's exports list by the
+                  --  expander.
 
                end loop;
             end;
@@ -1003,9 +1005,9 @@ package body Ada_Be.Idl2Ada is
             end if;
 
          when others =>
-            pragma Assert (False);
-            --  This never happens.
+            --  This never happens
 
+            pragma Assert (False);
             null;
       end case;
 
@@ -1013,14 +1015,14 @@ package body Ada_Be.Idl2Ada is
          return;
       end if;
 
-      Add_Elaborate_Body (S.Helper (Unit_Spec));
       Gen_Module_Init_Postlude (S.Helper (Unit_Body));
+      Add_Elaborate_Body (S.Helper (Unit_Spec), S.Helper (Unit_Body));
 
-      --  Local objects can't have skeleton
+      --  Local objects do not have a skeleton
 
-      if not (Kind (Node) = K_Interface and then Local (Node)) then
-         Add_Elaborate_Body (S.Skel (Unit_Spec));
+      if Skel_Required then
          Gen_Module_Init_Postlude (S.Skel (Unit_Body));
+         Add_Elaborate_Body (S.Skel (Unit_Spec), S.Skel (Unit_Body));
       end if;
 
       if Intf_Repo then
@@ -1028,18 +1030,17 @@ package body Ada_Be.Idl2Ada is
       end if;
 
       if Kind (Node) = K_Ben_Idl_File
-        and then Is_Unknown (Node) then
+        and then Is_Unknown (Node)
+      then
+         --  Do not attempt to generate a 'file' scope if there was no actual
+         --  IDL file (case of a tree that is synthetised from a DSA service
+         --  specification, for example).
          return;
-         --  Do not attempt to generate a 'file' scope if
-         --  there was no actual IDL file (case of a tree that
-         --  is synthetised from a DSA service specification,
-         --  for example.)
       end if;
 
       declare
          Is_Abstract_Node : Boolean := False;
-         --  No skel and impl packages are generated
-         --  for abstract interfaces.
+         --  No skel and impl packages are generated for abstract interfaces
       begin
          if Kind (Node) = K_Interface then
             Is_Abstract_Node := Abst (Node);
@@ -3335,19 +3336,18 @@ package body Ada_Be.Idl2Ada is
    procedure Gen_Module_Init_Prelude
      (CU : in out Compilation_Unit) is
    begin
+      Set_Template_Mode (CU, True);
       Divert (CU, Deferred_Initialization);
+      NL (CU);
       PL (CU, "procedure Deferred_Initialization is");
       PL (CU, "begin");
       II (CU);
-      PL (CU, "null;");
-      --  Make sure the initialization sequence_of_statements
-      --  is not empty.
-
       Divert (CU, Initialization_Dependencies);
       II (CU); II (CU); II (CU);
       PL (CU, "Empty");
 
       Divert (CU, Visible_Declarations);
+      Set_Template_Mode (CU, False);
    end Gen_Module_Init_Prelude;
 
    ------------------------------
@@ -3357,9 +3357,16 @@ package body Ada_Be.Idl2Ada is
    procedure Gen_Module_Init_Postlude
      (CU : in out Compilation_Unit) is
    begin
+      Set_Template_Mode (CU, True);
       Divert (CU, Deferred_Initialization);
       DI (CU);
+      NL (CU);
       PL (CU, "end Deferred_Initialization;");
+      Set_Template_Mode (CU, False);
+
+      if Current_Diversion_Empty (CU) then
+         return;
+      end if;
 
       Divert (CU, Visible_Declarations);
       Undivert (CU, Deferred_Initialization);
