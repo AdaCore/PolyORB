@@ -131,8 +131,8 @@ package body XE_Stubs is
       --  Generate all the stubs (bodies, objects and alis). At this level,
       --  we ensure that all conf. units are ada units.
       for CUID in CUnit.First .. CUnit.Last loop
-         if Unit.Table (CUnit.Table (CUID).My_Unit).RCI 
-	   and then not Unit.Table (CUnit.Table (CUID).My_Unit).Is_Generic then
+         if Unit.Table (CUnit.Table (CUID).My_Unit).RCI
+           and then not Unit.Table (CUnit.Table (CUID).My_Unit).Is_Generic then
             if Verbose_Mode then
                Message ("building ", CUnit.Table (CUID).CUname, " stubs");
             end if;
@@ -329,7 +329,7 @@ package body XE_Stubs is
       Full_RCI_Spec   := Full_Source_Name (RCI_Spec);
       Full_RCI_Body   := Full_Source_Name (RCI_Body);
       Full_ALI_File   := ALIs.Table (A).Ofile_Full_Name;
-      
+
       Caller_Object   := Strip_Suffix (Dir_Sep_Id & RCI_Body) & Obj_Suffix;
       Receiver_Object := Receiver_Dir & Caller_Object;
       Caller_Object   := Caller_Dir & Caller_Object;
