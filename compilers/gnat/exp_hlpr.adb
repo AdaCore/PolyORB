@@ -135,7 +135,10 @@ package body Exp_Hlpr is
    --  The generated statements are appended to Stmts.
 
    generic
+      --  XXX
+      --  TBDeleted
       Subprogram : Entity_Id;
+      pragma Unreferenced (Subprogram);
       --  Reference location for constructed nodes.
 
       Rec : Entity_Id;
@@ -145,7 +148,11 @@ package body Exp_Hlpr is
         (Stmts   : List_Id;
          Any     : Entity_Id;
          Counter : in out Int;
+         Rec     : Entity_Id;
          Field   : Node_Id);
+      --  Rec is the instance of the record type, or Empty.
+      --  Field is either the N_Defining_Identifier for a component,
+      --  or an N_Variant_Part.
 
    procedure Append_Record_Traversal
      (Stmts     :        List_Id;
@@ -157,9 +164,9 @@ package body Exp_Hlpr is
    --  Container is the outer Any (for From_Any and To_Any) or
    --  TypeCode (for TC) to which the operation applies.
 
-   ------------------------
+   -----------------------------
    -- Append_Record_Traversal --
-   ------------------------
+   -----------------------------
 
    procedure Append_Record_Traversal
      (Stmts     :        List_Id;
@@ -167,42 +174,24 @@ package body Exp_Hlpr is
       Container :        Entity_Id;
       Counter   : in out Int)
    is
-      Loc : constant Source_Ptr := Sloc (Subprogram);
       CI : constant List_Id := Component_Items (Clist);
       VP : constant Node_Id := Variant_Part (Clist);
 
-      procedure Add_Fields (CL : List_Id);
-      --  Process each item of CL.
-
-      procedure Add_Fields (CL : List_Id)
-      is
-         Item : Node_Id;
-         Def  : Entity_Id;
-         Field : Node_Id;
-      begin
-         Item := First (CL);
-         while Present (Item) loop
-            Def := Defining_Identifier (Item);
-            if not Is_Internal_Name (Chars (Def)) then
-               if Present (Rec) then
-                  Field := Make_Selected_Component (Loc,
-                    Prefix        => New_Occurrence_Of (Rec, Loc),
-                    Selector_Name => New_Occurrence_Of (Def, Loc));
-                  Set_Etype (Field, Etype (Def));
-               else
-                  Field := Def;
-               end if;
-               Add_Process_Element
-                 (Stmts, Container, Counter, Field);
-            end if;
-            Next (Item);
-         end loop;
-      end Add_Fields;
+      Item : Node_Id := First (CI);
+      Def  : Entity_Id;
 
    begin
-      Add_Fields (CI);
+      while Present (Item) loop
+         Def := Defining_Identifier (Item);
+         if not Is_Internal_Name (Chars (Def)) then
+            Add_Process_Element
+              (Stmts, Container, Counter, Rec, Def);
+         end if;
+         Next (Item);
+      end loop;
+
       if Present (VP) then
-         Add_Process_Element (Stmts, Container, Counter, VP);
+         Add_Process_Element (Stmts, Container, Counter, Rec, VP);
       end if;
    end Append_Record_Traversal;
 
@@ -419,22 +408,32 @@ package body Exp_Hlpr is
                  (Stmts   : List_Id;
                   Any     : Entity_Id;
                   Counter : in out Int;
-                  Field   : Entity_Id);
+                  Rec     : Entity_Id;
+                  Field   : Node_Id);
+
+               procedure FA_Append_Record_Traversal is
+                  new Append_Record_Traversal
+                 (Subprogram          => Fnam,
+                  Rec                 => Res,
+                  Add_Process_Element => FA_Rec_Add_Process_Element);
 
                procedure FA_Rec_Add_Process_Element
                  (Stmts   : List_Id;
                   Any     : Entity_Id;
                   Counter : in out Int;
+                  Rec     : Entity_Id;
                   Field   : Node_Id)
                is
                begin
-                  if Nkind (Field) = N_Selected_Component then
+                  if Nkind (Field) = N_Defining_Identifier then
 
-                     --  A regular component
+                     --  A regular component.
 
                      Append_To (Stmts,
                        Make_Assignment_Statement (Loc,
-                         Name => Field,
+                         Name => Make_Selected_Component (Loc,
+                           Prefix => New_Occurrence_Of (Rec, Loc),
+                           Selector_Name => New_Occurrence_Of (Field, Loc)),
                          Expression =>
                            Build_From_Any_Call (Etype (Field),
                              Build_Get_Aggregate_Element (Loc,
@@ -445,19 +444,74 @@ package body Exp_Hlpr is
                              Decls)));
                   else
 
-                     --  A variant part
+                     --  A variant part.
 
-                     null;
+                     declare
+                        Variant : Node_Id;
+                        Choice  : Node_Id;
+                        Struct_Counter : Int := 0;
 
+                        Block_Decls : constant List_Id := New_List;
+                        Block_Stmts : constant List_Id := New_List;
+                        VP_Stmts : List_Id;
+
+                        Alt_List : constant List_Id := New_List;
+                        Choice_List : List_Id;
+
+                        Struct_Any : Entity_Id := Empty;
+                     begin
+                        --  XXX
+                        --  Union_Any := Get_Aggregate_Element (Any)
+                        --  Struct_Any := Get_Aggregate_Element (Union_Any)
+                        null;
+
+                        Append_To (Stmts,
+                          Make_Block_Statement (Loc,
+                            Declarations =>
+                              Block_Decls,
+                            Handled_Statement_Sequence =>
+                              Make_Handled_Sequence_Of_Statements (Loc,
+                                Statements => Block_Stmts)));
+
+                        Append_To (Block_Stmts,
+                          Make_Case_Statement (Loc,
+                              Expression =>
+                                Make_Selected_Component (Loc,
+                                  Prefix =>
+                                    New_Occurrence_Of (Rec, Loc),
+                                  Selector_Name =>
+                                    New_Occurrence_Of (
+                                      Entity (Name (Field)), Loc)),
+                              Alternatives =>
+                                Alt_List));
+
+                        Variant := First_Non_Pragma (Variants (Field));
+                        while Present (Variant) loop
+                           Choice_List := New_List;
+                           Choice := First (Discrete_Choices (Variant));
+                           while Present (Choice) loop
+                              Append_To (Choice_List, New_Copy_Tree (Choice));
+                              Next (Choice);
+                           end loop;
+
+                           VP_Stmts := New_List;
+                           FA_Append_Record_Traversal (
+                             Stmts     => VP_Stmts,
+                             Clist     => Component_List (Variant),
+                             Container => Struct_Any,
+                             Counter   => Struct_Counter);
+
+                           Append_To (Alt_List,
+                             Make_Case_Statement_Alternative (Loc,
+                               Discrete_Choices => Choice_List,
+                               Statements =>
+                                 VP_Stmts));
+                           Next_Non_Pragma (Variant);
+                        end loop;
+                     end;
                   end if;
                   Counter := Counter + 1;
                end FA_Rec_Add_Process_Element;
-
-               procedure FA_Append_Record_Traversal is
-                  new Append_Record_Traversal
-                 (Subprogram          => Fnam,
-                  Rec                 => Res,
-                  Add_Process_Element => FA_Rec_Add_Process_Element);
 
             begin
 
@@ -1081,20 +1135,27 @@ package body Exp_Hlpr is
                  (Stmts   : List_Id;
                   Any     : Entity_Id;
                   Counter : in out Int;
-                  Field   : Entity_Id);
+                  Rec     : Entity_Id;
+                  Field   : Node_Id);
 
                procedure TA_Rec_Add_Process_Element
                  (Stmts   : List_Id;
                   Any     : Entity_Id;
                   Counter : in out Int;
+                  Rec     : Entity_Id;
                   Field   : Node_Id)
                is
+                  Field_Ref : Node_Id;
                   pragma Unreferenced (Counter);
                begin
-                  if Nkind (Field) = N_Selected_Component then
+                  if Nkind (Field) = N_Defining_Identifier then
 
                      --  A regular component.
 
+                     Field_Ref := Make_Selected_Component (Loc,
+                       Prefix => New_Occurrence_Of (Rec, Loc),
+                       Selector_Name => New_Occurrence_Of (Field, Loc));
+                     Set_Etype (Field_Ref, Etype (Field));
                      Append_To (Stmts,
                        Make_Procedure_Call_Statement (Loc,
                          Name =>
@@ -1102,7 +1163,7 @@ package body Exp_Hlpr is
                              RTE (RE_Add_Aggregate_Element), Loc),
                          Parameter_Associations => New_List (
                            New_Occurrence_Of (Any, Loc),
-                           Build_To_Any_Call (Field, Decls))));
+                           Build_To_Any_Call (Field_Ref, Decls))));
                   else
 
                      --  A variant part
@@ -1693,15 +1754,22 @@ package body Exp_Hlpr is
         (Params  : List_Id;
          Any     : Entity_Id;
          Counter : in out Int;
+         Rec     : Entity_Id;
          Field   : Node_Id);
+
+      procedure TC_Append_Record_Traversal is new Append_Record_Traversal (
+        Subprogram          => TCNam,
+        Rec                 => Empty,
+        Add_Process_Element => TC_Rec_Add_Process_Element);
 
       procedure TC_Rec_Add_Process_Element
         (Params  : List_Id;
          Any     : Entity_Id;
          Counter : in out Int;
+         Rec     : Entity_Id;
          Field   : Node_Id)
       is
-         pragma Unreferenced (Any, Counter);
+         pragma Unreferenced (Any, Counter, Rec);
       begin
          if Nkind (Field) = N_Defining_Identifier then
 
@@ -1728,6 +1796,7 @@ package body Exp_Hlpr is
                Variant : Node_Id;
                Choice  : Node_Id;
                Default : constant Node_Id := Make_Integer_Literal (Loc, -1);
+               Dummy_Counter : Int := 0;
             begin
                Get_Name_String (U_Name);
                Name_Str := String_From_Name_Buffer;
@@ -1770,8 +1839,10 @@ package body Exp_Hlpr is
 
                      --  Build struct parameters
 
-                     --  XXX process component list for VP
-                     null;
+                     TC_Append_Record_Traversal (Struct_TC_Params,
+                       Component_List (Variant),
+                       Empty,
+                       Dummy_Counter);
 
                      Add_TypeCode_Parameter
                        (Make_Constructed_TypeCode
@@ -1781,17 +1852,12 @@ package body Exp_Hlpr is
                      Add_String_Parameter (Name_Str, Union_TC_Params);
                   end loop;
 
-                  Variant := Next_Non_Pragma (Variant);
+                  Next_Non_Pragma (Variant);
                end loop;
 
             end;
          end if;
       end TC_Rec_Add_Process_Element;
-
-      procedure TC_Append_Record_Traversal is new Append_Record_Traversal (
-        Subprogram          => TCNam,
-        Rec                 => Empty,
-        Add_Process_Element => TC_Rec_Add_Process_Element);
 
       Type_Name_Str : String_Id;
    begin
