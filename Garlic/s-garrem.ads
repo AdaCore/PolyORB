@@ -54,7 +54,8 @@ package System.Garlic.Remote is
      (Launcher : in String;
       Host     : in String;
       Command  : in String);
-   --  RSH launcher. This is used as the default launcher.
+   --  RSH launcher. This is used as the default launcher. If the remote
+   --  host is in fact the same host, then no rsh takes place.
 
    procedure Local_Launcher
      (Launcher : in String;

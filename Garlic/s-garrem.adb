@@ -33,9 +33,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Handling; use Ada.Characters.Handling;
 with GNAT.IO;
 with Interfaces.C.Strings;
 with System.Garlic.Constants; use System.Garlic.Constants;
+with System.Garlic.Naming;    use System.Garlic.Naming;
 with System.Garlic.Thin; use System.Garlic.Thin;
 with System.RPC;
 
@@ -46,6 +48,13 @@ package body System.Garlic.Remote is
 
    Current_Launcher : Launcher_Type := Rsh_Launcher'Access;
    --  The current launcher
+
+   function Is_Local_Host (Host : String) return Boolean;
+   --  Return True if the Host we are trying to contact is the same as the
+   --  local host.
+
+   function System (Command : C.Strings.chars_ptr) return int;
+   pragma Import (C, System);
 
    ------------
    -- Detach --
@@ -122,6 +131,16 @@ package body System.Garlic.Remote is
       Current_Launcher := Launcher;
    end Install_Launcher;
 
+   -------------------
+   -- Is_Local_Host --
+   -------------------
+
+   function Is_Local_Host (Host : String) return Boolean is
+   begin
+      return Name_Of (Host) = Name_Of (Host_Name)
+        or else To_Lower (Host) = "localhost";
+   end Is_Local_Host;
+
    ------------
    -- Launch --
    ------------
@@ -144,15 +163,9 @@ package body System.Garlic.Remote is
       Host     : in String;
       Command  : in String)
    is
-
       C_Command : C.Strings.chars_ptr :=
         C.Strings.New_String (Command);
-
-      function System (Command : C.Strings.chars_ptr) return int;
-      pragma Import (C, System);
-
       Return_Code : int;
-
    begin
       Return_Code := System (C_Command);
       C.Strings.Free (C_Command);
@@ -168,23 +181,28 @@ package body System.Garlic.Remote is
       Command  : in String)
    is
 
-      Rsh_Full_Command : constant String :=
-        Launcher & " " & Host & " -n """ & Command & """ >/dev/null";
-
-      C_Command : C.Strings.chars_ptr :=
-        C.Strings.New_String (Rsh_Full_Command);
-
-      function System (Command : C.Strings.chars_ptr) return int;
-      pragma Import (C, System);
-
-      Return_Code : int;
-
    begin
-      Return_Code := System (C_Command);
-      C.Strings.Free (C_Command);
-      if Return_Code = -1 then
-         raise Program_Error;
-         --  This is allowed because any exception may be raised.
+      if Is_Local_Host (Host) then
+         Local_Launcher (Launcher, Host, Command);
+      else
+         declare
+            Rsh_Full_Command : constant String :=
+              Launcher & " " & Host & " -n """ & Command & """ >/dev/null";
+            Return_Code      : int;
+            C_Command        : C.Strings.chars_ptr :=
+              C.Strings.New_String (Rsh_Full_Command);
+         begin
+            Return_Code := System (C_Command);
+            C.Strings.Free (C_Command);
+            if Return_Code = -1 then
+
+               --  Since any exception may be raised here, we choose to
+               --  raise Program_Error since the elaboration won't take
+               --  be able to finish properly.
+
+               raise Program_Error;
+            end if;
+         end;
       end if;
    end Rsh_Launcher;
 
