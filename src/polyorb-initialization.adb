@@ -187,8 +187,8 @@ package body PolyORB.Initialization is
       pragma Debug (O ("Registering " & Name));
 
       if Duplicate /= null then
-         O (Name & " already registered.", Critical);
-         raise Conflict;
+         O ("Conflict: " & Name & " already registered.", Critical);
+         raise Program_Error;
       end if;
 
       pragma Assert (Module_Name (Module).all = Name);
@@ -255,7 +255,7 @@ package body PolyORB.Initialization is
             if Conflicting /= null then
                O ("Conflict between " & Module_Name (Current).all
                   & " and " & Module_Name (Conflicting).all, Critical);
-               raise Conflict;
+               raise Program_Error;
             end if;
 
             Next (SI);
@@ -446,7 +446,7 @@ package body PolyORB.Initialization is
             Visit (M, Circular_Dependency_Detected);
 
             if Circular_Dependency_Detected then
-               raise Circular_Dependency;
+               raise Program_Error;
             end if;
          end if;
 
@@ -464,7 +464,7 @@ package body PolyORB.Initialization is
 
    begin
       if Initialized then
-         raise Already_Initialized;
+         raise Program_Error;
       end if;
 
       --  Initialize Configuration subsystem
@@ -515,7 +515,7 @@ package body PolyORB.Initialization is
      (From, Upon : String) is
    begin
       O ("Unresolved dependency: " & From & " -> " & Upon, Critical);
-      raise Unresolved_Dependency;
+      raise Program_Error;
    end Raise_Unresolved_Dependency;
 
 end PolyORB.Initialization;

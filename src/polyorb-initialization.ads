@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -90,11 +90,6 @@ package PolyORB.Initialization is
 
    function Is_Initialized return Boolean;
    --  True if, and only if, Initialize_World has been called.
-
-   Already_Initialized : exception;
-   Unresolved_Dependency : exception;
-   Circular_Dependency : exception;
-   Conflict : exception;
 
 private
    pragma Inline (Is_Initialized);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -85,7 +85,7 @@ begin
    Output ("Test initialization #4", False);
 
 exception
-   when PolyORB.Initialization.Conflict =>
+   when Program_Error =>
       Output ("Test initialization #4", True);
       End_Report;
 
