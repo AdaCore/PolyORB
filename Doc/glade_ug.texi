@@ -31,13 +31,13 @@ to the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 @end titlepage
 
-@ifinfo
+@c @ifinfo
 @node Top, About This Guide, (dir), (dir)
 @top GLADE User Guide
 
 GLADE is the GNAT implementation of the Ada95 Distributed Systems Annex.
 
-@end ifinfo
+@c @end ifinfo
 
 @menu
 * About This Guide::            
@@ -54,7 +54,7 @@ GLADE is the GNAT implementation of the Ada95 Distributed Systems Annex.
 * What This Guide Contains::    
 @end menu
 
-@node What This Guide Contains,  , About This Guide, About This Guide
+@node What This Guide Contains, , About This Guide, About This Guide
 @unnumberedsec What This Guide Contains
 
 @noindent
@@ -1516,7 +1516,7 @@ PRAGMA ::=
 
 This boot server location can be concatenated into a single string to be
 used as a command line option or an environment variable (see
-@ref{Command Line Option --boot_server}). The formatted string must
+@ref{Partition Option boot_server}). The formatted string must
 conform to the notation <protocol_name>://<protocol_data>. Most commonly,
 this is tcp://<machine>:<port>, that means that the protocol name
 is @i{tcp}. The protocol data which is specific to the protocol name is
@@ -2151,22 +2151,22 @@ first the the command line option, then the environment
 variable and finally the configuration attribute or pragma.
 
 @menu
-* Command Line Option --boot_server::  
-* Command Line Option --nolaunch::  
-* Command Line Option --detach::  
-* Command Line Option --slave::  
-* Command Line Option --self_location::  
-* Command Line Option --boot_mirror::  
-* Command Line Option --mirror_expected::  
-* Command Line Option --connection_hits::  
-* Command Line Option --reconnection::  
-* Command Line Option --termination::  
-* Command Line Option --trace::  
-* Command Line Option --replay::  
+* Partition Option boot_server::  
+* Partition Option nolaunch::  
+* Partition Option detach::    
+* Partition Option slave::     
+* Partition Option self_location::  
+* Partition Option boot_mirror::  
+* Partition Option mirror_expected::  
+* Partition Option connection_hits::  
+* Partition Option reconnection::  
+* Partition Option termination::  
+* Partition Option trace::     
+* Partition Option replay::    
 @end menu
 
-@node Command Line Option --boot_server, Command Line Option --nolaunch, Partition Command Line Options, Partition Command Line Options
-@subsection Command Line Option --boot_server
+@node Partition Option boot_server, Partition Option nolaunch, Partition Command Line Options, Partition Command Line Options
+@subsection Partition Option boot_server
 
 This option sets the boot server location (see @ref{Pragma Boot_Server}
 for details).
@@ -2177,8 +2177,8 @@ The formatted string must conform to the notation
 <protocol_name>://<protocol_data>. Most commonly, this would be
 tcp://<machine>:<port>.
 
-@node Command Line Option --nolaunch, Command Line Option --detach, Command Line Option --boot_server, Partition Command Line Options
-@subsection Command Line Option --nolaunch
+@node Partition Option nolaunch, Partition Option detach, Partition Option boot_server, Partition Command Line Options
+@subsection Partition Option nolaunch
 
 This feature is useful when the configuration has been built with an Ada 
 starter. When this feature is activated, the main partition does not
@@ -2189,8 +2189,8 @@ launch the other partitions anymore. The user has to launch them by hand.
 @item NOLAUNCH @tab @code{--}nolaunch @tab None
 @end multitable
 
-@node Command Line Option --detach, Command Line Option --slave, Command Line Option --nolaunch, Partition Command Line Options
-@subsection Command Line Option --detach
+@node Partition Option detach, Partition Option slave, Partition Option nolaunch, Partition Command Line Options
+@subsection Partition Option detach
 
 This option is not intended to be specified by the user. When this feature
 is activated, the process forks itself and the child closes its standard
@@ -2208,8 +2208,8 @@ to be removed.
 @item DETACH @tab @code{--}detach @tab None
 @end multitable
 
-@node Command Line Option --slave, Command Line Option --self_location, Command Line Option --detach, Partition Command Line Options
-@subsection Command Line Option --slave
+@node Partition Option slave, Partition Option self_location, Partition Option detach, Partition Command Line Options
+@subsection Partition Option slave
 
 This feature is not supposed to be used by the user. When
 this feature is activated, this partition cannot be a boot server
@@ -2222,8 +2222,8 @@ partition anymore.
 @item SLAVE @tab @code{--}slave @tab None
 @end multitable
 
-@node Command Line Option --self_location, Command Line Option --boot_mirror, Command Line Option --slave, Partition Command Line Options
-@subsection Command Line Option --self_location
+@node Partition Option self_location, Partition Option boot_mirror, Partition Option slave, Partition Command Line Options
+@subsection Partition Option self_location
 
 Except for the boot partition on which the boot server is located, a
 partition is reachable through a dynamically computed location (for
@@ -2241,8 +2241,8 @@ The formatted string must conform to the notation
 <protocol_name>://<protocol_data>. In general, this will be
 tcp://<machine>:<port>.
 
-@node Command Line Option --boot_mirror, Command Line Option --mirror_expected, Command Line Option --self_location, Partition Command Line Options
-@subsection Command Line Option --boot_mirror
+@node Partition Option boot_mirror, Partition Option mirror_expected, Partition Option self_location, Partition Command Line Options
+@subsection Partition Option boot_mirror
 
 By default, a partition is not a boot mirror, except for a boot partition
 on which the boot server is located. The user can force a
@@ -2253,8 +2253,8 @@ partition to be a boot mirror.
 @item BOOT_MIRROR @tab @code{--}boot_mirror @tab None
 @end multitable
 
-@node Command Line Option --mirror_expected, Command Line Option --connection_hits, Command Line Option --boot_mirror, Partition Command Line Options
-@subsection Command Line Option --mirror_expected
+@node Partition Option mirror_expected, Partition Option connection_hits, Partition Option boot_mirror, Partition Command Line Options
+@subsection Partition Option mirror_expected
 
 This option suspends the execution of the distributed application
 until there is at least one boot mirror partition available, excluding
@@ -2265,8 +2265,8 @@ the boot server.
 @item MIRROR_EXPECTED @tab @code{--}mirror_expected @tab None
 @end multitable
 
-@node Command Line Option --connection_hits, Command Line Option --reconnection, Command Line Option --mirror_expected, Partition Command Line Options
-@subsection Command Line Option --connection_hits
+@node Partition Option connection_hits, Partition Option reconnection, Partition Option mirror_expected, Partition Command Line Options
+@subsection Partition Option connection_hits
 
 This option sets the number of times a partition tries to connect to
 the boot server before raising a Communication_Error exception.
@@ -2276,8 +2276,8 @@ the boot server before raising a Communication_Error exception.
 @item CONNECTION_HITS @tab @code{--}connection_hits @tab Natural
 @end multitable
 
-@node Command Line Option --reconnection, Command Line Option --termination, Command Line Option --connection_hits, Partition Command Line Options
-@subsection Command Line Option --reconnection
+@node Partition Option reconnection, Partition Option termination, Partition Option connection_hits, Partition Command Line Options
+@subsection Partition Option reconnection
 
 This option sets the reconnection policy (see @ref{Partition
 Attribute Reconnection} for details).
@@ -2287,8 +2287,8 @@ Attribute Reconnection} for details).
 @item RECONNECTION @tab @code{--}reconnection @tab Reconnection_Type
 @end multitable
 
-@node Command Line Option --termination, Command Line Option --trace, Command Line Option --reconnection, Partition Command Line Options
-@subsection Command Line Option --termination
+@node Partition Option termination, Partition Option trace, Partition Option reconnection, Partition Command Line Options
+@subsection Partition Option termination
 
 This option sets the termination policy (see @ref{Partition
 Attribute Termination} for details).
@@ -2298,8 +2298,8 @@ Attribute Termination} for details).
 @item TERMINATION @tab @code{--}termination @tab Termination_Type
 @end multitable
 
-@node Command Line Option --trace, Command Line Option --replay, Command Line Option --termination, Partition Command Line Options
-@subsection Command Line Option --trace
+@node Partition Option trace, Partition Option replay, Partition Option termination, Partition Command Line Options
+@subsection Partition Option trace
 
 GLADE has a facility for trace/replay-based debugging. If trace mode
 is turned on, GLADE will record into a trace file all messages received by
@@ -2331,8 +2331,8 @@ file name with a relative path is passed on the command line following
 the @code{--}trace_file argument, then the home user's directory is
 concatenated to the @code{--}trace_file argument.
 
-@node Command Line Option --replay,  , Command Line Option --trace, Partition Command Line Options
-@subsection Command Line Option --replay
+@node Partition Option replay,  , Partition Option trace, Partition Command Line Options
+@subsection Partition Option replay
 
 In order to replay a partition whose execution has been previously
 traced, the command line argument @code{--}replay is required. In addition,

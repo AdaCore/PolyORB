@@ -82,8 +82,8 @@ default: $(GUIDE).ps
 
 all: $(GUIDE).ps $(GUIDE).info $(GUIDE).html $(GUIDE).txt
 
-$(GUIDE).html: $(GUIDE).texi $(JPEGFILES) $(SEDFILES)
-	texi2html -menu -monolithic $(GUIDE).texi
+$(GUIDE).html: $(GUIDE).texi $(JPGFILES) $(SEDFILES)
+	makeinfo --html $(GUIDE).texi
 
 $(GUIDE).info: $(GUIDE).texi $(SEDFILES)
 	makeinfo $(GUIDE).texi
@@ -132,9 +132,9 @@ myconfig.cfg.texi: myconfig.cfg cfg.sed
 clean:
 	rm -f *.aux *.log *.ads *.adb *.dvi *.ps *.eps *.html *.pdf
 	rm -f *.jpg *.cp *.info *.pg *.toc *.vr *.fn *.ky *.tp *~
-	rm -f *.*.texi
+	rm -f *.*.texi *.info-* $(GUIDE).txt *.tmp
 
-docs:
+release:
 	tar cf glade-doc.tar $(TXTFILES) $(TEXIFILES) $(GUIDE).ps \
 		$(GUIDE).info $(GUIDE).html $(GUIDE).txt
 	gzip glade-doc.tar
