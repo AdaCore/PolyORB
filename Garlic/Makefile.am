@@ -32,6 +32,7 @@ s-garrem.o\
 s-garsta.o\
 s-gartcp.o\
 s-garloo.o\
+s-gaprco.o\
 s-garter.o\
 s-garthi.o\
 s-garuti.o\
@@ -59,6 +60,7 @@ ${srcdir}/s-garrem.ads ${srcdir}/s-garrem.adb \
 ${srcdir}/s-garsta.ads ${srcdir}/s-garsta.adb \
 ${srcdir}/s-gartcp.ads ${srcdir}/s-gartcp.adb \
 ${srcdir}/s-garloo.ads ${srcdir}/s-garloo.adb \
+${srcdir}/s-gaprco.ads ${srcdir}/s-gaprco.adb \
 ${srcdir}/s-garter.ads ${srcdir}/s-garter.adb \
 ${srcdir}/s-garthi.ads                        \
 ${srcdir}/s-garuti.ads ${srcdir}/s-garuti.adb \
