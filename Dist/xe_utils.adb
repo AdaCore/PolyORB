@@ -34,6 +34,7 @@ with GNAT.Directory_Operations;  use GNAT.Directory_Operations;
 with Csets;                      use Csets;
 with Debug;                      use Debug;
 with Fname;                      use Fname;
+with Fname.UF;
 with Make;                       use Make;
 with Namet;                      use Namet;
 with Opt;
@@ -741,19 +742,19 @@ package body XE_Utils is
          Spec := Is_Spec_Name (Uname);
 
          if Spec then
-            File := File_Name_Of_Spec (Name);
+            File := UF.File_Name_Of_Spec (Name);
             if Full_Source_Name (File) /= No_File then
                return File;
             end if;
          end if;
 
-         File := File_Name_Of_Body (Name);
+         File := UF.File_Name_Of_Body (Name);
          if Full_Source_Name (File) /= No_File then
             return File;
          end if;
 
          if not Spec then
-            File := File_Name_Of_Spec (Name);
+            File := UF.File_Name_Of_Spec (Name);
             if Full_Source_Name (File) /= No_File then
                return File;
             end if;
