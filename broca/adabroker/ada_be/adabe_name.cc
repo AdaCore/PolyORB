@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.16 $
+//                            $Revision: 1.17 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -629,6 +629,9 @@ adabe_name::is_imported (dep_list& with)
 
 	    return (dynamic_cast<adabe_name *>(defined_in ()))->is_imported (with); 
 	  }
+
+	if (get_ada_local_name () != "")
+	  return 0;
 
 	// else simply add the interface file
 	with.add (get_ada_full_name ());

@@ -1,7 +1,6 @@
 with All_Types.Skel;
-with All_Types_IDL_FILE;
+--  with All_Types_IDL_FILE;
 with CORBA;
---with CORBA.Object;
 
 package all_types.Impl is
    --  My own implementation of echo object.
@@ -70,9 +69,8 @@ private
 
    function echoRef
      (Self : access Object;
-      arg : in all_types_IDL_file.all_types_Forward.Ref)
-      return all_types_IDL_file.all_types_Forward.Ref;
-
+      arg : in All_Types.Ref)
+      return All_Types.Ref;
 
    function echoColor
      (Self : access Object;

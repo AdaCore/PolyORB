@@ -182,8 +182,8 @@ begin
       declare
          X : All_Types.Ref;
       begin
-         X := All_Types.Convert_Forward.From_Forward (EchoRef (MyAll_Types, All_Types.Convert_Forward.To_Forward (MyAll_Types)));
-         --  X := EchoRef (MyAll_Types, MyAll_Types);
+         --  X := All_Types.Convert_Forward.From_Forward (EchoRef (MyAll_Types, All_Types.Convert_Forward.To_Forward (MyAll_Types)));
+         X := EchoRef (MyAll_Types, MyAll_Types);
          Output ("test self reference", EchoLong (X, 31337) = 31337);
       end;
 

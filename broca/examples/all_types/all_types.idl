@@ -1,5 +1,3 @@
-interface all_types;
-
 interface all_types {
 
   // simple types
