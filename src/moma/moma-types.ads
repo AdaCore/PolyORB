@@ -37,6 +37,8 @@
 with Ada.Strings.Unbounded;
 
 with PolyORB.Any;
+pragma Elaborate_All (PolyORB.Any); --  WAG:3.15
+
 with PolyORB.Types;
 with PolyORB.Sequences.Unbounded;
 

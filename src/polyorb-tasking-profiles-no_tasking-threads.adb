@@ -33,6 +33,8 @@
 --  Implementation of Threads under the No_Tasking profile.
 
 with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Tasking.Profiles.No_Tasking.Threads is

@@ -41,6 +41,8 @@ with Ada.Unchecked_Conversion;
 
 with PolyORB.Configuration;
 with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is

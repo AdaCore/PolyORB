@@ -41,6 +41,8 @@ with MOMA.Messages.MTexts;
 with MOMA.Types;
 
 with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 --  with PolyORB.Log;
 with PolyORB.Types;
 with PolyORB.Utils.Strings;

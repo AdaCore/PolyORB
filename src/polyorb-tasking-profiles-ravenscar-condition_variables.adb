@@ -2,12 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . T A S K I N G . P R O F I L E S              --
---       . R A V E N S C A R . C O N D I T I O N _ V A R I A B L E S        --
+--         POLYORB.TASKING.PROFILES.RAVENSCAR.CONDITION_VARIABLES           --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,22 +35,22 @@
 with PolyORB.Tasking.Profiles.Ravenscar.Threads;
 
 with PolyORB.Initialization;
-with PolyORB.Utils.Strings;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Log;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
 
    use PolyORB.Log;
 
-   package PTM renames PolyORB.Tasking.Mutexes;
-
-   package PTCV renames PolyORB.Tasking.Condition_Variables;
-
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.tasking.profiles.ravenscar.condition_variables");
-
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+
+   package PTM renames PolyORB.Tasking.Mutexes;
+   package PTCV renames PolyORB.Tasking.Condition_Variables;
 
    type Queued_Thread is record
       --  Element of a queue of Thread; see comment for Thread_Queue.

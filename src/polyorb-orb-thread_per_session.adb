@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,9 +36,11 @@ with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Components;
-with PolyORB.Initialization;
 with PolyORB.Filters;
 with PolyORB.Filters.Interface;
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Log;
 with PolyORB.ORB.Interface;
 with PolyORB.Protocols;

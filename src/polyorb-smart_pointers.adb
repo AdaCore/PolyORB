@@ -30,13 +30,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.adb#18 $
+--  $Id: //droopi/main/src/polyorb-smart_pointers.adb#19 $
 
 with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 with Ada.Tags;
 
 with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Log;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Strings;

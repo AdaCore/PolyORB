@@ -2,12 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . T A S K I N G . P R O F I L E S              --
---                   . R A V E N S C A R . T H R E A D S                    --
+--               POLYORB.TASKING.PROFILES.RAVENSCAR.THREADS                 --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,8 +40,10 @@ with Ada.Task_Identification;
 with Ada.Unchecked_Conversion;
 
 with PolyORB.Initialization;
-with PolyORB.Utils.Strings;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Log;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
 

@@ -47,6 +47,8 @@ with PolyORB.Configuration;
 with PolyORB.Exceptions;
 with PolyORB.Dynamic_Dict;
 with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.Objects;

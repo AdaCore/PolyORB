@@ -2,12 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . T A S K I N G . P R O F I L E S              --
---                   . R A V E N S C A R . M U T E X E S                    --
+--               POLYORB.TASKING.PROFILES.RAVENSCAR.MUTEXES                 --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,8 +33,10 @@
 --  Implementation of synchronisation objects under the ravenscar profile.
 
 with PolyORB.Initialization;
-with PolyORB.Utils.Strings;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Log;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
 
@@ -43,7 +44,6 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.tasking.profiles.ravenscar.mutexes");
-
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,6 +33,7 @@
 --  $Id$
 
 with PolyORB.Smart_Pointers;
+pragma Elaborate_All (PolyORB.Smart_Pointers); --  WAG:3.15
 
 with CORBA.Impl;
 

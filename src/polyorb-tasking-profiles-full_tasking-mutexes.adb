@@ -35,8 +35,10 @@
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Initialization;
-with PolyORB.Utils.Strings;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Log;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
 
