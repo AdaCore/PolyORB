@@ -19,6 +19,45 @@ with Omni ;
 
 package body Echo.Proxies is
 
+   --------------------------------------------------
+   ----           object factory                 ----
+   --------------------------------------------------
+
+   -- New_Proxy_Object
+   -------------------
+   function New_Proxy_Object(Self : in ObjectFactory ;
+                             R : in Rope.Object ;
+                             Key : in Corba.Octet ;
+                             Key_Size : in Corba.Unsigned_Long ;
+                             Profiles : in Iop.Tagged_Profile_List ;
+                             Release : in Corba.Boolean)
+                             return Echo.Ref is
+      Result : Echo.Ref ;
+   begin
+      Init (Self, Result, Echo.Intercae_Repository_Id, R,
+            Key, Key_Size, Profiles, Release) ;
+      return Result ;
+   end ;
+
+   -- Nil
+   ------
+   function Nil(Self : in ObjectFactory) return Echo.Ref is
+   begin
+      return Echo.Nil_Ref ;
+   end ;
+
+   -- is_a
+   -------
+   function Is_A(String Base_RepoID) return Corba.Boolean is
+   begin
+      return False ;
+      -- I don't know what it should do !!
+   end ;
+
+   --------------------------------------------------
+   ----        function EchoString               ----
+   --------------------------------------------------
+
    -- Create
    ---------
    function Create(Arg : Corba.String) return EchoString_Proxy is
@@ -82,5 +121,10 @@ package body Echo.Proxies is
       return Self.Private_Result.all ;
    end ;
 
+begin
+   -- this part is called at run time before the main procedure
+   -- its goal is to store the Echo.Proxies.Static_Factory
+   -- into the proxyStubs
+   Init(Static_Factory) ;
 
 end Echo.Proxies ;

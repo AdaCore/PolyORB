@@ -34,7 +34,13 @@ package Echo is
                                       Result: out Corba.Object.Ref'Class) ;
 
 
+   procedure Assert_Ref_Not_Nil(Self : in Echo.Ref) ;
 
+   Interface_Repository_Id : constant String := "IDL:Echo:1.0" ;
+
+private
+
+   Nil_Ref : constant Ref := (Corba.Object.Nil_Ref with null record) ;
 
 End Echo ;
 

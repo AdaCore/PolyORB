@@ -39,6 +39,7 @@ package body Echo is
       Opcd : Echo.Proxies.EchoString_Proxy ;
       Result : Corba.String ;
    begin
+      Assert_Ref_Not_Nil(Self) ;
       Opcd := Echo.Proxies.Create(Message) ;
       OmniProxyCallWrapper.Invoke(Self, Opcd) ;
       Result := Echo.Proxies.Get_Result(Opcd) ;
@@ -64,6 +65,19 @@ package body Echo is
       end if;
    end ;
 
+   -- Assert_Ref_Not_Nil
+   ---------------------
+   procedure Assert_Ref_Not_Nil(Self : in Echo.Ref) is
+   begin
+      if Self = Nil_Ref then
+         declare
+            Excp_Members : Corba.Bad_Param_Members ;
+         begin
+            Excp_Members := (0, Corba.Completed_No) ;
+            Corba.Raise_Corba_Exception(Corba.Bad_Operation'Identity, Excp_Members) ;
+         end ;
+      end if ;
+   end ;
 
 
 End Echo ;

@@ -11,9 +11,31 @@
 
 with Giop_C ;
 with Omniproxycalldesc ;
+with Proxyobjectfactory ;
+with Rope ;
+with Iop ;
 
 package Echo.Proxies is
 
+
+   --------------------------------------------------
+   ----           object factory                 ----
+   --------------------------------------------------
+   type ObjectFactory is new Proxyobjectfactory.Object with null record ;
+
+   function New_Proxy_Object(Self : in ObjectFactory ;
+                             R : in Rope.object ;
+                             Key : in Corba.Octet ;
+                             Profiles : in Iop.Tagged_Profile_List ;
+                             Release : in Corba.Boolean)
+                             return Echo.Ref ;
+
+   function Nil(Self : in ObjectFactory) return Echo.Ref ;
+
+   function Is_A(Self : in ObjectFactory ;
+                 Base_RepoID : in String) return Corba.Boolean  ;
+
+   Static_Factory : constant ObjectFactory := (Proxyobjectfactory.Object with null record) ;
 
    --------------------------------------------------
    ----        function EchoString               ----
@@ -47,3 +69,4 @@ private
    end record ;
 
 end Echo.Proxies ;
+

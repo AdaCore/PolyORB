@@ -23,6 +23,7 @@ package Corba.Object is
    -- proxy objects are references to implementations
    type Ref is tagged private ;
    type Ref_Ptr is access Ref ;
+   Nil_Ref : constant Ref ;
 
    -- objects are real implementations of the object
    type Object is tagged private ;
@@ -154,13 +155,14 @@ package Corba.Object is
 private
 
    type Dynamic_Type is access Ref'Class ;
-   -- needed for compilation !! (Fabien)
-
    type Ref is new Ada.Finalization.Controlled with record
       Dynamic_Object : Dynamic_Type := null ;
       -- Wrapped_Omniobject : Omniobject.Object ;
       -- removed because circular dependency
    end record ;
+
+
+   Nil_Ref : constant Ref := (Ada.Finalization.Controlled with Dynamic_Object => null) ;
 
    type Object is tagged null record ;
    -- this is not definitive,
