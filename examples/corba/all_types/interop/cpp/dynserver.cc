@@ -1,4 +1,4 @@
-// $Id: //droopi/main/examples/corba/all_types/interop/cpp/dynserver.cc#3 $
+// $Id: //droopi/main/examples/corba/all_types/interop/cpp/dynserver.cc#4 $
 // DSI server, implements echoULong method
 
 #include <iostream>
@@ -102,7 +102,7 @@ MyDynImpl::invoke(CORBA::ServerRequest_ptr request)
       }
     else
       {
-	std::cout << "bad operation !" << endl;
+	std::cout << "bad operation :" << request->operation() << endl;
 
 	throw CORBA::BAD_OPERATION(0, CORBA::COMPLETED_NO);
       }
