@@ -42,7 +42,10 @@ package PolyORB.Log is
    --  Log_Levels are used to classify the importance of messages
 
    type Log_Level is
-     (Debug,
+     (Unknown,
+      --  The log level for this facility has not been defined yet.
+
+      Debug,
       --  Developer interest only, should never be displayed
       --  in a production environment.
 

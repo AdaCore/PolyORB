@@ -55,7 +55,7 @@ package body PolyORB.Log is
                Key     => Facility,
                Default => Log_Level'Image (Default_Log_Level)));
       else
-         return Default_Log_Level;
+         return Unknown;
       end if;
    end Get_Log_Level;
 
@@ -79,7 +79,9 @@ package body PolyORB.Log is
       begin
          if not Initialized then
             Facility_Level := Get_Log_Level (Facility);
-            Initialized := True;
+            if Facility_Level /= Unknown then
+               Initialized := True;
+            end if;
          end if;
 
          if Level >= Facility_Level then
