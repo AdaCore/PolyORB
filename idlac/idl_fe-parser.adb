@@ -777,15 +777,9 @@ package body Idl_Fe.Parser is
          return;
       end if;
       if Get_Token /= T_Semi_Colon then
-         declare
-            Loc : Idl_Fe.Errors.Location;
-         begin
-            Loc := Get_Token_Location;
-            Loc.Col := Loc.Col + Get_Previous_Token_String'Length + 1;
-            Idl_Fe.Errors.Parser_Error ("`;' expected",
-                                        Idl_Fe.Errors.Error,
-                                        Loc);
-         end;
+         Idl_Fe.Errors.Parser_Error ("`;' expected",
+                                     Idl_Fe.Errors.Error,
+                                     Get_Token_Location);
       end if;
       Next_Token;
    end Parse_Export;
@@ -4934,6 +4928,7 @@ package body Idl_Fe.Parser is
          declare
             Node : Node_Id;
          begin
+            Next_Token;
             Node := Bound (Result);
             Parse_Positive_Int_Const (Node, Success);
             Set_Bound (Result, Node);
@@ -4949,6 +4944,7 @@ package body Idl_Fe.Parser is
             Success := False;
             return;
          end if;
+         Next_Token;
       else
          Set_Bound (Result, No_Node);
       end if;
@@ -4969,6 +4965,7 @@ package body Idl_Fe.Parser is
          declare
             Node : Node_Id;
          begin
+            Next_Token;
             Node := Bound (Result);
             Parse_Positive_Int_Const (Node, Success);
             Set_Bound (Result, Node);
@@ -4984,6 +4981,7 @@ package body Idl_Fe.Parser is
             Success := False;
             return;
          end if;
+         Next_Token;
       else
          Set_Bound (Result, No_Node);
       end if;
@@ -5521,6 +5519,7 @@ package body Idl_Fe.Parser is
          Success := False;
          return;
       end if;
+      Next_Token;
       return;
    end Parse_Raises_Expr;
 
@@ -5595,6 +5594,7 @@ package body Idl_Fe.Parser is
          Success := False;
          return;
       end if;
+      Next_Token;
       return;
    end Parse_Context_Expr;
 
@@ -5623,6 +5623,13 @@ package body Idl_Fe.Parser is
                Res : Node_Id;
             begin
                Parse_String_Type (Res, Success);
+               Result := Res;
+            end;
+         when T_Wstring =>
+            declare
+               Res : Node_Id;
+            begin
+               Parse_Wide_String_Type (Res, Success);
                Result := Res;
             end;
          when T_Colon_Colon | T_Identifier =>

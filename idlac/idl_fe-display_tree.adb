@@ -204,8 +204,10 @@ package body Idl_Fe.Display_Tree is
                Put_Line (Get_Name (N));
                Disp_Indent (N_Indent, "type:");
                Disp_Tree (Operation_Type (N), N_Indent + Offset, Full);
-               Disp_Indent (N_Indent, "parameters :");
-               Disp_List (Parameters (N), N_Indent + Offset, Full);
+               if Parameters (N) /= Nil_List then
+                  Disp_Indent (N_Indent, "parameters :");
+                  Disp_List (Parameters (N), N_Indent + Offset, Full);
+               end if;
                if Raises (N) /= Nil_List then
                   Disp_Indent (N_Indent, "raises :");
                   Disp_List (Raises (N), N_Indent + Offset, Full);

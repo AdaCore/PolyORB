@@ -4,12 +4,9 @@
         These errors are tested rule by rule.
 *********************************************************/
 
-/***  Outside any rule  ***/
-module module1 {
-  valuetype valuetype1;
-  interface interface1;
-};
-
+/************************/
+/* First, try each rule */
+/************************/
 
 /***  Test of rule 1 ***/
 
@@ -385,3 +382,28 @@ const integer c1 = TRUE | 2;
 const integer c2 = 2 | true;
 const integer c3 = 3 | -5;
 const integer c4 = 10000000 | -5;
+
+
+/*******************************/
+/* Now, try each miscellaneous */
+/*  point of the Idl langage   */
+/*******************************/
+
+// non defined forwarded interface and valuetype
+module moduleA {
+  valuetype valuetype1;
+  interface interface1;
+};
+
+// recursive structures
+module moduleB {  typedef short typeA;
+  interface interfaceA {
+    typedef moduleB::interfaceA typeD;
+  };
+};
+
+// recursive structs
+struct structA {
+  structA s;
+};
+

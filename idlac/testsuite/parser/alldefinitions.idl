@@ -493,28 +493,137 @@ union union18 switch (short) {
 };
 
 // Rule 76
+union union19 switch (boolean) { 
+  case TRUE : short s;
+  default : long l; 
+};
+
 // Rule 77
+union union20 switch (boolean) { 
+  case TRUE : short s;
+};
+
 // Rule 78
+enum enum5 { e9 };
+enum enum6 { e10, e11 };
+enum enum7 { e12, e13, e14 };
+
 // Rule 79
+enum enum8 { e15 };
+
 // Rule 80
+typedef sequence<long,5> type67;
+typedef sequence<long> type68;
+
 // Rule 81
+typedef string<5> type69;
+typedef string type70;
+
 // Rule 82
+typedef wstring<5> type71;
+typedef wstring type72;
+
 // Rule 83
+typedef short type73[1];
+typedef short type74[1][2];
+typedef short type75[1][2][3];
+
 // Rule 84
+typedef short type76[17];
+
 // Rule 85
+interface interface17 {
+  attribute short attribute1;
+  readonly attribute long attribute2;
+  attribute short attribute3, attribute4;
+  readonly attribute boolean attribute5, attribute6;
+  attribute short attribute7, attribute8, attribute9;
+  readonly attribute float attribute10, attribute11, attribute12;  
+};
+
 // Rule 86
+exception exception2 {};
+exception exception3 { short s; };
+exception exception4 { short s; long l; };
+
 // Rule 87
+interface interface18 {
+  exception e{};
+  long op1 ();
+  oneway long op2 ();
+  long op3 () raises (e);
+  oneway long op4 () raises (e);
+  long op5 () context ("context");
+  oneway long op6 () context ("context");
+  long op7 () raises (e) context ("context");
+  oneway long op8 () raises (e) context ("context");
+};
+
 // Rule 88
+interface interface19 {
+  oneway long op1 ();
+};
+
 // Rule 89
+interface interface20 {
+  long op1 ();
+  void op2 ();
+};
+
 // Rule 90
+interface interface21 {
+  long op1 ();
+  long op2 (in short p1);
+  long op3 (in short p1,out short p2);
+  long op4 (in short p1,out short p2,inout short p3);
+};
+
 // Rule 91
+interface interface22 {
+  long op1 (in short p1);
+};
+
 // Rule 92
+interface interface23 {
+  long op1 (in short p1,out short p2,inout short p3);
+};
+
 // Rule 93
+interface interface24 {
+  exception e1 {};
+  exception e2 {};
+  exception e3 {};
+  long op1 () raises (e1);
+  long op2 () raises (e1,e2);
+  long op3 () raises (e1,e2,e3);
+};
+
 // Rule 94
+interface interface25 {
+  long op1 () context ("c1");
+  long op2 () context ("c1","c2");
+  long op3 () context ("c1","c2","c3");
+};
+
 // Rule 95
+module module12 {
+  typedef long type;
+};
+interface interface26 {
+  long op1 (in short p1);
+  long op2 (in string p1);
+  long op3 (in wstring p1);
+  long op4 (in ::module12::type p1);
+};
+
 // Rule 96
+const fixed<2,3> const73 = 12d;
+
 // Rule 97
+const fixed<2,3> const74 = 12d;
+
 // Rule 98
+typedef ValueBase type77;
 
 
 /*******************************/
@@ -529,13 +638,7 @@ module moduleA {
     typedef long typeA;
     typedef moduleA::typeA typeB;
     typedef moduleA::interfaceA::typeA typeC;
-    typedef moduleA::interfaceA typeD;
   };
-};
-
-// recursive structs
-struct structA {
-  structA s;
 };
 
 // module as type
