@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with CORBA;
 with PolyORB.Annotations;
 with PolyORB.Sequences.Unbounded;

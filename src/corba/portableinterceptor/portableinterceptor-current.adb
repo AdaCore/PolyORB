@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with CORBA.Object;
 with PolyORB.CORBA_P.Initial_References;
 with PolyORB.Initialization;

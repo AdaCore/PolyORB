@@ -36,8 +36,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package PortableInterceptor.Current.Helper is
 
    function Unchecked_To_Local_Ref

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Annotations;
 with PolyORB.CORBA_P.Interceptors_Slots;
 with PolyORB.Tasking.Threads.Annotations;
