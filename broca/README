@@ -25,7 +25,7 @@ This is the documentation for AdaBroker version @adabroker_version@.
 Build requirements
 ------------------
 
-Ada 95 compiler: GNAT 3.12p.
+Ada 95 compiler: GNAT 3.12p, 3.13a or 3.13a1.
 
 Build instructions
 ------------------
@@ -74,7 +74,7 @@ Features
 - This release has been succesfully tested on:
 
     - Debian GNU/Linux 2.2 (Potato) on Intel and Sparc
-    - FreeBSD 4.0 and 5.0-CURRENT
+    - FreeBSD 4.0 and 5.0-CURRENT (with GNAT 3.13a1)
     _ HP/UX 10.20 (client without tasking)
     - Solaris 2.5.1, 2.6 and 2.7 on Sparc
 
