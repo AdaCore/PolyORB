@@ -90,20 +90,22 @@ package PolyORB.POA is
          Lifespan_Policy            : LifespanPolicy_Access           := null;
          Implicit_Activation_Policy : ImplicitActivationPolicy_Access := null;
 
-         --  Siblings
-         Father                     : Obj_Adapter_Access := null;
-         Children                   : POAList_Access     := null;
+         Father : Obj_Adapter_Access;
+         --  Parent POA.
 
-         --  Locks
+         Children : POAList_Access;
+         --  Siblings list.
+
          Children_Lock              : PolyORB.Locks.Rw_Lock_Access;
          Map_Lock                   : PolyORB.Locks.Rw_Lock_Access;
+         --  Locks
+
       end record;
 
+   type Obj_Adapter_Access is access all Obj_Adapter'Class;
    --  The POA object
    --  XXX Part of this should be private (locks, active object map, father...)
    --  The policies are used by all corba-policy-*, we can keep them public
-
-   type Obj_Adapter_Access is access all Obj_Adapter'Class;
 
    --------------------------------------------------
    --  Procedures and functions required by CORBA  --

@@ -125,6 +125,8 @@ package body PolyORB.References.Binding is
          declare
             P : Profile_Access
               renames Profiles (Best_Profile_Index);
+            OA : constant Obj_Adapter_Access
+              := Object_Adapter (Local_ORB);
          begin
             pragma Debug (O ("Found profile: "
                              & Ada.Tags.External_Tag (P'Tag)));
@@ -139,10 +141,10 @@ package body PolyORB.References.Binding is
 
                Object_Id := Get_Object_Key (P.all);
 
-               if Is_Proxy_Oid (Object_Id) then
+               if Is_Proxy_Oid (OA, Object_Id) then
                   declare
                      Continuation : PolyORB.References.Ref
-                       := To_Ref (Object_Id);
+                       := Proxy_To_Ref (OA, Object_Id);
                   begin
                      --  Attach (Continuation, P);
                      --  XXX need to keep Continuation in

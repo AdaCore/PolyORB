@@ -149,13 +149,19 @@ package PolyORB.Obj_Adapters is
    --  corresponding to object references for which we act as
    --  a proxy.
 
-   function Is_Proxy_Oid (Id : access Object_Id)
+   function Is_Proxy_Oid
+     (OA  : access Obj_Adapter;
+      Oid : access Objects.Object_Id)
      return Boolean;
 
-   function To_Proxy_Oid (R : References.Ref)
+   function To_Proxy_Oid
+     (OA : access Obj_Adapter;
+      R  :        References.Ref)
      return Object_Id_Access;
 
-   function To_Ref (Proxy_Oid : access Object_Id)
+   function Proxy_To_Ref
+     (OA  : access Obj_Adapter;
+      Oid : access Objects.Object_Id)
      return References.Ref;
 
    --  These operations may be left unimplemented by some object

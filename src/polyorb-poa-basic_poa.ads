@@ -40,6 +40,7 @@ with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Objects;
 with PolyORB.POA_Policies;
+with PolyORB.References;
 with PolyORB.Requests;
 
 package PolyORB.POA.Basic_POA is
@@ -149,18 +150,32 @@ package PolyORB.POA.Basic_POA is
    --  Remove a child POA from Self's list of children
    --  Doesn't lock the list of children
 
-   function Find_POA_Recursively
-     (Self : access Basic_Obj_Adapter;
-      Name :        Types.String)
-     return Basic_Obj_Adapter_Access;
-   --  Starting from given POA, looks for the POA in all the descendancy whose
-   --  name is Name. Returns null if not found.
-   --  ??? Should be private
+   --------------------------------
+   -- Proxy namespace management --
+   --------------------------------
+
+   function Is_Proxy_Oid
+     (OA  : access Basic_Obj_Adapter;
+      Oid : access Objects.Object_Id)
+     return Boolean;
+
+   function To_Proxy_Oid
+     (OA : access Basic_Obj_Adapter;
+      R  :        References.Ref)
+     return Object_Id_Access;
+
+   function Proxy_To_Ref
+     (OA  : access Basic_Obj_Adapter;
+      Oid : access Objects.Object_Id)
+     return References.Ref;
 
 private
 
-   type Basic_Obj_Adapter is new PolyORB.POA.Obj_Adapter
-     with null record;
+   type Basic_Obj_Adapter is new PolyORB.POA.Obj_Adapter with record
+      Proxies_OA : Basic_Obj_Adapter_Access;
+      --  The child POA used for management of the proxy objects
+      --  namespace (used only in the Root POA instance.)
+   end record;
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Basic_Obj_Adapter, Basic_Obj_Adapter_Access);
