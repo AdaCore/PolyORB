@@ -53,6 +53,35 @@ package CORBA.ORB is
 
    pragma Elaborate_Body;
 
+   --  ORB initialisation
+
+   type ORBid is new CORBA.String;
+
+   package IDL_Sequence_String is
+      new CORBA.Sequences.Unbounded (CORBA.String);
+   --  Implementation Note: the IDL-to-Ada mapping specification does
+   --  not define the formal type for package instantiation, we retain
+   --  CORBA.String.
+
+   type Arg_List is new IDL_Sequence_String.Sequence;
+
+   function Command_Line_Arguments return Arg_List;
+
+   procedure Init
+     (ORB_Indentifier : in     ORBid;
+      Argv            : in out Arg_List);
+   --  Implementation Note:
+   --  * the CORBA specification defines this procedure in the module
+   --  CORBA.  the IDL-to-Ada mapping declares it in this package to
+   --  avoid circular dependences on the ORBid type.
+   --
+   --  * the CORBA specification states Argv is an inout parameter,
+   --  the IDL-to-Ada mapping specification indicates it should be an
+   --  in parameter. The IDL-to-Ada defines a default parameter, yet
+   --  this is not allowed for in out parmaters by the Ada Reference
+   --  Manual. PolyORB follows the semantics prescribed by the CORBA
+   --  specification.
+
    package Octet_Sequence is
       new CORBA.Sequences.Unbounded (Octet);
 
@@ -199,8 +228,9 @@ package CORBA.ORB is
 
    --  The following subprograms are not in CORBA spec.
 
-   procedure Initialize
-     (ORB_Name : in Standard.String);
+   procedure Initialize (ORB_Name : in Standard.String);
+   --  Implementation Note: this procedure is deprecated, use
+   --  CORBA.ORB.Init instead
 
    function Create_Reference
      (Object : in CORBA.Object.Ref;

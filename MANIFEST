@@ -494,6 +494,8 @@ src/corba/polyorb-corba_p-local.adb
 src/corba/polyorb-corba_p-local.ads
 src/corba/polyorb-corba_p-names.adb
 src/corba/polyorb-corba_p-names.ads
+src/corba/polyorb-corba_p-orb_init.adb
+src/corba/polyorb-corba_p-orb_init.ads
 src/corba/polyorb-corba_p-poa_config.adb
 src/corba/polyorb-corba_p-poa_config.ads
 src/corba/polyorb-corba_p-policy.adb

@@ -40,10 +40,12 @@
 
 --  $Id$
 
+with Ada.Command_Line;
 with Ada.Exceptions;
 
 with PolyORB.CORBA_P.Initial_References;
 with PolyORB.CORBA_P.Local;
+with PolyORB.CORBA_P.ORB_Init;
 with PolyORB.CORBA_P.Policy;
 
 with PolyORB.Initialization;
@@ -73,6 +75,159 @@ package body CORBA.ORB is
       IOR        : String);
    --  Register an initial reference from an IOR given
    --  through the configuration subsystem.
+
+   function ORB_Init_Initial_References
+     (Value : Standard.String)
+     return Boolean;
+   --  Initialisation routine for the InitRef suffix
+
+   ---------------------------------
+   -- ORB_Init_Initial_References --
+   ---------------------------------
+
+   function ORB_Init_Initial_References
+     (Value : Standard.String)
+     return Boolean
+   is
+      Pos : constant Integer := PolyORB.Utils.Find (Value, Value'First, '=');
+
+   begin
+      if Pos = Value'Last + 1 then
+         Raise_Bad_Param (Default_Sys_Member);
+
+      else
+         pragma Debug (O ("Registering " & Value (Value'First .. Pos - 1)
+                          & " with " & Value (Pos + 1 .. Value'Last)));
+
+         Register_Initial_Reference
+           (To_CORBA_String (Value (Value'First .. Pos - 1)),
+            To_CORBA_String (Value (Pos + 1 .. Value'Last)));
+
+         return True;
+      end if;
+   end ORB_Init_Initial_References;
+
+   ----------------------------
+   -- Command_Line_Arguments --
+   ----------------------------
+
+   function Command_Line_Arguments return Arg_List is
+      use Ada.Command_Line;
+
+      Result : Arg_List;
+   begin
+      for J in 1 .. Argument_Count loop
+         Append (Result, CORBA.To_CORBA_String (Argument (J)));
+      end loop;
+
+      return Result;
+   end Command_Line_Arguments;
+
+   ----------
+   -- Init --
+   ----------
+
+   procedure Init
+     (ORB_Indentifier : in     ORBid;
+      Argv            : in out Arg_List)
+   is
+      pragma Unreferenced (ORB_Indentifier);
+
+      use PolyORB.CORBA_P.ORB_Init;
+      use PolyORB.Initialization;
+
+      Pos : Natural := 1;
+
+      ORB_Prefix : constant Standard.String := "-ORB";
+
+      Found_ORB_Prefix : Boolean := False;
+      Initialized_One : Boolean := False;
+
+   begin
+
+      --  Implementation Note: We first run Initialize_World to allow
+      --  packages to register helper routines to parse specific
+      --  command line arguments.
+
+      if not Is_Initialized then
+         Initialize_World;
+      end if;
+
+      pragma Debug (O ("Init: enter"));
+
+      while Pos <= Length (Argv) loop
+         declare
+            Suffix : constant Standard.String
+              := To_Standard_String (Element_Of (Argv, Pos));
+
+            Initialized : Boolean := False;
+
+         begin
+            pragma Debug (O ("Processing " & Suffix));
+
+            if PolyORB.Utils.Has_Prefix (Suffix, ORB_Prefix) then
+               Found_ORB_Prefix := True;
+
+               pragma Debug
+                 (O ("Possible suffix is "
+                     & Suffix (Suffix'First + ORB_Prefix'Length
+                               .. Suffix'Last)));
+
+               --  Test if parameter is -ORB<suffix><whitespace><value>
+
+               if Pos < Length (Argv) then
+                  declare
+                     Value : constant Standard.String
+                       := To_Standard_String (Element_Of (Argv, Pos + 1));
+
+                  begin
+                     pragma Debug
+                       (O ("Try to initialize ("
+                           & Suffix (Suffix'First + ORB_Prefix'Length
+                                     .. Suffix'Last)
+                           & "," & Value & ")"));
+
+                     Initialized
+                       := PolyORB.CORBA_P.ORB_Init.Initialize
+                       (Suffix (Suffix'First + ORB_Prefix'Length
+                                .. Suffix'Last),
+                        Value);
+
+                     if Initialized then
+                        Initialized_One := True;
+                        Delete (Argv, Pos, Pos + 1);
+                     end if;
+                  end;
+               end if;
+
+               --  Test if parameter is -ORB<suffix><value>
+
+               if not Initialized then
+                  Initialized
+                    := PolyORB.CORBA_P.ORB_Init.Initialize
+                    (Suffix (Suffix'First + ORB_Prefix'Length
+                             .. Suffix'Last));
+
+                  if Initialized then
+                     Initialized_One := True;
+
+                     Delete (Argv, Pos, Pos);
+                  end if;
+               end if;
+            end if;
+
+            Pos := Pos + 1;
+         end;
+      end loop;
+
+      if Found_ORB_Prefix
+        and then not Initialized_One
+      then
+         Raise_Bad_Param (Default_Sys_Member);
+      end if;
+
+      pragma Debug (O ("Init: leave"));
+   end Init;
 
    ---------------------
    -- Create_Alias_Tc --
@@ -620,6 +775,8 @@ package body CORBA.ORB is
             To_CORBA_String (Naming_IOR));
       end if;
 
+      PolyORB.CORBA_P.ORB_Init.Register
+        ("InitRef", ORB_Init_Initial_References'Access);
    end Initialize;
 
    use PolyORB.Initialization;

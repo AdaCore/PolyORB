@@ -27,6 +27,7 @@ ADA_SPECS_WITH_BODY = \
 	polyorb-corba_p-initial_references.ads \
 	polyorb-corba_p-local.ads \
 	polyorb-corba_p-names.ads \
+	polyorb-corba_p-orb_init.ads \
 	polyorb-corba_p-poa_config.ads \
 	polyorb-corba_p-policy.ads \
 	polyorb-corba_p-servantactivator.ads \
