@@ -182,21 +182,15 @@ package body PolyORB.Protocols is
               := Executed_Request (S).Req;
          begin
 
-            --  Send a reply if one is expected.
-
             if Is_Set (Sync_With_Target, Req.Req_Flags)
               or else Is_Set (Sync_Call_Back, Req.Req_Flags)
             then
-               Send_Reply (Session_Access (Sess), Req);
-               Destroy_Request (Req);
+               --  Send a reply if one is expected.
 
-            elsif Is_Set (Sync_With_Server, Req.Req_Flags) then
                Send_Reply (Session_Access (Sess), Req);
-
-               --  When using the 'Sync_With_Server' policy,
-               --  the request is destroyed when the acknowledgment
-               --  message has been received.
             end if;
+
+            Destroy_Request (Req);
          end;
 
       elsif S in Disconnect_Request then
