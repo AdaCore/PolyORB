@@ -503,7 +503,7 @@ begin
      (Module_Info'
       (Name => +"corba.orb",
        Conflicts => Empty,
-       Depends => +"orb" & "smart_pointers",
+       Depends => +"orb",
        Provides => +"corba.initial_references",
        Init => Initialize'Access));
 end CORBA.ORB;
