@@ -81,6 +81,9 @@ public:
   omniRopeAndKey *C_Object;
   // Pointer on the underlying Rope object
 
+  bool assertInit_Ok ();
+  // returns init_Ok;
+  
 private:
 
   bool Init_Ok;

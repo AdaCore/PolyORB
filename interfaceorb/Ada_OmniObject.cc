@@ -243,14 +243,14 @@ Ada_OmniObject::resetRopeAndKey ()
 //--------------
 void
 Ada_OmniObject::getRopeAndKey(Ada_OmniRopeAndKey& l, _CORBA_Boolean& success) {
-  if (Init_Ok) {
+  if ((Init_Ok) && (l.assertInit_Ok())) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
     success = C_Object->getRopeAndKey(*(l.C_Object));
     return ;
   } else {
     // else raise an Ada Exception
-    raise_ada_exception ("Call of Ada_OmniObject::getRopeAndKey without initialising object.");
+    raise_ada_exception ("Call of Ada_OmniObject::getRopeAndKey without initialising objects.");
   }
 }
       
@@ -263,6 +263,7 @@ Ada_OmniObject::assertObjectExistent() {
     // if Initialisation was made then call the corresponding
     // function on C_Object
     C_Object->assertObjectExistent();
+
     return;
   } else {
     // else raise an Ada Exception

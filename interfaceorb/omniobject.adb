@@ -503,7 +503,7 @@ package body OmniObject is
    -- C_Get_Rope_And_Key
    ---------------------
    procedure C_Get_Rope_And_Key (Self : in Object'Class ;
-                                L : out System.address ;
+                                L : out Omniropeandkey.Object ;
                                 Success : out Sys_Dep.C_Boolean) ;
    pragma Import (CPP,
                   C_Get_Rope_And_Key,
@@ -515,23 +515,17 @@ package body OmniObject is
    -- Get_Rope_And_Key
    -------------------
    procedure Get_Rope_And_Key (Self : in Object'Class ;
-                               L : out Omniropeandkey.Object_Ptr ;
+                               L : out Omniropeandkey.Object ;
                                Success : out Corba.Boolean ) is
       C_Success : Sys_Dep.C_Boolean ;
-      package Address_To_Omniropeandkey is
-        new System.Address_To_Access_Conversions (Omniropeandkey.Object) ;
-      function To_Omniropeandkey is new Ada.Unchecked_Conversion(Address_To_Omniropeandkey.Object_Pointer,
-                                                                 Omniropeandkey.Object_Ptr) ;
-      C_L : System.Address ;
    begin
       if Is_Proxy(Self) then
          Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,
                                         "Omniobject.Get_Rope_And_Key cannot be called on a local object") ;
       end if ;
       -- ... calls the C function ...
-      C_Get_Rope_And_Key(Self, C_L, C_Success) ;
+      C_Get_Rope_And_Key(Self, L, C_Success) ;
       -- ... and transforms the result into an Ada type
-      L := To_Omniropeandkey (Address_To_Omniropeandkey.To_Pointer (C_L)) ;
       Success := Sys_Dep.Boolean_C_To_Ada (C_Success) ;
    end ;
 
@@ -673,7 +667,7 @@ package body OmniObject is
    -- C_Set_Rope_And_Key
    ----------------------
    procedure C_Set_Rope_And_Key (Self : in out Object'Class ;
-                                 L : in System.Address ;
+                                 L : in Omniropeandkey.Object ;
                                  KeepIOP : in Sys_Dep.C_Boolean) ;
    pragma Import (CPP,C_Set_Rope_And_Key,
                   "setRopeAndKey__14Ada_OmniObjectRC18Ada_OmniRopeAndKeyb") ;
@@ -684,20 +678,14 @@ package body OmniObject is
    -- Set_Rope_And_Key
    -------------------
    procedure Set_Rope_And_Key (Self : in out Object'Class ;
-                               L : in Omniropeandkey.Object_Ptr ;
+                               L : in Omniropeandkey.Object ;
                                KeepIOP : in Boolean := True) is
-      C_L : System.Address;
       C_KeepIOP : Sys_Dep.C_Boolean ;
-      package Address_To_Omniropeandkey is
-        new System.Address_To_Access_Conversions (Omniropeandkey.Object) ;
-      function From_Omniropeandkey is new Ada.Unchecked_Conversion(Omniropeandkey.Object_Ptr,
-                                                                   Address_To_Omniropeandkey.Object_Pointer) ;
    begin
       -- transforms the arguments into a C type ...
-      C_L := Address_To_Omniropeandkey.To_Address (From_Omniropeandkey (L)) ;
       C_KeepIOP := Sys_Dep.Boolean_Ada_To_C (KeepIOP) ;
       -- ... and calls the C procedure
-      C_Set_Rope_And_Key (Self,C_L,C_KeepIOP) ;
+      C_Set_Rope_And_Key (Self,L,C_KeepIOP) ;
    end ;
 
 

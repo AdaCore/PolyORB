@@ -175,10 +175,12 @@ private:
   
   void* Implobj ;
   // This pointer is only used by the Ada side of this object
-  
+
+public:
   omniObject_C2Ada *C_Object;
   // Pointer on the underlying omniObject_C2Ada object
-  
+
+private:
   bool Init_Ok;
   // This flag tells if an init function was called or not
 

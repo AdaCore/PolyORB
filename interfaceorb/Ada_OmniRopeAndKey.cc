@@ -154,3 +154,15 @@ Ada_OmniRopeAndKey::equals(Ada_OmniRopeAndKey other) {
 }
 
 
+// assertInit_Ok
+//--------------
+bool
+Ada_OmniRopeAndKey::assertInit_Ok () {
+  return Init_Ok;
+}
+
+
+
+
+
+

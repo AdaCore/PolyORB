@@ -60,6 +60,8 @@ with Netbufferedstream ;
 with Omniproxycalldesc ;
 with Omniobject ; use type Omniobject.Object_Ptr ;
 with Sys_Dep ;
+with Rope ;
+
 
 with Adabroker_Debug ; use Adabroker_Debug ;
 
@@ -83,8 +85,11 @@ package body omniProxyCallWrapper is
       Retries : Corba.Unsigned_Long := 0 ;
       -- current number of retries
 
-      Rope_And_Key : Omniropeandkey.Object_Ptr ;
+      Rope_And_Key : Omniropeandkey.Object ;
       -- rope and key of the omniobject
+
+      The_Rope : Rope.Object ;
+      -- rope of the omniobject
 
       Is_Fwd : Corba.Boolean ;
       -- False if Rope_And_Key corresponds to the rope and key stored in
@@ -99,6 +104,7 @@ package body omniProxyCallWrapper is
 
       Message_Size : Corba.Unsigned_Long ;
       -- size of the message to pass to the giop_c object
+
    begin
       loop
          -- verify that the underlying omniobject is not null
@@ -110,14 +116,26 @@ package body omniProxyCallWrapper is
          -- verify that the object exists
          Omniobject.Assert_Object_Existent(OmniObj_Ptr.all) ;
 
+         -- Initialisation of Rope_And_Key
+         ---------------------------------------------
+         -- WARNING WARNING WARNING WARNING WARNING --
+         -- MEMORY LEAK                             --
+         -- WARNING WARNING WARNING WARNING WARNING --
+         ---------------------------------------------
+         Omniropeandkey.Init(Rope_And_Key) ;
+
          -- get the current values of the rope and the key
          Omniobject.Get_Rope_And_Key(OmniObj_Ptr.all,Rope_And_Key,Is_Fwd) ;
 
-         pragma Debug(Output(Debug, "Corba.omniproxycalldesc : calling Giop_c.init"));
+         pragma Debug(Output(Debug, "Corba.omniproxycallwrapper.invoke : calling Giop_c.init"));
          pragma Debug(Output(Debug,
-                             "RopeAndKey = null := " & Boolean'Image (System.Address (Omniropeandkey.Get_Rope(Rope_And_Key.all)) = System.Null_Address) ));
+                             "RopeAndKey = null := " & Boolean'Image (System.Address (Omniropeandkey.Get_Rope(Rope_And_Key)) = System.Null_Address) ));
+
          -- Get a GIOP driven strand
-         Giop_C.Init (Giop_Client, Omniropeandkey.Get_Rope(Rope_And_Key.all)) ;
+         The_Rope := Omniropeandkey.Get_Rope(Rope_And_Key) ;
+
+         pragma Debug(Output(Debug, "Corba.omniproxycallwrapper.invoke : Got The rope"));
+         Giop_C.Init (Giop_Client, The_Rope) ;
 
          -- do the giop_client reuse an existing connection ?
          Reuse := Netbufferedstream.Is_Reusing_Existing_Connection(Giop_Client) ;
@@ -126,7 +144,7 @@ package body omniProxyCallWrapper is
          -- first the size of the header
          Message_Size :=
            Giop_C.Request_Header_Size
-           (Omniropeandkey.Key_Size(Rope_And_Key.all),
+           (Omniropeandkey.Key_Size(Rope_And_Key),
             Corba.Length(Omniproxycalldesc.Operation(Call_Desc))) ;
          -- and then the size of the message itself
          Message_Size := Omniproxycalldesc.Aligned_Size (Call_Desc,
@@ -134,8 +152,8 @@ package body omniProxyCallWrapper is
 
          -- Initialise the request
          Giop_C.Initialize_Request(Giop_Client,
-                                   Omniropeandkey.Get_Key(Rope_And_Key.all),
-                                   Omniropeandkey.Key_Size(Rope_And_Key.all),
+                                   Omniropeandkey.Get_Key(Rope_And_Key),
+                                   Omniropeandkey.Key_Size(Rope_And_Key),
                                    OmniProxycalldesc.Operation(Call_Desc),
                                    Message_Size,
                                    False);
@@ -212,7 +230,7 @@ package body omniProxyCallWrapper is
                declare
                   Obj_Ref : Corba.Object.Ref ;
                   Omniobj_Ptr2 : Omniobject.Object_Ptr ;
-                  R : Omniropeandkey.Object_Ptr ;
+                  R : Omniropeandkey.Object ;
                   Unneeded_Result : Corba.Boolean ;
                begin
                   -- unmarshall the object
@@ -363,7 +381,7 @@ package body omniProxyCallWrapper is
       Retries : Corba.Unsigned_Long := 0 ;
       -- current number of retries
 
-      Rope_And_Key : Omniropeandkey.Object_Ptr ;
+      Rope_And_Key : Omniropeandkey.Object ;
       -- rope and key of the omniobject
 
       Is_Fwd : Corba.Boolean ;
@@ -394,7 +412,7 @@ package body omniProxyCallWrapper is
          Omniobject.Get_Rope_And_Key(OmniObj_Ptr.all,Rope_And_Key,Is_Fwd) ;
 
          -- Get a GIOP driven strand
-         Giop_C.Init (Giop_Client, Omniropeandkey.Get_Rope(Rope_And_Key.all)) ;
+         Giop_C.Init (Giop_Client, Omniropeandkey.Get_Rope(Rope_And_Key)) ;
 
          -- do the giop_client reuse an existing connection ?
          Reuse := Netbufferedstream.Is_Reusing_Existing_Connection(Giop_Client) ;
@@ -403,7 +421,7 @@ package body omniProxyCallWrapper is
          -- first the size of the header
          Message_Size :=
            Giop_C.Request_Header_Size
-           (Omniropeandkey.Key_Size(Rope_And_Key.all),
+           (Omniropeandkey.Key_Size(Rope_And_Key),
             Corba.Length(Omniproxycalldesc.Operation(Call_Desc))) ;
          -- and then the size of the message itself
          Message_Size := Omniproxycalldesc.Aligned_Size (Call_Desc,
@@ -411,8 +429,8 @@ package body omniProxyCallWrapper is
 
          -- Initialise the request
          Giop_C.Initialize_Request(Giop_Client,
-                                   Omniropeandkey.Get_Key(Rope_And_Key.all),
-                                   Omniropeandkey.Key_Size(Rope_And_Key.all),
+                                   Omniropeandkey.Get_Key(Rope_And_Key),
+                                   Omniropeandkey.Key_Size(Rope_And_Key),
                                    OmniProxycalldesc.Operation(Call_Desc),
                                    Message_Size,
                                    True);

@@ -173,7 +173,7 @@ corba.ali giop_c.ali
 omniproxycallwrapper.ali: omniproxycallwrapper.ads omniproxycallwrapper.adb \
 omniproxycalldesc.ali corba-object.ali corba.ali omniobject.ali \
 omniropeandkey.ali giop_c.ali netbufferedstream.ali giop.ali \
-corba-exceptions.ali
+corba-exceptions.ali rope.ali
 
 omniropeandkey.ali : omniropeandkey.ads omniropeandkey.adb corba.ali \
 rope.ali Ada_OmniRopeAndKey.o sys_dep.ali
