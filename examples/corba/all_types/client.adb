@@ -191,7 +191,7 @@ begin
          X : Rainbow;
       begin
          for J in X'Range loop
-            X (J) := Color'Val (J mod Color'Pos (Color'Last) + 1);
+            X (J) := Color'Val (J mod (Color'Pos (Color'Last) + 1));
          end loop;
          Output ("test array of enum", echoRainbow (Myall_types, X) = X);
       end;
