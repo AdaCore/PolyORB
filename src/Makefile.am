@@ -99,6 +99,8 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-request_scheduler.ads \
 		polyorb-request_scheduler-servant_lane.ads \
 		polyorb-requests.ads \
+		polyorb-request_qos.ads \
+		polyorb-request_qos-priority.ads \
 		polyorb-rt_poa-basic_rt_poa.ads \
 		polyorb-rt_poa_policies-priority_model_policy.ads \
 		polyorb-rt_poa_policies-thread_pool_policy.ads \
