@@ -6,7 +6,7 @@ AC_CONFIG_AUX_DIR(support)
 #
 AC_CANONICAL_SYSTEM
 # $Format: "AM_INIT_AUTOMAKE([$ReleaseName$],[$ReleaseVersion$])"$
-AM_INIT_AUTOMAKE([adasockets],[0.1.3])
+AM_INIT_AUTOMAKE([adasockets],[0.1.6])
 #
 AC_CHECK_PROGS(AWK, [gnuawk gawk awk])
 AC_PROG_CC
@@ -56,4 +56,6 @@ AC_CHECK_HEADERS([sys/conf.h])
 AC_OUTPUT([Makefile
            src/Makefile
            src/sockets-link.ads
+           src/adasockets-config
+           man/Makefile
            examples/Makefile])

@@ -6,9 +6,10 @@
 --                                                                         --
 --                                B o d y                                  --
 --                                                                         --
---                        $ReleaseVersion: 0.1.3 $                         --
+--                        $ReleaseVersion: 0.1.6 $                         --
 --                                                                         --
---            Copyright (C) 1996-1998 Free Software Foundation             --
+--                        Copyright (C) 1998-2000                          --
+--             École Nationale Supérieure des Télécommunications           --
 --                                                                         --
 --   AdaSockets is free software; you can  redistribute it and/or modify   --
 --   it  under terms of the GNU  General  Public License as published by   --
@@ -30,7 +31,10 @@
 --   executable file might be covered by the GNU Public License.           --
 --                                                                         --
 --   The main repository for this software is located at:                  --
---       http://www-inf.enst.fr/ANC/                                       --
+--       http://www.infres.enst.fr/ANC/                                    --
+--                                                                         --
+--   If you have any question, please send a mail to                       --
+--       Samuel Tardieu <sam@inf.enst.fr>                                  --
 --                                                                         --
 -----------------------------------------------------------------------------
 
@@ -66,6 +70,14 @@ package body Sockets.Naming is
      (Errno   : in Integer;
       Message : in String);
    --  Raise the exception Naming_Error with an appropriate error message
+
+   protected Naming_Lock is
+      entry Lock;
+      procedure Unlock;
+   private
+      Locked : Boolean := False;
+   end Naming_Lock;
+   --  A locking object
 
    ----------------
    -- Address_Of --
@@ -201,7 +213,9 @@ package body Sockets.Naming is
       Res    : Hostent_Access;
       C_Name : chars_ptr := New_String (Name);
    begin
+      Naming_Lock.Lock;
       Res := C_Gethostbyname (C_Name);
+      Naming_Lock.Unlock;
       Free (C_Name);
       if Res = null then
          Raise_Naming_Error (Errno, Name);
@@ -227,9 +241,11 @@ package body Sockets.Naming is
       C_Addr  : constant chars_ptr := Convert (Temp'Unchecked_Access);
       Res     : Hostent_Access;
    begin
+      Naming_Lock.Lock;
       Res := C_Gethostbyaddr (C_Addr,
                               C.int (Temp'Size / CHAR_BIT),
                               Constants.Af_Inet);
+      Naming_Lock.Unlock;
       if Res = null then
          Raise_Naming_Error (Errno, Image (Addr));
       end if;
@@ -292,6 +308,32 @@ package body Sockets.Naming is
       end if;
       return Hostent.Name.all;
    end Name_Of;
+
+   -----------------
+   -- Naming_Lock --
+   -----------------
+
+   protected body Naming_Lock is
+
+      ----------
+      -- Lock --
+      ----------
+
+      entry Lock when not Locked is
+      begin
+         Locked := True;
+      end Lock;
+
+      ------------
+      -- Unlock --
+      ------------
+
+      procedure Unlock is
+      begin
+         Locked := False;
+      end Unlock;
+
+   end Naming_Lock;
 
    -----------------
    -- Parse_Entry --

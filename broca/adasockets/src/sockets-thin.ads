@@ -6,9 +6,10 @@
 --                                                                         --
 --                                S p e c                                  --
 --                                                                         --
---                        $ReleaseVersion: 0.1.3 $                         --
+--                        $ReleaseVersion: 0.1.6 $                         --
 --                                                                         --
---            Copyright (C) 1996-1998 Free Software Foundation             --
+--                        Copyright (C) 1998-2000                          --
+--             École Nationale Supérieure des Télécommunications           --
 --                                                                         --
 --   AdaSockets is free software; you can  redistribute it and/or modify   --
 --   it  under terms of the GNU  General  Public License as published by   --
@@ -30,7 +31,10 @@
 --   executable file might be covered by the GNU Public License.           --
 --                                                                         --
 --   The main repository for this software is located at:                  --
---       http://www-inf.enst.fr/ANC/                                       --
+--       http://www.infres.enst.fr/ANC/                                    --
+--                                                                         --
+--   If you have any question, please send a mail to                       --
+--       Samuel Tardieu <sam@inf.enst.fr>                                  --
 --                                                                         --
 -----------------------------------------------------------------------------
 

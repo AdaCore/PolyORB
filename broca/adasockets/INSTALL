@@ -1,4 +1,4 @@
-INSTALL file for adasockets version 0.1.3 (beta)
+INSTALL file for adasockets version 0.1.6 (beta)
 
 To install this software, just do:
 
@@ -6,6 +6,8 @@ To install this software, just do:
   % make install
 
 This will build and install this software under <any directory>/lib/adasockets.
+The adasockets-config program and its associated man page will be installed
+respectively under <any directory>/bin and <any directory>/man/
 
 In the examples subdirectory, you will find an example called "tcprelay" which
 illustrates how this package can be used.

@@ -1,5 +1,5 @@
 AUTOMAKE_OPTIONS = foreign no-dependencies
-SUBDIRS = src examples
+SUBDIRS = src man examples
 ACLOCAL_AMFLAGS = -I support
 AUTOHEADER_AMFLAGS = -l support
 

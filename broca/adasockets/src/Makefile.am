@@ -1,5 +1,7 @@
 privatelibdir = $(libdir)/adasockets
 
+bin_SCRIPTS = adasockets-config
+
 SOURCES = \
 	sockets-constants.ads \
 	sockets-link.ads \

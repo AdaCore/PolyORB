@@ -82,6 +82,8 @@ VERSION = @VERSION@
 
 privatelibdir = $(libdir)/adasockets
 
+bin_SCRIPTS = adasockets-config
+
 SOURCES =  	sockets-constants.ads 	sockets-link.ads 	sockets-multicast.ads 	sockets-multicast.adb 	sockets-naming.ads 	sockets-naming.adb 	sockets-thin.ads 	sockets-utils.ads 	sockets-utils.adb 	sockets.ads 	sockets.adb
 
 
@@ -94,9 +96,11 @@ CLEANFILES = *.o *.ali
 DISTCLEANFILES = b_split.c split constants_nodef
 mkinstalldirs = $(SHELL) $(top_srcdir)/support/mkinstalldirs
 CONFIG_HEADER = config.h
-CONFIG_CLEAN_FILES =  sockets-link.ads
+CONFIG_CLEAN_FILES =  sockets-link.ads adasockets-config
+SCRIPTS =  $(bin_SCRIPTS)
+
 DIST_COMMON =  ./stamp-h.in ChangeLog Makefile.am Makefile.in \
-config.h.in sockets-link.ads.in
+adasockets-config.in config.h.in sockets-link.ads.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -142,6 +146,27 @@ distclean-hdr:
 maintainer-clean-hdr:
 sockets-link.ads: $(top_builddir)/config.status sockets-link.ads.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+adasockets-config: $(top_builddir)/config.status adasockets-config.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+install-binSCRIPTS: $(bin_SCRIPTS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(bindir)
+	@list='$(bin_SCRIPTS)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo " $(INSTALL_SCRIPT) $$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`"; \
+	    $(INSTALL_SCRIPT) $$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`; \
+	  else if test -f $(srcdir)/$$p; then \
+	    echo " $(INSTALL_SCRIPT) $(srcdir)/$$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`"; \
+	    $(INSTALL_SCRIPT) $(srcdir)/$$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`; \
+	  else :; fi; fi; \
+	done
+
+uninstall-binSCRIPTS:
+	@$(NORMAL_UNINSTALL)
+	list='$(bin_SCRIPTS)'; for p in $$list; do \
+	  rm -f $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`; \
+	done
 tags: TAGS
 TAGS:
 
@@ -177,7 +202,7 @@ installcheck: installcheck-am
 all-recursive-am: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
-install-exec-am:
+install-exec-am: install-binSCRIPTS
 install-exec: install-exec-am
 
 install-data-am: install-data-local
@@ -186,13 +211,14 @@ install-data: install-data-am
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 install: install-am
-uninstall-am: uninstall-local
+uninstall-am: uninstall-binSCRIPTS uninstall-local
 uninstall: uninstall-am
-all-am: Makefile config.h
+all-am: Makefile $(SCRIPTS) config.h
 all-redirect: all-am
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
 installdirs:
+	$(mkinstalldirs)  $(DESTDIR)$(bindir)
 
 
 mostlyclean-generic:
@@ -226,12 +252,13 @@ maintainer-clean-am:  maintainer-clean-hdr maintainer-clean-generic \
 maintainer-clean: maintainer-clean-am
 
 .PHONY: mostlyclean-hdr distclean-hdr clean-hdr maintainer-clean-hdr \
-tags distdir info-am info dvi-am dvi check check-am installcheck-am \
-installcheck all-recursive-am install-exec-am install-exec \
-install-data-local install-data-am install-data install-am install \
-uninstall-local uninstall-am uninstall all-redirect all-am all \
-installdirs mostlyclean-generic distclean-generic clean-generic \
-maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+uninstall-binSCRIPTS install-binSCRIPTS tags distdir info-am info \
+dvi-am dvi check check-am installcheck-am installcheck all-recursive-am \
+install-exec-am install-exec install-data-local install-data-am \
+install-data install-am install uninstall-local uninstall-am uninstall \
+all-redirect all-am all installdirs mostlyclean-generic \
+distclean-generic clean-generic maintainer-clean-generic clean \
+mostlyclean distclean maintainer-clean
 
 
 constants_nodef: constants.c config.h

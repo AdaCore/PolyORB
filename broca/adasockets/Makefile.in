@@ -81,7 +81,7 @@ SOCKETNEEDED = @SOCKETNEEDED@
 VERSION = @VERSION@
 
 AUTOMAKE_OPTIONS = foreign no-dependencies
-SUBDIRS = src examples
+SUBDIRS = src man examples
 ACLOCAL_AMFLAGS = -I support
 AUTOHEADER_AMFLAGS = -l support
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4

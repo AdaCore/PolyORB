@@ -1,5 +1,21 @@
 -*- outline -*-
 
+* New in AdaSockets 0.1.6
+
+** Add a `adasockets-config' script
+
+The AdaSockets library can now be found automatically on your system if
+it has been installed properly.
+
+* New in AdaSockets 0.1.5
+
+** Fix a race condition when using naming services
+
+gethostbyname() and friends functions are not thread safe because they return
+a pointer on a static memory zone. Incriminated calls are now protected by a
+mutex. The overhead should be neglictible as those functions aren't usually
+called often.
+
 * New in AdaSockets 0.1.4
 
 ** Fix a descriptor leak when using TCP sockets
