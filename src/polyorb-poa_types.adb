@@ -110,18 +110,6 @@ package body PolyORB.POA_Types is
         and then Left.Persistency_Flag = Right.Persistency_Flag;
    end "=";
 
-   -----------
-   -- Image --
-   -----------
-
-   function Image
-     (Oid : Object_Id)
-     return Types.String is
-   begin
-      return To_PolyORB_String
-        (PolyORB.Objects.Oid_To_Hex_String (PolyORB.Objects.Object_Id (Oid)));
-   end Image;
-
    ---------------
    -- Create_Id --
    ---------------
@@ -288,13 +276,15 @@ package body PolyORB.POA_Types is
          return;
       end if;
 
-      declare
-         S : Standard.String (1 .. Integer (Len));
-         pragma Import (Ada, S);
-         for S'Address use SEA (SEI)'Address;
-      begin
-         Str := To_PolyORB_String (S);
-      end;
+      if Len > 0 then
+         declare
+            S : Standard.String (1 .. Integer (Len));
+            pragma Import (Ada, S);
+            for S'Address use SEA (SEI)'Address;
+         begin
+            Str := To_PolyORB_String (S);
+         end;
+      end if;
 
       SEI := SEI + Stream_Element_Offset (Len);
    end Get_String_With_Length;
@@ -309,15 +299,26 @@ package body PolyORB.POA_Types is
      return Object_Id
    is
       S : constant Standard.String := To_Standard_String (Str);
-      R : Object_Id (1 .. S'Length);
-      pragma Import (Ada, R);
-      for R'Address use S (S'First)'Address;
    begin
-      if With_Length then
-         return Put_ULong (S'Length) & R;
-      else
-         return R;
+      if S'Length = 0 then
+         if With_Length then
+            return Put_ULong (0);
+         else
+            return Object_Id'(1 .. 0 => 0);
+         end if;
       end if;
+
+      declare
+         R : Object_Id (1 .. S'Length);
+         pragma Import (Ada, R);
+         for R'Address use S (S'First)'Address;
+      begin
+         if With_Length then
+            return Put_ULong (S'Length) & R;
+         else
+            return R;
+         end if;
+      end;
    end Put_String;
 
    ------------------

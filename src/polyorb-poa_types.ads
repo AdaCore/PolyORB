@@ -158,11 +158,6 @@ package PolyORB.POA_Types is
      (Left, Right : in Unmarshalled_Oid)
      return Standard.Boolean;
 
-   function Image
-     (Oid : Object_Id)
-     return Types.String;
-   --  For debugging purposes.
-
    function Create_Id
      (Name             : in Standard.String;
       System_Generated : in Boolean;
