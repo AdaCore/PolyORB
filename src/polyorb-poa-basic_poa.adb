@@ -1089,11 +1089,17 @@ package body PolyORB.POA.Basic_POA is
          pragma Debug (O ("Find_POA: enter, Name = "
                           & Full_POA_Name));
 
-         POA := PolyORB.POA.Obj_Adapter_Access
-           (Lookup
-            (Global_POATable,
-             Full_POA_Name,
-             null));
+         --  XXX: Suppressed lookup in Global POA HTable, as of
+         --  2003/09/05, Global POA HTable is not updated when CORBA's POA
+         --  finalizes a reference on a POA.
+
+--         POA := PolyORB.POA.Obj_Adapter_Access
+--           (Lookup
+--            (Global_POATable,
+--             Full_POA_Name,
+--             null));
+
+         POA := null;
 
          if POA /= null then
             pragma Debug (O ("Found POA in Global_POATable"));
