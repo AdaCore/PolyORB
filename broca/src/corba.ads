@@ -1021,8 +1021,9 @@ private
    --  first. Then come all the values of the corresponding fields
    --     - for Enum : an unsigned_long corresponding to the position
    --  of the value in the declaration is the only element
-   --     - for Sequence, Array : all the elements of the sequence
-   --  or array, one by one
+   --     - for Array : all the elements of the array, one by one.
+   --     - for Sequence : the length first and then all the elements
+   --  of the sequence, one by one.
    --     - for Fixed : FIXME
    --     - for Value : FIXME
    --     - for Valuebox : FIXME
