@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,15 +50,11 @@ package PolyORB.Objects is
    procedure Free is new Ada.Unchecked_Deallocation
      (Object_Id, Object_Id_Access);
 
-   function To_String
-     (Oid : Object_Id)
-     return String;
+   function To_String (Oid : Object_Id) return String;
    pragma Inline (To_String);
    --  Convert an OID to a printable string representation.
 
-   function To_Oid
-     (S : String)
-     return Object_Id;
+   function To_Oid (S : String) return Object_Id;
    pragma Inline (To_Oid);
    --  Convert an OID from a printable string representation.
 
