@@ -70,9 +70,9 @@ begin
       --     does not exist.
 
       declare
+         S : constant Integer := Get_Conf_Suffix'Length;
          N : Name_Id := Next_Main_Source;
          L : Integer;
-         S : Integer := Get_Conf_Suffix'Length;
       begin
 
          Get_Name_String (N);
@@ -135,8 +135,8 @@ begin
             --  its table index.
 
             declare
-               N : Name_Id  := Next_Main_Source;
-               P : PID_Type := Get_PID (N);
+               N : constant Name_Id  := Next_Main_Source;
+               P : constant PID_Type := Get_PID (N);
             begin
                if P = Null_PID then
                   Message ("", N, " is not a partition");
