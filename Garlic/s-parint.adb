@@ -33,7 +33,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Unchecked_Deallocation;
 with GNAT.Htable;
 with System.Garlic.Debug; use System.Garlic.Debug;
@@ -156,6 +155,11 @@ package body System.Partition_Interface is
    procedure Shutdown;
    --  Called on shutdown.
 
+   Upper_To_Lower : constant := Character'Pos ('a') - Character'Pos ('A');
+
+   function To_Lower (Item : String) return String;
+   --  Guess what.
+
    ----------------------
    -- Elaboration_Type --
    ----------------------
@@ -240,6 +244,24 @@ package body System.Partition_Interface is
    begin
       return F1.all = F2.all;
    end Equal;
+
+   --------------
+   -- To_Lower --
+   --------------
+
+   function To_Lower (Item : String) return String is
+      Result : String (Item'Range);
+   begin
+      for I in Item'Range loop
+         if Item (I) in 'A' .. 'Z' then
+            Result (I) :=
+               Character'Val (Character'Pos (Item (I)) + Upper_To_Lower);
+         else
+            Result (I) := Item (I);
+         end if;
+      end loop;
+      return Result;
+   end To_Lower;
 
    -----------------------------
    -- Get_Active_Partition_ID --
