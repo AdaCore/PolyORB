@@ -384,13 +384,10 @@ package body Sem_Dist is
       RS_Pkg_Specif := Parent (Remote_Subp_Decl);
       RS_Pkg_E := Defining_Entity (RS_Pkg_Specif);
 
-      if Ekind (Remote_Subp) = E_Procedure
-        and then Is_Asynchronous (Remote_Subp)
-      then
-         Async_E := Standard_True;
-      else
-         Async_E := Standard_False;
-      end if;
+      Async_E :=
+        Boolean_Literals (Ekind (Remote_Subp) = E_Procedure
+                            and then Is_Asynchronous (Remote_Subp));
+
       All_Calls_Remote_E :=
         Boolean_Literals (Has_All_Calls_Remote (RS_Pkg_E));
 
@@ -669,7 +666,6 @@ package body Sem_Dist is
       if Comes_From_Source (P)
         and then (Is_Remote_Call_Interface (ET)
                    or else Is_Remote_Types (ET))
-        and then Ekind (ET) = E_Record_Type
         and then Present (Corresponding_Remote_Type (ET))
         and then Ekind (Entity (P)) /= E_Function
       then
