@@ -37,14 +37,14 @@
 --  want to use. Look for other sections called "Protocol section" below
 --  to make sure you initialize the protocols you want to use.
 
-with System.Garlic.TCP;
-pragma Elaborate_All (System.Garlic.TCP);
-
 with System.Garlic.Debug; use System.Garlic.Debug;
 pragma Elaborate_All (System.Garlic.Debug);
 
 with System.Garlic.Protocols; use System.Garlic.Protocols;
 pragma Elaborate_All (System.Garlic.Protocols);
+
+with System.Garlic.Protocols.Config;
+pragma Elaborate_All (System.Garlic.Protocols.Config);
 
 with System.Garlic.Options; use System.Garlic.Options;
 pragma Elaborate_All (System.Garlic.Options);
@@ -75,27 +75,6 @@ package body System.Garlic.Startup is
 
    use System.Garlic.Protocols;
 
-   Max_Protocols : constant := 10;
-   Protocols     : array (1 .. Max_Protocols) of Protocol_Access;
-
-   procedure Register (P : in Protocol_Access);
-   --  Register the protocol as a present protocol.
-
-   --------------
-   -- Register --
-   --------------
-
-   procedure Register (P : in Protocol_Access) is
-   begin
-      for I in Protocols'Range loop
-         if Protocols (I) = null then
-            Protocols (I) := P;
-            return;
-         end if;
-      end loop;
-      raise Constraint_Error;
-   end Register;
-
 begin
 
    D (D_Elaborate, "Entering partition startup phase");
@@ -109,8 +88,7 @@ begin
 
    --  Phase (2) (see s-garlic.ads)
 
-   --  Add a line by protocol, such as: Register (<my_protocol>.Create);
-   Register (System.Garlic.TCP.Create);
+   System.Garlic.Protocols.Config.Create;
 
    declare
       Boot_Location : constant Location :=
@@ -132,9 +110,9 @@ begin
 
       --  Phase (4) (see s-garlic.ads)
 
-      for I in Protocols'Range loop
-         exit when Protocols (I) = null;
-         if Protocols (I) = Boot_Protocol then
+      for I in Config.Protocol_Table'Range loop
+         exit when Config.Protocol_Table (I) = null;
+         if Config.Protocol_Table (I) = Boot_Protocol then
             Set_Boot_Data (Boot_Protocol, True, Boot_Data, Is_Master);
             Is_Boot_Partition (Is_Master);
             Set_My_Location (To_Location (Boot_Protocol,

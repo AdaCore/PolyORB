@@ -1,3 +1,10 @@
+Wed Oct 16 21:32:52 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
+
+	* s-gaprco.adb, s-gaprco.ads, s-garsta.adb: The body of this
+ 	package should be built during GARLIC installation. It should
+ 	contain a registration of all protocols provided in the DSA
+ 	distribution.
+
 Sun Oct  6 15:17:18 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-gsmasp.ads: New file.
