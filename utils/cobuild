@@ -2,7 +2,7 @@
 
 # cobuild: Build something from a checked-out wavefront.
 
-# $Id: //droopi/main/utils/cobuild#23 $
+# $Id$
 
 ###################################################
 # Usage information
@@ -12,6 +12,7 @@ usage () {
   echo "Usage: $0 -m EMAIL_ADDRESS -i SOURCE_DIR -o OUTPUT_DIR -p PROJECT -r [cvs | p4] [ -c CHANGELIST ]"
   echo "  A notification e-mail will be sent to EMAIL_ADDRESS"
   echo "  Source code is in SOURCE_DIR"
+  echo "  A symlink tree is made in OUTPUT_DIR/src"
   echo "  Build is done in OUTPUT_DIR/build"
   echo "  Install is done in OUTPUT_DIR/install"
   echo " "
@@ -160,16 +161,38 @@ fi
   set -e
   sleep 10
 
-  echo "---------- Building"
-  [ -x ./support/reconfig ] && ./support/reconfig
+  echo "---------- Preparing source tree"
+  
   cd $OUTPUT_DIR
+  rm -fr src
+  mkdir src
   mkdir build > /dev/null 2>&1 || true
   mkdir install > /dev/null 2>&1 || true
-  cd build
 
-  if [ -x $SOURCE_DIR/configure ]
+  cd src
+  cat $SOURCE_DIR/MANIFEST |
+  while read file
+  do
+    dir=`dirname "$file"`
+    mkdir -p "$dir"
+    if [ -f "$SOURCE_DIR/$file ]
+    then
+      ln -s "$SOURCE_DIR/$file" "$file"
+    fi
+  done
+  if [ ! -e testsuite ]
   then
-    $SOURCE_DIR/configure --disable-shared --enable-debug \
+    ln -s "$SOURCE_DIR/testsuite" .
+  fi
+
+  support/reconfig -w
+
+  cd ../build
+
+  echo "---------- Building"
+  if [ -x $OUTPUT_DIR/src/configure ]
+  then
+    $OUTPUT_DIR/src/configure --disable-shared --enable-debug \
        --with-proto-perso="giop soap srp" --with-appli-perso="corba moma" \
        --with-services="naming ir event time" --prefix=$OUTPUT_DIR/install
   fi && ${GNUMAKE} && ${GNUMAKE} install && cd examples && ${GNUMAKE} \
