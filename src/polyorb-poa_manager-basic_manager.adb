@@ -59,16 +59,6 @@ package body PolyORB.POA_Manager.Basic_Manager is
    --  Etherealize the objects of the associated POAs
    --  (in case a Servant Manager is used with a RETAIN policy)
 
-   procedure Inc_Usage_Counter (Self : access Basic_POA_Manager);
-   --  Increment POA Manager Usage Counter
-
-   procedure Dec_Usage_Counter (Self : access Basic_POA_Manager);
-   --  Decrement POA Manager Usage Counter
-
-   procedure Destroy_If_Unused (Self : in out Basic_POA_Manager);
-   --  Destroy the POAManager if it is no longer used by any POA, and
-   --  the POAManager has been created only for.
-
    procedure Reemit_Requests (Self : access Basic_POA_Manager);
    --  Reemit requests stored by the Hold Servant attached to Self
 
@@ -243,7 +233,6 @@ package body PolyORB.POA_Manager.Basic_Manager is
       pragma Debug (O ("Create a new Basic_POA_Manager"));
 
       Create (M.State_Lock);
-      Create (M.Count_Lock);
       Create (M.POAs_Lock);
       Create (M.Queue_Lock);
 
@@ -266,8 +255,6 @@ package body PolyORB.POA_Manager.Basic_Manager is
       Enter (Self.POAs_Lock);
       Append (Self.Managed_POAs, OA);
       Leave (Self.POAs_Lock);
-
-      Inc_Usage_Counter (Self);
    end Register_POA;
 
    ----------------
@@ -276,7 +263,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
    procedure Remove_POA
      (Self : access Basic_POA_Manager;
-      OA   : Obj_Adapter_Access)
+      OA   :        Obj_Adapter_Access)
    is
       use POA_Lists;
 
@@ -295,8 +282,6 @@ package body PolyORB.POA_Manager.Basic_Manager is
          if A_Child = OA then
             Remove (Self.Managed_POAs, It);
             Leave (Self.POAs_Lock);
-            Dec_Usage_Counter (Self);
-            Destroy_If_Unused (Self.all);
             pragma Debug (O ("Remove a POA: end"));
             return;
          end if;
@@ -337,34 +322,6 @@ package body PolyORB.POA_Manager.Basic_Manager is
       return Servants.Servant_Access (Self.PM_Hold_Servant);
    end Get_Hold_Servant;
 
-   -----------------------
-   -- Inc_Usage_Counter --
-   -----------------------
-
-   procedure Inc_Usage_Counter (Self : access Basic_POA_Manager) is
-   begin
-      Enter (Self.Count_Lock);
-      Self.Usage_Count := Self.Usage_Count + 1;
-      Leave (Self.Count_Lock);
-
-      pragma Debug (O ("Increase usage to "
-                       & Integer'Image (Self.Usage_Count)));
-   end Inc_Usage_Counter;
-
-   -----------------------
-   -- Dec_Usage_Counter --
-   -----------------------
-
-   procedure Dec_Usage_Counter (Self : access Basic_POA_Manager) is
-   begin
-      Enter (Self.Count_Lock);
-      Self.Usage_Count := Self.Usage_Count - 1;
-      Leave (Self.Count_Lock);
-
-      pragma Debug (O ("Decrease usage to "
-                       & Integer'Image (Self.Usage_Count)));
-   end Dec_Usage_Counter;
-
    ----------------------------
    -- Do_Wait_For_Completion --
    ----------------------------
@@ -394,11 +351,11 @@ package body PolyORB.POA_Manager.Basic_Manager is
       --  XXX To be implemented
    end Do_Etherealize_Objects;
 
-   -----------------------
-   -- Destroy_If_Unused --
-   -----------------------
+   --------------
+   -- Finalize --
+   --------------
 
-   procedure Destroy_If_Unused (Self : in out Basic_POA_Manager) is
+   procedure Finalize (Self : in out Basic_POA_Manager) is
       use PolyORB.Requests;
       use Requests_Queue_P;
       use POA_Lists;
@@ -409,37 +366,27 @@ package body PolyORB.POA_Manager.Basic_Manager is
       R : Execute_Request;
 
    begin
-      Enter (Self.Count_Lock);
+      pragma Debug (O ("POAManager is no longer used, destroying it"));
 
-      if Self.Usage_Count = 0 then
-         pragma Debug (O ("POAManager is no longer used, destroying it"));
-         Leave (Self.Count_Lock);
+      Destroy (Self.State_Lock);
+      Destroy (Self.POAs_Lock);
+      Destroy (Self.Queue_Lock);
 
-         Destroy (Self.State_Lock);
-         Destroy (Self.Count_Lock);
-         Destroy (Self.POAs_Lock);
-         Destroy (Self.Queue_Lock);
-
-         if Self.PM_Hold_Servant /= null then
-            Free (Self.PM_Hold_Servant);
-         end if;
-
-         Deallocate (Self.Managed_POAs);
-
-         while Self.Held_Requests /= Requests_Queue_P.Empty loop
-            Extract_First (Self.Held_Requests, R);
-            Destroy_Request (R.Req);
-         end loop;
-
-         Deallocate (Self.Held_Requests);
-
-         Finalize (Self);
-         pragma Debug (O ("POAManager destroyed."));
-
-      else
-         Leave (Self.Count_Lock);
+      if Self.PM_Hold_Servant /= null then
+         Free (Self.PM_Hold_Servant);
       end if;
-   end Destroy_If_Unused;
+
+      Deallocate (Self.Managed_POAs);
+
+      while Self.Held_Requests /= Requests_Queue_P.Empty loop
+         Extract_First (Self.Held_Requests, R);
+         Destroy_Request (R.Req);
+      end loop;
+
+      Deallocate (Self.Held_Requests);
+
+      pragma Debug (O ("POAManager destroyed."));
+   end Finalize;
 
    ----------------------------------
    -- Holding state implementation --

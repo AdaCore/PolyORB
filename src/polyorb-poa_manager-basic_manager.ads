@@ -134,15 +134,8 @@ private
       Current_State : State;
       Managed_POAs  : POAList;
 
-      Usage_Count     : Integer := 0;
-      --  XXX bad name.
-      --  Number of POA managed by the POA Manager
-
       State_Lock      : PolyORB.Tasking.Mutexes.Mutex_Access;
       --  Lock the state
-
-      Count_Lock      : PolyORB.Tasking.Mutexes.Mutex_Access;
-      --  Lock on the usage counter
 
       POAs_Lock       : PolyORB.Tasking.Mutexes.Mutex_Access;
       --  Lock on the sequence of managed POAs
@@ -156,6 +149,8 @@ private
       Queue_Lock      : PolyORB.Tasking.Mutexes.Mutex_Access;
       --  Lock on the queue of pending requests
    end record;
+
+   procedure Finalize (Self : in out Basic_POA_Manager);
 
    type Hold_Servant is new PolyORB.Servants.Servant with record
       PM : Basic_POA_Manager_Access := null;
