@@ -43,19 +43,15 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads.Annotations is
    use PolyORB.Annotations;
    use PolyORB.Smart_Pointers;
 
-   type Notepad_Ref is new Ref with null record;
-
-   Nil_Ref : constant Notepad_Ref
-     := (PolyORB.Smart_Pointers.Ref with null record);
-
    type Notepad_Entity is new Non_Controlled_Entity with record
       Notepad : PolyORB.Annotations.Notepad_Access := null;
    end record;
 
    procedure Finalize (Object : in out Notepad_Entity);
 
-   package Task_Notepad_Wrapper is
-      new Ada.Task_Attributes (Notepad_Ref, Nil_Ref);
+   Nil_Ref : Ref;
+
+   package Task_Notepad_Wrapper is new Ada.Task_Attributes (Ref, Nil_Ref);
 
    Current_TAF : Full_Tasking_TAF_Access;
 
