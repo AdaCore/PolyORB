@@ -1,3 +1,16 @@
+1998-02-23  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* constants.sh: Generate a cleaner entry when a constant is not
+	available.
+
+	* s-ganobl.adb: Use SVR4 streamio when BSDisms are not available.
+
+	* s-garthi.ads: Add entry for ioctl().
+
+1998-02-21  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* constants.sh: Remove temporary file.
+
 1998-02-19  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* Makefile.am, Makefile.in: Create System.Garlic.Linker_Options to
