@@ -201,9 +201,6 @@ package body PolyORB.Requests is
       Src_It : Iterator := First (List_Of (Src_Args).all);
       Dst_It : Iterator := First (List_Of (Dst_Args).all);
 
-      Member : constant System_Exception_Members
-        := (Minor => 1, Completed => Completed_No);
-
    begin
       pragma Assert (Direction = ARG_IN or else Direction = ARG_OUT);
 
@@ -235,14 +232,6 @@ package body PolyORB.Requests is
       --  might be missing in Self.Args, and 'INOUT' arguments might
       --  be marked as 'IN'. Also, there is no guarantee that the order
       --  of arguments is the same in Args and Self.Args.)
-
-      --  XXX actually for now we do not check names at all:
-      --  we skip Src_Args with the wrong direction and then assume
-      --  strict positional association.
-      --  If we were brave guys, we should attempt to reconcile
-      --  argument names and argument types (Tricky: see how Ada
-      --  compilers do parameter reconciliation with support for both
-      --  named and positional parameter associations.)
 
       while not Last (Dst_It) loop
 
@@ -276,10 +265,14 @@ package body PolyORB.Requests is
                      else
                         Next (Src_It);
                         if Last (Src_It) then
-                           Throw (Error, Bad_Param_E, Member);
-                           pragma Debug (O ("arg not found"));
-                           return;
---                         raise Program_Error;
+                           declare
+                              Member : constant System_Exception_Members
+                                := (Minor => 1, Completed => Completed_No);
+                           begin
+                              Throw (Error, Bad_Param_E, Member);
+                              pragma Debug (O ("arg not found"));
+                              return;
+                           end;
                         end if;
                      end if;
                   end;
@@ -292,8 +285,8 @@ package body PolyORB.Requests is
 
       if Can_Extend then
          pragma Debug (O ("Appending remaining arguments"));
-         --  If dst_args is an extensible NV_List, then we append the
-         --  remaining src_args
+         --  If Dst_Args is an extensible NV_List, then we append the
+         --  remaining Src_Args
          while not Last (Src_It) loop
             if Ignore_Src_Mode
               or else Value (Src_It).Arg_Modes = ARG_INOUT
@@ -322,8 +315,6 @@ package body PolyORB.Requests is
       use PolyORB.Any.NVList.Internals.NV_Lists;
       use PolyORB.Exceptions;
 
-      Member : constant System_Exception_Members
-        := (Minor => 1, Completed => Completed_No);
       Dst_It : Iterator := First (List_Of (Dst_Args).all);
 
       Copied_Src_Args : array (1 .. Long (Get_Count (Src_Args))) of Boolean
@@ -334,36 +325,7 @@ package body PolyORB.Requests is
    begin
       pragma Assert (Direction = ARG_IN or else Direction = ARG_OUT);
 
-      --  When Direction is ARG_IN, we are a server and we
-      --  are pumping arguments from an incoming request message
-      --  into the request that will be processed by the
-      --  actual application object. In this case, we know
-      --  that arguments in Dst_Args have their correct canonical
-      --  modes and names. We assume that Src_Args only contain
-      --  arguments whose actual mode (as specifid in Dst_Args) is
-      --  ARG_IN or ARG_INOUT, possibly without names. If without
-      --  names, we assume that they are in the order of Dst_Args.
-
-      --  When direction is ARG_OUT, we are a client and
-      --  we are pumping up INOUT and OUT arguments from an
-      --  incoming reply message into the request that will be
-      --  handed back to the client appplication object.
-      --  (no return value must be present in Src_Args, only
-      --  actual arguments). We assue that Src_Args only contain
-      --  arguments whose actual mode is ARG_INOUT or ARG_OUT,
-      --  possibly without names, and if without names in the
-      --  order of Dst_Args.
-
-      --  Note that we cannot rely on the mode indications in
-      --  Src_Args because some protocols (eg SOAP) do not
-      --  set it correcly (more specifically SOAP does not support
-      --  deferred unmarshalling, and insist on unmarshalling Self.Args
-      --  before Arguments is called. Consequence: 'OUT' mode arguments
-      --  might be missing in Self.Args, and 'INOUT' arguments might
-      --  be marked as 'IN'. Also, there is no guarantee that the order
-      --  of arguments is the same in Args and Self.Args.)
-
-      --  The reconciliation mechanism itself
+      --  Same comment as in Pump_Up_Arguments_By_Position
 
       while not Last (Dst_It) loop
          declare
@@ -415,9 +377,14 @@ package body PolyORB.Requests is
                end loop;
 
                if not Src_Arg_Found then
-                  Throw (Error, Bad_Param_E, Member);
-                  pragma Debug (O ("arg not found"));
-                  return;
+                  declare
+                     Member : constant System_Exception_Members
+                       := (Minor => 1, Completed => Completed_No);
+                  begin
+                     Throw (Error, Bad_Param_E, Member);
+                     pragma Debug (O ("arg not found"));
+                     return;
+                  end;
                end if;
             end if;
          end;
@@ -425,8 +392,8 @@ package body PolyORB.Requests is
       end loop;
 
       if Can_Extend then
-         --  If dst_args is an extensible NV_List, then we append the
-         --  remaining src_args
+         --  If Dst_Args is an extensible NV_List, then we append the
+         --  remaining Src_Args
 
          Src_It := First (List_Of (Src_Args).all);
          Src_Idx := Copied_Src_Args'First;
@@ -487,8 +454,6 @@ package body PolyORB.Requests is
          return False;
       end Name_Exists;
 
-      Member : constant System_Exception_Members
-        := (Minor => 1, Completed => Completed_No);
       Dst_It : Iterator := First (List_Of (Dst_Args).all);
 
       Copied_Src_Args : array (1 .. Long (Get_Count (Src_Args))) of Boolean
@@ -503,36 +468,7 @@ package body PolyORB.Requests is
    begin
       pragma Assert (Direction = ARG_IN or else Direction = ARG_OUT);
 
-      --  When Direction is ARG_IN, we are a server and we
-      --  are pumping arguments from an incoming request message
-      --  into the request that will be processed by the
-      --  actual application object. In this case, we know
-      --  that arguments in Dst_Args have their correct canonical
-      --  modes and names. We assume that Src_Args only contain
-      --  arguments whose actual mode (as specifid in Dst_Args) is
-      --  ARG_IN or ARG_INOUT, possibly without names. If without
-      --  names, we assume that they are in the order of Dst_Args.
-
-      --  When direction is ARG_OUT, we are a client and
-      --  we are pumping up INOUT and OUT arguments from an
-      --  incoming reply message into the request that will be
-      --  handed back to the client appplication object.
-      --  (no return value must be present in Src_Args, only
-      --  actual arguments). We assue that Src_Args only contain
-      --  arguments whose actual mode is ARG_INOUT or ARG_OUT,
-      --  possibly without names, and if without names in the
-      --  order of Dst_Args.
-
-      --  Note that we cannot rely on the mode indications in
-      --  Src_Args because some protocols (eg SOAP) do not
-      --  set it correcly (more specifically SOAP does not support
-      --  deferred unmarshalling, and insist on unmarshalling Self.Args
-      --  before Arguments is called. Consequence: 'OUT' mode arguments
-      --  might be missing in Self.Args, and 'INOUT' arguments might
-      --  be marked as 'IN'. Also, there is no guarantee that the order
-      --  of arguments is the same in Args and Self.Args.)
-
-      --  The reconciliation mechanism itself
+      --  Same comments as in Pump_Up_Arguments_By_Position
 
       while not Last (Dst_It) loop
          declare
@@ -621,13 +557,20 @@ package body PolyORB.Requests is
                                  if Identification_By_Position then
                                     Copy_Argument := True;
                                  else
-                                    Throw (Error, Bad_TypeCode_E, Member);
-                                    pragma Debug (O ("dead end"));
-                                    return;
+                                    declare
+                                       Member : constant
+                                         System_Exception_Members
+                                         := (Minor => 1,
+                                             Completed => Completed_No);
+                                    begin
+                                       Throw (Error, Bad_TypeCode_E, Member);
+                                       pragma Debug (O ("dead end"));
+                                       return;
+
                                     --  We must identify the arguments either
                                     --  by their name or their position. If
                                     --  not, this is an error.
-
+                                    end;
                                  end if;
                               end if;
                            end if;
@@ -648,10 +591,15 @@ package body PolyORB.Requests is
                                  --  If the name does not exist, this
                                  --  means that we will never be able to
                                  --  make this argument match.
-
-                                 Throw (Error, Bad_Param_E, Member);
-                                 pragma Debug (O ("name not found"));
-                                 return;
+                                 declare
+                                    Member : constant System_Exception_Members
+                                      := (Minor => 1,
+                                          Completed => Completed_No);
+                                 begin
+                                    Throw (Error, Bad_Param_E, Member);
+                                    pragma Debug (O ("name not found"));
+                                    return;
+                                 end;
                               end if;
 
                               --  Else, the type of src_arg does not
@@ -662,13 +610,17 @@ package body PolyORB.Requests is
                               --  nothing but continuing the search among
                               --  src_args.
                            else
-                              Throw (Error, Bad_TypeCode_E, Member);
-                              pragma Debug (O ("by position impossible"));
-                              return;
-                              --  We must identify the arguments either
-                              --  by their name or their position. If
-                              --  not, this is an error.
-
+                              declare
+                                 Member : constant System_Exception_Members
+                                   := (Minor => 1, Completed => Completed_No);
+                              begin
+                                 Throw (Error, Bad_TypeCode_E, Member);
+                                 pragma Debug (O ("by position impossible"));
+                                 return;
+                                 --  We must identify the arguments either
+                                 --  by their name or their position. If
+                                 --  not, this is an error.
+                              end;
                            end if;
                         end if;
                      end;
@@ -692,9 +644,14 @@ package body PolyORB.Requests is
                end loop;
 
                if not Src_Arg_Found then
-                  Throw (Error, Bad_Param_E, Member);
-                  pragma Debug (O ("arg not found"));
-                  return;
+                  declare
+                     Member : constant System_Exception_Members
+                       := (Minor => 1, Completed => Completed_No);
+                  begin
+                     Throw (Error, Bad_Param_E, Member);
+                     pragma Debug (O ("arg not found"));
+                     return;
+                  end;
                end if;
             end if;
          end;
@@ -703,7 +660,7 @@ package body PolyORB.Requests is
 
       if Can_Extend then
          --  If dst_args is an extensible NV_List, then we append the
-         --  remaining src_args
+         --  remaining Src_Args
 
          Src_It := First (List_Of (Src_Args).all);
          Src_Idx := Copied_Src_Args'First;
@@ -739,14 +696,16 @@ package body PolyORB.Requests is
       use Components;
       use Exceptions;
 
-      Member : constant System_Exception_Members
-        := (Minor => 1, Completed => Completed_No);
-
    begin
       if Self.Arguments_Called then
-         pragma Debug (O ("Arguments called twice"));
-         Throw (Error, Internal_E, Member);
-         return;
+         declare
+            Member : constant System_Exception_Members
+              := (Minor => 1, Completed => Completed_No);
+         begin
+            pragma Debug (O ("Arguments called twice"));
+            Throw (Error, Internal_E, Member);
+            return;
+         end;
       end if;
       Self.Arguments_Called := True;
 
@@ -806,7 +765,7 @@ package body PolyORB.Requests is
          end;
       end if;
 
---      Self.Out_Args := Args;
+      Self.Out_Args := Args;
    end Arguments;
 
    -----------
