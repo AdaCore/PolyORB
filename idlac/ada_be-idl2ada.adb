@@ -2440,7 +2440,10 @@ package body Ada_Be.Idl2Ada is
         := Kind (Node);
    begin
       case NK is
-         when K_Interface =>
+         when
+           K_Interface    |
+           K_Module       |
+           K_Ben_Idl_File =>
             Add_With (CU, Ada_Full_Name (Node));
 
          when
@@ -2448,8 +2451,9 @@ package body Ada_Be.Idl2Ada is
            K_Union             |
            K_Struct            |
            K_Declarator        |
-           K_Sequence_Instance =>
-            Add_With (CU, Ada_Full_Name (Parent_Scope (Node)));
+           K_Sequence_Instance |
+           K_Forward_Interface =>
+            Add_With_Entity (CU, Parent_Scope (Node));
 
          when K_Scoped_Name =>
             Add_With_Entity (CU, Value (Node));
