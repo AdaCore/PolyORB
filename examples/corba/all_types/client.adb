@@ -163,7 +163,7 @@ begin
       Output ("test long",  echoLong (Myall_types, 456) = 456);
       Output ("test unsigned_short", echoUShort (Myall_types, 456) = 456);
       Output ("test unsigned long long",
-        echoULLong (Myall_types, 9_192_631_768) = 9_192_631_768);
+        echoULLong (Myall_types, 9_192_631_770) = 9_192_631_770);
       Output ("test float", echoFloat (Myall_types, 2.7) = 2.7);
       Output ("test double", echoDouble (Myall_types, 1.5) = 1.5);
       begin
