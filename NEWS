@@ -1,3 +1,30 @@
+Changes since GLADE 1.03
+========================
+
+New Functionnalities
+--------------------
+
+  * New compilation model
+    GNAT does not generate plain Ada stubs anymore but generates
+    object file directly instead. GNATDIST takes advantages from this
+    and compilation times are reduced by an important factor for
+    distributed programs that contain a lot of RCI packages.
+
+  * Parallel compilation
+    GNATDIST now partially supports the -jN flag, where N is the
+    maximum number of processes to launch at the same time (the
+    default being one). This option is useful for multiprocessor
+    machines or in case of slow disk I/O (the unused CPU time caused
+    by the fact that some data is yet unavailable may be used by
+    another compilation).
+    This support is not yet complete and is used only by the build of
+    the non-distributed application.
+
+  * Bug fixes
+    Remote access to subprogram now work correctly.
+    Remote access to class-wide types holding a null value can now be
+    compared to null successfully.
+
 Changes since GLADE 1.02
 ========================
 

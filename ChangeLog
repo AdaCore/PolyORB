@@ -1,3 +1,8 @@
+Thu Oct 30 15:51:02 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* NEWS: Notes about the new compilation model, the bug fixes and
+	  the partial support of parallel compilation.
+
 Wed Oct 29 19:29:05 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* MANIFEST: Remove xe-gcc.in.
