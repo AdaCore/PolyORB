@@ -1,6 +1,6 @@
 with Ada.Unchecked_Deallocation;
 
-package CORBA.Policy.Servant_Retention_Policy.Retain is
+package Droopi.POA_Policies.Servant_Retention_Policy.Retain is
 
    type Retain_Policy is new ServantRetentionPolicy with null record;
    type Retain_Policy_Access is access all Retain_Policy;
@@ -43,4 +43,4 @@ package CORBA.Policy.Servant_Retention_Policy.Retain is
      (Retain_Policy,
       Retain_Policy_Access);
 
-end CORBA.Policy.Servant_Retention_Policy.Retain;
+end Droopi.POA_Policies.Servant_Retention_Policy.Retain;

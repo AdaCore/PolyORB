@@ -61,10 +61,10 @@ package Droopi.POA_Types is
 
    type Unmarshalled_Oid is
      record
-         Id               : CORBA.String;
-         System_Generated : CORBA.Boolean;
+         Id               : Types.String;
+         System_Generated : Boolean;
          Persistency_Flag : Time_Stamp;
-         Creator          : CORBA.String;
+         Creator          : Types.String;
      end record;
    type Unmarshalled_Oid_Access is access Unmarshalled_Oid;
 
@@ -74,22 +74,22 @@ package Droopi.POA_Types is
    function "=" (Left, Right : in Unmarshalled_Oid) return Standard.Boolean;
 
    function Image
-     (Oid : Object_Id) return CORBA.String;
+     (Oid : Object_Id) return Types.String;
    --  For debugging purposes.
 
    function Create_Id
-     (Name             : in CORBA.String;
+     (Name             : in Types.String;
       System_Generated : in CORBA.Boolean;
       Persistency_Flag : in Time_Stamp;
-      Creator          : in CORBA.String)
+      Creator          : in Types.String)
      return Unmarshalled_Oid_Access;
    --  Create an Unmarshalled_Oid
 
    function Create_Id
-     (Name             : in CORBA.String;
+     (Name             : in Types.String;
       System_Generated : in CORBA.Boolean;
       Persistency_Flag : in Time_Stamp;
-      Creator          : in CORBA.String)
+      Creator          : in Types.String)
      return Object_Id_Access;
    --  Create an Unmarshalled_Oid, and then marshall it into an Object_Id
 

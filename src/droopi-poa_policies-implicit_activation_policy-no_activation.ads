@@ -1,6 +1,6 @@
 with Ada.Unchecked_Deallocation;
 
-package CORBA.Policy.Implicit_Activation_Policy.No_Activation is
+package Droopi.POA_Policies.Implicit_Activation_Policy.No_Activation is
 
    type No_Activation_Policy is new ImplicitActivationPolicy with null record;
    type No_Activation_Policy_Access is access all No_Activation_Policy;
@@ -21,4 +21,4 @@ package CORBA.Policy.Implicit_Activation_Policy.No_Activation is
       new Ada.Unchecked_Deallocation (No_Activation_Policy,
                                       No_Activation_Policy_Access);
 
-end CORBA.Policy.Implicit_Activation_Policy.No_Activation;
+end Droopi.POA_Policies.Implicit_Activation_Policy.No_Activation;

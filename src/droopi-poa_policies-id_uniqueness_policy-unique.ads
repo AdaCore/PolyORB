@@ -1,6 +1,6 @@
 with Ada.Unchecked_Deallocation;
 
-package CORBA.Policy.Id_Uniqueness_Policy.Unique is
+package Droopi.POA_Policies.Id_Uniqueness_Policy.Unique is
 
    type Unique_Id_Policy is new IdUniquenessPolicy with null record;
    type Unique_Id_Policy_Access is access all Unique_Id_Policy;
@@ -27,4 +27,4 @@ package CORBA.Policy.Id_Uniqueness_Policy.Unique is
      (Unique_Id_Policy,
       Unique_Id_Policy_Access);
 
-end CORBA.Policy.Id_Uniqueness_Policy.Unique;
+end Droopi.POA_Policies.Id_Uniqueness_Policy.Unique;

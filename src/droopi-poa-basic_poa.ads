@@ -10,32 +10,30 @@ with Droopi.Any.NVList;
 with Droopi.Requests;
 
 with CORBA;
-with CORBA.Policy;
+with Droopi.POA_Policies;
 with CORBA.Policy_Values; use CORBA.Policy_Values;
-with CORBA.Policy.Thread_Policy;
-with CORBA.Policy.Request_Processing_Policy;
-with CORBA.Policy.Id_Assignment_Policy;
-with CORBA.Policy.Id_Uniqueness_Policy;
-with CORBA.Policy.Servant_Retention_Policy;
-with CORBA.Policy.Lifespan_Policy;
-with CORBA.Policy.Implicit_Activation_Policy;
-use CORBA.Policy.Thread_Policy;
-use CORBA.Policy.Request_Processing_Policy;
-use CORBA.Policy.Id_Assignment_Policy;
-use CORBA.Policy.Id_Uniqueness_Policy;
-use CORBA.Policy.Servant_Retention_Policy;
-use CORBA.Policy.Lifespan_Policy;
-use CORBA.Policy.Implicit_Activation_Policy;
+with Droopi.POA_Policies.Thread_Policy;
+with Droopi.POA_Policies.Request_Processing_Policy;
+with Droopi.POA_Policies.Id_Assignment_Policy;
+with Droopi.POA_Policies.Id_Uniqueness_Policy;
+with Droopi.POA_Policies.Servant_Retention_Policy;
+with Droopi.POA_Policies.Lifespan_Policy;
+with Droopi.POA_Policies.Implicit_Activation_Policy;
+use Droopi.POA_Policies.Thread_Policy;
+use Droopi.POA_Policies.Request_Processing_Policy;
+use Droopi.POA_Policies.Id_Assignment_Policy;
+use Droopi.POA_Policies.Id_Uniqueness_Policy;
+use Droopi.POA_Policies.Servant_Retention_Policy;
+use Droopi.POA_Policies.Lifespan_Policy;
+use Droopi.POA_Policies.Implicit_Activation_Policy;
 
 package Droopi.POA.Basic_POA is
 
    pragma Elaborate_Body;
 
-   use CORBA;
-
    type Basic_Obj_Adapter is new Droopi.POA.Obj_Adapter with
       record
-         P_Factory : CORBA.Policy.Policies_Factory;
+         P_Factory : Droopi.POA_Policies.Policies_Factory;
       end record;
    type Basic_Obj_Adapter_Access is access all Basic_Obj_Adapter;
    --  The POA object
@@ -46,9 +44,9 @@ package Droopi.POA.Basic_POA is
 
    function Create_POA
      (Self         : access Basic_Obj_Adapter;
-      Adapter_Name :        CORBA.String;
+      Adapter_Name :        Types.String;
       A_POAManager :        POA_Manager.POAManager_Access;
-      Policies     :        CORBA.Policy.PolicyList_Access)
+      Policies     :        Droopi.POA_Policies.PolicyList_Access)
      return Obj_Adapter_Access;
    --  Create a POA given its name and a list of policies
    --  Policies are optionnal : defaults values are provided
@@ -168,7 +166,7 @@ package Droopi.POA.Basic_POA is
 
    procedure Remove_POA_By_Name
      (Self       : access Basic_Obj_Adapter;
-      Child_Name :        CORBA.String);
+      Child_Name :        Types.String);
    --  Remove a child POA from Self's list of children
    --  Doesn't lock the list of children
 
@@ -178,7 +176,7 @@ package Droopi.POA.Basic_POA is
 
    function Find_POA_Recursively
      (Self : access Basic_Obj_Adapter;
-      Name :        CORBA.String)
+      Name :        Types.String)
      return Basic_Obj_Adapter_Access;
    --  Starting from given POA, looks for the POA in all the descendancy whose
    --  name is Name. Returns null if not found.

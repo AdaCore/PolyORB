@@ -1,6 +1,6 @@
 with Droopi.POA_Types;     use Droopi.POA_Types;
 
-package CORBA.Policy.Id_Assignment_Policy is
+package Droopi.POA_Policies.Id_Assignment_Policy is
 
    type IdAssignmentPolicy is abstract new Policy with null record;
    subtype Id_Assignment_Policy is IdAssignmentPolicy;
@@ -75,4 +75,4 @@ package CORBA.Policy.Id_Assignment_Policy is
      (P   : in     IdAssignmentPolicy;
       Ptr : in out Policy_Access) is abstract;
 
-end CORBA.Policy.Id_Assignment_Policy;
+end Droopi.POA_Policies.Id_Assignment_Policy;

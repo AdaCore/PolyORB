@@ -1,6 +1,6 @@
 with Droopi.POA_Types;               use Droopi.POA_Types;
 
-package CORBA.Policy.Id_Uniqueness_Policy is
+package Droopi.POA_Policies.Id_Uniqueness_Policy is
 
    type IdUniquenessPolicy is abstract new Policy with null record;
    subtype Id_Uniqueness_Policy is IdUniquenessPolicy;
@@ -37,4 +37,4 @@ package CORBA.Policy.Id_Uniqueness_Policy is
    --  Case MULTIPLE_ID:
    --    Returns null.
 
-end CORBA.Policy.Id_Uniqueness_Policy;
+end Droopi.POA_Policies.Id_Uniqueness_Policy;

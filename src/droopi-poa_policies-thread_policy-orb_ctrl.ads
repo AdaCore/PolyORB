@@ -1,6 +1,6 @@
 with Ada.Unchecked_Deallocation;
 
-package CORBA.Policy.Thread_Policy.Orb_Ctrl is
+package Droopi.POA_Policies.Thread_Policy.Orb_Ctrl is
 
    type Orb_Ctrl_Policy is new ThreadPolicy with null record;
    type Orb_Ctrl_Policy_Access is access all Orb_Ctrl_Policy;
@@ -18,4 +18,4 @@ package CORBA.Policy.Thread_Policy.Orb_Ctrl is
    procedure Free is new Ada.Unchecked_Deallocation (Orb_Ctrl_Policy,
                                                      Orb_Ctrl_Policy_Access);
 
-end CORBA.Policy.Thread_Policy.Orb_Ctrl;
+end Droopi.POA_Policies.Thread_Policy.Orb_Ctrl;

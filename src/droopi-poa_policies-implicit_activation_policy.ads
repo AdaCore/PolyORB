@@ -1,6 +1,6 @@
 with Droopi.POA_Types;     use Droopi.POA_Types;
 
-package CORBA.Policy.Implicit_Activation_Policy is
+package Droopi.POA_Policies.Implicit_Activation_Policy is
 
    type ImplicitActivationPolicy is abstract new Policy with null record;
    subtype Implicit_Activation_Policy is ImplicitActivationPolicy;
@@ -27,4 +27,4 @@ package CORBA.Policy.Implicit_Activation_Policy is
                    Ptr : in out Policy_Access)
       is abstract;
 
-end CORBA.Policy.Implicit_Activation_Policy;
+end Droopi.POA_Policies.Implicit_Activation_Policy;

@@ -1,6 +1,6 @@
 with Droopi.POA_Types;     use Droopi.POA_Types;
 
-package CORBA.Policy.Servant_Retention_Policy is
+package Droopi.POA_Policies.Servant_Retention_Policy is
 
    type ServantRetentionPolicy is abstract new Policy with null record;
    subtype Servant_Retention_Policy is ServantRetentionPolicy;
@@ -74,4 +74,4 @@ package CORBA.Policy.Servant_Retention_Policy is
    --  Case NON_RETAIN:
    --    Raises WrongPolicy.
 
-end CORBA.Policy.Servant_Retention_Policy;
+end Droopi.POA_Policies.Servant_Retention_Policy;

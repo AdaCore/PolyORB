@@ -1,6 +1,6 @@
 with Droopi.POA_Types;     use Droopi.POA_Types;
 
-package CORBA.Policy.Request_Processing_Policy is
+package Droopi.POA_Policies.Request_Processing_Policy is
 
    type RequestProcessingPolicy is abstract new Policy with null record;
    subtype Request_Processing_Policy is RequestProcessingPolicy;
@@ -54,4 +54,4 @@ package CORBA.Policy.Request_Processing_Policy is
    --    to create it. If there's not servant manager, raises Obj_Adapter
    --    with minor code 4.
 
-end CORBA.Policy.Request_Processing_Policy;
+end Droopi.POA_Policies.Request_Processing_Policy;

@@ -1,6 +1,6 @@
 with Ada.Unchecked_Deallocation;
 
-package CORBA.Policy.Id_Assignment_Policy.System is
+package Droopi.POA_Policies.Id_Assignment_Policy.System is
 
    type System_Id_Policy is new IdAssignmentPolicy with null record;
    type System_Id_Policy_Access is access all System_Id_Policy;
@@ -50,4 +50,4 @@ package CORBA.Policy.Id_Assignment_Policy.System is
      (System_Id_Policy,
       System_Id_Policy_Access);
 
-end CORBA.Policy.Id_Assignment_Policy.System;
+end Droopi.POA_Policies.Id_Assignment_Policy.System;

@@ -1,11 +1,17 @@
+--  Basic POA implementation.
+
+--  $Id$
+
 with Ada.Real_Time;
+
+with CORBA.Policy_Values;
 
 with Droopi.Objects;
 with Droopi.Log;
 pragma Elaborate_All (Droopi.Log);
 with Droopi.CORBA_P.Exceptions; use Droopi.CORBA_P.Exceptions;
+with Droopi.Types;
 
-with CORBA.Policy_Values;
 with Droopi.POA_Types;
 with Droopi.POA_Manager.Basic_Manager;
 
@@ -14,13 +20,15 @@ with POA_Configuration;
 
 package body Droopi.POA.Basic_POA is
 
-   use CORBA;
+   use Droopi.Types;
+
    use POA_Types;
-   use Droopi.Log;
-   use Droopi.Locks;
-   use CORBA.Policy;
    use POA_Configuration;
    use POA_Configuration.Minimum;
+
+   use Droopi.Locks;
+   use Droopi.Log;
+   use Droopi.POA_Policies;
    use Droopi.POA_Manager;
    use Droopi.POA_Manager.Basic_Manager;
 
@@ -43,7 +51,7 @@ package body Droopi.POA.Basic_POA is
 
    procedure Init_With_User_Policies
      (OA       : Basic_Obj_Adapter_Access;
-      Policies : CORBA.Policy.PolicyList_Access);
+      Policies : Droopi.POA_Policies.PolicyList_Access);
 
    procedure Init_With_Default_Policies (OA : Basic_Obj_Adapter_Access);
 
@@ -123,7 +131,7 @@ package body Droopi.POA.Basic_POA is
 
    procedure Init_With_User_Policies
      (OA       : Basic_Obj_Adapter_Access;
-      Policies : CORBA.Policy.PolicyList_Access)
+      Policies : Droopi.POA_Policies.PolicyList_Access)
    is
       A_Policy : Policy_Access;
    begin
@@ -400,8 +408,8 @@ package body Droopi.POA.Basic_POA is
       --  Create new Obj Adapter
       New_Obj_Adapter                  := new Basic_Obj_Adapter;
       New_Obj_Adapter.Boot_Time        := Get_Boot_Time;
-      New_Obj_Adapter.Name             := To_CORBA_String ("RootPOA");
-      New_Obj_Adapter.Absolute_Address := To_CORBA_String ("");
+      New_Obj_Adapter.Name             := To_Droopi_String ("RootPOA");
+      New_Obj_Adapter.Absolute_Address := To_Droopi_String ("");
       Create (New_Obj_Adapter.Children_Lock);
       Create (New_Obj_Adapter.Map_Lock);
 
@@ -412,7 +420,7 @@ package body Droopi.POA.Basic_POA is
 
       --  Create and initialize policies factory
       New_Obj_Adapter.P_Factory
-        := CORBA.Policy.Policies_Factory_Pkg.New_Dict;
+        := Droopi.POA_Policies.Policies_Factory_Pkg.New_Dict;
       Initialize (Conf, New_Obj_Adapter.P_Factory);
 
       --  Use default policies
@@ -431,9 +439,9 @@ package body Droopi.POA.Basic_POA is
 
    function Create_POA
      (Self         : access Basic_Obj_Adapter;
-      Adapter_Name :        CORBA.String;
+      Adapter_Name :        Types.String;
       A_POAManager :        POA_Manager.POAManager_Access;
-      Policies     :        CORBA.Policy.PolicyList_Access)
+      Policies     :        Droopi.POA_Policies.PolicyList_Access)
      return Obj_Adapter_Access
    is
       New_Obj_Adapter : Basic_Obj_Adapter_Access;
@@ -476,7 +484,7 @@ package body Droopi.POA.Basic_POA is
 
       --  Create and initialize policies factory
       New_Obj_Adapter.P_Factory
-        := CORBA.Policy.Policies_Factory_Pkg.New_Dict;
+        := Droopi.POA_Policies.Policies_Factory_Pkg.New_Dict;
       Initialize (Conf, New_Obj_Adapter.P_Factory);
 
       --  Init policies with those given by the user
@@ -497,7 +505,7 @@ package body Droopi.POA.Basic_POA is
       Index := Register_Child (Self, New_Obj_Adapter);
       if Length (Self.Absolute_Address) > 0 then
          New_Obj_Adapter.Absolute_Address := Self.Absolute_Address
-           & To_CORBA_String (".") & Adapter_Name;
+           & To_Droopi_String (".") & Adapter_Name;
       else
          New_Obj_Adapter.Absolute_Address
            := Self.Absolute_Address & Adapter_Name;
@@ -530,7 +538,7 @@ package body Droopi.POA.Basic_POA is
    is
       use Droopi.POA_Types.POA_Sequences;
       A_Child : Droopi.POA.Obj_Adapter_Access;
-      Name    : CORBA.String := Self.Name;
+      Name    : Types.String := Self.Name;
    begin
       pragma Debug (O ("Start destroying POA "
                        & To_Standard_String (Name)));
@@ -579,7 +587,8 @@ package body Droopi.POA.Basic_POA is
    is
    begin
       return ThreadPolicy_Access
-        (CORBA.Policy.Policies_Factory_Pkg.Lookup (Self.P_Factory.all, Value));
+        (Droopi.POA_Policies.Policies_Factory_Pkg.Lookup
+         (Self.P_Factory.all, Value));
    end Create_Thread_Policy;
 
    ----------------------------
@@ -593,7 +602,8 @@ package body Droopi.POA.Basic_POA is
    is
    begin
       return LifespanPolicy_Access
-        (CORBA.Policy.Policies_Factory_Pkg.Lookup (Self.P_Factory.all, Value));
+        (Droopi.POA_Policies.Policies_Factory_Pkg.Lookup
+         (Self.P_Factory.all, Value));
    end Create_Lifespan_Policy;
 
    ---------------------------------
@@ -607,7 +617,8 @@ package body Droopi.POA.Basic_POA is
    is
    begin
       return IdUniquenessPolicy_Access
-        (CORBA.Policy.Policies_Factory_Pkg.Lookup (Self.P_Factory.all, Value));
+        (Droopi.POA_Policies.Policies_Factory_Pkg.Lookup
+         (Self.P_Factory.all, Value));
    end Create_Id_Uniqueness_Policy;
 
    ----------------------------------
@@ -621,7 +632,8 @@ package body Droopi.POA.Basic_POA is
    is
    begin
       return IdAssignmentPolicy_Access
-        (CORBA.Policy.Policies_Factory_Pkg.Lookup (Self.P_Factory.all, Value));
+        (Droopi.POA_Policies.Policies_Factory_Pkg.Lookup
+         (Self.P_Factory.all, Value));
    end Create_Id_Assignment_Policy;
 
    -------------------------------------
@@ -635,7 +647,8 @@ package body Droopi.POA.Basic_POA is
    is
    begin
       return ServantRetentionPolicy_Access
-        (CORBA.Policy.Policies_Factory_Pkg.Lookup (Self.P_Factory.all, Value));
+        (Droopi.POA_Policies.Policies_Factory_Pkg.Lookup
+         (Self.P_Factory.all, Value));
    end Create_Servant_Retention_Policy;
 
    --------------------------------------
@@ -649,7 +662,8 @@ package body Droopi.POA.Basic_POA is
    is
    begin
       return RequestProcessingPolicy_Access
-        (CORBA.Policy.Policies_Factory_Pkg.Lookup (Self.P_Factory.all, Value));
+        (Droopi.POA_Policies.Policies_Factory_Pkg.Lookup
+         (Self.P_Factory.all, Value));
    end Create_Request_Processing_Policy;
 
    ---------------------------------------
@@ -663,7 +677,8 @@ package body Droopi.POA.Basic_POA is
    is
    begin
       return ImplicitActivationPolicy_Access
-        (CORBA.Policy.Policies_Factory_Pkg.Lookup (Self.P_Factory.all, Value));
+        (Droopi.POA_Policies.Policies_Factory_Pkg.Lookup
+         (Self.P_Factory.all, Value));
    end Create_Implicit_Activation_Policy;
 
    ---------------------
@@ -676,9 +691,10 @@ package body Droopi.POA.Basic_POA is
      return Object_Id
    is
       Oid : Object_Id_Access
-        := Activate_Object (Self.Servant_Retention_Policy.all,
-                            POA_Types.Obj_Adapter_Access (Self),
-                            P_Servant);
+        := Activate_Object
+        (Self.Servant_Retention_Policy.all,
+         POA_Types.Obj_Adapter_Access (Self),
+         P_Servant);
    begin
       return Oid.all;
    end Activate_Object;
@@ -693,11 +709,13 @@ package body Droopi.POA.Basic_POA is
       Oid       : in     Object_Id)
    is
    begin
-      --      CORBA.Policy.Servant_Retention_Policy.Activate_Object_With_Id
-      Activate_Object_With_Id (Self.Servant_Retention_Policy.all,
-                               POA_Types.Obj_Adapter_Access (Self),
-                               P_Servant,
-                               Oid);
+      --  Droopi.POA_Policies.Servant_Retention_Policy.
+      --    Activate_Object_With_Id
+      Activate_Object_With_Id
+        (Self.Servant_Retention_Policy.all,
+         POA_Types.Obj_Adapter_Access (Self),
+         P_Servant,
+         Oid);
    end Activate_Object_With_Id;
 
    -----------------------
@@ -709,10 +727,11 @@ package body Droopi.POA.Basic_POA is
       Oid       : in Object_Id)
    is
    begin
-      Deactivate (Self.Servant_Retention_Policy.all,
-                  Droopi.POA_Types.Obj_Adapter_Access (Self),
-                  Oid);
-      --  ??? Wait for completion?
+      Deactivate
+        (Self.Servant_Retention_Policy.all,
+         Droopi.POA_Types.Obj_Adapter_Access (Self),
+         Oid);
+      --  XXX ??? Wait for completion?
    end Deactivate_Object;
 
    -------------------
@@ -762,13 +781,13 @@ package body Droopi.POA.Basic_POA is
 
    function Find_POA_Recursively
      (Self : access Basic_Obj_Adapter;
-      Name : CORBA.String)
+      Name : Types.String)
      return Basic_Obj_Adapter_Access
    is
       use Droopi.POA_Types.POA_Sequences;
       Split_Point      : Natural := Index (Name, ".");
-      Remaining_Name   : CORBA.String;
-      A_Child_Name     : CORBA.String;
+      Remaining_Name   : Types.String;
+      A_Child_Name     : Types.String;
       A_Child          : Obj_Adapter_Access;
    begin
       if Name = "" then
@@ -830,7 +849,7 @@ package body Droopi.POA.Basic_POA is
 
    procedure Remove_POA_By_Name
      (Self       : access Basic_Obj_Adapter;
-      Child_Name :        CORBA.String)
+      Child_Name :        Types.String)
    is
       use POA_Sequences;
       A_Child : POA_Types.Obj_Adapter_Access;

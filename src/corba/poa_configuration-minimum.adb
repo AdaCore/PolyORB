@@ -1,16 +1,16 @@
-with CORBA.Policy.Id_Assignment_Policy.System;
-with CORBA.Policy.Id_Uniqueness_Policy.Unique;
-with CORBA.Policy.Implicit_Activation_Policy.No_Activation;
-with CORBA.Policy.Lifespan_Policy.Transient;
-with CORBA.Policy.Request_Processing_Policy.Active_Object_Map_Only;
-with CORBA.Policy.Servant_Retention_Policy.Retain;
-with CORBA.Policy.Thread_Policy.Orb_Ctrl;
+with Droopi.POA_Policies.Id_Assignment_Policy.System;
+with Droopi.POA_Policies.Id_Uniqueness_Policy.Unique;
+with Droopi.POA_Policies.Implicit_Activation_Policy.No_Activation;
+with Droopi.POA_Policies.Lifespan_Policy.Transient;
+with Droopi.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only;
+with Droopi.POA_Policies.Servant_Retention_Policy.Retain;
+with Droopi.POA_Policies.Thread_Policy.Orb_Ctrl;
 with CORBA.Policy_Values;
 
 package body  POA_Configuration.Minimum is
 
-   use CORBA.Policy;
-   use CORBA.Policy.Policies_Factory_Pkg;
+   use Droopi.POA_Policies;
+   use Droopi.POA_Policies.Policies_Factory_Pkg;
    use CORBA.Policy_Values;
 
    ----------------
@@ -18,7 +18,7 @@ package body  POA_Configuration.Minimum is
    ----------------
 
    procedure Initialize (C : Minimum_Configuration;
-                         F : CORBA.Policy.Policies_Factory)
+                         F : Droopi.POA_Policies.Policies_Factory)
    is
    begin
       Register

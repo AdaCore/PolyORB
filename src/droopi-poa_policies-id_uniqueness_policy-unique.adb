@@ -3,9 +3,8 @@ with Droopi.Locks;              use Droopi.Locks;
 
 with Droopi.POA;
 with CORBA.Object_Map;
-with CORBA.Policy_Types;            use CORBA.Policy_Types;
 
-package body CORBA.Policy.Id_Uniqueness_Policy.Unique is
+package body Droopi.POA_Policies.Id_Uniqueness_Policy.Unique is
 
    use CORBA.Policy_Values;
 
@@ -17,10 +16,8 @@ package body CORBA.Policy.Id_Uniqueness_Policy.Unique is
    is
       Policy : Unique_Id_Policy_Access;
    begin
-      Policy := new Unique_Id_Policy'(Policy_Type =>
-                                        ID_UNIQUENESS_POLICY_ID,
-                                      Value =>
-                                        CORBA.Policy_Values.UNIQUE_ID);
+      Policy := new Unique_Id_Policy'
+        (Value => CORBA.Policy_Values.UNIQUE_ID);
       return Policy;
    end Create;
 
@@ -28,8 +25,9 @@ package body CORBA.Policy.Id_Uniqueness_Policy.Unique is
    -- Check_Compatibility --
    -------------------------
 
-   procedure Check_Compatibility (Self : Unique_Id_Policy;
-                                  OA   : Droopi.POA_Types.Obj_Adapter_Access)
+   procedure Check_Compatibility
+     (Self : Unique_Id_Policy;
+      OA   : Droopi.POA_Types.Obj_Adapter_Access)
    is
    begin
       null;
@@ -45,6 +43,7 @@ package body CORBA.Policy.Id_Uniqueness_Policy.Unique is
       P_Servant : Servant_Access)
    is
       use CORBA.Object_Map;
+
       P_OA : Droopi.POA.Obj_Adapter_Access
         := Droopi.POA.Obj_Adapter_Access (OA);
    begin
@@ -92,4 +91,4 @@ package body CORBA.Policy.Id_Uniqueness_Policy.Unique is
       Free (Unique_Id_Policy_Access (Ptr));
    end Free;
 
-end CORBA.Policy.Id_Uniqueness_Policy.Unique;
+end Droopi.POA_Policies.Id_Uniqueness_Policy.Unique;

@@ -1,17 +1,25 @@
---  The root Policy package.
+--  Base types for the various configuration axes (policies)
+--  of the DROOPI Portable Object Adapter (libreally inspired from
+--  the POA specification in CORBA).
 
 --  $Id$
 
-with CORBA.Policy_Values; use CORBA.Policy_Values;
-with Droopi.POA_Types;
 with Sequences.Unbounded;
-with Droopi.Static_Dict;
 
-package CORBA.Policy is
+with Droopi.POA_Types;
+with Droopi.Static_Dict;
+--  with Droopi.Types;
+
+with CORBA.Policy_Values; use CORBA.Policy_Values;
+--  XXX remove reference to CORBA.
+
+package Droopi.POA_Policies is
+
+   --  type PolicyType is new Droopi.Types.Unsigned_Long;
 
    type Policy is abstract tagged
       record
-         Policy_Type : PolicyType;
+         --  Policy_Type : PolicyType;
          Value       : Policy_Value;
       end record;
    type Policy_Access is access all Policy'Class;
@@ -22,7 +30,7 @@ package CORBA.Policy is
 
    package Policies_Factory_Pkg is
       new Droopi.Static_Dict
-     (Value => CORBA.Policy.Policy_Access,
+     (Value => Droopi.POA_Policies.Policy_Access,
       Key   => CORBA.Policy_Values.Policy_Value);
    subtype Policies_Factory is Policies_Factory_Pkg.Dict_Access;
 
@@ -40,4 +48,4 @@ package CORBA.Policy is
                    Ptr : in out Policy_Access)
      is abstract;
 
-end CORBA.Policy;
+end Droopi.POA_Policies;

@@ -2,7 +2,7 @@
 --  with Droopi.POA_Types;     use Droopi.POA_Types;
 with Ada.Unchecked_Deallocation;
 
-package CORBA.Policy.Request_Processing_Policy.Active_Object_Map_Only is
+package Droopi.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only is
 
    type Active_Map_Only_Policy is new RequestProcessingPolicy with null record;
    type Active_Map_Only_Policy_Access is access all Active_Map_Only_Policy;
@@ -31,4 +31,4 @@ package CORBA.Policy.Request_Processing_Policy.Active_Object_Map_Only is
       new Ada.Unchecked_Deallocation (Active_Map_Only_Policy,
                                       Active_Map_Only_Policy_Access);
 
-end CORBA.Policy.Request_Processing_Policy.Active_Object_Map_Only;
+end Droopi.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only;

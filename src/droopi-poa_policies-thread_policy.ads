@@ -1,6 +1,6 @@
 with Droopi.POA_Types;
 
-package CORBA.Policy.Thread_Policy is
+package Droopi.POA_Policies.Thread_Policy is
 
    type ThreadPolicy is abstract new Policy with null record;
    subtype Thread_Policy is ThreadPolicy;
@@ -19,4 +19,4 @@ package CORBA.Policy.Thread_Policy is
                    Ptr : in out Policy_Access)
       is abstract;
 
-end CORBA.Policy.Thread_Policy;
+end Droopi.POA_Policies.Thread_Policy;

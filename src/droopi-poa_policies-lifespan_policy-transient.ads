@@ -1,6 +1,6 @@
 with Ada.Unchecked_Deallocation;
 
-package CORBA.Policy.Lifespan_Policy.Transient is
+package Droopi.POA_Policies.Lifespan_Policy.Transient is
 
    type Transient_Policy is new LifespanPolicy with null record;
    type Transient_Policy_Access is access all Transient_Policy;
@@ -25,4 +25,4 @@ package CORBA.Policy.Lifespan_Policy.Transient is
      (Transient_Policy,
       Transient_Policy_Access);
 
-end CORBA.Policy.Lifespan_Policy.Transient;
+end Droopi.POA_Policies.Lifespan_Policy.Transient;

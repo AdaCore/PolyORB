@@ -1,7 +1,7 @@
 with Droopi.POA_Types;     use Droopi.POA_Types;
 
 
-package CORBA.Policy.Lifespan_Policy is
+package Droopi.POA_Policies.Lifespan_Policy is
 
    type LifespanPolicy is abstract new Policy with null record;
    subtype Lifespan_Policy is LifespanPolicy;
@@ -31,4 +31,4 @@ package CORBA.Policy.Lifespan_Policy is
      (P   : in     LifespanPolicy;
       Ptr : in out Policy_Access) is abstract;
 
-end CORBA.Policy.Lifespan_Policy;
+end Droopi.POA_Policies.Lifespan_Policy;
