@@ -47,7 +47,7 @@ with PolyORB.Protocols;
 with PolyORB.Protocols.GIOP;
 with PolyORB.Representations.CDR;
 with PolyORB.References.IOR;
-with PolyORB.Transport.Sockets;
+with PolyORB.Transport.Connected.Sockets;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Binding_Data.IIOP is
@@ -56,7 +56,7 @@ package body PolyORB.Binding_Data.IIOP is
    use PolyORB.Objects;
    use PolyORB.References.IOR;
    use PolyORB.Representations.CDR;
-   use PolyORB.Transport.Sockets;
+   use PolyORB.Transport.Connected.Sockets;
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.binding_data.iiop");
@@ -124,6 +124,7 @@ package body PolyORB.Binding_Data.IIOP is
       The_ORB : Components.Component_Access)
      return Components.Component_Access
    is
+      use PolyORB.ORB;
       use PolyORB.Components;
       use PolyORB.Protocols;
       use PolyORB.Protocols.GIOP;
@@ -134,7 +135,7 @@ package body PolyORB.Binding_Data.IIOP is
       Sock        : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
       TE          : constant Transport.Transport_Endpoint_Access
-        := new Transport.Sockets.Socket_Endpoint;
+        := new Socket_Endpoint;
       Pro         : aliased GIOP_Protocol;
       Sli         : aliased Slicer_Factory;
       Prof        : constant Profile_Access := new IIOP_Profile_Type;
@@ -164,7 +165,7 @@ package body PolyORB.Binding_Data.IIOP is
       --  the APEX compiler.
 
       ORB.Register_Endpoint
-        (ORB.ORB_Access (The_ORB),
+        (ORB_Access (The_ORB),
          TE,
          Filter,
          ORB.Client);
@@ -244,9 +245,6 @@ package body PolyORB.Binding_Data.IIOP is
       Oid :        Objects.Object_Id)
      return Profile_Access
    is
-      use PolyORB.Transport.Sockets;
-      use Component_Seq;
-
       Result : constant Profile_Access
         := new IIOP_Profile_Type;
 

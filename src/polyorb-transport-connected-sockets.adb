@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . T R A N S P O R T . S O C K E T S             --
+--  P O L Y O R B . T R A N S P O R T . C O N N E C T E D . S O C K E T S   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -34,12 +34,10 @@
 --  Socket implementation of transport service access points
 --  and communication endpoints.
 
---  $Id$
-
 with PolyORB.Asynch_Ev.Sockets;
 with PolyORB.Log;
 
-package body PolyORB.Transport.Sockets is
+package body PolyORB.Transport.Connected.Sockets is
 
    use Ada.Streams;
 
@@ -48,7 +46,8 @@ package body PolyORB.Transport.Sockets is
    use PolyORB.Log;
    use PolyORB.Tasking.Mutexes;
 
-   package L is new PolyORB.Log.Facility_Log ("polyorb.transport.sockets");
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.transport.connected.sockets");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -78,9 +77,17 @@ package body PolyORB.Transport.Sockets is
 
    function Create_Event_Source
      (TAP : Socket_Access_Point)
-     return Asynch_Ev_Source_Access is
+     return Asynch_Ev_Source_Access
+   is
+      use PolyORB.Annotations;
+
+      Ev_Src : constant Asynch_Ev_Source_Access
+        := Create_Event_Source (TAP.Socket);
    begin
-      return Create_Event_Source (TAP.Socket);
+      Set_Note (Notepad_Of (Ev_Src).all,
+                AES_Note'(Annotations.Note with Handler =>
+                            new Connected_TAP_AES_Event_Handler));
+      return Ev_Src;
    end Create_Event_Source;
 
    -----------------------
@@ -131,9 +138,17 @@ package body PolyORB.Transport.Sockets is
 
    function Create_Event_Source
      (TE : Socket_Endpoint)
-     return Asynch_Ev_Source_Access is
+     return Asynch_Ev_Source_Access
+   is
+      use PolyORB.Annotations;
+
+      Ev_Src : constant Asynch_Ev_Source_Access
+        := Create_Event_Source (TE.Socket);
    begin
-      return Create_Event_Source (TE.Socket);
+      Set_Note (Notepad_Of (Ev_Src).all,
+                AES_Note'(Annotations.Note with Handler =>
+                            new Connected_TE_AES_Event_Handler));
+      return Ev_Src;
    end Create_Event_Source;
 
    -----------
@@ -195,4 +210,4 @@ package body PolyORB.Transport.Sockets is
       Destroy (TE.Mutex);
    end Close;
 
-end PolyORB.Transport.Sockets;
+end PolyORB.Transport.Connected.Sockets;

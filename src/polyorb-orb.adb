@@ -111,7 +111,7 @@ package body PolyORB.ORB is
 
    procedure Insert_Source
      (ORB : access ORB_Type;
-      AES :        Asynch_Ev_Source_Access);
+      AES :        PolyORB.Asynch_Ev.Asynch_Ev_Source_Access);
    --  Insert AES in the set of asynchronous event sources
    --  monitored by ORB. The caller must not hold the ORB lock.
 
@@ -122,75 +122,13 @@ package body PolyORB.ORB is
    --  monitored by ORB. AES is destroyed.
    --  The caller must not hold the ORB lock.
 
-   ---------
-   -- Run --
-   ---------
-
-   procedure Run
-     (AEH : access AES_Event_Handler) is
-   begin
-      Handle_Event
-        (AES_Event_Handler'Class (AEH.all)'Access,
-         AEH.ORB,
-         AEH.AES);
-      --  Redispatch.
-
-      if AEH.AES = null then
-         declare
-            V_AEH : Job_Access := Job_Access (AEH);
-         begin
-            Free (V_AEH);
-         end;
-      end if;
-   end Run;
-
-   --------------------------------------
-   -- Spec of 'Event_Handlers' package --
-   --------------------------------------
-
-   package Event_Handlers is
-
-      --  Handler for AES associated with a Transport Access Point
-
-      type TAP_AES_Event_Handler is new AES_Event_Handler with record
-         TAP : Transport_Access_Point_Access;
-         --  Factory of Transport_Endpoint components.
-
-         Filter_Factory_Chain : Filters.Factory_Access;
-         --  Factory of Filter (protocol stack) components.
-
-         Profile_Factory : Binding_Data.Profile_Factory_Access;
-         --  Factory of profiles capable of associating the
-         --  address of TAP and the specification of the
-         --  protocol implemented by Filter_Factory_Chain
-         --  with an object id.
-      end record;
-
-      procedure Handle_Event
-        (H   : access TAP_AES_Event_Handler;
-         ORB :        ORB_Access;
-         AES : in out Asynch_Ev_Source_Access);
-
-      --  Handler for AES associated with a Transport Endpoint
-
-      type TE_AES_Event_Handler is new AES_Event_Handler with record
-         TE : Transport_Endpoint_Access;
-         --  Transport_Endpoint component (connected to a
-         --  protocol stack).
-      end record;
-
-      procedure Handle_Event
-        (H   : access TE_AES_Event_Handler;
-         ORB :        ORB_Access;
-         AES : in out Asynch_Ev_Source_Access);
-   end Event_Handlers;
-
    --------------------------------------------
    -- Annotations used by the ORB internally --
    --------------------------------------------
 
    type TAP_Note is new Note with record
       Profile_Factory : Binding_Data.Profile_Factory_Access;
+      AES             : Asynch_Ev.Asynch_Ev_Source_Access;
    end record;
 
    type TE_Note is new Note with record
@@ -293,91 +231,6 @@ package body PolyORB.ORB is
       Get_Note (Notepad_Of (AES).all, Note);
       Queue_Job (ORB.Job_Queue, Job_Access (Note.Handler));
    end Queue_Event;
-
-   --------------------------------------
-   -- Body of 'Event_Handlers' package --
-   --------------------------------------
-
-   package body Event_Handlers is
-
-      ------------------
-      -- Handle_Event --
-      ------------------
-
-      procedure Handle_Event
-        (H   : access TAP_AES_Event_Handler;
-         ORB :        ORB_Access;
-         AES : in out Asynch_Ev_Source_Access) is
-      begin
-         pragma Debug (O ("Handle_Event: TAP AES"));
-
-         declare
-            New_TE     : Transport_Endpoint_Access;
-            New_Filter : Filter_Access;
-         begin
-            Accept_Connection (H.TAP.all, New_TE);
-            --  Create transport endpoint.
-
-            New_Filter := Create_Filter_Chain
-              (H.Filter_Factory_Chain);
-
-            pragma Debug (O ("Inserting new source: Endpoint"));
-            Register_Endpoint (ORB, New_TE, New_Filter, Server);
-
-            Insert_Source (ORB, AES);
-            --  Continue monitoring the TAP's AES.
-         end;
-      end Handle_Event;
-
-      ------------------
-      -- Handle_Event --
-      ------------------
-
-      procedure Handle_Event
-        (H   : access TE_AES_Event_Handler;
-         ORB :        ORB_Access;
-         AES : in out Asynch_Ev_Source_Access) is
-      begin
-         pragma Debug (O ("Handle_Event: TE AES"));
-
-         begin
-            Emit_No_Reply
-              (Component_Access (H.TE),
-               Filters.Interface.Data_Indication'
-                 (Data_Amount => 0));
-            --  The size of the data received is not known yet.
-
-         exception
-            when Connection_Closed =>
-               O ("Connection closed.");
-
-               --  Close has been called on the transport endpoint.
-               --  Both the Endpoint and the associated AES must
-               --  now be destroyed.
-               Handle_Close_Server_Connection
-                 (ORB.Tasking_Policy, H.TE);
-
-               Destroy (H.TE);
-               --  Destroy the transport endpoint and the associated
-               --  protocol stack.
-
-               Destroy (AES);
-               --  No need to Unregister_Source, because the AES
-               --  is already unregistered while an event is being
-               --  processed.
-
-            when E : others =>
-               O ("Got exception while sending Data_Indication:", Error);
-               O (Ada.Exceptions.Exception_Information (E), Error);
-               Close (H.TE.all);
-
-               Destroy (H.TE);
-               Destroy (AES);
-         end;
-
-      end Handle_Event;
-
-   end Event_Handlers;
 
    -----------------------
    -- The ORB main loop --
@@ -708,40 +561,41 @@ package body PolyORB.ORB is
 
    procedure Register_Access_Point
      (ORB   : access ORB_Type;
-      TAP   :        Transport_Access_Point_Access;
-      Chain :        Filters.Factory_Access;
-      PF    :        Binding_Data.Profile_Factory_Access)
+      TAP   :        PT.Transport_Access_Point_Access;
+      Chain :        PF.Factory_Access;
+      PF    :        PBD.Profile_Factory_Access)
    is
-      Handler : constant AES_Event_Handler_Access
-        := new Event_Handlers.TAP_AES_Event_Handler;
-      TAP_Handler : Event_Handlers.TAP_AES_Event_Handler
-        renames Event_Handlers.TAP_AES_Event_Handler (Handler.all);
-
       New_AES : constant Asynch_Ev_Source_Access
         := Create_Event_Source (TAP.all);
-
+      A_Note  : AES_Note;
+      ORB_Acc : constant ORB_Access := ORB_Access (ORB);
    begin
       pragma Debug (O ("Register_Acces_Point: enter"));
-      Handler.ORB := ORB_Access (ORB);
-      Handler.AES := New_AES;
-      TAP_Handler.TAP := TAP;
-      TAP_Handler.Filter_Factory_Chain := Chain;
-      TAP_Handler.Profile_Factory := PF;
-
-      Set_Note (Notepad_Of (New_AES).all,
-                AES_Note'(Annotations.Note with Handler => Handler));
-      --  Set link from AES to TAP, Chain and PF.
+      Get_Note (Notepad_Of (New_AES).all, A_Note);
+      declare
+         Handler : constant AES_Event_Handler_Access
+           := A_Note.Handler;
+         TAP_Handler : TAP_AES_Event_Handler
+           renames TAP_AES_Event_Handler (Handler.all);
+      begin
+         --  Set link from AES to TAP, Chain and PF.
+         Handler.ORB := Component_Access (ORB);
+         Handler.AES := New_AES;
+         TAP_Handler.TAP := TAP;
+         TAP_Handler.Filter_Factory_Chain := Chain;
+         TAP_Handler.Profile_Factory := PF;
+      end;
 
       Set_Note (Notepad_Of (TAP).all,
-                TAP_Note'(Note with Profile_Factory => PF));
-      --  Set link from TAP to PF.
+                TAP_Note'(Note with Profile_Factory => PF, AES => New_AES));
+      --  Set link from TAP to PF, and from TAP to AES.
 
-      Enter (ORB.ORB_Lock);
+      Enter (ORB_Acc.ORB_Lock);
       pragma Debug (O ("Inserting new source: Access Point"));
-      TAP_Lists.Append (ORB.Transport_Access_Points, TAP);
-      Leave (ORB.ORB_Lock);
+      TAP_Lists.Append (ORB_Acc.Transport_Access_Points, TAP);
+      Leave (ORB_Acc.ORB_Lock);
 
-      Insert_Source (ORB, New_AES);
+      Insert_Source (ORB_Acc, New_AES);
 
       pragma Debug (O ("Register_Acces_Point: leave"));
    end Register_Access_Point;
@@ -783,17 +637,15 @@ package body PolyORB.ORB is
 
    procedure Register_Endpoint
      (ORB          : access ORB_Type;
-      TE           :        Transport_Endpoint_Access;
-      Filter_Stack :        Filters.Filter_Access;
+      TE           :        PT.Transport_Endpoint_Access;
+      Filter_Stack :        PF.Filter_Access;
       Role         :        Endpoint_Role)
    is
-      Handler : constant AES_Event_Handler_Access
-        := new Event_Handlers.TE_AES_Event_Handler;
-      TE_Handler : Event_Handlers.TE_AES_Event_Handler
-        renames Event_Handlers.TE_AES_Event_Handler (Handler.all);
       New_AES    : constant Asynch_Ev_Source_Access
         := Create_Event_Source (TE.all);
 
+      A_Note     : AES_Note;
+      ORB_Acc    : constant ORB_Access := ORB_Access (ORB);
    begin
       pragma Debug (O ("Register_Endpoint: enter"));
 
@@ -806,13 +658,22 @@ package body PolyORB.ORB is
          Filters.Interface.Set_Server'
          (Server => Component_Access (ORB)));
 
-      Handler.ORB := ORB_Access (ORB);
-      Handler.AES := New_AES;
+      --  Notes.AES is null for write only Endpoint
+      if New_AES /= null then
+         Get_Note (Notepad_Of (New_AES).all, A_Note);
+         declare
+            Handler : constant AES_Event_Handler_Access
+              := A_Note.Handler;
+            TE_Handler : TE_AES_Event_Handler
+              renames TE_AES_Event_Handler (Handler.all);
+         begin
+            Handler.ORB := Component_Access (ORB);
+            Handler.AES := New_AES;
 
-      TE_Handler.TE := TE;
-      Set_Note
-        (Notepad_Of (New_AES).all,
-         AES_Note'(Annotations.Note with Handler => Handler));
+            TE_Handler.TE := TE;
+         end;
+      end if;
+
       --  Register link from AES to TE.
 
       Set_Note
@@ -825,14 +686,14 @@ package body PolyORB.ORB is
       case Role is
          when Server =>
             Handle_New_Server_Connection
-              (ORB.Tasking_Policy,
-               ORB_Access (ORB),
+              (ORB_Acc.Tasking_Policy,
+               ORB_Acc,
                Active_Connection'(AES => New_AES, TE => TE));
 
          when Client =>
             Handle_New_Client_Connection
-              (ORB.Tasking_Policy,
-               ORB_Access (ORB),
+              (ORB_Acc.Tasking_Policy,
+               ORB_Acc,
                Active_Connection'(AES => New_AES, TE => TE));
       end case;
 
@@ -1299,6 +1160,27 @@ package body PolyORB.ORB is
             Note : TE_Note;
          begin
             Get_Note (Notepad_Of (TE).all, Note);
+
+            --  If we are currently processing an event that
+            --  happened on TE, the ORB_Lock is already held.
+            --  This can also be called from within the processing
+            --  of a request job, i.e. outside of ORB_Lock, so
+            --  for now we re-enter ORB_Lock.
+
+            --  Notes.AES is null for write only Endpoint
+            if Note.AES /= null then
+               pragma Debug (O ("Inserting source: Monitored Endpoint"));
+               Insert_Source (ORB, Note.AES);
+            end if;
+         end;
+
+      elsif Msg in Interface.Monitor_Access_Point then
+         declare
+            TAP : constant Transport_Access_Point_Access
+              := Interface.Monitor_Access_Point (Msg).TAP;
+            Note : TAP_Note;
+         begin
+            Get_Note (Notepad_Of (TAP).all, Note);
 
             --  If we are currently processing an event that
             --  happened on TE, the ORB_Lock is already held.

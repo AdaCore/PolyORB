@@ -40,6 +40,7 @@ with PolyORB.Opaque;
 with PolyORB.Sequences.Unbounded;
 with PolyORB.Types;
 with PolyORB.Utils.Simple_Flags;
+with PolyORB.Filters.Interface;
 
 package PolyORB.Protocols.GIOP is
 
@@ -90,6 +91,22 @@ package PolyORB.Protocols.GIOP is
      (Sess : access GIOP_Session;
       Args : in out Any.NVList.Ref);
 
+   ----------------
+   -- GIOP State --
+   ----------------
+
+   type GIOP_State is
+     (Not_Initialized,        --  Session initialized
+      Expect_Header,          --  Waiting for a new message header
+      Expect_Body,            --  Waiting for body message
+      Waiting_Unmarshalling   --  Waiting argument unsmarshalling
+      );
+
+   type GIOP_Data_Expected is
+     new PolyORB.Filters.Interface.Data_Expected with record
+        State : GIOP_State;
+     end record;
+
 private
 
    type GIOP_Protocol is new Protocol with null record;
@@ -111,20 +128,6 @@ private
    procedure Free is new Ada.Unchecked_Deallocation
      (Pending_Request, Pending_Request_Access);
    package Pend_Req_Seq is new Sequences.Unbounded (Pending_Request_Access);
-
-   ----------------
-   -- GIOP State --
-   ----------------
-
-   --  XXX to be detailed. introduce GIOP State Machine if there is one,
-   --  or this specific one  ..
-
-   type GIOP_State is
-     (Not_Initialized,        --  Session initialized
-      Expect_Header,          --  Waiting for a new message header
-      Expect_Body,            --  Waiting for body message
-      Waiting_Unmarshalling   --  Waiting argument unsmarshalling
-      );
 
    --------------------
    -- GIOP Send Mode --

@@ -43,14 +43,14 @@ pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.ORB;
 with PolyORB.Protocols;
-with PolyORB.Transport.Sockets;
+with PolyORB.Transport.Connected.Sockets;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Setup.TCP_Access_Points.SRP is
 
    use PolyORB.Filters;
    use PolyORB.ORB;
-   use PolyORB.Transport.Sockets;
+   use PolyORB.Transport.Connected.Sockets;
 
    --  The 'SRP' access point.
 

@@ -38,7 +38,6 @@ with PolyORB.Binding_Data;
 with PolyORB.Binding_Data.IIOP;
 with PolyORB.Buffers;
 with PolyORB.Components;
-with PolyORB.Filters.Interface;
 with PolyORB.GIOP_P.Exceptions;
 
 with PolyORB.Log;
@@ -164,10 +163,12 @@ package body PolyORB.Protocols.GIOP is
             if Sess.Ctx.Message_Size = 0 then
                Process_Message (Sess.Implem, Sess);
             else
-               Filters.Interface.Expect_Data
-                 (Sess,
-                  Sess.Buffer_In,
-                  Stream_Element_Count (Sess.Ctx.Message_Size));
+               Emit_No_Reply
+                 (Port => Lower (Sess),
+                  Msg  => GIOP_Data_Expected'
+                  (In_Buf => Sess.Buffer_In,
+                   Max =>  Stream_Element_Count (Sess.Ctx.Message_Size),
+                   State => Sess.State));
             end if;
 
          when Expect_Body =>
@@ -385,8 +386,12 @@ package body PolyORB.Protocols.GIOP is
 
       Buffers.Release_Contents (Sess.Buffer_In.all);
       Sess.State := Expect_Header;
-      Filters.Interface.Expect_Data
-        (Sess, Sess.Buffer_In, GIOP_Header_Size);
+      Emit_No_Reply
+        (Port => Lower (Sess),
+         Msg  => GIOP_Data_Expected'
+         (In_Buf => Sess.Buffer_In,
+          Max =>  GIOP_Header_Size,
+          State => Sess.State));
    end Expect_GIOP_Header;
 
    ----------------------------

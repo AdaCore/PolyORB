@@ -39,7 +39,6 @@
 --  $Id$
 
 with PolyORB.Asynch_Ev;
-with PolyORB.Annotations;
 with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Filters;
@@ -293,44 +292,6 @@ private
    procedure Run_Request (J : access Request_Job);
    --  Execute the request associated with J within the
    --  current task.
-
-   -------------------------------------
-   -- Reactor for asynchronous events --
-   -------------------------------------
-
-   --  The middleware core implements the Reactor pattern
-   --  to handle event occurring on asynchronous event sources.
-   --  An event handler is associated with each asynchronous
-   --  event source. The handling of an event constitutes
-   --  a Job that can be performed by an ORB task.
-
-   type AES_Event_Handler is abstract new PolyORB.Jobs.Job with record
-      ORB : ORB_Access;
-      AES : PAE.Asynch_Ev_Source_Access;
-   end record;
-
-   type AES_Event_Handler_Access is access AES_Event_Handler'Class;
-
-   procedure Run (AEH : access AES_Event_Handler);
-   --  Call Handle_Event.
-
-   procedure Handle_Event
-     (H   : access AES_Event_Handler;
-      ORB :        ORB_Access;
-      AES : in out PAE.Asynch_Ev_Source_Access)
-      is abstract;
-   --  Handle an event that has occurred on this asynchronous
-   --  event source. If AES is null on exit, then the asynchronous
-   --  event source has been destroyed, and the handler must be
-   --  deallocated.
-
-   --  In this implementation of the Reactor pattern, the
-   --  association between an event source and its event
-   --  handler is made using an Annotation on the event source.
-
-   type AES_Note is new Annotations.Note with record
-      Handler : AES_Event_Handler_Access;
-   end record;
 
    ---------------------------------------
    -- Tasking policy abstract interface --

@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . T R A N S P O R T . S O C K E T S             --
+--          P O L Y O R B . T R A N S P O R T . C O N N E C T E D           --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -31,81 +31,75 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Socket implementation of transport service access points
---  and communication endpoints.
+--  Abstract connected transport service access points and transport endpoints.
 
---  $Id$
+with PolyORB.Binding_Data;
 
-with PolyORB.Sockets; use PolyORB.Sockets;
-with PolyORB.Tasking.Mutexes;
+package PolyORB.Transport.Connected is
 
-package PolyORB.Transport.Sockets is
+   use PolyORB.Asynch_Ev;
+   use PolyORB.Binding_Data;
 
-   pragma Elaborate_Body;
+   Connection_Closed : exception;
 
-   type Socket_Access_Point
-      is new Transport_Access_Point with private;
-   --  A listening transport service access point as
-   --  a listening stream-oriented socket.
+   ------------------
+   -- Access Point --
+   ------------------
 
-   procedure Create
-     (SAP     : in out Socket_Access_Point;
-      Socket  :        Socket_Type;
-      Address : in out Sock_Addr_Type);
-   --  Initialise SAP: bind Socket to Address, listen on it,
-   --  and set up the corresponding Socket_Access_Point.
-   --  On entry, Address.Port may be 0, in which case the system
-   --  will assign an available port number itself. On return,
-   --  Address is always set to the actual address used.
-
-   function Create_Event_Source
-     (TAP : Socket_Access_Point)
-      return Asynch_Ev.Asynch_Ev_Source_Access;
+   type Connected_Transport_Access_Point
+      is abstract new Transport_Access_Point with private;
+   type Connected_Transport_Access_Point_Access
+   is access all Connected_Transport_Access_Point'Class;
+   --  Conected Access point
 
    procedure Accept_Connection
-     (TAP : Socket_Access_Point;
-      TE  : out Transport_Endpoint_Access);
+     (TAP :     Connected_Transport_Access_Point;
+      TE  : out Transport_Endpoint_Access)
+      is abstract;
+   --  Accept a pending new connection on TAP and create
+   --  a new associated TE.
 
-   function Address_Of (SAP : Socket_Access_Point)
-     return Sock_Addr_Type;
+   type Connected_TAP_AES_Event_Handler
+   is new TAP_AES_Event_Handler with private;
+   --  Connected Access Point Event Handler
 
-   type Socket_Endpoint
-     is new Transport_Endpoint with private;
-   --  An opened transport endpoint as a connected
-   --  stream-oriented socket.
+   procedure Handle_Event
+     (H : access Connected_TAP_AES_Event_Handler);
 
-   procedure Create
-     (TE : in out Socket_Endpoint;
-      S  : Socket_Type);
+   ---------------
+   -- End Point --
+   ---------------
 
-   function Create_Event_Source
-     (TE : Socket_Endpoint)
-      return Asynch_Ev.Asynch_Ev_Source_Access;
+   type Connected_Transport_Endpoint
+      is abstract new Transport_Endpoint with private;
+   type Connected_Transport_Endpoint_Access
+   is access all Connected_Transport_Endpoint'Class;
+   --  Connected End point
 
-   procedure Read
-     (TE     : in out Socket_Endpoint;
-      Buffer : Buffers.Buffer_Access;
-      Size   : in out Ada.Streams.Stream_Element_Count);
+   function Handle_Message
+     (TE  : access Connected_Transport_Endpoint;
+      Msg : Components.Message'Class)
+     return Components.Message'Class;
 
-   procedure Write
-     (TE     : in out Socket_Endpoint;
-      Buffer : Buffers.Buffer_Access);
+   type Connected_TE_AES_Event_Handler
+   is new TE_AES_Event_Handler with private;
+   --  Connected End Point Event Handler
 
-   procedure Close (TE : in out Socket_Endpoint);
+   procedure Handle_Event
+     (H : access Connected_TE_AES_Event_Handler);
 
 private
 
-   type Socket_Access_Point is new Transport_Access_Point
-     with record
-        Socket : Socket_Type := No_Socket;
-        Addr   : Sock_Addr_Type;
-     end record;
+   type Connected_Transport_Access_Point
+      is abstract new Transport_Access_Point with null record;
 
-   type Socket_Endpoint is new Transport_Endpoint
-     with record
-        Socket : Socket_Type := No_Socket;
-        Addr   : Sock_Addr_Type;
-        Mutex  : Tasking.Mutexes.Mutex_Access;
-     end record;
+   type Connected_TAP_AES_Event_Handler
+   is new TAP_AES_Event_Handler with null record;
 
-end PolyORB.Transport.Sockets;
+   type Connected_Transport_Endpoint
+      is abstract new Transport_Endpoint with null record;
+
+   type Connected_TE_AES_Event_Handler
+   is new TE_AES_Event_Handler with null record;
+
+end PolyORB.Transport.Connected;

@@ -35,6 +35,7 @@ with Ada.Unchecked_Deallocation;
 
 with PolyORB.Any;
 with PolyORB.Log;
+with PolyORB.Components;
 with PolyORB.Configuration;
 with PolyORB.Buffers;
 with PolyORB.Representations.CDR;
@@ -45,15 +46,16 @@ with PolyORB.Binding_Data.Local;
 with PolyORB.Binding_Data.IIOP;
 with PolyORB.ORB.Interface;
 with PolyORB.Filters;
-with PolyORB.Filters.Interface;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Utils.Strings;
+with PolyORB.Binding_Data.UIPMC;
 
 package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
    use PolyORB.Buffers;
+   use PolyORB.Components;
    use PolyORB.Representations.CDR;
    use PolyORB.Objects;
 
@@ -242,10 +244,12 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                   pragma Debug (O ("Frag Size  :" & Ctx.Frag_Next'Img));
                   Ctx.Frag_State := Fragment;
                   if Ctx.Frag_Next > 0 then
-                     Filters.Interface.Expect_Data
-                       (S,
-                        Ctx.Frag_Buf,
-                        Stream_Element_Count (Ctx.Frag_Next));
+                     Emit_No_Reply
+                       (Port => Lower (S),
+                        Msg  => GIOP_Data_Expected'
+                        (In_Buf => Ctx.Frag_Buf,
+                         Max    =>  Stream_Element_Count (Ctx.Frag_Next),
+                         State  => Sess.State));
                   else
                      Process_Message (Implem, S);
                   end if;
@@ -384,6 +388,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             null;
       end case;
 
+      pragma Assert (Object_Key /= null);
       pragma Debug (O ("Object Key : "
                        & To_String (Object_Key.all)));
 
@@ -568,6 +573,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             Marshall (Out_Buf, Request_Id);
             Copy (Buffer, Out_Buf,
                   Implem.Max_Body - Types.Unsigned_Long (Frag_Header_Size));
+            Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => Out_Buf));
+            Release_Contents (Out_Buf.all);
             pragma Debug (O ("First fragment sent, size :"
                              & Implem.Max_Body'Img));
 
@@ -605,6 +612,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                pragma Debug (O ("Fragment sent, size :"
                                 & Emit_Size'Img));
 
+               Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => Out_Buf));
+               Release_Contents (Out_Buf.all);
 
                --  prepare for next slice
                Message_Size := Message_Size - Emit_Size;
@@ -615,8 +624,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                end if;
             end loop;
 
-            --  send data and exit
-            Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => Out_Buf));
+            --  free buffer
             Release (Out_Buf);
          end;
       else
@@ -823,11 +831,27 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          Marshall (Buffer, Sink);
       end loop;
 
-      Marshall (Buffer, Key_Addr);
-      Marshall
-        (Buffer,
-         Stream_Element_Array
-         (Target_Ref.Object_Key.all));
+      if Target_Ref.Object_Key /= null then
+         Marshall (Buffer, Key_Addr);
+         Marshall
+           (Buffer,
+            Stream_Element_Array
+            (Target_Ref.Object_Key.all));
+      else
+         if R.Target_Profile.all
+           in PolyORB.Binding_Data.UIPMC.UIPMC_Profile_Type then
+            declare
+               use PolyORB.Binding_Data.UIPMC;
+               use PolyORB.Binding_Data;
+            begin
+               Marshall (Buffer, Profile_Addr);
+               Marshall (Buffer, Tag_UIPMC);
+               Marshall_UIPMC_Profile_Body (Buffer, R.Target_Profile);
+            end;
+         else
+            raise GIOP_Error;
+         end if;
+      end if;
 
       pragma Debug (O ("Operation : "
                        & To_Standard_String (R.Req.Operation)));
@@ -1034,10 +1058,26 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             end;
 
          when Profile_Addr  =>
-            Target_Ref := new Target_Address'
-              (Address_Type => Profile_Addr,
-               Profile  =>  Binding_Data.IIOP.
-               Unmarshall_IIOP_Profile_Body (Buffer));
+            declare
+               use PolyORB.Binding_Data;
+
+               Profile_Id : constant Types.Unsigned_Long
+                 := Unmarshall (Buffer);
+            begin
+               if Profile_Id = Tag_Internet_IOP then
+                  Target_Ref := new Target_Address'
+                    (Address_Type => Profile_Addr,
+                     Profile  =>  Binding_Data.IIOP.
+                     Unmarshall_IIOP_Profile_Body (Buffer));
+               elsif Profile_Id = Tag_UIPMC then
+                  Target_Ref := new Target_Address'
+                    (Address_Type => Profile_Addr,
+                     Profile  =>  Binding_Data.UIPMC.
+                     Unmarshall_UIPMC_Profile_Body (Buffer));
+               else
+                  raise GIOP_Error;
+               end if;
+            end;
 
          when Reference_Addr  =>
             declare
