@@ -1,0 +1,13 @@
+This file details how our parser treats a AADL specification.
+
+The parser uses a program 'mknodes' to generate two files 'nodes.adb' and 'nodes.ads' which describe package Nodes. This package defines the structure of all nodes in abtract syntax tree (AST). Each node contains getters and setters for all of its attributes. This structure is defined in 'nodes.idl'.
+
+The output of the parser will be a root node which corresponds to the 'unnamed name space' (line 821 v0.96). The AST represents exactly the structure of AADL specifications. All specified elements are included in this name space. At the second level, we can found all types of elements (components, packages, systems...).
+
+The parsing process can be divided in two steps: parsing and linking.
+
+I. Parsing: the parser read all files that were given by user. When it found a identifier in a declaration clause, it will not resolve the identifier (i.e.: find the corresponding element to link with the defining declaration). These identifiers will be stored as attributes of the declaration (they can contain a Name_Id, a Package_Name, a Identifiers ...).
+
+II. Linking: the parser travels the AST to make link between its nodes. When it found an identifier I as type attribute (Ex: types, implementations, packages...) it search the definition of I in the AST. If the parser found it, the node I will be changed to point to new element. Else, the parser try to read a file that can contain the definition of the missing element (its name respect some naming rules). If this file does not exist, an error will be sent to user.
+
+A problem need to be discuss: when an error occurs, the parser should ignore the current token or all one before the next ';' (of course, an error will be sent to user).
