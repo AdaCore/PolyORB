@@ -220,6 +220,9 @@ package body Exp_Dist is
    --  then Etype (Object) will be used if present. If the type is
    --  constrained, then 'Write will be used to output the object,
    --  If the type is unconstrained, 'Output will be used.
+   pragma Warnings (Off);
+   pragma Unreferenced (Pack_Entity_Into_Stream_Access);
+   pragma Warnings (On);
 
    function Pack_Node_Into_Stream
      (Loc    : Source_Ptr;
@@ -1387,6 +1390,9 @@ package body Exp_Dist is
       --  parameter names.
 
       function Stream_Parameter return Node_Id;
+      pragma Warnings (Off);
+      pragma Unreferenced (Stream_Parameter);
+      pragma Warnings (On);
       function Result return Node_Id;
 
       function Stream_Parameter return Node_Id is
@@ -1514,7 +1520,8 @@ package body Exp_Dist is
       --  real object at the other end.
 
       Remote_Statements := New_List (Make_Null_Statement (Loc));
-      --  XXX should rebuild Stubbed_Result.Target from the IOR we have just read.
+      --  XXX should rebuild Stubbed_Result.Target from the IOR
+      --  we have just read.
 
       Append_To (Remote_Statements,
         Make_Assignment_Statement (Loc,
@@ -1871,6 +1878,9 @@ package body Exp_Dist is
       Object_RPC_Receiver : in Entity_Id;
       Declarations        : in List_Id)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Stub_Type_Access, Object_RPC_Receiver);
+      pragma Warnings (On);
       Loc  : constant Source_Ptr := Sloc (RACW_Type);
 
       Body_Node      : Node_Id;
@@ -1889,6 +1899,9 @@ package body Exp_Dist is
       --  parameter names.
 
       function Stream_Parameter return Node_Id;
+      pragma Warnings (Off);
+      pragma Unreferenced (Stream_Parameter);
+      pragma Warnings (On);
       function Object return Node_Id;
 
       function Stream_Parameter return Node_Id is
@@ -4111,7 +4124,7 @@ package body Exp_Dist is
             Designated_Object := New_Occurrence_Of (Parameter_Entity, Loc);
          end if;
 
-         Condition := New_Reference_To (RTE (RE_False));
+         Condition := New_Occurrence_Of (Standard_False, Loc);
          --  XXX rewrite to co-location check between Parameter_Entity
          --  and Controlling_Parameter_Entity.
 

@@ -35,7 +35,7 @@
 
 --  $Id$
 
---  with Ada.Exceptions;
+with Ada.Exceptions;
 --  with Interfaces;
 with System.RPC;
 
@@ -102,10 +102,10 @@ package System.Partition_Interface is
      (Handler : in out RACW_Stub_Type_Access);
    --  Get a unique pointer on a remote object
 
---    procedure Raise_Program_Error_Unknown_Tag
---      (E : in Ada.Exceptions.Exception_Occurrence);
---    pragma No_Return (Raise_Program_Error_Unknown_Tag);
---    --  Raise Program_Error with the same message as E one
+   procedure Raise_Program_Error_Unknown_Tag
+     (E : in Ada.Exceptions.Exception_Occurrence);
+   pragma No_Return (Raise_Program_Error_Unknown_Tag);
+   --  Raise Program_Error with the same message as E one
 
 --    procedure Register_Receiving_Stub
 --      (Name     : in Unit_Name;

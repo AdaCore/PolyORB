@@ -165,17 +165,17 @@ package body System.Partition_Interface is
 --       return T;
 --    end Lower;
 
---    -------------------------------------
---    -- Raise_Program_Error_Unknown_Tag --
---    -------------------------------------
+   -------------------------------------
+   -- Raise_Program_Error_Unknown_Tag --
+   -------------------------------------
 
---    procedure Raise_Program_Error_Unknown_Tag
---      (E : in Ada.Exceptions.Exception_Occurrence)
---    is
---    begin
---       Ada.Exceptions.Raise_Exception
---         (Program_Error'Identity, Ada.Exceptions.Exception_Message (E));
---    end Raise_Program_Error_Unknown_Tag;
+   procedure Raise_Program_Error_Unknown_Tag
+     (E : in Ada.Exceptions.Exception_Occurrence)
+   is
+   begin
+      Ada.Exceptions.Raise_Exception
+        (Program_Error'Identity, Ada.Exceptions.Exception_Message (E));
+   end Raise_Program_Error_Unknown_Tag;
 
 --    --------------
 --    -- RCI_Info --
