@@ -37,6 +37,7 @@
 with Ada.Real_Time;
 
 with MOMA.Messages;
+with PolyORB.Call_Back;
 
 package MOMA.Message_Consumers.Queues is
 
@@ -59,6 +60,24 @@ package MOMA.Message_Consumers.Queues is
 
    function Receive_No_Wait return MOMA.Messages.Message;
    --  Get next message from the pool if it is non empty; exit otherwise.
+   --  XXX not implemented.
+
+   function Receive (Self : Queue;
+                     CBH : access PolyORB.Call_Back.Call_Back_Handler)
+                     return MOMA.Messages.Message'Class;
+   --  Get next message from the pool if it is non empty; otherwise the call
+   --  is blocking until a new message is received by the pool.
+   --  The message after the next will be signalled via the Call_Back_Handler.
+   --  The Call_Back_Handler should be used only once and destroyed afterwards.
+   --  This function should be used when the pool is not empty (e.g. after a
+   --  callback).
+   --  XXX not implemented.
+
+   procedure Set_CBH (Self : Queue;
+                      CBH : access PolyORB.Call_Back.Call_Back_Handler);
+   --  Associates a Call_back_Handler to the pool.
+   --  Next message will be signalled via the Call_Back_Handler.
+   --  The Call_Back_Handler should be used only once and destroyed afterwards.
    --  XXX not implemented.
 
 end MOMA.Message_Consumers.Queues;

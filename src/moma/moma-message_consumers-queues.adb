@@ -115,6 +115,16 @@ package body MOMA.Message_Consumers.Queues is
       pragma Warnings (On);
    end Receive;
 
+   function Receive (Self : Queue;
+                     CBH : access PolyORB.Call_Back.Call_Back_Handler)
+                     return MOMA.Messages.Message'Class is
+   begin
+      raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
+      return Receive (Self, CBH);
+      pragma Warnings (On);
+   end Receive;
+
    ---------------------
    -- Receive_No_Wait --
    ---------------------
@@ -126,6 +136,16 @@ package body MOMA.Message_Consumers.Queues is
       return Receive_No_Wait;
       pragma Warnings (On);
    end Receive_No_Wait;
+
+   -------------
+   -- Set_CBH --
+   -------------
+
+   procedure Set_CBH (Self : Queue;
+                      CBH : access PolyORB.Call_Back.Call_Back_Handler) is
+   begin
+      raise PolyORB.Not_Implemented;
+   end Set_CBH;
 
 end MOMA.Message_Consumers.Queues;
 
