@@ -13,7 +13,6 @@ DSA implementation (CA22-003)
 * Ada 95 DSA personality:
   -> Asynchronous (5910, partial)
   -> RACW 'Read/'Write
-  -> From_Any and To_Any for tagged records and variant records
   -> map system exceptions to System.RPC.Communication_Error.
 
 * Ability to specify boot server location by hostname and port number
@@ -154,9 +153,14 @@ Items still requiring attention
 Items processed
 ---------------
 
+* DSA migration
+
+  -> From_Any and To_Any for tagged records and variant records
+     (7690, 7693, 7694, 7697, 7703, 7705, 7855).
+
 * Fix memory leaks (to be checked with Debug_Pools disabled!)
   (one known memory leak in allocation/deallocation of Any's TypeCode in 
-   exception handling) (5724, 5864, 5897, 5915, 5981, 6076, 6507, 6508)
+   exception handling) (5724, 5864, 5897, 5915, 5981, 6076, 6507, 6508).
 
 * Data reception: when the protocol knows how much data will
   arrive, preallocate so that unmarshalling is guaranteed
