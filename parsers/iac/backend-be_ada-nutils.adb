@@ -2,7 +2,6 @@ with GNAT.Table;
 
 with Locations; use Locations;
 with Namet;     use Namet;
-with Output;    use Output;
 with Utils;     use Utils;
 with Values;    use Values;
 
