@@ -137,6 +137,22 @@ package body Idl_Fe.Parser is
 
 
    -----------------------
+   --  View_Previous_Token  --
+   -----------------------
+   function View_Previous_Token return Idl_Token is
+   begin
+      return Token_Buffer (Current_Index - 1);
+   end View_Previous_Token;
+
+   ----------------------------
+   --  View_Previous_Previous_Token  --
+   ----------------------------
+   function View_Previous_Previous_Token return Idl_Token is
+   begin
+      return Token_Buffer (Current_Index - 2);
+   end View_Previous_Previous_Token;
+
+   -----------------------
    --  View_Next_Token  --
    -----------------------
    function View_Next_Token return Idl_Token is
@@ -1004,8 +1020,6 @@ package body Idl_Fe.Parser is
             Result := No_Node;
             return;
          end if;
-         Next_Token;
-
          --  If we are not in its definition scope,
          --  we should perhaps import this identifier:
          --  first we should look at the current scope.
@@ -1027,7 +1041,7 @@ package body Idl_Fe.Parser is
                if Get_Current_Scope
                    /= Definition (A_Name).Parent_Scope
                  or else Name (Get_Current_Scope)
-                   /= Get_Previous_Token_String
+                   /= Get_Token_String
                then
                   Add_Definition_To_Imported
                     (Definition (A_Name),
@@ -1037,7 +1051,7 @@ package body Idl_Fe.Parser is
                if Get_Previous_Scope
                    /= Definition (A_Name).Parent_Scope
                  or else Name (Get_Previous_Scope)
-                 /= Get_Previous_Token_String
+                 /= Get_Token_String
                then
                   Add_Definition_To_Imported
                     (Definition (A_Name),
@@ -1046,7 +1060,7 @@ package body Idl_Fe.Parser is
             end if;
          end;
 
-         if Get_Token /= T_Colon_Colon then
+         if View_Next_Token /= T_Colon_Colon then
             Set_Value (Res, A_Name);
 
             if Kind (A_Name) = K_Declarator
@@ -1074,29 +1088,22 @@ package body Idl_Fe.Parser is
                Set_S_Type (Res, No_Node);
             end if;
 
-            --  FIXME: This is wrong.
-            --  It is legitimate to reference the name of an
-            --  interface from within its own definition, as
-            --  in:
-            --  interface I {
-            --    I echoRef (in I arg);
-            --  };
-
-            if Get_Current_Scope = A_Name then
-               declare
-                  Loc : Idl_Fe.Errors.Location;
-               begin
-                  Loc := Get_Previous_Token_Location;
-                  Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
+            if (Kind (Get_Current_Scope) = K_Struct
+                or Kind (Get_Current_Scope) = K_Union)
+              and Get_Current_Scope = A_Name then
+               --  recursivity is allowed through sequences
+               if View_Previous_Previous_Token /= T_Sequence then
                   Idl_Fe.Errors.Parser_Error
                     ("Recursive definitions not allowed",
-                  Idl_Fe.Errors.Error,
-                     Loc);
+                     Idl_Fe.Errors.Error,
+                     Get_Token_Location);
                   Success := False;
                   Result := No_Node;
                   return;
-               end;
+               end if;
             end if;
+            --  to eat the last identifier
+            Next_Token;
             Success := True;
             Result := Res;
             pragma Debug (O ("Parse_Scoped_Name : " &
@@ -1106,25 +1113,19 @@ package body Idl_Fe.Parser is
 
          --  Is the identifier a scope?
          if not Is_Scope (A_Name) then
-            declare
-               Loc : Idl_Fe.Errors.Location;
-            begin
-               Loc := Get_Previous_Token_Location;
-               Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
-               Idl_Fe.Errors.Parser_Error
-                 ("Bad identifier in scoped name",
-                  Idl_Fe.Errors.Error,
-                  Loc);
-               Success := False;
-               Result := No_Node;
-               return;
-            end;
+            Idl_Fe.Errors.Parser_Error
+              ("Bad identifier in scoped name",
+               Idl_Fe.Errors.Error,
+               Get_Token_Location);
+            Success := False;
+            Result := No_Node;
+            return;
          else
             Scope := A_Name;
          end if;
       end if;
-
---       end if;
+      --  to eat the identifier representing the current scope
+      Next_Token;
 
       pragma Debug (O ("Parse_Scoped_Name : begining of loop"));
 
@@ -1159,27 +1160,24 @@ package body Idl_Fe.Parser is
                return;
             end if;
             A_Name := Def.Node;
-            Next_Token;
-            if Get_Token = T_Colon_Colon then
+            if View_Next_Token = T_Colon_Colon then
                if not Is_Scope (A_Name) then
-                  declare
-                     Loc : Idl_Fe.Errors.Location;
-                  begin
-                     Loc := Get_Previous_Token_Location;
-                     Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
-                     Idl_Fe.Errors.Parser_Error
-                       ("Bad identifier in scoped name",
-                        Idl_Fe.Errors.Error,
-                        Loc);
-                     Success := False;
-                     Result := No_Node;
-                     return;
-                  end;
+                  Idl_Fe.Errors.Parser_Error
+                    ("Bad identifier in scoped name",
+                     Idl_Fe.Errors.Error,
+                     Get_Token_Location);
+                  Success := False;
+                  Result := No_Node;
+                  return;
                else
                   Scope := A_Name;
                end if;
+            else
+               exit;
             end if;
-            exit when Get_Token /= T_Colon_Colon;
+            --  to set the current location to the T_Colon_Colon
+            --  don't move it
+            Next_Token;
          end loop;
 
          if A_Name = No_Node then
@@ -1199,22 +1197,23 @@ package body Idl_Fe.Parser is
             Set_S_Type (Res, No_Node);
          end if;
 
-         if Get_Current_Scope = Def.Node then
-            declare
-               Loc : Idl_Fe.Errors.Location;
-            begin
-               Loc := Get_Previous_Token_Location;
-               Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
+         if (Kind (Get_Current_Scope) = K_Struct
+             or Kind (Get_Current_Scope) = K_Union)
+           and Get_Current_Scope = Def.Node then
+            --  recursivity is allowed through sequences
+            if View_Previous_Previous_Token /= T_Sequence then
                Idl_Fe.Errors.Parser_Error
                  ("Recursive definitions not allowed",
                   Idl_Fe.Errors.Error,
-                  Loc);
+                  Get_Token_Location);
                Success := False;
                Result := No_Node;
                return;
-            end;
+            end if;
          end if;
       end;
+      --  to eat the last identifier
+      Next_Token;
       Success := True;
       Result := Res;
       pragma Debug (O ("Parse_Scoped_Name : return"));
