@@ -85,6 +85,8 @@ package body Ada_Be.Idl2Ada is
    --  Generates a name for an access to objet type.
    --  The rule used is to take the ada_type_name,
    --  replacing '.' with '_', and appending "_Access".
+   --  Should be in expansion, but it would require too much work
+   --  to do it now.
 
    procedure Gen_Repository_Id
      (Node : in Node_Id;

@@ -338,8 +338,8 @@ src/corba-request.ads
 src/corba-sequences-bounded.ads
 src/corba-sequences-unbounded.ads
 src/corba-sequences.ads
-src/corba-value-box.ads
 src/corba-value-box.adb
+src/corba-value-box.ads
 src/corba-value-forward.adb
 src/corba-value-forward.ads
 src/corba-value.adb
