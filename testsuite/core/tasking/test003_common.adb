@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -67,6 +67,8 @@ package body Test003_Common is
 
    Global_AM : Adv_Mutex_Access;
 
+   Round : Natural := Task_Index'Last;
+
    ---------------------
    -- Initialize_Test --
    ---------------------
@@ -102,9 +104,19 @@ package body Test003_Common is
       Output
         ("Task "
          & Image (Get_Current_Thread_Id (My_Thread_Factory))
-         & " entered.",
+         & " entered AM.",
          True);
-      delay 10.0;
+      delay 1.0;
+
+      Enter (Global_AM);
+      Output
+        ("Task "
+         & Image (Get_Current_Thread_Id (My_Thread_Factory))
+         & " entered AM (2).",
+         True);
+      Round := Round - 1;
+      Leave (Global_AM);
+
       Leave (Global_AM);
       Output
         ("End task: "
@@ -123,6 +135,8 @@ package body Test003_Common is
       RA : Runnable_Access;
       C  : constant Runnable_Controller_Access := new Do_Nothing_Controller;
    begin
+      New_Test ("Tasks entering/leaving Advanced Mutex");
+
       for J in Task_Index'Range loop
          R (J).P := Wait_Task'Access;
          RA := R (J)'Access;
@@ -138,7 +152,10 @@ package body Test003_Common is
             null;
          end;
       end loop;
-      Wait_Task;
+
+      delay 1.5 * Task_Index'Last;
+      Output ("All tasks entered and left AM", Round = 0);
+      End_Report;
    end Test_AM;
 
 end Test003_Common;
