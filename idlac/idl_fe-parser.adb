@@ -661,9 +661,11 @@ package body Idl_Fe.Parser is
    --------------------
    --  Parse_Module  --
    --------------------
-   procedure Parse_Module (Result : out Node_Id;
-                           Success : out Boolean;
-                           Reopen : out boolean) is
+   procedure Parse_Module
+      (Result : out Node_Id;
+       Success : out Boolean;
+       Reopen  : out Boolean)
+   is
    begin
       pragma Debug (O2 ("Parse_Module : enter"));
       Reopen := False;
