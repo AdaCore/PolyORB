@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -34,11 +34,19 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
-with System.Garlic.Utils;      use System.Garlic.Utils;
-with System.Garlic.Table;
-with System.Garlic.Name_Table; use System.Garlic.Name_Table;
+with System.Garlic.Utils;        use System.Garlic.Utils;
+with System.Garlic.Debug;        use System.Garlic.Debug;
+with System.Garlic.Name_Table;   use System.Garlic.Name_Table;
 
 package body System.Garlic.Table is
+
+   Private_Debug_Key : constant Debug_Key :=
+     Debug_Initialize ("TABLE", "(s-gartab): ");
+   procedure D
+     (Level   : in Debug_Level;
+      Message : in String;
+      Key     : in Debug_Key := Private_Debug_Key)
+     renames Print_Debug_Info;
 
    -------------
    -- Complex --
@@ -65,7 +73,8 @@ package body System.Garlic.Table is
 
       function Allocate (N : Index_Type := Null_Index) return Index_Type;
       --  Allocate a new component. When N /= Null_Index then allocate
-      --  N. When this component index is not free, return Null_Index.
+      --  N. When this component index is not in the table's range,
+      --  return Null_Index.
 
       procedure Check (N : Index_Type);
       --  Check whether N is in range of current table. Otherwise,
@@ -99,30 +108,40 @@ package body System.Garlic.Table is
          Old_Max   : Index_Type;
          Old_Table : Component_Table_Access;
          Old_Usage : Usage_Table_Access;
-
       begin
-
-         --  Try to allocate N as required.
+         --  Try to allocate N as required when N /= Null_Index
 
          if N /= Null_Index then
-            if Max < N then
+            if Max < N or else N < Min then
+               pragma Debug (D (D_Debug, "Erroneous index" & N'Img));
+
                return Null_Index;
             end if;
+
+            --  Mark the slot as used so that it is not allocated for another
+            --  client.
+
             if Usage (N).Free then
+               pragma Debug (D (D_Debug, "Allocate exact index" & N'Img));
+
                Usage (N).Free := False;
-               Table (N)      := Null_Component;
             end if;
+
             return N;
          end if;
 
-         --  Try to allocate a free one
+         --  Try to allocate a free slot
 
          for Index in Min .. Max loop
             if Usage (Index).Free then
                Usage (Index).Free := False;
+               pragma Debug (D (D_Debug, "Allocate new index" & Index'Img));
+
                return Index;
             end if;
          end loop;
+
+         pragma Debug (D (D_Debug, "Extend table"));
 
          --  Allocate new table
 
@@ -137,17 +156,15 @@ package body System.Garlic.Table is
 
          --  Copy old table in new table
 
-         for Index in Min .. Old_Max loop
-            Table (Index) := Old_Table (Index);
-            Usage (Index) := Old_Usage (Index);
-         end loop;
+         Table (Min .. Old_Max) := Old_Table (Min .. Old_Max);
+         Usage (Min .. Old_Max) := Old_Usage (Min .. Old_Max);
 
          --  Intialize incremented part of new table
 
-         for Index in Old_Max + 1 .. Max loop
-            Table (Index) := Null_Component;
-            Usage (Index) := Null_Usage;
-         end loop;
+         Table (Old_Max + 1 .. Max) := (others => Null_Component);
+         Usage (Old_Max + 1 .. Max) := (others => Null_Usage);
+
+         --  Release unused memory
 
          Free (Old_Table);
          Free (Old_Usage);
@@ -164,11 +181,13 @@ package body System.Garlic.Table is
       procedure Apply
         (N         : in Index_Type;
          Parameter : in Parameter_Type;
-         Process   : in Process_Type) is
+         Process   : in Process_Type)
+      is
          Status    : Status_Type;
-
       begin
          pragma Abort_Defer;
+
+         pragma Debug (D (D_Debug, "Apply request on component" & N'Img));
 
          Check (N);
          loop
@@ -190,7 +209,6 @@ package body System.Garlic.Table is
 
       procedure Check (N : Index_Type) is
          Error : Boolean;
-
       begin
          Enter (Global_Mutex);
          Error := (Allocate (N) = Null_Index);
@@ -207,9 +225,10 @@ package body System.Garlic.Table is
 
       function Get_Component (N : Index_Type) return Component_Type is
          Component : Component_Type;
-
       begin
          pragma Abort_Defer;
+
+         pragma Debug (D (D_Debug, "Get component" & N'Img));
 
          Check (N);
          Enter (Global_Mutex);
@@ -227,7 +246,6 @@ package body System.Garlic.Table is
          Index : Index_Type;
          Name  : Name_Id;
          Info  : Integer;
-
       begin
          pragma Abort_Defer;
 
@@ -248,6 +266,9 @@ package body System.Garlic.Table is
          end if;
          Leave (Global_Mutex);
 
+         pragma Debug
+           (D (D_Debug, "Get index" & Index'Img & " for component " & S));
+
          return Index;
       end Get_Index;
 
@@ -257,7 +278,6 @@ package body System.Garlic.Table is
 
       function  Get_Name  (N : Index_Type) return String is
          Name : Name_Id;
-
       begin
          pragma Abort_Defer;
 
@@ -268,6 +288,9 @@ package body System.Garlic.Table is
             Name := Usage (N).Name;
          end if;
          Leave (Global_Mutex);
+
+         pragma Debug
+           (D (D_Debug, "Get name " & Get (Name) & " for component" & N'Img));
 
          return Get (Name);
       end Get_Name;
@@ -294,6 +317,8 @@ package body System.Garlic.Table is
       begin
          pragma Abort_Defer;
 
+         pragma Debug (D (D_Debug, "Set name " & S & " to component" & N'Img));
+
          Check (N);
          Enter (Global_Mutex);
          Usage (N).Name := Get (S);
@@ -318,11 +343,11 @@ package body System.Garlic.Table is
       Min     : constant Index_Type := Index_Type'Val (Min_Pos);
       Max     :          Index_Type := Index_Type'Val (Max_Pos);
 
+      Last    : Index_Type'Base     := First_Index - 1;
+
       procedure Free is
         new Ada.Unchecked_Deallocation
         (Component_Table_Type, Component_Table_Access);
-
-      Last  : Index_Type := Null_Index;
 
       --------------
       -- Allocate --
@@ -330,7 +355,6 @@ package body System.Garlic.Table is
 
       function Allocate return Index_Type is
          Old : Component_Table_Access;
-
       begin
          if Last = Max then
             Max_Pos := Max_Pos + Increment_Size;
@@ -338,12 +362,8 @@ package body System.Garlic.Table is
             Old     := Table;
             Table   := new Component_Table_Type (Min .. Max);
 
-            for Index in Min .. Last loop
-               Table (Index) := Old (Index);
-            end loop;
-            for Index in Last + 1 .. Max loop
-               Table (Index) := Null_Component;
-            end loop;
+            Table (Min .. Last)     := Old (Min .. Last);
+            Table (Last + 1 .. Max) := (others => Null_Component);
 
             Free (Old);
          end if;
