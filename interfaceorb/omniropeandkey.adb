@@ -2,7 +2,7 @@
 ----                                                               ----
 ----                  AdaBroker                                    ----
 ----                                                               ----
-----                  package omniRopeAndKey                       ----
+----                  package body omniRopeAndKey                  ----
 ----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
 ----   date    :                                                   ----
@@ -12,17 +12,9 @@
 
 with Corba, Rope ;
 
-package OmniRopeAndKey is
+package body OmniRopeAndKey is
 
-   type Object is tagged record
-      Pd_R : access Rope.Object;
-      Pd_KeySize : Corba.Unsigned_Long;
-      Table : Vtable_Ptr;
-   end record;
-   pragma CPP_Class (Object);
-   pragma CPP_Vtable (Object,Table,1);
-
-   procedure Init (This : in out Object ;
+   procedure Init (Self : in out Object ;
                      R : in Rope.Object ;
                      K : in CORBA.Octet ;
                      Ksize : in CORBA.Unsigned_Long);
@@ -30,16 +22,30 @@ package OmniRopeAndKey is
    --                              _CORBA_Octet *k, _CORBA_ULong ksize)
    -- in omniInternal.h L 234
 
-   function Key (This : in Object) return CORBA.Octet;
-   -- wrapper around inline _CORBA_Octet* key()
-   -- in omniInternal.h L 250
 
-   function Rope (This : in Object) return Rope.Object;
-   -- wrapper around   inline Rope* rope() const { return pd_r; }
-   -- in omniInternal.h L 248
+   package Address_To_Octet is new System.Address_To_Access_Conversions (CORBA.Octet) ;
 
-   function Key_Size (This : in Object) return CORBA.Unsigned_Long ;
-   -- wrapper around inline _CORBA_ULong  keysize() const { return pd_keysize; }
-   -- in omniInternal.h L 259
+   function Key (This : in Object) return CORBA.Octet is
+      function C_Key (This : in Object) return Address_To_Octet.Object_Pointer;
+      pragma Import (CPP,C_Key,"key__14omniRopeAndKeyPUcUl");
+   begin
+      return (Address_To_Octet.To_Address(C_Key(This))).all ;
+   end;
+
+
+   function Rope (This : in Object) return Rope.Object is
+   begin
+      return (This.Pd_R)'all ;
+   end;
+
+
+   function Key_Size (This : in Object) return CORBA.Unsigned_Long is
+   begin
+      return This.Pd_KeySize ;
+   end;
+
 
 end OmniRopeAndKey ;
+
+
+

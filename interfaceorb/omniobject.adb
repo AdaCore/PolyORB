@@ -41,46 +41,74 @@ package body OmniObject is
    -- wrapper around   omniObject(omniObjectManager*p =0);
    -- in omniInternal.h L 294
 
+   package Address_To_omniRopeAndKey is new System.Address_To_Access_Conversions (Omniropeandkey.Object) ;
 
    procedure Set_Rope_And_Key (This : in out Object ;
-                            L : in out Omniropeandkey.Object ;
-                            KeepIOP : Corba.boolean
-                           ) is
-      procedure C_Set_Rope_And_Key (This : in out Object,
-                                   L : --in out Omniropeandkey.Object'Class,
-                                   KeepIOP : --) ;
+                               L : in out Omniropeandkey.Object ;
+                               KeepIOP : in Corba.Boolean := Corba.True) is
+      procedure C_Set_Rope_And_Key (This : in out Object ;
+                                    L : in out Address_To_OmniRopeAndKey.Object_Pointer;
+                                    KeepIOP : in Interfaces.C.Unsigned_Char) ;
       pragma Import (C,C_Set_Rope_And_Key,
                      "setRopeAndKey__10omniObjectRC14omniRopeAndKeyb") ;
+      Boubool : Interfaces.C.Unsigned_Char ;
    begin
-      C_Set_Rope_And_Key (This,--,) ;
+      if Orl_Response_Expected
+      then
+         Boubool := 1 ;
+      else
+         Boubool := 0;
+      end if;
+      C_Set_Rope_And_Key (This,To_Pointer(L'access),Boubool) ;
    end ;
 
-   procedure Get_Rope_And_Key (Self : in Object ;
-                           L : in out Omniropeandkey.Object ;
-                           Result : out Corba.Boolean) ;
-   -- wrapper around _CORBA_Boolean getRopeAndKey(omniRopeAndKey& l) const;
-   -- in omniInternal.h L 338
+   function Get_Rope_And_Key (Self : in Object ;
+                              L : in out Omniropeandkey.Object)
+                              return COrba.Boolean is
+      function C_Get_Rope_And_Key (This : in Object ;
+                                   L : in out Address_To_OmniRopeAndKey.Object_Pointer)
+                                   return Interfaces.C.Unsigned_Char ;
+      pragma Import (C,C_Get_Rope_And_Key,
+                     "getRopeAndKey__C10omniObjectR14omniRopeAndKey") ;
+   begin
+      return (C_Get_Rope_And_Key(This,To_Pointer(L'access)) \= 0) ;
+   end ;
 
    procedure Assert_Object_Existent (Self : in Object) ;
-   -- wrapper around   void assertObjectExistent();
-   -- in omniInternal.h L 356
+   pragma Import (CPP,Assert_Object_Existent,
+                  "assertObjectExistent__10omniObject");
 
    procedure Reset_Rope_And_Key (Self : in Object);
-   -- wrapper around void resetRopeAndKey();
-   -- in omniInternal.h L 332
+   pragma Import (CPP,Assert_Object_Existent,
+                  "resetRopeAndKey__10omniObject");
 
 private
 
-   function Dispatch (Self : in System.address ;
-                        Orls : in System.Address ;
-                        Orl_Op : in Interfaces.C.Strings.Chars_Ptr ;
-                        Orl_Response_Expected : in System.Address)
-                      return System.Address;
-
-   pragma Export (C,Dispatch,"dispatch_ada");
-   -- in place of CORBA::Boolean
-   --             dispatch_ada (GIOP_S &_ORL_s, const char *_ORL_op,
-   --                           CORBA::Boolean _ORL_response_expected)
-
+   function Dispatch (This : in Object ;
+                      Orls : in Giop_S.Object ;
+                      Orl_Op : in Corba.String ;
+                      Orl_Response_Expected : in Corba.Boolean)
+                      return Corba.Boolean is
+      function C_Dispatch (This : in Object ;
+                           Orls : in Address_To_Giop_S.Object_Pointer ;
+                           Orl_Op : in Interfaces.C.Strings.Chars_Ptr ;
+                           Orl_Response_Expected : in Interfaces.C.Unsigned_Char)
+                           return Interfaces.C.Unsigned_Char ;
+      pragma Export (CPP,C_Dispatch,
+                     "dispatch__10omniObjectR6GIOP_SPCcb");
+      Boubool : Interfaces.C.Unsigned_Char ;
+   begin
+      if Orl_Response_Expected
+      then
+         Boubool := 1 ;
+      else
+         Boubool := 0;
+      end if;
+      return ((C_Dispatch(This,
+                          Address_To_Giop_S.To_Pointer(Orls),
+                          Interfaces.C.Strings.New_String(Orl_Op),
+                          Boubool)) \= 0);
+   end;
 
 end OmniObject ;
+

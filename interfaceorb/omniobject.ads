@@ -41,9 +41,9 @@ package OmniObject is
    -- in omniInternal.h L 328
 
 
-   procedure Get_Rope_And_Key (Self : in Object ;
-                               L : in out Omniropeandkey.Object ;
-                               Result : out Corba.Boolean) ;
+   function Get_Rope_And_Key (Self : in Object ;
+                               L : in out Omniropeandkey.Object)
+                              return COrba.Boolean ;
    -- wrapper around _CORBA_Boolean getRopeAndKey(omniRopeAndKey& l) const;
    -- in omniInternal.h L 338
 
@@ -64,13 +64,13 @@ private
    pragma CPP_Vtable (Object,Table,2);
 
 
-   function Dispatch (Self : in System.address ;
-                        Orls : in System.Address ;
-                        Orl_Op : in Interfaces.C.Strings.Chars_Ptr ;
-                        Orl_Response_Expected : in System.Address)
-                      return System.Address;
+   package Address_To_Giop_S is new System.Address_To_Access_Conversions (Giop_S.Object) ;
 
-   pragma Export (C,Dispatch,"dispatch_ada");
+   function Dispatch (This : in Object ;
+                      Orls : in Giop_S.Object ;
+                      Orl_Op : in Corba.String ;
+                      Orl_Response_Expected : in Corba.Boolean)
+                      return Corba.Boolean;
    -- in place of CORBA::Boolean
    --             dispatch_ada (GIOP_S &_ORL_s, const char *_ORL_op,
    --                           CORBA::Boolean _ORL_response_expected)
