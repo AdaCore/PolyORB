@@ -32,6 +32,11 @@
 
 --  Actual implementation of the Message_Handler object.
 --  It is derived from PolyORB's Minimal_Servant.
+--  The call-back purpose of a Message Handler is to receive a Request from
+--  the actual message queue servant when a message is received : this Request
+--  can either be Handle (then the message can not be recovered by a call to
+--  the Message_Consumer's Receive and has to be treated by the Handle
+--  procedure), or Notify (then the message stays in the pool).
 
 --  $Id$
 
@@ -58,9 +63,15 @@ package MOMA.Provider.Message_Handler is
 
    type Notifier is access procedure (Message_Queue : Queue);
 
-   function Initialize (Message_Queue : Queue_Acc)
+   function Initialize (Message_Queue : Queue_Acc;
+                        New_Notifier_Procedure : in Notifier := null;
+                        New_Handler_Procedure : in Handler := null
+   )
      return PolyORB.References.Ref;
    --  Initialize the Message_Handler and return its Reference.
+   --  If both Notifier and Handler procedure are given a not null value,
+   --  the Behavior is set to Notify and the Handler procedure will be
+   --  treated as null.
 
    procedure Invoke (Self : access Object;
                      Req  : in     PolyORB.Requests.Request_Access);
@@ -68,13 +79,18 @@ package MOMA.Provider.Message_Handler is
 
    procedure Set_Handler (Self : access Object;
                           New_Handler_Procedure : in Handler);
-   --  Associates a Handler to the pool.
-   --  The actual queue will call the Handler when receiving a new message.
+   --  Associate a Handler procedure to the Message Handler.
+   --  Replace the current Handler procedure and set the Notifier procedure
+   --  to null (even if the Handler procedure is null).
+   --  A request is sent to the actual queue to change its behaviour.
+   --  The actual queue will request the Message Handler to Handle the message
+   --  rather than just Notify it.
 
    procedure Set_Notifier (Self : access Object;
                            New_Notifier_Procedure : in Notifier);
-   --  Associates a Handler to the pool.
-   --  The actual queue will call the Handler when receiving a new message.
+   --  Symmetric of Set_Handler
+   --  Messages will not be handled any more, but just notified.
+
 
    procedure Set_Queue (Self : access Object;
                         New_Queue : Queue_Acc);
@@ -86,10 +102,14 @@ package MOMA.Provider.Message_Handler is
    --  Interface description for SOA object adapter.
 
 private
+
+   type Call_Back_Behavior is (Notify, Handle, None);
+
    type Object is new PolyORB.Minimal_Servant.Servant with record
       Message_Queue : Queue_Acc;
       Handler_Procedure : Handler := null;
       Notifier_Procedure : Notifier := null;
+      Behavior : Call_Back_Behavior := None;
    end record;
 
    function Get_Parameter_Profile (Method : String)
@@ -108,5 +128,9 @@ private
    procedure Notify (Self : access Object);
    --  Execute the Notifier procedure.
    --  Called when receiving a Notify request.
+
+   procedure Register_To_Queue (Self : access Object);
+   --  Register the Message_Handler or change the Behavior,
+   --  via a Request to the actual queue,
 
 end MOMA.Provider.Message_Handler;

@@ -60,20 +60,26 @@ package body MOMA.Provider.Message_Handler is
    -- Initialize --
    ----------------
 
-   function Initialize (Message_Queue : Queue_Acc)
+   function Initialize (Message_Queue : Queue_Acc;
+                        New_Notifier_Procedure : in Notifier := null;
+                        New_Handler_Procedure : in Handler := null
+   )
      return PolyORB.References.Ref
    is
-      Self      : Object;
-      --  Self_Ref  : PolyORB.References.Ref;
-      Queue_Ref : PolyORB.References.Ref;
+      Self      : Object_Acc;
+      --  Self_Ref : PolyORB.References.Ref;
    begin
-      raise PolyORB.Not_Implemented;
+      Self := null;
+      --  XXX TODO : Initialize the servant
       pragma Warnings (Off);
+      if New_Handler_Procedure /= null then
+         Set_Handler(Self, New_Handler_Procedure);
+      else
+         Set_Notifier(Self, New_Notifier_Procedure);
+      end if;
       return Initialize(Message_Queue);
-      Queue_Ref := MOMA.Message_Consumers.Get_Ref (
-         MOMA.Message_Consumers.Message_Consumer (Self.Message_Queue.all));
       pragma Warnings (On);
-      -- XXX TODO : Register itself to the actual Message Queue
+      raise PolyORB.Not_Implemented;
    end Initialize;
 
    ------------
@@ -182,6 +188,7 @@ package body MOMA.Provider.Message_Handler is
       if Self.Handler_Procedure /= null then
          Self.Handler_Procedure.all (Self.Message_Queue.all, Rcvd_Message);
       end if;
+      Self.Notifier_Procedure := null;
    end Handle;
 
    ------------
@@ -194,7 +201,48 @@ package body MOMA.Provider.Message_Handler is
       if Self.Notifier_Procedure /= null then
          Self.Notifier_Procedure.all (Self.Message_Queue.all);
       end if;
+      Self.Handler_Procedure := null;
    end Notify;
+
+   -----------------------
+   -- Register_To_Queue --
+   -----------------------
+
+   procedure Register_To_Queue (Self : access Object)
+   is
+      Request     : PolyORB.Requests.Request_Access;
+      Arg_List    : PolyORB.Any.NVList.Ref;
+      Result      : PolyORB.Any.NamedValue;
+      Queue_Ref : PolyORB.References.Ref;
+   begin
+      pragma Debug (O ("Registering Message_Handler with " &
+         Call_Back_Behavior'Image (Self.Behavior) & "behavior"));
+      if Self.Message_Queue /= null then
+         Queue_Ref := MOMA.Message_Consumers.Get_Ref (
+            MOMA.Message_Consumers.Message_Consumer (Self.Message_Queue.all));
+         PolyORB.Any.NVList.Create (Arg_List);
+         PolyORB.Any.NVList.Add_Item (Arg_List,
+                                      To_PolyORB_String ("Behavior"),
+                                      To_Any (To_PolyORB_String (
+                                         Call_Back_Behavior'Image (
+                                            Self.Behavior))),
+                                      PolyORB.Any.ARG_IN);
+         Result := (Name      => To_PolyORB_String ("Result"),
+                    Argument  => PolyORB.Any.Get_Empty_Any
+                                    (TypeCode.TC_Any),
+                    Arg_Modes => 0);
+         PolyORB.Requests.Create_Request
+           (Target    => Queue_Ref,
+            Operation => "Register_Handler",
+            Arg_List  => Arg_List,
+            Result    => Result,
+            Req       => Request);
+         PolyORB.Requests.Invoke (Request);
+         PolyORB.Requests.Destroy_Request (Request);
+      end if;
+      raise PolyORB.Not_Implemented;
+      --  XXX TODO : Implement Request in Message_Pool's Invoke
+   end Register_To_Queue;
 
    -----------------
    -- Set_Handler --
@@ -202,8 +250,18 @@ package body MOMA.Provider.Message_Handler is
 
    procedure Set_Handler (Self : access Object;
                           New_Handler_Procedure : in Handler) is
+      Previous_Behavior : constant Call_Back_Behavior := Self.Behavior;
    begin
+      Self.Notifier_Procedure := null;
       Self.Handler_Procedure := New_Handler_Procedure;
+      if New_Handler_Procedure /= null then
+         Self.Behavior := Handle;
+      else
+         Self.Behavior := None;
+      end if;
+      if Self.Behavior /= Previous_Behavior then
+         Register_To_Queue (Self);
+      end if;
    end Set_Handler;
 
    ------------------
@@ -212,8 +270,18 @@ package body MOMA.Provider.Message_Handler is
 
    procedure Set_Notifier (Self : access Object;
                            New_Notifier_Procedure : in Notifier) is
+      Previous_Behavior : constant Call_Back_Behavior := Self.Behavior;
    begin
+      Self.Handler_Procedure := null;
       Self.Notifier_Procedure := New_Notifier_Procedure;
+      if New_Notifier_Procedure /= null then
+         Self.Behavior := Notify;
+      else
+         Self.Behavior := None;
+      end if;
+      if Self.Behavior /= Previous_Behavior then
+         Register_To_Queue (Self);
+      end if;
    end Set_Notifier;
 
    ---------------
@@ -225,6 +293,7 @@ package body MOMA.Provider.Message_Handler is
       New_Queue : Queue_Acc) is
    begin
       Self.Message_Queue := New_Queue;
+      Register_To_Queue (Self);
    end Set_Queue;
 
 end MOMA.Provider.Message_Handler;
