@@ -158,4 +158,24 @@ package body Evoluted_Pkg is
          Put_Line ("Control-D pressed, exiting");
    end Mainloop;
 
+
+   Received_Msgs : Integer := 0;
+   pragma Atomic (Received_Msgs);
+
+   procedure New_Message
+     (Sender    : in String;
+      Recipient : access Instrumented_Penpal;
+      Message   : in String)
+   is
+   begin
+      Received_Msgs := Received_Msgs + 1;
+      Ada.Text_IO.Put ("<" & Received_Msgs'Img & " > ");
+      Common.New_Message
+        (Sender, Penpal_Type (Recipient.all)'Access, Message);
+      if Received_Msgs >= Expected_Messages then
+         Recv_Done := True;
+         Ada.Text_IO.Put_Line ("Recv done.");
+      end if;
+   end New_Message;
+
 end Evoluted_Pkg;
