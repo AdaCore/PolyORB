@@ -1,3 +1,8 @@
+1998-03-08  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* config.sdefault: Change output when argument is pathtolib. This
+	script is used now in several cases in GARLIC.
+
 1998-02-25  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_utils.adb, xe_utils.ads: Add a new function GNAT_Style to

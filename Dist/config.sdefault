@@ -18,7 +18,7 @@ for i in `gnatls -v | sed -e '1,/Object Search Path/ d' | \
   fi
 done
 if test "x$1" = "xpathtolib"; then
-  echo "${S2}libgnat.a"
+  echo "${S2}"
   exit 0
 fi
 cat >sdefault.adb <<EOF
