@@ -144,8 +144,9 @@ package body System.Garlic.Remote is
    function Is_Local_Host (Host : String) return Boolean is
       Name_Of_Host : constant String := Name_Of (Host);
    begin
-      return Name_Of_Host = Name_Of (Host_Name)
-        or else Name_Of_Host = "localhost";
+      return Host = "localhost"
+        or else Name_Of_Host = "localhost"
+        or else Name_Of_Host = Name_Of (Host_Name);
    end Is_Local_Host;
 
    ------------

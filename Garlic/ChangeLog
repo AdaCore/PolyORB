@@ -1,3 +1,8 @@
+1998-07-23  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garrem.adb: Check whether host is "localhost". In this case,
+ 	do not use rsh but fork instead.
+
 1998-07-22  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-rpc.adb: Use new soft link RPC_Shutdown.
