@@ -872,7 +872,7 @@ package body Idl_Fe.Lexer is
    begin
       Set_Mark;
       if Get_Current_Char = '0' and then View_Next_Char /= '.' then
-         if View_Next_Char = 'x' or View_Next_Char = 'X' then
+         if View_Next_Char = 'x' or else View_Next_Char = 'X' then
             Skip_Char;
             while Is_Hexa_Digit_Character (View_Next_Char) loop
                Skip_Char;
@@ -885,8 +885,8 @@ package body Idl_Fe.Lexer is
             end loop;
             Set_End_Mark;
             return T_Lit_Octal_Integer;
-         elsif View_Next_Char = 'D' or View_Next_Char = 'd' or
-           View_Next_Char = 'E' or View_Next_Char = 'e' then
+         elsif View_Next_Char = 'D' or else View_Next_Char = 'd'
+           or else View_Next_Char = 'E' or else View_Next_Char = 'e' then
             null;
          else
             --  This is only a digit.
@@ -988,15 +988,15 @@ package body Idl_Fe.Lexer is
             end loop;
             Set_End_Mark;
             if To_Lower (Get_Marked_Text) = "if"
-              or To_Lower (Get_Marked_Text) = "elif"
-              or To_Lower (Get_Marked_Text) = "else"
-              or To_Lower (Get_Marked_Text) = "endif"
-              or To_Lower (Get_Marked_Text) = "define"
-              or To_Lower (Get_Marked_Text) = "undef"
-              or To_Lower (Get_Marked_Text) = "ifdef"
-              or To_Lower (Get_Marked_Text) = "ifndef"
-              or To_Lower (Get_Marked_Text) = "include"
-              or To_Lower (Get_Marked_Text) = "error" then
+              or else To_Lower (Get_Marked_Text) = "elif"
+              or else To_Lower (Get_Marked_Text) = "else"
+              or else To_Lower (Get_Marked_Text) = "endif"
+              or else To_Lower (Get_Marked_Text) = "define"
+              or else To_Lower (Get_Marked_Text) = "undef"
+              or else To_Lower (Get_Marked_Text) = "ifdef"
+              or else To_Lower (Get_Marked_Text) = "ifndef"
+              or else To_Lower (Get_Marked_Text) = "include"
+              or else To_Lower (Get_Marked_Text) = "error" then
                Errors.Error
                  ("cannot handle preprocessor directive in "
                   & "lexer, please run cpp first.",

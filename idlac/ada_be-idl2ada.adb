@@ -843,7 +843,7 @@ package body Ada_Be.Idl2Ada is
         := Kind (Node);
    begin
       pragma Assert ((NK = K_Interface)
-                     or (NK = K_ValueType));
+                     or else (NK = K_ValueType));
       NL (Spec);
       PL (Spec, Repository_Id_Name (Node)
           & " : constant Standard.String");

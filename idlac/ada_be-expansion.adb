@@ -824,7 +824,7 @@ package body Ada_Be.Expansion is
       Current_Declarator : Node_Id;
    begin
       pragma Assert (Kind (Node) = K_Attribute
-                     or Kind (Node) = K_State_Member);
+                     or else Kind (Node) = K_State_Member);
 
       Init (Iterator, Declarators);
 

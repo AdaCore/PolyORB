@@ -508,7 +508,7 @@ package body Ada_Be.Idl2Ada.Skel is
       NK : constant Node_Kind := Kind (Node);
    begin
       pragma Assert ((NK = K_Interface)
-                     or (NK = K_ValueType));
+                     or else (NK = K_ValueType));
       --  FIXME: Hard-coded string constant.
 
       PL (CU, "if Operation = ""_is_a"" then");
@@ -571,7 +571,7 @@ package body Ada_Be.Idl2Ada.Skel is
       NK : constant Node_Kind := Kind (Node);
    begin
       pragma Assert ((NK = K_Interface)
-                     or (NK = K_ValueType));
+                     or else (NK = K_ValueType));
       Add_With (CU, "PortableServer");
       Add_With (CU, "CORBA");
       Add_With (CU, "Broca.Buffers");
@@ -649,7 +649,7 @@ package body Ada_Be.Idl2Ada.Skel is
       It     : Node_Iterator;
       P_Node : Node_Id;
    begin
-      pragma Assert ((NK = K_Interface) or (NK = K_ValueType));
+      pragma Assert ((NK = K_Interface) or else (NK = K_ValueType));
       NL (CU);
       PL (CU, "Broca.Exceptions.Raise_Bad_Operation;");
       DI (CU);
