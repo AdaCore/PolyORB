@@ -535,7 +535,7 @@ package body GNAT.Perfect_Hash.Generators is
    --------------
 
    function  Allocate (N : Natural; S : Natural) return Table_Id is
-      L : Natural := IT.Last;
+      L : constant Natural := IT.Last;
    begin
       IT.Set_Last (L + N * S);
       return L + 1;
@@ -639,7 +639,7 @@ package body GNAT.Perfect_Hash.Generators is
       procedure Assign (X : Vertex_Id)
       is
          E : Edge_Type;
-         V : Vertex_Type := Get_Vertices (X);
+         V : constant Vertex_Type := Get_Vertices (X);
 
       begin
          for J in V.First .. V.Last loop
@@ -904,7 +904,7 @@ package body GNAT.Perfect_Hash.Generators is
       for J in 0 .. L1 - 1 loop
          for K in 0 .. L2 - 1 loop
             Random (S);
-            Set_Rand_Tab (T, J, K, Natural (S mod Natural (NV)));
+            Set_Rand_Tab (T, J, K, S mod NV);
          end loop;
       end loop;
    end Generate_Mapping_Table;
@@ -1073,7 +1073,7 @@ package body GNAT.Perfect_Hash.Generators is
 
    function Image (Str : String; W : Natural := 0) return String
    is
-      Len : Natural := Str'Length;
+      Len : constant Natural := Str'Length;
       Max : Natural := Len;
    begin
       if Max < W then
