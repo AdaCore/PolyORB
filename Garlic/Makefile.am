@@ -11,7 +11,7 @@ RANLIB  = @RANLIB@
 CONSTANTS_SH = ${srcdir}/constants.sh
 CP           = cp
 GARLIC       = ${prefix}/lib/garlic
-GNATFLAGS    = -gnatg -gnatdj @GNATFLAGS@
+GNATFLAGS    = -gnatg @GNATFLAGS@
 INCFLAGS           = -I. -I${srcdir}
 
 PLATFORM           = @PLATFORM_SPECIFIC@
