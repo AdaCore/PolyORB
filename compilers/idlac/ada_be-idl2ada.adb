@@ -2049,6 +2049,8 @@ package body Ada_Be.Idl2Ada is
                  := Ada_Operation_Name (Node);
                O_Type      : constant Node_Id
                  := Operation_Type (Node);
+               Org_O_Type  : constant Node_Id
+                 := Original_Operation_Type (Node);
                Is_Function : constant Boolean
                  := Kind (O_Type) /= K_Void;
 
@@ -2296,14 +2298,18 @@ package body Ada_Be.Idl2Ada is
                         end loop;
                      end;
 
+                     NL (CU);
                      PL (CU, "--  Set result type (maybe void)");
+                     NL (CU);
                      PL (CU, T_Result);
                      PL (CU, "  := (Name => PolyORB.Types.Identifier ("
                          & T_Result_Name & "),");
                      PL (CU, "      Argument => "
                          & "CORBA.Internals.To_PolyORB_Any ");
+
+                     Add_With (CU, Ada_Helper_Name (Org_O_Type));
                      PL (CU, "  (Get_Empty_Any ("
-                         & TC_Name (Original_Operation_Type (Node)) & ")),");
+                         & TC_Name (Org_O_Type) & ")),");
                      II (CU);
                      PL (CU, "Arg_Modes => 0);");
                      DI (CU);
@@ -2312,7 +2318,7 @@ package body Ada_Be.Idl2Ada is
                      PL (CU, "PolyORB.Requests.Create_Request");
                      PL (CU, "  (Target    => CORBA.Object.To_PolyORB_Ref");
                      II (CU);
-                     PL (CU, "(CORBA.Object.Ref ("
+                     PL (CU, "  (CORBA.Object.Ref ("
                          & Self_For_Operation (Mapping, Node) & ")),");
                      PL (CU, "Operation => " & T_Operation_Name & ",");
                      PL (CU, "Arg_List  => " & T_Arg_List & ",");
@@ -2331,7 +2337,6 @@ package body Ada_Be.Idl2Ada is
                         PL (CU, "Req_Flags => " &
                             "PolyORB.Requests.Sync_With_Transport);");
                      end if;
-
                      DI (CU);
 
                      NL (CU);
@@ -2347,15 +2352,18 @@ package body Ada_Be.Idl2Ada is
                      II (CU);
                      PL (CU, T_Result & ".Argument := "
                          & T_Request & ".Exception_Info;");
-                     PL (CU, "PolyORB.Requests.Destroy_Request");
-                     PL (CU, "  (" & T_Request & ");");
-                     PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_From_Any");
-                     PL (CU, "  (" & T_Result & ".Argument);");
+                     PL (CU, "PolyORB.Requests.Destroy_Request"
+                         & " (" & T_Request & ");");
+                     PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_From_Any"
+                         & " (" & T_Result & ".Argument);");
+                     NL (CU);
+                     PL (CU, "--  Not reached");
+                     NL (CU);
                      DI (CU);
                      PL (CU, "end if;");
 
-                     PL (CU, "PolyORB.Requests.Destroy_Request");
-                     PL (CU, "  (" & T_Request & ");");
+                     PL (CU, "PolyORB.Requests.Destroy_Request ("
+                         & T_Request & ");");
 
                      if Response_Expected then
 
@@ -2367,11 +2375,10 @@ package body Ada_Be.Idl2Ada is
                            P_Node : Node_Id;
                            First  : Boolean := True;
                         begin
-                           if Kind (Original_Operation_Type (Node))
-                                /= K_Void
-                           then
+                           if Kind (Org_O_Type) /= K_Void then
                               NL (CU);
-                              PL (CU, "--  Retrieve return value.");
+                              PL (CU, "--  Retrieve return value");
+                              NL (CU);
 
                               if Is_Function then
                                  Put (CU, "return ");
@@ -2381,13 +2388,12 @@ package body Ada_Be.Idl2Ada is
 
                               declare
                                  Prefix : constant String
-                                   := Helper_Unit
-                                   (Original_Operation_Type (Node));
+                                   := Helper_Unit (Org_O_Type);
                               begin
                                  Add_With (CU, Prefix);
 
                                  Gen_Forward_Conversion
-                                   (CU, Original_Operation_Type (Node),
+                                   (CU, Org_O_Type,
                                     "To_Forward",
                                     Prefix & ".From_Any"
                                     & ASCII.LF
@@ -2970,9 +2976,12 @@ package body Ada_Be.Idl2Ada is
          when K_Declarator =>
             declare
                P_T_Type : constant Node_Id := T_Type (Parent (Node));
-               Is_Ref : constant Boolean
-                 := Is_Interface_Type (P_T_Type)
-                 or else Kind (P_T_Type) = K_Object;
+               Is_Array : constant Boolean
+                 := not Is_Empty (Array_Bounds (Node));
+               Is_Ref   : constant Boolean
+                 := not Is_Array
+                      and then (Is_Interface_Type (P_T_Type)
+                                or else Kind (P_T_Type) = K_Object);
             begin
                if Is_Ref then
                   --  This node is mapped to a subtype of the
@@ -3290,7 +3299,8 @@ package body Ada_Be.Idl2Ada is
            K_String             |
            K_Wide_String        |
            K_Octet              |
-           K_Any                =>
+           K_Any                |
+           K_Void               =>
             return "CORBA";
 
          when K_Object =>
