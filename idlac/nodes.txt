@@ -67,6 +67,7 @@
 --
 --  Declarator <-- Named
 --    Array_Bounds : Node_List
+--    Parent : Node_Id
 --
 --  State_Member
 --    State_Type : Node_Id
@@ -77,6 +78,7 @@
 --    Param_Decls : Node_List
 --
 --  Scoped_Name
+--    S_Type : Node_Id
 --    Value : Node_Id
 --
 --  Operation <-- Scope
@@ -90,9 +92,6 @@
 --    Is_Readonly : Boolean
 --    A_Type : Node_Id
 --    Declarators : Node_List
---
---  Attribute_Declarator <-- Named
---    Attribute : Node_Id
 --
 --  Void
 --

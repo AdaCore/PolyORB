@@ -69,7 +69,10 @@ package body Idl_Fe.Display_Tree is
       N_Indent : Natural := Indent + Offset;
    begin
       Disp_Indent (Indent);
-
+      if N = No_Node then
+         Put_Line ("node not properly defined");
+         return;
+      end if;
       case Kind (N) is
          when K_Scoped_Name =>
             Put_Line
@@ -170,14 +173,14 @@ package body Idl_Fe.Display_Tree is
                Put_Line (Get_Name (N));
                Disp_Indent (N_Indent, "type:");
                Disp_Tree (Operation_Type (N), N_Indent + Offset, Full);
-               Disp_Indent (N_Indent, "parameters:");
+               Disp_Indent (N_Indent, "parameters :");
                Disp_List (Parameters (N), N_Indent + Offset, Full);
                if Raises (N) /= Nil_List then
-                  Disp_Indent (N_Indent, "raises:");
+                  Disp_Indent (N_Indent, "raises :");
                   Disp_List (Raises (N), N_Indent + Offset, Full);
                end if;
                if Contexts (N) /= Nil_List then
-                  Disp_Indent (N_Indent, "contexts:");
+                  Disp_Indent (N_Indent, "contexts :");
                   Disp_List (Contexts (N), N_Indent + Offset, Full);
                end if;
             end;
@@ -190,12 +193,9 @@ package body Idl_Fe.Display_Tree is
             Put_Line ("");
             Disp_Indent (N_Indent, "type:");
             Disp_Tree (A_Type (N), N_Indent + Offset, Full);
-            Disp_Indent (N_Indent, "declarators:");
+            Disp_Indent (N_Indent, "declarators :");
             Disp_List (Declarators (N),
                        N_Indent + Offset, Full);
-
-         when K_Attribute_Declarator =>
-            Put_Line ("declarator " & Get_Name (N));
 
          when K_Void =>
             Put_Line ("void");
@@ -249,7 +249,7 @@ package body Idl_Fe.Display_Tree is
             if Bound (N) = no_node then
                Put_Line ("string (unbounded)");
             else
-               Put_Line ("string bounds:");
+               Put_Line ("string bounds :");
                Disp_Tree (Bound (N), N_Indent, Full);
             end if;
 
@@ -257,7 +257,7 @@ package body Idl_Fe.Display_Tree is
             if Bound (N) = no_node then
                Put_Line ("string (unbounded)");
             else
-               Put_Line ("string bounds:");
+               Put_Line ("string bounds :");
                Disp_Tree (Bound (N), N_Indent, Full);
             end if;
 
@@ -272,22 +272,22 @@ package body Idl_Fe.Display_Tree is
                   Put_Line ("inout");
             end case;
             Disp_Tree (Declarator (N), N_Indent, False);
-            Disp_Indent (N_Indent, "type:");
+            Disp_Indent (N_Indent, "type :");
             Disp_Tree (Param_Type (N), N_Indent + Offset, False);
 
          when K_Exception =>
             Put ("exception ");
             Put_Line (Get_Name (N));
             if Full then
-               Disp_Indent (N_Indent, "members:");
+               Disp_Indent (N_Indent, "members :");
                Disp_List (Members (N), N_Indent + Offset, Full);
             end if;
 
          when K_Member =>
             Put_Line ("member");
-            Disp_Indent (N_Indent, "declarator:");
+            Disp_Indent (N_Indent, "declarator :");
             Disp_List (Decl (N), N_Indent + Offset, Full);
-            Disp_Indent (N_Indent, "type:");
+            Disp_Indent (N_Indent, "type :");
             Disp_Tree (M_Type (N), N_Indent + Offset, Full);
 
 
@@ -358,7 +358,7 @@ package body Idl_Fe.Display_Tree is
             Disp_Unary (N, N_Indent + Offset, Full, "id");
 
          when K_Primary_Expr =>
-            Put_Line ("primary expression, value = ");
+            Put ("primary expression, value = ");
             Disp_Tree (Operand (N),
                        N_Indent + Offset,
                        Full);

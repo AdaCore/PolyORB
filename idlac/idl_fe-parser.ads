@@ -458,6 +458,17 @@ private
    --            | <character_literal>
    --            | <floating_pt_literal>
    --            | <boolean_literal>
+   --  Actually, the specification is sort of inconsistant here
+   --  since we can not use wide strings, wide chars or fixed point
+   --  numbers. So the implemented rule is in fact :
+   --  <literal> ::= <integer_literal>
+   --            | <string_literal>
+   --            | <wide_string_literal>
+   --            | <character_literal>
+   --            | <wide_character_literal>
+   --            | <floating_pt_literal>
+   --            | <fixed_pt_literal>
+   --            | <boolean_literal>
    procedure Parse_Literal (Result : out Node_Id;
                             Success : out Boolean);
 
@@ -529,22 +540,26 @@ private
    --  Rule 49
    --  <declarators> ::= <declarator> { "," <declarator> }*
    procedure Parse_Declarators (Result : out Node_List;
+                                Parent : in Node_Id;
                                 Success : out Boolean);
 
    --  Rule 50
    --  <declarator> ::= <simple_declarator>
    --               |   <complex_declarator>
    procedure Parse_Declarator (Result : out Node_Id;
+                               Parent : in Node_Id;
                                Success : out Boolean);
 
    --  Rule 51
    --  <simple_declarator> ::= <identifier>
    procedure Parse_Simple_Declarator (Result : out Node_Id;
+                                      Parent : in Node_Id;
                                       Success : out Boolean);
 
    --  Rule 52
    --  <complex_declarator> ::= <array_declarator>
    procedure Parse_Complex_Declarator (Result : out Node_Id;
+                                       Parent : in Node_Id;
                                        Success : out Boolean);
 
    --  Rule 53
@@ -688,6 +703,7 @@ private
    --  <element_spec> ::= <type_spec> <declarator>
    procedure Parse_Element_Spec (Element_Type : out Node_Id;
                                  Element_Decl : out Node_Id;
+                                 Parent : in Node_Id;
                                  Success : out Boolean);
 
    --  Rule 78
@@ -722,6 +738,7 @@ private
    --  Rule 83
    --  <array_declarator> ::= <identifier> <fixed_array_size>+
    procedure Parse_Array_Declarator (Result : out Node_Id;
+                                     Parent : in Node_Id;
                                      Success : out Boolean);
 
    --  Rule 84
@@ -735,13 +752,6 @@ private
    --                 <simple_declarator> { "," <simple_declarator> }*
    procedure Parse_Attr_Dcl (Result : out Node_Id;
                              Success : out Boolean);
-
-   --  Rule 85:
-   --  The simple_declarator is a specific type for the attribute
-   --  in order to avoid the redefinition of attribute.
-   procedure Parse_Attribute_Declarator
-     (Result : out Node_Id;
-      Success : out Boolean);
 
    --  Rule 86
    --  <except_dcl> ::= "exception" <identifier> "{" <member>* "}"
@@ -826,13 +836,25 @@ private
    procedure Parse_String_Literal (Result : out Node_Id;
                                    Success : out Boolean);
 
+   --  parsing of a wide string
+   procedure Parse_Wide_String_Literal (Result : out Node_Id;
+                                        Success : out Boolean);
+
    --  parsing of a char
    procedure Parse_Char_Literal (Result : out Node_Id;
                                  Success : out Boolean);
 
+   --  parsing of a wide char
+   procedure Parse_Wide_Char_Literal (Result : out Node_Id;
+                                      Success : out Boolean);
+
    --  parsing of a float
    procedure Parse_Floating_Pt_Literal (Result : out Node_Id;
-                                  Success : out Boolean);
+                                        Success : out Boolean);
+
+   --  parsing of a fixed point number
+   procedure Parse_Fixed_Pt_Literal (Result : out Node_Id;
+                                     Success : out Boolean);
 
    --  CORBA V2.3 - 3.12.4
    --

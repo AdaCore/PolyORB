@@ -167,9 +167,8 @@ print "private"
 print
 print "   type Node_Type is limited record"
 for i in f:
-    if typess [i] == "Node_Id": init = ":= No_Node"
-    else: init = ""
-    print "      %-25s : %-25s%s;" % (i, typess [i], init)
+    if typess [i] == "Node_Id": print "      %-25s : %-25s%s;" % (i, typess [i], ":= No_Node")
+    else:  print "      %-25s : %s%s;" % (i, typess [i], "")
 print "   end record;"
 print """
    type Node_Access is access Node_Type;

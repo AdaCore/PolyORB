@@ -1,6 +1,5 @@
-#GNAT_STYLE=-gnaty3bcefhikmt
-#GNATMAKE_FLAGS= $(GNAT_STYLE) -g -gnatf -gnatwu -gnatwe -gnatao
-GNATMAKE_FLAGS=-g -gnatfao
+GNAT_STYLE=-gnaty3bcefhikmt
+GNATMAKE_FLAGS= $(GNAT_STYLE) -g -gnatf -gnatwu -gnatwe -gnatao
 
 all: testlexer testparser testexpansion testgen idlac # gidlac # idlac
 

@@ -843,8 +843,10 @@ package body Idl_Fe.Lexer is
                      Set_Mark;
                      Go_To_End_Of_String;
                      Idl_Fe.Errors.Free (Current_Location.Filename);
-                     Current_Location.Filename
-                       := new String'(Get_Marked_Text);
+                     Current_Location.Filename := new String'
+                       (Get_Marked_Text
+                        (Get_Marked_Text'First + 1 ..
+                         Get_Marked_Text'Last - 1));
                      Skip_Spaces;
                      while View_Next_Char /= LF loop
                         --  there is a flag

@@ -109,7 +109,7 @@ package body Idl_Fe.Types is
      (List : Node_List;
       Node : Node_Id) return Node_List
    is
-      Result, Cell, Last : Node_List;
+      Cell, Last : Node_List;
    begin
       Cell := new Node_List_Cell'(Car => Node, Cdr => null);
       if List = null then
@@ -616,6 +616,7 @@ package body Idl_Fe.Types is
       Hash_Index : Hash_Value_Type;
       Index : Uniq_Id;
    begin
+      pragma Debug (O ("pop_scope : end"));
       --  Remove all definition of scope from the hash table, and
       --  replace them by the previous one.
       --  Add these definition to the identifier_table of the current_scope
@@ -680,6 +681,7 @@ package body Idl_Fe.Types is
       end if;
 
       Unchecked_Deallocation (Old_Scope);
+      pragma Debug (O ("pop_scope : end"));
    end Pop_Scope;
 
 
@@ -712,7 +714,8 @@ package body Idl_Fe.Types is
          end if;
          --  A attribute or operation may not be redefined
          if Kind (A_Definition.Node) = K_Operation or
-           Kind (A_Definition.Node) = K_Attribute_Declarator then
+           (Kind (A_Definition.Node) = K_Declarator and then
+            Kind (Parent (A_Definition.Node)) = K_Attribute) then
             pragma Debug (O ("Is_Redefinable : cannot redefine an op, attr"));
             return False;
          end if;
@@ -943,7 +946,8 @@ package body Idl_Fe.Types is
    begin
       Index := Check_Identifier_In_Storage (Scope, Name);
       if Index /= Nil_Uniq_Id then
-         return Identifier_Table (Scope).Content_Table.Table (Index).Definition;
+         return Identifier_Table (Scope).
+           Content_Table.Table (Index).Definition;
       else
          return null;
       end if;
@@ -1048,7 +1052,8 @@ package body Idl_Fe.Types is
                        Node_Kind'Image (Kind (Scope)) & "."));
       Index := Imported_Table (Scope).Hash_Table (Hash_Index);
       if Index /= Nil_Uniq_Id then
-         while Imported_Table (Scope).Content_Table.Table (Index).Definition.Name
+         while Imported_Table (Scope).
+           Content_Table.Table (Index).Definition.Name
            /= null loop
             if Idl_Identifier_Equal
               (Imported_Table (Scope).Content_Table.Table (Index).

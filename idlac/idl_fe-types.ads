@@ -188,7 +188,7 @@ package Idl_Fe.Types is
    function Get_Name (Node : in Node_Id) return String;
 
 
-    ----------------------------------------
+   ----------------------------------------
    --  Type of an identifier definition  --
    ----------------------------------------
 

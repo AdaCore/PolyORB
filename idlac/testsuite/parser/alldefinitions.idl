@@ -7,6 +7,12 @@
 /* First, try each rule */
 /************************/
 
+// Rule 0 : preprocessor
+#include "testparser_include.idl"
+#line 500
+#line 14
+//#pragma toto
+
 // Rule 1
 const short const1 = 4;
 
@@ -172,6 +178,7 @@ valuetype value42 {
 const short const3 = 3;
 
 // Rule 28
+
 const short const4 = 3;
 const char const5 = 'd';
 const wchar const6 = L'd';
@@ -181,20 +188,150 @@ const string const9 = "string";
 const wstring const10 = L"wstring";
 const fixed<5,3> const11 = 3.141d;
 typedef long type4;
-const type4 const12 5;
-const octet const13 2;
+const type4 const12 = 5;
+typedef type4 type5;
+const type5 const13 = 5;
+const octet const14 = 2;
 
 // Rule 29
+const short const15 = 5;
+
 // Rule 30
+//const short const16 = 3 | -28;
+//const short const17 = 3 | -28 | 12;
+
 // Rule 31
+//const short const18 = 3 ^ -28;
+//const short const19 = 3 ^ -28 ^ 12;
+
 // Rule 32
+//const short const20 = 3 & -28;
+//const short const21 = 3 & -28 & 12;
+
 // Rule 33
+//const short const22 = 345 << 8;
+//const short const23 = 345 << 2 << 6;
+//const short const24 = 345 >> 8;
+//const short const25 = 345 >> 2 >> 6;
+
 // Rule 34
+//const short const23 = 345 + 8;
+//const short const24 = 345 + 2 + 6;
+//const short const25 = 345 - 8;
+//const short const26 = 345 - 2 - 6;
+//const short const27 = 345 - 2 + 6;
+//const short const28 = 345 + 2 - 6;
+
 // Rule 35
+//const short const29 = 345 * 8;
+//const short const30 = 345 * 2 * 4;
+//const short const31 = 345 / 8;
+//const short const32 = 345 / 2 / 4;
+//const short const33 = 345 % 8;
+//const short const34 = 345 % 4 % 2;
+//const short const35 = 345 * 4 / 2;
+//const short const36 = 345 / 4 * 2;
+//const short const37 = 345 * 4 % 5;
+//const short const38 = 345 % 4 * 5;
+//const short const39 = 345 / 4 % 5;
+//const short const40 = 345 % 4 / 5;
+
 // Rule 36
+//const short const41 = - 17;
+
 // Rule 37
+//const short const42 = - 17;
+//const short const43 = + 17;
+//const short const44 = ~ 17;
+
 // Rule 38
+module module9 {
+   const short c = 2;
+};
+//const short const45 = ::module9::c;
+//const short const46 = module9::c;
+//const short const47 = 18;
+//const short const48 = ( 1 | 3 ^ 20 >> 1 & 7 << 2 + -9 - +11 * 13 / 15 % ~17);
+
 // Rule 39
+const short const49 = 0;
+const short const50 = 12;
+const short const51 = 014;
+const short const52 = 0xC;
+const string const53 = "a string";
+const string const54 = "a more"" complicated"" one";
+const string const55 = "two" "strings";
+const string const56 = "very """ """complicated""";
+const string const57 = "with a \\ inside";
+const string const58 = "with a \""" inside";
+const string const59 = "with an octal char : \123";
+const string const60 = "with an octal char : \12345";
+const string const61 = "with an octal char : \03";
+const string const62 = "with an hexa char : \xab";
+const string const63 = "with an hexa char : \xabcd";
+const string const64 = "with a unicode char : \uabcd";
+const string const65 = "with a unicode char : \uabcdef";
+const string const66 = " a
+                   multiline 
+                             string";
+const wstring const67 = L"a string";
+const wstring const68 = L"a more"" complicated"" one";
+const wstring const69 = L"two" "strings";
+const wstring const70 = L"very """ """complicated""";
+const char const71 = 'r';
+const char const72 = '\n';
+const char const73 = '\'';
+const char const74 = '\\';
+const char const75 = '\1';
+const char const76 = '\12';
+const char const77 = '\123';
+const char const78 = '\xa';
+const char const79 = '\xab';
+const char const80 = '\ua';
+const char const81 = '\uab';
+const char const82 = '\uabc';
+const char const83 = '\uabcd';
+const wchar const84 = L'r';
+const wchar const85 = L'\n';
+const wchar const86 = L'\'';
+const wchar const87 = L'\\';
+const wchar const88 = L'\1';
+const wchar const89 = L'\12';
+const wchar const90 = L'\123';
+const wchar const91 = L'\xa';
+const wchar const92 = L'\xab';
+const wchar const93 = L'\ua';
+const wchar const94 = L'\uab';
+const wchar const95 = L'\uabc';
+const wchar const96 = L'\uabcd';
+
+
+
+
+
+
+
+
+
+
+
+
+const float const100 = 1.45;
+const float const101 = 0.2;
+const float const102 = .3;
+const float const103 = 3.;
+const float const104 = 5e3;
+const float const105 = 3E4;
+const float const106 = .3e4;
+const float const107 = 2d;
+const float const108 = 5D;
+const float const109 = 3.4d;
+const float const110 = .5d; 
+const boolean const111 = TRUE;
+const boolean const112 = FALSE;
+
+
+
 // Rule 40
 // Rule 41
 // Rule 42
