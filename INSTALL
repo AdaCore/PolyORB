@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--             Copyright (C) 1999-2004 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,7 +43,10 @@ PolyORB has been compiled and successfully tested on the following platforms:
 Build requirements
 ------------------
 
-Ada 95 compiler: GNAT 3.15a (or the public release 3.15p) or later.
+Ada 95 compiler:
+  GNAT Pro 3.16a1 or later
+  GNAT Pro 5.02a  or later
+  GCC 3.4.0       or later
 
 Optional: XmlAda (http://libre.act-europe.fr/xmlada/) if you want to
 build the SOAP protocol personality.
