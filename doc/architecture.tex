@@ -1416,6 +1416,41 @@ pour créer des piles de filtres.
   délimiter les messages GIOP.
 \end{description}
 
+\subsection{Nommage}
+
+Les types de données de base pour le service de nommage sont
+définis par les paquetages~:
+
+\begin{description}
+\item[Droopi.References] contenant les types de données de
+  base pour représenter des références d'objets constituées
+  d'un ensemble de profils.
+\item[Droopi.Bninding\_Data] définissant le type abstrait
+  «~Profile\_Type~» correspondant à un profil.
+\end{description}
+
+Pour chaque personnalité, il est défini un ou plusieurs types
+de profils concrets permettant de désigner l'association d'une
+adresse au sein d'un service de transport avec le choix d'un
+protocole.
+
+\subsection{Liaison (\emph{binding})}
+
+Le service de liaison est assuré par les paquetages~:
+
+\begin{description}
+\item[Droopi.References.Binding] contenant la fonction
+  principale créant un subrogé lié (un objet de type
+  \emph{Session}) à partir d'un subrogé libre (un objet
+  de type \emph{References.Ref})~;
+\item[Droopi.Binding\_Data.*] qui fournissent, pour
+  chaque type de profil, le moyen d'instancier une
+  Session associant un point de terminaison du service
+  de transport connecté au point d'accès dont l'adresse
+  est contenue dans le profil avec le protocole dénoté
+  par le profil.
+\end{description}
+
 \subsection{Protocole}
 
 Le service de protocole d'appel de méthodes est basé sur un type
@@ -1454,10 +1489,9 @@ une convention données.
   SRP, un prototype de protocole.
 \end{description}
 
-\subsection{Activation et aiguillage}
+\subsection{Activation}
 
-Les fonctions d'activation et d'aiguillage sont assurées
-par les adaptateurs d'objets.
+Le service d'activation est réalisé par les adaptateurs d'objets.
 
 \begin{description}
 \item[Droopi.Obj\_Adapters] définit le type abstrait dont tout
@@ -1492,38 +1526,40 @@ par les adaptateurs d'objets.
   est proposée dans Droopi.POA\_Config.Minimum.
 \end{description}
 
-\subsection{Nommage}
 
-%%  ./droopi-references.ads
+\subsection{Aiguillage}
 
-Les types de données de base pour le service de nommage sont
-définis par les paquetages~:
+La fonction d'aiguillage et d'ordonnancement de toutes les activités
+internes de l'ORB est réalisée par la collaboration de plusieurs unités.
 
 \begin{description}
-\item[Droopi.References] contenant les types de données de
-  base pour représenter des références d'objets constituées
-  d'un ensemble de profils.
-\item[Droopi.Bninding\_Data] définissant le type abstrait
-  «~Profile\_Type~» correspondant à un profil.
+\item[Droopi.Jobs] fournit un type abstrait «~Job~» représentant
+  tout travail susceptible d'être affecté à un fil de traitement
+  pour être exécuté. Ce type est dérivé par chaque module du middleware
+  qui a besoin de faire exécuter une tâche dont l'étendue est délimitée
+  dans le temps~;
+\item[Droopi.ORB] contient le mécanisme de base d'ordonnancement
+  des \emph{Jobs}. Ce moteur délègue chaque étape des traitements
+  de l'ORB a des objets de types dérivés de \emph{Droopi.ORB.Task\_Policy},
+  représentant les différentes politiques d'ordonnancement et de gestion
+  des fils d'exécutions supportées. L'utilisateur peut ainsi configurer
+  le fonctionnement de l'ORB conformément à ses besoins et aux contraintes
+  de son environnement. Les politiques de gestion des fils d'exécution
+  utilisent Droopi.Soft\_Links lorsqu'elles ont besoin de coordonner
+  les activités de différents fils. Ainsi, la pénalité liée à cette
+  coordination peut être supprimée lorsque l'application ne contient
+  qu'un seul flot de contrôle.
 \end{description}
 
-Pour chaque personnalité, il est défini un ou plusieurs types
-de profils concrets permettant de désigner l'association d'une
-adresse au sein d'un service de transport avec le choix d'un
-protocole.
-
-\subsection{Liaison (\emph{binding})}
-
-%%  ./droopi-references-binding.ads
-
-
-
-
-
-
-
-
-
+Les politiques suivantes sont actuellement réalisées~:
+\begin{description}
+\item[No\_Tasking] pour le cas d'une application à un seul fil de
+  contrôle~;
+\item[Thread\_Pool] utilisant un ensemble de tâches «~à tout faire~»
+  susceptibles de traiter tout événement interne de l'ORB~;
+\item[Thread\_Per\_Session] utilisant une tâche dédiée pour chaque
+  session établie.
+\end{description}
 
 %%  ./droopi-constants.ads
 
@@ -1532,12 +1568,6 @@ protocole.
 %%  ./droopi-static_dict.ads
 
 
-%%  ./droopi-jobs.ads
-%%  ./droopi-orb-interface.ads
-%%  ./droopi-orb-task_policies.ads
-%%  ./droopi-orb-thread_per_session.ads
-%%  ./droopi-orb-thread_pool.ads
-%%  ./droopi-orb.ads
 %%  ./droopi-log.ads
 
 
