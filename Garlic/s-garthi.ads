@@ -372,6 +372,12 @@ package System.Garlic.Thin is
       Timeout   : Timeval_Access)
      return C.int;
 
+   function C_Socketpair (Domain   : C.int;
+                          Typ      : C.int;
+                          Protocol : C.int;
+                          SV       : access Two_Int)
+     return C.int;
+
    procedure Clear  (FS : in out Fd_Set);
    --  make FS empty.
 
@@ -484,6 +490,7 @@ private
    pragma Import (C, C_Sendto, "sendto");
    pragma Import (C, C_Setsid, "setsid");
    pragma Import (C, C_Setsockopt, "setsockopt");
+   pragma Import (C, C_Socketpair, "socketpair");
    pragma Import (C, C_Shutdown, "shutdown");
    pragma Import (C, C_Socket, "socket");
    pragma Import (C, C_Strerror, "strerror");
