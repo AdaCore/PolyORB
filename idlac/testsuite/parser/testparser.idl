@@ -40,6 +40,9 @@ abstract interface to;
 interface to{};
 abstract interface tu{};
 
+/* test of rule 11 */
+interface int1 : toto {};
+
 /* test of rule 12 */
 interface i : { const long a = 5;};
 typedef does_not_exist a1;
@@ -114,26 +117,9 @@ valuetype value23 supports valueinterface1, valueinterface2 {};
 valuetype value24 supports valueinterface1, value4 {};
 valuetype value25 supports valueinterface1, {};
 valuetype value26 : value1, value1 Error {};
-/* test ok */
-valuetype value30 : value4 {};
-abstract valuetype value31 {};
-valuetype value32 : value4, value1 {};
 
-//valuetype value33 : value4, value1, value 31 {};
-
-valuetype value34 : truncatable value4 {};
-valuetype value35 : truncatable value4, value1 {};
-valuetype value36 : truncatable value4, value1, value31 {};
-abstract valuetype value37 : value1 {};
-abstract valuetype value38 : value1, value31 {};
-abstract interface valueinterface4 {};
-abstract interface valueinterface5 {};
-valuetype value39 supports valueinterface1 {};
-valuetype value40 supports valueinterface1, valueinterface4 {};
-valuetype value41 supports valueinterface1, valueinterface4, valueinterface5 {};
-abstract valuetype value42 supports valueinterface1, valueinterface3 {};
-abstract valuetype value43 supports valueinterface1, valueinterface3, valueinterface4 {};
-abstract valuetype value44 supports valueinterface1, valueinterface3, valueinterface4, valueinterface5 {};
+/* Test of rule 20 */
+valuetype value27 : toto {};
 
 /* Test of rule 21 */
 valuetype value45 { Error };
@@ -172,6 +158,7 @@ const boolean const3;
 typedef any any1;
 const any1 const4 = TRUE;
 const error;
+const toto a = 6;
 
 /* Test of rule 29 */
 const short const5 = 65000;
@@ -212,6 +199,7 @@ const wstring const23 = L"Wide string";
 const fixed const24 = 4.05d;
 const short const25 = ( 3 ;
 const short const26 = const;
+const short const26 = toto;
 
 /* Test of rule 39 */
 // nothing to be tested
@@ -381,6 +369,7 @@ boolean op13 context (;
 
 /* Test of rule 95 */
 boolean op14 (inout error);
+boolean op14 (inout toto);
 
 /* Test of rule 96 */
 typedef fixed fixed1;
