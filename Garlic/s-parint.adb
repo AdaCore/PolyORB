@@ -229,7 +229,7 @@ package body System.Partition_Interface is
                   end;
                end if;
 
-            else
+            elsif Unit.Status = Unknown then
                pragma Debug (D (D_Debug, Units.Get_Name (N) & " is unknown"));
 
                Status := Postponed;
@@ -247,11 +247,17 @@ package body System.Partition_Interface is
                         " on " & Units.Get_Name (N)));
 
                   --  Queue this request in order to answer it when info is
-                  --  available.
+                  --  available. Note that this is a remote request which
+                  --  should not be postponed.
 
                   Unit.Pending := True;
                   Unit.Requests (Request.Partition) := True;
+
+                  Status := Modified;
                end if;
+
+            else
+               Status := Postponed;
             end if;
 
          when Set_Unit =>
@@ -263,13 +269,16 @@ package body System.Partition_Interface is
             Unit.Partition := Request.Partition;
 
             if not Is_Boot_Partition then
-               pragma Debug
-                 (D (D_Debug, Units.Get_Name (N) &
-                     " registered on boot server"));
 
-               --  Send this info to boot server once it is saved locally
+               if Unit.Partition = Local_Partition then
+                  pragma Debug
+                    (D (D_Debug, Units.Get_Name (N) &
+                        " registered on boot server"));
 
-               Send (Server, Request, N);
+                  Send (Server, Request, N);
+                  --  Send this info to boot server once it is saved locally.
+
+               end if;
 
             elsif Unit.Pending then
                pragma Debug
