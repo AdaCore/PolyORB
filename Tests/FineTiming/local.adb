@@ -12,43 +12,47 @@ procedure Local is
 
    Before, After : Milliseconds;
 
+   Iterations : constant := 500;
+
 begin
-   Put_Line ("Testing communication");
+   Put ("Testing communication...");
+   Flush;
    Synchronous_Empty_Test;
+   Put_Line (" OK");
 
    Put ("Starting AET... "); Flush;
    Before := Current;
-   for I in 1 .. 50 loop
+   for I in 1 .. Iterations loop
       Asynchronous_Empty_Test;
    end loop;
    After := Current;
    Put_Line ("AET summary:" &
-             Milliseconds'Image ((After - Before) / 50) & "ms");
+             Milliseconds'Image ((After - Before) / Iterations) & "ms");
 
    Put ("Starting AT... ");
    Before := Current;
-   for I in 1 .. 50 loop
+   for I in 1 .. Iterations loop
       Asynchronous_Test (Buffer);
    end loop;
    After := Current;
    Put_Line ("AT summary:" &
-             Milliseconds'Image ((After - Before) / 50) & "ms");
+             Milliseconds'Image ((After - Before) / Iterations) & "ms");
 
    Put ("Starting SET... ");
    Before := Current;
-   for I in 1 .. 50 loop
+   for I in 1 .. Iterations loop
       Synchronous_Empty_Test;
    end loop;
    After := Current;
    Put_Line ("SET summary:" &
-             Milliseconds'Image ((After - Before) / 50) & "ms");
+             Milliseconds'Image ((After - Before) / Iterations) & "ms");
 
    Put ("Starting ST... ");
    Before := Current;
-   for I in 1 .. 50 loop
+   for I in 1 .. Iterations loop
       Synchronous_Test (Buffer);
    end loop;
    After := Current;
    Put_Line ("ST summary:" &
-             Milliseconds'Image ((After - Before) / 50) & "ms");
+             Milliseconds'Image ((After - Before) / Iterations) & "ms");
 end Local;
