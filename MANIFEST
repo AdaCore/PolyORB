@@ -123,9 +123,6 @@ src/corba/corba-nvlist.adb
 src/corba/corba-nvlist.ads
 src/corba/corba-object.adb
 src/corba/corba-object.ads
-src/corba/corba-object_map.ads
-src/corba/corba-object_map-sequence_map.adb
-src/corba/corba-object_map-sequence_map.ads
 src/corba/corba-orb.adb
 src/corba/corba-orb.ads
 src/corba/corba-policy_types.ads
@@ -242,6 +239,9 @@ src/polyorb-obj_adapters-simple.adb
 src/polyorb-obj_adapters-simple.ads
 src/polyorb-object_map.adb
 src/polyorb-object_map.ads
+src/polyorb-object_maps.ads
+src/polyorb-object_maps-seq.adb
+src/polyorb-object_maps-seq.ads
 src/polyorb-objects.adb
 src/polyorb-objects.ads
 src/polyorb-objects-interface.ads

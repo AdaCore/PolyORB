@@ -83,8 +83,7 @@ package body PolyORB.Any.ObjRef is
    is
       use TypeCode;
    begin
-      if TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Objref
-      then
+      if TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Objref then
          raise TypeCode.Bad_TypeCode;
       end if;
 

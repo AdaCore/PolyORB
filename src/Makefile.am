@@ -28,6 +28,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-obj_adapters.ads \
 		polyorb-obj_adapters-simple.ads \
 		polyorb-object_map.ads \
+		polyorb-object_maps-seq.ads \
 		polyorb-objects.ads \
 		polyorb-opaque.ads \
 		polyorb-opaque-chunk_pools.ads \
@@ -76,6 +77,7 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb.ads \
 		polyorb-constants.ads \
 		polyorb-filters-interface.ads \
+		polyorb-object_maps.ads \
 		polyorb-objects-interface.ads \
 		polyorb-orb-interface.ads \
 		polyorb-poa.ads \
