@@ -41,7 +41,7 @@ with System.Garlic.Debug;        use System.Garlic.Debug;
 with System.Garlic.Heart;        use System.Garlic.Heart;
 with System.Garlic.Options;
 with System.Garlic.Priorities;   use System.Garlic.Priorities;
-with System.Garlic.Termination;  use System.Garlic.Termination;
+with System.Garlic.Soft_Links;   use System.Garlic.Soft_Links;
 with System.Garlic.Streams;
 with System.Garlic.Types;
 
@@ -221,7 +221,7 @@ package body System.RPC.Pool is
 
    task body Anonymous_Task is
       Dest         : Types.Partition_ID;
-      Receiver     : Streams.RPC_Receiver;
+      Receiver     : Types.RPC_Receiver;
       Result       : Streams.Params_Stream_Access;
       Cancelled    : Boolean;
       Prio         : Any_Priority;
@@ -298,7 +298,7 @@ package body System.RPC.Pool is
                Cancelled := True;
             end;
          then abort
-            Streams.RPC_Receiver'Read (Params, Receiver);
+            Types.RPC_Receiver'Read (Params, Receiver);
             Receiver (Params, Result);
             pragma Debug (D (D_Debug, "Job achieved without abortion"));
          end select;
