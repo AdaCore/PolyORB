@@ -37,7 +37,6 @@ package Platform is
 
    pragma Pure;
 
-   Ada_Compiler : constant String := "@ADA@";
    CPP_Preprocessor : constant String
      := "@CXXCPP@ @CXXCPPFLAGS@";
 
