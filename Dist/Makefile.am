@@ -26,7 +26,7 @@ dist1: ${dist1_DEPENDENCIES} force
 	${GNATMAKE} -a ${GNATFLAGS} -I. -I${srcdir} -I${GNATSRC} \
 	   ${srcdir}/xe_build.adb -o dist1
 
-xe_defs.adb: 
+xe_defs.adb: Makefile
 	@echo Generating xe_defs.adb
 	@echo "package body XE_Defs is" >xe_defs.adb
 	@echo "   GARLIC_Dir : aliased constant String" >>xe_defs.adb
@@ -46,7 +46,7 @@ xe_defs.adb:
 xe_defs.o: xe_defs.ads xe_defs.adb
 	${CC} -c -g -O2 -gnatp -I${srcdir} xe_defs.adb
 
-sdefault.adb: 
+sdefault.adb: ${srcdir}/config.sdefault
 	@echo Generating sdefault.adb
 	@if [ -f ${GNATSRC}/sdefault.adb ]; then \
 	  cp ${GNATSRC}/sdefault.adb .; else \

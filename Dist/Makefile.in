@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.1g from Makefile.am
+# Makefile.in generated automatically by automake 1.1m from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -32,35 +32,41 @@ pkgincludedir = $(includedir)/@PACKAGE@
 
 top_builddir = ..
 
+ACLOCAL = @ACLOCAL@
+AUTOCONF = @AUTOCONF@
+AUTOMAKE = @AUTOMAKE@
+AUTOHEADER = @AUTOHEADER@
+
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
-target_alias = @target_alias@
 build_alias = @build_alias@
-host_triplet = @host@
-target_triplet = @target@
 build_triplet = @build@
 host_alias = @host_alias@
-LAUNCHING_INCLUDED = @LAUNCHING_INCLUDED@
-LAUNCHINGOBJECTS = @LAUNCHINGOBJECTS@
+host_triplet = @host@
+target_alias = @target_alias@
+target_triplet = @target@
 AWK = @AWK@
 CC = @CC@
-VERSION = @VERSION@
-TAR = @TAR@
 CERRNO = @CERRNO@
-PROTOCOLSSOURCES = @PROTOCOLSSOURCES@
-PLATFORM_SPECIFIC = @PLATFORM_SPECIFIC@
-INSTALL_SCRIPT = @INSTALL_SCRIPT@
-PACKAGE = @PACKAGE@
-TCP_INCLUDED = @TCP_INCLUDED@
-PROTOCOLSOBJECTS = @PROTOCOLSOBJECTS@
-UNZIP = @UNZIP@
-RANLIB = @RANLIB@
 GNAT_SOURCE = @GNAT_SOURCE@
-SED = @SED@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+LAUNCHINGOBJECTS = @LAUNCHINGOBJECTS@
 LAUNCHINGSOURCES = @LAUNCHINGSOURCES@
+LAUNCHING_INCLUDED = @LAUNCHING_INCLUDED@
+PACKAGE = @PACKAGE@
+PLATFORM_SPECIFIC = @PLATFORM_SPECIFIC@
+PROTOCOLSOBJECTS = @PROTOCOLSOBJECTS@
+PROTOCOLSSOURCES = @PROTOCOLSSOURCES@
+RANLIB = @RANLIB@
+SED = @SED@
+SSH = @SSH@
+TAR = @TAR@
+TCP_INCLUDED = @TCP_INCLUDED@
+UNZIP = @UNZIP@
+VERSION = @VERSION@
 
 AUTOMAKE_OPTIONS = no-dependencies foreign
 
@@ -89,27 +95,30 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 dist1_OBJECTS = 
-EXTRA_dist1_SOURCES = 
+dist1_LDFLAGS = 
 SCRIPTS =  $(bin_SCRIPTS) $(libexec_SCRIPTS)
 
 DIST_COMMON =  ChangeLog Makefile.am Makefile.in TODO xe-gcc-filter.in \
 xe-gcc.in
 
 
-DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(MANS) $(EXTRA_DIST)
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
+
+GZIP = --best
 SOURCES = $(dist1_SOURCES)
 OBJECTS = $(dist1_OBJECTS)
 
 default: all
 
+.SUFFIXES:
+.SUFFIXES: .c .o
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+	cd $(top_srcdir) && $(AUTOMAKE) --foreign Dist/Makefile
 
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in
-	cd $(top_srcdir) && automake --strictness=foreign $(subdir)/Makefile
-
-Makefile: $(top_builddir)/config.status $(srcdir)/Makefile.in $(BUILT_SOURCES)
+Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
 xe-gcc: $(top_builddir)/config.status xe-gcc.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
 xe-gcc-filter: $(top_builddir)/config.status xe-gcc-filter.in
@@ -127,9 +136,10 @@ maintainer-clean-libexecPROGRAMS:
 install-libexecPROGRAMS: $(libexec_PROGRAMS)
 	$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(libexecdir)
-	list="$(libexec_PROGRAMS)"; for p in $$list; do \
+	@list="$(libexec_PROGRAMS)"; for p in $$list; do \
 	  if test -f $$p; then \
-	    $(INSTALL_PROGRAM) $$p $(libexecdir)/`echo $$p|sed '$(transform)'`; \
+	    echo "  $(INSTALL_PROGRAM) $$p $(libexecdir)/`echo $$p|sed '$(transform)'`"; \
+	     $(INSTALL_PROGRAM) $$p $(libexecdir)/`echo $$p|sed '$(transform)'`; \
 	  else :; fi; \
 	done
 
@@ -154,12 +164,13 @@ maintainer-clean-compile:
 install-binSCRIPTS: $(bin_SCRIPTS)
 	$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(bindir)
-	list="$(bin_SCRIPTS)"; for p in $$list; do \
+	@list="$(bin_SCRIPTS)"; for p in $$list; do \
 	  if test -f $$p; then \
+	    echo " $(INSTALL_SCRIPT) $$p $(bindir)/`echo $$p|sed '$(transform)'`"; \
 	    $(INSTALL_SCRIPT) $$p $(bindir)/`echo $$p|sed '$(transform)'`; \
 	  else if test -f $(srcdir)/$$p; then \
-	    $(INSTALL_SCRIPT) $(srcdir)/$$p \
-	      $(bindir)/`echo $$p|sed '$(transform)'`; \
+	    echo " $(INSTALL_SCRIPT) $(srcdir)/$$p $(bindir)/`echo $$p|sed '$(transform)'`"; \
+	    $(INSTALL_SCRIPT) $(srcdir)/$$p $(bindir)/`echo $$p|sed '$(transform)'`; \
 	  else :; fi; fi; \
 	done
 
@@ -171,12 +182,13 @@ uninstall-binSCRIPTS:
 install-libexecSCRIPTS: $(libexec_SCRIPTS)
 	$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(libexecdir)
-	list="$(libexec_SCRIPTS)"; for p in $$list; do \
+	@list="$(libexec_SCRIPTS)"; for p in $$list; do \
 	  if test -f $$p; then \
+	    echo " $(INSTALL_SCRIPT) $$p $(libexecdir)/`echo $$p|sed '$(transform)'`"; \
 	    $(INSTALL_SCRIPT) $$p $(libexecdir)/`echo $$p|sed '$(transform)'`; \
 	  else if test -f $(srcdir)/$$p; then \
-	    $(INSTALL_SCRIPT) $(srcdir)/$$p \
-	      $(libexecdir)/`echo $$p|sed '$(transform)'`; \
+	    echo " $(INSTALL_SCRIPT) $(srcdir)/$$p $(libexecdir)/`echo $$p|sed '$(transform)'`"; \
+	    $(INSTALL_SCRIPT) $(srcdir)/$$p $(libexecdir)/`echo $$p|sed '$(transform)'`; \
 	  else :; fi; fi; \
 	done
 
@@ -185,13 +197,19 @@ uninstall-libexecSCRIPTS:
 	  rm -f $(libexecdir)/`echo $$p|sed '$(transform)'`; \
 	done
 
+tags: TAGS
+
 ID: $(HEADERS) $(SOURCES)
 	here=`pwd` && cd $(srcdir) && mkid -f$$here/ID $(SOURCES) $(HEADERS)
 
-tags: TAGS
-
-TAGS: $(HEADERS) $(SOURCES) $(TAGS_DEPENDENCIES)
-	here=`pwd` && cd $(srcdir) && etags $(ETAGS_ARGS) $(SOURCES) $(HEADERS) -o $$here/TAGS
+TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES)
+	tags=; \
+	here=`pwd`; \
+	list="$(SUBDIRS)"; for subdir in $$list; do \
+	  test -f $$subdir/TAGS && tags="$$tags -i $$here/$$subdir/TAGS"; \
+	done; \
+	test -z "$(ETAGS_ARGS)$(SOURCES)$(HEADERS)$$tags" \
+	  || cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $(SOURCES) $(HEADERS) -o $$here/TAGS
 
 mostlyclean-tags:
 
@@ -215,6 +233,7 @@ distdir: $(DISTFILES)
 info:
 dvi:
 check: all
+	$(MAKE)
 installcheck:
 install-exec: install-libexecPROGRAMS install-binSCRIPTS install-libexecSCRIPTS
 	$(NORMAL_INSTALL)
@@ -253,15 +272,15 @@ mostlyclean:  mostlyclean-libexecPROGRAMS mostlyclean-compile \
 		mostlyclean-tags mostlyclean-generic
 
 clean:  clean-libexecPROGRAMS clean-compile clean-tags clean-generic \
-		mostlyclean 
+		mostlyclean
 
 distclean:  distclean-libexecPROGRAMS distclean-compile distclean-tags \
-		distclean-generic clean 
+		distclean-generic clean
 	rm -f config.status
 
 maintainer-clean:  maintainer-clean-libexecPROGRAMS \
 		maintainer-clean-compile maintainer-clean-tags \
-		maintainer-clean-generic distclean 
+		maintainer-clean-generic distclean
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 
@@ -271,7 +290,7 @@ uninstall-libexecPROGRAMS install-libexecPROGRAMS mostlyclean-compile \
 distclean-compile clean-compile maintainer-clean-compile \
 uninstall-binSCRIPTS install-binSCRIPTS uninstall-libexecSCRIPTS \
 install-libexecSCRIPTS tags mostlyclean-tags distclean-tags clean-tags \
-maintainer-clean-tags distdir info dvi check installcheck install-exec \
+maintainer-clean-tags distdir info dvi installcheck install-exec \
 install-data install uninstall all installdirs mostlyclean-generic \
 distclean-generic clean-generic maintainer-clean-generic clean \
 mostlyclean distclean maintainer-clean
@@ -283,7 +302,7 @@ dist1: ${dist1_DEPENDENCIES} force
 	${GNATMAKE} -a ${GNATFLAGS} -I. -I${srcdir} -I${GNATSRC} \
 	   ${srcdir}/xe_build.adb -o dist1
 
-xe_defs.adb: 
+xe_defs.adb: Makefile
 	@echo Generating xe_defs.adb
 	@echo "package body XE_Defs is" >xe_defs.adb
 	@echo "   GARLIC_Dir : aliased constant String" >>xe_defs.adb
@@ -303,7 +322,7 @@ xe_defs.adb:
 xe_defs.o: xe_defs.ads xe_defs.adb
 	${CC} -c -g -O2 -gnatp -I${srcdir} xe_defs.adb
 
-sdefault.adb: 
+sdefault.adb: ${srcdir}/config.sdefault
 	@echo Generating sdefault.adb
 	@if [ -f ${GNATSRC}/sdefault.adb ]; then \
 	  cp ${GNATSRC}/sdefault.adb .; else \
@@ -323,8 +342,6 @@ gnatdist: Makefile
 	@echo "fi" >>gnatdist
 	@chmod 755 gnatdist
 	@echo "gnatdist has been generated"
-.SUFFIXES:
-.SUFFIXES: .c .o
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
