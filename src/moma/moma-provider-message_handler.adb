@@ -60,14 +60,20 @@ package body MOMA.Provider.Message_Handler is
    -- Initialize --
    ----------------
 
-   function Initialize (Message_Queue : Queue)
+   function Initialize (Message_Queue : Queue_Acc)
      return PolyORB.References.Ref
    is
+      Self      : Object;
+      --  Self_Ref  : PolyORB.References.Ref;
+      Queue_Ref : PolyORB.References.Ref;
    begin
       raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
       return Initialize(Message_Queue);
+      Queue_Ref := MOMA.Message_Consumers.Get_Ref (
+         MOMA.Message_Consumers.Message_Consumer (Self.Message_Queue.all));
       pragma Warnings (On);
+      -- XXX TODO : Register itself to the actual Message Queue
    end Initialize;
 
    ------------
@@ -173,8 +179,9 @@ package body MOMA.Provider.Message_Handler is
       Rcvd_Message : constant MOMA.Messages.Message'Class :=
          MOMA.Messages.From_Any (Message);
    begin
-      MOMA.Message_Consumers.Queues.Handle (Self.Message_Queue,
-                                            Rcvd_Message);
+      if Self.Handler_Procedure /= null then
+         Self.Handler_Procedure.all (Self.Message_Queue.all, Rcvd_Message);
+      end if;
    end Handle;
 
    ------------
@@ -184,8 +191,30 @@ package body MOMA.Provider.Message_Handler is
    procedure Notify (Self : access Object)
    is
    begin
-      MOMA.Message_Consumers.Queues.Notify (Self.Message_Queue);
+      if Self.Notifier_Procedure /= null then
+         Self.Notifier_Procedure.all (Self.Message_Queue.all);
+      end if;
    end Notify;
+
+   -----------------
+   -- Set_Handler --
+   -----------------
+
+   procedure Set_Handler (Self : access Object;
+                          New_Handler_Procedure : in Handler) is
+   begin
+      Self.Handler_Procedure := New_Handler_Procedure;
+   end Set_Handler;
+
+   ------------------
+   -- Set_Notifier --
+   ------------------
+
+   procedure Set_Notifier (Self : access Object;
+                           New_Notifier_Procedure : in Notifier) is
+   begin
+      Self.Notifier_Procedure := New_Notifier_Procedure;
+   end Set_Notifier;
 
    ---------------
    -- Set_Queue --
@@ -193,7 +222,7 @@ package body MOMA.Provider.Message_Handler is
 
    procedure Set_Queue
      (Self : access Object;
-      New_Queue : Queue) is
+      New_Queue : Queue_Acc) is
    begin
       Self.Message_Queue := New_Queue;
    end Set_Queue;

@@ -42,6 +42,7 @@ with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.References;
 
+with MOMA.Messages;
 with MOMA.Message_Consumers.Queues;
 use MOMA.Message_Consumers.Queues;
 
@@ -51,18 +52,32 @@ package MOMA.Provider.Message_Handler is
 
    type Object_Acc is access Object;
 
-   function Initialize (Message_Queue : Queue)
+   type Handler is access procedure (Message_Queue : Queue;
+                                     Message : MOMA.Messages.Message'Class);
+   --  The procedure to be called when a message is received.
+
+   type Notifier is access procedure (Message_Queue : Queue);
+
+   function Initialize (Message_Queue : Queue_Acc)
      return PolyORB.References.Ref;
    --  Initialize the Message_Handler and return its Reference.
 
-   procedure Invoke
-     (Self : access Object;
-      Req  : in     PolyORB.Requests.Request_Access);
+   procedure Invoke (Self : access Object;
+                     Req  : in     PolyORB.Requests.Request_Access);
    --  Message_Handler servant skeleton.
 
-   procedure Set_Queue
-     (Self : access Object;
-      New_Queue : Queue);
+   procedure Set_Handler (Self : access Object;
+                          New_Handler_Procedure : in Handler);
+   --  Associates a Handler to the pool.
+   --  The actual queue will call the Handler when receiving a new message.
+
+   procedure Set_Notifier (Self : access Object;
+                           New_Notifier_Procedure : in Notifier);
+   --  Associates a Handler to the pool.
+   --  The actual queue will call the Handler when receiving a new message.
+
+   procedure Set_Queue (Self : access Object;
+                        New_Queue : Queue_Acc);
    --  Set the message queue which handles the messages.
 
    function If_Desc
@@ -72,9 +87,9 @@ package MOMA.Provider.Message_Handler is
 
 private
    type Object is new PolyORB.Minimal_Servant.Servant with record
-      Message_Queue : Queue;
-      --  The Queue which will handle the messages.
-
+      Message_Queue : Queue_Acc;
+      Handler_Procedure : Handler := null;
+      Notifier_Procedure : Notifier := null;
    end record;
 
    function Get_Parameter_Profile (Method : String)
@@ -87,9 +102,11 @@ private
 
    procedure Handle (Self    : access Object;
                      Message : PolyORB.Any.Any);
-   --  Actual procedure implemented by the servant.
+   --  Execute the Handler procedure.
+   --  Called when receiving a Handle request.
 
    procedure Notify (Self : access Object);
-   --  Actual procedure implemented by the servant.
+   --  Execute the Notifier procedure.
+   --  Called when receiving a Notify request.
 
 end MOMA.Provider.Message_Handler;

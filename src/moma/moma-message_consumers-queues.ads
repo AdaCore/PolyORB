@@ -42,13 +42,9 @@ package MOMA.Message_Consumers.Queues is
 
    use Ada.Real_Time;
 
-   type Queue is new Message_Consumer with private;
+   type Queue is new Message_Consumer with null record;
 
-   type Handler is access procedure (Message_Queue : Queue;
-                                     Message : MOMA.Messages.Message'Class);
-   --  The procedure to be called when a message is received.
-
-   type Notifier is access procedure (Message_Queue : Queue);
+   type Queue_Acc is access Queue;
 
    function Get_Queue (Self : Queue) return MOMA.Destinations.Queue;
    --  XXX not implemented.
@@ -67,36 +63,4 @@ package MOMA.Message_Consumers.Queues is
    --  Get next message from the pool if it is non empty; exit otherwise.
    --  XXX not implemented.
 
-   procedure Set_Handler (Self : in out Queue;
-                          New_Handler_Procedure : in Handler);
-   --  Associates a Handler to the pool.
-   --  The actual queue will call the Handler when receiving a new message.
-
-   procedure Set_Notifier (Self : in out Queue;
-                           New_Notifier_Procedure : in Notifier);
-   --  Associates a Handler to the pool.
-   --  The actual queue will call the Handler when receiving a new message.
-
-   procedure Handle (Self : Queue;
-                     Message : MOMA.Messages.Message'Class);
-   --  Execute the Handler procedure.
-   --  Called by the Message_Handler object when receiving a Handle
-   --  request.
-
-   procedure Notify (Self : Queue);
-   --  Execute the Notifier procedure.
-   --  Called by the Message_Handler object when receiving a Notify
-   --  request.
-
-private
-   type Queue is new Message_Consumer with record
-      Has_Initialized_Message_Handler : Boolean := False;
-      Handler_Procedure : Handler := null;
-      Notifier_Procedure : Notifier := null;
-   end record;
-
-   procedure Initialize_Message_Handler (Self : in out Queue);
-   --  Initialize a new Message_Handler object that can receive requests
-   --  when a message is received by the actual queue.
-   --  XXX not implemented.
 end MOMA.Message_Consumers.Queues;
