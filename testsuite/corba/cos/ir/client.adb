@@ -36,6 +36,7 @@ with Ada.Text_IO;
 
 with CORBA.ORB;
 with CORBA.Repository_Root;
+with CORBA.Repository_Root.PrimitiveDef;
 with CORBA.Repository_Root.Repository;
 with CORBA.Repository_Root.InterfaceDef;
 with CORBA.Repository_Root.OperationDef;
@@ -124,9 +125,10 @@ begin
                    IDL_Type => TC_Long,
                    Type_Def => IDLType.Convert_Forward.To_Forward
                    (IDLType.Ref
-                    (Repository.get_primitive
-                     (Myrep,
-                      pk_long))),
+                    (PrimitiveDef.Convert_Forward.To_Ref
+                     (Repository.get_primitive
+                      (Myrep,
+                       pk_long)))),
                    Mode => PARAM_IN);
          PDS.Append (PDS.Sequence (Mem), Memb);
 
@@ -135,9 +137,10 @@ begin
                    IDL_Type => TC_Long,
                    Type_Def => IDLType.Convert_Forward.To_Forward
                    (IDLType.Ref
-                    (Repository.get_primitive
-                     (Myrep,
-                      pk_long))),
+                    (PrimitiveDef.Convert_Forward.To_Ref
+                     (Repository.get_primitive
+                      (Myrep,
+                       pk_long)))),
                    Mode => PARAM_IN);
          PDS.Append (PDS.Sequence (Mem), Memb);
 
@@ -153,9 +156,10 @@ begin
             Name,
             Version,
             IDLType.Ref
-            (Repository.get_primitive
-             (Myrep,
-              pk_long)),
+            (PrimitiveDef.Convert_Forward.To_Ref
+             (Repository.get_primitive
+              (Myrep,
+               pk_long))),
             OP_NORMAL,
             Mem,
             Exc,

@@ -212,7 +212,6 @@ cos/ir/corba-repository_root-valuememberdef-impl.adb
 cos/ir/corba-repository_root-valuememberdef-impl.ads
 cos/ir/corba-repository_root-wstringdef-impl.adb
 cos/ir/corba-repository_root-wstringdef-impl.ads
-cos/ir/ir.idl
 cos/ir/polyorb-corba_p-ir_tools.adb
 cos/ir/polyorb-corba_p-ir_tools.ads
 cos/ir/typecode.sh

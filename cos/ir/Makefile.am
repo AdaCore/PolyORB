@@ -123,8 +123,8 @@ GEN_BODIES = $(GEN_SPECS_WITH_BODY:.ads=.adb)
 GEN= \
 	$(GEN_SPECS_WITH_BODY)
 
-$(GEN): $(srcdir)/ir.idl $(srcdir)/typecode.sh $(IDLAC)
-	$(IDLAC) $(srcdir)/ir.idl
+$(GEN): $(top_srcdir)/idls/corba/orb.idl $(top_srcdir)/idls/corba/CORBA_InterfaceRepository.idl $(top_srcdir)/idls/corba/CORBA_TypeCode.idl $(srcdir)/typecode.sh $(IDLAC)
+	$(IDLAC) -I$(top_srcdir)/idls/corba orb.idl
 	$(RM) corba-repository_root.ads
 	@chmod +x $(srcdir)/typecode.sh
 	$(srcdir)/typecode.sh $(SED) $(RM) $(GEN) $(GEN_BODIES)

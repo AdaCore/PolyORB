@@ -881,7 +881,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
       Add_With (CU, Ada_IR_Info_Name (OT_Node));
       Add_With (CU, CRR & ".IDLType.Helper");
-      PL (CU, "IDL_result => IDLType.Helper.To_Ref");
+      PL (CU, "result => IDLType.Helper.To_Ref");
       PL (CU, "  (" & Ada_Full_IR_Name (OT_Node) & "),");
       Put (CU, "mode => ");
       if Is_Oneway (Node) then
