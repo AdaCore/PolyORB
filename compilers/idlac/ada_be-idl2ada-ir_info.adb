@@ -34,7 +34,6 @@ with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
 with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
 
-with Utils;                 use Utils;
 with Errors;                use Errors;
 
 package body Ada_Be.Idl2Ada.IR_Info is
@@ -66,6 +65,12 @@ package body Ada_Be.Idl2Ada.IR_Info is
    ----------------------------------------
    -- Specialised generation subprograms --
    ----------------------------------------
+
+   procedure Gen_Standard_Create_Parameters
+     (CU        : in out Compilation_Unit;
+      Node      : in     Node_Id);
+   --  Generate the actual parameters that are common to
+   --  all create_* operations: id, name, and version.
 
    procedure Gen_Parent_Container_Dcl
      (CU        : in out Compilation_Unit;
@@ -166,12 +171,18 @@ package body Ada_Be.Idl2Ada.IR_Info is
       Node      : in     Node_Id);
    --  Generate the body of the helper package for a fixed type declaration
 
-   procedure Gen_Array_TC
-     (CU        : in out Compilation_Unit;
-      Type_Node : in     Node_Id;
-      Decl_Node : in     Node_Id);
-   --  generate lines to fill in an array typecode
-   --  only used in the type_declarator part of gen_node_body
+   procedure Gen_Array_IR
+     (CU                : in out Compilation_Unit;
+      Element_Type_Node : in     Node_Id;
+      Decl_Node         : in     Node_Id);
+   --  Generate code to create an ArrayDef IRObject
+   --  (only used in the type_declarator part of gen_node_body).
+
+   procedure Gen_Fixed_IR
+     (CU   : in out Compilation_Unit;
+      Node : in     Node_Id);
+   --  Generate code to create a FixedDef IRObject
+   --  (only used in the type_declarator part of gen_node_body).
 
    function Raise_From_Any_Name (Node : in Node_Id) return String;
    --  Return the name of a procedure that raises that exception
@@ -197,6 +208,14 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    begin
       case NK is
+         when K_Declarator =>
+            if Original_Node (Node) /= No_Node
+              and then Kind (Original_Node (Node)) /= K_Fixed
+            then
+               return Ada_IR_Name (Original_Node (Node));
+            end if;
+            return Prefix & Ada_Name (Node);
+
          when
            K_Module            |
            K_Interface         |
@@ -209,8 +228,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
            K_Union             |
            K_Struct            |
            K_Exception         |
-           K_Operation         |
-           K_Declarator        =>
+           K_Operation         =>
             return Prefix & Ada_Name (Node);
 
          when K_Scoped_Name =>
@@ -306,8 +324,8 @@ package body Ada_Be.Idl2Ada.IR_Info is
            K_Enum              |
            K_Union             |
            K_Struct            |
-           K_Exception         |
-           K_Declarator        =>
+           K_Declarator        |
+           K_Exception         =>
             return Parent_Scope_Name (Node) & Suffix;
 
          when K_Scoped_Name =>
@@ -347,7 +365,8 @@ package body Ada_Be.Idl2Ada.IR_Info is
       end case;
    end Ada_IR_Info_Name;
 
-   function Ada_Full_IR_Name (Node : Node_Id) return String is
+   function Ada_Full_IR_Name (Node : Node_Id) return String
+   is
    begin
       return Ada_IR_Info_Name (Node) & "." & Ada_IR_Name (Node);
    end Ada_Full_IR_Name;
@@ -371,20 +390,29 @@ package body Ada_Be.Idl2Ada.IR_Info is
       Node      :        Node_Id) is
    begin
       case Kind (Node) is
+         when K_Operation =>
+            if Original_Node (Node) /= No_Node then
+               return;
+            end if;
+
+            Gen_IR_Function_Prologue
+              (CU, Node, For_Body => False);
 
          when
            K_Interface |
-           K_Operation |
            K_Module    =>
-            Gen_IR_Function_Prologue (CU, Node, For_Body => False);
+            Gen_IR_Function_Prologue
+              (CU, Node, For_Body => False);
 
          when K_Enum =>
             Gen_Enum_Spec (CU, Node);
 
          when K_Type_Declarator =>
-            if Kind (T_Type (Node)) = K_Fixed then
-               Gen_Fixed_Spec (CU, Node);
-            else
+            if  Original_Node (Node) /= No_Node then
+               return;
+            end if;
+
+            if Kind (T_Type (Node)) /= K_Fixed then
                declare
                   It   : Node_Iterator;
                   Decl_Node : Node_Id;
@@ -434,11 +462,12 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
          when K_Interface =>
             Gen_Interface_Body (CU, Node);
+
          when K_Operation =>
-            if Original_Node (Node) = No_Node then
-               --  Not for synthetic operations.
-               Gen_Operation_Body (CU, Node);
+            if Original_Node (Node) /= No_Node then
+               return;
             end if;
+            Gen_Operation_Body (CU, Node);
 
          when K_Module =>
             Gen_Module_Body (CU, Node);
@@ -447,11 +476,11 @@ package body Ada_Be.Idl2Ada.IR_Info is
             Gen_Enum_Body (CU, Node);
 
          when K_Type_Declarator =>
-            if Is_Interface_Type (T_Type (Node)) then
-               null;
-            elsif Kind (T_Type (Node)) = K_Fixed then
-               Gen_Fixed_Body (CU, Node);
-            else
+            if Original_Node (Node) /= No_Node then
+               return;
+            end if;
+
+            if Kind (T_Type (Node)) /= K_Fixed then
                declare
                   It   : Node_Iterator;
                   Decl_Node : Node_Id;
@@ -463,7 +492,6 @@ package body Ada_Be.Idl2Ada.IR_Info is
                   end loop;
                end;
             end if;
-
          when K_Struct =>
             if not Is_Exception_Members (Node) then
                Gen_Struct_Exception_Body (CU, Node);
@@ -566,6 +594,32 @@ package body Ada_Be.Idl2Ada.IR_Info is
       end if;
    end Gen_IR_Function_Prologue;
 
+   ------------------------------------
+   -- Gen_Standard_Create_Parameters --
+   ------------------------------------
+
+   procedure Gen_Standard_Create_Parameters
+     (CU        : in out Compilation_Unit;
+      Node      : in     Node_Id)
+   is
+   begin
+      begin
+         PL (CU, "id => CORBA.To_CORBA_String");
+         PL (CU, "  (" & Repository_Id_Name (Node) & "),");
+      exception
+         when Constraint_Error =>
+            Error
+              ("Repository Id failed for " & Name (Node),
+               Fatal, Get_Location (Node));
+         when others =>
+            raise;
+      end;
+      PL (CU, "name => CORBA.To_CORBA_String");
+      PL (CU, "  (""" & Name (Node) & """),");
+      PL (CU, "version => CORBA.Repository_Root.To_CORBA_String");
+      PL (CU, "  (""" & Image (Version (Node)) & """),");
+   end Gen_Standard_Create_Parameters;
+
    ------------------------------
    -- Gen_Parent_Container_Dcl --
    ------------------------------
@@ -575,24 +629,30 @@ package body Ada_Be.Idl2Ada.IR_Info is
       Node      : in     Node_Id)
    is
       PS_Node : constant Node_Id := Parent_Scope (Node);
+      NK : constant Node_Kind := Kind (Node);
+      PSNK : constant Node_Kind := Kind (PS_Node);
    begin
       Add_With (CU, CRR & ".Container.Helper");
       Add_With (CU, CRR & ".IRObject.Helper");
       PL (CU, "Container_Ref : "
           & "constant CORBA.Repository_Root.Container.Ref");
 
-      case Kind (PS_Node) is
-         when K_Interface | K_ValueType | K_Module =>
-            --  The PS_Node corresponds to a container in
-            --  the IR sense.
-            Add_With (CU, Ada_IR_Info_Name (PS_Node));
-            PL (CU, "  := CORBA.Repository_Root.Container.Helper.To_Ref");
-            PL (CU, "  (" & Ada_Full_IR_Name (PS_Node) & ");");
-         when others =>
-            PL (CU, "  := " & CRR
-                & ".Container.Helper.To_Ref (Get_IR_Root);");
-      end case;
-
+      if NK = K_Sequence_Instance
+        or else not
+        (False
+         or else PSNK = K_Interface
+         or else PSNK = K_ValueType
+         or else PSNK = K_Module)
+      then
+         PL (CU, "  := " & CRR
+             & ".Container.Helper.To_Ref (Get_IR_Root);");
+      else
+         --  The PS_Node corresponds to a container in
+         --  the IR sense.
+         Add_With (CU, Ada_IR_Info_Name (PS_Node));
+         PL (CU, "  := CORBA.Repository_Root.Container.Helper.To_Ref");
+         PL (CU, "  (" & Ada_Full_IR_Name (PS_Node) & ");");
+      end if;
    end Gen_Parent_Container_Dcl;
 
    ---------------------------------
@@ -696,7 +756,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
    is
       It : Node_Iterator;
       IRN : constant String := Ada_IR_Name (Node);
-      OT_Node : constant Node_Id := Operation_Type (Node);
+      OT_Node : Node_Id := Operation_Type (Node);
    begin
       Gen_IR_Function_Prologue (CU, Node, For_Body => True);
       Gen_Parent_Container_Lookup (CU, Node);
@@ -717,12 +777,13 @@ package body Ada_Be.Idl2Ada.IR_Info is
          begin
             Get_Next_Node (It, P_Node);
             T_Node := Param_Type (P_Node);
+
             PL (CU, "CORBA.Repository_Root.Append");
             PL (CU, "  (Params,");
             II (CU);
             PL (CU, "ParameterDescription'");
             PL (CU, "(name => CORBA.To_CORBA_String ("""
-                & Ada_Name (Declarator (P_Node)) & """),");
+                & Name (Declarator (P_Node)) & """),");
 
             Add_With (CU, Ada_Helper_Name (T_Node));
             Add_With (CU, Ada_IR_Info_Name (T_Node));
@@ -768,12 +829,8 @@ package body Ada_Be.Idl2Ada.IR_Info is
       PL (CU, "  (" & CRR & ".InterfaceDef.Helper.To_Ref");
       II (CU);
       PL (CU, "(Container_Ref),");
-      PL (CU, "id => CORBA.To_CORBA_String");
-      PL (CU, "  (" & Repository_Id_Name (Node) & "),");
-      PL (CU, "name => CORBA.To_CORBA_String");
-      PL (CU, "  (""" & Name (Node) & """),");
-      PL (CU, "version => CORBA.Repository_Root.To_CORBA_String");
-      PL (CU, "  (""" & Image (Version (Node)) & """),");
+      Gen_Standard_Create_Parameters (CU, Node);
+
       Add_With (CU, Ada_IR_Info_Name (OT_Node));
       Add_With (CU, CRR & ".IDLType.Helper");
       PL (CU, "IDL_result => IDLType.Helper.To_Ref");
@@ -813,14 +870,17 @@ package body Ada_Be.Idl2Ada.IR_Info is
       Gen_Parent_Container_Lookup (CU, Node);
 
       PL (CU, "Cached_" & IRN);
-      PL (CU, "  := CORBA.Repository_Root."
-          & "Container.Create_Module");
+      Add_With (CU, CRR & ".IRObject.Helper");
+      PL (CU, "  := " & CRR & ".IRObject.Helper.To_Ref");
+      PL (CU, "  (" & CRR & ".Container.Create_Module");
       PL (CU, "  (Container_Ref,");
       II (CU);
-      PL (CU, "To_CORBA_String");
+      PL (CU, "CORBA.To_CORBA_String");
       PL (CU, "  (" & Repository_Id_Name (Node) & "),");
-      PL (CU, """" & Name (Node) & """,");
-      PL (CU, """" & Image (Version (Node)) & """);");
+      PL (CU, "CORBA.To_CORBA_String");
+      PL (CU, "  (""" & Name (Node) & """),");
+      PL (CU, "CORBA.Repository_Root.To_CORBA_String");
+      PL (CU, "  (""" & Image (Version (Node)) & """)));");
       DI (CU);
       NL (CU);
       PL (CU, "return Cached_" & IRN & ";");
@@ -845,9 +905,60 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Enum_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id) is
+      Node      : in     Node_Id)
+   is
+      It : Node_Iterator;
+      IRN : constant String := Ada_IR_Name (Node);
    begin
-      null;
+      Gen_IR_Function_Prologue (CU, Node, For_Body => True);
+      Gen_Parent_Container_Lookup (CU, Node);
+
+
+      NL (CU);
+      PL (CU, "declare");
+      II (CU);
+      PL (CU, "Members : EnumMemberSeq;");
+      DI (CU);
+      PL (CU, "begin");
+      II (CU);
+
+      Init (It, Enumerators (Node));
+      while not Is_End (It) loop
+         declare
+            E_Node : Node_Id;
+         begin
+            Get_Next_Node (It, E_Node);
+
+            PL (CU, "CORBA.Repository_Root.Append");
+            PL (CU, "  (Members,");
+            II (CU);
+            PL (CU, "CORBA.To_CORBA_String ("""
+                & Name (E_Node) & """));");
+            DI (CU);
+         end;
+      end loop;
+
+      PL (CU, "Cached_" & IRN);
+      Add_With (CU, CRR & ".IRObject.Helper");
+      PL (CU, "  := " & CRR & ".IRObject.Helper.To_Ref");
+      PL (CU, "  (CORBA.Repository_Root.Container.Create_Enum");
+      PL (CU, "  (Container_Ref,");
+      II (CU);
+      PL (CU, "CORBA.To_CORBA_String");
+      PL (CU, "  (" & Repository_Id_Name (Node) & "),");
+      PL (CU, "CORBA.To_CORBA_String");
+      PL (CU, "  (""" & Name (Node) & """),");
+      PL (CU, "CORBA.Repository_Root.To_CORBA_String");
+      PL (CU, "  (""" & Image (Version (Node)) & """),");
+      PL (CU, "Members));");
+      DI (CU);
+      DI (CU);
+      PL (CU, "end;");
+      NL (CU);
+      PL (CU, "return Cached_" & IRN & ";");
+      DI (CU);
+      PL (CU, "end " & IRN & ";");
+
    end Gen_Enum_Body;
 
    -------------------------------
@@ -867,9 +978,84 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Struct_Exception_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id) is
+      Node      : in     Node_Id)
+   is
+      It, It2 : Node_Iterator;
+      IRN : constant String := Ada_IR_Name (Node);
    begin
-      null;
+      Gen_IR_Function_Prologue (CU, Node, For_Body => True);
+      Gen_Parent_Container_Lookup (CU, Node);
+
+      NL (CU);
+      PL (CU, "declare");
+      II (CU);
+      PL (CU, "Members : StructMemberSeq;");
+      DI (CU);
+      PL (CU, "begin");
+      II (CU);
+
+      Init (It, Members (Node));
+      while not Is_End (It) loop
+         declare
+            M_Node, T_Node : Node_Id;
+         begin
+            Get_Next_Node (It, M_Node);
+            T_Node := M_Type (M_Node);
+
+            Add_With (CU, Ada_Helper_Name (T_Node));
+            Add_With (CU, Ada_IR_Info_Name (T_Node));
+
+            Init (It2, Decl (M_Node));
+            while not Is_End (It2) loop
+               declare
+                  D_Node : Node_Id;
+               begin
+                  Get_Next_Node (It2, D_Node);
+
+                  PL (CU, "CORBA.Repository_Root.Append");
+                  PL (CU, "  (Members,");
+                  II (CU);
+                  PL (CU, "StructMember'");
+                  PL (CU, "(name => CORBA.To_CORBA_String ("""
+                      & Name (D_Node) & """),");
+
+                  PL (CU, " IDL_type =>");
+                  II (CU);
+                  PL (CU, Ada_Full_TC_Name (T_Node) & ",");
+                  DI (CU);
+                  PL (CU, " type_def =>");
+                  Add_With (CU, CRR & ".IDLType");
+                  Add_With (CU, CRR & ".IDLType.Helper");
+                  II (CU);
+                  PL (CU, "IDLType.Convert_Forward.To_Forward");
+                  PL (CU, "  (IDLType.Helper.To_Ref");
+                  PL (CU, "   (" & Ada_Full_IR_Name (T_Node) & "))));");
+                  DI (CU);
+                  DI (CU);
+               end;
+            end loop;
+         end;
+      end loop;
+
+      Add_With (CU, CRR & ".IRObject.Helper");
+      PL (CU, "Cached_" & IRN);
+      PL (CU, "  := " & CRR & ".IRObject.Helper.To_Ref");
+      if Is_Struct (Node) then
+         PL (CU, "  (" & CRR & ".Container.Create_Struct");
+      else
+         PL (CU, "  (" & CRR & ".Container.Create_Exception");
+      end if;
+      II (CU);
+      PL (CU, "(Container_Ref,");
+      Gen_Standard_Create_Parameters (CU, Node);
+
+      PL (CU, "members => Members));");
+      DI (CU);
+      DI (CU);
+      PL (CU, "end;");
+      PL (CU, "return Cached_" & IRN & ";");
+      DI (CU);
+      PL (CU, "end " & IRN & ";");
    end Gen_Struct_Exception_Body;
 
    --------------------
@@ -889,9 +1075,104 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Union_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id) is
+      Node      : in     Node_Id)
+   is
+      It, It2 : Node_Iterator;
+      IRN : constant String := Ada_IR_Name (Node);
+      Case_Index : Long_Integer := -1;
+      ST_Node : constant Node_Id := Switch_Type (Node);
+      ST_Helper : constant String := Ada_Helper_Name (ST_Node);
    begin
-      null;
+      Gen_IR_Function_Prologue (CU, Node, For_Body => True);
+      Gen_Parent_Container_Lookup (CU, Node);
+
+      NL (CU);
+      PL (CU, "declare");
+      II (CU);
+      PL (CU, "Members : UnionMemberSeq;");
+      DI (CU);
+      PL (CU, "begin");
+      II (CU);
+
+      Add_With (CU, ST_Helper);
+      Add_With (CU, CRR & ".IDLType");
+      Add_With (CU, CRR & ".IDLType.Helper");
+      Init (It, Cases (Node));
+      while not Is_End (It) loop
+         declare
+            M_Node, T_Node : Node_Id;
+         begin
+            Case_Index := Case_Index + 1;
+            Get_Next_Node (It, M_Node);
+            T_Node := Case_Type (M_Node);
+
+            Add_With (CU, Ada_Helper_Name (T_Node));
+            Add_With (CU, Ada_IR_Info_Name (T_Node));
+
+            Init (It2, Labels (M_Node));
+            while not Is_End (It2) loop
+               declare
+                  L_Node : Node_Id;
+               begin
+                  Get_Next_Node (It2, L_Node);
+
+                  PL (CU, "CORBA.Repository_Root.Append");
+                  PL (CU, "  (Members,");
+                  II (CU);
+                  PL (CU, "UnionMember'");
+                  PL (CU, "(name => CORBA.To_CORBA_String ("""
+                      & Name (Case_Decl (M_Node)) & """),");
+                  Put (CU, " label => ");
+                  if Case_Index = Default_Index (Node) then
+                     PL (CU, "CORBA.To_Any (CORBA.Octet'(0)),");
+                  else
+                     PL (CU, ST_Helper & ".To_Any");
+                     Put (CU, " (");
+                     Gen_Node_Stubs_Spec (CU, ST_Node);
+                     Put (CU, "'(");
+                     Gen_Constant_Value (CU, L_Node);
+                     PL (CU, ")),");
+                  end if;
+
+                  PL (CU, " IDL_type =>");
+                  II (CU);
+                  PL (CU, Ada_Full_TC_Name (T_Node) & ",");
+                  DI (CU);
+                  PL (CU, " type_def =>");
+                  II (CU);
+                  PL (CU, "IDLType.Convert_Forward.To_Forward");
+                  PL (CU, "  (IDLType.Helper.To_Ref");
+                  PL (CU, "   (" & Ada_Full_IR_Name (T_Node) & "))));");
+                  DI (CU);
+                  DI (CU);
+               end;
+            end loop;
+         end;
+      end loop;
+
+      Add_With (CU, CRR & ".IRObject.Helper");
+      PL (CU, "Cached_" & IRN);
+      PL (CU, "  := " & CRR & ".IRObject.Helper.To_Ref");
+      PL (CU, "  (" & CRR & ".Container.Create_Union");
+      II (CU);
+      PL (CU, "(Container_Ref,");
+      Gen_Standard_Create_Parameters (CU, Node);
+
+      Add_With (CU, CRR & ".IDLType");
+      Add_With (CU, CRR & ".IDLType.Helper");
+      PL (CU, "discriminator_type => "
+          & "IDLType.Convert_Forward.To_Forward");
+      PL (CU, "  (IDLType.Helper.To_Ref");
+      II (CU);
+      PL (CU, "(" & Ada_Full_IR_Name (ST_Node) & ")),");
+      DI (CU);
+      PL (CU, "members => Members));");
+      DI (CU);
+      DI (CU);
+      PL (CU, "end;");
+      PL (CU, "return Cached_" & IRN & ";");
+      DI (CU);
+      PL (CU, "end " & IRN & ";");
    end Gen_Union_Body;
 
    ------------------------------
@@ -903,6 +1184,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
       Node      : in     Node_Id)
    is
    begin
+      pragma Assert (Kind (Node) = K_Declarator);
       Gen_IR_Function_Prologue (CU, Node, For_Body => False);
    end Gen_Type_Declarator_Spec;
 
@@ -914,9 +1196,46 @@ package body Ada_Be.Idl2Ada.IR_Info is
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id)
    is
+      T_Node : Node_Id := T_Type (Parent (Node));
       IRN : constant String := Ada_IR_Name (Node);
+      Is_Array : constant Boolean
+        := Length (Array_Bounds (Node)) > 0;
+      Is_Fixed : constant Boolean
+        := Original_Node (T_Node) /= No_Node
+        and then Kind (Original_Node (T_Node)) = K_Fixed;
    begin
+      Add_With (CU, CRR & ".IRObject.Helper");
       Gen_IR_Function_Prologue (CU, Node, For_Body => True);
+      Gen_Parent_Container_Lookup (CU, Node);
+      NL (CU);
+
+      PL (CU, "Cached_" & IRN);
+      PL (CU, "  := " & CRR & ".IRObject.Helper.To_Ref");
+      PL (CU, "  (" & CRR & ".Container.Create_Alias");
+      II (CU);
+      PL (CU, "(Container_Ref,");
+      Gen_Standard_Create_Parameters (CU, Node);
+
+      Add_With (CU, CRR & ".IDLType");
+      Add_With (CU, CRR & ".IDLType.Helper");
+      PL (CU, "original_type => "
+          & "IDLType.Convert_Forward.To_Forward");
+      Put (CU, "  (");
+      II (CU);
+
+      if Is_Array then
+         Gen_Array_IR (CU, T_Node, Node);
+      elsif Is_Fixed then
+         Gen_Fixed_IR (CU, Original_Node (T_Node));
+      else
+         Add_With (CU, Ada_IR_Info_Name (T_Node));
+         PL (CU, "IDLType.Helper.To_Ref");
+         Put (CU, "(" & Ada_Full_IR_Name (T_Node) & ")");
+      end if;
+      PL (CU, ")));");
+      DI (CU);
+      DI (CU);
+      PL (CU, "return Cached_" & IRN & ";");
       DI (CU);
       PL (CU, "end " & IRN & ";");
    end Gen_Type_Declarator_Body;
@@ -929,7 +1248,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id) is
    begin
-      null;
+      Gen_IR_Function_Prologue (CU, Node, For_Body => False);
    end Gen_Sequence_Spec;
 
    -----------------------
@@ -938,9 +1257,41 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
    procedure Gen_Sequence_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id) is
+      Node      : in     Node_Id)
+   is
+      S_Node  : constant Node_Id := Sequence (Node);
+      ET_Node : constant Node_Id := Sequence_Type (S_Node);
+      B_Node  : constant Node_Id := Bound (S_Node);
+      IRN : constant String := Ada_IR_Name (Node);
    begin
-      null;
+      Add_With (CU, CRR & ".IRObject.Helper");
+      Add_With (CU, CRR & ".Repository");
+      Add_With (CU, CRR & ".Repository.Helper");
+      Gen_IR_Function_Prologue (CU, Node, For_Body => True);
+      Gen_Parent_Container_Lookup (CU, Node);
+      NL (CU);
+      PL (CU, "Cached_" & IRN);
+      PL (CU, "  := " & CRR & ".IRObject.Helper.To_Ref");
+      PL (CU, "  (" & CRR & ".Repository.Create_Sequence");
+      II (CU);
+      PL (CU, "(" & CRR & ".Repository.Helper.To_Ref (Container_Ref),");
+
+      Put (CU, " bound => ");
+      if B_Node = No_Node then
+         Put (CU, "0");
+      else
+         Gen_Constant_Value (CU, B_Node);
+      end if;
+      PL (CU, ",");
+      Add_With (CU, Ada_IR_Info_Name (ET_Node));
+      Add_With (CU, CRR & ".IDLType");
+      Add_With (CU, CRR & ".IDLType.Helper");
+      PL (CU, "element_type => IDLType.Helper.To_Ref");
+      PL (CU, "  (" & Ada_Full_IR_Name (ET_Node) & ")));");
+      DI (CU);
+      PL (CU, "return Cached_" & IRN & ";");
+      DI (CU);
+      PL (CU, "end " & IRN & ";");
    end Gen_Sequence_Body;
 
    --------------------
@@ -966,72 +1317,87 @@ package body Ada_Be.Idl2Ada.IR_Info is
    end Gen_Fixed_Body;
 
    ------------------
-   -- Gen_Array_TC --
+   -- Gen_Array_IR --
    ------------------
 
-   procedure Gen_Array_TC
-     (CU        : in out Compilation_Unit;
-      Type_Node : in     Node_Id;
-      Decl_Node : in     Node_Id)
+   procedure Gen_Array_IR
+     (CU                : in out Compilation_Unit;
+      Element_Type_Node : in     Node_Id;
+      Decl_Node         : in     Node_Id)
    is
 
-      procedure Rec_Gen_Array_TC
-        (CU             : in out Compilation_Unit;
-         It             : in out Node_Iterator;
-         First_Bound    : in     Boolean;
-         Index          : in     Integer;
-         Type_Node      : in     Node_Id;
-         Decl_Node      : in     Node_Id);
+      procedure Rec_Gen_Array_IR
+        (CU                : in out Compilation_Unit;
+         It                : in out Node_Iterator;
+         Element_Type_Node : in     Node_Id;
+         Decl_Node         : in     Node_Id);
 
-      procedure Rec_Gen_Array_TC
-        (CU             : in out Compilation_Unit;
-         It             : in out Node_Iterator;
-         First_Bound    : in     Boolean;
-         Index          : in     Integer;
-         Type_Node      : in     Node_Id;
-         Decl_Node      : in     Node_Id) is
+      procedure Rec_Gen_Array_IR
+        (CU                : in out Compilation_Unit;
+         It                : in out Node_Iterator;
+         Element_Type_Node : in     Node_Id;
+         Decl_Node         : in     Node_Id)
+      is
          Bound_Node : Node_Id;
-         Last_Bound : Boolean := False;
       begin
          Get_Next_Node (It, Bound_Node);
+
+         PL (CU, CRR & ".IDLType.Helper.To_Ref");
+         PL (CU, "  (Repository.Create_Array");
+         II (CU);
+         PL (CU, "(Get_IR_Root,");
+         II (CU);
+         Put (CU, " length => ");
+         Gen_Constant_Value (CU, Bound_Node);
+         PL (CU, ",");
+         Put (CU, " element_type => ");
          if not Is_End (It) then
-            Rec_Gen_Array_TC (CU, It, False, Index + 1, Type_Node, Decl_Node);
+            Rec_Gen_Array_IR (CU, It, Element_Type_Node, Decl_Node);
          else
-            Last_Bound := True;
+            Add_With (CU, Ada_IR_Info_Name (Element_Type_Node));
+            PL (CU, "IDLType.Helper.To_Ref");
+            II (CU);
+            Put (CU, "(" & Ada_Full_IR_Name (Element_Type_Node) & ")");
+            DI (CU);
          end if;
-         Add_With (CU, "CORBA");
-         Put (CU, "CORBA.TypeCode.Add_Parameter (");
-         if First_Bound then
-            Put (CU, Ada_TC_Name (Decl_Node));
-         else
-            Put (CU, "TC_" & Img (Index));
-         end if;
-         Add_With (CU, "CORBA");
-         Put (CU, ", CORBA.To_Any (CORBA.Unsigned_Long (");
-         Gen_Node_Stubs_Spec (CU, Bound_Node);
-         PL (CU, ")));");
-         Put (CU, "CORBA.TypeCode.Add_Parameter (");
-         if First_Bound then
-            Put (CU, Ada_TC_Name (Decl_Node));
-         else
-            Put (CU, "TC_" & Img (Index));
-         end if;
-         if Last_Bound then
-            Put (CU, ", "
-                 & "CORBA.To_Any ("
-                 & Ada_Full_TC_Name (Type_Node));
-         else
-            Put (CU, ", To_Any (TC_"
-                 & Img (Index + 1));
-         end if;
-         PL (CU, "));");
-      end Rec_Gen_Array_TC;
+         DI (CU);
+         DI (CU);
+         PL (CU, "))");
+      end Rec_Gen_Array_IR;
 
       Bounds_It : Node_Iterator;
    begin
       Init (Bounds_It, Array_Bounds (Decl_Node));
-      Rec_Gen_Array_TC (CU, Bounds_It, True, 0, Type_Node, Decl_Node);
-   end Gen_Array_TC;
+      Add_With (CU, CRR & ".IDLType.Helper");
+      Add_With (CU, CRR & ".Repository.Helper");
+      Rec_Gen_Array_IR (CU, Bounds_It, Element_Type_Node, Decl_Node);
+   end Gen_Array_IR;
+
+   ------------------
+   -- Gen_Fixed_IR --
+   ------------------
+
+   procedure Gen_Fixed_IR
+     (CU   : in out Compilation_Unit;
+      Node : in     Node_Id)
+   is
+   begin
+      PL (CU, CRR & ".IDLType.Helper.To_Ref");
+      PL (CU, "  (Repository.Create_Fixed");
+      II (CU);
+      PL (CU, "(Get_IR_Root,");
+      II (CU);
+      Put (CU, " IDL_digits => ");
+      Gen_Constant_Value (CU, Digits_Nb (Node));
+      PL (CU, ",");
+      Put (CU, " scale => ");
+      Gen_Constant_Value (CU, Scale (Node));
+      PL (CU, "))");
+   end Gen_Fixed_IR;
+
+   ----------------------
+   -- Gen_Body_Prelude --
+   ----------------------
 
    procedure Gen_Body_Prelude (CU : in out Compilation_Unit) is
    begin

@@ -1463,6 +1463,7 @@ package body Ada_Be.Idl2Ada is
                   end if;
                end loop;
             end;
+            Gen_Repository_Id (Node, CU);
 
          when K_Type_Declarator =>
             declare
@@ -1528,6 +1529,18 @@ package body Ada_Be.Idl2Ada is
                         Gen_Node_Stubs_Spec (CU, T_Type (Node));
                         PL (CU, ";");
                      end;
+
+                     if Original_Node (Decl_Node) = No_Node then
+                        begin
+                           Gen_Repository_Id (Decl_Node, CU);
+                        exception
+                           when Constraint_Error =>
+                              PL (CU, "XXX NO REPO ID for decl:"
+                                  & Name (Decl_Node));
+                           when others =>
+                              raise;
+                        end;
+                     end if;
                   end loop;
                end;
             end;
@@ -1578,6 +1591,7 @@ package body Ada_Be.Idl2Ada is
             PL (CU, "end case;");
             DI (CU);
             PL (CU, "end record;");
+            Gen_Repository_Id (Node, CU);
 
          when K_String_Instance =>
             NL (CU);
@@ -1658,6 +1672,9 @@ package body Ada_Be.Idl2Ada is
 
                DI (CU);
                PL (CU, "end record;");
+            end if;
+            if not Is_Exception_Members (Node) then
+               Gen_Repository_Id (Node, CU);
             end if;
 
          when K_Const_Dcl =>

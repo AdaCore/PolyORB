@@ -275,7 +275,8 @@ package body Ada_Be.Expansion is
          --  Allocate a name for the node's repository ID
 
          if Kind (Node) /= K_Repository
-           and then Kind (Node) /= K_Ben_Idl_File then
+           and then Kind (Node) /= K_Ben_Idl_File
+         then
             declare
                RID_Name_Node : constant Node_Id
                  := Make_Named (Loc (Node));
@@ -291,6 +292,8 @@ package body Ada_Be.Expansion is
                     (RID_Name_Node, Name (Node) & "_Repository_Id",
                      Is_Inheritable => False);
                end if;
+               pragma Debug (O ("Allocated RID name:"
+                                & Name (RID_Name_Node)));
             end;
          end if;
       end if;
@@ -1036,9 +1039,9 @@ package body Ada_Be.Expansion is
       end;
    end Expand_Exception;
 
-   ------------------------------
-   --  Expand_Type_Declarator  --
-   ------------------------------
+   ----------------------------
+   -- Expand_Type_Declarator --
+   ----------------------------
 
    procedure Expand_Type_Declarator
      (Node : Node_Id)
@@ -1236,6 +1239,8 @@ package body Ada_Be.Expansion is
                                        Get_Current_Gen_Scope);
             pragma Assert (Success);
 
+            Set_Original_Node (Declarator_Node, Fixed_Node);
+
             Set_Value (Fixed_Ref_Node, Declarator_Node);
 
             Insert_Before_Current (Typedef_Node);
@@ -1406,6 +1411,10 @@ package body Ada_Be.Expansion is
                pragma Assert (False);
                null;
          end case;
+
+         Set_Original_Node (Array_Ref_Node, Node);
+         Set_Original_Node (Array_Type_Node, Node);
+         Set_Original_Node (Array_Node, Node);
 
          Set_Value (Array_Ref_Node, Array_Node);
 

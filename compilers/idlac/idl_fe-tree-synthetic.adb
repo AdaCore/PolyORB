@@ -31,6 +31,8 @@ with Idl_Fe.Tree; use Idl_Fe.Tree;
 with Idl_Fe.Debug;
 pragma Elaborate_All (Idl_Fe.Debug);
 
+with Errors; use Errors;
+
 package body Idl_Fe.Tree.Synthetic is
 
    -----------
@@ -200,7 +202,8 @@ package body Idl_Fe.Tree.Synthetic is
       end loop;
 
       if Colon < Id'First then
-         raise Constraint_Error;
+         Error ("Cannot determine version, rid=«" & Id & "»",
+                Fatal, Get_Location (Node));
       end if;
 
       return

@@ -166,9 +166,9 @@ package body Ada_Be.Idl2Ada.Helper is
    --  Generate the body of the helper package for a fixed type declaration
 
    procedure Gen_Array_TC
-     (CU        : in out Compilation_Unit;
-      Type_Node : in     Node_Id;
-      Decl_Node : in     Node_Id);
+     (CU                : in out Compilation_Unit;
+      Element_Type_Node : in     Node_Id;
+      Decl_Node         : in     Node_Id);
    --  generate lines to fill in an array typecode
    --  only used in the type_declarator part of gen_node_body
 
@@ -1852,7 +1852,7 @@ package body Ada_Be.Idl2Ada.Helper is
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id)
    is
-      Is_Array : Boolean
+      Is_Array : constant Boolean
         := Length (Array_Bounds (Node)) > 0;
    begin
       if Generate_Dyn then
@@ -1897,7 +1897,7 @@ package body Ada_Be.Idl2Ada.Helper is
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id)
    is
-      Is_Array : Boolean
+      Is_Array : constant Boolean
         := Length (Array_Bounds (Node)) > 0;
       Type_Node : constant Node_Id := T_Type (Parent (Node));
       Helper_Name : constant String := Ada_Helper_Name (Type_Node);
@@ -2399,7 +2399,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Array_TC
      (CU        : in out Compilation_Unit;
-      Type_Node : in     Node_Id;
+      Element_Type_Node : in     Node_Id;
       Decl_Node : in     Node_Id)
    is
 
@@ -2408,7 +2408,7 @@ package body Ada_Be.Idl2Ada.Helper is
          It             : in out Node_Iterator;
          First_Bound    : in     Boolean;
          Index          : in     Integer;
-         Type_Node      : in     Node_Id;
+         Element_Type_Node      : in     Node_Id;
          Decl_Node      : in     Node_Id);
 
       procedure Rec_Gen_Array_TC
@@ -2416,25 +2416,25 @@ package body Ada_Be.Idl2Ada.Helper is
          It             : in out Node_Iterator;
          First_Bound    : in     Boolean;
          Index          : in     Integer;
-         Type_Node      : in     Node_Id;
+         Element_Type_Node      : in     Node_Id;
          Decl_Node      : in     Node_Id) is
          Bound_Node : Node_Id;
          Last_Bound : Boolean := False;
       begin
          Get_Next_Node (It, Bound_Node);
          if not Is_End (It) then
-            Rec_Gen_Array_TC (CU, It, False, Index + 1, Type_Node, Decl_Node);
+            Rec_Gen_Array_TC
+              (CU, It, False, Index + 1,
+               Element_Type_Node, Decl_Node);
          else
             Last_Bound := True;
          end if;
-         Add_With (CU, "CORBA");
          Put (CU, "CORBA.TypeCode.Add_Parameter (");
          if First_Bound then
             Put (CU, Ada_TC_Name (Decl_Node));
          else
             Put (CU, "TC_" & Img (Index));
          end if;
-         Add_With (CU, "CORBA");
          Put (CU, ", CORBA.To_Any (CORBA.Unsigned_Long (");
          Gen_Node_Stubs_Spec (CU, Bound_Node);
          PL (CU, ")));");
@@ -2447,7 +2447,7 @@ package body Ada_Be.Idl2Ada.Helper is
          if Last_Bound then
             Put (CU, ", "
                  & "CORBA.To_Any ("
-                 & Ada_Full_TC_Name (Type_Node));
+                 & Ada_Full_TC_Name (Element_Type_Node));
          else
             Put (CU, ", To_Any (TC_"
                  & Img (Index + 1));
@@ -2458,7 +2458,9 @@ package body Ada_Be.Idl2Ada.Helper is
       Bounds_It : Node_Iterator;
    begin
       Init (Bounds_It, Array_Bounds (Decl_Node));
-      Rec_Gen_Array_TC (CU, Bounds_It, True, 0, Type_Node, Decl_Node);
+      Add_With (CU, "CORBA");
+      Rec_Gen_Array_TC
+        (CU, Bounds_It, True, 0, Element_Type_Node, Decl_Node);
    end Gen_Array_TC;
 
    function Raise_From_Any_Name (Node : Node_Id) return String is
