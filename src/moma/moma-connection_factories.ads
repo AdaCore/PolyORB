@@ -31,14 +31,11 @@
 ------------------------------------------------------------------------------
 
 --  A 'Connection Factory' contains all information to create a connection to
---  the MOMA provider. This package provides the abstract interface of the
---  Connection_Factory type. Two implementations for message queues and topics
---  are provided.
+--  the MOMA provider.
 
 --  $Id$
 
 --  XXX need to clarify the notion of provider.
---  XXX should it be an abstract interface ?
 
 with MOMA.Connections;
 
@@ -46,32 +43,29 @@ with PolyORB.References;
 
 package MOMA.Connection_Factories is
 
-   type Connection_Factory is abstract tagged private;
+   type Connection_Factory is private;
 
    procedure Create (Self     : out Connection_Factory;
-                     Remote   : PolyORB.References.Ref)
-      is abstract;
+                     Remote   : PolyORB.References.Ref);
    --  Create a new connection factory, with the provider Remote.
 
    function Create_Connection (Self   : Connection_Factory)
-                               return MOMA.Connections.Connection'Class
-      is abstract;
+                               return MOMA.Connections.Connection;
    --  Create a new connection using this connection factory.
 
    function Create_Connection (Self      : Connection_Factory;
                                Username  : String;
                                Password  : String)
-                               return MOMA.Connections.Connection'Class
-      is abstract;
+                               return MOMA.Connections.Connection;
    --  Create a new connection using this connection factory
    --  and providing a username/password.
 
 private
 
-   type Connection_Factory is abstract tagged record
+   type Connection_Factory is record
       Remote : PolyORB.References.Ref;
       --  The access point to the MOMA domain.
-      --  XXX : this is a concept to clarify
+      --  XXX : this is a concept to clarify.
    end record;
 
    --  Accessors to the Connection_Factory internals.

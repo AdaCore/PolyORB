@@ -34,7 +34,6 @@
 
 --  $Id$
 
-with MOMA.Message_Consumers.Queues;
 with MOMA.Messages;
 with MOMA.Destinations;
 with MOMA.Types;
@@ -65,21 +64,22 @@ package body MOMA.Provider.Message_Handler is
    -- Initialize --
    ----------------
 
-   procedure Initialize (Self : in out Object_Acc;
-                         Message_Queue : Queue_Acc;
-                         Self_Ref : PolyORB.References.Ref;
-                         Notifier_Procedure : in Notifier := null;
-                         Handler_Procedure : in Handler := null;
-                         Behavior : MOMA.Types.Call_Back_Behavior := None)
+   procedure Initialize (Self                : in out Object_Acc;
+                         Message_Cons        : Message_Consumer_Acc;
+                         Self_Ref            : PolyORB.References.Ref;
+                         Notifier_Procedure  : Notifier := null;
+                         Handler_Procedure   : Handler := null;
+                         Behavior            : MOMA.Types.Call_Back_Behavior
+                                                  := None)
    is
    begin
-      Self.Message_Queue := Message_Queue;
+      Self.Message_Cons := Message_Cons;
       Self.Self_Ref := Self_Ref;
       Self.Handler_Procedure := Handler_Procedure;
       Self.Notifier_Procedure := Notifier_Procedure;
       Self.Behavior := Behavior;
       if Behavior /= None then
-         Register_To_Queue (Self);
+         Register_To_Servant (Self);
       end if;
    end Initialize;
 
@@ -87,9 +87,8 @@ package body MOMA.Provider.Message_Handler is
    -- Invoke --
    ------------
 
-   procedure Invoke
-     (Self : access Object;
-      Req  : in     PolyORB.Requests.Request_Access)
+   procedure Invoke (Self : access Object;
+                     Req  : in     PolyORB.Requests.Request_Access)
    is
       Args        : PolyORB.Any.NVList.Ref;
       Operation   : constant String := To_Standard_String (Req.all.Operation);
@@ -205,24 +204,23 @@ package body MOMA.Provider.Message_Handler is
       Self.Handler_Procedure := null;
    end Notify;
 
-   -----------------------
-   -- Register_To_Queue --
-   -----------------------
+   -------------------------
+   -- Register_To_Servant --
+   -------------------------
 
-   procedure Register_To_Queue (Self : access Object)
+   procedure Register_To_Servant (Self : access Object)
    is
       Request     : PolyORB.Requests.Request_Access;
       Arg_List    : PolyORB.Any.NVList.Ref;
       Result      : PolyORB.Any.NamedValue;
-      Queue_Ref   : PolyORB.References.Ref;
+      Servant_Ref : PolyORB.References.Ref;
       Self_Dest   : constant MOMA.Destinations.Destination :=
          MOMA.Destinations.Create (To_PolyORB_String (""), Self.Self_Ref);
    begin
       pragma Debug (O ("Registering Message_Handler with " &
          Call_Back_Behavior'Image (Self.Behavior) & " behavior"));
-      if Self.Message_Queue /= null then
-         Queue_Ref := MOMA.Message_Consumers.Get_Ref (
-            MOMA.Message_Consumers.Message_Consumer (Self.Message_Queue.all));
+      if Self.Message_Cons /= null then
+         Servant_Ref := MOMA.Message_Consumers.Get_Ref (Self.Message_Cons.all);
          PolyORB.Any.NVList.Create (Arg_List);
          PolyORB.Any.NVList.Add_Item (Arg_List,
                                       To_PolyORB_String ("Message_Handler"),
@@ -239,7 +237,7 @@ package body MOMA.Provider.Message_Handler is
                                     (TypeCode.TC_Any),
                     Arg_Modes => 0);
          PolyORB.Requests.Create_Request
-           (Target    => Queue_Ref,
+           (Target    => Servant_Ref,
             Operation => "Register_Handler",
             Arg_List  => Arg_List,
             Result    => Result,
@@ -247,22 +245,22 @@ package body MOMA.Provider.Message_Handler is
          PolyORB.Requests.Invoke (Request);
          PolyORB.Requests.Destroy_Request (Request);
       end if;
-   end Register_To_Queue;
+   end Register_To_Servant;
 
    ------------------
    -- Set_Behavior --
    ------------------
 
    procedure Set_Behavior (
-      Self : access Object;
-      New_Behavior : in MOMA.Types.Call_Back_Behavior)
+      Self           : access Object;
+      New_Behavior   : in MOMA.Types.Call_Back_Behavior)
    is
       Previous_Behavior :
          constant MOMA.Types.Call_Back_Behavior := Self.Behavior;
    begin
       Self.Behavior := New_Behavior;
       if (New_Behavior /= Previous_Behavior) then
-         Register_To_Queue (Self);
+         Register_To_Servant (Self);
       end if;
    end Set_Behavior;
 
@@ -271,9 +269,9 @@ package body MOMA.Provider.Message_Handler is
    -----------------
 
    procedure Set_Handler (
-      Self : access Object;
-      New_Handler_Procedure : in Handler;
-      Handle_Behavior : Boolean := False)
+      Self                    : access Object;
+      New_Handler_Procedure   : in Handler;
+      Handle_Behavior         : Boolean := False)
    is
    begin
       Self.Handler_Procedure := New_Handler_Procedure;
@@ -287,9 +285,9 @@ package body MOMA.Provider.Message_Handler is
    ------------------
 
    procedure Set_Notifier (
-      Self : access Object;
-      New_Notifier_Procedure : in Notifier;
-      Notify_Behavior : Boolean := False)
+      Self                    : access Object;
+      New_Notifier_Procedure  : in Notifier;
+      Notify_Behavior         : Boolean := False)
    is
    begin
       Self.Notifier_Procedure := New_Notifier_Procedure;
@@ -302,9 +300,9 @@ package body MOMA.Provider.Message_Handler is
    -- Template_Handler --
    ----------------------
 
-   procedure Template_Handler
-     (Self : access Object;
-      Message : MOMA.Messages.Message'Class)
+   procedure Template_Handler (
+      Self     : access Object;
+      Message  : MOMA.Messages.Message'Class)
    is
       Id : constant String := MOMA.Types.To_Standard_String (
          MOMA.Messages.Get_Message_Id (Message));
@@ -319,8 +317,8 @@ package body MOMA.Provider.Message_Handler is
    -- Template_Notifier --
    -----------------------
 
-   procedure Template_Notifier
-     (Self : access Object)
+   procedure Template_Notifier (
+      Self : access Object)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);

@@ -45,14 +45,13 @@ pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
 with PolyORB.Services.Naming.Tools;
 
-with MOMA.Connection_Factories.Queues;
-with MOMA.Connections.Queues;
+with MOMA.Connection_Factories;
 with MOMA.Connections;
-with MOMA.Sessions.Queues;
+with MOMA.Sessions;
 with MOMA.Destinations;
 
-with MOMA.Message_Producers.Queues;
-with MOMA.Message_Consumers.Queues;
+with MOMA.Message_Producers;
+with MOMA.Message_Consumers;
 
 with MOMA.Messages;
 with MOMA.Messages.MAnys;
@@ -75,12 +74,12 @@ procedure Client is
    use Ada.Command_Line;
    use Ada.Text_IO;
 
-   use MOMA.Connection_Factories.Queues;
-   use MOMA.Sessions.Queues;
+   use MOMA.Connection_Factories;
+   use MOMA.Sessions;
    use MOMA.Connections;
    use MOMA.Destinations;
-   use MOMA.Message_Producers.Queues;
-   use MOMA.Message_Consumers.Queues;
+   use MOMA.Message_Producers;
+   use MOMA.Message_Consumers;
    use MOMA.Messages;
    use MOMA.Types;
 
@@ -95,14 +94,14 @@ procedure Client is
    Arg3               : MOMA.Types.String;
    Pool_Ref           : PolyORB.References.Ref := PolyORB.References.Nil_Ref;
    Router_Ref         : PolyORB.References.Ref := PolyORB.References.Nil_Ref;
-   MOMA_Factory       : Connection_Factory_Queue;
-   MOMA_Connection    : MOMA.Connections.Queues.Queue;
-   MOMA_Session       : MOMA.Sessions.Queues.Session_Queue;
+   MOMA_Factory       : Connection_Factory;
+   MOMA_Connection    : MOMA.Connections.Connection;
+   MOMA_Session       : MOMA.Sessions.Session;
    MOMA_Dest_Router   : MOMA.Destinations.Destination;
    MOMA_Dest_Pool     : MOMA.Destinations.Destination;
-   MOMA_Producer      : MOMA.Message_Producers.Queues.Queue;
-   MOMA_Consumer      : MOMA.Message_Consumers.Queues.Queue;
-   MOMA_Consumer_Acc  : MOMA.Message_Consumers.Queues.Queue_Acc;
+   MOMA_Producer      : MOMA.Message_Producers.Message_Producer;
+   MOMA_Consumer      : MOMA.Message_Consumers.Message_Consumer;
+   MOMA_Consumer_Acc  : MOMA.Message_Consumers.Message_Consumer_Acc;
 
    Ok : Boolean;
 
@@ -458,18 +457,18 @@ begin
 
    --  Initialize the connection factory
    --  (should be done by the administrator).
-   MOMA.Connection_Factories.Queues.Create (MOMA_Factory, Pool_Ref);
+   MOMA.Connection_Factories.Create (MOMA_Factory, Pool_Ref);
 
-   --  Create connection using Queue Connection Factory.
-   MOMA_Connection := MOMA.Connections.Queues.Queue
-      (MOMA.Connection_Factories.Queues.Create_Connection (MOMA_Factory));
+   --  Create connection using Connection Factory.
+   MOMA_Connection :=
+      MOMA.Connection_Factories.Create_Connection (MOMA_Factory);
 
    --  Initialize the destination
    --  (should be usually done by the administrator).
    --  NB : in this example the destination and the provider are references
    --       to the same thing (Pool_Ref). This will probably change later.
    if Pool_Ref /= PolyORB.References.Nil_Ref then
-      MOMA_Dest_Pool := MOMA.Sessions.Queues.Create_Destination
+      MOMA_Dest_Pool := MOMA.Sessions.Create_Destination
          (To_MOMA_String ("queue1"),
           Pool_Ref);
    end if;

@@ -33,12 +33,16 @@
 --  Actual implementation of the Message_Handler object.
 --  It is derived from PolyORB's Minimal_Servant.
 --  The call-back purpose of a Message Handler is to receive a Request from
---  the actual message queue servant when a message is received : this Request
---  can either be Handle (then the message can not be recovered by a call to
---  the Message_Consumer's Receive and has to be treated by the Handle
+--  the actual message consumer servant when a message is received : this
+--  Request can either be Handle (then the message can not be recovered by a
+--  call to the Message_Consumer's Receive and has to be treated by the Handle
 --  procedure), or Notify (then the message stays in the pool).
 
 --  $Id$
+
+with MOMA.Messages;
+with MOMA.Message_Consumers;
+with MOMA.Types;
 
 with PolyORB.Minimal_Servant;
 with PolyORB.Requests;
@@ -47,15 +51,18 @@ with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.References;
 
-with MOMA.Messages;
-with MOMA.Message_Consumers.Queues;
-with MOMA.Types;
-use MOMA.Message_Consumers.Queues;
-use MOMA.Types;
-
 package MOMA.Provider.Message_Handler is
 
+   use MOMA.Message_Consumers;
+   use MOMA.Types;
+
    type Object is new PolyORB.Minimal_Servant.Servant with private;
+   --  Self_Ref
+   --  Message_Cons
+   --  Handler_Procedure
+   --  Notifier_Procedure
+   --  Behavior
+   --  XXX Add comments about the various attributes
 
    type Object_Acc is access Object;
 
@@ -70,12 +77,13 @@ package MOMA.Provider.Message_Handler is
    --  The procedure to be called when a message is received, if the behavior
    --  is Notify.
 
-   procedure Initialize (Self : in out Object_Acc;
-                         Message_Queue : Queue_Acc;
-                         Self_Ref : PolyORB.References.Ref;
-                         Notifier_Procedure : in Notifier := null;
-                         Handler_Procedure : in Handler := null;
-                         Behavior : MOMA.Types.Call_Back_Behavior := None);
+   procedure Initialize (Self                : in out Object_Acc;
+                         Message_Cons        : Message_Consumer_Acc;
+                         Self_Ref            : PolyORB.References.Ref;
+                         Notifier_Procedure  : Notifier := null;
+                         Handler_Procedure   : Handler := null;
+                         Behavior            : MOMA.Types.Call_Back_Behavior
+                                                  := None);
    --  Initialize the Message_Handler and return its Reference.
    --  If the behavior is Handle and no Handler_Procedure is provided, the
    --  incoming messages will be lost.
@@ -85,32 +93,32 @@ package MOMA.Provider.Message_Handler is
    --  Message_Handler servant skeleton.
 
    procedure Set_Behavior (
-      Self : access Object;
-      New_Behavior : in MOMA.Types.Call_Back_Behavior);
-   --  Set the Behavior. A request is sent to the actual queue if the
+      Self           : access Object;
+      New_Behavior   : in MOMA.Types.Call_Back_Behavior);
+   --  Set the Behavior. A request is sent to the actual servant if the
    --  behavior has changed.
 
    procedure Set_Handler (
-      Self : access Object;
-      New_Handler_Procedure : in Handler;
-      Handle_Behavior : Boolean := False);
+      Self                    : access Object;
+      New_Handler_Procedure   : in Handler;
+      Handle_Behavior         : Boolean := False);
    --  Associate a Handler procedure to the Message Handler.
    --  Replace the current Handler procedure.
    --  The behavior is set to Handle if Handle_Behavior is true.
 
    procedure Set_Notifier (
-      Self : access Object;
-      New_Notifier_Procedure : in Notifier;
-      Notify_Behavior : Boolean := False);
-   --  Symmetric of Set_Handler
+      Self                    : access Object;
+      New_Notifier_Procedure  : in Notifier;
+      Notify_Behavior         : Boolean := False);
+   --  Symmetric of Set_Handler.
 
    procedure Template_Handler (
-      Self : access Object;
-      Message : MOMA.Messages.Message'Class);
+      Self     : access Object;
+      Message  : MOMA.Messages.Message'Class);
 
    procedure Template_Notifier (
       Self : access Object);
-   --  Templates for handler and notifier proceddures
+   --  Templates for handler and notifier procedures.
 
    function If_Desc
      return PolyORB.Obj_Adapters.Simple.Interface_Description;
@@ -119,11 +127,11 @@ package MOMA.Provider.Message_Handler is
 
 private
    type Object is new PolyORB.Minimal_Servant.Servant with record
-      Self_Ref : PolyORB.References.Ref;
-      Message_Queue : Queue_Acc;
-      Handler_Procedure : Handler := null;
-      Notifier_Procedure : Notifier := null;
-      Behavior : MOMA.Types.Call_Back_Behavior := None;
+      Self_Ref             : PolyORB.References.Ref;
+      Message_Cons         : Message_Consumer_Acc;
+      Handler_Procedure    : Handler := null;
+      Notifier_Procedure   : Notifier := null;
+      Behavior             : MOMA.Types.Call_Back_Behavior := None;
    end record;
 
    function Get_Parameter_Profile (Method : String)
@@ -143,8 +151,8 @@ private
    --  Execute the Notifier procedure.
    --  Called when receiving a Notify request.
 
-   procedure Register_To_Queue (Self : access Object);
+   procedure Register_To_Servant (Self : access Object);
    --  Register the Message_Handler or change the Behavior,
-   --  via a Request to the actual queue.
+   --  via a Request to the actual servant.
 
 end MOMA.Provider.Message_Handler;

@@ -34,16 +34,14 @@
 
 --  $Id$
 
---  XXX should connection be abstract and tagged ?
---  XXX is a derivation for queues and topics required ?
-
+with MOMA.Sessions;
 with MOMA.Types;
 
 with PolyORB.References;
 
 package MOMA.Connections is
 
-   type Connection is abstract tagged private;
+   type Connection is private;
    --  Client_Id : Id of the MOMA client.
    --  Ref       : Reference.
 
@@ -51,6 +49,12 @@ package MOMA.Connections is
    --  Close the connection.
 
    --  Accessors to Connection internal data.
+
+   function Create_Session (Self             : Connection;
+                            Transacted       : Boolean;
+                            Acknowledge_Mode : MOMA.Types.Acknowledge_Type)
+                            return MOMA.Sessions.Session;
+   --  Create a session from a Connection.
 
    function Get_Client_Id (Self : Connection)
                            return MOMA.Types.String;
@@ -90,7 +94,7 @@ package MOMA.Connections is
 
 
 private
-   type Connection is abstract tagged record
+   type Connection is record
       Client_Id  : MOMA.Types.String;
       Ref        : PolyORB.References.Ref;
    end record;

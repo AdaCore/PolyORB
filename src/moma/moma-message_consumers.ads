@@ -31,30 +31,50 @@
 ------------------------------------------------------------------------------
 
 --  A Message_Consumer object is the client view of the message receiving
---  process. It is the façade to all communications carried out with
+--  process. It is the facade to all communications carried out with
 --  a message pool to receive messages; it contains the stub to access
---  'Message_Consumer' servants (see MOMA.Provider and child packages
---  for more details).
+--  'Message_Consumer' servants (see MOMA.Provider for more details).
 
---  NOTE: A MOMA client must use only this package, and its child packages to
---  receive messages from a message pool.
+--  NOTE: A MOMA client must use only this package to receive messages from a
+--  message pool.
 
 --  $Id$
 
+with Ada.Real_Time;
+
 with MOMA.Destinations;
+with MOMA.Messages;
+
 with PolyORB.References;
 
 package MOMA.Message_Consumers is
 
-   type Message_Consumer is abstract tagged private;
-   --  Destination : origin of all messages received.
-   --  Ref : reference.
-   --  (XXX to be defined, connection reference, pool reference ?)
+   type Message_Consumer is private;
+   --  Destination   : origin of all messages received.
+   --  Ref           : reference to the provider servant
+
+   type Message_Consumer_Acc is access Message_Consumer;
 
    procedure Close;
    --  XXX not implemented. Rename it to Destroy ?
 
    function Get_Message_Selector return String;
+   --  XXX not implemented.
+
+   function Receive (Self : Message_Consumer)
+      return MOMA.Messages.Message'Class;
+   --  Get next message from the pool if it is non empty; otherwise the call
+   --  is blocking until a new message is received by the pool.
+   --  XXX not all cases are tested !
+
+   function Receive (Timeout : Ada.Real_Time.Time)
+      return MOMA.Messages.Message;
+   --  Get next message from the pool if it is non empty; otherwise will
+   --  wait 'Timeout' until a new message arrives.
+   --  XXX not implemented.
+
+   function Receive_No_Wait return MOMA.Messages.Message;
+   --  Get next message from the pool if it is non empty; exit otherwise.
    --  XXX not implemented.
 
    --  Accessors to Message_Consumer internal data.
@@ -67,11 +87,11 @@ package MOMA.Message_Consumers is
    function Get_Destination (Self : Message_Consumer)
                              return MOMA.Destinations.Destination;
 
-   procedure Set_Destination (Self : in out Message_Consumer'Class;
+   procedure Set_Destination (Self : in out Message_Consumer;
                               Dest : MOMA.Destinations.Destination);
 
 private
-   type Message_Consumer is abstract tagged record
+   type Message_Consumer is record
       Destination    : MOMA.Destinations.Destination;
       Ref            : PolyORB.References.Ref;
    end record;

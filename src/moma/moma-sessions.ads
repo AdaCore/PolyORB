@@ -40,13 +40,16 @@
 --  $Id$
 
 with MOMA.Destinations;
+with MOMA.Message_Consumers;
+with MOMA.Message_Producers;
+with MOMA.Provider.Message_Handler;
 with MOMA.Types;
+
+with PolyORB.References;
 
 package MOMA.Sessions is
 
-   --   type Session is abstract tagged private;
-
-   type Session is abstract tagged record
+   type Session is record
       Transacted : Boolean;
       Acknowledge_Mode : MOMA.Types.Acknowledge_Type;
    end record;
@@ -61,6 +64,37 @@ package MOMA.Sessions is
 
    procedure Rollback;
 
+   function Create_Receiver (Self : Session;
+                             Dest : MOMA.Destinations.Destination)
+      return MOMA.Message_Consumers.Message_Consumer_Acc;
+
+   function Create_Receiver (Dest             : MOMA.Destinations.Destination;
+                             Message_Selector : MOMA.Types.String)
+      return MOMA.Message_Consumers.Message_Consumer;
+
+   --  XXX Add functions, or modify existing ones, to implement durable
+   --  subscription to a topic.
+
+   function Create_Handler
+     (Self           : Session;
+      Message_Cons   : MOMA.Message_Consumers.Message_Consumer_Acc)
+      return MOMA.Provider.Message_Handler.Object_Acc;
+   --  Create a Message Handler associated to the specified Message consumer.
+   --  Must set the Handler and Notifier procedures afterwards.
+
+   function Create_Sender (Self : Session;
+                           Dest : MOMA.Destinations.Destination)
+                           return MOMA.Message_Producers.Message_Producer;
+   --  Create a 'sender', a message producer, its destination is a MOM object.
+
+   function Create_Sender (ORB_Object : MOMA.Types.String;
+                           Mesg_Pool  : MOMA.Types.String)
+                           return MOMA.Message_Producers.Message_Producer;
+   --  Create a 'sender', a message producer, its destination is an ORB object.
+
+   function Create_Temporary return MOMA.Destinations.Destination;
+   --  XXX Not implemented.
+
    procedure Subscribe (Topic : MOMA.Destinations.Destination;
                         Pool  : MOMA.Destinations.Destination);
    --  Subscribe a Pool to a Topic. See MOMA.Destinations for more details.
@@ -69,8 +103,12 @@ package MOMA.Sessions is
                           Pool  : MOMA.Destinations.Destination);
    --  Unsubscribe a Pool from a Topic. See MOMA.Destinations for more details.
 
-   --  XXX These two procedures would rather be elsewhere.
+   function Create_Destination (Name   : MOMA.Types.String;
+                                Remote : PolyORB.References.Ref)
+      return MOMA.Destinations.Destination;
+   --  Create a destination whose target is the Remote reference (currently a
+   --  message pool).
 
-private
+   --  XXX These three procedures would rather be elsewhere.
 
 end MOMA.Sessions;

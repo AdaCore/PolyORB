@@ -35,8 +35,6 @@
 
 --  $Id$
 
---  XXX is a derivation for queues and topics required ?
-
 with MOMA.Types;
 
 with PolyORB.Any;
@@ -49,9 +47,6 @@ package MOMA.Destinations is
    --         must be set to the Topic_Id.
    --  Ref  : Reference to the actual destination object.
    --  Kind : The kind of object it is really (message pool, router, ...).
-
-   type Queue is private;
-   --  XXX necessary ??
 
    function Create (Name : MOMA.Types.String;
                     Ref  : PolyORB.References.Ref;
@@ -118,8 +113,6 @@ private
       Ref  : PolyORB.References.Ref;
       Kind : MOMA.Types.Destination_Type;
    end record;
-
-   type Queue is new Destination;
 
    procedure Set_Kind (Self : in out Destination;
                        Kind : MOMA.Types.Destination_Type);

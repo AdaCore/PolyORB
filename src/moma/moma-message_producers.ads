@@ -31,29 +31,31 @@
 ------------------------------------------------------------------------------
 
 --  A Message_Producer object is the client view of the message sending
---  process. It is the façade to all communication carried out with
+--  process. It is the facade to all communication carried out with
 --  a message pool to send messages; it contains the stub to access
---  'Message_Producer' servants (see MOMA.Provider and child packages
---  for more details).
+--  'Message_Producer' servants (see MOMA.Provider for more details).
 
---  NOTE: A MOMA client must use only this package, and its child packages to
---  send messages to a message pool.
+--  NOTE: A MOMA client must use only this package to send messages to a
+--  message pool.
 
 --  $Id$
 
 with Ada.Real_Time;
 
 with MOMA.Destinations;
+with MOMA.Messages;
 with MOMA.Types;
 
+with PolyORB.Annotations;
 with PolyORB.Call_Back;
 with PolyORB.References;
+with PolyORB.Requests;
 
 package MOMA.Message_Producers is
 
    use Ada.Real_Time;
 
-   type Message_Producer is abstract tagged private;
+   type Message_Producer is private;
    --  Priority_Level : priority of the message producer.
    --  Persistent     : default persistent status for sent messages.
    --  TTL            : default time to live for sent messages.
@@ -62,8 +64,31 @@ package MOMA.Message_Producers is
    --  Ref            : reference (XXX to be defined).
    --  CBH            : call back handler associated to the producer.
 
+   type CBH_Note is new PolyORB.Annotations.Note with record
+      Dest : PolyORB.References.Ref;
+   end record;
+
    procedure Close;
    --  XXX not implemented. Rename it to Destroy ?
+
+   procedure Send (Self    : Message_Producer;
+                   Message : in out MOMA.Messages.Message'Class);
+   --  Send a Message using the producer Self.
+   --  XXX should send asynchronous message !!!
+
+   procedure Send (Self           : Message_Producer;
+                   Message        : MOMA.Messages.Message'Class;
+                   Persistent     : Boolean;
+                   Priority_Value : MOMA.Types.Priority;
+                   TTL            : Time);
+   --  Same as above, overriding default producer's values.
+   --  XXX not implemented.
+
+   procedure Response_Handler
+     (Req : PolyORB.Requests.Request;
+      CBH : access PolyORB.Call_Back.Call_Back_Handler);
+   --  Call back handler attached to a MOM producer interacting with
+   --  an ORB node.
 
    --  Accessors to Message_Producer internal data.
 
@@ -90,7 +115,7 @@ package MOMA.Message_Producers is
    function Get_Destination (Self : Message_Producer)
                              return MOMA.Destinations.Destination;
 
-   procedure Set_Destination (Self : in out Message_Producer'Class;
+   procedure Set_Destination (Self : in out Message_Producer;
                               Dest : MOMA.Destinations.Destination);
 
    --  XXX These two functions should not be called from the client
@@ -107,9 +132,10 @@ package MOMA.Message_Producers is
 
    procedure Set_CBH (Self : in out Message_Producer;
                       CBH  : PolyORB.Call_Back.CBH_Access);
+
 private
 
-   type Message_Producer is abstract tagged record
+   type Message_Producer is record
       Priority_Level : MOMA.Types.Priority;
       Persistent     : Boolean;
       TTL            : Time;

@@ -45,6 +45,26 @@ package body MOMA.Connections is
       null;
    end Close;
 
+   --------------------
+   -- Create_Session --
+   --------------------
+
+   function Create_Session (Self             : Connection;
+                            Transacted       : Boolean;
+                            Acknowledge_Mode : MOMA.Types.Acknowledge_Type)
+                            return MOMA.Sessions.Session
+   is
+      Session : MOMA.Sessions.Session;
+   begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+      --  XXX ??? Why
+      Session.Transacted := Transacted;
+      Session.Acknowledge_Mode := Acknowledge_Mode;
+      return Session;
+   end Create_Session;
+
    -------------------
    -- Get_Client_Id --
    -------------------

@@ -32,7 +32,17 @@
 
 --  $Id$
 
+with PolyORB.Any;
+with PolyORB.Any.NVList;
+with PolyORB.Requests;
+with PolyORB.Types;
+
 package body MOMA.Message_Consumers is
+
+   use MOMA.Messages;
+
+   use PolyORB.Any;
+   use PolyORB.Types;
 
    -----------
    -- Close --
@@ -74,12 +84,76 @@ package body MOMA.Message_Consumers is
       return Self.Ref;
    end Get_Ref;
 
+   -------------
+   -- Receive --
+   -------------
+
+   function Receive (Self : Message_Consumer)
+      return MOMA.Messages.Message'Class
+   is
+      Argument_Mesg : PolyORB.Any.Any := PolyORB.Any.To_Any
+        (To_PolyORB_String (""));
+      --  XXX Temporary hack, should pass message filter ... or not ?
+
+      Request        : PolyORB.Requests.Request_Access;
+      Arg_List       : PolyORB.Any.NVList.Ref;
+      Result         : PolyORB.Any.NamedValue;
+      Result_Name    : PolyORB.Types.String := To_PolyORB_String ("Result");
+   begin
+      PolyORB.Any.NVList.Create (Arg_List);
+
+      PolyORB.Any.NVList.Add_Item (Arg_List,
+                                   To_PolyORB_String ("Message"),
+                                   Argument_Mesg,
+                                   PolyORB.Any.ARG_IN);
+
+      Result := (Name      => PolyORB.Types.Identifier (Result_Name),
+                 Argument  => PolyORB.Any.Get_Empty_Any (TC_MOMA_Message),
+                 Arg_Modes => 0);
+
+      PolyORB.Requests.Create_Request
+        (Target    => Get_Ref (Self),
+         Operation => "Get",
+         Arg_List  => Arg_List,
+         Result    => Result,
+         Req       => Request);
+
+      PolyORB.Requests.Invoke (Request);
+
+      PolyORB.Requests.Destroy_Request (Request);
+
+      return MOMA.Messages.From_Any (Result.Argument);
+   end Receive;
+
+   function Receive (Timeout : Ada.Real_Time.Time)
+      return MOMA.Messages.Message
+   is
+   begin
+      raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
+      return Receive (Timeout);
+      pragma Warnings (On);
+   end Receive;
+
+   ---------------------
+   -- Receive_No_Wait --
+   ---------------------
+
+   function Receive_No_Wait return MOMA.Messages.Message is
+   begin
+      raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
+      return Receive_No_Wait;
+      pragma Warnings (On);
+   end Receive_No_Wait;
+
    ---------------------
    -- Set_Destination --
    ---------------------
 
-   procedure Set_Destination (Self : in out Message_Consumer'Class;
-                              Dest : MOMA.Destinations.Destination) is
+   procedure Set_Destination (Self : in out Message_Consumer;
+                              Dest : MOMA.Destinations.Destination)
+   is
    begin
       Self.Destination := Dest;
    end Set_Destination;
